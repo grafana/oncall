@@ -1,0 +1,72 @@
+<blockquote>
+    Zabbix can use the script to send the alerts to Grafana OnCall. Please use the format below
+</blockquote>
+<p>
+<h6>Body Fields Format:</h6>
+<ul>
+    <li><code>alert_uid</code> [char][not required] - unique alert ID for grouping;</li>
+    <li><code>title</code> [char][not required] - title;</li>
+    <li><code>image_url</code> [char][not required] - url for image attached to alert;</li>
+    <li><code>state</code> [char][not required] - could be &quot;ok&quot; or &quot;alerting&quot;, helpful for auto-resolving;</li>
+    <li><code>link_to_upstream_details</code> [char][not required] - link back to your monitoring system;</li>
+    <li><code>message</code> [char][not required] - alert details;</li>
+</ul>
+</p>
+
+<h6>Script example:</h6>
+<p>
+<pre>
+#!/bin/bash
+# This is the modification of original ericos's shell script.
+
+# Get the url ($1), subject ($2), and message ($3)
+url="$1"
+subject="${2//$'\r\n'/'\n'}"
+message="${3//$'\r\n'/'\n'}"
+
+# Alert state depending on the subject indicating whether it is a trigger going in to problem state or recovering
+recoversub='^RECOVER(Y|ED)?$|^OK$|^Resolved.*'
+
+if [[ "$subject" =~ $recoversub ]]; then
+    state='ok'
+else
+    state='alerting'
+fi
+
+payload='{
+    "title": "'${subject}'",
+    "state": "'${state}'",
+    "message": "'${message}'"
+}'
+
+# Alert group identifier from the subject of action. Grouping will not work without AMIXR_GROUP in the action subject
+regex='AMIXR_GROUP: ([a-zA-Z0-9_\"]*)'
+if [[ "$subject" =~ $regex ]]; then
+    alert_uid=${BASH_REMATCH[1]}
+    payload='{
+        "alert_uid": "'${alert_uid}'",
+        "title": "'${subject}'",
+        "state": "'${state}'",
+        "message": "'${message}'"
+    }'
+fi
+
+return=$(curl $url -d "${payload}" -H "Content-Type: application/json" -X POST)
+
+</pre>
+</p>
+
+<h4>Next steps:</h4>
+<p><ol>
+    <li>
+        1. Add the routes and escalations in <code class='code-inline'>Escalations settings</code>
+    </li>
+    <li>
+        2. Check grouping, auto-resolving, and rendering templates in
+        <code class='code-inline'>Alert Templates</code> Settings
+    </li>
+    <li>
+        3. Make sure all the users set up their <code class='code-inline'>Personal Notifications</code> Settings
+        on the <code class='code-inline'>Users</code> Page
+    </li>
+</ol></p>

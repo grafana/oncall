@@ -1,0 +1,16 @@
+<ol>
+    <li>
+        <p>In command line execute following commands:</p>
+        <pre><code>
+            echo 'curl -s {{ heartbeat_url }} > /dev/null' > heartbeat_script.sh
+            chmod +x heartbeat_script.sh
+            crontab -e
+        </code></pre>
+    </li>
+    <li>
+        Add this line to crontab:
+        <pre><code>
+            * * * * * /path/to/your/heartbeat_script.sh
+        </code></pre>
+    </li>
+</ol>

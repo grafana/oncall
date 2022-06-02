@@ -1,0 +1,15 @@
+.img {
+  width: 100%;
+}
+
+.message ul {
+  margin-left: 24px;
+}
+
+.message p {
+  margin-bottom: 0;
+}
+
+.message code {
+  white-space: break-spaces;
+}

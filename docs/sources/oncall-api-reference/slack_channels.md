@@ -1,0 +1,38 @@
++++
+title = "Slack Channels HTTP API"
+aliases = ["/docs/grafana-cloud/oncall/oncall-api-reference/slack_channels/"]
+weight = 1300
++++
+
+# List Slack Channels
+
+```shell
+curl "{{API_URL}}/api/v1/slack_channels/" \
+  --request GET \
+  --header "Authorization: meowmeowmeow" \
+  --header "Content-Type: application/json" 
+```
+
+The above command returns JSON structured in the following way:
+
+```json
+{
+    "count": 1,
+    "next": null,
+    "previous": null,
+    "results": [
+        {
+            "name": "meow_channel",
+            "slack_id": "MEOW_SLACK_ID"
+        }
+    ]
+}
+```
+
+The following available filter parameter should be provided as a `GET` argument:
+
+* `channel_name`
+
+**HTTP Request**
+
+`GET {{API_URL}}/api/v1/slack_channels/`

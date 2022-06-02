@@ -1,0 +1,29 @@
+.select {
+  width: 200px;
+}
+
+.heartbeat-button {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  margin-right: 8px;
+  display: inline-block;
+  background-color: grey;
+}
+
+.heartbeat-button_false {
+  background-color: #ff4d4f;
+}
+
+.heartbeat-button_true {
+  background-color: #73d13d;
+}
+
+.root .select {
+  width: 250px;
+  display: inline-block;
+}
+
+.buttons {
+  margin-top: 20px;
+}

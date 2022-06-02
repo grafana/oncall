@@ -1,0 +1,18 @@
+.root {
+  z-index: 1062;
+}
+
+.step {
+  display: flex;
+  align-items: center;
+}
+
+.root .control {
+  margin-right: 10px;
+  flex-shrink: 0;
+}
+
+.step .select {
+  width: 250px !important;
+  flex-shrink: 0;
+}

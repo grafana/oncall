@@ -1,0 +1,27 @@
+<h4>How to start sending alerts to Grafana OnCall from Pingdom</h4>
+<p>
+<ol>
+    <li>1. Go to https://my.pingdom.com/integrations/settings</li>
+    <li>2. Click &quot;Add Integration&quot;.</li>
+    <li>3. Type: Webhook. Name: Amixr. URL:</li>
+    <pre>{{ alert_receive_channel.integration_url }}</pre>
+    <li>4. Go to &quot;Reports&quot; -> &quot;Uptime&quot; -> &quot;Edit Check&quot;.</li>
+    <li>5. Select Amixr integration in the bottom.</li>
+    <li>6. Click &quot;Modify Check&quot; to save.</li>
+</ol>
+</p>
+
+<h4>Next steps:</h4>
+<p><ol>
+    <li>
+        1. Add the routes and escalations in <code class='code-inline'>Escalations settings</code>
+    </li>
+    <li>
+        2. Check grouping, auto-resolving, and rendering templates in
+        <code class='code-inline'>Alert Templates</code> Settings
+    </li>
+    <li>
+        3. Make sure all the users set up their <code class='code-inline'>Personal Notifications</code> Settings
+        on the <code class='code-inline'>Users</code> Page
+    </li>
+</ol></p>>

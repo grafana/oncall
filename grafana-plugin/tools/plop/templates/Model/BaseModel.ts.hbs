@@ -1,0 +1,65 @@
+import { action, observable } from 'mobx';
+
+import { RootStore } from 'state';
+import { makeRequest } from 'network';
+
+import BaseStore from 'models/base_store';
+
+import { {{pascalCase modelName}} } from './{{modelName}}.types';
+
+export class {{pascalCase modelName}}Store extends BaseStore {
+    @observable.shallow
+    public items: { [id: number]: {{pascalCase modelName}} } = {};
+
+    @observable.shallow
+    public searchResult: { [key: string]: {{pascalCase modelName}}['id'][] } = {};
+
+    constructor(rootStore: RootStore) {
+        super(rootStore);
+
+        this.path = '/{{modelName}}/';
+    }
+
+    @action
+    public async updateById(id: {{pascalCase modelName}}['id']) {
+        const response = await this.getById(id);
+
+        this.items = {
+            ...this.items,
+            [id]: response,
+        };
+    }
+
+    @action
+    public async updateItems(query: string = '') {
+        const { results } = await makeRequest(`${this.path}`, {
+            params: { search: query },
+        });
+
+        this.items = {
+            ...this.items,
+            ...results.reduce(
+                (acc: { [key: number]: {{pascalCase modelName}} }, item: {{pascalCase modelName}}) => ({
+                    ...acc,
+                    [item.id]: item,
+                }),
+                {}
+            ),
+        };
+
+        this.searchResult = {
+            ...this.searchResult,
+            [query]: results.map((item: {{pascalCase modelName}}) => item.id),
+        };
+    }
+
+    getSearchResult(query: string = '') {
+        if (!this.searchResult[query]) {
+            return undefined;
+        }
+
+        return this.searchResult[query].map(
+            ({{camelCase modelName}}Id: {{pascalCase modelName}}['id']) => this.items[{{camelCase modelName}}Id]
+        );
+    }
+}

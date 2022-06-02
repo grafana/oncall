@@ -1,0 +1,200 @@
+{
+  "$schema": "https://raw.githubusercontent.com/grafana/grafana/master/docs/sources/developers/plugins/plugin.schema.json",
+  "type": "app",
+  "name": "Grafana OnCall",
+  "id": "grafana-oncall-app",
+  "info": {
+    "description": "Incident Response Manager",
+    "author": {
+      "name": "Grafana Labs",
+      "url": "https://grafana.com"
+    },
+    "keywords": [
+      "oncall",
+      "irm",
+      "incident",
+      "response"
+    ],
+    "logos": {
+      "small": "img/logo.svg",
+      "large": "img/logo.svg"
+    },
+    "links": [
+      {
+        "name": "Website",
+        "url": "https://github.com/grafana/oncall"
+      },
+      {
+        "name": "License",
+        "url": "https://github.com/grafana/oncall/blob/main/LICENSE"
+      }
+    ],
+    "screenshots": [
+      { "name": "Escalation chain", "path": "img/screenshot.png" }
+    ],
+    "version": "%VERSION%",
+    "updated": "%TODAY%"
+  },
+  "includes": [
+    {
+      "type": "page",
+      "name": "Alert Groups",
+      "path": "/a/grafana-oncall-app/?page=incidents",
+      "role": "Viewer",
+      "addToNav": true,
+      "defaultNav": true
+    },
+    {
+      "type": "page",
+      "name": "Integrations",
+      "path": "/a/grafana-oncall-app/?page=integrations",
+      "role": "Viewer",
+      "addToNav": true
+    },{
+      "type": "page",
+      "name": "Escalation Chains",
+      "path": "/a/grafana-oncall-app/?page=escalations",
+      "role": "Viewer",
+      "addToNav": true
+    },
+    {
+      "type": "page",
+      "name": "Users",
+      "path": "/a/grafana-oncall-app/?page=users",
+      "role": "Viewer",
+      "addToNav": true
+    },
+    {
+      "type": "page",
+      "name": "Schedules",
+      "path": "/a/grafana-oncall-app/?page=schedules",
+      "role": "Viewer",
+      "addToNav": true
+    },
+    {
+      "type": "page",
+      "name": "ChatOps",
+      "path": "/a/grafana-oncall-app/?page=chat-ops",
+      "role": "Viewer",
+      "addToNav": true
+    },
+    {
+      "type": "page",
+      "name": "Maintenance",
+      "path": "/a/grafana-oncall-app/?page=maintenance",
+      "role": "Viewer",
+      "addToNav": true
+    },
+    {
+      "type": "page",
+      "name": "Settings",
+      "path": "/a/grafana-oncall-app/?page=settings",
+      "role": "Viewer",
+      "addToNav": true
+    },
+    {
+      "type": "page",
+      "name": "Outgoing Webhooks",
+      "path": "/a/grafana-oncall-app/?page=outgoing_webhooks",
+      "role": "Viewer",
+      "addToNav": true
+    }
+  ],
+  "routes": [
+    {
+      "path": "api/internal/v1/plugin/install",
+      "method": "*",
+      "url": "{{ .JsonData.onCallApiUrl }}/api/internal/v1/plugin/install",
+      "headers": [
+        {
+          "name": "X-Instance-Context",
+          "content": "{ \"stack_id\": \"{{ .JsonData.stackId }}\", \"org_id\": \"{{ .JsonData.orgId }}\", \"grafana_token\": \"{{ .SecureJsonData.grafanaToken }}\" }"
+        },
+        {
+          "name": "Authorization",
+          "content": "{{ .SecureJsonData.onCallApiToken }}"
+        }
+      ]
+    },
+    {
+      "path": "api/internal/v1/plugin/self-hosted/install",
+      "method": "*",
+      "url": "{{ .JsonData.onCallApiUrl }}/api/internal/v1/plugin/self-hosted/install",
+      "headers": [
+        {
+          "name": "X-Instance-Context",
+          "content": "{ \"grafana_token\": \"{{ .SecureJsonData.grafanaToken }}\", \"grafana_url\": \"{{ .JsonData.grafanaUrl }}\" }"
+        },
+        {
+          "name": "Authorization",
+          "content": "{{ .SecureJsonData.onCallInvitationToken }}"
+        }
+      ]
+    },
+    {
+      "path": "api/internal/v1/plugin/sync",
+      "method": "*",
+      "url": "{{ .JsonData.onCallApiUrl }}/api/internal/v1/plugin/sync",
+      "headers": [
+        {
+          "name": "X-Instance-Context",
+          "content": "{ \"stack_id\": \"{{ .JsonData.stackId }}\", \"org_id\": \"{{ .JsonData.orgId }}\" }"
+        },
+        {
+          "name": "Authorization",
+          "content": "{{ .SecureJsonData.onCallApiToken }}"
+        }
+      ]
+    },
+    {
+      "path": "api/internal/v1/plugin/*",
+      "method": "*",
+      "url": "{{ .JsonData.onCallApiUrl }}/api/internal/v1/plugin/",
+      "headers": [
+        {
+          "name": "X-Instance-Context",
+          "content": "{ \"stack_id\": \"{{ .JsonData.stackId }}\", \"org_id\": \"{{ .JsonData.orgId }}\" }"
+        },
+        {
+          "name": "Authorization",
+          "content": "{{ .SecureJsonData.onCallApiToken }}"
+        }
+      ]
+    },
+    {
+      "path": "api/internal/v1/login/slack-install-free/",
+      "method": "*",
+      "url": "{{ .JsonData.onCallApiUrl }}/api/internal/v1/login/slack-install-free/",
+      "headers": [
+        {
+          "name": "X-Instance-Context",
+          "content": "{ \"stack_id\": \"{{ .JsonData.stackId }}\", \"org_id\": \"{{ .JsonData.orgId }}\" }"
+        },
+        {
+          "name": "Authorization",
+          "content": "{{ .SecureJsonData.onCallApiToken }}"
+        }
+      ]
+    },
+    {
+      "path": "api/internal/v1/*",
+      "method": "*",
+      "url": "{{ .JsonData.onCallApiUrl }}/api/internal/v1/",
+      "headers": [
+        {
+          "name": "X-Instance-Context",
+          "content": "{ \"stack_id\": \"{{ .JsonData.stackId }}\", \"org_id\": \"{{ .JsonData.orgId }}\" }"
+        },
+        {
+          "name": "Authorization",
+          "content": "{{ .SecureJsonData.onCallApiToken }}"
+        }
+      ]
+    }
+  ],
+  "dependencies": {
+    "grafanaDependency": ">=8.3.2",
+    "grafanaVersion": "8.3",
+    "plugins": []
+  }
+}

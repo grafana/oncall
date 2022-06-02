@@ -1,0 +1,83 @@
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="description" content="">
+    <meta name="author" content="">
+
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css" integrity="sha384-MCw98/SFnGE8fJT3GXwEOngsV7Zt27NXFoaoApmYm81iuXoPkFOJwJ8ERdknLPMO" crossorigin="anonymous">
+    <script src="https://code.jquery.com/jquery-3.2.1.min.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/js-cookie@2/src/js.cookie.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.0/clipboard.min.js"></script>
+    <!-- <script src="http://code.jquery.com/jquery-3.3.1.min.js"></script> -->
+
+  </head>
+  <body>
+    <main role="main">
+      <section class="jumbotron text-center">
+        <div class="container">
+          <h1 class="jumbotron-heading">This is a Grafana OnCall integration link.</h1>
+          <p class="lead text-muted">
+            This link supposed to be used for pushing alerts from monitoring to Grafana OnCall. Share it with those who are responsible for configuring your monitoring tools. Most likely they know what to do. <br>
+            <div class="center alert alert-success" role="alert">
+              {% if request.is_secure %}https{% else %}http{% endif %}://{{ request.META.HTTP_HOST }}{{ url }}
+            </div>
+            <button class="btn btn-primary" data-clipboard-text="{% if request.is_secure %}https{% else %}http{% endif %}://{{ request.META.HTTP_HOST }}{{ url }}" data-toggle="tooltip" data-placement="right" data-trigger="click" title="Copied!">
+              Copy to clipboard
+            </button>
+          </p>
+          {% if show_button %}
+          <p>
+              <button class="btn btn-primary" id="post_example">
+                Simulate incident from {{ source }}
+              </button>
+          </p>
+          {% endif %}
+          <p>
+            <a href={{ docs_url }} class="btn btn-success">Go to the Guide</a>
+          </p>
+        </div>
+      </section>
+    </main>
+    <script>
+    $(document).ready(function() {
+      new ClipboardJS('.btn');
+      $(function () {
+        $('[data-toggle="tooltip"]').tooltip()
+      })
+    });
+    </script>
+    <script>
+    
+    $("#post_example").click(function(e) {
+        e.preventDefault();
+        Cookies.remove('csrftoken');
+        $.ajax({
+            type: "POST",
+            url: "{% if request.is_secure %}https{% else %}http{% endif %}://{{ request.META.HTTP_HOST }}{{ url }}",
+            data: '{{ payload|safe }}',
+            contentType: "application/json; charset=utf-8",
+            success: function(result) {
+              $('#post_example').attr('title', "Success")
+                .tooltip({
+                    trigger: 'click',
+                    placement: 'right'
+                });
+            },
+            error: function(result) {
+              console.log(result)
+              $('#post_example').attr('title', "Error")
+                  .tooltip({
+                      trigger: 'click',
+                      placement: 'right'
+                  });
+            },
+        });
+    });
+    </script>
+  </body>
+</html>

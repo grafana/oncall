@@ -1,0 +1,29 @@
+import React, { Component } from 'react';
+import cn from 'classnames/bind';
+
+import styles from './{{pascalCase componentName}}.module.css';
+
+const cx = cn.bind(styles);
+
+interface {{pascalCase componentName}}Props {
+
+}
+
+interface {{pascalCase componentName}}State {
+
+}
+
+class {{pascalCase componentName}} extends Component<{{pascalCase componentName}}Props, {{pascalCase componentName}}State> {
+    public state: {{pascalCase componentName}}State = { };
+
+    render() {
+        const { } = this.props;
+        const { } = this.state;
+
+        return (
+            <div className={cx('root')} />
+        );
+    }
+}
+
+export default {{pascalCase componentName}};

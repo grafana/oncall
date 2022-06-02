@@ -1,0 +1,33 @@
+{% load static %}
+<ol>
+    <li>Open your Zabbix interface</li>
+    <li>We’ll use Zabbix Simple Check to send periodic requests to a special amixr heartbeat endpoint</li>
+    <li>First we would need to create a host. Go to Configuration -> Host Create -> host</li>
+</ol>
+<img src='{{ service_url|add:'/static/images/heartbeat_instructions/heartbeat_zabbix_1.png' }}'
+             alt="zabbix_instruction_1" width="400">
+<ol start="4">
+    <li>Fill Host name, Groups, DNS name (app.amixr.io), select DNS and click Save</li>
+</ol>
+<img src='{{ service_url|add:'/static/images/heartbeat_instructions/heartbeat_zabbix_2.png' }}'
+             alt="zabbix_instruction_2" width="400">
+<ol start="5">
+    <li>Click Web and create a new Web Scenario</li>
+</ol>
+<img src='{{ service_url|add:'/static/images/heartbeat_instructions/heartbeat_zabbix_3.png' }}'
+             alt="zabbix_instruction_3" width="400">
+<ol start="6">
+    <li>Fill the name, interval (10m) and go to the Steps section</li>
+</ol>
+<img src='{{ service_url|add:'/static/images/heartbeat_instructions/heartbeat_zabbix_4.png' }}'
+             alt="zabbix_instruction_4" width="400">
+<ol start="7">
+    <li>In the steps section add Name, and the unique url from amixr</li>
+</ol>
+<img src='{{ service_url|add:'/static/images/heartbeat_instructions/heartbeat_zabbix_5.png' }}'
+             alt="zabbix_instruction_5" width="400">
+<ol start="8">
+    <li>In the steps section add Name, and the unique url from amixr</li>
+</ol>
+
+

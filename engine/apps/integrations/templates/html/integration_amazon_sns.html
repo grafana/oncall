@@ -1,0 +1,28 @@
+<h4>How to start sending alerts to Grafana OnCall from Amazon SNS</h4>
+<p><ol>
+    <li>
+        1. Create a new Topic in
+        <a href="https://console.aws.amazon.com/sns">https://console.aws.amazon.com/sns</a>
+    </li>
+    <li>2. Open this topic, then create a new subscription</li>
+    <li>3. Choose the protocol HTTPS</li>
+    <li>
+        4. Add the following webhook URL to the Amazon SNS Endpoint
+        <pre>{{ alert_receive_channel.integration_url }}</pre>
+    </li>
+</ol></p>
+
+<h4>Next steps:</h4>
+<p><ol>
+    <li>
+        1. Add the routes and escalations in <code class='code-inline'>Escalations settings</code>
+    </li>
+    <li>
+        2. Check grouping, auto-resolving, and rendering templates in
+        <code class='code-inline'>Alert Templates</code> Settings
+    </li>
+    <li>
+        3. Make sure all the users set up their <code class='code-inline'>Personal Notifications</code> Settings
+        on the <code class='code-inline'>Users</code> Page
+    </li>
+</ol></p>

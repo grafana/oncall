@@ -1,0 +1,11 @@
+apiVersion: 1
+apps:
+  - type: grafana-oncall-app
+    name: grafana-oncall-app
+    disabled: false
+    jsonData:
+      stackId: <Populate via script>
+      orgId: <Populate via script>
+      onCallApiUrl: <Populate via script>
+    secureJsonData:
+      onCallApiToken: <Populate via script>

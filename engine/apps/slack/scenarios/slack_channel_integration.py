@@ -1,0 +1,193 @@
+import json
+import logging
+
+from django.apps import apps
+
+from apps.integrations.tasks import create_alert
+from apps.slack.scenarios import scenario_step
+
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.DEBUG)
+
+
+class SlackChannelMessageEventStep(scenario_step.ScenarioStep):
+    tags = [
+        scenario_step.ScenarioStep.TAG_TRIGGERED_BY_SYSTEM,
+    ]
+
+    # Avoid logging this step to prevent collecting sensitive data of our customers
+    need_to_be_logged = False
+
+    def process_scenario(self, slack_user_identity, slack_team_identity, payload, action=None):
+        """
+        Triggered by action: Any new message in channel.
+        Dangerous because it's often triggered by internal client's company systems.
+        May cause flood, should be ready for useless updates.
+        """
+
+        # If it is a message from thread - save it for resolution note
+        if ("thread_ts" in payload["event"] and "subtype" not in payload["event"]) or (
+            payload["event"].get("subtype") == scenario_step.EVENT_SUBTYPE_MESSAGE_CHANGED
+            and "subtype" not in payload["event"]["message"]
+            and "thread_ts" in payload["event"]["message"]
+        ):
+            self.save_thread_message_for_resolution_note(slack_user_identity, payload)
+        elif (
+            payload["event"].get("subtype") == scenario_step.EVENT_SUBTYPE_MESSAGE_DELETED
+            and "thread_ts" in payload["event"]["previous_message"]
+        ):
+            self.delete_thread_message_from_resolution_note(slack_user_identity, payload)
+        # Otherwise check if it is a message from channel with Slack Channel Integration
+        else:
+            self.create_alert_for_slack_channel_integration_if_needed(payload)
+
+    def save_thread_message_for_resolution_note(self, slack_user_identity, payload):
+        ResolutionNoteSlackMessage = apps.get_model("alerts", "ResolutionNoteSlackMessage")
+        SlackMessage = apps.get_model("slack", "SlackMessage")
+
+        if slack_user_identity is None:
+            logger.warning(
+                f"Empty slack_user_identity in PublicMainMenu step:\n"
+                f"{self.slack_team_identity} {self.slack_team_identity.pk}"
+            )
+            return
+
+        channel = payload["event"]["channel"]
+        thread_ts = payload["event"].get("thread_ts") or payload["event"]["message"]["thread_ts"]
+        # sometimes we get messages with empty text, probably because it's an image or attachment
+        event_text = payload["event"].get("text")
+        event_text = "empty message" if event_text == "" else event_text
+        text = event_text or payload["event"]["message"]["text"]
+
+        if "message" in payload["event"]:
+            message_ts = payload["event"]["message"]["ts"]
+        else:
+            message_ts = payload["event"]["ts"]
+
+        try:
+            slack_message = SlackMessage.objects.get(
+                slack_id=thread_ts,
+                channel_id=channel,
+                _slack_team_identity=self.slack_team_identity,
+            )
+        except SlackMessage.DoesNotExist:
+            return
+
+        alert_group = slack_message.get_alert_group()
+
+        result = self._slack_client.api_call(
+            "chat.getPermalink",
+            channel=channel,
+            message_ts=message_ts,
+        )
+        permalink = None
+        if result["permalink"] is not None:
+            permalink = result["permalink"]
+
+        try:
+            slack_thread_message = ResolutionNoteSlackMessage.objects.get(
+                ts=message_ts,
+                thread_ts=thread_ts,
+                alert_group=alert_group,
+            )
+            if len(text) > 2900:
+                if slack_thread_message.added_to_resolution_note:
+                    return self._slack_client.api_call(
+                        "chat.postEphemeral",
+                        channel=channel,
+                        user=slack_user_identity.slack_id,
+                        text=":warning: Unable to update the <{}|message> in Resolution Note: the message is too long ({}). "
+                        "Max length - 2900 symbols.".format(permalink, len(text)),
+                    )
+                else:
+                    return
+            slack_thread_message.text = text
+            slack_thread_message.save()
+
+        except ResolutionNoteSlackMessage.DoesNotExist:
+            if len(text) > 2900:
+                return self._slack_client.api_call(
+                    "chat.postEphemeral",
+                    channel=channel,
+                    user=slack_user_identity.slack_id,
+                    text=":warning: The <{}|message> will not be displayed in Resolution Note: "
+                    "the message is too long ({}). Max length - 2900 symbols.".format(permalink, len(text)),
+                )
+            slack_thread_message = ResolutionNoteSlackMessage(
+                alert_group=alert_group,
+                user=self.user,
+                added_by_user=self.user,
+                text=text,
+                slack_channel_id=channel,
+                thread_ts=thread_ts,
+                ts=message_ts,
+                permalink=permalink,
+            )
+            slack_thread_message.save()
+
+    def delete_thread_message_from_resolution_note(self, slack_user_identity, payload):
+        ResolutionNoteSlackMessage = apps.get_model("alerts", "ResolutionNoteSlackMessage")
+
+        if slack_user_identity is None:
+            logger.warning(
+                f"Empty slack_user_identity in PublicMainMenu step:\n"
+                f"{self.slack_team_identity} {self.slack_team_identity.pk}"
+            )
+            return
+
+        channel_id = payload["event"]["channel"]
+        message_ts = payload["event"]["previous_message"]["ts"]
+        thread_ts = payload["event"]["previous_message"]["thread_ts"]
+        try:
+            slack_thread_message = ResolutionNoteSlackMessage.objects.get(
+                ts=message_ts,
+                thread_ts=thread_ts,
+                slack_channel_id=channel_id,
+            )
+        except ResolutionNoteSlackMessage.DoesNotExist:
+            pass
+        else:
+            alert_group = slack_thread_message.alert_group
+            slack_thread_message.delete()
+            self._update_slack_message(alert_group)
+
+    def create_alert_for_slack_channel_integration_if_needed(self, payload):
+        if "subtype" in payload["event"] and payload["event"]["subtype"] != scenario_step.EVENT_SUBTYPE_FILE_SHARE:
+            return
+        AlertReceiveChannel = apps.get_model("alerts", "AlertReceiveChannel")
+        alert_receive_channels = AlertReceiveChannel.objects.filter(
+            integration_slack_channel_id=payload["event"]["channel"], organization=self.organization
+        ).all()
+        for alert_receive_channel in alert_receive_channels:
+            r = self._slack_client.api_call(
+                "chat.getPermalink",
+                channel=payload["event"]["channel"],
+                message_ts=payload["event"]["ts"],
+            )
+            # insert permalink to payload to have access to it in templaters
+            payload["event"]["amixr_mixin"] = {"permalink": r["permalink"]}
+
+            create_alert.apply_async(
+                [],
+                {
+                    "title": "<#{}>".format(payload["event"]["channel"]),
+                    "message": "{}\n_New message in <#{}> channel_".format(
+                        payload["event"]["text"], payload["event"]["channel"]
+                    ),
+                    "image_url": None,
+                    "link_to_upstream_details": r["permalink"],
+                    "alert_receive_channel_pk": alert_receive_channel.pk,
+                    "integration_unique_data": json.dumps(payload["event"]),
+                    "raw_request_data": payload["event"],
+                },
+            )
+
+
+STEPS_ROUTING = [
+    {
+        "payload_type": scenario_step.PAYLOAD_TYPE_EVENT_CALLBACK,
+        "event_type": scenario_step.EVENT_TYPE_MESSAGE,
+        "message_channel_type": scenario_step.EVENT_TYPE_MESSAGE_CHANNEL,
+        "step": SlackChannelMessageEventStep,
+    }
+]

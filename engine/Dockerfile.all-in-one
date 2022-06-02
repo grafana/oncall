@@ -1,0 +1,38 @@
+FROM python:3.9-alpine
+
+RUN apk add bash
+RUN apk add python3-dev
+RUN apk add build-base
+RUN apk add linux-headers
+RUN apk add pcre-dev
+RUN apk add mariadb-connector-c-dev
+RUN apk add openssl-dev
+RUN apk add libffi-dev
+RUN apk add git
+RUN apk add curl
+RUN apk add redis
+
+RUN pip install uwsgi
+RUN pip install regex==2021.11.2
+
+WORKDIR /etc/app
+COPY ./requirements.txt ./requirements.txt
+RUN pip install -r requirements.txt
+
+COPY ./scripts/start_all_in_one.sh ./start_all_in_one.sh
+
+COPY ./ ./
+RUN rm db.sqlite3 || true
+
+RUN DJANGO_SETTINGS_MODULE=settings.prod_without_db \
+    SECRET_KEY="ThEmUsTSecretKEYforBUILDstage123" \
+    TELEGRAM_TOKEN="0000000000:XXXXXXXXXXXXXXXXXXXXXXXXXXXX-XXXXXX" \
+    SLACK_CLIENT_OAUTH_ID=1 python manage.py collectstatic --no-input
+
+VOLUME /etc/app/sqlite_data
+VOLUME /etc/app/secret_data
+VOLUME /etc/app/redis_data
+
+EXPOSE 8000
+
+CMD ["bash", "./start_all_in_one.sh"]

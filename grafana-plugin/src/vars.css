@@ -1,0 +1,44 @@
+:root {
+  --maintenance-background: repeating-linear-gradient(45deg, #f6ba52, #f6ba52 20px, #ffd180 20px, #ffd180 40px);
+  --green-6: #73d13d;
+  --red-5: #ff4d4f;
+  --orange-5: #ffa940;
+  --blue-2: #bae7ff;
+  --gray-5: #d9d9d9;
+  --gray-8: #595959;
+  --gray-9: #434343;
+  --cyan-1: #e6fffb;
+  --purple-9: #22075e;
+}
+
+.theme-light {
+  --cards-background: var(--blue-2);
+  --highlighted-row-bg: var(--cyan-1);
+  --disabled-button-color: #bdbdbd;
+  --primary-background: rgb(255, 255, 255);
+  --secondary-background: rgb(244, 245, 245);
+  --border: 1px solid rgba(36, 41, 46, 0.12);
+  --primary-text-color: rgb(36, 41, 46);
+  --secondary-text-color: rgba(36, 41, 46, 0.75);
+  --disabled-text-color: rgba(36, 41, 46, 0.5);
+  --warning-text-color: #8a6c00;
+  --primary-text-link: #1f62e0;
+  --timeline-icon-background: rgba(70, 76, 84, 0);
+  --timeline-icon-background-resolution-note: rgba(50, 116, 217, 0);
+}
+
+.theme-dark {
+  --cards-background: var(--gray-9);
+  --highlighted-row-bg: var(--gray-9);
+  --disabled-button-color: hsla(0, 0%, 100%, 0.08);
+  --primary-background: rgb(24, 27, 31);
+  --secondary-background: rgb(34, 37, 43);
+  --border: 1px solid rgba(204, 204, 220, 0.15);
+  --primary-text-color: rgb(204, 204, 220);
+  --secondary-text-color: rgba(204, 204, 220, 0.65);
+  --disabled-text-color: rgba(204, 204, 220, 0.4);
+  --warning-text-color: #f8d06b;
+  --primary-text-link: #6e9fff;
+  --timeline-icon-background: rgba(70, 76, 84, 1);
+  --timeline-icon-background-resolution-note: rgba(50, 116, 217, 1);
+}

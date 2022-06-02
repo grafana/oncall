@@ -1,0 +1,83 @@
+{
+  "name": "grafana-oncall-app",
+  "version": "1.0.0",
+  "description": "Grafana OnCall Plugin",
+  "scripts": {
+    "lint": "eslint --cache --ext .js,.jsx,.ts,.tsx ./src",
+    "lint:fix": "eslint --fix --cache --ext .js,.jsx,.ts,.tsx --quiet ./src",
+    "stylelint": "stylelint ./src/**/*.css",
+    "stylelint:fix": "stylelint --fix ./src/**/*.css",
+    "build": "grafana-toolkit plugin:build",
+    "test": "grafana-toolkit plugin:test",
+    "dev": "grafana-toolkit plugin:dev",
+    "watch": "grafana-toolkit plugin:dev --watch",
+    "sign": "grafana-toolkit plugin:sign",
+    "ci-build:finish": "grafana-toolkit plugin:ci-build --finish",
+    "ci-package": "grafana-toolkit plugin:ci-package",
+    "ci-report": "grafana-toolkit plugin:ci-report",
+    "start": "yarn watch",
+    "plop": "plop",
+    "setversion": "setversion"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/grafana/oncall.git"
+  },
+  "lint-staged": {
+    "*.ts?(x)": [
+      "prettier --write",
+      "eslint --fix"
+    ],
+    "*.js?(x)": [
+      "prettier --write",
+      "eslint --fix"
+    ],
+    "*.css": [
+      "stylelint --fix"
+    ]
+  },
+  "author": "Grafana Labs",
+  "license": "Apache-2.0",
+  "devDependencies": {
+    "@grafana/data": "7.5.7",
+    "@grafana/runtime": "7.5.7",
+    "@grafana/toolkit": "7.5.7",
+    "@grafana/ui": "8.2.1",
+    "@types/dompurify": "^2.0.2",
+    "@types/lodash-es": "^4.17.3",
+    "@types/moment-timezone": "^0.5.12",
+    "@types/react-copy-to-clipboard": "^4.3.0",
+    "@types/react-responsive": "^8.0.2",
+    "@types/react-router-dom": "^5.1.5",
+    "@types/throttle-debounce": "^2.1.0",
+    "copy-webpack-plugin": "5.1.2",
+    "eslint-plugin-rulesdir": "^0.2.1",
+    "lint-staged": "^10.2.11",
+    "plop": "^2.7.4",
+    "webpack-bundle-analyzer": "^4.4.2"
+  },
+  "engines": {
+    "node": ">=14"
+  },
+  "dependencies": {
+    "@types/query-string": "^6.3.0",
+    "change-case": "^4.1.1",
+    "circular-dependency-plugin": "^5.2.2",
+    "dompurify": "^2.0.12",
+    "eslint-plugin-import": "^2.25.4",
+    "lodash-es": "^4.17.15",
+    "mobx": "^5.13.0",
+    "mobx-react": "^6.1.1",
+    "moment-timezone": "^0.5.28",
+    "rc-table": "^7.17.1",
+    "react-copy-to-clipboard": "^5.0.2",
+    "react-emoji-render": "^1.2.4",
+    "react-responsive": "^8.1.0",
+    "react-router-dom": "^5.2.0",
+    "react-sortable-hoc": "^1.11.0",
+    "react-string-replace": "^0.4.4",
+    "stylelint": "^13.13.1",
+    "stylelint-config-standard": "^22.0.0",
+    "throttle-debounce": "^2.1.0"
+  }
+}

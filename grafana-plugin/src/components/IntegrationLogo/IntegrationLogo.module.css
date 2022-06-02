@@ -1,0 +1,25 @@
+.bg {
+  background: url(../../assets/img/integration-logos.png);
+  background-repeat: no-repeat;
+}
+
+.bg_PagerDuty {
+  background: url(../../assets/img/PagerDuty.png);
+  background-size: 100% !important;
+}
+
+.bg_ElastAlert {
+  background: url(../../assets/img/ElastAlert.svg);
+  background-size: 100% !important;
+}
+
+.bg_HeartBeatMonitoring {
+  background: url(../../assets/img/HeartBeatMonitoring.png);
+  background-size: 100% !important;
+}
+
+.bg_Grafana,
+.bg_GrafanaAlerting {
+  background: url(../../assets/img/grafana_icon.svg);
+  background-size: 100% !important;
+}

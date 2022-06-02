@@ -1,0 +1,10 @@
+from apps.alerts.signals import (
+    alert_create_signal,
+    alert_group_action_triggered_signal,
+    alert_group_update_log_report_signal,
+)
+from apps.telegram.alert_group_representative import AlertGroupTelegramRepresentative
+
+alert_create_signal.connect(AlertGroupTelegramRepresentative.on_create_alert)
+alert_group_action_triggered_signal.connect(AlertGroupTelegramRepresentative.on_alert_group_action_triggered)
+alert_group_update_log_report_signal.connect(AlertGroupTelegramRepresentative.on_alert_group_update_log_report)

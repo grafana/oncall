@@ -1,0 +1,56 @@
+.spin {
+  width: 100%;
+  margin-top: 200px;
+  margin-bottom: 200px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+
+  /* animation: fadeIn 1s infinite alternate; */
+}
+
+.spin-text {
+  margin-top: 20px;
+}
+
+.configure-plugin {
+  margin-top: 10px;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+}
+
+.disabled-row {
+  background: #f0f0f0;
+}
+
+.highlighted-row {
+  background: var(--highlighted-row-bg);
+}
+
+@media (max-width: 1440px) {
+  .page-header__tabs > ul > li > a > div {
+    display: none;
+  }
+}
+
+@media (max-width: 1200px) {
+  .sidemenu {
+    position: fixed !important;
+    height: 100%;
+  }
+
+  .grafana-app {
+    position: relative !important;
+  }
+
+  .main-view {
+    padding-left: 50px;
+  }
+
+  .page-header__tabs li a {
+    white-space: nowrap;
+  }
+}

@@ -1,0 +1,21 @@
+.telegram-bot {
+  color: var(--primary-text-link);
+}
+
+.telegram-instruction-container {
+  display: block;
+  text-align: left;
+  margin-bottom: 12px;
+}
+
+.verification-code {
+  text-decoration: underline;
+}
+
+.copy-icon {
+  color: var(--primary-text-link);
+}
+
+.telegram-instruction-cancel {
+  margin-top: 24px;
+}

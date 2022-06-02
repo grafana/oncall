@@ -1,0 +1,78 @@
+import React, { useCallback, useEffect, useState } from 'react';
+
+import { Button } from '@grafana/ui';
+import { observer } from 'mobx-react';
+
+import AlertTemplatesForm from 'components/AlertTemplates/AlertTemplatesForm';
+import { AlertReceiveChannel } from 'models/alert_receive_channel';
+import { Alert } from 'models/alertgroup/alertgroup.types';
+import { RootStore } from 'state';
+import { useStore } from 'state/useStore';
+import { openNotification } from 'utils';
+
+interface TeamEditContainerProps {
+  onHide: () => void;
+  alertReceiveChannelId: AlertReceiveChannel['id'];
+  alertGroupId?: Alert['pk'];
+  onUpdate?: () => void;
+  onUpdateTemplates?: () => void;
+  visible?: boolean;
+}
+
+const AlertTemplatesFormContainer = observer((props: TeamEditContainerProps) => {
+  const { alertReceiveChannelId, alertGroupId, onUpdateTemplates } = props;
+
+  const store = useStore();
+
+  const [templatesRefreshing, setTemplatesRefreshing] = useState<boolean>(false);
+  const [errors, setErrors] = useState({});
+
+  useEffect(() => {
+    store.alertReceiveChannelStore.updateItem(alertReceiveChannelId);
+    store.alertReceiveChannelStore.updateTemplates(alertReceiveChannelId, alertGroupId);
+  }, [alertGroupId, alertReceiveChannelId, store]);
+
+  const onUpdateTemplatesCallback = useCallback(
+    (data) => {
+      store.alertReceiveChannelStore
+        .saveTemplates(alertReceiveChannelId, data)
+        .then(() => {
+          openNotification('Alert templates are successfully updated');
+          if (onUpdateTemplates) {
+            onUpdateTemplates();
+          }
+        })
+        .catch((data) => {
+          setErrors(data.response.data);
+        });
+    },
+    [alertReceiveChannelId, onUpdateTemplates, store.alertReceiveChannelStore]
+  );
+
+  const handleSendDemoAlertClickCallback = useCallback(() => {
+    store.alertReceiveChannelStore.sendDemoAlert(alertReceiveChannelId).then(() => {
+      setTemplatesRefreshing(true);
+      store.alertReceiveChannelStore.updateTemplates(alertReceiveChannelId).then(() => {
+        setTemplatesRefreshing(false);
+      });
+    });
+  }, []);
+
+  const templates = store.alertReceiveChannelStore.templates[alertReceiveChannelId];
+  const alertReceiveChannel = store.alertReceiveChannelStore.items[alertReceiveChannelId];
+
+  return (
+    <AlertTemplatesForm
+      alertReceiveChannelId={alertReceiveChannelId}
+      alertGroupId={alertGroupId}
+      errors={errors}
+      templates={templates}
+      onUpdateTemplates={onUpdateTemplatesCallback}
+      demoAlertEnabled={alertReceiveChannel?.demo_alert_enabled}
+      handleSendDemoAlertClick={handleSendDemoAlertClickCallback}
+      templatesRefreshing={templatesRefreshing}
+    />
+  );
+});
+
+export default AlertTemplatesFormContainer;

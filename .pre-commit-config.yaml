@@ -1,0 +1,46 @@
+repos:
+  - repo: https://github.com/pycqa/isort
+    rev: 5.9.3
+    hooks:
+      - id: isort
+        files: ^engine
+        args: [--settings-file=engine/pyproject.toml, --filter-files]
+
+  - repo: https://github.com/psf/black
+    rev: 22.3.0
+    hooks:
+      - id: black
+        files: ^engine
+        args: [--config=engine/pyproject.toml]
+
+  - repo: https://github.com/pycqa/flake8
+    rev: 3.9.2
+    hooks:
+      - id: flake8
+        files: ^engine
+        args: [--config=engine/tox.ini]
+        additional_dependencies:
+          - flake8-tidy-imports
+
+  - repo: https://github.com/pre-commit/mirrors-eslint
+    rev: v7.21.0
+    hooks:
+      - id: eslint
+        entry: bash -c 'cd grafana-plugin && eslint --fix ${@/grafana-plugin\//}' --
+        types: [file]
+        files: ^grafana-plugin/src/.*\.(js|jsx|ts|tsx)$
+        additional_dependencies:
+          - eslint@7.21.0
+          - eslint-plugin-import@^2.25.4
+          - eslint-plugin-rulesdir@^0.2.1
+
+  - repo: https://github.com/thibaudcolas/pre-commit-stylelint
+    rev: v13.13.1
+    hooks:
+      - id: stylelint
+        entry: bash -c 'cd grafana-plugin && stylelint --fix ${@/grafana-plugin\//}' --
+        types: [file]
+        files: ^grafana-plugin/src/.*\.css$
+        additional_dependencies:
+          - stylelint@^13.13.1
+          - stylelint-config-standard@^22.0.0

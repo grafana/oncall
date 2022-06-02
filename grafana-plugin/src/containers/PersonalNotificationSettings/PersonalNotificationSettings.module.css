@@ -1,0 +1,17 @@
+.root {
+  margin-bottom: 25px;
+}
+
+.root .steps {
+  margin: 15px 0 0 15px;
+}
+
+.sortable-helper {
+  z-index: 1062;
+}
+
+.root .step {
+  display: flex;
+  align-items: center;
+  margin-left: 10px;
+}

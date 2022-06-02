@@ -1,0 +1,45 @@
+import React, { FC, useCallback } from 'react';
+
+import { VerticalGroup } from '@grafana/ui';
+import cn from 'classnames/bind';
+
+import Block from 'components/GBlock/Block';
+import Text from 'components/Text/Text';
+
+import styles from './CardButton.module.css';
+
+interface CardButtonProps {
+  icon: React.ReactElement;
+  description: string;
+  title: string;
+  selected: boolean;
+  onClick: (selected: boolean) => void;
+}
+
+const cx = cn.bind(styles);
+
+const CardButton: FC<CardButtonProps> = (props) => {
+  const { icon, description, title, selected, onClick } = props;
+
+  const handleClick = useCallback(() => {
+    onClick(!selected);
+  }, [selected]);
+
+  return (
+    <Block onClick={handleClick} withBackground className={cx('root', { root_selected: selected })}>
+      <div className={cx('icon')}>{icon}</div>
+      <div className={cx('meta')}>
+        <VerticalGroup spacing="xs">
+          <Text type="secondary" className={cx('description')}>
+            {description}
+          </Text>
+          <Text.Title level={1} className={cx('title')}>
+            {title}
+          </Text.Title>
+        </VerticalGroup>
+      </div>
+    </Block>
+  );
+};
+
+export default CardButton;

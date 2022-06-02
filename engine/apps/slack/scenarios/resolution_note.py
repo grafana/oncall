@@ -1,0 +1,607 @@
+import json
+import logging
+from urllib.parse import urljoin
+
+from django.apps import apps
+from django.conf import settings
+from django.db.models import Q
+from django.utils import timezone
+
+from apps.slack.scenarios import scenario_step
+from apps.slack.slack_client.exceptions import SlackAPIException
+
+from .step_mixins import CheckAlertIsUnarchivedMixin
+
+logger = logging.getLogger(__name__)
+
+
+class UpdateResolutionNoteStep(scenario_step.ScenarioStep):
+    def process_signal(self, alert_group, resolution_note):
+        if resolution_note.deleted_at:
+            self.remove_resolution_note_slack_message(resolution_note)
+        else:
+            self.post_or_update_resolution_note_in_thread(resolution_note)
+
+        self.update_alert_group_resolution_note_button(
+            alert_group=alert_group,
+        )
+
+    def remove_resolution_note_slack_message(self, resolution_note):
+        resolution_note_slack_message = resolution_note.resolution_note_slack_message
+        if resolution_note_slack_message is not None:
+            resolution_note_slack_message.added_to_resolution_note = False
+            resolution_note_slack_message.save(update_fields=["added_to_resolution_note"])
+            if resolution_note_slack_message.posted_by_bot:
+                try:
+                    self._slack_client.api_call(
+                        "chat.delete",
+                        channel=resolution_note_slack_message.slack_channel_id,
+                        ts=resolution_note_slack_message.ts,
+                    )
+                except SlackAPIException as e:
+                    if e.response["error"] == "channel_not_found":
+                        logger.warning(
+                            f"Unable to delete resolution note message in slack. "
+                            f"Slack team identity pk: {self.slack_team_identity.pk}.\n"
+                            f"Reason: 'channel_not_found'"
+                        )
+                    elif e.response["error"] == "message_not_found":
+                        logger.warning(
+                            f"Unable to delete resolution note message in slack. "
+                            f"Slack team identity pk: {self.slack_team_identity.pk}.\n"
+                            f"Reason: 'message_not_found'"
+                        )
+                    elif e.response["error"] == "is_archived":
+                        logger.warning(
+                            f"Unable to delete resolution note message in slack. "
+                            f"Slack team identity pk: {self.slack_team_identity.pk}.\n"
+                            f"Reason: 'is_archived'"
+                        )
+                    elif e.response["error"] == "invalid_auth":
+                        logger.warning(
+                            f"Unable to delete resolution note message in slack. "
+                            f"Slack team identity pk: {self.slack_team_identity.pk}.\n"
+                            f"Reason: 'invalid_auth'"
+                        )
+                    elif e.response["error"] == "is_inactive":
+                        logger.warning(
+                            f"Unable to delete resolution note message in slack. "
+                            f"Slack team identity pk: {self.slack_team_identity.pk}.\n"
+                            f"Reason: 'is_inactive'"
+                        )
+                    else:
+                        raise e
+            else:
+                self.remove_resolution_note_reaction(resolution_note_slack_message)
+
+    def post_or_update_resolution_note_in_thread(self, resolution_note):
+        ResolutionNoteSlackMessage = apps.get_model("alerts", "ResolutionNoteSlackMessage")
+        resolution_note_slack_message = resolution_note.resolution_note_slack_message
+        alert_group = resolution_note.alert_group
+        alert_group_slack_message = alert_group.slack_message
+        blocks = self.get_resolution_note_blocks(resolution_note)
+
+        if resolution_note_slack_message is None:
+            try:
+                result = self._slack_client.api_call(
+                    "chat.postMessage",
+                    channel=alert_group_slack_message.channel_id,
+                    thread_ts=alert_group_slack_message.slack_id,
+                    text=resolution_note.text,
+                    blocks=blocks,
+                )
+            except SlackAPIException as e:
+                if e.response["error"] == "channel_not_found":
+                    logger.warning(
+                        f"Unable to post resolution note message to slack. "
+                        f"Slack team identity pk: {self.slack_team_identity.pk}.\n"
+                        f"Reason: 'channel_not_found'"
+                    )
+                elif e.response["error"] == "is_archived":
+                    logger.warning(
+                        f"Unable to post resolution note message to slack. "
+                        f"Slack team identity pk: {self.slack_team_identity.pk}.\n"
+                        f"Reason: 'is_archived'"
+                    )
+                elif e.response["error"] == "invalid_auth":
+                    logger.warning(
+                        f"Unable to post resolution note message to slack. "
+                        f"Slack team identity pk: {self.slack_team_identity.pk}.\n"
+                        f"Reason: 'invalid_auth'"
+                    )
+                else:
+                    raise e
+            else:
+                message_ts = result["message"]["ts"]
+                result_permalink = self._slack_client.api_call(
+                    "chat.getPermalink",
+                    channel=alert_group_slack_message.channel_id,
+                    message_ts=message_ts,
+                )
+
+                resolution_note_slack_message = ResolutionNoteSlackMessage(
+                    alert_group=alert_group,
+                    user=resolution_note.author,
+                    added_by_user=resolution_note.author,
+                    text=resolution_note.text,
+                    slack_channel_id=alert_group_slack_message.channel_id,
+                    thread_ts=result["ts"],
+                    ts=message_ts,
+                    permalink=result_permalink["permalink"],
+                    posted_by_bot=True,
+                    added_to_resolution_note=True,
+                )
+                resolution_note_slack_message.save()
+                self.add_resolution_note_reaction(resolution_note_slack_message)
+
+                resolution_note.resolution_note_slack_message = resolution_note_slack_message
+                resolution_note.save(update_fields=["resolution_note_slack_message"])
+        elif resolution_note_slack_message.posted_by_bot:
+            try:
+                self._slack_client.api_call(
+                    "chat.update",
+                    channel=alert_group_slack_message.channel_id,
+                    ts=resolution_note_slack_message.ts,
+                    text=resolution_note_slack_message.text,
+                    blocks=blocks,
+                )
+            except SlackAPIException as e:
+                if e.response["error"] == "channel_not_found":
+                    logger.warning(
+                        f"Unable to update resolution note message in slack. "
+                        f"Slack team identity pk: {self.slack_team_identity.pk}.\n"
+                        f"Reason: 'channel_not_found'"
+                    )
+                elif e.response["error"] == "message_not_found":
+                    logger.warning(
+                        f"Unable to update resolution note message in slack. "
+                        f"Slack team identity pk: {self.slack_team_identity.pk}.\n"
+                        f"Reason: 'message_not_found'"
+                    )
+                elif e.response["error"] == "invalid_auth":
+                    logger.warning(
+                        f"Unable to update resolution note message in slack. "
+                        f"Slack team identity pk: {self.slack_team_identity.pk}.\n"
+                        f"Reason: 'invalid_auth'"
+                    )
+                elif e.response["error"] == "is_inactive":
+                    logger.warning(
+                        f"Unable to update resolution note message in slack. "
+                        f"Slack team identity pk: {self.slack_team_identity.pk}.\n"
+                        f"Reason: 'is_inactive'"
+                    )
+                elif e.response["error"] == "account_inactive":
+                    logger.warning(
+                        f"Unable to update resolution note message in slack. "
+                        f"Slack team identity pk: {self.slack_team_identity.pk}.\n"
+                        f"Reason: 'account_inactive'"
+                    )
+                else:
+                    raise e
+            else:
+                resolution_note_slack_message.text = resolution_note.text
+                resolution_note_slack_message.save(update_fields=["text"])
+
+    def update_alert_group_resolution_note_button(self, alert_group):
+        if alert_group.slack_message is not None:
+            self._update_slack_message(alert_group)
+
+    def add_resolution_note_reaction(self, slack_thread_message):
+        try:
+            self._slack_client.api_call(
+                "reactions.add",
+                channel=slack_thread_message.slack_channel_id,
+                name="memo",
+                timestamp=slack_thread_message.ts,
+            )
+        except SlackAPIException as e:
+            print(e)  # TODO:770: log instead of print
+
+    def remove_resolution_note_reaction(self, slack_thread_message):
+        try:
+            self._slack_client.api_call(
+                "reactions.remove",
+                channel=slack_thread_message.slack_channel_id,
+                name="memo",
+                timestamp=slack_thread_message.ts,
+            )
+        except SlackAPIException as e:
+            print(e)
+
+    def get_resolution_note_blocks(self, resolution_note):
+        blocks = []
+        author_verbal = resolution_note.author_verbal(mention=True)
+        resolution_note_text_block = {
+            "type": "section",
+            "text": {"type": "plain_text", "text": resolution_note.text, "emoji": True},
+        }
+        blocks.append(resolution_note_text_block)
+        context_block = {
+            "type": "context",
+            "elements": [
+                {
+                    "type": "plain_text",
+                    "text": f"{author_verbal} resolution note from {resolution_note.get_source_display()}.",
+                    "emoji": True,
+                }
+            ],
+        }
+        blocks.append(context_block)
+        return blocks
+
+
+class ResolutionNoteModalStep(CheckAlertIsUnarchivedMixin, scenario_step.ScenarioStep):
+
+    tags = [
+        scenario_step.ScenarioStep.TAG_INCIDENT_ROUTINE,
+    ]
+
+    RESOLUTION_NOTE_TEXT_BLOCK_ID = "resolution_note_text"
+
+    def process_scenario(self, slack_user_identity, slack_team_identity, payload, action=None, data=None):
+        AlertGroup = apps.get_model("alerts", "AlertGroup")
+        value = data or json.loads(payload["actions"][0]["value"])
+        resolution_note_window_action = value.get("resolution_note_window_action", "") or value.get("action_value", "")
+        alert_group_pk = value.get("alert_group_pk")
+        action_resolve = value.get("action_resolve", False)
+        channel_id = payload["channel"]["id"] if "channel" in payload else None
+        alert_group = AlertGroup.all_objects.get(pk=alert_group_pk)
+
+        if not self.check_alert_is_unarchived(slack_team_identity, payload, alert_group):
+            return
+
+        blocks = []
+
+        if channel_id:
+            members = slack_team_identity.get_conversation_members(self._slack_client, channel_id)
+            if slack_team_identity.bot_user_id not in members:
+                blocks.extend(self.get_invite_bot_tip_blocks(channel_id))
+
+        blocks.extend(
+            self.get_resolution_notes_blocks(
+                alert_group,
+                resolution_note_window_action,
+                action_resolve,
+            )
+        )
+
+        view = {
+            "blocks": blocks,
+            "type": "modal",
+            "title": {
+                "type": "plain_text",
+                "text": "Resolution notes",
+            },
+            "private_metadata": json.dumps(
+                {
+                    "organization_id": self.organization.pk if self.organization else alert_group.organization.pk,
+                    "alert_group_pk": alert_group_pk,
+                }
+            ),
+        }
+
+        if "update" in resolution_note_window_action:
+            self._slack_client.api_call(
+                "views.update",
+                trigger_id=payload["trigger_id"],
+                view=view,
+                view_id=payload["view"]["id"],
+            )
+        else:
+            self._slack_client.api_call(
+                "views.open",
+                trigger_id=payload["trigger_id"],
+                view=view,
+            )
+
+    def get_resolution_notes_blocks(self, alert_group, resolution_note_window_action, action_resolve):
+        ResolutionNote = apps.get_model("alerts", "ResolutionNote")
+        blocks = []
+
+        other_resolution_notes = alert_group.resolution_notes.filter(~Q(source=ResolutionNote.Source.SLACK))
+        resolution_note_slack_messages = alert_group.resolution_note_slack_messages.filter(posted_by_bot=False)
+        if action_resolve:
+            blocks.extend(
+                [
+                    {
+                        "type": "divider",
+                    },
+                    {
+                        "type": "section",
+                        "text": {
+                            "type": "mrkdwn",
+                            "text": ":warning: You cannot resolve this incident without resolution note.",
+                        },
+                    },
+                ]
+            )
+
+        if "error" in resolution_note_window_action:
+            blocks.extend(
+                [
+                    {
+                        "type": "divider",
+                    },
+                    {
+                        "type": "section",
+                        "text": {
+                            "type": "mrkdwn",
+                            "text": ":warning: _Oops! You cannot remove this message from resolution notes when incident is "
+                            "resolved. Reason: `resolution note is required` setting. Add another message at first._ ",
+                        },
+                    },
+                ]
+            )
+
+        for message in resolution_note_slack_messages:
+            user_verbal = message.user.get_user_verbal_for_team_for_slack(mention=True)
+            blocks.append(
+                {
+                    "type": "divider",
+                }
+            )
+            message_block = {
+                "type": "section",
+                "text": {
+                    "type": "mrkdwn",
+                    "text": "{} <!date^{:.0f}^{{date_num}} {{time_secs}}|message_created_at>\n{}".format(
+                        user_verbal,
+                        float(message.ts),
+                        message.text,
+                    ),
+                },
+                "accessory": {
+                    "type": "button",
+                    "style": "primary" if not message.added_to_resolution_note else "danger",
+                    "text": {
+                        "type": "plain_text",
+                        "text": "Add" if not message.added_to_resolution_note else "Remove",
+                        "emoji": True,
+                    },
+                    "action_id": AddRemoveThreadMessageStep.routing_uid(),
+                    "value": json.dumps(
+                        {
+                            "resolution_note_window_action": "edit",
+                            "msg_value": "add" if not message.added_to_resolution_note else "remove",
+                            "message_pk": message.pk,
+                            "resolution_note_pk": None,
+                            "alert_group_pk": alert_group.pk,
+                        }
+                    ),
+                },
+            }
+            blocks.append(message_block)
+
+        if other_resolution_notes:
+            blocks.extend(
+                [
+                    {
+                        "type": "divider",
+                    },
+                    {
+                        "type": "section",
+                        "text": {
+                            "type": "mrkdwn",
+                            "text": "*Resolution notes from other sources:*",
+                        },
+                    },
+                ]
+            )
+            for resolution_note in other_resolution_notes:
+                resolution_note_slack_message = resolution_note.resolution_note_slack_message
+                user_verbal = resolution_note.author_verbal(mention=True)
+                message_timestamp = timezone.datetime.timestamp(resolution_note.created_at)
+                blocks.append(
+                    {
+                        "type": "divider",
+                    }
+                )
+                source = "web" if resolution_note.source == ResolutionNote.Source.WEB else "slack"
+                message_block = {
+                    "type": "section",
+                    "text": {
+                        "type": "mrkdwn",
+                        "text": "{} <!date^{:.0f}^{{date_num}} {{time_secs}}|note_created_at> (from {})\n{}".format(
+                            user_verbal,
+                            float(message_timestamp),
+                            source,
+                            resolution_note.message_text,
+                        ),
+                    },
+                    "accessory": {
+                        "type": "button",
+                        "style": "danger",
+                        "text": {
+                            "type": "plain_text",
+                            "text": "Remove",
+                            "emoji": True,
+                        },
+                        "action_id": AddRemoveThreadMessageStep.routing_uid(),
+                        "value": json.dumps(
+                            {
+                                "resolution_note_window_action": "edit",
+                                "msg_value": "remove",
+                                "message_pk": None
+                                if not resolution_note_slack_message
+                                else resolution_note_slack_message.pk,
+                                "resolution_note_pk": resolution_note.pk,
+                                "alert_group_pk": alert_group.pk,
+                            }
+                        ),
+                        "confirm": {
+                            "title": {"type": "plain_text", "text": "Are you sure?"},
+                            "text": {
+                                "type": "mrkdwn",
+                                "text": "This operation will permanently delete this Resolution Note.",
+                            },
+                            "confirm": {"type": "plain_text", "text": "Delete"},
+                            "deny": {
+                                "type": "plain_text",
+                                "text": "Stop, I've changed my mind!",
+                            },
+                            "style": "danger",
+                        },
+                    },
+                }
+
+                blocks.append(message_block)
+
+        if not blocks:
+            # there aren't any resolution notes yet, display a hint instead
+            link_to_instruction = urljoin(settings.BASE_URL, "static/images/postmortem.gif")
+            blocks = [
+                {
+                    "type": "divider",
+                },
+                {
+                    "type": "section",
+                    "text": {
+                        "type": "mrkdwn",
+                        "text": ":bulb: You can add a message to the resolution notes via context menu:",
+                    },
+                },
+                {
+                    "type": "image",
+                    "title": {
+                        "type": "plain_text",
+                        "text": "Add a resolution note",
+                    },
+                    "image_url": link_to_instruction,
+                    "alt_text": "Add to postmortem context menu",
+                },
+            ]
+
+        return blocks
+
+    def get_invite_bot_tip_blocks(self, channel):
+        link_to_instruction = urljoin(settings.BASE_URL, "static/images/postmortem.gif")
+        blocks = [
+            {
+                "type": "divider",
+            },
+            {
+                "type": "context",
+                "elements": [
+                    {
+                        "type": "mrkdwn",
+                        "text": f":bulb: To include messages from thread to resolution note `/invite` Grafana OnCall to "
+                        f"<#{channel}>. Or you can add a message via "
+                        f"<{link_to_instruction}|context menu>.",
+                    },
+                ],
+            },
+        ]
+        return blocks
+
+
+class ReadEditPostmortemStep(ResolutionNoteModalStep):
+    # Left for backward compatibility with slack messages created before postmortems -> resolution note change
+    pass
+
+
+class AddRemoveThreadMessageStep(UpdateResolutionNoteStep, scenario_step.ScenarioStep):
+
+    tags = [
+        scenario_step.ScenarioStep.TAG_INCIDENT_ROUTINE,
+    ]
+
+    def process_scenario(self, slack_user_identity, slack_team_identity, payload, action=None):
+        AlertGroup = apps.get_model("alerts", "AlertGroup")
+        ResolutionNoteSlackMessage = apps.get_model("alerts", "ResolutionNoteSlackMessage")
+        ResolutionNote = apps.get_model("alerts", "ResolutionNote")
+        value = json.loads(payload["actions"][0]["value"])
+        slack_message_pk = value.get("message_pk")
+        resolution_note_pk = value.get("resolution_note_pk")
+        alert_group_pk = value.get("alert_group_pk")
+        add_to_resolution_note = True if value["msg_value"].startswith("add") else False
+        slack_thread_message = None
+        resolution_note = None
+        drop_ag_cache = False
+
+        alert_group = AlertGroup.all_objects.get(pk=alert_group_pk)
+
+        if slack_message_pk is not None:
+            slack_thread_message = ResolutionNoteSlackMessage.objects.get(pk=slack_message_pk)
+            resolution_note = slack_thread_message.get_resolution_note()
+
+        if add_to_resolution_note and slack_thread_message is not None:
+            slack_thread_message.added_to_resolution_note = True
+            slack_thread_message.save(update_fields=["added_to_resolution_note"])
+            if resolution_note is None:
+                ResolutionNote(
+                    alert_group=alert_group,
+                    author=slack_thread_message.user,
+                    source=ResolutionNote.Source.SLACK,
+                    resolution_note_slack_message=slack_thread_message,
+                ).save()
+            else:
+                resolution_note.recreate()
+            self.add_resolution_note_reaction(slack_thread_message)
+            drop_ag_cache = True
+        elif not add_to_resolution_note:
+            # Check if resolution_note can be removed
+            if (
+                self.organization.is_resolution_note_required
+                and alert_group.resolved
+                and alert_group.resolution_notes.count() == 1
+            ):
+                # Show error message
+                resolution_note_data = json.loads(payload["actions"][0]["value"])
+                resolution_note_data["resolution_note_window_action"] = "edit_update_error"
+                return ResolutionNoteModalStep(slack_team_identity).process_scenario(
+                    slack_user_identity,
+                    slack_team_identity,
+                    payload,
+                    data=resolution_note_data,
+                )
+            else:
+                if resolution_note_pk is not None and resolution_note is None:  # old version of step
+                    resolution_note = ResolutionNote.objects.get(pk=resolution_note_pk)
+                resolution_note.delete()
+                if slack_thread_message:
+                    slack_thread_message.added_to_resolution_note = False
+                    slack_thread_message.save(update_fields=["added_to_resolution_note"])
+                    self.remove_resolution_note_reaction(slack_thread_message)
+                drop_ag_cache = True
+        self.update_alert_group_resolution_note_button(
+            alert_group,
+        )
+        if drop_ag_cache:
+            alert_group.drop_cached_after_resolve_report_json()
+            alert_group.schedule_cache_for_web()
+        resolution_note_data = json.loads(payload["actions"][0]["value"])
+        resolution_note_data["resolution_note_window_action"] = "edit_update"
+        ResolutionNoteModalStep(slack_team_identity, self.organization, self.user).process_scenario(
+            slack_user_identity,
+            slack_team_identity,
+            payload,
+            data=resolution_note_data,
+        )
+
+
+STEPS_ROUTING = [
+    {
+        "payload_type": scenario_step.PAYLOAD_TYPE_BLOCK_ACTIONS,
+        "block_action_type": scenario_step.BLOCK_ACTION_TYPE_BUTTON,
+        "block_action_id": ReadEditPostmortemStep.routing_uid(),
+        "step": ReadEditPostmortemStep,
+    },
+    {
+        "payload_type": scenario_step.PAYLOAD_TYPE_BLOCK_ACTIONS,
+        "block_action_type": scenario_step.BLOCK_ACTION_TYPE_BUTTON,
+        "block_action_id": ResolutionNoteModalStep.routing_uid(),
+        "step": ResolutionNoteModalStep,
+    },
+    {
+        "payload_type": scenario_step.PAYLOAD_TYPE_INTERACTIVE_MESSAGE,
+        "action_type": scenario_step.ACTION_TYPE_BUTTON,
+        "action_name": ResolutionNoteModalStep.routing_uid(),
+        "step": ResolutionNoteModalStep,
+    },
+    {
+        "payload_type": scenario_step.PAYLOAD_TYPE_BLOCK_ACTIONS,
+        "block_action_type": scenario_step.BLOCK_ACTION_TYPE_BUTTON,
+        "block_action_id": AddRemoveThreadMessageStep.routing_uid(),
+        "step": AddRemoveThreadMessageStep,
+    },
+]

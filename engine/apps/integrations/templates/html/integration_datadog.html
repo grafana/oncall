@@ -1,0 +1,33 @@
+<h4>How to start sending alerts to Grafana OnCall from Datadog</h4>
+<p><ol>
+    <li>
+        1. Navigate to the Integrations page from the sidebar
+    </li>
+    <li>2. Search for webhook in the search bar</li>
+    <li>3. Enter a name for the integration, for example: grafana-oncall-alerts</li>
+    <li>
+        4. Paste the webhook URL, then save
+        <pre>{{ alert_receive_channel.integration_url }}</pre>
+    </li>
+    <li>
+        5. Navigate to the Events page from the sidebar to send the test alert
+    </li>
+    <li>6. Type @webhook-grafana-oncall-alerts test alert</li>
+    <li>7. Click the post button</li>
+</ol></p>
+
+
+<h4>Next steps:</h4>
+<p><ol>
+    <li>
+        1. Add the routes and escalations in <code class='code-inline'>Escalations settings</code>
+    </li>
+    <li>
+        2. Check grouping, auto-resolving, and rendering templates in
+        <code class='code-inline'>Alert Templates</code> Settings
+    </li>
+    <li>
+        3. Make sure all the users set up their <code class='code-inline'>Personal Notifications</code> Settings
+        on the <code class='code-inline'>Users</code> Page
+    </li>
+</ol></p>

@@ -1,0 +1,14 @@
+.root {
+  margin-top: 24px;
+  display: flex;
+}
+
+.tabs {
+  width: 250px;
+}
+
+.content {
+  flex-grow: 1;
+  padding-left: 20px;
+  border-left: var(--border);
+}
