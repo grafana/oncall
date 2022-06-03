@@ -1,7 +1,11 @@
 import logging
+from urllib.parse import urljoin
 
+import requests
 from django.apps import apps
+from django.conf import settings
 from django.db import models
+from rest_framework import status
 from twilio.base.exceptions import TwilioRestException
 
 from apps.alerts.incident_appearance.renderers.sms_renderer import AlertGroupSmsRenderer
@@ -108,20 +112,47 @@ class SMSMessage(models.Model):
     class PhoneNumberNotVerifiedError(Exception):
         """Phone number is not verified"""
 
+    class CloudSendError(Exception):
+        """SMS sending through cloud error"""
+
     @property
     def created_for_slack(self):
         return bool(self.represents_alert_group.slack_message)
 
     @classmethod
-    def send_sms(cls, user, alert_group, notification_policy):
+    def _send_cloud_sms(cls, user, message_body):
+        url = urljoin(settings.GRAFANA_CLOUD_ONCALL_API_URL, "api/v1/send_sms")
+        auth = {"Authorization": settings.GRAFANA_CLOUD_ONCALL_TOKEN}
+        data = {
+            "email": user.email,
+            "message": message_body,
+        }
+        try:
+            response = requests.post(url, headers=auth, data=data, timeout=5)
+        except requests.exceptions.RequestException as e:
+            logger.warning(f"Unable to send SMS through cloud. Request exception {str(e)}")
+            raise SMSMessage.CloudSendError("Unable to send SMS through cloud: request failed")
+
+        if response.status_code == status.HTTP_400_BAD_REQUEST and response.json().get("error") == "limit-exceeded":
+            raise SMSMessage.SMSLimitExceeded("Organization sms limit exceeded")
+        elif response.status_code == status.HTTP_404_NOT_FOUND:
+            raise SMSMessage.CloudSendError("Unable to send SMS through cloud: user not found")
+        else:
+            raise SMSMessage.CloudSendError("Unable to send SMS through cloud: server error")
+
+    @classmethod
+    def send_sms(cls, user, alert_group, notification_policy, is_cloud_notification=False):
         UserNotificationPolicyLogRecord = apps.get_model("base", "UserNotificationPolicyLogRecord")
 
         log_record = None
         renderer = AlertGroupSmsRenderer(alert_group)
         message_body = renderer.render()
         try:
-            cls._send_sms(user, message_body, alert_group=alert_group, notification_policy=notification_policy)
-        except TwilioRestException:
+            if is_cloud_notification:
+                cls._send_cloud_sms(user, message_body)
+            else:
+                cls._send_sms(user, message_body, alert_group=alert_group, notification_policy=notification_policy)
+        except (TwilioRestException, SMSMessage.CloudSendError):
             log_record = UserNotificationPolicyLogRecord(
                 author=user,
                 type=UserNotificationPolicyLogRecord.TYPE_PERSONAL_NOTIFICATION_FAILED,

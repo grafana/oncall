@@ -44,6 +44,7 @@ class LiveSetting(models.Model):
         "SEND_ANONYMOUS_USAGE_STATS",
         "GRAFANA_CLOUD_ONCALL_TOKEN",
         "GRAFANA_CLOUD_ONCALL_HEARTBEAT_ENABLED",
+        "GRAFANA_CLOUD_NOTIFICATIONS_ENABLED",
     )
 
     DESCRIPTIONS = {
@@ -106,6 +107,7 @@ class LiveSetting(models.Model):
         ),
         "GRAFANA_CLOUD_ONCALL_TOKEN": "Secret token for Grafana Cloud OnCall instance.",
         "GRAFANA_CLOUD_ONCALL_HEARTBEAT_ENABLED": "Enable hearbeat integration with Grafana Cloud OnCall.",
+        "GRAFANA_CLOUD_NOTIFICATIONS_ENABLED": "Enable SMS/call notifications via Grafana Cloud OnCall",
     }
 
     SECRET_SETTING_NAMES = (
