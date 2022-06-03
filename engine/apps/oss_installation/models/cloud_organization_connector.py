@@ -102,7 +102,7 @@ class CloudOrganizationConnector(models.Model):
             i.email = cloud_users_identities_to_update[i.cloud_id]["email"]
             i.phone_number_verified = cloud_users_identities_to_update[i.cloud_id]["is_phone_number_verified"]
 
-        # TODO: Grafana Twilio: check if data validation needed.
+        # TODO: Grafana CN: check if data validation needed.
         CloudUserIdentity.objects.bulk_create(cloud_users_identities_to_create, batch_size=1000)
         CloudUserIdentity.objects.bulk_update(
             existing_cloud_identities, ["email", "phone_number_verified"], batch_size=1000

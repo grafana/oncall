@@ -10,5 +10,5 @@ class CloudUserIdentity(models.Model):
     )
 
     class Meta:
-        # TODO: Grafana Twilio: Check if this constraint needed
+        # TODO: Grafana CN: Check if this constraint needed
         unique_together = ("cloud_id", "organization")

@@ -41,7 +41,7 @@ class SMSMessageManager(models.Manager):
 
                 sms_message = sms_message_qs.first()
                 if sms_message.grafana_cloud_notification:
-                    # If sms was sent via grafana twilio it is don't needed to create logs on it's delivery status.
+                    # If sms was sent via grafana cloud notifications  don't create logs on its delivery status.
                     return
                 log_record = None
 
