@@ -117,7 +117,7 @@ steps:
   - name: Build and Push Engine Docker Image Backend to GCR
     image: plugins/docker
     settings:
-      repo: us.gcr.io/kubernetes-dev/oncall-engine
+      repo: us.gcr.io/kubernetes-dev/oncall
       dockerfile: engine/Dockerfile
       context: engine/
       config:
