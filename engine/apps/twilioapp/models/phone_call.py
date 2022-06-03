@@ -34,8 +34,10 @@ class PhoneCallManager(models.Manager):
 
             if phone_call_qs.exists() and status:
                 phone_call_qs.update(status=status)
-
                 phone_call = phone_call_qs.first()
+                if phone_call.grafana_cloud_notification:
+                    # If call was made via grafana twilio it is don't needed to create logs on it's delivery status.
+                    return
                 log_record = None
                 if status == TwilioCallStatuses.COMPLETED:
                     log_record = UserNotificationPolicyLogRecord(
@@ -115,6 +117,14 @@ class PhoneCall(models.Model):
 
     created_at = models.DateTimeField(auto_now_add=True)
 
+    grafana_cloud_notification = models.BooleanField(default=False)
+
+    class PhoneCallsLimitExceeded(Exception):
+        """Phone calls limit exceeded"""
+
+    class PhoneNumberNotVerifiedError(Exception):
+        """Phone number is not verified"""
+
     def process_digit(self, digit):
         """The function process pressed digit at time of call to user
 
@@ -140,55 +150,32 @@ class PhoneCall(models.Model):
     @classmethod
     def make_call(cls, user, alert_group, notification_policy):
         UserNotificationPolicyLogRecord = apps.get_model("base", "UserNotificationPolicyLogRecord")
-
-        organization = alert_group.channel.organization
-
         log_record = None
-        if user.verified_phone_number:
-            # Create a PhoneCall object in db
-            phone_call = PhoneCall(
-                represents_alert_group=alert_group,
-                receiver=user,
+        renderer = AlertGroupPhoneCallRenderer(alert_group)
+        message_body = renderer.render()
+        try:
+            cls._make_call(user, message_body, alert_group=alert_group, notification_policy=notification_policy)
+        except TwilioRestException:
+            log_record = UserNotificationPolicyLogRecord(
+                author=user,
+                type=UserNotificationPolicyLogRecord.TYPE_PERSONAL_NOTIFICATION_FAILED,
                 notification_policy=notification_policy,
+                alert_group=alert_group,
+                notification_error_code=UserNotificationPolicyLogRecord.ERROR_NOTIFICATION_NOT_ABLE_TO_CALL,
+                notification_step=notification_policy.step if notification_policy else None,
+                notification_channel=notification_policy.notify_by if notification_policy else None,
             )
-
-            phone_calls_left = organization.phone_calls_left(user)
-
-            if phone_calls_left > 0:
-                phone_call.exceeded_limit = False
-                renderer = AlertGroupPhoneCallRenderer(alert_group)
-                message_body = renderer.render()
-                if phone_calls_left < 3:
-                    message_body += " {} phone calls left. Contact your admin.".format(phone_calls_left)
-                try:
-                    twilio_call = twilio_client.make_call(message_body, user.verified_phone_number)
-                except TwilioRestException:
-                    log_record = UserNotificationPolicyLogRecord(
-                        author=user,
-                        type=UserNotificationPolicyLogRecord.TYPE_PERSONAL_NOTIFICATION_FAILED,
-                        notification_policy=notification_policy,
-                        alert_group=alert_group,
-                        notification_error_code=UserNotificationPolicyLogRecord.ERROR_NOTIFICATION_NOT_ABLE_TO_CALL,
-                        notification_step=notification_policy.step if notification_policy else None,
-                        notification_channel=notification_policy.notify_by if notification_policy else None,
-                    )
-                else:
-                    if twilio_call.status and twilio_call.sid:
-                        phone_call.status = TwilioCallStatuses.DETERMINANT.get(twilio_call.status, None)
-                        phone_call.sid = twilio_call.sid
-            else:
-                log_record = UserNotificationPolicyLogRecord(
-                    author=user,
-                    type=UserNotificationPolicyLogRecord.TYPE_PERSONAL_NOTIFICATION_FAILED,
-                    notification_policy=notification_policy,
-                    alert_group=alert_group,
-                    notification_error_code=UserNotificationPolicyLogRecord.ERROR_NOTIFICATION_PHONE_CALLS_LIMIT_EXCEEDED,
-                    notification_step=notification_policy.step if notification_policy else None,
-                    notification_channel=notification_policy.notify_by if notification_policy else None,
-                )
-                phone_call.exceeded_limit = True
-            phone_call.save()
-        else:
+        except PhoneCall.PhoneCallsLimitExceeded:
+            log_record = UserNotificationPolicyLogRecord(
+                author=user,
+                type=UserNotificationPolicyLogRecord.TYPE_PERSONAL_NOTIFICATION_FAILED,
+                notification_policy=notification_policy,
+                alert_group=alert_group,
+                notification_error_code=UserNotificationPolicyLogRecord.ERROR_NOTIFICATION_PHONE_CALLS_LIMIT_EXCEEDED,
+                notification_step=notification_policy.step if notification_policy else None,
+                notification_channel=notification_policy.notify_by if notification_policy else None,
+            )
+        except PhoneCall.PhoneNumberNotVerifiedError:
             log_record = UserNotificationPolicyLogRecord(
                 author=user,
                 type=UserNotificationPolicyLogRecord.TYPE_PERSONAL_NOTIFICATION_FAILED,
@@ -202,6 +189,40 @@ class PhoneCall(models.Model):
         if log_record is not None:
             log_record.save()
             user_notification_action_triggered_signal.send(sender=PhoneCall.make_call, log_record=log_record)
+
+    @classmethod
+    def make_grafana_cloud_call(cls, user, message_body):
+        cls._make_call(user, message_body, grafana_cloud=True)
+
+    @classmethod
+    def _make_call(cls, user, message_body, alert_group=None, notification_policy=None, grafana_cloud=False):
+        if not user.verified_phone_number:
+            raise PhoneCall.PhoneNumberNotVerifiedError("User phone number is not verified")
+
+        phone_call = PhoneCall(
+            represents_alert_group=alert_group,
+            receiver=user,
+            notification_policy=notification_policy,
+            grafana_cloud_notification=grafana_cloud,
+        )
+        phone_calls_left = user.organization.phone_calls_left(user)
+
+        if phone_calls_left <= 0:
+            phone_call.exceeded_limit = True
+            phone_call.save()
+            raise PhoneCall.PhoneCallsLimitExceeded("Organization calls limit exceeded")
+
+        phone_call.exceeded_limit = False
+        if phone_calls_left < 3:
+            message_body += " {} phone calls left. Contact your admin.".format(phone_calls_left)
+
+        twilio_call = twilio_client.make_call(message_body, user.verified_phone_number)
+        if twilio_call.status and twilio_call.sid:
+            phone_call.status = TwilioCallStatuses.DETERMINANT.get(twilio_call.status, None)
+            phone_call.sid = twilio_call.sid
+        phone_call.save()
+
+        return phone_call
 
     @staticmethod
     def get_error_code_by_twilio_status(status):
