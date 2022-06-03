@@ -1,0 +1,8 @@
+.verification-code {
+  color: var(--primary-text-link);
+}
+
+.verification-code-text {
+  display: flex;
+  justify-content: space-between;
+}

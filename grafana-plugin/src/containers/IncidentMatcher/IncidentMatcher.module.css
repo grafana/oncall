@@ -1,0 +1,22 @@
+.root {
+  display: block;
+}
+
+.columns {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  width: 100%;
+}
+
+.columns > div {
+  width: 50%;
+}
+
+.incident-item-list {
+  list-style-type: none;
+}
+
+.title {
+  margin-bottom: 10px;
+}

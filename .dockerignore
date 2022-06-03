@@ -1,0 +1,8 @@
+venv/*
+venv2.7/*
+.DS_Store
+frontend/node_modules
+frontend/build
+package-lock.json
+./engine/extensions
+.env

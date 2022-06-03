@@ -1,0 +1,19 @@
+.root {
+  display: block;
+}
+
+.root > * {
+  margin-bottom: 10px !important;
+}
+
+.root > *:not(:last-child) {
+  margin-right: 10px !important;
+}
+
+.root .search {
+  width: 400px;
+}
+
+.select {
+  min-width: 300px;
+}

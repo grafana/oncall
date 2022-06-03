@@ -1,0 +1,20 @@
+.root {
+  margin-top: 24px;
+}
+
+.align-top {
+  vertical-align: top;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+}
+
+.row {
+  /* vertical-align: top; */
+}
+
+.check-icon {
+  color: green;
+}

@@ -1,0 +1,32 @@
+.root {
+  display: flex;
+  flex-direction: column;
+}
+
+.tab {
+  cursor: pointer;
+  position: relative;
+  padding: 12px;
+  opacity: 0.8;
+}
+
+.tab:hover {
+  background: var(--secondary-background);
+  opacity: 1;
+}
+
+.tab_active {
+  cursor: default;
+  opacity: 1;
+}
+
+.tab_active::before {
+  display: block;
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 12px;
+  bottom: 12px;
+  width: 4px;
+  background-image: linear-gradient(270deg, #f55f3e 0%, #f83 100%);
+}

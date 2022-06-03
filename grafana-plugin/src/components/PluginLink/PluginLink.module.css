@@ -1,0 +1,11 @@
+.root {
+  color: var(--primary-text-link);
+}
+
+.root_disabled {
+  color: var(--disabled-text-color);
+}
+
+.no-wrap {
+  white-space: nowrap;
+}

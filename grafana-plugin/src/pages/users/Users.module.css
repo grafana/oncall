@@ -1,0 +1,52 @@
+.root {
+  margin-top: 24px;
+}
+
+.users-title {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.user-avatar {
+  margin-right: 10px;
+}
+
+.users-filters {
+  margin-bottom: 20px;
+}
+
+.users-header {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 24px;
+}
+
+.users-header-left {
+  display: flex;
+  align-items: center;
+}
+
+.root .users-title {
+  margin-bottom: 0;
+}
+
+.users-footer {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.desc {
+  word-wrap: break-word;
+  word-break: break-word;
+}
+
+.user-filters-container {
+  display: flex;
+  justify-content: space-between;
+}
+
+.warning-message-icon {
+  margin-right: 8px;
+  color: var(--warning-text-color);
+}

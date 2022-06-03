@@ -1,0 +1,9 @@
+.root {
+  margin-top: 24px;
+  width: 1000px;
+}
+
+.root ul,
+.root ol {
+  padding-left: 20px;
+}

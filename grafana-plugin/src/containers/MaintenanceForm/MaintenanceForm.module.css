@@ -1,0 +1,11 @@
+.root {
+  display: block;
+}
+
+.title {
+  margin: 16px 0 0 16px;
+}
+
+.content {
+  margin: 4px 4px 400px 4px;
+}

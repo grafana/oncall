@@ -1,0 +1,41 @@
+<h4>How to start sending alerts to Grafana OnCall from Other Grafana</h4>
+<blockquote>
+    To connect the current Grafana stack alerting automatically, please use the <b>Current Grafana</b>.
+</blockquote>
+<p><ol>
+    <li>
+        1. Open your other Grafana instance
+    </li>
+    <li>
+        2. Open Alerting Configuration and go to <code class='code-inline'>Contact Points</code>
+    </li>
+    <li>
+        3. Create a new Contact Point with type <code class='code-inline'>webhook</code> and url
+        <pre>{{ alert_receive_channel.integration_url }}</pre>
+    </li>
+    <li>
+        4. Open Notification Policies and create a New Specific Policy
+    </li>
+    <li>
+        5. Choose any Matching labels, or leave them empty to route all the alerts to Grafana OnCall
+    </li>
+    <li>
+        6. Choose the Contact point created in step 3
+    </li>
+</ol></p>
+
+
+<h4>Next steps:</h4>
+<p><ol>
+    <li>
+        1. Add the routes and escalations in <code class='code-inline'>Escalations settings</code>
+    </li>
+    <li>
+        2. Check grouping, auto-resolving, and rendering templates in
+        <code class='code-inline'>Alert Templates</code> Settings
+    </li>
+    <li>
+        3. Make sure all the users set up their <code class='code-inline'>Personal Notifications</code> Settings
+        on the <code class='code-inline'>Users</code> Page
+    </li>
+</ol></p>

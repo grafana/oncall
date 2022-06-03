@@ -1,0 +1,20 @@
+import React, { FC } from 'react';
+import cn from 'classnames/bind';
+
+import styles from './{{pascalCase componentName}}.module.css';
+
+interface {{pascalCase componentName}}Props {
+
+}
+
+const cx = cn.bind(styles);
+
+const {{pascalCase componentName}}: FC<{{pascalCase componentName}}Props> = props => {
+    const { } = props;
+
+    return (
+        <div className={cx('root')} />
+    );
+};
+
+export default {{pascalCase componentName}};

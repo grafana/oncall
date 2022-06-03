@@ -1,0 +1,7 @@
+.modal {
+  width: 720px;
+}
+
+.modal.modal-wide {
+  width: 1100px;
+}

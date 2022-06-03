@@ -1,0 +1,17 @@
+.root {
+  display: block;
+}
+
+.integrationsFilters {
+  display: flex;
+  position: relative;
+}
+
+.searchIntegrationClear {
+  position: absolute;
+  right: 0;
+}
+
+.searchIntegrationInput {
+  max-width: 400px;
+}

@@ -1,0 +1,230 @@
+kind: pipeline
+type: docker
+name: Build and Release
+
+steps:
+  - name: Build Plugin
+    image: node:14.6.0-stretch
+    commands:
+      - apt-get update
+      - apt-get --assume-yes install jq
+      - cd grafana-plugin/
+      - if [ -z "$DRONE_TAG" ]; then echo "No tag, not modifying version"; else jq '.version="${DRONE_TAG}"' package.json > package.new && mv package.new package.json && jq '.version' package.json; fi
+      - yarn --network-timeout 500000
+      - yarn plop "Append build info" "${DRONE_TAG}" "${DRONE_BRANCH}" "${DRONE_COMMIT}"
+      - yarn build
+      - ls ./
+
+  - name: Sign and Package Plugin
+    image: node:14.6.0-stretch
+    environment:
+      GRAFANA_API_KEY:
+        from_secret: gcom_plugin_publisher_api_key
+    depends_on:
+      - Build Plugin
+    commands:
+      - apt-get update
+      - apt-get install zip
+      - cd grafana-plugin
+      - yarn sign
+      - yarn ci-build:finish
+      - yarn ci-package
+      - cd ci/dist
+      - zip -r grafana-oncall-app-${DRONE_BRANCH}-${DRONE_BUILD_NUMBER}.zip ./grafana-oncall-app
+      - if [ -z "$DRONE_TAG" ]; then echo "No tag, skipping archive"; else cp grafana-oncall-app-${DRONE_BRANCH}-${DRONE_BUILD_NUMBER}.zip grafana-oncall-app-${DRONE_TAG}.zip; fi
+
+  - name: Publish Plugin to GCS (release)
+    image: plugins/gcs
+    settings:
+      acl: allUsers:READER
+      source: grafana-plugin/ci/dist/grafana-oncall-app-${DRONE_TAG}.zip
+      target: grafana-oncall-app/releases/grafana-oncall-app-${DRONE_TAG}.zip
+      token:
+        from_secret: gcs_oncall_publisher_key
+    depends_on:
+      - Sign and Package Plugin
+    when:
+      ref:
+        - refs/tags/v*.*.*
+
+  - name: Publish Plugin to Github (release)
+    image: plugins/github-release
+    settings:
+      api_key:
+        from_secret: gh_token
+      files: grafana-plugin/ci/dist/grafana-oncall-app-${DRONE_TAG}.zip
+      title: ${DRONE_TAG}
+    depends_on:
+      - Sign and Package Plugin
+    when:
+      ref:
+        - refs/tags/v*.*.*
+
+  - name: Publish Plugin to grafana.com (release)
+    image: curlimages/curl:7.73.0
+    environment:
+      GRAFANA_API_KEY:
+        from_secret: gcom_plugin_publisher_api_key
+    commands:
+      - "curl -f -s -H \"Authorization: Bearer $${GRAFANA_API_KEY}\" -d \"download[any][url]=https://storage.googleapis.com/grafana-oncall-app/releases/grafana-oncall-app-${DRONE_TAG}.zip\" -d \"download[any][md5]=$$(curl -sL https://storage.googleapis.com/grafana-oncall-app/releases/grafana-oncall-app-${DRONE_TAG}.zip | md5sum | cut -d' ' -f1)\" -d url=https://github.com/grafana/oncall/grafana-plugin https://grafana.com/api/plugins"
+    depends_on:
+      - Publish Plugin to GCS (release)
+      - Publish Plugin to Github (release)
+    when:
+      ref:
+        - refs/tags/v*.*.*
+
+  - name: Lint Backend
+    image: python:3.9
+    environment:
+      DJANGO_SETTINGS_MODULE: settings.ci-test
+    commands:
+      - pip install $(grep "pre-commit" engine/requirements.txt)
+      - pre-commit run isort --all-files
+      - pre-commit run black --all-files
+      - pre-commit run flake8 --all-files
+
+  - name: Test Backend
+    image: python:3.9
+    environment:
+      DJANGO_SETTINGS_MODULE: settings.ci-test
+      SLACK_CLIENT_OAUTH_ID: 1
+    commands:
+      - apt-get update && apt-get install -y netcat
+      - cd engine/
+      - mkdir sqlite_data
+      - pip install -r requirements.txt
+      - pytest --ds=settings.ci-test
+      - rm -rf sqlite_data
+    depends_on:
+      - rabbit_test
+
+  - name: Image Tag
+    image: alpine
+    commands:
+      - apk add --no-cache bash git sed
+      - git fetch origin --tags
+      - chmod +x ./tools/image-tag.sh
+      - echo $(./tools/image-tag.sh)
+      - echo $(./tools/image-tag.sh) > .tags
+      - if [ -z "$DRONE_TAG" ]; then echo "No tag, not modifying version"; else sed "0,/VERSION.*/ s/VERSION.*/VERSION = \"${DRONE_TAG}\"/g" engine/settings/base.py > engine/settings/base.temp && mv engine/settings/base.temp engine/settings/base.py; fi
+      - cat engine/settings/base.py | grep VERSION | head -1
+    when:
+      ref:
+        - refs/heads/dev
+        - refs/tags/v*.*.*
+
+  - name: Build and Push Engine Docker Image Backend to GCR
+    image: plugins/docker
+    settings:
+      repo: us.gcr.io/kubernetes-dev/oncall-engine
+      dockerfile: engine/Dockerfile
+      context: engine/
+      config:
+        from_secret: gcr_admin
+    depends_on:
+      - Lint Backend
+      - Test Backend
+      - Image Tag
+
+  - name: Build and Push Engine Docker Image Backend to Dockerhub
+    image: plugins/docker
+    settings:
+      repo: grafana/oncall
+      dockerfile: engine/Dockerfile
+      context: engine/
+      password:
+        from_secret: docker_password
+      username:
+        from_secret: docker_username
+    depends_on:
+      - Lint Backend
+      - Test Backend
+      - Image Tag
+    when:
+      ref:
+        - refs/heads/dev
+        - refs/tags/v*.*.*
+
+# Services for Test Backend
+services:
+  - name: rabbit_test
+    image: rabbitmq:3.7.19
+    environment:
+      RABBITMQ_DEFAULT_USER: rabbitmq
+      RABBITMQ_DEFAULT_PASS: rabbitmq
+
+trigger:
+  event:
+    - push
+    - tag
+
+---
+# Secret for pulling docker images.
+kind: secret
+name: dockerconfigjson
+get:
+  path: secret/data/common/gcr
+  name: .dockerconfigjson
+
+---
+# Secret for pushing docker images.
+kind: secret
+name: gcr_admin
+get:
+  path: infra/data/ci/gcr-admin
+  name: .dockerconfigjson
+
+---
+# Secret for GitHub
+get:
+  name: pat
+  path: infra/data/ci/github/grafanabot
+kind: secret
+name: gh_token
+
+---
+# Slack webhook
+get:
+  name: slack-plugin
+  path: secret/data/common/oncall/drone
+kind: secret
+name: slack_webhook
+
+---
+# GCOM plugin publisher
+get:
+  name: gcom-plugin-publisher
+  path: secret/data/common/oncall/drone
+kind: secret
+name: gcom_plugin_publisher_api_key
+
+---
+# GCS bucket
+get:
+  name: credentials.json
+  path: secret/data/common/oncall/gcs-oncall-drone-publisher
+kind: secret
+name: gcs_oncall_publisher_key
+
+---
+# Dockerhub
+get:
+  name: username
+  path: infra/data/ci/docker_hub
+kind: secret
+name: docker_username
+---
+get:
+  name: password
+  path: infra/data/ci/docker_hub
+kind: secret
+name: docker_password
+
+---
+# Drone
+get:
+  name: machine-user-token
+  path: infra/data/ci/drone
+kind: secret
+name: drone_token

@@ -1,0 +1,21 @@
+name: frontend-ci
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+
+jobs:
+  lint:
+    name: Frontend Checks
+    runs-on: ubuntu-latest
+    env:
+      DJANGO_SETTINGS_MODULE: settings.ci-test
+    steps:
+      - uses: actions/checkout@v2
+      - name: Build Frontend Plugin
+        run: |
+          cd grafana-plugin/
+          yarn --network-timeout 500000
+          yarn build

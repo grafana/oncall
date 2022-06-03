@@ -1,0 +1,20 @@
+.root {
+  display: inline-block;
+  border-radius: 50%;
+  overflow: hidden;
+}
+
+.avatarSize-small {
+  width: 16px;
+  height: 16px;
+}
+
+.avatarSize-big {
+  width: 24px;
+  height: 24px;
+}
+
+.avatarSize-large {
+  width: 32px;
+  height: 32px;
+}

@@ -1,0 +1,16 @@
+.root {
+  display: inline-flex;
+  align-items: center;
+}
+
+.root .search {
+  width: 300px;
+}
+
+.root .search:focus {
+  width: 500px;
+}
+
+.control:not(:last-child) {
+  margin-right: 20px;
+}

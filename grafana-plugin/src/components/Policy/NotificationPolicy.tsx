@@ -1,0 +1,226 @@
+import React from 'react';
+
+import { SelectableValue } from '@grafana/data';
+import { Button, IconButton, Select } from '@grafana/ui';
+import cn from 'classnames/bind';
+import { SortableElement } from 'react-sortable-hoc';
+
+import PluginLink from 'components/PluginLink/PluginLink';
+import Timeline from 'components/Timeline/Timeline';
+import { WithPermissionControl } from 'containers/WithPermissionControl/WithPermissionControl';
+import { Channel } from 'models/channel';
+import { NotificationPolicyType, prepareNotificationPolicy } from 'models/notification_policy';
+import { NotifyBy } from 'models/notify_by';
+import { User } from 'models/user/user.types';
+import { WaitDelay } from 'models/wait_delay';
+import { UserAction } from 'state/userAction';
+
+import DragHandle from './DragHandle';
+import PolicyNote from './PolicyNote';
+
+import styles from './NotificationPolicy.module.css';
+
+const cx = cn.bind(styles);
+
+export interface NotificationPolicyProps {
+  data: NotificationPolicyType;
+  slackTeamIdentity?: {
+    general_log_channel_pk: Channel['id'];
+  };
+  slackUserIdentity?: User['slack_user_identity'];
+  onChange: (id: NotificationPolicyType['id'], value: NotificationPolicyType) => void;
+  onDelete: (id: string) => void;
+  notificationChoices: any[];
+  channels?: any[];
+  waitDelays?: WaitDelay[];
+  notifyByOptions?: NotifyBy[];
+  telegramVerified: boolean;
+  phoneVerified: boolean;
+  color: string;
+  number: number;
+  userAction: UserAction;
+}
+
+export class NotificationPolicy extends React.Component<NotificationPolicyProps, any> {
+  render() {
+    const { data, notificationChoices, number, color, userAction } = this.props;
+    const { id, step } = data;
+
+    return (
+      <Timeline.Item className={cx('root')} number={number} color={color}>
+        <div className={cx('step')}>
+          <WithPermissionControl disableByPaywall userAction={userAction}>
+            <DragHandle />
+          </WithPermissionControl>
+          <WithPermissionControl disableByPaywall userAction={userAction}>
+            <Select
+              className={cx('select', 'control')}
+              onChange={this._getOnChangeHandler('step')}
+              value={step}
+              options={notificationChoices.map((option: any) => ({ label: option.display_name, value: option.value }))}
+            />
+          </WithPermissionControl>
+          {this._renderControls()}
+          <WithPermissionControl userAction={userAction}>
+            <IconButton
+              className={cx('control')}
+              name="trash-alt"
+              onClick={this._getDeleteClickHandler(id)}
+              variant="secondary"
+            />
+          </WithPermissionControl>
+          {this._renderNote()}
+        </div>
+      </Timeline.Item>
+    );
+  }
+
+  _renderControls() {
+    const { data } = this.props;
+    const { step } = data;
+
+    switch (step) {
+      case 0:
+        return <>{this._renderWaitDelays()}</>;
+
+      case 1:
+        return <>{this._renderNotifyBy()}</>;
+
+      default:
+        return null;
+    }
+  }
+
+  _renderSlackNote() {
+    const { slackTeamIdentity, slackUserIdentity } = this.props;
+
+    if (!slackTeamIdentity) {
+      return (
+        <PolicyNote type="danger">
+          Slack Integration required{' '}
+          <PluginLink query={{ page: 'chat-ops' }}>
+            <Button size="sm" fill="text">
+              Install
+            </Button>
+          </PluginLink>
+        </PolicyNote>
+      );
+    }
+
+    if (!slackUserIdentity) {
+      return <PolicyNote type="danger">Slack account is not connected</PolicyNote>;
+    }
+
+    return null;
+  }
+
+  _renderPhoneNote() {
+    const { phoneVerified } = this.props;
+
+    return phoneVerified ? (
+      <PolicyNote type="success">Phone number is verified</PolicyNote>
+    ) : (
+      <PolicyNote type="danger">Phone number is not verified</PolicyNote>
+    );
+  }
+
+  _renderTelegramNote() {
+    const { telegramVerified } = this.props;
+
+    return telegramVerified ? (
+      <PolicyNote type="success">Telegram is connected</PolicyNote>
+    ) : (
+      <PolicyNote type="danger">Telegram is not connected</PolicyNote>
+    );
+  }
+
+  private _renderWaitDelays() {
+    const { data, waitDelays = [], userAction } = this.props;
+    const { wait_delay } = data;
+
+    return (
+      <WithPermissionControl userAction={userAction} disableByPaywall>
+        <Select
+          key="wait-delay"
+          placeholder="Wait Delay"
+          className={cx('select', 'control')}
+          // @ts-ignore
+          value={wait_delay}
+          onChange={this._getOnChangeHandler('wait_delay')}
+          options={waitDelays.map((waitDelay: WaitDelay) => ({
+            label: waitDelay.display_name,
+            value: waitDelay.value,
+          }))}
+        />
+      </WithPermissionControl>
+    );
+  }
+
+  private _renderNotifyBy() {
+    const { data, notifyByOptions = [], userAction } = this.props;
+    const { notify_by } = data;
+
+    return (
+      <WithPermissionControl userAction={userAction} disableByPaywall>
+        <Select
+          key="notify_by"
+          placeholder="Notify by"
+          className={cx('select', 'control')}
+          // @ts-ignore
+          value={notify_by}
+          onChange={this._getOnChangeHandler('notify_by')}
+          options={notifyByOptions.map((notifyByOption: NotifyBy) => ({
+            label: notifyByOption.display_name,
+            value: notifyByOption.value,
+          }))}
+        />
+      </WithPermissionControl>
+    );
+  }
+
+  _renderNote() {
+    const { data } = this.props;
+    const { notify_by } = data;
+
+    switch (notify_by) {
+      case 0:
+        return <>{this._renderSlackNote()}</>;
+
+      case 1:
+        return <>{this._renderPhoneNote()}</>;
+
+      case 2:
+        return <>{this._renderPhoneNote()}</>;
+
+      case 3:
+        return <>{this._renderTelegramNote()}</>;
+
+      default:
+        return null;
+    }
+  }
+
+  _getOnChangeHandler = (field: string) => {
+    return ({ value }: SelectableValue) => {
+      const { data, onChange = () => {} } = this.props;
+      const { id } = data;
+
+      const newData: NotificationPolicyType = {
+        ...prepareNotificationPolicy(data),
+        [field]: value,
+      };
+
+      onChange(id, newData);
+    };
+  };
+
+  _getDeleteClickHandler = (id: string) => {
+    const { onDelete } = this.props;
+
+    return () => {
+      onDelete(id);
+    };
+  };
+}
+
+export default SortableElement(NotificationPolicy);

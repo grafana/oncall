@@ -1,0 +1,24 @@
+.note {
+  white-space: nowrap;
+}
+
+.note-icon {
+  padding-right: 6px;
+}
+
+.tooltip {
+  max-width: none !important;
+}
+
+.control {
+  margin-right: 10px !important;
+}
+
+.handle {
+  cursor: move;
+}
+
+.handle_disabled {
+  cursor: not-allowed;
+  pointer-events: none;
+}

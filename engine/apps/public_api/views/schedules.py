@@ -1,0 +1,111 @@
+from django_filters import rest_framework as filters
+from rest_framework import status
+from rest_framework.decorators import action
+from rest_framework.exceptions import NotFound
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.views import Response
+from rest_framework.viewsets import ModelViewSet
+
+from apps.auth_token.auth import ApiTokenAuthentication, ScheduleExportAuthentication
+from apps.public_api import constants as public_api_constants
+from apps.public_api.custom_renderers import CalendarRenderer
+from apps.public_api.serializers import PolymorphicScheduleSerializer, PolymorphicScheduleUpdateSerializer
+from apps.public_api.throttlers.user_throttle import UserThrottle
+from apps.schedules.ical_utils import ical_export_from_schedule
+from apps.schedules.models import OnCallSchedule
+from apps.slack.tasks import update_slack_user_group_for_schedules
+from apps.user_management.organization_log_creator import OrganizationLogType, create_organization_log
+from common.api_helpers.filters import ByTeamFilter
+from common.api_helpers.mixins import DemoTokenMixin, RateLimitHeadersMixin, UpdateSerializerMixin
+from common.api_helpers.paginators import FiftyPageSizePaginator
+
+
+class OnCallScheduleChannelView(RateLimitHeadersMixin, DemoTokenMixin, UpdateSerializerMixin, ModelViewSet):
+    authentication_classes = (ApiTokenAuthentication,)
+    permission_classes = (IsAuthenticated,)
+
+    throttle_classes = [UserThrottle]
+
+    model = OnCallSchedule
+    serializer_class = PolymorphicScheduleSerializer
+    update_serializer_class = PolymorphicScheduleUpdateSerializer
+
+    pagination_class = FiftyPageSizePaginator
+
+    demo_default_id = public_api_constants.DEMO_SCHEDULE_ID_ICAL
+
+    filter_backends = (filters.DjangoFilterBackend,)
+    filterset_class = ByTeamFilter
+
+    def get_queryset(self):
+        name = self.request.query_params.get("name", None)
+
+        queryset = OnCallSchedule.objects.filter(organization=self.request.auth.organization)
+
+        if name is not None:
+            queryset = queryset.filter(name=name)
+
+        return queryset.order_by("id")
+
+    def get_object(self):
+        public_primary_key = self.kwargs["pk"]
+
+        try:
+            return OnCallSchedule.objects.filter(
+                organization=self.request.auth.organization,
+            ).get(public_primary_key=public_primary_key)
+        except OnCallSchedule.DoesNotExist:
+            raise NotFound
+
+    def perform_create(self, serializer):
+        serializer.save()
+        instance = serializer.instance
+
+        if instance.user_group is not None:
+            update_slack_user_group_for_schedules.apply_async((instance.user_group.pk,))
+
+        organization = self.request.auth.organization
+        user = self.request.user
+        description = f"Schedule {instance.name} was created"
+        create_organization_log(organization, user, OrganizationLogType.TYPE_SCHEDULE_CREATED, description)
+
+    def perform_update(self, serializer):
+        organization = self.request.auth.organization
+        user = self.request.user
+        old_state = serializer.instance.repr_settings_for_client_side_logging
+        old_user_group = serializer.instance.user_group
+
+        updated_schedule = serializer.save()
+
+        if old_user_group is not None:
+            update_slack_user_group_for_schedules.apply_async((old_user_group.pk,))
+
+        if updated_schedule.user_group is not None and updated_schedule.user_group != old_user_group:
+            update_slack_user_group_for_schedules.apply_async((updated_schedule.user_group.pk,))
+
+        new_state = serializer.instance.repr_settings_for_client_side_logging
+        description = f"Schedule {serializer.instance.name} was changed from:\n{old_state}\nto:\n{new_state}"
+        create_organization_log(organization, user, OrganizationLogType.TYPE_SCHEDULE_CHANGED, description)
+
+    def perform_destroy(self, instance):
+        organization = self.request.auth.organization
+        user = self.request.user
+        description = f"Schedule {instance.name} was deleted"
+        create_organization_log(organization, user, OrganizationLogType.TYPE_SCHEDULE_DELETED, description)
+
+        instance.delete()
+
+        if instance.user_group is not None:
+            update_slack_user_group_for_schedules.apply_async((instance.user_group.pk,))
+
+    @action(
+        methods=["get"],
+        detail=True,
+        renderer_classes=(CalendarRenderer,),
+        authentication_classes=(ScheduleExportAuthentication,),
+        permission_classes=(IsAuthenticated,),
+    )
+    def export(self, request, pk):
+        # Not using existing get_object method because it requires access to the organization user attribute
+        export = ical_export_from_schedule(self.request.auth.schedule)
+        return Response(export, status=status.HTTP_200_OK)

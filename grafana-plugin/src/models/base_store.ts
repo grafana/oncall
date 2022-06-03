@@ -1,0 +1,76 @@
+import { sentenceCase } from 'change-case';
+import { action } from 'mobx';
+
+import { makeRequest } from 'network';
+import { RootStore } from 'state';
+import { openErrorNotification } from 'utils';
+
+export default class BaseStore {
+  protected rootStore: RootStore;
+  protected path = '';
+
+  constructor(rootStore: RootStore) {
+    this.rootStore = rootStore;
+  }
+
+  onApiError(error: any) {
+    if (error.response.status >= 400 && error.response.status < 500) {
+      const payload = error.response.data;
+      const text =
+        typeof payload === 'string'
+          ? payload
+          : Object.keys(payload)
+              .map((key) => `${sentenceCase(key)}: ${payload[key]}`)
+              .join('\n');
+      openErrorNotification(text);
+    }
+
+    throw error;
+  }
+
+  @action
+  async getAll(query = '') {
+    return await makeRequest(`${this.path}`, {
+      params: { search: query },
+      method: 'GET',
+    }).catch(this.onApiError);
+  }
+
+  @action
+  async getById(id: string) {
+    return await makeRequest(`${this.path}${id}/`, {
+      method: 'GET',
+    }).catch(this.onApiError);
+  }
+
+  @action
+  async create(data: any) {
+    return await makeRequest(this.path, {
+      method: 'POST',
+      data,
+    }).catch(this.onApiError);
+  }
+
+  @action
+  async update(id: any, data: any) {
+    const result = await makeRequest(`${this.path}${id}/`, {
+      method: 'PUT',
+      data,
+    }).catch(this.onApiError);
+
+    // Update env_status field for current team
+    await this.rootStore.teamStore.loadCurrentTeam();
+    return result;
+  }
+
+  @action
+  async delete(id: any) {
+    const result = await makeRequest(`${this.path}${id}/`, {
+      method: 'DELETE',
+    }).catch(this.onApiError);
+
+    // Update env_status field for current team
+    await this.rootStore.teamStore.loadCurrentTeam();
+    return result;
+  }
+}

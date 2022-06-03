@@ -1,0 +1,134 @@
+import time
+from datetime import timedelta
+
+from rest_framework import serializers
+
+from apps.base.models import UserNotificationPolicy
+from apps.base.models.user_notification_policy import NotificationChannelAPIOptions
+from apps.user_management.models import User
+from common.api_helpers.custom_fields import OrganizationFilteredPrimaryKeyRelatedField
+from common.api_helpers.exceptions import BadRequest, Forbidden
+from common.api_helpers.mixins import EagerLoadingMixin
+
+
+# This serializer should not be user directly
+class UserNotificationPolicyBaseSerializer(EagerLoadingMixin, serializers.ModelSerializer):
+    id = serializers.CharField(read_only=True, source="public_primary_key")
+    notify_by = serializers.ChoiceField(
+        read_only=False,
+        required=False,
+        default=UserNotificationPolicy.NotificationChannel.SLACK,
+        choices=NotificationChannelAPIOptions.AVAILABLE_FOR_USE,
+    )
+    step = serializers.ChoiceField(
+        read_only=False,
+        required=False,
+        default=UserNotificationPolicy.Step.NOTIFY,
+        choices=UserNotificationPolicy.Step.choices,
+    )
+
+    SELECT_RELATED = [
+        "user",
+    ]
+
+    class Meta:
+        model = UserNotificationPolicy
+        fields = ["id", "step", "order", "notify_by", "wait_delay", "important", "user"]
+
+    def to_internal_value(self, data):
+        if data.get("wait_delay", None):
+            try:
+                time.strptime(data["wait_delay"], "%H:%M:%S")
+            except ValueError:
+                try:
+                    data["wait_delay"] = str(timedelta(seconds=float(data["wait_delay"])))
+                except ValueError:
+                    raise serializers.ValidationError("Invalid wait delay format")
+        data = self._notify_by_to_internal_value(data)
+        return super().to_internal_value(data)
+
+    def to_representation(self, instance):
+        result = super().to_representation(instance)
+        result = self._notify_by_to_representation(instance, result)
+        return result
+
+    #  _notify_by_to_internal_value and _notify_by_to_representation are exists because of in EscalationPolicy model
+    #  notify_by field has default value NotificationChannel.SLACK and not nullable
+    #  We don't want any notify_by value in response if step != Step.NOTIFY
+    def _notify_by_to_internal_value(self, data):
+        if not data.get("notify_by", None):
+            data["notify_by"] = UserNotificationPolicy.NotificationChannel.SLACK
+        return data
+
+    def _notify_by_to_representation(self, instance, result):
+        if instance.step != UserNotificationPolicy.Step.NOTIFY:
+            result["notify_by"] = None
+        return result
+
+
+class UserNotificationPolicySerializer(UserNotificationPolicyBaseSerializer):
+    prev_step = serializers.CharField(required=False, write_only=True, allow_null=True)
+    user = OrganizationFilteredPrimaryKeyRelatedField(
+        queryset=User.objects,
+        required=False,
+        allow_null=True,
+        many=False,
+        display_func=lambda instance: instance.username,
+    )
+    notify_by = serializers.ChoiceField(
+        choices=NotificationChannelAPIOptions.AVAILABLE_FOR_USE,
+        default=NotificationChannelAPIOptions.DEFAULT_NOTIFICATION_CHANNEL,
+    )
+
+    class Meta(UserNotificationPolicyBaseSerializer.Meta):
+        fields = [*UserNotificationPolicyBaseSerializer.Meta.fields, "prev_step"]
+        read_only_fields = ("order",)
+
+    def create(self, validated_data):
+        prev_step = validated_data.pop("prev_step", None)
+
+        user = validated_data.get("user")
+        organization = self.context["request"].auth.organization
+
+        if not user:
+            user = self.context["request"].user
+
+        self_or_admin = user.self_or_admin(user_to_check=self.context["request"].user, organization=organization)
+        if not self_or_admin:
+            raise Forbidden()
+
+        if prev_step is not None:
+            try:
+                prev_step = UserNotificationPolicy.objects.get(public_primary_key=prev_step)
+            except UserNotificationPolicy.DoesNotExist:
+                raise BadRequest(detail="Prev step does not exist")
+            if prev_step.user != user or prev_step.important != validated_data.get("important", False):
+                raise BadRequest(detail="UserNotificationPolicy can be created only with the same user and importance")
+            instance = UserNotificationPolicy.objects.create(**validated_data)
+            instance.to(prev_step.order + 1)
+            return instance
+        else:
+            instance = UserNotificationPolicy.objects.create(**validated_data)
+            return instance
+
+
+class UserNotificationPolicyUpdateSerializer(UserNotificationPolicyBaseSerializer):
+
+    user = OrganizationFilteredPrimaryKeyRelatedField(
+        many=False,
+        read_only=True,
+        display_func=lambda instance: instance.username,
+    )
+
+    class Meta(UserNotificationPolicyBaseSerializer.Meta):
+        read_only_fields = ("order", "user", "important")
+
+    def update(self, instance, validated_data):
+        self_or_admin = instance.user.self_or_admin(
+            user_to_check=self.context["request"].user, organization=self.context["request"].user.organization
+        )
+        if not self_or_admin:
+            raise Forbidden()
+        if validated_data.get("step") == UserNotificationPolicy.Step.WAIT and not validated_data.get("wait_delay"):
+            validated_data["wait_delay"] = UserNotificationPolicy.FIVE_MINUTES
+        return super().update(instance, validated_data)

@@ -1,0 +1,30 @@
+.root {
+  display: flex;
+  flex-direction: column;
+}
+
+.content {
+  margin-top: 20px;
+}
+
+.columns {
+  display: flex;
+  flex-direction: row;
+}
+
+.col {
+  display: flex;
+  flex-direction: column;
+}
+
+.right {
+  margin-left: 24px;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+}
+
+.right_centered {
+  text-align: center;
+  justify-content: center;
+}

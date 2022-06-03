@@ -1,0 +1,248 @@
+import logging
+
+from django.apps import apps
+from django.conf import settings
+from django.core.validators import MinLengthValidator
+from django.db import models
+from django.db.models.signals import post_save
+from django.dispatch import receiver
+from emoji import demojize
+
+from apps.alerts.tasks import invalidate_web_cache_for_alert_group
+from apps.schedules.tasks import drop_cached_ical_for_custom_events_for_organization
+from common.constants.role import Role
+from common.public_primary_keys import generate_public_primary_key, increase_public_primary_key_length
+
+logger = logging.getLogger(__name__)
+
+
+def generate_public_primary_key_for_user():
+    prefix = "U"
+    new_public_primary_key = generate_public_primary_key(prefix)
+
+    failure_counter = 0
+    while User.objects.filter(public_primary_key=new_public_primary_key).exists():
+        new_public_primary_key = increase_public_primary_key_length(
+            failure_counter=failure_counter, prefix=prefix, model_name="User"
+        )
+        failure_counter += 1
+
+    return new_public_primary_key
+
+
+class UserManager(models.Manager):
+    @staticmethod
+    def sync_for_team(team, api_members: list[dict]):
+        user_ids = tuple(member["userId"] for member in api_members)
+        users = team.organization.users.filter(user_id__in=user_ids)
+        team.users.set(users)
+
+    @staticmethod
+    def sync_for_organization(organization, api_users: list[dict]):
+        grafana_users = {user["userId"]: user for user in api_users}
+        existing_user_ids = set(organization.users.all().values_list("user_id", flat=True))
+
+        # create missing users
+        users_to_create = tuple(
+            User(
+                organization_id=organization.pk,
+                user_id=user["userId"],
+                email=user["email"],
+                name=user["name"],
+                username=user["login"],
+                role=Role[user["role"].upper()],
+                avatar_url=user["avatarUrl"],
+            )
+            for user in grafana_users.values()
+            if user["userId"] not in existing_user_ids
+        )
+        organization.users.bulk_create(users_to_create, batch_size=5000)
+
+        # delete excess users
+        user_ids_to_delete = existing_user_ids - grafana_users.keys()
+        organization.users.filter(user_id__in=user_ids_to_delete).delete()
+
+        # update existing users if any fields have changed
+        users_to_update = []
+        for user in organization.users.filter(user_id__in=existing_user_ids):
+            grafana_user = grafana_users[user.user_id]
+            g_user_role = Role[grafana_user["role"].upper()]
+            if (
+                user.email != grafana_user["email"]
+                or user.name != grafana_user["name"]
+                or user.username != grafana_user["login"]
+                or user.role != g_user_role
+                or user.avatar_url != grafana_user["avatarUrl"]
+            ):
+                user.email = grafana_user["email"]
+                user.name = grafana_user["name"]
+                user.username = grafana_user["login"]
+                user.role = g_user_role
+                user.avatar_url = grafana_user["avatarUrl"]
+                users_to_update.append(user)
+
+        organization.users.bulk_update(
+            users_to_update, ["email", "name", "username", "role", "avatar_url"], batch_size=5000
+        )
+
+
+class UserQuerySet(models.QuerySet):
+    def filter(self, *args, **kwargs):
+        return super().filter(*args, **kwargs, is_active=True)
+
+    def filter_with_deleted(self, *args, **kwargs):
+        return super().filter(*args, **kwargs)
+
+    def delete(self):
+        # is_active = None is used to be able to have multiple deleted users with the same user_id
+        return super().update(is_active=None)
+
+    def hard_delete(self):
+        return super().delete()
+
+
+class User(models.Model):
+    objects = UserManager.from_queryset(UserQuerySet)()
+
+    class Meta:
+        # For some reason there are cases when Grafana user gets deleted,
+        # and then new Grafana user is created with the same user_id
+        # Including is_active to unique_together and setting is_active to None allows to
+        # have multiple deleted users with the same user_id, but user_id is unique among active users
+        unique_together = ("user_id", "organization", "is_active")
+
+    public_primary_key = models.CharField(
+        max_length=20,
+        validators=[MinLengthValidator(settings.PUBLIC_PRIMARY_KEY_MIN_LENGTH + 1)],
+        unique=True,
+        default=generate_public_primary_key_for_user,
+    )
+
+    user_id = models.PositiveIntegerField()
+    organization = models.ForeignKey(to="user_management.Organization", on_delete=models.CASCADE, related_name="users")
+    current_team = models.ForeignKey(to="user_management.Team", null=True, default=None, on_delete=models.SET_NULL)
+
+    email = models.EmailField()
+    name = models.CharField(max_length=300)
+    username = models.CharField(max_length=300)
+    role = models.PositiveSmallIntegerField(choices=Role.choices())
+    avatar_url = models.URLField()
+
+    notification = models.ManyToManyField("alerts.AlertGroup", through="alerts.UserHasNotification")
+
+    unverified_phone_number = models.CharField(max_length=20, null=True, default=None)
+    _verified_phone_number = models.CharField(max_length=20, null=True, default=None)
+
+    slack_user_identity = models.ForeignKey(
+        "slack.SlackUserIdentity", on_delete=models.PROTECT, null=True, default=None, related_name="users"
+    )
+
+    # is_active = None is used to be able to have multiple deleted users with the same user_id
+    is_active = models.BooleanField(null=True, default=True)
+
+    def __str__(self):
+        return f"{self.pk}: {self.username}"
+
+    @property
+    def is_authenticated(self):
+        return True
+
+    @property
+    def verified_phone_number(self):
+        """
+        Use property to highlight that _verified_phone_number should not be modified directly
+        """
+        return self._verified_phone_number
+
+    def save_verified_phone_number(self, phone_number: str) -> None:
+        self._verified_phone_number = phone_number
+        self.save(update_fields=["_verified_phone_number"])
+
+    def clear_phone_numbers(self) -> None:
+        self.unverified_phone_number = None
+        self._verified_phone_number = None
+        self.save(update_fields=["unverified_phone_number", "_verified_phone_number"])
+
+    # TODO: move to telegram app
+    def is_telegram_connected(self):
+        return hasattr(self, "telegram_connection")
+
+    def self_or_admin(self, user_to_check, organization) -> bool:
+        return user_to_check.pk == self.pk or (
+            user_to_check.role == Role.ADMIN and organization.pk == user_to_check.organization_id
+        )
+
+    @property
+    def is_notification_allowed(self):
+        return self.role in (Role.ADMIN, Role.EDITOR)
+
+    # using in-memory cache instead of redis to avoid pickling  python objects
+    # @timed_lru_cache(timeout=100)
+    def get_user_verbal_for_team_for_slack(self, amixr_team=None, slack_team_identity=None, mention=False):
+        slack_verbal = None
+        verbal = self.username
+
+        if self.slack_user_identity:
+            slack_verbal = (
+                f"<@{self.slack_user_identity.slack_id}>"
+                if mention
+                else f"@{self.slack_user_identity.profile_display_name or self.slack_user_identity.slack_verbal}"
+            )
+
+        if slack_verbal:
+            slack_verbal_str = f" ({slack_verbal})"
+            verbal = f"{verbal}{slack_verbal_str}"
+
+        return verbal
+
+    @property
+    def repr_settings_for_client_side_logging(self):
+        """
+        Example of execution:
+            username: Alex, role: Admin, verified phone number: not added, unverified phone number: not added,
+            telegram connected: No,
+            notification policies: default: SMS - 5 min - :telephone:, important: :telephone:
+        """
+        UserNotificationPolicy = apps.get_model("base", "UserNotificationPolicy")
+
+        default, important = UserNotificationPolicy.get_short_verbals_for_user(user=self)
+        notification_policies_verbal = f"default: {' - '.join(default)}, important: {' - '.join(important)}"
+        notification_policies_verbal = demojize(notification_policies_verbal)
+
+        result = (
+            f"username: {self.username}, role: {self.get_role_display()}, "
+            f"verified phone number: "
+            f"{self.verified_phone_number if self.verified_phone_number else 'not added'}, "
+            f"unverified phone number: "
+            f"{self.unverified_phone_number if self.unverified_phone_number else 'not added'}, "
+            f"telegram connected: {'Yes' if self.is_telegram_connected else 'No'}"
+            f"\nnotification policies: {notification_policies_verbal}"
+        )
+        return result
+
+    @property
+    def timezone(self):
+        slack_user_identity = self.slack_user_identity
+        if slack_user_identity:
+            return slack_user_identity.timezone
+        else:
+            return None
+
+    def short(self):
+        return {"username": self.username, "pk": self.public_primary_key, "avatar": self.avatar_url}
+
+
+# TODO: check whether this signal can be moved to save method of the model
+@receiver(post_save, sender=User)
+def listen_for_user_model_save(sender, instance, created, *args, **kwargs):
+    # if kwargs is not None:
+    #     if "update_fields" in kwargs:
+    #         if kwargs["update_fields"] is not None:
+    #             if "username" not in kwargs["update_fields"]:
+    #                 return
+
+    drop_cached_ical_for_custom_events_for_organization.apply_async(
+        (instance.organization_id,),
+    )
+    logger.info(f"Drop AG cache. Reason: save user {instance.pk}")
+    invalidate_web_cache_for_alert_group.apply_async(kwargs={"org_pk": instance.organization_id})

@@ -1,0 +1,37 @@
+{% load static %}
+<ol>
+    <li>
+        <p>1. In Alerting > Notification channels, click <b>Add channel</b>.</p>
+        <p>
+            <img src='{{ service_url|add:'/static/images/heartbeat_instructions/heartbeat_grafana_1.png' }}'
+             alt="grafana_instruction_1" width="400">
+        </p>
+    </li>
+    <li>
+        <p>2. Enter a <b>Name</b>. The <b>Type</b> is webhook, Enter the unique OnCall URL.</p>
+        <p>3. Select <b>Send reminders</b> and set a 5m (minute) interval.<p>
+        <p>
+            <img src='{{ service_url|add:'/static/images/heartbeat_instructions/heartbeat_grafana_2.png' }}'
+             alt="grafana_instruction_2" width="400">
+        </p>
+    </li>
+    <li>
+        <p>4. In a dashboard, create a panel that will generate heartbeat alerts. </p>
+        <p>5. In the <b>Metrics</b> tab, enter 0 in the query field.
+        <p>
+            <img src='{{ service_url|add:'/static/images/heartbeat_instructions/heartbeat_grafana_3.png' }}'
+             alt="grafana_instruction_3" width="400">
+        </p>
+        <p>6. In the <b>Alerting</b> tab, enter an alert name, and conditions that allow the alert to always be enabled. Set the alert interval.</p>
+        <p>
+            <img src='{{ service_url|add:'/static/images/heartbeat_instructions/heartbeat_grafana_4.png' }}'
+             alt="grafana_instruction_4" width="400">
+        </p>
+        <p>7. In <b>Notifications</b>, select the name of your heartbeat channel. </p>
+        <p>
+            <img src='{{ service_url|add:'/static/images/heartbeat_instructions/heartbeat_grafana_5.png' }}'
+             alt="grafana_instruction_5" width="400">
+        </p>
+        <p>8. Click <b>Save</b>. </p>
+    </li>
+</ol>

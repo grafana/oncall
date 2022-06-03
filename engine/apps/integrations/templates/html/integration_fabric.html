@@ -1,0 +1,26 @@
+<h4>How to start sending alerts to Grafana OnCall from Fabric</h4>
+<p><ol>
+    <li>1. Go to https://www.fabric.io/settings/apps</li>
+    <li>2. Choose your application</li>
+    <li>3. Navigate to Service Hooks -> WebHook</li>
+    <li>4. Enter URL:
+        <pre>{{ alert_receive_channel.integration_url }}</pre>
+    </li>
+    <li>5. Click Verify</li>
+    <li>6. Choose &quot;SEND IMPACT CHANGE ALERTS&quot; and &quot;ALSO SEND NON-FATAL ALERTS&quot;</li>
+</ol></p>
+
+<h4>Next steps:</h4>
+<p><ol>
+    <li>
+        1. Add the routes and escalations in <code class='code-inline'>Escalations settings</code>
+    </li>
+    <li>
+        2. Check grouping, auto-resolving, and rendering templates in
+        <code class='code-inline'>Alert Templates</code> Settings
+    </li>
+    <li>
+        3. Make sure all the users set up their <code class='code-inline'>Personal Notifications</code> Settings
+        on the <code class='code-inline'>Users</code> Page
+    </li>
+</ol></p>
