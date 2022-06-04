@@ -6,7 +6,7 @@ from django.db import models
 
 from apps.base.utils import live_settings
 from apps.oss_installation.constants import CLOUD_URL
-from apps.oss_installation.models.cloud_users import CloudUserIdentity
+from apps.oss_installation.models.cloud_user_identity import CloudUserIdentity
 from apps.user_management.models import User
 
 logger = logging.getLogger(__name__)
@@ -59,7 +59,7 @@ class CloudOrganizationConnector(models.Model):
         users_url = urljoin(CLOUD_URL, "api/v1/users")
 
         existing_cloud_identities = list(CloudUserIdentity.objects.filter(organization=self.organization))
-        existing_cloud_ids = list(map(lambda u: u.cloud_id, existing_cloud_identities))
+        existing_cloud_ids = list(map(lambda identity: identity.cloud_id, existing_cloud_identities))
 
         fetch_next_page = True
         page = 1
@@ -102,7 +102,6 @@ class CloudOrganizationConnector(models.Model):
             i.email = cloud_users_identities_to_update[i.cloud_id]["email"]
             i.phone_number_verified = cloud_users_identities_to_update[i.cloud_id]["is_phone_number_verified"]
 
-        # TODO: Grafana CN: check if data validation needed.
         CloudUserIdentity.objects.bulk_create(cloud_users_identities_to_create, batch_size=1000)
         CloudUserIdentity.objects.bulk_update(
             existing_cloud_identities, ["email", "phone_number_verified"], batch_size=1000

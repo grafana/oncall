@@ -4,11 +4,13 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from apps.auth_token.auth import PluginAuthentication
+from apps.base.utils import live_settings
 
 FEATURE_SLACK = "slack"
 FEATURE_TELEGRAM = "telegram"
 FEATURE_LIVE_SETTINGS = "live_settings"
 MOBILE_APP_PUSH_NOTIFICATIONS = "mobile_app"
+FEATURE_GRAFANA_CLOUD_NOTIFICATIONS = "grafana_cloud_notifications"
 
 
 class FeaturesAPIView(APIView):
@@ -33,6 +35,9 @@ class FeaturesAPIView(APIView):
 
         if settings.FEATURE_LIVE_SETTINGS_ENABLED:
             enabled_features.append(FEATURE_LIVE_SETTINGS)
+
+        if live_settings.GRAFANA_CLOUD_NOTIFICATIONS_ENABLED:
+            enabled_features.append(FEATURE_GRAFANA_CLOUD_NOTIFICATIONS)
 
         if settings.MOBILE_APP_PUSH_NOTIFICATIONS_ENABLED:
             DynamicSetting = apps.get_model("base", "DynamicSetting")

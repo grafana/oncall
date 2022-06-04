@@ -3,6 +3,8 @@ from urllib.parse import urljoin
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.views import APIView
 
+import apps.oss_installation.constants as cloud_constants
+from apps.api.permissions import IsAdmin
 from apps.auth_token.auth import PluginAuthentication
 from apps.oss_installation.models import CloudOrganizationConnector, CloudUserIdentity
 from apps.user_management.models import User
@@ -11,8 +13,7 @@ from common.api_helpers.paginators import HundredPageSizePaginator
 
 class CloudUsersView(HundredPageSizePaginator, APIView):
     authentication_classes = (PluginAuthentication,)
-    # TODO: Grafana CN - permissions, ratelimit
-    permission_classes = (IsAuthenticated,)
+    permission_classes = (IsAuthenticated, IsAdmin)
 
     def get(self, request):
         queryset = User.objects.filter(organization=self.request.user.organization)
@@ -31,23 +32,28 @@ class CloudUsersView(HundredPageSizePaginator, APIView):
         response = []
 
         connector = CloudOrganizationConnector.objects.first()
-
         for user in results:
-            cloud_identity = cloud_identities.get(user.email, None)
             link = None
-            status = 0
-            if cloud_identity:
-                status = 1
-                is_phone_verified = cloud_identity.phone_number_verified
-                if is_phone_verified:
-                    status = 2
-                link = urljoin(
-                    connector.cloud_url, f"a/grafana-oncall-app/?page=users&p=1&id={cloud_identity.cloud_id}"
-                )
+            status = cloud_constants.CLOUD_NOT_SYNCED
+            if connector is not None:
+                status = cloud_constants.CLOUD_SYNCED_USER_NOT_FOUND
+                cloud_identity = cloud_identities.get(user.email, None)
+                if cloud_identity:
+                    status = cloud_constants.CLOUD_SYNCED_PHONE_NOT_VERIFIED
+                    is_phone_verified = cloud_identity.phone_number_verified
+                    if is_phone_verified:
+                        status = cloud_constants.CLOUD_SYNCED_PHONE_VERIFIED
+                    link = urljoin(
+                        connector.cloud_url, f"a/grafana-oncall-app/?page=users&p=1&id={cloud_identity.cloud_id}"
+                    )
 
-            # TODO: Grafana CN - decide if emails is needed. If yes - don't forget to check that they mustn't be shown to users
             response.append(
-                {"id": user.public_primary_key, "username": user.username, "cloud_sync_status": status, "link": link}
+                {
+                    "id": user.public_primary_key,
+                    "email": user.email,
+                    "username": user.username,
+                    "cloud_data": {"status": status, "link": link},
+                }
             )
 
         return self.get_paginated_response(response)
