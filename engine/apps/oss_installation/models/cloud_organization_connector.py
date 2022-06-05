@@ -2,7 +2,7 @@ import logging
 from urllib.parse import urljoin
 
 import requests
-from django.db import models
+from django.db import models, transaction
 
 from apps.base.utils import live_settings
 from apps.oss_installation.constants import CLOUD_URL
@@ -52,14 +52,8 @@ class CloudOrganizationConnector(models.Model):
             return
 
         existing_emails = list(User.objects.filter(organization=self.organization).values_list("email", flat=True))
-        # existing_cloud_ids = list(
-        #     CloudUserIdentity.objects.filter(organization=self.organization).values_list("cloud_id", flat=True)
-        # )
         matching_users = []
         users_url = urljoin(CLOUD_URL, "api/v1/users")
-
-        existing_cloud_identities = list(CloudUserIdentity.objects.filter(organization=self.organization))
-        existing_cloud_ids = list(map(lambda identity: identity.cloud_id, existing_cloud_identities))
 
         fetch_next_page = True
         page = 1
@@ -82,13 +76,9 @@ class CloudOrganizationConnector(models.Model):
                 logger.warning(f"Unable to sync users with cloud. Request exception {str(e)}")
                 break
 
-        cloud_users_identities_to_update = {}
-
-        cloud_users_identities_to_create = []
-        for user in matching_users:
-            if user["id"] in existing_cloud_ids:
-                cloud_users_identities_to_update[user["id"]] = user
-            else:
+        with transaction.atomic():
+            cloud_users_identities_to_create = []
+            for user in matching_users:
                 cloud_users_identities_to_create.append(
                     CloudUserIdentity(
                         cloud_id=user["id"],
@@ -98,14 +88,8 @@ class CloudOrganizationConnector(models.Model):
                     )
                 )
 
-        for i in existing_cloud_identities:
-            i.email = cloud_users_identities_to_update[i.cloud_id]["email"]
-            i.phone_number_verified = cloud_users_identities_to_update[i.cloud_id]["is_phone_number_verified"]
-
-        CloudUserIdentity.objects.bulk_create(cloud_users_identities_to_create, batch_size=1000)
-        CloudUserIdentity.objects.bulk_update(
-            existing_cloud_identities, ["email", "phone_number_verified"], batch_size=1000
-        )
+            CloudUserIdentity.objects.filter(organization=self.organization).delete()
+            CloudUserIdentity.objects.bulk_create(cloud_users_identities_to_create, batch_size=1000)
 
     def sync_user_with_cloud(self, user):
         api_token = live_settings.GRAFANA_CLOUD_ONCALL_TOKEN
@@ -124,12 +108,12 @@ class CloudOrganizationConnector(models.Model):
             data = r.json()
             if len(data["results"]) != 0:
                 cloud_used_data = data["results"][0]
-                CloudUserIdentity.objects.update_or_create(
+                CloudUserIdentity.objects.filter(email=user.emai).delete()
+                CloudUserIdentity.objects.create(
                     email=user.email,
-                    defaults={
-                        "phone_number_verified": cloud_used_data["is_phone_number_verified"],
-                        "cloud_id": cloud_used_data["id"],
-                    },
+                    organization=user.organization,
+                    phone_number_verified=cloud_used_data["is_phone_number_verified"],
+                    cloud_id=cloud_used_data["id"],
                 )
             else:
                 logger.warning(f"Unable to sync_user_with_cloud user_id {user.id}. User with {user.email} not found")
