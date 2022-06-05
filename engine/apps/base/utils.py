@@ -105,7 +105,7 @@ class LiveSettingValidator:
             if r.status_code == 200:
                 return
             elif r.status_code == 403:
-                return f"Invalid token."
+                return f"Invalid token"
             else:
                 return f"Non-200 HTTP code. Got {r.status_code}"
         except requests.exceptions.RequestException as e:

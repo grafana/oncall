@@ -1,14 +1,10 @@
 from urllib.parse import urljoin
 
-from rest_framework import mixins, serializers, viewsets
-from rest_framework.permissions import IsAuthenticated
+from rest_framework import serializers
 
 import apps.oss_installation.constants as cloud_constants
-from apps.api.permissions import ActionPermission, IsOwnerOrAdmin
-from apps.auth_token.auth import PluginAuthentication
 from apps.oss_installation.models import CloudOrganizationConnector, CloudUserIdentity
 from apps.user_management.models import User
-from common.api_helpers.mixins import PublicPrimaryKeyMixin
 
 
 class CloudUserSerializer(serializers.ModelSerializer):
@@ -41,21 +37,3 @@ class CloudUserSerializer(serializers.ModelSerializer):
                 )
         cloud_data = {"status": status, "link": link}
         return cloud_data
-
-
-class CloudUserView(
-    PublicPrimaryKeyMixin,
-    mixins.RetrieveModelMixin,
-    viewsets.GenericViewSet,
-):
-    authentication_classes = (PluginAuthentication,)
-    permission_classes = (IsAuthenticated, ActionPermission)
-
-    action_object_permissions = {
-        IsOwnerOrAdmin: ("retrieve",),
-    }
-    serializer_class = CloudUserSerializer
-
-    def get_queryset(self):
-        queryset = User.objects.filter(organization=self.request.user.organization)
-        return queryset
