@@ -19,7 +19,6 @@ class CloudConnectionView(APIView):
         heartbeat = CloudHeartbeat.objects.first()
         response = {
             "cloud_connection_status": connector is not None,
-            "token": live_settings.GRAFANA_CLOUD_ONCALL_TOKEN,
             "cloud_notifications_enabled": live_settings.GRAFANA_CLOUD_NOTIFICATIONS_ENABLED,
             "cloud_heartbeat_enabled": live_settings.GRAFANA_CLOUD_ONCALL_HEARTBEAT_ENABLED,
             "cloud_heartbeat_link": self._get_heartbeat_link(connector, heartbeat),
