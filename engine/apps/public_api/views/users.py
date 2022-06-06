@@ -5,19 +5,18 @@ from rest_framework.views import Response
 from rest_framework.viewsets import ReadOnlyModelViewSet
 
 from apps.auth_token.auth import ApiTokenAuthentication, UserScheduleExportAuthentication
-from apps.public_api import constants as public_api_constants
 from apps.public_api.custom_renderers import CalendarRenderer
 from apps.public_api.serializers import FastUserSerializer, UserSerializer
 from apps.public_api.throttlers.user_throttle import UserThrottle
 from apps.schedules.ical_utils import user_ical_export
 from apps.schedules.models import OnCallSchedule
 from apps.user_management.models import User
-from common.api_helpers.mixins import DemoTokenMixin, RateLimitHeadersMixin, ShortSerializerMixin
+from common.api_helpers.mixins import RateLimitHeadersMixin, ShortSerializerMixin
 from common.api_helpers.paginators import HundredPageSizePaginator
 from common.constants.role import Role
 
 
-class UserView(RateLimitHeadersMixin, ShortSerializerMixin, DemoTokenMixin, ReadOnlyModelViewSet):
+class UserView(RateLimitHeadersMixin, ShortSerializerMixin, ReadOnlyModelViewSet):
     authentication_classes = (ApiTokenAuthentication,)
     permission_classes = (IsAuthenticated,)
 
@@ -28,8 +27,6 @@ class UserView(RateLimitHeadersMixin, ShortSerializerMixin, DemoTokenMixin, Read
     short_serializer_class = FastUserSerializer
 
     throttle_classes = [UserThrottle]
-
-    demo_default_id = public_api_constants.DEMO_USER_ID
 
     def get_queryset(self):
         username = self.request.query_params.get("username")

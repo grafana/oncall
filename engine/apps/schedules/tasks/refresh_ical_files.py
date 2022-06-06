@@ -2,7 +2,6 @@ from celery.utils.log import get_task_logger
 from django.apps import apps
 
 from apps.alerts.tasks import notify_ical_schedule_shift
-from apps.public_api.constants import DEMO_SCHEDULE_ID_CALENDAR, DEMO_SCHEDULE_ID_ICAL
 from apps.schedules.ical_utils import is_icals_equal
 from apps.schedules.tasks import notify_about_empty_shifts_in_schedule, notify_about_gaps_in_schedule
 from apps.slack.tasks import start_update_slack_user_group_for_schedules
@@ -17,9 +16,7 @@ def start_refresh_ical_files():
 
     task_logger.info("Start refresh ical files")
 
-    schedules = OnCallSchedule.objects.all().exclude(
-        public_primary_key__in=(DEMO_SCHEDULE_ID_CALENDAR, DEMO_SCHEDULE_ID_ICAL)
-    )
+    schedules = OnCallSchedule.objects.all()
     for schedule in schedules:
         refresh_ical_file.apply_async((schedule.pk,))
 

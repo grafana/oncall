@@ -1,12 +1,6 @@
-from apps.public_api.constants import DEMO_AUTH_TOKEN, VALID_DATE_FOR_DELETE_INCIDENT
+from apps.public_api.constants import VALID_DATE_FOR_DELETE_INCIDENT
 from apps.slack.slack_client import SlackClientWithErrorHandling
 from apps.slack.slack_client.exceptions import SlackAPITokenException
-
-
-def is_demo_token_request(request):
-    if DEMO_AUTH_TOKEN == request.headers.get("Authorization"):
-        return True
-    return False
 
 
 def team_has_slack_token_for_deleting(alert_group):

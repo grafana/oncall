@@ -6,17 +6,16 @@ from rest_framework.viewsets import ModelViewSet
 
 from apps.auth_token.auth import ApiTokenAuthentication
 from apps.base.models import UserNotificationPolicy
-from apps.public_api import constants as public_api_constants
 from apps.public_api.serializers import PersonalNotificationRuleSerializer, PersonalNotificationRuleUpdateSerializer
 from apps.public_api.throttlers.user_throttle import UserThrottle
 from apps.user_management.models import User
 from apps.user_management.organization_log_creator import OrganizationLogType, create_organization_log
 from common.api_helpers.exceptions import BadRequest
-from common.api_helpers.mixins import DemoTokenMixin, RateLimitHeadersMixin, UpdateSerializerMixin
+from common.api_helpers.mixins import RateLimitHeadersMixin, UpdateSerializerMixin
 from common.api_helpers.paginators import FiftyPageSizePaginator
 
 
-class PersonalNotificationView(RateLimitHeadersMixin, DemoTokenMixin, UpdateSerializerMixin, ModelViewSet):
+class PersonalNotificationView(RateLimitHeadersMixin, UpdateSerializerMixin, ModelViewSet):
     authentication_classes = (ApiTokenAuthentication,)
     permission_classes = (IsAuthenticated,)
 
@@ -27,8 +26,6 @@ class PersonalNotificationView(RateLimitHeadersMixin, DemoTokenMixin, UpdateSeri
     update_serializer_class = PersonalNotificationRuleUpdateSerializer
 
     pagination_class = FiftyPageSizePaginator
-
-    demo_default_id = public_api_constants.DEMO_PERSONAL_NOTIFICATION_ID_1
 
     def get_queryset(self):
         user_id = self.request.query_params.get("user_id", None)

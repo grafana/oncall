@@ -6,17 +6,11 @@ from rest_framework.viewsets import ModelViewSet
 
 from apps.alerts.models import AlertReceiveChannel
 from apps.auth_token.auth import ApiTokenAuthentication
-from apps.public_api import constants as public_api_constants
 from apps.public_api.serializers import IntegrationSerializer, IntegrationUpdateSerializer
 from apps.public_api.throttlers.user_throttle import UserThrottle
 from apps.user_management.organization_log_creator import OrganizationLogType, create_organization_log
 from common.api_helpers.filters import ByTeamFilter
-from common.api_helpers.mixins import (
-    DemoTokenMixin,
-    FilterSerializerMixin,
-    RateLimitHeadersMixin,
-    UpdateSerializerMixin,
-)
+from common.api_helpers.mixins import FilterSerializerMixin, RateLimitHeadersMixin, UpdateSerializerMixin
 from common.api_helpers.paginators import FiftyPageSizePaginator
 
 from .maintaiable_object_mixin import MaintainableObjectMixin
@@ -24,7 +18,6 @@ from .maintaiable_object_mixin import MaintainableObjectMixin
 
 class IntegrationView(
     RateLimitHeadersMixin,
-    DemoTokenMixin,
     FilterSerializerMixin,
     UpdateSerializerMixin,
     MaintainableObjectMixin,
@@ -40,8 +33,6 @@ class IntegrationView(
     update_serializer_class = IntegrationUpdateSerializer
 
     pagination_class = FiftyPageSizePaginator
-
-    demo_default_id = public_api_constants.DEMO_INTEGRATION_ID
 
     filter_backends = (filters.DjangoFilterBackend,)
     filterset_class = ByTeamFilter
