@@ -1,4 +1,4 @@
-import React, { useCallback } from 'react';
+import React, { useCallback, useState } from 'react';
 
 import { Tab, TabContent, TabsBar } from '@grafana/ui';
 import cn from 'classnames/bind';
@@ -7,6 +7,7 @@ import Block from 'components/GBlock/Block';
 import MobileAppVerification from 'containers/MobileAppVerification/MobileAppVerification';
 import { UserSettingsTab } from 'containers/UserSettings/UserSettings.types';
 import { SlackTab } from 'containers/UserSettings/parts/tabs//SlackTab/SlackTab';
+import CloudPhoneSettings from 'containers/UserSettings/parts/tabs/CloudPhoneSettings/CloudPhoneSettings';
 import { NotificationSettingsTab } from 'containers/UserSettings/parts/tabs/NotificationSettingsTab';
 import PhoneVerification from 'containers/UserSettings/parts/tabs/PhoneVerification/PhoneVerification';
 import TelegramInfo from 'containers/UserSettings/parts/tabs/TelegramInfo/TelegramInfo';
@@ -105,6 +106,7 @@ export const TabsContent = (props: TabsContentProps) => {
 
   const store = useStore();
   const { userStore } = store;
+  const [isPhoneEnabled, setIsPhoneEnabled] = useState<boolean>(false);
 
   const storeUser = userStore.items[id];
 
@@ -124,9 +126,12 @@ export const TabsContent = (props: TabsContentProps) => {
           <UserInfoTab id={id} onTabChange={onTabChange} />
         ))}
       {activeTab === UserSettingsTab.NotificationSettings && <NotificationSettingsTab id={id} />}
-      {activeTab === UserSettingsTab.PhoneVerification && (
-        <PhoneVerification userPk={id} phone={storeUser.unverified_phone_number || '+'} />
-      )}
+      {activeTab === UserSettingsTab.PhoneVerification &&
+        (isPhoneEnabled ? (
+          <CloudPhoneSettings />
+        ) : (
+          <PhoneVerification userPk={id} phone={storeUser.unverified_phone_number || '+'} />
+        ))}
       {activeTab === UserSettingsTab.MobileAppVerification && (
         <MobileAppVerification userPk={id} phone={storeUser.unverified_phone_number || '+'} />
       )}

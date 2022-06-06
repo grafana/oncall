@@ -100,9 +100,11 @@ export const Root = observer((props: AppRootProps) => {
     const style = document.createElement('style');
     document.head.appendChild(style);
     const index = style.sheet.insertRule('.page-body {max-width: unset !important}');
+    const index2 = style.sheet.insertRule('.page-container {max-width: unset !important}');
 
     return () => {
       style.sheet.removeRule(index);
+      style.sheet.removeRule(index2);
     };
   }, []);
 

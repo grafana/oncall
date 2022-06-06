@@ -1,0 +1,24 @@
+.info-block {
+  width: 70%;
+}
+
+.warning-message {
+  color: var(--warning-text-color);
+}
+
+.success-message {
+  color: var(--success-text-color);
+}
+
+.error-message {
+  color: var(--error-text-color);
+}
+
+.user-table {
+  margin-top: 24px;
+  width: 100%;
+}
+
+.cloud-oncall-name {
+  color: #f55f3e;
+}
