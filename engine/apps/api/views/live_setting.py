@@ -33,7 +33,11 @@ class LiveSettingViewSet(PublicPrimaryKeyMixin, viewsets.ModelViewSet):
 
     def get_queryset(self):
         LiveSetting.populate_settings_if_needed()
-        return LiveSetting.objects.filter(name__in=LiveSetting.AVAILABLE_NAMES).order_by("name")
+        queryset = LiveSetting.objects.filter(name__in=LiveSetting.AVAILABLE_NAMES).order_by("name")
+        search = self.request.query_params.get("search", None)
+        if search:
+            queryset = queryset.filter(name=search)
+        return queryset
 
     def perform_update(self, serializer):
         new_value = serializer.validated_data["value"]
