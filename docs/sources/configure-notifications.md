@@ -11,7 +11,7 @@ These procedures introduce you to the configuration of user settings, how to set
 
 ## Before you begin 
 
-You must have a Grafana Cloud account and be connected to a data source with alerts configured. 
+You must have a Grafana Cloud account. 
 
 Each supported integration and the associated monitoring system has a slightly different configuration method. These methods will not be explained in this guide, however, you can follow the online instructions provided when adding an integration. 
 
@@ -36,9 +36,9 @@ You can configure how each user will receive notifications when they are assigne
 
 ## Connect to integration data sources
 
-You use Grafana OnCall to connect to the monitoring services of your data sources listed in the Grafana OnCall **Integrations** section.
+You use Grafana OnCall to connect to the monitoring services of your alert sources listed in the Grafana OnCall **Integrations** section.
 
-1. Connect to a data source with configured alerts.
+1. Connect to a alert source with configured alerts.
     
     In Grafana OnCall, click on the **Integrations** tab and click **+ New integration for receiving alerts**.
 
@@ -48,7 +48,7 @@ You use Grafana OnCall to connect to the monitoring services of your data source
 
 1. Configure your integration.
     
-    Each integration has a different method of connecting to Grafana OnCall. For example, if you want to connect to your Grafana data source, select Grafana and follow the instructions. 
+    Each integration has a different method of connecting to Grafana OnCall. For example, if you want to connect to your Grafana alert source, select Grafana and follow the instructions. 
 
 ## Configure escalation policies
 

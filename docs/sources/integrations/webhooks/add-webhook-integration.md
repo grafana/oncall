@@ -4,9 +4,9 @@ keywords = ["Grafana Cloud", "Alerts", "Notifications", "on-call", "Alertmanager
 weight = 100
 +++
 
-# Integrate with your data source using webhooks
+# Integrate with your alert source using webhooks
 
-Grafana OnCall directly supports integrations from many data sources, but you can connect to any data source that isn't listed in the **Create Integration** page by using webhooks.
+Grafana OnCall directly supports integrations from many alert sources, but you can connect to any alert source that isn't listed in the **Create Integration** page by using webhooks.
 
 1. In **Integrations**, click **+ New integration for receiving alerts**.
 1. Select a webhook format. 
