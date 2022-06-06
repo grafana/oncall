@@ -50,12 +50,13 @@ const CloudPage = (props: CloudPageProps) => {
   const disconnectCloudOncall = () => {
     console.log('disconnected');
     setCloudIsConnected(false);
+    store.cloudStore.disconnectToCloud();
   };
 
   const connectToCloud = () => {
-    console.log('CONNECT TO CLOUD');
     setCloudIsConnected(true);
     setShowConfirmationModal(false);
+    store.cloudStore.connectToCloud(cloudApiKey);
   };
 
   const syncUsers = () => {
@@ -146,7 +147,7 @@ const CloudPage = (props: CloudPageProps) => {
   return (
     <div className={cx('root')}>
       <VerticalGroup spacing="lg">
-        <Text.Title level={3}>
+        <Text.Title level={3} className={cx('cloud-page-title')}>
           Connect Open Source OnCall and <Text className={cx('cloud-oncall-name')}>Cloud OnCall</Text>
         </Text.Title>
         <Block withBackground bordered className={cx('info-block')}>

@@ -19,6 +19,10 @@
   width: 100%;
 }
 
+.cloud-page-title {
+  margin-top: 24px;
+}
+
 .cloud-oncall-name {
   color: #f55f3e;
 }

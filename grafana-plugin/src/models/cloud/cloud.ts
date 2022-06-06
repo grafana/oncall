@@ -56,4 +56,22 @@ export class CloudStore extends BaseStore {
         this.searchResult.results.map((cloud_user_id: Cloud['id']) => this.items?.[cloud_user_id]),
     };
   }
+
+  async syncCloudUsers() {
+    return await makeRequest(`${this.path}sync_with_cloud`, { method: 'POST' });
+  }
+
+  async getCloudConnectionStatus() {
+    return await makeRequest(`/cloud_connection/`, { method: 'GET' });
+  }
+
+  @action
+  async connectToCloud(token: string) {
+    return await makeRequest(`/live_settings/`, { method: 'PUT', params: { token } });
+  }
+
+  @action
+  async disconnectToCloud() {
+    return await makeRequest(`/live_settings/`, { method: 'DELETE' });
+  }
 }
