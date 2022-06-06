@@ -5,7 +5,6 @@ import requests
 from django.db import models, transaction
 
 from apps.base.utils import live_settings
-from apps.oss_installation.models import CloudHeartbeat
 from apps.oss_installation.models.cloud_user_identity import CloudUserIdentity
 from apps.user_management.models import User
 from settings.base import GRAFANA_CLOUD_ONCALL_API_URL
@@ -40,7 +39,7 @@ class CloudConnector(models.Model):
             try:
                 r = requests.get(info_url, headers={"AUTHORIZATION": api_token}, timeout=5)
                 if r.status_code == 200:
-                    connector = cls.objects.get_or_create()
+                    connector, _ = cls.objects.get_or_create()
                     connector.cloud_url = r.json()["url"]
                     connector.save()
                 elif r.status_code == 403:
@@ -104,9 +103,9 @@ class CloudConnector(models.Model):
                         )
                     )
 
-                CloudUserIdentity.objects.delete()
+                CloudUserIdentity.objects.all().delete()
                 CloudUserIdentity.objects.bulk_create(cloud_users_identities_to_create, batch_size=1000)
-
+            sync_status = True
         return sync_status, error_msg
 
     def sync_user_with_cloud(self, user):
@@ -151,6 +150,8 @@ class CloudConnector(models.Model):
 
     @classmethod
     def remove_sync(cls):
-        cls.objects.delete()
-        CloudUserIdentity.objects.delete()
-        CloudHeartbeat.objects.delete()
+        from apps.oss_installation.models import CloudHeartbeat
+
+        cls.objects.all().delete()
+        CloudUserIdentity.objects.all().delete()
+        CloudHeartbeat.objects.all().delete()

@@ -8,8 +8,6 @@ from telegram import Bot
 from twilio.base.exceptions import TwilioException
 from twilio.rest import Client
 
-from apps.oss_installation.models import CloudConnector
-
 
 class LiveSettingProxy:
     def __dir__(self):
@@ -98,6 +96,8 @@ class LiveSettingValidator:
 
     @classmethod
     def _check_grafana_cloud_oncall_token(cls, grafana_oncall_token):
+        from apps.oss_installation.models import CloudConnector
+
         _, err = CloudConnector.sync_with_cloud(grafana_oncall_token)
         return err
 
