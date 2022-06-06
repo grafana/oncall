@@ -68,7 +68,7 @@ export class AlertGroupStore extends BaseStore {
   constructor(rootStore: RootStore) {
     super(rootStore);
 
-    this.path = '/alertgroups1/';
+    this.path = '/alertgroups/';
   }
 
   async attachAlert(pk: Alert['pk'], rootPk: Alert['pk']) {
