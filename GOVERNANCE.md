@@ -22,7 +22,7 @@ The OnCall developers and community are expected to follow the values defined in
 
 ## Projects
 
-Each project must have a [`MAINTAINERS.md`][maintainers] file with at least one maintainer. Where a project has a release process, access and documentation should be such that more than one person can perform a release. Releases should be announced on the [announcemount][announce] and [users][users] mailing lists. Any new projects should be first proposed on the [team mailing list][team] following the voting procedures listed below.
+Each project must have a [`MAINTAINERS.md`][maintainers] file with at least one maintainer. Where a project has a release process, access and documentation should be such that more than one person can perform a release. Releases should be announced on the [announcements][https://github.com/grafana/oncall/discussions/categories/announcements] category at the GitHub Discussions. Any new projects should be first proposed on the [team mailing list][team] following the voting procedures listed below.
 
 ## Decision making
 
@@ -48,14 +48,16 @@ In case a member leaves, the [offboarding](#offboarding) procedure is applied.
 
 The current team members are:
 
-- Eve Meelan — [@Eve832](https://github.com/Eve832) ([Grafana Labs](https://grafana.com/))
 - Ildar Iskhakov — [@iskhakov](https://github.com/iskhakov) ([Grafana Labs](https://grafana.com/))
 - Innokentii Konstantinov — [@Konstantinov-Innokentii](https://github.com/Konstantinov-Innokentii) ([Grafana Labs](https://grafana.com/))
 - Matías Bordese — [@matiasb](https://github.com/matiasb) ([Grafana Labs](https://grafana.com/))
-- Matvey Kuku — [@Matvey-Kuk](https://github.com/Matvey-Kuk) ([Grafana Labs](https://grafana.com/))
+- Matvey Kukuy — [@Matvey-Kuk](https://github.com/Matvey-Kuk) ([Grafana Labs](https://grafana.com/))
 - Michael Derynck — [@mderynck](https://github.com/mderynck) ([Grafana Labs](https://grafana.com/))
 - Vadim Stepanov — [@vadimkerr](https://github.com/vadimkerr) ([Grafana Labs](https://grafana.com/))
 - Yulia Shanyrova — [@Ukochka](https://github.com/Ukochka) ([Grafana Labs](https://grafana.com/))
+- Maxim Mordasov — [@maskin25](https://github.com/maskin25) ([Grafana Labs](https://grafana.com/))
+- Julia Artyukhina — [@Ferril](https://github.com/Ferril) ([Grafana Labs](https://grafana.com/))
+- Julia Artyukhina — [@Ferril](https://github.com/Ferril) ([Grafana Labs](https://grafana.com/))
 
 Previous team members:
 
@@ -65,7 +67,7 @@ Previous team members:
 
 Maintainers lead one or more project(s) or parts thereof and serve as a point of conflict resolution amongst the contributors to this project. Ideally, maintainers are also team members, but exceptions are possible for suitable maintainers that, for whatever reason, are not yet team members.
 
-Changes in maintainership have to be announced on the [developers mailing list][devs]. They are decided by [rough consensus](#consensus) and formalized by changing the [`MAINTAINERS.md`][maintainers] file of the respective repository.
+Changes in maintainership have to be announced on the [announcemount][https://github.com/grafana/oncall/discussions/categories/announcements] category at the GitHub Discussions. They are decided by [rough consensus](#consensus) and formalized by changing the [`MAINTAINERS.md`][maintainers] file of the respective repository.
 
 Maintainers are granted commit rights to all projects covered by this governance.
 
@@ -75,7 +77,7 @@ A project may have multiple maintainers, as long as the responsibilities are cle
 
 ### Technical decisions
 
-Technical decisions that only affect a single project are made informally by the maintainer of this project, and [rough consensus](#consensus) is assumed. Technical decisions that span multiple parts of the project should be discussed and made on the [developer mailing list][devs].
+Technical decisions that only affect a single project are made informally by the maintainer of this project, and [rough consensus](#consensus) is assumed. Technical decisions that span multiple parts of the project should be discussed and made on the the [GitHub Discussions][https://github.com/grafana/oncall/discussions].
 
 Decisions are usually made by [rough consensus](#consensus). If no consensus can be reached, the matter may be resolved by [majority vote](#majority-vote).
 
@@ -85,7 +87,7 @@ Changes to this document are made by Grafana Labs.
 
 ### Other matters
 
-Any matter that needs a decision may be called to a vote by any member if they deem it necessary. For private or personnel matters, discussion and voting takes place on the [team mailing list][team], otherwise on the [developer mailing list][devs].
+Any matter that needs a decision may be called to a vote by any member if they deem it necessary. For private or personnel matters, discussion and voting takes place on the [team mailing list][team], otherwise on the [GitHub Discussions][https://github.com/grafana/oncall/discussions].
 
 ## Voting
 
@@ -97,7 +99,7 @@ For all votes, voting must be open for at least one week. The end date should be
 
 In all cases, all and only [team members](#team-members) are eligible to vote, with the sole exception of the forced removal of a team member, in which said member is not eligible to vote.
 
-Discussion and votes on personnel matters (including but not limited to team membership and maintainership) are held in private on the [team mailing list][team]. All other discussion and votes are held in public on the [developer mailing list][devs].
+Discussion and votes on personnel matters (including but not limited to team membership and maintainership) are held in private on the [team mailing list][team]. All other discussion and votes are held in public on the [GitHub Discussions][https://github.com/grafana/oncall/discussions].
 
 For public discussions, anyone interested is encouraged to participate. Formal power to object or vote is limited to [team members](#team-members).
 
@@ -105,7 +107,7 @@ For public discussions, anyone interested is encouraged to participate. Formal p
 
 The default decision making mechanism for the OnCall project is [rough][rough] consensus. This means that any decision on technical issues is considered supported by the [team][team] as long as nobody objects or the objection has been considered but not necessarily accommodated.
 
-Silence on any consensus decision is implicit agreement and equivalent to explicit agreement. Explicit agreement may be stated at will. Decisions may, but do not need to be called out and put up for decision on the [developers mailing list][devs] at any time and by anyone.
+Silence on any consensus decision is implicit agreement and equivalent to explicit agreement. Explicit agreement may be stated at will. Decisions may, but do not need to be called out and put up for decision on the [GitHub Discussions][https://github.com/grafana/oncall/discussions] at any time and by anyone.
 
 Consensus decisions can never override or go against the spirit of an earlier explicit vote.
 
@@ -140,7 +142,7 @@ If there are multiple alternatives, members may vote for one or more alternative
 The new member is
 
 - added to the list of [team members](#team-members). Ideally by sending a PR of their own, at least approving said PR.
-- announced on the [developers mailing list][devs] by an existing team member. Ideally, the new member replies in this thread, acknowledging team membership.
+- announced on the [GitHub Discussions][https://github.com/grafana/oncall/discussions] by an existing team member. Ideally, the new member replies in this thread, acknowledging team membership.
 - added to the projects with commit rights.
 - added to the [team mailing list][team].
 
@@ -155,10 +157,3 @@ The ex-member is
 - added to a list of previous members if they so choose.
 
 If needed, we reserve the right to publicly announce removal.
-
-[announce]: TODO
-[coc]: https://github.com/grafana/oncall/blob/master/CODE_OF_CONDUCT.md
-[devs]: TODO
-[maintainers]: https://github.com/grafana/oncall/blob/master/MAINTAINERS.md
-[rough]: https://tools.ietf.org/html/rfc7282
-[team]: TODO
