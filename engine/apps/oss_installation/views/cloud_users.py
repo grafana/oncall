@@ -9,7 +9,7 @@ from rest_framework.views import APIView
 import apps.oss_installation.constants as cloud_constants
 from apps.api.permissions import ActionPermission, IsAdmin, IsOwnerOrAdmin
 from apps.auth_token.auth import PluginAuthentication
-from apps.oss_installation.models import CloudOrganizationConnector, CloudUserIdentity
+from apps.oss_installation.models import CloudConnector, CloudUserIdentity
 from apps.oss_installation.serializers import CloudUserSerializer
 from apps.user_management.models import User
 from common.api_helpers.mixins import PublicPrimaryKeyMixin
@@ -31,12 +31,12 @@ class CloudUsersView(HundredPageSizePaginator, APIView):
         results = self.paginate_queryset(queryset, request, view=self)
 
         emails = list(queryset.values_list("email", flat=True))
-        cloud_identities = list(CloudUserIdentity.objects.filter(organization=organization, email__in=emails))
+        cloud_identities = list(CloudUserIdentity.objects.filter(email__in=emails))
         cloud_identities = {cloud_identity.email: cloud_identity for cloud_identity in cloud_identities}
 
         response = []
 
-        connector = CloudOrganizationConnector.objects.filter(organization=organization)
+        connector = CloudConnector.objects.first()
 
         for user in results:
             link = None
@@ -65,9 +65,7 @@ class CloudUsersView(HundredPageSizePaginator, APIView):
         return self.get_paginated_response(response)
 
     def post(self, request):
-        organization = request.user.organization
-
-        connector = CloudOrganizationConnector.objects.filter(organization=organization)
+        connector = CloudConnector.objects.first()
         if connector is not None:
             sync_status, err = connector.sync_users_with_cloud()
             return Response(status=status.HTTP_200_OK, data={"status": sync_status, "error": err})
@@ -95,7 +93,7 @@ class CloudUserView(
     @action(detail=True, methods=["post"])
     def sync_with_cloud(self, request, pk):
         user = self.get_object()
-        connector = CloudOrganizationConnector.objects.filter(organization=request["request"].auth.organization).first()
+        connector = CloudConnector.objects.first()
         if connector is not None:
             sync_status, err = connector.sync_user_with_cloud(user)
             return Response(status=status.HTTP_200_OK, data={"status": sync_status, "error": err})

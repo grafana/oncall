@@ -1,15 +1,14 @@
 import json
 import re
-from urllib.parse import urljoin
 
-import requests.exceptions
 from django.apps import apps
-from django.conf import settings
 from python_http_client import UnauthorizedError
 from sendgrid import SendGridAPIClient
 from telegram import Bot
 from twilio.base.exceptions import TwilioException
 from twilio.rest import Client
+
+from apps.oss_installation.models import CloudConnector
 
 
 class LiveSettingProxy:
@@ -98,18 +97,9 @@ class LiveSettingValidator:
             return f"Telegram error: {str(e)}"
 
     @classmethod
-    def _check_grafana_cloud_oncall_token(cls, grafan_oncall_token):
-        try:
-            info_url = urljoin(settings.GRAFANA_CLOUD_ONCALL_API_URL, "api/v1/info/")
-            r = requests.get(info_url, headers={"AUTHORIZATION": grafan_oncall_token}, timeout=5)
-            if r.status_code == 200:
-                return
-            elif r.status_code == 403:
-                return f"Invalid token"
-            else:
-                return f"Non-200 HTTP code. Got {r.status_code}"
-        except requests.exceptions.RequestException as e:
-            return f"Error {str(e)}"
+    def _check_grafana_cloud_oncall_token(cls, grafana_oncall_token):
+        _, err = CloudConnector.sync_with_cloud(grafana_oncall_token)
+        return err
 
     @staticmethod
     def _is_email_valid(email):

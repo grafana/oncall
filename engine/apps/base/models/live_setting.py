@@ -173,4 +173,5 @@ class LiveSetting(models.Model):
             )
 
         self.error = LiveSettingValidator(live_setting=self).get_error()
+
         super().save(*args, **kwargs)

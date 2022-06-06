@@ -3,7 +3,7 @@ from urllib.parse import urljoin
 from rest_framework import serializers
 
 import apps.oss_installation.constants as cloud_constants
-from apps.oss_installation.models import CloudOrganizationConnector, CloudUserIdentity
+from apps.oss_installation.models import CloudConnector, CloudUserIdentity
 from apps.user_management.models import User
 
 
@@ -17,9 +17,7 @@ class CloudUserSerializer(serializers.ModelSerializer):
     def get_cloud_data(self, obj):
         link = None
         status = cloud_constants.CLOUD_NOT_SYNCED
-        connector = CloudOrganizationConnector.objects.filter(
-            organization=self.context["request"].auth.organization
-        ).first()
+        connector = CloudConnector.objects.filter().first()
         if connector is not None:
             cloud_user_identity = CloudUserIdentity.objects.filter(email=obj.email).first()
             if cloud_user_identity is None:

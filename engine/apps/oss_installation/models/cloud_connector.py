@@ -5,50 +5,53 @@ import requests
 from django.db import models, transaction
 
 from apps.base.utils import live_settings
-from apps.oss_installation.constants import CLOUD_URL
+from apps.oss_installation.models import CloudHeartbeat
 from apps.oss_installation.models.cloud_user_identity import CloudUserIdentity
 from apps.user_management.models import User
+from settings.base import GRAFANA_CLOUD_ONCALL_API_URL
 
 logger = logging.getLogger(__name__)
 
 
-class CloudOrganizationConnector(models.Model):
+class CloudConnector(models.Model):
     """
     CloudOrganizationConnector model represents connection between oss organization and cloud organization.
     """
 
     cloud_url = models.URLField()
-    organization = models.OneToOneField(
-        "user_management.organization", related_name="cloud_connector", on_delete=models.CASCADE
-    )
+    # organization = models.OneToOneField(
+    #     "user_management.organization", related_name="cloud_connector", on_delete=models.CASCADE
+    # )
 
     @classmethod
-    def sync_with_cloud(cls, organization):
+    def sync_with_cloud(cls, token=None):
         """
         sync_with_cloud sync organization with cloud organization defined by provided GRAFANA_CLOUD_ONCALL_TOKEN.
         """
         sync_status = False
         error_msg = None
 
-        api_token = live_settings.GRAFANA_CLOUD_ONCALL_TOKEN
+        api_token = token or live_settings.GRAFANA_CLOUD_ONCALL_TOKEN
         if api_token is None:
             logger.warning("Unable to sync with cloud. GRAFANA_CLOUD_ONCALL_TOKEN is not set")
             error_msg = "GRAFANA_CLOUD_ONCALL_TOKEN is not set"
         else:
-            info_url = urljoin(CLOUD_URL, "api/v1/info/")
+            info_url = urljoin(GRAFANA_CLOUD_ONCALL_API_URL, "api/v1/info/")
             try:
                 r = requests.get(info_url, headers={"AUTHORIZATION": api_token}, timeout=5)
                 if r.status_code == 200:
-                    cls.objects.update_or_create(organization=organization, defaults={"cloud_url": r.json()["url"]})
-                    sync_status = True
+                    connector = cls.objects.get_or_create()
+                    connector.cloud_url = r.json()["url"]
+                    connector.save()
                 elif r.status_code == 403:
                     logger.warning("Unable to sync with cloud. GRAFANA_CLOUD_ONCALL_TOKEN is invalid")
-                    error_msg = "GRAFANA_CLOUD_ONCALL_TOKEN is invalid"
+                    error_msg = "Invalid token"
                 else:
                     error_msg = f"Non-200 HTTP code. Got {r.status_code}"
             except requests.exceptions.RequestException as e:
                 logger.warning(f"Unable to sync with cloud. Request exception {str(e)}")
                 error_msg = f"Unable to sync with cloud"
+
         return sync_status, error_msg
 
     def sync_users_with_cloud(self) -> tuple[bool, str]:
@@ -60,9 +63,9 @@ class CloudOrganizationConnector(models.Model):
             logger.warning("Unable to sync with cloud. GRAFANA_CLOUD_ONCALL_TOKEN is not set")
             error_msg = "GRAFANA_CLOUD_ONCALL_TOKEN is not set"
 
-        existing_emails = list(User.objects.filter(organization=self.organization).values_list("email", flat=True))
+        existing_emails = list(User.objects.values_list("email", flat=True))
         matching_users = []
-        users_url = urljoin(CLOUD_URL, "api/v1/users")
+        users_url = urljoin(GRAFANA_CLOUD_ONCALL_API_URL, "api/v1/users")
 
         fetch_next_page = True
         users_fetched = True
@@ -98,11 +101,10 @@ class CloudOrganizationConnector(models.Model):
                             cloud_id=user["id"],
                             email=user["email"],
                             phone_number_verified=user["is_phone_number_verified"],
-                            organization=self.organization,
                         )
                     )
 
-                CloudUserIdentity.objects.filter(organization=self.organization).delete()
+                CloudUserIdentity.objects.delete()
                 CloudUserIdentity.objects.bulk_create(cloud_users_identities_to_create, batch_size=1000)
 
         return sync_status, error_msg
@@ -116,7 +118,7 @@ class CloudOrganizationConnector(models.Model):
             logger.warning(f"Unable to sync_user_with cloud user_id {user.id}. GRAFANA_CLOUD_ONCALL_TOKEN is not set")
             error_msg = "GRAFANA_CLOUD_ONCALL_TOKEN is not set"
         else:
-            url = urljoin(CLOUD_URL, f"api/v1/users/?email={user.email}")
+            url = urljoin(GRAFANA_CLOUD_ONCALL_API_URL, f"api/v1/users/?email={user.email}")
             try:
                 r = requests.get(url, headers={"AUTHORIZATION": api_token}, timeout=5)
                 if r.status_code != 200:
@@ -132,7 +134,6 @@ class CloudOrganizationConnector(models.Model):
                             CloudUserIdentity.objects.filter(email=user.emai).delete()
                             CloudUserIdentity.objects.create(
                                 email=user.email,
-                                organization=user.organization,
                                 phone_number_verified=cloud_used_data["is_phone_number_verified"],
                                 cloud_id=cloud_used_data["id"],
                             )
@@ -147,3 +148,9 @@ class CloudOrganizationConnector(models.Model):
                 error_msg = f"Unable to sync with cloud"
 
         return sync_status, error_msg
+
+    @classmethod
+    def remove_sync(cls):
+        cls.objects.delete()
+        CloudUserIdentity.objects.delete()
+        CloudHeartbeat.objects.delete()
