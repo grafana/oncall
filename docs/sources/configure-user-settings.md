@@ -1,10 +1,10 @@
 +++
-title = "Configure user settings"
+title = "Manage users and teams for Grafana OnCall"
 keywords = ["Grafana Cloud", "Alerts", "Notifications", "on-call", "amixr", "oncall", "integrations"]
-weight = 900
+weight = 1100
 +++
 
-# User settings for Grafana OnCall
+# Manage users and teams for Grafana OnCall
 
 Grafana OnCall is configured based on the teams you've created on the organization level of your Grafana instance, in **Configuration > Teams**. Administrators can create a different configuration for each team, and can navigate between team configurations in the **Select Team** dropdown menu in the **Incidents** section of Grafana OnCall. 
 

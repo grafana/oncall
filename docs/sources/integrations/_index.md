@@ -1,7 +1,7 @@
 +++
 title = "Connect to Grafana OnCall"
 keywords = ["Grafana Cloud", "Alerts", "Notifications", "on-call", "amixr", "oncall", "integrations"]
-weight = 100
+weight = 300
 aliases = ["/docs/grafana-cloud/oncall/integrations/"]
 +++
 

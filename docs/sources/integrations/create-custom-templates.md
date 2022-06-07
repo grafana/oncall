@@ -1,10 +1,10 @@
 +++
-title = "Format alerts with templates"
+title = "Configure alerts in Grafana OnCall"
 keywords = ["Grafana Cloud", "Alerts", "Notifications", "on-call", "Jinja"]
 weight = 300
 +++
 
-# Format alerts with templates
+# Configure alerts in Grafana OnCall
 
 Grafana OnCall works with over one thousand alert monitoring systems. Almost any monitoring system can send alerts using webhooks with JSON payloads.
 

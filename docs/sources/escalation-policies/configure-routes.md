@@ -1,10 +1,10 @@
 +++
-title = "Configure escalation policies"
+title = "Configure and manage Routes"
 keywords = ["Grafana Cloud", "Alerts", "Notifications", "on-call", "amixr", "oncall", "integrations"]
 weight = 300
 +++
 
-# Configure escalation policies
+# Configure and manage Routes
 Set up escalation chains and routes to configure escalation behavior for alert group notifications. 
 
 ## Configure escalation chains

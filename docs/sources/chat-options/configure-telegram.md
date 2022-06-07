@@ -1,10 +1,10 @@
 +++
-title = "Configure Telegram for Grafana OnCall"
+title = "Connect Telegram to Grafana OnCall"
 keywords = ["Grafana Cloud", "Alerts", "Notifications", "on-call", "amixr", "oncall", "telegram"]
 weight = 300
 +++
 
-# Configure Telegram for Grafana OnCall
+# Connect Telegram to Grafana OnCall
 
 You can use Telegram to deliver alert group notifications to a dedicated channel, and allow users to perform notification actions. 
 

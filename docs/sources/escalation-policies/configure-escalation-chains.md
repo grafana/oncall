@@ -1,10 +1,10 @@
 +++
-title = "About escalation policies"
+title = "Configure and manage Escalation Chains"
 keywords = ["Grafana Cloud", "Alerts", "Notifications", "on-call", "amixr", "oncall", "integrations"]
 weight = 100
 +++
 
-# About escalation policies
+# Configure and manage Escalation Chains
 
 Escalation policies dictate how users and groups are notified when an alert notification is created. They can be very simple, or very complex. You can define as many escalation configurations for an integration as you need, and you can send notifications for certain alerts to a designated place when certain conditions are met, or not met. 
 

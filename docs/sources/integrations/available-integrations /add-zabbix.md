@@ -1,7 +1,7 @@
 +++
-title = "Configure alert notifications with Zabbix"
+title = "Connect Zabbix to Grafana OnCall"
 keywords = ["Grafana Cloud", "Alerts", "Notifications", "on-call", "Zabbix"]
-weight = 700
+weight = 500
 +++
 
 # Connect Zabbix to Grafana OnCall

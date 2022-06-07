@@ -8,4 +8,4 @@ pull:
 
 .PHONY: docs
 docs: pull
-	docker run -v $(shell pwd)/sources:$(CONTENT_PATH):Z -p $(PORT) --rm -it $(IMAGE)
+	docker run -v '$(shell pwd)/sources:$(CONTENT_PATH):Z' -p $(PORT) --rm -it $(IMAGE)
