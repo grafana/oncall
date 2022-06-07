@@ -19,6 +19,7 @@ import cn from 'classnames/bind';
 import CopyToClipboard from 'react-copy-to-clipboard';
 import { OnCallAppSettings } from 'types';
 
+import Block from 'components/GBlock/Block';
 import Text from 'components/Text/Text';
 import WithConfirm from 'components/WithConfirm/WithConfirm';
 import logo from 'img/logo.svg';
@@ -218,27 +219,31 @@ export const PluginConfigPage = (props: Props) => {
               <img alt="Grafana OnCall Logo" src={logo} width={18} />
             </p>
           )}
+          <p>{'Plugin <-> backend connection status'}</p>
+          <pre>
+            <Text type="link">{pluginStatusMessage}</Text>
+          </pre>
 
-          {isSelfHostedInstall ? (
-            <div>
-              <p>{'Plugin <-> backend connection status:'}</p>
+          <HorizontalGroup>
+            {/* <p>{'Plugin <-> backend connection status'}</p>
               <pre>
                 <Text type="link">{pluginStatusMessage}</Text>
-              </pre>
+              </pre> */}
+            {retrySync && (
+              <Button variant="primary" onClick={startSync} size="md">
+                Retry
+              </Button>
+            )}
+            {isSelfHostedInstall ? (
               <WithConfirm title="Are you sure to delete OnCall plugin configuration?">
-                <Button
-                  variant="destructive"
-                  onClick={resetPlugin}
-                  size="md"
-                  className={cx('delete_configuration_button')}
-                >
+                <Button variant="destructive" onClick={resetPlugin} size="md">
                   Remove current configuration
                 </Button>
               </WithConfirm>
-            </div>
-          ) : (
-            <Label>This is a cloud managed configuration.</Label>
-          )}
+            ) : (
+              <Label>This is a cloud managed configuration.</Label>
+            )}{' '}
+          </HorizontalGroup>
         </>
       ) : (
         <React.Fragment>
@@ -285,6 +290,21 @@ export const PluginConfigPage = (props: Props) => {
               </Text>
             </pre>
           </VerticalGroup>
+          <Block withBackground className={cx('info-block')}>
+            <Text type="secondary">
+              Need help?
+              <br />
+              1. Talk to the developers in the #grafana-oncall channel at{' '}
+              <a href="http://oncall-stub.com">
+                <Text type="link">Slack</Text>
+              </a>
+              <br />
+              2. Search for issues or create a new one in the{' '}
+              <a href="http://oncall-stub.com">
+                <Text type="link">GitHub</Text>
+              </a>
+            </Text>
+          </Block>
 
           <p>2. Conect the backend and the plugin </p>
           <p>{'Plugin <-> backend connection status:'}</p>
@@ -308,10 +328,15 @@ Seek for such a line:  “Your invite token: <<LONG TOKEN>> , use it in the Graf
 
           <Field
             label="OnCall backend URL"
-            description="It should be reachable from Grafana. Possible options:
-http://host.docker.internal:8000 (if you run backend in the docker locally)
-http://localhost:8000
-..."
+            description={
+              <Text>
+                It should be rechable from Grafana. Possible options: <br />
+                http://host.docker.internal:8000 (if you run backend in the docker locally)
+                <br />
+                http://localhost:8000 <br />
+                ...
+              </Text>
+            }
           >
             <Input id="onCallApiUrl" onChange={handleApiUrlChange} defaultValue={onCallApiUrl} />
           </Field>
