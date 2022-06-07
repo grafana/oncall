@@ -11,6 +11,7 @@ import Text from 'components/Text/Text';
 import WithConfirm from 'components/WithConfirm/WithConfirm';
 import { User as UserType } from 'models/user/user.types';
 import { WithStoreProps } from 'state/types';
+import { useStore } from 'state/useStore';
 import { withMobXProviderContext } from 'state/withStore';
 
 import styles from './CloudPhoneSettings.module.css';
@@ -20,21 +21,22 @@ const cx = cn.bind(styles);
 interface CloudPhoneSettingsProps extends WithStoreProps {}
 
 const CloudPhoneSettings = (props: CloudPhoneSettingsProps) => {
+  const store = useStore();
   const [isAccountMatched, setIsAccountMatched] = useState<boolean>(true);
   const [isPhoneVerified, setIsPhoneVerified] = useState<boolean>(true);
 
   const signUpGrafanaCloud = () => {
     console.log('Sign UP');
   };
-  const handleLinkClick = (link: string) => {
-    getLocationSrv().update({ partial: false, path: link });
+  const handleLinkClick = () => {
+    store.cloudStore.syncCloudUser(store.userStore.currentUserPk);
   };
 
   return (
     <VerticalGroup spacing="lg">
       <HorizontalGroup justify="space-between">
         <Text.Title level={3}>OnCall use Grafana Cloud for SMS and phone call notifications</Text.Title>
-        <Button variant="secondary" icon="sync" onClick={() => handleLinkClick('fillmewithcorrectlink')}>
+        <Button variant="secondary" icon="sync" onClick={handleLinkClick}>
           Update
         </Button>
       </HorizontalGroup>

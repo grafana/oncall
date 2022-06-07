@@ -9,7 +9,7 @@ import GTable from 'components/GTable/GTable';
 import PluginLink from 'components/PluginLink/PluginLink';
 import Text from 'components/Text/Text';
 import WithConfirm from 'components/WithConfirm/WithConfirm';
-import { HeartGreenIcon, HeartRedIcon } from 'icons';
+import { CrossCircleIcon, HeartIcon } from 'icons';
 import { Cloud } from 'models/cloud/cloud.types';
 import { WithStoreProps } from 'state/types';
 import { useStore } from 'state/useStore';
@@ -29,16 +29,19 @@ const CloudPage = (props: CloudPageProps) => {
 
   useEffect(() => {
     store.cloudStore.updateItems();
+    store.cloudStore.getCloudConnectionStatus().then((cloudStatus) => {
+      setCloudIsConnected(cloudStatus.cloud_connection_status);
+    });
   }, []);
 
-  const usersCount = 3;
   const data = [
-    { id: 'yshanyrova', username: 'y.shanyrova@grafana.com', cloud_sync_status: 2, link: '/test/abc' },
-    { id: 'amixradmin', username: 'amixr-admin@grafana.com', cloud_sync_status: 1, link: '/test/qwerty' },
-    { id: 'amixr', username: 'amixr@grafana.com', cloud_sync_status: undefined, link: undefined },
+    { id: 'yshanyrova', email: 'y.shanyrova@grafana.com', cloud_data: { status: 2, link: '/test/abc' } },
+    { id: 'amixradmin', email: 'amixr-admin@grafana.com', cloud_data: { status: 1, link: '/test/abc' } },
+    { id: 'amixr', email: 'amixr@grafana.com', cloud_data: { status: undefined, link: '/test/abc' } },
   ];
 
-  // const data = store.cloudStore.getSearchResult();
+  // const { count, results } = store.cloudStore.getSearchResult();
+
   const handleChangeCloudApiKey = useCallback((e) => {
     setCloudApiKey(e.target.value);
   }, []);
@@ -56,11 +59,12 @@ const CloudPage = (props: CloudPageProps) => {
   const connectToCloud = () => {
     setCloudIsConnected(true);
     setShowConfirmationModal(false);
+    // store.cloudStore.update('')
     store.cloudStore.connectToCloud(cloudApiKey);
   };
 
   const syncUsers = () => {
-    console.log('Sync Users');
+    store.cloudStore.syncCloudUsers();
   };
 
   const handleLinkClick = (link: string) => {
@@ -68,18 +72,30 @@ const CloudPage = (props: CloudPageProps) => {
   };
 
   const renderButtons = (user: Cloud) => {
-    switch (user.cloud_sync_status) {
+    switch (user?.cloud_data?.status) {
       case 0:
         return null;
       case 1:
         return (
-          <Button variant="secondary" icon="external-link-alt" onClick={() => handleLinkClick(user.link)}>
+          <Button
+            variant="secondary"
+            icon="external-link-alt"
+            size="sm"
+            className={cx('table-button')}
+            onClick={() => handleLinkClick(user?.cloud_data?.link)}
+          >
             Configure notifications
           </Button>
         );
       case 2:
         return (
-          <Button variant="secondary" icon="external-link-alt" onClick={() => handleLinkClick(user.link)}>
+          <Button
+            variant="secondary"
+            icon="external-link-alt"
+            size="sm"
+            className={cx('table-button')}
+            onClick={() => handleLinkClick(user?.cloud_data?.link)}
+          >
             Open profile in Cloud
           </Button>
         );
@@ -89,7 +105,7 @@ const CloudPage = (props: CloudPageProps) => {
   };
 
   const renderStatus = (user: Cloud) => {
-    switch (user.cloud_sync_status) {
+    switch (user?.cloud_data?.status) {
       case 0:
         return <Text className={cx('error-message')}>User not found in the Grafana Cloud</Text>;
       case 1:
@@ -103,41 +119,49 @@ const CloudPage = (props: CloudPageProps) => {
   };
 
   const renderStatusIcon = (user: Cloud) => {
-    switch (user.cloud_sync_status) {
+    switch (user?.cloud_data?.status) {
       case 0:
-        return <Icon className={cx('error-message')} name="times" />;
+        return (
+          <span className={cx('error-message')}>
+            <CrossCircleIcon />
+          </span>
+        );
       case 1:
         return <Icon className={cx('success-message')} name="check-circle" />;
 
       case 2:
         return <Icon className={cx('warning-message')} name="exclamation-triangle" />;
       default:
-        return <Icon className={cx('error-message')} name="times" />;
+        return (
+          <span className={cx('error-message')}>
+            <CrossCircleIcon />
+          </span>
+        );
     }
   };
 
   const renderEmail = (user: Cloud) => {
-    return <Text type="primary">{user.username}</Text>;
+    return <Text type="primary">{user.email}</Text>;
   };
 
   const columns = [
     {
-      width: '5%',
+      width: '2%',
       render: renderStatusIcon,
       key: 'statusIcon',
     },
     {
-      width: '30%',
+      width: '28%',
       render: renderEmail,
       key: 'email',
     },
     {
-      width: '35%',
+      width: '50%',
       render: renderStatus,
       key: 'status',
     },
     {
-      width: '30%',
+      width: '20%',
       render: renderButtons,
       key: 'buttons',
       align: 'actions',
@@ -154,12 +178,12 @@ const CloudPage = (props: CloudPageProps) => {
           {cloudIsConnected ? (
             <VerticalGroup>
               <Text.Title level={4}>
-                <Icon name="check" className={cx('heart-icon')} /> Cloud OnCall API key
+                <Icon name="check" className={cx('block-icon')} size="lg" /> Cloud OnCall API key
               </Text.Title>
               <Text type="secondary">Cloud OnCall is sucessfully connected.</Text>
 
               <WithConfirm title="Are you sure to disconnect Cloud OnCall?" confirmText="Disconnect">
-                <Button variant="destructive" onClick={disconnectCloudOncall} size="md">
+                <Button variant="destructive" onClick={disconnectCloudOncall} size="md" className={cx('block-button')}>
                   Disconnect
                 </Button>
               </WithConfirm>
@@ -167,7 +191,7 @@ const CloudPage = (props: CloudPageProps) => {
           ) : (
             <VerticalGroup>
               <Text.Title level={4}>
-                <Icon name="sync" className={cx('heart-icon')} /> Cloud OnCall API key
+                <Icon name="sync" className={cx('block-icon')} size="lg" /> Cloud OnCall API key
               </Text.Title>
               <Field label="" description="Find it in you Cloud OnCall -> Settings page" style={{ width: '100%' }}>
                 <Input id="cloudApiKey" onChange={handleChangeCloudApiKey} />
@@ -199,7 +223,10 @@ const CloudPage = (props: CloudPageProps) => {
         <Block bordered withBackground className={cx('info-block')}>
           <VerticalGroup>
             <Text.Title level={4}>
-              <Icon name="heart-break" className={cx('heart-icon')} /> Monitor cloud instance with heartbeat
+              <span className={cx('block-icon')}>
+                <HeartIcon />
+              </span>{' '}
+              Monitor cloud instance with heartbeat
             </Text.Title>
             <Text type="secondary">
               Once connected, current OnCall instance will send heartbeats every 3 minutes to the cloud Instance. If no
@@ -209,6 +236,7 @@ const CloudPage = (props: CloudPageProps) => {
               <Button
                 variant="secondary"
                 icon="external-link-alt"
+                className={cx('block-button')}
                 onClick={() => handleLinkClick('fillmewithcorrectlink')}
               >
                 Configure escalations in Cloud OnCall
@@ -220,7 +248,7 @@ const CloudPage = (props: CloudPageProps) => {
         <Block bordered withBackground className={cx('info-block')}>
           <VerticalGroup>
             <Text.Title level={4}>
-              <Icon name="bell" /> SMS and phone call notifications
+              <Icon name="bell" className={cx('block-icon')} size="lg" /> SMS and phone call notifications
             </Text.Title>
             {cloudIsConnected ? (
               <div style={{ width: '100%' }}>
@@ -233,14 +261,20 @@ const CloudPage = (props: CloudPageProps) => {
                 <GTable
                   className={cx('user-table')}
                   rowClassName={cx('user-row')}
+                  showHeader={false}
                   emptyText={data ? 'No variables found' : 'Loading...'}
                   title={() => (
-                    <HorizontalGroup justify="space-between">
-                      <Text type="secondary">{`${usersCount} users matched between OSS and Cloud OnCall`}</Text>
-                      <Button variant="primary" onClick={syncUsers} icon="sync">
-                        Sync users
-                      </Button>
-                    </HorizontalGroup>
+                    <div className={cx('table-title')}>
+                      <HorizontalGroup justify="space-between">
+                        <Text type="secondary">
+                          {/* {count ? count : 0} */}
+                          {`3 users matched between OSS and Cloud OnCall`}
+                        </Text>
+                        <Button variant="primary" onClick={syncUsers} icon="sync">
+                          Sync users
+                        </Button>
+                      </HorizontalGroup>
+                    </div>
                   )}
                   rowKey="id"
                   // @ts-ignore

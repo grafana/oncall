@@ -3,6 +3,7 @@ import { action, computed, observable } from 'mobx';
 
 import BaseStore from 'models/base_store';
 import { NotificationPolicyType } from 'models/notification_policy';
+import { User } from 'models/user/user.types';
 import { makeRequest } from 'network';
 import { Mixpanel } from 'services/mixpanel';
 import { RootStore } from 'state';
@@ -24,11 +25,9 @@ export class CloudStore extends BaseStore {
   }
 
   @action
-  async updateItems(f: any = { searchTerm: '' }, page = 1) {
-    const filters = typeof f === 'string' ? { searchTerm: f } : f; // for GSelect compatibility
-    const { searchTerm: search } = filters;
+  async updateItems(page = 1) {
     const { count, results } = await makeRequest(this.path, {
-      params: { search, page },
+      params: { page },
     });
 
     this.items = {
@@ -51,14 +50,16 @@ export class CloudStore extends BaseStore {
   getSearchResult() {
     return {
       count: this.searchResult.count,
-      results:
-        this.searchResult.results &&
-        this.searchResult.results.map((cloud_user_id: Cloud['id']) => this.items?.[cloud_user_id]),
+      results: this.searchResult.results && this.searchResult.results.map((id: Cloud['id']) => this.items?.[id]),
     };
   }
 
   async syncCloudUsers() {
-    return await makeRequest(`${this.path}sync_with_cloud`, { method: 'POST' });
+    return await makeRequest(`${this.path}`, { method: 'POST' });
+  }
+
+  async syncCloudUser(id: string) {
+    return await makeRequest(`${this.path}${id}/sync_with_cloud/`, { method: 'POST' });
   }
 
   async getCloudConnectionStatus() {
@@ -66,9 +67,7 @@ export class CloudStore extends BaseStore {
   }
 
   @action
-  async connectToCloud(token: string) {
-    return await makeRequest(`/live_settings/`, { method: 'PUT', params: { token } });
-  }
+  async connectToCloud(token: string) {}
 
   @action
   async disconnectToCloud() {
