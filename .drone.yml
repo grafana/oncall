@@ -156,8 +156,13 @@ services:
 
 trigger:
   event:
-    - push
+    include:
     - tag
+    - push
+  ref:
+    include:
+      - refs/heads/**
+      - refs/tags/v*.*.*
 
 ---
 # Secret for pulling docker images.
