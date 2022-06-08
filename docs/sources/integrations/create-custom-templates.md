@@ -6,13 +6,22 @@ weight = 300
 
 # Configure alerts in Grafana OnCall
 
-Grafana OnCall works with over one thousand alert monitoring systems. Almost any monitoring system can send alerts using webhooks with JSON payloads.
+ Grafana OnCall can integrate with any monitoring systems that can send alerts using webhooks with JSON payloads. By default, webhooks deliver raw JSON payloads. When Grafana OnCall receives an alert and parses its payload, a default pre configured alert template is applied to modify the alert payload to be more human readable. These alert templates are customizable for any integration.
 
-By default, webhooks will deliver raw JSON. To modify the payload to be more human-readable, you can format your alerts fields that OnCall recognizes. You can use Jinja templates for more advanced customization. 
+See Format alerts with alert templates in this document to learn more about how to customize alert templates.
 
-## JSON alerting object
+## Alert Behavior
 
-Alerts we receive contain metadata as keys and values in a JSON object. The following is an example of an alert from Grafana:
+Once Grafana OnCall receives an alert, the following occurs, based on the alert content:
+
+- Default or customized alert templates are applied to deliver the most useful alert fields with the most valuable information, in a readable format.
+- Alerts are grouped based on your alert grouping configurations, combining similar or related alerts to reduce alert noise.
+- Alerts automatically resolve if an alert from the monitoring system matches the resolve condition for that alert.
+
+## Alert payload
+
+Alerts received by Grafana OnCall contain metadata as keys and values in a JSON object. The following is an example of an alert from Grafana OnCall:
+
 ```json
 {
   "dashboardId":1,
@@ -38,15 +47,6 @@ Alerts we receive contain metadata as keys and values in a JSON object. The foll
 }
 ```
 
-## The alert payload
-Once an alert is received by Grafana OnCall, the following occurs, based on the alert content:
-
-1. The most useful information is shown in a readable format.
-
-1. Noise is minimized by grouping alerts, combining similar alerts into a single page.
-
-1. The alert group is resolved if the monitoring system tells Grafana OnCall to do so.
-
 In Grafana OnCall every alert and alert group has the following fields:
 - `Title`, `message` and `image url`
 - `Grouping Id`
@@ -62,35 +62,29 @@ The result is that each field of the alert in OnCall is now mapped to the JSON p
 * `{{ 1 if payload.state == 'OK' else 0 }}` -> Resolve Signal
 
 
-OnCall has default Jinja templates for the most popular monitoring systems.
-
-If your monitoring system is not in the Grafana OnCAll integrations list you can create the most generic integration `Webhook`, send an alert, and write your own templates.
-
-As a best practice, add `_Playbooks_`, `_Useful links_`, or `_Checklists_` to the alert message.
+Grafana OnCall provides a pre configured default Jinja template for supported integrations. If your monitoring system is not in the Grafana OnCall integrations list, you can create a generic `webhook` integration, send an alert, and configure your templates.
 
 
-## How to customize templates
+## Customize alerts with alert templates 
 
-You can customize the default templates in Grafana OnCall by opening the **Settings** window in either the **Integrations** or **Alert Groups** tab:
+Alert templates allow you to format any alert fields recognized by Grafana OnCall. You can customize default alert templates for all the different ways you receive your alerts such as web, slack, SMS, and email. For more advanced customization, use Jinja templates. 
 
-1. From the **Integrations** tab, select the integration, then click the **Settings** (gear) icon.
+As a best practice, add _Playbooks_, _Useful links_, or _Checklists_ to the alert message.
 
-    <!--![123](../_images/custom-actions-1.png ':size=400')-->
+To customize alert templates in Grafana OnCall:
 
-1. From the **Alert Groups** tab, click **Edit rendering, grouping, and other templates**
+1. Navigate to the **Integrations** tab, select the integration, then click **Change alert template and grouping**. 
 
-    <!--![123](../_images/custom-actions-2.png ':size=400')-->
-    
-1. In **Settings**, select the template to edit from **Edit template for**.
+2. In Alert Templates, select a template from the **Edit template for** dropdown.
 
-1. Edit the Appearances template as needed:
+3. Edit the Appearances template as needed:
     * `Title`, `Message`, `Image url` for Web
     * `Title`, `Message`, `Image url` for Slack
-    * `Title` used in SMS
-    * `Title` used in Phone
-    * `Title`, `Message` used in Email
+    * `Title` used for SMS
+    * `Title` used for Phone
+    * `Title`, `Message` used for Email
 
-1. Edit the alert behavior as needed:
+4. Edit the alert behavior as needed:
     * `Grouping Id` - This output groups other alerts into a single alert group.
     * `Acknowledge Condition` - The output should be `ok`, `true`, or `1` to auto-acknowledge the alert group. For example, `{{ 1 if payload.state == 'OK' else 0 }}`.
     * `Resolve Condition` - The output should be `ok`, `true` or `1` to auto-resolve the alert group. For example, `{{ 1 if payload.state == 'OK' else 0 }}`.
