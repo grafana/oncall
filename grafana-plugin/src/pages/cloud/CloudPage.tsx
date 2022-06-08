@@ -33,7 +33,7 @@ import styles from './CloudPage.module.css';
 const cx = cn.bind(styles);
 
 interface CloudPageProps extends WithStoreProps {}
-const ITEMS_PER_PAGE = 1;
+const ITEMS_PER_PAGE = 50;
 
 const CloudPage = observer((props: CloudPageProps) => {
   const store = useStore();
