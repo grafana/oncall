@@ -22,8 +22,10 @@ import PluginLink from 'components/PluginLink/PluginLink';
 import Text from 'components/Text/Text';
 import WithConfirm from 'components/WithConfirm/WithConfirm';
 import { User as UserType } from 'models/user/user.types';
+import { AppFeature } from 'state/features';
 import { WithStoreProps } from 'state/types';
 import { useStore } from 'state/useStore';
+import { UserAction } from 'state/userAction';
 import { withMobXProviderContext } from 'state/withStore';
 
 import styles from './CloudPhoneSettings.module.css';
@@ -34,8 +36,7 @@ interface CloudPhoneSettingsProps extends WithStoreProps {}
 
 const CloudPhoneSettings = observer((props: CloudPhoneSettingsProps) => {
   const store = useStore();
-  const [isAccountMatched, setIsAccountMatched] = useState<boolean>(true);
-  const [isPhoneVerified, setIsPhoneVerified] = useState<boolean>(true);
+  const [syncing, setSyncing] = useState<boolean>(false);
   const [userStatus, setUserStatus] = useState<number>(0);
   const [userLink, setUserLink] = useState<string>(null);
 
@@ -47,8 +48,10 @@ const CloudPhoneSettings = observer((props: CloudPhoneSettingsProps) => {
     getLocationSrv().update({ partial: false, path: link });
   };
 
-  const syncUser = () => {
-    store.cloudStore.syncCloudUser(store.userStore.currentUserPk);
+  const syncUser = async () => {
+    setSyncing(true);
+    await store.cloudStore.syncCloudUser(store.userStore.currentUserPk);
+    setSyncing(false);
   };
 
   const getCloudUserInfo = async () => {
@@ -60,6 +63,18 @@ const CloudPhoneSettings = observer((props: CloudPhoneSettingsProps) => {
   const UserCloudStatus = () => {
     switch (userStatus) {
       case 0:
+        if (store.hasFeature(AppFeature.CloudNotifications)) {
+          return (
+            <VerticalGroup spacing="lg">
+              <Text>Your account successfully matched, but Cloud is not connected. </Text>
+              <PluginLink query={{ page: 'cloud' }}>
+                <Button variant="secondary" icon="external-link-alt">
+                  Open Grafana Cloud page
+                </Button>
+              </PluginLink>
+            </VerticalGroup>
+          );
+        }
         return (
           <VerticalGroup spacing="lg">
             <Text>Grafana Cloud is not synced</Text>
@@ -117,15 +132,30 @@ const CloudPhoneSettings = observer((props: CloudPhoneSettingsProps) => {
   };
 
   return (
-    <VerticalGroup spacing="lg">
-      <HorizontalGroup justify="space-between">
-        <Text.Title level={3}>OnCall use Grafana Cloud for SMS and phone call notifications</Text.Title>
-        <Button variant="secondary" icon="sync" onClick={syncUser}>
-          Update
-        </Button>
-      </HorizontalGroup>
-      {userStatus ? <UserCloudStatus /> : <LoadingPlaceholder text="Loading..." />}
-    </VerticalGroup>
+    <>
+      {store.isUserActionAllowed(UserAction.UpdateOtherUsersSettings) ? (
+        <VerticalGroup spacing="lg">
+          <HorizontalGroup justify="space-between">
+            <Text.Title level={3}>OnCall use Grafana Cloud for SMS and phone call notifications</Text.Title>
+            {syncing ? (
+              <Button variant="secondary" icon="sync" disabled>
+                Updating...
+              </Button>
+            ) : (
+              <Button variant="secondary" icon="sync" onClick={syncUser}>
+                Update
+              </Button>
+            )}
+          </HorizontalGroup>
+          {!syncing ? <UserCloudStatus /> : <LoadingPlaceholder text="Loading..." />}
+        </VerticalGroup>
+      ) : (
+        <VerticalGroup spacing="lg">
+          <Text.Title level={3}>OnCall use Grafana Cloud for SMS and phone call notifications</Text.Title>
+          <Text>You do not have permission to perform this action. Ask an admin to upgrade your permissions.</Text>
+        </VerticalGroup>
+      )}
+    </>
   );
 });
 

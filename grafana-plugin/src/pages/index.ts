@@ -122,6 +122,7 @@ export const pages: PageDefinition[] = [
     icon: 'cloud',
     id: 'cloud',
     text: 'Cloud',
+    role: 'Admin',
   },
   {
     component: Test,

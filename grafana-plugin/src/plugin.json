@@ -98,13 +98,6 @@
       "path": "/a/grafana-oncall-app/?page=outgoing_webhooks",
       "role": "Viewer",
       "addToNav": true
-    },
-    {
-      "type": "page",
-      "name": "Cloud",
-      "path": "/a/grafana-oncall-app/?page=cloud",
-      "role": "Editor",
-      "addToNav": true
     }
   ],
   "routes": [

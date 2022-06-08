@@ -1,4 +1,4 @@
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useEffect } from 'react';
 
 import { Tab, TabContent, TabsBar } from '@grafana/ui';
 import cn from 'classnames/bind';
@@ -105,6 +105,9 @@ interface TabsContentProps {
 
 export const TabsContent = observer((props: TabsContentProps) => {
   const { id, activeTab, onTabChange, isDesktopOrLaptop } = props;
+  useEffect(() => {
+    store.updateFeatures();
+  }, []);
 
   const store = useStore();
   const { userStore } = store;

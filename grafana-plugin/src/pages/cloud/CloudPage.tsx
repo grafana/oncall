@@ -52,8 +52,9 @@ const CloudPage = observer((props: CloudPageProps) => {
       setCloudIsConnected(cloudStatus.cloud_connection_status);
       setHeartbitStatus(cloudStatus.cloud_heartbeat_enabled);
       setHeartbitLink(cloudStatus.cloud_heartbeat_link);
+      getApiKeyFromGlobalSettings();
     });
-  }, []);
+  }, [cloudIsConnected]);
 
   const { count, results } = store.cloudStore.getSearchResult();
 
@@ -76,6 +77,12 @@ const CloudPage = observer((props: CloudPageProps) => {
     store.cloudStore.disconnectToCloud();
   };
 
+  const getApiKeyFromGlobalSettings = async () => {
+    const globalSettingItem = await store.globalSettingStore.getGlobalSettingItemByName('GRAFANA_CLOUD_ONCALL_TOKEN');
+    if (cloudIsConnected === false) {
+      setCloudApiKey(globalSettingItem?.value);
+    }
+  };
   const connectToCloud = async () => {
     setShowConfirmationModal(false);
     const globalSettingItem = await store.globalSettingStore.getGlobalSettingItemByName('GRAFANA_CLOUD_ONCALL_TOKEN');
@@ -260,7 +267,7 @@ const CloudPage = observer((props: CloudPageProps) => {
           <div style={{ width: '100%' }}>
             <Text type="secondary">
               {
-                'Ask your users to sign up in Grafana Cloud, verify phone number and feel free to set up SMS & phone call notificaitons in personal settings!'
+                'Ask your users to sign up in Grafana Cloud, verify phone number and feel free to set up SMS & phone call notificaitons in personal settings! Only users with Admin or Editor role will be synced.'
               }
             </Text>
 
@@ -317,7 +324,7 @@ const CloudPage = observer((props: CloudPageProps) => {
             style={{ width: '100%' }}
             invalid={apiKeyError}
           >
-            <Input id="cloudApiKey" onChange={handleChangeCloudApiKey} />
+            <Input id="cloudApiKey" onChange={handleChangeCloudApiKey} defaultValue={cloudApiKey} />
           </Field>
           <Button variant="primary" onClick={saveKeyAndConnect} disabled={!cloudApiKey} size="md">
             Save key and connect
