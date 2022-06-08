@@ -1,10 +1,10 @@
 +++
-title = "Send alert notifications by webhook"
+title = "Configure outgoing webhooks for Grafana OnCall"
 keywords = ["Grafana Cloud", "Alerts", "Notifications", "on-call", "amixr", "webhooks"]
 weight = 500
 +++
 
-# Send alert group notifications by webhook
+# Configure outgoing webhooks for Grafana OnCall
 You can configure outgoing webhooks to send alerts to destination. Once a webhook is created, you can choose the webhook as a notification method in escalation steps. 
 
 1. In Grafana OnCall, navigate to **Outgoing Webhooks** and click **+ Create**.

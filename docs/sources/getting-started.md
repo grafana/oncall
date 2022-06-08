@@ -1,11 +1,11 @@
 +++
 title = "Getting started with Grafana OnCall"
 keywords = ["Grafana Cloud", "Alerts", "Notifications", "on-call"]
-aliases = ["/docs/grafana-cloud/oncall/configure-notifications"]
-draft = true
+aliases = ["/docs/grafana-cloud/oncall/getting-started"]
+weight = 100
 +++
 
-# Configure users, notifications, and on-call schedules
+# Getting started with Grafana OnCall
 
 These procedures introduce you to the configuration of user settings, how to set up escalation policies, and how to use your calendar service for on-call scheduling.  
 

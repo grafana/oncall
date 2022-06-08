@@ -1,10 +1,10 @@
 +++
-title = "Configure Slack for Grafana OnCall"
+title = "Connect Slack to Grafana OnCall"
 keywords = ["Grafana Cloud", "Alerts", "Notifications", "on-call", "amixr", "oncall", "slack"]
 weight = 100
 +++
 
-# Configure Slack for Grafana OnCall
+# Connect Slack to Grafana OnCall
 Grafana OnCall integrates closely with your Slack workspace to deliver alert group notifications to individuals, groups, and team members. 
 
 ## Connect to Slack

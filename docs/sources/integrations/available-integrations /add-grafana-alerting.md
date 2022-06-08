@@ -1,8 +1,8 @@
 +++
-title = "Configure alert notifications with Grafana Alerting"
+title = "Connect Grafana Alerting to Grafana OnCall"
 keywords = ["Grafana Cloud", "Alerts", "Notifications", "on-call", "Prometheus"]
 aliases = ["/docs/grafana-cloud/oncall/integrations/add-grafana-alerting/"]
-weight = 300
+weight = 100
 +++
 
 # Connect Grafana Alerting to Grafana OnCall

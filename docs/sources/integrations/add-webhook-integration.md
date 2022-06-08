@@ -1,10 +1,10 @@
 +++
-title = "Webhook integration"
+title = "Webhook integration for Grafana OnCall"
 keywords = ["Grafana Cloud", "Alerts", "Notifications", "on-call", "Alertmanager", "Prometheus"]
-weight = 100
+weight = 700
 +++
 
-# Integrate with your alert source using webhooks
+# Webhook integration for Grafana OnCall
 
 Grafana OnCall directly supports integrations from many alert sources, but you can connect to any alert source that isn't listed in the **Create Integration** page by using webhooks.
 
