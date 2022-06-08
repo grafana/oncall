@@ -6,7 +6,8 @@ from celery.schedules import crontab
 from common.utils import getenv_boolean
 
 VERSION = "dev-oss"
-SEND_ANONYMOUS_USAGE_STATS = False
+OSS = getenv_boolean("OSS", True)
+SEND_ANONYMOUS_USAGE_STATS = getenv_boolean("SEND_ANONYMOUS_USAGE_STATS", default=True)
 
 # License is OpenSource or Cloud
 OPEN_SOURCE_LICENSE_NAME = "OpenSource"
@@ -49,7 +50,8 @@ FEATURE_LIVE_SETTINGS_ENABLED = getenv_boolean("FEATURE_LIVE_SETTINGS_ENABLED", 
 FEATURE_TELEGRAM_INTEGRATION_ENABLED = getenv_boolean("FEATURE_TELEGRAM_INTEGRATION_ENABLED", default=False)
 FEATURE_EMAIL_INTEGRATION_ENABLED = getenv_boolean("FEATURE_EMAIL_INTEGRATION_ENABLED", default=False)
 FEATURE_SLACK_INTEGRATION_ENABLED = getenv_boolean("FEATURE_SLACK_INTEGRATION_ENABLED", default=False)
-OSS_INSTALLATION_FEATURES_ENABLED = False
+GRAFANA_CLOUD_ONCALL_HEARTBEAT_ENABLED = getenv_boolean("GRAFANA_CLOUD_ONCALL_HEARTBEAT_ENABLED", default=True)
+GRAFANA_CLOUD_NOTIFICATIONS_ENABLED = getenv_boolean("GRAFANA_CLOUD_NOTIFICATIONS_ENABLED", default=True)
 
 TWILIO_ACCOUNT_SID = os.environ.get("TWILIO_ACCOUNT_SID")
 TWILIO_AUTH_TOKEN = os.environ.get("TWILIO_AUTH_TOKEN")
@@ -69,6 +71,10 @@ SENDGRID_FROM_EMAIL = os.environ.get("SENDGRID_FROM_EMAIL")
 # For Inbound email
 SENDGRID_SECRET_KEY = os.environ.get("SENDGRID_SECRET_KEY")
 SENDGRID_INBOUND_EMAIL_DOMAIN = os.environ.get("SENDGRID_INBOUND_EMAIL_DOMAIN")
+
+# For Grafana Cloud integration
+GRAFANA_CLOUD_ONCALL_API_URL = os.environ.get("GRAFANA_CLOUD_ONCALL_API_URL", "https://a-prod-us-central-0.grafana.net")
+GRAFANA_CLOUD_ONCALL_TOKEN = os.environ.get("GRAFANA_CLOUD_ONCALL_TOKEN", None)
 
 # Application definition
 
@@ -408,11 +414,6 @@ SELF_HOSTED_SETTINGS = {
     "ORG_SLUG": "self_hosted_org",
     "ORG_TITLE": "Self-Hosted Organization",
 }
-
-GRAFANA_CLOUD_ONCALL_API_URL = "https://a-02-dev-us-central-0.grafana.net/"
-GRAFANA_CLOUD_ONCALL_TOKEN = os.environ.get("GRAFANA_CLOUD_ONCALL_TOKEN", None)
-GRAFANA_CLOUD_ONCALL_HEARTBEAT_ENABLED = getenv_boolean("GRAFANA_CLOUD_ONCALL_HEARTBEAT_ENABLED", default=True)
-GRAFANA_CLOUD_NOTIFICATIONS_ENABLED = getenv_boolean("GRAFANA_CLOUD_NOTIFICATIONS_ENABLED", default=True)
 
 GRAFANA_INCIDENT_STATIC_API_KEY = os.environ.get("GRAFANA_INCIDENT_STATIC_API_KEY", None)
 
