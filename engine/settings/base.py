@@ -6,7 +6,7 @@ from celery.schedules import crontab
 from common.utils import getenv_boolean
 
 VERSION = "dev-oss"
-OSS = getenv_boolean("OSS", True)
+OSS = False
 SEND_ANONYMOUS_USAGE_STATS = getenv_boolean("SEND_ANONYMOUS_USAGE_STATS", default=True)
 
 # License is OpenSource or Cloud

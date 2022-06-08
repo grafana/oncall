@@ -12,7 +12,6 @@ from apps.api.serializers.live_setting import LiveSettingSerializer
 from apps.auth_token.auth import PluginAuthentication
 from apps.base.models import LiveSetting
 from apps.base.utils import live_settings
-from apps.oss_installation.models import CloudConnector
 from apps.slack.tasks import unpopulate_slack_user_identities
 from apps.telegram.client import TelegramClient
 from apps.telegram.tasks import register_telegram_webhook
@@ -72,6 +71,8 @@ class LiveSettingViewSet(PublicPrimaryKeyMixin, viewsets.ModelViewSet):
                         unpopulate_slack_user_identities.apply_async((sti.pk, True), countdown=0)
 
         if instance.name == "GRAFANA_CLOUD_ONCALL_TOKEN":
+            from apps.oss_installation.models import CloudConnector
+
             try:
                 old_token = live_settings.GRAFANA_CLOUD_ONCALL_TOKEN
             except ImproperlyConfigured:
