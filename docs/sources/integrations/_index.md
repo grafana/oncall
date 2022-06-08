@@ -45,7 +45,8 @@ To customize alert grouping for an integration:
 2. Select **Alert Behavior** from the dropdown menu next to **Edit template for**.
 3. Edit the **grouping id**, **acknowledge condition**, and **resolve condition** templates as needed to customize your alert behavior. 
 
-For more information on alert templates, refer to Configure Alerts in Grafana OnCall (ADD RELREF)
+For more information on alert templates, see [Configure alerts in Grafana OnCall]({{< relref " ../create-custom-templates/" >}})
+
 
 #### Add Routes
 
@@ -73,15 +74,6 @@ To delete an integration:
 1. Select an integration from your list of enabled integrations in the **Integrations** tab.
 2. Click the **trash can** icon next to the selected integration.
 3. Confirm by clicking **Delete**.
-
-
-
-
-
-
-
-
-
 
 
 

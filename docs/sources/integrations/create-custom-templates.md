@@ -6,7 +6,7 @@ weight = 300
 
 # Configure alerts in Grafana OnCall
 
- Grafana OnCall can integrate with any monitoring systems that can send alerts using webhooks with JSON payloads. By default, webhooks deliver raw JSON payloads. When Grafana OnCall receives an alert and parses its payload, a default preconfigured alert template is applied to modify the alert payload to be more human readable. These alert templates are customizable for any integration.
+ Grafana OnCall can integrate with any monitoring systems that can send alerts using webhooks with JSON payloads. By default, webhooks deliver raw JSON payloads. When Grafana OnCall receives an alert and parses its payload, a default pre configured alert template is applied to modify the alert payload to be more human readable. These alert templates are customizable for any integration.
 
 See Format alerts with alert templates in this document to learn more about how to customize alert templates.
 

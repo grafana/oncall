@@ -8,11 +8,14 @@ weight = 500
 
 Zabbix is an open-source monitoring software tool for diverse IT components, including networks, servers, virtual machines, and cloud services. Zabbix provides monitoring for metrics such as network utilization, CPU load, and disk space consumption.
 
-To connect Grafana OnCall with Zabbix using the following procedure, you must have an Admin role assigned. 
 
-1. Navigate to the **Integrations** tab in Grafana OnCall. 
+## Configure Zabbix integration for Grafana OnCall
 
-1. Follow the instructions that display in the dialog box to use a unique integration URL in the monitoring configuration.
+You must have an Admin role to create integrations in Grafana OnCall.
+
+1. In the **Integrations** tab, click **+ New integration for receiving alerts**.
+2. Select **Zabbix** from the list of available integrations
+3. Follow the instructions in the **How to connect** window to get your unique integration URL and review next steps.
 
 
 <!--![123](../_images/connect-new-monitoring.png)-->

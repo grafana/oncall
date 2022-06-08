@@ -7,18 +7,10 @@ weight = 100
 
 # Currently available integrations
 
-Grafana OnCall can connect directly to the monitoring services of your alert sources listed in the Grafana OnCall **Integrations** section.
+Grafana OnCall can connect directly to the monitoring services where your alerts originate. All currently available integrations are listed in the Grafana OnCall **Create Integration** section.
 
-1. Connect to alert source with configured alerts.
-    
-    In Grafana OnCall, click on the **Integrations** tab and click **+ New integration for receiving alerts**.
+The following integrations are currently available for Grafana Cloud OnCall and have documentation:
 
-1. Select an integration from the provided options.
-    
-    If you want to use an integration that is not listed, you must use webhooks. To learn more about using webhooks see [Integrate with webhooks]({{< relref "/integrations/webhooks/add-webhook-integration/" >}}).
 
-1. Configure your integration.
-    
-    Each integration has a different method of connecting to Grafana OnCall. For example, if you want to connect to your Grafana as an alert source, select Grafana and follow the instructions. 
 
 {{< section >}}
