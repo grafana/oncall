@@ -7,6 +7,7 @@ from django.db import models, transaction
 from apps.base.utils import live_settings
 from apps.oss_installation.models.cloud_user_identity import CloudUserIdentity
 from apps.user_management.models import User
+from common.constants.role import Role
 from settings.base import GRAFANA_CLOUD_ONCALL_API_URL
 
 logger = logging.getLogger(__name__)
@@ -62,7 +63,7 @@ class CloudConnector(models.Model):
             logger.warning("Unable to sync with cloud. GRAFANA_CLOUD_ONCALL_TOKEN is not set")
             error_msg = "GRAFANA_CLOUD_ONCALL_TOKEN is not set"
 
-        existing_emails = list(User.objects.values_list("email", flat=True))
+        existing_emails = list(User.objects.filter(role__in=(Role.ADMIN, Role.EDITOR)).values_list("email", flat=True))
         matching_users = []
         users_url = urljoin(GRAFANA_CLOUD_ONCALL_API_URL, "api/v1/users")
 
@@ -130,7 +131,7 @@ class CloudConnector(models.Model):
                     if len(data["results"]) != 0:
                         cloud_used_data = data["results"][0]
                         with transaction.atomic():
-                            CloudUserIdentity.objects.filter(email=user.emai).delete()
+                            CloudUserIdentity.objects.filter(email=user.email).delete()
                             CloudUserIdentity.objects.create(
                                 email=user.email,
                                 phone_number_verified=cloud_used_data["is_phone_number_verified"],
