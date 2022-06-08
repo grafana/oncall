@@ -11,6 +11,7 @@ FEATURE_TELEGRAM = "telegram"
 FEATURE_LIVE_SETTINGS = "live_settings"
 MOBILE_APP_PUSH_NOTIFICATIONS = "mobile_app"
 FEATURE_GRAFANA_CLOUD_NOTIFICATIONS = "grafana_cloud_notifications"
+FEATURE_GRAFANA_CLOUD_CONNECTION = "grafana_cloud_connection"
 
 
 class FeaturesAPIView(APIView):
@@ -33,12 +34,6 @@ class FeaturesAPIView(APIView):
         if settings.FEATURE_TELEGRAM_INTEGRATION_ENABLED:
             enabled_features.append(FEATURE_TELEGRAM)
 
-        if settings.FEATURE_LIVE_SETTINGS_ENABLED:
-            enabled_features.append(FEATURE_LIVE_SETTINGS)
-
-        if live_settings.GRAFANA_CLOUD_NOTIFICATIONS_ENABLED:
-            enabled_features.append(FEATURE_GRAFANA_CLOUD_NOTIFICATIONS)
-
         if settings.MOBILE_APP_PUSH_NOTIFICATIONS_ENABLED:
             DynamicSetting = apps.get_model("base", "DynamicSetting")
             mobile_app_settings = DynamicSetting.objects.get_or_create(
@@ -52,5 +47,12 @@ class FeaturesAPIView(APIView):
 
             if request.auth.organization.pk in mobile_app_settings.json_value["org_ids"]:
                 enabled_features.append(MOBILE_APP_PUSH_NOTIFICATIONS)
+
+        if settings.OSS_INSTALLATION_FEATURES_ENABLED:
+            enabled_features.append(FEATURE_GRAFANA_CLOUD_CONNECTION)
+            if settings.FEATURE_LIVE_SETTINGS_ENABLED:
+                enabled_features.append(FEATURE_LIVE_SETTINGS)
+            if live_settings.GRAFANA_CLOUD_NOTIFICATIONS_ENABLED:
+                enabled_features.append(FEATURE_GRAFANA_CLOUD_NOTIFICATIONS)
 
         return enabled_features
