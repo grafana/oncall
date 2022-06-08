@@ -214,14 +214,14 @@ export const PluginConfigPage = (props: Props) => {
           <Legend>Configure Grafana OnCall</Legend>
           {pluginStatusOk && (
             <p>
-              Configuration was successfully created. Now you can find Grafana OnCall on right toolbar.{' '}
+              Plugin and the backend are connected! Check Grafana OnCall 👈👈👈{' '}
               <img alt="Grafana OnCall Logo" src={logo} width={18} />
             </p>
           )}
 
           {isSelfHostedInstall ? (
             <div>
-              <p>{'Plugin <-> backend connection status'}</p>
+              <p>{'Plugin <-> backend connection status:'}</p>
               <pre>
                 <Text type="link">{pluginStatusMessage}</Text>
               </pre>
@@ -287,7 +287,7 @@ export const PluginConfigPage = (props: Props) => {
           </VerticalGroup>
 
           <p>2. Conect the backend and the plugin </p>
-          <p>{'Plugin <-> backend connection status'}</p>
+          <p>{'Plugin <-> backend connection status:'}</p>
           <pre>
             <Text type="link">{pluginStatusMessage}</Text>
           </pre>
