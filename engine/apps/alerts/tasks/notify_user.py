@@ -56,6 +56,13 @@ def notify_user_task(
 
         if not user.is_notification_allowed:
             task_logger.info(f"notify_user_task: user {user.pk} notification is not allowed for role {user.role}")
+            UserNotificationPolicyLogRecord(
+                author=user,
+                type=UserNotificationPolicyLogRecord.TYPE_PERSONAL_NOTIFICATION_FAILED,
+                reason=f"notification is not allowed for user with role {user.role}",
+                alert_group=alert_group,
+                notification_error_code=UserNotificationPolicyLogRecord.ERROR_NOTIFICATION_NOT_ALLOWED_USER_ROLE,
+            ).save()
             return
 
         user_has_notification, _ = UserHasNotification.objects.get_or_create(
@@ -254,6 +261,16 @@ def perform_notification(log_record_pk):
             notification_step=notification_policy.step if notification_policy else None,
             notification_channel=notification_channel,
             notification_error_code=None,
+        ).save()
+        return
+
+    if not user.is_notification_allowed:
+        UserNotificationPolicyLogRecord(
+            author=user,
+            type=UserNotificationPolicyLogRecord.TYPE_PERSONAL_NOTIFICATION_FAILED,
+            reason=f"notification is not allowed for user with role {user.role}",
+            alert_group=alert_group,
+            notification_error_code=UserNotificationPolicyLogRecord.ERROR_NOTIFICATION_NOT_ALLOWED_USER_ROLE,
         ).save()
         return
 
