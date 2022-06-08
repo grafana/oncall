@@ -7,7 +7,7 @@ from django.utils import timezone
 from rest_framework import status
 
 from apps.base.utils import live_settings
-from apps.oss_installation.models import CloudHeartbeat, OssInstallation
+from apps.oss_installation.models import CloudConnector, CloudHeartbeat, OssInstallation
 from apps.oss_installation.usage_stats import UsageStatsService
 from common.custom_celery_tasks import shared_dedicated_queue_retry_task
 
@@ -93,3 +93,17 @@ def send_cloud_heartbeat():
     if cloud_heartbeat.pk is not None:
         cloud_heartbeat.save()
     logger.info("Finish send cloud heartbeat")
+
+
+@shared_dedicated_queue_retry_task()
+def sync_users_with_cloud():
+    logger.info("Start sync_users_with_cloud")
+    connector = CloudConnector.objects.first()
+    if connector is not None:
+        status, error = connector.sync_users_with_cloud()
+        log_message = "Users synced. Status {status}."
+        if error:
+            log_message += f" Error {error}"
+        logger.info(log_message)
+    else:
+        logger.info("Grafana Cloud is not connected")

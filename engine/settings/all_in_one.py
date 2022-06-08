@@ -40,6 +40,7 @@ if TESTING:
 
 # TODO: OSS: Add these setting to oss settings file. Add Version there too.
 OSS_INSTALLATION_FEATURES_ENABLED = True
+SEND_ANONYMOUS_USAGE_STATS = True
 
 INSTALLED_APPS += ["apps.oss_installation"]  # noqa
 
@@ -55,4 +56,8 @@ CELERY_BEAT_SCHEDULE["send_cloud_heartbeat"] = {  # noqa
     "args": (),
 }  # noqa
 
-SEND_ANONYMOUS_USAGE_STATS = True
+CELERY_BEAT_SCHEDULE["sync_users_with_cloud"] = {  # noqa
+    "task": "apps.oss_installation.tasks.sync_users_with_cloud",
+    "schedule": crontab(hour="*/12"),  # noqa
+    "args": (),
+}  # noqa
