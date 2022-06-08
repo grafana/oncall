@@ -59,7 +59,11 @@ export class CloudStore extends BaseStore {
   }
 
   async syncCloudUser(id: string) {
-    return await makeRequest(`${this.path}${id}/sync/`, { method: 'POST' });
+    return await makeRequest(`${this.path}`, { method: 'POST' });
+  }
+
+  async getCloudUser(id: string) {
+    return await makeRequest(`${this.path}${id}`, { method: 'GET' });
   }
 
   async getCloudConnectionStatus() {

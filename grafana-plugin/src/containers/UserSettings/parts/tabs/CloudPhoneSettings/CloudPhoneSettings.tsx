@@ -52,12 +52,7 @@ const CloudPhoneSettings = observer((props: CloudPhoneSettingsProps) => {
   };
 
   const getCloudUserInfo = async () => {
-    await store.cloudStore.updateItems();
-    const { count, results } = await store.cloudStore.getSearchResult();
-    console.log('RES', results);
-    const cloudUser =
-      results && (await results.find((element: { id: string }) => element.id === store.userStore.currentUserPk));
-    console.log('CLOUD USER', cloudUser);
+    const cloudUser = await store.cloudStore.getCloudUser(store.userStore.currentUserPk);
     setUserStatus(cloudUser?.cloud_data?.status);
     setUserLink(cloudUser?.cloud_data?.link);
   };
