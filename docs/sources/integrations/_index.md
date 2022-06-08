@@ -7,7 +7,7 @@ aliases = ["/docs/grafana-cloud/oncall/integrations/"]
 
 # Connect to Grafana OnCall
 
-Integrations allow you to connect monitoring systems of your choice to send alerts to Grafana OnCall. Regardless of where your alerts originate, you can configure alerts to be sent to Grafana OnCall for alert escalation and notification. Grafana OnCall receives alerts in JSON format via a POST request, OnCall then parses alert data using pre configured alert templates to determine alert grouping, apply routes, and determine correct escalation. 
+Integrations allow you to connect monitoring systems of your choice to send alerts to Grafana OnCall. Regardless of where your alerts originate, you can configure alerts to be sent to Grafana OnCall for alert escalation and notification. Grafana OnCall receives alerts in JSON format via a POST request, OnCall then parses alert data using preconfigured alert templates to determine alert grouping, apply routes, and determine correct escalation. 
 
 There are many integrations that are directly supported by Grafana OnCall. Those that aren’t currently listed in the Integrations menu can be connected using the webhook integration and configured alert templates. 
 
@@ -58,7 +58,7 @@ To add a route to an integration using regular expression:
 4. Click **Create Route**.
 5. Select an escalation chain for “**IF** alert payload matches regex” and “**ELSE**” to specify where to route each type of alert. 
 
-To learn more about routes, refer to Configure Routes for Grafana OnCall (ADD RELREF)
+To learn more about routes, refer to [Configure and manage Routes]({{< relref " ../configure-routes/" >}})
 
 
 #### Edit integration name
