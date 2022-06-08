@@ -49,6 +49,7 @@ class FeaturesAPIView(APIView):
                 enabled_features.append(MOBILE_APP_PUSH_NOTIFICATIONS)
 
         if settings.OSS:
+            # Features below should be enabled only in OSS
             enabled_features.append(FEATURE_GRAFANA_CLOUD_CONNECTION)
             if settings.FEATURE_LIVE_SETTINGS_ENABLED:
                 enabled_features.append(FEATURE_LIVE_SETTINGS)
