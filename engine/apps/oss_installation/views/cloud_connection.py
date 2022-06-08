@@ -1,5 +1,6 @@
 from urllib.parse import urljoin
 
+from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -32,3 +33,10 @@ class CloudConnectionView(APIView):
         if heartbeat is None:
             return None
         return urljoin(connector.cloud_url, f"a/grafana-oncall-app/?page=integrations1&id={heartbeat.integration_id}")
+
+    def delete(self, request):
+        connector = CloudConnector.objects.first()
+        if connector is None:
+            return Response(status=status.HTTP_404_NOT_FOUND)
+        connector.remove_sync()
+        return Response(status=status.HTTP_204_NO_CONTENT)
