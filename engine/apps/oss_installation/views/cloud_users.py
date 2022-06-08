@@ -7,7 +7,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 import apps.oss_installation.constants as cloud_constants
-from apps.api.permissions import ActionPermission, IsAdmin, IsOwnerOrAdmin
+from apps.api.permissions import ActionPermission, AnyRole, IsAdmin, IsOwnerOrAdmin
 from apps.auth_token.auth import PluginAuthentication
 from apps.oss_installation.models import CloudConnector, CloudUserIdentity
 from apps.oss_installation.serializers import CloudUserSerializer
@@ -81,8 +81,12 @@ class CloudUserView(
     authentication_classes = (PluginAuthentication,)
     permission_classes = (IsAuthenticated, ActionPermission)
 
+    action_permissions = {
+        AnyRole: ("retrieve",),
+        IsAdmin: ("sync",),
+    }
     action_object_permissions = {
-        IsOwnerOrAdmin: ("retrieve",),
+        IsOwnerOrAdmin: ("retrieve", "sync"),
     }
     serializer_class = CloudUserSerializer
 
@@ -91,7 +95,7 @@ class CloudUserView(
         return queryset
 
     @action(detail=True, methods=["post"])
-    def sync_with_cloud(self, request, pk):
+    def sync(self, request, pk):
         user = self.get_object()
         connector = CloudConnector.objects.first()
         if connector is not None:
