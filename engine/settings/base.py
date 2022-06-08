@@ -6,7 +6,9 @@ from celery.schedules import crontab
 from common.utils import getenv_boolean
 
 VERSION = "dev-oss"
-OSS = getenv_boolean("OSS", True)
+# Indicates if instance is OSS installation.
+# It is needed to plug-in oss urls.
+OSS_INSTALLATION = getenv_boolean("OSS", False)
 SEND_ANONYMOUS_USAGE_STATS = getenv_boolean("SEND_ANONYMOUS_USAGE_STATS", default=True)
 
 # License is OpenSource or Cloud
