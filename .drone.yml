@@ -7,6 +7,7 @@ steps:
     image: node:14.6.0-stretch
     commands:
       - apt-get update
+      - echo test
       - apt-get --assume-yes install jq
       - cd grafana-plugin/
       - if [ -z "$DRONE_TAG" ]; then echo "No tag, not modifying version"; else jq '.version="${DRONE_TAG}"' package.json > package.new && mv package.new package.json && jq '.version' package.json; fi
