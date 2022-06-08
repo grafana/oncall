@@ -37,6 +37,22 @@
   color: var(--secondary-text-color);
 }
 
+.error-icon {
+  display: inline-block;
+  white-space: break-spaces;
+  line-height: 20px;
+  color: var(--error-text-color);
+}
+
+.error-icon svg {
+  vertical-align: middle;
+}
+
+.heart-icon {
+  color: var(--secondary-text-color);
+  margin-right: 8px;
+}
+
 .block-button {
   margin-top: 24px;
 }

@@ -59,7 +59,7 @@ export class CloudStore extends BaseStore {
   }
 
   async syncCloudUser(id: string) {
-    return await makeRequest(`${this.path}${id}/sync_with_cloud/`, { method: 'POST' });
+    return await makeRequest(`${this.path}${id}/sync/`, { method: 'POST' });
   }
 
   async getCloudConnectionStatus() {
@@ -67,10 +67,7 @@ export class CloudStore extends BaseStore {
   }
 
   @action
-  async connectToCloud(token: string) {}
-
-  @action
   async disconnectToCloud() {
-    return await makeRequest(`/live_settings/`, { method: 'DELETE' });
+    return await makeRequest(`/cloud_connection/`, { method: 'DELETE' });
   }
 }
