@@ -12,7 +12,7 @@ class CloudUserSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
-        fields = ["sync_data"]
+        fields = ["cloud_data"]
 
     def get_cloud_data(self, obj):
         link = None
