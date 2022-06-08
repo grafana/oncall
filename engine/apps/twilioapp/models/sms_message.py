@@ -12,6 +12,7 @@ from apps.alerts.incident_appearance.renderers.sms_renderer import AlertGroupSms
 from apps.alerts.signals import user_notification_action_triggered_signal
 from apps.twilioapp.constants import TwilioMessageStatuses
 from apps.twilioapp.twilio_client import twilio_client
+from common.utils import clean_markup
 
 logger = logging.getLogger(__name__)
 
@@ -189,6 +190,7 @@ class SMSMessage(models.Model):
 
     @classmethod
     def send_grafana_cloud_sms(cls, user, message_body):
+        message_body = clean_markup(message_body)
         cls._send_sms(user, message_body, grafana_cloud=True)
 
     @classmethod

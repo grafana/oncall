@@ -5,6 +5,7 @@ from rest_framework.views import APIView
 from twilio.base.exceptions import TwilioRestException
 
 from apps.auth_token.auth import ApiTokenAuthentication
+from apps.public_api.throttlers.phone_notification_throttler import PhoneNotificationThrottler
 from apps.twilioapp.models import PhoneCall, SMSMessage
 
 
@@ -17,7 +18,9 @@ class MakeCallView(APIView):
     authentication_classes = (ApiTokenAuthentication,)
     permission_classes = (IsAuthenticated,)
 
-    # TODO: add ratelimit
+    throttle_classes = [
+        PhoneNotificationThrottler,
+    ]
 
     def post(self, request):
         serializer = PhoneNotificationDataSerializer(data=request.data)

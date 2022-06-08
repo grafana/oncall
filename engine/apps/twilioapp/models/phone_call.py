@@ -13,6 +13,7 @@ from apps.alerts.incident_appearance.renderers.phone_call_renderer import AlertG
 from apps.alerts.signals import user_notification_action_triggered_signal
 from apps.twilioapp.constants import TwilioCallStatuses
 from apps.twilioapp.twilio_client import twilio_client
+from common.utils import clean_markup, escape_for_twilio_phone_call
 
 logger = logging.getLogger(__name__)
 
@@ -223,6 +224,7 @@ class PhoneCall(models.Model):
 
     @classmethod
     def make_grafana_cloud_call(cls, user, message_body):
+        message_body = escape_for_twilio_phone_call(clean_markup(message_body))
         cls._make_call(user, message_body, grafana_cloud=True)
 
     @classmethod

@@ -14,6 +14,7 @@ from apps.oss_installation.serializers import CloudUserSerializer
 from apps.user_management.models import User
 from common.api_helpers.mixins import PublicPrimaryKeyMixin
 from common.api_helpers.paginators import HundredPageSizePaginator
+from common.constants.role import Role
 
 
 class CloudUsersView(HundredPageSizePaginator, APIView):
@@ -23,7 +24,7 @@ class CloudUsersView(HundredPageSizePaginator, APIView):
     def get(self, request):
         organization = request.user.organization
 
-        queryset = User.objects.filter(organization=organization)
+        queryset = User.objects.filter(organization=organization, role__in=[Role.ADMIN, Role.EDITOR])
 
         if request.user.current_team is not None:
             queryset = queryset.filter(teams=request.user.current_team).distinct()
