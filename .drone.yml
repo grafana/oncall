@@ -1,3 +1,4 @@
+---
 kind: pipeline
 type: docker
 name: Build and Release
@@ -7,7 +8,6 @@ steps:
     image: node:14.6.0-stretch
     commands:
       - apt-get update
-      - echo test
       - apt-get --assume-yes install jq
       - cd grafana-plugin/
       - if [ -z "$DRONE_TAG" ]; then echo "No tag, not modifying version"; else jq '.version="${DRONE_TAG}"' package.json > package.new && mv package.new package.json && jq '.version' package.json; fi
@@ -229,3 +229,8 @@ get:
   path: infra/data/ci/drone
 kind: secret
 name: drone_token
+---
+kind: signature
+hmac: 81b9b7cda5a8f8525f40f39821be50881e0c4cb0c40a45b3e63bc0cc47274649
+
+...
