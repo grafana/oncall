@@ -383,3 +383,18 @@ pytest --ds=settings.dev
    - Set Settings to settings/dev.py
 5. Create a new Django Server run configuration to Run/Debug the engine
    - Use a plugin such as EnvFile to load the .env file
+
+## Update drone build
+The .drone.yml build file must be signed when changes are made to it.  Follow these steps:
+
+If you have not installed drone CLI follow [these instructions](https://docs.drone.io/cli/install/)
+
+To sign the .drone.yml file:
+```bash
+export DRONE_SERVER=https://drone.grafana.net
+
+# Get your drone token from https://drone.grafana.net/account
+export DRONE_TOKEN=<Your DRONE_TOKEN>
+
+drone sign --save grafana/oncall .drone.yml
+```
