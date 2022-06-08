@@ -11,7 +11,7 @@ Zabbix is an open-source monitoring software tool for diverse IT components, inc
 
 ## Configure Zabbix integration for Grafana OnCall
 
-You must have an Admin role to create integrations in Grafana OnCall.
+This integration is available for Grafana Cloud OnCall. You must have an Admin role to create integrations in Grafana OnCall.
 
 1. In the **Integrations** tab, click **+ New integration for receiving alerts**.
 2. Select **Zabbix** from the list of available integrations

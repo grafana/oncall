@@ -11,7 +11,10 @@ Grafana OnCall can connect directly to the monitoring services where your alerts
 
 If the integration you're looking for isn't currently listed, see [Configure Webhook integrations for Grafana OnCall]({{< relref " ../add-webhook-integration/" >}}) to integration your monitoring system with Grafana OnCall. 
 
-The following integrations are currently available for Grafana Cloud OnCall and have documentation:
+>**Note:** Some integrations are available for Grafana Cloud instances only. See individual integration guides for more information.
+
+
+The following integrations are currently available for Grafana OnCall and have documentation:
 
 
 
