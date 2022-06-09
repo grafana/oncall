@@ -43,9 +43,16 @@ docker-compose -f docker-compose.yml run engine python manage.py issue_invite_fo
 ```
 
 ## Join our community 👋
-| <!-- -->    | <!-- -->    |
-|-------------|-------------|
-| ![](docs/img/community_call.png) | ![](docs/img/GH_discussions.png) |
+
+<table>
+  <tbody>
+    <tr>
+      <td><a href=""><img src="docs/img/community_call.png"></a></td>
+      <td><a href=""><img src="docs/img/community_call.png"></a></td>
+      <td><a href=""><img src="docs/img/community_call.png"></a></td>
+    </tr>
+  </tbody>
+</table>
 
 ## Further Reading
 - *Documentation* - [Grafana OnCall](https://grafana.com/docs/grafana-cloud/oncall/)
