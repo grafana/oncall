@@ -1,4 +1,5 @@
 import os
+from random import randrange
 from urllib.parse import urljoin
 
 from celery.schedules import crontab
@@ -440,3 +441,26 @@ INSTALLED_ONCALL_INTEGRATIONS = [
     "apps.integrations.metadata.configuration.manual",
     "apps.integrations.metadata.configuration.slack_channel",
 ]
+
+if OSS_INSTALLATION:
+    INSTALLED_APPS += ["apps.oss_installation"]  # noqa
+
+    CELERY_BEAT_SCHEDULE["send_usage_stats"] = {  # noqa
+        "task": "apps.oss_installation.tasks.send_usage_stats_report",
+        "schedule": crontab(
+            hour=0, minute=randrange(0, 59)
+        ),  # Send stats report at a random minute past midnight  # noqa
+        "args": (),
+    }  # noqa
+
+    CELERY_BEAT_SCHEDULE["send_cloud_heartbeat"] = {  # noqa
+        "task": "apps.oss_installation.tasks.send_cloud_heartbeat",
+        "schedule": crontab(minute="*/3"),  # noqa
+        "args": (),
+    }  # noqa
+
+    CELERY_BEAT_SCHEDULE["sync_users_with_cloud"] = {  # noqa
+        "task": "apps.oss_installation.tasks.sync_users_with_cloud",
+        "schedule": crontab(hour="*/12"),  # noqa
+        "args": (),
+    }  # noqa

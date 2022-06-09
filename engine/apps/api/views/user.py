@@ -34,6 +34,7 @@ from apps.auth_token.models import UserScheduleExportAuthToken
 from apps.auth_token.models.mobile_app_auth_token import MobileAppAuthToken
 from apps.auth_token.models.mobile_app_verification_token import MobileAppVerificationToken
 from apps.base.messaging import get_messaging_backend_from_id
+from apps.base.utils import live_settings
 from apps.telegram.client import TelegramClient
 from apps.telegram.models import TelegramVerificationCode
 from apps.twilioapp.phone_manager import PhoneManager
@@ -178,6 +179,47 @@ class UserView(
             queryset = queryset.filter(slack_user_identity__isnull=False).distinct()
 
         return queryset.order_by("id")
+
+    def list(self, request, *args, **kwargs):
+        queryset = self.filter_queryset(self.get_queryset())
+
+        page = self.paginate_queryset(queryset)
+        if page is not None:
+            context = {"request": self.request, "format": self.format_kwarg, "view": self}
+            if settings.OSS_INSTALLATION:
+                if live_settings.GRAFANA_CLOUD_NOTIFICATIONS_ENABLED:
+                    from apps.oss_installation.models import CloudConnector, CloudUserIdentity
+
+                    connector = CloudConnector.objects.first()
+                    if connector is not None:
+                        emails = list(queryset.values_list("email", flat=True))
+                        cloud_identities = list(CloudUserIdentity.objects.filter(email__in=emails))
+                        cloud_identities = {cloud_identity.email: cloud_identity for cloud_identity in cloud_identities}
+                        context["cloud_identities"] = cloud_identities
+                        context["connector"] = connector
+            serializer = self.get_serializer(page, many=True, context=context)
+            return self.get_paginated_response(serializer.data)
+
+        serializer = self.get_serializer(queryset, many=True)
+        return Response(serializer.data)
+
+    def retrieve(self, request, *args, **kwargs):
+        context = {"request": self.request, "format": self.format_kwarg, "view": self}
+        instance = self.get_object()
+
+        if settings.OSS_INSTALLATION:
+            if live_settings.GRAFANA_CLOUD_NOTIFICATIONS_ENABLED:
+                from apps.oss_installation.models import CloudConnector, CloudUserIdentity
+
+                connector = CloudConnector.objects.first()
+                if connector is not None:
+                    cloud_identities = list(CloudUserIdentity.objects.filter(email__in=[instance.email]))
+                    cloud_identities = {cloud_identity.email: cloud_identity for cloud_identity in cloud_identities}
+                    context["cloud_identities"] = cloud_identities
+                    context["connector"] = connector
+
+        serializer = self.get_serializer(instance)
+        return Response(serializer.data)
 
     def current(self, request):
         serializer = UserSerializer(self.get_queryset().get(pk=self.request.user.pk))

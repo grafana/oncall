@@ -1,9 +1,11 @@
+from django.conf import settings
 from rest_framework import serializers
 
 from apps.api.serializers.telegram import TelegramToUserConnectorSerializer
 from apps.base.constants import ADMIN_PERMISSIONS, ALL_ROLES_PERMISSIONS, EDITOR_PERMISSIONS
 from apps.base.messaging import get_messaging_backends
 from apps.base.models import UserNotificationPolicy
+from apps.base.utils import live_settings
 from apps.twilioapp.utils import check_phone_number_is_valid
 from apps.user_management.models import User
 from common.api_helpers.custom_fields import TeamPrimaryKeyRelatedField
@@ -30,6 +32,7 @@ class UserSerializer(DynamicFieldsModelSerializer, EagerLoadingMixin):
 
     permissions = serializers.SerializerMethodField()
     notification_chain_verbal = serializers.SerializerMethodField()
+    cloud_connection_status = serializers.SerializerMethodField()
 
     SELECT_RELATED = ["telegram_verification_code", "telegram_connection", "organization", "slack_user_identity"]
 
@@ -50,6 +53,7 @@ class UserSerializer(DynamicFieldsModelSerializer, EagerLoadingMixin):
             "messaging_backends",
             "permissions",
             "notification_chain_verbal",
+            "cloud_connection_status",
         ]
         read_only_fields = [
             "email",
@@ -87,6 +91,25 @@ class UserSerializer(DynamicFieldsModelSerializer, EagerLoadingMixin):
     def get_notification_chain_verbal(self, obj):
         default, important = UserNotificationPolicy.get_short_verbals_for_user(user=obj)
         return {"default": " - ".join(default), "important": " - ".join(important)}
+
+    def get_cloud_connection_status(self, obj):
+        if settings.OSS_INSTALLATION:
+            if live_settings.GRAFANA_CLOUD_NOTIFICATIONS_ENABLED:
+                from apps.oss_installation import constants as oss_constants
+
+                connector = self.context.get("connector", None)
+                identities = self.context.get("cloud_identities", {})
+                identity = identities.get(obj.email, None)
+                if connector is None:
+                    return oss_constants.CLOUD_NOT_SYNCED
+                if identity is None:
+                    return oss_constants.CLOUD_SYNCED_USER_NOT_FOUND
+                else:
+                    if identity.phone_number_verified:
+                        return oss_constants.CLOUD_SYNCED_PHONE_VERIFIED
+                    else:
+                        return oss_constants.CLOUD_SYNCED_PHONE_NOT_VERIFIED
+        return None
 
 
 class UserHiddenFieldsSerializer(UserSerializer):
