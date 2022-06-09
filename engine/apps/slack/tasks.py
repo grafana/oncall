@@ -9,8 +9,6 @@ from django.core.cache import cache
 from django.utils import timezone
 
 from apps.alerts.tasks.compare_escalations import compare_escalations
-from apps.public_api import constants as public_constants
-from apps.public_api.constants import DEMO_SLACK_USER_GROUP_ID
 from apps.slack.constants import CACHE_UPDATE_INCIDENT_SLACK_MESSAGE_LIFETIME, SLACK_BOT_ID
 from apps.slack.scenarios.escalation_delivery import EscalationDeliveryStep
 from apps.slack.scenarios.scenario_step import ScenarioStep
@@ -499,7 +497,7 @@ def populate_slack_usergroups():
 
     slack_team_identities = SlackTeamIdentity.objects.filter(
         detected_token_revoked__isnull=True,
-    ).exclude(slack_id=public_constants.DEMO_SLACK_TEAM_ID)
+    )
 
     delay = 0
     counter = 0
@@ -642,10 +640,7 @@ def start_update_slack_user_group_for_schedules():
     SlackUserGroup = apps.get_model("slack", "SlackUserGroup")
 
     user_group_pks = (
-        SlackUserGroup.objects.exclude(public_primary_key=DEMO_SLACK_USER_GROUP_ID)
-        .filter(oncall_schedules__isnull=False)
-        .distinct()
-        .values_list("pk", flat=True)
+        SlackUserGroup.objects.filter(oncall_schedules__isnull=False).distinct().values_list("pk", flat=True)
     )
 
     for user_group_pk in user_group_pks:
@@ -673,7 +668,7 @@ def populate_slack_channels():
 
     slack_team_identities = SlackTeamIdentity.objects.filter(
         detected_token_revoked__isnull=True,
-    ).exclude(slack_id=public_constants.DEMO_SLACK_TEAM_ID)
+    )
 
     delay = 0
     counter = 0

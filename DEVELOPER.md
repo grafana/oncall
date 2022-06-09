@@ -260,7 +260,7 @@ lt --port 8000 -s pretty-turkey-83 --print-requests
    or set BASE_URL Env variable through web interface.
 
 8. Edit grafana-plugin/src/plugin.json to add `Bypass-Tunnel-Reminder` header section for all existing routes 
-    > this headers required for the local development only, otherwise localtunnel blocks requests from grafana plugin
+    > this headers required for the local development only, otherwise localtunnel blocks requests from grafana plugin, An alternative to this is you can modify your user-agent in your browser to bypass the tunnel warning, it only filters the common browsers.
  
     ```
         {
@@ -383,3 +383,18 @@ pytest --ds=settings.dev
    - Set Settings to settings/dev.py
 5. Create a new Django Server run configuration to Run/Debug the engine
    - Use a plugin such as EnvFile to load the .env file
+
+## Update drone build
+The .drone.yml build file must be signed when changes are made to it.  Follow these steps:
+
+If you have not installed drone CLI follow [these instructions](https://docs.drone.io/cli/install/)
+
+To sign the .drone.yml file:
+```bash
+export DRONE_SERVER=https://drone.grafana.net
+
+# Get your drone token from https://drone.grafana.net/account
+export DRONE_TOKEN=<Your DRONE_TOKEN>
+
+drone sign --save grafana/oncall .drone.yml
+```

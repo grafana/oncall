@@ -1,3 +1,4 @@
+---
 kind: pipeline
 type: docker
 name: Build and Release
@@ -233,3 +234,8 @@ get:
   path: infra/data/ci/drone
 kind: secret
 name: drone_token
+---
+kind: signature
+hmac: 81b9b7cda5a8f8525f40f39821be50881e0c4cb0c40a45b3e63bc0cc47274649
+
+...

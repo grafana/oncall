@@ -4,7 +4,6 @@ from django.apps import apps
 from django.core.cache import cache
 from django.utils import timezone
 
-from apps.public_api.constants import DEMO_SCHEDULE_ID_CALENDAR, DEMO_SCHEDULE_ID_ICAL
 from apps.schedules.ical_utils import list_of_empty_shifts_in_schedule
 from apps.slack.utils import format_datetime_to_slack, post_message_to_channel
 from common.custom_celery_tasks import shared_dedicated_queue_retry_task
@@ -19,9 +18,7 @@ def start_check_empty_shifts_in_schedule():
 
     task_logger.info("Start start_notify_about_empty_shifts_in_schedule")
 
-    schedules = OnCallSchedule.objects.exclude(
-        public_primary_key__in=(DEMO_SCHEDULE_ID_CALENDAR, DEMO_SCHEDULE_ID_ICAL)
-    )
+    schedules = OnCallSchedule.objects.all()
 
     for schedule in schedules:
         check_empty_shifts_in_schedule.apply_async((schedule.pk,))
@@ -58,7 +55,7 @@ def start_notify_about_empty_shifts_in_schedule():
     schedules = OnCallSchedule.objects.filter(
         empty_shifts_report_sent_at__lte=week_ago,
         channel__isnull=False,
-    ).exclude(public_primary_key__in=(DEMO_SCHEDULE_ID_CALENDAR, DEMO_SCHEDULE_ID_ICAL))
+    )
 
     for schedule in schedules:
         notify_about_empty_shifts_in_schedule.apply_async((schedule.pk,))

@@ -7,16 +7,15 @@ from rest_framework.viewsets import ModelViewSet
 
 from apps.alerts.models import ChannelFilter
 from apps.auth_token.auth import ApiTokenAuthentication
-from apps.public_api import constants as public_api_constants
 from apps.public_api.serializers import ChannelFilterSerializer, ChannelFilterUpdateSerializer
 from apps.public_api.throttlers.user_throttle import UserThrottle
 from apps.user_management.organization_log_creator import OrganizationLogType, create_organization_log
 from common.api_helpers.exceptions import BadRequest
-from common.api_helpers.mixins import DemoTokenMixin, RateLimitHeadersMixin, UpdateSerializerMixin
+from common.api_helpers.mixins import RateLimitHeadersMixin, UpdateSerializerMixin
 from common.api_helpers.paginators import TwentyFivePageSizePaginator
 
 
-class ChannelFilterView(RateLimitHeadersMixin, DemoTokenMixin, UpdateSerializerMixin, ModelViewSet):
+class ChannelFilterView(RateLimitHeadersMixin, UpdateSerializerMixin, ModelViewSet):
     authentication_classes = (ApiTokenAuthentication,)
     permission_classes = (IsAuthenticated,)
 
@@ -30,8 +29,6 @@ class ChannelFilterView(RateLimitHeadersMixin, DemoTokenMixin, UpdateSerializerM
 
     filter_backends = [DjangoFilterBackend]
     filterset_fields = ["alert_receive_channel"]
-
-    demo_default_id = public_api_constants.DEMO_ROUTE_ID_1
 
     def get_queryset(self):
         integration_id = self.request.query_params.get("integration_id", None)

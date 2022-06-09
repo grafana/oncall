@@ -12,6 +12,7 @@ from apps.alerts.constants import NEXT_ESCALATION_DELAY
 from apps.alerts.incident_appearance.renderers.web_renderer import AlertGroupWebRenderer
 from apps.alerts.signals import user_notification_action_triggered_signal
 from apps.base.messaging import get_messaging_backend_from_id
+from apps.base.utils import live_settings
 from common.custom_celery_tasks import shared_dedicated_queue_retry_task
 
 from .task_logger import task_logger
@@ -258,10 +259,20 @@ def perform_notification(log_record_pk):
         return
 
     if notification_channel == UserNotificationPolicy.NotificationChannel.SMS:
-        SMSMessage.send_sms(user, alert_group, notification_policy)
+        SMSMessage.send_sms(
+            user,
+            alert_group,
+            notification_policy,
+            is_cloud_notification=live_settings.GRAFANA_CLOUD_NOTIFICATIONS_ENABLED,
+        )
 
     elif notification_channel == UserNotificationPolicy.NotificationChannel.PHONE_CALL:
-        PhoneCall.make_call(user, alert_group, notification_policy)
+        PhoneCall.make_call(
+            user,
+            alert_group,
+            notification_policy,
+            is_cloud_notification=live_settings.GRAFANA_CLOUD_NOTIFICATIONS_ENABLED,
+        )
 
     elif notification_channel == UserNotificationPolicy.NotificationChannel.TELEGRAM:
         if alert_group.notify_in_telegram_enabled is True:

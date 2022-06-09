@@ -2,8 +2,6 @@ from django.apps import apps
 from django.utils import timezone
 from rest_framework import serializers
 
-from apps.public_api import constants as public_api_constants
-from apps.public_api.helpers import is_demo_token_request
 from apps.schedules.ical_utils import list_users_to_notify_from_ical
 from apps.schedules.models import OnCallSchedule
 from apps.slack.models import SlackUserGroup
@@ -36,14 +34,11 @@ class ScheduleBaseSerializer(serializers.ModelSerializer):
             raise BadRequest(detail="Schedule with this name already exists")
 
     def get_on_call_now(self, obj):
-        if not is_demo_token_request(self.context["request"]):
-            users_on_call = list_users_to_notify_from_ical(obj, timezone.datetime.now(timezone.utc))
-            if users_on_call is not None:
-                return [user.public_primary_key for user in users_on_call]
-            else:
-                return []
+        users_on_call = list_users_to_notify_from_ical(obj, timezone.datetime.now(timezone.utc))
+        if users_on_call is not None:
+            return [user.public_primary_key for user in users_on_call]
         else:
-            return [public_api_constants.DEMO_USER_ID]
+            return []
 
     def _correct_validated_data(self, validated_data):
         slack_field = validated_data.pop("slack", {})
