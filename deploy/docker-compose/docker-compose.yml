@@ -1,0 +1,189 @@
+services:
+  engine:
+    # TODO: change to the public image once it's public
+    #    image: ...
+    build: ../../engine
+    command: >
+      sh -c "uwsgi --ini uwsgi.ini"
+    environment:
+      BASE_URL: https://$DOMAIN
+      SECRET_KEY: $SECRET_KEY
+      RABBITMQ_USERNAME: "rabbitmq"
+      RABBITMQ_PASSWORD: $RABBITMQ_PASSWORD
+      RABBITMQ_HOST: "rabbitmq"
+      RABBITMQ_PORT: "5672"
+      RABBITMQ_DEFAULT_VHOST: "/"
+      MYSQL_PASSWORD: $MYSQL_PASSWORD
+      MYSQL_DB_NAME: oncall_hobby
+      MYSQL_USER: ${MYSQL_USER:-root}
+      MYSQL_HOST: ${MYSQL_HOST:-mysql}
+      MYSQL_PORT: 3306
+      REDIS_URI: redis://redis:6379/0
+      DJANGO_SETTINGS_MODULE: settings.hobby
+    depends_on:
+      mysql:
+        condition: service_healthy
+      oncall_db_migration:
+        condition: service_completed_successfully
+      rabbitmq:
+        condition: service_started
+      redis:
+        condition: service_started
+
+  celery:
+    # TODO: change to the public image once it's public
+    build: ../../engine
+    command: sh -c "./celery_with_exporter.sh"
+    environment:
+      BASE_URL: https://$DOMAIN
+      SECRET_KEY: $SECRET_KEY
+      RABBITMQ_USERNAME: "rabbitmq"
+      RABBITMQ_PASSWORD: $RABBITMQ_PASSWORD
+      RABBITMQ_HOST: "rabbitmq"
+      RABBITMQ_PORT: "5672"
+      RABBITMQ_DEFAULT_VHOST: "/"
+      MYSQL_PASSWORD: $MYSQL_PASSWORD
+      MYSQL_DB_NAME: oncall_hobby
+      MYSQL_USER: ${MYSQL_USER:-root}
+      MYSQL_HOST: ${MYSQL_HOST:-mysql}
+      MYSQL_PORT: 3306
+      REDIS_URI: redis://redis:6379/0
+      DJANGO_SETTINGS_MODULE: settings.hobby
+      CELERY_WORKER_QUEUE: "default,critical,long,slack,telegram,webhook"
+      CELERY_WORKER_CONCURRENCY: "1"
+      CELERY_WORKER_MAX_TASKS_PER_CHILD: "100"
+      CELERY_WORKER_SHUTDOWN_INTERVAL: "65m"
+      CELERY_WORKER_BEAT_ENABLED: "True"
+    depends_on:
+      mysql:
+        condition: service_healthy
+      oncall_db_migration:
+        condition: service_completed_successfully
+      rabbitmq:
+        condition: service_started
+      redis:
+        condition: service_started
+
+  oncall_db_migration:
+    build: ../../engine
+    command: python manage.py migrate --noinput
+    environment:
+      BASE_URL: https://$DOMAIN
+      SECRET_KEY: $SECRET_KEY
+      RABBITMQ_USERNAME: "rabbitmq"
+      RABBITMQ_PASSWORD: $RABBITMQ_PASSWORD
+      RABBITMQ_HOST: "rabbitmq"
+      RABBITMQ_PORT: "5672"
+      RABBITMQ_DEFAULT_VHOST: "/"
+      MYSQL_PASSWORD: $MYSQL_PASSWORD
+      MYSQL_DB_NAME: oncall_hobby
+      MYSQL_USER: ${MYSQL_USER:-root}
+      MYSQL_HOST: ${MYSQL_HOST:-mysql}
+      MYSQL_PORT: 3306
+      REDIS_URI: redis://redis:6379/0
+      DJANGO_SETTINGS_MODULE: settings.hobby
+    depends_on:
+      mysql:
+        condition: service_healthy
+
+  mysql:
+    image: mysql:5.7
+    platform: linux/x86_64
+    mem_limit: 500m
+    cpus: 0.5
+    command: --default-authentication-plugin=mysql_native_password
+    restart: always
+    ports:
+      - 3306:3306
+    volumes:
+      - dbdata:/var/lib/mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: $MYSQL_PASSWORD
+      MYSQL_DATABASE: oncall_hobby
+    healthcheck:
+      test: "mysql -uroot -p$MYSQL_PASSWORD oncall_hobby -e 'select 1'"
+      timeout: 20s
+      retries: 10
+
+  redis:
+    image: redis
+    mem_limit: 100m
+    cpus: 0.1
+    restart: always
+    ports:
+      - 6379:6379
+
+  rabbitmq:
+    image: "rabbitmq:3.7.15-management"
+    hostname: rabbitmq
+    mem_limit: 1000m
+    cpus: 0.5
+    volumes:
+      - rabbitmqdata:/var/lib/rabbitmq
+    environment:
+      RABBITMQ_DEFAULT_USER: "rabbitmq"
+      RABBITMQ_DEFAULT_PASS: $RABBITMQ_PASSWORD
+      RABBITMQ_DEFAULT_VHOST: "/"
+
+  mysql_to_create_grafana_db:
+    image: mysql:5.7
+    platform: linux/x86_64
+    command: bash -c "mysql -h ${MYSQL_HOST:-mysql} -uroot -p${MYSQL_PASSWORD:?err} -e 'CREATE DATABASE IF NOT EXISTS grafana CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;'"
+    depends_on:
+      mysql:
+        condition: service_healthy
+    profiles:
+      - with_grafana
+
+  grafana:
+    image: "grafana/grafana:8.3.2"
+    mem_limit: 500m
+    cpus: 0.5
+    environment:
+      GF_DATABASE_TYPE: mysql
+      GF_DATABASE_HOST: ${MYSQL_HOST:-mysql}
+      GF_DATABASE_USER: ${MYSQL_USER:-root}
+      GF_DATABASE_PASSWORD: ${MYSQL_PASSWORD:?err}
+      GF_SECURITY_ADMIN_USER: ${GRAFANA_USER:-admin}
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_PASSWORD:?err}
+      GF_PLUGINS_ALLOW_LOADING_UNSIGNED_PLUGINS: grafana-oncall-app
+      GF_INSTALL_PLUGINS: grafana-oncall-app
+      GF_SERVER_ROOT_URL: http://$DOMAIN/grafana/
+      GF_SERVER_SERVE_FROM_SUB_PATH: "true"
+    volumes:
+      - ../../grafana-plugin:/var/lib/grafana/plugins/grafana-plugin
+    depends_on:
+      mysql_to_create_grafana_db:
+        condition: service_completed_successfully
+      mysql:
+        condition: service_healthy
+    profiles:
+      - with_grafana
+
+  caddy:
+    image: caddy
+    volumes:
+      - caddy_data:/data
+      - caddy_config:/config
+    ports:
+      - 80:80
+      - 443:443
+    command:
+      - sh
+      - '-c'
+      - |
+        cat  <<EOF > /etc/caddy/Caddyfile
+        {\$$CADDY_DOMAIN} {
+        reverse_proxy /grafana/* grafana:3000
+        reverse_proxy /* engine:8080
+        }
+        EOF
+        caddy run --config=/etc/caddy/Caddyfile
+    environment:
+      CADDY_DOMAIN: $DOMAIN
+
+volumes:
+  dbdata:
+  rabbitmqdata:
+  caddy_data:
+  caddy_config:
