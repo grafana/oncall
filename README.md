@@ -34,10 +34,20 @@ export GRAFANA_PASSWORD=admin
 docker-compose -f docker-compose.yml up --build -d
 ```
 
-4. Issue invite token and get further instructions:
+4. Issue one-time invite token:
 ```bash
 docker-compose -f docker-compose.yml run engine python manage.py issue_invite_for_the_frontend --override
 ```
+
+5. Go to http://localhost:3000/plugins/grafana-oncall-app and connect _OnCall plugin_ with _OnCall backend_:
+```
+Invite token: ^^^ from the previous step.
+OnCall backend URL: http://engine:8080
+Grafana Url: http://grafana:3000
+```
+
+6. Enjoy!
+
 
 ## Join community
 
