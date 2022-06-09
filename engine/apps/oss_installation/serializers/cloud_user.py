@@ -24,7 +24,7 @@ class CloudUserSerializer(serializers.ModelSerializer):
                 status = cloud_constants.CLOUD_SYNCED_USER_NOT_FOUND
                 link = connector.cloud_url
             elif not cloud_user_identity.phone_number_verified:
-                status = cloud_constants.CLOUD_SYNCED_USER_NOT_FOUND
+                status = cloud_constants.CLOUD_SYNCED_PHONE_NOT_VERIFIED
                 link = urljoin(
                     connector.cloud_url, f"a/grafana-oncall-app/?page=users&p=1&id={cloud_user_identity.cloud_id}"
                 )

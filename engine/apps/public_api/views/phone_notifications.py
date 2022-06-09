@@ -49,6 +49,10 @@ class SendSMSView(APIView):
     authentication_classes = (ApiTokenAuthentication,)
     permission_classes = (IsAuthenticated,)
 
+    throttle_classes = [
+        PhoneNotificationThrottler,
+    ]
+
     def post(self, request):
         serializer = PhoneNotificationDataSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)

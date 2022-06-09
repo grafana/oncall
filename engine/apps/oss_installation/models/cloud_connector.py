@@ -19,9 +19,6 @@ class CloudConnector(models.Model):
     """
 
     cloud_url = models.URLField()
-    # organization = models.OneToOneField(
-    #     "user_management.organization", related_name="cloud_connector", on_delete=models.CASCADE
-    # )
 
     @classmethod
     def sync_with_cloud(cls, token=None):
