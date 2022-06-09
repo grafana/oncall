@@ -42,10 +42,8 @@ Issue invite token and get further instructions:
 docker-compose -f docker-compose.yml run engine python manage.py issue_invite_for_the_frontend --override
 ```
 
-## Join our comminuty
-- `#grafana-oncall` channel at https://slack.grafana.com/
-- Grafana Labs community forum for OnCall: https://community.grafana.com
-- File an [issue](https://github.com/grafana/oncall/issues) for bugs, issues and feature suggestions.
+## Join our comminuty 👋
+
 
 ## Further Reading
 - *Documentation* - [Grafana OnCall](https://grafana.com/docs/grafana-cloud/oncall/)
