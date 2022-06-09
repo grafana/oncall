@@ -1,8 +1,10 @@
-+++
-title = "Integrations HTTP API"
-aliases = ["/docs/grafana-cloud/oncall/oncall-api-reference/integrations/"]
-weight = 500
-+++
+---
+aliases:
+  - /docs/grafana-cloud/oncall/oncall-api-reference/integrations/
+  - /docs/oncall/latest/oncall-api-reference/integrations/
+title: Integrations HTTP API
+weight: 500
+---
 
 # Create an integration
 
@@ -20,52 +22,52 @@ The above command returns JSON structured in the following way:
 
 ```json
 {
-    "id": "CFRPV98RPR1U8",
-    "name": "Grafana :blush:",
-    "team_id": null,
-    "link": "{{API_URL}}/integrations/v1/grafana/mReAoNwDm0eMwKo1mTeTwYo/",
-    "type": "grafana",
-    "default_route": {
-        "id": "RVBE4RKQSCGJ2",
-        "escalation_chain_id": "F5JU6KJET33FE",
-        "slack": {
-            "channel_id": "CH23212D"
-        }
-    },
-    "templates": {
-        "grouping_key": null,
-        "resolve_signal": null,
-        "slack": {
-            "title": null,
-            "message": null,
-            "image_url": null
-        },
-        "web": {
-            "title": null,
-            "message": null,
-            "image_url": null
-        },
-        "email": {
-            "title": null,
-            "message": null
-        },
-        "sms": {
-            "title": null
-        },
-        "phone_call": {
-            "title": null
-        },
-        "telegram": {
-            "title": null,
-            "message": null,
-            "image_url": null
-        }
+  "id": "CFRPV98RPR1U8",
+  "name": "Grafana :blush:",
+  "team_id": null,
+  "link": "{{API_URL}}/integrations/v1/grafana/mReAoNwDm0eMwKo1mTeTwYo/",
+  "type": "grafana",
+  "default_route": {
+    "id": "RVBE4RKQSCGJ2",
+    "escalation_chain_id": "F5JU6KJET33FE",
+    "slack": {
+      "channel_id": "CH23212D"
     }
+  },
+  "templates": {
+    "grouping_key": null,
+    "resolve_signal": null,
+    "slack": {
+      "title": null,
+      "message": null,
+      "image_url": null
+    },
+    "web": {
+      "title": null,
+      "message": null,
+      "image_url": null
+    },
+    "email": {
+      "title": null,
+      "message": null
+    },
+    "sms": {
+      "title": null
+    },
+    "phone_call": {
+      "title": null
+    },
+    "telegram": {
+      "title": null,
+      "message": null,
+      "image_url": null
+    }
+  }
 }
 ```
 
 Integrations are sources of alerts and alert groups for Grafana OnCall.
-For example, to learn how to integrate Grafana OnCall with Alertmanager see [Alertmanager]({{< relref "../integrations/add-alertmanager" >}}). 
+For example, to learn how to integrate Grafana OnCall with Alertmanager see [Alertmanager]({{< relref "../integrations/add-alertmanager" >}}).
 
 **HTTP request**
 
@@ -84,51 +86,51 @@ The above command returns JSON structured in the following way:
 
 ```json
 {
-    "id": "CFRPV98RPR1U8",
-    "name": "Grafana :blush:",
-    "team_id": null,
-    "link": "{{API_URL}}/integrations/v1/grafana/mReAoNwDm0eMwKo1mTeTwYo/",
-    "type": "grafana",
-    "default_route": {
-        "id": "RVBE4RKQSCGJ2",
-        "escalation_chain_id": "F5JU6KJET33FE",
-        "slack": {
-            "channel_id": "CH23212D"
-        }
-    },
-    "templates": {
-        "grouping_key": null,
-        "resolve_signal": null,
-        "slack": {
-            "title": null,
-            "message": null,
-            "image_url": null
-        },
-        "web": {
-            "title": null,
-            "message": null,
-            "image_url": null
-        },
-        "email": {
-            "title": null,
-            "message": null
-        },
-        "sms": {
-            "title": null
-        },
-        "phone_call": {
-            "title": null
-        },
-        "telegram": {
-            "title": null,
-            "message": null,
-            "image_url": null
-        }
+  "id": "CFRPV98RPR1U8",
+  "name": "Grafana :blush:",
+  "team_id": null,
+  "link": "{{API_URL}}/integrations/v1/grafana/mReAoNwDm0eMwKo1mTeTwYo/",
+  "type": "grafana",
+  "default_route": {
+    "id": "RVBE4RKQSCGJ2",
+    "escalation_chain_id": "F5JU6KJET33FE",
+    "slack": {
+      "channel_id": "CH23212D"
     }
+  },
+  "templates": {
+    "grouping_key": null,
+    "resolve_signal": null,
+    "slack": {
+      "title": null,
+      "message": null,
+      "image_url": null
+    },
+    "web": {
+      "title": null,
+      "message": null,
+      "image_url": null
+    },
+    "email": {
+      "title": null,
+      "message": null
+    },
+    "sms": {
+      "title": null
+    },
+    "phone_call": {
+      "title": null
+    },
+    "telegram": {
+      "title": null,
+      "message": null,
+      "image_url": null
+    }
+  }
 }
 ```
 
-This endpoint retrieves an integration. Integrations are sources of alerts and alert groups for Grafana OnCall. 
+This endpoint retrieves an integration. Integrations are sources of alerts and alert groups for Grafana OnCall.
 
 **HTTP request**
 
@@ -147,54 +149,54 @@ The above command returns JSON structured in the following way:
 
 ```json
 {
-    "count": 1,
-    "next": null,
-    "previous": null,
-    "results": [
-        {
-            "id": "CFRPV98RPR1U8",
-            "name": "Grafana :blush:",
-            "team_id": null,
-            "link": "{{API_URL}}/integrations/v1/grafana/mReAoNwDm0eMwKo1mTeTwYo/",
-            "type": "grafana",
-            "default_route": {
-                "id": "RVBE4RKQSCGJ2",
-                "escalation_chain_id": "F5JU6KJET33FE", 
-                "slack": {
-                    "channel_id": "CH23212D"
-                }
-            },
-            "templates": {
-                "grouping_key": null,
-                "resolve_signal": null,
-                "slack": {
-                    "title": null,
-                    "message": null,
-                    "image_url": null
-                },
-                "web": {
-                    "title": null,
-                    "message": null,
-                    "image_url": null
-                },
-                "email": {
-                    "title": null,
-                    "message": null
-                },
-                "sms": {
-                    "title": null
-                },
-                "phone_call": {
-                    "title": null
-                },
-                "telegram": {
-                    "title": null,
-                    "message": null,
-                    "image_url": null
-                }
-            }
+  "count": 1,
+  "next": null,
+  "previous": null,
+  "results": [
+    {
+      "id": "CFRPV98RPR1U8",
+      "name": "Grafana :blush:",
+      "team_id": null,
+      "link": "{{API_URL}}/integrations/v1/grafana/mReAoNwDm0eMwKo1mTeTwYo/",
+      "type": "grafana",
+      "default_route": {
+        "id": "RVBE4RKQSCGJ2",
+        "escalation_chain_id": "F5JU6KJET33FE",
+        "slack": {
+          "channel_id": "CH23212D"
         }
-    ]
+      },
+      "templates": {
+        "grouping_key": null,
+        "resolve_signal": null,
+        "slack": {
+          "title": null,
+          "message": null,
+          "image_url": null
+        },
+        "web": {
+          "title": null,
+          "message": null,
+          "image_url": null
+        },
+        "email": {
+          "title": null,
+          "message": null
+        },
+        "sms": {
+          "title": null
+        },
+        "phone_call": {
+          "title": null
+        },
+        "telegram": {
+          "title": null,
+          "message": null,
+          "image_url": null
+        }
+      }
+    }
+  ]
 }
 ```
 
@@ -226,47 +228,47 @@ The above command returns JSON structured in the following way:
 
 ```json
 {
-    "id": "CFRPV98RPR1U8",
-    "name": "Grafana :blush:",
-    "team_id": null,
-    "link": "{{API_URL}}/integrations/v1/grafana/mReAoNwDm0eMwKo1mTeTwYo/",
-    "type": "grafana",
-    "default_route": {
-        "id": "RVBE4RKQSCGJ2",
-        "escalation_chain_id": "F5JU6KJET33FE",
-        "slack": {
-            "channel_id": "CH23212D"
-        }
-    },
-    "templates": {
-        "grouping_key": null,
-        "resolve_signal": null,
-        "slack": {
-           "title": null,
-           "message": null,
-           "image_url": null
-        },
-        "web": {
-            "title": null,
-            "message": null,
-            "image_url": null
-        },
-        "email": {
-            "title": null,
-            "message": null
-        },
-        "sms": {
-            "title": null
-        },
-        "phone_call": {
-            "title": null
-        },
-        "telegram": {
-            "title": null,
-            "message": null,
-            "image_url": null
-        }
+  "id": "CFRPV98RPR1U8",
+  "name": "Grafana :blush:",
+  "team_id": null,
+  "link": "{{API_URL}}/integrations/v1/grafana/mReAoNwDm0eMwKo1mTeTwYo/",
+  "type": "grafana",
+  "default_route": {
+    "id": "RVBE4RKQSCGJ2",
+    "escalation_chain_id": "F5JU6KJET33FE",
+    "slack": {
+      "channel_id": "CH23212D"
     }
+  },
+  "templates": {
+    "grouping_key": null,
+    "resolve_signal": null,
+    "slack": {
+      "title": null,
+      "message": null,
+      "image_url": null
+    },
+    "web": {
+      "title": null,
+      "message": null,
+      "image_url": null
+    },
+    "email": {
+      "title": null,
+      "message": null
+    },
+    "sms": {
+      "title": null
+    },
+    "phone_call": {
+      "title": null
+    },
+    "telegram": {
+      "title": null,
+      "message": null,
+      "image_url": null
+    }
+  }
 }
 ```
 
@@ -275,6 +277,7 @@ The above command returns JSON structured in the following way:
 `PUT {{API_URL}}/api/v1/integrations/<INTEGRATION_ID>/`
 
 # Delete integration
+
 Deleted integrations will stop recording new alerts from monitoring. Integration removal won't trigger removal of related alert groups or alerts.
 
 ```shell

@@ -1,8 +1,17 @@
-+++
-title = "Escalation Chains and Routes"
-keywords = ["Grafana Cloud", "Alerts", "Notifications", "on-call", "amixr", "oncall", "integrations"]
-weight = 500
-+++
+---
+aliases:
+  - /docs/oncall/latest/escalation-policies/
+keywords:
+  - Grafana Cloud
+  - Alerts
+  - Notifications
+  - on-call
+  - amixr
+  - oncall
+  - integrations
+title: Escalation Chains and Routes
+weight: 500
+---
 
 # Escalation Chains and Routes for Grafana OnCall
 
