@@ -1,18 +1,20 @@
-# Grafana OnCall Incident Response
-Grafana OnCall, cloud version of Grafana OnCall: https://grafana.com/products/cloud/
+# Grafana OnCall
 
 Developer-friendly, incident response management with brilliant Slack integration.
-- Connect monitoring systems
-- Collect and analyze data
-- On-call rotation
-- Automatic escalation
-- Never miss alerts with calls and SMS
+- Collect and analyze alerts from multiple monitoring systems
+- On-call rotations based on schedules
+- Automatic escalations
+- Phone calls, SMS, Slack, Telegram notifications
 
 ![Grafana OnCall Screenshot](screenshot.png)
 
 ## Getting Started
 
-### Launch "hobby" environment
+### Production environment
+
+For production setup check [PRODUCTION.md](PRODUCTION.md).
+
+### Hobby environment
 
 Download docker-compose.yaml:
 ```bash
@@ -30,35 +32,22 @@ export GRAFANA_USER=admin
 export GRAFANA_PASSWORD=admin
 ```
 
-Launch stack:
+Launch services:
 ```bash
 docker-compose -f docker-compose.yml up --build -d
 ```
 
-Get the instructions and the token:
+Issue invite token and get further instructions:
 ```bash
 docker-compose -f docker-compose.yml run engine python manage.py issue_invite_for_the_frontend --override
 ```
-
-^ follow instructions and enjoy!
 
 ## Join our comminuty
 - `#grafana-oncall` channel at https://slack.grafana.com/
 - Grafana Labs community forum for OnCall: https://community.grafana.com
 - File an [issue](https://github.com/grafana/oncall/issues) for bugs, issues and feature suggestions.
 
-## Production Setup
-
-For production setup check [PRODUCTION.md](PRODUCTION.md).
-
 ## Further Reading
 - *Documentation* - [Grafana OnCall](https://grafana.com/docs/grafana-cloud/oncall/)
 - *Blog Post* - [Announcing Grafana OnCall, the easiest way to do on-call management](https://grafana.com/blog/2021/11/09/announcing-grafana-oncall/)
 - *Presentation* - [Deep dive into the Grafana, Prometheus, and Alertmanager stack for alerting and on-call management](https://grafana.com/go/observabilitycon/2021/alerting/?pg=blog)
-
-## FAQ
-
-- How do I generate a new invitation token to connect plugin with a backend?
-```bash
-docker exec oncall-backend python manage.py issue_invite_for_the_frontend --override
-```
