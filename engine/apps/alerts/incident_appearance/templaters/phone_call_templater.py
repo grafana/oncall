@@ -1,5 +1,5 @@
 from apps.alerts.incident_appearance.templaters.alert_templater import AlertTemplater
-from common.utils import clean_markup
+from common.utils import clean_markup, escape_for_twilio_phone_call
 
 
 class AlertPhoneCallTemplater(AlertTemplater):
@@ -24,8 +24,4 @@ class AlertPhoneCallTemplater(AlertTemplater):
         return sf.format(data)
 
     def _escape(self, data):
-        # https://www.twilio.com/docs/api/errors/12100
-        data = data.replace("&", "&amp;")
-        data = data.replace(">", "&gt;")
-        data = data.replace("<", "&lt;")
-        return data
+        return escape_for_twilio_phone_call(data)

@@ -16,6 +16,7 @@ type Args = {
     orgRole: 'Viewer' | 'Editor' | 'Admin';
   };
   enableLiveSettings: boolean;
+  enableCloudPage: boolean;
 };
 
 export function useForceUpdate() {
@@ -23,7 +24,7 @@ export function useForceUpdate() {
   return () => setValue((value) => value + 1);
 }
 
-export function useNavModel({ meta, pages, path, page, grafanaUser, enableLiveSettings }: Args) {
+export function useNavModel({ meta, pages, path, page, grafanaUser, enableLiveSettings, enableCloudPage }: Args) {
   return useMemo(() => {
     const tabs: NavModelItem[] = [];
 
@@ -36,7 +37,8 @@ export function useNavModel({ meta, pages, path, page, grafanaUser, enableLiveSe
         hideFromTabs:
           hideFromTabs ||
           (role === 'Admin' && grafanaUser.orgRole !== role) ||
-          (id === 'live-settings' && !enableLiveSettings),
+          (id === 'live-settings' && !enableLiveSettings) ||
+          (id === 'cloud' && !enableCloudPage),
       });
 
       if (page === id) {
@@ -61,7 +63,7 @@ export function useNavModel({ meta, pages, path, page, grafanaUser, enableLiveSe
       node,
       main: node,
     };
-  }, [meta.info.logos.large, pages, path, page, enableLiveSettings]);
+  }, [meta.info.logos.large, pages, path, page, enableLiveSettings, enableCloudPage]);
 }
 
 export function usePrevious(value: any) {

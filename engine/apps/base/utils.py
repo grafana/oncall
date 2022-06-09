@@ -94,6 +94,13 @@ class LiveSettingValidator:
         except Exception as e:
             return f"Telegram error: {str(e)}"
 
+    @classmethod
+    def _check_grafana_cloud_oncall_token(cls, grafana_oncall_token):
+        from apps.oss_installation.models import CloudConnector
+
+        _, err = CloudConnector.sync_with_cloud(grafana_oncall_token)
+        return err
+
     @staticmethod
     def _is_email_valid(email):
         return re.match(r"^[^@]+@[^@]+\.[^@]+$", email)

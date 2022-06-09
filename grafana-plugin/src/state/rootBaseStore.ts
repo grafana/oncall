@@ -9,6 +9,7 @@ import { AlertReceiveChannel } from 'models/alert_receive_channel/alert_receive_
 import { AlertReceiveChannelFiltersStore } from 'models/alert_receive_channel_filters/alert_receive_channel_filters';
 import { AlertGroupStore } from 'models/alertgroup/alertgroup';
 import { ApiTokenStore } from 'models/api_token/api_token';
+import { CloudStore } from 'models/cloud/cloud';
 import { EscalationChainStore } from 'models/escalation_chain/escalation_chain';
 import { EscalationPolicyStore } from 'models/escalation_policy/escalation_policy';
 import { GlobalSettingStore } from 'models/global_setting/global_setting';
@@ -81,6 +82,7 @@ export class RootBaseStore {
   // --------------------------
 
   userStore: UserStore = new UserStore(this);
+  cloudStore: CloudStore = new CloudStore(this);
   grafanaTeamStore: GrafanaTeamStore = new GrafanaTeamStore(this);
   alertReceiveChannelStore: AlertReceiveChannelStore = new AlertReceiveChannelStore(this);
   outgoingWebhookStore: OutgoingWebhookStore = new OutgoingWebhookStore(this);

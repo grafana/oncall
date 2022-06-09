@@ -30,4 +30,20 @@ class Migration(migrations.Migration):
                 ('report_sent_at', models.DateTimeField(default=None, null=True)),
             ],
         ),
+        migrations.CreateModel(
+            name='CloudConnector',
+            fields=[
+                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
+                ('cloud_url', models.URLField()),
+            ],
+        ),
+        migrations.CreateModel(
+            name='CloudUserIdentity',
+            fields=[
+                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
+                ('phone_number_verified', models.BooleanField(default=False)),
+                ('cloud_id', models.CharField(max_length=20)),
+                ('email', models.EmailField(max_length=254)),
+            ],
+        ),
     ]
