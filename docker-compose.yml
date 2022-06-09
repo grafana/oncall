@@ -2,7 +2,7 @@ services:
   engine:
     # TODO: change to the public image once it's public
     #    image: ...
-    build: ../../engine
+    build: engine
     ports:
       - 8080:8080
     command: >
@@ -36,7 +36,7 @@ services:
 
   celery:
     # TODO: change to the public image once it's public
-    build: ../../engine
+    build: engine
     command: sh -c "./celery_with_exporter.sh"
     environment:
       BASE_URL: https://$DOMAIN
@@ -70,7 +70,7 @@ services:
         condition: service_started
 
   oncall_db_migration:
-    build: ../../engine
+    build: engine
     command: python manage.py migrate --noinput
     environment:
       BASE_URL: https://$DOMAIN
@@ -158,7 +158,7 @@ services:
       GF_PLUGINS_ALLOW_LOADING_UNSIGNED_PLUGINS: grafana-oncall-app
       GF_INSTALL_PLUGINS: grafana-oncall-app
     volumes:
-      - ../../grafana-plugin:/var/lib/grafana/plugins/grafana-plugin
+      - ./grafana-plugin:/var/lib/grafana/plugins/grafana-plugin
     depends_on:
       mysql_to_create_grafana_db:
         condition: service_completed_successfully
