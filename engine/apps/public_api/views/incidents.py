@@ -8,14 +8,13 @@ from rest_framework.viewsets import GenericViewSet
 from apps.alerts.models import AlertGroup
 from apps.alerts.tasks import delete_alert_group, wipe
 from apps.auth_token.auth import ApiTokenAuthentication
-from apps.public_api import constants as public_api_constants
 from apps.public_api.constants import VALID_DATE_FOR_DELETE_INCIDENT
 from apps.public_api.helpers import is_valid_group_creation_date, team_has_slack_token_for_deleting
 from apps.public_api.serializers import IncidentSerializer
 from apps.public_api.throttlers.user_throttle import UserThrottle
 from common.api_helpers.exceptions import BadRequest
 from common.api_helpers.filters import ByTeamModelFieldFilterMixin, get_team_queryset
-from common.api_helpers.mixins import DemoTokenMixin, RateLimitHeadersMixin
+from common.api_helpers.mixins import RateLimitHeadersMixin
 from common.api_helpers.paginators import FiftyPageSizePaginator
 
 
@@ -30,9 +29,7 @@ class IncidentByTeamFilter(ByTeamModelFieldFilterMixin, filters.FilterSet):
     )
 
 
-class IncidentView(
-    RateLimitHeadersMixin, DemoTokenMixin, mixins.ListModelMixin, mixins.DestroyModelMixin, GenericViewSet
-):
+class IncidentView(RateLimitHeadersMixin, mixins.ListModelMixin, mixins.DestroyModelMixin, GenericViewSet):
     authentication_classes = (ApiTokenAuthentication,)
     permission_classes = (IsAuthenticated,)
 
@@ -41,8 +38,6 @@ class IncidentView(
     model = AlertGroup
     serializer_class = IncidentSerializer
     pagination_class = FiftyPageSizePaginator
-
-    demo_default_id = public_api_constants.DEMO_INCIDENT_ID
 
     filter_backends = (filters.DjangoFilterBackend,)
     filterset_class = IncidentByTeamFilter
