@@ -15,7 +15,7 @@ We prepared multiple environments: [production](PRODUCTION.md), [developer](DEVE
 
 1. Download docker-compose.yaml:
 ```bash
-curl https://github.com/... -o docker-compose.yaml
+curl https://github.com/grafana/oncall/blob/dev/docker-compose.yml -o docker-compose.yaml 
 ```
 
 2. Set variables:
