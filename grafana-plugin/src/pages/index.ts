@@ -3,6 +3,7 @@ import React from 'react';
 import { AppRootProps } from '@grafana/data';
 
 import ChatOpsPage from 'pages/chat-ops/ChatOps';
+import CloudPage from 'pages/cloud/CloudPage';
 import EscalationsChainsPage from 'pages/escalation-chains/EscalationChains';
 import IncidentPage2 from 'pages/incident/Incident';
 import IncidentsPage2 from 'pages/incidents/Incidents';
@@ -115,6 +116,13 @@ export const pages: PageDefinition[] = [
     id: 'migration-tool',
     text: 'Migrate From Amixr.IO',
     hideFromTabs: true,
+  },
+  {
+    component: CloudPage,
+    icon: 'cloud',
+    id: 'cloud',
+    text: 'Cloud',
+    role: 'Admin',
   },
   {
     component: Test,

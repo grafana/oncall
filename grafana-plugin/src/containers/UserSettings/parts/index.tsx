@@ -1,17 +1,20 @@
-import React, { useCallback } from 'react';
+import React, { useCallback, useEffect } from 'react';
 
 import { Tab, TabContent, TabsBar } from '@grafana/ui';
 import cn from 'classnames/bind';
+import { observer } from 'mobx-react';
 
 import Block from 'components/GBlock/Block';
 import MobileAppVerification from 'containers/MobileAppVerification/MobileAppVerification';
 import { UserSettingsTab } from 'containers/UserSettings/UserSettings.types';
 import { SlackTab } from 'containers/UserSettings/parts/tabs//SlackTab/SlackTab';
+import CloudPhoneSettings from 'containers/UserSettings/parts/tabs/CloudPhoneSettings/CloudPhoneSettings';
 import { NotificationSettingsTab } from 'containers/UserSettings/parts/tabs/NotificationSettingsTab';
 import PhoneVerification from 'containers/UserSettings/parts/tabs/PhoneVerification/PhoneVerification';
 import TelegramInfo from 'containers/UserSettings/parts/tabs/TelegramInfo/TelegramInfo';
 import { UserInfoTab } from 'containers/UserSettings/parts/tabs/UserInfoTab/UserInfoTab';
 import { User } from 'models/user/user.types';
+import { AppFeature } from 'state/features';
 import { useStore } from 'state/useStore';
 
 import styles from 'containers/UserSettings/parts/index.module.css';
@@ -100,8 +103,11 @@ interface TabsContentProps {
   isDesktopOrLaptop: boolean;
 }
 
-export const TabsContent = (props: TabsContentProps) => {
+export const TabsContent = observer((props: TabsContentProps) => {
   const { id, activeTab, onTabChange, isDesktopOrLaptop } = props;
+  useEffect(() => {
+    store.updateFeatures();
+  }, []);
 
   const store = useStore();
   const { userStore } = store;
@@ -124,9 +130,12 @@ export const TabsContent = (props: TabsContentProps) => {
           <UserInfoTab id={id} onTabChange={onTabChange} />
         ))}
       {activeTab === UserSettingsTab.NotificationSettings && <NotificationSettingsTab id={id} />}
-      {activeTab === UserSettingsTab.PhoneVerification && (
-        <PhoneVerification userPk={id} phone={storeUser.unverified_phone_number || '+'} />
-      )}
+      {activeTab === UserSettingsTab.PhoneVerification &&
+        (store.hasFeature(AppFeature.CloudNotifications) ? (
+          <CloudPhoneSettings />
+        ) : (
+          <PhoneVerification userPk={id} phone={storeUser.unverified_phone_number || '+'} />
+        ))}
       {activeTab === UserSettingsTab.MobileAppVerification && (
         <MobileAppVerification userPk={id} phone={storeUser.unverified_phone_number || '+'} />
       )}
@@ -134,4 +143,4 @@ export const TabsContent = (props: TabsContentProps) => {
       {activeTab === UserSettingsTab.TelegramInfo && <TelegramInfo />}
     </TabContent>
   );
-};
+});

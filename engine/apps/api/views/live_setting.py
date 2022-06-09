@@ -32,7 +32,11 @@ class LiveSettingViewSet(PublicPrimaryKeyMixin, viewsets.ModelViewSet):
 
     def get_queryset(self):
         LiveSetting.populate_settings_if_needed()
-        return LiveSetting.objects.filter(name__in=LiveSetting.AVAILABLE_NAMES).order_by("name")
+        queryset = LiveSetting.objects.filter(name__in=LiveSetting.AVAILABLE_NAMES).order_by("name")
+        search = self.request.query_params.get("search", None)
+        if search:
+            queryset = queryset.filter(name=search)
+        return queryset
 
     def perform_update(self, serializer):
         new_value = serializer.validated_data["value"]
@@ -65,6 +69,17 @@ class LiveSettingViewSet(PublicPrimaryKeyMixin, viewsets.ModelViewSet):
                     sti = organization.slack_team_identity
                     if sti is not None:
                         unpopulate_slack_user_identities.apply_async((sti.pk, True), countdown=0)
+
+        if instance.name == "GRAFANA_CLOUD_ONCALL_TOKEN":
+            from apps.oss_installation.models import CloudConnector
+
+            try:
+                old_token = live_settings.GRAFANA_CLOUD_ONCALL_TOKEN
+            except ImproperlyConfigured:
+                old_token = None
+
+            if old_token != new_value:
+                CloudConnector.remove_sync()
 
     def _reset_telegram_integration(self, new_token):
         # tell Telegram to cancel sending events from old bot
