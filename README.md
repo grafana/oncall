@@ -1,5 +1,12 @@
 <img width="400px" src="docs/img/logo.png">
 
+[![Latest Release](https://img.shields.io/github/v/release/grafana/oncall?display_name=tag&sort=semver)](https://github.com/grafana/oncall/releases)
+[![License](https://img.shields.io/github/license/grafana/oncall)](https://github.com/grafana/oncall/blob/dev/LICENSE)
+[![Docker Pulls](https://img.shields.io/docker/pulls/grafana/oncall)](https://hub.docker.com/r/grafana/oncall/tags)
+[![Slack](https://img.shields.io/badge/join%20slack-%23grafana-%2Doncall-brightgreen.svg)](https://grafana.slack.com/archives/C02LSUUSE2G)
+[![Discussion](https://img.shields.io/badge/discuss-oncall%20forum-orange.svg)](https://github.com/grafana/oncall/discussions)
+[![Build Status](https://drone.grafana.net/api/badges/grafana/oncall/status.svg?ref=refs/heads/dev)](https://drone.grafana.net/grafana/oncall)
+
 Developer-friendly, incident response management with brilliant Slack integration.
 
 <img width="60%" src="screenshot.png">
