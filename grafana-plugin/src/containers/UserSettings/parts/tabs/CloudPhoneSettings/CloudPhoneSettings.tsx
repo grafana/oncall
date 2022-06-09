@@ -15,7 +15,6 @@ import {
 } from '@grafana/ui';
 import cn from 'classnames/bind';
 import { observer } from 'mobx-react';
-import { useSearchParams } from 'react-router-dom';
 
 import Block from 'components/GBlock/Block';
 import GTable from 'components/GTable/GTable';
