@@ -9,25 +9,22 @@ Developer-friendly, incident response management with brilliant Slack integratio
 - Automatic escalations
 - Phone calls, SMS, Slack, Telegram notifications
 
+## Join our community
+
 <a href="https://github.com/grafana/oncall/discussions/categories/community-calls"><img width="200px" src="docs/img/community_call.png"></a>
 <a href="https://github.com/grafana/oncall/discussions"><img width="200px" src="docs/img/GH_discussions.png"></a>
 <a href="https://slack.grafana.com/"><img width="200px" src="docs/img/slack.png"></a>
 
 ## Getting Started
 
-### Environments:
+We prepared multiple environments: [production](PRODUCTION.md), [developer](DEVELOPER.md) and hobby:
 
-Production: [PRODUCTION.md](PRODUCTION.md).
-Developer: [DEVELOPER.md](DEVELOPER.md).
-
-### Hobby environment
-
-Download docker-compose.yaml:
+1. Download docker-compose.yaml:
 ```bash
 curl https://github.com/... -o docker-compose.yaml
 ```
 
-Set environment:
+2. Set variables:
 ```bash
 export DOMAIN=http://localhost
 export SECRET_KEY=my_random_secret_must_be_more_than_32_characters_long
@@ -38,12 +35,12 @@ export GRAFANA_USER=admin
 export GRAFANA_PASSWORD=admin
 ```
 
-Launch services:
+3. Launch services:
 ```bash
 docker-compose -f docker-compose.yml up --build -d
 ```
 
-Issue invite token and get further instructions:
+4. Issue invite token and get further instructions:
 ```bash
 docker-compose -f docker-compose.yml run engine python manage.py issue_invite_for_the_frontend --override
 ```
