@@ -11,6 +11,7 @@ from twilio.base.exceptions import TwilioRestException
 from apps.alerts.constants import ActionSource
 from apps.alerts.incident_appearance.renderers.phone_call_renderer import AlertGroupPhoneCallRenderer
 from apps.alerts.signals import user_notification_action_triggered_signal
+from apps.base.utils import live_settings
 from apps.twilioapp.constants import TwilioCallStatuses
 from apps.twilioapp.twilio_client import twilio_client
 from common.utils import clean_markup, escape_for_twilio_phone_call
@@ -158,7 +159,7 @@ class PhoneCall(models.Model):
     @classmethod
     def _make_cloud_call(cls, user, message_body):
         url = urljoin(settings.GRAFANA_CLOUD_ONCALL_API_URL, "api/v1/make_call")
-        auth = {"Authorization": settings.GRAFANA_CLOUD_ONCALL_TOKEN}
+        auth = {"Authorization": live_settings.GRAFANA_CLOUD_ONCALL_TOKEN}
         data = {
             "email": user.email,
             "message": message_body,

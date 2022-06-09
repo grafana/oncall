@@ -1,3 +1,5 @@
+import logging
+
 from rest_framework import serializers, status
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
@@ -7,6 +9,8 @@ from twilio.base.exceptions import TwilioRestException
 from apps.auth_token.auth import ApiTokenAuthentication
 from apps.public_api.throttlers.phone_notification_throttler import PhoneNotificationThrottler
 from apps.twilioapp.models import PhoneCall, SMSMessage
+
+logger = logging.getLogger(__name__)
 
 
 class PhoneNotificationDataSerializer(serializers.Serializer):
@@ -59,6 +63,7 @@ class SendSMSView(APIView):
 
         response_data = {}
         organization = self.request.auth.organization
+        logger.info(f"Sending cloud sms. Email {serializer.validated_data['email']}")
         user = organization.users.filter(
             email=serializer.validated_data["email"], _verified_phone_number__isnull=False
         ).first()
