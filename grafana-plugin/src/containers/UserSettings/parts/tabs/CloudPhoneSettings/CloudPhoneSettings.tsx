@@ -15,13 +15,14 @@ import {
 } from '@grafana/ui';
 import cn from 'classnames/bind';
 import { observer } from 'mobx-react';
+import { useSearchParams } from 'react-router-dom';
 
 import Block from 'components/GBlock/Block';
 import GTable from 'components/GTable/GTable';
 import PluginLink from 'components/PluginLink/PluginLink';
 import Text from 'components/Text/Text';
 import WithConfirm from 'components/WithConfirm/WithConfirm';
-import { User as UserType } from 'models/user/user.types';
+import { User } from 'models/user/user.types';
 import { AppFeature } from 'state/features';
 import { WithStoreProps } from 'state/types';
 import { useStore } from 'state/useStore';
@@ -32,9 +33,12 @@ import styles from './CloudPhoneSettings.module.css';
 
 const cx = cn.bind(styles);
 
-interface CloudPhoneSettingsProps extends WithStoreProps {}
+interface CloudPhoneSettingsProps extends WithStoreProps {
+  userPk?: User['pk'];
+}
 
 const CloudPhoneSettings = observer((props: CloudPhoneSettingsProps) => {
+  const { userPk } = props;
   const store = useStore();
   const [syncing, setSyncing] = useState<boolean>(false);
   const [userStatus, setUserStatus] = useState<number>(0);
@@ -50,12 +54,12 @@ const CloudPhoneSettings = observer((props: CloudPhoneSettingsProps) => {
 
   const syncUser = async () => {
     setSyncing(true);
-    await store.cloudStore.syncCloudUser(store.userStore.currentUserPk);
+    await store.cloudStore.syncCloudUser(userPk);
     setSyncing(false);
   };
 
   const getCloudUserInfo = async () => {
-    const cloudUser = await store.cloudStore.getCloudUser(store.userStore.currentUserPk);
+    const cloudUser = await store.cloudStore.getCloudUser(userPk);
     setUserStatus(cloudUser?.cloud_data?.status);
     setUserLink(cloudUser?.cloud_data?.link);
   };
