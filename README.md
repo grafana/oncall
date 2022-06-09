@@ -1,4 +1,4 @@
-# Grafana OnCall
+<img width="200px" src="docs/img/logo.png">
 
 Developer-friendly, incident response management with brilliant Slack integration.
 
