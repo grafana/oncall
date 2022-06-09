@@ -6,3 +6,4 @@ frontend/build
 package-lock.json
 ./engine/extensions
 .env
+.env-hobby

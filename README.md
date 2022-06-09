@@ -20,23 +20,23 @@ curl https://github.com/grafana/oncall/blob/dev/docker-compose.yml -o docker-com
 
 2. Set variables:
 ```bash
-export DOMAIN=http://localhost
-export SECRET_KEY=my_random_secret_must_be_more_than_32_characters_long
-export RABBITMQ_PASSWORD=rabbitmq_secret_pw
-export MYSQL_PASSWORD=mysql_secret_pw
-export COMPOSE_PROFILES=with_grafana  # Comment this line if you want to use existing grafana
-export GRAFANA_USER=admin
-export GRAFANA_PASSWORD=admin
+echo "DOMAIN=http://localhost
+SECRET_KEY=my_random_secret_must_be_more_than_32_characters_long
+RABBITMQ_PASSWORD=rabbitmq_secret_pw
+MYSQL_PASSWORD=mysql_secret_pw
+COMPOSE_PROFILES=with_grafana  # Remove this line if you want to use existing grafana
+GRAFANA_USER=admin
+GRAFANA_PASSWORD=admin" > .env_hobby
 ```
 
 3. Launch services:
 ```bash
-docker-compose -f docker-compose.yml up --build -d
+docker-compose --env-file .env_hobby -f docker-compose.yml up --build -d
 ```
 
 4. Issue one-time invite token:
 ```bash
-docker-compose -f docker-compose.yml run engine python manage.py issue_invite_for_the_frontend --override
+docker-compose --env-file .env_hobby -f docker-compose.yml run engine python manage.py issue_invite_for_the_frontend --override
 ```
 
 5. Go to [OnCall Plugin Configuration](http://localhost:3000/plugins/grafana-oncall-app) (or find OnCall plugin in configuration->plugins) and connect OnCall _plugin_ with OnCall _backend_:
