@@ -48,7 +48,7 @@ services:
         condition: service_healthy
 
   grafana:
-    image: "grafana/grafana:8.3.2"
+    image: "grafana/grafana:8.5.5"
     restart: always
     mem_limit: 500m
     cpus: 0.5
