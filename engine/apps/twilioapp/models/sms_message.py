@@ -134,8 +134,9 @@ class SMSMessage(models.Model):
         except requests.exceptions.RequestException as e:
             logger.warning(f"Unable to send SMS through cloud. Request exception {str(e)}")
             raise SMSMessage.CloudSendError("Unable to send SMS through cloud: request failed")
-
-        if response.status_code == status.HTTP_400_BAD_REQUEST and response.json().get("error") == "limit-exceeded":
+        if response.status_code == status.HTTP_200_OK:
+            logger.info("Sent cloud sms successfully")
+        elif response.status_code == status.HTTP_400_BAD_REQUEST and response.json().get("error") == "limit-exceeded":
             raise SMSMessage.SMSLimitExceeded("Organization sms limit exceeded")
         elif response.status_code == status.HTTP_404_NOT_FOUND:
             raise SMSMessage.CloudSendError("Unable to send SMS through cloud: user not found")

@@ -169,7 +169,8 @@ class PhoneCall(models.Model):
         except requests.exceptions.RequestException as e:
             logger.warning(f"Unable to make call through cloud. Request exception {str(e)}")
             raise PhoneCall.CloudSendError("Unable to make call through cloud: request failed")
-
+        if response.status_code == status.HTTP_200_OK:
+            logger.info("Make cloud call successfully")
         if response.status_code == status.HTTP_400_BAD_REQUEST and response.json().get("error") == "limit-exceeded":
             raise PhoneCall.PhoneCallsLimitExceeded("Organization calls limit exceeded")
         elif response.status_code == status.HTTP_404_NOT_FOUND:

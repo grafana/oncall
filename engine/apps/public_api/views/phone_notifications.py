@@ -32,6 +32,7 @@ class MakeCallView(APIView):
 
         response_data = {}
         organization = self.request.auth.organization
+        logger.info(f"Making cloud call. Email {serializer.validated_data['email']}")
         user = organization.users.filter(
             email=serializer.validated_data["email"], _verified_phone_number__isnull=False
         ).first()
@@ -41,9 +42,11 @@ class MakeCallView(APIView):
 
         try:
             PhoneCall.make_grafana_cloud_call(user, serializer.validated_data["message"])
-        except TwilioRestException:
+        except TwilioRestException as e:
+            logger.info(f"Making cloud call. Twilio exception {str(e)}")
             return Response(status=status.HTTP_503_SERVICE_UNAVAILABLE, data=response_data)
         except PhoneCall.PhoneCallsLimitExceeded:
+            logger.info(f"Making cloud call. PhoneCallsLimitExceeded")
             return Response(status=status.HTTP_400_BAD_REQUEST, data={"error": "limit-exceeded"})
 
         return Response(status=status.HTTP_200_OK, data=response_data)
@@ -73,9 +76,11 @@ class SendSMSView(APIView):
 
         try:
             SMSMessage.send_grafana_cloud_sms(user, serializer.validated_data["message"])
-        except TwilioRestException:
+        except TwilioRestException as e:
+            logger.info(f"Sending cloud sms. Twilio exception {str(e)}")
             return Response(status=status.HTTP_503_SERVICE_UNAVAILABLE, data=response_data)
         except SMSMessage.SMSLimitExceeded:
+            logger.info(f"Sending cloud sms. PhoneCallsLimitExceeded")
             return Response(status=status.HTTP_400_BAD_REQUEST, data={"error": "limit-exceeded"})
 
         return Response(status=status.HTTP_200_OK, data=response_data)
