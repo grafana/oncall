@@ -2,7 +2,7 @@
 
 Developer-friendly, incident response management with brilliant Slack integration.
 
-<img width="80%" src="screenshot.png">
+<img width="60%" src="screenshot.png">
 
 - Collect and analyze alerts from multiple monitoring systems
 - On-call rotations based on schedules
