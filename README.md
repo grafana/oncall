@@ -24,7 +24,7 @@ export DOMAIN=http://localhost
 export SECRET_KEY=my_random_secret_must_be_more_than_32_characters_long
 export RABBITMQ_PASSWORD=rabbitmq_secret_pw
 export MYSQL_PASSWORD=mysql_secret_pw
-export COMPOSE_PROFILES=with_grafana
+export COMPOSE_PROFILES=with_grafana  # Comment this line if you want to use existing grafana
 export GRAFANA_USER=admin
 export GRAFANA_PASSWORD=admin
 ```
@@ -39,7 +39,7 @@ docker-compose -f docker-compose.yml up --build -d
 docker-compose -f docker-compose.yml run engine python manage.py issue_invite_for_the_frontend --override
 ```
 
-5. Go to http://localhost:3000/plugins/grafana-oncall-app and connect _OnCall plugin_ with _OnCall backend_:
+5. Go to [OnCall Plugin Configuration](http://localhost:3000/plugins/grafana-oncall-app) (or find OnCall plugin in configuration->plugins) and connect OnCall _plugin_ with OnCall _backend_:
 ```
 Invite token: ^^^ from the previous step.
 OnCall backend URL: http://engine:8080
