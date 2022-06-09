@@ -189,7 +189,9 @@ export const PluginConfigPage = (props: Props) => {
 
           if (counter >= 5) {
             clearInterval(interval);
-            setPluginStatusMessage(`OnCall took too many tries to synchronize.`);
+            setPluginStatusMessage(
+              `OnCall took too many tries to synchronize. Did you launch Celery workers? Background workers should perform synchronization, not web server.`
+            );
             setRetrySync(true);
             setPluginStatusOk(false);
             setPluginConfigLoading(false);
@@ -212,14 +214,14 @@ export const PluginConfigPage = (props: Props) => {
           <Legend>Configure Grafana OnCall</Legend>
           {pluginStatusOk && (
             <p>
-              Configuration was sucessfully created. Now you can find Grafana OnCall on right toolbar.{' '}
+              Plugin and the backend are connected! Check Grafana OnCall 👈👈👈{' '}
               <img alt="Grafana OnCall Logo" src={logo} width={18} />
             </p>
           )}
 
           {isSelfHostedInstall ? (
             <div>
-              <p>{'Plugin <-> backend connection status'}</p>
+              <p>{'Plugin <-> backend connection status:'}</p>
               <pre>
                 <Text type="link">{pluginStatusMessage}</Text>
               </pre>
@@ -242,12 +244,28 @@ export const PluginConfigPage = (props: Props) => {
         <React.Fragment>
           <Legend>Configure Grafana OnCall</Legend>
           <p>This page will help you to connect OnCall backend and OnCall Grafana plugin 👋</p>
-          <p>1. Grafana OnCall is a Grafana plugin and backend. Run backend</p>
+          <p>
+            <Text type="secondary">
+              - Talk to the OnCall team in the #grafana-oncall channel at{' '}
+              <a href="https://slack.grafana.com/">
+                <Text type="link">Slack</Text>
+              </a>
+              <br />- Ask questions at{' '}
+              <a href="https://github.com/grafana/oncall/discussions/categories/q-a">
+                <Text type="link">GitHub Discussions</Text>
+              </a>{' '}
+              or file bugs at{' '}
+              <a href="https://github.com/grafana/oncall/issues">
+                <Text type="link">GitHub Issues</Text>
+              </a>
+            </Text>
+          </p>
+          <p>1. Launch backend</p>
           <VerticalGroup>
             <Text type="secondary">
               Run production backend using{' '}
-              <a href="http://oncall-stub.com">
-                <Text type="link">this instructions at our GitHub </Text>
+              <a href="https://github.com/grafana/oncall#production-setup">
+                <Text type="link">this instructions at our GitHub</Text>
               </a>
               ,
             </Text>
@@ -267,30 +285,9 @@ export const PluginConfigPage = (props: Props) => {
               </Text>
             </pre>
           </VerticalGroup>
-          <Alert
-            severity="info"
-            /* @ts-ignore */
-            title={
-              <>
-                <Text type="secondary">
-                  Need help?
-                  <br />
-                  1. Talk to the developers in the #grafana-oncall channel at{' '}
-                  <a href="http://oncall-stub.com">
-                    <Text type="link">Slack</Text>
-                  </a>
-                  <br />
-                  2. Search for issues or create a new one in the{' '}
-                  <a href="http://oncall-stub.com">
-                    <Text type="link">GitHub</Text>
-                  </a>
-                </Text>
-              </>
-            }
-          />
 
           <p>2. Conect the backend and the plugin </p>
-          <p>{'Plugin <-> backend connection status'}</p>
+          <p>{'Plugin <-> backend connection status:'}</p>
           <pre>
             <Text type="link">{pluginStatusMessage}</Text>
           </pre>
@@ -301,7 +298,7 @@ Seek for such a line:  “Your invite token: <<LONG TOKEN>> , use it in the Graf
           >
             <>
               <Input id="onCallInvitationToken" onChange={handleInvitationTokenChange} />
-              <a href="http://oncall-stub.com">
+              <a href="https://github.com/grafana/oncall/blob/dev/DEVELOPER.md#frontend-setup">
                 <Text size="small" type="link">
                   How to re-issue the invite token?
                 </Text>
@@ -311,7 +308,7 @@ Seek for such a line:  “Your invite token: <<LONG TOKEN>> , use it in the Graf
 
           <Field
             label="OnCall backend URL"
-            description="It should be rechable from Grafana. Possible options:
+            description="It should be reachable from Grafana. Possible options:
 http://host.docker.internal:8000 (if you run backend in the docker locally)
 http://localhost:8000
 ..."

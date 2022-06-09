@@ -48,7 +48,7 @@ const RootWithLoader = observer((props: AppRootProps) => {
     } else if (store.isUserAnonymous) {
       text = '😞 Unfortunately Grafana OnCall is available for authorized users only, please sign in to proceed.';
     } else if (store.retrySync) {
-      text = `🚫 OnCall took too many tries to synchronize`;
+      text = `🚫 OnCall took too many tries to synchronize... Are background workers up and running?`;
     }
 
     return (
