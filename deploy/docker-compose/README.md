@@ -1,5 +1,5 @@
 Download docker-compose.yaml
-```angular2html
+```bash
 curl https://github.com/... -o docker-compose.yaml
 ```
 
