@@ -1,6 +1,9 @@
 # Grafana OnCall
 
 Developer-friendly, incident response management with brilliant Slack integration.
+
+<img width="50%" src="screenshot.png">
+
 - Collect and analyze alerts from multiple monitoring systems
 - On-call rotations based on schedules
 - Automatic escalations
@@ -9,8 +12,6 @@ Developer-friendly, incident response management with brilliant Slack integratio
 <a href="https://github.com/grafana/oncall/discussions/categories/community-calls"><img width="200px" src="docs/img/community_call.png"></a>
 <a href="https://github.com/grafana/oncall/discussions"><img width="200px" src="docs/img/GH_discussions.png"></a>
 <a href="https://slack.grafana.com/"><img width="200px" src="docs/img/slack.png"></a>
-
-![Grafana OnCall Screenshot](screenshot.png)
 
 ## Getting Started
 
