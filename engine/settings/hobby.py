@@ -1,10 +1,11 @@
 import sys
 from random import randrange
 
-from .prod_without_db import *  # noqa
-
 # Workaround to use pymysql instead of mysqlclient
 import pymysql
+
+from .prod_without_db import *  # noqa
+
 pymysql.install_as_MySQLdb()
 
 DATABASES = {
@@ -22,10 +23,10 @@ DATABASES = {
     },
 }
 
-RABBITMQ_USERNAME=os.environ.get("RABBITMQ_USERNAME")
-RABBITMQ_PASSWORD=os.environ.get("RABBITMQ_PASSWORD")
-RABBITMQ_HOST=os.environ.get("RABBITMQ_HOST")
-RABBITMQ_PORT=os.environ.get("RABBITMQ_PORT")
+RABBITMQ_USERNAME = os.environ.get("RABBITMQ_USERNAME")
+RABBITMQ_PASSWORD = os.environ.get("RABBITMQ_PASSWORD")
+RABBITMQ_HOST = os.environ.get("RABBITMQ_HOST")
+RABBITMQ_PORT = os.environ.get("RABBITMQ_PORT")
 
 CELERY_BROKER_URL = f"amqp://{RABBITMQ_USERNAME}:{RABBITMQ_PASSWORD}@{RABBITMQ_HOST}:{RABBITMQ_PORT}"
 

@@ -15,9 +15,10 @@ Developer-friendly, incident response management with brilliant Slack integratio
 
 ## Getting Started
 
-### Production environment
+### Environments:
 
-For production setup check [PRODUCTION.md](PRODUCTION.md).
+Production: [PRODUCTION.md](PRODUCTION.md).
+Developer: [DEVELOPER.md](DEVELOPER.md).
 
 ### Hobby environment
 
