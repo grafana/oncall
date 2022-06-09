@@ -28,7 +28,7 @@
 
 1. Start stateful services (RabbitMQ, Redis, Grafana with mounted plugin folder)
 ```bash
-docker-compose -f developer-docker-compose.yml up -d
+docker-compose -f docker-compose-developer.yml up -d
 ```
 
 2. Prepare a python environment:
@@ -119,7 +119,7 @@ host IP from inside the container by running:
 ```bash
 /sbin/ip route|awk '/default/ { print $3 }'
 
-# Alternatively add host.docker.internal as an extra_host for grafana in developer-docker-compose.yml
+# Alternatively add host.docker.internal as an extra_host for grafana in docker-compose-developer.yml
 extra_hosts:
   - "host.docker.internal:host-gateway"
 
