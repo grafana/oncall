@@ -3,6 +3,8 @@ services:
     # TODO: change to the public image once it's public
     #    image: ...
     build: ../../engine
+    ports:
+      - 8080:8080
     command: >
       sh -c "uwsgi --ini uwsgi.ini"
     environment:
@@ -49,7 +51,7 @@ services:
       MYSQL_PORT: 3306
       REDIS_URI: redis://redis:6379/0
       DJANGO_SETTINGS_MODULE: settings.hobby
-      CELERY_WORKER_QUEUE: "default,critical,long,slack,telegram,webhook"
+      CELERY_WORKER_QUEUE: "celery"
       CELERY_WORKER_CONCURRENCY: "1"
       CELERY_WORKER_MAX_TASKS_PER_CHILD: "100"
       CELERY_WORKER_SHUTDOWN_INTERVAL: "65m"
@@ -138,6 +140,8 @@ services:
   grafana:
     image: "grafana/grafana:8.3.2"
     mem_limit: 500m
+    ports:
+      - 3000:3000
     cpus: 0.5
     environment:
       GF_DATABASE_TYPE: mysql
@@ -148,8 +152,6 @@ services:
       GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_PASSWORD:?err}
       GF_PLUGINS_ALLOW_LOADING_UNSIGNED_PLUGINS: grafana-oncall-app
       GF_INSTALL_PLUGINS: grafana-oncall-app
-      GF_SERVER_ROOT_URL: http://$DOMAIN/grafana/
-      GF_SERVER_SERVE_FROM_SUB_PATH: "true"
     volumes:
       - ../../grafana-plugin:/var/lib/grafana/plugins/grafana-plugin
     depends_on:
@@ -159,28 +161,6 @@ services:
         condition: service_healthy
     profiles:
       - with_grafana
-
-  caddy:
-    image: caddy
-    volumes:
-      - caddy_data:/data
-      - caddy_config:/config
-    ports:
-      - 80:80
-      - 443:443
-    command:
-      - sh
-      - '-c'
-      - |
-        cat  <<EOF > /etc/caddy/Caddyfile
-        {\$$CADDY_DOMAIN} {
-        reverse_proxy /grafana/* grafana:3000
-        reverse_proxy /* engine:8080
-        }
-        EOF
-        caddy run --config=/etc/caddy/Caddyfile
-    environment:
-      CADDY_DOMAIN: $DOMAIN
 
 volumes:
   dbdata:
