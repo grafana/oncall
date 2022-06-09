@@ -9,12 +9,6 @@ Developer-friendly, incident response management with brilliant Slack integratio
 - Automatic escalations
 - Phone calls, SMS, Slack, Telegram notifications
 
-## Join our community
-
-<a href="https://github.com/grafana/oncall/discussions/categories/community-calls"><img width="200px" src="docs/img/community_call.png"></a>
-<a href="https://github.com/grafana/oncall/discussions"><img width="200px" src="docs/img/GH_discussions.png"></a>
-<a href="https://slack.grafana.com/"><img width="200px" src="docs/img/slack.png"></a>
-
 ## Getting Started
 
 We prepared multiple environments: [production](PRODUCTION.md), [developer](DEVELOPER.md) and hobby:
@@ -44,6 +38,12 @@ docker-compose -f docker-compose.yml up --build -d
 ```bash
 docker-compose -f docker-compose.yml run engine python manage.py issue_invite_for_the_frontend --override
 ```
+
+## Join community
+
+<a href="https://github.com/grafana/oncall/discussions/categories/community-calls"><img width="200px" src="docs/img/community_call.png"></a>
+<a href="https://github.com/grafana/oncall/discussions"><img width="200px" src="docs/img/GH_discussions.png"></a>
+<a href="https://slack.grafana.com/"><img width="200px" src="docs/img/slack.png"></a>
 
 ## Further Reading
 - *Documentation* - [Grafana OnCall](https://grafana.com/docs/grafana-cloud/oncall/)
