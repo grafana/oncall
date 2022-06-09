@@ -249,22 +249,7 @@ export const PluginConfigPage = (props: Props) => {
         <React.Fragment>
           <Legend>Configure Grafana OnCall</Legend>
           <p>This page will help you to connect OnCall backend and OnCall Grafana plugin 👋</p>
-          <p>
-            <Text type="secondary">
-              - Talk to the OnCall team in the #grafana-oncall channel at{' '}
-              <a href="https://slack.grafana.com/">
-                <Text type="link">Slack</Text>
-              </a>
-              <br />- Ask questions at{' '}
-              <a href="https://github.com/grafana/oncall/discussions/categories/q-a">
-                <Text type="link">GitHub Discussions</Text>
-              </a>{' '}
-              or file bugs at{' '}
-              <a href="https://github.com/grafana/oncall/issues">
-                <Text type="link">GitHub Issues</Text>
-              </a>
-            </Text>
-          </p>
+
           <p>1. Launch backend</p>
           <VerticalGroup>
             <Text type="secondary">
