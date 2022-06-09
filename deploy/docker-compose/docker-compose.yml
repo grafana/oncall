@@ -22,6 +22,7 @@ services:
       MYSQL_PORT: 3306
       REDIS_URI: redis://redis:6379/0
       DJANGO_SETTINGS_MODULE: settings.hobby
+      OSS: "True"
     depends_on:
       mysql:
         condition: service_healthy
@@ -51,7 +52,8 @@ services:
       MYSQL_PORT: 3306
       REDIS_URI: redis://redis:6379/0
       DJANGO_SETTINGS_MODULE: settings.hobby
-      CELERY_WORKER_QUEUE: "celery"
+      OSS: "True"
+      CELERY_WORKER_QUEUE: "default,critical,long,slack,telegram,webhook,retry,celery"
       CELERY_WORKER_CONCURRENCY: "1"
       CELERY_WORKER_MAX_TASKS_PER_CHILD: "100"
       CELERY_WORKER_SHUTDOWN_INTERVAL: "65m"
@@ -84,6 +86,7 @@ services:
       MYSQL_PORT: 3306
       REDIS_URI: redis://redis:6379/0
       DJANGO_SETTINGS_MODULE: settings.hobby
+      OSS: "True"
     depends_on:
       mysql:
         condition: service_healthy
