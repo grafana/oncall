@@ -260,8 +260,7 @@ lt --port 8000 -s pretty-turkey-83 --print-requests
    or set BASE_URL Env variable through web interface.
 
 8. Edit grafana-plugin/src/plugin.json to add `Bypass-Tunnel-Reminder` header section for all existing routes 
-    > this headers required for the local development only, otherwise localtunnel blocks requests from grafana plugin
-    > An alternative to this is you can modify your user-agent in your browser to bypass the tunnel warning, it only filters the common browsers.
+    > this headers required for the local development only, otherwise localtunnel blocks requests from grafana plugin, An alternative to this is you can modify your user-agent in your browser to bypass the tunnel warning, it only filters the common browsers.
  
     ```
         {
