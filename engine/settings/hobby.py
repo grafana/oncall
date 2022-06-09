@@ -1,4 +1,5 @@
-import sys
+# flake8: noqa: F405
+
 from random import randrange
 
 # Workaround to use pymysql instead of mysqlclient
