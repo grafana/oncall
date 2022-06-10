@@ -103,7 +103,7 @@ class LiveSetting(models.Model):
         "SEND_ANONYMOUS_USAGE_STATS": (
             "Grafana OnCall will send anonymous, but uniquely-identifiable usage analytics to Grafana Labs."
             " These statistics are sent to https://stats.grafana.org/.  For more information on what's sent, look at"
-            "https://github.com/..."  # TODO: add url to usage stats code
+            " https://github.com/grafana/oncall/blob/dev/engine/apps/oss_installation/usage_stats.py#L29"
         ),
         "GRAFANA_CLOUD_ONCALL_TOKEN": "Secret token for Grafana Cloud OnCall instance.",
         "GRAFANA_CLOUD_ONCALL_HEARTBEAT_ENABLED": "Enable hearbeat integration with Grafana Cloud OnCall.",

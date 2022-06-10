@@ -29,7 +29,9 @@ class UsageStatsService:
     def get_usage_stats_report(self):
         metrics = {}
         metrics["active_users_count"] = active_oss_users_count()
-        total_alert_groups = AlertGroupCounter.objects.aggregate(Sum("value")).get("value__sum", 0)
+        total_alert_groups = AlertGroupCounter.objects.aggregate(Sum("value")).get("value__sum", None)
+        if total_alert_groups is None:
+            total_alert_groups = 0
         metrics["alert_groups_count"] = total_alert_groups
 
         usage_stats_id = OssInstallation.objects.get_or_create()[0].installation_id
