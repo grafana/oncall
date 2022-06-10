@@ -143,7 +143,7 @@ services:
       - with_grafana
 
   grafana:
-    image: "grafana/grafana:8.3.2"
+    image: "grafana/grafana:9.0.0-beta3"
     mem_limit: 500m
     ports:
       - 3000:3000

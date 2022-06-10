@@ -299,7 +299,7 @@ http://localhost:8000
           >
             <Input id="onCallApiUrl" onChange={handleApiUrlChange} defaultValue={onCallApiUrl} />
           </Field>
-          <Field label="Grafana Url" description="URL of the current Grafana instance. ">
+          <Field label="Grafana URL" description="URL of the current Grafana instance. ">
             <Input id="grafanaUrl" onChange={handleGrafanaUrlChange} defaultValue={grafanaUrl} />
           </Field>
           {/* <WithConfirm title="Admin API key for OnCall will be created in Grafana. Continue?" confirmText="Continue"> */}
