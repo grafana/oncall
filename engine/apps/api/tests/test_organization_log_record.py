@@ -141,7 +141,6 @@ def test_get_filter_created_at_invalid_format(
     assert response.status_code == status.HTTP_400_BAD_REQUEST
 
 
-@pytest.mark.skip(reason="SQLITE Incompatibility")
 @pytest.mark.django_db
 def test_get_filter_by_labels(
     make_organization_and_user_with_plugin_token,

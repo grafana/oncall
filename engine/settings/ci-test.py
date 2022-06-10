@@ -1,3 +1,8 @@
+# flake8: noqa: F405
+
+# Workaround to use pymysql instead of mysqlclient
+import pymysql
+
 from .base import *  # noqa
 
 SECRET_KEY = "u5/IIbuiJR3Y9FQMBActk+btReZ5oOxu+l8MIJQWLfVzESoan5REE6UNSYYEQdjBOcty9CDak2X"
@@ -9,11 +14,18 @@ BASE_URL = "http://localhost"
 
 CELERY_BROKER_URL = "amqp://rabbitmq:rabbitmq@rabbit_test:5672"
 
+pymysql.install_as_MySQLdb()
+
 # Primary database must have the name "default"
 DATABASES = {
     "default": {
-        "ENGINE": "django.db.backends.sqlite3",
-        "NAME": os.path.join(BASE_DIR, "sqlite_data/db.sqlite3"),  # noqa
+        "ENGINE": "django.db.backends.mysql",
+        "NAME": "oncall_local_dev",
+        "USER": "root",
+        "PASSWORD": "local_dev_pwd",
+        "HOST": "mysql_test",
+        "PORT": "3306",
+        "OPTIONS": {"charset": "utf8mb4"},
     },
 }
 
