@@ -1,6 +1,9 @@
 import os
 import sys
 
+# Workaround to use pymysql instead of mysqlclient
+import pymysql
+
 from .base import *  # noqa
 
 SECRET_KEY = os.environ.get("SECRET_KEY", "osMsNM0PqlRHBlUvqmeJ7+ldU3IUETCrY9TrmiViaSmInBHolr1WUlS0OFS4AHrnnkp1vp9S9z1")
@@ -9,9 +12,6 @@ MIRAGE_SECRET_KEY = os.environ.get(
     "MIRAGE_SECRET_KEY", "sIrmyTvh+Go+h/2E46SnYGwgkKyH6IF6MXZb65I40HVCbj0+dD3JvpAqppEwFb7Vxnxlvtey+EL"
 )
 MIRAGE_CIPHER_IV = os.environ.get("MIRAGE_CIPHER_IV", "tZZa+60zTZO2NRcS")
-
-# Workaround to use pymysql instead of mysqlclient
-import pymysql
 
 pymysql.install_as_MySQLdb()
 
