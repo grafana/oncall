@@ -57,7 +57,20 @@ class CurrentUserView(APIView):
     permission_classes = (IsAuthenticated,)
 
     def get(self, request):
-        serializer = UserSerializer(request.user, context={"request": self.request})
+        context = {"request": self.request, "format": self.format_kwarg, "view": self}
+
+        if settings.OSS_INSTALLATION:
+            if live_settings.GRAFANA_CLOUD_NOTIFICATIONS_ENABLED:
+                from apps.oss_installation.models import CloudConnector, CloudUserIdentity
+
+                connector = CloudConnector.objects.first()
+                if connector is not None:
+                    cloud_identities = list(CloudUserIdentity.objects.filter(email__in=[request.user.email]))
+                    cloud_identities = {cloud_identity.email: cloud_identity for cloud_identity in cloud_identities}
+                    context["cloud_identities"] = cloud_identities
+                    context["connector"] = connector
+
+        serializer = UserSerializer(request.user, context=context)
         return Response(serializer.data)
 
     def put(self, request):
@@ -218,7 +231,7 @@ class UserView(
                     context["cloud_identities"] = cloud_identities
                     context["connector"] = connector
 
-        serializer = self.get_serializer(instance)
+        serializer = self.get_serializer(instance, context=context)
         return Response(serializer.data)
 
     def current(self, request):
