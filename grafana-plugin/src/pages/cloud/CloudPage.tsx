@@ -41,6 +41,7 @@ const CloudPage = observer((props: CloudPageProps) => {
   const [cloudApiKey, setCloudApiKey] = useState<string>('');
   const [apiKeyError, setApiKeyError] = useState<boolean>(false);
   const [cloudIsConnected, setCloudIsConnected] = useState<boolean>(undefined);
+  const [cloudNotificationsEnabled, setCloudNotificationsEnabled] = useState<boolean>(false);
   const [heartbitLink, setHeartbitLink] = useState<string>(null);
   const [heartbitStatus, setHeartbitStatus] = useState<boolean>(false);
   const [showConfirmationModal, setShowConfirmationModal] = useState<boolean>(false);
@@ -52,7 +53,8 @@ const CloudPage = observer((props: CloudPageProps) => {
       setCloudIsConnected(cloudStatus.cloud_connection_status);
       setHeartbitStatus(cloudStatus.cloud_heartbeat_enabled);
       setHeartbitLink(cloudStatus.cloud_heartbeat_link);
-      getApiKeyFromGlobalSettings();
+      setCloudNotificationsEnabled(cloudStatus.cloud_notifications_enabled);
+      // getApiKeyFromGlobalSettings();
     });
   }, [cloudIsConnected]);
 
@@ -77,12 +79,13 @@ const CloudPage = observer((props: CloudPageProps) => {
     store.cloudStore.disconnectToCloud();
   };
 
-  const getApiKeyFromGlobalSettings = async () => {
-    const globalSettingItem = await store.globalSettingStore.getGlobalSettingItemByName('GRAFANA_CLOUD_ONCALL_TOKEN');
-    if (cloudIsConnected === false) {
-      setCloudApiKey(globalSettingItem?.value);
-    }
-  };
+  // const getApiKeyFromGlobalSettings = async () => {
+  //   const globalSettingItem = await store.globalSettingStore.getGlobalSettingItemByName('GRAFANA_CLOUD_ONCALL_TOKEN');
+  //   if (cloudIsConnected === false) {
+  //     setCloudApiKey(globalSettingItem?.value);
+  //   }
+  // };
+
   const connectToCloud = async () => {
     setShowConfirmationModal(false);
     const globalSettingItem = await store.globalSettingStore.getGlobalSettingItemByName('GRAFANA_CLOUD_ONCALL_TOKEN');
@@ -108,7 +111,7 @@ const CloudPage = observer((props: CloudPageProps) => {
   };
 
   const handleLinkClick = (link: string) => {
-    getLocationSrv().update({ partial: false, path: link });
+    window.location.replace(link);
   };
 
   const renderButtons = (user: Cloud) => {
@@ -259,54 +262,65 @@ const CloudPage = observer((props: CloudPageProps) => {
         </VerticalGroup>
       </Block>
       <Block bordered withBackground className={cx('info-block')}>
-        <VerticalGroup>
-          <Text.Title level={4}>
-            <Icon name="bell" className={cx('block-icon')} size="lg" /> SMS and phone call notifications
-          </Text.Title>
+        {cloudNotificationsEnabled ? (
+          <VerticalGroup>
+            <Text.Title level={4}>
+              <Icon name="bell" className={cx('block-icon')} size="lg" /> SMS and phone call notifications
+            </Text.Title>
 
-          <div style={{ width: '100%' }}>
+            <div style={{ width: '100%' }}>
+              <Text type="secondary">
+                {
+                  'Ask your users to sign up in Grafana Cloud, verify phone number and feel free to set up SMS & phone call notificaitons in personal settings! Only users with Admin or Editor role will be synced.'
+                }
+              </Text>
+
+              <GTable
+                className={cx('user-table')}
+                rowClassName={cx('user-row')}
+                showHeader={false}
+                emptyText={results ? 'No variables found' : 'Loading...'}
+                title={() => (
+                  <div className={cx('table-title')}>
+                    <HorizontalGroup justify="space-between">
+                      <Text type="secondary">
+                        {count ? count : 0}
+                        {` users matched between OSS and Cloud OnCall`}
+                      </Text>
+                      {syncingUsers ? (
+                        <Button variant="primary" onClick={syncUsers} icon="sync" disabled>
+                          Syncing...
+                        </Button>
+                      ) : (
+                        <Button variant="primary" onClick={syncUsers} icon="sync">
+                          Sync users
+                        </Button>
+                      )}
+                    </HorizontalGroup>
+                  </div>
+                )}
+                rowKey="id"
+                // @ts-ignore
+                columns={columns}
+                data={results}
+                pagination={{
+                  page,
+                  total: Math.ceil((count || 0) / ITEMS_PER_PAGE),
+                  onChange: handleChangePage,
+                }}
+              />
+            </div>
+          </VerticalGroup>
+        ) : (
+          <VerticalGroup>
+            <Text.Title level={4}>
+              <Icon name="bell" className={cx('block-icon')} size="lg" /> SMS and phone call notifications
+            </Text.Title>
             <Text type="secondary">
-              {
-                'Ask your users to sign up in Grafana Cloud, verify phone number and feel free to set up SMS & phone call notificaitons in personal settings! Only users with Admin or Editor role will be synced.'
-              }
+              {'Please enable Grafana cloud notification to be able to see list of cloud users'}
             </Text>
-
-            <GTable
-              className={cx('user-table')}
-              rowClassName={cx('user-row')}
-              showHeader={false}
-              emptyText={results ? 'No variables found' : 'Loading...'}
-              title={() => (
-                <div className={cx('table-title')}>
-                  <HorizontalGroup justify="space-between">
-                    <Text type="secondary">
-                      {count ? count : 0}
-                      {` users matched between OSS and Cloud OnCall`}
-                    </Text>
-                    {syncingUsers ? (
-                      <Button variant="primary" onClick={syncUsers} icon="sync" disabled>
-                        Syncing...
-                      </Button>
-                    ) : (
-                      <Button variant="primary" onClick={syncUsers} icon="sync">
-                        Sync users
-                      </Button>
-                    )}
-                  </HorizontalGroup>
-                </div>
-              )}
-              rowKey="id"
-              // @ts-ignore
-              columns={columns}
-              data={results}
-              pagination={{
-                page,
-                total: Math.ceil((count || 0) / ITEMS_PER_PAGE),
-                onChange: handleChangePage,
-              }}
-            />
-          </div>
-        </VerticalGroup>
+          </VerticalGroup>
+        )}
       </Block>
     </VerticalGroup>
   );
@@ -324,7 +338,7 @@ const CloudPage = observer((props: CloudPageProps) => {
             style={{ width: '100%' }}
             invalid={apiKeyError}
           >
-            <Input id="cloudApiKey" onChange={handleChangeCloudApiKey} defaultValue={cloudApiKey} />
+            <Input id="cloudApiKey" onChange={handleChangeCloudApiKey} />
           </Field>
           <Button variant="primary" onClick={saveKeyAndConnect} disabled={!cloudApiKey} size="md">
             Save key and connect
@@ -334,9 +348,9 @@ const CloudPage = observer((props: CloudPageProps) => {
       <Block bordered withBackground className={cx('info-block')}>
         <VerticalGroup>
           <Text.Title level={4}>
-            <span className={cx('block-icon')}>
+            <span className={cx('heart-icon')}>
               <HeartIcon />
-            </span>{' '}
+            </span>
             Monitor cloud instance with heartbeat
           </Text.Title>
           <Text type="secondary">

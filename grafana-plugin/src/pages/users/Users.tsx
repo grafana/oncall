@@ -14,8 +14,10 @@ import Text from 'components/Text/Text';
 import UsersFilters from 'components/UsersFilters/UsersFilters';
 import UserSettings from 'containers/UserSettings/UserSettings';
 import { WithPermissionControl } from 'containers/WithPermissionControl/WithPermissionControl';
+import { CrossCircleIcon } from 'icons';
 import { getRole } from 'models/user/user.helpers';
 import { User, User as UserType, UserRole } from 'models/user/user.types';
+import { AppFeature } from 'state/features';
 import { WithStoreProps } from 'state/types';
 import { UserAction } from 'state/userAction';
 import { withMobXProviderContext } from 'state/withStore';
@@ -290,24 +292,59 @@ class Users extends React.Component<UsersProps, UsersState> {
   };
 
   renderNote = (user: UserType) => {
-    if (!user.verified_phone_number || !user.slack_user_identity) {
-      let texts = [];
-      if (!user.verified_phone_number) {
-        texts.push('Phone not verified');
-      }
-      if (!user.slack_user_identity) {
-        texts.push('Slack not verified');
-      }
-      if (!user.telegram_configuration) {
-        texts.push('Telegram not verified');
-      }
+    const { store } = this.props;
+    if (store.hasFeature(AppFeature.CloudNotifications)) {
+      switch (user.cloud_connection_status) {
+        case 0:
+          return (
+            <div className={cx('error-icon')}>
+              <CrossCircleIcon /> Cloud is not synced
+            </div>
+          );
 
-      return (
-        <div>
-          <Icon className={cx('warning-message-icon')} name="exclamation-triangle" />
-          {texts.join(', ')}
-        </div>
-      );
+        case 1:
+          return (
+            <div className={cx('error-icon')}>
+              <CrossCircleIcon /> User not matched with cloud
+            </div>
+          );
+
+        case 2:
+          return (
+            <>
+              <Icon className={cx('warning-message')} name="exclamation-triangle" />{' '}
+              <Text type="warning">Phone number is not verified in Grafana Cloud</Text>
+            </>
+          );
+        case 3:
+          return (
+            <>
+              <Icon className={cx('success-message')} name="check-circle" />{' '}
+              <Text type="success">Phone number verified</Text>
+            </>
+          );
+      }
+    } else {
+      if (!user.verified_phone_number || !user.slack_user_identity) {
+        let texts = [];
+
+        if (!user.verified_phone_number) {
+          texts.push('Phone not verified');
+        }
+        if (!user.slack_user_identity) {
+          texts.push('Slack not verified');
+        }
+        if (!user.telegram_configuration) {
+          texts.push('Telegram not verified');
+        }
+
+        return (
+          <div>
+            <Icon className={cx('warning-message-icon')} name="exclamation-triangle" />
+            {texts.join(', ')}
+          </div>
+        );
+      }
     }
 
     return 'All contacts verified';

@@ -45,7 +45,7 @@ const CloudPhoneSettings = observer((props: CloudPhoneSettingsProps) => {
   }, []);
 
   const handleLinkClick = (link: string) => {
-    getLocationSrv().update({ partial: false, path: link });
+    window.location.replace(link);
   };
 
   const syncUser = async () => {
