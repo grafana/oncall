@@ -60,7 +60,10 @@ def send_cloud_heartbeat():
             "Unable to send cloud heartbeat. Check values for GRAFANA_CLOUD_ONCALL_HEARTBEAT_ENABLED and GRAFANA_CLOUD_ONCALL_TOKEN."
         )
         return
-
+    connector = CloudConnector.objects.first()
+    if connector is None:
+        logger.info("Unable to send cloud heartbeat. Cloud is not connected")
+        return
     logger.info("Start send cloud heartbeat")
     try:
         cloud_heartbeat = CloudHeartbeat.objects.get()
