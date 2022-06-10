@@ -25,7 +25,6 @@ SENDGRID_SECRET_KEY = "dummy_sendgrid_secret_key"
 TWILIO_ACCOUNT_SID = "dummy_twilio_account_sid"
 TWILIO_AUTH_TOKEN = "dummy_twilio_auth_token"
 
-FEATURE_EXTRA_MESSAGING_BACKENDS_ENABLED = True
 EXTRA_MESSAGING_BACKENDS = ["apps.base.tests.messaging_backend.TestOnlyBackend"]
 OSS_INSTALLATION = True
 INSTALLED_APPS += ["apps.oss_installation"]  # noqa
