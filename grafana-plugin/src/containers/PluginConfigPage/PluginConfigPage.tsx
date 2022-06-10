@@ -35,23 +35,20 @@ const cx = cn.bind(styles);
 interface Props extends PluginConfigPageProps<AppPluginMeta<OnCallAppSettings>> {}
 
 export const PluginConfigPage = (props: Props) => {
+  const grafanaUrlDefault = getItem('grafanaUrl') || window.location.origin;
   const { plugin } = props;
   const [onCallApiUrl, setOnCallApiUrl] = useState<string>(getItem('onCallApiUrl'));
   const [onCallInvitationToken, setOnCallInvitationToken] = useState<string>();
-  const [grafanaUrl, setGrafanaUrl] = useState<string>(window.location.origin);
+  const [grafanaUrl, setGrafanaUrl] = useState<string>(grafanaUrlDefault);
   const [pluginConfigLoading, setPluginConfigLoading] = useState<boolean>(true);
   const [pluginStatusOk, setPluginStatusOk] = useState<boolean>();
   const [pluginStatusMessage, setPluginStatusMessage] = useState<string>();
   const [isSelfHostedInstall, setIsSelfHostedInstall] = useState<boolean>(true);
   const [retrySync, setRetrySync] = useState<boolean>(false);
-  const [showConfirmationModal, setShowConfirmationModal] = useState<boolean>(false);
 
-  const configurePlugin = () => {
-    setShowConfirmationModal(true);
-  };
   const setupPlugin = useCallback(async () => {
     setItem('onCallApiUrl', onCallApiUrl);
-    setShowConfirmationModal(false);
+    setItem('grafanaUrl', grafanaUrl);
     await getBackendSrv().post(`/api/plugins/grafana-oncall-app/settings`, {
       enabled: true,
       pinned: true,
@@ -258,21 +255,6 @@ export const PluginConfigPage = (props: Props) => {
                 <Text type="link">getting started.</Text>
               </a>
             </Text>
-
-            <Text type="secondary">Or run the local one:</Text>
-            <pre className={cx('command-line')}>
-              <Text type="link">
-                <CopyToClipboard
-                  text="docker build -t grafana/amixr-all-in-one -f Dockerfile.all-in-one ."
-                  onCopy={() => {
-                    openNotification('Grafana OnCall command copied');
-                  }}
-                >
-                  <Icon name="copy" />
-                </CopyToClipboard>{' '}
-                docker build -t grafana/amixr-all-in-one -f Dockerfile.all-in-one .
-              </Text>
-            </pre>
           </VerticalGroup>
           <Block withBackground className={cx('info-block')}>
             <Text type="secondary">
@@ -329,32 +311,14 @@ Seek for such a line:  “Your invite token: <<LONG TOKEN>> , use it in the Graf
           <Field label="Grafana Url" description="URL of the current Grafana instance. ">
             <Input id="grafanaUrl" onChange={handleGrafanaUrlChange} defaultValue={grafanaUrl} />
           </Field>
-          {/* <WithConfirm title="Admin API key for OnCall will be created in Grafana. Continue?" confirmText="Continue"> */}
           <Button
             variant="primary"
-            onClick={configurePlugin}
+            onClick={setupPlugin}
             disabled={!onCallApiUrl || !onCallInvitationToken || !grafanaUrl}
             size="md"
           >
             Connect
           </Button>
-          {/* </WithConfirm> */}
-          {showConfirmationModal && (
-            <Modal
-              isOpen
-              title="Admin API key for OnCall will be created in Grafana. Continue?"
-              onDismiss={() => setShowConfirmationModal(false)}
-            >
-              <HorizontalGroup>
-                <Button variant="primary" onClick={setupPlugin}>
-                  Continue
-                </Button>
-                <Button variant="secondary" onClick={() => setShowConfirmationModal(false)}>
-                  Cancel
-                </Button>
-              </HorizontalGroup>
-            </Modal>
-          )}
         </React.Fragment>
       )}
     </div>
