@@ -293,58 +293,50 @@ class Users extends React.Component<UsersProps, UsersState> {
 
   renderNote = (user: UserType) => {
     const { store } = this.props;
+    let phone_verified;
+    let phone_verified_message;
     if (store.hasFeature(AppFeature.CloudNotifications)) {
+      // If cloud notifications is enabled show message about its status, not local phone verification.
       switch (user.cloud_connection_status) {
         case 0:
-          return (
-            <div className={cx('error-icon')}>
-              <CrossCircleIcon /> Cloud is not synced
-            </div>
-          );
-
+          phone_verified = false;
+          phone_verified_message = 'Cloud is not synced';
+          break;
         case 1:
-          return (
-            <div className={cx('error-icon')}>
-              <CrossCircleIcon /> User not matched with cloud
-            </div>
-          );
-
+          phone_verified = false;
+          phone_verified_message = 'User not matched with cloud';
+          break;
         case 2:
-          return (
-            <>
-              <Icon className={cx('warning-message')} name="exclamation-triangle" />{' '}
-              <Text type="warning">Phone number is not verified in Grafana Cloud</Text>
-            </>
-          );
+          phone_verified = false;
+          phone_verified_message = 'Phone number is not verified in Grafana Cloud';
+          break;
         case 3:
-          return (
-            <>
-              <Icon className={cx('success-message')} name="check-circle" />{' '}
-              <Text type="success">Phone number verified</Text>
-            </>
-          );
+          phone_verified = false;
+          phone_verified_message = 'Phone number is verified in Grafana Cloud';
+          break;
       }
     } else {
-      if (!user.verified_phone_number || !user.slack_user_identity) {
-        let texts = [];
-
-        if (!user.verified_phone_number) {
-          texts.push('Phone not verified');
-        }
-        if (!user.slack_user_identity) {
-          texts.push('Slack not verified');
-        }
-        if (!user.telegram_configuration) {
-          texts.push('Telegram not verified');
-        }
-
-        return (
-          <div>
-            <Icon className={cx('warning-message-icon')} name="exclamation-triangle" />
-            {texts.join(', ')}
-          </div>
-        );
+      phone_verified = user.verified_phone_number;
+      phone_verified_message = 'Phone not verified';
+    }
+    if (!phone_verified || !user.slack_user_identity || !user.telegram_configuration) {
+      let texts = [];
+      if (!phone_verified) {
+        texts.push(phone_verified_message);
       }
+      if (!user.slack_user_identity) {
+        texts.push('Slack not verified');
+      }
+      if (!user.telegram_configuration) {
+        texts.push('Telegram not verified');
+      }
+
+      return (
+        <div>
+          <Icon className={cx('warning-message-icon')} name="exclamation-triangle" />
+          {texts.join(', ')}
+        </div>
+      );
     }
 
     return 'All contacts verified';
