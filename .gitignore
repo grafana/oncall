@@ -3,6 +3,7 @@
 *.pyc
 venv
 .env
+.env-hobby
 .vscode
 dump.rdb
 .idea

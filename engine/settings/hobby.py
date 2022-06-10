@@ -1,4 +1,5 @@
-import sys
+# flake8: noqa: F405
+
 from random import randrange
 
 # Workaround to use pymysql instead of mysqlclient
@@ -35,4 +36,3 @@ MIRAGE_CIPHER_IV = "1234567890abcdef"  # use default
 
 APPEND_SLASH = False
 SECURE_SSL_REDIRECT = False
-

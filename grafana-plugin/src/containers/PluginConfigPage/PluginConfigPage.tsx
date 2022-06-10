@@ -261,31 +261,15 @@ export const PluginConfigPage = (props: Props) => {
             </Text>
           </p>
           <p>1. Launch backend</p>
-          <VerticalGroup>
+          <p>
             <Text type="secondary">
-              Run production backend using{' '}
-              <a href="https://github.com/grafana/oncall#production-setup">
-                <Text type="link">this instructions at our GitHub</Text>
+              Run hobby, dev or production backend:{' '}
+              <a href="https://github.com/grafana/oncall#getting-started">
+                <Text type="link">getting started.</Text>
               </a>
-              ,
             </Text>
-
-            <Text type="secondary">Or run the local one:</Text>
-            <pre className={cx('command-line')}>
-              <Text type="link">
-                <CopyToClipboard
-                  text="docker build -t grafana/amixr-all-in-one -f Dockerfile.all-in-one ."
-                  onCopy={() => {
-                    openNotification('Grafana OnCall command copied');
-                  }}
-                >
-                  <Icon name="copy" />
-                </CopyToClipboard>{' '}
-                docker build -t grafana/amixr-all-in-one -f Dockerfile.all-in-one .
-              </Text>
-            </pre>
-          </VerticalGroup>
-
+          </p>
+          <p></p>
           <p>2. Conect the backend and the plugin </p>
           <p>{'Plugin <-> backend connection status:'}</p>
           <pre>

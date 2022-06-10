@@ -7,7 +7,6 @@ from rest_framework.views import Response
 from rest_framework.viewsets import ModelViewSet
 
 from apps.auth_token.auth import ApiTokenAuthentication, ScheduleExportAuthentication
-from apps.public_api import constants as public_api_constants
 from apps.public_api.custom_renderers import CalendarRenderer
 from apps.public_api.serializers import PolymorphicScheduleSerializer, PolymorphicScheduleUpdateSerializer
 from apps.public_api.throttlers.user_throttle import UserThrottle
@@ -16,11 +15,11 @@ from apps.schedules.models import OnCallSchedule
 from apps.slack.tasks import update_slack_user_group_for_schedules
 from apps.user_management.organization_log_creator import OrganizationLogType, create_organization_log
 from common.api_helpers.filters import ByTeamFilter
-from common.api_helpers.mixins import DemoTokenMixin, RateLimitHeadersMixin, UpdateSerializerMixin
+from common.api_helpers.mixins import RateLimitHeadersMixin, UpdateSerializerMixin
 from common.api_helpers.paginators import FiftyPageSizePaginator
 
 
-class OnCallScheduleChannelView(RateLimitHeadersMixin, DemoTokenMixin, UpdateSerializerMixin, ModelViewSet):
+class OnCallScheduleChannelView(RateLimitHeadersMixin, UpdateSerializerMixin, ModelViewSet):
     authentication_classes = (ApiTokenAuthentication,)
     permission_classes = (IsAuthenticated,)
 
@@ -31,8 +30,6 @@ class OnCallScheduleChannelView(RateLimitHeadersMixin, DemoTokenMixin, UpdateSer
     update_serializer_class = PolymorphicScheduleUpdateSerializer
 
     pagination_class = FiftyPageSizePaginator
-
-    demo_default_id = public_api_constants.DEMO_SCHEDULE_ID_ICAL
 
     filter_backends = (filters.DjangoFilterBackend,)
     filterset_class = ByTeamFilter

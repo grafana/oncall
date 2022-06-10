@@ -4,8 +4,6 @@ from rest_framework import fields, serializers
 
 from apps.alerts.grafana_alerting_sync_manager.grafana_alerting_sync import GrafanaAlertingSyncManager
 from apps.alerts.models import AlertReceiveChannel
-from apps.public_api.constants import DEMO_INTEGRATION_LINK_TOKEN
-from apps.public_api.helpers import is_demo_token_request
 from common.api_helpers.custom_fields import TeamPrimaryKeyRelatedField
 from common.api_helpers.exceptions import BadRequest
 from common.api_helpers.mixins import EagerLoadingMixin
@@ -62,12 +60,6 @@ class IntegrationSerializer(EagerLoadingMixin, serializers.ModelSerializer, Main
         default_route = self._get_default_route_iterative(instance)
         serializer = DefaultChannelFilterSerializer(default_route, context=self.context)
         result["default_route"] = serializer.data
-        if is_demo_token_request(self.context["request"]):
-            # Replace integration token to not receive alerts on demo integration
-            link = result["link"]
-            real_token = instance.token
-            link = link.replace(real_token, DEMO_INTEGRATION_LINK_TOKEN)
-            result["link"] = link
 
         return result
 
