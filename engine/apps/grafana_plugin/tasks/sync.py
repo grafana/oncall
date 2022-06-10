@@ -6,7 +6,6 @@ from django.utils import timezone
 
 from apps.grafana_plugin.helpers import GcomAPIClient
 from apps.grafana_plugin.helpers.gcom import get_active_instance_ids
-from apps.public_api.constants import DEMO_ORGANIZATION_ID
 from apps.user_management.models import Organization
 from apps.user_management.sync import sync_organization
 from common.custom_celery_tasks import shared_dedicated_queue_retry_task
@@ -23,9 +22,7 @@ SYNC_PERIOD = timezone.timedelta(minutes=25)
 def start_sync_organizations():
     sync_threshold = timezone.now() - SYNC_PERIOD
 
-    organization_qs = Organization.objects.exclude(public_primary_key=DEMO_ORGANIZATION_ID).filter(
-        last_time_synced__lte=sync_threshold
-    )
+    organization_qs = Organization.objects.filter(last_time_synced__lte=sync_threshold)
 
     active_instance_ids, is_cloud_configured = get_active_instance_ids()
     if is_cloud_configured:

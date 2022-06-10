@@ -10,6 +10,7 @@ from twilio.base.exceptions import TwilioRestException
 
 from apps.alerts.incident_appearance.renderers.sms_renderer import AlertGroupSmsRenderer
 from apps.alerts.signals import user_notification_action_triggered_signal
+from apps.base.utils import live_settings
 from apps.twilioapp.constants import TwilioMessageStatuses
 from apps.twilioapp.twilio_client import twilio_client
 from common.utils import clean_markup
@@ -123,7 +124,7 @@ class SMSMessage(models.Model):
     @classmethod
     def _send_cloud_sms(cls, user, message_body):
         url = urljoin(settings.GRAFANA_CLOUD_ONCALL_API_URL, "api/v1/send_sms")
-        auth = {"Authorization": settings.GRAFANA_CLOUD_ONCALL_TOKEN}
+        auth = {"Authorization": live_settings.GRAFANA_CLOUD_ONCALL_TOKEN}
         data = {
             "email": user.email,
             "message": message_body,
@@ -133,8 +134,9 @@ class SMSMessage(models.Model):
         except requests.exceptions.RequestException as e:
             logger.warning(f"Unable to send SMS through cloud. Request exception {str(e)}")
             raise SMSMessage.CloudSendError("Unable to send SMS through cloud: request failed")
-
-        if response.status_code == status.HTTP_400_BAD_REQUEST and response.json().get("error") == "limit-exceeded":
+        if response.status_code == status.HTTP_200_OK:
+            logger.info("Sent cloud sms successfully")
+        elif response.status_code == status.HTTP_400_BAD_REQUEST and response.json().get("error") == "limit-exceeded":
             raise SMSMessage.SMSLimitExceeded("Organization sms limit exceeded")
         elif response.status_code == status.HTTP_404_NOT_FOUND:
             raise SMSMessage.CloudSendError("Unable to send SMS through cloud: user not found")
@@ -153,7 +155,8 @@ class SMSMessage(models.Model):
                 cls._send_cloud_sms(user, message_body)
             else:
                 cls._send_sms(user, message_body, alert_group=alert_group, notification_policy=notification_policy)
-        except (TwilioRestException, SMSMessage.CloudSendError):
+        except (TwilioRestException, SMSMessage.CloudSendError) as e:
+            logger.warning(f"Unable to send sms. Exception {e}")
             log_record = UserNotificationPolicyLogRecord(
                 author=user,
                 type=UserNotificationPolicyLogRecord.TYPE_PERSONAL_NOTIFICATION_FAILED,
@@ -163,7 +166,8 @@ class SMSMessage(models.Model):
                 notification_step=notification_policy.step if notification_policy else None,
                 notification_channel=notification_policy.notify_by if notification_policy else None,
             )
-        except SMSMessage.SMSLimitExceeded:
+        except SMSMessage.SMSLimitExceeded as e:
+            logger.warning(f"Unable to send sms. Exception {e}")
             log_record = UserNotificationPolicyLogRecord(
                 author=user,
                 type=UserNotificationPolicyLogRecord.TYPE_PERSONAL_NOTIFICATION_FAILED,
@@ -173,7 +177,8 @@ class SMSMessage(models.Model):
                 notification_step=notification_policy.step if notification_policy else None,
                 notification_channel=notification_policy.notify_by if notification_policy else None,
             )
-        except SMSMessage.PhoneNumberNotVerifiedError:
+        except SMSMessage.PhoneNumberNotVerifiedError as e:
+            logger.warning(f"Unable to send sms. Exception {e}")
             log_record = UserNotificationPolicyLogRecord(
                 author=user,
                 type=UserNotificationPolicyLogRecord.TYPE_PERSONAL_NOTIFICATION_FAILED,

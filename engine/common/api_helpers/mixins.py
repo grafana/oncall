@@ -19,7 +19,6 @@ from apps.alerts.incident_appearance.templaters import (
     TemplateLoader,
 )
 from apps.base.messaging import get_messaging_backends
-from apps.public_api.helpers import is_demo_token_request
 from common.api_helpers.exceptions import BadRequest
 from common.jinja_templater import apply_jinja_template
 
@@ -123,83 +122,6 @@ class EagerLoadingMixin:
         if hasattr(cls, "PREFETCH_RELATED"):
             queryset = queryset.prefetch_related(*cls.PREFETCH_RELATED)
         return queryset
-
-
-class DemoTokenMixin:
-    """
-    The view mixin for requests to public api with demo token authorization.
-    """
-
-    def dispatch(self, request, *args, **kwargs):
-        """
-        Overridden dispatch method of APIView
-        https://github.com/encode/django-rest-framework/blob/master/rest_framework/views.py#L485
-        """
-        method = request.method.lower()
-
-        if is_demo_token_request(request) and method in ["post", "put", "delete"]:
-            self.args = args
-            self.kwargs = kwargs
-            request = self.initialize_request(request, *args, **kwargs)
-            self.request = request
-
-            # there is a strange comment about this
-            # https://github.com/encode/django-rest-framework/blob/master/rest_framework/views.py#L494
-            self.headers = self.default_response_headers
-
-            try:
-                self.initial(request, *args, **kwargs)
-
-                """
-                check for allowed request methods
-
-                from APIView:
-                If `request.method` does not correspond to a handler method,
-                determine what kind of exception to raise.
-
-                def http_method_not_allowed(self, request, *args, **kwargs):
-                    raise exceptions.MethodNotAllowed(request.method)
-                """
-
-                if method in self.http_method_names:
-                    handler = getattr(self, method, self.http_method_not_allowed)
-                else:
-                    handler = self.http_method_not_allowed
-
-                # function comparison explanation
-                # https://stackoverflow.com/a/18217024
-                if handler == self.http_method_not_allowed:
-                    response = handler(request, *args, **kwargs)
-
-                elif method == "post":
-                    # It excludes a real instance creation.
-                    # It returns the instance with public primary key
-                    # is equal to demo_default_id
-                    instance = self.model._default_manager.get(public_primary_key=self.demo_default_id)
-                    serializer = self.get_serializer(instance)
-                    headers = self.get_success_headers(serializer.data)
-                    response = Response(data=serializer.data, status=status.HTTP_201_CREATED, headers=headers)
-
-                elif method == "put":
-                    # It excludes a instance update.
-                    # It returns the instance with public primary key
-                    # is equal to demo_default_id
-                    instance = self.get_object()
-                    serializer = self.get_serializer(instance)
-                    headers = self.get_success_headers(serializer.data)
-                    response = Response(data=serializer.data, status=status.HTTP_200_OK, headers=headers)
-
-                elif method == "delete":
-                    # In this case we return nothing just success response.
-                    response = Response(status=status.HTTP_204_NO_CONTENT)
-
-            except Exception as exc:
-                response = self.handle_exception(exc)
-
-            self.response = self.finalize_response(request, response, *args, **kwargs)
-            return self.response
-
-        return super().dispatch(request, *args, **kwargs)
 
 
 class RateLimitHeadersMixin:

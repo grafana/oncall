@@ -253,11 +253,10 @@ export const PluginConfigPage = (props: Props) => {
           <p>1. Launch backend</p>
           <VerticalGroup>
             <Text type="secondary">
-              Run production backend using{' '}
-              <a href="https://github.com/grafana/oncall#production-setup">
-                <Text type="link">this instructions at our GitHub</Text>
+              Run hobby, dev or production backend:{' '}
+              <a href="https://github.com/grafana/oncall#getting-started">
+                <Text type="link">getting started.</Text>
               </a>
-              ,
             </Text>
 
             <Text type="secondary">Or run the local one:</Text>
@@ -278,15 +277,17 @@ export const PluginConfigPage = (props: Props) => {
           <Block withBackground className={cx('info-block')}>
             <Text type="secondary">
               Need help?
-              <br />
-              1. Talk to the developers in the #grafana-oncall channel at{' '}
-              <a href="http://oncall-stub.com">
+              <br />- Talk to the OnCall team in the #grafana-oncall channel at{' '}
+              <a href="https://slack.grafana.com/">
                 <Text type="link">Slack</Text>
               </a>
-              <br />
-              2. Search for issues or create a new one in the{' '}
-              <a href="http://oncall-stub.com">
-                <Text type="link">GitHub</Text>
+              <br />- Ask questions at{' '}
+              <a href="https://github.com/grafana/oncall/discussions/categories/q-a">
+                <Text type="link">GitHub Discussions</Text>
+              </a>{' '}
+              or file bugs at{' '}
+              <a href="https://github.com/grafana/oncall/issues">
+                <Text type="link">GitHub Issues</Text>
               </a>
             </Text>
           </Block>

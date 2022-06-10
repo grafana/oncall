@@ -3,17 +3,15 @@ from rest_framework.settings import api_settings
 from rest_framework.viewsets import ReadOnlyModelViewSet
 
 from apps.auth_token.auth import ApiTokenAuthentication
-from apps.public_api import constants as public_api_constants
 from apps.public_api.serializers import OrganizationSerializer
 from apps.public_api.throttlers.user_throttle import UserThrottle
 from apps.user_management.models import Organization
-from common.api_helpers.mixins import DemoTokenMixin, RateLimitHeadersMixin
+from common.api_helpers.mixins import RateLimitHeadersMixin
 from common.api_helpers.paginators import TwentyFivePageSizePaginator
 
 
 class OrganizationView(
     RateLimitHeadersMixin,
-    DemoTokenMixin,
     ReadOnlyModelViewSet,
 ):
     authentication_classes = (ApiTokenAuthentication,)
@@ -25,8 +23,6 @@ class OrganizationView(
     serializer_class = OrganizationSerializer
 
     pagination_class = TwentyFivePageSizePaginator
-
-    demo_default_id = public_api_constants.DEMO_ORGANIZATION_ID
 
     def get_queryset(self):
         # It's a dirty hack to get queryset from the object. Just in case we'll return multiple teams in the future.
