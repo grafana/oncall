@@ -8,8 +8,8 @@ from common.utils import getenv_boolean
 
 VERSION = "dev-oss"
 # Indicates if instance is OSS installation.
-# It is needed to plug-in oss urls.
-OSS_INSTALLATION = getenv_boolean("OSS", False)
+# It is needed to plug-in oss application and urls.
+OSS_INSTALLATION = getenv_boolean("GRAFANA_ONCALL_OSS_INSTALLATION", True)
 SEND_ANONYMOUS_USAGE_STATS = getenv_boolean("SEND_ANONYMOUS_USAGE_STATS", default=True)
 
 # License is OpenSource or Cloud
@@ -454,7 +454,7 @@ if OSS_INSTALLATION:
     }  # noqa
 
     CELERY_BEAT_SCHEDULE["send_cloud_heartbeat"] = {  # noqa
-        "task": "apps.oss_installation.tasks.send_cloud_heartbeat",
+        "task": "apps.oss_installation.tasks.send_cloud_heartbeat_task",
         "schedule": crontab(minute="*/3"),  # noqa
         "args": (),
     }  # noqa

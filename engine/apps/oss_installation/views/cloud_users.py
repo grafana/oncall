@@ -1,16 +1,14 @@
-from urllib.parse import urljoin
-
 from rest_framework import mixins, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-import apps.oss_installation.constants as cloud_constants
 from apps.api.permissions import ActionPermission, AnyRole, IsAdmin, IsOwnerOrAdmin
 from apps.auth_token.auth import PluginAuthentication
 from apps.oss_installation.models import CloudConnector, CloudUserIdentity
 from apps.oss_installation.serializers import CloudUserSerializer
+from apps.oss_installation.utils import cloud_user_identity_status
 from apps.user_management.models import User
 from common.api_helpers.mixins import PublicPrimaryKeyMixin
 from common.api_helpers.paginators import HundredPageSizePaginator
@@ -40,20 +38,8 @@ class CloudUsersView(HundredPageSizePaginator, APIView):
         connector = CloudConnector.objects.first()
 
         for user in results:
-            link = None
-            status = cloud_constants.CLOUD_NOT_SYNCED
-            if connector is not None:
-                status = cloud_constants.CLOUD_SYNCED_USER_NOT_FOUND
-                cloud_identity = cloud_identities.get(user.email, None)
-                if cloud_identity:
-                    status = cloud_constants.CLOUD_SYNCED_PHONE_NOT_VERIFIED
-                    is_phone_verified = cloud_identity.phone_number_verified
-                    if is_phone_verified:
-                        status = cloud_constants.CLOUD_SYNCED_PHONE_VERIFIED
-                    link = urljoin(
-                        connector.cloud_url, f"a/grafana-oncall-app/?page=users&p=1&id={cloud_identity.cloud_id}"
-                    )
-
+            cloud_identity = cloud_identities.get(user.email, None)
+            status, link = cloud_user_identity_status(connector, cloud_identity)
             response.append(
                 {
                     "id": user.public_primary_key,
