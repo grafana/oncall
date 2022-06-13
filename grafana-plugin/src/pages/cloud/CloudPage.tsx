@@ -43,7 +43,7 @@ const CloudPage = observer((props: CloudPageProps) => {
   const [cloudIsConnected, setCloudIsConnected] = useState<boolean>(undefined);
   const [cloudNotificationsEnabled, setCloudNotificationsEnabled] = useState<boolean>(false);
   const [heartbitLink, setHeartbitLink] = useState<string>(null);
-  const [heartbitStatus, setHeartbitStatus] = useState<boolean>(false);
+  const [heartbitEnabled, setHeartbitEnabled] = useState<boolean>(false);
   const [showConfirmationModal, setShowConfirmationModal] = useState<boolean>(false);
   const [syncingUsers, setSyncingUsers] = useState<boolean>(false);
 
@@ -51,14 +51,13 @@ const CloudPage = observer((props: CloudPageProps) => {
     store.cloudStore.updateItems(page);
     store.cloudStore.getCloudConnectionStatus().then((cloudStatus) => {
       setCloudIsConnected(cloudStatus.cloud_connection_status);
-      setHeartbitStatus(cloudStatus.cloud_heartbeat_enabled);
+      setHeartbitEnabled(cloudStatus.cloud_heartbeat_enabled);
       setHeartbitLink(cloudStatus.cloud_heartbeat_link);
       setCloudNotificationsEnabled(cloudStatus.cloud_notifications_enabled);
-      // getApiKeyFromGlobalSettings();
     });
   }, [cloudIsConnected]);
 
-  const { count, results } = store.cloudStore.getSearchResult();
+  const { matched_users_count, results } = store.cloudStore.getSearchResult();
 
   const handleChangePage = (page: number) => {
     setPage(page);
@@ -79,18 +78,11 @@ const CloudPage = observer((props: CloudPageProps) => {
     store.cloudStore.disconnectToCloud();
   };
 
-  // const getApiKeyFromGlobalSettings = async () => {
-  //   const globalSettingItem = await store.globalSettingStore.getGlobalSettingItemByName('GRAFANA_CLOUD_ONCALL_TOKEN');
-  //   if (cloudIsConnected === false) {
-  //     setCloudApiKey(globalSettingItem?.value);
-  //   }
-  // };
-
   const connectToCloud = async () => {
     setShowConfirmationModal(false);
     const globalSettingItem = await store.globalSettingStore.getGlobalSettingItemByName('GRAFANA_CLOUD_ONCALL_TOKEN');
     store.globalSettingStore
-      .update(globalSettingItem?.id, { name: 'GRAFANA_CLOUD_ONCALL_TOKEN', value: cloudApiKey })
+      .update(globalSettingItem?.id, { name: 'GRAFANA_CLOUD_ONCALL_TOKEN', value: cloudApiKey }, { sync_users: false })
       .then((response) => {
         if (response.error) {
           setCloudIsConnected(false);
@@ -99,6 +91,8 @@ const CloudPage = observer((props: CloudPageProps) => {
         } else {
           setCloudIsConnected(true);
           syncUsers();
+          const heartbeatData = store.cloudStore.getCloudHeartbeat();
+          setHeartbitLink(heartbeatData?.link);
         }
       });
   };
@@ -249,16 +243,24 @@ const CloudPage = observer((props: CloudPageProps) => {
             Once connected, current OnCall instance will send heartbeats every 3 minutes to the cloud Instance. If no
             heartbeat will be received in 10 minutes, cloud instance will issue an alert.
           </Text>
-          {heartbitStatus && heartbitLink && (
-            <Button
-              variant="secondary"
-              icon="external-link-alt"
-              className={cx('block-button')}
-              onClick={() => handleLinkClick(heartbitLink)}
-            >
-              Configure escalations in Cloud OnCall
-            </Button>
-          )}
+          <div className={cx('heartbit-button')}>
+            {heartbitEnabled ? (
+              heartbitLink ? (
+                <Button
+                  variant="secondary"
+                  icon="external-link-alt"
+                  className={cx('block-button')}
+                  onClick={() => handleLinkClick(heartbitLink)}
+                >
+                  Configure escalations in Cloud OnCall
+                </Button>
+              ) : (
+                <Text type="secondary">Heartbeat will be created in a moment automatically</Text>
+              )
+            ) : (
+              <Text type="secondary">Heartbeat is not enabled. You can go to the Env Variables tab and enable it</Text>
+            )}
+          </div>
         </VerticalGroup>
       </Block>
       <Block bordered withBackground className={cx('info-block')}>
@@ -284,8 +286,9 @@ const CloudPage = observer((props: CloudPageProps) => {
                   <div className={cx('table-title')}>
                     <HorizontalGroup justify="space-between">
                       <Text type="secondary">
-                        {count ? count : 0}
-                        {` users matched between OSS and Cloud OnCall`}
+                        {matched_users_count ? matched_users_count : 0} user
+                        {matched_users_count === 1 ? '' : 's'}
+                        {` matched between OSS and Cloud OnCall`}
                       </Text>
                       {syncingUsers ? (
                         <Button variant="primary" onClick={syncUsers} icon="sync" disabled>
@@ -305,7 +308,7 @@ const CloudPage = observer((props: CloudPageProps) => {
                 data={results}
                 pagination={{
                   page,
-                  total: Math.ceil((count || 0) / ITEMS_PER_PAGE),
+                  total: Math.ceil((matched_users_count || 0) / ITEMS_PER_PAGE),
                   onChange: handleChangePage,
                 }}
               />
