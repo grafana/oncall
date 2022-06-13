@@ -41,6 +41,10 @@ class IntegrationView(
         queryset = AlertReceiveChannel.objects.filter(organization=self.request.auth.organization).order_by(
             "created_at"
         )
+        name = self.request.query_params.get("name", None)
+        if name is not None:
+            queryset = queryset.filter(verbal_name=name)
+        queryset = self.filter_queryset(queryset)
         queryset = self.serializer_class.setup_eager_loading(queryset)
         queryset = queryset.annotate(alert_groups_count_annotated=Count("alert_groups", distinct=True))
         return queryset

@@ -1,4 +1,5 @@
 import logging
+import random
 from urllib.parse import urljoin
 
 import requests
@@ -11,7 +12,7 @@ from apps.base.utils import live_settings
 logger = logging.getLogger(__name__)
 
 
-def setup_heartbeat_integration():
+def setup_heartbeat_integration(name=None):
     """Setup Grafana Cloud OnCall heartbeat integration."""
     CloudHeartbeat = apps.get_model("oss_installation", "CloudHeartbeat")
 
@@ -20,7 +21,8 @@ def setup_heartbeat_integration():
     if not live_settings.GRAFANA_CLOUD_ONCALL_HEARTBEAT_ENABLED or not api_token:
         return cloud_heartbeat
     # don't specify a team in the data, so heartbeat integration will be created in the General.
-    data = {"type": "formatted_webhook", "name": f"OnCall {settings.BASE_URL}"}
+    name = name or f"OnCall Cloud Heartbeat {settings.BASE_URL}"
+    data = {"type": "formatted_webhook", "name": name}
     url = urljoin(settings.GRAFANA_CLOUD_ONCALL_API_URL, "/api/v1/integrations/")
     try:
         headers = {"Authorization": api_token}
@@ -30,6 +32,22 @@ def setup_heartbeat_integration():
             cloud_heartbeat, _ = CloudHeartbeat.objects.update_or_create(
                 defaults={"integration_id": response_data["id"], "integration_url": response_data["heartbeat"]["link"]}
             )
+        if r.status_code == status.HTTP_400_BAD_REQUEST:
+            response_data = r.json()
+            error = response_data["detail"]
+            if error == "Integration with this name already exists":
+                response = requests.get(url=f"{url}?name={name}", headers=headers)
+                integrations = response.json().get("results", [])
+                if len(integrations) == 1:
+                    integration = integrations[0]
+                    cloud_heartbeat, updated = CloudHeartbeat.objects.update_or_create(
+                        defaults={
+                            "integration_id": integration["id"],
+                            "integration_url": integration["heartbeat"]["link"],
+                        }
+                    )
+                else:
+                    setup_heartbeat_integration(f"{name}{ random.randint(1, 1024)}")
     except requests.Timeout:
         logger.warning("Unable to create cloud heartbeat integration. Request timeout.")
     except requests.exceptions.RequestException as e:
