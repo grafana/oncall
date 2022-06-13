@@ -25,6 +25,9 @@ jobs:
       - name: Lint All
         run: |
           pre-commit run --all-files
+      - name: Build Frontend
+        run: |
+          yarn build
 
   unit-test-backend:
     runs-on: ubuntu-latest
