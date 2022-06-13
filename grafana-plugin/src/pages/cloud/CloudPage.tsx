@@ -83,7 +83,7 @@ const CloudPage = observer((props: CloudPageProps) => {
     const globalSettingItem = await store.globalSettingStore.getGlobalSettingItemByName('GRAFANA_CLOUD_ONCALL_TOKEN');
     store.globalSettingStore
       .update(globalSettingItem?.id, { name: 'GRAFANA_CLOUD_ONCALL_TOKEN', value: cloudApiKey }, { sync_users: false })
-      .then((response) => {
+      .then(async (response) => {
         if (response.error) {
           setCloudIsConnected(false);
           setApiKeyError(true);
@@ -91,7 +91,7 @@ const CloudPage = observer((props: CloudPageProps) => {
         } else {
           setCloudIsConnected(true);
           syncUsers();
-          const heartbeatData: { link: string } = store.cloudStore.getCloudHeartbeat();
+          const heartbeatData: { link: string } = await store.cloudStore.getCloudHeartbeat();
           setheartbeatLink(heartbeatData?.link);
         }
       });
