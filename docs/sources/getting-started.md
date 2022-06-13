@@ -17,7 +17,7 @@ These procedures introduce you to the configuration of user settings, how to set
 
 ## Before you begin
 
-You must have a Grafana Cloud account.
+You must have a [Grafana Cloud](https://grafana.com/products/cloud/) account or [Open Source Grafana OnCall]({{< relref " open-source.md" >}})
 
 Each supported integration and the associated monitoring system has a slightly different configuration method. These methods will not be explained in this guide, however, you can follow the online instructions provided when adding an integration.
 

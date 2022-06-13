@@ -13,11 +13,15 @@ weight: 100
 We prepared three environments for OSS users:
 - **Hobby** environment for local usage & playing around: [README.md](https://github.com/grafana/oncall#getting-started).
 - **Development** environment for contributors: [DEVELOPER.md](https://github.com/grafana/oncall/blob/dev/DEVELOPER.md)
-- **Production** environment for reliable cloud installation using Helm: #production
+- **Production** environment for reliable cloud installation using Helm: [Production Environment](#production-environment)
+
+## Production Environment
+
+TBD
 
 ## Slack Setup
 
-Grafana OnCall Slack integration use most of the features Slack API provides. 
+Grafana OnCall Slack integration use a lot of Slack API features: 
 - Subscription on Slack events requires OnCall to be externally available and provide https endpoint. 
 - You will need to register new Slack App.
 
@@ -31,16 +35,15 @@ Grafana OnCall Slack integration use most of the features Slack API provides.
 lt --port 8000 -s pretty-turkey-83 --print-requests
 ```
 
-2. [Create a Slack Workspace](https://slack.com/create) for development, or use your company workspace.
+3. If you use localtunnel, open your external URL and click "Continue" to allow requests to bypass the warning page.
 
-3. Go to https://api.slack.com/apps and click Create New App button
+4. [Create a Slack Workspace](https://slack.com/create) for development, or use your company workspace.
 
-4. Select `From an app manifest` option and choose the right workspace
+5. Go to https://api.slack.com/apps and click Create New App button
 
-5. Copy and paste the following block with the correct <YOUR_BOT_NAME> and <ONCALL_ENGINE_PUBLIC_URL> fields
+6. Select `From an app manifest` option and choose the right workspace
 
-<details>
-  <summary>Click to expand!</summary>
+7. Copy and paste the following block with the correct <YOUR_BOT_NAME> and <ONCALL_ENGINE_PUBLIC_URL> fields
 
   ```yaml
   _metadata:
@@ -129,46 +132,16 @@ lt --port 8000 -s pretty-turkey-83 --print-requests
     org_deploy_enabled: false
     socket_mode_enabled: false
   ```
-</details>
 
-6. Click `Install to workspace` button to generate the credentials 
-
-7. Populate the environment with variables related to Slack.
-
-    Go to your OnCall plugin -> Env Variables and set:
+6. Go to your "OnCall" -> "Env Variables" and set:
     ```
     SLACK_CLIENT_OAUTH_ID = Basic Information -> App Credentials -> Client ID
     SLACK_CLIENT_OAUTH_SECRET = Basic Information -> App Credentials -> Client Secret
-    SLACK_API_TOKEN = OAuth & Permissions -> Bot User OAuth Token
-    SLACK_INSTALL_RETURN_REDIRECT_HOST = https://pretty-turkey-83.loca.lt
+    SLACK_SIGNING_SECRET = Basic Information -> App Credentials -> Signing Secret
+    SLACK_INSTALL_RETURN_REDIRECT_HOST = << OnCall external URL >>
     ```
 
-8. Set BASE_URL Env variable through web interface or edit `grafana-plugin/grafana-plugin.yml` to set `onCallApiUrl` fields with publicly available url:
-    ```
-        onCallApiUrl: https://pretty-turkey-83.loca.lt
-    ```
+7. Go to "OnCall" -> "ChatOps" -> "Slack" and install Slack Integration
 
-9. For dev environment only: Edit grafana-plugin/src/plugin.json to add `Bypass-Tunnel-Reminder` header section for all existing routes 
-    > this headers required for the local development only, otherwise localtunnel blocks requests from grafana plugin
- 
-    ```
-        {
-         "path": ...,
-         ...
-         "headers": [
-           ...
-           {
-             "name": "Bypass-Tunnel-Reminder",
-             "content": "True"
-           }
-         ]
-       },
-    ```
-10. Rebuild the plugin
-     ```
-     yarn watch
-     ```
-11. Restart grafana instance
-
-12. All set! Go to Slack and check if your application is functional.
+8. All set!
 
