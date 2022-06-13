@@ -10,9 +10,9 @@ from apps.alerts.incident_appearance.templaters import (
     AlertWebTemplater,
 )
 from apps.alerts.models import Alert, AlertReceiveChannel
-from config_integrations import grafana
 from common.jinja_templater import jinja_template_env
 from common.utils import getattrd
+from config_integrations import grafana
 
 
 @pytest.mark.django_db
