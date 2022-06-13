@@ -237,7 +237,7 @@ const CloudPage = observer((props: CloudPageProps) => {
             <span className={cx('heart-icon')}>
               <HeartIcon />
             </span>
-            Monitor cloud instance with heartbeat
+            Monitor instance with heartbeat
           </Text.Title>
           <Text type="secondary">
             Once connected, current OnCall instance will send heartbeats every 3 minutes to the cloud Instance. If no
@@ -354,7 +354,7 @@ const CloudPage = observer((props: CloudPageProps) => {
             <span className={cx('heart-icon')}>
               <HeartIcon />
             </span>
-            Monitor cloud instance with heartbeat
+            Monitor instance with heartbeat
           </Text.Title>
           <Text type="secondary">
             Once connected, current OnCall instance will send heartbeats every 3 minutes to the cloud Instance. If no
