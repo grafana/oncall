@@ -1,0 +1,73 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "oncall.engine.fullname" . }}
+  labels:
+    {{- include "oncall.engine.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.engine.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "oncall.engine.selectorLabels" . | nindent 6 }}
+  strategy:
+    rollingUpdate:
+      maxSurge: 25%
+      maxUnavailable: 0
+    type: RollingUpdate
+  template:
+    metadata:
+      {{- with .Values.podAnnotations }}
+      annotations:
+        random-annotation: {{ randAlphaNum 10 | lower }}
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      labels:
+        {{- include "oncall.engine.selectorLabels" . | nindent 8 }}
+    spec:
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      serviceAccountName: {{ include "oncall.serviceAccountName" . }}
+      securityContext:
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      initContainers:
+      {{- include "oncall.mariadb.wait-for-db" . | indent 8 }}
+      containers:
+        - name: {{ .Chart.Name }}
+          securityContext:
+            {{- toYaml .Values.securityContext | nindent 12 }}
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - name: http
+              containerPort: 8080
+              protocol: TCP
+          env:
+            {{- include "snippet.oncall.env" . | nindent 12 }}
+            {{- include "snippet.mysql.env" . | nindent 12 }}
+            {{- include "snippet.rabbitmq.env" . | nindent 12 }}
+            {{- include "snippet.redis.env" . | nindent 12 }}
+            {{- if .Values.env }}
+              {{- toYaml .Values.env | nindent 12 }}
+            {{- end }}
+          livenessProbe:
+            httpGet:
+              path: /health/
+              port: http
+            periodSeconds: 60
+            timeoutSeconds: 3
+          readinessProbe:
+            httpGet:
+              path: /ready/
+              port: http
+            periodSeconds: 60
+            timeoutSeconds: 3
+          startupProbe:
+            httpGet:
+              path: /startupprobe/
+              port: http
+            periodSeconds: 60
+            timeoutSeconds: 3
+          resources:
+            {{- toYaml .Values.engine.resources | nindent 12 }}
