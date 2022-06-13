@@ -9,7 +9,6 @@ from rest_framework.authentication import BaseAuthentication, get_authorization_
 from rest_framework.request import Request
 
 from apps.grafana_plugin.helpers.gcom import check_token
-from apps.public_api import constants as public_api_constants
 from apps.user_management.models import User
 from apps.user_management.models.organization import Organization
 from common.constants.role import Role
@@ -29,12 +28,6 @@ class ApiTokenAuthentication(BaseAuthentication):
 
     def authenticate(self, request):
         auth = get_authorization_header(request).decode("utf-8")
-
-        if auth == public_api_constants.DEMO_AUTH_TOKEN:
-            user = User.objects.get(public_primary_key=public_api_constants.DEMO_USER_ID)
-            auth_token = user.auth_tokens.first()
-            return user, auth_token
-
         user, auth_token = self.authenticate_credentials(auth)
 
         if user.role != Role.ADMIN:

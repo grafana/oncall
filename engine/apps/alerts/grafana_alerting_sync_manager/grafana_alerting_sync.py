@@ -5,7 +5,7 @@ from typing import Optional
 from django.apps import apps
 from rest_framework import status
 
-from apps.alerts.tasks import create_contact_points_for_datasource
+from apps.alerts.tasks import schedule_create_contact_points_for_datasource
 from apps.grafana_plugin.helpers import GrafanaAPIClient
 
 logger = logging.getLogger(__name__)
@@ -77,16 +77,15 @@ class GrafanaAlertingSyncManager:
         # sync other datasource
         for datasource in datasources:
             if datasource["type"] == GrafanaAlertingSyncManager.ALERTING_DATASOURCE:
-                if self.create_contact_point(datasource) is None:
+                contact_point = self.create_contact_point(datasource)
+                if contact_point is None:
                     # Failed to create contact point duo to getting wrong alerting config. It is expected behaviour.
                     # Add datasource to list and retry to create contact point for it async
                     datasources_to_create.append(datasource)
 
         if datasources_to_create:
             # create other contact points async
-            create_contact_points_for_datasource.apply_async(
-                (self.alert_receive_channel.pk, datasources_to_create),
-            )
+            schedule_create_contact_points_for_datasource(self.alert_receive_channel.pk, datasources_to_create)
         else:
             self.alert_receive_channel.is_finished_alerting_setup = True
             self.alert_receive_channel.save(update_fields=["is_finished_alerting_setup"])

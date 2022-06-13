@@ -28,7 +28,7 @@
 
 1. Start stateful services (RabbitMQ, Redis, Grafana with mounted plugin folder)
 ```bash
-docker-compose -f developer-docker-compose.yml up -d
+docker-compose -f docker-compose-developer.yml up -d
 ```
 
 2. Prepare a python environment:
@@ -53,13 +53,10 @@ export $(grep -v '^#' .env | xargs -0)
 # Hint: there is a known issue with uwsgi. It's not used in the local dev environment. Feel free to comment it in `engine/requirements.txt`.
 cd engine && pip install -r requirements.txt
 
-# Create folder for database
-mkdir sqlite_data
-
 # Migrate the DB:
 python manage.py migrate
 
-# Create user for django admin panel:
+# Create user for django admin panel (if you need it):
 python manage.py createsuperuser
 ```
 
@@ -69,7 +66,7 @@ python manage.py createsuperuser
 # Http server:
 python manage.py runserver
 
-# Worker for background tasks(run it in the parallel terminal, don't forget to export .env there)
+# Worker for background tasks (run it in the parallel terminal, don't forget to export .env there)
 python manage.py start_celery
 
 # Additionally you could launch the worker with periodic tasks launcher (99% you don't need this)
@@ -107,7 +104,7 @@ python manage.py issue_invite_for_the_frontend --override
 OnCall API URL: 
 http://host.docker.internal:8000
 
-OnCall Invitation Token (Single use token to connect Grafana instance):
+Invitation Token (Single use token to connect Grafana instance):
 Response from the invite generator command (check above)
 
 Grafana URL (URL OnCall will use to talk to Grafana instance):
@@ -119,7 +116,7 @@ host IP from inside the container by running:
 ```bash
 /sbin/ip route|awk '/default/ { print $3 }'
 
-# Alternatively add host.docker.internal as an extra_host for grafana in developer-docker-compose.yml
+# Alternatively add host.docker.internal as an extra_host for grafana in docker-compose-developer.yml
 extra_hosts:
   - "host.docker.internal:host-gateway"
 
@@ -260,7 +257,7 @@ lt --port 8000 -s pretty-turkey-83 --print-requests
    or set BASE_URL Env variable through web interface.
 
 8. Edit grafana-plugin/src/plugin.json to add `Bypass-Tunnel-Reminder` header section for all existing routes 
-    > this headers required for the local development only, otherwise localtunnel blocks requests from grafana plugin
+    > this headers required for the local development only, otherwise localtunnel blocks requests from grafana plugin, An alternative to this is you can modify your user-agent in your browser to bypass the tunnel warning, it only filters the common browsers.
  
     ```
         {
@@ -383,3 +380,18 @@ pytest --ds=settings.dev
    - Set Settings to settings/dev.py
 5. Create a new Django Server run configuration to Run/Debug the engine
    - Use a plugin such as EnvFile to load the .env file
+
+## Update drone build
+The .drone.yml build file must be signed when changes are made to it.  Follow these steps:
+
+If you have not installed drone CLI follow [these instructions](https://docs.drone.io/cli/install/)
+
+To sign the .drone.yml file:
+```bash
+export DRONE_SERVER=https://drone.grafana.net
+
+# Get your drone token from https://drone.grafana.net/account
+export DRONE_TOKEN=<Your DRONE_TOKEN>
+
+drone sign --save grafana/oncall .drone.yml
+```
