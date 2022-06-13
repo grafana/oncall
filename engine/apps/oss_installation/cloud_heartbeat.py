@@ -15,6 +15,8 @@ def setup_heartbeat_integration():
     """Setup Grafana Cloud OnCall heartbeat integration."""
     cloud_heartbeat = None
     api_token = live_settings.GRAFANA_CLOUD_ONCALL_TOKEN
+    if not live_settings.GRAFANA_CLOUD_ONCALL_HEARTBEAT_ENABLED or not api_token:
+        return cloud_heartbeat
     # don't specify a team in the data, so heartbeat integration will be created in the General.
     data = {"type": "formatted_webhook", "name": f"OnCall {settings.BASE_URL}"}
     url = urljoin(settings.GRAFANA_CLOUD_ONCALL_API_URL, "/api/v1/integrations/")
