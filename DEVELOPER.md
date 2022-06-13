@@ -53,9 +53,6 @@ export $(grep -v '^#' .env | xargs -0)
 # Hint: there is a known issue with uwsgi. It's not used in the local dev environment. Feel free to comment it in `engine/requirements.txt`.
 cd engine && pip install -r requirements.txt
 
-# Create folder for database
-mkdir sqlite_data
-
 # Migrate the DB:
 python manage.py migrate
 
@@ -107,7 +104,7 @@ python manage.py issue_invite_for_the_frontend --override
 OnCall API URL: 
 http://host.docker.internal:8000
 
-OnCall Invitation Token (Single use token to connect Grafana instance):
+Invitation Token (Single use token to connect Grafana instance):
 Response from the invite generator command (check above)
 
 Grafana URL (URL OnCall will use to talk to Grafana instance):

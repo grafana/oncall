@@ -429,17 +429,18 @@ FEATURE_EXTRA_MESSAGING_BACKENDS_ENABLED = getenv_boolean("FEATURE_EXTRA_MESSAGI
 EXTRA_MESSAGING_BACKENDS = []
 
 INSTALLED_ONCALL_INTEGRATIONS = [
-    "apps.integrations.metadata.configuration.alertmanager",
-    "apps.integrations.metadata.configuration.grafana",
-    "apps.integrations.metadata.configuration.grafana_alerting",
-    "apps.integrations.metadata.configuration.formatted_webhook",
-    "apps.integrations.metadata.configuration.webhook",
-    "apps.integrations.metadata.configuration.amazon_sns",
-    "apps.integrations.metadata.configuration.heartbeat",
-    "apps.integrations.metadata.configuration.inbound_email",
-    "apps.integrations.metadata.configuration.maintenance",
-    "apps.integrations.metadata.configuration.manual",
-    "apps.integrations.metadata.configuration.slack_channel",
+    "config_integrations.alertmanager",
+    "config_integrations.grafana",
+    "config_integrations.grafana_alerting",
+    "config_integrations.formatted_webhook",
+    "config_integrations.webhook",
+    "config_integrations.kapacitor",
+    "config_integrations.elastalert",
+    "config_integrations.heartbeat",
+    "config_integrations.inbound_email",
+    "config_integrations.maintenance",
+    "config_integrations.manual",
+    "config_integrations.slack_channel",
 ]
 
 if OSS_INSTALLATION:

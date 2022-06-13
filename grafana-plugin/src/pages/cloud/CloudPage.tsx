@@ -293,7 +293,7 @@ const CloudPage = observer((props: CloudPageProps) => {
                         </Button>
                       ) : (
                         <Button variant="primary" onClick={syncUsers} icon="sync">
-                          Sync users
+                          Sync users (Editors and Admins)
                         </Button>
                       )}
                     </HorizontalGroup>
@@ -365,7 +365,7 @@ const CloudPage = observer((props: CloudPageProps) => {
             <Icon name="bell" className={cx('block-icon')} size="lg" /> SMS and phone call notifications
           </Text.Title>
 
-          <Text type="secondary">Users matched between OSS and Cloud OnCall currently unavialable.</Text>
+          <Text type="secondary">Users matched between OSS and Cloud OnCall currently unavailable.</Text>
         </VerticalGroup>
       </Block>
     </VerticalGroup>

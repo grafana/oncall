@@ -1,6 +1,9 @@
 import os
 import sys
 
+# Workaround to use pymysql instead of mysqlclient
+import pymysql
+
 from .base import *  # noqa
 
 SECRET_KEY = os.environ.get("SECRET_KEY", "osMsNM0PqlRHBlUvqmeJ7+ldU3IUETCrY9TrmiViaSmInBHolr1WUlS0OFS4AHrnnkp1vp9S9z1")
@@ -10,13 +13,25 @@ MIRAGE_SECRET_KEY = os.environ.get(
 )
 MIRAGE_CIPHER_IV = os.environ.get("MIRAGE_CIPHER_IV", "tZZa+60zTZO2NRcS")
 
-# Primary database must have the name "default"
+pymysql.install_as_MySQLdb()
+
 DATABASES = {
     "default": {
-        "ENGINE": "django.db.backends.sqlite3",
-        "NAME": os.path.join(BASE_DIR, "sqlite_data/db.sqlite3"),  # noqa
+        "ENGINE": "django.db.backends.mysql",
+        "NAME": os.environ.get("MYSQL_DB_NAME", "oncall_local_dev"),
+        "USER": os.environ.get("MYSQL_USER", "root"),
+        "PASSWORD": os.environ.get("MYSQL_PASSWORD"),
+        "HOST": os.environ.get("MYSQL_HOST", "127.0.0.1"),
+        "PORT": os.environ.get("MYSQL_PORT", "3306"),
+        "OPTIONS": {
+            "charset": "utf8mb4",
+            "connect_timeout": 1,
+        },
     },
 }
+
+os.environ.setdefault("OSS", "True")
+INSTALLED_APPS += ["apps.oss_installation"]  # noqa
 
 TESTING = "pytest" in sys.modules or "unittest" in sys.modules
 
