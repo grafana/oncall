@@ -1,5 +1,4 @@
 import sys
-from random import randrange
 
 from .prod_without_db import *  # noqa
 
@@ -37,22 +36,3 @@ CELERY_BROKER_URL = "redis://localhost:6379/0"
 if TESTING:
     TELEGRAM_TOKEN = "0000000000:XXXXXXXXXXXXXXXXXXXXXXXXXXXX-XXXXXX"
     TWILIO_AUTH_TOKEN = "twilio_auth_token"
-
-# TODO: OSS: Add these setting to oss settings file. Add Version there too.
-OSS_INSTALLATION_FEATURES_ENABLED = True
-
-INSTALLED_APPS += ["apps.oss_installation"]  # noqa
-
-CELERY_BEAT_SCHEDULE["send_usage_stats"] = {  # noqa
-    "task": "apps.oss_installation.tasks.send_usage_stats_report",
-    "schedule": crontab(hour=0, minute=randrange(0, 59)),  # Send stats report at a random minute past midnight  # noqa
-    "args": (),
-}  # noqa
-
-CELERY_BEAT_SCHEDULE["send_cloud_heartbeat"] = {  # noqa
-    "task": "apps.oss_installation.tasks.send_cloud_heartbeat",
-    "schedule": crontab(minute="*/3"),  # noqa
-    "args": (),
-}  # noqa
-
-SEND_ANONYMOUS_USAGE_STATS = True

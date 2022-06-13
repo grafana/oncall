@@ -1,5 +1,5 @@
 IMAGE = grafana/docs-base:latest
-CONTENT_PATH = /hugo/content/docs/amixr/latest
+CONTENT_PATH = /hugo/content/docs/oncall/latest
 PORT = 3002:3002
 
 .PHONY: pull

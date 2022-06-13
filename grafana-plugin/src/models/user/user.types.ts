@@ -50,4 +50,7 @@ export interface User {
   permissions: UserAction[];
   trigger_video_call?: boolean;
   export_url?: string;
+  status?: number;
+  link?: string;
+  cloud_connection_status?: number;
 }

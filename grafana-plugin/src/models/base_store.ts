@@ -52,10 +52,11 @@ export default class BaseStore {
   }
 
   @action
-  async update(id: any, data: any) {
+  async update(id: any, data: any, params: any = null) {
     const result = await makeRequest(`${this.path}${id}/`, {
       method: 'PUT',
       data,
+      params: params,
     }).catch(this.onApiError);
 
     // Update env_status field for current team

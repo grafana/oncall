@@ -10,6 +10,7 @@ from apps.alerts.escalation_snapshot.utils import eta_for_escalation_step_notify
 from apps.alerts.models import AlertGroupLogRecord, EscalationPolicy
 from apps.schedules.ical_utils import list_users_to_notify_from_ical
 from apps.schedules.models import CustomOnCallShift, OnCallScheduleCalendar
+from common.constants.role import Role
 
 
 def get_escalation_policy_snapshot_from_model(escalation_policy):
@@ -197,6 +198,55 @@ def test_escalation_step_notify_on_call_schedule(
     assert result == expected_result
     assert notify_schedule_step.log_records.filter(type=AlertGroupLogRecord.TYPE_ESCALATION_TRIGGERED).exists()
     assert list(escalation_policy_snapshot.notify_to_users_queue) == list(list_users_to_notify_from_ical(schedule))
+    assert mocked_execute_tasks.called
+
+
+@patch("apps.alerts.escalation_snapshot.snapshot_classes.EscalationPolicySnapshot._execute_tasks", return_value=None)
+@pytest.mark.django_db
+def test_escalation_step_notify_on_call_schedule_viewer_user(
+    mocked_execute_tasks,
+    escalation_step_test_setup,
+    make_user_for_organization,
+    make_escalation_policy,
+    make_schedule,
+    make_on_call_shift,
+):
+    organization, user, _, channel_filter, alert_group, reason = escalation_step_test_setup
+    viewer = make_user_for_organization(organization=organization, role=Role.VIEWER)
+
+    schedule = make_schedule(organization, schedule_class=OnCallScheduleCalendar)
+    # create on_call_shift with user to notify
+    data = {
+        "start": timezone.datetime.now().replace(microsecond=0),
+        "duration": timezone.timedelta(seconds=7200),
+    }
+    on_call_shift = make_on_call_shift(
+        organization=organization, shift_type=CustomOnCallShift.TYPE_SINGLE_EVENT, **data
+    )
+    on_call_shift.users.add(viewer)
+    schedule.custom_on_call_shifts.add(on_call_shift)
+
+    notify_schedule_step = make_escalation_policy(
+        escalation_chain=channel_filter.escalation_chain,
+        escalation_policy_step=EscalationPolicy.STEP_NOTIFY_SCHEDULE,
+        notify_schedule=schedule,
+    )
+    escalation_policy_snapshot = get_escalation_policy_snapshot_from_model(notify_schedule_step)
+    expected_eta = timezone.now() + timezone.timedelta(seconds=NEXT_ESCALATION_DELAY)
+    result = escalation_policy_snapshot.execute(alert_group, reason)
+    expected_result = EscalationPolicySnapshot.StepExecutionResultData(
+        eta=result.eta,
+        stop_escalation=False,
+        pause_escalation=False,
+        start_from_beginning=False,
+    )
+    assert expected_eta + timezone.timedelta(seconds=15) > result.eta > expected_eta - timezone.timedelta(seconds=15)
+    assert result == expected_result
+    assert notify_schedule_step.log_records.filter(type=AlertGroupLogRecord.TYPE_ESCALATION_TRIGGERED).exists()
+    assert list(escalation_policy_snapshot.notify_to_users_queue) == list(
+        list_users_to_notify_from_ical(schedule, include_viewers=True)
+    )
+    assert list(escalation_policy_snapshot.notify_to_users_queue) == [viewer]
     assert mocked_execute_tasks.called
 
 

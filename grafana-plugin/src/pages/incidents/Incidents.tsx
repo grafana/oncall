@@ -302,12 +302,11 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
       (results && results.some((alert: AlertType) => alert.undoAction)) || Object.keys(affectedRows).length
     );
 
-    console.log('results', results);
     return (
       <div className={cx('root')}>
         {this.renderBulkActions()}
         <GTable
-          emptyText={results ? 'No alert groups found' : 'Something went wrong'}
+          emptyText={alertGroupsLoading ? 'Loading...' : 'No alert groups found'}
           loading={alertGroupsLoading}
           className={cx('incidents-table')}
           rowSelection={{ selectedRowKeys: selectedIncidentIds, onChange: this.handleSelectedIncidentIdsChange }}

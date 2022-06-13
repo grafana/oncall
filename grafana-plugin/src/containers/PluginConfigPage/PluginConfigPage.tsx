@@ -19,6 +19,7 @@ import cn from 'classnames/bind';
 import CopyToClipboard from 'react-copy-to-clipboard';
 import { OnCallAppSettings } from 'types';
 
+import Block from 'components/GBlock/Block';
 import Text from 'components/Text/Text';
 import WithConfirm from 'components/WithConfirm/WithConfirm';
 import logo from 'img/logo.svg';
@@ -34,23 +35,20 @@ const cx = cn.bind(styles);
 interface Props extends PluginConfigPageProps<AppPluginMeta<OnCallAppSettings>> {}
 
 export const PluginConfigPage = (props: Props) => {
+  const grafanaUrlDefault = getItem('grafanaUrl') || window.location.origin;
   const { plugin } = props;
   const [onCallApiUrl, setOnCallApiUrl] = useState<string>(getItem('onCallApiUrl'));
   const [onCallInvitationToken, setOnCallInvitationToken] = useState<string>();
-  const [grafanaUrl, setGrafanaUrl] = useState<string>(window.location.origin);
+  const [grafanaUrl, setGrafanaUrl] = useState<string>(grafanaUrlDefault);
   const [pluginConfigLoading, setPluginConfigLoading] = useState<boolean>(true);
   const [pluginStatusOk, setPluginStatusOk] = useState<boolean>();
   const [pluginStatusMessage, setPluginStatusMessage] = useState<string>();
   const [isSelfHostedInstall, setIsSelfHostedInstall] = useState<boolean>(true);
   const [retrySync, setRetrySync] = useState<boolean>(false);
-  const [showConfirmationModal, setShowConfirmationModal] = useState<boolean>(false);
 
-  const configurePlugin = () => {
-    setShowConfirmationModal(true);
-  };
   const setupPlugin = useCallback(async () => {
     setItem('onCallApiUrl', onCallApiUrl);
-    setShowConfirmationModal(false);
+    setItem('grafanaUrl', grafanaUrl);
     await getBackendSrv().post(`/api/plugins/grafana-oncall-app/settings`, {
       enabled: true,
       pinned: true,
@@ -189,7 +187,9 @@ export const PluginConfigPage = (props: Props) => {
 
           if (counter >= 5) {
             clearInterval(interval);
-            setPluginStatusMessage(`OnCall took too many tries to synchronize.`);
+            setPluginStatusMessage(
+              `OnCall took too many tries to synchronize. Did you launch Celery workers? Background workers should perform synchronization, not web server.`
+            );
             setRetrySync(true);
             setPluginStatusOk(false);
             setPluginConfigLoading(false);
@@ -212,85 +212,70 @@ export const PluginConfigPage = (props: Props) => {
           <Legend>Configure Grafana OnCall</Legend>
           {pluginStatusOk && (
             <p>
-              Configuration was sucessfully created. Now you can find Grafana OnCall on right toolbar.{' '}
+              Plugin and the backend are connected! Check Grafana OnCall 👈👈👈{' '}
               <img alt="Grafana OnCall Logo" src={logo} width={18} />
             </p>
           )}
+          <p>{'Plugin <-> backend connection status'}</p>
+          <pre>
+            <Text type="link">{pluginStatusMessage}</Text>
+          </pre>
 
-          {isSelfHostedInstall ? (
-            <div>
-              <p>{'Plugin <-> backend connection status'}</p>
+          <HorizontalGroup>
+            {/* <p>{'Plugin <-> backend connection status'}</p>
               <pre>
                 <Text type="link">{pluginStatusMessage}</Text>
-              </pre>
+              </pre> */}
+            {retrySync && (
+              <Button variant="primary" onClick={startSync} size="md">
+                Retry
+              </Button>
+            )}
+            {isSelfHostedInstall ? (
               <WithConfirm title="Are you sure to delete OnCall plugin configuration?">
-                <Button
-                  variant="destructive"
-                  onClick={resetPlugin}
-                  size="md"
-                  className={cx('delete_configuration_button')}
-                >
+                <Button variant="destructive" onClick={resetPlugin} size="md">
                   Remove current configuration
                 </Button>
               </WithConfirm>
-            </div>
-          ) : (
-            <Label>This is a cloud managed configuration.</Label>
-          )}
+            ) : (
+              <Label>This is a cloud managed configuration.</Label>
+            )}{' '}
+          </HorizontalGroup>
         </>
       ) : (
         <React.Fragment>
           <Legend>Configure Grafana OnCall</Legend>
           <p>This page will help you to connect OnCall backend and OnCall Grafana plugin 👋</p>
-          <p>1. Grafana OnCall is a Grafana plugin and backend. Run backend</p>
+
+          <p>1. Launch backend</p>
           <VerticalGroup>
             <Text type="secondary">
-              Run production backend using{' '}
-              <a href="http://oncall-stub.com">
-                <Text type="link">this instructions at our GitHub </Text>
+              Run hobby, dev or production backend:{' '}
+              <a href="https://github.com/grafana/oncall#getting-started">
+                <Text type="link">getting started.</Text>
               </a>
-              ,
             </Text>
-
-            <Text type="secondary">Or run the local one:</Text>
-            <pre className={cx('command-line')}>
-              <Text type="link">
-                <CopyToClipboard
-                  text="docker build -t grafana/amixr-all-in-one -f Dockerfile.all-in-one ."
-                  onCopy={() => {
-                    openNotification('Grafana OnCall command copied');
-                  }}
-                >
-                  <Icon name="copy" />
-                </CopyToClipboard>{' '}
-                docker build -t grafana/amixr-all-in-one -f Dockerfile.all-in-one .
-              </Text>
-            </pre>
           </VerticalGroup>
-          <Alert
-            severity="info"
-            /* @ts-ignore */
-            title={
-              <>
-                <Text type="secondary">
-                  Need help?
-                  <br />
-                  1. Talk to the developers in the #grafana-oncall channel at{' '}
-                  <a href="http://oncall-stub.com">
-                    <Text type="link">Slack</Text>
-                  </a>
-                  <br />
-                  2. Search for issues or create a new one in the{' '}
-                  <a href="http://oncall-stub.com">
-                    <Text type="link">GitHub</Text>
-                  </a>
-                </Text>
-              </>
-            }
-          />
+          <Block withBackground className={cx('info-block')}>
+            <Text type="secondary">
+              Need help?
+              <br />- Talk to the OnCall team in the #grafana-oncall channel at{' '}
+              <a href="https://slack.grafana.com/">
+                <Text type="link">Slack</Text>
+              </a>
+              <br />- Ask questions at{' '}
+              <a href="https://github.com/grafana/oncall/discussions/categories/q-a">
+                <Text type="link">GitHub Discussions</Text>
+              </a>{' '}
+              or file bugs at{' '}
+              <a href="https://github.com/grafana/oncall/issues">
+                <Text type="link">GitHub Issues</Text>
+              </a>
+            </Text>
+          </Block>
 
           <p>2. Conect the backend and the plugin </p>
-          <p>{'Plugin <-> backend connection status'}</p>
+          <p>{'Plugin <-> backend connection status:'}</p>
           <pre>
             <Text type="link">{pluginStatusMessage}</Text>
           </pre>
@@ -301,7 +286,7 @@ Seek for such a line:  “Your invite token: <<LONG TOKEN>> , use it in the Graf
           >
             <>
               <Input id="onCallInvitationToken" onChange={handleInvitationTokenChange} />
-              <a href="http://oncall-stub.com">
+              <a href="https://github.com/grafana/oncall/blob/dev/DEVELOPER.md#frontend-setup">
                 <Text size="small" type="link">
                   How to re-issue the invite token?
                 </Text>
@@ -311,42 +296,29 @@ Seek for such a line:  “Your invite token: <<LONG TOKEN>> , use it in the Graf
 
           <Field
             label="OnCall backend URL"
-            description="It should be rechable from Grafana. Possible options:
-http://host.docker.internal:8000 (if you run backend in the docker locally)
-http://localhost:8000
-..."
+            description={
+              <Text>
+                It should be rechable from Grafana. Possible options: <br />
+                http://host.docker.internal:8000 (if you run backend in the docker locally)
+                <br />
+                http://localhost:8000 <br />
+                ...
+              </Text>
+            }
           >
             <Input id="onCallApiUrl" onChange={handleApiUrlChange} defaultValue={onCallApiUrl} />
           </Field>
-          <Field label="Grafana Url" description="URL of the current Grafana instance. ">
+          <Field label="Grafana URL" description="URL of the current Grafana instance. ">
             <Input id="grafanaUrl" onChange={handleGrafanaUrlChange} defaultValue={grafanaUrl} />
           </Field>
-          {/* <WithConfirm title="Admin API key for OnCall will be created in Grafana. Continue?" confirmText="Continue"> */}
           <Button
             variant="primary"
-            onClick={configurePlugin}
+            onClick={setupPlugin}
             disabled={!onCallApiUrl || !onCallInvitationToken || !grafanaUrl}
             size="md"
           >
             Connect
           </Button>
-          {/* </WithConfirm> */}
-          {showConfirmationModal && (
-            <Modal
-              isOpen
-              title="Admin API key for OnCall will be created in Grafana. Continue?"
-              onDismiss={() => setShowConfirmationModal(false)}
-            >
-              <HorizontalGroup>
-                <Button variant="primary" onClick={setupPlugin}>
-                  Continue
-                </Button>
-                <Button variant="secondary" onClick={() => setShowConfirmationModal(false)}>
-                  Cancel
-                </Button>
-              </HorizontalGroup>
-            </Modal>
-          )}
         </React.Fragment>
       )}
     </div>

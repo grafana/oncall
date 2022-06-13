@@ -60,4 +60,9 @@ export class GlobalSettingStore extends BaseStore {
 
     return this.searchResult[query].map((globalSettingId: GlobalSetting['id']) => this.items[globalSettingId]);
   }
+
+  async getGlobalSettingItemByName(name: string) {
+    const results = await this.getAll();
+    return results.find((element: { name: string }) => element.name === name);
+  }
 }

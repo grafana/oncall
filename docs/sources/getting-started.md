@@ -5,6 +5,7 @@ aliases = ["/docs/grafana-cloud/oncall/getting-started"]
 weight = 100
 +++
 
+
 # Get started with Grafana OnCall
 
 Grafana OnCall is an incident response tool built to help DevOps and SRE teams improve their collaboration and resolve incidents faster.
@@ -18,16 +19,14 @@ These procedures introduce you to initial Grafana OnCall configuration steps, in
 
 Grafana OnCall is available for Grafana Cloud as well as Grafana open source users. You must have a Grafana Cloud account or [Open Source Grafana OnCall]({{< relref " open-source.md" >}}) 
 
- For more information, see [Grafana Pricing](https://grafana.com/pricing/) for details.
+For more information, see [Grafana Pricing](https://grafana.com/pricing/) for details.
 
 
-## Install Open Source Grafana OnCall (OSS Only)
-
+## Install Open Source Grafana OnCall
 
 For Open Source Grafana OnCall installation guidance, refer to [Open Source Grafana OnCall]({{< relref " open-source.md" >}})
 
 >**Note:** If you are using Grafana OnCall with your Grafana Cloud instance there are no install steps. Access Grafana OnCall from your Grafana Cloud account and skip ahead to “Get alerts into Grafana OnCall”
-
 
 
 ## Get alerts into Grafana OnCall
@@ -43,6 +42,7 @@ Regardless of where your alerts originate, you can send them to Grafana OnCall v
 2. Select an integration from the provided options, if the integration you’re looking for isn’t listed, then select Webhook.
 3. Follow the configuration steps on the integration settings page.
 4. Complete any necessary configurations in your monitoring system to send alerts to Grafana OnCall.
+
 
 #### Send a demo alert 
 
@@ -111,4 +111,5 @@ To integrate your on-call calendar with Grafana OnCall:
 4. Configure the rest of the schedule settings and click Create Schedule
 
 For more information on on-call schedules, refer to [Configure and manage on-call schedules]({{< relref " ../calendar-schedules.md/" >}})
+
 

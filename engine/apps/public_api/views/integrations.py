@@ -6,17 +6,11 @@ from rest_framework.viewsets import ModelViewSet
 
 from apps.alerts.models import AlertReceiveChannel
 from apps.auth_token.auth import ApiTokenAuthentication
-from apps.public_api import constants as public_api_constants
 from apps.public_api.serializers import IntegrationSerializer, IntegrationUpdateSerializer
 from apps.public_api.throttlers.user_throttle import UserThrottle
 from apps.user_management.organization_log_creator import OrganizationLogType, create_organization_log
 from common.api_helpers.filters import ByTeamFilter
-from common.api_helpers.mixins import (
-    DemoTokenMixin,
-    FilterSerializerMixin,
-    RateLimitHeadersMixin,
-    UpdateSerializerMixin,
-)
+from common.api_helpers.mixins import FilterSerializerMixin, RateLimitHeadersMixin, UpdateSerializerMixin
 from common.api_helpers.paginators import FiftyPageSizePaginator
 
 from .maintaiable_object_mixin import MaintainableObjectMixin
@@ -24,7 +18,6 @@ from .maintaiable_object_mixin import MaintainableObjectMixin
 
 class IntegrationView(
     RateLimitHeadersMixin,
-    DemoTokenMixin,
     FilterSerializerMixin,
     UpdateSerializerMixin,
     MaintainableObjectMixin,
@@ -41,8 +34,6 @@ class IntegrationView(
 
     pagination_class = FiftyPageSizePaginator
 
-    demo_default_id = public_api_constants.DEMO_INTEGRATION_ID
-
     filter_backends = (filters.DjangoFilterBackend,)
     filterset_class = ByTeamFilter
 
@@ -50,6 +41,10 @@ class IntegrationView(
         queryset = AlertReceiveChannel.objects.filter(organization=self.request.auth.organization).order_by(
             "created_at"
         )
+        name = self.request.query_params.get("name", None)
+        if name is not None:
+            queryset = queryset.filter(verbal_name=name)
+        queryset = self.filter_queryset(queryset)
         queryset = self.serializer_class.setup_eager_loading(queryset)
         queryset = queryset.annotate(alert_groups_count_annotated=Count("alert_groups", distinct=True))
         return queryset

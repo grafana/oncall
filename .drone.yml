@@ -1,3 +1,4 @@
+---
 kind: pipeline
 type: docker
 name: Build and Release
@@ -30,8 +31,8 @@ steps:
       - yarn ci-build:finish
       - yarn ci-package
       - cd ci/dist
-      - zip -r grafana-oncall-app-${DRONE_BRANCH}-${DRONE_BUILD_NUMBER}.zip ./grafana-oncall-app
-      - if [ -z "$DRONE_TAG" ]; then echo "No tag, skipping archive"; else cp grafana-oncall-app-${DRONE_BRANCH}-${DRONE_BUILD_NUMBER}.zip grafana-oncall-app-${DRONE_TAG}.zip; fi
+      - zip -r grafana-oncall-app.zip ./grafana-oncall-app
+      - if [ -z "$DRONE_TAG" ]; then echo "No tag, skipping archive"; else cp grafana-oncall-app.zip grafana-oncall-app-${DRONE_TAG}.zip; fi
 
   - name: Publish Plugin to GCS (release)
     image: plugins/gcs
@@ -156,8 +157,13 @@ services:
 
 trigger:
   event:
-    - push
+    include:
     - tag
+    - push
+  ref:
+    include:
+      - refs/heads/**
+      - refs/tags/v*.*.*
 
 ---
 # Secret for pulling docker images.
@@ -228,3 +234,8 @@ get:
   path: infra/data/ci/drone
 kind: secret
 name: drone_token
+---
+kind: signature
+hmac: 5cdafa5ca416acb1763d1d9ac93bbd932982c874718f40af533914a6711c1a1f
+
+...

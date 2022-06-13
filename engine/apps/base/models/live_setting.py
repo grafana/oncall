@@ -38,35 +38,45 @@ class LiveSetting(models.Model):
         "TWILIO_NUMBER",
         "TWILIO_VERIFY_SERVICE_SID",
         "TELEGRAM_TOKEN",
+        "TELEGRAM_WEBHOOK_HOST",
         "SLACK_CLIENT_OAUTH_ID",
         "SLACK_CLIENT_OAUTH_SECRET",
         "SLACK_SIGNING_SECRET",
+        "SLACK_INSTALL_RETURN_REDIRECT_HOST",
         "SEND_ANONYMOUS_USAGE_STATS",
         "GRAFANA_CLOUD_ONCALL_TOKEN",
         "GRAFANA_CLOUD_ONCALL_HEARTBEAT_ENABLED",
+        "GRAFANA_CLOUD_NOTIFICATIONS_ENABLED",
     )
 
     DESCRIPTIONS = {
         "SLACK_SIGNING_SECRET": (
             "Check <a href='"
-            "https://github.com/grafana/amixr/blob/main/DEVELOPER.md#slack-application-setup"
-            "'>this instruction</a> for details how to set up Slack. "
+            "https://grafana.com/docs/grafana-cloud/oncall/open-source/#slack-setup"
+            "'>instruction</a> for details how to set up Slack. "
             "Slack secrets can't be verified on the backend, please try installing the Slack Bot "
-            "after you update Slack credentials."
+            "after you update them."
         ),
         "SLACK_CLIENT_OAUTH_SECRET": (
             "Check <a href='"
-            "https://github.com/grafana/amixr/blob/main/DEVELOPER.md#slack-application-setup"
-            "'>this instruction</a> for details how to set up Slack. "
+            "https://grafana.com/docs/grafana-cloud/oncall/open-source/#slack-setup"
+            "'>instruction</a> for details how to set up Slack. "
             "Slack secrets can't be verified on the backend, please try installing the Slack Bot "
-            "after you update Slack credentials."
+            "after you update them."
         ),
         "SLACK_CLIENT_OAUTH_ID": (
             "Check <a href='"
-            "https://github.com/grafana/amixr/blob/main/DEVELOPER.md#slack-application-setup"
-            "'>this instruction</a> for details how to set up Slack. "
+            "https://grafana.com/docs/grafana-cloud/oncall/open-source/#slack-setup"
+            "'>instruction</a> for details how to set up Slack. "
             "Slack secrets can't be verified on the backend, please try installing the Slack Bot "
-            "after you update Slack credentials."
+            "after you update them."
+        ),
+        "SLACK_INSTALL_RETURN_REDIRECT_HOST": (
+            "Check <a href='"
+            "https://grafana.com/docs/grafana-cloud/oncall/open-source/#slack-setup"
+            "'>instruction</a> for details how to set up Slack. "
+            "Slack secrets can't be verified on the backend, please try installing the Slack Bot "
+            "after you update them."
         ),
         "TWILIO_ACCOUNT_SID": (
             "Twilio username to allow amixr send sms and make phone calls, "
@@ -99,13 +109,17 @@ class LiveSetting(models.Model):
         "TELEGRAM_TOKEN": (
             "Secret token for Telegram bot, you can get one via " "<a href='https://t.me/BotFather'>BotFather</a>."
         ),
+        "TELEGRAM_WEBHOOK_HOST": (
+            "Externally available URL for Telegram to make requests. Please restart OnCall backend after after update."
+        ),
         "SEND_ANONYMOUS_USAGE_STATS": (
             "Grafana OnCall will send anonymous, but uniquely-identifiable usage analytics to Grafana Labs."
             " These statistics are sent to https://stats.grafana.org/.  For more information on what's sent, look at"
-            "https://github.com/..."  # TODO: add url to usage stats code
+            " https://github.com/grafana/oncall/blob/dev/engine/apps/oss_installation/usage_stats.py#L29"
         ),
         "GRAFANA_CLOUD_ONCALL_TOKEN": "Secret token for Grafana Cloud OnCall instance.",
         "GRAFANA_CLOUD_ONCALL_HEARTBEAT_ENABLED": "Enable hearbeat integration with Grafana Cloud OnCall.",
+        "GRAFANA_CLOUD_NOTIFICATIONS_ENABLED": "Enable SMS/call notifications via Grafana Cloud OnCall",
     }
 
     SECRET_SETTING_NAMES = (
@@ -171,4 +185,5 @@ class LiveSetting(models.Model):
             )
 
         self.error = LiveSettingValidator(live_setting=self).get_error()
+
         super().save(*args, **kwargs)
