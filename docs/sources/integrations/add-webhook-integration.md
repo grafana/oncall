@@ -9,6 +9,7 @@ keywords:
   - Alertmanager
   - Prometheus
 title: Webhook integration for Grafana OnCall
+canonical: "https://grafana.com/docs/oncall/latest/integrations/add-webhook-integration/"
 weight: 700
 ---
 

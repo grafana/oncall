@@ -1,7 +1,7 @@
 ---
 aliases:
   - /docs/grafana-cloud/oncall/integrations/add-integration/
-  - /docs/oncall/latest/integrations/available-integrations /
+  - /docs/oncall/latest/integrations/available-integrations/
 keywords:
   - Grafana Cloud
   - Alerts
@@ -10,6 +10,7 @@ keywords:
   - Alertmanager
   - Prometheus
 title: Currently available integrations for Grafana OnCall
+canonical: "https://grafana.com/docs/oncall/latest/integrations/available-integrations/"
 weight: 100
 ---
 

@@ -10,6 +10,7 @@ keywords:
   - oncall
   - slack
 title: Connect ChatOps to Grafana OnCall
+canonical: "https://grafana.com/docs/oncall/latest/chat-options/"
 weight: 700
 ---
 

@@ -10,6 +10,7 @@ keywords:
   - oncall
   - slack
 title: Connect Slack to Grafana OnCall
+canonical: "https://grafana.com/docs/oncall/latest/chat-options/configure-slack/"
 weight: 100
 ---
 

@@ -10,6 +10,7 @@ keywords:
   - Alertmanager
   - Prometheus
 title: Connect Alert Manager to Grafana OnCall
+canonical: "https://grafana.com/docs/oncall/latest/integrations/available-integrations/add-alertmanager/"
 weight: 300
 ---
 

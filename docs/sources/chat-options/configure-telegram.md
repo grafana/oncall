@@ -10,6 +10,7 @@ keywords:
   - oncall
   - telegram
 title: Connect Telegram to Grafana OnCall
+canonical: "https://grafana.com/docs/oncall/latest/chat-options/configure-telegram/
 weight: 300
 ---
 

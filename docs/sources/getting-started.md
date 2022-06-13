@@ -1,10 +1,13 @@
-+++
-title = "Get started with Grafana OnCall"
-keywords = ["Grafana Cloud", "Alerts", "Notifications", "on-call"]
-aliases = ["/docs/grafana-cloud/oncall/getting-started"]
-weight = 100
-+++
+---
+title: 
+- Get started with Grafana OnCall
+aliases: 
+- /docs/grafana-cloud/oncall/getting-started
+canonical: "https://grafana.com/docs/oncall/latest/getting-started/"
+weight: 100
+---
 
+canonical: "https://grafana.com/docs/oncall/latest/oncall-api-reference/
 
 # Get started with Grafana OnCall
 

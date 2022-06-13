@@ -10,6 +10,7 @@ keywords:
   - oncall
   - integrations
 title: Configure and manage Escalation Chains
+canonical: "https://grafana.com/docs/oncall/latest/escalation-policies/configure-escalation-chains/"
 weight: 100
 ---
 

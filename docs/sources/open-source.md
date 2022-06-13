@@ -5,6 +5,7 @@ aliases:
 keywords:
   - Open Source
 title: Open Source
+canonical: "https://grafana.com/docs/oncall/latest/open-source/"
 weight: 100
 ---
 
@@ -27,23 +28,23 @@ Grafana OnCall Slack integration use a lot of Slack API features:
 
 1. Make sure your OnCall is up and running.
 
-2. You need OnCall to be accessible through https. For development purposes we suggest using [localtunnel](https://github.com/localtunnel/localtunnel). For production purposes please consider setting up proper web server with HTTPS termination. For localtunnel: 
-```bash
-# Choose the unique prefix instead of pretty-turkey-83
-# Localtunnel will generate an url, e.g. https://pretty-turkey-83.loca.lt
-# it is referred as <ONCALL_ENGINE_PUBLIC_URL> below
-lt --port 8000 -s pretty-turkey-83 --print-requests
-```
+1. You need OnCall to be accessible through https. For development purposes we suggest using [localtunnel](https://github.com/localtunnel/localtunnel). For production purposes please consider setting up proper web server with HTTPS termination. For localtunnel: 
+    ```bash
+    # Choose the unique prefix instead of pretty-turkey-83
+    # Localtunnel will generate an url, e.g. https://pretty-turkey-83.loca.lt
+    # it is referred as <ONCALL_ENGINE_PUBLIC_URL> below
+    lt --port 8000 -s pretty-turkey-83 --print-requests
+    ```
 
-3. If you use localtunnel, open your external URL and click "Continue" to allow requests to bypass the warning page.
+1. If you use localtunnel, open your external URL and click "Continue" to allow requests to bypass the warning page.
 
-4. [Create a Slack Workspace](https://slack.com/create) for development, or use your company workspace.
+1. [Create a Slack Workspace](https://slack.com/create) for development, or use your company workspace.
 
-5. Go to https://api.slack.com/apps and click Create New App button
+1. Go to https://api.slack.com/apps and click Create New App button
 
-6. Select `From an app manifest` option and choose the right workspace
+1. Select `From an app manifest` option and choose the right workspace
 
-7. Copy and paste the following block with the correct <YOUR_BOT_NAME> and <ONCALL_ENGINE_PUBLIC_URL> fields
+1. Copy and paste the following block with the correct <YOUR_BOT_NAME> and <ONCALL_ENGINE_PUBLIC_URL> fields
 
   ```yaml
   _metadata:
@@ -133,17 +134,16 @@ lt --port 8000 -s pretty-turkey-83 --print-requests
     socket_mode_enabled: false
   ```
 
-6. Go to your "OnCall" -> "Env Variables" and set:
-    ```
+1. Go to your "OnCall" -> "Env Variables" and set:
+
+    ```bash
     SLACK_CLIENT_OAUTH_ID = Basic Information -> App Credentials -> Client ID
     SLACK_CLIENT_OAUTH_SECRET = Basic Information -> App Credentials -> Client Secret
     SLACK_SIGNING_SECRET = Basic Information -> App Credentials -> Signing Secret
     SLACK_INSTALL_RETURN_REDIRECT_HOST = << OnCall external URL >>
     ```
 
-7. Go to "OnCall" -> "ChatOps" -> "Slack" and install Slack Integration
-
-8. All set!
+1. Go to "OnCall" -> "ChatOps" -> "Slack" and install Slack Integration
 
 ## Telegram Setup
 
@@ -152,11 +152,11 @@ lt --port 8000 -s pretty-turkey-83 --print-requests
 
 1. Make sure your OnCall is up and running.
 
-2. Respectfully ask [BotFather](https://t.me/BotFather) for a key, put it in `TELEGRAM_TOKEN` in "OnCall" -> "Env Variables".
+1. Respectfully ask [BotFather](https://t.me/BotFather) for a key, put it in `TELEGRAM_TOKEN` in "OnCall" -> "Env Variables".
 
-3. Set `TELEGRAM_WEBHOOK_HOST` with your external url for OnCall. 
+1. Set `TELEGRAM_WEBHOOK_HOST` with your external url for OnCall. 
 
-4. Go to "OnCall" -> "ChatOps" -> Telegram and enjoy!
+1. Go to "OnCall" -> "ChatOps" -> Telegram and enjoy!
 
 ## Grafana OSS-Cloud Setup
 
@@ -167,4 +167,4 @@ Please note that it's possible either to use Grafana Cloud either Twilio for SMS
 ## Twilio Setup
 
 1. Make sure Grafana OSS <-> Cloud connector is disabled. Set `GRAFANA_CLOUD_NOTIFICATIONS_ENABLED` as False.
-2. Check "OnCall" -> "Env Variables" and set all variables starting with `TWILIO_`
+1. Check "OnCall" -> "Env Variables" and set all variables starting with `TWILIO_`

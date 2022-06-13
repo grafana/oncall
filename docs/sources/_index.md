@@ -11,6 +11,7 @@ keywords:
   - OnCall
   - irm
 title: Grafana OnCall
+canonical: "https://grafana.com/docs/oncall/latest/"
 weight: 1000
 ---
 
