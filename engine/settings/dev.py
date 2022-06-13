@@ -30,9 +30,6 @@ DATABASES = {
     },
 }
 
-os.environ.setdefault("OSS", "True")
-INSTALLED_APPS += ["apps.oss_installation"]  # noqa
-
 TESTING = "pytest" in sys.modules or "unittest" in sys.modules
 
 READONLY_DATABASES = {}
