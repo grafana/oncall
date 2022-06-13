@@ -12,7 +12,6 @@ steps:
       - cd grafana-plugin/
       - if [ -z "$DRONE_TAG" ]; then echo "No tag, not modifying version"; else jq '.version="${DRONE_TAG}"' package.json > package.new && mv package.new package.json && jq '.version' package.json; fi
       - yarn --network-timeout 500000
-      - yarn plop "Append build info" "${DRONE_TAG}" "${DRONE_BRANCH}" "${DRONE_COMMIT}"
       - yarn build
       - ls ./
 
