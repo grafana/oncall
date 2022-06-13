@@ -16,18 +16,17 @@ jobs:
       - uses: actions/setup-node@v3
         with:
           node-version: 14
-      - name: Install Dependencies
+      - name: Build
         run: |
           pip install $(grep "pre-commit" engine/requirements.txt)
           npm install -g yarn
           cd grafana-plugin/
           yarn --network-timeout 500000
+          yarn build
       - name: Lint All
         run: |
           pre-commit run --all-files
-      - name: Build Frontend
-        run: |
-          yarn build
+          
 
   unit-test-backend:
     runs-on: ubuntu-latest
