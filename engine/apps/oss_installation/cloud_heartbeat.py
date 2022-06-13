@@ -40,14 +40,14 @@ def setup_heartbeat_integration(name=None):
                 integrations = response.json().get("results", [])
                 if len(integrations) == 1:
                     integration = integrations[0]
-                    cloud_heartbeat, updated = CloudHeartbeat.objects.update_or_create(
+                    cloud_heartbeat, _ = CloudHeartbeat.objects.update_or_create(
                         defaults={
                             "integration_id": integration["id"],
                             "integration_url": integration["heartbeat"]["link"],
                         }
                     )
                 else:
-                    setup_heartbeat_integration(f"{name}{ random.randint(1, 1024)}")
+                    setup_heartbeat_integration(f"{name} { random.randint(1, 1024)}")
     except requests.Timeout:
         logger.warning("Unable to create cloud heartbeat integration. Request timeout.")
     except requests.exceptions.RequestException as e:
@@ -107,4 +107,4 @@ def get_heartbeat_link(connector, heartbeat):
         return None
     if heartbeat is None:
         return None
-    return urljoin(connector.cloud_url, f"a/grafana-oncall-app/?page=integrations1&id={heartbeat.integration_id}")
+    return urljoin(connector.cloud_url, f"a/grafana-oncall-app/?page=integrations&id={heartbeat.integration_id}")
