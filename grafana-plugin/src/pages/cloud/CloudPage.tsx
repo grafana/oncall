@@ -42,8 +42,8 @@ const CloudPage = observer((props: CloudPageProps) => {
   const [apiKeyError, setApiKeyError] = useState<boolean>(false);
   const [cloudIsConnected, setCloudIsConnected] = useState<boolean>(undefined);
   const [cloudNotificationsEnabled, setCloudNotificationsEnabled] = useState<boolean>(false);
-  const [heartbitLink, setHeartbitLink] = useState<string>(null);
-  const [heartbitEnabled, setHeartbitEnabled] = useState<boolean>(false);
+  const [heartbeatLink, setheartbeatLink] = useState<string>(null);
+  const [heartbeatEnabled, setheartbeatEnabled] = useState<boolean>(false);
   const [showConfirmationModal, setShowConfirmationModal] = useState<boolean>(false);
   const [syncingUsers, setSyncingUsers] = useState<boolean>(false);
 
@@ -51,8 +51,8 @@ const CloudPage = observer((props: CloudPageProps) => {
     store.cloudStore.updateItems(page);
     store.cloudStore.getCloudConnectionStatus().then((cloudStatus) => {
       setCloudIsConnected(cloudStatus.cloud_connection_status);
-      setHeartbitEnabled(cloudStatus.cloud_heartbeat_enabled);
-      setHeartbitLink(cloudStatus.cloud_heartbeat_link);
+      setheartbeatEnabled(cloudStatus.cloud_heartbeat_enabled);
+      setheartbeatLink(cloudStatus.cloud_heartbeat_link);
       setCloudNotificationsEnabled(cloudStatus.cloud_notifications_enabled);
     });
   }, [cloudIsConnected]);
@@ -91,8 +91,8 @@ const CloudPage = observer((props: CloudPageProps) => {
         } else {
           setCloudIsConnected(true);
           syncUsers();
-          const heartbeatData = store.cloudStore.getCloudHeartbeat();
-          setHeartbitLink(heartbeatData?.link);
+          const heartbeatData: { link: string } = store.cloudStore.getCloudHeartbeat();
+          setheartbeatLink(heartbeatData?.link);
         }
       });
   };
@@ -243,14 +243,14 @@ const CloudPage = observer((props: CloudPageProps) => {
             Once connected, current OnCall instance will send heartbeats every 3 minutes to the cloud Instance. If no
             heartbeat will be received in 10 minutes, cloud instance will issue an alert.
           </Text>
-          <div className={cx('heartbit-button')}>
-            {heartbitEnabled ? (
-              heartbitLink ? (
+          <div className={cx('heartbeat-button')}>
+            {heartbeatEnabled ? (
+              heartbeatLink ? (
                 <Button
                   variant="secondary"
                   icon="external-link-alt"
                   className={cx('block-button')}
-                  onClick={() => handleLinkClick(heartbitLink)}
+                  onClick={() => handleLinkClick(heartbeatLink)}
                 >
                   Configure escalations in Cloud OnCall
                 </Button>
