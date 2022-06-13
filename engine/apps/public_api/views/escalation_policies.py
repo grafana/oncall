@@ -5,15 +5,14 @@ from rest_framework.viewsets import ModelViewSet
 
 from apps.alerts.models import EscalationPolicy
 from apps.auth_token.auth import ApiTokenAuthentication
-from apps.public_api import constants as public_api_constants
 from apps.public_api.serializers import EscalationPolicySerializer, EscalationPolicyUpdateSerializer
 from apps.public_api.throttlers.user_throttle import UserThrottle
 from apps.user_management.organization_log_creator import OrganizationLogType, create_organization_log
-from common.api_helpers.mixins import DemoTokenMixin, RateLimitHeadersMixin, UpdateSerializerMixin
+from common.api_helpers.mixins import RateLimitHeadersMixin, UpdateSerializerMixin
 from common.api_helpers.paginators import FiftyPageSizePaginator
 
 
-class EscalationPolicyView(RateLimitHeadersMixin, DemoTokenMixin, UpdateSerializerMixin, ModelViewSet):
+class EscalationPolicyView(RateLimitHeadersMixin, UpdateSerializerMixin, ModelViewSet):
     authentication_classes = (ApiTokenAuthentication,)
     permission_classes = (IsAuthenticated,)
 
@@ -24,8 +23,6 @@ class EscalationPolicyView(RateLimitHeadersMixin, DemoTokenMixin, UpdateSerializ
     update_serializer_class = EscalationPolicyUpdateSerializer
 
     pagination_class = FiftyPageSizePaginator
-
-    demo_default_id = public_api_constants.DEMO_ESCALATION_POLICY_ID_1
 
     def get_queryset(self):
         escalation_chain_id = self.request.query_params.get("escalation_chain_id", None)

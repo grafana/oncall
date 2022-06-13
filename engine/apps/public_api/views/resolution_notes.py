@@ -6,14 +6,13 @@ from rest_framework.viewsets import ModelViewSet
 from apps.alerts.models import ResolutionNote
 from apps.alerts.tasks import send_update_resolution_note_signal
 from apps.auth_token.auth import ApiTokenAuthentication
-from apps.public_api import constants as public_api_constants
 from apps.public_api.serializers.resolution_notes import ResolutionNoteSerializer, ResolutionNoteUpdateSerializer
 from apps.public_api.throttlers.user_throttle import UserThrottle
-from common.api_helpers.mixins import DemoTokenMixin, RateLimitHeadersMixin, UpdateSerializerMixin
+from common.api_helpers.mixins import RateLimitHeadersMixin, UpdateSerializerMixin
 from common.api_helpers.paginators import FiftyPageSizePaginator
 
 
-class ResolutionNoteView(RateLimitHeadersMixin, DemoTokenMixin, UpdateSerializerMixin, ModelViewSet):
+class ResolutionNoteView(RateLimitHeadersMixin, UpdateSerializerMixin, ModelViewSet):
     authentication_classes = (ApiTokenAuthentication,)
     permission_classes = (IsAuthenticated,)
 
@@ -27,8 +26,6 @@ class ResolutionNoteView(RateLimitHeadersMixin, DemoTokenMixin, UpdateSerializer
     filterset_fields = ["alert_group"]
 
     pagination_class = FiftyPageSizePaginator
-
-    demo_default_id = public_api_constants.DEMO_RESOLUTION_NOTE_ID
 
     def get_queryset(self):
         alert_group_id = self.request.query_params.get("alert_group_id", None)

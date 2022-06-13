@@ -1,10 +1,8 @@
 import logging
-from contextlib import suppress
 
 from django.apps import apps
 from django.utils import timezone
 
-from apps.public_api.constants import DEMO_USER_ID
 from apps.schedules.ical_utils import list_users_to_notify_from_ical_for_period
 
 logger = logging.getLogger(__name__)
@@ -18,7 +16,6 @@ def active_oss_users_count():
     AlertGroupLogRecord = apps.get_model("alerts", "AlertGroupLogRecord")
     EscalationPolicy = apps.get_model("alerts", "EscalationPolicy")
     UserNotificationPolicyLogRecord = apps.get_model("base", "UserNotificationPolicyLogRecord")
-    User = apps.get_model("user_management", "User")
 
     # Take logs for previous 24 hours
     start = timezone.now() - timezone.timedelta(hours=24)
@@ -67,9 +64,4 @@ def active_oss_users_count():
         for user in users_from_schedule:
             unique_active_users.add(user.pk)
 
-    # Remove demo user from active users
-    with suppress(User.DoesNotExist):
-        demo_user = User.objects.get(public_primary_key=DEMO_USER_ID)
-        with suppress(KeyError):
-            unique_active_users.remove(demo_user.pk)
     return len(unique_active_users)

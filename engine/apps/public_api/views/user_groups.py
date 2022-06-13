@@ -6,11 +6,11 @@ from apps.auth_token.auth import ApiTokenAuthentication
 from apps.public_api.serializers.user_groups import UserGroupSerializer
 from apps.public_api.throttlers.user_throttle import UserThrottle
 from apps.slack.models import SlackUserGroup
-from common.api_helpers.mixins import DemoTokenMixin, RateLimitHeadersMixin
+from common.api_helpers.mixins import RateLimitHeadersMixin
 from common.api_helpers.paginators import FiftyPageSizePaginator
 
 
-class UserGroupView(RateLimitHeadersMixin, DemoTokenMixin, mixins.ListModelMixin, GenericViewSet):
+class UserGroupView(RateLimitHeadersMixin, mixins.ListModelMixin, GenericViewSet):
     authentication_classes = (ApiTokenAuthentication,)
     permission_classes = (IsAuthenticated,)
     pagination_class = FiftyPageSizePaginator

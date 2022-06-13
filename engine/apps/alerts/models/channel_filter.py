@@ -113,20 +113,7 @@ class ChannelFilter(OrderedModel):
         return satisfied_filter
 
     def is_satisfying(self, raw_request_data, title, message=None):
-        AlertReceiveChannel = apps.get_model("alerts", "AlertReceiveChannel")
-
-        return (
-            self.is_default
-            or self.check_filter(json.dumps(raw_request_data))
-            or self.check_filter(str(title))
-            or
-            # Special case for Amazon SNS
-            (
-                self.check_filter(str(message))
-                if self.alert_receive_channel.integration == AlertReceiveChannel.INTEGRATION_AMAZON_SNS
-                else False
-            )
-        )
+        return self.is_default or self.check_filter(json.dumps(raw_request_data)) or self.check_filter(str(title))
 
     def check_filter(self, value):
         return re.search(self.filtering_term, value)
