@@ -145,3 +145,26 @@ lt --port 8000 -s pretty-turkey-83 --print-requests
 
 8. All set!
 
+## Telegram Setup
+
+- Telegram integrations requires OnCall to be externally available and provide https endpoint. 
+- Telegram integration in OnCall is designed for collaborative team work. It requires Telegram Group and a Telegram Channel (private) for alerts. 
+
+1. Make sure your OnCall is up and running.
+
+2. Respectfully ask [BotFather](https://t.me/BotFather) for a key, put it in `TELEGRAM_TOKEN` in "OnCall" -> "Env Variables".
+
+3. Set `TELEGRAM_WEBHOOK_HOST` with your external url for OnCall. 
+
+4. Go to "OnCall" -> "ChatOps" -> Telegram and enjoy!
+
+## Grafana OSS-Cloud Setup
+
+Grafana OSS could be connected to Grafana Cloud for heartbeat and SMS / Phone Calls. We tried our best in making Grafana OSS <-> Cloud self-explanatory. Check "Cloud" page in your OSS OnCall instance.
+
+Please note that it's possible either to use Grafana Cloud either Twilio for SMS/Phone calls. 
+
+## Twilio Setup
+
+1. Make sure Grafana OSS <-> Cloud connector is disabled. Set `GRAFANA_CLOUD_NOTIFICATIONS_ENABLED` as False.
+2. Check "OnCall" -> "Env Variables" and set all variables starting with `TWILIO_`

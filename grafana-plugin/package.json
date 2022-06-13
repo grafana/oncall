@@ -68,7 +68,7 @@
     "lodash-es": "^4.17.15",
     "mobx": "^5.13.0",
     "mobx-react": "^6.1.1",
-    "moment-timezone": "^0.5.28",
+    "moment-timezone": "^0.5.34",
     "rc-table": "^7.17.1",
     "react-copy-to-clipboard": "^5.0.2",
     "react-emoji-render": "^1.2.4",

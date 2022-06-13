@@ -3,7 +3,7 @@ version: '3.2'
 services:
 
   mysql:
-    image: mariadb:10.2
+    image: mysql:5.7
     platform: linux/x86_64
     mem_limit: 500m
     cpus: 0.5
@@ -40,7 +40,7 @@ services:
       - 5672:5672
 
   mysql-to-create-grafana-db:
-    image: mariadb:10.2
+    image: mysql:5.7
     platform: linux/x86_64
     command: bash -c "mysql -h mysql -uroot -pempty -e 'CREATE DATABASE IF NOT EXISTS grafana CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;'"
     depends_on:
