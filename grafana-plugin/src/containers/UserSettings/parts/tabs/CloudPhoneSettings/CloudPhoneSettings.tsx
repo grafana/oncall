@@ -48,12 +48,15 @@ const CloudPhoneSettings = observer((props: CloudPhoneSettingsProps) => {
   }, []);
 
   const handleLinkClick = (link: string) => {
-    getLocationSrv().update({ partial: false, path: link });
+    window.location.replace(link);
   };
 
   const syncUser = async () => {
     setSyncing(true);
     await store.cloudStore.syncCloudUser(userPk);
+    const cloudUser = await store.cloudStore.getCloudUser(userPk);
+    setUserStatus(cloudUser?.cloud_data?.status);
+    setUserLink(cloudUser?.cloud_data?.link);
     setSyncing(false);
   };
 

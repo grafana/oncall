@@ -13,7 +13,7 @@ import { Cloud } from './cloud.types';
 
 export class CloudStore extends BaseStore {
   @observable.shallow
-  searchResult: { count?: number; results?: Array<Cloud['id']> } = {};
+  searchResult: { matched_users_count?: number; results?: Array<Cloud['id']> } = {};
 
   @observable.shallow
   items: { [id: string]: Cloud } = {};
@@ -26,7 +26,7 @@ export class CloudStore extends BaseStore {
 
   @action
   async updateItems(page = 1) {
-    const { count, results } = await makeRequest(this.path, {
+    const { matched_users_count, results } = await makeRequest(this.path, {
       params: { page },
     });
 
@@ -42,14 +42,14 @@ export class CloudStore extends BaseStore {
     };
 
     this.searchResult = {
-      count,
+      matched_users_count,
       results: results.map((item: Cloud) => item.id),
     };
   }
 
   getSearchResult() {
     return {
-      count: this.searchResult.count,
+      matched_users_count: this.searchResult.matched_users_count,
       results: this.searchResult.results && this.searchResult.results.map((id: Cloud['id']) => this.items?.[id]),
     };
   }
@@ -60,6 +60,12 @@ export class CloudStore extends BaseStore {
 
   async syncCloudUser(id: string) {
     return await makeRequest(`${this.path}${id}/sync/`, { method: 'POST' });
+  }
+
+  async getCloudHeartbeat() {
+    return await makeRequest(`/cloud_heartbeat/`, { method: 'POST' }).catch((error) => {
+      console.log(error);
+    });
   }
 
   async getCloudUser(id: string) {

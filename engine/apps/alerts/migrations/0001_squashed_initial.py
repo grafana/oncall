@@ -16,6 +16,8 @@ from django.db import migrations, models
 import django.db.models.deletion
 import django.db.models.manager
 
+from apps.alerts.integration_options_mixin import IntegrationOptionsMixin
+
 
 class Migration(migrations.Migration):
 
@@ -132,7 +134,7 @@ class Migration(migrations.Migration):
                 ('public_primary_key', models.CharField(default=apps.alerts.models.alert_receive_channel.generate_public_primary_key_for_alert_receive_channel, max_length=20, unique=True, validators=[django.core.validators.MinLengthValidator(13)])),
                 ('created_at', models.DateTimeField(auto_now_add=True)),
                 ('deleted_at', models.DateTimeField(blank=True, null=True)),
-                ('integration', models.CharField(choices=[('alertmanager', 'AlertManager'), ('grafana', 'Grafana'), ('grafana_alerting', 'Grafana Alerting'), ('formatted_webhook', 'Formatted Webhook'), ('webhook', 'Webhook'), ('amazon_sns', 'Amazon SNS'), ('heartbeat', 'Heartbeat'), ('inbound_email', 'Inboubd Email'), ('maintenance', 'Maintenance'), ('manual', 'Manual'), ('slack_channel', 'Slack Channel'), ('stackdriver', 'Stackdriver'), ('curler', 'Curler'), ('datadog', 'Datadog'), ('demo', 'Demo'), ('elastalert', 'Elastalert'), ('fabric', 'Fabric'), ('kapacitor', 'Kapacitor'), ('newrelic', 'New Relic'), ('pagerduty', 'Pagerduty'), ('pingdom', 'Pingdom'), ('prtg', 'PRTG'), ('sentry', 'Sentry'), ('uptimerobot', 'UptimeRobot'), ('zabbix', 'Zabbix')], default='grafana', max_length=100)),
+                ('integration', models.CharField(choices=IntegrationOptionsMixin.INTEGRATION_CHOICES,default=IntegrationOptionsMixin.DEFAULT_INTEGRATION, max_length=100)),
                 ('allow_source_based_resolving', models.BooleanField(default=True)),
                 ('token', models.CharField(db_index=True, default=apps.alerts.models.alert_receive_channel.random_token_generator, max_length=30)),
                 ('smile_code', models.TextField(default=':slightly_smiling_face:')),

@@ -197,6 +197,7 @@ class LiveSettings extends React.Component<LiveSettingsProps, LiveSettingsState>
         dangerouslySetInnerHTML={{
           __html: item.description,
         }}
+        className={cx('description-style')}
       />
     );
   };

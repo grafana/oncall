@@ -12,6 +12,7 @@ import Timeline from 'components/Timeline/Timeline';
 import { WithPermissionControl } from 'containers/WithPermissionControl/WithPermissionControl';
 import { NotificationPolicyType } from 'models/notification_policy';
 import { User as UserType } from 'models/user/user.types';
+import { AppFeature } from 'state/features';
 import { useStore } from 'state/useStore';
 import { UserAction } from 'state/userAction';
 
@@ -105,6 +106,12 @@ const PersonalNotificationSettings = observer((props: PersonalNotificationSettin
   const user = userStore.items[userPk];
 
   const userAction = isCurrent ? UserAction.UpdateOwnSettings : UserAction.UpdateNotificationPolicies;
+  const getPhoneStatus = () => {
+    if (store.hasFeature(AppFeature.CloudNotifications)) {
+      return user.cloud_connection_status;
+    }
+    return Number(user.verified_phone_number) + 2;
+  };
 
   return (
     <div className={cx('root')}>
@@ -124,7 +131,7 @@ const PersonalNotificationSettings = observer((props: PersonalNotificationSettin
             index={index}
             number={index + 1}
             telegramVerified={Boolean(user.telegram_configuration)}
-            phoneVerified={Boolean(user && user.verified_phone_number)}
+            phoneStatus={getPhoneStatus()}
             slackTeamIdentity={store.teamStore.currentTeam?.slack_team_identity}
             slackUserIdentity={user.slack_user_identity}
             data={notificationPolicy}

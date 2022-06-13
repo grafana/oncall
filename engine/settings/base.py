@@ -1,4 +1,5 @@
 import os
+from random import randrange
 from urllib.parse import urljoin
 
 from celery.schedules import crontab
@@ -7,8 +8,8 @@ from common.utils import getenv_boolean
 
 VERSION = "dev-oss"
 # Indicates if instance is OSS installation.
-# It is needed to plug-in oss urls.
-OSS_INSTALLATION = getenv_boolean("OSS", False)
+# It is needed to plug-in oss application and urls.
+OSS_INSTALLATION = getenv_boolean("GRAFANA_ONCALL_OSS_INSTALLATION", True)
 SEND_ANONYMOUS_USAGE_STATS = getenv_boolean("SEND_ANONYMOUS_USAGE_STATS", default=True)
 
 # License is OpenSource or Cloud
@@ -441,3 +442,26 @@ INSTALLED_ONCALL_INTEGRATIONS = [
     "config_integrations.manual",
     "config_integrations.slack_channel",
 ]
+
+if OSS_INSTALLATION:
+    INSTALLED_APPS += ["apps.oss_installation"]  # noqa
+
+    CELERY_BEAT_SCHEDULE["send_usage_stats"] = {  # noqa
+        "task": "apps.oss_installation.tasks.send_usage_stats_report",
+        "schedule": crontab(
+            hour=0, minute=randrange(0, 59)
+        ),  # Send stats report at a random minute past midnight  # noqa
+        "args": (),
+    }  # noqa
+
+    CELERY_BEAT_SCHEDULE["send_cloud_heartbeat"] = {  # noqa
+        "task": "apps.oss_installation.tasks.send_cloud_heartbeat_task",
+        "schedule": crontab(minute="*/3"),  # noqa
+        "args": (),
+    }  # noqa
+
+    CELERY_BEAT_SCHEDULE["sync_users_with_cloud"] = {  # noqa
+        "task": "apps.oss_installation.tasks.sync_users_with_cloud",
+        "schedule": crontab(hour="*/12"),  # noqa
+        "args": (),
+    }  # noqa
