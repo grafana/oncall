@@ -38,6 +38,7 @@ class LiveSetting(models.Model):
         "TWILIO_NUMBER",
         "TWILIO_VERIFY_SERVICE_SID",
         "TELEGRAM_TOKEN",
+        "TELEGRAM_WEBHOOK_HOST",
         "SLACK_CLIENT_OAUTH_ID",
         "SLACK_CLIENT_OAUTH_SECRET",
         "SLACK_SIGNING_SECRET",
@@ -107,6 +108,9 @@ class LiveSetting(models.Model):
         "SENDGRID_INBOUND_EMAIL_DOMAIN": "Domain to receive emails for inbound emails integration.",
         "TELEGRAM_TOKEN": (
             "Secret token for Telegram bot, you can get one via " "<a href='https://t.me/BotFather'>BotFather</a>."
+        ),
+        "TELEGRAM_WEBHOOK_HOST": (
+            "Externally available URL for Telegram to make requests. Please restart OnCall backend after after update."
         ),
         "SEND_ANONYMOUS_USAGE_STATS": (
             "Grafana OnCall will send anonymous, but uniquely-identifiable usage analytics to Grafana Labs."
