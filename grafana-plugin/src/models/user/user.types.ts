@@ -52,4 +52,5 @@ export interface User {
   export_url?: string;
   status?: number;
   link?: string;
+  cloud_connection_status?: number;
 }

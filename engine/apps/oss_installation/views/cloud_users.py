@@ -1,4 +1,4 @@
-from urllib.parse import urljoin
+from collections import OrderedDict
 
 from rest_framework import mixins, status, viewsets
 from rest_framework.decorators import action
@@ -6,11 +6,11 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-import apps.oss_installation.constants as cloud_constants
 from apps.api.permissions import ActionPermission, AnyRole, IsAdmin, IsOwnerOrAdmin
 from apps.auth_token.auth import PluginAuthentication
 from apps.oss_installation.models import CloudConnector, CloudUserIdentity
 from apps.oss_installation.serializers import CloudUserSerializer
+from apps.oss_installation.utils import cloud_user_identity_status
 from apps.user_management.models import User
 from common.api_helpers.mixins import PublicPrimaryKeyMixin
 from common.api_helpers.paginators import HundredPageSizePaginator
@@ -28,10 +28,10 @@ class CloudUsersView(HundredPageSizePaginator, APIView):
 
         if request.user.current_team is not None:
             queryset = queryset.filter(teams=request.user.current_team).distinct()
+        emails = list(queryset.values_list("email", flat=True))
 
         results = self.paginate_queryset(queryset, request, view=self)
 
-        emails = list(queryset.values_list("email", flat=True))
         cloud_identities = list(CloudUserIdentity.objects.filter(email__in=emails))
         cloud_identities = {cloud_identity.email: cloud_identity for cloud_identity in cloud_identities}
 
@@ -40,20 +40,8 @@ class CloudUsersView(HundredPageSizePaginator, APIView):
         connector = CloudConnector.objects.first()
 
         for user in results:
-            link = None
-            status = cloud_constants.CLOUD_NOT_SYNCED
-            if connector is not None:
-                status = cloud_constants.CLOUD_SYNCED_USER_NOT_FOUND
-                cloud_identity = cloud_identities.get(user.email, None)
-                if cloud_identity:
-                    status = cloud_constants.CLOUD_SYNCED_PHONE_NOT_VERIFIED
-                    is_phone_verified = cloud_identity.phone_number_verified
-                    if is_phone_verified:
-                        status = cloud_constants.CLOUD_SYNCED_PHONE_VERIFIED
-                    link = urljoin(
-                        connector.cloud_url, f"a/grafana-oncall-app/?page=users&p=1&id={cloud_identity.cloud_id}"
-                    )
-
+            cloud_identity = cloud_identities.get(user.email, None)
+            status, link = cloud_user_identity_status(connector, cloud_identity)
             response.append(
                 {
                     "id": user.public_primary_key,
@@ -63,7 +51,20 @@ class CloudUsersView(HundredPageSizePaginator, APIView):
                 }
             )
 
-        return self.get_paginated_response(response)
+        return self.get_paginated_response_with_matched_users_count(response, len(cloud_identities))
+
+    def get_paginated_response_with_matched_users_count(self, data, matched_users_count):
+        return Response(
+            OrderedDict(
+                [
+                    ("count", self.page.paginator.count),
+                    ("matched_users_count", matched_users_count),
+                    ("next", self.get_next_link()),
+                    ("previous", self.get_previous_link()),
+                    ("results", data),
+                ]
+            )
+        )
 
     def post(self, request):
         connector = CloudConnector.objects.first()

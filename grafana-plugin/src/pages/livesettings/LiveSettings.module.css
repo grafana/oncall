@@ -18,3 +18,7 @@
 .check-icon {
   color: green;
 }
+
+.description-style > a {
+  color: var(--primary-text-link);
+}
