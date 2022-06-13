@@ -15,12 +15,19 @@ canonical: "https://grafana.com/docs/oncall/latest/"
 weight: 1000
 ---
 
-# Grafana OnCall
+# Grafana OnCall documentation
 
-You can use Grafana OnCall to connect to the monitoring systems of your Grafana Cloud integrations so that you can ensure alert notifications reach the right people, at the right time, using the right medium. Team members can review and manage alert group notifications directly in OnCall, or in supported platforms, like Telegram and Slack.
 
-When you integrate an alert monitoring system with Grafana OnCall, the alerts will create an alert group. This group will fire notifications that are sent according to escalation policies that you define in routes and escalation chains. You can configure escalation actions, and automatically notify users and groups through services like Slack, by text message, and by phone call. You can also use popular calendar services like Google Calendar and Outlook to schedule on-call shifts for team members.
+Grafana OnCall is an open source incident response management tool built to help teams improve their collaboration and resolve incidents faster. Some of the core strengths of Grafana OnCall include:
 
-Follow these links to learn more:
+- **Support for a broad set of monitoring systems:** Grafana OnCall supports integrations with many monitoring systems, including Grafana, Prometheus, AlertManager, Zabbix, and more. 
+- **Reduce alert noise:** Automatic alert grouping helps avoid alert storms and reduce noise during incidents. Auto-resolve settings can resolve without human intervention when the resolve conditions are met, enabling you to control alert noise and reduce alert fatigue. 
+- **Automatic escalation to on-call rotations:** Grafana OnCall’s flexible calendar integration allows you to define your on-call rotations while managing on-call schedules in your preferred calendar application with iCal format. Configurable alert escalation automatically escalates alerts to on-call team members, notifies slack channels, and more. 
+- **ChatOps focused:** Grafana OnCall integrates closely with your slack workspace to deliver alert notifications to individuals and groups, making daily alerts more visible and easier to manage.
+- **Highly customizable**: With customizable alert grouping and routing, you can decide which alerts you want to be notified of and how, ensuring the right people are notified for the right issues. 
+- **Massive scalability:** Grafana OnCall is equipped with a full API and Terraform capabilities. Ready for GitOps and large organization configuration. 
+
+
+> **Note:** You can use [Grafana Cloud](https://grafana.com/products/cloud/?plcmt=nav-products-cta1&cta=cloud) to avoid installing, maintaining, and scaling your own instance of Grafana OnCall. The free forever plan includes 30 Grafana OnCall notification. [Create an account to get started](https://grafana.com/auth/sign-up/create-user?pg=oncall&plcmt=hero-btn-1).
 
 {{< section >}}
