@@ -84,7 +84,7 @@ steps:
       - pre-commit run black --all-files
       - pre-commit run flake8 --all-files
 
-  - name: Test Backend
+  - name: Unit Test Backend
     image: python:3.9
     environment:
       DJANGO_SETTINGS_MODULE: settings.ci-test
@@ -92,10 +92,8 @@ steps:
     commands:
       - apt-get update && apt-get install -y netcat
       - cd engine/
-      - mkdir sqlite_data
       - pip install -r requirements.txt
-      - pytest --ds=settings.ci-test
-      - rm -rf sqlite_data
+      - ./wait_for_test_mysql_start.sh && pytest --ds=settings.ci-test
     depends_on:
       - rabbit_test
 
@@ -124,7 +122,7 @@ steps:
         from_secret: gcr_admin
     depends_on:
       - Lint Backend
-      - Test Backend
+      - Unit Test Backend
       - Image Tag
 
   - name: Build and Push Engine Docker Image Backend to Dockerhub
@@ -139,14 +137,14 @@ steps:
         from_secret: docker_username
     depends_on:
       - Lint Backend
-      - Test Backend
+      - Unit Test Backend
       - Image Tag
     when:
       ref:
         - refs/heads/dev
         - refs/tags/v*.*.*
 
-# Services for Test Backend
+# Services for Unit Test Backend
 services:
   - name: rabbit_test
     image: rabbitmq:3.7.19
@@ -154,14 +152,22 @@ services:
       RABBITMQ_DEFAULT_USER: rabbitmq
       RABBITMQ_DEFAULT_PASS: rabbitmq
 
+  - name: mysql_test
+    image: mysql:5.7.25
+    environment:
+      MYSQL_DATABASE: oncall_local_dev
+      MYSQL_ROOT_PASSWORD: local_dev_pwd
+
 trigger:
   event:
     include:
     - tag
     - push
+    - pull_request
   ref:
     include:
-      - refs/heads/**
+      - refs/heads/main
+      - refs/heads/dev
       - refs/tags/v*.*.*
 
 ---
@@ -235,6 +241,6 @@ kind: secret
 name: drone_token
 ---
 kind: signature
-hmac: b42fdbbe647ee80391e473b5a18ab0469609c70d1b919a31fe0fdab8c208515e
+hmac: 7621bb1ccfcbec9f92c385670f2b2790859aba25f31c4936997123906fb102c0
 
 ...

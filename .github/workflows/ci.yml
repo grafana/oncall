@@ -1,0 +1,54 @@
+name: ci
+
+on:
+  push:
+    branches:
+      - main
+      - dev
+  pull_request:
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    container: python:3.9
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+        with:
+          node-version: 14
+      - name: Install Dependencies
+        run: |
+          pip install $(grep "pre-commit" engine/requirements.txt)
+          npm install -g yarn
+          cd grafana-plugin/
+          yarn --network-timeout 500000
+      - name: Lint All
+        run: |
+          pre-commit run --all-files
+
+  unit-test-backend:
+    runs-on: ubuntu-latest
+    container: python:3.9
+    env:
+      DJANGO_SETTINGS_MODULE: settings.ci-test
+      SLACK_CLIENT_OAUTH_ID: 1
+    services:
+      rabbit_test:
+        image: rabbitmq:3.7.19
+        env:
+          RABBITMQ_DEFAULT_USER: rabbitmq
+          RABBITMQ_DEFAULT_PASS: rabbitmq
+      mysql_test:
+        image: mysql:5.7.25
+        env:
+          MYSQL_DATABASE: oncall_local_dev
+          MYSQL_ROOT_PASSWORD: local_dev_pwd
+
+    steps:
+      - uses: actions/checkout@v2
+      - name: Unit Test Backend
+        run: |
+          apt-get update && apt-get install -y netcat
+          cd engine/
+          pip install -r requirements.txt
+          ./wait_for_test_mysql_start.sh && pytest --ds=settings.ci-test -x
