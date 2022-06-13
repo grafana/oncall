@@ -76,7 +76,6 @@ def test_ratelimit_alerts_per_team(
     assert mocked_task.call_count == 1
 
 
-@pytest.mark.skip("SQLITE skip, integration refactoring")
 @mock.patch("ratelimit.utils._split_rate", return_value=(1, 60))
 @mock.patch("apps.heartbeat.tasks.process_heartbeat_task.apply_async", return_value=None)
 @pytest.mark.django_db
