@@ -12,7 +12,6 @@ steps:
       - cd grafana-plugin/
       - if [ -z "$DRONE_TAG" ]; then echo "No tag, not modifying version"; else jq '.version="${DRONE_TAG}"' package.json > package.new && mv package.new package.json && jq '.version' package.json; fi
       - yarn --network-timeout 500000
-      - yarn plop "Append build info" "${DRONE_TAG}" "${DRONE_BRANCH}" "${DRONE_COMMIT}"
       - yarn build
       - ls ./
 
@@ -85,7 +84,7 @@ steps:
       - pre-commit run black --all-files
       - pre-commit run flake8 --all-files
 
-  - name: Test Backend
+  - name: Unit Test Backend
     image: python:3.9
     environment:
       DJANGO_SETTINGS_MODULE: settings.ci-test
@@ -93,10 +92,8 @@ steps:
     commands:
       - apt-get update && apt-get install -y netcat
       - cd engine/
-      - mkdir sqlite_data
       - pip install -r requirements.txt
-      - pytest --ds=settings.ci-test
-      - rm -rf sqlite_data
+      - ./wait_for_test_mysql_start.sh && pytest --ds=settings.ci-test
     depends_on:
       - rabbit_test
 
@@ -125,7 +122,7 @@ steps:
         from_secret: gcr_admin
     depends_on:
       - Lint Backend
-      - Test Backend
+      - Unit Test Backend
       - Image Tag
 
   - name: Build and Push Engine Docker Image Backend to Dockerhub
@@ -140,14 +137,14 @@ steps:
         from_secret: docker_username
     depends_on:
       - Lint Backend
-      - Test Backend
+      - Unit Test Backend
       - Image Tag
     when:
       ref:
         - refs/heads/dev
         - refs/tags/v*.*.*
 
-# Services for Test Backend
+# Services for Unit Test Backend
 services:
   - name: rabbit_test
     image: rabbitmq:3.7.19
@@ -155,14 +152,22 @@ services:
       RABBITMQ_DEFAULT_USER: rabbitmq
       RABBITMQ_DEFAULT_PASS: rabbitmq
 
+  - name: mysql_test
+    image: mysql:5.7.25
+    environment:
+      MYSQL_DATABASE: oncall_local_dev
+      MYSQL_ROOT_PASSWORD: local_dev_pwd
+
 trigger:
   event:
     include:
     - tag
     - push
+    - pull_request
   ref:
     include:
-      - refs/heads/**
+      - refs/heads/main
+      - refs/heads/dev
       - refs/tags/v*.*.*
 
 ---
@@ -236,6 +241,6 @@ kind: secret
 name: drone_token
 ---
 kind: signature
-hmac: 5cdafa5ca416acb1763d1d9ac93bbd932982c874718f40af533914a6711c1a1f
+hmac: 7621bb1ccfcbec9f92c385670f2b2790859aba25f31c4936997123906fb102c0
 
 ...

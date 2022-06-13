@@ -157,8 +157,6 @@ services:
       GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_PASSWORD:?err}
       GF_PLUGINS_ALLOW_LOADING_UNSIGNED_PLUGINS: grafana-oncall-app
       GF_INSTALL_PLUGINS: grafana-oncall-app
-    volumes:
-      - ./grafana-plugin:/var/lib/grafana/plugins/grafana-plugin
     depends_on:
       mysql_to_create_grafana_db:
         condition: service_completed_successfully
