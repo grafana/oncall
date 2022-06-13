@@ -1,7 +1,6 @@
 from django.db.models import Count
 from django_filters import rest_framework as filters
 from rest_framework.exceptions import NotFound
-from rest_framework.filters import SearchFilter
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.viewsets import ModelViewSet
 
@@ -35,14 +34,17 @@ class IntegrationView(
 
     pagination_class = FiftyPageSizePaginator
 
-    filter_backends = (filters.DjangoFilterBackend, SearchFilter)
+    filter_backends = (filters.DjangoFilterBackend,)
     filterset_class = ByTeamFilter
-    search_fields = ("verbal_name",)
 
     def get_queryset(self):
         queryset = AlertReceiveChannel.objects.filter(organization=self.request.auth.organization).order_by(
             "created_at"
         )
+        name = self.request.query_params.get("name", None)
+        if name is not None:
+            queryset = queryset.filter(verbal_name=name)
+        queryset = self.filter_queryset(queryset)
         queryset = self.serializer_class.setup_eager_loading(queryset)
         queryset = queryset.annotate(alert_groups_count_annotated=Count("alert_groups", distinct=True))
         return queryset

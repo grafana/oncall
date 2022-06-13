@@ -36,7 +36,7 @@ def setup_heartbeat_integration(name=None):
             response_data = r.json()
             error = response_data["detail"]
             if error == "Integration with this name already exists":
-                response = requests.get(url=f"{url}?search={name}", headers=headers)
+                response = requests.get(url=f"{url}?name={name}", headers=headers)
                 integrations = response.json().get("results", [])
                 if len(integrations) == 1:
                     integration = integrations[0]
