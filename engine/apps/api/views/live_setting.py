@@ -12,6 +12,7 @@ from apps.api.serializers.live_setting import LiveSettingSerializer
 from apps.auth_token.auth import PluginAuthentication
 from apps.base.models import LiveSetting
 from apps.base.utils import live_settings
+from apps.oss_installation.tasks import sync_users_with_cloud
 from apps.slack.tasks import unpopulate_slack_user_identities
 from apps.telegram.client import TelegramClient
 from apps.telegram.tasks import register_telegram_webhook
@@ -41,8 +42,10 @@ class LiveSettingViewSet(PublicPrimaryKeyMixin, viewsets.ModelViewSet):
     def perform_update(self, serializer):
         new_value = serializer.validated_data["value"]
         self._update_hook(new_value)
-
-        super().perform_update(serializer)
+        instance = serializer.save()
+        sync_users = self.request.query_params.get("sync_users", True)
+        if instance.name == "GRAFANA_CLOUD_ONCALL_TOKEN" and sync_users:
+            sync_users_with_cloud.apply_async()
 
     def perform_destroy(self, instance):
         new_value = instance.default_value

@@ -3,11 +3,11 @@ import platform
 from dataclasses import asdict, dataclass
 
 import requests
+from django.apps import apps
 from django.conf import settings
 from django.db.models import Sum
 
 from apps.alerts.models import AlertGroupCounter
-from apps.oss_installation.models import OssInstallation
 from apps.oss_installation.utils import active_oss_users_count
 
 USAGE_STATS_URL = "https://stats.grafana.org/oncall-usage-report"
@@ -27,6 +27,7 @@ class UsageStatsReport:
 
 class UsageStatsService:
     def get_usage_stats_report(self):
+        OssInstallation = apps.get_model("oss_installation", "OssInstallation")
         metrics = {}
         metrics["active_users_count"] = active_oss_users_count()
         total_alert_groups = AlertGroupCounter.objects.aggregate(Sum("value")).get("value__sum", None)
