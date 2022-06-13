@@ -43,7 +43,7 @@ class LiveSettingViewSet(PublicPrimaryKeyMixin, viewsets.ModelViewSet):
         new_value = serializer.validated_data["value"]
         self._update_hook(new_value)
         instance = serializer.save()
-        sync_users = self.request.query_params.get("sync_users", True)
+        sync_users = self.request.query_params.get("sync_users", "true") == "true"
         if instance.name == "GRAFANA_CLOUD_ONCALL_TOKEN" and sync_users:
             sync_users_with_cloud.apply_async()
 
