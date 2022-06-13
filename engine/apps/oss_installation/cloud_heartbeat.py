@@ -38,7 +38,7 @@ def setup_heartbeat_integration(name=None):
             if error == "Integration with this name already exists":
                 response = requests.get(url=f"{url}?search={name}", headers=headers)
                 integrations = response.json().get("results", [])
-                if len(integrations) != 0:
+                if len(integrations) == 1:
                     integration = integrations[0]
                     cloud_heartbeat, updated = CloudHeartbeat.objects.update_or_create(
                         defaults={
