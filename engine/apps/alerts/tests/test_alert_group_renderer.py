@@ -2,7 +2,7 @@ import pytest
 
 from apps.alerts.incident_appearance.templaters import AlertSlackTemplater
 from apps.alerts.models import AlertGroup
-from apps.integrations.metadata.configuration import grafana
+from config_integrations import grafana
 
 
 @pytest.mark.django_db

@@ -34,8 +34,10 @@ class LiveSettingDjangoStrategy(DjangoStrategy):
 
     def build_absolute_uri(self, path=None):
         """
-        Overriden DjangoStrategy's method to substitute and force the host value from ENV
+        Overridden DjangoStrategy's method to substitute and force the host value from ENV
         """
+        if live_settings.SLACK_INSTALL_RETURN_REDIRECT_HOST is not None and path is not None:
+            return live_settings.SLACK_INSTALL_RETURN_REDIRECT_HOST + path
         if settings.SLACK_INSTALL_RETURN_REDIRECT_HOST is not None and path is not None:
             return settings.SLACK_INSTALL_RETURN_REDIRECT_HOST + path
         if self.request:

@@ -75,6 +75,7 @@ def test_update_user_cant_change_email_and_username(
                 "user": admin.username,
             }
         },
+        "cloud_connection_status": 0,
         "permissions": ADMIN_PERMISSIONS,
         "notification_chain_verbal": {"default": "", "important": ""},
         "slack_user_identity": None,
@@ -124,6 +125,7 @@ def test_list_users(
                 "notification_chain_verbal": {"default": "", "important": ""},
                 "slack_user_identity": None,
                 "avatar": admin.avatar_url,
+                "cloud_connection_status": 0,
             },
             {
                 "pk": editor.public_primary_key,
@@ -144,6 +146,7 @@ def test_list_users(
                 "notification_chain_verbal": {"default": "", "important": ""},
                 "slack_user_identity": None,
                 "avatar": editor.avatar_url,
+                "cloud_connection_status": 0,
             },
         ],
     }

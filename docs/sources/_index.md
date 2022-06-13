@@ -1,9 +1,18 @@
-+++
-title = "Grafana OnCall"
-keywords = ["Grafana Cloud", "Alerts", "Notifications", "on-call", "amixr", "OnCall", "irm"]
-weight = 1000
-aliases = ["/docs/grafana-cloud/oncall/"]
-+++
+---
+aliases:
+  - /docs/grafana-cloud/oncall/
+  - /docs/oncall/latest/
+keywords:
+  - Grafana Cloud
+  - Alerts
+  - Notifications
+  - on-call
+  - amixr
+  - OnCall
+  - irm
+title: Grafana OnCall
+weight: 1000
+---
 
 # Grafana OnCall
 

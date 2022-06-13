@@ -1,8 +1,10 @@
 import logging
+from urllib.parse import urljoin
 
 from django.apps import apps
 from django.utils import timezone
 
+from apps.oss_installation import constants as oss_constants
 from apps.schedules.ical_utils import list_users_to_notify_from_ical_for_period
 
 logger = logging.getLogger(__name__)
@@ -65,3 +67,20 @@ def active_oss_users_count():
             unique_active_users.add(user.pk)
 
     return len(unique_active_users)
+
+
+def cloud_user_identity_status(connector, identity):
+    link = None
+    if connector is None:
+        status = oss_constants.CLOUD_NOT_SYNCED
+    elif identity is None:
+        status = oss_constants.CLOUD_SYNCED_USER_NOT_FOUND
+        link = connector.cloud_url
+    else:
+        if identity.phone_number_verified:
+            status = oss_constants.CLOUD_SYNCED_PHONE_VERIFIED
+        else:
+            status = oss_constants.CLOUD_SYNCED_PHONE_NOT_VERIFIED
+
+        link = urljoin(connector.cloud_url, f"a/grafana-oncall-app/?page=users&p=1&id={identity.cloud_id}")
+    return status, link

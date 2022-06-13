@@ -56,7 +56,7 @@ resolve_condition = """\
 {# The heartbeat alerts will go here so we check for our own key #}
 {{ payload["is_amixr_heartbeat_restored"] }}
 {%- else -%}
-{{ payload.get("state", "").upper() == "OK" }}'
+{{ payload.get("state", "").upper() == "OK" }}
 {%- endif %}"""
 acknowledge_condition = None
 

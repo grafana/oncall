@@ -1,35 +1,37 @@
-+++
-title = "Grafana OnCall Users HTTP API"
-aliases = ["/docs/grafana-cloud/oncall/oncall-api-reference/users/"]
-weight = 1500
-+++
+---
+aliases:
+  - /docs/grafana-cloud/oncall/oncall-api-reference/users/
+  - /docs/oncall/latest/oncall-api-reference/users/
+title: Grafana OnCall Users HTTP API
+weight: 1500
+---
 
 # Get a user
 
 This endpoint retrieves the user object.
 
-```shell
+````shell
 ```shell
 curl "{{API_URL}}/api/v1/users/current/" \
   --request GET \
   --header "Authorization: meowmeowmeow" \
   --header "Content-Type: application/json"
-```
+````
 
 The above command returns JSON structured in the following way:
 
 ```json
 {
-    "id": "U4DNY931HHJS5",
-    "email": "public-api-demo-user-1@grafana.com",
-    "slack": [
-        {
-            "user_id": "UALEXSLACKDJPK",
-            "team_id": "TALEXSLACKDJPK"
-        }
-    ],
-    "username": "alex",
-    "role": "admin"
+  "id": "U4DNY931HHJS5",
+  "email": "public-api-demo-user-1@grafana.com",
+  "slack": [
+    {
+      "user_id": "UALEXSLACKDJPK",
+      "team_id": "TALEXSLACKDJPK"
+    }
+  ],
+  "username": "alex",
+  "role": "admin"
 }
 ```
 
@@ -37,15 +39,15 @@ The above command returns JSON structured in the following way:
 
 `GET {{API_URL}}/api/v1/users/<USER_ID>/`
 
-Use `{{API_URL}}/api/v1/users/current` to retrieve the current user. 
+Use `{{API_URL}}/api/v1/users/current` to retrieve the current user.
 
-| Parameter | Unique | Description |
-|-----------|:------:|:------------|
-`id` | Yes/org | User ID
-`email` | Yes/org | User e-mail
-`slack` | Yes/org | List of user IDs from connected Slack. User linking key is e-mail.
-`username` | Yes/org | User username
-`role` | No | One of: `user`, `observer`, `admin`.
+| Parameter  | Unique  | Description                                                        |
+| ---------- | :-----: | :----------------------------------------------------------------- |
+| `id`       | Yes/org | User ID                                                            |
+| `email`    | Yes/org | User e-mail                                                        |
+| `slack`    | Yes/org | List of user IDs from connected Slack. User linking key is e-mail. |
+| `username` | Yes/org | User username                                                      |
+| `role`     |   No    | One of: `user`, `observer`, `admin`.                               |
 
 # List Users
 
@@ -60,23 +62,23 @@ The above command returns JSON structured in the following way:
 
 ```json
 {
-    "count": 1,
-    "next": null,
-    "previous": null,
-    "results": [
+  "count": 1,
+  "next": null,
+  "previous": null,
+  "results": [
+    {
+      "id": "U4DNY931HHJS5",
+      "email": "public-api-demo-user-1@grafana.com",
+      "slack": [
         {
-            "id": "U4DNY931HHJS5",
-            "email": "public-api-demo-user-1@grafana.com",
-            "slack": [
-                {
-                    "user_id": "UALEXSLACKDJPK",
-                    "team_id": "TALEXSLACKDJPK"
-                }
-            ],
-            "username": "alex",
-            "role": "admin"
+          "user_id": "UALEXSLACKDJPK",
+          "team_id": "TALEXSLACKDJPK"
         }
-    ]
+      ],
+      "username": "alex",
+      "role": "admin"
+    }
+  ]
 }
 ```
 
@@ -84,7 +86,7 @@ This endpoint retrieves all users.
 
 The following available filter parameter should be provided as a `GET` argument:
 
-* `username` (Exact match)
+- `username` (Exact match)
 
 **HTTP request**
 
