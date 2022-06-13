@@ -26,14 +26,18 @@ if TYPE_CHECKING:
     from apps.user_management.models import User
 
 
-def users_in_ical(usernames_from_ical, organization):
+def users_in_ical(usernames_from_ical, organization, include_viewers=False):
     """
     Parse ical file and return list of users found
     """
     # Only grafana username will be used, consider adding grafana email and id
 
-    users_found_in_ical = organization.users.filter(
-        Q(role__in=(Role.ADMIN, Role.EDITOR)) & (Q(username__in=usernames_from_ical) | Q(email__in=usernames_from_ical))
+    users_found_in_ical = organization.users
+    if not include_viewers:
+        users_found_in_ical = users_found_in_ical.filter(role__in=(Role.ADMIN, Role.EDITOR))
+
+    users_found_in_ical = users_found_in_ical.filter(
+        (Q(username__in=usernames_from_ical) | Q(email__in=usernames_from_ical))
     ).distinct()
 
     # Here is the example how we extracted users previously, using slack fields too
@@ -260,15 +264,17 @@ def list_of_empty_shifts_in_schedule(schedule, start_date, end_date):
     return sorted(empty_shifts, key=lambda dt: dt.start)
 
 
-def list_users_to_notify_from_ical(schedule, events_datetime=None):
+def list_users_to_notify_from_ical(schedule, events_datetime=None, include_viewers=False):
     """
     Retrieve on-call users for the current time
     """
     events_datetime = events_datetime if events_datetime else timezone.datetime.now(timezone.utc)
-    return list_users_to_notify_from_ical_for_period(schedule, events_datetime, events_datetime)
+    return list_users_to_notify_from_ical_for_period(
+        schedule, events_datetime, events_datetime, include_viewers=include_viewers
+    )
 
 
-def list_users_to_notify_from_ical_for_period(schedule, start_datetime, end_datetime):
+def list_users_to_notify_from_ical_for_period(schedule, start_datetime, end_datetime, include_viewers=False):
     # get list of iCalendars from current iCal files. If there is more than one calendar, primary calendar will always
     # be the first
     calendars = schedule.get_icalendars()
@@ -286,7 +292,7 @@ def list_users_to_notify_from_ical_for_period(schedule, start_datetime, end_date
             parsed_ical_events.setdefault(current_priority, []).extend(current_usernames)
         # find users by usernames. if users are not found for shift, get users from lower priority
         for _, usernames in sorted(parsed_ical_events.items(), reverse=True):
-            users_found_in_ical = users_in_ical(usernames, schedule.organization)
+            users_found_in_ical = users_in_ical(usernames, schedule.organization, include_viewers=include_viewers)
             if users_found_in_ical:
                 break
         if users_found_in_ical:

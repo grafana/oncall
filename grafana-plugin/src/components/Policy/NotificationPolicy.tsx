@@ -35,7 +35,7 @@ export interface NotificationPolicyProps {
   waitDelays?: WaitDelay[];
   notifyByOptions?: NotifyBy[];
   telegramVerified: boolean;
-  phoneVerified: boolean;
+  phoneStatus: number;
   color: string;
   number: number;
   userAction: UserAction;
@@ -115,13 +115,21 @@ export class NotificationPolicy extends React.Component<NotificationPolicyProps,
   }
 
   _renderPhoneNote() {
-    const { phoneVerified } = this.props;
+    const { phoneStatus } = this.props;
 
-    return phoneVerified ? (
-      <PolicyNote type="success">Phone number is verified</PolicyNote>
-    ) : (
-      <PolicyNote type="danger">Phone number is not verified</PolicyNote>
-    );
+    switch (phoneStatus) {
+      case 0:
+        return <PolicyNote type="danger">Cloud is not synced</PolicyNote>;
+      case 1:
+        return <PolicyNote type="danger">User is not matched with cloud</PolicyNote>;
+      case 2:
+        return <PolicyNote type="danger">Phone number is not verified</PolicyNote>;
+      case 3:
+        return <PolicyNote type="success">Phone number is verified</PolicyNote>;
+
+      default:
+        return null;
+    }
   }
 
   _renderTelegramNote() {

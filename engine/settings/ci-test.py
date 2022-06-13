@@ -39,5 +39,3 @@ TWILIO_AUTH_TOKEN = "dummy_twilio_auth_token"
 
 FEATURE_EXTRA_MESSAGING_BACKENDS_ENABLED = True
 EXTRA_MESSAGING_BACKENDS = ["apps.base.tests.messaging_backend.TestOnlyBackend"]
-OSS_INSTALLATION = True
-INSTALLED_APPS += ["apps.oss_installation"]  # noqa

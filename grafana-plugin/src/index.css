@@ -30,13 +30,13 @@
   background: var(--highlighted-row-bg);
 }
 
-@media (max-width: 1440px) {
+@media (max-width: 1540px) {
   .page-header__tabs > ul > li > a > div {
     display: none;
   }
 }
 
-@media (max-width: 1200px) {
+@media (max-width: 1300px) {
   .sidemenu {
     position: fixed !important;
     height: 100%;

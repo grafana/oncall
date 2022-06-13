@@ -56,7 +56,11 @@ class OpenAlertAppearanceDialogStep(
         raw_request_data = json.dumps(alert_group.alerts.first().raw_request_data, sort_keys=True, indent=4)
 
         # This is a special case for amazon sns notifications in str format CHEKED
-        if alert_group.channel.integration == AlertReceiveChannel.INTEGRATION_AMAZON_SNS and raw_request_data == "{}":
+        if (
+            AlertReceiveChannel.INTEGRATION_AMAZON_SNS is not None
+            and alert_group.channel.integration == AlertReceiveChannel.INTEGRATION_AMAZON_SNS
+            and raw_request_data == "{}"
+        ):
             raw_request_data = alert_group.alerts.first().message
 
         raw_request_data_chunks = [

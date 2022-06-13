@@ -1,6 +1,6 @@
 <img width="400px" src="docs/img/logo.png">
 
-Developer-friendly, incident response management with brilliant Slack integration.
+Developer-friendly, incident response with brilliant Slack integration.
 
 <img width="60%" src="screenshot.png">
 
@@ -11,7 +11,7 @@ Developer-friendly, incident response management with brilliant Slack integratio
 
 ## Getting Started
 
-We prepared multiple environments: [production](PRODUCTION.md), [developer](DEVELOPER.md) and hobby:
+We prepared multiple environments: [production](https://grafana.com/docs/grafana-cloud/oncall/open-source/#production-environment), [developer](DEVELOPER.md) and hobby:
 
 1. Download docker-compose.yaml:
 ```bash

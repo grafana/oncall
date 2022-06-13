@@ -1,6 +1,6 @@
 from typing import Optional, Tuple, Union
+from urllib.parse import urljoin
 
-from django.conf import settings
 from telegram import Bot, InlineKeyboardMarkup, Message, ParseMode
 from telegram.error import InvalidToken, Unauthorized
 from telegram.utils.request import Request
@@ -34,7 +34,10 @@ class TelegramClient:
             return False
 
     def register_webhook(self, webhook_url: Optional[str] = None) -> None:
-        webhook_url = webhook_url or settings.TELEGRAM_WEBHOOK_URL
+        webhook_url = webhook_url or urljoin(live_settings.TELEGRAM_WEBHOOK_HOST, "/telegram/")
+
+        if webhook_url is None:
+            webhook_url = live_settings.TELEGRAM_WEBHOOK_URL
 
         webhook_info = self.api_client.get_webhook_info()
         if webhook_info.url == webhook_url:

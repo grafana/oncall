@@ -12,7 +12,6 @@ steps:
       - cd grafana-plugin/
       - if [ -z "$DRONE_TAG" ]; then echo "No tag, not modifying version"; else jq '.version="${DRONE_TAG}"' package.json > package.new && mv package.new package.json && jq '.version' package.json; fi
       - yarn --network-timeout 500000
-      - yarn plop "Append build info" "${DRONE_TAG}" "${DRONE_BRANCH}" "${DRONE_COMMIT}"
       - yarn build
       - ls ./
 
@@ -242,6 +241,6 @@ kind: secret
 name: drone_token
 ---
 kind: signature
-hmac: d77a42a8a25f3c78d60d294bc9dd067fee5d242eed51da8cc992ad30f338907e
+hmac: 7621bb1ccfcbec9f92c385670f2b2790859aba25f31c4936997123906fb102c0
 
 ...

@@ -8,7 +8,7 @@ services:
     command: >
       sh -c "uwsgi --ini uwsgi.ini"
     environment:
-      BASE_URL: https://$DOMAIN
+      BASE_URL: $DOMAIN
       SECRET_KEY: $SECRET_KEY
       RABBITMQ_USERNAME: "rabbitmq"
       RABBITMQ_PASSWORD: $RABBITMQ_PASSWORD
@@ -39,7 +39,7 @@ services:
     build: engine
     command: sh -c "./celery_with_exporter.sh"
     environment:
-      BASE_URL: https://$DOMAIN
+      BASE_URL: $DOMAIN
       SECRET_KEY: $SECRET_KEY
       RABBITMQ_USERNAME: "rabbitmq"
       RABBITMQ_PASSWORD: $RABBITMQ_PASSWORD
@@ -73,7 +73,7 @@ services:
     build: engine
     command: python manage.py migrate --noinput
     environment:
-      BASE_URL: https://$DOMAIN
+      BASE_URL: $DOMAIN
       SECRET_KEY: $SECRET_KEY
       RABBITMQ_USERNAME: "rabbitmq"
       RABBITMQ_PASSWORD: $RABBITMQ_PASSWORD
@@ -157,8 +157,6 @@ services:
       GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_PASSWORD:?err}
       GF_PLUGINS_ALLOW_LOADING_UNSIGNED_PLUGINS: grafana-oncall-app
       GF_INSTALL_PLUGINS: grafana-oncall-app
-    volumes:
-      - ./grafana-plugin:/var/lib/grafana/plugins/grafana-plugin
     depends_on:
       mysql_to_create_grafana_db:
         condition: service_completed_successfully

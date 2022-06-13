@@ -50,3 +50,22 @@
   margin-right: 8px;
   color: var(--warning-text-color);
 }
+
+.error-icon {
+  display: inline-block;
+  white-space: break-spaces;
+  line-height: 20px;
+  color: var(--error-text-color);
+}
+
+.error-icon svg {
+  vertical-align: middle;
+}
+
+.warning-message {
+  color: var(--warning-text-color);
+}
+
+.success-message {
+  color: var(--success-text-color);
+}
