@@ -15,7 +15,7 @@ We prepared multiple environments: [production](https://grafana.com/docs/grafana
 
 1. Download docker-compose.yaml:
 ```bash
-curl -fsSL https://raw.githubusercontent.com/grafana/oncall/dev/docker-compose.yml -o docker-compose.yaml
+curl -fsSL https://raw.githubusercontent.com/grafana/oncall/dev/docker-compose.yml -o docker-compose.yml
 ```
 
 2. Set variables:
