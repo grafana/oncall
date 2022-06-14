@@ -1,19 +1,25 @@
 ---
-title: 
-- Get started with Grafana OnCall
-aliases: 
-- /docs/grafana-cloud/oncall/getting-started
+aliases:
+  - /docs/grafana-cloud/oncall/getting-started/
+  - /docs/oncall/latest/getting-started/
+keywords:
+  - Get started
+  - On call
+  - Grafana Cloud
+title: Get started with Grafana OnCall
 canonical: "https://grafana.com/docs/oncall/latest/getting-started/"
-weight: 100
+weight: 300
 ---
-
-canonical: "https://grafana.com/docs/oncall/latest/oncall-api-reference/
 
 # Get started with Grafana OnCall
 
 Grafana OnCall is an incident response tool built to help DevOps and SRE teams improve their collaboration and resolve incidents faster.
 
 With a centralized view of all your alerts, automated alert escalation and grouping, and on-call scheduling, Grafana OnCall helps ensure that alert notifications reach the right people, at the right time using the right notification method.
+
+The following diagram details an example alert workflow with Grafana OnCall:
+
+<img src="/static/img/docs/oncall/oncall-alertworkflow.png" class="no-shadow" width="700px">
 
 These procedures introduce you to initial Grafana OnCall configuration steps, including monitoring system integration, how to set up escalation chains, and how to use your calendar service for on-call scheduling.
 

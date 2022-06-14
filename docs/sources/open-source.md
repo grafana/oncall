@@ -6,7 +6,7 @@ keywords:
   - Open Source
 title: Open Source
 canonical: "https://grafana.com/docs/oncall/latest/open-source/"
-weight: 100
+weight: 300
 ---
 
 # Open Source

@@ -1,6 +1,6 @@
 ---
 title: Configure escalation chains and routes for Grafana OnCall
-weight: 500
+weight: 700
 canonical: "https://grafana.com/docs/oncall/latest/escalation-policies/"
 aliases:
   - /docs/oncall/latest/chat-options/escalation-policies/

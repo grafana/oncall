@@ -17,6 +17,8 @@ weight: 1000
 
 # Grafana OnCall documentation
 
+<img src="/static/img/docs/oncall/oncall-logo.png" class="no-shadow" width="700px">
+
 
 Grafana OnCall is an open source incident response management tool built to help teams improve their collaboration and resolve incidents faster. Some of the core strengths of Grafana OnCall include:
 

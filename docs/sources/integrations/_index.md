@@ -12,7 +12,7 @@ keywords:
   - integrations
 title: Connect to Grafana OnCall
 canonical: "https://grafana.com/docs/oncall/latest/integrations/"
-weight: 300
+weight: 500
 ---
 
 # Connect to Grafana OnCall

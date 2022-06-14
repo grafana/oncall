@@ -9,7 +9,7 @@ keywords:
   - calendar
 title: Configure and manage on-call schedules
 canonical: "https://grafana.com/docs/oncall/latest/calendar-schedules/"
-weight: 900
+weight: 1100
 ---
 
 # Configure and manage on-call schedules

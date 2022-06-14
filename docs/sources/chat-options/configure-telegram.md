@@ -9,12 +9,12 @@ keywords:
   - amixr
   - oncall
   - telegram
-title: Connect Telegram to Grafana OnCall
+title: Telegram integration for Grafana OnCall
 canonical: "https://grafana.com/docs/oncall/latest/chat-options/configure-telegram/"
 weight: 300
 ---
 
-# Connect Telegram to Grafana OnCall
+# Telegram integration for Grafana OnCall
 
 You can use Telegram to deliver alert group notifications to a dedicated channel, and allow users to perform notification actions.
 
