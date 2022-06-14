@@ -105,7 +105,7 @@ const CloudPage = observer((props: CloudPageProps) => {
   };
 
   const handleLinkClick = (link: string) => {
-    window.location.replace(link);
+    window.open(link, '_blank');
   };
 
   const renderButtons = (user: Cloud) => {

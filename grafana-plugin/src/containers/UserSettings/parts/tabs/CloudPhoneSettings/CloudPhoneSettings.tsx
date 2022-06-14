@@ -48,7 +48,7 @@ const CloudPhoneSettings = observer((props: CloudPhoneSettingsProps) => {
   }, []);
 
   const handleLinkClick = (link: string) => {
-    window.location.replace(link);
+    window.open(link, '_blank');
   };
 
   const syncUser = async () => {
