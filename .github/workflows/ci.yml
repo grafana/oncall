@@ -18,6 +18,7 @@ jobs:
           node-version: 14
       - name: Build
         run: |
+          echo Start-Build
           pip install $(grep "pre-commit" engine/requirements.txt)
           npm install -g yarn
           cd grafana-plugin/
