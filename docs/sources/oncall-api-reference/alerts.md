@@ -1,8 +1,11 @@
-+++
-title = "Alerts HTTP API"
-aliases = ["/docs/grafana-cloud/oncall/oncall-api-reference/alerts"]
-weight = 100
-+++
+---
+aliases:
+  - /docs/grafana-cloud/oncall/oncall-api-reference/alerts/
+  - /docs/oncall/latest/oncall-api-reference/alerts/
+title: Alerts HTTP API
+canonical: "https://grafana.com/docs/oncall/latest/oncall-api-reference/alerts/"
+weight: 100
+---
 
 # List Alerts
 
@@ -10,100 +13,100 @@ weight = 100
 curl "{{API_URL}}/api/v1/alerts/" \
   --request GET \
   --header "Authorization: meowmeowmeow" \
-  --header "Content-Type: application/json" 
+  --header "Content-Type: application/json"
 ```
 
 The above command returns JSON structured in the following way:
 
 ```json
 {
-    "count": 3,
-    "next": null,
-    "previous": null,
-    "results": [
-        {
-            "id": "AA74DN7T4JQB6",
-            "alert_group_id": "I68T24C13IFW1",
-            "created_at": "2020-05-11T20:07:43Z",
-            "payload": {
-                "state": "alerting",
-                "title": "[Alerting] Test notification",
-                "ruleId": 0,
-                "message": "Someone is testing the alert notification within Grafana.",
-                "ruleUrl": "{{API_URL}}/",
-                "ruleName": "Test notification",
-                "evalMatches": [
-                    {
-                        "tags": null,
-                        "value": 100,
-                        "metric": "High value"
-                    },
-                    {
-                        "tags": null,
-                        "value": 200,
-                        "metric": "Higher Value"
-                    }
-                ]
-            }
-        },
-        {
-            "id": "AR9SSYFKE2PV7",
-            "alert_group_id": "I68T24C13IFW1",
-            "created_at": "2020-05-11T20:07:54Z",
-            "payload": {
-                "state": "alerting",
-                "title": "[Alerting] Test notification",
-                "ruleId": 0,
-                "message": "Someone is testing the alert notification within Grafana.",
-                "ruleUrl": "{{API_URL}}/",
-                "ruleName": "Test notification",
-                "evalMatches": [
-                    {
-                        "tags": null,
-                        "value": 100,
-                        "metric": "High value"
-                    },
-                    {
-                        "tags": null,
-                        "value": 200,
-                        "metric": "Higher Value"
-                    }
-                ]
-            }
-        },
-        {
-            "id": "AWJQSGEYYUFGH",
-            "alert_group_id": "I68T24C13IFW1",
-            "created_at": "2020-05-11T20:07:58Z",
-            "payload": {
-                "state": "alerting",
-                "title": "[Alerting] Test notification",
-                "ruleId": 0,
-                "message": "Someone is testing the alert notification within Grafana.",
-                "ruleUrl": "{{API_URL}}/",
-                "ruleName": "Test notification",
-                "evalMatches": [
-                    {
-                        "tags": null,
-                        "value": 100,
-                        "metric": "High value"
-                    },
-                    {
-                        "tags": null,
-                        "value": 200,
-                        "metric": "Higher Value"
-                    }
-                ]
-            }
-        }
-    ]
+  "count": 3,
+  "next": null,
+  "previous": null,
+  "results": [
+    {
+      "id": "AA74DN7T4JQB6",
+      "alert_group_id": "I68T24C13IFW1",
+      "created_at": "2020-05-11T20:07:43Z",
+      "payload": {
+        "state": "alerting",
+        "title": "[Alerting] Test notification",
+        "ruleId": 0,
+        "message": "Someone is testing the alert notification within Grafana.",
+        "ruleUrl": "{{API_URL}}/",
+        "ruleName": "Test notification",
+        "evalMatches": [
+          {
+            "tags": null,
+            "value": 100,
+            "metric": "High value"
+          },
+          {
+            "tags": null,
+            "value": 200,
+            "metric": "Higher Value"
+          }
+        ]
+      }
+    },
+    {
+      "id": "AR9SSYFKE2PV7",
+      "alert_group_id": "I68T24C13IFW1",
+      "created_at": "2020-05-11T20:07:54Z",
+      "payload": {
+        "state": "alerting",
+        "title": "[Alerting] Test notification",
+        "ruleId": 0,
+        "message": "Someone is testing the alert notification within Grafana.",
+        "ruleUrl": "{{API_URL}}/",
+        "ruleName": "Test notification",
+        "evalMatches": [
+          {
+            "tags": null,
+            "value": 100,
+            "metric": "High value"
+          },
+          {
+            "tags": null,
+            "value": 200,
+            "metric": "Higher Value"
+          }
+        ]
+      }
+    },
+    {
+      "id": "AWJQSGEYYUFGH",
+      "alert_group_id": "I68T24C13IFW1",
+      "created_at": "2020-05-11T20:07:58Z",
+      "payload": {
+        "state": "alerting",
+        "title": "[Alerting] Test notification",
+        "ruleId": 0,
+        "message": "Someone is testing the alert notification within Grafana.",
+        "ruleUrl": "{{API_URL}}/",
+        "ruleName": "Test notification",
+        "evalMatches": [
+          {
+            "tags": null,
+            "value": 100,
+            "metric": "High value"
+          },
+          {
+            "tags": null,
+            "value": 200,
+            "metric": "Higher Value"
+          }
+        ]
+      }
+    }
+  ]
 }
 ```
 
 The following available filter parameters should be provided as `GET` arguments:
 
-* `alert_group_id`
-* `search`—string-based inclusion search by alert payload
+- `alert_group_id`
+- `search`—string-based inclusion search by alert payload
 
 **HTTP request**
 

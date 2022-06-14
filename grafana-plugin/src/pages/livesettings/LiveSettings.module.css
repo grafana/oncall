@@ -18,3 +18,12 @@
 .check-icon {
   color: green;
 }
+
+.description-style > a {
+  color: var(--primary-text-link);
+}
+
+.description-style {
+  word-wrap: break-word;
+  word-break: break-word;
+}

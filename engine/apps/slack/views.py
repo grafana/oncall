@@ -119,6 +119,9 @@ class SlackEventApiEndpointView(APIView):
             return Response(status=403)
 
         if not settings.DEBUG:
+            if live_settings.SLACK_SIGNING_SECRET is None and settings.SLACK_SIGNING_SECRET_LIVE:
+                raise Exception("Please specify SLACK_SIGNING_SECRET or use DEBUG.")
+
             if not (
                 SlackEventApiEndpointView.verify_signature(
                     slack_request_timestamp, slack_signature, body, live_settings.SLACK_SIGNING_SECRET

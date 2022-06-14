@@ -1,9 +1,12 @@
+from django.conf import settings
 from rest_framework import serializers
 
 from apps.api.serializers.telegram import TelegramToUserConnectorSerializer
 from apps.base.constants import ADMIN_PERMISSIONS, ALL_ROLES_PERMISSIONS, EDITOR_PERMISSIONS
 from apps.base.messaging import get_messaging_backends
 from apps.base.models import UserNotificationPolicy
+from apps.base.utils import live_settings
+from apps.oss_installation.utils import cloud_user_identity_status
 from apps.twilioapp.utils import check_phone_number_is_valid
 from apps.user_management.models import User
 from common.api_helpers.custom_fields import TeamPrimaryKeyRelatedField
@@ -30,6 +33,7 @@ class UserSerializer(DynamicFieldsModelSerializer, EagerLoadingMixin):
 
     permissions = serializers.SerializerMethodField()
     notification_chain_verbal = serializers.SerializerMethodField()
+    cloud_connection_status = serializers.SerializerMethodField()
 
     SELECT_RELATED = ["telegram_verification_code", "telegram_connection", "organization", "slack_user_identity"]
 
@@ -50,6 +54,7 @@ class UserSerializer(DynamicFieldsModelSerializer, EagerLoadingMixin):
             "messaging_backends",
             "permissions",
             "notification_chain_verbal",
+            "cloud_connection_status",
         ]
         read_only_fields = [
             "email",
@@ -87,6 +92,15 @@ class UserSerializer(DynamicFieldsModelSerializer, EagerLoadingMixin):
     def get_notification_chain_verbal(self, obj):
         default, important = UserNotificationPolicy.get_short_verbals_for_user(user=obj)
         return {"default": " - ".join(default), "important": " - ".join(important)}
+
+    def get_cloud_connection_status(self, obj):
+        if settings.OSS_INSTALLATION and live_settings.GRAFANA_CLOUD_NOTIFICATIONS_ENABLED:
+            connector = self.context.get("connector", None)
+            identities = self.context.get("cloud_identities", {})
+            identity = identities.get(obj.email, None)
+            status, _ = cloud_user_identity_status(connector, identity)
+            return status
+        return None
 
 
 class UserHiddenFieldsSerializer(UserSerializer):

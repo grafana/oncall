@@ -1,8 +1,11 @@
-+++
-title = "Slack Channels HTTP API"
-aliases = ["/docs/grafana-cloud/oncall/oncall-api-reference/slack_channels/"]
-weight = 1300
-+++
+---
+aliases:
+  - /docs/grafana-cloud/oncall/oncall-api-reference/slack_channels/
+  - /docs/oncall/latest/oncall-api-reference/slack_channels/
+title: Slack Channels HTTP API
+canonical: "https://grafana.com/docs/oncall/latest/oncall-api-reference/slack_channels/"
+weight: 1300
+---
 
 # List Slack Channels
 
@@ -10,28 +13,28 @@ weight = 1300
 curl "{{API_URL}}/api/v1/slack_channels/" \
   --request GET \
   --header "Authorization: meowmeowmeow" \
-  --header "Content-Type: application/json" 
+  --header "Content-Type: application/json"
 ```
 
 The above command returns JSON structured in the following way:
 
 ```json
 {
-    "count": 1,
-    "next": null,
-    "previous": null,
-    "results": [
-        {
-            "name": "meow_channel",
-            "slack_id": "MEOW_SLACK_ID"
-        }
-    ]
+  "count": 1,
+  "next": null,
+  "previous": null,
+  "results": [
+    {
+      "name": "meow_channel",
+      "slack_id": "MEOW_SLACK_ID"
+    }
+  ]
 }
 ```
 
 The following available filter parameter should be provided as a `GET` argument:
 
-* `channel_name`
+- `channel_name`
 
 **HTTP Request**
 

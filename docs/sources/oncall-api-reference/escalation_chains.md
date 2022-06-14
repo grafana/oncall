@@ -1,8 +1,11 @@
-+++
-title = "Escalation Chains HTTP API"
-aliases = ["/docs/grafana-cloud/oncall/oncall-api-reference/escalation_chains"]
-weight = 200
-+++
+---
+aliases:
+  - /docs/grafana-cloud/oncall/oncall-api-reference/escalation_chains/
+  - /docs/oncall/latest/oncall-api-reference/escalation_chains/
+title: Escalation Chains HTTP API
+canonical: "https://grafana.com/docs/oncall/latest/oncall-api-reference/escalation_chains/"
+weight: 200
+---
 
 # Create an escalation chain
 
@@ -20,16 +23,16 @@ The above command returns JSON structured in the following way:
 
 ```json
 {
-    "id": "FWDL7M6N6I9HE",
-    "name": "example-chain",
-    "team_id": null
+  "id": "FWDL7M6N6I9HE",
+  "name": "example-chain",
+  "team_id": null
 }
 ```
 
-| Parameter | Required | Description |
-|-----------|:--------:|:------------|
-| name      | yes      | Name of the escalation chain |
-| team_id   | no       | ID of the team               |
+| Parameter | Required | Description                  |
+| --------- | :------: | :--------------------------- |
+| name      |   yes    | Name of the escalation chain |
+| team_id   |    no    | ID of the team               |
 
 **HTTP request**
 
@@ -48,9 +51,9 @@ The above command returns JSON structured in the following way:
 
 ```json
 {
-    "id": "F5JU6KJET33FE",
-    "name": "default",
-    "team_id": null
+  "id": "F5JU6KJET33FE",
+  "name": "default",
+  "team_id": null
 }
 ```
 
@@ -64,23 +67,23 @@ The above command returns JSON structured in the following way:
 curl "{{API_URL}}/api/v1/escalation_chains/" \
   --request GET \
   --header "Authorization: meowmeowmeow" \
-  --header "Content-Type: application/json" 
+  --header "Content-Type: application/json"
 ```
 
 The above command returns JSON structured in the following way:
 
 ```json
 {
-    "count": 2,
-    "next": null,
-    "previous": null,
-    "results": [
-        {
-            "id": "F5JU6KJET33FE",
-            "name": "default",
-            "team_id": null
-        }
-    ]
+  "count": 2,
+  "next": null,
+  "previous": null,
+  "results": [
+    {
+      "id": "F5JU6KJET33FE",
+      "name": "default",
+      "team_id": null
+    }
+  ]
 }
 ```
 

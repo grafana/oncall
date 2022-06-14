@@ -1,10 +1,15 @@
-+++
-title = "Escalation policies"
-keywords = ["Grafana Cloud", "Alerts", "Notifications", "on-call", "amixr", "oncall", "integrations"]
-weight = 500
-+++
+---
+title: Configure escalation chains and routes for Grafana OnCall
+weight: 700
+canonical: "https://grafana.com/docs/oncall/latest/escalation-policies/"
+aliases:
+  - /docs/oncall/latest/chat-options/escalation-policies/
+---
 
-# Grafana OnCall escalation policies
+
+# Configure escalation chains and routes for Grafana OnCall 
+
+Escalation chains and routes for Grafana OnCall
 
 Administrators can create escalation policies to automatically send alert group notifications to recipients. These policies define how, where, and when to send notifications.
 

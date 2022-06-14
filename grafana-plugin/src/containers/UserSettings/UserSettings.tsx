@@ -5,12 +5,12 @@ import cn from 'classnames/bind';
 import { observer } from 'mobx-react';
 import { useMediaQuery } from 'react-responsive';
 
+import { Tabs, TabsContent } from 'containers/UserSettings/parts';
 import { User as UserType } from 'models/user/user.types';
 import { AppFeature } from 'state/features';
 import { useStore } from 'state/useStore';
 
 import { UserSettingsTab } from './UserSettings.types';
-import { Tabs, TabsContent } from './parts';
 
 import styles from './UserSettings.module.css';
 

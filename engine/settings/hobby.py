@@ -36,22 +36,3 @@ MIRAGE_CIPHER_IV = "1234567890abcdef"  # use default
 
 APPEND_SLASH = False
 SECURE_SSL_REDIRECT = False
-
-# TODO: OSS: Add these setting to oss settings file. Add Version there too.
-OSS_INSTALLATION_FEATURES_ENABLED = True
-
-INSTALLED_APPS += ["apps.oss_installation"]  # noqa
-
-CELERY_BEAT_SCHEDULE["send_usage_stats"] = {  # noqa
-    "task": "apps.oss_installation.tasks.send_usage_stats_report",
-    "schedule": crontab(hour=0, minute=randrange(0, 59)),  # Send stats report at a random minute past midnight  # noqa
-    "args": (),
-}  # noqa
-
-CELERY_BEAT_SCHEDULE["send_cloud_heartbeat"] = {  # noqa
-    "task": "apps.oss_installation.tasks.send_cloud_heartbeat",
-    "schedule": crontab(minute="*/3"),  # noqa
-    "args": (),
-}  # noqa
-
-SEND_ANONYMOUS_USAGE_STATS = True

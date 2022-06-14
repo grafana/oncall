@@ -1,5 +1,5 @@
 import os
-from urllib.parse import urljoin
+from random import randrange
 
 from celery.schedules import crontab
 
@@ -7,8 +7,8 @@ from common.utils import getenv_boolean
 
 VERSION = "dev-oss"
 # Indicates if instance is OSS installation.
-# It is needed to plug-in oss urls.
-OSS_INSTALLATION = getenv_boolean("OSS", False)
+# It is needed to plug-in oss application and urls.
+OSS_INSTALLATION = getenv_boolean("GRAFANA_ONCALL_OSS_INSTALLATION", True)
 SEND_ANONYMOUS_USAGE_STATS = getenv_boolean("SEND_ANONYMOUS_USAGE_STATS", default=True)
 
 # License is OpenSource or Cloud
@@ -49,9 +49,9 @@ BASE_URL = os.environ.get("BASE_URL")  # Root URL of OnCall backend
 
 # Feature toggles
 FEATURE_LIVE_SETTINGS_ENABLED = getenv_boolean("FEATURE_LIVE_SETTINGS_ENABLED", default=True)
-FEATURE_TELEGRAM_INTEGRATION_ENABLED = getenv_boolean("FEATURE_TELEGRAM_INTEGRATION_ENABLED", default=False)
+FEATURE_TELEGRAM_INTEGRATION_ENABLED = getenv_boolean("FEATURE_TELEGRAM_INTEGRATION_ENABLED", default=True)
 FEATURE_EMAIL_INTEGRATION_ENABLED = getenv_boolean("FEATURE_EMAIL_INTEGRATION_ENABLED", default=False)
-FEATURE_SLACK_INTEGRATION_ENABLED = getenv_boolean("FEATURE_SLACK_INTEGRATION_ENABLED", default=False)
+FEATURE_SLACK_INTEGRATION_ENABLED = getenv_boolean("FEATURE_SLACK_INTEGRATION_ENABLED", default=True)
 GRAFANA_CLOUD_ONCALL_HEARTBEAT_ENABLED = getenv_boolean("GRAFANA_CLOUD_ONCALL_HEARTBEAT_ENABLED", default=True)
 GRAFANA_CLOUD_NOTIFICATIONS_ENABLED = getenv_boolean("GRAFANA_CLOUD_NOTIFICATIONS_ENABLED", default=True)
 
@@ -60,7 +60,7 @@ TWILIO_AUTH_TOKEN = os.environ.get("TWILIO_AUTH_TOKEN")
 TWILIO_NUMBER = os.environ.get("TWILIO_NUMBER")
 TWILIO_VERIFY_SERVICE_SID = os.environ.get("TWILIO_VERIFY_SERVICE_SID")
 
-TELEGRAM_WEBHOOK_URL = os.environ.get("TELEGRAM_WEBHOOK_URL", urljoin(BASE_URL, "/telegram/"))
+TELEGRAM_WEBHOOK_HOST = os.environ.get("TELEGRAM_WEBHOOK_HOST", BASE_URL)
 TELEGRAM_TOKEN = os.environ.get("TELEGRAM_TOKEN")
 
 os.environ.setdefault("MYSQL_PASSWORD", "empty")
@@ -226,9 +226,7 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/2.1/howto/static-files/
 
 STATIC_URL = "/static/"
-STATICFILES_DIRS = [
-    "./static",
-]
+STATIC_ROOT = "./static/"
 
 CELERY_BROKER_URL = "amqp://rabbitmq:rabbitmq@localhost:5672"
 
@@ -428,15 +426,39 @@ FEATURE_EXTRA_MESSAGING_BACKENDS_ENABLED = getenv_boolean("FEATURE_EXTRA_MESSAGI
 EXTRA_MESSAGING_BACKENDS = []
 
 INSTALLED_ONCALL_INTEGRATIONS = [
-    "apps.integrations.metadata.configuration.alertmanager",
-    "apps.integrations.metadata.configuration.grafana",
-    "apps.integrations.metadata.configuration.grafana_alerting",
-    "apps.integrations.metadata.configuration.formatted_webhook",
-    "apps.integrations.metadata.configuration.webhook",
-    "apps.integrations.metadata.configuration.amazon_sns",
-    "apps.integrations.metadata.configuration.heartbeat",
-    "apps.integrations.metadata.configuration.inbound_email",
-    "apps.integrations.metadata.configuration.maintenance",
-    "apps.integrations.metadata.configuration.manual",
-    "apps.integrations.metadata.configuration.slack_channel",
+    "config_integrations.alertmanager",
+    "config_integrations.grafana",
+    "config_integrations.grafana_alerting",
+    "config_integrations.formatted_webhook",
+    "config_integrations.webhook",
+    "config_integrations.kapacitor",
+    "config_integrations.elastalert",
+    "config_integrations.heartbeat",
+    "config_integrations.inbound_email",
+    "config_integrations.maintenance",
+    "config_integrations.manual",
+    "config_integrations.slack_channel",
 ]
+
+if OSS_INSTALLATION:
+    INSTALLED_APPS += ["apps.oss_installation"]  # noqa
+
+    CELERY_BEAT_SCHEDULE["send_usage_stats"] = {  # noqa
+        "task": "apps.oss_installation.tasks.send_usage_stats_report",
+        "schedule": crontab(
+            hour=0, minute=randrange(0, 59)
+        ),  # Send stats report at a random minute past midnight  # noqa
+        "args": (),
+    }  # noqa
+
+    CELERY_BEAT_SCHEDULE["send_cloud_heartbeat"] = {  # noqa
+        "task": "apps.oss_installation.tasks.send_cloud_heartbeat_task",
+        "schedule": crontab(minute="*/3"),  # noqa
+        "args": (),
+    }  # noqa
+
+    CELERY_BEAT_SCHEDULE["sync_users_with_cloud"] = {  # noqa
+        "task": "apps.oss_installation.tasks.sync_users_with_cloud",
+        "schedule": crontab(hour="*/12"),  # noqa
+        "args": (),
+    }  # noqa

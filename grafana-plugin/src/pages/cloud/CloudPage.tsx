@@ -41,8 +41,9 @@ const CloudPage = observer((props: CloudPageProps) => {
   const [cloudApiKey, setCloudApiKey] = useState<string>('');
   const [apiKeyError, setApiKeyError] = useState<boolean>(false);
   const [cloudIsConnected, setCloudIsConnected] = useState<boolean>(undefined);
-  const [heartbitLink, setHeartbitLink] = useState<string>(null);
-  const [heartbitStatus, setHeartbitStatus] = useState<boolean>(false);
+  const [cloudNotificationsEnabled, setCloudNotificationsEnabled] = useState<boolean>(false);
+  const [heartbeatLink, setheartbeatLink] = useState<string>(null);
+  const [heartbeatEnabled, setheartbeatEnabled] = useState<boolean>(false);
   const [showConfirmationModal, setShowConfirmationModal] = useState<boolean>(false);
   const [syncingUsers, setSyncingUsers] = useState<boolean>(false);
 
@@ -50,13 +51,13 @@ const CloudPage = observer((props: CloudPageProps) => {
     store.cloudStore.updateItems(page);
     store.cloudStore.getCloudConnectionStatus().then((cloudStatus) => {
       setCloudIsConnected(cloudStatus.cloud_connection_status);
-      setHeartbitStatus(cloudStatus.cloud_heartbeat_enabled);
-      setHeartbitLink(cloudStatus.cloud_heartbeat_link);
-      getApiKeyFromGlobalSettings();
+      setheartbeatEnabled(cloudStatus.cloud_heartbeat_enabled);
+      setheartbeatLink(cloudStatus.cloud_heartbeat_link);
+      setCloudNotificationsEnabled(cloudStatus.cloud_notifications_enabled);
     });
   }, [cloudIsConnected]);
 
-  const { count, results } = store.cloudStore.getSearchResult();
+  const { matched_users_count, results } = store.cloudStore.getSearchResult();
 
   const handleChangePage = (page: number) => {
     setPage(page);
@@ -68,27 +69,17 @@ const CloudPage = observer((props: CloudPageProps) => {
     setApiKeyError(false);
   }, []);
 
-  const saveKeyAndConnect = () => {
-    setShowConfirmationModal(true);
-  };
-
   const disconnectCloudOncall = () => {
     setCloudIsConnected(false);
     store.cloudStore.disconnectToCloud();
   };
 
-  const getApiKeyFromGlobalSettings = async () => {
-    const globalSettingItem = await store.globalSettingStore.getGlobalSettingItemByName('GRAFANA_CLOUD_ONCALL_TOKEN');
-    if (cloudIsConnected === false) {
-      setCloudApiKey(globalSettingItem?.value);
-    }
-  };
   const connectToCloud = async () => {
     setShowConfirmationModal(false);
     const globalSettingItem = await store.globalSettingStore.getGlobalSettingItemByName('GRAFANA_CLOUD_ONCALL_TOKEN');
     store.globalSettingStore
-      .update(globalSettingItem?.id, { name: 'GRAFANA_CLOUD_ONCALL_TOKEN', value: cloudApiKey })
-      .then((response) => {
+      .update(globalSettingItem?.id, { name: 'GRAFANA_CLOUD_ONCALL_TOKEN', value: cloudApiKey }, { sync_users: false })
+      .then(async (response) => {
         if (response.error) {
           setCloudIsConnected(false);
           setApiKeyError(true);
@@ -96,6 +87,8 @@ const CloudPage = observer((props: CloudPageProps) => {
         } else {
           setCloudIsConnected(true);
           syncUsers();
+          const heartbeatData: { link: string } = await store.cloudStore.getCloudHeartbeat();
+          setheartbeatLink(heartbeatData?.link);
         }
       });
   };
@@ -108,7 +101,7 @@ const CloudPage = observer((props: CloudPageProps) => {
   };
 
   const handleLinkClick = (link: string) => {
-    getLocationSrv().update({ partial: false, path: link });
+    window.open(link, '_blank');
   };
 
   const renderButtons = (user: Cloud) => {
@@ -133,10 +126,9 @@ const CloudPage = observer((props: CloudPageProps) => {
         return (
           <Button
             variant="secondary"
-            icon="external-link-alt"
             size="sm"
             className={cx('table-button')}
-            onClick={() => handleLinkClick(user?.cloud_data?.link)}
+            onClick={() => getLocationSrv().update({ query: { page: 'users', p: page, id: user.id } })}
           >
             Configure notifications
           </Button>
@@ -246,67 +238,87 @@ const CloudPage = observer((props: CloudPageProps) => {
             Once connected, current OnCall instance will send heartbeats every 3 minutes to the cloud Instance. If no
             heartbeat will be received in 10 minutes, cloud instance will issue an alert.
           </Text>
-          {heartbitStatus && heartbitLink && (
-            <Button
-              variant="secondary"
-              icon="external-link-alt"
-              className={cx('block-button')}
-              onClick={() => handleLinkClick(heartbitLink)}
-            >
-              Configure escalations in Cloud OnCall
-            </Button>
-          )}
+          <div className={cx('heartbeat-button')}>
+            {heartbeatEnabled ? (
+              heartbeatLink ? (
+                <Button
+                  variant="secondary"
+                  icon="external-link-alt"
+                  className={cx('block-button')}
+                  onClick={() => handleLinkClick(heartbeatLink)}
+                >
+                  Configure escalations in Cloud OnCall
+                </Button>
+              ) : (
+                <Text type="secondary">Heartbeat will be created in a moment automatically</Text>
+              )
+            ) : (
+              <Text type="secondary">Heartbeat is not enabled. You can go to the Env Variables tab and enable it</Text>
+            )}
+          </div>
         </VerticalGroup>
       </Block>
       <Block bordered withBackground className={cx('info-block')}>
-        <VerticalGroup>
-          <Text.Title level={4}>
-            <Icon name="bell" className={cx('block-icon')} size="lg" /> SMS and phone call notifications
-          </Text.Title>
+        {cloudNotificationsEnabled ? (
+          <VerticalGroup>
+            <Text.Title level={4}>
+              <Icon name="bell" className={cx('block-icon')} size="lg" /> SMS and phone call notifications
+            </Text.Title>
 
-          <div style={{ width: '100%' }}>
+            <div style={{ width: '100%' }}>
+              <Text type="secondary">
+                {
+                  'Ask your users to sign up in Grafana Cloud, verify phone number and feel free to set up SMS & phone call notificaitons in personal settings! Only users with Admin or Editor role will be synced.'
+                }
+              </Text>
+
+              <GTable
+                className={cx('user-table')}
+                rowClassName={cx('user-row')}
+                showHeader={false}
+                emptyText={results ? 'No variables found' : 'Loading...'}
+                title={() => (
+                  <div className={cx('table-title')}>
+                    <HorizontalGroup justify="space-between">
+                      <Text type="secondary">
+                        {matched_users_count ? matched_users_count : 0} user
+                        {matched_users_count === 1 ? '' : 's'}
+                        {` matched between OSS and Cloud OnCall`}
+                      </Text>
+                      {syncingUsers ? (
+                        <Button variant="primary" onClick={syncUsers} icon="sync" disabled>
+                          Syncing...
+                        </Button>
+                      ) : (
+                        <Button variant="primary" onClick={syncUsers} icon="sync">
+                          Sync users (Editors and Admins)
+                        </Button>
+                      )}
+                    </HorizontalGroup>
+                  </div>
+                )}
+                rowKey="id"
+                // @ts-ignore
+                columns={columns}
+                data={results}
+                pagination={{
+                  page,
+                  total: Math.ceil((matched_users_count || 0) / ITEMS_PER_PAGE),
+                  onChange: handleChangePage,
+                }}
+              />
+            </div>
+          </VerticalGroup>
+        ) : (
+          <VerticalGroup>
+            <Text.Title level={4}>
+              <Icon name="bell" className={cx('block-icon')} size="lg" /> SMS and phone call notifications
+            </Text.Title>
             <Text type="secondary">
-              {
-                'Ask your users to sign up in Grafana Cloud, verify phone number and feel free to set up SMS & phone call notificaitons in personal settings! Only users with Admin or Editor role will be synced.'
-              }
+              {'Please enable Grafana cloud notification to be able to see list of cloud users'}
             </Text>
-
-            <GTable
-              className={cx('user-table')}
-              rowClassName={cx('user-row')}
-              showHeader={false}
-              emptyText={results ? 'No variables found' : 'Loading...'}
-              title={() => (
-                <div className={cx('table-title')}>
-                  <HorizontalGroup justify="space-between">
-                    <Text type="secondary">
-                      {count ? count : 0}
-                      {` users matched between OSS and Cloud OnCall`}
-                    </Text>
-                    {syncingUsers ? (
-                      <Button variant="primary" onClick={syncUsers} icon="sync" disabled>
-                        Syncing...
-                      </Button>
-                    ) : (
-                      <Button variant="primary" onClick={syncUsers} icon="sync">
-                        Sync users
-                      </Button>
-                    )}
-                  </HorizontalGroup>
-                </div>
-              )}
-              rowKey="id"
-              // @ts-ignore
-              columns={columns}
-              data={results}
-              pagination={{
-                page,
-                total: Math.ceil((count || 0) / ITEMS_PER_PAGE),
-                onChange: handleChangePage,
-              }}
-            />
-          </div>
-        </VerticalGroup>
+          </VerticalGroup>
+        )}
       </Block>
     </VerticalGroup>
   );
@@ -324,9 +336,9 @@ const CloudPage = observer((props: CloudPageProps) => {
             style={{ width: '100%' }}
             invalid={apiKeyError}
           >
-            <Input id="cloudApiKey" onChange={handleChangeCloudApiKey} defaultValue={cloudApiKey} />
+            <Input id="cloudApiKey" onChange={handleChangeCloudApiKey} />
           </Field>
-          <Button variant="primary" onClick={saveKeyAndConnect} disabled={!cloudApiKey} size="md">
+          <Button variant="primary" onClick={connectToCloud} disabled={!cloudApiKey} size="md">
             Save key and connect
           </Button>
         </VerticalGroup>
@@ -334,9 +346,9 @@ const CloudPage = observer((props: CloudPageProps) => {
       <Block bordered withBackground className={cx('info-block')}>
         <VerticalGroup>
           <Text.Title level={4}>
-            <span className={cx('block-icon')}>
+            <span className={cx('heart-icon')}>
               <HeartIcon />
-            </span>{' '}
+            </span>
             Monitor cloud instance with heartbeat
           </Text.Title>
           <Text type="secondary">
@@ -351,7 +363,7 @@ const CloudPage = observer((props: CloudPageProps) => {
             <Icon name="bell" className={cx('block-icon')} size="lg" /> SMS and phone call notifications
           </Text.Title>
 
-          <Text type="secondary">Users matched between OSS and Cloud OnCall currently unavialable.</Text>
+          <Text type="secondary">Users matched between OSS and Cloud OnCall currently unavailable.</Text>
         </VerticalGroup>
       </Block>
     </VerticalGroup>
@@ -369,23 +381,6 @@ const CloudPage = observer((props: CloudPageProps) => {
           ConnectedBlock
         ) : (
           DisconnectedBlock
-        )}
-
-        {showConfirmationModal && (
-          <Modal
-            isOpen
-            title="Are you sure you want to connect to cloud?"
-            onDismiss={() => setShowConfirmationModal(false)}
-          >
-            <HorizontalGroup>
-              <Button variant="primary" onClick={connectToCloud}>
-                Continue
-              </Button>
-              <Button variant="secondary" onClick={() => setShowConfirmationModal(false)}>
-                Cancel
-              </Button>
-            </HorizontalGroup>
-          </Modal>
         )}
       </VerticalGroup>
     </div>

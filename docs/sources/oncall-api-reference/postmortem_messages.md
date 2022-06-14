@@ -1,9 +1,12 @@
-+++
-title = "Postmortem Messages HTTP API"
-aliases = ["/docs/grafana-cloud/oncall/oncall-api-reference/postmortem_messages/"]
-weight = 900
-draft = true
-+++
+---
+aliases:
+  - /docs/grafana-cloud/oncall/oncall-api-reference/postmortem_messages/
+  - /docs/oncall/latest/oncall-api-reference/postmortem_messages/
+draft: true
+title: Postmortem Messages HTTP API
+canonical: "https://grafana.com/docs/oncall/latest/oncall-api-reference/postmortem_messages/"
+weight: 900
+---
 
 # Create a postmortem message
 
@@ -22,14 +25,14 @@ The above command returns JSON structured in the following way:
 
 ```json
 {
-    "id": "M4BTQUS3PRHYQ",
-    "alert_group_id": "I68T24C13IFW1",
-    "author": "U4DNY931HHJS5",
-    "source": "web",
-    "created_at": "2020-06-19T12:40:01.429805Z",
-    "text": "Demo postmortem message"
+  "id": "M4BTQUS3PRHYQ",
+  "alert_group_id": "I68T24C13IFW1",
+  "author": "U4DNY931HHJS5",
+  "source": "web",
+  "created_at": "2020-06-19T12:40:01.429805Z",
+  "text": "Demo postmortem message"
 }
-``` 
+```
 
 **HTTP request**
 
@@ -48,12 +51,12 @@ The above command returns JSON structured in the following way:
 
 ```json
 {
-    "id": "M4BTQUS3PRHYQ",
-    "alert_group_id": "I68T24C13IFW1",
-    "author": "U4DNY931HHJS5",
-    "source": "web",
-    "created_at": "2020-06-19T12:40:01.429805Z",
-    "text": "Demo postmortem message"
+  "id": "M4BTQUS3PRHYQ",
+  "alert_group_id": "I68T24C13IFW1",
+  "author": "U4DNY931HHJS5",
+  "source": "web",
+  "created_at": "2020-06-19T12:40:01.429805Z",
+  "text": "Demo postmortem message"
 }
 ```
 
@@ -74,26 +77,25 @@ The above command returns JSON structured in the following way:
 
 ```json
 {
-    "count": 1,
-    "next": null,
-    "previous": null,
-    "results": [
-        {
-            "id": "M4BTQUS3PRHYQ",
-            "alert_group_id": "I68T24C13IFW1",
-            "author": "U4DNY931HHJS5",
-            "source": "web",
-            "created_at": "2020-06-19T12:40:01.429805Z",
-            "text": "Demo postmortem message"
-        }
-    ]
+  "count": 1,
+  "next": null,
+  "previous": null,
+  "results": [
+    {
+      "id": "M4BTQUS3PRHYQ",
+      "alert_group_id": "I68T24C13IFW1",
+      "author": "U4DNY931HHJS5",
+      "source": "web",
+      "created_at": "2020-06-19T12:40:01.429805Z",
+      "text": "Demo postmortem message"
+    }
+  ]
 }
 ```
 
 The following available filter parameter should be provided as a `GET` argument:
 
-* `alert_group_id`
-
+- `alert_group_id`
 
 **HTTP request**
 
@@ -115,12 +117,12 @@ The above command returns JSON structured in the following way:
 
 ```json
 {
-    "id": "M4BTQUS3PRHYQ",
-    "alert_group_id": "I68T24C13IFW1",
-    "author": "U4DNY931HHJS5",
-    "source": "web",
-    "created_at": "2020-06-19T12:40:01.429805Z",
-    "text": "Demo postmortem message"
+  "id": "M4BTQUS3PRHYQ",
+  "alert_group_id": "I68T24C13IFW1",
+  "author": "U4DNY931HHJS5",
+  "source": "web",
+  "created_at": "2020-06-19T12:40:01.429805Z",
+  "text": "Demo postmortem message"
 }
 ```
 

@@ -1,0 +1,43 @@
+apiVersion: v2
+name: oncall
+description: Developer-friendly incident response with brilliant Slack integration
+
+
+type: application
+
+# This is the chart version. This version number should be incremented each time you make changes
+# to the chart and its templates, including the app version.
+# Versions are expected to follow Semantic Versioning (https://semver.org/)
+version: 0.1.0
+
+# This is the version number of the application being deployed. This version number should be
+# incremented each time you make changes to the application. Versions are not expected to
+# follow Semantic Versioning. They should reflect the version the application is using.
+# It is recommended to use it with quotes.
+appVersion: "v1.0.0"
+dependencies:
+  - name: cert-manager
+    version: v1.8.0
+    repository: https://charts.jetstack.io
+    condition: cert-manager.enabled
+
+  - name: mariadb
+    version: 11.0.10
+    repository: https://charts.bitnami.com/bitnami
+    condition: mariadb.enabled
+  - name: rabbitmq
+    version: 10.1.1
+    repository: https://charts.bitnami.com/bitnami
+    condition: rabbitmq.enabled
+  - name: redis
+    version: 16.10.1
+    repository: https://charts.bitnami.com/bitnami
+    condition: redis.enabled
+  - name: grafana
+    version: 6.29.6
+    repository: https://grafana.github.io/helm-charts
+    condition: grafana.enabled
+  - name: ingress-nginx
+    version: 4.1.4
+    repository: https://kubernetes.github.io/ingress-nginx
+    condition: ingress-nginx.enabled

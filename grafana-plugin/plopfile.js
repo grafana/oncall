@@ -1,11 +1,9 @@
 const createComponentFiles = require('./tools/plop/generators/createComponentFiles');
 const createContainerFiles = require('./tools/plop/generators/createContainerFiles');
 const createModelFiles = require('./tools/plop/generators/createModelFiles');
-const appendReadmeFile = require('./tools/plop/generators/appendReadmeFile');
 const componentPrompts = require('./tools/plop/prompts/componentPrompts');
 const containerPrompts = require('./tools/plop/prompts/containerPrompts');
 const modelPrompts = require('./tools/plop/prompts/modelPrompts');
-const readmePrompts = require('./tools/plop/prompts/readmePrompts');
 
 // const configNeededHelper = require('./tools/plop/helpers/configNeeded');
 
@@ -32,9 +30,4 @@ module.exports = function plopGenerator(plop) {
     actions: (answers) => createContainerFiles(answers),
   });
 
-  plop.setGenerator('Append build info', {
-    description: 'Add build info to plugin readme',
-    prompts: readmePrompts,
-    actions: (answers) => appendReadmeFile(answers),
-  });
 };

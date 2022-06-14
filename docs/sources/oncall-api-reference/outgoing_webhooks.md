@@ -1,8 +1,11 @@
-+++
-title = "Outgoing webhooks HTTP API"
-aliases = ["/docs/grafana-cloud/oncall/oncall-api-reference/outgoing_webhooks/"]
-weight = 700
-+++
+---
+aliases:
+  - /docs/grafana-cloud/oncall/oncall-api-reference/outgoing_webhooks/
+  - /docs/oncall/latest/oncall-api-reference/outgoing_webhooks/
+title: Outgoing webhooks HTTP API
+canonical: "https://grafana.com/docs/oncall/latest/oncall-api-reference/outgoing_webhooks/"
+weight: 700
+---
 
 # Outgoing webhooks (actions)
 
@@ -14,22 +17,22 @@ Used in escalation policies with type `trigger_action`.
 curl "{{API_URL}}/api/v1/actions/" \
   --request GET \
   --header "Authorization: meowmeowmeow" \
-  --header "Content-Type: application/json" 
+  --header "Content-Type: application/json"
 ```
 
 The above command returns JSON structured in the following way:
 
 ```json
 {
-    "count": 1,
-    "next": null,
-    "previous": null,
-    "results": [
-        {
-            "id": "KGEFG74LU1D8L",
-            "name": "Publish alert group notification to JIRA"
-        }
-    ]
+  "count": 1,
+  "next": null,
+  "previous": null,
+  "results": [
+    {
+      "id": "KGEFG74LU1D8L",
+      "name": "Publish alert group notification to JIRA"
+    }
+  ]
 }
 ```
 

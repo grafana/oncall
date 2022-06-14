@@ -25,7 +25,8 @@
   height: 32px;
 }
 
-.cloud-page-title {
+.cloud-page-title,
+.heartbit-button {
   margin-top: 24px;
 }
 
