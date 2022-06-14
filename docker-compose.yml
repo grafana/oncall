@@ -98,7 +98,7 @@ services:
     platform: linux/x86_64
     mem_limit: 500m
     cpus: 0.5
-    command: --default-authentication-plugin=mysql_native_password --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
+    command: --default-authentication-plugin=mysql_native_password
     restart: always
     ports:
       - 3306:3306
