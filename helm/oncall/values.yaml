@@ -6,13 +6,9 @@ base_url: example.com
 
 image:
   # Grafana OnCall docker image repository
-  repository: registry.digitalocean.com/ildar-testing/hobby-oncall-2
-  tag: "latest"
+  repository: grafana/oncall
+  tag:
   pullPolicy: IfNotPresent
-
-# TODO: remove this after we use public image
-imagePullSecrets:
-  - name: "registry-ildar-testing"
 
 # Whether to create additional service for external connections
 # ClusterIP service is always created
