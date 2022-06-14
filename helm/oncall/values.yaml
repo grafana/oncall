@@ -1,19 +1,27 @@
-# Default values for Grafana OnCall
+# Values for configuring the deployment of Grafana OnCall
 
-# i.e. example.com
-base_url: ildari.me
+# Set the domain name Grafana OnCall will be installed on.
+# If you want to install grafana as a part of this release make sure to configure grafana.grafana.ini.server.domain too
+base_url: example.com
 
 image:
-  # TODO: use our public repo
+  # Grafana OnCall docker image repository
   repository: registry.digitalocean.com/ildar-testing/hobby-oncall-2
-  pullPolicy: IfNotPresent
-  # Overrides the image tag whose default is the chart appVersion.
   tag: "latest"
+  pullPolicy: IfNotPresent
 
 # TODO: remove this after we use public image
 imagePullSecrets:
   - name: "registry-ildar-testing"
 
+# Whether to create additional service for external connections
+# ClusterIP service is always created
+service:
+  enabled: false
+  type: LoadBalancer
+  port: 8080
+
+# Engine pods configuration
 engine:
   replicaCount: 1
   resources: {}
@@ -24,6 +32,7 @@ engine:
     #   cpu: 100m
     #   memory: 128Mi
 
+# Celery workers pods configuration
 celery:
   replicaCount: 1
   resources: {}
@@ -34,54 +43,51 @@ celery:
     #   cpu: 100m
     #   memory: 128Mi
 
+# Whether to run django database migrations automatically
+migrate:
+  enabled: true
+
+# Additional env variables to add to deployments
 env: []
 
-service:
-  enabled: false
-  type: LoadBalancer
-  port: 8080
-
+# Enable ingress object for external access to the resources
 ingress:
   enabled: true
 #  className: ""
-#  annotations: {}
-##     kubernetes.io/ingress.class: nginx
-##     kubernetes.io/tls-acme: "true"
-#  hosts: []
-##    - host: oncall.example.com
-##      paths:
-##        - path: /
-##          pathType: ImplementationSpecific
-#  tls:  # []
-##    - secretName: oncall-example-com-tls
-##      hosts:
-##        - oncall.example.com
+  annotations:
+    kubernetes.io/ingress.class: "nginx"
+    cert-manager.io/issuer: "letsencrypt-prod"
 
+# Whether to install ingress controller
 nginx-ingress:
   enabled: true
 
+# Install cert-manager as a part of the release
 cert-manager:
   enabled: true
+  # Instal CRD resources
   installCRDs: true
   webhook:
     timeoutSeconds: 30
     # cert-manager tries to use the already used port, changing to another one
     # https://github.com/cert-manager/cert-manager/issues/3237
-    # https://cert-manager.io/docs/installation/compatibility/#gke-autopilot
-    securePort: 10261
+    # https://cert-manager.io/docs/installation/compatibility/
+    securePort: 10260
+  # Fix self-checks https://github.com/jetstack/cert-manager/issues/4286
   podDnsPolicy: None
   podDnsConfig:
     nameservers:
       - 8.8.8.8
       - 1.1.1.1
 
-# Additional services configuration
-# We recommend using external services to reduce the overhead of managing statefule services
+# MySQL is included into this release for the convenience.
+# It is recommended to host it separately from this release
+# Set mariadb.enabled = false and configure externalMysql
 mariadb:
   enabled: true
-  auth:
-    database: oncall
 
+# Make sure to create the database with the following parameters:
+# CREATE DATABASE oncall CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 externalMysql:
   host:
   port:
@@ -89,6 +95,9 @@ externalMysql:
   user:
   password:
 
+# RabbitMQ is included into this release for the convenience.
+# It is recommended to host it separately from this release
+# Set rabbitmq.enabled = false and configure externalRabbitmq
 rabbitmq:
   enabled: true
 
@@ -141,7 +150,3 @@ securityContext: {}
   # readOnlyRootFilesystem: true
   # runAsNonRoot: true
   # runAsUser: 1000
-
-
-ildar:
-  enabled: true

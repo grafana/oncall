@@ -1,18 +1,32 @@
-{{- if .Values.ingress.enabled }}
+{{- if .Values.ingress.enabled -}}
+{{- $fullName := include "oncall.fullname" . -}}
+{{- $svcPort := .Values.service.port -}}
+{{- if and .Values.ingress.className (not (semverCompare ">=1.18-0" .Capabilities.KubeVersion.GitVersion)) }}
+  {{- if not (hasKey .Values.ingress.annotations "kubernetes.io/ingress.class") }}
+  {{- $_ := set .Values.ingress.annotations "kubernetes.io/ingress.class" .Values.ingress.className}}
+  {{- end }}
+{{- end }}
+{{- if semverCompare ">=1.19-0" .Capabilities.KubeVersion.GitVersion -}}
 apiVersion: networking.k8s.io/v1
+{{- else if semverCompare ">=1.14-0" .Capabilities.KubeVersion.GitVersion -}}
+apiVersion: networking.k8s.io/v1beta1
+{{- else -}}
+apiVersion: extensions/v1beta1
+{{- end }}
 kind: Ingress
 metadata:
-  name: {{ include "oncall.engine.fullname" . }}
+  name: {{ $fullName }}
   labels:
     {{- include "oncall.labels" . | nindent 4 }}
+  {{- with .Values.ingress.annotations }}
   annotations:
-    kubernetes.io/ingress.class: "nginx"
-    cert-manager.io/issuer: "letsencrypt-prod"
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
 spec:
   tls:
   - hosts:
     - {{ .Values.base_url | quote }}
-    secretName: quickstart-example-tls
+    secretName: certificate-tls
   rules:
   - host: {{ .Values.base_url | quote }}
     http:

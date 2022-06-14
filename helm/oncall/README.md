@@ -1,73 +1,118 @@
-# oncall
+# Grafana OnCall Helm Chart
 
-![Version: 0.1.0](https://img.shields.io/badge/Version-0.1.0-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 1.16.0](https://img.shields.io/badge/AppVersion-1.16.0-informational?style=flat-square)
+This Grafana OnCall Chart is the best way to operate Grafana OnCall on Kubernetes.
+It will deploy Grafana OnCall engine and celery workers, along with RabbitMQ cluster, Redis Cluster, and MySQL 5.7 database.
+It will also deploy cert manager and nginx ingress controller, as Grafana OnCall backend might need to be externally available
+to receive alerts from other monitoring systems. Grafana OnCall engine acts as a backend and can be connected to the Grafana frontend plugin named Grafana OnCall.
+Architecture diagram can be found [here](https://raw.githubusercontent.com/grafana/oncall/dev/docs/img/architecture_diagram.png)
 
-A Helm chart for Kubernetes
+> Default helm chart configuration is not intended for production. The helm chart includes all the services into a single release,
+> which is not recommended for production usage. It is recommended to run stateful services such as MySQL and RabbitMQ
+> separately from this release or use managed PaaS solutions. It will significantly reduce the overhead of managing them
 
-## Requirements
+## Install
+### Installing the helm chart
+```bash
+helm repo add grafana https://grafana.github.io/helm-charts
+helm repo update
+helm install \
+    --wait \
+    --set base_url=example.com \
+    --set grafana."grafana\.ini".server.domain=example.com \
+    grafana-oncall \
+    grafana/oncall
+```
 
-| Repository | Name | Version |
-|------------|------|---------|
-| https://charts.bitnami.com/bitnami | mariadb | 11.0.10 |
-| https://charts.bitnami.com/bitnami | rabbitmq | 10.1.1 |
-| https://charts.bitnami.com/bitnami | redis | 16.10.1 |
-| https://charts.jetstack.io | cert-manager | v1.8.0 |
-| https://grafana.github.io/helm-charts | grafana | 6.29.6 |
-| https://helm.nginx.com/stable | nginx-ingress | 0.13.2 |
+Follow the `helm install` output to finish setting up Grafana OnCall backend and Grafana OnCall frontend plugin
 
-## Values
+## Configuration
 
-| Key | Type | Default | Description |
-|-----|------|---------|-------------|
-| base_url | string | `"ildari.me"` |  |
-| celery.replicaCount | int | `1` |  |
-| celery.resources | object | `{}` |  |
-| cert-manager.enabled | bool | `true` |  |
-| cert-manager.installCRDs | bool | `true` |  |
-| cert-manager.webhook.securePort | int | `10260` |  |
-| cert-manager.webhook.timeoutSeconds | int | `30` |  |
-| engine.replicaCount | int | `1` |  |
-| engine.resources | object | `{}` |  |
-| env | list | `[]` |  |
-| externalMysql.db_name | string | `nil` |  |
-| externalMysql.host | string | `nil` |  |
-| externalMysql.password | string | `nil` |  |
-| externalMysql.port | string | `nil` |  |
-| externalMysql.user | string | `nil` |  |
-| externalRabbitmq.host | string | `nil` |  |
-| externalRabbitmq.password | string | `nil` |  |
-| externalRabbitmq.port | string | `nil` |  |
-| externalRabbitmq.user | string | `nil` |  |
-| external_redis.host | string | `nil` |  |
-| external_redis.password | string | `nil` |  |
-| fullnameOverride | string | `""` |  |
-| grafana."grafana.ini".server.domain | string | `"example.com"` |  |
-| grafana."grafana.ini".server.root_url | string | `"%(protocol)s://%(domain)s/grafana"` |  |
-| grafana."grafana.ini".server.serve_from_sub_path | bool | `true` |  |
-| grafana.enabled | bool | `true` |  |
-| grafana.persistence.enabled | bool | `true` |  |
-| grafana.plugins[0] | string | `"grafana-oncall-app"` |  |
-| ildar.enabled | bool | `true` |  |
-| image.pullPolicy | string | `"IfNotPresent"` |  |
-| image.repository | string | `"registry.digitalocean.com/ildar-testing/hobby-oncall-2"` |  |
-| image.tag | string | `"latest"` |  |
-| imagePullSecrets[0].name | string | `"registry-ildar-testing"` |  |
-| ingress.enabled | bool | `true` |  |
-| mariadb.auth.database | string | `"oncall"` |  |
-| mariadb.enabled | bool | `true` |  |
-| nameOverride | string | `""` |  |
-| nginx-ingress.enabled | bool | `true` |  |
-| podAnnotations | object | `{}` |  |
-| podSecurityContext | object | `{}` |  |
-| rabbitmq.enabled | bool | `true` |  |
-| redis.enabled | bool | `true` |  |
-| securityContext | object | `{}` |  |
-| service.enabled | bool | `false` |  |
-| service.port | int | `8080` |  |
-| service.type | string | `"LoadBalancer"` |  |
-| serviceAccount.annotations | object | `{}` |  |
-| serviceAccount.create | bool | `true` |  |
-| serviceAccount.name | string | `""` |  |
+You can edit values.yml to make changes to the helm chart configuration and re-deploy the release with the following command:
+```bash
+helm upgrade \
+    --install \
+    --wait \
+    --set base_url=example.com \
+    --set grafana."grafana\.ini".server.domain=example.com \
+    grafana-oncall \
+    grafana/oncall
+```
 
-----------------------------------------------
-Autogenerated from chart metadata using [helm-docs v1.10.0](https://github.com/norwoodj/helm-docs/releases/v1.10.0)
+### Set up external access
+Grafana OnCall can be connected to the external monitoring systems or grafana deployed to the other cluster.
+Nginx Ingress Controller and Cert Manager charts are included in the helm chart with the default configuration.
+If you set the DNS A Record pointing to the external IP address of the installation with the Hostname matching base_url parameter, https will be automatically set up. If grafana is enabled in the chart values, it will also be available on https://<base_url>/grafana/. See the details in `helm install` output.
+
+To use a different ingress controller or tls certificate management system, set the following values to false and edit ingress settings
+
+```
+nginx-ingress:
+  enabled: false
+
+cert-manager:
+  enabled: false
+ 
+ingress:
+  enabled: true
+  annotations:
+    kubernetes.io/ingress.class: "nginx"
+    cert-manager.io/issuer: "letsencrypt-prod"
+```
+
+### Connect external MySQL
+
+It is recommended to use the managed MySQL 5.7 database provided by your cloud provider
+Make sure to create the database with the following parameters before installing this chart
+```
+CREATE DATABASE oncall CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+```
+
+To use an external MySQL instance set mysql.enabled to `false` and configure the `externalMysql` parameters.
+```
+mariadb:
+  enabled: true
+
+# Make sure to create the database with the following parameters:
+# CREATE DATABASE oncall CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+externalMysql:
+  host:
+  port:
+  db_name:
+  user:
+  password:
+  ```
+
+### Connect external RabbitMQ
+
+Option 1. Install RabbitMQ separately into the cluster using the [official documentation](https://www.rabbitmq.com/kubernetes/operator/operator-overview.html)
+Option 2. Use managed solution such as [CloudAMPQ](https://www.cloudamqp.com/)
+
+To use an external RabbitMQ instance set rabbitmq.enabled to `false` and configure the `externalRabbitmq` parameters.
+```
+rabbitmq:
+  enabled: false  # Disable the RabbitMQ dependency from the release
+ 
+externalRabbitmq:
+  host:
+  port:
+  user:
+  password:
+```
+
+## Uninstall
+### Uninstalling the helm chart
+```bash
+helm delete grafana-oncall
+```
+
+### Clean up PVC's
+```bash
+kubectl delete pvc data-grafana-oncall-mariadb-0 data-grafana-oncall-rabbitmq-0 \
+redis-data-grafana-oncall-redis-master-0 redis-data-grafana-oncall-redis-replicas-0 \
+redis-data-grafana-oncall-redis-replicas-1 redis-data-grafana-oncall-redis-replicas-2
+```
+ 
+### Clean up secrets
+```bash
+kubectl delete secrets certificate-tls grafana-oncall-cert-manager-webhook-ca grafana-oncall-ingress-nginx-admission
+```
