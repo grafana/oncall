@@ -9,6 +9,7 @@ keywords:
   - Alertmanager
   - Prometheus
 title: Webhook integration for Grafana OnCall
+canonical: "https://grafana.com/docs/oncall/latest/integrations/add-webhook-integration/"
 weight: 700
 ---
 
@@ -55,4 +56,4 @@ For example:
     }'
         ```
 
-To learn how to use custom alert templates for formatted webhooks, see [Configure alerts in Grafana OnCall]({{< relref "../create-custom-templates/" >}}).
+To learn how to use custom alert templates for formatted webhooks, see [Configure alerts in Grafana OnCall]({{< relref "../integrations/create-custom-templates/" >}}).
