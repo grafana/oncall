@@ -64,7 +64,7 @@ python manage.py createsuperuser
 3. Launch the backend:
 ```bash
 # Http server:
-python manage.py runserver
+python manage.py runserver 8080
 
 # Worker for background tasks (run it in the parallel terminal, don't forget to export .env there)
 python manage.py start_celery
