@@ -35,11 +35,10 @@ const cx = cn.bind(styles);
 interface Props extends PluginConfigPageProps<AppPluginMeta<OnCallAppSettings>> {}
 
 export const PluginConfigPage = (props: Props) => {
-  const grafanaUrlDefault = getItem('grafanaUrl') || window.location.origin;
   const { plugin } = props;
   const [onCallApiUrl, setOnCallApiUrl] = useState<string>(getItem('onCallApiUrl'));
   const [onCallInvitationToken, setOnCallInvitationToken] = useState<string>();
-  const [grafanaUrl, setGrafanaUrl] = useState<string>(grafanaUrlDefault);
+  const [grafanaUrl, setGrafanaUrl] = useState<string>(getItem('grafanaUrl'));
   const [pluginConfigLoading, setPluginConfigLoading] = useState<boolean>(true);
   const [pluginStatusOk, setPluginStatusOk] = useState<boolean>();
   const [pluginStatusMessage, setPluginStatusMessage] = useState<string>();
