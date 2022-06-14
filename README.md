@@ -46,7 +46,7 @@ OnCall backend URL: http://engine:8080
 Grafana Url: http://grafana:3000
 ```
 
-6. Enjoy!
+6. Enjoy! Check our [OSS docs](https://grafana.com/docs/grafana-cloud/oncall/open-source/) if you want to set up Slack, Telegram, Twilio or SMS/calls through Grafana Cloud. 
 
 
 ## Join community
