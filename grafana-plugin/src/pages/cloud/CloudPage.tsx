@@ -133,7 +133,7 @@ const CloudPage = observer((props: CloudPageProps) => {
             icon="external-link-alt"
             size="sm"
             className={cx('table-button')}
-            onClick={() => handleLinkClick(user?.cloud_data?.link)}
+            onClick={() => getLocationSrv().update({ query: { page: 'users', p: page, id: user.id } })}
           >
             Configure notifications
           </Button>
