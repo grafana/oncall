@@ -297,10 +297,10 @@ Seek for such a line:  “Your invite token: <<LONG TOKEN>> , use it in the Graf
             label="OnCall backend URL"
             description={
               <Text>
-                It should be rechable from Grafana. Possible options: <br />
-                http://host.docker.internal:8000 (if you run backend in the docker locally)
+                It should be reachable from Grafana. Possible options: <br />
+                http://host.docker.internal:8080 (if you run backend in the docker locally)
                 <br />
-                http://localhost:8000 <br />
+                http://localhost:8080 <br />
                 ...
               </Text>
             }

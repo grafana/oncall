@@ -73,7 +73,7 @@ python manage.py start_celery
 celery -A engine beat -l info
 ```
 
-4. All set! Check out internal API endpoints at http://localhost:8000/.
+4. All set! Check out internal API endpoints at http://localhost:8080/.
 
 
 ### Frontend setup
@@ -102,7 +102,7 @@ python manage.py issue_invite_for_the_frontend --override
 6. Some configuration fields will appear be available. Fill them out and click Initialize OnCall
 ```
 OnCall API URL: 
-http://host.docker.internal:8000
+http://host.docker.internal:8080
 
 Invitation Token (Single use token to connect Grafana instance):
 Response from the invite generator command (check above)
