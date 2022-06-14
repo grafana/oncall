@@ -69,10 +69,6 @@ const CloudPage = observer((props: CloudPageProps) => {
     setApiKeyError(false);
   }, []);
 
-  const saveKeyAndConnect = () => {
-    setShowConfirmationModal(true);
-  };
-
   const disconnectCloudOncall = () => {
     setCloudIsConnected(false);
     store.cloudStore.disconnectToCloud();
@@ -130,7 +126,6 @@ const CloudPage = observer((props: CloudPageProps) => {
         return (
           <Button
             variant="secondary"
-            icon="external-link-alt"
             size="sm"
             className={cx('table-button')}
             onClick={() => getLocationSrv().update({ query: { page: 'users', p: page, id: user.id } })}
@@ -343,7 +338,7 @@ const CloudPage = observer((props: CloudPageProps) => {
           >
             <Input id="cloudApiKey" onChange={handleChangeCloudApiKey} />
           </Field>
-          <Button variant="primary" onClick={saveKeyAndConnect} disabled={!cloudApiKey} size="md">
+          <Button variant="primary" onClick={connectToCloud} disabled={!cloudApiKey} size="md">
             Save key and connect
           </Button>
         </VerticalGroup>
@@ -386,23 +381,6 @@ const CloudPage = observer((props: CloudPageProps) => {
           ConnectedBlock
         ) : (
           DisconnectedBlock
-        )}
-
-        {showConfirmationModal && (
-          <Modal
-            isOpen
-            title="Are you sure you want to connect to cloud?"
-            onDismiss={() => setShowConfirmationModal(false)}
-          >
-            <HorizontalGroup>
-              <Button variant="primary" onClick={connectToCloud}>
-                Continue
-              </Button>
-              <Button variant="secondary" onClick={() => setShowConfirmationModal(false)}>
-                Cancel
-              </Button>
-            </HorizontalGroup>
-          </Modal>
         )}
       </VerticalGroup>
     </div>
