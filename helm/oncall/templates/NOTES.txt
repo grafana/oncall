@@ -1,0 +1,54 @@
+=================================================================
+📞 Grafana OnCall Notes
+=================================================================
+
+👋 Your Grafana OnCall instance has been successfully deployed
+
+TODO: Add disclaimer about stateful services, ingress controller, certificates
+
+{{- if not .Values.migrate.enabled }}
+  🤖 To migrate the database run these commands:
+
+        export POD_NAME=$(kubectl get pods --namespace {{ .Release.Namespace }} -l "app.kubernetes.io/name={{ include "oncall.name" . }},app.kubernetes.io/instance={{ .Release.Name }},app.kubernetes.io/component=engine" -o jsonpath="{.items[0].metadata.name}")
+        kubectl exec -it $POD_NAME -c wait-for-db -- bash -c "python manage.py migrate;"
+{{- end }}
+
+  ❗ Set up a DNS record for your domain (use A Record and  "@" to point a root domain to the IP address)
+     Get the external IP address by running the following commands and point {{ .Values.base_url }} to it:
+
+        kubectl get ingress {{ include "oncall.fullname" . }} -o jsonpath="{.status.loadBalancer.ingress[0].ip}"
+
+     Wait until the dns record got propagated.
+        NOTE: Check with the following command: nslookup {{ .Values.base_url }}
+              Try reaching https://{{ .Values.base_url }}/ready/ from the browser, make sure it is not cached locally
+
+{{- if .Values.grafana.enabled }}
+  🦎 Grafana was installed as a part of this helm release. Open https://{{ .Values.base_url }}/grafana/plugins/grafana-oncall-app
+     The User is {{ .Values.grafana.adminUser }}
+     Get password by running this command:
+
+        kubectl get secret --namespace {{ .Release.Namespace }} {{ template "oncall.grafana.fullname" . }} -o jsonpath="{.data.admin-password}" | base64 --decode ; echo
+
+{{- else }}
+  🦎 Grafana was NOT installed as a part of this helm release. Open external Grafana, go to "Configuration" - "Plugins" and find Grafana OnCall plugin
+     NOTE: Make sure your external Grafana is available by the network for the containers installed by this release.
+{{- end }}
+
+  🔗 Connect Grafana OnCall Plugin to Grafana OnCall backend:
+
+     Issue the one-time token to connect Grafana OnCall backend and Grafana OnCall plugin by running these commands:
+
+        export POD_NAME=$(kubectl get pods --namespace {{ .Release.Namespace }} -l "app.kubernetes.io/name={{ include "oncall.name" . }},app.kubernetes.io/instance={{ .Release.Name }},app.kubernetes.io/component=engine" -o jsonpath="{.items[0].metadata.name}")
+        kubectl exec -it $POD_NAME -- bash -c "python manage.py issue_invite_for_the_frontend --override"
+
+     Fill the Grafana OnCall Backend URL:
+
+          http://{{ include "oncall.engine.fullname" . }}:8080
+
+     Fill the Grafana URL:
+
+          {{ if .Values.grafana.enabled }}http://{{ include "oncall.grafana.fullname" . }}{{ else }}https://<external-grafana>{{- end }}
+
+
+
+🎉🎉🎉  Done! 🎉🎉🎉
