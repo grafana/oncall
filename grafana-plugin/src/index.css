@@ -30,8 +30,15 @@
   background: var(--highlighted-row-bg);
 }
 
+/* This is for Grafana 8, remove later */
 @media (max-width: 1540px) {
   .page-header__tabs > ul > li > a > div {
+    display: none;
+  }
+}
+
+@media (max-width: 1540px) {
+  .page-header__tabs > div > div > a > div {
     display: none;
   }
 }
