@@ -4,7 +4,7 @@ services:
     #    image: ...
     build: engine
     ports:
-      - 8000:8000
+      - 8000:8080
     command: >
       sh -c "uwsgi --ini uwsgi.ini"
     environment:
