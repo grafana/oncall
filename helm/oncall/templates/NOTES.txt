@@ -1,71 +1,36 @@
-👋 Your Grafana OnCall instance has been successfully deployed and a few steps left to finish the configuration
+👋 Your Grafana OnCall instance has been successfully deployed
 
-1. Get the Grafana OnCall backend URL by running these commands:
-{{- if .Values.ingress.enabled }}
-{{- range $host := .Values.ingress.hosts }}
-  {{- range .paths }}
-  http{{ if $.Values.ingress.tls }}s{{ end }}://{{ $host.host }}{{ .path }}
-  {{- end }}
-{{- end }}
-{{- else if contains "NodePort" .Values.service.type }}
-  export NODE_PORT=$(kubectl get --namespace {{ .Release.Namespace }} -o jsonpath="{.spec.ports[0].nodePort}" services {{ include "oncall.fullname" . }})
-  export NODE_IP=$(kubectl get nodes --namespace {{ .Release.Namespace }} -o jsonpath="{.items[0].status.addresses[0].address}")
-  export GRAFANA_ONCALL_BE_URL=http://$NODE_IP:$NODE_PORT
-  echo $GRAFANA_ONCALL_BE_URL
-{{- else if contains "LoadBalancer" .Values.service.type }}
-   NOTE: It may take a few minutes for the LoadBalancer IP to be available
-         You can watch the status of by running the following command
-         kubectl get --namespace {{ .Release.Namespace }} svc -w {{ include "oncall.engine.fullname" . }}
-  Wait until LoadBalancer is ready (EXTERNAL-IP exists) and run the following commands
-  export SERVICE_IP=$(kubectl get svc --namespace {{ .Release.Namespace }} {{ include "oncall.engine.fullname" . }} --template "{{"{{ range (index .status.loadBalancer.ingress 0) }}{{.}}{{ end }}"}}")
-  export GRAFANA_ONCALL_BE_URL=http://$SERVICE_IP:{{ .Values.service.port }}
-  echo $GRAFANA_ONCALL_BE_URL
-{{- else if contains "ClusterIP" .Values.service.type }}
-  export POD_NAME=$(kubectl get pods --namespace {{ .Release.Namespace }} -l "app.kubernetes.io/name={{ include "oncall.name" . }},app.kubernetes.io/instance={{ .Release.Name }},app.kubernetes.io/component=engine" -o jsonpath="{.items[0].metadata.name}")
-  export CONTAINER_PORT=$(kubectl get pod --namespace {{ .Release.Namespace }} $POD_NAME -o jsonpath="{.spec.containers[0].ports[0].containerPort}")
-  export GRAFANA_ONCALL_BE_URL=http://{{ include "oncall.grafana.fullname" . }}:$CONTAINER_PORT
-
-  echo "Visit http://127.0.0.1:8080 to use your application"
-  kubectl --namespace {{ .Release.Namespace }} port-forward $POD_NAME 8080:$CONTAINER_PORT
-{{- end }}
-
-2. Migrate the database by running these commands:
-     NOTE: Until then grafana oncall containers will remain with Status Init:0/1.
+A few steps left to finish the configuration, Copy-paste this these command to get the instructions:
 
   export POD_NAME=$(kubectl get pods --namespace {{ .Release.Namespace }} -l "app.kubernetes.io/name={{ include "oncall.name" . }},app.kubernetes.io/instance={{ .Release.Name }},app.kubernetes.io/component=engine" -o jsonpath="{.items[0].metadata.name}")
   kubectl exec -it $POD_NAME -c wait-for-db -- bash -c "python manage.py migrate;"
+  echo Database was successfully migrated 👍
 
-3. Issue the token to connect Grafana OnCall backend and Grafana OnCall plugin by running this command
+  echo Issuing the token to connect Grafana OnCall backend and Grafana OnCall plugin
   kubectl exec -it $POD_NAME -- bash -c "python manage.py issue_invite_for_the_frontend --override"
 
-4. Open Grafana in your browser and Enable Grafana OnCall plugin there
+  echo Open Grafana in your browser and Enable Grafana OnCall plugin there
 {{- if .Values.grafana.enabled }}
-  Grafana was installed as a part of this helm release. We will need to connect Grafana OnCall plugin and Grafana OnCall backend.
-  Get the access to grafana by running the following commands
+  echo Grafana was installed as a part of this helm release.
+  echo We will need to connect Grafana OnCall plugin and Grafana OnCall backend.
 
-  3.1. Open a new terminal session and run the following command
-  kubectl --namespace {{ .Release.Namespace }} port-forward svc/{{ include "oncall.grafana.fullname" . }} 8083:80
-
-  3.2 Open http://127.0.0.1:8083 to access Grafana from your browser
-
-  3.3 Use the username '{{ .Values.grafana.adminUser }}' and get the password by running the following command
-  kubectl get secret --namespace {{ .Release.Namespace }} {{ template "oncall.grafana.fullname" . }} -o jsonpath="{.data.admin-password}" | base64 --decode ; echo
-
-  3.4. Within the cluster Grafana is available on: http://{{ include "oncall.grafana.fullname" . }}:3000. You can use this address to connect Grafana OnCall backend
+  echo Open https://{{ .Values.base_url }}/grafana/plugins/grafana-oncall-app
+  echo Username: {{ .Values.grafana.adminUser }}
+  echo Password $(kubectl get secret --namespace {{ .Release.Namespace }} {{ template "oncall.grafana.fullname" . }} -o jsonpath="{.data.admin-password}" | base64 --decode ; echo)
 
 {{- else }}
-  Grafana was not installed as a part of this helm release.
-  Make sure you have external Grafana that is available by the network for the containers installed by this release.
+  echo Grafana was not installed as a part of this helm release. Open your own Grafana in the browser.
+  echo Make sure your external Grafana is available by the network for the containers installed by this release.
 {{- end }}
 
-5. Configure Grafana OnCall plugin to work with Grafana OnCall backend
-  4.1. Open Grafana, go to "Configuration" -> "Plugins" and find Grafana OnCall plugin
-  4.2. Fill the "Invite token" issued on step 3
-      NOTE: you can re-issue the token by running this command: kubectl exec -it $POD_NAME -- bash -c "python manage.py issue_invite_for_the_frontend --override"
-  4.3. Fill the Grafana OnCall Backend URL from Step 1
-      NOTE: Run this command to get it one more time:
-         echo $GRAFANA_ONCALL_BE_URL
-  4.4. Fill the Grafana URL from step 4.
-      NOTE: this URL should be accessible by Grafana OnCall Backend container{{ if .Values.grafana.enabled }}: http://{{ include "oncall.grafana.fullname" . }}:3000{{- end }}
+4. Configure Grafana OnCall plugin to work with Grafana OnCall backend
+  echo Open Grafana, go to "Configuration" -> "Plugins" and find Grafana OnCall plugin
+  echo Fill the "Invite token" issued on step 2
+  echo     NOTE: you can re-issue the token by running this command: kubectl exec -it $POD_NAME -- bash -c "python manage.py issue_invite_for_the_frontend --override"
+  echo Fill the Grafana OnCall Backend URL: http://{{ include "oncall.engine.fullname" . }}:8080
+  echo Fill the Grafana URL from step 3{{ if .Values.grafana.enabled }}: http://{{ include "oncall.grafana.fullname" . }}{{- end }}
+  echo     NOTE: this URL should be accessible by Grafana OnCall Backend container
 
-🎉🎉🎉  Done! 🎉🎉🎉
+
+
+echo 🎉🎉🎉  Done! 🎉🎉🎉

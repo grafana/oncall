@@ -1,0 +1,34 @@
+{{- if .Values.ingress.enabled }}
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: {{ include "oncall.engine.fullname" . }}
+  labels:
+    {{- include "oncall.labels" . | nindent 4 }}
+  annotations:
+    kubernetes.io/ingress.class: "nginx"
+    cert-manager.io/issuer: "letsencrypt-prod"
+spec:
+  tls:
+  - hosts:
+    - {{ .Values.base_url | quote }}
+    secretName: quickstart-example-tls
+  rules:
+  - host: {{ .Values.base_url | quote }}
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: {{ include "oncall.engine.fullname" . }}
+            port:
+              number: 8080
+      - path: /grafana
+        pathType: Prefix
+        backend:
+          service:
+            name: {{ include "oncall.grafana.fullname" . }}
+            port:
+              number: 80
+{{- end }}

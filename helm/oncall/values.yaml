@@ -1,4 +1,8 @@
-# Grafana OnCall image used by engine and celery
+# Default values for Grafana OnCall
+
+# i.e. example.com
+base_url: ildari.me
+
 image:
   # TODO: use our public repo
   repository: registry.digitalocean.com/ildar-testing/hobby-oncall-2
@@ -8,10 +12,7 @@ image:
 
 # TODO: remove this after we use public image
 imagePullSecrets:
-  - name: "ildar-testing"
-
-nameOverride: ""
-fullnameOverride: ""
+  - name: "registry-ildar-testing"
 
 engine:
   replicaCount: 1
@@ -33,52 +34,40 @@ celery:
     #   cpu: 100m
     #   memory: 128Mi
 
-serviceAccount:
-  # Specifies whether a service account should be created
-  create: true
-  # Annotations to add to the service account
-  annotations: {}
-  # The name of the service account to use.
-  # If not set and create is true, a name is generated using the fullname template
-  name: ""
-
-podAnnotations: {}
-
-podSecurityContext: {}
-  # fsGroup: 2000
-
-securityContext: {}
-  # capabilities:
-  #   drop:
-  #   - ALL
-  # readOnlyRootFilesystem: true
-  # runAsNonRoot: true
-  # runAsUser: 1000
-
-env:
-  - name: BASE_URL
-    value: "localhost:8000"
+env: []
 
 service:
+  enabled: false
   type: LoadBalancer
-#  type: ClusterIP
   port: 8080
 
 ingress:
-  enabled: false
-  className: ""
-  annotations: {}
-#     kubernetes.io/ingress.class: nginx
-#     kubernetes.io/tls-acme: "true"
-  hosts: []
-#    - host: oncall.example.com
-#      paths:
-#        - path: /
-#          pathType: ImplementationSpecific
-  tls:  # []
-#    - secretName: oncall-example-com-tls
-#      hosts:
-#        - oncall.example.com
+  enabled: true
+#  className: ""
+#  annotations: {}
+##     kubernetes.io/ingress.class: nginx
+##     kubernetes.io/tls-acme: "true"
+#  hosts: []
+##    - host: oncall.example.com
+##      paths:
+##        - path: /
+##          pathType: ImplementationSpecific
+#  tls:  # []
+##    - secretName: oncall-example-com-tls
+##      hosts:
+##        - oncall.example.com
+
+nginx-ingress:
+  enabled: true
+
+cert-manager:
+  enabled: true
+  installCRDs: true
+  webhook:
+    timeoutSeconds: 30
+    # cert-manager tries to use the already used port, changing to another one
+    # https://github.com/cert-manager/cert-manager/issues/3237
+    securePort: 10260
 
 # Additional services configuration
 # We recommend using external services to reduce the overhead of managing statefule services
@@ -112,7 +101,41 @@ external_redis:
 
 grafana:
   enabled: true
+  grafana.ini:
+    server:
+      domain: example.com
+      root_url: "%(protocol)s://%(domain)s/grafana"
+      serve_from_sub_path: true
   persistence:
     enabled: true
   plugins:
     - grafana-oncall-app
+
+nameOverride: ""
+fullnameOverride: ""
+
+serviceAccount:
+  # Specifies whether a service account should be created
+  create: true
+  # Annotations to add to the service account
+  annotations: {}
+  # The name of the service account to use.
+  # If not set and create is true, a name is generated using the fullname template
+  name: ""
+
+podAnnotations: {}
+
+podSecurityContext: {}
+  # fsGroup: 2000
+
+securityContext: {}
+  # capabilities:
+  #   drop:
+  #   - ALL
+  # readOnlyRootFilesystem: true
+  # runAsNonRoot: true
+  # runAsUser: 1000
+
+
+ildar:
+  enabled: true

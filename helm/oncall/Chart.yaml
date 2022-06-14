@@ -23,6 +23,11 @@ version: 0.1.0
 # It is recommended to use it with quotes.
 appVersion: "1.16.0"
 dependencies:
+  - name: cert-manager
+    version: v1.8.0
+    repository: https://charts.jetstack.io
+    condition: cert-manager.enabled
+
   - name: mariadb
     version: 11.0.10
     repository: https://charts.bitnami.com/bitnami
@@ -39,3 +44,7 @@ dependencies:
     version: 6.29.6
     repository: https://grafana.github.io/helm-charts
     condition: grafana.enabled
+  - name: ingress-nginx
+    version: 4.1.4
+    repository: https://kubernetes.github.io/ingress-nginx
+    condition: ingress-nginx.enabled
