@@ -100,7 +100,9 @@ const DefaultPageLayout: FC<DefaultPageLayoutProps> = observer((props) => {
           currentTeam &&
             currentUser &&
             store.isUserActionAllowed(UserAction.UpdateOwnSettings) &&
-            (!currentUser.verified_phone_number || !currentUser.slack_user_identity) &&
+            (!currentUser.verified_phone_number ||
+              !currentUser.slack_user_identity ||
+              currentUser.cloud_connection_status !== 3) &&
             !getItem(AlertID.CONNECTIVITY_WARNING)
         ) && (
           <Alert
@@ -119,7 +121,9 @@ const DefaultPageLayout: FC<DefaultPageLayoutProps> = observer((props) => {
                     {'. '}
                   </>
                 )}
-                {!currentUser.verified_phone_number && 'Your phone number is not verified. '}
+                {currentUser.cloud_connection_status !== 3 &&
+                  !currentUser.verified_phone_number &&
+                  'Your phone number is not verified. '}
                 {currentTeam.slack_team_identity &&
                   !currentUser.slack_user_identity &&
                   'Your slack account is not connected. '}
