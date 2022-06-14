@@ -30,3 +30,7 @@
 .warning-icon {
   color: var(--warning-text-color);
 }
+
+.error-message {
+  color: var(--error-text-color);
+}

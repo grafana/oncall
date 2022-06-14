@@ -12,6 +12,7 @@ from apps.api.serializers.live_setting import LiveSettingSerializer
 from apps.auth_token.auth import PluginAuthentication
 from apps.base.models import LiveSetting
 from apps.base.utils import live_settings
+from apps.oss_installation.tasks import sync_users_with_cloud
 from apps.slack.tasks import unpopulate_slack_user_identities
 from apps.telegram.client import TelegramClient
 from apps.telegram.tasks import register_telegram_webhook
@@ -32,13 +33,19 @@ class LiveSettingViewSet(PublicPrimaryKeyMixin, viewsets.ModelViewSet):
 
     def get_queryset(self):
         LiveSetting.populate_settings_if_needed()
-        return LiveSetting.objects.filter(name__in=LiveSetting.AVAILABLE_NAMES).order_by("name")
+        queryset = LiveSetting.objects.filter(name__in=LiveSetting.AVAILABLE_NAMES).order_by("name")
+        search = self.request.query_params.get("search", None)
+        if search:
+            queryset = queryset.filter(name=search)
+        return queryset
 
     def perform_update(self, serializer):
         new_value = serializer.validated_data["value"]
         self._update_hook(new_value)
-
-        super().perform_update(serializer)
+        instance = serializer.save()
+        sync_users = self.request.query_params.get("sync_users", "true") == "true"
+        if instance.name == "GRAFANA_CLOUD_ONCALL_TOKEN" and sync_users:
+            sync_users_with_cloud.apply_async()
 
     def perform_destroy(self, instance):
         new_value = instance.default_value
@@ -65,6 +72,17 @@ class LiveSettingViewSet(PublicPrimaryKeyMixin, viewsets.ModelViewSet):
                     sti = organization.slack_team_identity
                     if sti is not None:
                         unpopulate_slack_user_identities.apply_async((sti.pk, True), countdown=0)
+
+        if instance.name == "GRAFANA_CLOUD_ONCALL_TOKEN":
+            from apps.oss_installation.models import CloudConnector
+
+            try:
+                old_token = live_settings.GRAFANA_CLOUD_ONCALL_TOKEN
+            except ImproperlyConfigured:
+                old_token = None
+
+            if old_token != new_value:
+                CloudConnector.remove_sync()
 
     def _reset_telegram_integration(self, new_token):
         # tell Telegram to cancel sending events from old bot

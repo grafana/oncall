@@ -12,6 +12,7 @@ from apps.alerts.constants import NEXT_ESCALATION_DELAY
 from apps.alerts.incident_appearance.renderers.web_renderer import AlertGroupWebRenderer
 from apps.alerts.signals import user_notification_action_triggered_signal
 from apps.base.messaging import get_messaging_backend_from_id
+from apps.base.utils import live_settings
 from common.custom_celery_tasks import shared_dedicated_queue_retry_task
 
 from .task_logger import task_logger
@@ -56,6 +57,13 @@ def notify_user_task(
 
         if not user.is_notification_allowed:
             task_logger.info(f"notify_user_task: user {user.pk} notification is not allowed for role {user.role}")
+            UserNotificationPolicyLogRecord(
+                author=user,
+                type=UserNotificationPolicyLogRecord.TYPE_PERSONAL_NOTIFICATION_FAILED,
+                reason=f"notification is not allowed for user with role {user.role}",
+                alert_group=alert_group,
+                notification_error_code=UserNotificationPolicyLogRecord.ERROR_NOTIFICATION_NOT_ALLOWED_USER_ROLE,
+            ).save()
             return
 
         user_has_notification, _ = UserHasNotification.objects.get_or_create(
@@ -257,11 +265,31 @@ def perform_notification(log_record_pk):
         ).save()
         return
 
+    if not user.is_notification_allowed:
+        UserNotificationPolicyLogRecord(
+            author=user,
+            type=UserNotificationPolicyLogRecord.TYPE_PERSONAL_NOTIFICATION_FAILED,
+            reason=f"notification is not allowed for user with role {user.role}",
+            alert_group=alert_group,
+            notification_error_code=UserNotificationPolicyLogRecord.ERROR_NOTIFICATION_NOT_ALLOWED_USER_ROLE,
+        ).save()
+        return
+
     if notification_channel == UserNotificationPolicy.NotificationChannel.SMS:
-        SMSMessage.send_sms(user, alert_group, notification_policy)
+        SMSMessage.send_sms(
+            user,
+            alert_group,
+            notification_policy,
+            is_cloud_notification=live_settings.GRAFANA_CLOUD_NOTIFICATIONS_ENABLED,
+        )
 
     elif notification_channel == UserNotificationPolicy.NotificationChannel.PHONE_CALL:
-        PhoneCall.make_call(user, alert_group, notification_policy)
+        PhoneCall.make_call(
+            user,
+            alert_group,
+            notification_policy,
+            is_cloud_notification=live_settings.GRAFANA_CLOUD_NOTIFICATIONS_ENABLED,
+        )
 
     elif notification_channel == UserNotificationPolicy.NotificationChannel.TELEGRAM:
         if alert_group.notify_in_telegram_enabled is True:

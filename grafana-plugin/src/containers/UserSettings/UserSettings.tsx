@@ -58,7 +58,8 @@ const UserSettings = observer((props: UserFormProps) => {
     setActiveTab(tab);
   }, []);
 
-  const isModalWide = activeTab === UserSettingsTab.UserInfo && isDesktopOrLaptop;
+  const isModalWide =
+    (activeTab === UserSettingsTab.UserInfo && isDesktopOrLaptop) || activeTab === UserSettingsTab.PhoneVerification;
 
   const [showNotificationSettingsTab, showSlackConnectionTab, showTelegramConnectionTab, showMobileAppVerificationTab] =
     [
