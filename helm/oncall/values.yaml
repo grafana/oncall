@@ -67,7 +67,13 @@ cert-manager:
     timeoutSeconds: 30
     # cert-manager tries to use the already used port, changing to another one
     # https://github.com/cert-manager/cert-manager/issues/3237
-    securePort: 10260
+    # https://cert-manager.io/docs/installation/compatibility/#gke-autopilot
+    securePort: 10261
+  podDnsPolicy: None
+  podDnsConfig:
+    nameservers:
+      - 8.8.8.8
+      - 1.1.1.1
 
 # Additional services configuration
 # We recommend using external services to reduce the overhead of managing statefule services

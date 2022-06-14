@@ -6,7 +6,13 @@ A few steps left to finish the configuration, Copy-paste this these command to g
   kubectl exec -it $POD_NAME -c wait-for-db -- bash -c "python manage.py migrate;"
   echo Database was successfully migrated 👍
 
+  echo ❗ Set up a DNS record for your domain.
+  echo Select A Record for Type and enter the Host you would like to point to an IP address:
+  echo @ - used to point a root domain (yourdomain.tld) to the IP address:
+  echo A Record | @ |  $(k get ingress oncall-ildar-engine -o jsonpath="{.status.loadBalancer.ingress[0].ip}")
+
   echo Issuing the token to connect Grafana OnCall backend and Grafana OnCall plugin
+  wait 5
   kubectl exec -it $POD_NAME -- bash -c "python manage.py issue_invite_for_the_frontend --override"
 
   echo Open Grafana in your browser and Enable Grafana OnCall plugin there
@@ -24,7 +30,7 @@ A few steps left to finish the configuration, Copy-paste this these command to g
 {{- end }}
 
 4. Configure Grafana OnCall plugin to work with Grafana OnCall backend
-  echo Open Grafana, go to "Configuration" -> "Plugins" and find Grafana OnCall plugin
+  echo Open Grafana, go to "Configuration" - "Plugins" and find Grafana OnCall plugin
   echo Fill the "Invite token" issued on step 2
   echo     NOTE: you can re-issue the token by running this command: kubectl exec -it $POD_NAME -- bash -c "python manage.py issue_invite_for_the_frontend --override"
   echo Fill the Grafana OnCall Backend URL: http://{{ include "oncall.engine.fullname" . }}:8080
