@@ -17,14 +17,12 @@ Cluster requirements:
 ## Install
 ### Installing the helm chart
 ```bash
-helm repo add grafana https://grafana.github.io/helm-charts
-helm repo update
 helm install \
     --wait \
     --set base_url=example.com \
     --set grafana."grafana\.ini".server.domain=example.com \
     oncall \
-    grafana/oncall
+    .
 ```
 
 Follow the `helm install` output to finish setting up Grafana OnCall backend and Grafana OnCall frontend plugin
@@ -39,7 +37,7 @@ helm upgrade \
     --set base_url=example.com \
     --set grafana."grafana\.ini".server.domain=example.com \
     oncall \
-    grafana/oncall
+    .
 ```
 
 ### Set up external access
