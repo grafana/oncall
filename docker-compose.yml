@@ -1,8 +1,6 @@
 services:
   engine:
-    # TODO: change to the public image once it's public
-    #    image: ...
-    build: engine
+    image: grafana/oncall
     ports:
       - 8080:8080
     command: >
@@ -36,7 +34,7 @@ services:
 
   celery:
     # TODO: change to the public image once it's public
-    build: engine
+    image: grafana/oncall
     command: sh -c "./celery_with_exporter.sh"
     environment:
       BASE_URL: $DOMAIN
@@ -70,7 +68,7 @@ services:
         condition: service_started
 
   oncall_db_migration:
-    build: engine
+    image: grafana/oncall
     command: python manage.py migrate --noinput
     environment:
       BASE_URL: $DOMAIN
