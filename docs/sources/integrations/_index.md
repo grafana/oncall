@@ -65,8 +65,6 @@ To add a route to an integration using regular expression:
 4. Click **Create Route**.
 5. Select an escalation chain for “**IF** alert payload matches regex” and “**ELSE**” to specify where to route each type of alert.
 
-To learn more about routes, refer to [Configure and manage Routes]({{< relref " ../configure-routes/" >}})
-
 #### Edit integration name
 
 To edit the name of an integration:
