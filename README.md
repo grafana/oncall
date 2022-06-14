@@ -1,6 +1,6 @@
 <img width="400px" src="docs/img/logo.png">
 
-Developer-friendly, incident response with brilliant Slack integration.
+Developer-friendly incident response with brilliant Slack integration.
 
 <img width="60%" src="screenshot.png">
 
