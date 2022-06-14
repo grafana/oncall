@@ -25,7 +25,7 @@ Integrating your Slack workspace with Grafana OnCall allows users and teams to b
 
 To install the Slack integration, you must have Admin permissions in your Grafana instance as well as the Slack workspace that you’d like to integrate with. 
 
-For Open Source Grafana OnCall Slack installation guidance, refer to [Open Source Grafana OnCall]({{< relref " open-source.md" >}}).
+For Open Source Grafana OnCall Slack installation guidance, refer to [Open Source Grafana OnCall]({{< relref "../open-source.md" >}}).
 
 ## Install Slack integration for Grafana OnCall
 
@@ -38,7 +38,7 @@ For Open Source Grafana OnCall Slack installation guidance, refer to [Open Sourc
 
 ## Post-install configuration for Slack integration
 
-Configure the following additional settings to ensure Grafanan OnCall alerts are routed to the intended Slack channels and users:
+Configure the following additional settings to ensure Grafana OnCall alerts are routed to the intended Slack channels and users:
 
 1. From your **Slack integration** settings, select a default slack channel in the first dropdown menu. This is where alerts will be sent unless otherwise specified in escalation chains.
 2. In **Additional Settings**, configure alert reminders for alerts to retrigger after being acknowledged for some amount of time. 
