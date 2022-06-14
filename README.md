@@ -11,7 +11,7 @@ Developer-friendly, incident response with brilliant Slack integration.
 
 ## Getting Started
 
-We prepared multiple environments: [production](PRODUCTION.md), [developer](DEVELOPER.md) and hobby:
+We prepared multiple environments: [production](https://grafana.com/docs/grafana-cloud/oncall/open-source/#production-environment), [developer](DEVELOPER.md) and hobby:
 
 1. Download docker-compose.yaml:
 ```bash
