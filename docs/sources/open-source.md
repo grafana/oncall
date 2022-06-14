@@ -5,7 +5,7 @@ aliases:
 keywords:
   - Open Source
 title: Open Source
-weight: 100
+weight: 300
 ---
 
 # Open Source

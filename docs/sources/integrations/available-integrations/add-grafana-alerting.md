@@ -9,6 +9,7 @@ keywords:
   - on-call
   - Prometheus
 title: Connect Grafana Alerting to Grafana OnCall
+canonical: "https://grafana.com/docs/oncall/latest/integrations/available-integrations/add-grafana-alerting/"
 weight: 100
 ---
 

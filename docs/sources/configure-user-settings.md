@@ -10,7 +10,8 @@ keywords:
   - oncall
   - integrations
 title: Manage users and teams for Grafana OnCall
-weight: 1100
+canonical: "https://grafana.com/docs/oncall/latest/configure-user-setting/"
+weight: 1300
 ---
 
 # Manage users and teams for Grafana OnCall

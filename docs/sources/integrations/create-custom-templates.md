@@ -8,6 +8,7 @@ keywords:
   - on-call
   - Jinja
 title: Configure alerts in Grafana OnCall
+canonical: "https://grafana.com/docs/oncall/latest/integrations/create-custom-templates/"
 weight: 300
 ---
 

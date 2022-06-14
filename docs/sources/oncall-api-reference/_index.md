@@ -2,7 +2,8 @@
 aliases:
   - /docs/oncall/latest/oncall-api-reference/
 title: Grafana OnCall HTTP API reference
-weight: 1300
+canonical: "https://grafana.com/docs/oncall/latest/oncall-api-reference/"
+weight: 1500
 ---
 
 # HTTP API Reference

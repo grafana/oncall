@@ -10,6 +10,7 @@ keywords:
   - oncall
   - integrations
 title: Configure and manage Escalation Chains
+canonical: "https://grafana.com/docs/oncall/latest/escalation-policies/configure-escalation-chains/"
 weight: 100
 ---
 
@@ -30,5 +31,3 @@ An escalation chain can have many steps, or only one step. For example, steps ca
 ## Routes
 
 An escalation workflow can employ **routes** that administrators can configure to filter alerts by regular expressions in their payloads. Notifications for these alerts can be sent to individuals, or they can make use of a new or existing escalation chain.
-
-To learn how to configure escalation chains and routes, see [Configure escalation policies]({{< relref "configure-escalation-policies">}}).
