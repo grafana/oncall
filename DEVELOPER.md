@@ -226,6 +226,7 @@ pytest --ds=settings.dev
    - Set Settings to settings/dev.py
 5. Create a new Django Server run configuration to Run/Debug the engine
    - Use a plugin such as EnvFile to load the .env file
+   - Change port from 8000 to 8080
 
 ## Update drone build
 The .drone.yml build file must be signed when changes are made to it.  Follow these steps:
