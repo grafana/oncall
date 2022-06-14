@@ -32,7 +32,6 @@ The following are required to configure Slack for open source Grafana OnCall:
 
 1. Make sure your Grafana OnCall environment is up and running.
 
-
 2. OnCall must be accessible through https. For development purposes, it's recommended to use [localtunnel](https://github.com/localtunnel/localtunnel). For production purposes please consider setting up proper web server with HTTPS termination. 
 Refer to the following example configuration for localtunnel: 
 
