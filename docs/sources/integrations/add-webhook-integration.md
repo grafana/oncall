@@ -56,4 +56,4 @@ For example:
     }'
         ```
 
-To learn how to use custom alert templates for formatted webhooks, see [Configure alerts in Grafana OnCall]({{< relref "../create-custom-templates/" >}}).
+To learn how to use custom alert templates for formatted webhooks, see [Configure alerts in Grafana OnCall]({{< relref "../integrations/create-custom-templates/" >}}).

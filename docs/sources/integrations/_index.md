@@ -53,7 +53,7 @@ To customize alert grouping for an integration:
 2. Select **Alert Behavior** from the dropdown menu next to **Edit template for**.
 3. Edit the **grouping id**, **acknowledge condition**, and **resolve condition** templates as needed to customize your alert behavior.
 
-For more information on alert templates, see [Configure alerts in Grafana OnCall]({{< relref " ../create-custom-templates/" >}})
+For more information on alert templates, see [Configure alerts in Grafana OnCall]({{< relref "create-custom-templates/" >}})
 
 #### Add Routes
 
@@ -64,8 +64,6 @@ To add a route to an integration using regular expression:
 3. Use python style regex to match on your alert content.
 4. Click **Create Route**.
 5. Select an escalation chain for “**IF** alert payload matches regex” and “**ELSE**” to specify where to route each type of alert.
-
-To learn more about routes, refer to [Configure and manage Routes]({{< relref " ../configure-routes/" >}})
 
 #### Edit integration name
 
