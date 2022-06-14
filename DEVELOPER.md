@@ -64,7 +64,7 @@ python manage.py createsuperuser
 3. Launch the backend:
 ```bash
 # Http server:
-python manage.py runserver
+python manage.py runserver 8080
 
 # Worker for background tasks (run it in the parallel terminal, don't forget to export .env there)
 python manage.py start_celery
@@ -73,7 +73,7 @@ python manage.py start_celery
 celery -A engine beat -l info
 ```
 
-4. All set! Check out internal API endpoints at http://localhost:8000/.
+4. All set! Check out internal API endpoints at http://localhost:8080/.
 
 
 ### Frontend setup
@@ -102,7 +102,7 @@ python manage.py issue_invite_for_the_frontend --override
 6. Some configuration fields will appear be available. Fill them out and click Initialize OnCall
 ```
 OnCall API URL: 
-http://host.docker.internal:8000
+http://host.docker.internal:8080
 
 Invitation Token (Single use token to connect Grafana instance):
 Response from the invite generator command (check above)
@@ -226,6 +226,7 @@ pytest --ds=settings.dev
    - Set Settings to settings/dev.py
 5. Create a new Django Server run configuration to Run/Debug the engine
    - Use a plugin such as EnvFile to load the .env file
+   - Change port from 8000 to 8080
 
 ## Update drone build
 The .drone.yml build file must be signed when changes are made to it.  Follow these steps:
