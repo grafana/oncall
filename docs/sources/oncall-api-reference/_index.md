@@ -22,15 +22,12 @@ To authorize, use the **Authorization** header:
 
 ```shell
 # With shell, you can just pass the correct header with each request
-curl "api_endpoint_here" --header "Authorization: meowmeowmeow"
+curl "api_endpoint_here" --header "Authorization: "api_key_here""
 ```
 
-Note that `meowmeowmeow` is a valid key for test purposes.
-Replace `meowmeowmeow` with your API key in production.
+Grafana OnCall uses API keys to allow access to the API. You can request a new OnCall API key in OnCall -> Settings page.
 
-Grafana OnCall uses API keys to allow access to the API. You can request a new OnCall API key in the API section.
-
-An API key is specific to a user and a Grafana stack. If you want to switch to a different team configuration, request a different API key.
+An API key is specific to a user and a Grafana stack. If you want to switch to a different stack configuration, request a different API key.
 
 ## Pagination
 
