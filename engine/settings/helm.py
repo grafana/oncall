@@ -1,5 +1,4 @@
 import os
-import sys
 
 # Workaround to use pymysql instead of mysqlclient
 import pymysql
