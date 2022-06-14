@@ -60,7 +60,7 @@ Grafana Url: http://grafana:3000
 
 <a href="https://github.com/grafana/oncall/discussions/categories/community-calls"><img width="200px" src="docs/img/community_call.png"></a>
 <a href="https://github.com/grafana/oncall/discussions"><img width="200px" src="docs/img/GH_discussions.png"></a>
-<a href="https://slack.grafana.com/"><img width="200px" src="docs/img/slack.png"></a>
+<a href="https://grafana.slack.com/archives/C02LSUUSE2G"><img width="200px" src="docs/img/slack.png"></a>
 
 ## Further Reading
 - *Migration from the PagerDuty* - [Migrator](https://github.com/grafana/oncall/tree/dev/tools/pagerduty-migrator)
