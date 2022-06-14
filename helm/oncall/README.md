@@ -21,7 +21,7 @@ helm install \
     --wait \
     --set base_url=example.com \
     --set grafana."grafana\.ini".server.domain=example.com \
-    oncall \
+    release-oncall \
     .
 ```
 
@@ -36,7 +36,7 @@ helm upgrade \
     --wait \
     --set base_url=example.com \
     --set grafana."grafana\.ini".server.domain=example.com \
-    oncall \
+    release-oncall \
     .
 ```
 
@@ -104,17 +104,17 @@ externalRabbitmq:
 ## Uninstall
 ### Uninstalling the helm chart
 ```bash
-helm delete oncall
+helm delete release-oncall
 ```
 
 ### Clean up PVC's
 ```bash
-kubectl delete pvc data-oncall-mariadb-0 data-oncall-rabbitmq-0 \
-redis-data-oncall-redis-master-0 redis-data-oncall-redis-replicas-0 \
-redis-data-oncall-redis-replicas-1 redis-data-oncall-redis-replicas-2
+kubectl delete pvc data-release-oncall-mariadb-0 data-release-oncall-rabbitmq-0 \
+redis-data-release-oncall-redis-master-0 redis-data-release-oncall-redis-replicas-0 \
+redis-data-release-oncall-redis-replicas-1 redis-data-release-oncall-redis-replicas-2
 ```
  
 ### Clean up secrets
 ```bash
-kubectl delete secrets certificate-tls oncall-cert-manager-webhook-ca oncall-ingress-nginx-admission
+kubectl delete secrets certificate-tls release-oncall-cert-manager-webhook-ca release-oncall-ingress-nginx-admission
 ```

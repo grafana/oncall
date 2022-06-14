@@ -1,5 +1,12 @@
 <img width="400px" src="docs/img/logo.png">
 
+[![Latest Release](https://img.shields.io/github/v/release/grafana/oncall?display_name=tag&sort=semver)](https://github.com/grafana/oncall/releases)
+[![License](https://img.shields.io/github/license/grafana/oncall)](https://github.com/grafana/oncall/blob/dev/LICENSE)
+[![Docker Pulls](https://img.shields.io/docker/pulls/grafana/oncall)](https://hub.docker.com/r/grafana/oncall/tags)
+[![Slack](https://img.shields.io/badge/join%20slack-%23grafana-%2Doncall-brightgreen.svg)](https://grafana.slack.com/archives/C02LSUUSE2G)
+[![Discussion](https://img.shields.io/badge/discuss-oncall%20forum-orange.svg)](https://github.com/grafana/oncall/discussions)
+[![Build Status](https://drone.grafana.net/api/badges/grafana/oncall/status.svg?ref=refs/heads/dev)](https://drone.grafana.net/grafana/oncall)
+
 Developer-friendly incident response with brilliant Slack integration.
 
 <img width="60%" src="screenshot.png">
@@ -15,7 +22,7 @@ We prepared multiple environments: [production](https://grafana.com/docs/grafana
 
 1. Download docker-compose.yaml:
 ```bash
-curl -fsSL https://raw.githubusercontent.com/grafana/oncall/dev/docker-compose.yml -o docker-compose.yaml
+curl -fsSL https://raw.githubusercontent.com/grafana/oncall/dev/docker-compose.yml -o docker-compose.yml
 ```
 
 2. Set variables:
@@ -46,7 +53,7 @@ OnCall backend URL: http://engine:8080
 Grafana Url: http://grafana:3000
 ```
 
-6. Enjoy!
+6. Enjoy! Check our [OSS docs](https://grafana.com/docs/grafana-cloud/oncall/open-source/) if you want to set up Slack, Telegram, Twilio or SMS/calls through Grafana Cloud. 
 
 
 ## Join community
@@ -56,6 +63,7 @@ Grafana Url: http://grafana:3000
 <a href="https://slack.grafana.com/"><img width="200px" src="docs/img/slack.png"></a>
 
 ## Further Reading
+- *Migration from the PagerDuty* - [Migrator](https://github.com/grafana/oncall/tree/dev/tools/pagerduty-migrator)
 - *Documentation* - [Grafana OnCall](https://grafana.com/docs/grafana-cloud/oncall/)
 - *Blog Post* - [Announcing Grafana OnCall, the easiest way to do on-call management](https://grafana.com/blog/2021/11/09/announcing-grafana-oncall/)
 - *Presentation* - [Deep dive into the Grafana, Prometheus, and Alertmanager stack for alerting and on-call management](https://grafana.com/go/observabilitycon/2021/alerting/?pg=blog)
