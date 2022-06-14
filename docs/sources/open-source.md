@@ -18,7 +18,7 @@ We prepared three environments for OSS users:
 
 ## Production Environment
 
-TBD
+We prepared the helm chart for production environment: https://github.com/grafana/oncall/helm
 
 ## Slack Setup
 
@@ -28,13 +28,15 @@ Grafana OnCall Slack integration use a lot of Slack API features:
 
 1. Make sure your OnCall is up and running.
 
+
 1. You need OnCall to be accessible through https. For development purposes we suggest using [localtunnel](https://github.com/localtunnel/localtunnel). For production purposes please consider setting up proper web server with HTTPS termination. For localtunnel: 
     ```bash
     # Choose the unique prefix instead of pretty-turkey-83
     # Localtunnel will generate an url, e.g. https://pretty-turkey-83.loca.lt
     # it is referred as <ONCALL_ENGINE_PUBLIC_URL> below
-    lt --port 8000 -s pretty-turkey-83 --print-requests
+    lt --port 8080 -s pretty-turkey-83 --print-requests
     ```
+
 
 1. If you use localtunnel, open your external URL and click "Continue" to allow requests to bypass the warning page.
 

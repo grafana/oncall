@@ -35,11 +35,10 @@ const cx = cn.bind(styles);
 interface Props extends PluginConfigPageProps<AppPluginMeta<OnCallAppSettings>> {}
 
 export const PluginConfigPage = (props: Props) => {
-  const grafanaUrlDefault = getItem('grafanaUrl') || window.location.origin;
   const { plugin } = props;
   const [onCallApiUrl, setOnCallApiUrl] = useState<string>(getItem('onCallApiUrl'));
   const [onCallInvitationToken, setOnCallInvitationToken] = useState<string>();
-  const [grafanaUrl, setGrafanaUrl] = useState<string>(grafanaUrlDefault);
+  const [grafanaUrl, setGrafanaUrl] = useState<string>(getItem('grafanaUrl'));
   const [pluginConfigLoading, setPluginConfigLoading] = useState<boolean>(true);
   const [pluginStatusOk, setPluginStatusOk] = useState<boolean>();
   const [pluginStatusMessage, setPluginStatusMessage] = useState<string>();
@@ -298,10 +297,10 @@ Seek for such a line:  “Your invite token: <<LONG TOKEN>> , use it in the Graf
             label="OnCall backend URL"
             description={
               <Text>
-                It should be rechable from Grafana. Possible options: <br />
-                http://host.docker.internal:8000 (if you run backend in the docker locally)
+                It should be reachable from Grafana. Possible options: <br />
+                http://host.docker.internal:8080 (if you run backend in the docker locally)
                 <br />
-                http://localhost:8000 <br />
+                http://localhost:8080 <br />
                 ...
               </Text>
             }

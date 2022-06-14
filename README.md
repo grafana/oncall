@@ -1,6 +1,6 @@
 <img width="400px" src="docs/img/logo.png">
 
-Developer-friendly, incident response with brilliant Slack integration.
+Developer-friendly incident response with brilliant Slack integration.
 
 <img width="60%" src="screenshot.png">
 
@@ -20,7 +20,7 @@ curl https://github.com/grafana/oncall/blob/dev/docker-compose.yml -o docker-com
 
 2. Set variables:
 ```bash
-echo "DOMAIN=http://localhost
+echo "DOMAIN=http://localhost:8080
 SECRET_KEY=my_random_secret_must_be_more_than_32_characters_long
 RABBITMQ_PASSWORD=rabbitmq_secret_pw
 MYSQL_PASSWORD=mysql_secret_pw

@@ -92,13 +92,15 @@ services:
     depends_on:
       mysql:
         condition: service_healthy
+      rabbitmq:
+        condition: service_started
 
   mysql:
     image: mysql:5.7
     platform: linux/x86_64
     mem_limit: 500m
     cpus: 0.5
-    command: --default-authentication-plugin=mysql_native_password
+    command: --default-authentication-plugin=mysql_native_password --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
     restart: always
     ports:
       - 3306:3306
@@ -157,8 +159,6 @@ services:
       GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_PASSWORD:?err}
       GF_PLUGINS_ALLOW_LOADING_UNSIGNED_PLUGINS: grafana-oncall-app
       GF_INSTALL_PLUGINS: grafana-oncall-app
-    volumes:
-      - ./grafana-plugin:/var/lib/grafana/plugins/grafana-plugin
     depends_on:
       mysql_to_create_grafana_db:
         condition: service_completed_successfully

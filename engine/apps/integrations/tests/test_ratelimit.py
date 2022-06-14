@@ -43,7 +43,6 @@ def test_ratelimit_alerts_per_integration(
     assert mocked_task.call_count == 1
 
 
-@pytest.mark.skip(reason="SQLITE Incompatibility")
 @mock.patch("ratelimit.utils._split_rate", return_value=(1, 60))
 @mock.patch("apps.integrations.tasks.create_alert.apply_async", return_value=None)
 @pytest.mark.django_db
@@ -55,10 +54,16 @@ def test_ratelimit_alerts_per_team(
 ):
     organization = make_organization()
     integration_1 = make_alert_receive_channel(organization, integration=AlertReceiveChannel.INTEGRATION_WEBHOOK)
-    url_1 = reverse("integrations:webhook", kwargs={"alert_channel_key": integration_1.token})
+    url_1 = reverse(
+        "integrations:universal",
+        kwargs={"integration_type": AlertReceiveChannel.INTEGRATION_WEBHOOK, "alert_channel_key": integration_1.token},
+    )
     integration_2 = make_alert_receive_channel(organization, integration=AlertReceiveChannel.INTEGRATION_WEBHOOK)
 
-    url_2 = reverse("integrations:webhook", kwargs={"alert_channel_key": integration_2.token})
+    url_2 = reverse(
+        "integrations:universal",
+        kwargs={"integration_type": AlertReceiveChannel.INTEGRATION_WEBHOOK, "alert_channel_key": integration_2.token},
+    )
 
     c = Client()
 
@@ -71,7 +76,6 @@ def test_ratelimit_alerts_per_team(
     assert mocked_task.call_count == 1
 
 
-@pytest.mark.skip(reason="SQLITE Incompatibility")
 @mock.patch("ratelimit.utils._split_rate", return_value=(1, 60))
 @mock.patch("apps.heartbeat.tasks.process_heartbeat_task.apply_async", return_value=None)
 @pytest.mark.django_db
