@@ -10,6 +10,10 @@ Architecture diagram can be found [here](https://raw.githubusercontent.com/grafa
 > which is not recommended for production usage. It is recommended to run stateful services such as MySQL and RabbitMQ
 > separately from this release or use managed PaaS solutions. It will significantly reduce the overhead of managing them
 
+
+Cluster requirements:
+* ensure you can run x86-64/amd64 workloads. arm64 architecture is currently not supported
+
 ## Install
 ### Installing the helm chart
 ```bash
@@ -19,7 +23,7 @@ helm install \
     --wait \
     --set base_url=example.com \
     --set grafana."grafana\.ini".server.domain=example.com \
-    grafana-oncall \
+    oncall \
     grafana/oncall
 ```
 
@@ -34,7 +38,7 @@ helm upgrade \
     --wait \
     --set base_url=example.com \
     --set grafana."grafana\.ini".server.domain=example.com \
-    grafana-oncall \
+    oncall \
     grafana/oncall
 ```
 
@@ -102,17 +106,17 @@ externalRabbitmq:
 ## Uninstall
 ### Uninstalling the helm chart
 ```bash
-helm delete grafana-oncall
+helm delete oncall
 ```
 
 ### Clean up PVC's
 ```bash
-kubectl delete pvc data-grafana-oncall-mariadb-0 data-grafana-oncall-rabbitmq-0 \
-redis-data-grafana-oncall-redis-master-0 redis-data-grafana-oncall-redis-replicas-0 \
-redis-data-grafana-oncall-redis-replicas-1 redis-data-grafana-oncall-redis-replicas-2
+kubectl delete pvc data-oncall-mariadb-0 data-oncall-rabbitmq-0 \
+redis-data-oncall-redis-master-0 redis-data-oncall-redis-replicas-0 \
+redis-data-oncall-redis-replicas-1 redis-data-oncall-redis-replicas-2
 ```
  
 ### Clean up secrets
 ```bash
-kubectl delete secrets certificate-tls grafana-oncall-cert-manager-webhook-ca grafana-oncall-ingress-nginx-admission
+kubectl delete secrets certificate-tls oncall-cert-manager-webhook-ca oncall-ingress-nginx-admission
 ```

@@ -1,4 +1,4 @@
-{{- if .Values.ildar.enabled }}
+{{- if (index .Values "cert-manager") }}
 apiVersion: cert-manager.io/v1
 kind: Issuer
 metadata:

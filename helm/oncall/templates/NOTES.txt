@@ -16,7 +16,7 @@ TODO: Add disclaimer about stateful services, ingress controller, certificates
   ❗ Set up a DNS record for your domain (use A Record and  "@" to point a root domain to the IP address)
      Get the external IP address by running the following commands and point {{ .Values.base_url }} to it:
 
-        kubectl get ingress {{ include "oncall.engine.fullname" . }} -o jsonpath="{.status.loadBalancer.ingress[0].ip}"
+        kubectl get ingress {{ include "oncall.fullname" . }} -o jsonpath="{.status.loadBalancer.ingress[0].ip}"
 
      Wait until the dns record got propagated.
         NOTE: Check with the following command: nslookup {{ .Values.base_url }}

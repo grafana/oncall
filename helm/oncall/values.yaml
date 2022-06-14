@@ -85,6 +85,20 @@ cert-manager:
 # Set mariadb.enabled = false and configure externalMysql
 mariadb:
   enabled: true
+  auth:
+    database: oncall
+  primary:
+    extraEnvVars:
+    - name: MARIADB_COLLATE
+      value: utf8mb4_unicode_ci
+    - name: MARIADB_CHARACTER_SET
+      value: utf8mb4
+  secondary:
+    extraEnvVars:
+    - name: MARIADB_COLLATE
+      value: utf8mb4_unicode_ci
+    - name: MARIADB_CHARACTER_SET
+      value: utf8mb4
 
 # Make sure to create the database with the following parameters:
 # CREATE DATABASE oncall CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
