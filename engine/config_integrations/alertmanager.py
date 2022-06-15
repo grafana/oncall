@@ -96,7 +96,7 @@ telegram_message = """\
 {%- if "status" in payload -%}
 <b>Status</b>: {{ payload.status }}
 {% endif -%}
-<b>Labels:** {% for k, v in payload["labels"].items() %}
+<b>Labels:</b> {% for k, v in payload["labels"].items() %}
 {{ k }}: {{ v }}{% endfor %}
 <b>Annotations:</b> 
 {%- for k, v in payload.get("annotations", {}).items() %}
@@ -211,7 +211,7 @@ tests = {
         "title": "KubeJobCompletion",
         "message": (
             "<b>Status</b>: firing\n"
-            "<b>Labels:** \n"
+            "<b>Labels:</b> \n"
             "job: kube-state-metrics\n"
             "instance: 10.143.139.7:8443\n"
             "job_name: email-tracking-perform-initialization-1.0.50\n"
