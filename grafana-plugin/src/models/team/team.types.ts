@@ -68,6 +68,5 @@ export interface Team {
   env_status: {
     twilio_configured: boolean;
     telegram_configured: boolean;
-    extra_messaging_backends_enabled: boolean;
   };
 }

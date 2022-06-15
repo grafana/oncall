@@ -81,30 +81,6 @@ def test_current_team_update_permissions(
 
 
 @pytest.mark.django_db
-@pytest.mark.parametrize("feature_flag_enabled", [False, True])
-def test_current_team_messaging_backend_status(
-    settings,
-    make_organization,
-    make_user_for_organization,
-    make_token_for_organization,
-    make_user_auth_headers,
-    feature_flag_enabled,
-):
-    org = make_organization()
-    tester = make_user_for_organization(org, role=Role.ADMIN)
-    _, token = make_token_for_organization(org)
-
-    client = APIClient()
-
-    settings.FEATURE_EXTRA_MESSAGING_BACKENDS_ENABLED = feature_flag_enabled
-    url = reverse("api-internal:api-current-team")
-    response = client.get(url, format="json", **make_user_auth_headers(tester, token))
-
-    assert response.status_code == status.HTTP_200_OK
-    assert response.json()["env_status"]["extra_messaging_backends_enabled"] == bool(feature_flag_enabled)
-
-
-@pytest.mark.django_db
 @pytest.mark.parametrize(
     "role,expected_status",
     [
