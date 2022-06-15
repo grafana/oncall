@@ -14,7 +14,9 @@ import {
 } from '@grafana/ui';
 import cn from 'classnames/bind';
 import { omit } from 'lodash-es';
+import { observe } from 'mobx';
 import { observer } from 'mobx-react';
+import { Lambda } from 'mobx/lib/internal';
 import { AlignType } from 'rc-table/lib/interface';
 import { Redirect } from 'react-router-dom';
 
@@ -46,6 +48,23 @@ class LiveSettings extends React.Component<LiveSettingsProps, LiveSettingsState>
     hideValues: true,
   };
 
+  disposer: Lambda;
+
+  constructor(props: LiveSettingsProps) {
+    super(props);
+
+    const { store } = props;
+
+    this.disposer = observe(store.userStore, (change) => {
+      if (change.name === 'currentUserPk') {
+        this.update();
+      }
+    });
+  }
+
+  componentWillUnmount() {
+    this.disposer();
+  }
   componentDidMount() {
     this.update();
   }

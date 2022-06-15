@@ -1,0 +1,54 @@
+{{- if .Values.migrate.enabled -}}
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ printf "%s-migrate-%s" (include "oncall.engine.fullname" .) (now | date "2006-01-02-15-04-05") }}
+  labels:
+    {{- include "oncall.engine.labels" . | nindent 4 }}
+spec:
+  ttlSecondsAfterFinished: 20
+  template:
+    metadata:
+      name: {{ printf "%s-migrate-%s" (include "oncall.engine.fullname" .) (now | date "2006-01-02-15-04-05") }}
+      {{- with .Values.podAnnotations }}
+      annotations:
+        random-annotation: {{ randAlphaNum 10 | lower }}
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      labels:
+        {{- include "oncall.engine.selectorLabels" . | nindent 8 }}
+    spec:
+      restartPolicy: Never
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      serviceAccountName: {{ include "oncall.serviceAccountName" . }}
+      securityContext:
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      containers:
+      - name: {{ .Chart.Name }}-migrate
+        securityContext:
+          {{- toYaml .Values.securityContext | nindent 12 }}
+        image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+        imagePullPolicy: {{ .Values.image.pullPolicy }}
+        command:
+          - /bin/sh
+          - -c
+          - |
+            until (nc -vz $MYSQL_HOST $MYSQL_PORT);
+            do
+                echo "waiting for MySQL"; sleep 1;
+            done
+            python manage.py migrate
+        env:
+          {{- include "snippet.oncall.env" . | nindent 12 }}
+          {{- include "snippet.mysql.env" . | nindent 12 }}
+          {{- include "snippet.rabbitmq.env" . | nindent 12 }}
+          {{- include "snippet.redis.env" . | nindent 12 }}
+          {{- if .Values.env }}
+            {{- toYaml .Values.env | nindent 12 }}
+          {{- end }}
+        resources:
+          {{- toYaml .Values.engine.resources | nindent 12 }}
+{{- end }}

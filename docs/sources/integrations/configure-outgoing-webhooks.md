@@ -9,6 +9,7 @@ keywords:
   - amixr
   - webhooks
 title: Configure outgoing webhooks for Grafana OnCall
+canonical: "https://grafana.com/docs/oncall/latest/integrations/configure-outgoing-webhooks/"
 weight: 500
 ---
 

@@ -3,6 +3,7 @@ aliases:
   - /docs/grafana-cloud/oncall/oncall-api-reference/integrations/
   - /docs/oncall/latest/oncall-api-reference/integrations/
 title: Integrations HTTP API
+canonical: "https://grafana.com/docs/oncall/latest/oncall-api-reference/integrations/"
 weight: 500
 ---
 
@@ -67,7 +68,7 @@ The above command returns JSON structured in the following way:
 ```
 
 Integrations are sources of alerts and alert groups for Grafana OnCall.
-For example, to learn how to integrate Grafana OnCall with Alertmanager see [Alertmanager]({{< relref "../integrations/add-alertmanager" >}}).
+For example, to learn how to integrate Grafana OnCall with Alertmanager see [Alertmanager]({{< relref "../integrations/available-integrations/add-alertmanager/" >}}).
 
 **HTTP request**
 

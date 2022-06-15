@@ -8,6 +8,7 @@ keywords:
   - on-call
   - Zabbix
 title: Connect Zabbix to Grafana OnCall
+canonical: "https://grafana.com/docs/oncall/latest/integrations/available-integrations/add-zabbix/"
 weight: 500
 ---
 

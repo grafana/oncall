@@ -3,6 +3,7 @@ aliases:
   - /docs/grafana-cloud/oncall/oncall-api-reference/schedules/
   - /docs/oncall/latest/oncall-api-reference/schedules/
 title: Schedule HTTP API
+canonical: "https://grafana.com/docs/oncall/latest/oncall-api-reference/schedules/"
 weight: 1200
 ---
 

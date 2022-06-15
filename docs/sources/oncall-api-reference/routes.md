@@ -3,6 +3,7 @@ aliases:
   - /docs/grafana-cloud/oncall/oncall-api-reference/routes/
   - /docs/oncall/latest/oncall-api-reference/routes/
 title: Routes HTTP API
+canonical: "https://grafana.com/docs/oncall/latest/oncall-api-reference/routes/"
 weight: 1100
 ---
 
