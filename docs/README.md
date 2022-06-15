@@ -1,6 +1,6 @@
 # Grafana Cloud Documentation
 
-Source for documentation at https://grafana.com/docs/amixr/
+Source for documentation at https://grafana.com/docs/oncall/
 
 ## Preview the website
 
