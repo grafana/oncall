@@ -5,6 +5,8 @@ services:
       - 8080:8080
     command: >
       sh -c "uwsgi --ini uwsgi.ini"
+    sysctls:
+      net.core.somaxconn: 1024
     environment:
       BASE_URL: $DOMAIN
       SECRET_KEY: $SECRET_KEY
