@@ -9,6 +9,7 @@ module.exports = {
       '^assets|^components|^containers|^declare|^icons|^img|^interceptors|^models|^network|^pages|^services|^state|^utils',
   },
   rules: {
+    'no-unused-vars': ['error', { vars: 'all', args: 'after-used', ignoreRestSiblings: false }],
     'react/prop-types': 'warn',
     'react/display-name': 'warn',
     'react/jsx-key': 'warn',
@@ -16,7 +17,7 @@ module.exports = {
     'react/jsx-no-target-blank': 'warn',
     'no-restricted-imports': 'warn',
     eqeqeq: 'warn',
-    'no-duplicate-imports': 'warn',
+    'no-duplicate-imports': 'error',
     'rulesdir/no-relative-import-paths': ['error', { allowSameFolder: true }],
     'import/order': [
       'error',
