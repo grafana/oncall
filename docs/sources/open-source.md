@@ -17,7 +17,7 @@ We prepared three environments for OSS users:
 
 ## Production Environment
 
-We prepared the helm chart for production environment: https://github.com/grafana/oncall/helm
+We prepared the helm chart for production environment: https://github.com/grafana/oncall/tree/dev/helm/oncall
 
 ## Slack Setup
 
