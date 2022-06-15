@@ -3,7 +3,7 @@
 [![Latest Release](https://img.shields.io/github/v/release/grafana/oncall?display_name=tag&sort=semver)](https://github.com/grafana/oncall/releases)
 [![License](https://img.shields.io/github/license/grafana/oncall)](https://github.com/grafana/oncall/blob/dev/LICENSE)
 [![Docker Pulls](https://img.shields.io/docker/pulls/grafana/oncall)](https://hub.docker.com/r/grafana/oncall/tags)
-[![Slack](https://img.shields.io/badge/join%20slack-%23grafana-%2Doncall-brightgreen.svg)](https://grafana.slack.com/archives/C02LSUUSE2G)
+[![Slack](https://img.shields.io/badge/join%20slack-%23grafana-%2Doncall-brightgreen.svg)](https://slack.grafana.com/)
 [![Discussion](https://img.shields.io/badge/discuss-oncall%20forum-orange.svg)](https://github.com/grafana/oncall/discussions)
 [![Build Status](https://drone.grafana.net/api/badges/grafana/oncall/status.svg?ref=refs/heads/dev)](https://drone.grafana.net/grafana/oncall)
 
@@ -60,7 +60,7 @@ Grafana Url: http://grafana:3000
 
 <a href="https://github.com/grafana/oncall/discussions/categories/community-calls"><img width="200px" src="docs/img/community_call.png"></a>
 <a href="https://github.com/grafana/oncall/discussions"><img width="200px" src="docs/img/GH_discussions.png"></a>
-<a href="https://grafana.slack.com/archives/C02LSUUSE2G"><img width="200px" src="docs/img/slack.png"></a>
+<a href="https://slack.grafana.com/"><img width="200px" src="docs/img/slack.png"></a>
 
 ## Further Reading
 - *Migration from the PagerDuty* - [Migrator](https://github.com/grafana/oncall/tree/dev/tools/pagerduty-migrator)
