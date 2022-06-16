@@ -160,3 +160,15 @@ securityContext: {}
   # readOnlyRootFilesystem: true
   # runAsNonRoot: true
   # runAsUser: 1000
+
+init:
+  securityContext: {}
+    # allowPrivilegeEscalation: false
+    # capabilities:
+    #   drop:
+    #   - ALL
+    # privileged: false
+    # readOnlyRootFilesystem: true
+    # runAsGroup: 1337
+    # runAsNonRoot: true
+    # runAsUser: 1337
