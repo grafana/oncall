@@ -1,3 +1,8 @@
+version: "3"
+
+networks:
+  oncall:
+
 services:
   engine:
     image: grafana/oncall
@@ -31,6 +36,8 @@ services:
         condition: service_started
       redis:
         condition: service_started
+    networks:
+      - oncall
 
   celery:
     # TODO: change to the public image once it's public
@@ -55,7 +62,6 @@ services:
       CELERY_WORKER_QUEUE: "default,critical,long,slack,telegram,webhook,retry,celery"
       CELERY_WORKER_CONCURRENCY: "1"
       CELERY_WORKER_MAX_TASKS_PER_CHILD: "100"
-      CELERY_WORKER_SHUTDOWN_INTERVAL: "65m"
       CELERY_WORKER_BEAT_ENABLED: "True"
     depends_on:
       mysql:
@@ -66,6 +72,8 @@ services:
         condition: service_started
       redis:
         condition: service_started
+    networks:
+      - oncall
 
   oncall_db_migration:
     image: grafana/oncall
@@ -92,6 +100,8 @@ services:
         condition: service_healthy
       rabbitmq:
         condition: service_started
+    networks:
+      - oncall
 
   mysql:
     image: mysql:5.7
@@ -111,6 +121,8 @@ services:
       test: "mysql -uroot -p$MYSQL_PASSWORD oncall_hobby -e 'select 1'"
       timeout: 20s
       retries: 10
+    networks:
+      - oncall
 
   redis:
     image: redis
@@ -119,6 +131,8 @@ services:
     restart: always
     ports:
       - 6379:6379
+    networks:
+      - oncall
 
   rabbitmq:
     image: "rabbitmq:3.7.15-management"
@@ -131,6 +145,8 @@ services:
       RABBITMQ_DEFAULT_USER: "rabbitmq"
       RABBITMQ_DEFAULT_PASS: $RABBITMQ_PASSWORD
       RABBITMQ_DEFAULT_VHOST: "/"
+    networks:
+      - oncall
 
   mysql_to_create_grafana_db:
     image: mysql:5.7
@@ -141,6 +157,8 @@ services:
         condition: service_healthy
     profiles:
       - with_grafana
+    networks:
+      - oncall
 
   grafana:
     image: "grafana/grafana:9.0.0-beta3"
@@ -164,6 +182,8 @@ services:
         condition: service_healthy
     profiles:
       - with_grafana
+    networks:
+      - oncall
 
 volumes:
   dbdata:
