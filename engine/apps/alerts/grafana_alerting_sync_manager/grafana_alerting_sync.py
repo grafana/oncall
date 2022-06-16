@@ -55,9 +55,9 @@ class GrafanaAlertingSyncManager:
         return
 
     def alerting_config_with_respect_to_grafana_version(
-            self, is_grafana_datasource, datasource_id, datasource_uid, client_method, *args
+        self, is_grafana_datasource, datasource_id, datasource_uid, client_method, *args
     ):
-        """ Fast fix for deprecated grafana alerting api endpoints"""
+        """Quick fix for deprecated grafana alerting api endpoints"""
 
         if is_grafana_datasource:
             datasource_attr = GrafanaAlertingSyncManager.GRAFANA_CONTACT_POINT
@@ -312,9 +312,11 @@ class GrafanaAlertingSyncManager:
 
     def sync_contact_point(self, contact_point) -> None:
         """Update name of contact point and related routes or delete it if integration was deleted"""
-        datasource_type = GrafanaAlertingSyncManager.GRAFANA_CONTACT_POINT \
-            if not (contact_point.datasource_id or contact_point.datasource_uid) \
+        datasource_type = (
+            GrafanaAlertingSyncManager.GRAFANA_CONTACT_POINT
+            if not (contact_point.datasource_id or contact_point.datasource_uid)
             else "nongrafana"
+        )
         is_grafana_datasource = datasource_type == GrafanaAlertingSyncManager.GRAFANA_CONTACT_POINT
         logger.info(
             f"Sync contact point for {datasource_type} (name: {contact_point.datasource_name}) datasource, integration "
