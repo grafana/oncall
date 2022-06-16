@@ -8,7 +8,7 @@ title: Open Source
 weight: 300
 ---
 
-# Grafana OnCall Open Source guide
+# Grafana OnCall open source guide
 
 Grafana OnCall is a developer-friendly incident response tool that's available to Grafana open source and Grafana Cloud users. The OSS version of Grafana OnCall provides the same reliable on-call management solution along with the flexibility of a self-managed environment. 
 
@@ -24,7 +24,7 @@ There are three Grafana OnCall OSS environments available:
 
 - **Hobby** playground environment for local usage: [README.md](https://github.com/grafana/oncall#getting-started)
 - **Development** environment for contributors: [DEVELOPER.md](https://github.com/grafana/oncall/blob/dev/DEVELOPER.md)
-- **Production** environment for reliable cloud installation: [Production Environment](#production-environment)
+- **Production** environment for reliable Cloud installation: [Production Environment](#production-environment)
 
 For detailed installation instructions and additional resources, refer to the OSS Grafana OnCall [README.md](https://github.com/grafana/oncall#getting-started)
 
@@ -47,7 +47,7 @@ Review the following requirements to configure Slack for Grafana OnCall OSS:
 
 1. Ensure your Grafana OnCall environment is up and running.
 
-2. Grafana OnCall must be accessible through HTTPS. For development purposes, it's recommend to use [localtunnel](https://github.com/localtunnel/localtunnel). For production purposes, consider establishing a proper web server with HTTPS termination. 
+1. Grafana OnCall must be accessible through HTTPS. For development purposes,  use [localtunnel](https://github.com/localtunnel/localtunnel). For production purposes, consider establishing a proper web server with HTTPS termination. 
 For localtunnel, refer to the following configuration:
 
 ```bash
@@ -57,15 +57,15 @@ For localtunnel, refer to the following configuration:
 lt --port 8080 -s pretty-turkey-83 --print-requests
 ```
 
-3. If using localtunnel, open your external URL and click **Continue** to allow requests to bypass the warning page.
+1. If using localtunnel, open your external URL and click **Continue** to allow requests to bypass the warning page.
 
-4. [Create a Slack Workspace](https://slack.com/create) for development, or use your company workspace.
+1. [Create a Slack Workspace](https://slack.com/create) for development, or use your company workspace.
 
-5. Go to https://api.slack.com/apps and click **Create New App** 
+1. Go to https://api.slack.com/apps and click **Create an App** .
 
-6. Select `From an app manifest` option and select your workspace.
+1. Select `From an app manifest` option and select your workspace.
 
-7. Copy and paste the following block. Be sure to replace `YOUR_BOT_NAME` and `ONCALL_ENGINE_PUBLIC_URL` fields with the appropriate information. 
+1. Replace the text with the following YAML code block . Be sure to replace `<YOUR_BOT_NAME>` and `<ONCALL_ENGINE_PUBLIC_URL>` fields with the appropriate information. 
 
   ```yaml
   _metadata:
@@ -155,7 +155,7 @@ lt --port 8080 -s pretty-turkey-83 --print-requests
     socket_mode_enabled: false
   ```
 
-6. Set environment variables by navigating to your Grafana OnCall, then click **Env Variables** and set the following:
+1. Set environment variables by navigating to your Grafana OnCall, then click **Env Variables** and set the following:
     ```
     SLACK_CLIENT_OAUTH_ID = Basic Information -> App Credentials -> Client ID
     SLACK_CLIENT_OAUTH_SECRET = Basic Information -> App Credentials -> Client Secret
@@ -163,9 +163,9 @@ lt --port 8080 -s pretty-turkey-83 --print-requests
     SLACK_INSTALL_RETURN_REDIRECT_HOST = << OnCall external URL >>
     ```
 
-7. From OnCall, navigate to **ChatOps**, select Slack and click **Install Slack integration**.
+1. In OnCall, navigate to **ChatOps**, select Slack and click **Install Slack integration**.
 
-8. Configure additional Slack settings as needed and your integration is ready for use.
+1. Configure additional Slack settings.
 
 ## Telegram integration for Grafana OnCall OSS
 
@@ -181,11 +181,11 @@ Review the following requirements to configure Telegram for Grafana OnCall OSS:
 
 1. Ensure your OnCall environment is up and running.
 
-2. Request [BotFather](https://t.me/BotFather) for a key, then add your key in `TELEGRAM_TOKEN` in your Grafana OnCall **Env Variables**.
+1. Request [BotFather](https://t.me/BotFather) for a key, then add your key in `TELEGRAM_TOKEN` in your Grafana OnCall **Env Variables**.
 
-3. Set `TELEGRAM_WEBHOOK_HOST` with your external URL for your Grafana OnCall. 
+1. Set `TELEGRAM_WEBHOOK_HOST` with your external URL for your Grafana OnCall. 
 
-4. From the **ChatOps** tab in Grafana OnCall, click **Telegram** and your integration is now ready for use.
+1. From the **ChatOps** tab in Grafana OnCall, click **Telegram**.
 
 ## Connect Grafana Cloud to Grafana OnCall OSS
 
