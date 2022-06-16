@@ -103,8 +103,12 @@ class GrafanaAPIClient(APIClient):
     def get_datasources(self):
         return self.api_get("api/datasources")
 
-    def get_datasource(self, datasource_id):
+    def get_datasource_by_id(self, datasource_id):
+        # This endpoint is deprecated for Grafana version >= 9. Use get_datasource instead
         return self.api_get(f"api/datasources/{datasource_id}")
+
+    def get_datasource(self, datasource_uid):
+        return self.api_get(f"api/datasources/uid/{datasource_uid}")
 
     def get_alertmanager_status_with_config(self, recipient):
         return self.api_get(f"api/alertmanager/{recipient}/api/v2/status")
@@ -112,7 +116,7 @@ class GrafanaAPIClient(APIClient):
     def get_alerting_config(self, recipient):
         return self.api_get(f"api/alertmanager/{recipient}/config/api/v1/alerts")
 
-    def update_alerting_config(self, config, recipient):
+    def update_alerting_config(self, recipient, config):
         return self.api_post(f"api/alertmanager/{recipient}/config/api/v1/alerts", config)
 
 
