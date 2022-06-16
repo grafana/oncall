@@ -120,7 +120,7 @@ externalRabbitmq:
 redis:
   enabled: true
 
-external_redis:
+externalRedis:
   host:
   password:
 
