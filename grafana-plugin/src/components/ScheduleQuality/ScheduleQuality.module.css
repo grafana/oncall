@@ -1,13 +1,14 @@
 .root {
-    padding: 6px 10px;
+    padding: 4px 10px;
     gap: 10px;
     background: var(--primary-background);
     border: var(--border-medium);
     border-radius: 2px;
 }
 
-.details{
-    width: 276px;
+.details {
+    width: auto;
+    padding: 10px 0;
 }
 
 .progress{

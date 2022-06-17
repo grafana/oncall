@@ -11,7 +11,7 @@ interface ScheduleCounterProps {
   type: 'link' | 'warning';
   count: number;
   tooltipTitle: string;
-  tooltipContent: string;
+  tooltipContent: React.ReactNode;
 }
 
 const typeToIcon = {
@@ -47,9 +47,7 @@ const ScheduleCounter: FC<ScheduleCounterProps> = (props) => {
         <div className={cx('tooltip', { [`tooltip__type_${type}`]: true })}>
           <VerticalGroup>
             <Text type={typeToColor[type]}>{tooltipTitle}</Text>
-            <Text type="secondary">
-              <div dangerouslySetInnerHTML={{ __html: tooltipContent }} />
-            </Text>
+            <Text type="secondary">{tooltipContent}</Text>
           </VerticalGroup>
         </div>
       }

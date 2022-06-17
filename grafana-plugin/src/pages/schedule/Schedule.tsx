@@ -1,12 +1,13 @@
 import React, { useMemo } from 'react';
 
-import { Button, HorizontalGroup, VerticalGroup, RadioButtonGroup } from '@grafana/ui';
+import { Button, HorizontalGroup, VerticalGroup, RadioButtonGroup, IconButton, ToolbarButton } from '@grafana/ui';
 import cn from 'classnames/bind';
 import * as dayjs from 'dayjs';
 import { observer } from 'mobx-react';
 import Draggable from 'react-draggable';
 
 // import Rotations from 'components/Rotations/Rotations';
+import PluginLink from 'components/PluginLink/PluginLink';
 import Rotations from 'components/Rotations/Rotations';
 import ScheduleCounter from 'components/ScheduleCounter/ScheduleCounter';
 import ScheduleQuality from 'components/ScheduleQuality/ScheduleQuality';
@@ -61,9 +62,15 @@ class SchedulePage extends React.Component<SchedulePageProps, SchedulePageState>
                 type="link"
                 count={5}
                 tooltipTitle="Used in escalations"
-                tooltipContent={['machine learning dev', 'query squad critical', 'integrations-synthetics-dev'].join(
-                  '<br/>'
-                )}
+                tooltipContent={
+                  <>
+                    <PluginLink query={{ page: 'integrations', id: 'CXBEG63MBJMDL' }}>Grafana 1</PluginLink>
+                    <br />
+                    <PluginLink query={{ page: 'integrations', id: 'CXBEG63MBJMDL' }}>Grafana 2</PluginLink>
+                    <br />
+                    <PluginLink query={{ page: 'integrations', id: 'CXBEG63MBJMDL' }}>Grafana 3</PluginLink>
+                  </>
+                }
               />
               <ScheduleCounter
                 type="warning"
@@ -75,6 +82,11 @@ class SchedulePage extends React.Component<SchedulePageProps, SchedulePageState>
             <HorizontalGroup>
               <UserTimezoneSelect value={tz} users={users} onChange={this.handleTimezoneChange} />
               <ScheduleQuality quality={0.89} />
+              <ToolbarButton icon="copy" tooltip="Copy" />
+              <ToolbarButton icon="brackets-curly" tooltip="Code" />
+              <ToolbarButton icon="share-alt" tooltip="Share" />
+              <ToolbarButton icon="cog" tooltip="Settings" />
+              <ToolbarButton icon="trash-alt" tooltip="Delete" />
             </HorizontalGroup>
           </HorizontalGroup>
           <Text className={cx('desc')} size="small" type="secondary">

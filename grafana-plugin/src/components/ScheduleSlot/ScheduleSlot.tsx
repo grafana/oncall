@@ -76,11 +76,11 @@ const ScheduleSlotDetails = (props) => {
           </HorizontalGroup>
           <HorizontalGroup>
             <VerticalGroup spacing="none">
-              <HorizontalGroup spacing="md">
-                <Icon name="clock-nine" />
+              <HorizontalGroup spacing="sm">
+                <Icon name="clock-nine" size="xs" />
                 <Text type="secondary">30 apr, 7:54 </Text>
               </HorizontalGroup>
-              <HorizontalGroup>
+              <HorizontalGroup spacing="sm">
                 <img src={Line} />
                 <VerticalGroup spacing="none">
                   <Text type="secondary">30 apr, 00:00</Text>

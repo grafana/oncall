@@ -17,7 +17,7 @@ const ScheduleQuality: FC<ScheduleQualityProps> = (props) => {
   const { quality } = props;
 
   return (
-    <Tooltip placement="bottom-start" interactive content={<SheduleQualityDetails quality={quality} />}>
+    <Tooltip placement="bottom-end" interactive content={<SheduleQualityDetails quality={quality} />}>
       <div className={cx('root')}>
         <HorizontalGroup spacing="sm">
           <Icon name="like" />
@@ -36,7 +36,7 @@ interface ScheduleQualityDetailsProps {
 const SheduleQualityDetails = (props: ScheduleQualityDetailsProps) => {
   const { quality } = props;
 
-  const [expanded, setExpanded] = useState<boolean>(true);
+  const [expanded, setExpanded] = useState<boolean>(false);
 
   const type = quality > 0.8 ? 'success' : 'warning';
 
