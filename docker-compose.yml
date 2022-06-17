@@ -1,6 +1,7 @@
 services:
   engine:
     image: grafana/oncall
+    restart: always
     ports:
       - 8080:8080
     command: >
@@ -35,6 +36,7 @@ services:
   celery:
     # TODO: change to the public image once it's public
     image: grafana/oncall
+    restart: always
     command: sh -c "./celery_with_exporter.sh"
     environment:
       BASE_URL: $DOMAIN
@@ -122,6 +124,7 @@ services:
 
   rabbitmq:
     image: "rabbitmq:3.7.15-management"
+    restart: always
     hostname: rabbitmq
     mem_limit: 1000m
     cpus: 0.5
@@ -144,6 +147,7 @@ services:
 
   grafana:
     image: "grafana/grafana:9.0.0-beta3"
+    restart: always
     mem_limit: 500m
     ports:
       - 3000:3000
