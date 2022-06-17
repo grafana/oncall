@@ -2,6 +2,12 @@ import React, { useEffect, useMemo } from 'react';
 
 import { AppRootProps } from '@grafana/data';
 import { Button, HorizontalGroup, LinkButton, VerticalGroup } from '@grafana/ui';
+import dayjs from 'dayjs';
+dayjs.extend(utc);
+dayjs.extend(timezone);
+
+import timezone from 'dayjs/plugin/timezone';
+import utc from 'dayjs/plugin/utc';
 import { observer, Provider } from 'mobx-react';
 
 import 'interceptors';

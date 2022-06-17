@@ -1,0 +1,43 @@
+.root {
+
+}
+
+.root__type_link {
+    padding: 2px 4px;
+    background: rgba(27, 133, 94, 0.15);
+    border: 1px solid var(--success-text-color);
+    border-radius: 2px;
+
+}
+
+.root__type_warning {
+    padding: 2px 4px;
+    background: rgba(245, 183, 61, 0.18);
+    border: 1px solid var(--warning-text-color);
+    border-radius: 2px;
+}
+
+.icon__type_link {
+    color: var(--success-text-color);
+}
+
+.icon__type_warning {
+    color: var(--warning-text-color);
+}
+
+.tooltip {
+    min-width: 276px;
+}
+
+/*
+.tooltip__type_link {
+   border: 1px solid #6CCF8E;
+    background: #132322;
+}
+
+.tooltip__type_warning {
+    border: 1px solid #F8D06B;
+    background: #3A301E;
+}
+*/
+

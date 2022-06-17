@@ -1,0 +1,39 @@
+.root {
+    width: 220px;
+    padding: 10px;
+}
+
+.oncall-badge {
+    line-height: 16px;
+    color: var(--primary-background);
+    padding: 2px 7px;
+    border-radius: 4px;
+    margin-bottom: 10px;
+}
+
+.oncall-badge__type_now{
+    background: #6CCF8E;
+}
+
+.oncall-badge__type_inside{
+    background: #CCCCDC;
+}
+
+.oncall-badge__type_outside{
+    background: rgba(204, 204, 220, 0.4);
+}
+
+.hr{
+    width: 100%;
+    margin:0  -11px;
+}
+
+.times{
+    display: flex;
+    flex-direction: column;
+}
+.icon{
+    color: #CCCCDC;
+}
+
+

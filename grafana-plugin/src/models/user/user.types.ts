@@ -1,4 +1,5 @@
 import { Team } from 'models/team/team.types';
+import { Timezone } from 'models/timezone/timezone.types';
 import { UserAction } from 'state/userAction';
 
 export enum UserRole {
@@ -53,4 +54,5 @@ export interface User {
   status?: number;
   link?: string;
   cloud_connection_status?: number;
+  tz: Timezone;
 }

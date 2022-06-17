@@ -1,0 +1,28 @@
+
+.root {
+    background: var(--primary-background);
+    transition: background-color 300ms;
+}
+
+.root:last-child{
+    padding-bottom: 26px;
+}
+
+.root:hover {
+    background: var(--secondary-background);
+}
+
+.timeline {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    padding-bottom: 8px;
+}
+
+.root:first-child .timeline {
+    padding-top: 26px;
+}
+
+.root:last-child .timeline {
+    padding-bottom: 0;
+}
