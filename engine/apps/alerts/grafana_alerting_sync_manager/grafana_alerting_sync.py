@@ -54,6 +54,31 @@ class GrafanaAlertingSyncManager:
             )
         return
 
+    def alerting_config_with_respect_to_grafana_version(
+        self, is_grafana_datasource, datasource_id, datasource_uid, client_method, *args
+    ):
+        """Quick fix for deprecated grafana alerting api endpoints"""
+
+        if is_grafana_datasource:
+            datasource_attr = GrafanaAlertingSyncManager.GRAFANA_CONTACT_POINT
+            config, response_info = client_method(datasource_attr, *args)
+        else:
+            # Get config by datasource id for Grafana version < 9
+            datasource_attr = datasource_id
+            config, response_info = client_method(datasource_attr, *args)
+
+            if response_info["status_code"] == status.HTTP_400_BAD_REQUEST:
+                # Get config by datasource uid for Grafana version >= 9
+                datasource_attr = datasource_uid
+                config, response_info = client_method(datasource_attr, *args)
+        if config is None:
+            logger.warning(
+                f"Got config None in alerting_config_with_respect_to_grafana_version with method "
+                f"{client_method.__name__} for is_grafana_datasource {is_grafana_datasource} for integration "
+                f"{self.alert_receive_channel.pk}; response: {response_info}"
+            )
+        return config, response_info
+
     def create_contact_points(self) -> None:
         """
         Get all alertmanager datasources and try to create contact points for them.
@@ -84,6 +109,10 @@ class GrafanaAlertingSyncManager:
                     datasources_to_create.append(datasource)
 
         if datasources_to_create:
+            logger.warning(
+                f"Some contact points were not created for integration {self.alert_receive_channel.pk}, "
+                f"trying to create async"
+            )
             # create other contact points async
             schedule_create_contact_points_for_datasource(self.alert_receive_channel.pk, datasources_to_create)
         else:
@@ -98,13 +127,14 @@ class GrafanaAlertingSyncManager:
         if datasource is None:
             datasource = {}
 
-        datasource_id_or_grafana = datasource.get("id") or GrafanaAlertingSyncManager.GRAFANA_CONTACT_POINT
         datasource_type = datasource.get("type") or GrafanaAlertingSyncManager.GRAFANA_CONTACT_POINT
         is_grafana_datasource = datasource.get("id") is None
         logger.info(
             f"Create contact point for {datasource_type} datasource, integration {self.alert_receive_channel.pk}"
         )
-        config, response_info = self.client.get_alerting_config(datasource_id_or_grafana)
+        config, response_info = self.alerting_config_with_respect_to_grafana_version(
+            is_grafana_datasource, datasource.get("id"), datasource.get("uid"), self.client.get_alerting_config
+        )
 
         if config is None:
             logger.warning(
@@ -116,7 +146,12 @@ class GrafanaAlertingSyncManager:
         updated_config = copy.deepcopy(config)
 
         if config["alertmanager_config"] is None:
-            default_config, response_info = self.client.get_alertmanager_status_with_config(datasource_id_or_grafana)
+            default_config, response_info = self.alerting_config_with_respect_to_grafana_version(
+                is_grafana_datasource,
+                datasource.get("id"),
+                datasource.get("uid"),
+                self.client.get_alertmanager_status_with_config,
+            )
             if default_config is None:
                 logger.warning(
                     f"Failed to create contact point (alertmanager_config is None) for integration "
@@ -144,7 +179,13 @@ class GrafanaAlertingSyncManager:
         )
         updated_config["alertmanager_config"]["receivers"] = receivers + [new_receiver]
 
-        response, response_info = self.client.update_alerting_config(updated_config, datasource_id_or_grafana)
+        response, response_info = self.alerting_config_with_respect_to_grafana_version(
+            is_grafana_datasource,
+            datasource.get("id"),
+            datasource.get("uid"),
+            self.client.update_alerting_config,
+            updated_config,
+        )
         if response is None:
             logger.warning(
                 f"Failed to create contact point for integration {self.alert_receive_channel.pk} (POST): {response_info}"
@@ -153,7 +194,9 @@ class GrafanaAlertingSyncManager:
                 logger.warning(f"Config: {config}\nUpdated config: {updated_config}")
             return
 
-        config, response_info = self.client.get_alerting_config(datasource_id_or_grafana)
+        config, response_info = self.alerting_config_with_respect_to_grafana_version(
+            is_grafana_datasource, datasource.get("id"), datasource.get("uid"), self.client.get_alerting_config
+        )
         contact_point = self._create_contact_point_from_payload(config, receiver_name, datasource)
         contact_point_created_text = "created" if contact_point else "not created, creation will be retried"
         logger.info(
@@ -232,6 +275,7 @@ class GrafanaAlertingSyncManager:
             uid=receiver_config.get("uid"),  # uid is None for non-Grafana datasource
             datasource_name=datasource.get("name") or GrafanaAlertingSyncManager.GRAFANA_CONTACT_POINT,
             datasource_id=datasource.get("id"),  # id is None for Grafana datasource
+            datasource_uid=datasource.get("uid"),  # uid is None for Grafana datasource
         )
         contact_point.save()
         return contact_point
@@ -268,14 +312,23 @@ class GrafanaAlertingSyncManager:
 
     def sync_contact_point(self, contact_point) -> None:
         """Update name of contact point and related routes or delete it if integration was deleted"""
-        datasource_id = contact_point.datasource_id or GrafanaAlertingSyncManager.GRAFANA_CONTACT_POINT
-        datasource_type = "grafana" if not contact_point.datasource_id else "nongrafana"
+        datasource_type = (
+            GrafanaAlertingSyncManager.GRAFANA_CONTACT_POINT
+            if not (contact_point.datasource_id or contact_point.datasource_uid)
+            else "nongrafana"
+        )
+        is_grafana_datasource = datasource_type == GrafanaAlertingSyncManager.GRAFANA_CONTACT_POINT
         logger.info(
             f"Sync contact point for {datasource_type} (name: {contact_point.datasource_name}) datasource, integration "
             f"{self.alert_receive_channel.pk}"
         )
 
-        config, response_info = self.client.get_alerting_config(datasource_id)
+        config, response_info = self.alerting_config_with_respect_to_grafana_version(
+            is_grafana_datasource,
+            contact_point.datasource_id,
+            contact_point.datasource_uid,
+            self.client.get_alerting_config,
+        )
         if config is None:
             logger.warning(
                 f"Failed to update contact point (GET) for integration {self.alert_receive_channel.pk}: Is unified "
@@ -286,7 +339,7 @@ class GrafanaAlertingSyncManager:
         receivers = config["alertmanager_config"]["receivers"]
         name_in_alerting = self.find_name_of_contact_point(
             contact_point.uid,
-            datasource_id,
+            is_grafana_datasource,
             receivers,
         )
 
@@ -300,8 +353,8 @@ class GrafanaAlertingSyncManager:
                 new_name,
             )
             contact_point.name = new_name
-            if datasource_id != GrafanaAlertingSyncManager.GRAFANA_CONTACT_POINT:
-                datasource_name = self.get_datasource_name(datasource_id)
+            if not is_grafana_datasource:
+                datasource_name = self.get_datasource_name(contact_point)
                 contact_point.datasource_name = datasource_name
             contact_point.save(update_fields=["name", "datasource_name"])
         # if integration was deleted, delete contact point and related routes
@@ -310,8 +363,13 @@ class GrafanaAlertingSyncManager:
                 updated_config,
                 name_in_alerting,
             )
-
-        response, response_info = self.client.update_alerting_config(updated_config, datasource_id)
+        response, response_info = self.alerting_config_with_respect_to_grafana_version(
+            is_grafana_datasource,
+            contact_point.datasource_id,
+            contact_point.datasource_uid,
+            self.client.update_alerting_config,
+            updated_config,
+        )
         if response is None:
             logger.warning(
                 f"Failed to update contact point for integration {self.alert_receive_channel.pk} "
@@ -379,8 +437,8 @@ class GrafanaAlertingSyncManager:
 
         return alerting_route
 
-    def find_name_of_contact_point(self, contact_point_uid, datasource_id, receivers) -> str:
-        if datasource_id == GrafanaAlertingSyncManager.GRAFANA_CONTACT_POINT:
+    def find_name_of_contact_point(self, contact_point_uid, is_grafana_datasource, receivers) -> str:
+        if is_grafana_datasource:
             name_in_alerting = self._find_name_of_contact_point_by_uid(contact_point_uid, receivers)
         else:
             name_in_alerting = self._find_name_of_contact_point_by_integration_url(receivers)
@@ -415,6 +473,11 @@ class GrafanaAlertingSyncManager:
                 break
         return name_in_alerting
 
-    def get_datasource_name(self, datasource_id) -> str:
-        datasource, _ = self.client.get_datasource(datasource_id)
+    def get_datasource_name(self, contact_point) -> str:
+        datasource_id = contact_point.datasource_id
+        datasource_uid = contact_point.datasource_uid
+        datasource, response_info = self.client.get_datasource(datasource_uid)
+        if response_info["status_code"] != 200:
+            # For old Grafana versions (< 9) try to use deprecated endpoint
+            datasource, _ = self.client.get_datasource_by_id(datasource_id)
         return datasource["name"]

@@ -16,7 +16,8 @@ class GrafanaAlertingContactPoint(models.Model):
         default=None,
         related_name="contact_points",
     )
-    uid = models.CharField(max_length=100, null=True, default=None)  # uid is None for non-Grafana datasource
+    uid = models.CharField(max_length=100, null=True, default=None)  # receiver uid is None for non-Grafana datasource
     name = models.CharField(max_length=100)
     datasource_name = models.CharField(max_length=100, default="grafana")
     datasource_id = models.IntegerField(null=True, default=None)  # id is None for Grafana datasource
+    datasource_uid = models.CharField(max_length=100, null=True, default=None)  # uid is None for Grafana datasource
