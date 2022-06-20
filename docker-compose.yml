@@ -54,6 +54,7 @@ services:
       CELERY_WORKER_QUEUE: "default,critical,long,slack,telegram,webhook,retry,celery"
       CELERY_WORKER_CONCURRENCY: "1"
       CELERY_WORKER_MAX_TASKS_PER_CHILD: "100"
+      CELERY_WORKER_SHUTDOWN_INTERVAL: "65m"
       CELERY_WORKER_BEAT_ENABLED: "True"
     depends_on:
       mysql:
