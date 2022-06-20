@@ -34,7 +34,6 @@ services:
         condition: service_started
 
   celery:
-    # TODO: change to the public image once it's public
     image: grafana/oncall
     restart: always
     command: sh -c "./celery_with_exporter.sh"
@@ -102,8 +101,8 @@ services:
     cpus: 0.5
     command: --default-authentication-plugin=mysql_native_password --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
     restart: always
-    ports:
-      - 3306:3306
+    expose:
+      - 3306
     volumes:
       - dbdata:/var/lib/mysql
     environment:
@@ -119,8 +118,8 @@ services:
     mem_limit: 100m
     cpus: 0.1
     restart: always
-    ports:
-      - 6379:6379
+    expose:
+      - 6379
 
   rabbitmq:
     image: "rabbitmq:3.7.15-management"
