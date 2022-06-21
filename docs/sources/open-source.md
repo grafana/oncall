@@ -30,7 +30,6 @@ For detailed installation instructions and additional resources, refer to the OS
 
 For more information on production environment installation, refer to the following OSS Grafana OnCall [production environment helm chart](https://github.com/grafana/oncall/helm)
 
-
 ## Configure Slack for Grafana OnCall OSS
 
 The Slack integration for Grafana OnCall leverages Slack API features to provide a customizable and useful integration. Refer to the following steps to configure the Slack integration:

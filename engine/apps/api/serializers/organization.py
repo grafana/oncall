@@ -3,7 +3,6 @@ from datetime import timedelta
 import humanize
 import pytz
 from django.apps import apps
-from django.conf import settings
 from django.utils import timezone
 from rest_framework import fields, serializers
 
@@ -121,7 +120,6 @@ class CurrentOrganizationSerializer(OrganizationSerializer):
         return {
             "telegram_configured": telegram_configured,
             "twilio_configured": twilio_configured,
-            "extra_messaging_backends_enabled": settings.FEATURE_EXTRA_MESSAGING_BACKENDS_ENABLED,
         }
 
     def get_stats(self, obj):

@@ -26,7 +26,18 @@ jobs:
       - name: Lint All
         run: |
           pre-commit run --all-files
-          
+
+  test-technical-documentation:
+    runs-on: ubuntu-latest
+    steps:
+      - name: "Check out code"
+        uses: "actions/checkout@v3"
+      - name: "Build website"
+        # -e HUGO_REFLINKSERRORLEVEL=ERROR prevents merging broken refs with the downside
+        # that no refs to external content can be used as these refs will not resolve in the
+        # docs-base image.
+        run: |
+          docker run -v ${PWD}/docs/sources:/hugo/content/docs/oncall/latest -e HUGO_REFLINKSERRORLEVEL=ERROR --rm grafana/docs-base:latest /bin/bash -c 'make hugo'
 
   unit-test-backend:
     runs-on: ubuntu-latest
