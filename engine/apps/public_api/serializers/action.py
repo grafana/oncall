@@ -14,6 +14,7 @@ class ActionCreateSerializer(serializers.ModelSerializer):
     id = serializers.CharField(read_only=True, source="public_primary_key")
     organization = serializers.HiddenField(default=CurrentOrganizationDefault())
     team_id = TeamPrimaryKeyRelatedField(required=False, allow_null=True, source="team")
+    url = serializers.CharField(required=True, allow_null=False, allow_blank=False, source="webhook")
 
     class Meta:
         model = CustomButton
@@ -22,7 +23,7 @@ class ActionCreateSerializer(serializers.ModelSerializer):
             "name",
             "organization",
             "team_id",
-            "webhook",
+            "url",
             "data",
             "user",
             "password",
@@ -31,7 +32,6 @@ class ActionCreateSerializer(serializers.ModelSerializer):
         ]
         extra_kwargs = {
             "name": {"required": True, "allow_null": False, "allow_blank": False},
-            "webhook": {"required": True, "allow_null": False, "allow_blank": False},
             "data": {"required": False, "allow_null": True, "allow_blank": False},
             "user": {"required": False, "allow_null": True, "allow_blank": False},
             "password": {"required": False, "allow_null": True, "allow_blank": False},
@@ -41,13 +41,13 @@ class ActionCreateSerializer(serializers.ModelSerializer):
 
         validators = [UniqueTogetherValidator(queryset=CustomButton.objects.all(), fields=["name", "organization"])]
 
-    def validate_webhook(self, webhook):
-        if webhook:
+    def validate_url(self, url):
+        if url:
             try:
-                URLValidator()(webhook)
+                URLValidator()(url)
             except ValidationError:
-                raise serializers.ValidationError("Webhook is incorrect")
-            return webhook
+                raise serializers.ValidationError("URL is incorrect")
+            return url
         return None
 
     def validate_data(self, data):
@@ -74,12 +74,12 @@ class ActionCreateSerializer(serializers.ModelSerializer):
 
 class ActionUpdateSerializer(ActionCreateSerializer):
     team_id = TeamPrimaryKeyRelatedField(source="team", read_only=True)
+    url = serializers.CharField(required=False, allow_null=False, allow_blank=False, source="webhook")
 
     class Meta(ActionCreateSerializer.Meta):
 
         extra_kwargs = {
             "name": {"required": False, "allow_null": False, "allow_blank": False},
-            "webhook": {"required": False, "allow_null": False, "allow_blank": False},
             "data": {"required": False, "allow_null": True, "allow_blank": False},
             "user": {"required": False, "allow_null": True, "allow_blank": False},
             "password": {"required": False, "allow_null": True, "allow_blank": False},
