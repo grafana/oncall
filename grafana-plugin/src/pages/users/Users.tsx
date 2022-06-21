@@ -59,7 +59,6 @@ class Users extends React.Component<UsersProps, UsersState> {
       store,
       query: { p },
     } = this.props;
-    store.updateFeatures();
     this.setState({ page: p ? Number(p) : 1 }, this.updateUsers);
 
     this.parseParams();
@@ -300,8 +299,8 @@ class Users extends React.Component<UsersProps, UsersState> {
     }
     let phone_verified = user.verified_phone_number == null;
     let phone_not_verified_message = 'Phone not verified';
-    if (store.hasFeature(AppFeature.CloudNotifications)) {
-      // If cloud notifications is enabled show message about its status, not local phone verification.
+
+    if (user.cloud_connection_status != null) {
       switch (user.cloud_connection_status) {
         case 0:
           phone_verified = false;
@@ -320,6 +319,7 @@ class Users extends React.Component<UsersProps, UsersState> {
           break;
       }
     }
+
     if (!phone_verified || !user.slack_user_identity || !user.telegram_configuration) {
       let texts = [];
       if (!phone_verified) {
