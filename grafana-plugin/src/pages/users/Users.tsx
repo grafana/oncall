@@ -294,23 +294,21 @@ class Users extends React.Component<UsersProps, UsersState> {
     if (user.email === '******') {
       // email equals '******' mean that we need to hide notes.
       // It incicates that we are hide some fields from the responce because current user is not admin
-      return <div></div>;
+      return null;
     }
-    let phone_verified = user.verified_phone_number != null;
+    let phone_verified = user.verified_phone_number !== null;
     let phone_not_verified_message = 'Phone not verified';
 
-    if (user.cloud_connection_status != null) {
+    if (user.cloud_connection_status !== null) {
+      phone_verified = false;
       switch (user.cloud_connection_status) {
         case 0:
-          phone_verified = false;
           phone_not_verified_message = 'Cloud is not synced';
           break;
         case 1:
-          phone_verified = false;
           phone_not_verified_message = 'User not matched with cloud';
           break;
         case 2:
-          phone_verified = false;
           phone_not_verified_message = 'Phone number is not verified in Grafana Cloud';
           break;
         case 3:
