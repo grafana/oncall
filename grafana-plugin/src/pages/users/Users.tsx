@@ -59,7 +59,7 @@ class Users extends React.Component<UsersProps, UsersState> {
       store,
       query: { p },
     } = this.props;
-
+    store.updateFeatures();
     this.setState({ page: p ? Number(p) : 1 }, this.updateUsers);
 
     this.parseParams();
@@ -298,7 +298,7 @@ class Users extends React.Component<UsersProps, UsersState> {
       // It incicates that we are hide some fields from the responce because current user is not admin
       return <div></div>;
     }
-    let phone_verified = false;
+    let phone_verified = user.verified_phone_number == null;
     let phone_not_verified_message = 'Phone not verified';
     if (store.hasFeature(AppFeature.CloudNotifications)) {
       // If cloud notifications is enabled show message about its status, not local phone verification.
@@ -319,8 +319,6 @@ class Users extends React.Component<UsersProps, UsersState> {
           phone_verified = true;
           break;
       }
-    } else {
-      phone_verified = user.verified_phone_number == null;
     }
     if (!phone_verified || !user.slack_user_identity || !user.telegram_configuration) {
       let texts = [];
