@@ -52,9 +52,6 @@ def load_backend(path):
 
 def get_messaging_backends():
     global _messaging_backends
-    if not settings.FEATURE_EXTRA_MESSAGING_BACKENDS_ENABLED:
-        return {}
-
     if _messaging_backends is None:
         _messaging_backends = {}
         for backend_path in settings.EXTRA_MESSAGING_BACKENDS:
@@ -64,10 +61,7 @@ def get_messaging_backends():
 
 
 def get_messaging_backend_from_id(backend_id):
-    backend = None
-    if settings.FEATURE_EXTRA_MESSAGING_BACKENDS_ENABLED:
-        backend = _messaging_backends.get(backend_id)
-    return backend
+    return _messaging_backends.get(backend_id)
 
 
 _messaging_backends = None
