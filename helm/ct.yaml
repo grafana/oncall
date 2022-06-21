@@ -2,7 +2,7 @@
 remote: origin
 target-branch: main
 chart-dirs:
-  - helm/
+  - helm
 chart-repos:
   - jetstack=https://charts.jetstack.io
   - bitnami=https://charts.bitnami.com/bitnami
