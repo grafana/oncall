@@ -291,13 +291,12 @@ class Users extends React.Component<UsersProps, UsersState> {
   };
 
   renderNote = (user: UserType) => {
-    const { store } = this.props;
     if (user.email === '******') {
       // email equals '******' mean that we need to hide notes.
       // It incicates that we are hide some fields from the responce because current user is not admin
       return <div></div>;
     }
-    let phone_verified = user.verified_phone_number == null;
+    let phone_verified = user.verified_phone_number != null;
     let phone_not_verified_message = 'Phone not verified';
 
     if (user.cloud_connection_status != null) {
