@@ -189,4 +189,4 @@ To connect to Grafana Cloud, refer to the **Cloud** page in your OSS Grafana OnC
 Grafana OnCall supports Twilio SMS and phone call notifications delivery. If you prefer to configure SMS and phone call notifications using Twilio, complete the following steps:
 
 1. Set `GRAFANA_CLOUD_NOTIFICATIONS_ENABLED` as **False** to ensure the Grafana OSS <-> Cloud connector is disabled.
-2. From your **OnCall** environment, select **Env Variables** and configure all variables starting with `TWILIO_`. 
+1. From your **OnCall** environment, select **Env Variables** and configure all variables starting with `TWILIO_`. 
