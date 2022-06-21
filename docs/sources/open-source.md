@@ -31,19 +31,9 @@ For detailed installation instructions and additional resources, refer to the OS
 For more information on production environment installation, refer to the following OSS Grafana OnCall [production environment helm chart](https://github.com/grafana/oncall/helm)
 
 
-## Slack integration for Grafana OnCall OSS
+## Configure Slack for Grafana OnCall OSS
 
-The Slack integration for Grafana OnCall leverages Slack API features to provide a customizable and useful integration.
-
-### Before you begin
-
-Review the following requirements to configure Slack for Grafana OnCall OSS:
-
-- Ensure your Grafana OnCall environment is running.
-- Grafana OnCall must be externally available and provide HTTPS endpoint to establish subscription on Slack events.
-- Create a new Slack App from Grafana OnCall app manifest.
-
-### Configure Slack for Grafana OnCall OSS
+The Slack integration for Grafana OnCall leverages Slack API features to provide a customizable and useful integration. Refer to the following steps to configure the Slack integration:
 
 1. Ensure your Grafana OnCall environment is up and running.
 
@@ -167,17 +157,9 @@ lt --port 8080 -s pretty-turkey-83 --print-requests
 
 8. Configure additional Slack settings as needed and your integration is ready for use.
 
-## Telegram integration for Grafana OnCall OSS
+ ## Configure Telegram for Grafana OnCall OSS
 
-The Telegram integration for Grafana OnCall is designed for collaborative team work and improved incident response.
-### Before your begin
-
-Review the following requirements to configure Telegram for Grafana OnCall OSS:
-- Ensure your Grafana OnCall environment is running.
-- Grafana OnCall must be externally available and provide HTTPS endpoint to establish subscription on Telegram events.
-- Create new Telegram Group and private Telegram channel for alerts.
-
-### Configure Telegram for Grafana OnCall OSS
+The Telegram integration for Grafana OnCall is designed for collaborative team work and improved incident response. Refer to the following steps to configure the Telegram integration:
 
 1. Ensure your OnCall environment is up and running.
 
