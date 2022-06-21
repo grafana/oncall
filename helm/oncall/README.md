@@ -11,7 +11,7 @@ Architecture diagram can be found [here](https://raw.githubusercontent.com/grafa
 > separately from this release or use managed PaaS solutions. It will significantly reduce the overhead of managing them
 
 
-Cluster requirements:
+### Cluster requirements
 * ensure you can run x86-64/amd64 workloads. arm64 architecture is currently not supported
 
 ## Install
