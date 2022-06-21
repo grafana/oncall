@@ -293,36 +293,39 @@ class Users extends React.Component<UsersProps, UsersState> {
 
   renderNote = (user: UserType) => {
     const { store } = this.props;
-    let phone_verified;
-    let phone_verified_message;
+    if (user.email === '******') {
+      // email equals '******' mean that we need to hide notes.
+      // It incicates that we are hide some fields from the responce because current user is not admin
+      return <div></div>;
+    }
+    let phone_verified = false;
+    let phone_not_verified_message = 'Phone not verified';
     if (store.hasFeature(AppFeature.CloudNotifications)) {
       // If cloud notifications is enabled show message about its status, not local phone verification.
       switch (user.cloud_connection_status) {
         case 0:
           phone_verified = false;
-          phone_verified_message = 'Cloud is not synced';
+          phone_not_verified_message = 'Cloud is not synced';
           break;
         case 1:
           phone_verified = false;
-          phone_verified_message = 'User not matched with cloud';
+          phone_not_verified_message = 'User not matched with cloud';
           break;
         case 2:
           phone_verified = false;
-          phone_verified_message = 'Phone number is not verified in Grafana Cloud';
+          phone_not_verified_message = 'Phone number is not verified in Grafana Cloud';
           break;
         case 3:
-          phone_verified = false;
-          phone_verified_message = 'Phone number is verified in Grafana Cloud';
+          phone_verified = true;
           break;
       }
     } else {
-      phone_verified = user.verified_phone_number;
-      phone_verified_message = 'Phone not verified';
+      phone_verified = user.verified_phone_number == null;
     }
     if (!phone_verified || !user.slack_user_identity || !user.telegram_configuration) {
       let texts = [];
       if (!phone_verified) {
-        texts.push(phone_verified_message);
+        texts.push(phone_not_verified_message);
       }
       if (!user.slack_user_identity) {
         texts.push('Slack not verified');
