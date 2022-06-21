@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - main
+      - helm-release-tests
 
 jobs:
   call-update-helm-repo:
