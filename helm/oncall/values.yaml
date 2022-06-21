@@ -55,7 +55,7 @@ ingress:
     cert-manager.io/issuer: "letsencrypt-prod"
 
 # Whether to install ingress controller
-nginx-ingress:
+ingress-nginx:
   enabled: true
 
 # Install cert-manager as a part of the release
