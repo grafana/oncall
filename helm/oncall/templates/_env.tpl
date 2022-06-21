@@ -19,6 +19,8 @@
   value: "admin"
 - name: OSS
   value: "True"
+- name: UWSGI_LISTEN
+  value: "1024"
 {{- end }}
 
 {{- define "snippet.celery.env" -}}

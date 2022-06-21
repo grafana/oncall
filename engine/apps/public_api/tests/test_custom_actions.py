@@ -30,7 +30,7 @@ def test_get_custom_actions(
                 "id": custom_action.public_primary_key,
                 "name": custom_action.name,
                 "team_id": None,
-                "webhook": custom_action.webhook,
+                "url": custom_action.webhook,
                 "data": custom_action.data,
                 "user": custom_action.user,
                 "password": custom_action.password,
@@ -68,7 +68,7 @@ def test_get_custom_actions_filter_by_name(
                 "id": custom_action.public_primary_key,
                 "name": custom_action.name,
                 "team_id": None,
-                "webhook": custom_action.webhook,
+                "url": custom_action.webhook,
                 "data": custom_action.data,
                 "user": custom_action.user,
                 "password": custom_action.password,
@@ -122,7 +122,7 @@ def test_get_custom_action(
         "id": custom_action.public_primary_key,
         "name": custom_action.name,
         "team_id": None,
-        "webhook": custom_action.webhook,
+        "url": custom_action.webhook,
         "data": custom_action.data,
         "user": custom_action.user,
         "password": custom_action.password,
@@ -144,7 +144,7 @@ def test_create_custom_action(make_organization_and_user_with_token):
 
     data = {
         "name": "Test outgoing webhook",
-        "webhook": "https://example.com",
+        "url": "https://example.com",
     }
 
     response = client.post(url, data=data, format="json", HTTP_AUTHORIZATION=f"{token}")
@@ -155,7 +155,7 @@ def test_create_custom_action(make_organization_and_user_with_token):
         "id": custom_action.public_primary_key,
         "name": custom_action.name,
         "team_id": None,
-        "webhook": custom_action.webhook,
+        "url": custom_action.webhook,
         "data": custom_action.data,
         "user": custom_action.user,
         "password": custom_action.password,
@@ -179,13 +179,13 @@ def test_create_custom_action_invalid_data(
 
     data = {
         "name": "Test outgoing webhook",
-        "webhook": "invalid_url",
+        "url": "invalid_url",
     }
 
     response = client.post(url, data=data, format="json", HTTP_AUTHORIZATION=f"{token}")
 
     assert response.status_code == status.HTTP_400_BAD_REQUEST
-    assert response.data["webhook"][0] == "Webhook is incorrect"
+    assert response.data["url"][0] == "URL is incorrect"
 
     data = {
         "name": "Test outgoing webhook",
@@ -194,10 +194,10 @@ def test_create_custom_action_invalid_data(
     response = client.post(url, data=data, format="json", HTTP_AUTHORIZATION=f"{token}")
 
     assert response.status_code == status.HTTP_400_BAD_REQUEST
-    assert response.data["webhook"][0] == "This field is required."
+    assert response.data["url"][0] == "This field is required."
 
     data = {
-        "webhook": "https://example.com",
+        "url": "https://example.com",
     }
 
     response = client.post(url, data=data, format="json", HTTP_AUTHORIZATION=f"{token}")
@@ -231,7 +231,7 @@ def test_update_custom_action(
         "id": custom_action.public_primary_key,
         "name": data["name"],
         "team_id": None,
-        "webhook": custom_action.webhook,
+        "url": custom_action.webhook,
         "data": custom_action.data,
         "user": custom_action.user,
         "password": custom_action.password,
