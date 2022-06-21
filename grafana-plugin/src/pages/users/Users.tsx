@@ -291,7 +291,7 @@ class Users extends React.Component<UsersProps, UsersState> {
   };
 
   renderNote = (user: UserType) => {
-    if (user.email === '******') {
+    if (user.hidden_fields === true) {
       // email equals '******' mean that we need to hide notes.
       // It incicates that we are hide some fields from the responce because current user is not admin
       return null;
