@@ -13,7 +13,6 @@ from apps.schedules.models import OnCallSchedule
 from apps.user_management.models import User
 from common.api_helpers.mixins import RateLimitHeadersMixin, ShortSerializerMixin
 from common.api_helpers.paginators import HundredPageSizePaginator
-from common.constants.role import Role
 
 
 class UserView(RateLimitHeadersMixin, ShortSerializerMixin, ReadOnlyModelViewSet):
@@ -32,7 +31,7 @@ class UserView(RateLimitHeadersMixin, ShortSerializerMixin, ReadOnlyModelViewSet
         username = self.request.query_params.get("username")
         email = self.request.query_params.get("email")
         is_short_request = self.request.query_params.get("short", "false") == "true"
-        queryset = self.request.auth.organization.users.filter(role__in=[Role.ADMIN, Role.EDITOR]).distinct()
+        queryset = self.request.auth.organization.users.all()
 
         if username is not None:
             queryset = queryset.filter(username=username)
