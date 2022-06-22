@@ -1,6 +1,6 @@
 # Values for configuring the deployment of Grafana OnCall
 
-# Set the domain name Grafana OnCall will be installed on.
+# Set the domain name Grafana OnCall will be installed on
 # If you want to install grafana as a part of this release make sure to configure grafana.grafana.ini.server.domain too
 base_url: example.com
 
