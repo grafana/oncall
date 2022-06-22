@@ -35,12 +35,14 @@ from common.api_helpers.exceptions import BadRequest, Conflict
 from common.api_helpers.mixins import (
     CreateSerializerMixin,
     PublicPrimaryKeyMixin,
+    ShortSerializerMixin,
     UpdateSerializerMixin,
-    ShortSerializerMixin
 )
 
 
-class ScheduleView(PublicPrimaryKeyMixin, ShortSerializerMixin, CreateSerializerMixin, UpdateSerializerMixin, ModelViewSet):
+class ScheduleView(
+    PublicPrimaryKeyMixin, ShortSerializerMixin, CreateSerializerMixin, UpdateSerializerMixin, ModelViewSet
+):
     authentication_classes = (PluginAuthentication,)
     permission_classes = (IsAuthenticated, ActionPermission)
     action_permissions = {
