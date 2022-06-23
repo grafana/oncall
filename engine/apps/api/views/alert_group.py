@@ -14,7 +14,6 @@ from rest_framework.response import Response
 
 from apps.alerts.constants import ActionSource
 from apps.alerts.models import AlertGroup, AlertReceiveChannel
-from apps.alerts.tasks import invalidate_web_cache_for_alert_group
 from apps.api.permissions import MODIFY_ACTIONS, READ_ACTIONS, ActionPermission, AnyRole, IsAdminOrEditor
 from apps.api.serializers.alert_group import AlertGroupSerializer
 from apps.auth_token.auth import MobileAppAuthTokenAuthentication, PluginAuthentication
@@ -253,7 +252,6 @@ class AlertGroupView(
         if alert_group.root_alert_group is not None:
             raise BadRequest(detail="Can't acknowledge an attached alert group")
         alert_group.acknowledge_by_user(self.request.user, action_source=ActionSource.WEB)
-        invalidate_web_cache_for_alert_group(alert_group_pk=alert_group.pk)
 
         return Response(AlertGroupSerializer(alert_group, context={"request": self.request}).data)
 
@@ -273,7 +271,6 @@ class AlertGroupView(
             raise BadRequest(detail="Can't unacknowledge a resolved alert group")
 
         alert_group.un_acknowledge_by_user(self.request.user, action_source=ActionSource.WEB)
-        invalidate_web_cache_for_alert_group(alert_group_pk=alert_group.pk)
 
         return Response(AlertGroupSerializer(alert_group, context={"request": self.request}).data)
 
@@ -294,7 +291,6 @@ class AlertGroupView(
                     status=status.HTTP_400_BAD_REQUEST,
                 )
             alert_group.resolve_by_user(self.request.user, action_source=ActionSource.WEB)
-        invalidate_web_cache_for_alert_group(alert_group_pk=alert_group.pk)
         return Response(AlertGroupSerializer(alert_group, context={"request": self.request}).data)
 
     @action(methods=["post"], detail=True)
@@ -310,7 +306,6 @@ class AlertGroupView(
             raise BadRequest(detail="The alert group is not resolved")
 
         alert_group.un_resolve_by_user(self.request.user, action_source=ActionSource.WEB)
-        invalidate_web_cache_for_alert_group(alert_group_pk=alert_group.pk)
         return Response(AlertGroupSerializer(alert_group, context={"request": self.request}).data)
 
     @action(methods=["post"], detail=True)
@@ -333,8 +328,6 @@ class AlertGroupView(
             return Response(status=status.HTTP_400_BAD_REQUEST)
 
         alert_group.attach_by_user(self.request.user, root_alert_group, action_source=ActionSource.WEB)
-        invalidate_web_cache_for_alert_group(alert_group_pk=alert_group.pk)
-        invalidate_web_cache_for_alert_group(alert_group_pk=root_alert_group.pk)
         return Response(AlertGroupSerializer(alert_group, context={"request": self.request}).data)
 
     @action(methods=["post"], detail=True)
@@ -344,10 +337,8 @@ class AlertGroupView(
             raise BadRequest(detail="Can't unattach maintenance alert group")
         if alert_group.is_root_alert_group:
             raise BadRequest(detail="Can't unattach an alert group because it is not attached")
-        root_alert_group_pk = alert_group.root_alert_group_id
+
         alert_group.un_attach_by_user(self.request.user, action_source=ActionSource.WEB)
-        invalidate_web_cache_for_alert_group(alert_group_pk=alert_group.pk)
-        invalidate_web_cache_for_alert_group(alert_group_pk=root_alert_group_pk)
         return Response(AlertGroupSerializer(alert_group, context={"request": self.request}).data)
 
     @action(methods=["post"], detail=True)
@@ -362,7 +353,6 @@ class AlertGroupView(
             raise BadRequest(detail="Can't silence an attached alert group")
 
         alert_group.silence_by_user(request.user, silence_delay=delay, action_source=ActionSource.WEB)
-        invalidate_web_cache_for_alert_group(alert_group_pk=alert_group.pk)
         return Response(AlertGroupSerializer(alert_group, context={"request": request}).data)
 
     @action(methods=["get"], detail=False)
@@ -478,8 +468,6 @@ class AlertGroupView(
             kwargs["silence_delay"] = delay
 
         alert_groups = self.get_queryset().filter(public_primary_key__in=alert_group_public_pks)
-        alert_group_pks = list(alert_groups.values_list("id", flat=True))
-        invalidate_web_cache_for_alert_group(alert_group_pks=alert_group_pks)
 
         kwargs["user"] = self.request.user
         kwargs["alert_groups"] = alert_groups

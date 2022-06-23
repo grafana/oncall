@@ -314,7 +314,7 @@ class UserNotificationPolicyLogRecord(models.Model):
 
 @receiver(post_save, sender=UserNotificationPolicyLogRecord)
 def listen_for_usernotificationpolicylogrecord_model_save(sender, instance, created, *args, **kwargs):
-    alert_group_pk = instance.alert_group.drop_cached_after_resolve_report_json()
+    alert_group_pk = None
     if instance.type != UserNotificationPolicyLogRecord.TYPE_PERSONAL_NOTIFICATION_FINISHED:
         logger.debug(
             f"send_update_log_report_signal for alert_group {alert_group_pk}, "
