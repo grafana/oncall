@@ -22,7 +22,6 @@ from apps.alerts.signals import alert_group_action_triggered_signal
 from apps.alerts.tasks import acknowledge_reminder_task, call_ack_url, send_alert_group_signal, unsilence_task
 from apps.slack.slack_formatter import SlackFormatter
 from apps.user_management.models import User
-from common.mixins.use_random_readonly_db_manager_mixin import UseRandomReadonlyDbManagerMixin
 from common.public_primary_keys import generate_public_primary_key, increase_public_primary_key_length
 from common.utils import clean_markup, str_or_backup
 
@@ -99,10 +98,6 @@ class UnarchivedAlertGroupQuerySet(models.QuerySet):
         return super().filter(*args, **kwargs, is_archived=False)
 
 
-class AlertGroupManager(UseRandomReadonlyDbManagerMixin, models.Manager):
-    pass
-
-
 class AlertGroupSlackRenderingMixin:
     """
     Ideally this mixin should not exist. Instead of this instance of AlertGroupSlackRenderer should be created and used
@@ -125,8 +120,8 @@ class AlertGroupSlackRenderingMixin:
 
 
 class AlertGroup(AlertGroupSlackRenderingMixin, EscalationSnapshotMixin, models.Model):
-    all_objects = AlertGroupManager.from_queryset(AlertGroupQuerySet)()
-    unarchived_objects = AlertGroupManager.from_queryset(UnarchivedAlertGroupQuerySet)()
+    all_objects = AlertGroupQuerySet.as_manager()
+    unarchived_objects = UnarchivedAlertGroupQuerySet.as_manager()
 
     (
         NEW,
