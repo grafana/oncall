@@ -1,3 +1,4 @@
+from django_filters import rest_framework as filters
 from rest_framework.decorators import action
 from rest_framework.exceptions import NotFound
 from rest_framework.permissions import IsAuthenticated
@@ -13,6 +14,21 @@ from apps.schedules.models import OnCallSchedule
 from apps.user_management.models import User
 from common.api_helpers.mixins import RateLimitHeadersMixin, ShortSerializerMixin
 from common.api_helpers.paginators import HundredPageSizePaginator
+from common.constants.role import Role
+
+
+class UserFilter(filters.FilterSet):
+    """
+    https://django-filter.readthedocs.io/en/master/guide/rest_framework.html
+    """
+
+    email = filters.CharFilter(field_name="email", lookup_expr="iexact")
+    roles = filters.MultipleChoiceFilter(field_name="role", choices=Role.choices())
+    username = filters.CharFilter(field_name="username", lookup_expr="iexact")
+
+    class Meta:
+        model = User
+        fields = ["email", "roles", "username"]
 
 
 class UserView(RateLimitHeadersMixin, ShortSerializerMixin, ReadOnlyModelViewSet):
@@ -24,23 +40,26 @@ class UserView(RateLimitHeadersMixin, ShortSerializerMixin, ReadOnlyModelViewSet
 
     serializer_class = UserSerializer
     short_serializer_class = FastUserSerializer
+    filterset_class = UserFilter
+    filter_backends = (filters.DjangoFilterBackend,)
 
     throttle_classes = [UserThrottle]
 
     def get_queryset(self):
-        username = self.request.query_params.get("username")
-        email = self.request.query_params.get("email")
+        # username = self.request.query_params.get("username")
+        # email = self.request.query_params.get("email")
         is_short_request = self.request.query_params.get("short", "false") == "true"
         queryset = self.request.auth.organization.users.all()
 
-        if username is not None:
-            queryset = queryset.filter(username=username)
-
-        if email is not None:
-            queryset = queryset.filter(email=email)
+        # if username is not None:
+        #     queryset = queryset.filter(username=username)
+        #
+        # if email is not None:
+        #     queryset = queryset.filter(email=email)
 
         if not is_short_request:
             queryset = self.serializer_class.setup_eager_loading(queryset)
+        queryset = self.filter_queryset(queryset)
         return queryset.order_by("id")
 
     def get_object(self):
