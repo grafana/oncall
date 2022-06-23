@@ -55,7 +55,6 @@ class AlertGroupSerializer(EagerLoadingMixin, serializers.ModelSerializer):
     alerts_count = serializers.ReadOnlyField()
 
     status = serializers.ReadOnlyField()
-    render_for_web = serializers.SerializerMethodField()
 
     PREFETCH_RELATED = [
         "alerts",
@@ -190,6 +189,3 @@ class AlertGroupSerializer(EagerLoadingMixin, serializers.ModelSerializer):
                 datetime.now().replace(tzinfo=None) - obj.silenced_at.replace(tzinfo=None)
             )  # TODO: Deal with timezones
         return silenced_at_verbose
-
-    def get_render_for_web(self, obj):
-        return AlertGroupWebRenderer(obj).render()

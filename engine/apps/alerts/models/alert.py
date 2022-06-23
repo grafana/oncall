@@ -10,6 +10,7 @@ from django.db.models import JSONField
 from django.db.models.signals import post_save
 
 from apps.alerts.constants import TASK_DELAY_SECONDS
+from apps.alerts.incident_appearance.renderers.web_renderer import AlertGroupWebRenderer, AlertWebRenderer
 from apps.alerts.incident_appearance.templaters import TemplateLoader
 from apps.alerts.tasks import distribute_alert, send_alert_group_signal
 from common.jinja_templater import apply_jinja_template
@@ -52,6 +53,8 @@ class Alert(models.Model):
     link_to_upstream_details = models.URLField(max_length=500, default=None, null=True)
     integration_unique_data = JSONField(default=None, null=True)
     raw_request_data = JSONField()
+
+    render_for_web = JSONField()
 
     # This hash is for integration-specific needs
     integration_optimization_hash = models.CharField(max_length=100, db_index=True, default=None, null=True)
@@ -122,7 +125,11 @@ class Alert(models.Model):
             is_the_first_alert_in_group=group_created,
         )
 
+        alert.render_for_web = AlertWebRenderer(alert).render()
         alert.save()
+
+        group.render_for_web = AlertGroupWebRenderer(group).render()
+        group.save(update_fields=["render_for_web"])
 
         maintenance_uuid = None
         if alert_receive_channel.organization.maintenance_mode == AlertReceiveChannel.MAINTENANCE:

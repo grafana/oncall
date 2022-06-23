@@ -1,8 +1,7 @@
 from datetime import datetime, timedelta
 
 from django import forms
-from django.db.models import CharField, Q
-from django.db.models.functions import Cast
+from django.db.models import Q
 from django.utils import timezone
 from django_filters import rest_framework as filters
 from django_filters.widgets import RangeWidget
@@ -188,7 +187,7 @@ class AlertGroupView(
     pagination_class = FiftyPageSizePaginator
 
     filter_backends = [SearchFilter, filters.DjangoFilterBackend]
-    search_fields = ["cached_render_for_web_str"]
+    search_fields = ["render_for_web"]
 
     filterset_class = AlertGroupFilter
 
@@ -198,7 +197,6 @@ class AlertGroupView(
             channel__team=self.request.user.current_team,
         ).order_by("-started_at")
 
-        queryset = queryset.annotate(cached_render_for_web_str=Cast("cached_render_for_web", output_field=CharField()))
         queryset = self.serializer_class.setup_eager_loading(queryset)
 
         return queryset
