@@ -46,17 +46,8 @@ class UserView(RateLimitHeadersMixin, ShortSerializerMixin, ReadOnlyModelViewSet
     throttle_classes = [UserThrottle]
 
     def get_queryset(self):
-        # username = self.request.query_params.get("username")
-        # email = self.request.query_params.get("email")
         is_short_request = self.request.query_params.get("short", "false") == "true"
         queryset = self.request.auth.organization.users.all()
-
-        # if username is not None:
-        #     queryset = queryset.filter(username=username)
-        #
-        # if email is not None:
-        #     queryset = queryset.filter(email=email)
-
         if not is_short_request:
             queryset = self.serializer_class.setup_eager_loading(queryset)
         queryset = self.filter_queryset(queryset)

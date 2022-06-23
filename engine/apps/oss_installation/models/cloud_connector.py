@@ -116,7 +116,6 @@ class CloudConnector(models.Model):
             error_msg = "GRAFANA_CLOUD_ONCALL_TOKEN is not set"
         else:
             url = urljoin(GRAFANA_CLOUD_ONCALL_API_URL, f"api/v1/users/?email={user.email}&roles=0&roles=1&short=true")
-            print(url)
             try:
                 r = requests.get(url, headers={"AUTHORIZATION": api_token}, timeout=5)
                 if r.status_code != 200:
