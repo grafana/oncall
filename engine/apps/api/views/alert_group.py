@@ -1,9 +1,7 @@
 from datetime import datetime, timedelta
 
 from django import forms
-from django.db import models
 from django.db.models import CharField, Q
-from django.db.models.constants import LOOKUP_SEP
 from django.db.models.functions import Cast
 from django.utils import timezone
 from django_filters import rest_framework as filters
@@ -148,34 +146,6 @@ class AlertGroupFilter(DateRangeFilterMixin, ModelFieldFilterMixin, filters.Filt
         return queryset
 
 
-class CustomSearchFilter(SearchFilter):
-    def must_call_distinct(self, queryset, search_fields):
-        """
-        Return True if 'distinct()' should be used to query the given lookups.
-        """
-        for search_field in search_fields:
-            opts = queryset.model._meta
-            if search_field[0] in self.lookup_prefixes:
-                search_field = search_field[1:]
-
-            # From https://github.com/encode/django-rest-framework/pull/6240/files#diff-01f357e474dd8fd702e4951b9227bffcR88
-            # Annotated fields do not need to be distinct
-            if isinstance(queryset, models.QuerySet) and search_field in queryset.query.annotations:
-                continue
-
-            parts = search_field.split(LOOKUP_SEP)
-            for part in parts:
-                field = opts.get_field(part)
-                if hasattr(field, "get_path_info"):
-                    # This field is a relation, update opts to follow the relation
-                    path_info = field.get_path_info()
-                    opts = path_info[-1].to_opts
-                    if any(path.m2m for path in path_info):
-                        # This field is a m2m relation so we know we need to call distinct
-                        return True
-        return False
-
-
 class AlertGroupView(
     PreviewTemplateMixin,
     PublicPrimaryKeyMixin,
@@ -218,7 +188,7 @@ class AlertGroupView(
 
     pagination_class = FiftyPageSizePaginator
 
-    filter_backends = [CustomSearchFilter, filters.DjangoFilterBackend]
+    filter_backends = [SearchFilter, filters.DjangoFilterBackend]
     search_fields = ["cached_render_for_web_str"]
 
     filterset_class = AlertGroupFilter
