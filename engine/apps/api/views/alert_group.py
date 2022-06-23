@@ -223,56 +223,15 @@ class AlertGroupView(
 
     filterset_class = AlertGroupFilter
 
-    def list(self, request, *args, **kwargs):
-        """
-        It's compute-heavy so we rely on cache here.
-        Attention: Make sure to invalidate cache if you update the format!
-        """
-        queryset = self.filter_queryset(self.get_queryset(eager=False, readonly=True))
-
-        page = self.paginate_queryset(queryset)
-        skip_slow_rendering = request.query_params.get("skip_slow_rendering") == "true"
-        data = []
-
-        for alert_group in page:
-            if alert_group.cached_render_for_web == {}:
-                # We cannot give empty data to web. So caching synchronously here.
-                if skip_slow_rendering:
-                    # We just return dummy data.
-                    # Cache is not launched because after skip_slow_rendering request should come usual one
-                    # which will start caching
-                    data.append({"pk": alert_group.pk, "short": True})
-                else:
-                    # Synchronously cache and return. It could be slow.
-                    alert_group.cache_for_web(alert_group.channel.organization)
-                    data.append(alert_group.cached_render_for_web)
-            else:
-                data.append(alert_group.cached_render_for_web)
-                if not skip_slow_rendering:
-                    # Cache is not launched because after skip_slow_rendering request should come usual one
-                    # which will start caching
-                    alert_group.schedule_cache_for_web()
-
-        return self.get_paginated_response(data)
-
-    def get_queryset(self, eager=True, readonly=False, order=True):
-        if readonly:
-            queryset = AlertGroup.unarchived_objects.using_readonly_db
-        else:
-            queryset = AlertGroup.unarchived_objects
-
-        queryset = queryset.filter(
+    def get_queryset(self):
+        queryset = AlertGroup.unarchived_objects.filter(
             channel__organization=self.request.auth.organization,
             channel__team=self.request.user.current_team,
-        )
-
-        if order:
-            queryset = queryset.order_by("-started_at")
+        ).order_by("-started_at")
 
         queryset = queryset.annotate(cached_render_for_web_str=Cast("cached_render_for_web", output_field=CharField()))
+        queryset = self.serializer_class.setup_eager_loading(queryset)
 
-        if eager:
-            queryset = self.serializer_class.setup_eager_loading(queryset)
         return queryset
 
     def get_alert_groups_and_days_for_previous_same_period(self):
@@ -299,7 +258,7 @@ class AlertGroupView(
 
     @action(detail=False)
     def stats(self, *args, **kwargs):
-        alert_groups = self.filter_queryset(self.get_queryset(eager=False))
+        alert_groups = self.filter_queryset(self.get_queryset())
         # Only count field is used, other fields left just in case for the backward compatibility
         return Response(
             {
@@ -548,7 +507,7 @@ class AlertGroupView(
                 raise BadRequest(detail="Please specify a delay for silence")
             kwargs["silence_delay"] = delay
 
-        alert_groups = self.get_queryset(eager=False).filter(public_primary_key__in=alert_group_public_pks)
+        alert_groups = self.get_queryset().filter(public_primary_key__in=alert_group_public_pks)
         alert_group_pks = list(alert_groups.values_list("id", flat=True))
         invalidate_web_cache_for_alert_group(alert_group_pks=alert_group_pks)
 
