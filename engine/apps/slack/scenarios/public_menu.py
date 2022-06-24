@@ -368,25 +368,6 @@ class AddToResolutionoteStep(CheckAlertIsUnarchivedMixin, scenario_step.Scenario
         except KeyError:
             raise Exception("Channel was not found")
 
-        if self.organization and self.organization.general_log_channel_id is None:
-            try:
-                return self._slack_client.api_call(
-                    "chat.postEphemeral",
-                    channel=channel_id,
-                    user=slack_user_identity.slack_id,
-                    attachments=CreateIncidentSubmenuStep.finish_configuration_attachments(self.organization),
-                )
-            except SlackAPIException as e:
-                if e.response["error"] == "channel_not_found" or e.response["error"] == "user_not_in_channel":
-                    return self._slack_client.api_call(
-                        "chat.postEphemeral",
-                        channel=slack_user_identity.im_channel_id,
-                        user=slack_user_identity.slack_id,
-                        attachments=CreateIncidentSubmenuStep.finish_configuration_attachments(self.organization),
-                    )
-                else:
-                    raise e
-
         warning_text = "Unable to add this message to resolution note, this command works only in incident threads."
 
         try:

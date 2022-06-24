@@ -135,28 +135,6 @@ class ScenarioStep(object):
             channel = user.im_channel_id
         return channel
 
-    @staticmethod
-    def finish_configuration_attachments(organization):
-        text = (
-            f"A few steps left to finish configuration!\n"
-            f"Go to your <{organization.web_link}?page=slack|OnCall workspace> and select default channel "
-            f"for your incidents!"
-        )
-        return [
-            {
-                "color": "#008000",
-                "blocks": [
-                    {
-                        "type": "section",
-                        "text": {
-                            "type": "mrkdwn",
-                            "text": text,
-                        },
-                    }
-                ],
-            }
-        ]
-
     @classmethod
     def routing_uid(cls):
         return cls.random_prefix_for_routing + cls.__name__
