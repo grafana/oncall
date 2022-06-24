@@ -66,11 +66,6 @@ class AlertGroupTelegramRepresentative(AlertGroupAbstractRepresentative):
         if not isinstance(alert_group, AlertGroup):
             alert_group = AlertGroup.all_objects.get(pk=alert_group)
 
-        # telegram notification is disabled for channel filter
-        if alert_group.notify_in_telegram_enabled is False:
-            logger.debug(f"Skipping alert group with id {alert_group.pk} since notify_in_telegram is disabled")
-            return
-
         messages_to_edit = alert_group.telegram_messages.filter(
             message_type__in=(
                 TelegramMessage.LOG_MESSAGE,
@@ -90,13 +85,6 @@ class AlertGroupTelegramRepresentative(AlertGroupAbstractRepresentative):
         if not isinstance(log_record, AlertGroupLogRecord):
             log_record = AlertGroupLogRecord.objects.get(pk=log_record)
 
-        # telegram notification is disabled for channel filter
-        if log_record.alert_group.notify_in_telegram_enabled is False:
-            logger.debug(
-                f"Skipping alert group with id {log_record.alert_group.pk} since notify_in_telegram is disabled"
-            )
-            return
-
         instance = cls(log_record)
         if instance.is_applicable():
             handler = instance.get_handler()
@@ -104,16 +92,7 @@ class AlertGroupTelegramRepresentative(AlertGroupAbstractRepresentative):
 
     @staticmethod
     def on_create_alert(**kwargs):
-        Alert = apps.get_model("alerts", "Alert")
-
         alert_pk = kwargs["alert"]
-        alert = Alert.objects.get(pk=alert_pk)
-
-        # telegram notification is disabled for channel filter
-        if alert.group.notify_in_telegram_enabled is False:
-            logger.debug(f"Skipping alert with id {alert.pk} since notify_in_telegram is disabled")
-            return
-
         on_create_alert_telegram_representative_async.apply_async((alert_pk,))
 
     def get_handler(self):

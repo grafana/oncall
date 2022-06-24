@@ -59,7 +59,7 @@ class UserNotificationPolicyLogRecord(models.Model):
         ERROR_NOTIFICATION_MAIL_DELIVERY_FAILED,
         ERROR_NOTIFICATION_TELEGRAM_BOT_IS_DELETED,
         ERROR_NOTIFICATION_POSTING_TO_SLACK_IS_DISABLED,
-        ERROR_NOTIFICATION_POSTING_TO_TELEGRAM_IS_DISABLED,
+        ERROR_NOTIFICATION_POSTING_TO_TELEGRAM_IS_DISABLED,  # deprecated
         ERROR_NOTIFICATION_IN_SLACK,
         ERROR_NOTIFICATION_IN_SLACK_TOKEN_ERROR,
         ERROR_NOTIFICATION_IN_SLACK_USER_NOT_IN_SLACK,
@@ -213,6 +213,7 @@ class UserNotificationPolicyLogRecord(models.Model):
                 self.notification_error_code
                 == UserNotificationPolicyLogRecord.ERROR_NOTIFICATION_POSTING_TO_TELEGRAM_IS_DISABLED
             ):
+                # deprecated
                 result += f"failed to notify {user_verbal} in Telegram, because the incident is not posted to Telegram (reason: Telegram is disabled for the route)"
             elif (
                 self.notification_error_code
