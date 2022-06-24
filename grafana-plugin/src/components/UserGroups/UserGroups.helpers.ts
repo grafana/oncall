@@ -1,4 +1,4 @@
-import { getRandomTimezone } from '../UsersTimezones/UsersTimezones.helpers';
+import { getRandomTimezone } from 'components/UsersTimezones/UsersTimezones.helpers';
 
 export const getRandomGroups = () => {
   return [
@@ -44,21 +44,14 @@ export const toPlainArray = (groups) => {
   return items;
 };
 
-export const fromPlainArray = (
-  items,
-  createNewGroup = false,
-  deleteEmptyGroups = true,
-) => {
+export const fromPlainArray = (items, createNewGroup = false, deleteEmptyGroups = true) => {
   const groups = [];
 
   return items
     .reduce((memo, item, currentIndex) => {
       if (item.type === 'item') {
         let lastGroup = memo[memo.length - 1];
-        if (
-          !lastGroup ||
-          (createNewGroup && currentIndex === items.length - 1)
-        ) {
+        if (!lastGroup || (createNewGroup && currentIndex === items.length - 1)) {
           lastGroup = [];
           memo.push(lastGroup);
         }

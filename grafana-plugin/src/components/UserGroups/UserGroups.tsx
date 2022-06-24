@@ -1,11 +1,16 @@
 import React, { FC, useCallback, useEffect, useMemo, useState } from 'react';
 
-import { VerticalGroup, HorizontalGroup, IconButton } from '@grafana/ui';
+import { SelectableValue } from '@grafana/data';
+import { VerticalGroup, HorizontalGroup, IconButton, Field, Input } from '@grafana/ui';
 import { arrayMoveImmutable } from 'array-move';
 import cn from 'classnames/bind';
 import { SortableContainer, SortableElement, SortableHandle } from 'react-sortable-hoc';
 
 import Text from 'components/Text/Text';
+import GSelect from 'containers/GSelect/GSelect';
+import UserTooltip from 'containers/UserTooltip/UserTooltip';
+import { User } from 'models/user/user.types';
+import { getRandomTimezone } from 'pages/schedule/Schedule.helpers';
 
 import { fromPlainArray, getRandomGroups, toPlainArray } from './UserGroups.helpers';
 
@@ -54,11 +59,37 @@ const SortableList = SortableContainer(({ items, onAddUserGroup }) => {
 });
 
 const UserGroups = () => {
-  const [groups, setGroups] = useState(getRandomGroups());
+  const [groups, setGroups] = useState([[]]);
 
   const handleAddUserGroup = useCallback(() => {
     setGroups((oldGroups) => [...oldGroups, []]);
   }, [groups]);
+
+  const handleUserAdd = useCallback((pk: User['pk'], user: User) => {
+    if (!pk) {
+      return;
+    }
+
+    setGroups((groups) => {
+      const newGroups = [...groups];
+      const lastGroup = newGroups[groups.length - 1];
+
+      lastGroup.push({ pk, name: user.username, tz: getRandomTimezone() });
+
+      return newGroups;
+    });
+  }, []);
+
+  const filterUsers = useCallback(
+    ({ value }) => {
+      const userAlreadyExist = groups.some((group) => group.some((user) => user.pk === value));
+
+      console.log('userAlreadyExist', userAlreadyExist);
+
+      return !userAlreadyExist;
+    },
+    [groups]
+  );
 
   const items = useMemo(() => toPlainArray(groups), [groups]);
 
@@ -83,9 +114,19 @@ const UserGroups = () => {
           onAddUserGroup={handleAddUserGroup}
           //useDragHandle
         />
-        {/* <div className={cx('add-user-group')} onClick={handleAddUserGroup}>
-          Add user group +
-        </div>*/}
+        <GSelect
+          showSearch
+          allowClear
+          modelName="userStore"
+          displayField="username"
+          valueField="pk"
+          placeholder="Add user"
+          className={cx('select')}
+          value={null}
+          onChange={handleUserAdd}
+          getOptionLabel={({ label, value }: SelectableValue) => <UserTooltip id={value} />}
+          filterOptions={filterUsers}
+        />
       </VerticalGroup>
     </div>
   );

@@ -35,6 +35,7 @@ interface GSelectProps {
   dropdownRender?: (menu: ReactElement) => ReactElement;
   getOptionLabel?: <T>(item: SelectableValue<T>) => React.ReactNode;
   getDescription?: (item: any) => React.ReactNode;
+  filterOptions?: () => boolean;
 }
 
 const GSelect = observer((props: GSelectProps) => {
@@ -59,6 +60,7 @@ const GSelect = observer((props: GSelectProps) => {
     getOptionLabel,
     showWarningIfEmptyValue = false,
     getDescription,
+    filterOptions = () => true,
   } = props;
 
   const store = useStore();
@@ -91,12 +93,14 @@ const GSelect = observer((props: GSelectProps) => {
       const searchResult = model.getSearchResult(query);
       const items = Array.isArray(searchResult.results) ? searchResult.results : searchResult;
 
-      const options = items.map((item: any) => ({
-        value: item[valueField],
-        label: get(item, displayField),
-        imgUrl: item.avatar_url,
-        description: getDescription && getDescription(item),
-      }));
+      const options = items
+        .map((item: any) => ({
+          value: item[valueField],
+          label: get(item, displayField),
+          imgUrl: item.avatar_url,
+          description: getDescription && getDescription(item),
+        }))
+        .filter(filterOptions);
       return options;
     });
   };
