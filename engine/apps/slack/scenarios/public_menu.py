@@ -49,6 +49,7 @@ class CloseEphemeralButtonStep(scenario_step.ScenarioStep):
         return JsonResponse({"response_type": "ephemeral", "delete_original": True})
 
 
+# CreateIncidentManuallyStep trigger creation of a manual incident via slash command
 class CreateIncidentManuallyStep(scenario_step.ScenarioStep):
     command_name = [settings.SLACK_SLASH_COMMAND_NAME]
     tags = [
@@ -141,6 +142,7 @@ class CreateIncidentManuallyStep(scenario_step.ScenarioStep):
         return blocks
 
 
+# FinishCreateIncidentViewStep creates a manual incident via slash command
 class FinishCreateIncidentViewStep(scenario_step.ScenarioStep):
 
     tags = [
@@ -207,6 +209,7 @@ class FinishCreateIncidentViewStep(scenario_step.ScenarioStep):
         )
 
 
+# CreateIncidentSubmenuStep trigger creation of a manual incident via submenu
 class CreateIncidentSubmenuStep(scenario_step.ScenarioStep):
     callback_id = [
         "incident_create",
@@ -263,6 +266,7 @@ class CreateIncidentSubmenuStep(scenario_step.ScenarioStep):
         )
 
 
+# FinishCreateIncidentSubmenuStep creates a manual incident via submenu
 class FinishCreateIncidentSubmenuStep(scenario_step.ScenarioStep):
 
     tags = [
@@ -308,6 +312,9 @@ class FinishCreateIncidentSubmenuStep(scenario_step.ScenarioStep):
             permalink = permalink.get("permalink", None)
         except SlackAPIException:
             permalink = None
+        channel_filter_pk = payload["view"]["state"]["values"][
+            scenario_step.ScenarioStep.SELECT_ORGANIZATION_AND_ROUTE_BLOCK_ID
+        ][scenario_step.ScenarioStep.SELECT_ORGANIZATION_AND_ROUTE_BLOCK_ID]["selected_option"]["value"].split("-")[1]
 
         permalink = "<{}|Original message...>".format(permalink) if permalink is not None else ""
         Alert.create(
@@ -319,6 +326,7 @@ class FinishCreateIncidentSubmenuStep(scenario_step.ScenarioStep):
             alert_receive_channel=alert_receive_channel,
             raw_request_data=payload,
             integration_unique_data={"created_by": self.user.get_user_verbal_for_team_for_slack()},
+            force_route_id=channel_filter_pk,
         )
         try:
             self._slack_client.api_call(
