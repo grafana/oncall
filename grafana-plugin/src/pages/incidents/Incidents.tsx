@@ -366,48 +366,6 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
 
   renderStatus(record: AlertType) {
     return getIncidentStatusTag(record);
-
-    /*if (record.resolved) {
-      return (
-        <div className={cx('status')}>
-          <Tooltip title={`Resolved ${record.resolved_at_verbose}`}>
-            <CheckCircleOutlined className={cx('icon-small')} style={{ color: '#52c41a' }} />
-          </Tooltip>
-        </div>
-      );
-    }
-
-    if (record.acknowledged) {
-      return (
-        <div className={cx('status')}>
-          <Tooltip title={`Acknowledged ${record.acknowledged_at_verbose}`}>
-            <Icon className={cx('icon-small')} component={AcknowledgedIncidentIcon} />
-          </Tooltip>
-        </div>
-      );
-    }
-
-    if (record.silenced) {
-      const silencedUntilText = record.silenced_until
-        ? `Silenced until ${moment(record.silenced_until).toLocaleString()}`
-        : 'Silenced forever';
-
-      return (
-        <div className={cx('status')}>
-          <Tooltip title={silencedUntilText}>
-            <Icon className={cx('icon-small')} component={SilencedIncidentIcon} />
-          </Tooltip>
-        </div>
-      );
-    }
-
-    return (
-      <div className={cx('status')}>
-        <Tooltip title={`Started ${record.started_at_verbose}`}>
-          <Icon className={cx('icon-small')} component={NewIncidentIcon} />
-        </Tooltip>
-      </div>
-    );*/
   }
 
   renderStartedAt(alert: AlertType) {

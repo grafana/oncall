@@ -14,7 +14,7 @@ from rest_framework.response import Response
 from apps.alerts.constants import ActionSource
 from apps.alerts.models import AlertGroup, AlertReceiveChannel
 from apps.api.permissions import MODIFY_ACTIONS, READ_ACTIONS, ActionPermission, AnyRole, IsAdminOrEditor
-from apps.api.serializers.alert_group import AlertGroupSerializer
+from apps.api.serializers.alert_group import AlertGroupListSerializer, AlertGroupSerializer
 from apps.auth_token.auth import MobileAppAuthTokenAuthentication, PluginAuthentication
 from apps.user_management.models import User
 from common.api_helpers.exceptions import BadRequest
@@ -191,13 +191,19 @@ class AlertGroupView(
 
     filterset_class = AlertGroupFilter
 
+    def get_serializer_class(self):
+        if self.action == "list":
+            return AlertGroupListSerializer
+
+        return super().get_serializer_class()
+
     def get_queryset(self):
         queryset = AlertGroup.unarchived_objects.filter(
             channel__organization=self.request.auth.organization,
             channel__team=self.request.user.current_team,
         ).order_by("-started_at")
 
-        queryset = self.serializer_class.setup_eager_loading(queryset)
+        queryset = self.get_serializer_class().setup_eager_loading(queryset)
 
         return queryset
 
