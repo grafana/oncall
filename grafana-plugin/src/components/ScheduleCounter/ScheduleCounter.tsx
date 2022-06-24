@@ -53,7 +53,7 @@ const ScheduleCounter: FC<ScheduleCounterProps> = (props) => {
       }
     >
       <div className={cx('root', { [`root__type_${type}`]: true })}>
-        <HorizontalGroup spacing="sm">
+        <HorizontalGroup spacing="xs">
           <Icon className={cx('icon', { [`icon__type_${type}`]: true })} name={typeToIcon[type]} />
           <Text type={typeToColor[type]}>{count}</Text>
         </HorizontalGroup>

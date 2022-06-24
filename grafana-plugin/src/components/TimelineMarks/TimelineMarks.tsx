@@ -1,18 +1,18 @@
 import React, { FC, useMemo } from 'react';
-import cn from 'classnames/bind';
 
-import styles from './TimelineMarks.module.css';
+import cn from 'classnames/bind';
 import * as dayjs from 'dayjs';
 
+import styles from './TimelineMarks.module.css';
+
 interface TimelineMarksProps {
-  hideTimeMarks: boolean;
   startMoment: dayjs.Dayjs;
 }
 
 const cx = cn.bind(styles);
 
 const TimelineMarks: FC<TimelineMarksProps> = (props) => {
-  const { hideTimeMarks, startMoment } = props;
+  const { startMoment } = props;
 
   const momentsToRender = useMemo(() => {
     const hoursToSplit = 12;
@@ -39,9 +39,7 @@ const TimelineMarks: FC<TimelineMarksProps> = (props) => {
       {momentsToRender.map((m, i) => {
         return (
           <div key={i} className={cx('weekday')}>
-            <div className={cx('weekday-title')}>
-              {m.moment.format('DD MMM')}
-            </div>
+            <div className={cx('weekday-title')}>{m.moment.format('DD MMM')}</div>
             <div className={cx('weekday-times')}>
               {m.moments.map((mm, j) => (
                 <div key={j} className={cx('weekday-time')}>

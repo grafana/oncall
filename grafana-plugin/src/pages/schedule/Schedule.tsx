@@ -1,5 +1,6 @@
 import React, { useMemo } from 'react';
 
+import { AppRootProps } from '@grafana/data';
 import { Button, HorizontalGroup, VerticalGroup, RadioButtonGroup, IconButton, ToolbarButton } from '@grafana/ui';
 import cn from 'classnames/bind';
 import * as dayjs from 'dayjs';
@@ -25,7 +26,7 @@ import styles from './Schedule.module.css';
 
 const cx = cn.bind(styles);
 
-interface SchedulePageProps {}
+interface SchedulePageProps extends AppRootProps {}
 
 interface SchedulePageState {
   startMoment: dayjs.Dayjs;
@@ -51,13 +52,17 @@ class SchedulePage extends React.Component<SchedulePageProps, SchedulePageState>
 
   render() {
     const { startMoment, schedulePeriodType, renderType, users, tz } = this.state;
+    const { query } = this.props;
 
     return (
       <div className={cx('root')}>
         <VerticalGroup spacing="lg">
           <HorizontalGroup justify="space-between">
             <HorizontalGroup>
-              <Text.Title level={3}>Schedule Team 1</Text.Title>
+              <PluginLink query={{ page: 'schedules' }}>
+                <IconButton style={{ marginTop: '5px' }} name="arrow-left" size="xxl" />
+              </PluginLink>
+              <Text.Title level={3}>Schedule Team {query.id}</Text.Title>
               <ScheduleCounter
                 type="link"
                 count={5}

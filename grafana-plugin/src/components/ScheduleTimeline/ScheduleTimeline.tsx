@@ -18,27 +18,29 @@ interface ScheduleTimelineProps {
 }
 
 const ScheduleTimeline: FC<ScheduleTimelineProps> = (props) => {
-  const { layerIndex, rotationIndex, color, slots, label } = props;
+  const { layerIndex, rotationIndex, slots, label } = props;
 
   return (
     <div className={cx('root')}>
       {/* <div className={cx('current-time')} />*/}
-      <div className={cx('slots')}>
-        {slots.map(({ users, inactive }, slotIndex) => {
-          return (
-            <div className={cx('users')}>
-              {users.map((user, userIndex) => (
-                <ScheduleSlot
-                  key={userIndex}
-                  color={color}
-                  label={slotIndex === 0 && userIndex === 0 && label}
-                  user={user}
-                  inactive={inactive}
-                />
-              ))}
-            </div>
-          );
-        })}
+      <div className={cx('timeline')}>
+        <div className={cx('slots')}>
+          {slots.map(({ users, inactive, color }, slotIndex) => {
+            return (
+              <div className={cx('users')}>
+                {users.map((user, userIndex) => (
+                  <ScheduleSlot
+                    key={userIndex}
+                    color={color}
+                    label={slotIndex === 0 && userIndex === 0 && label}
+                    user={user}
+                    inactive={inactive}
+                  />
+                ))}
+              </div>
+            );
+          })}
+        </div>
       </div>
     </div>
   );

@@ -6,6 +6,7 @@ import { UserGroup } from 'models/user_group/user_group.types';
 export enum ScheduleType {
   'Calendar',
   'Ical',
+  'API',
 }
 
 export interface Schedule {

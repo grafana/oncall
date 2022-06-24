@@ -14,7 +14,7 @@
     z-index: 1;
 }
 
-.header{
+.header {
     padding: 0 10px;
 }
 
@@ -26,8 +26,8 @@
     margin: 16px 0;
 }
 
-.rotations-plus-title{
-      display: flex;
+.rotations-plus-title {
+    display: flex;
     flex-direction: column;
 }
 
@@ -47,8 +47,8 @@
     background: var(--secondary-background);
 }
 
-.layer-title:hover{
-    background: rgba(204,204,220, 0.12);
+.layer-title:hover {
+    background: rgba(204, 204, 220, 0.12);
 }
 
 .header-plus-content {
@@ -70,11 +70,6 @@
 
 .layer-content {
     position: relative;
-}
-
-.rotation {
-    background: var(--primary-background);
-    transition: background-color 300ms;
 }
 
 .add-rotations-layer {

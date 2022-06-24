@@ -45,7 +45,7 @@ class Rotations extends Component<RotationsProps, RotationsState> {
       { id: 3, title: 'Layer 4' },
     ];
 
-    const rotations = [{ slots: getRandomTimeslots() }, { slots: getRandomTimeslots() }];
+    const rotations = [{}, {}];
 
     return (
       <>
@@ -76,14 +76,13 @@ class Rotations extends Component<RotationsProps, RotationsState> {
                   </div>
                   <div className={cx('header-plus-content')}>
                     <div className={cx('current-time')} />
-                    <TimelineMarks startMoment={startMoment} hideTimeMarks />
+                    <TimelineMarks startMoment={startMoment} />
                     <div className={cx('rotations')}>
                       {rotations.map((rotation, rotationIndex) => (
-                        <Rotation
-                          slots={rotation.slots}
+                        <ScheduleTimeline
                           layerIndex={layerIndex}
                           rotationIndex={rotationIndex}
-                          color={getColor(layerIndex, rotationIndex)}
+                          slots={getRandomTimeslots(6, layerIndex, rotationIndex)}
                           label={getLabel(layerIndex, rotationIndex)}
                         />
                       ))}
