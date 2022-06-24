@@ -197,13 +197,13 @@ class UserNotificationPolicyLogRecord(models.Model):
                 elif notification_channel is None:
                     result += f"failed to notify {user_verbal}. Phone number is not verified"
             if self.notification_error_code == UserNotificationPolicyLogRecord.ERROR_NOTIFICATION_NOT_ABLE_TO_SEND_SMS:
-                result += f"Amixr was not able to send an SMS to {user_verbal}"
+                result += f"OnCall was not able to send an SMS to {user_verbal}"
             elif self.notification_error_code == UserNotificationPolicyLogRecord.ERROR_NOTIFICATION_NOT_ABLE_TO_CALL:
-                result += f"Amixr was not able to call to {user_verbal}"
+                result += f"OnCall was not able to call to {user_verbal}"
             elif (
                 self.notification_error_code == UserNotificationPolicyLogRecord.ERROR_NOTIFICATION_NOT_ABLE_TO_SEND_MAIL
             ):
-                result += f"Amixr was not able to send an email to {user_verbal}"
+                result += f"OnCall was not able to send an email to {user_verbal}"
             elif (
                 self.notification_error_code
                 == UserNotificationPolicyLogRecord.ERROR_NOTIFICATION_POSTING_TO_SLACK_IS_DISABLED
