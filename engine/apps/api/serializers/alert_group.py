@@ -30,7 +30,6 @@ class AlertGroupListSerializer(EagerLoadingMixin, serializers.ModelSerializer):
     pk = serializers.CharField(read_only=True, source="public_primary_key")
     alert_receive_channel = FastAlertReceiveChannelSerializer(source="channel")
     status = serializers.ReadOnlyField()
-    alerts_count = serializers.ReadOnlyField()
     resolved_by_user = FastUserSerializer(required=False)
     acknowledged_by_user = FastUserSerializer(required=False)
     silenced_by_user = FastUserSerializer(required=False)
@@ -41,18 +40,14 @@ class AlertGroupListSerializer(EagerLoadingMixin, serializers.ModelSerializer):
     PREFETCH_RELATED = [
         "alerts",
         "dependent_alert_groups",
-        "log_records",
         "log_records__author",
-        "log_records__escalation_policy",
-        "log_records__invitation__invitee",
     ]
 
     SELECT_RELATED = [
-        "slack_message",
-        "channel__organization",
-        "slack_message___slack_team_identity",
-        "acknowledged_by_user",
+        "channel",
+        "root_alert_group",
         "resolved_by_user",
+        "acknowledged_by_user",
         "silenced_by_user",
     ]
 
