@@ -8,12 +8,12 @@ from django.conf import settings
 class IntegrationHeartBeatText:
     heartbeat_expired_title: str = "heartbeat_expired"
     heartbeat_expired_message: str = "heartbeat_expired"
-    heartbeat_restored_title: str = "hearbeat_restored"
+    heartbeat_restored_title: str = "heartbeat_restored"
     heartbeat_restored_message: str = "heartbeat_restored"
     heartbeat_instruction_template: str = None
 
 
-class HearBeatTextCreator:
+class HeartBeatTextCreator:
     def __init__(self, integration_verbal):
         self.integration_verbal = integration_verbal.capitalize()
 
@@ -52,7 +52,7 @@ class HearBeatTextCreator:
         return f"heartbeat_instructions/{self.integration_verbal.lower()}.html"
 
 
-class HearBeatTextCreatorForTitleGrouping(HearBeatTextCreator):
+class HeartBeatTextCreatorForTitleGrouping(HeartBeatTextCreator):
     """
     Some integrations (Grafana, AlertManager) have default grouping template based on title
     """
