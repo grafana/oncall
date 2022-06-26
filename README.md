@@ -33,12 +33,12 @@ RABBITMQ_PASSWORD=rabbitmq_secret_pw
 MYSQL_PASSWORD=mysql_secret_pw
 COMPOSE_PROFILES=with_grafana  # Remove this line if you want to use existing grafana
 GRAFANA_USER=admin
-GRAFANA_PASSWORD=admin" > .env_hobby
+GRAFANA_PASSWORD=admin" > .env
 ```
 
 3. Launch services:
 ```bash
-docker-compose --env-file .env_hobby -f docker-compose.yml up --build -d
+docker-compose -f docker-compose.yml up --build -d
 ```
 
 4. Issue one-time invite token:
