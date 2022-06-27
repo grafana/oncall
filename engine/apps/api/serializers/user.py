@@ -119,6 +119,7 @@ class UserHiddenFieldsSerializer(UserSerializer):
         for field in ret:
             if field not in self.available_for_all_roles_fields:
                 ret[field] = "******"
+        ret["hidden_fields"] = True
         return ret
 
 

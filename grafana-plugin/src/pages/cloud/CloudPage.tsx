@@ -232,7 +232,7 @@ const CloudPage = observer((props: CloudPageProps) => {
             <span className={cx('heart-icon')}>
               <HeartIcon />
             </span>
-            Monitor cloud instance with heartbeat
+            Monitor instance with heartbeat
           </Text.Title>
           <Text type="secondary">
             Once connected, current OnCall instance will send heartbeats every 3 minutes to the cloud Instance. If no
@@ -268,7 +268,7 @@ const CloudPage = observer((props: CloudPageProps) => {
             <div style={{ width: '100%' }}>
               <Text type="secondary">
                 {
-                  'Ask your users to sign up in Grafana Cloud, verify phone number and feel free to set up SMS & phone call notificaitons in personal settings! Only users with Admin or Editor role will be synced.'
+                  'Ask your users to sign up in Grafana Cloud, verify phone number and feel free to set up SMS & phone call notifications in personal settings! Only users with Admin or Editor role will be synced.'
                 }
               </Text>
 
@@ -349,7 +349,7 @@ const CloudPage = observer((props: CloudPageProps) => {
             <span className={cx('heart-icon')}>
               <HeartIcon />
             </span>
-            Monitor cloud instance with heartbeat
+            Monitor instance with heartbeat
           </Text.Title>
           <Text type="secondary">
             Once connected, current OnCall instance will send heartbeats every 3 minutes to the cloud Instance. If no

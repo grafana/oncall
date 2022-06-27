@@ -171,5 +171,3 @@ services:
 volumes:
   dbdata:
   rabbitmqdata:
-  caddy_data:
-  caddy_config:

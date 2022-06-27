@@ -5,7 +5,10 @@ The following are the main/default maintainers:
 
 Some parts of the codebase have other maintainers, the package paths also include all sub-packages:
 
-n/a
+Some parts of the codebase have other maintainers:
+- `docs`:
+  - Eve Meelan - [@Eve832](https://github.com/Eve832) ([Grafana Labs](https://grafana.com/))
+  - Alyssa Wada - [@alyssawada](https://github.com/alyssawada) ([Grafana Labs](https://grafana.com/))
 
 For the sake of brevity, not all subtrees are explicitly listed. Due to the
 size of this repository, the natural changes in focus of maintainers over time,

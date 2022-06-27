@@ -726,7 +726,7 @@ class AlertRules extends React.Component<AlertRulesProps, AlertRulesState> {
             />
           </WithPermissionControl>
         </div>
-        <div>{this.renderChannelFilterButtons(channelFilterId, index)}</div>
+        <div onClick={(e) => e.stopPropagation()}>{this.renderChannelFilterButtons(channelFilterId, index)}</div>
       </div>
     );
   };
