@@ -1,5 +1,10 @@
 # Change Log
 
+## 1.0.3 (2022-06-27)
+- Fix users public api endpoint. Now it returns users with all roles.
+- Fix redundant notifications about gaps in schedules.
+- Frontend fixes.
+
 ## 1.0.2 (2022-06-17)
 
 - Fix Grafana Alerting integration to handle API changes in Grafana 9
