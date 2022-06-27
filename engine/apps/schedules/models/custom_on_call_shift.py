@@ -40,15 +40,18 @@ class CustomOnCallShift(models.Model):
         FREQUENCY_DAILY,
         FREQUENCY_WEEKLY,
         FREQUENCY_MONTHLY,
-    ) = range(3)
+        FREQUENCY_HOURLY,
+    ) = range(4)
 
     FREQUENCY_CHOICES = (
+        (FREQUENCY_HOURLY, "Hourly"),
         (FREQUENCY_DAILY, "Daily"),
         (FREQUENCY_WEEKLY, "Weekly"),
         (FREQUENCY_MONTHLY, "Monthly"),
     )
 
     PUBLIC_FREQUENCY_CHOICES_MAP = {
+        FREQUENCY_HOURLY: "hourly",
         FREQUENCY_DAILY: "daily",
         FREQUENCY_WEEKLY: "weekly",
         FREQUENCY_MONTHLY: "monthly",
@@ -247,7 +250,9 @@ class CustomOnCallShift(models.Model):
         next_event_start = current_event_start
         ONE_DAY = 1
 
-        if self.frequency == CustomOnCallShift.FREQUENCY_DAILY:
+        if self.frequency == CustomOnCallShift.FREQUENCY_HOURLY:
+            next_event_start = current_event_start + timezone.timedelta(hours=1)
+        elif self.frequency == CustomOnCallShift.FREQUENCY_DAILY:
             # test daily with byday
             next_event_start = current_event_start + timezone.timedelta(days=ONE_DAY)
         elif self.frequency == CustomOnCallShift.FREQUENCY_WEEKLY:
