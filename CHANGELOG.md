@@ -1,5 +1,8 @@
 # Change Log
 
+## 1.0.4 (2022-06-28)
+- Allow Telegram DMs without channel connection.
+
 ## 1.0.3 (2022-06-27)
 - Fix users public api endpoint. Now it returns users with all roles.
 - Fix redundant notifications about gaps in schedules.
