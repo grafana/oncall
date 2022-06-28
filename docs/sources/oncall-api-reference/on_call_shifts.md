@@ -55,6 +55,7 @@ The above command returns JSON structured in the following way:
 | `duration`                       |   No   |                      Yes                       | Duration of the event.                                                                                                                                                                                                                                                                                                                                                                                             |
 | `frequency`                      |   No   | If type = `recurrent_event` or `rolling_users` | One of: `hourly`, `daily`, `weekly`, `monthly`.                                                                                                                                                                                                                                                                                                                                                                              |
 | `interval`                       |   No   |                    Optional                    | This parameter takes a positive integer that represents the intervals that the recurrence rule repeats.                                                                                                                                                                                                                                                                                                            |
+| `until`                       |   No   |                    Optional                    | When the recurrence rule ends (endless if None). This parameter takes a date format as `yyyy-MM-dd'T'HH:mm:ss` (for example "2020-09-05T08:00:00").                                                                                                                                                                                                                                                                                                            |
 | `week_start`                     |   No   |                    Optional                    | Start day of the week in iCal format. One of: `SU` (Sunday), `MO` (Monday), `TU` (Tuesday), `WE` (Wednesday), `TH` (Thursday), `FR` (Friday), `SA` (Saturday). Default: `SU`.                                                                                                                                                                                                                                      |
 | `by_day`                         |   No   |                    Optional                    | List of days in iCal format. Valid values are: `SU`, `MO`, `TU`, `WE`, `TH`, `FR`, `SA`.                                                                                                                                                                                                                                                                                                                           |
 | `by_month`                       |   No   |                    Optional                    | List of months. Valid values are `1` to `12`.                                                                                                                                                                                                                                                                                                                                                                      |
@@ -72,7 +73,7 @@ Please see [RFC 5545](https://tools.ietf.org/html/rfc5545#section-3.3.10) for mo
 # Get OnCall shifts
 
 ```shell
-curl "{{API_URL}}/api/v1/on_call_shifts/SBM7DV7BKFUYU/" \
+curl "{{API_URL}}/api/v1/on_call_shifts/OH3V5FYQEYJ6M/" \
   --request GET \
   --header "Authorization: meowmeowmeow" \
   --header "Content-Type: application/json" \
@@ -159,7 +160,7 @@ The following available filter parameters should be provided as `GET` arguments:
 # Update OnCall shift
 
 ```shell
-curl "{{API_URL}}/api/v1/on_call_shifts/S3Z477AHDXTMF/" \
+curl "{{API_URL}}/api/v1/on_call_shifts/OH3V5FYQEYJ6M/" \
   --request PUT \
   --header "Authorization: meowmeowmeow" \
   --header "Content-Type: application/json" \
@@ -198,7 +199,7 @@ The above command returns JSON structured in the following way:
 # Delete OnCall shift
 
 ```shell
-curl "{{API_URL}}/api/v1/on_call_shifts/S3Z477AHDXTMF/" \
+curl "{{API_URL}}/api/v1/on_call_shifts/OH3V5FYQEYJ6M/" \
   --request DELETE \
   --header "Authorization: meowmeowmeow" \
   --header "Content-Type: application/json"

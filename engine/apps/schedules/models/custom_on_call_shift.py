@@ -147,6 +147,8 @@ class CustomOnCallShift(models.Model):
 
     interval = models.IntegerField(default=None, null=True)  # every n days/months - ical format
 
+    until = models.DateTimeField(default=None, null=True)  # if set, when recurrence ends
+
     # week_start in ical format
     week_start = models.IntegerField(choices=WEEKDAY_CHOICES, default=SUNDAY)  # for weekly events
 
@@ -193,7 +195,7 @@ class CustomOnCallShift(models.Model):
             result += (
                 f", frequency: {self.get_frequency_display()}, interval: {self.interval}, "
                 f"week start: {self.week_start}, by day: {self.by_day}, by month: {self.by_month}, "
-                f"by monthday: {self.by_monthday}"
+                f"by monthday: {self.by_monthday}, until: {self.until.isoformat() if self.until else None}"
             )
         return result
 
@@ -297,6 +299,9 @@ class CustomOnCallShift(models.Model):
                 rules["bymonthday"] = self.by_monthday
             if self.week_start is not None:
                 rules["wkst"] = CustomOnCallShift.ICAL_WEEKDAY_MAP[self.week_start]
+            if self.until is not None:
+                time_zone = self.time_zone if self.time_zone is not None else "UTC"
+                rules["until"] = self.convert_dt_to_schedule_timezone(self.until, time_zone)
         return rules
 
     @cached_property
