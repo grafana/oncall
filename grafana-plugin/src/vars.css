@@ -53,5 +53,7 @@
   --hover-selected: rgba(204,204,220,0.12);
   --hover-selected-hardcoded: #34363d;
 
-    --secondary-background-shade: rgba(204, 204, 220, 0.2);;
+    --secondary-background-shade: rgba(204, 204, 220, 0.2);
+
+
 }
