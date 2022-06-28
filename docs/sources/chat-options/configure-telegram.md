@@ -20,6 +20,8 @@ You can use Telegram to deliver alert group notifications to a dedicated channel
 
 Each alert group notification is assigned a dedicated discussion. Users can perform notification actions (acknowledge, resolve, silence), create reports, and discuss alerts in the comments section of the discussions.
 
+In case an integration route is not configured to use a Telegram channel, users will receive messages with alert group contents, logs and actions in their DMs.
+
 ## Connect to Telegram
 
 Connect your organization's Telegram account to your Grafana OnCall instance by following the instructions provided in OnCall. You can use the following steps as a reference.
