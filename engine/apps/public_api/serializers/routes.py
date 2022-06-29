@@ -2,14 +2,125 @@ from django.apps import apps
 from rest_framework import serializers
 
 from apps.alerts.models import AlertReceiveChannel, ChannelFilter, EscalationChain
+from apps.base.messaging import get_messaging_backend_from_id, get_messaging_backends
 from common.api_helpers.custom_fields import OrganizationFilteredPrimaryKeyRelatedField
 from common.api_helpers.exceptions import BadRequest
 from common.api_helpers.mixins import OrderedModelSerializerMixin
 
 
-class ChannelFilterSerializer(OrderedModelSerializerMixin, serializers.ModelSerializer):
+class BaseChannelFilterSerializer(OrderedModelSerializerMixin, serializers.ModelSerializer):
+    """Base Channel Filter serializer with validation methods"""
+
+    def __init__(self, *args, **kwargs):
+        """Update existing fields of the serializer with messaging backends fields"""
+
+        super().__init__(*args, **kwargs)
+        for backend_id, _ in get_messaging_backends():
+            backend = get_messaging_backend_from_id(backend_id)
+            if backend is None:
+                continue
+            field = backend_id.lower()
+            self._declared_fields[field] = serializers.DictField(required=False)
+            self.Meta.fields.append(field)
+
+    def to_representation(self, instance):
+        result = super().to_representation(instance)
+        result["slack"] = {"channel_id": instance.slack_channel_id}
+        result["telegram"] = {"id": instance.telegram_channel.public_primary_key if instance.telegram_channel else None}
+        # add representation for other messaging backends
+        for backend_id, _ in get_messaging_backends():
+            backend = get_messaging_backend_from_id(backend_id)
+            if backend is None:
+                continue
+            field = backend_id.lower()
+            channel_id = None
+            if instance.notification_backends and instance.notification_backends.get(backend_id, {}).get("channel"):
+                channel_id = instance.notification_backends[backend_id]["channel"]
+            result[field] = {"id": channel_id}
+        return result
+
+    def _correct_validated_data(self, validated_data):
+        organization = self.context["request"].auth.organization
+
+        slack_field = validated_data.pop("slack", {})
+        if "channel_id" in slack_field:
+            validated_data["slack_channel_id"] = self._validate_slack_channel_id(slack_field.get("channel_id"))
+
+        telegram_field = validated_data.pop("telegram", {})
+        if "id" in telegram_field:
+            validated_data["telegram_channel"] = self._validate_telegram_channel(telegram_field.get("id"))
+
+        notification_backends = {}
+        for backend_id, _ in get_messaging_backends():
+            field = backend_id.lower()
+            backend_field = validated_data.pop(field, {})
+            if backend_field:
+                backend = get_messaging_backend_from_id(backend_id)
+                if backend is None:
+                    continue
+                channel_id = backend_field.get("id")
+                notification_backend = {"channel": channel_id, "enabled": True}
+                backend.validate_channel_filter_data(organization, notification_backend)
+                notification_backends[backend_id] = notification_backend
+        if notification_backends:
+            validated_data["notification_backends"] = notification_backends
+        return validated_data
+
+    def _validate_slack_channel_id(self, slack_channel_id):
+        SlackChannel = apps.get_model("slack", "SlackChannel")
+
+        if slack_channel_id is not None:
+            slack_channel_id = slack_channel_id.upper()
+            organization = self.context["request"].auth.organization
+            slack_team_identity = organization.slack_team_identity
+            try:
+                slack_team_identity.get_cached_channels().get(slack_id=slack_channel_id)
+            except SlackChannel.DoesNotExist:
+                raise BadRequest(detail="Slack channel does not exist")
+        return slack_channel_id
+
+    def _validate_telegram_channel(self, telegram_channel_id):
+        TelegramToOrganizationConnector = apps.get_model("telegram", "TelegramToOrganizationConnector")
+        if telegram_channel_id is not None:
+            organization = self.context["request"].auth.organization
+            try:
+                telegram_channel = organization.telegram_channel.get(public_primary_key=telegram_channel_id)
+            except TelegramToOrganizationConnector.DoesNotExist:
+                raise BadRequest(detail="Telegram channel does not exist")
+            return telegram_channel
+        return
+
+    def _update_notification_backends(self, notification_backends):
+        if notification_backends is not None:
+            current = self.instance.notification_backends or {}
+            for backend_id in notification_backends:
+                backend = get_messaging_backend_from_id(backend_id)
+                if backend is None:
+                    continue
+                # update existing backend data
+                notification_backends[backend_id] = current.get(backend_id, {}) | notification_backends[backend_id]
+        return notification_backends
+
+    def validate_escalation_chain_id(self, escalation_chain):
+        if escalation_chain is None:
+            return escalation_chain
+        if self.instance is not None:
+            alert_receive_channel = self.instance.alert_receive_channel
+        else:
+            alert_receive_channel = AlertReceiveChannel.objects.get(
+                public_primary_key=self.initial_data["integration_id"]
+            )
+
+        if escalation_chain.team != alert_receive_channel.team:
+            raise BadRequest(detail="Escalation chain must be assigned to the same team as the integration")
+
+        return escalation_chain
+
+
+class ChannelFilterSerializer(BaseChannelFilterSerializer):
     id = serializers.CharField(read_only=True, source="public_primary_key")
     slack = serializers.DictField(required=False)
+    telegram = serializers.DictField(required=False)
     routing_regex = serializers.CharField(allow_null=False, required=True, source="filtering_term")
     position = serializers.IntegerField(required=False, source="order")
     integration_id = OrganizationFilteredPrimaryKeyRelatedField(
@@ -33,14 +144,10 @@ class ChannelFilterSerializer(OrderedModelSerializerMixin, serializers.ModelSeri
             "position",
             "is_the_last_route",
             "slack",
+            "telegram",
             "manual_order",
         ]
         read_only_fields = ("is_the_last_route",)
-
-    def to_representation(self, instance):
-        result = super().to_representation(instance)
-        result["slack"] = {"channel_id": instance.slack_channel_id}
-        return result
 
     def create(self, validated_data):
         validated_data = self._correct_validated_data(validated_data)
@@ -71,42 +178,15 @@ class ChannelFilterSerializer(OrderedModelSerializerMixin, serializers.ModelSeri
         else:
             raise BadRequest(detail="Route with this regex already exists")
 
-    def validate_escalation_chain_id(self, escalation_chain):
-        if self.instance is not None:
-            alert_receive_channel = self.instance.alert_receive_channel
-        else:
-            alert_receive_channel = AlertReceiveChannel.objects.get(
-                public_primary_key=self.initial_data["integration_id"]
-            )
-
-        if escalation_chain.team != alert_receive_channel.team:
-            raise BadRequest(detail="Escalation chain must be assigned to the same team as the integration")
-
-        return escalation_chain
-
-    def _correct_validated_data(self, validated_data):
-        slack_field = validated_data.pop("slack", {})
-        if "channel_id" in slack_field:
-            validated_data["slack_channel_id"] = self._validate_slack_channel_id(slack_field.get("channel_id"))
-        return validated_data
-
-    def _validate_slack_channel_id(self, slack_channel_id):
-        SlackChannel = apps.get_model("slack", "SlackChannel")
-
-        if slack_channel_id is not None:
-            slack_channel_id = slack_channel_id.upper()
-            organization = self.context["request"].auth.organization
-            slack_team_identity = organization.slack_team_identity
-            try:
-                slack_team_identity.get_cached_channels().get(slack_id=slack_channel_id)
-            except SlackChannel.DoesNotExist:
-                raise BadRequest(detail="Slack channel does not exist")
-        return slack_channel_id
-
 
 class ChannelFilterUpdateSerializer(ChannelFilterSerializer):
     integration_id = OrganizationFilteredPrimaryKeyRelatedField(source="alert_receive_channel", read_only=True)
     routing_regex = serializers.CharField(allow_null=False, required=False, source="filtering_term")
+    escalation_chain_id = OrganizationFilteredPrimaryKeyRelatedField(
+        queryset=EscalationChain.objects,
+        source="escalation_chain",
+        required=False,
+    )
 
     class Meta(ChannelFilterSerializer.Meta):
         read_only_fields = [*ChannelFilterSerializer.Meta.read_only_fields, "integration_id"]
@@ -122,12 +202,18 @@ class ChannelFilterUpdateSerializer(ChannelFilterSerializer):
             )
             self._change_position(order, instance)
 
+        if validated_data.get("notification_backends"):
+            validated_data["notification_backends"] = self._update_notification_backends(
+                validated_data["notification_backends"]
+            )
+
         return super().update(instance, validated_data)
 
 
-class DefaultChannelFilterSerializer(OrderedModelSerializerMixin, serializers.ModelSerializer):
+class DefaultChannelFilterSerializer(BaseChannelFilterSerializer):
     id = serializers.CharField(read_only=True, source="public_primary_key")
     slack = serializers.DictField(required=False)
+    telegram = serializers.DictField(required=False)
     escalation_chain_id = OrganizationFilteredPrimaryKeyRelatedField(
         queryset=EscalationChain.objects,
         source="escalation_chain",
@@ -140,48 +226,14 @@ class DefaultChannelFilterSerializer(OrderedModelSerializerMixin, serializers.Mo
         fields = [
             "id",
             "slack",
+            "telegram",
             "escalation_chain_id",
         ]
 
-    def _validate_slack_channel_id(self, slack_channel_id):
-        SlackChannel = apps.get_model("slack", "SlackChannel")
-
-        if slack_channel_id is not None:
-            slack_channel_id = slack_channel_id.upper()
-            organization = self.context["request"].auth.organization
-            slack_team_identity = organization.slack_team_identity
-            try:
-                slack_team_identity.get_cached_channels().get(slack_id=slack_channel_id)
-            except SlackChannel.DoesNotExist:
-                raise BadRequest(detail="Slack channel does not exist")
-        return slack_channel_id
-
-    def _correct_validated_data(self, validated_data):
-        slack_field = validated_data.pop("slack", {})
-        if "channel_id" in slack_field:
-            validated_data["slack_channel_id"] = self._validate_slack_channel_id(slack_field.get("channel_id"))
-        return validated_data
-
-    def to_representation(self, instance):
-        result = super().to_representation(instance)
-        result["slack"] = {"channel_id": instance.slack_channel_id}
-        return result
-
     def update(self, instance, validated_data):
         validated_data = self._correct_validated_data(validated_data)
-        return super().update(instance, validated_data)
-
-    def validate_escalation_chain_id(self, escalation_chain):
-        if escalation_chain is None:
-            return escalation_chain
-        if self.instance is not None:
-            alert_receive_channel = self.instance.alert_receive_channel
-        else:
-            alert_receive_channel = AlertReceiveChannel.objects.get(
-                public_primary_key=self.initial_data["integration_id"]
+        if validated_data.get("notification_backends"):
+            validated_data["notification_backends"] = self._update_notification_backends(
+                validated_data["notification_backends"]
             )
-
-        if escalation_chain.team != alert_receive_channel.team:
-            raise BadRequest(detail="Escalation chain must be assigned to the same team as the integration")
-
-        return escalation_chain
+        return super().update(instance, validated_data)
