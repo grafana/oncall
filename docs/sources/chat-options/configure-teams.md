@@ -54,11 +54,11 @@ To be notified of Grafana OnCall alerts via MS Teams:
 1. In the **User Info** tab, edit or configure notification steps by clicking **+Add Notification step**
 1. Select **Notify by** in the first dropdown and select **Microsoft Teams** in the second dropdown to receive alert notifications in Teams.
 
-### Configure Escalation Chains with Microsoft Teams notifications
-Once your MS Teams integration is configured you can configure Escalation Chains to automatically send alerts from Grafana OnCall to MS Teams channels.
+### Configure escalation chains to post to Microsoft Teams channels
+Once your MS Teams integration is configured you can add an escalation step at the integration level to automatically send alerts from a specific integration to a channel in MS Teams.
+ 
+To automatically send alerts from an integration to MS Teams channels:
 
-To automatically send alerts to MS Teams channels:
-
-1. Navigate to the **Escalation Chains** tab in Grafana OnCall, select an existing escalation chain or click **+New escalation chain**.
-1. Click the dropdown for **Add escalation step**.
-1. Enable **Post to Microsoft Teams channel** by selecting a connected channel from the dropdown. 
+1. Navigate to the **Integrations** tab in Grafana OnCall, select an existing integration or click **+New integration for receiving alerts**.
+1. From the integrations settings, navigate to the escalation chain panel.
+1. Enable **Post to Microsoft Teams channel** by selecting a channel to connect from the dropdown. 
