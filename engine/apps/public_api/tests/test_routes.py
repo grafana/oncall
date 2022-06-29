@@ -4,6 +4,9 @@ from rest_framework import status
 from rest_framework.test import APIClient
 
 from apps.alerts.models import ChannelFilter
+from apps.base.tests.messaging_backend import TestOnlyBackend
+
+TEST_MESSAGING_BACKEND_FIELD = TestOnlyBackend.backend_id.lower()
 
 
 @pytest.fixture()
@@ -44,6 +47,8 @@ def test_get_route(
         "position": channel_filter.order,
         "is_the_last_route": channel_filter.is_default,
         "slack": {"channel_id": channel_filter.slack_channel_id},
+        "telegram": {"id": None},
+        TEST_MESSAGING_BACKEND_FIELD: {"id": None},
     }
 
     assert response.status_code == status.HTTP_200_OK
@@ -74,6 +79,8 @@ def test_get_routes_list(
                 "position": channel_filter.order,
                 "is_the_last_route": channel_filter.is_default,
                 "slack": {"channel_id": channel_filter.slack_channel_id},
+                "telegram": {"id": None},
+                TEST_MESSAGING_BACKEND_FIELD: {"id": None},
             }
         ],
     }
@@ -108,6 +115,8 @@ def test_get_routes_filter_by_integration_id(
                 "position": channel_filter.order,
                 "is_the_last_route": channel_filter.is_default,
                 "slack": {"channel_id": channel_filter.slack_channel_id},
+                "telegram": {"id": None},
+                TEST_MESSAGING_BACKEND_FIELD: {"id": None},
             }
         ],
     }
@@ -140,6 +149,8 @@ def test_create_route(
         "position": 0,
         "is_the_last_route": False,
         "slack": {"channel_id": None},
+        "telegram": {"id": None},
+        TEST_MESSAGING_BACKEND_FIELD: {"id": None},
     }
 
     assert response.status_code == status.HTTP_201_CREATED
@@ -198,6 +209,8 @@ def test_update_route(
         "position": new_channel_filter.order,
         "is_the_last_route": new_channel_filter.is_default,
         "slack": {"channel_id": new_channel_filter.slack_channel_id},
+        "telegram": {"id": None},
+        TEST_MESSAGING_BACKEND_FIELD: {"id": None},
     }
 
     assert response.status_code == status.HTTP_200_OK
