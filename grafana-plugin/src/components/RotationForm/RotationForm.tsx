@@ -119,15 +119,36 @@ const RotationForm: FC<RotationFormProps> = (props) => {
             /*</HorizontalGroup>*/
           )}
           <HorizontalGroup>
-            <Field className={cx('date-time-picker')} label="Shift start">
+            <Field
+              className={cx('date-time-picker')}
+              label={
+                <Text type="primary" size="small">
+                  Shift start
+                </Text>
+              }
+            >
               <DateTimePicker date={shiftStart} onChange={setShiftStart} />
             </Field>
-            <Field className={cx('date-time-picker')} label="Shift end">
+            <Field
+              className={cx('date-time-picker')}
+              label={
+                <Text type="primary" size="small">
+                  Shift end
+                </Text>
+              }
+            >
               <DateTimePicker date={shiftEnd} onChange={setShiftEnd} />
             </Field>
           </HorizontalGroup>
           <HorizontalGroup>
-            <Field className={cx('date-time-picker')} label="Rotation start">
+            <Field
+              className={cx('date-time-picker')}
+              label={
+                <Text type="primary" size="small">
+                  Rotation start
+                </Text>
+              }
+            >
               <DateTimePicker date={rotationStart} onChange={setRotationStart} />
             </Field>
             <Field

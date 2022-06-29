@@ -65,7 +65,8 @@
 }
 
 .delete-icon{
-    display: none;
+    /*display: none;*/
+    display: block;
 }
 
 .user:hover .delete-icon{

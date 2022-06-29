@@ -25,7 +25,6 @@ export const toPlainArray = (groups) => {
   const items = [];
   groups.forEach((group, groupIndex) => {
     items.push({
-      index: i++,
       key: `group-${groupIndex}`,
       type: 'group',
       data: { name: `Group ${groupIndex + 1}` },
@@ -33,7 +32,6 @@ export const toPlainArray = (groups) => {
 
     groups[groupIndex].forEach((item, itemIndex) => {
       items.push({
-        index: i++,
         key: `item-${groupIndex}-${itemIndex}`,
         type: 'item',
         data: item,
@@ -55,7 +53,6 @@ export const fromPlainArray = (items, createNewGroup = false, deleteEmptyGroups 
           lastGroup = [];
           memo.push(lastGroup);
         }
-
         lastGroup.push(item.data);
       } else {
         memo.push([]);
@@ -65,3 +62,5 @@ export const fromPlainArray = (items, createNewGroup = false, deleteEmptyGroups 
     }, [])
     .filter((group) => !deleteEmptyGroups || group.length);
 };
+
+export const deleteItemFromGroupByIndex = (groups) => {};
