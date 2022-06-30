@@ -12,11 +12,7 @@ weight: 300
 
 Grafana OnCall is a developer-friendly incident response tool that's available to Grafana open source and Grafana Cloud users. The OSS version of Grafana OnCall provides the same reliable on-call management solution along with the flexibility of a self-managed environment. 
 
-This guide describes the necessary installation and configuration steps needed to configure OSS Grafana OnCall. 
-
-The intended audience for this guide includes:
-- Grafana open source admins who are responsible for deploying and configuring Grafana OnCall.
-- Grafana open source users who need to configure SMS and phone notifications using Grafana Cloud.
+This guide describes the necessary installation and configuration steps needed to configure OSS Grafana OnCall.
 
 ## Install Grafana OnCall OSS
 
@@ -24,13 +20,16 @@ There are three Grafana OnCall OSS environments available:
 
 - **Hobby** playground environment for local usage: [README.md](https://github.com/grafana/oncall#getting-started)
 - **Development** environment for contributors: [DEVELOPER.md](https://github.com/grafana/oncall/blob/dev/DEVELOPER.md)
-- **Production** environment for reliable Cloud installation: [Production Environment](#production-environment)
+- **Production** environment for reliable cloud installation using Helm: [Production Environment](#production-environment)
 
-For detailed installation instructions and additional resources, refer to the OSS Grafana OnCall [README.md](https://github.com/grafana/oncall#getting-started)
+## Production Environment
+We suggest using our official helm chart for the reliable production deployment of Grafana OnCall. It will deploy Grafana OnCall engine and celery workers, along with RabbitMQ cluster, Redis Cluster, and the database. 
 
-For more information on production environment installation, refer to the following OSS Grafana OnCall [production environment helm chart](https://github.com/grafana/oncall/helm)
+Check the [helm chart](https://github.com/grafana/oncall/helm) for more details. 
 
-## Configure Slack for Grafana OnCall OSS
+We'll always be happy to provide assistance with production deployment in [our communities](https://github.com/grafana/oncall#join-community)! 
+
+## Slack Setup
 
 The Slack integration for Grafana OnCall leverages Slack API features to provide a customizable and useful integration. Refer to the following steps to configure the Slack integration:
 
@@ -156,7 +155,7 @@ lt --port 8080 -s pretty-turkey-83 --print-requests
 
 1. Configure additional Slack settings.
 
- ## Configure Telegram for Grafana OnCall OSS
+## Telegram Setup
 
 The Telegram integration for Grafana OnCall is designed for collaborative team work and improved incident response. Refer to the following steps to configure the Telegram integration:
 
@@ -168,22 +167,16 @@ The Telegram integration for Grafana OnCall is designed for collaborative team w
 
 1. From the **ChatOps** tab in Grafana OnCall, click **Telegram**.
 
-## Connect Grafana Cloud to Grafana OnCall OSS
-
-Open source Grafana OnCall can be connected to Grafana Cloud to configure a variety of notifications.
+## Grafana OSS-Cloud Setup
 
 The benefits of connecting to Grafana Cloud include:
-- Heartbeat notification
+- Cloud OnCall could monitor OSS OnCall uptime using heartbeat
 - SMS for user notifications
 - Phone calls for user notifications.
 
-To connect to Grafana Cloud, refer to the **Cloud** page in your OSS Grafana OnCall instance. 
+To connect to Grafana Cloud, refer to the **Cloud** page in your OSS Grafana OnCall instance.
 
-
->**NOTE:** As an alternative option to Grafana Cloud, phone call and SMS notifications can be configured using Twilio.
-
-
-## Connect Twilio for Grafana OnCall OSS 
+## Twilio Setup
 
 Grafana OnCall supports Twilio SMS and phone call notifications delivery. If you prefer to configure SMS and phone call notifications using Twilio, complete the following steps:
 
