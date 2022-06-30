@@ -28,7 +28,7 @@ There are three Grafana OnCall OSS environments available:
 
 For detailed installation instructions and additional resources, refer to the OSS Grafana OnCall [README.md](https://github.com/grafana/oncall#getting-started)
 
-For more information on production environment installation, refer to the following OSS Grafana OnCall [production environment helm chart](https://github.com/grafana/oncall/tree/main/helm)
+For more information on production environment installation, refer to the following OSS Grafana OnCall [production environment helm chart](https://github.com/grafana/oncall/helm)
 
 ## Configure Slack for Grafana OnCall OSS
 
