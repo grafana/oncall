@@ -32,5 +32,5 @@ class AlertWebTemplater(AlertTemplater):
 
     def _slack_format_for_web(self, data):
         sf = self.slack_formatter
-        sf.hyperlink_mention_format = "[title](url)"
+        sf.hyperlink_mention_format = "[{title}]({url})"
         return sf.format(data)

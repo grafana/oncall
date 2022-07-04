@@ -15,12 +15,13 @@ from apps.api.permissions import IsAdmin, MethodPermission
 from apps.auth_token.auth import PluginAuthentication
 from apps.base.utils import live_settings
 from apps.slack.scenarios.alertgroup_appearance import STEPS_ROUTING as ALERTGROUP_APPEARANCE_ROUTING
+from apps.slack.scenarios.ancillary import STEPS_ROUTING as ANCILLARY_ROUTING
 from apps.slack.scenarios.distribute_alerts import STEPS_ROUTING as DISTRIBUTION_STEPS_ROUTING
+from apps.slack.scenarios.manual_incident import STEPS_ROUTING as MANUAL_INCIDENT_ROUTING
 
 # Importing routes from scenarios
 from apps.slack.scenarios.onboarding import STEPS_ROUTING as ONBOARDING_STEPS_ROUTING
 from apps.slack.scenarios.profile_update import STEPS_ROUTING as PROFILE_UPDATE_ROUTING
-from apps.slack.scenarios.public_menu import STEPS_ROUTING as PUBLIC_MENU_ROUTING
 from apps.slack.scenarios.resolution_note import STEPS_ROUTING as RESOLUTION_NOTE_ROUTING
 from apps.slack.scenarios.scenario_step import (
     EVENT_SUBTYPE_BOT_MESSAGE,
@@ -57,7 +58,7 @@ from .models import SlackActionRecord, SlackMessage, SlackTeamIdentity, SlackUse
 SCENARIOS_ROUTES = []  # Add all other routes here
 SCENARIOS_ROUTES.extend(ONBOARDING_STEPS_ROUTING)
 SCENARIOS_ROUTES.extend(DISTRIBUTION_STEPS_ROUTING)
-SCENARIOS_ROUTES.extend(PUBLIC_MENU_ROUTING)
+SCENARIOS_ROUTES.extend(ANCILLARY_ROUTING)
 SCENARIOS_ROUTES.extend(SCHEDULES_ROUTING)
 SCENARIOS_ROUTES.extend(SLACK_CHANNEL_INTEGRATION_ROUTING)
 SCENARIOS_ROUTES.extend(ALERTGROUP_APPEARANCE_ROUTING)
@@ -65,6 +66,7 @@ SCENARIOS_ROUTES.extend(RESOLUTION_NOTE_ROUTING)
 SCENARIOS_ROUTES.extend(SLACK_USERGROUP_UPDATE_ROUTING)
 SCENARIOS_ROUTES.extend(CHANNEL_ROUTING)
 SCENARIOS_ROUTES.extend(PROFILE_UPDATE_ROUTING)
+SCENARIOS_ROUTES.extend(MANUAL_INCIDENT_ROUTING)
 
 logger = logging.getLogger(__name__)
 

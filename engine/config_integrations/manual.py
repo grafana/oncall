@@ -12,37 +12,23 @@ is_demo_alert_enabled = False
 description = None
 
 # Default templates
-slack_title = """{% set metadata = payload.view.private_metadata %}
-{%-if "message" in metadata -%}
-{% set title = "Message from @" + metadata.author_username %}
-{%- else -%}
-{% set title = payload.view.state["values"].TITLE_INPUT.FinishCreateIncidentViewStep.value %}
-{%- endif -%}
-*<{{ grafana_oncall_link }}|#{{ grafana_oncall_incident_id }} {{ title }}>* via {{ integration_name }}
+slack_title = """{{ payload.oncall.title }}
+ *<{{ grafana_oncall_link }}|#{{ grafana_oncall_incident_id }} {{ title }}>* via {{ integration_name }}
 {% if source_link %}
  (*<{{ source_link }}|source>*)
-{%- endif %}
+{% endif %}
 """
 
-slack_message = """{% set metadata = payload.view.private_metadata %}
-{% if "message" in metadata -%}
-{{ metadata.message.text }}
-
-<https://{{ payload.team.domain }}.slack.com/archives/{{ metadata.channel_id }}/{{ metadata.message.ts }} | Original message... >
-{%- else -%}
-{{ payload.view.state["values"].MESSAGE_INPUT.FinishCreateIncidentViewStep.value }}
-
-created by {{ payload.user.name }}
-{%- endif -%}"""
+slack_message = """{{ payload.oncall.message }}
+{% if source_link %}
+<{{ source_link }} | Original message... >
+{%- endif %}
+created by {{ payload.oncall.author_username }}
+"""
 
 slack_image_url = None
 
-web_title = """{% set metadata = payload.view.private_metadata %}
-{%-if "message" in metadata -%}
-{{ "Message from @" + metadata.author_username }}
-{%- else -%}
-{{ payload.view.state["values"].TITLE_INPUT.FinishCreateIncidentViewStep.value }}
-{%- endif -%}"""
+web_title = "{{ payload.oncall.title }}"
 
 web_message = slack_message
 
@@ -62,11 +48,7 @@ telegram_message = slack_message
 
 telegram_image_url = slack_image_url
 
-source_link = """\
-{% set metadata = payload.view.private_metadata %}
-{%- if "message" in metadata %}
-https://{{ payload.team.domain }}.slack.com/archives/{{ payload.channel.id }}/{{ payload.message.ts }}
-{% endif -%}"""
+source_link = "{{ payload.oncall.permalink }}"
 
 grouping_id = """{{ payload }}"""
 
