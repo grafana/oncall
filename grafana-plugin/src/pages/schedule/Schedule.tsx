@@ -18,6 +18,7 @@ import UserTimezoneSelect from 'components/UserTimezoneSelect/UserTimezoneSelect
 import UsersTimezones from 'components/UsersTimezones/UsersTimezones';
 import { Timezone } from 'models/timezone/timezone.types';
 import { User } from 'models/user/user.types';
+import { WithStoreProps } from 'state/types';
 import { withMobXProviderContext } from 'state/withStore';
 
 import { getRandomUsers } from './Schedule.helpers';
@@ -26,7 +27,7 @@ import styles from './Schedule.module.css';
 
 const cx = cn.bind(styles);
 
-interface SchedulePageProps extends AppRootProps {}
+interface SchedulePageProps extends AppRootProps, WithStoreProps {}
 
 interface SchedulePageState {
   startMoment: dayjs.Dayjs;
@@ -46,7 +47,11 @@ class SchedulePage extends React.Component<SchedulePageProps, SchedulePageState>
     tz: 'Europe/Moscow',
   };
 
-  async componentDidMount() {}
+  async componentDidMount() {
+    const { store } = this.props;
+
+    store.userStore.updateItems();
+  }
 
   componentDidUpdate() {}
 

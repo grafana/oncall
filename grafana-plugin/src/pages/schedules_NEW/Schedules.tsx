@@ -7,19 +7,19 @@ import { observer } from 'mobx-react';
 
 import Avatar from 'components/Avatar/Avatar';
 import PluginLink from 'components/PluginLink/PluginLink';
-import Rotation from 'components/Rotation/Rotation';
 import { getColor, getLabel } from 'components/Rotations/Rotations.helpers';
 import ScheduleCounter from 'components/ScheduleCounter/ScheduleCounter';
-import ScheduleTimeline from 'components/ScheduleTimeline/ScheduleTimeline';
 import SchedulesFilters from 'components/SchedulesFilters_NEW/SchedulesFilters';
 import { SchedulesFiltersType } from 'components/SchedulesFilters_NEW/SchedulesFilters.types';
 import Table from 'components/Table/Table';
 import Text from 'components/Text/Text';
 import TimelineMarks from 'components/TimelineMarks/TimelineMarks';
 import GSelect from 'containers/GSelect/GSelect';
+import Rotation from 'containers/Rotation/Rotation';
 import { Schedule } from 'models/schedule/schedule.types';
 import { PRIVATE_CHANNEL_NAME } from 'models/slack_channel/slack_channel.config';
 import { getTzOffsetString } from 'models/timezone/timezone.helpers';
+import { WithStoreProps } from 'state/types';
 import { withMobXProviderContext } from 'state/withStore';
 
 import { getRandomSchedules, getRandomTimeslots } from './Schedules.helpers';
@@ -28,7 +28,7 @@ import styles from './Schedules.module.css';
 
 const cx = cn.bind(styles);
 
-interface SchedulesPageProps {}
+interface SchedulesPageProps extends WithStoreProps {}
 
 interface SchedulesPageState {
   startMoment: dayjs.Dayjs;
@@ -43,7 +43,11 @@ class SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSta
     filters: { searchTerm: '', status: 'all', type: 'all' },
   };
 
-  async componentDidMount() {}
+  async componentDidMount() {
+    const { store } = this.props;
+
+    store.userStore.updateItems();
+  }
 
   componentDidUpdate() {}
 
@@ -127,7 +131,7 @@ class SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSta
       <div className={cx('schedule')}>
         <TimelineMarks startMoment={startMoment} />
         <div className={cx('rotations')}>
-          <ScheduleTimeline layerIndex={1} rotationIndex={2} slots={getRandomTimeslots()} />
+          <Rotation id={`${1}-${2}`} layerIndex={1} rotationIndex={2} slots={getRandomTimeslots()} />
         </div>
       </div>
     );

@@ -16,7 +16,7 @@ export const getRandomTimeslots = (count = 6, layerIndex, rotationIndex) => {
       start,
       end,
       inactive,
-      users: [getRandomUser(), getRandomUser()],
+      users: [getRandomUser() /*, getRandomUser()*/],
       color: getColor(layerIndex, rotationIndex),
     });
   }

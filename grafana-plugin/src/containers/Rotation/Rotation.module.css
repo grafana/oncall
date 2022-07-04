@@ -27,14 +27,16 @@
 
 .slots {
     display: flex;
-    gap: 4px;
-    padding: 0 2px;
 }
 
-.users{
+.stack {
     display: flex;
     flex-direction: column;
     gap:1px;
+}
+
+.stack > div {
+    margin: 0 2px;
 }
 
 .current-time {

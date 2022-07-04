@@ -1,11 +1,14 @@
-import { omit } from 'lodash-es';
+import dayjs from 'dayjs';
+import { omit, reject } from 'lodash-es';
 import { action, observable, toJS } from 'mobx';
 
 import BaseStore from 'models/base_store';
 import { makeRequest } from 'network';
 import { RootStore } from 'state';
 
-import { Schedule, ScheduleEvent } from './schedule.types';
+import { Rotation, Schedule, ScheduleEvent } from './schedule.types';
+
+const DEFAULT_FORMAT = 'YYYY-MM-DDTHH:mm:ss';
 
 export class ScheduleStore extends BaseStore {
   @observable
@@ -13,6 +16,9 @@ export class ScheduleStore extends BaseStore {
 
   @observable.shallow
   items: { [id: string]: Schedule } = {};
+
+  @observable.shallow
+  rotations: { [id: string]: Rotation } = {};
 
   @observable
   scheduleToScheduleEvents: {
@@ -106,5 +112,58 @@ export class ScheduleStore extends BaseStore {
     await makeRequest(`/schedules/${scheduleId}/export_token/`, {
       method: 'DELETE',
     });
+  }
+
+  async updateRotation(rotationId: Rotation['id'], from?: string) {
+    const response = await new Promise((resolve, reject) => {
+      function getUsers() {
+        const rnd = Math.random();
+
+        if (rnd > 0.66) {
+          return [];
+        }
+
+        const users = [
+          'UCXTPJYKQHFW6',
+          'UFYP8IJV9BZDE',
+          'U122EFECQFN9Y',
+          'UZ2LWBDAZE962',
+          'U87ZI7PRWF7K1',
+          'U2VY9ZP5A1XKL',
+          'UTA6SS7RL3HC7',
+          'UAYAYSDVG5MYH',
+        ];
+
+        if (rnd > 0.33) {
+          return [users[Math.floor(Math.random() * users.length)]];
+        }
+
+        return [users[Math.floor(Math.random() * users.length)], users[Math.floor(Math.random() * users.length)]];
+      }
+
+      setTimeout(() => {
+        if (!from) {
+          from = dayjs().startOf('week').format('YYYY-MM-DDTHH:mm:ss');
+        }
+
+        const startMoment = dayjs(`${from}.000Z`).utc();
+
+        const shifts = [];
+        for (let i = 0; i < 14; i++) {
+          shifts.push({
+            start: dayjs(startMoment).add(3 * i, 'hour'),
+            duration: (Math.floor(Math.random() * 6) + 8) * 60 * 60,
+            users: getUsers(),
+          });
+        }
+
+        resolve({ id: rotationId, shifts });
+      }, 500);
+    });
+
+    this.rotations = {
+      ...this.rotations,
+      [rotationId]: response as Rotation,
+    };
   }
 }

@@ -54,19 +54,15 @@
   text-align: center;
   font-size: 14px;
   font-weight: 500;
+  flex-shrink: 0;
 }
 
 .gap-between-shifts {
   width: 520px;
-  height: 32px;
-  padding: 4px 4px 24px 4px;
+  padding: 5px 5px 5px 24px;
   background-color: rgba(209, 14, 92, 0.15);
   border: 1px solid rgba(209, 14, 92, 0.15);
   border-radius: 50px;
   color: #ff5286;
   font-weight: 400;
-}
-
-.gap-between-shifts-icon {
-  margin-left: 24px;
 }

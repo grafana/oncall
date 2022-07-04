@@ -2,43 +2,48 @@ import React, { FC } from 'react';
 
 import { HorizontalGroup, VerticalGroup, Icon, Tooltip, VerticalGroup } from '@grafana/ui';
 import cn from 'classnames/bind';
+import { observer } from 'mobx-react';
 
 import Line from 'components/ScheduleUserDetails/img/line.svg';
 import Text from 'components/Text/Text';
+import { User } from 'models/user/user.types';
+import { useStore } from 'state/useStore';
 
 import styles from './ScheduleSlot.module.css';
 
 interface ScheduleSlotProps {
   color: string;
-  user: string;
+  userPk: User['pk'];
   label: string;
+  inactive: boolean;
+  width: number;
 }
 
 const cx = cn.bind(styles);
 
-const ScheduleSlot: FC<ScheduleSlotProps> = (props) => {
-  const { color, user, inactive, label } = props;
+const ScheduleSlot: FC<ScheduleSlotProps> = observer((props) => {
+  const { color, userPk, inactive, label } = props;
 
   const left = Math.random() * 50;
   const right = 100 - (left + 20 + Math.random() * 30);
 
-  const width = Math.random() * 150 + 100;
+  const store = useStore();
 
-  let title = user;
-  if (width < 150) {
-    title = title
-      .split(' ')
-      .map((word) => word.charAt(0).toUpperCase())
-      .join('');
-  }
+  const storeUser = store.userStore.items[userPk];
+
+  let title = storeUser
+    ? storeUser.username
+        .split(' ')
+        .map((word) => word.charAt(0).toUpperCase())
+        .join('')
+    : null;
 
   return (
-    <Tooltip content={<ScheduleSlotDetails user={user} />}>
+    <Tooltip content={<ScheduleSlotDetails user={storeUser} />}>
       <div
         className={cx('root', { root__inactive: inactive })}
         style={{
           backgroundColor: color,
-          width: `${width}px`,
         }}
       >
         <div style={{ left: `${left}%`, right: `${right}%` }} className={cx('striped')} />
@@ -51,13 +56,13 @@ const ScheduleSlot: FC<ScheduleSlotProps> = (props) => {
       </div>
     </Tooltip>
   );
-};
+});
 
 export default ScheduleSlot;
 
 interface ScheduleSlotDetailsProps {}
 
-const ScheduleSlotDetails = (props) => {
+const ScheduleSlotDetails = (props: ScheduleSlotDetailsProps) => {
   const { user, currentUser } = props;
 
   const userStatus = 'success';
@@ -72,7 +77,7 @@ const ScheduleSlotDetails = (props) => {
                 [`details-user-status__type_${userStatus}`]: true,
               })}
             />
-            <Text type="secondary">{user}</Text>
+            <Text type="secondary">{user?.username}</Text>
           </HorizontalGroup>
           <HorizontalGroup>
             <VerticalGroup spacing="none">
@@ -101,4 +106,10 @@ const ScheduleSlotDetails = (props) => {
       </HorizontalGroup>
     </div>
   );
+};
+
+interface ScheduleGapProps {}
+
+export const ScheduleGap = (props: ScheduleGapProps) => {
+  return <div className={cx('root', 'root__type_gap')} style={{}} />;
 };

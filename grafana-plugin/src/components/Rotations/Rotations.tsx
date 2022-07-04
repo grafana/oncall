@@ -5,10 +5,9 @@ import cn from 'classnames/bind';
 import * as dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc';
 
-import Rotation from 'components/Rotation/Rotation';
 import RotationForm from 'components/RotationForm/RotationForm';
-import ScheduleTimeline from 'components/ScheduleTimeline/ScheduleTimeline';
 import TimelineMarks from 'components/TimelineMarks/TimelineMarks';
+import Rotation from 'containers/Rotation/Rotation';
 
 import { getColor, getLabel, getRandomTimeslots, getRandomUser } from './Rotations.helpers';
 
@@ -79,7 +78,8 @@ class Rotations extends Component<RotationsProps, RotationsState> {
                     <TimelineMarks startMoment={startMoment} />
                     <div className={cx('rotations')}>
                       {rotations.map((rotation, rotationIndex) => (
-                        <ScheduleTimeline
+                        <Rotation
+                          id={`${layerIndex}-${rotationIndex}`}
                           layerIndex={layerIndex}
                           rotationIndex={rotationIndex}
                           slots={getRandomTimeslots(6, layerIndex, rotationIndex)}

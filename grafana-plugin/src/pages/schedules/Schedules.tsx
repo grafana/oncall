@@ -479,7 +479,7 @@ const Event = ({ event }: EventProps) => {
   return (
     <HorizontalGroup align="flex-start" spacing="md">
       {!event.is_gap ? (
-        <>
+        <HorizontalGroup align="flex-start">
           <div className={cx('priority-icon')}>
             <Text type="secondary">{`L${event.priority_level || '0'}`}</Text>
           </div>
@@ -504,10 +504,11 @@ const Event = ({ event }: EventProps) => {
               <Text type="secondary"> {dates}</Text>
             </div>
           </VerticalGroup>
-        </>
+        </HorizontalGroup>
       ) : (
         <div className={cx('gap-between-shifts')}>
-          <Icon name="exclamation-triangle" className={cx('gap-between-shifts-icon')} /> Gap! Nobody On-Call...
+          <Icon size="sm" name="exclamation-triangle" className={cx('gap-between-shifts-icon')} /> Gap! Nobody
+          On-Call...
         </div>
       )}
     </HorizontalGroup>

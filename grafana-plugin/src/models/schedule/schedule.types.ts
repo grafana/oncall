@@ -43,3 +43,14 @@ export interface CreateScheduleExportTokenResponse {
   created_at: string;
   export_url: string;
 }
+
+export interface Shift {
+  start: string;
+  duration: number; // in seconds
+  users: Array<User['pk']>;
+}
+
+export interface Rotation {
+  id: string;
+  shifts: Shift[];
+}

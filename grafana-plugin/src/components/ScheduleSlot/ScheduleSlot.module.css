@@ -7,6 +7,11 @@
     gap: 4px;
 }
 
+.root__type_gap {
+    background: rgba(209, 14, 92, 0.2);
+    border: 1px dashed #FF5286;
+}
+
 .root__inactive {
     opacity: 0.5;
 }
@@ -26,7 +31,7 @@
     padding: 2px 4px;
     margin: 4px;
     line-height: 16px;
-     z-index: 1;
+    z-index: 1;
 }
 
 .striped {
@@ -45,16 +50,16 @@
     );
 }
 
-.details{
+.details {
     width: auto;
 }
 
-.details-user-status{
+.details-user-status {
     width: 10px;
     height: 10px;
     border-radius: 50%;
 }
 
-.details-user-status__type_success{
+.details-user-status__type_success {
     background-color: var(--success-text-color);
 }
