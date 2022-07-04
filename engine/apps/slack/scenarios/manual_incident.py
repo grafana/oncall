@@ -43,6 +43,7 @@ class StartCreateIncidentFromMessage(scenario_step.ScenarioStep):
             },
             "input_id_prefix": input_id_prefix,
             "with_title_and_message_inputs": False,
+            "submit_routing_uid": FinishCreateIncidentFromMessage.routing_uid(),
         }
 
         blocks = _get_manual_incident_initial_form_fields(
@@ -153,6 +154,7 @@ class StartCreateIncidentFromSlashCommand(scenario_step.ScenarioStep):
             "channel_id": channel_id,
             "input_id_prefix": input_id_prefix,
             "with_title_and_message_inputs": True,
+            "submit_routing_uid": FinishCreateIncidentFromSlashCommand.routing_uid(),
         }
 
         blocks = _get_manual_incident_initial_form_fields(
@@ -245,6 +247,7 @@ class OnOrgChange(scenario_step.ScenarioStep):
     def process_scenario(self, slack_user_identity, slack_team_identity, payload, action=None):
         private_metadata = json.loads(payload["view"]["private_metadata"])
         with_title_and_message_inputs = private_metadata.get("with_title_and_message_inputs", False)
+        submit_routing_uid = private_metadata.get("submit_routing_uid")
         old_input_id_prefix, new_input_id_prefix, new_private_metadata = _get_and_change_input_id_prefix_from_metadata(
             private_metadata
         )
@@ -274,9 +277,7 @@ class OnOrgChange(scenario_step.ScenarioStep):
         blocks = [organization_select, team_select, route_select]
         if with_title_and_message_inputs:
             blocks.extend([_get_title_input(payload), _get_message_input(payload)])
-        view = _get_manual_incident_form_view(
-            FinishCreateIncidentFromMessage.routing_uid(), blocks, json.dumps(new_private_metadata)
-        )
+        view = _get_manual_incident_form_view(submit_routing_uid, blocks, json.dumps(new_private_metadata))
         self._slack_client.api_call(
             "views.update",
             trigger_id=payload["trigger_id"],
@@ -289,6 +290,7 @@ class OnTeamChange(scenario_step.ScenarioStep):
     def process_scenario(self, slack_user_identity, slack_team_identity, payload, action=None):
         private_metadata = json.loads(payload["view"]["private_metadata"])
         with_title_and_message_inputs = private_metadata.get("with_title_and_message_inputs", False)
+        submit_routing_uid = private_metadata.get("submit_routing_uid")
         old_input_id_prefix, new_input_id_prefix, new_private_metadata = _get_and_change_input_id_prefix_from_metadata(
             private_metadata
         )
@@ -315,9 +317,7 @@ class OnTeamChange(scenario_step.ScenarioStep):
         blocks = [organization_select, team_select, route_select]
         if with_title_and_message_inputs:
             blocks.extend([_get_title_input(payload), _get_message_input(payload)])
-        view = _get_manual_incident_form_view(
-            FinishCreateIncidentFromMessage.routing_uid(), blocks, json.dumps(new_private_metadata)
-        )
+        view = _get_manual_incident_form_view(submit_routing_uid, blocks, json.dumps(new_private_metadata))
         self._slack_client.api_call(
             "views.update",
             trigger_id=payload["trigger_id"],

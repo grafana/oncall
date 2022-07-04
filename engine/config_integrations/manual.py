@@ -20,9 +20,7 @@ slack_title = """{{ payload.oncall.title }}
 """
 
 slack_message = """{{ payload.oncall.message }}
-{% if source_link %}
-<{{ source_link }} | Original message... >
-{%- endif %}
+
 created by {{ payload.oncall.author_username }}
 """
 
@@ -30,7 +28,12 @@ slack_image_url = None
 
 web_title = "{{ payload.oncall.title }}"
 
-web_message = slack_message
+web_message = """{{ payload.oncall.message }}
+{% if source_link %}
+<{{ source_link }} | Link to the original message >
+{% endif %}
+created by {{ payload.oncall.author_username }}
+"""
 
 web_image_url = slack_image_url
 
