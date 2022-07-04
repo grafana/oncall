@@ -196,7 +196,7 @@ class CustomOnCallShiftSerializer(EagerLoadingMixin, serializers.ModelSerializer
         return result
 
     def _validate_frequency_and_week_start(self, event_type, frequency, week_start):
-        if event_type != CustomOnCallShift.TYPE_SINGLE_EVENT:
+        if event_type not in (CustomOnCallShift.TYPE_SINGLE_EVENT, CustomOnCallShift.TYPE_OVERRIDE):
             if frequency is None:
                 raise BadRequest(detail="Field 'frequency' is required for this on-call shift type")
             elif frequency == CustomOnCallShift.FREQUENCY_WEEKLY and week_start is None:
@@ -266,6 +266,18 @@ class CustomOnCallShiftSerializer(EagerLoadingMixin, serializers.ModelSerializer
             ],
             CustomOnCallShift.TYPE_RECURRENT_EVENT: ["rolling_users", "start_rotation_from_user_index"],
             CustomOnCallShift.TYPE_ROLLING_USERS_EVENT: ["users"],
+            CustomOnCallShift.TYPE_OVERRIDE: [
+                "level",
+                "frequency",
+                "interval",
+                "until",
+                "by_day",
+                "by_month",
+                "by_monthday",
+                "week_start",
+                "rolling_users",
+                "start_rotation_from_user_index",
+            ],
         }
         for field in fields_to_remove_map[event_type]:
             result.pop(field, None)
@@ -289,9 +301,24 @@ class CustomOnCallShiftSerializer(EagerLoadingMixin, serializers.ModelSerializer
             ],
             CustomOnCallShift.TYPE_RECURRENT_EVENT: ["rolling_users", "start_rotation_from_user_index"],
             CustomOnCallShift.TYPE_ROLLING_USERS_EVENT: ["users"],
+            CustomOnCallShift.TYPE_OVERRIDE: [
+                "priority_level",
+                "frequency",
+                "interval",
+                "by_day",
+                "by_month",
+                "by_monthday",
+                "rolling_users",
+                "start_rotation_from_user_index",
+            ],
         }
         for field in fields_to_update_map[event_type]:
-            validated_data[field] = None if field != "users" else []
+            value = None
+            if field == "users":
+                value = []
+            elif field == "priority_level":
+                value = 0
+            validated_data[field] = value
 
         validated_data_list_fields = ["by_day", "by_month", "by_monthday", "rolling_users"]
 

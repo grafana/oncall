@@ -6,7 +6,13 @@ from django.utils import timezone
 from rest_framework import status
 from rest_framework.test import APIClient
 
-from apps.schedules.models import CustomOnCallShift, OnCallSchedule, OnCallScheduleCalendar, OnCallScheduleICal
+from apps.schedules.models import (
+    CustomOnCallShift,
+    OnCallSchedule,
+    OnCallScheduleCalendar,
+    OnCallScheduleICal,
+    OnCallScheduleWeb,
+)
 
 ICAL_URL = "https://calendar.google.com/calendar/ical/amixr.io_37gttuakhrtr75ano72p69rt78%40group.calendar.google.com/private-1d00a680ba5be7426c3eb3ef1616e26d/basic.ics"
 
@@ -129,6 +135,130 @@ def test_update_calendar_schedule(
             "user_group_id": None,
         },
         "ical_url_overrides": None,
+    }
+
+    assert response.status_code == status.HTTP_200_OK
+    schedule.refresh_from_db()
+    assert schedule.name == data["name"]
+    assert schedule.time_zone == data["time_zone"]
+    assert response.json() == result
+
+
+@pytest.mark.django_db
+def test_get_web_schedule(
+    make_organization_and_user_with_token,
+    make_schedule,
+):
+    organization, user, token = make_organization_and_user_with_token()
+    client = APIClient()
+
+    slack_channel_id = "SLACKCHANNELID"
+
+    schedule = make_schedule(
+        organization,
+        schedule_class=OnCallScheduleWeb,
+        channel=slack_channel_id,
+    )
+
+    url = reverse("api-public:schedules-detail", kwargs={"pk": schedule.public_primary_key})
+
+    response = client.get(url, format="json", HTTP_AUTHORIZATION=f"{token}")
+
+    result = {
+        "id": schedule.public_primary_key,
+        "team_id": None,
+        "name": schedule.name,
+        "type": "web",
+        "time_zone": "UTC",
+        "on_call_now": [],
+        "shifts": [],
+        "slack": {
+            "channel_id": "SLACKCHANNELID",
+            "user_group_id": None,
+        },
+    }
+
+    assert response.status_code == status.HTTP_200_OK
+    assert response.json() == result
+
+
+@pytest.mark.django_db
+def test_create_web_schedule(make_organization_and_user_with_token):
+
+    organization, user, token = make_organization_and_user_with_token()
+    client = APIClient()
+
+    url = reverse("api-public:schedules-list")
+
+    data = {
+        "team_id": None,
+        "name": "schedule test name",
+        "time_zone": "Europe/Moscow",
+        "type": "web",
+    }
+
+    response = client.post(url, data=data, format="json", HTTP_AUTHORIZATION=f"{token}")
+    schedule = OnCallSchedule.objects.get(public_primary_key=response.data["id"])
+
+    result = {
+        "id": schedule.public_primary_key,
+        "team_id": None,
+        "name": schedule.name,
+        "type": "web",
+        "time_zone": "Europe/Moscow",
+        "on_call_now": [],
+        "shifts": [],
+        "slack": {
+            "channel_id": None,
+            "user_group_id": None,
+        },
+    }
+
+    assert response.status_code == status.HTTP_201_CREATED
+    assert response.json() == result
+
+
+@pytest.mark.django_db
+def test_update_web_schedule(
+    make_organization_and_user_with_token,
+    make_schedule,
+):
+
+    organization, user, token = make_organization_and_user_with_token()
+    client = APIClient()
+
+    slack_channel_id = "SLACKCHANNELID"
+
+    schedule = make_schedule(
+        organization,
+        schedule_class=OnCallScheduleWeb,
+        channel=slack_channel_id,
+    )
+
+    url = reverse("api-public:schedules-detail", kwargs={"pk": schedule.public_primary_key})
+
+    data = {
+        "name": "RENAMED",
+        "time_zone": "Europe/Moscow",
+    }
+
+    assert schedule.name != data["name"]
+    assert schedule.time_zone != data["time_zone"]
+
+    response = client.put(url, data=data, format="json", HTTP_AUTHORIZATION=f"{token}")
+
+    result = {
+        "id": schedule.public_primary_key,
+        "team_id": None,
+        "name": data["name"],
+        "type": "web",
+        "time_zone": data["time_zone"],
+        "on_call_now": [],
+        "shifts": [],
+        "slack": {
+            "channel_id": "SLACKCHANNELID",
+            "user_group_id": None,
+        },
     }
 
     assert response.status_code == status.HTTP_200_OK
