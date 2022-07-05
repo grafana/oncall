@@ -92,6 +92,9 @@ class UserSerializer(DynamicFieldsModelSerializer, EagerLoadingMixin):
         for day in working_hours:
             periods = working_hours[day]
 
+            if not isinstance(periods, list):
+                raise serializers.ValidationError("periods must be list")
+
             for period in periods:
                 if not isinstance(period, dict):
                     raise serializers.ValidationError("period must be dict")
@@ -160,6 +163,8 @@ class UserHiddenFieldsSerializer(UserSerializer):
         "current_team",
         "username",
         "avatar",
+        "timezone",
+        "working_hours",
         "notification_chain_verbal",
         "permissions",
     ]
