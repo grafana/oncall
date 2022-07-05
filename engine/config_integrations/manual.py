@@ -12,8 +12,8 @@ is_demo_alert_enabled = False
 description = None
 
 # Default templates
-slack_title = """{{ payload.oncall.title }}
- *<{{ grafana_oncall_link }}|#{{ grafana_oncall_incident_id }} {{ title }}>* via {{ integration_name }}
+slack_title = """\
+*<{{ grafana_oncall_link }}|#{{ grafana_oncall_incident_id }} {{ payload.oncall.title }}>* via {{ integration_name }}
 {% if source_link %}
  (*<{{ source_link }}|source>*)
 {% endif %}
