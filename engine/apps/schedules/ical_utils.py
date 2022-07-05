@@ -75,12 +75,15 @@ ICAL_DESCRIPTION = "DESCRIPTION"
 ICAL_ATTENDEE = "ATTENDEE"
 ICAL_UID = "UID"
 RE_PRIORITY = re.compile(r"^\[L(\d)\]")
+RE_EVENT_UID = re.compile(r"amixr-([\w\d-]+)-U(\d+)-E(\d+)-S(\d+)")
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
 
 
 # used for display schedule events on web
-def list_of_oncall_shifts_from_ical(schedule, date, user_timezone="UTC", with_empty_shifts=False, with_gaps=False):
+def list_of_oncall_shifts_from_ical(
+    schedule, date, user_timezone="UTC", with_empty_shifts=False, with_gaps=False, days=1
+):
     """
     Parse the ical file and return list of events with users
     This function is used in serializer for api schedules/events/ endpoint
@@ -106,7 +109,7 @@ def list_of_oncall_shifts_from_ical(schedule, date, user_timezone="UTC", with_em
     user_timezone_offset = timezone.datetime.now().astimezone(pytz.timezone(user_timezone)).utcoffset()
     datetime_min = timezone.datetime.combine(date, datetime.time.min) + timezone.timedelta(milliseconds=1)
     datetime_start = (datetime_min - user_timezone_offset).astimezone(pytz.UTC)
-    datetime_end = datetime_start + timezone.timedelta(hours=23, minutes=59, seconds=59)
+    datetime_end = datetime_start + timezone.timedelta(days=days - 1, hours=23, minutes=59, seconds=59)
 
     result_datetime = []
     result_date = []
@@ -137,6 +140,7 @@ def list_of_oncall_shifts_from_ical(schedule, date, user_timezone="UTC", with_em
                     "source": None,
                     "calendar_type": None,
                     "is_gap": True,
+                    "shift_uuid": None,
                 }
             )
     result = sorted(result_datetime, key=lambda dt: dt["start"]) + result_date
@@ -150,7 +154,7 @@ def get_shifts_dict(calendar, calendar_type, schedule, datetime_start, datetime_
     result_date = []
     for event in events:
         priority = parse_priority_from_string(event.get(ICAL_SUMMARY, "[L0]"))
-        source = parse_source_from_string(event.get(ICAL_UID))
+        uuid, source = parse_event_uid(event.get(ICAL_UID))
         users = get_users_from_ical_event(event, schedule.organization)
         # Define on-call shift out of ical event that has the actual user
         if len(users) > 0 or with_empty_shifts:
@@ -166,6 +170,7 @@ def get_shifts_dict(calendar, calendar_type, schedule, datetime_start, datetime_
                             "priority": priority,
                             "source": source,
                             "calendar_type": calendar_type,
+                            "shift_uuid": uuid,
                         }
                     )
             else:
@@ -180,13 +185,15 @@ def get_shifts_dict(calendar, calendar_type, schedule, datetime_start, datetime_
                         "priority": priority,
                         "source": source,
                         "calendar_type": calendar_type,
+                        "shift_uuid": uuid,
                     }
                 )
     return result_datetime, result_date
 
 
 EmptyShift = namedtuple(
-    "EmptyShift", ["start", "end", "summary", "description", "attendee", "all_day", "calendar_type", "calendar_tz"]
+    "EmptyShift",
+    ["start", "end", "summary", "description", "attendee", "all_day", "calendar_type", "calendar_tz", "shift_uuid"],
 )
 
 
@@ -230,6 +237,7 @@ def list_of_empty_shifts_in_schedule(schedule, start_date, end_date):
                     summary = event.get(ICAL_SUMMARY, "")
                     description = event.get(ICAL_DESCRIPTION, "")
                     attendee = event.get(ICAL_ATTENDEE, "")
+                    uuid, _ = parse_event_uid(event.get(ICAL_UID))
 
                     event_hash = hash(f"{event[ICAL_UID]}{summary}{description}{attendee}")
                     if event_hash in checked_events:
@@ -257,6 +265,7 @@ def list_of_empty_shifts_in_schedule(schedule, start_date, end_date):
                             all_day=all_day,
                             calendar_type=calendar_type,
                             calendar_tz=calendar_tz,
+                            shift_uuid=uuid,
                         )
                     )
             empty_shifts.extend(empty_shifts_per_calendar)
@@ -330,17 +339,16 @@ def parse_priority_from_string(string):
     return priority
 
 
-def parse_source_from_string(string):
-    CustomOnCallShift = apps.get_model("schedules", "CustomOnCallShift")
-    split_string = string.split("-")
+def parse_event_uid(string):
+    uuid = None
     source_verbal = None
-    if len(split_string) >= 2 and split_string[0] == "amixr":
-        regex = re.compile(r"^S(\d)$")
-        source = re.findall(regex, split_string[-1])
-        if len(source) > 0:
-            source = int(source[0])
-            source_verbal = CustomOnCallShift.SOURCE_CHOICES[source][1]
-    return source_verbal
+    match = RE_EVENT_UID.match(string)
+    if match:
+        uuid, _, _, source = match.groups()
+        source = int(source)
+        CustomOnCallShift = apps.get_model("schedules", "CustomOnCallShift")
+        source_verbal = CustomOnCallShift.SOURCE_CHOICES[source][1]
+    return uuid, source_verbal
 
 
 def get_usernames_from_ical_event(event):

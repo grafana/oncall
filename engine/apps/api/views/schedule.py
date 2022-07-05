@@ -54,6 +54,7 @@ class ScheduleView(
         AnyRole: (
             *READ_ACTIONS,
             "events",
+            "filter_events",
             "notify_empty_oncall_options",
             "notify_oncall_shift_freq_options",
             "mention_options",
@@ -190,14 +191,11 @@ class ScheduleView(
 
         return user_tz, date
 
-    @action(detail=True, methods=["get"])
-    def events(self, request, pk):
-        user_tz, date = self.get_request_timezone()
-        with_empty = self.request.query_params.get("with_empty", False) == "true"
-        with_gap = self.request.query_params.get("with_gap", False) == "true"
-        schedule = self.original_get_object()
-        shifts = list_of_oncall_shifts_from_ical(schedule, date, user_tz, with_empty, with_gap) or []
-        events_result = []
+    def _filter_events(self, schedule, timezone, starting_date, days, with_empty, with_gap):
+        shifts = (
+            list_of_oncall_shifts_from_ical(schedule, starting_date, timezone, with_empty, with_gap, days=days) or []
+        )
+        events = []
         # for start, end, users, priority_level, source in shifts:
         for shift in shifts:
             all_day = type(shift["start"]) == datetime.date
@@ -219,8 +217,20 @@ class ScheduleView(
                 "calendar_type": shift["calendar_type"],
                 "is_empty": len(shift["users"]) == 0 and not is_gap,
                 "is_gap": is_gap,
+                "shift_uuid": shift["shift_uuid"],
             }
-            events_result.append(shift_json)
+            events.append(shift_json)
+
+        return events
+
+    @action(detail=True, methods=["get"])
+    def events(self, request, pk):
+        user_tz, date = self.get_request_timezone()
+        with_empty = self.request.query_params.get("with_empty", False) == "true"
+        with_gap = self.request.query_params.get("with_gap", False) == "true"
+
+        schedule = self.original_get_object()
+        events = self._filter_events(schedule, user_tz, date, days=1, with_empty=with_empty, with_gap=with_gap)
 
         slack_channel = (
             {
@@ -237,7 +247,36 @@ class ScheduleView(
             "name": schedule.name,
             "type": PolymorphicScheduleSerializer().to_resource_type(schedule),
             "slack_channel": slack_channel,
-            "events": events_result,
+            "events": events,
+        }
+        return Response(result, status=status.HTTP_200_OK)
+
+    @action(detail=True, methods=["get"])
+    def filter_events(self, request, pk):
+        user_tz, date = self.get_request_timezone()
+        with_empty = self.request.query_params.get("with_empty", False) == "true"
+        with_gap = self.request.query_params.get("with_gap", False) == "true"
+
+        starting_date = date if self.request.query_params.get("date") else None
+        if starting_date is None:
+            # default to current week start
+            starting_date = date - datetime.timedelta(days=date.weekday())
+
+        try:
+            days = int(self.request.query_params.get("days", 7))  # fallback to a week
+        except ValueError:
+            raise BadRequest(detail="Invalid days format")
+
+        schedule = self.original_get_object()
+        events = self._filter_events(
+            schedule, user_tz, starting_date, days=days, with_empty=with_empty, with_gap=with_gap
+        )
+
+        result = {
+            "id": schedule.public_primary_key,
+            "name": schedule.name,
+            "type": PolymorphicScheduleSerializer().to_resource_type(schedule),
+            "events": events,
         }
         return Response(result, status=status.HTTP_200_OK)
 

@@ -429,6 +429,144 @@ def test_events_calendar(
                 "calendar_type": OnCallSchedule.PRIMARY,
                 "is_empty": False,
                 "is_gap": False,
+                "shift_uuid": str(on_call_shift.uuid),
+            }
+        ],
+    }
+    assert response.status_code == status.HTTP_200_OK
+    assert response.data == expected_result
+
+
+@pytest.mark.django_db
+def test_filter_events_calendar(
+    make_organization_and_user_with_plugin_token,
+    make_user_auth_headers,
+    make_schedule,
+    make_on_call_shift,
+):
+    organization, user, token = make_organization_and_user_with_plugin_token()
+    client = APIClient()
+
+    schedule = make_schedule(
+        organization,
+        schedule_class=OnCallScheduleWeb,
+        name="test_web_schedule",
+    )
+
+    now = timezone.now().replace(microsecond=0)
+    start_date = now - timezone.timedelta(days=7)
+    data = {
+        "start": start_date,
+        "duration": timezone.timedelta(seconds=7200),
+        "priority_level": 1,
+        "frequency": CustomOnCallShift.FREQUENCY_WEEKLY,
+        "by_day": ["MO", "FR"],
+        "schedule": schedule,
+    }
+
+    on_call_shift = make_on_call_shift(
+        organization=organization, shift_type=CustomOnCallShift.TYPE_RECURRENT_EVENT, **data
+    )
+    on_call_shift.users.add(user)
+
+    url = reverse("api-internal:schedule-filter-events", kwargs={"pk": schedule.public_primary_key})
+    response = client.get(url, format="json", **make_user_auth_headers(user, token))
+
+    # current week events are expected
+    mon_start = now - timezone.timedelta(days=start_date.weekday())
+    fri_start = mon_start + timezone.timedelta(days=4)
+    expected_result = {
+        "id": schedule.public_primary_key,
+        "name": "test_web_schedule",
+        "type": 2,
+        "events": [
+            {
+                "all_day": False,
+                "start": mon_start,
+                "end": mon_start + on_call_shift.duration,
+                "users": [{"display_name": user.username, "pk": user.public_primary_key}],
+                "priority_level": on_call_shift.priority_level,
+                "source": "api",
+                "calendar_type": OnCallSchedule.PRIMARY,
+                "is_empty": False,
+                "is_gap": False,
+                "shift_uuid": str(on_call_shift.uuid),
+            },
+            {
+                "all_day": False,
+                "start": fri_start,
+                "end": fri_start + on_call_shift.duration,
+                "users": [{"display_name": user.username, "pk": user.public_primary_key}],
+                "priority_level": on_call_shift.priority_level,
+                "source": "api",
+                "calendar_type": OnCallSchedule.PRIMARY,
+                "is_empty": False,
+                "is_gap": False,
+                "shift_uuid": str(on_call_shift.uuid),
+            },
+        ],
+    }
+    assert response.status_code == status.HTTP_200_OK
+    assert response.data == expected_result
+
+
+@pytest.mark.django_db
+def test_filter_events_range_calendar(
+    make_organization_and_user_with_plugin_token,
+    make_user_auth_headers,
+    make_schedule,
+    make_on_call_shift,
+):
+    organization, user, token = make_organization_and_user_with_plugin_token()
+    client = APIClient()
+
+    schedule = make_schedule(
+        organization,
+        schedule_class=OnCallScheduleWeb,
+        name="test_web_schedule",
+    )
+
+    now = timezone.now().replace(microsecond=0)
+    start_date = now - timezone.timedelta(days=7)
+    data = {
+        "start": start_date,
+        "duration": timezone.timedelta(seconds=7200),
+        "priority_level": 1,
+        "frequency": CustomOnCallShift.FREQUENCY_WEEKLY,
+        "by_day": ["MO", "FR"],
+        "schedule": schedule,
+    }
+
+    on_call_shift = make_on_call_shift(
+        organization=organization, shift_type=CustomOnCallShift.TYPE_RECURRENT_EVENT, **data
+    )
+    on_call_shift.users.add(user)
+
+    mon_start = now - timezone.timedelta(days=start_date.weekday())
+    request_date = mon_start + timezone.timedelta(days=2)
+
+    url = reverse("api-internal:schedule-filter-events", kwargs={"pk": schedule.public_primary_key})
+    url += "?date={}&days=3".format(request_date.strftime("%Y-%m-%d"))
+    response = client.get(url, format="json", **make_user_auth_headers(user, token))
+
+    # only friday occurrence is expected
+    fri_start = mon_start + timezone.timedelta(days=4)
+    expected_result = {
+        "id": schedule.public_primary_key,
+        "name": "test_web_schedule",
+        "type": 2,
+        "events": [
+            {
+                "all_day": False,
+                "start": fri_start,
+                "end": fri_start + on_call_shift.duration,
+                "users": [{"display_name": user.username, "pk": user.public_primary_key}],
+                "priority_level": on_call_shift.priority_level,
+                "source": "api",
+                "calendar_type": OnCallSchedule.PRIMARY,
+                "is_empty": False,
+                "is_gap": False,
+                "shift_uuid": str(on_call_shift.uuid),
             }
         ],
     }
