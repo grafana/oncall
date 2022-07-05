@@ -1,0 +1,12 @@
+# See https://github.com/helm/chart-testing#configuration
+remote: origin
+target-branch: main
+chart-dirs:
+  - helm
+chart-repos:
+  - jetstack=https://charts.jetstack.io
+  - bitnami=https://charts.bitnami.com/bitnami
+  - grafana=https://grafana.github.io/helm-charts
+  - ingress-nginx=https://kubernetes.github.io/ingress-nginx
+helm-extra-args: --timeout 600s
+validate-maintainers: false

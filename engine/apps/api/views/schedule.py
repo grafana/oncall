@@ -17,6 +17,7 @@ from rest_framework.views import Response
 from rest_framework.viewsets import ModelViewSet
 
 from apps.api.permissions import MODIFY_ACTIONS, READ_ACTIONS, ActionPermission, AnyRole, IsAdmin, IsAdminOrEditor
+from apps.api.serializers.schedule_base import ScheduleFastSerializer
 from apps.api.serializers.schedule_polymorphic import (
     PolymorphicScheduleCreateSerializer,
     PolymorphicScheduleSerializer,
@@ -31,10 +32,17 @@ from apps.slack.models import SlackChannel
 from apps.slack.tasks import update_slack_user_group_for_schedules
 from apps.user_management.organization_log_creator import OrganizationLogType, create_organization_log
 from common.api_helpers.exceptions import BadRequest, Conflict
-from common.api_helpers.mixins import CreateSerializerMixin, PublicPrimaryKeyMixin, UpdateSerializerMixin
+from common.api_helpers.mixins import (
+    CreateSerializerMixin,
+    PublicPrimaryKeyMixin,
+    ShortSerializerMixin,
+    UpdateSerializerMixin,
+)
 
 
-class ScheduleView(PublicPrimaryKeyMixin, CreateSerializerMixin, UpdateSerializerMixin, ModelViewSet):
+class ScheduleView(
+    PublicPrimaryKeyMixin, ShortSerializerMixin, CreateSerializerMixin, UpdateSerializerMixin, ModelViewSet
+):
     authentication_classes = (PluginAuthentication,)
     permission_classes = (IsAuthenticated, ActionPermission)
     action_permissions = {
@@ -56,6 +64,7 @@ class ScheduleView(PublicPrimaryKeyMixin, CreateSerializerMixin, UpdateSerialize
     serializer_class = PolymorphicScheduleSerializer
     create_serializer_class = PolymorphicScheduleCreateSerializer
     update_serializer_class = PolymorphicScheduleUpdateSerializer
+    short_serializer_class = ScheduleFastSerializer
 
     @cached_property
     def can_update_user_groups(self):
@@ -80,19 +89,22 @@ class ScheduleView(PublicPrimaryKeyMixin, CreateSerializerMixin, UpdateSerialize
         return context
 
     def get_queryset(self):
+        is_short_request = self.request.query_params.get("short", "false") == "true"
         organization = self.request.auth.organization
-        slack_channels = SlackChannel.objects.filter(
-            slack_team_identity=organization.slack_team_identity,
-            slack_id=OuterRef("channel"),
-        )
         queryset = OnCallSchedule.objects.filter(
             organization=organization,
             team=self.request.user.current_team,
-        ).annotate(
-            slack_channel_name=Subquery(slack_channels.values("name")[:1]),
-            slack_channel_pk=Subquery(slack_channels.values("public_primary_key")[:1]),
         )
-        queryset = self.serializer_class.setup_eager_loading(queryset)
+        if not is_short_request:
+            slack_channels = SlackChannel.objects.filter(
+                slack_team_identity=organization.slack_team_identity,
+                slack_id=OuterRef("channel"),
+            )
+            queryset = queryset.annotate(
+                slack_channel_name=Subquery(slack_channels.values("name")[:1]),
+                slack_channel_pk=Subquery(slack_channels.values("public_primary_key")[:1]),
+            )
+            queryset = self.serializer_class.setup_eager_loading(queryset)
         return queryset
 
     def get_object(self):

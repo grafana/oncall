@@ -162,10 +162,6 @@ def notify_user_task(
                 user_to_be_notified_in_slack = (
                     notification_policy.notify_by == UserNotificationPolicy.NotificationChannel.SLACK
                 )
-                user_to_be_notified_in_telegram = (
-                    notification_policy.notify_by == UserNotificationPolicy.NotificationChannel.TELEGRAM
-                )
-
                 if user_to_be_notified_in_slack and alert_group.notify_in_slack_enabled is False:
                     log_record = UserNotificationPolicyLogRecord(
                         author=user,
@@ -177,18 +173,6 @@ def notify_user_task(
                         notification_step=notification_policy.step,
                         notification_channel=notification_policy.notify_by,
                         notification_error_code=UserNotificationPolicyLogRecord.ERROR_NOTIFICATION_POSTING_TO_SLACK_IS_DISABLED,
-                    )
-                elif user_to_be_notified_in_telegram and alert_group.notify_in_telegram_enabled is False:
-                    log_record = UserNotificationPolicyLogRecord(
-                        author=user,
-                        type=UserNotificationPolicyLogRecord.TYPE_PERSONAL_NOTIFICATION_FAILED,
-                        notification_policy=notification_policy,
-                        alert_group=alert_group,
-                        reason=reason,
-                        slack_prevent_posting=prevent_posting_to_thread,
-                        notification_step=notification_policy.step,
-                        notification_channel=notification_policy.notify_by,
-                        notification_error_code=UserNotificationPolicyLogRecord.ERROR_NOTIFICATION_POSTING_TO_TELEGRAM_IS_DISABLED,
                     )
                 else:
                     log_record = UserNotificationPolicyLogRecord(
@@ -292,8 +276,7 @@ def perform_notification(log_record_pk):
         )
 
     elif notification_channel == UserNotificationPolicy.NotificationChannel.TELEGRAM:
-        if alert_group.notify_in_telegram_enabled is True:
-            TelegramToUserConnector.notify_user(user, alert_group, notification_policy)
+        TelegramToUserConnector.notify_user(user, alert_group, notification_policy)
 
     # TODO: restore email notifications
     # elif notification_channel == UserNotificationPolicy.NotificationChannel.EMAIL:

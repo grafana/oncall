@@ -8,26 +8,36 @@ title: Open Source
 weight: 300
 ---
 
-# Open Source
+# Grafana OnCall open source guide
 
-We prepared three environments for OSS users:
-- **Hobby** environment for local usage & playing around: [README.md](https://github.com/grafana/oncall#getting-started).
+Grafana OnCall is a developer-friendly incident response tool that's available to Grafana open source and Grafana Cloud users. The OSS version of Grafana OnCall provides the same reliable on-call management solution along with the flexibility of a self-managed environment. 
+
+This guide describes the necessary installation and configuration steps needed to configure OSS Grafana OnCall.
+
+## Install Grafana OnCall OSS
+
+There are three Grafana OnCall OSS environments available:
+
+- **Hobby** playground environment for local usage: [README.md](https://github.com/grafana/oncall#getting-started)
 - **Development** environment for contributors: [DEVELOPER.md](https://github.com/grafana/oncall/blob/dev/DEVELOPER.md)
 - **Production** environment for reliable cloud installation using Helm: [Production Environment](#production-environment)
 
 ## Production Environment
+We suggest using our official helm chart for the reliable production deployment of Grafana OnCall. It will deploy Grafana OnCall engine and celery workers, along with RabbitMQ cluster, Redis Cluster, and the database. 
 
-We prepared the helm chart for production environment: https://github.com/grafana/oncall/tree/dev/helm/oncall
+Check the [helm chart](https://github.com/grafana/oncall/tree/dev/helm/oncall) for more details. 
+
+We'll always be happy to provide assistance with production deployment in [our communities](https://github.com/grafana/oncall#join-community)! 
 
 ## Slack Setup
 
-Grafana OnCall Slack integration use a lot of Slack API features: 
-- Subscription on Slack events requires OnCall to be externally available and provide https endpoint. 
-- You will need to register new Slack App.
+The Slack integration for Grafana OnCall leverages Slack API features to provide a customizable and useful integration. Refer to the following steps to configure the Slack integration:
 
-1. Make sure your OnCall is up and running.
+1. Ensure your Grafana OnCall environment is up and running.
 
-2. You need OnCall to be accessible through https. For development purposes we suggest using [localtunnel](https://github.com/localtunnel/localtunnel). For production purposes please consider setting up proper web server with HTTPS termination. For localtunnel: 
+1. Grafana OnCall must be accessible through HTTPS. For development purposes,  use [localtunnel](https://github.com/localtunnel/localtunnel). For production purposes, consider establishing a proper web server with HTTPS termination. 
+For localtunnel, refer to the following configuration:
+
 ```bash
 # Choose the unique prefix instead of pretty-turkey-83
 # Localtunnel will generate an url, e.g. https://pretty-turkey-83.loca.lt
@@ -35,15 +45,15 @@ Grafana OnCall Slack integration use a lot of Slack API features:
 lt --port 8080 -s pretty-turkey-83 --print-requests
 ```
 
-3. If you use localtunnel, open your external URL and click "Continue" to allow requests to bypass the warning page.
+1. If using localtunnel, open your external URL and click **Continue** to allow requests to bypass the warning page.
 
-4. [Create a Slack Workspace](https://slack.com/create) for development, or use your company workspace.
+1. [Create a Slack Workspace](https://slack.com/create) for development, or use your company workspace.
 
-5. Go to https://api.slack.com/apps and click Create New App button
+1. Go to https://api.slack.com/apps and click **Create an App** .
 
-6. Select `From an app manifest` option and choose the right workspace
+1. Select `From an app manifest` option and select your workspace.
 
-7. Copy and paste the following block with the correct <YOUR_BOT_NAME> and <ONCALL_ENGINE_PUBLIC_URL> fields
+1. Replace the text with the following YAML code block . Be sure to replace `<YOUR_BOT_NAME>` and `<ONCALL_ENGINE_PUBLIC_URL>` fields with the appropriate information. 
 
   ```yaml
   _metadata:
@@ -133,7 +143,7 @@ lt --port 8080 -s pretty-turkey-83 --print-requests
     socket_mode_enabled: false
   ```
 
-6. Go to your "OnCall" -> "Env Variables" and set:
+1. Set environment variables by navigating to your Grafana OnCall, then click **Env Variables** and set the following:
     ```
     SLACK_CLIENT_OAUTH_ID = Basic Information -> App Credentials -> Client ID
     SLACK_CLIENT_OAUTH_SECRET = Basic Information -> App Credentials -> Client Secret
@@ -141,30 +151,34 @@ lt --port 8080 -s pretty-turkey-83 --print-requests
     SLACK_INSTALL_RETURN_REDIRECT_HOST = << OnCall external URL >>
     ```
 
-7. Go to "OnCall" -> "ChatOps" -> "Slack" and install Slack Integration
+1. In OnCall, navigate to **ChatOps**, select Slack and click **Install Slack integration**.
 
-8. All set!
+1. Configure additional Slack settings.
 
 ## Telegram Setup
 
-- Telegram integrations requires OnCall to be externally available and provide https endpoint. 
-- Telegram integration in OnCall is designed for collaborative team work. It requires Telegram Group and a Telegram Channel (private) for alerts. 
+The Telegram integration for Grafana OnCall is designed for collaborative team work and improved incident response. Refer to the following steps to configure the Telegram integration:
 
-1. Make sure your OnCall is up and running.
+1. Ensure your OnCall environment is up and running.
 
-2. Respectfully ask [BotFather](https://t.me/BotFather) for a key, put it in `TELEGRAM_TOKEN` in "OnCall" -> "Env Variables".
+1. Request [BotFather](https://t.me/BotFather) for a key, then add your key in `TELEGRAM_TOKEN` in your Grafana OnCall **Env Variables**.
 
-3. Set `TELEGRAM_WEBHOOK_HOST` with your external url for OnCall. 
+1. Set `TELEGRAM_WEBHOOK_HOST` with your external URL for your Grafana OnCall. 
 
-4. Go to "OnCall" -> "ChatOps" -> Telegram and enjoy!
+1. From the **ChatOps** tab in Grafana OnCall, click **Telegram**.
 
 ## Grafana OSS-Cloud Setup
 
-Grafana OSS could be connected to Grafana Cloud for heartbeat and SMS / Phone Calls. We tried our best in making Grafana OSS <-> Cloud self-explanatory. Check "Cloud" page in your OSS OnCall instance.
+The benefits of connecting to Grafana Cloud include:
+- Cloud OnCall could monitor OSS OnCall uptime using heartbeat
+- SMS for user notifications
+- Phone calls for user notifications.
 
-Please note that it's possible either to use Grafana Cloud either Twilio for SMS/Phone calls. 
+To connect to Grafana Cloud, refer to the **Cloud** page in your OSS Grafana OnCall instance.
 
 ## Twilio Setup
 
-1. Make sure Grafana OSS <-> Cloud connector is disabled. Set `GRAFANA_CLOUD_NOTIFICATIONS_ENABLED` as False.
-2. Check "OnCall" -> "Env Variables" and set all variables starting with `TWILIO_`
+Grafana OnCall supports Twilio SMS and phone call notifications delivery. If you prefer to configure SMS and phone call notifications using Twilio, complete the following steps:
+
+1. Set `GRAFANA_CLOUD_NOTIFICATIONS_ENABLED` as **False** to ensure the Grafana OSS <-> Cloud connector is disabled.
+1. From your **OnCall** environment, select **Env Variables** and configure all variables starting with `TWILIO_`. 

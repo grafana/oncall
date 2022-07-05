@@ -42,7 +42,14 @@ def create_contact_points_for_datasource(alert_receive_channel_id, datasource_li
 
     AlertReceiveChannel = apps.get_model("alerts", "AlertReceiveChannel")
 
-    alert_receive_channel = AlertReceiveChannel.objects.get(pk=alert_receive_channel_id)
+    alert_receive_channel = AlertReceiveChannel.objects.filter(pk=alert_receive_channel_id).first()
+    if not alert_receive_channel:
+        logger.debug(
+            f"Cannot create contact point for integration {alert_receive_channel_id}: integration does not exist"
+        )
+        return
+
+    grafana_alerting_sync_manager = alert_receive_channel.grafana_alerting_sync_manager
 
     client = GrafanaAPIClient(
         api_url=alert_receive_channel.organization.grafana_url,
@@ -52,11 +59,23 @@ def create_contact_points_for_datasource(alert_receive_channel_id, datasource_li
     datasources_to_create = []
     for datasource in datasource_list:
         contact_point = None
-        config, response_info = client.get_alerting_config(datasource["id"])
+        is_grafana_datasource = not (datasource.get("id") or datasource.get("uid"))
+        config, response_info = grafana_alerting_sync_manager.alerting_config_with_respect_to_grafana_version(
+            is_grafana_datasource, datasource.get("id"), datasource.get("uid"), client.get_alerting_config
+        )
         if config is None:
+            logger.debug(
+                f"Got config None for is_grafana_datasource {is_grafana_datasource} "
+                f"for integration {alert_receive_channel_id}; response: {response_info}"
+            )
             if response_info.get("status_code") == status.HTTP_404_NOT_FOUND:
-                client.get_alertmanager_status_with_config(datasource["id"])
-                contact_point = alert_receive_channel.grafana_alerting_sync_manager.create_contact_point(datasource)
+                grafana_alerting_sync_manager.alerting_config_with_respect_to_grafana_version(
+                    is_grafana_datasource,
+                    datasource.get("id"),
+                    datasource.get("uid"),
+                    client.get_alertmanager_status_with_config,
+                )
+                contact_point = grafana_alerting_sync_manager.create_contact_point(datasource)
             elif response_info.get("status_code") == status.HTTP_400_BAD_REQUEST:
                 logger.warning(
                     f"Failed to create contact point for integration {alert_receive_channel_id}, "
@@ -64,9 +83,13 @@ def create_contact_points_for_datasource(alert_receive_channel_id, datasource_li
                 )
                 continue
         else:
-            contact_point = alert_receive_channel.grafana_alerting_sync_manager.create_contact_point(datasource)
+            contact_point = grafana_alerting_sync_manager.create_contact_point(datasource)
         if contact_point is None:
-            # Failed to create contact point duo to getting wrong alerting config.
+            logger.warning(
+                f"Failed to create contact point for integration {alert_receive_channel_id} due to getting wrong "
+                f"config, datasource info: {datasource}; response: {response_info}. Retrying"
+            )
+            # Failed to create contact point due to getting wrong alerting config.
             # Add datasource to list and retry to create contact point for it again
             datasources_to_create.append(datasource)
 

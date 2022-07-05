@@ -3,6 +3,8 @@ from django.urls import reverse
 from rest_framework import status
 from rest_framework.test import APIClient
 
+from common.constants.role import Role
+
 
 @pytest.fixture()
 def user_public_api_setup(
@@ -140,3 +142,38 @@ def test_forbidden_access(
     response = client.get(url, format="json", HTTP_AUTHORIZATION=another_org_token)
 
     assert response.status_code == status.HTTP_404_NOT_FOUND
+
+
+@pytest.mark.django_db
+def test_get_users_list_all_role_users(
+    user_public_api_setup,
+    make_user_for_organization,
+):
+    organization, admin, token, _, _ = user_public_api_setup
+    editor = make_user_for_organization(organization, role=Role.EDITOR)
+    viewer = make_user_for_organization(organization, role=Role.VIEWER)
+
+    client = APIClient()
+
+    url = reverse("api-public:users-list")
+    response = client.get(f"{url}?short=true", format="json", HTTP_AUTHORIZATION=token)
+
+    expected_users = [(admin, "admin"), (editor, "editor"), (viewer, "viewer")]
+    expected_response = {
+        "count": 3,
+        "next": None,
+        "previous": None,
+        "results": [
+            {
+                "id": user.public_primary_key,
+                "email": user.email,
+                "username": user.username,
+                "role": role,
+                "is_phone_number_verified": False,
+            }
+            for user, role in expected_users
+        ],
+    }
+
+    assert response.status_code == status.HTTP_200_OK
+    assert response.json() == expected_response

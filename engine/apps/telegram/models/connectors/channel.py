@@ -82,6 +82,9 @@ class TelegramToOrganizationConnector(models.Model):
         if alert_group.channel_filter is None:
             return default_channel
 
+        if not alert_group.channel_filter.notify_in_telegram:
+            return None
+
         return alert_group.channel_filter.telegram_channel or default_channel
 
     def make_channel_default(self, author):
