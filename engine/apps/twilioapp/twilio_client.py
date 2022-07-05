@@ -166,7 +166,6 @@ class TwilioClient:
                     to=to,
                     from_=self.twilio_number,
                     method="GET",
-                    status_callback_method="POST",
                 )
 
             raise e
