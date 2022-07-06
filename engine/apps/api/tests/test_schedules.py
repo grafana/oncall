@@ -429,7 +429,9 @@ def test_events_calendar(
                 "calendar_type": OnCallSchedule.PRIMARY,
                 "is_empty": False,
                 "is_gap": False,
-                "shift_uuid": str(on_call_shift.uuid),
+                "shift": {
+                    "pk": on_call_shift.public_primary_key,
+                },
             }
         ],
     }
@@ -490,7 +492,9 @@ def test_filter_events_calendar(
                 "calendar_type": OnCallSchedule.PRIMARY,
                 "is_empty": False,
                 "is_gap": False,
-                "shift_uuid": str(on_call_shift.uuid),
+                "shift": {
+                    "pk": on_call_shift.public_primary_key,
+                },
             },
             {
                 "all_day": False,
@@ -502,7 +506,9 @@ def test_filter_events_calendar(
                 "calendar_type": OnCallSchedule.PRIMARY,
                 "is_empty": False,
                 "is_gap": False,
-                "shift_uuid": str(on_call_shift.uuid),
+                "shift": {
+                    "pk": on_call_shift.public_primary_key,
+                },
             },
         ],
     }
@@ -566,7 +572,9 @@ def test_filter_events_range_calendar(
                 "calendar_type": OnCallSchedule.PRIMARY,
                 "is_empty": False,
                 "is_gap": False,
-                "shift_uuid": str(on_call_shift.uuid),
+                "shift": {
+                    "pk": on_call_shift.public_primary_key,
+                },
             }
         ],
     }

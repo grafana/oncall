@@ -217,7 +217,9 @@ class ScheduleView(
                 "calendar_type": shift["calendar_type"],
                 "is_empty": len(shift["users"]) == 0 and not is_gap,
                 "is_gap": is_gap,
-                "shift_uuid": shift["shift_uuid"],
+                "shift": {
+                    "pk": shift["shift_pk"],
+                },
             }
             events.append(shift_json)
 

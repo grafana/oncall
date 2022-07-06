@@ -1,5 +1,4 @@
 import pytz
-from django.utils import timezone
 from rest_framework import serializers
 
 from apps.public_api.serializers.schedules_base import ScheduleBaseSerializer
@@ -35,7 +34,7 @@ class ScheduleWebSerializer(ScheduleBaseSerializer):
 
     def validate_time_zone(self, tz):
         try:
-            timezone.now().astimezone(pytz.timezone(tz))
+            pytz.timezone(tz)
         except pytz.exceptions.UnknownTimeZoneError:
             raise BadRequest(detail="Invalid time zone")
         return tz

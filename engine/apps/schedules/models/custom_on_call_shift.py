@@ -230,7 +230,7 @@ class CustomOnCallShift(models.Model):
     def generate_ical(self, user, start, user_counter, counter=1, time_zone="UTC"):
         # create event for each user in a list because we can't parse multiple users from ical summary
         event = Event()
-        event["uid"] = f"amixr-{self.uuid}-U{user_counter}-E{counter}-S{self.source}"
+        event["uid"] = f"oncall-{self.uuid}-PK{self.public_primary_key}-U{user_counter}-E{counter}-S{self.source}"
         event.add("summary", self.get_summary_with_user_for_ical(user))
         event.add("dtstart", self.convert_dt_to_schedule_timezone(start, time_zone))
         event.add("dtend", self.convert_dt_to_schedule_timezone(start + self.duration, time_zone))

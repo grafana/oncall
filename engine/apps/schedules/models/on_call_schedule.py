@@ -213,10 +213,14 @@ class OnCallSchedule(PolymorphicModel):
         raise NotImplementedError
 
     def _drop_primary_ical_file(self):
-        raise NotImplementedError
+        self.prev_ical_file_primary = self.cached_ical_file_primary
+        self.cached_ical_file_primary = None
+        self.save(update_fields=["cached_ical_file_primary", "prev_ical_file_primary"])
 
     def _drop_overrides_ical_file(self):
-        raise NotImplementedError
+        self.prev_ical_file_overrides = self.cached_ical_file_overrides
+        self.cached_ical_file_overrides = None
+        self.save(update_fields=["cached_ical_file_overrides", "prev_ical_file_overrides"])
 
 
 class OnCallScheduleICal(OnCallSchedule):
@@ -254,26 +258,6 @@ class OnCallScheduleICal(OnCallSchedule):
             self.save(update_fields=["cached_ical_file_overrides", "ical_file_error_overrides"])
             cached_ical_file = self.cached_ical_file_overrides
         return cached_ical_file
-
-    def _drop_primary_ical_file(self):
-        self.prev_ical_file_primary = self.cached_ical_file_primary
-        self.cached_ical_file_primary = None
-        self.save(
-            update_fields=[
-                "cached_ical_file_primary",
-                "prev_ical_file_primary",
-            ]
-        )
-
-    def _drop_overrides_ical_file(self):
-        self.prev_ical_file_overrides = self.cached_ical_file_overrides
-        self.cached_ical_file_overrides = None
-        self.save(
-            update_fields=[
-                "cached_ical_file_overrides",
-                "prev_ical_file_overrides",
-            ]
-        )
 
     def _refresh_primary_ical_file(self):
         self.prev_ical_file_primary = self.cached_ical_file_primary
@@ -351,26 +335,6 @@ class OnCallScheduleCalendar(OnCallSchedule):
             )
         self.save(update_fields=["cached_ical_file_overrides", "prev_ical_file_overrides", "ical_file_error_overrides"])
 
-    def _drop_primary_ical_file(self):
-        self.prev_ical_file_primary = self.cached_ical_file_primary
-        self.cached_ical_file_primary = None
-        self.save(
-            update_fields=[
-                "cached_ical_file_primary",
-                "prev_ical_file_primary",
-            ]
-        )
-
-    def _drop_overrides_ical_file(self):
-        self.prev_ical_file_overrides = self.cached_ical_file_overrides
-        self.cached_ical_file_overrides = None
-        self.save(
-            update_fields=[
-                "cached_ical_file_overrides",
-                "prev_ical_file_overrides",
-            ]
-        )
-
     def _generate_ical_file_primary(self):
         """
         Generate iCal events file from custom on-call shifts (created via API)
@@ -438,11 +402,6 @@ class OnCallScheduleWeb(OnCallSchedule):
         self.cached_ical_file_primary = self._generate_ical_file_primary()
         self.save(update_fields=["cached_ical_file_primary", "prev_ical_file_primary"])
 
-    def _drop_primary_ical_file(self):
-        self.prev_ical_file_primary = self.cached_ical_file_primary
-        self.cached_ical_file_primary = None
-        self.save(update_fields=["cached_ical_file_primary", "prev_ical_file_primary"])
-
     @cached_property
     def _ical_file_overrides(self):
         """Return cached ical file with iCal events from custom on-call overrides shifts."""
@@ -454,9 +413,4 @@ class OnCallScheduleWeb(OnCallSchedule):
     def _refresh_overrides_ical_file(self):
         self.prev_ical_file_overrides = self.cached_ical_file_overrides
         self.cached_ical_file_overrides = self._generate_ical_file_overrides()
-        self.save(update_fields=["cached_ical_file_overrides", "prev_ical_file_overrides"])
-
-    def _drop_overrides_ical_file(self):
-        self.prev_ical_file_overrides = self.cached_ical_file_overrides
-        self.cached_ical_file_overrides = None
         self.save(update_fields=["cached_ical_file_overrides", "prev_ical_file_overrides"])
