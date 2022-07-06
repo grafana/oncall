@@ -351,7 +351,7 @@ def get_usernames_from_ical_event(event):
     if ICAL_DESCRIPTION in event:
         usernames_found.append(parse_username_from_string(event[ICAL_DESCRIPTION]))
     if ICAL_ATTENDEE in event:
-        if type(event[ICAL_ATTENDEE]) is str:
+        if isinstance(event[ICAL_ATTENDEE], str):
             # PagerDuty adds only one attendee and in this case event[ICAL_ATTENDEE] is string.
             # If several attendees were added to the event than event[ICAL_ATTENDEE] will be list
             # (E.g. several invited in Google cal).

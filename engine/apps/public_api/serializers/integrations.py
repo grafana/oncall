@@ -1,4 +1,5 @@
 from django.core.exceptions import ObjectDoesNotExist
+from django.db import transaction
 from jinja2 import TemplateSyntaxError
 from rest_framework import fields, serializers
 
@@ -65,18 +66,25 @@ class IntegrationSerializer(EagerLoadingMixin, serializers.ModelSerializer, Main
 
     def create(self, validated_data):
         validated_data = self._correct_validated_data(validated_data)
-        validated_data.pop("default_route", None)
+        default_route_data = validated_data.pop("default_route", None)
         organization = self.context["request"].auth.organization
         integration = validated_data.get("integration")
         if integration == AlertReceiveChannel.INTEGRATION_GRAFANA_ALERTING:
             connection_error = GrafanaAlertingSyncManager.check_for_connection_errors(organization)
             if connection_error:
                 raise serializers.ValidationError(connection_error)
-        instance = AlertReceiveChannel.create(
-            **validated_data,
-            author=self.context["request"].user,
-            organization=organization,
-        )
+        with transaction.atomic():
+            instance = AlertReceiveChannel.create(
+                **validated_data,
+                author=self.context["request"].user,
+                organization=organization,
+            )
+            if default_route_data:
+                serializer = DefaultChannelFilterSerializer(
+                    instance.default_channel_filter, default_route_data, context=self.context
+                )
+                serializer.is_valid(raise_exception=True)
+                serializer.save()
         return instance
 
     def validate(self, attrs):
@@ -175,9 +183,10 @@ class IntegrationUpdateSerializer(IntegrationSerializer):
 
     def update(self, instance, validated_data):
         validated_data = self._correct_validated_data(validated_data)
-        default_route_data = validated_data.pop("default_route", {})
+        default_route_data = validated_data.pop("default_route", None)
         default_route = instance.default_channel_filter
-        serializer = DefaultChannelFilterSerializer(default_route, default_route_data, context=self.context)
-        serializer.is_valid(raise_exception=True)
-        serializer.save()
+        if default_route_data:
+            serializer = DefaultChannelFilterSerializer(default_route, default_route_data, context=self.context)
+            serializer.is_valid(raise_exception=True)
+            serializer.save()
         return super().update(instance, validated_data)
