@@ -497,7 +497,7 @@ class AlertReceiveChannel(IntegrationOptionsMixin, MaintainableObject):
             return None
         return urljoin(
             settings.BASE_URL,
-            f"/integrations/v1/{self.config.slug}/{self.token}/",
+            f"integrations/v1/{self.config.slug}/{self.token}/",
         )
 
     @property
