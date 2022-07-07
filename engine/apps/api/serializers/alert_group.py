@@ -37,14 +37,16 @@ class AlertGroupListSerializer(EagerLoadingMixin, serializers.ModelSerializer):
     dependent_alert_groups = ShortAlertGroupSerializer(many=True)
     root_alert_group = ShortAlertGroupSerializer()
 
+    alert_count = serializers.IntegerField(read_only=True)
+    render_for_web = serializers.SerializerMethodField()
+
     PREFETCH_RELATED = [
-        "alerts",
         "dependent_alert_groups",
         "log_records__author",
     ]
 
     SELECT_RELATED = [
-        "channel",
+        "channel__organization",
         "root_alert_group",
         "resolved_by_user",
         "acknowledged_by_user",
@@ -80,6 +82,9 @@ class AlertGroupListSerializer(EagerLoadingMixin, serializers.ModelSerializer):
             "root_alert_group",
             "status",
         ]
+
+    def get_render_for_web(self, obj):
+        return AlertGroupWebRenderer(obj).render()
 
     def get_related_users(self, obj):
         users_ids = set()
@@ -122,7 +127,7 @@ class AlertGroupSerializer(AlertGroupListSerializer):
         last_alert = obj.alerts.last()
 
         if not last_alert:
-            return obj.created_at
+            return obj.started_at
 
         return last_alert.created_at
 

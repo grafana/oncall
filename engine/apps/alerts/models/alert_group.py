@@ -299,8 +299,6 @@ class AlertGroup(AlertGroupSlackRenderingMixin, EscalationSnapshotMixin, models.
         related_name="dependent_alert_groups",
     )
 
-    render_for_web = JSONField(default=dict)
-
     last_unique_unacknowledge_process_id = models.CharField(max_length=100, null=True, default=None)
     is_archived = models.BooleanField(default=False)
 
@@ -396,10 +394,6 @@ class AlertGroup(AlertGroupSlackRenderingMixin, EscalationSnapshotMixin, models.
     @property
     def web_link(self):
         return urljoin(self.channel.organization.web_link, f"?page=incident&id={self.public_primary_key}")
-
-    @property
-    def alerts_count(self):
-        return self.alerts.count()
 
     @property
     def happened_while_maintenance(self):
