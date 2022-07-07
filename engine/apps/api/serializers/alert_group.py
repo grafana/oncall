@@ -57,7 +57,7 @@ class AlertGroupListSerializer(EagerLoadingMixin, serializers.ModelSerializer):
         model = AlertGroup
         fields = [
             "pk",
-            "alerts_count",
+            "alert_count",
             "inside_organization_number",
             "verbose_name",
             "alert_receive_channel",
@@ -84,7 +84,7 @@ class AlertGroupListSerializer(EagerLoadingMixin, serializers.ModelSerializer):
         ]
 
     def get_render_for_web(self, obj):
-        return AlertGroupWebRenderer(obj).render()
+        return AlertGroupWebRenderer(obj, obj.last_alert).render()
 
     def get_related_users(self, obj):
         users_ids = set()
@@ -122,6 +122,9 @@ class AlertGroupSerializer(AlertGroupListSerializer):
             "permalink",
             "last_alert_at",
         ]
+
+    def get_render_for_web(self, obj):
+        return AlertGroupWebRenderer(obj).render()
 
     def get_last_alert_at(self, obj):
         last_alert = obj.alerts.last()
