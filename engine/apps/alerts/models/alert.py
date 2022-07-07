@@ -10,7 +10,6 @@ from django.db.models import JSONField
 from django.db.models.signals import post_save
 
 from apps.alerts.constants import TASK_DELAY_SECONDS
-from apps.alerts.incident_appearance.renderers.web_renderer import AlertGroupWebRenderer, AlertWebRenderer
 from apps.alerts.incident_appearance.templaters import TemplateLoader
 from apps.alerts.tasks import distribute_alert, send_alert_group_signal
 from common.jinja_templater import apply_jinja_template
@@ -122,12 +121,6 @@ class Alert(models.Model):
             raw_request_data=raw_request_data,
             is_the_first_alert_in_group=group_created,
         )
-
-        alert.render_for_web = AlertWebRenderer(alert).render()
-        alert.save()
-
-        group.render_for_web = AlertGroupWebRenderer(group).render()
-        group.save(update_fields=["render_for_web"])
 
         maintenance_uuid = None
         if alert_receive_channel.organization.maintenance_mode == AlertReceiveChannel.MAINTENANCE:
