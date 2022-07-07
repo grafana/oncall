@@ -20,7 +20,7 @@ from apps.user_management.models import User
 from common.api_helpers.exceptions import BadRequest
 from common.api_helpers.filters import DateRangeFilterMixin, ModelFieldFilterMixin
 from common.api_helpers.mixins import PreviewTemplateMixin, PublicPrimaryKeyMixin
-from common.api_helpers.paginators import FiftyPageSizePaginator
+from common.api_helpers.paginators import TwentyFiveCursorPaginator
 
 
 def get_integration_queryset(request):
@@ -184,7 +184,7 @@ class AlertGroupView(
 
     serializer_class = AlertGroupSerializer
 
-    pagination_class = FiftyPageSizePaginator
+    pagination_class = TwentyFiveCursorPaginator
 
     filter_backends = [SearchFilter, filters.DjangoFilterBackend]
     search_fields = ["render_for_web"]
