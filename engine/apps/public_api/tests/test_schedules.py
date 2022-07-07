@@ -368,6 +368,81 @@ def test_update_calendar_schedule_with_custom_event(
 
 
 @pytest.mark.django_db
+def test_update_calendar_schedule_invalid_override(
+    make_organization_and_user_with_token,
+    make_schedule,
+    make_on_call_shift,
+):
+
+    organization, user, token = make_organization_and_user_with_token()
+    client = APIClient()
+
+    schedule = make_schedule(
+        organization,
+        schedule_class=OnCallScheduleCalendar,
+    )
+    data = {
+        "start": timezone.now().replace(tzinfo=None, microsecond=0),
+        "duration": timezone.timedelta(seconds=10800),
+    }
+    on_call_shift = make_on_call_shift(organization=organization, shift_type=CustomOnCallShift.TYPE_OVERRIDE, **data)
+
+    url = reverse("api-public:schedules-detail", kwargs={"pk": schedule.public_primary_key})
+
+    data = {
+        "shifts": [on_call_shift.public_primary_key],
+    }
+
+    response = client.put(url, data=data, format="json", HTTP_AUTHORIZATION=f"{token}")
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert response.json() == {"detail": "Shifts of type override are not supported in this schedule"}
+
+
+@pytest.mark.django_db
+def test_update_web_schedule_with_override(
+    make_organization_and_user_with_token,
+    make_schedule,
+    make_on_call_shift,
+):
+
+    organization, user, token = make_organization_and_user_with_token()
+    client = APIClient()
+
+    schedule = make_schedule(
+        organization,
+        schedule_class=OnCallScheduleWeb,
+    )
+    data = {
+        "start": timezone.now().replace(tzinfo=None, microsecond=0),
+        "duration": timezone.timedelta(seconds=10800),
+    }
+    on_call_shift = make_on_call_shift(organization=organization, shift_type=CustomOnCallShift.TYPE_OVERRIDE, **data)
+
+    url = reverse("api-public:schedules-detail", kwargs={"pk": schedule.public_primary_key})
+
+    data = {
+        "shifts": [on_call_shift.public_primary_key],
+    }
+
+    response = client.put(url, data=data, format="json", HTTP_AUTHORIZATION=f"{token}")
+    expected = {
+        "id": schedule.public_primary_key,
+        "team_id": None,
+        "name": schedule.name,
+        "type": "web",
+        "time_zone": schedule.time_zone,
+        "on_call_now": [],
+        "shifts": data["shifts"],
+        "slack": {
+            "channel_id": None,
+            "user_group_id": None,
+        },
+    }
+    assert response.status_code == status.HTTP_200_OK
+    assert response.json() == expected
+
+
+@pytest.mark.django_db
 def test_delete_calendar_schedule(
     make_organization_and_user_with_token,
     make_schedule,

@@ -51,6 +51,8 @@ class ScheduleCalendarSerializer(ScheduleBaseSerializer):
         for shift in shifts:
             if shift.team_id != team_id:
                 raise BadRequest(detail="Shifts must be assigned to the same team as the schedule")
+            if shift.type == CustomOnCallShift.TYPE_OVERRIDE:
+                raise BadRequest(detail="Shifts of type override are not supported in this schedule")
 
         return shifts
 
