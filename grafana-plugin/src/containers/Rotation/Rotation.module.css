@@ -29,16 +29,6 @@
     display: flex;
 }
 
-.stack {
-    display: flex;
-    flex-direction: column;
-    gap:1px;
-}
-
-.stack > div {
-    margin: 0 2px;
-}
-
 .current-time {
     position: absolute;
     left: 450px;

@@ -7,9 +7,21 @@
     gap: 4px;
 }
 
+
+.stack {
+    display: flex;
+    flex-direction: column;
+    gap:1px;
+}
+
+.stack > .root {
+    margin: 0 2px;
+}
+
 .root__type_gap {
     background: rgba(209, 14, 92, 0.2);
     border: 1px dashed #FF5286;
+    color: rgba(209, 14, 92, .5);
 }
 
 .root__inactive {

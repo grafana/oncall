@@ -6,61 +6,85 @@ import { observer } from 'mobx-react';
 
 import Line from 'components/ScheduleUserDetails/img/line.svg';
 import Text from 'components/Text/Text';
+import { Shift } from 'models/schedule/schedule.types';
 import { User } from 'models/user/user.types';
 import { useStore } from 'state/useStore';
+
+import { getColor, getLabel, getTitle } from './ScheduleSlot.helpers';
 
 import styles from './ScheduleSlot.module.css';
 
 interface ScheduleSlotProps {
-  color: string;
-  userPk: User['pk'];
-  label: string;
-  inactive: boolean;
-  width: number;
+  index: number;
+  layerIndex: number;
+  rotationIndex: number;
+  shift: Shift;
 }
 
 const cx = cn.bind(styles);
 
 const ScheduleSlot: FC<ScheduleSlotProps> = observer((props) => {
-  const { color, userPk, inactive, label } = props;
+  const { index, layerIndex, rotationIndex, shift } = props;
+  const { duration, users } = shift;
 
-  const left = Math.random() * 50;
-  const right = 100 - (left + 20 + Math.random() * 30);
+  const isGap = !users.length;
 
   const store = useStore();
 
-  const storeUser = store.userStore.items[userPk];
+  const width = duration / (60 * 60 * 24 * 7);
 
-  let title = storeUser
-    ? storeUser.username
-        .split(' ')
-        .map((word) => word.charAt(0).toUpperCase())
-        .join('')
-    : null;
+  const label = index === 0 && getLabel(layerIndex, rotationIndex);
 
   return (
-    <Tooltip content={<ScheduleSlotDetails user={storeUser} />}>
-      <div
-        className={cx('root', { root__inactive: inactive })}
-        style={{
-          backgroundColor: color,
-        }}
-      >
-        <div style={{ left: `${left}%`, right: `${right}%` }} className={cx('striped')} />
-        {label && (
-          <div className={cx('label')} style={{ color }}>
-            {label}
+    <div className={cx('stack')} style={{ width: `${width * 100}%` }}>
+      {!isGap ? (
+        users.map((pk, userIndex) => {
+          const left = Math.random() * 50;
+          const right = 100 - (left + 20 + Math.random() * 30);
+
+          const storeUser = store.userStore.items[pk];
+
+          const inactive = false;
+
+          const color = getColor(layerIndex, rotationIndex);
+          const title = getTitle(storeUser);
+
+          return (
+            <Tooltip content={<ScheduleSlotDetails user={storeUser} currentUser={store.userStore.currentUser} />}>
+              <div
+                className={cx('root', { root__inactive: inactive })}
+                style={{
+                  backgroundColor: color,
+                }}
+              >
+                <div style={{ left: `${left}%`, right: `${right}%` }} className={cx('striped')} />
+                {label && (
+                  <div className={cx('label')} style={{ color }}>
+                    {label}
+                  </div>
+                )}
+                <div className={cx('title')}>{title}</div>
+              </div>
+            </Tooltip>
+          );
+        })
+      ) : (
+        <Tooltip content={<ScheduleGapDetails />}>
+          <div className={cx('root', 'root__type_gap')} style={{}}>
+            {label && <div className={cx('label')}>{label}</div>}
           </div>
-        )}
-        <div className={cx('title')}>{title}</div>
-      </div>
-    </Tooltip>
+        </Tooltip>
+      )}
+    </div>
   );
 });
 
 export default ScheduleSlot;
 
-interface ScheduleSlotDetailsProps {}
+interface ScheduleSlotDetailsProps {
+  user: User;
+  currentUser: User;
+}
 
 const ScheduleSlotDetails = (props: ScheduleSlotDetailsProps) => {
   const { user, currentUser } = props;
@@ -96,7 +120,7 @@ const ScheduleSlotDetails = (props: ScheduleSlotDetailsProps) => {
           </HorizontalGroup>
         </VerticalGroup>
         <VerticalGroup spacing="sm">
-          <Text type="primary">Maxim Mordasov</Text>
+          <Text type="primary">{currentUser?.username}</Text>
           <VerticalGroup spacing="none">
             <Text type="primary">30 apr, 12:54 </Text>
             <Text type="primary">29 apr, 20:00 </Text>
@@ -108,8 +132,24 @@ const ScheduleSlotDetails = (props: ScheduleSlotDetailsProps) => {
   );
 };
 
-interface ScheduleGapProps {}
+interface ScheduleGapDetailsProps {}
 
-export const ScheduleGap = (props: ScheduleGapProps) => {
-  return <div className={cx('root', 'root__type_gap')} style={{}} />;
+const ScheduleGapDetails = (props: ScheduleGapDetailsProps) => {
+  const {} = props;
+
+  return (
+    <div className={cx('details')}>
+      <VerticalGroup>
+        <Text type="primary">Gaps this week</Text>
+        <HorizontalGroup justify="space-between">
+          <Text type="secondary">Number of gaps</Text>
+          <Text type="secondary">12</Text>
+        </HorizontalGroup>
+        <HorizontalGroup justify="space-between">
+          <Text type="secondary">Time</Text>
+          <Text type="secondary">23h 12m</Text>
+        </HorizontalGroup>
+      </VerticalGroup>
+    </div>
+  );
 };

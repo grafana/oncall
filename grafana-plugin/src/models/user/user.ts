@@ -3,6 +3,7 @@ import { action, computed, observable } from 'mobx';
 
 import BaseStore from 'models/base_store';
 import { NotificationPolicyType } from 'models/notification_policy';
+import { getRandomTimezone } from 'models/timezone/timezone.helpers';
 import { makeRequest } from 'network';
 import { Mixpanel } from 'services/mixpanel';
 import { RootStore } from 'state';
@@ -97,11 +98,25 @@ export class UserStore extends BaseStore {
       ...results.reduce(
         (acc: { [key: number]: User }, item: User) => ({
           ...acc,
-          [item.pk]: item,
+          [item.pk]: {
+            ...item,
+            tz: getRandomTimezone(),
+            working_hours: {
+              monday: [{ start: '09:00:00', end: '18:00:00' }],
+              tuesday: [{ start: '09:00:00', end: '18:00:00' }],
+              wednesday: [{ start: '09:00:00', end: '18:00:00' }],
+              thursday: [{ start: '09:00:00', end: '18:00:00' }],
+              friday: [{ start: '09:00:00', end: '18:00:00' }],
+              saturday: [],
+              sunday: [],
+            },
+          },
         }),
         {}
       ),
     };
+
+    console.log(this.items);
 
     this.searchResult = {
       count,

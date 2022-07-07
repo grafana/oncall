@@ -152,10 +152,22 @@ export class ScheduleStore extends BaseStore {
         for (let i = 0; i < 14; i++) {
           shifts.push({
             start: dayjs(startMoment).add(3 * i, 'hour'),
-            duration: (Math.floor(Math.random() * 6) + 8) * 60 * 60,
+            duration: (Math.floor(Math.random() * 6) + 10) * 60 * 60,
             users: getUsers(),
           });
         }
+
+        const a = {
+          working_hours: {
+            monday: [{ start: '09:00:00', end: '18:00:00' }],
+            tuesday: [{ start: '09:00:00', end: '18:00:00' }],
+            wednesday: [{ start: '09:00:00', end: '18:00:00' }],
+            thursday: [{ start: '09:00:00', end: '18:00:00' }],
+            friday: [{ start: '09:00:00', end: '18:00:00' }],
+            saturday: [],
+            sunday: [],
+          },
+        };
 
         resolve({ id: rotationId, shifts });
       }, 500);

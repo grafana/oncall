@@ -82,8 +82,6 @@ class Rotations extends Component<RotationsProps, RotationsState> {
                           id={`${layerIndex}-${rotationIndex}`}
                           layerIndex={layerIndex}
                           rotationIndex={rotationIndex}
-                          slots={getRandomTimeslots(6, layerIndex, rotationIndex)}
-                          label={getLabel(layerIndex, rotationIndex)}
                         />
                       ))}
                     </div>

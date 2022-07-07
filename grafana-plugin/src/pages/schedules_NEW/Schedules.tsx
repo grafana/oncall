@@ -131,7 +131,7 @@ class SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSta
       <div className={cx('schedule')}>
         <TimelineMarks startMoment={startMoment} />
         <div className={cx('rotations')}>
-          <Rotation id={`${1}-${2}`} layerIndex={1} rotationIndex={2} slots={getRandomTimeslots()} />
+          <Rotation id={`${1}-${2}`} layerIndex={1} rotationIndex={2} />
         </div>
       </div>
     );
