@@ -105,6 +105,7 @@ class CustomOnCallShiftSerializer(EagerLoadingMixin, serializers.ModelSerializer
             "duration",
             "frequency",
             "interval",
+            "until",
             "week_start",
             "by_day",
             "by_month",
@@ -214,11 +215,17 @@ class CustomOnCallShiftSerializer(EagerLoadingMixin, serializers.ModelSerializer
         if type == CustomOnCallShift.TYPE_ROLLING_USERS_EVENT and index is None:
             raise BadRequest(detail="Field 'start_rotation_from_user_index' is required for this on-call shift type")
 
-    def _validate_start(self, start):
+    def _validate_date_format(self, value):
         try:
-            time.strptime(start, "%Y-%m-%dT%H:%M:%S")
+            time.strptime(value, "%Y-%m-%dT%H:%M:%S")
         except (TypeError, ValueError):
             raise BadRequest(detail="Invalid datetime format, should be \"yyyy-mm-dd'T'hh:mm:ss\"")
+
+    def _validate_start(self, start):
+        self._validate_date_format(start)
+
+    def _validate_until(self, until):
+        self._validate_date_format(until)
 
     def to_internal_value(self, data):
         if data.get("users", []) is None:  # terraform case
@@ -229,6 +236,8 @@ class CustomOnCallShiftSerializer(EagerLoadingMixin, serializers.ModelSerializer
             data["source"] = CustomOnCallShift.SOURCE_API
         if data.get("start") is not None:
             self._validate_start(data["start"])
+        if data.get("until") is not None:
+            self._validate_until(data["until"])
         result = super().to_internal_value(data)
         return result
 
@@ -236,6 +245,8 @@ class CustomOnCallShiftSerializer(EagerLoadingMixin, serializers.ModelSerializer
         result = super().to_representation(instance)
         result["duration"] = int(instance.duration.total_seconds())
         result["start"] = instance.start.strftime("%Y-%m-%dT%H:%M:%S")
+        if instance.until is not None:
+            result["until"] = instance.until.strftime("%Y-%m-%dT%H:%M:%S")
         result = self._get_fields_to_represent(instance, result)
         return result
 
@@ -245,6 +256,7 @@ class CustomOnCallShiftSerializer(EagerLoadingMixin, serializers.ModelSerializer
             CustomOnCallShift.TYPE_SINGLE_EVENT: [
                 "frequency",
                 "interval",
+                "until",
                 "by_day",
                 "by_month",
                 "by_monthday",

@@ -64,7 +64,7 @@ python manage.py createsuperuser
 3. Launch the backend:
 ```bash
 # Http server:
-python manage.py runserver 8080
+python manage.py runserver 0.0.0.0:8080
 
 # Worker for background tasks (run it in the parallel terminal, don't forget to export .env there)
 python manage.py start_celery
@@ -203,10 +203,19 @@ Credentials: admin/admin
 
 ### Running tests locally
 
+In the `engine` directory, with the `.env` vars exported and virtualenv activated
+
+```bash
+pytest
 ```
-# in the engine directory, with the virtualenv activated
-pytest --ds=settings.dev
+
+You can also install `pytest.xdist` in your env and run tests in parallel:
+
+```bash
+pip install pytest.xdist
+pytest -n4
 ```
+
 
 ## IDE Specific Instructions
 

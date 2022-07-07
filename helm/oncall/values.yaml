@@ -116,7 +116,10 @@ externalRabbitmq:
   port:
   user:
   password:
+  protocol:
 
+# Redis is included into this release for the convenience.
+# It is recommended to host it separately from this release
 redis:
   enabled: true
 
@@ -124,6 +127,8 @@ externalRedis:
   host:
   password:
 
+# Grafana is included into this release for the convenience.
+# It is recommended to host it separately from this release
 grafana:
   enabled: true
   grafana.ini:
@@ -160,3 +165,15 @@ securityContext: {}
   # readOnlyRootFilesystem: true
   # runAsNonRoot: true
   # runAsUser: 1000
+
+init:
+  securityContext: {}
+    # allowPrivilegeEscalation: false
+    # capabilities:
+    #   drop:
+    #   - ALL
+    # privileged: false
+    # readOnlyRootFilesystem: true
+    # runAsGroup: 1337
+    # runAsNonRoot: true
+    # runAsUser: 1337

@@ -3,6 +3,7 @@ from rest_framework import serializers
 
 from apps.api.serializers.user_group import UserGroupSerializer
 from apps.schedules.ical_utils import list_users_to_notify_from_ical
+from apps.schedules.models import OnCallSchedule
 from apps.schedules.tasks import schedule_notify_about_empty_shifts_in_schedule, schedule_notify_about_gaps_in_schedule
 from common.api_helpers.custom_fields import TeamPrimaryKeyRelatedField
 from common.api_helpers.mixins import EagerLoadingMixin
@@ -83,3 +84,14 @@ class ScheduleBaseSerializer(EagerLoadingMixin, serializers.ModelSerializer):
         created_schedule.check_gaps_for_next_week()
         schedule_notify_about_gaps_in_schedule.apply_async((created_schedule.pk,))
         return created_schedule
+
+
+class ScheduleFastSerializer(serializers.ModelSerializer):
+    id = serializers.CharField(read_only=True, source="public_primary_key")
+
+    class Meta:
+        model = OnCallSchedule
+        fields = [
+            "id",
+            "name",
+        ]

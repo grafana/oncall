@@ -283,6 +283,7 @@ class OnCallScheduleICal(OnCallSchedule):
         self.save(update_fields=["cached_ical_file_primary", "prev_ical_file_primary", "ical_file_error_primary"])
 
     def _refresh_overrides_ical_file(self):
+        self.prev_ical_file_overrides = self.cached_ical_file_overrides
         if self.ical_url_overrides is not None:
             self.cached_ical_file_overrides, self.ical_file_error_overrides = fetch_ical_file_or_get_error(
                 self.ical_url_overrides,

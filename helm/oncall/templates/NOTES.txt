@@ -4,8 +4,6 @@
 
 👋 Your Grafana OnCall instance has been successfully deployed
 
-TODO: Add disclaimer about stateful services, ingress controller, certificates
-
 {{- if not .Values.migrate.enabled }}
   🤖 To migrate the database run these commands:
 

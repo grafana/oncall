@@ -59,7 +59,7 @@ class UserNotificationPolicyLogRecord(models.Model):
         ERROR_NOTIFICATION_MAIL_DELIVERY_FAILED,
         ERROR_NOTIFICATION_TELEGRAM_BOT_IS_DELETED,
         ERROR_NOTIFICATION_POSTING_TO_SLACK_IS_DISABLED,
-        ERROR_NOTIFICATION_POSTING_TO_TELEGRAM_IS_DISABLED,
+        ERROR_NOTIFICATION_POSTING_TO_TELEGRAM_IS_DISABLED,  # deprecated
         ERROR_NOTIFICATION_IN_SLACK,
         ERROR_NOTIFICATION_IN_SLACK_TOKEN_ERROR,
         ERROR_NOTIFICATION_IN_SLACK_USER_NOT_IN_SLACK,
@@ -197,13 +197,13 @@ class UserNotificationPolicyLogRecord(models.Model):
                 elif notification_channel is None:
                     result += f"failed to notify {user_verbal}. Phone number is not verified"
             if self.notification_error_code == UserNotificationPolicyLogRecord.ERROR_NOTIFICATION_NOT_ABLE_TO_SEND_SMS:
-                result += f"Amixr was not able to send an SMS to {user_verbal}"
+                result += f"OnCall was not able to send an SMS to {user_verbal}"
             elif self.notification_error_code == UserNotificationPolicyLogRecord.ERROR_NOTIFICATION_NOT_ABLE_TO_CALL:
-                result += f"Amixr was not able to call to {user_verbal}"
+                result += f"OnCall was not able to call to {user_verbal}"
             elif (
                 self.notification_error_code == UserNotificationPolicyLogRecord.ERROR_NOTIFICATION_NOT_ABLE_TO_SEND_MAIL
             ):
-                result += f"Amixr was not able to send an email to {user_verbal}"
+                result += f"OnCall was not able to send an email to {user_verbal}"
             elif (
                 self.notification_error_code
                 == UserNotificationPolicyLogRecord.ERROR_NOTIFICATION_POSTING_TO_SLACK_IS_DISABLED
@@ -213,6 +213,7 @@ class UserNotificationPolicyLogRecord(models.Model):
                 self.notification_error_code
                 == UserNotificationPolicyLogRecord.ERROR_NOTIFICATION_POSTING_TO_TELEGRAM_IS_DISABLED
             ):
+                # deprecated
                 result += f"failed to notify {user_verbal} in Telegram, because the incident is not posted to Telegram (reason: Telegram is disabled for the route)"
             elif (
                 self.notification_error_code
@@ -314,7 +315,7 @@ class UserNotificationPolicyLogRecord(models.Model):
 
 @receiver(post_save, sender=UserNotificationPolicyLogRecord)
 def listen_for_usernotificationpolicylogrecord_model_save(sender, instance, created, *args, **kwargs):
-    alert_group_pk = None
+    alert_group_pk = instance.alert_group.pk
     if instance.type != UserNotificationPolicyLogRecord.TYPE_PERSONAL_NOTIFICATION_FINISHED:
         logger.debug(
             f"send_update_log_report_signal for alert_group {alert_group_pk}, "

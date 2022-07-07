@@ -35,6 +35,10 @@ invalid_field_data_7 = {
     "type": "invalid_type",
 }
 
+invalid_field_data_8 = {
+    "until": "not-a-date",
+}
+
 
 @pytest.mark.django_db
 def test_get_on_call_shift(make_organization_and_user_with_token, make_on_call_shift, make_schedule):
@@ -80,17 +84,20 @@ def test_create_on_call_shift(make_organization_and_user_with_token):
 
     url = reverse("api-public:on_call_shifts-list")
 
+    start = datetime.datetime.now()
+    until = start + datetime.timedelta(days=30)
     data = {
         "team_id": None,
         "name": "test name",
         "type": "recurrent_event",
         "level": 1,
-        "start": datetime.datetime.now().strftime("%Y-%m-%dT%H:%M:%S"),
+        "start": start.strftime("%Y-%m-%dT%H:%M:%S"),
         "duration": 10800,
         "users": [user.public_primary_key],
         "week_start": "MO",
         "frequency": "weekly",
         "interval": 2,
+        "until": until.strftime("%Y-%m-%dT%H:%M:%S"),
         "by_day": ["MO", "WE", "FR"],
     }
 
@@ -108,6 +115,7 @@ def test_create_on_call_shift(make_organization_and_user_with_token):
         "duration": data["duration"],
         "frequency": data["frequency"],
         "interval": data["interval"],
+        "until": data["until"],
         "week_start": data["week_start"],
         "by_day": data["by_day"],
         "users": [user.public_primary_key],
@@ -163,6 +171,7 @@ def test_update_on_call_shift(make_organization_and_user_with_token, make_on_cal
         "duration": data_to_update["duration"],
         "frequency": "weekly",
         "interval": on_call_shift.interval,
+        "until": None,
         "week_start": "SU",
         "by_day": data_to_update["by_day"],
         "users": [user.public_primary_key],
@@ -190,6 +199,7 @@ def test_update_on_call_shift(make_organization_and_user_with_token, make_on_cal
         invalid_field_data_5,
         invalid_field_data_6,
         invalid_field_data_7,
+        invalid_field_data_8,
     ],
 )
 def test_update_on_call_shift_invalid_field(make_organization_and_user_with_token, make_on_call_shift, data_to_update):
