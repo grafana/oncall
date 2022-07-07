@@ -19,6 +19,8 @@
   value: "admin"
 - name: OSS
   value: "True"
+- name: UWSGI_LISTEN
+  value: "1024"
 {{- end }}
 
 {{- define "snippet.celery.env" -}}
@@ -102,6 +104,8 @@
   value: {{ include "snippet.rabbitmq.host" . }}
 - name: RABBITMQ_PORT
   value: {{ include "snippet.rabbitmq.port" . }}
+- name: RABBITMQ_PROTOCOL
+  value: {{ include "snippet.rabbitmq.protocol" . }}
 {{- end }}
 
 {{- define "snippet.rabbitmq.user" -}}
@@ -125,6 +129,14 @@
 {{- required "externalRabbitmq.port is required if not rabbitmq.enabled" .Values.externalRabbitmq.port | quote }}
 {{- else -}}
 "5672"
+{{- end -}}
+{{- end -}}
+
+{{- define "snippet.rabbitmq.protocol" -}}
+{{- if and (not .Values.rabbitmq.enabled) .Values.externalRabbitmq.protocol -}}
+{{ .Values.externalRabbitmq.protocol | quote }}
+{{- else -}}
+"amqp"
 {{- end -}}
 {{- end -}}
 

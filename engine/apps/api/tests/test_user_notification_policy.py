@@ -450,14 +450,11 @@ def test_switch_wait_delay(
 
 
 @pytest.mark.django_db
-@pytest.mark.parametrize("feature_flag_enabled", [False, True])
 def test_notification_policy_backends_enabled(
-    user_notification_policy_internal_api_setup, settings, make_user_auth_headers, feature_flag_enabled
+    user_notification_policy_internal_api_setup, settings, make_user_auth_headers
 ):
     token, _, users = user_notification_policy_internal_api_setup
     admin, _ = users
-
-    settings.FEATURE_EXTRA_MESSAGING_BACKENDS_ENABLED = feature_flag_enabled
 
     client = APIClient()
     url = reverse("api-internal:notification_policy-notify-by-options")
@@ -465,7 +462,4 @@ def test_notification_policy_backends_enabled(
     response = client.get(url, **make_user_auth_headers(admin, token))
     assert response.status_code == status.HTTP_200_OK
     options = [opt["display_name"] for opt in response.json()]
-    if feature_flag_enabled:
-        assert "Test Only Backend" in options
-    else:
-        assert "Test Only Backend" not in options
+    assert "Test Only Backend" in options

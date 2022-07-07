@@ -72,3 +72,7 @@ jobs:
           source_folder: "docs/sources"
           # Append ".x" to target to produce a v<major>.<minor>.x directory.
           target_folder: "content/docs/oncall/${{ steps.target.outputs.target }}.x"
+          # Allow the workflow to succeed if there are no changes to commit.
+          # This is only going to be true on tags as those events ignore the path
+          # filter in the workflow `on.push` section.
+          allow_no_changes: "true"

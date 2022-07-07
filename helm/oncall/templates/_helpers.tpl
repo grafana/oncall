@@ -85,6 +85,8 @@ Create the name of the service account to use
   image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
   imagePullPolicy: {{ .Values.image.pullPolicy }}
   command: ['sh', '-c', "until (python manage.py migrate --check); do echo Waiting for database migrations; sleep 2; done"]
+  securityContext:
+  {{ toYaml .Values.init.securityContext| nindent 4}}
   env:
     {{- include "snippet.oncall.env" . | nindent 12 }}
     {{- include "snippet.mysql.env" . | nindent 12 }}

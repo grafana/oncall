@@ -11,21 +11,63 @@ Architecture diagram can be found [here](https://raw.githubusercontent.com/grafa
 > separately from this release or use managed PaaS solutions. It will significantly reduce the overhead of managing them
 
 
-Cluster requirements:
+### Cluster requirements
 * ensure you can run x86-64/amd64 workloads. arm64 architecture is currently not supported
 
 ## Install
+### Prepare the repo
+```
+# Add the repository
+helm repo add grafana https://grafana.github.io/helm-charts
+helm repo update
+```
 ### Installing the helm chart
 ```bash
+# Install the chart
 helm install \
     --wait \
     --set base_url=example.com \
     --set grafana."grafana\.ini".server.domain=example.com \
     release-oncall \
-    .
+    grafana/oncall
 ```
 
-Follow the `helm install` output to finish setting up Grafana OnCall backend and Grafana OnCall frontend plugin
+Follow the `helm install` output to finish setting up Grafana OnCall backend and Grafana OnCall frontend plugin e.g.
+```
+👋 Your Grafana OnCall instance has been successfully deployed
+
+  ❗ Set up a DNS record for your domain (use A Record and  "@" to point a root domain to the IP address)
+     Get the external IP address by running the following commands and point example.com to it:
+
+        kubectl get ingress release-oncall -o jsonpath="{.status.loadBalancer.ingress[0].ip}"
+
+     Wait until the dns record got propagated.
+        NOTE: Check with the following command: nslookup example.com
+              Try reaching https://example.com/ready/ from the browser, make sure it is not cached locally
+
+  🦎 Grafana was installed as a part of this helm release. Open https://example.com/grafana/plugins/grafana-oncall-app
+     The User is admin
+     Get password by running this command:
+
+        kubectl get secret --namespace default release-oncall-grafana -o jsonpath="{.data.admin-password}" | base64 --decode ; echo
+
+  🔗 Connect Grafana OnCall Plugin to Grafana OnCall backend:
+
+     Issue the one-time token to connect Grafana OnCall backend and Grafana OnCall plugin by running these commands:
+
+        export POD_NAME=$(kubectl get pods --namespace default -l "app.kubernetes.io/name=oncall,app.kubernetes.io/instance=release-oncall,app.kubernetes.io/component=engine" -o jsonpath="{.items[0].metadata.name}")
+        kubectl exec -it $POD_NAME -- bash -c "python manage.py issue_invite_for_the_frontend --override"
+
+     Fill the Grafana OnCall Backend URL:
+
+          http://release-oncall-engine:8080
+
+     Fill the Grafana URL:
+
+          http://release-oncall-grafana
+
+🎉🎉🎉  Done! 🎉🎉🎉
+```
 
 ## Configuration
 
@@ -37,7 +79,7 @@ helm upgrade \
     --set base_url=example.com \
     --set grafana."grafana\.ini".server.domain=example.com \
     release-oncall \
-    .
+    grafana/oncall
 ```
 
 ### Set up external access
@@ -48,7 +90,7 @@ If you set the DNS A Record pointing to the external IP address of the installat
 To use a different ingress controller or tls certificate management system, set the following values to false and edit ingress settings
 
 ```
-nginx-ingress:
+ingress-nginx:
   enabled: false
 
 cert-manager:

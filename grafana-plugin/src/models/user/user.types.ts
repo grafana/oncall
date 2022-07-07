@@ -54,5 +54,6 @@ export interface User {
   status?: number;
   link?: string;
   cloud_connection_status?: number;
+  hidden_fields?: boolean;
   tz: Timezone;
 }

@@ -1,3 +1,6 @@
+import time
+
+import pytz
 from django.conf import settings
 from rest_framework import serializers
 
@@ -9,6 +12,7 @@ from apps.base.utils import live_settings
 from apps.oss_installation.utils import cloud_user_identity_status
 from apps.twilioapp.utils import check_phone_number_is_valid
 from apps.user_management.models import User
+from apps.user_management.models.user import default_working_hours
 from common.api_helpers.custom_fields import TeamPrimaryKeyRelatedField
 from common.api_helpers.mixins import EagerLoadingMixin
 from common.constants.role import Role
@@ -29,6 +33,7 @@ class UserSerializer(DynamicFieldsModelSerializer, EagerLoadingMixin):
     organization = FastOrganizationSerializer(read_only=True)
     current_team = TeamPrimaryKeyRelatedField(allow_null=True, required=False)
 
+    timezone = serializers.CharField(allow_null=True, required=False)
     avatar = serializers.URLField(source="avatar_url", read_only=True)
 
     permissions = serializers.SerializerMethodField()
@@ -47,6 +52,8 @@ class UserSerializer(DynamicFieldsModelSerializer, EagerLoadingMixin):
             "username",
             "role",
             "avatar",
+            "timezone",
+            "working_hours",
             "unverified_phone_number",
             "verified_phone_number",
             "slack_user_identity",
@@ -62,6 +69,52 @@ class UserSerializer(DynamicFieldsModelSerializer, EagerLoadingMixin):
             "role",
             "verified_phone_number",
         ]
+
+    def validate_timezone(self, tz):
+        if tz is None:
+            return tz
+
+        try:
+            pytz.timezone(tz)
+        except pytz.UnknownTimeZoneError:
+            raise serializers.ValidationError("not a valid timezone")
+
+        return tz
+
+    def validate_working_hours(self, working_hours):
+        if not isinstance(working_hours, dict):
+            raise serializers.ValidationError("must be dict")
+
+        # check that all days are present
+        if sorted(working_hours.keys()) != sorted(default_working_hours().keys()):
+            raise serializers.ValidationError("missing some days")
+
+        for day in working_hours:
+            periods = working_hours[day]
+
+            if not isinstance(periods, list):
+                raise serializers.ValidationError("periods must be list")
+
+            for period in periods:
+                if not isinstance(period, dict):
+                    raise serializers.ValidationError("period must be dict")
+
+                if sorted(period.keys()) != sorted(["start", "end"]):
+                    raise serializers.ValidationError("'start' and 'end' fields must be present")
+
+                if not isinstance(period["start"], str) or not isinstance(period["end"], str):
+                    raise serializers.ValidationError("'start' and 'end' fields must be str")
+
+                try:
+                    start = time.strptime(period["start"], "%H:%M:%S")
+                    end = time.strptime(period["end"], "%H:%M:%S")
+                except ValueError:
+                    raise serializers.ValidationError("'start' and 'end' fields must be in '%H:%M:%S' format")
+
+                if start >= end:
+                    raise serializers.ValidationError("'start' must be less than 'end'")
+
+        return working_hours
 
     def validate_unverified_phone_number(self, value):
         if value:
@@ -110,6 +163,8 @@ class UserHiddenFieldsSerializer(UserSerializer):
         "current_team",
         "username",
         "avatar",
+        "timezone",
+        "working_hours",
         "notification_chain_verbal",
         "permissions",
     ]
@@ -119,6 +174,7 @@ class UserHiddenFieldsSerializer(UserSerializer):
         for field in ret:
             if field not in self.available_for_all_roles_fields:
                 ret[field] = "******"
+        ret["hidden_fields"] = True
         return ret
 
 

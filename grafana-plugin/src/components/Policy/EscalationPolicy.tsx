@@ -11,6 +11,7 @@ import PluginLink from 'components/PluginLink/PluginLink';
 import TimeRange from 'components/TimeRange/TimeRange';
 import Timeline from 'components/Timeline/Timeline';
 import GSelect from 'containers/GSelect/GSelect';
+import RemoteSelect from 'containers/RemoteSelect/RemoteSelect';
 import UserTooltip from 'containers/UserTooltip/UserTooltip';
 import { WithPermissionControl } from 'containers/WithPermissionControl/WithPermissionControl';
 import { ActionDTO } from 'models/action';
@@ -271,14 +272,15 @@ export class EscalationPolicy extends React.Component<EscalationPolicyProps, any
 
     return (
       <WithPermissionControl key="notify_schedule" disableByPaywall userAction={UserAction.UpdateEscalationPolicies}>
-        <GSelect
-          modelName="scheduleStore"
-          displayField="name"
-          valueField="id"
-          placeholder="Select Schedule"
+        <RemoteSelect
+          showSearch={false}
           className={cx('select', 'control')}
           value={notify_schedule}
+          valueField="id"
           onChange={this._getOnChangeHandler('notify_schedule')}
+          href={'/schedules/?short=true'}
+          fieldToShow="name"
+          placeholder="Select Schedule"
         />
       </WithPermissionControl>
     );

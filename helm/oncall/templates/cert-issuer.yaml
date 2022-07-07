@@ -1,4 +1,4 @@
-{{- if (index .Values "cert-manager") }}
+{{- if (index .Values "cert-manager").enabled }}
 apiVersion: cert-manager.io/v1
 kind: Issuer
 metadata:

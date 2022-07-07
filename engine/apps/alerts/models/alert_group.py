@@ -1558,14 +1558,6 @@ class AlertGroup(AlertGroupSlackRenderingMixin, EscalationSnapshotMixin, models.
             return True
 
     @property
-    def notify_in_telegram_enabled(self):
-        channel_filter = self.channel_filter_with_respect_to_escalation_snapshot
-        if channel_filter is not None:
-            return channel_filter.notify_in_telegram
-        else:
-            return True
-
-    @property
     def is_presented_in_slack(self):
         return self.slack_message and self.channel.organization.slack_team_identity
 
