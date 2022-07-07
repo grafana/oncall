@@ -54,8 +54,6 @@ class Alert(models.Model):
     integration_unique_data = JSONField(default=None, null=True)
     raw_request_data = JSONField()
 
-    render_for_web = JSONField()
-
     # This hash is for integration-specific needs
     integration_optimization_hash = models.CharField(max_length=100, db_index=True, default=None, null=True)
 
