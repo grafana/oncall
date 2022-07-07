@@ -1,0 +1,73 @@
+version: '3.2'
+
+services:
+
+  postgres:
+    image: postgres:14.4
+    platform: linux/x86_64
+    mem_limit: 500m
+    cpus: 0.5
+    restart: always
+    ports:
+      - 5432:5432
+    environment:
+      POSTGRES_DB: oncall_local_dev
+      POSTGRES_PASSWORD: empty
+
+  redis:
+    image: redis
+    mem_limit: 100m
+    cpus: 0.1
+    restart: always
+    ports:
+      - 6379:6379
+
+  rabbit:
+    image: "rabbitmq:3.7.15-management"
+    mem_limit: 1000m
+    cpus: 0.5
+    environment:
+      RABBITMQ_DEFAULT_USER: "rabbitmq"
+      RABBITMQ_DEFAULT_PASS: "rabbitmq"
+      RABBITMQ_DEFAULT_VHOST: "/"
+    ports:
+      - 15672:15672
+      - 5672:5672
+
+  mysql:
+    image: mysql:5.7
+    platform: linux/x86_64
+    mem_limit: 500m
+    cpus: 0.5
+    command: --default-authentication-plugin=mysql_native_password --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
+    restart: always
+    ports:
+      - 3306:3306
+    environment:
+      MYSQL_ROOT_PASSWORD: empty
+      MYSQL_DATABASE: grafana
+    healthcheck:
+      test: [ "CMD", "mysqladmin" ,"ping", "-h", "localhost" ]
+      timeout: 20s
+      retries: 10
+
+  grafana:
+    image: "grafana/grafana:9.0.0-beta3"
+    restart: always
+    mem_limit: 500m
+    cpus: 0.5
+    environment:
+      GF_DATABASE_TYPE: mysql
+      GF_DATABASE_HOST: mysql
+      GF_DATABASE_USER: root
+      GF_DATABASE_PASSWORD: empty
+      GF_SECURITY_ADMIN_USER: oncall
+      GF_SECURITY_ADMIN_PASSWORD: oncall
+      GF_PLUGINS_ALLOW_LOADING_UNSIGNED_PLUGINS: grafana-oncall-app
+    volumes:
+      - ./grafana-plugin:/var/lib/grafana/plugins/grafana-plugin
+    ports:
+      - 3000:3000
+    depends_on:
+      mysql:
+        condition: service_healthy
