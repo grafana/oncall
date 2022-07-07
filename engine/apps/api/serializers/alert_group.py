@@ -37,7 +37,7 @@ class AlertGroupListSerializer(EagerLoadingMixin, serializers.ModelSerializer):
     dependent_alert_groups = ShortAlertGroupSerializer(many=True)
     root_alert_group = ShortAlertGroupSerializer()
 
-    alert_count = serializers.IntegerField(read_only=True)
+    alerts_count = serializers.IntegerField(read_only=True)
     render_for_web = serializers.SerializerMethodField()
 
     PREFETCH_RELATED = [
@@ -57,7 +57,7 @@ class AlertGroupListSerializer(EagerLoadingMixin, serializers.ModelSerializer):
         model = AlertGroup
         fields = [
             "pk",
-            "alert_count",
+            "alerts_count",
             "inside_organization_number",
             "verbose_name",
             "alert_receive_channel",
