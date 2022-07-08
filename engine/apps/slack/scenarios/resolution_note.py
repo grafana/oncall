@@ -237,6 +237,7 @@ class ResolutionNoteModalStep(CheckAlertIsUnarchivedMixin, scenario_step.Scenari
     ]
 
     RESOLUTION_NOTE_TEXT_BLOCK_ID = "resolution_note_text"
+    RESOLUTION_NOTE_MESSAGES_MAX_COUNT = 25
 
     def process_scenario(self, slack_user_identity, slack_team_identity, payload, action=None, data=None):
         AlertGroup = apps.get_model("alerts", "AlertGroup")
@@ -299,7 +300,27 @@ class ResolutionNoteModalStep(CheckAlertIsUnarchivedMixin, scenario_step.Scenari
         blocks = []
 
         other_resolution_notes = alert_group.resolution_notes.filter(~Q(source=ResolutionNote.Source.SLACK))
-        resolution_note_slack_messages = alert_group.resolution_note_slack_messages.filter(posted_by_bot=False)
+        resolution_note_slack_messages = alert_group.resolution_note_slack_messages.filter(
+            posted_by_bot=False
+        ).order_by("-pk")
+        if resolution_note_slack_messages.count() > self.RESOLUTION_NOTE_MESSAGES_MAX_COUNT:
+            blocks.extend(
+                [
+                    {
+                        "type": "divider",
+                    },
+                    {
+                        "type": "section",
+                        "text": {
+                            "type": "mrkdwn",
+                            "text": (
+                                ":warning: Listing up to last {} thread messages, "
+                                "you can still add any other message using contextual menu actions."
+                            ).format(self.RESOLUTION_NOTE_MESSAGES_MAX_COUNT),
+                        },
+                    },
+                ]
+            )
         if action_resolve:
             blocks.extend(
                 [
@@ -333,7 +354,7 @@ class ResolutionNoteModalStep(CheckAlertIsUnarchivedMixin, scenario_step.Scenari
                 ]
             )
 
-        for message in resolution_note_slack_messages:
+        for message in resolution_note_slack_messages[: self.RESOLUTION_NOTE_MESSAGES_MAX_COUNT]:
             user_verbal = message.user.get_user_verbal_for_team_for_slack(mention=True)
             blocks.append(
                 {
