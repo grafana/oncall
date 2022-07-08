@@ -11,9 +11,10 @@ from apps.public_api.custom_renderers import CalendarRenderer
 from apps.public_api.serializers import PolymorphicScheduleSerializer, PolymorphicScheduleUpdateSerializer
 from apps.public_api.throttlers.user_throttle import UserThrottle
 from apps.schedules.ical_utils import ical_export_from_schedule
-from apps.schedules.models import OnCallSchedule
+from apps.schedules.models import OnCallSchedule, OnCallScheduleWeb
 from apps.slack.tasks import update_slack_user_group_for_schedules
 from apps.user_management.organization_log_creator import OrganizationLogType, create_organization_log
+from common.api_helpers.exceptions import BadRequest
 from common.api_helpers.filters import ByTeamFilter
 from common.api_helpers.mixins import RateLimitHeadersMixin, UpdateSerializerMixin
 from common.api_helpers.paginators import FiftyPageSizePaginator
@@ -55,6 +56,9 @@ class OnCallScheduleChannelView(RateLimitHeadersMixin, UpdateSerializerMixin, Mo
             raise NotFound
 
     def perform_create(self, serializer):
+        if serializer.validated_data["type"] == "web":
+            raise BadRequest(detail="Web schedule creation is not enabled through API")
+
         serializer.save()
         instance = serializer.instance
 
@@ -67,6 +71,9 @@ class OnCallScheduleChannelView(RateLimitHeadersMixin, UpdateSerializerMixin, Mo
         create_organization_log(organization, user, OrganizationLogType.TYPE_SCHEDULE_CREATED, description)
 
     def perform_update(self, serializer):
+        if isinstance(serializer.instance, OnCallScheduleWeb):
+            raise BadRequest(detail="Web schedule update is not enabled through API")
+
         organization = self.request.auth.organization
         user = self.request.user
         old_state = serializer.instance.repr_settings_for_client_side_logging
