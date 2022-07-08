@@ -198,24 +198,8 @@ def test_create_web_schedule(make_organization_and_user_with_token):
     }
 
     response = client.post(url, data=data, format="json", HTTP_AUTHORIZATION=f"{token}")
-    schedule = OnCallSchedule.objects.get(public_primary_key=response.data["id"])
-
-    result = {
-        "id": schedule.public_primary_key,
-        "team_id": None,
-        "name": schedule.name,
-        "type": "web",
-        "time_zone": "Europe/Moscow",
-        "on_call_now": [],
-        "shifts": [],
-        "slack": {
-            "channel_id": None,
-            "user_group_id": None,
-        },
-    }
-
-    assert response.status_code == status.HTTP_201_CREATED
-    assert response.json() == result
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert response.json() == {"detail": "Web schedule creation is not enabled through API"}
 
 
 @pytest.mark.django_db
@@ -246,26 +230,8 @@ def test_update_web_schedule(
     assert schedule.time_zone != data["time_zone"]
 
     response = client.put(url, data=data, format="json", HTTP_AUTHORIZATION=f"{token}")
-
-    result = {
-        "id": schedule.public_primary_key,
-        "team_id": None,
-        "name": data["name"],
-        "type": "web",
-        "time_zone": data["time_zone"],
-        "on_call_now": [],
-        "shifts": [],
-        "slack": {
-            "channel_id": "SLACKCHANNELID",
-            "user_group_id": None,
-        },
-    }
-
-    assert response.status_code == status.HTTP_200_OK
-    schedule.refresh_from_db()
-    assert schedule.name == data["name"]
-    assert schedule.time_zone == data["time_zone"]
-    assert response.json() == result
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert response.json() == {"detail": "Web schedule update is not enabled through API"}
 
 
 @pytest.mark.django_db
@@ -425,21 +391,8 @@ def test_update_web_schedule_with_override(
     }
 
     response = client.put(url, data=data, format="json", HTTP_AUTHORIZATION=f"{token}")
-    expected = {
-        "id": schedule.public_primary_key,
-        "team_id": None,
-        "name": schedule.name,
-        "type": "web",
-        "time_zone": schedule.time_zone,
-        "on_call_now": [],
-        "shifts": data["shifts"],
-        "slack": {
-            "channel_id": None,
-            "user_group_id": None,
-        },
-    }
-    assert response.status_code == status.HTTP_200_OK
-    assert response.json() == expected
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert response.json() == {"detail": "Web schedule update is not enabled through API"}
 
 
 @pytest.mark.django_db
