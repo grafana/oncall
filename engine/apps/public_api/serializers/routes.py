@@ -24,10 +24,10 @@ class BaseChannelFilterSerializer(OrderedModelSerializerMixin, serializers.Model
 
     def to_representation(self, instance):
         result = super().to_representation(instance)
-        result["slack"] = {"channel_id": instance.slack_channel_id, "enabled": instance.notify_in_slack is True}
+        result["slack"] = {"channel_id": instance.slack_channel_id, "enabled": bool(instance.notify_in_slack)}
         result["telegram"] = {
             "id": instance.telegram_channel.public_primary_key if instance.telegram_channel else None,
-            "enabled": instance.notify_in_telegram is True,
+            "enabled": bool(instance.notify_in_telegram),
         }
         # add representation for other messaging backends
         for backend_id, backend in get_messaging_backends():
@@ -38,7 +38,7 @@ class BaseChannelFilterSerializer(OrderedModelSerializerMixin, serializers.Model
             notification_enabled = False
             if instance.notification_backends and instance.notification_backends.get(backend_id):
                 channel_id = instance.notification_backends[backend_id].get("channel")
-                notification_enabled = instance.notification_backends[backend_id].get("enabled") is True
+                notification_enabled = bool(instance.notification_backends[backend_id].get("enabled"))
             result[field] = {"id": channel_id, "enabled": notification_enabled}
         return result
 
@@ -50,14 +50,14 @@ class BaseChannelFilterSerializer(OrderedModelSerializerMixin, serializers.Model
             if "channel_id" in slack_field:
                 validated_data["slack_channel_id"] = self._validate_slack_channel_id(slack_field.get("channel_id"))
             if "enabled" in slack_field:
-                validated_data["notify_in_slack"] = slack_field.get("enabled") is True
+                validated_data["notify_in_slack"] = bool(slack_field.get("enabled"))
 
         telegram_field = validated_data.pop("telegram", {})
         if telegram_field:
             if "id" in telegram_field:
                 validated_data["telegram_channel"] = self._validate_telegram_channel(telegram_field.get("id"))
             if "enabled" in telegram_field:
-                validated_data["notify_in_telegram"] = telegram_field.get("enabled") is True
+                validated_data["notify_in_telegram"] = bool(telegram_field.get("enabled"))
 
         notification_backends = {}
         for backend_id, backend in get_messaging_backends():
