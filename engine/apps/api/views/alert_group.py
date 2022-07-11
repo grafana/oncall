@@ -1,7 +1,7 @@
 from datetime import datetime, timedelta
 
 from django import forms
-from django.db.models import Q
+from django.db.models import Count, Max, Q
 from django.utils import timezone
 from django_filters import rest_framework as filters
 from django_filters.widgets import RangeWidget
@@ -12,7 +12,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
 from apps.alerts.constants import ActionSource
-from apps.alerts.models import AlertGroup, AlertReceiveChannel
+from apps.alerts.models import Alert, AlertGroup, AlertReceiveChannel
 from apps.api.permissions import MODIFY_ACTIONS, READ_ACTIONS, ActionPermission, AnyRole, IsAdminOrEditor
 from apps.api.serializers.alert_group import AlertGroupListSerializer, AlertGroupSerializer
 from apps.auth_token.auth import MobileAppAuthTokenAuthentication, PluginAuthentication
@@ -198,14 +198,66 @@ class AlertGroupView(
         return super().get_serializer_class()
 
     def get_queryset(self):
-        queryset = AlertGroup.unarchived_objects.filter(
-            channel__organization=self.request.auth.organization,
-            channel__team=self.request.user.current_team,
-        ).order_by("-started_at")
+        # make a separate query to fetch all the integrations for current organization and team (it's faster)
+        alert_receive_channel_pks = AlertReceiveChannel.objects_with_deleted.filter(
+            organization=self.request.auth.organization, team=self.request.user.current_team
+        ).values_list("pk", flat=True)
+        alert_receive_channel_pks = list(alert_receive_channel_pks)
 
-        queryset = self.get_serializer_class().setup_eager_loading(queryset)
+        # no select_related or prefetch_related is used at this point, it will be done on paginate_queryset.
+        queryset = AlertGroup.unarchived_objects.filter(channel_id__in=alert_receive_channel_pks).order_by("-pk")
 
         return queryset
+
+    def paginate_queryset(self, queryset):
+        """
+        All SQL joins (select_related and prefetch_related) will be performed AFTER pagination, so it only joins tables
+        for 25 alert groups, not the whole table.
+        """
+        alert_groups = super().paginate_queryset(queryset)
+        alert_groups = self.enrich(alert_groups)
+        return alert_groups
+
+    def get_object(self):
+        obj = super().get_object()
+        obj = self.enrich([obj])[0]
+        return obj
+
+    def enrich(self, alert_groups):
+        """
+        This method performs select_related and prefetch_related (using setup_eager_loading) as well as in-memory joins
+        to add additional info like alert_count and last_alert for every alert group efficiently.
+        We need the last_alert because it's used by AlertGroupWebRenderer.
+        """
+
+        # enrich alert groups with select_related and prefetch_related
+        alert_group_pks = [alert_group.pk for alert_group in alert_groups]
+        queryset = AlertGroup.all_objects.filter(pk__in=alert_group_pks).order_by("-pk")
+        queryset = self.get_serializer_class().setup_eager_loading(queryset)
+        alert_groups = list(queryset)
+
+        # get info on alerts count and last alert ID for every alert group
+        alerts_info = (
+            Alert.objects.values("group_id")
+            .filter(group_id__in=alert_group_pks)
+            .annotate(alerts_count=Count("group_id"), last_alert_id=Max("id"))
+        )
+        alerts_info_map = {info["group_id"]: info for info in alerts_info}
+
+        # fetch last alerts for every alert group
+        last_alert_ids = [info["last_alert_id"] for info in alerts_info_map.values()]
+        last_alerts = Alert.objects.filter(pk__in=last_alert_ids)
+        for alert in last_alerts:
+            # link group back to alert
+            alert.group = [alert_group for alert_group in alert_groups if alert_group.pk == alert.group_id][0]
+            alerts_info_map[alert.group_id].update({"last_alert": alert})
+
+        # add additional "alerts_count" and "last_alert" fields to every alert group
+        for alert_group in alert_groups:
+            alert_group.last_alert = alerts_info_map[alert_group.pk]["last_alert"]
+            alert_group.alerts_count = alerts_info_map[alert_group.pk]["alerts_count"]
+
+        return alert_groups
 
     def get_alert_groups_and_days_for_previous_same_period(self):
         prev_alert_groups = AlertGroup.unarchived_objects.none()
