@@ -10,6 +10,7 @@ from rest_framework.test import APIClient
 
 from apps.base.constants import ADMIN_PERMISSIONS, EDITOR_PERMISSIONS
 from apps.base.models import UserNotificationPolicy
+from apps.user_management.models.user import default_working_hours
 from common.constants.role import Role
 
 
@@ -67,6 +68,8 @@ def test_update_user_cant_change_email_and_username(
         "email": admin.email,
         "username": admin.username,
         "role": admin.role,
+        "timezone": None,
+        "working_hours": default_working_hours(),
         "unverified_phone_number": phone_number,
         "verified_phone_number": None,
         "telegram_configuration": None,
@@ -113,6 +116,8 @@ def test_list_users(
                 "email": admin.email,
                 "username": admin.username,
                 "role": admin.role,
+                "timezone": None,
+                "working_hours": default_working_hours(),
                 "unverified_phone_number": None,
                 "verified_phone_number": None,
                 "telegram_configuration": None,
@@ -134,6 +139,8 @@ def test_list_users(
                 "email": editor.email,
                 "username": editor.username,
                 "role": editor.role,
+                "timezone": None,
+                "working_hours": default_working_hours(),
                 "unverified_phone_number": None,
                 "verified_phone_number": None,
                 "telegram_configuration": None,
@@ -1485,3 +1492,103 @@ def test_viewer_cant_unlink_backend_another_user(
 
     response = client.post(url, format="json", **make_user_auth_headers(second_user, token))
     assert response.status_code == status.HTTP_403_FORBIDDEN
+
+
+@pytest.mark.django_db
+def test_change_timezone(
+    make_organization, make_user_for_organization, make_token_for_organization, make_user_auth_headers
+):
+    organization = make_organization()
+    user = make_user_for_organization(organization, role=Role.EDITOR)
+    _, token = make_token_for_organization(organization)
+
+    client = APIClient()
+    url = reverse("api-internal:user-detail", kwargs={"pk": user.public_primary_key})
+
+    data = {"timezone": "Europe/London"}
+
+    response = client.put(f"{url}", data, format="json", **make_user_auth_headers(user, token))
+    assert response.status_code == status.HTTP_200_OK
+    assert "timezone" in response.json()
+    assert response.json()["timezone"] == "Europe/London"
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize("timezone", ["", 1, "NotATimezone"])
+def test_invalid_timezone(
+    make_organization, make_user_for_organization, make_token_for_organization, make_user_auth_headers, timezone
+):
+    organization = make_organization()
+    user = make_user_for_organization(organization, role=Role.EDITOR)
+    _, token = make_token_for_organization(organization)
+
+    client = APIClient()
+    url = reverse("api-internal:user-detail", kwargs={"pk": user.public_primary_key})
+
+    data = {"timezone": timezone}
+
+    response = client.put(f"{url}", data, format="json", **make_user_auth_headers(user, token))
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+
+
+@pytest.mark.django_db
+def test_change_working_hours(
+    make_organization, make_user_for_organization, make_token_for_organization, make_user_auth_headers
+):
+    organization = make_organization()
+    user = make_user_for_organization(organization, role=Role.EDITOR)
+    _, token = make_token_for_organization(organization)
+
+    client = APIClient()
+    url = reverse("api-internal:user-detail", kwargs={"pk": user.public_primary_key})
+
+    periods = [{"start": "05:00:00", "end": "23:00:00"}]
+    working_hours = {
+        day: periods for day in ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"]
+    }
+
+    data = {"working_hours": working_hours}
+
+    response = client.put(f"{url}", data, format="json", **make_user_auth_headers(user, token))
+    assert response.status_code == status.HTTP_200_OK
+    assert "working_hours" in response.json()
+    assert response.json()["working_hours"] == working_hours
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize(
+    "working_hours_extra",
+    [
+        {},
+        {"sunday": 1},
+        {"sunday": ""},
+        {"sunday": {"start": "18:00:00"}},
+        {"sunday": {"start": "", "end": ""}},
+        {"sunday": {"start": "18:00:00", "end": None}},
+        {"sunday": {"start": "18:00:00", "end": "18:00:00"}},
+        {"sunday": {"start": "18:00:00", "end": "9:00:00"}},
+        {"sunday": {"start": "18:00:00", "end": "9:00:00", "extra": 1}},
+    ],
+)
+def test_invalid_working_hours(
+    make_organization,
+    make_user_for_organization,
+    make_token_for_organization,
+    make_user_auth_headers,
+    working_hours_extra,
+):
+    organization = make_organization()
+    user = make_user_for_organization(organization, role=Role.EDITOR)
+    _, token = make_token_for_organization(organization)
+
+    client = APIClient()
+    url = reverse("api-internal:user-detail", kwargs={"pk": user.public_primary_key})
+
+    periods = [{"start": "05:00:00", "end": "23:00:00"}]
+    working_hours = {day: periods for day in ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday"]}
+    working_hours.update(working_hours_extra)
+
+    data = {"working_hours": working_hours}
+    response = client.put(f"{url}", data, format="json", **make_user_auth_headers(user, token))
+
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
