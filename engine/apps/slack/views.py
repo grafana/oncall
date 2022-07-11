@@ -15,8 +15,8 @@ from apps.api.permissions import IsAdmin, MethodPermission
 from apps.auth_token.auth import PluginAuthentication
 from apps.base.utils import live_settings
 from apps.slack.scenarios.alertgroup_appearance import STEPS_ROUTING as ALERTGROUP_APPEARANCE_ROUTING
-from apps.slack.scenarios.ancillary import STEPS_ROUTING as ANCILLARY_ROUTING
 from apps.slack.scenarios.distribute_alerts import STEPS_ROUTING as DISTRIBUTION_STEPS_ROUTING
+from apps.slack.scenarios.invited_to_channel import STEPS_ROUTING as INVITED_TO_CHANNEL_ROUTING
 from apps.slack.scenarios.manual_incident import STEPS_ROUTING as MANUAL_INCIDENT_ROUTING
 
 # Importing routes from scenarios
@@ -58,7 +58,7 @@ from .models import SlackActionRecord, SlackMessage, SlackTeamIdentity, SlackUse
 SCENARIOS_ROUTES = []  # Add all other routes here
 SCENARIOS_ROUTES.extend(ONBOARDING_STEPS_ROUTING)
 SCENARIOS_ROUTES.extend(DISTRIBUTION_STEPS_ROUTING)
-SCENARIOS_ROUTES.extend(ANCILLARY_ROUTING)
+SCENARIOS_ROUTES.extend(INVITED_TO_CHANNEL_ROUTING)
 SCENARIOS_ROUTES.extend(SCHEDULES_ROUTING)
 SCENARIOS_ROUTES.extend(SLACK_CHANNEL_INTEGRATION_ROUTING)
 SCENARIOS_ROUTES.extend(ALERTGROUP_APPEARANCE_ROUTING)

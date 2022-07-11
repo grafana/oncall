@@ -17,8 +17,11 @@ MANUAL_INCIDENT_MESSAGE_INPUT_ID = "manual_incident_message_input"
 DEFAULT_TEAM_VALUE = "default_team"
 
 
-# StartCreateIncidentFromMessage triggers creation of a manual incident from the slack message via submenu
 class StartCreateIncidentFromMessage(scenario_step.ScenarioStep):
+    """
+    StartCreateIncidentFromMessage triggers creation of a manual incident from the slack message via submenu
+    """
+
     callback_id = [
         "incident_create",
         "incident_create_staging",
@@ -59,8 +62,11 @@ class StartCreateIncidentFromMessage(scenario_step.ScenarioStep):
         )
 
 
-# FinishCreateIncidentFromMessage creates a manual incident from the slack message via submenu
 class FinishCreateIncidentFromMessage(scenario_step.ScenarioStep):
+    """
+    FinishCreateIncidentFromMessage creates a manual incident from the slack message via submenu
+    """
+
     def process_scenario(self, slack_user_identity, slack_team_identity, payload, action=None):
         Alert = apps.get_model("alerts", "Alert")
 
@@ -79,7 +85,10 @@ class FinishCreateIncidentFromMessage(scenario_step.ScenarioStep):
             team=selected_team,
             integration=AlertReceiveChannel.INTEGRATION_MANUAL,
             deleted_at=None,
-            defaults={"author": user},
+            defaults={
+                "author": user,
+                "verbal_name": f"Manual incidents ({selected_team.name if selected_team else 'General'} team)",
+            },
         )
 
         author_username = slack_user_identity.slack_verbal
@@ -136,8 +145,11 @@ class FinishCreateIncidentFromMessage(scenario_step.ScenarioStep):
                 raise e
 
 
-# StartCreateIncidentFromSlashCommand triggers creation of a manual incident from the slack message via slash command
 class StartCreateIncidentFromSlashCommand(scenario_step.ScenarioStep):
+    """
+    StartCreateIncidentFromSlashCommand triggers creation of a manual incident from the slack message via slash command
+    """
+
     command_name = [settings.SLACK_SLASH_COMMAND_NAME]
     TITLE_INPUT_BLOCK_ID = "TITLE_INPUT"
     MESSAGE_INPUT_BLOCK_ID = "MESSAGE_INPUT"
@@ -171,8 +183,11 @@ class StartCreateIncidentFromSlashCommand(scenario_step.ScenarioStep):
         )
 
 
-# FinishCreateIncidentFromSlashCommand creates a manual incident from the slack message via slash message
 class FinishCreateIncidentFromSlashCommand(scenario_step.ScenarioStep):
+    """
+    FinishCreateIncidentFromSlashCommand creates a manual incident from the slack message via slash message
+    """
+
     def process_scenario(self, slack_user_identity, slack_team_identity, payload, action=None):
         Alert = apps.get_model("alerts", "Alert")
 
@@ -194,7 +209,10 @@ class FinishCreateIncidentFromSlashCommand(scenario_step.ScenarioStep):
             team=selected_team,
             integration=AlertReceiveChannel.INTEGRATION_MANUAL,
             deleted_at=None,
-            defaults={"author": user},
+            defaults={
+                "author": user,
+                "verbal_name": f"Manual incidents ({selected_team.name if selected_team else 'General'} team)",
+            },
         )
 
         author_username = slack_user_identity.slack_verbal
@@ -243,6 +261,8 @@ class FinishCreateIncidentFromSlashCommand(scenario_step.ScenarioStep):
 
 # OnChange steps responsible for rerendering manual incident creation form on change values in selects.
 # They are works both with incident creation from submenu and slack command.
+
+
 class OnOrgChange(scenario_step.ScenarioStep):
     def process_scenario(self, slack_user_identity, slack_team_identity, payload, action=None):
         private_metadata = json.loads(payload["view"]["private_metadata"])
@@ -264,6 +284,7 @@ class OnOrgChange(scenario_step.ScenarioStep):
             deleted_at=None,
             defaults={
                 "author": user,
+                "verbal_name": f"Manual incidents ({selected_team.name if selected_team else 'General'} team)",
             },
         )
         selected_route = manual_integration.default_channel_filter
@@ -304,7 +325,10 @@ class OnTeamChange(scenario_step.ScenarioStep):
             team=selected_team,
             integration=AlertReceiveChannel.INTEGRATION_MANUAL,
             deleted_at=None,
-            defaults={"author": user},
+            defaults={
+                "author": user,
+                "verbal_name": f"Manual incidents ({selected_team.name if selected_team else 'General'} team)",
+            },
         )
         initial_route = manual_integration.default_channel_filter
 
@@ -326,9 +350,11 @@ class OnTeamChange(scenario_step.ScenarioStep):
         )
 
 
-# OnRouteChange is just a plug to handle change of value on route select.
-# It's not needed to rerender anything.
 class OnRouteChange(scenario_step.ScenarioStep):
+    """
+    OnRouteChange is just a plug to handle change of value on route select
+    """
+
     def process_scenario(self, slack_user_identity, slack_team_identity, payload, action=None):
         pass
 
@@ -380,7 +406,10 @@ def _get_manual_incident_initial_form_fields(
         team=initial_team,
         integration=AlertReceiveChannel.INTEGRATION_MANUAL,
         deleted_at=None,
-        defaults={"author": user},
+        defaults={
+            "author": user,
+            "verbal_name": f"Manual incidents ({initial_team.name if initial_team else 'General'} team)",
+        },
     )
 
     initial_route = manual_integration.default_channel_filter
