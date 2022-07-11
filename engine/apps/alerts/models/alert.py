@@ -122,6 +122,8 @@ class Alert(models.Model):
             is_the_first_alert_in_group=group_created,
         )
 
+        alert.save()
+
         maintenance_uuid = None
         if alert_receive_channel.organization.maintenance_mode == AlertReceiveChannel.MAINTENANCE:
             maintenance_uuid = alert_receive_channel.organization.maintenance_uuid
