@@ -32,7 +32,7 @@ def construct_expected_response_from_incidents(incidents):
                 "id": incident.public_primary_key,
                 "integration_id": incident.channel.public_primary_key,
                 "route_id": incident.channel_filter.public_primary_key,
-                "alerts_count": incident.alerts_count,
+                "alerts_count": incident.alerts.count(),
                 "state": incident.state,
                 "created_at": created_at,
                 "resolved_at": resolved_at,
