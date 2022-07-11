@@ -118,20 +118,24 @@ export class ScheduleStore extends BaseStore {
     const response = await new Promise((resolve, reject) => {
       function getUsers() {
         const rnd = Math.random();
+        /*
 
         if (rnd > 0.66) {
           return [];
         }
+*/
 
         const users = [
-          'UCXTPJYKQHFW6',
-          'UFYP8IJV9BZDE',
-          'U122EFECQFN9Y',
-          'UZ2LWBDAZE962',
-          'U87ZI7PRWF7K1',
-          'U2VY9ZP5A1XKL',
-          'UTA6SS7RL3HC7',
-          'UAYAYSDVG5MYH',
+          'UQEAACAGQ5JHL',
+          'UEHYTCX4AMX75',
+          'U3U8343UTJ91U',
+          'UTNF7TCGBPADM',
+          'UWPPUTZHCC9U5',
+          'UDUG977U8V8AX',
+          'UNN22BHCXZ6TR',
+          'UTKBFZH8HM1TF',
+          'U1DJX6WMFTWY7',
+          'UPZ7AJPKVJL9K',
         ];
 
         if (rnd > 0.33) {
@@ -151,8 +155,9 @@ export class ScheduleStore extends BaseStore {
         const shifts = [];
         for (let i = 0; i < 14; i++) {
           shifts.push({
-            start: dayjs(startMoment).add(3 * i, 'hour'),
-            duration: (Math.floor(Math.random() * 6) + 10) * 60 * 60,
+            start: dayjs(startMoment).add(12 * i, 'hour'),
+            //duration: (Math.floor(Math.random() * 6) + 10) * 60 * 60,
+            duration: 12 * 60 * 60,
             users: getUsers(),
           });
         }

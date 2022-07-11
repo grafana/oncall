@@ -3,6 +3,9 @@ import React, { useEffect, useMemo } from 'react';
 import { AppRootProps } from '@grafana/data';
 import { Button, HorizontalGroup, LinkButton, VerticalGroup } from '@grafana/ui';
 import dayjs from 'dayjs';
+import isSameOrAfter from 'dayjs/plugin/isSameOrAfter';
+import isSameOrBefore from 'dayjs/plugin/isSameOrBefore';
+import localeData from 'dayjs/plugin/localeData';
 import timezone from 'dayjs/plugin/timezone';
 import utc from 'dayjs/plugin/utc';
 import weekday from 'dayjs/plugin/weekday';
@@ -21,6 +24,9 @@ import { useNavModel } from 'utils/hooks';
 dayjs.extend(utc);
 dayjs.extend(timezone);
 dayjs.extend(weekday);
+dayjs.extend(localeData);
+dayjs.extend(isSameOrBefore);
+dayjs.extend(isSameOrAfter);
 
 // dayjs().weekday(0);
 

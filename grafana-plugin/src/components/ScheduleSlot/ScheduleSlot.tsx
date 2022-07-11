@@ -6,6 +6,7 @@ import { observer } from 'mobx-react';
 
 import Line from 'components/ScheduleUserDetails/img/line.svg';
 import Text from 'components/Text/Text';
+import WorkingHours from 'components/WorkingHours/WorkingHours';
 import { Shift } from 'models/schedule/schedule.types';
 import { User } from 'models/user/user.types';
 import { useStore } from 'state/useStore';
@@ -57,7 +58,15 @@ const ScheduleSlot: FC<ScheduleSlotProps> = observer((props) => {
                   backgroundColor: color,
                 }}
               >
-                <div style={{ left: `${left}%`, right: `${right}%` }} className={cx('striped')} />
+                {storeUser && (
+                  <WorkingHours
+                    className={cx('working-hours')}
+                    timezone={storeUser.timezone}
+                    workingHours={storeUser.working_hours}
+                    startMoment={shift.start}
+                    duration={shift.duration}
+                  />
+                )}
                 {label && (
                   <div className={cx('label')} style={{ color }}>
                     {label}

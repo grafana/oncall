@@ -4,6 +4,10 @@
     margin-top: 24px;
 }
 
+.header{
+    position: sticky;
+}
+
 .desc{
     width: 736px;
 }

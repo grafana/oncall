@@ -39,12 +39,12 @@ class Rotations extends Component<RotationsProps, RotationsState> {
 
     const layers = [
       { id: 0, title: 'Layer 1' },
-      { id: 1, title: 'Layer 2' },
+      /* { id: 1, title: 'Layer 2' },
       { id: 2, title: 'Layer 3' },
-      { id: 3, title: 'Layer 4' },
+      { id: 3, title: 'Layer 4' },*/
     ];
 
-    const rotations = [{}, {}];
+    const rotations = [{} /*, {}*/];
 
     return (
       <>

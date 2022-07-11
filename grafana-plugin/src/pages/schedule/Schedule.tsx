@@ -62,43 +62,45 @@ class SchedulePage extends React.Component<SchedulePageProps, SchedulePageState>
     return (
       <div className={cx('root')}>
         <VerticalGroup spacing="lg">
-          <HorizontalGroup justify="space-between">
-            <HorizontalGroup>
-              <PluginLink query={{ page: 'schedules' }}>
-                <IconButton style={{ marginTop: '5px' }} name="arrow-left" size="xxl" />
-              </PluginLink>
-              <Text.Title level={3}>Schedule Team {query.id}</Text.Title>
-              <ScheduleCounter
-                type="link"
-                count={5}
-                tooltipTitle="Used in escalations"
-                tooltipContent={
-                  <>
-                    <PluginLink query={{ page: 'integrations', id: 'CXBEG63MBJMDL' }}>Grafana 1</PluginLink>
-                    <br />
-                    <PluginLink query={{ page: 'integrations', id: 'CXBEG63MBJMDL' }}>Grafana 2</PluginLink>
-                    <br />
-                    <PluginLink query={{ page: 'integrations', id: 'CXBEG63MBJMDL' }}>Grafana 3</PluginLink>
-                  </>
-                }
-              />
-              <ScheduleCounter
-                type="warning"
-                count={2}
-                tooltipTitle="Warnings"
-                tooltipContent="Schedule has unassigned time periods during next 7 days"
-              />
+          <div className={cx('header')}>
+            <HorizontalGroup justify="space-between">
+              <HorizontalGroup>
+                <PluginLink query={{ page: 'schedules' }}>
+                  <IconButton style={{ marginTop: '5px' }} name="arrow-left" size="xxl" />
+                </PluginLink>
+                <Text.Title level={3}>Schedule Team {query.id}</Text.Title>
+                <ScheduleCounter
+                  type="link"
+                  count={5}
+                  tooltipTitle="Used in escalations"
+                  tooltipContent={
+                    <>
+                      <PluginLink query={{ page: 'integrations', id: 'CXBEG63MBJMDL' }}>Grafana 1</PluginLink>
+                      <br />
+                      <PluginLink query={{ page: 'integrations', id: 'CXBEG63MBJMDL' }}>Grafana 2</PluginLink>
+                      <br />
+                      <PluginLink query={{ page: 'integrations', id: 'CXBEG63MBJMDL' }}>Grafana 3</PluginLink>
+                    </>
+                  }
+                />
+                <ScheduleCounter
+                  type="warning"
+                  count={2}
+                  tooltipTitle="Warnings"
+                  tooltipContent="Schedule has unassigned time periods during next 7 days"
+                />
+              </HorizontalGroup>
+              <HorizontalGroup>
+                <UserTimezoneSelect value={tz} users={users} onChange={this.handleTimezoneChange} />
+                <ScheduleQuality quality={0.89} />
+                <ToolbarButton icon="copy" tooltip="Copy" />
+                <ToolbarButton icon="brackets-curly" tooltip="Code" />
+                <ToolbarButton icon="share-alt" tooltip="Share" />
+                <ToolbarButton icon="cog" tooltip="Settings" />
+                <ToolbarButton icon="trash-alt" tooltip="Delete" />
+              </HorizontalGroup>
             </HorizontalGroup>
-            <HorizontalGroup>
-              <UserTimezoneSelect value={tz} users={users} onChange={this.handleTimezoneChange} />
-              <ScheduleQuality quality={0.89} />
-              <ToolbarButton icon="copy" tooltip="Copy" />
-              <ToolbarButton icon="brackets-curly" tooltip="Code" />
-              <ToolbarButton icon="share-alt" tooltip="Share" />
-              <ToolbarButton icon="cog" tooltip="Settings" />
-              <ToolbarButton icon="trash-alt" tooltip="Delete" />
-            </HorizontalGroup>
-          </HorizontalGroup>
+          </div>
           <Text className={cx('desc')} size="small" type="secondary">
             On-call Schedules. Use this to distribute notifications among team members you specified in the "Notify
             Users from on-call schedule" step in escalation chains.

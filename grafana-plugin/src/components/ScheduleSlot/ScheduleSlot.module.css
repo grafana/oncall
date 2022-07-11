@@ -7,6 +7,11 @@
     gap: 4px;
 }
 
+.working-hours{
+    position: absolute;
+    top: 0;
+    left: 0;
+}
 
 .stack {
     display: flex;
@@ -22,6 +27,7 @@
     background: rgba(209, 14, 92, 0.2);
     border: 1px dashed #FF5286;
     color: rgba(209, 14, 92, .5);
+    visibility: hidden;
 }
 
 .root__inactive {

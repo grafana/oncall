@@ -100,7 +100,7 @@ export class UserStore extends BaseStore {
           ...acc,
           [item.pk]: {
             ...item,
-            tz: getRandomTimezone(),
+            timezone: getRandomTimezone(),
             working_hours: {
               monday: [{ start: '09:00:00', end: '18:00:00' }],
               tuesday: [{ start: '09:00:00', end: '18:00:00' }],
@@ -115,8 +115,6 @@ export class UserStore extends BaseStore {
         {}
       ),
     };
-
-    console.log(this.items);
 
     this.searchResult = {
       count,
