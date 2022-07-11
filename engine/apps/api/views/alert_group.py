@@ -205,7 +205,7 @@ class AlertGroupView(
         alert_receive_channel_pks = list(alert_receive_channel_pks)
 
         # no select_related or prefetch_related is used at this point, it will be done on paginate_queryset.
-        queryset = AlertGroup.unarchived_objects.filter(channel_id__in=alert_receive_channel_pks).order_by("-pk")
+        queryset = AlertGroup.unarchived_objects.filter(channel_id__in=alert_receive_channel_pks)
 
         return queryset
 
@@ -523,7 +523,9 @@ class AlertGroupView(
                 raise BadRequest(detail="Please specify a delay for silence")
             kwargs["silence_delay"] = delay
 
-        alert_groups = self.get_queryset().filter(public_primary_key__in=alert_group_public_pks)
+        alert_groups = AlertGroup.unarchived_objects.filter(
+            channel__organization=self.request.auth.organization, public_primary_key__in=alert_group_public_pks
+        )
 
         kwargs["user"] = self.request.user
         kwargs["alert_groups"] = alert_groups
