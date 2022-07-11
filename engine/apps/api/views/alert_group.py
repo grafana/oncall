@@ -205,9 +205,7 @@ class AlertGroupView(
         alert_receive_channel_pks = list(alert_receive_channel_pks)
 
         # no select_related or prefetch_related is used at this point, it will be done on paginate_queryset.
-        queryset = (
-            AlertGroup.unarchived_objects.filter(channel_id__in=alert_receive_channel_pks).order_by("-pk").only("id")
-        )
+        queryset = AlertGroup.unarchived_objects.filter(channel_id__in=alert_receive_channel_pks).order_by("-pk")
 
         return queryset
 
