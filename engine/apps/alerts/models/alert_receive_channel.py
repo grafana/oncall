@@ -448,7 +448,9 @@ class AlertReceiveChannel(IntegrationOptionsMixin, MaintainableObject):
     def get_or_create_manual_integration(cls, defaults, **kwargs):
         try:
             alert_receive_channel = cls.objects.get(
-                organization=kwargs["organization"], integration=kwargs["integration"]
+                organization=kwargs["organization"],
+                integration=kwargs["integration"],
+                team=kwargs["team"],
             )
         except cls.DoesNotExist:
             kwargs.update(defaults)

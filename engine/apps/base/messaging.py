@@ -13,7 +13,7 @@ class BaseMessagingBackend:
         if self.templater:
             return import_string(self.templater)
 
-    def validate_channel_filter_data(self, channel_filter, data):
+    def validate_channel_filter_data(self, organization, data):
         """Validate JSON channel data for a channel filter update.
 
         Ensure the required/expected data is provided as needed by the backend.

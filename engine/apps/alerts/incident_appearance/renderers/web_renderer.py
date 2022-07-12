@@ -14,7 +14,7 @@ class AlertWebRenderer(AlertBaseRenderer):
             "title": str_or_backup(templated_alert.title, "Alert"),
             "message": str_or_backup(templated_alert.message, ""),
             "image_url": str_or_backup(templated_alert.image_url, None),
-            "source_link": str_or_backup(templated_alert.image_url, None),
+            "source_link": str_or_backup(templated_alert.source_link, None),
         }
         return rendered_alert
 
