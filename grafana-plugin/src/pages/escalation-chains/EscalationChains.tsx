@@ -242,28 +242,6 @@ class EscalationChainsPage extends React.Component<EscalationChainsPageProps, Es
     const escalationChain = escalationChainStore.items[selectedEscalationChain];
     const escalationChainDetails = escalationChainStore.details[selectedEscalationChain];
 
-    let warningAboutModifyingEscalationChain = null;
-    if (escalationChain.number_of_integrations > 0 || escalationChain.number_of_routes > 0) {
-      warningAboutModifyingEscalationChain = (
-        <>
-          Modifying this escalation chain will affect{' '}
-          {escalationChain.number_of_integrations > 0 && (
-            <Text strong>
-              {escalationChain.number_of_integrations} integration
-              {escalationChain.number_of_integrations === 1 ? '' : 's'}
-            </Text>
-          )}
-          {escalationChain.number_of_routes > 0 && escalationChain.number_of_integrations > 0 && ' and '}
-          {escalationChain.number_of_routes > 0 && (
-            <Text strong>
-              {escalationChain.number_of_routes} route{escalationChain.number_of_routes === 1 ? '' : 's'}
-            </Text>
-          )}
-          . Escalation chains linked to multiple integrations cannot be removed.
-        </>
-      );
-    }
-
     return (
       <>
         <Block withBackground className={cx('header')}>
@@ -288,7 +266,7 @@ class EscalationChainsPage extends React.Component<EscalationChainsPageProps, Es
               <WithPermissionControl userAction={UserAction.UpdateEscalationPolicies}>
                 <WithConfirm title={`Are you sure to remove "${escalationChain.name}"?`} confirmText="Remove">
                   <IconButton
-                    disabled={escalationChain.number_of_integrations > 1}
+                    disabled={escalationChain.number_of_integrations > 0}
                     tooltip="Remove"
                     tooltipPlacement="top"
                     onClick={this.handleDeleteEscalationChain}
@@ -296,7 +274,7 @@ class EscalationChainsPage extends React.Component<EscalationChainsPageProps, Es
                   />
                 </WithConfirm>
               </WithPermissionControl>
-              {escalationChain.number_of_integrations > 1 && (
+              {escalationChain.number_of_integrations > 0 && (
                 <Tooltip content="Escalation chains linked to multiple integrations cannot be removed">
                   <Icon name="info-circle" />
                 </Tooltip>
@@ -304,17 +282,13 @@ class EscalationChainsPage extends React.Component<EscalationChainsPageProps, Es
             </HorizontalGroup>
           </div>
         </Block>
-        {warningAboutModifyingEscalationChain && (
-          // @ts-ignore
-          <Alert title={warningAboutModifyingEscalationChain} severity="warning" />
-        )}
         <EscalationChainSteps id={selectedEscalationChain} />
         {escalationChainDetails ? (
           <Collapse
             headerWithBackground
-            label={`${escalationChainDetails.length ? escalationChainDetails.length : 'No'} Linked integration${
+            label={`${escalationChainDetails.length ? escalationChainDetails.length : 'No'} linked integration${
               escalationChainDetails.length === 1 ? '' : 's'
-            }`}
+            } will be affected by changes`}
             isOpen
           >
             {escalationChainDetails.length ? (

@@ -1,6 +1,6 @@
 import React, { ChangeEvent, FC, useCallback } from 'react';
 
-import { Icon, Input, Button } from '@grafana/ui';
+import { Icon, Input, Button, IconButton } from '@grafana/ui';
 import cn from 'classnames/bind';
 
 import styles from './EscalationsFilters.module.css';
@@ -45,9 +45,7 @@ const EscalationsFilters: FC<EscalationsFiltersProps> = (props) => {
         value={value.searchTerm}
         onChange={onSearchTermChangeCallback}
       />
-      <Button variant="secondary" icon="times" onClick={handleClear} className={cx('clear-button')}>
-        Clear filters
-      </Button>
+      <IconButton name="times" onClick={handleClear} className={cx('icon-button')} tooltip="Clear search input" />
     </div>
   );
 };
