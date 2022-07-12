@@ -25,9 +25,17 @@ class TwilioClient:
 
     def send_message(self, body, to):
         status_callback = create_engine_url(reverse("twilioapp:sms_status_events"))
-        return self.twilio_api_client.messages.create(
-            body=body, to=to, from_=self.twilio_number, status_callback=status_callback
-        )
+        try:
+            return self.twilio_api_client.messages.create(
+                body=body, to=to, from_=self.twilio_number, status_callback=status_callback
+            )
+        except TwilioRestException as e:
+            # If status callback is not valid and not accessible from public url then trying to send message without it
+            # https://www.twilio.com/docs/api/errors/21609
+            if e.code == 21609:
+                logger.warning("twilio_client.send_message: Twilio error 21609. Status Callback is not public url")
+                return self.twilio_api_client.messages.create(body=body, to=to, from_=self.twilio_number)
+            raise e
 
     # Use responsibly
     def parse_number(self, number):
@@ -149,6 +157,17 @@ class TwilioClient:
                 status_callback_method="POST",
             )
         except TwilioRestException as e:
+            # If status callback is not valid and not accessible from public url then trying to make call without it
+            # https://www.twilio.com/docs/api/errors/21609
+            if e.code == 21609:
+                logger.warning("twilio_client.make_call: Twilio error 21609. Status Callback is not public url")
+                return self.twilio_api_client.calls.create(
+                    url=url,
+                    to=to,
+                    from_=self.twilio_number,
+                    method="GET",
+                )
+
             raise e
 
     def create_log_record(self, **kwargs):

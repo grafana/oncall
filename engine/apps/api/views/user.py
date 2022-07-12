@@ -1,5 +1,6 @@
 import logging
 
+import pytz
 from django.apps import apps
 from django.conf import settings
 from django.core.exceptions import ObjectDoesNotExist
@@ -123,7 +124,7 @@ class UserView(
             "mobile_app_verification_token",
             "mobile_app_auth_token",
         ),
-        AnyRole: ("retrieve",),
+        AnyRole: ("retrieve", "timezone_options"),
     }
 
     action_object_permissions = {
@@ -235,6 +236,10 @@ class UserView(
     def current(self, request):
         serializer = UserSerializer(self.get_queryset().get(pk=self.request.user.pk))
         return Response(serializer.data)
+
+    @action(detail=False, methods=["get"])
+    def timezone_options(self, request):
+        return Response(pytz.common_timezones)
 
     @action(detail=True, methods=["get"])
     def get_verification_code(self, request, pk):

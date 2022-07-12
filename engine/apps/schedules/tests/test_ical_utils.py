@@ -1,7 +1,9 @@
+from uuid import uuid4
+
 import pytest
 from django.utils import timezone
 
-from apps.schedules.ical_utils import list_users_to_notify_from_ical, users_in_ical
+from apps.schedules.ical_utils import list_users_to_notify_from_ical, parse_event_uid, users_in_ical
 from apps.schedules.models import CustomOnCallShift, OnCallScheduleCalendar
 from common.constants.role import Role
 
@@ -58,3 +60,20 @@ def test_list_users_to_notify_from_ical_viewers_inclusion(
     else:
         assert len(users_on_call) == 1
         assert set(users_on_call) == {user}
+
+
+def test_parse_event_uid_v1():
+    uuid = uuid4()
+    event_uid = f"amixr-{uuid}-U1-E2-S1"
+    pk, source = parse_event_uid(event_uid)
+    assert pk is None
+    assert source == "api"
+
+
+def test_parse_event_uid_v2():
+    uuid = uuid4()
+    pk_value = "OABCDEF12345"
+    event_uid = f"oncall-{uuid}-PK{pk_value}-U3-E1-S2"
+    pk, source = parse_event_uid(event_uid)
+    assert pk == pk_value
+    assert source == "slack"
