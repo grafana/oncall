@@ -13,7 +13,11 @@ from django.utils.functional import cached_property
 from icalendar.cal import Event
 from recurring_ical_events import UnfoldableCalendar
 
-from apps.schedules.tasks import drop_cached_ical_task
+from apps.schedules.tasks import (
+    drop_cached_ical_task,
+    schedule_notify_about_empty_shifts_in_schedule,
+    schedule_notify_about_gaps_in_schedule,
+)
 from apps.user_management.models import User
 from common.public_primary_keys import generate_public_primary_key, increase_public_primary_key_length
 
@@ -57,6 +61,13 @@ class CustomOnCallShift(models.Model):
         FREQUENCY_MONTHLY: "monthly",
     }
 
+    WEB_FREQUENCY_CHOICES_MAP = {
+        FREQUENCY_HOURLY: "hours",
+        FREQUENCY_DAILY: "days",
+        FREQUENCY_WEEKLY: "weeks",
+        FREQUENCY_MONTHLY: "months",
+    }
+
     (
         TYPE_SINGLE_EVENT,
         TYPE_RECURRENT_EVENT,
@@ -77,6 +88,11 @@ class CustomOnCallShift(models.Model):
         TYPE_ROLLING_USERS_EVENT: "rolling_users",
         TYPE_OVERRIDE: "override",
     }
+
+    WEB_TYPES = (
+        TYPE_ROLLING_USERS_EVENT,
+        TYPE_OVERRIDE,
+    )
 
     (MONDAY, TUESDAY, WEDNESDAY, THURSDAY, FRIDAY, SATURDAY, SUNDAY) = range(7)
 
@@ -151,6 +167,8 @@ class CustomOnCallShift(models.Model):
     start = models.DateTimeField()  # event start datetime
     duration = models.DurationField()  # duration in seconds
 
+    rotation_start = models.DateTimeField()  # used for calculation users rotation and rotation start date
+
     frequency = models.IntegerField(choices=FREQUENCY_CHOICES, null=True, default=None)
 
     priority_level = models.IntegerField(default=0)
@@ -173,7 +191,10 @@ class CustomOnCallShift(models.Model):
 
     def delete(self, *args, **kwargs):
         for schedule in self.schedules.all():
-            drop_cached_ical_task.apply_async((schedule.pk,))
+            self.start_drop_ical_and_check_schedule_tasks(schedule)
+        if self.schedule:
+            self.start_drop_ical_and_check_schedule_tasks(self.schedule)
+        # todo: add soft delete
         super().delete(*args, **kwargs)
 
     @property
@@ -356,3 +377,8 @@ class CustomOnCallShift(models.Model):
             result.append({user.pk: user.public_primary_key for user in users})
         self.rolling_users = result
         self.save(update_fields=["rolling_users"])
+
+    def start_drop_ical_and_check_schedule_tasks(self, schedule):
+        drop_cached_ical_task.apply_async((schedule.pk,))
+        schedule_notify_about_empty_shifts_in_schedule.apply_async((schedule.pk,))
+        schedule_notify_about_gaps_in_schedule.apply_async((schedule.pk,))
