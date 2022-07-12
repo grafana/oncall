@@ -1,3 +1,4 @@
+from datetime import datetime
 from textwrap import wrap
 
 from apps.slack.slack_client import SlackClientWithErrorHandling
@@ -58,7 +59,8 @@ def post_message_to_channel(organization, channel_id, text):
 
 
 def format_datetime_to_slack(timestamp, format="date_short"):
-    return f"<!date^{timestamp}^{{{format}}} {{time}}|{timestamp}>"
+    fallback = datetime.utcfromtimestamp(timestamp).strftime('%Y-%m-%d %H:%M (UTC)')
+    return f"<!date^{timestamp}^{{{format}}} {{time}}|{fallback}>"
 
 
 def get_cache_key_update_incident_slack_message(alert_group_pk):
