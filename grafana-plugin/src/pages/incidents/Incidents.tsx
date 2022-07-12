@@ -11,6 +11,7 @@ import moment from 'moment';
 import Emoji from 'react-emoji-render';
 
 import CardButton from 'components/CardButton/CardButton';
+import CursorPagination from 'components/CursorPagination/CursorPagination';
 import GTable from 'components/GTable/GTable';
 import IntegrationLogo from 'components/IntegrationLogo/IntegrationLogo';
 import PluginLink from 'components/PluginLink/PluginLink';
@@ -35,8 +36,6 @@ import styles from './Incidents.module.css';
 
 const cx = cn.bind(styles);
 
-const ITEMS_PER_PAGE = 50;
-
 function withSkeleton(fn: (alert: AlertType) => ReactElement | ReactElement[]) {
   return (alert: AlertType) => {
     if (alert.short) {
@@ -49,10 +48,18 @@ function withSkeleton(fn: (alert: AlertType) => ReactElement | ReactElement[]) {
 
 interface IncidentsPageProps extends WithStoreProps, AppRootProps {}
 
+interface Pagination {
+  current: {
+    start: number;
+    end: number;
+  };
+}
+
 interface IncidentsPageState {
   selectedIncidentIds: Array<Alert['pk']>;
   affectedRows: { [key: string]: boolean };
   filters?: IncidentsFiltersType;
+  pagination: Pagination;
 }
 
 @observer
@@ -65,6 +72,9 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
     this.state = {
       selectedIncidentIds: [],
       affectedRows: {},
+      pagination: {
+        current: { start: 1, end: store.alertGroupStore.incidentsItemsPerPage },
+      },
     };
 
     store.alertGroupStore.updateBulkActions();
@@ -100,19 +110,42 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
 
     this.setState({ filters, selectedIncidentIds: [] });
 
-    store.alertGroupStore.updateIncidentFilters(filters, true);
+    store.alertGroupStore.updateIncidentFilters(filters);
 
-    getLocationSrv().update({ query: { page: 'incidents', ...store.incidentFilters, p: store.incidentsPage } }); // todo fix
+    getLocationSrv().update({ query: { page: 'incidents', ...store.alertGroupStore.incidentFilters } });
   };
 
-  onChangePagination = (page: number) => {
+  onChangeCursor = (cursor: string, direction: 'prev' | 'next') => {
     const { store } = this.props;
 
-    store.alertGroupStore.setIncidentsPage(page);
+    store.alertGroupStore.setIncidentsCursor(cursor);
+
+    this.setState(() => {
+      return {
+        pagination: {
+          current: {
+            start:
+              this.state.pagination.current.start +
+              store.alertGroupStore.incidentsItemsPerPage * (direction === 'prev' ? -1 : 1),
+            end:
+              this.state.pagination.current.end +
+              store.alertGroupStore.incidentsItemsPerPage * (direction === 'prev' ? -1 : 1),
+          },
+        },
+      };
+    });
 
     this.setState({ selectedIncidentIds: [] });
+  };
 
-    getLocationSrv().update({ partial: true, query: { p: store.incidentsPage } });
+  handleChangeItemsPerPage = (value: number) => {
+    const { store } = this.props;
+
+    store.alertGroupStore.setIncidentsItemsPerPage(value);
+
+    this.setState({ pagination: { current: { start: 1, end: store.alertGroupStore.incidentsItemsPerPage } } });
+
+    this.setState({ selectedIncidentIds: [] });
   };
 
   renderBulkActions = () => {
@@ -214,7 +247,8 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
   };
 
   renderTable() {
-    const { selectedIncidentIds, affectedRows } = this.state;
+    const { selectedIncidentIds, affectedRows, pagination } = this.state;
+    const { current } = pagination;
     const { store } = this.props;
     const {
       teamStore: { currentTeam },
@@ -222,7 +256,8 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
     const { alertGroupsLoading } = store.alertGroupStore;
 
     const results = store.alertGroupStore.getAlertSearchResult('default');
-    const count = get(store.alertGroupStore.alertsSearchResult, `default.count`);
+    const prev = get(store.alertGroupStore.alertsSearchResult, `default.prev`);
+    const next = get(store.alertGroupStore.alertsSearchResult, `default.next`);
 
     if (results && !results.length) {
       return (
@@ -319,12 +354,22 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
           data={results}
           columns={columns}
           // rowClassName={getUserRowClassNameFn(userPkToEdit, userStore.currentUserPk)}
-          pagination={{
-            page: store.incidentsPage,
-            total: Math.ceil((count || 0) / ITEMS_PER_PAGE),
-            onChange: this.onChangePagination,
-          }}
         />
+        <div className={cx('pagination')}>
+          <CursorPagination
+            current={`${current.start}-${current.end}`}
+            itemsPerPage={store.alertGroupStore.incidentsItemsPerPage}
+            itemsPerPageOptions={[
+              { label: '25', value: 25 },
+              { label: '50', value: 50 },
+              { label: '100', value: 100 },
+            ]}
+            prev={prev}
+            next={next}
+            onChange={this.onChangeCursor}
+            onChangeItemsPerPage={this.handleChangeItemsPerPage}
+          />
+        </div>
       </div>
     );
   }
