@@ -171,3 +171,9 @@ class UserIdField(fields.CharField):
         if value is not None:
             return value.public_primary_key
         return value
+
+
+class RollingUsersField(serializers.ListField):
+    def to_representation(self, value):
+        result = [list(d.values()) for d in value]
+        return result

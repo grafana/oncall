@@ -9,16 +9,14 @@ from apps.schedules.tasks import (
     schedule_notify_about_gaps_in_schedule,
 )
 from apps.user_management.models import User
-from common.api_helpers.custom_fields import TeamPrimaryKeyRelatedField, UsersFilteredByOrganizationField
+from common.api_helpers.custom_fields import (
+    RollingUsersField,
+    TeamPrimaryKeyRelatedField,
+    UsersFilteredByOrganizationField,
+)
 from common.api_helpers.exceptions import BadRequest
 from common.api_helpers.mixins import EagerLoadingMixin
 from common.api_helpers.utils import CurrentOrganizationDefault
-
-
-class RollingUsersField(serializers.ListField):
-    def to_representation(self, value):
-        result = [list(d.values()) for d in value]
-        return result
 
 
 class CustomOnCallShiftTypeField(fields.CharField):
