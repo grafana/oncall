@@ -32,6 +32,7 @@ from apps.slack.constants import SLACK_RATE_LIMIT_DELAY, SLACK_RATE_LIMIT_TIMEOU
 from apps.slack.tasks import post_slack_rate_limit_message
 from apps.slack.utils import post_message_to_channel
 from apps.user_management.organization_log_creator import OrganizationLogType, create_organization_log
+from common.api_helpers.utils import create_engine_url
 from common.exceptions import TeamCanNotBeChangedError, UnableToSendDemoAlert
 from common.public_primary_keys import generate_public_primary_key, increase_public_primary_key_length
 
@@ -495,10 +496,7 @@ class AlertReceiveChannel(IntegrationOptionsMixin, MaintainableObject):
             AlertReceiveChannel.INTEGRATION_MAINTENANCE,
         ]:
             return None
-        return urljoin(
-            settings.BASE_URL,
-            f"integrations/v1/{self.config.slug}/{self.token}/",
-        )
+        return create_engine_url(f"integrations/v1/{self.config.slug}/{self.token}/")
 
     @property
     def inbound_email(self):

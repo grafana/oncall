@@ -1,14 +1,13 @@
 import json
 import logging
-from urllib.parse import urljoin
 
 from django.apps import apps
-from django.conf import settings
 from django.db.models import Q
 from django.utils import timezone
 
 from apps.slack.scenarios import scenario_step
 from apps.slack.slack_client.exceptions import SlackAPIException
+from common.api_helpers.utils import create_engine_url
 
 from .step_mixins import CheckAlertIsUnarchivedMixin
 
@@ -448,7 +447,7 @@ class ResolutionNoteModalStep(CheckAlertIsUnarchivedMixin, scenario_step.Scenari
 
         if not blocks:
             # there aren't any resolution notes yet, display a hint instead
-            link_to_instruction = urljoin(settings.BASE_URL, "static/images/postmortem.gif")
+            link_to_instruction = create_engine_url("static/images/postmortem.gif")
             blocks = [
                 {
                     "type": "divider",
@@ -474,7 +473,7 @@ class ResolutionNoteModalStep(CheckAlertIsUnarchivedMixin, scenario_step.Scenari
         return blocks
 
     def get_invite_bot_tip_blocks(self, channel):
-        link_to_instruction = urljoin(settings.BASE_URL, "static/images/postmortem.gif")
+        link_to_instruction = create_engine_url("static/images/postmortem.gif")
         blocks = [
             {
                 "type": "divider",

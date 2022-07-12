@@ -1,3 +1,5 @@
+from urllib.parse import urljoin
+
 import requests
 from django.conf import settings
 from icalendar import Calendar
@@ -50,3 +52,11 @@ def validate_ical_url(url):
             raise serializers.ValidationError("Ical parse failed")
         return url
     return None
+
+
+def create_engine_url(path):
+    base = settings.BASE_URL
+    if not base.endswith("/"):
+        base += "/"
+    trimmed_path = path.lstrip("/")
+    return urljoin(base, trimmed_path)

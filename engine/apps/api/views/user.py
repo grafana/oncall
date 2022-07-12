@@ -1,5 +1,4 @@
 import logging
-from urllib.parse import urljoin
 
 from django.apps import apps
 from django.conf import settings
@@ -44,6 +43,7 @@ from apps.user_management.organization_log_creator import OrganizationLogType, c
 from common.api_helpers.exceptions import Conflict
 from common.api_helpers.mixins import FilterSerializerMixin, PublicPrimaryKeyMixin
 from common.api_helpers.paginators import HundredPageSizePaginator
+from common.api_helpers.utils import create_engine_url
 from common.constants.role import Role
 
 logger = logging.getLogger(__name__)
@@ -406,10 +406,9 @@ class UserView(
             except IntegrityError:
                 raise Conflict("Schedule export token for user already exists")
 
-            export_url = urljoin(
-                settings.BASE_URL,
+            export_url = create_engine_url(
                 reverse("api-public:users-schedule-export", kwargs={"pk": user.public_primary_key})
-                + f"?{SCHEDULE_EXPORT_TOKEN_NAME}={token}",
+                + f"?{SCHEDULE_EXPORT_TOKEN_NAME}={token}"
             )
 
             data = {"token": token, "created_at": instance.created_at, "export_url": export_url}
