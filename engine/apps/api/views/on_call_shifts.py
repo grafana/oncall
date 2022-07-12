@@ -33,12 +33,14 @@ class OnCallShiftView(PublicPrimaryKeyMixin, UpdateSerializerMixin, ModelViewSet
 
     def get_queryset(self):
         schedule_id = self.request.query_params.get("schedule_id", None)
-        lookup_kwargs = {}
+        lookup_kwargs = Q()
         if schedule_id:
-            lookup_kwargs.update({"schedules__public_primary_key": schedule_id})
+            lookup_kwargs = Q(
+                Q(schedule__public_primary_key=schedule_id) | Q(schedules__public_primary_key=schedule_id)
+            )
 
         queryset = CustomOnCallShift.objects.filter(
-            Q(**lookup_kwargs),
+            lookup_kwargs,
             organization=self.request.auth.organization,
             team=self.request.user.current_team,
         )
