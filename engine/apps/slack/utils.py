@@ -59,7 +59,7 @@ def post_message_to_channel(organization, channel_id, text):
 
 
 def format_datetime_to_slack(timestamp, format="date_short"):
-    fallback = datetime.utcfromtimestamp(timestamp).strftime('%Y-%m-%d %H:%M (UTC)')
+    fallback = datetime.utcfromtimestamp(timestamp).strftime("%Y-%m-%d %H:%M (UTC)")
     return f"<!date^{timestamp}^{{{format}}} {{time}}|{fallback}>"
 
 
