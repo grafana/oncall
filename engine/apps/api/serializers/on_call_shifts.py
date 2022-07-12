@@ -90,7 +90,7 @@ class OnCallShiftSerializer(EagerLoadingMixin, serializers.ModelSerializer):
     def validate_by_day(self, by_day):
         if by_day:
             for day in by_day:
-                if day not in CustomOnCallShift.ICAL_WEEKDAY_MAP.keys():
+                if day not in CustomOnCallShift.WEB_WEEKDAY_MAP:
                     raise serializers.ValidationError(["Invalid day value."])
         return by_day
 

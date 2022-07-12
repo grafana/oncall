@@ -95,8 +95,8 @@ class OnCallShiftView(PublicPrimaryKeyMixin, UpdateSerializerMixin, ModelViewSet
             [
                 {
                     "display_name": display_name,
-                    "value": day_number,
+                    "value": value,
                 }
-                for day_number, display_name in CustomOnCallShift.WEEKDAY_CHOICES
+                for value, display_name in CustomOnCallShift.WEB_WEEKDAY_MAP.items()
             ]
         )

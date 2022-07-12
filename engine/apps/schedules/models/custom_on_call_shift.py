@@ -115,6 +115,16 @@ class CustomOnCallShift(models.Model):
         SATURDAY: "SA",
         SUNDAY: "SU",
     }
+
+    WEB_WEEKDAY_MAP = {
+        "MO": "Monday",
+        "TU": "Tuesday",
+        "WE": "Wednesday",
+        "TH": "Thursday",
+        "FR": "Friday",
+        "SA": "Saturday",
+        "SU": "Sunday",
+    }
     (
         SOURCE_WEB,
         SOURCE_API,
@@ -240,6 +250,8 @@ class CustomOnCallShift(models.Model):
             users_queue = self.get_rolling_users()
             for counter, users in enumerate(users_queue, start=1):
                 start = self.get_next_start_date(event_ical)
+                if not start:  # means that rotation ends before next event starts
+                    break
                 for user_counter, user in enumerate(users, start=1):
                     event_ical = self.generate_ical(user, start, user_counter, counter, time_zone)
                     result += event_ical
@@ -301,6 +313,10 @@ class CustomOnCallShift(models.Model):
             if days_for_next_event > DAYS_IN_A_MONTH:
                 days_for_next_event = days_for_next_event % DAYS_IN_A_MONTH
             next_event_start = current_event_start + timezone.timedelta(days=days_for_next_event)
+
+        # check if rotation ends before next event starts
+        if self.until and next_event_start > self.until:
+            return
         next_event = None
         # repetitions generate the next event shift according with the recurrence rules
         repetitions = UnfoldableCalendar(current_event).RepeatedEvent(
