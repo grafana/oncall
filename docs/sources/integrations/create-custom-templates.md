@@ -159,3 +159,4 @@ Built-in functions:
 - `tojson_pretty` - JSON prettified
 - `iso8601_to_time` - converts time from iso8601 (`2015-02-17T18:30:20.000Z`) to datetime
 - `datetimeformat` - converts time from datetime to the given format (`%H:%M / %d-%m-%Y` by default)
+- `regex_replace` - performs a regex find and replace
