@@ -61,18 +61,21 @@ class CustomOnCallShift(models.Model):
         TYPE_SINGLE_EVENT,
         TYPE_RECURRENT_EVENT,
         TYPE_ROLLING_USERS_EVENT,
-    ) = range(3)
+        TYPE_OVERRIDE,
+    ) = range(4)
 
     TYPE_CHOICES = (
         (TYPE_SINGLE_EVENT, "Single event"),
         (TYPE_RECURRENT_EVENT, "Recurrent event"),
         (TYPE_ROLLING_USERS_EVENT, "Rolling users"),
+        (TYPE_OVERRIDE, "Override"),
     )
 
     PUBLIC_TYPE_CHOICES_MAP = {
         TYPE_SINGLE_EVENT: "single_event",
         TYPE_RECURRENT_EVENT: "recurrent_event",
         TYPE_ROLLING_USERS_EVENT: "rolling_users",
+        TYPE_OVERRIDE: "override",
     }
 
     (MONDAY, TUESDAY, WEDNESDAY, THURSDAY, FRIDAY, SATURDAY, SUNDAY) = range(7)
@@ -128,6 +131,13 @@ class CustomOnCallShift(models.Model):
         null=True,
         default=None,
     )
+    schedule = models.ForeignKey(
+        "schedules.OnCallSchedule",
+        on_delete=models.CASCADE,
+        related_name="custom_shifts",
+        null=True,
+        default=None,
+    )
     name = models.CharField(max_length=200)
     time_zone = models.CharField(max_length=100, null=True, default=None)
     source = models.IntegerField(choices=SOURCE_CHOICES, default=SOURCE_API)
@@ -136,7 +146,7 @@ class CustomOnCallShift(models.Model):
     start_rotation_from_user_index = models.PositiveIntegerField(null=True, default=None)
 
     uuid = models.UUIDField(default=uuid4)  # event uuid
-    type = models.IntegerField(choices=TYPE_CHOICES)  # "rolling_users", "recurrent_event", "single_event"
+    type = models.IntegerField(choices=TYPE_CHOICES)  # "rolling_users", "recurrent_event", "single_event", "override"
 
     start = models.DateTimeField()  # event start datetime
     duration = models.DurationField()  # duration in seconds
@@ -191,7 +201,7 @@ class CustomOnCallShift(models.Model):
             f"source: {self.get_source_display()}, type: {self.get_type_display()}, users: {users_verbal}, "
             f"start: {self.start.isoformat()}, duration: {self.duration}, priority level: {self.priority_level}"
         )
-        if self.type != CustomOnCallShift.TYPE_SINGLE_EVENT:
+        if self.type not in (CustomOnCallShift.TYPE_SINGLE_EVENT, CustomOnCallShift.TYPE_OVERRIDE):
             result += (
                 f", frequency: {self.get_frequency_display()}, interval: {self.interval}, "
                 f"week start: {self.week_start}, by day: {self.by_day}, by month: {self.by_month}, "
@@ -220,7 +230,7 @@ class CustomOnCallShift(models.Model):
     def generate_ical(self, user, start, user_counter, counter=1, time_zone="UTC"):
         # create event for each user in a list because we can't parse multiple users from ical summary
         event = Event()
-        event["uid"] = f"amixr-{self.uuid}-U{user_counter}-E{counter}-S{self.source}"
+        event["uid"] = f"oncall-{self.uuid}-PK{self.public_primary_key}-U{user_counter}-E{counter}-S{self.source}"
         event.add("summary", self.get_summary_with_user_for_ical(user))
         event.add("dtstart", self.convert_dt_to_schedule_timezone(start, time_zone))
         event.add("dtend", self.convert_dt_to_schedule_timezone(start + self.duration, time_zone))

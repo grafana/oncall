@@ -2,7 +2,7 @@ import pytest
 from django.utils import timezone
 
 from apps.schedules.ical_utils import list_users_to_notify_from_ical
-from apps.schedules.models import CustomOnCallShift, OnCallSchedule, OnCallScheduleCalendar
+from apps.schedules.models import CustomOnCallShift, OnCallSchedule, OnCallScheduleCalendar, OnCallScheduleWeb
 
 
 @pytest.mark.django_db
@@ -33,6 +33,29 @@ def test_get_on_call_users_from_single_event(make_organization_and_user, make_on
 
 
 @pytest.mark.django_db
+def test_get_on_call_users_from_web_schedule_override(make_organization_and_user, make_on_call_shift, make_schedule):
+    organization, user = make_organization_and_user()
+
+    schedule = make_schedule(organization, schedule_class=OnCallScheduleWeb)
+    date = timezone.now().replace(tzinfo=None, microsecond=0)
+
+    data = {
+        "start": date,
+        "duration": timezone.timedelta(seconds=10800),
+        "schedule": schedule,
+    }
+
+    on_call_shift = make_on_call_shift(organization=organization, shift_type=CustomOnCallShift.TYPE_OVERRIDE, **data)
+    on_call_shift.users.add(user)
+
+    # user is on-call
+    date = date + timezone.timedelta(minutes=5)
+    users_on_call = list_users_to_notify_from_ical(schedule, date)
+    assert len(users_on_call) == 1
+    assert user in users_on_call
+
+
+@pytest.mark.django_db
 def test_get_on_call_users_from_recurrent_event(make_organization_and_user, make_on_call_shift, make_schedule):
     organization, user = make_organization_and_user()
 
@@ -53,6 +76,47 @@ def test_get_on_call_users_from_recurrent_event(make_organization_and_user, make
     on_call_shift.users.add(user)
 
     schedule.custom_on_call_shifts.add(on_call_shift)
+
+    # user is on-call
+    date = date + timezone.timedelta(minutes=5)
+    users_on_call = list_users_to_notify_from_ical(schedule, date)
+    assert len(users_on_call) == 1
+    assert user in users_on_call
+
+    # user is not on-call according to event recurrence rules (interval = 2)
+    date = date + timezone.timedelta(days=1)
+    users_on_call = list_users_to_notify_from_ical(schedule, date)
+    assert len(users_on_call) == 0
+
+    # user is on-call again
+    date = date + timezone.timedelta(days=1)
+    users_on_call = list_users_to_notify_from_ical(schedule, date)
+    assert len(users_on_call) == 1
+    assert user in users_on_call
+
+
+@pytest.mark.django_db
+def test_get_on_call_users_from_web_schedule_recurrent_event(
+    make_organization_and_user, make_on_call_shift, make_schedule
+):
+    organization, user = make_organization_and_user()
+
+    schedule = make_schedule(organization, schedule_class=OnCallScheduleWeb)
+    date = timezone.now().replace(tzinfo=None, microsecond=0)
+
+    data = {
+        "priority_level": 1,
+        "start": date,
+        "duration": timezone.timedelta(seconds=10800),
+        "frequency": CustomOnCallShift.FREQUENCY_DAILY,
+        "interval": 2,
+        "schedule": schedule,
+    }
+
+    on_call_shift = make_on_call_shift(
+        organization=organization, shift_type=CustomOnCallShift.TYPE_RECURRENT_EVENT, **data
+    )
+    on_call_shift.users.add(user)
 
     # user is on-call
     date = date + timezone.timedelta(minutes=5)
