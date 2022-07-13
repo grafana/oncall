@@ -29,6 +29,16 @@ def generate_public_primary_key_for_user():
     return new_public_primary_key
 
 
+def default_working_hours():
+    weekdays = ["monday", "tuesday", "wednesday", "thursday", "friday"]
+    weekends = ["saturday", "sunday"]
+
+    working_hours = {day: [{"start": "09:00:00", "end": "17:00:00"}] for day in weekdays}
+    working_hours |= {day: [] for day in weekends}
+
+    return working_hours
+
+
 class UserManager(models.Manager):
     @staticmethod
     def sync_for_team(team, api_members: list[dict]):
@@ -127,6 +137,10 @@ class User(models.Model):
     role = models.PositiveSmallIntegerField(choices=Role.choices())
     avatar_url = models.URLField()
 
+    # don't use "_timezone" directly, use the "timezone" property since it can be populated via slack user identity
+    _timezone = models.CharField(max_length=50, null=True, default=None)
+    working_hours = models.JSONField(null=True, default=default_working_hours)
+
     notification = models.ManyToManyField("alerts.AlertGroup", through="alerts.UserHasNotification")
 
     unverified_phone_number = models.CharField(max_length=20, null=True, default=None)
@@ -221,11 +235,17 @@ class User(models.Model):
 
     @property
     def timezone(self):
-        slack_user_identity = self.slack_user_identity
-        if slack_user_identity:
-            return slack_user_identity.timezone
-        else:
-            return None
+        if self._timezone:
+            return self._timezone
+
+        if self.slack_user_identity:
+            return self.slack_user_identity.timezone
+
+        return None
+
+    @timezone.setter
+    def timezone(self, value):
+        self._timezone = value
 
     def short(self):
         return {"username": self.username, "pk": self.public_primary_key, "avatar": self.avatar_url}

@@ -3,6 +3,10 @@ from django.urls import reverse
 from rest_framework import status
 from rest_framework.test import APIClient
 
+from apps.base.tests.messaging_backend import TestOnlyBackend
+
+TEST_MESSAGING_BACKEND_FIELD = TestOnlyBackend.backend_id.lower()
+
 
 @pytest.mark.django_db
 def test_get_list_integrations(
@@ -31,7 +35,9 @@ def test_get_list_integrations(
                 "default_route": {
                     "escalation_chain_id": None,
                     "id": default_channel_filter.public_primary_key,
-                    "slack": {"channel_id": None},
+                    "slack": {"channel_id": None, "enabled": True},
+                    "telegram": {"id": None, "enabled": False},
+                    TEST_MESSAGING_BACKEND_FIELD: {"id": None, "enabled": False},
                 },
                 "heartbeat": {
                     "link": f"{integration.integration_url}heartbeat/",
@@ -159,7 +165,9 @@ def test_update_integration_template(
         "default_route": {
             "escalation_chain_id": None,
             "id": default_channel_filter.public_primary_key,
-            "slack": {"channel_id": None},
+            "slack": {"channel_id": None, "enabled": True},
+            "telegram": {"id": None, "enabled": False},
+            TEST_MESSAGING_BACKEND_FIELD: {"id": None, "enabled": False},
         },
         "heartbeat": {
             "link": f"{integration.integration_url}heartbeat/",
@@ -232,7 +240,9 @@ def test_update_resolve_signal_template(
         "default_route": {
             "escalation_chain_id": None,
             "id": default_channel_filter.public_primary_key,
-            "slack": {"channel_id": None},
+            "slack": {"channel_id": None, "enabled": True},
+            "telegram": {"id": None, "enabled": False},
+            TEST_MESSAGING_BACKEND_FIELD: {"id": None, "enabled": False},
         },
         "heartbeat": {
             "link": f"{integration.integration_url}heartbeat/",
@@ -337,7 +347,9 @@ def test_update_sms_template_with_empty_dict(
         "default_route": {
             "escalation_chain_id": None,
             "id": default_channel_filter.public_primary_key,
-            "slack": {"channel_id": None},
+            "slack": {"channel_id": None, "enabled": True},
+            "telegram": {"id": None, "enabled": False},
+            TEST_MESSAGING_BACKEND_FIELD: {"id": None, "enabled": False},
         },
         "heartbeat": {
             "link": f"{integration.integration_url}heartbeat/",
@@ -394,7 +406,9 @@ def test_update_integration_name(
         "default_route": {
             "escalation_chain_id": None,
             "id": default_channel_filter.public_primary_key,
-            "slack": {"channel_id": None},
+            "slack": {"channel_id": None, "enabled": True},
+            "telegram": {"id": None, "enabled": False},
+            TEST_MESSAGING_BACKEND_FIELD: {"id": None, "enabled": False},
         },
         "heartbeat": {
             "link": f"{integration.integration_url}heartbeat/",
@@ -454,7 +468,9 @@ def test_set_default_template(
         "default_route": {
             "escalation_chain_id": None,
             "id": default_channel_filter.public_primary_key,
-            "slack": {"channel_id": None},
+            "slack": {"channel_id": None, "enabled": True},
+            "telegram": {"id": None, "enabled": False},
+            TEST_MESSAGING_BACKEND_FIELD: {"id": None, "enabled": False},
         },
         "heartbeat": {
             "link": f"{integration.integration_url}heartbeat/",
