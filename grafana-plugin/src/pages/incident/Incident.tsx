@@ -92,7 +92,7 @@ class IncidentPage extends React.Component<IncidentPageProps, IncidentPageState>
   render() {
     const {
       store,
-      query: { id },
+      query: { id, cursor, start, perpage },
     } = this.props;
 
     const { showIntegrationSettings, showAttachIncidentForm, notFound } = this.state;
@@ -112,7 +112,7 @@ class IncidentPage extends React.Component<IncidentPageProps, IncidentPageState>
             <VerticalGroup spacing="lg" align="center">
               <Text.Title level={1}>404</Text.Title>
               <Text.Title level={4}>Incident not found</Text.Title>
-              <PluginLink query={{ page: 'incidents' }}>
+              <PluginLink query={{ page: 'incidents', cursor, start, perpage }}>
                 <Button variant="secondary" icon="arrow-left" size="md">
                   Go to incidents page
                 </Button>
@@ -182,7 +182,7 @@ class IncidentPage extends React.Component<IncidentPageProps, IncidentPageState>
   renderHeader = () => {
     const {
       store,
-      query: { id },
+      query: { id, cursor, start, perpage },
     } = this.props;
 
     const { alerts } = store.alertGroupStore;
@@ -197,7 +197,7 @@ class IncidentPage extends React.Component<IncidentPageProps, IncidentPageState>
       <Block withBackground>
         <VerticalGroup>
           <HorizontalGroup className={cx('title')}>
-            <PluginLink query={{ page: 'incidents' }}>
+            <PluginLink query={{ page: 'incidents', cursor, start, perpage }}>
               <IconButton name="arrow-left" size="xxl" />
             </PluginLink>
             {/* @ts-ignore*/}

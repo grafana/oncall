@@ -11,8 +11,6 @@ import { openErrorNotification } from 'utils';
 
 import { Alert, AlertAction, IncidentStatus } from './alertgroup.types';
 
-const ITEMS_PER_PAGE = 25;
-
 export class AlertGroupStore extends BaseStore {
   @observable.shallow
   bulkActions: any = [];
@@ -41,10 +39,7 @@ export class AlertGroupStore extends BaseStore {
   incidentsCursor?: string;
 
   @observable
-  incidentsItemsPerPage?: number = ITEMS_PER_PAGE;
-
-  @observable
-  current = { start: 1, end: this.incidentsItemsPerPage };
+  incidentsItemsPerPage?: number;
 
   @observable
   alertsSearchResult: any = {};
@@ -226,7 +221,6 @@ export class AlertGroupStore extends BaseStore {
   async updateIncidentFilters(params: any, keepCursor = false) {
     if (!keepCursor) {
       this.incidentsCursor = undefined;
-      this.current = { start: 1, end: this.incidentsItemsPerPage };
     }
 
     this.incidentFilters = params;

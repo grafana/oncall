@@ -36,6 +36,11 @@ import styles from './Incidents.module.css';
 
 const cx = cn.bind(styles);
 
+interface Pagination {
+  start: number;
+  end: number;
+}
+
 function withSkeleton(fn: (alert: AlertType) => ReactElement | ReactElement[]) {
   return (alert: AlertType) => {
     if (alert.short) {
@@ -52,27 +57,40 @@ interface IncidentsPageState {
   selectedIncidentIds: Array<Alert['pk']>;
   affectedRows: { [key: string]: boolean };
   filters?: IncidentsFiltersType;
+  pagination: Pagination;
 }
+
+const ITEMS_PER_PAGE = 25;
 
 @observer
 class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> {
   constructor(props: IncidentsPageProps) {
     super(props);
 
-    const { store } = props;
+    const {
+      store,
+      query: { id, cursor: cursorQuery, start: startQuery, perpage: perpageQuery },
+    } = props;
+
+    const cursor = cursorQuery || undefined;
+    const start = !isNaN(startQuery) ? Number(startQuery) : 1;
+    const itemsPerPage = !isNaN(perpageQuery) ? Number(perpageQuery) : ITEMS_PER_PAGE;
+
+    store.alertGroupStore.incidentsCursor = cursor;
+    store.alertGroupStore.incidentsItemsPerPage = itemsPerPage;
 
     this.state = {
       selectedIncidentIds: [],
       affectedRows: {},
+      pagination: {
+        start,
+        end: start + itemsPerPage - 1,
+      },
     };
 
     store.alertGroupStore.updateBulkActions();
     store.alertGroupStore.updateSilenceOptions();
   }
-
-  async componentDidMount() {}
-
-  componentDidUpdate() {}
 
   render() {
     return (
@@ -97,12 +115,19 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
   handleFiltersChange = (filters: IncidentsFiltersType, isOnMount: boolean) => {
     const { store } = this.props;
 
-    console.log('isOnMount', isOnMount);
-
     this.setState({
       filters,
       selectedIncidentIds: [],
     });
+
+    if (!isOnMount) {
+      this.setState({
+        pagination: {
+          start: 1,
+          end: store.alertGroupStore.incidentsItemsPerPage,
+        },
+      });
+    }
 
     store.alertGroupStore.updateIncidentFilters(filters, isOnMount);
 
@@ -114,16 +139,14 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
 
     store.alertGroupStore.setIncidentsCursor(cursor);
 
-    store.alertGroupStore.current = {
-      start:
-        store.alertGroupStore.current.start +
-        store.alertGroupStore.incidentsItemsPerPage * (direction === 'prev' ? -1 : 1),
-      end:
-        store.alertGroupStore.current.end +
-        store.alertGroupStore.incidentsItemsPerPage * (direction === 'prev' ? -1 : 1),
-    };
-
-    this.setState({ selectedIncidentIds: [] });
+    this.setState({
+      selectedIncidentIds: [],
+      pagination: {
+        start:
+          this.state.pagination.start + store.alertGroupStore.incidentsItemsPerPage * (direction === 'prev' ? -1 : 1),
+        end: this.state.pagination.end + store.alertGroupStore.incidentsItemsPerPage * (direction === 'prev' ? -1 : 1),
+      },
+    });
   };
 
   handleChangeItemsPerPage = (value: number) => {
@@ -133,9 +156,11 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
 
     this.setState({
       selectedIncidentIds: [],
+      pagination: {
+        start: 1,
+        end: store.alertGroupStore.incidentsItemsPerPage,
+      },
     });
-
-    store.alertGroupStore.current = { start: 1, end: store.alertGroupStore.incidentsItemsPerPage };
   };
 
   renderBulkActions = () => {
@@ -237,7 +262,7 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
   };
 
   renderTable() {
-    const { selectedIncidentIds, affectedRows } = this.state;
+    const { selectedIncidentIds, affectedRows, pagination } = this.state;
     const { store } = this.props;
     const {
       teamStore: { currentTeam },
@@ -346,7 +371,7 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
         />
         <div className={cx('pagination')}>
           <CursorPagination
-            current={`${store.alertGroupStore.current.start}-${store.alertGroupStore.current.end}`}
+            current={`${pagination.start}-${pagination.end}`}
             itemsPerPage={store.alertGroupStore.incidentsItemsPerPage}
             itemsPerPageOptions={[
               { label: '25', value: 25 },
@@ -372,9 +397,20 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
   }
 
   renderTitle = (record: AlertType) => {
+    const { store } = this.props;
+    const {
+      pagination: { start },
+    } = this.state;
+
+    const { incidentsItemsPerPage, incidentsCursor } = store.alertGroupStore;
+
     return (
       <VerticalGroup spacing="none" justify="center">
-        <PluginLink query={{ page: 'incident', id: record.pk }}>{record.render_for_web.title}</PluginLink>
+        <PluginLink
+          query={{ page: 'incident', id: record.pk, cursor: incidentsCursor, perpage: incidentsItemsPerPage, start }}
+        >
+          {record.render_for_web.title}
+        </PluginLink>
         {Boolean(record.dependent_alert_groups.length) && `+ ${record.dependent_alert_groups.length} attached`}
       </VerticalGroup>
     );

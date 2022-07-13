@@ -1,4 +1,4 @@
-import React, { FC, useCallback } from 'react';
+import React, { FC, useCallback, useEffect, useState } from 'react';
 
 import { SelectableValue } from '@grafana/data';
 import { Button, HorizontalGroup, Icon, Select } from '@grafana/ui';
@@ -23,7 +23,14 @@ const cx = cn.bind(styles);
 const CursorPagination: FC<CursorPaginationProps> = (props) => {
   const { current, onChange, prev, next, itemsPerPage, itemsPerPageOptions, onChangeItemsPerPage } = props;
 
+  const [disabled, setDisabled] = useState<boolean>(false);
+
+  useEffect(() => {
+    setDisabled(false);
+  }, [prev, next]);
+
   const onChangeItemsPerPageCallback = useCallback((option) => {
+    setDisabled(true);
     onChangeItemsPerPage(option.value);
   }, []);
 
@@ -43,8 +50,11 @@ const CursorPagination: FC<CursorPaginationProps> = (props) => {
           aria-label="previous"
           size="sm"
           variant="secondary"
-          onClick={() => onChange(prev, 'prev')}
-          disabled={!prev}
+          onClick={() => {
+            setDisabled(true);
+            onChange(prev, 'prev');
+          }}
+          disabled={disabled || !prev}
         >
           <Icon name="angle-left" />
         </Button>
@@ -53,8 +63,11 @@ const CursorPagination: FC<CursorPaginationProps> = (props) => {
           aria-label="previous"
           size="sm"
           variant="secondary"
-          onClick={() => onChange(next, 'next')}
-          disabled={!next}
+          onClick={() => {
+            setDisabled(true);
+            onChange(next, 'next');
+          }}
+          disabled={disabled || !next}
         >
           <Icon name="angle-right" />
         </Button>
