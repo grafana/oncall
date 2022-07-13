@@ -1,6 +1,5 @@
-from datetime import datetime, timedelta
+from datetime import timedelta
 
-from django import forms
 from django.db.models import Count, Max, Q
 from django.utils import timezone
 from django_filters import rest_framework as filters
@@ -258,28 +257,6 @@ class AlertGroupView(
             alert_group.alerts_count = alerts_info_map[alert_group.pk]["alerts_count"]
 
         return alert_groups
-
-    def get_alert_groups_and_days_for_previous_same_period(self):
-        prev_alert_groups = AlertGroup.unarchived_objects.none()
-        delta_days = None
-
-        started_at = self.request.query_params.get("started_at", None)
-        if started_at is not None:
-            started_at_gte, started_at_lte = AlertGroupFilter.parse_custom_datetime_range(started_at)
-            delta_days = None
-            if started_at_lte is not None:
-                started_at_lte = forms.DateTimeField().to_python(started_at_lte)
-            else:
-                started_at_lte = datetime.now()
-
-            if started_at_gte is not None:
-                started_at_gte = forms.DateTimeField().to_python(value=started_at_gte)
-                delta = started_at_lte.replace(tzinfo=None) - started_at_gte.replace(tzinfo=None)
-                prev_alert_groups = self.get_queryset().filter(
-                    started_at__range=[started_at_gte - delta, started_at_gte]
-                )
-                delta_days = delta.days
-        return prev_alert_groups, delta_days
 
     @action(detail=False)
     def stats(self, *args, **kwargs):

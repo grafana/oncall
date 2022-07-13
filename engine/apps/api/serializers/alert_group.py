@@ -143,6 +143,6 @@ class AlertGroupSerializer(AlertGroupListSerializer):
 
         if len(alerts) > 90:
             for alert in alerts:
-                alert.title = str(alert.title) + " Only last 100 alerts are shown. Use Amixr API to fetch all of them."
+                alert.title = str(alert.title) + " Only last 100 alerts are shown. Use OnCall API to fetch all of them."
 
         return AlertSerializer(alerts, many=True).data
