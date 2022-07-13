@@ -118,11 +118,8 @@ class CustomButton(models.Model):
         elif self.data:
             rendered_data = Template(self.data).render(
                 {
-                    "alert_title": self._escape_string(alert.title),
-                    "alert_message": self._escape_string(alert.message),
-                    "alert_url": alert.link_to_upstream_details,
                     "alert_payload": self._escape_alert_payload(alert.raw_request_data),
-                    "alert_payload_json": json.dumps(alert.raw_request_data),
+                    "alert_group_id": alert.group.public_primary_key,
                 }
             )
             post_kwargs["json"] = json.loads(rendered_data)
