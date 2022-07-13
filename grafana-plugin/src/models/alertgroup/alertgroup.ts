@@ -44,6 +44,9 @@ export class AlertGroupStore extends BaseStore {
   incidentsItemsPerPage?: number = ITEMS_PER_PAGE;
 
   @observable
+  current = { start: 1, end: this.incidentsItemsPerPage };
+
+  @observable
   alertsSearchResult: any = {};
 
   @observable
@@ -220,8 +223,12 @@ export class AlertGroupStore extends BaseStore {
   }
 
   @action
-  async updateIncidentFilters(params: any) {
-    this.incidentsCursor = undefined;
+  async updateIncidentFilters(params: any, keepCursor = false) {
+    if (!keepCursor) {
+      this.incidentsCursor = undefined;
+      this.current = { start: 1, end: this.incidentsItemsPerPage };
+    }
+
     this.incidentFilters = params;
 
     this.updateIncidents();

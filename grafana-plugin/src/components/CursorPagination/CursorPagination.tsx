@@ -28,7 +28,7 @@ const CursorPagination: FC<CursorPaginationProps> = (props) => {
   }, []);
 
   return (
-    <HorizontalGroup spacing="lg" justify="flex-end">
+    <HorizontalGroup spacing="md" justify="flex-end">
       <HorizontalGroup>
         <Text type="secondary">Items per list</Text>
         <Select
