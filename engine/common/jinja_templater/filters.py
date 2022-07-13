@@ -24,6 +24,7 @@ def to_pretty_json(value):
     except (ValueError, AttributeError, TypeError):
         return None
 
+
 def regex_replace(value, find, replace):
     try:
         return re.sub(find, replace, value)

@@ -2,7 +2,7 @@ from django.utils import timezone
 from jinja2 import BaseLoader
 from jinja2.sandbox import SandboxedEnvironment
 
-from .filters import datetimeformat, iso8601_to_time, to_pretty_json, regex_replace
+from .filters import datetimeformat, iso8601_to_time, regex_replace, to_pretty_json
 
 jinja_template_env = SandboxedEnvironment(loader=BaseLoader())
 
