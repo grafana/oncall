@@ -2,7 +2,6 @@ import logging
 import urllib.parse
 
 from django.apps import apps
-from django.conf import settings
 from django.urls import reverse
 from twilio.base.exceptions import TwilioRestException
 from twilio.rest import Client
@@ -10,6 +9,7 @@ from twilio.rest import Client
 from apps.base.utils import live_settings
 from apps.twilioapp.constants import TEST_CALL_TEXT, TwilioLogRecordStatus, TwilioLogRecordType
 from apps.twilioapp.utils import get_calling_code, get_gather_message, get_gather_url, parse_phone_number
+from common.api_helpers.utils import create_engine_url
 
 logger = logging.getLogger(__name__)
 
@@ -24,7 +24,7 @@ class TwilioClient:
         return live_settings.TWILIO_NUMBER
 
     def send_message(self, body, to):
-        status_callback = settings.BASE_URL + reverse("twilioapp:sms_status_events")
+        status_callback = create_engine_url(reverse("twilioapp:sms_status_events"))
         try:
             return self.twilio_api_client.messages.create(
                 body=body, to=to, from_=self.twilio_number, status_callback=status_callback
@@ -143,7 +143,7 @@ class TwilioClient:
             )
 
             url = "http://twimlets.com/echo?Twiml=" + twiml_query
-            status_callback = settings.BASE_URL + reverse("twilioapp:call_status_events")
+            status_callback = create_engine_url(reverse("twilioapp:call_status_events"))
 
             status_callback_events = ["initiated", "ringing", "answered", "completed"]
 

@@ -23,7 +23,7 @@ def setup_heartbeat_integration(name=None):
     # don't specify a team in the data, so heartbeat integration will be created in the General.
     name = name or f"OnCall Cloud Heartbeat {settings.BASE_URL}"
     data = {"type": "formatted_webhook", "name": name}
-    url = urljoin(settings.GRAFANA_CLOUD_ONCALL_API_URL, "/api/v1/integrations/")
+    url = urljoin(settings.GRAFANA_CLOUD_ONCALL_API_URL, "api/v1/integrations/")
     try:
         headers = {"Authorization": api_token}
         r = requests.post(url=url, data=data, headers=headers, timeout=5)
