@@ -1,0 +1,39 @@
+.page-body {
+  max-width: unset !important;
+}
+
+.page-container {
+  max-width: unset !important;
+}
+
+/* This is for Grafana 8, remove later */
+@media (max-width: 1540px) {
+  .page-header__tabs > ul > li > a > div {
+    display: none;
+  }
+}
+
+@media (max-width: 1540px) {
+  .page-header__tabs > div > div > a > div {
+    display: none;
+  }
+}
+
+@media (max-width: 1300px) {
+  .sidemenu {
+    position: fixed !important;
+    height: 100%;
+  }
+
+  .grafana-app {
+    position: relative !important;
+  }
+
+  .main-view {
+    padding-left: 50px;
+  }
+
+  .page-header__tabs li a {
+    white-space: nowrap;
+  }
+}
