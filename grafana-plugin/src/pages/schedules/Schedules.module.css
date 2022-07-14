@@ -47,7 +47,6 @@
 
 .priority-icon {
   width: 32px;
-  height: 32px;
   border-radius: 50%;
   background: var(--secondary-background);
   line-height: 32px;
@@ -65,6 +64,7 @@
   border-radius: 50px;
   color: #ff5286;
   font-weight: 400;
+  align-items: baseline;
 }
 
 .gap-between-shifts-icon {
