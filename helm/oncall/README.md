@@ -13,6 +13,7 @@ Architecture diagram can be found [here](https://raw.githubusercontent.com/grafa
 
 ### Cluster requirements
 * ensure you can run x86-64/amd64 workloads. arm64 architecture is currently not supported
+* kubernetes version 1.25+ is not supported, if cert-manager is enabled
 
 ## Install
 ### Prepare the repo
