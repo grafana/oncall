@@ -495,7 +495,15 @@ const Event = ({ event }: EventProps) => {
               ) : (
                 <HorizontalGroup>
                   <Icon style={{ color: PENDING_COLOR }} name="exclamation-triangle" />
-                  <Text type="secondary">Empty shift (event without associated user or user with Viewer access)</Text>
+                  <Text type="secondary">Empty shift</Text>
+                  {event.missing_users[0] && (
+                    <Text type="secondary">
+                      (check if {event.missing_users[0].includes(',') ? 'some of these users -' : 'user -'}{' '}
+                      <Text type="secondary">"{event.missing_users[0]}"</Text>{' '}
+                      {event.missing_users[0].includes(',') ? 'are' : 'is'} existing in OnCall or{' '}
+                      {event.missing_users[0].includes(',') ? 'have' : 'has'} Viewer role)
+                    </Text>
+                  )}
                 </HorizontalGroup>
               )}
               {event.source && <span> — source: {event.source}</span>}
