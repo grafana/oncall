@@ -263,7 +263,13 @@ export class AlertGroupStore extends BaseStore {
     const prevCursor = previousRaw ? qs.parse(qs.extract(previousRaw)).cursor : previousRaw;
     const nextCursor = nextRaw ? qs.parse(qs.extract(nextRaw)).cursor : nextRaw;
 
-    const newAlerts = new Map(results.map((alert: Alert) => [alert.pk, alert]));
+    const newAlerts = new Map(
+      results.map((alert: Alert) => {
+        const oldAlert = this.alerts.get(alert.pk) || {};
+        const mergedAlertData = { ...oldAlert, ...alert };
+        return [alert.pk, mergedAlertData];
+      })
+    );
 
     // @ts-ignore
     this.alerts = new Map<number, Alert>([...this.alerts, ...newAlerts]);
