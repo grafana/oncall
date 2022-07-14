@@ -211,6 +211,7 @@ class ScheduleView(
                     }
                     for user in shift["users"]
                 ],
+                "missing_users": shift["missing_users"],
                 "priority_level": shift["priority"] if shift["priority"] != 0 else None,
                 "source": shift["source"],
                 "calendar_type": shift["calendar_type"],
