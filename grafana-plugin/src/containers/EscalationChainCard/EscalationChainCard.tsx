@@ -1,6 +1,6 @@
 import React from 'react';
 
-import { HorizontalGroup, VerticalGroup } from '@grafana/ui';
+import { HorizontalGroup, Icon, VerticalGroup, Tooltip } from '@grafana/ui';
 import cn from 'classnames/bind';
 import { observer } from 'mobx-react';
 
@@ -29,9 +29,26 @@ const EscalationChainCard = observer((props: AlertReceiveChannelCardProps) => {
     <div className={cx('root')}>
       <HorizontalGroup align="flex-start">
         <VerticalGroup spacing="xs">
-          <Text type="primary" size="medium">
-            {escalationChain.name}
-          </Text>
+          <HorizontalGroup spacing="sm">
+            <Text type="primary" size="medium">
+              {escalationChain.name}
+            </Text>
+            {(escalationChain.number_of_integrations > 0 || escalationChain.number_of_routes > 0) && (
+              <Tooltip
+                placement="top"
+                content={`Modifying this escalation chain will affect ${escalationChain.number_of_integrations} integrations and ${escalationChain.number_of_routes} routes.`}
+              >
+                <div className={cx('connected-integrations')}>
+                  <HorizontalGroup spacing="xs">
+                    <Icon className={cx('icon')} name="link" size="sm" />
+                    <Text type="success" size="small">
+                      {escalationChain.number_of_integrations}
+                    </Text>
+                  </HorizontalGroup>
+                </div>
+              </Tooltip>
+            )}
+          </HorizontalGroup>
           {/*<HorizontalGroup>
             <PluginLink
               query={{ page: 'incidents', integration: alertReceiveChannel.id }}
