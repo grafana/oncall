@@ -130,12 +130,9 @@ export const PluginConfigPage = (props: Props) => {
 
   const handleSyncException = useCallback((e) => {
     if (plugin.meta.jsonData?.onCallApiUrl) {
-      let statusMessage = plugin.meta.jsonData.onCallApiUrl +
-          '\n' +
-          e +
-          ', retry or check settings & re-initialize.'
-      if(e.response.status == 404) {
-        statusMessage += '\nIf Grafana OnCall was just installed, restart Grafana for OnCall routes to be available.'
+      let statusMessage = plugin.meta.jsonData.onCallApiUrl + '\n' + e + ', retry or check settings & re-initialize.';
+      if (e.response.status == 404) {
+        statusMessage += '\nIf Grafana OnCall was just installed, restart Grafana for OnCall routes to be available.';
       }
       setPluginStatusMessage(statusMessage);
       setRetrySync(true);
