@@ -146,7 +146,7 @@
 {{- if and (not .Values.rabbitmq.enabled) .Values.externalRabbitmq.vhost -}}
 {{ .Values.externalRabbitmq.vhost | quote }}
 {{- else -}}
-"/"
+""
 {{- end -}}
 {{- end -}}
 
