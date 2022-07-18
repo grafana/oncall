@@ -3,11 +3,6 @@ import time
 from rest_framework import fields, serializers
 
 from apps.schedules.models import CustomOnCallShift
-from apps.schedules.tasks import (
-    drop_cached_ical_task,
-    schedule_notify_about_empty_shifts_in_schedule,
-    schedule_notify_about_gaps_in_schedule,
-)
 from apps.user_management.models import User
 from common.api_helpers.custom_fields import (
     RollingUsersField,
@@ -136,6 +131,8 @@ class CustomOnCallShiftSerializer(EagerLoadingMixin, serializers.ModelSerializer
             validated_data.get("by_monthday"),
         )
         instance = super().create(validated_data)
+        for schedule in instance.schedules.all():
+            instance.start_drop_ical_and_check_schedule_tasks(schedule)
         return instance
 
     def validate_name(self, name):
@@ -308,6 +305,7 @@ class CustomOnCallShiftSerializer(EagerLoadingMixin, serializers.ModelSerializer
                 "by_monthday",
                 "rolling_users",
                 "start_rotation_from_user_index",
+                "until",
             ],
         }
         for field in fields_to_update_map[event_type]:
@@ -354,9 +352,5 @@ class CustomOnCallShiftUpdateSerializer(CustomOnCallShiftSerializer):
         validated_data = self._correct_validated_data(event_type, validated_data)
         result = super().update(instance, validated_data)
         for schedule in instance.schedules.all():
-            drop_cached_ical_task.apply_async(
-                (schedule.pk,),
-            )
-            schedule_notify_about_empty_shifts_in_schedule.apply_async((instance.pk,))
-            schedule_notify_about_gaps_in_schedule.apply_async((instance.pk,))
+            instance.start_drop_ical_and_check_schedule_tasks(schedule)
         return result
