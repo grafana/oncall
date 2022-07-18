@@ -3,6 +3,7 @@ from datetime import timedelta
 import humanize
 import pytz
 from django.apps import apps
+from django.conf import settings
 from django.utils import timezone
 from rest_framework import fields, serializers
 
@@ -109,7 +110,26 @@ class CurrentOrganizationSerializer(OrganizationSerializer):
 
     def get_limits(self, obj):
         user = self.context["request"].user
-        return obj.notifications_limit_web_report(user)
+        if not settings.OSS_INSTALLATION:
+            return obj.notifications_limit_web_report(user)
+
+        # show a version warning on OSS installations in case backend and frontend are different versions
+        frontend_version = self.context["request"].headers.get("X-OnCall-Plugin-Version")
+        backend_version = settings.VERSION
+        version_warning = {}
+        if backend_version and frontend_version and backend_version != frontend_version:
+            text = (
+                "Version mismatch! Please make sure you have the same versions of Grafana OnCall plugin "
+                "and Grafana OnCall engine, "
+                "otherwise there could be issues with your Grafana OnCall installation! "
+                f"Current plugin version: {frontend_version}, current engine version: {backend_version}. "
+                "To install the latest Grafana OnCall plugin version, "
+                "visit the plugin configuration page and click Update. "
+                "To update Grafana OnCall engine, re-pull the grafana/oncall image and restart (or see the docs)."
+            )
+            version_warning = {"period_title": "Version mismatch", "show_limits_warning": True, "warning_text": text}
+
+        return version_warning or obj.notifications_limit_web_report(user)
 
     def get_env_status(self, obj):
         LiveSetting.populate_settings_if_needed()

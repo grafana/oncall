@@ -1,3 +1,4 @@
+import plugin from '../../../package.json'; // eslint-disable-line
 import React, { FC, useEffect, useState, useCallback } from 'react';
 
 import { AppRootProps } from '@grafana/data';
@@ -88,14 +89,33 @@ const DefaultPageLayout: FC<DefaultPageLayoutProps> = observer((props) => {
             />
           </Alert>
         )}
-        {currentTeam?.limits.show_limits_warning && !getItem(currentTeam.limits.warning_text) && (
-          <Alert
-            className={styles.alert}
-            severity="warning"
-            title={currentTeam?.limits.warning_text}
-            onRemove={getRemoveAlertHandler(currentTeam?.limits.warning_text)}
-          />
+        {store.backendVersion && plugin?.version && store.backendVersion !== plugin?.version && (
+          <Alert className={styles.alert} severity="warning" title={'Version mismatch!'}>
+            Please make sure you have the same versions of Grafana OnCall plugin and Grafana OnCall engine, otherwise
+            there could be issues with your Grafana OnCall installation!
+            <br />
+            {`Current plugin version: ${plugin.version}, current engine version: ${store.backendVersion}`}
+            <br />
+            To install the latest Grafana OnCall plugin version, visit{' '}
+            <a href={'/plugins/grafana-oncall-app?page=version-history'}>the plugin configuration page</a> and click
+            Update.
+            <br />
+            To update Grafana OnCall engine, re-pull the{' '}
+            <a href={'https://hub.docker.com/r/grafana/oncall/tags'}>grafana/oncall</a> image and restart (or see{' '}
+            <a href={'https://github.com/grafana/oncall#getting-started'}>the docs</a>).
+          </Alert>
         )}
+
+        {currentTeam?.limits.show_limits_warning &&
+          currentTeam?.limits.period_title !== 'Version mismatch' && // don't show version mismatch warning twice
+          !getItem(currentTeam.limits.warning_text) && (
+            <Alert
+              className={styles.alert}
+              severity="warning"
+              title={currentTeam?.limits.warning_text}
+              onRemove={getRemoveAlertHandler(currentTeam?.limits.warning_text)}
+            />
+          )}
         {Boolean(
           currentTeam &&
             currentUser &&

@@ -39,6 +39,9 @@ export class RootBaseStore {
   appLoading = true;
 
   @observable
+  backendVersion = '';
+
+  @observable
   pluginIsInitialized = true;
 
   @observable
@@ -134,6 +137,7 @@ export class RootBaseStore {
       this.initializationError = 'OnCall was not able to connect back to this Grafana';
       return;
     }
+    this.backendVersion = get_sync_response.version;
     this.appLoading = false;
   }
 
