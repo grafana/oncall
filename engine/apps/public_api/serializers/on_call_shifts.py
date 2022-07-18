@@ -83,6 +83,7 @@ class CustomOnCallShiftSerializer(EagerLoadingMixin, serializers.ModelSerializer
         required=False,
         child=UsersFilteredByOrganizationField(queryset=User.objects, required=False, allow_null=True),
     )
+    rotation_start = serializers.DateTimeField(required=False)
 
     class Meta:
         model = CustomOnCallShift
@@ -131,6 +132,8 @@ class CustomOnCallShiftSerializer(EagerLoadingMixin, serializers.ModelSerializer
             validated_data.get("by_day"),
             validated_data.get("by_monthday"),
         )
+        if not validated_data.get("rotation_start"):
+            validated_data["rotation_start"] = validated_data["start"]
         instance = super().create(validated_data)
         for schedule in instance.schedules.all():
             instance.start_drop_ical_and_check_schedule_tasks(schedule)

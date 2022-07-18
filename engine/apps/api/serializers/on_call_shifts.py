@@ -163,7 +163,7 @@ class OnCallShiftSerializer(EagerLoadingMixin, serializers.ModelSerializer):
             validated_data.get("by_day"),
         )
         self._validate_rotation_start(validated_data["start"], validated_data["rotation_start"])
-        self._validate_until(validated_data["rotation_start"], validated_data["until"])
+        self._validate_until(validated_data["rotation_start"], validated_data.get("until"))
 
         # convert shift_end into internal value and validate
         raw_shift_end = self.initial_data["shift_end"]
@@ -171,6 +171,7 @@ class OnCallShiftSerializer(EagerLoadingMixin, serializers.ModelSerializer):
         self._validate_shift_end(validated_data["start"], shift_end)
 
         validated_data["duration"] = shift_end - validated_data["start"]
+        validated_data["team"] = validated_data["schedule"].team
 
         return validated_data
 
