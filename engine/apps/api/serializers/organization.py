@@ -119,13 +119,12 @@ class CurrentOrganizationSerializer(OrganizationSerializer):
         version_warning = {}
         if backend_version and frontend_version and backend_version != frontend_version:
             text = (
-                "Version mismatch! Please make sure you have the same versions of Grafana OnCall plugin "
+                "Version mismatch! Please make sure you have the same versions of the Grafana OnCall plugin "
                 "and Grafana OnCall engine, "
                 "otherwise there could be issues with your Grafana OnCall installation! "
                 f"Current plugin version: {frontend_version}, current engine version: {backend_version}. "
-                "To install the latest Grafana OnCall plugin version, "
-                "visit the plugin configuration page and click Update. "
-                "To update Grafana OnCall engine, re-pull the grafana/oncall image and restart (or see the docs)."
+                "Please see the update instructions: "
+                "https://grafana.com/docs/oncall/latest/open-source/#update-grafana-oncall-oss"
             )
             version_warning = {"period_title": "Version mismatch", "show_limits_warning": True, "warning_text": text}
 
