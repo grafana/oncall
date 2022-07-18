@@ -2,8 +2,10 @@ import React, { FC, useCallback, useMemo } from 'react';
 
 import { Select } from '@grafana/ui';
 import cn from 'classnames/bind';
+import dayjs from 'dayjs';
 import { get } from 'lodash-es';
 
+import { getTzOffsetString } from 'models/timezone/timezone.helpers';
 import { Timezone } from 'models/timezone/timezone.types';
 import { User } from 'models/user/user.types';
 
@@ -25,7 +27,12 @@ const UserTimezoneSelect: FC<UserTimezoneSelectProps> = (props) => {
       let item = memo.find((item) => item.label === user.tz);
 
       if (!item) {
-        item = { value: user.pk, label: user.tz, imgUrl: user.avatar, description: user.name };
+        item = {
+          value: user.pk,
+          label: `${user.tz} ${getTzOffsetString(dayjs().tz(user.tz))}`,
+          imgUrl: user.avatar,
+          description: user.name,
+        };
         memo.push(item);
       } else {
         item.description += ', ' + user.name;

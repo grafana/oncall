@@ -3,7 +3,7 @@ import React, { useMemo } from 'react';
 import { AppRootProps } from '@grafana/data';
 import { Button, HorizontalGroup, VerticalGroup, RadioButtonGroup, IconButton, ToolbarButton } from '@grafana/ui';
 import cn from 'classnames/bind';
-import * as dayjs from 'dayjs';
+import dayjs from 'dayjs';
 import { observer } from 'mobx-react';
 import Draggable from 'react-draggable';
 
@@ -34,17 +34,19 @@ interface SchedulePageState {
   schedulePeriodType: string;
   renderType: string;
   users: User[];
-  tz: Timezone;
+  currentTimezone: Timezone;
 }
+
+const INITIAL_TIMEZONE = 'UTC';
 
 @observer
 class SchedulePage extends React.Component<SchedulePageProps, SchedulePageState> {
   state: SchedulePageState = {
-    startMoment: dayjs().utc().startOf('week'),
+    startMoment: dayjs().tz(INITIAL_TIMEZONE).startOf('week'),
     schedulePeriodType: 'week',
     renderType: 'timeline',
     users: getRandomUsers(),
-    tz: 'Europe/Moscow',
+    currentTimezone: INITIAL_TIMEZONE,
   };
 
   async componentDidMount() {
@@ -56,7 +58,7 @@ class SchedulePage extends React.Component<SchedulePageProps, SchedulePageState>
   componentDidUpdate() {}
 
   render() {
-    const { startMoment, schedulePeriodType, renderType, users, tz } = this.state;
+    const { startMoment, schedulePeriodType, renderType, users, currentTimezone } = this.state;
     const { query } = this.props;
 
     return (
@@ -91,7 +93,7 @@ class SchedulePage extends React.Component<SchedulePageProps, SchedulePageState>
                 />
               </HorizontalGroup>
               <HorizontalGroup>
-                <UserTimezoneSelect value={tz} users={users} onChange={this.handleTimezoneChange} />
+                <UserTimezoneSelect value={currentTimezone} users={users} onChange={this.handleTimezoneChange} />
                 <ScheduleQuality quality={0.89} />
                 <ToolbarButton icon="copy" tooltip="Copy" />
                 <ToolbarButton icon="brackets-curly" tooltip="Code" />
@@ -106,7 +108,7 @@ class SchedulePage extends React.Component<SchedulePageProps, SchedulePageState>
             Users from on-call schedule" step in escalation chains.
           </Text>
           <div className={cx('users-timezones')}>
-            <UsersTimezones users={users} tz={tz} onTzChange={this.handleTimezoneChange} />
+            <UsersTimezones users={users} tz={currentTimezone} onTzChange={this.handleTimezoneChange} />
           </div>
           <div className={cx('controls')}>
             <HorizontalGroup justify="space-between">
@@ -155,7 +157,7 @@ class SchedulePage extends React.Component<SchedulePageProps, SchedulePageState>
           {/* <div className={'current-time'} />*/}
           <div className={cx('rotations')}>
             {/*<Rotations startMoment={startMoment} title="Final schedule" />*/}
-            <Rotations startMoment={startMoment} title="Rotations" />
+            <Rotations currentTimezone={currentTimezone} startMoment={startMoment} title="Rotations" />
             {/* <Rotations startMoment={startMoment} title="Overrides" />*/}
           </div>
         </VerticalGroup>
@@ -164,7 +166,7 @@ class SchedulePage extends React.Component<SchedulePageProps, SchedulePageState>
   }
 
   handleTimezoneChange = (value: Timezone) => {
-    this.setState({ tz: value });
+    this.setState({ currentTimezone: value, startMoment: dayjs().tz(value).startOf('week') });
   };
 
   handleShedulePeriodTypeChange = (value: string) => {
@@ -176,9 +178,9 @@ class SchedulePage extends React.Component<SchedulePageProps, SchedulePageState>
   };
 
   handleTodayClick = () => {
-    const { startMoment } = this.state;
+    const { startMoment, currentTimezone } = this.state;
 
-    this.setState({ startMoment: dayjs().utc().startOf('week') });
+    this.setState({ startMoment: dayjs().tz(currentTimezone).startOf('week') });
   };
 
   handleLeftClick = () => {

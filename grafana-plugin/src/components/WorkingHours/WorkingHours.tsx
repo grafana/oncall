@@ -33,8 +33,6 @@ const WorkingHours: FC<WorkingHoursProps> = (props) => {
     className,
   } = props;
 
-  timezone = dayjs.tz.guess();
-
   const endMoment = startMoment.add(duration, 'seconds');
 
   const workingMoments = useMemo(
@@ -42,9 +40,11 @@ const WorkingHours: FC<WorkingHoursProps> = (props) => {
     [startMoment, endMoment, workingHours, timezone]
   );
 
-  const nonWorkingMoments = getNonWorkingMoments(startMoment, endMoment, workingMoments);
+  /*console.log(
+    workingMoments.map(({ start, end }) => `${start.diff(startMoment, 'hours')} - ${end.diff(startMoment, 'hours')}`)
+  );*/
 
-  console.log(startMoment.tz(timezone).format('D MMM ddd HH:ss'));
+  const nonWorkingMoments = getNonWorkingMoments(startMoment, endMoment, workingMoments);
 
   /*console.log(
     workingMoments.map(

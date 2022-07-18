@@ -17,6 +17,7 @@
     display: flex;
     flex-direction: column;
     gap:1px;
+    transition: left 500ms ease;
 }
 
 .stack > .root {
@@ -50,22 +51,8 @@
     margin: 4px;
     line-height: 16px;
     z-index: 1;
-}
-
-.striped {
-    --color: rgba(17, 18, 23, 0.3);
-    position: absolute;
-    top: 0;
-    bottom: 0;
-    opacity: 0.4;
-    height: 100%;
-    background: repeating-linear-gradient(
-            -45deg,
-            var(--color),
-            var(--color) 4px,
-            transparent 4px,
-            transparent 8px
-    );
+    font-size: 10px;
+    font-weight: bold;
 }
 
 .details {

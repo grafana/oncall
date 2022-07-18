@@ -1,3 +1,5 @@
+import dayjs from 'dayjs';
+
 import { GrafanaTeam } from 'models/grafana_team/grafana_team.types';
 import { SlackChannel } from 'models/slack_channel/slack_channel.types';
 import { User } from 'models/user/user.types';
@@ -45,7 +47,7 @@ export interface CreateScheduleExportTokenResponse {
 }
 
 export interface Shift {
-  start: string;
+  start: dayjs.Dayjs;
   duration: number; // in seconds
   users: Array<User['pk']>;
 }

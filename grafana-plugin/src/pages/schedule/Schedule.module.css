@@ -5,7 +5,8 @@
 }
 
 .header{
-    position: sticky;
+    position: sticky; /* TODO check */
+    width: 100%;
 }
 
 .desc{

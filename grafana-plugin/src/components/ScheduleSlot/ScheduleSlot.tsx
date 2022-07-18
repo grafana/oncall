@@ -1,13 +1,15 @@
 import React, { FC } from 'react';
 
-import { HorizontalGroup, VerticalGroup, Icon, Tooltip, VerticalGroup } from '@grafana/ui';
+import { HorizontalGroup, Icon, Tooltip, VerticalGroup } from '@grafana/ui';
 import cn from 'classnames/bind';
+import dayjs from 'dayjs';
 import { observer } from 'mobx-react';
 
 import Line from 'components/ScheduleUserDetails/img/line.svg';
 import Text from 'components/Text/Text';
 import WorkingHours from 'components/WorkingHours/WorkingHours';
 import { Shift } from 'models/schedule/schedule.types';
+import { Timezone } from 'models/timezone/timezone.types';
 import { User } from 'models/user/user.types';
 import { useStore } from 'state/useStore';
 
@@ -20,29 +22,29 @@ interface ScheduleSlotProps {
   layerIndex: number;
   rotationIndex: number;
   shift: Shift;
+  startMoment: dayjs.Dayjs;
+  currentTimezone: Timezone;
 }
 
 const cx = cn.bind(styles);
 
 const ScheduleSlot: FC<ScheduleSlotProps> = observer((props) => {
-  const { index, layerIndex, rotationIndex, shift } = props;
+  const { index, layerIndex, rotationIndex, shift, startMoment, currentTimezone } = props;
   const { duration, users } = shift;
 
   const isGap = !users.length;
 
   const store = useStore();
 
-  const width = duration / (60 * 60 * 24 * 7);
+  const base = 60 * 60 * 24 * 7;
 
-  const label = index === 0 && getLabel(layerIndex, rotationIndex);
+  const width = duration / base;
 
   return (
-    <div className={cx('stack')} style={{ width: `${width * 100}%` }}>
+    <div className={cx('stack')} style={{ width: `${width * 100}%` /*left: `${x * 100}%`*/ }}>
       {!isGap ? (
         users.map((pk, userIndex) => {
-          const left = Math.random() * 50;
-          const right = 100 - (left + 20 + Math.random() * 30);
-
+          const label = index === 0 && userIndex == 0 && getLabel(layerIndex, rotationIndex);
           const storeUser = store.userStore.items[pk];
 
           const inactive = false;
@@ -61,8 +63,9 @@ const ScheduleSlot: FC<ScheduleSlotProps> = observer((props) => {
                 {storeUser && (
                   <WorkingHours
                     className={cx('working-hours')}
-                    timezone={storeUser.timezone}
-                    workingHours={storeUser.working_hours}
+                    // timezone={storeUser.timezone}
+                    timezone={['America/Vancouver', 'Europe/London'][userIndex]}
+                    //workingHours={storeUser.working_hours}
                     startMoment={shift.start}
                     duration={shift.duration}
                   />

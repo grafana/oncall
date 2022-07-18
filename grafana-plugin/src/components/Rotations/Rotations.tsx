@@ -8,6 +8,7 @@ import utc from 'dayjs/plugin/utc';
 import RotationForm from 'components/RotationForm/RotationForm';
 import TimelineMarks from 'components/TimelineMarks/TimelineMarks';
 import Rotation from 'containers/Rotation/Rotation';
+import { Timezone } from 'models/timezone/timezone.types';
 
 import { getColor, getLabel, getRandomTimeslots, getRandomUser } from './Rotations.helpers';
 
@@ -18,6 +19,7 @@ const cx = cn.bind(styles);
 interface RotationsProps {
   title: string;
   startMoment: dayjs.Dayjs;
+  currentTimezone: Timezone;
 }
 
 type Layer = {
@@ -34,7 +36,7 @@ class Rotations extends Component<RotationsProps, RotationsState> {
   };
 
   render() {
-    const { title, startMoment } = this.props;
+    const { title, startMoment, currentTimezone } = this.props;
     const { layerIdToCreateRotation } = this.state;
 
     const layers = [
@@ -82,6 +84,8 @@ class Rotations extends Component<RotationsProps, RotationsState> {
                           id={`${layerIndex}-${rotationIndex}`}
                           layerIndex={layerIndex}
                           rotationIndex={rotationIndex}
+                          startMoment={startMoment}
+                          currentTimezone={currentTimezone}
                         />
                       ))}
                     </div>

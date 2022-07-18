@@ -619,6 +619,7 @@ export const getRandomUsers = (count = 5) => {
       //name: getRandomUser(),
       pk: i,
       name: [
+        'Hypothetical UTC user',
         'Matias Bordese',
         'Michael Derynck',
         'Yulia Shanyrova',
@@ -629,6 +630,7 @@ export const getRandomUsers = (count = 5) => {
       ][i],
       //avatar: `https://i.pravatar.cc/32?rnd=${Math.random()}`,
       avatar: [
+        'https://image.shutterstock.com/image-vector/male-avatar-icon-simple-man-600w-1504887869.jpg',
         'https://avatars.githubusercontent.com/u/260710?v=4',
         'https://avatars.githubusercontent.com/u/28077050?s=60&v=4',
         'https://avatars.githubusercontent.com/u/20494436?v=4',
@@ -638,11 +640,12 @@ export const getRandomUsers = (count = 5) => {
       ][i],
       //tz: getRandomTimezone(),
       tz: [
+        'UTC',
         'America/Montevideo',
         'America/Vancouver',
         'Europe/Amsterdam',
         'Europe/Moscow',
-        'Europe/Moscow',
+        'Europe/London',
         'Asia/Yerevan',
         /*'Asia/Tel_Aviv',*/
       ][i],

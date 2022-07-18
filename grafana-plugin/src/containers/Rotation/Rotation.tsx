@@ -2,12 +2,13 @@ import React, { FC, useMemo, useState, useEffect } from 'react';
 
 import { LoadingPlaceholder } from '@grafana/ui';
 import cn from 'classnames/bind';
-import * as dayjs from 'dayjs';
+import dayjs from 'dayjs';
 import { observer } from 'mobx-react';
 
 import ScheduleSlot from 'components/ScheduleSlot/ScheduleSlot';
 import Text from 'components/Text/Text';
 import { Rotation as RotationType } from 'models/schedule/schedule.types';
+import { Timezone } from 'models/timezone/timezone.types';
 import { useStore } from 'state/useStore';
 
 import styles from './Rotation.module.css';
@@ -21,10 +22,12 @@ interface RotationProps {
   layerIndex: number;
   rotationIndex: number;
   label: string;
+  startMoment: dayjs.Dayjs;
+  currentTimezone: Timezone;
 }
 
 const Rotation: FC<RotationProps> = observer((props) => {
-  const { id, layerIndex, rotationIndex, label } = props;
+  const { id, layerIndex, rotationIndex, label, startMoment, currentTimezone } = props;
 
   const store = useStore();
 
@@ -38,13 +41,18 @@ const Rotation: FC<RotationProps> = observer((props) => {
     return <LoadingPlaceholder text="Loading shifts..." />;
   }
 
+  const base = 60 * 24 * 7; // in minutes
+  const utcOffset = dayjs().tz(currentTimezone).utcOffset();
+
+  const x = utcOffset / base;
+
   const { shifts } = rotation;
 
   return (
     <div className={cx('root')}>
       {/* <div className={cx('current-time')} />*/}
       <div className={cx('timeline')}>
-        <div className={cx('slots')}>
+        <div className={cx('slots')} style={{ transform: `translate(${x * 100}%, 0)` }}>
           {shifts.map((shift, index) => {
             return (
               <ScheduleSlot
@@ -53,6 +61,8 @@ const Rotation: FC<RotationProps> = observer((props) => {
                 shift={shift}
                 layerIndex={layerIndex}
                 rotationIndex={rotationIndex}
+                startMoment={startMoment}
+                currentTimezone={currentTimezone}
               />
             );
           })}

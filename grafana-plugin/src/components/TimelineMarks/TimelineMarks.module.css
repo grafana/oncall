@@ -12,6 +12,7 @@
     pointer-events: none;
 }
 
+
 .weekday {
     width: calc(100% / 7);
     display: flex;
@@ -47,4 +48,15 @@
 
 .weekday-time-title__hidden{
     visibility: hidden;
+}
+
+/*
+for debug purposes only
+*/
+
+.debug-scale {
+    position: absolute;
+    top: -6px;
+    width: 100%;
+    right: 0;
 }

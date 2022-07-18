@@ -126,23 +126,22 @@ export class ScheduleStore extends BaseStore {
 */
 
         const users = [
-          'UQEAACAGQ5JHL',
-          'UEHYTCX4AMX75',
-          'U3U8343UTJ91U',
-          'UTNF7TCGBPADM',
-          'UWPPUTZHCC9U5',
-          'UDUG977U8V8AX',
-          'UNN22BHCXZ6TR',
-          'UTKBFZH8HM1TF',
-          'U1DJX6WMFTWY7',
-          'UPZ7AJPKVJL9K',
+          'U5WE86241LNEA',
+          'U9XM1G7KTE3KW',
+          'UYKS64M6C59XM',
+          'UFFIRDUFXA6W3',
+          'UPRMSTP9LCADE',
+          'UR6TVJWZYV19M',
+          'UHRMQQ7KETPCS',
         ];
 
-        if (rnd > 0.33) {
-          return [users[Math.floor(Math.random() * users.length)]];
-        }
+        /* if (rnd > 0.33) {
+          return [users[Math.floor(Math.random() * users.length)], users[Math.floor(Math.random() * users.length)]];
+        }*/
 
-        return [users[Math.floor(Math.random() * users.length)], users[Math.floor(Math.random() * users.length)]];
+        return ['UPRMSTP9LCADE', 'UHRMQQ7KETPCS'];
+
+        return [users[Math.floor(Math.random() * users.length)]];
       }
 
       setTimeout(() => {
@@ -153,26 +152,16 @@ export class ScheduleStore extends BaseStore {
         const startMoment = dayjs(`${from}.000Z`).utc();
 
         const shifts = [];
-        for (let i = 0; i < 14; i++) {
+        for (let i = 0; i < 7; i++) {
           shifts.push({
-            start: dayjs(startMoment).add(12 * i, 'hour'),
-            //duration: (Math.floor(Math.random() * 6) + 10) * 60 * 60,
-            duration: 12 * 60 * 60,
+            // start: dayjs(startMoment).add(12 * i, 'hour'),
+            // duration: (Math.floor(Math.random() * 6) + 10) * 60 * 60,
+            start: dayjs(startMoment).add(24 * i, 'hour'),
+            // duration: (Math.floor(Math.random() * 6) + 10) * 60 * 60,
+            duration: 24 * 60 * 60,
             users: getUsers(),
           });
         }
-
-        const a = {
-          working_hours: {
-            monday: [{ start: '09:00:00', end: '18:00:00' }],
-            tuesday: [{ start: '09:00:00', end: '18:00:00' }],
-            wednesday: [{ start: '09:00:00', end: '18:00:00' }],
-            thursday: [{ start: '09:00:00', end: '18:00:00' }],
-            friday: [{ start: '09:00:00', end: '18:00:00' }],
-            saturday: [],
-            sunday: [],
-          },
-        };
 
         resolve({ id: rotationId, shifts });
       }, 500);
