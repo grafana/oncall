@@ -42,6 +42,9 @@ export class RootBaseStore {
   backendVersion = '';
 
   @observable
+  backendLicense = '';
+
+  @observable
   pluginIsInitialized = true;
 
   @observable
@@ -138,6 +141,7 @@ export class RootBaseStore {
       return;
     }
     this.backendVersion = get_sync_response.version;
+    this.backendLicense = get_sync_response.license;
     this.appLoading = false;
   }
 
