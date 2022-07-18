@@ -171,7 +171,8 @@ class OnCallShiftSerializer(EagerLoadingMixin, serializers.ModelSerializer):
         self._validate_shift_end(validated_data["start"], shift_end)
 
         validated_data["duration"] = shift_end - validated_data["start"]
-        validated_data["team"] = validated_data["schedule"].team
+        if validated_data.get("schedule"):
+            validated_data["team"] = validated_data["schedule"].team
 
         return validated_data
 
