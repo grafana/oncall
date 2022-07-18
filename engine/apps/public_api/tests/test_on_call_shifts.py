@@ -91,6 +91,7 @@ def test_get_override_on_call_shift(make_organization_and_user_with_token, make_
     data = {
         "start": start_date,
         "rotation_start": start_date,
+        "duration": datetime.timedelta(seconds=7200),
         "schedule": schedule,
     }
     on_call_shift = make_on_call_shift(organization=organization, shift_type=CustomOnCallShift.TYPE_OVERRIDE, **data)

@@ -397,7 +397,7 @@ def test_events_calendar(
         name="test_calendar_schedule",
     )
 
-    start_date = timezone.datetime.now().replace(microsecond=0)
+    start_date = timezone.now().replace(microsecond=0)
     data = {
         "start": start_date,
         "rotation_start": start_date,
