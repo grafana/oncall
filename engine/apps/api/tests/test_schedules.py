@@ -397,8 +397,10 @@ def test_events_calendar(
         name="test_calendar_schedule",
     )
 
+    start_date = timezone.datetime.now().replace(microsecond=0)
     data = {
-        "start": timezone.now().replace(microsecond=0),
+        "start": start_date,
+        "rotation_start": start_date,
         "duration": timezone.timedelta(seconds=7200),
         "priority_level": 2,
     }
@@ -459,6 +461,7 @@ def test_filter_events_calendar(
     start_date = now - timezone.timedelta(days=7)
     data = {
         "start": start_date,
+        "rotation_start": start_date,
         "duration": timezone.timedelta(seconds=7200),
         "priority_level": 1,
         "frequency": CustomOnCallShift.FREQUENCY_WEEKLY,
@@ -536,6 +539,7 @@ def test_filter_events_range_calendar(
     start_date = now - timezone.timedelta(days=7)
     data = {
         "start": start_date,
+        "rotation_start": start_date,
         "duration": timezone.timedelta(seconds=7200),
         "priority_level": 1,
         "frequency": CustomOnCallShift.FREQUENCY_WEEKLY,

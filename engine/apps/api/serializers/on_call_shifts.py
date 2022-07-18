@@ -132,7 +132,7 @@ class OnCallShiftSerializer(EagerLoadingMixin, serializers.ModelSerializer):
             if frequency != CustomOnCallShift.FREQUENCY_WEEKLY and by_day:
                 raise serializers.ValidationError({"by_day": ["Cannot set days value for this frequency type"]})
 
-    def _validate_rotations_start(self, shift_start, rotation_start):
+    def _validate_rotation_start(self, shift_start, rotation_start):
         if rotation_start < shift_start:
             raise serializers.ValidationError({"rotation_start": ["Incorrect rotation start date"]})
 
@@ -162,7 +162,7 @@ class OnCallShiftSerializer(EagerLoadingMixin, serializers.ModelSerializer):
             validated_data.get("interval"),
             validated_data.get("by_day"),
         )
-        self._validate_rotations_start(validated_data["start"], validated_data["rotation_start"])
+        self._validate_rotation_start(validated_data["start"], validated_data["rotation_start"])
         self._validate_until(validated_data["rotation_start"], validated_data["until"])
 
         # convert shift_end into internal value and validate
