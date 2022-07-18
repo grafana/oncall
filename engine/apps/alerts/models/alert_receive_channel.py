@@ -19,11 +19,7 @@ from jinja2 import Template
 from apps.alerts.grafana_alerting_sync_manager.grafana_alerting_sync import GrafanaAlertingSyncManager
 from apps.alerts.integration_options_mixin import IntegrationOptionsMixin
 from apps.alerts.models.maintainable_object import MaintainableObject
-from apps.alerts.tasks import (
-    disable_maintenance,
-    invalidate_web_cache_for_alert_group,
-    sync_grafana_alerting_contact_points,
-)
+from apps.alerts.tasks import disable_maintenance, sync_grafana_alerting_contact_points
 from apps.base.messaging import get_messaging_backend_from_id
 from apps.base.utils import live_settings
 from apps.integrations.metadata import heartbeat
@@ -32,6 +28,7 @@ from apps.slack.constants import SLACK_RATE_LIMIT_DELAY, SLACK_RATE_LIMIT_TIMEOU
 from apps.slack.tasks import post_slack_rate_limit_message
 from apps.slack.utils import post_message_to_channel
 from apps.user_management.organization_log_creator import OrganizationLogType, create_organization_log
+from common.api_helpers.utils import create_engine_url
 from common.exceptions import TeamCanNotBeChangedError, UnableToSendDemoAlert
 from common.public_primary_keys import generate_public_primary_key, increase_public_primary_key_length
 
@@ -497,10 +494,7 @@ class AlertReceiveChannel(IntegrationOptionsMixin, MaintainableObject):
             AlertReceiveChannel.INTEGRATION_MAINTENANCE,
         ]:
             return None
-        return urljoin(
-            settings.BASE_URL,
-            f"/integrations/v1/{self.config.slug}/{self.token}/",
-        )
+        return create_engine_url(f"integrations/v1/{self.config.slug}/{self.token}/")
 
     @property
     def inbound_email(self):
@@ -695,16 +689,6 @@ def listen_for_alertreceivechannel_model_save(sender, instance, created, *args, 
             create_organization_log(
                 instance.organization, None, OrganizationLogType.TYPE_HEARTBEAT_CREATED, description
             )
-    else:
-        logger.info(f"Drop AG cache. Reason: save alert_receive_channel {instance.pk}")
-        if kwargs is not None:
-            if "update_fields" in kwargs:
-                if kwargs["update_fields"] is not None:
-                    # Hack to not to invalidate web cache on AlertReceiveChannel.start_send_rate_limit_message_task
-                    if "rate_limit_message_task_id" in kwargs["update_fields"]:
-                        return
-
-        invalidate_web_cache_for_alert_group.apply_async(kwargs={"channel_pk": instance.pk})
 
     if instance.integration == AlertReceiveChannel.INTEGRATION_GRAFANA_ALERTING:
         if created:

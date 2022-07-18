@@ -9,7 +9,7 @@ from .custom_button_result import custom_button_result  # noqa: F401
 from .delete_alert_group import delete_alert_group  # noqa: F401
 from .distribute_alert import distribute_alert  # noqa: F401
 from .escalate_alert_group import escalate_alert_group  # noqa: F401
-from .invalidate_web_cache_for_alert_group import invalidate_web_cache_for_alert_group  # noqa: F401
+from .invalidate_web_cache_for_alert_group import invalidate_web_cache_for_alert_group  # noqa: F401, todo: remove
 from .invite_user_to_join_incident import invite_user_to_join_incident  # noqa: F401
 from .maintenance import disable_maintenance  # noqa: F401
 from .notify_all import notify_all_task  # noqa: F401

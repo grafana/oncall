@@ -1,14 +1,13 @@
 import json
 import logging
-from urllib.parse import urljoin
 
 from django.apps import apps
-from django.conf import settings
 from django.db.models import Q
 from django.utils import timezone
 
 from apps.slack.scenarios import scenario_step
 from apps.slack.slack_client.exceptions import SlackAPIException
+from common.api_helpers.utils import create_engine_url
 
 from .step_mixins import CheckAlertIsUnarchivedMixin
 
@@ -607,7 +606,7 @@ class ResolutionNoteModalStep(CheckAlertIsUnarchivedMixin, scenario_step.Scenari
 
         if not blocks:
             # there aren't any resolution notes yet, display a hint instead
-            link_to_instruction = urljoin(settings.BASE_URL, "static/images/postmortem.gif")
+            link_to_instruction = create_engine_url("static/images/postmortem.gif")
             blocks = [
                 {
                     "type": "divider",
@@ -633,7 +632,7 @@ class ResolutionNoteModalStep(CheckAlertIsUnarchivedMixin, scenario_step.Scenari
         return blocks
 
     def get_invite_bot_tip_blocks(self, channel):
-        link_to_instruction = urljoin(settings.BASE_URL, "static/images/postmortem.gif")
+        link_to_instruction = create_engine_url("static/images/postmortem.gif")
         blocks = [
             {
                 "type": "divider",
@@ -675,7 +674,6 @@ class AddRemoveThreadMessageStep(UpdateResolutionNoteStep, scenario_step.Scenari
         add_to_resolution_note = True if value["msg_value"].startswith("add") else False
         slack_thread_message = None
         resolution_note = None
-        drop_ag_cache = False
 
         alert_group = AlertGroup.all_objects.get(pk=alert_group_pk)
 
@@ -696,7 +694,6 @@ class AddRemoveThreadMessageStep(UpdateResolutionNoteStep, scenario_step.Scenari
             else:
                 resolution_note.recreate()
             self.add_resolution_note_reaction(slack_thread_message)
-            drop_ag_cache = True
         elif not add_to_resolution_note:
             # Check if resolution_note can be removed
             if (
@@ -721,13 +718,9 @@ class AddRemoveThreadMessageStep(UpdateResolutionNoteStep, scenario_step.Scenari
                     slack_thread_message.added_to_resolution_note = False
                     slack_thread_message.save(update_fields=["added_to_resolution_note"])
                     self.remove_resolution_note_reaction(slack_thread_message)
-                drop_ag_cache = True
         self.update_alert_group_resolution_note_button(
             alert_group,
         )
-        if drop_ag_cache:
-            alert_group.drop_cached_after_resolve_report_json()
-            alert_group.schedule_cache_for_web()
         resolution_note_data = json.loads(payload["actions"][0]["value"])
         resolution_note_data["resolution_note_window_action"] = "edit_update"
         ResolutionNoteModalStep(slack_team_identity, self.organization, self.user).process_scenario(

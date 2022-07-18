@@ -97,14 +97,15 @@ export const Root = observer((props: AppRootProps) => {
   }, []);
 
   useEffect(() => {
-    const style = document.createElement('style');
-    document.head.appendChild(style);
-    const index = style.sheet.insertRule('.page-body {max-width: unset !important}');
-    const index2 = style.sheet.insertRule('.page-container {max-width: unset !important}');
+    let link = document.createElement('link');
+    link.type = 'text/css';
+    link.rel = 'stylesheet';
+    link.href = '/public/plugins/grafana-oncall-app/img/grafanaGlobalStyles.css';
+
+    document.head.appendChild(link);
 
     return () => {
-      style.sheet.removeRule(index);
-      style.sheet.removeRule(index2);
+      document.head.removeChild(link);
     };
   }, []);
 

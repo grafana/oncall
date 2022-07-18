@@ -106,6 +106,8 @@
   value: {{ include "snippet.rabbitmq.port" . }}
 - name: RABBITMQ_PROTOCOL
   value: {{ include "snippet.rabbitmq.protocol" . }}
+- name: RABBITMQ_VHOST
+  value: {{ include "snippet.rabbitmq.vhost" . }}
 {{- end }}
 
 {{- define "snippet.rabbitmq.user" -}}
@@ -137,6 +139,14 @@
 {{ .Values.externalRabbitmq.protocol | quote }}
 {{- else -}}
 "amqp"
+{{- end -}}
+{{- end -}}
+
+{{- define "snippet.rabbitmq.vhost" -}}
+{{- if and (not .Values.rabbitmq.enabled) .Values.externalRabbitmq.vhost -}}
+{{ .Values.externalRabbitmq.vhost | quote }}
+{{- else -}}
+""
 {{- end -}}
 {{- end -}}
 

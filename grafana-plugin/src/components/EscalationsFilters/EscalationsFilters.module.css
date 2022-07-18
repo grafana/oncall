@@ -1,8 +1,13 @@
 .root {
   display: flex;
-  justify-content: space-between;
+  align-items: center;
 }
 
 .search {
   max-width: 400px;
+}
+
+.icon-button {
+  color: var(--secondary-text-color);
+  margin-left: 8px;
 }

@@ -3,10 +3,11 @@ import re
 from string import digits
 
 from django.apps import apps
-from django.conf import settings
 from django.urls import reverse
 from phonenumbers import COUNTRY_CODE_TO_REGION_CODE
 from twilio.twiml.voice_response import Gather, VoiceResponse
+
+from common.api_helpers.utils import create_engine_url
 
 logger = logging.getLogger(__name__)
 
@@ -19,7 +20,7 @@ def get_calling_code(iso):
 
 
 def get_gather_url():
-    gather_url = settings.BASE_URL + reverse("twilioapp:gather")
+    gather_url = create_engine_url(reverse("twilioapp:gather"))
     return gather_url
 
 

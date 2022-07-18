@@ -118,7 +118,7 @@ class LiveSetting(models.Model):
             "<a href='https://github.com/grafana/oncall/blob/dev/engine/apps/oss_installation/usage_stats.py#L29'> source code</a>."
         ),
         "GRAFANA_CLOUD_ONCALL_TOKEN": "Secret token for Grafana Cloud OnCall instance.",
-        "GRAFANA_CLOUD_ONCALL_HEARTBEAT_ENABLED": "Enable hearbeat integration with Grafana Cloud OnCall.",
+        "GRAFANA_CLOUD_ONCALL_HEARTBEAT_ENABLED": "Enable heartbeat integration with Grafana Cloud OnCall.",
         "GRAFANA_CLOUD_NOTIFICATIONS_ENABLED": "Enable SMS/call notifications via Grafana Cloud OnCall",
     }
 

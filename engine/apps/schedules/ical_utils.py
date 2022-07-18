@@ -137,6 +137,7 @@ def list_of_oncall_shifts_from_ical(
                     "start": g.start if g.start else datetime_start,
                     "end": g.end if g.end else datetime_end,
                     "users": [],
+                    "missing_users": [],
                     "priority": None,
                     "source": None,
                     "calendar_type": None,
@@ -157,6 +158,7 @@ def get_shifts_dict(calendar, calendar_type, schedule, datetime_start, datetime_
         priority = parse_priority_from_string(event.get(ICAL_SUMMARY, "[L0]"))
         pk, source = parse_event_uid(event.get(ICAL_UID))
         users = get_users_from_ical_event(event, schedule.organization)
+        missing_users = get_missing_users_from_ical_event(event, schedule.organization)
         # Define on-call shift out of ical event that has the actual user
         if len(users) > 0 or with_empty_shifts:
             if type(event[ICAL_DATETIME_START].dt) == datetime.date:
@@ -168,6 +170,7 @@ def get_shifts_dict(calendar, calendar_type, schedule, datetime_start, datetime_
                             "start": start,
                             "end": end,
                             "users": users,
+                            "missing_users": missing_users,
                             "priority": priority,
                             "source": source,
                             "calendar_type": calendar_type,
@@ -183,6 +186,7 @@ def get_shifts_dict(calendar, calendar_type, schedule, datetime_start, datetime_
                         "start": start,
                         "end": end,
                         "users": users,
+                        "missing_users": missing_users,
                         "priority": priority,
                         "source": source,
                         "calendar_type": calendar_type,
@@ -377,6 +381,14 @@ def get_usernames_from_ical_event(event):
             # (E.g. several invited in Google cal).
             usernames_found.append(parse_username_from_string(event[ICAL_ATTENDEE]))
     return usernames_found, priority
+
+
+def get_missing_users_from_ical_event(event, organization):
+    all_usernames, _ = get_usernames_from_ical_event(event)
+    users = list(get_users_from_ical_event(event, organization))
+    found_usernames = [u.username for u in users]
+    found_emails = [u.email for u in users]
+    return [u for u in all_usernames if u != "" and u not in found_usernames and u not in found_emails]
 
 
 def get_users_from_ical_event(event, organization):

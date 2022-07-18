@@ -1,8 +1,6 @@
 import datetime
-from urllib.parse import urljoin
 
 import pytz
-from django.conf import settings
 from django.core.exceptions import ObjectDoesNotExist
 from django.db.models import OuterRef, Subquery
 from django.db.utils import IntegrityError
@@ -38,6 +36,7 @@ from common.api_helpers.mixins import (
     ShortSerializerMixin,
     UpdateSerializerMixin,
 )
+from common.api_helpers.utils import create_engine_url
 
 
 class ScheduleView(
@@ -212,6 +211,7 @@ class ScheduleView(
                     }
                     for user in shift["users"]
                 ],
+                "missing_users": shift["missing_users"],
                 "priority_level": shift["priority"] if shift["priority"] != 0 else None,
                 "source": shift["source"],
                 "calendar_type": shift["calendar_type"],
@@ -328,10 +328,9 @@ class ScheduleView(
             except IntegrityError:
                 raise Conflict("Schedule export token for user already exists")
 
-            export_url = urljoin(
-                settings.BASE_URL,
+            export_url = create_engine_url(
                 reverse("api-public:schedules-export", kwargs={"pk": schedule.public_primary_key})
-                + f"?{SCHEDULE_EXPORT_TOKEN_NAME}={token}",
+                + f"?{SCHEDULE_EXPORT_TOKEN_NAME}={token}"
             )
 
             data = {"token": token, "created_at": instance.created_at, "export_url": export_url}

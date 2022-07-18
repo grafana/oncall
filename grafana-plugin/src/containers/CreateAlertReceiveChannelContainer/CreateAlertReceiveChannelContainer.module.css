@@ -10,6 +10,7 @@
   overflow: auto;
   scroll-snap-type: y mandatory;
   padding: 0 10px 10px 0;
+  min-width: 840px;
 }
 
 .cards_centered {
