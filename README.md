@@ -56,7 +56,7 @@ Grafana Url: http://grafana:3000
 6. Enjoy! Check our [OSS docs](https://grafana.com/docs/grafana-cloud/oncall/open-source/) if you want to set up Slack, Telegram, Twilio or SMS/calls through Grafana Cloud. 
 
 
-## Update
+## Update version
 To update your Grafana OnCall hobby environment:
 
 ```shell
