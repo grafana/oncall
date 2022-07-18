@@ -56,6 +56,20 @@ Grafana Url: http://grafana:3000
 6. Enjoy! Check our [OSS docs](https://grafana.com/docs/grafana-cloud/oncall/open-source/) if you want to set up Slack, Telegram, Twilio or SMS/calls through Grafana Cloud. 
 
 
+## Update
+To update your Grafana OnCall hobby environment:
+
+```shell
+# Update Docker images
+docker-compose --env-file .env_hobby pull engine celery
+
+# Re-deploy
+docker-compose --env-file .env_hobby -f docker-compose.yml up -d
+```
+
+After updating the engine, you'll also need to click the "Update" button on the [plugin version page](http://localhost:3000/plugins/grafana-oncall-app?page=version-history).
+See [Grafana docs](https://grafana.com/docs/grafana/latest/administration/plugin-management/#update-a-plugin) for more info on updating Grafana plugins.
+
 ## Join community
 
 <a href="https://github.com/grafana/oncall/discussions/categories/community-calls"><img width="200px" src="docs/img/community_call.png"></a>

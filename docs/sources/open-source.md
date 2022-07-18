@@ -29,6 +29,11 @@ Check the [helm chart](https://github.com/grafana/oncall/tree/dev/helm/oncall) f
 
 We'll always be happy to provide assistance with production deployment in [our communities](https://github.com/grafana/oncall#join-community)! 
 
+## Update Grafana OnCall OSS
+To update an OSS installation of Grafana OnCall, please see the update docs:
+- **Hobby** playground environment: [README.md](https://github.com/grafana/oncall#update)
+- **Production** Helm environment: [Helm update](https://github.com/grafana/oncall/tree/dev/helm/oncall#update)
+
 ## Slack Setup
 
 The Slack integration for Grafana OnCall leverages Slack API features to provide a customizable and useful integration. Refer to the following steps to configure the Slack integration:
