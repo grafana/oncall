@@ -24,6 +24,7 @@ import reactStringReplace from 'react-string-replace';
 import Collapse from 'components/Collapse/Collapse';
 import Block from 'components/GBlock/Block';
 import IntegrationLogo from 'components/IntegrationLogo/IntegrationLogo';
+import WrongTeamStub from 'components/NotFoundInTeam/WrongTeamStub';
 import PluginLink from 'components/PluginLink/PluginLink';
 import Text from 'components/Text/Text';
 import AttachIncidentForm from 'containers/AttachIncidentForm/AttachIncidentForm';
@@ -56,6 +57,8 @@ interface IncidentPageState {
   showIntegrationSettings?: boolean;
   showAttachIncidentForm?: boolean;
   notFound?: boolean;
+  wrongTeamError?: boolean;
+  teamToSwitch?: string;
   timelineFilter: string;
   resolutionNoteText: string;
 }
@@ -84,8 +87,15 @@ class IncidentPage extends React.Component<IncidentPageProps, IncidentPageState>
       query: { id },
     } = this.props;
 
-    store.alertGroupStore.getAlert(id).catch(() => {
-      this.setState({ notFound: true });
+    store.alertGroupStore.getAlert(id).catch((error) => {
+      if (error.response) {
+        if (error.response.status === 404) {
+          this.setState({ wrongTeamError: true });
+        }
+        // if (error.response.status === 404) this.setState({ teamToSwitch: error.response });
+      }
+
+      // this.setState({ notFound: true });
     });
   };
 
@@ -95,7 +105,7 @@ class IncidentPage extends React.Component<IncidentPageProps, IncidentPageState>
       query: { id },
     } = this.props;
 
-    const { showIntegrationSettings, showAttachIncidentForm, notFound } = this.state;
+    const { showIntegrationSettings, showAttachIncidentForm, notFound, wrongTeamError, teamToSwitch } = this.state;
 
     const { alertReceiveChannelStore } = store;
 
@@ -104,7 +114,9 @@ class IncidentPage extends React.Component<IncidentPageProps, IncidentPageState>
     const { alerts } = store.alertGroupStore;
 
     const incident = alerts.get(id);
-
+    console.log('INCIDENT', incident);
+    const currentTeamId = store.userStore.currentUser?.current_team;
+    const currentTeamName = store.grafanaTeamStore.items[currentTeamId]?.name;
     if (notFound) {
       return (
         <div className={cx('root')}>
@@ -120,6 +132,17 @@ class IncidentPage extends React.Component<IncidentPageProps, IncidentPageState>
             </VerticalGroup>
           </div>
         </div>
+      );
+    }
+
+    if (wrongTeamError) {
+      return (
+        <WrongTeamStub
+          objectName="Incident"
+          pageName="incidents"
+          currentTeam={currentTeamName}
+          switchToTeam={{ name: 'Test', id: null }}
+        />
       );
     }
 
