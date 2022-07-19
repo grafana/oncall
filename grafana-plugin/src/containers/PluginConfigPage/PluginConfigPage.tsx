@@ -68,7 +68,7 @@ export const PluginConfigPage = (props: Props) => {
       provisioningConfig = await makeRequest('/plugin/self-hosted/install', { method: 'POST' });
     } catch (e) {
       if (e.response.status === 502) {
-        console.warn('Could not connect to OnCall: ' + plugin.meta.jsonData.onCallApiUrl);
+        console.warn('Could not connect to OnCall: ' + onCallApiUrl);
       } else if (e.response.status === 403) {
         console.warn('Invitation token is invalid or expired.');
       } else {
@@ -130,13 +130,11 @@ export const PluginConfigPage = (props: Props) => {
 
   const handleSyncException = useCallback((e) => {
     if (plugin.meta.jsonData?.onCallApiUrl) {
-      setPluginStatusMessage(
-        'Tried connecting to OnCall: ' +
-          plugin.meta.jsonData.onCallApiUrl +
-          '\n' +
-          e +
-          ', retry or check settings & re-initialize.'
-      );
+      let statusMessage = plugin.meta.jsonData.onCallApiUrl + '\n' + e + ', retry or check settings & re-initialize.';
+      if (e.response.status == 404) {
+        statusMessage += '\nIf Grafana OnCall was just installed, restart Grafana for OnCall routes to be available.';
+      }
+      setPluginStatusMessage(statusMessage);
       setRetrySync(true);
     } else {
       setPluginStatusMessage('OnCall has not been setup, configure & initialize below.');
