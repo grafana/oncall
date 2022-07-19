@@ -1,5 +1,3 @@
-import dayjs from 'dayjs';
-
 import { GrafanaTeam } from 'models/grafana_team/grafana_team.types';
 import { SlackChannel } from 'models/slack_channel/slack_channel.types';
 import { User } from 'models/user/user.types';

@@ -350,7 +350,7 @@ class SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSta
     type tTypeToVerbal = {
       [key: number]: string;
     };
-    const typeToVerbal: tTypeToVerbal = { 0: 'API/Terraform', 1: 'Ical' };
+    const typeToVerbal: tTypeToVerbal = { 0: 'API/Terraform', 1: 'Ical', 2: 'Web' };
     return typeToVerbal[value];
   };
 
