@@ -16,6 +16,7 @@ service:
   enabled: false
   type: LoadBalancer
   port: 8080
+  annotations: {}
 
 # Engine pods configuration
 engine:
