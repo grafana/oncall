@@ -143,7 +143,27 @@ export class ScheduleStore extends BaseStore {
     });
   }
 
-  async updateRotation(rotationId: Rotation['id'], fromString: string) {
+  // ------- NEW SCHEDULES API ENDPOINTS ---------
+
+  async createRotation(scheduleId: Schedule['id'], isOverride: boolean, params) {
+    const type = isOverride ? 3 : 2;
+
+    const { name, shift_start, shift_end, rotation_start } = params;
+
+    return await makeRequest(`/oncall_shifts/`, {
+      data: { name, type, schedule: scheduleId, shift_start, shift_end, rotation_start },
+      method: 'POST',
+    });
+  }
+
+  async updateRotation(rotationId: Rotation['id']) {
+    return await makeRequest(`/oncall_shifts/`, {
+      params: { shift_id: rotationId },
+      method: 'GET',
+    });
+  }
+
+  async updateRotationMock(rotationId: Rotation['id'], fromString: string) {
     const response = await new Promise((resolve, reject) => {
       setTimeout(() => {
         if (!fromString) {
@@ -172,5 +192,17 @@ export class ScheduleStore extends BaseStore {
       ...this.rotations,
       [rotationId]: response as Rotation,
     };
+  }
+
+  async updateFrequencyOptions(scheduleId: Schedule['id']) {
+    return await makeRequest(`/oncall_shifts/frequency_options/`, {
+      method: 'GET',
+    });
+  }
+
+  async updateDaysOptions(scheduleId: Schedule['id']) {
+    return await makeRequest(`/oncall_shifts/days_options/`, {
+      method: 'GET',
+    });
   }
 }

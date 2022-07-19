@@ -96,7 +96,7 @@ class Rotations extends Component<RotationsProps, RotationsState> {
             <div className={cx('add-rotations-layer')}>Add rotations layer +</div>
           </div>
         </div>
-        {layerIdToCreateRotation && (
+        {!isNaN(layerIdToCreateRotation) && (
           <RotationForm
             layerId={layerIdToCreateRotation}
             onHide={() => {

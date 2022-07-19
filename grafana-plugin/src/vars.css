@@ -45,15 +45,9 @@
   --primary-text-link: #6e9fff;
   --timeline-icon-background: rgba(70, 76, 84, 1);
   --timeline-icon-background-resolution-note: rgba(50, 116, 217, 1);
-
-
-  --focused-box-shadow:  rgb(17 18 23) 0px 0px 0px 2px, rgb(61 113 217) 0px 0px 0px 4px;
+  --focused-box-shadow: rgb(17 18 23) 0 0 0 2px, rgb(61 113 217) 0 0 0 4px;
   --border-medium: 1px solid rgba(204, 204, 220, 0.15);
-
-  --hover-selected: rgba(204,204,220,0.12);
+  --hover-selected: rgba(204, 204, 220, 0.12);
   --hover-selected-hardcoded: #34363d;
-
-    --secondary-background-shade: rgba(204, 204, 220, 0.2);
-
-
+  --secondary-background-shade: rgba(204, 204, 220, 0.2);
 }

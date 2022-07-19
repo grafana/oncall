@@ -1,40 +1,37 @@
 .root {
-    width: 100%;
+  width: 100%;
 }
 
-.root table{
-    width: 100%;
+.root table {
+  width: 100%;
 }
-
 
 .root tr {
-    border-bottom: 1px solid #33363B;
-    height: 60px;
+  border-bottom: 1px solid #33363b;
+  height: 60px;
 }
 
 .root tr:hover {
-    background: var(--secondary-background)
-
+  background: var(--secondary-background);
 }
 
-
 .root td {
-    min-height: 60px;
+  min-height: 60px;
 }
 
 .pagination {
-    width: 100%;
-    margin-top: 20px;
+  width: 100%;
+  margin-top: 20px;
 }
 
 .expand-icon {
-    padding: 10px;
-    pointer-events: none;
-    transform: rotate(-90deg);
-    transform-origin: center;
-    transition: transform 0.2s;
+  padding: 10px;
+  pointer-events: none;
+  transform: rotate(-90deg);
+  transform-origin: center;
+  transition: transform 0.2s;
 }
 
 .expand-icon__expanded {
-    transform: rotate(0deg);
+  transform: rotate(0deg);
 }

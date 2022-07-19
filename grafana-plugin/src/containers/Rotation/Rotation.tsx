@@ -35,7 +35,7 @@ const Rotation: FC<RotationProps> = observer((props) => {
   useEffect(() => {
     const startMomentString = startMoment.utc().format('YYYY-MM-DDTHH:mm:ss.000Z');
 
-    store.scheduleStore.updateRotation(id, startMomentString);
+    store.scheduleStore.updateRotationMock(id, startMomentString);
   }, [startMoment]);
 
   const rotation = store.scheduleStore.rotations[id];

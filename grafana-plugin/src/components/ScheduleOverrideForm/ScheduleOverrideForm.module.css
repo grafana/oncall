@@ -1,3 +1,21 @@
 .root {
+  display: block;
+}
 
+.header {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+}
+
+.control {
+  width: 195px;
+}
+
+.date-time-picker {
+  display: block;
+}
+
+.inline-switch {
+  height: 22px;
 }

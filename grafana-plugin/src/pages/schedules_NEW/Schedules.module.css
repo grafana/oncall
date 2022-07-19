@@ -2,16 +2,15 @@
   margin-top: 24px;
 }
 
-.quality__type_success{
+.quality__type_success {
   color: var(--warning-text-color);
 }
 
-
-.schedule{
+.schedule {
   position: relative;
   margin: 20px 0;
 }
 
-.root .expanded-row{
+.root .expanded-row {
   background: var(--secondary-background);
 }

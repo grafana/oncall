@@ -1,34 +1,34 @@
 .root {
-    border: var(--border-medium);
-    border-radius: 2px;
-    background: var(--primary-background);
+  border: var(--border-medium);
+  border-radius: 2px;
+  background: var(--primary-background);
 }
 
 .current-time {
-    position: absolute;
-    left: 650px;
-    width: 1px;
-    background: #fff;
-    top: 0;
-    bottom: 0;
-    z-index: 1;
+  position: absolute;
+  left: 650px;
+  width: 1px;
+  background: #fff;
+  top: 0;
+  bottom: 0;
+  z-index: 1;
 }
 
 .header {
-    padding: 0 10px;
+  padding: 0 10px;
 }
 
 .title {
-    font-weight: 500;
-    font-size: 19px;
-    line-height: 24px;
-    color: rgba(204, 204, 220, 0.65);
-    margin: 16px 0;
+  font-weight: 500;
+  font-size: 19px;
+  line-height: 24px;
+  color: rgba(204, 204, 220, 0.65);
+  margin: 16px 0;
 }
 
 .rotations-plus-title {
-    display: flex;
-    flex-direction: column;
+  display: flex;
+  flex-direction: column;
 }
 
 .layer {
@@ -36,47 +36,47 @@
 }
 
 .layer-title {
-    text-align: center;
-    font-weight: 500;
-    font-size: 11px;
-    line-height: 16px;
-    letter-spacing: 0.1em;
-    color: rgba(204, 204, 220, 0.65);
-    text-transform: uppercase;
-    padding: 8px;
-    background: var(--secondary-background);
+  text-align: center;
+  font-weight: 500;
+  font-size: 11px;
+  line-height: 16px;
+  letter-spacing: 0.1em;
+  color: rgba(204, 204, 220, 0.65);
+  text-transform: uppercase;
+  padding: 8px;
+  background: var(--secondary-background);
 }
 
 .layer-title:hover {
-    background: rgba(204, 204, 220, 0.12);
+  background: rgba(204, 204, 220, 0.12);
 }
 
 .header-plus-content {
-    position: relative;
+  position: relative;
 }
 
 .layer-header {
-    padding: 12px;
-    display: flex;
-    justify-content: space-between;
+  padding: 12px;
+  display: flex;
+  justify-content: space-between;
 }
 
 .layer-header-title {
-    font-weight: 400;
-    font-size: 14px;
-    line-height: 20px;
-    color: rgba(204, 204, 220, 0.65);
+  font-weight: 400;
+  font-size: 14px;
+  line-height: 20px;
+  color: rgba(204, 204, 220, 0.65);
 }
 
 .layer-content {
-    position: relative;
+  position: relative;
 }
 
 .add-rotations-layer {
-    font-weight: 400;
-    font-size: 12px;
-    line-height: 16px;
-    text-align: center;
-    padding: 12px;
-    color: rgba(204, 204, 220, 0.65);
+  font-weight: 400;
+  font-size: 12px;
+  line-height: 16px;
+  text-align: center;
+  padding: 12px;
+  color: rgba(204, 204, 220, 0.65);
 }

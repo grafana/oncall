@@ -1,44 +1,41 @@
 .root {
-
+  display: block;
 }
 
 .header {
-    width: 100%;
-    display: flex;
-    justify-content: space-between;
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
 }
 
 .control {
-    width: 195px;
+  width: 195px;
 }
 
-
 .date-time-picker {
-    display: block;
+  display: block;
 }
 
 .inline-switch {
-    height: 22px;
+  height: 22px;
 }
 
-
 .days {
-    display: flex;
-    gap: 14px;
-    width: 100%;
+  display: flex;
+  gap: 14px;
+  width: 100%;
 }
 
 .day {
-    width: 28px;
-    height: 28px;
-    background: var(--secondary-background-shade);
-    border-radius: 2px;
-    line-height: 28px;
-    text-align: center;
-    cursor: pointer;
-
+  width: 28px;
+  height: 28px;
+  background: var(--secondary-background-shade);
+  border-radius: 2px;
+  line-height: 28px;
+  text-align: center;
+  cursor: pointer;
 }
 
 .days .day__selected {
-    background: #3D71D9;
+  background: #3d71d9;
 }

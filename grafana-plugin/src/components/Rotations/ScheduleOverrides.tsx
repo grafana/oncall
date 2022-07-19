@@ -4,7 +4,6 @@ import { Button, HorizontalGroup, Icon, ValuePicker } from '@grafana/ui';
 import cn from 'classnames/bind';
 import { observer } from 'mobx-react';
 
-import OverrideForm from 'components/OverrideForm/OverrideForm';
 import RotationForm from 'components/RotationForm/RotationForm';
 import ScheduleOverrideForm from 'components/ScheduleOverrideForm/ScheduleOverrideForm';
 import TimelineMarks from 'components/TimelineMarks/TimelineMarks';
