@@ -24,12 +24,13 @@ interface ScheduleSlotProps {
   shift: Shift;
   startMoment: dayjs.Dayjs;
   currentTimezone: Timezone;
+  color?: string;
 }
 
 const cx = cn.bind(styles);
 
 const ScheduleSlot: FC<ScheduleSlotProps> = observer((props) => {
-  const { index, layerIndex, rotationIndex, shift, startMoment, currentTimezone } = props;
+  const { index, layerIndex, rotationIndex, shift, startMoment, currentTimezone, color: propColor } = props;
   const { duration, users } = shift;
 
   const isGap = !users.length;
@@ -44,12 +45,15 @@ const ScheduleSlot: FC<ScheduleSlotProps> = observer((props) => {
     <div className={cx('stack')} style={{ width: `${width * 100}%` /*left: `${x * 100}%`*/ }}>
       {!isGap ? (
         users.map((pk, userIndex) => {
-          const label = index === 0 && userIndex == 0 && getLabel(layerIndex, rotationIndex);
+          const label =
+            !isNaN(layerIndex) && !isNaN(rotationIndex) && index === 0 && userIndex === 0
+              ? getLabel(layerIndex, rotationIndex)
+              : null;
           const storeUser = store.userStore.items[pk];
 
           const inactive = false;
 
-          const color = getColor(layerIndex, rotationIndex);
+          const color = propColor || getColor(layerIndex, rotationIndex);
           const title = getTitle(storeUser);
 
           return (

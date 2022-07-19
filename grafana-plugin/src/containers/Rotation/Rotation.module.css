@@ -1,5 +1,6 @@
 .root {
     transition: background-color 300ms;
+    min-height: 28px;
 }
 
 .root:last-child{

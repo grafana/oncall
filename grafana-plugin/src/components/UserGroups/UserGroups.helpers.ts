@@ -1,5 +1,3 @@
-import { getRandomTimezone } from 'components/UsersTimezones/UsersTimezones.helpers';
-
 export const getRandomGroups = () => {
   return [
     [

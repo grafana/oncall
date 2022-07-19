@@ -7,12 +7,13 @@ import styles from './TimelineMarks.module.css';
 
 interface TimelineMarksProps {
   startMoment: dayjs.Dayjs;
+  debug?: boolean;
 }
 
 const cx = cn.bind(styles);
 
 const TimelineMarks: FC<TimelineMarksProps> = (props) => {
-  const { startMoment } = props;
+  const { startMoment, debug } = props;
 
   const momentsToRender = useMemo(() => {
     const hoursToSplit = 12;
@@ -32,26 +33,30 @@ const TimelineMarks: FC<TimelineMarksProps> = (props) => {
     return momentsToRender;
   }, [startMoment]);
 
-  const cuts = [];
-  for (let i = 0; i < 24 * 7; i++) {
-    cuts.push({});
-  }
-  cuts.push({});
+  const cuts = useMemo(() => {
+    const cuts = [];
+    for (let i = 0; i <= 24 * 7; i++) {
+      cuts.push({});
+    }
+    return cuts;
+  }, []);
 
   return (
     <div className={cx('root')}>
-      <svg version="1.1" width="100%" height="6px" xmlns="http://www.w3.org/2000/svg" className={cx('debug-scale')}>
-        {cuts.map((cut, index) => (
-          <line
-            x1={`${(index * 100) / (24 * 7)}%`}
-            strokeWidth={1}
-            y1="0"
-            x2={`${(index * 100) / (24 * 7)}%`}
-            y2="6px"
-            stroke="rgba(204, 204, 220, 0.65)"
-          />
-        ))}
-      </svg>
+      {debug && (
+        <svg version="1.1" width="100%" height="6px" xmlns="http://www.w3.org/2000/svg" className={cx('debug-scale')}>
+          {cuts.map((cut, index) => (
+            <line
+              x1={`${(index * 100) / (24 * 7)}%`}
+              strokeWidth={1}
+              y1="0"
+              x2={`${(index * 100) / (24 * 7)}%`}
+              y2="6px"
+              stroke="rgba(204, 204, 220, 0.65)"
+            />
+          ))}
+        </svg>
+      )}
       {momentsToRender.map((m, i) => {
         return (
           <div key={i} className={cx('weekday')}>

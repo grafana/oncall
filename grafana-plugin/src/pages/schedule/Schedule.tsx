@@ -10,6 +10,8 @@ import Draggable from 'react-draggable';
 // import Rotations from 'components/Rotations/Rotations';
 import PluginLink from 'components/PluginLink/PluginLink';
 import Rotations from 'components/Rotations/Rotations';
+import ScheduleFinal from 'components/Rotations/ScheduleFinal';
+import ScheduleOverrides from 'components/Rotations/ScheduleOverrides';
 import ScheduleCounter from 'components/ScheduleCounter/ScheduleCounter';
 import ScheduleQuality from 'components/ScheduleQuality/ScheduleQuality';
 import Text from 'components/Text/Text';
@@ -37,7 +39,7 @@ interface SchedulePageState {
   currentTimezone: Timezone;
 }
 
-const INITIAL_TIMEZONE = 'UTC';
+const INITIAL_TIMEZONE = 'Etc/Universal'; // todo check why doesn't work
 
 @observer
 class SchedulePage extends React.Component<SchedulePageProps, SchedulePageState> {
@@ -54,8 +56,6 @@ class SchedulePage extends React.Component<SchedulePageProps, SchedulePageState>
 
     store.userStore.updateItems();
   }
-
-  componentDidUpdate() {}
 
   render() {
     const { startMoment, schedulePeriodType, renderType, users, currentTimezone } = this.state;
@@ -156,9 +156,9 @@ class SchedulePage extends React.Component<SchedulePageProps, SchedulePageState>
           </div>
           {/* <div className={'current-time'} />*/}
           <div className={cx('rotations')}>
-            {/*<Rotations startMoment={startMoment} title="Final schedule" />*/}
-            <Rotations currentTimezone={currentTimezone} startMoment={startMoment} title="Rotations" />
-            {/* <Rotations startMoment={startMoment} title="Overrides" />*/}
+            <ScheduleFinal currentTimezone={currentTimezone} startMoment={startMoment} />
+            <Rotations currentTimezone={currentTimezone} startMoment={startMoment} />
+            <ScheduleOverrides currentTimezone={currentTimezone} startMoment={startMoment} />
           </div>
         </VerticalGroup>
       </div>

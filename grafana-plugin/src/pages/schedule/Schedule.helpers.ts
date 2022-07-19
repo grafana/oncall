@@ -619,7 +619,7 @@ export const getRandomUsers = (count = 5) => {
       //name: getRandomUser(),
       pk: i,
       name: [
-        'Hypothetical UTC user',
+        'Some Etc/Universal user',
         'Matias Bordese',
         'Michael Derynck',
         'Yulia Shanyrova',
@@ -640,7 +640,7 @@ export const getRandomUsers = (count = 5) => {
       ][i],
       //tz: getRandomTimezone(),
       tz: [
-        'UTC',
+        'Etc/Universal',
         'America/Montevideo',
         'America/Vancouver',
         'Europe/Amsterdam',

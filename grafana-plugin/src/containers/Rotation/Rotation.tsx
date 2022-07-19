@@ -19,34 +19,45 @@ interface ScheduleSlotState {}
 
 interface RotationProps {
   id: RotationType['id'];
-  layerIndex: number;
-  rotationIndex: number;
   label: string;
   startMoment: dayjs.Dayjs;
   currentTimezone: Timezone;
+  layerIndex?: number;
+  rotationIndex?: number;
+  color?: string;
 }
 
 const Rotation: FC<RotationProps> = observer((props) => {
-  const { id, layerIndex, rotationIndex, label, startMoment, currentTimezone } = props;
+  const { id, layerIndex, rotationIndex, label, startMoment, currentTimezone, color } = props;
 
   const store = useStore();
 
   useEffect(() => {
-    store.scheduleStore.updateRotation(id);
-  }, []);
+    const startMomentString = startMoment.utc().format('YYYY-MM-DDTHH:mm:ss.000Z');
+
+    store.scheduleStore.updateRotation(id, startMomentString);
+  }, [startMoment]);
 
   const rotation = store.scheduleStore.rotations[id];
 
   if (!rotation) {
-    return <LoadingPlaceholder text="Loading shifts..." />;
+    return (
+      <div className={cx('root')}>
+        <LoadingPlaceholder text="Loading shifts..." />
+      </div>
+    );
   }
 
-  const base = 60 * 24 * 7; // in minutes
+  const { shifts } = rotation;
+
+  const firstShift = shifts[0];
+
+  const firstShiftOffset = firstShift.start.diff(startMoment, 'minutes');
+
+  const base = 60 * 24 * 7; // in minutes only
   const utcOffset = dayjs().tz(currentTimezone).utcOffset();
 
-  const x = utcOffset / base;
-
-  const { shifts } = rotation;
+  const x = (firstShiftOffset + utcOffset) / base;
 
   return (
     <div className={cx('root')}>
@@ -63,6 +74,7 @@ const Rotation: FC<RotationProps> = observer((props) => {
                 rotationIndex={rotationIndex}
                 startMoment={startMoment}
                 currentTimezone={currentTimezone}
+                color={color}
               />
             );
           })}

@@ -1,6 +1,7 @@
 import dayjs from 'dayjs';
 import { omit, reject } from 'lodash-es';
 import { action, observable, toJS } from 'mobx';
+import ReactCSSTransitionGroup from 'react-transition-group'; // ES6
 
 import BaseStore from 'models/base_store';
 import { makeRequest } from 'network';
@@ -9,6 +10,34 @@ import { RootStore } from 'state';
 import { Rotation, Schedule, ScheduleEvent } from './schedule.types';
 
 const DEFAULT_FORMAT = 'YYYY-MM-DDTHH:mm:ss';
+
+function getUsers() {
+  const rnd = Math.random();
+  /*
+
+        if (rnd > 0.66) {
+          return [];
+        }
+*/
+
+  const users = [
+    'U5WE86241LNEA',
+    'U9XM1G7KTE3KW',
+    'UYKS64M6C59XM',
+    'UFFIRDUFXA6W3',
+    'UPRMSTP9LCADE',
+    'UR6TVJWZYV19M',
+    'UHRMQQ7KETPCS',
+  ];
+
+  /* if (rnd > 0.33) {
+          return [users[Math.floor(Math.random() * users.length)], users[Math.floor(Math.random() * users.length)]];
+        }*/
+
+  return ['UPRMSTP9LCADE', 'UHRMQQ7KETPCS'];
+
+  return [users[Math.floor(Math.random() * users.length)]];
+}
 
 export class ScheduleStore extends BaseStore {
   @observable
@@ -114,42 +143,14 @@ export class ScheduleStore extends BaseStore {
     });
   }
 
-  async updateRotation(rotationId: Rotation['id'], from?: string) {
+  async updateRotation(rotationId: Rotation['id'], fromString: string) {
     const response = await new Promise((resolve, reject) => {
-      function getUsers() {
-        const rnd = Math.random();
-        /*
-
-        if (rnd > 0.66) {
-          return [];
-        }
-*/
-
-        const users = [
-          'U5WE86241LNEA',
-          'U9XM1G7KTE3KW',
-          'UYKS64M6C59XM',
-          'UFFIRDUFXA6W3',
-          'UPRMSTP9LCADE',
-          'UR6TVJWZYV19M',
-          'UHRMQQ7KETPCS',
-        ];
-
-        /* if (rnd > 0.33) {
-          return [users[Math.floor(Math.random() * users.length)], users[Math.floor(Math.random() * users.length)]];
-        }*/
-
-        return ['UPRMSTP9LCADE', 'UHRMQQ7KETPCS'];
-
-        return [users[Math.floor(Math.random() * users.length)]];
-      }
-
       setTimeout(() => {
-        if (!from) {
-          from = dayjs().startOf('week').format('YYYY-MM-DDTHH:mm:ss');
+        if (!fromString) {
+          fromString = dayjs().startOf('week').format('YYYY-MM-DDTHH:mm:ss.000Z');
         }
 
-        const startMoment = dayjs(`${from}.000Z`).utc();
+        const startMoment = dayjs(fromString).utc();
 
         const shifts = [];
         for (let i = 0; i < 7; i++) {

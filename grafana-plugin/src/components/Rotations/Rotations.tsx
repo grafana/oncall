@@ -17,7 +17,6 @@ import styles from './Rotations.module.css';
 const cx = cn.bind(styles);
 
 interface RotationsProps {
-  title: string;
   startMoment: dayjs.Dayjs;
   currentTimezone: Timezone;
 }
@@ -36,24 +35,25 @@ class Rotations extends Component<RotationsProps, RotationsState> {
   };
 
   render() {
-    const { title, startMoment, currentTimezone } = this.props;
+    const { startMoment, currentTimezone } = this.props;
     const { layerIdToCreateRotation } = this.state;
 
     const layers = [
       { id: 0, title: 'Layer 1' },
-      /* { id: 1, title: 'Layer 2' },
+      /*{ id: 1, title: 'Layer 2' },
       { id: 2, title: 'Layer 3' },
-      { id: 3, title: 'Layer 4' },*/
+      { id: 3, title: 'Layer 4' }*/
+      ,
     ];
 
-    const rotations = [{} /*, {}*/];
+    const rotations = [{} /* {}*/];
 
     return (
       <>
         <div className={cx('root')}>
           <div className={cx('header')}>
             <HorizontalGroup justify="space-between">
-              <div className={cx('title')}>{title}</div>
+              <div className={cx('title')}>Rotations</div>
               <ValuePicker
                 label="Add rotation"
                 options={layers.map(({ title, id }) => ({
@@ -77,7 +77,7 @@ class Rotations extends Component<RotationsProps, RotationsState> {
                   </div>
                   <div className={cx('header-plus-content')}>
                     <div className={cx('current-time')} />
-                    <TimelineMarks startMoment={startMoment} />
+                    <TimelineMarks debug startMoment={startMoment} />
                     <div className={cx('rotations')}>
                       {rotations.map((rotation, rotationIndex) => (
                         <Rotation
