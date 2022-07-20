@@ -16,7 +16,7 @@ import sanitize from 'utils/sanitize';
 
 import { getSlackMessage } from './DefaultPageLayout.helpers';
 import { SlackError } from './DefaultPageLayout.types';
-import { getIfChatOpsConnected } from './helper';
+import { getIfChatOpsConnected } from 'containers/DefaultPageLayout/helper';
 
 import styles from './DefaultPageLayout.module.css';
 
