@@ -405,7 +405,7 @@ PUSH_NOTIFICATIONS_SETTINGS = {
     "APNS_TOPIC": os.environ.get("APNS_TOPIC", None),
     "APNS_AUTH_KEY_ID": os.environ.get("APNS_AUTH_KEY_ID", None),
     "APNS_TEAM_ID": os.environ.get("APNS_TEAM_ID", None),
-    "APNS_USE_SANDBOX": os.environ.get("APNS_USE_SANDBOX", True),
+    "APNS_USE_SANDBOX": getenv_boolean("APNS_USE_SANDBOX", True),
     "USER_MODEL": "user_management.User",
     "UPDATE_ON_DUPLICATE_REG_ID": True,
 }
