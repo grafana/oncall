@@ -149,7 +149,9 @@ export const PluginConfigPage = (props: Props) => {
         get_sync_response.version && get_sync_response.license
           ? ` (${get_sync_response.license}, ${get_sync_response.version})`
           : '';
-      setPluginStatusMessage(`Connected to OnCall${versionInfo}: ${plugin.meta.jsonData.onCallApiUrl}`);
+      setPluginStatusMessage(
+        `Connected to OnCall${versionInfo}\n - OnCall URL: ${plugin.meta.jsonData.onCallApiUrl}\n - Grafana URL: ${plugin.meta.jsonData.grafanaUrl}`
+      );
       setIsSelfHostedInstall(plugin.meta.jsonData?.license === 'OpenSource');
       setPluginStatusOk(true);
     } else {
