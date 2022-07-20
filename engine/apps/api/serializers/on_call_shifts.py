@@ -46,7 +46,6 @@ class OnCallShiftSerializer(EagerLoadingMixin, serializers.ModelSerializer):
             "until",
             "frequency",
             "interval",
-            "until",
             "by_day",
             "source",
             "rolling_users",
@@ -74,7 +73,7 @@ class OnCallShiftSerializer(EagerLoadingMixin, serializers.ModelSerializer):
         result = super().to_representation(instance)
         return result
 
-    def validate_name(self, name):  # todo
+    def validate_name(self, name):
         organization = self.context["request"].auth.organization
         if name is None:
             return name
@@ -147,12 +146,15 @@ class OnCallShiftSerializer(EagerLoadingMixin, serializers.ModelSerializer):
             "interval",
             "by_day",
             "until",
+            "rotation_start",
         ]
         if event_type == CustomOnCallShift.TYPE_OVERRIDE:
             for field in fields_to_update_for_overrides:
                 value = None
                 if field == "priority_level":
                     value = 0
+                elif field == "rotation_start":
+                    value = validated_data["start"]
                 validated_data[field] = value
 
         self._validate_frequency(

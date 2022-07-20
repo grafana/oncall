@@ -236,7 +236,8 @@ class CustomOnCallShift(models.Model):
             result += (
                 f", frequency: {self.get_frequency_display()}, interval: {self.interval}, "
                 f"week start: {self.week_start}, by day: {self.by_day}, by month: {self.by_month}, "
-                f"by monthday: {self.by_monthday}, until: {self.until.isoformat() if self.until else None}"
+                f"by monthday: {self.by_monthday}, rotation start: {self.rotation_start.isoformat()}, "
+                f"until: {self.until.isoformat() if self.until else None}"
             )
         return result
 
