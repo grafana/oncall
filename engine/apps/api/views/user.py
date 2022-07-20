@@ -101,7 +101,11 @@ class UserView(
     mixins.ListModelMixin,
     viewsets.GenericViewSet,
 ):
-    authentication_classes = (PluginAuthentication,)
+    authentication_classes = (
+        MobileAppAuthTokenAuthentication,
+        PluginAuthentication,
+    )
+
     permission_classes = (IsAuthenticated, ActionPermission)
 
     # Non-admin users are allowed to list and retrieve users
