@@ -356,12 +356,10 @@ def perform_notification(log_record_pk):
         message = f"{AlertGroupWebRenderer(alert_group).render().get('title', 'Incident')}"
         thread_id = f"{alert_group.channel.organization.public_primary_key}:{alert_group.public_primary_key}"
         devices_to_notify = APNSDevice.objects.filter(user_id=user.pk)
-        sounds = ["alarm.aiff", "operation.aiff"]
         devices_to_notify.send_message(
             message,
             thread_id=thread_id,
             category="USER_NEW_INCIDENT",
-            sound={"critical": 1, "name": f"{random.choice(sounds)}"},
             extra={
                 "orgId": f"{alert_group.channel.organization.public_primary_key}",
                 "orgName": f"{alert_group.channel.organization.stack_slug}",
