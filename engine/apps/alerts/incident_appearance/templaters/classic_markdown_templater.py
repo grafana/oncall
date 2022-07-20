@@ -1,7 +1,7 @@
 import re
 
 from apps.alerts.incident_appearance.templaters.alert_templater import AlertTemplater
-from common.utils import convert_md_to_html, escape_html, url_re, urlize_with_respect_to_a
+from common.utils import escape_html, url_re
 
 
 class AlertClassicMarkdownTemplater(AlertTemplater):

@@ -2,8 +2,8 @@ import logging
 
 from rest_framework import serializers
 
-from apps.alerts.incident_appearance.renderers.web_renderer import AlertGroupWebRenderer
 from apps.alerts.incident_appearance.renderers.classic_markdown_renderer import AlertGroupClassicMarkdownRenderer
+from apps.alerts.incident_appearance.renderers.web_renderer import AlertGroupWebRenderer
 from apps.alerts.models import AlertGroup
 from common.api_helpers.mixins import EagerLoadingMixin
 

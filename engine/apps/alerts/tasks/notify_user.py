@@ -1,4 +1,3 @@
-import random
 import time
 
 from django.apps import apps
@@ -368,7 +367,7 @@ def perform_notification(log_record_pk):
                 "aps": {
                     "alert": f"{message}",
                     "sound": "bingbong.aiff",
-                }
+                },
             },
         )
 
@@ -391,7 +390,7 @@ def perform_notification(log_record_pk):
                     # "interruption-level": "critical",
                     "interruption-level": "time-sensitive",
                     "sound": "ambulance.aiff",
-                }
+                },
             },
         )
     else:
