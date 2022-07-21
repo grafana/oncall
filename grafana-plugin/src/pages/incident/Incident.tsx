@@ -92,7 +92,7 @@ class IncidentPage extends React.Component<IncidentPageProps, IncidentPageState>
   render() {
     const {
       store,
-      query: { id, cursor, start, perpage },
+      query: { id },
     } = this.props;
 
     const { showIntegrationSettings, showAttachIncidentForm, notFound } = this.state;
@@ -112,7 +112,7 @@ class IncidentPage extends React.Component<IncidentPageProps, IncidentPageState>
             <VerticalGroup spacing="lg" align="center">
               <Text.Title level={1}>404</Text.Title>
               <Text.Title level={4}>Incident not found</Text.Title>
-              <PluginLink query={{ page: 'incidents', cursor, start, perpage }}>
+              <PluginLink query={{ page: 'incidents' }}>
                 <Button variant="secondary" icon="arrow-left" size="md">
                   Go to incidents page
                 </Button>
@@ -182,7 +182,7 @@ class IncidentPage extends React.Component<IncidentPageProps, IncidentPageState>
   renderHeader = () => {
     const {
       store,
-      query: { id, cursor, start, perpage },
+      query: { id },
     } = this.props;
 
     const { alerts } = store.alertGroupStore;
@@ -197,7 +197,7 @@ class IncidentPage extends React.Component<IncidentPageProps, IncidentPageState>
       <Block withBackground>
         <VerticalGroup>
           <HorizontalGroup className={cx('title')}>
-            <PluginLink query={{ page: 'incidents', cursor, start, perpage }}>
+            <PluginLink query={{ page: 'incidents' }}>
               <IconButton name="arrow-left" size="xxl" />
             </PluginLink>
             {/* @ts-ignore*/}
@@ -293,13 +293,7 @@ class IncidentPage extends React.Component<IncidentPageProps, IncidentPageState>
   };
 
   renderIncident = (incident: Alert) => {
-    let datetimeReference;
-
-    if (incident.last_alert_at || incident.created_at) {
-      const m = moment(incident.last_alert_at || incident.created_at);
-      datetimeReference = `(${m.fromNow()}, ${m.toString()})`;
-    }
-
+    const m = moment(incident.last_alert_at || incident.created_at);
     return (
       <div key={incident.pk} className={cx('incident')}>
         <HorizontalGroup wrap>
@@ -308,7 +302,9 @@ class IncidentPage extends React.Component<IncidentPageProps, IncidentPageState>
               ? `#${incident.inside_organization_number} ${incident.render_for_web.title}`
               : incident.render_for_web.title}
           </Text.Title>
-          <Text type="secondary">{datetimeReference}</Text>
+          <Text type="secondary">
+            ({m.fromNow()}, {m.toString()})
+          </Text>
         </HorizontalGroup>
         <div
           className={cx('message')}
@@ -330,9 +326,6 @@ class IncidentPage extends React.Component<IncidentPageProps, IncidentPageState>
     const incident = store.alertGroupStore.alerts.get(id);
 
     const alerts = incident.alerts;
-    if (!alerts) {
-      return null;
-    }
 
     const latestAlert = alerts[alerts.length - 1];
     const latestAlertMoment = moment(latestAlert.created_at);
@@ -413,10 +406,6 @@ class IncidentPage extends React.Component<IncidentPageProps, IncidentPageState>
     } = this.props;
 
     const incident = store.alertGroupStore.alerts.get(id);
-
-    if (!incident.render_after_resolve_report_json) {
-      return null;
-    }
 
     const timeline = this.filterTimeline(incident.render_after_resolve_report_json);
     const { timelineFilter, resolutionNoteText } = this.state;

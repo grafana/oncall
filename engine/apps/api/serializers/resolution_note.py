@@ -1,6 +1,7 @@
 from rest_framework import serializers
 
 from apps.alerts.models import AlertGroup, ResolutionNote
+from apps.alerts.tasks import invalidate_web_cache_for_alert_group
 from apps.api.serializers.user import FastUserSerializer
 from common.api_helpers.custom_fields import OrganizationFilteredPrimaryKeyRelatedField
 from common.api_helpers.exceptions import BadRequest
@@ -38,6 +39,9 @@ class ResolutionNoteSerializer(EagerLoadingMixin, serializers.ModelSerializer):
         validated_data["author"] = self.context["request"].user
         validated_data["source"] = ResolutionNote.Source.WEB
         created_instance = super().create(validated_data)
+        # Invalidate alert group cache because resolution notes shown in alert group's timeline
+        created_instance.alert_group.drop_cached_after_resolve_report_json()
+        invalidate_web_cache_for_alert_group(alert_group_pk=created_instance.alert_group.pk)
         return created_instance
 
     def to_representation(self, instance):
@@ -53,5 +57,8 @@ class ResolutionNoteUpdateSerializer(ResolutionNoteSerializer):
     def update(self, instance, validated_data):
         if instance.source != ResolutionNote.Source.WEB:
             raise BadRequest(detail="Cannot update message with this source type")
-
-        return super().update(instance, validated_data)
+        updated_instance = super().update(instance, validated_data)
+        # Invalidate alert group cache because resolution notes shown in alert group's timeline
+        updated_instance.alert_group.drop_cached_after_resolve_report_json()
+        invalidate_web_cache_for_alert_group(alert_group_pk=updated_instance.alert_group.pk)
+        return updated_instance

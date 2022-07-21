@@ -13,6 +13,7 @@ def get_cache_key_caching_alert_group_for_web(alert_group_pk):
     return f"{CACHE_KEY_PREFIX}_{alert_group_pk}"
 
 
+# TODO: remove this tasks after all of them will be processed in prod
 @shared_dedicated_queue_retry_task(
     autoretry_for=(Exception,), retry_backoff=True, max_retries=0 if settings.DEBUG else None
 )

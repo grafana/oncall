@@ -18,12 +18,9 @@ class AlertBaseRenderer(ABC):
 
 
 class AlertGroupBaseRenderer(ABC):
-    def __init__(self, alert_group, alert=None):
-        if alert is None:
-            alert = alert_group.alerts.first()
-
+    def __init__(self, alert_group):
         self.alert_group = alert_group
-        self.alert_renderer = self.alert_renderer_class(alert)
+        self.alert_renderer = self.alert_renderer_class(self.alert_group.alerts.first())
 
     @property
     @abstractmethod
