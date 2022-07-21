@@ -31,7 +31,7 @@ We'll always be happy to provide assistance with production deployment in [our c
 
 ## Update Grafana OnCall OSS
 To update an OSS installation of Grafana OnCall, please see the update docs:
-- **Hobby** playground environment: [README.md](https://github.com/grafana/oncall#update)
+- **Hobby** playground environment: [README.md](https://github.com/grafana/oncall#update-version)
 - **Production** Helm environment: [Helm update](https://github.com/grafana/oncall/tree/dev/helm/oncall#update)
 
 ## Slack Setup
