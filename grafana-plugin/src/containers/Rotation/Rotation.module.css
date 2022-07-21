@@ -3,6 +3,14 @@
   min-height: 28px;
 }
 
+.loader {
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+}
+
 .root:last-child {
   padding-bottom: 26px;
 }
@@ -16,6 +24,8 @@
   flex-direction: column;
   gap: 5px;
   padding-bottom: 8px;
+
+  /* overflow: hidden; */
 }
 
 .root:first-child .timeline {
@@ -27,8 +37,18 @@
 }
 
 .slots {
+  width: 100%;
   display: flex;
+  transition: opacity 500ms ease;
+  opacity: 1;
+}
+
+.slots__animate {
   transition: transform 500ms ease;
+}
+
+.slots__transparent {
+  opacity: 0;
 }
 
 .current-time {

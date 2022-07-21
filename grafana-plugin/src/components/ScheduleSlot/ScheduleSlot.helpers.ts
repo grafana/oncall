@@ -64,6 +64,7 @@ export const getLabel = (layerIndex: number, rotationIndex) => {
 };
 
 export const getTitle = (user: User) => {
+  return user ? user.username.split(' ')[0] : null;
   return user
     ? user.username
         .split(' ')

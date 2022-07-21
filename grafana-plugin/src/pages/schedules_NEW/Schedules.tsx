@@ -125,13 +125,13 @@ class SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSta
   }
 
   renderSchedule = () => {
-    const { startMoment } = this.props;
+    const { startMoment } = this.state;
 
     return (
       <div className={cx('schedule')}>
         <TimelineMarks startMoment={startMoment} />
         <div className={cx('rotations')}>
-          <Rotation id={`${1}-${2}`} layerIndex={1} rotationIndex={2} />
+          <Rotation startMoment={startMoment} id={`${1}-${2}`} layerIndex={1} rotationIndex={2} />
         </div>
       </div>
     );

@@ -1,3 +1,7 @@
+import dayjs from 'dayjs';
+
+import { Timezone } from 'models/timezone/timezone.types';
+
 const tzs = [
   'Africa/Abidjan',
   'Africa/Accra',
@@ -612,14 +616,14 @@ export const getRandomTimezone = () => {
   return tzs[Math.floor(Math.random() * tzs.length)];
 };
 
-export const getRandomUsers = (count = 5) => {
+export const getRandomUsers = (count = 7) => {
   const users = [];
   for (let i = 0; i < count; i++) {
     users.push({
       //name: getRandomUser(),
       pk: i,
       name: [
-        'Some Etc/Universal user',
+        'Some UTC user',
         'Matias Bordese',
         'Michael Derynck',
         'Yulia Shanyrova',
@@ -640,7 +644,7 @@ export const getRandomUsers = (count = 5) => {
       ][i],
       //tz: getRandomTimezone(),
       tz: [
-        'Etc/Universal',
+        'UTC',
         'America/Montevideo',
         'America/Vancouver',
         'Europe/Amsterdam',
@@ -653,4 +657,8 @@ export const getRandomUsers = (count = 5) => {
   }
 
   return users;
+};
+
+export const getStartOfWeek = (tz: Timezone) => {
+  return dayjs().tz(tz).utcOffset() === 0 ? dayjs().utc().startOf('isoWeek') : dayjs().tz(tz).startOf('isoWeek');
 };

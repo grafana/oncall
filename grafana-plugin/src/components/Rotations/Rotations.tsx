@@ -2,7 +2,7 @@ import React, { Component, useMemo, useState } from 'react';
 
 import { ValuePicker, IconButton, Icon, HorizontalGroup, Button } from '@grafana/ui';
 import cn from 'classnames/bind';
-import * as dayjs from 'dayjs';
+import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc';
 
 import RotationForm from 'components/RotationForm/RotationForm';
@@ -41,10 +41,15 @@ class Rotations extends Component<RotationsProps, RotationsState> {
     const layers = [
       { id: 0, title: 'Layer 1' },
       /*{ id: 1, title: 'Layer 2' },
-      { id: 2, title: 'Layer 3' },
+     { id: 2, title: 'Layer 3' },
       { id: 3, title: 'Layer 4' }*/
       ,
     ];
+
+    const base = 7 * 24 * 60; // in minutes
+    const diff = dayjs().tz(currentTimezone).diff(startMoment, 'minutes');
+
+    const currentTimeX = diff / base;
 
     const rotations = [{} /* {}*/];
 
@@ -76,7 +81,7 @@ class Rotations extends Component<RotationsProps, RotationsState> {
                     </HorizontalGroup>
                   </div>
                   <div className={cx('header-plus-content')}>
-                    <div className={cx('current-time')} />
+                    <div className={cx('current-time')} style={{ left: `${currentTimeX * 100}%` }} />
                     <TimelineMarks debug startMoment={startMoment} />
                     <div className={cx('rotations')}>
                       {rotations.map((rotation, rotationIndex) => (

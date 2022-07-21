@@ -23,7 +23,7 @@ import { User } from 'models/user/user.types';
 import { WithStoreProps } from 'state/types';
 import { withMobXProviderContext } from 'state/withStore';
 
-import { getRandomUsers } from './Schedule.helpers';
+import { getRandomUsers, getStartOfWeek } from './Schedule.helpers';
 
 import styles from './Schedule.module.css';
 
@@ -39,12 +39,12 @@ interface SchedulePageState {
   currentTimezone: Timezone;
 }
 
-const INITIAL_TIMEZONE = 'Etc/Universal'; // todo check why doesn't work
+const INITIAL_TIMEZONE = 'UTC'; // todo check why doesn't work
 
 @observer
 class SchedulePage extends React.Component<SchedulePageProps, SchedulePageState> {
   state: SchedulePageState = {
-    startMoment: dayjs().tz(INITIAL_TIMEZONE).startOf('week'),
+    startMoment: getStartOfWeek(INITIAL_TIMEZONE),
     schedulePeriodType: 'week',
     renderType: 'timeline',
     users: getRandomUsers(),
@@ -156,9 +156,9 @@ class SchedulePage extends React.Component<SchedulePageProps, SchedulePageState>
           </div>
           {/* <div className={'current-time'} />*/}
           <div className={cx('rotations')}>
-            <ScheduleFinal currentTimezone={currentTimezone} startMoment={startMoment} />
+            {/*<ScheduleFinal currentTimezone={currentTimezone} startMoment={startMoment} />*/}
             <Rotations currentTimezone={currentTimezone} startMoment={startMoment} />
-            <ScheduleOverrides currentTimezone={currentTimezone} startMoment={startMoment} />
+            {/*<ScheduleOverrides currentTimezone={currentTimezone} startMoment={startMoment} />*/}
           </div>
         </VerticalGroup>
       </div>
@@ -166,7 +166,7 @@ class SchedulePage extends React.Component<SchedulePageProps, SchedulePageState>
   }
 
   handleTimezoneChange = (value: Timezone) => {
-    this.setState({ currentTimezone: value, startMoment: dayjs().tz(value).startOf('week') });
+    this.setState({ currentTimezone: value, startMoment: getStartOfWeek(value) });
   };
 
   handleShedulePeriodTypeChange = (value: string) => {
@@ -178,9 +178,9 @@ class SchedulePage extends React.Component<SchedulePageProps, SchedulePageState>
   };
 
   handleTodayClick = () => {
-    const { startMoment, currentTimezone } = this.state;
+    const { currentTimezone } = this.state;
 
-    this.setState({ startMoment: dayjs().tz(currentTimezone).startOf('week') });
+    this.setState({ startMoment: getStartOfWeek(currentTimezone) });
   };
 
   handleLeftClick = () => {

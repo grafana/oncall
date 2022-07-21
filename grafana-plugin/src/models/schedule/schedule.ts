@@ -4,12 +4,15 @@ import { action, observable, toJS } from 'mobx';
 import ReactCSSTransitionGroup from 'react-transition-group'; // ES6
 
 import BaseStore from 'models/base_store';
+import { Timezone } from 'models/timezone/timezone.types';
 import { makeRequest } from 'network';
 import { RootStore } from 'state';
 
 import { Rotation, Schedule, ScheduleEvent } from './schedule.types';
 
 const DEFAULT_FORMAT = 'YYYY-MM-DDTHH:mm:ss';
+
+let I = 0;
 
 function getUsers() {
   const rnd = Math.random();
@@ -47,7 +50,11 @@ export class ScheduleStore extends BaseStore {
   items: { [id: string]: Schedule } = {};
 
   @observable.shallow
-  rotations: { [id: string]: Rotation } = {};
+  rotations: {
+    [id: string]: {
+      [startMoment: string]: Rotation;
+    };
+  } = {};
 
   @observable
   scheduleToScheduleEvents: {
@@ -163,24 +170,40 @@ export class ScheduleStore extends BaseStore {
     });
   }
 
-  async updateRotationMock(rotationId: Rotation['id'], fromString: string) {
+  async updateRotationMock(rotationId: Rotation['id'], fromString: string, currentTimezone: Timezone) {
+    if (this.rotations[rotationId]?.[fromString]) {
+      return;
+    }
+
     const response = await new Promise((resolve, reject) => {
       setTimeout(() => {
         if (!fromString) {
           fromString = dayjs().startOf('week').format('YYYY-MM-DDTHH:mm:ss.000Z');
         }
 
-        const startMoment = dayjs(fromString).utc();
+        let startMoment = dayjs(fromString);
+        const utcOffset = dayjs().tz(currentTimezone).utcOffset();
+
+        startMoment = startMoment.add(utcOffset, 'minutes');
+        //const startMoment = dayjs().utc().startOf('week');
 
         const shifts = [];
         for (let i = 0; i < 7; i++) {
+          const shiftDuration = (12 + Math.floor(Math.random() * 12)) * 60 * 60;
+          const gapDuration = 24 * 60 * 60 - shiftDuration;
+
           shifts.push({
-            // start: dayjs(startMoment).add(12 * i, 'hour'),
-            // duration: (Math.floor(Math.random() * 6) + 10) * 60 * 60,
-            start: dayjs(startMoment).add(24 * i, 'hour'),
-            // duration: (Math.floor(Math.random() * 6) + 10) * 60 * 60,
-            duration: 24 * 60 * 60,
+            pk: I++,
+            start: startMoment.add(24 * i, 'hour'),
+            duration: shiftDuration,
             users: getUsers(),
+          });
+
+          shifts.push({
+            pk: I++,
+            start: startMoment.add(24 * i, 'hour').add(shiftDuration, 'seconds'),
+            duration: gapDuration,
+            is_gap: true,
           });
         }
 
@@ -190,7 +213,10 @@ export class ScheduleStore extends BaseStore {
 
     this.rotations = {
       ...this.rotations,
-      [rotationId]: response as Rotation,
+      [rotationId]: {
+        ...this.rotations[rotationId],
+        [fromString]: response as Rotation,
+      },
     };
   }
 

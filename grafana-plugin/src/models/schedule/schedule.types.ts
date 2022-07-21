@@ -45,9 +45,12 @@ export interface CreateScheduleExportTokenResponse {
 }
 
 export interface Shift {
+  pk: string;
   start: dayjs.Dayjs;
   duration: number; // in seconds
   users: Array<User['pk']>;
+  is_gap: boolean;
+  is_empty: boolean;
 }
 
 export interface Rotation {

@@ -6,12 +6,13 @@
 
 .current-time {
   position: absolute;
-  left: 650px;
   width: 1px;
   background: #fff;
   top: 0;
   bottom: 0;
   z-index: 1;
+
+  /* transition: left 500ms ease; */
 }
 
 .header {
@@ -32,7 +33,7 @@
 }
 
 .layer {
-
+  display: block;
 }
 
 .layer-title {

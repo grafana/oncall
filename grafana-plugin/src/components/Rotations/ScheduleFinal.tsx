@@ -2,6 +2,7 @@ import React, { Component } from 'react';
 
 import { Button, HorizontalGroup, Icon, Input, ValuePicker } from '@grafana/ui';
 import cn from 'classnames/bind';
+import dayjs from 'dayjs';
 import { observer } from 'mobx-react';
 
 import RotationForm from 'components/RotationForm/RotationForm';
@@ -27,6 +28,11 @@ class ScheduleOverrides extends Component<ScheduleOverridesProps, ScheduleOverri
     const { title, startMoment, currentTimezone } = this.props;
     const { showAddOverrideForm, searchTerm } = this.state;
 
+    const base = 7 * 24 * 60; // in minutes
+    const diff = dayjs().tz(currentTimezone).diff(startMoment, 'minutes');
+
+    const currentTimeX = diff / base;
+
     return (
       <>
         <div className={cx('root')}>
@@ -42,7 +48,7 @@ class ScheduleOverrides extends Component<ScheduleOverridesProps, ScheduleOverri
             </HorizontalGroup>
           </div>
           <div className={cx('header-plus-content')}>
-            <div className={cx('current-time')} />
+            <div className={cx('current-time')} style={{ left: `${currentTimeX * 100}%` }} />
             <TimelineMarks startMoment={startMoment} />
             <div className={cx('rotations')}>
               <Rotation

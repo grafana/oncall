@@ -17,7 +17,7 @@
   display: flex;
   flex-direction: column;
   gap: 1px;
-  transition: left 500ms ease;
+  flex-shrink: 0;
 }
 
 .stack > .root {
@@ -28,7 +28,6 @@
   background: rgba(209, 14, 92, 0.2);
   border: 1px dashed #ff5286;
   color: rgba(209, 14, 92, 0.5);
-  visibility: hidden;
 }
 
 .root__inactive {

@@ -30,10 +30,8 @@ interface ScheduleSlotProps {
 const cx = cn.bind(styles);
 
 const ScheduleSlot: FC<ScheduleSlotProps> = observer((props) => {
-  const { index, layerIndex, rotationIndex, shift, startMoment, currentTimezone, color: propColor } = props;
+  const { index, layerIndex, rotationIndex, shift, startMoment, currentTimezone, color: propColor, x, basePx } = props;
   const { duration, users } = shift;
-
-  const isGap = !users.length;
 
   const store = useStore();
 
@@ -41,14 +39,12 @@ const ScheduleSlot: FC<ScheduleSlotProps> = observer((props) => {
 
   const width = duration / base;
 
+  const label = !isNaN(layerIndex) && !isNaN(rotationIndex) && index === 0 ? getLabel(layerIndex, rotationIndex) : null;
+
   return (
     <div className={cx('stack')} style={{ width: `${width * 100}%` /*left: `${x * 100}%`*/ }}>
-      {!isGap ? (
+      {!shift.is_gap ? (
         users.map((pk, userIndex) => {
-          const label =
-            !isNaN(layerIndex) && !isNaN(rotationIndex) && index === 0 && userIndex === 0
-              ? getLabel(layerIndex, rotationIndex)
-              : null;
           const storeUser = store.userStore.items[pk];
 
           const inactive = false;
@@ -74,7 +70,7 @@ const ScheduleSlot: FC<ScheduleSlotProps> = observer((props) => {
                     duration={shift.duration}
                   />
                 )}
-                {label && (
+                {userIndex === 0 && label && (
                   <div className={cx('label')} style={{ color }}>
                     {label}
                   </div>
