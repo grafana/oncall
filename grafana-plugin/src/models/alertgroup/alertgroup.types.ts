@@ -42,16 +42,17 @@ export interface Alert {
   title: string;
   message: string;
   image_url: string;
-  alerts?: any[];
+  alerts: any[];
   acknowledged: boolean;
   created_at: string;
   acknowledged_at: string;
+  acknowledged_at_verbose: string;
   acknowledged_by_user: User;
   acknowledged_on_source: boolean;
   channel: Channel;
-  permalink?: string;
+  permalink: string;
   related_users: User[];
-  render_after_resolve_report_json?: TimeLineItem[];
+  render_after_resolve_report_json: TimeLineItem[];
   render_for_slack: { attachments: any[] };
   render_for_web: {
     message: any;
@@ -62,13 +63,17 @@ export interface Alert {
   inside_organization_number: number;
   resolved: boolean;
   resolved_at: string;
+  resolved_at_verbose: string;
   resolved_by: number;
   resolved_by_user: User;
+  resolved_by_verbose: string;
   silenced: boolean;
   silenced_at: string;
+  silenced_at_verbose: string;
   silenced_by_user: Partial<User>;
   silenced_until: string;
   started_at: string;
+  started_at_verbose: string;
   last_alert_at: string;
   verbose_name: string;
   dependent_alert_groups: Alert[];

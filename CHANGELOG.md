@@ -1,8 +1,9 @@
 # Change Log
 
-## v1.0.8 (2022-07-21)
+## v1.0.9 (2022-07-21)
 - Frontend bug fixes & improvements
 - Support regex_replace() in templates
+- Bring back alert group caching and list view
 
 ## v1.0.7 (2022-07-18)
 - Backend & frontend bug fixes

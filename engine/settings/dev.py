@@ -32,6 +32,10 @@ DATABASES = {
 
 TESTING = "pytest" in sys.modules or "unittest" in sys.modules
 
+READONLY_DATABASES = {}
+
+# Dictionaries concatenation, introduced in python3.9
+DATABASES = DATABASES | READONLY_DATABASES
 
 CACHES = {
     "default": {

@@ -20,11 +20,11 @@ class AlertClassicMarkdownRenderer(AlertBaseRenderer):
 
 
 class AlertGroupClassicMarkdownRenderer(AlertGroupBaseRenderer):
-    def __init__(self, alert_group, alert=None):
-        if alert is None:
-            alert = alert_group.alerts.last()
+    def __init__(self, alert_group):
+        super().__init__(alert_group)
 
-        super().__init__(alert_group, alert)
+        # use the last alert to render content
+        self.alert_renderer = self.alert_renderer_class(self.alert_group.alerts.last())
 
     @property
     def alert_renderer_class(self):

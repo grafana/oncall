@@ -36,10 +36,7 @@ export class AlertGroupStore extends BaseStore {
   initialQuery = qs.parse(window.location.search);
 
   @observable
-  incidentsCursor?: string;
-
-  @observable
-  incidentsItemsPerPage?: number;
+  incidentsPage: any = this.initialQuery.p ? Number(this.initialQuery.p) : 1;
 
   @observable
   alertsSearchResult: any = {};
@@ -218,69 +215,54 @@ export class AlertGroupStore extends BaseStore {
   }
 
   @action
-  async updateIncidentFilters(params: any, keepCursor = false) {
-    if (!keepCursor) {
-      this.incidentsCursor = undefined;
+  async updateIncidentFilters(params: any, resetPage = true) {
+    if (resetPage) {
+      this.incidentsPage = 1;
     }
-
     this.incidentFilters = params;
 
     this.updateIncidents();
   }
 
   @action
-  async setIncidentsCursor(cursor: string) {
-    this.incidentsCursor = cursor;
+  async setIncidentsPage(page: number) {
+    this.incidentsPage = page;
 
     this.updateAlertGroups();
   }
 
   @action
-  async setIncidentsItemsPerPage(value: number) {
-    this.incidentsCursor = undefined;
-    this.incidentsItemsPerPage = value;
+  async updateAlertGroups(skip_slow_rendering = true) {
+    this.alertGroupsLoading = skip_slow_rendering;
 
-    this.updateAlertGroups();
-  }
-
-  @action
-  async updateAlertGroups() {
-    this.alertGroupsLoading = true;
-
-    const {
-      results,
-      next: nextRaw,
-      previous: previousRaw,
-    } = await makeRequest(`${this.path}`, {
+    const result = await makeRequest(`${this.path}`, {
       params: {
         ...this.incidentFilters,
-        cursor: this.incidentsCursor,
-        perpage: this.incidentsItemsPerPage,
+        page: this.incidentsPage,
         is_root: true,
+        skip_slow_rendering,
       },
     }).catch(refreshPageError);
 
-    const prevCursor = previousRaw ? qs.parse(qs.extract(previousRaw)).cursor : previousRaw;
-    const nextCursor = nextRaw ? qs.parse(qs.extract(nextRaw)).cursor : nextRaw;
-
-    const newAlerts = new Map(
-      results.map((alert: Alert) => {
-        const oldAlert = this.alerts.get(alert.pk) || {};
-        const mergedAlertData = { ...oldAlert, ...alert };
-        return [alert.pk, mergedAlertData];
-      })
-    );
+    const newAlerts = new Map(result.results.map((alert: Alert) => [alert.pk, alert]));
 
     // @ts-ignore
     this.alerts = new Map<number, Alert>([...this.alerts, ...newAlerts]);
 
     this.alertsSearchResult['default'] = {
-      prev: prevCursor,
-      next: nextCursor,
-      results: results.map((alert: Alert) => alert.pk),
+      count: result.count,
+      results: result.results.map((alert: Alert) => alert.pk),
     };
 
     this.alertGroupsLoading = false;
+
+    if (skip_slow_rendering) {
+      const hasShortened = result.results.some((alert: Alert) => alert.short);
+
+      if (hasShortened) {
+        this.updateAlertGroups(false);
+      }
+    }
   }
 
   getAlertSearchResult(query: string) {
@@ -289,6 +271,27 @@ export class AlertGroupStore extends BaseStore {
     }
 
     return this.alertsSearchResult[query].results.map((pk: Alert['pk']) => this.alerts.get(pk));
+  }
+
+  @action
+  async searchIncidents(search: string) {
+    const result = await makeRequest(`${this.path}`, {
+      params: {
+        search,
+        resolved: false,
+        is_root: true,
+      },
+    });
+
+    const newAlerts = new Map(result.results.map((alert: Alert) => [alert.pk, alert]));
+
+    // @ts-ignore
+    this.alerts = new Map<number, Alert>([...this.alerts, ...newAlerts]);
+
+    this.alertsSearchResult[search] = {
+      count: result.count,
+      results: result.results.map((alert: Alert) => alert.pk),
+    };
   }
 
   @action
