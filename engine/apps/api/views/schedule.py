@@ -190,9 +190,10 @@ class ScheduleView(
 
         return user_tz, date
 
-    def _filter_events(self, schedule, timezone, starting_date, days, with_empty, with_gap):
+    def _filter_events(self, schedule, user_timezone, starting_date, days, with_empty, with_gap):
         shifts = (
-            list_of_oncall_shifts_from_ical(schedule, starting_date, timezone, with_empty, with_gap, days=days) or []
+            list_of_oncall_shifts_from_ical(schedule, starting_date, user_timezone, with_empty, with_gap, days=days)
+            or []
         )
         events = []
         # for start, end, users, priority_level, source in shifts:
