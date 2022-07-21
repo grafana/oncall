@@ -37,7 +37,7 @@ const cx = cn.bind(styles);
 
 interface IncidentsFiltersProps extends WithStoreProps {
   value: IncidentsFiltersType;
-  onChange: (filters: { [key: string]: any }, isOnMount: boolean) => void;
+  onChange: (filters: { [key: string]: any }) => void;
   query: { [key: string]: any };
 }
 interface IncidentsFiltersState {
@@ -79,9 +79,7 @@ class IncidentsFilters extends Component<IncidentsFiltersProps, IncidentsFilters
       ({ filters, values } = parseFilters(newQuery, filterOptions));
     }
 
-    this.setState({ filterOptions, filters, values }, () => {
-      this.onChange(true);
-    });
+    this.setState({ filterOptions, filters, values }, this.onChange);
   }
 
   render() {
@@ -423,11 +421,11 @@ class IncidentsFilters extends Component<IncidentsFiltersProps, IncidentsFilters
     };
   };
 
-  onChange = (isOnMount = false) => {
+  onChange = () => {
     const { onChange } = this.props;
     const { values } = this.state;
 
-    onChange(values, isOnMount);
+    onChange(values);
   };
 
   debouncedOnChange = debounce(this.onChange, 500);

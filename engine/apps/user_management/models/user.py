@@ -8,6 +8,7 @@ from django.db.models.signals import post_save
 from django.dispatch import receiver
 from emoji import demojize
 
+from apps.alerts.tasks import invalidate_web_cache_for_alert_group
 from apps.schedules.tasks import drop_cached_ical_for_custom_events_for_organization
 from common.constants.role import Role
 from common.public_primary_keys import generate_public_primary_key, increase_public_primary_key_length
@@ -263,3 +264,5 @@ def listen_for_user_model_save(sender, instance, created, *args, **kwargs):
     drop_cached_ical_for_custom_events_for_organization.apply_async(
         (instance.organization_id,),
     )
+    logger.info(f"Drop AG cache. Reason: save user {instance.pk}")
+    invalidate_web_cache_for_alert_group.apply_async(kwargs={"org_pk": instance.organization_id})

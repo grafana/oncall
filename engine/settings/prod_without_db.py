@@ -84,11 +84,12 @@ CELERY_TASK_ROUTES = {
     "apps.alerts.tasks.create_contact_points_for_datasource.create_contact_points_for_datasource": {"queue": "default"},
     "apps.alerts.tasks.sync_grafana_alerting_contact_points.sync_grafana_alerting_contact_points": {"queue": "default"},
     "apps.alerts.tasks.delete_alert_group.delete_alert_group": {"queue": "default"},
-    "apps.alerts.tasks.invalidate_web_cache_for_alert_group.invalidate_web_cache_for_alert_group": {
-        "queue": "default"
-    },  # todo: remove
+    "apps.alerts.tasks.invalidate_web_cache_for_alert_group.invalidate_web_cache_for_alert_group": {"queue": "default"},
     "apps.alerts.tasks.send_alert_group_signal.send_alert_group_signal": {"queue": "default"},
     "apps.alerts.tasks.wipe.wipe": {"queue": "default"},
+    # TODO: remove cache_alert_group_for_web and schedule_cache_for_alert_group once existing task will be processed
+    "apps.api.tasks.cache_alert_group_for_web": {"queue": "default"},
+    "apps.api.tasks.schedule_cache_for_alert_group": {"queue": "default"},
     "apps.heartbeat.tasks.heartbeat_checkup": {"queue": "default"},
     "apps.heartbeat.tasks.integration_heartbeat_checkup": {"queue": "default"},
     "apps.heartbeat.tasks.process_heartbeat_task": {"queue": "default"},

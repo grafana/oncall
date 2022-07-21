@@ -63,7 +63,7 @@ def test_get_filter_started_at(alert_group_internal_api_setup, make_user_auth_he
     )
 
     assert response.status_code == status.HTTP_200_OK
-    assert len(response.data["results"]) == 4
+    assert response.data["count"] == 4
 
 
 @pytest.mark.django_db
@@ -78,7 +78,7 @@ def test_get_filter_resolved_at_alertgroup_empty_result(alert_group_internal_api
         **make_user_auth_headers(user, token),
     )
     assert response.status_code == status.HTTP_200_OK
-    assert len(response.data["results"]) == 0
+    assert response.data["count"] == 0
 
 
 @pytest.mark.django_db
@@ -105,7 +105,7 @@ def test_get_filter_resolved_at(alert_group_internal_api_setup, make_user_auth_h
         **make_user_auth_headers(user, token),
     )
     assert response.status_code == status.HTTP_200_OK
-    assert len(response.data["results"]) == 1
+    assert response.data["count"] == 1
 
 
 @pytest.mark.django_db
@@ -117,7 +117,7 @@ def test_status_new(alert_group_internal_api_setup, make_user_auth_headers):
     url = reverse("api-internal:alertgroup-list")
     response = client.get(url + "?status=0", format="json", **make_user_auth_headers(user, token))
     assert response.status_code == status.HTTP_200_OK
-    assert len(response.data["results"]) == 1
+    assert response.data["count"] == 1
     assert response.data["results"][0]["pk"] == new_alert_group.public_primary_key
 
 
@@ -130,7 +130,7 @@ def test_status_ack(alert_group_internal_api_setup, make_user_auth_headers):
     url = reverse("api-internal:alertgroup-list")
     response = client.get(url + "?status=1", format="json", **make_user_auth_headers(user, token))
     assert response.status_code == status.HTTP_200_OK
-    assert len(response.data["results"]) == 1
+    assert response.data["count"] == 1
     assert response.data["results"][0]["pk"] == ack_alert_group.public_primary_key
 
 
@@ -143,7 +143,7 @@ def test_status_resolved(alert_group_internal_api_setup, make_user_auth_headers)
     url = reverse("api-internal:alertgroup-list")
     response = client.get(url + "?status=2", format="json", **make_user_auth_headers(user, token))
     assert response.status_code == status.HTTP_200_OK
-    assert len(response.data["results"]) == 1
+    assert response.data["count"] == 1
     assert response.data["results"][0]["pk"] == resolved_alert_group.public_primary_key
 
 
@@ -156,7 +156,7 @@ def test_status_silenced(alert_group_internal_api_setup, make_user_auth_headers)
     url = reverse("api-internal:alertgroup-list")
     response = client.get(url + "?status=3", format="json", **make_user_auth_headers(user, token))
     assert response.status_code == status.HTTP_200_OK
-    assert len(response.data["results"]) == 1
+    assert response.data["count"] == 1
     assert response.data["results"][0]["pk"] == silenced_alert_group.public_primary_key
 
 
@@ -171,7 +171,7 @@ def test_all_statuses(alert_group_internal_api_setup, make_user_auth_headers):
         url + "?status=0&status=1&&status=2&status=3", format="json", **make_user_auth_headers(user, token)
     )
     assert response.status_code == status.HTTP_200_OK
-    assert len(response.data["results"]) == 4
+    assert response.data["count"] == 4
 
 
 @pytest.mark.django_db
@@ -213,7 +213,7 @@ def test_get_filter_resolved_by(
         **make_user_auth_headers(first_user, token),
     )
     assert first_response.status_code == status.HTTP_200_OK
-    assert len(first_response.data["results"]) == 1
+    assert first_response.data["count"] == 1
 
     second_response = client.get(
         url + f"?resolved_by={second_user.public_primary_key}",
@@ -221,7 +221,7 @@ def test_get_filter_resolved_by(
         **make_user_auth_headers(first_user, token),
     )
     assert second_response.status_code == status.HTTP_200_OK
-    assert len(second_response.data["results"]) == 0
+    assert second_response.data["count"] == 0
 
 
 @pytest.mark.django_db
@@ -269,7 +269,7 @@ def test_get_filter_resolved_by_multiple_values(
         **make_user_auth_headers(first_user, token),
     )
     assert first_response.status_code == status.HTTP_200_OK
-    assert len(first_response.data["results"]) == 2
+    assert first_response.data["count"] == 2
 
 
 @pytest.mark.django_db
@@ -309,7 +309,7 @@ def test_get_filter_acknowledged_by(
         **make_user_auth_headers(first_user, token),
     )
     assert first_response.status_code == status.HTTP_200_OK
-    assert len(first_response.data["results"]) == 1
+    assert first_response.data["count"] == 1
 
     second_response = client.get(
         url + f"?acknowledged_by={second_user.public_primary_key}",
@@ -317,7 +317,7 @@ def test_get_filter_acknowledged_by(
         **make_user_auth_headers(first_user, token),
     )
     assert second_response.status_code == status.HTTP_200_OK
-    assert len(second_response.data["results"]) == 0
+    assert second_response.data["count"] == 0
 
 
 @pytest.mark.django_db
@@ -363,7 +363,7 @@ def test_get_filter_acknowledged_by_multiple_values(
         **make_user_auth_headers(first_user, token),
     )
     assert first_response.status_code == status.HTTP_200_OK
-    assert len(first_response.data["results"]) == 2
+    assert first_response.data["count"] == 2
 
 
 @pytest.mark.django_db
@@ -402,7 +402,7 @@ def test_get_filter_silenced_by(
         **make_user_auth_headers(first_user, token),
     )
     assert first_response.status_code == status.HTTP_200_OK
-    assert len(first_response.data["results"]) == 1
+    assert first_response.data["count"] == 1
 
     second_response = client.get(
         url + f"?silenced_by={second_user.public_primary_key}",
@@ -410,7 +410,7 @@ def test_get_filter_silenced_by(
         **make_user_auth_headers(first_user, token),
     )
     assert second_response.status_code == status.HTTP_200_OK
-    assert len(second_response.data["results"]) == 0
+    assert second_response.data["count"] == 0
 
 
 @pytest.mark.django_db
@@ -455,7 +455,7 @@ def test_get_filter_silenced_by_multiple_values(
         **make_user_auth_headers(first_user, token),
     )
     assert first_response.status_code == status.HTTP_200_OK
-    assert len(first_response.data["results"]) == 2
+    assert first_response.data["count"] == 2
 
 
 @pytest.mark.django_db
@@ -494,7 +494,7 @@ def test_get_filter_invitees_are(
         **make_user_auth_headers(first_user, token),
     )
     assert first_response.status_code == status.HTTP_200_OK
-    assert len(first_response.data["results"]) == 1
+    assert first_response.data["count"] == 1
 
     second_response = client.get(
         url + f"?invitees_are={second_user.public_primary_key}",
@@ -502,7 +502,7 @@ def test_get_filter_invitees_are(
         **make_user_auth_headers(first_user, token),
     )
     assert second_response.status_code == status.HTTP_200_OK
-    assert len(second_response.data["results"]) == 0
+    assert second_response.data["count"] == 0
 
 
 @pytest.mark.django_db
@@ -548,7 +548,7 @@ def test_get_filter_invitees_are_multiple_values(
         **make_user_auth_headers(first_user, token),
     )
     assert first_response.status_code == status.HTTP_200_OK
-    assert len(first_response.data["results"]) == 2
+    assert first_response.data["count"] == 2
 
 
 @pytest.mark.django_db
@@ -593,7 +593,7 @@ def test_get_filter_invitees_are_ag_with_multiple_logs(
         **make_user_auth_headers(first_user, token),
     )
     assert first_response.status_code == status.HTTP_200_OK
-    assert len(first_response.data["results"]) == 1
+    assert first_response.data["count"] == 1
 
 
 @pytest.mark.django_db
@@ -611,11 +611,11 @@ def test_get_filter_with_resolution_note(
     # there are no alert groups with resolution_notes
     response = client.get(url + "?with_resolution_note=true", format="json", **make_user_auth_headers(user, token))
     assert response.status_code == status.HTTP_200_OK
-    assert len(response.data["results"]) == 0
+    assert response.data["count"] == 0
 
     response = client.get(url + "?with_resolution_note=false", format="json", **make_user_auth_headers(user, token))
     assert response.status_code == status.HTTP_200_OK
-    assert len(response.data["results"]) == 4
+    assert response.data["count"] == 4
 
     # add resolution_notes to two of four alert groups
     make_resolution_note(res_alert_group)
@@ -623,11 +623,11 @@ def test_get_filter_with_resolution_note(
 
     response = client.get(url + "?with_resolution_note=true", format="json", **make_user_auth_headers(user, token))
     assert response.status_code == status.HTTP_200_OK
-    assert len(response.data["results"]) == 2
+    assert response.data["count"] == 2
 
     response = client.get(url + "?with_resolution_note=false", format="json", **make_user_auth_headers(user, token))
     assert response.status_code == status.HTTP_200_OK
-    assert len(response.data["results"]) == 2
+    assert response.data["count"] == 2
 
 
 @pytest.mark.django_db
@@ -653,7 +653,7 @@ def test_get_filter_with_resolution_note_after_delete_resolution_note(
 
     response = client.get(url + "?with_resolution_note=true", format="json", **make_user_auth_headers(user, token))
     assert response.status_code == status.HTTP_200_OK
-    assert len(response.data["results"]) == 1
+    assert response.data["count"] == 1
 
 
 @pytest.mark.django_db
