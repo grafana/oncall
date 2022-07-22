@@ -38,6 +38,7 @@ from .views.slack_team_settings import (
 from .views.subscription import SubscriptionView
 from .views.team import TeamViewSet
 from .views.telegram_channels import TelegramChannelViewSet
+from .views.test_insight_logs import TestInsightLogsAPIView
 from .views.user import CurrentUserView, UserView
 from .views.user_group import UserGroupViewSet
 
@@ -106,6 +107,7 @@ urlpatterns = [
         "preview_template_options", PreviewTemplateOptionsView.as_view(), name="preview_template_options"
     ),
     optional_slash_path("route_regex_debugger", RouteRegexDebuggerView.as_view(), name="route_regex_debugger"),
+    optional_slash_path("insight_logs_test", TestInsightLogsAPIView.as_view(), name="insight-logs-test"),
 ]
 
 urlpatterns += [
