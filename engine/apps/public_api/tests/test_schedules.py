@@ -294,8 +294,10 @@ def test_update_calendar_schedule_with_custom_event(
         schedule_class=OnCallScheduleCalendar,
         channel=slack_channel_id,
     )
+    start_date = timezone.datetime.now().replace(microsecond=0)
     data = {
-        "start": timezone.now().replace(tzinfo=None, microsecond=0),
+        "start": start_date,
+        "rotation_start": start_date,
         "duration": timezone.timedelta(seconds=10800),
     }
     on_call_shift = make_on_call_shift(
@@ -347,8 +349,10 @@ def test_update_calendar_schedule_invalid_override(
         organization,
         schedule_class=OnCallScheduleCalendar,
     )
+    start_date = timezone.datetime.now().replace(microsecond=0)
     data = {
-        "start": timezone.now().replace(tzinfo=None, microsecond=0),
+        "start": start_date,
+        "rotation_start": start_date,
         "duration": timezone.timedelta(seconds=10800),
     }
     on_call_shift = make_on_call_shift(organization=organization, shift_type=CustomOnCallShift.TYPE_OVERRIDE, **data)
@@ -378,8 +382,10 @@ def test_update_web_schedule_with_override(
         organization,
         schedule_class=OnCallScheduleWeb,
     )
+    start_date = timezone.datetime.now().replace(microsecond=0)
     data = {
-        "start": timezone.now().replace(tzinfo=None, microsecond=0),
+        "start": start_date,
+        "rotation_start": start_date,
         "duration": timezone.timedelta(seconds=10800),
     }
     on_call_shift = make_on_call_shift(organization=organization, shift_type=CustomOnCallShift.TYPE_OVERRIDE, **data)

@@ -13,7 +13,11 @@ from django.utils.functional import cached_property
 from icalendar.cal import Event
 from recurring_ical_events import UnfoldableCalendar
 
-from apps.schedules.tasks import drop_cached_ical_task
+from apps.schedules.tasks import (
+    drop_cached_ical_task,
+    schedule_notify_about_empty_shifts_in_schedule,
+    schedule_notify_about_gaps_in_schedule,
+)
 from apps.user_management.models import User
 from common.public_primary_keys import generate_public_primary_key, increase_public_primary_key_length
 
@@ -57,6 +61,13 @@ class CustomOnCallShift(models.Model):
         FREQUENCY_MONTHLY: "monthly",
     }
 
+    WEB_FREQUENCY_CHOICES_MAP = {
+        FREQUENCY_HOURLY: "hours",
+        FREQUENCY_DAILY: "days",
+        FREQUENCY_WEEKLY: "weeks",
+        FREQUENCY_MONTHLY: "months",
+    }
+
     (
         TYPE_SINGLE_EVENT,
         TYPE_RECURRENT_EVENT,
@@ -78,6 +89,11 @@ class CustomOnCallShift(models.Model):
         TYPE_OVERRIDE: "override",
     }
 
+    WEB_TYPES = (
+        TYPE_ROLLING_USERS_EVENT,
+        TYPE_OVERRIDE,
+    )
+
     (MONDAY, TUESDAY, WEDNESDAY, THURSDAY, FRIDAY, SATURDAY, SUNDAY) = range(7)
 
     WEEKDAY_CHOICES = (
@@ -98,6 +114,16 @@ class CustomOnCallShift(models.Model):
         FRIDAY: "FR",
         SATURDAY: "SA",
         SUNDAY: "SU",
+    }
+
+    WEB_WEEKDAY_MAP = {
+        "MO": "Monday",
+        "TU": "Tuesday",
+        "WE": "Wednesday",
+        "TH": "Thursday",
+        "FR": "Friday",
+        "SA": "Saturday",
+        "SU": "Sunday",
     }
     (
         SOURCE_WEB,
@@ -151,6 +177,8 @@ class CustomOnCallShift(models.Model):
     start = models.DateTimeField()  # event start datetime
     duration = models.DurationField()  # duration in seconds
 
+    rotation_start = models.DateTimeField()  # used for calculation users rotation and rotation start date
+
     frequency = models.IntegerField(choices=FREQUENCY_CHOICES, null=True, default=None)
 
     priority_level = models.IntegerField(default=0)
@@ -173,7 +201,10 @@ class CustomOnCallShift(models.Model):
 
     def delete(self, *args, **kwargs):
         for schedule in self.schedules.all():
-            drop_cached_ical_task.apply_async((schedule.pk,))
+            self.start_drop_ical_and_check_schedule_tasks(schedule)
+        if self.schedule:
+            self.start_drop_ical_and_check_schedule_tasks(self.schedule)
+        # todo: add soft delete
         super().delete(*args, **kwargs)
 
     @property
@@ -205,7 +236,8 @@ class CustomOnCallShift(models.Model):
             result += (
                 f", frequency: {self.get_frequency_display()}, interval: {self.interval}, "
                 f"week start: {self.week_start}, by day: {self.by_day}, by month: {self.by_month}, "
-                f"by monthday: {self.by_monthday}, until: {self.until.isoformat() if self.until else None}"
+                f"by monthday: {self.by_monthday}, rotation start: {self.rotation_start.isoformat()}, "
+                f"until: {self.until.isoformat() if self.until else None}"
             )
         return result
 
@@ -219,6 +251,8 @@ class CustomOnCallShift(models.Model):
             users_queue = self.get_rolling_users()
             for counter, users in enumerate(users_queue, start=1):
                 start = self.get_next_start_date(event_ical)
+                if not start:  # means that rotation ends before next event starts
+                    break
                 for user_counter, user in enumerate(users, start=1):
                     event_ical = self.generate_ical(user, start, user_counter, counter, time_zone)
                     result += event_ical
@@ -280,6 +314,10 @@ class CustomOnCallShift(models.Model):
             if days_for_next_event > DAYS_IN_A_MONTH:
                 days_for_next_event = days_for_next_event % DAYS_IN_A_MONTH
             next_event_start = current_event_start + timezone.timedelta(days=days_for_next_event)
+
+        # check if rotation ends before next event starts
+        if self.until and next_event_start > self.until:
+            return
         next_event = None
         # repetitions generate the next event shift according with the recurrence rules
         repetitions = UnfoldableCalendar(current_event).RepeatedEvent(
@@ -356,3 +394,8 @@ class CustomOnCallShift(models.Model):
             result.append({user.pk: user.public_primary_key for user in users})
         self.rolling_users = result
         self.save(update_fields=["rolling_users"])
+
+    def start_drop_ical_and_check_schedule_tasks(self, schedule):
+        drop_cached_ical_task.apply_async((schedule.pk,))
+        schedule_notify_about_empty_shifts_in_schedule.apply_async((schedule.pk,))
+        schedule_notify_about_gaps_in_schedule.apply_async((schedule.pk,))
