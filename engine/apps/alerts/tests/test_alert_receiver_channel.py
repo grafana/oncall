@@ -5,6 +5,7 @@ import pytest
 from django.urls import reverse
 
 from apps.alerts.models import AlertReceiveChannel
+from common.api_helpers.utils import create_engine_url
 
 
 @pytest.mark.django_db
@@ -26,11 +27,7 @@ def test_integration_url(make_organization, make_alert_receive_channel, url, set
         kwargs={"alert_channel_key": alert_receive_channel.token},
     )
 
-    # remove trailing / if present
-    if url[-1] == "/":
-        url = url[:-1]
-
-    assert alert_receive_channel.integration_url == f"{url}{path}"
+    assert alert_receive_channel.integration_url == create_engine_url(path)
 
 
 @pytest.mark.django_db
