@@ -23,7 +23,7 @@ import { User } from 'models/user/user.types';
 import { WithStoreProps } from 'state/types';
 import { withMobXProviderContext } from 'state/withStore';
 
-import { getRandomUsers, getStartOfWeek } from './Schedule.helpers';
+import { getRandomUsers, getStartOfWeek, getUTCString } from './Schedule.helpers';
 
 import styles from './Schedule.module.css';
 
@@ -53,6 +53,7 @@ class SchedulePage extends React.Component<SchedulePageProps, SchedulePageState>
 
   async componentDidMount() {
     const { store } = this.props;
+    const { startMoment } = this.state;
 
     store.userStore.updateItems();
 
@@ -61,16 +62,22 @@ class SchedulePage extends React.Component<SchedulePageProps, SchedulePageState>
     } = this.props;
 
     store.scheduleStore.updateItem(id);
+    store.scheduleStore.updateFrequencyOptions();
+    store.scheduleStore.updateDaysOptions();
+    store.scheduleStore.updateOncallShifts(id);
+
+    this.updateEvents();
   }
 
   render() {
     const { store } = this.props;
     const { startMoment, schedulePeriodType, renderType, users, currentTimezone } = this.state;
     const { query } = this.props;
+    const { id: scheduleId } = query;
 
     const { scheduleStore } = store;
 
-    const schedule = scheduleStore.items[query.id];
+    const schedule = scheduleStore.items[scheduleId];
 
     return (
       <div className={cx('root')}>
@@ -169,9 +176,11 @@ class SchedulePage extends React.Component<SchedulePageProps, SchedulePageState>
           <div className={cx('rotations')}>
             {/*<ScheduleFinal currentTimezone={currentTimezone} startMoment={startMoment} />*/}
             <Rotations
+              scheduleId={scheduleId}
               currentTimezone={currentTimezone}
               startMoment={startMoment}
               onCreate={this.handleCreateRotation}
+              onRotationUpdate={this.updateEvents}
             />
             {/*<ScheduleOverrides currentTimezone={currentTimezone} startMoment={startMoment} />*/}
           </div>
@@ -179,6 +188,17 @@ class SchedulePage extends React.Component<SchedulePageProps, SchedulePageState>
       </div>
     );
   }
+
+  updateEvents = () => {
+    const {
+      store,
+      query: { id: scheduleId },
+    } = this.props;
+
+    const { startMoment } = this.state;
+
+    store.scheduleStore.updateEvents(scheduleId, startMoment.format('YYYY-MM-DD'));
+  };
 
   handleCreateRotation = () => {
     const { store } = this.props;

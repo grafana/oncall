@@ -19,8 +19,11 @@ import Draggable from 'react-draggable';
 import Modal from 'components/Modal/Modal';
 import Text from 'components/Text/Text';
 import UserGroups from 'components/UserGroups/UserGroups';
+import { Rotation, Schedule } from 'models/schedule/schedule.types';
 import { getTzOffsetString } from 'models/timezone/timezone.helpers';
 import { Timezone } from 'models/timezone/timezone.types';
+import { getUTCString } from 'pages/schedule/Schedule.helpers';
+import { useStore } from 'state/useStore';
 
 import { RotationCreateData } from './RotationForm.types';
 
@@ -32,21 +35,25 @@ interface RotationFormProps {
   onCreate: (date: RotationCreateData) => void;
   id: number | 'new';
   currentTimezone: Timezone;
+  scheduleId: Schedule['id'];
+  onUpdate: (data: Rotation) => void;
 }
 
 const cx = cn.bind(styles);
 
 const RotationForm: FC<RotationFormProps> = (props) => {
-  const { onHide, onCreate, currentTimezone } = props;
+  const { onHide, onCreate, currentTimezone, scheduleId, onUpdate } = props;
 
   const [repeatEveryValue, setRepeatEveryValue] = useState<number>(1);
   const [repeatEveryPeriod, setRepeatEveryPeriod] = useState<string>('days');
   const [selectedDays, setSelectedDays] = useState<string[]>(['Tuesday']);
-  const [shiftStart, setShiftStart] = useState<DateTime>(dateTime('2021-05-05 12:00:00'));
-  const [shiftEnd, setShiftEnd] = useState<DateTime>(dateTime('2021-05-05 12:00:00'));
-  const [rotationStart, setRotationStart] = useState<DateTime>(dateTime('2021-05-05 12:00:00'));
+  const [shiftStart, setShiftStart] = useState<DateTime>(dateTime('2022-07-22 17:00:00'));
+  const [shiftEnd, setShiftEnd] = useState<DateTime>(dateTime('2022-07-22 19:00:00'));
+  const [rotationStart, setRotationStart] = useState<DateTime>(dateTime('2022-07-22 17:00:00'));
   const [endLess, setEndless] = useState<boolean>(true);
-  const [rotationEnd, setRotationEnd] = useState<DateTime>(dateTime('2021-05-05 12:00:00'));
+  const [rotationEnd, setRotationEnd] = useState<DateTime>(dateTime('2022-08-22 12:00:00'));
+
+  const store = useStore();
 
   const handleCreate = useCallback(() => {
     /* console.log(
@@ -61,7 +68,18 @@ const RotationForm: FC<RotationFormProps> = (props) => {
     );
     */
 
-    console.log(rotationEnd, dayjs(rotationEnd));
+    store.scheduleStore
+      .createRotation(scheduleId, true, {
+        name: 'Rotation' + Math.floor(Math.random() * 100),
+        rotation_start: getUTCString(rotationStart),
+        shift_start: getUTCString(shiftStart),
+        shift_end: getUTCString(shiftEnd),
+        rolling_users: [['UYKS64M6C59XM']],
+        frequency: 0,
+      })
+      .then((data) => {
+        onUpdate(data);
+      });
   }, [repeatEveryValue, repeatEveryPeriod, selectedDays, shiftStart, shiftEnd, rotationStart, endLess, rotationEnd]);
 
   const handleChangeEndless = useCallback(

@@ -5,10 +5,11 @@ import cn from 'classnames/bind';
 import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc';
 
-import RotationForm from 'components/RotationForm/RotationForm';
-import { RotationCreateData } from 'components/RotationForm/RotationForm.types';
 import TimelineMarks from 'components/TimelineMarks/TimelineMarks';
 import Rotation from 'containers/Rotation/Rotation';
+import RotationForm from 'containers/RotationForm/RotationForm';
+import { RotationCreateData } from 'containers/RotationForm/RotationForm.types';
+import { Schedule } from 'models/schedule/schedule.types';
 import { Timezone } from 'models/timezone/timezone.types';
 
 import { getColor, getLabel, getRandomTimeslots, getRandomUser } from './Rotations.helpers';
@@ -21,6 +22,8 @@ interface RotationsProps {
   startMoment: dayjs.Dayjs;
   currentTimezone: Timezone;
   onCreate: (date: RotationCreateData) => void;
+  scheduleId: Schedule['id'];
+  onRotationUpdate: () => void;
 }
 
 type Layer = {
@@ -37,7 +40,7 @@ class Rotations extends Component<RotationsProps, RotationsState> {
   };
 
   render() {
-    const { startMoment, currentTimezone } = this.props;
+    const { startMoment, currentTimezone, scheduleId, onRotationUpdate } = this.props;
     const { layerIdToCreateRotation } = this.state;
 
     const layers = [
@@ -106,17 +109,21 @@ class Rotations extends Component<RotationsProps, RotationsState> {
         </div>
         {!isNaN(layerIdToCreateRotation) && (
           <RotationForm
+            scheduleId={scheduleId}
             layerId={layerIdToCreateRotation}
             currentTimezone={currentTimezone}
             onHide={() => {
               this.setState({ layerIdToCreateRotation: undefined });
             }}
+            onUpdate={onRotationUpdate}
             onCreate={this.onRotationCreate}
           />
         )}
       </>
     );
   }
+
+  updateEvents = () => {};
 
   onRotationCreate = (data: RotationCreateData) => {
     const { onCreate } = this.props;

@@ -152,13 +152,13 @@ export class ScheduleStore extends BaseStore {
 
   // ------- NEW SCHEDULES API ENDPOINTS ---------
 
-  async createRotation(scheduleId: Schedule['id'], isOverride: boolean, params) {
+  async createRotation(scheduleId: Schedule['id'], isOverride: boolean, params: any) {
     const type = isOverride ? 3 : 2;
 
-    const { name, shift_start, shift_end, rotation_start } = params;
+    const { name, shift_start, shift_end, rotation_start, rolling_users, frequency } = params;
 
     return await makeRequest(`/oncall_shifts/`, {
-      data: { name, type, schedule: scheduleId, shift_start, shift_end, rotation_start },
+      data: { name, type, schedule: scheduleId, shift_start, shift_end, rotation_start, rolling_users, frequency },
       method: 'POST',
     });
   }
@@ -220,23 +220,42 @@ export class ScheduleStore extends BaseStore {
     };
   }
 
-  async updateEvents(scheduleId: Schedule['id'], fromString: string, days = 7) {
-    return await makeRequest(`/schedules/${scheduleId}/filter_events`, {
+  async updateOncallShifts(scheduleId: Schedule['id']) {
+    return await makeRequest(`/oncall_shifts/`, {
       params: {
+        schedule: scheduleId,
+      },
+      method: 'GET',
+    });
+  }
+  async updateEvents(scheduleId: Schedule['id'], fromString: string, type = 'rotation', days = 7) {
+    const events = await makeRequest(`/schedules/${scheduleId}/filter_events/`, {
+      params: {
+        type,
         date: fromString,
         days,
       },
       method: 'GET',
     });
+
+    /*this.rotations = {
+      ...this.rotations,
+      [rotationId]: {
+        ...this.rotations[rotationId],
+        [level]: {
+          [fromString]: response as Rotation,
+        },
+      },
+    };*/
   }
 
-  async updateFrequencyOptions(scheduleId: Schedule['id']) {
+  async updateFrequencyOptions() {
     return await makeRequest(`/oncall_shifts/frequency_options/`, {
       method: 'GET',
     });
   }
 
-  async updateDaysOptions(scheduleId: Schedule['id']) {
+  async updateDaysOptions() {
     return await makeRequest(`/oncall_shifts/days_options/`, {
       method: 'GET',
     });
