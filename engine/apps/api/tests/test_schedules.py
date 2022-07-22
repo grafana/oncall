@@ -562,6 +562,7 @@ def test_filter_events_range_calendar(
     override_start = request_date + timezone.timedelta(seconds=3600)
     override_data = {
         "start": override_start,
+        "rotation_start": override_start,
         "duration": timezone.timedelta(seconds=3600),
         "schedule": schedule,
     }
@@ -627,6 +628,7 @@ def test_filter_events_overrides(
 
     data = {
         "start": start_date,
+        "rotation_start": start_date,
         "duration": timezone.timedelta(seconds=7200),
         "priority_level": 1,
         "frequency": CustomOnCallShift.FREQUENCY_WEEKLY,
@@ -642,6 +644,7 @@ def test_filter_events_overrides(
     override_start = request_date + timezone.timedelta(seconds=3600)
     override_data = {
         "start": override_start,
+        "rotation_start": override_start,
         "duration": timezone.timedelta(seconds=3600),
         "schedule": schedule,
     }
@@ -720,6 +723,7 @@ def test_filter_events_final_schedule(
     for user, priority, start_h, duration in shifts:
         data = {
             "start": start_date + timezone.timedelta(hours=start_h),
+            "rotation_start": start_date,
             "duration": timezone.timedelta(hours=duration),
             "priority_level": priority,
             "frequency": CustomOnCallShift.FREQUENCY_DAILY,
@@ -733,6 +737,7 @@ def test_filter_events_final_schedule(
     # override: 22-23 / E
     override_data = {
         "start": start_date + timezone.timedelta(hours=22),
+        "rotation_start": start_date,
         "duration": timezone.timedelta(hours=1),
         "schedule": schedule,
     }
