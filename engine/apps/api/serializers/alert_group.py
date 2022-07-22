@@ -4,6 +4,7 @@ from datetime import datetime
 import humanize
 from rest_framework import serializers
 
+from apps.alerts.incident_appearance.renderers.classic_markdown_renderer import AlertGroupClassicMarkdownRenderer
 from apps.alerts.incident_appearance.renderers.web_renderer import AlertGroupWebRenderer
 from apps.alerts.models import AlertGroup
 from common.api_helpers.mixins import EagerLoadingMixin
@@ -56,6 +57,7 @@ class AlertGroupSerializer(EagerLoadingMixin, serializers.ModelSerializer):
 
     status = serializers.ReadOnlyField()
     render_for_web = serializers.SerializerMethodField()
+    render_for_classic_markdown = serializers.SerializerMethodField()
 
     PREFETCH_RELATED = [
         "alerts",
@@ -109,6 +111,7 @@ class AlertGroupSerializer(EagerLoadingMixin, serializers.ModelSerializer):
             "resolved_at_verbose",
             "render_for_web",
             "render_after_resolve_report_json",
+            "render_for_classic_markdown",
             "dependent_alert_groups",
             "root_alert_group",
             "status",
@@ -134,6 +137,9 @@ class AlertGroupSerializer(EagerLoadingMixin, serializers.ModelSerializer):
                 alert.title = str(alert.title) + " Only last 100 alerts are shown. Use Amixr API to fetch all of them."
 
         return AlertSerializer(alerts, many=True).data
+
+    def get_render_for_classic_markdown(self, obj):
+        return AlertGroupClassicMarkdownRenderer(obj).render()
 
     def get_related_users(self, obj):
         users_ids = set()

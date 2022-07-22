@@ -477,11 +477,11 @@ const Event = ({ event }: EventProps) => {
   const dates = getDatesString(event.start, event.end, event.all_day);
 
   return (
-    <HorizontalGroup align="flex-start" spacing="md">
+    <>
       {!event.is_gap ? (
-        <HorizontalGroup align="flex-start">
+        <HorizontalGroup align="flex-start" spacing="sm">
           <div className={cx('priority-icon')}>
-            <Text type="secondary">{`L${event.priority_level || '0'}`}</Text>
+            <Text wrap type="secondary">{`L${event.priority_level || '0'}`}</Text>
           </div>
           <VerticalGroup>
             <div>
@@ -493,9 +493,17 @@ const Event = ({ event }: EventProps) => {
                   </span>
                 ))
               ) : (
-                <HorizontalGroup>
+                <HorizontalGroup spacing="sm">
                   <Icon style={{ color: PENDING_COLOR }} name="exclamation-triangle" />
-                  <Text type="secondary">Empty shift (event without associated user or user with Viewer access)</Text>
+                  <Text type="secondary">Empty shift</Text>
+                  {event.missing_users[0] && (
+                    <Text type="secondary">
+                      (check if {event.missing_users[0].includes(',') ? 'some of these users -' : 'user -'}{' '}
+                      <Text type="secondary">"{event.missing_users[0]}"</Text>{' '}
+                      {event.missing_users[0].includes(',') ? 'are' : 'is'} existing in OnCall or{' '}
+                      {event.missing_users[0].includes(',') ? 'have' : 'has'} Viewer role)
+                    </Text>
+                  )}
                 </HorizontalGroup>
               )}
               {event.source && <span> — source: {event.source}</span>}
@@ -507,11 +515,11 @@ const Event = ({ event }: EventProps) => {
         </HorizontalGroup>
       ) : (
         <div className={cx('gap-between-shifts')}>
-          <Icon size="sm" name="exclamation-triangle" className={cx('gap-between-shifts-icon')} /> Gap! Nobody
-          On-Call...
+          <Icon name="exclamation-triangle" className={cx('gap-between-shifts-icon')} />
+          <Text> Gap! Nobody On-Call...</Text>
         </div>
       )}
-    </HorizontalGroup>
+    </>
   );
 };
 

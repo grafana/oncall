@@ -1,3 +1,4 @@
+import plugin from '../../../package.json'; // eslint-disable-line
 import React, { FC, useEffect, useState, useCallback } from 'react';
 
 import { AppRootProps } from '@grafana/data';
@@ -88,14 +89,33 @@ const DefaultPageLayout: FC<DefaultPageLayoutProps> = observer((props) => {
             />
           </Alert>
         )}
-        {currentTeam?.limits.show_limits_warning && !getItem(currentTeam.limits.warning_text) && (
-          <Alert
-            className={styles.alert}
-            severity="warning"
-            title={currentTeam?.limits.warning_text}
-            onRemove={getRemoveAlertHandler(currentTeam?.limits.warning_text)}
-          />
-        )}
+        {store.backendLicense === 'OpenSource' &&
+          store.backendVersion &&
+          plugin?.version &&
+          store.backendVersion !== plugin?.version && (
+            <Alert className={styles.alert} severity="warning" title={'Version mismatch!'}>
+              Please make sure you have the same versions of the Grafana OnCall plugin and the Grafana OnCall engine,
+              otherwise there could be issues with your Grafana OnCall installation!
+              <br />
+              {`Current plugin version: ${plugin.version}, current engine version: ${store.backendVersion}`}
+              <br />
+              Please see{' '}
+              <a href={'https://grafana.com/docs/oncall/latest/open-source/#update-grafana-oncall-oss'}>
+                the update instructions
+              </a>
+              .
+            </Alert>
+          )}
+        {currentTeam?.limits.show_limits_warning &&
+          currentTeam?.limits.period_title !== 'Version mismatch' && // don't show version mismatch warning twice
+          !getItem(currentTeam.limits.warning_text) && (
+            <Alert
+              className={styles.alert}
+              severity="warning"
+              title={currentTeam?.limits.warning_text}
+              onRemove={getRemoveAlertHandler(currentTeam?.limits.warning_text)}
+            />
+          )}
         {Boolean(
           currentTeam &&
             currentUser &&

@@ -16,6 +16,7 @@ service:
   enabled: false
   type: LoadBalancer
   port: 8080
+  annotations: {}
 
 # Engine pods configuration
 engine:
@@ -117,6 +118,7 @@ externalRabbitmq:
   user:
   password:
   protocol:
+  vhost:
 
 # Redis is included into this release for the convenience.
 # It is recommended to host it separately from this release

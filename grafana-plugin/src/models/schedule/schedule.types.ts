@@ -36,6 +36,7 @@ export interface ScheduleEvent {
   users: User[];
   is_empty: boolean;
   is_gap: boolean;
+  missing_users: string[];
 }
 
 export interface CreateScheduleExportTokenResponse {

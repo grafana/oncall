@@ -13,6 +13,7 @@ Architecture diagram can be found [here](https://raw.githubusercontent.com/grafa
 
 ### Cluster requirements
 * ensure you can run x86-64/amd64 workloads. arm64 architecture is currently not supported
+* kubernetes version 1.25+ is not supported, if cert-manager is enabled
 
 ## Install
 ### Prepare the repo
@@ -142,6 +143,24 @@ externalRabbitmq:
   user:
   password:
 ```
+
+## Update
+```shell
+# Add & upgrade the repository
+helm repo add grafana https://grafana.github.io/helm-charts
+helm repo update
+
+# Re-deploy
+helm upgrade \
+    --install \
+    --wait \
+    --set base_url=example.com \
+    --set grafana."grafana\.ini".server.domain=example.com \
+    release-oncall \
+    grafana/oncall
+```
+
+After re-deploying, please also update the Grafana OnCall plugin on the plugin version page. See [Grafana docs](https://grafana.com/docs/grafana/latest/administration/plugin-management/#update-a-plugin) for more info on updating Grafana plugins.
 
 ## Uninstall
 ### Uninstalling the helm chart

@@ -1,0 +1,34 @@
+from apps.alerts.incident_appearance.renderers.base_renderer import AlertBaseRenderer, AlertGroupBaseRenderer
+from apps.alerts.incident_appearance.templaters import AlertClassicMarkdownTemplater
+from common.utils import str_or_backup
+
+
+class AlertClassicMarkdownRenderer(AlertBaseRenderer):
+    @property
+    def templater_class(self):
+        return AlertClassicMarkdownTemplater
+
+    def render(self):
+        templated_alert = self.templated_alert
+        rendered_alert = {
+            "title": str_or_backup(templated_alert.title, "Alert"),
+            "message": str_or_backup(templated_alert.message, ""),
+            "image_url": str_or_backup(templated_alert.image_url, None),
+            "source_link": str_or_backup(templated_alert.source_link, None),
+        }
+        return rendered_alert
+
+
+class AlertGroupClassicMarkdownRenderer(AlertGroupBaseRenderer):
+    def __init__(self, alert_group):
+        super().__init__(alert_group)
+
+        # use the last alert to render content
+        self.alert_renderer = self.alert_renderer_class(self.alert_group.alerts.last())
+
+    @property
+    def alert_renderer_class(self):
+        return AlertClassicMarkdownRenderer
+
+    def render(self):
+        return self.alert_renderer.render()

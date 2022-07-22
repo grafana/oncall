@@ -24,7 +24,7 @@ const IntegrationLogo: FC<IntegrationLogoProps> = (props) => {
     return null;
   }
 
-  const coors = logoCoors[integration.display_name] || { x: 2, y: 14 };
+  const coors = logoCoors[integration.value] || { x: 2, y: 14 };
 
   const bgStyle = {
     backgroundPosition: `-${coors?.x * LOGO_WIDTH * scale}px -${coors?.y * LOGO_WIDTH * scale}px`,

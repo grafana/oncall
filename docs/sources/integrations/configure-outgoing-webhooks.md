@@ -32,10 +32,8 @@ To automatically send alert data to a destination URL via outgoing webhook:
 
 The format you use to call the variables must match the structure of how the fields are nested in the alert payload. The **Data** field can use the following four variables to auto-populate the webhook payload with information about the first alert in the alert group:
 
-- `{{ alert_title }}`
-- `{{ alert_message }}`
-- `{{ alert_url }}`
 - `{{ alert_payload }}`
+- `{{ alert_group_id }}`
   <br>
 
 `alert_payload` is always the first level of any variable you want to call.

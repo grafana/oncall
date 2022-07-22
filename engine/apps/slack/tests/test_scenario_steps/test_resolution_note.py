@@ -1,10 +1,9 @@
 import json
-from urllib.parse import urljoin
 
 import pytest
-from django.conf import settings
 
 from apps.slack.scenarios.scenario_step import ScenarioStep
+from common.api_helpers.utils import create_engine_url
 
 
 @pytest.mark.django_db
@@ -22,7 +21,7 @@ def test_get_resolution_notes_blocks_default_if_empty(
 
     blocks = step.get_resolution_notes_blocks(alert_group, "", False)
 
-    link_to_instruction = urljoin(settings.BASE_URL, "static/images/postmortem.gif")
+    link_to_instruction = create_engine_url("static/images/postmortem.gif")
     expected_blocks = [
         {
             "type": "divider",

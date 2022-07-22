@@ -148,7 +148,7 @@ const CloudPhoneSettings = observer((props: CloudPhoneSettingsProps) => {
                 Updating...
               </Button>
             ) : (
-              <Button variant="secondary" icon="sync" onClick={syncUser}>
+              <Button variant="secondary" icon="sync" onClick={syncUser} disabled={userStatus === 0}>
                 Update
               </Button>
             )}

@@ -1,4 +1,5 @@
 import json
+import re
 
 from django.utils.dateparse import parse_datetime
 
@@ -20,5 +21,12 @@ def iso8601_to_time(value):
 def to_pretty_json(value):
     try:
         return json.dumps(value, sort_keys=True, indent=4, separators=(",", ": "), ensure_ascii=False)
+    except (ValueError, AttributeError, TypeError):
+        return None
+
+
+def regex_replace(value, find, replace):
+    try:
+        return re.sub(find, replace, value)
     except (ValueError, AttributeError, TypeError):
         return None
