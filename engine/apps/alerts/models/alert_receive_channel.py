@@ -694,14 +694,19 @@ def listen_for_alertreceivechannel_model_save(sender, instance, created, *args, 
                 instance.organization, None, OrganizationLogType.TYPE_HEARTBEAT_CREATED, description
             )
     else:
-        logger.info(f"Drop AG cache. Reason: save alert_receive_channel {instance.pk}")
         if kwargs is not None:
             if "update_fields" in kwargs:
                 if kwargs["update_fields"] is not None:
+                    fields_to_not_to_invalidate_cache = [
+                        "rate_limit_message_task_id",
+                        "rate_limited_in_slack_at",
+                        "reason_to_skip_escalation",
+                    ]
                     # Hack to not to invalidate web cache on AlertReceiveChannel.start_send_rate_limit_message_task
-                    if "rate_limit_message_task_id" in kwargs["update_fields"]:
-                        return
-
+                    for f in fields_to_not_to_invalidate_cache:
+                        if f in kwargs["update_fields"]:
+                            return
+        logger.info(f"Drop AG cache. Reason: save alert_receive_channel {instance.pk}")
         invalidate_web_cache_for_alert_group.apply_async(kwargs={"channel_pk": instance.pk})
 
     if instance.integration == AlertReceiveChannel.INTEGRATION_GRAFANA_ALERTING:
