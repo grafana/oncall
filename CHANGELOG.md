@@ -1,5 +1,9 @@
 # Change Log
 
+## v1.0.10 (2022-07-22)
+- Speed-up of alert group web caching
+- Internal api for OnCall shifts
+
 ## v1.0.9 (2022-07-21)
 - Frontend bug fixes & improvements
 - Support regex_replace() in templates
