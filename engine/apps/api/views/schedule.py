@@ -38,6 +38,10 @@ from common.api_helpers.mixins import (
 )
 from common.api_helpers.utils import create_engine_url
 
+EVENTS_FILTER_BY_ROTATION = "rotation"
+EVENTS_FILTER_BY_OVERRIDE = "override"
+EVENTS_FILTER_BY_FINAL = "final"
+
 
 class ScheduleView(
     PublicPrimaryKeyMixin, ShortSerializerMixin, CreateSerializerMixin, UpdateSerializerMixin, ModelViewSet
@@ -259,9 +263,10 @@ class ScheduleView(
         user_tz, date = self.get_request_timezone()
         filter_by = self.request.query_params.get("type")
 
-        if filter_by is not None and filter_by not in ("override", "rotation", "final"):
+        valid_filters = (EVENTS_FILTER_BY_ROTATION, EVENTS_FILTER_BY_OVERRIDE, EVENTS_FILTER_BY_FINAL)
+        if filter_by is not None and filter_by not in valid_filters:
             raise BadRequest(detail="Invalid type value")
-        resolve_schedule = filter_by is None or filter_by == "final"
+        resolve_schedule = filter_by is None or filter_by == EVENTS_FILTER_BY_FINAL
 
         starting_date = date if self.request.query_params.get("date") else None
         if starting_date is None:
@@ -278,9 +283,9 @@ class ScheduleView(
             schedule, user_tz, starting_date, days=days, with_empty=True, with_gap=resolve_schedule
         )
 
-        if filter_by == "override":
+        if filter_by == EVENTS_FILTER_BY_OVERRIDE:
             events = [e for e in events if e["calendar_type"] == OnCallSchedule.OVERRIDES]
-        elif filter_by == "rotation":
+        elif filter_by == EVENTS_FILTER_BY_ROTATION:
             events = [e for e in events if e["calendar_type"] == OnCallSchedule.PRIMARY]
         else:  # resolve_schedule
             events = self._resolve_schedule(events)
@@ -313,11 +318,12 @@ class ScheduleView(
                 return []
             intervals = [[e["start"], e["end"]] for e in evs]
             result = [intervals[0]]
-            for e in intervals[1:]:
-                if result[-1][0] <= e[0] <= result[-1][1]:
-                    result[-1][1] = max(result[-1][1], e[1])
+            for interval in intervals[1:]:
+                previous_interval = result[-1]
+                if previous_interval[0] <= interval[0] <= previous_interval[1]:
+                    previous_interval[1] = max(previous_interval[1], interval[1])
                 else:
-                    result.append(e)
+                    result.append(interval)
             return result
 
         # iterate over events, reserving schedule slots based on their priority
