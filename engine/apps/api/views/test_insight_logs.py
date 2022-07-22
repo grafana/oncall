@@ -7,6 +7,7 @@ from rest_framework.views import APIView
 from apps.auth_token.auth import PluginAuthentication
 
 logger = logging.getLogger(__name__)
+insight_logger = logging.getLogger("insight_logger")
 
 
 class TestInsightLogsAPIView(APIView):
@@ -27,6 +28,6 @@ class TestInsightLogsAPIView(APIView):
         insight_logs_enabled = org.id in org_id_to_enable_insight_logs.json_value
         if insight_logs_enabled:
             message = request.data.get("message", "hello world")
-            logger.info(f"insight_logs=true tenant_id={self.request.user.organization.stack_id} message={message}")
+            insight_logger.info(f"tenant_id={self.request.user.organization.stack_id} message={message}")
             return Response()
         return Response(status=418)
