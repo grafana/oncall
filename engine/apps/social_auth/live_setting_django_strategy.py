@@ -38,9 +38,9 @@ class LiveSettingDjangoStrategy(DjangoStrategy):
         Overridden DjangoStrategy's method to substitute and force the host value from ENV
         """
         if live_settings.SLACK_INSTALL_RETURN_REDIRECT_HOST is not None and path is not None:
-            return create_engine_url(path, base=live_settings.SLACK_INSTALL_RETURN_REDIRECT_HOST)
+            return create_engine_url(path, override_base=live_settings.SLACK_INSTALL_RETURN_REDIRECT_HOST)
         if settings.SLACK_INSTALL_RETURN_REDIRECT_HOST is not None and path is not None:
-            return create_engine_url(path, base=settings.SLACK_INSTALL_RETURN_REDIRECT_HOST)
+            return create_engine_url(path, override_base=settings.SLACK_INSTALL_RETURN_REDIRECT_HOST)
         if self.request:
             return self.request.build_absolute_uri(path)
         else:
