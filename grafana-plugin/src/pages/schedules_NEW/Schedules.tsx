@@ -1,28 +1,24 @@
 import React from 'react';
 
+import { getLocationSrv } from '@grafana/runtime';
 import { Button, HorizontalGroup, IconButton, VerticalGroup } from '@grafana/ui';
 import cn from 'classnames/bind';
 import dayjs from 'dayjs';
 import { observer } from 'mobx-react';
 
-import Avatar from 'components/Avatar/Avatar';
+import NewScheduleSelector from 'components/NewScheduleSelector/NewScheduleSelector';
 import PluginLink from 'components/PluginLink/PluginLink';
-import { getColor, getLabel } from 'components/Rotations/Rotations.helpers';
 import ScheduleCounter from 'components/ScheduleCounter/ScheduleCounter';
 import SchedulesFilters from 'components/SchedulesFilters_NEW/SchedulesFilters';
 import { SchedulesFiltersType } from 'components/SchedulesFilters_NEW/SchedulesFilters.types';
 import Table from 'components/Table/Table';
 import Text from 'components/Text/Text';
 import TimelineMarks from 'components/TimelineMarks/TimelineMarks';
-import GSelect from 'containers/GSelect/GSelect';
 import Rotation from 'containers/Rotation/Rotation';
-import { Schedule } from 'models/schedule/schedule.types';
-import { PRIVATE_CHANNEL_NAME } from 'models/slack_channel/slack_channel.config';
+import { Schedule, ScheduleType } from 'models/schedule/schedule.types';
 import { getTzOffsetString } from 'models/timezone/timezone.helpers';
 import { WithStoreProps } from 'state/types';
 import { withMobXProviderContext } from 'state/withStore';
-
-import { getRandomSchedules, getRandomTimeslots } from './Schedules.helpers';
 
 import styles from './Schedules.module.css';
 
@@ -33,26 +29,34 @@ interface SchedulesPageProps extends WithStoreProps {}
 interface SchedulesPageState {
   startMoment: dayjs.Dayjs;
   filters: SchedulesFiltersType;
+  showNewScheduleSelector: boolean;
 }
 
 @observer
 class SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageState> {
   state: SchedulesPageState = {
     startMoment: dayjs().utc().startOf('week'),
-    schedules: getRandomSchedules(),
+    // schedules: getRandomSchedules(),
     filters: { searchTerm: '', status: 'all', type: 'all' },
+    showNewScheduleSelector: false,
   };
 
   async componentDidMount() {
     const { store } = this.props;
 
     store.userStore.updateItems();
+    store.scheduleStore.updateItems();
   }
 
   componentDidUpdate() {}
 
   render() {
-    const { schedules, filters } = this.state;
+    const { store } = this.props;
+    const { filters, showNewScheduleSelector } = this.state;
+
+    const { scheduleStore } = store;
+
+    const schedules = scheduleStore.getSearchResult();
 
     const columns = [
       {
@@ -94,35 +98,60 @@ class SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSta
     const moment = dayjs();
 
     return (
-      <div className={cx('root')}>
-        <VerticalGroup>
-          <HorizontalGroup justify="space-between">
-            <SchedulesFilters value={filters} onChange={this.handleSchedulesFiltersChange} />
-            <HorizontalGroup spacing="lg">
-              <HorizontalGroup>
-                <Text type="secondary">Timezone:</Text>
-                <Text type="primary">
-                  {getTzOffsetString(moment)} ({dayjs.tz.guess()})
-                </Text>
+      <>
+        <div className={cx('root')}>
+          <VerticalGroup>
+            <HorizontalGroup justify="space-between">
+              <SchedulesFilters value={filters} onChange={this.handleSchedulesFiltersChange} />
+              <HorizontalGroup spacing="lg">
+                <HorizontalGroup>
+                  <Text type="secondary">Timezone:</Text>
+                  <Text type="primary">
+                    {getTzOffsetString(moment)} ({dayjs.tz.guess()})
+                  </Text>
+                </HorizontalGroup>
+                <Button variant="primary" onClick={this.handleCreateScheduleClick}>
+                  + New schedule
+                </Button>
               </HorizontalGroup>
-              <Button variant="primary">+ New schedule</Button>
             </HorizontalGroup>
-          </HorizontalGroup>
-          <Table
-            columns={columns}
-            data={schedules}
-            pagination={{ page: 2, total: 100, onChange: this.handlePageChange }}
-            rowKey="id"
-            expandable={{
-              expandedRowRender: this.renderSchedule,
-              expandRowByClick: true,
-              expandedRowClassName: () => cx('expanded-row'),
+            <Table
+              columns={columns}
+              data={schedules}
+              pagination={{ page: 1, total: 1, onChange: this.handlePageChange }}
+              rowKey="id"
+              expandable={{
+                expandedRowRender: this.renderSchedule,
+                expandRowByClick: true,
+                expandedRowClassName: () => cx('expanded-row'),
+              }}
+            />
+          </VerticalGroup>
+        </div>
+        {showNewScheduleSelector && (
+          <NewScheduleSelector
+            onCreate={this.handleCreateSchedule}
+            onUpdate={this.update}
+            onHide={() => {
+              this.setState({ showNewScheduleSelector: false });
             }}
           />
-        </VerticalGroup>
-      </div>
+        )}
+      </>
     );
   }
+
+  handleCreateScheduleClick = () => {
+    this.setState({ showNewScheduleSelector: true });
+  };
+
+  handleCreateSchedule = (data: Schedule) => {
+    const { store } = this.props;
+
+    if (data.type === ScheduleType.API) {
+      getLocationSrv().update({ query: { page: 'schedule', id: data.id } });
+    }
+  };
 
   renderSchedule = () => {
     const { startMoment } = this.state;
@@ -174,11 +203,11 @@ class SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSta
   renderUsers = (item: Schedule) => {
     return (
       <HorizontalGroup>
-        {item.users.map((user) => (
+        {/*{item.users.map((user) => (
           <HorizontalGroup spacing="xs">
             <Avatar src={user.avatar} size="large" /> {user.name}
           </HorizontalGroup>
-        ))}
+        ))}*/}
       </HorizontalGroup>
     );
   };
@@ -209,6 +238,13 @@ class SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSta
   };
 
   handlePageChange = (page: number) => {};
+
+  update = () => {
+    const { store } = this.props;
+    const { scheduleStore } = store;
+
+    return scheduleStore.updateItems();
+  };
 }
 
 export default withMobXProviderContext(SchedulesPage);

@@ -55,11 +55,22 @@ class SchedulePage extends React.Component<SchedulePageProps, SchedulePageState>
     const { store } = this.props;
 
     store.userStore.updateItems();
+
+    const {
+      query: { id },
+    } = this.props;
+
+    store.scheduleStore.updateItem(id);
   }
 
   render() {
+    const { store } = this.props;
     const { startMoment, schedulePeriodType, renderType, users, currentTimezone } = this.state;
     const { query } = this.props;
+
+    const { scheduleStore } = store;
+
+    const schedule = scheduleStore.items[query.id];
 
     return (
       <div className={cx('root')}>
@@ -70,7 +81,7 @@ class SchedulePage extends React.Component<SchedulePageProps, SchedulePageState>
                 <PluginLink query={{ page: 'schedules' }}>
                   <IconButton style={{ marginTop: '5px' }} name="arrow-left" size="xxl" />
                 </PluginLink>
-                <Text.Title level={3}>Schedule Team {query.id}</Text.Title>
+                <Text.Title level={3}>{schedule?.name}</Text.Title>
                 <ScheduleCounter
                   type="link"
                   count={5}
@@ -157,13 +168,21 @@ class SchedulePage extends React.Component<SchedulePageProps, SchedulePageState>
           {/* <div className={'current-time'} />*/}
           <div className={cx('rotations')}>
             {/*<ScheduleFinal currentTimezone={currentTimezone} startMoment={startMoment} />*/}
-            <Rotations currentTimezone={currentTimezone} startMoment={startMoment} />
+            <Rotations
+              currentTimezone={currentTimezone}
+              startMoment={startMoment}
+              onCreate={this.handleCreateRotation}
+            />
             {/*<ScheduleOverrides currentTimezone={currentTimezone} startMoment={startMoment} />*/}
           </div>
         </VerticalGroup>
       </div>
     );
   }
+
+  handleCreateRotation = () => {
+    const { store } = this.props;
+  };
 
   handleTimezoneChange = (value: Timezone) => {
     this.setState({ currentTimezone: value, startMoment: getStartOfWeek(value) });

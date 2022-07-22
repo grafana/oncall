@@ -6,6 +6,7 @@ import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc';
 
 import RotationForm from 'components/RotationForm/RotationForm';
+import { RotationCreateData } from 'components/RotationForm/RotationForm.types';
 import TimelineMarks from 'components/TimelineMarks/TimelineMarks';
 import Rotation from 'containers/Rotation/Rotation';
 import { Timezone } from 'models/timezone/timezone.types';
@@ -19,6 +20,7 @@ const cx = cn.bind(styles);
 interface RotationsProps {
   startMoment: dayjs.Dayjs;
   currentTimezone: Timezone;
+  onCreate: (date: RotationCreateData) => void;
 }
 
 type Layer = {
@@ -43,7 +45,6 @@ class Rotations extends Component<RotationsProps, RotationsState> {
       /*{ id: 1, title: 'Layer 2' },
      { id: 2, title: 'Layer 3' },
       { id: 3, title: 'Layer 4' }*/
-      ,
     ];
 
     const base = 7 * 24 * 60; // in minutes
@@ -98,20 +99,32 @@ class Rotations extends Component<RotationsProps, RotationsState> {
                 </div>
               </div>
             ))}
-            <div className={cx('add-rotations-layer')}>Add rotations layer +</div>
+            <div className={cx('add-rotations-layer')} onClick={this.handleAddLayer}>
+              Add rotations layer +
+            </div>
           </div>
         </div>
         {!isNaN(layerIdToCreateRotation) && (
           <RotationForm
             layerId={layerIdToCreateRotation}
+            currentTimezone={currentTimezone}
             onHide={() => {
               this.setState({ layerIdToCreateRotation: undefined });
             }}
+            onCreate={this.onRotationCreate}
           />
         )}
       </>
     );
   }
+
+  onRotationCreate = (data: RotationCreateData) => {
+    const { onCreate } = this.props;
+
+    onCreate(data);
+  };
+
+  handleAddLayer = () => {};
 
   handleAddRotation = (option) => {
     this.setState({ layerIdToCreateRotation: option.value });

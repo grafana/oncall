@@ -20,19 +20,24 @@ import Modal from 'components/Modal/Modal';
 import Text from 'components/Text/Text';
 import UserGroups from 'components/UserGroups/UserGroups';
 import { getTzOffsetString } from 'models/timezone/timezone.helpers';
+import { Timezone } from 'models/timezone/timezone.types';
+
+import { RotationCreateData } from './RotationForm.types';
 
 import styles from './RotationForm.module.css';
 
 interface RotationFormProps {
   layerId: string;
   onHide: () => void;
+  onCreate: (date: RotationCreateData) => void;
   id: number | 'new';
+  currentTimezone: Timezone;
 }
 
 const cx = cn.bind(styles);
 
 const RotationForm: FC<RotationFormProps> = (props) => {
-  const { onHide } = props;
+  const { onHide, onCreate, currentTimezone } = props;
 
   const [repeatEveryValue, setRepeatEveryValue] = useState<number>(1);
   const [repeatEveryPeriod, setRepeatEveryPeriod] = useState<string>('days');
@@ -42,6 +47,22 @@ const RotationForm: FC<RotationFormProps> = (props) => {
   const [rotationStart, setRotationStart] = useState<DateTime>(dateTime('2021-05-05 12:00:00'));
   const [endLess, setEndless] = useState<boolean>(true);
   const [rotationEnd, setRotationEnd] = useState<DateTime>(dateTime('2021-05-05 12:00:00'));
+
+  const handleCreate = useCallback(() => {
+    /* console.log(
+      repeatEveryValue,
+      repeatEveryPeriod,
+      selectedDays,
+      shiftStart,
+      shiftEnd,
+      rotationStart,
+      endLess,
+      rotationEnd
+    );
+    */
+
+    console.log(rotationEnd, dayjs(rotationEnd));
+  }, [repeatEveryValue, repeatEveryPeriod, selectedDays, shiftStart, shiftEnd, rotationStart, endLess, rotationEnd]);
 
   const handleChangeEndless = useCallback(
     (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -180,10 +201,12 @@ const RotationForm: FC<RotationFormProps> = (props) => {
           </HorizontalGroup>
         </VerticalGroup>
         <HorizontalGroup justify="space-between">
-          <Text type="secondary">Timezone: {getTzOffsetString(moment)}</Text>
+          <Text type="secondary">Timezone: {getTzOffsetString(dayjs().tz(currentTimezone))}</Text>
           <HorizontalGroup>
             <Button variant="secondary">+ Override</Button>
-            <Button variant="primary">Create</Button>
+            <Button variant="primary" onClick={handleCreate}>
+              Create
+            </Button>
           </HorizontalGroup>
         </HorizontalGroup>
       </VerticalGroup>

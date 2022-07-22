@@ -220,6 +220,16 @@ export class ScheduleStore extends BaseStore {
     };
   }
 
+  async updateEvents(scheduleId: Schedule['id'], fromString: string, days = 7) {
+    return await makeRequest(`/schedules/${scheduleId}/filter_events`, {
+      params: {
+        date: fromString,
+        days,
+      },
+      method: 'GET',
+    });
+  }
+
   async updateFrequencyOptions(scheduleId: Schedule['id']) {
     return await makeRequest(`/oncall_shifts/frequency_options/`, {
       method: 'GET',
