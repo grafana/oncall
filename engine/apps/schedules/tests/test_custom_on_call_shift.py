@@ -15,6 +15,7 @@ def test_get_on_call_users_from_single_event(make_organization_and_user, make_on
     data = {
         "priority_level": 1,
         "start": date,
+        "rotation_start": date,
         "duration": timezone.timedelta(seconds=10800),
     }
 
@@ -41,6 +42,7 @@ def test_get_on_call_users_from_web_schedule_override(make_organization_and_user
 
     data = {
         "start": date,
+        "rotation_start": date,
         "duration": timezone.timedelta(seconds=10800),
         "schedule": schedule,
     }
@@ -65,6 +67,7 @@ def test_get_on_call_users_from_recurrent_event(make_organization_and_user, make
     data = {
         "priority_level": 1,
         "start": date,
+        "rotation_start": date,
         "duration": timezone.timedelta(seconds=10800),
         "frequency": CustomOnCallShift.FREQUENCY_DAILY,
         "interval": 2,
@@ -107,6 +110,7 @@ def test_get_on_call_users_from_web_schedule_recurrent_event(
     data = {
         "priority_level": 1,
         "start": date,
+        "rotation_start": date,
         "duration": timezone.timedelta(seconds=10800),
         "frequency": CustomOnCallShift.FREQUENCY_DAILY,
         "interval": 2,
@@ -149,6 +153,7 @@ def test_get_on_call_users_from_rolling_users_event(
     data = {
         "priority_level": 1,
         "start": now,
+        "rotation_start": now,
         "duration": timezone.timedelta(seconds=10800),
         "frequency": CustomOnCallShift.FREQUENCY_DAILY,
         "interval": 2,
@@ -221,6 +226,7 @@ def test_get_oncall_users_for_multiple_schedules(
         shift_type=CustomOnCallShift.TYPE_SINGLE_EVENT,
         priority_level=1,
         start=now,
+        rotation_start=now,
         duration=timezone.timedelta(minutes=30),
     )
 
@@ -229,6 +235,7 @@ def test_get_oncall_users_for_multiple_schedules(
         shift_type=CustomOnCallShift.TYPE_SINGLE_EVENT,
         priority_level=1,
         start=now,
+        rotation_start=now,
         duration=timezone.timedelta(minutes=10),
     )
 
@@ -237,6 +244,7 @@ def test_get_oncall_users_for_multiple_schedules(
         shift_type=CustomOnCallShift.TYPE_SINGLE_EVENT,
         priority_level=1,
         start=now + timezone.timedelta(minutes=10),
+        rotation_start=now + timezone.timedelta(minutes=10),
         duration=timezone.timedelta(minutes=30),
     )
 
@@ -275,6 +283,7 @@ def test_shift_convert_to_ical(make_organization_and_user, make_on_call_shift):
     data = {
         "priority_level": 1,
         "start": date,
+        "rotation_start": date,
         "duration": timezone.timedelta(seconds=10800),
         "frequency": CustomOnCallShift.FREQUENCY_HOURLY,
         "interval": 1,

@@ -99,6 +99,7 @@ def test_render_terraform_file(
         interval=1,
         week_start=CustomOnCallShift.MONDAY,
         start=dateparse.parse_datetime("2021-08-16T17:00:00"),
+        rotation_start=dateparse.parse_datetime("2021-08-16T17:00:00"),
         duration=timezone.timedelta(seconds=3600),
         by_day=["MO", "SA"],
         rolling_users=[{user.pk: user.public_primary_key}],
