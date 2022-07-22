@@ -246,7 +246,7 @@ class CustomOnCallShift(models.Model):
         # use shift time_zone if it exists, otherwise use schedule or default time_zone
         time_zone = self.time_zone if self.time_zone is not None else time_zone
         # rolling_users shift converts to several ical events
-        if self.type == CustomOnCallShift.TYPE_ROLLING_USERS_EVENT:
+        if self.type in (CustomOnCallShift.TYPE_ROLLING_USERS_EVENT, CustomOnCallShift.TYPE_OVERRIDE):
             event_ical = None
             users_queue = self.get_rolling_users()
             for counter, users in enumerate(users_queue, start=1):
