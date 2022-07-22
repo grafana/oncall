@@ -54,7 +54,10 @@ def validate_ical_url(url):
     return None
 
 
-def create_engine_url(path, base=settings.BASE_URL):
+def create_engine_url(path, override_base=None):
+    base = settings.BASE_URL
+    if override_base:
+        base = override_base
     if not base.endswith("/"):
         base += "/"
     trimmed_path = path.lstrip("/")
