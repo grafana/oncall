@@ -1,5 +1,4 @@
 import logging
-from urllib.parse import urljoin
 
 import requests
 from django.apps import apps
@@ -13,6 +12,7 @@ from apps.alerts.signals import user_notification_action_triggered_signal
 from apps.base.utils import live_settings
 from apps.twilioapp.constants import TwilioMessageStatuses
 from apps.twilioapp.twilio_client import twilio_client
+from common.api_helpers.utils import create_engine_url
 from common.utils import clean_markup
 
 logger = logging.getLogger(__name__)
@@ -123,7 +123,7 @@ class SMSMessage(models.Model):
 
     @classmethod
     def _send_cloud_sms(cls, user, message_body):
-        url = urljoin(settings.GRAFANA_CLOUD_ONCALL_API_URL, "api/v1/send_sms")
+        url = create_engine_url("api/v1/send_sms", override_base=settings.GRAFANA_CLOUD_ONCALL_API_URL)
         auth = {"Authorization": live_settings.GRAFANA_CLOUD_ONCALL_TOKEN}
         data = {
             "email": user.email,
