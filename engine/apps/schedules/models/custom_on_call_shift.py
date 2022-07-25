@@ -1,4 +1,6 @@
 import logging
+import random
+import string
 from calendar import monthrange
 from uuid import uuid4
 
@@ -6,8 +8,9 @@ import pytz
 from django.apps import apps
 from django.conf import settings
 from django.core.validators import MinLengthValidator
-from django.db import models
+from django.db import models, transaction
 from django.db.models import JSONField
+from django.forms.models import model_to_dict
 from django.utils import timezone
 from django.utils.functional import cached_property
 from icalendar.cal import Event
@@ -195,6 +198,14 @@ class CustomOnCallShift(models.Model):
     )  # [] BYDAY - (MO, TU); (1MO, -2TU) - for monthly and weekly freq - ical format
     by_month = JSONField(default=None, null=True)  # [] BYMONTH - what months (1, 2, 3, ...) - ical format
     by_monthday = JSONField(default=None, null=True)  # [] BYMONTHDAY - what days of month (1, 2, -3) - ical format
+
+    updated_shift = models.OneToOneField(
+        "schedules.CustomOnCallShift",
+        on_delete=models.SET_NULL,
+        default=None,
+        null=True,
+        related_name="parent_shift",
+    )
 
     class Meta:
         unique_together = ("name", "organization")
@@ -422,3 +433,49 @@ class CustomOnCallShift(models.Model):
         drop_cached_ical_task.apply_async((schedule.pk,))
         schedule_notify_about_empty_shifts_in_schedule.apply_async((schedule.pk,))
         schedule_notify_about_gaps_in_schedule.apply_async((schedule.pk,))
+
+    @cached_property
+    def last_updated_shift(self):
+        last_shift = self.updated_shift
+        if last_shift is not None:
+            while last_shift.updated_shift is not None:
+                last_shift = last_shift.updated_shift
+        return last_shift
+
+    def create_or_update_last_shift(self, data):
+        # rotation start date cannot be earlier than now
+        data["rotation_start"] = max(data["rotation_start"], timezone.now())
+        # prepare dict with params of existing instance with last updates and remove unique and m2m fields from it
+        shift_to_update = self.last_updated_shift or self
+        instance_data = model_to_dict(shift_to_update)
+        fields_to_remove = ["id", "public_primary_key", "uuid", "users", "updated_shift", "name"]
+        for field in fields_to_remove:
+            instance_data.pop(field)
+
+        instance_data.update(data)
+        instance_data["schedule"] = self.schedule
+        instance_data["team"] = self.team
+
+        if self.last_updated_shift is None or self.last_updated_shift.event_is_started:
+            # create new shift
+            instance_data["name"] = CustomOnCallShift.generate_name(self.schedule, data["priority_level"], data["type"])
+            with transaction.atomic():
+                shift = CustomOnCallShift(**instance_data)
+                shift.save()
+                shift_to_update.until = data["rotation_start"]
+                shift_to_update.updated_shift = shift
+                shift_to_update.save(update_fields=["until", "updated_shift"])
+        else:
+            shift = self.last_updated_shift
+            for key in instance_data:
+                setattr(shift, key, instance_data[key])
+            shift.save(update_fields=list(instance_data))
+
+        return shift
+
+    @staticmethod
+    def generate_name(schedule, priority_level, shift_type):
+        shift_type_name = "override" if shift_type == CustomOnCallShift.TYPE_OVERRIDE else "rotation"
+        name = f"{schedule.name}-{shift_type_name}-{priority_level}-"
+        name += "".join(random.choice(string.ascii_lowercase) for _ in range(5))
+        return name
