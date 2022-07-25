@@ -54,6 +54,15 @@ def validate_ical_url(url):
     return None
 
 
+"""
+This utility function is for building a URL when we don't know if the base URL
+has been given a trailing / such as reading from environment variable or user
+input.  If the base URL is coming from a validated model field urljoin can be used
+instead.  Do not use this function to append query parameters since a / is added
+to the end of the base URL if there isn't one.
+"""
+
+
 def create_engine_url(path, override_base=None):
     base = settings.BASE_URL
     if override_base:

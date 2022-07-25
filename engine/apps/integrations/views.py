@@ -1,6 +1,5 @@
 import json
 import logging
-from urllib.parse import urljoin
 
 from django.apps import apps
 from django.conf import settings
@@ -28,6 +27,7 @@ from apps.integrations.mixins import (
 from apps.integrations.tasks import create_alert, create_alertmanager_alerts
 from apps.sendgridapp.parse import Parse
 from apps.sendgridapp.permissions import AllowOnlySendgrid
+from common.api_helpers.utils import create_engine_url
 
 logger = logging.getLogger(__name__)
 
@@ -76,7 +76,7 @@ class AmazonSNS(BrowsableInstructionMixin, SNSEndpoint):
             raw_request_data = message
             title = message.get("AlarmName", "Alert")
         else:
-            docs_amazon_sns_url = urljoin(settings.DOCS_URL, "/#/integrations/amazon_sns")
+            docs_amazon_sns_url = create_engine_url("/#/integrations/amazon_sns", override_base=settings.DOCS_URL)
             title = "Alert"
             message_text = (
                 "Non-JSON payload received. Please make sure you publish monitoring Alarms to SNS,"
@@ -272,7 +272,7 @@ class UniversalAPIView(BrowsableInstructionMixin, AlertChannelDefiningMixin, Int
 class HeartBeatAPIView(AlertChannelDefiningMixin, APIView):
     def get(self, request, alert_receive_channel):
         template = loader.get_template("heartbeat_link.html")
-        docs_url = urljoin(settings.DOCS_URL, "/#/integrations/heartbeat")
+        docs_url = create_engine_url("/#/integrations/heartbeat", override_base=settings.DOCS_URL)
         return HttpResponse(
             template.render(
                 {

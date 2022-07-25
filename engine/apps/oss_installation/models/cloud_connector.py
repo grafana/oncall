@@ -7,6 +7,7 @@ from django.db import models, transaction
 from apps.base.utils import live_settings
 from apps.oss_installation.models.cloud_user_identity import CloudUserIdentity
 from apps.user_management.models import User
+from common.api_helpers.utils import create_engine_url
 from common.constants.role import Role
 from settings.base import GRAFANA_CLOUD_ONCALL_API_URL
 
@@ -33,7 +34,7 @@ class CloudConnector(models.Model):
             logger.warning("Unable to sync with cloud. GRAFANA_CLOUD_ONCALL_TOKEN is not set")
             error_msg = "GRAFANA_CLOUD_ONCALL_TOKEN is not set"
         else:
-            info_url = urljoin(GRAFANA_CLOUD_ONCALL_API_URL, "api/v1/info/")
+            info_url = create_engine_url("api/v1/info/", override_base=GRAFANA_CLOUD_ONCALL_API_URL)
             try:
                 r = requests.get(info_url, headers={"AUTHORIZATION": api_token}, timeout=5)
                 if r.status_code == 200:
@@ -62,7 +63,7 @@ class CloudConnector(models.Model):
 
         existing_emails = list(User.objects.filter(role__in=(Role.ADMIN, Role.EDITOR)).values_list("email", flat=True))
         matching_users = []
-        users_url = urljoin(GRAFANA_CLOUD_ONCALL_API_URL, "api/v1/users")
+        users_url = create_engine_url("api/v1/users", override_base=GRAFANA_CLOUD_ONCALL_API_URL)
 
         fetch_next_page = True
         users_fetched = True
@@ -115,7 +116,10 @@ class CloudConnector(models.Model):
             logger.warning(f"Unable to sync_user_with cloud user_id {user.id}. GRAFANA_CLOUD_ONCALL_TOKEN is not set")
             error_msg = "GRAFANA_CLOUD_ONCALL_TOKEN is not set"
         else:
-            url = urljoin(GRAFANA_CLOUD_ONCALL_API_URL, f"api/v1/users/?email={user.email}&roles=0&roles=1&short=true")
+            url = create_engine_url(
+                f"api/v1/users/?email={user.email}&roles=0&roles=1&short=true",
+                override_base=GRAFANA_CLOUD_ONCALL_API_URL,
+            )
             try:
                 r = requests.get(url, headers={"AUTHORIZATION": api_token}, timeout=5)
                 if r.status_code != 200:

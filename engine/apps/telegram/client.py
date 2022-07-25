@@ -1,5 +1,4 @@
 from typing import Optional, Tuple, Union
-from urllib.parse import urljoin
 
 from telegram import Bot, InlineKeyboardMarkup, Message, ParseMode
 from telegram.error import InvalidToken, Unauthorized
@@ -10,6 +9,7 @@ from apps.base.utils import live_settings
 from apps.telegram.models import TelegramMessage
 from apps.telegram.renderers.keyboard import TelegramKeyboardRenderer
 from apps.telegram.renderers.message import TelegramMessageRenderer
+from common.api_helpers.utils import create_engine_url
 
 
 class TelegramClient:
@@ -34,7 +34,7 @@ class TelegramClient:
             return False
 
     def register_webhook(self, webhook_url: Optional[str] = None) -> None:
-        webhook_url = webhook_url or urljoin(live_settings.TELEGRAM_WEBHOOK_HOST, "/telegram/")
+        webhook_url = webhook_url or create_engine_url("/telegram/", override_base=live_settings.TELEGRAM_WEBHOOK_HOST)
 
         if webhook_url is None:
             webhook_url = live_settings.TELEGRAM_WEBHOOK_URL
