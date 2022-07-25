@@ -6,7 +6,6 @@ from rest_framework.views import APIView
 
 from apps.auth_token.auth import PluginAuthentication
 
-logger = logging.getLogger(__name__)
 insight_logger = logging.getLogger("insight_logger")
 
 

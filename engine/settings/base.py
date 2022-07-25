@@ -154,7 +154,7 @@ LOGGING = {
     "filters": {"request_id": {"()": "log_request_id.filters.RequestIDFilter"}},
     "formatters": {
         "standard": {"format": "source=engine:app google_trace_id=%(request_id)s logger=%(name)s %(message)s"},
-        "insight_logger": {"format": "insight_logs=true %(message)s"},
+        "insight_logger": {"format": "insight_logs=true logger=%(name)s %(message)s"},
     },
     "handlers": {
         "console": {
@@ -171,7 +171,7 @@ LOGGING = {
         "insight_logger": {
             "handlers": ["insight_logger"],
             "level": "INFO",
-            "propagate": True,
+            "propagate": False,
         },
         "": {
             "handlers": ["console"],
