@@ -200,12 +200,31 @@ class CustomOnCallShift(models.Model):
         unique_together = ("name", "organization")
 
     def delete(self, *args, **kwargs):
-        for schedule in self.schedules.all():
-            self.start_drop_ical_and_check_schedule_tasks(schedule)
+        schedules_to_update = list(self.schedules.all())
         if self.schedule:
-            self.start_drop_ical_and_check_schedule_tasks(self.schedule)
-        # todo: add soft delete
-        super().delete(*args, **kwargs)
+            schedules_to_update.append(self.schedule)
+
+        if self.event_is_started:
+            self.until = timezone.now()
+            self.save(update_fields=["until"])
+        else:
+            super().delete(*args, **kwargs)
+
+        for schedule in schedules_to_update:
+            self.start_drop_ical_and_check_schedule_tasks(schedule)
+
+    @property
+    def event_is_started(self):
+        return bool(self.rotation_start <= timezone.now())
+
+    @property
+    def event_is_finished(self):
+        if self.frequency is not None:
+            is_finished = bool(self.until <= timezone.now()) if self.until else False
+        else:
+            is_finished = bool(self.start + self.duration <= timezone.now())
+
+        return is_finished
 
     @property
     def repr_settings_for_client_side_logging(self) -> str:
@@ -250,12 +269,16 @@ class CustomOnCallShift(models.Model):
             event_ical = None
             users_queue = self.get_rolling_users()
             for counter, users in enumerate(users_queue, start=1):
+                rotation_ical = ""
                 start = self.get_next_start_date(event_ical)
                 if not start:  # means that rotation ends before next event starts
                     break
                 for user_counter, user in enumerate(users, start=1):
                     event_ical = self.generate_ical(user, start, user_counter, counter, time_zone)
-                    result += event_ical
+                    rotation_ical += event_ical
+                # if event has already been started, add rotation ical to final ical result
+                if start >= self.rotation_start:
+                    result += rotation_ical
         else:
             for user_counter, user in enumerate(self.users.all(), start=1):
                 result += self.generate_ical(user, self.start, user_counter, time_zone=time_zone)
