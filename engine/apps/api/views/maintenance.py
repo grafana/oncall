@@ -43,9 +43,11 @@ class MaintenanceAPIView(APIView):
 
     def get(self, request):
         organization = self.request.auth.organization
+        team = self.request.user.current_team
+
         response = []
         integrations_under_maintenance = AlertReceiveChannel.objects.filter(
-            maintenance_mode__isnull=False, organization=organization
+            maintenance_mode__isnull=False, organization=organization, team=team
         ).order_by("maintenance_started_at")
 
         if organization.maintenance_mode is not None:
