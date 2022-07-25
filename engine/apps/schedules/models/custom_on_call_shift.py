@@ -168,6 +168,7 @@ class CustomOnCallShift(models.Model):
         default=None,
     )
     name = models.CharField(max_length=200)
+    title = models.CharField(max_length=200, null=True, default=None)
     time_zone = models.CharField(max_length=100, null=True, default=None)
     source = models.IntegerField(choices=SOURCE_CHOICES, default=SOURCE_API)
     users = models.ManyToManyField("user_management.User")  # users in single and recurrent events

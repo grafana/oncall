@@ -36,7 +36,7 @@ class OnCallShiftSerializer(EagerLoadingMixin, serializers.ModelSerializer):
         fields = [
             "id",
             "organization",
-            "name",
+            "title",
             "type",
             "schedule",
             "priority_level",
@@ -72,19 +72,6 @@ class OnCallShiftSerializer(EagerLoadingMixin, serializers.ModelSerializer):
     def to_representation(self, instance):
         result = super().to_representation(instance)
         return result
-
-    def validate_name(self, name):
-        organization = self.context["request"].auth.organization
-        if name is None:
-            return name
-        try:
-            obj = CustomOnCallShift.objects.get(organization=organization, name=name)
-        except CustomOnCallShift.DoesNotExist:
-            return name
-        if self.instance and obj.id == self.instance.id:
-            return name
-        else:
-            raise serializers.ValidationError(["On-call shift with this name already exists"])
 
     def validate_by_day(self, by_day):
         if by_day:
@@ -135,17 +122,16 @@ class OnCallShiftSerializer(EagerLoadingMixin, serializers.ModelSerializer):
         if rotation_start < shift_start:
             raise serializers.ValidationError({"rotation_start": ["Incorrect rotation start date"]})
 
-    def _validate_until(self, rotation_start, until):
-        if until is not None and until < rotation_start:
-            raise serializers.ValidationError({"until": ["Incorrect rotation end date"]})
+    def _validate_until(self, rotation_start, until, event_type):
+        if until is not None:
+            if event_type == CustomOnCallShift.TYPE_OVERRIDE:
+                raise serializers.ValidationError({"until": ["Cannot set 'until' for shifts with type 'override'"]})
+            if until < rotation_start:
+                raise serializers.ValidationError({"until": ["Incorrect rotation end date"]})
 
     def _correct_validated_data(self, event_type, validated_data):
         fields_to_update_for_overrides = [
             "priority_level",
-            "frequency",
-            "interval",
-            "by_day",
-            "until",
             "rotation_start",
         ]
         if event_type == CustomOnCallShift.TYPE_OVERRIDE:
@@ -165,7 +151,7 @@ class OnCallShiftSerializer(EagerLoadingMixin, serializers.ModelSerializer):
             validated_data.get("by_day"),
         )
         self._validate_rotation_start(validated_data["start"], validated_data["rotation_start"])
-        self._validate_until(validated_data["rotation_start"], validated_data.get("until"))
+        self._validate_until(validated_data["rotation_start"], validated_data.get("until"), event_type)
 
         # convert shift_end into internal value and validate
         raw_shift_end = self.initial_data["shift_end"]

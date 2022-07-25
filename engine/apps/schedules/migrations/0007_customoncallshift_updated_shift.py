@@ -16,4 +16,9 @@ class Migration(migrations.Migration):
             name='updated_shift',
             field=models.OneToOneField(default=None, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='parent_shift', to='schedules.customoncallshift'),
         ),
+        migrations.AddField(
+            model_name='customoncallshift',
+            name='title',
+            field=models.CharField(default=None, max_length=200, null=True),
+        ),
     ]
