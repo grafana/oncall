@@ -5,7 +5,7 @@ from uuid import uuid4
 from django.apps import apps
 from django.conf import settings
 from django.core.validators import MinLengthValidator
-from django.db import models, transaction
+from django.db import models
 from django.db.models import JSONField
 from django.db.models.signals import post_save
 
@@ -260,9 +260,6 @@ def listen_for_alert_model_save(sender, instance, created, *args, **kwargs):
             distribute_alert(instance.pk)
         else:
             distribute_alert.apply_async((instance.pk,), countdown=TASK_DELAY_SECONDS)
-
-    logger.info(f"Recalculate AG cache. Reason: save alert model {instance.pk}")
-    transaction.on_commit(instance.group.schedule_cache_for_web)
 
 
 # Connect signal to  base Alert class
