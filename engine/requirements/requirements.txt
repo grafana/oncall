@@ -1,0 +1,4 @@
+-r base.txt
+
+django-mysql==4.6.0
+PyMySQL==1.0.2

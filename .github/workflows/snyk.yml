@@ -20,7 +20,7 @@ jobs:
       - uses: snyk/actions/setup@master
       - name: Install Dependencies
         run: |
-          pip install -r engine/requirements.txt
+          pip install -r engine/requirements/requirements.txt
           cd grafana-plugin/
           yarn --network-timeout 500000
       - name: Run Snyk
