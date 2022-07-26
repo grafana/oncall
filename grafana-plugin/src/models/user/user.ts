@@ -100,7 +100,17 @@ export class UserStore extends BaseStore {
           ...acc,
           [item.pk]: {
             ...item,
-            timezone: getRandomTimezone(),
+            timezone: {
+              'Hello Oncall': 'UTC',
+              'Matias Bordese': 'America/Montevideo',
+              'Michael Derynck': 'America/Vancouver',
+              'Yulia Shanyrova': 'Europe/Amsterdam',
+              'Maxim Mordasov': 'Europe/Moscow',
+              'Vadim Stepanov': 'Europe/London',
+              'Ildar Iskhakov': 'Asia/Yerevan',
+              'Innokentii Konstantinov': 'Asia/Singapore',
+              /* 'Matvey Kukuy',*/
+            }[item.username],
             working_hours: {
               monday: [{ start: '09:00:00', end: '18:00:00' }],
               tuesday: [{ start: '09:00:00', end: '18:00:00' }],

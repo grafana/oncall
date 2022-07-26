@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+import React, { Component, useEffect } from 'react';
 
 import { Button, HorizontalGroup, Icon, Input, ValuePicker } from '@grafana/ui';
 import cn from 'classnames/bind';
@@ -9,6 +9,8 @@ import RotationForm from 'components/RotationForm/RotationForm';
 import ScheduleOverrideForm from 'components/ScheduleOverrideForm/ScheduleOverrideForm';
 import TimelineMarks from 'components/TimelineMarks/TimelineMarks';
 import Rotation from 'containers/Rotation/Rotation';
+import { Schedule } from 'models/schedule/schedule.types';
+import { Timezone } from 'models/timezone/timezone.types';
 import { WithStoreProps } from 'state/types';
 import { withMobXProviderContext } from 'state/withStore';
 
@@ -16,7 +18,11 @@ import styles from './Rotations.module.css';
 
 const cx = cn.bind(styles);
 
-interface ScheduleOverridesProps extends WithStoreProps {}
+interface ScheduleOverridesProps extends WithStoreProps {
+  startMoment: dayjs.Dayjs;
+  currentTimezone: Timezone;
+  scheduleId: Schedule['id'];
+}
 
 interface ScheduleOverridesState {}
 
@@ -24,8 +30,18 @@ interface ScheduleOverridesState {}
 class ScheduleOverrides extends Component<ScheduleOverridesProps, ScheduleOverridesState> {
   state: ScheduleOverridesState = {};
 
+  componentDidMount() {
+    const { store, scheduleId, startMoment, currentTimezone } = this.props;
+
+    const {} = this.props;
+
+    const startMomentString = startMoment.utc().format('YYYY-MM-DD');
+
+    store.scheduleStore.updateEvents(scheduleId, startMomentString, 'final');
+  }
+
   render() {
-    const { title, startMoment, currentTimezone } = this.props;
+    const { scheduleId, startMoment, currentTimezone, store } = this.props;
     const { showAddOverrideForm, searchTerm } = this.state;
 
     const base = 7 * 24 * 60; // in minutes
@@ -52,7 +68,8 @@ class ScheduleOverrides extends Component<ScheduleOverridesProps, ScheduleOverri
             <TimelineMarks startMoment={startMoment} />
             <div className={cx('rotations')}>
               <Rotation
-                id="final"
+                type="final"
+                scheduleId={scheduleId}
                 startMoment={startMoment}
                 currentTimezone={currentTimezone}
                 layerIndex={0}

@@ -18,7 +18,6 @@ interface WorkingHoursProps {
   workingHours: any;
   startMoment: dayjs.Dayjs;
   duration: number; // in seconds
-  width: number; // in pixels
   className: string;
 }
 

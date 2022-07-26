@@ -8,7 +8,7 @@ import { observer } from 'mobx-react';
 import Line from 'components/ScheduleUserDetails/img/line.svg';
 import Text from 'components/Text/Text';
 import WorkingHours from 'components/WorkingHours/WorkingHours';
-import { Shift } from 'models/schedule/schedule.types';
+import { Event } from 'models/schedule/schedule.types';
 import { Timezone } from 'models/timezone/timezone.types';
 import { User } from 'models/user/user.types';
 import { useStore } from 'state/useStore';
@@ -21,7 +21,7 @@ interface ScheduleSlotProps {
   index: number;
   layerIndex: number;
   rotationIndex: number;
-  shift: Shift;
+  event: Event;
   startMoment: dayjs.Dayjs;
   currentTimezone: Timezone;
   color?: string;
@@ -30,8 +30,13 @@ interface ScheduleSlotProps {
 const cx = cn.bind(styles);
 
 const ScheduleSlot: FC<ScheduleSlotProps> = observer((props) => {
-  const { index, layerIndex, rotationIndex, shift, startMoment, currentTimezone, color: propColor, x, basePx } = props;
-  const { duration, users } = shift;
+  const { index, layerIndex, rotationIndex, event, startMoment, currentTimezone, color: propColor } = props;
+  const { users } = event;
+
+  const start = dayjs(event.start);
+  const end = dayjs(event.end);
+
+  const duration = end.diff(start, 'seconds');
 
   const store = useStore();
 
@@ -43,9 +48,9 @@ const ScheduleSlot: FC<ScheduleSlotProps> = observer((props) => {
 
   return (
     <div className={cx('stack')} style={{ width: `${width * 100}%` /*left: `${x * 100}%`*/ }}>
-      {!shift.is_gap ? (
-        users.map((pk, userIndex) => {
-          const storeUser = store.userStore.items[pk];
+      {!event.is_gap ? (
+        users.map(({ pk: userPk }, userIndex) => {
+          const storeUser = store.userStore.items[userPk];
 
           const inactive = false;
 
@@ -64,10 +69,10 @@ const ScheduleSlot: FC<ScheduleSlotProps> = observer((props) => {
                   <WorkingHours
                     className={cx('working-hours')}
                     // timezone={storeUser.timezone}
-                    timezone={['America/Vancouver', 'Europe/London'][userIndex]}
+                    timezone={storeUser.timezone}
                     //workingHours={storeUser.working_hours}
-                    startMoment={shift.start}
-                    duration={shift.duration}
+                    startMoment={start}
+                    duration={duration}
                   />
                 )}
                 {userIndex === 0 && label && (

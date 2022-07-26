@@ -58,3 +58,24 @@ export interface Rotation {
   id: string;
   shifts: Shift[];
 }
+
+export interface Event {
+  all_day: boolean;
+  calendar_type: 0;
+  end: string;
+  is_empty: boolean;
+  is_gap: boolean;
+  missing_users: [];
+  priority_level: number;
+  shift: { pk: string };
+  source: string;
+  start: string;
+  users: [{ display_name: User['username']; pk: User['pk'] }];
+}
+
+export interface Events {
+  events: Event[];
+  id: string;
+  name: string;
+  type: number; //?
+}

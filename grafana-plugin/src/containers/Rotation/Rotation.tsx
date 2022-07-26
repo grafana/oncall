@@ -8,7 +8,7 @@ import { CSSTransitionGroup } from 'react-transition-group'; // ES6
 
 import ScheduleSlot from 'components/ScheduleSlot/ScheduleSlot';
 import Text from 'components/Text/Text';
-import { Rotation as RotationType } from 'models/schedule/schedule.types';
+import { Rotation as RotationType, Schedule } from 'models/schedule/schedule.types';
 import { Timezone } from 'models/timezone/timezone.types';
 import { useStore } from 'state/useStore';
 import { usePrevious } from 'utils/hooks';
@@ -20,7 +20,8 @@ const cx = cn.bind(styles);
 interface ScheduleSlotState {}
 
 interface RotationProps {
-  id: RotationType['id'];
+  type: 'final' | 'rotation' | 'override';
+  scheduleId: Schedule['id'];
   label: string;
   startMoment: dayjs.Dayjs;
   currentTimezone: Timezone;
@@ -30,7 +31,7 @@ interface RotationProps {
 }
 
 const Rotation: FC<RotationProps> = observer((props) => {
-  const { id, layerIndex, rotationIndex, label, startMoment, currentTimezone, color } = props;
+  const { type, scheduleId, layerIndex, rotationIndex, label, startMoment, currentTimezone, color } = props;
 
   const [animate, setAnimate] = useState<boolean>(true);
   const [width, setWidth] = useState<number | undefined>();
@@ -38,12 +39,15 @@ const Rotation: FC<RotationProps> = observer((props) => {
 
   const store = useStore();
 
-  const startMomentString = useMemo(() => startMoment.utc().format('YYYY-MM-DDTHH:mm:ss.000Z'), [startMoment]);
+  const startMomentString = useMemo(() => startMoment.utc().format('YYYY-MM-DD'), [startMoment]);
 
   const prevStartMomentString = usePrevious(startMomentString);
 
-  const rotation = store.scheduleStore.rotations[id]?.[startMomentString];
-  //const rotation = store.scheduleStore.rotations[id]?.[prevStartMomentString];
+  const events = store.scheduleStore.events[scheduleId]?.[type]?.[startMomentString];
+
+  console.log(events);
+
+  // const rotation = store.scheduleStore.rotations[id]?.[prevStartMomentString];
 
   /* useEffect(() => {
     setTransparent(false);
@@ -58,7 +62,7 @@ const Rotation: FC<RotationProps> = observer((props) => {
 
     console.log('CHANGE START MOMENT', startMomentString);
 
-    store.scheduleStore.updateRotationMock(id, startMomentString, currentTimezone);
+    // store.scheduleStore.updateEvents(scheduleId, startMomentString, currentTimezone);
   }, [startMomentString]);
 
   const slots = useCallback((node) => {
@@ -68,21 +72,19 @@ const Rotation: FC<RotationProps> = observer((props) => {
   }, []);
 
   const x = useMemo(() => {
-    if (!rotation) {
+    if (!events) {
       return 0;
     }
 
-    const { shifts } = rotation;
+    const firstShift = events[0];
 
-    const firstShift = shifts[0];
-
-    const firstShiftOffset = firstShift.start.diff(startMoment, 'minutes');
+    const firstShiftOffset = dayjs(firstShift.start).diff(startMoment, 'minutes');
 
     const base = 60 * 24 * 7; // in minutes only
     const utcOffset = dayjs().tz(currentTimezone).utcOffset();
 
     return firstShiftOffset / base;
-  }, [rotation]);
+  }, [events]);
 
   useEffect(() => {});
 
@@ -90,18 +92,18 @@ const Rotation: FC<RotationProps> = observer((props) => {
     <div className={cx('root')}>
       {/* <div className={cx('current-time')} />*/}
       <div className={cx('timeline')}>
-        {rotation ? (
+        {events ? (
           <div
             className={cx('slots', { slots__animate: animate, slots__transparent: transparent })}
             style={{ transform: `translate(${x * 100}%, 0)` }}
             ref={slots}
           >
-            {rotation.shifts.map((shift, index) => {
+            {events.map((event, index) => {
               return (
                 <ScheduleSlot
-                  key={shift.pk}
                   index={index}
-                  shift={shift}
+                  key={event.start}
+                  event={event}
                   layerIndex={layerIndex}
                   rotationIndex={rotationIndex}
                   startMoment={startMoment}

@@ -14,6 +14,7 @@ import { SchedulesFiltersType } from 'components/SchedulesFilters_NEW/SchedulesF
 import Table from 'components/Table/Table';
 import Text from 'components/Text/Text';
 import TimelineMarks from 'components/TimelineMarks/TimelineMarks';
+import WithConfirm from 'components/WithConfirm/WithConfirm';
 import Rotation from 'containers/Rotation/Rotation';
 import { Schedule, ScheduleType } from 'models/schedule/schedule.types';
 import { getTzOffsetString } from 'models/timezone/timezone.helpers';
@@ -228,9 +229,20 @@ class SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSta
         <IconButton tooltip="Copy" name="copy" />
         <IconButton tooltip="Settings" name="cog" />
         <IconButton tooltip="Code" name="brackets-curly" />
-        <IconButton tooltip="Delete" name="trash-alt" />
+        <WithConfirm>
+          <IconButton tooltip="Delete" name="trash-alt" onClick={this.getDeleteScheduleClickHandler(item.id)} />
+        </WithConfirm>
       </HorizontalGroup>
     );
+  };
+
+  getDeleteScheduleClickHandler = (id: Schedule['id']) => {
+    const { store } = this.props;
+    const { scheduleStore } = store;
+
+    return () => {
+      scheduleStore.delete(id).then(this.update);
+    };
   };
 
   handleSchedulesFiltersChange = (filters: SchedulesFiltersType) => {

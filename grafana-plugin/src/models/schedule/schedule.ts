@@ -1,3 +1,4 @@
+import { SelectOptions } from '@grafana/ui';
 import dayjs from 'dayjs';
 import { omit, reject } from 'lodash-es';
 import { action, observable, toJS } from 'mobx';
@@ -7,8 +8,9 @@ import BaseStore from 'models/base_store';
 import { Timezone } from 'models/timezone/timezone.types';
 import { makeRequest } from 'network';
 import { RootStore } from 'state';
+import { SelectOption } from 'state/types';
 
-import { Rotation, Schedule, ScheduleEvent } from './schedule.types';
+import { Events, Rotation, Schedule, ScheduleEvent } from './schedule.types';
 
 const DEFAULT_FORMAT = 'YYYY-MM-DDTHH:mm:ss';
 
@@ -56,10 +58,22 @@ export class ScheduleStore extends BaseStore {
     };
   } = {};
 
+  @observable.shallow
+  events: {
+    [scheduleId: string]: {
+      [type: string]: {
+        [startMoment: string]: Events['events'];
+      };
+    };
+  } = {};
+
   @observable
   scheduleToScheduleEvents: {
     [id: string]: ScheduleEvent[];
   } = {};
+
+  @observable
+  byDayOptions: SelectOption[];
 
   constructor(rootStore: RootStore) {
     super(rootStore);
@@ -155,10 +169,8 @@ export class ScheduleStore extends BaseStore {
   async createRotation(scheduleId: Schedule['id'], isOverride: boolean, params: any) {
     const type = isOverride ? 3 : 2;
 
-    const { name, shift_start, shift_end, rotation_start, rolling_users, frequency } = params;
-
     return await makeRequest(`/oncall_shifts/`, {
-      data: { name, type, schedule: scheduleId, shift_start, shift_end, rotation_start, rolling_users, frequency },
+      data: { type, schedule: scheduleId, ...params },
       method: 'POST',
     });
   }
@@ -229,7 +241,7 @@ export class ScheduleStore extends BaseStore {
     });
   }
   async updateEvents(scheduleId: Schedule['id'], fromString: string, type = 'rotation', days = 7) {
-    const events = await makeRequest(`/schedules/${scheduleId}/filter_events/`, {
+    const response = await makeRequest(`/schedules/${scheduleId}/filter_events/`, {
       params: {
         type,
         date: fromString,
@@ -237,6 +249,19 @@ export class ScheduleStore extends BaseStore {
       },
       method: 'GET',
     });
+
+    this.events = {
+      ...this.events,
+      [scheduleId]: {
+        ...this.events[scheduleId],
+        [type]: {
+          ...this.events[scheduleId]?.[type],
+          [fromString]: response.events,
+        },
+      },
+    };
+
+    console.log(toJS(this.events));
 
     /*this.rotations = {
       ...this.rotations,
@@ -256,7 +281,7 @@ export class ScheduleStore extends BaseStore {
   }
 
   async updateDaysOptions() {
-    return await makeRequest(`/oncall_shifts/days_options/`, {
+    this.byDayOptions = await makeRequest(`/oncall_shifts/days_options/`, {
       method: 'GET',
     });
   }

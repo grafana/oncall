@@ -21,9 +21,9 @@ const cx = cn.bind(styles);
 interface RotationsProps {
   startMoment: dayjs.Dayjs;
   currentTimezone: Timezone;
-  onCreate: (date: RotationCreateData) => void;
   scheduleId: Schedule['id'];
-  onRotationUpdate: () => void;
+  onCreate: () => void;
+  onUpdate: () => void;
 }
 
 type Layer = {
@@ -40,7 +40,7 @@ class Rotations extends Component<RotationsProps, RotationsState> {
   };
 
   render() {
-    const { startMoment, currentTimezone, scheduleId, onRotationUpdate } = this.props;
+    const { scheduleId, startMoment, currentTimezone, onCreate, onUpdate } = this.props;
     const { layerIdToCreateRotation } = this.state;
 
     const layers = [
@@ -115,8 +115,8 @@ class Rotations extends Component<RotationsProps, RotationsState> {
             onHide={() => {
               this.setState({ layerIdToCreateRotation: undefined });
             }}
-            onUpdate={onRotationUpdate}
-            onCreate={this.onRotationCreate}
+            onUpdate={onCreate}
+            onCreate={onUpdate}
           />
         )}
       </>
@@ -124,12 +124,6 @@ class Rotations extends Component<RotationsProps, RotationsState> {
   }
 
   updateEvents = () => {};
-
-  onRotationCreate = (data: RotationCreateData) => {
-    const { onCreate } = this.props;
-
-    onCreate(data);
-  };
 
   handleAddLayer = () => {};
 

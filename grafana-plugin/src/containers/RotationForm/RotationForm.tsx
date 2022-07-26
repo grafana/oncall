@@ -19,11 +19,13 @@ import Draggable from 'react-draggable';
 import Modal from 'components/Modal/Modal';
 import Text from 'components/Text/Text';
 import UserGroups from 'components/UserGroups/UserGroups';
+import RemoteSelect from 'containers/RemoteSelect/RemoteSelect';
 import { Rotation, Schedule } from 'models/schedule/schedule.types';
 import { getTzOffsetString } from 'models/timezone/timezone.helpers';
 import { Timezone } from 'models/timezone/timezone.types';
 import { User } from 'models/user/user.types';
 import { getUTCString } from 'pages/schedule/Schedule.helpers';
+import { SelectOption } from 'state/types';
 import { useStore } from 'state/useStore';
 
 import { RotationCreateData } from './RotationForm.types';
@@ -33,11 +35,11 @@ import styles from './RotationForm.module.css';
 interface RotationFormProps {
   layerId: string;
   onHide: () => void;
-  onCreate: (date: RotationCreateData) => void;
   id: number | 'new';
   currentTimezone: Timezone;
   scheduleId: Schedule['id'];
-  onUpdate: (data: Rotation) => void;
+  onCreate: () => void;
+  onUpdate: () => void;
 }
 
 const cx = cn.bind(styles);
@@ -46,8 +48,8 @@ const RotationForm: FC<RotationFormProps> = (props) => {
   const { onHide, onCreate, currentTimezone, scheduleId, onUpdate } = props;
 
   const [repeatEveryValue, setRepeatEveryValue] = useState<number>(1);
-  const [repeatEveryPeriod, setRepeatEveryPeriod] = useState<string>('days');
-  const [selectedDays, setSelectedDays] = useState<string[]>(['Tuesday']);
+  const [repeatEveryPeriod, setRepeatEveryPeriod] = useState<number>(0);
+  const [selectedDays, setSelectedDays] = useState<string[]>([]);
   const [shiftStart, setShiftStart] = useState<DateTime>(dateTime('2022-07-26 17:00:00'));
   const [shiftEnd, setShiftEnd] = useState<DateTime>(dateTime('2022-07-26 19:00:00'));
   const [rotationStart, setRotationStart] = useState<DateTime>(dateTime('2022-07-26 17:00:00'));
@@ -79,17 +81,17 @@ const RotationForm: FC<RotationFormProps> = (props) => {
     */
 
     store.scheduleStore
-      .createRotation(scheduleId, true, {
-        name: 'Rotation' + Math.floor(Math.random() * 100),
+      .createRotation(scheduleId, false, {
+        name: 'Rotation ' + Math.floor(Math.random() * 100),
         rotation_start: getUTCString(rotationStart),
+        until: endLess ? null : getUTCString(rotationEnd),
         shift_start: getUTCString(shiftStart),
         shift_end: getUTCString(shiftEnd),
         rolling_users: userGroups,
-        frequency: 0,
+        frequency: repeatEveryValue,
+        by_day: selectedDays,
       })
-      .then((data) => {
-        onUpdate(data);
-      });
+      .then(onUpdate);
   }, [
     repeatEveryValue,
     repeatEveryPeriod,
@@ -159,21 +161,21 @@ const RotationForm: FC<RotationFormProps> = (props) => {
               />
             </Field>
             <Field className={cx('control')} label="">
-              <Select
+              <RemoteSelect
+                href="/oncall_shifts/frequency_options/"
                 value={repeatEveryPeriod}
-                options={[
-                  { label: 'days', value: 'days' },
-                  { label: 'weeks', value: 'weeks' },
-                  { label: 'hours', value: 'hours' },
-                ]}
-                onChange={handleRepeatEveryPeriodChange}
+                onChange={setRepeatEveryPeriod}
               />
             </Field>
           </HorizontalGroup>
-          {repeatEveryPeriod === 'weeks' && (
+          {repeatEveryPeriod === 0 && (
             /*<HorizontalGroup justify="center">*/
             <Field label="Select days to repeat">
-              <DaysSelector value={selectedDays} onChange={(value) => setSelectedDays(value)} />
+              <DaysSelector
+                options={store.scheduleStore.byDayOptions}
+                value={selectedDays}
+                onChange={(value) => setSelectedDays(value)}
+              />
             </Field>
             /*</HorizontalGroup>*/
           )}
@@ -257,9 +259,10 @@ const DAYS = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'
 interface DaysSelectorProps {
   value: string[];
   onChange: (value: string[]) => void;
+  options: SelectOption[];
 }
 
-const DaysSelector = ({ value, onChange }: DaysSelectorProps) => {
+const DaysSelector = ({ value, onChange, options }: DaysSelectorProps) => {
   const getDayClickHandler = (day: string) => {
     return () => {
       const newValue = [...value];
@@ -275,9 +278,12 @@ const DaysSelector = ({ value, onChange }: DaysSelectorProps) => {
 
   return (
     <div className={cx('days')}>
-      {DAYS.map((day: string) => (
-        <div onClick={getDayClickHandler(day)} className={cx('day', { day__selected: value.includes(day) })}>
-          {day.charAt(0).toUpperCase()}
+      {options.map(({ display_name, value: itemValue }) => (
+        <div
+          onClick={getDayClickHandler(itemValue as string)}
+          className={cx('day', { day__selected: value.includes(itemValue as string) })}
+        >
+          {display_name.charAt(0)}
         </div>
       ))}
     </div>

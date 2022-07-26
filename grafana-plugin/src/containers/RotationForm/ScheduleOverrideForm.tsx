@@ -19,22 +19,30 @@ import Draggable from 'react-draggable';
 import Modal from 'components/Modal/Modal';
 import Text from 'components/Text/Text';
 import UserGroups from 'components/UserGroups/UserGroups';
+import { Rotation, Schedule } from 'models/schedule/schedule.types';
 import { getTzOffsetString } from 'models/timezone/timezone.helpers';
+import { Timezone } from 'models/timezone/timezone.types';
 import { User } from 'models/user/user.types';
+import { getUTCString } from 'pages/schedule/Schedule.helpers';
 import { useStore } from 'state/useStore';
+
+import { RotationCreateData } from './RotationForm.types';
 
 import styles from './RotationForm.module.css';
 
 interface RotationFormProps {
-  layerId: string;
   onHide: () => void;
   id: number | 'new';
+  currentTimezone: Timezone;
+  scheduleId: Schedule['id'];
+  onCreate: () => void;
+  onUpdate: () => void;
 }
 
 const cx = cn.bind(styles);
 
 const ScheduleOverrideForm: FC<RotationFormProps> = (props) => {
-  const { onHide } = props;
+  const { onHide, onCreate, currentTimezone, scheduleId, onUpdate } = props;
 
   const store = useStore();
 
@@ -49,6 +57,19 @@ const ScheduleOverrideForm: FC<RotationFormProps> = (props) => {
       desc: store.userStore.items[pk]?.timezone,
     };
   };
+
+  const handleCreate = useCallback(() => {
+    store.scheduleStore
+      .createRotation(scheduleId, true, {
+        name: 'Rotation ' + Math.floor(Math.random() * 100),
+        rotation_start: getUTCString(shiftStart),
+        shift_start: getUTCString(shiftStart),
+        shift_end: getUTCString(shiftEnd),
+        rolling_users: userGroups[0],
+        frequency: null,
+      })
+      .then(onUpdate);
+  }, [shiftStart, shiftEnd, userGroups]);
 
   const moment = dayjs();
 
@@ -102,7 +123,9 @@ const ScheduleOverrideForm: FC<RotationFormProps> = (props) => {
         <HorizontalGroup justify="space-between">
           <Text type="secondary">Timezone: {getTzOffsetString(moment)}</Text>
           <HorizontalGroup>
-            <Button variant="primary">Save</Button>
+            <Button variant="primary" onClick={handleCreate}>
+              Save
+            </Button>
           </HorizontalGroup>
         </HorizontalGroup>
       </VerticalGroup>

@@ -7,7 +7,10 @@ import { observer } from 'mobx-react';
 
 import TimelineMarks from 'components/TimelineMarks/TimelineMarks';
 import Rotation from 'containers/Rotation/Rotation';
+import { RotationCreateData } from 'containers/RotationForm/RotationForm.types';
 import ScheduleOverrideForm from 'containers/RotationForm/ScheduleOverrideForm';
+import { Schedule } from 'models/schedule/schedule.types';
+import { Timezone } from 'models/timezone/timezone.types';
 import { WithStoreProps } from 'state/types';
 import { withMobXProviderContext } from 'state/withStore';
 
@@ -15,7 +18,13 @@ import styles from './Rotations.module.css';
 
 const cx = cn.bind(styles);
 
-interface ScheduleOverridesProps extends WithStoreProps {}
+interface ScheduleOverridesProps extends WithStoreProps {
+  startMoment: dayjs.Dayjs;
+  currentTimezone: Timezone;
+  scheduleId: Schedule['id'];
+  onCreate: () => void;
+  onUpdate: () => void;
+}
 
 interface ScheduleOverridesState {}
 
@@ -24,7 +33,7 @@ class ScheduleOverrides extends Component<ScheduleOverridesProps, ScheduleOverri
   state: ScheduleOverridesState = {};
 
   render() {
-    const { title, startMoment, currentTimezone } = this.props;
+    const { scheduleId, startMoment, currentTimezone, onCreate, onUpdate } = this.props;
     const { showAddOverrideForm } = this.state;
 
     const base = 7 * 24 * 60; // in minutes
@@ -54,9 +63,13 @@ class ScheduleOverrides extends Component<ScheduleOverridesProps, ScheduleOverri
         </div>
         {showAddOverrideForm && (
           <ScheduleOverrideForm
+            scheduleId={scheduleId}
+            currentTimezone={currentTimezone}
             onHide={() => {
               this.setState({ showAddOverrideForm: false });
             }}
+            onUpdate={onCreate}
+            onCreate={onUpdate}
           />
         )}
       </>

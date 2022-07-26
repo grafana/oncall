@@ -174,22 +174,28 @@ class SchedulePage extends React.Component<SchedulePageProps, SchedulePageState>
           </div>
           {/* <div className={'current-time'} />*/}
           <div className={cx('rotations')}>
-            {/*<ScheduleFinal currentTimezone={currentTimezone} startMoment={startMoment} />*/}
+            <ScheduleFinal scheduleId={scheduleId} currentTimezone={currentTimezone} startMoment={startMoment} />
             <Rotations
               scheduleId={scheduleId}
               currentTimezone={currentTimezone}
               startMoment={startMoment}
               onCreate={this.handleCreateRotation}
-              onRotationUpdate={this.updateEvents}
+              onUpdate={this.updateEvents}
             />
-            <ScheduleOverrides currentTimezone={currentTimezone} startMoment={startMoment} />
+            <ScheduleOverrides
+              scheduleId={scheduleId}
+              currentTimezone={currentTimezone}
+              startMoment={startMoment}
+              onCreate={this.handleCreateOverride}
+              onUpdate={this.updateEvents}
+            />
           </div>
         </VerticalGroup>
       </div>
     );
   }
 
-  updateEvents = () => {
+  updateEvents = (...rest) => {
     const {
       store,
       query: { id: scheduleId },
@@ -197,11 +203,21 @@ class SchedulePage extends React.Component<SchedulePageProps, SchedulePageState>
 
     const { startMoment } = this.state;
 
+    //debugger;
+
     store.scheduleStore.updateEvents(scheduleId, startMoment.format('YYYY-MM-DD'));
   };
 
-  handleCreateRotation = () => {
+  handleCreateRotation = (...rest) => {
     const { store } = this.props;
+
+    // debugger;
+  };
+
+  handleCreateOverride = (...rest) => {
+    const { store } = this.props;
+
+    // debugger;
   };
 
   handleTimezoneChange = (value: Timezone) => {
