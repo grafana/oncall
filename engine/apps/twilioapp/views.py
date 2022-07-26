@@ -10,7 +10,6 @@ from twilio.request_validator import RequestValidator
 
 from apps.base.utils import live_settings
 from apps.twilioapp.utils import process_call_data
-from common.api_helpers.utils import create_engine_url
 
 logger = logging.getLogger(__name__)
 
@@ -20,9 +19,8 @@ class AllowOnlyTwilio(BasePermission):
         # https://www.twilio.com/docs/usage/tutorials/how-to-secure-your-django-project-by-validating-incoming-twilio-requests
         # https://www.django-rest-framework.org/api-guide/permissions/
         validator = RequestValidator(live_settings.TWILIO_AUTH_TOKEN)
-        location = create_engine_url(request.get_full_path())
         request_valid = validator.validate(
-            request.build_absolute_uri(location=location), request.POST, request.META.get("HTTP_X_TWILIO_SIGNATURE", "")
+            request.build_absolute_uri(), request.POST, request.META.get("HTTP_X_TWILIO_SIGNATURE", "")
         )
         return request_valid
 
