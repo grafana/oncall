@@ -48,7 +48,7 @@ def test_get_on_call_users_from_web_schedule_override(make_organization_and_user
     }
 
     on_call_shift = make_on_call_shift(organization=organization, shift_type=CustomOnCallShift.TYPE_OVERRIDE, **data)
-    on_call_shift.users.add(user)
+    on_call_shift.add_rolling_users([[user]])
 
     # user is on-call
     date = date + timezone.timedelta(minutes=5)
