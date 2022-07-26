@@ -30,6 +30,7 @@ class OnCallShiftSerializer(EagerLoadingMixin, serializers.ModelSerializer):
             queryset=User.objects, required=False, allow_null=True
         ),  # todo: filter by team?
     )
+    updated_shift = serializers.CharField(read_only=True, allow_null=True, source="updated_shift.public_primary_key")
 
     class Meta:
         model = CustomOnCallShift
@@ -49,6 +50,7 @@ class OnCallShiftSerializer(EagerLoadingMixin, serializers.ModelSerializer):
             "by_day",
             "source",
             "rolling_users",
+            "updated_shift",
         ]
         extra_kwargs = {
             "interval": {"required": False, "allow_null": True},
@@ -62,7 +64,6 @@ class OnCallShiftSerializer(EagerLoadingMixin, serializers.ModelSerializer):
 
     def to_internal_value(self, data):
         data["source"] = CustomOnCallShift.SOURCE_WEB
-        data["week_start"] = CustomOnCallShift.MONDAY
         if not data.get("shift_end"):
             raise serializers.ValidationError({"shift_end": ["This field is required."]})
 
@@ -100,7 +101,7 @@ class OnCallShiftSerializer(EagerLoadingMixin, serializers.ModelSerializer):
         if end <= start:
             raise serializers.ValidationError({"shift_end": ["Incorrect shift end date"]})
 
-    def _validate_frequency(self, frequency, event_type, rolling_users, interval, by_day):
+    def _validate_frequency(self, frequency, event_type, rolling_users, interval, by_day, until):
         if frequency is None:
             if rolling_users and len(rolling_users) > 1:
                 raise serializers.ValidationError(
@@ -110,6 +111,8 @@ class OnCallShiftSerializer(EagerLoadingMixin, serializers.ModelSerializer):
                 raise serializers.ValidationError({"interval": ["Cannot set interval for non-recurrent shifts"]})
             if by_day:
                 raise serializers.ValidationError({"by_day": ["Cannot set days value for non-recurrent shifts"]})
+            if until:
+                raise serializers.ValidationError({"until": ["Cannot set 'until' for non-recurrent shifts"]})
         else:
             if event_type == CustomOnCallShift.TYPE_OVERRIDE:
                 raise serializers.ValidationError(
@@ -122,10 +125,8 @@ class OnCallShiftSerializer(EagerLoadingMixin, serializers.ModelSerializer):
         if rotation_start < shift_start:
             raise serializers.ValidationError({"rotation_start": ["Incorrect rotation start date"]})
 
-    def _validate_until(self, rotation_start, until, event_type):
+    def _validate_until(self, rotation_start, until):
         if until is not None:
-            if event_type == CustomOnCallShift.TYPE_OVERRIDE:
-                raise serializers.ValidationError({"until": ["Cannot set 'until' for shifts with type 'override'"]})
             if until < rotation_start:
                 raise serializers.ValidationError({"until": ["Incorrect rotation end date"]})
 
@@ -149,9 +150,10 @@ class OnCallShiftSerializer(EagerLoadingMixin, serializers.ModelSerializer):
             validated_data.get("rolling_users"),
             validated_data.get("interval"),
             validated_data.get("by_day"),
+            validated_data.get("until"),
         )
         self._validate_rotation_start(validated_data["start"], validated_data["rotation_start"])
-        self._validate_until(validated_data["rotation_start"], validated_data.get("until"), event_type)
+        self._validate_until(validated_data["rotation_start"], validated_data.get("until"))
 
         # convert shift_end into internal value and validate
         raw_shift_end = self.initial_data["shift_end"]
@@ -161,6 +163,8 @@ class OnCallShiftSerializer(EagerLoadingMixin, serializers.ModelSerializer):
         validated_data["duration"] = shift_end - validated_data["start"]
         if validated_data.get("schedule"):
             validated_data["team"] = validated_data["schedule"].team
+
+        validated_data["week_start"] = CustomOnCallShift.MONDAY
 
         return validated_data
 
