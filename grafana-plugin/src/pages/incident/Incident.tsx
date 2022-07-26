@@ -58,14 +58,20 @@ interface IncidentPageState {
   showAttachIncidentForm?: boolean;
   notFound?: boolean;
   wrongTeamError?: boolean;
-  teamToSwitch?: string;
+  wrongTeamNoPermissions?: boolean;
+  teamToSwitch?: { name: string; id: string };
   timelineFilter: string;
   resolutionNoteText: string;
 }
 
 @observer
 class IncidentPage extends React.Component<IncidentPageProps, IncidentPageState> {
-  state: IncidentPageState = { timelineFilter: 'all', resolutionNoteText: '' };
+  state: IncidentPageState = {
+    timelineFilter: 'all',
+    resolutionNoteText: '',
+    wrongTeamError: false,
+    wrongTeamNoPermissions: false,
+  };
 
   componentDidMount() {
     const { store } = this.props;
@@ -87,15 +93,25 @@ class IncidentPage extends React.Component<IncidentPageProps, IncidentPageState>
       query: { id },
     } = this.props;
 
-    store.alertGroupStore.getAlert(id).catch((error) => {
-      if (error.response) {
-        if (error.response.status === 404) {
-          this.setState({ wrongTeamError: true });
-        }
-        // if (error.response.status === 404) this.setState({ teamToSwitch: error.response });
-      }
+    // store.alertGroupStore.getAlert(id).catch((error) => {
+    //   if (error.response) {
+    //     if (error.response.status === 404) {
+    //       this.setState({ wrongTeamError: true });
+    //     }
+    //     // if (error.response.status === 404) this.setState({ teamToSwitch: error.response });
+    //   }
 
-      // this.setState({ notFound: true });
+    //   // this.setState({ notFound: true });
+    // });
+
+    store.alertGroupStore.getAlertStub(id).then((res) => {
+      if (res?.error_code == 'wrong_team') {
+        if (res?.owner_team) {
+          this.setState({ wrongTeamError: true, teamToSwitch: { name: res.owner_team.name, id: res.owner_team.id } });
+        } else {
+          this.setState({ wrongTeamNoPermissions: true });
+        }
+      }
     });
   };
 
@@ -105,7 +121,14 @@ class IncidentPage extends React.Component<IncidentPageProps, IncidentPageState>
       query: { id },
     } = this.props;
 
-    const { showIntegrationSettings, showAttachIncidentForm, notFound, wrongTeamError, teamToSwitch } = this.state;
+    const {
+      showIntegrationSettings,
+      showAttachIncidentForm,
+      notFound,
+      wrongTeamError,
+      teamToSwitch,
+      wrongTeamNoPermissions,
+    } = this.state;
 
     const { alertReceiveChannelStore } = store;
 
@@ -114,7 +137,6 @@ class IncidentPage extends React.Component<IncidentPageProps, IncidentPageState>
     const { alerts } = store.alertGroupStore;
 
     const incident = alerts.get(id);
-    console.log('INCIDENT', incident);
     const currentTeamId = store.userStore.currentUser?.current_team;
     const currentTeamName = store.grafanaTeamStore.items[currentTeamId]?.name;
     if (notFound) {
@@ -141,7 +163,8 @@ class IncidentPage extends React.Component<IncidentPageProps, IncidentPageState>
           objectName="Incident"
           pageName="incidents"
           currentTeam={currentTeamName}
-          switchToTeam={{ name: 'Test', id: null }}
+          switchToTeam={teamToSwitch}
+          wrongTeamNoPermissions={wrongTeamNoPermissions}
         />
       );
     }

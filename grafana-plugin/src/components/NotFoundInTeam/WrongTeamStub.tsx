@@ -19,11 +19,12 @@ export interface WrongTeamStubProps {
   pageName: string;
   currentTeam?: string;
   switchToTeam?: { name: string; id: string };
+  wrongTeamNoPermissions?: boolean;
 }
 
 const WrongTeamStub: FC<WrongTeamStubProps> = (props) => {
   const store = useStore();
-  const { objectName, pageName, currentTeam, switchToTeam, className } = props;
+  const { objectName, pageName, currentTeam, switchToTeam, className, wrongTeamNoPermissions } = props;
 
   const onTeamChange = async (teamId: GrafanaTeam['id']) => {
     await store.userStore.updateCurrentUser({ current_team: teamId });
@@ -36,6 +37,12 @@ const WrongTeamStub: FC<WrongTeamStubProps> = (props) => {
         <Text.Title level={1} className={cx('error-code')}>
           403
         </Text.Title>
+        {wrongTeamNoPermissions && (
+          <Text.Title level={4}>
+            You do not have permissions to see this {objectName}. Contact your administrator to change access to
+            different team
+          </Text.Title>
+        )}
         <Text.Title level={4}>
           This {objectName} is from team {switchToTeam.name}. To see {objectName} details please change the team to{' '}
           {switchToTeam.name}

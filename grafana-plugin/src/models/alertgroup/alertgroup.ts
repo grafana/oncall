@@ -298,7 +298,17 @@ export class AlertGroupStore extends BaseStore {
   getAlert(pk: Alert['pk']) {
     return makeRequest(`${this.path}${pk}`, {}).then((alert: Alert) => {
       this.alerts.set(pk, alert);
+    })
+  }
+
+  @action
+  getAlertStub(pk: Alert['pk']) {
+    return makeRequest(`${this.path}${pk}`, {}).then((alert: Alert) => {
+      this.alerts.set(pk, alert);
+    }).catch(() => {
+      return ({"error_code": "wrong_team", "owner_team": {"id": null, "name": "General", "email": "test@test.com", "avatar": "img"} || null})
     });
+    
   }
 
   @action
