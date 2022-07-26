@@ -182,7 +182,7 @@ class SchedulePage extends React.Component<SchedulePageProps, SchedulePageState>
               onCreate={this.handleCreateRotation}
               onRotationUpdate={this.updateEvents}
             />
-            {/*<ScheduleOverrides currentTimezone={currentTimezone} startMoment={startMoment} />*/}
+            <ScheduleOverrides currentTimezone={currentTimezone} startMoment={startMoment} />
           </div>
         </VerticalGroup>
       </div>

@@ -22,6 +22,7 @@ import UserGroups from 'components/UserGroups/UserGroups';
 import { Rotation, Schedule } from 'models/schedule/schedule.types';
 import { getTzOffsetString } from 'models/timezone/timezone.helpers';
 import { Timezone } from 'models/timezone/timezone.types';
+import { User } from 'models/user/user.types';
 import { getUTCString } from 'pages/schedule/Schedule.helpers';
 import { useStore } from 'state/useStore';
 
@@ -47,11 +48,20 @@ const RotationForm: FC<RotationFormProps> = (props) => {
   const [repeatEveryValue, setRepeatEveryValue] = useState<number>(1);
   const [repeatEveryPeriod, setRepeatEveryPeriod] = useState<string>('days');
   const [selectedDays, setSelectedDays] = useState<string[]>(['Tuesday']);
-  const [shiftStart, setShiftStart] = useState<DateTime>(dateTime('2022-07-22 17:00:00'));
-  const [shiftEnd, setShiftEnd] = useState<DateTime>(dateTime('2022-07-22 19:00:00'));
-  const [rotationStart, setRotationStart] = useState<DateTime>(dateTime('2022-07-22 17:00:00'));
+  const [shiftStart, setShiftStart] = useState<DateTime>(dateTime('2022-07-26 17:00:00'));
+  const [shiftEnd, setShiftEnd] = useState<DateTime>(dateTime('2022-07-26 19:00:00'));
+  const [rotationStart, setRotationStart] = useState<DateTime>(dateTime('2022-07-26 17:00:00'));
   const [endLess, setEndless] = useState<boolean>(true);
-  const [rotationEnd, setRotationEnd] = useState<DateTime>(dateTime('2022-08-22 12:00:00'));
+  const [rotationEnd, setRotationEnd] = useState<DateTime>(dateTime('2022-08-26 12:00:00'));
+
+  const [userGroups, setUserGroups] = useState([['U9XM1G7KTE3KW'], ['UYKS64M6C59XM']]);
+
+  const getUser = (pk: User['pk']) => {
+    return {
+      name: store.userStore.items[pk]?.username,
+      desc: store.userStore.items[pk]?.timezone,
+    };
+  };
 
   const store = useStore();
 
@@ -74,13 +84,23 @@ const RotationForm: FC<RotationFormProps> = (props) => {
         rotation_start: getUTCString(rotationStart),
         shift_start: getUTCString(shiftStart),
         shift_end: getUTCString(shiftEnd),
-        rolling_users: [['UYKS64M6C59XM']],
+        rolling_users: userGroups,
         frequency: 0,
       })
       .then((data) => {
         onUpdate(data);
       });
-  }, [repeatEveryValue, repeatEveryPeriod, selectedDays, shiftStart, shiftEnd, rotationStart, endLess, rotationEnd]);
+  }, [
+    repeatEveryValue,
+    repeatEveryPeriod,
+    selectedDays,
+    shiftStart,
+    shiftEnd,
+    rotationStart,
+    endLess,
+    rotationEnd,
+    userGroups,
+  ]);
 
   const handleChangeEndless = useCallback(
     (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -120,7 +140,7 @@ const RotationForm: FC<RotationFormProps> = (props) => {
             <IconButton variant="secondary" className={cx('drag-handler')} name="draggabledots" />
           </HorizontalGroup>
         </HorizontalGroup>
-        <UserGroups />
+        <UserGroups value={userGroups} onChange={setUserGroups} isMultipleGroups={true} getItemData={getUser} />
         {/*<hr />*/}
         <VerticalGroup>
           <HorizontalGroup>

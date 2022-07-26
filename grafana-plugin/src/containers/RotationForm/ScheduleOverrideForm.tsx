@@ -20,8 +20,10 @@ import Modal from 'components/Modal/Modal';
 import Text from 'components/Text/Text';
 import UserGroups from 'components/UserGroups/UserGroups';
 import { getTzOffsetString } from 'models/timezone/timezone.helpers';
+import { User } from 'models/user/user.types';
+import { useStore } from 'state/useStore';
 
-import styles from './ScheduleOverrideForm.module.css';
+import styles from './RotationForm.module.css';
 
 interface RotationFormProps {
   layerId: string;
@@ -34,8 +36,19 @@ const cx = cn.bind(styles);
 const ScheduleOverrideForm: FC<RotationFormProps> = (props) => {
   const { onHide } = props;
 
-  const [shiftStart, setShiftStart] = useState<DateTime>(dateTime('2021-05-05 12:00:00'));
-  const [shiftEnd, setShiftEnd] = useState<DateTime>(dateTime('2021-05-05 12:00:00'));
+  const store = useStore();
+
+  const [shiftStart, setShiftStart] = useState<DateTime>(dateTime('2022-08-26 12:00:00'));
+  const [shiftEnd, setShiftEnd] = useState<DateTime>(dateTime('2022-08-26 12:00:00'));
+
+  const [userGroups, setUserGroups] = useState([[]]);
+
+  const getUser = (pk: User['pk']) => {
+    return {
+      name: store.userStore.items[pk]?.username,
+      desc: store.userStore.items[pk]?.timezone,
+    };
+  };
 
   const moment = dayjs();
 
@@ -60,7 +73,7 @@ const ScheduleOverrideForm: FC<RotationFormProps> = (props) => {
             <IconButton variant="secondary" className={cx('drag-handler')} name="draggabledots" />
           </HorizontalGroup>
         </HorizontalGroup>
-        <UserGroups />
+        <UserGroups value={userGroups} onChange={setUserGroups} isMultipleGroups={false} getItemData={getUser} />
         {/*<hr />*/}
         <VerticalGroup>
           <HorizontalGroup>

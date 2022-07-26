@@ -10,13 +10,18 @@ import Text from 'components/Text/Text';
 import GSelect from 'containers/GSelect/GSelect';
 import UserTooltip from 'containers/UserTooltip/UserTooltip';
 import { User } from 'models/user/user.types';
-import { getRandomTimezone } from 'pages/schedule/Schedule.helpers';
 
-import { fromPlainArray, getRandomGroups, toPlainArray } from './UserGroups.helpers';
+import { fromPlainArray, toPlainArray } from './UserGroups.helpers';
+import { Item, ItemData } from './UserGroups.types';
 
 import styles from './UserGroups.module.css';
 
-interface UserGroupsProps {}
+interface UserGroupsProps {
+  value: Array<Array<User['pk']>>;
+  onChange: (value: Array<Array<User['pk']>>) => void;
+  isMultipleGroups: boolean;
+  getItemData: (id: string) => ItemData;
+}
 
 const cx = cn.bind(styles);
 
@@ -24,101 +29,59 @@ const DragHandle = () => <IconButton name="draggabledots" />;
 
 const SortableHandleHoc = SortableHandle(DragHandle);
 
-const SortableItem = SortableElement(({ children }) => children);
-
-const SortableList = SortableContainer(({ items, handleAddGroup, handleDeleteItem }) => {
-  const getDeleteItemHandler = (index) => {
-    return () => {
-      handleDeleteItem(index);
-    };
-  };
-
-  return (
-    <ul className={cx('groups')}>
-      {items.map((item, index) =>
-        item.type === 'item' ? (
-          <SortableItem key={item.key} index={index}>
-            <li className={cx('user')}>
-              <div className={cx('user-title')}>
-                <Text type="primary"> {item.data.name}</Text> <Text type="secondary">({item.data.tz})</Text>
-              </div>
-              <div className={cx('user-buttons')}>
-                <HorizontalGroup>
-                  <IconButton className={cx('delete-icon')} name="trash-alt" onClick={getDeleteItemHandler(index)} />
-                  <SortableHandleHoc />
-                </HorizontalGroup>
-              </div>
-            </li>
-          </SortableItem>
-        ) : (
-          <SortableItem key={item.key} index={index}>
-            <li className={cx('separator')}>{item.data.name}</li>
-          </SortableItem>
-        )
-      )}
-      {items[items.length - 1]?.type === 'item' && (
-        <SortableItem disabled key="New Group" index={items.length + 1}>
-          <li onClick={handleAddGroup} className={cx('separator', { separator__clickable: true })}>
-            Add user group +
-          </li>
-        </SortableItem>
-      )}
-    </ul>
-  );
-});
-
-const UserGroups = () => {
-  const [groups, setGroups] = useState([[]]);
+const UserGroups = (props: UserGroupsProps) => {
+  const { value, onChange, isMultipleGroups, getItemData } = props;
 
   const handleAddUserGroup = useCallback(() => {
-    setGroups((oldGroups) => [...oldGroups, []]);
-  }, [groups]);
+    onChange([...value, []]);
+  }, [value]);
 
   const handleDeleteUser = (index: number) => {
-    const newGroups = [...groups];
+    const newGroups = [...value];
     let k = -1;
-    for (let i = 0; i < groups.length; i++) {
+    for (let i = 0; i < value.length; i++) {
       k++;
-      const users = groups[i];
+      const users = value[i];
       for (let j = 0; j < users.length; j++) {
         k++;
 
         if (k === index) {
           newGroups[i] = newGroups[i].filter((item, itemIndex) => itemIndex !== j);
-          setGroups(newGroups.filter((group, index) => index === 0 || group.length));
+          onChange(newGroups.filter((group, index) => index === newGroups.length - 1 || group.length));
           return;
         }
       }
     }
   };
 
-  const handleUserAdd = useCallback((pk: User['pk'], user: User) => {
-    if (!pk) {
-      return;
-    }
+  const handleUserAdd = useCallback(
+    (pk: User['pk'], user: User) => {
+      if (!pk) {
+        return;
+      }
 
-    setGroups((groups) => {
-      const newGroups = [...groups];
-      const lastGroup = newGroups[groups.length - 1];
+      const newGroups = [...value];
+      const lastGroup = newGroups[newGroups.length - 1];
 
-      lastGroup.push({ pk, name: user.username, tz: getRandomTimezone() });
+      lastGroup.push(pk);
 
-      return newGroups;
-    });
-  }, []);
-
-  const filterUsers = useCallback(
-    ({ value }) => !groups.some((group) => group.some((user) => user.pk === value)),
-    [groups]
+      onChange(newGroups);
+    },
+    [value]
   );
 
-  const items = useMemo(() => toPlainArray(groups), [groups]);
+  const filterUsers = useCallback(
+    ({ value: itemValue }) => !value.some((group: Array<User['pk']>) => group.some((pk) => pk === itemValue)),
+    [value]
+  );
+
+  const items = useMemo(() => toPlainArray(value, getItemData), [value]);
 
   const onSortEnd = useCallback(
-    ({ oldIndex, newIndex, collection, isKeySorting }) => {
+    ({ oldIndex, newIndex }) => {
       const newPlainArray = arrayMoveImmutable(items, oldIndex, newIndex);
 
-      setGroups(fromPlainArray(newPlainArray, newIndex > items.length));
+      onChange(fromPlainArray(newPlainArray, newIndex > items.length));
     },
     [items]
   );
@@ -134,6 +97,7 @@ const UserGroups = () => {
           onSortEnd={onSortEnd}
           handleAddGroup={handleAddUserGroup}
           handleDeleteItem={handleDeleteUser}
+          isMultipleGroups={isMultipleGroups}
           useDragHandle
         />
         <GSelect
@@ -154,5 +118,61 @@ const UserGroups = () => {
     </div>
   );
 };
+
+interface SortableItemProps {
+  children: React.ReactElement;
+}
+
+const SortableItem = SortableElement(({ children }: SortableItemProps) => children);
+
+interface SortableListProps {
+  items: Item[];
+  handleAddGroup: () => void;
+  handleDeleteItem: (index: number) => void;
+  isMultipleGroups: boolean;
+}
+
+const SortableList = SortableContainer(
+  ({ items, handleAddGroup, handleDeleteItem, isMultipleGroups }: SortableListProps) => {
+    const getDeleteItemHandler = (index: number) => {
+      return () => {
+        handleDeleteItem(index);
+      };
+    };
+
+    return (
+      <ul className={cx('groups')}>
+        {items.map((item, index) =>
+          item.type === 'item' ? (
+            <SortableItem key={item.key} index={index}>
+              <li className={cx('user')}>
+                <div className={cx('user-title')}>
+                  <Text type="primary"> {item.data.name}</Text> <Text type="secondary">({item.data.desc})</Text>
+                </div>
+                <div className={cx('user-buttons')}>
+                  <HorizontalGroup>
+                    <IconButton className={cx('delete-icon')} name="trash-alt" onClick={getDeleteItemHandler(index)} />
+                    <SortableHandleHoc />
+                  </HorizontalGroup>
+                </div>
+              </li>
+            </SortableItem>
+          ) : isMultipleGroups ? (
+            <SortableItem key={item.key} index={index}>
+              <li className={cx('separator')}>{item.data.name}</li>
+            </SortableItem>
+          ) : null
+        )}
+        {isMultipleGroups && items[items.length - 1]?.type === 'item' && (
+          <SortableItem disabled key="New Group" index={items.length + 1}>
+            <li onClick={handleAddGroup} className={cx('separator', { separator__clickable: true })}>
+              Add user group +
+            </li>
+          </SortableItem>
+        )}
+      </ul>
+    );
+  }
+);
 
 export default UserGroups;

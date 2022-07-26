@@ -1,3 +1,4 @@
+import { DateTime } from '@grafana/data';
 import dayjs from 'dayjs';
 
 import { Timezone } from 'models/timezone/timezone.types';
@@ -663,6 +664,6 @@ export const getStartOfWeek = (tz: Timezone) => {
   return dayjs().tz(tz).utcOffset() === 0 ? dayjs().utc().startOf('isoWeek') : dayjs().tz(tz).startOf('isoWeek');
 };
 
-export const getUTCString = (moment: dayjs.Dayjs) => {
+export const getUTCString = (moment: dayjs.Dayjs | DateTime) => {
   return moment.utc().format('YYYY-MM-DDTHH:mm:ss.000Z');
 };

@@ -5,10 +5,9 @@ import cn from 'classnames/bind';
 import dayjs from 'dayjs';
 import { observer } from 'mobx-react';
 
-import RotationForm from 'components/RotationForm/RotationForm';
-import ScheduleOverrideForm from 'components/ScheduleOverrideForm/ScheduleOverrideForm';
 import TimelineMarks from 'components/TimelineMarks/TimelineMarks';
 import Rotation from 'containers/Rotation/Rotation';
+import ScheduleOverrideForm from 'containers/RotationForm/ScheduleOverrideForm';
 import { WithStoreProps } from 'state/types';
 import { withMobXProviderContext } from 'state/withStore';
 

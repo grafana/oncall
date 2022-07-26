@@ -1,38 +1,22 @@
-export const getRandomGroups = () => {
-  return [
-    [
-      { id: 13, name: 'Maxim Mordasov', tz: 'Europe/Moscow' },
-      { id: 2, name: 'Raphael Batyrbaev', tz: 'Europe/Rome' },
-    ],
-    [
-      { id: 5, name: 'Michael Derynck', tz: 'America/Vancouver' },
-      { id: 10, name: 'Ildar Iskhakov', tz: 'Asia/Yerevan' },
-      { id: 7, name: 'Innokentii Konstantinov', tz: 'Asia/Yerevan' },
-    ],
-    [
-      { id: 5, name: 'Michael Derynck', tz: 'America/Vancouver' },
-      { id: 10, name: 'Vadim Stepanov', tz: 'Asia/Yekaterinburg' },
-      { id: 7, name: 'Innokentii Konstantinov', tz: 'Asia/Yerevan' },
-    ],
-  ];
-};
+import { Item, ItemData } from './UserGroups.types';
 
-export const toPlainArray = (groups) => {
+export const toPlainArray = (groups: string[][], getItemData: (item: Item['item']) => ItemData) => {
   let i = 0;
 
-  const items = [];
-  groups.forEach((group, groupIndex) => {
+  const items: Item[] = [];
+  groups.forEach((group: string[], groupIndex: number) => {
     items.push({
       key: `group-${groupIndex}`,
       type: 'group',
       data: { name: `Group ${groupIndex + 1}` },
     });
 
-    groups[groupIndex].forEach((item, itemIndex) => {
+    groups[groupIndex].forEach((item: string, itemIndex: number) => {
       items.push({
         key: `item-${groupIndex}-${itemIndex}`,
         type: 'item',
-        data: item,
+        item,
+        data: getItemData(item),
       });
     });
   });
@@ -40,25 +24,23 @@ export const toPlainArray = (groups) => {
   return items;
 };
 
-export const fromPlainArray = (items, createNewGroup = false, deleteEmptyGroups = true) => {
+export const fromPlainArray = (items: Item[], createNewGroup = false, deleteEmptyGroups = true) => {
   const groups = [];
 
   return items
-    .reduce((memo, item, currentIndex) => {
+    .reduce((memo: any, item: Item, currentIndex: number) => {
       if (item.type === 'item') {
         let lastGroup = memo[memo.length - 1];
         if (!lastGroup || (createNewGroup && currentIndex === items.length - 1)) {
           lastGroup = [];
           memo.push(lastGroup);
         }
-        lastGroup.push(item.data);
+        lastGroup.push(item.item);
       } else {
         memo.push([]);
       }
 
       return memo;
     }, [])
-    .filter((group) => !deleteEmptyGroups || group.length);
+    .filter((group: string[][]) => !deleteEmptyGroups || group.length);
 };
-
-export const deleteItemFromGroupByIndex = (groups) => {};

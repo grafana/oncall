@@ -35,7 +35,7 @@ interface GSelectProps {
   dropdownRender?: (menu: ReactElement) => ReactElement;
   getOptionLabel?: <T>(item: SelectableValue<T>) => React.ReactNode;
   getDescription?: (item: any) => React.ReactNode;
-  filterOptions?: () => boolean;
+  filterOptions?: <T>(item: SelectableValue<T>) => boolean;
 }
 
 const GSelect = observer((props: GSelectProps) => {
