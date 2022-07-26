@@ -1,5 +1,12 @@
 # Change Log
 
+## v1.0.12 (2022-07-26)
+- Update push-notifications dependency
+- Rework how absolute URLs are built
+- Fix to show maintenance windows per team
+- Logging improvements
+- Internal api to get a schedule final events
+
 ## v1.0.10 (2022-07-22)
 - Speed-up of alert group web caching
 - Internal api for OnCall shifts

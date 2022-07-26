@@ -652,7 +652,7 @@ def test_filter_events_overrides(
         organization=organization, shift_type=CustomOnCallShift.TYPE_OVERRIDE, **override_data
     )
     other_user = make_user_for_organization(organization)
-    override.users.add(other_user)
+    override.add_rolling_users([[other_user]])
 
     url = reverse("api-internal:schedule-filter-events", kwargs={"pk": schedule.public_primary_key})
     url += "?date={}&days=3&type=override".format(request_date.strftime("%Y-%m-%d"))
@@ -744,7 +744,7 @@ def test_filter_events_final_schedule(
     override = make_on_call_shift(
         organization=organization, shift_type=CustomOnCallShift.TYPE_OVERRIDE, **override_data
     )
-    override.users.add(user_e)
+    override.add_rolling_users([[user_e]])
 
     url = reverse("api-internal:schedule-filter-events", kwargs={"pk": schedule.public_primary_key})
     url += "?date={}&days=1".format(request_date.strftime("%Y-%m-%d"))
