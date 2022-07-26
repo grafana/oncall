@@ -217,7 +217,7 @@ class CustomOnCallShift(models.Model):
             schedules_to_update.append(self.schedule)
 
         if self.event_is_started:
-            self.until = timezone.now()
+            self.until = timezone.now().replace(microsecond=0)
             self.save(update_fields=["until"])
         else:
             super().delete(*args, **kwargs)
@@ -281,16 +281,12 @@ class CustomOnCallShift(models.Model):
             event_ical = None
             users_queue = self.get_rolling_users()
             for counter, users in enumerate(users_queue, start=1):
-                rotation_ical = ""
                 start = self.get_next_start_date(event_ical)
                 if not start:  # means that rotation ends before next event starts
                     break
                 for user_counter, user in enumerate(users, start=1):
                     event_ical = self.generate_ical(user, start, user_counter, counter, time_zone)
-                    rotation_ical += event_ical
-                # if event has already been started, add rotation ical to final ical result
-                if start >= self.rotation_start:
-                    result += rotation_ical
+                    result += event_ical
         else:
             for user_counter, user in enumerate(self.users.all(), start=1):
                 result += self.generate_ical(user, self.start, user_counter, time_zone=time_zone)
@@ -363,7 +359,7 @@ class CustomOnCallShift(models.Model):
             if event.start.date() >= next_event_start.date():
                 next_event = event
                 break
-        next_event_dt = next_event.start
+        next_event_dt = next_event.start if next_event is not None else None
         return next_event_dt
 
     @cached_property
@@ -445,7 +441,7 @@ class CustomOnCallShift(models.Model):
 
     def create_or_update_last_shift(self, data):
         # rotation start date cannot be earlier than now
-        data["rotation_start"] = max(data["rotation_start"], timezone.now())
+        data["rotation_start"] = max(data["rotation_start"], timezone.now().replace(microsecond=0))
         # prepare dict with params of existing instance with last updates and remove unique and m2m fields from it
         shift_to_update = self.last_updated_shift or self
         instance_data = model_to_dict(shift_to_update)
@@ -459,7 +455,9 @@ class CustomOnCallShift(models.Model):
 
         if self.last_updated_shift is None or self.last_updated_shift.event_is_started:
             # create new shift
-            instance_data["name"] = CustomOnCallShift.generate_name(self.schedule, data["priority_level"], data["type"])
+            instance_data["name"] = CustomOnCallShift.generate_name(
+                self.schedule, instance_data["priority_level"], instance_data["type"]
+            )
             with transaction.atomic():
                 shift = CustomOnCallShift(**instance_data)
                 shift.save()
