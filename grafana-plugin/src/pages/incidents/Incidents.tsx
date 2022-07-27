@@ -11,6 +11,7 @@ import moment from 'moment';
 import Emoji from 'react-emoji-render';
 
 import CardButton from 'components/CardButton/CardButton';
+import CursorPagination from 'components/CursorPagination/CursorPagination';
 import GTable from 'components/GTable/GTable';
 import IntegrationLogo from 'components/IntegrationLogo/IntegrationLogo';
 import PluginLink from 'components/PluginLink/PluginLink';
@@ -35,7 +36,10 @@ import styles from './Incidents.module.css';
 
 const cx = cn.bind(styles);
 
-const ITEMS_PER_PAGE = 50;
+interface Pagination {
+  start: number;
+  end: number;
+}
 
 function withSkeleton(fn: (alert: AlertType) => ReactElement | ReactElement[]) {
   return (alert: AlertType) => {
@@ -53,27 +57,40 @@ interface IncidentsPageState {
   selectedIncidentIds: Array<Alert['pk']>;
   affectedRows: { [key: string]: boolean };
   filters?: IncidentsFiltersType;
+  pagination: Pagination;
 }
+
+const ITEMS_PER_PAGE = 25;
 
 @observer
 class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> {
   constructor(props: IncidentsPageProps) {
     super(props);
 
-    const { store } = props;
+    const {
+      store,
+      query: { id, cursor: cursorQuery, start: startQuery, perpage: perpageQuery },
+    } = props;
+
+    const cursor = cursorQuery || undefined;
+    const start = !isNaN(startQuery) ? Number(startQuery) : 1;
+    const itemsPerPage = !isNaN(perpageQuery) ? Number(perpageQuery) : ITEMS_PER_PAGE;
+
+    store.alertGroupStore.incidentsCursor = cursor;
+    store.alertGroupStore.incidentsItemsPerPage = itemsPerPage;
 
     this.state = {
       selectedIncidentIds: [],
       affectedRows: {},
+      pagination: {
+        start,
+        end: start + itemsPerPage - 1,
+      },
     };
 
     store.alertGroupStore.updateBulkActions();
     store.alertGroupStore.updateSilenceOptions();
   }
-
-  async componentDidMount() {}
-
-  componentDidUpdate() {}
 
   render() {
     return (
@@ -95,24 +112,55 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
     );
   }
 
-  handleFiltersChange = (filters: IncidentsFiltersType) => {
+  handleFiltersChange = (filters: IncidentsFiltersType, isOnMount: boolean) => {
     const { store } = this.props;
 
-    this.setState({ filters, selectedIncidentIds: [] });
+    this.setState({
+      filters,
+      selectedIncidentIds: [],
+    });
 
-    store.alertGroupStore.updateIncidentFilters(filters, true);
+    if (!isOnMount) {
+      this.setState({
+        pagination: {
+          start: 1,
+          end: store.alertGroupStore.incidentsItemsPerPage,
+        },
+      });
+    }
 
-    getLocationSrv().update({ query: { page: 'incidents', ...store.incidentFilters, p: store.incidentsPage } }); // todo fix
+    store.alertGroupStore.updateIncidentFilters(filters, isOnMount);
+
+    getLocationSrv().update({ query: { page: 'incidents', ...store.alertGroupStore.incidentFilters } });
   };
 
-  onChangePagination = (page: number) => {
+  onChangeCursor = (cursor: string, direction: 'prev' | 'next') => {
     const { store } = this.props;
 
-    store.alertGroupStore.setIncidentsPage(page);
+    store.alertGroupStore.setIncidentsCursor(cursor);
 
-    this.setState({ selectedIncidentIds: [] });
+    this.setState({
+      selectedIncidentIds: [],
+      pagination: {
+        start:
+          this.state.pagination.start + store.alertGroupStore.incidentsItemsPerPage * (direction === 'prev' ? -1 : 1),
+        end: this.state.pagination.end + store.alertGroupStore.incidentsItemsPerPage * (direction === 'prev' ? -1 : 1),
+      },
+    });
+  };
 
-    getLocationSrv().update({ partial: true, query: { p: store.incidentsPage } });
+  handleChangeItemsPerPage = (value: number) => {
+    const { store } = this.props;
+
+    store.alertGroupStore.setIncidentsItemsPerPage(value);
+
+    this.setState({
+      selectedIncidentIds: [],
+      pagination: {
+        start: 1,
+        end: store.alertGroupStore.incidentsItemsPerPage,
+      },
+    });
   };
 
   renderBulkActions = () => {
@@ -214,7 +262,7 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
   };
 
   renderTable() {
-    const { selectedIncidentIds, affectedRows } = this.state;
+    const { selectedIncidentIds, affectedRows, pagination } = this.state;
     const { store } = this.props;
     const {
       teamStore: { currentTeam },
@@ -222,7 +270,8 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
     const { alertGroupsLoading } = store.alertGroupStore;
 
     const results = store.alertGroupStore.getAlertSearchResult('default');
-    const count = get(store.alertGroupStore.alertsSearchResult, `default.count`);
+    const prev = get(store.alertGroupStore.alertsSearchResult, `default.prev`);
+    const next = get(store.alertGroupStore.alertsSearchResult, `default.next`);
 
     if (results && !results.length) {
       return (
@@ -319,12 +368,22 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
           data={results}
           columns={columns}
           // rowClassName={getUserRowClassNameFn(userPkToEdit, userStore.currentUserPk)}
-          pagination={{
-            page: store.incidentsPage,
-            total: Math.ceil((count || 0) / ITEMS_PER_PAGE),
-            onChange: this.onChangePagination,
-          }}
         />
+        <div className={cx('pagination')}>
+          <CursorPagination
+            current={`${pagination.start}-${pagination.end}`}
+            itemsPerPage={store.alertGroupStore.incidentsItemsPerPage}
+            itemsPerPageOptions={[
+              { label: '25', value: 25 },
+              { label: '50', value: 50 },
+              { label: '100', value: 100 },
+            ]}
+            prev={prev}
+            next={next}
+            onChange={this.onChangeCursor}
+            onChangeItemsPerPage={this.handleChangeItemsPerPage}
+          />
+        </div>
       </div>
     );
   }
@@ -338,9 +397,20 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
   }
 
   renderTitle = (record: AlertType) => {
+    const { store } = this.props;
+    const {
+      pagination: { start },
+    } = this.state;
+
+    const { incidentsItemsPerPage, incidentsCursor } = store.alertGroupStore;
+
     return (
       <VerticalGroup spacing="none" justify="center">
-        <PluginLink query={{ page: 'incident', id: record.pk }}>{record.render_for_web.title}</PluginLink>
+        <PluginLink
+          query={{ page: 'incident', id: record.pk, cursor: incidentsCursor, perpage: incidentsItemsPerPage, start }}
+        >
+          {record.render_for_web.title}
+        </PluginLink>
         {Boolean(record.dependent_alert_groups.length) && `+ ${record.dependent_alert_groups.length} attached`}
       </VerticalGroup>
     );
@@ -366,48 +436,6 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
 
   renderStatus(record: AlertType) {
     return getIncidentStatusTag(record);
-
-    /*if (record.resolved) {
-      return (
-        <div className={cx('status')}>
-          <Tooltip title={`Resolved ${record.resolved_at_verbose}`}>
-            <CheckCircleOutlined className={cx('icon-small')} style={{ color: '#52c41a' }} />
-          </Tooltip>
-        </div>
-      );
-    }
-
-    if (record.acknowledged) {
-      return (
-        <div className={cx('status')}>
-          <Tooltip title={`Acknowledged ${record.acknowledged_at_verbose}`}>
-            <Icon className={cx('icon-small')} component={AcknowledgedIncidentIcon} />
-          </Tooltip>
-        </div>
-      );
-    }
-
-    if (record.silenced) {
-      const silencedUntilText = record.silenced_until
-        ? `Silenced until ${moment(record.silenced_until).toLocaleString()}`
-        : 'Silenced forever';
-
-      return (
-        <div className={cx('status')}>
-          <Tooltip title={silencedUntilText}>
-            <Icon className={cx('icon-small')} component={SilencedIncidentIcon} />
-          </Tooltip>
-        </div>
-      );
-    }
-
-    return (
-      <div className={cx('status')}>
-        <Tooltip title={`Started ${record.started_at_verbose}`}>
-          <Icon className={cx('icon-small')} component={NewIncidentIcon} />
-        </Tooltip>
-      </div>
-    );*/
   }
 
   renderStartedAt(alert: AlertType) {
