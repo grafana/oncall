@@ -216,7 +216,8 @@ class CustomOnCallShift(models.Model):
         if self.schedule:
             schedules_to_update.append(self.schedule)
 
-        if self.event_is_started:
+        # do soft delete for started shifts that were created for web schedule
+        if self.schedule and self.event_is_started:
             self.until = timezone.now().replace(microsecond=0)
             self.save(update_fields=["until"])
         else:
