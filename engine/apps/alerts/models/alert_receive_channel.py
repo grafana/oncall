@@ -19,11 +19,7 @@ from jinja2 import Template
 from apps.alerts.grafana_alerting_sync_manager.grafana_alerting_sync import GrafanaAlertingSyncManager
 from apps.alerts.integration_options_mixin import IntegrationOptionsMixin
 from apps.alerts.models.maintainable_object import MaintainableObject
-from apps.alerts.tasks import (
-    disable_maintenance,
-    invalidate_web_cache_for_alert_group,
-    sync_grafana_alerting_contact_points,
-)
+from apps.alerts.tasks import disable_maintenance, sync_grafana_alerting_contact_points
 from apps.base.messaging import get_messaging_backend_from_id
 from apps.base.utils import live_settings
 from apps.integrations.metadata import heartbeat
@@ -693,21 +689,6 @@ def listen_for_alertreceivechannel_model_save(sender, instance, created, *args, 
             create_organization_log(
                 instance.organization, None, OrganizationLogType.TYPE_HEARTBEAT_CREATED, description
             )
-    else:
-        if kwargs is not None:
-            if "update_fields" in kwargs:
-                if kwargs["update_fields"] is not None:
-                    fields_to_not_to_invalidate_cache = [
-                        "rate_limit_message_task_id",
-                        "rate_limited_in_slack_at",
-                        "reason_to_skip_escalation",
-                    ]
-                    # Hack to not to invalidate web cache on AlertReceiveChannel.start_send_rate_limit_message_task
-                    for f in fields_to_not_to_invalidate_cache:
-                        if f in kwargs["update_fields"]:
-                            return
-        logger.info(f"Drop AG cache. Reason: save alert_receive_channel {instance.pk}")
-        invalidate_web_cache_for_alert_group.apply_async(kwargs={"channel_pk": instance.pk})
 
     if instance.integration == AlertReceiveChannel.INTEGRATION_GRAFANA_ALERTING:
         if created:
