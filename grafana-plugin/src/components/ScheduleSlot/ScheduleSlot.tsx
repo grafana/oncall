@@ -58,7 +58,7 @@ const ScheduleSlot: FC<ScheduleSlotProps> = observer((props) => {
           const title = getTitle(storeUser);
 
           return (
-            <Tooltip content={<ScheduleSlotDetails user={storeUser} currentUser={store.userStore.currentUser} />}>
+            <Tooltip content={<ScheduleSlotDetails user={storeUser} currentTimezone={currentTimezone} event={event} />}>
               <div
                 className={cx('root', { root__inactive: inactive })}
                 style={{
@@ -86,7 +86,7 @@ const ScheduleSlot: FC<ScheduleSlotProps> = observer((props) => {
           );
         })
       ) : (
-        <Tooltip content={<ScheduleGapDetails />}>
+        <Tooltip content={<ScheduleGapDetails event={event} currentTimezone={currentTimezone} />}>
           <div className={cx('root', 'root__type_gap')} style={{}}>
             {label && <div className={cx('label')}>{label}</div>}
           </div>
@@ -100,11 +100,12 @@ export default ScheduleSlot;
 
 interface ScheduleSlotDetailsProps {
   user: User;
-  currentUser: User;
+  currentTimezone: Timezone;
+  event: Event;
 }
 
 const ScheduleSlotDetails = (props: ScheduleSlotDetailsProps) => {
-  const { user, currentUser } = props;
+  const { user, currentTimezone, event } = props;
 
   const userStatus = 'success';
 
@@ -122,26 +123,26 @@ const ScheduleSlotDetails = (props: ScheduleSlotDetailsProps) => {
           </HorizontalGroup>
           <HorizontalGroup>
             <VerticalGroup spacing="none">
-              <HorizontalGroup spacing="sm">
+              {/* <HorizontalGroup spacing="sm">
                 <Icon name="clock-nine" size="xs" />
                 <Text type="secondary">30 apr, 7:54 </Text>
-              </HorizontalGroup>
+              </HorizontalGroup>*/}
               <HorizontalGroup spacing="sm">
                 <img src={Line} />
                 <VerticalGroup spacing="none">
-                  <Text type="secondary">30 apr, 00:00</Text>
-                  <Text type="secondary">30 apr, 23:59</Text>
+                  <Text type="secondary">{dayjs(event.start).tz(user.timezone).format('DD MMM, HH:mm')}</Text>
+                  <Text type="secondary">{dayjs(event.end).tz(user.timezone).format('DD MMM, HH:mm')}</Text>
                 </VerticalGroup>
               </HorizontalGroup>
             </VerticalGroup>
           </HorizontalGroup>
         </VerticalGroup>
         <VerticalGroup spacing="sm">
-          <Text type="primary">{currentUser?.username}</Text>
+          <Text type="primary">{currentTimezone}</Text>
           <VerticalGroup spacing="none">
-            <Text type="primary">30 apr, 12:54 </Text>
-            <Text type="primary">29 apr, 20:00 </Text>
-            <Text type="primary">30 apr, 20:00 </Text>
+            {/* <Text type="primary">30 apr, 12:54 </Text>*/}
+            <Text type="primary">{dayjs(event.start).tz(currentTimezone).format('DD MMM, HH:mm')}</Text>
+            <Text type="primary">{dayjs(event.end).tz(currentTimezone).format('DD MMM, HH:mm')}</Text>
           </VerticalGroup>
         </VerticalGroup>
       </HorizontalGroup>
@@ -149,15 +150,25 @@ const ScheduleSlotDetails = (props: ScheduleSlotDetailsProps) => {
   );
 };
 
-interface ScheduleGapDetailsProps {}
+interface ScheduleGapDetailsProps {
+  currentTimezone: Timezone;
+  event: Event;
+}
 
 const ScheduleGapDetails = (props: ScheduleGapDetailsProps) => {
-  const {} = props;
+  const { currentTimezone, event } = props;
 
   return (
     <div className={cx('details')}>
       <VerticalGroup>
-        <Text type="primary">Gaps this week</Text>
+        <HorizontalGroup spacing="sm">
+          <VerticalGroup spacing="none">
+            <Text type="primary">{currentTimezone}</Text>
+            <Text type="primary">{dayjs(event.start).tz(currentTimezone).format('DD MMM, HH:mm')}</Text>
+            <Text type="primary">{dayjs(event.end).tz(currentTimezone).format('DD MMM, HH:mm')}</Text>
+          </VerticalGroup>
+        </HorizontalGroup>
+        {/*<Text type="primary">Gaps this week</Text>
         <HorizontalGroup justify="space-between">
           <Text type="secondary">Number of gaps</Text>
           <Text type="secondary">12</Text>
@@ -165,7 +176,7 @@ const ScheduleGapDetails = (props: ScheduleGapDetailsProps) => {
         <HorizontalGroup justify="space-between">
           <Text type="secondary">Time</Text>
           <Text type="secondary">23h 12m</Text>
-        </HorizontalGroup>
+        </HorizontalGroup>*/}
       </VerticalGroup>
     </div>
   );
