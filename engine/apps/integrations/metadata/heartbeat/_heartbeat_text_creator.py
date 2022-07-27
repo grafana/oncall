@@ -1,7 +1,8 @@
 from dataclasses import dataclass
-from urllib.parse import urljoin
 
 from django.conf import settings
+
+from common.api_helpers.utils import create_engine_url
 
 
 @dataclass
@@ -31,7 +32,7 @@ class HeartBeatTextCreator:
         return heartbeat_expired_title
 
     def _get_heartbeat_expired_message(self):
-        heartbeat_docs_url = urljoin(settings.DOCS_URL, "/#/integrations/heartbeat")
+        heartbeat_docs_url = create_engine_url("/#/integrations/heartbeat", override_base=settings.DOCS_URL)
         heartbeat_expired_message = (
             f"Amixr was waiting for a heartbeat from {self.integration_verbal}. "
             f"Heartbeat is missing. That could happen because {self.integration_verbal} stopped or"
