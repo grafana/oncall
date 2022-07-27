@@ -57,7 +57,7 @@ class OnCallShiftSerializer(EagerLoadingMixin, serializers.ModelSerializer):
             "source": {"required": False, "write_only": True},
         }
 
-    SELECT_RELATED = ["schedule"]
+    SELECT_RELATED = ["schedule", "updated_shift"]
 
     def get_shift_end(self, obj):
         return obj.start + obj.duration
