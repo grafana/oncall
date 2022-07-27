@@ -198,14 +198,10 @@ class AlertGroupView(
         return super().get_serializer_class()
 
     def get_queryset(self):
-        # make a separate query to fetch all the integrations for current organization and team (it's faster)
-        alert_receive_channel_pks = AlertReceiveChannel.objects_with_deleted.filter(
-            organization=self.request.auth.organization, team=self.request.user.current_team
-        ).values_list("pk", flat=True)
-        alert_receive_channel_pks = list(alert_receive_channel_pks)
-
         # no select_related or prefetch_related is used at this point, it will be done on paginate_queryset.
-        queryset = AlertGroup.unarchived_objects.filter(channel_id__in=alert_receive_channel_pks)
+        queryset = AlertGroup.unarchived_objects.filter(
+            channel__organization=self.request.auth.organization, channel__team=self.request.user.current_team
+        ).only("id")
 
         return queryset
 
@@ -254,8 +250,13 @@ class AlertGroupView(
 
         # add additional "alerts_count" and "last_alert" fields to every alert group
         for alert_group in alert_groups:
-            alert_group.last_alert = alerts_info_map[alert_group.pk]["last_alert"]
-            alert_group.alerts_count = alerts_info_map[alert_group.pk]["alerts_count"]
+            try:
+                alert_group.last_alert = alerts_info_map[alert_group.pk]["last_alert"]
+                alert_group.alerts_count = alerts_info_map[alert_group.pk]["alerts_count"]
+            except KeyError:
+                # alert group has no alerts
+                alert_group.last_alert = None
+                alert_group.alerts_count = 0
 
         return alert_groups
 

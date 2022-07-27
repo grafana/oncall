@@ -87,10 +87,18 @@ class AlertGroupListSerializer(EagerLoadingMixin, serializers.ModelSerializer):
         ]
 
     def get_render_for_web(self, obj):
+        # alert group has no alerts
+        if not obj.last_alert:
+            return {}
+
         return AlertGroupWebRenderer(obj, obj.last_alert).render()
 
     def get_render_for_classic_markdown(self, obj):
-        return AlertGroupClassicMarkdownRenderer(obj).render()
+        # alert group has no alerts
+        if not obj.last_alert:
+            return {}
+
+        return AlertGroupClassicMarkdownRenderer(obj, obj.last_alert).render()
 
     def get_related_users(self, obj):
         users_ids = set()
@@ -130,6 +138,11 @@ class AlertGroupSerializer(AlertGroupListSerializer):
         ]
 
     def get_render_for_web(self, obj):
+        # alert group has no alerts
+        alert = obj.alerts.last()
+        if not alert:
+            return {}
+
         return AlertGroupWebRenderer(obj).render()
 
     def get_last_alert_at(self, obj):
