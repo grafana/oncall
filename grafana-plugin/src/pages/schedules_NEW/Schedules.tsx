@@ -8,16 +8,20 @@ import { observer } from 'mobx-react';
 
 import NewScheduleSelector from 'components/NewScheduleSelector/NewScheduleSelector';
 import PluginLink from 'components/PluginLink/PluginLink';
+import ScheduleFinal from 'components/Rotations/ScheduleFinal';
 import ScheduleCounter from 'components/ScheduleCounter/ScheduleCounter';
 import SchedulesFilters from 'components/SchedulesFilters_NEW/SchedulesFilters';
 import { SchedulesFiltersType } from 'components/SchedulesFilters_NEW/SchedulesFilters.types';
 import Table from 'components/Table/Table';
 import Text from 'components/Text/Text';
 import TimelineMarks from 'components/TimelineMarks/TimelineMarks';
+import UserTimezoneSelect from 'components/UserTimezoneSelect/UserTimezoneSelect';
 import WithConfirm from 'components/WithConfirm/WithConfirm';
 import Rotation from 'containers/Rotation/Rotation';
 import { Schedule, ScheduleType } from 'models/schedule/schedule.types';
 import { getTzOffsetString } from 'models/timezone/timezone.helpers';
+import { Timezone } from 'models/timezone/timezone.types';
+import { getStartOfWeek } from 'pages/schedule/Schedule.helpers';
 import { WithStoreProps } from 'state/types';
 import { withMobXProviderContext } from 'state/withStore';
 
@@ -35,12 +39,16 @@ interface SchedulesPageState {
 
 @observer
 class SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageState> {
-  state: SchedulesPageState = {
-    startMoment: dayjs().utc().startOf('week'),
-    // schedules: getRandomSchedules(),
-    filters: { searchTerm: '', status: 'all', type: 'all' },
-    showNewScheduleSelector: false,
-  };
+  constructor(props: SchedulesPageProps) {
+    super(props);
+
+    const { store } = this.props;
+    this.state = {
+      startMoment: getStartOfWeek(store.currentTimezone),
+      filters: { searchTerm: '', status: 'all', type: 'all' },
+      showNewScheduleSelector: false,
+    };
+  }
 
   async componentDidMount() {
     const { store } = this.props;
@@ -96,7 +104,9 @@ class SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSta
       },
     ];
 
-    const moment = dayjs();
+    const moment = dayjs().tz(store.currentTimezone);
+
+    const users = store.userStore.getSearchResult().results;
 
     return (
       <>
@@ -105,13 +115,14 @@ class SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSta
             <HorizontalGroup justify="space-between">
               <SchedulesFilters value={filters} onChange={this.handleSchedulesFiltersChange} />
               <HorizontalGroup spacing="lg">
-                <HorizontalGroup>
-                  <Text type="secondary">Timezone:</Text>
-                  <Text type="primary">
-                    {getTzOffsetString(moment)} ({dayjs.tz.guess()})
-                  </Text>
-                </HorizontalGroup>
-                <Button variant="primary" onClick={this.handleCreateScheduleClick}>
+                {users && (
+                  <UserTimezoneSelect
+                    value={store.currentTimezone}
+                    users={users}
+                    onChange={this.handleTimezoneChange}
+                  />
+                )}
+                <Button size="sm" variant="primary" onClick={this.handleCreateScheduleClick}>
                   + New schedule
                 </Button>
               </HorizontalGroup>
@@ -142,6 +153,14 @@ class SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSta
     );
   }
 
+  handleTimezoneChange = (value: Timezone) => {
+    const { store } = this.props;
+
+    store.currentTimezone = value;
+
+    this.setState({ startMoment: getStartOfWeek(value) });
+  };
+
   handleCreateScheduleClick = () => {
     this.setState({ showNewScheduleSelector: true });
   };
@@ -154,14 +173,20 @@ class SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSta
     }
   };
 
-  renderSchedule = () => {
+  renderSchedule = (data: Schedule) => {
     const { startMoment } = this.state;
+    const { store } = this.props;
 
     return (
       <div className={cx('schedule')}>
         <TimelineMarks startMoment={startMoment} />
         <div className={cx('rotations')}>
-          <Rotation startMoment={startMoment} id={`${1}-${2}`} layerIndex={1} rotationIndex={2} />
+          <ScheduleFinal
+            hideHeader
+            scheduleId={data.id}
+            currentTimezone={store.currentTimezone}
+            startMoment={startMoment}
+          />
         </div>
       </div>
     );

@@ -115,8 +115,8 @@ class Rotations extends Component<RotationsProps, RotationsState> {
             onHide={() => {
               this.setState({ layerIdToCreateRotation: undefined });
             }}
-            onUpdate={onCreate}
-            onCreate={onUpdate}
+            onUpdate={onUpdate}
+            onCreate={onCreate}
           />
         )}
       </>

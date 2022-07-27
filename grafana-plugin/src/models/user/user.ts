@@ -54,7 +54,7 @@ export class UserStore extends BaseStore {
 
     this.items = {
       ...this.items,
-      [user.pk]: user,
+      [user.pk]: { ...user, timezone: this.rootStore.currentTimezone },
     };
 
     this.currentUserPk = user.pk;
@@ -108,6 +108,7 @@ export class UserStore extends BaseStore {
               'Maxim Mordasov': 'Europe/Moscow',
               'Vadim Stepanov': 'Europe/London',
               'Ildar Iskhakov': 'Asia/Yerevan',
+              'Raphael Batyrbaev': 'Europe/Rome',
               'Innokentii Konstantinov': 'Asia/Singapore',
               /* 'Matvey Kukuy',*/
             }[item.username],

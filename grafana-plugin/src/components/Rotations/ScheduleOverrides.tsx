@@ -68,8 +68,8 @@ class ScheduleOverrides extends Component<ScheduleOverridesProps, ScheduleOverri
             onHide={() => {
               this.setState({ showAddOverrideForm: false });
             }}
-            onUpdate={onCreate}
-            onCreate={onUpdate}
+            onUpdate={onUpdate}
+            onCreate={onCreate}
           />
         )}
       </>

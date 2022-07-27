@@ -24,14 +24,14 @@ const UserTimezoneSelect: FC<UserTimezoneSelectProps> = (props) => {
 
   const options = useMemo(() => {
     return users.reduce((memo, user) => {
-      let item = memo.find((item) => item.label === user.tz);
+      let item = memo.find((item) => item.label === user.timezone);
 
       if (!item) {
         item = {
           value: user.pk,
-          label: `${user.tz} ${getTzOffsetString(dayjs().tz(user.tz))}`,
+          label: `${user.timezone} ${getTzOffsetString(dayjs().tz(user.timezone))}`,
           imgUrl: user.avatar,
-          description: user.name,
+          description: user.username,
         };
         memo.push(item);
       } else {
@@ -44,7 +44,7 @@ const UserTimezoneSelect: FC<UserTimezoneSelectProps> = (props) => {
   }, [users]);
 
   const selectValue = useMemo(() => {
-    const user = users.find((user) => user.tz === value);
+    const user = users.find((user) => user.timezone === value);
     return user.pk;
   }, [value, users]);
 
@@ -52,7 +52,7 @@ const UserTimezoneSelect: FC<UserTimezoneSelectProps> = (props) => {
     ({ value }) => {
       const user = users.find((user) => user.pk === value);
 
-      onChange(user.tz);
+      onChange(user.timezone);
     },
     [users]
   );

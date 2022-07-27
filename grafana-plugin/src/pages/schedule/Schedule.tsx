@@ -35,21 +35,22 @@ interface SchedulePageState {
   startMoment: dayjs.Dayjs;
   schedulePeriodType: string;
   renderType: string;
-  users: User[];
-  currentTimezone: Timezone;
 }
 
 const INITIAL_TIMEZONE = 'UTC'; // todo check why doesn't work
 
 @observer
 class SchedulePage extends React.Component<SchedulePageProps, SchedulePageState> {
-  state: SchedulePageState = {
-    startMoment: getStartOfWeek(INITIAL_TIMEZONE),
-    schedulePeriodType: 'week',
-    renderType: 'timeline',
-    users: getRandomUsers(),
-    currentTimezone: INITIAL_TIMEZONE,
-  };
+  constructor(props: SchedulePageProps) {
+    super(props);
+
+    const { store } = this.props;
+    this.state = {
+      startMoment: getStartOfWeek(store.currentTimezone),
+      schedulePeriodType: 'week',
+      renderType: 'timeline',
+    };
+  }
 
   async componentDidMount() {
     const { store } = this.props;
@@ -71,11 +72,13 @@ class SchedulePage extends React.Component<SchedulePageProps, SchedulePageState>
 
   render() {
     const { store } = this.props;
-    const { startMoment, schedulePeriodType, renderType, users, currentTimezone } = this.state;
+    const { startMoment, schedulePeriodType, renderType } = this.state;
     const { query } = this.props;
     const { id: scheduleId } = query;
 
-    const { scheduleStore } = store;
+    const users = store.userStore.getSearchResult().results;
+
+    const { scheduleStore, currentTimezone } = store;
 
     const schedule = scheduleStore.items[scheduleId];
 
@@ -111,7 +114,9 @@ class SchedulePage extends React.Component<SchedulePageProps, SchedulePageState>
                 />
               </HorizontalGroup>
               <HorizontalGroup>
-                <UserTimezoneSelect value={currentTimezone} users={users} onChange={this.handleTimezoneChange} />
+                {users && (
+                  <UserTimezoneSelect value={currentTimezone} users={users} onChange={this.handleTimezoneChange} />
+                )}
                 <ScheduleQuality quality={0.89} />
                 <ToolbarButton icon="copy" tooltip="Copy" />
                 <ToolbarButton icon="brackets-curly" tooltip="Code" />
@@ -203,7 +208,7 @@ class SchedulePage extends React.Component<SchedulePageProps, SchedulePageState>
 
     const { startMoment } = this.state;
 
-    //debugger;
+    // debugger;
 
     store.scheduleStore.updateEvents(scheduleId, startMoment.format('YYYY-MM-DD'));
   };
@@ -221,7 +226,11 @@ class SchedulePage extends React.Component<SchedulePageProps, SchedulePageState>
   };
 
   handleTimezoneChange = (value: Timezone) => {
-    this.setState({ currentTimezone: value, startMoment: getStartOfWeek(value) });
+    const { store } = this.props;
+
+    store.currentTimezone = value;
+
+    this.setState({ startMoment: getStartOfWeek(value) });
   };
 
   handleShedulePeriodTypeChange = (value: string) => {
@@ -233,9 +242,9 @@ class SchedulePage extends React.Component<SchedulePageProps, SchedulePageState>
   };
 
   handleTodayClick = () => {
-    const { currentTimezone } = this.state;
+    const { store } = this.props;
 
-    this.setState({ startMoment: getStartOfWeek(currentTimezone) });
+    this.setState({ startMoment: getStartOfWeek(store.currentTimezone) });
   };
 
   handleLeftClick = () => {

@@ -72,7 +72,7 @@ const Rotation: FC<RotationProps> = observer((props) => {
   }, []);
 
   const x = useMemo(() => {
-    if (!events) {
+    if (!events || !events.length) {
       return 0;
     }
 
@@ -93,26 +93,28 @@ const Rotation: FC<RotationProps> = observer((props) => {
       {/* <div className={cx('current-time')} />*/}
       <div className={cx('timeline')}>
         {events ? (
-          <div
-            className={cx('slots', { slots__animate: animate, slots__transparent: transparent })}
-            style={{ transform: `translate(${x * 100}%, 0)` }}
-            ref={slots}
-          >
-            {events.map((event, index) => {
-              return (
-                <ScheduleSlot
-                  index={index}
-                  key={event.start}
-                  event={event}
-                  layerIndex={layerIndex}
-                  rotationIndex={rotationIndex}
-                  startMoment={startMoment}
-                  currentTimezone={currentTimezone}
-                  color={color}
-                />
-              );
-            })}
-          </div>
+          events.length ? (
+            <div
+              className={cx('slots', { slots__animate: animate, slots__transparent: transparent })}
+              style={{ transform: `translate(${x * 100}%, 0)` }}
+              ref={slots}
+            >
+              {events.map((event, index) => {
+                return (
+                  <ScheduleSlot
+                    index={index}
+                    key={event.start}
+                    event={event}
+                    layerIndex={layerIndex}
+                    rotationIndex={rotationIndex}
+                    startMoment={startMoment}
+                    currentTimezone={currentTimezone}
+                    color={color}
+                  />
+                );
+              })}
+            </div>
+          ) : null
         ) : (
           <HorizontalGroup align="center" justify="center">
             <LoadingPlaceholder text="Loading shifts..." />

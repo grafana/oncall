@@ -89,9 +89,12 @@ const RotationForm: FC<RotationFormProps> = (props) => {
         shift_end: getUTCString(shiftEnd),
         rolling_users: userGroups,
         frequency: repeatEveryValue,
-        by_day: selectedDays,
+        by_day: repeatEveryPeriod === 1 ? selectedDays : null,
       })
-      .then(onUpdate);
+      .then(() => {
+        onHide();
+        onCreate();
+      });
   }, [
     repeatEveryValue,
     repeatEveryPeriod,
@@ -168,7 +171,7 @@ const RotationForm: FC<RotationFormProps> = (props) => {
               />
             </Field>
           </HorizontalGroup>
-          {repeatEveryPeriod === 0 && (
+          {repeatEveryPeriod === 1 && (
             /*<HorizontalGroup justify="center">*/
             <Field label="Select days to repeat">
               <DaysSelector

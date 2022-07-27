@@ -65,10 +65,13 @@ const ScheduleOverrideForm: FC<RotationFormProps> = (props) => {
         rotation_start: getUTCString(shiftStart),
         shift_start: getUTCString(shiftStart),
         shift_end: getUTCString(shiftEnd),
-        rolling_users: userGroups[0],
+        rolling_users: userGroups,
         frequency: null,
       })
-      .then(onUpdate);
+      .then(() => {
+        onHide();
+        onCreate();
+      });
   }, [shiftStart, shiftEnd, userGroups]);
 
   const moment = dayjs();

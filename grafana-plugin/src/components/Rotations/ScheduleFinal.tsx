@@ -18,22 +18,35 @@ import styles from './Rotations.module.css';
 
 const cx = cn.bind(styles);
 
-interface ScheduleOverridesProps extends WithStoreProps {
+interface ScheduleFinalProps extends WithStoreProps {
   startMoment: dayjs.Dayjs;
   currentTimezone: Timezone;
   scheduleId: Schedule['id'];
+  hideHeader?: boolean;
 }
 
 interface ScheduleOverridesState {}
 
 @observer
-class ScheduleOverrides extends Component<ScheduleOverridesProps, ScheduleOverridesState> {
+class ScheduleFinal extends Component<ScheduleFinalProps, ScheduleOverridesState> {
   state: ScheduleOverridesState = {};
 
   componentDidMount() {
-    const { store, scheduleId, startMoment, currentTimezone } = this.props;
+    this.updateEvents();
+  }
 
-    const {} = this.props;
+  componentDidUpdate(
+    prevProps: Readonly<ScheduleFinalProps>,
+    prevState: Readonly<ScheduleOverridesState>,
+    snapshot?: any
+  ) {
+    if (this.props.startMoment !== prevProps.startMoment) {
+      this.updateEvents();
+    }
+  }
+
+  updateEvents() {
+    const { store, scheduleId, startMoment, currentTimezone } = this.props;
 
     const startMomentString = startMoment.utc().format('YYYY-MM-DD');
 
@@ -41,7 +54,7 @@ class ScheduleOverrides extends Component<ScheduleOverridesProps, ScheduleOverri
   }
 
   render() {
-    const { scheduleId, startMoment, currentTimezone, store } = this.props;
+    const { scheduleId, startMoment, currentTimezone, store, hideHeader } = this.props;
     const { showAddOverrideForm, searchTerm } = this.state;
 
     const base = 7 * 24 * 60; // in minutes
@@ -52,17 +65,19 @@ class ScheduleOverrides extends Component<ScheduleOverridesProps, ScheduleOverri
     return (
       <>
         <div className={cx('root')}>
-          <div className={cx('header')}>
-            <HorizontalGroup justify="space-between">
-              <div className={cx('title')}>Final schedule</div>
-              <Input
-                prefix={<Icon name="search" />}
-                placeholder="Search..."
-                value={searchTerm}
-                onChange={this.onSearchTermChangeCallback}
-              />
-            </HorizontalGroup>
-          </div>
+          {!hideHeader && (
+            <div className={cx('header')}>
+              <HorizontalGroup justify="space-between">
+                <div className={cx('title')}>Final schedule</div>
+                <Input
+                  prefix={<Icon name="search" />}
+                  placeholder="Search..."
+                  value={searchTerm}
+                  onChange={this.onSearchTermChangeCallback}
+                />
+              </HorizontalGroup>
+            </div>
+          )}
           <div className={cx('header-plus-content')}>
             <div className={cx('current-time')} style={{ left: `${currentTimeX * 100}%` }} />
             <TimelineMarks startMoment={startMoment} />
@@ -85,4 +100,4 @@ class ScheduleOverrides extends Component<ScheduleOverridesProps, ScheduleOverri
   onSearchTermChangeCallback = () => {};
 }
 
-export default withMobXProviderContext(ScheduleOverrides);
+export default withMobXProviderContext(ScheduleFinal);
