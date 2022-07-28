@@ -38,6 +38,10 @@ from common.api_helpers.mixins import (
 )
 from common.api_helpers.utils import create_engine_url
 
+EVENTS_FILTER_BY_ROTATION = "rotation"
+EVENTS_FILTER_BY_OVERRIDE = "override"
+EVENTS_FILTER_BY_FINAL = "final"
+
 
 class ScheduleView(
     PublicPrimaryKeyMixin, ShortSerializerMixin, CreateSerializerMixin, UpdateSerializerMixin, ModelViewSet
@@ -190,9 +194,10 @@ class ScheduleView(
 
         return user_tz, date
 
-    def _filter_events(self, schedule, timezone, starting_date, days, with_empty, with_gap):
+    def _filter_events(self, schedule, user_timezone, starting_date, days, with_empty, with_gap):
         shifts = (
-            list_of_oncall_shifts_from_ical(schedule, starting_date, timezone, with_empty, with_gap, days=days) or []
+            list_of_oncall_shifts_from_ical(schedule, starting_date, user_timezone, with_empty, with_gap, days=days)
+            or []
         )
         events = []
         # for start, end, users, priority_level, source in shifts:
@@ -256,8 +261,12 @@ class ScheduleView(
     @action(detail=True, methods=["get"])
     def filter_events(self, request, pk):
         user_tz, date = self.get_request_timezone()
-        with_empty = self.request.query_params.get("with_empty", False) == "true"
-        with_gap = self.request.query_params.get("with_gap", False) == "true"
+        filter_by = self.request.query_params.get("type")
+
+        valid_filters = (EVENTS_FILTER_BY_ROTATION, EVENTS_FILTER_BY_OVERRIDE, EVENTS_FILTER_BY_FINAL)
+        if filter_by is not None and filter_by not in valid_filters:
+            raise BadRequest(detail="Invalid type value")
+        resolve_schedule = filter_by is None or filter_by == EVENTS_FILTER_BY_FINAL
 
         starting_date = date if self.request.query_params.get("date") else None
         if starting_date is None:
@@ -271,8 +280,15 @@ class ScheduleView(
 
         schedule = self.original_get_object()
         events = self._filter_events(
-            schedule, user_tz, starting_date, days=days, with_empty=with_empty, with_gap=with_gap
+            schedule, user_tz, starting_date, days=days, with_empty=True, with_gap=resolve_schedule
         )
+
+        if filter_by == EVENTS_FILTER_BY_OVERRIDE:
+            events = [e for e in events if e["calendar_type"] == OnCallSchedule.OVERRIDES]
+        elif filter_by == EVENTS_FILTER_BY_ROTATION:
+            events = [e for e in events if e["calendar_type"] == OnCallSchedule.PRIMARY]
+        else:  # resolve_schedule
+            events = self._resolve_schedule(events)
 
         result = {
             "id": schedule.public_primary_key,
@@ -281,6 +297,103 @@ class ScheduleView(
             "events": events,
         }
         return Response(result, status=status.HTTP_200_OK)
+
+    def _resolve_schedule(self, events):
+        """Calculate final schedule shifts considering rotations and overrides."""
+        if not events:
+            return []
+
+        # sort schedule events by (type desc, priority desc, start timestamp asc)
+        events.sort(
+            key=lambda e: (
+                -e["calendar_type"] if e["calendar_type"] else 0,  # overrides: 1, shifts: 0, gaps: None
+                -e["priority_level"] if e["priority_level"] else 0,
+                e["start"],
+            )
+        )
+
+        def _merge_intervals(evs):
+            """Keep track of scheduled intervals."""
+            if not evs:
+                return []
+            intervals = [[e["start"], e["end"]] for e in evs]
+            result = [intervals[0]]
+            for interval in intervals[1:]:
+                previous_interval = result[-1]
+                if previous_interval[0] <= interval[0] <= previous_interval[1]:
+                    previous_interval[1] = max(previous_interval[1], interval[1])
+                else:
+                    result.append(interval)
+            return result
+
+        # iterate over events, reserving schedule slots based on their priority
+        # if the expected slot was already scheduled for a higher priority event,
+        # split the event, or fix start/end timestamps accordingly
+
+        # include overrides from start
+        resolved = [e for e in events if e["calendar_type"] == OnCallSchedule.TYPE_ICAL_OVERRIDES]
+        intervals = _merge_intervals(resolved)
+
+        pending = events[len(resolved) :]
+        if not pending:
+            return resolved
+
+        current_event_idx = 0  # current event to resolve
+        current_interval_idx = 0  # current scheduled interval being checked
+        current_priority = pending[0]["priority_level"]  # current priority level being resolved
+
+        while current_event_idx < len(pending):
+            ev = pending[current_event_idx]
+
+            if ev["priority_level"] != current_priority:
+                # update scheduled intervals on priority change
+                # and start from the beginning for the new priority level
+                resolved.sort(key=lambda e: e["start"])
+                intervals = _merge_intervals(resolved)
+                current_interval_idx = 0
+                current_priority = ev["priority_level"]
+
+            if current_interval_idx >= len(intervals):
+                # event outside scheduled intervals, add to resolved
+                resolved.append(ev)
+                current_event_idx += 1
+            elif ev["start"] < intervals[current_interval_idx][0] and ev["end"] <= intervals[current_interval_idx][0]:
+                # event starts and ends outside an already scheduled interval, add to resolved
+                resolved.append(ev)
+                current_event_idx += 1
+            elif ev["start"] < intervals[current_interval_idx][0] and ev["end"] > intervals[current_interval_idx][0]:
+                # event starts outside interval but overlaps with an already scheduled interval
+                # 1. add a split event copy to schedule the time before the already scheduled interval
+                to_add = ev.copy()
+                to_add["end"] = intervals[current_interval_idx][0]
+                resolved.append(to_add)
+                # 2. check if there is still time to be scheduled after the current scheduled interval ends
+                if ev["end"] > intervals[current_interval_idx][1]:
+                    # event ends after current interval, update event start timestamp to match the interval end
+                    # and process the updated event as any other event
+                    ev["start"] = intervals[current_interval_idx][1]
+                else:
+                    # done, go to next event
+                    current_event_idx += 1
+            elif ev["start"] >= intervals[current_interval_idx][0] and ev["end"] <= intervals[current_interval_idx][1]:
+                # event inside an already scheduled interval, ignore (go to next)
+                current_event_idx += 1
+            elif (
+                ev["start"] >= intervals[current_interval_idx][0]
+                and ev["start"] < intervals[current_interval_idx][1]
+                and ev["end"] > intervals[current_interval_idx][1]
+            ):
+                # event starts inside a scheduled interval but ends out of it
+                # update the event start timestamp to match the interval end
+                ev["start"] = intervals[current_interval_idx][1]
+                # move to next interval and process the updated event as any other event
+                current_interval_idx += 1
+            elif ev["start"] >= intervals[current_interval_idx][1]:
+                # event starts after the current interval, move to next interval and go through it
+                current_interval_idx += 1
+
+        resolved.sort(key=lambda e: e["start"])
+        return resolved
 
     @action(detail=False, methods=["get"])
     def type_options(self, request):

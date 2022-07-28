@@ -17,6 +17,7 @@ from .views.gitops import TerraformGitOpsView, TerraformStateView
 from .views.integration_heartbeat import IntegrationHeartBeatView
 from .views.live_setting import LiveSettingViewSet
 from .views.maintenance import MaintenanceAPIView, MaintenanceStartAPIView, MaintenanceStopAPIView
+from .views.on_call_shifts import OnCallShiftView
 from .views.organization import (
     CurrentOrganizationView,
     GetChannelVerificationCode,
@@ -38,6 +39,7 @@ from .views.slack_team_settings import (
 from .views.subscription import SubscriptionView
 from .views.team import TeamViewSet
 from .views.telegram_channels import TelegramChannelViewSet
+from .views.test_insight_logs import TestInsightLogsAPIView
 from .views.user import CurrentUserView, UserView
 from .views.user_group import UserGroupViewSet
 
@@ -65,6 +67,7 @@ router.register(r"heartbeats", IntegrationHeartBeatView, basename="integration_h
 router.register(r"organization_logs", OrganizationLogRecordView, basename="organization_log")
 router.register(r"tokens", PublicApiTokenView, basename="api_token")
 router.register(r"live_settings", LiveSettingViewSet, basename="live_settings")
+router.register(r"oncall_shifts", OnCallShiftView, basename="oncall_shifts")
 
 if settings.MOBILE_APP_PUSH_NOTIFICATIONS_ENABLED:
     router.register(r"device/apns", APNSDeviceAuthorizedViewSet)
@@ -106,6 +109,7 @@ urlpatterns = [
         "preview_template_options", PreviewTemplateOptionsView.as_view(), name="preview_template_options"
     ),
     optional_slash_path("route_regex_debugger", RouteRegexDebuggerView.as_view(), name="route_regex_debugger"),
+    optional_slash_path("insight_logs_test", TestInsightLogsAPIView.as_view(), name="insight-logs-test"),
 ]
 
 urlpatterns += [

@@ -8,7 +8,6 @@ from django.db.models.signals import post_save
 from django.dispatch import receiver
 from emoji import demojize
 
-from apps.alerts.tasks import invalidate_web_cache_for_alert_group
 from apps.schedules.tasks import drop_cached_ical_for_custom_events_for_organization
 from common.constants.role import Role
 from common.public_primary_keys import generate_public_primary_key, increase_public_primary_key_length
@@ -255,14 +254,6 @@ class User(models.Model):
 # TODO: check whether this signal can be moved to save method of the model
 @receiver(post_save, sender=User)
 def listen_for_user_model_save(sender, instance, created, *args, **kwargs):
-    # if kwargs is not None:
-    #     if "update_fields" in kwargs:
-    #         if kwargs["update_fields"] is not None:
-    #             if "username" not in kwargs["update_fields"]:
-    #                 return
-
     drop_cached_ical_for_custom_events_for_organization.apply_async(
         (instance.organization_id,),
     )
-    logger.info(f"Drop AG cache. Reason: save user {instance.pk}")
-    invalidate_web_cache_for_alert_group.apply_async(kwargs={"org_pk": instance.organization_id})

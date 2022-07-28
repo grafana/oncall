@@ -3,22 +3,15 @@ import time
 from rest_framework import fields, serializers
 
 from apps.schedules.models import CustomOnCallShift
-from apps.schedules.tasks import (
-    drop_cached_ical_task,
-    schedule_notify_about_empty_shifts_in_schedule,
-    schedule_notify_about_gaps_in_schedule,
-)
 from apps.user_management.models import User
-from common.api_helpers.custom_fields import TeamPrimaryKeyRelatedField, UsersFilteredByOrganizationField
+from common.api_helpers.custom_fields import (
+    RollingUsersField,
+    TeamPrimaryKeyRelatedField,
+    UsersFilteredByOrganizationField,
+)
 from common.api_helpers.exceptions import BadRequest
 from common.api_helpers.mixins import EagerLoadingMixin
 from common.api_helpers.utils import CurrentOrganizationDefault
-
-
-class RollingUsersField(serializers.ListField):
-    def to_representation(self, value):
-        result = [list(d.values()) for d in value]
-        return result
 
 
 class CustomOnCallShiftTypeField(fields.CharField):
@@ -90,6 +83,7 @@ class CustomOnCallShiftSerializer(EagerLoadingMixin, serializers.ModelSerializer
         required=False,
         child=UsersFilteredByOrganizationField(queryset=User.objects, required=False, allow_null=True),
     )
+    rotation_start = serializers.DateTimeField(required=False)
 
     class Meta:
         model = CustomOnCallShift
@@ -103,6 +97,7 @@ class CustomOnCallShiftSerializer(EagerLoadingMixin, serializers.ModelSerializer
             "level",
             "start",
             "duration",
+            "rotation_start",
             "frequency",
             "interval",
             "until",
@@ -137,7 +132,11 @@ class CustomOnCallShiftSerializer(EagerLoadingMixin, serializers.ModelSerializer
             validated_data.get("by_day"),
             validated_data.get("by_monthday"),
         )
+        if not validated_data.get("rotation_start"):
+            validated_data["rotation_start"] = validated_data["start"]
         instance = super().create(validated_data)
+        for schedule in instance.schedules.all():
+            instance.start_drop_ical_and_check_schedule_tasks(schedule)
         return instance
 
     def validate_name(self, name):
@@ -227,6 +226,9 @@ class CustomOnCallShiftSerializer(EagerLoadingMixin, serializers.ModelSerializer
     def _validate_until(self, until):
         self._validate_date_format(until)
 
+    def _validate_rotation_start(self, rotation_start):
+        self._validate_date_format(rotation_start)
+
     def to_internal_value(self, data):
         if data.get("users", []) is None:  # terraform case
             data["users"] = []
@@ -236,6 +238,8 @@ class CustomOnCallShiftSerializer(EagerLoadingMixin, serializers.ModelSerializer
             data["source"] = CustomOnCallShift.SOURCE_API
         if data.get("start") is not None:
             self._validate_start(data["start"])
+        if data.get("rotation_start") is not None:
+            self._validate_rotation_start(data["rotation_start"])
         if data.get("until") is not None:
             self._validate_until(data["until"])
         result = super().to_internal_value(data)
@@ -245,6 +249,7 @@ class CustomOnCallShiftSerializer(EagerLoadingMixin, serializers.ModelSerializer
         result = super().to_representation(instance)
         result["duration"] = int(instance.duration.total_seconds())
         result["start"] = instance.start.strftime("%Y-%m-%dT%H:%M:%S")
+        result["rotation_start"] = instance.rotation_start.strftime("%Y-%m-%dT%H:%M:%S")
         if instance.until is not None:
             result["until"] = instance.until.strftime("%Y-%m-%dT%H:%M:%S")
         result = self._get_fields_to_represent(instance, result)
@@ -310,6 +315,7 @@ class CustomOnCallShiftSerializer(EagerLoadingMixin, serializers.ModelSerializer
                 "by_monthday",
                 "rolling_users",
                 "start_rotation_from_user_index",
+                "until",
             ],
         }
         for field in fields_to_update_map[event_type]:
@@ -335,6 +341,7 @@ class CustomOnCallShiftUpdateSerializer(CustomOnCallShiftSerializer):
     duration = serializers.DurationField(required=False)
     name = serializers.CharField(required=False)
     start = serializers.DateTimeField(required=False)
+    rotation_start = serializers.DateTimeField(required=False)
     team_id = TeamPrimaryKeyRelatedField(read_only=True, source="team")
 
     def update(self, instance, validated_data):
@@ -356,9 +363,5 @@ class CustomOnCallShiftUpdateSerializer(CustomOnCallShiftSerializer):
         validated_data = self._correct_validated_data(event_type, validated_data)
         result = super().update(instance, validated_data)
         for schedule in instance.schedules.all():
-            drop_cached_ical_task.apply_async(
-                (schedule.pk,),
-            )
-            schedule_notify_about_empty_shifts_in_schedule.apply_async((instance.pk,))
-            schedule_notify_about_gaps_in_schedule.apply_async((instance.pk,))
+            instance.start_drop_ical_and_check_schedule_tasks(schedule)
         return result

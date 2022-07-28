@@ -247,10 +247,6 @@ class UpdateAppearanceStep(scenario_step.ScenarioStep):
                     if new_value is None and old_value is not None:
                         setattr(alert_receive_channel, attr_name, None)
                         alert_receive_channel.save()
-                        # Drop caches for current alert group
-                        if notification_channel == "web":
-                            setattr(alert_group, f"cached_render_for_web_{templatizable_attr}", None)
-                        alert_group.save()
                     elif new_value is not None:
                         default_values = getattr(
                             AlertReceiveChannel,
@@ -265,18 +261,10 @@ class UpdateAppearanceStep(scenario_step.ScenarioStep):
                                 jinja_template_env.from_string(new_value)
                                 setattr(alert_receive_channel, attr_name, new_value)
                                 alert_receive_channel.save()
-                                # Drop caches for current alert group
-                                if notification_channel == "web":
-                                    setattr(alert_group, f"cached_render_for_web_{templatizable_attr}", None)
-                                alert_group.save()
                             elif default_value is not None and new_value.strip() == default_value.strip():
                                 new_value = None
                                 setattr(alert_receive_channel, attr_name, new_value)
                                 alert_receive_channel.save()
-                                # Drop caches for current alert group
-                                if notification_channel == "web":
-                                    setattr(alert_group, f"cached_render_for_web_{templatizable_attr}", None)
-                                alert_group.save()
                         except TemplateSyntaxError:
                             return Response(
                                 {"response_action": "errors", "errors": {attr_name: "Template has incorrect format"}},
