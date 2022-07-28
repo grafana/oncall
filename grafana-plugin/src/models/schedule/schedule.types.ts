@@ -46,12 +46,20 @@ export interface CreateScheduleExportTokenResponse {
 }
 
 export interface Shift {
-  pk: string;
-  start: dayjs.Dayjs;
-  duration: number; // in seconds
-  users: Array<User['pk']>;
-  is_gap: boolean;
-  is_empty: boolean;
+  by_day: null;
+  frequency: number;
+  id: string;
+  interval: null;
+  priority_level: number;
+  rolling_users: Array<Array<User['pk']>>;
+  rotation_start: string;
+  schedule: Schedule['id'];
+  shift_end: string;
+  shift_start: string;
+  title: string;
+  type: 2;
+  until: null;
+  updated_shift: null;
 }
 
 export interface Rotation {

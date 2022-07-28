@@ -11,7 +11,7 @@ import { RootStore } from 'state';
 import { SelectOption } from 'state/types';
 
 import { fillGaps } from './schedule.helpers';
-import { Events, Rotation, RotationType, Schedule, ScheduleEvent } from './schedule.types';
+import { Events, Rotation, RotationType, Schedule, ScheduleEvent, Shift } from './schedule.types';
 
 const DEFAULT_FORMAT = 'YYYY-MM-DDTHH:mm:ss';
 
@@ -53,6 +53,9 @@ export class ScheduleStore extends BaseStore {
   items: { [id: string]: Schedule } = {};
 
   @observable.shallow
+  shifts: { [id: string]: Shift } = {};
+
+  @observable.shallow
   rotations: {
     [id: string]: {
       [startMoment: string]: Rotation;
@@ -63,7 +66,7 @@ export class ScheduleStore extends BaseStore {
   events: {
     [scheduleId: string]: {
       [type: string]: {
-        [startMoment: string]: Events['events'];
+        [startMoment: string]: Array<{ shiftId: string; events: Event[] }>;
       };
     };
   } = {};
@@ -234,13 +237,31 @@ export class ScheduleStore extends BaseStore {
   }
 
   async updateOncallShifts(scheduleId: Schedule['id']) {
-    return await makeRequest(`/oncall_shifts/`, {
+    const { results } = await makeRequest(`/oncall_shifts/`, {
       params: {
-        schedule: scheduleId,
+        schedule_id: scheduleId,
       },
       method: 'GET',
     });
+
+    this.shifts = {
+      ...this.shifts,
+      ...results.reduce(
+        (acc: { [key: number]: Shift }, item: Shift) => ({
+          ...acc,
+          [item.id]: item,
+        }),
+        {}
+      ),
+    };
   }
+
+  async deleteOncallShift(shiftId: Shift['id']) {
+    return await makeRequest(`/oncall_shifts/${shiftId}`, {
+      method: 'DELETE',
+    });
+  }
+
   async updateEvents(scheduleId: Schedule['id'], fromString: string, type: RotationType = 'rotation', days = 7) {
     const response = await makeRequest(`/schedules/${scheduleId}/filter_events/`, {
       params: {
@@ -253,19 +274,21 @@ export class ScheduleStore extends BaseStore {
 
     const events = type !== 'final' ? fillGaps(response.events) : response.events;
 
-    const shifts: { [key: string]: Event[] } = {};
+    const shifts: Array<{ shiftId: Shift['id']; events: Event[] }> = [];
 
     for (const [i, event] of response.events.entries()) {
       if (event.shift?.pk) {
-        if (!shifts[event.shift.pk]) {
-          shifts[event.shift.pk] = [];
+        let shift = shifts.find((shift) => shift.shiftId === event.shift?.pk);
+        if (!shift) {
+          shift = { shiftId: event.shift.pk, events: [] };
+          shifts.push(shift);
         }
-        shifts[event.shift.pk].push(event);
+        shift.events.push(event);
       }
     }
 
-    const shiftsArr = Object.keys(shifts).map((key) => {
-      return fillGaps(shifts[key]);
+    shifts.forEach((shift) => {
+      shift.events = fillGaps(shift.events);
     });
 
     console.log(type, shifts);
@@ -276,7 +299,7 @@ export class ScheduleStore extends BaseStore {
         ...this.events[scheduleId],
         [type]: {
           ...this.events[scheduleId]?.[type],
-          [fromString]: shiftsArr,
+          [fromString]: shifts,
         },
       },
     };

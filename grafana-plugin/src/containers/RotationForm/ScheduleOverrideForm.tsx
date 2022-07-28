@@ -19,7 +19,8 @@ import Draggable from 'react-draggable';
 import Modal from 'components/Modal/Modal';
 import Text from 'components/Text/Text';
 import UserGroups from 'components/UserGroups/UserGroups';
-import { Rotation, Schedule } from 'models/schedule/schedule.types';
+import WithConfirm from 'components/WithConfirm/WithConfirm';
+import { Rotation, Schedule, Shift } from 'models/schedule/schedule.types';
 import { getTzOffsetString } from 'models/timezone/timezone.helpers';
 import { Timezone } from 'models/timezone/timezone.types';
 import { User } from 'models/user/user.types';
@@ -32,7 +33,7 @@ import styles from './RotationForm.module.css';
 
 interface RotationFormProps {
   onHide: () => void;
-  id: number | 'new';
+  shiftId: Shift['id'] | 'new';
   currentTimezone: Timezone;
   scheduleId: Schedule['id'];
   onCreate: () => void;
@@ -42,7 +43,7 @@ interface RotationFormProps {
 const cx = cn.bind(styles);
 
 const ScheduleOverrideForm: FC<RotationFormProps> = (props) => {
-  const { onHide, onCreate, currentTimezone, scheduleId, onUpdate } = props;
+  const { onHide, onCreate, currentTimezone, scheduleId, onUpdate, shiftId } = props;
 
   const store = useStore();
 
@@ -62,10 +63,19 @@ const ScheduleOverrideForm: FC<RotationFormProps> = (props) => {
     };
   };
 
+  const shift = store.scheduleStore.shifts[shiftId];
+
+  const handleDeleteClick = useCallback(() => {
+    store.scheduleStore.deleteOncallShift(shiftId).then(() => {
+      onHide();
+      onUpdate();
+    });
+  }, []);
+
   const handleCreate = useCallback(() => {
     store.scheduleStore
       .createRotation(scheduleId, true, {
-        name: 'Rotation ' + Math.floor(Math.random() * 100),
+        title: 'Override ' + Math.floor(Math.random() * 100),
         rotation_start: getUTCString(shiftStart, currentTimezone),
         shift_start: getUTCString(shiftStart, currentTimezone),
         shift_end: getUTCString(shiftEnd, currentTimezone),
@@ -81,7 +91,6 @@ const ScheduleOverrideForm: FC<RotationFormProps> = (props) => {
   return (
     <Modal
       width="430px"
-      title="New Rotation"
       onDismiss={onHide}
       contentElement={(props, children) => (
         <Draggable handle=".drag-handler" positionOffset={{ x: 0, y: 0 }}>
@@ -91,11 +100,15 @@ const ScheduleOverrideForm: FC<RotationFormProps> = (props) => {
     >
       <VerticalGroup>
         <HorizontalGroup justify="space-between">
-          <Text size="medium">Rotation 1</Text>
+          <Text size="medium">{shiftId === 'new' ? 'New Override' : shift?.title}</Text>
           <HorizontalGroup>
-            <IconButton variant="secondary" tooltip="Copy" name="copy" />
-            <IconButton variant="secondary" tooltip="Code" name="brackets-curly" />
-            <IconButton variant="secondary" tooltip="Delete" name="trash-alt" />
+            <IconButton disabled variant="secondary" tooltip="Copy" name="copy" />
+            <IconButton disabled variant="secondary" tooltip="Code" name="brackets-curly" />
+            {shiftId !== 'new' && (
+              <WithConfirm>
+                <IconButton variant="secondary" tooltip="Delete" name="trash-alt" onClick={handleDeleteClick} />
+              </WithConfirm>
+            )}
             <IconButton variant="secondary" className={cx('drag-handler')} name="draggabledots" />
           </HorizontalGroup>
         </HorizontalGroup>

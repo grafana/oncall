@@ -19,8 +19,9 @@ import Draggable from 'react-draggable';
 import Modal from 'components/Modal/Modal';
 import Text from 'components/Text/Text';
 import UserGroups from 'components/UserGroups/UserGroups';
+import WithConfirm from 'components/WithConfirm/WithConfirm';
 import RemoteSelect from 'containers/RemoteSelect/RemoteSelect';
-import { Rotation, Schedule } from 'models/schedule/schedule.types';
+import { Rotation, Schedule, Shift } from 'models/schedule/schedule.types';
 import { getTzOffsetString } from 'models/timezone/timezone.helpers';
 import { Timezone } from 'models/timezone/timezone.types';
 import { User } from 'models/user/user.types';
@@ -33,11 +34,11 @@ import { RotationCreateData } from './RotationForm.types';
 import styles from './RotationForm.module.css';
 
 interface RotationFormProps {
-  layerId: string;
+  layerIndex: number;
   onHide: () => void;
-  id: number | 'new';
   currentTimezone: Timezone;
   scheduleId: Schedule['id'];
+  shiftId: Shift['id'] | 'new';
   onCreate: () => void;
   onUpdate: () => void;
 }
@@ -45,7 +46,7 @@ interface RotationFormProps {
 const cx = cn.bind(styles);
 
 const RotationForm: FC<RotationFormProps> = (props) => {
-  const { onHide, onCreate, currentTimezone, scheduleId, onUpdate, layerIndex } = props;
+  const { onHide, onCreate, currentTimezone, scheduleId, onUpdate, layerIndex, shiftId } = props;
 
   const [repeatEveryValue, setRepeatEveryValue] = useState<number>(1);
   const [repeatEveryPeriod, setRepeatEveryPeriod] = useState<number>(0);
@@ -65,7 +66,16 @@ const RotationForm: FC<RotationFormProps> = (props) => {
     };
   };
 
+  const handleDeleteClick = useCallback(() => {
+    store.scheduleStore.deleteOncallShift(shiftId).then(() => {
+      onHide();
+      onUpdate();
+    });
+  }, []);
+
   const store = useStore();
+
+  const shift = store.scheduleStore.shifts[shiftId];
 
   const handleCreate = useCallback(() => {
     /* console.log(
@@ -81,7 +91,7 @@ const RotationForm: FC<RotationFormProps> = (props) => {
     */
 
     const params = {
-      name: 'Rotation ' + Math.floor(Math.random() * 100),
+      title: 'Rotation ' + Math.floor(Math.random() * 100),
       rotation_start: getUTCString(rotationStart, currentTimezone),
       until: endLess ? null : getUTCString(rotationEnd, currentTimezone),
       shift_start: getUTCString(shiftStart, currentTimezone),
@@ -92,9 +102,7 @@ const RotationForm: FC<RotationFormProps> = (props) => {
       priority_level: layerIndex + 1,
     };
 
-    console.log('params', params);
-
-    return;
+    // console.log('params', params);
 
     store.scheduleStore.createRotation(scheduleId, false, params).then(() => {
       onHide();
@@ -133,7 +141,6 @@ const RotationForm: FC<RotationFormProps> = (props) => {
   return (
     <Modal
       width="430px"
-      title="New Rotation"
       onDismiss={onHide}
       contentElement={(props, children) => (
         <Draggable handle=".drag-handler" positionOffset={{ x: 0, y: 0 }}>
@@ -143,11 +150,15 @@ const RotationForm: FC<RotationFormProps> = (props) => {
     >
       <VerticalGroup>
         <HorizontalGroup justify="space-between">
-          <Text size="medium">Rotation 1</Text>
+          <Text size="medium">{shiftId === 'new' ? 'New Rotation' : shift?.title}</Text>
           <HorizontalGroup>
-            <IconButton variant="secondary" tooltip="Copy" name="copy" />
-            <IconButton variant="secondary" tooltip="Code" name="brackets-curly" />
-            <IconButton variant="secondary" tooltip="Delete" name="trash-alt" />
+            <IconButton disabled variant="secondary" tooltip="Copy" name="copy" />
+            <IconButton disabled variant="secondary" tooltip="Code" name="brackets-curly" />
+            {shiftId !== 'new' && (
+              <WithConfirm>
+                <IconButton variant="secondary" tooltip="Delete" name="trash-alt" onClick={handleDeleteClick} />
+              </WithConfirm>
+            )}
             <IconButton variant="secondary" className={cx('drag-handler')} name="draggabledots" />
           </HorizontalGroup>
         </HorizontalGroup>
@@ -262,8 +273,6 @@ const RotationForm: FC<RotationFormProps> = (props) => {
     </Modal>
   );
 };
-
-const DAYS = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
 
 interface DaysSelectorProps {
   value: string[];

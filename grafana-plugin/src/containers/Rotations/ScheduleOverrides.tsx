@@ -10,7 +10,7 @@ import Rotation from 'containers/Rotation/Rotation';
 import { RotationCreateData } from 'containers/RotationForm/RotationForm.types';
 import ScheduleOverrideForm from 'containers/RotationForm/ScheduleOverrideForm';
 import { getFromString } from 'models/schedule/schedule.helpers';
-import { Schedule } from 'models/schedule/schedule.types';
+import { Schedule, Shift } from 'models/schedule/schedule.types';
 import { Timezone } from 'models/timezone/timezone.types';
 import { WithStoreProps } from 'state/types';
 import { withMobXProviderContext } from 'state/withStore';
@@ -27,15 +27,19 @@ interface ScheduleOverridesProps extends WithStoreProps {
   onUpdate: () => void;
 }
 
-interface ScheduleOverridesState {}
+interface ScheduleOverridesState {
+  shiftIdToShowOverrideForm?: Shift['id'] | 'new';
+}
 
 @observer
 class ScheduleOverrides extends Component<ScheduleOverridesProps, ScheduleOverridesState> {
-  state: ScheduleOverridesState = {};
+  state: ScheduleOverridesState = {
+    shiftIdToShowOverrideForm: undefined,
+  };
 
   render() {
     const { scheduleId, startMoment, currentTimezone, onCreate, onUpdate, store } = this.props;
-    const { showAddOverrideForm } = this.state;
+    const { shiftIdToShowOverrideForm } = this.state;
 
     const shifts = store.scheduleStore.events[scheduleId]?.['override']?.[getFromString(startMoment)];
 
@@ -60,28 +64,40 @@ class ScheduleOverrides extends Component<ScheduleOverridesProps, ScheduleOverri
             <TimelineMarks startMoment={startMoment} />
             <div className={cx('rotations')}>
               {shifts && shifts.length ? (
-                shifts.map((events, index) => (
+                shifts.map(({ shiftId, events }, index) => (
                   <Rotation
                     key={index}
                     events={events}
                     color="#C69B06"
                     startMoment={startMoment}
                     currentTimezone={currentTimezone}
+                    onClick={() => {
+                      this.onRotationClick(shiftId);
+                    }}
                   />
                 ))
               ) : (
-                <Rotation events={[]} color="#C69B06" startMoment={startMoment} currentTimezone={currentTimezone} />
+                <Rotation
+                  events={[]}
+                  color="#C69B06"
+                  startMoment={startMoment}
+                  currentTimezone={currentTimezone}
+                  onClick={() => {
+                    this.onRotationClick('new');
+                  }}
+                />
               )}
             </div>
           </div>
           <div className={cx('add-rotations-layer')}>Add override +</div>
         </div>
-        {showAddOverrideForm && (
+        {shiftIdToShowOverrideForm && (
           <ScheduleOverrideForm
+            shiftId={shiftIdToShowOverrideForm}
             scheduleId={scheduleId}
             currentTimezone={currentTimezone}
             onHide={() => {
-              this.setState({ showAddOverrideForm: false });
+              this.setState({ shiftIdToShowOverrideForm: undefined });
             }}
             onUpdate={onUpdate}
             onCreate={onCreate}
@@ -91,8 +107,12 @@ class ScheduleOverrides extends Component<ScheduleOverridesProps, ScheduleOverri
     );
   }
 
+  onRotationClick = (shiftId: Shift['id']) => {
+    this.setState({ shiftIdToShowOverrideForm: shiftId });
+  };
+
   handleAddOverride = () => {
-    this.setState({ showAddOverrideForm: true });
+    this.setState({ shiftIdToShowOverrideForm: 'new' });
   };
 }
 

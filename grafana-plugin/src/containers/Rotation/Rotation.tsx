@@ -27,10 +27,11 @@ interface RotationProps {
   rotationIndex?: number;
   color?: string;
   events: Event[];
+  onClick: () => void;
 }
 
 const Rotation: FC<RotationProps> = observer((props) => {
-  const { events, layerIndex, rotationIndex, startMoment, currentTimezone, color } = props;
+  const { events, layerIndex, rotationIndex, startMoment, currentTimezone, color, onClick } = props;
 
   const [animate, setAnimate] = useState<boolean>(true);
   const [width, setWidth] = useState<number | undefined>();
@@ -84,8 +85,7 @@ const Rotation: FC<RotationProps> = observer((props) => {
   }, [events]);
 
   return (
-    <div className={cx('root')}>
-      {/* <div className={cx('current-time')} />*/}
+    <div className={cx('root')} onClick={onClick}>
       <div className={cx('timeline')}>
         {events ? (
           events.length ? (

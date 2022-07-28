@@ -66,7 +66,7 @@ class ScheduleFinal extends Component<ScheduleFinalProps, ScheduleOverridesState
             <TimelineMarks startMoment={startMoment} />
             <div className={cx('rotations')}>
               {shifts && shifts.length ? (
-                shifts.map((events, index) => (
+                shifts.map(({ shiftId, events }, index) => (
                   <Rotation
                     key={index}
                     events={events}

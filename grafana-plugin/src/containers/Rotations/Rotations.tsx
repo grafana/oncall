@@ -11,7 +11,7 @@ import Rotation from 'containers/Rotation/Rotation';
 import RotationForm from 'containers/RotationForm/RotationForm';
 import { RotationCreateData } from 'containers/RotationForm/RotationForm.types';
 import { getFromString } from 'models/schedule/schedule.helpers';
-import { Schedule } from 'models/schedule/schedule.types';
+import { Schedule, Shift } from 'models/schedule/schedule.types';
 import { Timezone } from 'models/timezone/timezone.types';
 import { WithStoreProps } from 'state/types';
 import { withMobXProviderContext } from 'state/withStore';
@@ -26,6 +26,7 @@ interface RotationsProps extends WithStoreProps {
   startMoment: dayjs.Dayjs;
   currentTimezone: Timezone;
   scheduleId: Schedule['id'];
+  onClick: (id: Shift['id'] | 'new') => void;
   onCreate: () => void;
   onUpdate: () => void;
 }
@@ -35,18 +36,18 @@ type Layer = {
 };
 
 interface RotationsState {
-  layerIdToCreateRotation?: Layer['id'];
+  shiftIdToShowRotationForm?: Shift['id'];
 }
 
 @observer
 class Rotations extends Component<RotationsProps, RotationsState> {
   state: RotationsState = {
-    layerIdToCreateRotation: undefined,
+    shiftIdToShowRotationForm: undefined,
   };
 
   render() {
-    const { scheduleId, startMoment, currentTimezone, onCreate, onUpdate, store } = this.props;
-    const { layerIdToCreateRotation } = this.state;
+    const { scheduleId, startMoment, currentTimezone, onCreate, onUpdate, store, onClick } = this.props;
+    const { shiftIdToShowRotationForm } = this.state;
 
     const layers = [
       { id: 1, title: 'Layer 1' },
@@ -84,7 +85,7 @@ class Rotations extends Component<RotationsProps, RotationsState> {
           </div>
           <div className={cx('rotations-plus-title')}>
             {shifts && shifts.length ? (
-              shifts.map((events, layerIndex) => (
+              shifts.map(({ shiftId, events }, layerIndex) => (
                 <div key={layerIndex}>
                   <div className={cx('layer')}>
                     <div className={cx('layer-title')}>
@@ -97,6 +98,9 @@ class Rotations extends Component<RotationsProps, RotationsState> {
                       <TimelineMarks debug startMoment={startMoment} />
                       <div className={cx('rotations')}>
                         <Rotation
+                          onClick={() => {
+                            this.onRotationClick(shiftId);
+                          }}
                           events={events}
                           layerIndex={layerIndex}
                           rotationIndex={0}
@@ -121,6 +125,9 @@ class Rotations extends Component<RotationsProps, RotationsState> {
                     <TimelineMarks debug startMoment={startMoment} />
                     <div className={cx('rotations')}>
                       <Rotation
+                        onClick={() => {
+                          this.onRotationClick('new');
+                        }}
                         events={[]}
                         layerIndex={0}
                         rotationIndex={0}
@@ -138,14 +145,14 @@ class Rotations extends Component<RotationsProps, RotationsState> {
             </div>
           </div>
         </div>
-        {!isNaN(layerIdToCreateRotation) && (
+        {shiftIdToShowRotationForm && (
           <RotationForm
-            id="new"
+            shiftId={shiftIdToShowRotationForm}
             scheduleId={scheduleId}
             layerIndex={shifts ? shifts.length : 0}
             currentTimezone={currentTimezone}
             onHide={() => {
-              this.setState({ layerIdToCreateRotation: undefined });
+              this.setState({ shiftIdToShowRotationForm: undefined });
             }}
             onUpdate={onUpdate}
             onCreate={onCreate}
@@ -155,12 +162,16 @@ class Rotations extends Component<RotationsProps, RotationsState> {
     );
   }
 
+  onRotationClick = (shiftId: Shift['id']) => {
+    this.setState({ shiftIdToShowRotationForm: shiftId });
+  };
+
   updateEvents = () => {};
 
   handleAddLayer = () => {};
 
   handleAddRotation = (option) => {
-    this.setState({ layerIdToCreateRotation: option.value });
+    this.setState({ shiftIdToShowRotationForm: option.value });
   };
 }
 
