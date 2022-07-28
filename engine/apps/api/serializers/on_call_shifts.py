@@ -126,9 +126,8 @@ class OnCallShiftSerializer(EagerLoadingMixin, serializers.ModelSerializer):
             raise serializers.ValidationError({"rotation_start": ["Incorrect rotation start date"]})
 
     def _validate_until(self, rotation_start, until):
-        if until is not None:
-            if until < rotation_start:
-                raise serializers.ValidationError({"until": ["Incorrect rotation end date"]})
+        if until is not None and until < rotation_start:
+            raise serializers.ValidationError({"until": ["Incorrect rotation end date"]})
 
     def _correct_validated_data(self, event_type, validated_data):
         fields_to_update_for_overrides = [
