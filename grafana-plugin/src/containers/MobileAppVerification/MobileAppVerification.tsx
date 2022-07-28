@@ -30,6 +30,8 @@ const MobileAppVerification = observer((props: MobileAppVerificationProps) => {
 
   const userPk = (propsUserPk || userStore.currentUserPk) as User['pk'];
   const user = userStore.items[userPk as User['pk']];
+  const isCurrent = userStore.currentUserPk === user.pk;
+  const action = isCurrent ? UserAction.UpdateOwnSettings : UserAction.UpdateOtherUsersSettings;
 
   const { id = UserSettingsTab.UserInfo } = props;
 
@@ -96,7 +98,7 @@ const MobileAppVerification = observer((props: MobileAppVerificationProps) => {
                     <Text>* This code is active only for a minute</Text>
                   </p>
                   <p>
-                    <WithPermissionControl userAction={UserAction.UpdateOtherUsersSettings}>
+                    <WithPermissionControl userAction={action}>
                       <Button
                         onClick={handleCreateMobileAppVerificationToken}
                         className={cx('iCal-button')}
@@ -114,7 +116,7 @@ const MobileAppVerification = observer((props: MobileAppVerificationProps) => {
           ) : (
             <>
               <p>
-                <WithPermissionControl userAction={UserAction.UpdateOtherUsersSettings}>
+                <WithPermissionControl userAction={action}>
                   <Button
                     onClick={handleCreateMobileAppVerificationToken}
                     className={cx('iCal-button')}
