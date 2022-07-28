@@ -1,5 +1,6 @@
 import json
 import re
+from urllib.parse import urlparse
 
 from django.apps import apps
 from python_http_client import UnauthorizedError
@@ -87,12 +88,25 @@ class LiveSettingValidator:
             return "Please specify a valid email"
 
     @classmethod
+    def _check_slack_install_return_redirect_host(cls, slack_install_return_redirect_host):
+        scheme = urlparse(slack_install_return_redirect_host).scheme
+        if scheme != "https":
+            return "Must use https"
+
+    @classmethod
     def _check_telegram_token(cls, telegram_token):
         try:
             bot = Bot(telegram_token)
             bot.get_me()
         except Exception as e:
             return f"Telegram error: {str(e)}"
+
+    @classmethod
+    def _check_telegram_webhook_host(cls, telegram_webhook_host):
+        parse_result = urlparse(telegram_webhook_host)
+
+        if parse_result.scheme != "https" or parse_result.port not in [None, 80, 88, 443, 8443]:
+            return "Must use https and ports 80, 88, 443 or 8443"
 
     @classmethod
     def _check_grafana_cloud_oncall_token(cls, grafana_oncall_token):

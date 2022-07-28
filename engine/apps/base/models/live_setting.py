@@ -107,10 +107,10 @@ class LiveSetting(models.Model):
         "SENDGRID_SECRET_KEY": "It is the secret key to secure receiving inbound emails.",
         "SENDGRID_INBOUND_EMAIL_DOMAIN": "Domain to receive emails for inbound emails integration.",
         "TELEGRAM_TOKEN": (
-            "Secret token for Telegram bot, you can get one via " "<a href='https://t.me/BotFather'>BotFather</a>."
+            "Secret token for Telegram bot, you can get one via <a href='https://t.me/BotFather'>BotFather</a>."
         ),
         "TELEGRAM_WEBHOOK_HOST": (
-            "Externally available URL for Telegram to make requests. Please restart OnCall backend after after update."
+            "Externally available URL for Telegram to make requests. Please restart OnCall backend after update."
         ),
         "SEND_ANONYMOUS_USAGE_STATS": (
             "Grafana OnCall will send anonymous, but uniquely-identifiable usage analytics to Grafana Labs."
