@@ -32,7 +32,7 @@ const UsersTimezones: FC<UsersTimezonesProps> = (props) => {
 
   const getAvatarClickHandler = useCallback((user) => {
     return () => {
-      onTzChange(user.tz);
+      onTzChange(user.timezone);
     };
   }, []);
 
@@ -83,7 +83,7 @@ const UsersTimezones: FC<UsersTimezonesProps> = (props) => {
       <div className={cx('users')}>
         <div className={cx('current-time')} style={{ left: `${currentTimeX}%` }} />
         {users.map((user, index) => {
-          const userCurrentMoment = dayjs(currentMoment).tz(user.tz);
+          const userCurrentMoment = dayjs(currentMoment).tz(user.timezone);
           const diff = userCurrentMoment.diff(userCurrentMoment.startOf('day'), 'minutes');
 
           const userHour = userCurrentMoment.hour();

@@ -18,6 +18,7 @@ import Text from 'components/Text/Text';
 // import UsersTimezones from 'components/UsersTimezones/UsersTimezones';
 import UserTimezoneSelect from 'components/UserTimezoneSelect/UserTimezoneSelect';
 import UsersTimezones from 'components/UsersTimezones/UsersTimezones';
+import { getFromString } from 'models/schedule/schedule.helpers';
 import { Timezone } from 'models/timezone/timezone.types';
 import { User } from 'models/user/user.types';
 import { WithStoreProps } from 'state/types';
@@ -131,7 +132,7 @@ class SchedulePage extends React.Component<SchedulePageProps, SchedulePageState>
             Users from on-call schedule" step in escalation chains.
           </Text>
           <div className={cx('users-timezones')}>
-            <UsersTimezones users={users} tz={currentTimezone} onTzChange={this.handleTimezoneChange} />
+            <UsersTimezones users={users || []} tz={currentTimezone} onTzChange={this.handleTimezoneChange} />
           </div>
           <div className={cx('controls')}>
             <HorizontalGroup justify="space-between">
@@ -200,7 +201,7 @@ class SchedulePage extends React.Component<SchedulePageProps, SchedulePageState>
     );
   }
 
-  updateEvents = (...rest) => {
+  updateEvents = () => {
     const {
       store,
       query: { id: scheduleId },
@@ -208,21 +209,24 @@ class SchedulePage extends React.Component<SchedulePageProps, SchedulePageState>
 
     const { startMoment } = this.state;
 
-    // debugger;
-
-    store.scheduleStore.updateEvents(scheduleId, startMoment.format('YYYY-MM-DD'));
+    store.scheduleStore.updateEvents(scheduleId, getFromString(startMoment), 'rotation');
+    store.scheduleStore.updateEvents(scheduleId, getFromString(startMoment), 'override');
+    store.scheduleStore.updateEvents(scheduleId, getFromString(startMoment), 'final');
   };
 
-  handleCreateRotation = (...rest) => {
-    const { store } = this.props;
+  handleCreateRotation = () => {
+    const {
+      store,
+      query: { id: scheduleId },
+    } = this.props;
 
-    // debugger;
+    this.updateEvents();
   };
 
-  handleCreateOverride = (...rest) => {
+  handleCreateOverride = () => {
     const { store } = this.props;
 
-    // debugger;
+    this.updateEvents();
   };
 
   handleTimezoneChange = (value: Timezone) => {
@@ -230,7 +234,7 @@ class SchedulePage extends React.Component<SchedulePageProps, SchedulePageState>
 
     store.currentTimezone = value;
 
-    this.setState({ startMoment: getStartOfWeek(value) });
+    this.setState({ startMoment: getStartOfWeek(value) }, this.updateEvents);
   };
 
   handleShedulePeriodTypeChange = (value: string) => {
@@ -244,19 +248,19 @@ class SchedulePage extends React.Component<SchedulePageProps, SchedulePageState>
   handleTodayClick = () => {
     const { store } = this.props;
 
-    this.setState({ startMoment: getStartOfWeek(store.currentTimezone) });
+    this.setState({ startMoment: getStartOfWeek(store.currentTimezone) }, this.updateEvents);
   };
 
   handleLeftClick = () => {
     const { startMoment } = this.state;
 
-    this.setState({ startMoment: startMoment.add(-7, 'day') });
+    this.setState({ startMoment: startMoment.add(-7, 'day') }, this.updateEvents);
   };
 
   handleRightClick = () => {
     const { startMoment } = this.state;
 
-    this.setState({ startMoment: startMoment.add(7, 'day') });
+    this.setState({ startMoment: startMoment.add(7, 'day') }, this.updateEvents);
   };
 }
 

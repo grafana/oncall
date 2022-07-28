@@ -6,20 +6,16 @@ import dayjs from 'dayjs';
 
 import Avatar from 'components/Avatar/Avatar';
 import Text from 'components/Text/Text';
+import { getTzOffsetString } from 'models/timezone/timezone.helpers';
+import { User } from 'models/user/user.types';
 
 import Line from './img/line.svg';
 
 import styles from './ScheduleUserDetails.module.css';
 
-interface ScheduleUser {
-  name: string;
-  avatar: string;
-  tz: string;
-}
-
 interface ScheduleUserDetailsProps {
   currentMoment: dayjs.Dayjs;
-  user: ScheduleUser;
+  user: User;
 }
 
 const cx = cn.bind(styles);
@@ -46,11 +42,9 @@ const ScheduleUserDetails: FC<ScheduleUserDetailsProps> = (props) => {
       ? UserOncallStatus.Inside
       : UserOncallStatus.Outside;
 
-  const userMoment = currentMoment.tz(user.tz);
-  const userOffset = userMoment.utcOffset();
-  const userOffsetHours = userOffset / 60;
-  const userOffsetHoursStr =
-    userOffsetHours > 0 ? `( +${userOffsetHours} GMT)` : userOffset < 0 ? `( ${userOffsetHours} GMT)` : `(GMT)`;
+  const userMoment = currentMoment.tz(user.timezone);
+
+  const userOffsetHoursStr = getTzOffsetString(userMoment);
 
   return (
     <div className={cx('root')}>
@@ -65,9 +59,9 @@ const ScheduleUserDetails: FC<ScheduleUserDetailsProps> = (props) => {
           </Button>
         </HorizontalGroup>
         <VerticalGroup spacing="sm">
-          <Text type="primary">{user.name}</Text>
+          <Text type="primary">{user.username}</Text>
           <Text type="secondary">
-            {`${userMoment.format('DD MMM, HH:mm')}`} {userOffsetHoursStr}
+            {`${userMoment.tz(user.timezone).format('DD MMM, HH:mm')}`} {userOffsetHoursStr}
           </Text>
           <div
             className={cx('oncall-badge', {

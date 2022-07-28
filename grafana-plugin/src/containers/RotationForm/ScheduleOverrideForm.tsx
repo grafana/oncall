@@ -46,8 +46,8 @@ const ScheduleOverrideForm: FC<RotationFormProps> = (props) => {
 
   const store = useStore();
 
-  const [shiftStart, setShiftStart] = useState<DateTime>(dateTime('2022-08-26 12:00:00'));
-  const [shiftEnd, setShiftEnd] = useState<DateTime>(dateTime('2022-08-26 12:00:00'));
+  const [shiftStart, setShiftStart] = useState<DateTime>(dateTime('2022-07-26 12:00:00'));
+  const [shiftEnd, setShiftEnd] = useState<DateTime>(dateTime('2022-07-26 20:00:00'));
 
   const [userGroups, setUserGroups] = useState([[]]);
 

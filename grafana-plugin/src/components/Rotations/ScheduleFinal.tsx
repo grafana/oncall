@@ -31,28 +31,6 @@ interface ScheduleOverridesState {}
 class ScheduleFinal extends Component<ScheduleFinalProps, ScheduleOverridesState> {
   state: ScheduleOverridesState = {};
 
-  componentDidMount() {
-    this.updateEvents();
-  }
-
-  componentDidUpdate(
-    prevProps: Readonly<ScheduleFinalProps>,
-    prevState: Readonly<ScheduleOverridesState>,
-    snapshot?: any
-  ) {
-    if (this.props.startMoment !== prevProps.startMoment) {
-      this.updateEvents();
-    }
-  }
-
-  updateEvents() {
-    const { store, scheduleId, startMoment, currentTimezone } = this.props;
-
-    const startMomentString = startMoment.utc().format('YYYY-MM-DD');
-
-    store.scheduleStore.updateEvents(scheduleId, startMomentString, 'final');
-  }
-
   render() {
     const { scheduleId, startMoment, currentTimezone, store, hideHeader } = this.props;
     const { showAddOverrideForm, searchTerm } = this.state;
@@ -100,4 +78,4 @@ class ScheduleFinal extends Component<ScheduleFinalProps, ScheduleOverridesState
   onSearchTermChangeCallback = () => {};
 }
 
-export default withMobXProviderContext(ScheduleFinal);
+export default ScheduleFinal;

@@ -59,6 +59,8 @@ export interface Rotation {
   shifts: Shift[];
 }
 
+export type RotationType = 'final' | 'rotation' | 'override';
+
 export interface Event {
   all_day: boolean;
   calendar_type: 0;

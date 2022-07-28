@@ -10,7 +10,8 @@ import { makeRequest } from 'network';
 import { RootStore } from 'state';
 import { SelectOption } from 'state/types';
 
-import { Events, Rotation, Schedule, ScheduleEvent } from './schedule.types';
+import { fillGaps } from './schedule.helpers';
+import { Events, Rotation, RotationType, Schedule, ScheduleEvent } from './schedule.types';
 
 const DEFAULT_FORMAT = 'YYYY-MM-DDTHH:mm:ss';
 
@@ -240,7 +241,7 @@ export class ScheduleStore extends BaseStore {
       method: 'GET',
     });
   }
-  async updateEvents(scheduleId: Schedule['id'], fromString: string, type = 'rotation', days = 7) {
+  async updateEvents(scheduleId: Schedule['id'], fromString: string, type: RotationType = 'rotation', days = 7) {
     const response = await makeRequest(`/schedules/${scheduleId}/filter_events/`, {
       params: {
         type,
@@ -250,13 +251,15 @@ export class ScheduleStore extends BaseStore {
       method: 'GET',
     });
 
+    const events = type !== 'final' ? fillGaps(response.events) : response.events;
+
     this.events = {
       ...this.events,
       [scheduleId]: {
         ...this.events[scheduleId],
         [type]: {
           ...this.events[scheduleId]?.[type],
-          [fromString]: response.events,
+          [fromString]: events,
         },
       },
     };

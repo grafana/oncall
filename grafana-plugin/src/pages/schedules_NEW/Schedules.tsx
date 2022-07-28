@@ -18,6 +18,7 @@ import TimelineMarks from 'components/TimelineMarks/TimelineMarks';
 import UserTimezoneSelect from 'components/UserTimezoneSelect/UserTimezoneSelect';
 import WithConfirm from 'components/WithConfirm/WithConfirm';
 import Rotation from 'containers/Rotation/Rotation';
+import { getFromString } from 'models/schedule/schedule.helpers';
 import { Schedule, ScheduleType } from 'models/schedule/schedule.types';
 import { getTzOffsetString } from 'models/timezone/timezone.helpers';
 import { Timezone } from 'models/timezone/timezone.types';
@@ -133,6 +134,7 @@ class SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSta
               pagination={{ page: 1, total: 1, onChange: this.handlePageChange }}
               rowKey="id"
               expandable={{
+                onExpand: this.handleExpandRow,
                 expandedRowRender: this.renderSchedule,
                 expandRowByClick: true,
                 expandedRowClassName: () => cx('expanded-row'),
@@ -171,6 +173,12 @@ class SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSta
     if (data.type === ScheduleType.API) {
       getLocationSrv().update({ query: { page: 'schedule', id: data.id } });
     }
+  };
+
+  handleExpandRow = (expanded: boolean, data: Schedule) => {
+    const { store } = this.props;
+    const { startMoment } = this.state;
+    store.scheduleStore.updateEvents(data.id, getFromString(startMoment), 'final');
   };
 
   renderSchedule = (data: Schedule) => {

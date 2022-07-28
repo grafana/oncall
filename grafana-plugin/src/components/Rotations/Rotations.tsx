@@ -11,6 +11,7 @@ import RotationForm from 'containers/RotationForm/RotationForm';
 import { RotationCreateData } from 'containers/RotationForm/RotationForm.types';
 import { Schedule } from 'models/schedule/schedule.types';
 import { Timezone } from 'models/timezone/timezone.types';
+import { withMobXProviderContext } from 'state/withStore';
 
 import { getColor, getLabel, getRandomTimeslots, getRandomUser } from './Rotations.helpers';
 
@@ -36,7 +37,7 @@ interface RotationsState {
 
 class Rotations extends Component<RotationsProps, RotationsState> {
   state: RotationsState = {
-    //layerIdToCreateRotation: '12',
+    layerIdToCreateRotation: undefined,
   };
 
   render() {
@@ -44,7 +45,7 @@ class Rotations extends Component<RotationsProps, RotationsState> {
     const { layerIdToCreateRotation } = this.state;
 
     const layers = [
-      { id: 0, title: 'Layer 1' },
+      { id: 1, title: 'Layer 1' },
       /*{ id: 1, title: 'Layer 2' },
      { id: 2, title: 'Layer 3' },
       { id: 3, title: 'Layer 4' }*/
@@ -90,7 +91,8 @@ class Rotations extends Component<RotationsProps, RotationsState> {
                     <div className={cx('rotations')}>
                       {rotations.map((rotation, rotationIndex) => (
                         <Rotation
-                          id={`${layerIndex}-${rotationIndex}`}
+                          type="rotation"
+                          scheduleId={scheduleId}
                           layerIndex={layerIndex}
                           rotationIndex={rotationIndex}
                           startMoment={startMoment}

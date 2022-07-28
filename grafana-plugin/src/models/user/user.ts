@@ -102,7 +102,7 @@ export class UserStore extends BaseStore {
             ...item,
             timezone: {
               'Hello Oncall': 'UTC',
-              'Matias Bordese': 'America/Montevideo',
+              'Matías Bordese': 'America/Montevideo',
               'Michael Derynck': 'America/Vancouver',
               'Yulia Shanyrova': 'Europe/Amsterdam',
               'Maxim Mordasov': 'Europe/Moscow',

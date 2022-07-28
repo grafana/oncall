@@ -56,7 +56,13 @@ class ScheduleOverrides extends Component<ScheduleOverridesProps, ScheduleOverri
             <div className={cx('current-time')} style={{ left: `${currentTimeX * 100}%` }} />
             <TimelineMarks startMoment={startMoment} />
             <div className={cx('rotations')}>
-              <Rotation id="override" color="#C69B06" startMoment={startMoment} currentTimezone={currentTimezone} />
+              <Rotation
+                scheduleId={scheduleId}
+                type="override"
+                color="#C69B06"
+                startMoment={startMoment}
+                currentTimezone={currentTimezone}
+              />
             </div>
           </div>
           <div className={cx('add-rotations-layer')}>Add override +</div>
@@ -81,4 +87,4 @@ class ScheduleOverrides extends Component<ScheduleOverridesProps, ScheduleOverri
   };
 }
 
-export default withMobXProviderContext(ScheduleOverrides);
+export default ScheduleOverrides;

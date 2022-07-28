@@ -8,6 +8,7 @@ import { CSSTransitionGroup } from 'react-transition-group'; // ES6
 
 import ScheduleSlot from 'components/ScheduleSlot/ScheduleSlot';
 import Text from 'components/Text/Text';
+import { getFromString } from 'models/schedule/schedule.helpers';
 import { Rotation as RotationType, Schedule } from 'models/schedule/schedule.types';
 import { Timezone } from 'models/timezone/timezone.types';
 import { useStore } from 'state/useStore';
@@ -22,7 +23,6 @@ interface ScheduleSlotState {}
 interface RotationProps {
   type: 'final' | 'rotation' | 'override';
   scheduleId: Schedule['id'];
-  label: string;
   startMoment: dayjs.Dayjs;
   currentTimezone: Timezone;
   layerIndex?: number;
@@ -31,7 +31,7 @@ interface RotationProps {
 }
 
 const Rotation: FC<RotationProps> = observer((props) => {
-  const { type, scheduleId, layerIndex, rotationIndex, label, startMoment, currentTimezone, color } = props;
+  const { type, scheduleId, layerIndex, rotationIndex, startMoment, currentTimezone, color } = props;
 
   const [animate, setAnimate] = useState<boolean>(true);
   const [width, setWidth] = useState<number | undefined>();
@@ -39,13 +39,13 @@ const Rotation: FC<RotationProps> = observer((props) => {
 
   const store = useStore();
 
-  const startMomentString = useMemo(() => startMoment.utc().format('YYYY-MM-DD'), [startMoment]);
+  const startMomentString = useMemo(() => getFromString(startMoment), [startMoment]);
 
   const prevStartMomentString = usePrevious(startMomentString);
 
-  const events = store.scheduleStore.events[scheduleId]?.[type]?.[startMomentString];
+  const events = store.scheduleStore.events[scheduleId]?.[type]?.[getFromString(startMoment)];
 
-  console.log(events);
+  // console.log(events);
 
   // const rotation = store.scheduleStore.rotations[id]?.[prevStartMomentString];
 
@@ -114,7 +114,9 @@ const Rotation: FC<RotationProps> = observer((props) => {
                 );
               })}
             </div>
-          ) : null
+          ) : (
+            <div className={cx('empty')} />
+          )
         ) : (
           <HorizontalGroup align="center" justify="center">
             <LoadingPlaceholder text="Loading shifts..." />

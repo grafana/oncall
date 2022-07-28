@@ -28,6 +28,8 @@
   background: rgba(209, 14, 92, 0.2);
   border: 1px dashed #ff5286;
   color: rgba(209, 14, 92, 0.5);
+
+  /* visibility: hidden; */
 }
 
 .root__inactive {
