@@ -8,7 +8,6 @@ import { observer } from 'mobx-react';
 
 import NewScheduleSelector from 'components/NewScheduleSelector/NewScheduleSelector';
 import PluginLink from 'components/PluginLink/PluginLink';
-import ScheduleFinal from 'components/Rotations/ScheduleFinal';
 import ScheduleCounter from 'components/ScheduleCounter/ScheduleCounter';
 import SchedulesFilters from 'components/SchedulesFilters_NEW/SchedulesFilters';
 import { SchedulesFiltersType } from 'components/SchedulesFilters_NEW/SchedulesFilters.types';
@@ -18,6 +17,7 @@ import TimelineMarks from 'components/TimelineMarks/TimelineMarks';
 import UserTimezoneSelect from 'components/UserTimezoneSelect/UserTimezoneSelect';
 import WithConfirm from 'components/WithConfirm/WithConfirm';
 import Rotation from 'containers/Rotation/Rotation';
+import ScheduleFinal from 'containers/Rotations/ScheduleFinal';
 import { getFromString } from 'models/schedule/schedule.helpers';
 import { Schedule, ScheduleType } from 'models/schedule/schedule.types';
 import { getTzOffsetString } from 'models/timezone/timezone.helpers';

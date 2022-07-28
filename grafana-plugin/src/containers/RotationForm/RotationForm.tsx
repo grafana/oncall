@@ -45,7 +45,7 @@ interface RotationFormProps {
 const cx = cn.bind(styles);
 
 const RotationForm: FC<RotationFormProps> = (props) => {
-  const { onHide, onCreate, currentTimezone, scheduleId, onUpdate, layerId } = props;
+  const { onHide, onCreate, currentTimezone, scheduleId, onUpdate, layerIndex } = props;
 
   const [repeatEveryValue, setRepeatEveryValue] = useState<number>(1);
   const [repeatEveryPeriod, setRepeatEveryPeriod] = useState<number>(0);
@@ -82,17 +82,19 @@ const RotationForm: FC<RotationFormProps> = (props) => {
 
     const params = {
       name: 'Rotation ' + Math.floor(Math.random() * 100),
-      rotation_start: getUTCString(rotationStart),
-      until: endLess ? null : getUTCString(rotationEnd),
-      shift_start: getUTCString(shiftStart),
-      shift_end: getUTCString(shiftEnd),
+      rotation_start: getUTCString(rotationStart, currentTimezone),
+      until: endLess ? null : getUTCString(rotationEnd, currentTimezone),
+      shift_start: getUTCString(shiftStart, currentTimezone),
+      shift_end: getUTCString(shiftEnd, currentTimezone),
       rolling_users: userGroups.filter((group) => group.length),
       frequency: repeatEveryPeriod,
       by_day: repeatEveryPeriod === 1 ? selectedDays : null,
-      priority_level: layerId,
+      priority_level: layerIndex + 1,
     };
 
     console.log('params', params);
+
+    return;
 
     store.scheduleStore.createRotation(scheduleId, false, params).then(() => {
       onHide();
@@ -108,7 +110,7 @@ const RotationForm: FC<RotationFormProps> = (props) => {
     endLess,
     rotationEnd,
     userGroups,
-    layerId,
+    layerIndex,
   ]);
 
   const handleChangeEndless = useCallback(

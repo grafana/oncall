@@ -9,6 +9,7 @@ import TimelineMarks from 'components/TimelineMarks/TimelineMarks';
 import Rotation from 'containers/Rotation/Rotation';
 import { RotationCreateData } from 'containers/RotationForm/RotationForm.types';
 import ScheduleOverrideForm from 'containers/RotationForm/ScheduleOverrideForm';
+import { getFromString } from 'models/schedule/schedule.helpers';
 import { Schedule } from 'models/schedule/schedule.types';
 import { Timezone } from 'models/timezone/timezone.types';
 import { WithStoreProps } from 'state/types';
@@ -33,8 +34,10 @@ class ScheduleOverrides extends Component<ScheduleOverridesProps, ScheduleOverri
   state: ScheduleOverridesState = {};
 
   render() {
-    const { scheduleId, startMoment, currentTimezone, onCreate, onUpdate } = this.props;
+    const { scheduleId, startMoment, currentTimezone, onCreate, onUpdate, store } = this.props;
     const { showAddOverrideForm } = this.state;
+
+    const shifts = store.scheduleStore.events[scheduleId]?.['override']?.[getFromString(startMoment)];
 
     const base = 7 * 24 * 60; // in minutes
     const diff = dayjs().tz(currentTimezone).diff(startMoment, 'minutes');
@@ -56,13 +59,19 @@ class ScheduleOverrides extends Component<ScheduleOverridesProps, ScheduleOverri
             <div className={cx('current-time')} style={{ left: `${currentTimeX * 100}%` }} />
             <TimelineMarks startMoment={startMoment} />
             <div className={cx('rotations')}>
-              <Rotation
-                scheduleId={scheduleId}
-                type="override"
-                color="#C69B06"
-                startMoment={startMoment}
-                currentTimezone={currentTimezone}
-              />
+              {shifts && shifts.length ? (
+                shifts.map((events, index) => (
+                  <Rotation
+                    key={index}
+                    events={events}
+                    color="#C69B06"
+                    startMoment={startMoment}
+                    currentTimezone={currentTimezone}
+                  />
+                ))
+              ) : (
+                <Rotation events={[]} color="#C69B06" startMoment={startMoment} currentTimezone={currentTimezone} />
+              )}
             </div>
           </div>
           <div className={cx('add-rotations-layer')}>Add override +</div>
@@ -87,4 +96,4 @@ class ScheduleOverrides extends Component<ScheduleOverridesProps, ScheduleOverri
   };
 }
 
-export default ScheduleOverrides;
+export default withMobXProviderContext(ScheduleOverrides);

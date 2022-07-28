@@ -9,15 +9,15 @@ import Draggable from 'react-draggable';
 
 // import Rotations from 'components/Rotations/Rotations';
 import PluginLink from 'components/PluginLink/PluginLink';
-import Rotations from 'components/Rotations/Rotations';
-import ScheduleFinal from 'components/Rotations/ScheduleFinal';
-import ScheduleOverrides from 'components/Rotations/ScheduleOverrides';
 import ScheduleCounter from 'components/ScheduleCounter/ScheduleCounter';
 import ScheduleQuality from 'components/ScheduleQuality/ScheduleQuality';
 import Text from 'components/Text/Text';
 // import UsersTimezones from 'components/UsersTimezones/UsersTimezones';
 import UserTimezoneSelect from 'components/UserTimezoneSelect/UserTimezoneSelect';
 import UsersTimezones from 'components/UsersTimezones/UsersTimezones';
+import Rotations from 'containers/Rotations/Rotations';
+import ScheduleFinal from 'containers/Rotations/ScheduleFinal';
+import ScheduleOverrides from 'containers/Rotations/ScheduleOverrides';
 import { getFromString } from 'models/schedule/schedule.helpers';
 import { Timezone } from 'models/timezone/timezone.types';
 import { User } from 'models/user/user.types';

@@ -46,8 +46,12 @@ const ScheduleOverrideForm: FC<RotationFormProps> = (props) => {
 
   const store = useStore();
 
-  const [shiftStart, setShiftStart] = useState<DateTime>(dateTime('2022-07-26 12:00:00'));
-  const [shiftEnd, setShiftEnd] = useState<DateTime>(dateTime('2022-07-26 20:00:00'));
+  const startOfDay = dayjs().startOf('day');
+
+  const [shiftStart, setShiftStart] = useState<DateTime>(dateTime(startOfDay.format('YYYY-MM-DD HH:mm:ss')));
+  const [shiftEnd, setShiftEnd] = useState<DateTime>(
+    dateTime(startOfDay.add(12, 'hours').format('YYYY-MM-DD HH:mm:ss'))
+  );
 
   const [userGroups, setUserGroups] = useState([[]]);
 
@@ -62,9 +66,9 @@ const ScheduleOverrideForm: FC<RotationFormProps> = (props) => {
     store.scheduleStore
       .createRotation(scheduleId, true, {
         name: 'Rotation ' + Math.floor(Math.random() * 100),
-        rotation_start: getUTCString(shiftStart),
-        shift_start: getUTCString(shiftStart),
-        shift_end: getUTCString(shiftEnd),
+        rotation_start: getUTCString(shiftStart, currentTimezone),
+        shift_start: getUTCString(shiftStart, currentTimezone),
+        shift_end: getUTCString(shiftEnd, currentTimezone),
         rolling_users: userGroups,
         frequency: null,
       })
@@ -73,8 +77,6 @@ const ScheduleOverrideForm: FC<RotationFormProps> = (props) => {
         onCreate();
       });
   }, [shiftStart, shiftEnd, userGroups]);
-
-  const moment = dayjs();
 
   return (
     <Modal
@@ -124,7 +126,7 @@ const ScheduleOverrideForm: FC<RotationFormProps> = (props) => {
           </HorizontalGroup>
         </VerticalGroup>
         <HorizontalGroup justify="space-between">
-          <Text type="secondary">Timezone: {getTzOffsetString(moment)}</Text>
+          <Text type="secondary">Timezone: {getTzOffsetString(dayjs().tz(currentTimezone))}</Text>
           <HorizontalGroup>
             <Button variant="primary" onClick={handleCreate}>
               Save

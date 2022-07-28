@@ -253,13 +253,30 @@ export class ScheduleStore extends BaseStore {
 
     const events = type !== 'final' ? fillGaps(response.events) : response.events;
 
+    const shifts: { [key: string]: Event[] } = {};
+
+    for (const [i, event] of response.events.entries()) {
+      if (event.shift?.pk) {
+        if (!shifts[event.shift.pk]) {
+          shifts[event.shift.pk] = [];
+        }
+        shifts[event.shift.pk].push(event);
+      }
+    }
+
+    const shiftsArr = Object.keys(shifts).map((key) => {
+      return fillGaps(shifts[key]);
+    });
+
+    console.log(type, shifts);
+
     this.events = {
       ...this.events,
       [scheduleId]: {
         ...this.events[scheduleId],
         [type]: {
           ...this.events[scheduleId]?.[type],
-          [fromString]: events,
+          [fromString]: shiftsArr,
         },
       },
     };

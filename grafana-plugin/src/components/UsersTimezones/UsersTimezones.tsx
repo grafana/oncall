@@ -1,6 +1,6 @@
 import React, { FC, useCallback, useEffect, useMemo, useState } from 'react';
 
-import { HorizontalGroup, Tooltip } from '@grafana/ui';
+import { HorizontalGroup, InlineSwitch, Tooltip } from '@grafana/ui';
 import cn from 'classnames/bind';
 import dayjs from 'dayjs';
 
@@ -72,7 +72,13 @@ const UsersTimezones: FC<UsersTimezonesProps> = (props) => {
     <div className={cx('root')}>
       <div className={cx('header')}>
         <HorizontalGroup justify="space-between">
-          <div className={cx('title')}>Daily team timezones</div>
+          <HorizontalGroup>
+            <div className={cx('title')}>Team timezones</div>
+            <HorizontalGroup>
+              <InlineSwitch transparent />
+              Current schedule users only
+            </HorizontalGroup>
+          </HorizontalGroup>
           <div className={cx('timezone-select')}>
             <Text type="secondary">
               Current timezone: {tz}, local time: {currentMoment.format('HH:mm')}

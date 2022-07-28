@@ -4,7 +4,10 @@
   border-radius: 2px;
   position: relative;
   display: flex;
-  gap: 4px;
+  overflow: hidden;
+  margin: 0 2px;
+  padding: 4px;
+  align-items: center;
 }
 
 .working-hours {
@@ -20,16 +23,11 @@
   flex-shrink: 0;
 }
 
-.stack > .root {
-  margin: 0 2px;
-}
-
 .root__type_gap {
   background: rgba(209, 14, 92, 0.2);
   border: 1px dashed #ff5286;
   color: rgba(209, 14, 92, 0.5);
-
-  /* visibility: hidden; */
+  visibility: hidden;
 }
 
 .root__inactive {
@@ -37,7 +35,6 @@
 }
 
 .title {
-  padding: 5px;
   z-index: 1;
   color: #fff;
   font-size: 12px;
@@ -49,11 +46,12 @@
   border-radius: 2px;
   display: inline-block;
   padding: 2px 4px;
-  margin: 4px;
   line-height: 16px;
   z-index: 1;
   font-size: 10px;
   font-weight: bold;
+  margin-right: 5px;
+  flex-shrink: 0;
 }
 
 .details {

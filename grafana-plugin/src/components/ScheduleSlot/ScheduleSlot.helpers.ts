@@ -41,7 +41,7 @@ export const getOverrideColor = (index: number) => {
 const COLORS = [L1_COLORS, L2_COLORS, L3_COLORS, OVERRIDE_COLORS];
 
 export const getColor = (layerIndex: number, rotationIndex: number) => {
-  return COLORS[layerIndex][rotationIndex];
+  return COLORS[layerIndex]?.[rotationIndex];
 };
 
 const USERS = [
