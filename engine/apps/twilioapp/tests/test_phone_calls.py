@@ -1,3 +1,4 @@
+import urllib
 from unittest import mock
 
 import pytest
@@ -11,6 +12,13 @@ from rest_framework.test import APIClient
 from apps.base.models import UserNotificationPolicy
 from apps.twilioapp.constants import TwilioCallStatuses
 from apps.twilioapp.models import PhoneCall
+from apps.twilioapp.utils import get_gather_message
+
+
+class FakeTwilioCall:
+    def __init__(self):
+        self.sid = "123"
+        self.status = TwilioCallStatuses.COMPLETED
 
 
 @pytest.fixture
@@ -268,3 +276,58 @@ def test_wrong_pressed_digit(mock_has_permission, mock_get_gather_url, phone_cal
 
     assert response.status_code == 200
     assert "Wrong digit" in content
+
+
+@mock.patch("apps.twilioapp.twilio_client.Client")
+@pytest.mark.django_db
+def test_make_cloud_phone_call_not_gathering_digit(mock_twilio_client, make_organization, make_user):
+    organization = make_organization()
+    user = make_user(organization=organization, _verified_phone_number="9999555")
+    mock_twilio_client.return_value.calls.create.return_value = FakeTwilioCall()
+
+    PhoneCall.make_grafana_cloud_call(user, "the message")
+
+    gather_message = urllib.parse.quote(get_gather_message())
+    assert gather_message not in mock_twilio_client.return_value.calls.create.call_args.kwargs["url"]
+
+
+@mock.patch("apps.twilioapp.twilio_client.Client")
+@pytest.mark.django_db
+def test_make_phone_call_gathering_digit(
+    mock_twilio_client,
+    make_organization,
+    make_user,
+    make_user_notification_policy,
+    make_alert_receive_channel,
+    make_alert_group,
+    make_alert,
+):
+    organization = make_organization()
+    user = make_user(organization=organization, _verified_phone_number="9999555")
+    alert_receive_channel = make_alert_receive_channel(organization)
+    alert_group = make_alert_group(alert_receive_channel)
+    notification_policy = make_user_notification_policy(
+        user=user,
+        step=UserNotificationPolicy.Step.NOTIFY,
+        notify_by=UserNotificationPolicy.NotificationChannel.PHONE_CALL,
+    )
+    make_alert(
+        alert_group,
+        raw_request_data={
+            "status": "firing",
+            "labels": {
+                "alertname": "TestAlert",
+                "region": "eu-1",
+            },
+            "annotations": {},
+            "startsAt": "2018-12-25T15:47:47.377363608Z",
+            "endsAt": "0001-01-01T00:00:00Z",
+            "generatorURL": "",
+        },
+    )
+    mock_twilio_client.return_value.calls.create.return_value = FakeTwilioCall()
+
+    PhoneCall.make_call(user, alert_group, notification_policy)
+
+    gather_message = urllib.parse.quote(get_gather_message())
+    assert gather_message in mock_twilio_client.return_value.calls.create.call_args.kwargs["url"]

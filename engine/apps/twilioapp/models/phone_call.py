@@ -251,7 +251,7 @@ class PhoneCall(models.Model):
         if phone_calls_left < 3:
             message_body += " {} phone calls left. Contact your admin.".format(phone_calls_left)
 
-        twilio_call = twilio_client.make_call(message_body, user.verified_phone_number)
+        twilio_call = twilio_client.make_call(message_body, user.verified_phone_number, grafana_cloud=grafana_cloud)
         if twilio_call.status and twilio_call.sid:
             phone_call.status = TwilioCallStatuses.DETERMINANT.get(twilio_call.status, None)
             phone_call.sid = twilio_call.sid
