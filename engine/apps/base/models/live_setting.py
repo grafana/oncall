@@ -110,7 +110,7 @@ class LiveSetting(models.Model):
             "Secret token for Telegram bot, you can get one via <a href='https://t.me/BotFather'>BotFather</a>."
         ),
         "TELEGRAM_WEBHOOK_HOST": (
-            "Externally available URL for Telegram to make requests. Please restart OnCall backend after update."
+            "Externally available URL for Telegram to make requests. Must use https and ports 80, 88, 443, 8443."
         ),
         "SEND_ANONYMOUS_USAGE_STATS": (
             "Grafana OnCall will send anonymous, but uniquely-identifiable usage analytics to Grafana Labs."
