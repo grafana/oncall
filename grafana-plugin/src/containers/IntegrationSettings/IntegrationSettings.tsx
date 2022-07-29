@@ -1,5 +1,4 @@
 import React, { useCallback, useEffect, useState } from 'react';
-
 import {
   Drawer,
   Tab,
@@ -32,6 +31,7 @@ import Autoresolve from './parts/Autoresolve';
 import LiveLogs from './parts/LiveLogs';
 
 import styles from 'containers/IntegrationSettings/IntegrationSettings.module.css';
+import { getLocationSrv, setLocationSrv } from '@grafana/runtime';
 
 const cx = cn.bind(styles);
 
@@ -47,6 +47,7 @@ interface IntegrationSettingsProps {
 const IntegrationSettings = observer((props: IntegrationSettingsProps) => {
   const { id, onHide, onUpdate, onUpdateTemplates, startTab, alertGroupId } = props;
   const [activeTab, setActiveTab] = useState<IntegrationSettingsTab>(startTab || IntegrationSettingsTab.Templates);
+  const [selectedTemplate, setSelectedTemplate] = useState<string>('');
 
   const store = useStore();
 
@@ -57,6 +58,7 @@ const IntegrationSettings = observer((props: IntegrationSettingsProps) => {
   const getTabClickHandler = useCallback((tab: IntegrationSettingsTab) => {
     return () => {
       setActiveTab(tab);
+      getLocationSrv().update({ partial: true, query: { tab: tab } });
     };
   }, []);
 
@@ -64,9 +66,19 @@ const IntegrationSettings = observer((props: IntegrationSettingsProps) => {
     alertReceiveChannelStore.updateItem(id);
   }, []);
 
+  useEffect(() => {
+    setActiveTab(startTab || IntegrationSettingsTab.Templates);
+    getLocationSrv().update({ partial: true, query: { tab: startTab || IntegrationSettingsTab.Templates } });
+  }, [startTab]);
+
   const integration = alertReceiveChannelStore.getIntegration(alertReceiveChannel);
 
   const [expanded, setExpanded] = useState(false);
+
+  const handleSwitchToTemplate = (templateName: string) => {
+    setSelectedTemplate(templateName);
+  };
+
   return (
     <Drawer
       scrollableContent
@@ -148,6 +160,7 @@ const IntegrationSettings = observer((props: IntegrationSettingsProps) => {
             onUpdate={onUpdate}
             onHide={onHide}
             onUpdateTemplates={onUpdateTemplates}
+            selectedTemplateName={selectedTemplate}
           />
         )}
         {activeTab === IntegrationSettingsTab.Heartbeat && (
@@ -155,7 +168,13 @@ const IntegrationSettings = observer((props: IntegrationSettingsProps) => {
             <HeartbeatForm alertReceveChannelId={id} onUpdate={onUpdate} />
           </div>
         )}
-        {activeTab === IntegrationSettingsTab.Autoresolve && <Autoresolve alertReceiveChannelId={id} />}
+        {activeTab === IntegrationSettingsTab.Autoresolve && (
+          <Autoresolve
+            alertReceiveChannelId={id}
+            onSwitchToTemplate={handleSwitchToTemplate}
+            alertGroupId={alertGroupId}
+          />
+        )}
         {/*{activeTab === IntegrationSettingsTab.LiveLogs && <LiveLogs alertReceiveChannelId={id} />}*/}
         {activeTab === IntegrationSettingsTab.HowToConnect && (
           <div className="container">

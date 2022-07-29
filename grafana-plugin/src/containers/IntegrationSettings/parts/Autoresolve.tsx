@@ -1,12 +1,13 @@
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useState, useEffect } from 'react';
 
-import { Alert, Button, Label, Modal, Select } from '@grafana/ui';
+import { Alert, Button, Icon, Label, Modal, Select } from '@grafana/ui';
 import cn from 'classnames/bind';
 import { get } from 'lodash-es';
 
 import Block from 'components/GBlock/Block';
 import Text from 'components/Text/Text';
 import GSelect from 'containers/GSelect/GSelect';
+import { Alert as AlertType } from 'models/alertgroup/alertgroup.types';
 import { WithPermissionControl } from 'containers/WithPermissionControl/WithPermissionControl';
 import { AlertReceiveChannel } from 'models/alert_receive_channel/alert_receive_channel.types';
 import { Team } from 'models/team/team.types';
@@ -15,14 +16,18 @@ import { UserAction } from 'state/userAction';
 import { openErrorNotification, openNotification } from 'utils';
 
 import styles from 'containers/IntegrationSettings/parts/Autoresolve.module.css';
+import PluginLink from 'components/PluginLink/PluginLink';
+import { getLocationSrv } from '@grafana/runtime';
 
 const cx = cn.bind(styles);
 
 interface AutoresolveProps {
   alertReceiveChannelId: AlertReceiveChannel['id'];
+  alertGroupId?: AlertType['pk'];
+  onSwitchToTemplate?: (templateName: string) => void;
 }
 
-const Autoresolve = ({ alertReceiveChannelId }: AutoresolveProps) => {
+const Autoresolve = ({ alertReceiveChannelId, onSwitchToTemplate, alertGroupId }: AutoresolveProps) => {
   const store = useStore();
   const { alertReceiveChannelStore, grafanaTeamStore, userStore } = store;
 
@@ -35,11 +40,36 @@ const Autoresolve = ({ alertReceiveChannelId }: AutoresolveProps) => {
   const [autoresolveChanged, setAutoresolveChanged] = useState<boolean>(false);
   const [autoresolveValue, setAutoresolveValue] = useState<boolean>(alertReceiveChannel?.allow_source_based_resolving);
   const [showErrorOnTeamSelect, setShowErrorOnTeamSelect] = useState<boolean>(false);
+  const [autoresolveSelected, setAutoresolveSelected] = useState<boolean>(
+    alertReceiveChannel?.allow_source_based_resolving
+  );
+  const [autoresolveConditionInvalid, setAutoresolveConditionInvalid] = useState<boolean>(false);
+
+  useEffect(() => {
+    store.alertReceiveChannelStore.updateItem(alertReceiveChannelId);
+    store.alertReceiveChannelStore.updateTemplates(alertReceiveChannelId, alertGroupId);
+  }, [alertGroupId, alertReceiveChannelId, store]);
+
+  useEffect(() => {
+    const autoresolveCondition = get(
+      store.alertReceiveChannelStore.templates[alertReceiveChannelId],
+      'resolve_condition_template'
+    );
+    if (autoresolveCondition == ['invalid template']) {
+      setAutoresolveConditionInvalid(true);
+    }
+  }, [store.alertReceiveChannelStore.templates[alertReceiveChannelId]]);
 
   const handleAutoresolveSelected = useCallback(
     (autoresolveSelectedOption) => {
       setAutoresolveChanged(true);
       setAutoresolveValue(autoresolveSelectedOption?.value);
+      if (autoresolveSelectedOption?.value === 'true') {
+        setAutoresolveSelected(true);
+      }
+      if (autoresolveSelectedOption?.value === 'false') {
+        setAutoresolveSelected(false);
+      }
     },
     [autoresolveChanged]
   );
@@ -84,6 +114,11 @@ const Autoresolve = ({ alertReceiveChannelId }: AutoresolveProps) => {
     }
   };
 
+  const handleGoToTemplateSettingsCllick = () => {
+    getLocationSrv().update({ partial: true, query: { tab: 'Templates' } });
+    onSwitchToTemplate('resolve_condition_template');
+  };
+
   return (
     <>
       <Block>
@@ -124,12 +159,39 @@ const Autoresolve = ({ alertReceiveChannelId }: AutoresolveProps) => {
                 defaultValue={{ value: 'true', label: 'Automatically resolve' }}
                 value={autoresolveValue.toString()}
                 options={[
-                  { value: 'true', label: 'Automatically resolve' },
+                  { value: 'true', label: 'Resolve automatically' },
                   { value: 'false', label: 'Resolve manually' },
                 ]}
               />
             </WithPermissionControl>
           </div>
+          {autoresolveSelected && (
+            <>
+              <Block shadowed bordered className={cx('autoresolve-block')}>
+                <div>
+                  <Text type="secondary" size="small">
+                    <Icon name="info-circle" /> Incident will be automatically resolved when it matches{' '}
+                  </Text>
+                  <Button fill="text" size="sm" onClick={handleGoToTemplateSettingsCllick}>
+                    autoresolve condition
+                  </Button>
+                </div>
+              </Block>
+              {autoresolveConditionInvalid && (
+                <Block shadowed bordered className={cx('autoresolve-block')}>
+                  <div>
+                    <Text type="secondary" size="small">
+                      <Icon name="exclamation-triangle" className={cx('warning-icon-color')} /> Autoresolving condition
+                      template is invalid, please{' '}
+                    </Text>
+                    <Button fill="text" size="sm" onClick={handleGoToTemplateSettingsCllick}>
+                      Edit it
+                    </Button>
+                  </div>
+                </Block>
+              )}
+            </>
+          )}
         </div>
         <div className={cx('team-select-actionbuttons')}>
           <Button variant="primary" onClick={handleSaveClick}>
