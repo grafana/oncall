@@ -9,6 +9,8 @@ from telegram import Bot
 from twilio.base.exceptions import TwilioException
 from twilio.rest import Client
 
+from common.api_helpers.utils import create_engine_url
+
 
 class LiveSettingProxy:
     def __dir__(self):
@@ -103,10 +105,12 @@ class LiveSettingValidator:
 
     @classmethod
     def _check_telegram_webhook_host(cls, telegram_webhook_host):
-        parse_result = urlparse(telegram_webhook_host)
-
-        if parse_result.scheme != "https" or parse_result.port not in [None, 80, 88, 443, 8443]:
-            return "Must use https and ports 80, 88, 443 or 8443"
+        try:
+            url = create_engine_url("/telegram/", override_base=telegram_webhook_host)
+            bot = Bot(token=live_settings.TELEGRAM_TOKEN)
+            bot.set_webhook(url)
+        except Exception as e:
+            return f"Telegram error: {str(e)}"
 
     @classmethod
     def _check_grafana_cloud_oncall_token(cls, grafana_oncall_token):
