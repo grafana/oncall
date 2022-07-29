@@ -48,6 +48,8 @@ class ScheduleOverrides extends Component<ScheduleOverridesProps, ScheduleOverri
 
     const currentTimeX = diff / base;
 
+    const currentTimeHidden = currentTimeX < 0 || currentTimeX > 1;
+
     return (
       <>
         <div className={cx('root')}>
@@ -60,7 +62,7 @@ class ScheduleOverrides extends Component<ScheduleOverridesProps, ScheduleOverri
             </HorizontalGroup>
           </div>
           <div className={cx('header-plus-content')}>
-            <div className={cx('current-time')} style={{ left: `${currentTimeX * 100}%` }} />
+            {!currentTimeHidden && <div className={cx('current-time')} style={{ left: `${currentTimeX * 100}%` }} />}
             <TimelineMarks startMoment={startMoment} />
             <div className={cx('rotations')}>
               {shifts && shifts.length ? (
@@ -89,7 +91,9 @@ class ScheduleOverrides extends Component<ScheduleOverridesProps, ScheduleOverri
               )}
             </div>
           </div>
-          <div className={cx('add-rotations-layer')}>Add override +</div>
+          <div className={cx('add-rotations-layer')} onClick={this.handleAddOverride}>
+            Add override +
+          </div>
         </div>
         {shiftIdToShowOverrideForm && (
           <ScheduleOverrideForm

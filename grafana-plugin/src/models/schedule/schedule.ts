@@ -5,13 +5,14 @@ import { action, observable, toJS } from 'mobx';
 import ReactCSSTransitionGroup from 'react-transition-group'; // ES6
 
 import BaseStore from 'models/base_store';
+import { SlackChannel } from 'models/slack_channel/slack_channel.types';
 import { Timezone } from 'models/timezone/timezone.types';
 import { makeRequest } from 'network';
 import { RootStore } from 'state';
 import { SelectOption } from 'state/types';
 
 import { fillGaps } from './schedule.helpers';
-import { Events, Rotation, RotationType, Schedule, ScheduleEvent, Shift } from './schedule.types';
+import { Events, Rotation, RotationType, Schedule, ScheduleEvent, Shift, Event } from './schedule.types';
 
 const DEFAULT_FORMAT = 'YYYY-MM-DDTHH:mm:ss';
 
@@ -170,20 +171,34 @@ export class ScheduleStore extends BaseStore {
 
   // ------- NEW SCHEDULES API ENDPOINTS ---------
 
-  async createRotation(scheduleId: Schedule['id'], isOverride: boolean, params: any) {
+  async createRotation(scheduleId: Schedule['id'], isOverride: boolean, params: Partial<Shift>) {
     const type = isOverride ? 3 : 2;
 
-    return await makeRequest(`/oncall_shifts/`, {
+    const response = await makeRequest(`/oncall_shifts/`, {
       data: { type, schedule: scheduleId, ...params },
       method: 'POST',
-    });
+    }).catch(this.onApiError);
+
+    this.shifts = {
+      ...this.shifts,
+      [response.id]: response,
+    };
+
+    return response;
   }
 
-  async updateRotation(rotationId: Rotation['id']) {
-    return await makeRequest(`/oncall_shifts/`, {
-      params: { shift_id: rotationId },
-      method: 'GET',
-    });
+  async updateRotation(shiftId: Shift['id'], params: Partial<Shift>) {
+    const response = await makeRequest(`/oncall_shifts/${shiftId}`, {
+      data: { ...params },
+      method: 'PUT',
+    }).catch(this.onApiError);
+
+    this.shifts = {
+      ...this.shifts,
+      [response.id]: response,
+    };
+
+    return response;
   }
 
   async updateRotationMock(rotationId: Rotation['id'], fromString: string, currentTimezone: Timezone) {
@@ -256,6 +271,16 @@ export class ScheduleStore extends BaseStore {
     };
   }
 
+  @action
+  async updateOncallShift(shiftId: Shift['id']) {
+    const response = await makeRequest(`/oncall_shifts/${shiftId}`, {});
+
+    this.shifts = {
+      ...this.shifts,
+      [shiftId]: response,
+    };
+  }
+
   async deleteOncallShift(shiftId: Shift['id']) {
     return await makeRequest(`/oncall_shifts/${shiftId}`, {
       method: 'DELETE',
@@ -288,6 +313,21 @@ export class ScheduleStore extends BaseStore {
     }
 
     shifts.forEach((shift) => {
+      for (let i = 0; i < shift.events.length; i++) {
+        const iEvent = shift.events[i];
+
+        for (let j = i + 1; j < shift.events.length; j++) {
+          const jEvent = shift.events[j];
+          if (iEvent.start === jEvent.start && iEvent.end === jEvent.end) {
+            iEvent.users.push(...jEvent.users);
+            jEvent.merged = true;
+          }
+        }
+        shift.events = shift.events.filter((event) => !event.merged);
+      }
+    });
+
+    shifts.forEach((shift) => {
       shift.events = fillGaps(shift.events);
     });
 
@@ -305,16 +345,6 @@ export class ScheduleStore extends BaseStore {
     };
 
     console.log(toJS(this.events));
-
-    /*this.rotations = {
-      ...this.rotations,
-      [rotationId]: {
-        ...this.rotations[rotationId],
-        [level]: {
-          [fromString]: response as Rotation,
-        },
-      },
-    };*/
   }
 
   async updateFrequencyOptions() {

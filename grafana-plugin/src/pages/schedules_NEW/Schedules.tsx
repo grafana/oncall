@@ -6,6 +6,7 @@ import cn from 'classnames/bind';
 import dayjs from 'dayjs';
 import { observer } from 'mobx-react';
 
+import Avatar from 'components/Avatar/Avatar';
 import NewScheduleSelector from 'components/NewScheduleSelector/NewScheduleSelector';
 import PluginLink from 'components/PluginLink/PluginLink';
 import ScheduleCounter from 'components/ScheduleCounter/ScheduleCounter';
@@ -69,25 +70,25 @@ class SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSta
     const schedules = scheduleStore.getSearchResult();
 
     const columns = [
-      {
+      /* {
         width: '10%',
         title: 'Status',
         key: 'name',
         render: this.renderStatus,
-      },
+      },*/
       {
-        width: '30%',
+        width: '50%',
         title: 'Name',
         key: 'name',
         render: this.renderName,
       },
       {
-        width: '30%',
+        width: '45%',
         title: 'OnCall',
         key: 'users',
-        render: this.renderUsers,
+        render: this.renderOncallNow,
       },
-      {
+      /*{
         width: '20%',
         title: 'ChatOps',
         key: 'chatops',
@@ -98,8 +99,9 @@ class SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSta
         title: 'Quality',
         key: 'quality',
         render: this.renderQuality,
-      },
+      },*/
       {
+        width: '5%',
         key: 'buttons',
         render: this.renderButtons,
       },
@@ -234,16 +236,20 @@ class SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSta
     return <PluginLink query={{ page: 'schedule', id: item.id }}>{item.name}</PluginLink>;
   };
 
-  renderUsers = (item: Schedule) => {
-    return (
-      <HorizontalGroup>
-        {/*{item.users.map((user) => (
-          <HorizontalGroup spacing="xs">
-            <Avatar src={user.avatar} size="large" /> {user.name}
-          </HorizontalGroup>
-        ))}*/}
-      </HorizontalGroup>
-    );
+  renderOncallNow = (item: Schedule, index: number) => {
+    if (item.on_call_now?.length > 0) {
+      return item.on_call_now.map((user, index) => {
+        return (
+          <PluginLink key={user.pk} query={{ page: 'users', id: user.pk }}>
+            <div>
+              <Avatar size="small" src={user.avatar} />
+              <Text type="secondary"> {user.username}</Text>
+            </div>
+          </PluginLink>
+        );
+      });
+    }
+    return null;
   };
 
   renderChatOps = (item: Schedule) => {
@@ -259,9 +265,9 @@ class SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSta
   renderButtons = (item: Schedule) => {
     return (
       <HorizontalGroup>
-        <IconButton tooltip="Copy" name="copy" />
+        {/*<IconButton tooltip="Copy" name="copy" />
         <IconButton tooltip="Settings" name="cog" />
-        <IconButton tooltip="Code" name="brackets-curly" />
+        <IconButton tooltip="Code" name="brackets-curly" />*/}
         <WithConfirm>
           <IconButton tooltip="Delete" name="trash-alt" onClick={this.getDeleteScheduleClickHandler(item.id)} />
         </WithConfirm>

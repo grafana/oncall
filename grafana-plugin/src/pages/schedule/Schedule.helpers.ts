@@ -1,4 +1,4 @@
-import { DateTime } from '@grafana/data';
+import { dateTime, DateTime } from '@grafana/data';
 import dayjs from 'dayjs';
 import { subtract } from 'lodash-es';
 
@@ -677,4 +677,12 @@ export const getUTCString = (moment: dayjs.Dayjs | DateTime, timezone: Timezone)
     .add(browserTimezoneOffset, 'minutes') // we need these calculations because we can't specify timezone for DateTimePicker directly
     .subtract(timezoneOffset, 'minutes')
     .format('YYYY-MM-DDTHH:mm:ss.000Z');
+};
+
+export const getDateTime = (date: string) => {
+  const browserTimezone = dayjs.tz.guess();
+
+  const browserTimezoneOffset = dayjs().tz(browserTimezone).utcOffset();
+
+  return dateTime(dayjs(date).subtract(browserTimezoneOffset, 'minutes').format('YYYY-MM-DDTHH:mm:ss.000Z'));
 };

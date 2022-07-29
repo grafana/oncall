@@ -1,7 +1,10 @@
 import React from 'react';
 
 import { Tooltip } from '@grafana/ui';
+import dayjs from 'dayjs';
 import { pick } from 'lodash-es';
+
+import { Timezone } from 'models/timezone/timezone.types';
 
 import { User, UserRole } from './user.types';
 
@@ -29,6 +32,23 @@ export const getRole = (role: UserRole) => {
     default:
       return '';
   }
+};
+
+export const getTimezone = (user: User) => {
+  const tzByName = {
+    'Hello Oncall': 'UTC',
+    'Matías Bordese': 'America/Montevideo',
+    'Michael Derynck': 'America/Vancouver',
+    'Yulia Shanyrova': 'Europe/Amsterdam',
+    'Maxim Mordasov': 'Europe/Moscow',
+    'Vadim Stepanov': 'Europe/London',
+    'Ildar Iskhakov': 'Asia/Yerevan',
+    'Raphael Batyrbaev': 'Europe/Rome',
+    'Innokentii Konstantinov': 'Asia/Singapore',
+    'Matvey Kukuy': 'Asia/Tel_Aviv',
+  };
+
+  return user.timezone || tzByName[user.username] || dayjs.tz.guess();
 };
 
 export const getUserNotificationsSummary = (user: User) => {

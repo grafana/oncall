@@ -28,7 +28,7 @@ const UsersTimezones: FC<UsersTimezonesProps> = (props) => {
   const { users, tz, onTzChange } = props;
 
   const [count, setCount] = useState<number>(0);
-  const [currentMoment, setCurrentMoment] = useState<dayjs.Dayjs>(dayjs().tz(tz).startOf('minute'));
+  const [currentMoment, setCurrentMoment] = useState<dayjs.Dayjs>(dayjs().tz(tz));
 
   const getAvatarClickHandler = useCallback((user) => {
     return () => {
@@ -74,10 +74,10 @@ const UsersTimezones: FC<UsersTimezonesProps> = (props) => {
         <HorizontalGroup justify="space-between">
           <HorizontalGroup>
             <div className={cx('title')}>Team timezones</div>
-            <HorizontalGroup>
+            {/* <HorizontalGroup>
               <InlineSwitch transparent />
               Current schedule users only
-            </HorizontalGroup>
+            </HorizontalGroup>*/}
           </HorizontalGroup>
           <div className={cx('timezone-select')}>
             <Text type="secondary">

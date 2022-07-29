@@ -45,6 +45,8 @@ class ScheduleFinal extends Component<ScheduleFinalProps, ScheduleOverridesState
 
     const shifts = store.scheduleStore.events[scheduleId]?.['final']?.[getFromString(startMoment)];
 
+    const currentTimeHidden = currentTimeX < 0 || currentTimeX > 1;
+
     return (
       <>
         <div className={cx('root')}>
@@ -52,17 +54,17 @@ class ScheduleFinal extends Component<ScheduleFinalProps, ScheduleOverridesState
             <div className={cx('header')}>
               <HorizontalGroup justify="space-between">
                 <div className={cx('title')}>Final schedule</div>
-                <Input
+                {/*<Input
                   prefix={<Icon name="search" />}
                   placeholder="Search..."
                   value={searchTerm}
                   onChange={this.onSearchTermChangeCallback}
-                />
+                />*/}
               </HorizontalGroup>
             </div>
           )}
           <div className={cx('header-plus-content')}>
-            <div className={cx('current-time')} style={{ left: `${currentTimeX * 100}%` }} />
+            {!currentTimeHidden && <div className={cx('current-time')} style={{ left: `${currentTimeX * 100}%` }} />}
             <TimelineMarks startMoment={startMoment} />
             <div className={cx('rotations')}>
               {shifts && shifts.length ? (

@@ -11,9 +11,9 @@ import Rotation from 'containers/Rotation/Rotation';
 import RotationForm from 'containers/RotationForm/RotationForm';
 import { RotationCreateData } from 'containers/RotationForm/RotationForm.types';
 import { getFromString } from 'models/schedule/schedule.helpers';
-import { Schedule, Shift } from 'models/schedule/schedule.types';
+import { Event, Schedule, Shift } from 'models/schedule/schedule.types';
 import { Timezone } from 'models/timezone/timezone.types';
-import { WithStoreProps } from 'state/types';
+import { SelectOption, WithStoreProps } from 'state/types';
 import { withMobXProviderContext } from 'state/withStore';
 
 import { getColor, getLabel, getRandomTimeslots, getRandomUser } from './Rotations.helpers';
@@ -31,12 +31,14 @@ interface RotationsProps extends WithStoreProps {
   onUpdate: () => void;
 }
 
-type Layer = {
-  id: string;
-};
-
 interface RotationsState {
   shiftIdToShowRotationForm?: Shift['id'];
+  layerIndexToShowRotationForm?: number;
+}
+
+interface Layer {
+  priority: Shift['priority_level'];
+  shifts: Array<{ shiftId: Shift['id']; events: Event[] }>;
 }
 
 @observer
@@ -47,23 +49,50 @@ class Rotations extends Component<RotationsProps, RotationsState> {
 
   render() {
     const { scheduleId, startMoment, currentTimezone, onCreate, onUpdate, store, onClick } = this.props;
-    const { shiftIdToShowRotationForm } = this.state;
-
-    const layers = [
-      { id: 1, title: 'Layer 1' },
-      /*{ id: 1, title: 'Layer 2' },
-     { id: 2, title: 'Layer 3' },
-      { id: 3, title: 'Layer 4' }*/
-    ];
+    const { shiftIdToShowRotationForm, layerIndexToShowRotationForm } = this.state;
 
     const base = 7 * 24 * 60; // in minutes
     const diff = dayjs().tz(currentTimezone).diff(startMoment, 'minutes');
 
     const currentTimeX = diff / base;
 
-    const rotations = [{} /* {}*/];
+    const currentTimeHidden = currentTimeX < 0 || currentTimeX > 1;
 
     const shifts = store.scheduleStore.events[scheduleId]?.['rotation']?.[getFromString(startMoment)];
+
+    const layers: Layer[] | undefined = shifts
+      ? shifts
+          .reduce((memo, shift) => {
+            const storeShift = store.scheduleStore.shifts[shift.shiftId];
+            let layer = memo.find((level) => level.priority === storeShift.priority_level);
+            if (!layer) {
+              layer = { priority: storeShift.priority_level, shifts: [] };
+              memo.push(layer);
+            }
+            layer.shifts.push(shift);
+
+            return memo;
+          }, [])
+          .sort((a, b) => {
+            if (a.priority > b.priority) {
+              return 1;
+            }
+            if (a.priority < b.priority) {
+              return -1;
+            }
+
+            return 0;
+          })
+      : undefined;
+
+    const options = layers
+      ? layers.map((layer) => ({
+          label: `Layer ${layer.priority}`,
+          value: layer.priority - 1,
+        }))
+      : [];
+
+    options.push({ label: 'New Layer', value: layers?.length || 0 });
 
     return (
       <>
@@ -73,10 +102,7 @@ class Rotations extends Component<RotationsProps, RotationsState> {
               <div className={cx('title')}>Rotations</div>
               <ValuePicker
                 label="Add rotation"
-                options={layers.map(({ title, id }) => ({
-                  label: title,
-                  value: id,
-                }))}
+                options={options}
                 onChange={this.handleAddRotation}
                 variant="secondary"
                 size="md"
@@ -84,30 +110,36 @@ class Rotations extends Component<RotationsProps, RotationsState> {
             </HorizontalGroup>
           </div>
           <div className={cx('rotations-plus-title')}>
-            {shifts && shifts.length ? (
-              shifts.map(({ shiftId, events }, layerIndex) => (
-                <div key={layerIndex}>
+            {layers && layers.length ? (
+              layers.map((layer) => (
+                <div key={layer.priority}>
                   <div className={cx('layer')}>
                     <div className={cx('layer-title')}>
                       <HorizontalGroup spacing="sm" justify="center">
-                        Layer {layerIndex + 1} <Icon name="info-circle" />
+                        Layer {layer.priority} <Icon name="info-circle" />
                       </HorizontalGroup>
                     </div>
-                    <div className={cx('header-plus-content')}>
-                      <div className={cx('current-time')} style={{ left: `${currentTimeX * 100}%` }} />
-                      <TimelineMarks debug startMoment={startMoment} />
-                      <div className={cx('rotations')}>
-                        <Rotation
-                          onClick={() => {
-                            this.onRotationClick(shiftId);
-                          }}
-                          events={events}
-                          layerIndex={layerIndex}
-                          rotationIndex={0}
-                          startMoment={startMoment}
-                          currentTimezone={currentTimezone}
-                        />
-                      </div>
+                    <div className={cx('rotations')}>
+                      <TimelineMarks startMoment={startMoment} />
+                      {layer.shifts.map(({ shiftId, events }, rotationIndex) => (
+                        <div className={cx('header-plus-content')}>
+                          {!currentTimeHidden && (
+                            <div className={cx('current-time')} style={{ left: `${currentTimeX * 100}%` }} />
+                          )}
+                          <div>
+                            <Rotation
+                              onClick={() => {
+                                this.onRotationClick(shiftId);
+                              }}
+                              events={events}
+                              layerIndex={layer.priority - 1}
+                              rotationIndex={rotationIndex}
+                              startMoment={startMoment}
+                              currentTimezone={currentTimezone}
+                            />
+                          </div>
+                        </div>
+                      ))}
                     </div>
                   </div>
                 </div>
@@ -140,7 +172,12 @@ class Rotations extends Component<RotationsProps, RotationsState> {
               </div>
             )}
 
-            <div className={cx('add-rotations-layer')} onClick={this.handleAddLayer}>
+            <div
+              className={cx('add-rotations-layer')}
+              onClick={() => {
+                this.handleAddLayer(layers ? layers.length : 0);
+              }}
+            >
               Add rotations layer +
             </div>
           </div>
@@ -149,7 +186,7 @@ class Rotations extends Component<RotationsProps, RotationsState> {
           <RotationForm
             shiftId={shiftIdToShowRotationForm}
             scheduleId={scheduleId}
-            layerIndex={shifts ? shifts.length : 0}
+            layerIndex={layerIndexToShowRotationForm}
             currentTimezone={currentTimezone}
             onHide={() => {
               this.setState({ shiftIdToShowRotationForm: undefined });
@@ -168,10 +205,12 @@ class Rotations extends Component<RotationsProps, RotationsState> {
 
   updateEvents = () => {};
 
-  handleAddLayer = () => {};
+  handleAddLayer = (layerIndex: number) => {
+    this.setState({ shiftIdToShowRotationForm: 'new', layerIndexToShowRotationForm: layerIndex });
+  };
 
-  handleAddRotation = (option) => {
-    this.setState({ shiftIdToShowRotationForm: option.value });
+  handleAddRotation = (option: SelectOption) => {
+    this.setState({ shiftIdToShowRotationForm: 'new', layerIndexToShowRotationForm: option.value });
   };
 }
 

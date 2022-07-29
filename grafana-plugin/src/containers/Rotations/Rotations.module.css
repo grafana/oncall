@@ -11,8 +11,7 @@
   top: 0;
   bottom: 0;
   z-index: 1;
-
-  /* transition: left 500ms ease; */
+  transition: left 500ms ease;
 }
 
 .header {
@@ -34,6 +33,10 @@
 
 .layer {
   display: block;
+}
+
+.rotations {
+  position: relative;
 }
 
 .layer-title {
@@ -80,4 +83,9 @@
   text-align: center;
   padding: 12px;
   color: rgba(204, 204, 220, 0.65);
+  cursor: pointer;
+}
+
+.add-rotations-layer:hover {
+  background: var(--secondary-background);
 }

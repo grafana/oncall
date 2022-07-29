@@ -1,5 +1,7 @@
+import dayjs from 'dayjs';
 import { get } from 'lodash-es';
 import { action, computed, observable } from 'mobx';
+import moment from 'moment-timezone';
 
 import BaseStore from 'models/base_store';
 import { NotificationPolicyType } from 'models/notification_policy';
@@ -9,7 +11,7 @@ import { Mixpanel } from 'services/mixpanel';
 import { RootStore } from 'state';
 import { move } from 'state/helpers';
 
-import { prepareForUpdate } from './user.helpers';
+import { getTimezone, prepareForUpdate } from './user.helpers';
 import { User } from './user.types';
 
 export class UserStore extends BaseStore {
@@ -54,7 +56,7 @@ export class UserStore extends BaseStore {
 
     this.items = {
       ...this.items,
-      [user.pk]: { ...user, timezone: this.rootStore.currentTimezone },
+      [user.pk]: { ...user, timezone: getTimezone(user) },
     };
 
     this.currentUserPk = user.pk;
@@ -100,27 +102,7 @@ export class UserStore extends BaseStore {
           ...acc,
           [item.pk]: {
             ...item,
-            timezone: {
-              'Hello Oncall': 'UTC',
-              'Matías Bordese': 'America/Montevideo',
-              'Michael Derynck': 'America/Vancouver',
-              'Yulia Shanyrova': 'Europe/Amsterdam',
-              'Maxim Mordasov': 'Europe/Moscow',
-              'Vadim Stepanov': 'Europe/London',
-              'Ildar Iskhakov': 'Asia/Yerevan',
-              'Raphael Batyrbaev': 'Europe/Rome',
-              'Innokentii Konstantinov': 'Asia/Singapore',
-              /* 'Matvey Kukuy',*/
-            }[item.username],
-            working_hours: {
-              monday: [{ start: '09:00:00', end: '18:00:00' }],
-              tuesday: [{ start: '09:00:00', end: '18:00:00' }],
-              wednesday: [{ start: '09:00:00', end: '18:00:00' }],
-              thursday: [{ start: '09:00:00', end: '18:00:00' }],
-              friday: [{ start: '09:00:00', end: '18:00:00' }],
-              saturday: [],
-              sunday: [],
-            },
+            timezone: getTimezone(item),
           },
         }),
         {}

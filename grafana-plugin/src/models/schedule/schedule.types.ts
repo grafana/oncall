@@ -46,10 +46,10 @@ export interface CreateScheduleExportTokenResponse {
 }
 
 export interface Shift {
-  by_day: null;
-  frequency: number;
+  by_day: string[];
+  frequency: number | null;
   id: string;
-  interval: null;
+  interval: number;
   priority_level: number;
   rolling_users: Array<Array<User['pk']>>;
   rotation_start: string;

@@ -1,4 +1,4 @@
-import React, { FC, useCallback, useState } from 'react';
+import React, { FC, useCallback, useEffect, useState } from 'react';
 
 import { dateTime, DateTime } from '@grafana/data';
 import {
@@ -14,6 +14,7 @@ import {
 } from '@grafana/ui';
 import cn from 'classnames/bind';
 import dayjs from 'dayjs';
+import { observer } from 'mobx-react';
 import Draggable from 'react-draggable';
 
 import Modal from 'components/Modal/Modal';
@@ -25,7 +26,7 @@ import { Rotation, Schedule, Shift } from 'models/schedule/schedule.types';
 import { getTzOffsetString } from 'models/timezone/timezone.helpers';
 import { Timezone } from 'models/timezone/timezone.types';
 import { User } from 'models/user/user.types';
-import { getUTCString } from 'pages/schedule/Schedule.helpers';
+import { getDateTime, getUTCString } from 'pages/schedule/Schedule.helpers';
 import { SelectOption } from 'state/types';
 import { useStore } from 'state/useStore';
 
@@ -45,19 +46,23 @@ interface RotationFormProps {
 
 const cx = cn.bind(styles);
 
-const RotationForm: FC<RotationFormProps> = (props) => {
+const startOfDay = dayjs().startOf('day');
+
+const RotationForm: FC<RotationFormProps> = observer((props) => {
   const { onHide, onCreate, currentTimezone, scheduleId, onUpdate, layerIndex, shiftId } = props;
 
   const [repeatEveryValue, setRepeatEveryValue] = useState<number>(1);
   const [repeatEveryPeriod, setRepeatEveryPeriod] = useState<number>(0);
   const [selectedDays, setSelectedDays] = useState<string[]>([]);
-  const [shiftStart, setShiftStart] = useState<DateTime>(dateTime('2022-07-26 12:00:00'));
-  const [shiftEnd, setShiftEnd] = useState<DateTime>(dateTime('2022-07-26 19:00:00'));
-  const [rotationStart, setRotationStart] = useState<DateTime>(dateTime('2022-07-26 12:00:00'));
+  const [shiftStart, setShiftStart] = useState<DateTime>(dateTime(startOfDay.format('YYYY-MM-DD HH:mm:ss')));
+  const [shiftEnd, setShiftEnd] = useState<DateTime>(dateTime(startOfDay.add(1, 'day').format('YYYY-MM-DD HH:mm:ss')));
+  const [rotationStart, setRotationStart] = useState<DateTime>(dateTime(startOfDay.format('YYYY-MM-DD HH:mm:ss')));
   const [endLess, setEndless] = useState<boolean>(true);
-  const [rotationEnd, setRotationEnd] = useState<DateTime>(dateTime('2022-08-26 12:00:00'));
+  const [rotationEnd, setRotationEnd] = useState<DateTime>(
+    dateTime(startOfDay.add(1, 'month').format('YYYY-MM-DD HH:mm:ss'))
+  );
 
-  const [userGroups, setUserGroups] = useState([['U9XM1G7KTE3KW'], ['UYKS64M6C59XM']]);
+  const [userGroups, setUserGroups] = useState([[]]);
 
   const getUser = (pk: User['pk']) => {
     return {
@@ -77,19 +82,13 @@ const RotationForm: FC<RotationFormProps> = (props) => {
 
   const shift = store.scheduleStore.shifts[shiftId];
 
-  const handleCreate = useCallback(() => {
-    /* console.log(
-      repeatEveryValue,
-      repeatEveryPeriod,
-      selectedDays,
-      shiftStart,
-      shiftEnd,
-      rotationStart,
-      endLess,
-      rotationEnd
-    );
-    */
+  useEffect(() => {
+    if (shiftId !== 'new') {
+      store.scheduleStore.updateOncallShift(shiftId);
+    }
+  }, [shiftId]);
 
+  const handleCreate = useCallback(() => {
     const params = {
       title: 'Rotation ' + Math.floor(Math.random() * 100),
       rotation_start: getUTCString(rotationStart, currentTimezone),
@@ -97,17 +96,23 @@ const RotationForm: FC<RotationFormProps> = (props) => {
       shift_start: getUTCString(shiftStart, currentTimezone),
       shift_end: getUTCString(shiftEnd, currentTimezone),
       rolling_users: userGroups.filter((group) => group.length),
+      interval: repeatEveryValue,
       frequency: repeatEveryPeriod,
       by_day: repeatEveryPeriod === 1 ? selectedDays : null,
-      priority_level: layerIndex + 1,
+      priority_level: shiftId === 'new' ? layerIndex + 1 : shift?.priority_level,
     };
 
-    // console.log('params', params);
-
-    store.scheduleStore.createRotation(scheduleId, false, params).then(() => {
-      onHide();
-      onCreate();
-    });
+    if (shiftId === 'new') {
+      store.scheduleStore.createRotation(scheduleId, false, params).then(() => {
+        onHide();
+        onCreate();
+      });
+    } else {
+      store.scheduleStore.updateRotation(shiftId, params).then(() => {
+        onHide();
+        onUpdate();
+      });
+    }
   }, [
     repeatEveryValue,
     repeatEveryPeriod,
@@ -120,6 +125,22 @@ const RotationForm: FC<RotationFormProps> = (props) => {
     userGroups,
     layerIndex,
   ]);
+
+  useEffect(() => {
+    if (shift) {
+      setRotationStart(getDateTime(shift.rotation_start));
+      setRotationEnd(getDateTime(shift.until));
+      setShiftStart(getDateTime(shift.shift_start));
+      setShiftEnd(getDateTime(shift.shift_end));
+      setEndless(!shift.until);
+
+      setRepeatEveryValue(shift.interval);
+      setRepeatEveryPeriod(shift.frequency);
+      setSelectedDays(shift.by_day);
+
+      setUserGroups(shift.rolling_users);
+    }
+  }, [shift]);
 
   const handleChangeEndless = useCallback(
     (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -150,7 +171,12 @@ const RotationForm: FC<RotationFormProps> = (props) => {
     >
       <VerticalGroup>
         <HorizontalGroup justify="space-between">
-          <Text size="medium">{shiftId === 'new' ? 'New Rotation' : shift?.title}</Text>
+          <Text size="medium">
+            <HorizontalGroup spacing="sm">
+              <span>[L{shiftId === 'new' ? layerIndex + 1 : shift?.priority_level}]</span>
+              {shiftId === 'new' ? 'New Rotation' : shift?.title}
+            </HorizontalGroup>
+          </Text>
           <HorizontalGroup>
             <IconButton disabled variant="secondary" tooltip="Copy" name="copy" />
             <IconButton disabled variant="secondary" tooltip="Code" name="brackets-curly" />
@@ -176,6 +202,7 @@ const RotationForm: FC<RotationFormProps> = (props) => {
                   { label: '4', value: 4 },
                   { label: '5', value: 5 },
                   { label: '6', value: 6 },
+                  { label: '7', value: 7 },
                 ]}
                 onChange={handleRepeatEveryValueChange}
               />
@@ -265,14 +292,14 @@ const RotationForm: FC<RotationFormProps> = (props) => {
           <HorizontalGroup>
             <Button variant="secondary">+ Override</Button>
             <Button variant="primary" onClick={handleCreate}>
-              Create
+              {shiftId === 'new' ? 'Create' : 'Update'}
             </Button>
           </HorizontalGroup>
         </HorizontalGroup>
       </VerticalGroup>
     </Modal>
   );
-};
+});
 
 interface DaysSelectorProps {
   value: string[];

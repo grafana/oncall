@@ -1,4 +1,4 @@
-import React, { FC, useCallback, useState } from 'react';
+import React, { FC, useCallback, useEffect, useState } from 'react';
 
 import { dateTime, DateTime } from '@grafana/data';
 import {
@@ -24,7 +24,7 @@ import { Rotation, Schedule, Shift } from 'models/schedule/schedule.types';
 import { getTzOffsetString } from 'models/timezone/timezone.helpers';
 import { Timezone } from 'models/timezone/timezone.types';
 import { User } from 'models/user/user.types';
-import { getUTCString } from 'pages/schedule/Schedule.helpers';
+import { getDateTime, getUTCString } from 'pages/schedule/Schedule.helpers';
 import { useStore } from 'state/useStore';
 
 import { RotationCreateData } from './RotationForm.types';
@@ -42,12 +42,12 @@ interface RotationFormProps {
 
 const cx = cn.bind(styles);
 
+const startOfDay = dayjs().startOf('day');
+
 const ScheduleOverrideForm: FC<RotationFormProps> = (props) => {
   const { onHide, onCreate, currentTimezone, scheduleId, onUpdate, shiftId } = props;
 
   const store = useStore();
-
-  const startOfDay = dayjs().startOf('day');
 
   const [shiftStart, setShiftStart] = useState<DateTime>(dateTime(startOfDay.format('YYYY-MM-DD HH:mm:ss')));
   const [shiftEnd, setShiftEnd] = useState<DateTime>(
@@ -65,6 +65,21 @@ const ScheduleOverrideForm: FC<RotationFormProps> = (props) => {
 
   const shift = store.scheduleStore.shifts[shiftId];
 
+  useEffect(() => {
+    if (shiftId !== 'new') {
+      store.scheduleStore.updateOncallShift(shiftId);
+    }
+  }, [shiftId]);
+
+  useEffect(() => {
+    if (shift) {
+      setShiftStart(getDateTime(shift.shift_start));
+      setShiftEnd(getDateTime(shift.shift_end));
+
+      setUserGroups(shift.rolling_users);
+    }
+  }, [shift]);
+
   const handleDeleteClick = useCallback(() => {
     store.scheduleStore.deleteOncallShift(shiftId).then(() => {
       onHide();
@@ -73,19 +88,26 @@ const ScheduleOverrideForm: FC<RotationFormProps> = (props) => {
   }, []);
 
   const handleCreate = useCallback(() => {
-    store.scheduleStore
-      .createRotation(scheduleId, true, {
-        title: 'Override ' + Math.floor(Math.random() * 100),
-        rotation_start: getUTCString(shiftStart, currentTimezone),
-        shift_start: getUTCString(shiftStart, currentTimezone),
-        shift_end: getUTCString(shiftEnd, currentTimezone),
-        rolling_users: userGroups,
-        frequency: null,
-      })
-      .then(() => {
+    const params = {
+      title: 'Override ' + Math.floor(Math.random() * 100),
+      rotation_start: getUTCString(shiftStart, currentTimezone),
+      shift_start: getUTCString(shiftStart, currentTimezone),
+      shift_end: getUTCString(shiftEnd, currentTimezone),
+      rolling_users: userGroups,
+      frequency: null,
+    };
+
+    if (shiftId === 'new') {
+      store.scheduleStore.createRotation(scheduleId, true, params).then(() => {
         onHide();
         onCreate();
       });
+    } else {
+      store.scheduleStore.updateRotation(shiftId, params).then(() => {
+        onHide();
+        onUpdate();
+      });
+    }
   }, [shiftStart, shiftEnd, userGroups]);
 
   return (
@@ -142,7 +164,7 @@ const ScheduleOverrideForm: FC<RotationFormProps> = (props) => {
           <Text type="secondary">Timezone: {getTzOffsetString(dayjs().tz(currentTimezone))}</Text>
           <HorizontalGroup>
             <Button variant="primary" onClick={handleCreate}>
-              Save
+              {shiftId === 'new' ? 'Create' : 'Update'}
             </Button>
           </HorizontalGroup>
         </HorizontalGroup>

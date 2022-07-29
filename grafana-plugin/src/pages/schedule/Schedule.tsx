@@ -1,6 +1,7 @@
 import React, { useMemo } from 'react';
 
 import { AppRootProps } from '@grafana/data';
+import { getLocationSrv } from '@grafana/runtime';
 import { Button, HorizontalGroup, VerticalGroup, RadioButtonGroup, IconButton, ToolbarButton } from '@grafana/ui';
 import cn from 'classnames/bind';
 import dayjs from 'dayjs';
@@ -15,6 +16,7 @@ import Text from 'components/Text/Text';
 // import UsersTimezones from 'components/UsersTimezones/UsersTimezones';
 import UserTimezoneSelect from 'components/UserTimezoneSelect/UserTimezoneSelect';
 import UsersTimezones from 'components/UsersTimezones/UsersTimezones';
+import WithConfirm from 'components/WithConfirm/WithConfirm';
 import Rotations from 'containers/Rotations/Rotations';
 import ScheduleFinal from 'containers/Rotations/ScheduleFinal';
 import ScheduleOverrides from 'containers/Rotations/ScheduleOverrides';
@@ -66,7 +68,7 @@ class SchedulePage extends React.Component<SchedulePageProps, SchedulePageState>
     store.scheduleStore.updateItem(id);
     store.scheduleStore.updateFrequencyOptions();
     store.scheduleStore.updateDaysOptions();
-    store.scheduleStore.updateOncallShifts(id);
+    await store.scheduleStore.updateOncallShifts(id); // TODO we should know shifts to render Rotations
 
     this.updateEvents();
   }
@@ -93,7 +95,7 @@ class SchedulePage extends React.Component<SchedulePageProps, SchedulePageState>
                   <IconButton style={{ marginTop: '5px' }} name="arrow-left" size="xxl" />
                 </PluginLink>
                 <Text.Title level={3}>{schedule?.name}</Text.Title>
-                <ScheduleCounter
+                {/*<ScheduleCounter
                   type="link"
                   count={5}
                   tooltipTitle="Used in escalations"
@@ -112,18 +114,20 @@ class SchedulePage extends React.Component<SchedulePageProps, SchedulePageState>
                   count={2}
                   tooltipTitle="Warnings"
                   tooltipContent="Schedule has unassigned time periods during next 7 days"
-                />
+                />*/}
               </HorizontalGroup>
               <HorizontalGroup>
                 {users && (
                   <UserTimezoneSelect value={currentTimezone} users={users} onChange={this.handleTimezoneChange} />
                 )}
-                <ScheduleQuality quality={0.89} />
+                {/*<ScheduleQuality quality={0.89} />
                 <ToolbarButton icon="copy" tooltip="Copy" />
                 <ToolbarButton icon="brackets-curly" tooltip="Code" />
                 <ToolbarButton icon="share-alt" tooltip="Share" />
-                <ToolbarButton icon="cog" tooltip="Settings" />
-                <ToolbarButton icon="trash-alt" tooltip="Delete" />
+                <ToolbarButton icon="cog" tooltip="Settings" />*/}
+                <WithConfirm>
+                  <ToolbarButton icon="trash-alt" tooltip="Delete" onClick={this.handleDelete} />
+                </WithConfirm>
               </HorizontalGroup>
             </HorizontalGroup>
           </div>
@@ -150,7 +154,7 @@ class SchedulePage extends React.Component<SchedulePageProps, SchedulePageState>
                   {startMoment.format('DD MMM')} - {startMoment.add(6, 'day').format('DD MMM')}
                 </div>
               </HorizontalGroup>
-              <HorizontalGroup width="auto">
+              {/*<HorizontalGroup width="auto">
                 <RadioButtonGroup
                   options={[
                     { label: 'Day', value: 'day' },
@@ -175,7 +179,7 @@ class SchedulePage extends React.Component<SchedulePageProps, SchedulePageState>
                   value={renderType}
                   onChange={this.handleRenderTypeChange}
                 />
-              </HorizontalGroup>
+              </HorizontalGroup>*/}
             </HorizontalGroup>
           </div>
           {/* <div className={'current-time'} />*/}
@@ -255,6 +259,17 @@ class SchedulePage extends React.Component<SchedulePageProps, SchedulePageState>
     const { startMoment } = this.state;
 
     this.setState({ startMoment: startMoment.add(-7, 'day') }, this.updateEvents);
+  };
+
+  handleDelete = () => {
+    const {
+      store,
+      query: { id: scheduleId },
+    } = this.props;
+
+    store.scheduleStore.delete(scheduleId).then(() => {
+      getLocationSrv().update({ query: { page: 'schedules' } });
+    });
   };
 
   handleRightClick = () => {

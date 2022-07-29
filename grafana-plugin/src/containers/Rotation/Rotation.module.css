@@ -24,8 +24,7 @@
   flex-direction: column;
   gap: 5px;
   padding-bottom: 8px;
-
-  /* overflow: hidden; */
+  overflow: hidden;
 }
 
 .root:first-child .timeline {

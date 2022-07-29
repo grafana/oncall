@@ -45,14 +45,14 @@ const UserTimezoneSelect: FC<UserTimezoneSelectProps> = (props) => {
 
   const selectValue = useMemo(() => {
     const user = users.find((user) => user.timezone === value);
-    return user.pk;
+    return user?.pk;
   }, [value, users]);
 
   const handleChange = useCallback(
     ({ value }) => {
       const user = users.find((user) => user.pk === value);
 
-      onChange(user.timezone);
+      onChange(user?.timezone);
     },
     [users]
   );
