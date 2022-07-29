@@ -31,6 +31,9 @@ spec:
   - host: {{ .Values.base_url | quote }}
     http:
       paths:
+{{- if .Values.ingress.extraPaths }}
+{{ toYaml .Values.ingress.extraPaths | indent 6}}
+{{- end }}
       - path: /
         pathType: Prefix
         backend:

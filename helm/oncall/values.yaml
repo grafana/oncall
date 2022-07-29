@@ -58,6 +58,21 @@ ingress:
     - hosts:
         - "{{ .Values.base_url }}"
       secretName: certificate-tls
+  # Extra paths to prepend to the host configuration. If using something 
+  # like an ALB ingress controller, you may want to configure SSL redirects 
+  extraPaths: []
+  # - path: /*
+  #   backend:
+  #     serviceName: ssl-redirect
+  #     servicePort: use-annotation
+  ## Or for k8s > 1.19
+  # - path: /*
+  #   pathType: Prefix
+  #   backend:
+  #     service:
+  #       name: ssl-redirect
+  #       port:
+  #         name: use-annotation
 
 # Whether to install ingress controller
 ingress-nginx:
