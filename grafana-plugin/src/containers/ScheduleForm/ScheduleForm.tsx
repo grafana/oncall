@@ -25,7 +25,7 @@ interface ScheduleFormProps {
   onHide: () => void;
   onUpdate: () => void;
   onCreate: (data: Schedule) => void;
-  type: ScheduleType;
+  type?: ScheduleType;
 }
 
 const scheduleTypeToForm = {

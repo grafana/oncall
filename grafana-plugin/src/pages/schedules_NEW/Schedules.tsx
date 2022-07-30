@@ -37,6 +37,7 @@ interface SchedulesPageState {
   startMoment: dayjs.Dayjs;
   filters: SchedulesFiltersType;
   showNewScheduleSelector: boolean;
+  expandedRowKeys: Array<Schedule['id']>;
 }
 
 @observer
@@ -49,6 +50,7 @@ class SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSta
       startMoment: getStartOfWeek(store.currentTimezone),
       filters: { searchTerm: '', status: 'all', type: 'all' },
       showNewScheduleSelector: false,
+      expandedRowKeys: [],
     };
   }
 
@@ -59,11 +61,9 @@ class SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSta
     store.scheduleStore.updateItems();
   }
 
-  componentDidUpdate() {}
-
   render() {
     const { store } = this.props;
-    const { filters, showNewScheduleSelector } = this.state;
+    const { filters, showNewScheduleSelector, expandedRowKeys } = this.state;
 
     const { scheduleStore } = store;
 
@@ -125,7 +125,7 @@ class SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSta
                     onChange={this.handleTimezoneChange}
                   />
                 )}
-                <Button size="sm" variant="primary" onClick={this.handleCreateScheduleClick}>
+                <Button variant="primary" onClick={this.handleCreateScheduleClick}>
                   + New schedule
                 </Button>
               </HorizontalGroup>
@@ -136,6 +136,7 @@ class SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSta
               pagination={{ page: 1, total: 1, onChange: this.handlePageChange }}
               rowKey="id"
               expandable={{
+                expandedRowKeys: expandedRowKeys,
                 onExpand: this.handleExpandRow,
                 expandedRowRender: this.renderSchedule,
                 expandRowByClick: true,
@@ -162,7 +163,7 @@ class SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSta
 
     store.currentTimezone = value;
 
-    this.setState({ startMoment: getStartOfWeek(value) });
+    this.setState({ startMoment: getStartOfWeek(value) }, this.updateEvents);
   };
 
   handleCreateScheduleClick = () => {
@@ -179,8 +180,23 @@ class SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSta
 
   handleExpandRow = (expanded: boolean, data: Schedule) => {
     const { store } = this.props;
+    const { expandedRowKeys } = this.state;
     const { startMoment } = this.state;
-    store.scheduleStore.updateEvents(data.id, getFromString(startMoment), 'final');
+    if (expanded && !expandedRowKeys.includes(data.id)) {
+      this.setState({ expandedRowKeys: [...this.state.expandedRowKeys, data.id] }, this.updateEvents);
+    } else if (!expanded && expandedRowKeys.includes(data.id)) {
+      const index = expandedRowKeys.indexOf(data.id);
+      this.setState({ expandedRowKeys: [...expandedRowKeys.splice(index, 1)] }, this.updateEvents);
+    }
+  };
+
+  updateEvents = () => {
+    const { store } = this.props;
+    const { expandedRowKeys, startMoment } = this.state;
+
+    expandedRowKeys.forEach((scheduleId) => {
+      store.scheduleStore.updateEvents(scheduleId, getFromString(startMoment), 'final');
+    });
   };
 
   renderSchedule = (data: Schedule) => {
