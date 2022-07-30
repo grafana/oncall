@@ -51,19 +51,19 @@ const ScheduleUserDetails: FC<ScheduleUserDetailsProps> = (props) => {
       <VerticalGroup spacing="sm">
         <HorizontalGroup justify="space-between">
           <Avatar src={user.avatar} size="large" />
-          <Button variant="secondary">
+          {/*<Button variant="secondary">
             <HorizontalGroup spacing="sm">
               <Icon name="bell" />
               Push
             </HorizontalGroup>
-          </Button>
+          </Button>*/}
         </HorizontalGroup>
         <VerticalGroup spacing="sm">
           <Text type="primary">{user.username}</Text>
           <Text type="secondary">
             {`${userMoment.tz(user.timezone).format('DD MMM, HH:mm')}`} {userOffsetHoursStr}
           </Text>
-          <div
+          {/* <div
             className={cx('oncall-badge', {
               [`oncall-badge__type_${userStatus}`]: true,
             })}
@@ -111,7 +111,7 @@ const ScheduleUserDetails: FC<ScheduleUserDetailsProps> = (props) => {
           <HorizontalGroup spacing="sm">
             <Icon className={cx('icon')} name="phone" />
             <Text type="secondary">+39 555 449 00 00</Text>
-          </HorizontalGroup>
+          </HorizontalGroup>*/}
         </VerticalGroup>
       </VerticalGroup>
     </div>
