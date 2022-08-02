@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 
 import { SelectableValue } from '@grafana/data';
+import { getLocationSrv } from '@grafana/runtime';
 import { Label, Button, HorizontalGroup, VerticalGroup, Select, LoadingPlaceholder } from '@grafana/ui';
 import { capitalCase } from 'change-case';
 import cn from 'classnames/bind';
@@ -19,7 +20,6 @@ import { AlertReceiveChannel } from 'models/alert_receive_channel/alert_receive_
 import { Alert } from 'models/alertgroup/alertgroup.types';
 import { makeRequest } from 'network';
 import { UserAction } from 'state/userAction';
-import { getLocationSrv } from '@grafana/runtime';
 
 import styles from './AlertTemplatesForm.module.css';
 

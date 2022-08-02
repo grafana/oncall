@@ -1,4 +1,6 @@
 import React, { useCallback, useEffect, useState } from 'react';
+
+import { getLocationSrv, setLocationSrv } from '@grafana/runtime';
 import {
   Drawer,
   Tab,
@@ -31,7 +33,6 @@ import Autoresolve from './parts/Autoresolve';
 import LiveLogs from './parts/LiveLogs';
 
 import styles from 'containers/IntegrationSettings/IntegrationSettings.module.css';
-import { getLocationSrv, setLocationSrv } from '@grafana/runtime';
 
 const cx = cn.bind(styles);
 
