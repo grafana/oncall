@@ -46,10 +46,14 @@ class IncidentActionsAccessControlMixin(AccessControl):
             "chat.postMessage",
             channel=payload["channel"]["id"],
             text=text,
-            attachments=[
+            blocks=[
                 {
-                    "callback_id": "alert",
-                    "text": text,
+                    "type": "section",
+                    "block_id": "alert",
+                    "text": {
+                        "type": "mrkdwn",
+                        "text": text,
+                    }
                 },
             ],
             thread_ts=None if self.send_denied_message_to_channel(payload) else thread_ts,

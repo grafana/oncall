@@ -30,13 +30,36 @@ def call_ack_url(ack_url, alert_group_pk, channel, http_method="GET"):
         else None
     )
 
+    text = "{}".format(debug_message)
+    footer = "{}".format(info_message)
+    blocks = [
+        {
+            "type": "section",
+            "block_id": "alert",
+            "text": {
+                "type": "mrkdwn",
+                "text":  text,
+            }
+        },
+        {
+            "type": "divider"
+        },
+        {
+            "type": "section",
+            "block_id": "alert",
+            "text": {
+                "type": "mrkdwn",
+                "text": footer,
+            }
+        }
+    ]
+
     if channel is not None:
         result = sc.api_call(
             "chat.postMessage",
             channel=channel,
-            attachments=[
-                {"callback_id": "alert", "text": "{}".format(debug_message), "footer": "{}".format(info_message)},
-            ],
+            text=text,
+            blocks=blocks,
             thread_ts=alert_group.slack_message.slack_id,
             mrkdwn=True,
         )

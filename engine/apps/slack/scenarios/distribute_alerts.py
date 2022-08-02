@@ -1074,11 +1074,6 @@ class UpdateLogReportMessageStep(scenario_step.ScenarioStep):
 
         text = ("Building escalation plan... :thinking_face:",)
 
-        attachments = [
-            {
-                "text": text,
-            }
-        ]
         slack_log_message = alert_group.slack_log_message
 
         if slack_log_message is None:
@@ -1088,8 +1083,7 @@ class UpdateLogReportMessageStep(scenario_step.ScenarioStep):
                     "chat.postMessage",
                     channel=slack_message.channel_id,
                     thread_ts=slack_message.slack_id,
-                    text=text,
-                    attachments=attachments,
+                    text=text
                 )
             except SlackAPITokenException as e:
                 print(e)
