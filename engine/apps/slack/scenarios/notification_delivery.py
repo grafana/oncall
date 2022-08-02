@@ -71,6 +71,7 @@ class NotificationDeliveryStep(scenario_step.ScenarioStep):
             self._slack_client.api_call(
                 "chat.postMessage",
                 channel=channel,
+                text=text,
                 attachments=attachments,
                 unfurl_links=True,
             )

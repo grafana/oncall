@@ -147,6 +147,7 @@ class SlackMessage(models.Model):
             result = sc.api_call(
                 "chat.postMessage",
                 channel=channel_id,
+                text=text,
                 attachments=attachments,
                 thread_ts=slack_message.slack_id,
                 unfurl_links=True,

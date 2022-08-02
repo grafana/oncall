@@ -192,6 +192,7 @@ class AlertShootingStep(scenario_step.ScenarioStep):
         self._slack_client.api_call(
             "chat.postMessage",
             channel=channel_id,
+            text=text,
             attachments=[],
             thread_ts=alert_group.slack_message.slack_id,
             mrkdwn=True,
@@ -865,12 +866,13 @@ class AcknowledgeConfirmationStep(AcknowledgeGroupStep):
         alert_group = log_record.alert_group
         channel_id = alert_group.slack_message.channel_id
         user_verbal = log_record.author.get_user_verbal_for_team_for_slack(mention=True)
+        text = f"{user_verbal}, please confirm that you're still working on this incident."
 
         if alert_group.channel.organization.unacknowledge_timeout != Organization.UNACKNOWLEDGE_TIMEOUT_NEVER:
             attachments = [
                 {
                     "fallback": "Are you still working on this incident?",
-                    "text": f"{user_verbal}, please confirm that you're still working on this incident.",
+                    "text": text,
                     "callback_id": "alert",
                     "attachment_type": "default",
                     "footer": "This is a reminder that the incident is still acknowledged"
@@ -896,6 +898,7 @@ class AcknowledgeConfirmationStep(AcknowledgeGroupStep):
                 response = self._slack_client.api_call(
                     "chat.postMessage",
                     channel=channel_id,
+                    text=text,
                     attachments=attachments,
                     thread_ts=alert_group.slack_message.slack_id,
                 )
@@ -1069,9 +1072,11 @@ class UpdateLogReportMessageStep(scenario_step.ScenarioStep):
             logger.info(f"Cannot post log message for alert_group {alert_group.pk} because SlackMessage doesn't exist")
             return None
 
+        text = ("Building escalation plan... :thinking_face:",)
+
         attachments = [
             {
-                "text": "Building escalation plan... :thinking_face:",
+                "text": text,
             }
         ]
         slack_log_message = alert_group.slack_log_message
@@ -1083,6 +1088,7 @@ class UpdateLogReportMessageStep(scenario_step.ScenarioStep):
                     "chat.postMessage",
                     channel=slack_message.channel_id,
                     thread_ts=slack_message.slack_id,
+                    text=text,
                     attachments=attachments,
                 )
             except SlackAPITokenException as e:

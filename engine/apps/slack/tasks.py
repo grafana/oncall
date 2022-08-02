@@ -269,6 +269,7 @@ def send_debug_message_to_thread(alert_group_pk, slack_team_identity_pk):
     result = sc.api_call(
         "chat.postMessage",
         channel=channel_id,
+        text=text,
         attachments=[],
         thread_ts=current_alert_group.slack_message.slack_id,
         mrkdwn=True,
