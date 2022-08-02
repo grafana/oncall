@@ -38,20 +38,18 @@ def call_ack_url(ack_url, alert_group_pk, channel, http_method="GET"):
             "block_id": "alert",
             "text": {
                 "type": "mrkdwn",
-                "text":  text,
-            }
+                "text": text,
+            },
         },
-        {
-            "type": "divider"
-        },
+        {"type": "divider"},
         {
             "type": "section",
             "block_id": "alert",
             "text": {
                 "type": "mrkdwn",
                 "text": footer,
-            }
-        }
+            },
+        },
     ]
 
     if channel is not None:

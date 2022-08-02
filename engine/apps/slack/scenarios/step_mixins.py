@@ -53,7 +53,7 @@ class IncidentActionsAccessControlMixin(AccessControl):
                     "text": {
                         "type": "mrkdwn",
                         "text": text,
-                    }
+                    },
                 },
             ],
             thread_ts=None if self.send_denied_message_to_channel(payload) else thread_ts,

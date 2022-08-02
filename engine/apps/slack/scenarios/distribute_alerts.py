@@ -1080,10 +1080,7 @@ class UpdateLogReportMessageStep(scenario_step.ScenarioStep):
             logger.debug(f"Start posting new log message for alert_group {alert_group.pk}")
             try:
                 result = self._slack_client.api_call(
-                    "chat.postMessage",
-                    channel=slack_message.channel_id,
-                    thread_ts=slack_message.slack_id,
-                    text=text
+                    "chat.postMessage", channel=slack_message.channel_id, thread_ts=slack_message.slack_id, text=text
                 )
             except SlackAPITokenException as e:
                 print(e)

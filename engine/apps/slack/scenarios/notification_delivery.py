@@ -63,7 +63,7 @@ class NotificationDeliveryStep(scenario_step.ScenarioStep):
 
     def post_message_to_channel(self, text, channel, color=None, footer=None):
         # TODO: No color in blocks, use prefix emoji?
-        color_id = self.get_color_id(color)
+        # color_id = self.get_color_id(color)
         blocks = [
             {
                 "type": "section",
@@ -71,19 +71,17 @@ class NotificationDeliveryStep(scenario_step.ScenarioStep):
                 "text": {
                     "type": "mrkdwn",
                     "text": text,
-                }
+                },
             },
-            {
-                "type": "divider"
-            },
+            {"type": "divider"},
             {
                 "type": "section",
                 "block_id": "alert",
                 "text": {
                     "type": "mrkdwn",
                     "text": footer,
-                }
-            }
+                },
+            },
         ]
         try:
             # TODO: slack-onprem, check exceptions
