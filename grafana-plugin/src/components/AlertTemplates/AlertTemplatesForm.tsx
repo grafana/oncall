@@ -122,7 +122,7 @@ const AlertTemplatesForm = (props: AlertTemplatesFormProps) => {
 
   const getGroupByTemplateName = (templateName: string) => {
     Object.values(groups).find((group) => {
-      const foundTemplate = group.find((obj) => {
+      const foundTemplate = group.find((obj: any) => {
         if (obj.name == templateName) {
           return obj;
         }
