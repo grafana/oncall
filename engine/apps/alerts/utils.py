@@ -54,14 +54,15 @@ def request_outgoing_webhook(webhook_url, http_request_type, post_kwargs={}) -> 
         return False, "Malformed url"
     if not parsed_url.netloc:
         return False, "Malformed url"
-    # Get the ip address of the webhook url and check if it belongs to the private network
-    try:
-        webhook_url_ip_address = socket.gethostbyname(parsed_url.netloc)
-    except socket.gaierror:
-        return False, "Cannot resolve name in url"
     if not live_settings.DANGEROUS_WEBHOOKS_ENABLED:
-        if ipaddress.ip_address(socket.gethostbyname(webhook_url_ip_address)).is_private:
-            return False, "This url is not supported for outgoing webhooks"
+        # Get the ip address of the webhook url and check if it belongs to the private network
+        try:
+            webhook_url_ip_address = socket.gethostbyname(parsed_url.netloc)
+        except socket.gaierror:
+            return False, "Cannot resolve name in url"
+        if not live_settings.DANGEROUS_WEBHOOKS_ENABLED:
+            if ipaddress.ip_address(socket.gethostbyname(webhook_url_ip_address)).is_private:
+                return False, "This url is not supported for outgoing webhooks"
 
     try:
         if http_request_type == "POST":
