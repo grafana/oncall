@@ -21,8 +21,3 @@ DATABASES = {
         },
     },
 }
-
-READONLY_DATABASES = {}
-
-# Dictionaries concatenation, introduced in python3.9
-DATABASES = DATABASES | READONLY_DATABASES

@@ -12,8 +12,3 @@ DATABASES = {
         "PORT": os.environ.get("POSTGRES_PORT", "5432"),
     },
 }
-
-READONLY_DATABASES = {}
-
-# Dictionaries concatenation, introduced in python3.9
-DATABASES = DATABASES | READONLY_DATABASES
