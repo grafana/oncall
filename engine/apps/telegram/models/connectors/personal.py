@@ -1,4 +1,3 @@
-from django.core.exceptions import ImproperlyConfigured
 from django.db import models
 from telegram import error
 
@@ -67,7 +66,7 @@ class TelegramToUserConnector(models.Model):
     def send_full_incident(self, alert_group: AlertGroup, notification_policy: UserNotificationPolicy) -> None:
         try:
             telegram_client = TelegramClient()
-        except (ImproperlyConfigured, error.InvalidToken):
+        except error.InvalidToken:
             TelegramToUserConnector.create_telegram_notification_error(
                 alert_group,
                 self.user,
@@ -125,7 +124,7 @@ class TelegramToUserConnector(models.Model):
     def send_link_to_channel_message(self, alert_group: AlertGroup, notification_policy: UserNotificationPolicy):
         try:
             telegram_client = TelegramClient()
-        except (ImproperlyConfigured, error.InvalidToken):
+        except error.InvalidToken:
             TelegramToUserConnector.create_telegram_notification_error(
                 alert_group,
                 self.user,

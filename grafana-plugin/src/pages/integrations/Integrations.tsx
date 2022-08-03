@@ -74,6 +74,10 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
           `Integration with id=${query?.id} is not found. Please select integration from the list.`
         );
       }
+      if (query.tab) {
+        this.setState({ integrationSettingsTab: query.tab });
+        this.setState({ alertReceiveChannelToShowSettings: query.id });
+      }
     }
     if (!selectedAlertReceiveChannel) {
       selectedAlertReceiveChannel = searchResult[0]?.id;
@@ -88,6 +92,9 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
 
   componentDidUpdate(prevProps: IntegrationsProps) {
     if (this.props.query.id !== prevProps.query.id) {
+      this.parseQueryParams();
+    }
+    if (this.props.query.tab !== prevProps.query.tab) {
       this.parseQueryParams();
     }
   }
@@ -200,12 +207,13 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
             }}
             startTab={integrationSettingsTab}
             id={alertReceiveChannelToShowSettings}
-            onHide={() =>
+            onHide={() => {
               this.setState({
                 alertReceiveChannelToShowSettings: undefined,
                 integrationSettingsTab: undefined,
-              })
-            }
+              });
+              getLocationSrv().update({ partial: true, query: { tab: undefined } });
+            }}
           />
         )}
         {showCreateIntegrationModal && (

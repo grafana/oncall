@@ -47,6 +47,7 @@ class LiveSetting(models.Model):
         "GRAFANA_CLOUD_ONCALL_TOKEN",
         "GRAFANA_CLOUD_ONCALL_HEARTBEAT_ENABLED",
         "GRAFANA_CLOUD_NOTIFICATIONS_ENABLED",
+        "DANGEROUS_WEBHOOKS_ENABLED",
     )
 
     DESCRIPTIONS = {
@@ -107,10 +108,10 @@ class LiveSetting(models.Model):
         "SENDGRID_SECRET_KEY": "It is the secret key to secure receiving inbound emails.",
         "SENDGRID_INBOUND_EMAIL_DOMAIN": "Domain to receive emails for inbound emails integration.",
         "TELEGRAM_TOKEN": (
-            "Secret token for Telegram bot, you can get one via " "<a href='https://t.me/BotFather'>BotFather</a>."
+            "Secret token for Telegram bot, you can get one via <a href='https://t.me/BotFather'>BotFather</a>."
         ),
         "TELEGRAM_WEBHOOK_HOST": (
-            "Externally available URL for Telegram to make requests. Please restart OnCall backend after after update."
+            "Externally available URL for Telegram to make requests. Must use https and ports 80, 88, 443, 8443."
         ),
         "SEND_ANONYMOUS_USAGE_STATS": (
             "Grafana OnCall will send anonymous, but uniquely-identifiable usage analytics to Grafana Labs."
@@ -120,6 +121,7 @@ class LiveSetting(models.Model):
         "GRAFANA_CLOUD_ONCALL_TOKEN": "Secret token for Grafana Cloud OnCall instance.",
         "GRAFANA_CLOUD_ONCALL_HEARTBEAT_ENABLED": "Enable heartbeat integration with Grafana Cloud OnCall.",
         "GRAFANA_CLOUD_NOTIFICATIONS_ENABLED": "Enable SMS/call notifications via Grafana Cloud OnCall",
+        "DANGEROUS_WEBHOOKS_ENABLED": "Enable outgoing webhooks to private networks",
     }
 
     SECRET_SETTING_NAMES = (

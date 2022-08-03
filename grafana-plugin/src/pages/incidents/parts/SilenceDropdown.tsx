@@ -12,10 +12,11 @@ interface SilenceDropdownProps {
   onSelect: (value: number) => void;
   className?: string;
   disabled?: boolean;
+  buttonSize?: string;
 }
 
 const SilenceDropdown = observer((props: SilenceDropdownProps) => {
-  const { onSelect, className, disabled = false } = props;
+  const { onSelect, className, disabled = false, buttonSize } = props;
 
   const onSelectCallback = useCallback(
     ([value, ...rest]) => {
@@ -43,6 +44,7 @@ const SilenceDropdown = observer((props: SilenceDropdownProps) => {
           label: silenceOption.display_name,
         }))}
         value={undefined}
+        buttonProps={{ size: buttonSize }}
       >
         Silence
       </ButtonCascader>

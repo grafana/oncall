@@ -138,7 +138,7 @@ def test_render_terraform_imports(
     result = renderer.render_state()
 
     expected_result = rendered_terraform_imports_template.format(
-        escalation_chain_name=escalation_chain.name,
+        escalation_chain_name=slugify(escalation_chain.name),
         escalation_chain_public_primary_key=escalation_chain.public_primary_key,
         integration_name=slugify(integration.verbal_name),
         integration_public_primary_key=integration.public_primary_key,
