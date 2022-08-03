@@ -386,9 +386,7 @@ def perform_notification(log_record_pk):
                 "status": f"{alert_group.status}",
                 "aps": {
                     "alert": f"Critical page: {message}",
-                    # This is disabled until we gain the Critical Alerts Api permission from apple
-                    # "interruption-level": "critical",
-                    "interruption-level": "time-sensitive",
+                    "interruption-level": "critical",
                     "sound": "ambulance.aiff",
                 },
             },
