@@ -742,7 +742,7 @@ def test_filter_events_final_schedule(
     # override: 22-23 / E
     override_data = {
         "start": start_date + timezone.timedelta(hours=22),
-        "rotation_start": start_date,
+        "rotation_start": start_date + timezone.timedelta(hours=22),
         "duration": timezone.timedelta(hours=1),
         "schedule": schedule,
     }
@@ -844,7 +844,7 @@ def test_next_shifts_per_user(
     # override: 17-18 / C
     override_data = {
         "start": tomorrow + timezone.timedelta(hours=17),
-        "rotation_start": tomorrow,
+        "rotation_start": tomorrow + timezone.timedelta(hours=17),
         "duration": timezone.timedelta(hours=1),
         "schedule": schedule,
     }
