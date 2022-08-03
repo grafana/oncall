@@ -3,8 +3,11 @@ from uuid import uuid4
 
 from django.apps import apps
 from django.conf import settings
+from django.utils import timezone
 
 from apps.alerts.models import AlertReceiveChannel
+from apps.schedules.ical_utils import list_users_to_notify_from_ical
+from apps.schedules.models import OnCallSchedule
 from apps.slack.scenarios import scenario_step
 from apps.slack.slack_client.exceptions import SlackAPIException
 
@@ -156,11 +159,29 @@ class StartCreateIncidentFromSlashCommand(scenario_step.ScenarioStep):
 
     def process_scenario(self, slack_user_identity, slack_team_identity, payload, action=None):
         input_id_prefix = _generate_input_id_prefix()
-
         try:
             channel_id = payload["event"]["channel"]
         except KeyError:
             channel_id = payload["channel_id"]
+
+        if payload.get("text") == "whoisoncall":
+            schedules = OnCallSchedule.objects.filter(
+                organization=slack_team_identity.organizations.first(),
+            )
+            text = "Team - Schedule name - Oncall - Slack channel - Slack usergroup\n"
+            for schedule in schedules:
+                users_on_call = list_users_to_notify_from_ical(schedule, timezone.datetime.now(timezone.utc))
+                team_verbal = "General" if schedule.team is None else schedule.team
+                users_verbal = ", ".join([f"<@{user_on_call.slack_user_identity.slack_id}>" for user_on_call in users_on_call])
+                user_group_verbal = "N/A" if schedule.user_group is None else f"<!subteam^{schedule.user_group}>"
+                text += f"{team_verbal} - {schedule.name} - {users_verbal} - <#{schedule.channel}> - {user_group_verbal}\n"
+            self._slack_client.api_call(
+                "chat.postEphemeral",
+                user=slack_user_identity.slack_id,
+                channel=channel_id,
+                text=text,
+            )
+            return
 
         private_metadata = {
             "channel_id": channel_id,
