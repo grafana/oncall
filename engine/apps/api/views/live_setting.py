@@ -10,7 +10,6 @@ from apps.api.permissions import IsAdmin
 from apps.api.serializers.live_setting import LiveSettingSerializer
 from apps.auth_token.auth import PluginAuthentication
 from apps.base.models import LiveSetting
-from apps.oss_installation.models import CloudConnector
 from apps.oss_installation.tasks import sync_users_with_cloud
 from apps.slack.tasks import unpopulate_slack_user_identities
 from apps.telegram.client import TelegramClient
@@ -73,6 +72,8 @@ class LiveSettingViewSet(PublicPrimaryKeyMixin, viewsets.ModelViewSet):
                 unpopulate_slack_user_identities.delay(organization_pk=organization.pk, force=True)
 
         if instance.name == "GRAFANA_CLOUD_ONCALL_TOKEN":
+            from apps.oss_installation.models import CloudConnector
+
             CloudConnector.remove_sync()
 
             sync_users = self.request.query_params.get("sync_users", "true") == "true"
