@@ -214,6 +214,7 @@ export function getActionButtons(incident: AlertType, cx: any, callbacks: { [key
           key="silence"
           disabled={incident.loading}
           onSelect={onSilence}
+          buttonSize="sm"
         />
       );
     }

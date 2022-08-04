@@ -126,19 +126,22 @@ class TwilioClient:
         )
         self.make_call(message=message, to=to)
 
-    def make_call(self, message, to):
+    def make_call(self, message, to, grafana_cloud=False):
         try:
             start_message = message.replace('"', "")
 
-            twiml_query = urllib.parse.quote(
+            gather_message = (
                 (
-                    f"<Response>"
-                    f"<Say>{start_message}</Say>"
                     f'<Gather numDigits="1" action="{get_gather_url()}" method="POST">'
                     f"<Say>{get_gather_message()}</Say>"
                     f"</Gather>"
-                    f"</Response>"
-                ),
+                )
+                if not grafana_cloud
+                else ""
+            )
+
+            twiml_query = urllib.parse.quote(
+                f"<Response><Say>{start_message}</Say>{gather_message}</Response>",
                 safe="",
             )
 

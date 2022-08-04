@@ -61,6 +61,7 @@ class ScheduleView(
             *READ_ACTIONS,
             "events",
             "filter_events",
+            "next_shifts_per_user",
             "notify_empty_oncall_options",
             "notify_oncall_shift_freq_options",
             "mention_options",
@@ -199,6 +200,7 @@ class ScheduleView(
                 "calendar_type": shift["calendar_type"],
                 "is_empty": len(shift["users"]) == 0 and not is_gap,
                 "is_gap": is_gap,
+                "is_override": shift["calendar_type"] == OnCallSchedule.TYPE_ICAL_OVERRIDES,
                 "shift": {
                     "pk": shift["shift_pk"],
                 },
@@ -371,6 +373,25 @@ class ScheduleView(
 
         resolved.sort(key=lambda e: e["start"])
         return resolved
+
+    @action(detail=True, methods=["get"])
+    def next_shifts_per_user(self, request, pk):
+        """Return next shift for users in schedule."""
+        user_tz, _ = self.get_request_timezone()
+        now = timezone.now()
+        starting_date = now.date()
+        schedule = self.original_get_object()
+        shift_events = self._filter_events(schedule, user_tz, starting_date, days=30, with_empty=False, with_gap=False)
+        events = self._resolve_schedule(shift_events)
+
+        users = {}
+        for e in events:
+            user = e["users"][0]["pk"] if e["users"] else None
+            if user is not None and user not in users and e["end"] > now:
+                users[user] = e
+
+        result = {"users": users}
+        return Response(result, status=status.HTTP_200_OK)
 
     @action(detail=False, methods=["get"])
     def type_options(self, request):

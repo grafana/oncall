@@ -57,7 +57,9 @@ def create_integration(
 
     integration = oncall_api_client.create("integrations", payload)
 
-    default_route_id = integration["default_route_id"]
+    routes = oncall_api_client.list_all("routes/?integration_id={}".format(integration["id"]))
+    default_route_id = routes[0]["id"]
+
     oncall_api_client.update(
         f"routes/{default_route_id}", {"escalation_chain_id": escalation_chain_id}
     )

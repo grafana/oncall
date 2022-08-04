@@ -23,14 +23,17 @@ metadata:
     {{- toYaml . | nindent 4 }}
   {{- end }}
 spec:
+  {{- if .Values.ingress.tls }} 
   tls:
-  - hosts:
-    - {{ .Values.base_url | quote }}
-    secretName: certificate-tls
+      {{- tpl (toYaml .Values.ingress.tls) . | nindent 4 }}
+  {{- end }}
   rules:
   - host: {{ .Values.base_url | quote }}
     http:
       paths:
+{{- if .Values.ingress.extraPaths }}
+{{ toYaml .Values.ingress.extraPaths | indent 6}}
+{{- end }}
       - path: /
         pathType: Prefix
         backend:
