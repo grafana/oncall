@@ -79,10 +79,10 @@ lt --port 8080 -s pretty-turkey-83 --print-requests
         type: message
         callback_id: incident_create
         description: Creates a new OnCall incident
-      - name: Add to postmortem
+      - name: Add to resolution note
         type: message
-        callback_id: add_postmortem
-        description: Add this message to postmortem
+        callback_id: add_resolution_note
+        description: Add this message to resolution note
     slash_commands:
       - command: /oncall
         url: <ONCALL_ENGINE_PUBLIC_URL>/slack/interactive_api_endpoint/

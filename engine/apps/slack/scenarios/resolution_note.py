@@ -133,8 +133,6 @@ class AddToResolutionNoteStep(CheckAlertIsUnarchivedMixin, scenario_step.Scenari
                     ).save()
                 else:
                     resolution_note.recreate()
-                alert_group.drop_cached_after_resolve_report_json()
-                alert_group.schedule_cache_for_web()
                 try:
                     self._slack_client.api_call(
                         "reactions.add",
@@ -704,7 +702,7 @@ class AddRemoveThreadMessageStep(UpdateResolutionNoteStep, scenario_step.Scenari
                 # Show error message
                 resolution_note_data = json.loads(payload["actions"][0]["value"])
                 resolution_note_data["resolution_note_window_action"] = "edit_update_error"
-                return ResolutionNoteModalStep(slack_team_identity).process_scenario(
+                return ResolutionNoteModalStep(slack_team_identity, self.organization, self.user).process_scenario(
                     slack_user_identity,
                     slack_team_identity,
                     payload,
