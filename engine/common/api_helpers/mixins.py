@@ -208,7 +208,7 @@ class TeamFilteringMixin:
                     status=status.HTTP_403_FORBIDDEN,
                 )
 
-            return Response(data={"error_code": "wrong_team"})
+            return Response(data={"error_code": "wrong_team"}, status=status.HTTP_403_FORBIDDEN)
 
     @staticmethod
     def _getattr_with_related(obj, lookup):
