@@ -39,8 +39,8 @@ const WrongTeamStub: FC<WrongTeamStubProps> = (props) => {
         </Text.Title>
         {wrongTeamNoPermissions && (
           <Text.Title level={4}>
-            You do not have permissions to see this {objectName}. Contact your administrator to change access to
-            different team
+            This {objectName} belongs to a team you are not a part of. Please contact your organization administrator to
+            request access to the team.
           </Text.Title>
         )}
         {switchToTeam && (
@@ -58,7 +58,7 @@ const WrongTeamStub: FC<WrongTeamStubProps> = (props) => {
           </Button>
         )}
         <Text type="secondary" className={cx('return-to-list')}>
-          Or return to "{currentTeam}" team <PluginLink query={{ page: pageName }}>{pageName}</PluginLink> list
+          Or return to the <PluginLink query={{ page: pageName }}>{objectName} list</PluginLink> for team {currentTeam}
         </Text>
       </VerticalGroup>
     </div>

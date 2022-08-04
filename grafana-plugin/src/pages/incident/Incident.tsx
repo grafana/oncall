@@ -157,7 +157,7 @@ class IncidentPage extends React.Component<IncidentPageProps, IncidentPageState>
     if (wrongTeamError) {
       return (
         <WrongTeamStub
-          objectName="Incident"
+          objectName="alert group"
           pageName="incidents"
           currentTeam={currentTeamName}
           switchToTeam={teamToSwitch}
