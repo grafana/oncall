@@ -134,7 +134,7 @@ def test_team_permissions_wrong_team_general(
         assert response.status_code == status.HTTP_403_FORBIDDEN
         assert response.json() == {
             "error_code": "wrong_team",
-            "owner_team": {"name": "General", "id": "None", "email": "None", "avatar_url": "None"},
+            "owner_team": {"name": "General", "id": None, "email": None, "avatar_url": None},
         }
 
 

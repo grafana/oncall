@@ -178,7 +178,30 @@ class PublicPrimaryKeyMixin:
 
 
 class TeamFilteringMixin:
+    """
+    This mixin returns 403 and {"error_code": "wrong_team", "owner_team": {"name", "id", "email", "avatar_url"}}
+    in case a requested instance doesn't belong to user's current_team.
+    """
+
     TEAM_LOOKUP = "team"
+
+    def retrieve(self, request, *args, **kwargs):
+        """
+        Workaround to allow JSON in 403 response.
+        By default, PermissionDenied detail message converts None to "None".
+        """
+        try:
+            return super().retrieve(request, *args, **kwargs)
+        except PermissionDenied as e:
+            if e.detail.get("error_code") == "wrong_team" and "owner_team_id" in e.detail:
+                if e.detail["owner_team_id"] == "None":
+                    team = Team(public_primary_key=None, name="General", email=None, avatar_url=None)
+                else:
+                    team = Team.objects.get(public_primary_key=e.detail["owner_team_id"])
+                data = TeamSerializer(team).data
+                return Response(data={"error_code": "wrong_team", "owner_team": data}, status=status.HTTP_403_FORBIDDEN)
+            else:
+                raise
 
     def get_object(self):
         try:
@@ -196,11 +219,8 @@ class TeamFilteringMixin:
             obj_team = self._getattr_with_related(obj, self.TEAM_LOOKUP)
 
             if obj_team is None or obj_team in self.request.user.teams.all():
-                if obj_team is None:
-                    obj_team = Team(public_primary_key=None, name="General", email=None, avatar_url=None)
-
-                data = TeamSerializer(obj_team).data
-                raise PermissionDenied({"error_code": "wrong_team", "owner_team": data})
+                team_id = obj_team.public_primary_key if obj_team else None
+                raise PermissionDenied({"error_code": "wrong_team", "owner_team_id": team_id})
             else:
                 raise PermissionDenied({"error_code": "wrong_team"})
 
@@ -216,6 +236,11 @@ class TeamFilteringMixin:
 
     @staticmethod
     def _remove_filter(lookup, queryset):
+        """
+        This method removes a lookup from queryset.
+        E.g. for queryset = Instance.objects.filter(a=5, team=None), _remove_filter("team", queryset) will modify the
+        queryset to Instance.objects.filter(a=5).
+        """
         query = queryset.query
         q = Q(**{lookup: None})
         clause, _ = query._add_q(q, query.used_aliases)

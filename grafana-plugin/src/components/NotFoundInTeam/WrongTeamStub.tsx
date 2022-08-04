@@ -45,8 +45,8 @@ const WrongTeamStub: FC<WrongTeamStubProps> = (props) => {
         )}
         {switchToTeam && (
           <Text.Title level={4}>
-            This {objectName} is from team {switchToTeam.name}. To see {objectName} details please change the team to{' '}
-            {switchToTeam.name}
+            This {objectName} belongs to team {switchToTeam.name}. To see {objectName} details please change the team to{' '}
+            {switchToTeam.name}.
           </Text.Title>
         )}
         {switchToTeam && (
