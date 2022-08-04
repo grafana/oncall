@@ -50,8 +50,8 @@ cp .env.example .env
 export $(grep -v '^#' .env | xargs -0)
 
 # Install dependencies.
-# Hint: there is a known issue with uwsgi. It's not used in the local dev environment. Feel free to comment it in `engine/requirements.txt`.
-cd engine && pip install -r requirements.txt
+# Hint: there is a known issue with uwsgi. It's not used in the local dev environment. Feel free to comment it in `engine/base.txt`.
+cd engine && pip install -r requirements/requirements.txt
 
 # Migrate the DB:
 python manage.py migrate
@@ -132,7 +132,7 @@ For Slack app configuration check our docs: https://grafana.com/docs/grafana-clo
 
 **Problem:**
 ```
-pip install -r requirements.txt
+pip install -r requirements/requirements.txt
 ...
     ld: library not found for -lssl
     clang: error: linker command failed with exit code 1 (use -v to see invocation)
@@ -143,7 +143,7 @@ pip install -r requirements.txt
 
 ```
 export LDFLAGS=-L/usr/local/opt/openssl/lib
-pip install -r requirements.txt
+pip install -r requirements/requirements.txt
 ```
 
 ### Could not build wheels for cryptography which use PEP 517 and cannot be installed directly
@@ -162,7 +162,7 @@ Happens on Apple Silicon
 ```
 **Solution:**
 ```
-LDFLAGS="-L$(brew --prefix openssl@1.1)/lib" CFLAGS="-I$(brew --prefix openssl@1.1)/include" pip install `cat requirements.txt | grep cryptography`
+LDFLAGS="-L$(brew --prefix openssl@1.1)/lib" CFLAGS="-I$(brew --prefix openssl@1.1)/include" pip install `cat requirements/base.txt | grep cryptography`
 ```
 
 ### django.db.utils.OperationalError: (1366, "Incorrect string value ...")

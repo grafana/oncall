@@ -3,7 +3,8 @@ RUN apk add bash python3-dev build-base linux-headers pcre-dev mariadb-connector
 RUN pip install uwsgi
 
 WORKDIR /etc/app
-COPY ./requirements.txt ./
+COPY ./requirements/base.txt ./
+COPY ./requirements/requirements.txt ./
 RUN pip install regex==2021.11.2
 RUN pip install -r requirements.txt
 
