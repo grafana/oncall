@@ -290,28 +290,30 @@ class CustomOnCallShift(models.Model):
             if self.frequency is None:
                 users_queue = users_queue[:1]
 
+            # Get the date of the current rotation
             if self.start == self.rotation_start or self.frequency is None:
                 start = self.start
             else:
-                start = self.get_next_start_date(event_ical)
+                start = self.get_rotation_date(event_ical)
 
             while not all_rotation_checked:
                 for counter, users in enumerate(users_queue, start=1):
                     if not start:  # means that rotation ends before next event starts
                         all_rotation_checked = True
                         break
-                    elif start >= self.rotation_start:
+                    elif start >= self.rotation_start:  # event has already started, generate iCal for each user
                         for user_counter, user in enumerate(users, start=1):
                             event_ical = self.generate_ical(start, user_counter, user, counter, time_zone)
                             result += event_ical
                         rotations_created += 1
-                    else:
+                    else:  # generate default iCal to calculate the date for the next rotation
                         event_ical = self.generate_ical(start, user_counter=0)
 
-                    if rotations_created == len(users_queue):
+                    if rotations_created == len(users_queue):  # means that we generated iCal for every user group
                         all_rotation_checked = True
                         break
-                    start = self.get_next_start_date(event_ical, get_next=True)
+                    # Use the flag 'get_next_date' to get the date of the next rotation
+                    start = self.get_rotation_date(event_ical, get_next_date=True)
         else:
             for user_counter, user in enumerate(self.users.all(), start=1):
                 result += self.generate_ical(self.start, user_counter, user, time_zone=time_zone)
@@ -341,7 +343,7 @@ class CustomOnCallShift(models.Model):
         summary += f"{user.username} "
         return summary
 
-    def get_next_start_date(self, event_ical, get_next=False):
+    def get_rotation_date(self, event_ical, get_next_date=False):
         """Get date of the next event (for rolling_users shifts)"""
         ONE_DAY = 1
         ONE_HOUR = 1
@@ -352,7 +354,9 @@ class CustomOnCallShift(models.Model):
         current_event["rrule"]["INTERVAL"] = interval
         current_event_start = current_event["DTSTART"].dt
         next_event_start = current_event_start
-        if get_next:
+        # Calculate the minimum start date for the next event based on rotation frequency. We don't need to do this
+        # for the first rotation, because in this case the min start date will be the same as the current event date.
+        if get_next_date:
             if self.frequency == CustomOnCallShift.FREQUENCY_HOURLY:
                 next_event_start = current_event_start + timezone.timedelta(hours=ONE_HOUR)
             elif self.frequency == CustomOnCallShift.FREQUENCY_DAILY:
