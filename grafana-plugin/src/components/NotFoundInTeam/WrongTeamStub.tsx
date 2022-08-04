@@ -43,16 +43,20 @@ const WrongTeamStub: FC<WrongTeamStubProps> = (props) => {
             different team
           </Text.Title>
         )}
-        <Text.Title level={4}>
-          This {objectName} is from team {switchToTeam.name}. To see {objectName} details please change the team to{' '}
-          {switchToTeam.name}
-        </Text.Title>
-        <Button onClick={() => onTeamChange(switchToTeam.id)} className={cx('change-team-button')}>
-          <div className={cx('change-team-icon')}>
-            <ChangeTeamIcon />
-          </div>
-          Change the team
-        </Button>
+        {switchToTeam && (
+          <Text.Title level={4}>
+            This {objectName} is from team {switchToTeam.name}. To see {objectName} details please change the team to{' '}
+            {switchToTeam.name}
+          </Text.Title>
+        )}
+        {switchToTeam && (
+          <Button onClick={() => onTeamChange(switchToTeam.id)} className={cx('change-team-button')}>
+            <div className={cx('change-team-icon')}>
+              <ChangeTeamIcon />
+            </div>
+            Change the team
+          </Button>
+        )}
         <Text type="secondary" className={cx('return-to-list')}>
           Or return to "{currentTeam}" team <PluginLink query={{ page: pageName }}>{pageName}</PluginLink> list
         </Text>
