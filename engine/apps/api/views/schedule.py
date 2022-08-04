@@ -44,11 +44,7 @@ EVENTS_FILTER_BY_FINAL = "final"
 
 
 class ScheduleView(
-    PublicPrimaryKeyMixin,
-    ShortSerializerMixin,
-    CreateSerializerMixin,
-    UpdateSerializerMixin,
-    ModelViewSet,
+    PublicPrimaryKeyMixin, ShortSerializerMixin, CreateSerializerMixin, UpdateSerializerMixin, ModelViewSet
 ):
     authentication_classes = (PluginAuthentication,)
     permission_classes = (IsAuthenticated, ActionPermission)
