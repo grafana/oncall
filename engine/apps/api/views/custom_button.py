@@ -11,10 +11,10 @@ from apps.api.serializers.custom_button import CustomButtonSerializer
 from apps.auth_token.auth import PluginAuthentication
 from apps.user_management.organization_log_creator import OrganizationLogType, create_organization_log
 from common.api_helpers.exceptions import BadRequest
-from common.api_helpers.mixins import PublicPrimaryKeyMixin, TeamFilteringMixin
+from common.api_helpers.mixins import PublicPrimaryKeyMixin
 
 
-class CustomButtonView(TeamFilteringMixin, PublicPrimaryKeyMixin, ModelViewSet):
+class CustomButtonView(PublicPrimaryKeyMixin, ModelViewSet):
     authentication_classes = (PluginAuthentication,)
     permission_classes = (IsAuthenticated, ActionPermission)
     action_permissions = {

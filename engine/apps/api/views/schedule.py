@@ -33,7 +33,6 @@ from common.api_helpers.mixins import (
     CreateSerializerMixin,
     PublicPrimaryKeyMixin,
     ShortSerializerMixin,
-    TeamFilteringMixin,
     UpdateSerializerMixin,
 )
 from common.api_helpers.utils import create_engine_url
@@ -44,7 +43,6 @@ EVENTS_FILTER_BY_FINAL = "final"
 
 
 class ScheduleView(
-    TeamFilteringMixin,
     PublicPrimaryKeyMixin,
     ShortSerializerMixin,
     CreateSerializerMixin,

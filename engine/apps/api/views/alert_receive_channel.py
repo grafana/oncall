@@ -23,7 +23,6 @@ from common.api_helpers.mixins import (
     FilterSerializerMixin,
     PreviewTemplateMixin,
     PublicPrimaryKeyMixin,
-    TeamFilteringMixin,
     UpdateSerializerMixin,
 )
 from common.exceptions import TeamCanNotBeChangedError, UnableToSendDemoAlert
@@ -59,7 +58,6 @@ class AlertReceiveChannelFilter(filters.FilterSet):
 
 class AlertReceiveChannelView(
     PreviewTemplateMixin,
-    TeamFilteringMixin,
     PublicPrimaryKeyMixin,
     FilterSerializerMixin,
     UpdateSerializerMixin,
