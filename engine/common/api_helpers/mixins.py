@@ -7,7 +7,7 @@ from django.utils.functional import cached_property
 from jinja2.exceptions import TemplateRuntimeError
 from rest_framework import status
 from rest_framework.decorators import action
-from rest_framework.exceptions import NotFound, PermissionDenied, Throttled
+from rest_framework.exceptions import NotFound, Throttled
 from rest_framework.response import Response
 
 from apps.alerts.incident_appearance.templaters import (
@@ -192,23 +192,8 @@ class TeamFilteringMixin:
         """
         try:
             return super().retrieve(request, *args, **kwargs)
-        except PermissionDenied as e:
-            if e.detail.get("error_code") == "wrong_team" and "owner_team_id" in e.detail:
-                if e.detail["owner_team_id"] == "None":
-                    team = Team(public_primary_key=None, name="General", email=None, avatar_url=None)
-                else:
-                    team = Team.objects.get(public_primary_key=e.detail["owner_team_id"])
-                data = TeamSerializer(team).data
-                return Response(data={"error_code": "wrong_team", "owner_team": data}, status=status.HTTP_403_FORBIDDEN)
-            else:
-                raise
-
-    def get_object(self):
-        try:
-            return super().get_object()
         except NotFound:
             queryset = self.filter_queryset(self.get_queryset())
-
             self._remove_filter(self.TEAM_LOOKUP, queryset)
 
             try:
@@ -219,10 +204,15 @@ class TeamFilteringMixin:
             obj_team = self._getattr_with_related(obj, self.TEAM_LOOKUP)
 
             if obj_team is None or obj_team in self.request.user.teams.all():
-                team_id = obj_team.public_primary_key if obj_team else None
-                raise PermissionDenied({"error_code": "wrong_team", "owner_team_id": team_id})
-            else:
-                raise PermissionDenied({"error_code": "wrong_team"})
+                if obj_team is None:
+                    obj_team = Team(public_primary_key=None, name="General", email=None, avatar_url=None)
+
+                return Response(
+                    data={"error_code": "wrong_team", "owner_team": TeamSerializer(obj_team).data},
+                    status=status.HTTP_403_FORBIDDEN,
+                )
+
+            return Response(data={"error_code": "wrong_team"})
 
     @staticmethod
     def _getattr_with_related(obj, lookup):
