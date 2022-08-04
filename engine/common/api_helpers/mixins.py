@@ -186,10 +186,6 @@ class TeamFilteringMixin:
     TEAM_LOOKUP = "team"
 
     def retrieve(self, request, *args, **kwargs):
-        """
-        Workaround to allow JSON in 403 response.
-        By default, PermissionDenied detail message converts None to "None".
-        """
         try:
             return super().retrieve(request, *args, **kwargs)
         except NotFound:
