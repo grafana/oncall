@@ -1,7 +1,6 @@
 import datetime
 
 import pytz
-from django.core.exceptions import ObjectDoesNotExist
 from django.db.models import OuterRef, Subquery
 from django.db.utils import IntegrityError
 from django.urls import reverse
@@ -34,6 +33,7 @@ from common.api_helpers.mixins import (
     CreateSerializerMixin,
     PublicPrimaryKeyMixin,
     ShortSerializerMixin,
+    TeamFilteringMixin,
     UpdateSerializerMixin,
 )
 from common.api_helpers.utils import create_engine_url
@@ -44,7 +44,12 @@ EVENTS_FILTER_BY_FINAL = "final"
 
 
 class ScheduleView(
-    PublicPrimaryKeyMixin, ShortSerializerMixin, CreateSerializerMixin, UpdateSerializerMixin, ModelViewSet
+    TeamFilteringMixin,
+    PublicPrimaryKeyMixin,
+    ShortSerializerMixin,
+    CreateSerializerMixin,
+    UpdateSerializerMixin,
+    ModelViewSet,
 ):
     authentication_classes = (PluginAuthentication,)
     permission_classes = (IsAuthenticated, ActionPermission)
@@ -110,32 +115,6 @@ class ScheduleView(
             )
             queryset = self.serializer_class.setup_eager_loading(queryset)
         return queryset
-
-    def get_object(self):
-        # Override this method because we want to get object from organization instead of concrete team.
-        pk = self.kwargs["pk"]
-        organization = self.request.auth.organization
-        slack_channels = SlackChannel.objects.filter(
-            slack_team_identity=organization.slack_team_identity,
-            slack_id=OuterRef("channel"),
-        )
-        queryset = organization.oncall_schedules.filter(public_primary_key=pk,).annotate(
-            slack_channel_name=Subquery(slack_channels.values("name")[:1]),
-            slack_channel_pk=Subquery(slack_channels.values("public_primary_key")[:1]),
-        )
-
-        try:
-            obj = queryset.get()
-        except ObjectDoesNotExist:
-            raise NotFound
-
-        # May raise a permission denied
-        self.check_object_permissions(self.request, obj)
-
-        return obj
-
-    def original_get_object(self):
-        return super().get_object()
 
     def perform_create(self, serializer):
         schedule = serializer.save()
@@ -236,7 +215,7 @@ class ScheduleView(
         with_empty = self.request.query_params.get("with_empty", False) == "true"
         with_gap = self.request.query_params.get("with_gap", False) == "true"
 
-        schedule = self.original_get_object()
+        schedule = self.get_object()
         events = self._filter_events(schedule, user_tz, date, days=1, with_empty=with_empty, with_gap=with_gap)
 
         slack_channel = (
@@ -278,7 +257,7 @@ class ScheduleView(
         except ValueError:
             raise BadRequest(detail="Invalid days format")
 
-        schedule = self.original_get_object()
+        schedule = self.get_object()
         events = self._filter_events(
             schedule, user_tz, starting_date, days=days, with_empty=True, with_gap=resolve_schedule
         )
@@ -405,7 +384,7 @@ class ScheduleView(
 
     @action(detail=True, methods=["post"])
     def reload_ical(self, request, pk):
-        schedule = self.original_get_object()
+        schedule = self.get_object()
         schedule.drop_cached_ical()
         schedule.check_empty_shifts_for_next_week()
         schedule.check_gaps_for_next_week()
@@ -417,7 +396,7 @@ class ScheduleView(
 
     @action(detail=True, methods=["get", "post", "delete"])
     def export_token(self, request, pk):
-        schedule = self.original_get_object()
+        schedule = self.get_object()
 
         if self.request.method == "GET":
             try:

@@ -12,10 +12,10 @@ from apps.api.serializers.escalation_chain import EscalationChainListSerializer,
 from apps.auth_token.auth import PluginAuthentication
 from apps.user_management.organization_log_creator import OrganizationLogType, create_organization_log
 from common.api_helpers.exceptions import BadRequest
-from common.api_helpers.mixins import ListSerializerMixin, PublicPrimaryKeyMixin
+from common.api_helpers.mixins import ListSerializerMixin, PublicPrimaryKeyMixin, TeamFilteringMixin
 
 
-class EscalationChainViewSet(PublicPrimaryKeyMixin, ListSerializerMixin, viewsets.ModelViewSet):
+class EscalationChainViewSet(TeamFilteringMixin, PublicPrimaryKeyMixin, ListSerializerMixin, viewsets.ModelViewSet):
     authentication_classes = (PluginAuthentication,)
     permission_classes = (IsAuthenticated, ActionPermission)
 

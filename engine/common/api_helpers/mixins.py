@@ -2,11 +2,12 @@ import json
 import math
 
 from django.core.exceptions import ObjectDoesNotExist
+from django.db.models import Q
 from django.utils.functional import cached_property
 from jinja2.exceptions import TemplateRuntimeError
 from rest_framework import status
 from rest_framework.decorators import action
-from rest_framework.exceptions import NotFound, Throttled
+from rest_framework.exceptions import NotFound, PermissionDenied, Throttled
 from rest_framework.response import Response
 
 from apps.alerts.incident_appearance.templaters import (
@@ -18,7 +19,9 @@ from apps.alerts.incident_appearance.templaters import (
     AlertWebTemplater,
     TemplateLoader,
 )
+from apps.api.serializers.team import TeamSerializer
 from apps.base.messaging import get_messaging_backends
+from apps.user_management.models import Team
 from common.api_helpers.exceptions import BadRequest
 from common.jinja_templater import apply_jinja_template
 
@@ -172,6 +175,58 @@ class PublicPrimaryKeyMixin:
         self.check_object_permissions(self.request, obj)
 
         return obj
+
+
+class TeamFilteringMixin:
+    TEAM_LOOKUP = "team"
+
+    def get_object(self):
+        try:
+            return super().get_object()
+        except NotFound:
+            queryset = self.filter_queryset(self.get_queryset())
+
+            self._remove_filter(self.TEAM_LOOKUP, queryset)
+
+            try:
+                obj = queryset.get(public_primary_key=self.kwargs["pk"])
+            except ObjectDoesNotExist:
+                raise NotFound
+
+            obj_team = self._getattr_with_related(obj, self.TEAM_LOOKUP)
+
+            if obj_team is None or obj_team in self.request.user.teams.all():
+                if obj_team is None:
+                    obj_team = Team(public_primary_key=None, name="General", email=None, avatar_url=None)
+
+                data = TeamSerializer(obj_team).data
+                raise PermissionDenied({"error_code": "wrong_team", "owner_team": data})
+            else:
+                raise PermissionDenied({"error_code": "wrong_team"})
+
+    @staticmethod
+    def _getattr_with_related(obj, lookup):
+        entries = lookup.split("__")
+
+        result = getattr(obj, entries[0])
+        for entry in entries[1:]:
+            result = getattr(result, entry)
+
+        return result
+
+    @staticmethod
+    def _remove_filter(lookup, queryset):
+        query = queryset.query
+        q = Q(**{lookup: None})
+        clause, _ = query._add_q(q, query.used_aliases)
+
+        def filter_lookups(child):
+            try:
+                return child.lhs.target != clause.children[0].lhs.target
+            except AttributeError:
+                return child.children[0].lhs.target != clause.children[0].lhs.target
+
+        query.where.children = list(filter(filter_lookups, query.where.children))
 
 
 # TODO: move to separate file

@@ -1,7 +1,5 @@
-from django.core.exceptions import ObjectDoesNotExist
 from rest_framework import status
 from rest_framework.decorators import action
-from rest_framework.exceptions import NotFound
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet
@@ -13,10 +11,10 @@ from apps.api.serializers.custom_button import CustomButtonSerializer
 from apps.auth_token.auth import PluginAuthentication
 from apps.user_management.organization_log_creator import OrganizationLogType, create_organization_log
 from common.api_helpers.exceptions import BadRequest
-from common.api_helpers.mixins import PublicPrimaryKeyMixin
+from common.api_helpers.mixins import PublicPrimaryKeyMixin, TeamFilteringMixin
 
 
-class CustomButtonView(PublicPrimaryKeyMixin, ModelViewSet):
+class CustomButtonView(TeamFilteringMixin, PublicPrimaryKeyMixin, ModelViewSet):
     authentication_classes = (PluginAuthentication,)
     permission_classes = (IsAuthenticated, ActionPermission)
     action_permissions = {
@@ -34,24 +32,6 @@ class CustomButtonView(PublicPrimaryKeyMixin, ModelViewSet):
             team=self.request.user.current_team,
         )
         return queryset
-
-    def get_object(self):
-        # Override this method because we want to get object from organization instead of concrete team.
-        pk = self.kwargs["pk"]
-        organization = self.request.auth.organization
-
-        try:
-            obj = organization.custom_buttons.get(public_primary_key=pk)
-        except ObjectDoesNotExist:
-            raise NotFound
-
-        # May raise a permission denied
-        self.check_object_permissions(self.request, obj)
-
-        return obj
-
-    def original_get_object(self):
-        return super().get_object()
 
     def perform_create(self, serializer):
         serializer.save()
@@ -81,7 +61,7 @@ class CustomButtonView(PublicPrimaryKeyMixin, ModelViewSet):
     def action(self, request, pk):
         alert_group_id = request.query_params.get("alert_group", None)
         if alert_group_id is not None:
-            custom_button = self.original_get_object()
+            custom_button = self.get_object()
             try:
                 alert_group = AlertGroup.unarchived_objects.get(
                     public_primary_key=alert_group_id, channel=custom_button.alert_receive_channel
