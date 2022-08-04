@@ -133,8 +133,6 @@ class AddToResolutionNoteStep(CheckAlertIsUnarchivedMixin, scenario_step.Scenari
                     ).save()
                 else:
                     resolution_note.recreate()
-                alert_group.drop_cached_after_resolve_report_json()
-                alert_group.schedule_cache_for_web()
                 try:
                     self._slack_client.api_call(
                         "reactions.add",
