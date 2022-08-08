@@ -71,15 +71,15 @@ spec:
             timeoutSeconds: 3
           resources:
             {{- toYaml .Values.engine.resources | nindent 12 }}
-      {{- with .Values.grafana.nodeSelector }}
+      {{- with .Values.engine.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}
       {{- end }}
-      {{- with .Values.grafana.affinity }}
+      {{- with .Values.engine.affinity }}
       affinity:
         {{- toYaml . | nindent 8 }}
       {{- end }}
-      {{- with .Values.grafana.tolerations }}
+      {{- with .Values.engine.tolerations }}
       tolerations:
         {{- toYaml . | nindent 8 }}
       {{- end }}
