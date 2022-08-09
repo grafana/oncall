@@ -9,9 +9,9 @@ from apps.api.permissions import MODIFY_ACTIONS, READ_ACTIONS, ActionPermission,
 from apps.api.serializers.on_call_shifts import OnCallShiftSerializer, OnCallShiftUpdateSerializer
 from apps.auth_token.auth import PluginAuthentication
 from apps.schedules.models import CustomOnCallShift
-from apps.user_management.organization_log_creator import OrganizationLogType, create_organization_log
 from common.api_helpers.mixins import PublicPrimaryKeyMixin, UpdateSerializerMixin
 from common.api_helpers.paginators import FiftyPageSizePaginator
+from common.insight_logs import entity_created_insight_logs, entity_deleted_insight_logs, entity_updated_insight_logs
 
 
 class OnCallShiftView(PublicPrimaryKeyMixin, UpdateSerializerMixin, ModelViewSet):
@@ -50,31 +50,18 @@ class OnCallShiftView(PublicPrimaryKeyMixin, UpdateSerializerMixin, ModelViewSet
 
     def perform_create(self, serializer):
         serializer.save()
-        instance = serializer.instance
-        organization = self.request.auth.organization
-        user = self.request.user
-        description = (
-            f"Custom on-call shift with params: {instance.repr_settings_for_client_side_logging} "
-            f"was created"  # todo
-        )
-        create_organization_log(organization, user, OrganizationLogType.TYPE_ON_CALL_SHIFT_CREATED, description)
+        entity_created_insight_logs(instance=serializer.instance, user=self.request.user)
 
     def perform_update(self, serializer):
-        organization = self.request.auth.organization
-        user = self.request.user
         old_state = serializer.instance.repr_settings_for_client_side_logging
         serializer.save()
         new_state = serializer.instance.repr_settings_for_client_side_logging
-        description = f"Settings of custom on-call shift was changed " f"from:\n{old_state}\nto:\n{new_state}"
-        create_organization_log(organization, user, OrganizationLogType.TYPE_ON_CALL_SHIFT_CHANGED, description)
+        entity_updated_insight_logs(
+            instance=serializer.instance, user=self.request.user, before=old_state, after=new_state
+        )
 
     def perform_destroy(self, instance):
-        organization = self.request.auth.organization
-        user = self.request.user
-        description = (
-            f"Custom on-call shift " f"with params: {instance.repr_settings_for_client_side_logging} was deleted"
-        )
-        create_organization_log(organization, user, OrganizationLogType.TYPE_ON_CALL_SHIFT_DELETED, description)
+        entity_deleted_insight_logs(instance=instance, user=self.request.user)
         instance.delete()
 
     @action(detail=False, methods=["get"])

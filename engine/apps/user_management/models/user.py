@@ -250,6 +250,41 @@ class User(models.Model):
     def short(self):
         return {"username": self.username, "pk": self.public_primary_key, "avatar": self.avatar_url}
 
+    # Insight logs
+    @property
+    def insight_logs_type_verbal(self):
+        return "User"
+
+    @property
+    def insight_logs_verbal(self):
+        return self.username
+
+    @property
+    def insight_logs_dict(self):
+        UserNotificationPolicy = apps.get_model("base", "UserNotificationPolicy")
+        default, important = UserNotificationPolicy.get_short_verbals_for_user(user=self)
+        notification_policies_verbal = f"default: {' - '.join(default)}, important: {' - '.join(important)}"
+        notification_policies_verbal = demojize(notification_policies_verbal)
+
+        res = {
+            "username": self.username,
+            "role": self.get_role_display(),
+            "notification_policies": notification_policies_verbal,
+        }
+        if self.verified_phone_number:
+            res["verified_phone_number"] = self.unverified_phone_number
+        if self.unverified_phone_number:
+            res["unverified_phone_number"] = self.unverified_phone_number
+        return res
+
+    def format_insight_logs(self, diff_dict):
+        # TODO: hide phone number
+        # if "verified_phone_number" in diff_dict:
+        #     l = len(diff_dict["verified_phone_number"])
+        #     hide_len = math.ceil(l / 2)
+
+        return diff_dict
+
 
 # TODO: check whether this signal can be moved to save method of the model
 @receiver(post_save, sender=User)

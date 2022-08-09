@@ -15,10 +15,10 @@ from apps.api.serializers.channel_filter import (
 from apps.api.throttlers import DemoAlertThrottler
 from apps.auth_token.auth import PluginAuthentication
 from apps.slack.models import SlackChannel
-from apps.user_management.organization_log_creator import OrganizationLogType, create_organization_log
 from common.api_helpers.exceptions import BadRequest
 from common.api_helpers.mixins import CreateSerializerMixin, PublicPrimaryKeyMixin, UpdateSerializerMixin
 from common.exceptions import UnableToSendDemoAlert
+from common.insight_logs import entity_created_insight_logs, entity_deleted_insight_logs, entity_updated_insight_logs
 
 
 class ChannelFilterView(PublicPrimaryKeyMixin, CreateSerializerMixin, UpdateSerializerMixin, ModelViewSet):
@@ -64,11 +64,9 @@ class ChannelFilterView(PublicPrimaryKeyMixin, CreateSerializerMixin, UpdateSeri
         if instance.is_default:
             raise BadRequest(detail="Unable to delete default filter")
         else:
-            alert_receive_channel = instance.alert_receive_channel
-            route_verbal = instance.verbal_name_for_clients.capitalize()
-            description = f"{route_verbal} for integration {alert_receive_channel.verbal_name} was deleted"
-            create_organization_log(
-                user.organization, user, OrganizationLogType.TYPE_CHANNEL_FILTER_DELETED, description
+            entity_deleted_insight_logs(
+                user,
+                instance,
             )
             self.perform_destroy(instance)
             return Response(status=status.HTTP_204_NO_CONTENT)
@@ -77,53 +75,33 @@ class ChannelFilterView(PublicPrimaryKeyMixin, CreateSerializerMixin, UpdateSeri
         user = self.request.user
         serializer.save()
         instance = serializer.instance
-        alert_receive_channel = instance.alert_receive_channel
-        route_verbal = instance.verbal_name_for_clients.capitalize()
-        description = f"{route_verbal} was created for integration {alert_receive_channel.verbal_name}"
-        create_organization_log(user.organization, user, OrganizationLogType.TYPE_CHANNEL_FILTER_CREATED, description)
+        entity_created_insight_logs(instance=instance, user=user)
 
     def perform_update(self, serializer):
         user = self.request.user
-        old_state = serializer.instance.repr_settings_for_client_side_logging
+        old_state = serializer.instance.insight_logs_dict
         serializer.save()
-        new_state = serializer.instance.repr_settings_for_client_side_logging
-        alert_receive_channel = serializer.instance.alert_receive_channel
-        route_verbal = serializer.instance.verbal_name_for_clients
-        description = (
-            f"Settings for {route_verbal} of integration {alert_receive_channel.verbal_name} "
-            f"was changed from:\n{old_state}\nto:\n{new_state}"
-        )
-        create_organization_log(user.organization, user, OrganizationLogType.TYPE_CHANNEL_FILTER_CHANGED, description)
+        new_state = serializer.instance.insight_logs_dict
+        entity_updated_insight_logs(user, serializer.instance, old_state, new_state)
 
     @action(detail=True, methods=["put"])
     def move_to_position(self, request, pk):
         position = request.query_params.get("position", None)
         if position is not None:
             try:
-                source_filter = ChannelFilter.objects.get(public_primary_key=pk)
+                instance = ChannelFilter.objects.get(public_primary_key=pk)
             except ChannelFilter.DoesNotExist:
                 raise BadRequest(detail="Channel filter does not exist")
             try:
-                if source_filter.is_default:
+                if instance.is_default:
                     raise BadRequest(detail="Unable to change position for default filter")
                 user = self.request.user
-                old_state = source_filter.repr_settings_for_client_side_logging
 
-                source_filter.to(int(position))
+                old_state = instance.insight_logs_dict
+                instance.to(int(position))
+                new_state = instance.insight_logs_dict
 
-                new_state = source_filter.repr_settings_for_client_side_logging
-                alert_receive_channel = source_filter.alert_receive_channel
-                route_verbal = source_filter.verbal_name_for_clients
-                description = (
-                    f"Settings for {route_verbal} of integration {alert_receive_channel.verbal_name} "
-                    f"was changed from:\n{old_state}\nto:\n{new_state}"
-                )
-                create_organization_log(
-                    user.organization,
-                    user,
-                    OrganizationLogType.TYPE_CHANNEL_FILTER_CHANGED,
-                    description,
-                )
+                entity_updated_insight_logs(user, instance, old_state, new_state)
                 return Response(status=status.HTTP_200_OK)
             except ValueError as e:
                 raise BadRequest(detail=f"{e}")

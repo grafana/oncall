@@ -8,10 +8,10 @@ from apps.auth_token.auth import ApiTokenAuthentication
 from apps.public_api.serializers import EscalationChainSerializer
 from apps.public_api.serializers.escalation_chains import EscalationChainUpdateSerializer
 from apps.public_api.throttlers.user_throttle import UserThrottle
-from apps.user_management.organization_log_creator import OrganizationLogType, create_organization_log
 from common.api_helpers.filters import ByTeamFilter
 from common.api_helpers.mixins import RateLimitHeadersMixin, UpdateSerializerMixin
 from common.api_helpers.paginators import FiftyPageSizePaginator
+from common.insight_logs import entity_created_insight_logs, entity_deleted_insight_logs, entity_updated_insight_logs
 
 
 class EscalationChainView(RateLimitHeadersMixin, UpdateSerializerMixin, ModelViewSet):
@@ -48,38 +48,20 @@ class EscalationChainView(RateLimitHeadersMixin, UpdateSerializerMixin, ModelVie
 
     def perform_create(self, serializer):
         serializer.save()
-
-        instance = serializer.instance
-        description = f"Escalation chain {instance.name} was created"
-        create_organization_log(
-            instance.organization,
-            self.request.user,
-            OrganizationLogType.TYPE_ESCALATION_CHAIN_CREATED,
-            description,
-        )
+        entity_created_insight_logs(instance=serializer.serializer.instance, user=self.request.user)
 
     def perform_destroy(self, instance):
+        entity_deleted_insight_logs(instance=instance, user=self.request.user)
         instance.delete()
-
-        description = f"Escalation chain {instance.name} was deleted"
-        create_organization_log(
-            instance.organization,
-            self.request.user,
-            OrganizationLogType.TYPE_ESCALATION_CHAIN_DELETED,
-            description,
-        )
 
     def perform_update(self, serializer):
         instance = serializer.instance
         old_state = instance.repr_settings_for_client_side_logging
-
         serializer.save()
-
         new_state = instance.repr_settings_for_client_side_logging
-        description = f"Escalation chain {instance.name} was changed from:\n{old_state}\nto:\n{new_state}"
-        create_organization_log(
-            instance.organization,
-            self.request.user,
-            OrganizationLogType.TYPE_ESCALATION_CHAIN_CHANGED,
-            description,
+        entity_updated_insight_logs(
+            instance=instance,
+            user=self.request.user,
+            before=old_state,
+            after=new_state,
         )

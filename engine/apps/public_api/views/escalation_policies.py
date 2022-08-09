@@ -7,9 +7,9 @@ from apps.alerts.models import EscalationPolicy
 from apps.auth_token.auth import ApiTokenAuthentication
 from apps.public_api.serializers import EscalationPolicySerializer, EscalationPolicyUpdateSerializer
 from apps.public_api.throttlers.user_throttle import UserThrottle
-from apps.user_management.organization_log_creator import OrganizationLogType, create_organization_log
 from common.api_helpers.mixins import RateLimitHeadersMixin, UpdateSerializerMixin
 from common.api_helpers.paginators import FiftyPageSizePaginator
+from common.insight_logs import entity_created_insight_logs, entity_deleted_insight_logs, entity_updated_insight_logs
 
 
 class EscalationPolicyView(RateLimitHeadersMixin, UpdateSerializerMixin, ModelViewSet):
@@ -50,36 +50,19 @@ class EscalationPolicyView(RateLimitHeadersMixin, UpdateSerializerMixin, ModelVi
 
     def perform_create(self, serializer):
         serializer.save()
-        instance = serializer.instance
-        organization = self.request.auth.organization
-        user = self.request.user
-        escalation_chain = instance.escalation_chain
-        description = (
-            f"Escalation step '{instance.step_type_verbal}' with order {instance.order} was created for "
-            f"escalation chain '{escalation_chain.name}'"
-        )
-        create_organization_log(organization, user, OrganizationLogType.TYPE_ESCALATION_STEP_CREATED, description)
+        entity_created_insight_logs(instance=serializer.instance, user=self.request.user)
 
     def perform_update(self, serializer):
-        organization = self.request.auth.organization
-        user = self.request.user
-        old_state = serializer.instance.repr_settings_for_client_side_logging
+        old_state = serializer.instance.insight_logs_dict
         serializer.save()
-        new_state = serializer.instance.repr_settings_for_client_side_logging
-        escalation_chain = serializer.instance.escalation_chain
-        description = (
-            f"Settings for escalation step of escalation chain '{escalation_chain.name}' was changed "
-            f"from:\n{old_state}\nto:\n{new_state}"
+        new_state = serializer.instance.insight_logs_dict
+        entity_updated_insight_logs(
+            instance=serializer.instance, user=self.request.user, before=old_state, after=new_state
         )
-        create_organization_log(organization, user, OrganizationLogType.TYPE_ESCALATION_STEP_CHANGED, description)
 
     def perform_destroy(self, instance):
-        organization = self.request.auth.organization
-        user = self.request.user
-        escalation_chain = instance.escalation_chain
-        description = (
-            f"Escalation step '{instance.step_type_verbal}' with order {instance.order} of "
-            f"escalation chain '{escalation_chain.name}' was deleted"
+        entity_deleted_insight_logs(
+            instance=instance,
+            user=self.request.user,
         )
-        create_organization_log(organization, user, OrganizationLogType.TYPE_ESCALATION_STEP_DELETED, description)
         instance.delete()

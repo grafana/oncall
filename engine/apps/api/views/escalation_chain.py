@@ -10,9 +10,9 @@ from apps.alerts.models import EscalationChain
 from apps.api.permissions import MODIFY_ACTIONS, READ_ACTIONS, ActionPermission, AnyRole, IsAdmin
 from apps.api.serializers.escalation_chain import EscalationChainListSerializer, EscalationChainSerializer
 from apps.auth_token.auth import PluginAuthentication
-from apps.user_management.organization_log_creator import OrganizationLogType, create_organization_log
 from common.api_helpers.exceptions import BadRequest
 from common.api_helpers.mixins import ListSerializerMixin, PublicPrimaryKeyMixin
+from common.insight_logs import entity_created_insight_logs, entity_deleted_insight_logs, entity_updated_insight_logs
 
 
 class EscalationChainViewSet(PublicPrimaryKeyMixin, ListSerializerMixin, viewsets.ModelViewSet):
@@ -56,45 +56,25 @@ class EscalationChainViewSet(PublicPrimaryKeyMixin, ListSerializerMixin, viewset
 
     def perform_create(self, serializer):
         serializer.save()
-
-        instance = serializer.instance
-        description = f"Escalation chain {instance.name} was created"
-        create_organization_log(
-            instance.organization,
-            self.request.user,
-            OrganizationLogType.TYPE_ESCALATION_CHAIN_CREATED,
-            description,
-        )
+        entity_created_insight_logs(instance=serializer.instance, user=self.request.user)
 
     def perform_destroy(self, instance):
-        instance.delete()
-
-        description = f"Escalation chain {instance.name} was deleted"
-        create_organization_log(
-            instance.organization,
+        entity_deleted_insight_logs(
             self.request.user,
-            OrganizationLogType.TYPE_ESCALATION_CHAIN_DELETED,
-            description,
+            instance,
         )
+        instance.delete()
 
     def perform_update(self, serializer):
         instance = serializer.instance
-        old_state = instance.repr_settings_for_client_side_logging
-
+        old_state = instance.insight_logs_dict
         serializer.save()
+        new_state = instance.insight_logs_dict
 
-        new_state = instance.repr_settings_for_client_side_logging
-        description = f"Escalation chain {instance.name} was changed from:\n{old_state}\nto:\n{new_state}"
-        create_organization_log(
-            instance.organization,
-            self.request.user,
-            OrganizationLogType.TYPE_ESCALATION_CHAIN_CHANGED,
-            description,
-        )
+        entity_updated_insight_logs(self.request.user, instance, old_state, new_state)
 
     @action(methods=["post"], detail=True)
     def copy(self, request, pk):
-        user = request.user
         name = request.data.get("name")
         if name is None:
             raise BadRequest(detail={"name": ["This field may not be null."]})
@@ -105,8 +85,10 @@ class EscalationChainViewSet(PublicPrimaryKeyMixin, ListSerializerMixin, viewset
         obj = self.get_object()
         copy = obj.make_copy(name)
         serializer = self.get_serializer(copy)
-        description = f"Escalation chain {obj.name} was copied with new name {name}"
-        create_organization_log(copy.organization, user, OrganizationLogType.TYPE_CHANNEL_FILTER_CHANGED, description)
+        entity_created_insight_logs(
+            instance=copy,
+            user=self.request.user,
+        )
         return Response(serializer.data)
 
     @action(methods=["get"], detail=True)

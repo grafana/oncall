@@ -7,8 +7,8 @@ from apps.api.permissions import MODIFY_ACTIONS, READ_ACTIONS, ActionPermission,
 from apps.api.serializers.integration_heartbeat import IntegrationHeartBeatSerializer
 from apps.auth_token.auth import PluginAuthentication
 from apps.heartbeat.models import IntegrationHeartBeat
-from apps.user_management.organization_log_creator import OrganizationLogType, create_organization_log
 from common.api_helpers.mixins import PublicPrimaryKeyMixin
+from common.insight_logs import entity_created_insight_logs, entity_updated_insight_logs
 
 
 class IntegrationHeartBeatView(
@@ -45,30 +45,16 @@ class IntegrationHeartBeatView(
     def perform_create(self, serializer):
         serializer.save()
         instance = serializer.instance
-        description = f"Heartbeat for integration {instance.alert_receive_channel.verbal_name} was created"
-        create_organization_log(
-            instance.alert_receive_channel.organization,
-            self.request.user,
-            OrganizationLogType.TYPE_HEARTBEAT_CREATED,
-            description,
+        entity_created_insight_logs(
+            instance=instance,
+            user=self.request.user,
         )
 
     def perform_update(self, serializer):
-        old_state = serializer.instance.repr_settings_for_client_side_logging
+        old_state = serializer.instance.insight_logs_dict
         serializer.save()
-        new_state = serializer.instance.repr_settings_for_client_side_logging
-        alert_receive_channel = serializer.instance.alert_receive_channel
-        description = (
-            f"Settings for heartbeat of integration "
-            f"{alert_receive_channel.verbal_name} was changed "
-            f"from:\n{old_state}\nto:\n{new_state}"
-        )
-        create_organization_log(
-            alert_receive_channel.organization,
-            self.request.user,
-            OrganizationLogType.TYPE_HEARTBEAT_CHANGED,
-            description,
-        )
+        new_state = serializer.instance.insight_logs_dict
+        entity_updated_insight_logs(self.request.user, serializer.instance, old_state, new_state)
 
     @action(detail=False, methods=["get"])
     def timeout_options(self, request):

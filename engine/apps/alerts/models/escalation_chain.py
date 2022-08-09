@@ -68,3 +68,26 @@ class EscalationChain(models.Model):
                 escalation_policy.save()
                 escalation_policy.notify_to_users_queue.set(notify_to_users_queue)
             return copied_chain
+
+    # Insight logs
+    @property
+    def insight_logs_type_verbal(self):
+        return "Escalation Chain"
+
+    @property
+    def insight_logs_verbal(self):
+        return self.name
+
+    @property
+    def insight_logs_dict(self):
+        res = {
+            "name": self.name,
+        }
+
+        if self.team:
+            res["team"] = self.team.insight_logs_verbal
+            res["team_id"] = self.team.public_primary_key
+        return res
+
+    def format_insight_logs(self, diff_dict):
+        return diff_dict

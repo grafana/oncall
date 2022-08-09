@@ -40,12 +40,12 @@ from apps.telegram.models import TelegramVerificationCode
 from apps.twilioapp.phone_manager import PhoneManager
 from apps.twilioapp.twilio_client import twilio_client
 from apps.user_management.models import User
-from apps.user_management.organization_log_creator import OrganizationLogType, create_organization_log
 from common.api_helpers.exceptions import Conflict
 from common.api_helpers.mixins import FilterSerializerMixin, PublicPrimaryKeyMixin
 from common.api_helpers.paginators import HundredPageSizePaginator
 from common.api_helpers.utils import create_engine_url
 from common.constants.role import Role
+from common.insight_logs import entity_created_insight_logs, entity_updated_insight_logs
 
 logger = logging.getLogger(__name__)
 
@@ -265,15 +265,8 @@ class UserView(
 
         if not verified:
             return Response(error, status=status.HTTP_400_BAD_REQUEST)
-        organization = request.auth.organization
         new_state = target_user.repr_settings_for_client_side_logging
-        description = f"User settings for user {target_user.username} was changed from:\n{old_state}\nto:\n{new_state}"
-        create_organization_log(
-            organization,
-            request.user,
-            OrganizationLogType.TYPE_USER_SETTINGS_CHANGED,
-            description,
-        )
+        entity_updated_insight_logs(instance=target_user, user=self.request.user, before=old_state, after=new_state)
         return Response(status=status.HTTP_200_OK)
 
     @action(detail=True, methods=["put"])
@@ -284,16 +277,12 @@ class UserView(
         forget = phone_manager.forget_phone_number()
 
         if forget:
-            organization = request.auth.organization
             new_state = target_user.repr_settings_for_client_side_logging
-            description = (
-                f"User settings for user {target_user.username} was changed from:\n{old_state}\nto:\n{new_state}"
-            )
-            create_organization_log(
-                organization,
-                request.user,
-                OrganizationLogType.TYPE_USER_SETTINGS_CHANGED,
-                description,
+            entity_updated_insight_logs(
+                instance=target_user,
+                user=self.request.user,
+                before=old_state,
+                after=new_state,
             )
         return Response(status=status.HTTP_200_OK)
 
@@ -350,27 +339,19 @@ class UserView(
 
     @action(detail=True, methods=["post"])
     def unlink_telegram(self, request, pk):
+        # TODO: insight logs support
         user = self.get_object()
         TelegramToUserConnector = apps.get_model("telegram", "TelegramToUserConnector")
-
         try:
             connector = TelegramToUserConnector.objects.get(user=user)
             connector.delete()
         except TelegramToUserConnector.DoesNotExist:
             return Response(status=status.HTTP_400_BAD_REQUEST)
-
-        description = f"Telegram account of user {user.username} was disconnected"
-        create_organization_log(
-            user.organization,
-            user,
-            OrganizationLogType.TYPE_TELEGRAM_FROM_USER_DISCONNECTED,
-            description,
-        )
-
         return Response(status=status.HTTP_200_OK)
 
     @action(detail=True, methods=["post"])
     def unlink_backend(self, request, pk):
+        # TODO: insight logs support
         backend_id = request.query_params.get("backend")
         backend = get_messaging_backend_from_id(backend_id)
         if backend is None:
@@ -381,15 +362,6 @@ class UserView(
             backend.unlink_user(user)
         except ObjectDoesNotExist:
             return Response(status=status.HTTP_400_BAD_REQUEST)
-
-        description = f"{backend.label} account of user {user.username} was disconnected"
-        create_organization_log(
-            user.organization,
-            user,
-            OrganizationLogType.TYPE_MESSAGING_BACKEND_USER_DISCONNECTED,
-            description,
-        )
-
         return Response(status=status.HTTP_200_OK)
 
     @action(detail=True, methods=["get", "post", "delete"])
@@ -412,6 +384,7 @@ class UserView(
         if self.request.method == "POST":
             try:
                 instance, token = UserScheduleExportAuthToken.create_auth_token(user, user.organization)
+                entity_created_insight_logs(instance=instance, user=user)
             except IntegrityError:
                 raise Conflict("Schedule export token for user already exists")
 
@@ -426,10 +399,10 @@ class UserView(
         if self.request.method == "DELETE":
             try:
                 token = UserScheduleExportAuthToken.objects.get(user=user)
+                entity_created_insight_logs(instance=token, user=user)
                 token.delete()
             except UserScheduleExportAuthToken.DoesNotExist:
                 raise NotFound
-
             return Response(status=status.HTTP_204_NO_CONTENT)
 
     @action(detail=True, methods=["get", "post", "delete"])

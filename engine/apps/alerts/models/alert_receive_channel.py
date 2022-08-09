@@ -27,9 +27,9 @@ from apps.integrations.tasks import create_alert, create_alertmanager_alerts
 from apps.slack.constants import SLACK_RATE_LIMIT_DELAY, SLACK_RATE_LIMIT_TIMEOUT
 from apps.slack.tasks import post_slack_rate_limit_message
 from apps.slack.utils import post_message_to_channel
-from apps.user_management.organization_log_creator import OrganizationLogType, create_organization_log
 from common.api_helpers.utils import create_engine_url
 from common.exceptions import TeamCanNotBeChangedError, UnableToSendDemoAlert
+from common.insight_logs import entity_created_insight_logs
 from common.public_primary_keys import generate_public_primary_key, increase_public_primary_key_length
 
 logger = logging.getLogger(__name__)
@@ -343,66 +343,6 @@ class AlertReceiveChannel(IntegrationOptionsMixin, MaintainableObject):
         post_slack_rate_limit_message.apply_async((self.pk,), countdown=delay, task_id=task_id)
 
     @property
-    def repr_settings_for_client_side_logging(self):
-        """
-        Example of execution:
-            name: Grafana :blush:, team: example, auto resolve allowed: Yes
-            templates:
-            Slack title: *<{{ grafana_oncall_link }}|#{{ grafana_oncall_id }} Custom title>* via {{ integration_name }}
-            {% if source_link %}
-             (*<{{ source_link }}|source>*)
-            {%- endif %},
-            Slack message: default,
-            Slack image url: default,
-            SMS title: default,
-            Phone call title: default,
-            Web title: default,
-            Web message: default,
-            Web image url: default,
-            Email title: default,
-            Email message: default,
-            Telegram title: default,
-            Telegram message: default,
-            Telegram image url: default,
-            Source link: default,
-            Grouping id: default,
-            Resolve condition: default,
-            Acknowledge condition: default
-        """
-        result = f"name: {self.verbal_name}, team: {self.team.name if self.team else 'No team'}"
-        if self.is_able_to_autoresolve:
-            result += f", auto resolve allowed: {'Yes' if self.allow_source_based_resolving else 'No'}"
-        if self.integration == AlertReceiveChannel.INTEGRATION_SLACK_CHANNEL:
-            slack_channel = None
-            if self.integration_slack_channel_id:
-                SlackChannel = apps.get_model("slack", "SlackChannel")
-                slack_channel = SlackChannel.objects.filter(
-                    slack_team_identity=self.organization.slack_team_identity,
-                    slack_id=self.integration_slack_channel_id,
-                ).first()
-            result += f", slack channel: {slack_channel.name if slack_channel else 'not selected'}"
-        result += (
-            f"\ntemplates:\nSlack title: {self.slack_title_template or 'default'},\n"
-            f"Slack message: {self.slack_message_template or 'default'},\n"
-            f"Slack image url: {self.slack_image_url_template or 'default'},\n"
-            f"SMS title: {self.sms_title_template or 'default'},\n"
-            f"Phone call title: {self.phone_call_title_template or 'default'},\n"
-            f"Web title: {self.web_title_template or 'default'},\n"
-            f"Web message: {self.web_message_template or 'default'},\n"
-            f"Web image url: {self.web_image_url_template or 'default'},\n"
-            f"Email title: {self.email_title_template or 'default'},\n"
-            f"Email message: {self.email_message_template or 'default'},\n"
-            f"Telegram title: {self.telegram_title_template or 'default'},\n"
-            f"Telegram message: {self.telegram_message_template or 'default'},\n"
-            f"Telegram image url: {self.telegram_image_url_template or 'default'},\n"
-            f"Source link: {self.source_link_template or 'default'},\n"
-            f"Grouping id: {self.grouping_id_template or 'default'},\n"
-            f"Resolve condition: {self.resolve_condition_template or 'default'},\n"
-            f"Acknowledge condition: {self.acknowledge_condition_template or 'default'}"
-        )
-        return result
-
-    @property
     def alert_groups_count(self):
         return self.alert_groups.count()
 
@@ -658,6 +598,68 @@ class AlertReceiveChannel(IntegrationOptionsMixin, MaintainableObject):
             AlertReceiveChannel.INTEGRATION_GRAFANA_ALERTING,
         )
 
+    # Insight logs
+    @property
+    def insight_logs_type_verbal(self):
+        return "Integration"
+
+    @property
+    def insight_logs_verbal(self):
+        return self.verbal_name
+
+    @property
+    def insight_logs_dict(self):
+        res = {
+            "name": self.verbal_name,
+            "allow_source_based_resolving": self.allow_source_based_resolving,
+            "slack_title": self.slack_title_template or "default",
+            "slack_message": self.slack_message_template or "default",
+            "slack_image_url": self.slack_image_url_template or "default",
+            "sms_title": self.sms_title_template or "default",
+            "phone_call_title": self.phone_call_title_template or "default",
+            "web_title": self.web_title_template or "default",
+            "web_message": self.web_message_template or "default",
+            "web_image_url_template": self.web_image_url_template or "default",
+            "email_title_template": self.email_title_template or "default",
+            "email_message": self.email_message_template or "default",
+            "telegram_title": self.telegram_title_template or "default",
+            "telegram_message": self.telegram_message_template or "default",
+            "telegram_image_url": self.telegram_image_url_template or "default",
+            "source_link": self.source_link_template or "default",
+            "grouping_id": self.grouping_id_template or "default",
+            "resolve_condition": self.resolve_condition_template or "default",
+            "acknowledge_condition": self.acknowledge_condition_template or "default",
+        }
+        if self.team:
+            res["team"] = self.team.insight_logs_verbal
+            res["team_id"] = self.team.public_primary_key
+        return res
+
+    def format_insight_logs(self, diff_dict):
+        fields_to_prune = (
+            "slack_title",
+            "slack_message",
+            "slack_image_url",
+            "sms_title",
+            "phone_call_title",
+            "web_title",
+            "web_message",
+            "web_image_url_template",
+            "email_title_template",
+            "email_message",
+            "telegram_title",
+            "telegram_message",
+            "telegram_image_url",
+            "source_link",
+            "grouping_id",
+            "resolve_condition",
+            "acknowledge_condition",
+        )
+        for k, v in diff_dict.items():
+            if k in fields_to_prune:
+                diff_dict[k] = "Diff not supported"
+        return diff_dict
+
 
 @receiver(post_save, sender=AlertReceiveChannel)
 def listen_for_alertreceivechannel_model_save(sender, instance, created, *args, **kwargs):
@@ -665,29 +667,17 @@ def listen_for_alertreceivechannel_model_save(sender, instance, created, *args, 
     IntegrationHeartBeat = apps.get_model("heartbeat", "IntegrationHeartBeat")
 
     if created:
-        description = f"New integration {instance.verbal_name} was created"
-        create_organization_log(
-            instance.organization,
-            instance.author,
-            type=OrganizationLogType.TYPE_INTEGRATION_CREATED,
-            description=description,
-        )
+        entity_created_insight_logs(instance=instance, user=instance.author)
         default_filter = ChannelFilter(alert_receive_channel=instance, filtering_term=None, is_default=True)
         default_filter.save()
-        filter_verbal = default_filter.verbal_name_for_clients.capitalize()
-        description = f"{filter_verbal} was created for integration {instance.verbal_name}"
-        create_organization_log(
-            instance.organization,
-            None,
-            OrganizationLogType.TYPE_CHANNEL_FILTER_CREATED,
-            description,
-        )
+        entity_created_insight_logs(instance=default_filter, user=instance.author)
+
         TEN_MINUTES = 600  # this is timeout for cloud heartbeats
         if instance.is_available_for_integration_heartbeat:
-            IntegrationHeartBeat.objects.create(alert_receive_channel=instance, timeout_seconds=TEN_MINUTES)
-            description = f"Heartbeat for integration {instance.verbal_name} was created"
-            create_organization_log(
-                instance.organization, None, OrganizationLogType.TYPE_HEARTBEAT_CREATED, description
+            heartbeat = IntegrationHeartBeat.objects.create(alert_receive_channel=instance, timeout_seconds=TEN_MINUTES)
+            entity_created_insight_logs(
+                instance.author,
+                heartbeat,
             )
 
     if instance.integration == AlertReceiveChannel.INTEGRATION_GRAFANA_ALERTING:

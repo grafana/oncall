@@ -13,11 +13,11 @@ from apps.public_api.throttlers.user_throttle import UserThrottle
 from apps.schedules.ical_utils import ical_export_from_schedule
 from apps.schedules.models import OnCallSchedule, OnCallScheduleWeb
 from apps.slack.tasks import update_slack_user_group_for_schedules
-from apps.user_management.organization_log_creator import OrganizationLogType, create_organization_log
 from common.api_helpers.exceptions import BadRequest
 from common.api_helpers.filters import ByTeamFilter
 from common.api_helpers.mixins import RateLimitHeadersMixin, UpdateSerializerMixin
 from common.api_helpers.paginators import FiftyPageSizePaginator
+from common.insight_logs import entity_created_insight_logs, entity_deleted_insight_logs, entity_updated_insight_logs
 
 
 class OnCallScheduleChannelView(RateLimitHeadersMixin, UpdateSerializerMixin, ModelViewSet):
@@ -65,17 +65,12 @@ class OnCallScheduleChannelView(RateLimitHeadersMixin, UpdateSerializerMixin, Mo
         if instance.user_group is not None:
             update_slack_user_group_for_schedules.apply_async((instance.user_group.pk,))
 
-        organization = self.request.auth.organization
-        user = self.request.user
-        description = f"Schedule {instance.name} was created"
-        create_organization_log(organization, user, OrganizationLogType.TYPE_SCHEDULE_CREATED, description)
+        entity_created_insight_logs(instance, self.request.user)
 
     def perform_update(self, serializer):
         if isinstance(serializer.instance, OnCallScheduleWeb):
             raise BadRequest(detail="Web schedule update is not enabled through API")
 
-        organization = self.request.auth.organization
-        user = self.request.user
         old_state = serializer.instance.repr_settings_for_client_side_logging
         old_user_group = serializer.instance.user_group
 
@@ -88,14 +83,10 @@ class OnCallScheduleChannelView(RateLimitHeadersMixin, UpdateSerializerMixin, Mo
             update_slack_user_group_for_schedules.apply_async((updated_schedule.user_group.pk,))
 
         new_state = serializer.instance.repr_settings_for_client_side_logging
-        description = f"Schedule {serializer.instance.name} was changed from:\n{old_state}\nto:\n{new_state}"
-        create_organization_log(organization, user, OrganizationLogType.TYPE_SCHEDULE_CHANGED, description)
+        entity_updated_insight_logs(updated_schedule, self.request.user, old_state, new_state)
 
     def perform_destroy(self, instance):
-        organization = self.request.auth.organization
-        user = self.request.user
-        description = f"Schedule {instance.name} was deleted"
-        create_organization_log(organization, user, OrganizationLogType.TYPE_SCHEDULE_DELETED, description)
+        entity_deleted_insight_logs(instance, self.request.user)
 
         instance.delete()
 

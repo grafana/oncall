@@ -5,7 +5,6 @@ from django.db import models
 from apps.auth_token import constants, crypto
 from apps.auth_token.models.base_auth_token import BaseAuthToken
 from apps.user_management.models import Organization, User
-from apps.user_management.organization_log_creator import OrganizationLogType, create_organization_log
 
 
 class ApiAuthToken(BaseAuthToken):
@@ -27,6 +26,21 @@ class ApiAuthToken(BaseAuthToken):
             organization=organization,
             name=name,
         )
-        description = f"API token {instance.name} was created"
-        create_organization_log(organization, user, OrganizationLogType.TYPE_API_TOKEN_CREATED, description)
         return instance, token_string
+
+    # Insight logs
+    @property
+    def insight_logs_type_verbal(self):
+        return "Public API token"
+
+    @property
+    def insight_logs_verbal(self):
+        return self.name
+
+    @property
+    def insight_logs_dict(self):
+        # API tokens are not modifiable now, so return empty dict to implement InsightLoggable interface
+        return {}
+
+    def format_insight_logs(self, diff_dict):
+        return diff_dict

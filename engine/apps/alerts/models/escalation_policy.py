@@ -359,3 +359,53 @@ class EscalationPolicy(OrderedModel):
                 step_name = step_choice[1]
                 break
         return step_name
+
+    # Insight logs
+    @property
+    def insight_logs_type_verbal(self):
+        return "Escalation Policy"
+
+    @property
+    def insight_logs_verbal(self):
+        return f"{self.insight_logs_verbal} {self.order} in {self.escalation_chain.insight_logs_verbal}"
+
+    @property
+    def insight_logs_dict(self):
+        res = {
+            "type": self.step_type_verbal,
+            "order": self.order,
+        }
+
+        if self.step == EscalationPolicy.STEP_WAIT:
+            if self.wait_delay:
+                res["wait_delay"] = self.get_wait_delay_display()
+        elif self.step in [EscalationPolicy.STEP_NOTIFY_GROUP, EscalationPolicy.STEP_NOTIFY_GROUP_IMPORTANT]:
+            if self.notify_to_group:
+                res["user_group"] = self.notify_to_group.name
+                res["user_group_id"] = self.notify_to_group.public_primary_key
+        elif self.step in [EscalationPolicy.STEP_NOTIFY_SCHEDULE, EscalationPolicy.STEP_NOTIFY_SCHEDULE_IMPORTANT]:
+            if self.notify_schedule:
+                res["on-call_schedule"] = self.notify_schedule.insight_logs_verbal
+                res["on-call_schedule_id"] = self.notify_schedule.public_primary_key
+        elif self.step == EscalationPolicy.STEP_TRIGGER_CUSTOM_BUTTON:
+            if self.custom_button_trigger:
+                res["outgoing_webhook"] = self.custom_button_trigger.insight_logs_verbal
+                res["outgoing_webhook_id"] = self.custom_button_trigger.public_primary_key
+        elif self.step in [
+            EscalationPolicy.STEP_NOTIFY_USERS_QUEUE,
+            EscalationPolicy.STEP_NOTIFY_MULTIPLE_USERS,
+            EscalationPolicy.STEP_NOTIFY_MULTIPLE_USERS_IMPORTANT,
+        ]:
+            if self.notify_to_users_queue:
+                res["notify_users"] = ", ".join([user.insight_logs_verbal for user in self.sorted_users_queue])
+                res["notify_users_ids"] = ", ".join([user.public_primary_key for user in self.sorted_users_queue])
+        elif self.step == EscalationPolicy.STEP_NOTIFY_IF_TIME:
+            if self.from_time:
+                res["from_time"] = self.from_time.isoformat() + " (UTC)"
+            if self.to_time:
+                res["to_time"] = self.to_time.isoformat() + " (UTC)"
+
+        return res
+
+    def format_insight_logs(self, diff_dict):
+        return diff_dict

@@ -28,7 +28,6 @@ from apps.schedules.ical_utils import list_of_oncall_shifts_from_ical
 from apps.schedules.models import OnCallSchedule
 from apps.slack.models import SlackChannel
 from apps.slack.tasks import update_slack_user_group_for_schedules
-from apps.user_management.organization_log_creator import OrganizationLogType, create_organization_log
 from common.api_helpers.exceptions import BadRequest, Conflict
 from common.api_helpers.mixins import (
     CreateSerializerMixin,
@@ -37,6 +36,7 @@ from common.api_helpers.mixins import (
     UpdateSerializerMixin,
 )
 from common.api_helpers.utils import create_engine_url
+from common.insight_logs import entity_created_insight_logs, entity_deleted_insight_logs, entity_updated_insight_logs
 
 EVENTS_FILTER_BY_ROTATION = "rotation"
 EVENTS_FILTER_BY_OVERRIDE = "override"
@@ -139,38 +139,23 @@ class ScheduleView(
         return super().get_object()
 
     def perform_create(self, serializer):
-        schedule = serializer.save()
-        if schedule.user_group is not None:
-            update_slack_user_group_for_schedules.apply_async((schedule.user_group.pk,))
-        organization = self.request.auth.organization
-        user = self.request.user
-        description = f"Schedule {schedule.name} was created"
-        create_organization_log(organization, user, OrganizationLogType.TYPE_SCHEDULE_CREATED, description)
+        serializer.save()
+        entity_created_insight_logs(instance=serializer.instance, user=self.request.user)
 
     def perform_update(self, serializer):
-        organization = self.request.auth.organization
-        user = self.request.user
         old_schedule = serializer.instance
-        old_state = old_schedule.repr_settings_for_client_side_logging
+        old_state = old_schedule.insight_logs_dict
         old_user_group = serializer.instance.user_group
-
         updated_schedule = serializer.save()
-
         if old_user_group is not None:
             update_slack_user_group_for_schedules.apply_async((old_user_group.pk,))
-
         if updated_schedule.user_group is not None and updated_schedule.user_group != old_user_group:
             update_slack_user_group_for_schedules.apply_async((updated_schedule.user_group.pk,))
-
-        new_state = updated_schedule.repr_settings_for_client_side_logging
-        description = f"Schedule {updated_schedule.name} was changed from:\n{old_state}\nto:\n{new_state}"
-        create_organization_log(organization, user, OrganizationLogType.TYPE_SCHEDULE_CHANGED, description)
+        new_state = updated_schedule.insight_logs_dict
+        entity_updated_insight_logs(updated_schedule, self.request.user, old_state, new_state)
 
     def perform_destroy(self, instance):
-        organization = self.request.auth.organization
-        user = self.request.user
-        description = f"Schedule {instance.name} was deleted"
-        create_organization_log(organization, user, OrganizationLogType.TYPE_SCHEDULE_DELETED, description)
+        entity_deleted_insight_logs(instance=instance, user=self.request.user)
         instance.delete()
 
         if instance.user_group is not None:
@@ -459,6 +444,7 @@ class ScheduleView(
                 instance, token = ScheduleExportAuthToken.create_auth_token(
                     request.user, request.user.organization, schedule
                 )
+                entity_created_insight_logs(instance=instance, user=request.user)
             except IntegrityError:
                 raise Conflict("Schedule export token for user already exists")
 
@@ -474,6 +460,7 @@ class ScheduleView(
         if self.request.method == "DELETE":
             try:
                 token = ScheduleExportAuthToken.objects.get(user_id=self.request.user.id, schedule_id=schedule.id)
+                entity_created_insight_logs(instance=token, user=request.user)
                 token.delete()
             except ScheduleExportAuthToken.DoesNotExist:
                 raise NotFound

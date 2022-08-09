@@ -12,6 +12,7 @@ from apps.user_management.organization_log_creator import OrganizationLogType, c
 from common.api_helpers.filters import ByTeamFilter
 from common.api_helpers.mixins import FilterSerializerMixin, RateLimitHeadersMixin, UpdateSerializerMixin
 from common.api_helpers.paginators import FiftyPageSizePaginator
+from common.insight_logs import entity_deleted_insight_logs
 
 from .maintaiable_object_mixin import MaintainableObjectMixin
 
@@ -70,8 +71,5 @@ class IntegrationView(
         )
 
     def perform_destroy(self, instance):
-        organization = instance.organization
-        user = self.request.user
-        description = f"Integration {instance.verbal_name} was deleted"
-        create_organization_log(organization, user, OrganizationLogType.TYPE_INTEGRATION_DELETED, description)
+        entity_deleted_insight_logs(self.request.user, instance)
         instance.delete()

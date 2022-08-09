@@ -239,40 +239,6 @@ class CustomOnCallShift(models.Model):
 
         return is_finished
 
-    @property
-    def repr_settings_for_client_side_logging(self) -> str:
-        """
-        Example of execution:
-            name: Demo recurrent event, team: example, source: terraform, type: Recurrent event, users: Alex,
-            start: 2020-09-10T16:00:00+00:00, duration: 3:00:00, priority level: 0, frequency: Weekly, interval: 2,
-            week start: 6, by day: ['MO', 'WE', 'FR'], by month: None, by monthday: None
-        """
-        if self.type == CustomOnCallShift.TYPE_ROLLING_USERS_EVENT:
-            users_verbal = "empty"
-            if self.rolling_users is not None:
-                users_verbal = ""
-                for users_dict in self.rolling_users:
-                    users = self.organization.users.filter(public_primary_key__in=users_dict.values())
-                    users_verbal += f"[{', '.join([user.username for user in users])}]"
-            users_verbal = f"rolling users: {users_verbal}"
-        else:
-            users = self.users.all()
-            users_verbal = f"{', '.join([user.username for user in users]) if users else 'empty'}"
-        result = (
-            f"name: {self.name}, team: {self.team.name if self.team else 'No team'},"
-            f"{f' time_zone: {self.time_zone},' if self.time_zone else ''} "
-            f"source: {self.get_source_display()}, type: {self.get_type_display()}, users: {users_verbal}, "
-            f"start: {self.start.isoformat()}, duration: {self.duration}, priority level: {self.priority_level}"
-        )
-        if self.type not in (CustomOnCallShift.TYPE_SINGLE_EVENT, CustomOnCallShift.TYPE_OVERRIDE):
-            result += (
-                f", frequency: {self.get_frequency_display()}, interval: {self.interval}, "
-                f"week start: {self.week_start}, by day: {self.by_day}, by month: {self.by_month}, "
-                f"by monthday: {self.by_monthday}, rotation start: {self.rotation_start.isoformat()}, "
-                f"until: {self.until.isoformat() if self.until else None}"
-            )
-        return result
-
     def convert_to_ical(self, time_zone="UTC"):
         result = ""
         # use shift time_zone if it exists, otherwise use schedule or default time_zone
@@ -479,3 +445,53 @@ class CustomOnCallShift(models.Model):
         name = f"{schedule.name}-{shift_type_name}-{priority_level}-"
         name += "".join(random.choice(string.ascii_lowercase) for _ in range(5))
         return name
+
+    # Insight logs
+    @property
+    def insight_logs_type_verbal(self):
+        return "OnCall shift"
+
+    @property
+    def insight_logs_verbal(self):
+        return self.name
+
+    @property
+    def insight_logs_dict(self):
+        users_verbal = []
+        if self.type == CustomOnCallShift.TYPE_ROLLING_USERS_EVENT:
+            if self.rolling_users is not None:
+                users_verbal = ""
+                for users_dict in self.rolling_users:
+                    users = self.organization.users.filter(public_primary_key__in=users_dict.values())
+                    users_verbal += [user.username for user in users]
+        else:
+            users = self.users.all()
+            users_verbal = [user.username for user in users]
+        res = {
+            "name": self.name,
+            "source": self.get_source_display(),
+            "type": self.get_type_display(),
+            "users": users_verbal,
+            "start": self.start.isoformat(),
+            "duration": self.duration,
+            "priority_level": self.priority_level,
+        }
+        if self.type not in (CustomOnCallShift.TYPE_SINGLE_EVENT, CustomOnCallShift.TYPE_OVERRIDE):
+            res["frequency"] = self.get_frequency_display()
+            res["interval"] = self.interval
+            res["week_start"] = self.week_start
+            res["by_day"] = self.by_day
+            res["by_month"] = self.by_month
+            res["by_monthday"] = self.by_monthday
+            res["rotation_start"] = self.rotation_start.isoformat()
+            if self.until:
+                res["until"] = self.until.isoformat()
+        if self.team:
+            res["team"] = self.team.insight_logs_verbal
+            res["team_id"] = self.team.public_primary_key
+        if self.time_zone:
+            res["time_zone"] = self.time_zone
+        return res
+
+    def format_insight_logs(self, diff_dict):
+        return diff_dict

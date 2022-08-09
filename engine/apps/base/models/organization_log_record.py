@@ -1,3 +1,5 @@
+import logging
+
 from django.apps import apps
 from django.conf import settings
 from django.core.validators import MinLengthValidator
@@ -8,6 +10,8 @@ from emoji import emojize
 from apps.alerts.models.maintainable_object import MaintainableObject
 from apps.user_management.organization_log_creator import OrganizationLogType
 from common.public_primary_keys import generate_public_primary_key, increase_public_primary_key_length
+
+insight_logger = logging.getLogger("insight_logger")
 
 
 def generate_public_primary_key_for_organization_log():
@@ -170,9 +174,6 @@ class OrganizationLogRecord(models.Model):
         OrganizationLogType.TYPE_TELEGRAM_DEFAULT_CHANNEL_CHANGED: [LABEL_TELEGRAM, LABEL_DEFAULT_CHANNEL],
         OrganizationLogType.TYPE_TELEGRAM_CHANNEL_CONNECTED: [LABEL_TELEGRAM, LABEL_TELEGRAM_CHANNEL_CONNECTED],
         OrganizationLogType.TYPE_TELEGRAM_CHANNEL_DISCONNECTED: [LABEL_TELEGRAM, LABEL_TELEGRAM_CHANNEL_DISCONNECTED],
-        OrganizationLogType.TYPE_INTEGRATION_CREATED: [LABEL_INTEGRATION, LABEL_INTEGRATION_CREATED],
-        OrganizationLogType.TYPE_INTEGRATION_DELETED: [LABEL_INTEGRATION, LABEL_INTEGRATION_DELETED],
-        OrganizationLogType.TYPE_INTEGRATION_CHANGED: [LABEL_INTEGRATION, LABEL_INTEGRATION_CHANGED],
         OrganizationLogType.TYPE_HEARTBEAT_CREATED: [LABEL_INTEGRATION_HEARTBEAT, LABEL_INTEGRATION_HEARTBEAT_CREATED],
         OrganizationLogType.TYPE_HEARTBEAT_CHANGED: [LABEL_INTEGRATION_HEARTBEAT, LABEL_INTEGRATION_HEARTBEAT_CHANGED],
         OrganizationLogType.TYPE_CHANNEL_FILTER_CREATED: [LABEL_CHANNEL_FILTER, LABEL_CHANNEL_FILTER_CREATED],

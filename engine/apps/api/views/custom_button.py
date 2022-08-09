@@ -11,9 +11,9 @@ from apps.alerts.tasks.custom_button_result import custom_button_result
 from apps.api.permissions import MODIFY_ACTIONS, READ_ACTIONS, ActionPermission, AnyRole, IsAdmin, IsAdminOrEditor
 from apps.api.serializers.custom_button import CustomButtonSerializer
 from apps.auth_token.auth import PluginAuthentication
-from apps.user_management.organization_log_creator import OrganizationLogType, create_organization_log
 from common.api_helpers.exceptions import BadRequest
 from common.api_helpers.mixins import PublicPrimaryKeyMixin
+from common.insight_logs import entity_created_insight_logs, entity_deleted_insight_logs, entity_updated_insight_logs
 
 
 class CustomButtonView(PublicPrimaryKeyMixin, ModelViewSet):
@@ -55,26 +55,16 @@ class CustomButtonView(PublicPrimaryKeyMixin, ModelViewSet):
 
     def perform_create(self, serializer):
         serializer.save()
-        instance = serializer.instance
-        organization = self.request.auth.organization
-        user = self.request.user
-        description = f"Custom action {instance.name} was created"
-        create_organization_log(organization, user, OrganizationLogType.TYPE_CUSTOM_ACTION_CREATED, description)
+        entity_created_insight_logs(serializer.instance, self.request.user)
 
     def perform_update(self, serializer):
-        organization = self.request.auth.organization
-        user = self.request.user
-        old_state = serializer.instance.repr_settings_for_client_side_logging
+        old_state = serializer.instance.insight_logs_dict
         serializer.save()
-        new_state = serializer.instance.repr_settings_for_client_side_logging
-        description = f"Custom action {serializer.instance.name} was changed " f"from:\n{old_state}\nto:\n{new_state}"
-        create_organization_log(organization, user, OrganizationLogType.TYPE_CUSTOM_ACTION_CHANGED, description)
+        new_state = serializer.instance.insight_logs_dict
+        entity_updated_insight_logs(serializer.instance, self.request.user, old_state, new_state)
 
     def perform_destroy(self, instance):
-        organization = self.request.auth.organization
-        user = self.request.user
-        description = f"Custom action {instance.name} was deleted"
-        create_organization_log(organization, user, OrganizationLogType.TYPE_CUSTOM_ACTION_DELETED, description)
+        entity_deleted_insight_logs(instance, self.request.user)
         instance.delete()
 
     @action(detail=True, methods=["post"])
