@@ -28,6 +28,7 @@ engine:
     # requests:
     #   cpu: 100m
     #   memory: 128Mi
+
   ## @param affinity Affinity for pod assignment
   ## Ref: https://kubernetes.io/docs/concepts/configuration/assign-pod-node/#affinity-and-anti-affinity
   ##
