@@ -1,7 +1,10 @@
 .modal {
-  width: 720px;
+  width: 860px; /* wide enough so that all tabs fit in */
 }
 
 .modal.modal-wide {
-  width: 1100px;
+  --spacing: 10px;
+
+  width: calc(100% - var(--spacing) * 2); /* allow lateral spacing */
+  max-width: 1100px;
 }
