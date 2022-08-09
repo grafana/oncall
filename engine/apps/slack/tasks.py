@@ -98,9 +98,10 @@ def check_slack_message_exists_before_post_message_to_thread(
     slack_message = alert_group.get_slack_message()
 
     if slack_message is not None:
-        EscalationDeliveryStep(slack_team_identity, alert_group.channel.organization).notify_thread_about_action(
-            alert_group, text
+        EscalationDeliveryStep(slack_team_identity, alert_group.channel.organization).publish_message_to_thread(
+            alert_group, text=text
         )
+
     # check how much time has passed since alert group was created
     # to prevent eternal loop of restarting check_slack_message_before_post_message_to_thread
     elif timezone.now() < alert_group.started_at + timezone.timedelta(hours=retry_timeout_hours):
@@ -239,12 +240,7 @@ def send_message_to_thread_if_bot_not_in_channel(alert_group_pk, slack_team_iden
     members = slack_team_identity.get_conversation_members(sc, channel_id)
     if bot_user_id not in members:
         text = f"Please invite <@{bot_user_id}> to this channel to make all features " f"available :wink:"
-        attachments = [
-            {
-                "text": text,
-            }
-        ]
-        ScenarioStep(slack_team_identity)._publish_message_to_thread(alert_group, attachments)
+        ScenarioStep(slack_team_identity).publish_message_to_thread(alert_group, text=text)
 
 
 @shared_dedicated_queue_retry_task(autoretry_for=(Exception,), retry_backoff=True, max_retries=1)

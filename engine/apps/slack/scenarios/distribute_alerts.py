@@ -481,10 +481,8 @@ class AttachGroupStep(
         alert_group = log_record.alert_group
 
         if log_record.type == AlertGroupLogRecord.TYPE_ATTACHED and log_record.alert_group.is_maintenance_incident:
-            attachments = [
-                {"callback_id": "alert", "text": "{}".format(log_record.rendered_log_line_action(for_slack=True))},
-            ]
-            self._publish_message_to_thread(alert_group, attachments)
+            text = f"{log_record.rendered_log_line_action(for_slack=True)}"
+            self.publish_message_to_thread(alert_group, text=text)
 
         if log_record.type == AlertGroupLogRecord.TYPE_FAILED_ATTACHMENT:
             ephemeral_text = log_record.rendered_log_line_action(for_slack=True)
@@ -630,9 +628,9 @@ class CustomButtonProcessStep(
                 f"according to escalation policy with the result `{result_message}`"
             )
         attachments = [
-            {"callback_id": "alert", "text": debug_message, "footer": text},
+            {"callback_id": "alert", "text": debug_message},
         ]
-        self._publish_message_to_thread(alert_group, attachments)
+        self.publish_message_to_thread(alert_group, attachments=attachments, text=text)
 
 
 class ResolveGroupStep(
@@ -764,23 +762,27 @@ class UnAcknowledgeGroupStep(
             message_attachments = [
                 {
                     "callback_id": "alert",
-                    "text": f"{user_verbal} hasn't responded to an acknowledge timeout reminder."
-                    f" Incident is unacknowledged automatically",
+                    "text": "",
                     "footer": "Escalation started again...",
                 },
             ]
+            text = (
+                f"{user_verbal} hasn't responded to an acknowledge timeout reminder."
+                f" Incident is unacknowledged automatically"
+            )
             if alert_group.slack_message.ack_reminder_message_ts:
                 try:
                     self._slack_client.api_call(
                         "chat.update",
                         channel=channel_id,
                         ts=alert_group.slack_message.ack_reminder_message_ts,
+                        text=text,
                         attachments=message_attachments,
                     )
                 except SlackAPIException as e:
                     # post to thread if ack reminder message was deleted in Slack
                     if e.response["error"] == "message_not_found":
-                        self._publish_message_to_thread(alert_group, message_attachments)
+                        self.publish_message_to_thread(alert_group, attachments=message_attachments, text=text)
                     elif e.response["error"] == "account_inactive":
                         logger.info(
                             f"Skip unacknowledge slack message for alert_group {alert_group.pk} due to account_inactive"
@@ -788,7 +790,7 @@ class UnAcknowledgeGroupStep(
                     else:
                         raise
             else:
-                self._publish_message_to_thread(alert_group, message_attachments)
+                self.publish_message_to_thread(alert_group, attachments=message_attachments, text=text)
         self._update_slack_message(alert_group)
         logger.debug(f"Finished process_signal in UnAcknowledgeGroupStep for alert_group {alert_group.pk}")
 
@@ -807,18 +809,12 @@ class AcknowledgeConfirmationStep(AcknowledgeGroupStep):
             if alert_group.acknowledged_by == AlertGroup.USER:
                 if self.user == alert_group.acknowledged_by_user:
                     user_verbal = alert_group.acknowledged_by_user.get_user_verbal_for_team_for_slack()
-                    attachments = [
-                        {
-                            "color": "#c6c000",
-                            "callback_id": "alert",
-                            "text": f"{user_verbal} is confirmed to be working on this incident",
-                        },
-                    ]
+                    text = f"{user_verbal} confirmed that the incident is still acknowledged"
                     self._slack_client.api_call(
                         "chat.update",
                         channel=channel,
                         ts=message_ts,
-                        attachments=attachments,
+                        text=text,
                     )
                     alert_group.acknowledged_by_confirmed = datetime.utcnow()
                     alert_group.save(update_fields=["acknowledged_by_confirmed"])
@@ -831,18 +827,12 @@ class AcknowledgeConfirmationStep(AcknowledgeGroupStep):
                     )
             elif alert_group.acknowledged_by == AlertGroup.SOURCE:
                 user_verbal = self.user.get_user_verbal_for_team_for_slack()
-                attachments = [
-                    {
-                        "color": "#c6c000",
-                        "callback_id": "alert",
-                        "text": f"{user_verbal} is confirmed to be working on this incident",
-                    },
-                ]
+                text = f"{user_verbal} confirmed that the incident is still acknowledged"
                 self._slack_client.api_call(
                     "chat.update",
                     channel=channel,
                     ts=message_ts,
-                    attachments=attachments,
+                    text=text,
                 )
                 alert_group.acknowledged_by_confirmed = datetime.utcnow()
                 alert_group.save(update_fields=["acknowledged_by_confirmed"])
@@ -935,14 +925,8 @@ class AcknowledgeConfirmationStep(AcknowledgeGroupStep):
                 alert_group.slack_message.ack_reminder_message_ts = response["ts"]
                 alert_group.slack_message.save(update_fields=["ack_reminder_message_ts"])
         else:
-            attachments = [
-                {
-                    "callback_id": "alert",
-                    "text": f"This is a reminder that the incident is still acknowledged by {user_verbal}"
-                    f" and not resolved.",
-                },
-            ]
-            self._publish_message_to_thread(alert_group, attachments)
+            text = f"This is a reminder that the incident is still acknowledged by {user_verbal}"
+            self.publish_message_to_thread(alert_group, text=text)
 
 
 class WipeGroupStep(scenario_step.ScenarioStep):
@@ -956,15 +940,8 @@ class WipeGroupStep(scenario_step.ScenarioStep):
     def process_signal(self, log_record):
         alert_group = log_record.alert_group
         user_verbal = log_record.author.get_user_verbal_for_team_for_slack()
-        attachments = [
-            {
-                "color": "warning",
-                "callback_id": "alert",
-                "footer": "Incident wiped",
-                "text": "Wiped by {}.".format(user_verbal),
-            },
-        ]
-        self._publish_message_to_thread(alert_group, attachments)
+        text = f"Wiped by {user_verbal}"
+        self.publish_message_to_thread(alert_group, text=text)
         self._update_slack_message(alert_group)
 
 
@@ -1145,6 +1122,7 @@ class UpdateLogReportMessageStep(scenario_step.ScenarioStep):
                 self._slack_client.api_call(
                     "chat.update",
                     channel=slack_message.channel_id,
+                    text="Alert Group log",
                     ts=slack_log_message.slack_id,
                     attachments=attachments,
                 )
