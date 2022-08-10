@@ -89,7 +89,7 @@ const GSelect = observer((props: GSelectProps) => {
       const searchResult = model.getSearchResult(query);
       const items = Array.isArray(searchResult.results) ? searchResult.results : searchResult;
 
-      const options = items.reduce((options: any[], item: any) => {
+      return items.reduce((options: any[], item: any) => {
         const isItemExcludedFromList = excludedOptionsIdList?.includes(item[valueField]);
         if (!isItemExcludedFromList) {
           options.push({
@@ -99,11 +99,8 @@ const GSelect = observer((props: GSelectProps) => {
             description: getDescription && getDescription(item),
           });
         }
-
         return options;
       }, []);
-
-      return options;
     });
   };
 
