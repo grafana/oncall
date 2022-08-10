@@ -32,6 +32,7 @@ interface GSelectProps {
   showWarningIfEmptyValue?: boolean;
   showError?: boolean;
   nullItemName?: string;
+  hiddenIdList?: string[]
   dropdownRender?: (menu: ReactElement) => ReactElement;
   getOptionLabel?: <T>(item: SelectableValue<T>) => React.ReactNode;
   getDescription?: (item: any) => React.ReactNode;
@@ -54,17 +55,14 @@ const GSelect = observer((props: GSelectProps) => {
     displayField = 'display_name',
     valueField = 'id',
     isMulti = false,
-    nullItemName,
-    dropdownRender,
     getOptionLabel,
     showWarningIfEmptyValue = false,
     getDescription,
+    hiddenIdList
   } = props;
 
   const store = useStore();
   const model = (store as any)[modelName];
-
-  const [query, setQuery] = useState<any>('');
 
   const onChangeCallback = useCallback(
     (option) => {
@@ -91,12 +89,20 @@ const GSelect = observer((props: GSelectProps) => {
       const searchResult = model.getSearchResult(query);
       const items = Array.isArray(searchResult.results) ? searchResult.results : searchResult;
 
-      const options = items.map((item: any) => ({
-        value: item[valueField],
-        label: get(item, displayField),
-        imgUrl: item.avatar_url,
-        description: getDescription && getDescription(item),
-      }));
+      const options = items.reduce((options: any[], item: any) => {
+        const isItemExcludedFromList = props.hiddenIdList?.includes(item[valueField])        
+        if (!isItemExcludedFromList) {
+          options.push({
+            value: item[valueField],
+            label: get(item, displayField),
+            imgUrl: item.avatar_url,
+            description: getDescription && getDescription(item),
+          })
+        }
+
+        return options
+      }, [])
+
       return options;
     });
   };
