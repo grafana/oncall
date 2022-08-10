@@ -9,11 +9,11 @@ import { Tabs, TabsContent } from 'containers/UserSettings/parts';
 import { User as UserType } from 'models/user/user.types';
 import { AppFeature } from 'state/features';
 import { useStore } from 'state/useStore';
+import { BREAKPOINT_TABS } from 'utils/consts';
 
 import { UserSettingsTab } from './UserSettings.types';
 
 import styles from './UserSettings.module.css';
-import { BREAKPOINT_TABS } from 'utils/consts';
 
 const cx = cn.bind(styles);
 
