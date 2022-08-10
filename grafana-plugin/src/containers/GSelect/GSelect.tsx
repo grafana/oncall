@@ -32,7 +32,7 @@ interface GSelectProps {
   showWarningIfEmptyValue?: boolean;
   showError?: boolean;
   nullItemName?: string;
-  hiddenIdList?: string[]
+  excludedOptionsIdList?: string[];
   dropdownRender?: (menu: ReactElement) => ReactElement;
   getOptionLabel?: <T>(item: SelectableValue<T>) => React.ReactNode;
   getDescription?: (item: any) => React.ReactNode;
@@ -58,7 +58,7 @@ const GSelect = observer((props: GSelectProps) => {
     getOptionLabel,
     showWarningIfEmptyValue = false,
     getDescription,
-    hiddenIdList
+    excludedOptionsIdList,
   } = props;
 
   const store = useStore();
@@ -90,18 +90,18 @@ const GSelect = observer((props: GSelectProps) => {
       const items = Array.isArray(searchResult.results) ? searchResult.results : searchResult;
 
       const options = items.reduce((options: any[], item: any) => {
-        const isItemExcludedFromList = props.hiddenIdList?.includes(item[valueField])        
+        const isItemExcludedFromList = excludedOptionsIdList?.includes(item[valueField]);
         if (!isItemExcludedFromList) {
           options.push({
             value: item[valueField],
             label: get(item, displayField),
             imgUrl: item.avatar_url,
             description: getDescription && getDescription(item),
-          })
+          });
         }
 
-        return options
-      }, [])
+        return options;
+      }, []);
 
       return options;
     });
