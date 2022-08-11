@@ -6,7 +6,13 @@ from django.utils import timezone
 from rest_framework import status
 from rest_framework.test import APIClient
 
-from apps.schedules.models import CustomOnCallShift, OnCallSchedule, OnCallScheduleCalendar, OnCallScheduleICal
+from apps.schedules.models import (
+    CustomOnCallShift,
+    OnCallSchedule,
+    OnCallScheduleCalendar,
+    OnCallScheduleICal,
+    OnCallScheduleWeb,
+)
 
 ICAL_URL = "https://calendar.google.com/calendar/ical/amixr.io_37gttuakhrtr75ano72p69rt78%40group.calendar.google.com/private-1d00a680ba5be7426c3eb3ef1616e26d/basic.ics"
 
@@ -139,6 +145,96 @@ def test_update_calendar_schedule(
 
 
 @pytest.mark.django_db
+def test_get_web_schedule(
+    make_organization_and_user_with_token,
+    make_schedule,
+):
+    organization, user, token = make_organization_and_user_with_token()
+    client = APIClient()
+
+    slack_channel_id = "SLACKCHANNELID"
+
+    schedule = make_schedule(
+        organization,
+        schedule_class=OnCallScheduleWeb,
+        channel=slack_channel_id,
+    )
+
+    url = reverse("api-public:schedules-detail", kwargs={"pk": schedule.public_primary_key})
+
+    response = client.get(url, format="json", HTTP_AUTHORIZATION=f"{token}")
+
+    result = {
+        "id": schedule.public_primary_key,
+        "team_id": None,
+        "name": schedule.name,
+        "type": "web",
+        "time_zone": "UTC",
+        "on_call_now": [],
+        "shifts": [],
+        "slack": {
+            "channel_id": "SLACKCHANNELID",
+            "user_group_id": None,
+        },
+    }
+
+    assert response.status_code == status.HTTP_200_OK
+    assert response.json() == result
+
+
+@pytest.mark.django_db
+def test_create_web_schedule(make_organization_and_user_with_token):
+
+    organization, user, token = make_organization_and_user_with_token()
+    client = APIClient()
+
+    url = reverse("api-public:schedules-list")
+
+    data = {
+        "team_id": None,
+        "name": "schedule test name",
+        "time_zone": "Europe/Moscow",
+        "type": "web",
+    }
+
+    response = client.post(url, data=data, format="json", HTTP_AUTHORIZATION=f"{token}")
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert response.json() == {"detail": "Web schedule creation is not enabled through API"}
+
+
+@pytest.mark.django_db
+def test_update_web_schedule(
+    make_organization_and_user_with_token,
+    make_schedule,
+):
+
+    organization, user, token = make_organization_and_user_with_token()
+    client = APIClient()
+
+    slack_channel_id = "SLACKCHANNELID"
+
+    schedule = make_schedule(
+        organization,
+        schedule_class=OnCallScheduleWeb,
+        channel=slack_channel_id,
+    )
+
+    url = reverse("api-public:schedules-detail", kwargs={"pk": schedule.public_primary_key})
+
+    data = {
+        "name": "RENAMED",
+        "time_zone": "Europe/Moscow",
+    }
+
+    assert schedule.name != data["name"]
+    assert schedule.time_zone != data["time_zone"]
+
+    response = client.put(url, data=data, format="json", HTTP_AUTHORIZATION=f"{token}")
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert response.json() == {"detail": "Web schedule update is not enabled through API"}
+
+
+@pytest.mark.django_db
 def test_update_ical_url_overrides_calendar_schedule(
     make_organization_and_user_with_token,
     make_schedule,
@@ -198,8 +294,10 @@ def test_update_calendar_schedule_with_custom_event(
         schedule_class=OnCallScheduleCalendar,
         channel=slack_channel_id,
     )
+    start_date = timezone.datetime.now().replace(microsecond=0)
     data = {
-        "start": timezone.now().replace(tzinfo=None, microsecond=0),
+        "start": start_date,
+        "rotation_start": start_date,
         "duration": timezone.timedelta(seconds=10800),
     }
     on_call_shift = make_on_call_shift(
@@ -235,6 +333,72 @@ def test_update_calendar_schedule_with_custom_event(
     schedule.refresh_from_db()
     assert len(schedule.custom_on_call_shifts.all()) == 1
     assert response.json() == result
+
+
+@pytest.mark.django_db
+def test_update_calendar_schedule_invalid_override(
+    make_organization_and_user_with_token,
+    make_schedule,
+    make_on_call_shift,
+):
+
+    organization, user, token = make_organization_and_user_with_token()
+    client = APIClient()
+
+    schedule = make_schedule(
+        organization,
+        schedule_class=OnCallScheduleCalendar,
+    )
+    start_date = timezone.datetime.now().replace(microsecond=0)
+    data = {
+        "start": start_date,
+        "rotation_start": start_date,
+        "duration": timezone.timedelta(seconds=10800),
+    }
+    on_call_shift = make_on_call_shift(organization=organization, shift_type=CustomOnCallShift.TYPE_OVERRIDE, **data)
+
+    url = reverse("api-public:schedules-detail", kwargs={"pk": schedule.public_primary_key})
+
+    data = {
+        "shifts": [on_call_shift.public_primary_key],
+    }
+
+    response = client.put(url, data=data, format="json", HTTP_AUTHORIZATION=f"{token}")
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert response.json() == {"detail": "Shifts of type override are not supported in this schedule"}
+
+
+@pytest.mark.django_db
+def test_update_web_schedule_with_override(
+    make_organization_and_user_with_token,
+    make_schedule,
+    make_on_call_shift,
+):
+
+    organization, user, token = make_organization_and_user_with_token()
+    client = APIClient()
+
+    schedule = make_schedule(
+        organization,
+        schedule_class=OnCallScheduleWeb,
+    )
+    start_date = timezone.datetime.now().replace(microsecond=0)
+    data = {
+        "start": start_date,
+        "rotation_start": start_date,
+        "duration": timezone.timedelta(seconds=10800),
+    }
+    on_call_shift = make_on_call_shift(organization=organization, shift_type=CustomOnCallShift.TYPE_OVERRIDE, **data)
+
+    url = reverse("api-public:schedules-detail", kwargs={"pk": schedule.public_primary_key})
+
+    data = {
+        "shifts": [on_call_shift.public_primary_key],
+    }
+
+    response = client.put(url, data=data, format="json", HTTP_AUTHORIZATION=f"{token}")
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert response.json() == {"detail": "Web schedule update is not enabled through API"}
 
 
 @pytest.mark.django_db

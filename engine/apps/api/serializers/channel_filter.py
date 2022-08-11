@@ -93,6 +93,7 @@ class ChannelFilterSerializer(OrderedModelSerializerMixin, EagerLoadingMixin, se
     def validate_notification_backends(self, notification_backends):
         # NOTE: updates the whole field, handling dict updates per backend
         if notification_backends is not None:
+            organization = self.context["request"].auth.organization
             if not isinstance(notification_backends, dict):
                 raise serializers.ValidationError(["Invalid messaging backend data"])
             current = self.instance.notification_backends or {}
@@ -101,7 +102,7 @@ class ChannelFilterSerializer(OrderedModelSerializerMixin, EagerLoadingMixin, se
                 if backend is None:
                     raise serializers.ValidationError(["Invalid messaging backend"])
                 updated_data = backend.validate_channel_filter_data(
-                    self.instance,
+                    organization,
                     notification_backends[backend_id],
                 )
                 # update existing backend data

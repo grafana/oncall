@@ -29,7 +29,7 @@ services:
       oncall_db_migration:
         condition: service_completed_successfully
       rabbitmq:
-        condition: service_started
+        condition: service_healthy
       redis:
         condition: service_started
 
@@ -64,7 +64,7 @@ services:
       oncall_db_migration:
         condition: service_completed_successfully
       rabbitmq:
-        condition: service_started
+        condition: service_healthy
       redis:
         condition: service_started
 
@@ -92,7 +92,7 @@ services:
       mysql:
         condition: service_healthy
       rabbitmq:
-        condition: service_started
+        condition: service_healthy
 
   grafana-plugin-provisioning:
     image: grafana/oncall
@@ -191,6 +191,11 @@ services:
       RABBITMQ_DEFAULT_USER: "rabbitmq"
       RABBITMQ_DEFAULT_PASS: $RABBITMQ_PASSWORD
       RABBITMQ_DEFAULT_VHOST: "/"
+    healthcheck:
+      test: rabbitmq-diagnostics -q ping
+      interval: 30s
+      timeout: 30s
+      retries: 3
 
   mysql_to_create_grafana_db:
     image: mysql:5.7

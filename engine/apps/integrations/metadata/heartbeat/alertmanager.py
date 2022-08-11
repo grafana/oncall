@@ -1,9 +1,9 @@
 from pathlib import PurePath
 
-from apps.integrations.metadata.heartbeat._heartbeat_text_creator import HearBeatTextCreatorForTitleGrouping
+from apps.integrations.metadata.heartbeat._heartbeat_text_creator import HeartBeatTextCreatorForTitleGrouping
 
 integration_verbal = PurePath(__file__).stem
-creator = HearBeatTextCreatorForTitleGrouping(integration_verbal)
+creator = HeartBeatTextCreatorForTitleGrouping(integration_verbal)
 heartbeat_text = creator.get_heartbeat_texts()
 
 heartbeat_instruction_template = heartbeat_text.heartbeat_instruction_template

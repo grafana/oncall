@@ -6,6 +6,7 @@ import { UserGroup } from 'models/user_group/user_group.types';
 export enum ScheduleType {
   'Calendar',
   'Ical',
+  'Web',
 }
 
 export interface Schedule {
@@ -35,6 +36,7 @@ export interface ScheduleEvent {
   users: User[];
   is_empty: boolean;
   is_gap: boolean;
+  missing_users: string[];
 }
 
 export interface CreateScheduleExportTokenResponse {

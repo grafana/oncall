@@ -1,18 +1,155 @@
 import json
 import logging
-from urllib.parse import urljoin
 
 from django.apps import apps
-from django.conf import settings
 from django.db.models import Q
 from django.utils import timezone
 
 from apps.slack.scenarios import scenario_step
 from apps.slack.slack_client.exceptions import SlackAPIException
+from common.api_helpers.utils import create_engine_url
 
 from .step_mixins import CheckAlertIsUnarchivedMixin
 
 logger = logging.getLogger(__name__)
+
+
+class AddToResolutionNoteStep(CheckAlertIsUnarchivedMixin, scenario_step.ScenarioStep):
+    callback_id = [
+        "add_resolution_note",
+        "add_resolution_note_staging",
+        "add_resolution_note_develop",
+    ]
+    tags = [
+        scenario_step.ScenarioStep.TAG_INCIDENT_ROUTINE,
+    ]
+
+    def process_scenario(self, slack_user_identity, slack_team_identity, payload, action=None):
+        SlackMessage = apps.get_model("slack", "SlackMessage")
+        ResolutionNoteSlackMessage = apps.get_model("alerts", "ResolutionNoteSlackMessage")
+        ResolutionNote = apps.get_model("alerts", "ResolutionNote")
+        SlackUserIdentity = apps.get_model("slack", "SlackUserIdentity")
+
+        try:
+            channel_id = payload["channel"]["id"]
+        except KeyError:
+            raise Exception("Channel was not found")
+
+        warning_text = "Unable to add this message to resolution note, this command works only in incident threads."
+
+        try:
+            slack_message = SlackMessage.objects.get(
+                slack_id=payload["message"]["thread_ts"],
+                _slack_team_identity=slack_team_identity,
+                channel_id=channel_id,
+            )
+        except KeyError:
+            self.open_warning_window(payload, warning_text)
+            return
+        except SlackMessage.DoesNotExist:
+            self.open_warning_window(payload, warning_text)
+            return
+
+        try:
+            alert_group = slack_message.get_alert_group()
+        except SlackMessage.alert.RelatedObjectDoesNotExist as e:
+            self.open_warning_window(payload, warning_text)
+            print(
+                f"Exception: tried to add message from thread to Resolution Note: "
+                f"Slack Team Identity pk: {self.slack_team_identity.pk}, "
+                f"Slack Message id: {slack_message.slack_id}"
+            )
+            raise e
+
+        if not self.check_alert_is_unarchived(slack_team_identity, payload, alert_group):
+            return
+
+        if payload["message"]["type"] == "message" and "user" in payload["message"]:
+            message_ts = payload["message_ts"]
+            thread_ts = payload["message"]["thread_ts"]
+
+            result = self._slack_client.api_call(
+                "chat.getPermalink",
+                channel=channel_id,
+                message_ts=message_ts,
+            )
+            permalink = None
+            if result["permalink"] is not None:
+                permalink = result["permalink"]
+
+            if payload["message"]["ts"] in [
+                message.ts
+                for message in alert_group.resolution_note_slack_messages.filter(added_to_resolution_note=True)
+            ]:
+                warning_text = "Unable to add the same message again."
+                self.open_warning_window(payload, warning_text)
+                return
+
+            elif len(payload["message"]["text"]) > 2900:
+                warning_text = (
+                    "Unable to add the message to Resolution note: the message is too long ({}). "
+                    "Max length - 2900 symbols.".format(len(payload["message"]["text"]))
+                )
+                self.open_warning_window(payload, warning_text)
+                return
+
+            else:
+                try:
+                    resolution_note_slack_message = ResolutionNoteSlackMessage.objects.get(
+                        ts=message_ts, thread_ts=thread_ts
+                    )
+                except ResolutionNoteSlackMessage.DoesNotExist:
+                    text = payload["message"]["text"]
+                    text = text.replace("```", "")
+                    slack_message = SlackMessage.objects.get(
+                        slack_id=thread_ts,
+                        _slack_team_identity=slack_team_identity,
+                        channel_id=channel_id,
+                    )
+                    alert_group = slack_message.get_alert_group()
+                    author_slack_user_identity = SlackUserIdentity.objects.get(
+                        slack_id=payload["message"]["user"], slack_team_identity=slack_team_identity
+                    )
+                    author_user = self.organization.users.get(slack_user_identity=author_slack_user_identity)
+                    resolution_note_slack_message = ResolutionNoteSlackMessage(
+                        alert_group=alert_group,
+                        user=author_user,
+                        added_by_user=self.user,
+                        text=text,
+                        slack_channel_id=channel_id,
+                        thread_ts=thread_ts,
+                        ts=message_ts,
+                        permalink=permalink,
+                    )
+                resolution_note_slack_message.added_to_resolution_note = True
+                resolution_note_slack_message.save()
+                resolution_note = resolution_note_slack_message.get_resolution_note()
+                if resolution_note is None:
+                    ResolutionNote(
+                        alert_group=alert_group,
+                        author=resolution_note_slack_message.user,
+                        source=ResolutionNote.Source.SLACK,
+                        resolution_note_slack_message=resolution_note_slack_message,
+                    ).save()
+                else:
+                    resolution_note.recreate()
+                alert_group.drop_cached_after_resolve_report_json()
+                alert_group.schedule_cache_for_web()
+                try:
+                    self._slack_client.api_call(
+                        "reactions.add",
+                        channel=channel_id,
+                        name="memo",
+                        timestamp=resolution_note_slack_message.ts,
+                    )
+                except SlackAPIException:
+                    pass
+
+                self._update_slack_message(alert_group)
+        else:
+            warning_text = "Unable to add this message to resolution note."
+            self.open_warning_window(payload, warning_text)
+            return
 
 
 class UpdateResolutionNoteStep(scenario_step.ScenarioStep):
@@ -237,6 +374,7 @@ class ResolutionNoteModalStep(CheckAlertIsUnarchivedMixin, scenario_step.Scenari
     ]
 
     RESOLUTION_NOTE_TEXT_BLOCK_ID = "resolution_note_text"
+    RESOLUTION_NOTE_MESSAGES_MAX_COUNT = 25
 
     def process_scenario(self, slack_user_identity, slack_team_identity, payload, action=None, data=None):
         AlertGroup = apps.get_model("alerts", "AlertGroup")
@@ -299,7 +437,27 @@ class ResolutionNoteModalStep(CheckAlertIsUnarchivedMixin, scenario_step.Scenari
         blocks = []
 
         other_resolution_notes = alert_group.resolution_notes.filter(~Q(source=ResolutionNote.Source.SLACK))
-        resolution_note_slack_messages = alert_group.resolution_note_slack_messages.filter(posted_by_bot=False)
+        resolution_note_slack_messages = alert_group.resolution_note_slack_messages.filter(
+            posted_by_bot=False
+        ).order_by("-pk")
+        if resolution_note_slack_messages.count() > self.RESOLUTION_NOTE_MESSAGES_MAX_COUNT:
+            blocks.extend(
+                [
+                    {
+                        "type": "divider",
+                    },
+                    {
+                        "type": "section",
+                        "text": {
+                            "type": "mrkdwn",
+                            "text": (
+                                ":warning: Listing up to last {} thread messages, "
+                                "you can still add any other message using contextual menu actions."
+                            ).format(self.RESOLUTION_NOTE_MESSAGES_MAX_COUNT),
+                        },
+                    },
+                ]
+            )
         if action_resolve:
             blocks.extend(
                 [
@@ -333,7 +491,7 @@ class ResolutionNoteModalStep(CheckAlertIsUnarchivedMixin, scenario_step.Scenari
                 ]
             )
 
-        for message in resolution_note_slack_messages:
+        for message in resolution_note_slack_messages[: self.RESOLUTION_NOTE_MESSAGES_MAX_COUNT]:
             user_verbal = message.user.get_user_verbal_for_team_for_slack(mention=True)
             blocks.append(
                 {
@@ -448,7 +606,7 @@ class ResolutionNoteModalStep(CheckAlertIsUnarchivedMixin, scenario_step.Scenari
 
         if not blocks:
             # there aren't any resolution notes yet, display a hint instead
-            link_to_instruction = urljoin(settings.BASE_URL, "static/images/postmortem.gif")
+            link_to_instruction = create_engine_url("static/images/postmortem.gif")
             blocks = [
                 {
                     "type": "divider",
@@ -474,7 +632,7 @@ class ResolutionNoteModalStep(CheckAlertIsUnarchivedMixin, scenario_step.Scenari
         return blocks
 
     def get_invite_bot_tip_blocks(self, channel):
-        link_to_instruction = urljoin(settings.BASE_URL, "static/images/postmortem.gif")
+        link_to_instruction = create_engine_url("static/images/postmortem.gif")
         blocks = [
             {
                 "type": "divider",
@@ -516,7 +674,6 @@ class AddRemoveThreadMessageStep(UpdateResolutionNoteStep, scenario_step.Scenari
         add_to_resolution_note = True if value["msg_value"].startswith("add") else False
         slack_thread_message = None
         resolution_note = None
-        drop_ag_cache = False
 
         alert_group = AlertGroup.all_objects.get(pk=alert_group_pk)
 
@@ -537,7 +694,6 @@ class AddRemoveThreadMessageStep(UpdateResolutionNoteStep, scenario_step.Scenari
             else:
                 resolution_note.recreate()
             self.add_resolution_note_reaction(slack_thread_message)
-            drop_ag_cache = True
         elif not add_to_resolution_note:
             # Check if resolution_note can be removed
             if (
@@ -562,13 +718,9 @@ class AddRemoveThreadMessageStep(UpdateResolutionNoteStep, scenario_step.Scenari
                     slack_thread_message.added_to_resolution_note = False
                     slack_thread_message.save(update_fields=["added_to_resolution_note"])
                     self.remove_resolution_note_reaction(slack_thread_message)
-                drop_ag_cache = True
         self.update_alert_group_resolution_note_button(
             alert_group,
         )
-        if drop_ag_cache:
-            alert_group.drop_cached_after_resolve_report_json()
-            alert_group.schedule_cache_for_web()
         resolution_note_data = json.loads(payload["actions"][0]["value"])
         resolution_note_data["resolution_note_window_action"] = "edit_update"
         ResolutionNoteModalStep(slack_team_identity, self.organization, self.user).process_scenario(
@@ -603,5 +755,10 @@ STEPS_ROUTING = [
         "block_action_type": scenario_step.BLOCK_ACTION_TYPE_BUTTON,
         "block_action_id": AddRemoveThreadMessageStep.routing_uid(),
         "step": AddRemoveThreadMessageStep,
+    },
+    {
+        "payload_type": scenario_step.PAYLOAD_TYPE_MESSAGE_ACTION,
+        "message_action_callback_id": AddToResolutionNoteStep.callback_id,
+        "step": AddToResolutionNoteStep,
     },
 ]

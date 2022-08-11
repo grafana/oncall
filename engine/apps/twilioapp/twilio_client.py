@@ -2,7 +2,6 @@ import logging
 import urllib.parse
 
 from django.apps import apps
-from django.conf import settings
 from django.urls import reverse
 from twilio.base.exceptions import TwilioRestException
 from twilio.rest import Client
@@ -10,6 +9,7 @@ from twilio.rest import Client
 from apps.base.utils import live_settings
 from apps.twilioapp.constants import TEST_CALL_TEXT, TwilioLogRecordStatus, TwilioLogRecordType
 from apps.twilioapp.utils import get_calling_code, get_gather_message, get_gather_url, parse_phone_number
+from common.api_helpers.utils import create_engine_url
 
 logger = logging.getLogger(__name__)
 
@@ -24,10 +24,18 @@ class TwilioClient:
         return live_settings.TWILIO_NUMBER
 
     def send_message(self, body, to):
-        status_callback = settings.BASE_URL + reverse("twilioapp:sms_status_events")
-        return self.twilio_api_client.messages.create(
-            body=body, to=to, from_=self.twilio_number, status_callback=status_callback
-        )
+        status_callback = create_engine_url(reverse("twilioapp:sms_status_events"))
+        try:
+            return self.twilio_api_client.messages.create(
+                body=body, to=to, from_=self.twilio_number, status_callback=status_callback
+            )
+        except TwilioRestException as e:
+            # If status callback is not valid and not accessible from public url then trying to send message without it
+            # https://www.twilio.com/docs/api/errors/21609
+            if e.code == 21609:
+                logger.warning("twilio_client.send_message: Twilio error 21609. Status Callback is not public url")
+                return self.twilio_api_client.messages.create(body=body, to=to, from_=self.twilio_number)
+            raise e
 
     # Use responsibly
     def parse_number(self, number):
@@ -118,24 +126,27 @@ class TwilioClient:
         )
         self.make_call(message=message, to=to)
 
-    def make_call(self, message, to):
+    def make_call(self, message, to, grafana_cloud=False):
         try:
             start_message = message.replace('"', "")
 
-            twiml_query = urllib.parse.quote(
+            gather_message = (
                 (
-                    f"<Response>"
-                    f"<Say>{start_message}</Say>"
                     f'<Gather numDigits="1" action="{get_gather_url()}" method="POST">'
                     f"<Say>{get_gather_message()}</Say>"
                     f"</Gather>"
-                    f"</Response>"
-                ),
+                )
+                if not grafana_cloud
+                else ""
+            )
+
+            twiml_query = urllib.parse.quote(
+                f"<Response><Say>{start_message}</Say>{gather_message}</Response>",
                 safe="",
             )
 
             url = "http://twimlets.com/echo?Twiml=" + twiml_query
-            status_callback = settings.BASE_URL + reverse("twilioapp:call_status_events")
+            status_callback = create_engine_url(reverse("twilioapp:call_status_events"))
 
             status_callback_events = ["initiated", "ringing", "answered", "completed"]
 
@@ -149,6 +160,17 @@ class TwilioClient:
                 status_callback_method="POST",
             )
         except TwilioRestException as e:
+            # If status callback is not valid and not accessible from public url then trying to make call without it
+            # https://www.twilio.com/docs/api/errors/21609
+            if e.code == 21609:
+                logger.warning("twilio_client.make_call: Twilio error 21609. Status Callback is not public url")
+                return self.twilio_api_client.calls.create(
+                    url=url,
+                    to=to,
+                    from_=self.twilio_number,
+                    method="GET",
+                )
+
             raise e
 
     def create_log_record(self, **kwargs):

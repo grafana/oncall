@@ -38,7 +38,7 @@ GRAFANA_PASSWORD=admin" > .env_hobby
 
 3. Launch services:
 ```bash
-docker-compose --env-file .env_hobby -f docker-compose.yml up --build -d
+docker-compose --env-file .env_hobby -f docker-compose.yml up -d
 ```
 
 4. Issue one-time invite token:
@@ -55,6 +55,20 @@ Grafana Url: http://grafana:3000
 
 6. Enjoy! Check our [OSS docs](https://grafana.com/docs/grafana-cloud/oncall/open-source/) if you want to set up Slack, Telegram, Twilio or SMS/calls through Grafana Cloud. 
 
+
+## Update version
+To update your Grafana OnCall hobby environment:
+
+```shell
+# Update Docker images
+docker-compose --env-file .env_hobby -f docker-compose.yml pull engine celery oncall_db_migration
+
+# Re-deploy
+docker-compose --env-file .env_hobby -f docker-compose.yml up -d --remove-orphans
+```
+
+After updating the engine, you'll also need to click the "Update" button on the [plugin version page](http://localhost:3000/plugins/grafana-oncall-app?page=version-history).
+See [Grafana docs](https://grafana.com/docs/grafana/latest/administration/plugin-management/#update-a-plugin) for more info on updating Grafana plugins.
 
 ## Join community
 

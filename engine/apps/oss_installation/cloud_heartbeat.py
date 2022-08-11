@@ -8,6 +8,7 @@ from django.conf import settings
 from rest_framework import status
 
 from apps.base.utils import live_settings
+from common.api_helpers.utils import create_engine_url
 
 logger = logging.getLogger(__name__)
 
@@ -23,7 +24,7 @@ def setup_heartbeat_integration(name=None):
     # don't specify a team in the data, so heartbeat integration will be created in the General.
     name = name or f"OnCall Cloud Heartbeat {settings.BASE_URL}"
     data = {"type": "formatted_webhook", "name": name}
-    url = urljoin(settings.GRAFANA_CLOUD_ONCALL_API_URL, "/api/v1/integrations/")
+    url = create_engine_url("api/v1/integrations/", override_base=settings.GRAFANA_CLOUD_ONCALL_API_URL)
     try:
         headers = {"Authorization": api_token}
         r = requests.post(url=url, data=data, headers=headers, timeout=5)

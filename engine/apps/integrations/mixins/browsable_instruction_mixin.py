@@ -1,16 +1,17 @@
 import json
-from urllib.parse import urljoin
 
 from django.conf import settings
 from django.http import HttpResponse
 from django.template import loader
+
+from common.api_helpers.utils import create_engine_url
 
 
 class BrowsableInstructionMixin:
     def get(self, request, alert_receive_channel, *args, **kwargs):
         template = loader.get_template("integration_link.html")
         # TODO Create associative array for integrations
-        base_integration_docs_url = urljoin(settings.DOCS_URL, "/#/integrations/")
+        base_integration_docs_url = create_engine_url("/#/integrations/", override_base=settings.DOCS_URL)
         docs_url = f'{base_integration_docs_url}{request.get_full_path().split("/")[3]}'
         show_button = True
         if request.get_full_path().split("/")[3] == "amazon_sns":

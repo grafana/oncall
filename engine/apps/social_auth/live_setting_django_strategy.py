@@ -7,6 +7,7 @@ from django.utils.functional import Promise
 from social_django.strategy import DjangoStrategy
 
 from apps.base.utils import live_settings
+from common.api_helpers.utils import create_engine_url
 
 logger = logging.getLogger(__name__)
 
@@ -37,9 +38,7 @@ class LiveSettingDjangoStrategy(DjangoStrategy):
         Overridden DjangoStrategy's method to substitute and force the host value from ENV
         """
         if live_settings.SLACK_INSTALL_RETURN_REDIRECT_HOST is not None and path is not None:
-            return live_settings.SLACK_INSTALL_RETURN_REDIRECT_HOST + path
-        if settings.SLACK_INSTALL_RETURN_REDIRECT_HOST is not None and path is not None:
-            return settings.SLACK_INSTALL_RETURN_REDIRECT_HOST + path
+            return create_engine_url(path, override_base=live_settings.SLACK_INSTALL_RETURN_REDIRECT_HOST)
         if self.request:
             return self.request.build_absolute_uri(path)
         else:

@@ -9,7 +9,13 @@ from rest_framework.response import Response
 from rest_framework.serializers import ValidationError
 from rest_framework.test import APIClient
 
-from apps.schedules.models import CustomOnCallShift, OnCallSchedule, OnCallScheduleCalendar, OnCallScheduleICal
+from apps.schedules.models import (
+    CustomOnCallShift,
+    OnCallSchedule,
+    OnCallScheduleCalendar,
+    OnCallScheduleICal,
+    OnCallScheduleWeb,
+)
 from common.constants.role import Role
 
 ICAL_URL = "https://calendar.google.com/calendar/ical/amixr.io_37gttuakhrtr75ano72p69rt78%40group.calendar.google.com/private-1d00a680ba5be7426c3eb3ef1616e26d/basic.ics"
@@ -41,12 +47,18 @@ def schedule_internal_api_setup(
         ical_url_primary=ICAL_URL,
     )
 
-    return user, token, calendar_schedule, ical_schedule, slack_channel
+    web_schedule = make_schedule(
+        organization,
+        schedule_class=OnCallScheduleWeb,
+        name="test_web_schedule",
+    )
+
+    return user, token, calendar_schedule, ical_schedule, web_schedule, slack_channel
 
 
 @pytest.mark.django_db
 def test_get_list_schedules(schedule_internal_api_setup, make_user_auth_headers):
-    user, token, calendar_schedule, ical_schedule, slack_channel = schedule_internal_api_setup
+    user, token, calendar_schedule, ical_schedule, web_schedule, slack_channel = schedule_internal_api_setup
     client = APIClient()
     url = reverse("api-internal:schedule-list")
 
@@ -85,6 +97,22 @@ def test_get_list_schedules(schedule_internal_api_setup, make_user_auth_headers)
             "notify_empty_oncall": 0,
             "notify_oncall_shift_freq": 1,
         },
+        {
+            "id": web_schedule.public_primary_key,
+            "type": 2,
+            "time_zone": "UTC",
+            "team": None,
+            "name": "test_web_schedule",
+            "slack_channel": None,
+            "user_group": None,
+            "warnings": [],
+            "on_call_now": [],
+            "has_gaps": False,
+            "mention_oncall_next": False,
+            "mention_oncall_start": True,
+            "notify_empty_oncall": 0,
+            "notify_oncall_shift_freq": 1,
+        },
     ]
     response = client.get(url, format="json", **make_user_auth_headers(user, token))
     assert response.status_code == status.HTTP_200_OK
@@ -93,7 +121,7 @@ def test_get_list_schedules(schedule_internal_api_setup, make_user_auth_headers)
 
 @pytest.mark.django_db
 def test_get_detail_calendar_schedule(schedule_internal_api_setup, make_user_auth_headers):
-    user, token, calendar_schedule, _, _ = schedule_internal_api_setup
+    user, token, calendar_schedule, _, _, _ = schedule_internal_api_setup
     client = APIClient()
     url = reverse("api-internal:schedule-detail", kwargs={"pk": calendar_schedule.public_primary_key})
 
@@ -122,7 +150,7 @@ def test_get_detail_calendar_schedule(schedule_internal_api_setup, make_user_aut
 
 @pytest.mark.django_db
 def test_get_detail_ical_schedule(schedule_internal_api_setup, make_user_auth_headers):
-    user, token, _, ical_schedule, _ = schedule_internal_api_setup
+    user, token, _, ical_schedule, _, _ = schedule_internal_api_setup
     client = APIClient()
     url = reverse("api-internal:schedule-detail", kwargs={"pk": ical_schedule.public_primary_key})
 
@@ -150,8 +178,36 @@ def test_get_detail_ical_schedule(schedule_internal_api_setup, make_user_auth_he
 
 
 @pytest.mark.django_db
+def test_get_detail_web_schedule(schedule_internal_api_setup, make_user_auth_headers):
+    user, token, _, _, web_schedule, _ = schedule_internal_api_setup
+    client = APIClient()
+    url = reverse("api-internal:schedule-detail", kwargs={"pk": web_schedule.public_primary_key})
+
+    expected_payload = {
+        "id": web_schedule.public_primary_key,
+        "team": None,
+        "name": "test_web_schedule",
+        "type": 2,
+        "time_zone": "UTC",
+        "slack_channel": None,
+        "user_group": None,
+        "warnings": [],
+        "on_call_now": [],
+        "has_gaps": False,
+        "mention_oncall_next": False,
+        "mention_oncall_start": True,
+        "notify_empty_oncall": 0,
+        "notify_oncall_shift_freq": 1,
+    }
+
+    response = client.get(url, format="json", **make_user_auth_headers(user, token))
+    assert response.status_code == status.HTTP_200_OK
+    assert response.data == expected_payload
+
+
+@pytest.mark.django_db
 def test_create_calendar_schedule(schedule_internal_api_setup, make_user_auth_headers):
-    user, token, _, _, _ = schedule_internal_api_setup
+    user, token, _, _, _, _ = schedule_internal_api_setup
     client = APIClient()
     url = reverse("api-internal:schedule-list")
     data = {
@@ -180,7 +236,7 @@ def test_create_calendar_schedule(schedule_internal_api_setup, make_user_auth_he
 
 @pytest.mark.django_db
 def test_create_ical_schedule(schedule_internal_api_setup, make_user_auth_headers):
-    user, token, _, _, _ = schedule_internal_api_setup
+    user, token, _, _, _, _ = schedule_internal_api_setup
     client = APIClient()
     url = reverse("api-internal:schedule-list")
     with patch(
@@ -211,8 +267,36 @@ def test_create_ical_schedule(schedule_internal_api_setup, make_user_auth_header
 
 
 @pytest.mark.django_db
+def test_create_web_schedule(schedule_internal_api_setup, make_user_auth_headers):
+    user, token, _, _, _, _ = schedule_internal_api_setup
+    client = APIClient()
+    url = reverse("api-internal:schedule-list")
+    data = {
+        "name": "created_web_schedule",
+        "type": 2,
+        "time_zone": "UTC",
+        "slack_channel_id": None,
+        "user_group": None,
+        "team": None,
+        "warnings": [],
+        "on_call_now": [],
+        "has_gaps": False,
+        "mention_oncall_next": False,
+        "mention_oncall_start": True,
+        "notify_empty_oncall": 0,
+        "notify_oncall_shift_freq": 1,
+    }
+    response = client.post(url, data, format="json", **make_user_auth_headers(user, token))
+    # modify initial data by adding id and None for optional fields
+    schedule = OnCallSchedule.objects.get(public_primary_key=response.data["id"])
+    data["id"] = schedule.public_primary_key
+    assert response.status_code == status.HTTP_201_CREATED
+    assert response.data == data
+
+
+@pytest.mark.django_db
 def test_create_invalid_ical_schedule(schedule_internal_api_setup, make_user_auth_headers):
-    user, token, _, ical_schedule, _ = schedule_internal_api_setup
+    user, token, _, ical_schedule, _, _ = schedule_internal_api_setup
     client = APIClient()
     url = reverse("api-internal:custom_button-list")
     with patch(
@@ -231,7 +315,7 @@ def test_create_invalid_ical_schedule(schedule_internal_api_setup, make_user_aut
 
 @pytest.mark.django_db
 def test_update_calendar_schedule(schedule_internal_api_setup, make_user_auth_headers):
-    user, token, calendar_schedule, _, _ = schedule_internal_api_setup
+    user, token, calendar_schedule, _, _, _ = schedule_internal_api_setup
     client = APIClient()
 
     url = reverse("api-internal:schedule-detail", kwargs={"pk": calendar_schedule.public_primary_key})
@@ -250,7 +334,7 @@ def test_update_calendar_schedule(schedule_internal_api_setup, make_user_auth_he
 
 @pytest.mark.django_db
 def test_update_ical_schedule(schedule_internal_api_setup, make_user_auth_headers):
-    user, token, _, ical_schedule, _ = schedule_internal_api_setup
+    user, token, _, ical_schedule, _, _ = schedule_internal_api_setup
     client = APIClient()
 
     url = reverse("api-internal:schedule-detail", kwargs={"pk": ical_schedule.public_primary_key})
@@ -268,8 +352,27 @@ def test_update_ical_schedule(schedule_internal_api_setup, make_user_auth_header
 
 
 @pytest.mark.django_db
+def test_update_web_schedule(schedule_internal_api_setup, make_user_auth_headers):
+    user, token, _, _, web_schedule, _ = schedule_internal_api_setup
+    client = APIClient()
+
+    url = reverse("api-internal:schedule-detail", kwargs={"pk": web_schedule.public_primary_key})
+    data = {
+        "name": "updated_web_schedule",
+        "type": 2,
+        "team": None,
+    }
+    response = client.put(
+        url, data=json.dumps(data), content_type="application/json", **make_user_auth_headers(user, token)
+    )
+    updated_instance = OnCallSchedule.objects.get(public_primary_key=web_schedule.public_primary_key)
+    assert response.status_code == status.HTTP_200_OK
+    assert updated_instance.name == "updated_web_schedule"
+
+
+@pytest.mark.django_db
 def test_delete_schedule(schedule_internal_api_setup, make_user_auth_headers):
-    user, token, calendar_schedule, ical_schedule, _ = schedule_internal_api_setup
+    user, token, calendar_schedule, ical_schedule, _, _ = schedule_internal_api_setup
     client = APIClient()
 
     for calendar in (calendar_schedule, ical_schedule):
@@ -294,8 +397,10 @@ def test_events_calendar(
         name="test_calendar_schedule",
     )
 
+    start_date = timezone.now().replace(microsecond=0)
     data = {
-        "start": timezone.now().replace(microsecond=0),
+        "start": start_date,
+        "rotation_start": start_date,
         "duration": timezone.timedelta(seconds=7200),
         "priority_level": 2,
     }
@@ -321,16 +426,467 @@ def test_events_calendar(
                 "start": on_call_shift.start,
                 "end": on_call_shift.start + on_call_shift.duration,
                 "users": [{"display_name": user.username, "pk": user.public_primary_key}],
+                "missing_users": [],
                 "priority_level": on_call_shift.priority_level,
                 "source": "api",
                 "calendar_type": OnCallSchedule.PRIMARY,
                 "is_empty": False,
                 "is_gap": False,
+                "is_override": False,
+                "shift": {
+                    "pk": on_call_shift.public_primary_key,
+                },
             }
         ],
     }
     assert response.status_code == status.HTTP_200_OK
     assert response.data == expected_result
+
+
+@pytest.mark.django_db
+def test_filter_events_calendar(
+    make_organization_and_user_with_plugin_token,
+    make_user_auth_headers,
+    make_schedule,
+    make_on_call_shift,
+):
+    organization, user, token = make_organization_and_user_with_plugin_token()
+    client = APIClient()
+
+    schedule = make_schedule(
+        organization,
+        schedule_class=OnCallScheduleWeb,
+        name="test_web_schedule",
+    )
+
+    now = timezone.now().replace(microsecond=0)
+    start_date = now - timezone.timedelta(days=7)
+    data = {
+        "start": start_date,
+        "rotation_start": start_date,
+        "duration": timezone.timedelta(seconds=7200),
+        "priority_level": 1,
+        "frequency": CustomOnCallShift.FREQUENCY_WEEKLY,
+        "by_day": ["MO", "FR"],
+        "schedule": schedule,
+    }
+    on_call_shift = make_on_call_shift(
+        organization=organization, shift_type=CustomOnCallShift.TYPE_RECURRENT_EVENT, **data
+    )
+    on_call_shift.users.add(user)
+
+    url = reverse("api-internal:schedule-filter-events", kwargs={"pk": schedule.public_primary_key})
+    url += "?type=rotation"
+    response = client.get(url, format="json", **make_user_auth_headers(user, token))
+
+    # current week events are expected
+    mon_start = now - timezone.timedelta(days=start_date.weekday())
+    fri_start = mon_start + timezone.timedelta(days=4)
+    expected_result = {
+        "id": schedule.public_primary_key,
+        "name": "test_web_schedule",
+        "type": 2,
+        "events": [
+            {
+                "all_day": False,
+                "start": mon_start,
+                "end": mon_start + on_call_shift.duration,
+                "users": [{"display_name": user.username, "pk": user.public_primary_key}],
+                "missing_users": [],
+                "priority_level": on_call_shift.priority_level,
+                "source": "api",
+                "calendar_type": OnCallSchedule.PRIMARY,
+                "is_empty": False,
+                "is_gap": False,
+                "is_override": False,
+                "shift": {
+                    "pk": on_call_shift.public_primary_key,
+                },
+            },
+            {
+                "all_day": False,
+                "start": fri_start,
+                "end": fri_start + on_call_shift.duration,
+                "users": [{"display_name": user.username, "pk": user.public_primary_key}],
+                "missing_users": [],
+                "priority_level": on_call_shift.priority_level,
+                "source": "api",
+                "calendar_type": OnCallSchedule.PRIMARY,
+                "is_empty": False,
+                "is_gap": False,
+                "is_override": False,
+                "shift": {
+                    "pk": on_call_shift.public_primary_key,
+                },
+            },
+        ],
+    }
+    assert response.status_code == status.HTTP_200_OK
+    assert response.data == expected_result
+
+
+@pytest.mark.django_db
+def test_filter_events_range_calendar(
+    make_organization_and_user_with_plugin_token,
+    make_user_for_organization,
+    make_user_auth_headers,
+    make_schedule,
+    make_on_call_shift,
+):
+    organization, user, token = make_organization_and_user_with_plugin_token()
+    client = APIClient()
+
+    schedule = make_schedule(
+        organization,
+        schedule_class=OnCallScheduleWeb,
+        name="test_web_schedule",
+    )
+
+    now = timezone.now().replace(microsecond=0)
+    start_date = now - timezone.timedelta(days=7)
+    mon_start = now - timezone.timedelta(days=start_date.weekday())
+    request_date = mon_start + timezone.timedelta(days=2)
+
+    data = {
+        "start": start_date,
+        "rotation_start": start_date,
+        "duration": timezone.timedelta(seconds=7200),
+        "priority_level": 1,
+        "frequency": CustomOnCallShift.FREQUENCY_WEEKLY,
+        "by_day": ["MO", "FR"],
+        "schedule": schedule,
+    }
+    on_call_shift = make_on_call_shift(
+        organization=organization, shift_type=CustomOnCallShift.TYPE_RECURRENT_EVENT, **data
+    )
+    on_call_shift.users.add(user)
+
+    # add override shift
+    override_start = request_date + timezone.timedelta(seconds=3600)
+    override_data = {
+        "start": override_start,
+        "rotation_start": override_start,
+        "duration": timezone.timedelta(seconds=3600),
+        "schedule": schedule,
+    }
+    override = make_on_call_shift(
+        organization=organization, shift_type=CustomOnCallShift.TYPE_OVERRIDE, **override_data
+    )
+    other_user = make_user_for_organization(organization)
+    override.users.add(other_user)
+
+    url = reverse("api-internal:schedule-filter-events", kwargs={"pk": schedule.public_primary_key})
+    url += "?date={}&days=3&type=rotation".format(request_date.strftime("%Y-%m-%d"))
+    response = client.get(url, format="json", **make_user_auth_headers(user, token))
+
+    # only friday occurrence is expected
+    fri_start = mon_start + timezone.timedelta(days=4)
+    expected_result = {
+        "id": schedule.public_primary_key,
+        "name": "test_web_schedule",
+        "type": 2,
+        "events": [
+            {
+                "all_day": False,
+                "start": fri_start,
+                "end": fri_start + on_call_shift.duration,
+                "users": [{"display_name": user.username, "pk": user.public_primary_key}],
+                "missing_users": [],
+                "priority_level": on_call_shift.priority_level,
+                "source": "api",
+                "calendar_type": OnCallSchedule.PRIMARY,
+                "is_empty": False,
+                "is_gap": False,
+                "is_override": False,
+                "shift": {
+                    "pk": on_call_shift.public_primary_key,
+                },
+            }
+        ],
+    }
+    assert response.status_code == status.HTTP_200_OK
+    assert response.data == expected_result
+
+
+@pytest.mark.django_db
+def test_filter_events_overrides(
+    make_organization_and_user_with_plugin_token,
+    make_user_for_organization,
+    make_user_auth_headers,
+    make_schedule,
+    make_on_call_shift,
+):
+    organization, user, token = make_organization_and_user_with_plugin_token()
+    client = APIClient()
+
+    schedule = make_schedule(
+        organization,
+        schedule_class=OnCallScheduleWeb,
+        name="test_web_schedule",
+    )
+
+    now = timezone.now().replace(microsecond=0)
+    start_date = now - timezone.timedelta(days=7)
+    mon_start = now - timezone.timedelta(days=start_date.weekday())
+    request_date = mon_start + timezone.timedelta(days=2)
+
+    data = {
+        "start": start_date,
+        "rotation_start": start_date,
+        "duration": timezone.timedelta(seconds=7200),
+        "priority_level": 1,
+        "frequency": CustomOnCallShift.FREQUENCY_WEEKLY,
+        "by_day": ["MO", "FR"],
+        "schedule": schedule,
+    }
+    on_call_shift = make_on_call_shift(
+        organization=organization, shift_type=CustomOnCallShift.TYPE_RECURRENT_EVENT, **data
+    )
+    on_call_shift.users.add(user)
+
+    # add override shift
+    override_start = request_date + timezone.timedelta(seconds=3600)
+    override_data = {
+        "start": override_start,
+        "rotation_start": override_start,
+        "duration": timezone.timedelta(seconds=3600),
+        "schedule": schedule,
+    }
+    override = make_on_call_shift(
+        organization=organization, shift_type=CustomOnCallShift.TYPE_OVERRIDE, **override_data
+    )
+    other_user = make_user_for_organization(organization)
+    override.add_rolling_users([[other_user]])
+
+    url = reverse("api-internal:schedule-filter-events", kwargs={"pk": schedule.public_primary_key})
+    url += "?date={}&days=3&type=override".format(request_date.strftime("%Y-%m-%d"))
+    response = client.get(url, format="json", **make_user_auth_headers(user, token))
+
+    # only override occurrence is expected
+    expected_result = {
+        "id": schedule.public_primary_key,
+        "name": "test_web_schedule",
+        "type": 2,
+        "events": [
+            {
+                "all_day": False,
+                "start": override_start,
+                "end": override_start + override.duration,
+                "users": [{"display_name": other_user.username, "pk": other_user.public_primary_key}],
+                "missing_users": [],
+                "priority_level": None,
+                "source": "api",
+                "calendar_type": OnCallSchedule.OVERRIDES,
+                "is_empty": False,
+                "is_gap": False,
+                "is_override": True,
+                "shift": {
+                    "pk": override.public_primary_key,
+                },
+            }
+        ],
+    }
+    assert response.status_code == status.HTTP_200_OK
+    assert response.data == expected_result
+
+
+@pytest.mark.django_db
+def test_filter_events_final_schedule(
+    make_organization_and_user_with_plugin_token,
+    make_user_for_organization,
+    make_user_auth_headers,
+    make_schedule,
+    make_on_call_shift,
+):
+    organization, user, token = make_organization_and_user_with_plugin_token()
+    client = APIClient()
+
+    schedule = make_schedule(
+        organization,
+        schedule_class=OnCallScheduleWeb,
+        name="test_web_schedule",
+    )
+
+    now = timezone.now().replace(hour=0, minute=0, second=0, microsecond=0)
+    start_date = now - timezone.timedelta(days=7)
+    request_date = start_date
+
+    user_a, user_b, user_c, user_d, user_e = (make_user_for_organization(organization, username=i) for i in "ABCDE")
+
+    shifts = (
+        # user, priority, start time (h), duration (hs)
+        (user_a, 1, 10, 5),  # r1-1: 10-15 / A
+        (user_b, 1, 11, 2),  # r1-2: 11-13 / B
+        (user_a, 1, 16, 3),  # r1-3: 16-19 / A
+        (user_a, 1, 21, 1),  # r1-4: 21-22 / A
+        (user_b, 1, 22, 2),  # r1-5: 22-00 / B
+        (user_c, 2, 12, 2),  # r2-1: 12-14 / C
+        (user_d, 2, 14, 1),  # r2-2: 14-15 / D
+        (user_d, 2, 17, 1),  # r2-3: 17-18 / D
+        (user_d, 2, 20, 3),  # r2-4: 20-23 / D
+    )
+    for user, priority, start_h, duration in shifts:
+        data = {
+            "start": start_date + timezone.timedelta(hours=start_h),
+            "rotation_start": start_date,
+            "duration": timezone.timedelta(hours=duration),
+            "priority_level": priority,
+            "frequency": CustomOnCallShift.FREQUENCY_DAILY,
+            "schedule": schedule,
+        }
+        on_call_shift = make_on_call_shift(
+            organization=organization, shift_type=CustomOnCallShift.TYPE_RECURRENT_EVENT, **data
+        )
+        on_call_shift.users.add(user)
+
+    # override: 22-23 / E
+    override_data = {
+        "start": start_date + timezone.timedelta(hours=22),
+        "rotation_start": start_date,
+        "duration": timezone.timedelta(hours=1),
+        "schedule": schedule,
+    }
+    override = make_on_call_shift(
+        organization=organization, shift_type=CustomOnCallShift.TYPE_OVERRIDE, **override_data
+    )
+    override.add_rolling_users([[user_e]])
+
+    url = reverse("api-internal:schedule-filter-events", kwargs={"pk": schedule.public_primary_key})
+    url += "?date={}&days=1".format(request_date.strftime("%Y-%m-%d"))
+    response = client.get(url, format="json", **make_user_auth_headers(user, token))
+    assert response.status_code == status.HTTP_200_OK
+
+    expected = (
+        # start (h), duration (H), user, priority, is_gap, is_override
+        (0, 10, None, None, True, False),  # 0-10 gap
+        (10, 2, "A", 1, False, False),  # 10-12 A
+        (11, 1, "B", 1, False, False),  # 11-12 B
+        (12, 2, "C", 2, False, False),  # 12-14 C
+        (14, 1, "D", 2, False, False),  # 14-15 D
+        (15, 1, None, None, True, False),  # 15-16 gap
+        (16, 1, "A", 1, False, False),  # 16-17 A
+        (17, 1, "D", 2, False, False),  # 17-18 D
+        (18, 1, "A", 1, False, False),  # 18-19 A
+        (19, 1, None, None, True, False),  # 19-20 gap
+        (20, 2, "D", 2, False, False),  # 20-22 D
+        (22, 1, "E", None, False, True),  # 22-23 E (override)
+        (23, 1, "B", 1, False, False),  # 23-00 B
+    )
+    expected_events = [
+        {
+            "calendar_type": 1 if is_override else None if is_gap else 0,
+            "end": start_date + timezone.timedelta(hours=start + duration),
+            "is_gap": is_gap,
+            "is_override": is_override,
+            "priority_level": priority,
+            "start": start_date + timezone.timedelta(hours=start, milliseconds=1 if start == 0 else 0),
+            "user": user,
+        }
+        for start, duration, user, priority, is_gap, is_override in expected
+    ]
+    returned_events = [
+        {
+            "calendar_type": e["calendar_type"],
+            "end": e["end"],
+            "is_gap": e["is_gap"],
+            "is_override": e["is_override"],
+            "priority_level": e["priority_level"],
+            "start": e["start"],
+            "user": e["users"][0]["display_name"] if e["users"] else None,
+        }
+        for e in response.data["events"]
+    ]
+    assert returned_events == expected_events
+
+
+@pytest.mark.django_db
+def test_next_shifts_per_user(
+    make_organization_and_user_with_plugin_token,
+    make_user_for_organization,
+    make_user_auth_headers,
+    make_schedule,
+    make_on_call_shift,
+):
+    organization, user, token = make_organization_and_user_with_plugin_token()
+    client = APIClient()
+
+    schedule = make_schedule(
+        organization,
+        schedule_class=OnCallScheduleWeb,
+        name="test_web_schedule",
+    )
+
+    tomorrow = timezone.now().replace(hour=0, minute=0, second=0, microsecond=0) + timezone.timedelta(days=1)
+    user_a, user_b, user_c = (make_user_for_organization(organization, username=i) for i in "ABC")
+
+    shifts = (
+        # user, priority, start time (h), duration (hs)
+        (user_a, 1, 8, 2),  # r1-1: 8-10 / A
+        (user_a, 1, 15, 2),  # r1-2: 15-17 / A
+        (user_b, 2, 7, 5),  # r2-1: 7-12 / B
+        (user_b, 2, 16, 2),  # r2-2: 16-18 / B
+        (user_c, 2, 18, 2),  # r2-3: 18-20 / C
+    )
+    for user, priority, start_h, duration in shifts:
+        data = {
+            "start": tomorrow + timezone.timedelta(hours=start_h),
+            "rotation_start": tomorrow,
+            "duration": timezone.timedelta(hours=duration),
+            "priority_level": priority,
+            "frequency": CustomOnCallShift.FREQUENCY_DAILY,
+            "schedule": schedule,
+        }
+        on_call_shift = make_on_call_shift(
+            organization=organization, shift_type=CustomOnCallShift.TYPE_RECURRENT_EVENT, **data
+        )
+        on_call_shift.users.add(user)
+
+    # override: 17-18 / C
+    override_data = {
+        "start": tomorrow + timezone.timedelta(hours=17),
+        "rotation_start": tomorrow,
+        "duration": timezone.timedelta(hours=1),
+        "schedule": schedule,
+    }
+    override = make_on_call_shift(
+        organization=organization, shift_type=CustomOnCallShift.TYPE_OVERRIDE, **override_data
+    )
+    override.add_rolling_users([[user_c]])
+
+    # final schedule: 7-12: B, 15-16: A, 16-17: B, 17-18: C (override), 18-20: C
+
+    url = reverse("api-internal:schedule-next-shifts-per-user", kwargs={"pk": schedule.public_primary_key})
+    response = client.get(url, format="json", **make_user_auth_headers(user, token))
+    assert response.status_code == status.HTTP_200_OK
+
+    expected = {
+        user_a.public_primary_key: (tomorrow + timezone.timedelta(hours=15), tomorrow + timezone.timedelta(hours=16)),
+        user_b.public_primary_key: (tomorrow + timezone.timedelta(hours=7), tomorrow + timezone.timedelta(hours=12)),
+        user_c.public_primary_key: (tomorrow + timezone.timedelta(hours=17), tomorrow + timezone.timedelta(hours=18)),
+    }
+    returned_data = {u: (ev["start"], ev["end"]) for u, ev in response.data["users"].items()}
+    assert returned_data == expected
+
+
+@pytest.mark.django_db
+def test_filter_events_invalid_type(
+    make_organization_and_user_with_plugin_token,
+    make_user_auth_headers,
+    make_schedule,
+):
+    organization, user, token = make_organization_and_user_with_plugin_token()
+    client = APIClient()
+
+    schedule = make_schedule(
+        organization,
+        schedule_class=OnCallScheduleWeb,
+        name="test_web_schedule",
+    )
+
+    url = reverse("api-internal:schedule-filter-events", kwargs={"pk": schedule.public_primary_key})
+    url += "?type=invalid"
+    response = client.get(url, format="json", **make_user_auth_headers(user, token))
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
 
 
 @pytest.mark.django_db

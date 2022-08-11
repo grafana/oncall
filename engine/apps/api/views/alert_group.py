@@ -1,10 +1,6 @@
-from datetime import datetime, timedelta
+from datetime import timedelta
 
-from django import forms
-from django.db import models
-from django.db.models import CharField, Q
-from django.db.models.constants import LOOKUP_SEP
-from django.db.models.functions import Cast
+from django.db.models import Count, Max, Q
 from django.utils import timezone
 from django_filters import rest_framework as filters
 from django_filters.widgets import RangeWidget
@@ -15,16 +11,15 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
 from apps.alerts.constants import ActionSource
-from apps.alerts.models import AlertGroup, AlertReceiveChannel
-from apps.alerts.tasks import invalidate_web_cache_for_alert_group
+from apps.alerts.models import Alert, AlertGroup, AlertReceiveChannel
 from apps.api.permissions import MODIFY_ACTIONS, READ_ACTIONS, ActionPermission, AnyRole, IsAdminOrEditor
-from apps.api.serializers.alert_group import AlertGroupSerializer
+from apps.api.serializers.alert_group import AlertGroupListSerializer, AlertGroupSerializer
 from apps.auth_token.auth import MobileAppAuthTokenAuthentication, PluginAuthentication
 from apps.user_management.models import User
 from common.api_helpers.exceptions import BadRequest
 from common.api_helpers.filters import DateRangeFilterMixin, ModelFieldFilterMixin
 from common.api_helpers.mixins import PreviewTemplateMixin, PublicPrimaryKeyMixin
-from common.api_helpers.paginators import FiftyPageSizePaginator
+from common.api_helpers.paginators import TwentyFiveCursorPaginator
 
 
 def get_integration_queryset(request):
@@ -148,34 +143,6 @@ class AlertGroupFilter(DateRangeFilterMixin, ModelFieldFilterMixin, filters.Filt
         return queryset
 
 
-class CustomSearchFilter(SearchFilter):
-    def must_call_distinct(self, queryset, search_fields):
-        """
-        Return True if 'distinct()' should be used to query the given lookups.
-        """
-        for search_field in search_fields:
-            opts = queryset.model._meta
-            if search_field[0] in self.lookup_prefixes:
-                search_field = search_field[1:]
-
-            # From https://github.com/encode/django-rest-framework/pull/6240/files#diff-01f357e474dd8fd702e4951b9227bffcR88
-            # Annotated fields do not need to be distinct
-            if isinstance(queryset, models.QuerySet) and search_field in queryset.query.annotations:
-                continue
-
-            parts = search_field.split(LOOKUP_SEP)
-            for part in parts:
-                field = opts.get_field(part)
-                if hasattr(field, "get_path_info"):
-                    # This field is a relation, update opts to follow the relation
-                    path_info = field.get_path_info()
-                    opts = path_info[-1].to_opts
-                    if any(path.m2m for path in path_info):
-                        # This field is a m2m relation so we know we need to call distinct
-                        return True
-        return False
-
-
 class AlertGroupView(
     PreviewTemplateMixin,
     PublicPrimaryKeyMixin,
@@ -216,90 +183,90 @@ class AlertGroupView(
 
     serializer_class = AlertGroupSerializer
 
-    pagination_class = FiftyPageSizePaginator
+    pagination_class = TwentyFiveCursorPaginator
 
-    filter_backends = [CustomSearchFilter, filters.DjangoFilterBackend]
-    search_fields = ["cached_render_for_web_str"]
+    filter_backends = [SearchFilter, filters.DjangoFilterBackend]
+    # todo: add ability to search by templated title
+    search_fields = ["public_primary_key", "inside_organization_number"]
 
     filterset_class = AlertGroupFilter
 
-    def list(self, request, *args, **kwargs):
-        """
-        It's compute-heavy so we rely on cache here.
-        Attention: Make sure to invalidate cache if you update the format!
-        """
-        queryset = self.filter_queryset(self.get_queryset(eager=False, readonly=True))
+    def get_serializer_class(self):
+        if self.action == "list":
+            return AlertGroupListSerializer
 
-        page = self.paginate_queryset(queryset)
-        skip_slow_rendering = request.query_params.get("skip_slow_rendering") == "true"
-        data = []
+        return super().get_serializer_class()
 
-        for alert_group in page:
-            if alert_group.cached_render_for_web == {}:
-                # We cannot give empty data to web. So caching synchronously here.
-                if skip_slow_rendering:
-                    # We just return dummy data.
-                    # Cache is not launched because after skip_slow_rendering request should come usual one
-                    # which will start caching
-                    data.append({"pk": alert_group.pk, "short": True})
-                else:
-                    # Synchronously cache and return. It could be slow.
-                    alert_group.cache_for_web(alert_group.channel.organization)
-                    data.append(alert_group.cached_render_for_web)
-            else:
-                data.append(alert_group.cached_render_for_web)
-                if not skip_slow_rendering:
-                    # Cache is not launched because after skip_slow_rendering request should come usual one
-                    # which will start caching
-                    alert_group.schedule_cache_for_web()
+    def get_queryset(self):
+        # no select_related or prefetch_related is used at this point, it will be done on paginate_queryset.
+        queryset = AlertGroup.unarchived_objects.filter(
+            channel__organization=self.request.auth.organization, channel__team=self.request.user.current_team
+        ).only("id")
 
-        return self.get_paginated_response(data)
-
-    def get_queryset(self, eager=True, readonly=False, order=True):
-        if readonly:
-            queryset = AlertGroup.unarchived_objects.using_readonly_db
-        else:
-            queryset = AlertGroup.unarchived_objects
-
-        queryset = queryset.filter(
-            channel__organization=self.request.auth.organization,
-            channel__team=self.request.user.current_team,
-        )
-
-        if order:
-            queryset = queryset.order_by("-started_at")
-
-        queryset = queryset.annotate(cached_render_for_web_str=Cast("cached_render_for_web", output_field=CharField()))
-
-        if eager:
-            queryset = self.serializer_class.setup_eager_loading(queryset)
         return queryset
 
-    def get_alert_groups_and_days_for_previous_same_period(self):
-        prev_alert_groups = AlertGroup.unarchived_objects.none()
-        delta_days = None
+    def paginate_queryset(self, queryset):
+        """
+        All SQL joins (select_related and prefetch_related) will be performed AFTER pagination, so it only joins tables
+        for 25 alert groups, not the whole table.
+        """
+        alert_groups = super().paginate_queryset(queryset)
+        alert_groups = self.enrich(alert_groups)
+        return alert_groups
 
-        started_at = self.request.query_params.get("started_at", None)
-        if started_at is not None:
-            started_at_gte, started_at_lte = AlertGroupFilter.parse_custom_datetime_range(started_at)
-            delta_days = None
-            if started_at_lte is not None:
-                started_at_lte = forms.DateTimeField().to_python(started_at_lte)
-            else:
-                started_at_lte = datetime.now()
+    def get_object(self):
+        obj = super().get_object()
+        obj = self.enrich([obj])[0]
+        return obj
 
-            if started_at_gte is not None:
-                started_at_gte = forms.DateTimeField().to_python(value=started_at_gte)
-                delta = started_at_lte.replace(tzinfo=None) - started_at_gte.replace(tzinfo=None)
-                prev_alert_groups = self.get_queryset().filter(
-                    started_at__range=[started_at_gte - delta, started_at_gte]
-                )
-                delta_days = delta.days
-        return prev_alert_groups, delta_days
+    def enrich(self, alert_groups):
+        """
+        This method performs select_related and prefetch_related (using setup_eager_loading) as well as in-memory joins
+        to add additional info like alert_count and last_alert for every alert group efficiently.
+        We need the last_alert because it's used by AlertGroupWebRenderer.
+        """
+
+        # enrich alert groups with select_related and prefetch_related
+        alert_group_pks = [alert_group.pk for alert_group in alert_groups]
+        queryset = AlertGroup.all_objects.filter(pk__in=alert_group_pks).order_by("-pk")
+
+        # do not load cached_render_for_web as it's deprecated and can be very large
+        queryset = queryset.defer("cached_render_for_web")
+
+        queryset = self.get_serializer_class().setup_eager_loading(queryset)
+        alert_groups = list(queryset)
+
+        # get info on alerts count and last alert ID for every alert group
+        alerts_info = (
+            Alert.objects.values("group_id")
+            .filter(group_id__in=alert_group_pks)
+            .annotate(alerts_count=Count("group_id"), last_alert_id=Max("id"))
+        )
+        alerts_info_map = {info["group_id"]: info for info in alerts_info}
+
+        # fetch last alerts for every alert group
+        last_alert_ids = [info["last_alert_id"] for info in alerts_info_map.values()]
+        last_alerts = Alert.objects.filter(pk__in=last_alert_ids)
+        for alert in last_alerts:
+            # link group back to alert
+            alert.group = [alert_group for alert_group in alert_groups if alert_group.pk == alert.group_id][0]
+            alerts_info_map[alert.group_id].update({"last_alert": alert})
+
+        # add additional "alerts_count" and "last_alert" fields to every alert group
+        for alert_group in alert_groups:
+            try:
+                alert_group.last_alert = alerts_info_map[alert_group.pk]["last_alert"]
+                alert_group.alerts_count = alerts_info_map[alert_group.pk]["alerts_count"]
+            except KeyError:
+                # alert group has no alerts
+                alert_group.last_alert = None
+                alert_group.alerts_count = 0
+
+        return alert_groups
 
     @action(detail=False)
     def stats(self, *args, **kwargs):
-        alert_groups = self.filter_queryset(self.get_queryset(eager=False))
+        alert_groups = self.filter_queryset(self.get_queryset())
         # Only count field is used, other fields left just in case for the backward compatibility
         return Response(
             {
@@ -324,7 +291,6 @@ class AlertGroupView(
         if alert_group.root_alert_group is not None:
             raise BadRequest(detail="Can't acknowledge an attached alert group")
         alert_group.acknowledge_by_user(self.request.user, action_source=ActionSource.WEB)
-        invalidate_web_cache_for_alert_group(alert_group_pk=alert_group.pk)
 
         return Response(AlertGroupSerializer(alert_group, context={"request": self.request}).data)
 
@@ -344,7 +310,6 @@ class AlertGroupView(
             raise BadRequest(detail="Can't unacknowledge a resolved alert group")
 
         alert_group.un_acknowledge_by_user(self.request.user, action_source=ActionSource.WEB)
-        invalidate_web_cache_for_alert_group(alert_group_pk=alert_group.pk)
 
         return Response(AlertGroupSerializer(alert_group, context={"request": self.request}).data)
 
@@ -365,7 +330,6 @@ class AlertGroupView(
                     status=status.HTTP_400_BAD_REQUEST,
                 )
             alert_group.resolve_by_user(self.request.user, action_source=ActionSource.WEB)
-        invalidate_web_cache_for_alert_group(alert_group_pk=alert_group.pk)
         return Response(AlertGroupSerializer(alert_group, context={"request": self.request}).data)
 
     @action(methods=["post"], detail=True)
@@ -381,7 +345,6 @@ class AlertGroupView(
             raise BadRequest(detail="The alert group is not resolved")
 
         alert_group.un_resolve_by_user(self.request.user, action_source=ActionSource.WEB)
-        invalidate_web_cache_for_alert_group(alert_group_pk=alert_group.pk)
         return Response(AlertGroupSerializer(alert_group, context={"request": self.request}).data)
 
     @action(methods=["post"], detail=True)
@@ -404,8 +367,6 @@ class AlertGroupView(
             return Response(status=status.HTTP_400_BAD_REQUEST)
 
         alert_group.attach_by_user(self.request.user, root_alert_group, action_source=ActionSource.WEB)
-        invalidate_web_cache_for_alert_group(alert_group_pk=alert_group.pk)
-        invalidate_web_cache_for_alert_group(alert_group_pk=root_alert_group.pk)
         return Response(AlertGroupSerializer(alert_group, context={"request": self.request}).data)
 
     @action(methods=["post"], detail=True)
@@ -415,10 +376,8 @@ class AlertGroupView(
             raise BadRequest(detail="Can't unattach maintenance alert group")
         if alert_group.is_root_alert_group:
             raise BadRequest(detail="Can't unattach an alert group because it is not attached")
-        root_alert_group_pk = alert_group.root_alert_group_id
+
         alert_group.un_attach_by_user(self.request.user, action_source=ActionSource.WEB)
-        invalidate_web_cache_for_alert_group(alert_group_pk=alert_group.pk)
-        invalidate_web_cache_for_alert_group(alert_group_pk=root_alert_group_pk)
         return Response(AlertGroupSerializer(alert_group, context={"request": self.request}).data)
 
     @action(methods=["post"], detail=True)
@@ -433,7 +392,6 @@ class AlertGroupView(
             raise BadRequest(detail="Can't silence an attached alert group")
 
         alert_group.silence_by_user(request.user, silence_delay=delay, action_source=ActionSource.WEB)
-        invalidate_web_cache_for_alert_group(alert_group_pk=alert_group.pk)
         return Response(AlertGroupSerializer(alert_group, context={"request": request}).data)
 
     @action(methods=["get"], detail=False)
@@ -548,9 +506,9 @@ class AlertGroupView(
                 raise BadRequest(detail="Please specify a delay for silence")
             kwargs["silence_delay"] = delay
 
-        alert_groups = self.get_queryset(eager=False).filter(public_primary_key__in=alert_group_public_pks)
-        alert_group_pks = list(alert_groups.values_list("id", flat=True))
-        invalidate_web_cache_for_alert_group(alert_group_pks=alert_group_pks)
+        alert_groups = AlertGroup.unarchived_objects.filter(
+            channel__organization=self.request.auth.organization, public_primary_key__in=alert_group_public_pks
+        )
 
         kwargs["user"] = self.request.user
         kwargs["alert_groups"] = alert_groups

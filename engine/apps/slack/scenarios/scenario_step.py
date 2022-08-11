@@ -135,28 +135,6 @@ class ScenarioStep(object):
             channel = user.im_channel_id
         return channel
 
-    @staticmethod
-    def finish_configuration_attachments(organization):
-        text = (
-            f"A few steps left to finish configuration!\n"
-            f"Go to your <{organization.web_link}?page=slack|OnCall workspace> and select default channel "
-            f"for your incidents!"
-        )
-        return [
-            {
-                "color": "#008000",
-                "blocks": [
-                    {
-                        "type": "section",
-                        "text": {
-                            "type": "mrkdwn",
-                            "text": text,
-                        },
-                    }
-                ],
-            }
-        ]
-
     @classmethod
     def routing_uid(cls):
         return cls.random_prefix_for_routing + cls.__name__
@@ -431,55 +409,3 @@ class ScenarioStep(object):
             element["initial_option"] = initial_option
 
         return element
-
-    def get_select_organization_route_element(self, slack_team_identity, slack_user_identity):
-        AlertReceiveChannel = apps.get_model("alerts", "AlertReceiveChannel")
-
-        organizations = slack_team_identity.organizations.filter(
-            users__slack_user_identity=slack_user_identity
-        ).distinct()
-        organizations_options = []
-
-        for organization in organizations:
-            manual_integration = AlertReceiveChannel.get_or_create_manual_integration(
-                organization=organization,
-                integration=AlertReceiveChannel.INTEGRATION_MANUAL,
-                deleted_at=None,
-                defaults={"author": self.user},
-            )
-
-            for route in manual_integration.channel_filters.all():
-                filtering_term = f'"{route.filtering_term}"'
-                if route.is_default:
-                    filtering_term = "default"
-                organizations_options.append(
-                    {
-                        "text": {
-                            "type": "plain_text",
-                            "text": f"{organization.org_title}: {filtering_term}",
-                            "emoji": True,
-                        },
-                        "value": f"{organization.pk}-{route.pk}",
-                    }
-                )
-
-        organization_selection_block = {
-            "type": "input",
-            "block_id": ScenarioStep.SELECT_ORGANIZATION_AND_ROUTE_BLOCK_ID,
-            "element": {
-                "type": "static_select",
-                "placeholder": {
-                    "type": "plain_text",
-                    "text": "Select organization",
-                },
-                "action_id": ScenarioStep.SELECT_ORGANIZATION_AND_ROUTE_BLOCK_ID,
-                "options": organizations_options,
-                "initial_option": organizations_options[0],
-            },
-            "label": {
-                "type": "plain_text",
-                "text": "Select organization and route:",
-                "emoji": True,
-            },
-        }
-        return organization_selection_block

@@ -14,17 +14,17 @@ class AlertWebRenderer(AlertBaseRenderer):
             "title": str_or_backup(templated_alert.title, "Alert"),
             "message": str_or_backup(templated_alert.message, ""),
             "image_url": str_or_backup(templated_alert.image_url, None),
-            "source_link": str_or_backup(templated_alert.image_url, None),
+            "source_link": str_or_backup(templated_alert.source_link, None),
         }
         return rendered_alert
 
 
 class AlertGroupWebRenderer(AlertGroupBaseRenderer):
-    def __init__(self, alert_group):
-        super().__init__(alert_group)
+    def __init__(self, alert_group, alert=None):
+        if alert is None:
+            alert = alert_group.alerts.last()
 
-        # use the last alert to render content
-        self.alert_renderer = self.alert_renderer_class(self.alert_group.alerts.last())
+        super().__init__(alert_group, alert)
 
     @property
     def alert_renderer_class(self):

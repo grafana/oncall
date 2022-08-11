@@ -3,7 +3,8 @@ from rest_polymorphic.serializers import PolymorphicSerializer
 
 from apps.public_api.serializers.schedules_calendar import ScheduleCalendarSerializer, ScheduleCalendarUpdateSerializer
 from apps.public_api.serializers.schedules_ical import ScheduleICalSerializer, ScheduleICalUpdateSerializer
-from apps.schedules.models import OnCallScheduleCalendar, OnCallScheduleICal
+from apps.public_api.serializers.schedules_web import ScheduleWebSerializer, ScheduleWebUpdateSerializer
+from apps.schedules.models import OnCallScheduleCalendar, OnCallScheduleICal, OnCallScheduleWeb
 from common.api_helpers.mixins import EagerLoadingMixin
 
 
@@ -15,9 +16,10 @@ class PolymorphicScheduleSerializer(EagerLoadingMixin, PolymorphicSerializer):
     model_serializer_mapping = {
         OnCallScheduleICal: ScheduleICalSerializer,
         OnCallScheduleCalendar: ScheduleCalendarSerializer,
+        OnCallScheduleWeb: ScheduleWebSerializer,
     }
 
-    SCHEDULE_CLASS_TO_TYPE = {OnCallScheduleCalendar: "calendar", OnCallScheduleICal: "ical"}
+    SCHEDULE_CLASS_TO_TYPE = {OnCallScheduleCalendar: "calendar", OnCallScheduleICal: "ical", OnCallScheduleWeb: "web"}
 
     def to_resource_type(self, model_or_instance):
         return self.SCHEDULE_CLASS_TO_TYPE.get(model_or_instance._meta.model)
@@ -27,6 +29,7 @@ class PolymorphicScheduleUpdateSerializer(PolymorphicScheduleSerializer):
     model_serializer_mapping = {
         OnCallScheduleICal: ScheduleICalUpdateSerializer,
         OnCallScheduleCalendar: ScheduleCalendarUpdateSerializer,
+        OnCallScheduleWeb: ScheduleWebUpdateSerializer,
     }
 
     def update(self, instance, validated_data):

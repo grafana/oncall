@@ -1,6 +1,6 @@
 import logging
-from urllib.parse import urljoin
 
+import pytz
 from django.apps import apps
 from django.conf import settings
 from django.core.exceptions import ObjectDoesNotExist
@@ -44,6 +44,7 @@ from apps.user_management.organization_log_creator import OrganizationLogType, c
 from common.api_helpers.exceptions import Conflict
 from common.api_helpers.mixins import FilterSerializerMixin, PublicPrimaryKeyMixin
 from common.api_helpers.paginators import HundredPageSizePaginator
+from common.api_helpers.utils import create_engine_url
 from common.constants.role import Role
 
 logger = logging.getLogger(__name__)
@@ -100,7 +101,11 @@ class UserView(
     mixins.ListModelMixin,
     viewsets.GenericViewSet,
 ):
-    authentication_classes = (PluginAuthentication,)
+    authentication_classes = (
+        MobileAppAuthTokenAuthentication,
+        PluginAuthentication,
+    )
+
     permission_classes = (IsAuthenticated, ActionPermission)
 
     # Non-admin users are allowed to list and retrieve users
@@ -123,7 +128,7 @@ class UserView(
             "mobile_app_verification_token",
             "mobile_app_auth_token",
         ),
-        AnyRole: ("retrieve",),
+        AnyRole: ("retrieve", "timezone_options"),
     }
 
     action_object_permissions = {
@@ -235,6 +240,10 @@ class UserView(
     def current(self, request):
         serializer = UserSerializer(self.get_queryset().get(pk=self.request.user.pk))
         return Response(serializer.data)
+
+    @action(detail=False, methods=["get"])
+    def timezone_options(self, request):
+        return Response(pytz.common_timezones)
 
     @action(detail=True, methods=["get"])
     def get_verification_code(self, request, pk):
@@ -406,10 +415,9 @@ class UserView(
             except IntegrityError:
                 raise Conflict("Schedule export token for user already exists")
 
-            export_url = urljoin(
-                settings.BASE_URL,
+            export_url = create_engine_url(
                 reverse("api-public:users-schedule-export", kwargs={"pk": user.public_primary_key})
-                + f"?{SCHEDULE_EXPORT_TOKEN_NAME}={token}",
+                + f"?{SCHEDULE_EXPORT_TOKEN_NAME}={token}"
             )
 
             data = {"token": token, "created_at": instance.created_at, "export_url": export_url}

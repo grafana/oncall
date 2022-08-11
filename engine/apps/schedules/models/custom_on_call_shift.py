@@ -1,4 +1,6 @@
 import logging
+import random
+import string
 from calendar import monthrange
 from uuid import uuid4
 
@@ -6,14 +8,19 @@ import pytz
 from django.apps import apps
 from django.conf import settings
 from django.core.validators import MinLengthValidator
-from django.db import models
+from django.db import models, transaction
 from django.db.models import JSONField
+from django.forms.models import model_to_dict
 from django.utils import timezone
 from django.utils.functional import cached_property
 from icalendar.cal import Event
 from recurring_ical_events import UnfoldableCalendar
 
-from apps.schedules.tasks import drop_cached_ical_task
+from apps.schedules.tasks import (
+    drop_cached_ical_task,
+    schedule_notify_about_empty_shifts_in_schedule,
+    schedule_notify_about_gaps_in_schedule,
+)
 from apps.user_management.models import User
 from common.public_primary_keys import generate_public_primary_key, increase_public_primary_key_length
 
@@ -57,23 +64,38 @@ class CustomOnCallShift(models.Model):
         FREQUENCY_MONTHLY: "monthly",
     }
 
+    WEB_FREQUENCY_CHOICES_MAP = {
+        FREQUENCY_HOURLY: "hours",
+        FREQUENCY_DAILY: "days",
+        FREQUENCY_WEEKLY: "weeks",
+        FREQUENCY_MONTHLY: "months",
+    }
+
     (
         TYPE_SINGLE_EVENT,
         TYPE_RECURRENT_EVENT,
         TYPE_ROLLING_USERS_EVENT,
-    ) = range(3)
+        TYPE_OVERRIDE,
+    ) = range(4)
 
     TYPE_CHOICES = (
         (TYPE_SINGLE_EVENT, "Single event"),
         (TYPE_RECURRENT_EVENT, "Recurrent event"),
         (TYPE_ROLLING_USERS_EVENT, "Rolling users"),
+        (TYPE_OVERRIDE, "Override"),
     )
 
     PUBLIC_TYPE_CHOICES_MAP = {
         TYPE_SINGLE_EVENT: "single_event",
         TYPE_RECURRENT_EVENT: "recurrent_event",
         TYPE_ROLLING_USERS_EVENT: "rolling_users",
+        TYPE_OVERRIDE: "override",
     }
+
+    WEB_TYPES = (
+        TYPE_ROLLING_USERS_EVENT,
+        TYPE_OVERRIDE,
+    )
 
     (MONDAY, TUESDAY, WEDNESDAY, THURSDAY, FRIDAY, SATURDAY, SUNDAY) = range(7)
 
@@ -95,6 +117,16 @@ class CustomOnCallShift(models.Model):
         FRIDAY: "FR",
         SATURDAY: "SA",
         SUNDAY: "SU",
+    }
+
+    WEB_WEEKDAY_MAP = {
+        "MO": "Monday",
+        "TU": "Tuesday",
+        "WE": "Wednesday",
+        "TH": "Thursday",
+        "FR": "Friday",
+        "SA": "Saturday",
+        "SU": "Sunday",
     }
     (
         SOURCE_WEB,
@@ -128,7 +160,15 @@ class CustomOnCallShift(models.Model):
         null=True,
         default=None,
     )
+    schedule = models.ForeignKey(
+        "schedules.OnCallSchedule",
+        on_delete=models.CASCADE,
+        related_name="custom_shifts",
+        null=True,
+        default=None,
+    )
     name = models.CharField(max_length=200)
+    title = models.CharField(max_length=200, null=True, default=None)
     time_zone = models.CharField(max_length=100, null=True, default=None)
     source = models.IntegerField(choices=SOURCE_CHOICES, default=SOURCE_API)
     users = models.ManyToManyField("user_management.User")  # users in single and recurrent events
@@ -136,10 +176,12 @@ class CustomOnCallShift(models.Model):
     start_rotation_from_user_index = models.PositiveIntegerField(null=True, default=None)
 
     uuid = models.UUIDField(default=uuid4)  # event uuid
-    type = models.IntegerField(choices=TYPE_CHOICES)  # "rolling_users", "recurrent_event", "single_event"
+    type = models.IntegerField(choices=TYPE_CHOICES)  # "rolling_users", "recurrent_event", "single_event", "override"
 
     start = models.DateTimeField()  # event start datetime
     duration = models.DurationField()  # duration in seconds
+
+    rotation_start = models.DateTimeField()  # used for calculation users rotation and rotation start date
 
     frequency = models.IntegerField(choices=FREQUENCY_CHOICES, null=True, default=None)
 
@@ -158,13 +200,44 @@ class CustomOnCallShift(models.Model):
     by_month = JSONField(default=None, null=True)  # [] BYMONTH - what months (1, 2, 3, ...) - ical format
     by_monthday = JSONField(default=None, null=True)  # [] BYMONTHDAY - what days of month (1, 2, -3) - ical format
 
+    updated_shift = models.OneToOneField(
+        "schedules.CustomOnCallShift",
+        on_delete=models.SET_NULL,
+        default=None,
+        null=True,
+        related_name="parent_shift",
+    )
+
     class Meta:
         unique_together = ("name", "organization")
 
     def delete(self, *args, **kwargs):
-        for schedule in self.schedules.all():
-            drop_cached_ical_task.apply_async((schedule.pk,))
-        super().delete(*args, **kwargs)
+        schedules_to_update = list(self.schedules.all())
+        if self.schedule:
+            schedules_to_update.append(self.schedule)
+
+        # do soft delete for started shifts that were created for web schedule
+        if self.schedule and self.event_is_started:
+            self.until = timezone.now().replace(microsecond=0)
+            self.save(update_fields=["until"])
+        else:
+            super().delete(*args, **kwargs)
+
+        for schedule in schedules_to_update:
+            self.start_drop_ical_and_check_schedule_tasks(schedule)
+
+    @property
+    def event_is_started(self):
+        return bool(self.rotation_start <= timezone.now())
+
+    @property
+    def event_is_finished(self):
+        if self.frequency is not None:
+            is_finished = bool(self.until <= timezone.now()) if self.until else False
+        else:
+            is_finished = bool(self.start + self.duration <= timezone.now())
+
+        return is_finished
 
     @property
     def repr_settings_for_client_side_logging(self) -> str:
@@ -191,11 +264,12 @@ class CustomOnCallShift(models.Model):
             f"source: {self.get_source_display()}, type: {self.get_type_display()}, users: {users_verbal}, "
             f"start: {self.start.isoformat()}, duration: {self.duration}, priority level: {self.priority_level}"
         )
-        if self.type != CustomOnCallShift.TYPE_SINGLE_EVENT:
+        if self.type not in (CustomOnCallShift.TYPE_SINGLE_EVENT, CustomOnCallShift.TYPE_OVERRIDE):
             result += (
                 f", frequency: {self.get_frequency_display()}, interval: {self.interval}, "
                 f"week start: {self.week_start}, by day: {self.by_day}, by month: {self.by_month}, "
-                f"by monthday: {self.by_monthday}, until: {self.until.isoformat() if self.until else None}"
+                f"by monthday: {self.by_monthday}, rotation start: {self.rotation_start.isoformat()}, "
+                f"until: {self.until.isoformat() if self.until else None}"
             )
         return result
 
@@ -204,11 +278,13 @@ class CustomOnCallShift(models.Model):
         # use shift time_zone if it exists, otherwise use schedule or default time_zone
         time_zone = self.time_zone if self.time_zone is not None else time_zone
         # rolling_users shift converts to several ical events
-        if self.type == CustomOnCallShift.TYPE_ROLLING_USERS_EVENT:
+        if self.type in (CustomOnCallShift.TYPE_ROLLING_USERS_EVENT, CustomOnCallShift.TYPE_OVERRIDE):
             event_ical = None
             users_queue = self.get_rolling_users()
             for counter, users in enumerate(users_queue, start=1):
                 start = self.get_next_start_date(event_ical)
+                if not start:  # means that rotation ends before next event starts
+                    break
                 for user_counter, user in enumerate(users, start=1):
                     event_ical = self.generate_ical(user, start, user_counter, counter, time_zone)
                     result += event_ical
@@ -220,7 +296,7 @@ class CustomOnCallShift(models.Model):
     def generate_ical(self, user, start, user_counter, counter=1, time_zone="UTC"):
         # create event for each user in a list because we can't parse multiple users from ical summary
         event = Event()
-        event["uid"] = f"amixr-{self.uuid}-U{user_counter}-E{counter}-S{self.source}"
+        event["uid"] = f"oncall-{self.uuid}-PK{self.public_primary_key}-U{user_counter}-E{counter}-S{self.source}"
         event.add("summary", self.get_summary_with_user_for_ical(user))
         event.add("dtstart", self.convert_dt_to_schedule_timezone(start, time_zone))
         event.add("dtend", self.convert_dt_to_schedule_timezone(start + self.duration, time_zone))
@@ -270,6 +346,10 @@ class CustomOnCallShift(models.Model):
             if days_for_next_event > DAYS_IN_A_MONTH:
                 days_for_next_event = days_for_next_event % DAYS_IN_A_MONTH
             next_event_start = current_event_start + timezone.timedelta(days=days_for_next_event)
+
+        # check if rotation ends before next event starts
+        if self.until and next_event_start > self.until:
+            return
         next_event = None
         # repetitions generate the next event shift according with the recurrence rules
         repetitions = UnfoldableCalendar(current_event).RepeatedEvent(
@@ -280,7 +360,7 @@ class CustomOnCallShift(models.Model):
             if event.start.date() >= next_event_start.date():
                 next_event = event
                 break
-        next_event_dt = next_event.start
+        next_event_dt = next_event.start if next_event is not None else None
         return next_event_dt
 
     @cached_property
@@ -346,3 +426,56 @@ class CustomOnCallShift(models.Model):
             result.append({user.pk: user.public_primary_key for user in users})
         self.rolling_users = result
         self.save(update_fields=["rolling_users"])
+
+    def start_drop_ical_and_check_schedule_tasks(self, schedule):
+        drop_cached_ical_task.apply_async((schedule.pk,))
+        schedule_notify_about_empty_shifts_in_schedule.apply_async((schedule.pk,))
+        schedule_notify_about_gaps_in_schedule.apply_async((schedule.pk,))
+
+    @cached_property
+    def last_updated_shift(self):
+        last_shift = self.updated_shift
+        if last_shift is not None:
+            while last_shift.updated_shift is not None:
+                last_shift = last_shift.updated_shift
+        return last_shift
+
+    def create_or_update_last_shift(self, data):
+        # rotation start date cannot be earlier than now
+        data["rotation_start"] = max(data["rotation_start"], timezone.now().replace(microsecond=0))
+        # prepare dict with params of existing instance with last updates and remove unique and m2m fields from it
+        shift_to_update = self.last_updated_shift or self
+        instance_data = model_to_dict(shift_to_update)
+        fields_to_remove = ["id", "public_primary_key", "uuid", "users", "updated_shift", "name"]
+        for field in fields_to_remove:
+            instance_data.pop(field)
+
+        instance_data.update(data)
+        instance_data["schedule"] = self.schedule
+        instance_data["team"] = self.team
+
+        if self.last_updated_shift is None or self.last_updated_shift.event_is_started:
+            # create new shift
+            instance_data["name"] = CustomOnCallShift.generate_name(
+                self.schedule, instance_data["priority_level"], instance_data["type"]
+            )
+            with transaction.atomic():
+                shift = CustomOnCallShift(**instance_data)
+                shift.save()
+                shift_to_update.until = data["rotation_start"]
+                shift_to_update.updated_shift = shift
+                shift_to_update.save(update_fields=["until", "updated_shift"])
+        else:
+            shift = self.last_updated_shift
+            for key in instance_data:
+                setattr(shift, key, instance_data[key])
+            shift.save(update_fields=list(instance_data))
+
+        return shift
+
+    @staticmethod
+    def generate_name(schedule, priority_level, shift_type):
+        shift_type_name = "override" if shift_type == CustomOnCallShift.TYPE_OVERRIDE else "rotation"
+        name = f"{schedule.name}-{shift_type_name}-{priority_level}-"
+        name += "".join(random.choice(string.ascii_lowercase) for _ in range(5))
+        return name

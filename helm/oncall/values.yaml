@@ -16,6 +16,7 @@ service:
   enabled: false
   type: LoadBalancer
   port: 8080
+  annotations: {}
 
 # Engine pods configuration
 engine:
@@ -53,6 +54,25 @@ ingress:
   annotations:
     kubernetes.io/ingress.class: "nginx"
     cert-manager.io/issuer: "letsencrypt-prod"
+  tls: 
+    - hosts:
+        - "{{ .Values.base_url }}"
+      secretName: certificate-tls
+  # Extra paths to prepend to the host configuration. If using something 
+  # like an ALB ingress controller, you may want to configure SSL redirects 
+  extraPaths: []
+  # - path: /*
+  #   backend:
+  #     serviceName: ssl-redirect
+  #     servicePort: use-annotation
+  ## Or for k8s > 1.19
+  # - path: /*
+  #   pathType: Prefix
+  #   backend:
+  #     service:
+  #       name: ssl-redirect
+  #       port:
+  #         name: use-annotation
 
 # Whether to install ingress controller
 ingress-nginx:
@@ -117,6 +137,7 @@ externalRabbitmq:
   user:
   password:
   protocol:
+  vhost:
 
 # Redis is included into this release for the convenience.
 # It is recommended to host it separately from this release

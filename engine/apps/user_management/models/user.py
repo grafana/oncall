@@ -8,7 +8,6 @@ from django.db.models.signals import post_save
 from django.dispatch import receiver
 from emoji import demojize
 
-from apps.alerts.tasks import invalidate_web_cache_for_alert_group
 from apps.schedules.tasks import drop_cached_ical_for_custom_events_for_organization
 from common.constants.role import Role
 from common.public_primary_keys import generate_public_primary_key, increase_public_primary_key_length
@@ -28,6 +27,16 @@ def generate_public_primary_key_for_user():
         failure_counter += 1
 
     return new_public_primary_key
+
+
+def default_working_hours():
+    weekdays = ["monday", "tuesday", "wednesday", "thursday", "friday"]
+    weekends = ["saturday", "sunday"]
+
+    working_hours = {day: [{"start": "09:00:00", "end": "17:00:00"}] for day in weekdays}
+    working_hours |= {day: [] for day in weekends}
+
+    return working_hours
 
 
 class UserManager(models.Manager):
@@ -128,6 +137,10 @@ class User(models.Model):
     role = models.PositiveSmallIntegerField(choices=Role.choices())
     avatar_url = models.URLField()
 
+    # don't use "_timezone" directly, use the "timezone" property since it can be populated via slack user identity
+    _timezone = models.CharField(max_length=50, null=True, default=None)
+    working_hours = models.JSONField(null=True, default=default_working_hours)
+
     notification = models.ManyToManyField("alerts.AlertGroup", through="alerts.UserHasNotification")
 
     unverified_phone_number = models.CharField(max_length=20, null=True, default=None)
@@ -222,11 +235,17 @@ class User(models.Model):
 
     @property
     def timezone(self):
-        slack_user_identity = self.slack_user_identity
-        if slack_user_identity:
-            return slack_user_identity.timezone
-        else:
-            return None
+        if self._timezone:
+            return self._timezone
+
+        if self.slack_user_identity:
+            return self.slack_user_identity.timezone
+
+        return None
+
+    @timezone.setter
+    def timezone(self, value):
+        self._timezone = value
 
     def short(self):
         return {"username": self.username, "pk": self.public_primary_key, "avatar": self.avatar_url}
@@ -235,14 +254,6 @@ class User(models.Model):
 # TODO: check whether this signal can be moved to save method of the model
 @receiver(post_save, sender=User)
 def listen_for_user_model_save(sender, instance, created, *args, **kwargs):
-    # if kwargs is not None:
-    #     if "update_fields" in kwargs:
-    #         if kwargs["update_fields"] is not None:
-    #             if "username" not in kwargs["update_fields"]:
-    #                 return
-
     drop_cached_ical_for_custom_events_for_organization.apply_async(
         (instance.organization_id,),
     )
-    logger.info(f"Drop AG cache. Reason: save user {instance.pk}")
-    invalidate_web_cache_for_alert_group.apply_async(kwargs={"org_pk": instance.organization_id})

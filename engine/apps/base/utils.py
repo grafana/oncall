@@ -1,5 +1,6 @@
 import json
 import re
+from urllib.parse import urlparse
 
 from django.apps import apps
 from python_http_client import UnauthorizedError
@@ -7,6 +8,8 @@ from sendgrid import SendGridAPIClient
 from telegram import Bot
 from twilio.base.exceptions import TwilioException
 from twilio.rest import Client
+
+from common.api_helpers.utils import create_engine_url
 
 
 class LiveSettingProxy:
@@ -87,10 +90,25 @@ class LiveSettingValidator:
             return "Please specify a valid email"
 
     @classmethod
+    def _check_slack_install_return_redirect_host(cls, slack_install_return_redirect_host):
+        scheme = urlparse(slack_install_return_redirect_host).scheme
+        if scheme != "https":
+            return "Must use https"
+
+    @classmethod
     def _check_telegram_token(cls, telegram_token):
         try:
             bot = Bot(telegram_token)
             bot.get_me()
+        except Exception as e:
+            return f"Telegram error: {str(e)}"
+
+    @classmethod
+    def _check_telegram_webhook_host(cls, telegram_webhook_host):
+        try:
+            url = create_engine_url("/telegram/", override_base=telegram_webhook_host)
+            bot = Bot(token=live_settings.TELEGRAM_TOKEN)
+            bot.set_webhook(url)
         except Exception as e:
             return f"Telegram error: {str(e)}"
 

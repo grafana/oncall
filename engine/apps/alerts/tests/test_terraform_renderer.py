@@ -99,6 +99,7 @@ def test_render_terraform_file(
         interval=1,
         week_start=CustomOnCallShift.MONDAY,
         start=dateparse.parse_datetime("2021-08-16T17:00:00"),
+        rotation_start=dateparse.parse_datetime("2021-08-16T17:00:00"),
         duration=timezone.timedelta(seconds=3600),
         by_day=["MO", "SA"],
         rolling_users=[{user.pk: user.public_primary_key}],
@@ -137,7 +138,7 @@ def test_render_terraform_imports(
     result = renderer.render_state()
 
     expected_result = rendered_terraform_imports_template.format(
-        escalation_chain_name=escalation_chain.name,
+        escalation_chain_name=slugify(escalation_chain.name),
         escalation_chain_public_primary_key=escalation_chain.public_primary_key,
         integration_name=slugify(integration.verbal_name),
         integration_public_primary_key=integration.public_primary_key,
