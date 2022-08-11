@@ -43,7 +43,6 @@ class UpdateManager:
     @classmethod
     def process_request(cls, request: Request) -> None:
         update = Update.de_json(request.data, bot=Bot(live_settings.TELEGRAM_TOKEN))
-        logger.info(f"Update from Telegram: {update}")
         cls.process_update(update)
 
     @classmethod
