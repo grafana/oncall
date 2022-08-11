@@ -115,26 +115,40 @@ services:
       CELERY_WORKER_QUEUE: "default,critical,long,slack,telegram,webhook,retry,celery"
     volumes:
       - grafana_plugin:/plugins
+    profiles:
+      - with_grafana
     depends_on:
       mysql:
         condition: service_healthy
       rabbitmq:
         condition: service_started
+      engine:
+        condition: service_started
     command:
       - sh
       - '-c'
       - |
-        python manage.py shell -c "import blah; blah"> $TOKEN
-        cat << EOF > /plugins/123.yml
+        rm /plugins/123.yml
+        # Dirty hack to get the get the token from oncall backend
+        # It runs the command, removes first three lines, extracts token and cleans it from any control characters
+        # TODO: we need to add the command flag to return only the token
+        # TODO: we need to supply the token as an env variable and insert it directly into oncall backend
+        TOKEN=$$(python manage.py issue_invite_for_the_frontend --override | tail -n +4 | sed 's/.*Your invite token: \([^ ]*\).*/\1/' | sed 's/[^a-zA-Z0-9]//g')
+        # Currently the only way to enable and provision the plugin in grafana is only through provisioning files in /etc/grafana/provisioning/plugins/
+        # We want to keep the docker-compose distribution as slim as possible and consist only one docker-compose file
+        # So we use a volume and this service to generate provisioning file and put it into grafana provisioning folder
+        cat << EOF > /plugins/grafana-oncall-self-hosted.yml
         apiVersion: 1
         apps:
           - type: grafana-oncall-app
             jsonData:
-              onCallApiUrl: http://engine:8080
+              onCallApiUrl: http://host.docker.internal:8000
               grafanaUrl: http://grafana:3000
             secureJsonData:
-              onCallToken: $TOKEN
-        EOF   
+              onCallInvitationToken: $$TOKEN
+        EOF
+        cat /plugins/grafana-oncall-self-hosted.yml
+        echo Done
 
   mysql:
     image: mysql:5.7
