@@ -103,7 +103,8 @@ class LiveSetting(models.Model):
             "<a href='https://sendgrid.com/docs/ui/account-and-settings/api-keys/' target='_blank'>more info</a>."
         ),
         "SENDGRID_FROM_EMAIL": (
-            "Address to send emails, <a href='https://sendgrid.com/docs/ui/sending-email/senders/' target='_blank'>" "more info</a>."
+            "Address to send emails, <a href='https://sendgrid.com/docs/ui/sending-email/senders/' target='_blank'>"
+            "more info</a>."
         ),
         "SENDGRID_SECRET_KEY": "It is the secret key to secure receiving inbound emails.",
         "SENDGRID_INBOUND_EMAIL_DOMAIN": "Domain to receive emails for inbound emails integration.",
