@@ -81,7 +81,10 @@ class PluginAuthentication(BaseAuthentication):
     @staticmethod
     def _get_user(request: Request, organization: Organization) -> User:
         context = json.loads(request.headers.get("X-Grafana-Context"))
-        user_id = context["UserId"]
+        try:
+            user_id = context["UserId"]
+        except KeyError:
+            user_id = context["UserID"]
         try:
             return organization.users.get(user_id=user_id)
         except User.DoesNotExist:
