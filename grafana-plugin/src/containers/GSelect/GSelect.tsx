@@ -32,7 +32,7 @@ interface GSelectProps {
   showWarningIfEmptyValue?: boolean;
   showError?: boolean;
   nullItemName?: string;
-  excludedOptionsIdList?: string[];
+  filterOptions?: (item: any) => boolean;
   dropdownRender?: (menu: ReactElement) => ReactElement;
   getOptionLabel?: <T>(item: SelectableValue<T>) => React.ReactNode;
   getDescription?: (item: any) => React.ReactNode;
@@ -58,7 +58,7 @@ const GSelect = observer((props: GSelectProps) => {
     getOptionLabel,
     showWarningIfEmptyValue = false,
     getDescription,
-    excludedOptionsIdList,
+    filterOptions,
   } = props;
 
   const store = useStore();
@@ -87,20 +87,18 @@ const GSelect = observer((props: GSelectProps) => {
   const loadOptions = (query: string) => {
     return model.updateItems(query).then(() => {
       const searchResult = model.getSearchResult(query);
-      const items = Array.isArray(searchResult.results) ? searchResult.results : searchResult;
+      let items = Array.isArray(searchResult.results) ? searchResult.results : searchResult;
 
-      return items.reduce((options: any[], item: any) => {
-        const isItemExcludedFromList = excludedOptionsIdList?.includes(item[valueField]);
-        if (!isItemExcludedFromList) {
-          options.push({
-            value: item[valueField],
-            label: get(item, displayField),
-            imgUrl: item.avatar_url,
-            description: getDescription && getDescription(item),
-          });
-        }
-        return options;
-      }, []);
+      if (filterOptions) {
+        items = items.filter((opt: any) => filterOptions(opt[valueField]));
+      }
+
+      return items.map((item: any) => ({
+        value: item[valueField],
+        label: get(item, displayField),
+        imgUrl: item.avatar_url,
+        description: getDescription && getDescription(item),
+      }));
     });
   };
 
