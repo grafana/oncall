@@ -88,7 +88,7 @@ const AttachIncidentForm = observer((props: AttachIncidentFormProps) => {
             displayField="render_for_web.title"
             placeholder="Select Incident"
             className={cx('select', 'control')}
-            filterOptions={id => id !== props.id}
+            filterOptions={(id) => id !== props.id}
             value={selected}
             onChange={getChangeHandler}
             getDescription={(item: Alert) => moment(item.started_at).format('MMM DD, YYYY hh:mm A')}
