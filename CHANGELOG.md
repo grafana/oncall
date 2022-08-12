@@ -1,5 +1,8 @@
 # Change Log
 
+## v1.0.21 (2022-08-12)
+- Bug fixes
+- 
 ## v1.0.19 (2022-08-10)
 - Bug fixes
 
