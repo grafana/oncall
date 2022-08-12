@@ -120,7 +120,7 @@ class Rotations extends Component<RotationsProps, RotationsState> {
                       </HorizontalGroup>
                     </div>
                     <div className={cx('rotations')}>
-                      <TimelineMarks startMoment={startMoment} />
+                      <TimelineMarks debug startMoment={startMoment} />
                       {layer.shifts.map(({ shiftId, events }, rotationIndex) => (
                         <div className={cx('header-plus-content')}>
                           {!currentTimeHidden && (
@@ -158,7 +158,7 @@ class Rotations extends Component<RotationsProps, RotationsState> {
                     <div className={cx('rotations')}>
                       <Rotation
                         onClick={() => {
-                          this.onRotationClick('new');
+                          this.handleAddLayer(layers ? layers.length : 0);
                         }}
                         events={[]}
                         layerIndex={0}

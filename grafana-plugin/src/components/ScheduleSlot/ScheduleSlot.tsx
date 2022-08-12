@@ -1,4 +1,4 @@
-import React, { FC } from 'react';
+import React, { FC, useCallback, useState } from 'react';
 
 import { HorizontalGroup, Icon, Tooltip, VerticalGroup } from '@grafana/ui';
 import cn from 'classnames/bind';
@@ -33,6 +33,10 @@ const ScheduleSlot: FC<ScheduleSlotProps> = observer((props) => {
   const { index, layerIndex, rotationIndex, event, startMoment, currentTimezone, color: propColor } = props;
   const { users } = event;
 
+  const trackMouse = true;
+
+  const [mouseX, setMouseX] = useState<number>(0);
+
   const start = dayjs(event.start);
   const end = dayjs(event.end);
 
@@ -45,6 +49,10 @@ const ScheduleSlot: FC<ScheduleSlotProps> = observer((props) => {
   const width = duration / base;
 
   const label = !isNaN(layerIndex) && !isNaN(rotationIndex) && index === 0 ? getLabel(layerIndex, rotationIndex) : null;
+
+  const handleMouseMove = useCallback((event) => {
+    setMouseX(event.nativeEvent.offsetX);
+  }, []);
 
   return (
     <div className={cx('stack')} style={{ width: `${width * 100}%` /*left: `${x * 100}%`*/ }}>
@@ -64,13 +72,15 @@ const ScheduleSlot: FC<ScheduleSlotProps> = observer((props) => {
                 style={{
                   backgroundColor: color,
                 }}
+                onMouseMove={trackMouse ? handleMouseMove : undefined}
+                onMouseLeave={trackMouse ? () => setMouseX(0) : undefined}
               >
+                {trackMouse && mouseX > 0 && <div style={{ left: `${mouseX}px` }} className={cx('time')} />}
                 {storeUser && (
                   <WorkingHours
                     className={cx('working-hours')}
-                    // timezone={storeUser.timezone}
                     timezone={storeUser.timezone}
-                    //workingHours={storeUser.working_hours}
+                    workingHours={storeUser.working_hours}
                     startMoment={start}
                     duration={duration}
                   />
@@ -88,6 +98,7 @@ const ScheduleSlot: FC<ScheduleSlotProps> = observer((props) => {
       ) : (
         <Tooltip content={<ScheduleGapDetails event={event} currentTimezone={currentTimezone} />}>
           <div className={cx('root', 'root__type_gap')} style={{}}>
+            {trackMouse && mouseX > 0 && <div style={{ left: `${mouseX}px` }} className={cx('time')} />}
             {label && <div className={cx('label')}>{label}</div>}
           </div>
         </Tooltip>

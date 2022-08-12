@@ -26,7 +26,7 @@ const cx = cn.bind(styles);
 const WorkingHours: FC<WorkingHoursProps> = (props) => {
   const {
     timezone,
-    workingHours = default_working_hours,
+    workingHours,
     startMoment = dayjs().utc().startOf('week'),
     duration = 14 * 24 * 60 * 60,
     className,
@@ -43,16 +43,23 @@ const WorkingHours: FC<WorkingHoursProps> = (props) => {
     workingMoments.map(({ start, end }) => `${start.diff(startMoment, 'hours')} - ${end.diff(startMoment, 'hours')}`)
   );*/
 
-  const nonWorkingMoments = getNonWorkingMoments(startMoment, endMoment, workingMoments);
+  const nonWorkingMoments = useMemo(
+    () => getNonWorkingMoments(startMoment, endMoment, workingMoments),
+    [startMoment, endMoment, workingMoments]
+  );
 
-  /*console.log(
+  // console.log(startMoment, startMoment.toString());
+
+  /* console.log(
     workingMoments.map(
       (range) =>
         `${range.start.tz(timezone).format('D MMM ddd HH:ss')} - ${range.end.tz(timezone).format('D MMM ddd HH:ss')}`
     )
-  );
+  ); */
 
-  console.log(
+  // console.log(workingHours);
+
+  /*console.log(
     nonWorkingMoments.map(
       (range) =>
         `${range.start.tz(timezone).format('D MMM ddd HH:ss')} - ${range.end.tz(timezone).format('D MMM ddd HH:ss')}`

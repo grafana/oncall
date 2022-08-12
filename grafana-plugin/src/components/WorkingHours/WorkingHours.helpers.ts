@@ -1,14 +1,11 @@
 import dayjs from 'dayjs';
 
-export const getWorkingMoments = (
-  startMoment,
-  endMoment,
-  workingHours,
-  timezone,
-) => {
+export const getWorkingMoments = (startMoment, endMoment, workingHours, timezone) => {
   const weekdays = dayjs.weekdays();
 
-  const dayOfWeekToStartIteration = startMoment.format('dddd');
+  const momentToStartIteration = startMoment.tz(timezone);
+  const dayOfWeekToStartIteration = momentToStartIteration.format('dddd');
+
   const weekDaysToIterateChunk = [
     dayOfWeekToStartIteration,
     ...weekdays.slice(weekdays.indexOf(dayOfWeekToStartIteration) + 1),
@@ -30,15 +27,13 @@ export const getWorkingMoments = (
       const [start_HH, start_mm, start_ss] = rangeStartData.split(':');
       const [end_HH, end_mm, end_ss] = rangeEndData.split(':');
 
-      const rangeStartMoment = dayjs(startMoment)
-        .tz(timezone)
+      const rangeStartMoment = dayjs(momentToStartIteration)
         .add(i, 'day')
         .set('hour', Number(start_HH))
         .set('minute', Number(start_mm))
         .set('second', Number(start_ss));
 
-      const rangeEndMoment = dayjs(startMoment)
-        .tz(timezone)
+      const rangeEndMoment = dayjs(momentToStartIteration)
         .add(i, 'day')
         .set('hour', Number(end_HH))
         .set('minute', Number(end_mm))

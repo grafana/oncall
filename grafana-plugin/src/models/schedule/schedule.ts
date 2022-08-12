@@ -331,7 +331,7 @@ export class ScheduleStore extends BaseStore {
       shift.events = fillGaps(shift.events);
     });
 
-    console.log(type, shifts);
+    //console.log(type, shifts);
 
     this.events = {
       ...this.events,
@@ -344,7 +344,7 @@ export class ScheduleStore extends BaseStore {
       },
     };
 
-    console.log(toJS(this.events));
+    // console.log(toJS(this.events));
   }
 
   async updateFrequencyOptions() {
