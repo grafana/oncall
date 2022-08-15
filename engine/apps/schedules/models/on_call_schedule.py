@@ -1,4 +1,5 @@
 import datetime
+import itertools
 
 import icalendar
 from django.apps import apps
@@ -509,10 +510,12 @@ class OnCallScheduleCalendar(OnCallSchedule):
 class OnCallScheduleWeb(OnCallSchedule):
     time_zone = models.CharField(max_length=100, default="UTC")
 
-    def _generate_ical_file_from_shifts(self, qs):
+    def _generate_ical_file_from_shifts(self, qs, extra_shifts=None):
         """Generate iCal events file from custom on-call shifts."""
         ical = None
-        if qs.exists():
+        if qs.exists() or extra_shifts is not None:
+            if extra_shifts is None:
+                extra_shifts = []
             end_line = "END:VCALENDAR"
             calendar = Calendar()
             calendar.add("prodid", "-//web schedule//oncall//")
@@ -521,7 +524,7 @@ class OnCallScheduleWeb(OnCallSchedule):
             ical_file = calendar.to_ical().decode()
             ical = ical_file.replace(end_line, "").strip()
             ical = f"{ical}\r\n"
-            for event in qs.all():
+            for event in itertools.chain(qs.all(), extra_shifts):
                 ical += event.convert_to_ical(self.time_zone)
             ical += f"{end_line}\r\n"
         return ical
@@ -559,3 +562,39 @@ class OnCallScheduleWeb(OnCallSchedule):
         self.prev_ical_file_overrides = self.cached_ical_file_overrides
         self.cached_ical_file_overrides = self._generate_ical_file_overrides()
         self.save(update_fields=["cached_ical_file_overrides", "prev_ical_file_overrides"])
+
+    def preview_shift(self, custom_shift, user_tz, starting_date, days):
+        """Return unsaved rotation and final schedule preview events."""
+        if custom_shift.type == CustomOnCallShift.TYPE_OVERRIDE:
+            qs = self.custom_shifts.filter(type=CustomOnCallShift.TYPE_OVERRIDE)
+            ical_attr = "cached_ical_file_overrides"
+            ical_property = "_ical_file_overrides"
+        elif custom_shift.type == CustomOnCallShift.TYPE_ROLLING_USERS_EVENT:
+            qs = self.custom_shifts.exclude(type=CustomOnCallShift.TYPE_OVERRIDE)
+            ical_attr = "cached_ical_file_primary"
+            ical_property = "_ical_file_primary"
+        else:
+            raise ValueError("Invalid shift type")
+
+        def _invalidate_cache(schedule, prop_name):
+            """Invalidate cached property cache"""
+            try:
+                delattr(schedule, prop_name)
+            except AttributeError:
+                pass
+
+        ical_file = self._generate_ical_file_from_shifts(qs, extra_shifts=[custom_shift])
+
+        original_value = getattr(self, ical_attr)
+        _invalidate_cache(self, ical_property)
+        setattr(self, ical_attr, ical_file)
+
+        # filter events using a temporal overriden calendar including the not-yet-saved shift
+        events = self.filter_events(user_tz, starting_date, days=days, with_empty=True, with_gap=True)
+        shift_events = [e for e in events if e["shift"]["pk"] == custom_shift.public_primary_key]
+        final_events = self._resolve_schedule(events)
+
+        _invalidate_cache(self, ical_property)
+        setattr(self, ical_attr, original_value)
+
+        return shift_events, final_events
