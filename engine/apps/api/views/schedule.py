@@ -232,7 +232,7 @@ class ScheduleView(
 
         schedule = self.original_get_object()
 
-        if filter_by is not None:
+        if filter_by is not None and filter_by != EVENTS_FILTER_BY_FINAL:
             filter_by = OnCallSchedule.PRIMARY if filter_by == EVENTS_FILTER_BY_ROTATION else OnCallSchedule.OVERRIDES
             events = schedule.filter_events(
                 user_tz, starting_date, days=days, with_empty=True, with_gap=resolve_schedule, filter_by=filter_by
