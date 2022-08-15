@@ -25,6 +25,8 @@ There are three Grafana OnCall OSS environments available:
 ## Production Environment
 We suggest using our official helm chart for the reliable production deployment of Grafana OnCall. It will deploy Grafana OnCall engine and celery workers, along with RabbitMQ cluster, Redis Cluster, and the database. 
 
+>NOTE: The Grafana OnCall engine currently supports one instance  of the Grafana OnCall plugin at a time. 
+
 Check the [helm chart](https://github.com/grafana/oncall/tree/dev/helm/oncall) for more details. 
 
 We'll always be happy to provide assistance with production deployment in [our communities](https://github.com/grafana/oncall#join-community)! 
