@@ -1,5 +1,8 @@
 # Change Log
 
+## v1.0.15 (2022-08-03)
+- Bug fixes
+
 ## v1.0.13 (2022-07-27)
 - Optimize alert group list view
 - Fix a bug related to Twilio setup

@@ -54,7 +54,7 @@ class SlackOAuth2V2(SlackOAuth2):
     ACCESS_TOKEN_URL = "https://slack.com/api/oauth.v2.access"
     AUTH_TOKEN_NAME = SLACK_AUTH_TOKEN_NAME
 
-    # Remove redirect state because we loose session during redirects
+    # Remove redirect state because we lose session during redirects
     REDIRECT_STATE = False
     STATE_PARAMETER = False
 
