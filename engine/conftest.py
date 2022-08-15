@@ -41,7 +41,6 @@ from apps.base.models.user_notification_policy_log_record import (
 )
 from apps.base.tests.factories import (
     LiveSettingFactory,
-    OrganizationLogRecordFactory,
     UserNotificationPolicyFactory,
     UserNotificationPolicyLogRecordFactory,
 )
@@ -69,7 +68,6 @@ from apps.telegram.tests.factories import (
     TelegramVerificationCodeFactory,
 )
 from apps.twilioapp.tests.factories import PhoneCallFactory, SMSFactory
-from apps.user_management.organization_log_creator import OrganizationLogType
 from apps.user_management.tests.factories import OrganizationFactory, TeamFactory, UserFactory
 from common.constants.role import Role
 
@@ -77,7 +75,6 @@ register(OrganizationFactory)
 register(UserFactory)
 register(TeamFactory)
 
-register(OrganizationLogRecordFactory)
 
 register(AlertReceiveChannelFactory)
 register(ChannelFilterFactory)
@@ -655,16 +652,6 @@ def make_integration_heartbeat():
         )
 
     return _make_integration_heartbeat
-
-
-@pytest.fixture()
-def make_organization_log_record():
-    def _make_organization_log_record(organization, user, **kwargs):
-        if "type" not in kwargs:
-            kwargs["type"] = OrganizationLogType.TYPE_SLACK_DEFAULT_CHANNEL_CHANGED
-        return OrganizationLogRecordFactory(organization=organization, author=user, **kwargs)
-
-    return _make_organization_log_record
 
 
 @pytest.fixture()

@@ -6,7 +6,7 @@ from apps.api.permissions import MODIFY_ACTIONS, READ_ACTIONS, ActionPermission,
 from apps.api.serializers.alert_receive_channel import AlertReceiveChannelTemplatesSerializer
 from apps.auth_token.auth import PluginAuthentication
 from common.api_helpers.mixins import PublicPrimaryKeyMixin
-from common.insight_logs import entity_updated_insight_logs
+from common.insight_log import EntityEvent, entity_insight_log
 
 
 class AlertReceiveChannelTemplateView(
@@ -35,15 +35,15 @@ class AlertReceiveChannelTemplateView(
 
     def update(self, request, *args, **kwargs):
         instance = self.get_object()
-        old_state = instance.insight_logs_dict
+        old_state = instance.insight_logs_serialized
         result = super().update(request, *args, **kwargs)
         instance = self.get_object()
-        new_state = instance.insight_logs_dict
-
-        entity_updated_insight_logs(
-            self.request.user,
-            instance,
-            old_state,
-            new_state,
+        new_state = instance.insight_logs_serialized
+        entity_insight_log(
+            instance=instance,
+            author=self.request.user,
+            event=EntityEvent.DELETED,
+            prev_state=old_state,
+            new_state=new_state,
         )
         return result

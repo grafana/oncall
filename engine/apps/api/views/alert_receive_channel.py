@@ -25,7 +25,7 @@ from common.api_helpers.mixins import (
     UpdateSerializerMixin,
 )
 from common.exceptions import TeamCanNotBeChangedError, UnableToSendDemoAlert
-from common.insight_logs import entity_deleted_insight_logs, entity_updated_insight_logs
+from common.insight_log import EntityEvent, entity_insight_log
 
 
 class AlertReceiveChannelFilter(filters.FilterSet):
@@ -96,18 +96,23 @@ class AlertReceiveChannelView(
         return Response(data="invalid integration", status=status.HTTP_400_BAD_REQUEST)
 
     def perform_update(self, serializer):
-        old_state = serializer.instance.insight_logs_dict
+        old_state = serializer.instance.insight_logs_serialized
         serializer.save()
-        new_state = serializer.instance.insight_logs_dict
-        entity_updated_insight_logs(
-            self.request.user,
-            serializer.instance,
-            old_state,
-            new_state,
+        new_state = serializer.instance.insight_logs_serialized
+        entity_insight_log(
+            instance=serializer.instance,
+            author=self.request.user,
+            event=EntityEvent.UPDATED,
+            prev_state=old_state,
+            new_state=new_state,
         )
 
     def perform_destroy(self, instance):
-        entity_deleted_insight_logs(self.request.user, instance)
+        entity_insight_log(
+            instance=instance,
+            author=self.request.user,
+            event=EntityEvent.DELETED,
+        )
         instance.delete()
 
     def get_queryset(self, eager=True):

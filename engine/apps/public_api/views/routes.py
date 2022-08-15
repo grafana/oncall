@@ -12,7 +12,7 @@ from apps.public_api.throttlers.user_throttle import UserThrottle
 from common.api_helpers.exceptions import BadRequest
 from common.api_helpers.mixins import RateLimitHeadersMixin, UpdateSerializerMixin
 from common.api_helpers.paginators import TwentyFivePageSizePaginator
-from common.insight_logs import entity_created_insight_logs, entity_deleted_insight_logs, entity_updated_insight_logs
+from common.insight_log import EntityEvent, entity_insight_log
 
 
 class ChannelFilterView(RateLimitHeadersMixin, UpdateSerializerMixin, ModelViewSet):
@@ -60,23 +60,30 @@ class ChannelFilterView(RateLimitHeadersMixin, UpdateSerializerMixin, ModelViewS
         if instance.is_default:
             raise BadRequest(detail="Unable to delete default filter")
         else:
-            user = self.request.user
-            entity_deleted_insight_logs(
-                user,
-                instance,
+            entity_insight_log(
+                instance=instance,
+                author=self.request.user,
+                event=EntityEvent.DELETED,
             )
             self.perform_destroy(instance)
             return Response(status=status.HTTP_204_NO_CONTENT)
 
     def perform_create(self, serializer):
         serializer.save()
-        instance = serializer.instance
-        user = self.request.user
-        entity_created_insight_logs(instance=instance, user=user)
+        entity_insight_log(
+            instance=serializer.instance,
+            author=self.request.user,
+            event=EntityEvent.CREATED,
+        )
 
     def perform_update(self, serializer):
-        user = self.request.user
-        old_state = serializer.instance.insight_logs_dict
+        old_state = serializer.instance.insight_logs_serialized
         serializer.save()
-        new_state = serializer.instance.insight_logs_dict
-        entity_updated_insight_logs(user, serializer.instance, old_state, new_state)
+        new_state = serializer.instance.insight_logs_serialized
+        entity_insight_log(
+            instance=serializer.instance,
+            author=self.request.user,
+            event=EntityEvent.UPDATED,
+            prev_state=old_state,
+            new_state=new_state,
+        )

@@ -6,8 +6,8 @@ from jinja2 import TemplateSyntaxError
 from rest_framework.response import Response
 
 from apps.slack.scenarios import scenario_step
-from apps.user_management.organization_log_creator import OrganizationLogType, create_organization_log
 from common.constants.role import Role
+from common.insight_log import EntityEvent, entity_insight_log
 from common.jinja_templater import jinja_template_env
 
 from .step_mixins import CheckAlertIsUnarchivedMixin, IncidentActionsAccessControlMixin
@@ -233,7 +233,7 @@ class UpdateAppearanceStep(scenario_step.ScenarioStep):
             alert_group = AlertGroup.all_objects.filter(pk=alert_group_pk).select_for_update().get()
             integration = alert_group.channel.integration
             alert_receive_channel = alert_group.channel
-            old_state = alert_receive_channel.repr_settings_for_client_side_logging
+            old_state = alert_receive_channel.insight_logs_serialized
 
             for templatizable_attr in ["title", "message", "image_url"]:
                 for notification_channel in ["slack", "web", "sms", "phone_call", "email", "telegram"]:
@@ -308,12 +308,15 @@ class UpdateAppearanceStep(scenario_step.ScenarioStep):
                             headers={"content-type": "application/json"},
                         )
 
-        new_state = alert_receive_channel.repr_settings_for_client_side_logging
+        new_state = alert_receive_channel.insight_logs_serialized
 
         if new_state != old_state:
-            description = f"Integration settings was changed from:\n{old_state}\nto:\n{new_state}"
-            create_organization_log(
-                self.organization, self.user, OrganizationLogType.TYPE_INTEGRATION_CHANGED, description
+            entity_insight_log(
+                instance=alert_receive_channel,
+                author=slack_user_identity.get_user(alert_receive_channel.organization),
+                event=EntityEvent.UPDATED,
+                prev_state=old_state,
+                new_state=new_state,
             )
 
         attachments = alert_group.render_slack_attachments()

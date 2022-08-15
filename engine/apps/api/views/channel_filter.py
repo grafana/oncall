@@ -18,7 +18,7 @@ from apps.slack.models import SlackChannel
 from common.api_helpers.exceptions import BadRequest
 from common.api_helpers.mixins import CreateSerializerMixin, PublicPrimaryKeyMixin, UpdateSerializerMixin
 from common.exceptions import UnableToSendDemoAlert
-from common.insight_logs import entity_created_insight_logs, entity_deleted_insight_logs, entity_updated_insight_logs
+from common.insight_log import EntityEvent, entity_insight_log
 
 
 class ChannelFilterView(PublicPrimaryKeyMixin, CreateSerializerMixin, UpdateSerializerMixin, ModelViewSet):
@@ -59,30 +59,37 @@ class ChannelFilterView(PublicPrimaryKeyMixin, CreateSerializerMixin, UpdateSeri
         return queryset
 
     def destroy(self, request, *args, **kwargs):
-        user = request.user
         instance = self.get_object()
         if instance.is_default:
             raise BadRequest(detail="Unable to delete default filter")
         else:
-            entity_deleted_insight_logs(
-                user,
-                instance,
+            entity_insight_log(
+                instance=instance,
+                author=self.request.user,
+                event=EntityEvent.DELETED,
             )
             self.perform_destroy(instance)
             return Response(status=status.HTTP_204_NO_CONTENT)
 
     def perform_create(self, serializer):
-        user = self.request.user
         serializer.save()
-        instance = serializer.instance
-        entity_created_insight_logs(instance=instance, user=user)
+        entity_insight_log(
+            instance=serializer.instance,
+            author=self.request.user,
+            event=EntityEvent.CREATED,
+        )
 
     def perform_update(self, serializer):
-        user = self.request.user
-        old_state = serializer.instance.insight_logs_dict
+        old_state = serializer.instance.insight_logs_serialized
         serializer.save()
-        new_state = serializer.instance.insight_logs_dict
-        entity_updated_insight_logs(user, serializer.instance, old_state, new_state)
+        new_state = serializer.instance.insight_logs_serialized
+        entity_insight_log(
+            instance=serializer.instance,
+            author=self.request.user,
+            event=EntityEvent.UPDATED,
+            prev_state=old_state,
+            new_state=new_state,
+        )
 
     @action(detail=True, methods=["put"])
     def move_to_position(self, request, pk):
@@ -95,13 +102,17 @@ class ChannelFilterView(PublicPrimaryKeyMixin, CreateSerializerMixin, UpdateSeri
             try:
                 if instance.is_default:
                     raise BadRequest(detail="Unable to change position for default filter")
-                user = self.request.user
-
-                old_state = instance.insight_logs_dict
+                old_state = instance.insight_logs_serialized
                 instance.to(int(position))
-                new_state = instance.insight_logs_dict
+                new_state = instance.insight_logs_serialized
 
-                entity_updated_insight_logs(user, instance, old_state, new_state)
+                entity_insight_log(
+                    instance=instance,
+                    author=self.request.user,
+                    event=EntityEvent.UPDATED,
+                    prev_state=old_state,
+                    new_state=new_state,
+                )
                 return Response(status=status.HTTP_200_OK)
             except ValueError as e:
                 raise BadRequest(detail=f"{e}")

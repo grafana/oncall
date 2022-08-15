@@ -8,11 +8,10 @@ from apps.alerts.models import AlertReceiveChannel
 from apps.auth_token.auth import ApiTokenAuthentication
 from apps.public_api.serializers import IntegrationSerializer, IntegrationUpdateSerializer
 from apps.public_api.throttlers.user_throttle import UserThrottle
-from apps.user_management.organization_log_creator import OrganizationLogType, create_organization_log
 from common.api_helpers.filters import ByTeamFilter
 from common.api_helpers.mixins import FilterSerializerMixin, RateLimitHeadersMixin, UpdateSerializerMixin
 from common.api_helpers.paginators import FiftyPageSizePaginator
-from common.insight_logs import entity_deleted_insight_logs
+from common.insight_log import EntityEvent, entity_insight_log
 
 from .maintaiable_object_mixin import MaintainableObjectMixin
 
@@ -59,17 +58,17 @@ class IntegrationView(
             raise NotFound
 
     def perform_update(self, serializer):
-        old_state = serializer.instance.repr_settings_for_client_side_logging
+        old_state = serializer.instance.insight_logs_serialized
         serializer.save()
-        new_state = serializer.instance.repr_settings_for_client_side_logging
-        description = f"Integration settings was changed from:\n{old_state}\nto:\n{new_state}"
-        create_organization_log(
-            serializer.instance.organization,
-            self.request.user,
-            OrganizationLogType.TYPE_INTEGRATION_CHANGED,
-            description,
+        new_state = serializer.instance.insight_logs_serialized
+        entity_insight_log(
+            instance=serializer.instance,
+            author=self.request.user,
+            event=EntityEvent.UPDATED,
+            prev_state=old_state,
+            new_state=new_state,
         )
 
     def perform_destroy(self, instance):
-        entity_deleted_insight_logs(self.request.user, instance)
+        entity_insight_log(instance=instance, author=self.request.user, event=EntityEvent.DELETED)
         instance.delete()

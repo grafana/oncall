@@ -38,9 +38,10 @@ class ApiAuthToken(BaseAuthToken):
         return self.name
 
     @property
-    def insight_logs_dict(self):
-        # API tokens are not modifiable now, so return empty dict to implement InsightLoggable interface
+    def insight_logs_serialized(self):
+        # API tokens are not modifiable, so return empty dict to implement InsightLoggable interface
         return {}
 
-    def format_insight_logs(self, diff_dict):
-        return diff_dict
+    @property
+    def insight_logs_metadata(self):
+        return {}

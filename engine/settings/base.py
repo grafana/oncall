@@ -5,7 +5,7 @@ from celery.schedules import crontab
 
 from common.utils import getenv_boolean
 
-VERSION = "dev-oss"
+VERSION = "1.0.0"
 # Indicates if instance is OSS installation.
 # It is needed to plug-in oss application and urls.
 OSS_INSTALLATION = getenv_boolean("GRAFANA_ONCALL_OSS_INSTALLATION", True)
@@ -157,7 +157,7 @@ LOGGING = {
     "filters": {"request_id": {"()": "log_request_id.filters.RequestIDFilter"}},
     "formatters": {
         "standard": {"format": "source=engine:app google_trace_id=%(request_id)s logger=%(name)s %(message)s"},
-        "insight_logger": {"format": "insight_logs=true logger=%(name)s %(message)s"},
+        "insight_logger": {"format": "insight_log=true logger=%(name)s %(message)s"},
     },
     "handlers": {
         "console": {

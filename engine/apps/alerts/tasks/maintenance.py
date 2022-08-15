@@ -4,8 +4,8 @@ from django.db import transaction
 from django.db.models import ExpressionWrapper, F, fields
 from django.utils import timezone
 
-from apps.user_management.organization_log_creator import create_organization_log
 from common.custom_celery_tasks import shared_dedicated_queue_retry_task
+from common.insight_log import MaintenanceEvent, maintenance_insight_log
 
 from .task_logger import task_logger
 
@@ -15,7 +15,6 @@ from .task_logger import task_logger
 )
 def disable_maintenance(*args, **kwargs):
     AlertGroup = apps.get_model("alerts", "AlertGroup")
-    OrganizationLogRecord = apps.get_model("base", "OrganizationLogRecord")
     User = apps.get_model("user_management", "User")
     Organization = apps.get_model("user_management", "Organization")
     user = None
@@ -25,7 +24,6 @@ def disable_maintenance(*args, **kwargs):
         user = User.objects.get(pk=user_id)
 
     force = kwargs.get("force", False)
-
     with transaction.atomic():
         if "alert_receive_channel_id" in kwargs:
             AlertReceiveChannel = apps.get_model("alerts", "AlertReceiveChannel")
@@ -52,23 +50,8 @@ def disable_maintenance(*args, **kwargs):
         if object_under_maintenance is not None and (
             disable_maintenance.request.id == object_under_maintenance.maintenance_uuid or force
         ):
-            verbal = object_under_maintenance.get_verbal()
-            log_type, object_verbal = OrganizationLogRecord.get_log_type_and_maintainable_object_verbal(
-                object_under_maintenance,
-                object_under_maintenance.maintenance_mode,
-                verbal,
-                stopped=True,
-            )
-            description = (
-                f"{object_under_maintenance.get_maintenance_mode_display()} of {object_verbal} "
-                f"stopped{' by user' if user else ''}"
-            )
-            organization = (
-                object_under_maintenance
-                if isinstance(object_under_maintenance, Organization)
-                else object_under_maintenance.organization
-            )
-            create_organization_log(organization, user, log_type, description)
+            organization = object_under_maintenance.get_organization()
+            maintenance_insight_log(object_under_maintenance, user, MaintenanceEvent.FINISHED)
             if object_under_maintenance.maintenance_mode == object_under_maintenance.MAINTENANCE:
                 mode_verbal = "Maintenance"
                 maintenance_incident = AlertGroup.all_objects.get(
@@ -82,7 +65,7 @@ def disable_maintenance(*args, **kwargs):
             if organization.slack_team_identity:
                 transaction.on_commit(
                     lambda: object_under_maintenance.notify_about_maintenance_action(
-                        f"{mode_verbal} of {verbal} finished."
+                        f"{mode_verbal} of {object_under_maintenance.get_verbal()} finished."
                     )
                 )
 

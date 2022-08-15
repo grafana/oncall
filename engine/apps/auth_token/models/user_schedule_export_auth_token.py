@@ -42,9 +42,10 @@ class UserScheduleExportAuthToken(BaseAuthToken):
         return f"Users chedule export token for {self.user.insight_logs_verbal}"
 
     @property
-    def insight_logs_dict(self):
+    def insight_logs_serialized(self):
         # Schedule export tokens are not modifiable now, so return empty dict to implement InsightLoggable interface
         return {}
 
-    def format_insight_logs(self, diff_dict):
-        return diff_dict
+    @property
+    def insight_logs_metadata(self):
+        return {}

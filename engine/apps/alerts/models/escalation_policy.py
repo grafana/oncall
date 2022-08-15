@@ -367,10 +367,10 @@ class EscalationPolicy(OrderedModel):
 
     @property
     def insight_logs_verbal(self):
-        return f"{self.insight_logs_verbal} {self.order} in {self.escalation_chain.insight_logs_verbal}"
+        return f"Escalation Policy  {self.order} in {self.escalation_chain.insight_logs_verbal}"
 
     @property
-    def insight_logs_dict(self):
+    def insight_logs_serialized(self):
         res = {
             "type": self.step_type_verbal,
             "order": self.order,
@@ -407,5 +407,9 @@ class EscalationPolicy(OrderedModel):
 
         return res
 
-    def format_insight_logs(self, diff_dict):
-        return diff_dict
+    @property
+    def insight_logs_metadata(self):
+        return {
+            "escalation_chain": self.escalation_chain.insight_logs_verbal,
+            "escalation_chain_id": self.escalation_chain.public_primary_key,
+        }

@@ -9,7 +9,7 @@ from apps.public_api.serializers import EscalationPolicySerializer, EscalationPo
 from apps.public_api.throttlers.user_throttle import UserThrottle
 from common.api_helpers.mixins import RateLimitHeadersMixin, UpdateSerializerMixin
 from common.api_helpers.paginators import FiftyPageSizePaginator
-from common.insight_logs import entity_created_insight_logs, entity_deleted_insight_logs, entity_updated_insight_logs
+from common.insight_log import EntityEvent, entity_insight_log
 
 
 class EscalationPolicyView(RateLimitHeadersMixin, UpdateSerializerMixin, ModelViewSet):
@@ -50,19 +50,28 @@ class EscalationPolicyView(RateLimitHeadersMixin, UpdateSerializerMixin, ModelVi
 
     def perform_create(self, serializer):
         serializer.save()
-        entity_created_insight_logs(instance=serializer.instance, user=self.request.user)
+        entity_insight_log(
+            instance=serializer.instance,
+            author=self.request.user,
+            event=EntityEvent.CREATED,
+        )
 
     def perform_update(self, serializer):
-        old_state = serializer.instance.insight_logs_dict
+        old_state = serializer.instance.insight_logs_serialized
         serializer.save()
-        new_state = serializer.instance.insight_logs_dict
-        entity_updated_insight_logs(
-            instance=serializer.instance, user=self.request.user, before=old_state, after=new_state
+        new_state = serializer.instance.insight_logs_serialized
+        entity_insight_log(
+            instance=serializer.instance,
+            author=self.request.user,
+            event=EntityEvent.UPDATED,
+            prev_state=old_state,
+            new_state=new_state,
         )
 
     def perform_destroy(self, instance):
-        entity_deleted_insight_logs(
+        entity_insight_log(
             instance=instance,
-            user=self.request.user,
+            author=self.request.user,
+            event=EntityEvent.DELETED,
         )
         instance.delete()

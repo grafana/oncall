@@ -16,7 +16,7 @@ from apps.api.serializers.escalation_policy import (
 from apps.auth_token.auth import PluginAuthentication
 from common.api_helpers.exceptions import BadRequest
 from common.api_helpers.mixins import CreateSerializerMixin, PublicPrimaryKeyMixin, UpdateSerializerMixin
-from common.insight_logs import entity_created_insight_logs, entity_deleted_insight_logs, entity_updated_insight_logs
+from common.insight_log import EntityEvent, entity_insight_log
 
 
 class EscalationPolicyView(PublicPrimaryKeyMixin, CreateSerializerMixin, UpdateSerializerMixin, ModelViewSet):
@@ -66,21 +66,30 @@ class EscalationPolicyView(PublicPrimaryKeyMixin, CreateSerializerMixin, UpdateS
 
     def perform_create(self, serializer):
         serializer.save()
-        entity_created_insight_logs(instance=serializer.instance, user=self.request.user)
+        entity_insight_log(
+            instance=serializer.instance,
+            author=self.request.user,
+            event=EntityEvent.CREATED,
+        )
 
     def perform_update(self, serializer):
-        old_state = serializer.instance.insight_logs_dict
+        old_state = serializer.instance.insight_logs_serialized
         serializer.save()
-        new_state = serializer.instance.insight_logs_dict
+        new_state = serializer.instance.insight_logs_serialized
 
-        entity_updated_insight_logs(
-            instance=serializer.instance, user=self.request.user, before=old_state, after=new_state
+        entity_insight_log(
+            instance=serializer.instance,
+            author=self.request.user,
+            event=EntityEvent.UPDATED,
+            prev_state=old_state,
+            new_state=new_state,
         )
 
     def perform_destroy(self, instance):
-        entity_deleted_insight_logs(
+        entity_insight_log(
             instance=instance,
-            user=self.request.user,
+            author=self.request.user,
+            event=EntityEvent.DELETED,
         )
         instance.delete()
 
@@ -93,13 +102,17 @@ class EscalationPolicyView(PublicPrimaryKeyMixin, CreateSerializerMixin, UpdateS
             except EscalationPolicy.DoesNotExist:
                 raise BadRequest(detail="Step does not exist")
             try:
-                old_state = instance.insight_logs_dict
+                old_state = instance.insight_logs_serialized
                 position = int(position)
                 instance.to(position)
-                new_state = instance.insight_logs_dict
+                new_state = instance.insight_logs_serialized
 
-                entity_updated_insight_logs(
-                    instance=instance, user=self.request.user, before=old_state, after=new_state
+                entity_insight_log(
+                    instance=instance,
+                    author=self.request.user,
+                    event=EntityEvent.UPDATED,
+                    prev_state=old_state,
+                    new_state=new_state,
                 )
                 return Response(status=status.HTTP_200_OK)
             except ValueError as e:

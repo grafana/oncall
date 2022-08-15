@@ -29,7 +29,7 @@ from apps.slack.tasks import post_slack_rate_limit_message
 from apps.slack.utils import post_message_to_channel
 from common.api_helpers.utils import create_engine_url
 from common.exceptions import TeamCanNotBeChangedError, UnableToSendDemoAlert
-from common.insight_logs import entity_created_insight_logs
+from common.insight_log import EntityEvent, entity_insight_log
 from common.public_primary_keys import generate_public_primary_key, increase_public_primary_key_length
 
 logger = logging.getLogger(__name__)
@@ -608,7 +608,7 @@ class AlertReceiveChannel(IntegrationOptionsMixin, MaintainableObject):
         return self.verbal_name
 
     @property
-    def insight_logs_dict(self):
+    def insight_logs_serialized(self):
         res = {
             "name": self.verbal_name,
             "allow_source_based_resolving": self.allow_source_based_resolving,
@@ -635,30 +635,9 @@ class AlertReceiveChannel(IntegrationOptionsMixin, MaintainableObject):
             res["team_id"] = self.team.public_primary_key
         return res
 
-    def format_insight_logs(self, diff_dict):
-        fields_to_prune = (
-            "slack_title",
-            "slack_message",
-            "slack_image_url",
-            "sms_title",
-            "phone_call_title",
-            "web_title",
-            "web_message",
-            "web_image_url_template",
-            "email_title_template",
-            "email_message",
-            "telegram_title",
-            "telegram_message",
-            "telegram_image_url",
-            "source_link",
-            "grouping_id",
-            "resolve_condition",
-            "acknowledge_condition",
-        )
-        for k, v in diff_dict.items():
-            if k in fields_to_prune:
-                diff_dict[k] = "Diff not supported"
-        return diff_dict
+    @property
+    def insight_logs_metadata(self):
+        return {}
 
 
 @receiver(post_save, sender=AlertReceiveChannel)
@@ -667,18 +646,15 @@ def listen_for_alertreceivechannel_model_save(sender, instance, created, *args, 
     IntegrationHeartBeat = apps.get_model("heartbeat", "IntegrationHeartBeat")
 
     if created:
-        entity_created_insight_logs(instance=instance, user=instance.author)
+        entity_insight_log(instance=instance, author=instance.author, event=EntityEvent.CREATED)
         default_filter = ChannelFilter(alert_receive_channel=instance, filtering_term=None, is_default=True)
         default_filter.save()
-        entity_created_insight_logs(instance=default_filter, user=instance.author)
+        entity_insight_log(instance=default_filter, author=instance.author, event=EntityEvent.CREATED)
 
         TEN_MINUTES = 600  # this is timeout for cloud heartbeats
         if instance.is_available_for_integration_heartbeat:
             heartbeat = IntegrationHeartBeat.objects.create(alert_receive_channel=instance, timeout_seconds=TEN_MINUTES)
-            entity_created_insight_logs(
-                instance.author,
-                heartbeat,
-            )
+            entity_insight_log(instance=heartbeat, author=instance.author, event=EntityEvent.CREATED)
 
     if instance.integration == AlertReceiveChannel.INTEGRATION_GRAFANA_ALERTING:
         if created:

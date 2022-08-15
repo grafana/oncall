@@ -198,14 +198,16 @@ class OnCallSchedule(PolymorphicModel):
         return self.name
 
     @property
-    def insight_logs_dict(self):
+    def insight_logs_serialized(self):
         res = {
             "name": self.name,
         }
         if self.team:
             res["team"] = self.team.insight_logs_verbal
             res["team_id"] = self.team.public_primary_key
-
+        else:
+            res["team"] = "General"
+            res["team_id"] = None
         if self.organization.slack_team_identity:
             if self.channel:
                 SlackChannel = apps.get_model("slack", "SlackChannel")
@@ -222,8 +224,16 @@ class OnCallSchedule(PolymorphicModel):
             res["notify_empty_oncall"] = self.get_notify_empty_oncall_display
         return res
 
-    def format_insight_logs(self, diff_dict):
-        return diff_dict
+    @property
+    def insight_logs_metadata(self):
+        res = {}
+        if self.team:
+            res["team"] = self.team.insight_logs_verbal
+            res["team_id"] = self.team.public_primary_key
+        else:
+            res["team"] = "General"
+            res["team_id"] = None
+        return res
 
 
 class OnCallScheduleICal(OnCallSchedule):
@@ -280,8 +290,8 @@ class OnCallScheduleICal(OnCallSchedule):
 
     # Insight logs
     @property
-    def insight_logs_dict(self):
-        res = super().repr_settings_for_client_side_logging
+    def insight_logs_serialized(self):
+        res = super().insight_logs_serialized
         res["primary_calendar_url"] = self.ical_url_primary
         res["overrides_calendar_url"] = self.ical_url_overrides
         return res
@@ -366,8 +376,8 @@ class OnCallScheduleCalendar(OnCallSchedule):
         return "Calendar schedule"
 
     @property
-    def insight_logs_dict(self):
-        res = super().repr_settings_for_client_side_logging
+    def insight_logs_serialized(self):
+        res = super().insight_logs_serialized
         res["overrides_calendar_url"] = self.ical_url_overrides
         return res
 
@@ -432,7 +442,7 @@ class OnCallScheduleWeb(OnCallSchedule):
         return "Web schedule"
 
     @property
-    def insight_logs_dict(self):
-        res = super().repr_settings_for_client_side_logging
+    def insight_logs_serialized(self):
+        res = super().insight_logs_serialized
         res["time_zone"] = self.time_zone
         return res

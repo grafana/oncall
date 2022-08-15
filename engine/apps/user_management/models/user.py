@@ -260,7 +260,7 @@ class User(models.Model):
         return self.username
 
     @property
-    def insight_logs_dict(self):
+    def insight_logs_serialized(self):
         UserNotificationPolicy = apps.get_model("base", "UserNotificationPolicy")
         default, important = UserNotificationPolicy.get_short_verbals_for_user(user=self)
         notification_policies_verbal = f"default: {' - '.join(default)}, important: {' - '.join(important)}"
@@ -277,13 +277,9 @@ class User(models.Model):
             res["unverified_phone_number"] = self.unverified_phone_number
         return res
 
-    def format_insight_logs(self, diff_dict):
-        # TODO: hide phone number
-        # if "verified_phone_number" in diff_dict:
-        #     l = len(diff_dict["verified_phone_number"])
-        #     hide_len = math.ceil(l / 2)
-
-        return diff_dict
+    @property
+    def insight_logs_metadata(self):
+        return {}
 
 
 # TODO: check whether this signal can be moved to save method of the model

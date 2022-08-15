@@ -45,7 +45,7 @@ from common.api_helpers.mixins import FilterSerializerMixin, PublicPrimaryKeyMix
 from common.api_helpers.paginators import HundredPageSizePaginator
 from common.api_helpers.utils import create_engine_url
 from common.constants.role import Role
-from common.insight_logs import entity_created_insight_logs, entity_updated_insight_logs
+from common.insight_log import ChatOpsEvent, ChatOpsType, EntityEvent, chatops_insight_log, entity_insight_log
 
 logger = logging.getLogger(__name__)
 
@@ -259,30 +259,37 @@ class UserView(
     def verify_number(self, request, pk):
         target_user = self.get_object()
         code = request.query_params.get("token", None)
-        old_state = target_user.repr_settings_for_client_side_logging
+        old_state = target_user.insight_logs_serialized
         phone_manager = PhoneManager(target_user)
         verified, error = phone_manager.verify_phone_number(code)
 
         if not verified:
             return Response(error, status=status.HTTP_400_BAD_REQUEST)
-        new_state = target_user.repr_settings_for_client_side_logging
-        entity_updated_insight_logs(instance=target_user, user=self.request.user, before=old_state, after=new_state)
+        new_state = target_user.insight_logs_serialized
+        entity_insight_log(
+            instance=target_user,
+            author=self.request.user,
+            event=EntityEvent.UPDATED,
+            prev_state=old_state,
+            new_state=new_state,
+        )
         return Response(status=status.HTTP_200_OK)
 
     @action(detail=True, methods=["put"])
     def forget_number(self, request, pk):
         target_user = self.get_object()
-        old_state = target_user.repr_settings_for_client_side_logging
+        old_state = target_user.insight_logs_serialized
         phone_manager = PhoneManager(target_user)
         forget = phone_manager.forget_phone_number()
 
         if forget:
-            new_state = target_user.repr_settings_for_client_side_logging
-            entity_updated_insight_logs(
+            new_state = target_user.insight_logs_serialized
+            entity_insight_log(
                 instance=target_user,
-                user=self.request.user,
-                before=old_state,
-                after=new_state,
+                author=self.request.user,
+                event=EntityEvent.UPDATED,
+                prev_state=old_state,
+                new_state=new_state,
             )
         return Response(status=status.HTTP_200_OK)
 
@@ -339,12 +346,19 @@ class UserView(
 
     @action(detail=True, methods=["post"])
     def unlink_telegram(self, request, pk):
-        # TODO: insight logs support
         user = self.get_object()
         TelegramToUserConnector = apps.get_model("telegram", "TelegramToUserConnector")
         try:
             connector = TelegramToUserConnector.objects.get(user=user)
             connector.delete()
+            chatops_insight_log(
+                organization=user.organization,
+                author=request.user,
+                event_name=ChatOpsEvent.USER_UNLINKED,
+                chatops_type=ChatOpsType.TELEGRAM,
+                user=user.username,
+                user_id=user.public_primary_key,
+            )
         except TelegramToUserConnector.DoesNotExist:
             return Response(status=status.HTTP_400_BAD_REQUEST)
         return Response(status=status.HTTP_200_OK)
@@ -360,6 +374,14 @@ class UserView(
         user = self.get_object()
         try:
             backend.unlink_user(user)
+            chatops_insight_log(
+                organization=user.organization,
+                author=request.user,
+                event_name=ChatOpsEvent.USER_UNLINKED,
+                chatops_type=backend.backend_id,
+                user=user.username,
+                user_id=user.public_primary_key,
+            )
         except ObjectDoesNotExist:
             return Response(status=status.HTTP_400_BAD_REQUEST)
         return Response(status=status.HTTP_200_OK)
@@ -384,7 +406,7 @@ class UserView(
         if self.request.method == "POST":
             try:
                 instance, token = UserScheduleExportAuthToken.create_auth_token(user, user.organization)
-                entity_created_insight_logs(instance=instance, user=user)
+                entity_insight_log(instance=instance, author=self.request.user, event=EntityEvent.CREATED)
             except IntegrityError:
                 raise Conflict("Schedule export token for user already exists")
 
@@ -399,7 +421,7 @@ class UserView(
         if self.request.method == "DELETE":
             try:
                 token = UserScheduleExportAuthToken.objects.get(user=user)
-                entity_created_insight_logs(instance=token, user=user)
+                entity_insight_log(instance=token, author=self.request.user, event=EntityEvent.DELETED)
                 token.delete()
             except UserScheduleExportAuthToken.DoesNotExist:
                 raise NotFound

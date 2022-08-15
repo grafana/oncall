@@ -11,7 +11,7 @@ from apps.public_api.throttlers.user_throttle import UserThrottle
 from common.api_helpers.filters import ByTeamFilter
 from common.api_helpers.mixins import RateLimitHeadersMixin, UpdateSerializerMixin
 from common.api_helpers.paginators import FiftyPageSizePaginator
-from common.insight_logs import entity_created_insight_logs, entity_deleted_insight_logs, entity_updated_insight_logs
+from common.insight_log import EntityEvent, entity_insight_log
 
 
 class EscalationChainView(RateLimitHeadersMixin, UpdateSerializerMixin, ModelViewSet):
@@ -48,20 +48,29 @@ class EscalationChainView(RateLimitHeadersMixin, UpdateSerializerMixin, ModelVie
 
     def perform_create(self, serializer):
         serializer.save()
-        entity_created_insight_logs(instance=serializer.serializer.instance, user=self.request.user)
+        entity_insight_log(
+            instance=serializer.instance,
+            author=self.request.user,
+            event=EntityEvent.CREATED,
+        )
 
     def perform_destroy(self, instance):
-        entity_deleted_insight_logs(instance=instance, user=self.request.user)
+        entity_insight_log(
+            instance=instance,
+            author=self.request.user,
+            event=EntityEvent.DELETED,
+        )
         instance.delete()
 
     def perform_update(self, serializer):
         instance = serializer.instance
-        old_state = instance.repr_settings_for_client_side_logging
+        old_state = instance.insight_logs_serialized
         serializer.save()
-        new_state = instance.repr_settings_for_client_side_logging
-        entity_updated_insight_logs(
-            instance=instance,
-            user=self.request.user,
-            before=old_state,
-            after=new_state,
+        new_state = instance.insight_logs_serialized
+        entity_insight_log(
+            instance=serializer.instance,
+            author=self.request.user,
+            event=EntityEvent.UPDATED,
+            prev_state=old_state,
+            new_state=new_state,
         )

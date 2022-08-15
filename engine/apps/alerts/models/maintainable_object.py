@@ -7,8 +7,8 @@ from django.db import models, transaction
 from django.utils import timezone
 
 from apps.slack.scenarios.scenario_step import ScenarioStep
-from apps.user_management.organization_log_creator import create_organization_log
 from common.exceptions import MaintenanceCouldNotBeStartedError
+from common.insight_log import MaintenanceEvent, maintenance_insight_log
 
 
 class MaintainableObject(models.Model):
@@ -82,7 +82,6 @@ class MaintainableObject(models.Model):
         AlertGroup = apps.get_model("alerts", "AlertGroup")
         AlertReceiveChannel = apps.get_model("alerts", "AlertReceiveChannel")
         Alert = apps.get_model("alerts", "Alert")
-        OrganizationLogRecord = apps.get_model("base", "OrganizationLogRecord")
 
         with transaction.atomic():
             _self = self.__class__.objects.select_for_update().get(pk=self.pk)
@@ -105,6 +104,7 @@ class MaintainableObject(models.Model):
                     organization=organization,
                     team=team,
                     integration=AlertReceiveChannel.INTEGRATION_MAINTENANCE,
+                    author=user,
                 )
 
             maintenance_uuid = _self.start_disable_maintenance_task(maintenance_duration)
@@ -152,11 +152,7 @@ class MaintainableObject(models.Model):
                     },
                 )
                 alert.save()
-        # create team log
-        log_type, object_verbal = OrganizationLogRecord.get_log_type_and_maintainable_object_verbal(self, mode, verbal)
-        description = f"{self.get_maintenance_mode_display()} of {object_verbal} started for {duration_verbal}"
-        create_organization_log(organization, user, log_type, description)
-
+        maintenance_insight_log(self, user, MaintenanceEvent.STARTED)
         if mode == AlertReceiveChannel.MAINTENANCE:
             self.send_maintenance_incident(organization, group, alert)
             self.notify_about_maintenance_action(

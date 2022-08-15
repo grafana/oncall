@@ -178,7 +178,7 @@ class ChannelFilter(OrderedModel):
         return f"{self.str_for_clients} for {self.alert_receive_channel.insight_logs_verbal}"
 
     @property
-    def insight_logs_dict(self):
+    def insight_logs_serialized(self):
         res = {
             "filtering_term": self.str_for_clients,
             "order": self.order,
@@ -206,5 +206,9 @@ class ChannelFilter(OrderedModel):
                 res[backend_id] = channel
         return res
 
-    def format_insight_logs(self, diff_dict):
-        return diff_dict
+    @property
+    def insight_logs_metadata(self):
+        return {
+            "integration": self.alert_receive_channel.insight_logs_verbal,
+            "integration_id": self.alert_receive_channel.public_primary_key,
+        }

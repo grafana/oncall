@@ -145,7 +145,7 @@ class CustomButton(models.Model):
         return self.name
 
     @property
-    def insight_logs_dict(self):
+    def insight_logs_serialized(self):
         res = {
             "name": self.name,
             "webhook": self.webhook,
@@ -161,8 +161,13 @@ class CustomButton(models.Model):
             res["team_id"] = self.team.public_primary_key
         return res
 
-    def format_insight_logs(self, diff_dict):
-        return diff_dict
+    @property
+    def insight_logs_metadata(self):
+        res = {}
+        if self.team:
+            res["team"] = self.team.insight_logs_verbal
+            res["team_id"] = self.team.public_primary_key
+        return res
 
 
 class EscapeDoubleQuotesDict(dict):

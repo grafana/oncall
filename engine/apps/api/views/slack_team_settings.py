@@ -6,7 +6,7 @@ from apps.api.permissions import AnyRole, IsAdmin, MethodPermission
 from apps.api.serializers.organization_slack_settings import OrganizationSlackSettingsSerializer
 from apps.auth_token.auth import PluginAuthentication
 from apps.user_management.models import Organization
-from apps.user_management.organization_log_creator import OrganizationLogType, create_organization_log
+from common.insight_log import EntityEvent, entity_insight_log
 
 
 class SlackTeamSettingsAPIView(views.APIView):
@@ -27,14 +27,17 @@ class SlackTeamSettingsAPIView(views.APIView):
 
     def put(self, request):
         organization = self.request.auth.organization
-        old_state = organization.repr_settings_for_client_side_logging
+        old_state = organization.insight_logs_serialized
         serializer = self.serializer_class(organization, data=request.data)
         serializer.is_valid(raise_exception=True)
         serializer.save()
-        new_state = serializer.instance.repr_settings_for_client_side_logging
-        description = f"Organization settings was changed from:\n{old_state}\nto:\n{new_state}"
-        create_organization_log(
-            organization, request.user, OrganizationLogType.TYPE_ORGANIZATION_SETTINGS_CHANGED, description
+        new_state = serializer.instance.insight_logs_serialized
+        entity_insight_log(
+            instance=serializer.instance,
+            author=self.request.user,
+            event=EntityEvent.UPDATED,
+            prev_state=old_state,
+            new_state=new_state,
         )
         return Response(serializer.data)
 

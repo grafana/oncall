@@ -8,7 +8,7 @@ from apps.api.serializers.integration_heartbeat import IntegrationHeartBeatSeria
 from apps.auth_token.auth import PluginAuthentication
 from apps.heartbeat.models import IntegrationHeartBeat
 from common.api_helpers.mixins import PublicPrimaryKeyMixin
-from common.insight_logs import entity_created_insight_logs, entity_updated_insight_logs
+from common.insight_log import EntityEvent, entity_insight_log
 
 
 class IntegrationHeartBeatView(
@@ -45,16 +45,23 @@ class IntegrationHeartBeatView(
     def perform_create(self, serializer):
         serializer.save()
         instance = serializer.instance
-        entity_created_insight_logs(
+        entity_insight_log(
             instance=instance,
-            user=self.request.user,
+            author=self.request.user,
+            event=EntityEvent.CREATED,
         )
 
     def perform_update(self, serializer):
-        old_state = serializer.instance.insight_logs_dict
+        old_state = serializer.instance.insight_logs_serialized
         serializer.save()
-        new_state = serializer.instance.insight_logs_dict
-        entity_updated_insight_logs(self.request.user, serializer.instance, old_state, new_state)
+        new_state = serializer.instance.insight_logs_serialized
+        entity_insight_log(
+            instance=serializer.instance,
+            author=self.request.user,
+            event=EntityEvent.UPDATED,
+            prev_state=old_state,
+            new_state=new_state,
+        )
 
     @action(detail=False, methods=["get"])
     def timeout_options(self, request):

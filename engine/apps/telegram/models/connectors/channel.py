@@ -10,7 +10,7 @@ from telegram import error
 from apps.alerts.models import AlertGroup
 from apps.telegram.client import TelegramClient
 from apps.telegram.models import TelegramMessage
-from apps.user_management.organization_log_creator import OrganizationLogType, create_organization_log
+from common.insight_log.chatops_insight_logs import ChatOpsEvent, ChatOpsType, chatops_insight_log
 from common.public_primary_keys import generate_public_primary_key, increase_public_primary_key_length
 
 logger = logging.getLogger(__name__)
@@ -99,17 +99,13 @@ class TelegramToOrganizationConnector(models.Model):
 
         self.is_default_channel = True
         self.save(update_fields=["is_default_channel"])
-
-        description = (
-            f"The default channel for incidents in Telegram was changed "
-            f"{f'from @{old_default_channel.channel_name} ' if old_default_channel else ''}"
-            f"to @{self.channel_name}"
-        )
-        create_organization_log(
-            self.organization,
-            author,
-            OrganizationLogType.TYPE_TELEGRAM_DEFAULT_CHANNEL_CHANGED,
-            description,
+        chatops_insight_log(
+            organization=self.organization,
+            author=author,
+            event_name=ChatOpsEvent.DEFAULT_CHANNEL_CHANGED,
+            chatops_type=ChatOpsType.TELEGRAM,
+            prev_channel=old_default_channel.channel_name if old_default_channel else None,
+            new_channel=self.channel_name,
         )
 
     def send_alert_group_message(self, alert_group: AlertGroup) -> None:

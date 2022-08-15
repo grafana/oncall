@@ -6,7 +6,7 @@ from django.utils import timezone
 from apps.schedules.models import OnCallSchedule
 from apps.slack.scenarios import scenario_step
 from apps.slack.utils import format_datetime_to_slack
-from apps.user_management.organization_log_creator import OrganizationLogType, create_organization_log
+from common.insight_log import EntityEvent, entity_insight_log
 
 
 class EditScheduleShiftNotifyStep(scenario_step.ScenarioStep):
@@ -57,16 +57,16 @@ class EditScheduleShiftNotifyStep(scenario_step.ScenarioStep):
         private_metadata = json.loads(payload["view"]["private_metadata"])
         schedule_id = private_metadata["schedule_id"]
         schedule = OnCallSchedule.objects.get(pk=schedule_id)
-        old_state = schedule.repr_settings_for_client_side_logging
+        old_state = schedule.insight_logs_serialized
         setattr(schedule, action["block_id"], int(action["selected_option"]["value"]))
         schedule.save()
-        new_state = schedule.repr_settings_for_client_side_logging
-        description = f"Schedule {schedule.name} was changed from:\n{old_state}\nto:\n{new_state}"
-        create_organization_log(
-            schedule.organization,
-            slack_user_identity.get_user(schedule.organization),
-            OrganizationLogType.TYPE_SCHEDULE_CHANGED,
-            description,
+        new_state = schedule.insight_logs_serialized
+        entity_insight_log(
+            instance=schedule,
+            author=slack_user_identity.get_user(schedule.organization),
+            event=EntityEvent.UPDATED,
+            prev_state=old_state,
+            new_state=new_state,
         )
 
     def get_modal_blocks(self, schedule_id):

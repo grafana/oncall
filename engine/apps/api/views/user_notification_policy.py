@@ -26,7 +26,7 @@ from apps.base.models.user_notification_policy import BUILT_IN_BACKENDS, Notific
 from apps.user_management.models import User
 from common.api_helpers.exceptions import BadRequest
 from common.api_helpers.mixins import UpdateSerializerMixin
-from common.insight_logs import entity_updated_insight_logs
+from common.insight_log import EntityEvent, entity_insight_log
 
 
 class UserNotificationPolicyView(UpdateSerializerMixin, ModelViewSet):
@@ -84,38 +84,41 @@ class UserNotificationPolicyView(UpdateSerializerMixin, ModelViewSet):
 
     def perform_create(self, serializer):
         user = serializer.validated_data.get("user") or self.request.user
-        old_state = user.insight_logs_dict
+        old_state = user.insight_logs_serialized
         serializer.save()
-        new_state = user.insight_logs_dict
-        entity_updated_insight_logs(
+        new_state = user.insight_logs_serialized
+        entity_insight_log(
             instance=user,
-            user=self.request.user,
-            before=old_state,
-            after=new_state,
+            author=self.request.user,
+            event=EntityEvent.UPDATED,
+            prev_state=old_state,
+            new_state=new_state,
         )
 
     def perform_update(self, serializer):
         user = serializer.validated_data.get("user") or self.request.user
-        old_state = user.repr_settings_for_client_side_logging
+        old_state = user.insight_logs_serialized
         serializer.save()
-        new_state = user.repr_settings_for_client_side_logging
-        entity_updated_insight_logs(
+        new_state = user.insight_logs_serialized
+        entity_insight_log(
             instance=user,
-            user=self.request.user,
-            before=old_state,
-            after=new_state,
+            author=self.request.user,
+            event=EntityEvent.UPDATED,
+            prev_state=old_state,
+            new_state=new_state,
         )
 
     def perform_destroy(self, instance):
         user = instance.user
-        old_state = user.repr_settings_for_client_side_logging
+        old_state = user.insight_logs_serialized
         instance.delete()
-        new_state = user.repr_settings_for_client_side_logging
-        entity_updated_insight_logs(
+        new_state = user.insight_logs_serialized
+        entity_insight_log(
             instance=user,
-            user=self.request.user,
-            before=old_state,
-            after=new_state,
+            author=self.request.user,
+            event=EntityEvent.UPDATED,
+            prev_state=old_state,
+            new_state=new_state,
         )
 
     @action(detail=True, methods=["put"])

@@ -244,12 +244,14 @@ class IntegrationHeartBeat(BaseHeartBeat):
         return f"Integration Heartbeat for {self.alert_receive_channel.insight_logs_verbal}"
 
     @property
-    def insight_logs_dict(self):
+    def insight_logs_serialized(self):
         return {
             "timeout": self.timeout_seconds,
+        }
+
+    @property
+    def insight_logs_metadata(self):
+        return {
             "integration": self.alert_receive_channel.insight_logs_verbal,
             "integration_id": self.alert_receive_channel.public_primary_key,
         }
-
-    def format_insight_logs(self, diff_dict):
-        return diff_dict

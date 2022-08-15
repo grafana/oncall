@@ -6,7 +6,7 @@ from django.db import models
 from django.utils import timezone
 
 from apps.telegram.models import TelegramToOrganizationConnector
-from apps.user_management.organization_log_creator import OrganizationLogType, create_organization_log
+from common.insight_log.chatops_insight_logs import ChatOpsEvent, ChatOpsType, chatops_insight_log
 
 
 class TelegramChannelVerificationCode(models.Model):
@@ -50,21 +50,21 @@ class TelegramChannelVerificationCode(models.Model):
                 },
             )
 
-            description = f"Telegram channel @{channel_name} was connected to organization"
-            create_organization_log(
-                verification_code.organization,
-                verification_code.author,
-                OrganizationLogType.TYPE_TELEGRAM_CHANNEL_CONNECTED,
-                description,
+            chatops_insight_log(
+                organization=verification_code.organization,
+                author=verification_code.author,
+                event_name=ChatOpsEvent.CHANNEL_CONNECTED,
+                chatops_type=ChatOpsType.TELEGRAM,
+                channel_name=channel_name,
             )
-
             if not connector_exists:
-                description = f"The default channel for incidents in Telegram was changed to @{channel_name}"
-                create_organization_log(
-                    verification_code.organization,
-                    verification_code.author,
-                    OrganizationLogType.TYPE_TELEGRAM_DEFAULT_CHANNEL_CHANGED,
-                    description,
+                chatops_insight_log(
+                    organization=verification_code.organization,
+                    author=verification_code.author,
+                    event_name=ChatOpsEvent.DEFAULT_CHANNEL_CHANGED,
+                    chatops_type=ChatOpsType.TELEGRAM,
+                    prev_channel=None,
+                    new_channel=channel_name,
                 )
 
             return connector, created
