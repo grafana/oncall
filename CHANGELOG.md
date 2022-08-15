@@ -1,5 +1,9 @@
 # Change Log
 
+## v1.0.13 (2022-07-27)
+- Optimize alert group list view
+- Fix a bug related to Twilio setup
+
 ## v1.0.12 (2022-07-26)
 - Update push-notifications dependency
 - Rework how absolute URLs are built

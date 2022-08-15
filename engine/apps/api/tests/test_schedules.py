@@ -432,6 +432,7 @@ def test_events_calendar(
                 "calendar_type": OnCallSchedule.PRIMARY,
                 "is_empty": False,
                 "is_gap": False,
+                "is_override": False,
                 "shift": {
                     "pk": on_call_shift.public_primary_key,
                 },
@@ -497,6 +498,7 @@ def test_filter_events_calendar(
                 "calendar_type": OnCallSchedule.PRIMARY,
                 "is_empty": False,
                 "is_gap": False,
+                "is_override": False,
                 "shift": {
                     "pk": on_call_shift.public_primary_key,
                 },
@@ -512,6 +514,7 @@ def test_filter_events_calendar(
                 "calendar_type": OnCallSchedule.PRIMARY,
                 "is_empty": False,
                 "is_gap": False,
+                "is_override": False,
                 "shift": {
                     "pk": on_call_shift.public_primary_key,
                 },
@@ -594,6 +597,7 @@ def test_filter_events_range_calendar(
                 "calendar_type": OnCallSchedule.PRIMARY,
                 "is_empty": False,
                 "is_gap": False,
+                "is_override": False,
                 "shift": {
                     "pk": on_call_shift.public_primary_key,
                 },
@@ -675,6 +679,7 @@ def test_filter_events_overrides(
                 "calendar_type": OnCallSchedule.OVERRIDES,
                 "is_empty": False,
                 "is_gap": False,
+                "is_override": True,
                 "shift": {
                     "pk": override.public_primary_key,
                 },
@@ -737,7 +742,7 @@ def test_filter_events_final_schedule(
     # override: 22-23 / E
     override_data = {
         "start": start_date + timezone.timedelta(hours=22),
-        "rotation_start": start_date,
+        "rotation_start": start_date + timezone.timedelta(hours=22),
         "duration": timezone.timedelta(hours=1),
         "schedule": schedule,
     }
@@ -772,6 +777,7 @@ def test_filter_events_final_schedule(
             "calendar_type": 1 if is_override else None if is_gap else 0,
             "end": start_date + timezone.timedelta(hours=start + duration),
             "is_gap": is_gap,
+            "is_override": is_override,
             "priority_level": priority,
             "start": start_date + timezone.timedelta(hours=start, milliseconds=1 if start == 0 else 0),
             "user": user,
@@ -783,6 +789,7 @@ def test_filter_events_final_schedule(
             "calendar_type": e["calendar_type"],
             "end": e["end"],
             "is_gap": e["is_gap"],
+            "is_override": e["is_override"],
             "priority_level": e["priority_level"],
             "start": e["start"],
             "user": e["users"][0]["display_name"] if e["users"] else None,
@@ -790,6 +797,75 @@ def test_filter_events_final_schedule(
         for e in response.data["events"]
     ]
     assert returned_events == expected_events
+
+
+@pytest.mark.django_db
+def test_next_shifts_per_user(
+    make_organization_and_user_with_plugin_token,
+    make_user_for_organization,
+    make_user_auth_headers,
+    make_schedule,
+    make_on_call_shift,
+):
+    organization, user, token = make_organization_and_user_with_plugin_token()
+    client = APIClient()
+
+    schedule = make_schedule(
+        organization,
+        schedule_class=OnCallScheduleWeb,
+        name="test_web_schedule",
+    )
+
+    tomorrow = timezone.now().replace(hour=0, minute=0, second=0, microsecond=0) + timezone.timedelta(days=1)
+    user_a, user_b, user_c = (make_user_for_organization(organization, username=i) for i in "ABC")
+
+    shifts = (
+        # user, priority, start time (h), duration (hs)
+        (user_a, 1, 8, 2),  # r1-1: 8-10 / A
+        (user_a, 1, 15, 2),  # r1-2: 15-17 / A
+        (user_b, 2, 7, 5),  # r2-1: 7-12 / B
+        (user_b, 2, 16, 2),  # r2-2: 16-18 / B
+        (user_c, 2, 18, 2),  # r2-3: 18-20 / C
+    )
+    for user, priority, start_h, duration in shifts:
+        data = {
+            "start": tomorrow + timezone.timedelta(hours=start_h),
+            "rotation_start": tomorrow,
+            "duration": timezone.timedelta(hours=duration),
+            "priority_level": priority,
+            "frequency": CustomOnCallShift.FREQUENCY_DAILY,
+            "schedule": schedule,
+        }
+        on_call_shift = make_on_call_shift(
+            organization=organization, shift_type=CustomOnCallShift.TYPE_RECURRENT_EVENT, **data
+        )
+        on_call_shift.users.add(user)
+
+    # override: 17-18 / C
+    override_data = {
+        "start": tomorrow + timezone.timedelta(hours=17),
+        "rotation_start": tomorrow + timezone.timedelta(hours=17),
+        "duration": timezone.timedelta(hours=1),
+        "schedule": schedule,
+    }
+    override = make_on_call_shift(
+        organization=organization, shift_type=CustomOnCallShift.TYPE_OVERRIDE, **override_data
+    )
+    override.add_rolling_users([[user_c]])
+
+    # final schedule: 7-12: B, 15-16: A, 16-17: B, 17-18: C (override), 18-20: C
+
+    url = reverse("api-internal:schedule-next-shifts-per-user", kwargs={"pk": schedule.public_primary_key})
+    response = client.get(url, format="json", **make_user_auth_headers(user, token))
+    assert response.status_code == status.HTTP_200_OK
+
+    expected = {
+        user_a.public_primary_key: (tomorrow + timezone.timedelta(hours=15), tomorrow + timezone.timedelta(hours=16)),
+        user_b.public_primary_key: (tomorrow + timezone.timedelta(hours=7), tomorrow + timezone.timedelta(hours=12)),
+        user_c.public_primary_key: (tomorrow + timezone.timedelta(hours=17), tomorrow + timezone.timedelta(hours=18)),
+    }
+    returned_data = {u: (ev["start"], ev["end"]) for u, ev in response.data["users"].items()}
+    assert returned_data == expected
 
 
 @pytest.mark.django_db

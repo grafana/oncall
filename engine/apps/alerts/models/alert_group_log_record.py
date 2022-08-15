@@ -3,7 +3,7 @@ import logging
 
 import humanize
 from django.apps import apps
-from django.db import models, transaction
+from django.db import models
 from django.db.models import JSONField
 from django.db.models.signals import post_save
 from django.dispatch import receiver
@@ -546,7 +546,6 @@ class AlertGroupLogRecord(models.Model):
 
 @receiver(post_save, sender=AlertGroupLogRecord)
 def listen_for_alertgrouplogrecord(sender, instance, created, *args, **kwargs):
-    instance.alert_group.drop_cached_after_resolve_report_json()
     if instance.type != AlertGroupLogRecord.TYPE_DELETED:
         if not instance.alert_group.is_maintenance_incident:
             alert_group_pk = instance.alert_group.pk
@@ -555,6 +554,3 @@ def listen_for_alertgrouplogrecord(sender, instance, created, *args, **kwargs):
                 f"alert group event: {instance.get_type_display()}"
             )
             send_update_log_report_signal.apply_async(kwargs={"alert_group_pk": alert_group_pk}, countdown=8)
-
-    logger.info(f"Recalculate AG cache. Reason: save alert_group_log_record model {instance.pk}")
-    transaction.on_commit(instance.alert_group.schedule_cache_for_web)

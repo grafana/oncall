@@ -38,7 +38,7 @@ GRAFANA_PASSWORD=admin" > .env_hobby
 
 3. Launch services:
 ```bash
-docker-compose --env-file .env_hobby -f docker-compose.yml up --build -d
+docker-compose --env-file .env_hobby -f docker-compose.yml up -d
 ```
 
 4. Issue one-time invite token:

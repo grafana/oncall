@@ -1,7 +1,6 @@
 import logging
 from functools import wraps
 
-from django.core.exceptions import ImproperlyConfigured
 from telegram import error
 
 from apps.telegram.client import TelegramClient
@@ -14,7 +13,7 @@ def handle_missing_token(f):
     def decorated(*args, **kwargs):
         try:
             TelegramClient()
-        except (ImproperlyConfigured, error.InvalidToken) as e:
+        except error.InvalidToken as e:
             logger.warning(
                 "Tried to initialize a Telegram client, but TELEGRAM_TOKEN live setting is invalid or missing. "
                 f"Exception: {e}"

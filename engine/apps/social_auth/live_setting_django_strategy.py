@@ -39,8 +39,6 @@ class LiveSettingDjangoStrategy(DjangoStrategy):
         """
         if live_settings.SLACK_INSTALL_RETURN_REDIRECT_HOST is not None and path is not None:
             return create_engine_url(path, override_base=live_settings.SLACK_INSTALL_RETURN_REDIRECT_HOST)
-        if settings.SLACK_INSTALL_RETURN_REDIRECT_HOST is not None and path is not None:
-            return create_engine_url(path, override_base=settings.SLACK_INSTALL_RETURN_REDIRECT_HOST)
         if self.request:
             return self.request.build_absolute_uri(path)
         else:
