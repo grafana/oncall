@@ -365,7 +365,7 @@ class OnCallSchedule(PolymorphicModel):
                 # event starts after the current interval, move to next interval and go through it
                 current_interval_idx += 1
 
-        resolved.sort(key=lambda e: e["start"])
+        resolved.sort(key=lambda e: (e["start"], e["shift"]["pk"]))
         return resolved
 
 
