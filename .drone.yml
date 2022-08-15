@@ -47,33 +47,6 @@ steps:
       ref:
         - refs/tags/v*.*.*
 
-  - name: Publish Plugin to Github (release)
-    image: plugins/github-release
-    settings:
-      api_key:
-        from_secret: gh_token
-      files: grafana-plugin/ci/dist/grafana-oncall-app-${DRONE_TAG}.zip
-      title: ${DRONE_TAG}
-    depends_on:
-      - Sign and Package Plugin
-    when:
-      ref:
-        - refs/tags/v*.*.*
-
-  - name: Publish Plugin to grafana.com (release)
-    image: curlimages/curl:7.73.0
-    environment:
-      GRAFANA_API_KEY:
-        from_secret: gcom_plugin_publisher_api_key
-    commands:
-      - "curl -f -s -H \"Authorization: Bearer $${GRAFANA_API_KEY}\" -d \"download[any][url]=https://storage.googleapis.com/grafana-oncall-app/releases/grafana-oncall-app-${DRONE_TAG}.zip\" -d \"download[any][md5]=$$(curl -sL https://storage.googleapis.com/grafana-oncall-app/releases/grafana-oncall-app-${DRONE_TAG}.zip | md5sum | cut -d' ' -f1)\" -d url=https://github.com/grafana/oncall/grafana-plugin https://grafana.com/api/plugins"
-    depends_on:
-      - Publish Plugin to GCS (release)
-      - Publish Plugin to Github (release)
-    when:
-      ref:
-        - refs/tags/v*.*.*
-
   - name: Lint Backend
     image: python:3.9
     environment:
@@ -142,7 +115,6 @@ steps:
     when:
       ref:
         - refs/heads/dev
-        - refs/tags/v*.*.*
 
 # Services for Unit Test Backend
 services:
@@ -169,6 +141,124 @@ trigger:
       - refs/heads/main
       - refs/heads/dev
       - refs/tags/v*.*.*
+
+---
+kind: pipeline
+type: docker
+name: OSS Release
+
+steps:
+  - name: Check Promote
+    image: alpine
+    commands:
+      - if [ -z "$DRONE_DEPLOY_TO" ]; then echo "Missing DRONE_DEPLOY_TO (Target)"; exit 1; fi
+      - if [ -z "$DRONE_TAG" ]; then echo "Missing DRONE_TAG"; exit 1; fi
+      - echo Promoting $DRONE_TAG to $DRONE_DEPLOY_TO
+
+  - name: Build Plugin
+    image: node:14.6.0-stretch
+    commands:
+      - apt-get update
+      - apt-get --assume-yes install jq
+      - cd grafana-plugin/
+      - if [ -z "$DRONE_TAG" ]; then echo "No tag, not modifying version"; else jq '.version="${DRONE_TAG}"' package.json > package.new && mv package.new package.json && jq '.version' package.json; fi
+      - yarn --network-timeout 500000
+      - yarn build
+      - ls ./
+    depends_on:
+      - Check Promote
+    when:
+      event:
+        - promote
+      target:
+        - oss
+      ref:
+        - refs/tags/v*.*.*
+
+  - name: Sign and Package Plugin
+    image: node:14.6.0-stretch
+    environment:
+      GRAFANA_API_KEY:
+        from_secret: gcom_plugin_publisher_api_key
+    depends_on:
+      - Build Plugin
+    commands:
+      - apt-get update
+      - apt-get install zip
+      - cd grafana-plugin
+      - yarn sign
+      - yarn ci-build:finish
+      - yarn ci-package
+      - cd ci/dist
+      - zip -r grafana-oncall-app.zip ./grafana-oncall-app
+      - if [ -z "$DRONE_TAG" ]; then echo "No tag, skipping archive"; else cp grafana-oncall-app.zip grafana-oncall-app-${DRONE_TAG}.zip; fi
+
+  - name: Publish Plugin to Github (release)
+    image: plugins/github-release
+    settings:
+      api_key:
+        from_secret: gh_token
+      files: grafana-plugin/ci/dist/grafana-oncall-app-${DRONE_TAG}.zip
+      title: ${DRONE_TAG}
+    depends_on:
+      - Sign and Package Plugin
+
+  - name: Publish Plugin to grafana.com (release)
+    image: curlimages/curl:7.73.0
+    environment:
+      GRAFANA_API_KEY:
+        from_secret: gcom_plugin_publisher_api_key
+    commands:
+      - "curl -f -s -H \"Authorization: Bearer $${GRAFANA_API_KEY}\" -d \"download[any][url]=https://storage.googleapis.com/grafana-oncall-app/releases/grafana-oncall-app-${DRONE_TAG}.zip\" -d \"download[any][md5]=$$(curl -sL https://storage.googleapis.com/grafana-oncall-app/releases/grafana-oncall-app-${DRONE_TAG}.zip | md5sum | cut -d' ' -f1)\" -d url=https://github.com/grafana/oncall/grafana-plugin https://grafana.com/api/plugins"
+    depends_on:
+      - Publish Plugin to Github (release)
+
+  - name: Image Tag
+    image: alpine
+    commands:
+      - apk add --no-cache bash git sed
+      - git fetch origin --tags
+      - chmod +x ./tools/image-tag.sh
+      - echo $(./tools/image-tag.sh)
+      - echo $(./tools/image-tag.sh) > .tags
+      - if [ -z "$DRONE_TAG" ]; then echo "No tag, not modifying version"; else sed "0,/VERSION.*/ s/VERSION.*/VERSION = \"${DRONE_TAG}\"/g" engine/settings/base.py > engine/settings/base.temp && mv engine/settings/base.temp engine/settings/base.py; fi
+      - cat engine/settings/base.py | grep VERSION | head -1
+    depends_on:
+      - Check Promote
+    when:
+      event:
+        - promote
+      target:
+        - oss
+      ref:
+        - refs/tags/v*.*.*
+
+  - name: Build and Push Engine Docker Image Backend to Dockerhub
+    image: plugins/docker
+    settings:
+      repo: grafana/oncall
+      dockerfile: engine/Dockerfile
+      context: engine/
+      password:
+        from_secret: docker_password
+      username:
+        from_secret: docker_username
+    depends_on:
+      - Image Tag
+
+  - name: Unrecognized Promote Target
+    image: alpine
+    commands:
+      - echo $DRONE_DEPLOY_TO is not a recognized promote target!
+      - exit 1
+    when:
+      target:
+        exclude:
+          - oss
+
+trigger:
+  event:
+    - promote
 
 ---
 # Secret for pulling docker images.
