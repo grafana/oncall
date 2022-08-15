@@ -2,22 +2,18 @@ version: '3.2'
 
 services:
 
-  mysql:
-    image: mysql:5.7
+  postgres:
+    image: postgres:14.4
     platform: linux/x86_64
     mem_limit: 500m
     cpus: 0.5
-    command: --default-authentication-plugin=mysql_native_password --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
     restart: always
     ports:
-      - 3306:3306
+      - 5432:5432
     environment:
-      MYSQL_ROOT_PASSWORD: empty
-      MYSQL_DATABASE: oncall_local_dev
-    healthcheck:
-      test: [ "CMD", "mysqladmin" ,"ping", "-h", "localhost" ]
-      timeout: 20s
-      retries: 10
+      POSTGRES_DB: oncall_local_dev
+      POSTGRES_PASSWORD: empty
+      POSTGRES_INITDB_ARGS: '--encoding=UTF-8'
 
   redis:
     image: redis
@@ -42,10 +38,19 @@ services:
   mysql-to-create-grafana-db:
     image: mysql:5.7
     platform: linux/x86_64
-    command: bash -c "mysql -h mysql -uroot -pempty -e 'CREATE DATABASE IF NOT EXISTS grafana CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;'"
-    depends_on:
-      mysql:
-        condition: service_healthy
+    mem_limit: 500m
+    cpus: 0.5
+    command: --default-authentication-plugin=mysql_native_password --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
+    restart: always
+    ports:
+      - 3306:3306
+    environment:
+      MYSQL_ROOT_PASSWORD: empty
+      MYSQL_DATABASE: grafana
+    healthcheck:
+      test: [ "CMD", "mysqladmin" ,"ping", "-h", "localhost" ]
+      timeout: 20s
+      retries: 10
 
   grafana:
     image: "grafana/grafana:9.0.0-beta3"

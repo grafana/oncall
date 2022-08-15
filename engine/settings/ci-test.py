@@ -1,8 +1,5 @@
 # flake8: noqa: F405
 
-# Workaround to use pymysql instead of mysqlclient
-import pymysql
-
 from .base import *  # noqa
 
 SECRET_KEY = "u5/IIbuiJR3Y9FQMBActk+btReZ5oOxu+l8MIJQWLfVzESoan5REE6UNSYYEQdjBOcty9CDak2X"
@@ -14,18 +11,23 @@ BASE_URL = "http://localhost"
 
 CELERY_BROKER_URL = "amqp://rabbitmq:rabbitmq@rabbit_test:5672"
 
-pymysql.install_as_MySQLdb()
+if DB_BACKEND == "mysql":
+    # Workaround to use pymysql instead of mysqlclient
+    import pymysql
 
-# Primary database must have the name "default"
+    pymysql.install_as_MySQLdb()
+    DB_BACKEND_DEFAULT_VALUES[DB_BACKEND]["OPTIONS"] = {"charset": "utf8mb4"}
+
+
 DATABASES = {
     "default": {
-        "ENGINE": "django.db.backends.mysql",
-        "NAME": "oncall_local_dev",
-        "USER": "root",
+        "ENGINE": "django.db.backends.{}".format(DB_BACKEND),
+        "NAME": os.environ.get("DB_NAME", "oncall_local_dev"),
+        "USER": os.environ.get("DB_USER", DB_BACKEND_DEFAULT_VALUES.get(DB_BACKEND, {}).get("USER", "root")),
         "PASSWORD": "local_dev_pwd",
-        "HOST": "mysql_test",
-        "PORT": "3306",
-        "OPTIONS": {"charset": "utf8mb4"},
+        "HOST": "{}_test".format(DB_BACKEND),
+        "PORT": os.environ.get("DB_PORT", DB_BACKEND_DEFAULT_VALUES.get(DB_BACKEND, {}).get("PORT", "3306")),
+        "OPTIONS": DB_BACKEND_DEFAULT_VALUES.get(DB_BACKEND, {}).get("OPTIONS", {}),
     },
 }
 

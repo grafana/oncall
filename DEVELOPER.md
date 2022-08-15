@@ -31,6 +31,8 @@
 docker-compose -f docker-compose-developer.yml up -d
 ```
 
+NOTE: to use a PostgreSQL db backend, use the `docker-compose-developer-pg.yml` file instead.
+
 2. Prepare a python environment:
 ```bash
 # Create and activate the virtual environment
@@ -44,6 +46,9 @@ pip install -U pip wheel
 
 # Copy and check .env file.
 cp .env.example .env
+
+# NOTE: if you want to use the PostgreSQL db backend add DB_BACKEND=postgresql to your .env file;
+#       currently allowed backend values are `mysql` (default) and `postgresql`
 
 # Apply .env to current terminal.
 # For PyCharm it's better to use https://plugins.jetbrains.com/plugin/7861-envfile/
