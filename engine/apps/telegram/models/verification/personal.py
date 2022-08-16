@@ -33,7 +33,6 @@ class TelegramVerificationCode(models.Model):
                 user=user, telegram_chat_id=telegram_chat_id, defaults={"telegram_nick_name": telegram_nick_name}
             )
             chatops_insight_log(
-                organization=user.organization,
                 author=user,
                 event_name=ChatOpsEvent.USER_LINKED,
                 chatops_type=ChatOpsType.TELEGRAM,

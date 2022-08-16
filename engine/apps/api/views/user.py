@@ -352,7 +352,6 @@ class UserView(
             connector = TelegramToUserConnector.objects.get(user=user)
             connector.delete()
             chatops_insight_log(
-                organization=user.organization,
                 author=request.user,
                 event_name=ChatOpsEvent.USER_UNLINKED,
                 chatops_type=ChatOpsType.TELEGRAM,
@@ -375,7 +374,6 @@ class UserView(
         try:
             backend.unlink_user(user)
             chatops_insight_log(
-                organization=user.organization,
                 author=request.user,
                 event_name=ChatOpsEvent.USER_UNLINKED,
                 chatops_type=backend.backend_id,

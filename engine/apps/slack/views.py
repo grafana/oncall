@@ -539,8 +539,7 @@ class ResetSlackView(APIView):
         if slack_team_identity is not None:
             clean_slack_integration_leftovers.apply_async((organization.pk,))
             chatops_insight_log(
-                organization,
-                request.user,
+                author=request.user,
                 event_name=ChatOpsEvent.WORKSPACE_DISCONNECTED,
                 chatops_type=ChatOpsType.SLACK,
             )

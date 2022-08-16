@@ -63,9 +63,7 @@ class SlackTeamIdentity(models.Model):
         self.cached_reinstall_data = None
         self.installed_via_granular_permissions = True
         self.save()
-        chatops_insight_log(
-            organization, user, event_name=ChatOpsEvent.WORKSPACE_CONNECTED, chatops_type=ChatOpsType.SLACK
-        )
+        chatops_insight_log(author=user, event_name=ChatOpsEvent.WORKSPACE_CONNECTED, chatops_type=ChatOpsType.SLACK)
 
     def get_cached_channels(self, search_term=None, slack_id=None):
         queryset = self.cached_channels

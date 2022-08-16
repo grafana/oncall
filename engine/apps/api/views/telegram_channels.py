@@ -41,9 +41,7 @@ class TelegramChannelViewSet(
 
     def perform_destroy(self, instance):
         user = self.request.user
-        organization = user.organization
         chatops_insight_log(
-            organization=organization,
             author=user,
             event_name=ChatOpsEvent.CHANNEL_DISCONNECTED,
             chatops_type=ChatOpsType.TELEGRAM,

@@ -51,7 +51,6 @@ class TelegramChannelVerificationCode(models.Model):
             )
 
             chatops_insight_log(
-                organization=verification_code.organization,
                 author=verification_code.author,
                 event_name=ChatOpsEvent.CHANNEL_CONNECTED,
                 chatops_type=ChatOpsType.TELEGRAM,
@@ -59,7 +58,6 @@ class TelegramChannelVerificationCode(models.Model):
             )
             if not connector_exists:
                 chatops_insight_log(
-                    organization=verification_code.organization,
                     author=verification_code.author,
                     event_name=ChatOpsEvent.DEFAULT_CHANNEL_CHANGED,
                     chatops_type=ChatOpsType.TELEGRAM,

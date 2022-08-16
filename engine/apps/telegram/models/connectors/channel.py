@@ -100,7 +100,6 @@ class TelegramToOrganizationConnector(models.Model):
         self.is_default_channel = True
         self.save(update_fields=["is_default_channel"])
         chatops_insight_log(
-            organization=self.organization,
             author=author,
             event_name=ChatOpsEvent.DEFAULT_CHANNEL_CHANGED,
             chatops_type=ChatOpsType.TELEGRAM,

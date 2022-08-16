@@ -69,7 +69,6 @@ def connect_user_to_slack(response, backend, strategy, user, organization, *args
     )
 
     chatops_insight_log(
-        organization=user.organization,
         author=user,
         event_name=ChatOpsEvent.USER_LINKED,
         chatops_type=ChatOpsType.SLACK,

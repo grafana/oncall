@@ -1,7 +1,11 @@
 import enum
+import json
 import logging
 
+from django.apps import apps
+
 insight_logger = logging.getLogger("insight_logger")
+logger = logging.getLogger(__name__)
 
 
 class ChatOpsEvent(enum.Enum):
@@ -23,13 +27,25 @@ class ChatOpsType(enum.Enum):
     TELEGRAM = "TELEGRAM"
 
 
-def chatops_insight_log(organization, author, event_name: ChatOpsEvent, chatops_type: ChatOpsType, **kwargs):
-    tenant_id = organization.stack_id
-    user_id = author.public_primary_key
-    username = author.username
+def chatops_insight_log(author, event_name: ChatOpsEvent, chatops_type: ChatOpsType, **kwargs):
+    try:
+        organization = author.organization
+        DynamicSetting = apps.get_model("base", "DynamicSetting")
+        org_id_to_enable_insight_logs, _ = DynamicSetting.objects.get_or_create(
+            name="org_id_to_enable_insight_logs",
+            defaults={"json_value": []},
+        )
+        insight_logs_enabled = organization.id in org_id_to_enable_insight_logs.json_value
+        if insight_logs_enabled:
+            tenant_id = organization.stack_id
+            user_id = author.public_primary_key
+            username = json.dumps(author.username)
 
-    log_line = f"tenant_id={tenant_id} author_id={user_id} author={username} event_type=chat_ops event_name={event_name.value} chat_ops_type={chatops_type.value}"  # noqa
-    for k, v in kwargs.items():
-        log_line += f" {k}={v}"
+            log_line = f"tenant_id={tenant_id} author_id={user_id} author={username} event_type=chat_ops event_name={event_name.value} chat_ops_type={chatops_type.value}"  # noqa
+            for k, v in kwargs.items():
+                log_line += f" {k}={json.dumps(v)}"
 
-    insight_logger.info(log_line)
+            insight_logger.info(log_line)
+    except Exception as e:
+        logger.warning(f"insight_log.failed_to_write_chatops_insight_log exception={e}")
+        raise e

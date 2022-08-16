@@ -233,7 +233,6 @@ class Organization(MaintainableObject):
             self.general_log_channel_id = channel_id
             self.save(update_fields=["general_log_channel_id"])
             chatops_insight_log(
-                organization=user.organization,
                 author=user,
                 event_name=ChatOpsEvent.DEFAULT_CHANNEL_CHANGED,
                 chatops_type=ChatOpsType.SLACK,
