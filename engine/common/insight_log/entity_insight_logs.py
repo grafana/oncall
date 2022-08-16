@@ -45,23 +45,23 @@ def entity_insight_log(instance: InsightLoggable, author, event: EntityEvent, pr
         organization = author.organization
         tenant_id = organization.stack_id
         author_id = author.public_primary_key
-        author = author.username
+        author = json.dumps(author.username)
         entity_type = instance.insight_logs_type_verbal
         try:
             entity_id = instance.public_primary_key  # Fallback for entities which have no public_primary_key
         except AttributeError:
             entity_id = instance.id
-        entity_name = instance.insight_logs_verbal
+        entity_name = json.dumps(instance.insight_logs_verbal)
         metadata = instance.insight_logs_metadata
-        log_line = f"tenant_id={tenant_id} author_id={author_id} author={author} event_type=entity event_name={event} entity_type={entity_type} entity_id={entity_id} entity_name={entity_name}"  # noqa
+        log_line = f"tenant_id={tenant_id} author_id={author_id} author={author} event_type=entity event_name={event.value} entity_type={entity_type} entity_id={entity_id} entity_name={entity_name}"  # noqa
         for k, v in metadata.items():
-            log_line += f' {k}="{v}"'
+            log_line += f" {k}={json.dumps(v)}"
         if prev_state and new_state:
             prev_state, new_state = _state_diff_finder(prev_state, new_state)
             prev_state = json.dumps(format_state_for_insight_log(prev_state))
             new_state = json.dumps(format_state_for_insight_log(new_state))
-            log_line += f" prev_state={prev_state}"
-            log_line += f" new_state={new_state}"
+            log_line += f' prev_state="{prev_state}"'
+            log_line += f' new_state="{new_state}"'
         insight_logger.info(log_line)
     except Exception as e:
         logger.warning(f"insight_log.failed_to_write_entity_insight_log exception={e}")
@@ -85,30 +85,11 @@ def _state_diff_finder(before: dict, after: dict):
 
 
 def format_state_for_insight_log(diff_dict):
-    fields_to_prune = (
-        "slack_title",
-        "slack_message",
-        "slack_image_url",
-        "sms_title",
-        "phone_call_title",
-        "web_title",
-        "web_message",
-        "web_image_url_template",
-        "email_title_template",
-        "email_message",
-        "telegram_title",
-        "telegram_message",
-        "telegram_image_url",
-        "source_link",
-        "grouping_id",
-        "resolve_condition",
-        "acknowledge_condition",
-    )
-    fields_to_hide = ()
+    fields_to_prune = ()
+    fields_to_hide = ("verified_phone_number", "unverified_phone_number")
     for k, v in diff_dict.items():
         if k in fields_to_prune:
-            pass
-            # diff_dict[k] = "Diff not supported"
+            diff_dict[k] = "Diff not supported"
         if k in fields_to_hide:
-            pass
+            diff_dict[k] = "*****"
     return diff_dict

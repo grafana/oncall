@@ -486,11 +486,10 @@ class CustomOnCallShift(models.Model):
             if self.until:
                 res["until"] = self.until.isoformat()
         if self.team:
-            res["team"] = self.team.insight_logs_verbal
+            res["team"] = self.team.name
             res["team_id"] = self.team.public_primary_key
         else:
             res["team"] = "General"
-            res["team_id"] = None
         if self.time_zone:
             res["time_zone"] = self.time_zone
         return res
@@ -499,11 +498,10 @@ class CustomOnCallShift(models.Model):
     def insight_logs_metadata(self):
         res = {}
         if self.team:
-            res["team"] = self.team.insight_logs_verbal
+            res["team"] = self.team.name
             res["team_id"] = self.team.public_primary_key
         else:
             res["team"] = "General"
-            res["team_id"] = None
         if self.schedule:
             res["schedule"] = self.schedule.insight_logs_verbal
             res["schedule_id"] = self.schedule.public_primary_key

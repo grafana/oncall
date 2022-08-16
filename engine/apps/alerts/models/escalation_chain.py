@@ -85,14 +85,18 @@ class EscalationChain(models.Model):
         }
 
         if self.team:
-            res["team"] = self.team.insight_logs_verbal
+            res["team"] = self.team.name
             res["team_id"] = self.team.public_primary_key
+        else:
+            res["team"] = "General"
         return res
 
     @property
     def insight_logs_metadata(self):
         res = {}
         if self.team:
-            res["team"] = self.team.insight_logs_verbal
+            res["team"] = self.team.name
             res["team_id"] = self.team.public_primary_key
+        else:
+            res["team"] = "General"
         return res

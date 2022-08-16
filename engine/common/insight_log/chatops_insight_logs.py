@@ -28,7 +28,7 @@ def chatops_insight_log(organization, author, event_name: ChatOpsEvent, chatops_
     user_id = author.public_primary_key
     username = author.username
 
-    log_line = f"tenant_id={tenant_id} author_id={user_id} author={username} event_type=chat_ops event_name={event_name} chat_ops_type={chatops_type}"  # noqa
+    log_line = f"tenant_id={tenant_id} author_id={user_id} author={username} event_type=chat_ops event_name={event_name.value} chat_ops_type={chatops_type.value}"  # noqa
     for k, v in kwargs.items():
         log_line += f" {k}={v}"
 

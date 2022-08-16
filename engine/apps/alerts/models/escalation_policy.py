@@ -397,8 +397,8 @@ class EscalationPolicy(OrderedModel):
             EscalationPolicy.STEP_NOTIFY_MULTIPLE_USERS_IMPORTANT,
         ]:
             if self.notify_to_users_queue:
-                res["notify_users"] = ", ".join([user.insight_logs_verbal for user in self.sorted_users_queue])
-                res["notify_users_ids"] = ", ".join([user.public_primary_key for user in self.sorted_users_queue])
+                res["notify_users"] = [user.username for user in self.sorted_users_queue]
+                res["notify_users_ids"] = [user.public_primary_key for user in self.sorted_users_queue]
         elif self.step == EscalationPolicy.STEP_NOTIFY_IF_TIME:
             if self.from_time:
                 res["from_time"] = self.from_time.isoformat() + " (UTC)"

@@ -39,7 +39,7 @@ class UserScheduleExportAuthToken(BaseAuthToken):
 
     @property
     def insight_logs_verbal(self):
-        return f"Users chedule export token for {self.user.insight_logs_verbal}"
+        return f"Users chedule export token for {self.user.username}"
 
     @property
     def insight_logs_serialized(self):

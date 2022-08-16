@@ -631,13 +631,21 @@ class AlertReceiveChannel(IntegrationOptionsMixin, MaintainableObject):
             "acknowledge_condition": self.acknowledge_condition_template or "default",
         }
         if self.team:
-            res["team"] = self.team.insight_logs_verbal
+            res["team"] = self.team.name
             res["team_id"] = self.team.public_primary_key
+        else:
+            res["team"] = "General"
         return res
 
     @property
     def insight_logs_metadata(self):
-        return {}
+        res = {}
+        if self.team:
+            res["team"] = self.team.name
+            res["team_id"] = self.team.public_primary_key
+        else:
+            res["team"] = "General"
+        return res
 
 
 @receiver(post_save, sender=AlertReceiveChannel)

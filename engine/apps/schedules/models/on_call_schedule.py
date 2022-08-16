@@ -203,11 +203,10 @@ class OnCallSchedule(PolymorphicModel):
             "name": self.name,
         }
         if self.team:
-            res["team"] = self.team.insight_logs_verbal
+            res["team"] = self.team.name
             res["team_id"] = self.team.public_primary_key
         else:
             res["team"] = "General"
-            res["team_id"] = None
         if self.organization.slack_team_identity:
             if self.channel:
                 SlackChannel = apps.get_model("slack", "SlackChannel")
@@ -228,11 +227,10 @@ class OnCallSchedule(PolymorphicModel):
     def insight_logs_metadata(self):
         res = {}
         if self.team:
-            res["team"] = self.team.insight_logs_verbal
+            res["team"] = self.team.name
             res["team_id"] = self.team.public_primary_key
         else:
             res["team"] = "General"
-            res["team_id"] = None
         return res
 
 
