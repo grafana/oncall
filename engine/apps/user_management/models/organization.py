@@ -242,26 +242,6 @@ class Organization(MaintainableObject):
             )
 
     @property
-    def repr_settings_for_client_side_logging(self):
-        """
-        Example of execution:
-            # TODO: 770: check format
-            name: Test, archive alerts from date: 2019-10-24, require resolution note: No
-            acknowledge remind settings: Never remind about ack-ed incidents, and never unack
-        """
-        result = (
-            f"name: {self.org_title}, "
-            f"archive alerts from date: {self.archive_alerts_from.isoformat()}, "
-            f"require resolution note: {'Yes' if self.is_resolution_note_required else 'No'}"
-        )
-        if self.slack_team_identity:
-            result += (
-                f"\nacknowledge remind settings: {self.get_acknowledge_remind_timeout_display()}, "
-                f"{self.get_unacknowledge_timeout_display()}, "
-            )
-        return result
-
-    @property
     def web_link(self):
         return urljoin(self.grafana_url, "a/grafana-oncall-app/")
 

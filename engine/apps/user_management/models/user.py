@@ -209,31 +209,6 @@ class User(models.Model):
         return verbal
 
     @property
-    def repr_settings_for_client_side_logging(self):
-        """
-        Example of execution:
-            username: Alex, role: Admin, verified phone number: not added, unverified phone number: not added,
-            telegram connected: No,
-            notification policies: default: SMS - 5 min - :telephone:, important: :telephone:
-        """
-        UserNotificationPolicy = apps.get_model("base", "UserNotificationPolicy")
-
-        default, important = UserNotificationPolicy.get_short_verbals_for_user(user=self)
-        notification_policies_verbal = f"default: {' - '.join(default)}, important: {' - '.join(important)}"
-        notification_policies_verbal = demojize(notification_policies_verbal)
-
-        result = (
-            f"username: {self.username}, role: {self.get_role_display()}, "
-            f"verified phone number: "
-            f"{self.verified_phone_number if self.verified_phone_number else 'not added'}, "
-            f"unverified phone number: "
-            f"{self.unverified_phone_number if self.unverified_phone_number else 'not added'}, "
-            f"telegram connected: {'Yes' if self.is_telegram_connected else 'No'}"
-            f"\nnotification policies: {notification_policies_verbal}"
-        )
-        return result
-
-    @property
     def timezone(self):
         if self._timezone:
             return self._timezone

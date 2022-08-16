@@ -130,35 +130,6 @@ class ChannelFilter(OrderedModel):
             return self.slack_channel_id
 
     @property
-    def repr_settings_for_client_side_logging(self):
-        """
-        Example of execution:
-            term: .*, order: 0, slack notification allowed: Yes, telegram notification allowed: Yes,
-            slack channel: without_amixr_general_channel, telegram channel: default
-        """
-        result = (
-            f"term: {self.str_for_clients}, order: {self.order}, slack notification allowed: "
-            f"{'Yes' if self.notify_in_slack else 'No'}, telegram notification allowed: "
-            f"{'Yes' if self.notify_in_telegram else 'No'}"
-        )
-        if self.notification_backends:
-            for backend_id, backend in self.notification_backends.items():
-                result += f", {backend_id} notification allowed: {'Yes' if backend.get('enabled') else 'No'}"
-        slack_channel = None
-        if self.slack_channel_id:
-            SlackChannel = apps.get_model("slack", "SlackChannel")
-            sti = self.alert_receive_channel.organization.slack_team_identity
-            slack_channel = SlackChannel.objects.filter(slack_team_identity=sti, slack_id=self.slack_channel_id).first()
-        result += f", slack channel: {slack_channel.name if slack_channel else 'default'}"
-        result += f", telegram channel: {self.telegram_channel.channel_name if self.telegram_channel else 'default'}"
-        if self.notification_backends:
-            for backend_id, backend in self.notification_backends.items():
-                channel = backend.get("channel_id") or "default"
-                result += f", {backend_id} channel: {channel}"
-        result += f", escalation chain: {self.escalation_chain.name if self.escalation_chain else 'not selected'}"
-        return result
-
-    @property
     def str_for_clients(self):
         if self.filtering_term is None:
             return "default"

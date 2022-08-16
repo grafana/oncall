@@ -46,10 +46,6 @@ class EscalationChain(models.Model):
     def __str__(self):
         return f"{self.pk}: {self.name}"
 
-    @property
-    def repr_settings_for_client_side_logging(self):
-        return f"name: {self.name}, team: {self.team.name if self.team else 'No team'}"
-
     def make_copy(self, copy_name: str):
         with transaction.atomic():
             copied_chain = EscalationChain.objects.create(
