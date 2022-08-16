@@ -280,7 +280,7 @@ class CustomOnCallShift(models.Model):
         # rolling_users shift converts to several ical events
         if self.type in (CustomOnCallShift.TYPE_ROLLING_USERS_EVENT, CustomOnCallShift.TYPE_OVERRIDE):
             # generate initial iCal for counting rotation start date
-            event_ical = self.generate_ical(self.start, user_counter=0)
+            event_ical = self.generate_ical(self.start)
             rotations_created = 0
             all_rotation_checked = False
 
@@ -301,13 +301,14 @@ class CustomOnCallShift(models.Model):
                     if not start:  # means that rotation ends before next event starts
                         all_rotation_checked = True
                         break
-                    elif start >= self.rotation_start:  # event has already started, generate iCal for each user
+                    elif start + self.duration > self.rotation_start:
+                        # event has already started, generate iCal for each user
                         for user_counter, user in enumerate(users, start=1):
                             event_ical = self.generate_ical(start, user_counter, user, counter, time_zone)
                             result += event_ical
                         rotations_created += 1
                     else:  # generate default iCal to calculate the date for the next rotation
-                        event_ical = self.generate_ical(start, user_counter=0)
+                        event_ical = self.generate_ical(start)
 
                     if rotations_created == len(users_queue):  # means that we generated iCal for every user group
                         all_rotation_checked = True
@@ -319,14 +320,14 @@ class CustomOnCallShift(models.Model):
                 result += self.generate_ical(self.start, user_counter, user, time_zone=time_zone)
         return result
 
-    def generate_ical(self, start, user_counter, user=None, counter=1, time_zone="UTC"):
+    def generate_ical(self, start, user_counter=0, user=None, counter=1, time_zone="UTC"):
         event = Event()
         event["uid"] = f"oncall-{self.uuid}-PK{self.public_primary_key}-U{user_counter}-E{counter}-S{self.source}"
         if user:
             event.add("summary", self.get_summary_with_user_for_ical(user))
         event.add("dtstart", self.convert_dt_to_schedule_timezone(start, time_zone))
         event.add("dtend", self.convert_dt_to_schedule_timezone(start + self.duration, time_zone))
-        event.add("dtstamp", timezone.now())
+        event.add("dtstamp", self.rotation_start)
         if self.event_ical_rules:
             event.add("rrule", self.event_ical_rules)
         try:
@@ -407,7 +408,7 @@ class CustomOnCallShift(models.Model):
         for event in ical_iter:
             if end_date:  # end_date exists for long events with frequency weekly and monthly
                 if end_date >= event.start >= next_event_start:
-                    if event.start >= self.rotation_start:
+                    if event.stop > self.rotation_start:
                         next_event = event
                         break
                 else:

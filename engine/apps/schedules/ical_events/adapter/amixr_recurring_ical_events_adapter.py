@@ -6,6 +6,7 @@ from django.utils import timezone
 from icalendar import Calendar, Event
 from recurring_ical_events import UnfoldableCalendar, compare_greater, is_event, time_span_contains_event
 
+from apps.schedules.constants import ICAL_DATETIME_END, ICAL_DATETIME_STAMP, ICAL_DATETIME_START, ICAL_RRULE, ICAL_UNTIL
 from apps.schedules.ical_events.proxy.ical_proxy import IcalService
 
 EXTRA_LOOKUP_DAYS = 16
@@ -18,6 +19,17 @@ class AmixrUnfoldableCalendar(UnfoldableCalendar):
     In recurring-ical-events==0.1.20b0 this problem is fixed, but all-day events without timezone lead to exception.
     So i took part of code from 0.1.20b0 but leave 0.1.16b in requirements.
     """
+
+    class RepeatedEvent(UnfoldableCalendar.RepeatedEvent):
+        class Repetition(UnfoldableCalendar.RepeatedEvent.Repetition):
+            """
+            A repetition of an event. Overridden version of
+            recurring_ical_events.UnfoldableCalendar.RepeatedEvent.Repetition. This is overridden to remove the 'RRULE'
+            param from ATTRIBUTES_TO_DELETE_ON_COPY, because the 'UNTIL' param must be stored in repetition events to
+            calculate its end date.
+            """
+
+            ATTRIBUTES_TO_DELETE_ON_COPY = ["RDATE", "EXDATE"]
 
     def between(self, start, stop):
         """Return events at a time between start (inclusive) and end (inclusive)"""
@@ -83,6 +95,10 @@ class AmixrRecurringIcalEventsAdapter(IcalService):
         )
 
         def filter_extra_days(event):
-            return time_span_contains_event(start_date, end_date, event["DTSTART"].dt, event["DTEND"].dt)
+            event_start = max(event[ICAL_DATETIME_START].dt, event[ICAL_DATETIME_STAMP].dt)
+            event_end = event[ICAL_DATETIME_END].dt
+            if event.get(ICAL_RRULE, {}).get(ICAL_UNTIL):
+                event_end = min(event[ICAL_RRULE][ICAL_UNTIL][0], event[ICAL_DATETIME_END].dt)
+            return time_span_contains_event(start_date, end_date, event_start, event_end)
 
         return list(filter(filter_extra_days, events))
