@@ -557,9 +557,9 @@ def test_filter_events_range_calendar(
         "schedule": schedule,
     }
     on_call_shift = make_on_call_shift(
-        organization=organization, shift_type=CustomOnCallShift.TYPE_RECURRENT_EVENT, **data
+        organization=organization, shift_type=CustomOnCallShift.TYPE_ROLLING_USERS_EVENT, **data
     )
-    on_call_shift.users.add(user)
+    on_call_shift.add_rolling_users([[user]])
 
     # add override shift
     override_start = request_date + timezone.timedelta(seconds=3600)
@@ -640,9 +640,9 @@ def test_filter_events_overrides(
         "schedule": schedule,
     }
     on_call_shift = make_on_call_shift(
-        organization=organization, shift_type=CustomOnCallShift.TYPE_RECURRENT_EVENT, **data
+        organization=organization, shift_type=CustomOnCallShift.TYPE_ROLLING_USERS_EVENT, **data
     )
-    on_call_shift.users.add(user)
+    on_call_shift.add_rolling_users([[user]])
 
     # add override shift
     override_start = request_date + timezone.timedelta(seconds=3600)
@@ -735,9 +735,9 @@ def test_filter_events_final_schedule(
             "schedule": schedule,
         }
         on_call_shift = make_on_call_shift(
-            organization=organization, shift_type=CustomOnCallShift.TYPE_RECURRENT_EVENT, **data
+            organization=organization, shift_type=CustomOnCallShift.TYPE_ROLLING_USERS_EVENT, **data
         )
-        on_call_shift.users.add(user)
+        on_call_shift.add_rolling_users([[user]])
 
     # override: 22-23 / E
     override_data = {
@@ -866,6 +866,97 @@ def test_next_shifts_per_user(
     }
     returned_data = {u: (ev["start"], ev["end"]) for u, ev in response.data["users"].items()}
     assert returned_data == expected
+
+
+@pytest.mark.django_db
+def test_merging_same_shift_events(
+    make_organization_and_user_with_plugin_token,
+    make_user_for_organization,
+    make_user_auth_headers,
+    make_schedule,
+    make_on_call_shift,
+):
+    organization, user, token = make_organization_and_user_with_plugin_token()
+    client = APIClient()
+
+    schedule = make_schedule(
+        organization,
+        schedule_class=OnCallScheduleWeb,
+        name="test_web_schedule",
+    )
+    now = timezone.now().replace(hour=0, minute=0, second=0, microsecond=0)
+    start_date = now - timezone.timedelta(days=7)
+    request_date = start_date
+
+    user_a = make_user_for_organization(organization)
+    user_b = make_user_for_organization(organization)
+    user_c = make_user_for_organization(organization, role=Role.VIEWER)
+
+    data = {
+        "start": start_date + timezone.timedelta(hours=10),
+        "rotation_start": start_date,
+        "duration": timezone.timedelta(hours=2),
+        "priority_level": 1,
+        "frequency": CustomOnCallShift.FREQUENCY_DAILY,
+        "schedule": schedule,
+    }
+    on_call_shift = make_on_call_shift(
+        organization=organization, shift_type=CustomOnCallShift.TYPE_ROLLING_USERS_EVENT, **data
+    )
+    on_call_shift.add_rolling_users([[user_a, user_c, user_b]])
+
+    expected_events = [
+        {
+            "calendar_type": 0,
+            "end": start_date + timezone.timedelta(hours=12),
+            "is_gap": False,
+            "priority_level": 1,
+            "start": start_date + timezone.timedelta(hours=10),
+            "users": [user_a.username, user_b.username],
+            "missing_users": [user_c.username],
+        }
+    ]
+
+    # final schedule
+    url = reverse("api-internal:schedule-filter-events", kwargs={"pk": schedule.public_primary_key})
+    url += "?date={}&days=1".format(request_date.strftime("%Y-%m-%d"))
+    response = client.get(url, format="json", **make_user_auth_headers(user, token))
+    assert response.status_code == status.HTTP_200_OK
+    returned_events = [
+        {
+            "calendar_type": e["calendar_type"],
+            "end": e["end"],
+            "is_gap": e["is_gap"],
+            "priority_level": e["priority_level"],
+            "start": e["start"],
+            "users": [u["display_name"] for u in e["users"]] if e["users"] else None,
+            "missing_users": e["missing_users"],
+        }
+        for e in response.data["events"]
+        if not e["is_gap"]
+    ]
+    assert returned_events == expected_events
+
+    # rotations
+    url = reverse("api-internal:schedule-filter-events", kwargs={"pk": schedule.public_primary_key})
+    url += "?date={}&days=1&type=rotation".format(request_date.strftime("%Y-%m-%d"))
+    response = client.get(url, format="json", **make_user_auth_headers(user, token))
+    assert response.status_code == status.HTTP_200_OK
+
+    returned_events = [
+        {
+            "calendar_type": e["calendar_type"],
+            "end": e["end"],
+            "is_gap": e["is_gap"],
+            "priority_level": e["priority_level"],
+            "start": e["start"],
+            "users": [u["display_name"] for u in e["users"]] if e["users"] else None,
+            "missing_users": e["missing_users"],
+        }
+        for e in response.data["events"]
+        if not e["is_gap"]
+    ]
+    assert returned_events == expected_events
 
 
 @pytest.mark.django_db
