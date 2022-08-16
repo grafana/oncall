@@ -117,7 +117,7 @@ def test_filter_events_include_gaps(make_organization, make_user_for_organizatio
 
     data = {
         "start": start_date + timezone.timedelta(hours=10),
-        "rotation_start": start_date + timezone.timedelta(days=1, hours=10),
+        "rotation_start": start_date + timezone.timedelta(hours=10),
         "duration": timezone.timedelta(hours=8),
         "priority_level": 1,
         "frequency": CustomOnCallShift.FREQUENCY_DAILY,
@@ -192,7 +192,7 @@ def test_filter_events_include_empty(make_organization, make_user_for_organizati
 
     data = {
         "start": start_date + timezone.timedelta(hours=10),
-        "rotation_start": start_date + timezone.timedelta(days=1, hours=10),
+        "rotation_start": start_date + timezone.timedelta(hours=10),
         "duration": timezone.timedelta(hours=8),
         "priority_level": 1,
         "frequency": CustomOnCallShift.FREQUENCY_DAILY,
