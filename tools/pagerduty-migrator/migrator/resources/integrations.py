@@ -24,10 +24,15 @@ def match_integration_type(integration: dict, vendors: list[dict]) -> None:
         integration["oncall_type"] = None
         return
 
-    vendor_id = integration["vendor"]["id"]
-    vendor_name = vendors_map[vendor_id]["name"]
+    if integration["vendor"] == None:
+        print("WARNING:")
+        print("Integration name:",integration["name"])
+        print("Integration Link: ",integration["html_url"])
+    else:
+        vendor_id = integration["vendor"]["id"]
+        vendor_name = vendors_map[vendor_id]["name"]
 
-    integration["oncall_type"] = PAGERDUTY_TO_ONCALL_VENDOR_MAP.get(vendor_name)
+        integration["oncall_type"] = PAGERDUTY_TO_ONCALL_VENDOR_MAP.get(vendor_name)
 
 
 def migrate_integration(integration: dict, escalation_policies: list[dict]) -> None:
@@ -45,7 +50,7 @@ def migrate_integration(integration: dict, escalation_policies: list[dict]) -> N
 
     create_integration(
         oncall_name,
-        integration["oncall_type"],
+        "webhook",
         oncall_escalation_chain["id"],
     )
 

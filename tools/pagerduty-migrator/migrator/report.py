@@ -49,7 +49,7 @@ def format_escalation_policy(policy: dict) -> str:
 def format_integration(integration: dict) -> str:
     result = integration["service"]["name"] + " - " + integration["name"]
 
-    if not integration["oncall_type"]:
+    if not integration["name"]:
         result = (
             "{} {} — cannot find appropriate Grafana OnCall integration type".format(
                 ERROR_SIGN, result
@@ -128,12 +128,12 @@ def integration_report(integrations: list[dict]) -> str:
 
     for integration in sorted(
         integrations,
-        key=lambda i: bool(i["oncall_type"] and not i["is_escalation_policy_flawed"]),
+        key=lambda i: bool(i["name"] and not i["is_escalation_policy_flawed"]),
         reverse=True,
     ):
         result += f"\n" + TAB + format_integration(integration)
         if (
-            integration["oncall_type"]
+            integration["name"]
             and not integration["is_escalation_policy_flawed"]
             and integration["oncall_integration"]
         ):

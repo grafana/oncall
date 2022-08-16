@@ -117,7 +117,7 @@ def main() -> None:
     print("▶ Migrating integrations...")
     for integration in integrations:
         if (
-            integration["oncall_type"]
+            integration["name"]
             and not integration["is_escalation_policy_flawed"]
         ):
             migrate_integration(integration, escalation_policies)
