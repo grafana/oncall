@@ -1,5 +1,3 @@
-import datetime
-
 import pytz
 from django.core.exceptions import ObjectDoesNotExist
 from django.db.models import OuterRef, Subquery
@@ -35,7 +33,7 @@ from common.api_helpers.mixins import (
     ShortSerializerMixin,
     UpdateSerializerMixin,
 )
-from common.api_helpers.utils import create_engine_url
+from common.api_helpers.utils import create_engine_url, get_date_range_from_request
 
 EVENTS_FILTER_BY_ROTATION = "rotation"
 EVENTS_FILTER_BY_OVERRIDE = "override"
@@ -224,27 +222,17 @@ class ScheduleView(
 
     @action(detail=True, methods=["get"])
     def filter_events(self, request, pk):
-        user_tz, date = self.get_request_timezone()
-        filter_by = self.request.query_params.get("type")
+        user_tz, starting_date, days = get_date_range_from_request(self.request)
 
+        filter_by = self.request.query_params.get("type")
         valid_filters = (EVENTS_FILTER_BY_ROTATION, EVENTS_FILTER_BY_OVERRIDE, EVENTS_FILTER_BY_FINAL)
         if filter_by is not None and filter_by not in valid_filters:
             raise BadRequest(detail="Invalid type value")
         resolve_schedule = filter_by is None or filter_by == EVENTS_FILTER_BY_FINAL
 
-        starting_date = date if self.request.query_params.get("date") else None
-        if starting_date is None:
-            # default to current week start
-            starting_date = date - datetime.timedelta(days=date.weekday())
-
-        try:
-            days = int(self.request.query_params.get("days", 7))  # fallback to a week
-        except ValueError:
-            raise BadRequest(detail="Invalid days format")
-
         schedule = self.original_get_object()
 
-        if filter_by is not None:
+        if filter_by is not None and filter_by != EVENTS_FILTER_BY_FINAL:
             filter_by = OnCallSchedule.PRIMARY if filter_by == EVENTS_FILTER_BY_ROTATION else OnCallSchedule.OVERRIDES
             events = schedule.filter_events(
                 user_tz, starting_date, days=days, with_empty=True, with_gap=resolve_schedule, filter_by=filter_by
