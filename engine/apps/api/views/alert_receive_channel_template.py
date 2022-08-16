@@ -42,7 +42,7 @@ class AlertReceiveChannelTemplateView(
         entity_insight_log(
             instance=instance,
             author=self.request.user,
-            event=EntityEvent.DELETED,
+            event=EntityEvent.UPDATED,
             prev_state=old_state,
             new_state=new_state,
         )
