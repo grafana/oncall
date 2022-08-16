@@ -33,6 +33,19 @@ steps:
       - zip -r grafana-oncall-app.zip ./grafana-oncall-app
       - if [ -z "$DRONE_TAG" ]; then echo "No tag, skipping archive"; else cp grafana-oncall-app.zip grafana-oncall-app-${DRONE_TAG}.zip; fi
 
+  - name: Publish Plugin to Github (release)
+    image: plugins/github-release
+    settings:
+      api_key:
+        from_secret: gh_token
+      files: grafana-plugin/ci/dist/grafana-oncall-app-${DRONE_TAG}.zip
+      title: ${DRONE_TAG}
+    depends_on:
+      - Sign and Package Plugin
+    when:
+      ref:
+        - refs/tags/v*.*.*
+
   - name: Publish Plugin to GCS (release)
     image: plugins/gcs
     settings:
@@ -193,16 +206,6 @@ steps:
       - zip -r grafana-oncall-app.zip ./grafana-oncall-app
       - if [ -z "$DRONE_TAG" ]; then echo "No tag, skipping archive"; else cp grafana-oncall-app.zip grafana-oncall-app-${DRONE_TAG}.zip; fi
 
-  - name: Publish Plugin to Github (release)
-    image: plugins/github-release
-    settings:
-      api_key:
-        from_secret: gh_token
-      files: grafana-plugin/ci/dist/grafana-oncall-app-${DRONE_TAG}.zip
-      title: ${DRONE_TAG}
-    depends_on:
-      - Sign and Package Plugin
-
   - name: Publish Plugin to grafana.com (release)
     image: curlimages/curl:7.73.0
     environment:
@@ -211,7 +214,7 @@ steps:
     commands:
       - "curl -f -s -H \"Authorization: Bearer $${GRAFANA_API_KEY}\" -d \"download[any][url]=https://storage.googleapis.com/grafana-oncall-app/releases/grafana-oncall-app-${DRONE_TAG}.zip\" -d \"download[any][md5]=$$(curl -sL https://storage.googleapis.com/grafana-oncall-app/releases/grafana-oncall-app-${DRONE_TAG}.zip | md5sum | cut -d' ' -f1)\" -d url=https://github.com/grafana/oncall/grafana-plugin https://grafana.com/api/plugins"
     depends_on:
-      - Publish Plugin to Github (release)
+      - Sign and Package Plugin
 
   - name: Image Tag
     image: alpine
