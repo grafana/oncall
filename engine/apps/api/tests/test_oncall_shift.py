@@ -7,7 +7,7 @@ from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.test import APIClient
 
-from apps.schedules.models import CustomOnCallShift, OnCallScheduleWeb
+from apps.schedules.models import CustomOnCallShift, OnCallSchedule, OnCallScheduleWeb
 from common.constants.role import Role
 
 
@@ -1140,3 +1140,174 @@ def test_on_call_shift_days_options_permissions(
         response = client.get(url, format="json", **make_user_auth_headers(user, token))
 
     assert response.status_code == expected_status
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize(
+    "role,expected_status",
+    [
+        (Role.ADMIN, status.HTTP_200_OK),
+        (Role.EDITOR, status.HTTP_403_FORBIDDEN),
+        (Role.VIEWER, status.HTTP_403_FORBIDDEN),
+    ],
+)
+def test_on_call_shift_preview_permissions(
+    make_organization_and_user_with_plugin_token,
+    make_schedule,
+    make_user_auth_headers,
+    role,
+    expected_status,
+):
+    organization, user, token = make_organization_and_user_with_plugin_token(role)
+    schedule = make_schedule(organization, schedule_class=OnCallScheduleWeb)
+    start_date = timezone.now()
+    client = APIClient()
+
+    shift_start = (start_date + timezone.timedelta(hours=12)).strftime("%Y-%m-%dT%H:%M:%SZ")
+    shift_end = (start_date + timezone.timedelta(hours=13)).strftime("%Y-%m-%dT%H:%M:%SZ")
+    shift_data = {
+        "schedule": schedule.public_primary_key,
+        "type": CustomOnCallShift.TYPE_ROLLING_USERS_EVENT,
+        "rotation_start": shift_start,
+        "shift_start": shift_start,
+        "shift_end": shift_end,
+        "rolling_users": [[user.public_primary_key]],
+        "priority_level": 2,
+        "frequency": CustomOnCallShift.FREQUENCY_DAILY,
+    }
+
+    url = reverse("api-internal:oncall_shifts-preview")
+    response = client.post(url, shift_data, format="json", **make_user_auth_headers(user, token))
+
+    assert response.status_code == expected_status
+
+
+@pytest.mark.django_db
+def test_on_call_shift_preview_missing_data(
+    make_organization_and_user_with_plugin_token,
+    make_schedule,
+    make_user_auth_headers,
+):
+    organization, user, token = make_organization_and_user_with_plugin_token()
+    schedule = make_schedule(organization, schedule_class=OnCallScheduleWeb)
+    client = APIClient()
+
+    shift_data = {
+        "schedule": schedule.public_primary_key,
+        "type": CustomOnCallShift.TYPE_ROLLING_USERS_EVENT,
+        "rolling_users": [[user.public_primary_key]],
+        "priority_level": 2,
+        "frequency": CustomOnCallShift.FREQUENCY_DAILY,
+    }
+
+    url = reverse("api-internal:oncall_shifts-preview")
+    response = client.post(url, shift_data, format="json", **make_user_auth_headers(user, token))
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+
+
+@pytest.mark.django_db
+def test_on_call_shift_preview(
+    make_organization_and_user_with_plugin_token,
+    make_user_for_organization,
+    make_user_auth_headers,
+    make_schedule,
+    make_on_call_shift,
+):
+    organization, user, token = make_organization_and_user_with_plugin_token()
+    client = APIClient()
+
+    schedule = make_schedule(
+        organization,
+        schedule_class=OnCallScheduleWeb,
+        name="test_web_schedule",
+    )
+
+    now = timezone.now().replace(hour=0, minute=0, second=0, microsecond=0)
+    start_date = now - timezone.timedelta(days=7)
+    request_date = start_date
+
+    user = make_user_for_organization(organization)
+    other_user = make_user_for_organization(organization)
+
+    data = {
+        "start": start_date + timezone.timedelta(hours=9),
+        "rotation_start": start_date + timezone.timedelta(hours=9),
+        "duration": timezone.timedelta(hours=9),
+        "priority_level": 1,
+        "frequency": CustomOnCallShift.FREQUENCY_DAILY,
+        "schedule": schedule,
+    }
+    on_call_shift = make_on_call_shift(
+        organization=organization, shift_type=CustomOnCallShift.TYPE_ROLLING_USERS_EVENT, **data
+    )
+    on_call_shift.add_rolling_users([[user]])
+
+    url = "{}?date={}&days={}".format(
+        reverse("api-internal:oncall_shifts-preview"), request_date.strftime("%Y-%m-%d"), 1
+    )
+    shift_start = (start_date + timezone.timedelta(hours=12)).strftime("%Y-%m-%dT%H:%M:%SZ")
+    shift_end = (start_date + timezone.timedelta(hours=13)).strftime("%Y-%m-%dT%H:%M:%SZ")
+    shift_data = {
+        "schedule": schedule.public_primary_key,
+        "type": CustomOnCallShift.TYPE_ROLLING_USERS_EVENT,
+        "rotation_start": shift_start,
+        "shift_start": shift_start,
+        "shift_end": shift_end,
+        "rolling_users": [[other_user.public_primary_key]],
+        "priority_level": 2,
+        "frequency": CustomOnCallShift.FREQUENCY_DAILY,
+    }
+    response = client.post(url, shift_data, format="json", **make_user_auth_headers(user, token))
+    assert response.status_code == status.HTTP_200_OK
+
+    # check rotation events
+    rotation_events = response.json()["rotation"]
+    expected_rotation_events = [
+        {
+            "calendar_type": OnCallSchedule.TYPE_ICAL_PRIMARY,
+            "start": shift_start,
+            "end": shift_end,
+            "all_day": False,
+            "is_override": False,
+            "is_empty": False,
+            "is_gap": False,
+            "priority_level": 2,
+            "missing_users": [],
+            "users": [{"display_name": other_user.username, "pk": other_user.public_primary_key}],
+            "source": "web",
+        }
+    ]
+    # there isn't a saved shift, we don't care/know the temp pk
+    _ = [r.pop("shift") for r in rotation_events]
+    assert rotation_events == expected_rotation_events
+
+    # check final schedule events
+    final_events = response.json()["final"]
+    expected = (
+        # start (h), duration (H), user, priority
+        (9, 3, user.username, 1),  # 9-12 user
+        (12, 1, other_user.username, 2),  # 12-13 other_user
+        (13, 5, user.username, 1),  # 13-18 C
+    )
+    expected_events = [
+        {
+            "end": (start_date + timezone.timedelta(hours=start + duration)).strftime("%Y-%m-%dT%H:%M:%SZ"),
+            "priority_level": priority,
+            "start": (start_date + timezone.timedelta(hours=start, milliseconds=1 if start == 0 else 0)).strftime(
+                "%Y-%m-%dT%H:%M:%SZ"
+            ),
+            "user": user,
+        }
+        for start, duration, user, priority in expected
+    ]
+    returned_events = [
+        {
+            "end": e["end"],
+            "priority_level": e["priority_level"],
+            "start": e["start"],
+            "user": e["users"][0]["display_name"] if e["users"] else None,
+        }
+        for e in final_events
+        if not e["is_override"] and not e["is_gap"]
+    ]
+    assert returned_events == expected_events

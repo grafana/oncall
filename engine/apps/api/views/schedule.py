@@ -1,5 +1,3 @@
-import datetime
-
 import pytz
 from django.core.exceptions import ObjectDoesNotExist
 from django.db.models import OuterRef, Subquery
@@ -35,7 +33,7 @@ from common.api_helpers.mixins import (
     ShortSerializerMixin,
     UpdateSerializerMixin,
 )
-from common.api_helpers.utils import create_engine_url
+from common.api_helpers.utils import create_engine_url, get_date_range_from_request
 
 EVENTS_FILTER_BY_ROTATION = "rotation"
 EVENTS_FILTER_BY_OVERRIDE = "override"
@@ -224,33 +222,26 @@ class ScheduleView(
 
     @action(detail=True, methods=["get"])
     def filter_events(self, request, pk):
-        user_tz, date = self.get_request_timezone()
-        filter_by = self.request.query_params.get("type")
+        user_tz, starting_date, days = get_date_range_from_request(self.request)
 
+        filter_by = self.request.query_params.get("type")
         valid_filters = (EVENTS_FILTER_BY_ROTATION, EVENTS_FILTER_BY_OVERRIDE, EVENTS_FILTER_BY_FINAL)
         if filter_by is not None and filter_by not in valid_filters:
             raise BadRequest(detail="Invalid type value")
         resolve_schedule = filter_by is None or filter_by == EVENTS_FILTER_BY_FINAL
 
-        starting_date = date if self.request.query_params.get("date") else None
-        if starting_date is None:
-            # default to current week start
-            starting_date = date - datetime.timedelta(days=date.weekday())
-
-        try:
-            days = int(self.request.query_params.get("days", 7))  # fallback to a week
-        except ValueError:
-            raise BadRequest(detail="Invalid days format")
-
         schedule = self.original_get_object()
 
-        if filter_by is not None:
+        if filter_by is not None and filter_by != EVENTS_FILTER_BY_FINAL:
             filter_by = OnCallSchedule.PRIMARY if filter_by == EVENTS_FILTER_BY_ROTATION else OnCallSchedule.OVERRIDES
             events = schedule.filter_events(
                 user_tz, starting_date, days=days, with_empty=True, with_gap=resolve_schedule, filter_by=filter_by
             )
         else:  # return final schedule
             events = schedule.final_events(user_tz, starting_date, days)
+
+        # combine multiple-users same-shift events into one
+        events = self._merge_events(events)
 
         result = {
             "id": schedule.public_primary_key,
@@ -259,6 +250,25 @@ class ScheduleView(
             "events": events,
         }
         return Response(result, status=status.HTTP_200_OK)
+
+    def _merge_events(self, events):
+        """Merge user groups same-shift events."""
+        if events:
+            merged = [events[0]]
+            current = merged[0]
+            for next_event in events[1:]:
+                if (
+                    current["start"] == next_event["start"]
+                    and current["shift"]["pk"] is not None
+                    and current["shift"]["pk"] == next_event["shift"]["pk"]
+                ):
+                    current["users"] += next_event["users"]
+                    current["missing_users"] += next_event["missing_users"]
+                else:
+                    merged.append(next_event)
+                    current = next_event
+            events = merged
+        return events
 
     @action(detail=True, methods=["get"])
     def next_shifts_per_user(self, request, pk):
