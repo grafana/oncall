@@ -329,9 +329,7 @@ class OnCallSchedule(PolymorphicModel):
                     # (ie. insert the event where it should be to keep the order criteria)
                     # TODO: switch to bisect insert on python 3.10 (or consider heapq)
                     insort_event(pending, ev)
-                else:
-                    # done, go to next event
-                    continue
+                # done, go to next event
 
             elif ev["start"] >= intervals[current_interval_idx][0] and ev["end"] <= intervals[current_interval_idx][1]:
                 # event inside an already scheduled interval, ignore (go to next)
@@ -348,8 +346,6 @@ class OnCallSchedule(PolymorphicModel):
                 # unresolved, re-add to pending
                 # TODO: switch to bisect insert on python 3.10 (or consider heapq)
                 insort_event(pending, ev)
-                # move to next interval and process the updated event as any other event
-                current_interval_idx += 1
 
             elif ev["start"] >= intervals[current_interval_idx][1]:
                 # event starts after the current interval, move to next interval and go through it
