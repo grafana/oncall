@@ -535,7 +535,7 @@ def test_rolling_users_with_diff_start_and_rotation_start_weekly(
         "duration": timezone.timedelta(seconds=1800),
         "frequency": CustomOnCallShift.FREQUENCY_WEEKLY,
         "schedule": schedule,
-        "until": now + timezone.timedelta(days=42, minutes=1),
+        "until": now + timezone.timedelta(days=42, minutes=10),
     }
     rolling_users = [[user_1], [user_2], [user_3]]
     on_call_shift = make_on_call_shift(
