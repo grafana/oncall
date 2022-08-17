@@ -246,18 +246,23 @@ class OnCallSchedule(PolymorphicModel):
         if not events:
             return []
 
-        def apply_sorting(eventlist):
-            """Sort events keeping the events priority criteria."""
-            eventlist.sort(
-                key=lambda e: (
-                    -e["calendar_type"] if e["calendar_type"] else 0,  # overrides: 1, shifts: 0, gaps: None
-                    -e["priority_level"] if e["priority_level"] else 0,
-                    e["start"],
-                )
+        def event_cmp_key(e):
+            """Sorting key criteria for events."""
+            return (
+                -e["calendar_type"] if e["calendar_type"] else 0,  # overrides: 1, shifts: 0, gaps: None
+                -e["priority_level"] if e["priority_level"] else 0,
+                e["start"],
             )
 
-        # sort schedule events by (type desc, priority desc, start timestamp asc)
-        apply_sorting(events)
+        def insort_event(eventlist, e):
+            """Insert event keeping ordering criteria into already sorted event list."""
+            idx = 0
+            for i in eventlist:
+                if event_cmp_key(e) > event_cmp_key(i):
+                    idx += 1
+                else:
+                    break
+            eventlist.insert(idx, e)
 
         def _merge_intervals(evs):
             """Keep track of scheduled intervals."""
@@ -273,24 +278,25 @@ class OnCallSchedule(PolymorphicModel):
                     result.append(interval)
             return result
 
+        # sort schedule events by (type desc, priority desc, start timestamp asc)
+        events.sort(key=event_cmp_key)
+
         # iterate over events, reserving schedule slots based on their priority
         # if the expected slot was already scheduled for a higher priority event,
         # split the event, or fix start/end timestamps accordingly
 
-        # include overrides from start
-        resolved = [e for e in events if e["calendar_type"] == OnCallSchedule.TYPE_ICAL_OVERRIDES]
-        intervals = _merge_intervals(resolved)
-
-        pending = events[len(resolved) :]
-        if not pending:
-            return resolved
-
-        current_event_idx = 0  # current event to resolve
+        resolved = []
+        pending = events
         current_interval_idx = 0  # current scheduled interval being checked
-        current_priority = pending[0]["priority_level"]  # current priority level being resolved
+        current_priority = None  # current priority level being resolved
 
-        while current_event_idx < len(pending):
-            ev = pending[current_event_idx]
+        while pending:
+            ev = pending.pop(0)
+
+            if ev["calendar_type"] == OnCallSchedule.TYPE_ICAL_OVERRIDES:
+                # include overrides from start
+                resolved.append(ev)
+                continue
 
             if ev["priority_level"] != current_priority:
                 # update scheduled intervals on priority change
@@ -303,11 +309,11 @@ class OnCallSchedule(PolymorphicModel):
             if current_interval_idx >= len(intervals):
                 # event outside scheduled intervals, add to resolved
                 resolved.append(ev)
-                current_event_idx += 1
+
             elif ev["start"] < intervals[current_interval_idx][0] and ev["end"] <= intervals[current_interval_idx][0]:
                 # event starts and ends outside an already scheduled interval, add to resolved
                 resolved.append(ev)
-                current_event_idx += 1
+
             elif ev["start"] < intervals[current_interval_idx][0] and ev["end"] > intervals[current_interval_idx][0]:
                 # event starts outside interval but overlaps with an already scheduled interval
                 # 1. add a split event copy to schedule the time before the already scheduled interval
@@ -321,13 +327,16 @@ class OnCallSchedule(PolymorphicModel):
                     ev["start"] = intervals[current_interval_idx][1]
                     # reorder pending events after updating current event start date
                     # (ie. insert the event where it should be to keep the order criteria)
-                    apply_sorting(pending)
+                    # TODO: switch to bisect insert on python 3.10 (or consider heapq)
+                    insort_event(pending, ev)
                 else:
                     # done, go to next event
-                    current_event_idx += 1
+                    continue
+
             elif ev["start"] >= intervals[current_interval_idx][0] and ev["end"] <= intervals[current_interval_idx][1]:
                 # event inside an already scheduled interval, ignore (go to next)
-                current_event_idx += 1
+                continue
+
             elif (
                 ev["start"] >= intervals[current_interval_idx][0]
                 and ev["start"] < intervals[current_interval_idx][1]
@@ -336,11 +345,18 @@ class OnCallSchedule(PolymorphicModel):
                 # event starts inside a scheduled interval but ends out of it
                 # update the event start timestamp to match the interval end
                 ev["start"] = intervals[current_interval_idx][1]
+                # unresolved, re-add to pending
+                # TODO: switch to bisect insert on python 3.10 (or consider heapq)
+                insort_event(pending, ev)
                 # move to next interval and process the updated event as any other event
                 current_interval_idx += 1
+
             elif ev["start"] >= intervals[current_interval_idx][1]:
                 # event starts after the current interval, move to next interval and go through it
                 current_interval_idx += 1
+                # unresolved, re-add to pending
+                # TODO: switch to bisect insert on python 3.10 (or consider heapq)
+                insort_event(pending, ev)
 
         resolved.sort(key=lambda e: (e["start"], e["shift"]["pk"]))
         return resolved
