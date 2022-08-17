@@ -787,6 +787,7 @@ def test_get_oncall_users_with_respect_to_rotation_start_and_until_dates_hourly(
         "frequency": CustomOnCallShift.FREQUENCY_HOURLY,
         "schedule": schedule,
         "until": now + timezone.timedelta(minutes=40),
+        "source": CustomOnCallShift.SOURCE_WEB,
     }
     rolling_users = [[user]]
     on_call_shift = make_on_call_shift(
@@ -832,6 +833,7 @@ def test_get_oncall_users_with_respect_to_rotation_start_and_until_dates_daily(
         "frequency": CustomOnCallShift.FREQUENCY_DAILY,
         "schedule": schedule,
         "until": now + timezone.timedelta(hours=15),
+        "source": CustomOnCallShift.SOURCE_WEB,
     }
     rolling_users = [[user]]
     on_call_shift = make_on_call_shift(
@@ -880,6 +882,7 @@ def test_get_oncall_users_with_respect_to_rotation_start_and_until_dates_weekly(
         "schedule": schedule,
         "until": now + timezone.timedelta(days=6),
         "week_start": now.weekday(),
+        "source": CustomOnCallShift.SOURCE_WEB,
     }
     rolling_users = [[user]]
     on_call_shift = make_on_call_shift(
@@ -920,6 +923,7 @@ def test_get_oncall_users_with_respect_to_rotation_start_and_until_dates_weekly(
         "until": now + timezone.timedelta(days=4, hours=23),
         "week_start": today_weekday,
         "by_day": by_day,
+        "source": CustomOnCallShift.SOURCE_WEB,
     }
     on_call_shift_2 = make_on_call_shift(
         organization=organization, shift_type=CustomOnCallShift.TYPE_ROLLING_USERS_EVENT, **data
@@ -967,6 +971,7 @@ def test_get_oncall_users_with_respect_to_rotation_start_and_until_dates_monthly
         "frequency": CustomOnCallShift.FREQUENCY_MONTHLY,
         "schedule": schedule,
         "until": now + timezone.timedelta(days=15),
+        "source": CustomOnCallShift.SOURCE_WEB,
     }
     rolling_users = [[user]]
     on_call_shift = make_on_call_shift(

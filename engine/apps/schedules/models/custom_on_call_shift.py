@@ -301,7 +301,9 @@ class CustomOnCallShift(models.Model):
                     if not start:  # means that rotation ends before next event starts
                         all_rotation_checked = True
                         break
-                    elif start + self.duration > self.rotation_start:
+                    elif (
+                        self.source == CustomOnCallShift.SOURCE_WEB and start + self.duration > self.rotation_start
+                    ) or start >= self.rotation_start:
                         # event has already started, generate iCal for each user
                         for user_counter, user in enumerate(users, start=1):
                             event_ical = self.generate_ical(start, user_counter, user, counter, time_zone)
@@ -408,7 +410,9 @@ class CustomOnCallShift(models.Model):
         for event in ical_iter:
             if end_date:  # end_date exists for long events with frequency weekly and monthly
                 if end_date >= event.start >= next_event_start:
-                    if event.stop > self.rotation_start:
+                    if (
+                        self.source == CustomOnCallShift.SOURCE_WEB and event.stop > self.rotation_start
+                    ) or event.start >= self.rotation_start:
                         next_event = event
                         break
                 else:

@@ -165,6 +165,7 @@ def list_of_oncall_shifts_from_ical(
 
 
 def get_shifts_dict(calendar, calendar_type, schedule, datetime_start, datetime_end, date, with_empty_shifts=False):
+    OnCallScheduleWeb = apps.get_model("schedules", "OnCallScheduleWeb")
     events = ical_events.get_events_from_ical_between(calendar, datetime_start, datetime_end)
     result_datetime = []
     result_date = []
@@ -176,10 +177,14 @@ def get_shifts_dict(calendar, calendar_type, schedule, datetime_start, datetime_
         # Define on-call shift out of ical event that has the actual user
         if len(users) > 0 or with_empty_shifts:
             if type(event[ICAL_DATETIME_START].dt) == datetime.date:
-                start = max(event[ICAL_DATETIME_START].dt, event[ICAL_DATETIME_STAMP].dt.date())
-                end = event[ICAL_DATETIME_END].dt
-                if event.get(ICAL_RRULE, {}).get(ICAL_UNTIL):
-                    end = min(event[ICAL_DATETIME_END].dt, event[ICAL_RRULE][ICAL_UNTIL][0].date())
+                if isinstance(schedule, OnCallScheduleWeb):
+                    start = max(event[ICAL_DATETIME_START].dt, event[ICAL_DATETIME_STAMP].dt.date())
+                    end = event[ICAL_DATETIME_END].dt
+                    if event.get(ICAL_RRULE, {}).get(ICAL_UNTIL):
+                        end = min(event[ICAL_DATETIME_END].dt, event[ICAL_RRULE][ICAL_UNTIL][0].date())
+                else:
+                    start = event[ICAL_DATETIME_START].dt
+                    end = event[ICAL_DATETIME_END].dt
                 if start <= date < end:
                     result_date.append(
                         {
@@ -194,13 +199,17 @@ def get_shifts_dict(calendar, calendar_type, schedule, datetime_start, datetime_
                         }
                     )
             else:
-                start = max(
-                    event[ICAL_DATETIME_START].dt.astimezone(pytz.UTC),
-                    event[ICAL_DATETIME_STAMP].dt.astimezone(pytz.UTC),
-                )
-                end = event[ICAL_DATETIME_END].dt.astimezone(pytz.UTC)
-                if event.get(ICAL_RRULE, {}).get(ICAL_UNTIL):
-                    end = min(event[ICAL_DATETIME_END].dt.astimezone(pytz.UTC), event[ICAL_RRULE][ICAL_UNTIL][0])
+                if isinstance(schedule, OnCallScheduleWeb):
+                    start = max(
+                        event[ICAL_DATETIME_START].dt.astimezone(pytz.UTC),
+                        event[ICAL_DATETIME_STAMP].dt.astimezone(pytz.UTC),
+                    )
+                    end = event[ICAL_DATETIME_END].dt.astimezone(pytz.UTC)
+                    if event.get(ICAL_RRULE, {}).get(ICAL_UNTIL):
+                        end = min(event[ICAL_DATETIME_END].dt.astimezone(pytz.UTC), event[ICAL_RRULE][ICAL_UNTIL][0])
+                else:
+                    start = event[ICAL_DATETIME_START].dt.astimezone(pytz.UTC)
+                    end = event[ICAL_DATETIME_END].dt.astimezone(pytz.UTC)
 
                 result_datetime.append(
                     {
