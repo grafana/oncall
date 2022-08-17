@@ -1,5 +1,14 @@
 # Change Log
 
+## v1.0.22 (2022-08-16)
+- Make STATIC_URL configurable from environment variable
+
+## v1.0.21 (2022-08-12)
+- Bug fixes
+
+## v1.0.19 (2022-08-10)
+- Bug fixes
+
 ## v1.0.15 (2022-08-03)
 - Bug fixes
 

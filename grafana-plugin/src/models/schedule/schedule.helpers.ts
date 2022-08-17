@@ -15,7 +15,9 @@ export const fillGaps = (events: Event[]) => {
     const nextEvent = events[i + 1];
 
     if (nextEvent) {
-      newEvents.push({ start: event.end, end: nextEvent.start, is_gap: true });
+      if (nextEvent.start !== event.end) {
+        newEvents.push({ start: event.end, end: nextEvent.start, is_gap: true });
+      }
     }
   }
 

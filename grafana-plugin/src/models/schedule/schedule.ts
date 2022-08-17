@@ -312,7 +312,7 @@ export class ScheduleStore extends BaseStore {
       }
     }
 
-    shifts.forEach((shift) => {
+    /*shifts.forEach((shift) => {
       for (let i = 0; i < shift.events.length; i++) {
         const iEvent = shift.events[i];
 
@@ -325,7 +325,7 @@ export class ScheduleStore extends BaseStore {
         }
         shift.events = shift.events.filter((event) => !event.merged);
       }
-    });
+    });*/
 
     shifts.forEach((shift) => {
       shift.events = fillGaps(shift.events);

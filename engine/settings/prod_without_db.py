@@ -53,7 +53,6 @@ STATICFILES_DIRS = [
     "/etc/app/static",
 ]
 STATIC_ROOT = "./collected_static/"
-STATIC_URL = "/static/"
 
 DEBUG = False
 

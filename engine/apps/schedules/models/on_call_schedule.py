@@ -276,14 +276,18 @@ class OnCallSchedule(PolymorphicModel):
         if not events:
             return []
 
-        # sort schedule events by (type desc, priority desc, start timestamp asc)
-        events.sort(
-            key=lambda e: (
-                -e["calendar_type"] if e["calendar_type"] else 0,  # overrides: 1, shifts: 0, gaps: None
-                -e["priority_level"] if e["priority_level"] else 0,
-                e["start"],
+        def apply_sorting(eventlist):
+            """Sort events keeping the events priority criteria."""
+            eventlist.sort(
+                key=lambda e: (
+                    -e["calendar_type"] if e["calendar_type"] else 0,  # overrides: 1, shifts: 0, gaps: None
+                    -e["priority_level"] if e["priority_level"] else 0,
+                    e["start"],
+                )
             )
-        )
+
+        # sort schedule events by (type desc, priority desc, start timestamp asc)
+        apply_sorting(events)
 
         def _merge_intervals(evs):
             """Keep track of scheduled intervals."""
@@ -345,6 +349,9 @@ class OnCallSchedule(PolymorphicModel):
                     # event ends after current interval, update event start timestamp to match the interval end
                     # and process the updated event as any other event
                     ev["start"] = intervals[current_interval_idx][1]
+                    # reorder pending events after updating current event start date
+                    # (ie. insert the event where it should be to keep the order criteria)
+                    apply_sorting(pending)
                 else:
                     # done, go to next event
                     current_event_idx += 1
