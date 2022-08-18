@@ -89,9 +89,12 @@ class OnCallShiftView(PublicPrimaryKeyMixin, UpdateSerializerMixin, ModelViewSet
         validated_data = serializer._correct_validated_data(
             serializer.validated_data["type"], serializer.validated_data
         )
+        updated_shift_pk = self.request.data.get("shift_pk")
         shift = CustomOnCallShift(**validated_data)
         schedule = shift.schedule
-        shift_events, final_events = schedule.preview_shift(shift, user_tz, starting_date, days)
+        shift_events, final_events = schedule.preview_shift(
+            shift, user_tz, starting_date, days, updated_shift_pk=updated_shift_pk
+        )
         data = {
             "rotation": shift_events,
             "final": final_events,
