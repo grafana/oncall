@@ -14,8 +14,8 @@ import { rootStore } from 'state';
 import { useStore } from 'state/useStore';
 import { useNavModel } from 'utils/hooks';
 
-import './vars.css';
-import './index.css';
+import './style/vars.css';
+import './style/index.css';
 
 import { AppFeature } from './state/features';
 

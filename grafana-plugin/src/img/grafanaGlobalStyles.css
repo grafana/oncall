@@ -33,3 +33,7 @@
     white-space: nowrap;
   }
 }
+
+.page-header__info-block {
+  flex-grow: 1; /* Stretch the navigation subtitle panel */
+}
