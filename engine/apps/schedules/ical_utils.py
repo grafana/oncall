@@ -16,13 +16,10 @@ from icalendar import Calendar
 from apps.schedules.constants import (
     ICAL_ATTENDEE,
     ICAL_DATETIME_END,
-    ICAL_DATETIME_STAMP,
     ICAL_DATETIME_START,
     ICAL_DESCRIPTION,
-    ICAL_RRULE,
     ICAL_SUMMARY,
     ICAL_UID,
-    ICAL_UNTIL,
     RE_EVENT_UID_V1,
     RE_EVENT_UID_V2,
     RE_PRIORITY,
@@ -176,7 +173,8 @@ def get_shifts_dict(calendar, calendar_type, schedule, datetime_start, datetime_
         # Define on-call shift out of ical event that has the actual user
         if len(users) > 0 or with_empty_shifts:
             if type(event[ICAL_DATETIME_START].dt) == datetime.date:
-                start, end = get_start_and_end_with_respect_to_event_type(event, full_day_event=True)
+                start = event[ICAL_DATETIME_START].dt
+                end = event[ICAL_DATETIME_END].dt
                 if start <= date < end:
                     result_date.append(
                         {
@@ -191,7 +189,7 @@ def get_shifts_dict(calendar, calendar_type, schedule, datetime_start, datetime_
                         }
                     )
             else:
-                start, end = get_start_and_end_with_respect_to_event_type(event)
+                start, end = ical_events.get_start_and_end_with_respect_to_event_type(event)
                 result_datetime.append(
                     {
                         "start": start.astimezone(pytz.UTC),
@@ -743,28 +741,3 @@ def convert_windows_timezone_to_iana(tz_name):
     logger.debug("Converting the timezone from Windows to IANA. '{}' -> '{}'".format(tz_name, result))
 
     return result
-
-
-def get_start_and_end_with_respect_to_event_type(event, full_day_event=False):
-    """
-    Calculate start and end datetime (or dates for full_day_event)
-    """
-    CustomOnCallShift = apps.get_model("schedules", "CustomOnCallShift")
-
-    start = event[ICAL_DATETIME_START].dt
-    end = event[ICAL_DATETIME_END].dt
-
-    match = RE_EVENT_UID_V2.match(event[ICAL_UID]) or RE_EVENT_UID_V1.match(event[ICAL_UID])
-    # use different calculation rule for events from custom shifts generated at web
-    if match and int(match.groups()[-1]) == CustomOnCallShift.SOURCE_WEB:
-        rotation_start = event[ICAL_DATETIME_STAMP]
-        until = event.get(ICAL_RRULE, {}).get(ICAL_UNTIL)
-
-        if full_day_event:
-            rotation_start = rotation_start.date()
-            until = until.date() if until else None
-
-        start = max(start, rotation_start)
-        end = min(end, until) if until else end
-
-    return start, end

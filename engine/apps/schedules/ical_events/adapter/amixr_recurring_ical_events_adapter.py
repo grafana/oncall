@@ -1,13 +1,23 @@
 from collections import defaultdict
 from datetime import datetime
-from typing import List
+from typing import List, Tuple
 
+from django.apps import apps
 from django.utils import timezone
 from icalendar import Calendar, Event
 from recurring_ical_events import UnfoldableCalendar, compare_greater, is_event, time_span_contains_event
 
+from apps.schedules.constants import (
+    ICAL_DATETIME_END,
+    ICAL_DATETIME_STAMP,
+    ICAL_DATETIME_START,
+    ICAL_RRULE,
+    ICAL_UID,
+    ICAL_UNTIL,
+    RE_EVENT_UID_V1,
+    RE_EVENT_UID_V2,
+)
 from apps.schedules.ical_events.proxy.ical_proxy import IcalService
-from apps.schedules.ical_utils import get_start_and_end_with_respect_to_event_type
 
 EXTRA_LOOKUP_DAYS = 16
 
@@ -95,7 +105,29 @@ class AmixrRecurringIcalEventsAdapter(IcalService):
         )
 
         def filter_extra_days(event):
-            event_start, event_end = get_start_and_end_with_respect_to_event_type(event)
+            event_start, event_end = self.get_start_and_end_with_respect_to_event_type(event)
             return time_span_contains_event(start_date, end_date, event_start, event_end)
 
         return list(filter(filter_extra_days, events))
+
+    def get_start_and_end_with_respect_to_event_type(self, event: Event) -> Tuple[timezone.datetime, timezone.datetime]:
+        """
+        Calculate start and end datetime
+        """
+        CustomOnCallShift = apps.get_model("schedules", "CustomOnCallShift")
+
+        start = event[ICAL_DATETIME_START].dt
+        end = event[ICAL_DATETIME_END].dt
+
+        match = RE_EVENT_UID_V2.match(event[ICAL_UID]) or RE_EVENT_UID_V1.match(event[ICAL_UID])
+        # use different calculation rule for events from custom shifts generated at web
+        if match and int(match.groups()[-1]) == CustomOnCallShift.SOURCE_WEB:
+            rotation_start = event[ICAL_DATETIME_STAMP].dt
+            until_rrule = event.get(ICAL_RRULE, {}).get(ICAL_UNTIL)
+            if until_rrule:
+                until = until_rrule[0]
+                end = min(end, until)
+
+            start = max(start, rotation_start)
+
+        return start, end
