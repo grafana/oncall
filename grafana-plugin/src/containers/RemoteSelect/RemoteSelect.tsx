@@ -3,14 +3,9 @@ import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { SelectableValue } from '@grafana/data';
 import { AsyncMultiSelect, AsyncSelect } from '@grafana/ui';
 import cn from 'classnames/bind';
-import { get } from 'lodash-es';
 import { inject, observer } from 'mobx-react';
-import qs from 'query-string';
-import Emoji from 'react-emoji-render';
-import { debounce } from 'throttle-debounce';
 
-import { API_PROXY_PREFIX, makeRequest } from 'network';
-import { SelectOption } from 'state/types';
+import { makeRequest } from 'network';
 
 import styles from './RemoteSelect.module.css';
 
@@ -30,6 +25,7 @@ interface RemoteSelectProps {
   showSearch?: boolean;
   allowClear?: boolean;
   isMulti?: boolean;
+  openMenuOnFocus?: boolean;
   getOptionLabel?: (item: SelectableValue) => React.ReactNode;
 }
 
@@ -38,7 +34,6 @@ const RemoteSelect = inject('store')(
     const {
       autoFocus,
       fieldToShow = 'display_name',
-      getFieldToShow,
       valueField = 'value',
       isMulti = false,
       placeholder,
@@ -50,6 +45,7 @@ const RemoteSelect = inject('store')(
       showSearch = true,
       allowClear,
       getOptionLabel,
+      openMenuOnFocus = true,
     } = props;
 
     const [options, setOptions] = useState<SelectableValue[] | undefined>();
@@ -103,7 +99,7 @@ const RemoteSelect = inject('store')(
       // @ts-ignore
       <Tag
         menuShouldPortal
-        openMenuOnFocus
+        openMenuOnFocus={openMenuOnFocus}
         isClearable={allowClear}
         autoFocus={autoFocus}
         disabled={disabled}

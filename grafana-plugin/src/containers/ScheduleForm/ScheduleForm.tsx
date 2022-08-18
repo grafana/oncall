@@ -31,7 +31,7 @@ const ScheduleForm = observer((props: ScheduleFormProps) => {
 
   const store = useStore();
 
-  const { scheduleStore, userStore, grafanaTeamStore } = store;
+  const { scheduleStore, userStore } = store;
 
   const data = useMemo(() => {
     return id === 'new'
@@ -52,18 +52,6 @@ const ScheduleForm = observer((props: ScheduleFormProps) => {
     },
     [id]
   );
-
-  const getOptionLabel = (item: SelectableValue) => {
-    const team = grafanaTeamStore.items[item.value];
-    return (
-      <HorizontalGroup>
-        {item.label}
-        <Avatar src={team?.avatar_url} size="small" />
-      </HorizontalGroup>
-    );
-  };
-
-  const handleTeamChange = useCallback((value) => {}, []);
 
   const formConfig = data.type === ScheduleType.Ical ? iCalForm : calendarForm;
 
