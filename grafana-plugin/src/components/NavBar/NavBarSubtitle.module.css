@@ -1,20 +1,21 @@
-:root {
-  --orange: #F5B73D;
-}
-
 .navbar-container {
   display: flex;
   align-items: center;
 }
 
 .navbar-star-icon {
-  fill: var(--orange);
+  margin-right: 4px;
 }
 
 .navbar-heading {
   padding: 4px;
-  margin-left: 8px;
+  margin: 0 0 0 8px;
   border: 1px solid var(--gray-9);
   width: initial;
   font-size: 12px;
+}
+
+.navbar-link {
+  display: flex;
+  align-items: center;
 }
