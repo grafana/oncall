@@ -604,7 +604,7 @@ class OnCallScheduleWeb(OnCallSchedule):
         self.cached_ical_file_overrides = self._generate_ical_file_overrides()
         self.save(update_fields=["cached_ical_file_overrides", "prev_ical_file_overrides"])
 
-    def preview_shift(self, custom_shift, user_tz, starting_date, days):
+    def preview_shift(self, custom_shift, user_tz, starting_date, days, updated_shift_pk=None):
         """Return unsaved rotation and final schedule preview events."""
         if custom_shift.type == CustomOnCallShift.TYPE_OVERRIDE:
             qs = self.custom_shifts.filter(type=CustomOnCallShift.TYPE_OVERRIDE)
@@ -624,7 +624,18 @@ class OnCallScheduleWeb(OnCallSchedule):
             except AttributeError:
                 pass
 
-        ical_file = self._generate_ical_file_from_shifts(qs, extra_shifts=[custom_shift])
+        extra_shifts = [custom_shift]
+        if updated_shift_pk is not None:
+            try:
+                update_shift = qs.get(public_primary_key=updated_shift_pk)
+            except CustomOnCallShift.DoesNotExist:
+                pass
+            else:
+                update_shift.until = custom_shift.rotation_start
+                qs = qs.exclude(public_primary_key=updated_shift_pk)
+                extra_shifts.append(update_shift)
+
+        ical_file = self._generate_ical_file_from_shifts(qs, extra_shifts=extra_shifts)
 
         original_value = getattr(self, ical_attr)
         _invalidate_cache(self, ical_property)
