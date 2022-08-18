@@ -3,15 +3,12 @@ import React, { FC, useMemo, useState, useEffect, useRef, useCallback } from 're
 import { HorizontalGroup, LoadingPlaceholder } from '@grafana/ui';
 import cn from 'classnames/bind';
 import dayjs from 'dayjs';
-import { observer } from 'mobx-react';
 import { CSSTransitionGroup } from 'react-transition-group'; // ES6
 
 import ScheduleSlot from 'components/ScheduleSlot/ScheduleSlot';
-import Text from 'components/Text/Text';
 import { getFromString } from 'models/schedule/schedule.helpers';
 import { Rotation as RotationType, Schedule, Event } from 'models/schedule/schedule.types';
 import { Timezone } from 'models/timezone/timezone.types';
-import { useStore } from 'state/useStore';
 import { usePrevious } from 'utils/hooks';
 
 import styles from './Rotation.module.css';
@@ -30,14 +27,12 @@ interface RotationProps {
   onClick: () => void;
 }
 
-const Rotation: FC<RotationProps> = observer((props) => {
+const Rotation: FC<RotationProps> = (props) => {
   const { events, layerIndex, rotationIndex, startMoment, currentTimezone, color, onClick } = props;
 
   const [animate, setAnimate] = useState<boolean>(true);
   const [width, setWidth] = useState<number | undefined>();
   const [transparent, setTransparent] = useState<boolean>(false);
-
-  const store = useStore();
 
   const startMomentString = useMemo(() => getFromString(startMoment), [startMoment]);
 
@@ -92,7 +87,6 @@ const Rotation: FC<RotationProps> = observer((props) => {
             <div
               className={cx('slots', { slots__animate: animate, slots__transparent: transparent })}
               style={{ transform: `translate(${x * 100}%, 0)` }}
-              ref={slots}
             >
               {events.map((event, index) => {
                 return (
@@ -110,7 +104,7 @@ const Rotation: FC<RotationProps> = observer((props) => {
               })}
             </div>
           ) : (
-            <div className={cx('empty')} />
+            <Empty />
           )
         ) : (
           <HorizontalGroup align="center" justify="center">
@@ -120,6 +114,10 @@ const Rotation: FC<RotationProps> = observer((props) => {
       </div>
     </div>
   );
-});
+};
+
+const Empty = () => {
+  return <div className={cx('empty')} />;
+};
 
 export default Rotation;

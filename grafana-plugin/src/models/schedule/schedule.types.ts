@@ -89,3 +89,8 @@ export interface Events {
   name: string;
   type: number; //?
 }
+
+export interface Layer {
+  priority: Shift['priority_level'];
+  shifts: Array<{ shiftId: Shift['id']; events: Event[] }>;
+}

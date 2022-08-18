@@ -11,8 +11,8 @@ import { makeRequest } from 'network';
 import { RootStore } from 'state';
 import { SelectOption } from 'state/types';
 
-import { fillGaps } from './schedule.helpers';
-import { Events, Rotation, RotationType, Schedule, ScheduleEvent, Shift, Event } from './schedule.types';
+import { fillGaps, splitToShiftsAndFillGaps } from './schedule.helpers';
+import { Events, Rotation, RotationType, Schedule, ScheduleEvent, Shift, Event, Layer } from './schedule.types';
 
 const DEFAULT_FORMAT = 'YYYY-MM-DDTHH:mm:ss';
 
@@ -67,10 +67,16 @@ export class ScheduleStore extends BaseStore {
   events: {
     [scheduleId: string]: {
       [type: string]: {
-        [startMoment: string]: Array<{ shiftId: string; events: Event[] }>;
+        [startMoment: string]: Array<{ shiftId: string; events: Event[] }> | Layer[];
       };
     };
   } = {};
+
+  @observable.shallow
+  rotationPreview?: { shiftId: Shift['id']; events: Event[] };
+
+  @observable.shallow
+  finalPreview?: Array<{ shiftId: Shift['id']; events: Event[] }>;
 
   @observable
   scheduleToScheduleEvents: {
@@ -187,6 +193,27 @@ export class ScheduleStore extends BaseStore {
     return response;
   }
 
+  async updateRotationPreview(
+    scheduleId: Schedule['id'],
+    shiftId: Shift['id'] | 'new',
+    fromString: string,
+    isOverride: boolean,
+    params: Partial<Shift>
+  ) {
+    const type = isOverride ? 3 : 2;
+
+    const typeString = isOverride ? 'override' : 'rotation';
+
+    const response = await makeRequest(`/oncall_shifts/preview/`, {
+      params: { date: fromString },
+      data: { type, schedule: scheduleId, ...params },
+      method: 'POST',
+    }).catch(this.onApiError);
+
+    this.rotationPreview = { shiftId: shiftId, events: fillGaps(response.rotation.filter((event) => !event.is_gap)) };
+    this.finalPreview = splitToShiftsAndFillGaps(response.final);
+  }
+
   async updateRotation(shiftId: Shift['id'], params: Partial<Shift>) {
     const response = await makeRequest(`/oncall_shifts/${shiftId}`, {
       data: { ...params },
@@ -297,21 +324,9 @@ export class ScheduleStore extends BaseStore {
       method: 'GET',
     });
 
-    const events = type !== 'final' ? fillGaps(response.events) : response.events;
+    const shifts = splitToShiftsAndFillGaps(response.events);
 
-    const shifts: Array<{ shiftId: Shift['id']; events: Event[] }> = [];
-
-    for (const [i, event] of response.events.entries()) {
-      if (event.shift?.pk) {
-        let shift = shifts.find((shift) => shift.shiftId === event.shift?.pk);
-        if (!shift) {
-          shift = { shiftId: event.shift.pk, events: [] };
-          shifts.push(shift);
-        }
-        shift.events.push(event);
-      }
-    }
-
+    // merge users on frontend side, we don't need it now
     /*shifts.forEach((shift) => {
       for (let i = 0; i < shift.events.length; i++) {
         const iEvent = shift.events[i];
@@ -327,11 +342,31 @@ export class ScheduleStore extends BaseStore {
       }
     });*/
 
-    shifts.forEach((shift) => {
-      shift.events = fillGaps(shift.events);
-    });
+    const layers: Layer[] | undefined =
+      type === 'rotation'
+        ? shifts
+            .reduce((memo, shift) => {
+              const storeShift = this.shifts[shift.shiftId];
+              let layer = memo.find((level) => level.priority === storeShift.priority_level);
+              if (!layer) {
+                layer = { priority: storeShift.priority_level, shifts: [] };
+                memo.push(layer);
+              }
+              layer.shifts.push(shift);
 
-    //console.log(type, shifts);
+              return memo;
+            }, [])
+            .sort((a, b) => {
+              if (a.priority > b.priority) {
+                return 1;
+              }
+              if (a.priority < b.priority) {
+                return -1;
+              }
+
+              return 0;
+            })
+        : undefined;
 
     this.events = {
       ...this.events,
@@ -339,7 +374,7 @@ export class ScheduleStore extends BaseStore {
         ...this.events[scheduleId],
         [type]: {
           ...this.events[scheduleId]?.[type],
-          [fromString]: shifts,
+          [fromString]: layers ? layers : shifts,
         },
       },
     };

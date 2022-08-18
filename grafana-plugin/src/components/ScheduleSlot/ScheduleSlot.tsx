@@ -33,7 +33,7 @@ const ScheduleSlot: FC<ScheduleSlotProps> = observer((props) => {
   const { index, layerIndex, rotationIndex, event, startMoment, currentTimezone, color: propColor } = props;
   const { users } = event;
 
-  const trackMouse = true;
+  const trackMouse = false;
 
   const [mouseX, setMouseX] = useState<number>(0);
 

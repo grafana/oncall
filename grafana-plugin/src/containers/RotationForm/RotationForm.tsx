@@ -1,4 +1,4 @@
-import React, { FC, useCallback, useEffect, useState } from 'react';
+import React, { FC, useCallback, useEffect, useMemo, useState } from 'react';
 
 import { dateTime, DateTime } from '@grafana/data';
 import {
@@ -22,21 +22,25 @@ import Text from 'components/Text/Text';
 import UserGroups from 'components/UserGroups/UserGroups';
 import WithConfirm from 'components/WithConfirm/WithConfirm';
 import RemoteSelect from 'containers/RemoteSelect/RemoteSelect';
+import { getFromString } from 'models/schedule/schedule.helpers';
 import { Rotation, Schedule, Shift } from 'models/schedule/schedule.types';
 import { getTzOffsetString } from 'models/timezone/timezone.helpers';
 import { Timezone } from 'models/timezone/timezone.types';
 import { User } from 'models/user/user.types';
+import { makeRequest } from 'network';
 import { getDateTime, getUTCString } from 'pages/schedule/Schedule.helpers';
 import { SelectOption } from 'state/types';
 import { useStore } from 'state/useStore';
+import { useDebouncedCallback } from 'utils/hooks';
 
 import { RotationCreateData } from './RotationForm.types';
 
 import styles from './RotationForm.module.css';
 
 interface RotationFormProps {
-  layerIndex: number;
+  layerPriority: number;
   onHide: () => void;
+  startMoment: dayjs.Dayjs;
   currentTimezone: Timezone;
   scheduleId: Schedule['id'];
   shiftId: Shift['id'] | 'new';
@@ -46,10 +50,10 @@ interface RotationFormProps {
 
 const cx = cn.bind(styles);
 
-const startOfDay = dayjs().startOf('day');
+const startOfDay = dayjs().startOf('day').add(1, 'day');
 
 const RotationForm: FC<RotationFormProps> = observer((props) => {
-  const { onHide, onCreate, currentTimezone, scheduleId, onUpdate, layerIndex, shiftId } = props;
+  const { onHide, onCreate, startMoment, currentTimezone, scheduleId, onUpdate, layerPriority, shiftId } = props;
 
   const [repeatEveryValue, setRepeatEveryValue] = useState<number>(1);
   const [repeatEveryPeriod, setRepeatEveryPeriod] = useState<number>(0);
@@ -88,9 +92,8 @@ const RotationForm: FC<RotationFormProps> = observer((props) => {
     }
   }, [shiftId]);
 
-  const handleCreate = useCallback(() => {
-    const params = {
-      title: 'Rotation ' + Math.floor(Math.random() * 100),
+  const params = useMemo(
+    () => ({
       rotation_start: getUTCString(rotationStart, currentTimezone),
       until: endLess ? null : getUTCString(rotationEnd, currentTimezone),
       shift_start: getUTCString(shiftStart, currentTimezone),
@@ -99,9 +102,25 @@ const RotationForm: FC<RotationFormProps> = observer((props) => {
       interval: repeatEveryValue,
       frequency: repeatEveryPeriod,
       by_day: repeatEveryPeriod === 1 ? selectedDays : null,
-      priority_level: shiftId === 'new' ? layerIndex + 1 : shift?.priority_level,
-    };
+      priority_level: shiftId === 'new' ? layerPriority : shift?.priority_level,
+    }),
+    [
+      rotationStart,
+      currentTimezone,
+      rotationEnd,
+      shiftStart,
+      shiftEnd,
+      userGroups,
+      repeatEveryValue,
+      repeatEveryPeriod,
+      selectedDays,
+      shiftId,
+      layerPriority,
+      shift,
+    ]
+  );
 
+  const handleCreate = useCallback(() => {
     if (shiftId === 'new') {
       store.scheduleStore.createRotation(scheduleId, false, params).then(() => {
         onHide();
@@ -113,18 +132,13 @@ const RotationForm: FC<RotationFormProps> = observer((props) => {
         onUpdate();
       });
     }
-  }, [
-    repeatEveryValue,
-    repeatEveryPeriod,
-    selectedDays,
-    shiftStart,
-    shiftEnd,
-    rotationStart,
-    endLess,
-    rotationEnd,
-    userGroups,
-    layerIndex,
-  ]);
+  }, [shiftId, params]);
+
+  const handleChange = useDebouncedCallback(() => {
+    store.scheduleStore.updateRotationPreview(scheduleId, shiftId, getFromString(startMoment), false, params);
+  }, 1000);
+
+  useEffect(handleChange, [params]);
 
   useEffect(() => {
     if (shift) {
@@ -173,7 +187,7 @@ const RotationForm: FC<RotationFormProps> = observer((props) => {
         <HorizontalGroup justify="space-between">
           <Text size="medium">
             <HorizontalGroup spacing="sm">
-              <span>[L{shiftId === 'new' ? layerIndex + 1 : shift?.priority_level}]</span>
+              <span>[L{shiftId === 'new' ? layerPriority : shift?.priority_level}]</span>
               {shiftId === 'new' ? 'New Rotation' : shift?.title}
             </HorizontalGroup>
           </Text>

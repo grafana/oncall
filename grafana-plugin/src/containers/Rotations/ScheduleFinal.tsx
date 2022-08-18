@@ -69,23 +69,10 @@ class ScheduleFinal extends Component<ScheduleFinalProps, ScheduleOverridesState
             <div className={cx('rotations')}>
               {shifts && shifts.length ? (
                 shifts.map(({ shiftId, events }, index) => (
-                  <Rotation
-                    key={index}
-                    events={events}
-                    startMoment={startMoment}
-                    currentTimezone={currentTimezone}
-                    /*layerIndex={0}
-                      rotationIndex={0}*/
-                  />
+                  <Rotation key={index} events={events} startMoment={startMoment} currentTimezone={currentTimezone} />
                 ))
               ) : (
-                <Rotation
-                  events={[]}
-                  startMoment={startMoment}
-                  currentTimezone={currentTimezone}
-                  /*layerIndex={0}
-                  rotationIndex={0}*/
-                />
+                <Rotation events={[]} startMoment={startMoment} currentTimezone={currentTimezone} />
               )}
             </div>
           </div>

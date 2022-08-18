@@ -1,6 +1,6 @@
 import dayjs from 'dayjs';
 
-import { Event } from './schedule.types';
+import { Event, Shift } from './schedule.types';
 
 export const getFromString = (moment: dayjs.Dayjs) => {
   return moment.format('YYYY-MM-DD');
@@ -22,4 +22,25 @@ export const fillGaps = (events: Event[]) => {
   }
 
   return newEvents;
+};
+
+export const splitToShiftsAndFillGaps = (events: Event[]) => {
+  const shifts: Array<{ shiftId: Shift['id']; events: Event[] }> = [];
+
+  for (const [i, event] of events.entries()) {
+    if (event.shift?.pk) {
+      let shift = shifts.find((shift) => shift.shiftId === event.shift?.pk);
+      if (!shift) {
+        shift = { shiftId: event.shift.pk, events: [] };
+        shifts.push(shift);
+      }
+      shift.events.push(event);
+    }
+  }
+
+  shifts.forEach((shift) => {
+    shift.events = fillGaps(shift.events);
+  });
+
+  return shifts;
 };
