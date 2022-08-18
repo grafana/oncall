@@ -296,7 +296,7 @@ class OnCallScheduleICal(OnCallSchedule):
 
     @property
     def insight_logs_type_verbal(self):
-        return "Ical schedule"
+        return "ical_schedule"
 
 
 class OnCallScheduleCalendar(OnCallSchedule):
@@ -371,7 +371,7 @@ class OnCallScheduleCalendar(OnCallSchedule):
 
     @property
     def insight_logs_type_verbal(self):
-        return "Calendar schedule"
+        return "calendar_schedule"
 
     @property
     def insight_logs_serialized(self):
@@ -437,7 +437,7 @@ class OnCallScheduleWeb(OnCallSchedule):
     # Insight logs
     @property
     def insight_logs_type_verbal(self):
-        return "Web schedule"
+        return "web_schedule"
 
     @property
     def insight_logs_serialized(self):

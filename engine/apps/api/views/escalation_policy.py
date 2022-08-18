@@ -16,7 +16,7 @@ from apps.api.serializers.escalation_policy import (
 from apps.auth_token.auth import PluginAuthentication
 from common.api_helpers.exceptions import BadRequest
 from common.api_helpers.mixins import CreateSerializerMixin, PublicPrimaryKeyMixin, UpdateSerializerMixin
-from common.insight_log import EntityEvent, entity_insight_log
+from common.insight_log import EntityEvent, resource_insight_log
 
 
 class EscalationPolicyView(PublicPrimaryKeyMixin, CreateSerializerMixin, UpdateSerializerMixin, ModelViewSet):
@@ -66,7 +66,7 @@ class EscalationPolicyView(PublicPrimaryKeyMixin, CreateSerializerMixin, UpdateS
 
     def perform_create(self, serializer):
         serializer.save()
-        entity_insight_log(
+        resource_insight_log(
             instance=serializer.instance,
             author=self.request.user,
             event=EntityEvent.CREATED,
@@ -77,7 +77,7 @@ class EscalationPolicyView(PublicPrimaryKeyMixin, CreateSerializerMixin, UpdateS
         serializer.save()
         new_state = serializer.instance.insight_logs_serialized
 
-        entity_insight_log(
+        resource_insight_log(
             instance=serializer.instance,
             author=self.request.user,
             event=EntityEvent.UPDATED,
@@ -86,7 +86,7 @@ class EscalationPolicyView(PublicPrimaryKeyMixin, CreateSerializerMixin, UpdateS
         )
 
     def perform_destroy(self, instance):
-        entity_insight_log(
+        resource_insight_log(
             instance=instance,
             author=self.request.user,
             event=EntityEvent.DELETED,
@@ -107,7 +107,7 @@ class EscalationPolicyView(PublicPrimaryKeyMixin, CreateSerializerMixin, UpdateS
                 instance.to(position)
                 new_state = instance.insight_logs_serialized
 
-                entity_insight_log(
+                resource_insight_log(
                     instance=instance,
                     author=self.request.user,
                     event=EntityEvent.UPDATED,

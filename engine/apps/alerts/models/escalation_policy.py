@@ -322,7 +322,7 @@ class EscalationPolicy(OrderedModel):
     # Insight logs
     @property
     def insight_logs_type_verbal(self):
-        return "Escalation Policy"
+        return "escalation_policy"
 
     @property
     def insight_logs_verbal(self):

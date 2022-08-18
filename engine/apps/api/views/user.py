@@ -45,7 +45,7 @@ from common.api_helpers.mixins import FilterSerializerMixin, PublicPrimaryKeyMix
 from common.api_helpers.paginators import HundredPageSizePaginator
 from common.api_helpers.utils import create_engine_url
 from common.constants.role import Role
-from common.insight_log import ChatOpsEvent, ChatOpsType, EntityEvent, chatops_insight_log, entity_insight_log
+from common.insight_log import ChatOpsEvent, ChatOpsType, EntityEvent, chatops_insight_log, resource_insight_log
 
 logger = logging.getLogger(__name__)
 
@@ -266,7 +266,7 @@ class UserView(
         if not verified:
             return Response(error, status=status.HTTP_400_BAD_REQUEST)
         new_state = target_user.insight_logs_serialized
-        entity_insight_log(
+        resource_insight_log(
             instance=target_user,
             author=self.request.user,
             event=EntityEvent.UPDATED,
@@ -284,7 +284,7 @@ class UserView(
 
         if forget:
             new_state = target_user.insight_logs_serialized
-            entity_insight_log(
+            resource_insight_log(
                 instance=target_user,
                 author=self.request.user,
                 event=EntityEvent.UPDATED,
@@ -404,7 +404,7 @@ class UserView(
         if self.request.method == "POST":
             try:
                 instance, token = UserScheduleExportAuthToken.create_auth_token(user, user.organization)
-                entity_insight_log(instance=instance, author=self.request.user, event=EntityEvent.CREATED)
+                resource_insight_log(instance=instance, author=self.request.user, event=EntityEvent.CREATED)
             except IntegrityError:
                 raise Conflict("Schedule export token for user already exists")
 
@@ -419,7 +419,7 @@ class UserView(
         if self.request.method == "DELETE":
             try:
                 token = UserScheduleExportAuthToken.objects.get(user=user)
-                entity_insight_log(instance=token, author=self.request.user, event=EntityEvent.DELETED)
+                resource_insight_log(instance=token, author=self.request.user, event=EntityEvent.DELETED)
                 token.delete()
             except UserScheduleExportAuthToken.DoesNotExist:
                 raise NotFound

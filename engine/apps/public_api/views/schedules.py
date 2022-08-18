@@ -17,7 +17,7 @@ from common.api_helpers.exceptions import BadRequest
 from common.api_helpers.filters import ByTeamFilter
 from common.api_helpers.mixins import RateLimitHeadersMixin, UpdateSerializerMixin
 from common.api_helpers.paginators import FiftyPageSizePaginator
-from common.insight_log import EntityEvent, entity_insight_log
+from common.insight_log import EntityEvent, resource_insight_log
 
 
 class OnCallScheduleChannelView(RateLimitHeadersMixin, UpdateSerializerMixin, ModelViewSet):
@@ -65,7 +65,7 @@ class OnCallScheduleChannelView(RateLimitHeadersMixin, UpdateSerializerMixin, Mo
         if instance.user_group is not None:
             update_slack_user_group_for_schedules.apply_async((instance.user_group.pk,))
 
-        entity_insight_log(
+        resource_insight_log(
             instance=serializer.instance,
             author=self.request.user,
             event=EntityEvent.CREATED,
@@ -87,7 +87,7 @@ class OnCallScheduleChannelView(RateLimitHeadersMixin, UpdateSerializerMixin, Mo
             update_slack_user_group_for_schedules.apply_async((updated_schedule.user_group.pk,))
 
         new_state = serializer.instance.insight_logs_serialized
-        entity_insight_log(
+        resource_insight_log(
             instance=serializer.instance,
             author=self.request.user,
             event=EntityEvent.UPDATED,
@@ -96,7 +96,7 @@ class OnCallScheduleChannelView(RateLimitHeadersMixin, UpdateSerializerMixin, Mo
         )
 
     def perform_destroy(self, instance):
-        entity_insight_log(
+        resource_insight_log(
             instance=instance,
             author=self.request.user,
             event=EntityEvent.DELETED,

@@ -228,7 +228,7 @@ class User(models.Model):
     # Insight logs
     @property
     def insight_logs_type_verbal(self):
-        return "User"
+        return "user"
 
     @property
     def insight_logs_verbal(self):

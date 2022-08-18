@@ -1,6 +1,7 @@
 import enum
 import json
 import logging
+import re
 from abc import ABC, abstractmethod
 
 from django.apps import apps
@@ -24,25 +25,37 @@ class InsightLoggable(ABC):
     @property
     @abstractmethod
     def insight_logs_verbal(self) -> str:
+        """
+        insight_logs_verbal returns resource name for insight_log
+        """
         pass
 
     @property
     @abstractmethod
     def insight_logs_type_verbal(self) -> str:
+        """
+        insight_logs_type_verbal resource type for insight_log
+        """
         pass
 
     @property
     @abstractmethod
     def insight_logs_serialized(self) -> dict:
+        """
+        insight_logs_serialized returns resource, serialized for insight_log
+        """
         pass
 
     @property
     @abstractmethod
     def insight_logs_metadata(self) -> dict:
+        """
+        insight_logs_metadata returns resource metadata which should be present in the insight_log line
+        """
         pass
 
 
-def entity_insight_log(instance: InsightLoggable, author, event: EntityEvent, prev_state=None, new_state=None):
+def resource_insight_log(instance: InsightLoggable, author, event: EntityEvent, prev_state=None, new_state=None):
     try:
         organization = author.organization
         DynamicSetting = apps.get_model("base", "DynamicSetting")
@@ -57,27 +70,29 @@ def entity_insight_log(instance: InsightLoggable, author, event: EntityEvent, pr
             author = json.dumps(author.username)
             entity_type = instance.insight_logs_type_verbal
             try:
-                entity_id = instance.public_primary_key  # Fallback for entities which have no public_primary_key
+                entity_id = instance.public_primary_key
             except AttributeError:
-                entity_id = instance.id
+                entity_id = instance.id  # Fallback for entities which have no public_primary_key
             entity_name = json.dumps(instance.insight_logs_verbal)
             metadata = instance.insight_logs_metadata
-            log_line = f"tenant_id={tenant_id} author_id={author_id} author={author} event_type=entity event_name={event.value} entity_type={entity_type} entity_id={entity_id} entity_name={entity_name}"  # noqa
+            log_line = f"tenant_id={tenant_id} author_id={author_id} author={author} action_type=resource action={event.value} resource_type={entity_type} resource_id={entity_id} resource_name={entity_name}"  # noqa
             for k, v in metadata.items():
                 log_line += f" {k}={json.dumps(v)}"
             if prev_state and new_state:
-                prev_state, new_state = _state_diff_finder(prev_state, new_state)
-                prev_state = json.dumps(format_state_for_insight_log(prev_state))
-                new_state = json.dumps(format_state_for_insight_log(new_state))
+                prev_state, new_state = state_diff_finder(prev_state, new_state)
+                prev_state = escape_json_str_for_insight_log(json.dumps(format_state_for_insight_log(prev_state)))
+                new_state = escape_json_str_for_insight_log(json.dumps(format_state_for_insight_log(new_state)))
                 log_line += f' prev_state="{prev_state}"'
                 log_line += f' new_state="{new_state}"'
             insight_logger.info(log_line)
     except Exception as e:
         logger.warning(f"insight_log.failed_to_write_entity_insight_log exception={e}")
-        raise e
 
 
-def _state_diff_finder(before: dict, after: dict):
+def state_diff_finder(before: dict, after: dict):
+    """
+    state_diff_finder finds diff between two serialized representations of the resource
+    """
     before_diff = {}
     after_diff = {}
     for k, v in before.items():
@@ -93,7 +108,19 @@ def _state_diff_finder(before: dict, after: dict):
     return before_diff, after_diff
 
 
+def escape_json_str_for_insight_log(string):
+    """
+    escape_json_str escapes double quotes near keys and values in json string.
+    it's needed for
+    """
+    return re.sub(r"(?<!\\)(\")", r"\\\1", string)
+
+
 def format_state_for_insight_log(diff_dict):
+    """
+    format_state_for_insight_log formats serialized resource data for the insight log.
+    It hides and prunes fields which shouldn't be exposed
+    """
     fields_to_prune = ()
     fields_to_hide = ("verified_phone_number", "unverified_phone_number")
     for k, v in diff_dict.items():

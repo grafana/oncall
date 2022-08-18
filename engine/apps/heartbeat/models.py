@@ -237,7 +237,7 @@ class IntegrationHeartBeat(BaseHeartBeat):
     # Insight logs
     @property
     def insight_logs_type_verbal(self):
-        return "Integration Heartbeat"
+        return "integration_heartbeat"
 
     @property
     def insight_logs_verbal(self):

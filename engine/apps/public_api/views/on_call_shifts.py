@@ -10,7 +10,7 @@ from apps.schedules.models import CustomOnCallShift
 from common.api_helpers.filters import ByTeamFilter
 from common.api_helpers.mixins import RateLimitHeadersMixin, UpdateSerializerMixin
 from common.api_helpers.paginators import FiftyPageSizePaginator
-from common.insight_log import EntityEvent, entity_insight_log
+from common.insight_log import EntityEvent, resource_insight_log
 
 
 class CustomOnCallShiftView(RateLimitHeadersMixin, UpdateSerializerMixin, ModelViewSet):
@@ -52,7 +52,7 @@ class CustomOnCallShiftView(RateLimitHeadersMixin, UpdateSerializerMixin, ModelV
 
     def perform_create(self, serializer):
         serializer.save()
-        entity_insight_log(
+        resource_insight_log(
             instance=serializer.instance,
             author=self.request.user,
             event=EntityEvent.CREATED,
@@ -62,7 +62,7 @@ class CustomOnCallShiftView(RateLimitHeadersMixin, UpdateSerializerMixin, ModelV
         old_state = serializer.instance.insight_logs_serialized
         serializer.save()
         new_state = serializer.instance.insight_logs_serialized
-        entity_insight_log(
+        resource_insight_log(
             instance=serializer.instance,
             author=self.request.user,
             event=EntityEvent.UPDATED,
@@ -71,7 +71,7 @@ class CustomOnCallShiftView(RateLimitHeadersMixin, UpdateSerializerMixin, ModelV
         )
 
     def perform_destroy(self, instance):
-        entity_insight_log(
+        resource_insight_log(
             instance=instance,
             author=self.request.user,
             event=EntityEvent.DELETED,

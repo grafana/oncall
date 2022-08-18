@@ -142,7 +142,7 @@ class ChannelFilter(OrderedModel):
     # Insight logs
     @property
     def insight_logs_type_verbal(self):
-        return "Route"
+        return "route"
 
     @property
     def insight_logs_verbal(self):

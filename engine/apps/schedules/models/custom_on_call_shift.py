@@ -449,7 +449,7 @@ class CustomOnCallShift(models.Model):
     # Insight logs
     @property
     def insight_logs_type_verbal(self):
-        return "OnCall shift"
+        return "oncall_shift"
 
     @property
     def insight_logs_verbal(self):

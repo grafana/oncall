@@ -250,7 +250,7 @@ class Organization(MaintainableObject):
     # Insight logs
     @property
     def insight_logs_type_verbal(self):
-        return "Organization"
+        return "organization"
 
     @property
     def insight_logs_verbal(self):

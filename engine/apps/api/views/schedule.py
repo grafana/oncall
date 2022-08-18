@@ -36,7 +36,7 @@ from common.api_helpers.mixins import (
     UpdateSerializerMixin,
 )
 from common.api_helpers.utils import create_engine_url
-from common.insight_log import EntityEvent, entity_insight_log
+from common.insight_log import EntityEvent, resource_insight_log
 
 EVENTS_FILTER_BY_ROTATION = "rotation"
 EVENTS_FILTER_BY_OVERRIDE = "override"
@@ -140,7 +140,7 @@ class ScheduleView(
 
     def perform_create(self, serializer):
         serializer.save()
-        entity_insight_log(instance=serializer.instance, author=self.request.user, event=EntityEvent.CREATED)
+        resource_insight_log(instance=serializer.instance, author=self.request.user, event=EntityEvent.CREATED)
 
     def perform_update(self, serializer):
         old_state = serializer.instance.insight_logs_serialized
@@ -151,7 +151,7 @@ class ScheduleView(
         if serializer.instance.user_group is not None and serializer.instance.user_group != old_user_group:
             update_slack_user_group_for_schedules.apply_async((serializer.instance.user_group.pk,))
         new_state = serializer.instance.insight_logs_serialized
-        entity_insight_log(
+        resource_insight_log(
             instance=serializer.instance,
             author=self.request.user,
             event=EntityEvent.UPDATED,
@@ -160,7 +160,7 @@ class ScheduleView(
         )
 
     def perform_destroy(self, instance):
-        entity_insight_log(
+        resource_insight_log(
             instance=instance,
             author=self.request.user,
             event=EntityEvent.DELETED,
@@ -453,7 +453,7 @@ class ScheduleView(
                 instance, token = ScheduleExportAuthToken.create_auth_token(
                     request.user, request.user.organization, schedule
                 )
-                entity_insight_log(instance=instance, author=self.request.user, event=EntityEvent.CREATED)
+                resource_insight_log(instance=instance, author=self.request.user, event=EntityEvent.CREATED)
             except IntegrityError:
                 raise Conflict("Schedule export token for user already exists")
 
@@ -469,7 +469,7 @@ class ScheduleView(
         if self.request.method == "DELETE":
             try:
                 token = ScheduleExportAuthToken.objects.get(user_id=self.request.user.id, schedule_id=schedule.id)
-                entity_insight_log(instance=token, author=self.request.user, event=EntityEvent.DELETED)
+                resource_insight_log(instance=token, author=self.request.user, event=EntityEvent.DELETED)
                 token.delete()
             except ScheduleExportAuthToken.DoesNotExist:
                 raise NotFound

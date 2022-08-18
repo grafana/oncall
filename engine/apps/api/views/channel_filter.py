@@ -18,7 +18,7 @@ from apps.slack.models import SlackChannel
 from common.api_helpers.exceptions import BadRequest
 from common.api_helpers.mixins import CreateSerializerMixin, PublicPrimaryKeyMixin, UpdateSerializerMixin
 from common.exceptions import UnableToSendDemoAlert
-from common.insight_log import EntityEvent, entity_insight_log
+from common.insight_log import EntityEvent, resource_insight_log
 
 
 class ChannelFilterView(PublicPrimaryKeyMixin, CreateSerializerMixin, UpdateSerializerMixin, ModelViewSet):
@@ -63,7 +63,7 @@ class ChannelFilterView(PublicPrimaryKeyMixin, CreateSerializerMixin, UpdateSeri
         if instance.is_default:
             raise BadRequest(detail="Unable to delete default filter")
         else:
-            entity_insight_log(
+            resource_insight_log(
                 instance=instance,
                 author=self.request.user,
                 event=EntityEvent.DELETED,
@@ -73,7 +73,7 @@ class ChannelFilterView(PublicPrimaryKeyMixin, CreateSerializerMixin, UpdateSeri
 
     def perform_create(self, serializer):
         serializer.save()
-        entity_insight_log(
+        resource_insight_log(
             instance=serializer.instance,
             author=self.request.user,
             event=EntityEvent.CREATED,
@@ -83,7 +83,7 @@ class ChannelFilterView(PublicPrimaryKeyMixin, CreateSerializerMixin, UpdateSeri
         old_state = serializer.instance.insight_logs_serialized
         serializer.save()
         new_state = serializer.instance.insight_logs_serialized
-        entity_insight_log(
+        resource_insight_log(
             instance=serializer.instance,
             author=self.request.user,
             event=EntityEvent.UPDATED,
@@ -106,7 +106,7 @@ class ChannelFilterView(PublicPrimaryKeyMixin, CreateSerializerMixin, UpdateSeri
                 instance.to(int(position))
                 new_state = instance.insight_logs_serialized
 
-                entity_insight_log(
+                resource_insight_log(
                     instance=instance,
                     author=self.request.user,
                     event=EntityEvent.UPDATED,

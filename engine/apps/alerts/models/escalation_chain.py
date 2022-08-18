@@ -68,7 +68,7 @@ class EscalationChain(models.Model):
     # Insight logs
     @property
     def insight_logs_type_verbal(self):
-        return "Escalation Chain"
+        return "escalation_chain"
 
     @property
     def insight_logs_verbal(self):

@@ -31,7 +31,7 @@ class ApiAuthToken(BaseAuthToken):
     # Insight logs
     @property
     def insight_logs_type_verbal(self):
-        return "Public API token"
+        return "public_api_token"
 
     @property
     def insight_logs_verbal(self):

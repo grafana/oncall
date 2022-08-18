@@ -6,7 +6,7 @@ from apps.api.permissions import AnyRole, IsAdmin, MethodPermission
 from apps.api.serializers.organization_slack_settings import OrganizationSlackSettingsSerializer
 from apps.auth_token.auth import PluginAuthentication
 from apps.user_management.models import Organization
-from common.insight_log import EntityEvent, entity_insight_log
+from common.insight_log import EntityEvent, resource_insight_log
 
 
 class SlackTeamSettingsAPIView(views.APIView):
@@ -32,7 +32,7 @@ class SlackTeamSettingsAPIView(views.APIView):
         serializer.is_valid(raise_exception=True)
         serializer.save()
         new_state = serializer.instance.insight_logs_serialized
-        entity_insight_log(
+        resource_insight_log(
             instance=serializer.instance,
             author=self.request.user,
             event=EntityEvent.UPDATED,

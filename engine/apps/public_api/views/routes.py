@@ -12,7 +12,7 @@ from apps.public_api.throttlers.user_throttle import UserThrottle
 from common.api_helpers.exceptions import BadRequest
 from common.api_helpers.mixins import RateLimitHeadersMixin, UpdateSerializerMixin
 from common.api_helpers.paginators import TwentyFivePageSizePaginator
-from common.insight_log import EntityEvent, entity_insight_log
+from common.insight_log import EntityEvent, resource_insight_log
 
 
 class ChannelFilterView(RateLimitHeadersMixin, UpdateSerializerMixin, ModelViewSet):
@@ -60,7 +60,7 @@ class ChannelFilterView(RateLimitHeadersMixin, UpdateSerializerMixin, ModelViewS
         if instance.is_default:
             raise BadRequest(detail="Unable to delete default filter")
         else:
-            entity_insight_log(
+            resource_insight_log(
                 instance=instance,
                 author=self.request.user,
                 event=EntityEvent.DELETED,
@@ -70,7 +70,7 @@ class ChannelFilterView(RateLimitHeadersMixin, UpdateSerializerMixin, ModelViewS
 
     def perform_create(self, serializer):
         serializer.save()
-        entity_insight_log(
+        resource_insight_log(
             instance=serializer.instance,
             author=self.request.user,
             event=EntityEvent.CREATED,
@@ -80,7 +80,7 @@ class ChannelFilterView(RateLimitHeadersMixin, UpdateSerializerMixin, ModelViewS
         old_state = serializer.instance.insight_logs_serialized
         serializer.save()
         new_state = serializer.instance.insight_logs_serialized
-        entity_insight_log(
+        resource_insight_log(
             instance=serializer.instance,
             author=self.request.user,
             event=EntityEvent.UPDATED,

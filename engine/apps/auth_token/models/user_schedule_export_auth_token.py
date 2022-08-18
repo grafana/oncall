@@ -35,7 +35,7 @@ class UserScheduleExportAuthToken(BaseAuthToken):
     # Insight logs
     @property
     def insight_logs_type_verbal(self):
-        return "User schedule export token"
+        return "user_schedule_export_token"
 
     @property
     def insight_logs_verbal(self):

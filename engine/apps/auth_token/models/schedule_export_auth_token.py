@@ -42,7 +42,7 @@ class ScheduleExportAuthToken(BaseAuthToken):
     # Insight logs
     @property
     def insight_logs_type_verbal(self):
-        return "Schedule export token"
+        return "schedule_export_token"
 
     @property
     def insight_logs_verbal(self):

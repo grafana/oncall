@@ -11,7 +11,7 @@ from apps.api.serializers.organization import CurrentOrganizationSerializer
 from apps.auth_token.auth import PluginAuthentication
 from apps.base.messaging import get_messaging_backend_from_id
 from apps.telegram.client import TelegramClient
-from common.insight_log import EntityEvent, entity_insight_log
+from common.insight_log import EntityEvent, resource_insight_log
 
 
 class CurrentOrganizationView(APIView):
@@ -34,7 +34,7 @@ class CurrentOrganizationView(APIView):
         serializer.is_valid(raise_exception=True)
         serializer.save()
         new_state = serializer.instance.insight_logs_serialized
-        entity_insight_log(
+        resource_insight_log(
             instance=serializer.instance,
             author=self.request.user,
             event=EntityEvent.UPDATED,

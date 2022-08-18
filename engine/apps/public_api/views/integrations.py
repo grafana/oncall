@@ -11,7 +11,7 @@ from apps.public_api.throttlers.user_throttle import UserThrottle
 from common.api_helpers.filters import ByTeamFilter
 from common.api_helpers.mixins import FilterSerializerMixin, RateLimitHeadersMixin, UpdateSerializerMixin
 from common.api_helpers.paginators import FiftyPageSizePaginator
-from common.insight_log import EntityEvent, entity_insight_log
+from common.insight_log import EntityEvent, resource_insight_log
 
 from .maintaiable_object_mixin import MaintainableObjectMixin
 
@@ -61,7 +61,7 @@ class IntegrationView(
         old_state = serializer.instance.insight_logs_serialized
         serializer.save()
         new_state = serializer.instance.insight_logs_serialized
-        entity_insight_log(
+        resource_insight_log(
             instance=serializer.instance,
             author=self.request.user,
             event=EntityEvent.UPDATED,
@@ -70,5 +70,5 @@ class IntegrationView(
         )
 
     def perform_destroy(self, instance):
-        entity_insight_log(instance=instance, author=self.request.user, event=EntityEvent.DELETED)
+        resource_insight_log(instance=instance, author=self.request.user, event=EntityEvent.DELETED)
         instance.delete()

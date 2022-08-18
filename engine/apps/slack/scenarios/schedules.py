@@ -6,7 +6,7 @@ from django.utils import timezone
 from apps.schedules.models import OnCallSchedule
 from apps.slack.scenarios import scenario_step
 from apps.slack.utils import format_datetime_to_slack
-from common.insight_log import EntityEvent, entity_insight_log
+from common.insight_log import EntityEvent, resource_insight_log
 
 
 class EditScheduleShiftNotifyStep(scenario_step.ScenarioStep):
@@ -61,7 +61,7 @@ class EditScheduleShiftNotifyStep(scenario_step.ScenarioStep):
         setattr(schedule, action["block_id"], int(action["selected_option"]["value"]))
         schedule.save()
         new_state = schedule.insight_logs_serialized
-        entity_insight_log(
+        resource_insight_log(
             instance=schedule,
             author=slack_user_identity.get_user(schedule.organization),
             event=EntityEvent.UPDATED,

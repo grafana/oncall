@@ -12,7 +12,7 @@ from apps.api.serializers.escalation_chain import EscalationChainListSerializer,
 from apps.auth_token.auth import PluginAuthentication
 from common.api_helpers.exceptions import BadRequest
 from common.api_helpers.mixins import ListSerializerMixin, PublicPrimaryKeyMixin
-from common.insight_log import EntityEvent, entity_insight_log
+from common.insight_log import EntityEvent, resource_insight_log
 
 
 class EscalationChainViewSet(PublicPrimaryKeyMixin, ListSerializerMixin, viewsets.ModelViewSet):
@@ -56,10 +56,10 @@ class EscalationChainViewSet(PublicPrimaryKeyMixin, ListSerializerMixin, viewset
 
     def perform_create(self, serializer):
         serializer.save()
-        entity_insight_log(instance=serializer.instance, author=self.request.user, event=EntityEvent.CREATED)
+        resource_insight_log(instance=serializer.instance, author=self.request.user, event=EntityEvent.CREATED)
 
     def perform_destroy(self, instance):
-        entity_insight_log(
+        resource_insight_log(
             instance=instance,
             author=self.request.user,
             event=EntityEvent.DELETED,
@@ -71,7 +71,7 @@ class EscalationChainViewSet(PublicPrimaryKeyMixin, ListSerializerMixin, viewset
         serializer.save()
         new_state = serializer.instance.insight_logs_serialized
 
-        entity_insight_log(
+        resource_insight_log(
             instance=serializer.instance,
             author=self.request.user,
             event=EntityEvent.UPDATED,
@@ -91,7 +91,7 @@ class EscalationChainViewSet(PublicPrimaryKeyMixin, ListSerializerMixin, viewset
         obj = self.get_object()
         copy = obj.make_copy(name)
         serializer = self.get_serializer(copy)
-        entity_insight_log(
+        resource_insight_log(
             instance=copy,
             author=self.request.user,
             event=EntityEvent.CREATED,

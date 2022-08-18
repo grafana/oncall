@@ -138,7 +138,7 @@ class CustomButton(models.Model):
     # Insight logs
     @property
     def insight_logs_type_verbal(self):
-        return "Outgoing webhook"
+        return "outgoing_webhook"
 
     @property
     def insight_logs_verbal(self):

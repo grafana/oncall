@@ -9,7 +9,7 @@ from apps.public_api.serializers import EscalationPolicySerializer, EscalationPo
 from apps.public_api.throttlers.user_throttle import UserThrottle
 from common.api_helpers.mixins import RateLimitHeadersMixin, UpdateSerializerMixin
 from common.api_helpers.paginators import FiftyPageSizePaginator
-from common.insight_log import EntityEvent, entity_insight_log
+from common.insight_log import EntityEvent, resource_insight_log
 
 
 class EscalationPolicyView(RateLimitHeadersMixin, UpdateSerializerMixin, ModelViewSet):
@@ -50,7 +50,7 @@ class EscalationPolicyView(RateLimitHeadersMixin, UpdateSerializerMixin, ModelVi
 
     def perform_create(self, serializer):
         serializer.save()
-        entity_insight_log(
+        resource_insight_log(
             instance=serializer.instance,
             author=self.request.user,
             event=EntityEvent.CREATED,
@@ -60,7 +60,7 @@ class EscalationPolicyView(RateLimitHeadersMixin, UpdateSerializerMixin, ModelVi
         old_state = serializer.instance.insight_logs_serialized
         serializer.save()
         new_state = serializer.instance.insight_logs_serialized
-        entity_insight_log(
+        resource_insight_log(
             instance=serializer.instance,
             author=self.request.user,
             event=EntityEvent.UPDATED,
@@ -69,7 +69,7 @@ class EscalationPolicyView(RateLimitHeadersMixin, UpdateSerializerMixin, ModelVi
         )
 
     def perform_destroy(self, instance):
-        entity_insight_log(
+        resource_insight_log(
             instance=instance,
             author=self.request.user,
             event=EntityEvent.DELETED,
