@@ -233,6 +233,9 @@ class OnCallSchedule(PolymorphicModel):
             }
             events.append(shift_json)
 
+        # combine multiple-users same-shift events into one
+        events = self._merge_events(events)
+
         return events
 
     def final_events(self, user_tz, starting_date, days):
@@ -356,6 +359,25 @@ class OnCallSchedule(PolymorphicModel):
 
         resolved.sort(key=lambda e: (e["start"], e["shift"]["pk"]))
         return resolved
+
+    def _merge_events(self, events):
+        """Merge user groups same-shift events."""
+        if events:
+            merged = [events[0]]
+            current = merged[0]
+            for next_event in events[1:]:
+                if (
+                    current["start"] == next_event["start"]
+                    and current["shift"]["pk"] is not None
+                    and current["shift"]["pk"] == next_event["shift"]["pk"]
+                ):
+                    current["users"] += next_event["users"]
+                    current["missing_users"] += next_event["missing_users"]
+                else:
+                    merged.append(next_event)
+                    current = next_event
+            events = merged
+        return events
 
     # Insight logs
     @property
