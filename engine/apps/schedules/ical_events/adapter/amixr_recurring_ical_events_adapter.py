@@ -2,22 +2,12 @@ from collections import defaultdict
 from datetime import datetime
 from typing import List
 
-from django.apps import apps
 from django.utils import timezone
 from icalendar import Calendar, Event
 from recurring_ical_events import UnfoldableCalendar, compare_greater, is_event, time_span_contains_event
 
-from apps.schedules.constants import (
-    ICAL_DATETIME_END,
-    ICAL_DATETIME_STAMP,
-    ICAL_DATETIME_START,
-    ICAL_RRULE,
-    ICAL_UID,
-    ICAL_UNTIL,
-    RE_EVENT_UID_V1,
-    RE_EVENT_UID_V2,
-)
 from apps.schedules.ical_events.proxy.ical_proxy import IcalService
+from apps.schedules.ical_utils import get_start_and_end_with_respect_to_event_type
 
 EXTRA_LOOKUP_DAYS = 16
 
@@ -105,17 +95,7 @@ class AmixrRecurringIcalEventsAdapter(IcalService):
         )
 
         def filter_extra_days(event):
-            CustomOnCallShift = apps.get_model("schedules", "CustomOnCallShift")
-            match = RE_EVENT_UID_V2.match(event[ICAL_UID]) or RE_EVENT_UID_V1.match(event[ICAL_UID])
-            # use different calculation rule for events from custom shifts generated at web
-            if match and int(match.groups()[-1]) == CustomOnCallShift.SOURCE_WEB:
-                event_start = max(event[ICAL_DATETIME_START].dt, event[ICAL_DATETIME_STAMP].dt)
-                event_end = event[ICAL_DATETIME_END].dt
-                if event.get(ICAL_RRULE, {}).get(ICAL_UNTIL):
-                    event_end = min(event[ICAL_RRULE][ICAL_UNTIL][0], event[ICAL_DATETIME_END].dt)
-            else:
-                event_start = event[ICAL_DATETIME_START].dt
-                event_end = event[ICAL_DATETIME_END].dt
+            event_start, event_end = get_start_and_end_with_respect_to_event_type(event)
             return time_span_contains_event(start_date, end_date, event_start, event_end)
 
         return list(filter(filter_extra_days, events))
