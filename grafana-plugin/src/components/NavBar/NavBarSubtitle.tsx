@@ -4,13 +4,19 @@ import { Card } from '@grafana/ui';
 import cn from 'classnames/bind';
 
 import gitHubStarSVG from 'assets/img/github_star.svg';
-import { APP_SUBTITLE } from 'utils/consts';
+import { useStore } from 'state/useStore';
+import { APP_SUBTITLE, GRAFANA_LICENSE_OSS } from 'utils/consts';
 
 import styles from './NavBarSubtitle.module.css';
 
 const cx = cn.bind(styles);
 
 function NavBarSubtitle() {
+  const store = useStore();
+  if (store.backendLicense === GRAFANA_LICENSE_OSS) {
+    return APP_SUBTITLE;
+  }
+
   return (
     <div className={cx('navbar-container')}>
       {APP_SUBTITLE}
