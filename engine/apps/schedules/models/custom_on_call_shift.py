@@ -558,7 +558,7 @@ class CustomOnCallShift(models.Model):
         instance_data["start"] = timezone.datetime.combine(
             instance_data["rotation_start"].date(),
             instance_data["start"].time(),
-        )
+        ).astimezone(pytz.UTC)
 
         if self.last_updated_shift is None or self.last_updated_shift.event_is_started:
             # create new shift
