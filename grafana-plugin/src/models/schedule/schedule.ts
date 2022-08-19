@@ -206,7 +206,7 @@ export class ScheduleStore extends BaseStore {
 
     const response = await makeRequest(`/oncall_shifts/preview/`, {
       params: { date: fromString },
-      data: { type, schedule: scheduleId, ...params },
+      data: { type, schedule: scheduleId, shift_pk: shiftId === 'new' ? undefined : shiftId, ...params },
       method: 'POST',
     }).catch(this.onApiError);
 

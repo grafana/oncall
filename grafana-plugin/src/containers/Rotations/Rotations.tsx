@@ -137,25 +137,23 @@ class Rotations extends Component<RotationsProps, RotationsState> {
                     </div>
                     <div className={cx('rotations')}>
                       <TimelineMarks debug startMoment={startMoment} />
-                      {layer.shifts.map(({ shiftId, events }, rotationIndex) => (
-                        <div className={cx('header-plus-content')}>
-                          {!currentTimeHidden && (
-                            <div className={cx('current-time')} style={{ left: `${currentTimeX * 100}%` }} />
-                          )}
-                          <div>
-                            <Rotation
-                              onClick={() => {
-                                this.onRotationClick(shiftId);
-                              }}
-                              events={events}
-                              layerIndex={layer.priority - 1}
-                              rotationIndex={rotationIndex}
-                              startMoment={startMoment}
-                              currentTimezone={currentTimezone}
-                            />
-                          </div>
-                        </div>
-                      ))}
+                      {!currentTimeHidden && (
+                        <div className={cx('current-time')} style={{ left: `${currentTimeX * 100}%` }} />
+                      )}
+                      <div className={cx('rotations')}>
+                        {layer.shifts.map(({ shiftId, events }, rotationIndex) => (
+                          <Rotation
+                            onClick={() => {
+                              this.onRotationClick(shiftId);
+                            }}
+                            events={events}
+                            layerIndex={layer.priority - 1}
+                            rotationIndex={rotationIndex}
+                            startMoment={startMoment}
+                            currentTimezone={currentTimezone}
+                          />
+                        ))}
+                      </div>
                     </div>
                   </div>
                 </div>
