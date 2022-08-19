@@ -11,13 +11,11 @@ import TimelineMarks from 'components/TimelineMarks/TimelineMarks';
 import Rotation from 'containers/Rotation/Rotation';
 import RotationForm from 'containers/RotationForm/RotationForm';
 import { RotationCreateData } from 'containers/RotationForm/RotationForm.types';
-import { getFromString } from 'models/schedule/schedule.helpers';
+import { getColor, getFromString } from 'models/schedule/schedule.helpers';
 import { Event, Layer, Schedule, Shift } from 'models/schedule/schedule.types';
 import { Timezone } from 'models/timezone/timezone.types';
 import { SelectOption, WithStoreProps } from 'state/types';
 import { withMobXProviderContext } from 'state/withStore';
-
-import { getColor, getLabel, getRandomTimeslots, getRandomUser } from './Rotations.helpers';
 
 import styles from './Rotations.module.css';
 
@@ -54,50 +52,9 @@ class Rotations extends Component<RotationsProps, RotationsState> {
 
     const currentTimeHidden = currentTimeX < 0 || currentTimeX > 1;
 
-    const storeLayers = store.scheduleStore.events[scheduleId]?.['rotation']?.[getFromString(startMoment)] as Layer[];
-
-    console.log('store.scheduleStore.rotationPreview', store.scheduleStore.rotationPreview);
-
-    let layers = storeLayers;
-    if (store.scheduleStore.rotationPreview) {
-      layers = [...layers];
-
-      const isNew = store.scheduleStore.rotationPreview.shifts[0].shiftId === 'new';
-      const priority = store.scheduleStore.rotationPreview.priority;
-
-      let added = false;
-      layers = layers.reduce((memo, layer, index) => {
-        if (isNew) {
-          if (layer.priority === priority) {
-            const newLayer = { ...layer };
-            newLayer.shifts = [...layer.shifts, ...store.scheduleStore.rotationPreview.shifts];
-
-            memo[index] = newLayer;
-
-            added = true;
-          }
-        } else {
-          const oldShiftIndex = layer.shifts.findIndex(
-            (shift) => shift.shiftId === store.scheduleStore.rotationPreview.shifts[0].shiftId
-          );
-          if (oldShiftIndex > -1) {
-            const newLayer = { ...layer };
-            newLayer.shifts = [...layer.shifts];
-            newLayer.shifts[oldShiftIndex] = store.scheduleStore.rotationPreview.shifts[0];
-
-            memo[index] = newLayer;
-
-            added = true;
-          }
-        }
-
-        return layers;
-      }, layers);
-
-      if (!added) {
-        layers.push(store.scheduleStore.rotationPreview);
-      }
-    }
+    const layers = store.scheduleStore.rotationPreview
+      ? store.scheduleStore.rotationPreview
+      : (store.scheduleStore.events[scheduleId]?.['rotation']?.[getFromString(startMoment)] as Layer[]);
 
     const options = layers
       ? layers.map((layer) => ({
@@ -127,7 +84,7 @@ class Rotations extends Component<RotationsProps, RotationsState> {
           </div>
           <div className={cx('rotations-plus-title')}>
             {layers && layers.length ? (
-              layers.map((layer) => (
+              layers.map((layer, layerIndex) => (
                 <div key={layer.priority}>
                   <div className={cx('layer')}>
                     <div className={cx('layer-title')}>
@@ -146,8 +103,9 @@ class Rotations extends Component<RotationsProps, RotationsState> {
                             onClick={() => {
                               this.onRotationClick(shiftId);
                             }}
+                            color={getColor(layerIndex, rotationIndex)}
                             events={events}
-                            layerIndex={layer.priority - 1}
+                            layerIndex={layerIndex}
                             rotationIndex={rotationIndex}
                             startMoment={startMoment}
                             currentTimezone={currentTimezone}

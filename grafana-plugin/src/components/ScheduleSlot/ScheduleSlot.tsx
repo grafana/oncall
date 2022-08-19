@@ -30,7 +30,7 @@ interface ScheduleSlotProps {
 const cx = cn.bind(styles);
 
 const ScheduleSlot: FC<ScheduleSlotProps> = observer((props) => {
-  const { index, layerIndex, rotationIndex, event, startMoment, currentTimezone, color: propColor } = props;
+  const { index, layerIndex, rotationIndex, event, startMoment, currentTimezone, color } = props;
   const { users } = event;
 
   const trackMouse = false;
@@ -62,7 +62,6 @@ const ScheduleSlot: FC<ScheduleSlotProps> = observer((props) => {
 
           const inactive = false;
 
-          const color = propColor || getColor(layerIndex, rotationIndex);
           const title = getTitle(storeUser);
 
           return (

@@ -71,16 +71,16 @@ export type RotationType = 'final' | 'rotation' | 'override';
 
 export interface Event {
   all_day: boolean;
-  calendar_type: 0;
+  calendar_type: ScheduleType;
   end: string;
   is_empty: boolean;
   is_gap: boolean;
-  missing_users: [];
+  missing_users: Array<{ display_name: User['username']; pk: User['pk'] }>;
   priority_level: number;
-  shift: { pk: string };
+  shift: { pk: Shift['id'] | null };
   source: string;
   start: string;
-  users: [{ display_name: User['username']; pk: User['pk'] }];
+  users: Array<{ display_name: User['username']; pk: User['pk'] }>;
 }
 
 export interface Events {

@@ -11,7 +11,7 @@ import { makeRequest } from 'network';
 import { RootStore } from 'state';
 import { SelectOption } from 'state/types';
 
-import { fillGaps, splitToShiftsAndFillGaps } from './schedule.helpers';
+import { enrichLayers, fillGaps, getFromString, splitToLayers, splitToShiftsAndFillGaps } from './schedule.helpers';
 import { Events, Rotation, RotationType, Schedule, ScheduleEvent, Shift, Event, Layer } from './schedule.types';
 
 const DEFAULT_FORMAT = 'YYYY-MM-DDTHH:mm:ss';
@@ -73,7 +73,7 @@ export class ScheduleStore extends BaseStore {
   } = {};
 
   @observable
-  rotationPreview?: Layer;
+  rotationPreview?: Layer[];
 
   @observable
   finalPreview?: Array<{ shiftId: Shift['id']; events: Event[] }>;
@@ -202,19 +202,25 @@ export class ScheduleStore extends BaseStore {
   ) {
     const type = isOverride ? 3 : 2;
 
-    const typeString = isOverride ? 'override' : 'rotation';
-
     const response = await makeRequest(`/oncall_shifts/preview/`, {
       params: { date: fromString },
       data: { type, schedule: scheduleId, shift_pk: shiftId === 'new' ? undefined : shiftId, ...params },
       method: 'POST',
     }).catch(this.onApiError);
 
-    this.rotationPreview = {
-      priority: params.priority_level,
-      shifts: [{ shiftId: shiftId, events: fillGaps(response.rotation.filter((event) => !event.is_gap)) }],
-    };
-    this.finalPreview = splitToShiftsAndFillGaps(response.final).filter((shift) => shift.shiftId !== shiftId);
+    if (isOverride) {
+    } else {
+      const layers = enrichLayers(
+        [...(this.events[scheduleId]?.['rotation']?.[fromString] as Layer[])],
+        response.rotation,
+        shiftId,
+        params.priority_level
+      );
+
+      this.rotationPreview = layers;
+    }
+
+    this.finalPreview = splitToShiftsAndFillGaps(response.final); /*.filter((shift) => shift.shiftId !== shiftId);*/
   }
 
   async updateRotation(shiftId: Shift['id'], params: Partial<Shift>) {
@@ -345,31 +351,7 @@ export class ScheduleStore extends BaseStore {
       }
     });*/
 
-    const layers: Layer[] | undefined =
-      type === 'rotation'
-        ? shifts
-            .reduce((memo, shift) => {
-              const storeShift = this.shifts[shift.shiftId];
-              let layer = memo.find((level) => level.priority === storeShift.priority_level);
-              if (!layer) {
-                layer = { priority: storeShift.priority_level, shifts: [] };
-                memo.push(layer);
-              }
-              layer.shifts.push(shift);
-
-              return memo;
-            }, [])
-            .sort((a, b) => {
-              if (a.priority > b.priority) {
-                return 1;
-              }
-              if (a.priority < b.priority) {
-                return -1;
-              }
-
-              return 0;
-            })
-        : undefined;
+    const layers = type === 'rotation' ? splitToLayers(shifts) : undefined;
 
     this.events = {
       ...this.events,

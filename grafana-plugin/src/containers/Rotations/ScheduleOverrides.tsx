@@ -9,7 +9,7 @@ import TimelineMarks from 'components/TimelineMarks/TimelineMarks';
 import Rotation from 'containers/Rotation/Rotation';
 import { RotationCreateData } from 'containers/RotationForm/RotationForm.types';
 import ScheduleOverrideForm from 'containers/RotationForm/ScheduleOverrideForm';
-import { getFromString } from 'models/schedule/schedule.helpers';
+import { getFromString, getOverrideColor } from 'models/schedule/schedule.helpers';
 import { Schedule, Shift } from 'models/schedule/schedule.types';
 import { Timezone } from 'models/timezone/timezone.types';
 import { WithStoreProps } from 'state/types';
@@ -66,11 +66,11 @@ class ScheduleOverrides extends Component<ScheduleOverridesProps, ScheduleOverri
             <TimelineMarks startMoment={startMoment} />
             <div className={cx('rotations')}>
               {shifts && shifts.length ? (
-                shifts.map(({ shiftId, events }, index) => (
+                shifts.map(({ shiftId, events }, rotationIndex) => (
                   <Rotation
-                    key={index}
+                    key={rotationIndex}
                     events={events}
-                    color="#C69B06"
+                    color={getOverrideColor(rotationIndex)}
                     startMoment={startMoment}
                     currentTimezone={currentTimezone}
                     onClick={() => {
@@ -81,7 +81,6 @@ class ScheduleOverrides extends Component<ScheduleOverridesProps, ScheduleOverri
               ) : (
                 <Rotation
                   events={[]}
-                  color="#C69B06"
                   startMoment={startMoment}
                   currentTimezone={currentTimezone}
                   onClick={() => {
