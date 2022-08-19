@@ -43,7 +43,9 @@ class ScheduleFinal extends Component<ScheduleFinalProps, ScheduleOverridesState
 
     const currentTimeX = diff / base;
 
-    const shifts = store.scheduleStore.events[scheduleId]?.['final']?.[getFromString(startMoment)];
+    const shifts = store.scheduleStore.finalPreview
+      ? store.scheduleStore.finalPreview
+      : store.scheduleStore.events[scheduleId]?.['final']?.[getFromString(startMoment)];
 
     const currentTimeHidden = currentTimeX < 0 || currentTimeX > 1;
 

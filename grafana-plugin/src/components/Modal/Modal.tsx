@@ -1,6 +1,7 @@
 import React, { FC, PropsWithChildren } from 'react';
-import ReactModal from 'react-modal';
+
 import cn from 'classnames/bind';
+import ReactModal from 'react-modal';
 
 import styles from './Modal.module.css';
 
@@ -13,12 +14,13 @@ export interface ModalProps {
   onDismiss?: () => void;
   width: string;
   contentElement?: (props, children: React.ReactNode) => React.ReactNode;
+  isOpen: boolean;
 }
 
 const cx = cn.bind(styles);
 
 const Modal: FC<PropsWithChildren<ModalProps>> = (props) => {
-  const { title, children, onDismiss, width = '600px', contentElement } = props;
+  const { title, children, onDismiss, width = '600px', contentElement, isOpen = true } = props;
 
   return (
     <ReactModal
@@ -28,7 +30,7 @@ const Modal: FC<PropsWithChildren<ModalProps>> = (props) => {
           width,
         },
       }}
-      isOpen
+      isOpen={isOpen}
       onAfterOpen={() => {}}
       onRequestClose={onDismiss}
       contentLabel={title}

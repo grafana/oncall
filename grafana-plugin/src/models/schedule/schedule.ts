@@ -72,10 +72,10 @@ export class ScheduleStore extends BaseStore {
     };
   } = {};
 
-  @observable.shallow
-  rotationPreview?: { shiftId: Shift['id']; events: Event[] };
+  @observable
+  rotationPreview?: Layer;
 
-  @observable.shallow
+  @observable
   finalPreview?: Array<{ shiftId: Shift['id']; events: Event[] }>;
 
   @observable
@@ -210,8 +210,11 @@ export class ScheduleStore extends BaseStore {
       method: 'POST',
     }).catch(this.onApiError);
 
-    this.rotationPreview = { shiftId: shiftId, events: fillGaps(response.rotation.filter((event) => !event.is_gap)) };
-    this.finalPreview = splitToShiftsAndFillGaps(response.final);
+    this.rotationPreview = {
+      priority: params.priority_level,
+      shifts: [{ shiftId: shiftId, events: fillGaps(response.rotation.filter((event) => !event.is_gap)) }],
+    };
+    this.finalPreview = splitToShiftsAndFillGaps(response.final).filter((shift) => shift.shiftId !== shiftId);
   }
 
   async updateRotation(shiftId: Shift['id'], params: Partial<Shift>) {

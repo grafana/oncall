@@ -56,15 +56,53 @@ class Rotations extends Component<RotationsProps, RotationsState> {
 
     const storeLayers = store.scheduleStore.events[scheduleId]?.['rotation']?.[getFromString(startMoment)] as Layer[];
 
+    console.log('store.scheduleStore.rotationPreview', store.scheduleStore.rotationPreview);
+
     let layers = storeLayers;
     if (store.scheduleStore.rotationPreview) {
-      layers = [...layers, { priority: 2, shifts: [store.scheduleStore.rotationPreview] }];
+      layers = [...layers];
+
+      const isNew = store.scheduleStore.rotationPreview.shifts[0].shiftId === 'new';
+      const priority = store.scheduleStore.rotationPreview.priority;
+
+      let added = false;
+      layers = layers.reduce((memo, layer, index) => {
+        if (isNew) {
+          if (layer.priority === priority) {
+            const newLayer = { ...layer };
+            newLayer.shifts = [...layer.shifts, ...store.scheduleStore.rotationPreview.shifts];
+
+            memo[index] = newLayer;
+
+            added = true;
+          }
+        } else {
+          const oldShiftIndex = layer.shifts.findIndex(
+            (shift) => shift.shiftId === store.scheduleStore.rotationPreview.shifts[0].shiftId
+          );
+          if (oldShiftIndex > -1) {
+            const newLayer = { ...layer };
+            newLayer.shifts = [...layer.shifts];
+            newLayer.shifts[oldShiftIndex] = store.scheduleStore.rotationPreview.shifts[0];
+
+            memo[index] = newLayer;
+
+            added = true;
+          }
+        }
+
+        return layers;
+      }, layers);
+
+      if (!added) {
+        layers.push(store.scheduleStore.rotationPreview);
+      }
     }
 
     const options = layers
       ? layers.map((layer) => ({
           label: `Layer ${layer.priority}`,
-          value: layer.priority - 1,
+          value: layer.priority,
         }))
       : [];
 
@@ -180,6 +218,8 @@ class Rotations extends Component<RotationsProps, RotationsState> {
     const { store } = this.props;
 
     store.scheduleStore.rotationPreview = undefined;
+    store.scheduleStore.finalPreview = undefined;
+
     this.setState({ shiftIdToShowRotationForm: undefined, layerPriority: undefined });
   };
 

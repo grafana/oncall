@@ -55,6 +55,8 @@ const startOfDay = dayjs().startOf('day').add(1, 'day');
 const RotationForm: FC<RotationFormProps> = observer((props) => {
   const { onHide, onCreate, startMoment, currentTimezone, scheduleId, onUpdate, layerPriority, shiftId } = props;
 
+  const [isOpen, setIsOpen] = useState<boolean>(true);
+
   const [repeatEveryValue, setRepeatEveryValue] = useState<number>(1);
   const [repeatEveryPeriod, setRepeatEveryPeriod] = useState<number>(0);
   const [selectedDays, setSelectedDays] = useState<string[]>([]);
@@ -135,7 +137,11 @@ const RotationForm: FC<RotationFormProps> = observer((props) => {
   }, [shiftId, params]);
 
   const handleChange = useDebouncedCallback(() => {
-    store.scheduleStore.updateRotationPreview(scheduleId, shiftId, getFromString(startMoment), false, params);
+    store.scheduleStore
+      .updateRotationPreview(scheduleId, shiftId, getFromString(startMoment), false, params)
+      .finally(() => {
+        setIsOpen(true);
+      });
   }, 1000);
 
   useEffect(handleChange, [params]);
@@ -175,6 +181,7 @@ const RotationForm: FC<RotationFormProps> = observer((props) => {
 
   return (
     <Modal
+      isOpen={isOpen}
       width="430px"
       onDismiss={onHide}
       contentElement={(props, children) => (
