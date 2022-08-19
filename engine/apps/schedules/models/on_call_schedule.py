@@ -631,9 +631,11 @@ class OnCallScheduleWeb(OnCallSchedule):
             except CustomOnCallShift.DoesNotExist:
                 pass
             else:
-                update_shift.until = custom_shift.rotation_start
+                if update_shift.event_is_started:
+                    update_shift.until = custom_shift.rotation_start
+                    extra_shifts.append(update_shift)
+                custom_shift.public_primary_key = updated_shift_pk
                 qs = qs.exclude(public_primary_key=updated_shift_pk)
-                extra_shifts.append(update_shift)
 
         ical_file = self._generate_ical_file_from_shifts(qs, extra_shifts=extra_shifts)
 

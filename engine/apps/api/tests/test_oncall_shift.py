@@ -1467,9 +1467,25 @@ def test_on_call_shift_preview_update(
 
     # check rotation events
     rotation_events = response.json()["rotation"]
+    # previewing an update reuses shift PK, so rotation keeps original event too
     expected_rotation_events = [
         {
             "calendar_type": OnCallSchedule.TYPE_ICAL_PRIMARY,
+            "shift": {"pk": on_call_shift.public_primary_key},
+            "start": on_call_shift.start.strftime("%Y-%m-%dT%H:%M:%SZ"),
+            "end": (on_call_shift.start + timezone.timedelta(hours=1)).strftime("%Y-%m-%dT%H:%M:%SZ"),
+            "all_day": False,
+            "is_override": False,
+            "is_empty": False,
+            "is_gap": False,
+            "priority_level": 1,
+            "missing_users": [],
+            "users": [{"display_name": user.username, "pk": user.public_primary_key}],
+            "source": "api",
+        },
+        {
+            "calendar_type": OnCallSchedule.TYPE_ICAL_PRIMARY,
+            "shift": {"pk": on_call_shift.public_primary_key},
             "start": shift_start,
             "end": shift_end,
             "all_day": False,
@@ -1480,10 +1496,8 @@ def test_on_call_shift_preview_update(
             "missing_users": [],
             "users": [{"display_name": other_user.username, "pk": other_user.public_primary_key}],
             "source": "web",
-        }
+        },
     ]
-    # there isn't a saved shift, we don't care/know the temp pk
-    _ = [r.pop("shift") for r in rotation_events]
     assert rotation_events == expected_rotation_events
 
     # check final schedule events
