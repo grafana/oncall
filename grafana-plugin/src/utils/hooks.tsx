@@ -18,6 +18,7 @@ type Args = {
   };
   enableLiveSettings: boolean;
   enableCloudPage: boolean;
+  backendLicense: string;
 };
 
 export function useForceUpdate() {
@@ -25,7 +26,16 @@ export function useForceUpdate() {
   return () => setValue((value) => value + 1);
 }
 
-export function useNavModel({ meta, pages, path, page, grafanaUser, enableLiveSettings, enableCloudPage }: Args) {
+export function useNavModel({
+  meta,
+  pages,
+  path,
+  page,
+  grafanaUser,
+  enableLiveSettings,
+  enableCloudPage,
+  backendLicense,
+}: Args) {
   return useMemo(() => {
     const tabs: NavModelItem[] = [];
 
@@ -55,7 +65,7 @@ export function useNavModel({ meta, pages, path, page, grafanaUser, enableLiveSe
     const node = {
       text: APP_TITLE,
       img: meta.info.logos.large,
-      subTitle: <NavBarSubtitle />,
+      subTitle: <NavBarSubtitle backendLicense={backendLicense} />,
       url: path,
       children: tabs,
     };
