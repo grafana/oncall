@@ -1,5 +1,5 @@
 from django.conf import settings
-from django.urls import include, path
+from django.urls import include, path, re_path
 
 from common.api_helpers.optional_slash_router import OptionalSlashRouter, optional_slash_path
 
@@ -7,6 +7,7 @@ from .views import UserNotificationPolicyView, auth
 from .views.alert_group import AlertGroupView
 from .views.alert_receive_channel import AlertReceiveChannelView
 from .views.alert_receive_channel_template import AlertReceiveChannelTemplateView
+from .views.alerts import AlertDetailView
 from .views.apns_device import APNSDeviceAuthorizedViewSet
 from .views.channel_filter import ChannelFilterView
 from .views.custom_button import CustomButtonView
@@ -110,6 +111,7 @@ urlpatterns = [
     ),
     optional_slash_path("route_regex_debugger", RouteRegexDebuggerView.as_view(), name="route_regex_debugger"),
     optional_slash_path("insight_logs_test", TestInsightLogsAPIView.as_view(), name="insight-logs-test"),
+    re_path(r"^alerts/(?P<id>\w+)/?$", AlertDetailView.as_view(), name="alerts-detail"),
 ]
 
 urlpatterns += [
