@@ -5,11 +5,13 @@ from apps.alerts.models import Alert
 
 
 class AlertSerializer(serializers.ModelSerializer):
+    id = serializers.CharField(read_only=True, source="public_primary_key")
     render_for_web = serializers.SerializerMethodField()
 
     class Meta:
         model = Alert
         fields = [
+            "id",
             "link_to_upstream_details",
             "render_for_web",
             "created_at",
