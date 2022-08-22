@@ -103,7 +103,6 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
 
   renderIncidentFilters() {
     const { query } = this.props;
-    const { filters } = this.state;
 
     return (
       <div className={cx('filters')}>
