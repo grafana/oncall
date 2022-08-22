@@ -44,6 +44,7 @@
 
 .collapse {
   margin-top: 16px;
+  position: relative;
 }
 
 .column {
@@ -102,4 +103,13 @@
 
 .timeline-filter {
   margin-bottom: 24px;
+}
+
+.view-response-button {
+  margin-left: auto;
+}
+
+.incident-group-row > div {
+  display: flex;
+  flex-grow: 1;
 }

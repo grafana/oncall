@@ -13,6 +13,8 @@ import {
   ToolbarButton,
   VerticalGroup,
   Field,
+  Modal,
+  Label,
 } from '@grafana/ui';
 import cn from 'classnames/bind';
 import { observer } from 'mobx-react';
@@ -48,6 +50,7 @@ import sanitize from 'utils/sanitize';
 import { getActionButtons, getIncidentStatusTag, renderRelatedUsers } from './Incident.helpers';
 
 import styles from './Incident.module.css';
+import SourceCode from 'components/SourceCode/SourceCode';
 
 const cx = cn.bind(styles);
 
@@ -62,6 +65,8 @@ interface IncidentPageState {
   teamToSwitch?: { name: string; id: string };
   timelineFilter: string;
   resolutionNoteText: string;
+  currentModalIncidental: Alert;
+  currentIncidentRawResponse: { id: string, raw_request_data: any };
 }
 
 @observer
@@ -71,6 +76,8 @@ class IncidentPage extends React.Component<IncidentPageProps, IncidentPageState>
     resolutionNoteText: '',
     wrongTeamError: false,
     wrongTeamNoPermissions: false,
+    currentModalIncidental: undefined,
+    currentIncidentRawResponse: undefined,
   };
 
   componentDidMount() {
@@ -92,6 +99,8 @@ class IncidentPage extends React.Component<IncidentPageProps, IncidentPageState>
       store,
       query: { id },
     } = this.props;
+
+    console.log('network request');
 
     store.alertGroupStore.getAlert(id).catch((error) => {
       if (error.response) {
@@ -128,8 +137,6 @@ class IncidentPage extends React.Component<IncidentPageProps, IncidentPageState>
     } = this.state;
 
     const { alertReceiveChannelStore } = store;
-
-    const { isMobile } = store;
 
     const { alerts } = store.alertGroupStore;
 
@@ -174,15 +181,14 @@ class IncidentPage extends React.Component<IncidentPageProps, IncidentPageState>
       );
     }
 
-    const integration = store.alertReceiveChannelStore.getIntegration(incident.alert_receive_channel);
-
     return (
       <>
+        {this.renderModalForIncident()}
         <div className={cx('root')}>
           {this.renderHeader()}
           <div className={cx('content')}>
             <div className={cx('column')}>
-              {this.renderIncident(incident)}
+              {this.renderIncident(incident, true)}
               {this.renderGroupedIncidents()}
               {this.renderAttachedIncidents()}
             </div>
@@ -335,7 +341,7 @@ class IncidentPage extends React.Component<IncidentPageProps, IncidentPageState>
     this.setState({ showAttachIncidentForm: true });
   };
 
-  renderIncident = (incident: Alert) => {
+  renderIncident = (incident: Alert, isMainIncident: boolean) => {
     let datetimeReference;
 
     if (incident.last_alert_at || incident.created_at) {
@@ -344,14 +350,19 @@ class IncidentPage extends React.Component<IncidentPageProps, IncidentPageState>
     }
 
     return (
-      <div key={incident.pk} className={cx('incident')}>
-        <HorizontalGroup wrap>
+      <div key={incident.pk} className={cx('incident incident-group-row')}>
+        <HorizontalGroup wrap={false}>
           <Text.Title type="secondary" level={4}>
             {incident.inside_organization_number
               ? `#${incident.inside_organization_number} ${incident.render_for_web.title}`
               : incident.render_for_web.title}
           </Text.Title>
           <Text type="secondary">{datetimeReference}</Text>
+          {!isMainIncident && (
+            <Text type="secondary" className={cx('view-response-button')}>
+              <IconButton name="shield" className="" onClick={(ev) => this.openIncidentResponse(ev, incident)} />
+            </Text>
+          )}
         </HorizontalGroup>
         <div
           className={cx('message')}
@@ -395,8 +406,33 @@ class IncidentPage extends React.Component<IncidentPageProps, IncidentPageState>
         }
         contentClassName={cx('incidents-content')}
       >
-        {alerts.map(this.renderIncident)}
+        {alerts.map((alert) => this.renderIncident(alert, false))}
       </Collapse>
+    );
+  }
+
+  // @ts-ignore
+  openIncidentResponse = async (e: React.SyntheticEvent, incident: AlertType) => {
+    const currentIncidentRawResponse = await this.props.store.alertGroupStore.getRawResponseForIncident(incident['pk']);
+
+    this.setState({ currentModalIncidental: incident, currentIncidentRawResponse });
+  };
+
+  renderModalForIncident() {
+    const { currentModalIncidental, currentIncidentRawResponse: { raw_request_data: incidentRawRequestData } } = this.state;
+
+    return (
+      <Modal
+        onDismiss={() => this.setState({ currentModalIncidental: undefined })}
+        closeOnEscape
+        isOpen={!!currentModalIncidental}
+        title="Incident Payload"
+      >
+        <VerticalGroup>
+          <Label>Incident Payload</Label>
+          <SourceCode>{JSON.stringify(incidentRawRequestData, null, 4)}</SourceCode>
+        </VerticalGroup>
+      </Modal>
     );
   }
 

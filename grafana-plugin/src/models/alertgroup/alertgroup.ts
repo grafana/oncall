@@ -299,6 +299,12 @@ export class AlertGroupStore extends BaseStore {
   }
 
   @action
+  async getRawResponseForIncident(pk: Alert['pk']) {
+    const result = await makeRequest(`/alerts/${pk}`, {})
+    return result
+  }
+
+  @action
   async getNewIncidentsStats() {
     const result = await makeRequest(`${this.path}stats/`, {
       params: {
