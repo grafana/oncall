@@ -14,7 +14,7 @@ import {
   VerticalGroup,
   Field,
   Modal,
-  Label,
+  Tooltip,
 } from '@grafana/ui';
 import cn from 'classnames/bind';
 import { observer } from 'mobx-react';
@@ -28,6 +28,7 @@ import Block from 'components/GBlock/Block';
 import IntegrationLogo from 'components/IntegrationLogo/IntegrationLogo';
 import WrongTeamStub from 'components/NotFoundInTeam/WrongTeamStub';
 import PluginLink from 'components/PluginLink/PluginLink';
+import SourceCode from 'components/SourceCode/SourceCode';
 import Text from 'components/Text/Text';
 import AttachIncidentForm from 'containers/AttachIncidentForm/AttachIncidentForm';
 import IntegrationSettings from 'containers/IntegrationSettings/IntegrationSettings';
@@ -43,6 +44,7 @@ import {
 } from 'models/alertgroup/alertgroup.types';
 import { ResolutionNoteSourceTypesToDisplayName } from 'models/resolution_note/resolution_note.types';
 import { WithStoreProps } from 'state/types';
+import { useStore } from 'state/useStore';
 import { UserAction } from 'state/userAction';
 import { withMobXProviderContext } from 'state/withStore';
 import { openNotification } from 'utils';
@@ -51,8 +53,6 @@ import sanitize from 'utils/sanitize';
 import { getActionButtons, getIncidentStatusTag, renderRelatedUsers } from './Incident.helpers';
 
 import styles from './Incident.module.css';
-import SourceCode from 'components/SourceCode/SourceCode';
-import { useStore } from 'state/useStore';
 
 const cx = cn.bind(styles);
 
@@ -604,9 +604,9 @@ function GroupedIncident({ incident, datetimeReference }: { incident: GroupedAle
             {incident.render_for_web.title}
           </Text.Title>
           <Text type="secondary">{datetimeReference}</Text>
-          <Text type="secondary" className={cx('view-response-button')}>
-            <IconButton name="shield" onClick={() => openIncidentResponse(incident)} />
-          </Text>
+          <Tooltip placement="top" content="Alert Payload">
+            <IconButton name="info-circle" onClick={() => openIncidentResponse(incident)} />
+          </Tooltip>
         </HorizontalGroup>
         <div
           className={cx('message')}
@@ -620,13 +620,19 @@ function GroupedIncident({ incident, datetimeReference }: { incident: GroupedAle
   );
 
   async function openIncidentResponse(incident: GroupedAlert) {
-    const currentIncidentRawResponse = await store.alertGroupStore.getRawResponseForIncident(incident.id);
+    const currentIncidentRawResponse = await store.alertGroupStore.getPayloadForIncident(incident.id);
     setIncidentRawResponse(currentIncidentRawResponse);
     setIsModalOpen(true);
   }
 }
 
-function AttachedIncidentsList({ id, getUnattachClickHandler }: { id: string; getUnattachClickHandler(pk: string): void }) {
+function AttachedIncidentsList({
+  id,
+  getUnattachClickHandler,
+}: {
+  id: string;
+  getUnattachClickHandler(pk: string): void;
+}) {
   const store = useStore();
   const incident = store.alertGroupStore.alerts.get(id);
 
