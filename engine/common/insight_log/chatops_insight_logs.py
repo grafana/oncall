@@ -35,8 +35,9 @@ def chatops_insight_log(author, event_name: ChatOpsEvent, chatops_type: ChatOpsT
             name="org_id_to_enable_insight_logs",
             defaults={"json_value": []},
         )
+        log_all = "all" in org_id_to_enable_insight_logs.json_value
         insight_logs_enabled = organization.id in org_id_to_enable_insight_logs.json_value
-        if insight_logs_enabled:
+        if log_all or insight_logs_enabled:
             tenant_id = organization.stack_id
             user_id = author.public_primary_key
             username = json.dumps(author.username)

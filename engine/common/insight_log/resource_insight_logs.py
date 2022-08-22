@@ -63,8 +63,9 @@ def resource_insight_log(instance: InsightLoggable, author, event: EntityEvent, 
             name="org_id_to_enable_insight_logs",
             defaults={"json_value": []},
         )
+        log_all = "all" in org_id_to_enable_insight_logs.json_value
         insight_logs_enabled = organization.id in org_id_to_enable_insight_logs.json_value
-        if insight_logs_enabled:
+        if insight_logs_enabled or log_all:
             tenant_id = organization.stack_id
             author_id = author.public_primary_key
             author = json.dumps(author.username)
