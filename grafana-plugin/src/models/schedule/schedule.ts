@@ -220,7 +220,7 @@ export class ScheduleStore extends BaseStore {
       this.rotationPreview = layers;
     }
 
-    this.finalPreview = splitToShiftsAndFillGaps(response.final); /*.filter((shift) => shift.shiftId !== shiftId);*/
+    this.finalPreview = splitToShiftsAndFillGaps(response.final).filter((shift) => shift.shiftId !== shiftId);
   }
 
   async updateRotation(shiftId: Shift['id'], params: Partial<Shift>) {

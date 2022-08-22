@@ -89,6 +89,11 @@ export const enrichLayers = (
   shiftId: Shift['id'] | 'new',
   priority: Shift['priority_level']
 ) => {
+  /*const event = newEvents.find((event) => !event.is_gap);
+  if (event) {
+    shiftId = event.shift.pk;
+  }*/
+
   const updatingLayer = {
     priority,
     shifts: [{ shiftId: shiftId, events: fillGaps(newEvents.filter((event: Event) => !event.is_gap)) }],

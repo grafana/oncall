@@ -54,8 +54,8 @@ class ScheduleFinal extends Component<ScheduleFinalProps, ScheduleOverridesState
 
     const currentTimeHidden = currentTimeX < 0 || currentTimeX > 1;
 
-    console.log(toJS(shifts));
-    console.log(toJS(layers));
+    /* console.log('shifts', toJS(shifts));
+    console.log('layers', toJS(layers)); */
 
     return (
       <>
