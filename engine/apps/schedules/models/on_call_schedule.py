@@ -288,6 +288,7 @@ class OnCallSchedule(PolymorphicModel):
         # if the expected slot was already scheduled for a higher priority event,
         # split the event, or fix start/end timestamps accordingly
 
+        intervals = []
         resolved = []
         pending = events
         current_interval_idx = 0  # current scheduled interval being checked
