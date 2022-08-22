@@ -185,7 +185,7 @@ class IncidentPage extends React.Component<IncidentPageProps, IncidentPageState>
             <div className={cx('column')}>
               <Incident incident={incident} datetimeReference={this.getIncidentDatetimeReference(incident)} />
               <GroupedIncidentsList id={incident.pk} getIncidentDatetimeReference={this.getIncidentDatetimeReference} />
-              <AttachedIncidents id={incident.pk} getUnattachClickHandler={this.getUnattachClickHandler} />
+              <AttachedIncidentsList id={incident.pk} getUnattachClickHandler={this.getUnattachClickHandler} />
             </div>
             <div className={cx('column')}>{this.renderTimeline()}</div>
           </div>
@@ -591,7 +591,7 @@ function GroupedIncident({ incident, datetimeReference }: { incident: GroupedAle
   return (
     <>
       {isModalOpen && (
-        <Modal onDismiss={() => setIsModalOpen(false)} closeOnEscape isOpen={!!isModalOpen} title="Incident Payload">
+        <Modal onDismiss={() => setIsModalOpen(false)} closeOnEscape isOpen={!!isModalOpen} title="Alert Payload">
           <VerticalGroup>
             <SourceCode>{JSON.stringify(incidentRawResponse.raw_request_data, null, 4)}</SourceCode>
           </VerticalGroup>
@@ -626,7 +626,7 @@ function GroupedIncident({ incident, datetimeReference }: { incident: GroupedAle
   }
 }
 
-function AttachedIncidents({ id, getUnattachClickHandler }: { id: string; getUnattachClickHandler(pk: string): void }) {
+function AttachedIncidentsList({ id, getUnattachClickHandler }: { id: string; getUnattachClickHandler(pk: string): void }) {
   const store = useStore();
   const incident = store.alertGroupStore.alerts.get(id);
 
