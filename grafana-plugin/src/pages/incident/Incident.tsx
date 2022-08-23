@@ -24,6 +24,7 @@ import reactStringReplace from 'react-string-replace';
 import Collapse from 'components/Collapse/Collapse';
 import Block from 'components/GBlock/Block';
 import IntegrationLogo from 'components/IntegrationLogo/IntegrationLogo';
+import WrongTeamStub from 'components/NotFoundInTeam/WrongTeamStub';
 import PluginLink from 'components/PluginLink/PluginLink';
 import Text from 'components/Text/Text';
 import AttachIncidentForm from 'containers/AttachIncidentForm/AttachIncidentForm';
@@ -56,13 +57,21 @@ interface IncidentPageState {
   showIntegrationSettings?: boolean;
   showAttachIncidentForm?: boolean;
   notFound?: boolean;
+  wrongTeamError?: boolean;
+  wrongTeamNoPermissions?: boolean;
+  teamToSwitch?: { name: string; id: string };
   timelineFilter: string;
   resolutionNoteText: string;
 }
 
 @observer
 class IncidentPage extends React.Component<IncidentPageProps, IncidentPageState> {
-  state: IncidentPageState = { timelineFilter: 'all', resolutionNoteText: '' };
+  state: IncidentPageState = {
+    timelineFilter: 'all',
+    resolutionNoteText: '',
+    wrongTeamError: false,
+    wrongTeamNoPermissions: false,
+  };
 
   componentDidMount() {
     const { store } = this.props;
@@ -84,7 +93,21 @@ class IncidentPage extends React.Component<IncidentPageProps, IncidentPageState>
       query: { id },
     } = this.props;
 
-    store.alertGroupStore.getAlert(id).catch(() => {
+    store.alertGroupStore.getAlert(id).catch((error) => {
+      if (error.response) {
+        if (error.response.status === 404) {
+          this.setState({ notFound: true });
+        } else if (error.response.status === 403 && error.response.data.error_code === 'wrong_team') {
+          let res = error.response.data;
+          if (res.owner_team) {
+            this.setState({ wrongTeamError: true, teamToSwitch: { name: res.owner_team.name, id: res.owner_team.id } });
+          } else {
+            this.setState({ wrongTeamError: true, wrongTeamNoPermissions: true });
+          }
+          return;
+        }
+      }
+
       this.setState({ notFound: true });
     });
   };
@@ -95,7 +118,14 @@ class IncidentPage extends React.Component<IncidentPageProps, IncidentPageState>
       query: { id, cursor, start, perpage },
     } = this.props;
 
-    const { showIntegrationSettings, showAttachIncidentForm, notFound } = this.state;
+    const {
+      showIntegrationSettings,
+      showAttachIncidentForm,
+      notFound,
+      wrongTeamError,
+      teamToSwitch,
+      wrongTeamNoPermissions,
+    } = this.state;
 
     const { alertReceiveChannelStore } = store;
 
@@ -104,7 +134,8 @@ class IncidentPage extends React.Component<IncidentPageProps, IncidentPageState>
     const { alerts } = store.alertGroupStore;
 
     const incident = alerts.get(id);
-
+    const currentTeamId = store.userStore.currentUser?.current_team;
+    const currentTeamName = store.grafanaTeamStore.items[currentTeamId]?.name;
     if (notFound) {
       return (
         <div className={cx('root')}>
@@ -120,6 +151,18 @@ class IncidentPage extends React.Component<IncidentPageProps, IncidentPageState>
             </VerticalGroup>
           </div>
         </div>
+      );
+    }
+
+    if (wrongTeamError) {
+      return (
+        <WrongTeamStub
+          objectName="alert group"
+          pageName="incidents"
+          currentTeam={currentTeamName}
+          switchToTeam={teamToSwitch}
+          wrongTeamNoPermissions={wrongTeamNoPermissions}
+        />
       );
     }
 

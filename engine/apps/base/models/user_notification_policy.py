@@ -1,3 +1,4 @@
+from enum import unique
 from typing import Tuple
 
 from django.conf import settings
@@ -30,13 +31,13 @@ def generate_public_primary_key_for_notification_policy():
 
 # base supported notification backends
 BUILT_IN_BACKENDS = (
-    "SLACK",
-    "SMS",
-    "PHONE_CALL",
-    "TELEGRAM",
-    "EMAIL",
-    "MOBILE_PUSH_GENERAL",
-    "MOBILE_PUSH_CRITICAL",
+    ("SLACK", 0),
+    ("SMS", 1),
+    ("PHONE_CALL", 2),
+    ("TELEGRAM", 3),
+    ("EMAIL", 4),
+    ("MOBILE_PUSH_GENERAL", 5),
+    ("MOBILE_PUSH_CRITICAL", 6),
 )
 
 
@@ -49,10 +50,10 @@ def _notification_channel_choices():
     # use NotificationChannelOptions.AVAILABLE_FOR_USE instead.
     supported_backends = list(BUILT_IN_BACKENDS)
 
-    for backend_id, _ in get_messaging_backends():
-        supported_backends.append(backend_id)
+    for backend_id, backend in get_messaging_backends():
+        supported_backends.append((backend_id, backend.notification_channel_id))
 
-    channels_enum = models.IntegerChoices("NotificationChannel", supported_backends, start=0)
+    channels_enum = unique(models.IntegerChoices("NotificationChannel", supported_backends))
     return channels_enum
 
 

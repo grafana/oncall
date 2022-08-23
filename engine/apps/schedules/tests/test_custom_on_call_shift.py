@@ -583,20 +583,22 @@ def test_rolling_users_with_diff_start_and_rotation_start_weekly_by_day(
     user_3 = make_user_for_organization(organization)
 
     schedule = make_schedule(organization, schedule_class=OnCallScheduleWeb)
-    now = timezone.now().replace(microsecond=0)
+    now = timezone.now().replace(hour=0, minute=0, second=0, microsecond=0)
     today_weekday = now.weekday()
-    weekdays = [(today_weekday + 1) % 7, (today_weekday + 3) % 7]
+    next_week_monday = now + timezone.timedelta(days=(0 - today_weekday) % 7)
+    # SAT, SUN
+    weekdays = [5, 6]
     by_day = [CustomOnCallShift.ICAL_WEEKDAY_MAP[day] for day in weekdays]
 
     data = {
         "priority_level": 1,
         "start": now,
-        "week_start": today_weekday,
-        "rotation_start": now + timezone.timedelta(days=8, hours=1),
+        "week_start": 0,
+        "rotation_start": next_week_monday,
         "duration": timezone.timedelta(seconds=1800),
         "frequency": CustomOnCallShift.FREQUENCY_WEEKLY,
         "schedule": schedule,
-        "until": now + timezone.timedelta(days=23, minutes=1),
+        "until": next_week_monday + timezone.timedelta(days=30, minutes=1),
         "by_day": by_day,
     }
     rolling_users = [[user_1], [user_2], [user_3]]
@@ -605,22 +607,16 @@ def test_rolling_users_with_diff_start_and_rotation_start_weekly_by_day(
     )
     on_call_shift.add_rolling_users(rolling_users)
 
-    date = now + timezone.timedelta(minutes=5)
+    first_sat = next_week_monday + timezone.timedelta(days=5) + timezone.timedelta(minutes=5)
 
-    # week 1: weekdays[0] - no  (+1 day from start) ;   weekdays[1] - no  (+3 days from start)   user_1
-    # week 2: weekdays[0] - no  (+8 days from start) ;  weekdays[1] - yes (+10 days from start)  user_2
-    # week 3: weekdays[0] - yes (+15 days from start) ; weekdays[1] - yes (+17 days from start)  user_3
-    # week 4: weekdays[0] - yes (+22 days from start) ; weekdays[1] - no  (+24 days from start)  user_1
-    user_1_on_call_dates = [date + timezone.timedelta(days=22)]
-    user_2_on_call_dates = [date + timezone.timedelta(days=10)]
-    user_3_on_call_dates = [date + timezone.timedelta(days=15), date + timezone.timedelta(days=17)]
+    user_1_on_call_dates = [first_sat + timezone.timedelta(days=15)]
+    user_2_on_call_dates = [first_sat, first_sat + timezone.timedelta(days=22)]
+    user_3_on_call_dates = [first_sat + timezone.timedelta(days=7), first_sat + timezone.timedelta(days=8)]
     nobody_on_call_dates = [
-        date,  # less than rotation start
-        date + timezone.timedelta(days=1),  # less than rotation start
-        date + timezone.timedelta(days=3),  # less than rotation start
-        date + timezone.timedelta(days=8),  # less than rotation start
-        date + timezone.timedelta(days=9),  # weekday value not in by_day
-        date + timezone.timedelta(days=24),  # higher than until
+        now,  # less than rotation start
+        first_sat - timezone.timedelta(days=7),  # before rotation start
+        first_sat + timezone.timedelta(days=9),  # weekday value not in by_day
+        first_sat + timezone.timedelta(days=30),  # higher than until
     ]
 
     for dt in user_1_on_call_dates:

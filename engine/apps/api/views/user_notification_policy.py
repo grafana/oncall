@@ -176,7 +176,8 @@ class UserNotificationPolicyView(UpdateSerializerMixin, ModelViewSet):
                 continue
 
             # extra backends may be enabled per organization
-            if notification_channel.name not in BUILT_IN_BACKENDS:
+            built_in_backend_names = {b[0] for b in BUILT_IN_BACKENDS}
+            if notification_channel.name not in built_in_backend_names:
                 extra_messaging_backend = get_messaging_backend_from_id(notification_channel.name)
                 if extra_messaging_backend is None:
                     continue

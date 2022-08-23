@@ -9,6 +9,9 @@ class BaseMessagingBackend:
     available_for_use = False
     templater = None
 
+    def __init__(self, *args, **kwargs):
+        self.notification_channel_id = kwargs.get("notification_channel_id")
+
     def get_templater_class(self):
         if self.templater:
             return import_string(self.templater)
@@ -46,16 +49,16 @@ class BaseMessagingBackend:
         raise NotImplementedError("notify_user method missing implementation")
 
 
-def load_backend(path):
-    return import_string(path)()
+def load_backend(path, *args, **kwargs):
+    return import_string(path)(*args, **kwargs)
 
 
 def get_messaging_backends():
     global _messaging_backends
     if _messaging_backends is None:
         _messaging_backends = {}
-        for backend_path in settings.EXTRA_MESSAGING_BACKENDS:
-            backend = load_backend(backend_path)
+        for (backend_path, notification_channel_id) in settings.EXTRA_MESSAGING_BACKENDS:
+            backend = load_backend(backend_path, notification_channel_id=notification_channel_id)
             _messaging_backends[backend.backend_id] = backend
     return _messaging_backends.items()
 

@@ -48,7 +48,7 @@ services:
         condition: service_healthy
 
   grafana:
-    image: "grafana/grafana:9.0.0-beta3"
+    image: "grafana/grafana:main"
     restart: always
     mem_limit: 500m
     cpus: 0.5
@@ -65,5 +65,5 @@ services:
     ports:
       - 3000:3000
     depends_on:
-      mysql-to-create-grafana-db:
+      mysql:
         condition: service_healthy
