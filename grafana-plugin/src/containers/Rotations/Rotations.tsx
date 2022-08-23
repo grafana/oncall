@@ -28,6 +28,7 @@ interface RotationsProps extends WithStoreProps {
   onClick: (id: Shift['id'] | 'new') => void;
   onCreate: () => void;
   onUpdate: () => void;
+  onDelete: () => void;
 }
 
 interface RotationsState {
@@ -42,7 +43,7 @@ class Rotations extends Component<RotationsProps, RotationsState> {
   };
 
   render() {
-    const { scheduleId, startMoment, currentTimezone, onCreate, onUpdate, store, onClick } = this.props;
+    const { scheduleId, startMoment, currentTimezone, onCreate, onUpdate, onDelete, store, onClick } = this.props;
     const { shiftIdToShowRotationForm, layerPriority } = this.state;
 
     const base = 7 * 24 * 60; // in minutes
@@ -161,20 +162,34 @@ class Rotations extends Component<RotationsProps, RotationsState> {
             layerPriority={layerPriority}
             startMoment={startMoment}
             currentTimezone={currentTimezone}
-            onHide={this.handleRotationFormHide}
-            onUpdate={onUpdate}
-            onCreate={onCreate}
+            onHide={() => {
+              this.hideRotationForm();
+
+              store.scheduleStore.clearPreview();
+            }}
+            onUpdate={() => {
+              this.hideRotationForm();
+
+              onUpdate();
+            }}
+            onCreate={() => {
+              this.hideRotationForm();
+
+              onCreate();
+            }}
+            onDelete={() => {
+              this.hideRotationForm();
+
+              onDelete();
+            }}
           />
         )}
       </>
     );
   }
 
-  handleRotationFormHide = () => {
+  hideRotationForm = () => {
     const { store } = this.props;
-
-    store.scheduleStore.rotationPreview = undefined;
-    store.scheduleStore.finalPreview = undefined;
 
     this.setState({ shiftIdToShowRotationForm: undefined, layerPriority: undefined });
   };

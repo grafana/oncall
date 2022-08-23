@@ -11,7 +11,14 @@ import { makeRequest } from 'network';
 import { RootStore } from 'state';
 import { SelectOption } from 'state/types';
 
-import { enrichLayers, fillGaps, getFromString, splitToLayers, splitToShiftsAndFillGaps } from './schedule.helpers';
+import {
+  enrichLayers,
+  enrichOverrides,
+  fillGaps,
+  getFromString,
+  splitToLayers,
+  splitToShiftsAndFillGaps,
+} from './schedule.helpers';
 import { Events, Rotation, RotationType, Schedule, ScheduleEvent, Shift, Event, Layer } from './schedule.types';
 
 const DEFAULT_FORMAT = 'YYYY-MM-DDTHH:mm:ss';
@@ -73,10 +80,13 @@ export class ScheduleStore extends BaseStore {
   } = {};
 
   @observable
+  finalPreview?: Array<{ shiftId: Shift['id']; events: Event[] }>;
+
+  @observable
   rotationPreview?: Layer[];
 
   @observable
-  finalPreview?: Array<{ shiftId: Shift['id']; events: Event[] }>;
+  overridePreview?: Array<{ shiftId: Shift['id']; events: Event[] }>;
 
   @observable
   scheduleToScheduleEvents: {
@@ -209,6 +219,11 @@ export class ScheduleStore extends BaseStore {
     }).catch(this.onApiError);
 
     if (isOverride) {
+      this.overridePreview = enrichOverrides(
+        [...this.events[scheduleId]?.['override']?.[fromString]],
+        response.rotation,
+        shiftId
+      );
     } else {
       const layers = enrichLayers(
         [...(this.events[scheduleId]?.['rotation']?.[fromString] as Layer[])],
@@ -220,7 +235,14 @@ export class ScheduleStore extends BaseStore {
       this.rotationPreview = layers;
     }
 
-    this.finalPreview = splitToShiftsAndFillGaps(response.final).filter((shift) => shift.shiftId !== shiftId);
+    this.finalPreview = splitToShiftsAndFillGaps(response.final); /*.filter((shift) => shift.shiftId !== shiftId);*/
+  }
+
+  @action
+  clearPreview() {
+    this.finalPreview = undefined;
+    this.rotationPreview = undefined;
+    this.overridePreview = undefined;
   }
 
   async updateRotation(shiftId: Shift['id'], params: Partial<Shift>) {

@@ -25,6 +25,7 @@ interface ScheduleOverridesProps extends WithStoreProps {
   scheduleId: Schedule['id'];
   onCreate: () => void;
   onUpdate: () => void;
+  onDelete: () => void;
 }
 
 interface ScheduleOverridesState {
@@ -38,10 +39,12 @@ class ScheduleOverrides extends Component<ScheduleOverridesProps, ScheduleOverri
   };
 
   render() {
-    const { scheduleId, startMoment, currentTimezone, onCreate, onUpdate, store } = this.props;
+    const { scheduleId, startMoment, currentTimezone, onCreate, onUpdate, onDelete, store } = this.props;
     const { shiftIdToShowOverrideForm } = this.state;
 
-    const shifts = store.scheduleStore.events[scheduleId]?.['override']?.[getFromString(startMoment)];
+    const shifts = store.scheduleStore.overridePreview
+      ? store.scheduleStore.overridePreview
+      : store.scheduleStore.events[scheduleId]?.['override']?.[getFromString(startMoment)];
 
     const base = 7 * 24 * 60; // in minutes
     const diff = dayjs().tz(currentTimezone).diff(startMoment, 'minutes');
@@ -98,12 +101,28 @@ class ScheduleOverrides extends Component<ScheduleOverridesProps, ScheduleOverri
           <ScheduleOverrideForm
             shiftId={shiftIdToShowOverrideForm}
             scheduleId={scheduleId}
+            startMoment={startMoment}
             currentTimezone={currentTimezone}
             onHide={() => {
-              this.setState({ shiftIdToShowOverrideForm: undefined });
+              this.handleHide();
+
+              store.scheduleStore.clearPreview();
             }}
-            onUpdate={onUpdate}
-            onCreate={onCreate}
+            onUpdate={() => {
+              this.handleHide();
+
+              onUpdate();
+            }}
+            onCreate={() => {
+              this.handleHide();
+
+              onCreate();
+            }}
+            onDelete={() => {
+              this.handleHide();
+
+              onDelete();
+            }}
           />
         )}
       </>
@@ -116,6 +135,12 @@ class ScheduleOverrides extends Component<ScheduleOverridesProps, ScheduleOverri
 
   handleAddOverride = () => {
     this.setState({ shiftIdToShowOverrideForm: 'new' });
+  };
+
+  handleHide = () => {
+    const { store } = this.props;
+
+    this.setState({ shiftIdToShowOverrideForm: undefined });
   };
 }
 

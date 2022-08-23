@@ -190,14 +190,16 @@ class SchedulePage extends React.Component<SchedulePageProps, SchedulePageState>
               currentTimezone={currentTimezone}
               startMoment={startMoment}
               onCreate={this.handleCreateRotation}
-              onUpdate={this.updateEvents}
+              onUpdate={this.handleUpdateRotation}
+              onDelete={this.handleDeleteRotation}
             />
             <ScheduleOverrides
               scheduleId={scheduleId}
               currentTimezone={currentTimezone}
               startMoment={startMoment}
               onCreate={this.handleCreateOverride}
-              onUpdate={this.updateEvents}
+              onUpdate={this.handleUpdateOverride}
+              onDelete={this.handleDeleteOverride}
             />
           </div>
         </VerticalGroup>
@@ -213,9 +215,11 @@ class SchedulePage extends React.Component<SchedulePageProps, SchedulePageState>
 
     const { startMoment } = this.state;
 
-    store.scheduleStore.updateEvents(scheduleId, getFromString(startMoment), 'rotation');
-    store.scheduleStore.updateEvents(scheduleId, getFromString(startMoment), 'override');
-    store.scheduleStore.updateEvents(scheduleId, getFromString(startMoment), 'final');
+    return Promise.all([
+      store.scheduleStore.updateEvents(scheduleId, getFromString(startMoment), 'rotation'),
+      store.scheduleStore.updateEvents(scheduleId, getFromString(startMoment), 'override'),
+      store.scheduleStore.updateEvents(scheduleId, getFromString(startMoment), 'final'),
+    ]);
   };
 
   handleCreateRotation = () => {
@@ -224,13 +228,49 @@ class SchedulePage extends React.Component<SchedulePageProps, SchedulePageState>
       query: { id: scheduleId },
     } = this.props;
 
-    this.updateEvents();
+    this.updateEvents().then(() => {
+      store.scheduleStore.clearPreview();
+    });
   };
 
   handleCreateOverride = () => {
     const { store } = this.props;
 
-    this.updateEvents();
+    this.updateEvents().then(() => {
+      store.scheduleStore.clearPreview();
+    });
+  };
+
+  handleUpdateRotation = () => {
+    const { store } = this.props;
+
+    this.updateEvents().then(() => {
+      store.scheduleStore.clearPreview();
+    });
+  };
+
+  handleDeleteRotation = () => {
+    const { store } = this.props;
+
+    this.updateEvents().then(() => {
+      store.scheduleStore.clearPreview();
+    });
+  };
+
+  handleDeleteOverride = () => {
+    const { store } = this.props;
+
+    this.updateEvents().then(() => {
+      store.scheduleStore.clearPreview();
+    });
+  };
+
+  handleUpdateOverride = () => {
+    const { store } = this.props;
+
+    this.updateEvents().then(() => {
+      store.scheduleStore.clearPreview();
+    });
   };
 
   handleTimezoneChange = (value: Timezone) => {

@@ -46,6 +46,7 @@ interface RotationFormProps {
   shiftId: Shift['id'] | 'new';
   onCreate: () => void;
   onUpdate: () => void;
+  onDelete: () => void;
 }
 
 const cx = cn.bind(styles);
@@ -53,7 +54,8 @@ const cx = cn.bind(styles);
 const startOfDay = dayjs().startOf('day').add(1, 'day');
 
 const RotationForm: FC<RotationFormProps> = observer((props) => {
-  const { onHide, onCreate, startMoment, currentTimezone, scheduleId, onUpdate, layerPriority, shiftId } = props;
+  const { onHide, onCreate, startMoment, currentTimezone, scheduleId, onUpdate, onDelete, layerPriority, shiftId } =
+    props;
 
   const [isOpen, setIsOpen] = useState<boolean>(true);
 
@@ -79,8 +81,7 @@ const RotationForm: FC<RotationFormProps> = observer((props) => {
 
   const handleDeleteClick = useCallback(() => {
     store.scheduleStore.deleteOncallShift(shiftId).then(() => {
-      onHide();
-      onUpdate();
+      onDelete();
     });
   }, []);
 
@@ -100,7 +101,7 @@ const RotationForm: FC<RotationFormProps> = observer((props) => {
       until: endLess ? null : getUTCString(rotationEnd, currentTimezone),
       shift_start: getUTCString(shiftStart, currentTimezone),
       shift_end: getUTCString(shiftEnd, currentTimezone),
-      rolling_users: userGroups.filter((group) => group.length),
+      rolling_users: userGroups,
       interval: repeatEveryValue,
       frequency: repeatEveryPeriod,
       by_day: repeatEveryPeriod === 1 ? selectedDays : null,
@@ -125,23 +126,17 @@ const RotationForm: FC<RotationFormProps> = observer((props) => {
   const handleCreate = useCallback(() => {
     if (shiftId === 'new') {
       store.scheduleStore.createRotation(scheduleId, false, params).then(() => {
-        onHide();
         onCreate();
       });
     } else {
       store.scheduleStore.updateRotation(shiftId, params).then(() => {
-        onHide();
         onUpdate();
       });
     }
-  }, [shiftId, params]);
+  }, [scheduleId, shiftId, params]);
 
   const handleChange = useDebouncedCallback(() => {
-    store.scheduleStore
-      .updateRotationPreview(scheduleId, shiftId, getFromString(startMoment), false, params)
-      .finally(() => {
-        setIsOpen(true);
-      });
+    store.scheduleStore.updateRotationPreview(scheduleId, shiftId, getFromString(startMoment), false, params);
   }, 1000);
 
   useEffect(handleChange, [params]);
@@ -171,10 +166,6 @@ const RotationForm: FC<RotationFormProps> = observer((props) => {
 
   const handleRepeatEveryValueChange = useCallback((option) => {
     setRepeatEveryValue(option.value);
-  }, []);
-
-  const handleRepeatEveryPeriodChange = useCallback((option) => {
-    setRepeatEveryPeriod(option.value);
   }, []);
 
   const moment = dayjs();

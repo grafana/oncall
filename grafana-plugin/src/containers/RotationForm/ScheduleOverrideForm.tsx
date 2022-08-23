@@ -1,4 +1,4 @@
-import React, { FC, useCallback, useEffect, useState } from 'react';
+import React, { FC, useCallback, useEffect, useMemo, useState } from 'react';
 
 import { dateTime, DateTime } from '@grafana/data';
 import {
@@ -20,12 +20,14 @@ import Modal from 'components/Modal/Modal';
 import Text from 'components/Text/Text';
 import UserGroups from 'components/UserGroups/UserGroups';
 import WithConfirm from 'components/WithConfirm/WithConfirm';
+import { getFromString } from 'models/schedule/schedule.helpers';
 import { Rotation, Schedule, Shift } from 'models/schedule/schedule.types';
 import { getTzOffsetString } from 'models/timezone/timezone.helpers';
 import { Timezone } from 'models/timezone/timezone.types';
 import { User } from 'models/user/user.types';
 import { getDateTime, getUTCString } from 'pages/schedule/Schedule.helpers';
 import { useStore } from 'state/useStore';
+import { useDebouncedCallback } from 'utils/hooks';
 
 import { RotationCreateData } from './RotationForm.types';
 
@@ -34,18 +36,20 @@ import styles from './RotationForm.module.css';
 interface RotationFormProps {
   onHide: () => void;
   shiftId: Shift['id'] | 'new';
+  startMoment: dayjs.Dayjs;
   currentTimezone: Timezone;
   scheduleId: Schedule['id'];
   onCreate: () => void;
   onUpdate: () => void;
+  onDelete: () => void;
 }
 
 const cx = cn.bind(styles);
 
-const startOfDay = dayjs().startOf('day');
+const startOfDay = dayjs().startOf('day').add(1, 'day');
 
 const ScheduleOverrideForm: FC<RotationFormProps> = (props) => {
-  const { onHide, onCreate, currentTimezone, scheduleId, onUpdate, shiftId } = props;
+  const { onHide, onCreate, currentTimezone, scheduleId, onUpdate, onDelete, shiftId, startMoment } = props;
 
   const store = useStore();
 
@@ -71,6 +75,17 @@ const ScheduleOverrideForm: FC<RotationFormProps> = (props) => {
     }
   }, [shiftId]);
 
+  const params = useMemo(
+    () => ({
+      rotation_start: getUTCString(shiftStart, currentTimezone),
+      shift_start: getUTCString(shiftStart, currentTimezone),
+      shift_end: getUTCString(shiftEnd, currentTimezone),
+      rolling_users: userGroups,
+      frequency: null,
+    }),
+    [currentTimezone, shiftStart, shiftEnd, userGroups]
+  );
+
   useEffect(() => {
     if (shift) {
       setShiftStart(getDateTime(shift.shift_start));
@@ -83,32 +98,28 @@ const ScheduleOverrideForm: FC<RotationFormProps> = (props) => {
   const handleDeleteClick = useCallback(() => {
     store.scheduleStore.deleteOncallShift(shiftId).then(() => {
       onHide();
-      onUpdate();
+
+      onDelete();
     });
   }, []);
 
   const handleCreate = useCallback(() => {
-    const params = {
-      title: 'Override ' + Math.floor(Math.random() * 100),
-      rotation_start: getUTCString(shiftStart, currentTimezone),
-      shift_start: getUTCString(shiftStart, currentTimezone),
-      shift_end: getUTCString(shiftEnd, currentTimezone),
-      rolling_users: userGroups,
-      frequency: null,
-    };
-
     if (shiftId === 'new') {
       store.scheduleStore.createRotation(scheduleId, true, params).then(() => {
-        onHide();
         onCreate();
       });
     } else {
       store.scheduleStore.updateRotation(shiftId, params).then(() => {
-        onHide();
         onUpdate();
       });
     }
-  }, [shiftStart, shiftEnd, userGroups]);
+  }, [scheduleId, shiftId, params]);
+
+  const handleChange = useDebouncedCallback(() => {
+    store.scheduleStore.updateRotationPreview(scheduleId, shiftId, getFromString(startMoment), true, params);
+  }, 1000);
+
+  useEffect(handleChange, [params]);
 
   return (
     <Modal
@@ -122,7 +133,7 @@ const ScheduleOverrideForm: FC<RotationFormProps> = (props) => {
     >
       <VerticalGroup>
         <HorizontalGroup justify="space-between">
-          <Text size="medium">{shiftId === 'new' ? 'New Override' : shift?.title}</Text>
+          <Text size="medium">{shiftId === 'new' ? 'New Override' : shift?.id}</Text>
           <HorizontalGroup>
             <IconButton disabled variant="secondary" tooltip="Copy" name="copy" />
             <IconButton disabled variant="secondary" tooltip="Code" name="brackets-curly" />

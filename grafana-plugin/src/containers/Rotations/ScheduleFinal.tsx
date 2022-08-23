@@ -8,7 +8,7 @@ import { observer } from 'mobx-react';
 
 import TimelineMarks from 'components/TimelineMarks/TimelineMarks';
 import Rotation from 'containers/Rotation/Rotation';
-import { getColor, getFromString } from 'models/schedule/schedule.helpers';
+import { getColor, getFromString, getOverrideColor } from 'models/schedule/schedule.helpers';
 import { Layer, Schedule } from 'models/schedule/schedule.types';
 import { Timezone } from 'models/timezone/timezone.types';
 import { WithStoreProps } from 'state/types';
@@ -52,6 +52,9 @@ class ScheduleFinal extends Component<ScheduleFinalProps, ScheduleOverridesState
       ? store.scheduleStore.rotationPreview
       : (store.scheduleStore.events[scheduleId]?.['rotation']?.[getFromString(startMoment)] as Layer[]);
 
+    const overrides = store.scheduleStore.overridePreview
+      ? store.scheduleStore.overridePreview
+      : store.scheduleStore.events[scheduleId]?.['override']?.[getFromString(startMoment)];
     const currentTimeHidden = currentTimeX < 0 || currentTimeX > 1;
 
     /* console.log('shifts', toJS(shifts));
@@ -79,6 +82,8 @@ class ScheduleFinal extends Component<ScheduleFinalProps, ScheduleOverridesState
             <div className={cx('rotations')}>
               {shifts && shifts.length ? (
                 shifts.map(({ shiftId, events }, index) => {
+                  let color = undefined;
+
                   const layerIndex = layers
                     ? layers.findIndex((layer) => layer.shifts.some((shift) => shift.shiftId === shiftId))
                     : -1;
@@ -86,7 +91,15 @@ class ScheduleFinal extends Component<ScheduleFinalProps, ScheduleOverridesState
                   const rotationIndex =
                     layerIndex > -1 ? layers[layerIndex].shifts.findIndex((shift) => shift.shiftId === shiftId) : -1;
 
-                  console.log(layerIndex, rotationIndex);
+                  if (layerIndex > -1 && rotationIndex > -1) {
+                    color = getColor(layerIndex, rotationIndex);
+                  } else {
+                    const overrideIndex = overrides ? overrides.findIndex((shift) => shift.shiftId === shiftId) : -1;
+
+                    if (overrideIndex > -1) {
+                      color = getOverrideColor(overrideIndex);
+                    }
+                  }
 
                   return (
                     <Rotation
@@ -94,7 +107,7 @@ class ScheduleFinal extends Component<ScheduleFinalProps, ScheduleOverridesState
                       events={events}
                       startMoment={startMoment}
                       currentTimezone={currentTimezone}
-                      color={getColor(layerIndex, rotationIndex)}
+                      color={color}
                     />
                   );
                 })
