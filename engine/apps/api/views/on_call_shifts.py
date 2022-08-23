@@ -1,5 +1,6 @@
 from django.db.models import Q
 from django_filters.rest_framework import DjangoFilterBackend
+from rest_framework import status
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
@@ -11,6 +12,7 @@ from apps.auth_token.auth import PluginAuthentication
 from apps.schedules.models import CustomOnCallShift
 from common.api_helpers.mixins import PublicPrimaryKeyMixin, UpdateSerializerMixin
 from common.api_helpers.paginators import FiftyPageSizePaginator
+from common.api_helpers.utils import get_date_range_from_request
 from common.insight_log import EntityEvent, write_resource_insight_log
 
 
@@ -19,7 +21,7 @@ class OnCallShiftView(PublicPrimaryKeyMixin, UpdateSerializerMixin, ModelViewSet
     permission_classes = (IsAuthenticated, ActionPermission)
 
     action_permissions = {
-        IsAdmin: MODIFY_ACTIONS,
+        IsAdmin: (*MODIFY_ACTIONS, "preview"),
         AnyRole: (*READ_ACTIONS, "details", "frequency_options", "days_options"),
     }
 
@@ -75,6 +77,26 @@ class OnCallShiftView(PublicPrimaryKeyMixin, UpdateSerializerMixin, ModelViewSet
             event=EntityEvent.DELETED,
         )
         instance.delete()
+
+    @action(detail=False, methods=["post"])
+    def preview(self, request):
+        user_tz, starting_date, days = get_date_range_from_request(self.request)
+
+        serializer = self.get_serializer(data=request.data)
+        if not serializer.is_valid():
+            return Response(data=serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+        validated_data = serializer._correct_validated_data(
+            serializer.validated_data["type"], serializer.validated_data
+        )
+        shift = CustomOnCallShift(**validated_data)
+        schedule = shift.schedule
+        shift_events, final_events = schedule.preview_shift(shift, user_tz, starting_date, days)
+        data = {
+            "rotation": shift_events,
+            "final": final_events,
+        }
+        return Response(data=data, status=status.HTTP_200_OK)
 
     @action(detail=False, methods=["get"])
     def frequency_options(self, request):

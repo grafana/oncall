@@ -81,6 +81,24 @@ GRAFANA_CLOUD_ONCALL_TOKEN = os.environ.get("GRAFANA_CLOUD_ONCALL_TOKEN", None)
 # Outgoing webhook settings
 DANGEROUS_WEBHOOKS_ENABLED = getenv_boolean("DANGEROUS_WEBHOOKS_ENABLED", default=False)
 
+# DB backend defaults
+DB_BACKEND = os.environ.get("DB_BACKEND", "mysql")
+DB_BACKEND_DEFAULT_VALUES = {
+    "mysql": {
+        "USER": "root",
+        "PORT": "3306",
+        "OPTIONS": {
+            "charset": "utf8mb4",
+            "connect_timeout": 1,
+        },
+    },
+    "postgresql": {
+        "USER": "postgres",
+        "PORT": "5432",
+        "OPTIONS": {},
+    },
+}
+
 # Application definition
 
 INSTALLED_APPS = [
@@ -238,7 +256,7 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/2.1/howto/static-files/
 
-STATIC_URL = "/static/"
+STATIC_URL = os.environ.get("STATIC_URL", "/static/")
 STATIC_ROOT = "./static/"
 
 CELERY_BROKER_URL = "amqp://rabbitmq:rabbitmq@localhost:5672"

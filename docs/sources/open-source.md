@@ -25,6 +25,8 @@ There are three Grafana OnCall OSS environments available:
 ## Production Environment
 We suggest using our official helm chart for the reliable production deployment of Grafana OnCall. It will deploy Grafana OnCall engine and celery workers, along with RabbitMQ cluster, Redis Cluster, and the database. 
 
+>**Note:** The Grafana OnCall engine currently supports one instance  of the Grafana OnCall plugin at a time. 
+
 Check the [helm chart](https://github.com/grafana/oncall/tree/dev/helm/oncall) for more details. 
 
 We'll always be happy to provide assistance with production deployment in [our communities](https://github.com/grafana/oncall#join-community)! 
@@ -79,10 +81,10 @@ lt --port 8080 -s pretty-turkey-83 --print-requests
         type: message
         callback_id: incident_create
         description: Creates a new OnCall incident
-      - name: Add to postmortem
+      - name: Add to resolution note
         type: message
-        callback_id: add_postmortem
-        description: Add this message to postmortem
+        callback_id: add_resolution_note
+        description: Add this message to resolution note
     slash_commands:
       - command: /oncall
         url: <ONCALL_ENGINE_PUBLIC_URL>/slack/interactive_api_endpoint/

@@ -83,7 +83,13 @@ logger.setLevel(logging.DEBUG)
 
 # used for display schedule events on web
 def list_of_oncall_shifts_from_ical(
-    schedule, date, user_timezone="UTC", with_empty_shifts=False, with_gaps=False, days=1
+    schedule,
+    date,
+    user_timezone="UTC",
+    with_empty_shifts=False,
+    with_gaps=False,
+    days=1,
+    filter_by=None,
 ):
     """
     Parse the ical file and return list of events with users
@@ -121,6 +127,9 @@ def list_of_oncall_shifts_from_ical(
                 calendar_type = OnCallSchedule.PRIMARY
             else:
                 calendar_type = OnCallSchedule.OVERRIDES
+
+            if filter_by is not None and filter_by != calendar_type:
+                continue
 
             tmp_result_datetime, tmp_result_date = get_shifts_dict(
                 calendar, calendar_type, schedule, datetime_start, datetime_end, date, with_empty_shifts
