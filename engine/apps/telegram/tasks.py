@@ -105,6 +105,10 @@ def send_link_to_channel_message_or_fallback_to_full_incident(
             f"Most probably it was deleted while escalation was in progress."
             f"alert_group {alert_group_pk}"
         )
+    except UserNotificationPolicy.DoesNotExist:
+        logger.warning(
+            f"UserNotificationPolicy {notification_policy_pk} does not exist for alert group {alert_group_pk}"
+        )
 
 
 @shared_dedicated_queue_retry_task(
