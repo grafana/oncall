@@ -156,7 +156,7 @@ export const PluginConfigPage = (props: Props) => {
       setPluginStatusOk(true);
     } else {
       setPluginStatusMessage(
-        `OnCall failed to connect to to this grafana via: ${plugin.meta.jsonData.grafanaUrl} check URL, network, and API key.`
+        `OnCall failed to connect to this grafana via: ${plugin.meta.jsonData.grafanaUrl} check URL, network, and API key.`
       );
       setRetrySync(true);
     }

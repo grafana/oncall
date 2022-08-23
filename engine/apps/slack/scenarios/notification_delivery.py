@@ -62,16 +62,34 @@ class NotificationDeliveryStep(scenario_step.ScenarioStep):
                         )
 
     def post_message_to_channel(self, text, channel, color=None, footer=None):
-        color_id = self.get_color_id(color)
-        attachments = [
-            {"color": color_id, "callback_id": "alert", "footer": footer, "text": text},
+        # TODO: No color in blocks, use prefix emoji?
+        # color_id = self.get_color_id(color)
+        blocks = [
+            {
+                "type": "section",
+                "block_id": "alert",
+                "text": {
+                    "type": "mrkdwn",
+                    "text": text,
+                },
+            },
+            {"type": "divider"},
+            {
+                "type": "section",
+                "block_id": "alert",
+                "text": {
+                    "type": "mrkdwn",
+                    "text": footer,
+                },
+            },
         ]
         try:
             # TODO: slack-onprem, check exceptions
             self._slack_client.api_call(
                 "chat.postMessage",
                 channel=channel,
-                attachments=attachments,
+                text=text,
+                blocks=blocks,
                 unfurl_links=True,
             )
         except SlackAPITokenException as e:

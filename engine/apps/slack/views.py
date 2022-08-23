@@ -286,7 +286,6 @@ class SlackEventApiEndpointView(APIView):
                     or payload["event"]["subtype"] == EVENT_SUBTYPE_MESSAGE_DELETED
                 )
             ):
-                print("Inside channel.messages event")
                 for route in SCENARIOS_ROUTES:
                     if (
                         "message_channel_type" in route

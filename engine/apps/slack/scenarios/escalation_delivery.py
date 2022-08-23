@@ -34,14 +34,3 @@ class EscalationDeliveryStep(scenario_step.ScenarioStep):
             user_mention_as = user_verbal
             notify_by = " by {}".format(UserNotificationPolicy.NotificationChannel(notification_channel).label)
         return "Inviting {}{} to look at incident.".format(user_mention_as, notify_by)
-
-    def notify_thread_about_action(self, alert_group, text, footer=None, color=None):
-        attachments = [
-            {
-                "callback_id": "alert",
-                "footer": footer,
-                "text": text,
-                "color": color,
-            },
-        ]
-        self._publish_message_to_thread(alert_group, attachments)
