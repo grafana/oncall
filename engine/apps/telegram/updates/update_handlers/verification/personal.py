@@ -4,7 +4,7 @@ from apps.telegram.updates.update_handlers import UpdateHandler
 from apps.telegram.utils import is_verification_message
 
 USER_CONNECTED_TEXT = "Done! This Telegram account is now linked to <b>{username}</b> 🎉"
-RELINK_ACCOUNT_TEXT = """This Telegram account is already connected to Grafana OnCall user <b>{username}</b>
+RELINK_ACCOUNT_TEXT = """This user is already connected to a Telegram account</b>
 Please unlink Telegram account in profile settings of user <b>{username}</b> or contact Grafana OnCall support."""
 WRONG_VERIFICATION_CODE = "Verification failed: wrong verification code"
 
@@ -38,11 +38,10 @@ class PersonalVerificationCodeHandler(UpdateHandler):
 
         if created:
             reply_text = USER_CONNECTED_TEXT.format(username=connector.user.username)
+        elif connector is not None:
+            reply_text = RELINK_ACCOUNT_TEXT.format(username=connector.user.username)
         else:
-            if connector is not None:
-                reply_text = RELINK_ACCOUNT_TEXT.format(username=connector.user.username)
-            else:
-                reply_text = WRONG_VERIFICATION_CODE
+            reply_text = WRONG_VERIFICATION_CODE
 
         telegram_client = TelegramClient()
         telegram_client.send_raw_message(chat_id=user.id, text=reply_text)
