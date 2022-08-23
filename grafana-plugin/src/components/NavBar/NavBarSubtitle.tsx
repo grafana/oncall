@@ -13,7 +13,7 @@ const cx = cn.bind(styles);
 function NavBarSubtitle({ backendLicense }: { backendLicense: string }) {
   if (backendLicense === GRAFANA_LICENSE_OSS) {
     return (
-      <div className={cx('navbar-container')}>
+      <div className={cx('root')}>
         {APP_SUBTITLE}
         <Card heading={undefined} className={cx('navbar-heading')}>
           <a href="https://github.com/grafana/oncall" className={cx('navbar-link')} target="_blank" rel="noreferrer">
