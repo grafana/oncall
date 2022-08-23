@@ -150,7 +150,7 @@ class ChannelFilter(OrderedModel):
 
     @property
     def insight_logs_serialized(self):
-        res = {
+        result = {
             "filtering_term": self.str_for_clients,
             "order": self.order,
             "slack_notification_enabled": self.notify_in_slack,
@@ -165,17 +165,17 @@ class ChannelFilter(OrderedModel):
                 slack_channel = SlackChannel.objects.filter(
                     slack_team_identity=sti, slack_id=self.slack_channel_id
                 ).first()
-                res["slack_channel"] = slack_channel.name
+                result["slack_channel"] = slack_channel.name
         if self.telegram_channel:
-            res["telegram_channel"] = self.telegram_channel.public_primary_key
+            result["telegram_channel"] = self.telegram_channel.public_primary_key
         if self.escalation_chain:
-            res["escalation_chain"] = self.escalation_chain.insight_logs_verbal
-            res["escalation_chain_id"] = self.escalation_chain.public_primary_key
+            result["escalation_chain"] = self.escalation_chain.insight_logs_verbal
+            result["escalation_chain_id"] = self.escalation_chain.public_primary_key
         if self.notification_backends:
             for backend_id, backend in self.notification_backends.items():
                 channel = backend.get("channel_id") or "default"
-                res[backend_id] = channel
-        return res
+                result[backend_id] = channel
+        return result
 
     @property
     def insight_logs_metadata(self):

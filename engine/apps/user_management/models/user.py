@@ -241,16 +241,16 @@ class User(models.Model):
         notification_policies_verbal = f"default: {' - '.join(default)}, important: {' - '.join(important)}"
         notification_policies_verbal = demojize(notification_policies_verbal)
 
-        res = {
+        result = {
             "username": self.username,
             "role": self.get_role_display(),
             "notification_policies": notification_policies_verbal,
         }
         if self.verified_phone_number:
-            res["verified_phone_number"] = self.unverified_phone_number
+            result["verified_phone_number"] = self.unverified_phone_number
         if self.unverified_phone_number:
-            res["unverified_phone_number"] = self.unverified_phone_number
-        return res
+            result["unverified_phone_number"] = self.unverified_phone_number
+        return result
 
     @property
     def insight_logs_metadata(self):

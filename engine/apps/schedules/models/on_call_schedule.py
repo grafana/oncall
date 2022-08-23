@@ -345,39 +345,39 @@ class OnCallSchedule(PolymorphicModel):
 
     @property
     def insight_logs_serialized(self):
-        res = {
+        result = {
             "name": self.name,
         }
         if self.team:
-            res["team"] = self.team.name
-            res["team_id"] = self.team.public_primary_key
+            result["team"] = self.team.name
+            result["team_id"] = self.team.public_primary_key
         else:
-            res["team"] = "General"
+            result["team"] = "General"
         if self.organization.slack_team_identity:
             if self.channel:
                 SlackChannel = apps.get_model("slack", "SlackChannel")
                 sti = self.organization.slack_team_identity
                 slack_channel = SlackChannel.objects.filter(slack_team_identity=sti, slack_id=self.channel).first()
                 if slack_channel:
-                    res["slack_channel"] = slack_channel.name
+                    result["slack_channel"] = slack_channel.name
             if self.user_group is not None:
-                res["user_group"] = self.user_group.handle
+                result["user_group"] = self.user_group.handle
 
-            res["notification_frequency"] = self.get_notify_oncall_shift_freq_display()
-            res["current_shift_notification"] = self.mention_oncall_start
-            res["next_shift_notification"] = self.mention_oncall_next
-            res["notify_empty_oncall"] = self.get_notify_empty_oncall_display
-        return res
+            result["notification_frequency"] = self.get_notify_oncall_shift_freq_display()
+            result["current_shift_notification"] = self.mention_oncall_start
+            result["next_shift_notification"] = self.mention_oncall_next
+            result["notify_empty_oncall"] = self.get_notify_empty_oncall_display
+        return result
 
     @property
     def insight_logs_metadata(self):
-        res = {}
+        result = {}
         if self.team:
-            res["team"] = self.team.name
-            res["team_id"] = self.team.public_primary_key
+            result["team"] = self.team.name
+            result["team_id"] = self.team.public_primary_key
         else:
-            res["team"] = "General"
-        return res
+            result["team"] = "General"
+        return result
 
 
 class OnCallScheduleICal(OnCallSchedule):

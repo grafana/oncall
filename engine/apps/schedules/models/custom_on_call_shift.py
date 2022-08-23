@@ -560,7 +560,7 @@ class CustomOnCallShift(models.Model):
         else:
             users = self.users.all()
             users_verbal = [user.username for user in users]
-        res = {
+        result = {
             "name": self.name,
             "source": self.get_source_display(),
             "type": self.get_type_display(),
@@ -570,34 +570,34 @@ class CustomOnCallShift(models.Model):
             "priority_level": self.priority_level,
         }
         if self.type not in (CustomOnCallShift.TYPE_SINGLE_EVENT, CustomOnCallShift.TYPE_OVERRIDE):
-            res["frequency"] = self.get_frequency_display()
-            res["interval"] = self.interval
-            res["week_start"] = self.week_start
-            res["by_day"] = self.by_day
-            res["by_month"] = self.by_month
-            res["by_monthday"] = self.by_monthday
-            res["rotation_start"] = self.rotation_start.isoformat()
+            result["frequency"] = self.get_frequency_display()
+            result["interval"] = self.interval
+            result["week_start"] = self.week_start
+            result["by_day"] = self.by_day
+            result["by_month"] = self.by_month
+            result["by_monthday"] = self.by_monthday
+            result["rotation_start"] = self.rotation_start.isoformat()
             if self.until:
-                res["until"] = self.until.isoformat()
+                result["until"] = self.until.isoformat()
         if self.team:
-            res["team"] = self.team.name
-            res["team_id"] = self.team.public_primary_key
+            result["team"] = self.team.name
+            result["team_id"] = self.team.public_primary_key
         else:
-            res["team"] = "General"
+            result["team"] = "General"
         if self.time_zone:
-            res["time_zone"] = self.time_zone
-        return res
+            result["time_zone"] = self.time_zone
+        return result
 
     @property
     def insight_logs_metadata(self):
-        res = {}
+        result = {}
         if self.team:
-            res["team"] = self.team.name
-            res["team_id"] = self.team.public_primary_key
+            result["team"] = self.team.name
+            result["team_id"] = self.team.public_primary_key
         else:
-            res["team"] = "General"
+            result["team"] = "General"
         if self.schedule:
-            res["schedule"] = self.schedule.insight_logs_verbal
-            res["schedule_id"] = self.schedule.public_primary_key
+            result["schedule"] = self.schedule.insight_logs_verbal
+            result["schedule_id"] = self.schedule.public_primary_key
 
-        return res
+        return result

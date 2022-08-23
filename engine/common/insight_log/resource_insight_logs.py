@@ -50,7 +50,8 @@ class InsightLoggable(ABC):
     @abstractmethod
     def insight_logs_metadata(self) -> dict:
         """
-        insight_logs_metadata returns resource metadata which should be always present in the insight_log line
+        insight_logs_metadata returns resource's fields which should be always present in the insight_log line even if
+        they weren't changed
         """
         pass
 
@@ -66,7 +67,8 @@ def write_resource_insight_log(instance: InsightLoggable, author, event: EntityE
             try:
                 entity_id = instance.public_primary_key
             except AttributeError:
-                entity_id = instance.id  # Fallback for entities which have no public_primary_key
+                # Fallback for entities which have no public_primary_key, E.g. public api token, schedule export token
+                entity_id = instance.id
             entity_name = json.dumps(instance.insight_logs_verbal)
             metadata = instance.insight_logs_metadata
             log_line = f"tenant_id={tenant_id} author_id={author_id} author={author} action_type=resource action={event.value} resource_type={entity_type} resource_id={entity_id} resource_name={entity_name}"  # noqa

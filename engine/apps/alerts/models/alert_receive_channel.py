@@ -609,7 +609,7 @@ class AlertReceiveChannel(IntegrationOptionsMixin, MaintainableObject):
 
     @property
     def insight_logs_serialized(self):
-        res = {
+        result = {
             "name": self.verbal_name,
             "allow_source_based_resolving": self.allow_source_based_resolving,
             "slack_title": self.slack_title_template or "default",
@@ -631,21 +631,21 @@ class AlertReceiveChannel(IntegrationOptionsMixin, MaintainableObject):
             "acknowledge_condition": self.acknowledge_condition_template or "default",
         }
         if self.team:
-            res["team"] = self.team.name
-            res["team_id"] = self.team.public_primary_key
+            result["team"] = self.team.name
+            result["team_id"] = self.team.public_primary_key
         else:
-            res["team"] = "General"
-        return res
+            result["team"] = "General"
+        return result
 
     @property
     def insight_logs_metadata(self):
-        res = {}
+        result = {}
         if self.team:
-            res["team"] = self.team.name
-            res["team_id"] = self.team.public_primary_key
+            result["team"] = self.team.name
+            result["team_id"] = self.team.public_primary_key
         else:
-            res["team"] = "General"
-        return res
+            result["team"] = "General"
+        return result
 
 
 @receiver(post_save, sender=AlertReceiveChannel)
