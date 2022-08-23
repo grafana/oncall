@@ -381,23 +381,6 @@ class CustomOnCallShift(models.Model):
                     days_for_next_event += next_month_days
                 next_event_start = current_event_start + timezone.timedelta(days=days_for_next_event)
 
-        end_date = None
-        # get the period for calculating the current rotation end date for long events with frequency weekly and monthly
-        if self.frequency == CustomOnCallShift.FREQUENCY_WEEKLY:
-            DAYS_IN_A_WEEK = 7
-            days_diff = 0
-            # get the last day of the week with respect to the week_start
-            if next_event_start.weekday() != self.week_start:
-                days_diff = DAYS_IN_A_WEEK + next_event_start.weekday() - self.week_start
-                days_diff %= DAYS_IN_A_WEEK
-            end_date = next_event_start + timezone.timedelta(days=DAYS_IN_A_WEEK - days_diff - ONE_DAY)
-        elif self.frequency == CustomOnCallShift.FREQUENCY_MONTHLY:
-            # get the last day of the month
-            current_day_number = next_event_start.day
-            number_of_days = monthrange(next_event_start.year, next_event_start.month)[1]
-            days_diff = number_of_days - current_day_number
-            end_date = next_event_start + timezone.timedelta(days=days_diff)
-
         next_event = None
         # repetitions generate the next event shift according with the recurrence rules
         repetitions = UnfoldableCalendar(current_event).RepeatedEvent(
@@ -405,21 +388,12 @@ class CustomOnCallShift(models.Model):
         )
         ical_iter = repetitions.__iter__()
         for event in ical_iter:
-            if end_date:  # end_date exists for long events with frequency weekly and monthly
-                if end_date >= event.start >= next_event_start:
-                    if event.start >= self.rotation_start:
-                        next_event = event
-                        break
-                else:
-                    break
-            else:
-                if event.start >= next_event_start:
-                    next_event = event
-                    break
+            if event.start >= next_event_start:
+                next_event = event
+                break
+        next_event_dt = next_event.start if next_event is not None else None
 
-        next_event_dt = next_event.start if next_event is not None else next_event_start
-
-        if self.until and next_event_dt > self.until:
+        if self.until and next_event_dt and next_event_dt > self.until:
             return
         return next_event_dt
 
