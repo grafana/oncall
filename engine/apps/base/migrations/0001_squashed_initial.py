@@ -50,7 +50,7 @@ class Migration(migrations.Migration):
             name='OrganizationLogRecord',
             fields=[
                 ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('public_primary_key', models.CharField(max_length=20, unique=True, validators=[django.core.validators.MinLengthValidator(13)])),
+                ('public_primary_key', models.CharField(max_length=20, null=True, default=None)),
                 ('created_at', models.DateTimeField(auto_now_add=True)),
                 ('description', models.TextField(default=None, null=True)),
                 ('_labels', models.JSONField(default=list)),
