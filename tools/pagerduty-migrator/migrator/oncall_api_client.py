@@ -5,7 +5,7 @@ import requests
 from requests import HTTPError
 
 from migrator.config import ONCALL_API_TOKEN, ONCALL_API_URL
-
+TAB = " " * 4
 
 def api_call(method: str, path: str, **kwargs) -> requests.Response:
     url = urljoin(ONCALL_API_URL, path)
@@ -21,6 +21,12 @@ def api_call(method: str, path: str, **kwargs) -> requests.Response:
             cooldown_seconds = int(e.response.headers["Retry-After"])
             sleep(cooldown_seconds)
             return api_call(method, path, **kwargs)
+        elif e.response.status_code == 400:
+            json_res = response.json()
+            print(TAB + ">>> " + json_res["detail"])
+        elif e.response.status_code == 500:
+            json_res = response.json()
+            print(TAB + ">>> " + json_res["detail"])
         else:
             raise
 
