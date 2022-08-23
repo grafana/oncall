@@ -29,7 +29,7 @@ from apps.slack.tasks import post_slack_rate_limit_message
 from apps.slack.utils import post_message_to_channel
 from common.api_helpers.utils import create_engine_url
 from common.exceptions import TeamCanNotBeChangedError, UnableToSendDemoAlert
-from common.insight_log import EntityEvent, resource_insight_log
+from common.insight_log import EntityEvent, write_resource_insight_log
 from common.public_primary_keys import generate_public_primary_key, increase_public_primary_key_length
 
 logger = logging.getLogger(__name__)
@@ -654,15 +654,15 @@ def listen_for_alertreceivechannel_model_save(sender, instance, created, *args, 
     IntegrationHeartBeat = apps.get_model("heartbeat", "IntegrationHeartBeat")
 
     if created:
-        resource_insight_log(instance=instance, author=instance.author, event=EntityEvent.CREATED)
+        write_resource_insight_log(instance=instance, author=instance.author, event=EntityEvent.CREATED)
         default_filter = ChannelFilter(alert_receive_channel=instance, filtering_term=None, is_default=True)
         default_filter.save()
-        resource_insight_log(instance=default_filter, author=instance.author, event=EntityEvent.CREATED)
+        write_resource_insight_log(instance=default_filter, author=instance.author, event=EntityEvent.CREATED)
 
         TEN_MINUTES = 600  # this is timeout for cloud heartbeats
         if instance.is_available_for_integration_heartbeat:
             heartbeat = IntegrationHeartBeat.objects.create(alert_receive_channel=instance, timeout_seconds=TEN_MINUTES)
-            resource_insight_log(instance=heartbeat, author=instance.author, event=EntityEvent.CREATED)
+            write_resource_insight_log(instance=heartbeat, author=instance.author, event=EntityEvent.CREATED)
 
     if instance.integration == AlertReceiveChannel.INTEGRATION_GRAFANA_ALERTING:
         if created:

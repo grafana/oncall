@@ -11,7 +11,7 @@ from apps.public_api.throttlers.user_throttle import UserThrottle
 from common.api_helpers.filters import ByTeamFilter
 from common.api_helpers.mixins import FilterSerializerMixin, RateLimitHeadersMixin, UpdateSerializerMixin
 from common.api_helpers.paginators import FiftyPageSizePaginator
-from common.insight_log import EntityEvent, resource_insight_log
+from common.insight_log import EntityEvent, write_resource_insight_log
 
 from .maintaiable_object_mixin import MaintainableObjectMixin
 
@@ -58,17 +58,17 @@ class IntegrationView(
             raise NotFound
 
     def perform_update(self, serializer):
-        old_state = serializer.instance.insight_logs_serialized
+        prev_state = serializer.instance.insight_logs_serialized
         serializer.save()
         new_state = serializer.instance.insight_logs_serialized
-        resource_insight_log(
+        write_resource_insight_log(
             instance=serializer.instance,
             author=self.request.user,
             event=EntityEvent.UPDATED,
-            prev_state=old_state,
+            prev_state=prev_state,
             new_state=new_state,
         )
 
     def perform_destroy(self, instance):
-        resource_insight_log(instance=instance, author=self.request.user, event=EntityEvent.DELETED)
+        write_resource_insight_log(instance=instance, author=self.request.user, event=EntityEvent.DELETED)
         instance.delete()

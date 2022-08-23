@@ -6,7 +6,7 @@ from django.db import models
 from django.utils import timezone
 
 from apps.telegram.models import TelegramToOrganizationConnector
-from common.insight_log.chatops_insight_logs import ChatOpsEvent, ChatOpsType, chatops_insight_log
+from common.insight_log.chatops_insight_logs import ChatOpsEvent, ChatOpsType, write_chatops_insight_log
 
 
 class TelegramChannelVerificationCode(models.Model):
@@ -50,14 +50,14 @@ class TelegramChannelVerificationCode(models.Model):
                 },
             )
 
-            chatops_insight_log(
+            write_chatops_insight_log(
                 author=verification_code.author,
                 event_name=ChatOpsEvent.CHANNEL_CONNECTED,
                 chatops_type=ChatOpsType.TELEGRAM,
                 channel_name=channel_name,
             )
             if not connector_exists:
-                chatops_insight_log(
+                write_chatops_insight_log(
                     author=verification_code.author,
                     event_name=ChatOpsEvent.DEFAULT_CHANNEL_CHANGED,
                     chatops_type=ChatOpsType.TELEGRAM,

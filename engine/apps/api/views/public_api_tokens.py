@@ -8,7 +8,7 @@ from apps.auth_token.auth import PluginAuthentication
 from apps.auth_token.constants import MAX_PUBLIC_API_TOKENS_PER_USER
 from apps.auth_token.models import ApiAuthToken
 from common.api_helpers.exceptions import BadRequest
-from common.insight_log import EntityEvent, resource_insight_log
+from common.insight_log import EntityEvent, write_resource_insight_log
 
 
 class PublicApiTokenView(
@@ -31,7 +31,7 @@ class PublicApiTokenView(
 
     def destroy(self, request, *args, **kwargs):
         instance = self.get_object()
-        resource_insight_log(instance=instance, author=instance.author, event=EntityEvent.DELETED)
+        write_resource_insight_log(instance=instance, author=instance.author, event=EntityEvent.DELETED)
         self.perform_destroy(instance)
         return Response(status=status.HTTP_204_NO_CONTENT)
 
@@ -49,5 +49,5 @@ class PublicApiTokenView(
             raise BadRequest("Invalid token name")
         instance, token = ApiAuthToken.create_auth_token(user, user.organization, token_name)
         data = {"id": instance.pk, "token": token, "name": instance.name, "created_at": instance.created_at}
-        resource_insight_log(instance=instance, author=user, event=EntityEvent.CREATED)
+        write_resource_insight_log(instance=instance, author=user, event=EntityEvent.CREATED)
         return Response(data, status=status.HTTP_201_CREATED)

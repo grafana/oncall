@@ -51,7 +51,7 @@ from apps.slack.scenarios.slack_usergroup import STEPS_ROUTING as SLACK_USERGROU
 from apps.slack.slack_client import SlackClientWithErrorHandling
 from apps.slack.slack_client.exceptions import SlackAPIException, SlackAPITokenException
 from apps.slack.tasks import clean_slack_integration_leftovers, unpopulate_slack_user_identities
-from common.insight_log import ChatOpsEvent, ChatOpsType, chatops_insight_log
+from common.insight_log import ChatOpsEvent, ChatOpsType, write_chatops_insight_log
 
 from .models import SlackActionRecord, SlackMessage, SlackTeamIdentity, SlackUserIdentity
 
@@ -538,7 +538,7 @@ class ResetSlackView(APIView):
         slack_team_identity = organization.slack_team_identity
         if slack_team_identity is not None:
             clean_slack_integration_leftovers.apply_async((organization.pk,))
-            chatops_insight_log(
+            write_chatops_insight_log(
                 author=request.user,
                 event_name=ChatOpsEvent.WORKSPACE_DISCONNECTED,
                 chatops_type=ChatOpsType.SLACK,

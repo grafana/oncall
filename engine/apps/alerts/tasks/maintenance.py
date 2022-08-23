@@ -5,7 +5,7 @@ from django.db.models import ExpressionWrapper, F, fields
 from django.utils import timezone
 
 from common.custom_celery_tasks import shared_dedicated_queue_retry_task
-from common.insight_log import MaintenanceEvent, maintenance_insight_log
+from common.insight_log import MaintenanceEvent, write_maintenance_insight_log
 
 from .task_logger import task_logger
 
@@ -51,7 +51,7 @@ def disable_maintenance(*args, **kwargs):
             disable_maintenance.request.id == object_under_maintenance.maintenance_uuid or force
         ):
             organization = object_under_maintenance.get_organization()
-            maintenance_insight_log(object_under_maintenance, user, MaintenanceEvent.FINISHED)
+            write_maintenance_insight_log(object_under_maintenance, user, MaintenanceEvent.FINISHED)
             if object_under_maintenance.maintenance_mode == object_under_maintenance.MAINTENANCE:
                 mode_verbal = "Maintenance"
                 maintenance_incident = AlertGroup.all_objects.get(

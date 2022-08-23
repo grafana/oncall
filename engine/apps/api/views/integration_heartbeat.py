@@ -8,7 +8,7 @@ from apps.api.serializers.integration_heartbeat import IntegrationHeartBeatSeria
 from apps.auth_token.auth import PluginAuthentication
 from apps.heartbeat.models import IntegrationHeartBeat
 from common.api_helpers.mixins import PublicPrimaryKeyMixin
-from common.insight_log import EntityEvent, resource_insight_log
+from common.insight_log import EntityEvent, write_resource_insight_log
 
 
 class IntegrationHeartBeatView(
@@ -45,21 +45,21 @@ class IntegrationHeartBeatView(
     def perform_create(self, serializer):
         serializer.save()
         instance = serializer.instance
-        resource_insight_log(
+        write_resource_insight_log(
             instance=instance,
             author=self.request.user,
             event=EntityEvent.CREATED,
         )
 
     def perform_update(self, serializer):
-        old_state = serializer.instance.insight_logs_serialized
+        prev_state = serializer.instance.insight_logs_serialized
         serializer.save()
         new_state = serializer.instance.insight_logs_serialized
-        resource_insight_log(
+        write_resource_insight_log(
             instance=serializer.instance,
             author=self.request.user,
             event=EntityEvent.UPDATED,
-            prev_state=old_state,
+            prev_state=prev_state,
             new_state=new_state,
         )
 

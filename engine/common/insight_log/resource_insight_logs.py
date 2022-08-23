@@ -4,7 +4,7 @@ import logging
 import re
 from abc import ABC, abstractmethod
 
-from django.apps import apps
+from .insight_logs_enabled_check import is_insight_logs_enabled
 
 insight_logger = logging.getLogger("insight_logger")
 logger = logging.getLogger(__name__)
@@ -50,22 +50,15 @@ class InsightLoggable(ABC):
     @abstractmethod
     def insight_logs_metadata(self) -> dict:
         """
-        insight_logs_metadata returns resource metadata which should be present in the insight_log line
+        insight_logs_metadata returns resource metadata which should be always present in the insight_log line
         """
         pass
 
 
-def resource_insight_log(instance: InsightLoggable, author, event: EntityEvent, prev_state=None, new_state=None):
+def write_resource_insight_log(instance: InsightLoggable, author, event: EntityEvent, prev_state=None, new_state=None):
     try:
         organization = author.organization
-        DynamicSetting = apps.get_model("base", "DynamicSetting")
-        org_id_to_enable_insight_logs, _ = DynamicSetting.objects.get_or_create(
-            name="org_id_to_enable_insight_logs",
-            defaults={"json_value": []},
-        )
-        log_all = "all" in org_id_to_enable_insight_logs.json_value
-        insight_logs_enabled = organization.id in org_id_to_enable_insight_logs.json_value
-        if insight_logs_enabled or log_all:
+        if is_insight_logs_enabled(organization):
             tenant_id = organization.stack_id
             author_id = author.public_primary_key
             author = json.dumps(author.username)
@@ -90,29 +83,28 @@ def resource_insight_log(instance: InsightLoggable, author, event: EntityEvent, 
         logger.warning(f"insight_log.failed_to_write_entity_insight_log exception={e}")
 
 
-def state_diff_finder(before: dict, after: dict):
+def state_diff_finder(prev_state: dict, new_state: dict):
     """
-    state_diff_finder finds diff between two serialized representations of the resource
+    state_diff_finder returns diff between two serialized representations of the resource
     """
     before_diff = {}
     after_diff = {}
-    for k, v in before.items():
-        if k not in after:
+    for k, v in prev_state.items():
+        if k not in new_state:
             before_diff[k] = v
             continue
-        if after[k] != v:
-            before_diff[k] = before[k]
-            after_diff[k] = after[k]
-    for k, v in after.items():
-        if k not in before:
+        if new_state[k] != v:
+            before_diff[k] = prev_state[k]
+            after_diff[k] = new_state[k]
+    for k, v in new_state.items():
+        if k not in prev_state:
             after_diff[k] = v
     return before_diff, after_diff
 
 
 def escape_json_str_for_insight_log(string):
     """
-    escape_json_str escapes double quotes near keys and values in json string.
-    it's needed for
+    escape_json_str escapes double quotes near keys and values in json string
     """
     return re.sub(r"(?<!\\)(\")", r"\\\1", string)
 

@@ -8,7 +8,7 @@ from apps.api.permissions import MODIFY_ACTIONS, READ_ACTIONS, ActionPermission,
 from apps.api.serializers.telegram import TelegramToOrganizationConnectorSerializer
 from apps.auth_token.auth import PluginAuthentication
 from common.api_helpers.mixins import PublicPrimaryKeyMixin
-from common.insight_log.chatops_insight_logs import ChatOpsEvent, ChatOpsType, chatops_insight_log
+from common.insight_log.chatops_insight_logs import ChatOpsEvent, ChatOpsType, write_chatops_insight_log
 
 
 class TelegramChannelViewSet(
@@ -41,7 +41,7 @@ class TelegramChannelViewSet(
 
     def perform_destroy(self, instance):
         user = self.request.user
-        chatops_insight_log(
+        write_chatops_insight_log(
             author=user,
             event_name=ChatOpsEvent.CHANNEL_DISCONNECTED,
             chatops_type=ChatOpsType.TELEGRAM,

@@ -8,7 +8,7 @@ from django.utils import timezone
 
 from apps.slack.scenarios.scenario_step import ScenarioStep
 from common.exceptions import MaintenanceCouldNotBeStartedError
-from common.insight_log import MaintenanceEvent, maintenance_insight_log
+from common.insight_log import MaintenanceEvent, write_maintenance_insight_log
 
 
 class MaintainableObject(models.Model):
@@ -152,7 +152,7 @@ class MaintainableObject(models.Model):
                     },
                 )
                 alert.save()
-        maintenance_insight_log(self, user, MaintenanceEvent.STARTED)
+        write_maintenance_insight_log(self, user, MaintenanceEvent.STARTED)
         if mode == AlertReceiveChannel.MAINTENANCE:
             self.send_maintenance_incident(organization, group, alert)
             self.notify_about_maintenance_action(

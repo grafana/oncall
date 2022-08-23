@@ -7,7 +7,7 @@ from rest_framework.response import Response
 
 from apps.slack.scenarios import scenario_step
 from common.constants.role import Role
-from common.insight_log import EntityEvent, resource_insight_log
+from common.insight_log import EntityEvent, write_resource_insight_log
 from common.jinja_templater import jinja_template_env
 
 from .step_mixins import CheckAlertIsUnarchivedMixin, IncidentActionsAccessControlMixin
@@ -233,7 +233,7 @@ class UpdateAppearanceStep(scenario_step.ScenarioStep):
             alert_group = AlertGroup.all_objects.filter(pk=alert_group_pk).select_for_update().get()
             integration = alert_group.channel.integration
             alert_receive_channel = alert_group.channel
-            old_state = alert_receive_channel.insight_logs_serialized
+            prev_state = alert_receive_channel.insight_logs_serialized
 
             for templatizable_attr in ["title", "message", "image_url"]:
                 for notification_channel in ["slack", "web", "sms", "phone_call", "email", "telegram"]:
@@ -310,12 +310,12 @@ class UpdateAppearanceStep(scenario_step.ScenarioStep):
 
         new_state = alert_receive_channel.insight_logs_serialized
 
-        if new_state != old_state:
-            resource_insight_log(
+        if new_state != prev_state:
+            write_resource_insight_log(
                 instance=alert_receive_channel,
                 author=slack_user_identity.get_user(alert_receive_channel.organization),
                 event=EntityEvent.UPDATED,
-                prev_state=old_state,
+                prev_state=prev_state,
                 new_state=new_state,
             )
 

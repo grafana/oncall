@@ -12,7 +12,7 @@ from apps.user_management.models import User
 from common.api_helpers.exceptions import BadRequest
 from common.api_helpers.mixins import RateLimitHeadersMixin, UpdateSerializerMixin
 from common.api_helpers.paginators import FiftyPageSizePaginator
-from common.insight_log import EntityEvent, resource_insight_log
+from common.insight_log import EntityEvent, write_resource_insight_log
 
 
 class PersonalNotificationView(RateLimitHeadersMixin, UpdateSerializerMixin, ModelViewSet):
@@ -73,39 +73,39 @@ class PersonalNotificationView(RateLimitHeadersMixin, UpdateSerializerMixin, Mod
 
     def perform_destroy(self, instance):
         user = self.request.user
-        old_state = user.insight_logs_serialized
+        prev_state = user.insight_logs_serialized
         instance.delete()
         new_state = user.insight_logs_serialized
-        resource_insight_log(
+        write_resource_insight_log(
             instance=user,
             author=self.request.user,
             event=EntityEvent.UPDATED,
-            prev_state=old_state,
+            prev_state=prev_state,
             new_state=new_state,
         )
 
     def perform_create(self, serializer):
         user = serializer.validated_data["user"]
-        old_state = user.insight_logs_serialized
+        prev_state = user.insight_logs_serialized
         serializer.save()
         new_state = user.insight_logs_serialized
-        resource_insight_log(
+        write_resource_insight_log(
             instance=user,
             author=self.request.user,
             event=EntityEvent.UPDATED,
-            prev_state=old_state,
+            prev_state=prev_state,
             new_state=new_state,
         )
 
     def perform_update(self, serializer):
         user = self.request.user
-        old_state = user.insight_logs_serialized
+        prev_state = user.insight_logs_serialized
         serializer.save()
         new_state = user.insight_logs_serialized
-        resource_insight_log(
+        write_resource_insight_log(
             instance=user,
             author=self.request.user,
             event=EntityEvent.UPDATED,
-            prev_state=old_state,
+            prev_state=prev_state,
             new_state=new_state,
         )

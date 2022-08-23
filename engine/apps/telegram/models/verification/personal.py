@@ -6,7 +6,7 @@ from django.db import models
 from django.utils import timezone
 
 from apps.telegram.models import TelegramToUserConnector
-from common.insight_log import ChatOpsEvent, ChatOpsType, chatops_insight_log
+from common.insight_log import ChatOpsEvent, ChatOpsType, write_chatops_insight_log
 
 
 class TelegramVerificationCode(models.Model):
@@ -32,7 +32,7 @@ class TelegramVerificationCode(models.Model):
             connector, created = TelegramToUserConnector.objects.get_or_create(
                 user=user, telegram_chat_id=telegram_chat_id, defaults={"telegram_nick_name": telegram_nick_name}
             )
-            chatops_insight_log(
+            write_chatops_insight_log(
                 author=user,
                 event_name=ChatOpsEvent.USER_LINKED,
                 chatops_type=ChatOpsType.TELEGRAM,

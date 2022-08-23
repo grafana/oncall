@@ -17,7 +17,7 @@ from common.api_helpers.exceptions import BadRequest
 from common.api_helpers.filters import ByTeamFilter
 from common.api_helpers.mixins import RateLimitHeadersMixin, UpdateSerializerMixin
 from common.api_helpers.paginators import FiftyPageSizePaginator
-from common.insight_log import EntityEvent, resource_insight_log
+from common.insight_log import EntityEvent, write_resource_insight_log
 
 
 class OnCallScheduleChannelView(RateLimitHeadersMixin, UpdateSerializerMixin, ModelViewSet):
@@ -65,7 +65,7 @@ class OnCallScheduleChannelView(RateLimitHeadersMixin, UpdateSerializerMixin, Mo
         if instance.user_group is not None:
             update_slack_user_group_for_schedules.apply_async((instance.user_group.pk,))
 
-        resource_insight_log(
+        write_resource_insight_log(
             instance=serializer.instance,
             author=self.request.user,
             event=EntityEvent.CREATED,
@@ -75,7 +75,7 @@ class OnCallScheduleChannelView(RateLimitHeadersMixin, UpdateSerializerMixin, Mo
         if isinstance(serializer.instance, OnCallScheduleWeb):
             raise BadRequest(detail="Web schedule update is not enabled through API")
 
-        old_state = serializer.instance.insight_logs_serialized
+        prev_state = serializer.instance.insight_logs_serialized
         old_user_group = serializer.instance.user_group
 
         updated_schedule = serializer.save()
@@ -87,16 +87,16 @@ class OnCallScheduleChannelView(RateLimitHeadersMixin, UpdateSerializerMixin, Mo
             update_slack_user_group_for_schedules.apply_async((updated_schedule.user_group.pk,))
 
         new_state = serializer.instance.insight_logs_serialized
-        resource_insight_log(
+        write_resource_insight_log(
             instance=serializer.instance,
             author=self.request.user,
             event=EntityEvent.UPDATED,
-            prev_state=old_state,
+            prev_state=prev_state,
             new_state=new_state,
         )
 
     def perform_destroy(self, instance):
-        resource_insight_log(
+        write_resource_insight_log(
             instance=instance,
             author=self.request.user,
             event=EntityEvent.DELETED,

@@ -43,7 +43,7 @@ class UserScheduleExportAuthToken(BaseAuthToken):
 
     @property
     def insight_logs_serialized(self):
-        # Schedule export tokens are not modifiable now, so return empty dict to implement InsightLoggable interface
+        # Schedule export tokens are not modifiable, return empty dict to implement InsightLoggable interface
         return {}
 
     @property

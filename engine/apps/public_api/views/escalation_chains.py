@@ -11,7 +11,7 @@ from apps.public_api.throttlers.user_throttle import UserThrottle
 from common.api_helpers.filters import ByTeamFilter
 from common.api_helpers.mixins import RateLimitHeadersMixin, UpdateSerializerMixin
 from common.api_helpers.paginators import FiftyPageSizePaginator
-from common.insight_log import EntityEvent, resource_insight_log
+from common.insight_log import EntityEvent, write_resource_insight_log
 
 
 class EscalationChainView(RateLimitHeadersMixin, UpdateSerializerMixin, ModelViewSet):
@@ -48,14 +48,14 @@ class EscalationChainView(RateLimitHeadersMixin, UpdateSerializerMixin, ModelVie
 
     def perform_create(self, serializer):
         serializer.save()
-        resource_insight_log(
+        write_resource_insight_log(
             instance=serializer.instance,
             author=self.request.user,
             event=EntityEvent.CREATED,
         )
 
     def perform_destroy(self, instance):
-        resource_insight_log(
+        write_resource_insight_log(
             instance=instance,
             author=self.request.user,
             event=EntityEvent.DELETED,
@@ -64,13 +64,13 @@ class EscalationChainView(RateLimitHeadersMixin, UpdateSerializerMixin, ModelVie
 
     def perform_update(self, serializer):
         instance = serializer.instance
-        old_state = instance.insight_logs_serialized
+        prev_state = instance.insight_logs_serialized
         serializer.save()
         new_state = instance.insight_logs_serialized
-        resource_insight_log(
+        write_resource_insight_log(
             instance=serializer.instance,
             author=self.request.user,
             event=EntityEvent.UPDATED,
-            prev_state=old_state,
+            prev_state=prev_state,
             new_state=new_state,
         )
