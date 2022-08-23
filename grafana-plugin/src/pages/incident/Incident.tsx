@@ -523,7 +523,7 @@ class IncidentPage extends React.Component<IncidentPageProps, IncidentPageState>
 
 function Incident({ incident, datetimeReference }: { incident: Alert; datetimeReference: string }) {
   return (
-    <div key={incident.pk} className={cx('incident incident-group-row')}>
+    <div key={incident.pk} className={cx('incident')}>
       <HorizontalGroup wrap={false}>
         <Text.Title type="secondary" level={4}>
           {incident.inside_organization_number
@@ -591,14 +591,14 @@ function GroupedIncident({ incident, datetimeReference }: { incident: GroupedAle
   return (
     <>
       {isModalOpen && (
-        <Modal onDismiss={() => setIsModalOpen(false)} closeOnEscape isOpen={!!isModalOpen} title="Alert Payload">
+        <Modal onDismiss={() => setIsModalOpen(false)} closeOnEscape isOpen={isModalOpen} title="Alert Payload">
           <VerticalGroup>
             <SourceCode>{JSON.stringify(incidentRawResponse.raw_request_data, null, 4)}</SourceCode>
           </VerticalGroup>
         </Modal>
       )}
 
-      <div key={incident.id} className={cx('incident incident-group-row')}>
+      <div key={incident.id} className={cx('incident')}>
         <HorizontalGroup wrap={false}>
           <Text.Title type="secondary" level={4}>
             {incident.render_for_web.title}
