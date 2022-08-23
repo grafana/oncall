@@ -87,10 +87,11 @@ class Rotations extends Component<RotationsProps, RotationsState> {
             {layers && layers.length ? (
               layers.map((layer, layerIndex) => (
                 <div key={layer.priority}>
-                  <div className={cx('layer')}>
+                  <div id={`layer${layer.priority}`} className={cx('layer')}>
                     <div className={cx('layer-title')}>
                       <HorizontalGroup spacing="sm" justify="center">
-                        Layer {layer.priority} <Icon name="info-circle" />
+                        <span>Layer {layer.priority}</span>
+                        <Icon name="info-circle" />
                       </HorizontalGroup>
                     </div>
                     <div className={cx('rotations')}>
@@ -119,10 +120,11 @@ class Rotations extends Component<RotationsProps, RotationsState> {
               ))
             ) : (
               <div>
-                <div className={cx('layer')}>
+                <div id={`layer1`} className={cx('layer')}>
                   <div className={cx('layer-title')}>
                     <HorizontalGroup spacing="sm" justify="center">
-                      Layer 1 <Icon name="info-circle" />
+                      <span>Layer 1</span>
+                      <Icon name="info-circle" />
                     </HorizontalGroup>
                   </div>
                   <div className={cx('header-plus-content')}>
@@ -151,7 +153,7 @@ class Rotations extends Component<RotationsProps, RotationsState> {
                 this.handleAddLayer(nextPriority);
               }}
             >
-              Add rotations layer +
+              + Add rotations layer
             </div>
           </div>
         </div>

@@ -3,6 +3,8 @@ import React, { FC, PropsWithChildren } from 'react';
 import cn from 'classnames/bind';
 import ReactModal from 'react-modal';
 
+ReactModal.setAppElement('#reactRoot');
+
 import styles from './Modal.module.css';
 
 export interface ModalProps {

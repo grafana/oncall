@@ -31,6 +31,7 @@ import { makeRequest } from 'network';
 import { getDateTime, getUTCString } from 'pages/schedule/Schedule.helpers';
 import { SelectOption } from 'state/types';
 import { useStore } from 'state/useStore';
+import { getCoords, waitForElement } from 'utils/DOM';
 import { useDebouncedCallback } from 'utils/hooks';
 
 import { RotationCreateData } from './RotationForm.types';
@@ -57,8 +58,6 @@ const RotationForm: FC<RotationFormProps> = observer((props) => {
   const { onHide, onCreate, startMoment, currentTimezone, scheduleId, onUpdate, onDelete, layerPriority, shiftId } =
     props;
 
-  const [isOpen, setIsOpen] = useState<boolean>(true);
-
   const [repeatEveryValue, setRepeatEveryValue] = useState<number>(1);
   const [repeatEveryPeriod, setRepeatEveryPeriod] = useState<number>(0);
   const [selectedDays, setSelectedDays] = useState<string[]>([]);
@@ -69,6 +68,24 @@ const RotationForm: FC<RotationFormProps> = observer((props) => {
   const [rotationEnd, setRotationEnd] = useState<DateTime>(
     dateTime(startOfDay.add(1, 'month').format('YYYY-MM-DD HH:mm:ss'))
   );
+
+  const store = useStore();
+
+  const shift = store.scheduleStore.shifts[shiftId];
+
+  const [offsetTop, setOffsetTop] = useState<number>(0);
+
+  useEffect(() => {
+    waitForElement(`#layer${shiftId === 'new' ? layerPriority : shift?.priority_level}`).then((elm) => {
+      const modal = document.querySelector(`.${cx('draggable')}`) as HTMLDivElement;
+
+      const coords = getCoords(elm);
+
+      // setOffsetTop(Math.max(coords.top + elm.offsetHeight, 0));
+
+      setOffsetTop(coords.top - modal?.offsetHeight - 70);
+    });
+  }, []);
 
   const [userGroups, setUserGroups] = useState([[]]);
 
@@ -84,10 +101,6 @@ const RotationForm: FC<RotationFormProps> = observer((props) => {
       onDelete();
     });
   }, []);
-
-  const store = useStore();
-
-  const shift = store.scheduleStore.shifts[shiftId];
 
   useEffect(() => {
     if (shiftId !== 'new') {
@@ -137,7 +150,7 @@ const RotationForm: FC<RotationFormProps> = observer((props) => {
 
   const handleChange = useDebouncedCallback(() => {
     store.scheduleStore.updateRotationPreview(scheduleId, shiftId, getFromString(startMoment), false, params);
-  }, 1000);
+  }, 500);
 
   useEffect(handleChange, [params]);
 
@@ -172,11 +185,11 @@ const RotationForm: FC<RotationFormProps> = observer((props) => {
 
   return (
     <Modal
-      isOpen={isOpen}
+      isOpen
       width="430px"
       onDismiss={onHide}
       contentElement={(props, children) => (
-        <Draggable handle=".drag-handler" positionOffset={{ x: 0, y: 0 }}>
+        <Draggable handle=".drag-handler" defaultClassName={cx('draggable')} positionOffset={{ x: 0, y: offsetTop }}>
           <div {...props}>{children}</div>
         </Draggable>
       )}

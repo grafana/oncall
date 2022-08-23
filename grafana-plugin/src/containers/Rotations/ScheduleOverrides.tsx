@@ -55,7 +55,7 @@ class ScheduleOverrides extends Component<ScheduleOverridesProps, ScheduleOverri
 
     return (
       <>
-        <div className={cx('root')}>
+        <div id="overrides-list" className={cx('root')}>
           <div className={cx('header')}>
             <HorizontalGroup justify="space-between">
               <div className={cx('title')}>Overrides</div>
@@ -93,9 +93,9 @@ class ScheduleOverrides extends Component<ScheduleOverridesProps, ScheduleOverri
               )}
             </div>
           </div>
-          <div className={cx('add-rotations-layer')} onClick={this.handleAddOverride}>
-            Add override +
-          </div>
+          {/* <div className={cx('add-rotations-layer')} onClick={this.handleAddOverride}>
+            + Add override
+          </div>*/}
         </div>
         {shiftIdToShowOverrideForm && (
           <ScheduleOverrideForm

@@ -2,6 +2,11 @@
   display: block;
 }
 
+.draggable {
+  top: 0;
+  transition: transform 500ms ease;
+}
+
 .header {
   width: 100%;
   display: flex;

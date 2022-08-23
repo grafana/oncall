@@ -27,6 +27,7 @@ import { Timezone } from 'models/timezone/timezone.types';
 import { User } from 'models/user/user.types';
 import { getDateTime, getUTCString } from 'pages/schedule/Schedule.helpers';
 import { useStore } from 'state/useStore';
+import { getCoords, waitForElement } from 'utils/DOM';
 import { useDebouncedCallback } from 'utils/hooks';
 
 import { RotationCreateData } from './RotationForm.types';
@@ -52,6 +53,18 @@ const ScheduleOverrideForm: FC<RotationFormProps> = (props) => {
   const { onHide, onCreate, currentTimezone, scheduleId, onUpdate, onDelete, shiftId, startMoment } = props;
 
   const store = useStore();
+
+  const [offsetTop, setOffsetTop] = useState<number>(0);
+
+  useEffect(() => {
+    waitForElement('#overrides-list').then((elm) => {
+      const modal = document.querySelector(`.${cx('draggable')}`) as HTMLDivElement;
+
+      const coords = getCoords(elm);
+
+      setOffsetTop(coords.top - modal?.offsetHeight - 10);
+    });
+  }, []);
 
   const [shiftStart, setShiftStart] = useState<DateTime>(dateTime(startOfDay.format('YYYY-MM-DD HH:mm:ss')));
   const [shiftEnd, setShiftEnd] = useState<DateTime>(
@@ -117,16 +130,17 @@ const ScheduleOverrideForm: FC<RotationFormProps> = (props) => {
 
   const handleChange = useDebouncedCallback(() => {
     store.scheduleStore.updateRotationPreview(scheduleId, shiftId, getFromString(startMoment), true, params);
-  }, 1000);
+  }, 500);
 
   useEffect(handleChange, [params]);
 
   return (
     <Modal
+      isOpen
       width="430px"
       onDismiss={onHide}
       contentElement={(props, children) => (
-        <Draggable handle=".drag-handler" positionOffset={{ x: 0, y: 0 }}>
+        <Draggable handle=".drag-handler" defaultClassName={cx('draggable')} positionOffset={{ x: 0, y: offsetTop }}>
           <div {...props}>{children}</div>
         </Draggable>
       )}
