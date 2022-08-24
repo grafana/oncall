@@ -69,7 +69,8 @@ class AlertGroupQuerySet(models.QuerySet):
         # Note that (channel, channel_filter, distinction, is_open_for_grouping) is in unique_together
         try:
             return self.get(**search_params, is_open_for_grouping=True), False
-        except self.model.DoesNotExist:
+        except (self.model.DoesNotExist, self.model.MultipleObjectsReturned):
+            # NOTE: MultipleObjectsReturned: channel_filter, distinction can be None
             pass
 
         # If it's an "OK" alert, try to return the latest resolved group
