@@ -7,8 +7,8 @@ from django.db.models import JSONField
 from apps.slack.constants import SLACK_INVALID_AUTH_RESPONSE, SLACK_WRONG_TEAM_NAMES
 from apps.slack.slack_client import SlackClientWithErrorHandling
 from apps.slack.slack_client.exceptions import SlackAPIException, SlackAPITokenException
-from apps.user_management.organization_log_creator import OrganizationLogType, create_organization_log
 from common.constants.role import Role
+from common.insight_log.chatops_insight_logs import ChatOpsEvent, ChatOpsType, write_chatops_insight_log
 
 logger = logging.getLogger(__name__)
 
@@ -63,8 +63,9 @@ class SlackTeamIdentity(models.Model):
         self.cached_reinstall_data = None
         self.installed_via_granular_permissions = True
         self.save()
-        description = f"Slack workspace {self.cached_name} was connected to organization"
-        create_organization_log(organization, user, OrganizationLogType.TYPE_SLACK_WORKSPACE_CONNECTED, description)
+        write_chatops_insight_log(
+            author=user, event_name=ChatOpsEvent.WORKSPACE_CONNECTED, chatops_type=ChatOpsType.SLACK
+        )
 
     def get_cached_channels(self, search_term=None, slack_id=None):
         queryset = self.cached_channels

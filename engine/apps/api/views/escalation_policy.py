@@ -14,9 +14,9 @@ from apps.api.serializers.escalation_policy import (
     EscalationPolicyUpdateSerializer,
 )
 from apps.auth_token.auth import PluginAuthentication
-from apps.user_management.organization_log_creator import OrganizationLogType, create_organization_log
 from common.api_helpers.exceptions import BadRequest
 from common.api_helpers.mixins import CreateSerializerMixin, PublicPrimaryKeyMixin, UpdateSerializerMixin
+from common.insight_log import EntityEvent, write_resource_insight_log
 
 
 class EscalationPolicyView(PublicPrimaryKeyMixin, CreateSerializerMixin, UpdateSerializerMixin, ModelViewSet):
@@ -66,37 +66,31 @@ class EscalationPolicyView(PublicPrimaryKeyMixin, CreateSerializerMixin, UpdateS
 
     def perform_create(self, serializer):
         serializer.save()
-        instance = serializer.instance
-        organization = self.request.user.organization
-        user = self.request.user
-        description = (
-            f"Escalation step '{instance.step_type_verbal}' with order {instance.order} "
-            f"was created for escalation chain '{instance.escalation_chain.name}'"
+        write_resource_insight_log(
+            instance=serializer.instance,
+            author=self.request.user,
+            event=EntityEvent.CREATED,
         )
-        create_organization_log(organization, user, OrganizationLogType.TYPE_ESCALATION_STEP_CREATED, description)
 
     def perform_update(self, serializer):
-        organization = self.request.user.organization
-        user = self.request.user
-        old_state = serializer.instance.repr_settings_for_client_side_logging
+        prev_state = serializer.instance.insight_logs_serialized
         serializer.save()
-        new_state = serializer.instance.repr_settings_for_client_side_logging
-        escalation_chain_name = serializer.instance.escalation_chain.name
+        new_state = serializer.instance.insight_logs_serialized
 
-        description = (
-            f"Settings for escalation step of escalation chain '{escalation_chain_name}' "
-            f"was changed from:\n{old_state}\nto:\n{new_state}"
+        write_resource_insight_log(
+            instance=serializer.instance,
+            author=self.request.user,
+            event=EntityEvent.UPDATED,
+            prev_state=prev_state,
+            new_state=new_state,
         )
-        create_organization_log(organization, user, OrganizationLogType.TYPE_ESCALATION_STEP_CHANGED, description)
 
     def perform_destroy(self, instance):
-        organization = self.request.user.organization
-        user = self.request.user
-        description = (
-            f"Escalation step '{instance.step_type_verbal}' with order {instance.order} of "
-            f"of escalation chain '{instance.escalation_chain.name}' was deleted"
+        write_resource_insight_log(
+            instance=instance,
+            author=self.request.user,
+            event=EntityEvent.DELETED,
         )
-        create_organization_log(organization, user, OrganizationLogType.TYPE_ESCALATION_STEP_DELETED, description)
         instance.delete()
 
     @action(detail=True, methods=["put"])
@@ -104,29 +98,22 @@ class EscalationPolicyView(PublicPrimaryKeyMixin, CreateSerializerMixin, UpdateS
         position = request.query_params.get("position", None)
         if position is not None:
             try:
-                source_step = EscalationPolicy.objects.get(public_primary_key=pk)
+                instance = EscalationPolicy.objects.get(public_primary_key=pk)
             except EscalationPolicy.DoesNotExist:
                 raise BadRequest(detail="Step does not exist")
             try:
-                user = self.request.user
-                old_state = source_step.repr_settings_for_client_side_logging
-
+                prev_state = instance.insight_logs_serialized
                 position = int(position)
-                source_step.to(position)
+                instance.to(position)
+                new_state = instance.insight_logs_serialized
 
-                new_state = source_step.repr_settings_for_client_side_logging
-                escalation_chain_name = source_step.escalation_chain.name
-                description = (
-                    f"Settings for escalation step of escalation chain '{escalation_chain_name}' "
-                    f"was changed from:\n{old_state}\nto:\n{new_state}"
+                write_resource_insight_log(
+                    instance=instance,
+                    author=self.request.user,
+                    event=EntityEvent.UPDATED,
+                    prev_state=prev_state,
+                    new_state=new_state,
                 )
-                create_organization_log(
-                    user.organization,
-                    user,
-                    OrganizationLogType.TYPE_ESCALATION_STEP_CHANGED,
-                    description,
-                )
-
                 return Response(status=status.HTTP_200_OK)
             except ValueError as e:
                 raise BadRequest(detail=f"{e}")

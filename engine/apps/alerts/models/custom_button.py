@@ -94,19 +94,6 @@ class CustomButton(models.Model):
     def hard_delete(self):
         super().delete()
 
-    @property
-    def repr_settings_for_client_side_logging(self):
-        """
-        Example of execution:
-            name: example, team: example, webhook: https://example.com, user: None, password: None,
-            authorization header: None, data: None
-        """
-        return (
-            f"name: {self.name}, team: {self.team.name if self.team else 'No team'}, webhook: {self.webhook}, "
-            f"user: {self.user}, password: {self.password}, authorization header: {self.authorization_header}, "
-            f"data: {self.data}, forward_whole_payload {self.forward_whole_payload}"
-        )
-
     def build_post_kwargs(self, alert):
         post_kwargs = {}
         if self.user and self.password:
@@ -147,6 +134,44 @@ class CustomButton(models.Model):
         First and last chars are quotes from json.dumps(), we don't need them, only escaping.
         """
         return json.dumps(string)[1:-1]
+
+    # Insight logs
+    @property
+    def insight_logs_type_verbal(self):
+        return "outgoing_webhook"
+
+    @property
+    def insight_logs_verbal(self):
+        return self.name
+
+    @property
+    def insight_logs_serialized(self):
+        result = {
+            "name": self.name,
+            "webhook": self.webhook,
+            "user": self.user,
+            "password": self.password,
+            "authorization_header": self.authorization_header,
+            "data": self.data,
+            "forward_whole_payload": self.forward_whole_payload,
+        }
+
+        if self.team:
+            result["team"] = self.team.name
+            result["team_id"] = self.team.public_primary_key
+        else:
+            result["team"] = "General"
+        return result
+
+    @property
+    def insight_logs_metadata(self):
+        result = {}
+        if self.team:
+            result["team"] = self.team.name
+            result["team_id"] = self.team.public_primary_key
+        else:
+            result["team"] = "General"
+        return result
 
 
 class EscapeDoubleQuotesDict(dict):

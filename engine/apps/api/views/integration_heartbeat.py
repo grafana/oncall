@@ -7,8 +7,8 @@ from apps.api.permissions import MODIFY_ACTIONS, READ_ACTIONS, ActionPermission,
 from apps.api.serializers.integration_heartbeat import IntegrationHeartBeatSerializer
 from apps.auth_token.auth import PluginAuthentication
 from apps.heartbeat.models import IntegrationHeartBeat
-from apps.user_management.organization_log_creator import OrganizationLogType, create_organization_log
 from common.api_helpers.mixins import PublicPrimaryKeyMixin
+from common.insight_log import EntityEvent, write_resource_insight_log
 
 
 class IntegrationHeartBeatView(
@@ -45,29 +45,22 @@ class IntegrationHeartBeatView(
     def perform_create(self, serializer):
         serializer.save()
         instance = serializer.instance
-        description = f"Heartbeat for integration {instance.alert_receive_channel.verbal_name} was created"
-        create_organization_log(
-            instance.alert_receive_channel.organization,
-            self.request.user,
-            OrganizationLogType.TYPE_HEARTBEAT_CREATED,
-            description,
+        write_resource_insight_log(
+            instance=instance,
+            author=self.request.user,
+            event=EntityEvent.CREATED,
         )
 
     def perform_update(self, serializer):
-        old_state = serializer.instance.repr_settings_for_client_side_logging
+        prev_state = serializer.instance.insight_logs_serialized
         serializer.save()
-        new_state = serializer.instance.repr_settings_for_client_side_logging
-        alert_receive_channel = serializer.instance.alert_receive_channel
-        description = (
-            f"Settings for heartbeat of integration "
-            f"{alert_receive_channel.verbal_name} was changed "
-            f"from:\n{old_state}\nto:\n{new_state}"
-        )
-        create_organization_log(
-            alert_receive_channel.organization,
-            self.request.user,
-            OrganizationLogType.TYPE_HEARTBEAT_CHANGED,
-            description,
+        new_state = serializer.instance.insight_logs_serialized
+        write_resource_insight_log(
+            instance=serializer.instance,
+            author=self.request.user,
+            event=EntityEvent.UPDATED,
+            prev_state=prev_state,
+            new_state=new_state,
         )
 
     @action(detail=False, methods=["get"])

@@ -25,7 +25,6 @@ from .views.organization import (
     GetTelegramVerificationCode,
     SetGeneralChannel,
 )
-from .views.organization_log_record import OrganizationLogRecordView
 from .views.preview_template_options import PreviewTemplateOptionsView
 from .views.public_api_tokens import PublicApiTokenView
 from .views.resolution_note import ResolutionNoteView
@@ -65,7 +64,6 @@ router.register(r"telegram_channels", TelegramChannelViewSet, basename="telegram
 router.register(r"slack_channels", SlackChannelView, basename="slack_channel")
 router.register(r"user_groups", UserGroupViewSet, basename="user_group")
 router.register(r"heartbeats", IntegrationHeartBeatView, basename="integration_heartbeat")
-router.register(r"organization_logs", OrganizationLogRecordView, basename="organization_log")
 router.register(r"tokens", PublicApiTokenView, basename="api_token")
 router.register(r"live_settings", LiveSettingViewSet, basename="live_settings")
 router.register(r"oncall_shifts", OnCallShiftView, basename="oncall_shifts")
