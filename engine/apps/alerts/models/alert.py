@@ -196,8 +196,8 @@ class Alert(models.Model):
         if grouping_id_template is not None:
             group_distinction, _ = apply_jinja_template(grouping_id_template, raw_request_data)
 
-        # Insert demo uuid to prevent grouping of demo alerts.
-        if is_demo:
+        # Insert demo uuid to prevent grouping of demo alerts or alerts with group_distinction=None
+        if is_demo or not group_distinction:
             group_distinction = cls.insert_demo_uuid(group_distinction)
 
         if group_distinction is not None:
