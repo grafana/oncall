@@ -3,7 +3,7 @@ from random import randrange
 
 from celery.schedules import crontab
 
-from common.utils import getenv_boolean
+from common.utils import getenv_boolean, getenv_integer
 
 VERSION = "dev-oss"
 # Indicates if instance is OSS installation.
@@ -451,7 +451,7 @@ SELF_HOSTED_SETTINGS = {
 
 GRAFANA_INCIDENT_STATIC_API_KEY = os.environ.get("GRAFANA_INCIDENT_STATIC_API_KEY", None)
 
-DATA_UPLOAD_MAX_MEMORY_SIZE = 5242880
+DATA_UPLOAD_MAX_MEMORY_SIZE = getenv_integer("DATA_UPLOAD_MAX_MEMORY_SIZE", 1_048_576)  # 1mb by default
 
 # Log inbound/outbound calls as slow=1 if they exceed threshold
 SLOW_THRESHOLD_SECONDS = 2.0
