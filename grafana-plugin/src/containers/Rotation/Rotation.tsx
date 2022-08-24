@@ -24,15 +24,26 @@ interface RotationProps {
   rotationIndex?: number;
   color?: string;
   events: Event[];
-  onClick: () => void;
+  onClick: (moment: dayjs.Dayjs) => void;
+  days?: number;
+  transparent?: boolean;
 }
 
 const Rotation: FC<RotationProps> = (props) => {
-  const { events, layerIndex, rotationIndex, startMoment, currentTimezone, color, onClick } = props;
+  const {
+    events,
+    layerIndex,
+    rotationIndex,
+    startMoment,
+    currentTimezone,
+    color,
+    onClick,
+    days = 7,
+    transparent = false,
+  } = props;
 
   const [animate, setAnimate] = useState<boolean>(true);
   const [width, setWidth] = useState<number | undefined>();
-  const [transparent, setTransparent] = useState<boolean>(false);
 
   const startMomentString = useMemo(() => getFromString(startMoment), [startMoment]);
 
@@ -64,6 +75,21 @@ const Rotation: FC<RotationProps> = (props) => {
     }
   }, []);
 
+  const handleClick = (event) => {
+    const rect = event.currentTarget.getBoundingClientRect();
+    const x = event.clientX - rect.left; //x position within the element.
+    const width = event.currentTarget.offsetWidth;
+
+    const dayOffset = Math.floor((x / width) * 7);
+
+    console.log('event.offsetX', event.offsetX);
+    console.log('event.nativeEvent', event.nativeEvent);
+    console.log('event.currentTarget', event.currentTarget);
+    console.log('dayOffset', dayOffset);
+
+    onClick(startMoment.add(dayOffset, 'day'));
+  };
+
   const x = useMemo(() => {
     if (!events || !events.length) {
       return 0;
@@ -73,14 +99,14 @@ const Rotation: FC<RotationProps> = (props) => {
 
     const firstShiftOffset = dayjs(firstShift.start).diff(startMoment, 'seconds');
 
-    const base = 60 * 60 * 24 * 7; // in minutes only
+    const base = 60 * 60 * 24 * days;
     // const utcOffset = dayjs().tz(currentTimezone).utcOffset();
 
     return firstShiftOffset / base;
   }, [events]);
 
   return (
-    <div className={cx('root')} onClick={onClick}>
+    <div className={cx('root')} onClick={handleClick}>
       <div className={cx('timeline')}>
         {events ? (
           events.length ? (

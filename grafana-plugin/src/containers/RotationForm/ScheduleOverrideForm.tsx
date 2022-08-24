@@ -47,31 +47,43 @@ interface RotationFormProps {
 
 const cx = cn.bind(styles);
 
-const startOfDay = dayjs().startOf('day').add(1, 'day');
-
 const ScheduleOverrideForm: FC<RotationFormProps> = (props) => {
-  const { onHide, onCreate, currentTimezone, scheduleId, onUpdate, onDelete, shiftId, startMoment } = props;
+  const {
+    onHide,
+    onCreate,
+    currentTimezone,
+    scheduleId,
+    onUpdate,
+    onDelete,
+    shiftId,
+    startMoment,
+    shiftMoment = dayjs().startOf('day').add(1, 'day'),
+  } = props;
 
   const store = useStore();
 
   const [offsetTop, setOffsetTop] = useState<number>(0);
 
+  const [isOpen, setIsOpen] = useState<boolean>(false);
+
   useEffect(() => {
-    waitForElement('#overrides-list').then((elm) => {
-      const modal = document.querySelector(`.${cx('draggable')}`) as HTMLDivElement;
+    if (isOpen) {
+      waitForElement('#overrides-list').then((elm) => {
+        const modal = document.querySelector(`.${cx('draggable')}`) as HTMLDivElement;
 
-      const coords = getCoords(elm);
+        const coords = getCoords(elm);
 
-      setOffsetTop(coords.top - modal?.offsetHeight - 10);
-    });
-  }, []);
+        setOffsetTop(coords.top - modal?.offsetHeight - 10);
+      });
+    }
+  }, [isOpen]);
 
-  const [shiftStart, setShiftStart] = useState<DateTime>(dateTime(startOfDay.format('YYYY-MM-DD HH:mm:ss')));
+  const [shiftStart, setShiftStart] = useState<DateTime>(dateTime(shiftMoment.format('YYYY-MM-DD HH:mm:ss')));
   const [shiftEnd, setShiftEnd] = useState<DateTime>(
-    dateTime(startOfDay.add(12, 'hours').format('YYYY-MM-DD HH:mm:ss'))
+    dateTime(shiftMoment.add(24, 'hours').format('YYYY-MM-DD HH:mm:ss'))
   );
 
-  const [userGroups, setUserGroups] = useState([[]]);
+  const [userGroups, setUserGroups] = useState(shiftId === 'new' ? [[store.userStore.currentUserPk]] : [[]]);
 
   const getUser = (pk: User['pk']) => {
     return {
@@ -128,15 +140,27 @@ const ScheduleOverrideForm: FC<RotationFormProps> = (props) => {
     }
   }, [scheduleId, shiftId, params]);
 
-  const handleChange = useDebouncedCallback(() => {
-    store.scheduleStore.updateRotationPreview(scheduleId, shiftId, getFromString(startMoment), true, params);
-  }, 500);
+  useEffect(() => {
+    if (shiftId === 'new') {
+      updatePreview();
+    }
+  }, []);
+
+  const updatePreview = () => {
+    store.scheduleStore
+      .updateRotationPreview(scheduleId, shiftId, getFromString(startMoment), true, params)
+      .then(() => {
+        setIsOpen(true);
+      });
+  };
+
+  const handleChange = useDebouncedCallback(updatePreview, 200);
 
   useEffect(handleChange, [params]);
 
   return (
     <Modal
-      isOpen
+      isOpen={isOpen}
       width="430px"
       onDismiss={onHide}
       contentElement={(props, children) => (

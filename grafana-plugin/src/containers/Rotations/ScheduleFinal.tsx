@@ -14,6 +14,8 @@ import { Timezone } from 'models/timezone/timezone.types';
 import { WithStoreProps } from 'state/types';
 import { withMobXProviderContext } from 'state/withStore';
 
+import { findColor } from './Rotations.helpers';
+
 import styles from './Rotations.module.css';
 
 const cx = cn.bind(styles);
@@ -82,32 +84,13 @@ class ScheduleFinal extends Component<ScheduleFinalProps, ScheduleOverridesState
             <div className={cx('rotations')}>
               {shifts && shifts.length ? (
                 shifts.map(({ shiftId, events }, index) => {
-                  let color = undefined;
-
-                  const layerIndex = layers
-                    ? layers.findIndex((layer) => layer.shifts.some((shift) => shift.shiftId === shiftId))
-                    : -1;
-
-                  const rotationIndex =
-                    layerIndex > -1 ? layers[layerIndex].shifts.findIndex((shift) => shift.shiftId === shiftId) : -1;
-
-                  if (layerIndex > -1 && rotationIndex > -1) {
-                    color = getColor(layerIndex, rotationIndex);
-                  } else {
-                    const overrideIndex = overrides ? overrides.findIndex((shift) => shift.shiftId === shiftId) : -1;
-
-                    if (overrideIndex > -1) {
-                      color = getOverrideColor(overrideIndex);
-                    }
-                  }
-
                   return (
                     <Rotation
                       key={index}
                       events={events}
                       startMoment={startMoment}
                       currentTimezone={currentTimezone}
-                      color={color}
+                      color={findColor(shiftId, layers, overrides)}
                     />
                   );
                 })

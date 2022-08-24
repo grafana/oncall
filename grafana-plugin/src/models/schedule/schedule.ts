@@ -86,7 +86,7 @@ export class ScheduleStore extends BaseStore {
   rotationPreview?: Layer[];
 
   @observable
-  overridePreview?: Array<{ shiftId: Shift['id']; events: Event[] }>;
+  overridePreview?: Array<{ shiftId: Shift['id']; isPreview?: boolean; events: Event[] }>;
 
   @observable
   scheduleToScheduleEvents: {

@@ -98,7 +98,9 @@ export const enrichLayers = (
 
   const updatingLayer = {
     priority,
-    shifts: [{ shiftId: shiftId, events: fillGaps(newEvents.filter((event: Event) => !event.is_gap)) }],
+    shifts: [
+      { shiftId: shiftId, isPreview: true, events: fillGaps(newEvents.filter((event: Event) => !event.is_gap)) },
+    ],
   };
 
   const isNew = updatingLayer.shifts[0].shiftId === 'new';
@@ -149,7 +151,7 @@ export const enrichOverrides = (
     }
   }
 
-  const newShift = { shiftId, events: fillGaps(newEvents) };
+  const newShift = { shiftId, isPreview: true, events: fillGaps(newEvents) };
 
   const index = overrides.findIndex((shift) => shift.shiftId === shiftId);
 

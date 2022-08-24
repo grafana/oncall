@@ -4,6 +4,7 @@ import { Button, HorizontalGroup, Icon, ValuePicker } from '@grafana/ui';
 import cn from 'classnames/bind';
 import dayjs from 'dayjs';
 import { observer } from 'mobx-react';
+import moment from 'moment';
 
 import TimelineMarks from 'components/TimelineMarks/TimelineMarks';
 import Rotation from 'containers/Rotation/Rotation';
@@ -30,17 +31,19 @@ interface ScheduleOverridesProps extends WithStoreProps {
 
 interface ScheduleOverridesState {
   shiftIdToShowOverrideForm?: Shift['id'] | 'new';
+  shiftMomentToShowOverrideForm?: dayjs.Dayjs;
 }
 
 @observer
 class ScheduleOverrides extends Component<ScheduleOverridesProps, ScheduleOverridesState> {
   state: ScheduleOverridesState = {
     shiftIdToShowOverrideForm: undefined,
+    shiftMomentToShowOverrideForm: undefined,
   };
 
   render() {
     const { scheduleId, startMoment, currentTimezone, onCreate, onUpdate, onDelete, store } = this.props;
-    const { shiftIdToShowOverrideForm } = this.state;
+    const { shiftIdToShowOverrideForm, shiftMomentToShowOverrideForm } = this.state;
 
     const shifts = store.scheduleStore.overridePreview
       ? store.scheduleStore.overridePreview
@@ -69,16 +72,17 @@ class ScheduleOverrides extends Component<ScheduleOverridesProps, ScheduleOverri
             <TimelineMarks startMoment={startMoment} />
             <div className={cx('rotations')}>
               {shifts && shifts.length ? (
-                shifts.map(({ shiftId, events }, rotationIndex) => (
+                shifts.map(({ shiftId, isPreview, events }, rotationIndex) => (
                   <Rotation
                     key={rotationIndex}
                     events={events}
                     color={getOverrideColor(rotationIndex)}
                     startMoment={startMoment}
                     currentTimezone={currentTimezone}
-                    onClick={() => {
-                      this.onRotationClick(shiftId);
+                    onClick={(moment) => {
+                      this.onRotationClick(shiftId, moment);
                     }}
+                    transparent={isPreview}
                   />
                 ))
               ) : (
@@ -86,8 +90,8 @@ class ScheduleOverrides extends Component<ScheduleOverridesProps, ScheduleOverri
                   events={[]}
                   startMoment={startMoment}
                   currentTimezone={currentTimezone}
-                  onClick={() => {
-                    this.onRotationClick('new');
+                  onClick={(moment) => {
+                    this.onRotationClick('new', moment);
                   }}
                 />
               )}
@@ -103,6 +107,7 @@ class ScheduleOverrides extends Component<ScheduleOverridesProps, ScheduleOverri
             scheduleId={scheduleId}
             startMoment={startMoment}
             currentTimezone={currentTimezone}
+            shiftMoment={shiftMomentToShowOverrideForm}
             onHide={() => {
               this.handleHide();
 
@@ -129,8 +134,8 @@ class ScheduleOverrides extends Component<ScheduleOverridesProps, ScheduleOverri
     );
   }
 
-  onRotationClick = (shiftId: Shift['id']) => {
-    this.setState({ shiftIdToShowOverrideForm: shiftId });
+  onRotationClick = (shiftId: Shift['id'], moment: dayjs.Dayjs) => {
+    this.setState({ shiftIdToShowOverrideForm: shiftId, shiftMomentToShowOverrideForm: moment });
   };
 
   handleAddOverride = () => {
@@ -138,9 +143,7 @@ class ScheduleOverrides extends Component<ScheduleOverridesProps, ScheduleOverri
   };
 
   handleHide = () => {
-    const { store } = this.props;
-
-    this.setState({ shiftIdToShowOverrideForm: undefined });
+    this.setState({ shiftIdToShowOverrideForm: undefined, shiftMomentToShowOverrideForm: undefined });
   };
 }
 

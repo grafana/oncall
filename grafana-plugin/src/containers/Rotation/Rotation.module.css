@@ -47,7 +47,7 @@
 }
 
 .slots__transparent {
-  opacity: 0;
+  opacity: 0.5;
 }
 
 .current-time {

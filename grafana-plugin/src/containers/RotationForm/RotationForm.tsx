@@ -45,6 +45,7 @@ interface RotationFormProps {
   currentTimezone: Timezone;
   scheduleId: Schedule['id'];
   shiftId: Shift['id'] | 'new';
+  shiftMoment?: dayjs.Dayjs;
   onCreate: () => void;
   onUpdate: () => void;
   onDelete: () => void;
@@ -52,21 +53,31 @@ interface RotationFormProps {
 
 const cx = cn.bind(styles);
 
-const startOfDay = dayjs().startOf('day').add(1, 'day');
-
 const RotationForm: FC<RotationFormProps> = observer((props) => {
-  const { onHide, onCreate, startMoment, currentTimezone, scheduleId, onUpdate, onDelete, layerPriority, shiftId } =
-    props;
+  const {
+    onHide,
+    onCreate,
+    startMoment,
+    currentTimezone,
+    scheduleId,
+    onUpdate,
+    onDelete,
+    layerPriority,
+    shiftId,
+    shiftMoment = dayjs().startOf('day').add(1, 'day'),
+  } = props;
+
+  const [isOpen, setIsOpen] = useState<boolean>(false);
 
   const [repeatEveryValue, setRepeatEveryValue] = useState<number>(1);
   const [repeatEveryPeriod, setRepeatEveryPeriod] = useState<number>(0);
   const [selectedDays, setSelectedDays] = useState<string[]>([]);
-  const [shiftStart, setShiftStart] = useState<DateTime>(dateTime(startOfDay.format('YYYY-MM-DD HH:mm:ss')));
-  const [shiftEnd, setShiftEnd] = useState<DateTime>(dateTime(startOfDay.add(1, 'day').format('YYYY-MM-DD HH:mm:ss')));
-  const [rotationStart, setRotationStart] = useState<DateTime>(dateTime(startOfDay.format('YYYY-MM-DD HH:mm:ss')));
+  const [shiftStart, setShiftStart] = useState<DateTime>(dateTime(shiftMoment.format('YYYY-MM-DD HH:mm:ss')));
+  const [shiftEnd, setShiftEnd] = useState<DateTime>(dateTime(shiftMoment.add(1, 'day').format('YYYY-MM-DD HH:mm:ss')));
+  const [rotationStart, setRotationStart] = useState<DateTime>(dateTime(shiftMoment.format('YYYY-MM-DD HH:mm:ss')));
   const [endLess, setEndless] = useState<boolean>(true);
   const [rotationEnd, setRotationEnd] = useState<DateTime>(
-    dateTime(startOfDay.add(1, 'month').format('YYYY-MM-DD HH:mm:ss'))
+    dateTime(shiftMoment.add(1, 'month').format('YYYY-MM-DD HH:mm:ss'))
   );
 
   const store = useStore();
@@ -76,18 +87,20 @@ const RotationForm: FC<RotationFormProps> = observer((props) => {
   const [offsetTop, setOffsetTop] = useState<number>(0);
 
   useEffect(() => {
-    waitForElement(`#layer${shiftId === 'new' ? layerPriority : shift?.priority_level}`).then((elm) => {
-      const modal = document.querySelector(`.${cx('draggable')}`) as HTMLDivElement;
+    if (isOpen) {
+      waitForElement(`#layer${shiftId === 'new' ? layerPriority : shift?.priority_level}`).then((elm) => {
+        const modal = document.querySelector(`.${cx('draggable')}`) as HTMLDivElement;
 
-      const coords = getCoords(elm);
+        const coords = getCoords(elm);
 
-      // setOffsetTop(Math.max(coords.top + elm.offsetHeight, 0));
+        // setOffsetTop(Math.max(coords.top + elm.offsetHeight, 0));
 
-      setOffsetTop(coords.top - modal?.offsetHeight - 70);
-    });
-  }, []);
+        setOffsetTop(coords.top - modal?.offsetHeight - 10);
+      });
+    }
+  }, [isOpen]);
 
-  const [userGroups, setUserGroups] = useState([[]]);
+  const [userGroups, setUserGroups] = useState(shiftId === 'new' ? [[store.userStore.currentUserPk]] : [[]]);
 
   const getUser = (pk: User['pk']) => {
     return {
@@ -148,9 +161,21 @@ const RotationForm: FC<RotationFormProps> = observer((props) => {
     }
   }, [scheduleId, shiftId, params]);
 
-  const handleChange = useDebouncedCallback(() => {
-    store.scheduleStore.updateRotationPreview(scheduleId, shiftId, getFromString(startMoment), false, params);
-  }, 500);
+  useEffect(() => {
+    if (shiftId === 'new') {
+      updatePreview();
+    }
+  }, []);
+
+  const updatePreview = () => {
+    store.scheduleStore
+      .updateRotationPreview(scheduleId, shiftId, getFromString(startMoment), false, params)
+      .then(() => {
+        setIsOpen(true);
+      });
+  };
+
+  const handleChange = useDebouncedCallback(updatePreview, 200);
 
   useEffect(handleChange, [params]);
 
@@ -185,7 +210,7 @@ const RotationForm: FC<RotationFormProps> = observer((props) => {
 
   return (
     <Modal
-      isOpen
+      isOpen={isOpen}
       width="430px"
       onDismiss={onHide}
       contentElement={(props, children) => (
