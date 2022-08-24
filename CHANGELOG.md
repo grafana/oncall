@@ -1,6 +1,6 @@
 # Change Log
 
-## v1.0.24 (2022-08-23)
+## v1.0.24 (2022-08-24)
 - Insight logs
 - Default DATA_UPLOAD_MAX_MEMORY_SIZE to 1mb
 
