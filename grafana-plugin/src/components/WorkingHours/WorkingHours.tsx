@@ -24,13 +24,7 @@ interface WorkingHoursProps {
 const cx = cn.bind(styles);
 
 const WorkingHours: FC<WorkingHoursProps> = (props) => {
-  const {
-    timezone,
-    workingHours,
-    startMoment = dayjs().utc().startOf('week'),
-    duration = 14 * 24 * 60 * 60,
-    className,
-  } = props;
+  const { timezone, workingHours, startMoment, duration, className } = props;
 
   const endMoment = startMoment.add(duration, 'seconds');
 

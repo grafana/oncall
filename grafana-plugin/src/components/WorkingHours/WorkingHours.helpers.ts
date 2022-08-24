@@ -3,7 +3,8 @@ import dayjs from 'dayjs';
 export const getWorkingMoments = (startMoment, endMoment, workingHours, timezone) => {
   const weekdays = dayjs.weekdays();
 
-  const momentToStartIteration = startMoment.tz(timezone);
+  const momentToStartIteration = dayjs().tz(timezone).utcOffset() === 0 ? startMoment : startMoment.tz(timezone);
+
   const dayOfWeekToStartIteration = momentToStartIteration.format('dddd');
 
   const weekDaysToIterateChunk = [
