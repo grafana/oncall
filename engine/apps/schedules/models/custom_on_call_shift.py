@@ -513,3 +513,65 @@ class CustomOnCallShift(models.Model):
         name = f"{schedule.name}-{shift_type_name}-{priority_level}-"
         name += "".join(random.choice(string.ascii_lowercase) for _ in range(5))
         return name
+
+    # Insight logs
+    @property
+    def insight_logs_type_verbal(self):
+        return "oncall_shift"
+
+    @property
+    def insight_logs_verbal(self):
+        return self.name
+
+    @property
+    def insight_logs_serialized(self):
+        users_verbal = []
+        if self.type == CustomOnCallShift.TYPE_ROLLING_USERS_EVENT:
+            if self.rolling_users is not None:
+                for users_dict in self.rolling_users:
+                    users = self.organization.users.filter(public_primary_key__in=users_dict.values())
+                    users_verbal.extend([user.username for user in users])
+        else:
+            users = self.users.all()
+            users_verbal = [user.username for user in users]
+        result = {
+            "name": self.name,
+            "source": self.get_source_display(),
+            "type": self.get_type_display(),
+            "users": users_verbal,
+            "start": self.start.isoformat(),
+            "duration": self.duration.seconds,
+            "priority_level": self.priority_level,
+        }
+        if self.type not in (CustomOnCallShift.TYPE_SINGLE_EVENT, CustomOnCallShift.TYPE_OVERRIDE):
+            result["frequency"] = self.get_frequency_display()
+            result["interval"] = self.interval
+            result["week_start"] = self.week_start
+            result["by_day"] = self.by_day
+            result["by_month"] = self.by_month
+            result["by_monthday"] = self.by_monthday
+            result["rotation_start"] = self.rotation_start.isoformat()
+            if self.until:
+                result["until"] = self.until.isoformat()
+        if self.team:
+            result["team"] = self.team.name
+            result["team_id"] = self.team.public_primary_key
+        else:
+            result["team"] = "General"
+        if self.time_zone:
+            result["time_zone"] = self.time_zone
+        return result
+
+    @property
+    def insight_logs_metadata(self):
+        result = {}
+        if self.team:
+            result["team"] = self.team.name
+            result["team_id"] = self.team.public_primary_key
+        else:
+            result["team"] = "General"
+        if self.schedule:
+            result["schedule"] = self.schedule.insight_logs_verbal
+            result["schedule_id"] = self.schedule.public_primary_key
+
+        return result

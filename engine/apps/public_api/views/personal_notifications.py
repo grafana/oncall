@@ -9,10 +9,10 @@ from apps.base.models import UserNotificationPolicy
 from apps.public_api.serializers import PersonalNotificationRuleSerializer, PersonalNotificationRuleUpdateSerializer
 from apps.public_api.throttlers.user_throttle import UserThrottle
 from apps.user_management.models import User
-from apps.user_management.organization_log_creator import OrganizationLogType, create_organization_log
 from common.api_helpers.exceptions import BadRequest
 from common.api_helpers.mixins import RateLimitHeadersMixin, UpdateSerializerMixin
 from common.api_helpers.paginators import FiftyPageSizePaginator
+from common.insight_log import EntityEvent, write_resource_insight_log
 
 
 class PersonalNotificationView(RateLimitHeadersMixin, UpdateSerializerMixin, ModelViewSet):
@@ -72,45 +72,40 @@ class PersonalNotificationView(RateLimitHeadersMixin, UpdateSerializerMixin, Mod
         return Response(status=status.HTTP_204_NO_CONTENT)
 
     def perform_destroy(self, instance):
-        organization = self.request.auth.organization
         user = self.request.user
-        old_state = user.repr_settings_for_client_side_logging
+        prev_state = user.insight_logs_serialized
         instance.delete()
-        new_state = user.repr_settings_for_client_side_logging
-        description = f"User settings for user {user.username} was changed from:\n{old_state}\nto:\n{new_state}"
-        create_organization_log(
-            organization,
-            user,
-            OrganizationLogType.TYPE_USER_SETTINGS_CHANGED,
-            description,
+        new_state = user.insight_logs_serialized
+        write_resource_insight_log(
+            instance=user,
+            author=self.request.user,
+            event=EntityEvent.UPDATED,
+            prev_state=prev_state,
+            new_state=new_state,
         )
 
     def perform_create(self, serializer):
-        organization = self.request.auth.organization
-        author = self.request.user
         user = serializer.validated_data["user"]
-
-        old_state = user.repr_settings_for_client_side_logging
+        prev_state = user.insight_logs_serialized
         serializer.save()
-        new_state = user.repr_settings_for_client_side_logging
-        description = f"User settings for user {user.username} was changed from:\n{old_state}\nto:\n{new_state}"
-        create_organization_log(
-            organization,
-            author,
-            OrganizationLogType.TYPE_USER_SETTINGS_CHANGED,
-            description,
+        new_state = user.insight_logs_serialized
+        write_resource_insight_log(
+            instance=user,
+            author=self.request.user,
+            event=EntityEvent.UPDATED,
+            prev_state=prev_state,
+            new_state=new_state,
         )
 
     def perform_update(self, serializer):
-        organization = self.request.auth.organization
         user = self.request.user
-        old_state = user.repr_settings_for_client_side_logging
+        prev_state = user.insight_logs_serialized
         serializer.save()
-        new_state = user.repr_settings_for_client_side_logging
-        description = f"User settings for user {user.username} was changed from:\n{old_state}\nto:\n{new_state}"
-        create_organization_log(
-            organization,
-            user,
-            OrganizationLogType.TYPE_USER_SETTINGS_CHANGED,
-            description,
+        new_state = user.insight_logs_serialized
+        write_resource_insight_log(
+            instance=user,
+            author=self.request.user,
+            event=EntityEvent.UPDATED,
+            prev_state=prev_state,
+            new_state=new_state,
         )

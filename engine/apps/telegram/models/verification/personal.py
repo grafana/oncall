@@ -6,7 +6,7 @@ from django.db import IntegrityError, models
 from django.utils import timezone
 
 from apps.telegram.models import TelegramToUserConnector
-from apps.user_management.organization_log_creator import OrganizationLogType, create_organization_log
+from common.insight_log import ChatOpsEvent, ChatOpsType, write_chatops_insight_log
 
 
 class TelegramVerificationCode(models.Model):
@@ -32,13 +32,12 @@ class TelegramVerificationCode(models.Model):
             connector, created = TelegramToUserConnector.objects.get_or_create(
                 user=user, defaults={"telegram_nick_name": telegram_nick_name, "telegram_chat_id": telegram_chat_id}
             )
-
-            description = f"Telegram account of user {user.username} was connected"
-            create_organization_log(
-                user.organization,
-                user,
-                OrganizationLogType.TYPE_TELEGRAM_TO_USER_CONNECTED,
-                description,
+            write_chatops_insight_log(
+                author=user,
+                event_name=ChatOpsEvent.USER_LINKED,
+                chatops_type=ChatOpsType.TELEGRAM,
+                user=user.username,
+                user_id=user.public_primary_key,
             )
             return connector, created
 

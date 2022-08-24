@@ -10,8 +10,8 @@ from mirage import fields as mirage_fields
 from apps.alerts.models import MaintainableObject
 from apps.alerts.tasks import disable_maintenance
 from apps.slack.utils import post_message_to_channel
-from apps.user_management.organization_log_creator import OrganizationLogType, create_organization_log
 from apps.user_management.subscription_strategy import FreePublicBetaSubscriptionStrategy
+from common.insight_log import ChatOpsEvent, ChatOpsType, write_chatops_insight_log
 from common.public_primary_keys import generate_public_primary_key, increase_public_primary_key_length
 
 logger = logging.getLogger(__name__)
@@ -232,31 +232,13 @@ class Organization(MaintainableObject):
             old_channel_name = old_general_log_channel_id.name if old_general_log_channel_id else None
             self.general_log_channel_id = channel_id
             self.save(update_fields=["general_log_channel_id"])
-            description = (
-                f"The default channel for incidents in Slack changed "
-                f"{f'from #{old_channel_name} ' if old_channel_name else ''}to #{channel_name}"
+            write_chatops_insight_log(
+                author=user,
+                event_name=ChatOpsEvent.DEFAULT_CHANNEL_CHANGED,
+                chatops_type=ChatOpsType.SLACK,
+                prev_channel=old_channel_name,
+                new_channel=channel_name,
             )
-            create_organization_log(self, user, OrganizationLogType.TYPE_SLACK_DEFAULT_CHANNEL_CHANGED, description)
-
-    @property
-    def repr_settings_for_client_side_logging(self):
-        """
-        Example of execution:
-            # TODO: 770: check format
-            name: Test, archive alerts from date: 2019-10-24, require resolution note: No
-            acknowledge remind settings: Never remind about ack-ed incidents, and never unack
-        """
-        result = (
-            f"name: {self.org_title}, "
-            f"archive alerts from date: {self.archive_alerts_from.isoformat()}, "
-            f"require resolution note: {'Yes' if self.is_resolution_note_required else 'No'}"
-        )
-        if self.slack_team_identity:
-            result += (
-                f"\nacknowledge remind settings: {self.get_acknowledge_remind_timeout_display()}, "
-                f"{self.get_unacknowledge_timeout_display()}, "
-            )
-        return result
 
     @property
     def web_link(self):
@@ -264,3 +246,24 @@ class Organization(MaintainableObject):
 
     def __str__(self):
         return f"{self.pk}: {self.org_title}"
+
+    # Insight logs
+    @property
+    def insight_logs_type_verbal(self):
+        return "organization"
+
+    @property
+    def insight_logs_verbal(self):
+        return self.org_title
+
+    @property
+    def insight_logs_serialized(self):
+        return {
+            "name": self.org_title,
+            "is_resolution_note_required": self.is_resolution_note_required,
+            "archive_alerts_from": self.archive_alerts_from.isoformat(),
+        }
+
+    @property
+    def insight_logs_metadata(self):
+        return {}

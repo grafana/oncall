@@ -11,7 +11,6 @@ from ordered_model.models import OrderedModel
 
 from apps.base.messaging import get_messaging_backends
 from apps.user_management.models import User
-from apps.user_management.organization_log_creator import OrganizationLogType, create_organization_log
 from common.public_primary_keys import generate_public_primary_key, increase_public_primary_key_length
 
 
@@ -81,20 +80,11 @@ class UserNotificationPolicyQuerySet(models.QuerySet):
         if notification_policies.exists():
             return notification_policies
 
-        old_state = user.repr_settings_for_client_side_logging
         if important:
             policies = self.create_important_policies_for_user(user)
         else:
             policies = self.create_default_policies_for_user(user)
 
-        new_state = user.repr_settings_for_client_side_logging
-        description = f"User settings for user {user.username} was changed from:\n{old_state}\nto:\n{new_state}"
-        create_organization_log(
-            user.organization,
-            None,
-            OrganizationLogType.TYPE_USER_SETTINGS_CHANGED,
-            description,
-        )
         return policies
 
     def create_default_policies_for_user(self, user: User) -> "QuerySet[UserNotificationPolicy]":

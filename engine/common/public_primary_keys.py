@@ -29,7 +29,6 @@ def generate_public_primary_key(prefix, length=settings.PUBLIC_PRIMARY_KEY_MIN_L
             "H": ("slack", "SlackChannel"),
             "Z": ("telegram", "TelegramToOrganizationConnector"),
             "L": ("base", "LiveSetting"),
-            "V": ("base", "OrganizationLogRecord"),
             "X": ("extensions", "Other models from extensions apps"),
     :param length:
     :return:

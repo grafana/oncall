@@ -13,11 +13,11 @@ from apps.public_api.throttlers.user_throttle import UserThrottle
 from apps.schedules.ical_utils import ical_export_from_schedule
 from apps.schedules.models import OnCallSchedule, OnCallScheduleWeb
 from apps.slack.tasks import update_slack_user_group_for_schedules
-from apps.user_management.organization_log_creator import OrganizationLogType, create_organization_log
 from common.api_helpers.exceptions import BadRequest
 from common.api_helpers.filters import ByTeamFilter
 from common.api_helpers.mixins import RateLimitHeadersMixin, UpdateSerializerMixin
 from common.api_helpers.paginators import FiftyPageSizePaginator
+from common.insight_log import EntityEvent, write_resource_insight_log
 
 
 class OnCallScheduleChannelView(RateLimitHeadersMixin, UpdateSerializerMixin, ModelViewSet):
@@ -65,18 +65,17 @@ class OnCallScheduleChannelView(RateLimitHeadersMixin, UpdateSerializerMixin, Mo
         if instance.user_group is not None:
             update_slack_user_group_for_schedules.apply_async((instance.user_group.pk,))
 
-        organization = self.request.auth.organization
-        user = self.request.user
-        description = f"Schedule {instance.name} was created"
-        create_organization_log(organization, user, OrganizationLogType.TYPE_SCHEDULE_CREATED, description)
+        write_resource_insight_log(
+            instance=serializer.instance,
+            author=self.request.user,
+            event=EntityEvent.CREATED,
+        )
 
     def perform_update(self, serializer):
         if isinstance(serializer.instance, OnCallScheduleWeb):
             raise BadRequest(detail="Web schedule update is not enabled through API")
 
-        organization = self.request.auth.organization
-        user = self.request.user
-        old_state = serializer.instance.repr_settings_for_client_side_logging
+        prev_state = serializer.instance.insight_logs_serialized
         old_user_group = serializer.instance.user_group
 
         updated_schedule = serializer.save()
@@ -87,15 +86,21 @@ class OnCallScheduleChannelView(RateLimitHeadersMixin, UpdateSerializerMixin, Mo
         if updated_schedule.user_group is not None and updated_schedule.user_group != old_user_group:
             update_slack_user_group_for_schedules.apply_async((updated_schedule.user_group.pk,))
 
-        new_state = serializer.instance.repr_settings_for_client_side_logging
-        description = f"Schedule {serializer.instance.name} was changed from:\n{old_state}\nto:\n{new_state}"
-        create_organization_log(organization, user, OrganizationLogType.TYPE_SCHEDULE_CHANGED, description)
+        new_state = serializer.instance.insight_logs_serialized
+        write_resource_insight_log(
+            instance=serializer.instance,
+            author=self.request.user,
+            event=EntityEvent.UPDATED,
+            prev_state=prev_state,
+            new_state=new_state,
+        )
 
     def perform_destroy(self, instance):
-        organization = self.request.auth.organization
-        user = self.request.user
-        description = f"Schedule {instance.name} was deleted"
-        create_organization_log(organization, user, OrganizationLogType.TYPE_SCHEDULE_DELETED, description)
+        write_resource_insight_log(
+            instance=instance,
+            author=self.request.user,
+            event=EntityEvent.DELETED,
+        )
 
         instance.delete()
 

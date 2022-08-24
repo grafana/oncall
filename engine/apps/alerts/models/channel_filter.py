@@ -130,44 +130,56 @@ class ChannelFilter(OrderedModel):
             return self.slack_channel_id
 
     @property
-    def repr_settings_for_client_side_logging(self):
-        """
-        Example of execution:
-            term: .*, order: 0, slack notification allowed: Yes, telegram notification allowed: Yes,
-            slack channel: without_amixr_general_channel, telegram channel: default
-        """
-        result = (
-            f"term: {self.str_for_clients}, order: {self.order}, slack notification allowed: "
-            f"{'Yes' if self.notify_in_slack else 'No'}, telegram notification allowed: "
-            f"{'Yes' if self.notify_in_telegram else 'No'}"
-        )
-        if self.notification_backends:
-            for backend_id, backend in self.notification_backends.items():
-                result += f", {backend_id} notification allowed: {'Yes' if backend.get('enabled') else 'No'}"
-        slack_channel = None
-        if self.slack_channel_id:
-            SlackChannel = apps.get_model("slack", "SlackChannel")
-            sti = self.alert_receive_channel.organization.slack_team_identity
-            slack_channel = SlackChannel.objects.filter(slack_team_identity=sti, slack_id=self.slack_channel_id).first()
-        result += f", slack channel: {slack_channel.name if slack_channel else 'default'}"
-        result += f", telegram channel: {self.telegram_channel.channel_name if self.telegram_channel else 'default'}"
-        if self.notification_backends:
-            for backend_id, backend in self.notification_backends.items():
-                channel = backend.get("channel_id") or "default"
-                result += f", {backend_id} channel: {channel}"
-        result += f", escalation chain: {self.escalation_chain.name if self.escalation_chain else 'not selected'}"
-        return result
-
-    @property
     def str_for_clients(self):
         if self.filtering_term is None:
             return "default"
         return str(self.filtering_term).replace("`", "")
 
-    @property
-    def verbal_name_for_clients(self):
-        return "default route" if self.is_default else f"route `{self.str_for_clients}`"
-
     def send_demo_alert(self):
         integration = self.alert_receive_channel
         integration.send_demo_alert(force_route_id=self.pk)
+
+    # Insight logs
+    @property
+    def insight_logs_type_verbal(self):
+        return "route"
+
+    @property
+    def insight_logs_verbal(self):
+        return f"{self.str_for_clients} for {self.alert_receive_channel.insight_logs_verbal}"
+
+    @property
+    def insight_logs_serialized(self):
+        result = {
+            "filtering_term": self.str_for_clients,
+            "order": self.order,
+            "slack_notification_enabled": self.notify_in_slack,
+            "telegram_notification_enabled": self.notify_in_telegram,
+            # TODO: use names instead of pks, it's needed to rework messaging backends for that
+        }
+        # TODO: use names instead of pks, it's needed to rework messaging backends for that
+        if self.slack_channel_id:
+            if self.slack_channel_id:
+                SlackChannel = apps.get_model("slack", "SlackChannel")
+                sti = self.alert_receive_channel.organization.slack_team_identity
+                slack_channel = SlackChannel.objects.filter(
+                    slack_team_identity=sti, slack_id=self.slack_channel_id
+                ).first()
+                result["slack_channel"] = slack_channel.name
+        if self.telegram_channel:
+            result["telegram_channel"] = self.telegram_channel.public_primary_key
+        if self.escalation_chain:
+            result["escalation_chain"] = self.escalation_chain.insight_logs_verbal
+            result["escalation_chain_id"] = self.escalation_chain.public_primary_key
+        if self.notification_backends:
+            for backend_id, backend in self.notification_backends.items():
+                channel = backend.get("channel_id") or "default"
+                result[backend_id] = channel
+        return result
+
+    @property
+    def insight_logs_metadata(self):
+        return {
+            "integration": self.alert_receive_channel.insight_logs_verbal,
+            "integration_id": self.alert_receive_channel.public_primary_key,
+        }
