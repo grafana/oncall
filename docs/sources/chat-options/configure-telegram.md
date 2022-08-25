@@ -16,15 +16,22 @@ weight: 300
 
 # Telegram integration for Grafana OnCall
 
-You can use Telegram to deliver alert group notifications to a dedicated channel, and allow users to perform notification actions.
+You can manage alerts either directly in your personal Telegram DMs or in a dedicated team channel.
 
-Each alert group notification is assigned a dedicated discussion. Users can perform notification actions (acknowledge, resolve, silence), create reports, and discuss alerts in the comments section of the discussions.
+## Configure Telegram user settings in Grafana OnCall
 
-In case an integration route is not configured to use a Telegram channel, users will receive messages with alert group contents, logs and actions in their DMs.
+To receive alert group contents, escalation logs and to be able to perform actions (acknowledge, resolve, silence) in Telegram DMs, please refer to the following steps:
 
-## Connect to Telegram
+1. In your profile, find the Telegram setting and click **Connect**.
+1. Click **Connect automatically** for the bot to message you and to bring up your telegram account.
+1. Click **Start** when the OnCall bot messages you and wait for the connection confirmation.
+1. Done! Now you can receive alerts directly to your Telegram DMs.
 
-Connect your organization's Telegram account to your Grafana OnCall instance by following the instructions provided in OnCall. You can use the following steps as a reference.
+If you want to connect manually, you can click the URL provided and then **SEND MESSAGE**. In your Telegram account, click **Start**.
+
+## (Optional) Connect to a Telegram channel
+
+In case you want to manage alerts in a dedicated Telegram channel, please use the following steps as a reference.
 
 > **NOTE:** Only Grafana users with the administrator role can configure OnCall settings.
 
@@ -42,10 +49,5 @@ Connect your organization's Telegram account to your Grafana OnCall instance by 
 1. In OnCall, send the provided verification code to the channel.
 1. Make sure users connect to Telegram in their OnCall user profile.
 
-## Configure Telegram user settings in OnCall
-
-1. In your profile, find the Telegram setting and click **Connect**.
-1. Click **Connect automatically** for the bot to message you and to bring up your telegram account.
-1. Click **Start** when the OnCall bot messages you.
-
-If you want to connect manually, you can click the URL provided and then **SEND MESSAGE**. In your Telegram account, click **Start**.
+Each alert group is assigned a dedicated discussion. Users can perform actions (acknowledge, resolve, silence), and discuss alerts in the comments section of the discussions.
+In case an integration route is not configured to use a Telegram channel, users will receive messages with alert group contents, logs and actions in their DMs.
