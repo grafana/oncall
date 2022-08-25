@@ -21,7 +21,9 @@ import styles from './DefaultPageLayout.module.css';
 
 const cx = cn.bind(styles);
 
-interface DefaultPageLayoutProps extends AppRootProps {}
+interface DefaultPageLayoutProps extends AppRootProps {
+  children?: any;
+}
 
 enum AlertID {
   CONNECTIVITY_WARNING = 'Connectivity Warning',

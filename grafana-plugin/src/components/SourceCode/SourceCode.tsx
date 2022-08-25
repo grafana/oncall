@@ -12,6 +12,7 @@ const cx = cn.bind(styles);
 
 interface SourceCodeProps {
   noMaxHeight?: boolean;
+  children?: any
 }
 
 const SourceCode: FC<SourceCodeProps> = (props) => {

@@ -55,6 +55,7 @@ const Autoresolve = ({ alertReceiveChannelId, onSwitchToTemplate, alertGroupId }
       store.alertReceiveChannelStore.templates[alertReceiveChannelId],
       'resolve_condition_template'
     );
+    // @ts-ignore
     if (autoresolveCondition == ['invalid template']) {
       setAutoresolveConditionInvalid(true);
     }

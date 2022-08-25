@@ -1,12 +1,13 @@
-import React, { useCallback, useEffect } from 'react';
+import React, { useCallback } from 'react';
 
-import { IconButton, ValuePicker, WithContextMenu, ButtonCascader } from '@grafana/ui';
+import { ButtonCascader } from '@grafana/ui';
 import { observer } from 'mobx-react';
 
 import { WithPermissionControl } from 'containers/WithPermissionControl/WithPermissionControl';
 import { SelectOption } from 'state/types';
 import { useStore } from 'state/useStore';
 import { UserAction } from 'state/userAction';
+import { ComponentSize } from '@grafana/ui/types/size';
 
 interface SilenceDropdownProps {
   onSelect: (value: number) => void;
@@ -19,7 +20,7 @@ const SilenceDropdown = observer((props: SilenceDropdownProps) => {
   const { onSelect, className, disabled = false, buttonSize } = props;
 
   const onSelectCallback = useCallback(
-    ([value, ...rest]) => {
+    ([value]) => {
       onSelect(Number(value));
     },
     [onSelect]
@@ -44,7 +45,7 @@ const SilenceDropdown = observer((props: SilenceDropdownProps) => {
           label: silenceOption.display_name,
         }))}
         value={undefined}
-        buttonProps={{ size: buttonSize }}
+        buttonProps={{ size: buttonSize as ComponentSize }}
       >
         Silence
       </ButtonCascader>
