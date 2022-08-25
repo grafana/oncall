@@ -145,6 +145,7 @@ class User(models.Model):
 
     unverified_phone_number = models.CharField(max_length=20, null=True, default=None)
     _verified_phone_number = models.CharField(max_length=20, null=True, default=None)
+    hide_phone_number = models.BooleanField(default=False)
 
     slack_user_identity = models.ForeignKey(
         "slack.SlackUserIdentity", on_delete=models.PROTECT, null=True, default=None, related_name="users"
