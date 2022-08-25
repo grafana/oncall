@@ -261,8 +261,8 @@ class User(models.Model):
 @receiver(post_save, sender=User)
 def listen_for_user_model_save(sender, instance, created, *args, **kwargs):
     if created:
-        instance.notification_policies.create_default_policies_for_user()
-        instance.notification_policies.create_important_policies_for_user()
+        instance.notification_policies.create_default_policies_for_user(instance)
+        instance.notification_policies.create_important_policies_for_user(instance)
     drop_cached_ical_for_custom_events_for_organization.apply_async(
         (instance.organization_id,),
     )

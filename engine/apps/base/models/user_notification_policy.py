@@ -184,7 +184,7 @@ class UserNotificationPolicy(OrderedModel):
             return "Not set"
 
     def delete(self):
-        if self.order == 0:
+        if UserNotificationPolicy.objects.filter(important=self.important, user=self.user).count() == 1:
             raise UserNotificationPolicyCouldNotBeDeleted("Can't delete last user notification policy")
         else:
             super().delete()
