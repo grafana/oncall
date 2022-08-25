@@ -36,8 +36,8 @@ class TelegramVerificationCode(models.Model):
                 author=user,
                 event_name=ChatOpsEvent.USER_LINKED,
                 chatops_type=ChatOpsType.TELEGRAM,
-                user=user.username,
-                user_id=user.public_primary_key,
+                linked_user=user.username,
+                linked_user_id=user.public_primary_key,
             )
             return connector, created
 

@@ -361,8 +361,8 @@ class UserView(
                 author=request.user,
                 event_name=ChatOpsEvent.USER_UNLINKED,
                 chatops_type=ChatOpsType.TELEGRAM,
-                user=user.username,
-                user_id=user.public_primary_key,
+                linked_user=user.username,
+                linked_user_id=user.public_primary_key,
             )
         except TelegramToUserConnector.DoesNotExist:
             return Response(status=status.HTTP_400_BAD_REQUEST)
@@ -383,8 +383,8 @@ class UserView(
                 author=request.user,
                 event_name=ChatOpsEvent.USER_UNLINKED,
                 chatops_type=backend.backend_id,
-                user=user.username,
-                user_id=user.public_primary_key,
+                linked_user=user.username,
+                linked_user_id=user.public_primary_key,
             )
         except ObjectDoesNotExist:
             return Response(status=status.HTTP_400_BAD_REQUEST)
