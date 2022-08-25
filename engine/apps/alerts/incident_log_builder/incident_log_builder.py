@@ -659,7 +659,7 @@ class IncidentLogBuilder:
                     # last passed step order + 1
                     notification_policy_order = last_user_log.notification_policy.order + 1
 
-        notification_policies = UserNotificationPolicy.objects.get_or_create_for_user(
+        notification_policies = UserNotificationPolicy.objects.get_user_policies(
             user=user_to_notify, important=important
         )
 

@@ -12,6 +12,7 @@ from apps.user_management.models import User
 from common.api_helpers.exceptions import BadRequest
 from common.api_helpers.mixins import RateLimitHeadersMixin, UpdateSerializerMixin
 from common.api_helpers.paginators import FiftyPageSizePaginator
+from common.exceptions import UserNotificationPolicyCouldNotBeDeleted
 from common.insight_log import EntityEvent, write_resource_insight_log
 
 
@@ -74,7 +75,10 @@ class PersonalNotificationView(RateLimitHeadersMixin, UpdateSerializerMixin, Mod
     def perform_destroy(self, instance):
         user = self.request.user
         prev_state = user.insight_logs_serialized
-        instance.delete()
+        try:
+            instance.delete()
+        except UserNotificationPolicyCouldNotBeDeleted:
+            raise BadRequest(detail="Can't delete last user notification policy")
         new_state = user.insight_logs_serialized
         write_resource_insight_log(
             instance=user,
