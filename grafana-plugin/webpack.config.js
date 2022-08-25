@@ -61,6 +61,12 @@ module.exports.getWebpackConfig = (config, options) => {
                       loose: true,
                     },
                   ],
+                  [
+                    '@babel/plugin-proposal-decorators',
+                    {
+                      legacy: true,
+                    },
+                  ],
                   '@babel/plugin-transform-react-constant-elements',
                   '@babel/plugin-proposal-nullish-coalescing-operator',
                   '@babel/plugin-proposal-optional-chaining',
@@ -86,7 +92,7 @@ module.exports.getWebpackConfig = (config, options) => {
                   localIdentName: options.production ? '[name]__[hash:base64]' : '[path][name]__[local]',
                 },
               },
-            }
+            },
           ],
         },
       ],
