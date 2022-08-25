@@ -17,6 +17,8 @@ import { Timezone } from 'models/timezone/timezone.types';
 import { SelectOption, WithStoreProps } from 'state/types';
 import { withMobXProviderContext } from 'state/withStore';
 
+import { findColor } from './Rotations.helpers';
+
 import styles from './Rotations.module.css';
 
 const cx = cn.bind(styles);
@@ -93,11 +95,11 @@ class Rotations extends Component<RotationsProps, RotationsState> {
                     <div className={cx('layer-title')}>
                       <HorizontalGroup spacing="sm" justify="center">
                         <span>Layer {layer.priority}</span>
-                        <Icon name="info-circle" />
+                        {/*<Icon name="info-circle" />*/}
                       </HorizontalGroup>
                     </div>
                     <div className={cx('rotations')}>
-                      <TimelineMarks debug startMoment={startMoment} />
+                      <TimelineMarks startMoment={startMoment} />
                       {!currentTimeHidden && (
                         <div className={cx('current-time')} style={{ left: `${currentTimeX * 100}%` }} />
                       )}
@@ -127,12 +129,12 @@ class Rotations extends Component<RotationsProps, RotationsState> {
                   <div className={cx('layer-title')}>
                     <HorizontalGroup spacing="sm" justify="center">
                       <span>Layer 1</span>
-                      <Icon name="info-circle" />
+                      {/* <Icon name="info-circle" />*/}
                     </HorizontalGroup>
                   </div>
                   <div className={cx('header-plus-content')}>
                     <div className={cx('current-time')} style={{ left: `${currentTimeX * 100}%` }} />
-                    <TimelineMarks debug startMoment={startMoment} />
+                    <TimelineMarks startMoment={startMoment} />
                     <div className={cx('rotations')}>
                       <Rotation
                         onClick={(moment) => {
@@ -164,6 +166,7 @@ class Rotations extends Component<RotationsProps, RotationsState> {
         {shiftIdToShowRotationForm && (
           <RotationForm
             shiftId={shiftIdToShowRotationForm}
+            shiftColor={findColor(shiftIdToShowRotationForm, layers)}
             scheduleId={scheduleId}
             layerPriority={layerPriority}
             startMoment={startMoment}

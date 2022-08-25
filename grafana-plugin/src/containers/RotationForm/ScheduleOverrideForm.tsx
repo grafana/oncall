@@ -20,6 +20,7 @@ import Modal from 'components/Modal/Modal';
 import Text from 'components/Text/Text';
 import UserGroups from 'components/UserGroups/UserGroups';
 import WithConfirm from 'components/WithConfirm/WithConfirm';
+import WorkingHours from 'components/WorkingHours/WorkingHours';
 import { getFromString } from 'models/schedule/schedule.helpers';
 import { Rotation, Schedule, Shift } from 'models/schedule/schedule.types';
 import { getTzOffsetString } from 'models/timezone/timezone.helpers';
@@ -40,6 +41,8 @@ interface RotationFormProps {
   startMoment: dayjs.Dayjs;
   currentTimezone: Timezone;
   scheduleId: Schedule['id'];
+  shiftMoment: dayjs.Dayjs;
+  shiftColor?: string;
   onCreate: () => void;
   onUpdate: () => void;
   onDelete: () => void;
@@ -58,6 +61,7 @@ const ScheduleOverrideForm: FC<RotationFormProps> = (props) => {
     shiftId,
     startMoment,
     shiftMoment = dayjs().startOf('day').add(1, 'day'),
+    shiftColor = '#C69B06',
   } = props;
 
   const store = useStore();
@@ -90,6 +94,29 @@ const ScheduleOverrideForm: FC<RotationFormProps> = (props) => {
       name: store.userStore.items[pk]?.username,
       desc: store.userStore.items[pk]?.timezone,
     };
+  };
+
+  const renderUser = (userPk: User['pk']) => {
+    const name = store.userStore.items[userPk]?.username;
+    const desc = store.userStore.items[userPk]?.timezone;
+    const workingHours = store.userStore.items[userPk]?.working_hours;
+    const timezone = store.userStore.items[userPk]?.timezone;
+
+    return (
+      <>
+        <div className={cx('user-title')}>
+          <Text strong>{name}</Text> <Text type="primary">({desc})</Text>
+        </div>
+        <WorkingHours
+          timezone={timezone}
+          workingHours={workingHours}
+          startMoment={dayjs(params.shift_start)}
+          duration={dayjs(params.shift_end).diff(dayjs(params.shift_start), 'seconds')}
+          className={cx('working-hours')}
+          style={{ backgroundColor: shiftColor }}
+        />
+      </>
+    );
   };
 
   const shift = store.scheduleStore.shifts[shiftId];
@@ -183,7 +210,13 @@ const ScheduleOverrideForm: FC<RotationFormProps> = (props) => {
             <IconButton variant="secondary" className={cx('drag-handler')} name="draggabledots" />
           </HorizontalGroup>
         </HorizontalGroup>
-        <UserGroups value={userGroups} onChange={setUserGroups} isMultipleGroups={false} getItemData={getUser} />
+        <UserGroups
+          value={userGroups}
+          onChange={setUserGroups}
+          isMultipleGroups={false}
+          getItemData={getUser}
+          renderUser={renderUser}
+        />
         {/*<hr />*/}
         <VerticalGroup>
           <HorizontalGroup>

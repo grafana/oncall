@@ -16,6 +16,8 @@ import { Timezone } from 'models/timezone/timezone.types';
 import { WithStoreProps } from 'state/types';
 import { withMobXProviderContext } from 'state/withStore';
 
+import { findColor } from './Rotations.helpers';
+
 import styles from './Rotations.module.css';
 
 const cx = cn.bind(styles);
@@ -104,6 +106,7 @@ class ScheduleOverrides extends Component<ScheduleOverridesProps, ScheduleOverri
         {shiftIdToShowOverrideForm && (
           <ScheduleOverrideForm
             shiftId={shiftIdToShowOverrideForm}
+            shiftColor={findColor(shiftIdToShowOverrideForm, undefined, shifts)}
             scheduleId={scheduleId}
             startMoment={startMoment}
             currentTimezone={currentTimezone}

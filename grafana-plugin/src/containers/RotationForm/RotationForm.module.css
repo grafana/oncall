@@ -4,7 +4,7 @@
 
 .draggable {
   top: 0;
-  transition: transform 500ms ease;
+  transition: transform 300ms ease;
 }
 
 .header {
@@ -15,6 +15,20 @@
 
 .control {
   width: 195px;
+}
+
+.user-title {
+  padding: 6px 10px;
+  z-index: 1;
+  color: #fff;
+}
+
+.working-hours {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  pointer-events: none;
 }
 
 .date-time-picker {

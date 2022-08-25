@@ -18,9 +18,12 @@ import { observer } from 'mobx-react';
 import Draggable from 'react-draggable';
 
 import Modal from 'components/Modal/Modal';
+import ScheduleSlot from 'components/ScheduleSlot/ScheduleSlot';
 import Text from 'components/Text/Text';
 import UserGroups from 'components/UserGroups/UserGroups';
+import { Item } from 'components/UserGroups/UserGroups.types';
 import WithConfirm from 'components/WithConfirm/WithConfirm';
+import WorkingHours from 'components/WorkingHours/WorkingHours';
 import RemoteSelect from 'containers/RemoteSelect/RemoteSelect';
 import { getFromString } from 'models/schedule/schedule.helpers';
 import { Rotation, Schedule, Shift } from 'models/schedule/schedule.types';
@@ -49,6 +52,7 @@ interface RotationFormProps {
   onCreate: () => void;
   onUpdate: () => void;
   onDelete: () => void;
+  shiftColor?: string;
 }
 
 const cx = cn.bind(styles);
@@ -65,7 +69,10 @@ const RotationForm: FC<RotationFormProps> = observer((props) => {
     layerPriority,
     shiftId,
     shiftMoment = dayjs().startOf('day').add(1, 'day'),
+    shiftColor = '#3D71D9',
   } = props;
+
+  console.log('shiftColor', shiftColor);
 
   const [isOpen, setIsOpen] = useState<boolean>(false);
 
@@ -107,6 +114,29 @@ const RotationForm: FC<RotationFormProps> = observer((props) => {
       name: store.userStore.items[pk]?.username,
       desc: store.userStore.items[pk]?.timezone,
     };
+  };
+
+  const renderUser = (userPk: User['pk']) => {
+    const name = store.userStore.items[userPk]?.username;
+    const desc = store.userStore.items[userPk]?.timezone;
+    const workingHours = store.userStore.items[userPk]?.working_hours;
+    const timezone = store.userStore.items[userPk]?.timezone;
+
+    return (
+      <>
+        <div className={cx('user-title')}>
+          <Text strong>{name}</Text> <Text type="primary">({desc})</Text>
+        </div>
+        <WorkingHours
+          timezone={timezone}
+          workingHours={workingHours}
+          startMoment={dayjs(params.shift_start)}
+          duration={dayjs(params.shift_end).diff(dayjs(params.shift_start), 'seconds')}
+          className={cx('working-hours')}
+          style={{ backgroundColor: shiftColor }}
+        />
+      </>
+    );
   };
 
   const handleDeleteClick = useCallback(() => {
@@ -238,7 +268,13 @@ const RotationForm: FC<RotationFormProps> = observer((props) => {
             <IconButton variant="secondary" className={cx('drag-handler')} name="draggabledots" />
           </HorizontalGroup>
         </HorizontalGroup>
-        <UserGroups value={userGroups} onChange={setUserGroups} isMultipleGroups={true} getItemData={getUser} />
+        <UserGroups
+          value={userGroups}
+          onChange={setUserGroups}
+          isMultipleGroups={true}
+          getItemData={getUser}
+          renderUser={renderUser}
+        />
         {/*<hr />*/}
         <VerticalGroup>
           <HorizontalGroup>

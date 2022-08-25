@@ -54,9 +54,15 @@
 .user {
   background: #22252b;
   border-radius: 2px;
-  padding: 6px 10px;
   display: flex;
-  justify-content: space-between;
+  position: relative;
+  overflow: hidden;
+}
+
+.user-buttons {
+  position: absolute;
+  top: 8px;
+  right: 5px;
 }
 
 .user:hover {

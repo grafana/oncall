@@ -1,6 +1,6 @@
 import { getColor, getOverrideColor } from 'models/schedule/schedule.helpers';
 
-export const findColor = (shiftId, layers, overrides) => {
+export const findColor = (shiftId, layers, overrides?) => {
   let color = undefined;
 
   const layerIndex = layers ? layers.findIndex((layer) => layer.shifts.some((shift) => shift.shiftId === shiftId)) : -1;
@@ -10,7 +10,7 @@ export const findColor = (shiftId, layers, overrides) => {
 
   if (layerIndex > -1 && rotationIndex > -1) {
     color = getColor(layerIndex, rotationIndex);
-  } else {
+  } else if (overrides) {
     const overrideIndex = overrides ? overrides.findIndex((shift) => shift.shiftId === shiftId) : -1;
 
     if (overrideIndex > -1) {

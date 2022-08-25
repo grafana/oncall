@@ -62,9 +62,8 @@
 
 .empty {
   height: 28px;
-
-  /* background: #5f505633;
+  background: #5f505633;
   border: 1px dashed #5c474d;
-  color: rgba(209, 14, 92, 0.5); */
+  color: rgba(209, 14, 92, 0.5);
   margin: 0 2px;
 }

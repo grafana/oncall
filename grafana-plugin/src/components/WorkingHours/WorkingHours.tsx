@@ -19,12 +19,13 @@ interface WorkingHoursProps {
   startMoment: dayjs.Dayjs;
   duration: number; // in seconds
   className: string;
+  style?: React.CSSProperties;
 }
 
 const cx = cn.bind(styles);
 
 const WorkingHours: FC<WorkingHoursProps> = (props) => {
-  const { timezone, workingHours, startMoment, duration, className } = props;
+  const { timezone, workingHours, startMoment, duration, className, style } = props;
 
   const endMoment = startMoment.add(duration, 'seconds');
 
@@ -61,7 +62,14 @@ const WorkingHours: FC<WorkingHoursProps> = (props) => {
   );*/
 
   return (
-    <svg version="1.1" width="100%" height="28px" xmlns="http://www.w3.org/2000/svg" className={className}>
+    <svg
+      version="1.1"
+      width="100%"
+      height="28px"
+      xmlns="http://www.w3.org/2000/svg"
+      className={className}
+      style={style}
+    >
       <defs>
         <pattern id="stripes" patternUnits="userSpaceOnUse" width="10" height="10" patternTransform="rotate(45)">
           <line x1="0" y="0" x2="0" y2="10" stroke="rgba(17, 18, 23, 0.15)" strokeWidth="10" />

@@ -7,6 +7,7 @@ import cn from 'classnames/bind';
 import { SortableContainer, SortableElement, SortableHandle } from 'react-sortable-hoc';
 
 import Text from 'components/Text/Text';
+import WorkingHours from 'components/WorkingHours/WorkingHours';
 import GSelect from 'containers/GSelect/GSelect';
 import UserTooltip from 'containers/UserTooltip/UserTooltip';
 import { User } from 'models/user/user.types';
@@ -21,6 +22,7 @@ interface UserGroupsProps {
   onChange: (value: Array<Array<User['pk']>>) => void;
   isMultipleGroups: boolean;
   getItemData: (id: string) => ItemData;
+  renderUser: (id: string) => React.ReactElement;
 }
 
 const cx = cn.bind(styles);
@@ -30,7 +32,7 @@ const DragHandle = () => <IconButton name="draggabledots" />;
 const SortableHandleHoc = SortableHandle(DragHandle);
 
 const UserGroups = (props: UserGroupsProps) => {
-  const { value, onChange, isMultipleGroups, getItemData } = props;
+  const { value, onChange, isMultipleGroups, getItemData, renderUser } = props;
 
   const handleAddUserGroup = useCallback(() => {
     onChange([...value, []]);
@@ -86,10 +88,29 @@ const UserGroups = (props: UserGroupsProps) => {
     [items]
   );
 
+  const getDeleteItemHandler = (index: number) => {
+    return () => {
+      handleDeleteUser(index);
+    };
+  };
+
+  const renderItem = (item: Item, index: number) => (
+    <li className={cx('user')}>
+      {renderUser(item.item)}
+      <div className={cx('user-buttons')}>
+        <HorizontalGroup>
+          <IconButton className={cx('delete-icon')} name="trash-alt" onClick={getDeleteItemHandler(index)} />
+          <SortableHandleHoc />
+        </HorizontalGroup>
+      </div>
+    </li>
+  );
+
   return (
     <div className={cx('root')}>
       <VerticalGroup>
         <SortableList
+          renderItem={renderItem}
           axis="y"
           lockAxis="y"
           helperClass={cx('sortable-helper')}
@@ -130,32 +151,17 @@ interface SortableListProps {
   handleAddGroup: () => void;
   handleDeleteItem: (index: number) => void;
   isMultipleGroups: boolean;
+  renderItem: (item: Item, index: number) => React.ReactElement;
 }
 
 const SortableList = SortableContainer(
-  ({ items, handleAddGroup, handleDeleteItem, isMultipleGroups }: SortableListProps) => {
-    const getDeleteItemHandler = (index: number) => {
-      return () => {
-        handleDeleteItem(index);
-      };
-    };
-
+  ({ items, handleAddGroup, handleDeleteItem, isMultipleGroups, renderItem }: SortableListProps) => {
     return (
       <ul className={cx('groups')}>
         {items.map((item, index) =>
           item.type === 'item' ? (
             <SortableItem key={item.key} index={index}>
-              <li className={cx('user')}>
-                <div className={cx('user-title')}>
-                  <Text type="primary"> {item.data.name}</Text> <Text type="secondary">({item.data.desc})</Text>
-                </div>
-                <div className={cx('user-buttons')}>
-                  <HorizontalGroup>
-                    <IconButton className={cx('delete-icon')} name="trash-alt" onClick={getDeleteItemHandler(index)} />
-                    <SortableHandleHoc />
-                  </HorizontalGroup>
-                </div>
-              </li>
+              {renderItem(item, index)}
             </SortableItem>
           ) : isMultipleGroups ? (
             <SortableItem key={item.key} index={index}>

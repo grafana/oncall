@@ -1,11 +1,6 @@
 export interface Item {
   key: string;
   type: string;
-  data: ItemData;
+  data: any;
   item?: string;
-}
-
-export interface ItemData {
-  name: string;
-  desc?: string;
 }

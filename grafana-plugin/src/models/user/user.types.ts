@@ -56,4 +56,5 @@ export interface User {
   cloud_connection_status?: number;
   hidden_fields?: boolean;
   timezone: Timezone;
+  working_hours: { [key: string]: [] };
 }
