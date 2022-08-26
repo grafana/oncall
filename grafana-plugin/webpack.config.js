@@ -14,12 +14,14 @@ module.exports.getWebpackConfig = (config, options) => {
 
   cssLoader.exclude.push(/\.module\.css$/, MONACO_DIR);
 
+  const grafanaRules = config.module.rules.filter((a) => a.test.toString() !== /\.s[ac]ss$/.toString());
+
   const newConfig = {
     ...config,
     module: {
       ...config.module,
       rules: [
-        ...config.module.rules,
+        ...grafanaRules,
 
         {
           test: /\.(ts|tsx)$/,
@@ -79,7 +81,7 @@ module.exports.getWebpackConfig = (config, options) => {
         },
 
         {
-          test: /\.module\.(css|less)$/,
+          test: /\.module\.css$/,
           exclude: /node_modules/,
           use: [
             'style-loader',
@@ -93,6 +95,26 @@ module.exports.getWebpackConfig = (config, options) => {
                 },
               },
             },
+          ],
+        },
+
+        {
+          test: /\.module\.scss$/i,
+          exclude: /node_modules/,
+          use: [
+            'style-loader',
+            {
+              loader: 'css-loader',
+              options: {
+                importLoaders: 1,
+                sourceMap: true,
+                modules: {
+                  localIdentName: options.production ? '[name]__[hash:base64]' : '[path][name]__[local]',
+                },
+              },
+            },
+            'postcss-loader',
+            'sass-loader',
           ],
         },
       ],
@@ -111,7 +133,7 @@ module.exports.getWebpackConfig = (config, options) => {
         allowAsyncCycles: false,
         // set the current working directory for displaying module paths
         cwd: process.cwd(),
-      }),
+      })
       // new BundleAnalyzerPlugin(),
     ],
 
@@ -122,12 +144,12 @@ module.exports.getWebpackConfig = (config, options) => {
     },
   };
 
-  // fs.writeFile('webpack-conf.json', JSON.stringify(newConfig, null, 2), function (err) {
-  //   if (err) {
-  //     return console.log(err);
-  //   }
-  //   console.log('config > webpack-conf.json');
-  // });
+  /* fs.writeFile('webpack-conf.json', JSON.stringify(newConfig, null, 2), function (err) {
+    if (err) {
+      return console.log(err);
+    }
+    console.log('config > webpack-conf.json');
+  }); */
 
   return newConfig;
 };
