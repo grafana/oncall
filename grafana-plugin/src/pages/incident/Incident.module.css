@@ -2,6 +2,16 @@
   margin-top: 24px;
 }
 
+.incident-row {
+  display: flex;
+}
+.incident-row-left {
+  flex-grow: 1;
+}
+.payload-subtitle {
+  margin-bottom: 16px;
+}
+
 .info-row {
   width: 100%;
   border-bottom: 1px solid rgba(204, 204, 220, 0.15);

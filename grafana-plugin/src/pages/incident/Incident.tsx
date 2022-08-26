@@ -587,27 +587,50 @@ function GroupedIncident({ incident, datetimeReference }: { incident: GroupedAle
   const store = useStore();
   const [incidentRawResponse, setIncidentRawResponse] = useState<{ id: string; raw_request_data: any }>(undefined);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const payloadJSON = isModalOpen ? JSON.stringify(incidentRawResponse.raw_request_data, null, 4) : undefined;
 
   return (
     <>
       {isModalOpen && (
-        <Modal onDismiss={() => setIsModalOpen(false)} closeOnEscape isOpen={isModalOpen} title="Alert Payload">
+        <Modal
+          onDismiss={() => setIsModalOpen(false)}
+          closeOnEscape
+          isOpen={isModalOpen}
+          title="Alert Payload"
+        >
+          <div className={cx('payload-subtitle')}>
+            <HorizontalGroup>
+              <Text type="secondary">
+                {incident.render_for_web.title} - {datetimeReference}
+              </Text>
+            </HorizontalGroup>
+          </div>
           <VerticalGroup>
-            <SourceCode>{JSON.stringify(incidentRawResponse.raw_request_data, null, 4)}</SourceCode>
+            <SourceCode>{payloadJSON}</SourceCode>
+            <HorizontalGroup justify={'flex-end'}>
+            </HorizontalGroup>
           </VerticalGroup>
         </Modal>
       )}
 
-      <div key={incident.id} className={cx('incident')}>
-        <HorizontalGroup wrap={false}>
-          <Text.Title type="secondary" level={4}>
-            {incident.render_for_web.title}
-          </Text.Title>
-          <Text type="secondary">{datetimeReference}</Text>
-          <Tooltip placement="top" content="Alert Payload">
-            <IconButton name="info-circle" onClick={() => openIncidentResponse(incident)} />
-          </Tooltip>
-        </HorizontalGroup>
+      <div key={incident.id}>
+        <div className={cx('incident-row')}>
+          <div className={cx('incident-row-left')}>
+            <HorizontalGroup wrap={false} justify={'flex-start'}>
+              <Text.Title type="secondary" level={4}>
+                {incident.render_for_web.title}
+              </Text.Title>
+              <Text type="secondary">{datetimeReference}</Text>
+            </HorizontalGroup>
+          </div>
+          <div className={cx('incident-row-right')}>
+            <HorizontalGroup wrap={false} justify={'flex-end'}>
+              <Tooltip placement="top" content="Alert Payload">
+                <IconButton name="arrow" onClick={() => openIncidentResponse(incident)} />
+              </Tooltip>
+            </HorizontalGroup>
+          </div>
+        </div>
         <div
           className={cx('message')}
           dangerouslySetInnerHTML={{
