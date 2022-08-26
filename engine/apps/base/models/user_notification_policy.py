@@ -70,9 +70,6 @@ def validate_channel_choice(value):
 
 
 class UserNotificationPolicyQuerySet(models.QuerySet):
-    def get_user_policies(self, user: User, important: bool) -> "QuerySet[UserNotificationPolicy]":
-        return self.filter(user=user, important=important)
-
     def create_default_policies_for_user(self, user: User) -> "QuerySet[UserNotificationPolicy]":
         model = self.model
 
