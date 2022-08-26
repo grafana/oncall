@@ -26,6 +26,7 @@ from apps.base.models.user_notification_policy import BUILT_IN_BACKENDS, Notific
 from apps.user_management.models import User
 from common.api_helpers.exceptions import BadRequest
 from common.api_helpers.mixins import UpdateSerializerMixin
+from common.exceptions import UserNotificationPolicyCouldNotBeDeleted
 from common.insight_log import EntityEvent, write_resource_insight_log
 
 
@@ -55,14 +56,14 @@ class UserNotificationPolicyView(UpdateSerializerMixin, ModelViewSet):
         except ValueError:
             raise BadRequest(detail="Invalid user param")
         if user_id is None or user_id == self.request.user.public_primary_key:
-            queryset = self.model.objects.get_or_create_for_user(user=self.request.user, important=important)
+            queryset = self.model.objects.filter(user=self.request.user, important=important)
         else:
             try:
                 target_user = User.objects.get(public_primary_key=user_id)
             except User.DoesNotExist:
                 raise BadRequest(detail="User does not exist")
 
-            queryset = self.model.objects.get_or_create_for_user(user=target_user, important=important)
+            queryset = self.model.objects.filter(user=target_user, important=important)
 
         queryset = self.serializer_class.setup_eager_loading(queryset)
 
@@ -111,7 +112,10 @@ class UserNotificationPolicyView(UpdateSerializerMixin, ModelViewSet):
     def perform_destroy(self, instance):
         user = instance.user
         prev_state = user.insight_logs_serialized
-        instance.delete()
+        try:
+            instance.delete()
+        except UserNotificationPolicyCouldNotBeDeleted:
+            raise BadRequest(detail="Can't delete last user notification policy")
         new_state = user.insight_logs_serialized
         write_resource_insight_log(
             instance=user,

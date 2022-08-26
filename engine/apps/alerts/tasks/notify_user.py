@@ -73,9 +73,7 @@ def notify_user_task(
         user_has_notification = UserHasNotification.objects.filter(pk=user_has_notification.pk).select_for_update()[0]
 
         if previous_notification_policy_pk is None:
-            notification_policy = UserNotificationPolicy.objects.get_or_create_for_user(
-                user=user, important=important
-            ).first()
+            notification_policy = UserNotificationPolicy.objects.filter(user=user, important=important).first()
             # Here we collect a brief overview of notification steps configured for user to send it to thread.
             collected_steps_ids = []
             next_notification_policy = notification_policy.next()
