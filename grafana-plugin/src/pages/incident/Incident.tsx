@@ -592,12 +592,7 @@ function GroupedIncident({ incident, datetimeReference }: { incident: GroupedAle
   return (
     <>
       {isModalOpen && (
-        <Modal
-          onDismiss={() => setIsModalOpen(false)}
-          closeOnEscape
-          isOpen={isModalOpen}
-          title="Alert Payload"
-        >
+        <Modal onDismiss={() => setIsModalOpen(false)} closeOnEscape isOpen={isModalOpen} title="Alert Payload">
           <div className={cx('payload-subtitle')}>
             <HorizontalGroup>
               <Text type="secondary">
@@ -606,8 +601,18 @@ function GroupedIncident({ incident, datetimeReference }: { incident: GroupedAle
             </HorizontalGroup>
           </div>
           <VerticalGroup>
-            <SourceCode>{payloadJSON}</SourceCode>
+            <SourceCode showCopyToClipboard={false}>{payloadJSON}</SourceCode>
             <HorizontalGroup justify={'flex-end'}>
+              <CopyToClipboard
+                text={payloadJSON}
+                onCopy={() => {
+                  openNotification('Copied!');
+                }}
+              >
+                <Button className={cx('button')} variant="primary" icon="copy">
+                  Copy to Clipboard
+                </Button>
+              </CopyToClipboard>
             </HorizontalGroup>
           </VerticalGroup>
         </Modal>

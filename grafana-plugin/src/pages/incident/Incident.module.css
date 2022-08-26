@@ -5,9 +5,11 @@
 .incident-row {
   display: flex;
 }
+
 .incident-row-left {
   flex-grow: 1;
 }
+
 .payload-subtitle {
   margin-bottom: 16px;
 }
