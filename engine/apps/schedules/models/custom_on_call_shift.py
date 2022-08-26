@@ -381,23 +381,6 @@ class CustomOnCallShift(models.Model):
                     days_for_next_event += next_month_days
                 next_event_start = current_event_start + timezone.timedelta(days=days_for_next_event)
 
-        end_date = None
-        # get the period for calculating the current rotation end date for long events with frequency weekly and monthly
-        if self.frequency == CustomOnCallShift.FREQUENCY_WEEKLY:
-            DAYS_IN_A_WEEK = 7
-            days_diff = 0
-            # get the last day of the week with respect to the week_start
-            if next_event_start.weekday() != self.week_start:
-                days_diff = DAYS_IN_A_WEEK + next_event_start.weekday() - self.week_start
-                days_diff %= DAYS_IN_A_WEEK
-            end_date = next_event_start + timezone.timedelta(days=DAYS_IN_A_WEEK - days_diff - ONE_DAY)
-        elif self.frequency == CustomOnCallShift.FREQUENCY_MONTHLY:
-            # get the last day of the month
-            current_day_number = next_event_start.day
-            number_of_days = monthrange(next_event_start.year, next_event_start.month)[1]
-            days_diff = number_of_days - current_day_number
-            end_date = next_event_start + timezone.timedelta(days=days_diff)
-
         next_event = None
         # repetitions generate the next event shift according with the recurrence rules
         repetitions = UnfoldableCalendar(current_event).RepeatedEvent(
@@ -405,21 +388,12 @@ class CustomOnCallShift(models.Model):
         )
         ical_iter = repetitions.__iter__()
         for event in ical_iter:
-            if end_date:  # end_date exists for long events with frequency weekly and monthly
-                if end_date >= event.start >= next_event_start:
-                    if event.start >= self.rotation_start:
-                        next_event = event
-                        break
-                else:
-                    break
-            else:
-                if event.start >= next_event_start:
-                    next_event = event
-                    break
+            if event.start >= next_event_start:
+                next_event = event
+                break
+        next_event_dt = next_event.start if next_event is not None else None
 
-        next_event_dt = next_event.start if next_event is not None else next_event_start
-
-        if self.until and next_event_dt > self.until:
+        if self.until and next_event_dt and next_event_dt > self.until:
             return
         return next_event_dt
 
@@ -539,3 +513,65 @@ class CustomOnCallShift(models.Model):
         name = f"{schedule.name}-{shift_type_name}-{priority_level}-"
         name += "".join(random.choice(string.ascii_lowercase) for _ in range(5))
         return name
+
+    # Insight logs
+    @property
+    def insight_logs_type_verbal(self):
+        return "oncall_shift"
+
+    @property
+    def insight_logs_verbal(self):
+        return self.name
+
+    @property
+    def insight_logs_serialized(self):
+        users_verbal = []
+        if self.type == CustomOnCallShift.TYPE_ROLLING_USERS_EVENT:
+            if self.rolling_users is not None:
+                for users_dict in self.rolling_users:
+                    users = self.organization.users.filter(public_primary_key__in=users_dict.values())
+                    users_verbal.extend([user.username for user in users])
+        else:
+            users = self.users.all()
+            users_verbal = [user.username for user in users]
+        result = {
+            "name": self.name,
+            "source": self.get_source_display(),
+            "type": self.get_type_display(),
+            "users": users_verbal,
+            "start": self.start.isoformat(),
+            "duration": self.duration.seconds,
+            "priority_level": self.priority_level,
+        }
+        if self.type not in (CustomOnCallShift.TYPE_SINGLE_EVENT, CustomOnCallShift.TYPE_OVERRIDE):
+            result["frequency"] = self.get_frequency_display()
+            result["interval"] = self.interval
+            result["week_start"] = self.week_start
+            result["by_day"] = self.by_day
+            result["by_month"] = self.by_month
+            result["by_monthday"] = self.by_monthday
+            result["rotation_start"] = self.rotation_start.isoformat()
+            if self.until:
+                result["until"] = self.until.isoformat()
+        if self.team:
+            result["team"] = self.team.name
+            result["team_id"] = self.team.public_primary_key
+        else:
+            result["team"] = "General"
+        if self.time_zone:
+            result["time_zone"] = self.time_zone
+        return result
+
+    @property
+    def insight_logs_metadata(self):
+        result = {}
+        if self.team:
+            result["team"] = self.team.name
+            result["team_id"] = self.team.public_primary_key
+        else:
+            result["team"] = "General"
+        if self.schedule:
+            result["schedule"] = self.schedule.insight_logs_verbal
+            result["schedule_id"] = self.schedule.public_primary_key
+
+        return result

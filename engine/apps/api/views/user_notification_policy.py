@@ -24,9 +24,10 @@ from apps.base.messaging import get_messaging_backend_from_id
 from apps.base.models import UserNotificationPolicy
 from apps.base.models.user_notification_policy import BUILT_IN_BACKENDS, NotificationChannelAPIOptions
 from apps.user_management.models import User
-from apps.user_management.organization_log_creator import OrganizationLogType, create_organization_log
 from common.api_helpers.exceptions import BadRequest
 from common.api_helpers.mixins import UpdateSerializerMixin
+from common.exceptions import UserNotificationPolicyCouldNotBeDeleted
+from common.insight_log import EntityEvent, write_resource_insight_log
 
 
 class UserNotificationPolicyView(UpdateSerializerMixin, ModelViewSet):
@@ -55,14 +56,14 @@ class UserNotificationPolicyView(UpdateSerializerMixin, ModelViewSet):
         except ValueError:
             raise BadRequest(detail="Invalid user param")
         if user_id is None or user_id == self.request.user.public_primary_key:
-            queryset = self.model.objects.get_or_create_for_user(user=self.request.user, important=important)
+            queryset = self.model.objects.filter(user=self.request.user, important=important)
         else:
             try:
                 target_user = User.objects.get(public_primary_key=user_id)
             except User.DoesNotExist:
                 raise BadRequest(detail="User does not exist")
 
-            queryset = self.model.objects.get_or_create_for_user(user=target_user, important=important)
+            queryset = self.model.objects.filter(user=target_user, important=important)
 
         queryset = self.serializer_class.setup_eager_loading(queryset)
 
@@ -83,45 +84,45 @@ class UserNotificationPolicyView(UpdateSerializerMixin, ModelViewSet):
         return obj
 
     def perform_create(self, serializer):
-        organization = self.request.auth.organization
         user = serializer.validated_data.get("user") or self.request.user
-        old_state = user.repr_settings_for_client_side_logging
+        prev_state = user.insight_logs_serialized
         serializer.save()
-        new_state = user.repr_settings_for_client_side_logging
-        description = f"User settings for user {user.username} was changed from:\n{old_state}\nto:\n{new_state}"
-        create_organization_log(
-            organization,
-            self.request.user,
-            OrganizationLogType.TYPE_USER_SETTINGS_CHANGED,
-            description,
+        new_state = user.insight_logs_serialized
+        write_resource_insight_log(
+            instance=user,
+            author=self.request.user,
+            event=EntityEvent.UPDATED,
+            prev_state=prev_state,
+            new_state=new_state,
         )
 
     def perform_update(self, serializer):
-        organization = self.request.auth.organization
         user = serializer.validated_data.get("user") or self.request.user
-        old_state = user.repr_settings_for_client_side_logging
+        prev_state = user.insight_logs_serialized
         serializer.save()
-        new_state = user.repr_settings_for_client_side_logging
-        description = f"User settings for user {user.username} was changed from:\n{old_state}\nto:\n{new_state}"
-        create_organization_log(
-            organization,
-            self.request.user,
-            OrganizationLogType.TYPE_USER_SETTINGS_CHANGED,
-            description,
+        new_state = user.insight_logs_serialized
+        write_resource_insight_log(
+            instance=user,
+            author=self.request.user,
+            event=EntityEvent.UPDATED,
+            prev_state=prev_state,
+            new_state=new_state,
         )
 
     def perform_destroy(self, instance):
-        organization = self.request.auth.organization
         user = instance.user
-        old_state = user.repr_settings_for_client_side_logging
-        instance.delete()
-        new_state = user.repr_settings_for_client_side_logging
-        description = f"User settings for user {user.username} was changed from:\n{old_state}\nto:\n{new_state}"
-        create_organization_log(
-            organization,
-            self.request.user,
-            OrganizationLogType.TYPE_USER_SETTINGS_CHANGED,
-            description,
+        prev_state = user.insight_logs_serialized
+        try:
+            instance.delete()
+        except UserNotificationPolicyCouldNotBeDeleted:
+            raise BadRequest(detail="Can't delete last user notification policy")
+        new_state = user.insight_logs_serialized
+        write_resource_insight_log(
+            instance=user,
+            author=self.request.user,
+            event=EntityEvent.UPDATED,
+            prev_state=prev_state,
+            new_state=new_state,
         )
 
     @action(detail=True, methods=["put"])
@@ -176,7 +177,8 @@ class UserNotificationPolicyView(UpdateSerializerMixin, ModelViewSet):
                 continue
 
             # extra backends may be enabled per organization
-            if notification_channel.name not in BUILT_IN_BACKENDS:
+            built_in_backend_names = {b[0] for b in BUILT_IN_BACKENDS}
+            if notification_channel.name not in built_in_backend_names:
                 extra_messaging_backend = get_messaging_backend_from_id(notification_channel.name)
                 if extra_messaging_backend is None:
                     continue

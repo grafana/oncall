@@ -24,7 +24,6 @@ def test_organization_delete(
     make_escalation_chain,
     make_escalation_policy,
     make_channel_filter,
-    make_organization_log_record,
     make_user_notification_policy,
     make_telegram_user_connector,
     make_telegram_channel,
@@ -73,8 +72,6 @@ def test_organization_delete(
 
     alert_receive_channel = make_alert_receive_channel(organization=organization, author=user_1)
     channel_filter = make_channel_filter(alert_receive_channel, is_default=True, escalation_chain=escalation_chain)
-
-    organization_log_record = make_organization_log_record(organization=organization, user=user_1)
 
     alert_group = make_alert_group(
         alert_receive_channel=alert_receive_channel,
@@ -142,7 +139,6 @@ def test_organization_delete(
         escalation_policy,
         alert_receive_channel,
         channel_filter,
-        organization_log_record,
         alert_group,
         alert,
         alert_group_log_record,

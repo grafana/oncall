@@ -147,7 +147,7 @@ class CurrentOrganizationSerializer(OrganizationSerializer):
         else:
             verbal_time_saved_by_amixr = None
 
-        res = {
+        result = {
             "grouped_percent": obj.cached_grouped_percent,
             "alerts_count": obj.cached_alerts_count,
             "noise_reduction": obj.cached_noise_reduction,
@@ -155,7 +155,7 @@ class CurrentOrganizationSerializer(OrganizationSerializer):
             "verbal_time_saved_by_amixr": verbal_time_saved_by_amixr,
         }
 
-        return res
+        return result
 
     def update(self, instance, validated_data):
         current_archive_date = instance.archive_alerts_from

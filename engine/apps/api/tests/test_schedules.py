@@ -912,7 +912,7 @@ def test_merging_same_shift_events(
             "is_gap": False,
             "priority_level": 1,
             "start": start_date + timezone.timedelta(hours=10),
-            "users": [user_a.username, user_b.username],
+            "users": sorted([user_a.username, user_b.username]),
             "missing_users": [user_c.username],
         }
     ]
@@ -929,7 +929,7 @@ def test_merging_same_shift_events(
             "is_gap": e["is_gap"],
             "priority_level": e["priority_level"],
             "start": e["start"],
-            "users": [u["display_name"] for u in e["users"]] if e["users"] else None,
+            "users": sorted([u["display_name"] for u in e["users"]]) if e["users"] else None,
             "missing_users": e["missing_users"],
         }
         for e in response.data["events"]
@@ -950,7 +950,7 @@ def test_merging_same_shift_events(
             "is_gap": e["is_gap"],
             "priority_level": e["priority_level"],
             "start": e["start"],
-            "users": [u["display_name"] for u in e["users"]] if e["users"] else None,
+            "users": sorted([u["display_name"] for u in e["users"]]) if e["users"] else None,
             "missing_users": e["missing_users"],
         }
         for e in response.data["events"]

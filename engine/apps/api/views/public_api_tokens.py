@@ -7,8 +7,8 @@ from apps.api.serializers.public_api_token import PublicApiTokenSerializer
 from apps.auth_token.auth import PluginAuthentication
 from apps.auth_token.constants import MAX_PUBLIC_API_TOKENS_PER_USER
 from apps.auth_token.models import ApiAuthToken
-from apps.user_management.organization_log_creator import OrganizationLogType, create_organization_log
 from common.api_helpers.exceptions import BadRequest
+from common.insight_log import EntityEvent, write_resource_insight_log
 
 
 class PublicApiTokenView(
@@ -30,10 +30,8 @@ class PublicApiTokenView(
         return ApiAuthToken.objects.filter(user=self.request.user, organization=self.request.user.organization)
 
     def destroy(self, request, *args, **kwargs):
-        user = request.user
         instance = self.get_object()
-        description = f"API token {instance.name} was revoked"
-        create_organization_log(user.organization, user, OrganizationLogType.TYPE_CHANNEL_FILTER_DELETED, description)
+        write_resource_insight_log(instance=instance, author=instance.author, event=EntityEvent.DELETED)
         self.perform_destroy(instance)
         return Response(status=status.HTTP_204_NO_CONTENT)
 
@@ -51,5 +49,5 @@ class PublicApiTokenView(
             raise BadRequest("Invalid token name")
         instance, token = ApiAuthToken.create_auth_token(user, user.organization, token_name)
         data = {"id": instance.pk, "token": token, "name": instance.name, "created_at": instance.created_at}
-
+        write_resource_insight_log(instance=instance, author=user, event=EntityEvent.CREATED)
         return Response(data, status=status.HTTP_201_CREATED)
