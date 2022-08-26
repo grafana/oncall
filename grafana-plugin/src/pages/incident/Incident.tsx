@@ -296,7 +296,7 @@ class IncidentPage extends React.Component<IncidentPageProps, IncidentPageState>
                   Copy Link
                 </Button>
               </CopyToClipboard>
-              <a href={incident.permalink} target="_blank">
+              <a href={incident.permalink} target="_blank" rel="noreferrer">
                 <Button variant="primary" size="sm" icon="slack">
                   View in Slack
                 </Button>

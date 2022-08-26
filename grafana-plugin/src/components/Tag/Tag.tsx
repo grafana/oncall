@@ -7,7 +7,6 @@ import styles from 'components/Tag/Tag.module.css';
 interface TagProps {
   color: string;
   className?: string;
-  children?: any
 }
 
 const cx = cn.bind(styles);

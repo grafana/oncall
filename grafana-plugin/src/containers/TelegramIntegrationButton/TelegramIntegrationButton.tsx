@@ -122,7 +122,7 @@ const TelegramModal = (props: TelegramModalProps) => {
       <div className={cx('telegram-instruction-container')}>
         <Text>
           5. Click{' '}
-          <a className={cx('telegram-bot')} href={botLink} target="_blank">
+          <a className={cx('telegram-bot')} href={botLink} target="_blank" rel="noreferrer">
             {botLink}
           </a>{' '}
           to add the OnCall bot to your contacts. Add the bot to your channel as an Admin. Allow it to{' '}
