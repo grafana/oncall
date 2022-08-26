@@ -72,8 +72,8 @@ def connect_user_to_slack(response, backend, strategy, user, organization, *args
         author=user,
         event_name=ChatOpsEvent.USER_LINKED,
         chatops_type=ChatOpsType.SLACK,
-        user=user.username,
-        user_id=user.public_primary_key,
+        linked_user=user.username,
+        linked_user_id=user.public_primary_key,
     )
     user.slack_user_identity = slack_user_identity
     user.save(update_fields=["slack_user_identity"])
