@@ -72,7 +72,7 @@ const RotationForm: FC<RotationFormProps> = observer((props) => {
     shiftColor = '#3D71D9',
   } = props;
 
-  console.log('shiftColor', shiftColor);
+  // console.log('shiftColor', shiftColor);
 
   const [isOpen, setIsOpen] = useState<boolean>(false);
 
@@ -100,9 +100,10 @@ const RotationForm: FC<RotationFormProps> = observer((props) => {
 
         const coords = getCoords(elm);
 
+        // elm.scrollIntoView({ behavior: 'smooth', block: 'end', inline: 'nearest' });
         // setOffsetTop(Math.max(coords.top + elm.offsetHeight, 0));
 
-        setOffsetTop(coords.top - modal?.offsetHeight - 10);
+        setOffsetTop(Math.max(coords.top - modal?.offsetHeight - 10, 10));
       });
     }
   }, [isOpen]);
@@ -176,6 +177,7 @@ const RotationForm: FC<RotationFormProps> = observer((props) => {
       shiftId,
       layerPriority,
       shift,
+      endLess,
     ]
   );
 

@@ -89,25 +89,28 @@ export const enrichLayers = (
   shiftId: Shift['id'] | 'new',
   priority: Shift['priority_level']
 ) => {
+  let shiftIdFromEvent = shiftId;
   if (shiftId === 'new') {
     const event = newEvents.find((event) => !event.is_gap);
     if (event) {
-      shiftId = event.shift.pk;
+      shiftIdFromEvent = event.shift.pk;
     }
   }
 
   const updatingLayer = {
     priority,
     shifts: [
-      { shiftId: shiftId, isPreview: true, events: fillGaps(newEvents.filter((event: Event) => !event.is_gap)) },
+      {
+        shiftId: shiftIdFromEvent,
+        isPreview: true,
+        events: fillGaps(newEvents.filter((event: Event) => !event.is_gap)),
+      },
     ],
   };
 
-  const isNew = updatingLayer.shifts[0].shiftId === 'new';
-
   let added = false;
   layers = layers.reduce((memo, layer, index) => {
-    if (isNew) {
+    if (shiftId === 'new') {
       if (layer.priority === priority) {
         const newLayer = { ...layer };
         newLayer.shifts = [...layer.shifts, ...updatingLayer.shifts];
@@ -144,14 +147,15 @@ export const enrichOverrides = (
   newEvents: Event[],
   shiftId: Shift['id']
 ) => {
+  let shiftIdFromEvent = shiftId;
   if (shiftId === 'new') {
     const event = newEvents.find((event) => !event.is_gap);
     if (event) {
-      shiftId = event.shift.pk;
+      shiftIdFromEvent = event.shift.pk;
     }
   }
 
-  const newShift = { shiftId, isPreview: true, events: fillGaps(newEvents) };
+  const newShift = { shiftId: shiftIdFromEvent, isPreview: true, events: fillGaps(newEvents) };
 
   const index = overrides.findIndex((shift) => shift.shiftId === shiftId);
 
@@ -172,7 +176,7 @@ const L3_COLORS = ['#377277', '#638282', '#364E4E', '#423220'];
 
 const OVERRIDE_COLORS = ['#C69B06', '#C2C837'];
 
-const COLORS = [L1_COLORS, L2_COLORS, L3_COLORS, OVERRIDE_COLORS];
+const COLORS = [L1_COLORS, L2_COLORS, L3_COLORS];
 
 export const getColor = (layerIndex: number, rotationIndex: number) => {
   const normalizedLayerIndex = layerIndex % COLORS.length;
