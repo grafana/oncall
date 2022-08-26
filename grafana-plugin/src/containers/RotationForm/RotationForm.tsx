@@ -68,7 +68,7 @@ const RotationForm: FC<RotationFormProps> = observer((props) => {
     onDelete,
     layerPriority,
     shiftId,
-    shiftMoment = dayjs().startOf('day').add(1, 'day'),
+    shiftMoment = dayjs().startOf('isoWeek'),
     shiftColor = '#3D71D9',
   } = props;
 

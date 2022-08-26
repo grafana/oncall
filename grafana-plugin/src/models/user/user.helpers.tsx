@@ -36,7 +36,7 @@ export const getRole = (role: UserRole) => {
 
 export const getTimezone = (user: User) => {
   const tzByName = {
-    'Hello Oncall': 'UTC',
+    Maxim: 'UTC',
     'Matías Bordese': 'America/Montevideo',
     'Michael Derynck': 'America/Vancouver',
     'Yulia Shanyrova': 'Europe/Amsterdam',
