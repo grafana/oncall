@@ -74,6 +74,11 @@ def notify_user_task(
 
         if previous_notification_policy_pk is None:
             notification_policy = UserNotificationPolicy.objects.filter(user=user, important=important).first()
+            if notification_policy is None:
+                task_logger.info(
+                    f"notify_user_task: Failed to notify. No notification policies. user_id={user_pk} alert_group_id={alert_group_pk} important={important}"
+                )
+                return
             # Here we collect a brief overview of notification steps configured for user to send it to thread.
             collected_steps_ids = []
             next_notification_policy = notification_policy.next()
