@@ -6,6 +6,7 @@ import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc';
 import { toJS } from 'mobx';
 import { observer } from 'mobx-react';
+import { CSSTransition, TransitionGroup } from 'react-transition-group';
 
 import TimelineMarks from 'components/TimelineMarks/TimelineMarks';
 import Rotation from 'containers/Rotation/Rotation';
@@ -17,6 +18,7 @@ import { Timezone } from 'models/timezone/timezone.types';
 import { SelectOption, WithStoreProps } from 'state/types';
 import { withMobXProviderContext } from 'state/withStore';
 
+import { DEFAULT_TRANSITION_TIMEOUT } from './Rotations.config';
 import { findColor } from './Rotations.helpers';
 
 import styles from './Rotations.module.css';
@@ -89,40 +91,48 @@ class Rotations extends Component<RotationsProps, RotationsState> {
           </div>
           <div className={cx('rotations-plus-title')}>
             {layers && layers.length ? (
-              layers.map((layer, layerIndex) => (
-                <div key={layer.priority}>
-                  <div id={`layer${layer.priority}`} className={cx('layer')}>
-                    <div className={cx('layer-title')}>
-                      <HorizontalGroup spacing="sm" justify="center">
-                        <span>Layer {layer.priority}</span>
-                        {/*<Icon name="info-circle" />*/}
-                      </HorizontalGroup>
-                    </div>
-                    <div className={cx('rotations')}>
-                      <TimelineMarks startMoment={startMoment} />
-                      {!currentTimeHidden && (
-                        <div className={cx('current-time')} style={{ left: `${currentTimeX * 100}%` }} />
-                      )}
+              <TransitionGroup className={cx('layers')}>
+                {layers.map((layer, layerIndex) => (
+                  <CSSTransition key={layerIndex} timeout={DEFAULT_TRANSITION_TIMEOUT} classNames={{ ...styles }}>
+                    <div id={`layer${layer.priority}`} className={cx('layer')}>
+                      <div className={cx('layer-title')}>
+                        <HorizontalGroup spacing="sm" justify="center">
+                          <span>Layer {layer.priority}</span>
+                          {/*<Icon name="info-circle" />*/}
+                        </HorizontalGroup>
+                      </div>
                       <div className={cx('rotations')}>
-                        {layer.shifts.map(({ shiftId, isPreview, events }, rotationIndex) => (
-                          <Rotation
-                            onClick={(moment) => {
-                              this.onRotationClick(shiftId, moment);
-                            }}
-                            color={getColor(layerIndex, rotationIndex)}
-                            events={events}
-                            layerIndex={layerIndex}
-                            rotationIndex={rotationIndex}
-                            startMoment={startMoment}
-                            currentTimezone={currentTimezone}
-                            transparent={isPreview}
-                          />
-                        ))}
+                        <TimelineMarks startMoment={startMoment} />
+                        {!currentTimeHidden && (
+                          <div className={cx('current-time')} style={{ left: `${currentTimeX * 100}%` }} />
+                        )}
+                        <TransitionGroup className={cx('rotations')}>
+                          {layer.shifts.map(({ shiftId, isPreview, events }, rotationIndex) => (
+                            <CSSTransition
+                              key={rotationIndex}
+                              timeout={DEFAULT_TRANSITION_TIMEOUT}
+                              classNames={{ ...styles }}
+                            >
+                              <Rotation
+                                onClick={(moment) => {
+                                  this.onRotationClick(shiftId, moment);
+                                }}
+                                color={getColor(layerIndex, rotationIndex)}
+                                events={events}
+                                layerIndex={layerIndex}
+                                rotationIndex={rotationIndex}
+                                startMoment={startMoment}
+                                currentTimezone={currentTimezone}
+                                transparent={isPreview}
+                              />
+                            </CSSTransition>
+                          ))}
+                        </TransitionGroup>
                       </div>
                     </div>
-                  </div>
-                </div>
-              ))
+                  </CSSTransition>
+                ))}
+              </TransitionGroup>
             ) : (
               <div>
                 <div id={`layer1`} className={cx('layer')}>

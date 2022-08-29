@@ -89,3 +89,25 @@
 .add-rotations-layer:hover {
   background: var(--secondary-background);
 }
+
+/*
+animation
+*/
+
+.enter {
+  opacity: 0;
+}
+
+.enterActive {
+  opacity: 1;
+  transition: opacity 500ms ease-in;
+}
+
+.exit {
+  opacity: 1;
+}
+
+.exitActive {
+  opacity: 0;
+  transition: opacity 500ms ease-in;
+}

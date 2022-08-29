@@ -5,6 +5,7 @@ import cn from 'classnames/bind';
 import dayjs from 'dayjs';
 import { observer } from 'mobx-react';
 import moment from 'moment';
+import { CSSTransition, TransitionGroup } from 'react-transition-group';
 
 import TimelineMarks from 'components/TimelineMarks/TimelineMarks';
 import Rotation from 'containers/Rotation/Rotation';
@@ -16,6 +17,7 @@ import { Timezone } from 'models/timezone/timezone.types';
 import { WithStoreProps } from 'state/types';
 import { withMobXProviderContext } from 'state/withStore';
 
+import { DEFAULT_TRANSITION_TIMEOUT } from './Rotations.config';
 import { findColor } from './Rotations.helpers';
 
 import styles from './Rotations.module.css';
@@ -72,32 +74,36 @@ class ScheduleOverrides extends Component<ScheduleOverridesProps, ScheduleOverri
           <div className={cx('header-plus-content')}>
             {!currentTimeHidden && <div className={cx('current-time')} style={{ left: `${currentTimeX * 100}%` }} />}
             <TimelineMarks startMoment={startMoment} />
-            <div className={cx('rotations')}>
+            <TransitionGroup className={cx('rotations')}>
               {shifts && shifts.length ? (
                 shifts.map(({ shiftId, isPreview, events }, rotationIndex) => (
+                  <CSSTransition key={rotationIndex} timeout={DEFAULT_TRANSITION_TIMEOUT} classNames={{ ...styles }}>
+                    <Rotation
+                      key={rotationIndex}
+                      events={events}
+                      color={getOverrideColor(rotationIndex)}
+                      startMoment={startMoment}
+                      currentTimezone={currentTimezone}
+                      onClick={(moment) => {
+                        this.onRotationClick(shiftId, moment);
+                      }}
+                      transparent={isPreview}
+                    />
+                  </CSSTransition>
+                ))
+              ) : (
+                <CSSTransition key={0} timeout={500} classNames={{ ...styles }}>
                   <Rotation
-                    key={rotationIndex}
-                    events={events}
-                    color={getOverrideColor(rotationIndex)}
+                    events={[]}
                     startMoment={startMoment}
                     currentTimezone={currentTimezone}
                     onClick={(moment) => {
-                      this.onRotationClick(shiftId, moment);
+                      this.onRotationClick('new', moment);
                     }}
-                    transparent={isPreview}
                   />
-                ))
-              ) : (
-                <Rotation
-                  events={[]}
-                  startMoment={startMoment}
-                  currentTimezone={currentTimezone}
-                  onClick={(moment) => {
-                    this.onRotationClick('new', moment);
-                  }}
-                />
+                </CSSTransition>
               )}
-            </div>
+            </TransitionGroup>
           </div>
           {/* <div className={cx('add-rotations-layer')} onClick={this.handleAddOverride}>
             + Add override
