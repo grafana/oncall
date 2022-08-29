@@ -679,10 +679,16 @@ export const getUTCString = (moment: dayjs.Dayjs | DateTime, timezone: Timezone)
     .format('YYYY-MM-DDTHH:mm:ss.000Z');
 };
 
-export const getDateTime = (date: string) => {
+export const getDateTime = (date: string, timezone: Timezone) => {
   const browserTimezone = dayjs.tz.guess();
 
   const browserTimezoneOffset = dayjs().tz(browserTimezone).utcOffset();
+  const timezoneOffset = dayjs().tz(timezone).utcOffset();
 
-  return dateTime(dayjs(date).subtract(browserTimezoneOffset, 'minutes').format('YYYY-MM-DDTHH:mm:ss.000Z'));
+  return dateTime(
+    dayjs(date)
+      .subtract(browserTimezoneOffset, 'minutes')
+      .add(timezoneOffset, 'minutes')
+      .format('YYYY-MM-DDTHH:mm:ss.000Z')
+  );
 };

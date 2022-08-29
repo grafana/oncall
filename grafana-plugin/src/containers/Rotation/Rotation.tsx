@@ -82,11 +82,11 @@ const Rotation: FC<RotationProps> = (props) => {
 
     const dayOffset = Math.floor((x / width) * 7);
 
-    console.log('event.offsetX', event.offsetX);
+    /* console.log('event.offsetX', event.offsetX);
     console.log('event.nativeEvent', event.nativeEvent);
     console.log('event.currentTarget', event.currentTarget);
     console.log('dayOffset', dayOffset);
-
+*/
     onClick(startMoment.add(dayOffset, 'day'));
   };
 

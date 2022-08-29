@@ -140,8 +140,8 @@ const ScheduleOverrideForm: FC<RotationFormProps> = (props) => {
 
   useEffect(() => {
     if (shift) {
-      setShiftStart(getDateTime(shift.shift_start));
-      setShiftEnd(getDateTime(shift.shift_end));
+      setShiftStart(getDateTime(shift.shift_start, currentTimezone));
+      setShiftEnd(getDateTime(shift.shift_end, currentTimezone));
 
       setUserGroups(shift.rolling_users);
     }

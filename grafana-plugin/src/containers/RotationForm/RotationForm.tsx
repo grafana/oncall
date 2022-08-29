@@ -213,10 +213,10 @@ const RotationForm: FC<RotationFormProps> = observer((props) => {
 
   useEffect(() => {
     if (shift) {
-      setRotationStart(getDateTime(shift.rotation_start));
-      setRotationEnd(getDateTime(shift.until));
-      setShiftStart(getDateTime(shift.shift_start));
-      setShiftEnd(getDateTime(shift.shift_end));
+      setRotationStart(getDateTime(shift.rotation_start, currentTimezone));
+      setRotationEnd(getDateTime(shift.until, currentTimezone));
+      setShiftStart(getDateTime(shift.shift_start, currentTimezone));
+      setShiftEnd(getDateTime(shift.shift_end, currentTimezone));
       setEndless(!shift.until);
 
       setRepeatEveryValue(shift.interval);
