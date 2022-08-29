@@ -32,6 +32,10 @@ const SlackConnector = (props: SlackConnectorProps) => {
     onTabChange(UserSettingsTab.SlackInfo);
   }, []);
 
+  const handleUnlinkSlackAccount = useCallback(() => {
+    userStore.unlinkSlack(userStore.currentUserPk);
+  }, []);
+
   return (
     <div className={cx('user-item')}>
       <Label>Slack username:</Label>
@@ -39,6 +43,9 @@ const SlackConnector = (props: SlackConnectorProps) => {
       {storeUser.slack_user_identity ? (
         <div>
           <Text type="secondary"> Slack account is connected</Text>
+          <Button size="sm" fill="text" variant="destructive" onClick={handleUnlinkSlackAccount}>
+            Unlink Slack account
+          </Button>
         </div>
       ) : teamStore.currentTeam?.slack_team_identity ? (
         <div>
