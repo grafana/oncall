@@ -571,7 +571,7 @@ class OnCallScheduleCalendar(OnCallSchedule):
 class OnCallScheduleWeb(OnCallSchedule):
     time_zone = models.CharField(max_length=100, default="UTC")
 
-    def _generate_ical_file_from_shifts(self, qs, extra_shifts=None):
+    def _generate_ical_file_from_shifts(self, qs, extra_shifts=None, allow_empty_users=False):
         """Generate iCal events file from custom on-call shifts."""
         ical = None
         if qs.exists() or extra_shifts is not None:
@@ -586,7 +586,7 @@ class OnCallScheduleWeb(OnCallSchedule):
             ical = ical_file.replace(end_line, "").strip()
             ical = f"{ical}\r\n"
             for event in itertools.chain(qs.all(), extra_shifts):
-                ical += event.convert_to_ical(self.time_zone)
+                ical += event.convert_to_ical(self.time_zone, allow_empty_users=allow_empty_users)
             ical += f"{end_line}\r\n"
         return ical
 
@@ -657,7 +657,7 @@ class OnCallScheduleWeb(OnCallSchedule):
                 custom_shift.public_primary_key = updated_shift_pk
                 qs = qs.exclude(public_primary_key=updated_shift_pk)
 
-        ical_file = self._generate_ical_file_from_shifts(qs, extra_shifts=extra_shifts)
+        ical_file = self._generate_ical_file_from_shifts(qs, extra_shifts=extra_shifts, allow_empty_users=True)
 
         original_value = getattr(self, ical_attr)
         _invalidate_cache(self, ical_property)

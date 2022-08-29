@@ -553,6 +553,78 @@ def test_preview_shift(make_organization, make_user_for_organization, make_sched
 
 
 @pytest.mark.django_db
+def test_preview_shift_no_user(make_organization, make_user_for_organization, make_schedule, make_on_call_shift):
+    organization = make_organization()
+    schedule = make_schedule(
+        organization,
+        schedule_class=OnCallScheduleWeb,
+        name="test_web_schedule",
+    )
+    now = timezone.now().replace(hour=0, minute=0, second=0, microsecond=0)
+    start_date = now - timezone.timedelta(days=7)
+
+    schedule_primary_ical = schedule._ical_file_primary
+
+    # proposed shift
+    new_shift = CustomOnCallShift(
+        type=CustomOnCallShift.TYPE_ROLLING_USERS_EVENT,
+        organization=organization,
+        schedule=schedule,
+        name="testing",
+        start=start_date + timezone.timedelta(hours=12),
+        rotation_start=start_date + timezone.timedelta(hours=12),
+        duration=timezone.timedelta(seconds=3600),
+        frequency=CustomOnCallShift.FREQUENCY_DAILY,
+        priority_level=2,
+        rolling_users=[],
+    )
+
+    rotation_events, final_events = schedule.preview_shift(new_shift, "UTC", start_date, days=1)
+
+    # check rotation events
+    expected_rotation_events = [
+        {
+            "calendar_type": OnCallSchedule.TYPE_ICAL_PRIMARY,
+            "start": new_shift.start,
+            "end": new_shift.start + new_shift.duration,
+            "all_day": False,
+            "is_override": False,
+            "is_empty": True,
+            "is_gap": False,
+            "priority_level": None,
+            "missing_users": [],
+            "users": [],
+            "shift": {"pk": new_shift.public_primary_key},
+            "source": "api",
+        }
+    ]
+    assert rotation_events == expected_rotation_events
+
+    expected_events = [
+        {
+            "end": new_shift.start + new_shift.duration,
+            "start": new_shift.start,
+            "user": None,
+            "is_empty": True,
+        }
+    ]
+    returned_events = [
+        {
+            "end": e["end"],
+            "start": e["start"],
+            "user": e["users"][0]["display_name"] if e["users"] else None,
+            "is_empty": e["is_empty"],
+        }
+        for e in final_events
+        if not e["is_override"] and not e["is_gap"]
+    ]
+    assert returned_events == expected_events
+
+    # final ical schedule didn't change
+    assert schedule._ical_file_primary == schedule_primary_ical
+
+
+@pytest.mark.django_db
 def test_preview_override_shift(make_organization, make_user_for_organization, make_schedule, make_on_call_shift):
     organization = make_organization()
     schedule = make_schedule(

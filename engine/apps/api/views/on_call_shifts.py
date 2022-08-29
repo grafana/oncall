@@ -89,8 +89,6 @@ class OnCallShiftView(PublicPrimaryKeyMixin, UpdateSerializerMixin, ModelViewSet
         validated_data = serializer._correct_validated_data(
             serializer.validated_data["type"], serializer.validated_data
         )
-        if not validated_data.get("rolling_users"):
-            return Response(data=serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
         updated_shift_pk = self.request.data.get("shift_pk")
         shift = CustomOnCallShift(**validated_data)
