@@ -37,7 +37,7 @@ MIRAGE_CIPHER_IV = os.environ.get("MIRAGE_CIPHER_IV")
 MIRAGE_CIPHER_MODE = "CBC"
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
 ALLOWED_HOSTS = [item.strip() for item in os.environ.get("ALLOWED_HOSTS", "*").split(",")]
 
@@ -75,9 +75,7 @@ SENDGRID_SECRET_KEY = os.environ.get("SENDGRID_SECRET_KEY")
 SENDGRID_INBOUND_EMAIL_DOMAIN = os.environ.get("SENDGRID_INBOUND_EMAIL_DOMAIN")
 
 # For Grafana Cloud integration
-GRAFANA_CLOUD_ONCALL_API_URL = os.environ.get(
-    "GRAFANA_CLOUD_ONCALL_API_URL", "https://oncall-prod-us-central-0.grafana.net/oncall"
-)
+GRAFANA_CLOUD_ONCALL_API_URL = os.environ.get("GRAFANA_CLOUD_ONCALL_API_URL", "https://a-prod-us-central-0.grafana.net")
 GRAFANA_CLOUD_ONCALL_TOKEN = os.environ.get("GRAFANA_CLOUD_ONCALL_TOKEN", None)
 
 # Outgoing webhook settings
