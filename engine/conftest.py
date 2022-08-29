@@ -68,6 +68,7 @@ from apps.telegram.tests.factories import (
     TelegramVerificationCodeFactory,
 )
 from apps.twilioapp.tests.factories import PhoneCallFactory, SMSFactory
+from apps.user_management.models.user import User, listen_for_user_model_save
 from apps.user_management.tests.factories import OrganizationFactory, TeamFactory, UserFactory
 from common.constants.role import Role
 
@@ -150,7 +151,9 @@ def make_organization():
 @pytest.fixture
 def make_user_for_organization():
     def _make_user_for_organization(organization, role=Role.ADMIN, **kwargs):
+        post_save.disconnect(listen_for_user_model_save, sender=User)
         user = UserFactory(organization=organization, role=role, **kwargs)
+        post_save.disconnect(listen_for_user_model_save, sender=User)
         return user
 
     return _make_user_for_organization
