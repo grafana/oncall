@@ -7,7 +7,6 @@ steps:
   - name: Build Plugin
     image: node:14.6.0-stretch
     commands:
-      - echo $${DRONE_TAG}
       - apt-get update
       - apt-get --assume-yes install jq
       - cd grafana-plugin/
@@ -298,7 +297,7 @@ steps:
         from_secret: docker_username
       password:
         from_secret: docker_password
-      target: grafana/oncall:$${DRONE_TAG}
+      target: grafana/oncall:${DRONE_TAG}
       template: grafana/oncall:${DRONE_TAG}-ARCH-OS
       platforms:
         - linux/amd64
@@ -383,6 +382,6 @@ kind: secret
 name: drone_token
 ---
 kind: signature
-hmac: 9b84b0bba4ca719f7b6eab93b7972f5a4ae348184374e112228607536727d27b
+hmac: 664d7a6f2620b1fbc110f968da3668db91fab35baeb0214e178579ac7a422fc3
 
 ...
