@@ -1,5 +1,8 @@
 # Change Log
 
+## v1.0.27 (2022-08-30)
+- Bug fixes
+
 ## v1.0.26 (2022-08-26)
 - Insight log's format fixes
 - Remove UserNotificationPolicy auto-recreating
