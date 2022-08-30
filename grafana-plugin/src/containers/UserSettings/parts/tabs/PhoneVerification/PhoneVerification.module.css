@@ -11,12 +11,11 @@
   display: flex;
   flex-direction: row;
   align-items: center;
-  padding-top: 4px;
 }
 .switch__icon {
   margin-right: 12px;
 }
 
 .phone__field {
-  margin-bottom: 0;
+  margin-bottom: 8px;
 }

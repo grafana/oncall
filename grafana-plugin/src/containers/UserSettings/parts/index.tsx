@@ -134,10 +134,7 @@ export const TabsContent = observer((props: TabsContentProps) => {
         (store.hasFeature(AppFeature.CloudNotifications) ? (
           <CloudPhoneSettings userPk={id} />
         ) : (
-          <PhoneVerification
-            userPk={id}
-            phone={storeUser.unverified_phone_number || '+'}
-          />
+          <PhoneVerification userPk={id} />
         ))}
       {activeTab === UserSettingsTab.MobileAppVerification && (
         <MobileAppVerification userPk={id} phone={storeUser.unverified_phone_number || '+'} />

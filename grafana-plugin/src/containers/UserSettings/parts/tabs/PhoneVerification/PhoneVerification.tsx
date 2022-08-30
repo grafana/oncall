@@ -19,7 +19,6 @@ const cx = cn.bind(styles);
 
 interface PhoneVerificationProps extends HTMLAttributes<HTMLElement> {
   userPk?: User['pk'];
-  phone?: string;
 }
 
 interface PhoneVerificationState {
@@ -27,24 +26,27 @@ interface PhoneVerificationState {
   code: string;
   isCodeSent: boolean;
   isPhoneNumberHidden: boolean;
+  isLoading: boolean;
 }
 
 const PhoneVerification = observer((props: PhoneVerificationProps) => {
-  const { phone: propsPhone, userPk: propsUserPk } = props;
+  const { userPk: propsUserPk } = props;
+
   const store = useStore();
   const { userStore, teamStore } = store;
 
   const userPk = (propsUserPk || userStore.currentUserPk) as User['pk'];
-  const user = userStore.items[userPk as User['pk']];
+  let user = userStore.items[userPk];
 
-  const [{ phone, code, isCodeSent, isPhoneNumberHidden }, setState] = useReducer(
+  const [{ phone, code, isCodeSent, isPhoneNumberHidden, isLoading }, setState] = useReducer(
     (state: PhoneVerificationState, newState: Partial<PhoneVerificationState>) => ({
       ...state,
       ...newState,
     }),
     {
-      phone: propsPhone,
       code: '',
+      phone: user.unverified_phone_number || '+',
+      isLoading: false,
       isCodeSent: false,
       isPhoneNumberHidden: user.hide_phone_number,
     }
@@ -52,12 +54,17 @@ const PhoneVerification = observer((props: PhoneVerificationProps) => {
 
   const codeInputRef = useRef<any>();
 
-  const onTogglePhoneCallback = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
-    const { checked: isPhoneNumberHidden } = event.currentTarget;
+  const onTogglePhoneCallback = useCallback(
+    async ({ currentTarget: { checked: isPhoneNumberHidden } }: React.ChangeEvent<HTMLInputElement>) => {
+      setState({ isPhoneNumberHidden, isLoading: true });
 
-    setState({ isPhoneNumberHidden });
-    userStore.updateUser({ pk: userPk, hide_phone_number: isPhoneNumberHidden });
-  }, []);
+      await userStore.updateUser({ pk: userPk, hide_phone_number: isPhoneNumberHidden });
+      user = userStore.items[userPk];
+
+      setState({ phone: user.unverified_phone_number, isLoading: false });
+    },
+    []
+  );
 
   const onChangePhoneCallback = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
     setState({ isCodeSent: false, phone: event.target.value });
@@ -117,7 +124,8 @@ const PhoneVerification = observer((props: PhoneVerificationProps) => {
 
   const twilioConfigured = teamStore.currentTeam?.env_status.twilio_configured;
 
-  const showPhoneInputError = phone && phone.length > 8 && isPhoneInvalid;
+  const showPhoneInputError = phone && phone.length > 8 && isPhoneInvalid && !isPhoneNumberHidden && !isLoading;
+
   const isCurrent = userStore.currentUserPk === user.pk;
   const action = isCurrent ? UserAction.UpdateOwnSettings : UserAction.UpdateOtherUsersSettings;
   const isButtonDisabled = phone === user.verified_phone_number || (!isCodeSent && isPhoneInvalid) || !twilioConfigured;
@@ -173,6 +181,7 @@ const PhoneVerification = observer((props: PhoneVerificationProps) => {
           autoFocus={isCodeSent}
           onChange={onChangeCodeCallback}
           placeholder="Please enter the code"
+          className={cx('phone__field')}
         />
 
         <div className={cx('switch')}>
