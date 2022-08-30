@@ -31,7 +31,7 @@ class PublicApiTokenView(
 
     def destroy(self, request, *args, **kwargs):
         instance = self.get_object()
-        write_resource_insight_log(instance=instance, author=instance.author, event=EntityEvent.DELETED)
+        write_resource_insight_log(instance=instance, author=request.user, event=EntityEvent.DELETED)
         self.perform_destroy(instance)
         return Response(status=status.HTTP_204_NO_CONTENT)
 

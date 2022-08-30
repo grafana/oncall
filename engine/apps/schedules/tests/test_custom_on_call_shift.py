@@ -585,7 +585,8 @@ def test_rolling_users_with_diff_start_and_rotation_start_weekly_by_day(
     schedule = make_schedule(organization, schedule_class=OnCallScheduleWeb)
     now = timezone.now().replace(hour=0, minute=0, second=0, microsecond=0)
     today_weekday = now.weekday()
-    next_week_monday = now + timezone.timedelta(days=(0 - today_weekday) % 7)
+    delta_days = (0 - today_weekday) % 7 + (7 if today_weekday == 0 else 0)
+    next_week_monday = now + timezone.timedelta(days=delta_days)
     # SAT, SUN
     weekdays = [5, 6]
     by_day = [CustomOnCallShift.ICAL_WEEKDAY_MAP[day] for day in weekdays]
