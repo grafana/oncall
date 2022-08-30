@@ -12,6 +12,7 @@ from rest_framework.response import Response
 
 from apps.alerts.constants import ActionSource
 from apps.alerts.models import Alert, AlertGroup, AlertReceiveChannel
+from apps.alerts.tasks.bulk_action import bulk_alert_group_action
 from apps.api.permissions import MODIFY_ACTIONS, READ_ACTIONS, ActionPermission, AnyRole, IsAdminOrEditor
 from apps.api.serializers.alert_group import AlertGroupListSerializer, AlertGroupSerializer
 from apps.auth_token.auth import MobileAppAuthTokenAuthentication, PluginAuthentication
@@ -501,7 +502,6 @@ class AlertGroupView(
         alert_group_public_pks = self.request.data.get("alert_group_pks", [])
         action_with_incidents = self.request.data.get("action", None)
         delay = self.request.data.get("delay")
-        kwargs = {}
 
         if action_with_incidents not in AlertGroup.BULK_ACTIONS:
             return Response("Unknown action", status=status.HTTP_400_BAD_REQUEST)
@@ -509,17 +509,12 @@ class AlertGroupView(
         if action_with_incidents == AlertGroup.SILENCE:
             if delay is None:
                 raise BadRequest(detail="Please specify a delay for silence")
-            kwargs["silence_delay"] = delay
 
-        alert_groups = AlertGroup.unarchived_objects.filter(
-            channel__organization=self.request.auth.organization, public_primary_key__in=alert_group_public_pks
+        requesting_user_pk = self.request.user.pk
+        organization_id = self.request.auth.organization.id
+        bulk_alert_group_action.apply_async(
+            (action_with_incidents, delay, alert_group_public_pks, requesting_user_pk, organization_id),
         )
-
-        kwargs["user"] = self.request.user
-        kwargs["alert_groups"] = alert_groups
-
-        method = getattr(AlertGroup, f"bulk_{action_with_incidents}")
-        method(**kwargs)
 
         return Response(status=status.HTTP_200_OK)
 

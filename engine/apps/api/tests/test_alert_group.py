@@ -50,6 +50,19 @@ def alert_group_internal_api_setup(
     return user, token, alert_groups
 
 
+@pytest.fixture()
+def set_celery_always_eager():
+    from celery import current_app
+
+    orig_value = current_app.conf.task_always_eager
+
+    def _set_celery_always_eager(value):
+        current_app.conf.update(task_always_eager=value)
+
+    yield _set_celery_always_eager
+    current_app.conf.update(task_always_eager=orig_value)
+
+
 @pytest.mark.django_db
 def test_get_filter_started_at(alert_group_internal_api_setup, make_user_auth_headers):
     user, token, alert_groups = alert_group_internal_api_setup
@@ -1122,10 +1135,12 @@ def test_bulk_action_restart(
     mocked_start_escalate_alert,
     make_user_auth_headers,
     alert_group_internal_api_setup,
+    set_celery_always_eager,
 ):
     client = APIClient()
     user, token, alert_groups = alert_group_internal_api_setup
     resolved_alert_group, acked_alert_group, new_alert_group, silenced_alert_group = alert_groups
+    set_celery_always_eager(True)
 
     url = reverse("api-internal:alertgroup-bulk-action")
 
@@ -1185,10 +1200,12 @@ def test_bulk_action_acknowledge(
     mocked_log_report_signal_task,
     make_user_auth_headers,
     alert_group_internal_api_setup,
+    set_celery_always_eager,
 ):
     client = APIClient()
     user, token, alert_groups = alert_group_internal_api_setup
     resolved_alert_group, acked_alert_group, new_alert_group, _ = alert_groups
+    set_celery_always_eager(True)
 
     url = reverse("api-internal:alertgroup-bulk-action")
 
@@ -1242,10 +1259,12 @@ def test_bulk_action_resolve(
     mocked_log_report_signal_task,
     make_user_auth_headers,
     alert_group_internal_api_setup,
+    set_celery_always_eager,
 ):
     client = APIClient()
     user, token, alert_groups = alert_group_internal_api_setup
     resolved_alert_group, acked_alert_group, new_alert_group, _ = alert_groups
+    set_celery_always_eager(True)
 
     url = reverse("api-internal:alertgroup-bulk-action")
 
@@ -1296,10 +1315,12 @@ def test_bulk_action_silence(
     mocked_start_unsilence_task,
     make_user_auth_headers,
     alert_group_internal_api_setup,
+    set_celery_always_eager,
 ):
     client = APIClient()
     user, token, alert_groups = alert_group_internal_api_setup
     resolved_alert_group, acked_alert_group, new_alert_group, silenced_alert_groups = alert_groups
+    set_celery_always_eager(True)
 
     url = reverse("api-internal:alertgroup-bulk-action")
 
