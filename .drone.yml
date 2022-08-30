@@ -158,10 +158,17 @@ trigger:
 ---
 kind: pipeline
 type: docker
-name: OSS plugin release
+name: OSS Release
 
 steps:
-  - name: build plugin
+  - name: Check Promote
+    image: alpine
+    commands:
+      - if [ -z "$DRONE_DEPLOY_TO" ]; then echo "Missing DRONE_DEPLOY_TO (Target)"; exit 1; fi
+      - if [ -z "$DRONE_TAG" ]; then echo "Missing DRONE_TAG"; exit 1; fi
+      - echo Promoting $DRONE_TAG to $DRONE_DEPLOY_TO
+
+  - name: Build Plugin
     image: node:14.6.0-stretch
     commands:
       - apt-get update
@@ -171,14 +178,23 @@ steps:
       - yarn --network-timeout 500000
       - yarn build
       - ls ./
+    depends_on:
+      - Check Promote
+    when:
+      event:
+        - promote
+      target:
+        - oss
+      ref:
+        - refs/tags/v*.*.*
 
-  - name: sign and package plugin
+  - name: Sign and Package Plugin
     image: node:14.6.0-stretch
     environment:
       GRAFANA_API_KEY:
         from_secret: gcom_plugin_publisher_api_key
     depends_on:
-      - build plugin
+      - Build Plugin
     commands:
       - apt-get update
       - apt-get install zip
@@ -190,7 +206,7 @@ steps:
       - zip -r grafana-oncall-app.zip ./grafana-oncall-app
       - if [ -z "$DRONE_TAG" ]; then echo "No tag, skipping archive"; else cp grafana-oncall-app.zip grafana-oncall-app-${DRONE_TAG}.zip; fi
 
-  - name: publish plugin to grafana.com (release)
+  - name: Publish Plugin to grafana.com (release)
     image: curlimages/curl:7.73.0
     environment:
       GRAFANA_API_KEY:
@@ -198,36 +214,32 @@ steps:
     commands:
       - "curl -f -s -H \"Authorization: Bearer $${GRAFANA_API_KEY}\" -d \"download[any][url]=https://storage.googleapis.com/grafana-oncall-app/releases/grafana-oncall-app-${DRONE_TAG}.zip\" -d \"download[any][md5]=$$(curl -sL https://storage.googleapis.com/grafana-oncall-app/releases/grafana-oncall-app-${DRONE_TAG}.zip | md5sum | cut -d' ' -f1)\" -d url=https://github.com/grafana/oncall/grafana-plugin https://grafana.com/api/plugins"
     depends_on:
-      - sign and package plugin
+      - Sign and Package Plugin
 
-trigger:
-  event:
-    - promote
-  target:
-    - oss
-  ref:
-    - refs/tags/v*.*.*
-
----
-kind: pipeline
-type: docker
-name: OSS engine release (amd64)
-platform:
-  os: linux
-  arch: amd64
-steps:
-  - name: set engine version
+  - name: Image Tag
     image: alpine
     commands:
-      - apk add --no-cache bash sed
+      - apk add --no-cache bash git sed
+      - git fetch origin --tags
+      - chmod +x ./tools/image-tag.sh
+      - echo $(./tools/image-tag.sh)
+      - echo $(./tools/image-tag.sh) > .tags
       - if [ -z "$DRONE_TAG" ]; then echo "No tag, not modifying version"; else sed "0,/VERSION.*/ s/VERSION.*/VERSION = \"${DRONE_TAG}\"/g" engine/settings/base.py > engine/settings/base.temp && mv engine/settings/base.temp engine/settings/base.py; fi
       - cat engine/settings/base.py | grep VERSION | head -1
+    depends_on:
+      - Check Promote
+    when:
+      event:
+        - promote
+      target:
+        - oss
+      ref:
+        - refs/tags/v*.*.*
 
-  - name: build and push docker image
+  - name: Build and Push Engine Docker Image Backend to Dockerhub
     image: plugins/docker
     settings:
       repo: grafana/oncall
-      tags: ${DRONE_TAG}-amd64-linux
       dockerfile: engine/Dockerfile
       context: engine/
       password:
@@ -235,81 +247,21 @@ steps:
       username:
         from_secret: docker_username
     depends_on:
-      - set engine version
+      - Image Tag
 
-trigger:
-  event:
-    - promote
-  target:
-    - oss
-  ref:
-    - refs/tags/v*.*.*
-
----
-kind: pipeline
-type: docker
-name: OSS engine release (arm64)
-platform:
-  os: linux
-  arch: arm64
-steps:
-  - name: set engine version
+  - name: Unrecognized Promote Target
     image: alpine
     commands:
-      - apk add --no-cache bash sed
-      - if [ -z "$DRONE_TAG" ]; then echo "No tag, not modifying version"; else sed "0,/VERSION.*/ s/VERSION.*/VERSION = \"${DRONE_TAG}\"/g" engine/settings/base.py > engine/settings/base.temp && mv engine/settings/base.temp engine/settings/base.py; fi
-      - cat engine/settings/base.py | grep VERSION | head -1
-
-  - name: build and push docker image
-    image: plugins/docker
-    settings:
-      repo: grafana/oncall
-      tags: ${DRONE_TAG}-arm64-linux
-      dockerfile: engine/Dockerfile
-      context: engine/
-      password:
-        from_secret: docker_password
-      username:
-        from_secret: docker_username
-    depends_on:
-      - set engine version
+      - echo $DRONE_DEPLOY_TO is not a recognized promote target!
+      - exit 1
+    when:
+      target:
+        exclude:
+          - oss
 
 trigger:
   event:
     - promote
-  target:
-    - oss
-  ref:
-    - refs/tags/v*.*.*
-
----
-depends_on:
-  - OSS engine release (amd64)
-  - OSS engine release (arm64)
-kind: pipeline
-type: docker
-name: manifest
-steps:
-  - name: manifest
-    image: plugins/manifest
-    settings:
-      username:
-        from_secret: docker_username
-      password:
-        from_secret: docker_password
-      target: grafana/oncall:${DRONE_TAG}
-      template: grafana/oncall:${DRONE_TAG}-ARCH-OS
-      platforms:
-        - linux/amd64
-        - linux/arm64
-
-trigger:
-  event:
-    - promote
-  target:
-    - oss
-  ref:
-    - refs/tags/v*.*.*
 
 ---
 # Secret for pulling docker images.
@@ -382,6 +334,6 @@ kind: secret
 name: drone_token
 ---
 kind: signature
-hmac: 79a494b96019fe2dd27e14dd74314a00f451a79a44a54bb6b7e1bfb978374264
+hmac: a74dd831a3d0a87b8fc1db45699a6a834ea769da9f437c55979ae665948c3b3f
 
 ...
