@@ -137,7 +137,6 @@ export const TabsContent = observer((props: TabsContentProps) => {
           <PhoneVerification
             userPk={id}
             phone={storeUser.unverified_phone_number || '+'}
-            isPhoneNumberHidden={storeUser.hide_phone_number}
           />
         ))}
       {activeTab === UserSettingsTab.MobileAppVerification && (

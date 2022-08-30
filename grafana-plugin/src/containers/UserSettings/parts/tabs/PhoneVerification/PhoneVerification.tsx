@@ -1,4 +1,4 @@
-import React, { HTMLAttributes, useCallback, useRef, useState, useReducer } from 'react';
+import React, { HTMLAttributes, useCallback, useEffect, useRef, useReducer } from 'react';
 
 import { Alert, Button, Field, HorizontalGroup, Icon, Input, Switch, Tooltip, VerticalGroup } from '@grafana/ui';
 import cn from 'classnames/bind';
@@ -20,7 +20,6 @@ const cx = cn.bind(styles);
 interface PhoneVerificationProps extends HTMLAttributes<HTMLElement> {
   userPk?: User['pk'];
   phone?: string;
-  isPhoneNumberHidden: boolean;
 }
 
 interface PhoneVerificationState {
@@ -32,6 +31,11 @@ interface PhoneVerificationState {
 
 const PhoneVerification = observer((props: PhoneVerificationProps) => {
   const { phone: propsPhone, userPk: propsUserPk } = props;
+  const store = useStore();
+  const { userStore, teamStore } = store;
+
+  const userPk = (propsUserPk || userStore.currentUserPk) as User['pk'];
+  const user = userStore.items[userPk as User['pk']];
 
   const [{ phone, code, isCodeSent, isPhoneNumberHidden }, setState] = useReducer(
     (state: PhoneVerificationState, newState: Partial<PhoneVerificationState>) => ({
@@ -42,11 +46,18 @@ const PhoneVerification = observer((props: PhoneVerificationProps) => {
       phone: propsPhone,
       code: '',
       isCodeSent: false,
-      isPhoneNumberHidden: props.isPhoneNumberHidden,
+      isPhoneNumberHidden: user.hide_phone_number,
     }
   );
 
   const codeInputRef = useRef<any>();
+
+  const onTogglePhoneCallback = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
+    const { checked: isPhoneNumberHidden } = event.currentTarget;
+
+    setState({ isPhoneNumberHidden });
+    userStore.updateUser({ pk: userPk, hide_phone_number: isPhoneNumberHidden });
+  }, []);
 
   const onChangePhoneCallback = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
     setState({ isCodeSent: false, phone: event.target.value });
@@ -55,12 +66,6 @@ const PhoneVerification = observer((props: PhoneVerificationProps) => {
   const onChangeCodeCallback = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
     setState({ code: event.target.value });
   }, []);
-
-  const store = useStore();
-  const { userStore, teamStore } = store;
-
-  const userPk = (propsUserPk || userStore.currentUserPk) as User['pk'];
-  const user = userStore.items[userPk as User['pk']];
 
   const handleMakeTestCallClick = useCallback(() => {
     userStore.makeTestCall(userPk);
@@ -142,7 +147,11 @@ const PhoneVerification = observer((props: PhoneVerificationProps) => {
       )}
 
       <VerticalGroup>
-        <Field invalid={showPhoneInputError} error={showPhoneInputError ? 'Enter a valid phone number' : null}>
+        <Field
+          className={cx('phone__field')}
+          invalid={showPhoneInputError}
+          error={showPhoneInputError ? 'Enter a valid phone number' : null}
+        >
           <WithPermissionControl userAction={action}>
             <Input
               autoFocus
@@ -168,12 +177,7 @@ const PhoneVerification = observer((props: PhoneVerificationProps) => {
 
         <div className={cx('switch')}>
           <div className={cx('switch__icon')}>
-            <Switch
-              value={isPhoneNumberHidden}
-              onChange={(ev: React.ChangeEvent<HTMLInputElement>) =>
-                setState({ isPhoneNumberHidden: ev.currentTarget.checked })
-              }
-            />
+            <Switch value={isPhoneNumberHidden} onChange={onTogglePhoneCallback} />
           </div>
           <label className={cx('switch__label')}>Hide my phone number from public view</label>
         </div>
