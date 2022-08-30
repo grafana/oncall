@@ -297,8 +297,8 @@ steps:
         from_secret: docker_username
       password:
         from_secret: docker_password
-      template: grafana/oncall:${DRONE_TAG}-ARCH-OS
-      target: grafana/oncall:${DRONE_TAG}
+      template: grafana/oncall:$${DRONE_TAG}-ARCH-OS
+      target: grafana/oncall:$${DRONE_TAG}
       platforms:
         - linux/amd64
         - linux/arm64
@@ -382,6 +382,6 @@ kind: secret
 name: drone_token
 ---
 kind: signature
-hmac: 9b99dec3391988531b1e76b31ddaed46cd4f76dde311ab22150f99fdcfe39d79
+hmac: eae39c0217bdba11b2bfe75861a67b591f871bc064d9b217e3eacc29fab2ce7b
 
 ...
