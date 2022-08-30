@@ -1,12 +1,11 @@
-import React, { HTMLAttributes, useCallback, useRef, useState } from 'react';
+import React, { HTMLAttributes, useCallback, useRef, useState, useReducer } from 'react';
 
-import { Alert, Button, Field, HorizontalGroup, Icon, Input, Tooltip } from '@grafana/ui';
+import { Alert, Button, Field, HorizontalGroup, Icon, Input, Switch, Tooltip, VerticalGroup } from '@grafana/ui';
 import cn from 'classnames/bind';
 import { observer } from 'mobx-react';
 
 import PluginLink from 'components/PluginLink/PluginLink';
 import WithConfirm from 'components/WithConfirm/WithConfirm';
-import userSettings from 'containers/UserSettings/UserSettings';
 import { WithPermissionControl } from 'containers/WithPermissionControl/WithPermissionControl';
 import { User } from 'models/user/user.types';
 import { AppFeature } from 'state/features';
@@ -21,23 +20,40 @@ const cx = cn.bind(styles);
 interface PhoneVerificationProps extends HTMLAttributes<HTMLElement> {
   userPk?: User['pk'];
   phone?: string;
+  isPhoneNumberHidden: boolean;
+}
+
+interface PhoneVerificationState {
+  phone: string;
+  code: string;
+  isCodeSent: boolean;
+  isPhoneNumberHidden: boolean;
 }
 
 const PhoneVerification = observer((props: PhoneVerificationProps) => {
   const { phone: propsPhone, userPk: propsUserPk } = props;
-  const [phone, setPhone] = useState(propsPhone);
-  const [code, setCode] = useState('');
-  const [codeSent, setCodeSent] = useState<boolean>(false);
+
+  const [{ phone, code, isCodeSent, isPhoneNumberHidden }, setState] = useReducer(
+    (state: PhoneVerificationState, newState: Partial<PhoneVerificationState>) => ({
+      ...state,
+      ...newState,
+    }),
+    {
+      phone: propsPhone,
+      code: '',
+      isCodeSent: false,
+      isPhoneNumberHidden: props.isPhoneNumberHidden,
+    }
+  );
 
   const codeInputRef = useRef<any>();
 
-  const onChangePhoneCallback = useCallback((event) => {
-    setCodeSent(false);
-    setPhone(event.target.value);
+  const onChangePhoneCallback = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
+    setState({ isCodeSent: false, phone: event.target.value });
   }, []);
 
-  const onChangeCodeCallback = useCallback((event) => {
-    setCode(event.target.value);
+  const onChangeCodeCallback = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
+    setState({ code: event.target.value });
   }, []);
 
   const store = useStore();
@@ -52,7 +68,7 @@ const PhoneVerification = observer((props: PhoneVerificationProps) => {
 
   const handleForgetNumberClick = useCallback(() => {
     userStore.forgetPhone(userPk).then(() => {
-      setPhone('');
+      setState({ phone: '' });
       userStore.loadUser(userPk);
     });
   }, [userPk]);
@@ -60,7 +76,7 @@ const PhoneVerification = observer((props: PhoneVerificationProps) => {
   const { isTestCallInProgress } = userStore;
 
   const onSubmitCallback = useCallback(async () => {
-    if (codeSent) {
+    if (isCodeSent) {
       userStore
         .verifyPhone(userPk, code)
         .then(() => {
@@ -78,7 +94,7 @@ const PhoneVerification = observer((props: PhoneVerificationProps) => {
       userStore
         .fetchVerificationCode(userPk)
         .then(() => {
-          setCodeSent(true);
+          setState({ isCodeSent: true });
 
           if (codeInputRef.current) {
             codeInputRef.current.focus();
@@ -90,7 +106,7 @@ const PhoneVerification = observer((props: PhoneVerificationProps) => {
           );
         });
     }
-  }, [code, codeSent, phone, store, user.email, userPk, userStore]);
+  }, [code, isCodeSent, phone, store, user.email, userPk, userStore]);
 
   const isPhoneInvalid = !phone || !/^\+\d{8,15}$/.test(phone);
 
@@ -99,7 +115,7 @@ const PhoneVerification = observer((props: PhoneVerificationProps) => {
   const showPhoneInputError = phone && phone.length > 8 && isPhoneInvalid;
   const isCurrent = userStore.currentUserPk === user.pk;
   const action = isCurrent ? UserAction.UpdateOwnSettings : UserAction.UpdateOtherUsersSettings;
-  const isButtonDisabled = phone === user.verified_phone_number || (!codeSent && isPhoneInvalid) || !twilioConfigured;
+  const isButtonDisabled = phone === user.verified_phone_number || (!isCodeSent && isPhoneInvalid) || !twilioConfigured;
 
   return (
     <>
@@ -124,33 +140,51 @@ const PhoneVerification = observer((props: PhoneVerificationProps) => {
           <br />
         </>
       )}
-      <Field invalid={showPhoneInputError} error={showPhoneInputError ? 'Enter a valid phone number' : null}>
-        <WithPermissionControl userAction={action}>
-          <Input
-            autoFocus
-            id="phone"
-            required
-            disabled={!twilioConfigured}
-            placeholder="Please enter the phone number with country code, e.g. +12451111111"
-            // @ts-ignore
-            prefix={<Icon name="phone" />}
-            value={phone}
-            onChange={onChangePhoneCallback}
-          />
-        </WithPermissionControl>
-      </Field>
-      <Input
-        ref={codeInputRef}
-        disabled={!codeSent || !store.isUserActionAllowed(action)}
-        autoFocus={codeSent}
-        onChange={onChangeCodeCallback}
-        placeholder="Please enter the code"
-      />
+
+      <VerticalGroup>
+        <Field invalid={showPhoneInputError} error={showPhoneInputError ? 'Enter a valid phone number' : null}>
+          <WithPermissionControl userAction={action}>
+            <Input
+              autoFocus
+              id="phone"
+              required
+              disabled={!twilioConfigured}
+              placeholder="Please enter the phone number with country code, e.g. +12451111111"
+              // @ts-ignore
+              prefix={<Icon name="phone" />}
+              value={phone}
+              onChange={onChangePhoneCallback}
+            />
+          </WithPermissionControl>
+        </Field>
+
+        <Input
+          ref={codeInputRef}
+          disabled={!isCodeSent || !store.isUserActionAllowed(action)}
+          autoFocus={isCodeSent}
+          onChange={onChangeCodeCallback}
+          placeholder="Please enter the code"
+        />
+
+        <div className={cx('switch')}>
+          <div className={cx('switch__icon')}>
+            <Switch
+              value={isPhoneNumberHidden}
+              onChange={(ev: React.ChangeEvent<HTMLInputElement>) =>
+                setState({ isPhoneNumberHidden: ev.currentTarget.checked })
+              }
+            />
+          </div>
+          <label className={cx('switch__label')}>Hide my phone number from public view</label>
+        </div>
+      </VerticalGroup>
+
       <br />
+
       <HorizontalGroup>
         <WithPermissionControl userAction={action}>
           <Button variant="primary" onClick={onSubmitCallback} disabled={isButtonDisabled}>
-            {codeSent ? 'Verify' : 'Send Code'}
+            {isCodeSent ? 'Verify' : 'Send Code'}
           </Button>
         </WithPermissionControl>
         <WithPermissionControl userAction={action}>

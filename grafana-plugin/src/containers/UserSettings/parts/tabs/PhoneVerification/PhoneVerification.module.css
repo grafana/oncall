@@ -6,3 +6,13 @@
   font-weight: bolder;
   padding: 0 4px;
 }
+
+.switch {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  padding-top: 4px;
+}
+.switch__icon {
+  margin-right: 12px;
+}
