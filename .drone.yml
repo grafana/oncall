@@ -283,6 +283,9 @@ trigger:
     - refs/tags/v*.*.*
 
 ---
+depends_on:
+  - OSS engine release (amd64)
+  - OSS engine release (arm64)
 kind: pipeline
 type: docker
 name: manifest
@@ -299,9 +302,6 @@ steps:
       platforms:
         - linux/amd64
         - linux/arm64
-depends_on:
-  - OSS engine release (amd64)
-  - OSS engine release (arm64)
 
 trigger:
   event:
