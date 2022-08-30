@@ -1,5 +1,22 @@
 # Change Log
 
+## v1.0.27 (2022-08-30)
+- Bug fixes
+
+## v1.0.26 (2022-08-26)
+- Insight log's format fixes
+- Remove UserNotificationPolicy auto-recreating
+
+## v1.0.25 (2022-08-24)
+- Bug fixes
+
+## v1.0.24 (2022-08-24)
+- Insight logs
+- Default DATA_UPLOAD_MAX_MEMORY_SIZE to 1mb
+
+## v1.0.23 (2022-08-23)
+- Bug fixes
+
 ## v1.0.22 (2022-08-16)
 - Make STATIC_URL configurable from environment variable
 
