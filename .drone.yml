@@ -7,6 +7,7 @@ steps:
   - name: Build Plugin
     image: node:14.6.0-stretch
     commands:
+      - echo $${DRONE_TAG}
       - apt-get update
       - apt-get --assume-yes install jq
       - cd grafana-plugin/
@@ -382,6 +383,6 @@ kind: secret
 name: drone_token
 ---
 kind: signature
-hmac: eae39c0217bdba11b2bfe75861a67b591f871bc064d9b217e3eacc29fab2ce7b
+hmac: a1ce6492128c5fd68feb6fe26bd8d46b3baa35f12a998617e007695088d227c0
 
 ...
