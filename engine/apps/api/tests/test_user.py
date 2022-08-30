@@ -800,6 +800,30 @@ def test_admin_can_unlink_another_user_backend_account(
     assert response.status_code == status.HTTP_200_OK
 
 
+@pytest.mark.django_db
+def test_admin_can_unlink_another_user_slack_account(
+    make_organization_with_slack_team_identity,
+    make_user_for_organization,
+    make_user_with_slack_user_identity,
+    make_token_for_organization,
+    make_user_auth_headers,
+):
+    organization, slack_team_identity = make_organization_with_slack_team_identity()
+    admin = make_user_for_organization(organization, role=Role.ADMIN)
+    editor, slack_user_identity_1 = make_user_with_slack_user_identity(
+        slack_team_identity, organization, slack_id="user_1", role=Role.EDITOR
+    )
+
+    _, token = make_token_for_organization(organization)
+    client = APIClient()
+    url = reverse("api-internal:user-unlink-slack", kwargs={"pk": editor.public_primary_key})
+
+    response = client.post(url, format="json", **make_user_auth_headers(admin, token))
+    assert response.status_code == status.HTTP_200_OK
+    editor.refresh_from_db()
+    assert editor.slack_user_identity is None
+
+
 """Test user permissions"""
 
 
@@ -1039,6 +1063,28 @@ def test_user_cant_get_another_user_backend_verification_code(
 
 
 @pytest.mark.django_db
+def test_user_can_unlink_own_slack_account(
+    make_organization_with_slack_team_identity,
+    make_user_with_slack_user_identity,
+    make_token_for_organization,
+    make_user_auth_headers,
+):
+    organization, slack_team_identity = make_organization_with_slack_team_identity()
+    user, slack_user_identity_1 = make_user_with_slack_user_identity(
+        slack_team_identity, organization, slack_id="user_1", role=Role.EDITOR
+    )
+
+    _, token = make_token_for_organization(organization)
+    client = APIClient()
+    url = reverse("api-internal:user-unlink-slack", kwargs={"pk": user.public_primary_key})
+
+    response = client.post(url, format="json", **make_user_auth_headers(user, token))
+    assert response.status_code == status.HTTP_200_OK
+    user.refresh_from_db()
+    assert user.slack_user_identity is None
+
+
+@pytest.mark.django_db
 def test_user_can_unlink_backend_own_account(
     make_organization, make_user_for_organization, make_token_for_organization, make_user_auth_headers
 ):
@@ -1084,6 +1130,31 @@ def test_user_unlink_backend_backend_account_not_found(
         response = client.post(f"{url}", format="json", **make_user_auth_headers(user, token))
 
     assert response.status_code == status.HTTP_400_BAD_REQUEST
+
+
+@pytest.mark.django_db
+def test_user_cant_unlink_slack_another_user(
+    make_organization_with_slack_team_identity,
+    make_user_with_slack_user_identity,
+    make_token_for_organization,
+    make_user_auth_headers,
+):
+    organization, slack_team_identity = make_organization_with_slack_team_identity()
+    first_user, slack_user_identity_1 = make_user_with_slack_user_identity(
+        slack_team_identity, organization, slack_id="user_1", role=Role.EDITOR
+    )
+    second_user, slack_user_identity_2 = make_user_with_slack_user_identity(
+        slack_team_identity, organization, slack_id="user_2", role=Role.EDITOR
+    )
+
+    _, token = make_token_for_organization(organization)
+    client = APIClient()
+    url = reverse("api-internal:user-unlink-slack", kwargs={"pk": first_user.public_primary_key})
+
+    response = client.post(url, format="json", **make_user_auth_headers(second_user, token))
+    assert response.status_code == status.HTTP_403_FORBIDDEN
+    first_user.refresh_from_db()
+    assert first_user.slack_user_identity is not None
 
 
 @pytest.mark.django_db

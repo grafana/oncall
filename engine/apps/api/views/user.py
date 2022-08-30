@@ -127,6 +127,7 @@ class UserView(
             "get_verification_code",
             "get_backend_verification_code",
             "get_telegram_verification_code",
+            "unlink_slack",
             "unlink_telegram",
             "unlink_backend",
             "make_test_call",
@@ -146,6 +147,7 @@ class UserView(
             "get_verification_code",
             "get_backend_verification_code",
             "get_telegram_verification_code",
+            "unlink_slack",
             "unlink_telegram",
             "unlink_backend",
             "make_test_call",
@@ -349,6 +351,20 @@ class UserView(
         bot_link = f"https://t.me/{bot_username}"
 
         return Response({"telegram_code": str(new_code.uuid), "bot_link": bot_link}, status=status.HTTP_200_OK)
+
+    @action(detail=True, methods=["post"])
+    def unlink_slack(self, request, pk):
+        user = self.get_object()
+        user.slack_user_identity = None
+        user.save(update_fields=["slack_user_identity"])
+        write_chatops_insight_log(
+            author=request.user,
+            event_name=ChatOpsEvent.USER_UNLINKED,
+            chatops_type=ChatOpsType.SLACK,
+            linked_user=user.username,
+            linked_user_id=user.public_primary_key,
+        )
+        return Response(status=status.HTTP_200_OK)
 
     @action(detail=True, methods=["post"])
     def unlink_telegram(self, request, pk):
