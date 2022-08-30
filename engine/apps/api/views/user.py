@@ -357,6 +357,13 @@ class UserView(
         user = self.get_object()
         user.slack_user_identity = None
         user.save(update_fields=["slack_user_identity"])
+        write_chatops_insight_log(
+            author=request.user,
+            event_name=ChatOpsEvent.USER_UNLINKED,
+            chatops_type=ChatOpsType.SLACK,
+            linked_user=user.username,
+            linked_user_id=user.public_primary_key,
+        )
         return Response(status=status.HTTP_200_OK)
 
     @action(detail=True, methods=["post"])
