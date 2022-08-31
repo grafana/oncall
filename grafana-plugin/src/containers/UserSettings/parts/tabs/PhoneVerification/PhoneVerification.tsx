@@ -134,7 +134,7 @@ const PhoneVerification = observer((props: PhoneVerificationProps) => {
     phone === user.verified_phone_number || (!isCodeSent && !isPhoneValid) || !isTwilioConfigured;
 
   const isPhoneDisabled = !!user.verified_phone_number;
-  const isCodeFieldDisabled = !isCodeSent || !store.isUserActionAllowed(action) || user.verified_phone_number === phone;
+  const isCodeFieldDisabled = !isCodeSent || !store.isUserActionAllowed(action);
 
   return (
     <>
@@ -182,14 +182,16 @@ const PhoneVerification = observer((props: PhoneVerificationProps) => {
           </WithPermissionControl>
         </Field>
 
-        <Input
-          ref={codeInputRef}
-          disabled={isCodeFieldDisabled}
-          autoFocus={isCodeSent}
-          onChange={onChangeCodeCallback}
-          placeholder="Please enter the code"
-          className={cx('phone__field')}
-        />
+        {!user.verified_phone_number && (
+          <Input
+            ref={codeInputRef}
+            disabled={isCodeFieldDisabled}
+            autoFocus={isCodeSent}
+            onChange={onChangeCodeCallback}
+            placeholder="Please enter the code"
+            className={cx('phone__field')}
+          />
+        )}
 
         {user.verified_phone_number && (
           <div className={cx('switch')}>
