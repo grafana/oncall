@@ -29,6 +29,8 @@ interface PhoneVerificationState {
   isLoading: boolean;
 }
 
+const PHONE_REGEX = /^\+\d{8,15}$/;
+
 const PhoneVerification = observer((props: PhoneVerificationProps) => {
   const { userPk: propsUserPk } = props;
 
@@ -120,15 +122,14 @@ const PhoneVerification = observer((props: PhoneVerificationProps) => {
     }
   }, [code, isCodeSent, phone, store, user.email, userPk, userStore]);
 
-  const isPhoneInvalid = !phone || !/^\+\d{8,15}$/.test(phone);
-
   const twilioConfigured = teamStore.currentTeam?.env_status.twilio_configured;
 
-  const showPhoneInputError = phone && phone.length > 8 && isPhoneInvalid && !isPhoneNumberHidden && !isLoading;
+  const isPhoneValid = phone?.length > 8 && PHONE_REGEX.test(phone)
+  const showPhoneInputError = !isPhoneValid && !isPhoneNumberHidden && !isLoading;
 
   const isCurrent = userStore.currentUserPk === user.pk;
   const action = isCurrent ? UserAction.UpdateOwnSettings : UserAction.UpdateOtherUsersSettings;
-  const isButtonDisabled = phone === user.verified_phone_number || (!isCodeSent && isPhoneInvalid) || !twilioConfigured;
+  const isButtonDisabled = phone === user.verified_phone_number || (!isCodeSent && !isPhoneValid) || !twilioConfigured;
 
   return (
     <>
@@ -184,12 +185,14 @@ const PhoneVerification = observer((props: PhoneVerificationProps) => {
           className={cx('phone__field')}
         />
 
-        <div className={cx('switch')}>
-          <div className={cx('switch__icon')}>
-            <Switch value={isPhoneNumberHidden} onChange={onTogglePhoneCallback} />
+        {user.verified_phone_number && (
+          <div className={cx('switch')}>
+            <div className={cx('switch__icon')}>
+              <Switch value={isPhoneNumberHidden} onChange={onTogglePhoneCallback} />
+            </div>
+            <label className={cx('switch__label')}>Hide my phone number from public view</label>
           </div>
-          <label className={cx('switch__label')}>Hide my phone number from public view</label>
-        </div>
+        )}
       </VerticalGroup>
 
       <br />
