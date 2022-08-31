@@ -1,5 +1,11 @@
 # Change Log
 
+## v1.0.29 (2022-08-31)
+- Add arm64 docker image
+
+## v1.0.28 (2022-08-31)
+- Bug fixes
+
 ## v1.0.27 (2022-08-30)
 - Bug fixes
 
