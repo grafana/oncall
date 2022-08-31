@@ -138,7 +138,7 @@ const PhoneVerification = observer((props: PhoneVerificationProps) => {
 
   return (
     <>
-      {user.verified_phone_number && (
+      {isPhoneValid && !user.verified_phone_number && (
         <>
           <Alert severity="info" title="You will receive alerts to a new number after verification" />
           <br />
