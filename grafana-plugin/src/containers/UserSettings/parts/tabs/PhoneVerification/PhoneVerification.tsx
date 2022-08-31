@@ -123,14 +123,18 @@ const PhoneVerification = observer((props: PhoneVerificationProps) => {
   }, [code, isCodeSent, phone, store, user.email, userPk, userStore]);
 
   const isTwilioConfigured = teamStore.currentTeam?.env_status.twilio_configured;
+  const phoneHasMinimumLength = phone?.length > 8;
 
-  const isPhoneValid = phone?.length > 8 && PHONE_REGEX.test(phone);
-  const showPhoneInputError = phone && !isPhoneValid && !isPhoneNumberHidden && !isLoading;
+  const isPhoneValid = phoneHasMinimumLength && PHONE_REGEX.test(phone);
+  const showPhoneInputError = phoneHasMinimumLength && !isPhoneValid && !isPhoneNumberHidden && !isLoading;
 
   const isCurrent = userStore.currentUserPk === user.pk;
   const action = isCurrent ? UserAction.UpdateOwnSettings : UserAction.UpdateOtherUsersSettings;
   const isButtonDisabled =
     phone === user.verified_phone_number || (!isCodeSent && !isPhoneValid) || !isTwilioConfigured;
+
+  const isPhoneDisabled = !!user.verified_phone_number;
+  const isCodeFieldDisabled = !isCodeSent || !store.isUserActionAllowed(action) || user.verified_phone_number === phone;
 
   return (
     <>
@@ -168,7 +172,7 @@ const PhoneVerification = observer((props: PhoneVerificationProps) => {
               autoFocus
               id="phone"
               required
-              disabled={!isTwilioConfigured}
+              disabled={!isTwilioConfigured || isPhoneDisabled}
               placeholder="Please enter the phone number with country code, e.g. +12451111111"
               // @ts-ignore
               prefix={<Icon name="phone" />}
@@ -180,7 +184,7 @@ const PhoneVerification = observer((props: PhoneVerificationProps) => {
 
         <Input
           ref={codeInputRef}
-          disabled={!isCodeSent || !store.isUserActionAllowed(action)}
+          disabled={isCodeFieldDisabled}
           autoFocus={isCodeSent}
           onChange={onChangeCodeCallback}
           placeholder="Please enter the code"
