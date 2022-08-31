@@ -79,7 +79,14 @@ def test_create_on_call_shift_override(on_call_shift_internal_api_setup, make_us
     }
 
     response = client.post(url, data, format="json", **make_user_auth_headers(user1, token))
-    expected_payload = data | {"id": response.data["id"], "updated_shift": None}
+    returned_rolling_users = response.data["rolling_users"]
+    assert len(returned_rolling_users) == 1
+    assert sorted(returned_rolling_users[0]) == sorted(data["rolling_users"][0])
+    expected_payload = data | {
+        "id": response.data["id"],
+        "updated_shift": None,
+        "rolling_users": returned_rolling_users,
+    }
 
     assert response.status_code == status.HTTP_201_CREATED
     assert response.json() == expected_payload
@@ -1376,14 +1383,7 @@ def test_on_call_shift_preview_without_users(
 
     # check final schedule events
     final_events = response.json()["final"]
-    expected_events = [
-        {
-            "end": shift_end,
-            "start": shift_start,
-            "user": None,
-            "is_empty": True,
-        }
-    ]
+    expected_events = []
     returned_events = [
         {
             "end": e["end"],

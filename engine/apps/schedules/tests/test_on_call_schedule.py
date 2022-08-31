@@ -600,14 +600,7 @@ def test_preview_shift_no_user(make_organization, make_user_for_organization, ma
     ]
     assert rotation_events == expected_rotation_events
 
-    expected_events = [
-        {
-            "end": new_shift.start + new_shift.duration,
-            "start": new_shift.start,
-            "user": None,
-            "is_empty": True,
-        }
-    ]
+    expected_events = []
     returned_events = [
         {
             "end": e["end"],

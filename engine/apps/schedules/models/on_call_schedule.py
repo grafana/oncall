@@ -297,6 +297,10 @@ class OnCallSchedule(PolymorphicModel):
         while pending:
             ev = pending.pop(0)
 
+            if ev["is_empty"]:
+                # exclude events without active users
+                continue
+
             if ev["calendar_type"] == OnCallSchedule.TYPE_ICAL_OVERRIDES:
                 # include overrides from start
                 resolved.append(ev)
