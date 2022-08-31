@@ -290,7 +290,7 @@ kind: pipeline
 type: docker
 name: manifest
 steps:
-  - name: manifest
+  - name: manifest tag
     image: plugins/manifest
     settings:
       username:
@@ -298,6 +298,19 @@ steps:
       password:
         from_secret: docker_password
       target: "grafana/oncall:${DRONE_TAG}"
+      template: "grafana/oncall:${DRONE_TAG}-ARCH-OS"
+      platforms:
+        - linux/amd64
+        - linux/arm64
+
+  - name: manifest latest
+    image: plugins/manifest
+    settings:
+      username:
+        from_secret: docker_username
+      password:
+        from_secret: docker_password
+      target: "grafana/oncall:latest"
       template: "grafana/oncall:${DRONE_TAG}-ARCH-OS"
       platforms:
         - linux/amd64
