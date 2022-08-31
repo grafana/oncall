@@ -1,5 +1,6 @@
 from django.db.models import Q
 from django_filters.rest_framework import DjangoFilterBackend
+from rest_framework import status
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
@@ -9,9 +10,10 @@ from apps.api.permissions import MODIFY_ACTIONS, READ_ACTIONS, ActionPermission,
 from apps.api.serializers.on_call_shifts import OnCallShiftSerializer, OnCallShiftUpdateSerializer
 from apps.auth_token.auth import PluginAuthentication
 from apps.schedules.models import CustomOnCallShift
-from apps.user_management.organization_log_creator import OrganizationLogType, create_organization_log
 from common.api_helpers.mixins import PublicPrimaryKeyMixin, UpdateSerializerMixin
 from common.api_helpers.paginators import FiftyPageSizePaginator
+from common.api_helpers.utils import get_date_range_from_request
+from common.insight_log import EntityEvent, write_resource_insight_log
 
 
 class OnCallShiftView(PublicPrimaryKeyMixin, UpdateSerializerMixin, ModelViewSet):
@@ -19,7 +21,7 @@ class OnCallShiftView(PublicPrimaryKeyMixin, UpdateSerializerMixin, ModelViewSet
     permission_classes = (IsAuthenticated, ActionPermission)
 
     action_permissions = {
-        IsAdmin: MODIFY_ACTIONS,
+        IsAdmin: (*MODIFY_ACTIONS, "preview"),
         AnyRole: (*READ_ACTIONS, "details", "frequency_options", "days_options"),
     }
 
@@ -50,32 +52,51 @@ class OnCallShiftView(PublicPrimaryKeyMixin, UpdateSerializerMixin, ModelViewSet
 
     def perform_create(self, serializer):
         serializer.save()
-        instance = serializer.instance
-        organization = self.request.auth.organization
-        user = self.request.user
-        description = (
-            f"Custom on-call shift with params: {instance.repr_settings_for_client_side_logging} "
-            f"was created"  # todo
+        write_resource_insight_log(
+            instance=serializer.instance,
+            author=self.request.user,
+            event=EntityEvent.DELETED,
         )
-        create_organization_log(organization, user, OrganizationLogType.TYPE_ON_CALL_SHIFT_CREATED, description)
 
     def perform_update(self, serializer):
-        organization = self.request.auth.organization
-        user = self.request.user
-        old_state = serializer.instance.repr_settings_for_client_side_logging
+        prev_state = serializer.instance.insight_logs_serialized
         serializer.save()
-        new_state = serializer.instance.repr_settings_for_client_side_logging
-        description = f"Settings of custom on-call shift was changed " f"from:\n{old_state}\nto:\n{new_state}"
-        create_organization_log(organization, user, OrganizationLogType.TYPE_ON_CALL_SHIFT_CHANGED, description)
+        new_state = serializer.instance.insight_logs_serialized
+        write_resource_insight_log(
+            instance=serializer.instance,
+            author=self.request.user,
+            event=EntityEvent.UPDATED,
+            prev_state=prev_state,
+            new_state=new_state,
+        )
 
     def perform_destroy(self, instance):
-        organization = self.request.auth.organization
-        user = self.request.user
-        description = (
-            f"Custom on-call shift " f"with params: {instance.repr_settings_for_client_side_logging} was deleted"
+        write_resource_insight_log(
+            instance=instance,
+            author=self.request.user,
+            event=EntityEvent.DELETED,
         )
-        create_organization_log(organization, user, OrganizationLogType.TYPE_ON_CALL_SHIFT_DELETED, description)
         instance.delete()
+
+    @action(detail=False, methods=["post"])
+    def preview(self, request):
+        user_tz, starting_date, days = get_date_range_from_request(self.request)
+
+        serializer = self.get_serializer(data=request.data)
+        if not serializer.is_valid():
+            return Response(data=serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+        validated_data = serializer._correct_validated_data(
+            serializer.validated_data["type"], serializer.validated_data
+        )
+        shift = CustomOnCallShift(**validated_data)
+        schedule = shift.schedule
+        shift_events, final_events = schedule.preview_shift(shift, user_tz, starting_date, days)
+        data = {
+            "rotation": shift_events,
+            "final": final_events,
+        }
+        return Response(data=data, status=status.HTTP_200_OK)
 
     @action(detail=False, methods=["get"])
     def frequency_options(self, request):

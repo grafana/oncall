@@ -3,7 +3,7 @@ from random import randrange
 
 from celery.schedules import crontab
 
-from common.utils import getenv_boolean
+from common.utils import getenv_boolean, getenv_integer
 
 VERSION = "dev-oss"
 # Indicates if instance is OSS installation.
@@ -81,6 +81,24 @@ GRAFANA_CLOUD_ONCALL_TOKEN = os.environ.get("GRAFANA_CLOUD_ONCALL_TOKEN", None)
 # Outgoing webhook settings
 DANGEROUS_WEBHOOKS_ENABLED = getenv_boolean("DANGEROUS_WEBHOOKS_ENABLED", default=False)
 
+# DB backend defaults
+DB_BACKEND = os.environ.get("DB_BACKEND", "mysql")
+DB_BACKEND_DEFAULT_VALUES = {
+    "mysql": {
+        "USER": "root",
+        "PORT": "3306",
+        "OPTIONS": {
+            "charset": "utf8mb4",
+            "connect_timeout": 1,
+        },
+    },
+    "postgresql": {
+        "USER": "postgres",
+        "PORT": "5432",
+        "OPTIONS": {},
+    },
+}
+
 # Application definition
 
 INSTALLED_APPS = [
@@ -157,7 +175,7 @@ LOGGING = {
     "filters": {"request_id": {"()": "log_request_id.filters.RequestIDFilter"}},
     "formatters": {
         "standard": {"format": "source=engine:app google_trace_id=%(request_id)s logger=%(name)s %(message)s"},
-        "insight_logger": {"format": "insight_logs=true logger=%(name)s %(message)s"},
+        "insight_logger": {"format": "insight=true logger=%(name)s %(message)s"},
     },
     "handlers": {
         "console": {
@@ -238,7 +256,7 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/2.1/howto/static-files/
 
-STATIC_URL = "/static/"
+STATIC_URL = os.environ.get("STATIC_URL", "/static/")
 STATIC_ROOT = "./static/"
 
 CELERY_BROKER_URL = "amqp://rabbitmq:rabbitmq@localhost:5672"
@@ -433,7 +451,7 @@ SELF_HOSTED_SETTINGS = {
 
 GRAFANA_INCIDENT_STATIC_API_KEY = os.environ.get("GRAFANA_INCIDENT_STATIC_API_KEY", None)
 
-DATA_UPLOAD_MAX_MEMORY_SIZE = 5242880
+DATA_UPLOAD_MAX_MEMORY_SIZE = getenv_integer("DATA_UPLOAD_MAX_MEMORY_SIZE", 1_048_576)  # 1mb by default
 
 # Log inbound/outbound calls as slow=1 if they exceed threshold
 SLOW_THRESHOLD_SECONDS = 2.0

@@ -22,7 +22,7 @@ def test_start_maintenance_integration(
     organization, user = maintenance_test_setup
 
     alert_receive_channel = make_alert_receive_channel(
-        organization, integration=AlertReceiveChannel.INTEGRATION_GRAFANA
+        organization, integration=AlertReceiveChannel.INTEGRATION_GRAFANA, author=user
     )
     mode = AlertReceiveChannel.MAINTENANCE
     duration = AlertReceiveChannel.DURATION_ONE_HOUR.seconds
@@ -43,11 +43,13 @@ def test_start_maintenance_integration_multiple_previous_instances(
     organization, user = maintenance_test_setup
 
     alert_receive_channel = make_alert_receive_channel(
-        organization, integration=AlertReceiveChannel.INTEGRATION_GRAFANA
+        organization, integration=AlertReceiveChannel.INTEGRATION_GRAFANA, author=user
     )
     # 2 maintenance integrations were created in the past
     for i in range(2):
-        AlertReceiveChannel.create(organization=organization, integration=AlertReceiveChannel.INTEGRATION_MAINTENANCE)
+        AlertReceiveChannel.create(
+            organization=organization, integration=AlertReceiveChannel.INTEGRATION_MAINTENANCE, author=user
+        )
 
     mode = AlertReceiveChannel.MAINTENANCE
     duration = AlertReceiveChannel.DURATION_ONE_HOUR.seconds
@@ -68,7 +70,7 @@ def test_maintenance_integration_will_not_start_twice(
     organization, user = maintenance_test_setup
 
     alert_receive_channel = make_alert_receive_channel(
-        organization, integration=AlertReceiveChannel.INTEGRATION_GRAFANA
+        organization, integration=AlertReceiveChannel.INTEGRATION_GRAFANA, author=user
     )
     mode = AlertReceiveChannel.MAINTENANCE
     duration = AlertReceiveChannel.DURATION_ONE_HOUR.seconds

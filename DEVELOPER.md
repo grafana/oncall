@@ -1,7 +1,9 @@
 * [Developer quickstart](#developer-quickstart)
+  * [Code style](#code-style)
   * [Backend setup](#backend-setup)
   * [Frontend setup](#frontend-setup)
   * [Slack application setup](#slack-application-setup)
+  * [Update drone build](#update-drone-build)
 * [Troubleshooting](#troubleshooting)
   * [ld: library not found for -lssl](#ld-library-not-found-for--lssl)
   * [Could not build wheels for cryptography which use PEP 517 and cannot be installed directly](#could-not-build-wheels-for-cryptography-which-use-pep-517-and-cannot-be-installed-directly)
@@ -31,6 +33,8 @@
 docker-compose -f docker-compose-developer.yml up -d
 ```
 
+NOTE: to use a PostgreSQL db backend, use the `docker-compose-developer-pg.yml` file instead.
+
 2. Prepare a python environment:
 ```bash
 # Create and activate the virtual environment
@@ -44,6 +48,9 @@ pip install -U pip wheel
 
 # Copy and check .env file.
 cp .env.example .env
+
+# NOTE: if you want to use the PostgreSQL db backend add DB_BACKEND=postgresql to your .env file;
+#       currently allowed backend values are `mysql` (default) and `postgresql`
 
 # Apply .env to current terminal.
 # For PyCharm it's better to use https://plugins.jetbrains.com/plugin/7861-envfile/
@@ -125,6 +132,22 @@ extra_hosts:
 ### Slack application setup
 
 For Slack app configuration check our docs: https://grafana.com/docs/grafana-cloud/oncall/open-source/#slack-setup
+
+
+### Update drone build
+The .drone.yml build file must be signed when changes are made to it.  Follow these steps:
+
+If you have not installed drone CLI follow [these instructions](https://docs.drone.io/cli/install/)
+
+To sign the .drone.yml file:
+```bash
+export DRONE_SERVER=https://drone.grafana.net
+
+# Get your drone token from https://drone.grafana.net/account
+export DRONE_TOKEN=<Your DRONE_TOKEN>
+
+drone sign --save grafana/oncall .drone.yml
+```
 
 ## Troubleshooting
 
@@ -236,18 +259,3 @@ pytest -n4
 5. Create a new Django Server run configuration to Run/Debug the engine
    - Use a plugin such as EnvFile to load the .env file
    - Change port from 8000 to 8080
-
-## Update drone build
-The .drone.yml build file must be signed when changes are made to it.  Follow these steps:
-
-If you have not installed drone CLI follow [these instructions](https://docs.drone.io/cli/install/)
-
-To sign the .drone.yml file:
-```bash
-export DRONE_SERVER=https://drone.grafana.net
-
-# Get your drone token from https://drone.grafana.net/account
-export DRONE_TOKEN=<Your DRONE_TOKEN>
-
-drone sign --save grafana/oncall .drone.yml
-```

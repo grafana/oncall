@@ -112,13 +112,13 @@ class MigrationToolPage extends React.Component<MigrationToolProps, MigrationToo
             <ul>
               <li>
                 Matvey Kukuy (ex-CEO of Amixr):{' '}
-                <a target="_blank" href="mailto:matvey.kukuy@grafana.com">
+                <a href="mailto:matvey.kukuy@grafana.com" target="_blank">
                   matvey.kukuy@grafana.com
                 </a>
               </li>
               <li>
                 Ildar Iskhakov (ex-CTO of Amixr):{' '}
-                <a target="_blank" href="mailto:ildar.iskhakov@grafana.com">
+                <a href="mailto:ildar.iskhakov@grafana.com" target="_blank">
                   ildar.iskhakov@grafana.com
                 </a>
               </li>

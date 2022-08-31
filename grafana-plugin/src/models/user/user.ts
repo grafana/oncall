@@ -125,6 +125,20 @@ export class UserStore extends BaseStore {
   };
 
   @action
+  unlinkSlack = async (userPk: User['pk']) => {
+    await makeRequest(`/users/${userPk}/unlink_slack/`, {
+      method: 'POST',
+    });
+
+    const user = await this.getById(userPk);
+
+    this.items = {
+      ...this.items,
+      [user.pk]: user,
+    };
+  };
+
+  @action
   unlinkTelegram = async (userPk: User['pk']) => {
     await makeRequest(`/users/${userPk}/unlink_telegram/`, {
       method: 'POST',

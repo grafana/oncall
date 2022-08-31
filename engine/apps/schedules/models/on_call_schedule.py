@@ -1,3 +1,6 @@
+import datetime
+import itertools
+
 import icalendar
 from django.apps import apps
 from django.conf import settings
@@ -14,6 +17,7 @@ from apps.schedules.ical_utils import (
     fetch_ical_file_or_get_error,
     list_of_empty_shifts_in_schedule,
     list_of_gaps_in_schedule,
+    list_of_oncall_shifts_from_ical,
     list_users_to_notify_from_ical,
 )
 from apps.schedules.models import CustomOnCallShift
@@ -129,36 +133,6 @@ class OnCallSchedule(PolymorphicModel):
     class Meta:
         unique_together = ("name", "organization")
 
-    @property
-    def repr_settings_for_client_side_logging(self):
-        """
-        Example of execution:
-            name: test, team: example, url: None
-            slack reminder settings: notification frequency: Each shift, current shift notification: Yes,
-            next shift notification: No, action for slot when no one is on-call: Notify all people in the channel
-        """
-        result = f"name: {self.name}, team: {self.team.name if self.team else 'No team'}"
-
-        if self.organization.slack_team_identity:
-            if self.channel:
-                SlackChannel = apps.get_model("slack", "SlackChannel")
-                sti = self.organization.slack_team_identity
-                slack_channel = SlackChannel.objects.filter(slack_team_identity=sti, slack_id=self.channel).first()
-                if slack_channel:
-                    result += f", slack channel: {slack_channel.name}"
-
-            if self.user_group is not None:
-                result += f", user group: {self.user_group.handle}"
-
-            result += (
-                f"\nslack reminder settings: "
-                f"notification frequency: {self.get_notify_oncall_shift_freq_display()}, "
-                f"current shift notification: {'Yes' if self.mention_oncall_start else 'No'}, "
-                f"next shift notification: {'Yes' if self.mention_oncall_next else 'No'}, "
-                f"action for slot when no one is on-call: {self.get_notify_empty_oncall_display()}"
-            )
-        return result
-
     def get_icalendars(self):
         """Returns list of calendars. Primary calendar should always be the first"""
         calendar_primary = None
@@ -222,6 +196,189 @@ class OnCallSchedule(PolymorphicModel):
         self.cached_ical_file_overrides = None
         self.save(update_fields=["cached_ical_file_overrides", "prev_ical_file_overrides"])
 
+    def filter_events(self, user_timezone, starting_date, days, with_empty=False, with_gap=False, filter_by=None):
+        """Return filtered events from schedule."""
+        shifts = (
+            list_of_oncall_shifts_from_ical(
+                self, starting_date, user_timezone, with_empty, with_gap, days=days, filter_by=filter_by
+            )
+            or []
+        )
+        events = []
+        for shift in shifts:
+            all_day = type(shift["start"]) == datetime.date
+            is_gap = shift.get("is_gap", False)
+            shift_json = {
+                "all_day": all_day,
+                "start": shift["start"],
+                # fix confusing end date for all-day event
+                "end": shift["end"] - timezone.timedelta(days=1) if all_day else shift["end"],
+                "users": [
+                    {
+                        "display_name": user.username,
+                        "pk": user.public_primary_key,
+                    }
+                    for user in shift["users"]
+                ],
+                "missing_users": shift["missing_users"],
+                "priority_level": shift["priority"] if shift["priority"] != 0 else None,
+                "source": shift["source"],
+                "calendar_type": shift["calendar_type"],
+                "is_empty": len(shift["users"]) == 0 and not is_gap,
+                "is_gap": is_gap,
+                "is_override": shift["calendar_type"] == OnCallSchedule.TYPE_ICAL_OVERRIDES,
+                "shift": {
+                    "pk": shift["shift_pk"],
+                },
+            }
+            events.append(shift_json)
+
+        return events
+
+    def final_events(self, user_tz, starting_date, days):
+        """Return schedule final events, after resolving shifts and overrides."""
+        events = self.filter_events(user_tz, starting_date, days=days, with_empty=True, with_gap=True)
+        events = self._resolve_schedule(events)
+        return events
+
+    def _resolve_schedule(self, events):
+        """Calculate final schedule shifts considering rotations and overrides."""
+        if not events:
+            return []
+
+        # sort schedule events by (type desc, priority desc, start timestamp asc)
+        events.sort(
+            key=lambda e: (
+                -e["calendar_type"] if e["calendar_type"] else 0,  # overrides: 1, shifts: 0, gaps: None
+                -e["priority_level"] if e["priority_level"] else 0,
+                e["start"],
+            )
+        )
+
+        def _merge_intervals(evs):
+            """Keep track of scheduled intervals."""
+            if not evs:
+                return []
+            intervals = [[e["start"], e["end"]] for e in evs]
+            result = [intervals[0]]
+            for interval in intervals[1:]:
+                previous_interval = result[-1]
+                if previous_interval[0] <= interval[0] <= previous_interval[1]:
+                    previous_interval[1] = max(previous_interval[1], interval[1])
+                else:
+                    result.append(interval)
+            return result
+
+        # iterate over events, reserving schedule slots based on their priority
+        # if the expected slot was already scheduled for a higher priority event,
+        # split the event, or fix start/end timestamps accordingly
+
+        # include overrides from start
+        resolved = [e for e in events if e["calendar_type"] == OnCallSchedule.TYPE_ICAL_OVERRIDES]
+        intervals = _merge_intervals(resolved)
+
+        pending = events[len(resolved) :]
+        if not pending:
+            return resolved
+
+        current_event_idx = 0  # current event to resolve
+        current_interval_idx = 0  # current scheduled interval being checked
+        current_priority = pending[0]["priority_level"]  # current priority level being resolved
+
+        while current_event_idx < len(pending):
+            ev = pending[current_event_idx]
+
+            if ev["priority_level"] != current_priority:
+                # update scheduled intervals on priority change
+                # and start from the beginning for the new priority level
+                resolved.sort(key=lambda e: e["start"])
+                intervals = _merge_intervals(resolved)
+                current_interval_idx = 0
+                current_priority = ev["priority_level"]
+
+            if current_interval_idx >= len(intervals):
+                # event outside scheduled intervals, add to resolved
+                resolved.append(ev)
+                current_event_idx += 1
+            elif ev["start"] < intervals[current_interval_idx][0] and ev["end"] <= intervals[current_interval_idx][0]:
+                # event starts and ends outside an already scheduled interval, add to resolved
+                resolved.append(ev)
+                current_event_idx += 1
+            elif ev["start"] < intervals[current_interval_idx][0] and ev["end"] > intervals[current_interval_idx][0]:
+                # event starts outside interval but overlaps with an already scheduled interval
+                # 1. add a split event copy to schedule the time before the already scheduled interval
+                to_add = ev.copy()
+                to_add["end"] = intervals[current_interval_idx][0]
+                resolved.append(to_add)
+                # 2. check if there is still time to be scheduled after the current scheduled interval ends
+                if ev["end"] > intervals[current_interval_idx][1]:
+                    # event ends after current interval, update event start timestamp to match the interval end
+                    # and process the updated event as any other event
+                    ev["start"] = intervals[current_interval_idx][1]
+                else:
+                    # done, go to next event
+                    current_event_idx += 1
+            elif ev["start"] >= intervals[current_interval_idx][0] and ev["end"] <= intervals[current_interval_idx][1]:
+                # event inside an already scheduled interval, ignore (go to next)
+                current_event_idx += 1
+            elif (
+                ev["start"] >= intervals[current_interval_idx][0]
+                and ev["start"] < intervals[current_interval_idx][1]
+                and ev["end"] > intervals[current_interval_idx][1]
+            ):
+                # event starts inside a scheduled interval but ends out of it
+                # update the event start timestamp to match the interval end
+                ev["start"] = intervals[current_interval_idx][1]
+                # move to next interval and process the updated event as any other event
+                current_interval_idx += 1
+            elif ev["start"] >= intervals[current_interval_idx][1]:
+                # event starts after the current interval, move to next interval and go through it
+                current_interval_idx += 1
+
+        resolved.sort(key=lambda e: (e["start"], e["shift"]["pk"]))
+        return resolved
+
+    # Insight logs
+    @property
+    def insight_logs_verbal(self):
+        return self.name
+
+    @property
+    def insight_logs_serialized(self):
+        result = {
+            "name": self.name,
+        }
+        if self.team:
+            result["team"] = self.team.name
+            result["team_id"] = self.team.public_primary_key
+        else:
+            result["team"] = "General"
+        if self.organization.slack_team_identity:
+            if self.channel:
+                SlackChannel = apps.get_model("slack", "SlackChannel")
+                sti = self.organization.slack_team_identity
+                slack_channel = SlackChannel.objects.filter(slack_team_identity=sti, slack_id=self.channel).first()
+                if slack_channel:
+                    result["slack_channel"] = slack_channel.name
+            if self.user_group is not None:
+                result["user_group"] = self.user_group.handle
+
+            result["notification_frequency"] = self.get_notify_oncall_shift_freq_display()
+            result["current_shift_notification"] = self.mention_oncall_start
+            result["next_shift_notification"] = self.mention_oncall_next
+            result["notify_empty_oncall"] = self.get_notify_empty_oncall_display
+        return result
+
+    @property
+    def insight_logs_metadata(self):
+        result = {}
+        if self.team:
+            result["team"] = self.team.name
+            result["team_id"] = self.team.public_primary_key
+        else:
+            result["team"] = "General"
+        return result
+
 
 class OnCallScheduleICal(OnCallSchedule):
     # For the ical schedule both primary and overrides icals are imported via ical url
@@ -275,13 +432,17 @@ class OnCallScheduleICal(OnCallSchedule):
             )
         self.save(update_fields=["cached_ical_file_overrides", "prev_ical_file_overrides", "ical_file_error_overrides"])
 
+    # Insight logs
     @property
-    def repr_settings_for_client_side_logging(self):
-        result = super().repr_settings_for_client_side_logging
-        result += (
-            f", primary calendar url: {self.ical_url_primary}, " f"overrides calendar url: {self.ical_url_overrides}"
-        )
-        return result
+    def insight_logs_serialized(self):
+        res = super().insight_logs_serialized
+        res["primary_calendar_url"] = self.ical_url_primary
+        res["overrides_calendar_url"] = self.ical_url_overrides
+        return res
+
+    @property
+    def insight_logs_type_verbal(self):
+        return "ical_schedule"
 
 
 class OnCallScheduleCalendar(OnCallSchedule):
@@ -355,19 +516,25 @@ class OnCallScheduleCalendar(OnCallSchedule):
         return ical
 
     @property
-    def repr_settings_for_client_side_logging(self):
-        result = super().repr_settings_for_client_side_logging
-        result += f", overrides calendar url: {self.ical_url_overrides}"
-        return result
+    def insight_logs_type_verbal(self):
+        return "calendar_schedule"
+
+    @property
+    def insight_logs_serialized(self):
+        res = super().insight_logs_serialized
+        res["overrides_calendar_url"] = self.ical_url_overrides
+        return res
 
 
 class OnCallScheduleWeb(OnCallSchedule):
     time_zone = models.CharField(max_length=100, default="UTC")
 
-    def _generate_ical_file_from_shifts(self, qs):
+    def _generate_ical_file_from_shifts(self, qs, extra_shifts=None):
         """Generate iCal events file from custom on-call shifts."""
         ical = None
-        if qs.exists():
+        if qs.exists() or extra_shifts is not None:
+            if extra_shifts is None:
+                extra_shifts = []
             end_line = "END:VCALENDAR"
             calendar = Calendar()
             calendar.add("prodid", "-//web schedule//oncall//")
@@ -376,7 +543,7 @@ class OnCallScheduleWeb(OnCallSchedule):
             ical_file = calendar.to_ical().decode()
             ical = ical_file.replace(end_line, "").strip()
             ical = f"{ical}\r\n"
-            for event in qs.all():
+            for event in itertools.chain(qs.all(), extra_shifts):
                 ical += event.convert_to_ical(self.time_zone)
             ical += f"{end_line}\r\n"
         return ical
@@ -414,3 +581,50 @@ class OnCallScheduleWeb(OnCallSchedule):
         self.prev_ical_file_overrides = self.cached_ical_file_overrides
         self.cached_ical_file_overrides = self._generate_ical_file_overrides()
         self.save(update_fields=["cached_ical_file_overrides", "prev_ical_file_overrides"])
+
+    def preview_shift(self, custom_shift, user_tz, starting_date, days):
+        """Return unsaved rotation and final schedule preview events."""
+        if custom_shift.type == CustomOnCallShift.TYPE_OVERRIDE:
+            qs = self.custom_shifts.filter(type=CustomOnCallShift.TYPE_OVERRIDE)
+            ical_attr = "cached_ical_file_overrides"
+            ical_property = "_ical_file_overrides"
+        elif custom_shift.type == CustomOnCallShift.TYPE_ROLLING_USERS_EVENT:
+            qs = self.custom_shifts.exclude(type=CustomOnCallShift.TYPE_OVERRIDE)
+            ical_attr = "cached_ical_file_primary"
+            ical_property = "_ical_file_primary"
+        else:
+            raise ValueError("Invalid shift type")
+
+        def _invalidate_cache(schedule, prop_name):
+            """Invalidate cached property cache"""
+            try:
+                delattr(schedule, prop_name)
+            except AttributeError:
+                pass
+
+        ical_file = self._generate_ical_file_from_shifts(qs, extra_shifts=[custom_shift])
+
+        original_value = getattr(self, ical_attr)
+        _invalidate_cache(self, ical_property)
+        setattr(self, ical_attr, ical_file)
+
+        # filter events using a temporal overriden calendar including the not-yet-saved shift
+        events = self.filter_events(user_tz, starting_date, days=days, with_empty=True, with_gap=True)
+        shift_events = [e for e in events if e["shift"]["pk"] == custom_shift.public_primary_key]
+        final_events = self._resolve_schedule(events)
+
+        _invalidate_cache(self, ical_property)
+        setattr(self, ical_attr, original_value)
+
+        return shift_events, final_events
+
+    # Insight logs
+    @property
+    def insight_logs_type_verbal(self):
+        return "web_schedule"
+
+    @property
+    def insight_logs_serialized(self):
+        res = super().insight_logs_serialized
+        res["time_zone"] = self.time_zone
+        return res

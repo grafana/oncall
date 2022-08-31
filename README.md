@@ -76,6 +76,12 @@ See [Grafana docs](https://grafana.com/docs/grafana/latest/administration/plugin
 <a href="https://github.com/grafana/oncall/discussions"><img width="200px" src="docs/img/GH_discussions.png"></a>
 <a href="https://slack.grafana.com/"><img width="200px" src="docs/img/slack.png"></a>
 
+
+## Stargazers over time
+
+[![Stargazers over time](https://starchart.cc/grafana/oncall.svg)](https://starchart.cc/grafana/oncall)
+
+
 ## Further Reading
 - *Migration from the PagerDuty* - [Migrator](https://github.com/grafana/oncall/tree/dev/tools/pagerduty-migrator)
 - *Documentation* - [Grafana OnCall](https://grafana.com/docs/grafana-cloud/oncall/)

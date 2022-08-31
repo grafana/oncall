@@ -1,16 +1,17 @@
+from enum import unique
 from typing import Tuple
 
 from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.core.validators import MinLengthValidator
-from django.db import models, transaction
+from django.db import models
 from django.db.models import Q, QuerySet
 from django.utils import timezone
 from ordered_model.models import OrderedModel
 
 from apps.base.messaging import get_messaging_backends
 from apps.user_management.models import User
-from apps.user_management.organization_log_creator import OrganizationLogType, create_organization_log
+from common.exceptions import UserNotificationPolicyCouldNotBeDeleted
 from common.public_primary_keys import generate_public_primary_key, increase_public_primary_key_length
 
 
@@ -30,13 +31,13 @@ def generate_public_primary_key_for_notification_policy():
 
 # base supported notification backends
 BUILT_IN_BACKENDS = (
-    "SLACK",
-    "SMS",
-    "PHONE_CALL",
-    "TELEGRAM",
-    "EMAIL",
-    "MOBILE_PUSH_GENERAL",
-    "MOBILE_PUSH_CRITICAL",
+    ("SLACK", 0),
+    ("SMS", 1),
+    ("PHONE_CALL", 2),
+    ("TELEGRAM", 3),
+    ("EMAIL", 4),
+    ("MOBILE_PUSH_GENERAL", 5),
+    ("MOBILE_PUSH_CRITICAL", 6),
 )
 
 
@@ -49,10 +50,10 @@ def _notification_channel_choices():
     # use NotificationChannelOptions.AVAILABLE_FOR_USE instead.
     supported_backends = list(BUILT_IN_BACKENDS)
 
-    for backend_id, _ in get_messaging_backends():
-        supported_backends.append(backend_id)
+    for backend_id, backend in get_messaging_backends():
+        supported_backends.append((backend_id, backend.notification_channel_id))
 
-    channels_enum = models.IntegerChoices("NotificationChannel", supported_backends, start=0)
+    channels_enum = unique(models.IntegerChoices("NotificationChannel", supported_backends))
     return channels_enum
 
 
@@ -69,33 +70,6 @@ def validate_channel_choice(value):
 
 
 class UserNotificationPolicyQuerySet(models.QuerySet):
-    def get_or_create_for_user(self, user: User, important: bool) -> "QuerySet[UserNotificationPolicy]":
-        with transaction.atomic():
-            User.objects.select_for_update().get(pk=user.pk)
-            return self._get_or_create_for_user(user, important)
-
-    def _get_or_create_for_user(self, user: User, important: bool) -> "QuerySet[UserNotificationPolicy]":
-        notification_policies = super().filter(user=user, important=important)
-
-        if notification_policies.exists():
-            return notification_policies
-
-        old_state = user.repr_settings_for_client_side_logging
-        if important:
-            policies = self.create_important_policies_for_user(user)
-        else:
-            policies = self.create_default_policies_for_user(user)
-
-        new_state = user.repr_settings_for_client_side_logging
-        description = f"User settings for user {user.username} was changed from:\n{old_state}\nto:\n{new_state}"
-        create_organization_log(
-            user.organization,
-            None,
-            OrganizationLogType.TYPE_USER_SETTINGS_CHANGED,
-            description,
-        )
-        return policies
-
     def create_default_policies_for_user(self, user: User) -> "QuerySet[UserNotificationPolicy]":
         model = self.model
 
@@ -205,6 +179,12 @@ class UserNotificationPolicy(OrderedModel):
                 return self.get_wait_delay_display()
         else:
             return "Not set"
+
+    def delete(self):
+        if UserNotificationPolicy.objects.filter(important=self.important, user=self.user).count() == 1:
+            raise UserNotificationPolicyCouldNotBeDeleted("Can't delete last user notification policy")
+        else:
+            super().delete()
 
 
 class NotificationChannelOptions:
