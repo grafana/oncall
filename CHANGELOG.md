@@ -1,5 +1,8 @@
 # Change Log
 
+## v1.0.30 (2022-08-31)
+- Bug fix: check user notification policy before access
+
 ## v1.0.29 (2022-08-31)
 - Add arm64 docker image
 
@@ -82,7 +85,7 @@
 ## 1.0.2 (2022-06-17)
 
 - Fix Grafana Alerting integration to handle API changes in Grafana 9
-- Improve public api endpoint for for outgoing webhooks (/actions) by adding ability to create, update and delete outgoing webhook instance
+- Improve public api endpoint for outgoing webhooks (/actions) by adding ability to create, update and delete outgoing webhook instance
 
 ## 1.0.0 (2022-06-14)
 
