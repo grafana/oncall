@@ -143,11 +143,34 @@ CREATE DATABASE oncall CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 To use an external MySQL instance set mysql.enabled to `false` and configure the `externalMysql` parameters.
 ```
 mariadb:
-  enabled: true
+  enabled: false
 
 # Make sure to create the database with the following parameters:
 # CREATE DATABASE oncall CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 externalMysql:
+  host:
+  port:
+  db_name:
+  user:
+  password:
+  ```
+
+### Connect external PostgreSQL
+
+Make sure to create the database with the following parameters before installing this chart
+```
+CREATE DATABASE oncall ENCODING 'UTF8';
+```
+
+To use an external PostgreSQL instance set mariadb.enabled to `false`, postgres.enabled to `true` and configure the `externalPostgreSQL` parameters.
+```
+mariadb:
+  enabled: false
+
+postgres:
+  enabled: true
+
+externalPostgreSQL:
   host:
   port:
   db_name:

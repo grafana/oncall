@@ -150,6 +150,17 @@ externalMysql:
   user:
   password:
 
+# Enable integration with an external PostgreSQL db
+postgres:
+  enabled: false
+
+externalPostgreSQL:
+  host:
+  port:
+  db_name:
+  user:
+  password:
+
 # RabbitMQ is included into this release for the convenience.
 # It is recommended to host it separately from this release
 # Set rabbitmq.enabled = false and configure externalRabbitmq

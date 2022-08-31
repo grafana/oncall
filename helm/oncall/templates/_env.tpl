@@ -76,7 +76,7 @@
 - name: MYSQL_PORT
   value: {{ include "snippet.mysql.port" . }}
 - name: MYSQL_DB_NAME
-  value: {{ include "snippet.mysql.db" . }}
+  value: {{ include "snippet.mysql.db_name" . }}
 - name: MYSQL_USER
   value: {{ include "snippet.mysql.user" . }}
 - name: MYSQL_PASSWORD
@@ -110,9 +110,9 @@
 {{- end -}}
 {{- end -}}
 
-{{- define "snippet.mysql.db" -}}
-{{- if and (not .Values.mariadb.enabled) .Values.externalMysql.db -}}
-{{- required "externalMysql.db is required if not mariadb.enabled" .Values.externalMysql.db | quote}}
+{{- define "snippet.mysql.db_name" -}}
+{{- if and (not .Values.mariadb.enabled) .Values.externalMysql.db_name -}}
+{{- required "externalMysql.db_name is required if not mariadb.enabled" .Values.externalMysql.db_name | quote}}
 {{- else -}}
 "oncall"
 {{- end -}}
@@ -123,6 +123,54 @@
 {{- .Values.externalMysql.user | quote}}
 {{- else -}}
 "root"
+{{- end -}}
+{{- end -}}
+
+{{- define "snippet.postgres.env" -}}
+- name: USE_POSTGRESQL
+  value: {{ .Values.postgres.enabled | quote }}
+- name: POSTGRES_HOST
+  value: {{ include "snippet.postgres.host" . }}
+- name: POSTGRES_PORT
+  value: {{ include "snippet.postgres.port" . }}
+- name: POSTGRES_DB_NAME
+  value: {{ include "snippet.postgres.db_name" . }}
+- name: POSTGRES_USER
+  value: {{ include "snippet.postgres.user" . }}
+- name: POSTGRES_PASSWORD
+  valueFrom:
+    secretKeyRef:
+      name: {{ include "snippet.postgres.password.secret.name" . }}
+      key: postgres-root-password
+{{- end }}
+
+{{- define "snippet.postgres.password.secret.name" -}}
+{{- if and .Values.postgres.enabled .Values.externalPostgreSQL.password -}}
+{{ include "oncall.fullname" . }}-postgres-external
+{{- end -}}
+{{- end -}}
+
+{{- define "snippet.postgres.host" -}}
+{{- if and .Values.postgres.enabled .Values.externalPostgreSQL.host -}}
+{{- required "externalPostgreSQL.host is required if postgres.enabled" .Values.externalPostgreSQL.host | quote }}
+{{- end -}}
+{{- end -}}
+
+{{- define "snippet.postgres.port" -}}
+{{- if and .Values.postgres.enabled .Values.externalPostgreSQL.port -}}
+{{- required "externalPostgreSQL.port is required if postgres.enabled"  .Values.externalPostgreSQL.port | quote }}
+{{- end -}}
+{{- end -}}
+
+{{- define "snippet.postgres.db_name" -}}
+{{- if and .Values.postgres.enabled .Values.externalPostgreSQL.db_name -}}
+{{- required "externalPostgreSQL.db_name is required if postgres.enabled" .Values.externalPostgreSQL.db_name | quote}}
+{{- end -}}
+{{- end -}}
+
+{{- define "snippet.postgres.user" -}}
+{{- if and .Values.postgres.enabled .Values.externalPostgreSQL.user -}}
+{{- .Values.externalPostgreSQL.user | quote}}
 {{- end -}}
 {{- end -}}
 
