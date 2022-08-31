@@ -47,7 +47,7 @@ const PhoneVerification = observer((props: PhoneVerificationProps) => {
     }),
     {
       code: '',
-      phone: user.unverified_phone_number || '+',
+      phone: user.verified_phone_number || '+',
       isLoading: false,
       isCodeSent: false,
       isPhoneNumberHidden: user.hide_phone_number,
@@ -63,7 +63,7 @@ const PhoneVerification = observer((props: PhoneVerificationProps) => {
       await userStore.updateUser({ pk: userPk, hide_phone_number: isPhoneNumberHidden });
       user = userStore.items[userPk];
 
-      setState({ phone: user.unverified_phone_number, isLoading: false });
+      setState({ phone: user.verified_phone_number, isLoading: false });
     },
     []
   );
@@ -122,14 +122,15 @@ const PhoneVerification = observer((props: PhoneVerificationProps) => {
     }
   }, [code, isCodeSent, phone, store, user.email, userPk, userStore]);
 
-  const twilioConfigured = teamStore.currentTeam?.env_status.twilio_configured;
+  const isTwilioConfigured = teamStore.currentTeam?.env_status.twilio_configured;
 
-  const isPhoneValid = phone?.length > 8 && PHONE_REGEX.test(phone)
-  const showPhoneInputError = !isPhoneValid && !isPhoneNumberHidden && !isLoading;
+  const isPhoneValid = phone?.length > 8 && PHONE_REGEX.test(phone);
+  const showPhoneInputError = phone && !isPhoneValid && !isPhoneNumberHidden && !isLoading;
 
   const isCurrent = userStore.currentUserPk === user.pk;
   const action = isCurrent ? UserAction.UpdateOwnSettings : UserAction.UpdateOtherUsersSettings;
-  const isButtonDisabled = phone === user.verified_phone_number || (!isCodeSent && !isPhoneValid) || !twilioConfigured;
+  const isButtonDisabled =
+    phone === user.verified_phone_number || (!isCodeSent && !isPhoneValid) || !isTwilioConfigured;
 
   return (
     <>
@@ -139,7 +140,8 @@ const PhoneVerification = observer((props: PhoneVerificationProps) => {
           <br />
         </>
       )}
-      {!twilioConfigured && store.hasFeature(AppFeature.LiveSettings) && (
+
+      {!isTwilioConfigured && store.hasFeature(AppFeature.LiveSettings) && (
         <>
           <Alert
             severity="warning"
@@ -166,7 +168,7 @@ const PhoneVerification = observer((props: PhoneVerificationProps) => {
               autoFocus
               id="phone"
               required
-              disabled={!twilioConfigured}
+              disabled={!isTwilioConfigured}
               placeholder="Please enter the phone number with country code, e.g. +12451111111"
               // @ts-ignore
               prefix={<Icon name="phone" />}
@@ -197,12 +199,61 @@ const PhoneVerification = observer((props: PhoneVerificationProps) => {
 
       <br />
 
-      <HorizontalGroup>
+      <PhoneVerificationButtonsGroup
+        action={action}
+        isCodeSent={isCodeSent}
+        isButtonDisabled={isButtonDisabled}
+        isTestCallInProgress={isTestCallInProgress}
+        isTwilioConfigured={isTwilioConfigured}
+        onSubmitCallback={onSubmitCallback}
+        handleForgetNumberClick={handleForgetNumberClick}
+        handleMakeTestCallClick={handleMakeTestCallClick}
+        user={user}
+      />
+    </>
+  );
+});
+
+interface PhoneVerificationButtonsGroupProps {
+  action: UserAction.UpdateOwnSettings | UserAction.UpdateOtherUsersSettings;
+
+  isCodeSent: boolean;
+  isButtonDisabled: boolean;
+  isTestCallInProgress: boolean;
+  isTwilioConfigured: boolean;
+
+  onSubmitCallback(): void;
+  handleForgetNumberClick(): void;
+  handleMakeTestCallClick(): void;
+
+  user: User;
+}
+
+function PhoneVerificationButtonsGroup({
+  action,
+  isCodeSent,
+  isButtonDisabled,
+  isTestCallInProgress,
+  isTwilioConfigured,
+  onSubmitCallback,
+  handleForgetNumberClick,
+  handleMakeTestCallClick,
+  user,
+}: PhoneVerificationButtonsGroupProps) {
+  const showForgetNumber = !!user.verified_phone_number;
+  const showVerifyOrSendCodeButton = !user.verified_phone_number;
+
+  return (
+    <HorizontalGroup>
+      {showVerifyOrSendCodeButton && (
         <WithPermissionControl userAction={action}>
           <Button variant="primary" onClick={onSubmitCallback} disabled={isButtonDisabled}>
             {isCodeSent ? 'Verify' : 'Send Code'}
           </Button>
         </WithPermissionControl>
+      )}
+
+      {showForgetNumber && (
         <WithPermissionControl userAction={action}>
           <WithConfirm title="Are you sure you want to forget this phone number?" confirmText="Forget">
             <Button
@@ -214,26 +265,28 @@ const PhoneVerification = observer((props: PhoneVerificationProps) => {
             </Button>
           </WithConfirm>
         </WithPermissionControl>
-        <WithPermissionControl userAction={action}>
-          <Button
-            disabled={!user?.verified_phone_number || !twilioConfigured || isTestCallInProgress}
-            onClick={handleMakeTestCallClick}
-          >
-            {isTestCallInProgress ? 'Making Test Call...' : 'Make Test Call'}
-          </Button>
-        </WithPermissionControl>
-        <Tooltip content={'Click "Make Test Call" to save a phone number and add it to DnD exceptions.'}>
-          <Icon
-            name="info-circle"
-            style={{
-              marginLeft: '10px',
-              color: '#1890ff',
-            }}
-          />
-        </Tooltip>
-      </HorizontalGroup>
-    </>
+      )}
+
+      <WithPermissionControl userAction={action}>
+        <Button
+          disabled={!user?.verified_phone_number || !isTwilioConfigured || isTestCallInProgress}
+          onClick={handleMakeTestCallClick}
+        >
+          {isTestCallInProgress ? 'Making Test Call...' : 'Make Test Call'}
+        </Button>
+      </WithPermissionControl>
+
+      <Tooltip content={'Click "Make Test Call" to save a phone number and add it to DnD exceptions.'}>
+        <Icon
+          name="info-circle"
+          style={{
+            marginLeft: '10px',
+            color: '#1890ff',
+          }}
+        />
+      </Tooltip>
+    </HorizontalGroup>
   );
-});
+}
 
 export default PhoneVerification;
