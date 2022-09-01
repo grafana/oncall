@@ -119,7 +119,14 @@ def send_link_to_channel_message_or_fallback_to_full_incident(
 @ignore_bot_deleted
 def send_log_and_actions_message(self, channel_chat_id, group_chat_id, channel_message_id, reply_to_message_id):
     with OkToRetry(task=self, exc=TelegramMessage.DoesNotExist, num_retries=5):
-        channel_message = TelegramMessage.objects.get(chat_id=channel_chat_id, message_id=channel_message_id)
+        try:
+            channel_message = TelegramMessage.objects.get(chat_id=channel_chat_id, message_id=channel_message_id)
+        except TelegramMessage.DoesNotExist:
+            logger.warning(
+                f"Could not send log and actions message, telegram message does not exit "
+                f" chat_id={channel_chat_id} message_id={channel_message_id}"
+            )
+            return
 
         if channel_message.discussion_group_message_id is None:
             channel_message.discussion_group_message_id = reply_to_message_id

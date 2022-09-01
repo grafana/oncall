@@ -7,6 +7,7 @@ from dateutil.parser import parse
 from django.apps import apps
 from django.utils import timezone
 from django.utils.functional import cached_property
+from rest_framework.exceptions import ValidationError
 
 from apps.alerts.constants import NEXT_ESCALATION_DELAY
 from apps.alerts.escalation_snapshot.snapshot_classes import (
@@ -189,7 +190,10 @@ class EscalationSnapshotMixin:
         escalation_snapshot_object = None
         raw_escalation_snapshot = self.raw_escalation_snapshot
         if raw_escalation_snapshot is not None:
-            escalation_snapshot_object = self._deserialize_escalation_snapshot(raw_escalation_snapshot)
+            try:
+                escalation_snapshot_object = self._deserialize_escalation_snapshot(raw_escalation_snapshot)
+            except ValidationError as e:
+                logger.error(f"Error trying to deserialize raw escalation snapshot: {e}")
         return escalation_snapshot_object
 
     def _deserialize_escalation_snapshot(self, raw_escalation_snapshot) -> EscalationSnapshot:
