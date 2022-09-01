@@ -179,17 +179,17 @@ class Alert(models.Model):
         is_resolve_signal = False
         is_acknowledge_signal = False
         group_distinction = None
-        group_verbose_name = "Incident"
+        group_verbose_name = None
 
         acknowledge_condition_template = template_manager.get_attr_template(
             "acknowledge_condition", alert_receive_channel
         )
         resolve_condition_template = template_manager.get_attr_template("resolve_condition", alert_receive_channel)
         grouping_id_template = template_manager.get_attr_template("grouping_id", alert_receive_channel)
-        # use get_default_attr_template because there is no ability to customize group_verbose_name, only default value
-        group_verbose_name_template = template_manager.get_default_attr_template(
-            "group_verbose_name", alert_receive_channel
+        group_verbose_name_template = template_manager.get_attr_template(
+            "title", alert_receive_channel, render_for="web"
         )
+
         if group_verbose_name_template is not None:
             group_verbose_name, _ = apply_jinja_template(group_verbose_name_template, raw_request_data)
 
