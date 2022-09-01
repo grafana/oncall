@@ -1,5 +1,9 @@
 # Change Log
 
+## v1.0.31 (2022-09-01)
+- Bump celery version
+- Fix oss to cloud connection
+
 ## v1.0.30 (2022-08-31)
 - Bug fix: check user notification policy before access
 
