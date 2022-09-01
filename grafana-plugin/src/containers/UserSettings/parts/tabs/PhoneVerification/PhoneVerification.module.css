@@ -8,6 +8,7 @@
 }
 
 .phone__field {
+  width: 100%;
   margin-bottom: 8px;
 }
 .phone__forgetHeading {
