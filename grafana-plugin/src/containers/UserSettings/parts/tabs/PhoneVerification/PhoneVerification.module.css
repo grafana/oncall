@@ -3,6 +3,7 @@
   flex-direction: row;
   align-items: center;
 }
+
 .switch__icon {
   margin-right: 12px;
 }
@@ -11,6 +12,7 @@
   width: 100%;
   margin-bottom: 8px;
 }
+
 .phone__forgetHeading {
   display: block;
   margin-bottom: 24px;

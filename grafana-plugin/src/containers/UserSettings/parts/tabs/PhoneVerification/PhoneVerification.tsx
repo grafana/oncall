@@ -4,8 +4,8 @@ import { Alert, Button, Field, HorizontalGroup, Icon, Input, Switch, Tooltip, Ve
 import cn from 'classnames/bind';
 import { observer } from 'mobx-react';
 
-import Text from 'components/Text/Text';
 import PluginLink from 'components/PluginLink/PluginLink';
+import Text from 'components/Text/Text';
 import { WithPermissionControl } from 'containers/WithPermissionControl/WithPermissionControl';
 import { User } from 'models/user/user.types';
 import { AppFeature } from 'state/features';
