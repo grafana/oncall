@@ -130,7 +130,6 @@ INSTALLED_APPS = [
     "apps.grafana_plugin",
     "apps.grafana_plugin_management",
     "apps.migration_tool",
-    "django_celery_results",
     "corsheaders",
     "debug_toolbar",
     "social_django",
