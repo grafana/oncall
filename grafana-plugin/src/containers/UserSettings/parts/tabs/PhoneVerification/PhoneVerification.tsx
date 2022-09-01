@@ -1,11 +1,11 @@
-import React, { HTMLAttributes, useCallback, useEffect, useRef, useReducer } from 'react';
+import React, { HTMLAttributes, useCallback, useRef, useReducer } from 'react';
 
 import { Alert, Button, Field, HorizontalGroup, Icon, Input, Switch, Tooltip, VerticalGroup } from '@grafana/ui';
 import cn from 'classnames/bind';
 import { observer } from 'mobx-react';
 
+import Text from 'components/Text/Text';
 import PluginLink from 'components/PluginLink/PluginLink';
-import WithConfirm from 'components/WithConfirm/WithConfirm';
 import { WithPermissionControl } from 'containers/WithPermissionControl/WithPermissionControl';
 import { User } from 'models/user/user.types';
 import { AppFeature } from 'state/features';
@@ -27,6 +27,7 @@ interface PhoneVerificationState {
   isCodeSent: boolean;
   isPhoneNumberHidden: boolean;
   isLoading: boolean;
+  showForgetScreen: boolean;
 }
 
 const PHONE_REGEX = /^\+\d{8,15}$/;
@@ -40,7 +41,7 @@ const PhoneVerification = observer((props: PhoneVerificationProps) => {
   const userPk = (propsUserPk || userStore.currentUserPk) as User['pk'];
   let user = userStore.items[userPk];
 
-  const [{ phone, code, isCodeSent, isPhoneNumberHidden, isLoading }, setState] = useReducer(
+  const [{ showForgetScreen, phone, code, isCodeSent, isPhoneNumberHidden, isLoading }, setState] = useReducer(
     (state: PhoneVerificationState, newState: Partial<PhoneVerificationState>) => ({
       ...state,
       ...newState,
@@ -50,6 +51,7 @@ const PhoneVerification = observer((props: PhoneVerificationProps) => {
       phone: user.verified_phone_number || '+',
       isLoading: false,
       isCodeSent: false,
+      showForgetScreen: false,
       isPhoneNumberHidden: user.hide_phone_number,
     }
   );
@@ -135,6 +137,17 @@ const PhoneVerification = observer((props: PhoneVerificationProps) => {
 
   const isPhoneDisabled = !!user.verified_phone_number;
   const isCodeFieldDisabled = !isCodeSent || !store.isUserActionAllowed(action);
+  const showToggle = user.verified_phone_number && user.pk === userStore.currentUserPk;
+
+  if (showForgetScreen) {
+    return (
+      <ForgetPhoneScreen
+        phone={phone}
+        onCancel={() => setState({ showForgetScreen: false })}
+        onForget={handleForgetNumberClick}
+      />
+    );
+  }
 
   return (
     <>
@@ -193,12 +206,12 @@ const PhoneVerification = observer((props: PhoneVerificationProps) => {
           />
         )}
 
-        {user.verified_phone_number && (
+        {showToggle && (
           <div className={cx('switch')}>
             <div className={cx('switch__icon')}>
               <Switch value={isPhoneNumberHidden} onChange={onTogglePhoneCallback} />
             </div>
-            <label className={cx('switch__label')}>Hide my phone number from public view</label>
+            <label className={cx('switch__label')}>Hide my phone number from teammates</label>
           </div>
         )}
       </VerticalGroup>
@@ -212,13 +225,37 @@ const PhoneVerification = observer((props: PhoneVerificationProps) => {
         isTestCallInProgress={isTestCallInProgress}
         isTwilioConfigured={isTwilioConfigured}
         onSubmitCallback={onSubmitCallback}
-        handleForgetNumberClick={handleForgetNumberClick}
         handleMakeTestCallClick={handleMakeTestCallClick}
+        onShowForgetScreen={() => setState({ showForgetScreen: true })}
         user={user}
       />
     </>
   );
 });
+
+interface ForgetPhoneScreenProps {
+  phone: string;
+  onCancel(): void;
+  onForget(): void;
+}
+
+function ForgetPhoneScreen({ phone, onCancel, onForget }: ForgetPhoneScreenProps) {
+  return (
+    <>
+      <Text size="large" className={cx('phone__forgetHeading')}>
+        Do you really want to forget the verified phone number <strong>{phone}</strong> ?
+      </Text>
+      <HorizontalGroup justify="flex-end">
+        <Button variant="secondary" onClick={onCancel}>
+          Cancel
+        </Button>
+        <Button variant="destructive" onClick={onForget}>
+          Forget
+        </Button>
+      </HorizontalGroup>
+    </>
+  );
+}
 
 interface PhoneVerificationButtonsGroupProps {
   action: UserAction.UpdateOwnSettings | UserAction.UpdateOtherUsersSettings;
@@ -229,8 +266,8 @@ interface PhoneVerificationButtonsGroupProps {
   isTwilioConfigured: boolean;
 
   onSubmitCallback(): void;
-  handleForgetNumberClick(): void;
   handleMakeTestCallClick(): void;
+  onShowForgetScreen(): void;
 
   user: User;
 }
@@ -242,8 +279,8 @@ function PhoneVerificationButtonsGroup({
   isTestCallInProgress,
   isTwilioConfigured,
   onSubmitCallback,
-  handleForgetNumberClick,
   handleMakeTestCallClick,
+  onShowForgetScreen,
   user,
 }: PhoneVerificationButtonsGroupProps) {
   const showForgetNumber = !!user.verified_phone_number;
@@ -260,17 +297,13 @@ function PhoneVerificationButtonsGroup({
       )}
 
       {showForgetNumber && (
-        <WithPermissionControl userAction={action}>
-          <WithConfirm title="Are you sure you want to forget this phone number?" confirmText="Forget">
-            <Button
-              disabled={(!user?.verified_phone_number && !user?.unverified_phone_number) || isTestCallInProgress}
-              onClick={handleForgetNumberClick}
-              variant="destructive"
-            >
-              {'Forget Phone Number'}
-            </Button>
-          </WithConfirm>
-        </WithPermissionControl>
+        <Button
+          disabled={(!user.verified_phone_number && !user.unverified_phone_number) || isTestCallInProgress}
+          onClick={onShowForgetScreen}
+          variant="destructive"
+        >
+          {'Forget Phone Number'}
+        </Button>
       )}
 
       <WithPermissionControl userAction={action}>
