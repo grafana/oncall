@@ -345,15 +345,19 @@ export class ScheduleStore extends BaseStore {
     });
   }
 
-  async updateEvents(scheduleId: Schedule['id'], fromString: string, type: RotationType = 'rotation', days = 7) {
+  async updateEvents(scheduleId: Schedule['id'], startMoment: dayjs.Dayjs, type: RotationType = 'rotation', days = 9) {
+    const dayBefore = startMoment.subtract(1, 'day');
+
     const response = await makeRequest(`/schedules/${scheduleId}/filter_events/`, {
       params: {
         type,
-        date: fromString,
+        date: getFromString(dayBefore),
         days,
       },
       method: 'GET',
     });
+
+    const fromString = getFromString(startMoment);
 
     const shifts = splitToShiftsAndFillGaps(response.events);
 

@@ -2,7 +2,7 @@ import React, { useMemo } from 'react';
 
 import { AppRootProps } from '@grafana/data';
 import { getLocationSrv } from '@grafana/runtime';
-import { Button, HorizontalGroup, VerticalGroup, RadioButtonGroup, IconButton, ToolbarButton } from '@grafana/ui';
+import { Button, HorizontalGroup, VerticalGroup, RadioButtonGroup, IconButton, ToolbarButton, Icon } from '@grafana/ui';
 import cn from 'classnames/bind';
 import dayjs from 'dayjs';
 import { observer } from 'mobx-react';
@@ -20,7 +20,6 @@ import WithConfirm from 'components/WithConfirm/WithConfirm';
 import Rotations from 'containers/Rotations/Rotations';
 import ScheduleFinal from 'containers/Rotations/ScheduleFinal';
 import ScheduleOverrides from 'containers/Rotations/ScheduleOverrides';
-import { getFromString } from 'models/schedule/schedule.helpers';
 import { Timezone } from 'models/timezone/timezone.types';
 import { User } from 'models/user/user.types';
 import { WithStoreProps } from 'state/types';
@@ -144,12 +143,14 @@ class SchedulePage extends React.Component<SchedulePageProps, SchedulePageState>
                 <Button variant="secondary" onClick={this.handleTodayClick}>
                   Today
                 </Button>
-                <Button variant="secondary" onClick={this.handleLeftClick}>
-                  &larr;
-                </Button>
-                <Button variant="secondary" onClick={this.handleRightClick}>
-                  &rarr;
-                </Button>
+                <HorizontalGroup spacing="xs">
+                  <Button variant="secondary" onClick={this.handleLeftClick}>
+                    <Icon name="angle-left" />
+                  </Button>
+                  <Button variant="secondary" onClick={this.handleRightClick}>
+                    <Icon name="angle-right" />
+                  </Button>
+                </HorizontalGroup>
                 <div>
                   {startMoment.format('DD MMM')} - {startMoment.add(6, 'day').format('DD MMM')}
                 </div>
@@ -216,9 +217,9 @@ class SchedulePage extends React.Component<SchedulePageProps, SchedulePageState>
     const { startMoment } = this.state;
 
     return Promise.all([
-      store.scheduleStore.updateEvents(scheduleId, getFromString(startMoment), 'rotation'),
-      store.scheduleStore.updateEvents(scheduleId, getFromString(startMoment), 'override'),
-      store.scheduleStore.updateEvents(scheduleId, getFromString(startMoment), 'final'),
+      store.scheduleStore.updateEvents(scheduleId, startMoment, 'rotation'),
+      store.scheduleStore.updateEvents(scheduleId, startMoment, 'override'),
+      store.scheduleStore.updateEvents(scheduleId, startMoment, 'final'),
     ]);
   };
 
@@ -276,9 +277,13 @@ class SchedulePage extends React.Component<SchedulePageProps, SchedulePageState>
   handleTimezoneChange = (value: Timezone) => {
     const { store } = this.props;
 
-    store.currentTimezone = value;
+    this.setState((oldState) => {
+      const wDiff = oldState.startMoment.diff(getStartOfWeek(store.currentTimezone), 'weeks');
 
-    this.setState({ startMoment: getStartOfWeek(value) }, this.updateEvents);
+      return { ...oldState, startMoment: getStartOfWeek(value).add(wDiff, 'weeks') };
+    }, this.updateEvents);
+
+    store.currentTimezone = value;
   };
 
   handleShedulePeriodTypeChange = (value: string) => {

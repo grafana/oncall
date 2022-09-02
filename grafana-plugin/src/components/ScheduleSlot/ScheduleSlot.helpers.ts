@@ -18,10 +18,6 @@ export const getRandomUser = () => {
   return USERS[Math.floor(Math.random() * USERS.length)];
 };
 
-export const getLabel = (layerIndex: number, rotationIndex) => {
-  return `L ${layerIndex + 1}-${rotationIndex + 1}`;
-};
-
 export const getTitle = (user: User) => {
   return user ? user.username.split(' ')[0] : null;
   return user

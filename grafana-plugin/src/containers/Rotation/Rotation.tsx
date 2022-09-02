@@ -11,6 +11,8 @@ import { Rotation as RotationType, Schedule, Event } from 'models/schedule/sched
 import { Timezone } from 'models/timezone/timezone.types';
 import { usePrevious } from 'utils/hooks';
 
+import { getLabel } from './Rotation.helpers';
+
 import styles from './Rotation.module.css';
 
 const cx = cn.bind(styles);
@@ -24,7 +26,7 @@ interface RotationProps {
   rotationIndex?: number;
   color?: string;
   events: Event[];
-  onClick: (moment: dayjs.Dayjs) => void;
+  onClick?: (moment: dayjs.Dayjs) => void;
   days?: number;
   transparent?: boolean;
 }
@@ -105,6 +107,11 @@ const Rotation: FC<RotationProps> = (props) => {
     return firstShiftOffset / base;
   }, [events]);
 
+  let eventIndexToShowLabel = -1;
+  if (!isNaN(layerIndex) && !isNaN(rotationIndex)) {
+    eventIndexToShowLabel = events.findIndex((event) => dayjs(event.start).isSameOrAfter(startMoment));
+  }
+
   return (
     <div className={cx('root')} onClick={handleClick}>
       <div className={cx('timeline')}>
@@ -125,6 +132,7 @@ const Rotation: FC<RotationProps> = (props) => {
                     startMoment={startMoment}
                     currentTimezone={currentTimezone}
                     color={color}
+                    label={index === eventIndexToShowLabel && getLabel(layerIndex, rotationIndex)}
                   />
                 );
               })}

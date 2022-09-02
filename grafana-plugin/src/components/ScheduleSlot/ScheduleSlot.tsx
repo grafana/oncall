@@ -13,7 +13,7 @@ import { Timezone } from 'models/timezone/timezone.types';
 import { User } from 'models/user/user.types';
 import { useStore } from 'state/useStore';
 
-import { getColor, getLabel, getTitle } from './ScheduleSlot.helpers';
+import { getTitle } from './ScheduleSlot.helpers';
 
 import styles from './ScheduleSlot.module.css';
 
@@ -25,12 +25,13 @@ interface ScheduleSlotProps {
   startMoment: dayjs.Dayjs;
   currentTimezone: Timezone;
   color?: string;
+  label?: string;
 }
 
 const cx = cn.bind(styles);
 
 const ScheduleSlot: FC<ScheduleSlotProps> = observer((props) => {
-  const { index, layerIndex, rotationIndex, event, startMoment, currentTimezone, color } = props;
+  const { index, layerIndex, rotationIndex, event, startMoment, currentTimezone, color, label } = props;
   const { users } = event;
 
   const trackMouse = false;
@@ -47,8 +48,6 @@ const ScheduleSlot: FC<ScheduleSlotProps> = observer((props) => {
   const base = 60 * 60 * 24 * 7;
 
   const width = duration / base;
-
-  const label = !isNaN(layerIndex) && !isNaN(rotationIndex) && index === 0 ? getLabel(layerIndex, rotationIndex) : null;
 
   const handleMouseMove = useCallback((event) => {
     setMouseX(event.nativeEvent.offsetX);
