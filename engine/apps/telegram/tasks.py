@@ -122,11 +122,14 @@ def send_log_and_actions_message(self, channel_chat_id, group_chat_id, channel_m
         try:
             channel_message = TelegramMessage.objects.get(chat_id=channel_chat_id, message_id=channel_message_id)
         except TelegramMessage.DoesNotExist:
-            logger.warning(
-                f"Could not send log and actions message, telegram message does not exist "
-                f" chat_id={channel_chat_id} message_id={channel_message_id}"
-            )
-            return
+            if self.request.retries <= 5:
+                raise
+            else:
+                logger.warning(
+                    f"Could not send log and actions message, telegram message does not exist "
+                    f" chat_id={channel_chat_id} message_id={channel_message_id}"
+                )
+                return
 
         if channel_message.discussion_group_message_id is None:
             channel_message.discussion_group_message_id = reply_to_message_id
