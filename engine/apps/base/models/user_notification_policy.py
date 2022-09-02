@@ -4,13 +4,14 @@ from typing import Tuple
 from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.core.validators import MinLengthValidator
-from django.db import models, transaction
+from django.db import models
 from django.db.models import Q, QuerySet
 from django.utils import timezone
 from ordered_model.models import OrderedModel
 
 from apps.base.messaging import get_messaging_backends
 from apps.user_management.models import User
+from common.exceptions import UserNotificationPolicyCouldNotBeDeleted
 from common.public_primary_keys import generate_public_primary_key, increase_public_primary_key_length
 
 
@@ -69,24 +70,6 @@ def validate_channel_choice(value):
 
 
 class UserNotificationPolicyQuerySet(models.QuerySet):
-    def get_or_create_for_user(self, user: User, important: bool) -> "QuerySet[UserNotificationPolicy]":
-        with transaction.atomic():
-            User.objects.select_for_update().get(pk=user.pk)
-            return self._get_or_create_for_user(user, important)
-
-    def _get_or_create_for_user(self, user: User, important: bool) -> "QuerySet[UserNotificationPolicy]":
-        notification_policies = super().filter(user=user, important=important)
-
-        if notification_policies.exists():
-            return notification_policies
-
-        if important:
-            policies = self.create_important_policies_for_user(user)
-        else:
-            policies = self.create_default_policies_for_user(user)
-
-        return policies
-
     def create_default_policies_for_user(self, user: User) -> "QuerySet[UserNotificationPolicy]":
         model = self.model
 
@@ -196,6 +179,12 @@ class UserNotificationPolicy(OrderedModel):
                 return self.get_wait_delay_display()
         else:
             return "Not set"
+
+    def delete(self):
+        if UserNotificationPolicy.objects.filter(important=self.important, user=self.user).count() == 1:
+            raise UserNotificationPolicyCouldNotBeDeleted("Can't delete last user notification policy")
+        else:
+            super().delete()
 
 
 class NotificationChannelOptions:
