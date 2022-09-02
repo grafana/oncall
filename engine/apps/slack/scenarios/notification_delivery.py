@@ -24,7 +24,6 @@ class NotificationDeliveryStep(scenario_step.ScenarioStep):
                     self.post_message_to_channel(
                         f"Attempt to send an SMS to {user_verbal_with_mention} has been failed due to a plan limit",
                         alert_group.slack_message.channel_id,
-                        color="red",
                     )
                 elif (
                     log_record.notification_error_code
@@ -33,7 +32,6 @@ class NotificationDeliveryStep(scenario_step.ScenarioStep):
                     self.post_message_to_channel(
                         f"Attempt to call to {user_verbal_with_mention} has been failed due to a plan limit",
                         alert_group.slack_message.channel_id,
-                        color="red",
                     )
                 elif (
                     log_record.notification_error_code
@@ -42,7 +40,6 @@ class NotificationDeliveryStep(scenario_step.ScenarioStep):
                     self.post_message_to_channel(
                         f"Failed to send email to {user_verbal_with_mention}. Exceeded limit for mails",
                         alert_group.slack_message.channel_id,
-                        color="red",
                     )
                 elif (
                     log_record.notification_error_code
@@ -52,18 +49,14 @@ class NotificationDeliveryStep(scenario_step.ScenarioStep):
                         self.post_message_to_channel(
                             f"Failed to send an SMS to {user_verbal_with_mention}. Phone number is not verified",
                             alert_group.slack_message.channel_id,
-                            color="red",
                         )
                     elif log_record.notification_channel == UserNotificationPolicy.NotificationChannel.PHONE_CALL:
                         self.post_message_to_channel(
                             f"Failed to call to {user_verbal_with_mention}. Phone number is not verified",
                             alert_group.slack_message.channel_id,
-                            color="red",
                         )
 
-    def post_message_to_channel(self, text, channel, color=None, footer=None):
-        # TODO: No color in blocks, use prefix emoji?
-        # color_id = self.get_color_id(color)
+    def post_message_to_channel(self, text, channel):
         blocks = [
             {
                 "type": "section",
@@ -71,15 +64,6 @@ class NotificationDeliveryStep(scenario_step.ScenarioStep):
                 "text": {
                     "type": "mrkdwn",
                     "text": text,
-                },
-            },
-            {"type": "divider"},
-            {
-                "type": "section",
-                "block_id": "alert",
-                "text": {
-                    "type": "mrkdwn",
-                    "text": footer,
                 },
             },
         ]

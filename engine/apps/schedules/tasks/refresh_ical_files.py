@@ -44,17 +44,22 @@ def refresh_ical_file(schedule_pk):
     if schedule.cached_ical_file_primary is not None:
         if schedule.prev_ical_file_primary is None:
             run_task_primary = True
+            task_logger.info(f"run_task_primary {schedule_pk} {run_task_primary} prev_ical_file_primary is None")
         else:
             run_task_primary = not is_icals_equal(schedule.cached_ical_file_primary, schedule.prev_ical_file_primary)
+            task_logger.info(f"run_task_primary {schedule_pk} {run_task_primary} icals not equal")
     run_task_overrides = False
     if schedule.cached_ical_file_overrides is not None:
         if schedule.prev_ical_file_overrides is None:
             run_task_overrides = True
+            task_logger.info(f"run_task_overrides {schedule_pk} {run_task_primary} prev_ical_file_overrides is None")
         else:
             run_task_overrides = not is_icals_equal(
                 schedule.cached_ical_file_overrides, schedule.prev_ical_file_overrides
             )
+            task_logger.info(f"run_task_overrides {schedule_pk} {run_task_primary} icals not equal")
     run_task = run_task_primary or run_task_overrides
+
     if run_task:
         notify_about_empty_shifts_in_schedule.apply_async((schedule_pk,))
         notify_about_gaps_in_schedule.apply_async((schedule_pk,))
