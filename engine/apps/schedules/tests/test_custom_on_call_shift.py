@@ -575,7 +575,7 @@ def test_rolling_users_with_diff_start_and_rotation_start_weekly(
 
 
 @pytest.mark.django_db
-def test_rolling_users_with_diff_start_and_rotation_start_weekly_by_day(
+def test_rolling_users_with_diff_start_and_rotation_start_weekly_by_day_weekend(
     make_organization_and_user, make_user_for_organization, make_on_call_shift, make_schedule
 ):
     organization, user_1 = make_organization_and_user()
@@ -618,6 +618,75 @@ def test_rolling_users_with_diff_start_and_rotation_start_weekly_by_day(
         first_sat - timezone.timedelta(days=7),  # before rotation start
         first_sat + timezone.timedelta(days=9),  # weekday value not in by_day
         first_sat + timezone.timedelta(days=30),  # higher than until
+    ]
+
+    for dt in user_1_on_call_dates:
+        users_on_call = list_users_to_notify_from_ical(schedule, dt)
+        assert len(users_on_call) == 1
+        assert user_1 in users_on_call
+
+    for dt in user_2_on_call_dates:
+        users_on_call = list_users_to_notify_from_ical(schedule, dt)
+        assert len(users_on_call) == 1
+        assert user_2 in users_on_call
+
+    for dt in user_3_on_call_dates:
+        users_on_call = list_users_to_notify_from_ical(schedule, dt)
+        assert len(users_on_call) == 1
+        assert user_3 in users_on_call
+
+    for dt in nobody_on_call_dates:
+        users_on_call = list_users_to_notify_from_ical(schedule, dt)
+        assert len(users_on_call) == 0
+
+
+@pytest.mark.django_db
+def test_rolling_users_with_diff_start_and_rotation_start_weekly_by_day(
+    make_organization_and_user, make_user_for_organization, make_on_call_shift, make_schedule
+):
+    organization, user_1 = make_organization_and_user()
+    user_2 = make_user_for_organization(organization)
+    user_3 = make_user_for_organization(organization)
+
+    schedule = make_schedule(organization, schedule_class=OnCallScheduleWeb)
+    now = timezone.now().replace(microsecond=0)
+    today_weekday = now.weekday()
+    weekdays = [(today_weekday + 1) % 7, (today_weekday + 3) % 7]
+    by_day = [CustomOnCallShift.ICAL_WEEKDAY_MAP[day] for day in weekdays]
+
+    data = {
+        "priority_level": 1,
+        "start": now,
+        "week_start": today_weekday,
+        "rotation_start": now + timezone.timedelta(days=8, hours=1),
+        "duration": timezone.timedelta(seconds=1800),
+        "frequency": CustomOnCallShift.FREQUENCY_WEEKLY,
+        "schedule": schedule,
+        "until": now + timezone.timedelta(days=23, minutes=1),
+        "by_day": by_day,
+    }
+    rolling_users = [[user_1], [user_2], [user_3]]
+    on_call_shift = make_on_call_shift(
+        organization=organization, shift_type=CustomOnCallShift.TYPE_ROLLING_USERS_EVENT, **data
+    )
+    on_call_shift.add_rolling_users(rolling_users)
+
+    date = now + timezone.timedelta(minutes=5)
+
+    # week 1: weekdays[0] - no  (+1 day from start) ;   weekdays[1] - no  (+3 days from start)   user_1
+    # week 2: weekdays[0] - no  (+8 days from start) ;  weekdays[1] - yes (+10 days from start)  user_2
+    # week 3: weekdays[0] - yes (+15 days from start) ; weekdays[1] - yes (+17 days from start)  user_3
+    # week 4: weekdays[0] - yes (+22 days from start) ; weekdays[1] - no  (+24 days from start)  user_1
+    user_1_on_call_dates = [date + timezone.timedelta(days=22)]
+    user_2_on_call_dates = [date + timezone.timedelta(days=10)]
+    user_3_on_call_dates = [date + timezone.timedelta(days=15), date + timezone.timedelta(days=17)]
+    nobody_on_call_dates = [
+        date,  # less than rotation start
+        date + timezone.timedelta(days=1),  # less than rotation start
+        date + timezone.timedelta(days=3),  # less than rotation start
+        date + timezone.timedelta(days=8),  # less than rotation start
+        date + timezone.timedelta(days=9),  # weekday value not in by_day
+        date + timezone.timedelta(days=24),  # higher than until
     ]
 
     for dt in user_1_on_call_dates:
