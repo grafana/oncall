@@ -191,7 +191,7 @@ def test_cleanup_organization_deleted(make_organization):
     organization = make_organization(gcom_token="TEST_GCOM_TOKEN")
 
     with patch.object(GcomAPIClient, "get_instance_info", return_value=({"status": "deleted"}, None)):
-        cleanup_organization(organization)
+        cleanup_organization(organization.id)
 
     with pytest.raises(ObjectDoesNotExist):
         organization.refresh_from_db()
