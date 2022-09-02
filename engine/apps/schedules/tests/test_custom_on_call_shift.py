@@ -477,7 +477,7 @@ def test_rolling_users_with_diff_start_and_rotation_start_daily(
         "duration": timezone.timedelta(seconds=1800),
         "frequency": CustomOnCallShift.FREQUENCY_DAILY,
         "schedule": schedule,
-        "until": now + timezone.timedelta(days=6, minutes=1),
+        "until": now + timezone.timedelta(days=6, minutes=10),
     }
     rolling_users = [[user_1], [user_2], [user_3]]
     on_call_shift = make_on_call_shift(
@@ -535,7 +535,7 @@ def test_rolling_users_with_diff_start_and_rotation_start_weekly(
         "duration": timezone.timedelta(seconds=1800),
         "frequency": CustomOnCallShift.FREQUENCY_WEEKLY,
         "schedule": schedule,
-        "until": now + timezone.timedelta(days=42, minutes=1),
+        "until": now + timezone.timedelta(days=42, minutes=10),
     }
     rolling_users = [[user_1], [user_2], [user_3]]
     on_call_shift = make_on_call_shift(
@@ -827,6 +827,237 @@ def test_rolling_users_with_diff_start_and_rotation_start_monthly_by_monthday(
         users_on_call = list_users_to_notify_from_ical(schedule, dt)
         assert len(users_on_call) == 1
         assert user_3 in users_on_call
+
+    for dt in nobody_on_call_dates:
+        users_on_call = list_users_to_notify_from_ical(schedule, dt)
+        assert len(users_on_call) == 0
+
+
+@pytest.mark.django_db
+def test_get_oncall_users_with_respect_to_rotation_start_and_until_dates_hourly(
+    make_organization_and_user,
+    make_on_call_shift,
+    make_schedule,
+):
+    """Test calculation start and end event dates for one event with respect to rotation start and until"""
+    organization, user = make_organization_and_user()
+
+    schedule = make_schedule(organization, schedule_class=OnCallScheduleWeb)
+    now = timezone.now().replace(microsecond=0)
+
+    data = {
+        "priority_level": 1,
+        "start": now,
+        "rotation_start": now + timezone.timedelta(minutes=10),
+        "duration": timezone.timedelta(hours=1),
+        "frequency": CustomOnCallShift.FREQUENCY_HOURLY,
+        "schedule": schedule,
+        "until": now + timezone.timedelta(minutes=40),
+        "source": CustomOnCallShift.SOURCE_WEB,
+    }
+    rolling_users = [[user]]
+    on_call_shift = make_on_call_shift(
+        organization=organization, shift_type=CustomOnCallShift.TYPE_ROLLING_USERS_EVENT, **data
+    )
+    on_call_shift.add_rolling_users(rolling_users)
+
+    date = now + timezone.timedelta(minutes=2)
+
+    user_on_call_dates = [date + timezone.timedelta(minutes=10), date + timezone.timedelta(minutes=35)]
+    nobody_on_call_dates = [
+        date,  # less than rotation start
+        date + timezone.timedelta(minutes=5),  # less than rotation start
+        date + timezone.timedelta(minutes=40),  # higher than until
+    ]
+    for dt in user_on_call_dates:
+        users_on_call = list_users_to_notify_from_ical(schedule, dt)
+        assert len(users_on_call) == 1
+        assert user in users_on_call
+
+    for dt in nobody_on_call_dates:
+        users_on_call = list_users_to_notify_from_ical(schedule, dt)
+        assert len(users_on_call) == 0
+
+
+@pytest.mark.django_db
+def test_get_oncall_users_with_respect_to_rotation_start_and_until_dates_daily(
+    make_organization_and_user,
+    make_on_call_shift,
+    make_schedule,
+):
+    """Test calculation start and end event dates for one event with respect to rotation start and until"""
+    organization, user = make_organization_and_user()
+
+    schedule = make_schedule(organization, schedule_class=OnCallScheduleWeb)
+    now = timezone.now().replace(microsecond=0)
+
+    data = {
+        "priority_level": 1,
+        "start": now,
+        "rotation_start": now + timezone.timedelta(hours=5),
+        "duration": timezone.timedelta(days=1),
+        "frequency": CustomOnCallShift.FREQUENCY_DAILY,
+        "schedule": schedule,
+        "until": now + timezone.timedelta(hours=15),
+        "source": CustomOnCallShift.SOURCE_WEB,
+    }
+    rolling_users = [[user]]
+    on_call_shift = make_on_call_shift(
+        organization=organization, shift_type=CustomOnCallShift.TYPE_ROLLING_USERS_EVENT, **data
+    )
+    on_call_shift.add_rolling_users(rolling_users)
+
+    date = now + timezone.timedelta(minutes=5)
+
+    user_on_call_dates = [date + timezone.timedelta(hours=5), date + timezone.timedelta(hours=10)]
+    nobody_on_call_dates = [
+        date,  # less than rotation start
+        date + timezone.timedelta(hours=4),  # less than rotation start
+        date + timezone.timedelta(hours=15),  # higher than until
+    ]
+
+    for dt in user_on_call_dates:
+        users_on_call = list_users_to_notify_from_ical(schedule, dt)
+        assert len(users_on_call) == 1
+        assert user in users_on_call
+
+    for dt in nobody_on_call_dates:
+        users_on_call = list_users_to_notify_from_ical(schedule, dt)
+        assert len(users_on_call) == 0
+
+
+@pytest.mark.django_db
+def test_get_oncall_users_with_respect_to_rotation_start_and_until_dates_weekly(
+    make_organization_and_user,
+    make_on_call_shift,
+    make_schedule,
+):
+    """Test calculation start and end event dates for one event with respect to rotation start and until"""
+    organization, user = make_organization_and_user()
+
+    # simple weekly event
+    schedule = make_schedule(organization, schedule_class=OnCallScheduleWeb)
+    now = timezone.now().replace(microsecond=0)
+
+    data = {
+        "priority_level": 1,
+        "start": now,
+        "rotation_start": now + timezone.timedelta(days=1),
+        "duration": timezone.timedelta(days=7),
+        "frequency": CustomOnCallShift.FREQUENCY_WEEKLY,
+        "schedule": schedule,
+        "until": now + timezone.timedelta(days=6),
+        "week_start": now.weekday(),
+        "source": CustomOnCallShift.SOURCE_WEB,
+    }
+    rolling_users = [[user]]
+    on_call_shift = make_on_call_shift(
+        organization=organization, shift_type=CustomOnCallShift.TYPE_ROLLING_USERS_EVENT, **data
+    )
+    on_call_shift.add_rolling_users(rolling_users)
+
+    date = now + timezone.timedelta(minutes=5)
+
+    user_on_call_dates = [date + timezone.timedelta(days=1), date + timezone.timedelta(days=5)]
+    nobody_on_call_dates = [
+        date,  # less than rotation start
+        date + timezone.timedelta(hours=23),  # less than rotation start
+        date + timezone.timedelta(days=6),  # higher than until
+    ]
+
+    for dt in user_on_call_dates:
+        users_on_call = list_users_to_notify_from_ical(schedule, dt)
+        assert len(users_on_call) == 1
+        assert user in users_on_call
+
+    for dt in nobody_on_call_dates:
+        users_on_call = list_users_to_notify_from_ical(schedule, dt)
+        assert len(users_on_call) == 0
+
+    # weekly event with by_day
+    schedule_2 = make_schedule(organization, schedule_class=OnCallScheduleWeb)
+    today_weekday = now.weekday()
+    weekdays = [today_weekday, (today_weekday + 1) % 7, (today_weekday + 2) % 7, (today_weekday + 5) % 7]
+    by_day = [CustomOnCallShift.ICAL_WEEKDAY_MAP[day] for day in weekdays]
+    data = {
+        "priority_level": 1,
+        "start": now,
+        "rotation_start": now + timezone.timedelta(days=1),
+        "duration": timezone.timedelta(hours=12),
+        "frequency": CustomOnCallShift.FREQUENCY_WEEKLY,
+        "schedule": schedule_2,
+        "until": now + timezone.timedelta(days=4, hours=23),
+        "week_start": today_weekday,
+        "by_day": by_day,
+        "source": CustomOnCallShift.SOURCE_WEB,
+    }
+    on_call_shift_2 = make_on_call_shift(
+        organization=organization, shift_type=CustomOnCallShift.TYPE_ROLLING_USERS_EVENT, **data
+    )
+    on_call_shift_2.add_rolling_users(rolling_users)
+
+    date = now + timezone.timedelta(minutes=5)
+
+    user_on_call_dates = [date + timezone.timedelta(days=1), date + timezone.timedelta(days=2)]
+    nobody_on_call_dates = [
+        date,  # less than rotation start
+        date + timezone.timedelta(hours=23),  # less than rotation start
+        date + timezone.timedelta(days=3),  # out of by_day
+        date + timezone.timedelta(days=4),  # out of by_day
+        date + timezone.timedelta(days=5),  # higher than until
+    ]
+
+    for dt in user_on_call_dates:
+        users_on_call = list_users_to_notify_from_ical(schedule_2, dt)
+        assert len(users_on_call) == 1
+        assert user in users_on_call
+
+    for dt in nobody_on_call_dates:
+        users_on_call = list_users_to_notify_from_ical(schedule_2, dt)
+        assert len(users_on_call) == 0
+
+
+@pytest.mark.django_db
+def test_get_oncall_users_with_respect_to_rotation_start_and_until_dates_monthly(
+    make_organization_and_user,
+    make_on_call_shift,
+    make_schedule,
+):
+    """Test calculation start and end event dates for one event with respect to rotation start and until"""
+    organization, user = make_organization_and_user()
+
+    schedule = make_schedule(organization, schedule_class=OnCallScheduleWeb)
+    now = timezone.now().replace(microsecond=0)
+
+    data = {
+        "priority_level": 1,
+        "start": now,
+        "rotation_start": now + timezone.timedelta(days=5),
+        "duration": timezone.timedelta(days=30),
+        "frequency": CustomOnCallShift.FREQUENCY_MONTHLY,
+        "schedule": schedule,
+        "until": now + timezone.timedelta(days=15),
+        "source": CustomOnCallShift.SOURCE_WEB,
+    }
+    rolling_users = [[user]]
+    on_call_shift = make_on_call_shift(
+        organization=organization, shift_type=CustomOnCallShift.TYPE_ROLLING_USERS_EVENT, **data
+    )
+    on_call_shift.add_rolling_users(rolling_users)
+
+    date = now + timezone.timedelta(minutes=5)
+
+    user_on_call_dates = [date + timezone.timedelta(days=5), date + timezone.timedelta(days=10)]
+    nobody_on_call_dates = [
+        date,  # less than rotation start
+        date + timezone.timedelta(days=4),  # less than rotation start
+        date + timezone.timedelta(days=15),  # higher than until
+    ]
+
+    for dt in user_on_call_dates:
+        users_on_call = list_users_to_notify_from_ical(schedule, dt)
+        assert len(users_on_call) == 1
+        assert user in users_on_call
 
     for dt in nobody_on_call_dates:
         users_on_call = list_users_to_notify_from_ical(schedule, dt)
