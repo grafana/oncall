@@ -9,6 +9,7 @@ from apps.api.views.features import (
     FEATURE_LIVE_SETTINGS,
     FEATURE_SLACK,
     FEATURE_TELEGRAM,
+    FEATURE_WEB_SCHEDULES,
 )
 
 
@@ -42,6 +43,7 @@ def test_select_features_all_enabled(
     settings.FEATURE_LIVE_SETTINGS_ENABLED = True
     settings.FEATURE_GRAFANA_CLOUD_CONNECTION = True
     settings.FEATURE_GRAFANA_CLOUD_NOTIFICATIONS = True
+    settings.FEATURE_WEB_SCHEDULES_ENABLED = True
     client = APIClient()
     url = reverse("api-internal:features")
     response = client.get(url, format="json", **make_user_auth_headers(user, token))
@@ -53,6 +55,7 @@ def test_select_features_all_enabled(
         FEATURE_GRAFANA_CLOUD_CONNECTION,
         FEATURE_LIVE_SETTINGS,
         FEATURE_GRAFANA_CLOUD_NOTIFICATIONS,
+        FEATURE_WEB_SCHEDULES,
     ]
 
 
@@ -69,6 +72,7 @@ def test_select_features_all_disabled(
     settings.FEATURE_LIVE_SETTINGS_ENABLED = False
     settings.FEATURE_GRAFANA_CLOUD_CONNECTION = False
     settings.FEATURE_GRAFANA_CLOUD_NOTIFICATIONS = FEATURE_GRAFANA_CLOUD_NOTIFICATIONS
+    settings.FEATURE_WEB_SCHEDULES_ENABLED = False
     client = APIClient()
     url = reverse("api-internal:features")
     response = client.get(url, format="json", **make_user_auth_headers(user, token))
