@@ -3,13 +3,14 @@ import React, { FC, useEffect, useState, useCallback } from 'react';
 
 import { AppRootProps } from '@grafana/data';
 import { getLocationSrv } from '@grafana/runtime';
-import { Alert, Button } from '@grafana/ui';
+import { Alert } from '@grafana/ui';
 import cn from 'classnames/bind';
 import { observer } from 'mobx-react';
 
 import PluginLink from 'components/PluginLink/PluginLink';
 import { useStore } from 'state/useStore';
 import { UserAction } from 'state/userAction';
+import { GRAFANA_LICENSE_OSS } from 'utils/consts';
 import { useForceUpdate } from 'utils/hooks';
 import { getItem, setItem } from 'utils/localStorage';
 import sanitize from 'utils/sanitize';
@@ -89,7 +90,7 @@ const DefaultPageLayout: FC<DefaultPageLayoutProps> = observer((props) => {
             />
           </Alert>
         )}
-        {store.backendLicense === 'OpenSource' &&
+        {store.backendLicense === GRAFANA_LICENSE_OSS &&
           store.backendVersion &&
           plugin?.version &&
           store.backendVersion !== plugin?.version && (
