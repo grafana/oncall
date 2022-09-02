@@ -1,4 +1,4 @@
-from django.db.models import Max
+from django.db.models import Min
 
 from apps.alerts.incident_appearance.templaters import TemplateLoader
 from apps.alerts.tasks.task_logger import task_logger
@@ -44,25 +44,25 @@ def update_verbose_name(alert_receive_channel_pk, alert_group_pk_start, alert_gr
 
     alert_groups = AlertGroup.all_objects.filter(pk__gte=alert_group_pk_start, pk__lte=alert_group_pk_end).only("pk")
 
-    # get last alerts in 2 SQL queries
+    # get first alerts in 2 SQL queries
     alerts_info = (
         Alert.objects.values("group_id")
         .filter(group_id__gte=alert_group_pk_start, group_id__lte=alert_group_pk_end)
-        .annotate(last_alert_id=Max("id"))
+        .annotate(first_alert_id=Min("id"))
     )
     alerts_info_map = {info["group_id"]: info for info in alerts_info}
 
-    last_alert_ids = [info["last_alert_id"] for info in alerts_info_map.values()]
-    last_alerts = Alert.objects.filter(pk__in=last_alert_ids).values("group_id", "raw_request_data")
-    last_alert_map = {alert["group_id"]: alert for alert in last_alerts}
+    first_alert_ids = [info["first_alert_id"] for info in alerts_info_map.values()]
+    first_alerts = Alert.objects.filter(pk__in=first_alert_ids).values("group_id", "raw_request_data")
+    first_alert_map = {alert["group_id"]: alert for alert in first_alerts}
 
     template_manager = TemplateLoader()
     web_title_template = template_manager.get_attr_template("title", alert_receive_channel, render_for="web")
 
     for alert_group in alert_groups:
         if web_title_template:
-            if alert_group.pk in last_alert_map:
-                raw_request_data = last_alert_map[alert_group.pk]["raw_request_data"]
+            if alert_group.pk in first_alert_map:
+                raw_request_data = first_alert_map[alert_group.pk]["raw_request_data"]
                 verbose_name = apply_jinja_template(web_title_template, raw_request_data)[0] or None
             else:
                 verbose_name = None
