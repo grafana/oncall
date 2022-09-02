@@ -111,15 +111,6 @@ const AlertTemplatesForm = (props: AlertTemplatesFormProps) => {
     return groups;
   }, [filteredTemplatesToRender]);
 
-  const handleChangeActiveTemplate = useCallback(
-    (templateName) => {
-      const template = groups[activeGroup].find((template: Template) => template.name === templateName);
-
-      setActiveTemplate(template);
-    },
-    [groups, activeGroup]
-  );
-
   const getGroupByTemplateName = (templateName: string) => {
     Object.values(groups).find((group) => {
       const foundTemplate = group.find((obj: any) => {

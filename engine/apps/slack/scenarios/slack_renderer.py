@@ -16,7 +16,7 @@ class AlertGroupLogSlackRenderer:
         attachments = []
 
         # get rendered logs
-        result = "Alert Group log:\n\n"
+        result = ""
         for log_record in all_log_records:  # list of AlertGroupLogRecord and UserNotificationPolicyLogRecord logs
             if type(log_record) == AlertGroupLogRecord:
                 result += f"{log_record.rendered_incident_log_line(for_slack=True)}\n"

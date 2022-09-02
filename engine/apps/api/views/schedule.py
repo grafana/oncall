@@ -1,5 +1,3 @@
-import datetime
-
 import pytz
 from django.core.exceptions import ObjectDoesNotExist
 from django.db.models import OuterRef, Subquery
@@ -27,7 +25,6 @@ from apps.auth_token.models import ScheduleExportAuthToken
 from apps.schedules.models import OnCallSchedule
 from apps.slack.models import SlackChannel
 from apps.slack.tasks import update_slack_user_group_for_schedules
-from apps.user_management.organization_log_creator import OrganizationLogType, create_organization_log
 from common.api_helpers.exceptions import BadRequest, Conflict
 from common.api_helpers.mixins import (
     CreateSerializerMixin,
@@ -35,7 +32,8 @@ from common.api_helpers.mixins import (
     ShortSerializerMixin,
     UpdateSerializerMixin,
 )
-from common.api_helpers.utils import create_engine_url
+from common.api_helpers.utils import create_engine_url, get_date_range_from_request
+from common.insight_log import EntityEvent, write_resource_insight_log
 
 EVENTS_FILTER_BY_ROTATION = "rotation"
 EVENTS_FILTER_BY_OVERRIDE = "override"
@@ -138,38 +136,32 @@ class ScheduleView(
         return super().get_object()
 
     def perform_create(self, serializer):
-        schedule = serializer.save()
-        if schedule.user_group is not None:
-            update_slack_user_group_for_schedules.apply_async((schedule.user_group.pk,))
-        organization = self.request.auth.organization
-        user = self.request.user
-        description = f"Schedule {schedule.name} was created"
-        create_organization_log(organization, user, OrganizationLogType.TYPE_SCHEDULE_CREATED, description)
+        serializer.save()
+        write_resource_insight_log(instance=serializer.instance, author=self.request.user, event=EntityEvent.CREATED)
 
     def perform_update(self, serializer):
-        organization = self.request.auth.organization
-        user = self.request.user
-        old_schedule = serializer.instance
-        old_state = old_schedule.repr_settings_for_client_side_logging
+        prev_state = serializer.instance.insight_logs_serialized
         old_user_group = serializer.instance.user_group
-
-        updated_schedule = serializer.save()
-
+        serializer.save()
         if old_user_group is not None:
             update_slack_user_group_for_schedules.apply_async((old_user_group.pk,))
-
-        if updated_schedule.user_group is not None and updated_schedule.user_group != old_user_group:
-            update_slack_user_group_for_schedules.apply_async((updated_schedule.user_group.pk,))
-
-        new_state = updated_schedule.repr_settings_for_client_side_logging
-        description = f"Schedule {updated_schedule.name} was changed from:\n{old_state}\nto:\n{new_state}"
-        create_organization_log(organization, user, OrganizationLogType.TYPE_SCHEDULE_CHANGED, description)
+        if serializer.instance.user_group is not None and serializer.instance.user_group != old_user_group:
+            update_slack_user_group_for_schedules.apply_async((serializer.instance.user_group.pk,))
+        new_state = serializer.instance.insight_logs_serialized
+        write_resource_insight_log(
+            instance=serializer.instance,
+            author=self.request.user,
+            event=EntityEvent.UPDATED,
+            prev_state=prev_state,
+            new_state=new_state,
+        )
 
     def perform_destroy(self, instance):
-        organization = self.request.auth.organization
-        user = self.request.user
-        description = f"Schedule {instance.name} was deleted"
-        create_organization_log(organization, user, OrganizationLogType.TYPE_SCHEDULE_DELETED, description)
+        write_resource_insight_log(
+            instance=instance,
+            author=self.request.user,
+            event=EntityEvent.DELETED,
+        )
         instance.delete()
 
         if instance.user_group is not None:
@@ -224,33 +216,26 @@ class ScheduleView(
 
     @action(detail=True, methods=["get"])
     def filter_events(self, request, pk):
-        user_tz, date = self.get_request_timezone()
-        filter_by = self.request.query_params.get("type")
+        user_tz, starting_date, days = get_date_range_from_request(self.request)
 
+        filter_by = self.request.query_params.get("type")
         valid_filters = (EVENTS_FILTER_BY_ROTATION, EVENTS_FILTER_BY_OVERRIDE, EVENTS_FILTER_BY_FINAL)
         if filter_by is not None and filter_by not in valid_filters:
             raise BadRequest(detail="Invalid type value")
         resolve_schedule = filter_by is None or filter_by == EVENTS_FILTER_BY_FINAL
 
-        starting_date = date if self.request.query_params.get("date") else None
-        if starting_date is None:
-            # default to current week start
-            starting_date = date - datetime.timedelta(days=date.weekday())
-
-        try:
-            days = int(self.request.query_params.get("days", 7))  # fallback to a week
-        except ValueError:
-            raise BadRequest(detail="Invalid days format")
-
         schedule = self.original_get_object()
 
-        if filter_by is not None:
+        if filter_by is not None and filter_by != EVENTS_FILTER_BY_FINAL:
             filter_by = OnCallSchedule.PRIMARY if filter_by == EVENTS_FILTER_BY_ROTATION else OnCallSchedule.OVERRIDES
             events = schedule.filter_events(
                 user_tz, starting_date, days=days, with_empty=True, with_gap=resolve_schedule, filter_by=filter_by
             )
         else:  # return final schedule
             events = schedule.final_events(user_tz, starting_date, days)
+
+        # combine multiple-users same-shift events into one
+        events = self._merge_events(events)
 
         result = {
             "id": schedule.public_primary_key,
@@ -259,6 +244,25 @@ class ScheduleView(
             "events": events,
         }
         return Response(result, status=status.HTTP_200_OK)
+
+    def _merge_events(self, events):
+        """Merge user groups same-shift events."""
+        if events:
+            merged = [events[0]]
+            current = merged[0]
+            for next_event in events[1:]:
+                if (
+                    current["start"] == next_event["start"]
+                    and current["shift"]["pk"] is not None
+                    and current["shift"]["pk"] == next_event["shift"]["pk"]
+                ):
+                    current["users"] += next_event["users"]
+                    current["missing_users"] += next_event["missing_users"]
+                else:
+                    merged.append(next_event)
+                    current = next_event
+            events = merged
+        return events
 
     @action(detail=True, methods=["get"])
     def next_shifts_per_user(self, request, pk):
@@ -321,6 +325,7 @@ class ScheduleView(
                 instance, token = ScheduleExportAuthToken.create_auth_token(
                     request.user, request.user.organization, schedule
                 )
+                write_resource_insight_log(instance=instance, author=self.request.user, event=EntityEvent.CREATED)
             except IntegrityError:
                 raise Conflict("Schedule export token for user already exists")
 
@@ -336,6 +341,7 @@ class ScheduleView(
         if self.request.method == "DELETE":
             try:
                 token = ScheduleExportAuthToken.objects.get(user_id=self.request.user.id, schedule_id=schedule.id)
+                write_resource_insight_log(instance=token, author=self.request.user, event=EntityEvent.DELETED)
                 token.delete()
             except ScheduleExportAuthToken.DoesNotExist:
                 raise NotFound

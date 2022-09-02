@@ -287,7 +287,7 @@ class ScenarioStep(object):
                 raise e
         logger.info(f"Finished _update_slack_message for alert_group {alert_group.pk}")
 
-    def _publish_message_to_thread(self, alert_group, attachments, mrkdwn=True, unfurl_links=True):
+    def publish_message_to_thread(self, alert_group, attachments=[], mrkdwn=True, unfurl_links=True, text=None):
         # TODO: refactor checking the possibility of sending message to slack
         # do not try to post message to slack if integration is rate limited
         if alert_group.channel.is_rate_limited_in_slack:
@@ -300,6 +300,7 @@ class ScenarioStep(object):
             result = self._slack_client.api_call(
                 "chat.postMessage",
                 channel=channel_id,
+                text=text,
                 attachments=attachments,
                 thread_ts=slack_message.slack_id,
                 mrkdwn=mrkdwn,

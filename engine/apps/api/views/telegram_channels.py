@@ -7,8 +7,8 @@ from rest_framework.response import Response
 from apps.api.permissions import MODIFY_ACTIONS, READ_ACTIONS, ActionPermission, AnyRole, IsAdmin
 from apps.api.serializers.telegram import TelegramToOrganizationConnectorSerializer
 from apps.auth_token.auth import PluginAuthentication
-from apps.user_management.organization_log_creator import OrganizationLogType, create_organization_log
 from common.api_helpers.mixins import PublicPrimaryKeyMixin
+from common.insight_log.chatops_insight_logs import ChatOpsEvent, ChatOpsType, write_chatops_insight_log
 
 
 class TelegramChannelViewSet(
@@ -41,8 +41,10 @@ class TelegramChannelViewSet(
 
     def perform_destroy(self, instance):
         user = self.request.user
-        organization = user.organization
-
-        description = f"Telegram channel @{instance.channel_name} was disconnected from organization"
-        create_organization_log(organization, user, OrganizationLogType.TYPE_TELEGRAM_CHANNEL_DISCONNECTED, description)
+        write_chatops_insight_log(
+            author=user,
+            event_name=ChatOpsEvent.CHANNEL_DISCONNECTED,
+            chatops_type=ChatOpsType.TELEGRAM,
+            channel_name=instance.channel_name,
+        )
         instance.delete()

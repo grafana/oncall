@@ -14,8 +14,8 @@ import { rootStore } from 'state';
 import { useStore } from 'state/useStore';
 import { useNavModel } from 'utils/hooks';
 
-import './vars.css';
-import './index.css';
+import './style/vars.css';
+import './style/index.css';
 
 import { AppFeature } from './state/features';
 
@@ -91,6 +91,7 @@ export const Root = observer((props: AppRootProps) => {
   const pathWithoutLeadingSlash = path.replace(/^\//, '');
 
   const store = useStore();
+  const { backendLicense } = store;
 
   useEffect(() => {
     store.updateBasicData();
@@ -120,11 +121,13 @@ export const Root = observer((props: AppRootProps) => {
         grafanaUser: window.grafanaBootData.user,
         enableLiveSettings: store.hasFeature(AppFeature.LiveSettings),
         enableCloudPage: store.hasFeature(AppFeature.CloudConnection),
+        backendLicense,
       }),
       [meta, pathWithoutLeadingSlash, page, store.features]
     )
   );
   useEffect(() => {
+    /* @ts-ignore */
     onNavChanged(navModel);
   }, [navModel, onNavChanged]);
 

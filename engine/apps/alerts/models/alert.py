@@ -196,9 +196,9 @@ class Alert(models.Model):
         if grouping_id_template is not None:
             group_distinction, _ = apply_jinja_template(grouping_id_template, raw_request_data)
 
-        # Insert demo uuid to prevent grouping of demo alerts.
-        if is_demo:
-            group_distinction = cls.insert_demo_uuid(group_distinction)
+        # Insert random uuid to prevent grouping of demo alerts or alerts with group_distinction=None
+        if is_demo or not group_distinction:
+            group_distinction = cls.insert_random_uuid(group_distinction)
 
         if group_distinction is not None:
             group_distinction = hashlib.md5(str(group_distinction).encode()).hexdigest()
@@ -224,7 +224,7 @@ class Alert(models.Model):
         )
 
     @staticmethod
-    def insert_demo_uuid(distinction):
+    def insert_random_uuid(distinction):
         if distinction is not None:
             distinction += str(uuid4())
         else:

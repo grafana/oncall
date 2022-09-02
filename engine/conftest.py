@@ -41,7 +41,6 @@ from apps.base.models.user_notification_policy_log_record import (
 )
 from apps.base.tests.factories import (
     LiveSettingFactory,
-    OrganizationLogRecordFactory,
     UserNotificationPolicyFactory,
     UserNotificationPolicyLogRecordFactory,
 )
@@ -69,7 +68,7 @@ from apps.telegram.tests.factories import (
     TelegramVerificationCodeFactory,
 )
 from apps.twilioapp.tests.factories import PhoneCallFactory, SMSFactory
-from apps.user_management.organization_log_creator import OrganizationLogType
+from apps.user_management.models.user import User, listen_for_user_model_save
 from apps.user_management.tests.factories import OrganizationFactory, TeamFactory, UserFactory
 from common.constants.role import Role
 
@@ -77,7 +76,6 @@ register(OrganizationFactory)
 register(UserFactory)
 register(TeamFactory)
 
-register(OrganizationLogRecordFactory)
 
 register(AlertReceiveChannelFactory)
 register(ChannelFilterFactory)
@@ -153,7 +151,9 @@ def make_organization():
 @pytest.fixture
 def make_user_for_organization():
     def _make_user_for_organization(organization, role=Role.ADMIN, **kwargs):
+        post_save.disconnect(listen_for_user_model_save, sender=User)
         user = UserFactory(organization=organization, role=role, **kwargs)
+        post_save.disconnect(listen_for_user_model_save, sender=User)
         return user
 
     return _make_user_for_organization
@@ -655,16 +655,6 @@ def make_integration_heartbeat():
         )
 
     return _make_integration_heartbeat
-
-
-@pytest.fixture()
-def make_organization_log_record():
-    def _make_organization_log_record(organization, user, **kwargs):
-        if "type" not in kwargs:
-            kwargs["type"] = OrganizationLogType.TYPE_SLACK_DEFAULT_CHANNEL_CHANGED
-        return OrganizationLogRecordFactory(organization=organization, author=user, **kwargs)
-
-    return _make_organization_log_record
 
 
 @pytest.fixture()
