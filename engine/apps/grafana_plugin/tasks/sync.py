@@ -7,7 +7,7 @@ from django.utils import timezone
 from apps.grafana_plugin.helpers import GcomAPIClient
 from apps.grafana_plugin.helpers.gcom import get_active_instance_ids
 from apps.user_management.models import Organization
-from apps.user_management.sync import sync_organization
+from apps.user_management.sync import cleanup_organization, sync_organization
 from common.custom_celery_tasks import shared_dedicated_queue_retry_task
 
 logger = get_task_logger(__name__)
@@ -16,6 +16,7 @@ logger.setLevel(logging.DEBUG)
 # celery beat will schedule start_sync_organizations for every 30 minutes
 # to make sure that orgs are synced every 30 minutes, SYNC_PERIOD should be a little lower
 SYNC_PERIOD = timezone.timedelta(minutes=25)
+INACTIVE_PERIOD = timezone.timedelta(minutes=60)
 
 
 @shared_dedicated_queue_retry_task(autoretry_for=(Exception,), retry_backoff=True, max_retries=5)
@@ -73,3 +74,17 @@ def run_organization_sync(organization_pk, force_sync):
 
     sync_organization(organization)
     logger.info(f"Finish sync Organization {organization_pk}")
+
+
+@shared_dedicated_queue_retry_task(autoretry_for=(Exception,), max_retries=1)
+def start_cleanup_deleted_organizations():
+    sync_threshold = timezone.now() - INACTIVE_PERIOD
+
+    organization_qs = Organization.objects.filter(last_time_synced__lte=sync_threshold)
+    organization_pks = organization_qs.values_list("pk", flat=True)
+
+    logger.debug(f"Found {len(organization_pks)} organizations not synced recently")
+    max_countdown = 60 * 60  # INACTIVE_PERIOD minutes -> Seconds
+    for idx, organization_pk in enumerate(organization_pks):
+        countdown = idx % max_countdown  # Spread orgs evenly
+        cleanup_organization.apply_async((organization_pk,), countdown=countdown)
