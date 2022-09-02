@@ -1,0 +1,74 @@
+from django.db.models import Max
+
+from apps.alerts.incident_appearance.templaters import TemplateLoader
+from apps.alerts.tasks.task_logger import task_logger
+from common.custom_celery_tasks import shared_dedicated_queue_retry_task
+from common.jinja_templater import apply_jinja_template
+
+# BATCH_SIZE is how many alert groups will be processed per second (for every individual alert receive channel)
+BATCH_SIZE = 1000
+
+
+@shared_dedicated_queue_retry_task
+def update_verbose_name_for_alert_receive_channel(alert_receive_channel_pk):
+    from apps.alerts.models import AlertGroup
+
+    def batch(cur):
+        return list(
+            AlertGroup.all_objects.filter(channel_id=alert_receive_channel_pk, id__gt=cur)
+            .order_by("id")
+            .values_list("id", flat=True)[:BATCH_SIZE]
+        )
+
+    countdown = 0
+    cursor = 0
+    ids = batch(cursor)
+
+    while ids:
+        update_verbose_name.apply_async((alert_receive_channel_pk, ids[0], ids[-1]), countdown=countdown)
+
+        cursor = ids[-1]
+        ids = batch(cursor)
+        countdown += 1
+
+
+@shared_dedicated_queue_retry_task
+def update_verbose_name(alert_receive_channel_pk, alert_group_pk_start, alert_group_pk_end):
+    from apps.alerts.models import Alert, AlertGroup, AlertReceiveChannel
+
+    try:
+        alert_receive_channel = AlertReceiveChannel.objects_with_deleted.get(pk=alert_receive_channel_pk)
+    except AlertReceiveChannel.DoesNotExist:
+        task_logger.warning(f"AlertReceiveChannel {alert_receive_channel_pk} doesn't exist")
+        return
+
+    alert_groups = AlertGroup.all_objects.filter(pk__gte=alert_group_pk_start, pk__lte=alert_group_pk_end).only("pk")
+
+    # get last alerts in 2 SQL queries
+    alerts_info = (
+        Alert.objects.values("group_id")
+        .filter(group_id__gte=alert_group_pk_start, group_id__lte=alert_group_pk_end)
+        .annotate(last_alert_id=Max("id"))
+    )
+    alerts_info_map = {info["group_id"]: info for info in alerts_info}
+
+    last_alert_ids = [info["last_alert_id"] for info in alerts_info_map.values()]
+    last_alerts = Alert.objects.filter(pk__in=last_alert_ids).values("group_id", "raw_request_data")
+    last_alert_map = {alert["group_id"]: alert for alert in last_alerts}
+
+    template_manager = TemplateLoader()
+    web_title_template = template_manager.get_attr_template("title", alert_receive_channel, render_for="web")
+
+    for alert_group in alert_groups:
+        if web_title_template:
+            if alert_group.pk in last_alert_map:
+                raw_request_data = last_alert_map[alert_group.pk]["raw_request_data"]
+                verbose_name = apply_jinja_template(web_title_template, raw_request_data)[0] or None
+            else:
+                verbose_name = None
+        else:
+            verbose_name = None
+
+        alert_group.verbose_name = verbose_name
+
+    AlertGroup.all_objects.bulk_update(alert_groups, ["verbose_name"])

@@ -1,4 +1,5 @@
 from .acknowledge_reminder import acknowledge_reminder_task  # noqa: F401
+from .alert_group_verbose_name import update_verbose_name, update_verbose_name_for_alert_receive_channel  # noqa:F401
 from .cache_alert_group_for_web import cache_alert_group_for_web, schedule_cache_for_alert_group  # noqa: F401
 from .calculcate_escalation_finish_time import calculate_escalation_finish_time  # noqa
 from .call_ack_url import call_ack_url  # noqa: F401
