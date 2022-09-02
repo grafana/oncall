@@ -83,9 +83,9 @@ const PhoneVerification = observer((props: PhoneVerificationProps) => {
   }, [userPk]);
 
   const handleForgetNumberClick = useCallback(() => {
-    userStore.forgetPhone(userPk).then(() => {
+    userStore.forgetPhone(userPk).then(async () => {
+      await userStore.loadUser(userPk);
       setState({ phone: '', showForgetScreen: false, isCodeSent: false });
-      userStore.loadUser(userPk);
     });
   }, [userPk]);
 
