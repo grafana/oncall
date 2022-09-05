@@ -31,11 +31,15 @@ def migrate_notification_rules(user: dict) -> None:
         notification_rules, user["oncall_user"]["id"]
     )
 
-    for rule in user["oncall_user"]["notification_rules"]:
-        oncall_api_client.delete("personal_notification_rules/{}".format(rule["id"]))
-
     for rule in oncall_rules:
         oncall_api_client.create("personal_notification_rules", rule)
+
+    if oncall_rules:
+        # delete old notification rules if any new rules were created
+        for rule in user["oncall_user"]["notification_rules"]:
+            oncall_api_client.delete(
+                "personal_notification_rules/{}".format(rule["id"])
+            )
 
 
 def transform_notification_rules(
