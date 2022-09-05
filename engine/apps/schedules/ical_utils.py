@@ -409,19 +409,21 @@ def get_users_from_ical_event(event, organization):
 
 
 def is_icals_equal(first, second):
-    first = first.split("\n")
-    second = second.split("\n")
-    if len(first) != len(second):
+    first_cal = Calendar.from_ical(first)
+    second_cal = Calendar.from_ical(second)
+    first_subcomponents = first_cal.subcomponents
+    second_subcomponents = second_cal.subcomponents
+    if len(first_subcomponents) != len(second_subcomponents):
         return False
-    else:
-        for idx, first_item in enumerate(first):
-            if first_item.startswith("DTSTAMP"):
-                continue
-            else:
-                second_item = second[idx]
-                if first_item != second_item:
-                    return False
-
+    for idx, first_cmp in enumerate(first_cal.subcomponents):
+        second_cmp = second_subcomponents[idx]
+        if first_cmp.name == second_cmp.name == "VEVENT":
+            first_uid, first_seq = first_cmp.get("UID", None), first_cmp.get("SEQUENCE", None)
+            second_uid, second_seq = first_cmp.get("UID", None), first_cmp.get("SEQUENCE", None)
+            if first_uid != second_uid:
+                return False
+            elif first_seq != second_seq:
+                return False
     return True
 
 
