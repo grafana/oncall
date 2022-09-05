@@ -714,16 +714,18 @@ class AlertRules extends React.Component<AlertRulesProps, AlertRulesState> {
           )}
           escalate to{' '}
           <WithPermissionControl userAction={UserAction.UpdateAlertReceiveChannels}>
-            <GSelect
-              showSearch
-              modelName="escalationChainStore"
-              displayField="name"
-              placeholder="Select Escalation Chain"
-              className={cx('select', 'control', 'no-trigger-collapse-please')}
-              value={channelFilter.escalation_chain}
-              onChange={this.getEscalationChainChangeHandler(channelFilterId)}
-              showWarningIfEmptyValue={true}
-            />
+            <div onClick={(e) => e.stopPropagation()}>
+              <GSelect
+                showSearch
+                modelName="escalationChainStore"
+                displayField="name"
+                placeholder="Select Escalation Chain"
+                className={cx('select', 'control', 'no-trigger-collapse-please')}
+                value={channelFilter.escalation_chain}
+                onChange={this.getEscalationChainChangeHandler(channelFilterId)}
+                showWarningIfEmptyValue={true}
+              />
+            </div>
           </WithPermissionControl>
         </div>
         <div onClick={(e) => e.stopPropagation()}>{this.renderChannelFilterButtons(channelFilterId, index)}</div>

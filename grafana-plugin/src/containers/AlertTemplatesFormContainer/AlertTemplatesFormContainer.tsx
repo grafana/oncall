@@ -17,10 +17,11 @@ interface TeamEditContainerProps {
   onUpdate?: () => void;
   onUpdateTemplates?: () => void;
   visible?: boolean;
+  selectedTemplateName?: string;
 }
 
 const AlertTemplatesFormContainer = observer((props: TeamEditContainerProps) => {
-  const { alertReceiveChannelId, alertGroupId, onUpdateTemplates } = props;
+  const { alertReceiveChannelId, alertGroupId, onUpdateTemplates, selectedTemplateName } = props;
 
   const store = useStore();
 
@@ -71,6 +72,7 @@ const AlertTemplatesFormContainer = observer((props: TeamEditContainerProps) => 
       demoAlertEnabled={alertReceiveChannel?.demo_alert_enabled}
       handleSendDemoAlertClick={handleSendDemoAlertClickCallback}
       templatesRefreshing={templatesRefreshing}
+      selectedTemplateName={selectedTemplateName}
     />
   );
 });

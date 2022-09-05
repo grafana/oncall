@@ -1,4 +1,3 @@
-import random
 import time
 
 from django.apps import apps
@@ -74,9 +73,12 @@ def notify_user_task(
         user_has_notification = UserHasNotification.objects.filter(pk=user_has_notification.pk).select_for_update()[0]
 
         if previous_notification_policy_pk is None:
-            notification_policy = UserNotificationPolicy.objects.get_or_create_for_user(
-                user=user, important=important
-            ).first()
+            notification_policy = UserNotificationPolicy.objects.filter(user=user, important=important).first()
+            if notification_policy is None:
+                task_logger.info(
+                    f"notify_user_task: Failed to notify. No notification policies. user_id={user_pk} alert_group_id={alert_group_pk} important={important}"
+                )
+                return
             # Here we collect a brief overview of notification steps configured for user to send it to thread.
             collected_steps_ids = []
             next_notification_policy = notification_policy.next()
@@ -356,37 +358,40 @@ def perform_notification(log_record_pk):
         message = f"{AlertGroupWebRenderer(alert_group).render().get('title', 'Incident')}"
         thread_id = f"{alert_group.channel.organization.public_primary_key}:{alert_group.public_primary_key}"
         devices_to_notify = APNSDevice.objects.filter(user_id=user.pk)
-        sounds = ["alarm.aiff", "operation.aiff"]
         devices_to_notify.send_message(
             message,
             thread_id=thread_id,
             category="USER_NEW_INCIDENT",
-            sound={"critical": 1, "name": f"{random.choice(sounds)}"},
             extra={
                 "orgId": f"{alert_group.channel.organization.public_primary_key}",
                 "orgName": f"{alert_group.channel.organization.stack_slug}",
                 "incidentId": f"{alert_group.public_primary_key}",
                 "status": f"{alert_group.status}",
-                "interruption-level": "critical",
+                "aps": {
+                    "alert": f"{message}",
+                    "sound": "bingbong.aiff",
+                },
             },
         )
 
     elif notification_channel == UserNotificationPolicy.NotificationChannel.MOBILE_PUSH_CRITICAL:
-        message = f"!!! {AlertGroupWebRenderer(alert_group).render().get('title', 'Incident')}"
+        message = f"{AlertGroupWebRenderer(alert_group).render().get('title', 'Incident')}"
         thread_id = f"{alert_group.channel.organization.public_primary_key}:{alert_group.public_primary_key}"
         devices_to_notify = APNSDevice.objects.filter(user_id=user.pk)
-        sounds = ["ambulance.aiff"]
         devices_to_notify.send_message(
             message,
             thread_id=thread_id,
             category="USER_NEW_INCIDENT",
-            sound={"critical": 1, "name": f"{random.choice(sounds)}"},
             extra={
                 "orgId": f"{alert_group.channel.organization.public_primary_key}",
                 "orgName": f"{alert_group.channel.organization.stack_slug}",
                 "incidentId": f"{alert_group.public_primary_key}",
                 "status": f"{alert_group.status}",
-                "interruption-level": "critical",
+                "aps": {
+                    "alert": f"Critical page: {message}",
+                    "interruption-level": "critical",
+                    "sound": "ambulance.aiff",
+                },
             },
         )
     else:

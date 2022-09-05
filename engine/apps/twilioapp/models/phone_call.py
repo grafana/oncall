@@ -1,5 +1,4 @@
 import logging
-from urllib.parse import urljoin
 
 import requests
 from django.apps import apps
@@ -14,6 +13,7 @@ from apps.alerts.signals import user_notification_action_triggered_signal
 from apps.base.utils import live_settings
 from apps.twilioapp.constants import TwilioCallStatuses
 from apps.twilioapp.twilio_client import twilio_client
+from common.api_helpers.utils import create_engine_url
 from common.utils import clean_markup, escape_for_twilio_phone_call
 
 logger = logging.getLogger(__name__)
@@ -158,7 +158,7 @@ class PhoneCall(models.Model):
 
     @classmethod
     def _make_cloud_call(cls, user, message_body):
-        url = urljoin(settings.GRAFANA_CLOUD_ONCALL_API_URL, "api/v1/make_call")
+        url = create_engine_url("api/v1/make_call", override_base=settings.GRAFANA_CLOUD_ONCALL_API_URL)
         auth = {"Authorization": live_settings.GRAFANA_CLOUD_ONCALL_TOKEN}
         data = {
             "email": user.email,
@@ -251,7 +251,7 @@ class PhoneCall(models.Model):
         if phone_calls_left < 3:
             message_body += " {} phone calls left. Contact your admin.".format(phone_calls_left)
 
-        twilio_call = twilio_client.make_call(message_body, user.verified_phone_number)
+        twilio_call = twilio_client.make_call(message_body, user.verified_phone_number, grafana_cloud=grafana_cloud)
         if twilio_call.status and twilio_call.sid:
             phone_call.status = TwilioCallStatuses.DETERMINANT.get(twilio_call.status, None)
             phone_call.sid = twilio_call.sid

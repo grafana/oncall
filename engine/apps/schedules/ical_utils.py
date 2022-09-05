@@ -13,6 +13,17 @@ from django.db.models import Q
 from django.utils import timezone
 from icalendar import Calendar
 
+from apps.schedules.constants import (
+    ICAL_ATTENDEE,
+    ICAL_DATETIME_END,
+    ICAL_DATETIME_START,
+    ICAL_DESCRIPTION,
+    ICAL_SUMMARY,
+    ICAL_UID,
+    RE_EVENT_UID_V1,
+    RE_EVENT_UID_V2,
+    RE_PRIORITY,
+)
 from apps.schedules.ical_events import ical_events
 from common.constants.role import Role
 from common.utils import timed_lru_cache
@@ -68,22 +79,19 @@ def memoized_users_in_ical(usernames_from_ical, organization):
     return users_in_ical(usernames_from_ical, organization)
 
 
-ICAL_DATETIME_START = "DTSTART"
-ICAL_DATETIME_END = "DTEND"
-ICAL_SUMMARY = "SUMMARY"
-ICAL_DESCRIPTION = "DESCRIPTION"
-ICAL_ATTENDEE = "ATTENDEE"
-ICAL_UID = "UID"
-RE_PRIORITY = re.compile(r"^\[L(\d)\]")
-RE_EVENT_UID_V1 = re.compile(r"amixr-([\w\d-]+)-U(\d+)-E(\d+)-S(\d+)")
-RE_EVENT_UID_V2 = re.compile(r"oncall-([\w\d-]+)-PK([\w\d]+)-U(\d+)-E(\d+)-S(\d+)")
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
 
 
 # used for display schedule events on web
 def list_of_oncall_shifts_from_ical(
-    schedule, date, user_timezone="UTC", with_empty_shifts=False, with_gaps=False, days=1
+    schedule,
+    date,
+    user_timezone="UTC",
+    with_empty_shifts=False,
+    with_gaps=False,
+    days=1,
+    filter_by=None,
 ):
     """
     Parse the ical file and return list of events with users
@@ -121,6 +129,9 @@ def list_of_oncall_shifts_from_ical(
                 calendar_type = OnCallSchedule.PRIMARY
             else:
                 calendar_type = OnCallSchedule.OVERRIDES
+
+            if filter_by is not None and filter_by != calendar_type:
+                continue
 
             tmp_result_datetime, tmp_result_date = get_shifts_dict(
                 calendar, calendar_type, schedule, datetime_start, datetime_end, date, with_empty_shifts
@@ -178,13 +189,11 @@ def get_shifts_dict(calendar, calendar_type, schedule, datetime_start, datetime_
                         }
                     )
             else:
-                start = event[ICAL_DATETIME_START].dt.astimezone(pytz.UTC)
-                end = event[ICAL_DATETIME_END].dt.astimezone(pytz.UTC)
-
+                start, end = ical_events.get_start_and_end_with_respect_to_event_type(event)
                 result_datetime.append(
                     {
-                        "start": start,
-                        "end": end,
+                        "start": start.astimezone(pytz.UTC),
+                        "end": end.astimezone(pytz.UTC),
                         "users": users,
                         "missing_users": missing_users,
                         "priority": priority,

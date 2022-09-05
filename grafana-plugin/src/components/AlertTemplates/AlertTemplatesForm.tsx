@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 
 import { SelectableValue } from '@grafana/data';
+import { getLocationSrv } from '@grafana/runtime';
 import { Label, Button, HorizontalGroup, VerticalGroup, Select, LoadingPlaceholder } from '@grafana/ui';
 import { capitalCase } from 'change-case';
 import cn from 'classnames/bind';
@@ -33,6 +34,7 @@ interface AlertTemplatesFormProps {
   demoAlertEnabled: boolean;
   handleSendDemoAlertClick: () => void;
   templatesRefreshing: boolean;
+  selectedTemplateName?: string;
 }
 
 const AlertTemplatesForm = (props: AlertTemplatesFormProps) => {
@@ -45,6 +47,7 @@ const AlertTemplatesForm = (props: AlertTemplatesFormProps) => {
     demoAlertEnabled,
     handleSendDemoAlertClick,
     templatesRefreshing,
+    selectedTemplateName,
   } = props;
 
   const [tempValues, setTempValues] = useState<{
@@ -108,14 +111,16 @@ const AlertTemplatesForm = (props: AlertTemplatesFormProps) => {
     return groups;
   }, [filteredTemplatesToRender]);
 
-  const handleChangeActiveTemplate = useCallback(
-    (templateName) => {
-      const template = groups[activeGroup].find((template: Template) => template.name === templateName);
-
-      setActiveTemplate(template);
-    },
-    [groups, activeGroup]
-  );
+  const getGroupByTemplateName = (templateName: string) => {
+    Object.values(groups).find((group) => {
+      const foundTemplate = group.find((obj: any) => {
+        if (obj.name == templateName) {
+          return obj;
+        }
+      });
+      setActiveGroup(foundTemplate?.group);
+    });
+  };
 
   const handleChangeActiveGroup = useCallback((group: SelectableValue) => {
     setActiveGroup(group.value);
@@ -123,9 +128,12 @@ const AlertTemplatesForm = (props: AlertTemplatesFormProps) => {
 
   useEffect(() => {
     const groupsArr = Object.keys(groups);
-
-    if (!activeGroup && groupsArr.length) {
-      setActiveGroup(groupsArr[0]);
+    if (selectedTemplateName) {
+      getGroupByTemplateName(selectedTemplateName);
+    } else {
+      if (!activeGroup && groupsArr.length) {
+        setActiveGroup(groupsArr[0]);
+      }
     }
   }, [groups, activeGroup]);
 
@@ -134,6 +142,7 @@ const AlertTemplatesForm = (props: AlertTemplatesFormProps) => {
       setActiveTemplate(groups[activeGroup][0]);
     }
   }, [activeGroup]);
+
   const getTemplatePreviewEditClickHandler = (templateName: string) => {
     return () => {
       const template = templatesToRender.find((template) => template.name === templateName);
@@ -163,6 +172,9 @@ const AlertTemplatesForm = (props: AlertTemplatesFormProps) => {
       ) : null}
     </HorizontalGroup>
   );
+  const handleGoToTemplateSettingsCllick = () => {
+    getLocationSrv().update({ partial: true, query: { tab: 'Autoresolve' } });
+  };
 
   return (
     <div className={cx('root')}>
@@ -203,9 +215,20 @@ const AlertTemplatesForm = (props: AlertTemplatesFormProps) => {
                 key={activeTemplate.name}
                 className={cx('template-form', {
                   'template-form-full': true,
+                  'autoresolve-condition': selectedTemplateName && activeTemplate.name == 'resolve_condition_template',
                 })}
               >
-                <Label>{getLabelFromTemplateName(activeTemplate.name, activeGroup)}</Label>
+                <Label className={cx({ 'autoresolve-label': activeTemplate.name == 'resolve_condition_template' })}>
+                  {getLabelFromTemplateName(activeTemplate.name, activeGroup)}
+                </Label>
+                {activeTemplate.name == 'resolve_condition_template' && (
+                  <Text type="secondary" size="small">
+                    To activate autoresolving change integration
+                    <Button fill="text" size="sm" onClick={handleGoToTemplateSettingsCllick}>
+                      settings
+                    </Button>
+                  </Text>
+                )}
                 <MonacoJinja2Editor
                   value={tempValues[activeTemplate.name] ?? (templates[activeTemplate.name] || '')}
                   disabled={false}

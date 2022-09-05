@@ -299,6 +299,10 @@ class AlertGroup(AlertGroupSlackRenderingMixin, EscalationSnapshotMixin, models.
         related_name="dependent_alert_groups",
     )
 
+    # cached_render_for_web and active_cache_for_web_calculation_id are deprecated
+    cached_render_for_web = models.JSONField(default=dict)
+    active_cache_for_web_calculation_id = models.CharField(max_length=100, null=True, default=None)
+
     last_unique_unacknowledge_process_id = models.CharField(max_length=100, null=True, default=None)
     is_archived = models.BooleanField(default=False)
 
@@ -345,6 +349,11 @@ class AlertGroup(AlertGroupSlackRenderingMixin, EscalationSnapshotMixin, models.
             "channel_filter_id",
             "distinction",
             "is_open_for_grouping",
+        ]
+        indexes = [
+            models.Index(
+                fields=["channel_id", "resolved", "acknowledged", "silenced", "root_alert_group_id", "is_archived"]
+            ),
         ]
 
     def __str__(self):

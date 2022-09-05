@@ -1,8 +1,8 @@
+import logging
 from typing import Optional, Tuple, Union
-from urllib.parse import urljoin
 
 from telegram import Bot, InlineKeyboardMarkup, Message, ParseMode
-from telegram.error import InvalidToken, Unauthorized
+from telegram.error import BadRequest, InvalidToken, Unauthorized
 from telegram.utils.request import Request
 
 from apps.alerts.models import AlertGroup
@@ -10,6 +10,9 @@ from apps.base.utils import live_settings
 from apps.telegram.models import TelegramMessage
 from apps.telegram.renderers.keyboard import TelegramKeyboardRenderer
 from apps.telegram.renderers.message import TelegramMessageRenderer
+from common.api_helpers.utils import create_engine_url
+
+logger = logging.getLogger(__name__)
 
 
 class TelegramClient:
@@ -34,10 +37,7 @@ class TelegramClient:
             return False
 
     def register_webhook(self, webhook_url: Optional[str] = None) -> None:
-        webhook_url = webhook_url or urljoin(live_settings.TELEGRAM_WEBHOOK_HOST, "/telegram/")
-
-        if webhook_url is None:
-            webhook_url = live_settings.TELEGRAM_WEBHOOK_URL
+        webhook_url = webhook_url or create_engine_url("/telegram/", override_base=live_settings.TELEGRAM_WEBHOOK_HOST)
 
         webhook_info = self.api_client.get_webhook_info()
         if webhook_info.url == webhook_url:
@@ -70,14 +70,19 @@ class TelegramClient:
         keyboard: Optional[InlineKeyboardMarkup] = None,
         reply_to_message_id: Optional[int] = None,
     ) -> Message:
-        message = self.api_client.send_message(
-            chat_id=chat_id,
-            text=text,
-            reply_markup=keyboard,
-            reply_to_message_id=reply_to_message_id,
-            parse_mode=self.PARSE_MODE,
-            disable_web_page_preview=False,
-        )
+        try:
+            message = self.api_client.send_message(
+                chat_id=chat_id,
+                text=text,
+                reply_markup=keyboard,
+                reply_to_message_id=reply_to_message_id,
+                parse_mode=self.PARSE_MODE,
+                disable_web_page_preview=False,
+            )
+        except BadRequest as e:
+            logger.warning("Telegram BadRequest: {}".format(e.message))
+            raise
+
         return message
 
     def edit_message(self, message: TelegramMessage) -> TelegramMessage:

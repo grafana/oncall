@@ -33,7 +33,7 @@ def register_telegram_webhook(token=None):
 
     try:
         telegram_client.register_webhook()
-    except (error.InvalidToken, error.Unauthorized) as e:
+    except (error.InvalidToken, error.Unauthorized, error.BadRequest) as e:
         logger.warning(f"Tried to register Telegram webhook using token: {telegram_client.token}, got error: {e}")
 
 
@@ -105,6 +105,10 @@ def send_link_to_channel_message_or_fallback_to_full_incident(
             f"Most probably it was deleted while escalation was in progress."
             f"alert_group {alert_group_pk}"
         )
+    except UserNotificationPolicy.DoesNotExist:
+        logger.warning(
+            f"UserNotificationPolicy {notification_policy_pk} does not exist for alert group {alert_group_pk}"
+        )
 
 
 @shared_dedicated_queue_retry_task(
@@ -132,20 +136,30 @@ def send_log_and_actions_message(self, channel_chat_id, group_chat_id, channel_m
         with OkToRetry(
             task=self, exc=(error.RetryAfter, error.TimedOut), compute_countdown=lambda e: getattr(e, "retry_after", 3)
         ):
-            if not log_message_sent:
-                telegram_client.send_message(
-                    chat_id=group_chat_id,
-                    message_type=TelegramMessage.LOG_MESSAGE,
-                    alert_group=alert_group,
-                    reply_to_message_id=reply_to_message_id,
-                )
-            if not actions_message_sent:
-                telegram_client.send_message(
-                    chat_id=group_chat_id,
-                    message_type=TelegramMessage.ACTIONS_MESSAGE,
-                    alert_group=alert_group,
-                    reply_to_message_id=reply_to_message_id,
-                )
+            try:
+                if not log_message_sent:
+                    telegram_client.send_message(
+                        chat_id=group_chat_id,
+                        message_type=TelegramMessage.LOG_MESSAGE,
+                        alert_group=alert_group,
+                        reply_to_message_id=reply_to_message_id,
+                    )
+                if not actions_message_sent:
+                    telegram_client.send_message(
+                        chat_id=group_chat_id,
+                        message_type=TelegramMessage.ACTIONS_MESSAGE,
+                        alert_group=alert_group,
+                        reply_to_message_id=reply_to_message_id,
+                    )
+            except error.BadRequest as e:
+                if e.message == "Chat not found":
+                    logger.warning(
+                        f"Could not send log and actions messages to Telegram group with id {group_chat_id} "
+                        f"due to 'Chat not found'. alert_group {alert_group.pk}"
+                    )
+                    return
+                else:
+                    raise
 
 
 @shared_dedicated_queue_retry_task(

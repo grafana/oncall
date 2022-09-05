@@ -25,10 +25,6 @@
     height: 100%;
   }
 
-  .grafana-app {
-    position: relative !important;
-  }
-
   .main-view {
     padding-left: 50px;
   }
@@ -36,4 +32,8 @@
   .page-header__tabs li a {
     white-space: nowrap;
   }
+}
+
+.page-header__info-block {
+  flex-grow: 1; /* Stretch the navigation subtitle panel */
 }

@@ -102,6 +102,17 @@ def getenv_boolean(variable_name: str, default: bool) -> bool:
     return value.lower() in ("true", "1")
 
 
+def getenv_integer(variable_name: str, default: int) -> int:
+    value = os.environ.get(variable_name)
+    if value is None:
+        return default
+    try:
+        value = int(value)
+    except ValueError:
+        return default
+    return value
+
+
 def batch_queryset(qs, batch_size=1000):
     qs_count = qs.count()
     for start in range(0, qs_count, batch_size):

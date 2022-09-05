@@ -18,7 +18,7 @@ from apps.auth_token.auth import MobileAppAuthTokenAuthentication, PluginAuthent
 from apps.user_management.models import User
 from common.api_helpers.exceptions import BadRequest
 from common.api_helpers.filters import DateRangeFilterMixin, ModelFieldFilterMixin
-from common.api_helpers.mixins import PreviewTemplateMixin, PublicPrimaryKeyMixin
+from common.api_helpers.mixins import PreviewTemplateMixin, PublicPrimaryKeyMixin, TeamFilteringMixin
 from common.api_helpers.paginators import TwentyFiveCursorPaginator
 
 
@@ -143,8 +143,13 @@ class AlertGroupFilter(DateRangeFilterMixin, ModelFieldFilterMixin, filters.Filt
         return queryset
 
 
+class AlertGroupTeamFilteringMixin(TeamFilteringMixin):
+    TEAM_LOOKUP = "channel__team"
+
+
 class AlertGroupView(
     PreviewTemplateMixin,
+    AlertGroupTeamFilteringMixin,
     PublicPrimaryKeyMixin,
     mixins.RetrieveModelMixin,
     mixins.ListModelMixin,
@@ -198,14 +203,10 @@ class AlertGroupView(
         return super().get_serializer_class()
 
     def get_queryset(self):
-        # make a separate query to fetch all the integrations for current organization and team (it's faster)
-        alert_receive_channel_pks = AlertReceiveChannel.objects_with_deleted.filter(
-            organization=self.request.auth.organization, team=self.request.user.current_team
-        ).values_list("pk", flat=True)
-        alert_receive_channel_pks = list(alert_receive_channel_pks)
-
         # no select_related or prefetch_related is used at this point, it will be done on paginate_queryset.
-        queryset = AlertGroup.unarchived_objects.filter(channel_id__in=alert_receive_channel_pks)
+        queryset = AlertGroup.unarchived_objects.filter(
+            channel__organization=self.request.auth.organization, channel__team=self.request.user.current_team
+        ).only("id")
 
         return queryset
 
@@ -233,6 +234,10 @@ class AlertGroupView(
         # enrich alert groups with select_related and prefetch_related
         alert_group_pks = [alert_group.pk for alert_group in alert_groups]
         queryset = AlertGroup.all_objects.filter(pk__in=alert_group_pks).order_by("-pk")
+
+        # do not load cached_render_for_web as it's deprecated and can be very large
+        queryset = queryset.defer("cached_render_for_web")
+
         queryset = self.get_serializer_class().setup_eager_loading(queryset)
         alert_groups = list(queryset)
 
@@ -254,8 +259,13 @@ class AlertGroupView(
 
         # add additional "alerts_count" and "last_alert" fields to every alert group
         for alert_group in alert_groups:
-            alert_group.last_alert = alerts_info_map[alert_group.pk]["last_alert"]
-            alert_group.alerts_count = alerts_info_map[alert_group.pk]["alerts_count"]
+            try:
+                alert_group.last_alert = alerts_info_map[alert_group.pk]["last_alert"]
+                alert_group.alerts_count = alerts_info_map[alert_group.pk]["alerts_count"]
+            except KeyError:
+                # alert group has no alerts
+                alert_group.last_alert = None
+                alert_group.alerts_count = 0
 
         return alert_groups
 

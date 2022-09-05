@@ -3,7 +3,7 @@ from random import randrange
 
 from celery.schedules import crontab
 
-from common.utils import getenv_boolean
+from common.utils import getenv_boolean, getenv_integer
 
 VERSION = "dev-oss"
 # Indicates if instance is OSS installation.
@@ -75,8 +75,31 @@ SENDGRID_SECRET_KEY = os.environ.get("SENDGRID_SECRET_KEY")
 SENDGRID_INBOUND_EMAIL_DOMAIN = os.environ.get("SENDGRID_INBOUND_EMAIL_DOMAIN")
 
 # For Grafana Cloud integration
-GRAFANA_CLOUD_ONCALL_API_URL = os.environ.get("GRAFANA_CLOUD_ONCALL_API_URL", "https://a-prod-us-central-0.grafana.net")
+GRAFANA_CLOUD_ONCALL_API_URL = os.environ.get(
+    "GRAFANA_CLOUD_ONCALL_API_URL", "https://oncall-prod-us-central-0.grafana.net/oncall"
+)
 GRAFANA_CLOUD_ONCALL_TOKEN = os.environ.get("GRAFANA_CLOUD_ONCALL_TOKEN", None)
+
+# Outgoing webhook settings
+DANGEROUS_WEBHOOKS_ENABLED = getenv_boolean("DANGEROUS_WEBHOOKS_ENABLED", default=False)
+
+# DB backend defaults
+DB_BACKEND = os.environ.get("DB_BACKEND", "mysql")
+DB_BACKEND_DEFAULT_VALUES = {
+    "mysql": {
+        "USER": "root",
+        "PORT": "3306",
+        "OPTIONS": {
+            "charset": "utf8mb4",
+            "connect_timeout": 1,
+        },
+    },
+    "postgresql": {
+        "USER": "postgres",
+        "PORT": "5432",
+        "OPTIONS": {},
+    },
+}
 
 # Application definition
 
@@ -109,7 +132,6 @@ INSTALLED_APPS = [
     "apps.grafana_plugin",
     "apps.grafana_plugin_management",
     "apps.migration_tool",
-    "django_celery_results",
     "corsheaders",
     "debug_toolbar",
     "social_django",
@@ -154,6 +176,7 @@ LOGGING = {
     "filters": {"request_id": {"()": "log_request_id.filters.RequestIDFilter"}},
     "formatters": {
         "standard": {"format": "source=engine:app google_trace_id=%(request_id)s logger=%(name)s %(message)s"},
+        "insight_logger": {"format": "insight=true logger=%(name)s %(message)s"},
     },
     "handlers": {
         "console": {
@@ -161,8 +184,17 @@ LOGGING = {
             "filters": ["request_id"],
             "formatter": "standard",
         },
+        "insight_logger": {
+            "class": "logging.StreamHandler",
+            "formatter": "insight_logger",
+        },
     },
     "loggers": {
+        "insight_logger": {
+            "handlers": ["insight_logger"],
+            "level": "INFO",
+            "propagate": False,
+        },
         "": {
             "handlers": ["console"],
             "level": "INFO",
@@ -225,7 +257,7 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/2.1/howto/static-files/
 
-STATIC_URL = "/static/"
+STATIC_URL = os.environ.get("STATIC_URL", "/static/")
 STATIC_ROOT = "./static/"
 
 CELERY_BROKER_URL = "amqp://rabbitmq:rabbitmq@localhost:5672"
@@ -405,8 +437,9 @@ PUSH_NOTIFICATIONS_SETTINGS = {
     "APNS_TOPIC": os.environ.get("APNS_TOPIC", None),
     "APNS_AUTH_KEY_ID": os.environ.get("APNS_AUTH_KEY_ID", None),
     "APNS_TEAM_ID": os.environ.get("APNS_TEAM_ID", None),
-    "APNS_USE_SANDBOX": True,
+    "APNS_USE_SANDBOX": getenv_boolean("APNS_USE_SANDBOX", True),
     "USER_MODEL": "user_management.User",
+    "UPDATE_ON_DUPLICATE_REG_ID": True,
 }
 
 SELF_HOSTED_SETTINGS = {
@@ -419,7 +452,7 @@ SELF_HOSTED_SETTINGS = {
 
 GRAFANA_INCIDENT_STATIC_API_KEY = os.environ.get("GRAFANA_INCIDENT_STATIC_API_KEY", None)
 
-DATA_UPLOAD_MAX_MEMORY_SIZE = 5242880
+DATA_UPLOAD_MAX_MEMORY_SIZE = getenv_integer("DATA_UPLOAD_MAX_MEMORY_SIZE", 1_048_576)  # 1mb by default
 
 # Log inbound/outbound calls as slow=1 if they exceed threshold
 SLOW_THRESHOLD_SECONDS = 2.0

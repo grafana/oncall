@@ -1,9 +1,14 @@
+import datetime
 from urllib.parse import urljoin
 
+import pytz
 import requests
 from django.conf import settings
+from django.utils import dateparse, timezone
 from icalendar import Calendar
 from rest_framework import serializers
+
+from common.api_helpers.exceptions import BadRequest
 
 
 class CurrentOrganizationDefault:
@@ -54,9 +59,55 @@ def validate_ical_url(url):
     return None
 
 
-def create_engine_url(path):
+"""
+This utility function is for building a URL when we don't know if the base URL
+has been given a trailing / such as reading from environment variable or user
+input.  If the base URL is coming from a validated model field urljoin can be used
+instead.  Do not use this function to append query parameters since a / is added
+to the end of the base URL if there isn't one.
+"""
+
+
+def create_engine_url(path, override_base=None):
     base = settings.BASE_URL
+    if override_base:
+        base = override_base
     if not base.endswith("/"):
         base += "/"
     trimmed_path = path.lstrip("/")
     return urljoin(base, trimmed_path)
+
+
+def get_date_range_from_request(request):
+    """Extract timezone, starting date and number of days params from request.
+
+    Used mainly for schedules and shifts API.
+    """
+    user_tz = request.query_params.get("user_tz", "UTC")
+    try:
+        pytz.timezone(user_tz)
+    except pytz.exceptions.UnknownTimeZoneError:
+        raise BadRequest(detail="Invalid tz format")
+
+    date = timezone.now().date()
+    date_param = request.query_params.get("date")
+    if date_param is not None:
+        try:
+            date = dateparse.parse_date(date_param)
+        except ValueError:
+            raise BadRequest(detail="Invalid date format")
+        else:
+            if date is None:
+                raise BadRequest(detail="Invalid date format")
+
+    starting_date = date if request.query_params.get("date") else None
+    if starting_date is None:
+        # default to current week start
+        starting_date = date - datetime.timedelta(days=date.weekday())
+
+    try:
+        days = int(request.query_params.get("days", 7))  # fallback to a week
+    except ValueError:
+        raise BadRequest(detail="Invalid days format")
+
+    return user_tz, starting_date, days

@@ -209,31 +209,6 @@ class User(models.Model):
         return verbal
 
     @property
-    def repr_settings_for_client_side_logging(self):
-        """
-        Example of execution:
-            username: Alex, role: Admin, verified phone number: not added, unverified phone number: not added,
-            telegram connected: No,
-            notification policies: default: SMS - 5 min - :telephone:, important: :telephone:
-        """
-        UserNotificationPolicy = apps.get_model("base", "UserNotificationPolicy")
-
-        default, important = UserNotificationPolicy.get_short_verbals_for_user(user=self)
-        notification_policies_verbal = f"default: {' - '.join(default)}, important: {' - '.join(important)}"
-        notification_policies_verbal = demojize(notification_policies_verbal)
-
-        result = (
-            f"username: {self.username}, role: {self.get_role_display()}, "
-            f"verified phone number: "
-            f"{self.verified_phone_number if self.verified_phone_number else 'not added'}, "
-            f"unverified phone number: "
-            f"{self.unverified_phone_number if self.unverified_phone_number else 'not added'}, "
-            f"telegram connected: {'Yes' if self.is_telegram_connected else 'No'}"
-            f"\nnotification policies: {notification_policies_verbal}"
-        )
-        return result
-
-    @property
     def timezone(self):
         if self._timezone:
             return self._timezone
@@ -250,16 +225,44 @@ class User(models.Model):
     def short(self):
         return {"username": self.username, "pk": self.public_primary_key, "avatar": self.avatar_url}
 
+    # Insight logs
+    @property
+    def insight_logs_type_verbal(self):
+        return "user"
+
+    @property
+    def insight_logs_verbal(self):
+        return self.username
+
+    @property
+    def insight_logs_serialized(self):
+        UserNotificationPolicy = apps.get_model("base", "UserNotificationPolicy")
+        default, important = UserNotificationPolicy.get_short_verbals_for_user(user=self)
+        notification_policies_verbal = f"default: {' - '.join(default)}, important: {' - '.join(important)}"
+        notification_policies_verbal = demojize(notification_policies_verbal)
+
+        result = {
+            "username": self.username,
+            "role": self.get_role_display(),
+            "notification_policies": notification_policies_verbal,
+        }
+        if self.verified_phone_number:
+            result["verified_phone_number"] = self.unverified_phone_number
+        if self.unverified_phone_number:
+            result["unverified_phone_number"] = self.unverified_phone_number
+        return result
+
+    @property
+    def insight_logs_metadata(self):
+        return {}
+
 
 # TODO: check whether this signal can be moved to save method of the model
 @receiver(post_save, sender=User)
 def listen_for_user_model_save(sender, instance, created, *args, **kwargs):
-    # if kwargs is not None:
-    #     if "update_fields" in kwargs:
-    #         if kwargs["update_fields"] is not None:
-    #             if "username" not in kwargs["update_fields"]:
-    #                 return
-
+    if created:
+        instance.notification_policies.create_default_policies_for_user(instance)
+        instance.notification_policies.create_important_policies_for_user(instance)
     drop_cached_ical_for_custom_events_for_organization.apply_async(
         (instance.organization_id,),
     )

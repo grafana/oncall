@@ -4,18 +4,25 @@ from django.db import migrations
 
 
 class Migration(migrations.Migration):
+    """
+    The previous version of this migration removes two fields:
+    cached_render_for_web and active_cache_for_web_calculation_id.
+    Now it doesn't do anything because it can be very slow and even fail on write heavy alertgroup table.
+    This migration was released in version 1.0.7, so in order to bring back these fields in the later version
+    there's a 0005 migration. Please see the next migration in alerts: 0005_alertgroup_cached_render_for_web.py
+    """
 
     dependencies = [
         ('alerts', '0003_grafanaalertingcontactpoint_datasource_uid'),
     ]
 
     operations = [
-        migrations.RemoveField(
-            model_name='alertgroup',
-            name='active_cache_for_web_calculation_id',
-        ),
-        migrations.RemoveField(
-            model_name='alertgroup',
-            name='cached_render_for_web',
-        ),
+        # migrations.RemoveField(
+        #     model_name='alertgroup',
+        #     name='active_cache_for_web_calculation_id',
+        # ),
+        # migrations.RemoveField(
+        #     model_name='alertgroup',
+        #     name='cached_render_for_web',
+        # ),
     ]

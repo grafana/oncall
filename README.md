@@ -38,7 +38,7 @@ GRAFANA_PASSWORD=admin" > .env_hobby
 
 3. Launch services:
 ```bash
-docker-compose --env-file .env_hobby -f docker-compose.yml up --build -d
+docker-compose --env-file .env_hobby -f docker-compose.yml up -d
 ```
 
 4. Issue one-time invite token:
@@ -75,6 +75,12 @@ See [Grafana docs](https://grafana.com/docs/grafana/latest/administration/plugin
 <a href="https://github.com/grafana/oncall/discussions/categories/community-calls"><img width="200px" src="docs/img/community_call.png"></a>
 <a href="https://github.com/grafana/oncall/discussions"><img width="200px" src="docs/img/GH_discussions.png"></a>
 <a href="https://slack.grafana.com/"><img width="200px" src="docs/img/slack.png"></a>
+
+
+## Stargazers over time
+
+[![Stargazers over time](https://starchart.cc/grafana/oncall.svg)](https://starchart.cc/grafana/oncall)
+
 
 ## Further Reading
 - *Migration from the PagerDuty* - [Migrator](https://github.com/grafana/oncall/tree/dev/tools/pagerduty-migrator)

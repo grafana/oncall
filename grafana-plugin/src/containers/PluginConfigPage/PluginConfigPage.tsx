@@ -25,7 +25,7 @@ import WithConfirm from 'components/WithConfirm/WithConfirm';
 import logo from 'img/logo.svg';
 import { makeRequest } from 'network';
 import { createGrafanaToken, getPluginSyncStatus, startPluginSync, updateGrafanaToken } from 'state/plugin';
-import { openNotification } from 'utils';
+import { GRAFANA_LICENSE_OSS } from 'utils/consts';
 import { getItem, setItem } from 'utils/localStorage';
 
 import styles from './PluginConfigPage.module.css';
@@ -68,7 +68,7 @@ export const PluginConfigPage = (props: Props) => {
       provisioningConfig = await makeRequest('/plugin/self-hosted/install', { method: 'POST' });
     } catch (e) {
       if (e.response.status === 502) {
-        console.warn('Could not connect to OnCall: ' + plugin.meta.jsonData.onCallApiUrl);
+        console.warn('Could not connect to OnCall: ' + onCallApiUrl);
       } else if (e.response.status === 403) {
         console.warn('Invitation token is invalid or expired.');
       } else {
@@ -130,13 +130,11 @@ export const PluginConfigPage = (props: Props) => {
 
   const handleSyncException = useCallback((e) => {
     if (plugin.meta.jsonData?.onCallApiUrl) {
-      setPluginStatusMessage(
-        'Tried connecting to OnCall: ' +
-          plugin.meta.jsonData.onCallApiUrl +
-          '\n' +
-          e +
-          ', retry or check settings & re-initialize.'
-      );
+      let statusMessage = plugin.meta.jsonData.onCallApiUrl + '\n' + e + ', retry or check settings & re-initialize.';
+      if (e.response.status == 404) {
+        statusMessage += '\nIf Grafana OnCall was just installed, restart Grafana for OnCall routes to be available.';
+      }
+      setPluginStatusMessage(statusMessage);
       setRetrySync(true);
     } else {
       setPluginStatusMessage('OnCall has not been setup, configure & initialize below.');
@@ -151,12 +149,14 @@ export const PluginConfigPage = (props: Props) => {
         get_sync_response.version && get_sync_response.license
           ? ` (${get_sync_response.license}, ${get_sync_response.version})`
           : '';
-      setPluginStatusMessage(`Connected to OnCall${versionInfo}: ${plugin.meta.jsonData.onCallApiUrl}`);
-      setIsSelfHostedInstall(plugin.meta.jsonData?.license === 'OpenSource');
+      setPluginStatusMessage(
+        `Connected to OnCall${versionInfo}\n - OnCall URL: ${plugin.meta.jsonData.onCallApiUrl}\n - Grafana URL: ${plugin.meta.jsonData.grafanaUrl}`
+      );
+      setIsSelfHostedInstall(plugin.meta.jsonData?.license === GRAFANA_LICENSE_OSS);
       setPluginStatusOk(true);
     } else {
       setPluginStatusMessage(
-        `OnCall failed to connect to to this grafana via: ${plugin.meta.jsonData.grafanaUrl} check URL, network, and API key.`
+        `OnCall failed to connect to this grafana via: ${plugin.meta.jsonData.grafanaUrl} check URL, network, and API key.`
       );
       setRetrySync(true);
     }
@@ -250,7 +250,7 @@ export const PluginConfigPage = (props: Props) => {
           <VerticalGroup>
             <Text type="secondary">
               Run hobby, dev or production backend:{' '}
-              <a href="https://github.com/grafana/oncall#getting-started">
+              <a href="https://github.com/grafana/oncall#getting-started" target="_blank">
                 <Text type="link">getting started.</Text>
               </a>
             </Text>
@@ -259,15 +259,15 @@ export const PluginConfigPage = (props: Props) => {
             <Text type="secondary">
               Need help?
               <br />- Talk to the OnCall team in the #grafana-oncall channel at{' '}
-              <a href="https://slack.grafana.com/">
+              <a href="https://slack.grafana.com/" target="_blank">
                 <Text type="link">Slack</Text>
               </a>
               <br />- Ask questions at{' '}
-              <a href="https://github.com/grafana/oncall/discussions/categories/q-a">
+              <a href="https://github.com/grafana/oncall/discussions/categories/q-a" target="_blank">
                 <Text type="link">GitHub Discussions</Text>
               </a>{' '}
               or file bugs at{' '}
-              <a href="https://github.com/grafana/oncall/issues">
+              <a href="https://github.com/grafana/oncall/issues" target="_blank">
                 <Text type="link">GitHub Issues</Text>
               </a>
             </Text>
@@ -285,7 +285,7 @@ Seek for such a line:  “Your invite token: <<LONG TOKEN>> , use it in the Graf
           >
             <>
               <Input id="onCallInvitationToken" onChange={handleInvitationTokenChange} />
-              <a href="https://github.com/grafana/oncall/blob/dev/DEVELOPER.md#frontend-setup">
+              <a href="https://github.com/grafana/oncall/blob/dev/DEVELOPER.md#frontend-setup" target="_blank">
                 <Text size="small" type="link">
                   How to re-issue the invite token?
                 </Text>

@@ -2,6 +2,7 @@ import logging
 
 from rest_framework import serializers
 
+from apps.alerts.incident_appearance.renderers.classic_markdown_renderer import AlertGroupClassicMarkdownRenderer
 from apps.alerts.incident_appearance.renderers.web_renderer import AlertGroupWebRenderer
 from apps.alerts.models import AlertGroup
 from common.api_helpers.mixins import EagerLoadingMixin
@@ -39,6 +40,7 @@ class AlertGroupListSerializer(EagerLoadingMixin, serializers.ModelSerializer):
 
     alerts_count = serializers.IntegerField(read_only=True)
     render_for_web = serializers.SerializerMethodField()
+    render_for_classic_markdown = serializers.SerializerMethodField()
 
     PREFETCH_RELATED = [
         "dependent_alert_groups",
@@ -78,13 +80,25 @@ class AlertGroupListSerializer(EagerLoadingMixin, serializers.ModelSerializer):
             "silenced_until",
             "related_users",
             "render_for_web",
+            "render_for_classic_markdown",
             "dependent_alert_groups",
             "root_alert_group",
             "status",
         ]
 
     def get_render_for_web(self, obj):
+        # alert group has no alerts
+        if not obj.last_alert:
+            return {}
+
         return AlertGroupWebRenderer(obj, obj.last_alert).render()
+
+    def get_render_for_classic_markdown(self, obj):
+        # alert group has no alerts
+        if not obj.last_alert:
+            return {}
+
+        return AlertGroupClassicMarkdownRenderer(obj, obj.last_alert).render()
 
     def get_related_users(self, obj):
         users_ids = set()
@@ -124,6 +138,11 @@ class AlertGroupSerializer(AlertGroupListSerializer):
         ]
 
     def get_render_for_web(self, obj):
+        # alert group has no alerts
+        alert = obj.alerts.last()
+        if not alert:
+            return {}
+
         return AlertGroupWebRenderer(obj).render()
 
     def get_last_alert_at(self, obj):

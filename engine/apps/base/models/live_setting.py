@@ -47,50 +47,51 @@ class LiveSetting(models.Model):
         "GRAFANA_CLOUD_ONCALL_TOKEN",
         "GRAFANA_CLOUD_ONCALL_HEARTBEAT_ENABLED",
         "GRAFANA_CLOUD_NOTIFICATIONS_ENABLED",
+        "DANGEROUS_WEBHOOKS_ENABLED",
     )
 
     DESCRIPTIONS = {
         "SLACK_SIGNING_SECRET": (
             "Check <a href='"
             "https://grafana.com/docs/grafana-cloud/oncall/open-source/#slack-setup"
-            "'>instruction</a> for details how to set up Slack. "
+            "' target='_blank'>instruction</a> for details how to set up Slack. "
             "Slack secrets can't be verified on the backend, please try installing the Slack Bot "
             "after you update them."
         ),
         "SLACK_CLIENT_OAUTH_SECRET": (
             "Check <a href='"
             "https://grafana.com/docs/grafana-cloud/oncall/open-source/#slack-setup"
-            "'>instruction</a> for details how to set up Slack. "
+            "' target='_blank'>instruction</a> for details how to set up Slack. "
             "Slack secrets can't be verified on the backend, please try installing the Slack Bot "
             "after you update them."
         ),
         "SLACK_CLIENT_OAUTH_ID": (
             "Check <a href='"
             "https://grafana.com/docs/grafana-cloud/oncall/open-source/#slack-setup"
-            "'>instruction</a> for details how to set up Slack. "
+            "' target='_blank'>instruction</a> for details how to set up Slack. "
             "Slack secrets can't be verified on the backend, please try installing the Slack Bot "
             "after you update them."
         ),
         "SLACK_INSTALL_RETURN_REDIRECT_HOST": (
             "Check <a href='"
             "https://grafana.com/docs/grafana-cloud/oncall/open-source/#slack-setup"
-            "'>instruction</a> for details how to set up Slack. "
+            "' target='_blank'>instruction</a> for details how to set up Slack. "
             "Slack secrets can't be verified on the backend, please try installing the Slack Bot "
             "after you update them."
         ),
         "TWILIO_ACCOUNT_SID": (
             "Twilio username to allow amixr send sms and make phone calls, "
-            "<a href='https://support.twilio.com/hc/en-us/articles/223136027-Auth-Tokens-and-How-to-Change-Them'>"
+            "<a href='https://support.twilio.com/hc/en-us/articles/223136027-Auth-Tokens-and-How-to-Change-Them' target='_blank'>"
             "more info</a>."
         ),
         "TWILIO_AUTH_TOKEN": (
             "Twilio password to allow amixr send sms and make calls, "
-            "<a href='https://support.twilio.com/hc/en-us/articles/223136027-Auth-Tokens-and-How-to-Change-Them'>"
+            "<a href='https://support.twilio.com/hc/en-us/articles/223136027-Auth-Tokens-and-How-to-Change-Them' target='_blank'>"
             "more info</a>."
         ),
         "TWILIO_NUMBER": (
             "Number from which you will receive calls and SMS, "
-            "<a href='https://www.twilio.com/docs/phone-numbers'>more info</a>."
+            "<a href='https://www.twilio.com/docs/phone-numbers' target='_blank'>more info</a>."
         ),
         "TWILIO_VERIFY_SERVICE_SID": (
             "SID of Twilio service for number verification. "
@@ -99,27 +100,29 @@ class LiveSetting(models.Model):
         ),
         "SENDGRID_API_KEY": (
             "Sendgrid api key to send emails, "
-            "<a href='https://sendgrid.com/docs/ui/account-and-settings/api-keys/'>more info</a>."
+            "<a href='https://sendgrid.com/docs/ui/account-and-settings/api-keys/' target='_blank'>more info</a>."
         ),
         "SENDGRID_FROM_EMAIL": (
-            "Address to send emails, <a href='https://sendgrid.com/docs/ui/sending-email/senders/'>" "more info</a>."
+            "Address to send emails, <a href='https://sendgrid.com/docs/ui/sending-email/senders/' target='_blank'>"
+            "more info</a>."
         ),
         "SENDGRID_SECRET_KEY": "It is the secret key to secure receiving inbound emails.",
         "SENDGRID_INBOUND_EMAIL_DOMAIN": "Domain to receive emails for inbound emails integration.",
         "TELEGRAM_TOKEN": (
-            "Secret token for Telegram bot, you can get one via " "<a href='https://t.me/BotFather'>BotFather</a>."
+            "Secret token for Telegram bot, you can get one via <a href='https://t.me/BotFather' target='_blank'>BotFather</a>."
         ),
         "TELEGRAM_WEBHOOK_HOST": (
-            "Externally available URL for Telegram to make requests. Please restart OnCall backend after after update."
+            "Externally available URL for Telegram to make requests. Must use https and ports 80, 88, 443, 8443."
         ),
         "SEND_ANONYMOUS_USAGE_STATS": (
             "Grafana OnCall will send anonymous, but uniquely-identifiable usage analytics to Grafana Labs."
             " These statistics are sent to https://stats.grafana.org/.  For more information on what's sent, look at the "
-            "<a href='https://github.com/grafana/oncall/blob/dev/engine/apps/oss_installation/usage_stats.py#L29'> source code</a>."
+            "<a href='https://github.com/grafana/oncall/blob/dev/engine/apps/oss_installation/usage_stats.py#L29' target='_blank'> source code</a>."
         ),
         "GRAFANA_CLOUD_ONCALL_TOKEN": "Secret token for Grafana Cloud OnCall instance.",
         "GRAFANA_CLOUD_ONCALL_HEARTBEAT_ENABLED": "Enable heartbeat integration with Grafana Cloud OnCall.",
         "GRAFANA_CLOUD_NOTIFICATIONS_ENABLED": "Enable SMS/call notifications via Grafana Cloud OnCall",
+        "DANGEROUS_WEBHOOKS_ENABLED": "Enable outgoing webhooks to private networks",
     }
 
     SECRET_SETTING_NAMES = (

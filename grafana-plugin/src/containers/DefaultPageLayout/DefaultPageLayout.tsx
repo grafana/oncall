@@ -3,13 +3,14 @@ import React, { FC, useEffect, useState, useCallback } from 'react';
 
 import { AppRootProps } from '@grafana/data';
 import { getLocationSrv } from '@grafana/runtime';
-import { Alert, Button } from '@grafana/ui';
+import { Alert } from '@grafana/ui';
 import cn from 'classnames/bind';
 import { observer } from 'mobx-react';
 
 import PluginLink from 'components/PluginLink/PluginLink';
 import { useStore } from 'state/useStore';
 import { UserAction } from 'state/userAction';
+import { GRAFANA_LICENSE_OSS } from 'utils/consts';
 import { useForceUpdate } from 'utils/hooks';
 import { getItem, setItem } from 'utils/localStorage';
 import sanitize from 'utils/sanitize';
@@ -93,29 +94,28 @@ const DefaultPageLayout: FC<DefaultPageLayoutProps> = observer((props) => {
             />
           </Alert>
         )}
-        {store.backendVersion && plugin?.version && store.backendVersion !== plugin?.version && (
-          <Alert className={styles.alert} severity="warning" title={'Version mismatch!'}>
-            Please make sure you have the same versions of the Grafana OnCall plugin and the Grafana OnCall engine,
-            otherwise there could be issues with your Grafana OnCall installation!
-            <br />
-            {`Current plugin version: ${plugin.version}, current engine version: ${store.backendVersion}`}
-            <br />
-            Please see{' '}
-            <a href={'https://grafana.com/docs/oncall/latest/open-source/#update-grafana-oncall-oss'}>
-              the update instructions
-            </a>
-            .
-          </Alert>
-        )}
-        {currentTeam?.limits.show_limits_warning &&
-          currentTeam?.limits.period_title !== 'Version mismatch' && // don't show version mismatch warning twice
-          !getItem(currentTeam.limits.warning_text) && (
+        {store.backendLicense === GRAFANA_LICENSE_OSS &&
+          store.backendVersion &&
+          plugin?.version &&
+          store.backendVersion !== plugin?.version &&
+          !getItem(`version_mismatch_${store.backendVersion}_${plugin?.version}`) && (
             <Alert
               className={styles.alert}
               severity="warning"
-              title={currentTeam?.limits.warning_text}
-              onRemove={getRemoveAlertHandler(currentTeam?.limits.warning_text)}
-            />
+              title={'Version mismatch!'}
+              onRemove={getRemoveAlertHandler(`version_mismatch_${store.backendVersion}_${plugin?.version}`)}
+            >
+              Please make sure you have the same versions of the Grafana OnCall plugin and the Grafana OnCall engine,
+              otherwise there could be issues with your Grafana OnCall installation!
+              <br />
+              {`Current plugin version: ${plugin.version}, current engine version: ${store.backendVersion}`}
+              <br />
+              Please see{' '}
+              <a href={'https://grafana.com/docs/oncall/latest/open-source/#update-grafana-oncall-oss'} target="_blank">
+                the update instructions
+              </a>
+              .
+            </Alert>
           )}
         {Boolean(
           currentTeam &&

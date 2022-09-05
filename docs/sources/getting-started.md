@@ -83,7 +83,7 @@ For more information on Escalation Chains and more ways to customize them, refer
 In order for Grafana OnCall to notify you of an alert, you must configure how you want to be notified. Personal notification policies, chatops integrations, and on-call schedules allow you to automate how users are notified of alerts.
 
 ### Configure personal notification policies 
-Personal notification policies determine how a user is notified for a certain type of alert. Administrators can configure how users receive notification for certain types of alerts. For more information on personal notification policies, refer to [Manage users and teams for Grafana OnCall]({{< relref "configure-user-settings/" >}})
+Personal notification policies determine how a user is notified for a certain type of alert. Get notified by SMS, phone call, or Slack mentions. Administrators can configure how users receive notification for certain types of alerts. For more information on personal notification policies, refer to [Manage users and teams for Grafana OnCall]({{< relref "configure-user-settings/" >}})
 
 To configure users personal notification policies:
 

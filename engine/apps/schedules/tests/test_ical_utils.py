@@ -41,6 +41,7 @@ def test_list_users_to_notify_from_ical_viewers_inclusion(
     data = {
         "priority_level": 1,
         "start": date,
+        "rotation_start": date,
         "duration": timezone.timedelta(seconds=10800),
     }
     on_call_shift = make_on_call_shift(

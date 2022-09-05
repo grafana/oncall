@@ -49,3 +49,11 @@
 .payloadExample {
   margin-top: 24px;
 }
+
+.autoresolve-condition section {
+  border: 1px solid var(--primary-text-link);
+}
+
+.autoresolve-label {
+  margin-bottom: 0 !important;
+}

@@ -9,14 +9,13 @@ import { Tabs, TabsContent } from 'containers/UserSettings/parts';
 import { User as UserType } from 'models/user/user.types';
 import { AppFeature } from 'state/features';
 import { useStore } from 'state/useStore';
+import { BREAKPOINT_TABS } from 'utils/consts';
 
 import { UserSettingsTab } from './UserSettings.types';
 
 import styles from './UserSettings.module.css';
 
 const cx = cn.bind(styles);
-
-const TABS_BREAKPOINT = 1224;
 
 interface UserFormProps {
   onHide: () => void;
@@ -39,7 +38,7 @@ const UserSettings = observer((props: UserFormProps) => {
   const [activeTab, setActiveTab] = useState<UserSettingsTab>(tab);
 
   const isDesktopOrLaptop = useMediaQuery({
-    query: `(min-width: ${TABS_BREAKPOINT}px)`,
+    query: `(min-width: ${BREAKPOINT_TABS}px)`,
   });
 
   useEffect(() => {
@@ -48,18 +47,12 @@ const UserSettings = observer((props: UserFormProps) => {
     }
   }, [isDesktopOrLaptop]);
 
-  const getTabClickHandler = useCallback((tab: UserSettingsTab) => {
-    return () => {
-      onTabChange(tab);
-    };
-  }, []);
-
   const onTabChange = useCallback((tab: UserSettingsTab) => {
     setActiveTab(tab);
   }, []);
 
   const isModalWide =
-    (activeTab === UserSettingsTab.UserInfo && isDesktopOrLaptop) || activeTab === UserSettingsTab.PhoneVerification;
+    !isDesktopOrLaptop || activeTab === UserSettingsTab.UserInfo || activeTab === UserSettingsTab.PhoneVerification;
 
   const [showNotificationSettingsTab, showSlackConnectionTab, showTelegramConnectionTab, showMobileAppVerificationTab] =
     [
