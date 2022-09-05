@@ -9,26 +9,24 @@ from common.jinja_templater import apply_jinja_template
 BATCH_SIZE = 1000
 
 
+def batch_ids(queryset, cursor):
+    return list(queryset.filter(id__gt=cursor).order_by("id").values_list("id", flat=True)[:BATCH_SIZE])
+
+
 @shared_dedicated_queue_retry_task
 def update_verbose_name_for_alert_receive_channel(alert_receive_channel_pk):
     from apps.alerts.models import AlertGroup
 
-    def batch(cur):
-        return list(
-            AlertGroup.all_objects.filter(channel_id=alert_receive_channel_pk, id__gt=cur)
-            .order_by("id")
-            .values_list("id", flat=True)[:BATCH_SIZE]
-        )
-
     countdown = 0
     cursor = 0
-    ids = batch(cursor)
+    queryset = AlertGroup.all_objects.filter(channel_id=alert_receive_channel_pk)
+    ids = batch_ids(queryset, cursor)
 
     while ids:
         update_verbose_name.apply_async((alert_receive_channel_pk, ids[0], ids[-1]), countdown=countdown)
 
         cursor = ids[-1]
-        ids = batch(cursor)
+        ids = batch_ids(queryset, cursor)
         countdown += 1
 
 
