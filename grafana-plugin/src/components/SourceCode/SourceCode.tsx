@@ -13,6 +13,7 @@ const cx = cn.bind(styles);
 interface SourceCodeProps {
   noMaxHeight?: boolean;
   showCopyToClipboard?: boolean;
+  children?: any
 }
 
 const SourceCode: FC<SourceCodeProps> = (props) => {

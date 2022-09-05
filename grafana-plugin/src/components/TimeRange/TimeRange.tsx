@@ -2,7 +2,6 @@ import React, { useCallback, useEffect, useMemo, useState } from 'react';
 
 import { HorizontalGroup, TimeOfDayPicker } from '@grafana/ui';
 import cn from 'classnames/bind';
-import { Moment } from 'moment';
 import moment from 'moment-timezone';
 
 import styles from './TimeRange.module.css';
@@ -39,7 +38,7 @@ function getMoments(from: string, to: string) {
   return [fromMoment, toMoment];
 }
 
-function getRangeStrings(from: Moment, to: Moment) {
+function getRangeStrings(from: moment.Moment, to: moment.Moment) {
   const fromString = from.clone().utc().format('HH:mm:00');
   const toString = to.clone().utc().format('HH:mm:00');
 
@@ -49,8 +48,10 @@ function getRangeStrings(from: Moment, to: Moment) {
 const TimeRange = (props: TimeRangeProps) => {
   const { className, from: f, to: t, onChange, disabled } = props;
 
-  const [from, setFrom] = useState<Moment>(getMoments(f, t)[0]);
-  const [to, setTo] = useState<Moment>(getMoments(f, t)[1]);
+  // @ts-ignore
+  const [from, setFrom] = useState<moment.Moment>(getMoments(f, t)[0]);
+  // @ts-ignore
+  const [to, setTo] = useState<moment.Moment>(getMoments(f, t)[1]);
 
   useEffect(() => {
     if (!f || !t) {
@@ -59,7 +60,7 @@ const TimeRange = (props: TimeRangeProps) => {
   }, []);
 
   const handleChangeFrom = useCallback(
-    (value: Moment) => {
+    (value: moment.Moment) => {
       setFrom(value);
 
       if (value.isSame(to, 'minute')) {
@@ -74,7 +75,7 @@ const TimeRange = (props: TimeRangeProps) => {
   );
 
   const handleChangeTo = useCallback(
-    (value: Moment) => {
+    (value: moment.Moment) => {
       setTo(value);
 
       if (value.isSame(from, 'minute')) {

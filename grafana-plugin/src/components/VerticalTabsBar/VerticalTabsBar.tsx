@@ -41,6 +41,7 @@ export default VerticalTabsBar;
 
 interface TabProps {
   id: string;
+  children?: any
 }
 
 export const VerticalTab: FC<TabProps> = ({ children }) => {

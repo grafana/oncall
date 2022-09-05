@@ -55,9 +55,9 @@ const EscalationChainSteps = observer((props: EscalationChainStepsProps) => {
 
   const escalationPolicyIds = escalationPolicyStore.escalationChainToEscalationPolicy[id];
   const isSlackInstalled = Boolean(store.teamStore.currentTeam?.slack_team_identity);
-  const isTelegramInstalled = Boolean(store.telegramChannelStore?.currentTeamToTelegramChannel?.length > 0);
 
   return (
+    // @ts-ignore
     <SortableList useDragHandle className={cx('steps')} axis="y" lockAxis="y" onSortEnd={handleSortEnd}>
       {addonBefore}
       {escalationPolicyIds ? (
@@ -79,6 +79,7 @@ const EscalationChainSteps = observer((props: EscalationChainStepsProps) => {
             <EscalationPolicy
               key={`item-${escalationPolicy.id}`}
               index={index}
+              // @ts-ignore
               data={escalationPolicy}
               number={index + offset + 1}
               color={STEP_COLORS[index] || COLOR_RED}
