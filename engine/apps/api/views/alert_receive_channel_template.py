@@ -2,7 +2,6 @@ from rest_framework import mixins, viewsets
 from rest_framework.permissions import IsAuthenticated
 
 from apps.alerts.models import AlertReceiveChannel
-from apps.alerts.tasks import update_verbose_name_for_alert_receive_channel
 from apps.api.permissions import MODIFY_ACTIONS, READ_ACTIONS, ActionPermission, AnyRole, IsAdmin
 from apps.api.serializers.alert_receive_channel import AlertReceiveChannelTemplatesSerializer
 from apps.auth_token.auth import PluginAuthentication
@@ -37,14 +36,9 @@ class AlertReceiveChannelTemplateView(
     def update(self, request, *args, **kwargs):
         instance = self.get_object()
         prev_state = instance.insight_logs_serialized
-        prev_web_title_template = instance.web_title_template
-
         result = super().update(request, *args, **kwargs)
-
         instance = self.get_object()
         new_state = instance.insight_logs_serialized
-        new_web_title_template = instance.web_title_template
-
         write_resource_insight_log(
             instance=instance,
             author=self.request.user,
@@ -52,8 +46,4 @@ class AlertReceiveChannelTemplateView(
             prev_state=prev_state,
             new_state=new_state,
         )
-
-        if new_web_title_template != prev_web_title_template:
-            update_verbose_name_for_alert_receive_channel.delay(instance.pk)
-
         return result

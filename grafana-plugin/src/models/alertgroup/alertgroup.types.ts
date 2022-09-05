@@ -72,6 +72,7 @@ export interface Alert {
   silenced_until: string;
   started_at: string;
   last_alert_at: string;
+  verbose_name: string;
   dependent_alert_groups: Alert[];
   status: IncidentStatus;
   short?: boolean;

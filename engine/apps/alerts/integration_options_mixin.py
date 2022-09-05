@@ -69,6 +69,7 @@ class IntegrationOptionsMixin:
         "grouping_id",
         "resolve_condition",
         "acknowledge_condition",
+        "group_verbose_name",
         "source_link",
     ]
 

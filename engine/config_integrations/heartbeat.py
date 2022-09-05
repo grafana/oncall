@@ -26,4 +26,6 @@ resolve_condition = '{{ payload.get("is_resolve", False) == True }}'
 
 acknowledge_condition = None
 
+group_verbose_name = '{{ payload.get("title", "Title") }}'
+
 example_payload = {"foo": "bar"}

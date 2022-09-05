@@ -58,3 +58,5 @@ grouping_id = """{{ payload }}"""
 resolve_condition = None
 
 acknowledge_condition = None
+
+group_verbose_name = web_title

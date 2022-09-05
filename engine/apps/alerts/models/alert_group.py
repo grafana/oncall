@@ -899,7 +899,7 @@ class AlertGroup(AlertGroupSlackRenderingMixin, EscalationSnapshotMixin, models.
             self.resolve(resolved_by=AlertGroup.WIPED)
             self.stop_escalation()
             self.distinction = ""
-            self.verbose_name = None
+            self.verbose_name = "Wiped incident"
             self.wiped_at = timezone.now()
             self.wiped_by = user
             for alert in self.alerts.all():
