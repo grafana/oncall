@@ -259,15 +259,10 @@ def list_of_empty_shifts_in_schedule(schedule, start_date, end_date):
 
                     checked_events.add(event_hash)
 
-                    all_day = False
-                    if type(event[ICAL_DATETIME_START].dt) == datetime.date:
-                        # Convert all-day events start and end from date to datetime with calendar's tz
-                        start, _ = ical_date_to_datetime(event["DTSTART"].dt, calendar_tz, start=True)
-                        end, _ = ical_date_to_datetime(event["DTEND"].dt, calendar_tz, start=False)
-                        all_day = True
-                    else:
-                        start = event[ICAL_DATETIME_START].dt.astimezone(pytz.UTC)
-                        end = event[ICAL_DATETIME_END].dt.astimezone(pytz.UTC)
+                    start, end, all_day = event_start_end_all_day_with_respect_to_type(event, calendar_tz)
+                    if not all_day:
+                        start = start.astimezone(pytz.UTC)
+                        end = end.astimezone(pytz.UTC)
 
                     empty_shifts_per_calendar.append(
                         EmptyShift(
@@ -551,7 +546,7 @@ def list_of_gaps_in_schedule(schedule, start_date, end_date):
                 end_datetime,
             )
             for event in events:
-                start, end = start_end_with_respect_to_all_day(event, calendar_tz)
+                start, end, _ = event_start_end_all_day_with_respect_to_type(event, calendar_tz)
                 intervals.append(DatetimeInterval(start, end))
     return detect_gaps(intervals, start_datetime, end_datetime)
 
@@ -586,6 +581,16 @@ def start_end_with_respect_to_all_day(event, calendar_tz):
     start, _ = ical_date_to_datetime(event[ICAL_DATETIME_START].dt, calendar_tz, start=True)
     end, _ = ical_date_to_datetime(event[ICAL_DATETIME_END].dt, calendar_tz, start=False)
     return start, end
+
+
+def event_start_end_all_day_with_respect_to_type(event, calendar_tz):
+    all_day = False
+    if type(event[ICAL_DATETIME_START].dt) == datetime.date:
+        start, end = start_end_with_respect_to_all_day(event, calendar_tz)
+        all_day = True
+    else:
+        start, end = ical_events.get_start_and_end_with_respect_to_event_type(event)
+    return start, end, all_day
 
 
 def convert_windows_timezone_to_iana(tz_name):
