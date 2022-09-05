@@ -143,10 +143,6 @@ resolve_condition = """\
 
 acknowledge_condition = None
 
-group_verbose_name = """\
-{{ payload.get("ruleName", "Incident") }}
-"""
-
 tests = {
     "payload": {
         "endsAt": "0001-01-01T00:00:00Z",
@@ -257,7 +253,6 @@ tests = {
     "group_distinction": "c6bf5494a2d3052459b4dac837e41455",
     "is_resolve_signal": False,
     "is_acknowledge_signal": False,
-    "group_verbose_name": "Incident",
 }
 
 # Miscellaneous
