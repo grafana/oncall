@@ -611,7 +611,7 @@ class CustomButtonProcessStep(
         custom_button = log_record.custom_button
         debug_message = ""
         if not log_record.step_specific_info["is_request_successful"]:
-            with suppress(TemplateError):
+            with suppress(TemplateError, json.JSONDecodeError):
                 post_kwargs = custom_button.build_post_kwargs(log_record.alert_group.alerts.first())
                 curl_request = render_curl_command(log_record.custom_button.webhook, "POST", post_kwargs)
                 debug_message = f"```{curl_request}```"

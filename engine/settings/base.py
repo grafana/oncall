@@ -75,7 +75,9 @@ SENDGRID_SECRET_KEY = os.environ.get("SENDGRID_SECRET_KEY")
 SENDGRID_INBOUND_EMAIL_DOMAIN = os.environ.get("SENDGRID_INBOUND_EMAIL_DOMAIN")
 
 # For Grafana Cloud integration
-GRAFANA_CLOUD_ONCALL_API_URL = os.environ.get("GRAFANA_CLOUD_ONCALL_API_URL", "https://a-prod-us-central-0.grafana.net")
+GRAFANA_CLOUD_ONCALL_API_URL = os.environ.get(
+    "GRAFANA_CLOUD_ONCALL_API_URL", "https://oncall-prod-us-central-0.grafana.net/oncall"
+)
 GRAFANA_CLOUD_ONCALL_TOKEN = os.environ.get("GRAFANA_CLOUD_ONCALL_TOKEN", None)
 
 # Outgoing webhook settings
@@ -130,7 +132,6 @@ INSTALLED_APPS = [
     "apps.grafana_plugin",
     "apps.grafana_plugin_management",
     "apps.migration_tool",
-    "django_celery_results",
     "corsheaders",
     "debug_toolbar",
     "social_django",

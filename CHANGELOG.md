@@ -1,5 +1,28 @@
 # Change Log
 
+## v1.0.32 (2022-09-01)
+- Bug fixes
+
+## v1.0.31 (2022-09-01)
+- Bump celery version
+- Fix oss to cloud connection
+
+## v1.0.30 (2022-08-31)
+- Bug fix: check user notification policy before access
+
+## v1.0.29 (2022-08-31)
+- Add arm64 docker image
+
+## v1.0.28 (2022-08-31)
+- Bug fixes
+
+## v1.0.27 (2022-08-30)
+- Bug fixes
+
+## v1.0.26 (2022-08-26)
+- Insight log's format fixes
+- Remove UserNotificationPolicy auto-recreating
+
 ## v1.0.25 (2022-08-24)
 - Bug fixes
 
@@ -69,7 +92,7 @@
 ## 1.0.2 (2022-06-17)
 
 - Fix Grafana Alerting integration to handle API changes in Grafana 9
-- Improve public api endpoint for for outgoing webhooks (/actions) by adding ability to create, update and delete outgoing webhook instance
+- Improve public api endpoint for outgoing webhooks (/actions) by adding ability to create, update and delete outgoing webhook instance
 
 ## 1.0.0 (2022-06-14)
 

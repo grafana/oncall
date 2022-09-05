@@ -25,7 +25,7 @@ import WithConfirm from 'components/WithConfirm/WithConfirm';
 import logo from 'img/logo.svg';
 import { makeRequest } from 'network';
 import { createGrafanaToken, getPluginSyncStatus, startPluginSync, updateGrafanaToken } from 'state/plugin';
-import { openNotification } from 'utils';
+import { GRAFANA_LICENSE_OSS } from 'utils/consts';
 import { getItem, setItem } from 'utils/localStorage';
 
 import styles from './PluginConfigPage.module.css';
@@ -152,7 +152,7 @@ export const PluginConfigPage = (props: Props) => {
       setPluginStatusMessage(
         `Connected to OnCall${versionInfo}\n - OnCall URL: ${plugin.meta.jsonData.onCallApiUrl}\n - Grafana URL: ${plugin.meta.jsonData.grafanaUrl}`
       );
-      setIsSelfHostedInstall(plugin.meta.jsonData?.license === 'OpenSource');
+      setIsSelfHostedInstall(plugin.meta.jsonData?.license === GRAFANA_LICENSE_OSS);
       setPluginStatusOk(true);
     } else {
       setPluginStatusMessage(

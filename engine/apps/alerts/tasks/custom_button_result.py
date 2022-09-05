@@ -48,11 +48,9 @@ def custom_button_result(custom_button_pk, alert_group_pk, user_pk=None, escalat
     except TemplateError:
         is_request_successful = False
         result_message = "Template error"
-    except json.JSONDecodeError as e:
-        task_logger.error(
-            f"Failed to send build_post_kwargs for alert_group {alert_group_pk}, " f"custom_button {custom_button_pk}"
-        )
-        raise e
+    except json.JSONDecodeError:
+        is_request_successful = False
+        result_message = "JSON decoding error"
     else:
         is_request_successful, result_message = request_outgoing_webhook(
             custom_button.webhook, "POST", post_kwargs=post_kwargs

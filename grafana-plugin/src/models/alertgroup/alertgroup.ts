@@ -298,6 +298,10 @@ export class AlertGroupStore extends BaseStore {
     });
   }
 
+  async getPayloadForIncident(pk: Alert['pk']) {
+    return await makeRequest(`/alerts/${pk}`, {});
+  }
+
   @action
   async getNewIncidentsStats() {
     const result = await makeRequest(`${this.path}stats/`, {

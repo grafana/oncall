@@ -12,24 +12,27 @@ const cx = cn.bind(styles);
 
 interface SourceCodeProps {
   noMaxHeight?: boolean;
+  showCopyToClipboard?: boolean;
   children?: any
 }
 
 const SourceCode: FC<SourceCodeProps> = (props) => {
-  const { children, noMaxHeight = false } = props;
+  const { children, noMaxHeight = false, showCopyToClipboard = true } = props;
 
   return (
     <div className={cx('root')}>
-      <CopyToClipboard
-        text={children as string}
-        onCopy={() => {
-          openNotification('Copied!');
-        }}
-      >
-        <Button className={cx('button')} variant="primary" icon="copy">
-          Copy
-        </Button>
-      </CopyToClipboard>
+      {showCopyToClipboard && (
+        <CopyToClipboard
+          text={children as string}
+          onCopy={() => {
+            openNotification('Copied!');
+          }}
+        >
+          <Button className={cx('button')} variant="primary" icon="copy">
+            Copy
+          </Button>
+        </CopyToClipboard>
+      )}
       <pre
         className={cx('scroller', {
           'scroller_max-height': !noMaxHeight,
