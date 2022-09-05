@@ -298,13 +298,15 @@ function PhoneVerificationButtonsGroup({
       )}
 
       {showForgetNumber && (
-        <Button
-          disabled={(!user.verified_phone_number && !user.unverified_phone_number) || isTestCallInProgress}
-          onClick={onShowForgetScreen}
-          variant="destructive"
-        >
-          {'Forget Phone Number'}
-        </Button>
+        <WithPermissionControl userAction={action}>
+          <Button
+            disabled={(!user.verified_phone_number && !user.unverified_phone_number) || isTestCallInProgress}
+            onClick={onShowForgetScreen}
+            variant="destructive"
+          >
+            {'Forget Phone Number'}
+          </Button>
+        </WithPermissionControl>
       )}
 
       {user.verified_phone_number && (
