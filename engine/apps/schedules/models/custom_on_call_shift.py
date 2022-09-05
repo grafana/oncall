@@ -357,6 +357,8 @@ class CustomOnCallShift(models.Model):
         # take shift interval, not event interval. For rolling_users shift it is not the same.
         interval = self.interval or 1
         if "rrule" in current_event:
+            # when triggering shift previews, there could be no rrule information yet
+            # (e.g. initial empty weekly rotation has no rrule set)
             current_event["rrule"]["INTERVAL"] = interval
         current_event_start = current_event["DTSTART"].dt
         next_event_start = current_event_start
