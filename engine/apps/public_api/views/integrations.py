@@ -5,7 +5,6 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.viewsets import ModelViewSet
 
 from apps.alerts.models import AlertReceiveChannel
-from apps.alerts.tasks import update_verbose_name_for_alert_receive_channel
 from apps.auth_token.auth import ApiTokenAuthentication
 from apps.public_api.serializers import IntegrationSerializer, IntegrationUpdateSerializer
 from apps.public_api.throttlers.user_throttle import UserThrottle
@@ -59,26 +58,16 @@ class IntegrationView(
             raise NotFound
 
     def perform_update(self, serializer):
-        instance = serializer.instance
-
-        prev_state = instance.insight_logs_serialized
-        prev_web_title_template = instance.web_title_template
-
+        prev_state = serializer.instance.insight_logs_serialized
         serializer.save()
-
-        new_state = instance.insight_logs_serialized
-        new_web_title_template = instance.web_title_template
-
+        new_state = serializer.instance.insight_logs_serialized
         write_resource_insight_log(
-            instance=instance,
+            instance=serializer.instance,
             author=self.request.user,
             event=EntityEvent.UPDATED,
             prev_state=prev_state,
             new_state=new_state,
         )
-
-        if new_web_title_template != prev_web_title_template:
-            update_verbose_name_for_alert_receive_channel.delay(instance.pk)
 
     def perform_destroy(self, instance):
         write_resource_insight_log(instance=instance, author=self.request.user, event=EntityEvent.DELETED)

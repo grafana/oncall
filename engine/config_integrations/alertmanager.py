@@ -116,6 +116,8 @@ resolve_condition = """\
 
 acknowledge_condition = None
 
+group_verbose_name = "Incident"
+
 tests = {
     "payload": {
         "endsAt": "0001-01-01T00:00:00Z",

@@ -61,4 +61,6 @@ resolve_condition = """\
 
 acknowledge_condition = None
 
+group_verbose_name = "Incident"
+
 example_payload = {"message": "This alert was sent by user for the demonstration purposes"}

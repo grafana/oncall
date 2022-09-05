@@ -49,3 +49,5 @@ grouping_id = '{{ payload.get("title", "")}}'
 resolve_condition = '{{ payload.get("state", "").upper() == "OK" }}'
 
 acknowledge_condition = None
+
+group_verbose_name = web_title

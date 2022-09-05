@@ -192,7 +192,7 @@ class AlertGroupView(
 
     filter_backends = [SearchFilter, filters.DjangoFilterBackend]
     # todo: add ability to search by templated title
-    search_fields = ["public_primary_key", "inside_organization_number", "verbose_name"]
+    search_fields = ["public_primary_key", "inside_organization_number"]
 
     filterset_class = AlertGroupFilter
 

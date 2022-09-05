@@ -49,3 +49,5 @@ grouping_id = None
 resolve_condition = None
 
 acknowledge_condition = None
+
+group_verbose_name = "Incident"
