@@ -17,10 +17,14 @@ def match_integration(integration: dict, oncall_integrations: list[dict]) -> Non
 def match_integration_type(integration: dict, vendors: list[dict]) -> None:
     vendors_map = {vendor["id"]: vendor for vendor in vendors}
 
-    if integration["type"] not in [
-        "generic_events_api_inbound_integration",
-        "events_api_v2_inbound_integration",
-    ]:
+    if (
+        integration["type"]
+        not in [
+            "generic_events_api_inbound_integration",
+            "events_api_v2_inbound_integration",
+        ]
+        or integration["vendor"] is None
+    ):
         integration["oncall_type"] = None
         return
 
@@ -57,7 +61,9 @@ def create_integration(
 
     integration = oncall_api_client.create("integrations", payload)
 
-    routes = oncall_api_client.list_all("routes/?integration_id={}".format(integration["id"]))
+    routes = oncall_api_client.list_all(
+        "routes/?integration_id={}".format(integration["id"])
+    )
     default_route_id = routes[0]["id"]
 
     oncall_api_client.update(
