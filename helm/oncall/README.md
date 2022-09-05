@@ -83,6 +83,34 @@ helm upgrade \
     grafana/oncall
 ```
 
+### Set up Slack and Telegram
+
+You can set up Slack connection via following variables:
+
+```
+oncall:
+  slack:
+    enabled: true
+    command: ~
+    clientId: ~
+    clientSecret: ~
+    apiToken: ~
+    apiTokenCommon: ~
+```
+
+`oncall.slack.command` is used for changing default bot slash command,
+`oncall`. In slack, it could be called via `/<oncall.slack.command>`.
+
+To set up Telegram tokem and webhook url use:
+
+```
+oncall:
+  telegram:
+    enabled: true
+    token: ~
+    webhookUrl: ~
+```
+
 ### Set up external access
 Grafana OnCall can be connected to the external monitoring systems or grafana deployed to the other cluster.
 Nginx Ingress Controller and Cert Manager charts are included in the helm chart with the default configuration.
