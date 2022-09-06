@@ -33,7 +33,7 @@ This is a hack to allow us to load models for type checking without circular dep
 This module likely needs to refactored to be part of the OnCallSchedule module.
 """
 if TYPE_CHECKING:
-    from apps.schedules.models import OnCallSchedule, OnCallScheduleICal  # noqa
+    from apps.schedules.models import OnCallSchedule
     from apps.user_management.models import User
 
 
