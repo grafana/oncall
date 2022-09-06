@@ -79,3 +79,8 @@
   background-color: white;
   z-index: 2;
 }
+
+.is-oncall-icon {
+  color: var(--oncall-icon-stroke-color);
+  margin-left: -2px;
+}

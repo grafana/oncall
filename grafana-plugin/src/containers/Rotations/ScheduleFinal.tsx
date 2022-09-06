@@ -5,6 +5,7 @@ import cn from 'classnames/bind';
 import dayjs from 'dayjs';
 import { toJS } from 'mobx';
 import { observer } from 'mobx-react';
+import { CSSTransition, TransitionGroup } from 'react-transition-group';
 
 import TimelineMarks from 'components/TimelineMarks/TimelineMarks';
 import Rotation from 'containers/Rotation/Rotation';
@@ -14,6 +15,7 @@ import { Timezone } from 'models/timezone/timezone.types';
 import { WithStoreProps } from 'state/types';
 import { withMobXProviderContext } from 'state/withStore';
 
+import { DEFAULT_TRANSITION_TIMEOUT } from './Rotations.config';
 import { findColor } from './Rotations.helpers';
 
 import styles from './Rotations.module.css';
@@ -81,23 +83,33 @@ class ScheduleFinal extends Component<ScheduleFinalProps, ScheduleOverridesState
           <div className={cx('header-plus-content')}>
             {!currentTimeHidden && <div className={cx('current-time')} style={{ left: `${currentTimeX * 100}%` }} />}
             <TimelineMarks startMoment={startMoment} />
-            <div className={cx('rotations')}>
+            <TransitionGroup className={cx('rotations')}>
               {shifts && shifts.length ? (
                 shifts.map(({ shiftId, events }, index) => {
                   return (
-                    <Rotation
-                      key={index}
-                      events={events}
-                      startMoment={startMoment}
-                      currentTimezone={currentTimezone}
-                      color={findColor(shiftId, layers, overrides)}
-                    />
+                    <CSSTransition key={index} timeout={DEFAULT_TRANSITION_TIMEOUT} classNames={{ ...styles }}>
+                      <Rotation
+                        key={index}
+                        scheduleId={scheduleId}
+                        events={events}
+                        startMoment={startMoment}
+                        currentTimezone={currentTimezone}
+                        color={findColor(shiftId, layers, overrides)}
+                      />
+                    </CSSTransition>
                   );
                 })
               ) : (
-                <Rotation events={[]} startMoment={startMoment} currentTimezone={currentTimezone} />
+                <CSSTransition key={0} timeout={DEFAULT_TRANSITION_TIMEOUT} classNames={{ ...styles }}>
+                  <Rotation
+                    scheduleId={scheduleId}
+                    events={[]}
+                    startMoment={startMoment}
+                    currentTimezone={currentTimezone}
+                  />
+                </CSSTransition>
               )}
-            </div>
+            </TransitionGroup>
           </div>
         </div>
       </>

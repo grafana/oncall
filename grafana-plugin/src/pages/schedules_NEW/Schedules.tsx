@@ -70,14 +70,14 @@ class SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSta
     const schedules = scheduleStore.getSearchResult();
 
     const columns = [
-      /* {
+      {
         width: '10%',
         title: 'Status',
         key: 'name',
         render: this.renderStatus,
-      },*/
+      },
       {
-        width: '50%',
+        width: '30%',
         title: 'Name',
         key: 'name',
         render: this.renderName,
@@ -88,18 +88,18 @@ class SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSta
         key: 'users',
         render: this.renderOncallNow,
       },
-      /*{
+      /* {
         width: '20%',
         title: 'ChatOps',
         key: 'chatops',
         render: this.renderChatOps,
-      },
+      },*/
       {
         width: '10%',
         title: 'Quality',
         key: 'quality',
         render: this.renderQuality,
-      },*/
+      },
       {
         width: '5%',
         key: 'buttons',
@@ -254,16 +254,20 @@ class SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSta
 
   renderOncallNow = (item: Schedule, index: number) => {
     if (item.on_call_now?.length > 0) {
-      return item.on_call_now.map((user, index) => {
-        return (
-          <PluginLink key={user.pk} query={{ page: 'users', id: user.pk }}>
-            <div>
-              <Avatar size="small" src={user.avatar} />
-              <Text type="secondary"> {user.username}</Text>
-            </div>
-          </PluginLink>
-        );
-      });
+      return (
+        <VerticalGroup>
+          {item.on_call_now.map((user, index) => {
+            return (
+              <PluginLink key={user.pk} query={{ page: 'users', id: user.pk }}>
+                <div>
+                  <Avatar size="big" src={user.avatar} />
+                  <Text type="secondary"> {user.username}</Text>
+                </div>
+              </PluginLink>
+            );
+          })}
+        </VerticalGroup>
+      );
     }
     return null;
   };
@@ -275,7 +279,7 @@ class SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSta
   renderQuality = (item: Schedule) => {
     const type = item.quality > 70 ? 'primary' : 'warning';
 
-    return <Text type={type}>{item.quality}%</Text>;
+    return <Text type={type}>{item.quality || 70}%</Text>;
   };
 
   renderButtons = (item: Schedule) => {

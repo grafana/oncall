@@ -13,6 +13,7 @@ module.exports = {
     'react/prop-types': 'warn',
     'react/display-name': 'warn',
     'react/jsx-key': 'warn',
+    'react-hooks/exhaustive-deps': 'off',
     'react/no-unescaped-entities': 'warn',
     'react/jsx-no-target-blank': 'warn',
     'no-restricted-imports': 'warn',

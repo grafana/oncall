@@ -114,6 +114,7 @@ class Rotations extends Component<RotationsProps, RotationsState> {
                               classNames={{ ...styles }}
                             >
                               <Rotation
+                                scheduleId={scheduleId}
                                 onClick={(moment) => {
                                   this.onRotationClick(shiftId, moment);
                                 }}
@@ -147,6 +148,7 @@ class Rotations extends Component<RotationsProps, RotationsState> {
                     <TimelineMarks startMoment={startMoment} />
                     <div className={cx('rotations')}>
                       <Rotation
+                        scheduleId={scheduleId}
                         onClick={(moment) => {
                           this.handleAddLayer(nextPriority, moment);
                         }}

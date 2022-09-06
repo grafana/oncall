@@ -3,9 +3,8 @@ import React, { FC, useMemo, useState, useEffect, useRef, useCallback } from 're
 import { HorizontalGroup, LoadingPlaceholder } from '@grafana/ui';
 import cn from 'classnames/bind';
 import dayjs from 'dayjs';
-import { CSSTransitionGroup } from 'react-transition-group'; // ES6
 
-import ScheduleSlot from 'components/ScheduleSlot/ScheduleSlot';
+import ScheduleSlot from 'containers/ScheduleSlot/ScheduleSlot';
 import { getFromString } from 'models/schedule/schedule.helpers';
 import { Rotation as RotationType, Schedule, Event } from 'models/schedule/schedule.types';
 import { Timezone } from 'models/timezone/timezone.types';
@@ -20,6 +19,7 @@ const cx = cn.bind(styles);
 interface ScheduleSlotState {}
 
 interface RotationProps {
+  scheduleId: Schedule['id'];
   startMoment: dayjs.Dayjs;
   currentTimezone: Timezone;
   layerIndex?: number;
@@ -34,6 +34,7 @@ interface RotationProps {
 const Rotation: FC<RotationProps> = (props) => {
   const {
     events,
+    scheduleId,
     layerIndex,
     rotationIndex,
     startMoment,
@@ -84,11 +85,6 @@ const Rotation: FC<RotationProps> = (props) => {
 
     const dayOffset = Math.floor((x / width) * 7);
 
-    /* console.log('event.offsetX', event.offsetX);
-    console.log('event.nativeEvent', event.nativeEvent);
-    console.log('event.currentTarget', event.currentTarget);
-    console.log('dayOffset', dayOffset);
-*/
     onClick(startMoment.add(dayOffset, 'day'));
   };
 
@@ -125,6 +121,7 @@ const Rotation: FC<RotationProps> = (props) => {
                 return (
                   <ScheduleSlot
                     index={index}
+                    scheduleId={scheduleId}
                     key={event.start}
                     event={event}
                     layerIndex={layerIndex}

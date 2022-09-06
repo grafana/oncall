@@ -135,7 +135,12 @@ class SchedulePage extends React.Component<SchedulePageProps, SchedulePageState>
             Users from on-call schedule" step in escalation chains.
           </Text>
           <div className={cx('users-timezones')}>
-            <UsersTimezones users={users || []} tz={currentTimezone} onTzChange={this.handleTimezoneChange} />
+            <UsersTimezones
+              onCallNow={schedule?.on_call_now || []}
+              users={users || []}
+              tz={currentTimezone}
+              onTzChange={this.handleTimezoneChange}
+            />
           </div>
           <div className={cx('controls')}>
             <HorizontalGroup justify="space-between">

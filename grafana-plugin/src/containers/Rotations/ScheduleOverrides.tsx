@@ -80,6 +80,7 @@ class ScheduleOverrides extends Component<ScheduleOverridesProps, ScheduleOverri
                   <CSSTransition key={rotationIndex} timeout={DEFAULT_TRANSITION_TIMEOUT} classNames={{ ...styles }}>
                     <Rotation
                       key={rotationIndex}
+                      scheduleId={scheduleId}
                       events={events}
                       color={getOverrideColor(rotationIndex)}
                       startMoment={startMoment}
@@ -92,9 +93,10 @@ class ScheduleOverrides extends Component<ScheduleOverridesProps, ScheduleOverri
                   </CSSTransition>
                 ))
               ) : (
-                <CSSTransition key={0} timeout={500} classNames={{ ...styles }}>
+                <CSSTransition key={0} timeout={DEFAULT_TRANSITION_TIMEOUT} classNames={{ ...styles }}>
                   <Rotation
                     events={[]}
+                    scheduleId={scheduleId}
                     startMoment={startMoment}
                     currentTimezone={currentTimezone}
                     onClick={(moment) => {

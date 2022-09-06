@@ -43,14 +43,41 @@
   height: 76px;
 }
 
-.user {
+.avatar-group {
   position: absolute;
   top: 10px;
-  border: 2px solid #c65210;
-  transition: left 1s linear;
-  transform: translate(-50%, 0);
-  z-index: 0;
+  height: 32px;
+}
+
+.avatar {
+  position: absolute;
+  top: 0;
+  transition: opacity 200ms ease, left 200ms ease;
   border-radius: 50%;
+}
+
+.is-oncall-icon {
+  color: var(--oncall-icon-stroke-color);
+  position: absolute;
+  left: -1px;
+  bottom: -1px;
+}
+
+.user-more {
+  position: absolute;
+  padding: 0 5px;
+  bottom: 0;
+  font-size: 12px;
+  line-height: 16px;
+  background: #454952;
+  border-radius: 8px;
+  text-align: center;
+  transition: opacity 200ms ease, left 200ms ease;
+}
+
+.avatar-group_inactive {
+  opacity: 0.2;
+  transition: opacity 0.5s ease;
 }
 
 .time-stripe {
@@ -89,10 +116,6 @@
   line-height: 20px;
   color: rgba(204, 204, 220, 0.65);
   width: 100%;
-}
-
-.time-mark {
-
 }
 
 .time-mark-text {

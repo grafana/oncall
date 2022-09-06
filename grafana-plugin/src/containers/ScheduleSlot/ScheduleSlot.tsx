@@ -8,7 +8,8 @@ import { observer } from 'mobx-react';
 import Line from 'components/ScheduleUserDetails/img/line.svg';
 import Text from 'components/Text/Text';
 import WorkingHours from 'components/WorkingHours/WorkingHours';
-import { Event } from 'models/schedule/schedule.types';
+import { IsOncallIcon } from 'icons';
+import { Event, Schedule } from 'models/schedule/schedule.types';
 import { Timezone } from 'models/timezone/timezone.types';
 import { User } from 'models/user/user.types';
 import { useStore } from 'state/useStore';
@@ -18,10 +19,8 @@ import { getTitle } from './ScheduleSlot.helpers';
 import styles from './ScheduleSlot.module.css';
 
 interface ScheduleSlotProps {
-  index: number;
-  layerIndex: number;
-  rotationIndex: number;
   event: Event;
+  scheduleId: Schedule['id'];
   startMoment: dayjs.Dayjs;
   currentTimezone: Timezone;
   color?: string;
@@ -31,7 +30,7 @@ interface ScheduleSlotProps {
 const cx = cn.bind(styles);
 
 const ScheduleSlot: FC<ScheduleSlotProps> = observer((props) => {
-  const { index, layerIndex, rotationIndex, event, startMoment, currentTimezone, color, label } = props;
+  const { event, scheduleId, startMoment, currentTimezone, color, label } = props;
   const { users } = event;
 
   const trackMouse = false;
@@ -53,6 +52,8 @@ const ScheduleSlot: FC<ScheduleSlotProps> = observer((props) => {
     setMouseX(event.nativeEvent.offsetX);
   }, []);
 
+  const onCallNow = store.scheduleStore.items[scheduleId]?.on_call_now;
+
   return (
     <div className={cx('stack')} style={{ width: `${width * 100}%` /*left: `${x * 100}%`*/ }}>
       {!event.is_gap ? (
@@ -63,8 +64,21 @@ const ScheduleSlot: FC<ScheduleSlotProps> = observer((props) => {
 
           const title = getTitle(storeUser);
 
+          const isOncall = Boolean(
+            storeUser && onCallNow && onCallNow.some((onCallUser) => storeUser.pk === onCallUser.pk)
+          );
+
           return (
-            <Tooltip content={<ScheduleSlotDetails user={storeUser} currentTimezone={currentTimezone} event={event} />}>
+            <Tooltip
+              content={
+                <ScheduleSlotDetails
+                  user={storeUser}
+                  isOncall={isOncall}
+                  currentTimezone={currentTimezone}
+                  event={event}
+                />
+              }
+            >
               <div
                 className={cx('root', { root__inactive: inactive })}
                 style={{
@@ -109,25 +123,20 @@ export default ScheduleSlot;
 
 interface ScheduleSlotDetailsProps {
   user: User;
+  isOncall: boolean;
   currentTimezone: Timezone;
   event: Event;
 }
 
 const ScheduleSlotDetails = (props: ScheduleSlotDetailsProps) => {
-  const { user, currentTimezone, event } = props;
-
-  const userStatus = 'success';
+  const { user, currentTimezone, event, isOncall } = props;
 
   return (
     <div className={cx('details')}>
       <HorizontalGroup>
         <VerticalGroup spacing="sm">
-          <HorizontalGroup spacing="md">
-            <div
-              className={cx('details-user-status', {
-                [`details-user-status__type_${userStatus}`]: true,
-              })}
-            />
+          <HorizontalGroup spacing="sm">
+            {isOncall && <IsOncallIcon className={cx('is-oncall-icon')} />}
             <Text type="secondary">{user?.username}</Text>
           </HorizontalGroup>
           <HorizontalGroup>
