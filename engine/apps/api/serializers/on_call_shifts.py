@@ -193,7 +193,6 @@ class OnCallShiftUpdateSerializer(OnCallShiftSerializer):
         for field in validated_data:
             if field != "title" and validated_data[field] != getattr(instance, field):
                 change_only_title = False
-                validated_data["sequence_number"] = instance.sequence_number + 1
                 break
 
         if not change_only_title:

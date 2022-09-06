@@ -208,10 +208,6 @@ class CustomOnCallShift(models.Model):
         related_name="parent_shift",
     )
 
-    sequence_number = models.IntegerField(
-        default=0
-    )  # shift revision counter. Should be changed on each instance update except updating only `name` and/or `title`
-
     class Meta:
         unique_together = ("name", "organization")
 
@@ -223,8 +219,7 @@ class CustomOnCallShift(models.Model):
         # do soft delete for started shifts that were created for web schedule
         if self.schedule and self.event_is_started:
             self.until = timezone.now().replace(microsecond=0)
-            self.sequence_number += 1
-            self.save(update_fields=["until", "sequence_number"])
+            self.save(update_fields=["until"])
         else:
             super().delete(*args, **kwargs)
 
@@ -335,7 +330,6 @@ class CustomOnCallShift(models.Model):
         event.add("dtstart", self.convert_dt_to_schedule_timezone(start, time_zone))
         event.add("dtend", self.convert_dt_to_schedule_timezone(start + self.duration, time_zone))
         event.add("dtstamp", self.rotation_start)
-        # event.add("sequence", self.sequence_number)
         if self.event_ical_rules:
             event.add("rrule", self.event_ical_rules)
         try:
@@ -530,17 +524,14 @@ class CustomOnCallShift(models.Model):
             instance_data["name"] = CustomOnCallShift.generate_name(
                 self.schedule, instance_data["priority_level"], instance_data["type"]
             )
-            instance_data.pop("sequence_number", None)
             with transaction.atomic():
                 shift = CustomOnCallShift(**instance_data)
                 shift.save()
-                shift_to_update.sequence_number += 1
                 shift_to_update.until = data["rotation_start"]
                 shift_to_update.updated_shift = shift
-                shift_to_update.save(update_fields=["until", "updated_shift", "sequence_number"])
+                shift_to_update.save(update_fields=["until", "updated_shift"])
         else:
             shift = self.last_updated_shift
-            instance_data["sequence_number"] = shift.sequence_number + 1
             for key in instance_data:
                 setattr(shift, key, instance_data[key])
             shift.save(update_fields=list(instance_data))
