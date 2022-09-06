@@ -89,15 +89,23 @@ def check_token(token_string: str, context: dict):
         return PluginAuthToken.validate_token_string(token_string, context=context)
 
 
-def get_active_instance_ids() -> Tuple[Optional[set], bool]:
+def get_instance_ids(query: str) -> Tuple[Optional[set], bool]:
     if not settings.GRAFANA_COM_API_TOKEN or settings.LICENSE != settings.CLOUD_LICENSE_NAME:
         return None, False
 
     client = GcomAPIClient(settings.GRAFANA_COM_API_TOKEN)
-    active_instances, status = client.get_active_instances()
+    instances, status = client.get_instances(query)
 
-    if not active_instances:
+    if not instances:
         return None, True
 
-    active_ids = set(i["id"] for i in active_instances["items"])
+    active_ids = set(i["id"] for i in instances["items"])
     return active_ids, True
+
+
+def get_active_instance_ids() -> Tuple[Optional[set], bool]:
+    return get_instance_ids(GcomAPIClient.ACTIVE_INSTANCE_QUERY)
+
+
+def get_deleted_instance_ids() -> Tuple[Optional[set], bool]:
+    return get_instance_ids(GcomAPIClient.DELETED_INSTANCE_QUERY)

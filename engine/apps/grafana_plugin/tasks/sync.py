@@ -5,7 +5,7 @@ from django.conf import settings
 from django.utils import timezone
 
 from apps.grafana_plugin.helpers import GcomAPIClient
-from apps.grafana_plugin.helpers.gcom import get_active_instance_ids
+from apps.grafana_plugin.helpers.gcom import get_active_instance_ids, get_deleted_instance_ids
 from apps.user_management.models import Organization
 from apps.user_management.sync import cleanup_organization, sync_organization
 from common.custom_celery_tasks import shared_dedicated_queue_retry_task
@@ -81,9 +81,19 @@ def start_cleanup_deleted_organizations():
     sync_threshold = timezone.now() - INACTIVE_PERIOD
 
     organization_qs = Organization.objects.filter(last_time_synced__lte=sync_threshold)
+
+    deleted_instance_ids, is_cloud_configured = get_deleted_instance_ids()
+    if is_cloud_configured:
+        if not deleted_instance_ids:
+            logger.warning("Did not find any deleted instances!")
+            return
+        else:
+            logger.debug(f"Found {len(deleted_instance_ids)} active instances")
+            organization_qs = organization_qs.filter(stack_id__in=deleted_instance_ids)
+
     organization_pks = organization_qs.values_list("pk", flat=True)
 
-    logger.debug(f"Found {len(organization_pks)} organizations not synced recently")
+    logger.debug(f"Found {len(organization_pks)} deleted organizations not synced recently")
     max_countdown = 60 * 60  # INACTIVE_PERIOD minutes -> Seconds
     for idx, organization_pk in enumerate(organization_pks):
         countdown = idx % max_countdown  # Spread orgs evenly
