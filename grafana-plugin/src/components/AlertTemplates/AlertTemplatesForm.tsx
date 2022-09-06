@@ -245,7 +245,7 @@ const AlertTemplatesForm = (props: AlertTemplatesFormProps) => {
                       <Text type="secondary" size="small">
                         Please note that after changing the web title template new alert groups will be searchable by
                         new title. Alert groups created before the template was changed will be still searchable by
-                        old title and sometimes may be missing from the search results.
+                        old title only.
                       </Text>
                     </div>
                   )}
