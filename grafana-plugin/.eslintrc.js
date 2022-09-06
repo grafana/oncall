@@ -16,6 +16,7 @@ module.exports = {
     'react-hooks/exhaustive-deps': 'off',
     'react/no-unescaped-entities': 'warn',
     'react/jsx-no-target-blank': 'warn',
+    'react-hooks/exhaustive-deps': 'warn',
     'no-restricted-imports': 'warn',
     eqeqeq: 'warn',
     'no-duplicate-imports': 'error',

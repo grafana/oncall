@@ -81,7 +81,7 @@ const ChannelFilterForm = observer((props: ChannelFilterFormProps) => {
           description={
             <>
               Use{' '}
-              <a href="https://regex101.com/" target="_blank">
+              <a href="https://regex101.com/" target="_blank" rel="noreferrer">
                 python style
               </a>{' '}
               regex to filter incidents based on a expression

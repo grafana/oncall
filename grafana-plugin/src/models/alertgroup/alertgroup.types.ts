@@ -37,12 +37,18 @@ export interface TimeLineItem {
   type: number;
 }
 
+export interface GroupedAlert {
+  created_at: string;
+  id: string;
+  render_for_web: RenderForWeb;
+}
+
 export interface Alert {
   pk: string;
   title: string;
   message: string;
   image_url: string;
-  alerts?: any[];
+  alerts?: GroupedAlert[];
   acknowledged: boolean;
   created_at: string;
   acknowledged_at: string;
@@ -53,11 +59,7 @@ export interface Alert {
   related_users: User[];
   render_after_resolve_report_json?: TimeLineItem[];
   render_for_slack: { attachments: any[] };
-  render_for_web: {
-    message: any;
-    title: any;
-    image_url: string;
-  };
+  render_for_web: RenderForWeb;
   alerts_count: number;
   inside_organization_number: number;
   resolved: boolean;
@@ -70,7 +72,6 @@ export interface Alert {
   silenced_until: string;
   started_at: string;
   last_alert_at: string;
-  verbose_name: string;
   dependent_alert_groups: Alert[];
   status: IncidentStatus;
   short?: boolean;
@@ -82,4 +83,10 @@ export interface Alert {
   undoAction?: AlertAction;
 
   has_pormortem?: boolean; // not implemented yet
+}
+
+interface RenderForWeb {
+  message: any;
+  title: any;
+  image_url: string;
 }

@@ -40,6 +40,19 @@ celery:
     #   cpu: 100m
     #   memory: 128Mi
 
+oncall:
+  slack:
+    enabled: false
+    command: ~
+    clientId: ~
+    clientSecret: ~
+    apiToken: ~
+    apiTokenCommon: ~
+  telegram:
+    enabled: false
+    token: ~
+    webhookUrl: ~
+
 # Whether to run django database migrations automatically
 migrate:
   enabled: true

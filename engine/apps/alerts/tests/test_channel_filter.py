@@ -33,29 +33,6 @@ def test_channel_filter_select_filter(make_organization, make_alert_receive_chan
     assert satisfied_filter == channel_filter
 
 
-@pytest.mark.django_db
-def test_channel_filter_notification_backends_repr(make_organization, make_alert_receive_channel, make_channel_filter):
-    organization = make_organization()
-    alert_receive_channel = make_alert_receive_channel(organization)
-
-    # extra backend is enabled
-    channel_filter = make_channel_filter(
-        alert_receive_channel,
-        notification_backends={"BACKEND": {"channel_id": "foobar", "enabled": True}},
-    )
-
-    assert "BACKEND notification allowed: Yes" in channel_filter.repr_settings_for_client_side_logging
-    assert "BACKEND channel: foobar" in channel_filter.repr_settings_for_client_side_logging
-
-    # backend is disabled
-    channel_filter_disabled_backend = make_channel_filter(
-        alert_receive_channel,
-        notification_backends={"BACKEND": {"channel_id": "foobar", "enabled": False}},
-    )
-    assert "BACKEND notification allowed: No" in channel_filter_disabled_backend.repr_settings_for_client_side_logging
-    assert "BACKEND channel: foobar" in channel_filter_disabled_backend.repr_settings_for_client_side_logging
-
-
 @mock.patch("apps.integrations.tasks.create_alert.apply_async", return_value=None)
 @pytest.mark.django_db
 def test_send_demo_alert(

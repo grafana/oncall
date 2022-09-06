@@ -3,7 +3,6 @@ from datetime import timedelta
 import humanize
 import pytz
 from django.apps import apps
-from django.conf import settings
 from django.utils import timezone
 from rest_framework import fields, serializers
 
@@ -110,25 +109,7 @@ class CurrentOrganizationSerializer(OrganizationSerializer):
 
     def get_limits(self, obj):
         user = self.context["request"].user
-        if not settings.OSS_INSTALLATION:
-            return obj.notifications_limit_web_report(user)
-
-        # show a version warning on OSS installations in case backend and frontend are different versions
-        frontend_version = self.context["request"].headers.get("X-OnCall-Plugin-Version")
-        backend_version = settings.VERSION
-        version_warning = {}
-        if backend_version and frontend_version and backend_version != frontend_version:
-            text = (
-                "Version mismatch! Please make sure you have the same versions of the Grafana OnCall plugin "
-                "and Grafana OnCall engine, "
-                "otherwise there could be issues with your Grafana OnCall installation! "
-                f"Current plugin version: {frontend_version}, current engine version: {backend_version}. "
-                "Please see the update instructions: "
-                "https://grafana.com/docs/oncall/latest/open-source/#update-grafana-oncall-oss"
-            )
-            version_warning = {"period_title": "Version mismatch", "show_limits_warning": True, "warning_text": text}
-
-        return version_warning or obj.notifications_limit_web_report(user)
+        return obj.notifications_limit_web_report(user)
 
     def get_env_status(self, obj):
         LiveSetting.populate_settings_if_needed()
@@ -147,7 +128,7 @@ class CurrentOrganizationSerializer(OrganizationSerializer):
         else:
             verbal_time_saved_by_amixr = None
 
-        res = {
+        result = {
             "grouped_percent": obj.cached_grouped_percent,
             "alerts_count": obj.cached_alerts_count,
             "noise_reduction": obj.cached_noise_reduction,
@@ -155,7 +136,7 @@ class CurrentOrganizationSerializer(OrganizationSerializer):
             "verbal_time_saved_by_amixr": verbal_time_saved_by_amixr,
         }
 
-        return res
+        return result
 
     def update(self, instance, validated_data):
         current_archive_date = instance.archive_alerts_from

@@ -18,7 +18,7 @@ from apps.auth_token.auth import MobileAppAuthTokenAuthentication, PluginAuthent
 from apps.user_management.models import User
 from common.api_helpers.exceptions import BadRequest
 from common.api_helpers.filters import DateRangeFilterMixin, ModelFieldFilterMixin
-from common.api_helpers.mixins import PreviewTemplateMixin, PublicPrimaryKeyMixin
+from common.api_helpers.mixins import PreviewTemplateMixin, PublicPrimaryKeyMixin, TeamFilteringMixin
 from common.api_helpers.paginators import TwentyFiveCursorPaginator
 
 
@@ -143,8 +143,13 @@ class AlertGroupFilter(DateRangeFilterMixin, ModelFieldFilterMixin, filters.Filt
         return queryset
 
 
+class AlertGroupTeamFilteringMixin(TeamFilteringMixin):
+    TEAM_LOOKUP = "channel__team"
+
+
 class AlertGroupView(
     PreviewTemplateMixin,
+    AlertGroupTeamFilteringMixin,
     PublicPrimaryKeyMixin,
     mixins.RetrieveModelMixin,
     mixins.ListModelMixin,
@@ -186,8 +191,7 @@ class AlertGroupView(
     pagination_class = TwentyFiveCursorPaginator
 
     filter_backends = [SearchFilter, filters.DjangoFilterBackend]
-    # todo: add ability to search by templated title
-    search_fields = ["public_primary_key", "inside_organization_number"]
+    search_fields = ["public_primary_key", "inside_organization_number", "web_title_cache"]
 
     filterset_class = AlertGroupFilter
 

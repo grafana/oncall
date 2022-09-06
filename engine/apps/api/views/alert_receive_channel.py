@@ -17,7 +17,6 @@ from apps.api.serializers.alert_receive_channel import (
 )
 from apps.api.throttlers import DemoAlertThrottler
 from apps.auth_token.auth import PluginAuthentication
-from apps.user_management.organization_log_creator import OrganizationLogType, create_organization_log
 from common.api_helpers.exceptions import BadRequest
 from common.api_helpers.mixins import (
     FilterSerializerMixin,
@@ -26,6 +25,7 @@ from common.api_helpers.mixins import (
     UpdateSerializerMixin,
 )
 from common.exceptions import TeamCanNotBeChangedError, UnableToSendDemoAlert
+from common.insight_log import EntityEvent, write_resource_insight_log
 
 
 class AlertReceiveChannelFilter(filters.FilterSet):
@@ -96,21 +96,22 @@ class AlertReceiveChannelView(
         return Response(data="invalid integration", status=status.HTTP_400_BAD_REQUEST)
 
     def perform_update(self, serializer):
-        old_state = serializer.instance.repr_settings_for_client_side_logging
+        prev_state = serializer.instance.insight_logs_serialized
         serializer.save()
-        new_state = serializer.instance.repr_settings_for_client_side_logging
-        description = f"Integration settings was changed from:\n{old_state}\nto:\n{new_state}"
-        create_organization_log(
-            serializer.instance.organization,
-            self.request.user,
-            OrganizationLogType.TYPE_INTEGRATION_CHANGED,
-            description,
+        new_state = serializer.instance.insight_logs_serialized
+        write_resource_insight_log(
+            instance=serializer.instance,
+            author=self.request.user,
+            event=EntityEvent.UPDATED,
+            prev_state=prev_state,
+            new_state=new_state,
         )
 
     def perform_destroy(self, instance):
-        description = f"Integration {instance.verbal_name} was deleted"
-        create_organization_log(
-            instance.organization, self.request.user, OrganizationLogType.TYPE_INTEGRATION_DELETED, description
+        write_resource_insight_log(
+            instance=instance,
+            author=self.request.user,
+            event=EntityEvent.DELETED,
         )
         instance.delete()
 

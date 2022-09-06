@@ -37,6 +37,7 @@ const commonFields: FormItem[] = [
     extra: {
       href: '/schedules/notify_oncall_shift_freq_options/',
       displayField: 'display_name',
+      openMenuOnFocus: false,
     },
     description: 'Specify the frequency that shift notifications are sent to scheduled team members.',
   },
@@ -48,6 +49,7 @@ const commonFields: FormItem[] = [
     extra: {
       href: '/schedules/notify_empty_oncall_options/',
       displayField: 'display_name',
+      openMenuOnFocus: false,
     },
     description: 'Specify how to notify team members when there is no one scheduled for an on-call shift.',
   },
@@ -59,6 +61,7 @@ const commonFields: FormItem[] = [
     extra: {
       href: '/schedules/mention_options/',
       displayField: 'display_name',
+      openMenuOnFocus: false,
     },
     description: 'Specify how to notify a team member when their on-call shift begins ',
   },
@@ -70,6 +73,7 @@ const commonFields: FormItem[] = [
     extra: {
       href: '/schedules/mention_options/',
       displayField: 'display_name',
+      openMenuOnFocus: false,
     },
     description: 'Specify how to notify a team member when their shift is the next one scheduled',
   },

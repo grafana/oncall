@@ -1,19 +1,18 @@
-import { Moment } from 'moment';
 import moment from 'moment-timezone';
 
 import { Schedule } from 'models/schedule/schedule.types';
 
 const DATE_FORMAT = 'HH:mm YYYY-MM-DD';
 
-function isToday(m: Moment, currentMoment: Moment) {
+function isToday(m: moment.Moment) {
   return m.isSame('day');
 }
 
-function isYesterday(m: Moment, currentMoment: Moment) {
+function isYesterday(m: moment.Moment, currentMoment: moment.Moment) {
   return m.diff(currentMoment, 'days') === -1;
 }
 
-function isTomorrow(m: Moment, currentMoment: Moment) {
+function isTomorrow(m: moment.Moment, currentMoment: moment.Moment) {
   return m.diff(currentMoment, 'days') === 1;
 }
 
@@ -25,8 +24,8 @@ export function prepareForEdit(schedule: Schedule) {
   };
 }
 
-function humanize(m: Moment, currentMoment: Moment) {
-  if (isToday(m, currentMoment)) {
+function humanize(m: moment.Moment, currentMoment: moment.Moment) {
+  if (isToday(m)) {
     return 'Today';
   }
   if (isYesterday(m, currentMoment)) {

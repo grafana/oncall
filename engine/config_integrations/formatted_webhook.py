@@ -50,8 +50,6 @@ resolve_condition = '{{ payload.get("state", "").upper() == "OK" }}'
 
 acknowledge_condition = None
 
-group_verbose_name = web_title
-
 example_payload = {
     "alert_uid": "08d6891a-835c-e661-39fa-96b6a9e26552",
     "title": "TestAlert: The whole system is down",

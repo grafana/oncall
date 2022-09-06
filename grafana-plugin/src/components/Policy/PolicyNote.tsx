@@ -10,6 +10,7 @@ const cx = cn.bind(styles);
 
 interface PolicyNoteProps {
   type?: 'success' | 'info' | 'danger';
+  children?: any;
 }
 
 function getIcon(type: PolicyNoteProps['type']) {

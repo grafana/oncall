@@ -37,7 +37,7 @@ const TelegramInfo = observer((props: TelegramInfoProps) => {
     <>
       {telegramConfigured || !store.hasFeature(AppFeature.LiveSettings) ? (
         <VerticalGroup>
-          <a target="_blank" href={`${botLink}/?start=${verificationCode}`}>
+          <a href={`${botLink}/?start=${verificationCode}`} target="_blank" rel="noreferrer">
             <Button size="sm" fill="outline">
               Connect automatically
             </Button>
@@ -46,7 +46,7 @@ const TelegramInfo = observer((props: TelegramInfoProps) => {
           <HorizontalGroup>
             <Text>
               1) Go to{' '}
-              <a className={cx('verification-code')} href={botLink}>
+              <a className={cx('verification-code')} href={botLink} target="_blank" rel="noreferrer">
                 {botLink}
               </a>
             </Text>

@@ -6,7 +6,6 @@ from apps.auth_token import constants, crypto
 from apps.auth_token.models.base_auth_token import BaseAuthToken
 from apps.schedules.models import OnCallSchedule
 from apps.user_management.models import Organization, User
-from apps.user_management.organization_log_creator import OrganizationLogType, create_organization_log
 
 
 class ScheduleExportAuthToken(BaseAuthToken):
@@ -38,8 +37,22 @@ class ScheduleExportAuthToken(BaseAuthToken):
             organization=organization,
             schedule=schedule,
         )
-        description = "Schedule export token was created by user {0} for schedule {1}".format(
-            user.username, schedule.name
-        )
-        create_organization_log(organization, user, OrganizationLogType.TYPE_SCHEDULE_EXPORT_TOKEN_CREATED, description)
         return instance, token_string
+
+    # Insight logs
+    @property
+    def insight_logs_type_verbal(self):
+        return "schedule_export_token"
+
+    @property
+    def insight_logs_verbal(self):
+        return f"Schedule export token for {self.schedule.insight_logs_verbal}"
+
+    @property
+    def insight_logs_serialized(self):
+        # Schedule export tokens are not modifiable, return empty dict to implement InsightLoggable interface
+        return {}
+
+    @property
+    def insight_logs_metadata(self):
+        return {}

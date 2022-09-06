@@ -10,6 +10,7 @@ const cx = cn.bind(styles);
 
 export interface TimelineProps {
   className?: string;
+  children?: any;
 }
 
 interface TimelineType extends React.FC<TimelineProps> {

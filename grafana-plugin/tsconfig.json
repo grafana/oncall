@@ -9,5 +9,6 @@
     "noUnusedLocals": false,
     "strict": false,
     "resolveJsonModule": true,
+    "noImplicitAny": false
   }
 }

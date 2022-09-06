@@ -25,6 +25,8 @@ There are three Grafana OnCall OSS environments available:
 ## Production Environment
 We suggest using our official helm chart for the reliable production deployment of Grafana OnCall. It will deploy Grafana OnCall engine and celery workers, along with RabbitMQ cluster, Redis Cluster, and the database. 
 
+>**Note:** The Grafana OnCall engine currently supports one instance  of the Grafana OnCall plugin at a time. 
+
 Check the [helm chart](https://github.com/grafana/oncall/tree/dev/helm/oncall) for more details. 
 
 We'll always be happy to provide assistance with production deployment in [our communities](https://github.com/grafana/oncall#join-community)! 
@@ -164,13 +166,11 @@ lt --port 8080 -s pretty-turkey-83 --print-requests
 
 The Telegram integration for Grafana OnCall is designed for collaborative team work and improved incident response. Refer to the following steps to configure the Telegram integration:
 
-1. Ensure your OnCall environment is up and running.
-
-1. Request [BotFather](https://t.me/BotFather) for a key, then add your key in `TELEGRAM_TOKEN` in your Grafana OnCall **Env Variables**.
-
-1. Set `TELEGRAM_WEBHOOK_HOST` with your external URL for your Grafana OnCall. 
-
-1. From the **ChatOps** tab in Grafana OnCall, click **Telegram**.
+1. Ensure your Grafana OnCall environment is up and running. 
+2. Create a Telegram bot using [BotFather](https://t.me/BotFather) and save the token provided by BotFather. Please make sure to disable **Group Privacy** for the bot (Bot Settings -> Group Privacy -> Turn off).
+3. Paste the token provided by BotFather to the `TELEGRAM_TOKEN` variable on the **Env Variables** page of your Grafana OnCall instance.
+4. Set the `TELEGRAM_WEBHOOK_HOST` variable to the external address of your Grafana OnCall instance. Please note that `TELEGRAM_WEBHOOK_HOST` must start with `https://` and be publicly available (meaning that it can be reached by Telegram servers). If your host is private or local, consider using a reverse proxy (e.g. [ngrok](https://ngrok.com)).
+5. Now you can connect Telegram accounts on the **Users** page and receive alert groups to Telegram direct messages. Alternatively, in case you want to connect Telegram channels to your Grafana OnCall environment, navigate to the **ChatOps** tab.
 
 ## Grafana OSS-Cloud Setup
 

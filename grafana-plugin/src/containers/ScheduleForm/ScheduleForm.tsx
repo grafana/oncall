@@ -39,7 +39,7 @@ const ScheduleForm = observer((props: ScheduleFormProps) => {
 
   const store = useStore();
 
-  const { scheduleStore, userStore, grafanaTeamStore } = store;
+  const { scheduleStore, userStore } = store;
 
   const data = useMemo(() => {
     return id === 'new' ? { team: userStore.currentUser?.current_team, type } : prepareForEdit(scheduleStore.items[id]);

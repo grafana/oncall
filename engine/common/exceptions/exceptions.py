@@ -17,3 +17,7 @@ class TeamCanNotBeChangedError(OperationCouldNotBePerformedError):
 
 class UnableToSendDemoAlert(OperationCouldNotBePerformedError):
     pass
+
+
+class UserNotificationPolicyCouldNotBeDeleted(OperationCouldNotBePerformedError):
+    pass

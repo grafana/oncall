@@ -32,10 +32,10 @@ interface GSelectProps {
   showWarningIfEmptyValue?: boolean;
   showError?: boolean;
   nullItemName?: string;
+  filterOptions?: (id: any) => boolean;
   dropdownRender?: (menu: ReactElement) => ReactElement;
   getOptionLabel?: <T>(item: SelectableValue<T>) => React.ReactNode;
   getDescription?: (item: any) => React.ReactNode;
-  filterOptions?: <T>(item: SelectableValue<T>) => boolean;
 }
 
 const GSelect = observer((props: GSelectProps) => {
@@ -55,18 +55,14 @@ const GSelect = observer((props: GSelectProps) => {
     displayField = 'display_name',
     valueField = 'id',
     isMulti = false,
-    nullItemName,
-    dropdownRender,
     getOptionLabel,
     showWarningIfEmptyValue = false,
     getDescription,
-    filterOptions = () => true,
+    filterOptions,
   } = props;
 
   const store = useStore();
   const model = (store as any)[modelName];
-
-  const [query, setQuery] = useState<any>('');
 
   const onChangeCallback = useCallback(
     (option) => {
@@ -91,17 +87,18 @@ const GSelect = observer((props: GSelectProps) => {
   const loadOptions = (query: string) => {
     return model.updateItems(query).then(() => {
       const searchResult = model.getSearchResult(query);
-      const items = Array.isArray(searchResult.results) ? searchResult.results : searchResult;
+      let items = Array.isArray(searchResult.results) ? searchResult.results : searchResult;
 
-      const options = items
-        .map((item: any) => ({
-          value: item[valueField],
-          label: get(item, displayField),
-          imgUrl: item.avatar_url,
-          description: getDescription && getDescription(item),
-        }))
-        .filter(filterOptions);
-      return options;
+      if (filterOptions) {
+        items = items.filter((opt: any) => filterOptions(opt[valueField]));
+      }
+
+      return items.map((item: any) => ({
+        value: item[valueField],
+        label: get(item, displayField),
+        imgUrl: item.avatar_url,
+        description: getDescription && getDescription(item),
+      }));
     });
   };
 
