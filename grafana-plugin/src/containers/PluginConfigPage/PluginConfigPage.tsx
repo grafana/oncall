@@ -149,9 +149,13 @@ export const PluginConfigPage = (props: Props) => {
         get_sync_response.version && get_sync_response.license
           ? ` (${get_sync_response.license}, ${get_sync_response.version})`
           : '';
-      setPluginStatusMessage(
-        `Connected to OnCall${versionInfo}\n - OnCall URL: ${plugin.meta.jsonData.onCallApiUrl}\n - Grafana URL: ${plugin.meta.jsonData.grafanaUrl}`
-      );
+
+      let pluginStatusMessage = `Connected to OnCall${versionInfo}\n - OnCall URL: ${plugin.meta.jsonData.onCallApiUrl}\n`
+      if (plugin.meta.jsonData.grafanaUrl) {
+        pluginStatusMessage = `${pluginStatusMessage} - Grafana URL: ${plugin.meta.jsonData.grafanaUrl}`
+      }
+
+      setPluginStatusMessage(pluginStatusMessage)
       setIsSelfHostedInstall(plugin.meta.jsonData?.license === GRAFANA_LICENSE_OSS);
       setPluginStatusOk(true);
     } else {
