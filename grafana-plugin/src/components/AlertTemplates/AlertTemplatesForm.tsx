@@ -243,9 +243,9 @@ const AlertTemplatesForm = (props: AlertTemplatesFormProps) => {
                   {activeGroup === 'web' && activeTemplate.name == 'web_title_template' && (
                     <div className={cx('web-title-message')}>
                       <Text type="secondary" size="small">
-                        Missing search results? Search is performed only by title of alert groups. If you changed
-                        template for title, new alert groups will be searchable by new title. The old ones will be
-                        searchable by old titles.
+                        Please note that after changing the web title template new alert groups will be searchable by
+                        new title. Alert groups created before the template was changed will be still searchable by
+                        old title and sometimes may be missing from the search results.
                       </Text>
                     </div>
                   )}
