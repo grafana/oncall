@@ -87,12 +87,3 @@ class NotificationDeliveryStep(scenario_step.ScenarioStep):
                 print(e)
             else:
                 raise e
-
-    def get_color_id(self, color):
-        if color == "red":
-            color_id = "#FF0000"
-        elif color == "yellow":
-            color_id = "#c6c000"
-        else:
-            color_id = color
-        return color_id
