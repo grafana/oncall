@@ -33,7 +33,7 @@ This is a hack to allow us to load models for type checking without circular dep
 This module likely needs to refactored to be part of the OnCallSchedule module.
 """
 if TYPE_CHECKING:
-    from apps.schedules.models import OnCallSchedule, OnCallScheduleICal
+    from apps.schedules.models import OnCallSchedule, OnCallScheduleICal  # noqa
     from apps.user_management.models import User
 
 
@@ -426,6 +426,8 @@ def is_icals_equal_line_by_line(first, second):
 
 
 def is_icals_equal(first, second, schedule):
+    from apps.schedules.models import OnCallScheduleICal  # noqa
+
     if isinstance(schedule, OnCallScheduleICal):
         first_cal = Calendar.from_ical(first)
         second_cal = Calendar.from_ical(second)
