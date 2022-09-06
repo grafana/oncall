@@ -1,5 +1,11 @@
 # Change Log
 
+## v1.0.33 (2022-09-06)
+- Add raw alert view
+- Add GitHub star button for OSS installations
+- Restore alert group search functionality
+- Bug fixes
+
 ## v1.0.32 (2022-09-01)
 - Bug fixes
 
