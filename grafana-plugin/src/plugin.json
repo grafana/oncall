@@ -46,6 +46,13 @@
     },
     {
       "type": "page",
+      "name": "Users",
+      "path": "/a/grafana-oncall-app/?page=users",
+      "role": "Viewer",
+      "addToNav": true
+    },
+    {
+      "type": "page",
       "name": "Integrations",
       "path": "/a/grafana-oncall-app/?page=integrations",
       "role": "Viewer",
@@ -54,13 +61,6 @@
       "type": "page",
       "name": "Escalation Chains",
       "path": "/a/grafana-oncall-app/?page=escalations",
-      "role": "Viewer",
-      "addToNav": true
-    },
-    {
-      "type": "page",
-      "name": "Users",
-      "path": "/a/grafana-oncall-app/?page=users",
       "role": "Viewer",
       "addToNav": true
     },
@@ -80,6 +80,13 @@
     },
     {
       "type": "page",
+      "name": "Outgoing Webhooks",
+      "path": "/a/grafana-oncall-app/?page=outgoing_webhooks",
+      "role": "Viewer",
+      "addToNav": true
+    },
+    {
+      "type": "page",
       "name": "Maintenance",
       "path": "/a/grafana-oncall-app/?page=maintenance",
       "role": "Viewer",
@@ -89,13 +96,6 @@
       "type": "page",
       "name": "Settings",
       "path": "/a/grafana-oncall-app/?page=settings",
-      "role": "Viewer",
-      "addToNav": true
-    },
-    {
-      "type": "page",
-      "name": "Outgoing Webhooks",
-      "path": "/a/grafana-oncall-app/?page=outgoing_webhooks",
       "role": "Viewer",
       "addToNav": true
     }
