@@ -92,7 +92,6 @@ def test_render_group_data_templates(
     assert group_data.group_distinction == template_module.tests.get("group_distinction")
     assert group_data.is_resolve_signal == template_module.tests.get("is_resolve_signal")
     assert group_data.is_acknowledge_signal == template_module.tests.get("is_acknowledge_signal")
-    assert group_data.group_verbose_name == template_module.tests.get("group_verbose_name")
 
 
 def test_default_templates_are_valid():

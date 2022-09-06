@@ -91,7 +91,7 @@ class MigrationToolPage extends React.Component<MigrationToolProps, MigrationToo
             <ol>
               <li>
                 Ask all users from your Amixr.IO workspace to{' '}
-                <a href="https://grafana.com/auth/sign-up/create-user" target="_blank">
+                <a href="https://grafana.com/auth/sign-up/create-user" target="_blank" rel="noreferrer">
                   sign up
                 </a>{' '}
                 in the Grafana Cloud.
@@ -101,7 +101,7 @@ class MigrationToolPage extends React.Component<MigrationToolProps, MigrationToo
           </p>
           <p>
             For any technical assistance please reach out to our team in{' '}
-            <a href="https://slack.grafana.com/" target="_blank">
+            <a href="https://slack.grafana.com/" target="_blank" rel="noreferrer">
               Grafana Slack channel #grafana-oncall
             </a>
             . We’ll be happy to give you a hand and help you with migration on a call.
@@ -112,13 +112,13 @@ class MigrationToolPage extends React.Component<MigrationToolProps, MigrationToo
             <ul>
               <li>
                 Matvey Kukuy (ex-CEO of Amixr):{' '}
-                <a href="mailto:matvey.kukuy@grafana.com" target="_blank">
+                <a href="mailto:matvey.kukuy@grafana.com" target="_blank" rel="noreferrer">
                   matvey.kukuy@grafana.com
                 </a>
               </li>
               <li>
                 Ildar Iskhakov (ex-CTO of Amixr):{' '}
-                <a href="mailto:ildar.iskhakov@grafana.com" target="_blank">
+                <a href="mailto:ildar.iskhakov@grafana.com" target="_blank" rel="noreferrer">
                   ildar.iskhakov@grafana.com
                 </a>
               </li>

@@ -197,7 +197,7 @@ const AlertTemplatesForm = (props: AlertTemplatesFormProps) => {
           <VerticalGroup>
             <Text type="secondary">
               <p>
-                <a href="https://jinja.palletsprojects.com/en/3.0.x/" target="_blank">
+                <a href="https://jinja.palletsprojects.com/en/3.0.x/" target="_blank" rel="noreferrer">
                   Jinja2
                 </a>
                 {activeGroup === 'slack' && ', Slack markdown'}

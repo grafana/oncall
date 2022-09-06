@@ -23,6 +23,40 @@
   value: "1024"
 {{- end }}
 
+{{- define "snippet.oncall.slack.env" -}}
+{{- if .Values.oncall.slack.enabled -}}
+- name: FEATURE_SLACK_INTEGRATION_ENABLED
+  value: {{ .Values.oncall.slack.enabled | toString | title | quote }}
+- name: SLACK_SLASH_COMMAND_NAME
+  value: "/{{ .Values.oncall.slack.commandName | default "oncall" }}"
+- name: SLACK_CLIENT_OAUTH_ID
+  value: {{ .Values.oncall.slack.clientId | default "" | quote }}
+- name: SLACK_CLIENT_OAUTH_SECRET
+  value: {{ .Values.oncall.slack.clientSecret | default "" | quote }}
+- name: SLACK_API_TOKEN
+  value: {{ .Values.oncall.slack.apiToken | default "" | quote }}
+- name: SLACK_API_TOKEN_COMMON
+  value: {{ .Values.oncall.slack.apiTokenCommon | default "" | quote }}
+{{- else -}}
+- name: FEATURE_SLACK_INTEGRATION_ENABLED
+  value: {{ .Values.oncall.slack.enabled | toString | title | quote }}
+{{- end -}}
+{{- end }}
+
+{{- define "snippet.oncall.telegram.env" -}}
+{{- if .Values.oncall.telegram.enabled -}}
+- name: FEATURE_TELEGRAM_INTEGRATION_ENABLED
+  value: {{ .Values.oncall.telegram.enabled | toString | title | quote }}
+- name: TELEGRAM_WEBHOOK_URL
+  value: {{ .Values.oncall.telegram.webhookUrl | default "" | quote }}
+- name: TELEGRAM_TOKEN
+  value: {{ .Values.oncall.telegram.token | default "" | quote }}
+{{- else -}}
+- name: FEATURE_TELEGRAM_INTEGRATION_ENABLED
+  value: {{ .Values.oncall.telegram.enabled | toString | title | quote }}
+{{- end -}}
+{{- end }}
+
 {{- define "snippet.celery.env" -}}
 - name: CELERY_WORKER_QUEUE
   value: "default,critical,long,slack,telegram,webhook,celery"

@@ -56,8 +56,6 @@ resolve_condition = '{{ payload.get("level", "").startswith("OK") }}'
 
 acknowledge_condition = None
 
-group_verbose_name = '{{ payload.get("id", "") }}'
-
 example_payload = {
     "id": "TestAlert",
     "message": "This alert was sent by user for the demonstration purposes",

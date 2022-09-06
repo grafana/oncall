@@ -39,6 +39,4 @@ resolve_condition = None
 
 acknowledge_condition = None
 
-group_verbose_name = '<#{{ payload.get("channel", "") }}>'
-
 source_link = '{{ payload.get("amixr_mixin", {}).get("permalink", "")}}'
