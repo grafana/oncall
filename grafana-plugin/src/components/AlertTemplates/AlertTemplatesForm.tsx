@@ -240,6 +240,15 @@ const AlertTemplatesForm = (props: AlertTemplatesFormProps) => {
                   <Text type="secondary">
                     Press <Text keyboard>Ctrl</Text>+<Text keyboard>Space</Text> to get suggestions
                   </Text>
+                  {activeGroup === 'web' && activeTemplate.name == 'web_title_template' && (
+                    <div className={cx('web-title-message')}>
+                      <Text type="secondary" size="small">
+                        Missing search results? Search is performed only by title of alert groups. If you changed
+                        template for title, new alert groups will be searchable by new title. The old ones will be
+                        searchable by old titles.
+                      </Text>
+                    </div>
+                  )}
                 </div>
               </div>
             ))}
