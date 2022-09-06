@@ -33,7 +33,7 @@ This is a hack to allow us to load models for type checking without circular dep
 This module likely needs to refactored to be part of the OnCallSchedule module.
 """
 if TYPE_CHECKING:
-    from apps.schedules.models import OnCallSchedule
+    from apps.schedules.models import OnCallSchedule, OnCallScheduleICal  # noqa
     from apps.user_management.models import User
 
 
@@ -408,7 +408,7 @@ def get_users_from_ical_event(event, organization):
     return users
 
 
-def is_icals_equal(first, second):
+def is_icals_equal_line_by_line(first, second):
     first = first.split("\n")
     second = second.split("\n")
     if len(first) != len(second):
@@ -423,6 +423,30 @@ def is_icals_equal(first, second):
                     return False
 
     return True
+
+
+def is_icals_equal(first, second, schedule):
+    from apps.schedules.models import OnCallScheduleICal  # noqa
+
+    if isinstance(schedule, OnCallScheduleICal):
+        first_cal = Calendar.from_ical(first)
+        second_cal = Calendar.from_ical(second)
+        first_subcomponents = first_cal.subcomponents
+        second_subcomponents = second_cal.subcomponents
+        if len(first_subcomponents) != len(second_subcomponents):
+            return False
+        for idx, first_cmp in enumerate(first_cal.subcomponents):
+            second_cmp = second_subcomponents[idx]
+            if first_cmp.name == second_cmp.name == "VEVENT":
+                first_uid, first_seq = first_cmp.get("UID", None), first_cmp.get("SEQUENCE", None)
+                second_uid, second_seq = second_cmp.get("UID", None), second_cmp.get("SEQUENCE", None)
+                if first_uid != second_uid:
+                    return False
+                elif first_seq != second_seq:
+                    return False
+        return True
+    else:
+        return is_icals_equal_line_by_line(first, second)
 
 
 def ical_date_to_datetime(date, tz, start):
