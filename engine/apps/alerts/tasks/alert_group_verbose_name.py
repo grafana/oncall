@@ -23,7 +23,7 @@ def update_verbose_name_for_alert_receive_channel(alert_receive_channel_pk):
     ids = batch_ids(queryset, cursor)
 
     while ids:
-        update_verbose_name.apply_async((alert_receive_channel_pk, ids[0], ids[-1]), countdown=countdown)
+        update_verbose_name.apply_async((alert_receive_channel_pk, ids), countdown=countdown)
 
         cursor = ids[-1]
         ids = batch_ids(queryset, cursor)
@@ -31,7 +31,7 @@ def update_verbose_name_for_alert_receive_channel(alert_receive_channel_pk):
 
 
 @shared_dedicated_queue_retry_task
-def update_verbose_name(alert_receive_channel_pk, alert_group_pk_start, alert_group_pk_end):
+def update_verbose_name(alert_receive_channel_pk, alert_group_pks):
     from apps.alerts.models import Alert, AlertGroup, AlertReceiveChannel
 
     try:
@@ -40,13 +40,11 @@ def update_verbose_name(alert_receive_channel_pk, alert_group_pk_start, alert_gr
         task_logger.warning(f"AlertReceiveChannel {alert_receive_channel_pk} doesn't exist")
         return
 
-    alert_groups = AlertGroup.all_objects.filter(pk__gte=alert_group_pk_start, pk__lte=alert_group_pk_end).only("pk")
+    alert_groups = AlertGroup.all_objects.filter(pk__in=alert_group_pks).only("pk")
 
     # get first alerts in 2 SQL queries
     alerts_info = (
-        Alert.objects.values("group_id")
-        .filter(group_id__gte=alert_group_pk_start, group_id__lte=alert_group_pk_end)
-        .annotate(first_alert_id=Min("id"))
+        Alert.objects.values("group_id").filter(group_id__in=alert_group_pks).annotate(first_alert_id=Min("id"))
     )
     alerts_info_map = {info["group_id"]: info for info in alerts_info}
 
