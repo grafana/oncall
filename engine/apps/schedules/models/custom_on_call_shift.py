@@ -335,7 +335,7 @@ class CustomOnCallShift(models.Model):
         event.add("dtstart", self.convert_dt_to_schedule_timezone(start, time_zone))
         event.add("dtend", self.convert_dt_to_schedule_timezone(start + self.duration, time_zone))
         event.add("dtstamp", self.rotation_start)
-        event.add("sequence", self.sequence_number)
+        # event.add("sequence", self.sequence_number)
         if self.event_ical_rules:
             event.add("rrule", self.event_ical_rules)
         try:
