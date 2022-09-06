@@ -419,7 +419,7 @@ def is_icals_equal(first, second):
         second_cmp = second_subcomponents[idx]
         if first_cmp.name == second_cmp.name == "VEVENT":
             first_uid, first_seq = first_cmp.get("UID", None), first_cmp.get("SEQUENCE", None)
-            second_uid, second_seq = first_cmp.get("UID", None), first_cmp.get("SEQUENCE", None)
+            second_uid, second_seq = second_cmp.get("UID", None), second_cmp.get("SEQUENCE", None)
             if first_uid != second_uid:
                 return False
             elif first_seq != second_seq:
