@@ -487,15 +487,6 @@ class CustomOnCallShift(models.Model):
         self.rolling_users = result
         self.save(update_fields=["rolling_users"])
 
-    def reorder_rolling_users_with_respect_to_current_date(self, rolling_users_queue_list, date=None, original=False):
-        if not rolling_users_queue_list or not self.rolling_users:
-            return rolling_users_queue_list
-        date = timezone.now() if not date else date
-        rotation_index = self.get_rotation_user_index(date)
-        if original:
-            rotation_index = len(self.rolling_users) - rotation_index
-        return rolling_users_queue_list[rotation_index:] + rolling_users_queue_list[:rotation_index]
-
     def get_rotation_user_index(self, date=None):
         START_ROTATION_INDEX = 0
 
@@ -559,6 +550,7 @@ class CustomOnCallShift(models.Model):
             instance_data["rotation_start"].date(),
             instance_data["start"].time(),
         ).astimezone(pytz.UTC)
+        instance_data["start_rotation_from_user_index"] = self.get_rotation_user_index()
 
         if self.last_updated_shift is None or self.last_updated_shift.event_is_started:
             # create new shift

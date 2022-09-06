@@ -70,11 +70,6 @@ class OnCallShiftSerializer(EagerLoadingMixin, serializers.ModelSerializer):
         result = super().to_internal_value(data)
         return result
 
-    def to_representation(self, instance):
-        result = super().to_representation(instance)
-        result["rolling_users"] = instance.reorder_rolling_users_with_respect_to_current_date(result["rolling_users"])
-        return result
-
     def validate_by_day(self, by_day):
         if by_day:
             for day in by_day:
@@ -188,18 +183,11 @@ class OnCallShiftUpdateSerializer(OnCallShiftSerializer):
 
     def update(self, instance, validated_data):
         validated_data = self._correct_validated_data(instance.type, validated_data)
-        rolling_users = instance.reorder_rolling_users_with_respect_to_current_date(
-            validated_data["rolling_users"][:],
-            original=True,
-        )
         change_only_title = True
         create_or_update_last_shift = False
 
         for field in validated_data:
-            if field == "rolling_users" and rolling_users != getattr(instance, field):
-                change_only_title = False
-                break
-            elif field != "title" and validated_data[field] != getattr(instance, field):
+            if field != "title" and validated_data[field] != getattr(instance, field):
                 change_only_title = False
                 break
 
@@ -210,8 +198,6 @@ class OnCallShiftUpdateSerializer(OnCallShiftSerializer):
 
             elif instance.event_is_finished:
                 raise serializers.ValidationError(["This event cannot be updated"])
-        else:
-            validated_data["rolling_users"] = rolling_users
 
         if create_or_update_last_shift:
             result = instance.create_or_update_last_shift(validated_data)
