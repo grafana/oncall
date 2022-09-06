@@ -14,7 +14,15 @@ def batch_ids(queryset, cursor):
 
 
 @shared_dedicated_queue_retry_task
-def update_verbose_name_for_alert_receive_channel(alert_receive_channel_pk):
+def update_web_title_cache_for_alert_receive_channel(alert_receive_channel_pk):
+    """
+    Update the web_title_cache field for all alert groups of alert receive channel with pk = alert_receive_channel_pk.
+    Note that it's not invoked on web title template change due to performance considerations.
+    """
+    task_logger.debug(
+        f"Starting update_web_title_cache_for_alert_receive_channel, alert_receive_channel_pk: {alert_receive_channel_pk}"
+    )
+
     from apps.alerts.models import AlertGroup
 
     countdown = 0
@@ -23,7 +31,7 @@ def update_verbose_name_for_alert_receive_channel(alert_receive_channel_pk):
     ids = batch_ids(queryset, cursor)
 
     while ids:
-        update_verbose_name.apply_async((alert_receive_channel_pk, ids), countdown=countdown)
+        update_web_title_cache.apply_async((alert_receive_channel_pk, ids), countdown=countdown)
 
         cursor = ids[-1]
         ids = batch_ids(queryset, cursor)
@@ -31,7 +39,16 @@ def update_verbose_name_for_alert_receive_channel(alert_receive_channel_pk):
 
 
 @shared_dedicated_queue_retry_task
-def update_verbose_name(alert_receive_channel_pk, alert_group_pks):
+def update_web_title_cache(alert_receive_channel_pk, alert_group_pks):
+    """
+    Update the web_title_cache field for alert groups with pk in alert_group_pks,
+    for alert receive channel with pk = alert_receive_channel_pk.
+    """
+    task_logger.debug(
+        f"Starting update_web_title_cache, alert_receive_channel_pk: {alert_receive_channel_pk}, "
+        f"first alert_group_pk: {alert_group_pks[0]}, last alert_group_pk: {alert_group_pks[-1]}"
+    )
+
     from apps.alerts.models import Alert, AlertGroup, AlertReceiveChannel
 
     try:
@@ -59,12 +76,12 @@ def update_verbose_name(alert_receive_channel_pk, alert_group_pks):
         if web_title_template:
             if alert_group.pk in first_alert_map:
                 raw_request_data = first_alert_map[alert_group.pk]["raw_request_data"]
-                verbose_name = apply_jinja_template(web_title_template, raw_request_data)[0] or None
+                web_title_cache = apply_jinja_template(web_title_template, raw_request_data)[0] or None
             else:
-                verbose_name = None
+                web_title_cache = None
         else:
-            verbose_name = None
+            web_title_cache = None
 
-        alert_group.verbose_name = verbose_name
+        alert_group.web_title_cache = web_title_cache
 
-    AlertGroup.all_objects.bulk_update(alert_groups, ["verbose_name"])
+    AlertGroup.all_objects.bulk_update(alert_groups, ["web_title_cache"])

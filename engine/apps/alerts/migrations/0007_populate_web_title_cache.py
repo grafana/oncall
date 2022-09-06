@@ -3,13 +3,13 @@
 from django.db import migrations
 
 from apps.alerts.models import AlertReceiveChannel
-from apps.alerts.tasks import update_verbose_name_for_alert_receive_channel
+from apps.alerts.tasks import update_web_title_cache_for_alert_receive_channel
 
 
 def populate_verbose_name(apps, _):
     pks = AlertReceiveChannel.objects_with_deleted.values_list("pk", flat=True)
     for pk in pks:
-        update_verbose_name_for_alert_receive_channel.delay(pk)
+        update_web_title_cache_for_alert_receive_channel.delay(pk)
 
 
 class Migration(migrations.Migration):
@@ -19,5 +19,10 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
+        migrations.RenameField(
+            model_name='alertgroup',
+            old_name='verbose_name',
+            new_name='web_title_cache',
+        ),
         migrations.RunPython(populate_verbose_name, migrations.RunPython.noop),
     ]

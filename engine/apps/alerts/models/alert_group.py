@@ -82,7 +82,7 @@ class AlertGroupQuerySet(models.QuerySet):
         # Create a new group if we couldn't group it to any existing ones
         try:
             return (
-                self.create(**search_params, is_open_for_grouping=True, verbose_name=group_data.group_verbose_name),
+                self.create(**search_params, is_open_for_grouping=True, web_title_cache=group_data.web_title_cache),
                 True,
             )
         except IntegrityError:
@@ -134,7 +134,7 @@ class AlertGroup(AlertGroupSlackRenderingMixin, EscalationSnapshotMixin, models.
     STATUS_CHOICES = ((NEW, "New"), (ACKNOWLEDGED, "Acknowledged"), (RESOLVED, "Resolved"), (SILENCED, "Silenced"))
 
     GroupData = namedtuple(
-        "GroupData", ["is_resolve_signal", "group_distinction", "group_verbose_name", "is_acknowledge_signal"]
+        "GroupData", ["is_resolve_signal", "group_distinction", "web_title_cache", "is_acknowledge_signal"]
     )
 
     SOURCE, USER, NOT_YET, LAST_STEP, ARCHIVED, WIPED, DISABLE_MAINTENANCE = range(7)
@@ -177,7 +177,7 @@ class AlertGroup(AlertGroupSlackRenderingMixin, EscalationSnapshotMixin, models.
     # For example different types of alerts from the same channel should go to different groups.
     # Distinction is what describes their difference.
     distinction = models.CharField(max_length=100, null=True, default=None, db_index=True)
-    verbose_name = models.TextField(null=True, default=None)
+    web_title_cache = models.TextField(null=True, default=None)
 
     inside_organization_number = models.IntegerField(default=0)
 
@@ -357,7 +357,7 @@ class AlertGroup(AlertGroupSlackRenderingMixin, EscalationSnapshotMixin, models.
         ]
 
     def __str__(self):
-        return f"{self.pk}: {self.verbose_name}"
+        return f"{self.pk}: {self.web_title_cache}"
 
     @property
     def is_maintenance_incident(self):
@@ -899,13 +899,13 @@ class AlertGroup(AlertGroupSlackRenderingMixin, EscalationSnapshotMixin, models.
             self.resolve(resolved_by=AlertGroup.WIPED)
             self.stop_escalation()
             self.distinction = ""
-            self.verbose_name = None
+            self.web_title_cache = None
             self.wiped_at = timezone.now()
             self.wiped_by = user
             for alert in self.alerts.all():
                 alert.wipe(wiped_by=self.wiped_by, wiped_at=self.wiped_at)
 
-            self.save(update_fields=["distinction", "verbose_name", "wiped_at", "wiped_by"])
+            self.save(update_fields=["distinction", "web_title_cache", "wiped_at", "wiped_by"])
 
         log_record = self.log_records.create(
             type=AlertGroupLogRecord.TYPE_WIPED,

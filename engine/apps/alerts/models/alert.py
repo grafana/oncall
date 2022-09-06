@@ -186,12 +186,12 @@ class Alert(models.Model):
         resolve_condition_template = template_manager.get_attr_template("resolve_condition", alert_receive_channel)
         grouping_id_template = template_manager.get_attr_template("grouping_id", alert_receive_channel)
 
-        # set verbose_name to web title to allow alert group searching based on verbose_name
+        # set web_title_cache to web title to allow alert group searching based on web_title_cache
         web_title_template = template_manager.get_attr_template("title", alert_receive_channel, render_for="web")
         if web_title_template:
-            group_verbose_name = apply_jinja_template(web_title_template, raw_request_data)[0] or None
+            web_title_cache = apply_jinja_template(web_title_template, raw_request_data)[0] or None
         else:
-            group_verbose_name = None
+            web_title_cache = None
 
         if grouping_id_template is not None:
             group_distinction, _ = apply_jinja_template(grouping_id_template, raw_request_data)
@@ -220,7 +220,7 @@ class Alert(models.Model):
             is_resolve_signal=is_resolve_signal,
             is_acknowledge_signal=is_acknowledge_signal,
             group_distinction=group_distinction,
-            group_verbose_name=group_verbose_name,
+            web_title_cache=web_title_cache,
         )
 
     @staticmethod
