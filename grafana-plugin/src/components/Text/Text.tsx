@@ -1,15 +1,12 @@
 import React, { FC, HTMLAttributes, ChangeEvent, useState, useCallback } from 'react';
 
-import { IconButton, Modal, Field, Input, HorizontalGroup, Button, Icon, VerticalGroup } from '@grafana/ui';
+import { IconButton, Modal, Input, HorizontalGroup, Button, VerticalGroup } from '@grafana/ui';
 import cn from 'classnames/bind';
 import CopyToClipboard from 'react-copy-to-clipboard';
 
-import { TimelineProps } from 'components/Timeline/Timeline';
-import { TimelineItemProps } from 'components/Timeline/TimelineItem';
-import { useStore } from 'state/useStore';
 import { openNotification } from 'utils';
 
-import styles from './Text.module.css';
+import styles from './Text.module.scss';
 
 interface TextProps extends HTMLAttributes<HTMLElement> {
   type?: 'primary' | 'secondary' | 'disabled' | 'link' | 'success' | 'warning';
@@ -78,13 +75,13 @@ const Text: TextType = (props) => {
   return (
     <span
       onClick={onClick}
-      className={cx('root', className, {
-        [`type_${type}`]: true,
-        [`size_${size}`]: true,
-        strong,
-        underline,
-        keyboard,
+      className={cx('root', 'text', className, {
+        [`text--${type}`]: true,
+        [`text--${size}`]: true,
+        'text--strong': strong,
+        'text--underline': underline,
         'no-wrap': !wrap,
+        keyboard
       })}
     >
       {hidden ? PLACEHOLDER : children}
