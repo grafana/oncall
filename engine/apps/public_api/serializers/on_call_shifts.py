@@ -331,8 +331,6 @@ class CustomOnCallShiftSerializer(EagerLoadingMixin, serializers.ModelSerializer
         for field in validated_data_list_fields:
             if isinstance(validated_data.get(field), list) and len(validated_data[field]) == 0:
                 validated_data[field] = None
-        if validated_data.get("start") is not None:
-            validated_data["start"] = validated_data["start"].replace(tzinfo=None)
         return validated_data
 
 
@@ -361,6 +359,19 @@ class CustomOnCallShiftUpdateSerializer(CustomOnCallShiftSerializer):
         if start_rotation_from_user_index != instance.start_rotation_from_user_index:
             self._validate_start_rotation_from_user_index(event_type, start_rotation_from_user_index)
         validated_data = self._correct_validated_data(event_type, validated_data)
+
+        # change sequence number if fields except `name` and `title` were changed
+        change_sequence = False
+        for field in validated_data:
+            if field == "users":
+                if list(instance.users.all()) != list(validated_data[field]):
+                    change_sequence = True
+            elif field not in ["name", "title"] and validated_data[field] != getattr(instance, field):
+                change_sequence = True
+            if change_sequence:
+                validated_data["sequence_number"] = instance.sequence_number + 1
+                break
+
         result = super().update(instance, validated_data)
         for schedule in instance.schedules.all():
             instance.start_drop_ical_and_check_schedule_tasks(schedule)
