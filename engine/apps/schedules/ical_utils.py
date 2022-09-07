@@ -367,6 +367,9 @@ def parse_event_uid(string):
         match = RE_EVENT_UID_V1.match(string)
         if match:
             _, _, _, source = match.groups()
+        else:
+            # fallback to use the UID string as the rotation ID
+            pk = string
 
     if source is not None:
         source = int(source)
