@@ -561,7 +561,11 @@ class CustomOnCallShift(models.Model):
             instance_data["rotation_start"].date(),
             instance_data["start"].time(),
         ).astimezone(pytz.UTC)
-        instance_data["start_rotation_from_user_index"] = self.get_rotation_user_index()
+        # calculate rotation index to keep user rotation order
+        start_rotation_from_user_index = self.get_rotation_user_index() + self.start_rotation_from_user_index
+        if start_rotation_from_user_index >= len(instance_data["rolling_users"]):
+            start_rotation_from_user_index = 0
+        instance_data["start_rotation_from_user_index"] = start_rotation_from_user_index
 
         if self.last_updated_shift is None or self.last_updated_shift.event_is_started:
             # create new shift
