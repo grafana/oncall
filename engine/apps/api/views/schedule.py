@@ -251,10 +251,10 @@ class ScheduleView(
         schedule = self.original_get_object()
         events = schedule.final_events(user_tz, starting_date, days=30)
 
-        users = {}
+        users = {u: None for u in schedule.related_users()}
         for e in events:
             user = e["users"][0]["pk"] if e["users"] else None
-            if user is not None and user not in users and e["end"] > now:
+            if user is not None and users.get(user) is None and e["end"] > now:
                 users[user] = e
 
         result = {"users": users}

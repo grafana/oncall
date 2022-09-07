@@ -817,7 +817,7 @@ def test_next_shifts_per_user(
     )
 
     tomorrow = timezone.now().replace(hour=0, minute=0, second=0, microsecond=0) + timezone.timedelta(days=1)
-    user_a, user_b, user_c = (make_user_for_organization(organization, username=i) for i in "ABC")
+    user_a, user_b, user_c, user_d = (make_user_for_organization(organization, username=i) for i in "ABCD")
 
     shifts = (
         # user, priority, start time (h), duration (hs)
@@ -841,6 +841,19 @@ def test_next_shifts_per_user(
         )
         on_call_shift.users.add(user)
 
+    # override in the past: 17-18 / D
+    # won't be listed, but user D will still be included in the response
+    override_data = {
+        "start": tomorrow - timezone.timedelta(days=3),
+        "rotation_start": tomorrow - timezone.timedelta(days=3),
+        "duration": timezone.timedelta(hours=1),
+        "schedule": schedule,
+    }
+    override = make_on_call_shift(
+        organization=organization, shift_type=CustomOnCallShift.TYPE_OVERRIDE, **override_data
+    )
+    override.add_rolling_users([[user_d]])
+
     # override: 17-18 / C
     override_data = {
         "start": tomorrow + timezone.timedelta(hours=17),
@@ -853,7 +866,7 @@ def test_next_shifts_per_user(
     )
     override.add_rolling_users([[user_c]])
 
-    # final schedule: 7-12: B, 15-16: A, 16-17: B, 17-18: C (override), 18-20: C
+    # final sdhedule: 7-12: B, 15-16: A, 16-17: B, 17-18: C (override), 18-20: C
 
     url = reverse("api-internal:schedule-next-shifts-per-user", kwargs={"pk": schedule.public_primary_key})
     response = client.get(url, format="json", **make_user_auth_headers(user, token))
@@ -863,8 +876,11 @@ def test_next_shifts_per_user(
         user_a.public_primary_key: (tomorrow + timezone.timedelta(hours=15), tomorrow + timezone.timedelta(hours=16)),
         user_b.public_primary_key: (tomorrow + timezone.timedelta(hours=7), tomorrow + timezone.timedelta(hours=12)),
         user_c.public_primary_key: (tomorrow + timezone.timedelta(hours=17), tomorrow + timezone.timedelta(hours=18)),
+        user_d.public_primary_key: None,
     }
-    returned_data = {u: (ev["start"], ev["end"]) for u, ev in response.data["users"].items()}
+    returned_data = {
+        u: (ev["start"], ev["end"]) if ev is not None else None for u, ev in response.data["users"].items()
+    }
     assert returned_data == expected
 
 

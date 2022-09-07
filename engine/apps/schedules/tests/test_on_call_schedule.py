@@ -261,9 +261,9 @@ def test_final_schedule_events(make_organization, make_user_for_organization, ma
             "schedule": schedule,
         }
         on_call_shift = make_on_call_shift(
-            organization=organization, shift_type=CustomOnCallShift.TYPE_RECURRENT_EVENT, **data
+            organization=organization, shift_type=CustomOnCallShift.TYPE_ROLLING_USERS_EVENT, **data
         )
-        on_call_shift.users.add(user)
+        on_call_shift.add_rolling_users([[user]])
 
     # override: 22-23 / E
     override_data = {
@@ -710,3 +710,53 @@ def test_preview_override_shift(make_organization, make_user_for_organization, m
 
     # final ical schedule didn't change
     assert schedule._ical_file_overrides == schedule_overrides_ical
+
+
+@pytest.mark.django_db
+def test_schedule_related_users(make_organization, make_user_for_organization, make_on_call_shift, make_schedule):
+    organization = make_organization()
+    schedule = make_schedule(
+        organization,
+        schedule_class=OnCallScheduleWeb,
+        name="test_web_schedule",
+    )
+
+    now = timezone.now().replace(hour=0, minute=0, second=0, microsecond=0)
+    start_date = now - timezone.timedelta(days=7)
+
+    user_a, _, _, user_d, user_e = (make_user_for_organization(organization, username=i) for i in "ABCDE")
+
+    shifts = (
+        # user, priority, start time (h), duration (hs)
+        (user_a, 1, 10, 5),  # r1-1: 10-15 / A
+        (user_d, 2, 20, 3),  # r2-4: 20-23 / D
+    )
+    for user, priority, start_h, duration in shifts:
+        data = {
+            "start": start_date + timezone.timedelta(hours=start_h),
+            "rotation_start": start_date + timezone.timedelta(hours=start_h),
+            "duration": timezone.timedelta(hours=duration),
+            "priority_level": priority,
+            "frequency": CustomOnCallShift.FREQUENCY_DAILY,
+            "schedule": schedule,
+        }
+        on_call_shift = make_on_call_shift(
+            organization=organization, shift_type=CustomOnCallShift.TYPE_RECURRENT_EVENT, **data
+        )
+        on_call_shift.add_rolling_users([[user]])
+
+    # override: 22-23 / E
+    override_data = {
+        "start": start_date - timezone.timedelta(hours=22),
+        "rotation_start": start_date - timezone.timedelta(hours=22),
+        "duration": timezone.timedelta(hours=1),
+        "schedule": schedule,
+    }
+    override = make_on_call_shift(
+        organization=organization, shift_type=CustomOnCallShift.TYPE_OVERRIDE, **override_data
+    )
+    override.add_rolling_users([[user_e]])
+
+    schedule.refresh_from_db()
+    users = schedule.related_users()
+    assert users == set(u.public_primary_key for u in [user_a, user_d, user_e])
