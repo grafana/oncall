@@ -436,7 +436,7 @@ def _get_organization_select(slack_team_identity, slack_user_identity, value, in
             {
                 "text": {
                     "type": "plain_text",
-                    "text": f"{org.org_title}",
+                    "text": f"{org.stack_slug}",
                     "emoji": True,
                 },
                 "value": f"{org.pk}",
