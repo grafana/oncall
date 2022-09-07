@@ -1,4 +1,5 @@
 import datetime
+import functools
 import itertools
 
 import icalendar
@@ -195,6 +196,10 @@ class OnCallSchedule(PolymorphicModel):
         self.prev_ical_file_overrides = self.cached_ical_file_overrides
         self.cached_ical_file_overrides = None
         self.save(update_fields=["cached_ical_file_overrides", "prev_ical_file_overrides"])
+
+    def related_users(self):
+        """Return public primary keys for all users referenced in the schedule."""
+        return set()
 
     def filter_events(self, user_timezone, starting_date, days, with_empty=False, with_gap=False, filter_by=None):
         """Return filtered events from schedule."""
@@ -627,6 +632,21 @@ class OnCallScheduleWeb(OnCallSchedule):
         self.prev_ical_file_overrides = self.cached_ical_file_overrides
         self.cached_ical_file_overrides = self._generate_ical_file_overrides()
         self.save(update_fields=["cached_ical_file_overrides", "prev_ical_file_overrides"])
+
+    def related_users(self):
+        """Return public primary keys for all users referenced in the schedule."""
+        rolling_users = self.custom_shifts.values_list("rolling_users", flat=True)
+        users = functools.reduce(
+            set.union,
+            (
+                set(g.values())
+                for rolling_groups in rolling_users
+                if rolling_groups is not None
+                for g in rolling_groups
+                if g is not None
+            ),
+        )
+        return users
 
     def preview_shift(self, custom_shift, user_tz, starting_date, days, updated_shift_pk=None):
         """Return unsaved rotation and final schedule preview events."""
