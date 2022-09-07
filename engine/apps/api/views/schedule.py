@@ -102,12 +102,10 @@ class ScheduleView(
         queryset = queryset.annotate(
             slack_channel_name=Subquery(slack_channels.values("name")[:1]),
             slack_channel_pk=Subquery(slack_channels.values("public_primary_key")[:1]),
-        )
-        queryset = queryset.annotate(
             num_escalation_chains=Count(
                 "escalation_policies__escalation_chain",
                 distinct=True,
-            )
+            ),
         )
         return queryset
 
