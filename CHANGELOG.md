@@ -1,5 +1,11 @@
 # Change Log
 
+## v1.0.35 (2022-09-07)
+- Bug fixes
+
+## v1.0.34 (2022-09-06)
+- Fix schedule notification spam
+
 ## v1.0.33 (2022-09-06)
 - Add raw alert view
 - Add GitHub star button for OSS installations
