@@ -99,8 +99,8 @@ def get_instance_ids(query: str) -> Tuple[Optional[set], bool]:
     if not instances:
         return None, True
 
-    active_ids = set(i["id"] for i in instances["items"])
-    return active_ids, True
+    ids = set(i["id"] for i in instances["items"])
+    return ids, True
 
 
 def get_active_instance_ids() -> Tuple[Optional[set], bool]:

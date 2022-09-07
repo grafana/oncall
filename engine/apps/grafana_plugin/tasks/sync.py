@@ -16,7 +16,7 @@ logger.setLevel(logging.DEBUG)
 # celery beat will schedule start_sync_organizations for every 30 minutes
 # to make sure that orgs are synced every 30 minutes, SYNC_PERIOD should be a little lower
 SYNC_PERIOD = timezone.timedelta(minutes=25)
-INACTIVE_PERIOD = timezone.timedelta(minutes=60)
+INACTIVE_PERIOD = timezone.timedelta(minutes=55)
 
 
 @shared_dedicated_queue_retry_task(autoretry_for=(Exception,), retry_backoff=True, max_retries=5)
@@ -36,7 +36,7 @@ def start_sync_organizations():
 
     organization_pks = organization_qs.values_list("pk", flat=True)
 
-    max_countdown = 25 * 60  # SYNC_PERIOD minutes -> Seconds
+    max_countdown = SYNC_PERIOD.seconds
     for idx, organization_pk in enumerate(organization_pks):
         countdown = idx % max_countdown  # Spread orgs evenly along SYNC_PERIOD
         sync_organization_async.apply_async((organization_pk,), countdown=countdown)
@@ -88,13 +88,18 @@ def start_cleanup_deleted_organizations():
             logger.warning("Did not find any deleted instances!")
             return
         else:
-            logger.debug(f"Found {len(deleted_instance_ids)} active instances")
+            logger.debug(f"Found {len(deleted_instance_ids)} deleted instances")
             organization_qs = organization_qs.filter(stack_id__in=deleted_instance_ids)
 
     organization_pks = organization_qs.values_list("pk", flat=True)
 
     logger.debug(f"Found {len(organization_pks)} deleted organizations not synced recently")
-    max_countdown = 60 * 60  # INACTIVE_PERIOD minutes -> Seconds
+    max_countdown = INACTIVE_PERIOD.seconds
     for idx, organization_pk in enumerate(organization_pks):
         countdown = idx % max_countdown  # Spread orgs evenly
-        cleanup_organization.apply_async((organization_pk,), countdown=countdown)
+        cleanup_organization_async.apply_async((organization_pk,), countdown=countdown)
+
+
+@shared_dedicated_queue_retry_task(autoretry_for=(Exception,), max_retries=1)
+def cleanup_organization_async(organization_pk):
+    cleanup_organization(organization_pk)
