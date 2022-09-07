@@ -20,7 +20,7 @@ Resources that can be migrated using this tool:
 
 1. Make sure you have `docker` installed 
 2. Build the docker image: `docker build -t pd-oncall-migrator .`
-3. Obtain a PagerDuty API token: https://support.pagerduty.com/docs/api-access-keys
+3. Obtain a PagerDuty API user token: https://support.pagerduty.com/docs/api-access-keys#generate-a-user-token-rest-api-key
 4. Obtain a Grafana OnCall API token and API URL on the "Settings" page of your Grafana OnCall instance
 
 ## Migration plan
