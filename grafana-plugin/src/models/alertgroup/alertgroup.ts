@@ -414,8 +414,7 @@ export class AlertGroupStore extends BaseStore {
       console.log('undoAction', undoAction);
     } catch (e) {
       this.updateAlert(alertId, { loading: false });
-
-      openErrorNotification(e.response.data?.detail);
+      openErrorNotification(e.response.data || e.response.data?.detail);
     }
   }
 
