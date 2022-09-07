@@ -6,12 +6,12 @@ import { get } from 'lodash-es';
 import { observer } from 'mobx-react';
 import CopyToClipboard from 'react-copy-to-clipboard';
 
+import SourceCode from 'components/SourceCode/SourceCode';
 import { ApiToken } from 'models/api_token/api_token.types';
 import { useStore } from 'state/useStore';
 import { openErrorNotification, openNotification } from 'utils';
 
 import styles from './ApiTokenForm.module.css';
-import SourceCode from 'components/SourceCode/SourceCode';
 
 const cx = cn.bind(styles);
 
@@ -27,7 +27,6 @@ const ApiTokenForm = observer((props: TokenCreationModalProps) => {
   const { onHide = () => {}, onUpdate = () => {} } = props;
   const [name, setName] = useState('');
   const [token, setToken] = useState('');
-  const [isModalOpen, setIsModalOpen] = useState(true);
 
   const store = useStore();
 
@@ -47,7 +46,7 @@ const ApiTokenForm = observer((props: TokenCreationModalProps) => {
 
   return (
     <Modal
-      isOpen={isModalOpen}
+      isOpen
       closeOnEscape={false}
       title={token ? 'Your new API Token' : 'Create API Token'}
       onDismiss={onHide}
@@ -68,7 +67,7 @@ const ApiTokenForm = observer((props: TokenCreationModalProps) => {
         <SourceCode isButtonTopPositioned={true}>{CURL_EXAMPLE}</SourceCode>
 
         <HorizontalGroup justify="flex-end">
-          <Button variant="secondary" onClick={() => setIsModalOpen(false)}>
+          <Button variant="secondary" onClick={() => onHide()}>
             {token ? 'Close' : 'Cancel'}
           </Button>
           {!token && (
@@ -83,7 +82,7 @@ const ApiTokenForm = observer((props: TokenCreationModalProps) => {
 
   function renderTokenInput() {
     if (!token)
-      return (
+      {return (
         <Input
           className={cx('token__input')}
           maxLength={50}
@@ -91,7 +90,7 @@ const ApiTokenForm = observer((props: TokenCreationModalProps) => {
           placeholder="Enter token name"
           autoFocus
         />
-      );
+      );}
 
     return <Input value={token} disabled={!!token} className={cx('token__input')} />;
   }
