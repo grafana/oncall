@@ -1,29 +1,33 @@
 .root {
   position: relative;
   width: 100%;
+
+  &:hover .button {
+    opacity: 1;
+  }
 }
 
 .scroller {
   overflow-y: auto;
+
+  &--maxHeight {
+    max-height: 400px;
+  }
 }
 
-.scroller_max-height {
-  max-height: 400px;
-}
-
-.root .button {
+.button {
   position: absolute;
   top: 15px;
   right: 15px;
   opacity: 0;
   transition: opacity 0.2s ease;
+
+  &--top {
+    top: 4px;
+  }
 }
 
-.root:hover .button {
-  opacity: 1;
-}
-
-.root pre {
+pre {
   border-radius: 2px;
   padding: 12px 20px;
 }

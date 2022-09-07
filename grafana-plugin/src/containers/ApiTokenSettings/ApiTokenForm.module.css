@@ -1,0 +1,12 @@
+.token__inputContainer {
+  width: 100%;
+  display: flex;
+  margin-bottom: 24px;
+}
+
+.token__input {
+  flex-grow: 1;
+}
+.token__copyButton {
+  margin-left: 12px;
+}
