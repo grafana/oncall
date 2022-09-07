@@ -77,7 +77,7 @@ class SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSta
         render: this.renderStatus,
       },
       {
-        width: '30%',
+        width: '40%',
         title: 'Name',
         key: 'name',
         render: this.renderName,
@@ -94,12 +94,12 @@ class SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSta
         key: 'chatops',
         render: this.renderChatOps,
       },*/
-      {
+      /*{
         width: '10%',
         title: 'Quality',
         key: 'quality',
         render: this.renderQuality,
-      },
+      },*/
       {
         width: '5%',
         key: 'buttons',
@@ -238,12 +238,12 @@ class SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSta
             </>
           }
         />
-        <ScheduleCounter
+        {/* <ScheduleCounter
           type="warning"
           count={warningsCount}
           tooltipTitle="Warnings"
           tooltipContent="Schedule has unassigned time periods during next 7 days"
-        />
+        />*/}
       </HorizontalGroup>
     );
   };

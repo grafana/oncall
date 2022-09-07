@@ -87,7 +87,7 @@ const ScheduleOverrideForm: FC<RotationFormProps> = (props) => {
     dateTime(shiftMoment.add(24, 'hours').format('YYYY-MM-DD HH:mm:ss'))
   );
 
-  const [userGroups, setUserGroups] = useState(shiftId === 'new' ? [[store.userStore.currentUserPk]] : [[]]);
+  const [userGroups, setUserGroups] = useState([[]]);
 
   const getUser = (pk: User['pk']) => {
     return {
@@ -216,6 +216,7 @@ const ScheduleOverrideForm: FC<RotationFormProps> = (props) => {
           isMultipleGroups={false}
           getItemData={getUser}
           renderUser={renderUser}
+          showError={!userGroups.some((group) => group.length)}
         />
         {/*<hr />*/}
         <VerticalGroup>

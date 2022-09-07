@@ -108,7 +108,7 @@ const RotationForm: FC<RotationFormProps> = observer((props) => {
     }
   }, [isOpen]);
 
-  const [userGroups, setUserGroups] = useState(shiftId === 'new' ? [[store.userStore.currentUserPk]] : [[]]);
+  const [userGroups, setUserGroups] = useState([[]]);
 
   const getUser = (pk: User['pk']) => {
     return {
@@ -276,6 +276,7 @@ const RotationForm: FC<RotationFormProps> = observer((props) => {
           isMultipleGroups={true}
           getItemData={getUser}
           renderUser={renderUser}
+          showError={!userGroups.some((group) => group.length)}
         />
         {/*<hr />*/}
         <VerticalGroup>

@@ -4,7 +4,6 @@ import { Button, HorizontalGroup, Icon, ValuePicker } from '@grafana/ui';
 import cn from 'classnames/bind';
 import dayjs from 'dayjs';
 import { observer } from 'mobx-react';
-import moment from 'moment';
 import { CSSTransition, TransitionGroup } from 'react-transition-group';
 
 import TimelineMarks from 'components/TimelineMarks/TimelineMarks';
@@ -150,7 +149,9 @@ class ScheduleOverrides extends Component<ScheduleOverridesProps, ScheduleOverri
   };
 
   handleAddOverride = () => {
-    this.setState({ shiftIdToShowOverrideForm: 'new' });
+    const { startMoment } = this.props;
+
+    this.setState({ shiftIdToShowOverrideForm: 'new', shiftMomentToShowOverrideForm: startMoment });
   };
 
   handleHide = () => {

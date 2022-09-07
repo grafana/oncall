@@ -64,7 +64,6 @@ class SchedulePage extends React.Component<SchedulePageProps, SchedulePageState>
       query: { id },
     } = this.props;
 
-    store.scheduleStore.updateItem(id);
     store.scheduleStore.updateFrequencyOptions();
     store.scheduleStore.updateDaysOptions();
     await store.scheduleStore.updateOncallShifts(id); // TODO we should know shifts to render Rotations
@@ -93,7 +92,9 @@ class SchedulePage extends React.Component<SchedulePageProps, SchedulePageState>
                 <PluginLink query={{ page: 'schedules' }}>
                   <IconButton style={{ marginTop: '5px' }} name="arrow-left" size="xxl" />
                 </PluginLink>
-                <Text.Title level={3}>{schedule?.name}</Text.Title>
+                <Text.Title editable editModalTitle="Schedule name" level={3} onTextChange={this.handleNameChange}>
+                  {schedule?.name}
+                </Text.Title>
                 {/*<ScheduleCounter
                   type="link"
                   count={5}
@@ -213,6 +214,17 @@ class SchedulePage extends React.Component<SchedulePageProps, SchedulePageState>
     );
   }
 
+  handleNameChange = (value: string) => {
+    const { store, query } = this.props;
+    const { id: scheduleId } = query;
+
+    const schedule = store.scheduleStore.items[scheduleId];
+
+    store.scheduleStore
+      .update(scheduleId, { type: schedule.type, name: value })
+      .then(() => store.scheduleStore.updateItem(scheduleId));
+  };
+
   updateEvents = () => {
     const {
       store,
@@ -220,6 +232,8 @@ class SchedulePage extends React.Component<SchedulePageProps, SchedulePageState>
     } = this.props;
 
     const { startMoment } = this.state;
+
+    store.scheduleStore.updateItem(scheduleId); // to refresh current oncall users
 
     return Promise.all([
       store.scheduleStore.updateEvents(scheduleId, startMoment, 'rotation'),
@@ -282,8 +296,10 @@ class SchedulePage extends React.Component<SchedulePageProps, SchedulePageState>
   handleTimezoneChange = (value: Timezone) => {
     const { store } = this.props;
 
+    const oldTimezone = store.currentTimezone;
+
     this.setState((oldState) => {
-      const wDiff = oldState.startMoment.diff(getStartOfWeek(store.currentTimezone), 'weeks');
+      const wDiff = oldState.startMoment.diff(getStartOfWeek(oldTimezone), 'weeks');
 
       return { ...oldState, startMoment: getStartOfWeek(value).add(wDiff, 'weeks') };
     }, this.updateEvents);

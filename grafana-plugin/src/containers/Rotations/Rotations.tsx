@@ -167,7 +167,7 @@ class Rotations extends Component<RotationsProps, RotationsState> {
               <div
                 className={cx('add-rotations-layer')}
                 onClick={() => {
-                  this.handleAddLayer(nextPriority);
+                  this.handleAddLayer(nextPriority, startMoment);
                 }}
               >
                 + Add rotations layer
@@ -219,7 +219,13 @@ class Rotations extends Component<RotationsProps, RotationsState> {
   };
 
   handleAddRotation = (option: SelectOption) => {
-    this.setState({ shiftIdToShowRotationForm: 'new', layerPriority: option.value });
+    const { startMoment } = this.props;
+
+    this.setState({
+      shiftIdToShowRotationForm: 'new',
+      layerPriority: option.value,
+      shiftMomentToShowRotationForm: startMoment,
+    });
   };
 
   hideRotationForm = () => {

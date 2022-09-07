@@ -23,6 +23,7 @@ interface UserGroupsProps {
   isMultipleGroups: boolean;
   getItemData: (id: string) => ItemData;
   renderUser: (id: string) => React.ReactElement;
+  showError?: boolean;
 }
 
 const cx = cn.bind(styles);
@@ -32,7 +33,7 @@ const DragHandle = () => <IconButton name="draggabledots" />;
 const SortableHandleHoc = SortableHandle(DragHandle);
 
 const UserGroups = (props: UserGroupsProps) => {
-  const { value, onChange, isMultipleGroups, getItemData, renderUser } = props;
+  const { value, onChange, isMultipleGroups, getItemData, renderUser, showError } = props;
 
   const handleAddUserGroup = useCallback(() => {
     onChange([...value, []]);
@@ -49,7 +50,7 @@ const UserGroups = (props: UserGroupsProps) => {
 
         if (k === index) {
           newGroups[i] = newGroups[i].filter((item, itemIndex) => itemIndex !== j);
-          onChange(newGroups.filter((group, index) => index === newGroups.length - 1 || group.length));
+          onChange(newGroups.filter((group) => group.length));
           return;
         }
       }
@@ -134,6 +135,7 @@ const UserGroups = (props: UserGroupsProps) => {
           onChange={handleUserAdd}
           getOptionLabel={({ label, value }: SelectableValue) => <UserTooltip id={value} />}
           filterOptions={filterUsers}
+          showError={showError}
         />
       </VerticalGroup>
     </div>

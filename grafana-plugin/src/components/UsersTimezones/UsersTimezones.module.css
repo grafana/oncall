@@ -76,6 +76,7 @@
 }
 
 .avatar-group_inactive {
+  pointer-events: none;
   opacity: 0.2;
   transition: opacity 0.5s ease;
 }
