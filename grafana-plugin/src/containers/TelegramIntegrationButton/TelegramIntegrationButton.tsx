@@ -122,7 +122,7 @@ const TelegramModal = (props: TelegramModalProps) => {
       <div className={cx('telegram-instruction-container')}>
         <Text>
           5. Click{' '}
-          <a className={cx('telegram-bot')} href={botLink} target="_blank">
+          <a className={cx('telegram-bot')} href={botLink} target="_blank" rel="noreferrer">
             {botLink}
           </a>{' '}
           to add the OnCall bot to your contacts. Add the bot to your channel as an Admin. Allow it to{' '}
@@ -147,12 +147,16 @@ const TelegramModal = (props: TelegramModalProps) => {
               <Icon name="copy" />
             </CopyToClipboard>
           </span>{' '}
-          , to the channel.
+          , to the channel and wait for the confirmation message.
         </Text>
       </div>
 
       <div className={cx('telegram-instruction-container')}>
-        <Text>8. Make sure users connect to Telegram in their OnCall user profile.</Text>
+        <Text>8. Make sure users connect their Telegram accounts in their OnCall user profile.</Text>
+      </div>
+
+      <div className={cx('telegram-instruction-container')}>
+        <Text>9. Done! Now you can manage alerts in your Telegram workspace.</Text>
       </div>
 
       <div className={cx('telegram-instruction-container')}>

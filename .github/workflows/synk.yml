@@ -16,7 +16,7 @@ jobs:
           python-version: '3.9'
       - uses: actions/setup-node@v3
         with:
-          node-version: 14
+          node-version: 14.17.0
       - uses: snyk/actions/setup@master
       - name: Install Dependencies
         run: |

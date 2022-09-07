@@ -78,3 +78,11 @@ def test_parse_event_uid_v2():
     pk, source = parse_event_uid(event_uid)
     assert pk == pk_value
     assert source == "slack"
+
+
+def test_parse_event_uid_fallback():
+    # use ical existing UID for imported events
+    event_uid = "someid@google.com"
+    pk, source = parse_event_uid(event_uid)
+    assert pk == event_uid
+    assert source is None

@@ -12,6 +12,7 @@ FEATURE_LIVE_SETTINGS = "live_settings"
 MOBILE_APP_PUSH_NOTIFICATIONS = "mobile_app"
 FEATURE_GRAFANA_CLOUD_NOTIFICATIONS = "grafana_cloud_notifications"
 FEATURE_GRAFANA_CLOUD_CONNECTION = "grafana_cloud_connection"
+FEATURE_WEB_SCHEDULES = "web_schedules"
 
 
 class FeaturesAPIView(APIView):
@@ -55,5 +56,8 @@ class FeaturesAPIView(APIView):
                 enabled_features.append(FEATURE_LIVE_SETTINGS)
             if live_settings.GRAFANA_CLOUD_NOTIFICATIONS_ENABLED:
                 enabled_features.append(FEATURE_GRAFANA_CLOUD_NOTIFICATIONS)
+
+        if settings.FEATURE_WEB_SCHEDULES_ENABLED:
+            enabled_features.append(FEATURE_WEB_SCHEDULES)
 
         return enabled_features

@@ -13,6 +13,17 @@ from django.db.models import Q
 from django.utils import timezone
 from icalendar import Calendar
 
+from apps.schedules.constants import (
+    ICAL_ATTENDEE,
+    ICAL_DATETIME_END,
+    ICAL_DATETIME_START,
+    ICAL_DESCRIPTION,
+    ICAL_SUMMARY,
+    ICAL_UID,
+    RE_EVENT_UID_V1,
+    RE_EVENT_UID_V2,
+    RE_PRIORITY,
+)
 from apps.schedules.ical_events import ical_events
 from common.constants.role import Role
 from common.utils import timed_lru_cache
@@ -68,15 +79,6 @@ def memoized_users_in_ical(usernames_from_ical, organization):
     return users_in_ical(usernames_from_ical, organization)
 
 
-ICAL_DATETIME_START = "DTSTART"
-ICAL_DATETIME_END = "DTEND"
-ICAL_SUMMARY = "SUMMARY"
-ICAL_DESCRIPTION = "DESCRIPTION"
-ICAL_ATTENDEE = "ATTENDEE"
-ICAL_UID = "UID"
-RE_PRIORITY = re.compile(r"^\[L(\d)\]")
-RE_EVENT_UID_V1 = re.compile(r"amixr-([\w\d-]+)-U(\d+)-E(\d+)-S(\d+)")
-RE_EVENT_UID_V2 = re.compile(r"oncall-([\w\d-]+)-PK([\w\d]+)-U(\d+)-E(\d+)-S(\d+)")
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
 
@@ -187,13 +189,11 @@ def get_shifts_dict(calendar, calendar_type, schedule, datetime_start, datetime_
                         }
                     )
             else:
-                start = event[ICAL_DATETIME_START].dt.astimezone(pytz.UTC)
-                end = event[ICAL_DATETIME_END].dt.astimezone(pytz.UTC)
-
+                start, end = ical_events.get_start_and_end_with_respect_to_event_type(event)
                 result_datetime.append(
                     {
-                        "start": start,
-                        "end": end,
+                        "start": start.astimezone(pytz.UTC),
+                        "end": end.astimezone(pytz.UTC),
                         "users": users,
                         "missing_users": missing_users,
                         "priority": priority,
@@ -367,6 +367,9 @@ def parse_event_uid(string):
         match = RE_EVENT_UID_V1.match(string)
         if match:
             _, _, _, source = match.groups()
+        else:
+            # fallback to use the UID string as the rotation ID
+            pk = string
 
     if source is not None:
         source = int(source)
@@ -408,7 +411,7 @@ def get_users_from_ical_event(event, organization):
     return users
 
 
-def is_icals_equal(first, second):
+def is_icals_equal_line_by_line(first, second):
     first = first.split("\n")
     second = second.split("\n")
     if len(first) != len(second):
@@ -423,6 +426,30 @@ def is_icals_equal(first, second):
                     return False
 
     return True
+
+
+def is_icals_equal(first, second, schedule):
+    from apps.schedules.models import OnCallScheduleICal  # noqa
+
+    if isinstance(schedule, OnCallScheduleICal):
+        first_cal = Calendar.from_ical(first)
+        second_cal = Calendar.from_ical(second)
+        first_subcomponents = first_cal.subcomponents
+        second_subcomponents = second_cal.subcomponents
+        if len(first_subcomponents) != len(second_subcomponents):
+            return False
+        for idx, first_cmp in enumerate(first_cal.subcomponents):
+            second_cmp = second_subcomponents[idx]
+            if first_cmp.name == second_cmp.name == "VEVENT":
+                first_uid, first_seq = first_cmp.get("UID", None), first_cmp.get("SEQUENCE", None)
+                second_uid, second_seq = second_cmp.get("UID", None), second_cmp.get("SEQUENCE", None)
+                if first_uid != second_uid:
+                    return False
+                elif first_seq != second_seq:
+                    return False
+        return True
+    else:
+        return is_icals_equal_line_by_line(first, second)
 
 
 def ical_date_to_datetime(date, tz, start):

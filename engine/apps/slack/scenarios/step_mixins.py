@@ -36,16 +36,24 @@ class IncidentActionsAccessControlMixin(AccessControl):
             thread_ts = payload["message_ts"]
         except KeyError:
             thread_ts = payload["message"]["ts"]
+
+        text = "Attempted to {} by {}, but failed due to a lack of permissions.".format(
+            self.ACTION_VERBOSE,
+            self.user.get_user_verbal_for_team_for_slack(),
+        )
+
         self._slack_client.api_call(
             "chat.postMessage",
             channel=payload["channel"]["id"],
-            attachments=[
+            text=text,
+            blocks=[
                 {
-                    "callback_id": "alert",
-                    "text": "Attempted to {} by {}, but failed due to a lack of permissions.".format(
-                        self.ACTION_VERBOSE,
-                        self.user.get_user_verbal_for_team_for_slack(),
-                    ),
+                    "type": "section",
+                    "block_id": "alert",
+                    "text": {
+                        "type": "mrkdwn",
+                        "text": text,
+                    },
                 },
             ],
             thread_ts=None if self.send_denied_message_to_channel(payload) else thread_ts,

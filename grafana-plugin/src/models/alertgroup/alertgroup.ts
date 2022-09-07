@@ -298,6 +298,10 @@ export class AlertGroupStore extends BaseStore {
     });
   }
 
+  async getPayloadForIncident(pk: Alert['pk']) {
+    return await makeRequest(`/alerts/${pk}`, {});
+  }
+
   @action
   async getNewIncidentsStats() {
     const result = await makeRequest(`${this.path}stats/`, {
@@ -410,8 +414,7 @@ export class AlertGroupStore extends BaseStore {
       console.log('undoAction', undoAction);
     } catch (e) {
       this.updateAlert(alertId, { loading: false });
-
-      openErrorNotification(e.response.data?.detail);
+      openErrorNotification(e.response.data?.detail || e.response.data);
     }
   }
 

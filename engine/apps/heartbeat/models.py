@@ -1,7 +1,6 @@
 import logging
 from urllib.parse import urljoin
 
-import humanize
 from django.conf import settings
 from django.core.validators import MinLengthValidator
 from django.db import models, transaction
@@ -172,14 +171,6 @@ class IntegrationHeartBeat(BaseHeartBeat):
     )
 
     @property
-    def repr_settings_for_client_side_logging(self):
-        """
-        Example of execution:
-            timeout: 30 minutes
-        """
-        return f"timeout: {humanize.naturaldelta(self.timeout_seconds)}"
-
-    @property
     def is_expired(self):
         if self.last_heartbeat_time is not None:
             # if heartbeat signal was received check timeout
@@ -242,3 +233,25 @@ class IntegrationHeartBeat(BaseHeartBeat):
         (43200, "12 hours"),
         (86400, "1 day"),
     )
+
+    # Insight logs
+    @property
+    def insight_logs_type_verbal(self):
+        return "integration_heartbeat"
+
+    @property
+    def insight_logs_verbal(self):
+        return f"Integration Heartbeat for {self.alert_receive_channel.insight_logs_verbal}"
+
+    @property
+    def insight_logs_serialized(self):
+        return {
+            "timeout": self.timeout_seconds,
+        }
+
+    @property
+    def insight_logs_metadata(self):
+        return {
+            "integration": self.alert_receive_channel.insight_logs_verbal,
+            "integration_id": self.alert_receive_channel.public_primary_key,
+        }

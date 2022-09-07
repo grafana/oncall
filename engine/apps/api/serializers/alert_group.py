@@ -61,7 +61,6 @@ class AlertGroupListSerializer(EagerLoadingMixin, serializers.ModelSerializer):
             "pk",
             "alerts_count",
             "inside_organization_number",
-            "verbose_name",
             "alert_receive_channel",
             "resolved",
             "resolved_by",

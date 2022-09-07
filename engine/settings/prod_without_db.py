@@ -83,9 +83,6 @@ CELERY_TASK_ROUTES = {
     "apps.alerts.tasks.create_contact_points_for_datasource.create_contact_points_for_datasource": {"queue": "default"},
     "apps.alerts.tasks.sync_grafana_alerting_contact_points.sync_grafana_alerting_contact_points": {"queue": "default"},
     "apps.alerts.tasks.delete_alert_group.delete_alert_group": {"queue": "default"},
-    "apps.alerts.tasks.invalidate_web_cache_for_alert_group.invalidate_web_cache_for_alert_group": {
-        "queue": "default"
-    },  # todo: remove
     "apps.alerts.tasks.send_alert_group_signal.send_alert_group_signal": {"queue": "default"},
     "apps.alerts.tasks.wipe.wipe": {"queue": "default"},
     "apps.heartbeat.tasks.heartbeat_checkup": {"queue": "default"},
@@ -142,6 +139,8 @@ CELERY_TASK_ROUTES = {
     "apps.schedules.tasks.drop_cached_ical.drop_cached_ical_for_custom_events_for_organization": {"queue": "critical"},
     "apps.schedules.tasks.drop_cached_ical.drop_cached_ical_task": {"queue": "critical"},
     # LONG
+    "apps.alerts.tasks.alert_group_web_title_cache.update_web_title_cache_for_alert_receive_channel": {"queue": "long"},
+    "apps.alerts.tasks.alert_group_web_title_cache.update_web_title_cache": {"queue": "long"},
     "apps.alerts.tasks.check_escalation_finished.check_escalation_finished_task": {"queue": "long"},
     "apps.grafana_plugin.tasks.sync.start_sync_organizations": {"queue": "long"},
     "apps.grafana_plugin.tasks.sync.sync_organization_async": {"queue": "long"},

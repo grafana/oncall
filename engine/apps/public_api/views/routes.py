@@ -9,10 +9,10 @@ from apps.alerts.models import ChannelFilter
 from apps.auth_token.auth import ApiTokenAuthentication
 from apps.public_api.serializers import ChannelFilterSerializer, ChannelFilterUpdateSerializer
 from apps.public_api.throttlers.user_throttle import UserThrottle
-from apps.user_management.organization_log_creator import OrganizationLogType, create_organization_log
 from common.api_helpers.exceptions import BadRequest
 from common.api_helpers.mixins import RateLimitHeadersMixin, UpdateSerializerMixin
 from common.api_helpers.paginators import TwentyFivePageSizePaginator
+from common.insight_log import EntityEvent, write_resource_insight_log
 
 
 class ChannelFilterView(RateLimitHeadersMixin, UpdateSerializerMixin, ModelViewSet):
@@ -60,43 +60,30 @@ class ChannelFilterView(RateLimitHeadersMixin, UpdateSerializerMixin, ModelViewS
         if instance.is_default:
             raise BadRequest(detail="Unable to delete default filter")
         else:
-            alert_receive_channel = instance.alert_receive_channel
-            user = self.request.user
-            route_verbal = instance.verbal_name_for_clients.capitalize()
-            description = f"{route_verbal} of integration {alert_receive_channel.verbal_name} was deleted"
-            create_organization_log(
-                alert_receive_channel.organization,
-                user,
-                OrganizationLogType.TYPE_CHANNEL_FILTER_DELETED,
-                description,
+            write_resource_insight_log(
+                instance=instance,
+                author=self.request.user,
+                event=EntityEvent.DELETED,
             )
             self.perform_destroy(instance)
             return Response(status=status.HTTP_204_NO_CONTENT)
 
     def perform_create(self, serializer):
         serializer.save()
-        instance = serializer.instance
-        alert_receive_channel = instance.alert_receive_channel
-        user = self.request.user
-        route_verbal = instance.verbal_name_for_clients.capitalize()
-        description = f"{route_verbal} was created for integration {alert_receive_channel.verbal_name}"
-        create_organization_log(
-            alert_receive_channel.organization,
-            user,
-            OrganizationLogType.TYPE_CHANNEL_FILTER_CREATED,
-            description,
+        write_resource_insight_log(
+            instance=serializer.instance,
+            author=self.request.user,
+            event=EntityEvent.CREATED,
         )
 
     def perform_update(self, serializer):
-        organization = self.request.auth.organization
-        user = self.request.user
-        old_state = serializer.instance.repr_settings_for_client_side_logging
+        prev_state = serializer.instance.insight_logs_serialized
         serializer.save()
-        new_state = serializer.instance.repr_settings_for_client_side_logging
-        alert_receive_channel = serializer.instance.alert_receive_channel
-        route_verbal = serializer.instance.verbal_name_for_clients.capitalize()
-        description = (
-            f"Settings for {route_verbal} of integration {alert_receive_channel.verbal_name} "
-            f"was changed from:\n{old_state}\nto:\n{new_state}"
+        new_state = serializer.instance.insight_logs_serialized
+        write_resource_insight_log(
+            instance=serializer.instance,
+            author=self.request.user,
+            event=EntityEvent.UPDATED,
+            prev_state=prev_state,
+            new_state=new_state,
         )
-        create_organization_log(organization, user, OrganizationLogType.TYPE_CHANNEL_FILTER_CHANGED, description)

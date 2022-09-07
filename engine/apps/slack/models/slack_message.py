@@ -137,8 +137,15 @@ class SlackMessage(models.Model):
         else:
             text = "{}\nInviting {} to look at incident.".format(alert_group.long_verbose_name, user_verbal)
 
-        attachments = [
-            {"color": "#c6c000", "callback_id": "alert", "text": text},  # yellow
+        blocks = [
+            {
+                "type": "section",
+                "block_id": "alert",
+                "text": {
+                    "type": "mrkdwn",
+                    "text": text,
+                },
+            }
         ]
         sc = SlackClientWithErrorHandling(self.slack_team_identity.bot_access_token)
         channel_id = slack_message.channel_id
@@ -147,7 +154,8 @@ class SlackMessage(models.Model):
             result = sc.api_call(
                 "chat.postMessage",
                 channel=channel_id,
-                attachments=attachments,
+                text=text,
+                blocks=blocks,
                 thread_ts=slack_message.slack_id,
                 unfurl_links=True,
             )

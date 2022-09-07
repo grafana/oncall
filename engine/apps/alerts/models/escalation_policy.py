@@ -300,47 +300,6 @@ class EscalationPolicy(OrderedModel):
         return self.STEP_CHOICES[self.step][1] if self.step is not None else "Empty"
 
     @property
-    def repr_settings_for_client_side_logging(self):
-        """
-        Example of execution:
-            step: 'Notify multiple Users', order: 0, important: No, users: Alex, Bob
-        Another example:
-            step: 'Continue escalation only if time is from', order: 4, from time: 09:40:00 (UTC), to time: 15:40:00 (UTC)
-        """
-        result = f"step: '{self.step_type_verbal}', order: {self.order}"
-        if self.step not in EscalationPolicy.STEPS_WITH_NO_IMPORTANT_VERSION_SET:
-            result += f", important: {'Yes' if self.step in EscalationPolicy.IMPORTANT_STEPS_SET else 'No'}"
-        if self.step == EscalationPolicy.STEP_WAIT:
-            result += f", wait: {self.get_wait_delay_display() if self.wait_delay else 'default'}"
-        elif self.step in [EscalationPolicy.STEP_NOTIFY_GROUP, EscalationPolicy.STEP_NOTIFY_GROUP_IMPORTANT]:
-            result += f", user group: {self.notify_to_group.name if self.notify_to_group else 'not selected'}"
-        elif self.step in [EscalationPolicy.STEP_NOTIFY_SCHEDULE, EscalationPolicy.STEP_NOTIFY_SCHEDULE_IMPORTANT]:
-            result += f", on-call schedule: {self.notify_schedule.name if self.notify_schedule else 'not selected'}"
-        elif self.step == EscalationPolicy.STEP_TRIGGER_CUSTOM_BUTTON:
-            result += f", action: {self.custom_button_trigger.name if self.custom_button_trigger else 'not selected'}"
-        elif self.step in [
-            EscalationPolicy.STEP_NOTIFY_USERS_QUEUE,
-            EscalationPolicy.STEP_NOTIFY_MULTIPLE_USERS,
-            EscalationPolicy.STEP_NOTIFY_MULTIPLE_USERS_IMPORTANT,
-        ]:
-            if self.notify_to_users_queue:
-                users_verbal = ", ".join([user.username for user in self.sorted_users_queue])
-            else:
-                users_verbal = "not selected"
-            result += f", users: {users_verbal}"
-        elif self.step == EscalationPolicy.STEP_NOTIFY_IF_TIME:
-            if self.from_time:
-                from_time_verbal = self.from_time.isoformat() + " (UTC)"
-            else:
-                from_time_verbal = "not selected"
-            if self.to_time:
-                to_time_verbal = self.to_time.isoformat() + " (UTC)"
-            else:
-                to_time_verbal = "not selected"
-            result += f", from time: {from_time_verbal}, to time: {to_time_verbal}"
-        return result
-
-    @property
     def sorted_users_queue(self):
         return sorted(self.notify_to_users_queue.all(), key=lambda user: (user.username or "", user.pk))
 
@@ -359,3 +318,57 @@ class EscalationPolicy(OrderedModel):
                 step_name = step_choice[1]
                 break
         return step_name
+
+    # Insight logs
+    @property
+    def insight_logs_type_verbal(self):
+        return "escalation_policy"
+
+    @property
+    def insight_logs_verbal(self):
+        return f"Escalation Policy  {self.order} in {self.escalation_chain.insight_logs_verbal}"
+
+    @property
+    def insight_logs_serialized(self):
+        result = {
+            "type": self.step_type_verbal,
+            "order": self.order,
+        }
+
+        if self.step == EscalationPolicy.STEP_WAIT:
+            if self.wait_delay:
+                result["wait_delay"] = self.get_wait_delay_display()
+        elif self.step in [EscalationPolicy.STEP_NOTIFY_GROUP, EscalationPolicy.STEP_NOTIFY_GROUP_IMPORTANT]:
+            if self.notify_to_group:
+                result["user_group"] = self.notify_to_group.name
+                result["user_group_id"] = self.notify_to_group.public_primary_key
+        elif self.step in [EscalationPolicy.STEP_NOTIFY_SCHEDULE, EscalationPolicy.STEP_NOTIFY_SCHEDULE_IMPORTANT]:
+            if self.notify_schedule:
+                result["on-call_schedule"] = self.notify_schedule.insight_logs_verbal
+                result["on-call_schedule_id"] = self.notify_schedule.public_primary_key
+        elif self.step == EscalationPolicy.STEP_TRIGGER_CUSTOM_BUTTON:
+            if self.custom_button_trigger:
+                result["outgoing_webhook"] = self.custom_button_trigger.insight_logs_verbal
+                result["outgoing_webhook_id"] = self.custom_button_trigger.public_primary_key
+        elif self.step in [
+            EscalationPolicy.STEP_NOTIFY_USERS_QUEUE,
+            EscalationPolicy.STEP_NOTIFY_MULTIPLE_USERS,
+            EscalationPolicy.STEP_NOTIFY_MULTIPLE_USERS_IMPORTANT,
+        ]:
+            if self.notify_to_users_queue:
+                result["notify_users"] = [user.username for user in self.sorted_users_queue]
+                result["notify_users_ids"] = [user.public_primary_key for user in self.sorted_users_queue]
+        elif self.step == EscalationPolicy.STEP_NOTIFY_IF_TIME:
+            if self.from_time:
+                result["from_time"] = self.from_time.isoformat() + " (UTC)"
+            if self.to_time:
+                result["to_time"] = self.to_time.isoformat() + " (UTC)"
+
+        return result
+
+    @property
+    def insight_logs_metadata(self):
+        return {
+            "escalation_chain": self.escalation_chain.insight_logs_verbal,
+            "escalation_chain_id": self.escalation_chain.public_primary_key,
+        }

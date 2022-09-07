@@ -46,10 +46,6 @@ class EscalationChain(models.Model):
     def __str__(self):
         return f"{self.pk}: {self.name}"
 
-    @property
-    def repr_settings_for_client_side_logging(self):
-        return f"name: {self.name}, team: {self.team.name if self.team else 'No team'}"
-
     def make_copy(self, copy_name: str):
         with transaction.atomic():
             copied_chain = EscalationChain.objects.create(
@@ -68,3 +64,35 @@ class EscalationChain(models.Model):
                 escalation_policy.save()
                 escalation_policy.notify_to_users_queue.set(notify_to_users_queue)
             return copied_chain
+
+    # Insight logs
+    @property
+    def insight_logs_type_verbal(self):
+        return "escalation_chain"
+
+    @property
+    def insight_logs_verbal(self):
+        return self.name
+
+    @property
+    def insight_logs_serialized(self):
+        result = {
+            "name": self.name,
+        }
+
+        if self.team:
+            result["team"] = self.team.name
+            result["team_id"] = self.team.public_primary_key
+        else:
+            result["team"] = "General"
+        return result
+
+    @property
+    def insight_logs_metadata(self):
+        result = {}
+        if self.team:
+            result["team"] = self.team.name
+            result["team_id"] = self.team.public_primary_key
+        else:
+            result["team"] = "General"
+        return result
