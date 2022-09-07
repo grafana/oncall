@@ -1,6 +1,6 @@
 import pytz
 from django.core.exceptions import ObjectDoesNotExist
-from django.db.models import OuterRef, Subquery
+from django.db.models import Count, OuterRef, Subquery
 from django.db.utils import IntegrityError
 from django.urls import reverse
 from django.utils import dateparse, timezone
@@ -12,6 +12,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.views import Response
 from rest_framework.viewsets import ModelViewSet
 
+from apps.alerts.models import EscalationChain
 from apps.api.permissions import MODIFY_ACTIONS, READ_ACTIONS, ActionPermission, AnyRole, IsAdmin, IsAdminOrEditor
 from apps.api.serializers.schedule_base import ScheduleFastSerializer
 from apps.api.serializers.schedule_polymorphic import (
@@ -59,6 +60,7 @@ class ScheduleView(
             "notify_empty_oncall_options",
             "notify_oncall_shift_freq_options",
             "mention_options",
+            "related_escalation_chains",
         ),
     }
 
@@ -90,6 +92,23 @@ class ScheduleView(
         context.update({"can_update_user_groups": self.can_update_user_groups})
         return context
 
+    def _annotate_queryset(self, queryset):
+        """Annotate queryset with additional schedule metadata."""
+        organization = self.request.auth.organization
+        slack_channels = SlackChannel.objects.filter(
+            slack_team_identity=organization.slack_team_identity,
+            slack_id=OuterRef("channel"),
+        )
+        queryset = queryset.annotate(
+            slack_channel_name=Subquery(slack_channels.values("name")[:1]),
+            slack_channel_pk=Subquery(slack_channels.values("public_primary_key")[:1]),
+            num_escalation_chains=Count(
+                "escalation_policies__escalation_chain",
+                distinct=True,
+            ),
+        )
+        return queryset
+
     def get_queryset(self):
         is_short_request = self.request.query_params.get("short", "false") == "true"
         organization = self.request.auth.organization
@@ -98,14 +117,7 @@ class ScheduleView(
             team=self.request.user.current_team,
         )
         if not is_short_request:
-            slack_channels = SlackChannel.objects.filter(
-                slack_team_identity=organization.slack_team_identity,
-                slack_id=OuterRef("channel"),
-            )
-            queryset = queryset.annotate(
-                slack_channel_name=Subquery(slack_channels.values("name")[:1]),
-                slack_channel_pk=Subquery(slack_channels.values("public_primary_key")[:1]),
-            )
+            queryset = self._annotate_queryset(queryset)
             queryset = self.serializer_class.setup_eager_loading(queryset)
         return queryset
 
@@ -113,14 +125,10 @@ class ScheduleView(
         # Override this method because we want to get object from organization instead of concrete team.
         pk = self.kwargs["pk"]
         organization = self.request.auth.organization
-        slack_channels = SlackChannel.objects.filter(
-            slack_team_identity=organization.slack_team_identity,
-            slack_id=OuterRef("channel"),
+        queryset = organization.oncall_schedules.filter(
+            public_primary_key=pk,
         )
-        queryset = organization.oncall_schedules.filter(public_primary_key=pk,).annotate(
-            slack_channel_name=Subquery(slack_channels.values("name")[:1]),
-            slack_channel_pk=Subquery(slack_channels.values("public_primary_key")[:1]),
-        )
+        queryset = self._annotate_queryset(queryset)
 
         try:
             obj = queryset.get()
@@ -258,6 +266,15 @@ class ScheduleView(
                 users[user] = e
 
         result = {"users": users}
+        return Response(result, status=status.HTTP_200_OK)
+
+    @action(detail=True, methods=["get"])
+    def related_escalation_chains(self, request, pk):
+        """Return escalation chains associated to schedule."""
+        schedule = self.original_get_object()
+        escalation_chains = EscalationChain.objects.filter(escalation_policies__notify_schedule=schedule).distinct()
+
+        result = [{"name": e.name, "pk": e.public_primary_key} for e in escalation_chains]
         return Response(result, status=status.HTTP_200_OK)
 
     @action(detail=False, methods=["get"])
