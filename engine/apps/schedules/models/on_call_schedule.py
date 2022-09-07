@@ -676,6 +676,9 @@ class OnCallScheduleWeb(OnCallSchedule):
                 pass
             else:
                 if update_shift.event_is_started:
+                    custom_shift.rotation_start = max(
+                        custom_shift.rotation_start, timezone.now().replace(microsecond=0)
+                    )
                     update_shift.until = custom_shift.rotation_start
                     extra_shifts.append(update_shift)
                 else:

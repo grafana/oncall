@@ -1511,7 +1511,7 @@ def test_on_call_shift_preview_update(
 
     now = timezone.now().replace(hour=0, minute=0, second=0, microsecond=0)
     start_date = now - timezone.timedelta(days=7)
-    request_date = start_date
+    tomorrow = now + timezone.timedelta(days=1)
 
     user = make_user_for_organization(organization)
     other_user = make_user_for_organization(organization)
@@ -1530,11 +1530,9 @@ def test_on_call_shift_preview_update(
     )
     on_call_shift.add_rolling_users([[user]])
 
-    url = "{}?date={}&days={}".format(
-        reverse("api-internal:oncall_shifts-preview"), request_date.strftime("%Y-%m-%d"), 1
-    )
-    shift_start = (start_date + timezone.timedelta(hours=10)).strftime("%Y-%m-%dT%H:%M:%SZ")
-    shift_end = (start_date + timezone.timedelta(hours=18)).strftime("%Y-%m-%dT%H:%M:%SZ")
+    url = "{}?date={}&days={}".format(reverse("api-internal:oncall_shifts-preview"), tomorrow.strftime("%Y-%m-%d"), 1)
+    shift_start = (tomorrow + timezone.timedelta(hours=10)).strftime("%Y-%m-%dT%H:%M:%SZ")
+    shift_end = (tomorrow + timezone.timedelta(hours=18)).strftime("%Y-%m-%dT%H:%M:%SZ")
     shift_data = {
         "schedule": schedule.public_primary_key,
         "shift_pk": on_call_shift.public_primary_key,
@@ -1576,14 +1574,16 @@ def test_on_call_shift_preview_update(
     final_events = response.json()["final"]
     expected = (
         # start (h), duration (H), user, priority
+        (0, 1, user.username, 1),  # 0-1 user
+        (4, 1, user.username, 1),  # 4-5 user
         (8, 1, user.username, 1),  # 8-9 user
         (10, 8, other_user.username, 1),  # 10-18 other_user
     )
     expected_events = [
         {
-            "end": (start_date + timezone.timedelta(hours=start + duration)).strftime("%Y-%m-%dT%H:%M:%SZ"),
+            "end": (tomorrow + timezone.timedelta(hours=start + duration)).strftime("%Y-%m-%dT%H:%M:%SZ"),
             "priority_level": priority,
-            "start": (start_date + timezone.timedelta(hours=start, milliseconds=1 if start == 0 else 0)).strftime(
+            "start": (tomorrow + timezone.timedelta(hours=start, milliseconds=1 if start == 0 else 0)).strftime(
                 "%Y-%m-%dT%H:%M:%SZ"
             ),
             "user": user,
