@@ -655,7 +655,7 @@ class OnCallScheduleWeb(OnCallSchedule):
             except CustomOnCallShift.DoesNotExist:
                 pass
             else:
-                if update_shift.event_is_started or custom_shift.rotation_start > update_shift.rotation_start:
+                if update_shift.event_is_started:
                     update_shift.until = custom_shift.rotation_start
                     extra_shifts.append(update_shift)
                 else:
