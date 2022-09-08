@@ -57,9 +57,9 @@ class SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSta
   async componentDidMount() {
     const { store } = this.props;
 
-    if (!store.hasFeature(AppFeature.WebSchedules)) {
+    /* if (!store.hasFeature(AppFeature.WebSchedules)) {
       getLocationSrv().update({ query: { page: 'schedules' } });
-    }
+    } */
 
     store.userStore.updateItems();
     store.scheduleStore.updateItems();

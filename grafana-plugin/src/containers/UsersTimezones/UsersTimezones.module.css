@@ -73,6 +73,7 @@
   border-radius: 8px;
   text-align: center;
   transition: opacity 200ms ease, left 200ms ease;
+  pointer-events: none;
 }
 
 .avatar-group_inactive {

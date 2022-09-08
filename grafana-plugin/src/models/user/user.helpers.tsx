@@ -48,7 +48,7 @@ export const getTimezone = (user: User) => {
     'Matvey Kukuy': 'Asia/Tel_Aviv',
   };
 
-  return user.timezone || tzByName[user.username] || dayjs.tz.guess();
+  return user.timezone || tzByName[user.username] || 'UTC';
 };
 
 export const getUserNotificationsSummary = (user: User) => {

@@ -8,6 +8,7 @@ import BaseStore from 'models/base_store';
 import { EscalationChain } from 'models/escalation_chain/escalation_chain.types';
 import { SlackChannel } from 'models/slack_channel/slack_channel.types';
 import { Timezone } from 'models/timezone/timezone.types';
+import { User } from 'models/user/user.types';
 import { makeRequest } from 'network';
 import { RootStore } from 'state';
 import { SelectOption } from 'state/types';
@@ -26,34 +27,6 @@ const DEFAULT_FORMAT = 'YYYY-MM-DDTHH:mm:ss';
 
 let I = 0;
 
-function getUsers() {
-  const rnd = Math.random();
-  /*
-
-        if (rnd > 0.66) {
-          return [];
-        }
-*/
-
-  const users = [
-    'U5WE86241LNEA',
-    'U9XM1G7KTE3KW',
-    'UYKS64M6C59XM',
-    'UFFIRDUFXA6W3',
-    'UPRMSTP9LCADE',
-    'UR6TVJWZYV19M',
-    'UHRMQQ7KETPCS',
-  ];
-
-  /* if (rnd > 0.33) {
-          return [users[Math.floor(Math.random() * users.length)], users[Math.floor(Math.random() * users.length)]];
-        }*/
-
-  return ['UPRMSTP9LCADE', 'UHRMQQ7KETPCS'];
-
-  return [users[Math.floor(Math.random() * users.length)]];
-}
-
 export class ScheduleStore extends BaseStore {
   @observable
   searchResult: { [key: string]: Array<Schedule['id']> } = {};
@@ -66,6 +39,9 @@ export class ScheduleStore extends BaseStore {
 
   @observable.shallow
   relatedEscalationChains: { [id: string]: EscalationChain[] } = {};
+
+  @observable.shallow
+  relatedUsers: { [id: string]: { [key: string]: Event } } = {};
 
   @observable.shallow
   rotations: {
@@ -276,55 +252,18 @@ export class ScheduleStore extends BaseStore {
     return response;
   };
 
-  async updateRotationMock(rotationId: Rotation['id'], fromString: string, currentTimezone: Timezone) {
-    if (this.rotations[rotationId]?.[fromString]) {
-      return;
-    }
-
-    const response = await new Promise((resolve, reject) => {
-      setTimeout(() => {
-        if (!fromString) {
-          fromString = dayjs().startOf('week').format('YYYY-MM-DDTHH:mm:ss.000Z');
-        }
-
-        let startMoment = dayjs(fromString);
-        const utcOffset = dayjs().tz(currentTimezone).utcOffset();
-
-        startMoment = startMoment.add(utcOffset, 'minutes');
-        //const startMoment = dayjs().utc().startOf('week');
-
-        const shifts = [];
-        for (let i = 0; i < 7; i++) {
-          const shiftDuration = (12 + Math.floor(Math.random() * 12)) * 60 * 60;
-          const gapDuration = 24 * 60 * 60 - shiftDuration;
-
-          shifts.push({
-            pk: I++,
-            start: startMoment.add(24 * i, 'hour'),
-            duration: shiftDuration,
-            users: getUsers(),
-          });
-
-          shifts.push({
-            pk: I++,
-            start: startMoment.add(24 * i, 'hour').add(shiftDuration, 'seconds'),
-            duration: gapDuration,
-            is_gap: true,
-          });
-        }
-
-        resolve({ id: rotationId, shifts });
-      }, 500);
+  updateRelatedUsers = async (id: Schedule['id']) => {
+    const { users } = await makeRequest(`/schedules/${id}/next_shifts_per_user`, {
+      method: 'GET',
     });
 
-    this.rotations = {
-      ...this.rotations,
-      [rotationId]: {
-        ...this.rotations[rotationId],
-        [fromString]: response as Rotation,
-      },
+    this.relatedUsers = {
+      ...this.relatedUsers,
+      [id]: users,
     };
-  }
+
+    return users;
+  };
 
   async updateOncallShifts(scheduleId: Schedule['id']) {
     const { results } = await makeRequest(`/oncall_shifts/`, {

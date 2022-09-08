@@ -15,11 +15,11 @@ import ScheduleQuality from 'components/ScheduleQuality/ScheduleQuality';
 import Text from 'components/Text/Text';
 // import UsersTimezones from 'components/UsersTimezones/UsersTimezones';
 import UserTimezoneSelect from 'components/UserTimezoneSelect/UserTimezoneSelect';
-import UsersTimezones from 'components/UsersTimezones/UsersTimezones';
 import WithConfirm from 'components/WithConfirm/WithConfirm';
 import Rotations from 'containers/Rotations/Rotations';
 import ScheduleFinal from 'containers/Rotations/ScheduleFinal';
 import ScheduleOverrides from 'containers/Rotations/ScheduleOverrides';
+import UsersTimezones from 'containers/UsersTimezones/UsersTimezones';
 import { Timezone } from 'models/timezone/timezone.types';
 import { User } from 'models/user/user.types';
 import { AppFeature } from 'state/features';
@@ -59,9 +59,9 @@ class SchedulePage extends React.Component<SchedulePageProps, SchedulePageState>
     const { store } = this.props;
     const { startMoment } = this.state;
 
-    if (!store.hasFeature(AppFeature.WebSchedules)) {
+    /*if (!store.hasFeature(AppFeature.WebSchedules)) {
       getLocationSrv().update({ query: { page: 'schedules' } });
-    }
+    }*/
 
     store.userStore.updateItems();
 
@@ -143,7 +143,9 @@ class SchedulePage extends React.Component<SchedulePageProps, SchedulePageState>
           <div className={cx('users-timezones')}>
             <UsersTimezones
               onCallNow={schedule?.on_call_now || []}
-              users={users || []}
+              userIds={
+                scheduleStore.relatedUsers[scheduleId] ? Object.keys(scheduleStore.relatedUsers[scheduleId]) : []
+              }
               tz={currentTimezone}
               onTzChange={this.handleTimezoneChange}
             />
@@ -239,6 +241,7 @@ class SchedulePage extends React.Component<SchedulePageProps, SchedulePageState>
     const { startMoment } = this.state;
 
     store.scheduleStore.updateItem(scheduleId); // to refresh current oncall users
+    store.scheduleStore.updateRelatedUsers(scheduleId); // to refresh related users
 
     return Promise.all([
       store.scheduleStore.updateEvents(scheduleId, startMoment, 'rotation'),

@@ -10,11 +10,12 @@ import Text from 'components/Text/Text';
 import { IsOncallIcon } from 'icons';
 import { Timezone } from 'models/timezone/timezone.types';
 import { User } from 'models/user/user.types';
+import { useStore } from 'state/useStore';
 
 import styles from './UsersTimezones.module.css';
 
 interface UsersTimezonesProps {
-  users: User[];
+  userIds: Array<User['pk']>;
   tz: Timezone;
   onTzChange: (tz: Timezone) => void;
   onCallNow: Array<Partial<User>>;
@@ -27,10 +28,25 @@ const hoursToSplit = 3;
 const jLimit = 24 / hoursToSplit;
 
 const UsersTimezones: FC<UsersTimezonesProps> = (props) => {
-  const { users, tz, onTzChange, onCallNow } = props;
+  const { userIds, tz, onTzChange, onCallNow } = props;
+
+  const store = useStore();
 
   const [count, setCount] = useState<number>(0);
   const [currentMoment, setCurrentMoment] = useState<dayjs.Dayjs>(dayjs().tz(tz));
+
+  useEffect(() => {
+    userIds.forEach((userId) => {
+      if (!store.userStore.items[userId]) {
+        store.userStore.updateItem(userId);
+      }
+    });
+  }, [userIds]);
+
+  const users = useMemo(
+    () => userIds.map((userId) => store.userStore.items[userId]).filter(Boolean),
+    [userIds, store.userStore.items]
+  );
 
   useEffect(() => {
     setCurrentMoment(currentMoment.tz(tz).startOf('minute'));
@@ -121,9 +137,10 @@ const UserAvatars = (props: UserAvatarsProps) => {
   const userGroups = useMemo(() => {
     return users
       .reduce((memo, user) => {
-        let group = memo.find((group) => group.timezone === user.timezone);
+        const userUtcOffset = dayjs().tz(user.timezone).utcOffset();
+        let group = memo.find((group) => group.utcOffset === userUtcOffset);
         if (!group) {
-          group = { timezone: user.timezone, users: [] };
+          group = { utcOffset: userUtcOffset, users: [] };
           memo.push(group);
         }
         group.users.push(user);
@@ -131,13 +148,10 @@ const UserAvatars = (props: UserAvatarsProps) => {
         return memo;
       }, [])
       .sort((a, b) => {
-        const aOffset = dayjs().tz(a.timezone).utcOffset();
-        const bOffset = dayjs().tz(b.timezone).utcOffset();
-
-        if (aOffset > bOffset) {
+        if (a.utcOffset > b.utcOffset) {
           return 1;
         }
-        if (aOffset < bOffset) {
+        if (a.utcOffset < b.utcOffset) {
           return -1;
         }
 
@@ -145,28 +159,22 @@ const UserAvatars = (props: UserAvatarsProps) => {
       });
   }, [users]);
 
-  const getAvatarClickHandler = useCallback((timezone: Timezone) => {
-    return () => {
-      onTzChange(timezone);
-    };
-  }, []);
-
-  const [activeTimezone, setActiveTimezone] = useState<Timezone | undefined>(undefined);
+  const [activeUtcOffset, setActiveUtcOffset] = useState<number | undefined>(undefined);
 
   return (
     <div className={cx('user-avatars')}>
       {userGroups.map((group) => {
-        const userCurrentMoment = dayjs(currentMoment).tz(group.timezone);
+        const userCurrentMoment = dayjs(currentMoment).tz(group.users[0].timezone); // TODO try using group.utcOffset
         const diff = userCurrentMoment.diff(userCurrentMoment.startOf('day'), 'minutes');
 
         const xPos = (diff / (60 * 24)) * 100;
 
         return (
           <AvatarGroup
-            activeTimezone={activeTimezone}
-            timezone={group.timezone}
-            onSetActiveTimezone={setActiveTimezone}
-            onClick={getAvatarClickHandler(group.timezone)}
+            activeUtcOffset={activeUtcOffset}
+            utcOffset={group.utcOffset}
+            onSetActiveUtcOffset={setActiveUtcOffset}
+            onTzChange={onTzChange}
             xPos={xPos}
             users={group.users}
             currentMoment={currentMoment}
@@ -182,10 +190,10 @@ interface AvatarGroupProps {
   users: User[];
   xPos: number;
   currentMoment: dayjs.Dayjs;
-  onClick: () => void;
-  timezone: Timezone;
-  onSetActiveTimezone: (timezone: Timezone) => void;
-  activeTimezone: Timezone;
+  utcOffset: number;
+  onSetActiveUtcOffset: (utcOffset: number | undefined) => void;
+  activeUtcOffset: number;
+  onTzChange: (timezone: Timezone) => void;
   onCallNow: Array<Partial<User>>;
 }
 
@@ -198,14 +206,14 @@ const AvatarGroup = (props: AvatarGroupProps) => {
     users: propsUsers,
     currentMoment,
     xPos,
-    onClick,
-    timezone,
-    onSetActiveTimezone,
-    activeTimezone,
+    onTzChange,
+    utcOffset,
+    onSetActiveUtcOffset,
+    activeUtcOffset,
     onCallNow,
   } = props;
 
-  const active = activeTimezone && activeTimezone === timezone;
+  const active = !isNaN(activeUtcOffset) && activeUtcOffset === utcOffset;
 
   const translateLeft = -AVATAR_WIDTH / 2;
 
@@ -225,15 +233,22 @@ const AvatarGroup = (props: AvatarGroupProps) => {
     });
   }, [propsUsers]);
 
+  const getAvatarClickHandler = useCallback((timezone: Timezone) => {
+    return () => {
+      onTzChange(timezone);
+    };
+  }, []);
+
   const width = active ? users.length * AVATAR_WIDTH + (users.length - 1) * AVATAR_GAP : AVATAR_WIDTH;
 
   return (
     <div
-      className={cx('avatar-group', { [`avatar-group_inactive`]: activeTimezone && activeTimezone !== timezone })}
-      style={{ width: `${width + AVATAR_GAP}px`, left: `${xPos}%`, transform: `translate(${translateLeft}px, 0)` }}
-      onClick={onClick}
-      onMouseEnter={() => onSetActiveTimezone(timezone)}
-      onMouseLeave={() => onSetActiveTimezone(undefined)}
+      className={cx('avatar-group', {
+        [`avatar-group_inactive`]: !isNaN(activeUtcOffset) && activeUtcOffset !== utcOffset,
+      })}
+      style={{ width: `${width}px`, left: `${xPos}%`, transform: `translate(${translateLeft}px, 0)` }}
+      onMouseEnter={() => onSetActiveUtcOffset(utcOffset)}
+      onMouseLeave={() => onSetActiveUtcOffset(undefined)}
     >
       {users.map((user, index, array) => {
         const isOncall = onCallNow.some((onCallUser) => user.pk === onCallUser.pk);
@@ -254,6 +269,7 @@ const AvatarGroup = (props: AvatarGroupProps) => {
                 zIndex: array.length - index - 1,
                 /* opacity: userHour >= 9 && userHour < 18 ? 1 : 0.5,*/
               }}
+              onClick={getAvatarClickHandler(user.timezone)}
             >
               <Avatar src={user.avatar} size="large" />
               {isOncall && <IsOncallIcon className={cx('is-oncall-icon')} />}

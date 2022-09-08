@@ -59,6 +59,16 @@ export class UserStore extends BaseStore {
       [user.pk]: { ...user, timezone: getTimezone(user) },
     };
 
+    // TODO comment
+    if (user.timezone) {
+      this.update(user.pk, { timezone: 'UTC' });
+    }
+
+    // TODO uncomment
+    /*if (!user.timezone) {
+      this.update(user.pk, { timezone: dayjs.tz.guess() });
+    }*/
+
     this.currentUserPk = user.pk;
   }
 
@@ -68,7 +78,7 @@ export class UserStore extends BaseStore {
 
     this.items = {
       ...this.items,
-      [user.pk]: user,
+      [user.pk]: { ...user, timezone: getTimezone(user) },
     };
   }
 
