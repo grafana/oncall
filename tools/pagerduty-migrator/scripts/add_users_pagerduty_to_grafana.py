@@ -37,7 +37,7 @@ def post_grafana(data):
     elif response.status_code == 412:
         print(ERROR_SIGN + " User " + data["login"] + " already exists." )
     else: 
-        print(response.text)
+        print("{} {}".format(ERROR_SIGN, response.text))
 
 if __name__ == "__main__":
     pd_list_users()
