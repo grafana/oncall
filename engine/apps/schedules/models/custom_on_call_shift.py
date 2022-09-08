@@ -562,7 +562,7 @@ class CustomOnCallShift(models.Model):
             instance_data["start"].time(),
         ).astimezone(pytz.UTC)
         # calculate rotation index to keep user rotation order
-        start_rotation_from_user_index = self.get_rotation_user_index() + self.start_rotation_from_user_index
+        start_rotation_from_user_index = self.get_rotation_user_index() + (self.start_rotation_from_user_index or 0)
         if start_rotation_from_user_index >= len(instance_data["rolling_users"]):
             start_rotation_from_user_index = 0
         instance_data["start_rotation_from_user_index"] = start_rotation_from_user_index
