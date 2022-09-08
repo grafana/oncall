@@ -12,6 +12,7 @@ interface ScheduleCounterProps {
   count: number;
   tooltipTitle: string;
   tooltipContent: React.ReactNode;
+  onHover: () => void;
 }
 
 const typeToIcon = {
@@ -37,7 +38,7 @@ const typeToBackgroundColor = {
 const cx = cn.bind(styles);
 
 const ScheduleCounter: FC<ScheduleCounterProps> = (props) => {
-  const { type, count, tooltipTitle, tooltipContent } = props;
+  const { type, count, tooltipTitle, tooltipContent, onHover } = props;
 
   return (
     <Tooltip
@@ -52,7 +53,7 @@ const ScheduleCounter: FC<ScheduleCounterProps> = (props) => {
         </div>
       }
     >
-      <div className={cx('root', { [`root__type_${type}`]: true })}>
+      <div className={cx('root', { [`root__type_${type}`]: true })} onMouseEnter={onHover}>
         <HorizontalGroup spacing="xs">
           <Icon className={cx('icon', { [`icon__type_${type}`]: true })} name={typeToIcon[type]} />
           <Text type={typeToColor[type]}>{count}</Text>

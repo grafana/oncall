@@ -64,17 +64,16 @@ const UserGroups = (props: UserGroupsProps) => {
       }
 
       const newGroups = [...value];
-      const lastGroup = newGroups[newGroups.length - 1];
+      let lastGroup = newGroups[newGroups.length - 1];
+      if (!lastGroup) {
+        lastGroup = [];
+        newGroups.push(lastGroup);
+      }
 
       lastGroup.push(pk);
 
       onChange(newGroups);
     },
-    [value]
-  );
-
-  const filterUsers = useCallback(
-    ({ value: itemValue }) => !value.some((group: Array<User['pk']>) => group.some((pk) => pk === itemValue)),
     [value]
   );
 
@@ -134,7 +133,6 @@ const UserGroups = (props: UserGroupsProps) => {
           value={null}
           onChange={handleUserAdd}
           getOptionLabel={({ label, value }: SelectableValue) => <UserTooltip id={value} />}
-          filterOptions={filterUsers}
           showError={showError}
         />
       </VerticalGroup>

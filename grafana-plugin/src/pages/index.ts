@@ -64,14 +64,14 @@ export const pages: PageDefinition[] = [
   {
     component: SchedulesPage2,
     icon: 'calendar-alt',
-    id: 'schedules-old',
-    text: 'Schedules OLD',
+    id: 'schedules',
+    text: 'Schedules',
   },
   {
     component: SchedulesPage,
     icon: 'calendar-alt',
-    id: 'schedules',
-    text: 'Schedules',
+    id: 'schedules-new',
+    text: 'Schedules α',
   },
   {
     component: SchedulePage,

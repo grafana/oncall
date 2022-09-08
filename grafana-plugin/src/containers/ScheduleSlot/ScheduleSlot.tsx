@@ -56,7 +56,14 @@ const ScheduleSlot: FC<ScheduleSlotProps> = observer((props) => {
 
   return (
     <div className={cx('stack')} style={{ width: `${width * 100}%` /*left: `${x * 100}%`*/ }}>
-      {event.is_empty ? (
+      {event.is_gap ? (
+        <Tooltip content={<ScheduleGapDetails event={event} currentTimezone={currentTimezone} />}>
+          <div className={cx('root', 'root__type_gap')} style={{}}>
+            {trackMouse && mouseX > 0 && <div style={{ left: `${mouseX}px` }} className={cx('time')} />}
+            {label && <div className={cx('label')}>{label}</div>}
+          </div>
+        </Tooltip>
+      ) : event.is_empty ? (
         <div
           className={cx('root')}
           style={{
@@ -69,13 +76,6 @@ const ScheduleSlot: FC<ScheduleSlotProps> = observer((props) => {
             </div>
           )}
         </div>
-      ) : event.is_gap ? (
-        <Tooltip content={<ScheduleGapDetails event={event} currentTimezone={currentTimezone} />}>
-          <div className={cx('root', 'root__type_gap')} style={{}}>
-            {trackMouse && mouseX > 0 && <div style={{ left: `${mouseX}px` }} className={cx('time')} />}
-            {label && <div className={cx('label')}>{label}</div>}
-          </div>
-        </Tooltip>
       ) : (
         users.map(({ pk: userPk }, userIndex) => {
           const storeUser = store.userStore.items[userPk];

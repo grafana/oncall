@@ -1,7 +1,11 @@
+
 .root {
   max-width: 1600px;
   margin: 0 auto;
   margin-top: 24px;
+
+  --rotations-border: var(--border-medium);
+  --rotations-background: var(--primary-background);
 }
 
 .header {

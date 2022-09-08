@@ -25,6 +25,7 @@ export interface Schedule {
   mention_oncall_next: boolean;
   mention_oncall_start: boolean;
   notify_empty_oncall: number;
+  number_of_escalation_chains: number;
 }
 
 export interface ScheduleEvent {

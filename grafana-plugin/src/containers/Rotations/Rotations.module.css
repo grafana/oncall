@@ -1,7 +1,7 @@
 .root {
-  border: var(--border-medium);
+  border: var(--rotations-border);
   border-radius: 2px;
-  background: var(--primary-background);
+  background: var(--rotations-background);
 }
 
 .current-time {

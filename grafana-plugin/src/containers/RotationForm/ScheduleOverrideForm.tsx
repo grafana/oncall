@@ -198,7 +198,7 @@ const ScheduleOverrideForm: FC<RotationFormProps> = (props) => {
     >
       <VerticalGroup>
         <HorizontalGroup justify="space-between">
-          <Text size="medium">{shiftId === 'new' ? 'New Override' : shift?.id}</Text>
+          <Text size="medium">{shiftId === 'new' ? 'New Override' : 'Update Override'}</Text>
           <HorizontalGroup>
             <IconButton disabled variant="secondary" tooltip="Copy" name="copy" />
             <IconButton disabled variant="secondary" tooltip="Code" name="brackets-curly" />

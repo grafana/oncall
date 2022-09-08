@@ -22,6 +22,7 @@ import ScheduleFinal from 'containers/Rotations/ScheduleFinal';
 import ScheduleOverrides from 'containers/Rotations/ScheduleOverrides';
 import { Timezone } from 'models/timezone/timezone.types';
 import { User } from 'models/user/user.types';
+import { AppFeature } from 'state/features';
 import { WithStoreProps } from 'state/types';
 import { withMobXProviderContext } from 'state/withStore';
 
@@ -58,6 +59,10 @@ class SchedulePage extends React.Component<SchedulePageProps, SchedulePageState>
     const { store } = this.props;
     const { startMoment } = this.state;
 
+    if (!store.hasFeature(AppFeature.WebSchedules)) {
+      getLocationSrv().update({ query: { page: 'schedules' } });
+    }
+
     store.userStore.updateItems();
 
     const {
@@ -89,7 +94,7 @@ class SchedulePage extends React.Component<SchedulePageProps, SchedulePageState>
           <div className={cx('header')}>
             <HorizontalGroup justify="space-between">
               <HorizontalGroup>
-                <PluginLink query={{ page: 'schedules' }}>
+                <PluginLink query={{ page: 'schedules-new' }}>
                   <IconButton style={{ marginTop: '5px' }} name="arrow-left" size="xxl" />
                 </PluginLink>
                 <Text.Title editable editModalTitle="Schedule name" level={3} onTextChange={this.handleNameChange}>
@@ -334,7 +339,7 @@ class SchedulePage extends React.Component<SchedulePageProps, SchedulePageState>
     } = this.props;
 
     store.scheduleStore.delete(scheduleId).then(() => {
-      getLocationSrv().update({ query: { page: 'schedules' } });
+      getLocationSrv().update({ query: { page: 'schedules-new' } });
     });
   };
 

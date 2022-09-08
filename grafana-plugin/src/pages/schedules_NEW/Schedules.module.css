@@ -11,6 +11,10 @@
   margin: 20px 0;
 }
 
+.loader {
+  padding-left: 20px;
+}
+
 /*
 .root .expanded-row {
   background: var(--secondary-background);

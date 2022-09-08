@@ -17,6 +17,10 @@
   background: rgba(63, 62, 62, 0.45);
 }
 
+.root th:first-child {
+  padding-left: 20px;
+}
+
 .root td {
   min-height: 60px;
   padding: 10px 0;

@@ -1,9 +1,10 @@
 import React from 'react';
 
 import { getLocationSrv } from '@grafana/runtime';
-import { Button, HorizontalGroup, IconButton, VerticalGroup } from '@grafana/ui';
+import { Button, HorizontalGroup, IconButton, LoadingPlaceholder, VerticalGroup } from '@grafana/ui';
 import cn from 'classnames/bind';
 import dayjs from 'dayjs';
+import { debounce } from 'lodash-es';
 import { observer } from 'mobx-react';
 
 import Avatar from 'components/Avatar/Avatar';
@@ -17,13 +18,12 @@ import Text from 'components/Text/Text';
 import TimelineMarks from 'components/TimelineMarks/TimelineMarks';
 import UserTimezoneSelect from 'components/UserTimezoneSelect/UserTimezoneSelect';
 import WithConfirm from 'components/WithConfirm/WithConfirm';
-import Rotation from 'containers/Rotation/Rotation';
 import ScheduleFinal from 'containers/Rotations/ScheduleFinal';
 import { getFromString } from 'models/schedule/schedule.helpers';
 import { Schedule, ScheduleType } from 'models/schedule/schedule.types';
-import { getTzOffsetString } from 'models/timezone/timezone.helpers';
 import { Timezone } from 'models/timezone/timezone.types';
 import { getStartOfWeek } from 'pages/schedule/Schedule.helpers';
+import { AppFeature } from 'state/features';
 import { WithStoreProps } from 'state/types';
 import { withMobXProviderContext } from 'state/withStore';
 
@@ -48,7 +48,7 @@ class SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSta
     const { store } = this.props;
     this.state = {
       startMoment: getStartOfWeek(store.currentTimezone),
-      filters: { searchTerm: '', status: 'all', type: 'all' },
+      filters: { searchTerm: '', status: 'all', type: ScheduleType.API },
       showNewScheduleSelector: false,
       expandedRowKeys: [],
     };
@@ -56,6 +56,10 @@ class SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSta
 
   async componentDidMount() {
     const { store } = this.props;
+
+    if (!store.hasFeature(AppFeature.WebSchedules)) {
+      getLocationSrv().update({ query: { page: 'schedules' } });
+    }
 
     store.userStore.updateItems();
     store.scheduleStore.updateItems();
@@ -67,8 +71,7 @@ class SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSta
 
     const { scheduleStore } = store;
 
-    const schedules = scheduleStore.getSearchResult();
-
+    const schedules = scheduleStore.getSearchResult(/*filters.searchTerm*/);
     const columns = [
       {
         width: '10%',
@@ -84,7 +87,7 @@ class SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSta
       },
       {
         width: '45%',
-        title: 'OnCall',
+        title: 'Oncall',
         key: 'users',
         render: this.renderOncallNow,
       },
@@ -107,9 +110,19 @@ class SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSta
       },
     ];
 
-    const moment = dayjs().tz(store.currentTimezone);
-
     const users = store.userStore.getSearchResult().results;
+
+    const data = schedules
+      ? schedules
+          .filter((schedule) => schedule.type === ScheduleType.API)
+          .filter(
+            (schedule) =>
+              filters.status === 'all' ||
+              (filters.status === 'used' && schedule.number_of_escalation_chains) ||
+              (filters.status === 'unused' && !schedule.number_of_escalation_chains)
+          )
+          .filter((schedule) => !filters.searchTerm || schedule.name.includes(filters.searchTerm))
+      : undefined;
 
     return (
       <>
@@ -132,7 +145,7 @@ class SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSta
             </HorizontalGroup>
             <Table
               columns={columns}
-              data={schedules}
+              data={data}
               pagination={{ page: 1, total: 1, onChange: this.handlePageChange }}
               rowKey="id"
               expandable={{
@@ -142,6 +155,11 @@ class SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSta
                 expandRowByClick: true,
                 expandedRowClassName: () => cx('expanded-row'),
               }}
+              emptyText={
+                <div className={cx('loader')}>
+                  {data ? <Text type="secondary">Not found</Text> : <Text type="secondary">Loading schedules...</Text>}
+                </div>
+              }
             />
           </VerticalGroup>
         </div>
@@ -186,7 +204,9 @@ class SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSta
       this.setState({ expandedRowKeys: [...this.state.expandedRowKeys, data.id] }, this.updateEvents);
     } else if (!expanded && expandedRowKeys.includes(data.id)) {
       const index = expandedRowKeys.indexOf(data.id);
-      this.setState({ expandedRowKeys: [...expandedRowKeys.splice(index, 1)] }, this.updateEvents);
+      const newExpandedRowKeys = [...expandedRowKeys];
+      newExpandedRowKeys.splice(index, 1);
+      this.setState({ expandedRowKeys: newExpandedRowKeys }, this.updateEvents);
     }
   };
 
@@ -195,7 +215,9 @@ class SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSta
     const { expandedRowKeys, startMoment } = this.state;
 
     expandedRowKeys.forEach((scheduleId) => {
-      store.scheduleStore.updateEvents(scheduleId, getFromString(startMoment), 'final');
+      store.scheduleStore.updateEvents(scheduleId, startMoment, 'rotation');
+      store.scheduleStore.updateEvents(scheduleId, startMoment, 'override');
+      store.scheduleStore.updateEvents(scheduleId, startMoment, 'final');
     });
   };
 
@@ -218,25 +240,37 @@ class SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSta
     );
   };
 
-  renderStatus = () => {
-    const escalationsCount = Math.floor(Math.random() * 10) + 1;
-    const warningsCount = Math.floor(Math.random() * 10) + 1;
+  renderStatus = (item: Schedule) => {
+    const {
+      store: { scheduleStore },
+    } = this.props;
+
+    const relatedEscalationChains = scheduleStore.relatedEscalationChains[item.id];
 
     return (
       <HorizontalGroup>
         <ScheduleCounter
           type="link"
-          count={escalationsCount}
+          count={item.number_of_escalation_chains}
           tooltipTitle="Used in escalations"
           tooltipContent={
-            <>
-              <PluginLink query={{ page: 'integrations', id: 'CXBEG63MBJMDL' }}>Grafana 1</PluginLink>
-              <br />
-              <PluginLink query={{ page: 'integrations', id: 'CXBEG63MBJMDL' }}>Grafana 2</PluginLink>
-              <br />
-              <PluginLink query={{ page: 'integrations', id: 'CXBEG63MBJMDL' }}>Grafana 3</PluginLink>
-            </>
+            <VerticalGroup spacing="sm">
+              {relatedEscalationChains ? (
+                relatedEscalationChains.length ? (
+                  relatedEscalationChains.map((escalationChain) => (
+                    <PluginLink query={{ page: 'escalations', id: escalationChain.pk }}>
+                      {escalationChain.name}
+                    </PluginLink>
+                  ))
+                ) : (
+                  'Not used yet'
+                )
+              ) : (
+                <LoadingPlaceholder>Loading related escalation chains....</LoadingPlaceholder>
+              )}
+            </VerticalGroup>
           }
+          onHover={this.getUpdateRelatedEscalationChainsHandler(item.id)}
         />
         {/* <ScheduleCounter
           type="warning"
@@ -305,8 +339,18 @@ class SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSta
   };
 
   handleSchedulesFiltersChange = (filters: SchedulesFiltersType) => {
-    this.setState({ filters });
+    this.setState({ filters }, this.debouncedUpdateSchedules);
   };
+
+  applyFilters = () => {
+    const { filters } = this.state;
+    const { store } = this.props;
+    const { scheduleStore } = store;
+
+    // scheduleStore.updateItems(filters.searchTerm);
+  };
+
+  debouncedUpdateSchedules = debounce(this.applyFilters, 1000);
 
   handlePageChange = (page: number) => {};
 
@@ -315,6 +359,17 @@ class SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSta
     const { scheduleStore } = store;
 
     return scheduleStore.updateItems();
+  };
+
+  getUpdateRelatedEscalationChainsHandler = (scheduleId: Schedule['id']) => {
+    const { store } = this.props;
+    const { scheduleStore } = store;
+
+    return () => {
+      scheduleStore.updateRelatedEscalationChains(scheduleId).then(() => {
+        this.forceUpdate();
+      });
+    };
   };
 }
 

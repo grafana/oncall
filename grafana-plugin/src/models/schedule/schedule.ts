@@ -5,6 +5,7 @@ import { action, observable, toJS } from 'mobx';
 import ReactCSSTransitionGroup from 'react-transition-group'; // ES6
 
 import BaseStore from 'models/base_store';
+import { EscalationChain } from 'models/escalation_chain/escalation_chain.types';
 import { SlackChannel } from 'models/slack_channel/slack_channel.types';
 import { Timezone } from 'models/timezone/timezone.types';
 import { makeRequest } from 'network';
@@ -62,6 +63,9 @@ export class ScheduleStore extends BaseStore {
 
   @observable.shallow
   shifts: { [id: string]: Shift } = {};
+
+  @observable.shallow
+  relatedEscalationChains: { [id: string]: EscalationChain[] } = {};
 
   @observable.shallow
   rotations: {
@@ -122,7 +126,7 @@ export class ScheduleStore extends BaseStore {
 
   @action
   async updateItems(query = '') {
-    const result = await this.getAll();
+    const result = await makeRequest(this.path, { method: 'GET', params: { search: query } });
 
     this.items = {
       ...this.items,
@@ -259,6 +263,19 @@ export class ScheduleStore extends BaseStore {
     return response;
   }
 
+  updateRelatedEscalationChains = async (id: Schedule['id']) => {
+    const response = await makeRequest(`/schedules/${id}/related_escalation_chains`, {
+      method: 'GET',
+    });
+
+    this.relatedEscalationChains = {
+      ...this.relatedEscalationChains,
+      [id]: response,
+    };
+
+    return response;
+  };
+
   async updateRotationMock(rotationId: Rotation['id'], fromString: string, currentTimezone: Timezone) {
     if (this.rotations[rotationId]?.[fromString]) {
       return;
@@ -342,7 +359,7 @@ export class ScheduleStore extends BaseStore {
   async deleteOncallShift(shiftId: Shift['id']) {
     return await makeRequest(`/oncall_shifts/${shiftId}`, {
       method: 'DELETE',
-    });
+    }).catch(this.onApiError);
   }
 
   async updateEvents(scheduleId: Schedule['id'], startMoment: dayjs.Dayjs, type: RotationType = 'rotation', days = 9) {

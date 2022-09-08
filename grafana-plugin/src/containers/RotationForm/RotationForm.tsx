@@ -256,7 +256,7 @@ const RotationForm: FC<RotationFormProps> = observer((props) => {
           <Text size="medium">
             <HorizontalGroup spacing="sm">
               <span>[L{shiftId === 'new' ? layerPriority : shift?.priority_level}]</span>
-              {shiftId === 'new' ? 'New Rotation' : shift?.id}
+              {shiftId === 'new' ? 'New Rotation' : 'Update Rotation'}
             </HorizontalGroup>
           </Text>
           <HorizontalGroup>

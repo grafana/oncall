@@ -139,9 +139,10 @@ export const Root = observer((props: AppRootProps) => {
         grafanaUser: window.grafanaBootData.user,
         enableLiveSettings: store.hasFeature(AppFeature.LiveSettings),
         enableCloudPage: store.hasFeature(AppFeature.CloudConnection),
+        enableNewSchedulesPage: store.hasFeature(AppFeature.WebSchedules),
         backendLicense,
       }),
-      [meta, pathWithoutLeadingSlash, page, store.features]
+      [meta, pathWithoutLeadingSlash, page, store.features, backendLicense]
     )
   );
   useEffect(() => {
