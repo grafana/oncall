@@ -23,7 +23,7 @@ def pd_list_users():
     for user in users:
         password = secrets.token_urlsafe(15)
         username = user["email"].split("@")
-        json = {"name": user["name"], "email": user["email"], "login": username[0], "password": password}
+        json = {"name": user["name"], "email": user["email"], "login": username, "password": password}
         post_grafana(json)
 
 def post_grafana(data):
