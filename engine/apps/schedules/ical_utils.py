@@ -445,9 +445,9 @@ def is_icals_equal(first, second):
         for cmp in second_cal.subcomponents:
             second_cal_events[cmp.get("UID", None)] = cmp.get("SEQUENCE", None)
         for first_uid, first_seq in first_cal_events.items():
-            second_seq = second_cal_events.get(first_uid, None)
-            if second_seq is None:
+            if first_uid not in second_cal_events:
                 return False
+            second_seq = second_cal_events.get(first_uid, None)
             if first_seq != second_seq:
                 return False
         return True
