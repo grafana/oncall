@@ -1,4 +1,4 @@
-# Grafana Oncall Scripts
+# PagerDuty migrator scripts
 
 When we run MODE="plan" we can notice that there is escalation, integration in pagerduty that needs to be linked to a user.
 
