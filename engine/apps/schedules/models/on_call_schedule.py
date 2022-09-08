@@ -694,7 +694,9 @@ class OnCallScheduleWeb(OnCallSchedule):
 
         # filter events using a temporal overriden calendar including the not-yet-saved shift
         events = self.filter_events(user_tz, starting_date, days=days, with_empty=True, with_gap=True)
-        shift_events = [e for e in events if e["shift"]["pk"] == custom_shift.public_primary_key]
+        # return preview events for affected shifts
+        updated_shift_pks = {s.public_primary_key for s in extra_shifts}
+        shift_events = [e for e in events if e["shift"]["pk"] in updated_shift_pks]
         final_events = self._resolve_schedule(events)
 
         _invalidate_cache(self, ical_property)

@@ -1549,26 +1549,28 @@ def test_on_call_shift_preview_update(
 
     # check rotation events
     rotation_events = response.json()["rotation"]
+    assert len(rotation_events) == 4
+    # the final original rotation events are returned and the ID is kept
+    for shift in rotation_events[:3]:
+        assert shift["shift"]["pk"] == on_call_shift.public_primary_key
     # previewing an update does not reuse shift PK if rotation already started
-    shift_pk = rotation_events[0]["shift"]["pk"]
-    assert shift_pk != on_call_shift.public_primary_key
-    expected_rotation_events = [
-        {
-            "calendar_type": OnCallSchedule.TYPE_ICAL_PRIMARY,
-            "shift": {"pk": shift_pk},
-            "start": shift_start,
-            "end": shift_end,
-            "all_day": False,
-            "is_override": False,
-            "is_empty": False,
-            "is_gap": False,
-            "priority_level": 1,
-            "missing_users": [],
-            "users": [{"display_name": other_user.username, "pk": other_user.public_primary_key}],
-            "source": "web",
-        },
-    ]
-    assert rotation_events == expected_rotation_events
+    new_shift_pk = rotation_events[-1]["shift"]["pk"]
+    assert new_shift_pk != on_call_shift.public_primary_key
+    expected_shift_preview = {
+        "calendar_type": OnCallSchedule.TYPE_ICAL_PRIMARY,
+        "shift": {"pk": new_shift_pk},
+        "start": shift_start,
+        "end": shift_end,
+        "all_day": False,
+        "is_override": False,
+        "is_empty": False,
+        "is_gap": False,
+        "priority_level": 1,
+        "missing_users": [],
+        "users": [{"display_name": other_user.username, "pk": other_user.public_primary_key}],
+        "source": "web",
+    }
+    assert rotation_events[-1] == expected_shift_preview
 
     # check final schedule events
     final_events = response.json()["final"]
