@@ -18,3 +18,7 @@
   line-height: 20px;
   height: auto;
 }
+
+.instructions-link {
+  color: var(--primary-text-link);
+}
