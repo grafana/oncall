@@ -25,6 +25,10 @@ We prepared multiple environments: [production](https://grafana.com/docs/grafana
 curl -fsSL https://raw.githubusercontent.com/grafana/oncall/dev/docker-compose.yml -o docker-compose.yml
 ```
 
+If you are attempting to run Oncall on a Raspberry Pi or other ARM64 architecture, make the following changes throughout:
+* `mysql:5.7` -> `arm64v8/mysql`
+* `platform: linux/x86_64` -> `platform: linux`
+
 2. Set variables:
 ```bash
 echo "DOMAIN=http://localhost:8080
