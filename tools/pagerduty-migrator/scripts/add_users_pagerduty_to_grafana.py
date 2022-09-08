@@ -38,7 +38,6 @@ def post_grafana(data):
         print(ERROR_SIGN + " User " + data["login"] + " already exists." )
     else: 
         print(response.text)
-        sys.exit()
 
 if __name__ == "__main__":
     pd_list_users()
