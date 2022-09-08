@@ -27,6 +27,7 @@ import Collapse from 'components/Collapse/Collapse';
 import Block from 'components/GBlock/Block';
 import IntegrationLogo from 'components/IntegrationLogo/IntegrationLogo';
 import WrongTeamStub from 'components/NotFoundInTeam/WrongTeamStub';
+import { getWrongTeamResponseInfo } from 'components/NotFoundInTeam/WrongTeam.helpers';
 import PluginLink from 'components/PluginLink/PluginLink';
 import SourceCode from 'components/SourceCode/SourceCode';
 import Text from 'components/Text/Text';
@@ -98,23 +99,7 @@ class IncidentPage extends React.Component<IncidentPageProps, IncidentPageState>
       query: { id },
     } = this.props;
 
-    store.alertGroupStore.getAlert(id).catch((error) => {
-      if (error.response) {
-        if (error.response.status === 404) {
-          this.setState({ notFound: true });
-        } else if (error.response.status === 403 && error.response.data.error_code === 'wrong_team') {
-          let res = error.response.data;
-          if (res.owner_team) {
-            this.setState({ wrongTeamError: true, teamToSwitch: { name: res.owner_team.name, id: res.owner_team.id } });
-          } else {
-            this.setState({ wrongTeamError: true, wrongTeamNoPermissions: true });
-          }
-          return;
-        }
-      }
-
-      this.setState({ notFound: true });
-    });
+    store.alertGroupStore.getAlert(id).catch((error) => this.setState({ ...getWrongTeamResponseInfo(error) }));
   };
 
   render() {
