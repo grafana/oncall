@@ -679,6 +679,7 @@ class OnCallScheduleWeb(OnCallSchedule):
                     custom_shift.rotation_start = max(
                         custom_shift.rotation_start, timezone.now().replace(microsecond=0)
                     )
+                    custom_shift.start_rotation_from_user_index = update_shift.start_rotation_from_user_index
                     update_shift.until = custom_shift.rotation_start
                     extra_shifts.append(update_shift)
                 else:

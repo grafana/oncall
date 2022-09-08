@@ -462,11 +462,17 @@ def test_update_old_on_call_shift_with_future_version(
 
     response = client.put(url, data=data_to_update, format="json", **make_user_auth_headers(user1, token))
 
+    next_shift_start_date = timezone.datetime.combine(next_rotation_start_date.date(), start_date.time()).astimezone(
+        timezone.pytz.UTC
+    )
+
     expected_payload = data_to_update | {
         "id": new_on_call_shift.public_primary_key,
         "type": CustomOnCallShift.TYPE_ROLLING_USERS_EVENT,
         "schedule": schedule.public_primary_key,
         "updated_shift": None,
+        "shift_start": next_shift_start_date.strftime("%Y-%m-%dT%H:%M:%SZ"),
+        "shift_end": (next_shift_start_date + updated_duration).strftime("%Y-%m-%dT%H:%M:%SZ"),
     }
 
     assert response.status_code == status.HTTP_200_OK
