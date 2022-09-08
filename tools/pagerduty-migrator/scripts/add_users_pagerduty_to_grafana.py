@@ -18,7 +18,7 @@ def pd_list_users():
 
     session = APISession(PAGERDUTY_API_TOKEN)
 
-    users = session.list_all("users", params={"include[]": "notification_rules"})
+    users = session.list_all("users")
 
     for user in users:
         password = secrets.token_urlsafe(15)
