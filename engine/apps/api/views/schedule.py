@@ -8,6 +8,7 @@ from django.utils.functional import cached_property
 from rest_framework import status
 from rest_framework.decorators import action
 from rest_framework.exceptions import NotFound
+from rest_framework.filters import SearchFilter
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.views import Response
 from rest_framework.viewsets import ModelViewSet
@@ -63,6 +64,8 @@ class ScheduleView(
             "related_escalation_chains",
         ),
     }
+    filter_backends = [SearchFilter]
+    search_fields = ("name",)
 
     queryset = OnCallSchedule.objects.all()
     serializer_class = PolymorphicScheduleSerializer
