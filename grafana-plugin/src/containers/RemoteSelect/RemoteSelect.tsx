@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useReducer } from 'react';
 
 import { SelectableValue } from '@grafana/data';
 import { AsyncMultiSelect, AsyncSelect } from '@grafana/ui';
@@ -48,8 +48,6 @@ const RemoteSelect = inject('store')(
       openMenuOnFocus = true,
     } = props;
 
-    const [options, setOptions] = useState<SelectableValue[] | undefined>();
-
     const getOptions = (data: any[]) => {
       return data.map((option: any) => ({
         value: option[valueField],
@@ -58,6 +56,13 @@ const RemoteSelect = inject('store')(
       }));
     };
 
+    function mergeOptions(oldOptions: SelectableValue[], newOptions: SelectableValue[]) {
+      const existedValues = oldOptions.map((o) => o.value);
+      return newOptions.filter(({ value }) => !existedValues.includes(value)).concat(oldOptions);
+    }
+
+    const [options, setOptions] = useReducer(mergeOptions, []);
+
     useEffect(() => {
       makeRequest(href, {}).then((data) => {
         setOptions(getOptions(data.results || data));
@@ -65,7 +70,10 @@ const RemoteSelect = inject('store')(
     }, []);
 
     const loadOptionsCallback = useCallback((query: string) => {
-      return makeRequest(href, { params: { search: query } }).then((data) => getOptions(data.results || data));
+      return makeRequest(href, { params: { search: query } }).then((data) => {
+        setOptions(getOptions(data.results || data));
+        return getOptions(data.results || data);
+      });
     }, []);
 
     const onChangeCallback = useCallback(
