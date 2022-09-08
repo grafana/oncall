@@ -31,7 +31,7 @@ def post_grafana(data):
     response = requests.request("POST", url, auth=(USERNAME_GRAFANA, PASSWORD_GRAFANA), json=data)
 
     if response.status_code == 200:
-        print(SUCCESS_SIGN + " User created " + data["login"])
+        print(SUCCESS_SIGN + " User created: " + data["login"])
     elif response.status_code == 401:
         sys.exit(ERROR_SIGN + " Invalid username or password.")
     elif response.status_code == 412:
