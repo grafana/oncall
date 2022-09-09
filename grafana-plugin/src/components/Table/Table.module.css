@@ -1,0 +1,44 @@
+.root {
+  width: 100%;
+}
+
+.root table {
+  width: 100%;
+  background: #22252b;
+}
+
+.root tr {
+  border-bottom: 1px solid #181b1f;
+  height: 60px;
+}
+
+.root tr:hover {
+  /* background: var(--secondary-background); */
+  background: rgba(63, 62, 62, 0.45);
+}
+
+.root th:first-child {
+  padding-left: 20px;
+}
+
+.root td {
+  min-height: 60px;
+  padding: 10px 0;
+}
+
+.pagination {
+  width: 100%;
+  margin-top: 20px;
+}
+
+.expand-icon {
+  padding: 10px;
+  pointer-events: none;
+  transform: rotate(-90deg);
+  transform-origin: center;
+  transition: transform 0.2s;
+}
+
+.expand-icon__expanded {
+  transform: rotate(0deg);
+}

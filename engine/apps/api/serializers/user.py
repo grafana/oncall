@@ -1,3 +1,4 @@
+import math
 import time
 
 import pytz
@@ -62,6 +63,7 @@ class UserSerializer(DynamicFieldsModelSerializer, EagerLoadingMixin):
             "permissions",
             "notification_chain_verbal",
             "cloud_connection_status",
+            "hide_phone_number",
         ]
         read_only_fields = [
             "email",
@@ -155,6 +157,24 @@ class UserSerializer(DynamicFieldsModelSerializer, EagerLoadingMixin):
             return status
         return None
 
+    def to_representation(self, instance):
+        result = super().to_representation(instance)
+        if instance.id != self.context["request"].user.id:
+            if instance.hide_phone_number:
+                if result["verified_phone_number"]:
+                    result["verified_phone_number"] = self._hide_phone_number(result["verified_phone_number"])
+                if result["unverified_phone_number"]:
+                    result["unverified_phone_number"] = self._hide_phone_number(result["unverified_phone_number"])
+        return result
+
+    @staticmethod
+    def _hide_phone_number(number: str):
+        HIDE_SYMBOL = "*"
+        SHOW_LAST_SYMBOLS = 4
+        if len(number) <= 4:
+            SHOW_LAST_SYMBOLS = math.ceil(len(number) / 2)
+        return f"{HIDE_SYMBOL * (len(number) - SHOW_LAST_SYMBOLS)}{number[-SHOW_LAST_SYMBOLS:]}"
+
 
 class UserHiddenFieldsSerializer(UserSerializer):
     available_for_all_roles_fields = [
@@ -171,10 +191,11 @@ class UserHiddenFieldsSerializer(UserSerializer):
 
     def to_representation(self, instance):
         ret = super(UserSerializer, self).to_representation(instance)
-        for field in ret:
-            if field not in self.available_for_all_roles_fields:
-                ret[field] = "******"
-        ret["hidden_fields"] = True
+        if instance.id != self.context["request"].user.id:
+            for field in ret:
+                if field not in self.available_for_all_roles_fields:
+                    ret[field] = "******"
+            ret["hidden_fields"] = True
         return ret
 
 

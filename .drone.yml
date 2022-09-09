@@ -5,7 +5,7 @@ name: Build and Release
 
 steps:
   - name: Build Plugin
-    image: node:14.6.0-stretch
+    image: node:14.17.0-stretch
     commands:
       - apt-get update
       - apt-get --assume-yes install jq
@@ -16,7 +16,7 @@ steps:
       - ls ./
 
   - name: Sign and Package Plugin
-    image: node:14.6.0-stretch
+    image: node:14.17.0-stretch
     environment:
       GRAFANA_API_KEY:
         from_secret: gcom_plugin_publisher_api_key
@@ -162,7 +162,7 @@ name: OSS plugin release
 
 steps:
   - name: build plugin
-    image: node:14.6.0-stretch
+    image: node:14.17.0-stretch
     commands:
       - apt-get update
       - apt-get --assume-yes install jq
@@ -173,7 +173,7 @@ steps:
       - ls ./
 
   - name: sign and package plugin
-    image: node:14.6.0-stretch
+    image: node:14.17.0-stretch
     environment:
       GRAFANA_API_KEY:
         from_secret: gcom_plugin_publisher_api_key
@@ -395,6 +395,6 @@ kind: secret
 name: drone_token
 ---
 kind: signature
-hmac: 3b2548550485a99d3c4123808f2ae83e51bcc1261a7a5ab8f480e8975acdc870
+hmac: 8a060649c132677ba1b5693b5ac6c846c02f9a5bb645fe990b26a7ea42a0fb66
 
 ...

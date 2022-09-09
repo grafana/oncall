@@ -149,9 +149,13 @@ export const PluginConfigPage = (props: Props) => {
         get_sync_response.version && get_sync_response.license
           ? ` (${get_sync_response.license}, ${get_sync_response.version})`
           : '';
-      setPluginStatusMessage(
-        `Connected to OnCall${versionInfo}\n - OnCall URL: ${plugin.meta.jsonData.onCallApiUrl}\n - Grafana URL: ${plugin.meta.jsonData.grafanaUrl}`
-      );
+
+      let pluginStatusMessage = `Connected to OnCall${versionInfo}\n - OnCall URL: ${plugin.meta.jsonData.onCallApiUrl}\n`
+      if (plugin.meta.jsonData.grafanaUrl) {
+        pluginStatusMessage = `${pluginStatusMessage} - Grafana URL: ${plugin.meta.jsonData.grafanaUrl}`
+      }
+
+      setPluginStatusMessage(pluginStatusMessage)
       setIsSelfHostedInstall(plugin.meta.jsonData?.license === GRAFANA_LICENSE_OSS);
       setPluginStatusOk(true);
     } else {
@@ -250,7 +254,7 @@ export const PluginConfigPage = (props: Props) => {
           <VerticalGroup>
             <Text type="secondary">
               Run hobby, dev or production backend:{' '}
-              <a href="https://github.com/grafana/oncall#getting-started" target="_blank">
+              <a href="https://github.com/grafana/oncall#getting-started" target="_blank" rel="noreferrer">
                 <Text type="link">getting started.</Text>
               </a>
             </Text>
@@ -259,15 +263,15 @@ export const PluginConfigPage = (props: Props) => {
             <Text type="secondary">
               Need help?
               <br />- Talk to the OnCall team in the #grafana-oncall channel at{' '}
-              <a href="https://slack.grafana.com/" target="_blank">
+              <a href="https://slack.grafana.com/" target="_blank" rel="noreferrer">
                 <Text type="link">Slack</Text>
               </a>
               <br />- Ask questions at{' '}
-              <a href="https://github.com/grafana/oncall/discussions/categories/q-a" target="_blank">
+              <a href="https://github.com/grafana/oncall/discussions/categories/q-a" target="_blank" rel="noreferrer">
                 <Text type="link">GitHub Discussions</Text>
               </a>{' '}
               or file bugs at{' '}
-              <a href="https://github.com/grafana/oncall/issues" target="_blank">
+              <a href="https://github.com/grafana/oncall/issues" target="_blank" rel="noreferrer">
                 <Text type="link">GitHub Issues</Text>
               </a>
             </Text>
@@ -285,7 +289,7 @@ Seek for such a line:  “Your invite token: <<LONG TOKEN>> , use it in the Graf
           >
             <>
               <Input id="onCallInvitationToken" onChange={handleInvitationTokenChange} />
-              <a href="https://github.com/grafana/oncall/blob/dev/DEVELOPER.md#frontend-setup" target="_blank">
+              <a href="https://github.com/grafana/oncall/blob/dev/DEVELOPER.md#frontend-setup" target="_blank" rel="noreferrer">
                 <Text size="small" type="link">
                   How to re-issue the invite token?
                 </Text>

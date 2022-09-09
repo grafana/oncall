@@ -12,6 +12,7 @@ export interface TimelineItemProps {
   color?: string;
   number?: number;
   badge?: number;
+  children?: any;
 }
 
 const TimelineItem: React.FC<TimelineItemProps> = (props) => {

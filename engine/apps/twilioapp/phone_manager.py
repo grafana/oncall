@@ -64,7 +64,7 @@ class PhoneManager:
     def notify_about_changed_verified_phone_number(self, phone_number, connected=False):
         text = (
             f"This phone number has been {'connected to' if connected else 'disconnected from'} Grafana OnCall team "
-            f'"{self.user.organization.org_title}"\nYour Grafana OnCall <3'
+            f'"{self.user.organization.stack_slug}"\nYour Grafana OnCall <3'
         )
         try:
             twilio_client.send_message(text, phone_number)

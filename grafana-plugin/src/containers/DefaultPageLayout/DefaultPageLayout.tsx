@@ -22,7 +22,9 @@ import styles from './DefaultPageLayout.module.css';
 
 const cx = cn.bind(styles);
 
-interface DefaultPageLayoutProps extends AppRootProps {}
+interface DefaultPageLayoutProps extends AppRootProps {
+  children?: any;
+}
 
 enum AlertID {
   CONNECTIVITY_WARNING = 'Connectivity Warning',
@@ -93,29 +95,25 @@ const DefaultPageLayout: FC<DefaultPageLayoutProps> = observer((props) => {
         {store.backendLicense === GRAFANA_LICENSE_OSS &&
           store.backendVersion &&
           plugin?.version &&
-          store.backendVersion !== plugin?.version && (
-            <Alert className={styles.alert} severity="warning" title={'Version mismatch!'}>
+          store.backendVersion !== plugin?.version &&
+          !getItem(`version_mismatch_${store.backendVersion}_${plugin?.version}`) && (
+            <Alert
+              className={styles.alert}
+              severity="warning"
+              title={'Version mismatch!'}
+              onRemove={getRemoveAlertHandler(`version_mismatch_${store.backendVersion}_${plugin?.version}`)}
+            >
               Please make sure you have the same versions of the Grafana OnCall plugin and the Grafana OnCall engine,
               otherwise there could be issues with your Grafana OnCall installation!
               <br />
               {`Current plugin version: ${plugin.version}, current engine version: ${store.backendVersion}`}
               <br />
               Please see{' '}
-              <a href={'https://grafana.com/docs/oncall/latest/open-source/#update-grafana-oncall-oss'} target="_blank">
+              <a href={'https://grafana.com/docs/oncall/latest/open-source/#update-grafana-oncall-oss'} target="_blank" rel="noreferrer">
                 the update instructions
               </a>
               .
             </Alert>
-          )}
-        {currentTeam?.limits.show_limits_warning &&
-          currentTeam?.limits.period_title !== 'Version mismatch' && // don't show version mismatch warning twice
-          !getItem(currentTeam.limits.warning_text) && (
-            <Alert
-              className={styles.alert}
-              severity="warning"
-              title={currentTeam?.limits.warning_text}
-              onRemove={getRemoveAlertHandler(currentTeam?.limits.warning_text)}
-            />
           )}
         {Boolean(
           currentTeam &&

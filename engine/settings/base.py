@@ -52,6 +52,7 @@ FEATURE_LIVE_SETTINGS_ENABLED = getenv_boolean("FEATURE_LIVE_SETTINGS_ENABLED", 
 FEATURE_TELEGRAM_INTEGRATION_ENABLED = getenv_boolean("FEATURE_TELEGRAM_INTEGRATION_ENABLED", default=True)
 FEATURE_EMAIL_INTEGRATION_ENABLED = getenv_boolean("FEATURE_EMAIL_INTEGRATION_ENABLED", default=False)
 FEATURE_SLACK_INTEGRATION_ENABLED = getenv_boolean("FEATURE_SLACK_INTEGRATION_ENABLED", default=True)
+FEATURE_WEB_SCHEDULES_ENABLED = getenv_boolean("FEATURE_WEB_SCHEDULES_ENABLED", default=False)
 GRAFANA_CLOUD_ONCALL_HEARTBEAT_ENABLED = getenv_boolean("GRAFANA_CLOUD_ONCALL_HEARTBEAT_ENABLED", default=True)
 GRAFANA_CLOUD_NOTIFICATIONS_ENABLED = getenv_boolean("GRAFANA_CLOUD_NOTIFICATIONS_ENABLED", default=True)
 
@@ -333,6 +334,11 @@ CELERY_BEAT_SCHEDULE = {
     "start_sync_organizations": {
         "task": "apps.grafana_plugin.tasks.sync.start_sync_organizations",
         "schedule": crontab(minute="*/30"),
+        "args": (),
+    },
+    "start_cleanup_deleted_organizations": {
+        "task": "apps.grafana_plugin.tasks.sync.start_cleanup_deleted_organizations",
+        "schedule": crontab(hour="*", minute=15),
         "args": (),
     },
     "process_failed_to_invoke_celery_tasks": {

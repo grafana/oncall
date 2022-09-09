@@ -1,4 +1,5 @@
 import datetime
+import functools
 import itertools
 
 import icalendar
@@ -196,6 +197,10 @@ class OnCallSchedule(PolymorphicModel):
         self.cached_ical_file_overrides = None
         self.save(update_fields=["cached_ical_file_overrides", "prev_ical_file_overrides"])
 
+    def related_users(self):
+        """Return public primary keys for all users referenced in the schedule."""
+        return set()
+
     def filter_events(self, user_timezone, starting_date, days, with_empty=False, with_gap=False, filter_by=None):
         """Return filtered events from schedule."""
         shifts = (
@@ -233,6 +238,9 @@ class OnCallSchedule(PolymorphicModel):
             }
             events.append(shift_json)
 
+        # combine multiple-users same-shift events into one
+        events = self._merge_events(events)
+
         return events
 
     def final_events(self, user_tz, starting_date, days):
@@ -246,14 +254,23 @@ class OnCallSchedule(PolymorphicModel):
         if not events:
             return []
 
-        # sort schedule events by (type desc, priority desc, start timestamp asc)
-        events.sort(
-            key=lambda e: (
+        def event_cmp_key(e):
+            """Sorting key criteria for events."""
+            return (
                 -e["calendar_type"] if e["calendar_type"] else 0,  # overrides: 1, shifts: 0, gaps: None
                 -e["priority_level"] if e["priority_level"] else 0,
                 e["start"],
             )
-        )
+
+        def insort_event(eventlist, e):
+            """Insert event keeping ordering criteria into already sorted event list."""
+            idx = 0
+            for i in eventlist:
+                if event_cmp_key(e) > event_cmp_key(i):
+                    idx += 1
+                else:
+                    break
+            eventlist.insert(idx, e)
 
         def _merge_intervals(evs):
             """Keep track of scheduled intervals."""
@@ -269,24 +286,30 @@ class OnCallSchedule(PolymorphicModel):
                     result.append(interval)
             return result
 
+        # sort schedule events by (type desc, priority desc, start timestamp asc)
+        events.sort(key=event_cmp_key)
+
         # iterate over events, reserving schedule slots based on their priority
         # if the expected slot was already scheduled for a higher priority event,
         # split the event, or fix start/end timestamps accordingly
 
-        # include overrides from start
-        resolved = [e for e in events if e["calendar_type"] == OnCallSchedule.TYPE_ICAL_OVERRIDES]
-        intervals = _merge_intervals(resolved)
-
-        pending = events[len(resolved) :]
-        if not pending:
-            return resolved
-
-        current_event_idx = 0  # current event to resolve
+        intervals = []
+        resolved = []
+        pending = events
         current_interval_idx = 0  # current scheduled interval being checked
-        current_priority = pending[0]["priority_level"]  # current priority level being resolved
+        current_priority = None  # current priority level being resolved
 
-        while current_event_idx < len(pending):
-            ev = pending[current_event_idx]
+        while pending:
+            ev = pending.pop(0)
+
+            if ev["is_empty"]:
+                # exclude events without active users
+                continue
+
+            if ev["calendar_type"] == OnCallSchedule.TYPE_ICAL_OVERRIDES:
+                # include overrides from start
+                resolved.append(ev)
+                continue
 
             if ev["priority_level"] != current_priority:
                 # update scheduled intervals on priority change
@@ -299,11 +322,11 @@ class OnCallSchedule(PolymorphicModel):
             if current_interval_idx >= len(intervals):
                 # event outside scheduled intervals, add to resolved
                 resolved.append(ev)
-                current_event_idx += 1
+
             elif ev["start"] < intervals[current_interval_idx][0] and ev["end"] <= intervals[current_interval_idx][0]:
                 # event starts and ends outside an already scheduled interval, add to resolved
                 resolved.append(ev)
-                current_event_idx += 1
+
             elif ev["start"] < intervals[current_interval_idx][0] and ev["end"] > intervals[current_interval_idx][0]:
                 # event starts outside interval but overlaps with an already scheduled interval
                 # 1. add a split event copy to schedule the time before the already scheduled interval
@@ -315,12 +338,16 @@ class OnCallSchedule(PolymorphicModel):
                     # event ends after current interval, update event start timestamp to match the interval end
                     # and process the updated event as any other event
                     ev["start"] = intervals[current_interval_idx][1]
-                else:
-                    # done, go to next event
-                    current_event_idx += 1
+                    # reorder pending events after updating current event start date
+                    # (ie. insert the event where it should be to keep the order criteria)
+                    # TODO: switch to bisect insert on python 3.10 (or consider heapq)
+                    insort_event(pending, ev)
+                # done, go to next event
+
             elif ev["start"] >= intervals[current_interval_idx][0] and ev["end"] <= intervals[current_interval_idx][1]:
                 # event inside an already scheduled interval, ignore (go to next)
-                current_event_idx += 1
+                continue
+
             elif (
                 ev["start"] >= intervals[current_interval_idx][0]
                 and ev["start"] < intervals[current_interval_idx][1]
@@ -329,14 +356,38 @@ class OnCallSchedule(PolymorphicModel):
                 # event starts inside a scheduled interval but ends out of it
                 # update the event start timestamp to match the interval end
                 ev["start"] = intervals[current_interval_idx][1]
-                # move to next interval and process the updated event as any other event
-                current_interval_idx += 1
+                # unresolved, re-add to pending
+                # TODO: switch to bisect insert on python 3.10 (or consider heapq)
+                insort_event(pending, ev)
+
             elif ev["start"] >= intervals[current_interval_idx][1]:
                 # event starts after the current interval, move to next interval and go through it
                 current_interval_idx += 1
+                # unresolved, re-add to pending
+                # TODO: switch to bisect insert on python 3.10 (or consider heapq)
+                insort_event(pending, ev)
 
         resolved.sort(key=lambda e: (e["start"], e["shift"]["pk"]))
         return resolved
+
+    def _merge_events(self, events):
+        """Merge user groups same-shift events."""
+        if events:
+            merged = [events[0]]
+            current = merged[0]
+            for next_event in events[1:]:
+                if (
+                    current["start"] == next_event["start"]
+                    and current["shift"]["pk"] is not None
+                    and current["shift"]["pk"] == next_event["shift"]["pk"]
+                ):
+                    current["users"] += next_event["users"]
+                    current["missing_users"] += next_event["missing_users"]
+                else:
+                    merged.append(next_event)
+                    current = next_event
+            events = merged
+        return events
 
     # Insight logs
     @property
@@ -529,7 +580,7 @@ class OnCallScheduleCalendar(OnCallSchedule):
 class OnCallScheduleWeb(OnCallSchedule):
     time_zone = models.CharField(max_length=100, default="UTC")
 
-    def _generate_ical_file_from_shifts(self, qs, extra_shifts=None):
+    def _generate_ical_file_from_shifts(self, qs, extra_shifts=None, allow_empty_users=False):
         """Generate iCal events file from custom on-call shifts."""
         ical = None
         if qs.exists() or extra_shifts is not None:
@@ -544,7 +595,7 @@ class OnCallScheduleWeb(OnCallSchedule):
             ical = ical_file.replace(end_line, "").strip()
             ical = f"{ical}\r\n"
             for event in itertools.chain(qs.all(), extra_shifts):
-                ical += event.convert_to_ical(self.time_zone)
+                ical += event.convert_to_ical(self.time_zone, allow_empty_users=allow_empty_users)
             ical += f"{end_line}\r\n"
         return ical
 
@@ -582,7 +633,22 @@ class OnCallScheduleWeb(OnCallSchedule):
         self.cached_ical_file_overrides = self._generate_ical_file_overrides()
         self.save(update_fields=["cached_ical_file_overrides", "prev_ical_file_overrides"])
 
-    def preview_shift(self, custom_shift, user_tz, starting_date, days):
+    def related_users(self):
+        """Return public primary keys for all users referenced in the schedule."""
+        rolling_users = self.custom_shifts.values_list("rolling_users", flat=True)
+        users = functools.reduce(
+            set.union,
+            (
+                set(g.values())
+                for rolling_groups in rolling_users
+                if rolling_groups is not None
+                for g in rolling_groups
+                if g is not None
+            ),
+        )
+        return users
+
+    def preview_shift(self, custom_shift, user_tz, starting_date, days, updated_shift_pk=None):
         """Return unsaved rotation and final schedule preview events."""
         if custom_shift.type == CustomOnCallShift.TYPE_OVERRIDE:
             qs = self.custom_shifts.filter(type=CustomOnCallShift.TYPE_OVERRIDE)
@@ -602,7 +668,26 @@ class OnCallScheduleWeb(OnCallSchedule):
             except AttributeError:
                 pass
 
-        ical_file = self._generate_ical_file_from_shifts(qs, extra_shifts=[custom_shift])
+        extra_shifts = [custom_shift]
+        if updated_shift_pk is not None:
+            try:
+                update_shift = qs.get(public_primary_key=updated_shift_pk)
+            except CustomOnCallShift.DoesNotExist:
+                pass
+            else:
+                if update_shift.event_is_started:
+                    custom_shift.rotation_start = max(
+                        custom_shift.rotation_start, timezone.now().replace(microsecond=0)
+                    )
+                    custom_shift.start_rotation_from_user_index = update_shift.start_rotation_from_user_index
+                    update_shift.until = custom_shift.rotation_start
+                    extra_shifts.append(update_shift)
+                else:
+                    # only reuse PK for preview when updating a rotation that won't be started after the update
+                    custom_shift.public_primary_key = updated_shift_pk
+                qs = qs.exclude(public_primary_key=updated_shift_pk)
+
+        ical_file = self._generate_ical_file_from_shifts(qs, extra_shifts=extra_shifts, allow_empty_users=True)
 
         original_value = getattr(self, ical_attr)
         _invalidate_cache(self, ical_property)
@@ -610,7 +695,9 @@ class OnCallScheduleWeb(OnCallSchedule):
 
         # filter events using a temporal overriden calendar including the not-yet-saved shift
         events = self.filter_events(user_tz, starting_date, days=days, with_empty=True, with_gap=True)
-        shift_events = [e for e in events if e["shift"]["pk"] == custom_shift.public_primary_key]
+        # return preview events for affected shifts
+        updated_shift_pks = {s.public_primary_key for s in extra_shifts}
+        shift_events = [e for e in events if e["shift"]["pk"] in updated_shift_pks]
         final_events = self._resolve_schedule(events)
 
         _invalidate_cache(self, ical_property)

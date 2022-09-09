@@ -24,7 +24,7 @@ class AlertGroupSmsRenderer(AlertGroupBaseRenderer):
             incident_link = self.alert_group.web_link
         return (
             f"You are invited to check an incident #{self.alert_group.inside_organization_number} with title "
-            f'"{title}" in Grafana OnCall organization: "{self.alert_group.channel.organization.org_title}", '
+            f'"{title}" in Grafana OnCall organization: "{self.alert_group.channel.organization.stack_slug}", '
             f"alert channel: {self.alert_group.channel.short_name}, "
             f"alerts registered: {self.alert_group.alerts.count()}, "
             f"{incident_link}\n"

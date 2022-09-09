@@ -6,8 +6,7 @@ import { makeRequest } from 'network';
 import { Mixpanel } from 'services/mixpanel';
 import { RootStore } from 'state';
 import { SelectOption } from 'state/types';
-import { showApiError, refreshPageError } from 'utils';
-import { openErrorNotification } from 'utils';
+import { showApiError, refreshPageError, openErrorNotification } from 'utils';
 
 import { Alert, AlertAction, IncidentStatus } from './alertgroup.types';
 
@@ -414,8 +413,7 @@ export class AlertGroupStore extends BaseStore {
       console.log('undoAction', undoAction);
     } catch (e) {
       this.updateAlert(alertId, { loading: false });
-
-      openErrorNotification(e.response.data?.detail);
+      openErrorNotification(e.response.data?.detail || e.response.data);
     }
   }
 

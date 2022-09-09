@@ -92,7 +92,7 @@ class GrafanaAlertingSyncManager:
         datasources, response_info = self.client.get_datasources()
         if datasources is None:
             logger.warning(
-                f"Failed to get datasource list for organization {self.alert_receive_channel.organization.org_title}, "
+                f"Failed to get datasource list for organization {self.alert_receive_channel.organization.stack_slug}, "
                 f"{response_info}"
             )
             return
