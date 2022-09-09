@@ -8,6 +8,7 @@ import cn from 'classnames/bind';
 import { observer } from 'mobx-react';
 
 import PluginLink from 'components/PluginLink/PluginLink';
+import { getIfChatOpsConnected } from 'containers/DefaultPageLayout/helper';
 import { useStore } from 'state/useStore';
 import { UserAction } from 'state/userAction';
 import { GRAFANA_LICENSE_OSS } from 'utils/consts';
@@ -17,7 +18,6 @@ import sanitize from 'utils/sanitize';
 
 import { getSlackMessage } from './DefaultPageLayout.helpers';
 import { SlackError } from './DefaultPageLayout.types';
-import { getIfChatOpsConnected } from 'containers/DefaultPageLayout/helper';
 
 import styles from './DefaultPageLayout.module.css';
 
@@ -113,7 +113,11 @@ const DefaultPageLayout: FC<DefaultPageLayoutProps> = observer((props) => {
               {`Current plugin version: ${plugin.version}, current engine version: ${store.backendVersion}`}
               <br />
               Please see{' '}
-              <a href={'https://grafana.com/docs/oncall/latest/open-source/#update-grafana-oncall-oss'} target="_blank" rel="noreferrer">
+              <a
+                href={'https://grafana.com/docs/oncall/latest/open-source/#update-grafana-oncall-oss'}
+                target="_blank"
+                rel="noreferrer"
+              >
                 the update instructions
               </a>
               .

@@ -81,7 +81,7 @@ const Text: TextType = (props) => {
         'text--strong': strong,
         'text--underline': underline,
         'no-wrap': !wrap,
-        keyboard
+        keyboard,
       })}
     >
       {hidden ? PLACEHOLDER : children}

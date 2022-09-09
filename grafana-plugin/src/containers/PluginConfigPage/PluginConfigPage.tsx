@@ -285,7 +285,11 @@ Seek for such a line:  “Your invite token: <<LONG TOKEN>> , use it in the Graf
           >
             <>
               <Input id="onCallInvitationToken" onChange={handleInvitationTokenChange} />
-              <a href="https://github.com/grafana/oncall/blob/dev/DEVELOPER.md#frontend-setup" target="_blank" rel="noreferrer">
+              <a
+                href="https://github.com/grafana/oncall/blob/dev/DEVELOPER.md#frontend-setup"
+                target="_blank"
+                rel="noreferrer"
+              >
                 <Text size="small" type="link">
                   How to re-issue the invite token?
                 </Text>
