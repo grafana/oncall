@@ -281,7 +281,7 @@ const AvatarGroup = (props: AvatarGroupProps) => {
         style={{
           opacity: !active && users.length > LIMIT ? '1' : '0',
           zIndex: users.length,
-          left: active ? `${users.length * (AVATAR_WIDTH + AVATAR_GAP)}px` : `${users.length * 10}px`,
+          left: active ? `${users.length * (AVATAR_WIDTH + AVATAR_GAP)}px` : `${LIMIT * 10}px`,
         }}
         className={cx('user-more')}
       >
