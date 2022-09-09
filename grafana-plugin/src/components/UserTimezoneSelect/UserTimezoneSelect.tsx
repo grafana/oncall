@@ -59,7 +59,7 @@ const UserTimezoneSelect: FC<UserTimezoneSelectProps> = (props) => {
 
   return (
     <div className={cx('root')}>
-      <Select value={selectValue} onChange={handleChange} width={100} placeholder="Timezone" options={options} />
+      <Select value={selectValue} onChange={handleChange} width={100} placeholder="UTC Timezone" options={options} />
     </div>
   );
 };
