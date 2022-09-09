@@ -21,6 +21,8 @@ import { UserAction } from 'state/userAction';
 import { withMobXProviderContext } from 'state/withStore';
 
 import styles from './OutgoingWebhooks.module.css';
+import { getWrongTeamResponseInfo } from 'components/NotFoundInTeam/WrongTeam.helpers';
+import WrongTeamStub from 'components/NotFoundInTeam/WrongTeamStub';
 
 const cx = cn.bind(styles);
 
@@ -28,11 +30,18 @@ interface OutgoingWebhooksProps extends WithStoreProps, AppRootProps {}
 
 interface OutgoingWebhooksState {
   outgoingWebhookIdToEdit?: OutgoingWebhook['id'] | 'new';
+  notFound?: boolean;
+  wrongTeamError?: boolean;
+  teamToSwitch?: { name: string; id: string };
+  wrongTeamNoPermissions?: boolean;
 }
 
 @observer
 class OutgoingWebhooks extends React.Component<OutgoingWebhooksProps, OutgoingWebhooksState> {
-  state: OutgoingWebhooksState = {};
+  state: OutgoingWebhooksState = {
+    wrongTeamError: false,
+    wrongTeamNoPermissions: false,
+  };
 
   async componentDidMount() {
     this.update().then(this.parseQueryParams);
@@ -44,11 +53,15 @@ class OutgoingWebhooks extends React.Component<OutgoingWebhooksProps, OutgoingWe
     }
   }
 
-  parseQueryParams = () => {
+  parseQueryParams = async () => {
     const {
       store,
       query: { id },
     } = this.props;
+
+    await store.outgoingWebhookStore
+      .loadItem(id, true)
+      .catch((error) => this.setState({ ...getWrongTeamResponseInfo(error) }));
 
     if (id) {
       this.setState({ outgoingWebhookIdToEdit: id });
@@ -57,14 +70,28 @@ class OutgoingWebhooks extends React.Component<OutgoingWebhooksProps, OutgoingWe
 
   update = () => {
     const { store } = this.props;
-    const { selectedAlertReceiveChannel } = store;
 
     return store.outgoingWebhookStore.updateItems();
   };
 
   render() {
     const { store } = this.props;
-    const { outgoingWebhookIdToEdit } = this.state;
+    const { outgoingWebhookIdToEdit, wrongTeamError, teamToSwitch, wrongTeamNoPermissions } = this.state;
+
+    if (wrongTeamError) {
+      const currentTeamId = store.userStore.currentUser?.current_team;
+      const currentTeamName = store.grafanaTeamStore.items[currentTeamId]?.name;
+
+      return (
+        <WrongTeamStub
+          objectName="outgoing webhook"
+          pageName="outgoing_webhooks"
+          currentTeam={currentTeamName}
+          switchToTeam={teamToSwitch}
+          wrongTeamNoPermissions={wrongTeamNoPermissions}
+        />
+      );
+    }
 
     const webhooks = store.outgoingWebhookStore.getSearchResult();
 
