@@ -319,57 +319,6 @@ def list_users_to_notify_from_ical_for_period(schedule, start_datetime, end_date
     return users_found_in_ical
 
 
-def get_schedule_quality(schedule, date, days):
-    OnCallSchedule = apps.get_model("schedules", "OnCallSchedule")
-
-    shifts = (
-        list_of_oncall_shifts_from_ical(
-            schedule, date, user_timezone="UTC", with_empty_shifts=True, with_gaps=True, days=days
-        )
-        or []
-    )
-
-    primary_shifts = [shift for shift in shifts if shift["calendar_type"] == OnCallSchedule.PRIMARY]
-    bad_shifts = [shift for shift in primary_shifts if not shift["users"] or shift["missing_users"]]
-    good_shifts = [shift for shift in primary_shifts if shift not in bad_shifts]
-
-    users_to_shifts_map = {}
-    for shift in good_shifts:
-        users = shift["users"]
-
-        for user in users:
-            if user in users_to_shifts_map:
-                users_to_shifts_map[user].append(shift)
-            else:
-                users_to_shifts_map[user] = [shift]
-
-    def shift_duration(shift):
-        return (shift["end"] - shift["start"]).seconds
-
-    res = {}
-    for user, shifts in users_to_shifts_map.items():
-        seconds = sum(shift_duration(shift) for shift in shifts)
-        res[user] = seconds
-
-    score = 0
-    number_of_pairs = 0
-    for user_1 in res.keys():
-        for user_2 in res.keys():
-            if user_1 == user_2:
-                continue
-            score += min(res[user_1], res[user_2]) / max(res[user_1], res[user_2])
-            number_of_pairs += 1
-
-    balance_score = score / number_of_pairs
-
-    bad_shifts_duration = sum(shift_duration(shift) for shift in shifts)
-    good_shifts_duration = sum(shift_duration(shift) for shift in shifts)
-
-    bad_shift_score = bad_shifts_duration / good_shifts_duration
-
-    return balance_score, bad_shift_score
-
-
 def parse_username_from_string(string):
     """
     Parse on-call shift user from the given string
