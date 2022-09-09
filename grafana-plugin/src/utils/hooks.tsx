@@ -1,5 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
-import { useMemo } from 'react';
+import React, { useEffect, useRef, useState, useMemo } from 'react';
 
 import { AppRootProps, NavModelItem } from '@grafana/data';
 
@@ -18,11 +17,12 @@ type Args = {
   };
   enableLiveSettings: boolean;
   enableCloudPage: boolean;
+  enableNewSchedulesPage: boolean;
   backendLicense: string;
 };
 
 export function useForceUpdate() {
-  const [value, setValue] = useState(0);
+  const [, setValue] = useState(0);
   return () => setValue((value) => value + 1);
 }
 
@@ -34,6 +34,7 @@ export function useNavModel({
   grafanaUser,
   enableLiveSettings,
   enableCloudPage,
+  enableNewSchedulesPage,
   backendLicense,
 }: Args) {
   return useMemo(() => {
@@ -49,7 +50,8 @@ export function useNavModel({
           hideFromTabs ||
           (role === 'Admin' && grafanaUser.orgRole !== role) ||
           (id === 'live-settings' && !enableLiveSettings) ||
-          (id === 'cloud' && !enableCloudPage),
+          (id === 'cloud' && !enableCloudPage) ||
+          (id === 'schedules-new' && !enableNewSchedulesPage),
       });
 
       if (page === id) {
@@ -74,7 +76,17 @@ export function useNavModel({
       node,
       main: node,
     };
-  }, [meta.info.logos.large, pages, path, page, enableLiveSettings, enableCloudPage]);
+  }, [
+    meta.info.logos.large,
+    pages,
+    path,
+    page,
+    enableLiveSettings,
+    enableCloudPage,
+    backendLicense,
+    enableNewSchedulesPage,
+    grafanaUser.orgRole,
+  ]);
 }
 
 export function usePrevious(value: any) {

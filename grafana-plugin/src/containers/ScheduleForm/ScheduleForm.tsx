@@ -13,7 +13,7 @@ import { Schedule, ScheduleType } from 'models/schedule/schedule.types';
 import { useStore } from 'state/useStore';
 import { UserAction } from 'state/userAction';
 
-import { calendarForm, iCalForm } from './ScheduleForm.config';
+import { apiForm, calendarForm, iCalForm } from './ScheduleForm.config';
 import { prepareForEdit } from './ScheduleForm.helpers';
 
 import styles from './ScheduleForm.module.css';
@@ -24,19 +24,25 @@ interface ScheduleFormProps {
   id: Schedule['id'] | 'new';
   onHide: () => void;
   onUpdate: () => void;
+  onCreate: (data: Schedule) => void;
+  type?: ScheduleType;
 }
 
+const scheduleTypeToForm = {
+  [ScheduleType.Calendar]: calendarForm,
+  [ScheduleType.Ical]: iCalForm,
+  [ScheduleType.API]: apiForm,
+};
+
 const ScheduleForm = observer((props: ScheduleFormProps) => {
-  const { id, onUpdate, onHide } = props;
+  const { id, type, onUpdate, onCreate, onHide } = props;
 
   const store = useStore();
 
   const { scheduleStore, userStore } = store;
 
   const data = useMemo(() => {
-    return id === 'new'
-      ? { team: userStore.currentUser?.current_team, type: ScheduleType.Ical }
-      : prepareForEdit(scheduleStore.items[id]);
+    return id === 'new' ? { team: userStore.currentUser?.current_team, type } : prepareForEdit(scheduleStore.items[id]);
   }, [id]);
 
   const handleSubmit = useCallback(
@@ -44,16 +50,30 @@ const ScheduleForm = observer((props: ScheduleFormProps) => {
       (id === 'new'
         ? scheduleStore.create({ ...formData, type: data.type })
         : scheduleStore.update(id, { ...formData, type: data.type })
-      ).then(() => {
+      ).then((data) => {
         onHide();
 
         onUpdate();
+
+        if (id === 'new') {
+          onCreate(data);
+        }
       });
     },
     [id]
   );
 
-  const formConfig = data.type === ScheduleType.Ical ? iCalForm : calendarForm;
+  const getOptionLabel = (item: SelectableValue) => {
+    const team = grafanaTeamStore.items[item.value];
+    return (
+      <HorizontalGroup>
+        {item.label}
+        <Avatar src={team?.avatar_url} size="small" />
+      </HorizontalGroup>
+    );
+  };
+
+  const formConfig = scheduleTypeToForm[data.type];
 
   return (
     <Drawer

@@ -21,6 +21,7 @@ interface TextProps extends HTMLAttributes<HTMLElement> {
   onTextChange?: (value: string) => void;
   clearBeforeEdit?: boolean;
   hidden?: boolean;
+  editModalTitle?: string;
 }
 
 interface TextType extends React.FC<TextProps> {
@@ -47,6 +48,7 @@ const Text: TextType = (props) => {
     onTextChange,
     clearBeforeEdit = false,
     hidden = false,
+    editModalTitle = 'New value',
   } = props;
 
   const [isEditMode, setIsEditMode] = useState<boolean>(false);
@@ -81,7 +83,7 @@ const Text: TextType = (props) => {
         'text--strong': strong,
         'text--underline': underline,
         'no-wrap': !wrap,
-        keyboard
+        keyboard,
       })}
     >
       {hidden ? PLACEHOLDER : children}
@@ -112,7 +114,7 @@ const Text: TextType = (props) => {
         </CopyToClipboard>
       )}
       {isEditMode && (
-        <Modal onDismiss={handleCancelEdit} closeOnEscape isOpen title="New value">
+        <Modal onDismiss={handleCancelEdit} closeOnEscape isOpen title={editModalTitle}>
           <VerticalGroup>
             <Input
               autoFocus

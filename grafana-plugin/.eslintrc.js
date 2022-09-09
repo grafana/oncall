@@ -9,15 +9,17 @@ module.exports = {
       '^assets|^components|^containers|^declare|^icons|^img|^interceptors|^models|^network|^pages|^services|^state|^utils',
   },
   rules: {
+    'no-unused-vars': ['warn', { vars: 'all', args: 'after-used', ignoreRestSiblings: false }],
     'react/prop-types': 'warn',
     'react/display-name': 'warn',
     'react/jsx-key': 'warn',
+    'react-hooks/exhaustive-deps': 'off',
     'react/no-unescaped-entities': 'warn',
     'react/jsx-no-target-blank': 'warn',
     'react-hooks/exhaustive-deps': 'warn',
     'no-restricted-imports': 'warn',
     eqeqeq: 'warn',
-    'no-duplicate-imports': 'warn',
+    'no-duplicate-imports': 'error',
     'rulesdir/no-relative-import-paths': ['error', { allowSameFolder: true }],
     'import/order': [
       'error',

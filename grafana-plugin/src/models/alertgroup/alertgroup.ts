@@ -6,8 +6,7 @@ import { makeRequest } from 'network';
 import { Mixpanel } from 'services/mixpanel';
 import { RootStore } from 'state';
 import { SelectOption } from 'state/types';
-import { showApiError, refreshPageError } from 'utils';
-import { openErrorNotification } from 'utils';
+import { showApiError, refreshPageError, openErrorNotification } from 'utils';
 
 import { Alert, AlertAction, IncidentStatus } from './alertgroup.types';
 

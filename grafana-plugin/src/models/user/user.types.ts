@@ -1,4 +1,5 @@
 import { Team } from 'models/team/team.types';
+import { Timezone } from 'models/timezone/timezone.types';
 import { UserAction } from 'state/userAction';
 
 export enum UserRole {
@@ -55,4 +56,6 @@ export interface User {
   link?: string;
   cloud_connection_status?: number;
   hidden_fields?: boolean;
+  timezone: Timezone;
+  working_hours: { [key: string]: [] };
 }
