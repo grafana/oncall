@@ -43,6 +43,8 @@ import { openErrorNotification } from 'utils';
 import { getDatesString } from './Schedules.helpers';
 
 import styles from './Schedules.module.css';
+import { getWrongTeamResponseInfo } from 'components/NotFoundInTeam/WrongTeam.helpers';
+import WrongTeamStub from 'components/NotFoundInTeam/WrongTeamStub';
 
 const cx = cn.bind(styles);
 
@@ -53,6 +55,11 @@ interface SchedulesPageState {
   scheduleIdToExport?: Schedule['id'];
   filters: SchedulesFiltersType;
   expandedSchedulesKeys: Array<Schedule['id']>;
+
+  notFound?: boolean;
+  wrongTeamError?: boolean;
+  teamToSwitch?: { name: string; id: string };
+  wrongTeamNoPermissions?: boolean;
 }
 
 @observer
@@ -62,6 +69,8 @@ class SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSta
       selectedDate: moment().startOf('day').format('YYYY-MM-DD'),
     },
     expandedSchedulesKeys: [],
+    wrongTeamError: false,
+    wrongTeamNoPermissions: false,
   };
 
   componentDidMount() {
@@ -81,6 +90,11 @@ class SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSta
     } = this.props;
 
     if (id) {
+      const schedule = store.scheduleStore
+        .loadItem(id, true)
+        .catch((error) => this.setState({ ...getWrongTeamResponseInfo(error) }));
+      if (!schedule) return;
+
       const schedules = store.scheduleStore.getSearchResult();
       const scheduleId = schedules && schedules.find((res) => res.id === id)?.id;
       if (scheduleId || id === 'new') {
@@ -101,8 +115,23 @@ class SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSta
   render() {
     const { store } = this.props;
     const { expandedSchedulesKeys, scheduleIdToDelete, scheduleIdToEdit, scheduleIdToExport } = this.state;
-    const { filters } = this.state;
-    const { scheduleStore, userStore } = store;
+    const { filters, wrongTeamError, teamToSwitch, wrongTeamNoPermissions } = this.state;
+    const { scheduleStore } = store;
+
+    if (wrongTeamError) {
+      const currentTeamId = store.userStore.currentUser?.current_team;
+      const currentTeamName = store.grafanaTeamStore.items[currentTeamId]?.name;
+
+      return (
+        <WrongTeamStub
+          objectName="escalation"
+          pageName="escalations"
+          currentTeam={currentTeamName}
+          switchToTeam={teamToSwitch}
+          wrongTeamNoPermissions={wrongTeamNoPermissions}
+        />
+      );
+    }
 
     const columns = [
       {
@@ -147,9 +176,6 @@ class SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSta
 
     const timezoneStr = moment.tz.guess();
     const offset = moment().tz(timezoneStr).format('Z');
-
-    if (schedules && !schedules.length) {
-    }
 
     return (
       <>

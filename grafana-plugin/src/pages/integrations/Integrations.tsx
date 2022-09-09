@@ -122,9 +122,6 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
   render() {
     const { store } = this.props;
     const {
-      integrationsFilters: { searchTerm },
-    } = this.state;
-    const {
       integrationsFilters,
       alertReceiveChannelToShowSettings,
       integrationSettingsTab,
