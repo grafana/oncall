@@ -25,6 +25,7 @@ from apps.auth_token.auth import PluginAuthentication
 from apps.auth_token.constants import SCHEDULE_EXPORT_TOKEN_NAME
 from apps.auth_token.models import ScheduleExportAuthToken
 from apps.schedules.models import OnCallSchedule
+from apps.schedules.qulaity import get_schedule_score
 from apps.slack.models import SlackChannel
 from apps.slack.tasks import update_slack_user_group_for_schedules
 from common.api_helpers.exceptions import BadRequest, Conflict
@@ -62,6 +63,7 @@ class ScheduleView(
             "notify_oncall_shift_freq_options",
             "mention_options",
             "related_escalation_chains",
+            "quality",
         ),
     }
     filter_backends = [SearchFilter]
@@ -279,6 +281,17 @@ class ScheduleView(
 
         result = [{"name": e.name, "pk": e.public_primary_key} for e in escalation_chains]
         return Response(result, status=status.HTTP_200_OK)
+
+    @action(detail=True, methods=["get"])
+    def quality(self, request, pk):
+        schedule = self.original_get_object()
+        user_tz, date = self.get_request_timezone()
+        days = int(self.request.query_params.get("days", 1))
+
+        events = schedule.filter_events(user_tz, date, days=days, with_empty=True, with_gap=True)
+
+        schedule_score = get_schedule_score(events, days)
+        return Response(schedule_score)
 
     @action(detail=False, methods=["get"])
     def type_options(self, request):
