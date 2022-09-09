@@ -35,20 +35,7 @@ export const getRole = (role: UserRole) => {
 };
 
 export const getTimezone = (user: User) => {
-  const tzByName = {
-    Maxim: 'UTC',
-    'Matías Bordese': 'America/Montevideo',
-    'Michael Derynck': 'America/Vancouver',
-    'Yulia Shanyrova': 'Europe/Amsterdam',
-    'Maxim Mordasov': 'Europe/Moscow',
-    'Vadim Stepanov': 'Europe/London',
-    'Ildar Iskhakov': 'Asia/Yerevan',
-    'Raphael Batyrbaev': 'Europe/Rome',
-    'Innokentii Konstantinov': 'Asia/Singapore',
-    'Matvey Kukuy': 'Asia/Tel_Aviv',
-  };
-
-  return user.timezone || tzByName[user.username] || 'UTC';
+  return user.timezone || 'UTC';
 };
 
 export const getUserNotificationsSummary = (user: User) => {

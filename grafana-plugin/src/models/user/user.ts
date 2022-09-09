@@ -52,24 +52,20 @@ export class UserStore extends BaseStore {
 
   @action
   async loadCurrentUser() {
-    const user = await makeRequest('/user/', {});
+    const response = await makeRequest('/user/', {});
+
+    let timezone;
+    if (!response.timezone) {
+      timezone = dayjs.tz.guess();
+      this.update(response.pk, { timezone });
+    }
 
     this.items = {
       ...this.items,
-      [user.pk]: { ...user, timezone: getTimezone(user) },
+      [response.pk]: { ...response, timezone: timezone || getTimezone(response) },
     };
 
-    // TODO comment
-    if (user.timezone) {
-      this.update(user.pk, { timezone: 'UTC' });
-    }
-
-    // TODO uncomment
-    /*if (!user.timezone) {
-      this.update(user.pk, { timezone: dayjs.tz.guess() });
-    }*/
-
-    this.currentUserPk = user.pk;
+    this.currentUserPk = response.pk;
   }
 
   @action

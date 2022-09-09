@@ -1,4 +1,5 @@
 import React from 'react';
+
 import cn from 'classnames/bind';
 import { observer } from 'mobx-react';
 
@@ -11,15 +12,13 @@ const cx = cn.bind(styles);
 interface SchedulesFiltersProps {}
 
 const SchedulesFilters = observer((props: SchedulesFiltersProps) => {
-    const {  } = props;
+  const {} = props;
 
-    const store = useStore();
+  const store = useStore();
 
-    const { } = store;
+  const {} = store;
 
-    return (
-       <div className={cx('root')} />
-    );
+  return <div className={cx('root')} />;
 });
 
 export default SchedulesFilters;

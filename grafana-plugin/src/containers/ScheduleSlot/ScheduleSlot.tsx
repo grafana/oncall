@@ -80,6 +80,11 @@ const ScheduleSlot: FC<ScheduleSlotProps> = observer((props) => {
         users.map(({ pk: userPk }, userIndex) => {
           const storeUser = store.userStore.items[userPk];
 
+          // TODO remove
+          if (!storeUser) {
+            store.userStore.updateItem(userPk);
+          }
+
           const inactive = false;
 
           const title = getTitle(storeUser);

@@ -1,6 +1,6 @@
 import React, { ChangeEvent, useCallback, useMemo, useState } from 'react';
 
-import { DatePickerWithInput, Field, HorizontalGroup, Icon, Input, RadioButtonGroup, Field } from '@grafana/ui';
+import { DatePickerWithInput, Field, HorizontalGroup, Icon, Input, RadioButtonGroup } from '@grafana/ui';
 import cn from 'classnames/bind';
 
 import { ScheduleType } from 'models/schedule/schedule.types';
