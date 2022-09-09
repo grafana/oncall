@@ -352,6 +352,16 @@ class AlertReceiveChannel(IntegrationOptionsMixin, MaintainableObject):
         return Alert.objects.filter(group__channel=self).count()
 
     @property
+    def alerts_count_last_week_and_total(self):
+        Alert = apps.get_model("alerts", "Alert")
+        today = timezone.datetime.today()
+        seven_days_before = today - timezone.timedelta(days=7)
+        alerts_count = Alert.objects.filter(group__channel=self).aggregate(
+            last_week=Count("pk", filter=Q(created_at__gte=seven_days_before)), total=Count("pk")
+        )
+        return alerts_count["last_week"], alerts_count["total"]
+
+    @property
     def is_able_to_autoresolve(self):
         return self.config.is_able_to_autoresolve
 

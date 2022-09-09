@@ -182,8 +182,10 @@ class AlertReceiveChannelView(
         queryset = self.filter_queryset(self.get_queryset(eager=False))
         response = {}
         for alert_receive_channel in queryset:
+            alerts_count_last_week, alerts_count_total = alert_receive_channel.alerts_count_last_week_and_total
             response[alert_receive_channel.public_primary_key] = {
-                "alerts_count": alert_receive_channel.alerts_count,
+                "alerts_count": alerts_count_total,
+                "alerts_count_last_week": alerts_count_last_week,
                 "alert_groups_count": alert_receive_channel.alert_groups_count,
             }
         return Response(response)
