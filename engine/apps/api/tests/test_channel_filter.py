@@ -437,7 +437,10 @@ def test_channel_filter_update_notification_backends_updates_existing_data(
 ):
     organization, user, token = make_organization_and_user_with_plugin_token()
     alert_receive_channel = make_alert_receive_channel(organization)
-    existing_notification_backends = {"TESTONLY": {"enabled": True, "channel": "ABCDEF"}}
+    existing_notification_backends = {
+        "TESTONLY": {"enabled": True, "channel": "ABCDEF"},
+        "ANOTHERONE": {"enabled": False, "channel": "123456"},
+    }
     channel_filter = make_channel_filter(alert_receive_channel, notification_backends=existing_notification_backends)
 
     client = APIClient()
@@ -448,7 +451,13 @@ def test_channel_filter_update_notification_backends_updates_existing_data(
         "notification_backends": notification_backends_update,
     }
 
-    response = client.put(url, data=data_for_update, format="json", **make_user_auth_headers(user, token))
+    class FakeBackend:
+        def validate_channel_filter_data(self, organization, data):
+            return data
+
+    with patch("apps.api.serializers.channel_filter.get_messaging_backend_from_id") as mock_get_backend:
+        mock_get_backend.return_value = FakeBackend()
+        response = client.put(url, data=data_for_update, format="json", **make_user_auth_headers(user, token))
 
     channel_filter.refresh_from_db()
 

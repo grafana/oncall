@@ -2,7 +2,6 @@ import React, { Component } from 'react';
 
 import { SelectableValue, TimeRange } from '@grafana/data';
 import {
-  HorizontalGroup,
   IconButton,
   InlineSwitch,
   MultiSelect,
@@ -10,14 +9,13 @@ import {
   Select,
   LoadingPlaceholder,
   Input,
-  VerticalGroup,
   Icon,
 } from '@grafana/ui';
 import { capitalCase } from 'change-case';
 import cn from 'classnames/bind';
-import { debounce, isEmpty, isUndefined, omit, omitBy, pickBy } from 'lodash-es';
+import { debounce, isEmpty, isUndefined, omitBy } from 'lodash-es';
 import { observer } from 'mobx-react';
-import moment from 'moment';
+import moment from 'moment-timezone';
 import Emoji from 'react-emoji-render';
 
 import CardButton from 'components/CardButton/CardButton';

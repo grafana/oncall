@@ -18,6 +18,7 @@ class ScheduleBaseSerializer(EagerLoadingMixin, serializers.ModelSerializer):
     user_group = UserGroupSerializer()
     warnings = serializers.SerializerMethodField()
     on_call_now = serializers.SerializerMethodField()
+    number_of_escalation_chains = serializers.SerializerMethodField()
 
     class Meta:
         fields = [
@@ -33,6 +34,7 @@ class ScheduleBaseSerializer(EagerLoadingMixin, serializers.ModelSerializer):
             "notify_empty_oncall",
             "mention_oncall_start",
             "mention_oncall_next",
+            "number_of_escalation_chains",
         ]
 
     SELECT_RELATED = ["organization"]
@@ -70,6 +72,11 @@ class ScheduleBaseSerializer(EagerLoadingMixin, serializers.ModelSerializer):
             return [user.short() for user in users_on_call]
         else:
             return []
+
+    def get_number_of_escalation_chains(self, obj):
+        # num_escalation_chains param added in queryset via annotate. Check ScheduleView.get_queryset
+        # return 0 for just created schedules
+        return getattr(obj, "num_escalation_chains", 0)
 
     def validate(self, attrs):
         if "slack_channel_id" in attrs:

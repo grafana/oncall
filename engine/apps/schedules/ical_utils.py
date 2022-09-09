@@ -259,15 +259,10 @@ def list_of_empty_shifts_in_schedule(schedule, start_date, end_date):
 
                     checked_events.add(event_hash)
 
-                    all_day = False
-                    if type(event[ICAL_DATETIME_START].dt) == datetime.date:
-                        # Convert all-day events start and end from date to datetime with calendar's tz
-                        start, _ = ical_date_to_datetime(event["DTSTART"].dt, calendar_tz, start=True)
-                        end, _ = ical_date_to_datetime(event["DTEND"].dt, calendar_tz, start=False)
-                        all_day = True
-                    else:
-                        start = event[ICAL_DATETIME_START].dt.astimezone(pytz.UTC)
-                        end = event[ICAL_DATETIME_END].dt.astimezone(pytz.UTC)
+                    start, end, all_day = event_start_end_all_day_with_respect_to_type(event, calendar_tz)
+                    if not all_day:
+                        start = start.astimezone(pytz.UTC)
+                        end = end.astimezone(pytz.UTC)
 
                     empty_shifts_per_calendar.append(
                         EmptyShift(
@@ -367,6 +362,9 @@ def parse_event_uid(string):
         match = RE_EVENT_UID_V1.match(string)
         if match:
             _, _, _, source = match.groups()
+        else:
+            # fallback to use the UID string as the rotation ID
+            pk = string
 
     if source is not None:
         source = int(source)
@@ -408,7 +406,7 @@ def get_users_from_ical_event(event, organization):
     return users
 
 
-def is_icals_equal(first, second):
+def is_icals_equal_line_by_line(first, second):
     first = first.split("\n")
     second = second.split("\n")
     if len(first) != len(second):
@@ -423,6 +421,30 @@ def is_icals_equal(first, second):
                     return False
 
     return True
+
+
+def is_icals_equal(first, second, schedule):
+    from apps.schedules.models import OnCallScheduleICal  # noqa
+
+    if isinstance(schedule, OnCallScheduleICal):
+        first_cal = Calendar.from_ical(first)
+        second_cal = Calendar.from_ical(second)
+        first_subcomponents = first_cal.subcomponents
+        second_subcomponents = second_cal.subcomponents
+        if len(first_subcomponents) != len(second_subcomponents):
+            return False
+        for idx, first_cmp in enumerate(first_cal.subcomponents):
+            second_cmp = second_subcomponents[idx]
+            if first_cmp.name == second_cmp.name == "VEVENT":
+                first_uid, first_seq = first_cmp.get("UID", None), first_cmp.get("SEQUENCE", None)
+                second_uid, second_seq = second_cmp.get("UID", None), second_cmp.get("SEQUENCE", None)
+                if first_uid != second_uid:
+                    return False
+                elif first_seq != second_seq:
+                    return False
+        return True
+    else:
+        return is_icals_equal_line_by_line(first, second)
 
 
 def ical_date_to_datetime(date, tz, start):
@@ -551,7 +573,7 @@ def list_of_gaps_in_schedule(schedule, start_date, end_date):
                 end_datetime,
             )
             for event in events:
-                start, end = start_end_with_respect_to_all_day(event, calendar_tz)
+                start, end, _ = event_start_end_all_day_with_respect_to_type(event, calendar_tz)
                 intervals.append(DatetimeInterval(start, end))
     return detect_gaps(intervals, start_datetime, end_datetime)
 
@@ -586,6 +608,16 @@ def start_end_with_respect_to_all_day(event, calendar_tz):
     start, _ = ical_date_to_datetime(event[ICAL_DATETIME_START].dt, calendar_tz, start=True)
     end, _ = ical_date_to_datetime(event[ICAL_DATETIME_END].dt, calendar_tz, start=False)
     return start, end
+
+
+def event_start_end_all_day_with_respect_to_type(event, calendar_tz):
+    all_day = False
+    if type(event[ICAL_DATETIME_START].dt) == datetime.date:
+        start, end = start_end_with_respect_to_all_day(event, calendar_tz)
+        all_day = True
+    else:
+        start, end = ical_events.get_start_and_end_with_respect_to_event_type(event)
+    return start, end, all_day
 
 
 def convert_windows_timezone_to_iana(tz_name):

@@ -23,7 +23,9 @@ import styles from './DefaultPageLayout.module.css';
 
 const cx = cn.bind(styles);
 
-interface DefaultPageLayoutProps extends AppRootProps {}
+interface DefaultPageLayoutProps extends AppRootProps {
+  children?: any;
+}
 
 enum AlertID {
   CONNECTIVITY_WARNING = 'Connectivity Warning',
@@ -111,7 +113,7 @@ const DefaultPageLayout: FC<DefaultPageLayoutProps> = observer((props) => {
               {`Current plugin version: ${plugin.version}, current engine version: ${store.backendVersion}`}
               <br />
               Please see{' '}
-              <a href={'https://grafana.com/docs/oncall/latest/open-source/#update-grafana-oncall-oss'} target="_blank">
+              <a href={'https://grafana.com/docs/oncall/latest/open-source/#update-grafana-oncall-oss'} target="_blank" rel="noreferrer">
                 the update instructions
               </a>
               .

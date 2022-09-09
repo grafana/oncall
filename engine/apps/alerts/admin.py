@@ -23,7 +23,7 @@ class AlertAdmin(CustomModelAdmin):
 
 @admin.register(AlertGroup)
 class AlertGroupAdmin(CustomModelAdmin):
-    list_display = ("id", "public_primary_key", "verbose_name", "channel", "channel_filter", "state", "started_at")
+    list_display = ("id", "public_primary_key", "web_title_cache", "channel", "channel_filter", "state", "started_at")
     list_filter = ("started_at",)
 
     def get_queryset(self, request):

@@ -273,7 +273,7 @@ class CustomOnCallShift(models.Model):
 
         return is_finished
 
-    def convert_to_ical(self, time_zone="UTC"):
+    def convert_to_ical(self, time_zone="UTC", allow_empty_users=False):
         result = ""
         # use shift time_zone if it exists, otherwise use schedule or default time_zone
         time_zone = self.time_zone if self.time_zone is not None else time_zone
@@ -285,8 +285,10 @@ class CustomOnCallShift(models.Model):
             all_rotation_checked = False
 
             users_queue = self.get_rolling_users()
-            if not users_queue:
+            if not users_queue and not allow_empty_users:
                 return result
+            if not users_queue and allow_empty_users:
+                users_queue = [[None]]
             if self.frequency is None:
                 users_queue = users_queue[:1]
 
@@ -354,7 +356,10 @@ class CustomOnCallShift(models.Model):
         current_event = Event.from_ical(event_ical)
         # take shift interval, not event interval. For rolling_users shift it is not the same.
         interval = self.interval or 1
-        current_event["rrule"]["INTERVAL"] = interval
+        if "rrule" in current_event:
+            # when triggering shift previews, there could be no rrule information yet
+            # (e.g. initial empty weekly rotation has no rrule set)
+            current_event["rrule"]["INTERVAL"] = interval
         current_event_start = current_event["DTSTART"].dt
         next_event_start = current_event_start
         # Calculate the minimum start date for the next event based on rotation frequency. We don't need to do this
@@ -482,7 +487,8 @@ class CustomOnCallShift(models.Model):
                 rolling_users = self.rolling_users
             for users_dict in rolling_users:
                 users_list = list(users.filter(pk__in=users_dict.keys()))
-                users_queue.append(users_list)
+                if users_list:
+                    users_queue.append(users_list)
         return users_queue
 
     def add_rolling_users(self, rolling_users_list):

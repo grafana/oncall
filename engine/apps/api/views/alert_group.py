@@ -191,8 +191,7 @@ class AlertGroupView(
     pagination_class = TwentyFiveCursorPaginator
 
     filter_backends = [SearchFilter, filters.DjangoFilterBackend]
-    # todo: add ability to search by templated title
-    search_fields = ["public_primary_key", "inside_organization_number"]
+    search_fields = ["public_primary_key", "inside_organization_number", "web_title_cache"]
 
     filterset_class = AlertGroupFilter
 

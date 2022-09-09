@@ -14,6 +14,7 @@ module.exports = {
     'react/jsx-key': 'warn',
     'react/no-unescaped-entities': 'warn',
     'react/jsx-no-target-blank': 'warn',
+    'react-hooks/exhaustive-deps': 'warn',
     'no-restricted-imports': 'warn',
     eqeqeq: 'warn',
     'no-duplicate-imports': 'warn',

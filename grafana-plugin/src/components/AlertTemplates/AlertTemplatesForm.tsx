@@ -197,7 +197,7 @@ const AlertTemplatesForm = (props: AlertTemplatesFormProps) => {
           <VerticalGroup>
             <Text type="secondary">
               <p>
-                <a href="https://jinja.palletsprojects.com/en/3.0.x/" target="_blank">
+                <a href="https://jinja.palletsprojects.com/en/3.0.x/" target="_blank" rel="noreferrer">
                   Jinja2
                 </a>
                 {activeGroup === 'slack' && ', Slack markdown'}
@@ -240,6 +240,15 @@ const AlertTemplatesForm = (props: AlertTemplatesFormProps) => {
                   <Text type="secondary">
                     Press <Text keyboard>Ctrl</Text>+<Text keyboard>Space</Text> to get suggestions
                   </Text>
+                  {activeGroup === 'web' && activeTemplate.name == 'web_title_template' && (
+                    <div className={cx('web-title-message')}>
+                      <Text type="secondary" size="small">
+                        Please note that after changing the web title template new alert groups will be searchable by
+                        new title. Alert groups created before the template was changed will be still searchable by
+                        old title only.
+                      </Text>
+                    </div>
+                  )}
                 </div>
               </div>
             ))}

@@ -116,6 +116,7 @@ const PersonalNotificationSettings = observer((props: PersonalNotificationSettin
   return (
     <div className={cx('root')}>
       {title}
+      {/* @ts-ignore */}
       <SortableList
         helperClass={cx('sortable-helper')}
         className={cx('steps')}
@@ -126,6 +127,7 @@ const PersonalNotificationSettings = observer((props: PersonalNotificationSettin
       >
         {notificationPolicies.map((notificationPolicy: NotificationPolicyType, index: number) => (
           <NotificationPolicy
+            // @ts-ignore
             userAction={userAction}
             key={notificationPolicy.id}
             index={index}

@@ -9,9 +9,9 @@ from django.utils import timezone
 from apps.schedules.ical_events import ical_events
 from apps.schedules.ical_utils import (
     calculate_shift_diff,
+    event_start_end_all_day_with_respect_to_type,
     get_icalendar_tz_or_utc,
     get_usernames_from_ical_event,
-    ical_date_to_datetime,
     is_icals_equal,
     memoized_users_in_ical,
 )
@@ -35,12 +35,7 @@ def get_current_shifts_from_ical(calendar, schedule, min_priority=0):
         usernames, priority = get_usernames_from_ical_event(event)
         users = memoized_users_in_ical(tuple(usernames), schedule.organization)
         if len(users) > 0:
-            event_start, start_all_day = ical_date_to_datetime(
-                event["DTSTART"].dt,
-                calendar_tz,
-                start=True,
-            )
-            event_end, end_all_day = ical_date_to_datetime(event["DTEND"].dt, calendar_tz, start=False)
+            event_start, event_end, all_day_event = event_start_end_all_day_with_respect_to_type(event, calendar_tz)
 
             if event["UID"] in shifts:
                 existing_event = shifts[event["UID"]]
@@ -50,7 +45,7 @@ def get_current_shifts_from_ical(calendar, schedule, min_priority=0):
                 "users": [u.pk for u in users],
                 "start": event_start,
                 "end": event_end,
-                "all_day": start_all_day,
+                "all_day": all_day_event,
                 "priority": priority + min_priority,  # increase priority for overrides
                 "priority_increased_by": min_priority,
             }
@@ -70,19 +65,14 @@ def get_next_shifts_from_ical(calendar, schedule, min_priority=0, days_to_lookup
         usernames, priority = get_usernames_from_ical_event(event)
         users = memoized_users_in_ical(tuple(usernames), schedule.organization)
         if len(users) > 0:
-            event_start, start_all_day = ical_date_to_datetime(
-                event["DTSTART"].dt,
-                calendar_tz,
-                start=True,
-            )
-            event_end, end_all_day = ical_date_to_datetime(event["DTEND"].dt, calendar_tz, start=False)
+            event_start, event_end, all_day_event = event_start_end_all_day_with_respect_to_type(event, calendar_tz)
 
             # next_shifts are not stored in db so we can use User objects directly
             shifts[f"{event_start.timestamp()}_{event['UID']}"] = {
                 "users": users,
                 "start": event_start,
                 "end": event_end,
-                "all_day": start_all_day,
+                "all_day": all_day_event,
                 "priority": priority + min_priority,  # increase priority for overrides
                 "priority_increased_by": min_priority,
             }
@@ -265,7 +255,7 @@ def notify_ical_schedule_shift(schedule_pk):
 
     for prev_ical_file, current_ical_file in prev_and_current_ical_files:
         if prev_ical_file is not None and (
-            current_ical_file is None or not is_icals_equal(current_ical_file, prev_ical_file)
+            current_ical_file is None or not is_icals_equal(current_ical_file, prev_ical_file, schedule)
         ):
             # If icals are not equal then compare current_events from them
             is_prev_ical_diff = True
