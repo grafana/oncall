@@ -7,6 +7,7 @@ import cn from 'classnames/bind';
 import { debounce } from 'lodash-es';
 import { observer } from 'mobx-react';
 
+import WrongTeamStub from 'components/NotFoundInTeam/WrongTeamStub';
 import GList from 'components/GList/GList';
 import IntegrationsFilters, { Filters } from 'components/IntegrationsFilters/IntegrationsFilters';
 import Text from 'components/Text/Text';
@@ -24,9 +25,9 @@ import { WithStoreProps } from 'state/types';
 import { UserAction } from 'state/userAction';
 import { withMobXProviderContext } from 'state/withStore';
 import { openWarningNotification } from 'utils';
+import { getWrongTeamResponseInfo } from 'components/NotFoundInTeam/WrongTeam.helpers';
 
 import styles from './Integrations.module.css';
-import { convertRelativeToAbsoluteDate } from 'utils/datetime';
 
 const cx = cn.bind(styles);
 
@@ -67,7 +68,7 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
     getLocationSrv().update({ partial: true, query: { id: alertReceiveChannelId } });
   };
 
-  parseQueryParams = () => {
+  parseQueryParams = async () => {
     const { store, query } = this.props;
 
     const { alertReceiveChannelStore } = store;
@@ -76,14 +77,19 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
     let selectedAlertReceiveChannel = store.selectedAlertReceiveChannel;
 
     if (query.id) {
-      const alertReceiveChannelId = searchResult && searchResult.find((res) => res.id === query?.id)?.id;
-      if (alertReceiveChannelId) {
-        selectedAlertReceiveChannel = alertReceiveChannelId;
+      let alertReceiveChannel = await alertReceiveChannelStore
+        .loadItem(query.id, true)
+        .catch((error) => this.setState({ ...getWrongTeamResponseInfo(error) }));
+      if (!alertReceiveChannel) return;
+
+      if (alertReceiveChannel.id) {
+        selectedAlertReceiveChannel = alertReceiveChannel.id;
       } else {
         openWarningNotification(
           `Integration with id=${query?.id} is not found. Please select integration from the list.`
         );
       }
+
       if (query.tab) {
         this.setState({ integrationSettingsTab: query.tab });
         this.setState({ alertReceiveChannelToShowSettings: query.id });
@@ -123,7 +129,26 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
       alertReceiveChannelToShowSettings,
       integrationSettingsTab,
       showCreateIntegrationModal,
+      wrongTeamError,
+      teamToSwitch,
+      wrongTeamNoPermissions,
     } = this.state;
+
+    if (wrongTeamError) {
+      const currentTeamId = store.userStore.currentUser?.current_team;
+      const currentTeamName = store.grafanaTeamStore.items[currentTeamId]?.name;
+
+      return (
+        <WrongTeamStub
+          objectName="escalation"
+          pageName="escalations"
+          currentTeam={currentTeamName}
+          switchToTeam={teamToSwitch}
+          wrongTeamNoPermissions={wrongTeamNoPermissions}
+        />
+      );
+    }
+
     const { alertReceiveChannelStore } = store;
     const searchResult = alertReceiveChannelStore.getSearchResult();
 

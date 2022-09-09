@@ -33,6 +33,7 @@ interface RequestConfig {
 const failPaths = [
   'api/plugin-proxy/grafana-oncall-app/api/internal/v1/users/URPAN2A31CVWQ/',
   'api/plugin-proxy/grafana-oncall-app/api/internal/v1/escalation_chains/FDF7ZQMNKYIQK/',
+  'api/plugin-proxy/grafana-oncall-app/api/internal/v1/alert_receive_channels/CSPE3C7R4Q38G/',
 ];
 
 export const makeRequest = async (path: string, config: RequestConfig) => {

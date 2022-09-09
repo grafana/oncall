@@ -23,7 +23,7 @@ export class EscalationChainStore extends BaseStore {
   }
 
   @action
-  async loadItem(id: EscalationChain['id'], skipErrorHandling: boolean = false) {
+  async loadItem(id: EscalationChain['id'], skipErrorHandling: boolean = false): Promise<EscalationChain> {
     const escalationChain = await this.getById(id, skipErrorHandling);
 
     this.items = {
