@@ -26,6 +26,7 @@ import { withMobXProviderContext } from 'state/withStore';
 import { openWarningNotification } from 'utils';
 
 import styles from './Integrations.module.css';
+import { convertRelativeToAbsoluteDate } from 'utils/datetime';
 
 const cx = cn.bind(styles);
 
@@ -34,6 +35,11 @@ interface IntegrationsState {
   showCreateIntegrationModal: boolean;
   alertReceiveChannelToShowSettings?: AlertReceiveChannel['id'];
   integrationSettingsTab?: IntegrationSettingsTab;
+
+  notFound?: boolean;
+  wrongTeamError?: boolean;
+  teamToSwitch?: { name: string; id: string };
+  wrongTeamNoPermissions?: boolean;
 }
 
 interface IntegrationsProps extends WithStoreProps, AppRootProps {}
@@ -43,6 +49,9 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
   state: IntegrationsState = {
     integrationsFilters: { searchTerm: '' },
     showCreateIntegrationModal: false,
+
+    wrongTeamError: false,
+    wrongTeamNoPermissions: false,
   };
 
   alertReceiveChanneltoPoll: { [key: string]: number } = {};
@@ -65,6 +74,7 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
 
     const searchResult = alertReceiveChannelStore.getSearchResult();
     let selectedAlertReceiveChannel = store.selectedAlertReceiveChannel;
+
     if (query.id) {
       const alertReceiveChannelId = searchResult && searchResult.find((res) => res.id === query?.id)?.id;
       if (alertReceiveChannelId) {

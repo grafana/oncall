@@ -14,10 +14,8 @@ import Text from 'components/Text/Text';
 import UsersFilters from 'components/UsersFilters/UsersFilters';
 import UserSettings from 'containers/UserSettings/UserSettings';
 import { WithPermissionControl } from 'containers/WithPermissionControl/WithPermissionControl';
-import { CrossCircleIcon } from 'icons';
 import { getRole } from 'models/user/user.helpers';
-import { User, User as UserType, UserRole } from 'models/user/user.types';
-import { AppFeature } from 'state/features';
+import { User as UserType, UserRole } from 'models/user/user.types';
 import { WithStoreProps } from 'state/types';
 import { UserAction } from 'state/userAction';
 import { withMobXProviderContext } from 'state/withStore';
@@ -25,6 +23,8 @@ import { withMobXProviderContext } from 'state/withStore';
 import { getRealFilters, getUserRowClassNameFn } from './Users.helpers';
 
 import styles from './Users.module.css';
+import { getWrongTeamResponseInfo } from 'components/NotFoundInTeam/WrongTeam.helpers';
+import WrongTeamStub from 'components/NotFoundInTeam/WrongTeamStub';
 
 const cx = cn.bind(styles);
 
@@ -34,29 +34,38 @@ const ITEMS_PER_PAGE = 100;
 
 interface UsersState {
   page: number;
+  isWrongTeam: boolean;
   userPkToEdit?: UserType['pk'] | 'new';
   usersFilters?: {
     searchTerm: string;
     roles?: UserRole[];
   };
+
+  notFound?: boolean;
+  wrongTeamError?: boolean;
+  teamToSwitch?: { name: string; id: string };
+  wrongTeamNoPermissions?: boolean;
 }
 
 @observer
 class Users extends React.Component<UsersProps, UsersState> {
   state: UsersState = {
     page: 1,
+    isWrongTeam: false,
     userPkToEdit: undefined,
     usersFilters: {
       searchTerm: '',
       roles: [UserRole.ADMIN, UserRole.EDITOR, UserRole.VIEWER],
     },
+
+    wrongTeamError: false,
+    wrongTeamNoPermissions: false,
   };
 
   initialUsersLoaded = false;
 
   async componentDidMount() {
     const {
-      store,
       query: { p },
     } = this.props;
     this.setState({ page: p ? Number(p) : 1 }, this.updateUsers);
@@ -97,7 +106,9 @@ class Users extends React.Component<UsersProps, UsersState> {
     } = this.props;
 
     if (id) {
-      await (id === 'me' ? store.userStore.loadCurrentUser() : store.userStore.loadUser(String(id)));
+      await (id === 'me' ? store.userStore.loadCurrentUser() : store.userStore.loadUser(String(id), true)).catch(
+        (error) => this.setState({ ...getWrongTeamResponseInfo(error) })
+      );
 
       const userPkToEdit = String(id === 'me' ? store.userStore.currentUserPk : id);
 
@@ -108,7 +119,7 @@ class Users extends React.Component<UsersProps, UsersState> {
   };
 
   render() {
-    const { usersFilters, userPkToEdit, page } = this.state;
+    const { usersFilters, userPkToEdit, page, wrongTeamError, teamToSwitch, wrongTeamNoPermissions } = this.state;
     const { store } = this.props;
     const { userStore } = store;
 
@@ -131,11 +142,6 @@ class Users extends React.Component<UsersProps, UsersState> {
         key: 'note',
         render: this.renderNote,
       },
-      // {
-      //   width: '15%',
-      //   key: 'contacts',
-      //   render: this.renderContacts,
-      // },
       {
         width: '20%',
         title: 'Default Notifications',
@@ -154,6 +160,7 @@ class Users extends React.Component<UsersProps, UsersState> {
         render: this.renderButtons,
       },
     ];
+
     const handleClear = () =>
       this.setState(
         { usersFilters: { searchTerm: '', roles: [UserRole.ADMIN, UserRole.EDITOR, UserRole.VIEWER] } },
@@ -163,6 +170,21 @@ class Users extends React.Component<UsersProps, UsersState> {
       );
 
     const { count, results } = userStore.getSearchResult();
+
+    if (wrongTeamError) {
+      const currentTeamId = store.userStore.currentUser?.current_team;
+      const currentTeamName = store.grafanaTeamStore.items[currentTeamId]?.name;
+
+      return (
+        <WrongTeamStub
+          objectName="user"
+          pageName="users"
+          currentTeam={currentTeamName}
+          switchToTeam={teamToSwitch}
+          wrongTeamNoPermissions={wrongTeamNoPermissions}
+        />
+      );
+    }
 
     return (
       <div className={cx('root')}>

@@ -23,6 +23,18 @@ export class EscalationChainStore extends BaseStore {
   }
 
   @action
+  async loadItem(id: EscalationChain['id'], skipErrorHandling: boolean = false) {
+    const escalationChain = await this.getById(id, skipErrorHandling);
+
+    this.items = {
+      ...this.items,
+      [id]: escalationChain
+    }
+
+    return escalationChain
+  }
+
+  @action
   async updateById(id: EscalationChain['id']) {
     const response = await this.getById(id);
 
@@ -53,9 +65,9 @@ export class EscalationChainStore extends BaseStore {
   }
 
   @action
-  async updateItems(query = '') {
+  async updateItems(query = '', id?: string) {
     const results = await makeRequest(`${this.path}`, {
-      params: { search: query },
+      params: { search: query, id },
     });
 
     this.items = {

@@ -2,17 +2,7 @@ import React from 'react';
 
 import { AppRootProps } from '@grafana/data';
 import { getLocationSrv } from '@grafana/runtime';
-import {
-  Alert,
-  Button,
-  EmptySearchResult,
-  HorizontalGroup,
-  Icon,
-  IconButton,
-  LoadingPlaceholder,
-  Tooltip,
-  VerticalGroup,
-} from '@grafana/ui';
+import { Button, HorizontalGroup, Icon, IconButton, LoadingPlaceholder, Tooltip, VerticalGroup } from '@grafana/ui';
 import cn from 'classnames/bind';
 import { debounce } from 'lodash-es';
 import { observer } from 'mobx-react';
@@ -21,28 +11,24 @@ import Collapse from 'components/Collapse/Collapse';
 import EscalationsFilters from 'components/EscalationsFilters/EscalationsFilters';
 import Block from 'components/GBlock/Block';
 import GList from 'components/GList/GList';
-import IntegrationsFilters from 'components/IntegrationsFilters/IntegrationsFilters';
+import { getWrongTeamResponseInfo } from 'components/NotFoundInTeam/WrongTeam.helpers';
 import PluginLink from 'components/PluginLink/PluginLink';
 import Text from 'components/Text/Text';
 import Tutorial from 'components/Tutorial/Tutorial';
 import { TutorialStep } from 'components/Tutorial/Tutorial.types';
 import WithConfirm from 'components/WithConfirm/WithConfirm';
-import AlertReceiveChannelCard from 'containers/AlertReceiveChannelCard/AlertReceiveChannelCard';
 import EscalationChainCard from 'containers/EscalationChainCard/EscalationChainCard';
 import EscalationChainForm from 'containers/EscalationChainForm/EscalationChainForm';
 import EscalationChainSteps from 'containers/EscalationChainSteps/EscalationChainSteps';
-import GSelect from 'containers/GSelect/GSelect';
-import { IntegrationSettingsTab } from 'containers/IntegrationSettings/IntegrationSettings.types';
 import { WithPermissionControl } from 'containers/WithPermissionControl/WithPermissionControl';
-import { AlertReceiveChannel } from 'models/alert_receive_channel';
-import { ChannelFilter } from 'models/channel_filter/channel_filter.types';
 import { EscalationChain } from 'models/escalation_chain/escalation_chain.types';
-import { SelectOption, WithStoreProps } from 'state/types';
+import { WithStoreProps } from 'state/types';
 import { UserAction } from 'state/userAction';
 import { withMobXProviderContext } from 'state/withStore';
 import { openWarningNotification } from 'utils';
 
 import styles from './EscalationChains.module.css';
+import WrongTeamStub from 'components/NotFoundInTeam/WrongTeamStub';
 
 const cx = cn.bind(styles);
 
@@ -53,6 +39,11 @@ interface EscalationChainsPageState {
   showCreateEscalationChainModal: boolean;
   escalationChainIdToCopy: EscalationChain['id'];
   selectedEscalationChain: EscalationChain['id'];
+
+  notFound?: boolean;
+  wrongTeamError?: boolean;
+  teamToSwitch?: { name: string; id: string };
+  wrongTeamNoPermissions?: boolean;
 }
 
 export interface Filters {
@@ -66,13 +57,15 @@ class EscalationChainsPage extends React.Component<EscalationChainsPageProps, Es
     showCreateEscalationChainModal: false,
     escalationChainIdToCopy: undefined,
     selectedEscalationChain: undefined,
+    wrongTeamError: false,
+    wrongTeamNoPermissions: false,
   };
 
   async componentDidMount() {
     this.update().then(this.parseQueryParams);
   }
 
-  parseQueryParams = () => {
+  parseQueryParams = async () => {
     const { store, query } = this.props;
     const {
       escalationChainsFilters: { searchTerm },
@@ -82,9 +75,14 @@ class EscalationChainsPage extends React.Component<EscalationChainsPageProps, Es
 
     const searchResult = escalationChainStore.getSearchResult(searchTerm);
 
-    let selectedEscalationChain;
+    let selectedEscalationChain: EscalationChain['id'];
     if (query.id) {
-      const escalationChain = escalationChainStore.items[query.id];
+      let escalationChain = await escalationChainStore
+        .loadItem(query.id, true)
+        .catch((error) => this.setState({ ...getWrongTeamResponseInfo(error) }));
+      if (!escalationChain) return;
+
+      escalationChain = escalationChainStore.items[query.id];
       if (escalationChain) {
         selectedEscalationChain = escalationChain.id;
       } else {
@@ -115,7 +113,7 @@ class EscalationChainsPage extends React.Component<EscalationChainsPageProps, Es
   update = () => {
     const { store } = this.props;
 
-    return store.escalationChainStore.updateItems();
+    return store.escalationChainStore.updateItems('', this.props.query.id);
   };
 
   componentDidUpdate() {}
@@ -127,7 +125,25 @@ class EscalationChainsPage extends React.Component<EscalationChainsPageProps, Es
       escalationChainIdToCopy,
       escalationChainsFilters,
       selectedEscalationChain,
+      wrongTeamError,
+      teamToSwitch,
+      wrongTeamNoPermissions
     } = this.state;
+
+    if (wrongTeamError) {
+      const currentTeamId = store.userStore.currentUser?.current_team;
+      const currentTeamName = store.grafanaTeamStore.items[currentTeamId]?.name;
+
+      return (
+        <WrongTeamStub
+          objectName="escalation"
+          pageName="escalations"
+          currentTeam={currentTeamName}
+          switchToTeam={teamToSwitch}
+          wrongTeamNoPermissions={wrongTeamNoPermissions}
+        />
+      );
+    }
 
     const { escalationChainStore } = store;
     const searchResult = escalationChainStore.getSearchResult(escalationChainsFilters.searchTerm);
