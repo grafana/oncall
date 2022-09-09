@@ -7,9 +7,10 @@ import cn from 'classnames/bind';
 import { debounce } from 'lodash-es';
 import { observer } from 'mobx-react';
 
-import WrongTeamStub from 'components/NotFoundInTeam/WrongTeamStub';
 import GList from 'components/GList/GList';
 import IntegrationsFilters, { Filters } from 'components/IntegrationsFilters/IntegrationsFilters';
+import { getWrongTeamResponseInfo } from 'components/NotFoundInTeam/WrongTeam.helpers';
+import WrongTeamStub from 'components/NotFoundInTeam/WrongTeamStub';
 import Text from 'components/Text/Text';
 import Tutorial from 'components/Tutorial/Tutorial';
 import { TutorialStep } from 'components/Tutorial/Tutorial.types';
@@ -25,7 +26,6 @@ import { WithStoreProps } from 'state/types';
 import { UserAction } from 'state/userAction';
 import { withMobXProviderContext } from 'state/withStore';
 import { openWarningNotification } from 'utils';
-import { getWrongTeamResponseInfo } from 'components/NotFoundInTeam/WrongTeam.helpers';
 
 import styles from './Integrations.module.css';
 
@@ -80,7 +80,7 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
       let alertReceiveChannel = await alertReceiveChannelStore
         .loadItem(query.id, true)
         .catch((error) => this.setState({ ...getWrongTeamResponseInfo(error) }));
-      if (!alertReceiveChannel) return;
+      if (!alertReceiveChannel) {return;}
 
       if (alertReceiveChannel.id) {
         selectedAlertReceiveChannel = alertReceiveChannel.id;
@@ -132,14 +132,10 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
     } = this.state;
 
     if (wrongTeamError) {
-      const currentTeamId = store.userStore.currentUser?.current_team;
-      const currentTeamName = store.grafanaTeamStore.items[currentTeamId]?.name;
-
       return (
         <WrongTeamStub
           objectName="escalation"
           pageName="escalations"
-          currentTeam={currentTeamName}
           switchToTeam={teamToSwitch}
           wrongTeamNoPermissions={wrongTeamNoPermissions}
         />

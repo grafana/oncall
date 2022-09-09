@@ -26,7 +26,7 @@ export class ScheduleStore extends BaseStore {
   }
 
   @action
-  async loadItem(id: Schedule['id'], skipErrorHandling: boolean = false): Promise<Schedule> {
+  async loadItem(id: Schedule['id'], skipErrorHandling = false): Promise<Schedule> {
     const schedule = await this.getById(id, skipErrorHandling);
 
     this.items = {

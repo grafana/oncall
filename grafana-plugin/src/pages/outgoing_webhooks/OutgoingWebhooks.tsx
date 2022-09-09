@@ -7,6 +7,8 @@ import cn from 'classnames/bind';
 import { observer } from 'mobx-react';
 
 import GTable from 'components/GTable/GTable';
+import { getWrongTeamResponseInfo } from 'components/NotFoundInTeam/WrongTeam.helpers';
+import WrongTeamStub from 'components/NotFoundInTeam/WrongTeamStub';
 import PluginLink from 'components/PluginLink/PluginLink';
 import Text from 'components/Text/Text';
 import WithConfirm from 'components/WithConfirm/WithConfirm';
@@ -21,8 +23,6 @@ import { UserAction } from 'state/userAction';
 import { withMobXProviderContext } from 'state/withStore';
 
 import styles from './OutgoingWebhooks.module.css';
-import { getWrongTeamResponseInfo } from 'components/NotFoundInTeam/WrongTeam.helpers';
-import WrongTeamStub from 'components/NotFoundInTeam/WrongTeamStub';
 
 const cx = cn.bind(styles);
 
@@ -79,14 +79,10 @@ class OutgoingWebhooks extends React.Component<OutgoingWebhooksProps, OutgoingWe
     const { outgoingWebhookIdToEdit, wrongTeamError, teamToSwitch, wrongTeamNoPermissions } = this.state;
 
     if (wrongTeamError) {
-      const currentTeamId = store.userStore.currentUser?.current_team;
-      const currentTeamName = store.grafanaTeamStore.items[currentTeamId]?.name;
-
       return (
         <WrongTeamStub
           objectName="outgoing webhook"
           pageName="outgoing_webhooks"
-          currentTeam={currentTeamName}
           switchToTeam={teamToSwitch}
           wrongTeamNoPermissions={wrongTeamNoPermissions}
         />

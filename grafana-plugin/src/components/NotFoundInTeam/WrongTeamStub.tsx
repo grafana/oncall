@@ -17,14 +17,17 @@ export interface WrongTeamStubProps {
   className?: string;
   objectName: string;
   pageName: string;
-  currentTeam?: string;
   switchToTeam?: { name: string; id: string };
   wrongTeamNoPermissions?: boolean;
 }
 
 const WrongTeamStub: FC<WrongTeamStubProps> = (props) => {
   const store = useStore();
-  const { objectName, pageName, currentTeam, switchToTeam, className, wrongTeamNoPermissions } = props;
+
+  const currentTeamId = store.userStore.currentUser?.current_team;
+  const currentTeam = store.grafanaTeamStore.items[currentTeamId]?.name;
+
+  const { objectName, pageName, switchToTeam, wrongTeamNoPermissions } = props;
 
   const onTeamChange = async (teamId: GrafanaTeam['id']) => {
     await store.userStore.updateCurrentUser({ current_team: teamId });

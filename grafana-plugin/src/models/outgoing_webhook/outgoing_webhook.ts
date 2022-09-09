@@ -20,7 +20,7 @@ export class OutgoingWebhookStore extends BaseStore {
   }
 
   @action
-  async loadItem(id: OutgoingWebhook['id'], skipErrorHandling: boolean = false): Promise<OutgoingWebhook> {
+  async loadItem(id: OutgoingWebhook['id'], skipErrorHandling = false): Promise<OutgoingWebhook> {
     const outgoingWebhook = await this.getById(id, skipErrorHandling);
 
     this.items = {

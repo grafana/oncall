@@ -71,7 +71,7 @@ export class AlertReceiveChannelStore extends BaseStore {
   }
 
   @action
-  async loadItem(id: AlertReceiveChannel['id'], skipErrorHandling: boolean = false): Promise<AlertReceiveChannel> {
+  async loadItem(id: AlertReceiveChannel['id'], skipErrorHandling = false): Promise<AlertReceiveChannel> {
     const alertReceiveChannel = await this.getById(id, skipErrorHandling);
 
     this.items = {

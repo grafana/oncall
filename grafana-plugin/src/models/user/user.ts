@@ -60,7 +60,7 @@ export class UserStore extends BaseStore {
   }
 
   @action
-  async loadUser(userPk: User['pk'], skipErrorHandling: boolean = false) {
+  async loadUser(userPk: User['pk'], skipErrorHandling = false) {
     const user = await this.getById(userPk, skipErrorHandling);
 
     this.items = {

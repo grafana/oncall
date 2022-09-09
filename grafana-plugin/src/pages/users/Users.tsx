@@ -9,6 +9,8 @@ import { observer } from 'mobx-react';
 
 import Avatar from 'components/Avatar/Avatar';
 import GTable from 'components/GTable/GTable';
+import { getWrongTeamResponseInfo } from 'components/NotFoundInTeam/WrongTeam.helpers';
+import WrongTeamStub from 'components/NotFoundInTeam/WrongTeamStub';
 import PluginLink from 'components/PluginLink/PluginLink';
 import Text from 'components/Text/Text';
 import UsersFilters from 'components/UsersFilters/UsersFilters';
@@ -23,8 +25,6 @@ import { withMobXProviderContext } from 'state/withStore';
 import { getRealFilters, getUserRowClassNameFn } from './Users.helpers';
 
 import styles from './Users.module.css';
-import { getWrongTeamResponseInfo } from 'components/NotFoundInTeam/WrongTeam.helpers';
-import WrongTeamStub from 'components/NotFoundInTeam/WrongTeamStub';
 
 const cx = cn.bind(styles);
 
@@ -172,14 +172,10 @@ class Users extends React.Component<UsersProps, UsersState> {
     const { count, results } = userStore.getSearchResult();
 
     if (wrongTeamError) {
-      const currentTeamId = store.userStore.currentUser?.current_team;
-      const currentTeamName = store.grafanaTeamStore.items[currentTeamId]?.name;
-
       return (
         <WrongTeamStub
           objectName="user"
           pageName="users"
-          currentTeam={currentTeamName}
           switchToTeam={teamToSwitch}
           wrongTeamNoPermissions={wrongTeamNoPermissions}
         />

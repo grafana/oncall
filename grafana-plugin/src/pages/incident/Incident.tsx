@@ -26,8 +26,8 @@ import reactStringReplace from 'react-string-replace';
 import Collapse from 'components/Collapse/Collapse';
 import Block from 'components/GBlock/Block';
 import IntegrationLogo from 'components/IntegrationLogo/IntegrationLogo';
-import WrongTeamStub from 'components/NotFoundInTeam/WrongTeamStub';
 import { getWrongTeamResponseInfo } from 'components/NotFoundInTeam/WrongTeam.helpers';
+import WrongTeamStub from 'components/NotFoundInTeam/WrongTeamStub';
 import PluginLink from 'components/PluginLink/PluginLink';
 import SourceCode from 'components/SourceCode/SourceCode';
 import Text from 'components/Text/Text';
@@ -122,8 +122,7 @@ class IncidentPage extends React.Component<IncidentPageProps, IncidentPageState>
     const { alerts } = store.alertGroupStore;
 
     const incident = alerts.get(id);
-    const currentTeamId = store.userStore.currentUser?.current_team;
-    const currentTeamName = store.grafanaTeamStore.items[currentTeamId]?.name;
+
     if (notFound) {
       return (
         <div className={cx('root')}>
@@ -147,7 +146,6 @@ class IncidentPage extends React.Component<IncidentPageProps, IncidentPageState>
         <WrongTeamStub
           objectName="alert group"
           pageName="incidents"
-          currentTeam={currentTeamName}
           switchToTeam={teamToSwitch}
           wrongTeamNoPermissions={wrongTeamNoPermissions}
         />

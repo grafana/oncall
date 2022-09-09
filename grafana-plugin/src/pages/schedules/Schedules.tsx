@@ -22,6 +22,8 @@ import moment, { Moment } from 'moment-timezone';
 import instructionsImage from 'assets/img/events_instructions.png';
 import Avatar from 'components/Avatar/Avatar';
 import GTable from 'components/GTable/GTable';
+import { getWrongTeamResponseInfo } from 'components/NotFoundInTeam/WrongTeam.helpers';
+import WrongTeamStub from 'components/NotFoundInTeam/WrongTeamStub';
 import PluginLink from 'components/PluginLink/PluginLink';
 import SchedulesFilters from 'components/SchedulesFilters/SchedulesFilters';
 import { SchedulesFiltersType } from 'components/SchedulesFilters/SchedulesFilters.types';
@@ -43,8 +45,6 @@ import { openErrorNotification } from 'utils';
 import { getDatesString } from './Schedules.helpers';
 
 import styles from './Schedules.module.css';
-import { getWrongTeamResponseInfo } from 'components/NotFoundInTeam/WrongTeam.helpers';
-import WrongTeamStub from 'components/NotFoundInTeam/WrongTeamStub';
 
 const cx = cn.bind(styles);
 
@@ -93,7 +93,7 @@ class SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSta
       const schedule = store.scheduleStore
         .loadItem(id, true)
         .catch((error) => this.setState({ ...getWrongTeamResponseInfo(error) }));
-      if (!schedule) return;
+      if (!schedule) {return;}
 
       const schedules = store.scheduleStore.getSearchResult();
       const scheduleId = schedules && schedules.find((res) => res.id === id)?.id;
@@ -119,14 +119,10 @@ class SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSta
     const { scheduleStore } = store;
 
     if (wrongTeamError) {
-      const currentTeamId = store.userStore.currentUser?.current_team;
-      const currentTeamName = store.grafanaTeamStore.items[currentTeamId]?.name;
-
       return (
         <WrongTeamStub
           objectName="escalation"
           pageName="escalations"
-          currentTeam={currentTeamName}
           switchToTeam={teamToSwitch}
           wrongTeamNoPermissions={wrongTeamNoPermissions}
         />

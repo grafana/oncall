@@ -12,6 +12,7 @@ import EscalationsFilters from 'components/EscalationsFilters/EscalationsFilters
 import Block from 'components/GBlock/Block';
 import GList from 'components/GList/GList';
 import { getWrongTeamResponseInfo } from 'components/NotFoundInTeam/WrongTeam.helpers';
+import WrongTeamStub from 'components/NotFoundInTeam/WrongTeamStub';
 import PluginLink from 'components/PluginLink/PluginLink';
 import Text from 'components/Text/Text';
 import Tutorial from 'components/Tutorial/Tutorial';
@@ -28,7 +29,6 @@ import { withMobXProviderContext } from 'state/withStore';
 import { openWarningNotification } from 'utils';
 
 import styles from './EscalationChains.module.css';
-import WrongTeamStub from 'components/NotFoundInTeam/WrongTeamStub';
 
 const cx = cn.bind(styles);
 
@@ -80,7 +80,7 @@ class EscalationChainsPage extends React.Component<EscalationChainsPageProps, Es
       let escalationChain = await escalationChainStore
         .loadItem(query.id, true)
         .catch((error) => this.setState({ ...getWrongTeamResponseInfo(error) }));
-      if (!escalationChain) return;
+      if (!escalationChain) {return;}
 
       escalationChain = escalationChainStore.items[query.id];
       if (escalationChain) {
@@ -131,14 +131,10 @@ class EscalationChainsPage extends React.Component<EscalationChainsPageProps, Es
     } = this.state;
 
     if (wrongTeamError) {
-      const currentTeamId = store.userStore.currentUser?.current_team;
-      const currentTeamName = store.grafanaTeamStore.items[currentTeamId]?.name;
-
       return (
         <WrongTeamStub
           objectName="escalation"
           pageName="escalations"
-          currentTeam={currentTeamName}
           switchToTeam={teamToSwitch}
           wrongTeamNoPermissions={wrongTeamNoPermissions}
         />
