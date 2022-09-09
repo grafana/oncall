@@ -15,6 +15,7 @@ export interface User {
   avatar: string;
   name: string;
   company: string;
+  hide_phone_number: boolean;
   role_in_company: string;
   username: string;
   slack_id: string;
