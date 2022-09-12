@@ -13,12 +13,11 @@ const cx = cn.bind(styles);
 interface SourceCodeProps {
   noMaxHeight?: boolean;
   showCopyToClipboard?: boolean;
-  isButtonTopPositioned?: boolean;
   children?: any;
 }
 
 const SourceCode: FC<SourceCodeProps> = (props) => {
-  const { children, isButtonTopPositioned = false, noMaxHeight = false, showCopyToClipboard = true } = props;
+  const { children, noMaxHeight = false, showCopyToClipboard = true } = props;
 
   return (
     <div className={cx('root')}>
@@ -30,10 +29,9 @@ const SourceCode: FC<SourceCodeProps> = (props) => {
           }}
         >
           <Button
-            className={cx('button', {
-              'button--top': isButtonTopPositioned,
-            })}
+            className={cx('button')}
             variant="primary"
+            size='xs'
             icon="copy"
           >
             Copy

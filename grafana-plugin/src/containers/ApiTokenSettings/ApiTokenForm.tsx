@@ -10,6 +10,7 @@ import SourceCode from 'components/SourceCode/SourceCode';
 import { ApiToken } from 'models/api_token/api_token.types';
 import { useStore } from 'state/useStore';
 import { openErrorNotification, openNotification } from 'utils';
+import { getItem } from 'utils/localStorage';
 
 import styles from './ApiTokenForm.module.css';
 
@@ -82,7 +83,9 @@ const ApiTokenForm = observer((props: TokenCreationModalProps) => {
   }
 
   function renderCopyToClipboard() {
-    if (!token) return null;
+    if (!token) {
+      return null;
+    }
     return (
       <CopyToClipboard text={token} onCopy={() => openNotification('Token copied')}>
         <Button className={cx('token__copyButton')}>Copy Token</Button>
@@ -91,18 +94,20 @@ const ApiTokenForm = observer((props: TokenCreationModalProps) => {
   }
 
   function renderCurlExample() {
-    if (!token) return null;
+    if (!token) {
+      return null;
+    }
     return (
       <VerticalGroup>
         <Label>Curl command example</Label>
-        <SourceCode isButtonTopPositioned={true}>{getCurlExample(token)}</SourceCode>
+        <SourceCode>{getCurlExample(token)}</SourceCode>
       </VerticalGroup>
     );
   }
 });
 
 function getCurlExample(token) {
-  return `curl -H "Authorization: ${token}" ${document.location.origin}/api/v1/escalation_chains`;
+  return `curl -H "Authorization: ${token}" ${getItem('onCallApiUrl')}/api/internal/v1/alert_receive_channels`;
 }
 
 export default ApiTokenForm;
