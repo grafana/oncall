@@ -1401,3 +1401,54 @@ def test_schedule_mention_options_permissions(
     response = client.get(url, format="json", **make_user_auth_headers(user, token))
 
     assert response.status_code == expected_status
+
+
+@pytest.mark.django_db
+def test_get_schedule_from_other_team_with_flag(
+    make_organization_and_user_with_plugin_token,
+    make_team,
+    make_user_auth_headers,
+    make_schedule,
+):
+    organization, user, token = make_organization_and_user_with_plugin_token()
+
+    team = make_team(organization)
+
+    calendar_schedule = make_schedule(
+        organization,
+        schedule_class=OnCallScheduleCalendar,
+        name="test_calendar_schedule",
+        team=team,
+    )
+
+    client = APIClient()
+    url = reverse("api-internal:schedule-detail", kwargs={"pk": calendar_schedule.public_primary_key})
+    url = f"{url}?from_organization=true"
+
+    response = client.get(url, format="json", **make_user_auth_headers(user, token))
+    assert response.status_code == status.HTTP_200_OK
+
+
+@pytest.mark.django_db
+def test_get_schedule_from_other_team_without_flag(
+    make_organization_and_user_with_plugin_token,
+    make_team,
+    make_user_auth_headers,
+    make_schedule,
+):
+    organization, user, token = make_organization_and_user_with_plugin_token()
+
+    team = make_team(organization)
+
+    calendar_schedule = make_schedule(
+        organization,
+        schedule_class=OnCallScheduleCalendar,
+        name="test_calendar_schedule",
+        team=team,
+    )
+
+    client = APIClient()
+    url = reverse("api-internal:schedule-detail", kwargs={"pk": calendar_schedule.public_primary_key})
+
+    response = client.get(url, format="json", **make_user_auth_headers(user, token))
+    assert response.status_code == status.HTTP_403_FORBIDDEN
