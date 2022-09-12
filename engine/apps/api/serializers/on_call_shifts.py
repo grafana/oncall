@@ -170,7 +170,7 @@ class OnCallShiftSerializer(EagerLoadingMixin, serializers.ModelSerializer):
         )
         instance = super().create(validated_data)
 
-        instance.start_drop_ical_and_check_schedule_tasks(instance.schedule)
+        instance.start_refresh_ical_task_for_schedule(instance.schedule)
         return instance
 
 
@@ -204,5 +204,5 @@ class OnCallShiftUpdateSerializer(OnCallShiftSerializer):
         else:
             result = super().update(instance, validated_data)
 
-        instance.start_drop_ical_and_check_schedule_tasks(instance.schedule)
+        instance.start_refresh_ical_task_for_schedule(instance.schedule)
         return result

@@ -16,11 +16,7 @@ from django.utils.functional import cached_property
 from icalendar.cal import Event
 from recurring_ical_events import UnfoldableCalendar
 
-from apps.schedules.tasks import (
-    drop_cached_ical_task,
-    schedule_notify_about_empty_shifts_in_schedule,
-    schedule_notify_about_gaps_in_schedule,
-)
+from apps.schedules.tasks import refresh_ical_file
 from apps.user_management.models import User
 from common.public_primary_keys import generate_public_primary_key, increase_public_primary_key_length
 
@@ -224,7 +220,7 @@ class CustomOnCallShift(models.Model):
             super().delete(*args, **kwargs)
 
         for schedule in schedules_to_update:
-            self.start_drop_ical_and_check_schedule_tasks(schedule)
+            self.start_refresh_ical_task_for_schedule(schedule)
 
     @property
     def repr_settings_for_client_side_logging(self) -> str:
@@ -530,10 +526,8 @@ class CustomOnCallShift(models.Model):
         result %= len(self.rolling_users)
         return result
 
-    def start_drop_ical_and_check_schedule_tasks(self, schedule):
-        drop_cached_ical_task.apply_async((schedule.pk,))
-        schedule_notify_about_empty_shifts_in_schedule.apply_async((schedule.pk,))
-        schedule_notify_about_gaps_in_schedule.apply_async((schedule.pk,))
+    def start_refresh_ical_task_for_schedule(self, schedule):
+        refresh_ical_file.apply_async((schedule.pk,))
 
     @cached_property
     def last_updated_shift(self):

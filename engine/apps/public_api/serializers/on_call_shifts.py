@@ -136,7 +136,7 @@ class CustomOnCallShiftSerializer(EagerLoadingMixin, serializers.ModelSerializer
             validated_data["rotation_start"] = validated_data["start"]
         instance = super().create(validated_data)
         for schedule in instance.schedules.all():
-            instance.start_drop_ical_and_check_schedule_tasks(schedule)
+            instance.start_refresh_ical_task_for_schedule(schedule)
         return instance
 
     def validate_name(self, name):
@@ -363,5 +363,5 @@ class CustomOnCallShiftUpdateSerializer(CustomOnCallShiftSerializer):
         validated_data = self._correct_validated_data(event_type, validated_data)
         result = super().update(instance, validated_data)
         for schedule in instance.schedules.all():
-            instance.start_drop_ical_and_check_schedule_tasks(schedule)
+            instance.start_refresh_ical_task_for_schedule(schedule)
         return result
