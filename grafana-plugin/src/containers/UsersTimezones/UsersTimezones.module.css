@@ -105,8 +105,8 @@
   height: 4px;
   background: #3d71d9;
   border-radius: 2px;
-  left: calc((3 / 8) * 100%);
-  right: calc((2 / 8) * 100%);
+  left: calc((9 / 24) * 100%);
+  right: calc((7 / 24) * 100%);
 }
 
 .time-marks {
