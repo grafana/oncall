@@ -66,7 +66,7 @@ const DefaultPageLayout: FC<DefaultPageLayoutProps> = observer((props) => {
   const { currentUser } = userStore;
 
   const isChatOpsConnected = getIfChatOpsConnected(currentUser);
-  const isPhoneVerified = currentUser?.cloud_connection_status === 3 ? true : currentUser?.verified_phone_number;
+  const isPhoneVerified = currentUser?.cloud_connection_status === 3 || currentUser?.verified_phone_number;
 
   return (
     <div className={cx('root')}>
