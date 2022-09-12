@@ -144,7 +144,8 @@ class SlackSettings extends Component<SlackProps, SlackState> {
         step={TutorialStep.Slack}
         title={
           <VerticalGroup align="center" spacing="lg">
-            <Text type="secondary">
+            <Text.Title level={2}>Connect your Slack workspace</Text.Title>
+            <Text>
               Bring the whole incident lifecycle to Slack, from alerts, monitoring, escalations to resolution notes and
               reports.
             </Text>
