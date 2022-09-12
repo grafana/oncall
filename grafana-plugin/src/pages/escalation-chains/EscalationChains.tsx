@@ -113,7 +113,7 @@ class EscalationChainsPage extends React.Component<EscalationChainsPageProps, Es
   update = () => {
     const { store } = this.props;
 
-    return store.escalationChainStore.updateItems('', this.props.query.id);
+    return store.escalationChainStore.updateItems('');
   };
 
   componentDidUpdate() {}

@@ -65,9 +65,9 @@ export class EscalationChainStore extends BaseStore {
   }
 
   @action
-  async updateItems(query = '', id?: string) {
+  async updateItems(query = '') {
     const results = await makeRequest(`${this.path}`, {
-      params: { search: query, id },
+      params: { search: query },
     });
 
     this.items = {
