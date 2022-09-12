@@ -1,5 +1,9 @@
 # Change Log
 
+## v1.0.36 (2022-09-12)
+- Alpha web schedules frontend/backend updates
+- Bug fixes
+
 ## v1.0.35 (2022-09-07)
 - Bug fixes
 
