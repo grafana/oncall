@@ -1,12 +1,11 @@
-import React, { HTMLAttributes, useCallback, useRef, useState } from 'react';
+import React, { HTMLAttributes, useCallback, useRef, useReducer } from 'react';
 
-import { Alert, Button, Field, HorizontalGroup, Icon, Input, Tooltip } from '@grafana/ui';
+import { Alert, Button, Field, HorizontalGroup, Icon, Input, Switch, Tooltip, VerticalGroup } from '@grafana/ui';
 import cn from 'classnames/bind';
 import { observer } from 'mobx-react';
 
 import PluginLink from 'components/PluginLink/PluginLink';
-import WithConfirm from 'components/WithConfirm/WithConfirm';
-import userSettings from 'containers/UserSettings/UserSettings';
+import Text from 'components/Text/Text';
 import { WithPermissionControl } from 'containers/WithPermissionControl/WithPermissionControl';
 import { User } from 'models/user/user.types';
 import { AppFeature } from 'state/features';
@@ -20,47 +19,80 @@ const cx = cn.bind(styles);
 
 interface PhoneVerificationProps extends HTMLAttributes<HTMLElement> {
   userPk?: User['pk'];
-  phone?: string;
 }
 
+interface PhoneVerificationState {
+  phone: string;
+  code: string;
+  isCodeSent: boolean;
+  isPhoneNumberHidden: boolean;
+  isLoading: boolean;
+  showForgetScreen: boolean;
+}
+
+const PHONE_REGEX = /^\+\d{8,15}$/;
+
 const PhoneVerification = observer((props: PhoneVerificationProps) => {
-  const { phone: propsPhone, userPk: propsUserPk } = props;
-  const [phone, setPhone] = useState(propsPhone);
-  const [code, setCode] = useState('');
-  const [codeSent, setCodeSent] = useState<boolean>(false);
-
-  const codeInputRef = useRef<any>();
-
-  const onChangePhoneCallback = useCallback((event) => {
-    setCodeSent(false);
-    setPhone(event.target.value);
-  }, []);
-
-  const onChangeCodeCallback = useCallback((event) => {
-    setCode(event.target.value);
-  }, []);
+  const { userPk: propsUserPk } = props;
 
   const store = useStore();
   const { userStore, teamStore } = store;
 
   const userPk = (propsUserPk || userStore.currentUserPk) as User['pk'];
-  const user = userStore.items[userPk as User['pk']];
+  let user = userStore.items[userPk];
+
+  const [{ showForgetScreen, phone, code, isCodeSent, isPhoneNumberHidden, isLoading }, setState] = useReducer(
+    (state: PhoneVerificationState, newState: Partial<PhoneVerificationState>) => ({
+      ...state,
+      ...newState,
+    }),
+    {
+      code: '',
+      phone: user.verified_phone_number || '+',
+      isLoading: false,
+      isCodeSent: false,
+      showForgetScreen: false,
+      isPhoneNumberHidden: user.hide_phone_number,
+    }
+  );
+
+  const codeInputRef = useRef<any>();
+
+  const onTogglePhoneCallback = useCallback(
+    async ({ currentTarget: { checked: isPhoneNumberHidden } }: React.ChangeEvent<HTMLInputElement>) => {
+      setState({ isPhoneNumberHidden, isLoading: true });
+
+      await userStore.updateUser({ pk: userPk, hide_phone_number: isPhoneNumberHidden });
+      user = userStore.items[userPk];
+
+      setState({ phone: user.verified_phone_number, isLoading: false });
+    },
+    []
+  );
+
+  const onChangePhoneCallback = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
+    setState({ isCodeSent: false, phone: event.target.value });
+  }, []);
+
+  const onChangeCodeCallback = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
+    setState({ code: event.target.value });
+  }, []);
 
   const handleMakeTestCallClick = useCallback(() => {
     userStore.makeTestCall(userPk);
   }, [userPk]);
 
   const handleForgetNumberClick = useCallback(() => {
-    userStore.forgetPhone(userPk).then(() => {
-      setPhone('');
-      userStore.loadUser(userPk);
+    userStore.forgetPhone(userPk).then(async () => {
+      await userStore.loadUser(userPk);
+      setState({ phone: '', showForgetScreen: false, isCodeSent: false });
     });
   }, [userPk]);
 
   const { isTestCallInProgress } = userStore;
 
   const onSubmitCallback = useCallback(async () => {
-    if (codeSent) {
+    if (isCodeSent) {
       userStore
         .verifyPhone(userPk, code)
         .then(() => {
@@ -75,10 +107,11 @@ const PhoneVerification = observer((props: PhoneVerificationProps) => {
         email: user.email,
         unverified_phone_number: phone,
       });
+
       userStore
         .fetchVerificationCode(userPk)
         .then(() => {
-          setCodeSent(true);
+          setState({ isCodeSent: true });
 
           if (codeInputRef.current) {
             codeInputRef.current.focus();
@@ -90,26 +123,43 @@ const PhoneVerification = observer((props: PhoneVerificationProps) => {
           );
         });
     }
-  }, [code, codeSent, phone, store, user.email, userPk, userStore]);
+  }, [code, isCodeSent, phone, store, user.email, userPk, userStore]);
 
-  const isPhoneInvalid = !phone || !/^\+\d{8,15}$/.test(phone);
+  const isTwilioConfigured = teamStore.currentTeam?.env_status.twilio_configured;
+  const phoneHasMinimumLength = phone?.length > 8;
 
-  const twilioConfigured = teamStore.currentTeam?.env_status.twilio_configured;
+  const isPhoneValid = phoneHasMinimumLength && PHONE_REGEX.test(phone);
+  const showPhoneInputError = phoneHasMinimumLength && !isPhoneValid && !isPhoneNumberHidden && !isLoading;
 
-  const showPhoneInputError = phone && phone.length > 8 && isPhoneInvalid;
   const isCurrent = userStore.currentUserPk === user.pk;
   const action = isCurrent ? UserAction.UpdateOwnSettings : UserAction.UpdateOtherUsersSettings;
-  const isButtonDisabled = phone === user.verified_phone_number || (!codeSent && isPhoneInvalid) || !twilioConfigured;
+  const isButtonDisabled =
+    phone === user.verified_phone_number || (!isCodeSent && !isPhoneValid) || !isTwilioConfigured;
+
+  const isPhoneDisabled = !!user.verified_phone_number;
+  const isCodeFieldDisabled = !isCodeSent || !store.isUserActionAllowed(action);
+  const showToggle = user.verified_phone_number && user.pk === userStore.currentUserPk;
+
+  if (showForgetScreen) {
+    return (
+      <ForgetPhoneScreen
+        phone={phone}
+        onCancel={() => setState({ showForgetScreen: false })}
+        onForget={handleForgetNumberClick}
+      />
+    );
+  }
 
   return (
     <>
-      {user.verified_phone_number && (
+      {isPhoneValid && !user.verified_phone_number && (
         <>
           <Alert severity="info" title="You will receive alerts to a new number after verification" />
           <br />
         </>
       )}
-      {!twilioConfigured && store.hasFeature(AppFeature.LiveSettings) && (
+
+      {!isTwilioConfigured && store.hasFeature(AppFeature.LiveSettings) && (
         <>
           <Alert
             severity="warning"
@@ -124,66 +174,163 @@ const PhoneVerification = observer((props: PhoneVerificationProps) => {
           <br />
         </>
       )}
-      <Field invalid={showPhoneInputError} error={showPhoneInputError ? 'Enter a valid phone number' : null}>
-        <WithPermissionControl userAction={action}>
+
+      <VerticalGroup>
+        <Field
+          className={cx('phone__field')}
+          invalid={showPhoneInputError}
+          error={showPhoneInputError ? 'Enter a valid phone number' : null}
+        >
+          <WithPermissionControl userAction={action}>
+            <Input
+              autoFocus
+              id="phone"
+              required
+              disabled={!isTwilioConfigured || isPhoneDisabled}
+              placeholder="Please enter the phone number with country code, e.g. +12451111111"
+              // @ts-ignore
+              prefix={<Icon name="phone" />}
+              value={phone}
+              onChange={onChangePhoneCallback}
+            />
+          </WithPermissionControl>
+        </Field>
+
+        {!user.verified_phone_number && (
           <Input
-            autoFocus
-            id="phone"
-            required
-            disabled={!twilioConfigured}
-            placeholder="Please enter the phone number with country code, e.g. +12451111111"
-            // @ts-ignore
-            prefix={<Icon name="phone" />}
-            value={phone}
-            onChange={onChangePhoneCallback}
+            ref={codeInputRef}
+            disabled={isCodeFieldDisabled}
+            autoFocus={isCodeSent}
+            onChange={onChangeCodeCallback}
+            placeholder="Please enter the code"
+            className={cx('phone__field')}
           />
-        </WithPermissionControl>
-      </Field>
-      <Input
-        ref={codeInputRef}
-        disabled={!codeSent || !store.isUserActionAllowed(action)}
-        autoFocus={codeSent}
-        onChange={onChangeCodeCallback}
-        placeholder="Please enter the code"
-      />
+        )}
+
+        {showToggle && (
+          <div className={cx('switch')}>
+            <div className={cx('switch__icon')}>
+              <Switch value={isPhoneNumberHidden} onChange={onTogglePhoneCallback} />
+            </div>
+            <label className={cx('switch__label')}>Hide my phone number from teammates</label>
+          </div>
+        )}
+      </VerticalGroup>
+
       <br />
-      <HorizontalGroup>
+
+      <PhoneVerificationButtonsGroup
+        action={action}
+        isCodeSent={isCodeSent}
+        isButtonDisabled={isButtonDisabled}
+        isTestCallInProgress={isTestCallInProgress}
+        isTwilioConfigured={isTwilioConfigured}
+        onSubmitCallback={onSubmitCallback}
+        handleMakeTestCallClick={handleMakeTestCallClick}
+        onShowForgetScreen={() => setState({ showForgetScreen: true })}
+        user={user}
+      />
+    </>
+  );
+});
+
+interface ForgetPhoneScreenProps {
+  phone: string;
+  onCancel(): void;
+  onForget(): void;
+}
+
+function ForgetPhoneScreen({ phone, onCancel, onForget }: ForgetPhoneScreenProps) {
+  return (
+    <>
+      <Text size="large" className={cx('phone__forgetHeading')}>
+        Do you really want to forget the verified phone number <strong>{phone}</strong> ?
+      </Text>
+      <HorizontalGroup justify="flex-end">
+        <Button variant="secondary" onClick={onCancel}>
+          Cancel
+        </Button>
+        <Button variant="destructive" onClick={onForget}>
+          Forget
+        </Button>
+      </HorizontalGroup>
+    </>
+  );
+}
+
+interface PhoneVerificationButtonsGroupProps {
+  action: UserAction.UpdateOwnSettings | UserAction.UpdateOtherUsersSettings;
+
+  isCodeSent: boolean;
+  isButtonDisabled: boolean;
+  isTestCallInProgress: boolean;
+  isTwilioConfigured: boolean;
+
+  onSubmitCallback(): void;
+  handleMakeTestCallClick(): void;
+  onShowForgetScreen(): void;
+
+  user: User;
+}
+
+function PhoneVerificationButtonsGroup({
+  action,
+  isCodeSent,
+  isButtonDisabled,
+  isTestCallInProgress,
+  isTwilioConfigured,
+  onSubmitCallback,
+  handleMakeTestCallClick,
+  onShowForgetScreen,
+  user,
+}: PhoneVerificationButtonsGroupProps) {
+  const showForgetNumber = !!user.verified_phone_number;
+  const showVerifyOrSendCodeButton = !user.verified_phone_number;
+
+  return (
+    <HorizontalGroup>
+      {showVerifyOrSendCodeButton && (
         <WithPermissionControl userAction={action}>
           <Button variant="primary" onClick={onSubmitCallback} disabled={isButtonDisabled}>
-            {codeSent ? 'Verify' : 'Send Code'}
+            {isCodeSent ? 'Verify' : 'Send Code'}
           </Button>
         </WithPermissionControl>
-        <WithPermissionControl userAction={action}>
-          <WithConfirm title="Are you sure you want to forget this phone number?" confirmText="Forget">
-            <Button
-              disabled={(!user?.verified_phone_number && !user?.unverified_phone_number) || isTestCallInProgress}
-              onClick={handleForgetNumberClick}
-              variant="destructive"
-            >
-              {'Forget Phone Number'}
-            </Button>
-          </WithConfirm>
-        </WithPermissionControl>
+      )}
+
+      {showForgetNumber && (
         <WithPermissionControl userAction={action}>
           <Button
-            disabled={!user?.verified_phone_number || !twilioConfigured || isTestCallInProgress}
+            disabled={(!user.verified_phone_number && !user.unverified_phone_number) || isTestCallInProgress}
+            onClick={onShowForgetScreen}
+            variant="destructive"
+          >
+            {'Forget Phone Number'}
+          </Button>
+        </WithPermissionControl>
+      )}
+
+      {user.verified_phone_number && (
+        <WithPermissionControl userAction={action}>
+          <Button
+            disabled={!user?.verified_phone_number || !isTwilioConfigured || isTestCallInProgress}
             onClick={handleMakeTestCallClick}
           >
             {isTestCallInProgress ? 'Making Test Call...' : 'Make Test Call'}
           </Button>
         </WithPermissionControl>
-        <Tooltip content={'Click "Make Test Call" to save a phone number and add it to DnD exceptions.'}>
-          <Icon
-            name="info-circle"
-            style={{
-              marginLeft: '10px',
-              color: '#1890ff',
-            }}
-          />
-        </Tooltip>
-      </HorizontalGroup>
-    </>
+      )}
+
+      <Tooltip content={'Click "Make Test Call" to save a phone number and add it to DnD exceptions.'}>
+        <Icon
+          name="info-circle"
+          style={{
+            marginLeft: '10px',
+            color: '#1890ff',
+          }}
+        />
+      </Tooltip>
+    </HorizontalGroup>
   );
-});
+}
 
 export default PhoneVerification;

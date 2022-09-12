@@ -1,4 +1,5 @@
 import datetime
+import functools
 import itertools
 
 import icalendar
@@ -195,6 +196,10 @@ class OnCallSchedule(PolymorphicModel):
         self.prev_ical_file_overrides = self.cached_ical_file_overrides
         self.cached_ical_file_overrides = None
         self.save(update_fields=["cached_ical_file_overrides", "prev_ical_file_overrides"])
+
+    def related_users(self):
+        """Return public primary keys for all users referenced in the schedule."""
+        return set()
 
     def filter_events(self, user_timezone, starting_date, days, with_empty=False, with_gap=False, filter_by=None):
         """Return filtered events from schedule."""
@@ -628,6 +633,21 @@ class OnCallScheduleWeb(OnCallSchedule):
         self.cached_ical_file_overrides = self._generate_ical_file_overrides()
         self.save(update_fields=["cached_ical_file_overrides", "prev_ical_file_overrides"])
 
+    def related_users(self):
+        """Return public primary keys for all users referenced in the schedule."""
+        rolling_users = self.custom_shifts.values_list("rolling_users", flat=True)
+        users = functools.reduce(
+            set.union,
+            (
+                set(g.values())
+                for rolling_groups in rolling_users
+                if rolling_groups is not None
+                for g in rolling_groups
+                if g is not None
+            ),
+        )
+        return users
+
     def preview_shift(self, custom_shift, user_tz, starting_date, days, updated_shift_pk=None):
         """Return unsaved rotation and final schedule preview events."""
         if custom_shift.type == CustomOnCallShift.TYPE_OVERRIDE:
@@ -656,9 +676,15 @@ class OnCallScheduleWeb(OnCallSchedule):
                 pass
             else:
                 if update_shift.event_is_started:
+                    custom_shift.rotation_start = max(
+                        custom_shift.rotation_start, timezone.now().replace(microsecond=0)
+                    )
+                    custom_shift.start_rotation_from_user_index = update_shift.start_rotation_from_user_index
                     update_shift.until = custom_shift.rotation_start
                     extra_shifts.append(update_shift)
-                custom_shift.public_primary_key = updated_shift_pk
+                else:
+                    # only reuse PK for preview when updating a rotation that won't be started after the update
+                    custom_shift.public_primary_key = updated_shift_pk
                 qs = qs.exclude(public_primary_key=updated_shift_pk)
 
         ical_file = self._generate_ical_file_from_shifts(qs, extra_shifts=extra_shifts, allow_empty_users=True)
@@ -669,7 +695,9 @@ class OnCallScheduleWeb(OnCallSchedule):
 
         # filter events using a temporal overriden calendar including the not-yet-saved shift
         events = self.filter_events(user_tz, starting_date, days=days, with_empty=True, with_gap=True)
-        shift_events = [e for e in events if e["shift"]["pk"] == custom_shift.public_primary_key]
+        # return preview events for affected shifts
+        updated_shift_pks = {s.public_primary_key for s in extra_shifts}
+        shift_events = [e for e in events if e["shift"]["pk"] in updated_shift_pks]
         final_events = self._resolve_schedule(events)
 
         _invalidate_cache(self, ical_property)

@@ -142,6 +142,8 @@ CELERY_TASK_ROUTES = {
     "apps.alerts.tasks.alert_group_web_title_cache.update_web_title_cache_for_alert_receive_channel": {"queue": "long"},
     "apps.alerts.tasks.alert_group_web_title_cache.update_web_title_cache": {"queue": "long"},
     "apps.alerts.tasks.check_escalation_finished.check_escalation_finished_task": {"queue": "long"},
+    "apps.grafana_plugin.tasks.sync.cleanup_organization_async": {"queue": "long"},
+    "apps.grafana_plugin.tasks.sync.start_cleanup_deleted_organizations": {"queue": "long"},
     "apps.grafana_plugin.tasks.sync.start_sync_organizations": {"queue": "long"},
     "apps.grafana_plugin.tasks.sync.sync_organization_async": {"queue": "long"},
     # SLACK

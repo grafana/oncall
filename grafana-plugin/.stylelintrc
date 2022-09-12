@@ -1,6 +1,7 @@
 {
   "extends": "stylelint-config-standard",
    "rules": {
+     "block-no-empty": [true,{ "severity": "warning"}],
     "selector-pseudo-class-no-unknown": [
       true,
       {
