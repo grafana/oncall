@@ -14,7 +14,9 @@ export default class BaseStore {
   }
 
   onApiError(error: any, skipErrorHandling = false) {
-    if (skipErrorHandling) {throw error}
+    if (skipErrorHandling) {
+      throw error; // rethrow error and skip additional handling like showing notification
+    }
 
     if (error.response.status >= 400 && error.response.status < 500) {
       const payload = error.response.data;
