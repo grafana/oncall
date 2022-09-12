@@ -15,8 +15,6 @@ import styles from './ApiTokenForm.module.css';
 
 const cx = cn.bind(styles);
 
-const CURL_EXAMPLE = `curl: try 'curl --help' or 'curl --manual' for more information`;
-
 interface TokenCreationModalProps extends HTMLAttributes<HTMLElement> {
   visible: boolean;
   onHide: () => void;
@@ -45,26 +43,15 @@ const ApiTokenForm = observer((props: TokenCreationModalProps) => {
   }, []);
 
   return (
-    <Modal
-      isOpen
-      closeOnEscape={false}
-      title={token ? 'Your new API Token' : 'Create API Token'}
-      onDismiss={onHide}
-    >
+    <Modal isOpen closeOnEscape={false} title={token ? 'Your new API Token' : 'Create API Token'} onDismiss={onHide}>
       <VerticalGroup>
         <Label>Token Name</Label>
         <div className={cx('token__inputContainer')}>
           {renderTokenInput()}
-
-          {token && (
-            <CopyToClipboard text={token} onCopy={() => openNotification('Token copied')}>
-              <Button className={cx('token__copyButton')}>Copy Token</Button>
-            </CopyToClipboard>
-          )}
+          {renderCopyToClipboard()}
         </div>
 
-        <Label>Curl command example</Label>
-        <SourceCode isButtonTopPositioned={true}>{CURL_EXAMPLE}</SourceCode>
+        {renderCurlExample()}
 
         <HorizontalGroup justify="flex-end">
           <Button variant="secondary" onClick={() => onHide()}>
@@ -81,19 +68,41 @@ const ApiTokenForm = observer((props: TokenCreationModalProps) => {
   );
 
   function renderTokenInput() {
-    if (!token)
-      {return (
-        <Input
-          className={cx('token__input')}
-          maxLength={50}
-          onChange={handleNameChange}
-          placeholder="Enter token name"
-          autoFocus
-        />
-      );}
+    return token ? (
+      <Input value={token} disabled={!!token} className={cx('token__input')} />
+    ) : (
+      <Input
+        className={cx('token__input')}
+        maxLength={50}
+        onChange={handleNameChange}
+        placeholder="Enter token name"
+        autoFocus
+      />
+    );
+  }
 
-    return <Input value={token} disabled={!!token} className={cx('token__input')} />;
+  function renderCopyToClipboard() {
+    if (!token) return null;
+    return (
+      <CopyToClipboard text={token} onCopy={() => openNotification('Token copied')}>
+        <Button className={cx('token__copyButton')}>Copy Token</Button>
+      </CopyToClipboard>
+    );
+  }
+
+  function renderCurlExample() {
+    if (!token) return null;
+    return (
+      <VerticalGroup>
+        <Label>Curl command example</Label>
+        <SourceCode isButtonTopPositioned={true}>{getCurlExample(token)}</SourceCode>
+      </VerticalGroup>
+    );
   }
 });
+
+function getCurlExample(token) {
+  return `curl -H "Authorization: ${token}" ${document.location.origin}/api/v1/escalation_chains`;
+}
 
 export default ApiTokenForm;
