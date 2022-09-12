@@ -175,19 +175,18 @@ def get_shifts_dict(calendar, calendar_type, schedule, datetime_start, datetime_
             if type(event[ICAL_DATETIME_START].dt) == datetime.date:
                 start = event[ICAL_DATETIME_START].dt
                 end = event[ICAL_DATETIME_END].dt
-                if start <= date < end:
-                    result_date.append(
-                        {
-                            "start": start,
-                            "end": end,
-                            "users": users,
-                            "missing_users": missing_users,
-                            "priority": priority,
-                            "source": source,
-                            "calendar_type": calendar_type,
-                            "shift_pk": pk,
-                        }
-                    )
+                result_date.append(
+                    {
+                        "start": start,
+                        "end": end,
+                        "users": users,
+                        "missing_users": missing_users,
+                        "priority": priority,
+                        "source": source,
+                        "calendar_type": calendar_type,
+                        "shift_pk": pk,
+                    }
+                )
             else:
                 start, end = ical_events.get_start_and_end_with_respect_to_event_type(event)
                 result_datetime.append(
