@@ -1,0 +1,33 @@
+.root {
+  position: fixed;
+  width: 750px;
+  max-width: 100%;
+  left: 0;
+  right: 0;
+  margin-left: auto;
+  margin-right: auto;
+  top: 10%;
+  max-height: 80%;
+  display: flex;
+  flex-direction: column;
+  border-image: initial;
+  outline: none;
+  padding: 15px;
+  background: #181b1f;
+  border: 1px solid #2d2e35;
+  box-shadow: 0 2px 4px 2px rgba(10, 10, 16, 0.1), 0 8px 16px rgba(10, 10, 16, 0.2), 0 12px 24px rgba(3, 3, 8, 0.3), 0 16px 32px rgba(3, 3, 8, 0.8);
+  border-radius: 2px;
+}
+
+.overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 10;
+
+  /* background-color: rgba(0, 0, 0, 0.45);
+    backdrop-filter: blur(1px); */
+}
+
+.body-open {
+  overflow: hidden;
+}

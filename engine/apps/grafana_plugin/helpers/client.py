@@ -121,6 +121,8 @@ class GrafanaAPIClient(APIClient):
 
 
 class GcomAPIClient(APIClient):
+    ACTIVE_INSTANCE_QUERY = "instances?status=active"
+    DELETED_INSTANCE_QUERY = "instances?status=deleted&includeDeleted=true"
     STACK_STATUS_DELETED = "deleted"
 
     def __init__(self, api_token: str):
@@ -132,8 +134,8 @@ class GcomAPIClient(APIClient):
     def get_instance_info(self, stack_id: str):
         return self.api_get(f"instances/{stack_id}")
 
-    def get_active_instances(self):
-        return self.api_get("instances?status=active")
+    def get_instances(self, query: str):
+        return self.api_get(query)
 
     def is_stack_deleted(self, stack_id: str) -> bool:
         instance_info, call_status = self.get_instance_info(stack_id)

@@ -255,7 +255,7 @@ def notify_ical_schedule_shift(schedule_pk):
 
     for prev_ical_file, current_ical_file in prev_and_current_ical_files:
         if prev_ical_file is not None and (
-            current_ical_file is None or not is_icals_equal(current_ical_file, prev_ical_file, schedule)
+            current_ical_file is None or not is_icals_equal(current_ical_file, prev_ical_file)
         ):
             # If icals are not equal then compare current_events from them
             is_prev_ical_diff = True

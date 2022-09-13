@@ -1,14 +1,17 @@
+import dayjs from 'dayjs';
 import { get } from 'lodash-es';
 import { action, computed, observable } from 'mobx';
+import moment from 'moment-timezone';
 
 import BaseStore from 'models/base_store';
 import { NotificationPolicyType } from 'models/notification_policy';
+import { getRandomTimezone } from 'models/timezone/timezone.helpers';
 import { makeRequest } from 'network';
 import { Mixpanel } from 'services/mixpanel';
 import { RootStore } from 'state';
 import { move } from 'state/helpers';
 
-import { prepareForUpdate } from './user.helpers';
+import { getTimezone, prepareForUpdate } from './user.helpers';
 import { User } from './user.types';
 
 export class UserStore extends BaseStore {
@@ -49,14 +52,20 @@ export class UserStore extends BaseStore {
 
   @action
   async loadCurrentUser() {
-    const user = await makeRequest('/user/', {});
+    const response = await makeRequest('/user/', {});
+
+    let timezone;
+    if (!response.timezone) {
+      timezone = dayjs.tz.guess();
+      this.update(response.pk, { timezone });
+    }
 
     this.items = {
       ...this.items,
-      [user.pk]: user,
+      [response.pk]: { ...response, timezone: timezone || getTimezone(response) },
     };
 
-    this.currentUserPk = user.pk;
+    this.currentUserPk = response.pk;
   }
 
   @action
@@ -65,7 +74,7 @@ export class UserStore extends BaseStore {
 
     this.items = {
       ...this.items,
-      [user.pk]: user,
+      [user.pk]: { ...user, timezone: getTimezone(user) },
     };
   }
 
@@ -97,7 +106,10 @@ export class UserStore extends BaseStore {
       ...results.reduce(
         (acc: { [key: number]: User }, item: User) => ({
           ...acc,
-          [item.pk]: item,
+          [item.pk]: {
+            ...item,
+            timezone: getTimezone(item),
+          },
         }),
         {}
       ),

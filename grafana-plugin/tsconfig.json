@@ -1,14 +1,14 @@
 {
   "extends": "@grafana/toolkit/src/config/tsconfig.plugin.json",
-  "include": ["src", "frontend_enterprise/src"],
+  "include": ["src/dummy"],
   "types": ["node", "@emotion/core"],
   "compilerOptions": {
-    "rootDirs": ["src", "frontend_enterprise/src"],
+    "rootDirs": ["src"],
     "baseUrl": "src",
     "typeRoots": ["./node_modules/@types"],
     "noUnusedLocals": false,
     "strict": false,
     "resolveJsonModule": true,
-    "noImplicitAny": false
+    "noImplicitAny": false,
   }
 }

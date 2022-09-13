@@ -13,13 +13,13 @@ interface AvatarProps {
 const cx = cn.bind(styles);
 
 const Avatar: FC<AvatarProps> = (props) => {
-  const { src, size, className } = props;
+  const { src, size, className, ...rest } = props;
 
   if (!src) {
     return null;
   }
 
-  return <img src={src} className={cx('root', `avatarSize-${size}`, className)} />;
+  return <img src={src} className={cx('root', `avatarSize-${size}`, className)} {...rest} />;
 };
 
 export default Avatar;

@@ -1,0 +1,93 @@
+.root {
+  width: 100%;
+}
+
+.sortable-helper {
+  z-index: 1062;
+  box-shadow: var(--focused-box-shadow);
+  background: var(--hover-selected-hardcoded) !important;
+}
+
+.separator {
+  font-weight: 400;
+  font-size: 12px;
+  line-height: 16px;
+  text-align: center;
+  color: rgba(204, 204, 220, 0.4);
+  margin: 4px 0;
+  display: flex;
+  align-items: center;
+}
+
+.separator__clickable {
+  cursor: pointer;
+}
+
+.separator::before {
+  display: block;
+  content: "";
+  flex-grow: 1;
+  border-bottom: 1px solid rgba(204, 204, 220, 0.15);
+  height: 0;
+  margin-right: 5px;
+}
+
+.separator::after {
+  display: block;
+  content: "";
+  flex-grow: 1;
+  border-bottom: 1px solid rgba(204, 204, 220, 0.15);
+  height: 0;
+  margin-left: 5px;
+}
+
+.groups {
+  width: 100%;
+  padding: 0;
+  margin: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.user {
+  background: #22252b;
+  border-radius: 2px;
+  display: flex;
+  position: relative;
+  overflow: hidden;
+}
+
+.user-buttons {
+  position: absolute;
+  top: 8px;
+  right: 5px;
+}
+
+.user:hover {
+  background: var(--hover-selected-hardcoded);
+}
+
+.delete-icon {
+  /* display: none; */
+  display: block;
+}
+
+.user:hover .delete-icon {
+  display: block;
+}
+
+.add-user-group {
+  width: 100%;
+  text-align: center;
+  font-weight: 400;
+  font-size: 12px;
+  line-height: 16px;
+  color: var(--secondary-text-color);
+  cursor: pointer;
+}
+
+.select {
+  width: 100%;
+}

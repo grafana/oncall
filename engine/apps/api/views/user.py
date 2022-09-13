@@ -181,12 +181,10 @@ class UserView(
         if self.action in ["list"] and is_filters_request:
             return self.get_filter_serializer_class()
 
-        is_user_retrieves_own_data = (
-            self.action == "retrieve"
-            and self.kwargs.get("pk") is not None
-            and self.kwargs.get("pk") == self.request.user.public_primary_key
+        is_users_own_data = (
+            self.kwargs.get("pk") is not None and self.kwargs.get("pk") == self.request.user.public_primary_key
         )
-        if is_user_retrieves_own_data or self.request.user.role == Role.ADMIN:
+        if is_users_own_data or self.request.user.role == Role.ADMIN:
             return UserSerializer
         return UserHiddenFieldsSerializer
 

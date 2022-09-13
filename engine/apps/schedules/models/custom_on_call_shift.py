@@ -498,6 +498,38 @@ class CustomOnCallShift(models.Model):
         self.rolling_users = result
         self.save(update_fields=["rolling_users"])
 
+    def get_rotation_user_index(self, date=None):
+        START_ROTATION_INDEX = 0
+
+        date = timezone.now() if not date else date
+        result = START_ROTATION_INDEX
+
+        if not self.rolling_users or self.frequency is None:
+            return START_ROTATION_INDEX
+
+        # generate initial iCal for counting rotation start date
+        event_ical = self.generate_ical(self.start, user_counter=0)
+
+        # Get the date of the current rotation
+        if self.start == self.rotation_start:
+            start = self.start
+        else:
+            start = self.get_rotation_date(event_ical)
+
+        if not start or start >= date:
+            return START_ROTATION_INDEX
+
+        # count how many times the rotation was triggered before the selected date
+        while start or start < date:
+            start = self.get_rotation_date(event_ical, get_next_date=True)
+            if not start or start >= date:
+                break
+            event_ical = self.generate_ical(start, user_counter=0)
+            result += 1
+
+        result %= len(self.rolling_users)
+        return result
+
     def start_drop_ical_and_check_schedule_tasks(self, schedule):
         drop_cached_ical_task.apply_async((schedule.pk,))
         schedule_notify_about_empty_shifts_in_schedule.apply_async((schedule.pk,))
@@ -524,6 +556,16 @@ class CustomOnCallShift(models.Model):
         instance_data.update(data)
         instance_data["schedule"] = self.schedule
         instance_data["team"] = self.team
+        # set new event start date to keep rotation index
+        instance_data["start"] = timezone.datetime.combine(
+            instance_data["rotation_start"].date(),
+            instance_data["start"].time(),
+        ).astimezone(pytz.UTC)
+        # calculate rotation index to keep user rotation order
+        start_rotation_from_user_index = self.get_rotation_user_index() + (self.start_rotation_from_user_index or 0)
+        if start_rotation_from_user_index >= len(instance_data["rolling_users"]):
+            start_rotation_from_user_index = 0
+        instance_data["start_rotation_from_user_index"] = start_rotation_from_user_index
 
         if self.last_updated_shift is None or self.last_updated_shift.event_is_started:
             # create new shift

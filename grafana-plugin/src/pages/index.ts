@@ -13,7 +13,9 @@ import MaintenancePage2 from 'pages/maintenance/Maintenance';
 import MigrationTool from 'pages/migration-tool/MigrationTool';
 import OrganizationLogPage2 from 'pages/organization-logs/OrganizationLog';
 import OutgoingWebhooks2 from 'pages/outgoing_webhooks/OutgoingWebhooks';
+import SchedulePage from 'pages/schedule/Schedule';
 import SchedulesPage2 from 'pages/schedules/Schedules';
+import SchedulesPage from 'pages/schedules_NEW/Schedules';
 import SettingsPage2 from 'pages/settings/SettingsPage';
 import Test from 'pages/test/Test';
 import UsersPage2 from 'pages/users/Users';
@@ -64,6 +66,19 @@ export const pages: PageDefinition[] = [
     icon: 'calendar-alt',
     id: 'schedules',
     text: 'Schedules',
+  },
+  {
+    component: SchedulesPage,
+    icon: 'calendar-alt',
+    id: 'schedules-new',
+    text: 'Schedules α',
+  },
+  {
+    component: SchedulePage,
+    icon: 'calendar-alt',
+    id: 'schedule',
+    text: 'Schedule',
+    hideFromTabs: true,
   },
   {
     component: ChatOpsPage,
