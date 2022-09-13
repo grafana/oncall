@@ -117,6 +117,7 @@ const DefaultPageLayout: FC<DefaultPageLayoutProps> = observer((props) => {
                 href={'https://grafana.com/docs/oncall/latest/open-source/#update-grafana-oncall-oss'}
                 target="_blank"
                 rel="noreferrer"
+                className={cx('instructions-link')}
               >
                 the update instructions
               </a>
