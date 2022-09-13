@@ -9,6 +9,7 @@ import { SortableContainer, SortableElement, SortableHandle } from 'react-sortab
 import Text from 'components/Text/Text';
 import WorkingHours from 'components/WorkingHours/WorkingHours';
 import GSelect from 'containers/GSelect/GSelect';
+import RemoteSelect from 'containers/RemoteSelect/RemoteSelect';
 import UserTooltip from 'containers/UserTooltip/UserTooltip';
 import { User } from 'models/user/user.types';
 
@@ -121,18 +122,13 @@ const UserGroups = (props: UserGroupsProps) => {
           isMultipleGroups={isMultipleGroups}
           useDragHandle
         />
-        <GSelect
-          key={items.length} // to completely rerender when users length change
+        <RemoteSelect
+          key={items.length}
           showSearch
-          allowClear
-          modelName="userStore"
-          displayField="username"
-          valueField="pk"
           placeholder="Add user"
-          className={cx('select')}
+          href="/users/?filters=true&roles=0&roles=1"
           value={null}
           onChange={handleUserAdd}
-          getOptionLabel={({ label, value }: SelectableValue) => <UserTooltip id={value} />}
           showError={showError}
         />
       </VerticalGroup>
