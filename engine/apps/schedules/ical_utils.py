@@ -134,7 +134,7 @@ def list_of_oncall_shifts_from_ical(
                 continue
 
             tmp_result_datetime, tmp_result_date = get_shifts_dict(
-                calendar, calendar_type, schedule, datetime_start, datetime_end, date, with_empty_shifts
+                calendar, calendar_type, schedule, datetime_start, datetime_end, with_empty_shifts
             )
             result_datetime.extend(tmp_result_datetime)
             result_date.extend(tmp_result_date)
@@ -161,7 +161,7 @@ def list_of_oncall_shifts_from_ical(
     return result or None
 
 
-def get_shifts_dict(calendar, calendar_type, schedule, datetime_start, datetime_end, date, with_empty_shifts=False):
+def get_shifts_dict(calendar, calendar_type, schedule, datetime_start, datetime_end, with_empty_shifts=False):
     events = ical_events.get_events_from_ical_between(calendar, datetime_start, datetime_end)
     result_datetime = []
     result_date = []
