@@ -25,7 +25,7 @@ from apps.auth_token.auth import PluginAuthentication
 from apps.auth_token.constants import SCHEDULE_EXPORT_TOKEN_NAME
 from apps.auth_token.models import ScheduleExportAuthToken
 from apps.schedules.models import OnCallSchedule
-from apps.schedules.qulaity import get_schedule_score
+from apps.schedules.quality import get_schedule_score
 from apps.slack.models import SlackChannel
 from apps.slack.tasks import update_slack_user_group_for_schedules
 from common.api_helpers.exceptions import BadRequest, Conflict
