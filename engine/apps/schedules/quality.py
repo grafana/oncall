@@ -1,6 +1,6 @@
 import datetime
 from dataclasses import dataclass
-from typing import Union
+from typing import Iterable, Union
 
 import pytz
 
@@ -28,12 +28,25 @@ def event_duration(event: dict) -> datetime.timedelta:
 
 @dataclass
 class Day:
+    """
+    Utility class for splitting events to days, see split_to_days function below.
+    """
+
     weekday: str
     start: datetime.datetime
     end: datetime.datetime
 
 
 def split_to_days(start: datetime.datetime, end: datetime.datetime) -> list[Day]:
+    """
+    Split multiple day events to multiple Day events.
+    Example: start = (13 September 2022, 9:00), end = (14 September 2022, 17:00), the result will be equal to
+    [
+        Day(weekday="tuesday", start=(13 September 2022, 9:00), end=(13 September 2022, 23:59:59)),
+        Day(weekday="wednesday", start=(14 September 2022, 00:00), end=(14 September 2022, 17:00)),
+    ]
+    This is needed for calculations related to working hours of users.
+    """
     days = []
     current_start = start
 
@@ -53,7 +66,13 @@ def split_to_days(start: datetime.datetime, end: datetime.datetime) -> list[Day]
 
 
 def get_working_hours(user, weekday):
+    """
+    Convert working hours from DB format ({"monday": [{"start": "09:00:00", "end": "17:00:00"}]}, ...) to
+    datetime.time object with adjustment according to user.timezone.
+    """
     if weekday in ["saturday", "sunday"]:
+        # assuming that no working hours are possible for saturday and sunday, this may change when there's a way to
+        # change working hours in the UI
         return datetime.time(0, 0, 0), datetime.time(0, 0, 0)
 
     start = user.working_hours[weekday][0]["start"]
@@ -85,6 +104,12 @@ def spans_inside_working_hours(
     end: datetime.datetime,
     user: User,
 ) -> list[tuple[datetime.datetime, datetime.datetime]]:
+    """
+    Get spans of events inside working hours for particular event and user.
+    E.g. if working hours are from 9:00 to 17:00, and event is from 7:00 to 10:00,
+    the result will be equal to [(datetime.time(9, 0), datetime.time(10, 0))].
+    """
+
     days = split_to_days(start, end)
     result = []
 
@@ -117,7 +142,7 @@ def spans_inside_working_hours(
     return result
 
 
-def get_inside_working_hours_score(events, users):
+def get_inside_working_hours_score(events: list[dict], users: dict[str, User]):
     inside_working_hours_duration = datetime.timedelta(seconds=0)
 
     for event in events:
@@ -143,7 +168,7 @@ def get_inside_working_hours_score(events, users):
     return score
 
 
-def get_balance_score(events):
+def get_balance_score(events: list[dict]) -> float:
     users_to_events_map = {}
     for event in events:
         user_pks = [user["pk"] for user in event["users"]]
@@ -175,7 +200,7 @@ def get_balance_score(events):
     return balance_score
 
 
-def get_balance_outside_working_hours(events, users):
+def get_balance_outside_working_hours(events: list[dict], users: dict[str, User]) -> float:
     users_to_events_map = {}
     for event in events:
         user_pks = [user["pk"] for user in event["users"]]
@@ -223,30 +248,40 @@ def get_balance_outside_working_hours(events, users):
     return balance_score
 
 
-def timedelta_sum(x):
-    return sum(x, start=datetime.timedelta(seconds=0))
+def timedelta_sum(deltas: Iterable[datetime.timedelta]) -> datetime.timedelta:
+    return sum(deltas, start=datetime.timedelta(seconds=0))
 
 
-def get_schedule_score(events, days):
+def score_to_percent(score: float) -> int:
+    return round(score * 100)
+
+
+def get_schedule_score(events: list[dict], days: int) -> dict:
+    # an event is considered good if it's a primary event, not a gap and not empty
     good_events = [
         event for event in events if not event["is_override"] and not event["is_gap"] and not event["is_empty"]
     ]
 
+    # get users so there's only one SQL query for users table
     user_pks = set()
     for event in good_events:
         for user in event["users"]:
             user_pks.add(user["pk"])
     users = {user.public_primary_key: user for user in User.objects.filter(public_primary_key__in=user_pks)}
 
+    # calculate good_events_score
     good_events_duration = timedelta_sum(event_duration(event) for event in good_events)
     good_event_score = min(
         good_events_duration / datetime.timedelta(days=days), 1
     )  # todo: deal with overlapping events
 
+    # inside working hours score = (time scheduled inside working hours / all time scheduled)
     inside_working_hours_score = get_inside_working_hours_score(good_events, users)
 
+    # formula for balance score is taken from here: https://github.com/grafana/oncall/issues/118
     balance_score = get_balance_score(good_events)
 
+    # same as balance_score but for time scheduled outside working hours
     balance_outside_working_hours_score = get_balance_outside_working_hours(good_events, users)
 
     total_score = (
@@ -261,27 +296,27 @@ def get_schedule_score(events, days):
             {
                 "id": "good_event_score",
                 "title": "Good event score",
-                "value": round(good_event_score * 100),
+                "value": score_to_percent(good_event_score),
                 "description": "Ratio of good events to all events",
             },
             {
                 "id": "inside_working_hours_score",
                 "title": "Inside working hours score",
-                "value": round(inside_working_hours_score * 100),
+                "value": score_to_percent(inside_working_hours_score),
                 "description": "Ratio of time scheduled inside working hours to all time scheduled",
             },
             {
                 "id": "balance_score",
                 "title": "Balance score",
-                "value": round(balance_score * 100),
+                "value": score_to_percent(balance_score),
                 "description": "A score representing ...",
             },
             {
                 "id": "balance_outside_working_hours_score",
                 "title": "Balance outside working hours score",
-                "value": round(balance_outside_working_hours_score * 100),
+                "value": score_to_percent(balance_outside_working_hours_score),
                 "description": "A score representing ...",
             },
         ],
-        "total_score": round(total_score * 100),
+        "total_score": score_to_percent(total_score),
     }
