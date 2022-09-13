@@ -280,12 +280,14 @@ class AlertRules extends React.Component<AlertRulesProps, AlertRulesState> {
             </div>
           </Block>
           {alertReceiveChannel.description && (
-            <Alert
-              style={{ marginBottom: '0' }}
-              // @ts-ignore
-              title={<div dangerouslySetInnerHTML={{ __html: sanitize(alertReceiveChannel.description) }}></div>}
-              severity="info"
-            />
+            <div className={cx('description-style')}>
+              <Alert
+                style={{ marginBottom: '0' }}
+                // @ts-ignore
+                title={<div dangerouslySetInnerHTML={{ __html: sanitize(alertReceiveChannel.description) }}></div>}
+                severity="info"
+              />
+            </div>
           )}
           <div className={cx('alertRulesContent')}>
             <div className={cx('alertRulesActions')}>
