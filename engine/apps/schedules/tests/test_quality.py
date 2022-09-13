@@ -57,9 +57,18 @@ def test_get_schedule_score_no_events(get_schedule_quality_response):
 
 
 @pytest.mark.django_db
-def test_get_schedule_score_1(get_schedule_quality_response):
+def test_get_schedule_score_09_19(get_schedule_quality_response):
     response = get_schedule_quality_response("2022-09-19", 1)
     assert response.status_code == status.HTTP_200_OK
 
     scores = get_score_values(response)
     assert scores == [41, 31, 100, 100, 59]
+
+
+@pytest.mark.django_db
+def test_get_schedule_score_09_05(get_schedule_quality_response):
+    response = get_schedule_quality_response("2022-09-05", 7)
+    assert response.status_code == status.HTTP_200_OK
+
+    scores = get_score_values(response)
+    assert scores == [21, 26, 34, 43, 27]
