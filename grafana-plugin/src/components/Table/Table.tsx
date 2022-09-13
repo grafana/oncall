@@ -25,7 +25,7 @@ export interface Props<RecordType = unknown> extends TableProps<RecordType> {
   expandable?: {
     expandedRowKeys: string[];
     expandedRowRender: (item: any) => React.ReactNode;
-    onExpandedRowsChange: (rows: string[]) => void;
+    onExpandedRowsChange?: (rows: string[]) => void;
     expandRowByClick: boolean;
     expandIcon?: (props: { expanded: boolean; record: any }) => React.ReactNode;
     onExpand?: (expanded: boolean, item: any) => void;

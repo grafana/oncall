@@ -21,12 +21,10 @@ import ScheduleFinal from 'containers/Rotations/ScheduleFinal';
 import ScheduleOverrides from 'containers/Rotations/ScheduleOverrides';
 import UsersTimezones from 'containers/UsersTimezones/UsersTimezones';
 import { Timezone } from 'models/timezone/timezone.types';
-import { User } from 'models/user/user.types';
-import { AppFeature } from 'state/features';
 import { WithStoreProps } from 'state/types';
 import { withMobXProviderContext } from 'state/withStore';
 
-import { getRandomUsers, getStartOfWeek, getUTCString } from './Schedule.helpers';
+import { getStartOfWeek, getUTCString } from './Schedule.helpers';
 
 import styles from './Schedule.module.css';
 
@@ -125,8 +123,8 @@ class SchedulePage extends React.Component<SchedulePageProps, SchedulePageState>
                 {users && (
                   <UserTimezoneSelect value={currentTimezone} users={users} onChange={this.handleTimezoneChange} />
                 )}
-                {/*<ScheduleQuality quality={0.89} />
-                <ToolbarButton icon="copy" tooltip="Copy" />
+                <ScheduleQuality quality={0.89} />
+                {/*<ToolbarButton icon="copy" tooltip="Copy" />
                 <ToolbarButton icon="brackets-curly" tooltip="Code" />
                 <ToolbarButton icon="share-alt" tooltip="Share" />
                 <ToolbarButton icon="cog" tooltip="Settings" />*/}

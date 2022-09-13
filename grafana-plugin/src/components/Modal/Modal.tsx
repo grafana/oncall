@@ -8,7 +8,7 @@ ReactModal.setAppElement('#reactRoot');
 import styles from './Modal.module.css';
 
 export interface ModalProps {
-  title: string | JSX.Element;
+  title?: string | JSX.Element;
   className?: string;
   contentClassName?: string;
   closeOnEscape?: boolean;

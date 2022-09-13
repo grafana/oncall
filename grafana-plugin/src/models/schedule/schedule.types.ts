@@ -58,8 +58,8 @@ export interface Shift {
   shift_end: string;
   shift_start: string;
   title: string;
-  type: 2;
-  until: null;
+  type: number;
+  until: string | null;
   updated_shift: null;
 }
 

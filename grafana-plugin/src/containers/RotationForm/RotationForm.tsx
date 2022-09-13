@@ -18,7 +18,6 @@ import { observer } from 'mobx-react';
 import Draggable from 'react-draggable';
 
 import Modal from 'components/Modal/Modal';
-import ScheduleSlot from 'components/ScheduleSlot/ScheduleSlot';
 import Text from 'components/Text/Text';
 import UserGroups from 'components/UserGroups/UserGroups';
 import { Item } from 'components/UserGroups/UserGroups.types';
@@ -109,13 +108,6 @@ const RotationForm: FC<RotationFormProps> = observer((props) => {
   }, [isOpen]);
 
   const [userGroups, setUserGroups] = useState([[]]);
-
-  const getUser = (pk: User['pk']) => {
-    return {
-      name: store.userStore.items[pk]?.username,
-      desc: store.userStore.items[pk]?.timezone,
-    };
-  };
 
   const renderUser = (userPk: User['pk']) => {
     const name = store.userStore.items[userPk]?.username;
@@ -274,7 +266,6 @@ const RotationForm: FC<RotationFormProps> = observer((props) => {
           value={userGroups}
           onChange={setUserGroups}
           isMultipleGroups={true}
-          getItemData={getUser}
           renderUser={renderUser}
           showError={!userGroups.some((group) => group.length)}
         />
@@ -379,7 +370,7 @@ const RotationForm: FC<RotationFormProps> = observer((props) => {
         <HorizontalGroup justify="space-between">
           <Text type="secondary">Timezone: {getTzOffsetString(dayjs().tz(currentTimezone))}</Text>
           <HorizontalGroup>
-            <Button variant="secondary">+ Override</Button>
+            {/*<Button variant="secondary">+ Override</Button>*/}
             <Button variant="primary" onClick={handleCreate}>
               {shiftId === 'new' ? 'Create' : 'Update'}
             </Button>

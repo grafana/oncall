@@ -1,5 +1,6 @@
 import React, { Component, useMemo, useState } from 'react';
 
+import { SelectableValue } from '@grafana/data';
 import { ValuePicker, IconButton, Icon, HorizontalGroup, Button, LoadingPlaceholder } from '@grafana/ui';
 import cn from 'classnames/bind';
 import dayjs from 'dayjs';
@@ -218,7 +219,7 @@ class Rotations extends Component<RotationsProps, RotationsState> {
     this.setState({ shiftIdToShowRotationForm: 'new', layerPriority, shiftMomentToShowRotationForm: moment });
   };
 
-  handleAddRotation = (option: SelectOption) => {
+  handleAddRotation = (option: SelectableValue) => {
     const { startMoment } = this.props;
 
     this.setState({

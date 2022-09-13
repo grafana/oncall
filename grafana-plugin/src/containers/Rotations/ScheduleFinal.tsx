@@ -10,7 +10,7 @@ import { CSSTransition, TransitionGroup } from 'react-transition-group';
 import TimelineMarks from 'components/TimelineMarks/TimelineMarks';
 import Rotation from 'containers/Rotation/Rotation';
 import { getColor, getFromString, getOverrideColor } from 'models/schedule/schedule.helpers';
-import { Layer, Schedule } from 'models/schedule/schedule.types';
+import { Event, Layer, Schedule } from 'models/schedule/schedule.types';
 import { Timezone } from 'models/timezone/timezone.types';
 import { WithStoreProps } from 'state/types';
 import { withMobXProviderContext } from 'state/withStore';
@@ -50,7 +50,10 @@ class ScheduleFinal extends Component<ScheduleFinalProps, ScheduleOverridesState
 
     const shifts = store.scheduleStore.finalPreview
       ? store.scheduleStore.finalPreview
-      : store.scheduleStore.events[scheduleId]?.['final']?.[getFromString(startMoment)];
+      : (store.scheduleStore.events[scheduleId]?.['final']?.[getFromString(startMoment)] as Array<{
+          shiftId: string;
+          events: Event[];
+        }>);
 
     const layers = store.scheduleStore.rotationPreview
       ? store.scheduleStore.rotationPreview
