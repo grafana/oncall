@@ -76,10 +76,10 @@ const AlertReceiveChannelCard = observer((props: AlertReceiveChannelCardProps) =
                 query={{ page: 'incidents', integration: alertReceiveChannel.id }}
                 className={cx('alertsInfoText')}
               >
+                <b>{alertReceiveChannelCounter?.alerts_count_last_week}</b> alert
+                {alertReceiveChannelCounter?.alerts_count === 1 ? '' : 's'} last week and{' '}
                 <b>{alertReceiveChannelCounter?.alerts_count}</b> alert
-                {alertReceiveChannelCounter?.alerts_count === 1 ? '' : 's'} in{' '}
-                <b>{alertReceiveChannelCounter?.alert_groups_count}</b> alert group
-                {alertReceiveChannelCounter?.alert_groups_count === 1 ? '' : 's'}
+                {alertReceiveChannelCounter?.alerts_count === 1 ? '' : 's'} in total{' '}
               </PluginLink>
             )}
           </HorizontalGroup>
