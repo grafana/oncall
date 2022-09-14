@@ -7,7 +7,6 @@ import CopyToClipboard from 'react-copy-to-clipboard';
 import { openNotification } from 'utils';
 
 import styles from './SourceCode.module.scss';
-import Text from 'components/Text/Text';
 
 const cx = cn.bind(styles);
 

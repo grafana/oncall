@@ -23,6 +23,8 @@
   position: absolute;
   top: 15px;
   right: 15px;
-  opacity: 0;
   transition: opacity 0.2s ease;
+}
+.copyButton {
+  opacity: 0;
 }
