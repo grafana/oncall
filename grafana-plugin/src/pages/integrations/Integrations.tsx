@@ -81,7 +81,7 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
       let alertReceiveChannel = await alertReceiveChannelStore
         .loadItem(query.id, true)
         .catch((error) => this.setState({ ...getWrongTeamResponseInfo(error) }));
-      if (!alertReceiveChannel) return;
+      if (!alertReceiveChannel) {return;}
 
       if (alertReceiveChannel.id) {
         selectedAlertReceiveChannel = alertReceiveChannel.id;

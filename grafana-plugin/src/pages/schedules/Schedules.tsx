@@ -95,7 +95,7 @@ class SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSta
       const schedule = await store.scheduleStore
         .loadItem(id, true)
         .catch((error) => this.setState({ ...getWrongTeamResponseInfo(error) }));
-      if (!schedule) return;
+      if (!schedule) {return;}
 
       const schedules = store.scheduleStore.getSearchResult();
       const scheduleId = schedules && schedules.find((res) => res.id === id)?.id;
