@@ -2,8 +2,7 @@
   position: relative;
   width: 100%;
 
-  &:hover .copyButton,
-  &:hover .copyIcon {
+  &:hover .copyButton {
     opacity: 1;
   }
 }
