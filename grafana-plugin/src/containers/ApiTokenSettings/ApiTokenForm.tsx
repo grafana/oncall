@@ -100,7 +100,7 @@ const ApiTokenForm = observer((props: TokenCreationModalProps) => {
     return (
       <VerticalGroup>
         <Label>Curl command example</Label>
-        <SourceCode>{getCurlExample(token)}</SourceCode>
+        <SourceCode showClipboardIconOnly>{getCurlExample(token)}</SourceCode>
       </VerticalGroup>
     );
   }

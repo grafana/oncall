@@ -2,28 +2,27 @@
   position: relative;
   width: 100%;
 
-  &:hover .button {
+  &:hover .copyButton,
+  &:hover .copyIcon {
     opacity: 1;
   }
 }
 
 .scroller {
   overflow-y: auto;
+  border-radius: 2px;
+  padding: 12px 60px 12px 20px;
 
   &--maxHeight {
     max-height: 400px;
   }
 }
 
-.button {
+.copyIcon,
+.copyButton {
   position: absolute;
   top: 15px;
   right: 15px;
   opacity: 0;
   transition: opacity 0.2s ease;
-}
-
-pre {
-  border-radius: 2px;
-  padding: 12px 20px;
 }

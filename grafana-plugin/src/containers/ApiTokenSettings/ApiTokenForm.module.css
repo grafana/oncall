@@ -6,8 +6,11 @@
 
 .token__input {
   flex-grow: 1;
+  border-top-right-radius: 0;
+  border-bottom-right-radius: 0;
 }
 
 .token__copyButton {
-  margin-left: 12px;
+  border-top-left-radius: 0;
+  border-bottom-left-radius: 0;
 }
