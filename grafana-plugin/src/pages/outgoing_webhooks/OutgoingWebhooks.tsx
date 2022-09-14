@@ -54,6 +54,11 @@ class OutgoingWebhooks extends React.Component<OutgoingWebhooksProps, OutgoingWe
   }
 
   parseQueryParams = async () => {
+    this.setState({
+      wrongTeamError: false,
+      outgoingWebhookIdToEdit: undefined,
+    }); // reset state on query parse
+
     const {
       store,
       query: { id },
