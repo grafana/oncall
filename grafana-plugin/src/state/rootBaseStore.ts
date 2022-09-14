@@ -219,7 +219,7 @@ export class RootBaseStore {
           this.handleSyncException(e);
         });
 
-      if (counter >= 5) {
+      if (counter >= 10) {
         clearInterval(interval);
         this.retrySync = true;
       }
