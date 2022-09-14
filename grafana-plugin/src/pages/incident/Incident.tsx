@@ -94,6 +94,8 @@ class IncidentPage extends React.Component<IncidentPageProps, IncidentPageState>
   }
 
   update = () => {
+    this.setState({ wrongTeamError: false }); // reset wrong team error to false
+
     const {
       store,
       query: { id },
@@ -118,7 +120,6 @@ class IncidentPage extends React.Component<IncidentPageProps, IncidentPageState>
     } = this.state;
 
     const { alertReceiveChannelStore } = store;
-
     const { alerts } = store.alertGroupStore;
 
     const incident = alerts.get(id);

@@ -83,17 +83,19 @@ class SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSta
     }
   }
 
-  parseQueryParams = () => {
+  parseQueryParams = async () => {
+    this.setState({ wrongTeamError: false }); // reset wrong team error to false on query parse
+
     const {
       store,
       query: { id },
     } = this.props;
 
     if (id) {
-      const schedule = store.scheduleStore
+      const schedule = await store.scheduleStore
         .loadItem(id, true)
         .catch((error) => this.setState({ ...getWrongTeamResponseInfo(error) }));
-      if (!schedule) {return;}
+      if (!schedule) return;
 
       const schedules = store.scheduleStore.getSearchResult();
       const scheduleId = schedules && schedules.find((res) => res.id === id)?.id;
@@ -121,8 +123,8 @@ class SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSta
     if (wrongTeamError) {
       return (
         <WrongTeamStub
-          objectName="escalation"
-          pageName="escalations"
+          objectName="schedule"
+          pageName="schedules"
           switchToTeam={teamToSwitch}
           wrongTeamNoPermissions={wrongTeamNoPermissions}
         />

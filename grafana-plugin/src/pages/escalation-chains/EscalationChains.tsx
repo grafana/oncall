@@ -66,12 +66,13 @@ class EscalationChainsPage extends React.Component<EscalationChainsPageProps, Es
   }
 
   parseQueryParams = async () => {
+    this.setState({ wrongTeamError: false }); // reset wrong team error to false on query parse
+
     const { store, query } = this.props;
+    const { escalationChainStore } = store;
     const {
       escalationChainsFilters: { searchTerm },
     } = this.state;
-
-    const { escalationChainStore } = store;
 
     const searchResult = escalationChainStore.getSearchResult(searchTerm);
 
@@ -80,7 +81,9 @@ class EscalationChainsPage extends React.Component<EscalationChainsPageProps, Es
       let escalationChain = await escalationChainStore
         .loadItem(query.id, true)
         .catch((error) => this.setState({ ...getWrongTeamResponseInfo(error) }));
-      if (!escalationChain) {return;}
+      if (!escalationChain) {
+        return;
+      }
 
       escalationChain = escalationChainStore.items[query.id];
       if (escalationChain) {
@@ -91,9 +94,11 @@ class EscalationChainsPage extends React.Component<EscalationChainsPageProps, Es
         );
       }
     }
+
     if (!selectedEscalationChain) {
       selectedEscalationChain = searchResult[0]?.id;
     }
+
     this.setSelectedEscalationChain(selectedEscalationChain);
   };
 
@@ -127,7 +132,7 @@ class EscalationChainsPage extends React.Component<EscalationChainsPageProps, Es
       selectedEscalationChain,
       wrongTeamError,
       teamToSwitch,
-      wrongTeamNoPermissions
+      wrongTeamNoPermissions,
     } = this.state;
 
     if (wrongTeamError) {

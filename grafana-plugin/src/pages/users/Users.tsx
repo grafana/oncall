@@ -100,6 +100,8 @@ class Users extends React.Component<UsersProps, UsersState> {
   }
 
   parseParams = async () => {
+    this.setState({ wrongTeamError: false }); // reset wrong team error to false on query parse
+
     const {
       store,
       query: { id },

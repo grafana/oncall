@@ -69,8 +69,9 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
   };
 
   parseQueryParams = async () => {
-    const { store, query } = this.props;
+    this.setState({ wrongTeamError: false }); // reset wrong team error to false on query parse
 
+    const { store, query } = this.props;
     const { alertReceiveChannelStore } = store;
 
     const searchResult = alertReceiveChannelStore.getSearchResult();
@@ -80,7 +81,7 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
       let alertReceiveChannel = await alertReceiveChannelStore
         .loadItem(query.id, true)
         .catch((error) => this.setState({ ...getWrongTeamResponseInfo(error) }));
-      if (!alertReceiveChannel) {return;}
+      if (!alertReceiveChannel) return;
 
       if (alertReceiveChannel.id) {
         selectedAlertReceiveChannel = alertReceiveChannel.id;
@@ -95,9 +96,11 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
         this.setState({ alertReceiveChannelToShowSettings: query.id });
       }
     }
+
     if (!selectedAlertReceiveChannel) {
       selectedAlertReceiveChannel = searchResult[0]?.id;
     }
+
     this.setSelectedAlertReceiveChannel(selectedAlertReceiveChannel);
   };
 
@@ -134,8 +137,8 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
     if (wrongTeamError) {
       return (
         <WrongTeamStub
-          objectName="escalation"
-          pageName="escalations"
+          objectName="integration"
+          pageName="integrations"
           switchToTeam={teamToSwitch}
           wrongTeamNoPermissions={wrongTeamNoPermissions}
         />

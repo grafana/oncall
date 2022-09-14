@@ -30,31 +30,10 @@ interface RequestConfig {
   validateStatus?: (status: number) => boolean;
 }
 
-const failPaths = [
-  'api/plugin-proxy/grafana-oncall-app/api/internal/v1/users/URPAN2A31CVWQ/',
-  'api/plugin-proxy/grafana-oncall-app/api/internal/v1/escalation_chains/FDF7ZQMNKYIQK/',
-  'api/plugin-proxy/grafana-oncall-app/api/internal/v1/alert_receive_channels/CSPE3C7R4Q38G/',
-];
-
 export const makeRequest = async (path: string, config: RequestConfig) => {
   const { method = 'GET', params, data, validateStatus } = config;
 
   const url = `${API_PROXY_PREFIX}${API_PATH_PREFIX}${path}`;
-
-  if (failPaths.includes(url)) {
-    throw {
-      response: {
-        status: 403,
-        data: {
-          error_code: 'wrong_team',
-          owner_team: {
-            name: 'Rares',
-            id: '14999718',
-          },
-        },
-      },
-    };
-  }
 
   const response = await instance({
     method,
