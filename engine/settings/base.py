@@ -464,6 +464,16 @@ DATA_UPLOAD_MAX_MEMORY_SIZE = getenv_integer("DATA_UPLOAD_MAX_MEMORY_SIZE", 1_04
 SLOW_THRESHOLD_SECONDS = 2.0
 
 EXTRA_MESSAGING_BACKENDS = []
+ENABLE_SMTP_EMAIL_BACKEND = getenv_boolean("ENABLE_SMTP_EMAIL_BACKEND", False)
+if ENABLE_SMTP_EMAIL_BACKEND:
+    EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
+    EMAIL_HOST = os.environ.get("EMAIL_HOST")
+    EMAIL_HOST_USER = os.environ.get("EMAIL_HOST_USER")
+    EMAIL_HOST_PASSWORD = os.environ.get("EMAIL_HOST_PASSWORD")
+    EMAIL_PORT = getenv_integer("EMAIL_PORT", 587)
+    EMAIL_USE_TLS = getenv_boolean("EMAIL_USE_TLS", False)
+    DEFAULT_FROM_EMAIL = os.environ.get("DEFAULT_FROM_EMAIL")
+    EXTRA_MESSAGING_BACKENDS = [("apps.base.email_backend.SimpleEmailBackend", 587)]
 
 INSTALLED_ONCALL_INTEGRATIONS = [
     "config_integrations.alertmanager",
