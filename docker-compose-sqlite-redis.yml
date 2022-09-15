@@ -1,0 +1,87 @@
+version: "3.8"
+
+x-environment-and-volumes:
+  &oncall-environment-and-volumes
+  environment:
+    DJANGO_SETTINGS_MODULE: settings.hobby
+    DATABASE: sqlite
+    BROKER: redis
+    BASE_URL: ${DOMAIN:?please set DOMAIN env variable}
+    SECRET_KEY: ${SECRET_KEY:?please set DOMAIN env variable}
+    REDIS_URI: ${REDIS_URI:-redis://redis:6379/0}
+    CELERY_WORKER_QUEUE: "default,critical,long,slack,telegram,webhook,retry,celery"
+    CELERY_WORKER_CONCURRENCY: "1"
+    CELERY_WORKER_MAX_TASKS_PER_CHILD: "100"
+    CELERY_WORKER_SHUTDOWN_INTERVAL: "65m"
+    CELERY_WORKER_BEAT_ENABLED: "True"
+  volumes:
+    - oncall_db:/var/lib/oncall
+
+services:
+  engine:
+    image: grafana/oncall:local
+    ports:
+      - "8080:8080"
+    restart: always
+    << : *oncall-environment-and-volumes
+    depends_on:
+      oncall_db_migration:
+        condition: service_completed_successfully
+      redis:
+        condition: service_started
+
+  celery:
+    image: grafana/oncall:local
+    command: sh -c "./celery_with_exporter.sh"
+    restart: always
+    << : *oncall-environment-and-volumes
+    depends_on:
+      oncall_db_migration:
+        condition: service_completed_successfully
+      redis:
+        condition: service_started
+
+  oncall_db_migration:
+    image: grafana/oncall:local
+    command: python manage.py migrate --noinput
+    << : *oncall-environment-and-volumes
+    depends_on:
+      redis:
+        condition: service_started
+
+  redis:
+    image: redis
+    restart: always
+    expose:
+      - 6379
+    profiles:
+      - with_redis
+    deploy:
+      resources:
+        limits:
+          cpus: 0.1
+          memory: 100m
+
+  grafana:
+    image: "grafana/grafana:9.0.0-beta3"
+    restart: always
+    ports:
+      - "3000:3000"
+    environment:
+      GF_SECURITY_ADMIN_USER: ${GRAFANA_USER:-admin}
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_PASSWORD:-admin}
+      GF_PLUGINS_ALLOW_LOADING_UNSIGNED_PLUGINS: grafana-oncall-app
+      GF_INSTALL_PLUGINS: grafana-oncall-app
+    volumes:
+      - grafana_db:/var/lib/grafana
+    profiles:
+      - with_grafana
+    deploy:
+      resources:
+        limits:
+          cpus: 0.5
+          memory: 500m
+
+volumes:
+  oncall_db:
+  grafana_db:

@@ -1,28 +1,38 @@
+version: "3.8"
+
+
+x-environment:
+  &oncall-environment
+    DJANGO_SETTINGS_MODULE: settings.hobby
+    DATABASE: mysql
+    BROKER: rabbitmq
+    BASE_URL: $DOMAIN
+    SECRET_KEY: $SECRET_KEY
+    RABBITMQ_USERNAME: "rabbitmq"
+    RABBITMQ_PASSWORD: $RABBITMQ_PASSWORD
+    RABBITMQ_HOST: "rabbitmq"
+    RABBITMQ_PORT: "5672"
+    RABBITMQ_DEFAULT_VHOST: "/"
+    MYSQL_PASSWORD: $MYSQL_PASSWORD
+    MYSQL_DB_NAME: oncall_hobby
+    MYSQL_USER: ${MYSQL_USER:-root}
+    MYSQL_HOST: ${MYSQL_HOST:-mysql}
+    MYSQL_PORT: 3306
+    REDIS_URI: redis://redis:6379/0
+    CELERY_WORKER_CONCURRENCY: "1"
+    CELERY_WORKER_MAX_TASKS_PER_CHILD: "100"
+    CELERY_WORKER_SHUTDOWN_INTERVAL: "65m"
+    CELERY_WORKER_BEAT_ENABLED: "True"
+    CELERY_WORKER_QUEUE: "default,critical,long,slack,telegram,webhook,retry,celery"
+
 services:
   engine:
     image: grafana/oncall
     restart: always
     ports:
-      - 8080:8080
-    command: >
-      sh -c "uwsgi --ini uwsgi.ini"
+      - "8080:8080"
     environment:
-      BASE_URL: $DOMAIN
-      SECRET_KEY: $SECRET_KEY
-      RABBITMQ_USERNAME: "rabbitmq"
-      RABBITMQ_PASSWORD: $RABBITMQ_PASSWORD
-      RABBITMQ_HOST: "rabbitmq"
-      RABBITMQ_PORT: "5672"
-      RABBITMQ_DEFAULT_VHOST: "/"
-      MYSQL_PASSWORD: $MYSQL_PASSWORD
-      MYSQL_DB_NAME: oncall_hobby
-      MYSQL_USER: ${MYSQL_USER:-root}
-      MYSQL_HOST: ${MYSQL_HOST:-mysql}
-      MYSQL_PORT: 3306
-      REDIS_URI: redis://redis:6379/0
-      DJANGO_SETTINGS_MODULE: settings.hobby
-      OSS: "True"
-      CELERY_WORKER_QUEUE: "default,critical,long,slack,telegram,webhook,retry,celery"
+      << : *oncall-environment
     depends_on:
       mysql:
         condition: service_healthy
@@ -38,26 +48,7 @@ services:
     restart: always
     command: sh -c "./celery_with_exporter.sh"
     environment:
-      BASE_URL: $DOMAIN
-      SECRET_KEY: $SECRET_KEY
-      RABBITMQ_USERNAME: "rabbitmq"
-      RABBITMQ_PASSWORD: $RABBITMQ_PASSWORD
-      RABBITMQ_HOST: "rabbitmq"
-      RABBITMQ_PORT: "5672"
-      RABBITMQ_DEFAULT_VHOST: "/"
-      MYSQL_PASSWORD: $MYSQL_PASSWORD
-      MYSQL_DB_NAME: oncall_hobby
-      MYSQL_USER: ${MYSQL_USER:-root}
-      MYSQL_HOST: ${MYSQL_HOST:-mysql}
-      MYSQL_PORT: 3306
-      REDIS_URI: redis://redis:6379/0
-      DJANGO_SETTINGS_MODULE: settings.hobby
-      OSS: "True"
-      CELERY_WORKER_QUEUE: "default,critical,long,slack,telegram,webhook,retry,celery"
-      CELERY_WORKER_CONCURRENCY: "1"
-      CELERY_WORKER_MAX_TASKS_PER_CHILD: "100"
-      CELERY_WORKER_SHUTDOWN_INTERVAL: "65m"
-      CELERY_WORKER_BEAT_ENABLED: "True"
+      << : *oncall-environment
     depends_on:
       mysql:
         condition: service_healthy
@@ -72,22 +63,7 @@ services:
     image: grafana/oncall
     command: python manage.py migrate --noinput
     environment:
-      BASE_URL: $DOMAIN
-      SECRET_KEY: $SECRET_KEY
-      RABBITMQ_USERNAME: "rabbitmq"
-      RABBITMQ_PASSWORD: $RABBITMQ_PASSWORD
-      RABBITMQ_HOST: "rabbitmq"
-      RABBITMQ_PORT: "5672"
-      RABBITMQ_DEFAULT_VHOST: "/"
-      MYSQL_PASSWORD: $MYSQL_PASSWORD
-      MYSQL_DB_NAME: oncall_hobby
-      MYSQL_USER: ${MYSQL_USER:-root}
-      MYSQL_HOST: ${MYSQL_HOST:-mysql}
-      MYSQL_PORT: 3306
-      REDIS_URI: redis://redis:6379/0
-      DJANGO_SETTINGS_MODULE: settings.hobby
-      OSS: "True"
-      CELERY_WORKER_QUEUE: "default,critical,long,slack,telegram,webhook,retry,celery"
+      << : *oncall-environment
     depends_on:
       mysql:
         condition: service_healthy
@@ -97,8 +73,6 @@ services:
   mysql:
     image: mysql:5.7
     platform: linux/x86_64
-    mem_limit: 500m
-    cpus: 0.5
     command: --default-authentication-plugin=mysql_native_password --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
     restart: always
     expose:
@@ -112,21 +86,27 @@ services:
       test: "mysql -uroot -p$MYSQL_PASSWORD oncall_hobby -e 'select 1'"
       timeout: 20s
       retries: 10
+    deploy:
+      resources:
+        limits:
+          cpus: 0.5
+          memory: 500m
 
   redis:
     image: redis
-    mem_limit: 100m
-    cpus: 0.1
     restart: always
     expose:
       - 6379
+    deploy:
+      resources:
+        limits:
+          cpus: 0.1
+          memory: 100m
 
   rabbitmq:
     image: "rabbitmq:3.7.15-management"
     restart: always
     hostname: rabbitmq
-    mem_limit: 1000m
-    cpus: 0.5
     volumes:
       - rabbitmqdata:/var/lib/rabbitmq
     environment:
@@ -138,11 +118,16 @@ services:
       interval: 30s
       timeout: 30s
       retries: 3
+    deploy:
+      resources:
+        limits:
+          cpus: 0.5
+          memory: 1000m
 
   mysql_to_create_grafana_db:
     image: mysql:5.7
     platform: linux/x86_64
-    command: bash -c "mysql -h ${MYSQL_HOST:-mysql} -uroot -p${MYSQL_PASSWORD:?err} -e 'CREATE DATABASE IF NOT EXISTS grafana CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;'"
+    command: bash -c "mysql -h ${MYSQL_HOST:-mysql} -uroot -p${MYSQL_PASSWORD:?please set MYSQL_PASSWORD env variable} -e 'CREATE DATABASE IF NOT EXISTS grafana CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;'"
     depends_on:
       mysql:
         condition: service_healthy
@@ -152,17 +137,15 @@ services:
   grafana:
     image: "grafana/grafana:9.0.0-beta3"
     restart: always
-    mem_limit: 500m
     ports:
-      - 3000:3000
-    cpus: 0.5
+      - "3000:3000"
     environment:
       GF_DATABASE_TYPE: mysql
       GF_DATABASE_HOST: ${MYSQL_HOST:-mysql}
       GF_DATABASE_USER: ${MYSQL_USER:-root}
-      GF_DATABASE_PASSWORD: ${MYSQL_PASSWORD:?err}
+      GF_DATABASE_PASSWORD: ${MYSQL_PASSWORD:?please set MYSQL_PASSWORD env variable}
       GF_SECURITY_ADMIN_USER: ${GRAFANA_USER:-admin}
-      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_PASSWORD:?err}
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_PASSWORD:-admin}
       GF_PLUGINS_ALLOW_LOADING_UNSIGNED_PLUGINS: grafana-oncall-app
       GF_INSTALL_PLUGINS: grafana-oncall-app
     depends_on:
@@ -172,6 +155,11 @@ services:
         condition: service_healthy
     profiles:
       - with_grafana
+    deploy:
+      resources:
+        limits:
+          cpus: 0.5
+          memory: 500m
 
 volumes:
   dbdata:
