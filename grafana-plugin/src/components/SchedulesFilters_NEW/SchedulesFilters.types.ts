@@ -1,13 +1,7 @@
-import { Moment } from 'moment';
-
-enum ScheduleType {
-  Web = 'Web',
-  iCal = 'iCal',
-  API = 'API',
-}
+import { ScheduleType } from 'models/schedule/schedule.types';
 
 export interface SchedulesFiltersType {
   searchTerm: string;
-  type: string;
+  type: ScheduleType;
   status: string;
 }

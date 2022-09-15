@@ -8,8 +8,10 @@ import { openNotification } from 'utils';
 
 import styles from './Text.module.scss';
 
+export type TextType = 'primary' | 'secondary' | 'disabled' | 'link' | 'success' | 'warning';
+
 interface TextProps extends HTMLAttributes<HTMLElement> {
-  type?: 'primary' | 'secondary' | 'disabled' | 'link' | 'success' | 'warning';
+  type?: TextType;
   strong?: boolean;
   underline?: boolean;
   size?: 'small' | 'medium' | 'large';
@@ -24,7 +26,7 @@ interface TextProps extends HTMLAttributes<HTMLElement> {
   editModalTitle?: string;
 }
 
-interface TextType extends React.FC<TextProps> {
+interface TextInterface extends React.FC<TextProps> {
   Title: React.FC<TitleProps>;
 }
 
@@ -32,7 +34,7 @@ const PLACEHOLDER = '**********';
 
 const cx = cn.bind(styles);
 
-const Text: TextType = (props) => {
+const Text: TextInterface = (props) => {
   const {
     type,
     size = 'medium',

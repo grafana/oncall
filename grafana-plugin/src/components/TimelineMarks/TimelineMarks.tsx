@@ -1,7 +1,7 @@
 import React, { FC, useMemo } from 'react';
 
 import cn from 'classnames/bind';
-import * as dayjs from 'dayjs';
+import dayjs from 'dayjs';
 
 import styles from './TimelineMarks.module.css';
 

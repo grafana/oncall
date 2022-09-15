@@ -89,13 +89,6 @@ const ScheduleOverrideForm: FC<RotationFormProps> = (props) => {
 
   const [userGroups, setUserGroups] = useState([[]]);
 
-  const getUser = (pk: User['pk']) => {
-    return {
-      name: store.userStore.items[pk]?.username,
-      desc: store.userStore.items[pk]?.timezone,
-    };
-  };
-
   const renderUser = (userPk: User['pk']) => {
     const name = store.userStore.items[userPk]?.username;
     const desc = store.userStore.items[userPk]?.timezone;
@@ -214,7 +207,6 @@ const ScheduleOverrideForm: FC<RotationFormProps> = (props) => {
           value={userGroups}
           onChange={setUserGroups}
           isMultipleGroups={false}
-          getItemData={getUser}
           renderUser={renderUser}
           showError={!userGroups.some((group) => group.length)}
         />
