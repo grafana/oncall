@@ -22,28 +22,25 @@ We prepared multiple environments: [production](https://grafana.com/docs/grafana
 
 1. Download docker-compose.yaml:
 ```bash
-curl -fsSL https://raw.githubusercontent.com/grafana/oncall/dev/docker-compose.yml -o docker-compose.yml
+curl -fsSL https://raw.githubusercontent.com/grafana/oncall/dev/docker-compose-sqlite-redis.yml -o docker-compose.yml
 ```
 
 2. Set variables:
 ```bash
 echo "DOMAIN=http://localhost:8080
-SECRET_KEY=my_random_secret_must_be_more_than_32_characters_long
-RABBITMQ_PASSWORD=rabbitmq_secret_pw
-MYSQL_PASSWORD=mysql_secret_pw
-COMPOSE_PROFILES=with_grafana  # Remove this line if you want to use existing grafana
-GRAFANA_USER=admin
-GRAFANA_PASSWORD=admin" > .env_hobby
+SECRET_KEY=$(base64 /dev/urandom | head -c50)
+COMPOSE_PROFILES=with_grafana,with_redis  # Remove from this line if you want to use existing grafana or redis instance
+GRAFANA_USER=admin" > .env
 ```
 
 3. Launch services:
 ```bash
-docker-compose --env-file .env_hobby -f docker-compose.yml up -d
+docker-compose up -d
 ```
 
 4. Issue one-time invite token:
 ```bash
-docker-compose --env-file .env_hobby -f docker-compose.yml run engine python manage.py issue_invite_for_the_frontend --override
+docker-compose run engine python manage.py issue_invite_for_the_frontend --override
 ```
 
 5. Go to [OnCall Plugin Configuration](http://localhost:3000/plugins/grafana-oncall-app), using log in credentials as defined above: `admin`/`admin` (or find OnCall plugin in configuration->plugins) and connect OnCall _plugin_ with OnCall _backend_:
@@ -61,10 +58,10 @@ To update your Grafana OnCall hobby environment:
 
 ```shell
 # Update Docker images
-docker-compose --env-file .env_hobby -f docker-compose.yml pull engine celery oncall_db_migration
+docker-compose pull engine celery oncall_db_migration
 
 # Re-deploy
-docker-compose --env-file .env_hobby -f docker-compose.yml up -d --remove-orphans
+docker-compose up -d --remove-orphans
 ```
 
 After updating the engine, you'll also need to click the "Update" button on the [plugin version page](http://localhost:3000/plugins/grafana-oncall-app?page=version-history).
