@@ -17,4 +17,9 @@ RUN mkdir -p /tmp/prometheus_django_metrics;
 RUN chown -R 1000:2000 /tmp/prometheus_django_metrics
 ENV prometheus_multiproc_dir "/tmp/prometheus_django_metrics"
 
+# Create an SQLite database and set appropriate permissions
+RUN mkdir -p /var/lib/oncall
+RUN DJANGO_SETTINGS_MODULE=settings.hobby SECRET_KEY="ThEmUsTSecretKEYforBUILDstage123" TELEGRAM_TOKEN="0000000000:XXXXXXXXXXXXXXXXXXXXXXXXXXXX-XXXXXX" SLACK_CLIENT_OAUTH_ID=1 REDIS_URI="" python manage.py collectstatic --no-input
+RUN chown -R 1000:2000 /var/lib/oncall
+
 CMD [ "uwsgi", "--ini", "uwsgi.ini" ]
