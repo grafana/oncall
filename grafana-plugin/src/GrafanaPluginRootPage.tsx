@@ -135,7 +135,7 @@ export const Root = observer((props: AppRootProps) => {
 
   return (
     <DefaultPageLayout {...props}>
-      <GrafanaTeamSelect />
+      <GrafanaTeamSelect currentPage={page} />
       <Page {...props} path={pathWithoutLeadingSlash} />
     </DefaultPageLayout>
   );
