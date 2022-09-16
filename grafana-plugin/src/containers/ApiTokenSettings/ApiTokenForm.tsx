@@ -107,7 +107,7 @@ const ApiTokenForm = observer((props: TokenCreationModalProps) => {
 });
 
 function getCurlExample(token) {
-  return `curl -H "Authorization: ${token}" ${getItem('onCallApiUrl')}/api/internal/v1/alert_receive_channels`;
+  return `curl -H "Authorization: ${token}" ${getItem('onCallApiUrl')}/api/v1/integrations`;
 }
 
 export default ApiTokenForm;
