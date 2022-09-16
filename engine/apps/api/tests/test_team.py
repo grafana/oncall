@@ -106,11 +106,15 @@ def test_team_permissions_wrong_team_general(
     user = make_user(organization=organization)
     _, token = make_token_for_organization(organization)
 
+    client = APIClient()
+
     team = make_team(organization)
 
     user.teams.add(team)
     user.current_team = team
     user.save(update_fields=["current_team"])
+
+    user_from_general_team = make_user(organization=organization)
 
     alert_receive_channel = make_alert_receive_channel(organization)
     alert_group = make_alert_group(alert_receive_channel)
@@ -125,8 +129,8 @@ def test_team_permissions_wrong_team_general(
         ("escalation_chain", escalation_chain),
         ("schedule", schedule),
         ("custom_button", webhook),
+        ("user", user_from_general_team),
     ):
-        client = APIClient()
         url = reverse(f"api-internal:{endpoint}-detail", kwargs={"pk": instance.public_primary_key})
 
         response = client.get(url, **make_user_auth_headers(user, token))
@@ -156,8 +160,15 @@ def test_team_permissions_wrong_team(
     user = make_user(organization=organization)
     _, token = make_token_for_organization(organization)
 
+    client = APIClient()
+
     team = make_team(organization)
     user.teams.add(team)
+
+    another_user = make_user(organization=organization)
+    another_user.teams.add(team)
+    another_user.current_team = team
+    another_user.save(update_fields=["current_team"])
 
     alert_receive_channel = make_alert_receive_channel(organization, team=team)
     alert_group = make_alert_group(alert_receive_channel)
@@ -173,7 +184,6 @@ def test_team_permissions_wrong_team(
         ("schedule", schedule),
         ("custom_button", webhook),
     ):
-        client = APIClient()
         url = reverse(f"api-internal:{endpoint}-detail", kwargs={"pk": instance.public_primary_key})
 
         response = client.get(url, **make_user_auth_headers(user, token))
@@ -188,6 +198,12 @@ def test_team_permissions_wrong_team(
                 "avatar_url": team.avatar_url,
             },
         }
+
+    # Every user belongs to General team
+    url = reverse(f"api-internal:user-detail", kwargs={"pk": another_user.public_primary_key})
+    response = client.get(url, **make_user_auth_headers(user, token))
+
+    assert response.status_code == status.HTTP_200_OK
 
 
 @pytest.mark.django_db
@@ -208,7 +224,14 @@ def test_team_permissions_not_in_team(
     user = make_user(organization=organization)
     _, token = make_token_for_organization(organization)
 
+    client = APIClient()
+
     team = make_team(organization)
+
+    another_user = make_user(organization=organization)
+    another_user.teams.add(team)
+    another_user.current_team = team
+    another_user.save(update_fields=["current_team"])
 
     alert_receive_channel = make_alert_receive_channel(organization, team=team)
     alert_group = make_alert_group(alert_receive_channel)
@@ -224,13 +247,18 @@ def test_team_permissions_not_in_team(
         ("schedule", schedule),
         ("custom_button", webhook),
     ):
-        client = APIClient()
         url = reverse(f"api-internal:{endpoint}-detail", kwargs={"pk": instance.public_primary_key})
 
         response = client.get(url, **make_user_auth_headers(user, token))
 
         assert response.status_code == status.HTTP_403_FORBIDDEN
         assert response.json() == {"error_code": "wrong_team"}
+
+    # Every user belongs to General team
+    url = reverse(f"api-internal:user-detail", kwargs={"pk": another_user.public_primary_key})
+    response = client.get(url, **make_user_auth_headers(user, token))
+
+    assert response.status_code == status.HTTP_200_OK
 
 
 @pytest.mark.django_db
@@ -251,11 +279,16 @@ def test_team_permissions_right_team(
     user = make_user(organization=organization)
     _, token = make_token_for_organization(organization)
 
+    client = APIClient()
+
     team = make_team(organization)
 
     user.teams.add(team)
     user.current_team = team
     user.save(update_fields=["current_team"])
+
+    another_user = make_user(organization=organization)
+    another_user.teams.add(team)
 
     alert_receive_channel = make_alert_receive_channel(organization, team=team)
     alert_group = make_alert_group(alert_receive_channel)
@@ -270,8 +303,8 @@ def test_team_permissions_right_team(
         ("escalation_chain", escalation_chain),
         ("schedule", schedule),
         ("custom_button", webhook),
+        ("user", another_user),
     ):
-        client = APIClient()
         url = reverse(f"api-internal:{endpoint}-detail", kwargs={"pk": instance.public_primary_key})
 
         response = client.get(url, **make_user_auth_headers(user, token))
