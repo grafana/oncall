@@ -23,6 +23,7 @@ from apps.api.permissions import (
     IsAdminOrEditor,
     IsOwnerOrAdmin,
 )
+from apps.api.serializers.team import TeamSerializer
 from apps.api.serializers.user import FilterUserSerializer, UserHiddenFieldsSerializer, UserSerializer
 from apps.auth_token.auth import (
     MobileAppAuthTokenAuthentication,
@@ -39,7 +40,7 @@ from apps.telegram.client import TelegramClient
 from apps.telegram.models import TelegramVerificationCode
 from apps.twilioapp.phone_manager import PhoneManager
 from apps.twilioapp.twilio_client import twilio_client
-from apps.user_management.models import User
+from apps.user_management.models import Team, User
 from common.api_helpers.exceptions import Conflict
 from common.api_helpers.mixins import FilterSerializerMixin, PublicPrimaryKeyMixin
 from common.api_helpers.paginators import HundredPageSizePaginator
@@ -230,7 +231,10 @@ class UserView(
 
     def retrieve(self, request, *args, **kwargs):
         context = {"request": self.request, "format": self.format_kwarg, "view": self}
-        instance = self.get_object()
+        try:
+            instance = self.get_object()
+        except NotFound:
+            return self.wrong_team_response()
 
         if settings.OSS_INSTALLATION and live_settings.GRAFANA_CLOUD_NOTIFICATIONS_ENABLED:
             from apps.oss_installation.models import CloudConnector, CloudUserIdentity
@@ -244,6 +248,26 @@ class UserView(
 
         serializer = self.get_serializer(instance, context=context)
         return Response(serializer.data)
+
+    def wrong_team_response(self):
+        """
+        This method returns 403 and {"error_code": "wrong_team", "owner_team": {"name", "id", "email", "avatar_url"}}.
+        Used in case if a requested instance doesn't belong to user's current_team.
+        """
+        queryset = User.objects.filter(organization=self.request.user.organization).order_by("id")
+        queryset = self.filter_queryset(queryset)
+
+        try:
+            queryset.get(public_primary_key=self.kwargs["pk"])
+        except ObjectDoesNotExist:
+            raise NotFound
+
+        general_team = Team(public_primary_key=None, name="General", email=None, avatar_url=None)
+
+        return Response(
+            data={"error_code": "wrong_team", "owner_team": TeamSerializer(general_team).data},
+            status=status.HTTP_403_FORBIDDEN,
+        )
 
     def current(self, request):
         serializer = UserSerializer(self.get_queryset().get(pk=self.request.user.pk))
