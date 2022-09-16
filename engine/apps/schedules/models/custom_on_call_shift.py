@@ -441,7 +441,7 @@ class CustomOnCallShift(models.Model):
             rules["freq"] = [self.get_frequency_display().upper()]
             if self.event_interval is not None:
                 rules["interval"] = [self.event_interval]
-            if self.by_day is not None:
+            if self.by_day:
                 rules["byday"] = self.by_day
             if self.by_month is not None:
                 rules["bymonth"] = self.by_month
