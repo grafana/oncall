@@ -42,8 +42,8 @@ export class OutgoingWebhookStore extends BaseStore {
   }
 
   @action
-  async updateItem(id: OutgoingWebhook['id']) {
-    const response = await this.getById(id);
+  async updateItem(id: OutgoingWebhook['id'], fromOrganization = false) {
+    const response = await this.getById(id, false, fromOrganization);
 
     this.items = {
       ...this.items,

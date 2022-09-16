@@ -41,8 +41,11 @@ export default class BaseStore {
   }
 
   @action
-  async getById(id: string, skipErrorHandling = false) {
-    return await makeRequest(`${this.path}${id}/`, {
+  async getById(id: string, skipErrorHandling = false, fromOrganization = false) {
+    let path = `${this.path}${id}`;
+    if (fromOrganization) {path = path.concat('?from_organization=true');}
+
+    return await makeRequest(path, {
       method: 'GET',
     }).catch((error) => this.onApiError(error, skipErrorHandling));
   }
