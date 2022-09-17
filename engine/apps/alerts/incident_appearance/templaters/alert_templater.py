@@ -167,6 +167,7 @@ class AlertTemplater(ABC):
             context = {
                 "grafana_oncall_incident_id": self.incident_id,
                 "grafana_oncall_link": self.link,
+                "grafana_oncall_organization": channel.organization.stack_slug,
                 "integration_name": channel.verbal_name,
                 "source_link": templated_alert.source_link,
                 "amixr_incident_id": self.incident_id,  # TODO: decide on variable names

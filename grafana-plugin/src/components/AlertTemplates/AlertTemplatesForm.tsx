@@ -205,9 +205,9 @@ const AlertTemplatesForm = (props: AlertTemplatesFormProps) => {
                 {activeGroup === 'telegram' && ', html'}
                 {' supported. '}
                 Reserved variables available: <Text keyboard>payload</Text>, <Text keyboard>grafana_oncall_link</Text>,{' '}
-                <Text keyboard>grafana_oncall_incident_id</Text>, <Text keyboard>integration_name</Text>,
-                <Text keyboard>source_link</Text>. Press <Text keyboard>Ctrl</Text>+<Text keyboard>Space</Text> to get
-                suggestions
+                <Text keyboard>grafana_oncall_incident_id</Text>, <Text keyboard>grafana_oncall_organization</Text>,
+                <Text keyboard>integration_name</Text>, <Text keyboard>source_link</Text>. 
+                Press <Text keyboard>Ctrl</Text>+<Text keyboard>Space</Text> to get suggestions
               </p>
             </Text>
             {groups[activeGroup].map((activeTemplate: any) => (

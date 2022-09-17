@@ -32,7 +32,18 @@ web_message = """\
 
 web_image_url = slack_image_url
 
-sms_title = web_title
+sms_title = """\
+{{ payload.message }}, 
+Incident #
+{{ grafana_oncall_incident_id }}, 
+Organization: 
+{{ grafana_oncall_organization }}, 
+Alert channel: 
+{{ integration_name }},
+Link: 
+{{ grafana_oncall_link }}
+
+"""
 
 phone_call_title = sms_title
 
