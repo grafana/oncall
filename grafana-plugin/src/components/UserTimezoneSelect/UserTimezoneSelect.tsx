@@ -23,7 +23,7 @@ const UserTimezoneSelect: FC<UserTimezoneSelectProps> = (props) => {
   const { users, value, onChange } = props;
 
   const options = useMemo(() => {
-    return users.reduce((memo, user) => {
+    const userOptions = users.reduce((memo, user) => {
       let item = memo.find((item) => item.label === user.timezone);
 
       if (!item) {
@@ -41,6 +41,8 @@ const UserTimezoneSelect: FC<UserTimezoneSelectProps> = (props) => {
 
       return memo;
     }, []);
+
+    return userOptions;
   }, [users]);
 
   const selectValue = useMemo(() => {

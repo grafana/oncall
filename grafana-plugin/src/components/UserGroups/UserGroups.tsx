@@ -124,6 +124,7 @@ const UserGroups = (props: UserGroupsProps) => {
           value={null}
           onChange={handleUserAdd}
           showError={showError}
+          maxMenuHeight={150}
         />
       </VerticalGroup>
     </div>

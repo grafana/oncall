@@ -8,9 +8,10 @@ import {
   Field,
   Input,
   Button,
-  DateTimePicker,
   Select,
   InlineSwitch,
+  DatePickerWithInput,
+  TimeOfDayPicker,
 } from '@grafana/ui';
 import cn from 'classnames/bind';
 import dayjs from 'dayjs';
@@ -36,6 +37,7 @@ import { useStore } from 'state/useStore';
 import { getCoords, waitForElement } from 'utils/DOM';
 import { useDebouncedCallback } from 'utils/hooks';
 
+import DateTimePicker from './DateTimePicker';
 import { RotationCreateData } from './RotationForm.types';
 
 import styles from './RotationForm.module.css';
@@ -55,6 +57,10 @@ interface RotationFormProps {
 }
 
 const cx = cn.bind(styles);
+
+const repeatShiftsEveryOptions = Array.from(Array(31).keys())
+  .slice(1)
+  .map((i) => ({ label: String(i), value: i }));
 
 const RotationForm: FC<RotationFormProps> = observer((props) => {
   const {
@@ -78,13 +84,17 @@ const RotationForm: FC<RotationFormProps> = observer((props) => {
   const [repeatEveryValue, setRepeatEveryValue] = useState<number>(1);
   const [repeatEveryPeriod, setRepeatEveryPeriod] = useState<number>(0);
   const [selectedDays, setSelectedDays] = useState<string[]>([]);
-  const [shiftStart, setShiftStart] = useState<DateTime>(dateTime(shiftMoment.format('YYYY-MM-DD HH:mm:ss')));
-  const [shiftEnd, setShiftEnd] = useState<DateTime>(dateTime(shiftMoment.add(1, 'day').format('YYYY-MM-DD HH:mm:ss')));
-  const [rotationStart, setRotationStart] = useState<DateTime>(dateTime(shiftMoment.format('YYYY-MM-DD HH:mm:ss')));
+  const [shiftStart, setShiftStart] = useState<dayjs.Dayjs>(shiftMoment);
+  const [shiftEnd, setShiftEnd] = useState<dayjs.Dayjs>(shiftMoment.add(1, 'day'));
+  const [rotationStart, setRotationStart] = useState<dayjs.Dayjs>(shiftMoment);
   const [endLess, setEndless] = useState<boolean>(true);
-  const [rotationEnd, setRotationEnd] = useState<DateTime>(
-    dateTime(shiftMoment.add(1, 'month').format('YYYY-MM-DD HH:mm:ss'))
-  );
+  const [rotationEnd, setRotationEnd] = useState<dayjs.Dayjs>(shiftMoment.add(1, 'month'));
+
+  useEffect(() => {
+    if (rotationStart.isBefore(shiftStart)) {
+      setRotationStart(shiftStart);
+    }
+  }, [rotationStart, shiftStart]);
 
   const store = useStore();
 
@@ -146,10 +156,10 @@ const RotationForm: FC<RotationFormProps> = observer((props) => {
 
   const params = useMemo(
     () => ({
-      rotation_start: getUTCString(rotationStart, currentTimezone),
-      until: endLess ? null : getUTCString(rotationEnd, currentTimezone),
-      shift_start: getUTCString(shiftStart, currentTimezone),
-      shift_end: getUTCString(shiftEnd, currentTimezone),
+      rotation_start: getUTCString(rotationStart),
+      until: endLess ? null : getUTCString(rotationEnd),
+      shift_start: getUTCString(shiftStart),
+      shift_end: getUTCString(shiftEnd),
       rolling_users: userGroups,
       interval: repeatEveryValue,
       frequency: repeatEveryPeriod,
@@ -205,10 +215,10 @@ const RotationForm: FC<RotationFormProps> = observer((props) => {
 
   useEffect(() => {
     if (shift) {
-      setRotationStart(getDateTime(shift.rotation_start, currentTimezone));
-      setRotationEnd(getDateTime(shift.until, currentTimezone));
-      setShiftStart(getDateTime(shift.shift_start, currentTimezone));
-      setShiftEnd(getDateTime(shift.shift_end, currentTimezone));
+      setRotationStart(getDateTime(shift.rotation_start));
+      setRotationEnd(shift.until ? getDateTime(shift.until) : getDateTime(shift.shift_start).add(1, 'month'));
+      setShiftStart(getDateTime(shift.shift_start));
+      setShiftEnd(getDateTime(shift.shift_end));
       setEndless(!shift.until);
 
       setRepeatEveryValue(shift.interval);
@@ -229,6 +239,8 @@ const RotationForm: FC<RotationFormProps> = observer((props) => {
   const handleRepeatEveryValueChange = useCallback((option) => {
     setRepeatEveryValue(option.value);
   }, []);
+
+  const isFormValid = useMemo(() => userGroups.some((group) => group.length), [userGroups]);
 
   const moment = dayjs();
 
@@ -252,8 +264,8 @@ const RotationForm: FC<RotationFormProps> = observer((props) => {
             </HorizontalGroup>
           </Text>
           <HorizontalGroup>
-            <IconButton disabled variant="secondary" tooltip="Copy" name="copy" />
-            <IconButton disabled variant="secondary" tooltip="Code" name="brackets-curly" />
+            {/*<IconButton disabled variant="secondary" tooltip="Copy" name="copy" />
+            <IconButton disabled variant="secondary" tooltip="Code" name="brackets-curly" />*/}
             {shiftId !== 'new' && (
               <WithConfirm>
                 <IconButton variant="secondary" tooltip="Delete" name="trash-alt" onClick={handleDeleteClick} />
@@ -262,29 +274,62 @@ const RotationForm: FC<RotationFormProps> = observer((props) => {
             <IconButton variant="secondary" className={cx('drag-handler')} name="draggabledots" />
           </HorizontalGroup>
         </HorizontalGroup>
-        <UserGroups
-          value={userGroups}
-          onChange={setUserGroups}
-          isMultipleGroups={true}
-          renderUser={renderUser}
-          showError={!userGroups.some((group) => group.length)}
-        />
         {/*<hr />*/}
         <VerticalGroup>
+          <UserGroups
+            value={userGroups}
+            onChange={setUserGroups}
+            isMultipleGroups={true}
+            renderUser={renderUser}
+            showError={!isFormValid}
+          />
+          <HorizontalGroup>
+            <Field
+              className={cx('date-time-picker')}
+              label={
+                <Text type="primary" size="small">
+                  Rotation start
+                </Text>
+              }
+            >
+              <DateTimePicker
+                minMoment={shiftStart}
+                value={rotationStart}
+                onChange={setRotationStart}
+                timezone={currentTimezone}
+              />
+            </Field>
+            <Field
+              label={
+                <HorizontalGroup spacing="xs">
+                  <Text type="primary" size="small">
+                    Rotation end
+                  </Text>
+                  <InlineSwitch
+                    className={cx('inline-switch')}
+                    transparent
+                    value={!endLess}
+                    onChange={handleChangeEndless}
+                  />
+                </HorizontalGroup>
+              }
+            >
+              <DateTimePicker
+                disabled={endLess}
+                value={rotationEnd}
+                onChange={setRotationEnd}
+                timezone={currentTimezone}
+              />
+            </Field>
+          </HorizontalGroup>
           <HorizontalGroup>
             <Field className={cx('control')} label="Repeat shifts every">
               <Select
+                maxMenuHeight={120}
                 value={repeatEveryValue}
-                options={[
-                  { label: '1', value: 1 },
-                  { label: '2', value: 2 },
-                  { label: '3', value: 3 },
-                  { label: '4', value: 4 },
-                  { label: '5', value: 5 },
-                  { label: '6', value: 6 },
-                  { label: '7', value: 7 },
-                ]}
+                options={repeatShiftsEveryOptions}
                 onChange={handleRepeatEveryValueChange}
+                allowCustomValue
               />
             </Field>
             <Field className={cx('control')} label="">
@@ -315,7 +360,7 @@ const RotationForm: FC<RotationFormProps> = observer((props) => {
                 </Text>
               }
             >
-              <DateTimePicker date={shiftStart} onChange={setShiftStart} />
+              <DateTimePicker value={shiftStart} onChange={setShiftStart} timezone={currentTimezone} />
             </Field>
             <Field
               className={cx('date-time-picker')}
@@ -325,53 +370,17 @@ const RotationForm: FC<RotationFormProps> = observer((props) => {
                 </Text>
               }
             >
-              <DateTimePicker date={shiftEnd} onChange={setShiftEnd} />
-            </Field>
-          </HorizontalGroup>
-          <HorizontalGroup>
-            <Field
-              className={cx('date-time-picker')}
-              label={
-                <Text type="primary" size="small">
-                  Rotation start
-                </Text>
-              }
-            >
-              <DateTimePicker date={rotationStart} onChange={setRotationStart} />
-            </Field>
-            <Field
-              label={
-                <HorizontalGroup spacing="xs">
-                  <Text type="primary" size="small">
-                    Rotation end
-                  </Text>
-                  <InlineSwitch
-                    className={cx('inline-switch')}
-                    transparent
-                    value={!endLess}
-                    onChange={handleChangeEndless}
-                  />
-                </HorizontalGroup>
-              }
-            >
-              {endLess ? (
-                <Input
-                  value="endless"
-                  onClick={() => {
-                    setEndless(false);
-                  }}
-                />
-              ) : (
-                <DateTimePicker date={rotationEnd} onChange={setRotationEnd} />
-              )}
+              <DateTimePicker value={shiftEnd} onChange={setShiftEnd} timezone={currentTimezone} />
             </Field>
           </HorizontalGroup>
         </VerticalGroup>
         <HorizontalGroup justify="space-between">
           <Text type="secondary">Timezone: {getTzOffsetString(dayjs().tz(currentTimezone))}</Text>
           <HorizontalGroup>
-            {/*<Button variant="secondary">+ Override</Button>*/}
-            <Button variant="primary" onClick={handleCreate}>
+            <Button variant="secondary" onClick={onHide}>
+              {shiftId === 'new' ? 'Cancel' : 'Close'}
+            </Button>
+            <Button variant="primary" onClick={handleCreate} disabled={!isFormValid}>
               {shiftId === 'new' ? 'Create' : 'Update'}
             </Button>
           </HorizontalGroup>

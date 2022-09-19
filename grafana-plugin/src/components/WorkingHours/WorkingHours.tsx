@@ -25,7 +25,7 @@ interface WorkingHoursProps {
 const cx = cn.bind(styles);
 
 const WorkingHours: FC<WorkingHoursProps> = (props) => {
-  const { timezone, workingHours, startMoment, duration, className, style } = props;
+  const { timezone, workingHours = default_working_hours, startMoment, duration, className, style } = props;
 
   const endMoment = startMoment.add(duration, 'seconds');
 

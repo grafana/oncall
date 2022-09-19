@@ -4,7 +4,8 @@
 
 .draggable {
   top: 0;
-  transition: transform 300ms ease;
+
+  /* transition: transform 300ms ease; */
 }
 
 .header {

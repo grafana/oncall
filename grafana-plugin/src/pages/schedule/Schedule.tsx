@@ -74,6 +74,12 @@ class SchedulePage extends React.Component<SchedulePageProps, SchedulePageState>
     this.updateEvents();
   }
 
+  componentWillUnmount() {
+    const { store } = this.props;
+
+    store.scheduleStore.clearPreview();
+  }
+
   render() {
     const { store } = this.props;
     const { startMoment, schedulePeriodType, renderType } = this.state;
