@@ -1,13 +1,10 @@
 import React from 'react';
 
-import { SelectableValue } from '@grafana/data';
-import { getLocationSrv } from '@grafana/runtime';
-import { HorizontalGroup, Icon, IconButton, Label, Tooltip } from '@grafana/ui';
+import { Icon, Label, Tooltip } from '@grafana/ui';
 import cn from 'classnames/bind';
 import { observer } from 'mobx-react';
 import ReactDOM from 'react-dom';
 
-import Avatar from 'components/Avatar/Avatar';
 import PluginLink from 'components/PluginLink/PluginLink';
 import GSelect from 'containers/GSelect/GSelect';
 import { WithPermissionControl } from 'containers/WithPermissionControl/WithPermissionControl';

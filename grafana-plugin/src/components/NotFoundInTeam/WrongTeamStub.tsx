@@ -1,6 +1,6 @@
 import React, { FC } from 'react';
 
-import { Button, VerticalGroup, Icon } from '@grafana/ui';
+import { Button, VerticalGroup } from '@grafana/ui';
 import cn from 'classnames/bind';
 
 import PluginLink from 'components/PluginLink/PluginLink';
@@ -60,7 +60,7 @@ const WrongTeamStub: FC<WrongTeamStubProps> = (props) => {
             Change the team
           </Button>
         )}
-        <Text type="secondary" className={cx('return-to-list')}>
+        <Text type="secondary">
           Or return to the <PluginLink query={{ page: pageName }}>{objectName} list</PluginLink> for team {currentTeam}
         </Text>
       </VerticalGroup>
