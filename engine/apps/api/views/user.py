@@ -253,6 +253,8 @@ class UserView(
         """
         This method returns 403 and {"error_code": "wrong_team", "owner_team": {"name", "id", "email", "avatar_url"}}.
         Used in case if a requested instance doesn't belong to user's current_team.
+        Used instead of TeamFilteringMixin because of m2m teams field (mixin doesn't work correctly with this)
+        and overridden retrieve method in UserView.
         """
         queryset = User.objects.filter(organization=self.request.user.organization).order_by("id")
         queryset = self.filter_queryset(queryset)
