@@ -23,45 +23,66 @@ const UserTimezoneSelect: FC<UserTimezoneSelectProps> = (props) => {
   const { users, value, onChange } = props;
 
   const options = useMemo(() => {
-    const userOptions = users.reduce((memo, user) => {
-      let item = memo.find((item) => item.label === user.timezone);
+    return users
+      .reduce(
+        (memo, user) => {
+          const moment = dayjs().tz(user.timezone);
+          const utcOffset = moment.utcOffset();
 
-      if (!item) {
-        item = {
-          value: user.pk,
-          label: `${user.timezone} ${getTzOffsetString(dayjs().tz(user.timezone))}`,
-          imgUrl: user.avatar,
-          description: user.username,
-        };
-        memo.push(item);
-      } else {
-        item.description += ', ' + user.name;
-        // item.imgUrl = undefined;
-      }
+          let item = memo.find((item) => item.utcOffset === utcOffset);
 
-      return memo;
-    }, []);
+          if (!item) {
+            item = {
+              value: user.timezone,
+              utcOffset,
+              label: getTzOffsetString(moment),
+              description: user.username,
+            };
+            memo.push(item);
+          } else {
+            item.description += item.description ? ', ' + user.username : user.username;
+            // item.imgUrl = undefined;
+          }
 
-    return userOptions;
+          return memo;
+        },
+        [
+          {
+            value: 'UTC',
+            utcOffset: 0,
+            label: 'GMT',
+            description: '',
+          },
+        ]
+      )
+      .sort((a, b) => {
+        if (b.utcOffset === 0) {
+          return 1;
+        }
+
+        if (a.utcOffset > b.utcOffset) {
+          return 1;
+        }
+        if (a.utcOffset < b.utcOffset) {
+          return -1;
+        }
+
+        return 0;
+      });
   }, [users]);
-
-  const selectValue = useMemo(() => {
-    const user = users.find((user) => user.timezone === value);
-    return user?.pk;
-  }, [value, users]);
 
   const handleChange = useCallback(
     ({ value }) => {
-      const user = users.find((user) => user.pk === value);
+      const option = options.find((option) => option.timezone === value);
 
-      onChange(user?.timezone);
+      onChange(value);
     },
     [users]
   );
 
   return (
     <div className={cx('root')}>
-      <Select value={selectValue} onChange={handleChange} width={100} placeholder="UTC Timezone" options={options} />
+      <Select value={value} onChange={handleChange} width={100} placeholder="UTC Timezone" options={options} />
     </div>
   );
 };

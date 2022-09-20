@@ -223,7 +223,7 @@ const RotationForm: FC<RotationFormProps> = observer((props) => {
 
       setRepeatEveryValue(shift.interval);
       setRepeatEveryPeriod(shift.frequency);
-      setSelectedDays(shift.by_day);
+      setSelectedDays(shift.by_day || []);
 
       setUserGroups(shift.rolling_users);
     }
@@ -275,105 +275,107 @@ const RotationForm: FC<RotationFormProps> = observer((props) => {
           </HorizontalGroup>
         </HorizontalGroup>
         {/*<hr />*/}
-        <VerticalGroup>
-          <UserGroups
-            value={userGroups}
-            onChange={setUserGroups}
-            isMultipleGroups={true}
-            renderUser={renderUser}
-            showError={!isFormValid}
-          />
-          <HorizontalGroup>
-            <Field
-              className={cx('date-time-picker')}
-              label={
-                <Text type="primary" size="small">
-                  Rotation start
-                </Text>
-              }
-            >
-              <DateTimePicker
-                minMoment={shiftStart}
-                value={rotationStart}
-                onChange={setRotationStart}
-                timezone={currentTimezone}
-              />
-            </Field>
-            <Field
-              label={
-                <HorizontalGroup spacing="xs">
+        <div className={cx('content')}>
+          <VerticalGroup>
+            <div className={cx('two-fields')}>
+              <Field
+                label={
                   <Text type="primary" size="small">
-                    Rotation end
+                    Rotation start
                   </Text>
-                  <InlineSwitch
-                    className={cx('inline-switch')}
-                    transparent
-                    value={!endLess}
-                    onChange={handleChangeEndless}
-                  />
-                </HorizontalGroup>
-              }
-            >
-              <DateTimePicker
-                disabled={endLess}
-                value={rotationEnd}
-                onChange={setRotationEnd}
-                timezone={currentTimezone}
-              />
-            </Field>
-          </HorizontalGroup>
-          <HorizontalGroup>
-            <Field className={cx('control')} label="Repeat shifts every">
-              <Select
-                maxMenuHeight={120}
-                value={repeatEveryValue}
-                options={repeatShiftsEveryOptions}
-                onChange={handleRepeatEveryValueChange}
-                allowCustomValue
-              />
-            </Field>
-            <Field className={cx('control')} label="">
-              <RemoteSelect
-                href="/oncall_shifts/frequency_options/"
-                value={repeatEveryPeriod}
-                onChange={setRepeatEveryPeriod}
-              />
-            </Field>
-          </HorizontalGroup>
-          {repeatEveryPeriod === 1 && (
-            /*<HorizontalGroup justify="center">*/
-            <Field label="Select days to repeat">
-              <DaysSelector
-                options={store.scheduleStore.byDayOptions}
-                value={selectedDays}
-                onChange={(value) => setSelectedDays(value)}
-              />
-            </Field>
-            /*</HorizontalGroup>*/
-          )}
-          <HorizontalGroup>
-            <Field
-              className={cx('date-time-picker')}
-              label={
-                <Text type="primary" size="small">
-                  Shift start
-                </Text>
-              }
-            >
-              <DateTimePicker value={shiftStart} onChange={setShiftStart} timezone={currentTimezone} />
-            </Field>
-            <Field
-              className={cx('date-time-picker')}
-              label={
-                <Text type="primary" size="small">
-                  Shift end
-                </Text>
-              }
-            >
-              <DateTimePicker value={shiftEnd} onChange={setShiftEnd} timezone={currentTimezone} />
-            </Field>
-          </HorizontalGroup>
-        </VerticalGroup>
+                }
+              >
+                <DateTimePicker
+                  minMoment={shiftStart}
+                  value={rotationStart}
+                  onChange={setRotationStart}
+                  timezone={currentTimezone}
+                />
+              </Field>
+              <Field
+                label={
+                  <HorizontalGroup spacing="xs">
+                    <Text type="primary" size="small">
+                      Rotation end
+                    </Text>
+                    <InlineSwitch
+                      className={cx('inline-switch')}
+                      transparent
+                      value={!endLess}
+                      onChange={handleChangeEndless}
+                    />
+                  </HorizontalGroup>
+                }
+              >
+                {endLess ? (
+                  <div style={{ lineHeight: '32px' }}>
+                    <Text type="secondary">Endless</Text>
+                  </div>
+                ) : (
+                  <DateTimePicker value={rotationEnd} onChange={setRotationEnd} timezone={currentTimezone} />
+                )}
+              </Field>
+            </div>
+            <HorizontalGroup>
+              <Field className={cx('control')} label="Repeat shifts every">
+                <Select
+                  maxMenuHeight={120}
+                  value={repeatEveryValue}
+                  options={repeatShiftsEveryOptions}
+                  onChange={handleRepeatEveryValueChange}
+                  allowCustomValue
+                />
+              </Field>
+              <Field className={cx('control')} label="">
+                <RemoteSelect
+                  href="/oncall_shifts/frequency_options/"
+                  value={repeatEveryPeriod}
+                  onChange={setRepeatEveryPeriod}
+                />
+              </Field>
+            </HorizontalGroup>
+            {repeatEveryPeriod === 1 && (
+              /*<HorizontalGroup justify="center">*/
+              <Field label="Select days to repeat">
+                <DaysSelector
+                  options={store.scheduleStore.byDayOptions}
+                  value={selectedDays}
+                  onChange={(value) => setSelectedDays(value)}
+                />
+              </Field>
+              /*</HorizontalGroup>*/
+            )}
+            <div className={cx('two-fields')}>
+              <Field
+                className={cx('date-time-picker')}
+                label={
+                  <Text type="primary" size="small">
+                    Shift start
+                  </Text>
+                }
+              >
+                <DateTimePicker value={shiftStart} onChange={setShiftStart} timezone={currentTimezone} />
+              </Field>
+              <Field
+                className={cx('date-time-picker')}
+                label={
+                  <Text type="primary" size="small">
+                    Shift end
+                  </Text>
+                }
+              >
+                <DateTimePicker value={shiftEnd} onChange={setShiftEnd} timezone={currentTimezone} />
+              </Field>
+            </div>
+            <UserGroups
+              value={userGroups}
+              onChange={setUserGroups}
+              isMultipleGroups={true}
+              renderUser={renderUser}
+              showError={!isFormValid}
+            />
+          </VerticalGroup>
+        </div>
         <HorizontalGroup justify="space-between">
           <Text type="secondary">Timezone: {getTzOffsetString(dayjs().tz(currentTimezone))}</Text>
           <HorizontalGroup>

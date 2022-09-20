@@ -104,6 +104,16 @@ const UserGroups = (props: UserGroupsProps) => {
   return (
     <div className={cx('root')}>
       <VerticalGroup>
+        <RemoteSelect
+          key={items.length}
+          showSearch
+          placeholder="Add user"
+          href="/users/?filters=true&roles=0&roles=1"
+          value={null}
+          onChange={handleUserAdd}
+          showError={showError}
+          maxMenuHeight={150}
+        />
         <SortableList
           renderItem={renderItem}
           axis="y"
@@ -115,16 +125,6 @@ const UserGroups = (props: UserGroupsProps) => {
           handleDeleteItem={handleDeleteUser}
           isMultipleGroups={isMultipleGroups}
           useDragHandle
-        />
-        <RemoteSelect
-          key={items.length}
-          showSearch
-          placeholder="Add user"
-          href="/users/?filters=true&roles=0&roles=1"
-          value={null}
-          onChange={handleUserAdd}
-          showError={showError}
-          maxMenuHeight={150}
         />
       </VerticalGroup>
     </div>

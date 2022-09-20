@@ -2,7 +2,16 @@ import React, { useMemo } from 'react';
 
 import { AppRootProps } from '@grafana/data';
 import { getLocationSrv } from '@grafana/runtime';
-import { Button, HorizontalGroup, VerticalGroup, RadioButtonGroup, IconButton, ToolbarButton, Icon } from '@grafana/ui';
+import {
+  Button,
+  HorizontalGroup,
+  VerticalGroup,
+  RadioButtonGroup,
+  IconButton,
+  ToolbarButton,
+  Icon,
+  Field,
+} from '@grafana/ui';
 import cn from 'classnames/bind';
 import dayjs from 'dayjs';
 import { observer } from 'mobx-react';
@@ -127,9 +136,12 @@ class SchedulePage extends React.Component<SchedulePageProps, SchedulePageState>
               </HorizontalGroup>
               <HorizontalGroup>
                 {users && (
-                  <UserTimezoneSelect value={currentTimezone} users={users} onChange={this.handleTimezoneChange} />
+                  <HorizontalGroup>
+                    <Text type="secondary">Current timezone:</Text>
+                    <UserTimezoneSelect value={currentTimezone} users={users} onChange={this.handleTimezoneChange} />
+                  </HorizontalGroup>
                 )}
-                <ScheduleQuality quality={0.89} />
+                {/*<ScheduleQuality quality={0.89} />*/}
                 {/*<ToolbarButton icon="copy" tooltip="Copy" />
                 <ToolbarButton icon="brackets-curly" tooltip="Code" />
                 <ToolbarButton icon="share-alt" tooltip="Share" />

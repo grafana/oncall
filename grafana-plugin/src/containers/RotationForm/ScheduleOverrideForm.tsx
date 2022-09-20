@@ -194,38 +194,39 @@ const ScheduleOverrideForm: FC<RotationFormProps> = (props) => {
             <IconButton variant="secondary" className={cx('drag-handler')} name="draggabledots" />
           </HorizontalGroup>
         </HorizontalGroup>
-        <UserGroups
-          value={userGroups}
-          onChange={setUserGroups}
-          isMultipleGroups={false}
-          renderUser={renderUser}
-          showError={!isFormValid}
-        />
-        {/*<hr />*/}
-        <VerticalGroup>
-          <HorizontalGroup>
-            <Field
-              className={cx('date-time-picker')}
-              label={
-                <Text type="primary" size="small">
-                  Override start
-                </Text>
-              }
-            >
-              <DateTimePicker value={shiftStart} onChange={setShiftStart} timezone={currentTimezone} />
-            </Field>
-            <Field
-              className={cx('date-time-picker')}
-              label={
-                <Text type="primary" size="small">
-                  Override end
-                </Text>
-              }
-            >
-              <DateTimePicker value={shiftEnd} onChange={setShiftEnd} timezone={currentTimezone} />
-            </Field>
-          </HorizontalGroup>
-        </VerticalGroup>
+        <div className={cx('content')}>
+          <VerticalGroup>
+            <HorizontalGroup>
+              <Field
+                className={cx('date-time-picker')}
+                label={
+                  <Text type="primary" size="small">
+                    Override start
+                  </Text>
+                }
+              >
+                <DateTimePicker value={shiftStart} onChange={setShiftStart} timezone={currentTimezone} />
+              </Field>
+              <Field
+                className={cx('date-time-picker')}
+                label={
+                  <Text type="primary" size="small">
+                    Override end
+                  </Text>
+                }
+              >
+                <DateTimePicker value={shiftEnd} onChange={setShiftEnd} timezone={currentTimezone} />
+              </Field>
+            </HorizontalGroup>
+            <UserGroups
+              value={userGroups}
+              onChange={setUserGroups}
+              isMultipleGroups={false}
+              renderUser={renderUser}
+              showError={!isFormValid}
+            />
+          </VerticalGroup>
+        </div>
         <HorizontalGroup justify="space-between">
           <Text type="secondary">Timezone: {getTzOffsetString(dayjs().tz(currentTimezone))}</Text>
           <HorizontalGroup>

@@ -60,7 +60,7 @@ const TimelineMarks: FC<TimelineMarksProps> = (props) => {
       {momentsToRender.map((m, i) => {
         return (
           <div key={i} className={cx('weekday')}>
-            <div className={cx('weekday-title')}>{m.moment.format('D MMM')}</div>
+            <div className={cx('weekday-title')}>{m.moment.format('ddd D MMM')}</div>
             <div className={cx('weekday-times')}>
               {m.moments.map((mm, j) => (
                 <div key={j} className={cx('weekday-time')}>
