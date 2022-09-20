@@ -441,7 +441,9 @@ class CustomOnCallShift(models.Model):
         initial_event = Event.from_ical(event_ical)
         # take shift interval, not event interval. For rolling_users shift it is not the same.
         interval = self.interval or 1
-        initial_event["rrule"]["INTERVAL"] = interval
+        if "rrule" in initial_event:
+            # means that shift has frequency
+            initial_event["rrule"]["INTERVAL"] = interval
         initial_event_start = initial_event["DTSTART"].dt
 
         last_event = None
