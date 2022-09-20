@@ -190,18 +190,19 @@ def get_shifts_dict(calendar, calendar_type, schedule, datetime_start, datetime_
                     )
             else:
                 start, end = ical_events.get_start_and_end_with_respect_to_event_type(event)
-                result_datetime.append(
-                    {
-                        "start": start.astimezone(pytz.UTC),
-                        "end": end.astimezone(pytz.UTC),
-                        "users": users,
-                        "missing_users": missing_users,
-                        "priority": priority,
-                        "source": source,
-                        "calendar_type": calendar_type,
-                        "shift_pk": pk,
-                    }
-                )
+                if start < end:
+                    result_datetime.append(
+                        {
+                            "start": start.astimezone(pytz.UTC),
+                            "end": end.astimezone(pytz.UTC),
+                            "users": users,
+                            "missing_users": missing_users,
+                            "priority": priority,
+                            "source": source,
+                            "calendar_type": calendar_type,
+                            "shift_pk": pk,
+                        }
+                    )
     return result_datetime, result_date
 
 
