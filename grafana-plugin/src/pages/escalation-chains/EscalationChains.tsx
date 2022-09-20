@@ -11,8 +11,8 @@ import Collapse from 'components/Collapse/Collapse';
 import EscalationsFilters from 'components/EscalationsFilters/EscalationsFilters';
 import Block from 'components/GBlock/Block';
 import GList from 'components/GList/GList';
-import { getWrongTeamResponseInfo } from 'components/NotFoundInTeam/WrongTeam.helpers';
-import WrongTeamStub from 'components/NotFoundInTeam/WrongTeamStub';
+import { getWrongTeamResponseInfo } from 'components/NotFoundInTeam/WrongTeamDisplayWrapper.helpers';
+import WrongTeamDisplayWrapper, { initWrongTeamDataState, WrongTeamData } from 'components/NotFoundInTeam/WrongTeamDisplayWrapper';
 import PluginLink from 'components/PluginLink/PluginLink';
 import Text from 'components/Text/Text';
 import Tutorial from 'components/Tutorial/Tutorial';
@@ -39,11 +39,7 @@ interface EscalationChainsPageState {
   showCreateEscalationChainModal: boolean;
   escalationChainIdToCopy: EscalationChain['id'];
   selectedEscalationChain: EscalationChain['id'];
-
-  notFound?: boolean;
-  wrongTeamError?: boolean;
-  teamToSwitch?: { name: string; id: string };
-  wrongTeamNoPermissions?: boolean;
+  wrongTeamData: WrongTeamData;
 }
 
 export interface Filters {
@@ -57,8 +53,7 @@ class EscalationChainsPage extends React.Component<EscalationChainsPageProps, Es
     showCreateEscalationChainModal: false,
     escalationChainIdToCopy: undefined,
     selectedEscalationChain: undefined,
-    wrongTeamError: false,
-    wrongTeamNoPermissions: false,
+    wrongTeamData: initWrongTeamDataState(),
   };
 
   async componentDidMount() {
@@ -66,7 +61,7 @@ class EscalationChainsPage extends React.Component<EscalationChainsPageProps, Es
   }
 
   parseQueryParams = async () => {
-    this.setState({ wrongTeamError: false }); // reset wrong team error to false on query parse
+    this.setState({ wrongTeamData: initWrongTeamDataState() }); // reset wrong team error to false on query parse
 
     const { store, query } = this.props;
     const { escalationChainStore } = store;
@@ -80,7 +75,8 @@ class EscalationChainsPage extends React.Component<EscalationChainsPageProps, Es
     if (query.id) {
       let escalationChain = await escalationChainStore
         .loadItem(query.id, true)
-        .catch((error) => this.setState({ ...getWrongTeamResponseInfo(error) }));
+        .catch((error) => this.setState({ wrongTeamData: { ...getWrongTeamResponseInfo(error) } }));
+
       if (!escalationChain) {
         return;
       }
@@ -134,99 +130,90 @@ class EscalationChainsPage extends React.Component<EscalationChainsPageProps, Es
       escalationChainIdToCopy,
       escalationChainsFilters,
       selectedEscalationChain,
-      wrongTeamError,
-      teamToSwitch,
-      wrongTeamNoPermissions,
+      wrongTeamData,
     } = this.state;
-
-    if (wrongTeamError) {
-      return (
-        <WrongTeamStub
-          objectName="escalation"
-          pageName="escalations"
-          switchToTeam={teamToSwitch}
-          wrongTeamNoPermissions={wrongTeamNoPermissions}
-        />
-      );
-    }
 
     const { escalationChainStore } = store;
     const searchResult = escalationChainStore.getSearchResult(escalationChainsFilters.searchTerm);
 
     return (
-      <>
-        <div className={cx('root')}>
-          <div className={cx('filters')}>
-            <EscalationsFilters value={escalationChainsFilters} onChange={this.handleEscalationsFiltersChange} />
-          </div>
-          {!searchResult || searchResult.length ? (
-            <div className={cx('escalations')}>
-              <div className={cx('left-column')}>
-                <WithPermissionControl userAction={UserAction.UpdateAlertReceiveChannels}>
-                  <Button
-                    onClick={() => {
-                      this.setState({ showCreateEscalationChainModal: true });
-                    }}
-                    icon="plus"
-                    className={cx('new-escalation-chain')}
-                  >
-                    New escalation chain
-                  </Button>
-                </WithPermissionControl>
-                <div className={cx('escalations-list')}>
-                  {searchResult ? (
-                    <GList
-                      autoScroll
-                      selectedId={selectedEscalationChain}
-                      items={searchResult}
-                      itemKey="id"
-                      onSelect={this.setSelectedEscalationChain}
-                    >
-                      {(item) => <EscalationChainCard id={item.id} />}
-                    </GList>
-                  ) : (
-                    <LoadingPlaceholder className={cx('loading')} text="Loading..." />
-                  )}
-                </div>
+      <WrongTeamDisplayWrapper wrongTeamData={wrongTeamData} objectName="escalation" pageName="escalations">
+        {() => (
+          <>
+            <div className={cx('root')}>
+              <div className={cx('filters')}>
+                <EscalationsFilters value={escalationChainsFilters} onChange={this.handleEscalationsFiltersChange} />
               </div>
-              <div className={cx('escalation')}>{this.renderEscalation()}</div>
+              {!searchResult || searchResult.length ? (
+                <div className={cx('escalations')}>
+                  <div className={cx('left-column')}>
+                    <WithPermissionControl userAction={UserAction.UpdateAlertReceiveChannels}>
+                      <Button
+                        onClick={() => {
+                          this.setState({ showCreateEscalationChainModal: true });
+                        }}
+                        icon="plus"
+                        className={cx('new-escalation-chain')}
+                      >
+                        New escalation chain
+                      </Button>
+                    </WithPermissionControl>
+                    <div className={cx('escalations-list')}>
+                      {searchResult ? (
+                        <GList
+                          autoScroll
+                          selectedId={selectedEscalationChain}
+                          items={searchResult}
+                          itemKey="id"
+                          onSelect={this.setSelectedEscalationChain}
+                        >
+                          {(item) => <EscalationChainCard id={item.id} />}
+                        </GList>
+                      ) : (
+                        <LoadingPlaceholder className={cx('loading')} text="Loading..." />
+                      )}
+                    </div>
+                  </div>
+                  <div className={cx('escalation')}>{this.renderEscalation()}</div>
+                </div>
+              ) : (
+                <Tutorial
+                  step={TutorialStep.Escalations}
+                  title={
+                    <VerticalGroup align="center" spacing="lg">
+                      <Text type="secondary">No escalations found, check your filtering and current team.</Text>
+                      <WithPermissionControl userAction={UserAction.UpdateEscalationPolicies}>
+                        <Button
+                          icon="plus"
+                          variant="primary"
+                          size="lg"
+                          onClick={() => {
+                            this.setState({ showCreateEscalationChainModal: true });
+                          }}
+                        >
+                          New Escalation Chain
+                        </Button>
+                      </WithPermissionControl>
+                    </VerticalGroup>
+                  }
+                />
+              )}
             </div>
-          ) : (
-            <Tutorial
-              step={TutorialStep.Escalations}
-              title={
-                <VerticalGroup align="center" spacing="lg">
-                  <Text type="secondary">No escalations found, check your filtering and current team.</Text>
-                  <WithPermissionControl userAction={UserAction.UpdateEscalationPolicies}>
-                    <Button
-                      icon="plus"
-                      variant="primary"
-                      size="lg"
-                      onClick={() => {
-                        this.setState({ showCreateEscalationChainModal: true });
-                      }}
-                    >
-                      New Escalation Chain
-                    </Button>
-                  </WithPermissionControl>
-                </VerticalGroup>
-              }
-            />
-          )}
-        </div>
-        {showCreateEscalationChainModal && (
-          <EscalationChainForm
-            escalationChainId={escalationChainIdToCopy}
-            onHide={() => {
-              this.setState({
-                showCreateEscalationChainModal: false,
-                escalationChainIdToCopy: undefined,
-              });
-            }}
-            onUpdate={this.handleEscalationChainCreate}
-          />
+            {showCreateEscalationChainModal && (
+              <EscalationChainForm
+                escalationChainId={escalationChainIdToCopy}
+                onHide={() => {
+                  this.setState({
+                    showCreateEscalationChainModal: false,
+                    escalationChainIdToCopy: undefined,
+                  });
+                }}
+                onUpdate={this.handleEscalationChainCreate}
+              />
+            )}
+          </>
         )}
-      </>
+      </WrongTeamDisplayWrapper>
     );
   }
 

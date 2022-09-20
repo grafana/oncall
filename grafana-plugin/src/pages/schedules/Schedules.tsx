@@ -22,8 +22,8 @@ import moment, { Moment } from 'moment-timezone';
 import instructionsImage from 'assets/img/events_instructions.png';
 import Avatar from 'components/Avatar/Avatar';
 import GTable from 'components/GTable/GTable';
-import { getWrongTeamResponseInfo } from 'components/NotFoundInTeam/WrongTeam.helpers';
-import WrongTeamStub from 'components/NotFoundInTeam/WrongTeamStub';
+import { getWrongTeamResponseInfo } from 'components/NotFoundInTeam/WrongTeamDisplayWrapper.helpers';
+import WrongTeamDisplayWrapper, { initWrongTeamDataState, WrongTeamData } from 'components/NotFoundInTeam/WrongTeamDisplayWrapper';
 import PluginLink from 'components/PluginLink/PluginLink';
 import SchedulesFilters from 'components/SchedulesFilters/SchedulesFilters';
 import { SchedulesFiltersType } from 'components/SchedulesFilters/SchedulesFilters.types';
@@ -55,11 +55,7 @@ interface SchedulesPageState {
   scheduleIdToExport?: Schedule['id'];
   filters: SchedulesFiltersType;
   expandedSchedulesKeys: Array<Schedule['id']>;
-
-  notFound?: boolean;
-  wrongTeamError?: boolean;
-  teamToSwitch?: { name: string; id: string };
-  wrongTeamNoPermissions?: boolean;
+  wrongTeamData: WrongTeamData;
 }
 
 @observer
@@ -69,8 +65,7 @@ class SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSta
       selectedDate: moment().startOf('day').format('YYYY-MM-DD'),
     },
     expandedSchedulesKeys: [],
-    wrongTeamError: false,
-    wrongTeamNoPermissions: false,
+    wrongTeamData: initWrongTeamDataState(),
   };
 
   componentDidMount() {
@@ -84,7 +79,7 @@ class SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSta
   }
 
   parseQueryParams = async () => {
-    this.setState({ wrongTeamError: false }); // reset wrong team error to false on query parse
+    this.setState({ wrongTeamData: initWrongTeamDataState() }); // reset wrong team error to false on query parse
 
     const {
       store,
@@ -94,8 +89,10 @@ class SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSta
     if (id) {
       const schedule = await store.scheduleStore
         .loadItem(id, true)
-        .catch((error) => this.setState({ ...getWrongTeamResponseInfo(error) }));
-      if (!schedule) {return;}
+        .catch((error) => this.setState({ wrongTeamData: { ...getWrongTeamResponseInfo(error) } }));
+      if (!schedule) {
+        return;
+      }
 
       const schedules = store.scheduleStore.getSearchResult();
       const scheduleId = schedules && schedules.find((res) => res.id === id)?.id;
@@ -117,19 +114,8 @@ class SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSta
   render() {
     const { store } = this.props;
     const { expandedSchedulesKeys, scheduleIdToDelete, scheduleIdToEdit, scheduleIdToExport } = this.state;
-    const { filters, wrongTeamError, teamToSwitch, wrongTeamNoPermissions } = this.state;
+    const { filters, wrongTeamData } = this.state;
     const { scheduleStore } = store;
-
-    if (wrongTeamError) {
-      return (
-        <WrongTeamStub
-          objectName="schedule"
-          pageName="schedules"
-          switchToTeam={teamToSwitch}
-          wrongTeamNoPermissions={wrongTeamNoPermissions}
-        />
-      );
-    }
 
     const columns = [
       {
@@ -176,102 +162,107 @@ class SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSta
     const offset = moment().tz(timezoneStr).format('Z');
 
     return (
-      <>
-        <div className={cx('root')}>
-          <div className={cx('title')}>
-            <HorizontalGroup align="flex-end">
-              <Text.Title level={3}>On-call Schedules</Text.Title>
-              <Text type="secondary">
-                Use this to distribute notifications among team members you specified in the "Notify Users from on-call
-                schedule" step in <PluginLink query={{ page: 'integrations' }}>escalation chains</PluginLink>.
-              </Text>
-            </HorizontalGroup>
-          </div>
-          {!schedules || schedules.length ? (
-            <GTable
-              emptyText={schedules ? 'No schedules found' : 'Loading...'}
-              title={() => (
-                <div className={cx('header')}>
-                  <HorizontalGroup className={cx('filters')} spacing="md">
-                    <SchedulesFilters value={filters} onChange={this.handleChangeFilters} />
-                    <Text type="secondary">
-                      <Icon name="info-circle" /> Your timezone is {timezoneStr} UTC{offset}
-                    </Text>
-                  </HorizontalGroup>
-                  <PluginLink
-                    partial
-                    query={{ id: 'new' }}
-                    disabled={!store.isUserActionAllowed(UserAction.UpdateSchedules)}
-                  >
-                    <WithPermissionControl userAction={UserAction.UpdateSchedules}>
-                      <Button variant="primary" icon="plus">
-                        New schedule
-                      </Button>
-                    </WithPermissionControl>
-                  </PluginLink>
-                </div>
+      <WrongTeamDisplayWrapper wrongTeamData={wrongTeamData} objectName="schedule" pageName="schedules">
+        {() => (
+          <>
+            <div className={cx('root')}>
+              <div className={cx('title')}>
+                <HorizontalGroup align="flex-end">
+                  <Text.Title level={3}>On-call Schedules</Text.Title>
+                  <Text type="secondary">
+                    Use this to distribute notifications among team members you specified in the "Notify Users from
+                    on-call schedule" step in{' '}
+                    <PluginLink query={{ page: 'integrations' }}>escalation chains</PluginLink>.
+                  </Text>
+                </HorizontalGroup>
+              </div>
+              {!schedules || schedules.length ? (
+                <GTable
+                  emptyText={schedules ? 'No schedules found' : 'Loading...'}
+                  title={() => (
+                    <div className={cx('header')}>
+                      <HorizontalGroup className={cx('filters')} spacing="md">
+                        <SchedulesFilters value={filters} onChange={this.handleChangeFilters} />
+                        <Text type="secondary">
+                          <Icon name="info-circle" /> Your timezone is {timezoneStr} UTC{offset}
+                        </Text>
+                      </HorizontalGroup>
+                      <PluginLink
+                        partial
+                        query={{ id: 'new' }}
+                        disabled={!store.isUserActionAllowed(UserAction.UpdateSchedules)}
+                      >
+                        <WithPermissionControl userAction={UserAction.UpdateSchedules}>
+                          <Button variant="primary" icon="plus">
+                            New schedule
+                          </Button>
+                        </WithPermissionControl>
+                      </PluginLink>
+                    </div>
+                  )}
+                  rowKey="id"
+                  columns={columns}
+                  data={schedules}
+                  expandable={{
+                    expandedRowRender: this.renderEvents,
+                    expandRowByClick: true,
+                    onExpand: this.onRowExpand,
+                    expandedRowKeys: expandedSchedulesKeys,
+                    onExpandedRowsChange: this.handleExpandedRowsChange,
+                  }}
+                />
+              ) : (
+                <Tutorial
+                  step={TutorialStep.Schedules}
+                  title={
+                    <VerticalGroup align="center" spacing="lg">
+                      <Text type="secondary">You haven’t added a schedule yet.</Text>
+                      <PluginLink partial query={{ id: 'new' }}>
+                        <Button icon="plus" variant="primary" size="lg">
+                          Add team schedule for on-call rotation
+                        </Button>
+                      </PluginLink>
+                    </VerticalGroup>
+                  }
+                />
               )}
-              rowKey="id"
-              columns={columns}
-              data={schedules}
-              expandable={{
-                expandedRowRender: this.renderEvents,
-                expandRowByClick: true,
-                onExpand: this.onRowExpand,
-                expandedRowKeys: expandedSchedulesKeys,
-                onExpandedRowsChange: this.handleExpandedRowsChange,
-              }}
-            />
-          ) : (
-            <Tutorial
-              step={TutorialStep.Schedules}
-              title={
-                <VerticalGroup align="center" spacing="lg">
-                  <Text type="secondary">You haven’t added a schedule yet.</Text>
-                  <PluginLink partial query={{ id: 'new' }}>
-                    <Button icon="plus" variant="primary" size="lg">
-                      Add team schedule for on-call rotation
-                    </Button>
-                  </PluginLink>
-                </VerticalGroup>
-              }
-            />
-          )}
-        </div>
-        {scheduleIdToEdit && (
-          <ScheduleForm
-            id={scheduleIdToEdit}
-            onUpdate={this.update}
-            onHide={() => {
-              this.setState({ scheduleIdToEdit: undefined });
-              getLocationSrv().update({ partial: true, query: { id: undefined } });
-            }}
-          />
+            </div>
+            {scheduleIdToEdit && (
+              <ScheduleForm
+                id={scheduleIdToEdit}
+                onUpdate={this.update}
+                onHide={() => {
+                  this.setState({ scheduleIdToEdit: undefined });
+                  getLocationSrv().update({ partial: true, query: { id: undefined } });
+                }}
+              />
+            )}
+            {scheduleIdToDelete && (
+              <ConfirmModal
+                isOpen
+                title="Are you sure to delete?"
+                confirmText="Delete"
+                dismissText="Cancel"
+                onConfirm={this.handleDelete}
+                body={null}
+                onDismiss={() => {
+                  this.setState({ scheduleIdToDelete: undefined });
+                }}
+              />
+            )}
+            {scheduleIdToExport && (
+              <Modal
+                isOpen
+                title="Schedule export"
+                closeOnEscape
+                onDismiss={() => this.setState({ scheduleIdToExport: undefined })}
+              >
+                <ScheduleICalSettings id={scheduleIdToExport} />
+              </Modal>
+            )}
+          </>
         )}
-        {scheduleIdToDelete && (
-          <ConfirmModal
-            isOpen
-            title="Are you sure to delete?"
-            confirmText="Delete"
-            dismissText="Cancel"
-            onConfirm={this.handleDelete}
-            body={null}
-            onDismiss={() => {
-              this.setState({ scheduleIdToDelete: undefined });
-            }}
-          />
-        )}
-        {scheduleIdToExport && (
-          <Modal
-            isOpen
-            title="Schedule export"
-            closeOnEscape
-            onDismiss={() => this.setState({ scheduleIdToExport: undefined })}
-          >
-            <ScheduleICalSettings id={scheduleIdToExport} />
-          </Modal>
-        )}
-      </>
+      </WrongTeamDisplayWrapper>
     );
   }
 

@@ -1,4 +1,4 @@
-import React, { FC } from 'react';
+import React from 'react';
 
 import { Button, VerticalGroup } from '@grafana/ui';
 import cn from 'classnames/bind';
@@ -9,25 +9,40 @@ import { ChangeTeamIcon } from 'icons';
 import { GrafanaTeam } from 'models/grafana_team/grafana_team.types';
 import { useStore } from 'state/useStore';
 
-import styles from './WrongTeamStub.module.css';
+import styles from './WrongTeamWrapperDisplay.module.css';
 
 const cx = cn.bind(styles);
 
-export interface WrongTeamStubProps {
-  className?: string;
-  objectName: string;
-  pageName: string;
-  switchToTeam?: { name: string; id: string };
+export interface WrongTeamData {
+  notFound?: boolean;
+  isError?: boolean;
   wrongTeamNoPermissions?: boolean;
+  switchToTeam?: { name: string; id: string };
 }
 
-const WrongTeamStub: FC<WrongTeamStubProps> = (props) => {
+export function initWrongTeamDataState(): Partial<WrongTeamData> {
+  return { isError: false, wrongTeamNoPermissions: false };
+}
+
+export default function WrongTeamDisplayWrapper({
+  wrongTeamData,
+  objectName,
+  pageName,
+  children,
+}: {
+  wrongTeamData: WrongTeamData;
+  objectName: string;
+  pageName: string;
+  children: any;
+}) {
+  if (!wrongTeamData.isError) return children();
+
   const store = useStore();
 
   const currentTeamId = store.userStore.currentUser?.current_team;
   const currentTeam = store.grafanaTeamStore.items[currentTeamId]?.name;
 
-  const { objectName, pageName, switchToTeam, wrongTeamNoPermissions } = props;
+  const { switchToTeam, wrongTeamNoPermissions } = wrongTeamData;
 
   const onTeamChange = async (teamId: GrafanaTeam['id']) => {
     await store.userStore.updateCurrentUser({ current_team: teamId });
@@ -66,6 +81,4 @@ const WrongTeamStub: FC<WrongTeamStubProps> = (props) => {
       </VerticalGroup>
     </div>
   );
-};
-
-export default WrongTeamStub;
+}

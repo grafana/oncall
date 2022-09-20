@@ -7,17 +7,15 @@ import cn from 'classnames/bind';
 import { observer } from 'mobx-react';
 
 import GTable from 'components/GTable/GTable';
-import { getWrongTeamResponseInfo } from 'components/NotFoundInTeam/WrongTeam.helpers';
-import WrongTeamStub from 'components/NotFoundInTeam/WrongTeamStub';
+import { getWrongTeamResponseInfo } from 'components/NotFoundInTeam/WrongTeamDisplayWrapper.helpers';
+import WrongTeamDisplayWrapper, { initWrongTeamDataState, WrongTeamData } from 'components/NotFoundInTeam/WrongTeamDisplayWrapper';
 import PluginLink from 'components/PluginLink/PluginLink';
 import Text from 'components/Text/Text';
 import WithConfirm from 'components/WithConfirm/WithConfirm';
-import GSelect from 'containers/GSelect/GSelect';
 import OutgoingWebhookForm from 'containers/OutgoingWebhookForm/OutgoingWebhookForm';
 import { WithPermissionControl } from 'containers/WithPermissionControl/WithPermissionControl';
 import { ActionDTO } from 'models/action';
 import { OutgoingWebhook } from 'models/outgoing_webhook/outgoing_webhook.types';
-import { PRIVATE_CHANNEL_NAME } from 'models/slack_channel/slack_channel.config';
 import { WithStoreProps } from 'state/types';
 import { UserAction } from 'state/userAction';
 import { withMobXProviderContext } from 'state/withStore';
@@ -30,17 +28,13 @@ interface OutgoingWebhooksProps extends WithStoreProps, AppRootProps {}
 
 interface OutgoingWebhooksState {
   outgoingWebhookIdToEdit?: OutgoingWebhook['id'] | 'new';
-  notFound?: boolean;
-  wrongTeamError?: boolean;
-  teamToSwitch?: { name: string; id: string };
-  wrongTeamNoPermissions?: boolean;
+  wrongTeamData: WrongTeamData;
 }
 
 @observer
 class OutgoingWebhooks extends React.Component<OutgoingWebhooksProps, OutgoingWebhooksState> {
   state: OutgoingWebhooksState = {
-    wrongTeamError: false,
-    wrongTeamNoPermissions: false,
+    wrongTeamData: initWrongTeamDataState(),
   };
 
   async componentDidMount() {
@@ -54,10 +48,10 @@ class OutgoingWebhooks extends React.Component<OutgoingWebhooksProps, OutgoingWe
   }
 
   parseQueryParams = async () => {
-    this.setState({
-      wrongTeamError: false,
+    this.setState((prevState) => ({
+      wrongTeamData: initWrongTeamDataState(),
       outgoingWebhookIdToEdit: undefined,
-    }); // reset state on query parse
+    })); // reset state on query parse
 
     const {
       store,
@@ -66,7 +60,7 @@ class OutgoingWebhooks extends React.Component<OutgoingWebhooksProps, OutgoingWe
 
     await store.outgoingWebhookStore
       .loadItem(id, true)
-      .catch((error) => this.setState({ ...getWrongTeamResponseInfo(error) }));
+      .catch((error) => this.setState({ wrongTeamData: { ...getWrongTeamResponseInfo(error) } }));
 
     if (id) {
       this.setState({ outgoingWebhookIdToEdit: id });
@@ -81,18 +75,7 @@ class OutgoingWebhooks extends React.Component<OutgoingWebhooksProps, OutgoingWe
 
   render() {
     const { store } = this.props;
-    const { outgoingWebhookIdToEdit, wrongTeamError, teamToSwitch, wrongTeamNoPermissions } = this.state;
-
-    if (wrongTeamError) {
-      return (
-        <WrongTeamStub
-          objectName="outgoing webhook"
-          pageName="outgoing_webhooks"
-          switchToTeam={teamToSwitch}
-          wrongTeamNoPermissions={wrongTeamNoPermissions}
-        />
-      );
-    }
+    const { outgoingWebhookIdToEdit, wrongTeamData } = this.state;
 
     const webhooks = store.outgoingWebhookStore.getSearchResult();
 
@@ -115,39 +98,43 @@ class OutgoingWebhooks extends React.Component<OutgoingWebhooksProps, OutgoingWe
     ];
 
     return (
-      <>
-        <div className={cx('root')}>
-          <GTable
-            emptyText={webhooks ? 'No outgoing webhooks found' : 'Loading...'}
-            title={() => (
-              <div className={cx('header')}>
-                <Text.Title level={3}>Outgoing Webhooks</Text.Title>
-                <PluginLink
-                  partial
-                  query={{ id: 'new' }}
-                  disabled={!store.isUserActionAllowed(UserAction.UpdateCustomActions)}
-                >
-                  <WithPermissionControl userAction={UserAction.UpdateCustomActions}>
-                    <Button variant="primary" icon="plus">
-                      Create
-                    </Button>
-                  </WithPermissionControl>
-                </PluginLink>
-              </div>
+      <WrongTeamDisplayWrapper wrongTeamData={wrongTeamData} objectName="outgoing webhook" pageName="outgoing_webhooks">
+        {() => (
+          <>
+            <div className={cx('root')}>
+              <GTable
+                emptyText={webhooks ? 'No outgoing webhooks found' : 'Loading...'}
+                title={() => (
+                  <div className={cx('header')}>
+                    <Text.Title level={3}>Outgoing Webhooks</Text.Title>
+                    <PluginLink
+                      partial
+                      query={{ id: 'new' }}
+                      disabled={!store.isUserActionAllowed(UserAction.UpdateCustomActions)}
+                    >
+                      <WithPermissionControl userAction={UserAction.UpdateCustomActions}>
+                        <Button variant="primary" icon="plus">
+                          Create
+                        </Button>
+                      </WithPermissionControl>
+                    </PluginLink>
+                  </div>
+                )}
+                rowKey="id"
+                columns={columns}
+                data={webhooks}
+              />
+            </div>
+            {outgoingWebhookIdToEdit && (
+              <OutgoingWebhookForm
+                id={outgoingWebhookIdToEdit}
+                onUpdate={this.update}
+                onHide={this.handleOutgoingWebhookFormHide}
+              />
             )}
-            rowKey="id"
-            columns={columns}
-            data={webhooks}
-          />
-        </div>
-        {outgoingWebhookIdToEdit && (
-          <OutgoingWebhookForm
-            id={outgoingWebhookIdToEdit}
-            onUpdate={this.update}
-            onHide={this.handleOutgoingWebhookFormHide}
-          />
+          </>
         )}
-      </>
+      </WrongTeamDisplayWrapper>
     );
   }
 
