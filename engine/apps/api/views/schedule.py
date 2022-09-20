@@ -25,7 +25,7 @@ from apps.auth_token.auth import PluginAuthentication
 from apps.auth_token.constants import SCHEDULE_EXPORT_TOKEN_NAME
 from apps.auth_token.models import ScheduleExportAuthToken
 from apps.schedules.models import OnCallSchedule
-from apps.schedules.quality import get_schedule_score
+from apps.schedules.quality_score import get_schedule_quality_score
 from apps.slack.models import SlackChannel
 from apps.slack.tasks import update_slack_user_group_for_schedules
 from common.api_helpers.exceptions import BadRequest, Conflict
@@ -290,7 +290,7 @@ class ScheduleView(
 
         events = schedule.filter_events(user_tz, date, days=days, with_empty=True, with_gap=True)
 
-        schedule_score = get_schedule_score(events, days)
+        schedule_score = get_schedule_quality_score(events, days)
         return Response(schedule_score)
 
     @action(detail=False, methods=["get"])
