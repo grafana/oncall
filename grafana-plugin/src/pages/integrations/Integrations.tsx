@@ -9,11 +9,11 @@ import { observer } from 'mobx-react';
 
 import GList from 'components/GList/GList';
 import IntegrationsFilters, { Filters } from 'components/IntegrationsFilters/IntegrationsFilters';
-import { getWrongTeamResponseInfo } from 'components/NotFoundInTeam/WrongTeamDisplayWrapper.helpers';
-import WrongTeamDisplayWrapper, { initWrongTeamDataState, WrongTeamData } from 'components/NotFoundInTeam/WrongTeamDisplayWrapper';
 import Text from 'components/Text/Text';
 import Tutorial from 'components/Tutorial/Tutorial';
 import { TutorialStep } from 'components/Tutorial/Tutorial.types';
+import WrongTeamDisplayWrapper, { initWrongTeamDataState, WrongTeamData } from 'components/WrongTeamDisplayWrapper/WrongTeamDisplayWrapper';
+import { getWrongTeamResponseInfo } from 'components/WrongTeamDisplayWrapper/WrongTeamDisplayWrapper.helpers';
 import AlertReceiveChannelCard from 'containers/AlertReceiveChannelCard/AlertReceiveChannelCard';
 import AlertRules from 'containers/AlertRules/AlertRules';
 import CreateAlertReceiveChannelContainer from 'containers/CreateAlertReceiveChannelContainer/CreateAlertReceiveChannelContainer';

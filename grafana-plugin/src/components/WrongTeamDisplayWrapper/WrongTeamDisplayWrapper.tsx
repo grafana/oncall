@@ -9,7 +9,7 @@ import { ChangeTeamIcon } from 'icons';
 import { GrafanaTeam } from 'models/grafana_team/grafana_team.types';
 import { useStore } from 'state/useStore';
 
-import styles from './WrongTeamWrapperDisplay.module.css';
+import styles from './WrongTeamDisplayWrapper.module.css';
 
 const cx = cn.bind(styles);
 

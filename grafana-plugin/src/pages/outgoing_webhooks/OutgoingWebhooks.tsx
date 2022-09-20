@@ -7,11 +7,11 @@ import cn from 'classnames/bind';
 import { observer } from 'mobx-react';
 
 import GTable from 'components/GTable/GTable';
-import { getWrongTeamResponseInfo } from 'components/NotFoundInTeam/WrongTeamDisplayWrapper.helpers';
-import WrongTeamDisplayWrapper, { initWrongTeamDataState, WrongTeamData } from 'components/NotFoundInTeam/WrongTeamDisplayWrapper';
 import PluginLink from 'components/PluginLink/PluginLink';
 import Text from 'components/Text/Text';
 import WithConfirm from 'components/WithConfirm/WithConfirm';
+import WrongTeamDisplayWrapper, { initWrongTeamDataState, WrongTeamData } from 'components/WrongTeamDisplayWrapper/WrongTeamDisplayWrapper';
+import { getWrongTeamResponseInfo } from 'components/WrongTeamDisplayWrapper/WrongTeamDisplayWrapper.helpers';
 import OutgoingWebhookForm from 'containers/OutgoingWebhookForm/OutgoingWebhookForm';
 import { WithPermissionControl } from 'containers/WithPermissionControl/WithPermissionControl';
 import { ActionDTO } from 'models/action';

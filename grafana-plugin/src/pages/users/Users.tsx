@@ -9,11 +9,11 @@ import { observer } from 'mobx-react';
 
 import Avatar from 'components/Avatar/Avatar';
 import GTable from 'components/GTable/GTable';
-import { getWrongTeamResponseInfo } from 'components/NotFoundInTeam/WrongTeamDisplayWrapper.helpers';
-import WrongTeamDisplayWrapper, { initWrongTeamDataState, WrongTeamData } from 'components/NotFoundInTeam/WrongTeamDisplayWrapper';
 import PluginLink from 'components/PluginLink/PluginLink';
 import Text from 'components/Text/Text';
 import UsersFilters from 'components/UsersFilters/UsersFilters';
+import WrongTeamDisplayWrapper, { initWrongTeamDataState, WrongTeamData } from 'components/WrongTeamDisplayWrapper/WrongTeamDisplayWrapper';
+import { getWrongTeamResponseInfo } from 'components/WrongTeamDisplayWrapper/WrongTeamDisplayWrapper.helpers';
 import UserSettings from 'containers/UserSettings/UserSettings';
 import { WithPermissionControl } from 'containers/WithPermissionControl/WithPermissionControl';
 import { getRole } from 'models/user/user.helpers';

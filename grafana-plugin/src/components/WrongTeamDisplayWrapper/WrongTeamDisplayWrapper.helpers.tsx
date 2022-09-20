@@ -1,4 +1,4 @@
-import { WrongTeamData } from 'components/NotFoundInTeam/WrongTeamDisplayWrapper';
+import { WrongTeamData } from 'components/WrongTeamDisplayWrapper/WrongTeamDisplayWrapper';
 
 export function getWrongTeamResponseInfo({ response }): Partial<WrongTeamData> {
   if (response) {
