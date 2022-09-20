@@ -58,7 +58,7 @@ export interface Shift {
   shift_end: string;
   shift_start: string;
   title: string;
-  type: number;
+  type: number; // 2 - rotations, 3 - overrides
   until: string | null;
   updated_shift: null;
 }

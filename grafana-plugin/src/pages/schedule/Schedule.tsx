@@ -29,6 +29,7 @@ import Rotations from 'containers/Rotations/Rotations';
 import ScheduleFinal from 'containers/Rotations/ScheduleFinal';
 import ScheduleOverrides from 'containers/Rotations/ScheduleOverrides';
 import UsersTimezones from 'containers/UsersTimezones/UsersTimezones';
+import { Shift } from 'models/schedule/schedule.types';
 import { Timezone } from 'models/timezone/timezone.types';
 import { WithStoreProps } from 'state/types';
 import { withMobXProviderContext } from 'state/withStore';
@@ -45,6 +46,8 @@ interface SchedulePageState {
   startMoment: dayjs.Dayjs;
   schedulePeriodType: string;
   renderType: string;
+  shiftIdToShowRotationForm?: Shift['id'];
+  shiftIdToShowOverridesForm?: Shift['id'];
 }
 
 const INITIAL_TIMEZONE = 'UTC'; // todo check why doesn't work
@@ -59,6 +62,8 @@ class SchedulePage extends React.Component<SchedulePageProps, SchedulePageState>
       startMoment: getStartOfWeek(store.currentTimezone),
       schedulePeriodType: 'week',
       renderType: 'timeline',
+      shiftIdToShowRotationForm: undefined,
+      shiftIdToShowOverridesForm: undefined,
     };
   }
 
@@ -91,7 +96,8 @@ class SchedulePage extends React.Component<SchedulePageProps, SchedulePageState>
 
   render() {
     const { store } = this.props;
-    const { startMoment, schedulePeriodType, renderType } = this.state;
+    const { startMoment, schedulePeriodType, renderType, shiftIdToShowRotationForm, shiftIdToShowOverridesForm } =
+      this.state;
     const { query } = this.props;
     const { id: scheduleId } = query;
 
@@ -214,7 +220,12 @@ class SchedulePage extends React.Component<SchedulePageProps, SchedulePageState>
           </div>
           {/* <div className={'current-time'} />*/}
           <div className={cx('rotations')}>
-            <ScheduleFinal scheduleId={scheduleId} currentTimezone={currentTimezone} startMoment={startMoment} />
+            <ScheduleFinal
+              scheduleId={scheduleId}
+              currentTimezone={currentTimezone}
+              startMoment={startMoment}
+              onClick={this.handleShowForm}
+            />
             <Rotations
               scheduleId={scheduleId}
               currentTimezone={currentTimezone}
@@ -222,6 +233,8 @@ class SchedulePage extends React.Component<SchedulePageProps, SchedulePageState>
               onCreate={this.handleCreateRotation}
               onUpdate={this.handleUpdateRotation}
               onDelete={this.handleDeleteRotation}
+              shiftIdToShowRotationForm={shiftIdToShowRotationForm}
+              onShowRotationForm={this.handleShowRotationForm}
             />
             <ScheduleOverrides
               scheduleId={scheduleId}
@@ -230,12 +243,36 @@ class SchedulePage extends React.Component<SchedulePageProps, SchedulePageState>
               onCreate={this.handleCreateOverride}
               onUpdate={this.handleUpdateOverride}
               onDelete={this.handleDeleteOverride}
+              shiftIdToShowRotationForm={shiftIdToShowOverridesForm}
+              onShowRotationForm={this.handleShowOverridesForm}
             />
           </div>
         </VerticalGroup>
       </div>
     );
   }
+
+  handleShowForm = async (shiftId: Shift['id'] | 'new') => {
+    const {
+      store: { scheduleStore },
+    } = this.props;
+
+    const shift = await scheduleStore.updateOncallShift(shiftId);
+
+    if (shift.type === 2) {
+      this.setState({ shiftIdToShowRotationForm: shiftId });
+    } else if (shift.type === 3) {
+      this.setState({ shiftIdToShowOverridesForm: shiftId });
+    }
+  };
+
+  handleShowRotationForm = (shiftId: Shift['id'] | 'new') => {
+    this.setState({ shiftIdToShowRotationForm: shiftId });
+  };
+
+  handleShowOverridesForm = (shiftId: Shift['id'] | 'new') => {
+    this.setState({ shiftIdToShowOverridesForm: shiftId });
+  };
 
   handleNameChange = (value: string) => {
     const { store, query } = this.props;

@@ -27,26 +27,27 @@ interface ScheduleOverridesProps extends WithStoreProps {
   startMoment: dayjs.Dayjs;
   currentTimezone: Timezone;
   scheduleId: Schedule['id'];
+  shiftIdToShowRotationForm?: Shift['id'] | 'new';
+  onShowRotationForm: (shiftId: Shift['id'] | 'new') => void;
   onCreate: () => void;
   onUpdate: () => void;
   onDelete: () => void;
 }
 
 interface ScheduleOverridesState {
-  shiftIdToShowOverrideForm?: Shift['id'] | 'new';
   shiftMomentToShowOverrideForm?: dayjs.Dayjs;
 }
 
 @observer
 class ScheduleOverrides extends Component<ScheduleOverridesProps, ScheduleOverridesState> {
   state: ScheduleOverridesState = {
-    shiftIdToShowOverrideForm: undefined,
     shiftMomentToShowOverrideForm: undefined,
   };
 
   render() {
-    const { scheduleId, startMoment, currentTimezone, onCreate, onUpdate, onDelete, store } = this.props;
-    const { shiftIdToShowOverrideForm, shiftMomentToShowOverrideForm } = this.state;
+    const { scheduleId, startMoment, currentTimezone, onCreate, onUpdate, onDelete, store, shiftIdToShowRotationForm } =
+      this.props;
+    const { shiftMomentToShowOverrideForm } = this.state;
 
     const shifts = store.scheduleStore.overridePreview
       ? store.scheduleStore.overridePreview
@@ -114,10 +115,10 @@ class ScheduleOverrides extends Component<ScheduleOverridesProps, ScheduleOverri
             + Add override
           </div>*/}
         </div>
-        {shiftIdToShowOverrideForm && (
+        {shiftIdToShowRotationForm && (
           <ScheduleOverrideForm
-            shiftId={shiftIdToShowOverrideForm}
-            shiftColor={findColor(shiftIdToShowOverrideForm, undefined, shifts)}
+            shiftId={shiftIdToShowRotationForm}
+            shiftColor={findColor(shiftIdToShowRotationForm, undefined, shifts)}
             scheduleId={scheduleId}
             startMoment={startMoment}
             currentTimezone={currentTimezone}
@@ -149,17 +150,29 @@ class ScheduleOverrides extends Component<ScheduleOverridesProps, ScheduleOverri
   }
 
   onRotationClick = (shiftId: Shift['id'], moment: dayjs.Dayjs) => {
-    this.setState({ shiftIdToShowOverrideForm: shiftId, shiftMomentToShowOverrideForm: moment });
+    this.setState({ shiftMomentToShowOverrideForm: moment }, () => {
+      this.onShowRotationForm(shiftId);
+    });
   };
 
   handleAddOverride = () => {
     const { startMoment } = this.props;
 
-    this.setState({ shiftIdToShowOverrideForm: 'new', shiftMomentToShowOverrideForm: startMoment });
+    this.setState({ shiftMomentToShowOverrideForm: startMoment }, () => {
+      this.onShowRotationForm('new');
+    });
   };
 
   handleHide = () => {
-    this.setState({ shiftIdToShowOverrideForm: undefined, shiftMomentToShowOverrideForm: undefined });
+    this.setState({ shiftMomentToShowOverrideForm: undefined }, () => {
+      this.onShowRotationForm(undefined);
+    });
+  };
+
+  onShowRotationForm = (shiftId: Shift['id']) => {
+    const { onShowRotationForm } = this.props;
+
+    onShowRotationForm(shiftId);
   };
 }
 

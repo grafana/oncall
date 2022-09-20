@@ -112,7 +112,12 @@ const RotationForm: FC<RotationFormProps> = observer((props) => {
         // elm.scrollIntoView({ behavior: 'smooth', block: 'end', inline: 'nearest' });
         // setOffsetTop(Math.max(coords.top + elm.offsetHeight, 0));
 
-        setOffsetTop(Math.max(coords.top - modal?.offsetHeight - 10, 10));
+        const offsetTop = Math.min(
+          Math.max(coords.top - modal?.offsetHeight - 10, 10),
+          document.body.offsetHeight - modal?.offsetHeight - 10
+        );
+
+        setOffsetTop(offsetTop);
       });
     }
   }, [isOpen]);

@@ -68,7 +68,12 @@ const ScheduleOverrideForm: FC<RotationFormProps> = (props) => {
 
         const coords = getCoords(elm);
 
-        setOffsetTop(Math.max(coords.top - modal?.offsetHeight - 10, 10));
+        const offsetTop = Math.min(
+          Math.max(coords.top - modal?.offsetHeight - 10, 10),
+          document.body.offsetHeight - modal?.offsetHeight - 10
+        );
+
+        setOffsetTop(offsetTop);
       });
     }
   }, [isOpen]);
