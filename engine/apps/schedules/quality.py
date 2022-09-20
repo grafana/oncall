@@ -1,4 +1,5 @@
 import datetime
+import itertools
 from dataclasses import dataclass
 from typing import Iterable, Union
 
@@ -179,23 +180,19 @@ def get_balance_score(events: list[dict]) -> float:
             else:
                 users_to_events_map[user_pk] = [event]
 
+    if len(users_to_events_map) <= 1:
+        return 1
+
     duration_map = {}
     for user_pk, events in users_to_events_map.items():
         duration_map[user_pk] = timedelta_sum(event_duration(event) for event in events)
 
     score = 0
-    number_of_pairs = 0
-    for user_1 in duration_map:
-        for user_2 in duration_map:
-            if user_1 == user_2:
-                continue
-            score += min(duration_map[user_1], duration_map[user_2]) / max(duration_map[user_1], duration_map[user_2])
-            number_of_pairs += 1
+    for user_1, user_2 in itertools.combinations(duration_map, 2):
+        score += min(duration_map[user_1], duration_map[user_2]) / max(duration_map[user_1], duration_map[user_2])
 
-    if number_of_pairs == 0:
-        balance_score = 1
-    else:
-        balance_score = score / number_of_pairs
+    number_of_pairs = len(duration_map) * (len(duration_map) - 1) // 2
+    balance_score = score / number_of_pairs
 
     return balance_score
 
@@ -211,7 +208,10 @@ def get_balance_outside_working_hours(events: list[dict], users: dict[str, User]
             else:
                 users_to_events_map[user_pk] = [event]
 
-    outside_working_hours_duration_map = {}
+    if len(users_to_events_map) <= 1:
+        return 1
+
+    duration_map = {}
     for user_pk in users_to_events_map:
         outside_working_hours_duration = datetime.timedelta(seconds=0)
 
@@ -226,24 +226,17 @@ def get_balance_outside_working_hours(events: list[dict], users: dict[str, User]
             spans_duration = timedelta_sum(span[1] - span[0] for span in spans)
             outside_working_hours_duration += event_duration(event) - spans_duration
 
-        outside_working_hours_duration_map[user_pk] = outside_working_hours_duration
+        duration_map[user_pk] = outside_working_hours_duration
 
     score = 0
-    number_of_pairs = 0
-    for user_1 in outside_working_hours_duration_map:
-        for user_2 in outside_working_hours_duration_map:
-            if user_1 == user_2:
-                continue
-            duration_1 = outside_working_hours_duration_map[user_1]
-            duration_2 = outside_working_hours_duration_map[user_2]
+    for user_1, user_2 in itertools.combinations(duration_map, 2):
+        duration_1 = duration_map[user_1]
+        duration_2 = duration_map[user_2]
 
-            score += min(duration_1, duration_2) / max(duration_1, duration_2)
-            number_of_pairs += 1
+        score += min(duration_1, duration_2) / max(duration_1, duration_2)
 
-    if number_of_pairs == 0:
-        balance_score = 1
-    else:
-        balance_score = score / number_of_pairs
+    number_of_pairs = len(duration_map) * (len(duration_map) - 1) // 2
+    balance_score = score / number_of_pairs
 
     return balance_score
 
