@@ -73,8 +73,6 @@ const UserTimezoneSelect: FC<UserTimezoneSelectProps> = (props) => {
 
   const handleChange = useCallback(
     ({ value }) => {
-      const option = options.find((option) => option.timezone === value);
-
       onChange(value);
     },
     [users]

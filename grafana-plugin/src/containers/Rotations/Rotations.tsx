@@ -179,7 +179,7 @@ class Rotations extends Component<RotationsProps, RotationsState> {
               <div
                 className={cx('add-rotations-layer')}
                 onClick={() => {
-                  this.handleAddLayer(nextPriority, startMoment);
+                  this.handleAddLayer(nextPriority);
                 }}
               >
                 + Add rotations layer

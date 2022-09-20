@@ -24,18 +24,27 @@ interface UserTooltipProps {
   minMoment?: dayjs.Dayjs;
 }
 
+const toDate = (moment: dayjs.Dayjs) => {
+  return new Date(
+    moment.get('year'),
+    moment.get('month'),
+    moment.get('date'),
+    moment.get('hour'),
+    moment.get('minute'),
+    moment.get('second')
+  );
+};
+
 const DateTimePicker = (props: UserTooltipProps) => {
   const { value: propValue, minMoment, timezone, onChange, disabled } = props;
 
-  const value = useMemo(
-    () => new Date(Date.parse(propValue.tz(timezone).format('YYYY-MM-DD HH:mm:ss'))),
-    [propValue, timezone]
-  );
+  const value = useMemo(() => {
+    const localValue = propValue.tz(timezone);
 
-  const minDate = useMemo(
-    () => (minMoment ? new Date(Date.parse(minMoment.tz(timezone).format('YYYY-MM-DD HH:mm:ss'))) : undefined),
-    [minMoment, timezone]
-  );
+    return toDate(localValue);
+  }, [propValue, timezone]);
+
+  const minDate = useMemo(() => (minMoment ? toDate(minMoment.tz(timezone)) : undefined), [minMoment, timezone]);
 
   const handleDateChange = useCallback(
     (newDate: Date) => {
