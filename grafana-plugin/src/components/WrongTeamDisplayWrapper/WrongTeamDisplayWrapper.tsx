@@ -33,7 +33,7 @@ export default function WrongTeamDisplayWrapper({
   wrongTeamData: WrongTeamData;
   objectName: string;
   pageName: string;
-  children: any;
+  children: () => JSX.Element;
 }) {
   if (!wrongTeamData.isError) return children();
 
