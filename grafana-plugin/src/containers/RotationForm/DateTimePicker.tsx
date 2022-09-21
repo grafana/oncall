@@ -46,8 +46,9 @@ const DateTimePicker = (props: UserTooltipProps) => {
 
   const handleDateChange = useCallback(
     (newDate: Date) => {
-      const newValue = dayjs()
-        .tz(timezone)
+      const localMoment = dayjs().tz(timezone).utcOffset() === 0 ? dayjs().utc() : dayjs().tz(timezone);
+
+      const newValue = localMoment
         .set('year', newDate.getFullYear())
         .set('month', newDate.getMonth())
         .set('date', newDate.getDate())
@@ -62,9 +63,9 @@ const DateTimePicker = (props: UserTooltipProps) => {
 
   const handleTimeChange = useCallback(
     (newMoment: DateTime) => {
+      const localMoment = dayjs().tz(timezone).utcOffset() === 0 ? dayjs().utc() : dayjs().tz(timezone);
       const newDate = newMoment.toDate();
-      const newValue = dayjs()
-        .tz(timezone)
+      const newValue = localMoment
         .set('year', value.getFullYear())
         .set('month', value.getMonth())
         .set('date', value.getDate())
