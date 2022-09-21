@@ -69,7 +69,7 @@ export class UserStore extends BaseStore {
 
     this.currentUserPk = response.pk;
 
-    this.rootStore.currentTimezone = timezone;
+    // this.rootStore.currentTimezone = timezone;
   }
 
   @action
