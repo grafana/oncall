@@ -16,7 +16,7 @@ import Text from 'components/Text/Text';
 import Tutorial from 'components/Tutorial/Tutorial';
 import { TutorialStep } from 'components/Tutorial/Tutorial.types';
 import WithConfirm from 'components/WithConfirm/WithConfirm';
-import WrongTeamDisplayWrapper, { initWrongTeamDataState, WrongTeamData } from 'components/WrongTeamDisplayWrapper/WrongTeamDisplayWrapper';
+import WrongTeamDisplayWrapper, { initWrongTeamDataState, PageBaseState, WrongTeamData } from 'components/WrongTeamDisplayWrapper/WrongTeamDisplayWrapper';
 import { getWrongTeamResponseInfo } from 'components/WrongTeamDisplayWrapper/WrongTeamDisplayWrapper.helpers';
 import EscalationChainCard from 'containers/EscalationChainCard/EscalationChainCard';
 import EscalationChainForm from 'containers/EscalationChainForm/EscalationChainForm';
@@ -34,12 +34,11 @@ const cx = cn.bind(styles);
 
 interface EscalationChainsPageProps extends WithStoreProps, AppRootProps {}
 
-interface EscalationChainsPageState {
+interface EscalationChainsPageState extends PageBaseState {
   escalationChainsFilters: { searchTerm: string };
   showCreateEscalationChainModal: boolean;
   escalationChainIdToCopy: EscalationChain['id'];
   selectedEscalationChain: EscalationChain['id'];
-  wrongTeamData: WrongTeamData;
 }
 
 export interface Filters {

@@ -13,6 +13,10 @@ import styles from './WrongTeamDisplayWrapper.module.css';
 
 const cx = cn.bind(styles);
 
+export interface PageBaseState {
+  wrongTeamData: WrongTeamData;
+}
+
 export interface WrongTeamData {
   notFound?: boolean;
   isError?: boolean;

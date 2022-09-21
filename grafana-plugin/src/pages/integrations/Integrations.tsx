@@ -12,7 +12,7 @@ import IntegrationsFilters, { Filters } from 'components/IntegrationsFilters/Int
 import Text from 'components/Text/Text';
 import Tutorial from 'components/Tutorial/Tutorial';
 import { TutorialStep } from 'components/Tutorial/Tutorial.types';
-import WrongTeamDisplayWrapper, { initWrongTeamDataState, WrongTeamData } from 'components/WrongTeamDisplayWrapper/WrongTeamDisplayWrapper';
+import WrongTeamDisplayWrapper, { initWrongTeamDataState, PageBaseState, WrongTeamData } from 'components/WrongTeamDisplayWrapper/WrongTeamDisplayWrapper';
 import { getWrongTeamResponseInfo } from 'components/WrongTeamDisplayWrapper/WrongTeamDisplayWrapper.helpers';
 import AlertReceiveChannelCard from 'containers/AlertReceiveChannelCard/AlertReceiveChannelCard';
 import AlertRules from 'containers/AlertRules/AlertRules';
@@ -31,12 +31,11 @@ import styles from './Integrations.module.css';
 
 const cx = cn.bind(styles);
 
-interface IntegrationsState {
+interface IntegrationsState extends PageBaseState {
   integrationsFilters: Filters;
   showCreateIntegrationModal: boolean;
   alertReceiveChannelToShowSettings?: AlertReceiveChannel['id'];
   integrationSettingsTab?: IntegrationSettingsTab;
-  wrongTeamData: WrongTeamData;
 }
 
 interface IntegrationsProps extends WithStoreProps, AppRootProps {}

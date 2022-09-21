@@ -10,7 +10,7 @@ import GTable from 'components/GTable/GTable';
 import PluginLink from 'components/PluginLink/PluginLink';
 import Text from 'components/Text/Text';
 import WithConfirm from 'components/WithConfirm/WithConfirm';
-import WrongTeamDisplayWrapper, { initWrongTeamDataState, WrongTeamData } from 'components/WrongTeamDisplayWrapper/WrongTeamDisplayWrapper';
+import WrongTeamDisplayWrapper, { initWrongTeamDataState, PageBaseState, WrongTeamData } from 'components/WrongTeamDisplayWrapper/WrongTeamDisplayWrapper';
 import { getWrongTeamResponseInfo } from 'components/WrongTeamDisplayWrapper/WrongTeamDisplayWrapper.helpers';
 import OutgoingWebhookForm from 'containers/OutgoingWebhookForm/OutgoingWebhookForm';
 import { WithPermissionControl } from 'containers/WithPermissionControl/WithPermissionControl';
@@ -26,9 +26,8 @@ const cx = cn.bind(styles);
 
 interface OutgoingWebhooksProps extends WithStoreProps, AppRootProps {}
 
-interface OutgoingWebhooksState {
+interface OutgoingWebhooksState extends PageBaseState {
   outgoingWebhookIdToEdit?: OutgoingWebhook['id'] | 'new';
-  wrongTeamData: WrongTeamData;
 }
 
 @observer

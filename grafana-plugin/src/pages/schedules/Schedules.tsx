@@ -28,7 +28,7 @@ import { SchedulesFiltersType } from 'components/SchedulesFilters/SchedulesFilte
 import Text from 'components/Text/Text';
 import Tutorial from 'components/Tutorial/Tutorial';
 import { TutorialStep } from 'components/Tutorial/Tutorial.types';
-import WrongTeamDisplayWrapper, { initWrongTeamDataState, WrongTeamData } from 'components/WrongTeamDisplayWrapper/WrongTeamDisplayWrapper';
+import WrongTeamDisplayWrapper, { initWrongTeamDataState, PageBaseState, WrongTeamData } from 'components/WrongTeamDisplayWrapper/WrongTeamDisplayWrapper';
 import { getWrongTeamResponseInfo } from 'components/WrongTeamDisplayWrapper/WrongTeamDisplayWrapper.helpers';
 import GSelect from 'containers/GSelect/GSelect';
 import ScheduleForm from 'containers/ScheduleForm/ScheduleForm';
@@ -49,13 +49,12 @@ import styles from './Schedules.module.css';
 const cx = cn.bind(styles);
 
 interface SchedulesPageProps extends WithStoreProps, AppRootProps {}
-interface SchedulesPageState {
+interface SchedulesPageState extends PageBaseState {
   scheduleIdToEdit?: Schedule['id'];
   scheduleIdToDelete?: Schedule['id'];
   scheduleIdToExport?: Schedule['id'];
   filters: SchedulesFiltersType;
   expandedSchedulesKeys: Array<Schedule['id']>;
-  wrongTeamData: WrongTeamData;
 }
 
 @observer

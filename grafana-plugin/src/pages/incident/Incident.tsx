@@ -29,7 +29,7 @@ import IntegrationLogo from 'components/IntegrationLogo/IntegrationLogo';
 import PluginLink from 'components/PluginLink/PluginLink';
 import SourceCode from 'components/SourceCode/SourceCode';
 import Text from 'components/Text/Text';
-import WrongTeamDisplayWrapper, { initWrongTeamDataState, WrongTeamData } from 'components/WrongTeamDisplayWrapper/WrongTeamDisplayWrapper';
+import WrongTeamDisplayWrapper, { initWrongTeamDataState, PageBaseState } from 'components/WrongTeamDisplayWrapper/WrongTeamDisplayWrapper';
 import { getWrongTeamResponseInfo } from 'components/WrongTeamDisplayWrapper/WrongTeamDisplayWrapper.helpers';
 import AttachIncidentForm from 'containers/AttachIncidentForm/AttachIncidentForm';
 import IntegrationSettings from 'containers/IntegrationSettings/IntegrationSettings';
@@ -59,12 +59,11 @@ const cx = cn.bind(styles);
 
 interface IncidentPageProps extends WithStoreProps, AppRootProps {}
 
-interface IncidentPageState {
+interface IncidentPageState extends PageBaseState {
   showIntegrationSettings?: boolean;
   showAttachIncidentForm?: boolean;
   timelineFilter: string;
   resolutionNoteText: string;
-  wrongTeamData: WrongTeamData;
 }
 
 @observer

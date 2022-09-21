@@ -12,7 +12,7 @@ import GTable from 'components/GTable/GTable';
 import PluginLink from 'components/PluginLink/PluginLink';
 import Text from 'components/Text/Text';
 import UsersFilters from 'components/UsersFilters/UsersFilters';
-import WrongTeamDisplayWrapper, { initWrongTeamDataState, WrongTeamData } from 'components/WrongTeamDisplayWrapper/WrongTeamDisplayWrapper';
+import WrongTeamDisplayWrapper, { initWrongTeamDataState, PageBaseState, WrongTeamData } from 'components/WrongTeamDisplayWrapper/WrongTeamDisplayWrapper';
 import { getWrongTeamResponseInfo } from 'components/WrongTeamDisplayWrapper/WrongTeamDisplayWrapper.helpers';
 import UserSettings from 'containers/UserSettings/UserSettings';
 import { WithPermissionControl } from 'containers/WithPermissionControl/WithPermissionControl';
@@ -32,7 +32,7 @@ interface UsersProps extends WithStoreProps, AppRootProps {}
 
 const ITEMS_PER_PAGE = 100;
 
-interface UsersState {
+interface UsersState extends PageBaseState {
   page: number;
   isWrongTeam: boolean;
   userPkToEdit?: UserType['pk'] | 'new';
@@ -40,8 +40,6 @@ interface UsersState {
     searchTerm: string;
     roles?: UserRole[];
   };
-
-  wrongTeamData: WrongTeamData;
 }
 
 @observer
