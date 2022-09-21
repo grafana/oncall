@@ -85,7 +85,7 @@ celery -A engine beat -l info
 
 ### Frontend setup
 
-1. Make sure you have [NodeJS v.14+ < 17](https://nodejs.org/) and [yarn](https://yarnpkg.com/) installed.
+1. Make sure you have [NodeJS v.14+ < 17](https://nodejs.org/) and [yarn](https://yarnpkg.com/) installed. **Note**: If you are using [`nvm`](https://github.com/nvm-sh/nvm) feel free to simply run `cd grafana-plugin && nvm install` to install the proper Node version.
 
 2. Install the dependencies with `yarn` and launch the frontend server (on port `3000` by default)
 ```bash
