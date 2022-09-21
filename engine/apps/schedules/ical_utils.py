@@ -134,7 +134,7 @@ def list_of_oncall_shifts_from_ical(
                 continue
 
             tmp_result_datetime, tmp_result_date = get_shifts_dict(
-                calendar, calendar_type, schedule, datetime_start, datetime_end, date, with_empty_shifts
+                calendar, calendar_type, schedule, datetime_start, datetime_end, with_empty_shifts
             )
             result_datetime.extend(tmp_result_datetime)
             result_date.extend(tmp_result_date)
@@ -161,7 +161,7 @@ def list_of_oncall_shifts_from_ical(
     return result or None
 
 
-def get_shifts_dict(calendar, calendar_type, schedule, datetime_start, datetime_end, date, with_empty_shifts=False):
+def get_shifts_dict(calendar, calendar_type, schedule, datetime_start, datetime_end, with_empty_shifts=False):
     events = ical_events.get_events_from_ical_between(calendar, datetime_start, datetime_end)
     result_datetime = []
     result_date = []
@@ -175,19 +175,18 @@ def get_shifts_dict(calendar, calendar_type, schedule, datetime_start, datetime_
             if type(event[ICAL_DATETIME_START].dt) == datetime.date:
                 start = event[ICAL_DATETIME_START].dt
                 end = event[ICAL_DATETIME_END].dt
-                if start <= date < end:
-                    result_date.append(
-                        {
-                            "start": start,
-                            "end": end,
-                            "users": users,
-                            "missing_users": missing_users,
-                            "priority": priority,
-                            "source": source,
-                            "calendar_type": calendar_type,
-                            "shift_pk": pk,
-                        }
-                    )
+                result_date.append(
+                    {
+                        "start": start,
+                        "end": end,
+                        "users": users,
+                        "missing_users": missing_users,
+                        "priority": priority,
+                        "source": source,
+                        "calendar_type": calendar_type,
+                        "shift_pk": pk,
+                    }
+                )
             else:
                 start, end = ical_events.get_start_and_end_with_respect_to_event_type(event)
                 if start < end:
