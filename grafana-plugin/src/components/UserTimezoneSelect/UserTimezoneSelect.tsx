@@ -20,7 +20,7 @@ interface UserTimezoneSelectProps {
 const cx = cn.bind(styles);
 
 const UserTimezoneSelect: FC<UserTimezoneSelectProps> = (props) => {
-  const { users, value, onChange } = props;
+  const { users, value: propValue, onChange } = props;
 
   const options = useMemo(() => {
     return users
@@ -33,8 +33,9 @@ const UserTimezoneSelect: FC<UserTimezoneSelectProps> = (props) => {
 
           if (!item) {
             item = {
-              value: user.timezone,
+              value: utcOffset,
               utcOffset,
+              timezone: user.timezone,
               label: getTzOffsetString(moment),
               description: user.username,
             };
@@ -48,8 +49,9 @@ const UserTimezoneSelect: FC<UserTimezoneSelectProps> = (props) => {
         },
         [
           {
-            value: 'UTC',
+            value: 0,
             utcOffset: 0,
+            timezone: 'UTC' as Timezone,
             label: 'GMT',
             description: '',
           },
@@ -71,11 +73,19 @@ const UserTimezoneSelect: FC<UserTimezoneSelectProps> = (props) => {
       });
   }, [users]);
 
+  const value = useMemo(() => {
+    const utcOffset = dayjs().tz(propValue).utcOffset();
+    const option = options.find((option) => option.utcOffset === utcOffset);
+
+    return option?.value;
+  }, [propValue, options]);
+
   const handleChange = useCallback(
     ({ value }) => {
-      onChange(value);
+      const option = options.find((option) => option.utcOffset === value);
+      onChange(option?.timezone);
     },
-    [users]
+    [options]
   );
 
   return (
