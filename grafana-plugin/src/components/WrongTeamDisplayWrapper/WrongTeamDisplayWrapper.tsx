@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 
 import { Button, VerticalGroup } from '@grafana/ui';
 import cn from 'classnames/bind';
@@ -10,6 +10,7 @@ import { GrafanaTeam } from 'models/grafana_team/grafana_team.types';
 import { useStore } from 'state/useStore';
 
 import styles from './WrongTeamDisplayWrapper.module.css';
+import { openWarningNotification } from 'utils';
 
 const cx = cn.bind(styles);
 
@@ -24,21 +25,25 @@ export interface WrongTeamData {
   switchToTeam?: { name: string; id: string };
 }
 
-export function initWrongTeamDataState(): Partial<WrongTeamData> {
-  return { isError: false, wrongTeamNoPermissions: false };
-}
-
 export default function WrongTeamDisplayWrapper({
   wrongTeamData,
   objectName,
   pageName,
+  itemNotFoundMessage,
   children,
 }: {
   wrongTeamData: WrongTeamData;
   objectName: string;
   pageName: string;
+  itemNotFoundMessage: string;
   children: () => JSX.Element;
 }) {
+  useEffect(() => {
+    if (!wrongTeamData.isError && wrongTeamData.notFound) {
+      openWarningNotification(itemNotFoundMessage);
+    }
+  }, [wrongTeamData.notFound]);
+
   if (!wrongTeamData.isError) return children();
 
   const store = useStore();

@@ -1,5 +1,9 @@
 import { WrongTeamData } from 'components/WrongTeamDisplayWrapper/WrongTeamDisplayWrapper';
 
+export function initWrongTeamDataState(): Partial<WrongTeamData> {
+  return { isError: false, wrongTeamNoPermissions: false };
+}
+
 export function getWrongTeamResponseInfo({ response }): Partial<WrongTeamData> {
   if (response) {
     if (response.status === 404) {

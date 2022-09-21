@@ -28,14 +28,15 @@ import { SchedulesFiltersType } from 'components/SchedulesFilters/SchedulesFilte
 import Text from 'components/Text/Text';
 import Tutorial from 'components/Tutorial/Tutorial';
 import { TutorialStep } from 'components/Tutorial/Tutorial.types';
-import WrongTeamDisplayWrapper, { initWrongTeamDataState, PageBaseState, WrongTeamData } from 'components/WrongTeamDisplayWrapper/WrongTeamDisplayWrapper';
-import { getWrongTeamResponseInfo } from 'components/WrongTeamDisplayWrapper/WrongTeamDisplayWrapper.helpers';
-import GSelect from 'containers/GSelect/GSelect';
+import WrongTeamDisplayWrapper, { PageBaseState } from 'components/WrongTeamDisplayWrapper/WrongTeamDisplayWrapper';
+import {
+  getWrongTeamResponseInfo,
+  initWrongTeamDataState,
+} from 'components/WrongTeamDisplayWrapper/WrongTeamDisplayWrapper.helpers';
 import ScheduleForm from 'containers/ScheduleForm/ScheduleForm';
 import ScheduleICalSettings from 'containers/ScheduleIcalLink/ScheduleIcalLink';
 import { WithPermissionControl } from 'containers/WithPermissionControl/WithPermissionControl';
 import { Schedule, ScheduleEvent } from 'models/schedule/schedule.types';
-import { PRIVATE_CHANNEL_NAME } from 'models/slack_channel/slack_channel.config';
 import { getSlackChannelName } from 'models/slack_channel/slack_channel.helpers';
 import { WithStoreProps } from 'state/types';
 import { UserAction } from 'state/userAction';
@@ -111,7 +112,7 @@ class SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSta
   };
 
   render() {
-    const { store } = this.props;
+    const { store, query } = this.props;
     const { expandedSchedulesKeys, scheduleIdToDelete, scheduleIdToEdit, scheduleIdToExport } = this.state;
     const { filters, wrongTeamData } = this.state;
     const { scheduleStore } = store;
@@ -161,7 +162,12 @@ class SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSta
     const offset = moment().tz(timezoneStr).format('Z');
 
     return (
-      <WrongTeamDisplayWrapper wrongTeamData={wrongTeamData} objectName="schedule" pageName="schedules">
+      <WrongTeamDisplayWrapper
+        wrongTeamData={wrongTeamData}
+        objectName="schedule"
+        pageName="schedules"
+        itemNotFoundMessage={`Schedule with id=${query?.id} is not found. Please select schedule from the list.`}
+      >
         {() => (
           <>
             <div className={cx('root')}>

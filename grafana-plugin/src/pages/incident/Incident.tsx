@@ -29,8 +29,8 @@ import IntegrationLogo from 'components/IntegrationLogo/IntegrationLogo';
 import PluginLink from 'components/PluginLink/PluginLink';
 import SourceCode from 'components/SourceCode/SourceCode';
 import Text from 'components/Text/Text';
-import WrongTeamDisplayWrapper, { initWrongTeamDataState, PageBaseState } from 'components/WrongTeamDisplayWrapper/WrongTeamDisplayWrapper';
-import { getWrongTeamResponseInfo } from 'components/WrongTeamDisplayWrapper/WrongTeamDisplayWrapper.helpers';
+import WrongTeamDisplayWrapper, { PageBaseState } from 'components/WrongTeamDisplayWrapper/WrongTeamDisplayWrapper';
+import { getWrongTeamResponseInfo, initWrongTeamDataState } from 'components/WrongTeamDisplayWrapper/WrongTeamDisplayWrapper.helpers';
 import AttachIncidentForm from 'containers/AttachIncidentForm/AttachIncidentForm';
 import IntegrationSettings from 'containers/IntegrationSettings/IntegrationSettings';
 import { IntegrationSettingsTab } from 'containers/IntegrationSettings/IntegrationSettings.types';
@@ -89,7 +89,7 @@ class IncidentPage extends React.Component<IncidentPageProps, IncidentPageState>
   }
 
   update = () => {
-    this.setState({ wrongTeamData: initWrongTeamDataState() }); // reset wrong team error to false on query parse // reset wrong team error to false
+    this.setState({ wrongTeamData: initWrongTeamDataState() }); // reset wrong team error to false
 
     const {
       store,
@@ -114,24 +114,6 @@ class IncidentPage extends React.Component<IncidentPageProps, IncidentPageState>
 
     const incident = alerts.get(id);
 
-    // if (notFound) {
-    //   return (
-    //     <div className={cx('root')}>
-    //       <div className={cx('not-found')}>
-    //         <VerticalGroup spacing="lg" align="center">
-    //           <Text.Title level={1}>404</Text.Title>
-    //           <Text.Title level={4}>Incident not found</Text.Title>
-    //           <PluginLink query={{ page: 'incidents', cursor, start, perpage }}>
-    //             <Button variant="secondary" icon="arrow-left" size="md">
-    //               Go to incidents page
-    //             </Button>
-    //           </PluginLink>
-    //         </VerticalGroup>
-    //       </div>
-    //     </div>
-    //   );
-    // }
-
     if (!incident && !wrongTeamData.isError) {
       return (
         <div className={cx('root')}>
@@ -141,7 +123,12 @@ class IncidentPage extends React.Component<IncidentPageProps, IncidentPageState>
     }
 
     return (
-      <WrongTeamDisplayWrapper wrongTeamData={wrongTeamData} objectName="alert group" pageName="incidents">
+      <WrongTeamDisplayWrapper
+        wrongTeamData={wrongTeamData}
+        objectName="alert group"
+        pageName="incidents"
+        itemNotFoundMessage={`Incident with id=${id} is not found. Please select incident from the list.`}
+      >
         {() => (
           <>
             <div className={cx('root')}>

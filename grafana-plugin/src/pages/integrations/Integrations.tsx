@@ -12,8 +12,11 @@ import IntegrationsFilters, { Filters } from 'components/IntegrationsFilters/Int
 import Text from 'components/Text/Text';
 import Tutorial from 'components/Tutorial/Tutorial';
 import { TutorialStep } from 'components/Tutorial/Tutorial.types';
-import WrongTeamDisplayWrapper, { initWrongTeamDataState, PageBaseState, WrongTeamData } from 'components/WrongTeamDisplayWrapper/WrongTeamDisplayWrapper';
-import { getWrongTeamResponseInfo } from 'components/WrongTeamDisplayWrapper/WrongTeamDisplayWrapper.helpers';
+import WrongTeamDisplayWrapper, { PageBaseState } from 'components/WrongTeamDisplayWrapper/WrongTeamDisplayWrapper';
+import {
+  getWrongTeamResponseInfo,
+  initWrongTeamDataState,
+} from 'components/WrongTeamDisplayWrapper/WrongTeamDisplayWrapper.helpers';
 import AlertReceiveChannelCard from 'containers/AlertReceiveChannelCard/AlertReceiveChannelCard';
 import AlertRules from 'containers/AlertRules/AlertRules';
 import CreateAlertReceiveChannelContainer from 'containers/CreateAlertReceiveChannelContainer/CreateAlertReceiveChannelContainer';
@@ -81,10 +84,6 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
 
       if (alertReceiveChannel.id) {
         selectedAlertReceiveChannel = alertReceiveChannel.id;
-      } else {
-        openWarningNotification(
-          `Integration with id=${query?.id} is not found. Please select integration from the list.`
-        );
       }
 
       if (query.tab) {
@@ -119,7 +118,7 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
   }
 
   render() {
-    const { store } = this.props;
+    const { store, query } = this.props;
     const {
       integrationsFilters,
       alertReceiveChannelToShowSettings,
@@ -132,7 +131,12 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
     const searchResult = alertReceiveChannelStore.getSearchResult();
 
     return (
-      <WrongTeamDisplayWrapper wrongTeamData={wrongTeamData} objectName="integration" pageName="integrations">
+      <WrongTeamDisplayWrapper
+        wrongTeamData={wrongTeamData}
+        objectName="integration"
+        pageName="integrations"
+        itemNotFoundMessage={`Integration with id=${query?.id} is not found. Please select integration from the list.`}
+      >
         {() => (
           <>
             <div className={cx('root')}>

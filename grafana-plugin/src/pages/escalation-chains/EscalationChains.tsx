@@ -16,8 +16,11 @@ import Text from 'components/Text/Text';
 import Tutorial from 'components/Tutorial/Tutorial';
 import { TutorialStep } from 'components/Tutorial/Tutorial.types';
 import WithConfirm from 'components/WithConfirm/WithConfirm';
-import WrongTeamDisplayWrapper, { initWrongTeamDataState, PageBaseState, WrongTeamData } from 'components/WrongTeamDisplayWrapper/WrongTeamDisplayWrapper';
-import { getWrongTeamResponseInfo } from 'components/WrongTeamDisplayWrapper/WrongTeamDisplayWrapper.helpers';
+import WrongTeamDisplayWrapper, { PageBaseState } from 'components/WrongTeamDisplayWrapper/WrongTeamDisplayWrapper';
+import {
+  getWrongTeamResponseInfo,
+  initWrongTeamDataState,
+} from 'components/WrongTeamDisplayWrapper/WrongTeamDisplayWrapper.helpers';
 import EscalationChainCard from 'containers/EscalationChainCard/EscalationChainCard';
 import EscalationChainForm from 'containers/EscalationChainForm/EscalationChainForm';
 import EscalationChainSteps from 'containers/EscalationChainSteps/EscalationChainSteps';
@@ -60,7 +63,7 @@ class EscalationChainsPage extends React.Component<EscalationChainsPageProps, Es
   }
 
   parseQueryParams = async () => {
-    this.setState({ wrongTeamData: initWrongTeamDataState() }); // reset wrong team error to false on query parse
+    this.setState({ wrongTeamData: initWrongTeamDataState() }); // reset on query parse
 
     const { store, query } = this.props;
     const { escalationChainStore } = store;
@@ -83,10 +86,6 @@ class EscalationChainsPage extends React.Component<EscalationChainsPageProps, Es
       escalationChain = escalationChainStore.items[query.id];
       if (escalationChain) {
         selectedEscalationChain = escalationChain.id;
-      } else {
-        openWarningNotification(
-          `Escalation chain with id=${query?.id} is not found. Please select escalation chain from the list.`
-        );
       }
     }
 
@@ -123,7 +122,7 @@ class EscalationChainsPage extends React.Component<EscalationChainsPageProps, Es
   }
 
   render() {
-    const { store } = this.props;
+    const { store, query } = this.props;
     const {
       showCreateEscalationChainModal,
       escalationChainIdToCopy,
@@ -136,7 +135,12 @@ class EscalationChainsPage extends React.Component<EscalationChainsPageProps, Es
     const searchResult = escalationChainStore.getSearchResult(escalationChainsFilters.searchTerm);
 
     return (
-      <WrongTeamDisplayWrapper wrongTeamData={wrongTeamData} objectName="escalation" pageName="escalations">
+      <WrongTeamDisplayWrapper
+        wrongTeamData={wrongTeamData}
+        objectName="escalation"
+        pageName="escalations"
+        itemNotFoundMessage={`Escalation chain with id=${query?.id} is not found. Please select escalation chain from the list.`}
+      >
         {() => (
           <>
             <div className={cx('root')}>

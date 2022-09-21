@@ -12,8 +12,11 @@ import GTable from 'components/GTable/GTable';
 import PluginLink from 'components/PluginLink/PluginLink';
 import Text from 'components/Text/Text';
 import UsersFilters from 'components/UsersFilters/UsersFilters';
-import WrongTeamDisplayWrapper, { initWrongTeamDataState, PageBaseState, WrongTeamData } from 'components/WrongTeamDisplayWrapper/WrongTeamDisplayWrapper';
-import { getWrongTeamResponseInfo } from 'components/WrongTeamDisplayWrapper/WrongTeamDisplayWrapper.helpers';
+import WrongTeamDisplayWrapper, { PageBaseState } from 'components/WrongTeamDisplayWrapper/WrongTeamDisplayWrapper';
+import {
+  getWrongTeamResponseInfo,
+  initWrongTeamDataState,
+} from 'components/WrongTeamDisplayWrapper/WrongTeamDisplayWrapper.helpers';
 import UserSettings from 'containers/UserSettings/UserSettings';
 import { WithPermissionControl } from 'containers/WithPermissionControl/WithPermissionControl';
 import { getRole } from 'models/user/user.helpers';
@@ -116,7 +119,7 @@ class Users extends React.Component<UsersProps, UsersState> {
 
   render() {
     const { usersFilters, userPkToEdit, page, wrongTeamData } = this.state;
-    const { store } = this.props;
+    const { store, query } = this.props;
     const { userStore } = store;
 
     const columns = [
@@ -168,7 +171,12 @@ class Users extends React.Component<UsersProps, UsersState> {
     const { count, results } = userStore.getSearchResult();
 
     return (
-      <WrongTeamDisplayWrapper wrongTeamData={wrongTeamData} objectName="user" pageName="users">
+      <WrongTeamDisplayWrapper
+        wrongTeamData={wrongTeamData}
+        objectName="user"
+        pageName="users"
+        itemNotFoundMessage={`User with id=${query?.id} is not found. Please select user from the list.`}
+      >
         {() => (
           <>
             <div className={cx('root')}>

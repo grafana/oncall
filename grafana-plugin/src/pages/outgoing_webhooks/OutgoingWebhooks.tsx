@@ -10,8 +10,11 @@ import GTable from 'components/GTable/GTable';
 import PluginLink from 'components/PluginLink/PluginLink';
 import Text from 'components/Text/Text';
 import WithConfirm from 'components/WithConfirm/WithConfirm';
-import WrongTeamDisplayWrapper, { initWrongTeamDataState, PageBaseState, WrongTeamData } from 'components/WrongTeamDisplayWrapper/WrongTeamDisplayWrapper';
-import { getWrongTeamResponseInfo } from 'components/WrongTeamDisplayWrapper/WrongTeamDisplayWrapper.helpers';
+import WrongTeamDisplayWrapper, { PageBaseState } from 'components/WrongTeamDisplayWrapper/WrongTeamDisplayWrapper';
+import {
+  getWrongTeamResponseInfo,
+  initWrongTeamDataState,
+} from 'components/WrongTeamDisplayWrapper/WrongTeamDisplayWrapper.helpers';
 import OutgoingWebhookForm from 'containers/OutgoingWebhookForm/OutgoingWebhookForm';
 import { WithPermissionControl } from 'containers/WithPermissionControl/WithPermissionControl';
 import { ActionDTO } from 'models/action';
@@ -73,7 +76,7 @@ class OutgoingWebhooks extends React.Component<OutgoingWebhooksProps, OutgoingWe
   };
 
   render() {
-    const { store } = this.props;
+    const { store, query } = this.props;
     const { outgoingWebhookIdToEdit, wrongTeamData } = this.state;
 
     const webhooks = store.outgoingWebhookStore.getSearchResult();
@@ -97,7 +100,12 @@ class OutgoingWebhooks extends React.Component<OutgoingWebhooksProps, OutgoingWe
     ];
 
     return (
-      <WrongTeamDisplayWrapper wrongTeamData={wrongTeamData} objectName="outgoing webhook" pageName="outgoing_webhooks">
+      <WrongTeamDisplayWrapper
+        wrongTeamData={wrongTeamData}
+        objectName="outgoing webhook"
+        pageName="outgoing_webhooks"
+        itemNotFoundMessage={`Outgoing webhook with id=${query?.id} is not found. Please select outgoing webhook from the list.`}
+      >
         {() => (
           <>
             <div className={cx('root')}>
