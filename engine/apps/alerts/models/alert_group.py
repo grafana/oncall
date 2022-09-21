@@ -978,18 +978,8 @@ class AlertGroup(AlertGroupSlackRenderingMixin, EscalationSnapshotMixin, models.
         self.delete()
 
     @staticmethod
-    def bulk_acknowledge(user: User, alert_groups: "QuerySet[AlertGroup]") -> None:
+    def _bulk_acknowledge(user: User, alert_groups_to_acknowledge: "QuerySet[AlertGroup]") -> None:
         AlertGroupLogRecord = apps.get_model("alerts", "AlertGroupLogRecord")
-        root_alert_groups_to_acknowledge = alert_groups.filter(
-            ~Q(acknowledged=True, resolved=False),  # don't need to ack acknowledged incidents once again
-            root_alert_group__isnull=True,
-            maintenance_uuid__isnull=True,  # don't ack maintenance incident
-        )
-        # Find all dependent alert_groups to update them in one query
-        dependent_alert_groups_to_acknowledge = AlertGroup.all_objects.filter(
-            root_alert_group__in=root_alert_groups_to_acknowledge
-        )
-        alert_groups_to_acknowledge = root_alert_groups_to_acknowledge | dependent_alert_groups_to_acknowledge
 
         # it is needed to unserolve those alert_groups which were resolved to build proper log.
         alert_groups_to_unresolve_before_acknowledge = alert_groups_to_acknowledge.filter(resolved=True)
@@ -1042,31 +1032,24 @@ class AlertGroup(AlertGroupSlackRenderingMixin, EscalationSnapshotMixin, models.
             send_alert_group_signal.apply_async((log_record.pk,))
 
     @staticmethod
-    def bulk_resolve(user: User, alert_groups: "QuerySet[AlertGroup]") -> None:
-        AlertGroupLogRecord = apps.get_model("alerts", "AlertGroupLogRecord")
-
-        # stop maintenance for maintenance incidents
-        alert_groups_to_stop_maintenance = alert_groups.filter(resolved=False, maintenance_uuid__isnull=False)
-        for alert_group in alert_groups_to_stop_maintenance:
-            alert_group.stop_maintenance(user)
-
-        root_alert_groups_to_resolve = alert_groups.filter(
-            resolved=False,
+    def bulk_acknowledge(user: User, alert_groups: "QuerySet[AlertGroup]") -> None:
+        root_alert_groups_to_acknowledge = alert_groups.filter(
+            ~Q(acknowledged=True, resolved=False),  # don't need to ack acknowledged incidents once again
             root_alert_group__isnull=True,
-            maintenance_uuid__isnull=True,
+            maintenance_uuid__isnull=True,  # don't ack maintenance incident
         )
-        if root_alert_groups_to_resolve.count() == 0:
-            return
+        # Find all dependent alert_groups to update them in one query
+        # convert qs to list to prevent changes by update
+        root_alert_group_pks = list(root_alert_groups_to_acknowledge.values_list("pk", flat=True))
+        dependent_alert_groups_to_acknowledge = AlertGroup.unarchived_objects.filter(
+            root_alert_group__pk__in=root_alert_group_pks
+        )
+        AlertGroup._bulk_acknowledge(user, root_alert_groups_to_acknowledge)
+        AlertGroup._bulk_acknowledge(user, dependent_alert_groups_to_acknowledge)
 
-        organization = root_alert_groups_to_resolve.first().channel.organization
-        if organization.is_resolution_note_required:
-            root_alert_groups_to_resolve = root_alert_groups_to_resolve.filter(
-                Q(resolution_notes__isnull=False, resolution_notes__deleted_at=None)
-            )
-        dependent_alert_groups_to_resolve = AlertGroup.all_objects.filter(
-            root_alert_group__in=root_alert_groups_to_resolve
-        )
-        alert_groups_to_resolve = root_alert_groups_to_resolve | dependent_alert_groups_to_resolve
+    @staticmethod
+    def _bulk_resolve(user: User, alert_groups_to_resolve: "QuerySet[AlertGroup]") -> None:
+        AlertGroupLogRecord = apps.get_model("alerts", "AlertGroupLogRecord")
 
         # it is needed to unsilence those alert_groups which were silenced to build proper log.
         alert_groups_to_unsilence_before_resolve = alert_groups_to_resolve.filter(silenced=True)
@@ -1098,41 +1081,75 @@ class AlertGroup(AlertGroupSlackRenderingMixin, EscalationSnapshotMixin, models.
             send_alert_group_signal.apply_async((log_record.pk,))
 
     @staticmethod
-    def bulk_restart(user: User, alert_groups: "QuerySet[AlertGroup]") -> None:
+    def bulk_resolve(user: User, alert_groups: "QuerySet[AlertGroup]") -> None:
+        # stop maintenance for maintenance incidents
+        alert_groups_to_stop_maintenance = alert_groups.filter(resolved=False, maintenance_uuid__isnull=False)
+        for alert_group in alert_groups_to_stop_maintenance:
+            alert_group.stop_maintenance(user)
+
+        root_alert_groups_to_resolve = alert_groups.filter(
+            resolved=False,
+            root_alert_group__isnull=True,
+            maintenance_uuid__isnull=True,
+        )
+        if root_alert_groups_to_resolve.count() == 0:
+            return
+
+        organization = root_alert_groups_to_resolve.first().channel.organization
+        if organization.is_resolution_note_required:
+            root_alert_groups_to_resolve = root_alert_groups_to_resolve.filter(
+                Q(resolution_notes__isnull=False, resolution_notes__deleted_at=None)
+            )
+        # convert qs to list to prevent changes by update
+        root_alert_group_pks = list(root_alert_groups_to_resolve.values_list("pk", flat=True))
+        dependent_alert_groups_to_resolve = AlertGroup.all_objects.filter(root_alert_group__pk__in=root_alert_group_pks)
+        AlertGroup._bulk_resolve(user, root_alert_groups_to_resolve)
+        AlertGroup._bulk_resolve(user, dependent_alert_groups_to_resolve)
+
+    @staticmethod
+    def _bulk_restart_unack(user: User, alert_groups_to_restart_unack: "QuerySet[AlertGroup]") -> None:
         AlertGroupLogRecord = apps.get_model("alerts", "AlertGroupLogRecord")
-
-        root_alert_groups_unack = alert_groups.filter(
-            resolved=False,
-            acknowledged=True,
-            root_alert_group__isnull=True,
-            maintenance_uuid__isnull=True,  # don't restart maintenance incident
-        )
-        dependent_alert_groups_unack = AlertGroup.all_objects.filter(root_alert_group__in=root_alert_groups_unack)
-        alert_groups_to_restart_unack = root_alert_groups_unack | dependent_alert_groups_unack
-
-        root_alert_groups_unresolve = alert_groups.filter(resolved=True, root_alert_group__isnull=True)
-        dependent_alert_groups_unresolve = AlertGroup.all_objects.filter(
-            root_alert_group__in=root_alert_groups_unresolve
-        )
-        alert_groups_to_restart_unresolve = root_alert_groups_unresolve | dependent_alert_groups_unresolve
-
-        alert_groups_to_restart_unsilence = alert_groups.filter(
-            resolved=False,
-            acknowledged=False,
-            silenced=True,
-            root_alert_group__isnull=True,
-        )
 
         # convert current qs to list to prevent changes by update
         alert_groups_to_restart_unack_list = list(alert_groups_to_restart_unack)
-        alert_groups_to_restart_unresolve_list = list(alert_groups_to_restart_unresolve)
-        alert_groups_to_restart_unsilence_list = list(alert_groups_to_restart_unsilence)
 
-        alert_groups_to_restart = (
-            alert_groups_to_restart_unack | alert_groups_to_restart_unresolve | alert_groups_to_restart_unsilence
+        alert_groups_to_restart_unack.update(
+            acknowledged=False,
+            acknowledged_at=None,
+            acknowledged_by_user=None,
+            acknowledged_by=AlertGroup.NOT_YET,
+            resolved=False,
+            resolved_at=None,
+            is_open_for_grouping=None,
+            resolved_by_user=None,
+            resolved_by=AlertGroup.NOT_YET,
+            silenced_until=None,
+            silenced_by_user=None,
+            silenced_at=None,
+            silenced=False,
         )
 
-        alert_groups_to_restart.update(
+        # unacknowledge alert groups
+        for alert_group in alert_groups_to_restart_unack_list:
+            log_record = alert_group.log_records.create(
+                type=AlertGroupLogRecord.TYPE_UN_ACK,
+                author=user,
+                reason="Bulk action restart",
+            )
+
+            if alert_group.is_root_alert_group:
+                alert_group.start_escalation_if_needed()
+
+            send_alert_group_signal.apply_async((log_record.pk,))
+
+    @staticmethod
+    def _bulk_restart_unresolve(user: User, alert_groups_to_restart_unresolve: "QuerySet[AlertGroup]") -> None:
+        AlertGroupLogRecord = apps.get_model("alerts", "AlertGroupLogRecord")
+
+        # convert current qs to list to prevent changes by update
+        alert_groups_to_restart_unresolve_list = list(alert_groups_to_restart_unresolve)
+
+        alert_groups_to_restart_unresolve.update(
             acknowledged=False,
             acknowledged_at=None,
             acknowledged_by_user=None,
@@ -1161,18 +1178,28 @@ class AlertGroup(AlertGroupSlackRenderingMixin, EscalationSnapshotMixin, models.
 
             send_alert_group_signal.apply_async((log_record.pk,))
 
-        # unacknowledge alert groups
-        for alert_group in alert_groups_to_restart_unack_list:
-            log_record = alert_group.log_records.create(
-                type=AlertGroupLogRecord.TYPE_UN_ACK,
-                author=user,
-                reason="Bulk action restart",
-            )
+    @staticmethod
+    def _bulk_restart_unsilence(user: User, alert_groups_to_restart_unsilence: "QuerySet[AlertGroup]") -> None:
+        AlertGroupLogRecord = apps.get_model("alerts", "AlertGroupLogRecord")
 
-            if alert_group.is_root_alert_group:
-                alert_group.start_escalation_if_needed()
+        # convert current qs to list to prevent changes by update
+        alert_groups_to_restart_unsilence_list = list(alert_groups_to_restart_unsilence)
 
-            send_alert_group_signal.apply_async((log_record.pk,))
+        alert_groups_to_restart_unsilence.update(
+            acknowledged=False,
+            acknowledged_at=None,
+            acknowledged_by_user=None,
+            acknowledged_by=AlertGroup.NOT_YET,
+            resolved=False,
+            resolved_at=None,
+            is_open_for_grouping=None,
+            resolved_by_user=None,
+            resolved_by=AlertGroup.NOT_YET,
+            silenced_until=None,
+            silenced_by_user=None,
+            silenced_at=None,
+            silenced=False,
+        )
 
         # unsilence alert groups
         for alert_group in alert_groups_to_restart_unsilence_list:
@@ -1184,7 +1211,36 @@ class AlertGroup(AlertGroupSlackRenderingMixin, EscalationSnapshotMixin, models.
             send_alert_group_signal.apply_async((log_record.pk,))
 
     @staticmethod
-    def bulk_silence(user: User, alert_groups: "QuerySet[AlertGroup]", silence_delay: int) -> None:
+    def bulk_restart(user: User, alert_groups: "QuerySet[AlertGroup]") -> None:
+        root_alert_groups_unack = alert_groups.filter(
+            resolved=False,
+            acknowledged=True,
+            root_alert_group__isnull=True,
+            maintenance_uuid__isnull=True,  # don't restart maintenance incident
+        )
+        # convert qs to list to prevent changes by update
+        root_alert_group_pks = list(root_alert_groups_unack.values_list("pk", flat=True))
+        dependent_alert_groups_unack = AlertGroup.all_objects.filter(root_alert_group__pk__in=root_alert_group_pks)
+        AlertGroup._bulk_restart_unack(user, root_alert_groups_unack)
+        AlertGroup._bulk_restart_unack(user, dependent_alert_groups_unack)
+
+        root_alert_groups_unresolve = alert_groups.filter(resolved=True, root_alert_group__isnull=True)
+        # convert qs to list to prevent changes by update
+        root_alert_group_pks = list(root_alert_groups_unresolve.values_list("pk", flat=True))
+        dependent_alert_groups_unresolve = AlertGroup.all_objects.filter(root_alert_group__pk__in=root_alert_group_pks)
+        AlertGroup._bulk_restart_unresolve(user, root_alert_groups_unresolve)
+        AlertGroup._bulk_restart_unresolve(user, dependent_alert_groups_unresolve)
+
+        alert_groups_to_restart_unsilence = alert_groups.filter(
+            resolved=False,
+            acknowledged=False,
+            silenced=True,
+            root_alert_group__isnull=True,
+        )
+        AlertGroup._bulk_restart_unsilence(user, alert_groups_to_restart_unsilence)
+
+    @staticmethod
+    def _bulk_silence(user: User, alert_groups_to_silence: "QuerySet[AlertGroup]", silence_delay: int) -> None:
         AlertGroupLogRecord = apps.get_model("alerts", "AlertGroupLogRecord")
 
         now = timezone.now()
@@ -1197,12 +1253,6 @@ class AlertGroup(AlertGroupSlackRenderingMixin, EscalationSnapshotMixin, models.
             silence_delay_timedelta = None
             silenced_until = None
 
-        root_alert_groups_to_silence = alert_groups.filter(
-            root_alert_group__isnull=True,
-            maintenance_uuid__isnull=True,  # don't silence maintenance incident
-        )
-        dependent_alert_groups_to_silence = alert_groups.filter(root_alert_group__in=root_alert_groups_to_silence)
-        alert_groups_to_silence = root_alert_groups_to_silence | dependent_alert_groups_to_silence
         alert_groups_to_unsilence_before_silence = alert_groups_to_silence.filter(
             silenced=True, acknowledged=False, resolved=False
         )
@@ -1279,6 +1329,18 @@ class AlertGroup(AlertGroupSlackRenderingMixin, EscalationSnapshotMixin, models.
             send_alert_group_signal.apply_async((log_record.pk,))
             if silence_for_period and alert_group.is_root_alert_group:
                 alert_group.start_unsilence_task(countdown=silence_delay)
+
+    @staticmethod
+    def bulk_silence(user: User, alert_groups: "QuerySet[AlertGroup]", silence_delay: int) -> None:
+        root_alert_groups_to_silence = alert_groups.filter(
+            root_alert_group__isnull=True,
+            maintenance_uuid__isnull=True,  # don't silence maintenance incident
+        )
+        # convert qs to list to prevent changes by update
+        root_alert_group_pks = list(root_alert_groups_to_silence.values_list("pk", flat=True))
+        dependent_alert_groups_to_silence = alert_groups.filter(root_alert_group__pk__in=root_alert_group_pks)
+        AlertGroup._bulk_silence(user, root_alert_groups_to_silence, silence_delay)
+        AlertGroup._bulk_silence(user, dependent_alert_groups_to_silence, silence_delay)
 
     def start_ack_reminder(self, user: User):
         Organization = apps.get_model("user_management", "Organization")
