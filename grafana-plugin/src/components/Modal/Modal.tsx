@@ -26,6 +26,7 @@ const Modal: FC<PropsWithChildren<ModalProps>> = (props) => {
 
   return (
     <ReactModal
+      shouldCloseOnOverlayClick={false}
       style={{
         overlay: {},
         content: {

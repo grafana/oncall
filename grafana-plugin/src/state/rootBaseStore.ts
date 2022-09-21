@@ -1,6 +1,7 @@
 import { AppPluginMeta } from '@grafana/data';
 import { getBackendSrv } from '@grafana/runtime';
 import { action, observable } from 'mobx';
+import moment from 'moment-timezone';
 import qs from 'query-string';
 import { OnCallAppSettings } from 'types';
 
@@ -40,7 +41,7 @@ export class RootBaseStore {
   appLoading = true;
 
   @observable
-  currentTimezone: Timezone = 'UTC';
+  currentTimezone: Timezone = moment.tz.guess() as Timezone;
 
   @observable
   backendVersion = '';

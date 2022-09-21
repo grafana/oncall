@@ -233,10 +233,17 @@ class SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSta
             scheduleId={data.id}
             currentTimezone={store.currentTimezone}
             startMoment={startMoment}
+            onClick={this.getScheduleClickHandler(data.id)}
           />
         </div>
       </div>
     );
+  };
+
+  getScheduleClickHandler = (scheduleId: Schedule['id']) => {
+    return () => {
+      getLocationSrv().update({ query: { page: 'schedule', id: scheduleId } });
+    };
   };
 
   renderStatus = (item: Schedule) => {
