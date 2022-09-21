@@ -10,11 +10,11 @@ import GTable from 'components/GTable/GTable';
 import PluginLink from 'components/PluginLink/PluginLink';
 import Text from 'components/Text/Text';
 import WithConfirm from 'components/WithConfirm/WithConfirm';
-import WrongTeamDisplayWrapper, { PageBaseState } from 'components/WrongTeamDisplayWrapper/WrongTeamDisplayWrapper';
+import PageErrorHandlingWrapper, { PageBaseState } from 'components/PageErrorHandlingWrapper/PageErrorHandlingWrapper';
 import {
   getWrongTeamResponseInfo,
-  initWrongTeamDataState,
-} from 'components/WrongTeamDisplayWrapper/WrongTeamDisplayWrapper.helpers';
+  initErrorDataState,
+} from 'components/PageErrorHandlingWrapper/PageErrorHandlingWrapper.helpers';
 import OutgoingWebhookForm from 'containers/OutgoingWebhookForm/OutgoingWebhookForm';
 import { WithPermissionControl } from 'containers/WithPermissionControl/WithPermissionControl';
 import { ActionDTO } from 'models/action';
@@ -36,7 +36,7 @@ interface OutgoingWebhooksState extends PageBaseState {
 @observer
 class OutgoingWebhooks extends React.Component<OutgoingWebhooksProps, OutgoingWebhooksState> {
   state: OutgoingWebhooksState = {
-    wrongTeamData: initWrongTeamDataState(),
+    errorData: initErrorDataState(),
   };
 
   async componentDidMount() {
@@ -51,7 +51,7 @@ class OutgoingWebhooks extends React.Component<OutgoingWebhooksProps, OutgoingWe
 
   parseQueryParams = async () => {
     this.setState((prevState) => ({
-      wrongTeamData: initWrongTeamDataState(),
+      errorData: initErrorDataState(),
       outgoingWebhookIdToEdit: undefined,
     })); // reset state on query parse
 
@@ -60,12 +60,14 @@ class OutgoingWebhooks extends React.Component<OutgoingWebhooksProps, OutgoingWe
       query: { id },
     } = this.props;
 
-    await store.outgoingWebhookStore
-      .loadItem(id, true)
-      .catch((error) => this.setState({ wrongTeamData: { ...getWrongTeamResponseInfo(error) } }));
-
     if (id) {
-      this.setState({ outgoingWebhookIdToEdit: id });
+      const outgoingWebhook = await store.outgoingWebhookStore
+        .loadItem(id, true)
+        .catch((error) => this.setState({ errorData: { ...getWrongTeamResponseInfo(error) } }));
+
+      if (outgoingWebhook) {
+        this.setState({ outgoingWebhookIdToEdit: id });
+      }
     }
   };
 
@@ -77,7 +79,7 @@ class OutgoingWebhooks extends React.Component<OutgoingWebhooksProps, OutgoingWe
 
   render() {
     const { store, query } = this.props;
-    const { outgoingWebhookIdToEdit, wrongTeamData } = this.state;
+    const { outgoingWebhookIdToEdit, errorData } = this.state;
 
     const webhooks = store.outgoingWebhookStore.getSearchResult();
 
@@ -100,8 +102,8 @@ class OutgoingWebhooks extends React.Component<OutgoingWebhooksProps, OutgoingWe
     ];
 
     return (
-      <WrongTeamDisplayWrapper
-        wrongTeamData={wrongTeamData}
+      <PageErrorHandlingWrapper
+        errorData={errorData}
         objectName="outgoing webhook"
         pageName="outgoing_webhooks"
         itemNotFoundMessage={`Outgoing webhook with id=${query?.id} is not found. Please select outgoing webhook from the list.`}
@@ -141,7 +143,7 @@ class OutgoingWebhooks extends React.Component<OutgoingWebhooksProps, OutgoingWe
             )}
           </>
         )}
-      </WrongTeamDisplayWrapper>
+      </PageErrorHandlingWrapper>
     );
   }
 

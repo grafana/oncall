@@ -12,11 +12,11 @@ import IntegrationsFilters, { Filters } from 'components/IntegrationsFilters/Int
 import Text from 'components/Text/Text';
 import Tutorial from 'components/Tutorial/Tutorial';
 import { TutorialStep } from 'components/Tutorial/Tutorial.types';
-import WrongTeamDisplayWrapper, { PageBaseState } from 'components/WrongTeamDisplayWrapper/WrongTeamDisplayWrapper';
+import PageErrorHandlingWrapper, { PageBaseState } from 'components/PageErrorHandlingWrapper/PageErrorHandlingWrapper';
 import {
   getWrongTeamResponseInfo,
-  initWrongTeamDataState,
-} from 'components/WrongTeamDisplayWrapper/WrongTeamDisplayWrapper.helpers';
+  initErrorDataState,
+} from 'components/PageErrorHandlingWrapper/PageErrorHandlingWrapper.helpers';
 import AlertReceiveChannelCard from 'containers/AlertReceiveChannelCard/AlertReceiveChannelCard';
 import AlertRules from 'containers/AlertRules/AlertRules';
 import CreateAlertReceiveChannelContainer from 'containers/CreateAlertReceiveChannelContainer/CreateAlertReceiveChannelContainer';
@@ -48,7 +48,7 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
   state: IntegrationsState = {
     integrationsFilters: { searchTerm: '' },
     showCreateIntegrationModal: false,
-    wrongTeamData: initWrongTeamDataState(),
+    errorData: initErrorDataState(),
   };
 
   alertReceiveChanneltoPoll: { [key: string]: number } = {};
@@ -65,7 +65,7 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
   };
 
   parseQueryParams = async () => {
-    this.setState({ wrongTeamData: initWrongTeamDataState() }); // reset wrong team error to false on query parse // reset wrong team error to false
+    this.setState({ errorData: initErrorDataState() }); // reset wrong team error to false on query parse // reset wrong team error to false
 
     const { store, query } = this.props;
     const { alertReceiveChannelStore } = store;
@@ -76,7 +76,7 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
     if (query.id) {
       let alertReceiveChannel = await alertReceiveChannelStore
         .loadItem(query.id, true)
-        .catch((error) => this.setState({ wrongTeamData: { ...getWrongTeamResponseInfo(error) } }));
+        .catch((error) => this.setState({ errorData: { ...getWrongTeamResponseInfo(error) } }));
 
       if (!alertReceiveChannel) {
         return;
@@ -124,15 +124,15 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
       alertReceiveChannelToShowSettings,
       integrationSettingsTab,
       showCreateIntegrationModal,
-      wrongTeamData,
+      errorData,
     } = this.state;
 
     const { alertReceiveChannelStore } = store;
     const searchResult = alertReceiveChannelStore.getSearchResult();
 
     return (
-      <WrongTeamDisplayWrapper
-        wrongTeamData={wrongTeamData}
+      <PageErrorHandlingWrapper
+        errorData={errorData}
         objectName="integration"
         pageName="integrations"
         itemNotFoundMessage={`Integration with id=${query?.id} is not found. Please select integration from the list.`}
@@ -246,7 +246,7 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
             )}
           </>
         )}
-      </WrongTeamDisplayWrapper>
+      </PageErrorHandlingWrapper>
     );
   }
 

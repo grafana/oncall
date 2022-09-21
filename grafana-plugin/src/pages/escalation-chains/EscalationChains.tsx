@@ -16,11 +16,11 @@ import Text from 'components/Text/Text';
 import Tutorial from 'components/Tutorial/Tutorial';
 import { TutorialStep } from 'components/Tutorial/Tutorial.types';
 import WithConfirm from 'components/WithConfirm/WithConfirm';
-import WrongTeamDisplayWrapper, { PageBaseState } from 'components/WrongTeamDisplayWrapper/WrongTeamDisplayWrapper';
+import PageErrorHandlingWrapper, { PageBaseState } from 'components/PageErrorHandlingWrapper/PageErrorHandlingWrapper';
 import {
   getWrongTeamResponseInfo,
-  initWrongTeamDataState,
-} from 'components/WrongTeamDisplayWrapper/WrongTeamDisplayWrapper.helpers';
+  initErrorDataState,
+} from 'components/PageErrorHandlingWrapper/PageErrorHandlingWrapper.helpers';
 import EscalationChainCard from 'containers/EscalationChainCard/EscalationChainCard';
 import EscalationChainForm from 'containers/EscalationChainForm/EscalationChainForm';
 import EscalationChainSteps from 'containers/EscalationChainSteps/EscalationChainSteps';
@@ -55,7 +55,7 @@ class EscalationChainsPage extends React.Component<EscalationChainsPageProps, Es
     showCreateEscalationChainModal: false,
     escalationChainIdToCopy: undefined,
     selectedEscalationChain: undefined,
-    wrongTeamData: initWrongTeamDataState(),
+    errorData: initErrorDataState(),
   };
 
   async componentDidMount() {
@@ -63,7 +63,7 @@ class EscalationChainsPage extends React.Component<EscalationChainsPageProps, Es
   }
 
   parseQueryParams = async () => {
-    this.setState({ wrongTeamData: initWrongTeamDataState() }); // reset on query parse
+    this.setState({ errorData: initErrorDataState() }); // reset on query parse
 
     const { store, query } = this.props;
     const { escalationChainStore } = store;
@@ -77,7 +77,7 @@ class EscalationChainsPage extends React.Component<EscalationChainsPageProps, Es
     if (query.id) {
       let escalationChain = await escalationChainStore
         .loadItem(query.id, true)
-        .catch((error) => this.setState({ wrongTeamData: { ...getWrongTeamResponseInfo(error) } }));
+        .catch((error) => this.setState({ errorData: { ...getWrongTeamResponseInfo(error) } }));
 
       if (!escalationChain) {
         return;
@@ -128,15 +128,15 @@ class EscalationChainsPage extends React.Component<EscalationChainsPageProps, Es
       escalationChainIdToCopy,
       escalationChainsFilters,
       selectedEscalationChain,
-      wrongTeamData,
+      errorData,
     } = this.state;
 
     const { escalationChainStore } = store;
     const searchResult = escalationChainStore.getSearchResult(escalationChainsFilters.searchTerm);
 
     return (
-      <WrongTeamDisplayWrapper
-        wrongTeamData={wrongTeamData}
+      <PageErrorHandlingWrapper
+        errorData={errorData}
         objectName="escalation"
         pageName="escalations"
         itemNotFoundMessage={`Escalation chain with id=${query?.id} is not found. Please select escalation chain from the list.`}
@@ -216,7 +216,7 @@ class EscalationChainsPage extends React.Component<EscalationChainsPageProps, Es
             )}
           </>
         )}
-      </WrongTeamDisplayWrapper>
+      </PageErrorHandlingWrapper>
     );
   }
 

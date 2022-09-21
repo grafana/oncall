@@ -28,11 +28,11 @@ import { SchedulesFiltersType } from 'components/SchedulesFilters/SchedulesFilte
 import Text from 'components/Text/Text';
 import Tutorial from 'components/Tutorial/Tutorial';
 import { TutorialStep } from 'components/Tutorial/Tutorial.types';
-import WrongTeamDisplayWrapper, { PageBaseState } from 'components/WrongTeamDisplayWrapper/WrongTeamDisplayWrapper';
+import PageErrorHandlingWrapper, { PageBaseState } from 'components/PageErrorHandlingWrapper/PageErrorHandlingWrapper';
 import {
   getWrongTeamResponseInfo,
-  initWrongTeamDataState,
-} from 'components/WrongTeamDisplayWrapper/WrongTeamDisplayWrapper.helpers';
+  initErrorDataState,
+} from 'components/PageErrorHandlingWrapper/PageErrorHandlingWrapper.helpers';
 import ScheduleForm from 'containers/ScheduleForm/ScheduleForm';
 import ScheduleICalSettings from 'containers/ScheduleIcalLink/ScheduleIcalLink';
 import { WithPermissionControl } from 'containers/WithPermissionControl/WithPermissionControl';
@@ -65,7 +65,7 @@ class SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSta
       selectedDate: moment().startOf('day').format('YYYY-MM-DD'),
     },
     expandedSchedulesKeys: [],
-    wrongTeamData: initWrongTeamDataState(),
+    errorData: initErrorDataState(),
   };
 
   componentDidMount() {
@@ -79,7 +79,7 @@ class SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSta
   }
 
   parseQueryParams = async () => {
-    this.setState({ wrongTeamData: initWrongTeamDataState() }); // reset wrong team error to false on query parse
+    this.setState({ errorData: initErrorDataState() }); // reset wrong team error to false on query parse
 
     const {
       store,
@@ -89,7 +89,7 @@ class SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSta
     if (id) {
       const schedule = await store.scheduleStore
         .loadItem(id, true)
-        .catch((error) => this.setState({ wrongTeamData: { ...getWrongTeamResponseInfo(error) } }));
+        .catch((error) => this.setState({ errorData: { ...getWrongTeamResponseInfo(error) } }));
       if (!schedule) {
         return;
       }
@@ -114,7 +114,7 @@ class SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSta
   render() {
     const { store, query } = this.props;
     const { expandedSchedulesKeys, scheduleIdToDelete, scheduleIdToEdit, scheduleIdToExport } = this.state;
-    const { filters, wrongTeamData } = this.state;
+    const { filters, errorData } = this.state;
     const { scheduleStore } = store;
 
     const columns = [
@@ -162,8 +162,8 @@ class SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSta
     const offset = moment().tz(timezoneStr).format('Z');
 
     return (
-      <WrongTeamDisplayWrapper
-        wrongTeamData={wrongTeamData}
+      <PageErrorHandlingWrapper
+        errorData={errorData}
         objectName="schedule"
         pageName="schedules"
         itemNotFoundMessage={`Schedule with id=${query?.id} is not found. Please select schedule from the list.`}
@@ -267,7 +267,7 @@ class SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSta
             )}
           </>
         )}
-      </WrongTeamDisplayWrapper>
+      </PageErrorHandlingWrapper>
     );
   }
 

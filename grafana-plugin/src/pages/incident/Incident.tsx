@@ -29,8 +29,11 @@ import IntegrationLogo from 'components/IntegrationLogo/IntegrationLogo';
 import PluginLink from 'components/PluginLink/PluginLink';
 import SourceCode from 'components/SourceCode/SourceCode';
 import Text from 'components/Text/Text';
-import WrongTeamDisplayWrapper, { PageBaseState } from 'components/WrongTeamDisplayWrapper/WrongTeamDisplayWrapper';
-import { getWrongTeamResponseInfo, initWrongTeamDataState } from 'components/WrongTeamDisplayWrapper/WrongTeamDisplayWrapper.helpers';
+import PageErrorHandlingWrapper, { PageBaseState } from 'components/PageErrorHandlingWrapper/PageErrorHandlingWrapper';
+import {
+  getWrongTeamResponseInfo,
+  initErrorDataState,
+} from 'components/PageErrorHandlingWrapper/PageErrorHandlingWrapper.helpers';
 import AttachIncidentForm from 'containers/AttachIncidentForm/AttachIncidentForm';
 import IntegrationSettings from 'containers/IntegrationSettings/IntegrationSettings';
 import { IntegrationSettingsTab } from 'containers/IntegrationSettings/IntegrationSettings.types';
@@ -71,7 +74,7 @@ class IncidentPage extends React.Component<IncidentPageProps, IncidentPageState>
   state: IncidentPageState = {
     timelineFilter: 'all',
     resolutionNoteText: '',
-    wrongTeamData: initWrongTeamDataState(),
+    errorData: initErrorDataState(),
   };
 
   componentDidMount() {
@@ -89,7 +92,7 @@ class IncidentPage extends React.Component<IncidentPageProps, IncidentPageState>
   }
 
   update = () => {
-    this.setState({ wrongTeamData: initWrongTeamDataState() }); // reset wrong team error to false
+    this.setState({ errorData: initErrorDataState() }); // reset wrong team error to false
 
     const {
       store,
@@ -98,7 +101,7 @@ class IncidentPage extends React.Component<IncidentPageProps, IncidentPageState>
 
     store.alertGroupStore
       .getAlert(id)
-      .catch((error) => this.setState({ wrongTeamData: { ...getWrongTeamResponseInfo(error) } }));
+      .catch((error) => this.setState({ errorData: { ...getWrongTeamResponseInfo(error) } }));
   };
 
   render() {
@@ -107,14 +110,14 @@ class IncidentPage extends React.Component<IncidentPageProps, IncidentPageState>
       query: { id, cursor, start, perpage },
     } = this.props;
 
-    const { wrongTeamData, showIntegrationSettings, showAttachIncidentForm } = this.state;
-
+    const { errorData, showIntegrationSettings, showAttachIncidentForm } = this.state;
+    const { isNotFoundError, isWrongTeamError } = errorData;
     const { alertReceiveChannelStore } = store;
     const { alerts } = store.alertGroupStore;
 
     const incident = alerts.get(id);
 
-    if (!incident && !wrongTeamData.isError) {
+    if (!incident && !isNotFoundError && !isWrongTeamError) {
       return (
         <div className={cx('root')}>
           <LoadingPlaceholder text="Loading alert group..." />
@@ -123,60 +126,75 @@ class IncidentPage extends React.Component<IncidentPageProps, IncidentPageState>
     }
 
     return (
-      <WrongTeamDisplayWrapper
-        wrongTeamData={wrongTeamData}
+      <PageErrorHandlingWrapper
+        errorData={errorData}
         objectName="alert group"
         pageName="incidents"
-        itemNotFoundMessage={`Incident with id=${id} is not found. Please select incident from the list.`}
       >
-        {() => (
-          <>
+        {() =>
+          errorData.isNotFoundError ? (
             <div className={cx('root')}>
-              {this.renderHeader()}
-              <div className={cx('content')}>
-                <div className={cx('column')}>
-                  <Incident incident={incident} datetimeReference={this.getIncidentDatetimeReference(incident)} />
-                  <GroupedIncidentsList
-                    id={incident.pk}
-                    getIncidentDatetimeReference={this.getIncidentDatetimeReference}
-                  />
-                  <AttachedIncidentsList id={incident.pk} getUnattachClickHandler={this.getUnattachClickHandler} />
-                </div>
-                <div className={cx('column')}>{this.renderTimeline()}</div>
+              <div className={cx('not-found')}>
+                <VerticalGroup spacing="lg" align="center">
+                  <Text.Title level={1}>404</Text.Title>
+                  <Text.Title level={4}>Incident not found</Text.Title>
+                  <PluginLink query={{ page: 'incidents', cursor, start, perpage }}>
+                    <Button variant="secondary" icon="arrow-left" size="md">
+                      Go to incidents page
+                    </Button>
+                  </PluginLink>
+                </VerticalGroup>
               </div>
             </div>
-            {showIntegrationSettings && (
-              <IntegrationSettings
-                alertGroupId={incident.pk}
-                onUpdate={() => {
-                  alertReceiveChannelStore.updateItem(incident.alert_receive_channel.id);
-                }}
-                onUpdateTemplates={() => {
-                  store.alertGroupStore.getAlert(id);
-                }}
-                startTab={IntegrationSettingsTab.Templates}
-                id={incident.alert_receive_channel.id}
-                onHide={() =>
-                  this.setState({
-                    showIntegrationSettings: undefined,
-                  })
-                }
-              />
-            )}
-            {showAttachIncidentForm && (
-              <AttachIncidentForm
-                id={id}
-                onHide={() => {
-                  this.setState({
-                    showAttachIncidentForm: false,
-                  });
-                }}
-                onUpdate={this.update}
-              />
-            )}
-          </>
-        )}
-      </WrongTeamDisplayWrapper>
+          ) : (
+            <>
+              <div className={cx('root')}>
+                {this.renderHeader()}
+                <div className={cx('content')}>
+                  <div className={cx('column')}>
+                    <Incident incident={incident} datetimeReference={this.getIncidentDatetimeReference(incident)} />
+                    <GroupedIncidentsList
+                      id={incident.pk}
+                      getIncidentDatetimeReference={this.getIncidentDatetimeReference}
+                    />
+                    <AttachedIncidentsList id={incident.pk} getUnattachClickHandler={this.getUnattachClickHandler} />
+                  </div>
+                  <div className={cx('column')}>{this.renderTimeline()}</div>
+                </div>
+              </div>
+              {showIntegrationSettings && (
+                <IntegrationSettings
+                  alertGroupId={incident.pk}
+                  onUpdate={() => {
+                    alertReceiveChannelStore.updateItem(incident.alert_receive_channel.id);
+                  }}
+                  onUpdateTemplates={() => {
+                    store.alertGroupStore.getAlert(id);
+                  }}
+                  startTab={IntegrationSettingsTab.Templates}
+                  id={incident.alert_receive_channel.id}
+                  onHide={() =>
+                    this.setState({
+                      showIntegrationSettings: undefined,
+                    })
+                  }
+                />
+              )}
+              {showAttachIncidentForm && (
+                <AttachIncidentForm
+                  id={id}
+                  onHide={() => {
+                    this.setState({
+                      showAttachIncidentForm: false,
+                    });
+                  }}
+                  onUpdate={this.update}
+                />
+              )}
+            </>
+          )
+        }
+      </PageErrorHandlingWrapper>
     );
   }
 

@@ -12,11 +12,11 @@ import GTable from 'components/GTable/GTable';
 import PluginLink from 'components/PluginLink/PluginLink';
 import Text from 'components/Text/Text';
 import UsersFilters from 'components/UsersFilters/UsersFilters';
-import WrongTeamDisplayWrapper, { PageBaseState } from 'components/WrongTeamDisplayWrapper/WrongTeamDisplayWrapper';
+import PageErrorHandlingWrapper, { PageBaseState } from 'components/PageErrorHandlingWrapper/PageErrorHandlingWrapper';
 import {
   getWrongTeamResponseInfo,
-  initWrongTeamDataState,
-} from 'components/WrongTeamDisplayWrapper/WrongTeamDisplayWrapper.helpers';
+  initErrorDataState,
+} from 'components/PageErrorHandlingWrapper/PageErrorHandlingWrapper.helpers';
 import UserSettings from 'containers/UserSettings/UserSettings';
 import { WithPermissionControl } from 'containers/WithPermissionControl/WithPermissionControl';
 import { getRole } from 'models/user/user.helpers';
@@ -56,7 +56,7 @@ class Users extends React.Component<UsersProps, UsersState> {
       roles: [UserRole.ADMIN, UserRole.EDITOR, UserRole.VIEWER],
     },
 
-    wrongTeamData: initWrongTeamDataState(),
+    errorData: initErrorDataState(),
   };
 
   initialUsersLoaded = false;
@@ -97,7 +97,7 @@ class Users extends React.Component<UsersProps, UsersState> {
   }
 
   parseParams = async () => {
-    this.setState({ wrongTeamData: initWrongTeamDataState() }); // reset wrong team error to false on query parse
+    this.setState({ errorData: initErrorDataState() }); // reset wrong team error to false on query parse
 
     const {
       store,
@@ -106,7 +106,7 @@ class Users extends React.Component<UsersProps, UsersState> {
 
     if (id) {
       await (id === 'me' ? store.userStore.loadCurrentUser() : store.userStore.loadUser(String(id), true)).catch(
-        (error) => this.setState({ wrongTeamData: { ...getWrongTeamResponseInfo(error) } })
+        (error) => this.setState({ errorData: { ...getWrongTeamResponseInfo(error) } })
       );
 
       const userPkToEdit = String(id === 'me' ? store.userStore.currentUserPk : id);
@@ -118,7 +118,7 @@ class Users extends React.Component<UsersProps, UsersState> {
   };
 
   render() {
-    const { usersFilters, userPkToEdit, page, wrongTeamData } = this.state;
+    const { usersFilters, userPkToEdit, page, errorData } = this.state;
     const { store, query } = this.props;
     const { userStore } = store;
 
@@ -171,8 +171,8 @@ class Users extends React.Component<UsersProps, UsersState> {
     const { count, results } = userStore.getSearchResult();
 
     return (
-      <WrongTeamDisplayWrapper
-        wrongTeamData={wrongTeamData}
+      <PageErrorHandlingWrapper
+        errorData={errorData}
         objectName="user"
         pageName="users"
         itemNotFoundMessage={`User with id=${query?.id} is not found. Please select user from the list.`}
@@ -245,7 +245,7 @@ class Users extends React.Component<UsersProps, UsersState> {
             </div>
           </>
         )}
-      </WrongTeamDisplayWrapper>
+      </PageErrorHandlingWrapper>
     );
   }
 

@@ -9,49 +9,51 @@ import { ChangeTeamIcon } from 'icons';
 import { GrafanaTeam } from 'models/grafana_team/grafana_team.types';
 import { useStore } from 'state/useStore';
 
-import styles from './WrongTeamDisplayWrapper.module.css';
+import styles from './PageErrorHandlingWrapper.module.css';
 import { openWarningNotification } from 'utils';
+import { PropTypes } from 'mobx-react';
 
 const cx = cn.bind(styles);
 
 export interface PageBaseState {
-  wrongTeamData: WrongTeamData;
+  errorData: PageErrorData;
 }
 
-export interface WrongTeamData {
-  notFound?: boolean;
-  isError?: boolean;
+export interface PageErrorData {
+  isNotFoundError?: boolean;
+  isWrongTeamError?: boolean;
   wrongTeamNoPermissions?: boolean;
   switchToTeam?: { name: string; id: string };
 }
 
-export default function WrongTeamDisplayWrapper({
-  wrongTeamData,
+export default function PageErrorHandlingWrapper({
+  errorData,
   objectName,
   pageName,
   itemNotFoundMessage,
   children,
 }: {
-  wrongTeamData: WrongTeamData;
+  errorData: PageErrorData;
   objectName: string;
   pageName: string;
-  itemNotFoundMessage: string;
+  itemNotFoundMessage?: string;
   children: () => JSX.Element;
 }) {
   useEffect(() => {
-    if (!wrongTeamData.isError && wrongTeamData.notFound) {
+    const { isWrongTeamError, isNotFoundError } = errorData;
+    if (!isWrongTeamError && isNotFoundError && itemNotFoundMessage) {
       openWarningNotification(itemNotFoundMessage);
     }
-  }, [wrongTeamData.notFound]);
+  }, [errorData.isNotFoundError]);
 
-  if (!wrongTeamData.isError) return children();
+  if (!errorData.isWrongTeamError) return children();
 
   const store = useStore();
 
   const currentTeamId = store.userStore.currentUser?.current_team;
   const currentTeam = store.grafanaTeamStore.items[currentTeamId]?.name;
 
-  const { switchToTeam, wrongTeamNoPermissions } = wrongTeamData;
+  const { switchToTeam, wrongTeamNoPermissions } = errorData;
 
   const onTeamChange = async (teamId: GrafanaTeam['id']) => {
     await store.userStore.updateCurrentUser({ current_team: teamId });
