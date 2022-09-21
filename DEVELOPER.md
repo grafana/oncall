@@ -35,7 +35,16 @@ docker-compose -f docker-compose-developer.yml up -d
 
 NOTE: to use a PostgreSQL db backend, use the `docker-compose-developer-pg.yml` file instead.
 
-2. Prepare a python environment:
+2. `postgres` is a dependency on some of our Python dependencies (notably `psycopg2` ([docs](https://www.psycopg.org/docs/install.html#prerequisites))). To install this on Mac you can simply run:
+
+```bash
+brew install postgresql@14
+```
+
+For non Mac installation please visit [here](https://www.postgresql.org/download/) for more information on how to install.
+
+3. Prepare a python environment:
+
 ```bash
 # Create and activate the virtual environment
 python3.9 -m venv venv && source venv/bin/activate
@@ -67,8 +76,8 @@ python manage.py migrate
 python manage.py createsuperuser
 ```
 
+4. Launch the backend:
 
-3. Launch the backend:
 ```bash
 # Http server:
 python manage.py runserver 0.0.0.0:8080
@@ -80,8 +89,7 @@ python manage.py start_celery
 celery -A engine beat -l info
 ```
 
-4. All set! Check out internal API endpoints at http://localhost:8080/.
-
+5. All set! Check out internal API endpoints at http://localhost:8000/.
 
 ### Frontend setup
 
@@ -108,7 +116,7 @@ python manage.py issue_invite_for_the_frontend --override
 
 6. Some configuration fields will appear be available. Fill them out and click Initialize OnCall
 ```
-OnCall API URL: 
+OnCall API URL:
 http://host.docker.internal:8080
 
 Invitation Token (Single use token to connect Grafana instance):
