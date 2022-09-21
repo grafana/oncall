@@ -29,6 +29,7 @@ class IncidentSerializer(EagerLoadingMixin, serializers.ModelSerializer):
             "resolved_at",
             "acknowledged_at",
             "title",
+            "permalink",
         ]
 
     def get_alerts_count(self, obj):
