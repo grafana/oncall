@@ -38,7 +38,9 @@ def construct_expected_response_from_incidents(incidents):
                 "resolved_at": resolved_at,
                 "acknowledged_at": acknowledged_at,
                 "title": None,
-                "permalink": None,
+                "permalinks": {
+                    "slack": None,
+                },
             }
         )
     expected_response = {"count": incidents.count(), "next": None, "previous": None, "results": results}

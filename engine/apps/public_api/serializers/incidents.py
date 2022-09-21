@@ -14,7 +14,7 @@ class IncidentSerializer(EagerLoadingMixin, serializers.ModelSerializer):
     title = serializers.SerializerMethodField()
     state = serializers.SerializerMethodField()
 
-    SELECT_RELATED = ["channel", "channel_filter"]
+    SELECT_RELATED = ["channel", "channel_filter", "slack_message"]
     PREFETCH_RELATED = ["alerts"]
 
     class Meta:
@@ -29,7 +29,7 @@ class IncidentSerializer(EagerLoadingMixin, serializers.ModelSerializer):
             "resolved_at",
             "acknowledged_at",
             "title",
-            "permalink",
+            "permalinks",
         ]
 
     def get_alerts_count(self, obj):

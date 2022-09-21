@@ -1,4 +1,5 @@
 import logging
+import typing
 from collections import namedtuple
 from typing import Optional
 from urllib.parse import urljoin
@@ -43,6 +44,10 @@ def generate_public_primary_key_for_alert_group():
         failure_counter += 1
 
     return new_public_primary_key
+
+
+class Permalinks(typing.TypedDict):
+    slack: str
 
 
 class AlertGroupQuerySet(models.QuerySet):
@@ -399,6 +404,13 @@ class AlertGroup(AlertGroupSlackRenderingMixin, EscalationSnapshotMixin, models.
     def permalink(self):
         if self.slack_message is not None:
             return self.slack_message.permalink
+
+    @property
+    def permalinks(self) -> Permalinks:
+        # TODO: refactor 'permalink' property (maybe 'slack_permalink'?) once we add the next permalink
+        return {
+            "slack": self.permalink,
+        }
 
     @property
     def web_link(self):
