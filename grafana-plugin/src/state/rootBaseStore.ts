@@ -90,6 +90,9 @@ export class RootBaseStore {
   @observable
   incidentsPage: any = this.initialQuery.p ? Number(this.initialQuery.p) : 1;
 
+  @observable
+  onCallApiUrl: string;
+
   // --------------------------
 
   userStore: UserStore = new UserStore(this);
@@ -186,6 +189,8 @@ export class RootBaseStore {
       this.pluginIsInitialized = false;
       return;
     }
+
+    this.onCallApiUrl = meta.jsonData.onCallApiUrl;
 
     let syncStartStatus = await this.startSync();
     if (syncStartStatus.is_user_anonymous) {
