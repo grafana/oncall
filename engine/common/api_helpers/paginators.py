@@ -11,9 +11,8 @@ class PathPrefixedPagination(PageNumberPagination):
 
 class PathPrefixedCursorPagination(CursorPagination):
     def paginate_queryset(self, queryset, request, view=None):
-        pg = super().paginate_queryset(queryset, request, view)
-        self.base_url = create_engine_url(request.get_full_path())
-        return pg
+        request.build_absolute_uri = lambda: create_engine_url(request.get_full_path())
+        return super().paginate_queryset(queryset, request, view)
 
 
 class HundredPageSizePaginator(PathPrefixedPagination):
