@@ -1,6 +1,10 @@
 # Change Log
 
-## v1.0.37 (2022-09-23)
+## v1.0.38 (2022-09-22)
+
+- Add `telegram` key to `permalinks` property in `AlertGroup` public API response schema
+
+## v1.0.37 (2022-09-21)
 
 - Improve API token creation form
 - Fix alert group bulk action bugs

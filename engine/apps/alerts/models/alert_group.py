@@ -406,9 +406,18 @@ class AlertGroup(AlertGroupSlackRenderingMixin, EscalationSnapshotMixin, models.
             return self.slack_message.permalink
 
     @property
+    def telegram_permalink(self) -> typing.Optional[str]:
+        main_telegram_message = self.telegram_messages.all()
+
+        if main_telegram_message:
+            return main_telegram_message[0].link
+        return None
+
+    @property
     def permalinks(self) -> Permalinks:
         return {
             "slack": self.slack_permalink,
+            "telegram": self.telegram_permalink,
         }
 
     @property
