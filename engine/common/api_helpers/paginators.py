@@ -1,5 +1,4 @@
 from rest_framework.pagination import CursorPagination, PageNumberPagination
-from rest_framework.response import Response
 from rest_framework.utils.urls import remove_query_param, replace_query_param
 
 from common.api_helpers.utils import create_engine_url
@@ -21,15 +20,6 @@ class PathPrefixedPagination(PageNumberPagination):
         if page_number == 1:
             return remove_query_param(url, self.page_query_param)
         return replace_query_param(url, self.page_query_param, page_number)
-
-    def get_paginated_response(self, data):
-        return Response(
-            {
-                "links": {"next": self.get_next_link(), "previous": self.get_previous_link()},
-                "count": self.page.paginator.count,
-                "results": data,
-            }
-        )
 
 
 class HundredPageSizePaginator(PathPrefixedPagination):
