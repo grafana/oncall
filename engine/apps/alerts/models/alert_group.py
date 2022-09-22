@@ -401,15 +401,14 @@ class AlertGroup(AlertGroupSlackRenderingMixin, EscalationSnapshotMixin, models.
         raise NotImplementedError
 
     @property
-    def permalink(self):
+    def slack_permalink(self):
         if self.slack_message is not None:
             return self.slack_message.permalink
 
     @property
     def permalinks(self) -> Permalinks:
-        # TODO: refactor 'permalink' property (maybe 'slack_permalink'?) once we add the next permalink
         return {
-            "slack": self.permalink,
+            "slack": self.slack_permalink,
         }
 
     @property
