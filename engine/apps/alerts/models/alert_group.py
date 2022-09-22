@@ -9,7 +9,7 @@ from celery import uuid as celery_uuid
 from django.apps import apps
 from django.conf import settings
 from django.core.validators import MinLengthValidator
-from django.db import IntegrityError, models
+from django.db import IntegrityError, models, transaction
 from django.db.models import JSONField, Q, QuerySet
 from django.utils import timezone
 from django.utils.functional import cached_property
@@ -1044,8 +1044,9 @@ class AlertGroup(AlertGroupSlackRenderingMixin, EscalationSnapshotMixin, models.
         dependent_alert_groups_to_acknowledge = AlertGroup.unarchived_objects.filter(
             root_alert_group__pk__in=root_alert_group_pks
         )
-        AlertGroup._bulk_acknowledge(user, root_alert_groups_to_acknowledge)
-        AlertGroup._bulk_acknowledge(user, dependent_alert_groups_to_acknowledge)
+        with transaction.atomic():
+            AlertGroup._bulk_acknowledge(user, root_alert_groups_to_acknowledge)
+            AlertGroup._bulk_acknowledge(user, dependent_alert_groups_to_acknowledge)
 
     @staticmethod
     def _bulk_resolve(user: User, alert_groups_to_resolve: "QuerySet[AlertGroup]") -> None:
@@ -1092,7 +1093,7 @@ class AlertGroup(AlertGroupSlackRenderingMixin, EscalationSnapshotMixin, models.
             root_alert_group__isnull=True,
             maintenance_uuid__isnull=True,
         )
-        if root_alert_groups_to_resolve.count() == 0:
+        if not root_alert_groups_to_resolve.exists():
             return
 
         organization = root_alert_groups_to_resolve.first().channel.organization
@@ -1103,8 +1104,9 @@ class AlertGroup(AlertGroupSlackRenderingMixin, EscalationSnapshotMixin, models.
         # convert qs to list to prevent changes by update
         root_alert_group_pks = list(root_alert_groups_to_resolve.values_list("pk", flat=True))
         dependent_alert_groups_to_resolve = AlertGroup.all_objects.filter(root_alert_group__pk__in=root_alert_group_pks)
-        AlertGroup._bulk_resolve(user, root_alert_groups_to_resolve)
-        AlertGroup._bulk_resolve(user, dependent_alert_groups_to_resolve)
+        with transaction.atomic():
+            AlertGroup._bulk_resolve(user, root_alert_groups_to_resolve)
+            AlertGroup._bulk_resolve(user, dependent_alert_groups_to_resolve)
 
     @staticmethod
     def _bulk_restart_unack(user: User, alert_groups_to_restart_unack: "QuerySet[AlertGroup]") -> None:
@@ -1221,15 +1223,17 @@ class AlertGroup(AlertGroupSlackRenderingMixin, EscalationSnapshotMixin, models.
         # convert qs to list to prevent changes by update
         root_alert_group_pks = list(root_alert_groups_unack.values_list("pk", flat=True))
         dependent_alert_groups_unack = AlertGroup.all_objects.filter(root_alert_group__pk__in=root_alert_group_pks)
-        AlertGroup._bulk_restart_unack(user, root_alert_groups_unack)
-        AlertGroup._bulk_restart_unack(user, dependent_alert_groups_unack)
+        with transaction.atomic():
+            AlertGroup._bulk_restart_unack(user, root_alert_groups_unack)
+            AlertGroup._bulk_restart_unack(user, dependent_alert_groups_unack)
 
         root_alert_groups_unresolve = alert_groups.filter(resolved=True, root_alert_group__isnull=True)
         # convert qs to list to prevent changes by update
         root_alert_group_pks = list(root_alert_groups_unresolve.values_list("pk", flat=True))
         dependent_alert_groups_unresolve = AlertGroup.all_objects.filter(root_alert_group__pk__in=root_alert_group_pks)
-        AlertGroup._bulk_restart_unresolve(user, root_alert_groups_unresolve)
-        AlertGroup._bulk_restart_unresolve(user, dependent_alert_groups_unresolve)
+        with transaction.atomic():
+            AlertGroup._bulk_restart_unresolve(user, root_alert_groups_unresolve)
+            AlertGroup._bulk_restart_unresolve(user, dependent_alert_groups_unresolve)
 
         alert_groups_to_restart_unsilence = alert_groups.filter(
             resolved=False,
@@ -1339,8 +1343,9 @@ class AlertGroup(AlertGroupSlackRenderingMixin, EscalationSnapshotMixin, models.
         # convert qs to list to prevent changes by update
         root_alert_group_pks = list(root_alert_groups_to_silence.values_list("pk", flat=True))
         dependent_alert_groups_to_silence = alert_groups.filter(root_alert_group__pk__in=root_alert_group_pks)
-        AlertGroup._bulk_silence(user, root_alert_groups_to_silence, silence_delay)
-        AlertGroup._bulk_silence(user, dependent_alert_groups_to_silence, silence_delay)
+        with transaction.atomic():
+            AlertGroup._bulk_silence(user, root_alert_groups_to_silence, silence_delay)
+            AlertGroup._bulk_silence(user, dependent_alert_groups_to_silence, silence_delay)
 
     def start_ack_reminder(self, user: User):
         Organization = apps.get_model("user_management", "Organization")
