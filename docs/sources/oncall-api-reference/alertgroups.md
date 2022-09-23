@@ -33,7 +33,10 @@ The above command returns JSON structured in the following way:
       "created_at": "2020-05-19T12:37:01.430444Z",
       "resolved_at": "2020-05-19T13:37:01.429805Z",
       "acknowledged_at": null,
-      "title": "Memory above 90% threshold"
+      "title": "Memory above 90% threshold",
+      "permalinks": {
+        "slack": null
+      }
     }
   ]
 }

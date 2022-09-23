@@ -1,7 +1,7 @@
 import React, { FC, useMemo } from 'react';
 
 import cn from 'classnames/bind';
-import * as dayjs from 'dayjs';
+import dayjs from 'dayjs';
 
 import styles from './TimelineMarks.module.css';
 
@@ -60,7 +60,7 @@ const TimelineMarks: FC<TimelineMarksProps> = (props) => {
       {momentsToRender.map((m, i) => {
         return (
           <div key={i} className={cx('weekday')}>
-            <div className={cx('weekday-title')}>{m.moment.format('D MMM')}</div>
+            <div className={cx('weekday-title')}>{m.moment.format('ddd D MMM')}</div>
             <div className={cx('weekday-times')}>
               {m.moments.map((mm, j) => (
                 <div key={j} className={cx('weekday-time')}>

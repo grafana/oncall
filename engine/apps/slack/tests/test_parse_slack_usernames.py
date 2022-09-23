@@ -52,5 +52,5 @@ def test_remove_priority_from_username():
     assert parse_username_from_string("[L1] bob") == "bob"
     assert parse_username_from_string(" [L1] bob ") == "bob"
     assert parse_username_from_string("[L2] bob[L1]") == "bob[L1]"
-    assert parse_username_from_string("[L27]bob") == "[L27]bob"
+    assert parse_username_from_string("[L27]bob") == "bob"
     assert parse_username_from_string("[[L2]] bob[[[L1]") == "[[L2]] bob[[[L1]"

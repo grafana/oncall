@@ -32,9 +32,6 @@ const UsersTimezones: FC<UsersTimezonesProps> = (props) => {
 
   const store = useStore();
 
-  const [count, setCount] = useState<number>(0);
-  const [currentMoment, setCurrentMoment] = useState<dayjs.Dayjs>(dayjs().tz(tz));
-
   useEffect(() => {
     userIds.forEach((userId) => {
       if (!store.userStore.items[userId]) {
@@ -48,18 +45,7 @@ const UsersTimezones: FC<UsersTimezonesProps> = (props) => {
     [userIds, store.userStore.items]
   );
 
-  useEffect(() => {
-    setCurrentMoment(currentMoment.tz(tz).startOf('minute'));
-  }, [tz]);
-
-  /*useInterval(
-    () => {
-      setCurrentMoment(currentMoment.add(10, 'minute'));
-      //setCount(count + 1);
-    },
-    // Delay in milliseconds or null to stop it
-    1000,
-  );*/
+  const currentMoment = useMemo(() => dayjs().tz(tz), [tz]);
 
   const currentTimeX = useMemo(() => {
     const midnight = dayjs().tz(tz).startOf('day');

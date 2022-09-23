@@ -3,14 +3,13 @@ import React, { Component, useEffect } from 'react';
 import { Button, HorizontalGroup, Icon, Input, ValuePicker } from '@grafana/ui';
 import cn from 'classnames/bind';
 import dayjs from 'dayjs';
-import { toJS } from 'mobx';
 import { observer } from 'mobx-react';
 import { CSSTransition, TransitionGroup } from 'react-transition-group';
 
 import TimelineMarks from 'components/TimelineMarks/TimelineMarks';
 import Rotation from 'containers/Rotation/Rotation';
 import { getColor, getFromString, getOverrideColor } from 'models/schedule/schedule.helpers';
-import { Layer, Schedule } from 'models/schedule/schedule.types';
+import { Event, Layer, Schedule, Shift } from 'models/schedule/schedule.types';
 import { Timezone } from 'models/timezone/timezone.types';
 import { WithStoreProps } from 'state/types';
 import { withMobXProviderContext } from 'state/withStore';
@@ -27,6 +26,7 @@ interface ScheduleFinalProps extends WithStoreProps {
   currentTimezone: Timezone;
   scheduleId: Schedule['id'];
   hideHeader?: boolean;
+  onClick: (shiftId: Shift['id']) => void;
 }
 
 interface ScheduleOverridesState {
@@ -50,7 +50,10 @@ class ScheduleFinal extends Component<ScheduleFinalProps, ScheduleOverridesState
 
     const shifts = store.scheduleStore.finalPreview
       ? store.scheduleStore.finalPreview
-      : store.scheduleStore.events[scheduleId]?.['final']?.[getFromString(startMoment)];
+      : (store.scheduleStore.events[scheduleId]?.['final']?.[getFromString(startMoment)] as Array<{
+          shiftId: string;
+          events: Event[];
+        }>);
 
     const layers = store.scheduleStore.rotationPreview
       ? store.scheduleStore.rotationPreview
@@ -95,6 +98,7 @@ class ScheduleFinal extends Component<ScheduleFinalProps, ScheduleOverridesState
                         startMoment={startMoment}
                         currentTimezone={currentTimezone}
                         color={findColor(shiftId, layers, overrides)}
+                        onClick={this.getRotationClickHandler(shiftId)}
                       />
                     </CSSTransition>
                   );
@@ -115,6 +119,14 @@ class ScheduleFinal extends Component<ScheduleFinalProps, ScheduleOverridesState
       </>
     );
   }
+
+  getRotationClickHandler = (shiftId: Shift['id']) => {
+    const { onClick } = this.props;
+
+    return () => {
+      onClick(shiftId);
+    };
+  };
 
   onSearchTermChangeCallback = () => {};
 }

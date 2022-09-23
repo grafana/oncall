@@ -97,7 +97,7 @@ def cleanup_organization(organization_pk):
         if delete_organization_if_needed(organization):
             logger.info(
                 f"Deleting organization due to stack deletion. "
-                f"pk: {organization.pk}, stack_id: {organization.stack_id}, org_id: {organization.org_id}"
+                f"pk: {organization_pk}, stack_id: {organization.stack_id}, org_id: {organization.org_id}"
             )
         else:
             logger.info(f"Organization {organization_pk} not deleted in gcom, no action taken")

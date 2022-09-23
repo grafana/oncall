@@ -48,8 +48,6 @@ class ApiTokens extends React.Component<ApiTokensProps, any> {
 
     const apiTokens = apiTokenStore.getSearchResult();
 
-    const loading = !apiTokens;
-
     const { showCreateTokenModal } = this.state;
 
     const columns = [

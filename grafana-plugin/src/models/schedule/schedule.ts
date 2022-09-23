@@ -54,7 +54,7 @@ export class ScheduleStore extends BaseStore {
   events: {
     [scheduleId: string]: {
       [type: string]: {
-        [startMoment: string]: Array<{ shiftId: string; events: Event[] }> | Layer[];
+        [startMoment: string]: Array<{ shiftId: string; events: Event[]; isPreview?: boolean }> | Layer[];
       };
     };
   } = {};
@@ -200,7 +200,7 @@ export class ScheduleStore extends BaseStore {
 
     if (isOverride) {
       this.overridePreview = enrichOverrides(
-        [...this.events[scheduleId]?.['override']?.[fromString]],
+        [...(this.events[scheduleId]?.['override']?.[fromString] as Array<{ shiftId: string; events: Event[] }>)],
         response.rotation,
         shiftId
       );
@@ -293,6 +293,8 @@ export class ScheduleStore extends BaseStore {
       ...this.shifts,
       [shiftId]: response,
     };
+
+    return response;
   }
 
   async deleteOncallShift(shiftId: Shift['id']) {
