@@ -1,4 +1,5 @@
 from unittest import mock
+from unittest.mock import patch
 
 import pytest
 from django.urls import reverse
@@ -184,6 +185,24 @@ def test_delete_incident_invalid_request(incident_public_api_setup):
     data = "delete"
     response = client.delete(url, data=data, format="json", HTTP_AUTHORIZATION=f"{token}")
     assert response.status_code == status.HTTP_400_BAD_REQUEST
+
+
+@pytest.mark.django_db
+def test_pagination(settings, incident_public_api_setup):
+    settings.BASE_URL = "https://test.com/test/prefixed/urls"
+
+    token, incidents, _, _ = incident_public_api_setup
+    client = APIClient()
+
+    url = reverse("api-public:alert_groups-list")
+
+    with patch("common.api_helpers.paginators.PathPrefixedPagination.get_page_size", return_value=1):
+        response = client.get(url, HTTP_AUTHORIZATION=f"{token}")
+
+    assert response.status_code == status.HTTP_200_OK
+    result = response.json()
+
+    assert result["next"].startswith("https://test.com/test/prefixed/urls")
 
 
 # This is test from old django-based tests
