@@ -13,6 +13,7 @@ import { User } from 'models/user/user.types';
 import { useStore } from 'state/useStore';
 
 import styles from './UsersTimezones.module.css';
+import ColorfulUserCircle from './ColorfulUserCircle';
 
 interface UsersTimezonesProps {
   userIds: Array<User['pk']>;
@@ -257,8 +258,11 @@ const AvatarGroup = (props: AvatarGroupProps) => {
               }}
               onClick={getAvatarClickHandler(user.timezone)}
             >
-              <Avatar src={user.avatar} size="large" />
-              {isOncall && <IsOncallIcon className={cx('is-oncall-icon')} />}
+              <ColorfulUserCircle
+                colors={['red']}
+                renderAvatar={() => <Avatar src={user.avatar} size="large" />}
+                renderIcon={() => (isOncall ? <IsOncallIcon className={cx('is-oncall-icon')} /> : null)}
+              ></ColorfulUserCircle>
             </div>
           </Tooltip>
         );
