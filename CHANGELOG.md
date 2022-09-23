@@ -1,6 +1,6 @@
 # Change Log
 
-## v1.0.37 (2022-09-21)
+## v1.0.37 (2022-09-23)
 
 - Improve API token creation form
 - Fix alert group bulk action bugs
