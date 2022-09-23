@@ -2,7 +2,11 @@
 
 ## v1.0.37 (2022-09-21)
 
+- Improve API token creation form
+- Fix alert group bulk action bugs
 - Add `permalinks` property to `AlertGroup` public API response schema
+- Scheduling system bug fixes
+- Public API bug fixes
 
 ## v1.0.36 (2022-09-12)
 
