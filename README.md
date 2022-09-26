@@ -50,7 +50,7 @@ docker-compose --env-file .env_hobby -f docker-compose.yml up -d
 docker-compose --env-file .env_hobby -f docker-compose.yml run engine python manage.py issue_invite_for_the_frontend --override
 ```
 
-**Note**: if you remove the plugin configuration and reconfigure them, you will need to generate a new one-time invite token for your new configuration.
+**Note**: if you remove the plugin configuration and reconfigure it, you will need to generate a new one-time invite token for your new configuration.
 
 5. Go to [OnCall Plugin Configuration](http://localhost:3000/plugins/grafana-oncall-app), using log in credentials as defined above: `admin`/`admin` (or find OnCall plugin in configuration->plugins) and connect OnCall _plugin_ with OnCall _backend_:
 
