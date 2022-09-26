@@ -2,16 +2,16 @@ import React, { useEffect } from 'react';
 
 import { Button, VerticalGroup } from '@grafana/ui';
 import cn from 'classnames/bind';
+import { PropTypes } from 'mobx-react';
 
 import PluginLink from 'components/PluginLink/PluginLink';
 import Text from 'components/Text/Text';
 import { ChangeTeamIcon } from 'icons';
 import { GrafanaTeam } from 'models/grafana_team/grafana_team.types';
 import { useStore } from 'state/useStore';
+import { openWarningNotification } from 'utils';
 
 import styles from './PageErrorHandlingWrapper.module.css';
-import { openWarningNotification } from 'utils';
-import { PropTypes } from 'mobx-react';
 
 const cx = cn.bind(styles);
 
@@ -46,7 +46,7 @@ export default function PageErrorHandlingWrapper({
     }
   }, [errorData.isNotFoundError]);
 
-  if (!errorData.isWrongTeamError) return children();
+  if (!errorData.isWrongTeamError) {return children();}
 
   const store = useStore();
 
