@@ -180,6 +180,7 @@ class SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSta
                   </Text>
                 </HorizontalGroup>
               </div>
+
               {!schedules || schedules.length ? (
                 <GTable
                   emptyText={schedules ? 'No schedules found' : 'Loading...'}
@@ -230,43 +231,45 @@ class SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSta
                   }
                 />
               )}
-              rowKey="id"
-              columns={columns}
-              data={schedules}
-              expandable={{
-                expandedRowRender: this.renderEvents,
-                expandRowByClick: true,
-                onExpand: this.onRowExpand,
-                expandedRowKeys: expandedSchedulesKeys,
-                onExpandedRowsChange: this.handleExpandedRowsChange,
-              }}
-            />
-          ) : (
-            <Tutorial
-              step={TutorialStep.Schedules}
-              title={
-                <VerticalGroup align="center" spacing="lg">
-                  <Text type="secondary">You haven’t added a schedule yet.</Text>
-                  <PluginLink partial query={{ id: 'new' }}>
-                    <Button icon="plus" variant="primary" size="lg">
-                      Add team schedule for on-call rotation
-                    </Button>
-                  </PluginLink>
-                </VerticalGroup>
-              }
-            />
-          )}
-        </div>
-        {scheduleIdToEdit && (
-          <ScheduleForm
-            id={scheduleIdToEdit}
-            type={ScheduleType.Ical}
-            onUpdate={this.update}
-            onHide={() => {
-              this.setState({ scheduleIdToEdit: undefined });
-              getLocationSrv().update({ partial: true, query: { id: undefined } });
-            }}
-          />
+            </div>
+
+            {scheduleIdToEdit && (
+              <ScheduleForm
+                id={scheduleIdToEdit}
+                type={ScheduleType.Ical}
+                onUpdate={this.update}
+                onHide={() => {
+                  this.setState({ scheduleIdToEdit: undefined });
+                  getLocationSrv().update({ partial: true, query: { id: undefined } });
+                }}
+              />
+            )}
+
+            {scheduleIdToDelete && (
+              <ConfirmModal
+                isOpen
+                title="Are you sure to delete?"
+                confirmText="Delete"
+                dismissText="Cancel"
+                onConfirm={this.handleDelete}
+                body={null}
+                onDismiss={() => {
+                  this.setState({ scheduleIdToDelete: undefined });
+                }}
+              />
+            )}
+
+            {scheduleIdToExport && (
+              <Modal
+                isOpen
+                title="Schedule export"
+                closeOnEscape
+                onDismiss={() => this.setState({ scheduleIdToExport: undefined })}
+              >
+                <ScheduleICalSettings id={scheduleIdToExport} />
+              </Modal>
+            )}
+          </>
         )}
       </PageErrorHandlingWrapper>
     );
