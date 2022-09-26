@@ -30,6 +30,11 @@ const cx = cn.bind(styles);
 
 interface Props extends PluginConfigPageProps<AppPluginMeta<OnCallAppSettings>> {}
 
+const constructSyncErrorMessage = (errMsg: string, url?: string): string =>
+  `${url ? `${url}\n` : ''}${errMsg}`;
+const constructErrorActionMessage = (msg?: string): string =>
+  `Try removing your current configuration, ${msg ? msg : 'double checking your settings'}, and re-initializing the plugin.`
+
 export const PluginConfigPage = (props: Props) => {
   const { plugin } = props;
   const [onCallApiUrl, setOnCallApiUrl] = useState<string>(getItem('onCallApiUrl'));
@@ -40,6 +45,8 @@ export const PluginConfigPage = (props: Props) => {
   const [pluginStatusMessage, setPluginStatusMessage] = useState<string>();
   const [isSelfHostedInstall, setIsSelfHostedInstall] = useState<boolean>(true);
   const [retrySync, setRetrySync] = useState<boolean>(false);
+
+  const INVALID_INVITE_TOKEN_ERROR_MSG = `It seems like your invite token may be invalid. ${constructErrorActionMessage('generating a new invite token')}`;
 
   const setupPlugin = useCallback(async () => {
     setItem('onCallApiUrl', onCallApiUrl);
@@ -125,25 +132,37 @@ export const PluginConfigPage = (props: Props) => {
   }, []);
 
   const handleSyncException = useCallback((e) => {
+    const buildErrMsg = (msg: string): string =>
+      constructSyncErrorMessage(msg, plugin.meta.jsonData.onCallApiUrl);
+
     if (plugin.meta.jsonData?.onCallApiUrl) {
-      let statusMessage = plugin.meta.jsonData.onCallApiUrl + '\n' + e + ', retry or check settings & re-initialize.';
-      if (e.response.status == 404) {
-        statusMessage += '\nIf Grafana OnCall was just installed, restart Grafana for OnCall routes to be available.';
+      const { status: statusCode  } = e.response;
+
+      let statusMessage: string;
+
+      if (statusCode == 403) {
+        statusMessage = buildErrMsg(INVALID_INVITE_TOKEN_ERROR_MSG);
+      } else if (statusCode === 404) {
+        statusMessage = buildErrMsg('If Grafana OnCall was just installed, restart Grafana for OnCall routes to be available.');
+      } else if (statusCode === 502) {
+        statusMessage = buildErrMsg(`Unable to communicate with either the Grafana API, or Grafana OnCall engine API. ${constructErrorActionMessage('verify that the API URLs that you entered are correct')}`);
+      } else {
+        statusMessage = buildErrMsg(`An unknown error occured. ${constructErrorActionMessage()}. If the error still occurs please reach out to support.`)
       }
       setPluginStatusMessage(statusMessage);
       setRetrySync(true);
     } else {
-      setPluginStatusMessage('OnCall has not been setup, configure & initialize below.');
+      setPluginStatusMessage(buildErrMsg('OnCall has not been setup, configure & initialize below.'));
     }
     setPluginStatusOk(false);
     setPluginConfigLoading(false);
   }, []);
 
-  const finishSync = useCallback((get_sync_response) => {
-    if (get_sync_response.token_ok) {
+  const finishSync = useCallback((getSyncResponse) => {
+    if (getSyncResponse.token_ok) {
       const versionInfo =
-        get_sync_response.version && get_sync_response.license
-          ? ` (${get_sync_response.license}, ${get_sync_response.version})`
+        getSyncResponse.version && getSyncResponse.license
+          ? ` (${getSyncResponse.license}, ${getSyncResponse.version})`
           : '';
 
       let pluginStatusMessage = `Connected to OnCall${versionInfo}\n - OnCall URL: ${plugin.meta.jsonData.onCallApiUrl}\n`
@@ -155,9 +174,8 @@ export const PluginConfigPage = (props: Props) => {
       setIsSelfHostedInstall(plugin.meta.jsonData?.license === GRAFANA_LICENSE_OSS);
       setPluginStatusOk(true);
     } else {
-      setPluginStatusMessage(
-        `OnCall failed to connect to this grafana via: ${plugin.meta.jsonData.grafanaUrl} check URL, network, and API key.`
-      );
+      setPluginStatusMessage(constructSyncErrorMessage(INVALID_INVITE_TOKEN_ERROR_MSG,
+        plugin.meta.jsonData.grafanaUrl));
       setRetrySync(true);
     }
     setPluginConfigLoading(false);
