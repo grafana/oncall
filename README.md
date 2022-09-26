@@ -21,11 +21,13 @@ Developer-friendly incident response with brilliant Slack integration.
 We prepared multiple environments: [production](https://grafana.com/docs/grafana-cloud/oncall/open-source/#production-environment), [developer](DEVELOPER.md) and hobby:
 
 1. Download docker-compose.yaml:
+
 ```bash
 curl -fsSL https://raw.githubusercontent.com/grafana/oncall/dev/docker-compose.yml -o docker-compose.yml
 ```
 
 2. Set variables:
+
 ```bash
 echo "DOMAIN=http://localhost:8080
 SECRET_KEY=my_random_secret_must_be_more_than_32_characters_long
@@ -37,26 +39,31 @@ GRAFANA_PASSWORD=admin" > .env_hobby
 ```
 
 3. Launch services:
+
 ```bash
 docker-compose --env-file .env_hobby -f docker-compose.yml up -d
 ```
 
 4. Issue one-time invite token:
+
 ```bash
 docker-compose --env-file .env_hobby -f docker-compose.yml run engine python manage.py issue_invite_for_the_frontend --override
 ```
 
+**Note**: if you remove the plugin configuration and reconfigure them, you will need to generate a new one-time invite token for your new configuration.
+
 5. Go to [OnCall Plugin Configuration](http://localhost:3000/plugins/grafana-oncall-app), using log in credentials as defined above: `admin`/`admin` (or find OnCall plugin in configuration->plugins) and connect OnCall _plugin_ with OnCall _backend_:
+
 ```
 Invite token: ^^^ from the previous step.
 OnCall backend URL: http://engine:8080
 Grafana Url: http://grafana:3000
 ```
 
-6. Enjoy! Check our [OSS docs](https://grafana.com/docs/grafana-cloud/oncall/open-source/) if you want to set up Slack, Telegram, Twilio or SMS/calls through Grafana Cloud. 
-
+6. Enjoy! Check our [OSS docs](https://grafana.com/docs/grafana-cloud/oncall/open-source/) if you want to set up Slack, Telegram, Twilio or SMS/calls through Grafana Cloud.
 
 ## Update version
+
 To update your Grafana OnCall hobby environment:
 
 ```shell
@@ -76,14 +83,13 @@ See [Grafana docs](https://grafana.com/docs/grafana/latest/administration/plugin
 <a href="https://github.com/grafana/oncall/discussions"><img width="200px" src="docs/img/GH_discussions.png"></a>
 <a href="https://slack.grafana.com/"><img width="200px" src="docs/img/slack.png"></a>
 
-
 ## Stargazers over time
 
 [![Stargazers over time](https://starchart.cc/grafana/oncall.svg)](https://starchart.cc/grafana/oncall)
 
-
 ## Further Reading
-- *Migration from the PagerDuty* - [Migrator](https://github.com/grafana/oncall/tree/dev/tools/pagerduty-migrator)
-- *Documentation* - [Grafana OnCall](https://grafana.com/docs/grafana-cloud/oncall/)
-- *Blog Post* - [Announcing Grafana OnCall, the easiest way to do on-call management](https://grafana.com/blog/2021/11/09/announcing-grafana-oncall/)
-- *Presentation* - [Deep dive into the Grafana, Prometheus, and Alertmanager stack for alerting and on-call management](https://grafana.com/go/observabilitycon/2021/alerting/?pg=blog)
+
+- _Migration from the PagerDuty_ - [Migrator](https://github.com/grafana/oncall/tree/dev/tools/pagerduty-migrator)
+- _Documentation_ - [Grafana OnCall](https://grafana.com/docs/grafana-cloud/oncall/)
+- _Blog Post_ - [Announcing Grafana OnCall, the easiest way to do on-call management](https://grafana.com/blog/2021/11/09/announcing-grafana-oncall/)
+- _Presentation_ - [Deep dive into the Grafana, Prometheus, and Alertmanager stack for alerting and on-call management](https://grafana.com/go/observabilitycon/2021/alerting/?pg=blog)
