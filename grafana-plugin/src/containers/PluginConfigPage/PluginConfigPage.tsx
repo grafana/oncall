@@ -11,12 +11,8 @@ import {
   Label,
   Legend,
   LoadingPlaceholder,
-  Icon,
-  Alert,
-  Modal,
 } from '@grafana/ui';
 import cn from 'classnames/bind';
-import CopyToClipboard from 'react-copy-to-clipboard';
 import { OnCallAppSettings } from 'types';
 
 import Block from 'components/GBlock/Block';
