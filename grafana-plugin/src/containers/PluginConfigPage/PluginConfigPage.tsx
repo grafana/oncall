@@ -217,7 +217,7 @@ export const PluginConfigPage = (props: Props) => {
           )}
           <p>{'Plugin <-> backend connection status'}</p>
           <pre>
-            <Text type="link">{pluginStatusMessage}</Text>
+            <Text>{pluginStatusMessage}</Text>
           </pre>
 
           <HorizontalGroup>
