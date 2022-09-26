@@ -143,3 +143,14 @@ export const calendarForm: { name: string; fields: FormItem[] } = {
     ...commonFields,
   ],
 };
+
+export const apiForm: { name: string; fields: FormItem[] } = {
+  name: 'Schedule',
+  fields: [
+    {
+      name: 'name',
+      type: FormItemType.Input,
+      validation: { required: true },
+    },
+  ],
+};

@@ -1,7 +1,10 @@
+import datetime
+
 import pytest
+import pytz
 from django.utils import timezone
 
-from apps.schedules.models import CustomOnCallShift, OnCallSchedule, OnCallScheduleWeb
+from apps.schedules.models import CustomOnCallShift, OnCallSchedule, OnCallScheduleCalendar, OnCallScheduleWeb
 from common.constants.role import Role
 
 
@@ -223,6 +226,33 @@ def test_filter_events_include_empty(make_organization, make_user_for_organizati
         }
     ]
     assert events == expected
+
+
+@pytest.mark.django_db
+def test_filter_events_ical_all_day(make_organization, make_user_for_organization, make_schedule, get_ical):
+    calendar = get_ical("calendar_with_all_day_event.ics")
+    organization = make_organization()
+    schedule = make_schedule(organization, schedule_class=OnCallScheduleCalendar)
+    schedule.cached_ical_file_primary = calendar.to_ical()
+    for u in ("@Bernard Desruisseaux", "@Bob", "@Alex"):
+        make_user_for_organization(organization, username=u)
+
+    day_to_check_iso = "2021-01-27T15:27:14.448059+00:00"
+    parsed_iso_day_to_check = datetime.datetime.fromisoformat(day_to_check_iso).replace(tzinfo=pytz.UTC)
+    start_date = (parsed_iso_day_to_check - timezone.timedelta(days=1)).date()
+
+    events = schedule.final_events("UTC", start_date, days=2)
+    expected_events = [
+        # all_day, users, start
+        (False, ["@Bernard Desruisseaux"], datetime.datetime(2021, 1, 26, 8, 0, tzinfo=pytz.UTC)),
+        (True, ["@Alex"], datetime.date(2021, 1, 27)),
+        (False, ["@Bob"], datetime.datetime(2021, 1, 27, 8, 0, tzinfo=pytz.UTC)),
+    ]
+    expected = [{"all_day": all_day, "users": users, "start": start} for all_day, users, start in expected_events]
+    returned = [
+        {"all_day": e["all_day"], "users": [u["display_name"] for u in e["users"]], "start": e["start"]} for e in events
+    ]
+    assert returned == expected
 
 
 @pytest.mark.django_db

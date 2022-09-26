@@ -1,0 +1,136 @@
+.root {
+  border: var(--border-medium);
+  display: flex;
+  flex-direction: column;
+  border-radius: 2px;
+  background: var(--primary-background);
+}
+
+.header {
+  padding: 0 10px;
+}
+
+.title {
+  font-weight: 500;
+  font-size: 19px;
+  line-height: 24px;
+  color: rgba(204, 204, 220, 0.65);
+  margin: 16px 0;
+}
+
+.current-time {
+  position: absolute;
+  left: 0;
+  width: 1px;
+  background: #fff;
+  top: 0;
+  bottom: 0;
+  z-index: 0;
+}
+
+@-webkit-keyframes run {
+  0% {
+    left: 0;
+  }
+
+  100% {
+    left: 100%;
+  }
+}
+
+.users {
+  position: relative;
+  height: 76px;
+}
+
+.avatar-group {
+  position: absolute;
+  top: 10px;
+  height: 32px;
+}
+
+.avatar {
+  position: absolute;
+  top: 0;
+  transition: opacity 200ms ease, left 200ms ease;
+  border-radius: 50%;
+}
+
+.is-oncall-icon {
+  color: var(--oncall-icon-stroke-color);
+  position: absolute;
+  left: -1px;
+  bottom: -1px;
+}
+
+.user-more {
+  position: absolute;
+  padding: 0 5px;
+  bottom: 0;
+  font-size: 12px;
+  line-height: 16px;
+  background: #454952;
+  border-radius: 8px;
+  text-align: center;
+  transition: opacity 200ms ease, left 200ms ease;
+  pointer-events: none;
+}
+
+.avatar-group_inactive {
+  pointer-events: none;
+  opacity: 0.2;
+  transition: opacity 0.5s ease;
+}
+
+.time-stripe {
+  position: relative;
+  height: 4px;
+
+  --color: rgba(61, 113, 217, 0.2);
+
+  background:
+    repeating-linear-gradient(
+      -45deg,
+      var(--color),
+      var(--color) 4px,
+      transparent 4px,
+      transparent 8px
+    );
+}
+
+.current-user-stripe {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  height: 4px;
+  background: #3d71d9;
+  border-radius: 2px;
+  left: calc((9 / 24) * 100%);
+  right: calc((7 / 24) * 100%);
+}
+
+.time-marks {
+  position: absolute;
+  top: -24px;
+  display: flex;
+  font-weight: 400;
+  font-size: 14px;
+  line-height: 20px;
+  color: rgba(204, 204, 220, 0.65);
+  width: 100%;
+}
+
+.time-mark-text {
+  display: inline-block;
+  padding: 0 5px;
+}
+
+.time-mark-text__translated {
+  transform: translate(-50%, 0);
+  padding: 0;
+}
+
+.time-mark:last-child {
+  position: absolute;
+  right: 0;
+}

@@ -1,7 +1,10 @@
 import React from 'react';
 
 import { Tooltip } from '@grafana/ui';
+import dayjs from 'dayjs';
 import { pick } from 'lodash-es';
+
+import { Timezone } from 'models/timezone/timezone.types';
 
 import { User, UserRole } from './user.types';
 
@@ -29,6 +32,10 @@ export const getRole = (role: UserRole) => {
     default:
       return '';
   }
+};
+
+export const getTimezone = (user: User) => {
+  return user.timezone || 'UTC';
 };
 
 export const getUserNotificationsSummary = (user: User) => {
