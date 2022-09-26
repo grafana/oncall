@@ -5,7 +5,7 @@ from django.core.exceptions import ObjectDoesNotExist
 
 from apps.grafana_plugin.helpers.client import GcomAPIClient, GrafanaAPIClient
 from apps.user_management.models import Team, User
-from apps.user_management.sync import sync_organization
+from apps.user_management.sync import cleanup_organization, sync_organization
 
 
 @pytest.mark.django_db
@@ -187,12 +187,11 @@ def test_duplicate_user_ids(make_organization, make_user_for_organization):
 
 
 @pytest.mark.django_db
-def test_sync_organization_deleted(make_organization):
+def test_cleanup_organization_deleted(make_organization):
     organization = make_organization(gcom_token="TEST_GCOM_TOKEN")
 
-    with patch.object(GrafanaAPIClient, "get_users", return_value=(None, {"status_code": 404})):
-        with patch.object(GcomAPIClient, "get_instance_info", return_value=({"status": "deleted"}, None)):
-            sync_organization(organization)
+    with patch.object(GcomAPIClient, "get_instance_info", return_value=({"status": "deleted"}, None)):
+        cleanup_organization(organization.id)
 
     with pytest.raises(ObjectDoesNotExist):
         organization.refresh_from_db()

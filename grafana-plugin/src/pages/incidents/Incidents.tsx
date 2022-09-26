@@ -318,7 +318,7 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
       },
       {
         width: '15%',
-        title: 'Source',
+        title: 'Integrations',
         key: 'source',
         render: withSkeleton(this.renderSource),
       },

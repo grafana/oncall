@@ -1,6 +1,7 @@
 import { AppPluginMeta } from '@grafana/data';
 import { getBackendSrv } from '@grafana/runtime';
 import { action, observable } from 'mobx';
+import moment from 'moment-timezone';
 import qs from 'query-string';
 import { OnCallAppSettings } from 'types';
 
@@ -24,6 +25,7 @@ import { SlackStore } from 'models/slack/slack';
 import { SlackChannelStore } from 'models/slack_channel/slack_channel';
 import { TeamStore } from 'models/team/team';
 import { TelegramChannelStore } from 'models/telegram_channel/telegram_channel';
+import { Timezone } from 'models/timezone/timezone.types';
 import { UserStore } from 'models/user/user';
 import { UserGroupStore } from 'models/user_group/user_group';
 import { makeRequest } from 'network';
@@ -37,6 +39,9 @@ import { UserAction } from './userAction';
 export class RootBaseStore {
   @observable
   appLoading = true;
+
+  @observable
+  currentTimezone: Timezone = moment.tz.guess() as Timezone;
 
   @observable
   backendVersion = '';
@@ -84,6 +89,9 @@ export class RootBaseStore {
 
   @observable
   incidentsPage: any = this.initialQuery.p ? Number(this.initialQuery.p) : 1;
+
+  @observable
+  onCallApiUrl: string;
 
   // --------------------------
 
@@ -182,6 +190,8 @@ export class RootBaseStore {
       return;
     }
 
+    this.onCallApiUrl = meta.jsonData.onCallApiUrl;
+
     let syncStartStatus = await this.startSync();
     if (syncStartStatus.is_user_anonymous) {
       this.isUserAnonymous = true;
@@ -215,7 +225,7 @@ export class RootBaseStore {
           this.handleSyncException(e);
         });
 
-      if (counter >= 5) {
+      if (counter >= 10) {
         clearInterval(interval);
         this.retrySync = true;
       }

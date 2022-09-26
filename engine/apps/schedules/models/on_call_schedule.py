@@ -3,6 +3,7 @@ import functools
 import itertools
 
 import icalendar
+import pytz
 from django.apps import apps
 from django.conf import settings
 from django.core.validators import MinLengthValidator
@@ -254,12 +255,20 @@ class OnCallSchedule(PolymorphicModel):
         if not events:
             return []
 
+        def event_start_cmp_key(e):
+            # all day events: compare using a datetime object at 00:00
+            start = e["start"]
+            if not isinstance(start, datetime.datetime):
+                start = datetime.datetime.combine(start, datetime.datetime.min.time(), tzinfo=pytz.UTC)
+            return start
+
         def event_cmp_key(e):
             """Sorting key criteria for events."""
+            start = event_start_cmp_key(e)
             return (
                 -e["calendar_type"] if e["calendar_type"] else 0,  # overrides: 1, shifts: 0, gaps: None
                 -e["priority_level"] if e["priority_level"] else 0,
-                e["start"],
+                start,
             )
 
         def insort_event(eventlist, e):
@@ -314,7 +323,7 @@ class OnCallSchedule(PolymorphicModel):
             if ev["priority_level"] != current_priority:
                 # update scheduled intervals on priority change
                 # and start from the beginning for the new priority level
-                resolved.sort(key=lambda e: e["start"])
+                resolved.sort(key=event_start_cmp_key)
                 intervals = _merge_intervals(resolved)
                 current_interval_idx = 0
                 current_priority = ev["priority_level"]
@@ -367,7 +376,7 @@ class OnCallSchedule(PolymorphicModel):
                 # TODO: switch to bisect insert on python 3.10 (or consider heapq)
                 insort_event(pending, ev)
 
-        resolved.sort(key=lambda e: (e["start"], e["shift"]["pk"]))
+        resolved.sort(key=lambda e: (event_start_cmp_key(e), e["shift"]["pk"] or ""))
         return resolved
 
     def _merge_events(self, events):
@@ -676,6 +685,10 @@ class OnCallScheduleWeb(OnCallSchedule):
                 pass
             else:
                 if update_shift.event_is_started:
+                    custom_shift.rotation_start = max(
+                        custom_shift.rotation_start, timezone.now().replace(microsecond=0)
+                    )
+                    custom_shift.start_rotation_from_user_index = update_shift.start_rotation_from_user_index
                     update_shift.until = custom_shift.rotation_start
                     extra_shifts.append(update_shift)
                 else:
@@ -691,7 +704,9 @@ class OnCallScheduleWeb(OnCallSchedule):
 
         # filter events using a temporal overriden calendar including the not-yet-saved shift
         events = self.filter_events(user_tz, starting_date, days=days, with_empty=True, with_gap=True)
-        shift_events = [e for e in events if e["shift"]["pk"] == custom_shift.public_primary_key]
+        # return preview events for affected shifts
+        updated_shift_pks = {s.public_primary_key for s in extra_shifts}
+        shift_events = [e for e in events if e["shift"]["pk"] in updated_shift_pks]
         final_events = self._resolve_schedule(events)
 
         _invalidate_cache(self, ical_property)

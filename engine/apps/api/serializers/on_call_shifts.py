@@ -70,10 +70,6 @@ class OnCallShiftSerializer(EagerLoadingMixin, serializers.ModelSerializer):
         result = super().to_internal_value(data)
         return result
 
-    def to_representation(self, instance):
-        result = super().to_representation(instance)
-        return result
-
     def validate_by_day(self, by_day):
         if by_day:
             for day in by_day:

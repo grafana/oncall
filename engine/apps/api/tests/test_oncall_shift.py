@@ -412,8 +412,9 @@ def test_update_old_on_call_shift_with_future_version(
     token, user1, user2, organization, schedule = on_call_shift_internal_api_setup
 
     client = APIClient()
-    start_date = (timezone.now() - timezone.timedelta(days=3)).replace(microsecond=0)
-    next_rotation_start_date = start_date + timezone.timedelta(days=5)
+    now = timezone.now().replace(microsecond=0)
+    start_date = now - timezone.timedelta(days=3)
+    next_rotation_start_date = now + timezone.timedelta(days=1)
     updated_duration = timezone.timedelta(hours=4)
 
     title = "Test Shift Rotation"
@@ -422,10 +423,11 @@ def test_update_old_on_call_shift_with_future_version(
         shift_type=CustomOnCallShift.TYPE_ROLLING_USERS_EVENT,
         schedule=schedule,
         title=title,
-        start=start_date,
+        start=next_rotation_start_date,
         duration=timezone.timedelta(hours=3),
         rotation_start=next_rotation_start_date,
         rolling_users=[{user1.pk: user1.public_primary_key}],
+        frequency=CustomOnCallShift.FREQUENCY_DAILY,
     )
     old_on_call_shift = make_on_call_shift(
         schedule.organization,
@@ -438,6 +440,7 @@ def test_update_old_on_call_shift_with_future_version(
         until=next_rotation_start_date,
         rolling_users=[{user1.pk: user1.public_primary_key}],
         updated_shift=new_on_call_shift,
+        frequency=CustomOnCallShift.FREQUENCY_DAILY,
     )
     # update shift_end and priority_level
     data_to_update = {
@@ -445,9 +448,9 @@ def test_update_old_on_call_shift_with_future_version(
         "priority_level": 2,
         "shift_start": start_date.strftime("%Y-%m-%dT%H:%M:%SZ"),
         "shift_end": (start_date + updated_duration).strftime("%Y-%m-%dT%H:%M:%SZ"),
-        "rotation_start": next_rotation_start_date.strftime("%Y-%m-%dT%H:%M:%SZ"),
+        "rotation_start": start_date.strftime("%Y-%m-%dT%H:%M:%SZ"),
         "until": None,
-        "frequency": None,
+        "frequency": CustomOnCallShift.FREQUENCY_DAILY,
         "interval": None,
         "by_day": None,
         "rolling_users": [[user1.public_primary_key]],
@@ -461,6 +464,11 @@ def test_update_old_on_call_shift_with_future_version(
     url = reverse("api-internal:oncall_shifts-detail", kwargs={"pk": old_on_call_shift.public_primary_key})
 
     response = client.put(url, data=data_to_update, format="json", **make_user_auth_headers(user1, token))
+    response_data = response.json()
+
+    for key in ["shift_start", "shift_end", "rotation_start"]:
+        data_to_update.pop(key)
+        response_data.pop(key)
 
     expected_payload = data_to_update | {
         "id": new_on_call_shift.public_primary_key,
@@ -472,10 +480,12 @@ def test_update_old_on_call_shift_with_future_version(
     assert response.status_code == status.HTTP_200_OK
     assert response.json() == expected_payload
 
-    new_on_call_shift.refresh_from_db()
-    # check if the newest version of shift was changed
     assert old_on_call_shift.duration != updated_duration
     assert old_on_call_shift.priority_level != data_to_update["priority_level"]
+    new_on_call_shift.refresh_from_db()
+    # check if the newest version of shift was changed
+    assert new_on_call_shift.start - now < timezone.timedelta(minutes=1)
+    assert new_on_call_shift.rotation_start - now < timezone.timedelta(minutes=1)
     assert new_on_call_shift.duration == updated_duration
     assert new_on_call_shift.priority_level == data_to_update["priority_level"]
 
@@ -1511,7 +1521,7 @@ def test_on_call_shift_preview_update(
 
     now = timezone.now().replace(hour=0, minute=0, second=0, microsecond=0)
     start_date = now - timezone.timedelta(days=7)
-    request_date = start_date
+    tomorrow = now + timezone.timedelta(days=1)
 
     user = make_user_for_organization(organization)
     other_user = make_user_for_organization(organization)
@@ -1530,11 +1540,9 @@ def test_on_call_shift_preview_update(
     )
     on_call_shift.add_rolling_users([[user]])
 
-    url = "{}?date={}&days={}".format(
-        reverse("api-internal:oncall_shifts-preview"), request_date.strftime("%Y-%m-%d"), 1
-    )
-    shift_start = (start_date + timezone.timedelta(hours=10)).strftime("%Y-%m-%dT%H:%M:%SZ")
-    shift_end = (start_date + timezone.timedelta(hours=18)).strftime("%Y-%m-%dT%H:%M:%SZ")
+    url = "{}?date={}&days={}".format(reverse("api-internal:oncall_shifts-preview"), tomorrow.strftime("%Y-%m-%d"), 1)
+    shift_start = (tomorrow + timezone.timedelta(hours=10)).strftime("%Y-%m-%dT%H:%M:%SZ")
+    shift_end = (tomorrow + timezone.timedelta(hours=18)).strftime("%Y-%m-%dT%H:%M:%SZ")
     shift_data = {
         "schedule": schedule.public_primary_key,
         "shift_pk": on_call_shift.public_primary_key,
@@ -1551,39 +1559,43 @@ def test_on_call_shift_preview_update(
 
     # check rotation events
     rotation_events = response.json()["rotation"]
+    assert len(rotation_events) == 4
+    # the final original rotation events are returned and the ID is kept
+    for shift in rotation_events[:3]:
+        assert shift["shift"]["pk"] == on_call_shift.public_primary_key
     # previewing an update does not reuse shift PK if rotation already started
-    shift_pk = rotation_events[0]["shift"]["pk"]
-    assert shift_pk != on_call_shift.public_primary_key
-    expected_rotation_events = [
-        {
-            "calendar_type": OnCallSchedule.TYPE_ICAL_PRIMARY,
-            "shift": {"pk": shift_pk},
-            "start": shift_start,
-            "end": shift_end,
-            "all_day": False,
-            "is_override": False,
-            "is_empty": False,
-            "is_gap": False,
-            "priority_level": 1,
-            "missing_users": [],
-            "users": [{"display_name": other_user.username, "pk": other_user.public_primary_key}],
-            "source": "web",
-        },
-    ]
-    assert rotation_events == expected_rotation_events
+    new_shift_pk = rotation_events[-1]["shift"]["pk"]
+    assert new_shift_pk != on_call_shift.public_primary_key
+    expected_shift_preview = {
+        "calendar_type": OnCallSchedule.TYPE_ICAL_PRIMARY,
+        "shift": {"pk": new_shift_pk},
+        "start": shift_start,
+        "end": shift_end,
+        "all_day": False,
+        "is_override": False,
+        "is_empty": False,
+        "is_gap": False,
+        "priority_level": 1,
+        "missing_users": [],
+        "users": [{"display_name": other_user.username, "pk": other_user.public_primary_key}],
+        "source": "web",
+    }
+    assert rotation_events[-1] == expected_shift_preview
 
     # check final schedule events
     final_events = response.json()["final"]
     expected = (
         # start (h), duration (H), user, priority
+        (0, 1, user.username, 1),  # 0-1 user
+        (4, 1, user.username, 1),  # 4-5 user
         (8, 1, user.username, 1),  # 8-9 user
         (10, 8, other_user.username, 1),  # 10-18 other_user
     )
     expected_events = [
         {
-            "end": (start_date + timezone.timedelta(hours=start + duration)).strftime("%Y-%m-%dT%H:%M:%SZ"),
+            "end": (tomorrow + timezone.timedelta(hours=start + duration)).strftime("%Y-%m-%dT%H:%M:%SZ"),
             "priority_level": priority,
-            "start": (start_date + timezone.timedelta(hours=start, milliseconds=1 if start == 0 else 0)).strftime(
+            "start": (tomorrow + timezone.timedelta(hours=start, milliseconds=1 if start == 0 else 0)).strftime(
                 "%Y-%m-%dT%H:%M:%SZ"
             ),
             "user": user,

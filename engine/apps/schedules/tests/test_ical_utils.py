@@ -1,9 +1,16 @@
+import datetime
 from uuid import uuid4
 
 import pytest
+import pytz
 from django.utils import timezone
 
-from apps.schedules.ical_utils import list_users_to_notify_from_ical, parse_event_uid, users_in_ical
+from apps.schedules.ical_utils import (
+    list_of_oncall_shifts_from_ical,
+    list_users_to_notify_from_ical,
+    parse_event_uid,
+    users_in_ical,
+)
 from apps.schedules.models import CustomOnCallShift, OnCallScheduleCalendar
 from common.constants.role import Role
 
@@ -61,6 +68,29 @@ def test_list_users_to_notify_from_ical_viewers_inclusion(
     else:
         assert len(users_on_call) == 1
         assert set(users_on_call) == {user}
+
+
+@pytest.mark.django_db
+def test_shifts_dict_all_day_middle_event(make_organization, make_schedule, get_ical):
+    calendar = get_ical("calendar_with_all_day_event.ics")
+    organization = make_organization()
+    schedule = make_schedule(organization, schedule_class=OnCallScheduleCalendar)
+    schedule.cached_ical_file_primary = calendar.to_ical()
+
+    day_to_check_iso = "2021-01-27T15:27:14.448059+00:00"
+    parsed_iso_day_to_check = datetime.datetime.fromisoformat(day_to_check_iso).replace(tzinfo=pytz.UTC)
+    requested_date = (parsed_iso_day_to_check - timezone.timedelta(days=1)).date()
+    shifts = list_of_oncall_shifts_from_ical(schedule, requested_date, days=3, with_empty_shifts=True)
+    assert len(shifts) == 4
+    for s in shifts:
+        start = s["start"].date() if isinstance(s["start"], datetime.datetime) else s["start"]
+        end = s["end"].date() if isinstance(s["end"], datetime.datetime) else s["end"]
+        # event started in the given period, or ended in that period, or is happening during the period
+        assert (
+            requested_date <= start <= requested_date + timezone.timedelta(days=3)
+            or requested_date <= end <= requested_date + timezone.timedelta(days=3)
+            or start <= requested_date <= end
+        )
 
 
 def test_parse_event_uid_v1():
