@@ -24,16 +24,13 @@ import { createGrafanaToken, getPluginSyncStatus, startPluginSync, updateGrafana
 import { GRAFANA_LICENSE_OSS } from 'utils/consts';
 import { getItem, setItem } from 'utils/localStorage';
 
+import { constructSyncErrorMessage, constructErrorActionMessage } from './helpers';
+
 import styles from './PluginConfigPage.module.css';
 
 const cx = cn.bind(styles);
 
 interface Props extends PluginConfigPageProps<AppPluginMeta<OnCallAppSettings>> {}
-
-const constructSyncErrorMessage = (errMsg: string, url?: string): string =>
-  `${url ? `${url}\n` : ''}${errMsg}`;
-const constructErrorActionMessage = (msg?: string): string =>
-  `Try removing your current configuration, ${msg ? msg : 'double checking your settings'}, and re-initializing the plugin.\nBy removing your current configuration, you will need to ensure that you regenerate a new invite token, and input this in your new configuration.`
 
 export const PluginConfigPage = (props: Props) => {
   const { plugin } = props;
