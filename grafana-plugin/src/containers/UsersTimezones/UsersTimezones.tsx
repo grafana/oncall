@@ -260,6 +260,8 @@ const AvatarGroup = (props: AvatarGroupProps) => {
             >
               <ColorfulUserCircle
                 colors={['red']}
+                width={32}
+                height={32}
                 renderAvatar={() => <Avatar src={user.avatar} size="large" />}
                 renderIcon={() => (isOncall ? <IsOncallIcon className={cx('is-oncall-icon')} /> : null)}
               ></ColorfulUserCircle>

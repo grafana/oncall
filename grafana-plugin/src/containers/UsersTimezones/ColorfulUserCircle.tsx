@@ -8,9 +8,13 @@ const cx = cn.bind(styles);
 export default function ColorfulUserCircle({
   colors,
   renderAvatar,
-  renderIcon
+  renderIcon,
+  width,
+  height,
 }: {
   colors: string[];
+  width: number;
+  height: number;
   renderAvatar: () => JSX.Element;
   renderIcon: () => JSX.Element;
 }) {
@@ -18,7 +22,7 @@ export default function ColorfulUserCircle({
 
   return (
     <div className={cx('root')}>
-      <svg xmlns="http://www.w3.org/2000/svg" version="1.1" width="100%" height="100%" viewBox="-10 -10 220 220">
+      <svg xmlns="http://www.w3.org/2000/svg" version="1.1" width={width} height={height} viewBox="-10 -10 220 220">
         <g fill="none" stroke-width="15" transform="translate(100,100)">
           {renderColorPaths(colors)}
         </g>
