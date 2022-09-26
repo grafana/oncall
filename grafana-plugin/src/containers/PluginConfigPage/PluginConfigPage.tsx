@@ -221,10 +221,6 @@ export const PluginConfigPage = (props: Props) => {
           </pre>
 
           <HorizontalGroup>
-            {/* <p>{'Plugin <-> backend connection status'}</p>
-              <pre>
-                <Text type="link">{pluginStatusMessage}</Text>
-              </pre> */}
             {retrySync && (
               <Button variant="primary" onClick={startSync} size="md">
                 Retry
