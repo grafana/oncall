@@ -34,7 +34,7 @@ export default function ColorfulUserCircle({
     return (
       <>
         <svg xmlns="http://www.w3.org/2000/svg" version="1.1" width={width} height={height} viewBox="-10 -10 220 220">
-          <g fill="none" strokeWidth="15" transform="translate(100,100)">
+          <g fill="none" strokeWidth="20" transform="translate(100,100)">
             {renderColorPaths(colors)}
           </g>
         </svg>

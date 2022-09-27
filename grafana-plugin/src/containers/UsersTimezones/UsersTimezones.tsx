@@ -12,7 +12,6 @@ import Text from 'components/Text/Text';
 import { findColor } from 'containers/Rotations/Rotations.helpers';
 import { IsOncallIcon } from 'icons';
 import { getColor, getFromString, getOverrideColor } from 'models/schedule/schedule.helpers';
-
 import { Event, Layer } from 'models/schedule/schedule.types';
 import { Timezone } from 'models/timezone/timezone.types';
 import { User } from 'models/user/user.types';
@@ -23,8 +22,6 @@ import { useStore } from 'state/useStore';
 import ColorfulUserCircle from './ColorfulUserCircle';
 
 import styles from './UsersTimezones.module.css';
-
-
 
 interface UsersTimezonesProps {
   userIds: Array<User['pk']>;
@@ -326,7 +323,9 @@ function getColorSchemeMappingForUsers(store: RootStore, scheduleId: string): { 
 
   const usersColorSchemeHash: { [userId: string]: Set<string> } = {};
 
-  if (!shifts?.length || !layers?.length) {return usersColorSchemeHash;}
+  if (!shifts?.length || !layers?.length) {
+    return usersColorSchemeHash;
+  }
 
   shifts.forEach(({ shiftId, events }) => populateUserHashSet(events, shiftId, false));
   shifts.forEach(({ events }, rotationIndex) => populateUserHashSet(events, rotationIndex, true));

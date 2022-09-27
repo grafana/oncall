@@ -11,6 +11,7 @@ import {
   ToolbarButton,
   Icon,
   Field,
+  LoadingPlaceholder,
 } from '@grafana/ui';
 import cn from 'classnames/bind';
 import dayjs from 'dayjs';
@@ -48,6 +49,7 @@ interface SchedulePageState {
   renderType: string;
   shiftIdToShowRotationForm?: Shift['id'];
   shiftIdToShowOverridesForm?: Shift['id'];
+  isLoading: boolean;
 }
 
 const INITIAL_TIMEZONE = 'UTC'; // todo check why doesn't work
@@ -64,28 +66,27 @@ class SchedulePage extends React.Component<SchedulePageProps, SchedulePageState>
       renderType: 'timeline',
       shiftIdToShowRotationForm: undefined,
       shiftIdToShowOverridesForm: undefined,
+      isLoading: true,
     };
   }
 
   async componentDidMount() {
     const { store } = this.props;
-    const { startMoment } = this.state;
-
-    /*if (!store.hasFeature(AppFeature.WebSchedules)) {
-      getLocationSrv().update({ query: { page: 'schedules' } });
-    }*/
-
-    store.userStore.updateItems();
-
     const {
       query: { id },
     } = this.props;
 
-    store.scheduleStore.updateFrequencyOptions();
-    store.scheduleStore.updateDaysOptions();
-    await store.scheduleStore.updateOncallShifts(id); // TODO we should know shifts to render Rotations
+    await Promise.all([
+      store.userStore.updateItems(),
 
-    this.updateEvents();
+      store.scheduleStore.updateFrequencyOptions(),
+      store.scheduleStore.updateDaysOptions(),
+
+      store.scheduleStore.updateOncallShifts(id), // TODO we should know shifts to render Rotations
+      this.updateEvents(),
+    ]);
+
+    this.setState({ isLoading: false });
   }
 
   componentWillUnmount() {
@@ -95,16 +96,14 @@ class SchedulePage extends React.Component<SchedulePageProps, SchedulePageState>
   }
 
   render() {
-    const { store } = this.props;
-    const { startMoment, shiftIdToShowRotationForm, shiftIdToShowOverridesForm } = this.state;
-    const { query } = this.props;
-    const { id: scheduleId } = query;
-
-    const users = store.userStore.getSearchResult().results;
-
+    const { query: { id: scheduleId }, store } = this.props;
+    const { isLoading, startMoment, shiftIdToShowRotationForm, shiftIdToShowOverridesForm } = this.state;
     const { scheduleStore, currentTimezone } = store;
 
+    const users = store.userStore.getSearchResult().results;
     const schedule = scheduleStore.items[scheduleId];
+
+    if (isLoading) {return <LoadingPlaceholder text="Loading..." />}
 
     return (
       <div className={cx('root')}>
@@ -167,7 +166,6 @@ class SchedulePage extends React.Component<SchedulePageProps, SchedulePageState>
               </HorizontalGroup>
             </HorizontalGroup>
           </div>
-          {/* <div className={'current-time'} />*/}
           <div className={cx('rotations')}>
             <ScheduleFinal
               scheduleId={scheduleId}
