@@ -29,7 +29,6 @@ const cx = cn.bind(styles);
 interface RotationsProps extends WithStoreProps {
   startMoment: dayjs.Dayjs;
   currentTimezone: Timezone;
-  scheduleId: Schedule['id'];
   shiftIdToShowRotationForm?: Shift['id'] | 'new';
   onShowRotationForm: (shiftId: Shift['id'] | 'new') => void;
   onClick: (id: Shift['id'] | 'new') => void;
@@ -51,18 +50,9 @@ class Rotations extends Component<RotationsProps, RotationsState> {
   };
 
   render() {
-    const {
-      scheduleId,
-      startMoment,
-      currentTimezone,
-      onCreate,
-      onUpdate,
-      onDelete,
-      store,
-      onClick,
-      shiftIdToShowRotationForm,
-    } = this.props;
+    const { startMoment, currentTimezone, onCreate, onUpdate, onDelete, store, shiftIdToShowRotationForm } = this.props;
     const { layerPriority, shiftMomentToShowRotationForm } = this.state;
+    const { scheduleId } = store.scheduleStore;
 
     const base = 7 * 24 * 60; // in minutes
     const diff = dayjs().tz(currentTimezone).diff(startMoment, 'minutes');

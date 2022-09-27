@@ -26,7 +26,6 @@ const cx = cn.bind(styles);
 interface ScheduleOverridesProps extends WithStoreProps {
   startMoment: dayjs.Dayjs;
   currentTimezone: Timezone;
-  scheduleId: Schedule['id'];
   shiftIdToShowRotationForm?: Shift['id'] | 'new';
   onShowRotationForm: (shiftId: Shift['id'] | 'new') => void;
   onCreate: () => void;
@@ -45,9 +44,10 @@ class ScheduleOverrides extends Component<ScheduleOverridesProps, ScheduleOverri
   };
 
   render() {
-    const { scheduleId, startMoment, currentTimezone, onCreate, onUpdate, onDelete, store, shiftIdToShowRotationForm } =
+    const { startMoment, currentTimezone, onCreate, onUpdate, onDelete, store, shiftIdToShowRotationForm } =
       this.props;
     const { shiftMomentToShowOverrideForm } = this.state;
+    const { scheduleId } = store.scheduleStore;
 
     const shifts = store.scheduleStore.overridePreview
       ? store.scheduleStore.overridePreview

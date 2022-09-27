@@ -86,6 +86,8 @@ class SchedulePage extends React.Component<SchedulePageProps, SchedulePageState>
       this.updateEvents(),
     ]);
 
+    store.scheduleStore.scheduleId = id;
+
     this.setState({ isLoading: false });
   }
 
@@ -93,6 +95,7 @@ class SchedulePage extends React.Component<SchedulePageProps, SchedulePageState>
     const { store } = this.props;
 
     store.scheduleStore.clearPreview();
+    store.scheduleStore.scheduleId = undefined
   }
 
   render() {
@@ -143,7 +146,6 @@ class SchedulePage extends React.Component<SchedulePageProps, SchedulePageState>
               }
               tz={currentTimezone}
               onTzChange={this.handleTimezoneChange}
-              scheduleId={scheduleId}
             />
           </div>
           <div className={cx('controls')}>
@@ -168,13 +170,11 @@ class SchedulePage extends React.Component<SchedulePageProps, SchedulePageState>
           </div>
           <div className={cx('rotations')}>
             <ScheduleFinal
-              scheduleId={scheduleId}
               currentTimezone={currentTimezone}
               startMoment={startMoment}
               onClick={this.handleShowForm}
             />
             <Rotations
-              scheduleId={scheduleId}
               currentTimezone={currentTimezone}
               startMoment={startMoment}
               onCreate={this.handleCreateRotation}
@@ -184,7 +184,6 @@ class SchedulePage extends React.Component<SchedulePageProps, SchedulePageState>
               onShowRotationForm={this.handleShowRotationForm}
             />
             <ScheduleOverrides
-              scheduleId={scheduleId}
               currentTimezone={currentTimezone}
               startMoment={startMoment}
               onCreate={this.handleCreateOverride}

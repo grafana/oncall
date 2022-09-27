@@ -24,7 +24,6 @@ const cx = cn.bind(styles);
 interface ScheduleFinalProps extends WithStoreProps {
   startMoment: dayjs.Dayjs;
   currentTimezone: Timezone;
-  scheduleId: Schedule['id'];
   hideHeader?: boolean;
   onClick: (shiftId: Shift['id']) => void;
 }
@@ -40,8 +39,8 @@ class ScheduleFinal extends Component<ScheduleFinalProps, ScheduleOverridesState
   };
 
   render() {
-    const { scheduleId, startMoment, currentTimezone, store, hideHeader } = this.props;
-    const { searchTerm } = this.state;
+    const { startMoment, currentTimezone, store, hideHeader } = this.props;
+    const { scheduleId } = store.scheduleStore;
 
     const base = 7 * 24 * 60; // in minutes
     const diff = dayjs().tz(currentTimezone).diff(startMoment, 'minutes');
@@ -71,12 +70,6 @@ class ScheduleFinal extends Component<ScheduleFinalProps, ScheduleOverridesState
             <div className={cx('header')}>
               <HorizontalGroup justify="space-between">
                 <div className={cx('title')}>Final schedule</div>
-                {/*<Input
-                  prefix={<Icon name="search" />}
-                  placeholder="Search..."
-                  value={searchTerm}
-                  onChange={this.onSearchTermChangeCallback}
-                />*/}
               </HorizontalGroup>
             </div>
           )}

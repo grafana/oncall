@@ -26,7 +26,6 @@ interface UsersTimezonesProps {
   userIds: Array<User['pk']>;
   tz: Timezone;
   onCallNow: Array<Partial<User>>;
-  scheduleId: string;
 
   onTzChange: (tz: Timezone) => void;
 }
@@ -38,9 +37,10 @@ const hoursToSplit = 3;
 const jLimit = 24 / hoursToSplit;
 
 const UsersTimezones: FC<UsersTimezonesProps> = (props) => {
-  const { userIds, tz, onTzChange, onCallNow, scheduleId } = props;
-
   const store = useStore();
+
+  const { userIds, tz, onTzChange, onCallNow } = props;
+  const { scheduleId } = store.scheduleStore;
 
   useEffect(() => {
     userIds.forEach((userId) => {

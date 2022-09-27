@@ -76,6 +76,9 @@ export class ScheduleStore extends BaseStore {
   @observable
   byDayOptions: SelectOption[];
 
+  @observable
+  scheduleId: string;
+
   constructor(rootStore: RootStore) {
     super(rootStore);
 
