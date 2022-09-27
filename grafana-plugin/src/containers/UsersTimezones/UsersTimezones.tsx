@@ -7,6 +7,7 @@ import { toJS } from 'mobx';
 import moment from 'moment';
 
 import Avatar from 'components/Avatar/Avatar';
+import ScheduleBorderedAvatar from 'components/ScheduleBorderedAvatar/ScheduleBorderedAvatar';
 import ScheduleUserDetails from 'components/ScheduleUserDetails/ScheduleUserDetails';
 import Text from 'components/Text/Text';
 import { findColor } from 'containers/Rotations/Rotations.helpers';
@@ -18,8 +19,6 @@ import { User } from 'models/user/user.types';
 import { getStartOfWeek } from 'pages/schedule/Schedule.helpers';
 import { RootStore } from 'state';
 import { useStore } from 'state/useStore';
-
-import ColorfulUserCircle from './ColorfulUserCircle';
 
 import styles from './UsersTimezones.module.css';
 
@@ -281,13 +280,13 @@ const AvatarGroup = (props: AvatarGroupProps) => {
               }}
               onClick={getAvatarClickHandler(user.timezone)}
             >
-              <ColorfulUserCircle
+              <ScheduleBorderedAvatar
                 colors={colorSchemeList}
                 width={32}
                 height={32}
                 renderAvatar={() => <Avatar src={user.avatar} size="large" />}
                 renderIcon={() => (isOncall ? <IsOncallIcon className={cx('is-oncall-icon')} /> : null)}
-              ></ColorfulUserCircle>
+              ></ScheduleBorderedAvatar>
             </div>
           </Tooltip>
         );

@@ -2,11 +2,11 @@ import React from 'react';
 
 import cn from 'classnames/bind';
 
-import styles from './ColorfulUserCircle.module.scss';
+import styles from './ScheduleBorderedAvatar.module.scss';
 
 const cx = cn.bind(styles);
 
-export default function ColorfulUserCircle({
+export default function ScheduleBorderedAvatar({
   colors,
   renderAvatar,
   renderIcon,
@@ -34,7 +34,7 @@ export default function ColorfulUserCircle({
     return (
       <>
         <svg xmlns="http://www.w3.org/2000/svg" version="1.1" width={width} height={height} viewBox="-10 -10 220 220">
-          <g fill="none" strokeWidth="20" transform="translate(100,100)">
+          <g fill="none" strokeWidth="35" transform="translate(100,100)">
             {renderColorPaths(colors)}
           </g>
         </svg>
@@ -45,7 +45,9 @@ export default function ColorfulUserCircle({
 
   function renderColorPaths(colors: string[]) {
     const colorSchemeList = colors;
-    if (colors.length === 1) {colorSchemeList.push(colors[0]);}
+    if (colors.length === 1) { // minimum is 2 arcs to round the circle
+      colorSchemeList.push(colors[0]);
+    }
 
     const stepAngle = (2 * Math.PI) / colors.length;
     const radius = 100;
