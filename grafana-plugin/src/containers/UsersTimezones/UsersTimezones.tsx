@@ -3,23 +3,36 @@ import React, { FC, useCallback, useEffect, useMemo, useState } from 'react';
 import { HorizontalGroup, InlineSwitch, Tooltip } from '@grafana/ui';
 import cn from 'classnames/bind';
 import dayjs from 'dayjs';
+import { toJS } from 'mobx';
+import moment from 'moment';
 
 import Avatar from 'components/Avatar/Avatar';
 import ScheduleUserDetails from 'components/ScheduleUserDetails/ScheduleUserDetails';
 import Text from 'components/Text/Text';
+import { findColor } from 'containers/Rotations/Rotations.helpers';
 import { IsOncallIcon } from 'icons';
+import { getColor, getFromString, getOverrideColor } from 'models/schedule/schedule.helpers';
+
+import { Event, Layer } from 'models/schedule/schedule.types';
 import { Timezone } from 'models/timezone/timezone.types';
 import { User } from 'models/user/user.types';
+import { getStartOfWeek } from 'pages/schedule/Schedule.helpers';
+import { RootStore } from 'state';
 import { useStore } from 'state/useStore';
 
-import styles from './UsersTimezones.module.css';
 import ColorfulUserCircle from './ColorfulUserCircle';
+
+import styles from './UsersTimezones.module.css';
+
+
 
 interface UsersTimezonesProps {
   userIds: Array<User['pk']>;
   tz: Timezone;
-  onTzChange: (tz: Timezone) => void;
   onCallNow: Array<Partial<User>>;
+  scheduleId: string;
+
+  onTzChange: (tz: Timezone) => void;
 }
 
 const cx = cn.bind(styles);
@@ -29,7 +42,7 @@ const hoursToSplit = 3;
 const jLimit = 24 / hoursToSplit;
 
 const UsersTimezones: FC<UsersTimezonesProps> = (props) => {
-  const { userIds, tz, onTzChange, onCallNow } = props;
+  const { userIds, tz, onTzChange, onCallNow, scheduleId } = props;
 
   const store = useStore();
 
@@ -87,7 +100,13 @@ const UsersTimezones: FC<UsersTimezonesProps> = (props) => {
       </div>
       <div className={cx('users')}>
         <div className={cx('current-time')} style={{ left: `${currentTimeX}%` }} />
-        <UserAvatars users={users} onCallNow={onCallNow} onTzChange={onTzChange} currentMoment={currentMoment} />
+        <UserAvatars
+          users={users}
+          onCallNow={onCallNow}
+          onTzChange={onTzChange}
+          currentMoment={currentMoment}
+          scheduleId={scheduleId}
+        />
       </div>
       <div className={cx('time-stripe')}>
         <div className={cx('current-user-stripe')} />
@@ -115,12 +134,13 @@ const UsersTimezones: FC<UsersTimezonesProps> = (props) => {
 interface UserAvatarsProps {
   users: User[];
   currentMoment: dayjs.Dayjs;
+  scheduleId: string;
   onTzChange: (timezone: Timezone) => void;
   onCallNow: Array<Partial<User>>;
 }
 
 const UserAvatars = (props: UserAvatarsProps) => {
-  const { users, currentMoment, onTzChange, onCallNow } = props;
+  const { users, currentMoment, onTzChange, onCallNow, scheduleId } = props;
   const userGroups = useMemo(() => {
     return users
       .reduce((memo, user) => {
@@ -165,6 +185,7 @@ const UserAvatars = (props: UserAvatarsProps) => {
             xPos={xPos}
             users={group.users}
             currentMoment={currentMoment}
+            scheduleId={scheduleId}
             onCallNow={onCallNow}
           />
         );
@@ -178,6 +199,7 @@ interface AvatarGroupProps {
   xPos: number;
   currentMoment: dayjs.Dayjs;
   utcOffset: number;
+  scheduleId: string;
   onSetActiveUtcOffset: (utcOffset: number | undefined) => void;
   activeUtcOffset: number;
   onTzChange: (timezone: Timezone) => void;
@@ -198,7 +220,10 @@ const AvatarGroup = (props: AvatarGroupProps) => {
     onSetActiveUtcOffset,
     activeUtcOffset,
     onCallNow,
+    scheduleId,
   } = props;
+
+  const store = useStore();
 
   const active = !isNaN(activeUtcOffset) && activeUtcOffset === utcOffset;
 
@@ -226,6 +251,7 @@ const AvatarGroup = (props: AvatarGroupProps) => {
     };
   }, []);
 
+  const colorSchemeMapping = getColorSchemeMappingForUsers(store, scheduleId);
   const width = active ? users.length * AVATAR_WIDTH + (users.length - 1) * AVATAR_GAP : AVATAR_WIDTH;
 
   return (
@@ -239,6 +265,7 @@ const AvatarGroup = (props: AvatarGroupProps) => {
     >
       {users.map((user, index, array) => {
         const isOncall = onCallNow.some((onCallUser) => user.pk === onCallUser.pk);
+        const colorSchemeList = colorSchemeMapping[user.pk] ? Array.from(colorSchemeMapping[user.pk]) : [];
 
         return (
           <Tooltip
@@ -254,12 +281,11 @@ const AvatarGroup = (props: AvatarGroupProps) => {
                 opacity: active ? 1 : Math.max(1 - index * 0.25, 0.25),
                 visibility: !active && index >= LIMIT ? 'hidden' : 'visible',
                 zIndex: array.length - index - 1,
-                /* opacity: userHour >= 9 && userHour < 18 ? 1 : 0.5,*/
               }}
               onClick={getAvatarClickHandler(user.timezone)}
             >
               <ColorfulUserCircle
-                colors={['red']}
+                colors={colorSchemeList}
                 width={32}
                 height={32}
                 renderAvatar={() => <Avatar src={user.avatar} size="large" />}
@@ -282,5 +308,44 @@ const AvatarGroup = (props: AvatarGroupProps) => {
     </div>
   );
 };
+
+function getColorSchemeMappingForUsers(store: RootStore, scheduleId: string): { [userId: string]: Set<string> } {
+  const startMoment = getStartOfWeek(store.currentTimezone);
+
+  const shifts: Array<{ shiftId: string; events: Event[] }> = false
+    ? store.scheduleStore.finalPreview
+    : (store.scheduleStore.events[scheduleId]?.['final']?.[getFromString(startMoment)] as any);
+
+  const layers = store.scheduleStore.rotationPreview
+    ? store.scheduleStore.rotationPreview
+    : (store.scheduleStore.events[scheduleId]?.['rotation']?.[getFromString(startMoment)] as Layer[]);
+
+  const overrides = store.scheduleStore.overridePreview
+    ? store.scheduleStore.overridePreview
+    : store.scheduleStore.events[scheduleId]?.['override']?.[getFromString(startMoment)];
+
+  const usersColorSchemeHash: { [userId: string]: Set<string> } = {};
+
+  if (!shifts?.length || !layers?.length) {return usersColorSchemeHash;}
+
+  shifts.forEach(({ shiftId, events }) => populateUserHashSet(events, shiftId, false));
+  shifts.forEach(({ events }, rotationIndex) => populateUserHashSet(events, rotationIndex, true));
+
+  return usersColorSchemeHash;
+
+  function populateUserHashSet(events: Event[], id: string | number, isOverride: boolean) {
+    events.forEach((event) => {
+      event.users.forEach((user) => {
+        if (!usersColorSchemeHash[user.pk]) {
+          usersColorSchemeHash[user.pk] = new Set<string>();
+        }
+
+        usersColorSchemeHash[user.pk].add(
+          isOverride ? getOverrideColor(id as number) : findColor(id as string, layers, overrides)
+        );
+      });
+    });
+  }
+}
 
 export default UsersTimezones;

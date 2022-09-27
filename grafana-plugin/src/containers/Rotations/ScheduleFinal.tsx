@@ -64,9 +64,6 @@ class ScheduleFinal extends Component<ScheduleFinalProps, ScheduleOverridesState
       : store.scheduleStore.events[scheduleId]?.['override']?.[getFromString(startMoment)];
     const currentTimeHidden = currentTimeX < 0 || currentTimeX > 1;
 
-    /* console.log('shifts', toJS(shifts));
-    console.log('layers', toJS(layers)); */
-
     return (
       <>
         <div className={cx('root')}>

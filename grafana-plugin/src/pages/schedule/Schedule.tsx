@@ -96,8 +96,7 @@ class SchedulePage extends React.Component<SchedulePageProps, SchedulePageState>
 
   render() {
     const { store } = this.props;
-    const { startMoment, schedulePeriodType, renderType, shiftIdToShowRotationForm, shiftIdToShowOverridesForm } =
-      this.state;
+    const { startMoment, shiftIdToShowRotationForm, shiftIdToShowOverridesForm } = this.state;
     const { query } = this.props;
     const { id: scheduleId } = query;
 
@@ -119,26 +118,6 @@ class SchedulePage extends React.Component<SchedulePageProps, SchedulePageState>
                 <Text.Title editable editModalTitle="Schedule name" level={3} onTextChange={this.handleNameChange}>
                   {schedule?.name}
                 </Text.Title>
-                {/*<ScheduleCounter
-                  type="link"
-                  count={5}
-                  tooltipTitle="Used in escalations"
-                  tooltipContent={
-                    <>
-                      <PluginLink query={{ page: 'integrations', id: 'CXBEG63MBJMDL' }}>Grafana 1</PluginLink>
-                      <br />
-                      <PluginLink query={{ page: 'integrations', id: 'CXBEG63MBJMDL' }}>Grafana 2</PluginLink>
-                      <br />
-                      <PluginLink query={{ page: 'integrations', id: 'CXBEG63MBJMDL' }}>Grafana 3</PluginLink>
-                    </>
-                  }
-                />
-                <ScheduleCounter
-                  type="warning"
-                  count={2}
-                  tooltipTitle="Warnings"
-                  tooltipContent="Schedule has unassigned time periods during next 7 days"
-                />*/}
               </HorizontalGroup>
               <HorizontalGroup>
                 {users && (
@@ -147,11 +126,6 @@ class SchedulePage extends React.Component<SchedulePageProps, SchedulePageState>
                     <UserTimezoneSelect value={currentTimezone} users={users} onChange={this.handleTimezoneChange} />
                   </HorizontalGroup>
                 )}
-                {/*<ScheduleQuality quality={0.89} />*/}
-                {/*<ToolbarButton icon="copy" tooltip="Copy" />
-                <ToolbarButton icon="brackets-curly" tooltip="Code" />
-                <ToolbarButton icon="share-alt" tooltip="Share" />
-                <ToolbarButton icon="cog" tooltip="Settings" />*/}
                 <WithConfirm>
                   <ToolbarButton icon="trash-alt" tooltip="Delete" onClick={this.handleDelete} />
                 </WithConfirm>
@@ -170,6 +144,7 @@ class SchedulePage extends React.Component<SchedulePageProps, SchedulePageState>
               }
               tz={currentTimezone}
               onTzChange={this.handleTimezoneChange}
+              scheduleId={scheduleId}
             />
           </div>
           <div className={cx('controls')}>
@@ -190,32 +165,6 @@ class SchedulePage extends React.Component<SchedulePageProps, SchedulePageState>
                   {startMoment.format('DD MMM')} - {startMoment.add(6, 'day').format('DD MMM')}
                 </div>
               </HorizontalGroup>
-              {/*<HorizontalGroup width="auto">
-                <RadioButtonGroup
-                  options={[
-                    { label: 'Day', value: 'day' },
-                    {
-                      label: 'Week',
-                      value: 'week',
-                    },
-                    { label: 'Month', value: 'month' },
-                    { label: 'Custom', value: 'custom' },
-                  ]}
-                  value={schedulePeriodType}
-                  onChange={this.handleShedulePeriodTypeChange}
-                />
-                <RadioButtonGroup
-                  options={[
-                    { label: 'Timeline', value: 'timeline' },
-                    {
-                      label: 'Grid',
-                      value: 'grid',
-                    },
-                  ]}
-                  value={renderType}
-                  onChange={this.handleRenderTypeChange}
-                />
-              </HorizontalGroup>*/}
             </HorizontalGroup>
           </div>
           {/* <div className={'current-time'} />*/}

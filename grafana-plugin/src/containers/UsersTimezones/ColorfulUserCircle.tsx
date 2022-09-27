@@ -1,5 +1,6 @@
-import cn from 'classnames/bind';
 import React from 'react';
+
+import cn from 'classnames/bind';
 
 import styles from './ColorfulUserCircle.module.scss';
 
@@ -18,23 +19,33 @@ export default function ColorfulUserCircle({
   renderAvatar: () => JSX.Element;
   renderIcon: () => JSX.Element;
 }) {
-  if (!colors?.length) return null;
+  return <div className={cx('root')}>{colors?.length ? renderSVG() : renderAvatarIcon()}</div>;
 
-  return (
-    <div className={cx('root')}>
-      <svg xmlns="http://www.w3.org/2000/svg" version="1.1" width={width} height={height} viewBox="-10 -10 220 220">
-        <g fill="none" stroke-width="15" transform="translate(100,100)">
-          {renderColorPaths(colors)}
-        </g>
-      </svg>
-      <div className={cx('avatar')}>{renderAvatar()}</div>
-      <div className={cx('icon')}>{renderIcon()}</div>
-    </div>
-  );
+  function renderAvatarIcon() {
+    return (
+      <>
+        <div className={cx('avatar')}>{renderAvatar()}</div>
+        <div className={cx('icon')}>{renderIcon()}</div>
+      </>
+    );
+  }
+
+  function renderSVG() {
+    return (
+      <>
+        <svg xmlns="http://www.w3.org/2000/svg" version="1.1" width={width} height={height} viewBox="-10 -10 220 220">
+          <g fill="none" strokeWidth="15" transform="translate(100,100)">
+            {renderColorPaths(colors)}
+          </g>
+        </svg>
+        {renderAvatarIcon()}
+      </>
+    );
+  }
 
   function renderColorPaths(colors: string[]) {
     const colorSchemeList = colors;
-    if (colors.length === 1) colorSchemeList.push(colors[0]);
+    if (colors.length === 1) {colorSchemeList.push(colors[0]);}
 
     const stepAngle = (2 * Math.PI) / colors.length;
     const radius = 100;
