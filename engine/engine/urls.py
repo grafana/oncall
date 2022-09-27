@@ -59,6 +59,12 @@ if settings.OSS_INSTALLATION:
         path("api/internal/v1/", include("apps.oss_installation.urls")),
     ]
 
+
+urlpatterns += [
+    path("api/internal/v1/dnotify/", include("apps.dnotify.urls")),
+]
+
+
 if settings.DEBUG:
     import debug_toolbar
 

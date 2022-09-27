@@ -6,6 +6,7 @@ import cn from 'classnames/bind';
 import VerticalTabsBar, { VerticalTab } from 'components/VerticalTabsBar/VerticalTabsBar';
 import { ChatOpsTab } from 'pages/chat-ops/ChatOps.types';
 
+import DesktopSettings from './tabs/DesktopSettings/DesktopSettings';
 import SlackSettings from './tabs/SlackSettings/SlackSettings';
 import TelegramSettings from './tabs/TelegramSettings/TelegramSettings';
 
@@ -35,6 +36,12 @@ export const Tabs = (props: TabsProps) => {
           Telegram
         </HorizontalGroup>
       </VerticalTab>
+      <VerticalTab id={ChatOpsTab.Desktop}>
+        <HorizontalGroup>
+          <Icon name="exclamation-circle" />
+          Desktop notifications
+        </HorizontalGroup>
+      </VerticalTab>
     </VerticalTabsBar>
   );
 };
@@ -56,6 +63,11 @@ export const TabsContent = (props: TabsContentProps) => {
       {activeTab === ChatOpsTab.Telegram && (
         <div className={cx('messenger-settings')}>
           <TelegramSettings />
+        </div>
+      )}
+      {activeTab === ChatOpsTab.Desktop && (
+        <div className={cx('messenger-settings')}>
+          <DesktopSettings />
         </div>
       )}
     </>

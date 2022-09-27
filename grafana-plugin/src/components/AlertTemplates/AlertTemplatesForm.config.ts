@@ -72,6 +72,14 @@ export const templatesToRender: Template[] = [
     name: 'source_link_template',
     group: 'alert behaviour',
   },
+  {
+    name: 'desktopdemo_title_template',
+    group: 'Desktop',
+  },
+  {
+    name: 'desktopdemo_message_template',
+    group: 'Desktop',
+  },
 ];
 
 export const FORM_NAME = 'AlertTemplates';

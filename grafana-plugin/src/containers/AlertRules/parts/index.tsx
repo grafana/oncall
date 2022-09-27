@@ -4,6 +4,7 @@ import { VerticalGroup } from '@grafana/ui';
 import cn from 'classnames/bind';
 
 import Timeline from 'components/Timeline/Timeline';
+import DesktopConnector from 'containers/AlertRules/parts/connectors/DesktopConnector';
 import SlackConnector from 'containers/AlertRules/parts/connectors/SlackConnector';
 import TelegramConnector from 'containers/AlertRules/parts/connectors/TelegramConnector';
 import { ChannelFilter } from 'models/channel_filter';
@@ -25,8 +26,9 @@ export const ChatOpsConnectors = (props: ChatOpsConnectorsProps) => {
 
   const isSlackInstalled = Boolean(store.teamStore.currentTeam?.slack_team_identity);
   const isTelegramInstalled = Boolean(telegramChannelStore.currentTeamToTelegramChannel?.length > 0);
+  const isDesktopInstalled = true;
 
-  if (!isSlackInstalled && !isTelegramInstalled) {
+  if (!isSlackInstalled && !isTelegramInstalled && !isDesktopInstalled) {
     return null;
   }
 
@@ -35,6 +37,7 @@ export const ChatOpsConnectors = (props: ChatOpsConnectorsProps) => {
       <VerticalGroup>
         {isSlackInstalled && <SlackConnector channelFilterId={channelFilterId} />}
         {isTelegramInstalled && <TelegramConnector channelFilterId={channelFilterId} />}
+        {isDesktopInstalled && <DesktopConnector channelFilterId={channelFilterId} />}
       </VerticalGroup>
     </Timeline.Item>
   );

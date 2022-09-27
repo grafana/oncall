@@ -11,6 +11,7 @@ import { AlertReceiveChannelFiltersStore } from 'models/alert_receive_channel_fi
 import { AlertGroupStore } from 'models/alertgroup/alertgroup';
 import { ApiTokenStore } from 'models/api_token/api_token';
 import { CloudStore } from 'models/cloud/cloud';
+import { DesktopChannelStore } from 'models/desktop_channel/desktop_channel';
 import { EscalationChainStore } from 'models/escalation_chain/escalation_chain';
 import { EscalationPolicyStore } from 'models/escalation_policy/escalation_policy';
 import { GlobalSettingStore } from 'models/global_setting/global_setting';
@@ -104,6 +105,7 @@ export class RootBaseStore {
   escalationChainStore: EscalationChainStore = new EscalationChainStore(this);
   escalationPolicyStore: EscalationPolicyStore = new EscalationPolicyStore(this);
   teamStore: TeamStore = new TeamStore(this);
+  desktopChannelStore: DesktopChannelStore = new DesktopChannelStore(this);
   telegramChannelStore: TelegramChannelStore = new TelegramChannelStore(this);
   slackStore: SlackStore = new SlackStore(this);
   slackChannelStore: SlackChannelStore = new SlackChannelStore(this);
