@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 
-import { Field, HorizontalGroup, LoadingPlaceholder, VerticalGroup } from '@grafana/ui';
+import { Field, HorizontalGroup, LoadingPlaceholder, VerticalGroup, Icon, Button } from '@grafana/ui';
 import cn from 'classnames/bind';
 import { observer } from 'mobx-react';
 
@@ -8,10 +8,12 @@ import PluginLink from 'components/PluginLink/PluginLink';
 import Text from 'components/Text/Text';
 import Tutorial from 'components/Tutorial/Tutorial';
 import { TutorialStep } from 'components/Tutorial/Tutorial.types';
+import Block from 'components/GBlock/Block';
 import GSelect from 'containers/GSelect/GSelect';
 import RemoteSelect from 'containers/RemoteSelect/RemoteSelect';
 import SlackIntegrationButton from 'containers/SlackIntegrationButton/SlackIntegrationButton';
 import { WithPermissionControl } from 'containers/WithPermissionControl/WithPermissionControl';
+import SlackInstructions from 'containers/SlackInstructions/SlackInstructions';
 import { PRIVATE_CHANNEL_NAME } from 'models/slack_channel/slack_channel.config';
 import { SlackChannel } from 'models/slack_channel/slack_channel.types';
 import { AppFeature } from 'state/features';
@@ -34,6 +36,11 @@ class SlackSettings extends Component<SlackProps, SlackState> {
   componentDidMount() {
     this.update();
   }
+
+  handleOpenSlackInstructions = () => {
+    const { store } = this.props;
+    store.slackStore.installSlackIntegration();
+  };
 
   update = () => {
     const { store } = this.props;
@@ -140,27 +147,51 @@ class SlackSettings extends Component<SlackProps, SlackState> {
     const { store } = this.props;
 
     return (
-      <Tutorial
-        step={TutorialStep.Slack}
-        title={
-          <VerticalGroup align="center" spacing="lg">
-            <Text.Title level={2}>Connect your Slack workspace</Text.Title>
-            <Text>
-              Bring the whole incident lifecycle to Slack, from alerts, monitoring, escalations to resolution notes and
-              reports.
-            </Text>
+      // <Tutorial
+      //   step={TutorialStep.Slack}
+      //   title={
+      //     <VerticalGroup align="center" spacing="lg">
+      //       <Text.Title level={2}>Connect your Slack workspace</Text.Title>
+      //       <Text>
+      //         Bring the whole incident lifecycle to Slack, from alerts, monitoring, escalations to resolution notes and
+      //         reports.
+      //       </Text>
 
-            <SlackIntegrationButton className={cx('slack-button')} />
+      //       <SlackIntegrationButton className={cx('slack-button')} />
 
-            {store.hasFeature(AppFeature.LiveSettings) && (
-              <Text type="secondary">
-                Before installing <PluginLink query={{ page: 'live-settings' }}>check ENV variables</PluginLink> related
-                to Slack please
-              </Text>
-            )}
-          </VerticalGroup>
-        }
-      />
+      //       {store.hasFeature(AppFeature.LiveSettings) && (
+      //         <Text type="secondary">
+      //           Before installing <PluginLink query={{ page: 'live-settings' }}>check ENV variables</PluginLink> related
+      //           to Slack please
+      //         </Text>
+      //       )}
+      //     </VerticalGroup>
+      //   }
+      // />
+
+      // <VerticalGroup spacing="lg">
+      //   <Text.Title level={2}>Connect Slack workspace</Text.Title>
+      //   <Block bordered withBackground className={cx('slack-infoblock')}>
+      //     <VerticalGroup align="center" spacing="lg">
+      //       <Icon name="slack" size="xxxl" />
+      //       <Text>Slack connection will allow you to manage incidents in your team Slack workspace. </Text>
+      //       <Text>
+      //         After a basic workspace connection, your team members need to connect their personal Slack accounts in
+      //         order to be allowed to manage incidents.
+      //       </Text>
+      //       <img
+      //         style={{ height: '350px', display: 'block', margin: '0 auto' }}
+      //         src="public/plugins/grafana-oncall-app/img/slack_workspace_choose_attention.png"
+      //       />
+      //     </VerticalGroup>
+      //   </Block>
+      //   <Button onClick={this.handleOpenSlackInstructions}>
+      //     <Icon name="external-link-alt" /> Open Slack connection page
+      //   </Button>
+      // </VerticalGroup>
+      <>
+        <SlackInstructions />
+      </>
     );
   };
 }
