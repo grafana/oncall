@@ -36,8 +36,13 @@ const GrafanaTeamSelect = observer((props: GrafanaTeamSelectProps) => {
     await userStore.updateCurrentUser({ current_team: teamId });
 
     const queryParams = new URLSearchParams();
-    queryParams.set('page', currentPage);
+    queryParams.set('page', mapCurrentPage());
     window.location.search = queryParams.toString();
+
+    function mapCurrentPage() {
+      if (currentPage === 'incident') return 'incidents'
+      return currentPage
+    }
   };
 
   return document.getElementsByClassName('page-header__inner')[0]
