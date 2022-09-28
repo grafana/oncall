@@ -29,7 +29,7 @@ class AlertGroupEmailRenderer(AlertGroupBaseRenderer):
         content = render_to_string(
             "email_notification.html",
             {
-                "url": self.alert_group.permalink or self.alert_group.web_link,
+                "url": self.alert_group.slack_permalink or self.alert_group.web_link,
                 "title": str_or_backup(templated_alert.title, title_fallback),
                 "message": str_or_backup(templated_alert.message, ""),  # not render message it all if smth go wrong
                 "amixr_team": self.alert_group.channel.organization,

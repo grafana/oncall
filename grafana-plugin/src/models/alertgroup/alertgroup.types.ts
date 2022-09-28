@@ -55,7 +55,7 @@ export interface Alert {
   acknowledged_by_user: User;
   acknowledged_on_source: boolean;
   channel: Channel;
-  permalink?: string;
+  slack_permalink?: string;
   related_users: User[];
   render_after_resolve_report_json?: TimeLineItem[];
   render_for_slack: { attachments: any[] };
