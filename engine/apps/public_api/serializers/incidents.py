@@ -22,6 +22,7 @@ class IncidentSerializer(EagerLoadingMixin, serializers.ModelSerializer):
         Prefetch(
             "telegram_messages",
             TelegramMessage.objects.filter(chat_id__startswith="-", message_type=TelegramMessage.ALERT_GROUP_MESSAGE),
+            to_attr="prefetched_telegram_messages",
         ),
     ]
 

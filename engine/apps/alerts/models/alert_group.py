@@ -407,10 +407,8 @@ class AlertGroup(AlertGroupSlackRenderingMixin, EscalationSnapshotMixin, models.
 
     @property
     def telegram_permalink(self) -> typing.Optional[str]:
-        main_telegram_message = self.telegram_messages.all()
-
-        if main_telegram_message:
-            return main_telegram_message[0].link
+        if hasattr(self, "prefetched_telegram_messages"):
+            return self.prefetched_telegram_messages[0].link if self.prefetched_telegram_messages else None
         return None
 
     @property
