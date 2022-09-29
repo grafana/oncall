@@ -1,5 +1,27 @@
 version: "3.8"
 
+x-environment:
+  &oncall-environment
+  BASE_URL: $DOMAIN
+  SECRET_KEY: $SECRET_KEY
+  RABBITMQ_USERNAME: "rabbitmq"
+  RABBITMQ_PASSWORD: $RABBITMQ_PASSWORD
+  RABBITMQ_HOST: "rabbitmq"
+  RABBITMQ_PORT: "5672"
+  RABBITMQ_DEFAULT_VHOST: "/"
+  MYSQL_PASSWORD: $MYSQL_PASSWORD
+  MYSQL_DB_NAME: oncall_hobby
+  MYSQL_USER: ${MYSQL_USER:-root}
+  MYSQL_HOST: ${MYSQL_HOST:-mysql}
+  MYSQL_PORT: 3306
+  REDIS_URI: redis://redis:6379/0
+  DJANGO_SETTINGS_MODULE: settings.hobby
+  CELERY_WORKER_QUEUE: "default,critical,long,slack,telegram,webhook,retry,celery"
+  CELERY_WORKER_CONCURRENCY: "1"
+  CELERY_WORKER_MAX_TASKS_PER_CHILD: "100"
+  CELERY_WORKER_SHUTDOWN_INTERVAL: "65m"
+  CELERY_WORKER_BEAT_ENABLED: "True"
+
 services:
   engine:
     image: grafana/oncall
@@ -8,23 +30,7 @@ services:
       - "8080:8080"
     command: >
       sh -c "uwsgi --ini uwsgi.ini"
-    environment:
-      BASE_URL: $DOMAIN
-      SECRET_KEY: $SECRET_KEY
-      RABBITMQ_USERNAME: "rabbitmq"
-      RABBITMQ_PASSWORD: $RABBITMQ_PASSWORD
-      RABBITMQ_HOST: "rabbitmq"
-      RABBITMQ_PORT: "5672"
-      RABBITMQ_DEFAULT_VHOST: "/"
-      MYSQL_PASSWORD: $MYSQL_PASSWORD
-      MYSQL_DB_NAME: oncall_hobby
-      MYSQL_USER: ${MYSQL_USER:-root}
-      MYSQL_HOST: ${MYSQL_HOST:-mysql}
-      MYSQL_PORT: 3306
-      REDIS_URI: redis://redis:6379/0
-      DJANGO_SETTINGS_MODULE: settings.hobby
-      OSS: "True"
-      CELERY_WORKER_QUEUE: "default,critical,long,slack,telegram,webhook,retry,celery"
+    environment: *oncall-environment
     depends_on:
       mysql:
         condition: service_healthy
@@ -39,27 +45,7 @@ services:
     image: grafana/oncall
     restart: always
     command: sh -c "./celery_with_exporter.sh"
-    environment:
-      BASE_URL: $DOMAIN
-      SECRET_KEY: $SECRET_KEY
-      RABBITMQ_USERNAME: "rabbitmq"
-      RABBITMQ_PASSWORD: $RABBITMQ_PASSWORD
-      RABBITMQ_HOST: "rabbitmq"
-      RABBITMQ_PORT: "5672"
-      RABBITMQ_DEFAULT_VHOST: "/"
-      MYSQL_PASSWORD: $MYSQL_PASSWORD
-      MYSQL_DB_NAME: oncall_hobby
-      MYSQL_USER: ${MYSQL_USER:-root}
-      MYSQL_HOST: ${MYSQL_HOST:-mysql}
-      MYSQL_PORT: 3306
-      REDIS_URI: redis://redis:6379/0
-      DJANGO_SETTINGS_MODULE: settings.hobby
-      OSS: "True"
-      CELERY_WORKER_QUEUE: "default,critical,long,slack,telegram,webhook,retry,celery"
-      CELERY_WORKER_CONCURRENCY: "1"
-      CELERY_WORKER_MAX_TASKS_PER_CHILD: "100"
-      CELERY_WORKER_SHUTDOWN_INTERVAL: "65m"
-      CELERY_WORKER_BEAT_ENABLED: "True"
+    environment: *oncall-environment
     depends_on:
       mysql:
         condition: service_healthy
@@ -73,23 +59,7 @@ services:
   oncall_db_migration:
     image: grafana/oncall
     command: python manage.py migrate --noinput
-    environment:
-      BASE_URL: $DOMAIN
-      SECRET_KEY: $SECRET_KEY
-      RABBITMQ_USERNAME: "rabbitmq"
-      RABBITMQ_PASSWORD: $RABBITMQ_PASSWORD
-      RABBITMQ_HOST: "rabbitmq"
-      RABBITMQ_PORT: "5672"
-      RABBITMQ_DEFAULT_VHOST: "/"
-      MYSQL_PASSWORD: $MYSQL_PASSWORD
-      MYSQL_DB_NAME: oncall_hobby
-      MYSQL_USER: ${MYSQL_USER:-root}
-      MYSQL_HOST: ${MYSQL_HOST:-mysql}
-      MYSQL_PORT: 3306
-      REDIS_URI: redis://redis:6379/0
-      DJANGO_SETTINGS_MODULE: settings.hobby
-      OSS: "True"
-      CELERY_WORKER_QUEUE: "default,critical,long,slack,telegram,webhook,retry,celery"
+    environment: *oncall-environment
     depends_on:
       mysql:
         condition: service_healthy
