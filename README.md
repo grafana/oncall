@@ -67,7 +67,7 @@ Grafana Url: http://grafana:3000
 To update your Grafana OnCall hobby environment:
 
 ```shell
-# Update Docker images
+# Update Docker image
 docker-compose pull engine
 
 # Re-deploy
