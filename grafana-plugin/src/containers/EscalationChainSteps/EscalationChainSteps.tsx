@@ -67,7 +67,7 @@ const EscalationChainSteps = observer((props: EscalationChainStepsProps) => {
           // const STEP_COLORS = ['#52C41A', '#A0D911', '#FADB14', '#FAAD14', COLOR_RED];
           const STEP_COLORS = ['#1A7F4B', '#33cc33', '#ffbf00', '#FF8000', COLOR_RED];
 
-          const { alertReceiveChannelStore, escalationPolicyStore } = store;
+          const { escalationPolicyStore } = store;
 
           const escalationPolicy = escalationPolicyStore.items[escalationPolicyId];
 

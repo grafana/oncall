@@ -20,6 +20,18 @@ export class OutgoingWebhookStore extends BaseStore {
   }
 
   @action
+  async loadItem(id: OutgoingWebhook['id'], skipErrorHandling = false): Promise<OutgoingWebhook> {
+    const outgoingWebhook = await this.getById(id, skipErrorHandling);
+
+    this.items = {
+      ...this.items,
+      [id]: outgoingWebhook,
+    };
+
+    return outgoingWebhook;
+  }
+
+  @action
   async updateById(id: OutgoingWebhook['id']) {
     const response = await this.getById(id);
 
@@ -30,8 +42,8 @@ export class OutgoingWebhookStore extends BaseStore {
   }
 
   @action
-  async updateItem(id: OutgoingWebhook['id']) {
-    const response = await this.getById(id);
+  async updateItem(id: OutgoingWebhook['id'], fromOrganization = false) {
+    const response = await this.getById(id, false, fromOrganization);
 
     this.items = {
       ...this.items,
