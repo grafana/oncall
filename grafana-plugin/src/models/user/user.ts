@@ -60,12 +60,16 @@ export class UserStore extends BaseStore {
       this.update(response.pk, { timezone });
     }
 
+    timezone = timezone || getTimezone(response);
+
     this.items = {
       ...this.items,
-      [response.pk]: { ...response, timezone: timezone || getTimezone(response) },
+      [response.pk]: { ...response, timezone },
     };
 
     this.currentUserPk = response.pk;
+
+    // this.rootStore.currentTimezone = timezone;
   }
 
   @action

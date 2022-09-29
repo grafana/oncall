@@ -9,6 +9,8 @@ if DB_BACKEND == "mysql":  # noqa
 
     pymysql.install_as_MySQLdb()
 
+DEBUG = True
+
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.{}".format(DB_BACKEND),  # noqa

@@ -2,6 +2,7 @@
 */db.sqlite3
 *.pyc
 venv
+.python-version
 .env
 .env_hobby
 .vscode

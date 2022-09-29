@@ -293,6 +293,8 @@ export class ScheduleStore extends BaseStore {
       ...this.shifts,
       [shiftId]: response,
     };
+
+    return response;
   }
 
   async deleteOncallShift(shiftId: Shift['id']) {
