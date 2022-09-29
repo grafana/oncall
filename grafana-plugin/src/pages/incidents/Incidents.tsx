@@ -61,6 +61,7 @@ interface IncidentsPageState {
 }
 
 const ITEMS_PER_PAGE = 25;
+const POLLING_NUM_SECONDS = 15;
 
 @observer
 class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> {
@@ -69,7 +70,7 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
 
     const {
       store,
-      query: { id, cursor: cursorQuery, start: startQuery, perpage: perpageQuery },
+      query: { cursor: cursorQuery, start: startQuery, perpage: perpageQuery },
     } = props;
 
     const cursor = cursorQuery || undefined;
@@ -90,6 +91,13 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
 
     store.alertGroupStore.updateBulkActions();
     store.alertGroupStore.updateSilenceOptions();
+  }
+
+  private pollingIntervalId: NodeJS.Timer = undefined;
+
+  componentWillUnmount(): void {
+    clearInterval(this.pollingIntervalId);
+    this.pollingIntervalId = undefined;
   }
 
   render() {
@@ -128,9 +136,18 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
       });
     }
 
-    store.alertGroupStore.updateIncidentFilters(filters, isOnMount);
+    const fetchIncidentData = () => {
+      store.alertGroupStore.updateIncidentFilters(filters, isOnMount); // this line fetches incidents
+      getLocationSrv().update({ query: { page: 'incidents', ...store.alertGroupStore.incidentFilters } });
+    }
 
-    getLocationSrv().update({ query: { page: 'incidents', ...store.alertGroupStore.incidentFilters } });
+    if (this.pollingIntervalId) {
+      clearInterval(this.pollingIntervalId);
+    }
+
+    this.pollingIntervalId = setInterval(() => fetchIncidentData(), POLLING_NUM_SECONDS * 1000);
+
+    fetchIncidentData();
   };
 
   onChangeCursor = (cursor: string, direction: 'prev' | 'next') => {
@@ -211,31 +228,6 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
                 <SilenceDropdown disabled={!hasSelected} onSelect={this.getBulkActionClickHandler('silence')} />
               </WithPermissionControl>
             )}
-
-            {/* {store.alertGroupStore.bulkActions.map((bulkAction: SelectOption) => {
-            if (bulkAction.value === 'silence') {
-              return (
-                <SilenceDropdown
-                  key="silence"
-                  disabled={!hasSelected}
-                  style="select"
-                  onSelect={this.getBulkActionClickHandler('silence')}
-                />
-              );
-            }
-
-            return (
-              <WithPermissionControl key={bulkAction.value} userAction={UserAction.UpdateIncidents}>
-                <Button
-                  disabled={!hasSelected}
-                  icon={actionToIcon[bulkAction.value]}
-                  onClick={this.getBulkActionClickHandler(bulkAction.value)}
-                >
-                  {capitalCase(bulkAction.display_name)}
-                </Button>
-              </WithPermissionControl>
-            );
-          })}*/}
             <Text type="secondary">
               {hasSelected
                 ? `${selectedIncidentIds.length} alert group${selectedIncidentIds.length > 1 ? 's' : ''} selected`
@@ -261,11 +253,8 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
   };
 
   renderTable() {
-    const { selectedIncidentIds, affectedRows, pagination } = this.state;
+    const { selectedIncidentIds, pagination } = this.state;
     const { store } = this.props;
-    const {
-      teamStore: { currentTeam },
-    } = store;
     const { alertGroupsLoading } = store.alertGroupStore;
 
     const results = store.alertGroupStore.getAlertSearchResult('default');
@@ -344,12 +333,6 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
       },
     ];
 
-    const loading = store.alertGroupStore.alertGroupsLoading;
-
-    const hasInvalidatedAlert = Boolean(
-      (results && results.some((alert: AlertType) => alert.undoAction)) || Object.keys(affectedRows).length
-    );
-
     return (
       <div className={cx('root')}>
         {this.renderBulkActions()}
@@ -359,14 +342,8 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
           className={cx('incidents-table')}
           rowSelection={{ selectedRowKeys: selectedIncidentIds, onChange: this.handleSelectedIncidentIdsChange }}
           rowKey="pk"
-          /*title={() => (
-            <Text.Title className={cx('users-title')} level={3}>
-              Incidents
-            </Text.Title>
-          )}*/
           data={results}
           columns={columns}
-          // rowClassName={getUserRowClassNameFn(userPkToEdit, userStore.currentUserPk)}
         />
         <div className={cx('pagination')}>
           <CursorPagination
@@ -499,43 +476,6 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
         )}
       </>
     );
-
-    /* if (record.resolved_by_user) {
-      const index = users.findIndex((user) => user.pk === record.resolved_by_user.pk);
-      if (index > -1) {
-        users = move(users, index, 0);
-      }
-    }
-
-    if (record.acknowledged_by_user) {
-      const index = users.findIndex((user) => user.pk === record.acknowledged_by_user.pk);
-      if (index > -1) {
-        users = move(users, index, 0);
-      }
-    }
-
-    return (
-      <Avatar.Group maxCount={2}>
-        {users.map((user: User) => {
-          let badge = undefined;
-          if (record.resolved_by_user && user.pk === record.resolved_by_user.pk) {
-            badge = <CheckCircleOutlined style={{ color: '#52c41a' }} />;
-          } else if (record.acknowledged_by_user && user.pk === record.acknowledged_by_user.pk) {
-            badge = <EyeOutlined style={{ color: '#f2c94c' }} />;
-          }
-
-          return (
-            <Tooltip key={user.pk} title={user.username}>
-              <Badge count={badge}>
-                <PluginLink query={{ page: 'users', id: user.pk }}>
-                  <Avatar key={user.pk} src={user.avatar} icon={<UserOutlined />} />
-                </PluginLink>
-              </Badge>
-            </Tooltip>
-          );
-        })}
-      </Avatar.Group>
-    ); */
   };
 
   renderActionButtons = (incident: AlertType) => {
@@ -571,7 +511,6 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
 
   getUnsilenceClickHandler = (alert: AlertType) => {
     const { store } = this.props;
-    const { alertGroupStore } = store;
 
     return (event: any) => {
       event.stopPropagation();

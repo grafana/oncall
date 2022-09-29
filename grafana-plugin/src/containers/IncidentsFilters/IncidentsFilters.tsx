@@ -77,9 +77,7 @@ class IncidentsFilters extends Component<IncidentsFiltersProps, IncidentsFilters
       ({ filters, values } = parseFilters(newQuery, filterOptions));
     }
 
-    this.setState({ filterOptions, filters, values }, () => {
-      this.onChange(true);
-    });
+    this.setState({ filterOptions, filters, values }, () => this.onChange(true));
   }
 
   render() {
@@ -92,10 +90,7 @@ class IncidentsFilters extends Component<IncidentsFiltersProps, IncidentsFilters
   }
 
   renderFilters = () => {
-    const { store, value } = this.props;
     const { filterOptions, filters } = this.state;
-
-    const filterNames = filters.map((filter: FilterOption) => filter.name);
 
     if (!filterOptions) {
       return <LoadingPlaceholder text="Loading filters..." />;
@@ -234,8 +229,7 @@ class IncidentsFilters extends Component<IncidentsFiltersProps, IncidentsFilters
   };
 
   handleAddFilter = (option: SelectableValue) => {
-    const { value, onChange } = this.props;
-    const { values, filters } = this.state;
+    const { filters } = this.state;
 
     this.setState({
       filters: [...filters, option.data],
@@ -250,7 +244,7 @@ class IncidentsFilters extends Component<IncidentsFiltersProps, IncidentsFilters
   };
 
   renderFilterOption = (filter: FilterOption) => {
-    const { values, filterOptions, hadInteraction } = this.state;
+    const { values, hadInteraction } = this.state;
 
     const autoFocus = Boolean(hadInteraction);
 
@@ -342,7 +336,6 @@ class IncidentsFilters extends Component<IncidentsFiltersProps, IncidentsFilters
   };
 
   getStatusButtonClickHandler = (status: IncidentStatus) => {
-    const { store } = this.props;
     return (selected: boolean) => {
       const { values } = this.state;
 
@@ -406,7 +399,6 @@ class IncidentsFilters extends Component<IncidentsFiltersProps, IncidentsFilters
   };
 
   onFiltersValueChange = (name: FilterOption['name'], value: any) => {
-    const { onChange } = this.props;
     const { values } = this.state;
 
     const newValues = omitBy({ ...values, [name]: value }, isUndefined);
@@ -424,6 +416,8 @@ class IncidentsFilters extends Component<IncidentsFiltersProps, IncidentsFilters
   onChange = (isOnMount = false) => {
     const { onChange } = this.props;
     const { values } = this.state;
+
+    console.log('Change!');
 
     onChange(values, isOnMount);
   };
