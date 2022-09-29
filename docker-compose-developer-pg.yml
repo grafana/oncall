@@ -11,7 +11,7 @@ services:
     environment:
       POSTGRES_DB: oncall_local_dev
       POSTGRES_PASSWORD: empty
-      POSTGRES_INITDB_ARGS: '--encoding=UTF-8'
+      POSTGRES_INITDB_ARGS: "--encoding=UTF-8"
     deploy:
       resources:
         limits:
