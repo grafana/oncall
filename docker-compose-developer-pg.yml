@@ -4,19 +4,18 @@ services:
 
   postgres:
     image: postgres:14.4
-    platform: linux/x86_64
     restart: always
     ports:
       - "5432:5432"
     environment:
       POSTGRES_DB: oncall_local_dev
       POSTGRES_PASSWORD: empty
-      POSTGRES_INITDB_ARGS: "--encoding=UTF-8"
+      POSTGRES_INITDB_ARGS: --encoding=UTF-8
     deploy:
       resources:
         limits:
           memory: 500m
-          cpus: 0.5
+          cpus: '0.5'
 
   redis:
     image: redis
@@ -27,7 +26,7 @@ services:
       resources:
         limits:
           memory: 100m
-          cpus: 0.1
+          cpus: '0.1'
 
   rabbit:
     image: "rabbitmq:3.7.15-management"
@@ -39,7 +38,7 @@ services:
       resources:
         limits:
           memory: 1000m
-          cpus: 0.5
+          cpus: '0.5'
     ports:
       - "15672:15672"
       - "5672:5672"
@@ -58,7 +57,7 @@ services:
       resources:
         limits:
           memory: 500m
-          cpus: 0.5
+          cpus: '0.5'
     healthcheck:
       test: [ "CMD", "mysqladmin" ,"ping", "-h", "localhost" ]
       timeout: 20s
@@ -79,7 +78,7 @@ services:
       resources:
         limits:
           memory: 500m
-          cpus: 0.5
+          cpus: '0.5'
     volumes:
       - ./grafana-plugin:/var/lib/grafana/plugins/grafana-plugin
     ports:

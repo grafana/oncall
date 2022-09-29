@@ -112,7 +112,7 @@ services:
       resources:
         limits:
           memory: 500m
-          cpus: 0.5
+          cpus: '0.5'
     healthcheck:
       test: "mysql -uroot -p$MYSQL_PASSWORD oncall_hobby -e 'select 1'"
       timeout: 20s
@@ -127,7 +127,7 @@ services:
       resources:
         limits:
           memory: 100m
-          cpus: 0.1
+          cpus: '0.1'
 
   rabbitmq:
     image: "rabbitmq:3.7.15-management"
@@ -143,7 +143,7 @@ services:
       resources:
         limits:
           memory: 1000m
-          cpus: 0.5
+          cpus: '0.5'
     healthcheck:
       test: rabbitmq-diagnostics -q ping
       interval: 30s
@@ -178,7 +178,7 @@ services:
       resources:
         limits:
           memory: 500m
-          cpus: 0.5
+          cpus: '0.5'
     depends_on:
       mysql_to_create_grafana_db:
         condition: service_completed_successfully
