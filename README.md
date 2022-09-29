@@ -68,7 +68,7 @@ To update your Grafana OnCall hobby environment:
 
 ```shell
 # Update Docker images
-docker-compose pull engine celery oncall_db_migration
+docker-compose pull engine
 
 # Re-deploy
 docker-compose up -d
