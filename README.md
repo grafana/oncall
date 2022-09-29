@@ -71,7 +71,7 @@ To update your Grafana OnCall hobby environment:
 docker-compose pull engine celery oncall_db_migration
 
 # Re-deploy
-docker-compose up -d --remove-orphans
+docker-compose up -d
 ```
 
 After updating the engine, you'll also need to click the "Update" button on the [plugin version page](http://localhost:3000/plugins/grafana-oncall-app?page=version-history).
