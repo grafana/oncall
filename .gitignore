@@ -5,6 +5,7 @@ venv
 .python-version
 .env
 .env_hobby
+.env.dev
 .vscode
 dump.rdb
 .idea
