@@ -30,12 +30,10 @@ curl -fsSL https://raw.githubusercontent.com/grafana/oncall/dev/docker-compose.y
 
 ```bash
 echo "DOMAIN=http://localhost:8080
+COMPOSE_PROFILES=with_grafana  # Remove this line if you want to use existing grafana
 SECRET_KEY=my_random_secret_must_be_more_than_32_characters_long
 RABBITMQ_PASSWORD=rabbitmq_secret_pw
-MYSQL_PASSWORD=mysql_secret_pw
-COMPOSE_PROFILES=with_grafana  # Remove this line if you want to use existing grafana
-GRAFANA_USER=admin
-GRAFANA_PASSWORD=admin" > .env
+MYSQL_PASSWORD=mysql_secret_pw" > .env
 ```
 
 3. Launch services:
