@@ -93,7 +93,7 @@ export class UserStore extends BaseStore {
 
     this.items = {
       ...this.items,
-      [user.pk]: user,
+      [user.pk]: { ...user, timezone: getTimezone(user) },
     };
   }
 
