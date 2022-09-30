@@ -11,6 +11,14 @@ BASE_URL = "http://localhost"
 
 CELERY_BROKER_URL = "amqp://rabbitmq:rabbitmq@rabbit_test:5672"
 
+DATABASES["default"] |= {
+    "NAME": DATABASE_NAME or "oncall_local_dev",
+    "USER": DATABASE_USER or "root",
+    "PASSWORD": DATABASE_PASSWORD or "local_dev_pwd",
+    "HOST": DATABASE_HOST or f"{DATABASE_TYPE}_test",
+    "PORT": DATABASE_PORT or 3306,
+}
+
 # Dummy Telegram token (fake one)
 TELEGRAM_TOKEN = "0000000000:XXXXXXXXXXXXXXXXXXXXXXXXXXXX-XXXXXX"
 
