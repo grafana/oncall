@@ -9,7 +9,10 @@ MIRAGE_CIPHER_IV = "X+VFcDqtxJ5bbU+V"
 
 BASE_URL = "http://localhost"
 
-CELERY_BROKER_URL = "amqp://rabbitmq:rabbitmq@rabbit_test:5672"
+if BROKER_TYPE == "rabbitmq":
+    CELERY_BROKER_URL = "amqp://rabbitmq:rabbitmq@rabbit_test:5672"
+elif BROKER_TYPE == "redis":
+    CELERY_BROKER_URL = "redis://redis_test:6379"
 
 if DATABASE_TYPE != "sqlite3":
     DATABASES["default"] |= {
