@@ -1,29 +1,24 @@
+# flake8: noqa: F405
+
 import os
 import sys
 
-from .base import *  # noqa
-
-if DB_BACKEND == "mysql":  # noqa
-    # Workaround to use pymysql instead of mysqlclient
-    import pymysql
-
-    pymysql.install_as_MySQLdb()
+from .base import *
 
 DEBUG = True
 
 DATABASES = {
     "default": {
-        "ENGINE": "django.db.backends.{}".format(DB_BACKEND),  # noqa
-        "NAME": os.environ.get("DB_NAME", "oncall_local_dev"),
-        "USER": os.environ.get("DB_USER", DB_BACKEND_DEFAULT_VALUES.get(DB_BACKEND, {}).get("USER", "root")),  # noqa
-        "PASSWORD": os.environ.get("DB_PASSWORD", "empty"),
-        "HOST": os.environ.get("DB_HOST", "127.0.0.1"),
-        "PORT": os.environ.get("DB_PORT", DB_BACKEND_DEFAULT_VALUES.get(DB_BACKEND, {}).get("PORT", "3306")),  # noqa
-        "OPTIONS": DB_BACKEND_DEFAULT_VALUES.get(DB_BACKEND, {}).get("OPTIONS", {}),  # noqa
-    },
+        "ENGINE": DATABASE_ENGINE or "django.db.backends.mysql",
+        "NAME": DATABASE_NAME or "oncall_local_dev",
+        "USER": DATABASE_USER or "root",
+        "PASSWORD": DATABASE_PASSWORD or "empty",
+        "HOST": DATABASE_HOST or "127.0.0.1",
+        "PORT": DATABASE_PORT or (3306 if DATABASE_TYPE == "mysql" else 5432),
+    }
 }
 
-CACHES["default"]["LOCATION"] = ["localhost:6379"]  # noqa: F405
+CACHES["default"]["LOCATION"] = ["localhost:6379"]
 
 SECRET_KEY = os.environ.get("SECRET_KEY", "osMsNM0PqlRHBlUvqmeJ7+ldU3IUETCrY9TrmiViaSmInBHolr1WUlS0OFS4AHrnnkp1vp9S9z1")
 

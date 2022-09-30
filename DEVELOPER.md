@@ -59,8 +59,8 @@ pip install -U pip wheel
 # Copy and check .env.dev file.
 cp .env.dev.example .env.dev
 
-# NOTE: if you want to use the PostgreSQL db backend add DB_BACKEND=postgresql to your .env.dev file;
-#       currently allowed backend values are `mysql` (default) and `postgresql`
+# NOTE: if you want to use the PostgreSQL db backend add DATABASE_TYPE=postgresql to your .env.dev file;
+#       currently allowed backend values are `mysql` (default), `postgresql` and `sqlite3`
 
 # Apply .env.dev to current terminal.
 # For PyCharm it's better to use https://plugins.jetbrains.com/plugin/7861-envfile/

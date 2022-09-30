@@ -11,26 +11,6 @@ BASE_URL = "http://localhost"
 
 CELERY_BROKER_URL = "amqp://rabbitmq:rabbitmq@rabbit_test:5672"
 
-if DB_BACKEND == "mysql":
-    # Workaround to use pymysql instead of mysqlclient
-    import pymysql
-
-    pymysql.install_as_MySQLdb()
-    DB_BACKEND_DEFAULT_VALUES[DB_BACKEND]["OPTIONS"] = {"charset": "utf8mb4"}
-
-
-DATABASES = {
-    "default": {
-        "ENGINE": "django.db.backends.{}".format(DB_BACKEND),
-        "NAME": os.environ.get("DB_NAME", "oncall_local_dev"),
-        "USER": os.environ.get("DB_USER", DB_BACKEND_DEFAULT_VALUES.get(DB_BACKEND, {}).get("USER", "root")),
-        "PASSWORD": "local_dev_pwd",
-        "HOST": "{}_test".format(DB_BACKEND),
-        "PORT": os.environ.get("DB_PORT", DB_BACKEND_DEFAULT_VALUES.get(DB_BACKEND, {}).get("PORT", "3306")),
-        "OPTIONS": DB_BACKEND_DEFAULT_VALUES.get(DB_BACKEND, {}).get("OPTIONS", {}),
-    },
-}
-
 # Dummy Telegram token (fake one)
 TELEGRAM_TOKEN = "0000000000:XXXXXXXXXXXXXXXXXXXXXXXXXXXX-XXXXXX"
 

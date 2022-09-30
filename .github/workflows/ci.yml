@@ -70,7 +70,7 @@ jobs:
     runs-on: ubuntu-latest
     container: python:3.9
     env:
-      DB_BACKEND: postgresql
+      DATABASE_TYPE: postgresql
       DJANGO_SETTINGS_MODULE: settings.ci-test
       SLACK_CLIENT_OAUTH_ID: 1
     services:

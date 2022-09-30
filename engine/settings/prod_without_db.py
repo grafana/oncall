@@ -15,16 +15,6 @@ except ModuleNotFoundError:
 
 from .base import *  # noqa
 
-# It's required for collectstatic to avoid connecting it to MySQL
-
-# Primary database must have the name "default"
-DATABASES = {
-    "default": {
-        "ENGINE": "django.db.backends.sqlite3",
-        "NAME": os.path.join(BASE_DIR, "db.sqlite3"),  # noqa
-    }
-}
-
 SLACK_SIGNING_SECRET = os.environ.get("SLACK_SIGNING_SECRET")
 SLACK_SIGNING_SECRET_LIVE = os.environ.get("SLACK_SIGNING_SECRET_LIVE", "")
 
