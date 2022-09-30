@@ -36,8 +36,6 @@ STATIC_ROOT = "./collected_static/"
 
 DEBUG = False
 
-CELERY_BROKER_URL = os.environ["RABBIT_URI"]
-
 SECURE_SSL_REDIRECT = True
 SECURE_REDIRECT_EXEMPT = [
     "^health/",

@@ -106,7 +106,7 @@ DB_BACKEND_DEFAULT_VALUES = {
 REDIS_USERNAME = os.getenv("REDIS_USERNAME", "")
 REDIS_PASSWORD = os.getenv("REDIS_PASSWORD")
 REDIS_HOST = os.getenv("REDIS_HOST")
-REDIS_PORT = os.getenv("REDIS_PORT", "6379")
+REDIS_PORT = os.getenv("REDIS_PORT", 6379)
 REDIS_PROTOCOL = os.getenv("REDIS_PROTOCOL", "redis")
 
 REDIS_URI = os.getenv("REDIS_URI")
@@ -293,7 +293,28 @@ USE_TZ = True
 STATIC_URL = os.environ.get("STATIC_URL", "/static/")
 STATIC_ROOT = "./static/"
 
-CELERY_BROKER_URL = "amqp://rabbitmq:rabbitmq@localhost:5672"
+# RabbitMQ
+RABBITMQ_USERNAME = os.getenv("RABBITMQ_USERNAME")
+RABBITMQ_PASSWORD = os.getenv("RABBITMQ_PASSWORD")
+RABBITMQ_HOST = os.getenv("RABBITMQ_HOST")
+RABBITMQ_PORT = os.getenv("RABBITMQ_PORT", 5672)
+RABBITMQ_PROTOCOL = os.getenv("RABBITMQ_PROTOCOL", "amqp")
+RABBITMQ_VHOST = os.getenv("RABBITMQ_VHOST", "")
+
+RABBITMQ_URI = os.getenv("RABBITMQ_URI") or os.getenv("RABBIT_URI")
+if not RABBITMQ_URI:
+    RABBITMQ_URI = f"{RABBITMQ_PROTOCOL}://{RABBITMQ_USERNAME}:{RABBITMQ_PASSWORD}@{RABBITMQ_HOST}:{RABBITMQ_PORT}/{RABBITMQ_VHOST}"
+
+# Celery
+BROKER = os.getenv("BROKER", "rabbitmq").lower()
+assert BROKER in ["rabbitmq", "redis"]
+
+if BROKER == "rabbitmq":
+    CELERY_BROKER_URL = RABBITMQ_URI
+elif BROKER == "redis":
+    CELERY_BROKER_URL = REDIS_URI
+else:
+    raise ValueError(f"Invalid BROKER env variable: {BROKER}")
 
 # By default, apply_async will just hang indefinitely trying to reach to RabbitMQ even if RabbitMQ is down.
 # This makes apply_async retry 3 times trying to reach to RabbitMQ, with some extra info on periods between retries.
