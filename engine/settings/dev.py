@@ -6,16 +6,24 @@ from .base import *
 
 DEBUG = True
 
-DATABASES = {
-    "default": {
-        "ENGINE": DATABASE_ENGINE or "django.db.backends.mysql",
-        "NAME": DATABASE_NAME or "oncall_local_dev",
-        "USER": DATABASE_USER or DATABASE_DEFAULTS[DATABASE_TYPE]["USER"],
-        "PASSWORD": DATABASE_PASSWORD or "empty",
-        "HOST": DATABASE_HOST or "127.0.0.1",
-        "PORT": DATABASE_PORT or DATABASE_DEFAULTS[DATABASE_TYPE]["PORT"],
+if DATABASE_TYPE == "sqlite3":
+    DATABASES["default"]["NAME"] = DATABASE_NAME or "oncall_dev.db"
+else:
+    DATABASES = {
+        "default": {
+            "ENGINE": DATABASE_ENGINE or "django.db.backends.mysql",
+            "NAME": DATABASE_NAME or "oncall_local_dev",
+            "USER": DATABASE_USER or DATABASE_DEFAULTS[DATABASE_TYPE]["USER"],
+            "PASSWORD": DATABASE_PASSWORD or "empty",
+            "HOST": DATABASE_HOST or "127.0.0.1",
+            "PORT": DATABASE_PORT or DATABASE_DEFAULTS[DATABASE_TYPE]["PORT"],
+        }
     }
-}
+
+if BROKER_TYPE == "rabbitmq":
+    CELERY_BROKER_URL = "pyamqp://rabbitmq:rabbitmq@localhost:5672"
+elif BROKER_TYPE == "redis":
+    CELERY_BROKER_URL = "redis://localhost:6379"
 
 CACHES["default"]["LOCATION"] = ["localhost:6379"]
 
@@ -27,8 +35,6 @@ MIRAGE_SECRET_KEY = os.environ.get(
 MIRAGE_CIPHER_IV = os.environ.get("MIRAGE_CIPHER_IV", "tZZa+60zTZO2NRcS")
 
 TESTING = "pytest" in sys.modules or "unittest" in sys.modules
-
-CELERY_BROKER_URL = "pyamqp://rabbitmq:rabbitmq@localhost:5672"
 
 SILKY_PYTHON_PROFILER = True
 
