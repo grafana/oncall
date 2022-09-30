@@ -306,15 +306,15 @@ if not RABBITMQ_URI:
     RABBITMQ_URI = f"{RABBITMQ_PROTOCOL}://{RABBITMQ_USERNAME}:{RABBITMQ_PASSWORD}@{RABBITMQ_HOST}:{RABBITMQ_PORT}/{RABBITMQ_VHOST}"
 
 # Celery
-BROKER = os.getenv("BROKER", "rabbitmq").lower()
-assert BROKER in ["rabbitmq", "redis"]
+BROKER_TYPE = os.getenv("BROKER", "rabbitmq").lower()
+assert BROKER_TYPE in ["rabbitmq", "redis"]
 
-if BROKER == "rabbitmq":
+if BROKER_TYPE == "rabbitmq":
     CELERY_BROKER_URL = RABBITMQ_URI
-elif BROKER == "redis":
+elif BROKER_TYPE == "redis":
     CELERY_BROKER_URL = REDIS_URI
 else:
-    raise ValueError(f"Invalid BROKER env variable: {BROKER}")
+    raise ValueError(f"Invalid BROKER_TYPE env variable: {BROKER_TYPE}")
 
 # By default, apply_async will just hang indefinitely trying to reach to RabbitMQ even if RabbitMQ is down.
 # This makes apply_async retry 3 times trying to reach to RabbitMQ, with some extra info on periods between retries.
