@@ -64,9 +64,6 @@ TWILIO_VERIFY_SERVICE_SID = os.environ.get("TWILIO_VERIFY_SERVICE_SID")
 TELEGRAM_WEBHOOK_HOST = os.environ.get("TELEGRAM_WEBHOOK_HOST", BASE_URL)
 TELEGRAM_TOKEN = os.environ.get("TELEGRAM_TOKEN")
 
-os.environ.setdefault("MYSQL_PASSWORD", "empty")
-os.environ.setdefault("RABBIT_URI", "empty")
-
 # For Sending email
 SENDGRID_API_KEY = os.environ.get("SENDGRID_API_KEY")
 SENDGRID_FROM_EMAIL = os.environ.get("SENDGRID_FROM_EMAIL")
