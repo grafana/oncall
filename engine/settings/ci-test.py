@@ -14,7 +14,9 @@ if BROKER_TYPE == "rabbitmq":
 elif BROKER_TYPE == "redis":
     CELERY_BROKER_URL = "redis://redis_test:6379"
 
-if DATABASE_TYPE != "sqlite3":
+if DATABASE_TYPE == "sqlite3":
+    DATABASES["default"]["NAME"] = DATABASE_NAME or "oncall_ci.db"
+else:
     DATABASES["default"] |= {
         "NAME": DATABASE_NAME or "oncall_local_dev",
         "USER": DATABASE_USER or DATABASE_DEFAULTS[DATABASE_TYPE]["USER"],
