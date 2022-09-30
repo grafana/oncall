@@ -116,7 +116,7 @@ class SchedulePage extends React.Component<SchedulePageProps, SchedulePageState>
                 <PluginLink query={{ page: 'schedules-new' }}>
                   <IconButton style={{ marginTop: '5px' }} name="arrow-left" size="xxl" />
                 </PluginLink>
-                <Text.Title editable editModalTitle="Schedule name" level={3} onTextChange={this.handleNameChange}>
+                <Text.Title editable editModalTitle="Schedule name" level={2} onTextChange={this.handleNameChange}>
                   {schedule?.name}
                 </Text.Title>
                 {/*<ScheduleCounter
@@ -186,9 +186,9 @@ class SchedulePage extends React.Component<SchedulePageProps, SchedulePageState>
                     <Icon name="angle-right" />
                   </Button>
                 </HorizontalGroup>
-                <div>
+                <Text.Title style={{ marginLeft: '8px' }} level={4} type="primary">
                   {startMoment.format('DD MMM')} - {startMoment.add(6, 'day').format('DD MMM')}
-                </div>
+                </Text.Title>
               </HorizontalGroup>
               {/*<HorizontalGroup width="auto">
                 <RadioButtonGroup

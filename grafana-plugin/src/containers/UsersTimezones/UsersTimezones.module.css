@@ -2,8 +2,8 @@
   border: var(--border-medium);
   display: flex;
   flex-direction: column;
-  border-radius: 2px;
-  background: var(--primary-background);
+  background: var(--background-secondary);
+  border-radius: var(--border-radius);
 }
 
 .header {
@@ -11,7 +11,7 @@
 }
 
 .title {
-  font-weight: 500;
+  font-weight: 400;
   font-size: 19px;
   line-height: 24px;
   color: rgba(204, 204, 220, 0.65);
@@ -22,7 +22,7 @@
   position: absolute;
   left: 0;
   width: 1px;
-  background: #fff;
+  background: var(--gradient-brandVertical);
   top: 0;
   bottom: 0;
   z-index: 0;
@@ -70,6 +70,7 @@
   font-size: 12px;
   line-height: 16px;
   background: #454952;
+  color: #ccccdc;
   border-radius: 8px;
   text-align: center;
   transition: opacity 200ms ease, left 200ms ease;
@@ -114,7 +115,6 @@
   top: -24px;
   display: flex;
   font-weight: 400;
-  font-size: 14px;
   line-height: 20px;
   color: rgba(204, 204, 220, 0.65);
   width: 100%;
