@@ -82,10 +82,20 @@ GRAFANA_CLOUD_ONCALL_TOKEN = os.environ.get("GRAFANA_CLOUD_ONCALL_TOKEN", None)
 DANGEROUS_WEBHOOKS_ENABLED = getenv_boolean("DANGEROUS_WEBHOOKS_ENABLED", default=False)
 
 # Database
+DATABASE_DEFAULTS = {
+    "mysql": {
+        "USER": "root",
+        "PORT": 3306,
+    },
+    "postgresql": {
+        "USER": "postgres",
+        "PORT": 5432,
+    },
+}
+
 DATABASE_NAME = os.getenv("DATABASE_NAME") or os.getenv("MYSQL_DB_NAME")
 DATABASE_USER = os.getenv("DATABASE_USER") or os.getenv("MYSQL_USER")
 DATABASE_PASSWORD = os.getenv("DATABASE_PASSWORD") or os.getenv("MYSQL_PASSWORD")
-print(DATABASE_PASSWORD)
 DATABASE_HOST = os.getenv("DATABASE_HOST") or os.getenv("MYSQL_HOST")
 DATABASE_PORT = os.getenv("DATABASE_PORT") or os.getenv("MYSQL_PORT")
 
