@@ -22,6 +22,7 @@ if DATABASE_TYPE != "sqlite3":
         "HOST": DATABASE_HOST or f"{DATABASE_TYPE}_test",
         "PORT": DATABASE_PORT or DATABASE_DEFAULTS[DATABASE_TYPE]["PORT"],
     }
+print(DATABASES)
 
 CACHES = {
     "default": {
