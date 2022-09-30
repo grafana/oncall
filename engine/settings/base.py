@@ -104,35 +104,41 @@ assert DATABASE_TYPE in ["mysql", "postgresql", "sqlite3"]
 
 DATABASE_ENGINE = f"django.db.backends.{DATABASE_TYPE}"
 
-if DATABASE_TYPE == "sqlite3":
-    DATABASES = {
-        "default": {
-            "ENGINE": DATABASE_ENGINE,
-            "NAME": DATABASE_NAME or "/var/lib/oncall/oncall.db",
-        }
-    }
-else:
-    DATABASES = {
-        "default": {
-            "ENGINE": DATABASE_ENGINE,
-            "NAME": DATABASE_NAME,
-            "USER": DATABASE_USER,
-            "PASSWORD": DATABASE_PASSWORD,
-            "HOST": DATABASE_HOST,
-            "PORT": DATABASE_PORT,
-        }
-    }
-
-    if DATABASE_TYPE == "mysql":
-        DATABASES["default"]["OPTIONS"] = {
+DATABASE_CONFIGS = {
+    "sqlite3": {
+        "ENGINE": DATABASE_ENGINE,
+        "NAME": DATABASE_NAME or "/var/lib/oncall/oncall.db",
+    },
+    "mysql": {
+        "ENGINE": DATABASE_ENGINE,
+        "NAME": DATABASE_NAME,
+        "USER": DATABASE_USER,
+        "PASSWORD": DATABASE_PASSWORD,
+        "HOST": DATABASE_HOST,
+        "PORT": DATABASE_PORT,
+        "OPTIONS": {
             "charset": "utf8mb4",
             "connect_timeout": 1,
-        }
+        },
+    },
+    "postgresql": {
+        "ENGINE": DATABASE_ENGINE,
+        "NAME": DATABASE_NAME,
+        "USER": DATABASE_USER,
+        "PASSWORD": DATABASE_PASSWORD,
+        "HOST": DATABASE_HOST,
+        "PORT": DATABASE_PORT,
+    },
+}
 
-        # Workaround to use pymysql instead of mysqlclient
-        import pymysql
+DATABASES = {
+    "default": DATABASE_CONFIGS[DATABASE_TYPE],
+}
+if DATABASE_TYPE == "mysql":
+    # Workaround to use pymysql instead of mysqlclient
+    import pymysql
 
-        pymysql.install_as_MySQLdb()
+    pymysql.install_as_MySQLdb()
 
 # Redis
 REDIS_USERNAME = os.getenv("REDIS_USERNAME", "")

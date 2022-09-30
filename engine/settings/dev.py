@@ -9,15 +9,12 @@ DEBUG = True
 if DATABASE_TYPE == "sqlite3":
     DATABASES["default"]["NAME"] = DATABASE_NAME or "oncall_dev.db"
 else:
-    DATABASES = {
-        "default": {
-            "ENGINE": DATABASE_ENGINE or "django.db.backends.mysql",
-            "NAME": DATABASE_NAME or "oncall_local_dev",
-            "USER": DATABASE_USER or DATABASE_DEFAULTS[DATABASE_TYPE]["USER"],
-            "PASSWORD": DATABASE_PASSWORD or "empty",
-            "HOST": DATABASE_HOST or "127.0.0.1",
-            "PORT": DATABASE_PORT or DATABASE_DEFAULTS[DATABASE_TYPE]["PORT"],
-        }
+    DATABASES["default"] |= {
+        "NAME": DATABASE_NAME or "oncall_local_dev",
+        "USER": DATABASE_USER or DATABASE_DEFAULTS[DATABASE_TYPE]["USER"],
+        "PASSWORD": DATABASE_PASSWORD or "empty",
+        "HOST": DATABASE_HOST or "127.0.0.1",
+        "PORT": DATABASE_PORT or DATABASE_DEFAULTS[DATABASE_TYPE]["PORT"],
     }
 
 if BROKER_TYPE == "rabbitmq":
