@@ -115,7 +115,7 @@ class AddToResolutionNoteStep(CheckAlertIsUnarchivedMixin, scenario_step.Scenari
                         author_user = self.organization.users.get(slack_user_identity=author_slack_user_identity)
                     except (SlackUserIdentity.DoesNotExist, User.DoesNotExist):
                         warning_text = (
-                            "Unable to add this message to resolution note: could not find corresponding"
+                            "Unable to add this message to resolution note: could not find corresponding "
                             "OnCall user for message author: {}".format(payload["message"]["user"])
                         )
                         self.open_warning_window(payload, warning_text)
