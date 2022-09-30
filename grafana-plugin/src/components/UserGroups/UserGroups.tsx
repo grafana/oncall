@@ -5,6 +5,7 @@ import { arrayMoveImmutable } from 'array-move';
 import cn from 'classnames/bind';
 import { SortableContainer, SortableElement, SortableHandle } from 'react-sortable-hoc';
 
+import Text from 'components/Text/Text';
 import RemoteSelect from 'containers/RemoteSelect/RemoteSelect';
 import { User } from 'models/user/user.types';
 
@@ -23,7 +24,7 @@ interface UserGroupsProps {
 
 const cx = cn.bind(styles);
 
-const DragHandle = () => <IconButton name="draggabledots" />;
+const DragHandle = () => <IconButton className={cx('icon')} name="draggabledots" />;
 
 const SortableHandleHoc = SortableHandle(DragHandle);
 
@@ -94,7 +95,7 @@ const UserGroups = (props: UserGroupsProps) => {
       {renderUser(item.data)}
       <div className={cx('user-buttons')}>
         <HorizontalGroup>
-          <IconButton className={cx('delete-icon')} name="trash-alt" onClick={getDeleteItemHandler(index)} />
+          <IconButton className={cx('icon')} name="trash-alt" onClick={getDeleteItemHandler(index)} />
           <SortableHandleHoc />
         </HorizontalGroup>
       </div>
@@ -155,14 +156,16 @@ const SortableList = SortableContainer<SortableListProps>(({ items, handleAddGro
           </SortableItem>
         ) : isMultipleGroups ? (
           <SortableItem key={item.key} index={index}>
-            <li className={cx('separator')}>{item.data.name}</li>
+            <li className={cx('separator')}>
+              <Text type="secondary">{item.data.name}</Text>
+            </li>
           </SortableItem>
         ) : null
       )}
       {isMultipleGroups && items[items.length - 1]?.type === 'item' && (
         <SortableItem disabled key="New Group" index={items.length + 1}>
           <li onClick={handleAddGroup} className={cx('separator', { separator__clickable: true })}>
-            Add user group +
+            <Text type="secondary">Add user group +</Text>
           </li>
         </SortableItem>
       )}

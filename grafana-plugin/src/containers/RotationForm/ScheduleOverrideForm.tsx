@@ -92,7 +92,7 @@ const ScheduleOverrideForm: FC<RotationFormProps> = (props) => {
     return (
       <>
         <div className={cx('user-title')}>
-          <Text strong>{name}</Text> <Text type="primary">({desc})</Text>
+          <Text strong>{name}</Text> <Text style={{ color: 'var(--always-gray)' }}>({desc})</Text>
         </div>
         <WorkingHours
           timezone={timezone}

@@ -13,7 +13,11 @@ export default class BaseStore {
     this.rootStore = rootStore;
   }
 
-  onApiError(error: any) {
+  onApiError(error: any, skipErrorHandling = false) {
+    if (skipErrorHandling) {
+      throw error; // rethrow error and skip additional handling like showing notification
+    }
+
     if (error.response.status >= 400 && error.response.status < 500) {
       const payload = error.response.data;
       const text =
@@ -37,10 +41,11 @@ export default class BaseStore {
   }
 
   @action
-  async getById(id: string) {
-    return await makeRequest(`${this.path}${id}/`, {
+  async getById(id: string, skipErrorHandling = false, fromOrganization = false) {
+    return await makeRequest(`${this.path}${id}`, {
       method: 'GET',
-    }).catch(this.onApiError);
+      params: { from_organization: fromOrganization },
+    }).catch((error) => this.onApiError(error, skipErrorHandling));
   }
 
   @action

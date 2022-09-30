@@ -6,6 +6,7 @@ import dayjs from 'dayjs';
 import { observer } from 'mobx-react';
 import { CSSTransition, TransitionGroup } from 'react-transition-group';
 
+import Text from 'components/Text/Text';
 import TimelineMarks from 'components/TimelineMarks/TimelineMarks';
 import Rotation from 'containers/Rotation/Rotation';
 import { RotationCreateData } from 'containers/RotationForm/RotationForm.types';
@@ -69,7 +70,11 @@ class ScheduleOverrides extends Component<ScheduleOverridesProps, ScheduleOverri
         <div id="overrides-list" className={cx('root')}>
           <div className={cx('header')}>
             <HorizontalGroup justify="space-between">
-              <div className={cx('title')}>Overrides</div>
+              <div className={cx('title')}>
+                <Text.Title level={4} type="primary">
+                  Overrides
+                </Text.Title>
+              </div>
               <Button icon="plus" onClick={this.handleAddOverride} variant="secondary">
                 Add override
               </Button>

@@ -1,19 +1,15 @@
-import React, { useCallback, useState } from 'react';
+import React, { useCallback } from 'react';
 
-import { Button, Drawer, Input, Modal } from '@grafana/ui';
+import { Button, Drawer } from '@grafana/ui';
 import cn from 'classnames/bind';
-import { get } from 'lodash-es';
 import { observer } from 'mobx-react';
-import Emoji from 'react-emoji-render';
 
 import GForm from 'components/GForm/GForm';
-import IntegrationLogo from 'components/IntegrationLogo/IntegrationLogo';
 import Text from 'components/Text/Text';
 import { WithPermissionControl } from 'containers/WithPermissionControl/WithPermissionControl';
 import { OutgoingWebhook } from 'models/outgoing_webhook/outgoing_webhook.types';
 import { useStore } from 'state/useStore';
 import { UserAction } from 'state/userAction';
-import { openErrorNotification } from 'utils';
 
 import { form } from './OutgoingWebhookForm.config';
 

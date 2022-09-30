@@ -4,17 +4,14 @@
 
 .root table {
   width: 100%;
-  background: #22252b;
 }
 
 .root tr {
-  border-bottom: 1px solid #181b1f;
-  height: 60px;
+  min-height: 56px;
 }
 
 .root tr:hover {
   /* background: var(--secondary-background); */
-  background: rgba(63, 62, 62, 0.45);
 }
 
 .root th:first-child {
@@ -33,6 +30,7 @@
 
 .expand-icon {
   padding: 10px;
+  color: var(--primary-text-color);
   pointer-events: none;
   transform: rotate(-90deg);
   transform-origin: center;
