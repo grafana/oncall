@@ -23,6 +23,8 @@ DATABASES = {
     },
 }
 
+CACHES["default"]["LOCATION"] = ["localhost:6379"]  # noqa: F405
+
 SECRET_KEY = os.environ.get("SECRET_KEY", "osMsNM0PqlRHBlUvqmeJ7+ldU3IUETCrY9TrmiViaSmInBHolr1WUlS0OFS4AHrnnkp1vp9S9z1")
 
 MIRAGE_SECRET_KEY = os.environ.get(
@@ -31,26 +33,6 @@ MIRAGE_SECRET_KEY = os.environ.get(
 MIRAGE_CIPHER_IV = os.environ.get("MIRAGE_CIPHER_IV", "tZZa+60zTZO2NRcS")
 
 TESTING = "pytest" in sys.modules or "unittest" in sys.modules
-
-CACHES = {
-    "default": {
-        "BACKEND": "redis_cache.RedisCache",
-        "LOCATION": [
-            "localhost:6379",
-        ],
-        "OPTIONS": {
-            "DB": 1,
-            "PARSER_CLASS": "redis.connection.HiredisParser",
-            "CONNECTION_POOL_CLASS": "redis.BlockingConnectionPool",
-            "CONNECTION_POOL_CLASS_KWARGS": {
-                "max_connections": 50,
-                "timeout": 20,
-            },
-            "MAX_CONNECTIONS": 1000,
-            "PICKLE_VERSION": -1,
-        },
-    },
-}
 
 CELERY_BROKER_URL = "pyamqp://rabbitmq:rabbitmq@localhost:5672"
 

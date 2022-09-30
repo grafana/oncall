@@ -102,6 +102,38 @@ DB_BACKEND_DEFAULT_VALUES = {
     },
 }
 
+# Redis
+REDIS_USERNAME = os.getenv("REDIS_USERNAME", "")
+REDIS_PASSWORD = os.getenv("REDIS_PASSWORD")
+REDIS_HOST = os.getenv("REDIS_HOST")
+REDIS_PORT = os.getenv("REDIS_PORT", "6379")
+REDIS_PROTOCOL = os.getenv("REDIS_PROTOCOL", "redis")
+
+REDIS_URI = os.getenv("REDIS_URI")
+if not REDIS_URI:
+    REDIS_URI = f"{REDIS_PROTOCOL}://{REDIS_USERNAME}:{REDIS_PASSWORD}@{REDIS_HOST}:{REDIS_PORT}"
+
+# Cache
+CACHES = {
+    "default": {
+        "BACKEND": "redis_cache.RedisCache",
+        "LOCATION": [
+            REDIS_URI,
+        ],
+        "OPTIONS": {
+            "DB": 1,
+            "PARSER_CLASS": "redis.connection.HiredisParser",
+            "CONNECTION_POOL_CLASS": "redis.BlockingConnectionPool",
+            "CONNECTION_POOL_CLASS_KWARGS": {
+                "max_connections": 50,
+                "timeout": 20,
+            },
+            "MAX_CONNECTIONS": 1000,
+            "PICKLE_VERSION": -1,
+        },
+    },
+}
+
 # Application definition
 
 INSTALLED_APPS = [

@@ -33,32 +33,5 @@ CELERY_BROKER_URL = (
     f"{RABBITMQ_PROTOCOL}://{RABBITMQ_USERNAME}:{RABBITMQ_PASSWORD}@{RABBITMQ_HOST}:{RABBITMQ_PORT}/{RABBITMQ_VHOST}"
 )
 
-REDIS_USERNAME = os.environ.get("REDIS_USERNAME", "")
-REDIS_PASSWORD = os.environ.get("REDIS_PASSWORD")
-REDIS_HOST = os.environ.get("REDIS_HOST")
-REDIS_PORT = os.environ.get("REDIS_PORT", "6379")
-REDIS_PROTOCOL = os.environ.get("REDIS_PROTOCOL", "redis")
-REDIS_URI = f"{REDIS_PROTOCOL}://{REDIS_USERNAME}:{REDIS_PASSWORD}@{REDIS_HOST}:{REDIS_PORT}"
-
-CACHES = {
-    "default": {
-        "BACKEND": "redis_cache.RedisCache",
-        "LOCATION": [
-            REDIS_URI,
-        ],
-        "OPTIONS": {
-            "DB": 1,
-            "PARSER_CLASS": "redis.connection.HiredisParser",
-            "CONNECTION_POOL_CLASS": "redis.BlockingConnectionPool",
-            "CONNECTION_POOL_CLASS_KWARGS": {
-                "max_connections": 50,
-                "timeout": 20,
-            },
-            "MAX_CONNECTIONS": 1000,
-            "PICKLE_VERSION": -1,
-        },
-    },
-}
-
 APPEND_SLASH = False
 SECURE_SSL_REDIRECT = False
