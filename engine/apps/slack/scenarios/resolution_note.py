@@ -120,7 +120,6 @@ class AddToResolutionNoteStep(CheckAlertIsUnarchivedMixin, scenario_step.Scenari
                         )
                         self.open_warning_window(payload, warning_text)
                         return
-
                     resolution_note_slack_message = ResolutionNoteSlackMessage(
                         alert_group=alert_group,
                         user=author_user,
