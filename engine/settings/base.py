@@ -134,8 +134,6 @@ else:
 
         pymysql.install_as_MySQLdb()
 
-print(DATABASES)
-
 # Redis
 REDIS_USERNAME = os.getenv("REDIS_USERNAME", "")
 REDIS_PASSWORD = os.getenv("REDIS_PASSWORD")

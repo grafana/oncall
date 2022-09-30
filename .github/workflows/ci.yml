@@ -109,6 +109,11 @@ jobs:
     services:
       redis_test:
         image: redis:7.0.5
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
 
     steps:
       - uses: actions/checkout@v2
@@ -117,4 +122,4 @@ jobs:
           apt-get update && apt-get install -y netcat
           cd engine/
           pip install -r requirements.txt
-          ./wait_for_test_mysql_start.sh && pytest --ds=settings.ci-test -x
+          pytest --ds=settings.ci-test -x
