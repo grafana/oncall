@@ -16,7 +16,7 @@ DATABASES["default"] |= {
     "USER": DATABASE_USER or "root",
     "PASSWORD": DATABASE_PASSWORD or "local_dev_pwd",
     "HOST": DATABASE_HOST or f"{DATABASE_TYPE}_test",
-    "PORT": DATABASE_PORT or 3306,
+    "PORT": DATABASE_PORT or (3306 if DATABASE_TYPE == "mysql" else 5432),
 }
 
 # Dummy Telegram token (fake one)
