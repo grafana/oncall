@@ -1,5 +1,4 @@
-# flake8: noqa: F405
-
+# flake8: noqa
 import os
 import sys
 

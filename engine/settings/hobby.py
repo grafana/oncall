@@ -1,8 +1,6 @@
-# flake8: noqa: F405
+from .prod_without_db import *  # noqa: F403
 
-from .prod_without_db import *
-
-MIRAGE_SECRET_KEY = SECRET_KEY
+MIRAGE_SECRET_KEY = SECRET_KEY  # noqa: F405
 MIRAGE_CIPHER_IV = "1234567890abcdef"  # use default
 
 APPEND_SLASH = False

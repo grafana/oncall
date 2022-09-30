@@ -1,6 +1,6 @@
-# flake8: noqa: F405
+# flake8: noqa
 
-from .base import *  # noqa
+from .base import *
 
 SECRET_KEY = "u5/IIbuiJR3Y9FQMBActk+btReZ5oOxu+l8MIJQWLfVzESoan5REE6UNSYYEQdjBOcty9CDak2X"
 
