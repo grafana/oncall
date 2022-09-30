@@ -10,7 +10,7 @@ MIRAGE_CIPHER_IV = "X+VFcDqtxJ5bbU+V"
 BASE_URL = "http://localhost"
 
 CELERY_BROKER_URL = "amqp://rabbitmq:rabbitmq@rabbit_test:5672"
-
+print(DATABASE_PASSWORD or "local_dev_pwd")
 DATABASES["default"] |= {
     "NAME": DATABASE_NAME or "oncall_local_dev",
     "USER": DATABASE_USER or "root",
