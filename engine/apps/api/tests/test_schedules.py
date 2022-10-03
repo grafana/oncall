@@ -985,6 +985,8 @@ def test_merging_same_shift_events(
     user_a = make_user_for_organization(organization)
     user_b = make_user_for_organization(organization)
     user_c = make_user_for_organization(organization, role=Role.VIEWER)
+    # clear users pks <-> organization cache (persisting between tests)
+    memoized_users_in_ical.cache_clear()
 
     data = {
         "start": start_date + timezone.timedelta(hours=10),
