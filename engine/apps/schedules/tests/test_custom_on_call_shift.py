@@ -354,11 +354,11 @@ def test_rolling_users_event_with_interval_monthly(
     user_2 = make_user_for_organization(organization)
 
     schedule = make_schedule(organization, schedule_class=OnCallScheduleCalendar)
-    start_date = timezone.now().replace(day=1, microsecond=0)
-    days_for_next_month_1 = monthrange(start_date.year, start_date.month)[1]
-    days_for_next_month_2 = monthrange(start_date.year, start_date.month + 1)[1] + days_for_next_month_1
-    days_for_next_month_3 = monthrange(start_date.year, start_date.month + 2)[1] + days_for_next_month_2
-    days_for_next_month_4 = monthrange(start_date.year, start_date.month + 3)[1] + days_for_next_month_3
+    start_date = timezone.datetime(year=2022, month=10, day=1, hour=10, minute=30)
+    days_for_next_month_1 = monthrange(2022, 10)[1]
+    days_for_next_month_2 = monthrange(2022, 11)[1] + days_for_next_month_1
+    days_for_next_month_3 = monthrange(2022, 12)[1] + days_for_next_month_2
+    days_for_next_month_4 = monthrange(2023, 1)[1] + days_for_next_month_3
 
     data = {
         "priority_level": 1,
@@ -718,19 +718,19 @@ def test_rolling_users_with_diff_start_and_rotation_start_monthly(
     user_3 = make_user_for_organization(organization)
 
     schedule = make_schedule(organization, schedule_class=OnCallScheduleWeb)
-    now = timezone.now().replace(day=1, microsecond=0)
-    days_in_curr_month = monthrange(now.year, now.month)[1]
-    days_in_next_month = monthrange(now.year, now.month + 1)[1]
+    start_date = timezone.datetime(year=2022, month=12, day=1, hour=10, minute=30)
+    days_in_curr_month = monthrange(2022, 12)[1]
+    days_in_next_month = monthrange(2023, 1)[1]
 
     data = {
         "priority_level": 1,
-        "start": now,
-        "week_start": now.weekday(),
-        "rotation_start": now + timezone.timedelta(days=days_in_curr_month - 1, hours=1),
+        "start": start_date,
+        "week_start": start_date.weekday(),
+        "rotation_start": start_date + timezone.timedelta(days=days_in_curr_month - 1, hours=1),
         "duration": timezone.timedelta(seconds=1800),
         "frequency": CustomOnCallShift.FREQUENCY_MONTHLY,
         "schedule": schedule,
-        "until": now + timezone.timedelta(days=days_in_curr_month + days_in_next_month + 10, minutes=1),
+        "until": start_date + timezone.timedelta(days=days_in_curr_month + days_in_next_month + 10, minutes=1),
     }
     rolling_users = [[user_1], [user_2], [user_3]]
     on_call_shift = make_on_call_shift(
@@ -738,7 +738,7 @@ def test_rolling_users_with_diff_start_and_rotation_start_monthly(
     )
     on_call_shift.add_rolling_users(rolling_users)
 
-    date = now + timezone.timedelta(minutes=5)
+    date = start_date + timezone.timedelta(minutes=5)
     # rotation starts from user_2, because user_1 started earlier than rotation start date
     user_2_on_call_dates = [date + timezone.timedelta(days=days_in_curr_month)]
     user_3_on_call_dates = [date + timezone.timedelta(days=days_in_curr_month + days_in_next_month)]
@@ -774,9 +774,9 @@ def test_rolling_users_with_diff_start_and_rotation_start_monthly_by_monthday(
     user_3 = make_user_for_organization(organization)
 
     schedule = make_schedule(organization, schedule_class=OnCallScheduleWeb)
-    start_date = timezone.now().replace(day=1, microsecond=0)
-    days_in_curr_month = monthrange(start_date.year, start_date.month)[1]
-    days_in_next_month = monthrange(start_date.year, start_date.month + 1)[1]
+    start_date = timezone.datetime(year=2022, month=12, day=1, hour=10, minute=30)
+    days_in_curr_month = monthrange(2022, 12)[1]
+    days_in_next_month = monthrange(2023, 1)[1]
 
     data = {
         "priority_level": 1,

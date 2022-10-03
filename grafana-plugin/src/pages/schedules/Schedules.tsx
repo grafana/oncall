@@ -85,7 +85,13 @@ class SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSta
       query: { id },
     } = this.props;
 
-    if (id) {
+    if (!id) {return;}
+
+    let scheduleId: string = undefined;
+    const isNewSchedule = id === 'new';
+
+    if (!isNewSchedule) {
+      // load schedule only for valid id
       const schedule = await store.scheduleStore
         .loadItem(id, true)
         .catch((error) => this.setState({ errorData: { ...getWrongTeamResponseInfo(error) } }));
@@ -93,13 +99,13 @@ class SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSta
         return;
       }
 
-      const schedules = store.scheduleStore.getSearchResult();
-      const scheduleId = schedules && schedules.find((res) => res.id === id)?.id;
-      if (scheduleId || id === 'new') {
-        this.setState({ scheduleIdToEdit: id });
-      } else {
-        openErrorNotification(`Schedule with id=${id} is not found. Please select schedule from the list.`);
-      }
+      scheduleId = schedule.id;
+    }
+
+    if (scheduleId || isNewSchedule) {
+      this.setState({ scheduleIdToEdit: id });
+    } else {
+      openErrorNotification(`Schedule with id=${id} is not found. Please select schedule from the list.`);
     }
   };
 
