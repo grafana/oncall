@@ -4,6 +4,7 @@ import pytest
 import pytz
 from django.utils import timezone
 
+from apps.schedules.ical_utils import memoized_users_in_ical
 from apps.schedules.models import CustomOnCallShift, OnCallSchedule, OnCallScheduleCalendar, OnCallScheduleWeb
 from common.constants.role import Role
 
@@ -236,6 +237,8 @@ def test_filter_events_ical_all_day(make_organization, make_user_for_organizatio
     schedule.cached_ical_file_primary = calendar.to_ical()
     for u in ("@Bernard Desruisseaux", "@Bob", "@Alex"):
         make_user_for_organization(organization, username=u)
+    # clear users pks <-> organization cache (persisting between tests)
+    memoized_users_in_ical.cache_clear()
 
     day_to_check_iso = "2021-01-27T15:27:14.448059+00:00"
     parsed_iso_day_to_check = datetime.datetime.fromisoformat(day_to_check_iso).replace(tzinfo=pytz.UTC)
