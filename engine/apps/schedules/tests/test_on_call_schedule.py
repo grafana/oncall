@@ -746,6 +746,19 @@ def test_preview_override_shift(make_organization, make_user_for_organization, m
 
 
 @pytest.mark.django_db
+def test_schedule_related_users_empty_schedule(make_organization, make_schedule):
+    organization = make_organization()
+    schedule = make_schedule(
+        organization,
+        schedule_class=OnCallScheduleWeb,
+        name="test_web_schedule",
+    )
+
+    users = schedule.related_users()
+    assert users == set()
+
+
+@pytest.mark.django_db
 def test_schedule_related_users(make_organization, make_user_for_organization, make_on_call_shift, make_schedule):
     organization = make_organization()
     schedule = make_schedule(
