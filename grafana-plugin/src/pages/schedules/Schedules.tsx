@@ -85,7 +85,7 @@ class SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSta
       query: { id },
     } = this.props;
 
-    if (!id) return;
+    if (!id) {return;}
 
     const isNewSchedule = id === 'new';
     let scheduleId = undefined;
@@ -172,7 +172,7 @@ class SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSta
         errorData={errorData}
         objectName="schedule"
         pageName="schedules"
-        itemNotFoundMessage={`Schedule with id=${query?.id} is not found. Please select schedule from the list. [AAAA]`}
+        itemNotFoundMessage={`Schedule with id=${query?.id} is not found. Please select schedule from the list.`}
       >
         {() => (
           <>
