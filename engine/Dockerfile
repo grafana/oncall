@@ -1,5 +1,5 @@
 FROM python:3.9-alpine
-RUN apk add bash python3-dev build-base linux-headers pcre-dev mariadb-connector-c-dev openssl-dev libffi-dev git
+RUN apk add bash python3-dev build-base linux-headers pcre-dev mariadb-connector-c-dev openssl-dev libffi-dev git automake autoconf libtool
 RUN pip install uwsgi
 
 WORKDIR /etc/app
