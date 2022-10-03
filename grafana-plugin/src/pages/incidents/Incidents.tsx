@@ -197,7 +197,11 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
           <HorizontalGroup>
             {'resolve' in store.alertGroupStore.bulkActions && (
               <WithPermissionControl key="resolve" userAction={UserAction.UpdateIncidents}>
-                <Button disabled={!hasSelected} variant="primary" onClick={this.getBulkActionClickHandler('resolve')}>
+                <Button
+                  disabled={!hasSelected}
+                  variant="primary"
+                  onClick={(ev) => this.getBulkActionClickHandler('resolve', ev)}
+                >
                   Resolve
                 </Button>
               </WithPermissionControl>
@@ -207,7 +211,7 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
                 <Button
                   disabled={!hasSelected}
                   variant="secondary"
-                  onClick={this.getBulkActionClickHandler('acknowledge')}
+                  onClick={(ev) => this.getBulkActionClickHandler('acknowledge', ev)}
                 >
                   Acknowledge
                 </Button>
@@ -215,14 +219,21 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
             )}
             {'silence' in store.alertGroupStore.bulkActions && (
               <WithPermissionControl key="restart" userAction={UserAction.UpdateIncidents}>
-                <Button disabled={!hasSelected} variant="secondary" onClick={this.getBulkActionClickHandler('restart')}>
+                <Button
+                  disabled={!hasSelected}
+                  variant="secondary"
+                  onClick={(ev) => this.getBulkActionClickHandler('restart', ev)}
+                >
                   Restart
                 </Button>
               </WithPermissionControl>
             )}
             {'restart' in store.alertGroupStore.bulkActions && (
               <WithPermissionControl key="silence" userAction={UserAction.UpdateIncidents}>
-                <SilenceDropdown disabled={!hasSelected} onSelect={this.getBulkActionClickHandler('silence')} />
+                <SilenceDropdown
+                  disabled={!hasSelected}
+                  onSelect={(ev) => this.getBulkActionClickHandler('silence', ev)}
+                />
               </WithPermissionControl>
             )}
             <Text type="secondary">
@@ -362,7 +373,9 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
   }
 
   handleSelectedIncidentIdsChange = (ids: Array<Alert['pk']>) => {
-    this.setState({ selectedIncidentIds: ids }, () => ids?.length === 0 && this.setPollingInterval());
+    this.setState({ selectedIncidentIds: ids }, () => {
+      ids.length > 0 ? this.clearPollingInterval() : this.setPollingInterval();
+    });
   };
 
   renderId(record: AlertType) {
@@ -516,36 +529,34 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
     };
   };
 
-  getBulkActionClickHandler = (action: string | number) => {
-    this.clearPollingInterval();
-
+  getBulkActionClickHandler = (action: string | number, event?: any) => {
     const { selectedIncidentIds, affectedRows } = this.state;
     const { store } = this.props;
 
-    return (event?: any) => {
-      store.alertGroupStore.liveUpdatesPaused = true;
-      const delay = typeof event === 'number' ? event : 0;
+    this.setPollingInterval();
 
-      this.setState(
-        {
-          selectedIncidentIds: [],
-          affectedRows: selectedIncidentIds.reduce(
-            (acc, incidentId: AlertType['pk']) => ({
-              ...acc,
-              [incidentId]: true,
-            }),
-            affectedRows
-          ),
-        },
-        () => {
-          store.alertGroupStore.bulkAction({
-            action,
-            alert_group_pks: selectedIncidentIds,
-            delay,
-          });
-        }
-      );
-    };
+    store.alertGroupStore.liveUpdatesPaused = true;
+    const delay = typeof event === 'number' ? event : 0;
+
+    this.setState(
+      {
+        selectedIncidentIds: [],
+        affectedRows: selectedIncidentIds.reduce(
+          (acc, incidentId: AlertType['pk']) => ({
+            ...acc,
+            [incidentId]: true,
+          }),
+          affectedRows
+        ),
+      },
+      () => {
+        store.alertGroupStore.bulkAction({
+          action,
+          alert_group_pks: selectedIncidentIds,
+          delay,
+        });
+      }
+    );
   };
 
   onIncidentsUpdateClick = () => {
@@ -561,7 +572,7 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
     this.pollingIntervalId = undefined;
   }
 
-  setPollingInterval(filters: IncidentsFiltersType = this.state.filters, isOnMount: boolean = false) {
+  setPollingInterval(filters: IncidentsFiltersType = this.state.filters, isOnMount = false) {
     this.pollingIntervalId = setInterval(() => this.fetchIncidentData(filters, isOnMount), POLLING_NUM_SECONDS * 1000);
   }
 }
