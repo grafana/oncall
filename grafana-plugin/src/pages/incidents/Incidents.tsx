@@ -136,18 +136,15 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
       });
     }
 
-    const fetchIncidentData = () => {
-      store.alertGroupStore.updateIncidentFilters(filters, isOnMount); // this line fetches incidents
-      getLocationSrv().update({ query: { page: 'incidents', ...store.alertGroupStore.incidentFilters } });
-    }
+    this.clearPollingInterval();
+    this.setPollingInterval(filters, isOnMount);
+    this.fetchIncidentData(filters, isOnMount);
+  };
 
-    if (this.pollingIntervalId) {
-      clearInterval(this.pollingIntervalId);
-    }
-
-    this.pollingIntervalId = setInterval(() => fetchIncidentData(), POLLING_NUM_SECONDS * 1000);
-
-    fetchIncidentData();
+  fetchIncidentData = (filters: IncidentsFiltersType, isOnMount: boolean) => {
+    const { store } = this.props;
+    store.alertGroupStore.updateIncidentFilters(filters, isOnMount); // this line fetches incidents
+    getLocationSrv().update({ query: { page: 'incidents', ...store.alertGroupStore.incidentFilters } });
   };
 
   onChangeCursor = (cursor: string, direction: 'prev' | 'next') => {
@@ -365,7 +362,7 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
   }
 
   handleSelectedIncidentIdsChange = (ids: Array<Alert['pk']>) => {
-    this.setState({ selectedIncidentIds: ids });
+    this.setState({ selectedIncidentIds: ids }, () => ids?.length === 0 && this.setPollingInterval());
   };
 
   renderId(record: AlertType) {
@@ -520,6 +517,8 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
   };
 
   getBulkActionClickHandler = (action: string | number) => {
+    this.clearPollingInterval();
+
     const { selectedIncidentIds, affectedRows } = this.state;
     const { store } = this.props;
 
@@ -556,6 +555,15 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
       store.alertGroupStore.updateIncidents();
     });
   };
+
+  clearPollingInterval() {
+    clearInterval(this.pollingIntervalId);
+    this.pollingIntervalId = undefined;
+  }
+
+  setPollingInterval(filters: IncidentsFiltersType = this.state.filters, isOnMount: boolean = false) {
+    this.pollingIntervalId = setInterval(() => this.fetchIncidentData(filters, isOnMount), POLLING_NUM_SECONDS * 1000);
+  }
 }
 
 export default withMobXProviderContext(Incidents);
