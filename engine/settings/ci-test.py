@@ -23,13 +23,15 @@ else:
 if BROKER_TYPE == "rabbitmq":
     CELERY_BROKER_URL = "amqp://rabbitmq:rabbitmq@rabbit_test:5672"
 elif BROKER_TYPE == "redis":
-    CELERY_BROKER_URL = "redis://redis_test:6379"
+    CELERY_BROKER_URL = REDIS_URI
 
-CACHES = {
-    "default": {
-        "BACKEND": "django.core.cache.backends.locmem.LocMemCache",
+# use redis as cache and celery broker on CI tests
+if BROKER_TYPE != "redis":
+    CACHES = {
+        "default": {
+            "BACKEND": "django.core.cache.backends.locmem.LocMemCache",
+        }
     }
-}
 
 # Dummy Telegram token (fake one)
 TELEGRAM_TOKEN = "0000000000:XXXXXXXXXXXXXXXXXXXXXXXXXXXX-XXXXXX"

@@ -104,6 +104,7 @@ jobs:
     env:
       DATABASE_TYPE: sqlite3
       BROKER_TYPE: redis
+      REDIS_URI: redis://redis_test:6379
       DJANGO_SETTINGS_MODULE: settings.ci-test
       SLACK_CLIENT_OAUTH_ID: 1
     services:
