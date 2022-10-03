@@ -92,6 +92,8 @@ SWAGGER_SETTINGS = {
     "SUPPORTED_SUBMIT_METHODS": ["get", "post", "put", "delete", "options"],
 }
 
+EXTRA_MESSAGING_BACKENDS = [("apps.mattermost.backend.MattermostBackend", 11)]
+
 if TESTING:
     EXTRA_MESSAGING_BACKENDS = [("apps.base.tests.messaging_backend.TestOnlyBackend", 42)]
     TELEGRAM_TOKEN = "0000000000:XXXXXXXXXXXXXXXXXXXXXXXXXXXX-XXXXXX"

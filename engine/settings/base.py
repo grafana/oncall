@@ -121,6 +121,7 @@ INSTALLED_APPS = [
     "apps.integrations",
     "apps.schedules",
     "apps.heartbeat",
+    "apps.mattermost",
     "apps.slack",
     "apps.telegram",
     "apps.twilioapp",
