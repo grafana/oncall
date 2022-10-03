@@ -1,5 +1,9 @@
 # Change Log
 
+## v1.0.39 (2022-10-03)
+
+- Fix issue in v1.0.38 blocking the creation of schedules and webhooks in the UI
+
 ## v1.0.38 (2022-09-30)
 
 - Fix exception handling for adding resolution notes when slack and oncall users are out of sync.
