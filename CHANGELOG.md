@@ -1,7 +1,10 @@
 # Change Log
 
-## v1.0.38 (2022-09-22)
+## v1.0.38 (2022-09-30)
 
+- Fix exception handling for adding resolution notes when slack and oncall users are out of sync.
+- Fix all day events showing as having gaps in slack notifications
+- Improve plugin configuration error message readability
 - Add `telegram` key to `permalinks` property in `AlertGroup` public API response schema
 
 ## v1.0.37 (2022-09-21)
