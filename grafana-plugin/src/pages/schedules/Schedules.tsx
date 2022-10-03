@@ -87,8 +87,8 @@ class SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSta
 
     if (!id) {return;}
 
+    let scheduleId: string = undefined;
     const isNewSchedule = id === 'new';
-    let scheduleId = undefined;
 
     if (!isNewSchedule) {
       // load schedule only for valid id
@@ -99,8 +99,7 @@ class SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSta
         return;
       }
 
-      const schedules = store.scheduleStore.getSearchResult();
-      scheduleId = schedules && schedules.find((res) => res.id === id)?.id;
+      scheduleId = schedule.id;
     }
 
     if (scheduleId || isNewSchedule) {

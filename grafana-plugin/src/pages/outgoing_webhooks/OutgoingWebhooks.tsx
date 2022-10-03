@@ -60,14 +60,19 @@ class OutgoingWebhooks extends React.Component<OutgoingWebhooksProps, OutgoingWe
       query: { id },
     } = this.props;
 
-    if (id) {
-      const outgoingWebhook = await store.outgoingWebhookStore
+    if (!id) {return;}
+
+    let outgoingWebhook: OutgoingWebhook | void = undefined;
+    const isNewWebhook = id === 'new';
+
+    if (!isNewWebhook) {
+      outgoingWebhook = await store.outgoingWebhookStore
         .loadItem(id, true)
         .catch((error) => this.setState({ errorData: { ...getWrongTeamResponseInfo(error) } }));
+    }
 
-      if (outgoingWebhook) {
-        this.setState({ outgoingWebhookIdToEdit: id });
-      }
+    if (outgoingWebhook || isNewWebhook) {
+      this.setState({ outgoingWebhookIdToEdit: id });
     }
   };
 
