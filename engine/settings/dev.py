@@ -6,7 +6,7 @@ from .base import *
 
 DEBUG = True
 
-if DATABASE_TYPE == "sqlite3":
+if DATABASE_TYPE == DatabaseTypes.SQLITE3:
     DATABASES["default"]["NAME"] = DATABASE_NAME or "oncall_dev.db"
 else:
     DATABASES["default"] |= {
@@ -17,9 +17,9 @@ else:
         "PORT": DATABASE_PORT or DATABASE_DEFAULTS[DATABASE_TYPE]["PORT"],
     }
 
-if BROKER_TYPE == "rabbitmq":
+if BROKER_TYPE == BrokerTypes.RABBITMQ:
     CELERY_BROKER_URL = "pyamqp://rabbitmq:rabbitmq@localhost:5672"
-elif BROKER_TYPE == "redis":
+elif BROKER_TYPE == BrokerTypes.REDIS:
     CELERY_BROKER_URL = "redis://localhost:6379"
 
 CACHES["default"]["LOCATION"] = ["localhost:6379"]

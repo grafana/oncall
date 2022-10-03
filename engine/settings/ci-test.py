@@ -9,7 +9,7 @@ MIRAGE_CIPHER_IV = "X+VFcDqtxJ5bbU+V"
 
 BASE_URL = "http://localhost"
 
-if DATABASE_TYPE == "sqlite3":
+if DATABASE_TYPE == DatabaseTypes.SQLITE3:
     DATABASES["default"]["NAME"] = DATABASE_NAME or "oncall_ci.db"
 else:
     DATABASES["default"] |= {
@@ -20,13 +20,13 @@ else:
         "PORT": DATABASE_PORT or DATABASE_DEFAULTS[DATABASE_TYPE]["PORT"],
     }
 
-if BROKER_TYPE == "rabbitmq":
+if BROKER_TYPE == BrokerTypes.RABBITMQ:
     CELERY_BROKER_URL = "amqp://rabbitmq:rabbitmq@rabbit_test:5672"
-elif BROKER_TYPE == "redis":
+elif BROKER_TYPE == BrokerTypes.REDIS:
     CELERY_BROKER_URL = REDIS_URI
 
 # use redis as cache and celery broker on CI tests
-if BROKER_TYPE != "redis":
+if BROKER_TYPE != BrokerTypes.REDIS:
     CACHES = {
         "default": {
             "BACKEND": "django.core.cache.backends.locmem.LocMemCache",

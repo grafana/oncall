@@ -81,13 +81,20 @@ GRAFANA_CLOUD_ONCALL_TOKEN = os.environ.get("GRAFANA_CLOUD_ONCALL_TOKEN", None)
 # Outgoing webhook settings
 DANGEROUS_WEBHOOKS_ENABLED = getenv_boolean("DANGEROUS_WEBHOOKS_ENABLED", default=False)
 
+
 # Database
+class DatabaseTypes:
+    MYSQL = "mysql"
+    POSTGRESQL = "postgresql"
+    SQLITE3 = "sqlite3"
+
+
 DATABASE_DEFAULTS = {
-    "mysql": {
+    DatabaseTypes.MYSQL: {
         "USER": "root",
         "PORT": 3306,
     },
-    "postgresql": {
+    DatabaseTypes.POSTGRESQL: {
         "USER": "postgres",
         "PORT": 5432,
     },
@@ -99,17 +106,17 @@ DATABASE_PASSWORD = os.getenv("DATABASE_PASSWORD") or os.getenv("MYSQL_PASSWORD"
 DATABASE_HOST = os.getenv("DATABASE_HOST") or os.getenv("MYSQL_HOST")
 DATABASE_PORT = os.getenv("DATABASE_PORT") or os.getenv("MYSQL_PORT")
 
-DATABASE_TYPE = os.getenv("DATABASE_TYPE", "mysql").lower()
-assert DATABASE_TYPE in ["mysql", "postgresql", "sqlite3"]
+DATABASE_TYPE = os.getenv("DATABASE_TYPE", DatabaseTypes.MYSQL).lower()
+assert DATABASE_TYPE in {DatabaseTypes.MYSQL, DatabaseTypes.POSTGRESQL, DatabaseTypes.SQLITE3}
 
 DATABASE_ENGINE = f"django.db.backends.{DATABASE_TYPE}"
 
 DATABASE_CONFIGS = {
-    "sqlite3": {
+    DatabaseTypes.SQLITE3: {
         "ENGINE": DATABASE_ENGINE,
         "NAME": DATABASE_NAME or "/var/lib/oncall/oncall.db",
     },
-    "mysql": {
+    DatabaseTypes.MYSQL: {
         "ENGINE": DATABASE_ENGINE,
         "NAME": DATABASE_NAME,
         "USER": DATABASE_USER,
@@ -121,7 +128,7 @@ DATABASE_CONFIGS = {
             "connect_timeout": 1,
         },
     },
-    "postgresql": {
+    DatabaseTypes.POSTGRESQL: {
         "ENGINE": DATABASE_ENGINE,
         "NAME": DATABASE_NAME,
         "USER": DATABASE_USER,
@@ -134,7 +141,7 @@ DATABASE_CONFIGS = {
 DATABASES = {
     "default": DATABASE_CONFIGS[DATABASE_TYPE],
 }
-if DATABASE_TYPE == "mysql":
+if DATABASE_TYPE == DatabaseTypes.MYSQL:
     # Workaround to use pymysql instead of mysqlclient
     import pymysql
 
@@ -343,13 +350,19 @@ RABBITMQ_URI = os.getenv("RABBITMQ_URI") or os.getenv("RABBIT_URI")
 if not RABBITMQ_URI:
     RABBITMQ_URI = f"{RABBITMQ_PROTOCOL}://{RABBITMQ_USERNAME}:{RABBITMQ_PASSWORD}@{RABBITMQ_HOST}:{RABBITMQ_PORT}/{RABBITMQ_VHOST}"
 
-# Celery
-BROKER_TYPE = os.getenv("BROKER_TYPE", "rabbitmq").lower()
-assert BROKER_TYPE in ["rabbitmq", "redis"]
 
-if BROKER_TYPE == "rabbitmq":
+# Celery
+class BrokerTypes:
+    RABBITMQ = "rabbitmq"
+    REDIS = "redis"
+
+
+BROKER_TYPE = os.getenv("BROKER_TYPE", BrokerTypes.RABBITMQ).lower()
+assert BROKER_TYPE in {BrokerTypes.RABBITMQ, BrokerTypes.REDIS}
+
+if BROKER_TYPE == BrokerTypes.RABBITMQ:
     CELERY_BROKER_URL = RABBITMQ_URI
-elif BROKER_TYPE == "redis":
+elif BROKER_TYPE == BrokerTypes.REDIS:
     CELERY_BROKER_URL = REDIS_URI
 else:
     raise ValueError(f"Invalid BROKER_TYPE env variable: {BROKER_TYPE}")
