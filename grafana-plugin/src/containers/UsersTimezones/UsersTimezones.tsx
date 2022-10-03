@@ -71,7 +71,11 @@ const UsersTimezones: FC<UsersTimezonesProps> = (props) => {
       <div className={cx('header')}>
         <HorizontalGroup justify="space-between">
           <HorizontalGroup>
-            <div className={cx('title')}>Schedule team and timezones</div>
+            <div className={cx('title')}>
+              <Text.Title level={4} type="primary">
+                Schedule team and timezones
+              </Text.Title>
+            </div>
             {/* <HorizontalGroup>
               <InlineSwitch transparent />
               Current schedule users only
@@ -98,12 +102,18 @@ const UsersTimezones: FC<UsersTimezonesProps> = (props) => {
                   'time-mark-text__translated': index > 0,
                 })}
               >
-                {mm.format('HH:mm')}
+                <Text type="secondary" size="small">
+                  {mm.format('HH:mm')}
+                </Text>
               </span>
             </div>
           ))}
           <div key={jLimit} className={cx('time-mark')}>
-            <span className={cx('time-mark-text')}>24:00</span>
+            <span className={cx('time-mark-text')}>
+              <Text type="secondary" size="small">
+                24:00
+              </Text>
+            </span>
           </div>
         </div>
       </div>

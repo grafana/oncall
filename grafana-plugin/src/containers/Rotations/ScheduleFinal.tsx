@@ -6,6 +6,7 @@ import dayjs from 'dayjs';
 import { observer } from 'mobx-react';
 import { CSSTransition, TransitionGroup } from 'react-transition-group';
 
+import Text from 'components/Text/Text';
 import TimelineMarks from 'components/TimelineMarks/TimelineMarks';
 import Rotation from 'containers/Rotation/Rotation';
 import { getColor, getFromString, getOverrideColor } from 'models/schedule/schedule.helpers';
@@ -73,7 +74,11 @@ class ScheduleFinal extends Component<ScheduleFinalProps, ScheduleOverridesState
           {!hideHeader && (
             <div className={cx('header')}>
               <HorizontalGroup justify="space-between">
-                <div className={cx('title')}>Final schedule</div>
+                <div className={cx('title')}>
+                  <Text.Title level={4} type="primary">
+                    Final schedule
+                  </Text.Title>
+                </div>
                 {/*<Input
                   prefix={<Icon name="search" />}
                   placeholder="Search..."

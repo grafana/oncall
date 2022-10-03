@@ -7,6 +7,7 @@ from django.utils import timezone
 
 from apps.slack.scenarios import scenario_step
 from apps.slack.slack_client.exceptions import SlackAPIException
+from apps.user_management.models import User
 from common.api_helpers.utils import create_engine_url
 
 from .step_mixins import CheckAlertIsUnarchivedMixin
@@ -107,10 +108,18 @@ class AddToResolutionNoteStep(CheckAlertIsUnarchivedMixin, scenario_step.Scenari
                         channel_id=channel_id,
                     )
                     alert_group = slack_message.get_alert_group()
-                    author_slack_user_identity = SlackUserIdentity.objects.get(
-                        slack_id=payload["message"]["user"], slack_team_identity=slack_team_identity
-                    )
-                    author_user = self.organization.users.get(slack_user_identity=author_slack_user_identity)
+                    try:
+                        author_slack_user_identity = SlackUserIdentity.objects.get(
+                            slack_id=payload["message"]["user"], slack_team_identity=slack_team_identity
+                        )
+                        author_user = self.organization.users.get(slack_user_identity=author_slack_user_identity)
+                    except (SlackUserIdentity.DoesNotExist, User.DoesNotExist):
+                        warning_text = (
+                            "Unable to add this message to resolution note: could not find corresponding "
+                            "OnCall user for message author: {}".format(payload["message"]["user"])
+                        )
+                        self.open_warning_window(payload, warning_text)
+                        return
                     resolution_note_slack_message = ResolutionNoteSlackMessage(
                         alert_group=alert_group,
                         user=author_user,
@@ -121,6 +130,7 @@ class AddToResolutionNoteStep(CheckAlertIsUnarchivedMixin, scenario_step.Scenari
                         ts=message_ts,
                         permalink=permalink,
                     )
+
                 resolution_note_slack_message.added_to_resolution_note = True
                 resolution_note_slack_message.save()
                 resolution_note = resolution_note_slack_message.get_resolution_note()

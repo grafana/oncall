@@ -9,6 +9,7 @@ import { toJS } from 'mobx';
 import { observer } from 'mobx-react';
 import { CSSTransition, TransitionGroup } from 'react-transition-group';
 
+import Text from 'components/Text/Text';
 import TimelineMarks from 'components/TimelineMarks/TimelineMarks';
 import Rotation from 'containers/Rotation/Rotation';
 import RotationForm from 'containers/RotationForm/RotationForm';
@@ -91,12 +92,16 @@ class Rotations extends Component<RotationsProps, RotationsState> {
         <div className={cx('root')}>
           <div className={cx('header')}>
             <HorizontalGroup justify="space-between">
-              <div className={cx('title')}>Rotations</div>
+              <div className={cx('title')}>
+                <Text.Title level={4} type="primary">
+                  Rotations
+                </Text.Title>
+              </div>
               <ValuePicker
                 label="Add rotation"
                 options={options}
                 onChange={this.handleAddRotation}
-                variant="secondary"
+                variant="primary"
                 size="md"
               />
             </HorizontalGroup>
@@ -109,7 +114,7 @@ class Rotations extends Component<RotationsProps, RotationsState> {
                     <div id={`layer${layer.priority}`} className={cx('layer')}>
                       <div className={cx('layer-title')}>
                         <HorizontalGroup spacing="sm" justify="center">
-                          <span>Layer {layer.priority}</span>
+                          <Text type="secondary">Layer {layer.priority}</Text>
                           {/*<Icon name="info-circle" />*/}
                         </HorizontalGroup>
                       </div>
@@ -151,8 +156,7 @@ class Rotations extends Component<RotationsProps, RotationsState> {
                 <div id={`layer1`} className={cx('layer')}>
                   <div className={cx('layer-title')}>
                     <HorizontalGroup spacing="sm" justify="center">
-                      <span>Layer 1</span>
-                      {/* <Icon name="info-circle" />*/}
+                      <Text type="secondary">Layer 1</Text>
                     </HorizontalGroup>
                   </div>
                   <div className={cx('header-plus-content')}>
@@ -182,7 +186,7 @@ class Rotations extends Component<RotationsProps, RotationsState> {
                   this.handleAddLayer(nextPriority);
                 }}
               >
-                + Add rotations layer
+                <Text type="primary">+ Add rotations layer</Text>
               </div>
             )}
           </div>
