@@ -3,6 +3,7 @@ from unittest.mock import patch
 
 import pytest
 from django.urls import reverse
+from django.utils import timezone
 
 from apps.alerts.models import AlertReceiveChannel
 from common.api_helpers.utils import create_engine_url
@@ -144,3 +145,30 @@ def test_notify_maintenance_with_general_channel(make_organization, make_alert_r
     mock_post_message.assert_called_once_with(
         organization, organization.general_log_channel_id, "maintenance mode enabled"
     )
+
+
+@pytest.mark.django_db
+def test_count_alerts_last_week_and_total(
+    make_organization,
+    make_alert_receive_channel,
+    make_alert_group,
+    make_alert,
+):
+    organization = make_organization()
+    alert_receive_channel = make_alert_receive_channel(organization)
+    alert_group = make_alert_group(alert_receive_channel=alert_receive_channel)
+
+    today = timezone.now() + timezone.timedelta(minutes=1)
+    alerts_total = 10
+    alerts_last_week = 7
+    alerts_to_update = []
+    for i in range(alerts_total):
+        alert = make_alert(alert_group=alert_group, raw_request_data={})
+        alert.created_at = today - timezone.timedelta(days=alerts_total - i)
+        alerts_to_update.append(alert)
+
+    alert_group.alerts.bulk_update(alerts_to_update, ["created_at"])
+    alerts_count_last_week, alert_count_total = alert_receive_channel.alerts_count_last_week_and_total
+
+    assert alerts_count_last_week == alerts_last_week
+    assert alert_count_total == alerts_total
