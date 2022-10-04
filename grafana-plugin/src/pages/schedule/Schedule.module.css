@@ -5,7 +5,7 @@
   margin-top: 24px;
 
   --rotations-border: var(--border-medium);
-  --rotations-background: var(--primary-background);
+  --rotations-background: var(--background-secondary);
 }
 
 .header {

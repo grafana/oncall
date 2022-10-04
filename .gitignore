@@ -1,10 +1,12 @@
 # Backend
 */db.sqlite3
+engine/oncall_dev.db
 *.pyc
 venv
 .python-version
 .env
 .env_hobby
+.env.dev
 .vscode
 dump.rdb
 .idea

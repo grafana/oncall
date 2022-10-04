@@ -14,14 +14,11 @@ import GSelect from 'containers/GSelect/GSelect';
 import RemoteSelect from 'containers/RemoteSelect/RemoteSelect';
 import UserTooltip from 'containers/UserTooltip/UserTooltip';
 import { WithPermissionControl } from 'containers/WithPermissionControl/WithPermissionControl';
-import { ActionDTO } from 'models/action';
 import { prepareEscalationPolicy } from 'models/escalation_policy/escalation_policy.helpers';
 import {
   EscalationPolicy as EscalationPolicyType,
   EscalationPolicyOption,
 } from 'models/escalation_policy/escalation_policy.types';
-import { PRIVATE_CHANNEL_NAME } from 'models/slack_channel/slack_channel.config';
-import { User, UserRole } from 'models/user/user.types';
 import { WaitDelay } from 'models/wait_delay';
 import { SelectOption } from 'state/types';
 import { UserAction } from 'state/userAction';
@@ -272,15 +269,15 @@ export class EscalationPolicy extends React.Component<EscalationPolicyProps, any
 
     return (
       <WithPermissionControl key="notify_schedule" disableByPaywall userAction={UserAction.UpdateEscalationPolicies}>
-        <RemoteSelect
-          showSearch={false}
+        <GSelect
+          modelName="scheduleStore"
+          displayField="name"
+          valueField="id"
+          placeholder="Select Schedule"
           className={cx('select', 'control')}
           value={notify_schedule}
-          valueField="id"
           onChange={this._getOnChangeHandler('notify_schedule')}
-          href={'/schedules/?short=true'}
-          fieldToShow="name"
-          placeholder="Select Schedule"
+          fromOrganization
         />
       </WithPermissionControl>
     );
@@ -319,6 +316,7 @@ export class EscalationPolicy extends React.Component<EscalationPolicyProps, any
           className={cx('select', 'control')}
           value={custom_button_trigger}
           onChange={this._getOnChangeHandler('custom_button_trigger')}
+          fromOrganization
         />
       </WithPermissionControl>
     );

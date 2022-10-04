@@ -56,15 +56,15 @@ python --version
 # Make sure you have latest pip and wheel support
 pip install -U pip wheel
 
-# Copy and check .env file.
-cp .env.example .env
+# Copy and check .env.dev file.
+cp .env.dev.example .env.dev
 
-# NOTE: if you want to use the PostgreSQL db backend add DB_BACKEND=postgresql to your .env file;
-#       currently allowed backend values are `mysql` (default) and `postgresql`
+# NOTE: if you want to use the PostgreSQL db backend add DATABASE_TYPE=postgresql to your .env.dev file;
+#       currently allowed backend values are `mysql` (default), `postgresql` and `sqlite3`
 
-# Apply .env to current terminal.
+# Apply .env.dev to current terminal.
 # For PyCharm it's better to use https://plugins.jetbrains.com/plugin/7861-envfile/
-export $(grep -v '^#' .env | xargs -0)
+export $(grep -v '^#' .env.dev | xargs -0)
 
 # Install dependencies.
 # Hint: there is a known issue with uwsgi. It's not used in the local dev environment. Feel free to comment it in `engine/requirements.txt`.
@@ -83,7 +83,7 @@ python manage.py createsuperuser
 # Http server:
 python manage.py runserver 0.0.0.0:8080
 
-# Worker for background tasks (run it in the parallel terminal, don't forget to export .env there)
+# Worker for background tasks (run it in the parallel terminal, don't forget to export .env.dev there)
 python manage.py start_celery
 
 # Additionally you could launch the worker with periodic tasks launcher (99% you don't need this)
@@ -248,7 +248,7 @@ Credentials: admin/admin
 
 ### Running tests locally
 
-In the `engine` directory, with the `.env` vars exported and virtualenv activated
+In the `engine` directory, with the `.env.dev` vars exported and virtualenv activated
 
 ```bash
 pytest
@@ -265,10 +265,10 @@ pytest -n4
 
 ### PyCharm
 
-1. Create venv and copy .env file
+1. Create venv and copy .env.dev file
    ```bash
    python3.9 -m venv venv
-   cp .env.example .env
+   cp .env.dev.example .env.dev
    ```
 2. Open the project in PyCharm
 3. Settings &rarr; Project OnCall
@@ -279,5 +279,5 @@ pytest -n4
    - Set Django project root to /engine
    - Set Settings to settings/dev.py
 5. Create a new Django Server run configuration to Run/Debug the engine
-   - Use a plugin such as EnvFile to load the .env file
+   - Use a plugin such as EnvFile to load the .env.dev file
    - Change port from 8000 to 8080

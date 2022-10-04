@@ -11,7 +11,7 @@ interface PluginLinkProps extends LocationUpdate {
   disabled?: boolean;
   className?: string;
   wrap?: boolean;
-  children: any
+  children: any;
 }
 
 const cx = cn.bind(styles);

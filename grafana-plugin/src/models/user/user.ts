@@ -73,8 +73,8 @@ export class UserStore extends BaseStore {
   }
 
   @action
-  async loadUser(userPk: User['pk']) {
-    const user = await this.getById(userPk);
+  async loadUser(userPk: User['pk'], skipErrorHandling = false) {
+    const user = await this.getById(userPk, skipErrorHandling);
 
     this.items = {
       ...this.items,
@@ -93,7 +93,7 @@ export class UserStore extends BaseStore {
 
     this.items = {
       ...this.items,
-      [user.pk]: user,
+      [user.pk]: { ...user, timezone: getTimezone(user) },
     };
   }
 

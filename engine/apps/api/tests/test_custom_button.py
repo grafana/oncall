@@ -377,3 +377,44 @@ def test_custom_button_action_permissions(
         response = client.post(url, format="json", **make_user_auth_headers(user, token))
 
     assert response.status_code == expected_status
+
+
+@pytest.mark.django_db
+def test_get_custom_button_from_other_team_with_flag(
+    make_organization_and_user_with_plugin_token,
+    make_team,
+    make_user_auth_headers,
+    make_custom_action,
+):
+    organization, user, token = make_organization_and_user_with_plugin_token()
+
+    team = make_team(organization)
+
+    custom_button = make_custom_action(organization=organization, team=team)
+    client = APIClient()
+
+    url = reverse("api-internal:custom_button-detail", kwargs={"pk": custom_button.public_primary_key})
+    url = f"{url}?from_organization=true"
+
+    response = client.get(url, format="json", **make_user_auth_headers(user, token))
+    assert response.status_code == status.HTTP_200_OK
+
+
+@pytest.mark.django_db
+def test_custom_button_from_other_team_without_flag(
+    make_organization_and_user_with_plugin_token,
+    make_team,
+    make_user_auth_headers,
+    make_custom_action,
+):
+    organization, user, token = make_organization_and_user_with_plugin_token()
+
+    team = make_team(organization)
+
+    custom_button = make_custom_action(organization=organization, team=team)
+    client = APIClient()
+
+    url = reverse("api-internal:custom_button-detail", kwargs={"pk": custom_button.public_primary_key})
+
+    response = client.get(url, format="json", **make_user_auth_headers(user, token))
+    assert response.status_code == status.HTTP_403_FORBIDDEN

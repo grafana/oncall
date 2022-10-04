@@ -130,7 +130,7 @@ export const PluginConfigPage = (props: Props) => {
 
   const handleSyncException = useCallback((e) => {
     const buildErrMsg = (msg: string): string =>
-      constructSyncErrorMessage(msg, plugin.meta.jsonData.onCallApiUrl);
+      constructSyncErrorMessage(msg, plugin.meta.jsonData?.onCallApiUrl);
 
     if (plugin.meta.jsonData?.onCallApiUrl) {
       const { status: statusCode  } = e.response;

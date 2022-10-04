@@ -30,24 +30,22 @@ curl -fsSL https://raw.githubusercontent.com/grafana/oncall/dev/docker-compose.y
 
 ```bash
 echo "DOMAIN=http://localhost:8080
+COMPOSE_PROFILES=with_grafana  # Remove this line if you want to use existing grafana
 SECRET_KEY=my_random_secret_must_be_more_than_32_characters_long
 RABBITMQ_PASSWORD=rabbitmq_secret_pw
-MYSQL_PASSWORD=mysql_secret_pw
-COMPOSE_PROFILES=with_grafana  # Remove this line if you want to use existing grafana
-GRAFANA_USER=admin
-GRAFANA_PASSWORD=admin" > .env_hobby
+MYSQL_PASSWORD=mysql_secret_pw" > .env
 ```
 
 3. Launch services:
 
 ```bash
-docker-compose --env-file .env_hobby -f docker-compose.yml up -d
+docker-compose up -d
 ```
 
 4. Issue one-time invite token:
 
 ```bash
-docker-compose --env-file .env_hobby -f docker-compose.yml run engine python manage.py issue_invite_for_the_frontend --override
+docker-compose run engine python manage.py issue_invite_for_the_frontend --override
 ```
 
 **Note**: if you remove the plugin configuration and reconfigure it, you will need to generate a new one-time invite token for your new configuration.
@@ -67,11 +65,11 @@ Grafana Url: http://grafana:3000
 To update your Grafana OnCall hobby environment:
 
 ```shell
-# Update Docker images
-docker-compose --env-file .env_hobby -f docker-compose.yml pull engine celery oncall_db_migration
+# Update Docker image
+docker-compose pull engine
 
 # Re-deploy
-docker-compose --env-file .env_hobby -f docker-compose.yml up -d --remove-orphans
+docker-compose up -d
 ```
 
 After updating the engine, you'll also need to click the "Update" button on the [plugin version page](http://localhost:3000/plugins/grafana-oncall-app?page=version-history).

@@ -9,15 +9,18 @@ import { observer } from 'mobx-react';
 
 import Avatar from 'components/Avatar/Avatar';
 import GTable from 'components/GTable/GTable';
+import PageErrorHandlingWrapper, { PageBaseState } from 'components/PageErrorHandlingWrapper/PageErrorHandlingWrapper';
+import {
+  getWrongTeamResponseInfo,
+  initErrorDataState,
+} from 'components/PageErrorHandlingWrapper/PageErrorHandlingWrapper.helpers';
 import PluginLink from 'components/PluginLink/PluginLink';
 import Text from 'components/Text/Text';
 import UsersFilters from 'components/UsersFilters/UsersFilters';
 import UserSettings from 'containers/UserSettings/UserSettings';
 import { WithPermissionControl } from 'containers/WithPermissionControl/WithPermissionControl';
-import { CrossCircleIcon } from 'icons';
 import { getRole } from 'models/user/user.helpers';
-import { User, User as UserType, UserRole } from 'models/user/user.types';
-import { AppFeature } from 'state/features';
+import { User as UserType, UserRole } from 'models/user/user.types';
 import { WithStoreProps } from 'state/types';
 import { UserAction } from 'state/userAction';
 import { withMobXProviderContext } from 'state/withStore';
@@ -32,8 +35,9 @@ interface UsersProps extends WithStoreProps, AppRootProps {}
 
 const ITEMS_PER_PAGE = 100;
 
-interface UsersState {
+interface UsersState extends PageBaseState {
   page: number;
+  isWrongTeam: boolean;
   userPkToEdit?: UserType['pk'] | 'new';
   usersFilters?: {
     searchTerm: string;
@@ -45,18 +49,20 @@ interface UsersState {
 class Users extends React.Component<UsersProps, UsersState> {
   state: UsersState = {
     page: 1,
+    isWrongTeam: false,
     userPkToEdit: undefined,
     usersFilters: {
       searchTerm: '',
       roles: [UserRole.ADMIN, UserRole.EDITOR, UserRole.VIEWER],
     },
+
+    errorData: initErrorDataState(),
   };
 
   initialUsersLoaded = false;
 
   async componentDidMount() {
     const {
-      store,
       query: { p },
     } = this.props;
     this.setState({ page: p ? Number(p) : 1 }, this.updateUsers);
@@ -91,13 +97,17 @@ class Users extends React.Component<UsersProps, UsersState> {
   }
 
   parseParams = async () => {
+    this.setState({ errorData: initErrorDataState() }); // reset wrong team error to false on query parse
+
     const {
       store,
       query: { id },
     } = this.props;
 
     if (id) {
-      await (id === 'me' ? store.userStore.loadCurrentUser() : store.userStore.loadUser(String(id)));
+      await (id === 'me' ? store.userStore.loadCurrentUser() : store.userStore.loadUser(String(id), true)).catch(
+        (error) => this.setState({ errorData: { ...getWrongTeamResponseInfo(error) } })
+      );
 
       const userPkToEdit = String(id === 'me' ? store.userStore.currentUserPk : id);
 
@@ -108,8 +118,8 @@ class Users extends React.Component<UsersProps, UsersState> {
   };
 
   render() {
-    const { usersFilters, userPkToEdit, page } = this.state;
-    const { store } = this.props;
+    const { usersFilters, userPkToEdit, page, errorData } = this.state;
+    const { store, query } = this.props;
     const { userStore } = store;
 
     const columns = [
@@ -131,11 +141,6 @@ class Users extends React.Component<UsersProps, UsersState> {
         key: 'note',
         render: this.renderNote,
       },
-      // {
-      //   width: '15%',
-      //   key: 'contacts',
-      //   render: this.renderContacts,
-      // },
       {
         width: '20%',
         title: 'Default Notifications',
@@ -154,6 +159,7 @@ class Users extends React.Component<UsersProps, UsersState> {
         render: this.renderButtons,
       },
     ];
+
     const handleClear = () =>
       this.setState(
         { usersFilters: { searchTerm: '', roles: [UserRole.ADMIN, UserRole.EDITOR, UserRole.VIEWER] } },
@@ -165,64 +171,81 @@ class Users extends React.Component<UsersProps, UsersState> {
     const { count, results } = userStore.getSearchResult();
 
     return (
-      <div className={cx('root')}>
-        <div className={cx('root', 'TEST-users-page')}>
-          <div className={cx('users-header')}>
-            <div style={{ display: 'flex', alignItems: 'baseline' }}>
-              <div>
-                <Text.Title level={3}>Users</Text.Title>
-                <Text type="secondary">
-                  To manage permissions or add users, please visit <a href="/org/users">Grafana user management</a>
-                </Text>
-              </div>
-            </div>
-            <PluginLink partial query={{ id: 'me' }}>
-              <Button variant="primary" icon="user">
-                View my profile
-              </Button>
-            </PluginLink>
-          </div>
-          {store.isUserActionAllowed(UserAction.ViewOtherUsers) ? (
-            <>
-              <div className={cx('user-filters-container')}>
-                <UsersFilters
-                  className={cx('users-filters')}
-                  value={usersFilters}
-                  onChange={this.handleUsersFiltersChange}
-                />
-                <Button variant="secondary" icon="times" onClick={handleClear} className={cx('searchIntegrationClear')}>
-                  Clear filters
-                </Button>
-              </div>
+      <PageErrorHandlingWrapper
+        errorData={errorData}
+        objectName="user"
+        pageName="users"
+        itemNotFoundMessage={`User with id=${query?.id} is not found. Please select user from the list.`}
+      >
+        {() => (
+          <>
+            <div className={cx('root')}>
+              <div className={cx('root', 'TEST-users-page')}>
+                <div className={cx('users-header')}>
+                  <div style={{ display: 'flex', alignItems: 'baseline' }}>
+                    <div>
+                      <Text.Title level={3}>Users</Text.Title>
+                      <Text type="secondary">
+                        To manage permissions or add users, please visit{' '}
+                        <a href="/org/users">Grafana user management</a>
+                      </Text>
+                    </div>
+                  </div>
+                  <PluginLink partial query={{ id: 'me' }}>
+                    <Button variant="primary" icon="user">
+                      View my profile
+                    </Button>
+                  </PluginLink>
+                </div>
+                {store.isUserActionAllowed(UserAction.ViewOtherUsers) ? (
+                  <>
+                    <div className={cx('user-filters-container')}>
+                      <UsersFilters
+                        className={cx('users-filters')}
+                        value={usersFilters}
+                        onChange={this.handleUsersFiltersChange}
+                      />
+                      <Button
+                        variant="secondary"
+                        icon="times"
+                        onClick={handleClear}
+                        className={cx('searchIntegrationClear')}
+                      >
+                        Clear filters
+                      </Button>
+                    </div>
 
-              <GTable
-                emptyText={results ? 'No users found' : 'Loading...'}
-                rowKey="pk"
-                data={results}
-                columns={columns}
-                rowClassName={getUserRowClassNameFn(userPkToEdit, userStore.currentUserPk)}
-                pagination={{
-                  page,
-                  total: Math.ceil((count || 0) / ITEMS_PER_PAGE),
-                  onChange: this.handleChangePage,
-                }}
-              />
-            </>
-          ) : (
-            <Alert
-              /* @ts-ignore */
-              title={
-                <>
-                  You don't have enough permissions to view other users because you are not Admin.{' '}
-                  <PluginLink query={{ page: 'users', id: 'me' }}>Click here</PluginLink> to open your profile
-                </>
-              }
-              severity="info"
-            />
-          )}
-        </div>
-        {userPkToEdit && <UserSettings id={userPkToEdit} onHide={this.handleHideUserSettings} />}
-      </div>
+                    <GTable
+                      emptyText={results ? 'No users found' : 'Loading...'}
+                      rowKey="pk"
+                      data={results}
+                      columns={columns}
+                      rowClassName={getUserRowClassNameFn(userPkToEdit, userStore.currentUserPk)}
+                      pagination={{
+                        page,
+                        total: Math.ceil((count || 0) / ITEMS_PER_PAGE),
+                        onChange: this.handleChangePage,
+                      }}
+                    />
+                  </>
+                ) : (
+                  <Alert
+                    /* @ts-ignore */
+                    title={
+                      <>
+                        You don't have enough permissions to view other users because you are not Admin.{' '}
+                        <PluginLink query={{ page: 'users', id: 'me' }}>Click here</PluginLink> to open your profile
+                      </>
+                    }
+                    severity="info"
+                  />
+                )}
+              </div>
+              {userPkToEdit && <UserSettings id={userPkToEdit} onHide={this.handleHideUserSettings} />}
+            </div>
+          </>
+        )}
+      </PageErrorHandlingWrapper>
     );
   }
 

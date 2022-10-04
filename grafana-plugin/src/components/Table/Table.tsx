@@ -51,7 +51,7 @@ const GTable: FC<Props> = (props) => {
     <VerticalGroup justify="flex-end">
       <Table
         rowKey={rowKey}
-        className={cx('root', className)}
+        className={cx('root', 'filter-table', className)}
         columns={columns}
         data={data}
         expandable={expandable}

@@ -35,7 +35,8 @@ The above command returns JSON structured in the following way:
       "acknowledged_at": null,
       "title": "Memory above 90% threshold",
       "permalinks": {
-        "slack": null
+        "slack": "https://ghostbusters.slack.com/archives/C1H9RESGA/p135854651500008",
+        "telegram": "https://t.me/c/5354/1234?thread=1234"
       }
     }
   ]

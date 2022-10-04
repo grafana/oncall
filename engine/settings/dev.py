@@ -1,27 +1,28 @@
+# flake8: noqa
 import os
 import sys
 
-from .base import *  # noqa
-
-if DB_BACKEND == "mysql":  # noqa
-    # Workaround to use pymysql instead of mysqlclient
-    import pymysql
-
-    pymysql.install_as_MySQLdb()
+from .base import *
 
 DEBUG = True
 
-DATABASES = {
-    "default": {
-        "ENGINE": "django.db.backends.{}".format(DB_BACKEND),  # noqa
-        "NAME": os.environ.get("DB_NAME", "oncall_local_dev"),
-        "USER": os.environ.get("DB_USER", DB_BACKEND_DEFAULT_VALUES.get(DB_BACKEND, {}).get("USER", "root")),  # noqa
-        "PASSWORD": os.environ.get("DB_PASSWORD", "empty"),
-        "HOST": os.environ.get("DB_HOST", "127.0.0.1"),
-        "PORT": os.environ.get("DB_PORT", DB_BACKEND_DEFAULT_VALUES.get(DB_BACKEND, {}).get("PORT", "3306")),  # noqa
-        "OPTIONS": DB_BACKEND_DEFAULT_VALUES.get(DB_BACKEND, {}).get("OPTIONS", {}),  # noqa
-    },
-}
+if DATABASE_TYPE == DatabaseTypes.SQLITE3:
+    DATABASES["default"]["NAME"] = DATABASE_NAME or "oncall_dev.db"
+else:
+    DATABASES["default"] |= {
+        "NAME": DATABASE_NAME or "oncall_local_dev",
+        "USER": DATABASE_USER or DATABASE_DEFAULTS[DATABASE_TYPE]["USER"],
+        "PASSWORD": DATABASE_PASSWORD or "empty",
+        "HOST": DATABASE_HOST or "127.0.0.1",
+        "PORT": DATABASE_PORT or DATABASE_DEFAULTS[DATABASE_TYPE]["PORT"],
+    }
+
+if BROKER_TYPE == BrokerTypes.RABBITMQ:
+    CELERY_BROKER_URL = "pyamqp://rabbitmq:rabbitmq@localhost:5672"
+elif BROKER_TYPE == BrokerTypes.REDIS:
+    CELERY_BROKER_URL = "redis://localhost:6379"
+
+CACHES["default"]["LOCATION"] = ["localhost:6379"]
 
 SECRET_KEY = os.environ.get("SECRET_KEY", "osMsNM0PqlRHBlUvqmeJ7+ldU3IUETCrY9TrmiViaSmInBHolr1WUlS0OFS4AHrnnkp1vp9S9z1")
 
@@ -31,28 +32,6 @@ MIRAGE_SECRET_KEY = os.environ.get(
 MIRAGE_CIPHER_IV = os.environ.get("MIRAGE_CIPHER_IV", "tZZa+60zTZO2NRcS")
 
 TESTING = "pytest" in sys.modules or "unittest" in sys.modules
-
-CACHES = {
-    "default": {
-        "BACKEND": "redis_cache.RedisCache",
-        "LOCATION": [
-            "localhost:6379",
-        ],
-        "OPTIONS": {
-            "DB": 1,
-            "PARSER_CLASS": "redis.connection.HiredisParser",
-            "CONNECTION_POOL_CLASS": "redis.BlockingConnectionPool",
-            "CONNECTION_POOL_CLASS_KWARGS": {
-                "max_connections": 50,
-                "timeout": 20,
-            },
-            "MAX_CONNECTIONS": 1000,
-            "PICKLE_VERSION": -1,
-        },
-    },
-}
-
-CELERY_BROKER_URL = "pyamqp://rabbitmq:rabbitmq@localhost:5672"
 
 SILKY_PYTHON_PROFILER = True
 
