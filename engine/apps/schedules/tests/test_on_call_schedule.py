@@ -1,7 +1,11 @@
+import datetime
+
 import pytest
+import pytz
 from django.utils import timezone
 
-from apps.schedules.models import CustomOnCallShift, OnCallSchedule, OnCallScheduleWeb
+from apps.schedules.ical_utils import memoized_users_in_ical
+from apps.schedules.models import CustomOnCallShift, OnCallSchedule, OnCallScheduleCalendar, OnCallScheduleWeb
 from common.constants.role import Role
 
 
@@ -226,6 +230,35 @@ def test_filter_events_include_empty(make_organization, make_user_for_organizati
 
 
 @pytest.mark.django_db
+def test_filter_events_ical_all_day(make_organization, make_user_for_organization, make_schedule, get_ical):
+    calendar = get_ical("calendar_with_all_day_event.ics")
+    organization = make_organization()
+    schedule = make_schedule(organization, schedule_class=OnCallScheduleCalendar)
+    schedule.cached_ical_file_primary = calendar.to_ical()
+    for u in ("@Bernard Desruisseaux", "@Bob", "@Alex"):
+        make_user_for_organization(organization, username=u)
+    # clear users pks <-> organization cache (persisting between tests)
+    memoized_users_in_ical.cache_clear()
+
+    day_to_check_iso = "2021-01-27T15:27:14.448059+00:00"
+    parsed_iso_day_to_check = datetime.datetime.fromisoformat(day_to_check_iso).replace(tzinfo=pytz.UTC)
+    start_date = (parsed_iso_day_to_check - timezone.timedelta(days=1)).date()
+
+    events = schedule.final_events("UTC", start_date, days=2)
+    expected_events = [
+        # all_day, users, start
+        (False, ["@Bernard Desruisseaux"], datetime.datetime(2021, 1, 26, 8, 0, tzinfo=pytz.UTC)),
+        (True, ["@Alex"], datetime.date(2021, 1, 27)),
+        (False, ["@Bob"], datetime.datetime(2021, 1, 27, 8, 0, tzinfo=pytz.UTC)),
+    ]
+    expected = [{"all_day": all_day, "users": users, "start": start} for all_day, users, start in expected_events]
+    returned = [
+        {"all_day": e["all_day"], "users": [u["display_name"] for u in e["users"]], "start": e["start"]} for e in events
+    ]
+    assert returned == expected
+
+
+@pytest.mark.django_db
 def test_final_schedule_events(make_organization, make_user_for_organization, make_on_call_shift, make_schedule):
     organization = make_organization()
     schedule = make_schedule(
@@ -238,6 +271,8 @@ def test_final_schedule_events(make_organization, make_user_for_organization, ma
     start_date = now - timezone.timedelta(days=7)
 
     user_a, user_b, user_c, user_d, user_e = (make_user_for_organization(organization, username=i) for i in "ABCDE")
+    # clear users pks <-> organization cache (persisting between tests)
+    memoized_users_in_ical.cache_clear()
 
     shifts = (
         # user, priority, start time (h), duration (hs)
@@ -337,6 +372,8 @@ def test_final_schedule_splitting_events(
     start_date = now - timezone.timedelta(days=7)
 
     user_a, user_b, user_c = (make_user_for_organization(organization, username=i) for i in "ABC")
+    # clear users pks <-> organization cache (persisting between tests)
+    memoized_users_in_ical.cache_clear()
 
     shifts = (
         # user, priority, start time (h), duration (hs)
@@ -404,6 +441,8 @@ def test_final_schedule_splitting_same_time_events(
     start_date = now - timezone.timedelta(days=7)
 
     user_a, user_b, user_c = (make_user_for_organization(organization, username=i) for i in "ABC")
+    # clear users pks <-> organization cache (persisting between tests)
+    memoized_users_in_ical.cache_clear()
 
     shifts = (
         # user, priority, start time (h), duration (hs)
@@ -713,6 +752,19 @@ def test_preview_override_shift(make_organization, make_user_for_organization, m
 
 
 @pytest.mark.django_db
+def test_schedule_related_users_empty_schedule(make_organization, make_schedule):
+    organization = make_organization()
+    schedule = make_schedule(
+        organization,
+        schedule_class=OnCallScheduleWeb,
+        name="test_web_schedule",
+    )
+
+    users = schedule.related_users()
+    assert users == set()
+
+
+@pytest.mark.django_db
 def test_schedule_related_users(make_organization, make_user_for_organization, make_on_call_shift, make_schedule):
     organization = make_organization()
     schedule = make_schedule(
@@ -725,6 +777,8 @@ def test_schedule_related_users(make_organization, make_user_for_organization, m
     start_date = now - timezone.timedelta(days=7)
 
     user_a, _, _, user_d, user_e = (make_user_for_organization(organization, username=i) for i in "ABCDE")
+    # clear users pks <-> organization cache (persisting between tests)
+    memoized_users_in_ical.cache_clear()
 
     shifts = (
         # user, priority, start time (h), duration (hs)

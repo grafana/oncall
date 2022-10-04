@@ -24,7 +24,7 @@ interface ScheduleFormProps {
   id: Schedule['id'] | 'new';
   onHide: () => void;
   onUpdate: () => void;
-  onCreate: (data: Schedule) => void;
+  onCreate?: (data: Schedule) => void;
   type?: ScheduleType;
 }
 
@@ -62,16 +62,6 @@ const ScheduleForm = observer((props: ScheduleFormProps) => {
     },
     [id]
   );
-
-  const getOptionLabel = (item: SelectableValue) => {
-    const team = grafanaTeamStore.items[item.value];
-    return (
-      <HorizontalGroup>
-        {item.label}
-        <Avatar src={team?.avatar_url} size="small" />
-      </HorizontalGroup>
-    );
-  };
 
   const formConfig = scheduleTypeToForm[data.type];
 

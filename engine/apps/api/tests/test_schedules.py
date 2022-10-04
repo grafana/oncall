@@ -10,6 +10,7 @@ from rest_framework.serializers import ValidationError
 from rest_framework.test import APIClient
 
 from apps.alerts.models import EscalationPolicy
+from apps.schedules.ical_utils import memoized_users_in_ical
 from apps.schedules.models import (
     CustomOnCallShift,
     OnCallSchedule,
@@ -742,6 +743,8 @@ def test_filter_events_final_schedule(
     request_date = start_date
 
     user_a, user_b, user_c, user_d, user_e = (make_user_for_organization(organization, username=i) for i in "ABCDE")
+    # clear users pks <-> organization cache (persisting between tests)
+    memoized_users_in_ical.cache_clear()
 
     shifts = (
         # user, priority, start time (h), duration (hs)
@@ -837,7 +840,7 @@ def test_next_shifts_per_user(
     make_schedule,
     make_on_call_shift,
 ):
-    organization, user, token = make_organization_and_user_with_plugin_token()
+    organization, admin, token = make_organization_and_user_with_plugin_token()
     client = APIClient()
 
     schedule = make_schedule(
@@ -848,6 +851,8 @@ def test_next_shifts_per_user(
 
     tomorrow = timezone.now().replace(hour=0, minute=0, second=0, microsecond=0) + timezone.timedelta(days=1)
     user_a, user_b, user_c, user_d = (make_user_for_organization(organization, username=i) for i in "ABCD")
+    # clear users pks <-> organization cache (persisting between tests)
+    memoized_users_in_ical.cache_clear()
 
     shifts = (
         # user, priority, start time (h), duration (hs)
@@ -860,16 +865,16 @@ def test_next_shifts_per_user(
     for user, priority, start_h, duration in shifts:
         data = {
             "start": tomorrow + timezone.timedelta(hours=start_h),
-            "rotation_start": tomorrow,
+            "rotation_start": tomorrow + timezone.timedelta(hours=start_h),
             "duration": timezone.timedelta(hours=duration),
             "priority_level": priority,
             "frequency": CustomOnCallShift.FREQUENCY_DAILY,
             "schedule": schedule,
         }
         on_call_shift = make_on_call_shift(
-            organization=organization, shift_type=CustomOnCallShift.TYPE_RECURRENT_EVENT, **data
+            organization=organization, shift_type=CustomOnCallShift.TYPE_ROLLING_USERS_EVENT, **data
         )
-        on_call_shift.users.add(user)
+        on_call_shift.add_rolling_users([[user]])
 
     # override in the past: 17-18 / D
     # won't be listed, but user D will still be included in the response
@@ -896,10 +901,10 @@ def test_next_shifts_per_user(
     )
     override.add_rolling_users([[user_c]])
 
-    # final sdhedule: 7-12: B, 15-16: A, 16-17: B, 17-18: C (override), 18-20: C
+    # final schedule: 7-12: B, 15-16: A, 16-17: B, 17-18: C (override), 18-20: C
 
     url = reverse("api-internal:schedule-next-shifts-per-user", kwargs={"pk": schedule.public_primary_key})
-    response = client.get(url, format="json", **make_user_auth_headers(user, token))
+    response = client.get(url, format="json", **make_user_auth_headers(admin, token))
     assert response.status_code == status.HTTP_200_OK
 
     expected = {
@@ -980,6 +985,8 @@ def test_merging_same_shift_events(
     user_a = make_user_for_organization(organization)
     user_b = make_user_for_organization(organization)
     user_c = make_user_for_organization(organization, role=Role.VIEWER)
+    # clear users pks <-> organization cache (persisting between tests)
+    memoized_users_in_ical.cache_clear()
 
     data = {
         "start": start_date + timezone.timedelta(hours=10),
@@ -1401,3 +1408,54 @@ def test_schedule_mention_options_permissions(
     response = client.get(url, format="json", **make_user_auth_headers(user, token))
 
     assert response.status_code == expected_status
+
+
+@pytest.mark.django_db
+def test_get_schedule_from_other_team_with_flag(
+    make_organization_and_user_with_plugin_token,
+    make_team,
+    make_user_auth_headers,
+    make_schedule,
+):
+    organization, user, token = make_organization_and_user_with_plugin_token()
+
+    team = make_team(organization)
+
+    calendar_schedule = make_schedule(
+        organization,
+        schedule_class=OnCallScheduleCalendar,
+        name="test_calendar_schedule",
+        team=team,
+    )
+
+    client = APIClient()
+    url = reverse("api-internal:schedule-detail", kwargs={"pk": calendar_schedule.public_primary_key})
+    url = f"{url}?from_organization=true"
+
+    response = client.get(url, format="json", **make_user_auth_headers(user, token))
+    assert response.status_code == status.HTTP_200_OK
+
+
+@pytest.mark.django_db
+def test_get_schedule_from_other_team_without_flag(
+    make_organization_and_user_with_plugin_token,
+    make_team,
+    make_user_auth_headers,
+    make_schedule,
+):
+    organization, user, token = make_organization_and_user_with_plugin_token()
+
+    team = make_team(organization)
+
+    calendar_schedule = make_schedule(
+        organization,
+        schedule_class=OnCallScheduleCalendar,
+        name="test_calendar_schedule",
+        team=team,
+    )
+
+    client = APIClient()
+    url = reverse("api-internal:schedule-detail", kwargs={"pk": calendar_schedule.public_primary_key})
+
+    response = client.get(url, format="json", **make_user_auth_headers(user, token))
+    assert response.status_code == status.HTTP_403_FORBIDDEN

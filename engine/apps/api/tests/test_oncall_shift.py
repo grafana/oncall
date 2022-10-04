@@ -412,8 +412,9 @@ def test_update_old_on_call_shift_with_future_version(
     token, user1, user2, organization, schedule = on_call_shift_internal_api_setup
 
     client = APIClient()
-    start_date = (timezone.now() - timezone.timedelta(days=3)).replace(microsecond=0)
-    next_rotation_start_date = start_date + timezone.timedelta(days=5)
+    now = timezone.now().replace(microsecond=0)
+    start_date = now - timezone.timedelta(days=3)
+    next_rotation_start_date = now + timezone.timedelta(days=1)
     updated_duration = timezone.timedelta(hours=4)
 
     title = "Test Shift Rotation"
@@ -422,10 +423,11 @@ def test_update_old_on_call_shift_with_future_version(
         shift_type=CustomOnCallShift.TYPE_ROLLING_USERS_EVENT,
         schedule=schedule,
         title=title,
-        start=start_date,
+        start=next_rotation_start_date,
         duration=timezone.timedelta(hours=3),
         rotation_start=next_rotation_start_date,
         rolling_users=[{user1.pk: user1.public_primary_key}],
+        frequency=CustomOnCallShift.FREQUENCY_DAILY,
     )
     old_on_call_shift = make_on_call_shift(
         schedule.organization,
@@ -438,6 +440,7 @@ def test_update_old_on_call_shift_with_future_version(
         until=next_rotation_start_date,
         rolling_users=[{user1.pk: user1.public_primary_key}],
         updated_shift=new_on_call_shift,
+        frequency=CustomOnCallShift.FREQUENCY_DAILY,
     )
     # update shift_end and priority_level
     data_to_update = {
@@ -445,9 +448,9 @@ def test_update_old_on_call_shift_with_future_version(
         "priority_level": 2,
         "shift_start": start_date.strftime("%Y-%m-%dT%H:%M:%SZ"),
         "shift_end": (start_date + updated_duration).strftime("%Y-%m-%dT%H:%M:%SZ"),
-        "rotation_start": next_rotation_start_date.strftime("%Y-%m-%dT%H:%M:%SZ"),
+        "rotation_start": start_date.strftime("%Y-%m-%dT%H:%M:%SZ"),
         "until": None,
-        "frequency": None,
+        "frequency": CustomOnCallShift.FREQUENCY_DAILY,
         "interval": None,
         "by_day": None,
         "rolling_users": [[user1.public_primary_key]],
@@ -461,27 +464,28 @@ def test_update_old_on_call_shift_with_future_version(
     url = reverse("api-internal:oncall_shifts-detail", kwargs={"pk": old_on_call_shift.public_primary_key})
 
     response = client.put(url, data=data_to_update, format="json", **make_user_auth_headers(user1, token))
+    response_data = response.json()
 
-    next_shift_start_date = timezone.datetime.combine(next_rotation_start_date.date(), start_date.time()).astimezone(
-        timezone.pytz.UTC
-    )
+    for key in ["shift_start", "shift_end", "rotation_start"]:
+        data_to_update.pop(key)
+        response_data.pop(key)
 
     expected_payload = data_to_update | {
         "id": new_on_call_shift.public_primary_key,
         "type": CustomOnCallShift.TYPE_ROLLING_USERS_EVENT,
         "schedule": schedule.public_primary_key,
         "updated_shift": None,
-        "shift_start": next_shift_start_date.strftime("%Y-%m-%dT%H:%M:%SZ"),
-        "shift_end": (next_shift_start_date + updated_duration).strftime("%Y-%m-%dT%H:%M:%SZ"),
     }
 
     assert response.status_code == status.HTTP_200_OK
     assert response.json() == expected_payload
 
-    new_on_call_shift.refresh_from_db()
-    # check if the newest version of shift was changed
     assert old_on_call_shift.duration != updated_duration
     assert old_on_call_shift.priority_level != data_to_update["priority_level"]
+    new_on_call_shift.refresh_from_db()
+    # check if the newest version of shift was changed
+    assert new_on_call_shift.start - now < timezone.timedelta(minutes=1)
+    assert new_on_call_shift.rotation_start - now < timezone.timedelta(minutes=1)
     assert new_on_call_shift.duration == updated_duration
     assert new_on_call_shift.priority_level == data_to_update["priority_level"]
 

@@ -8,7 +8,7 @@ ReactModal.setAppElement('#reactRoot');
 import styles from './Modal.module.css';
 
 export interface ModalProps {
-  title: string | JSX.Element;
+  title?: string | JSX.Element;
   className?: string;
   contentClassName?: string;
   closeOnEscape?: boolean;
@@ -26,6 +26,7 @@ const Modal: FC<PropsWithChildren<ModalProps>> = (props) => {
 
   return (
     <ReactModal
+      shouldCloseOnOverlayClick={false}
       style={{
         overlay: {},
         content: {

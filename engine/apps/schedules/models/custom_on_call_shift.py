@@ -5,6 +5,7 @@ from calendar import monthrange
 from uuid import uuid4
 
 import pytz
+from dateutil import relativedelta
 from django.apps import apps
 from django.conf import settings
 from django.core.validators import MinLengthValidator
@@ -353,6 +354,13 @@ class CustomOnCallShift(models.Model):
         ONE_DAY = 1
         ONE_HOUR = 1
 
+        def add_months(year, month, months_add):
+            """
+            Utility method for month calculation. E.g. (2022, 12) + 1 month = (2023, 1)
+            """
+            dt = timezone.datetime.min.replace(year=year, month=month) + relativedelta.relativedelta(months=months_add)
+            return dt.year, dt.month
+
         current_event = Event.from_ical(event_ical)
         # take shift interval, not event interval. For rolling_users shift it is not the same.
         interval = self.interval or 1
@@ -385,7 +393,8 @@ class CustomOnCallShift(models.Model):
                 days_for_next_event = DAYS_IN_A_MONTH - current_event_start.day + ONE_DAY
                 # count next event start date with respect to event interval
                 for i in range(1, interval):
-                    next_month_days = monthrange(current_event_start.year, current_event_start.month + i)[1]
+                    year, month = add_months(current_event_start.year, current_event_start.month, i)
+                    next_month_days = monthrange(year, month)[1]
                     days_for_next_event += next_month_days
                 next_event_start = current_event_start + timezone.timedelta(days=days_for_next_event)
 
@@ -433,6 +442,34 @@ class CustomOnCallShift(models.Model):
             return
         return next_event_dt
 
+    def get_last_event_date(self, date):
+        """Get start date of the last event before the chosen date"""
+        assert date >= self.start, "Chosen date should be later or equal to initial event start date"
+
+        event_ical = self.generate_ical(self.start)
+        initial_event = Event.from_ical(event_ical)
+        # take shift interval, not event interval. For rolling_users shift it is not the same.
+        interval = self.interval or 1
+        if "rrule" in initial_event:
+            # means that shift has frequency
+            initial_event["rrule"]["INTERVAL"] = interval
+        initial_event_start = initial_event["DTSTART"].dt
+
+        last_event = None
+        # repetitions generate the next event shift according with the recurrence rules
+        repetitions = UnfoldableCalendar(initial_event).RepeatedEvent(
+            initial_event, initial_event_start.replace(microsecond=0)
+        )
+        ical_iter = repetitions.__iter__()
+        for event in ical_iter:
+            if event.start > date:
+                break
+            last_event = event
+
+        last_event_dt = last_event.start if last_event else initial_event_start
+
+        return last_event_dt
+
     @cached_property
     def event_ical_rules(self):
         # e.g. {'freq': ['WEEKLY'], 'interval': [2], 'byday': ['MO', 'WE', 'FR'], 'wkst': ['SU']}
@@ -441,7 +478,7 @@ class CustomOnCallShift(models.Model):
             rules["freq"] = [self.get_frequency_display().upper()]
             if self.event_interval is not None:
                 rules["interval"] = [self.event_interval]
-            if self.by_day is not None:
+            if self.by_day:
                 rules["byday"] = self.by_day
             if self.by_month is not None:
                 rules["bymonth"] = self.by_month
@@ -498,10 +535,9 @@ class CustomOnCallShift(models.Model):
         self.rolling_users = result
         self.save(update_fields=["rolling_users"])
 
-    def get_rotation_user_index(self, date=None):
+    def get_rotation_user_index(self, date):
         START_ROTATION_INDEX = 0
 
-        date = timezone.now() if not date else date
         result = START_ROTATION_INDEX
 
         if not self.rolling_users or self.frequency is None:
@@ -544,8 +580,9 @@ class CustomOnCallShift(models.Model):
         return last_shift
 
     def create_or_update_last_shift(self, data):
+        now = timezone.now().replace(microsecond=0)
         # rotation start date cannot be earlier than now
-        data["rotation_start"] = max(data["rotation_start"], timezone.now().replace(microsecond=0))
+        data["rotation_start"] = max(data["rotation_start"], now)
         # prepare dict with params of existing instance with last updates and remove unique and m2m fields from it
         shift_to_update = self.last_updated_shift or self
         instance_data = model_to_dict(shift_to_update)
@@ -557,12 +594,10 @@ class CustomOnCallShift(models.Model):
         instance_data["schedule"] = self.schedule
         instance_data["team"] = self.team
         # set new event start date to keep rotation index
-        instance_data["start"] = timezone.datetime.combine(
-            instance_data["rotation_start"].date(),
-            instance_data["start"].time(),
-        ).astimezone(pytz.UTC)
+        if instance_data["start"] == self.start:
+            instance_data["start"] = self.get_last_event_date(now)
         # calculate rotation index to keep user rotation order
-        start_rotation_from_user_index = self.get_rotation_user_index() + (self.start_rotation_from_user_index or 0)
+        start_rotation_from_user_index = self.get_rotation_user_index(now) + (self.start_rotation_from_user_index or 0)
         if start_rotation_from_user_index >= len(instance_data["rolling_users"]):
             start_rotation_from_user_index = 0
         instance_data["start_rotation_from_user_index"] = start_rotation_from_user_index

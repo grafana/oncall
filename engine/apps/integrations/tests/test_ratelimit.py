@@ -8,12 +8,9 @@ from django.urls import reverse
 from apps.alerts.models import AlertReceiveChannel
 
 
-# Ratelimit keys are stored in cache. Clean it before and after every test to make them idempotent.
-def setup_module(module):
-    cache.clear()
-
-
-def teardown_module(module):
+@pytest.fixture(autouse=True)
+def clear_cache():
+    # Ratelimit keys are stored in cache. Clean it before and after every test to make them idempotent.
     cache.clear()
 
 

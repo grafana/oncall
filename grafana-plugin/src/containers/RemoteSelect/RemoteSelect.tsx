@@ -28,6 +28,7 @@ interface RemoteSelectProps {
   openMenuOnFocus?: boolean;
   getOptionLabel?: (item: SelectableValue) => React.ReactNode;
   showError?: boolean;
+  maxMenuHeight?: number;
 }
 
 const RemoteSelect = inject('store')(
@@ -48,6 +49,7 @@ const RemoteSelect = inject('store')(
       getOptionLabel,
       openMenuOnFocus = true,
       showError,
+      maxMenuHeight,
     } = props;
 
     const [options, setOptions] = useState<SelectableValue[] | undefined>();
@@ -100,6 +102,7 @@ const RemoteSelect = inject('store')(
     return (
       // @ts-ignore
       <Tag
+        maxMenuHeight={maxMenuHeight}
         menuShouldPortal
         openMenuOnFocus={openMenuOnFocus}
         isClearable={allowClear}

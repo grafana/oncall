@@ -308,7 +308,7 @@ def notify_ical_schedule_shift(schedule_pk):
         new_shifts = sorted(new_shifts, key=lambda shift: shift["start"])
 
         if len(new_shifts) != 0:
-            days_to_lookup = (new_shifts[-1]["end"].date() - now.date()).days
+            days_to_lookup = (new_shifts[-1]["end"].date() - now.date()).days + 1
             days_to_lookup = max([days_to_lookup, MIN_DAYS_TO_LOOKUP_FOR_THE_END_OF_EVENT])
         else:
             days_to_lookup = MIN_DAYS_TO_LOOKUP_FOR_THE_END_OF_EVENT

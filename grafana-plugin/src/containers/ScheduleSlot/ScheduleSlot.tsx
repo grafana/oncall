@@ -166,8 +166,8 @@ const ScheduleSlotDetails = (props: ScheduleSlotDetailsProps) => {
               <HorizontalGroup spacing="sm">
                 <img src={Line} />
                 <VerticalGroup spacing="none">
-                  <Text type="secondary">{dayjs(event.start).tz(user.timezone).format('DD MMM, HH:mm')}</Text>
-                  <Text type="secondary">{dayjs(event.end).tz(user.timezone).format('DD MMM, HH:mm')}</Text>
+                  <Text type="secondary">{dayjs(event.start).tz(user?.timezone).format('DD MMM, HH:mm')}</Text>
+                  <Text type="secondary">{dayjs(event.end).tz(user?.timezone).format('DD MMM, HH:mm')}</Text>
                 </VerticalGroup>
               </HorizontalGroup>
             </VerticalGroup>

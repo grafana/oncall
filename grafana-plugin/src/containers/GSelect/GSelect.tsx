@@ -32,6 +32,7 @@ interface GSelectProps {
   showWarningIfEmptyValue?: boolean;
   showError?: boolean;
   nullItemName?: string;
+  fromOrganization?: boolean;
   filterOptions?: (id: any) => boolean;
   dropdownRender?: (menu: ReactElement) => ReactElement;
   getOptionLabel?: <T>(item: SelectableValue<T>) => React.ReactNode;
@@ -59,6 +60,7 @@ const GSelect = observer((props: GSelectProps) => {
     showWarningIfEmptyValue = false,
     getDescription,
     filterOptions,
+    fromOrganization,
   } = props;
 
   const store = useStore();
@@ -123,7 +125,7 @@ const GSelect = observer((props: GSelectProps) => {
 
     (values as string[]).forEach((value: string) => {
       if (!isNil(value) && !model.items[value] && model.updateItem) {
-        model.updateItem(value);
+        model.updateItem(value, fromOrganization);
       }
     });
   }, [value]);

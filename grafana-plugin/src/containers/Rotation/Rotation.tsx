@@ -120,12 +120,9 @@ const Rotation: FC<RotationProps> = (props) => {
               {events.map((event, index) => {
                 return (
                   <ScheduleSlot
-                    index={index}
                     scheduleId={scheduleId}
                     key={event.start}
                     event={event}
-                    layerIndex={layerIndex}
-                    rotationIndex={rotationIndex}
                     startMoment={startMoment}
                     currentTimezone={currentTimezone}
                     color={color}

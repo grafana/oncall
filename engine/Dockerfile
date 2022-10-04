@@ -9,8 +9,11 @@ RUN pip install -r requirements.txt
 
 COPY ./ ./
 
-RUN DJANGO_SETTINGS_MODULE=settings.prod_without_db SECRET_KEY="ThEmUsTSecretKEYforBUILDstage123" TELEGRAM_TOKEN="0000000000:XXXXXXXXXXXXXXXXXXXXXXXXXXXX-XXXXXX" SLACK_CLIENT_OAUTH_ID=1 python manage.py collectstatic --no-input
-RUN rm db.sqlite3
+# Collect static files and create an SQLite database
+RUN mkdir -p /var/lib/oncall
+RUN DJANGO_SETTINGS_MODULE=settings.prod_without_db DATABASE_TYPE=sqlite3 DATABASE_NAME=/var/lib/oncall/oncall.db SECRET_KEY="ThEmUsTSecretKEYforBUILDstage123" python manage.py collectstatic --no-input
+RUN chown -R 1000:2000 /var/lib/oncall
+
 
 # This is required for prometheus_client to sync between uwsgi workers
 RUN mkdir -p /tmp/prometheus_django_metrics;

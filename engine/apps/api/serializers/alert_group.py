@@ -132,7 +132,7 @@ class AlertGroupSerializer(AlertGroupListSerializer):
         fields = AlertGroupListSerializer.Meta.fields + [
             "alerts",
             "render_after_resolve_report_json",
-            "permalink",
+            "slack_permalink",
             "last_alert_at",
         ]
 

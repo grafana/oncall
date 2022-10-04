@@ -1,8 +1,6 @@
-import { Item, ItemData } from './UserGroups.types';
+import { Item } from './UserGroups.types';
 
-export const toPlainArray = (groups: string[][], getItemData: (item: Item['item']) => ItemData) => {
-  let i = 0;
-
+export const toPlainArray = (groups: string[][]) => {
   const items: Item[] = [];
   groups.forEach((group: string[], groupIndex: number) => {
     items.push({
@@ -15,8 +13,7 @@ export const toPlainArray = (groups: string[][], getItemData: (item: Item['item'
       items.push({
         key: `item-${groupIndex}-${itemIndex}`,
         type: 'item',
-        item,
-        data: getItemData(item),
+        data: item,
       });
     });
   });
@@ -25,8 +22,6 @@ export const toPlainArray = (groups: string[][], getItemData: (item: Item['item'
 };
 
 export const fromPlainArray = (items: Item[], createNewGroup = false, deleteEmptyGroups = true) => {
-  const groups = [];
-
   return items
     .reduce((memo: any, item: Item, currentIndex: number) => {
       if (item.type === 'item') {
@@ -35,7 +30,7 @@ export const fromPlainArray = (items: Item[], createNewGroup = false, deleteEmpt
           lastGroup = [];
           memo.push(lastGroup);
         }
-        lastGroup.push(item.item);
+        lastGroup.push(item.data);
       } else {
         memo.push([]);
       }

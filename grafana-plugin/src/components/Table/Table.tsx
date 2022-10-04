@@ -25,7 +25,7 @@ export interface Props<RecordType = unknown> extends TableProps<RecordType> {
   expandable?: {
     expandedRowKeys: string[];
     expandedRowRender: (item: any) => React.ReactNode;
-    onExpandedRowsChange: (rows: string[]) => void;
+    onExpandedRowsChange?: (rows: string[]) => void;
     expandRowByClick: boolean;
     expandIcon?: (props: { expanded: boolean; record: any }) => React.ReactNode;
     onExpand?: (expanded: boolean, item: any) => void;
@@ -51,7 +51,7 @@ const GTable: FC<Props> = (props) => {
     <VerticalGroup justify="flex-end">
       <Table
         rowKey={rowKey}
-        className={cx('root', className)}
+        className={cx('root', 'filter-table', className)}
         columns={columns}
         data={data}
         expandable={expandable}
