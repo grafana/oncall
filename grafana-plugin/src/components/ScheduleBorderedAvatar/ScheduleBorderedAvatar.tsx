@@ -33,7 +33,7 @@ export default function ScheduleBorderedAvatar({
   function renderSVG() {
     return (
       <>
-        <svg xmlns="http://www.w3.org/2000/svg" version="1.1" width={width} height={height} viewBox="-10 -10 220 220">
+        <svg xmlns="http://www.w3.org/2000/svg" version="1.1" width={width} height={height} viewBox="-20 -10 240 230">
           <g fill="none" strokeWidth="35" transform="translate(100,100)">
             {renderColorPaths(colors)}
           </g>
