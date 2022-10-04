@@ -129,15 +129,17 @@
 {{- define "snippet.postgres.env" -}}
 - name: USE_POSTGRESQL
   value: {{ .Values.postgres.enabled | quote }}
-- name: POSTGRES_HOST
+- name: DATABASE_ENGINE
+  value: {{ include "snippet.postgres.engine" . }}
+- name: DATABASE_HOST
   value: {{ include "snippet.postgres.host" . }}
-- name: POSTGRES_PORT
+- name: DATABASE_PORT
   value: {{ include "snippet.postgres.port" . }}
-- name: POSTGRES_DB_NAME
+- name: DATABASE_NAME
   value: {{ include "snippet.postgres.db_name" . }}
-- name: POSTGRES_USER
+- name: DATABASE_USER
   value: {{ include "snippet.postgres.user" . }}
-- name: POSTGRES_PASSWORD
+- name: DATABASE_PASSWORD
   valueFrom:
     secretKeyRef:
       name: {{ include "snippet.postgres.password.secret.name" . }}
@@ -147,6 +149,14 @@
 {{- define "snippet.postgres.password.secret.name" -}}
 {{- if and .Values.postgres.enabled .Values.externalPostgreSQL.password -}}
 {{ include "oncall.fullname" . }}-postgres-external
+{{- end -}}
+{{- end -}}
+
+{{- define "snippet.postgres.engine" -}}
+{{- if .Values.postgres.enabled -}}
+"postgresql"
+{{- else -}}
+"mysql"
 {{- end -}}
 {{- end -}}
 
