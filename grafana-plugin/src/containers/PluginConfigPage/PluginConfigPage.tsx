@@ -20,7 +20,13 @@ import Text from 'components/Text/Text';
 import WithConfirm from 'components/WithConfirm/WithConfirm';
 import logo from 'img/logo.svg';
 import { makeRequest } from 'network';
-import { createGrafanaToken, getPluginSyncStatus, startPluginSync, updateGrafanaToken } from 'state/plugin';
+import {
+  createGrafanaToken,
+  getPluginSyncStatus,
+  startPluginSync, SYNC_STATUS_RETRY_LIMIT,
+  syncStatusDelay,
+  updateGrafanaToken
+} from 'state/plugin';
 import { GRAFANA_LICENSE_OSS } from 'utils/consts';
 import { getItem, setItem } from 'utils/localStorage';
 
@@ -178,38 +184,33 @@ export const PluginConfigPage = (props: Props) => {
     setPluginConfigLoading(false);
   }, []);
 
+  const waitForSyncStatus = (retryCount = 0) => {
+    if (retryCount > SYNC_STATUS_RETRY_LIMIT) {
+      setPluginStatusMessage(
+        `OnCall took too many tries to synchronize. Did you launch Celery workers? Background workers should perform synchronization, not web server.`
+      );
+      setRetrySync(true);
+      setPluginStatusOk(false);
+      setPluginConfigLoading(false);
+      return;
+    }
+
+    getPluginSyncStatus().then((get_sync_response) => {
+      if (get_sync_response.hasOwnProperty('token_ok')) {
+        finishSync(get_sync_response);
+      } else {
+        syncStatusDelay(retryCount + 1).then(() => waitForSyncStatus(retryCount + 1))
+      }
+    }).catch((e) => {
+      handleSyncException(e);
+    });
+  }
+
   const startSync = useCallback(() => {
     setRetrySync(false);
     setPluginConfigLoading(true);
     startPluginSync()
-      .then(() => {
-        let counter = 0;
-        const interval = setInterval(() => {
-          counter++;
-
-          getPluginSyncStatus()
-            .then((get_sync_response) => {
-              if (get_sync_response.hasOwnProperty('token_ok')) {
-                clearInterval(interval);
-                finishSync(get_sync_response);
-              }
-            })
-            .catch((e) => {
-              clearInterval(interval);
-              handleSyncException(e);
-            });
-
-          if (counter >= 5) {
-            clearInterval(interval);
-            setPluginStatusMessage(
-              `OnCall took too many tries to synchronize. Did you launch Celery workers? Background workers should perform synchronization, not web server.`
-            );
-            setRetrySync(true);
-            setPluginStatusOk(false);
-            setPluginConfigLoading(false);
-          }
-        }, 2000);
-      })
+      .then(() => waitForSyncStatus())
       .catch(handleSyncException);
   }, []);
 
