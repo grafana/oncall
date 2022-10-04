@@ -9,6 +9,7 @@ import { toJS } from 'mobx';
 import { observer } from 'mobx-react';
 import { CSSTransition, TransitionGroup } from 'react-transition-group';
 
+import Text from 'components/Text/Text';
 import TimelineMarks from 'components/TimelineMarks/TimelineMarks';
 import Rotation from 'containers/Rotation/Rotation';
 import RotationForm from 'containers/RotationForm/RotationForm';
@@ -30,6 +31,8 @@ interface RotationsProps extends WithStoreProps {
   startMoment: dayjs.Dayjs;
   currentTimezone: Timezone;
   scheduleId: Schedule['id'];
+  shiftIdToShowRotationForm?: Shift['id'] | 'new';
+  onShowRotationForm: (shiftId: Shift['id'] | 'new') => void;
   onClick: (id: Shift['id'] | 'new') => void;
   onCreate: () => void;
   onUpdate: () => void;
@@ -37,7 +40,6 @@ interface RotationsProps extends WithStoreProps {
 }
 
 interface RotationsState {
-  shiftIdToShowRotationForm?: Shift['id'];
   layerPriority?: Layer['priority'];
   shiftMomentToShowRotationForm?: dayjs.Dayjs;
 }
@@ -45,13 +47,23 @@ interface RotationsState {
 @observer
 class Rotations extends Component<RotationsProps, RotationsState> {
   state: RotationsState = {
-    shiftIdToShowRotationForm: undefined,
+    layerPriority: undefined,
     shiftMomentToShowRotationForm: undefined,
   };
 
   render() {
-    const { scheduleId, startMoment, currentTimezone, onCreate, onUpdate, onDelete, store, onClick } = this.props;
-    const { shiftIdToShowRotationForm, layerPriority, shiftMomentToShowRotationForm } = this.state;
+    const {
+      scheduleId,
+      startMoment,
+      currentTimezone,
+      onCreate,
+      onUpdate,
+      onDelete,
+      store,
+      onClick,
+      shiftIdToShowRotationForm,
+    } = this.props;
+    const { layerPriority, shiftMomentToShowRotationForm } = this.state;
 
     const base = 7 * 24 * 60; // in minutes
     const diff = dayjs().tz(currentTimezone).diff(startMoment, 'minutes');
@@ -80,12 +92,16 @@ class Rotations extends Component<RotationsProps, RotationsState> {
         <div className={cx('root')}>
           <div className={cx('header')}>
             <HorizontalGroup justify="space-between">
-              <div className={cx('title')}>Rotations</div>
+              <div className={cx('title')}>
+                <Text.Title level={4} type="primary">
+                  Rotations
+                </Text.Title>
+              </div>
               <ValuePicker
                 label="Add rotation"
                 options={options}
                 onChange={this.handleAddRotation}
-                variant="secondary"
+                variant="primary"
                 size="md"
               />
             </HorizontalGroup>
@@ -98,7 +114,7 @@ class Rotations extends Component<RotationsProps, RotationsState> {
                     <div id={`layer${layer.priority}`} className={cx('layer')}>
                       <div className={cx('layer-title')}>
                         <HorizontalGroup spacing="sm" justify="center">
-                          <span>Layer {layer.priority}</span>
+                          <Text type="secondary">Layer {layer.priority}</Text>
                           {/*<Icon name="info-circle" />*/}
                         </HorizontalGroup>
                       </div>
@@ -140,8 +156,7 @@ class Rotations extends Component<RotationsProps, RotationsState> {
                 <div id={`layer1`} className={cx('layer')}>
                   <div className={cx('layer-title')}>
                     <HorizontalGroup spacing="sm" justify="center">
-                      <span>Layer 1</span>
-                      {/* <Icon name="info-circle" />*/}
+                      <Text type="secondary">Layer 1</Text>
                     </HorizontalGroup>
                   </div>
                   <div className={cx('header-plus-content')}>
@@ -168,10 +183,10 @@ class Rotations extends Component<RotationsProps, RotationsState> {
               <div
                 className={cx('add-rotations-layer')}
                 onClick={() => {
-                  this.handleAddLayer(nextPriority, startMoment);
+                  this.handleAddLayer(nextPriority);
                 }}
               >
-                + Add rotations layer
+                <Text type="primary">+ Add rotations layer</Text>
               </div>
             )}
           </div>
@@ -212,31 +227,49 @@ class Rotations extends Component<RotationsProps, RotationsState> {
   }
 
   onRotationClick = (shiftId: Shift['id'], moment?: dayjs.Dayjs) => {
-    this.setState({ shiftIdToShowRotationForm: shiftId, shiftMomentToShowRotationForm: moment });
+    this.setState({ shiftMomentToShowRotationForm: moment }, () => {
+      this.onShowRotationForm(shiftId);
+    });
   };
 
   handleAddLayer = (layerPriority: number, moment?: dayjs.Dayjs) => {
-    this.setState({ shiftIdToShowRotationForm: 'new', layerPriority, shiftMomentToShowRotationForm: moment });
+    this.setState({ layerPriority, shiftMomentToShowRotationForm: moment }, () => {
+      this.onShowRotationForm('new');
+    });
   };
 
   handleAddRotation = (option: SelectableValue) => {
     const { startMoment } = this.props;
 
-    this.setState({
-      shiftIdToShowRotationForm: 'new',
-      layerPriority: option.value,
-      shiftMomentToShowRotationForm: startMoment,
-    });
+    this.setState(
+      {
+        layerPriority: option.value,
+        shiftMomentToShowRotationForm: startMoment,
+      },
+      () => {
+        this.onShowRotationForm('new');
+      }
+    );
   };
 
   hideRotationForm = () => {
     const { store } = this.props;
 
-    this.setState({
-      shiftIdToShowRotationForm: undefined,
-      layerPriority: undefined,
-      shiftMomentToShowRotationForm: undefined,
-    });
+    this.setState(
+      {
+        layerPriority: undefined,
+        shiftMomentToShowRotationForm: undefined,
+      },
+      () => {
+        this.onShowRotationForm(undefined);
+      }
+    );
+  };
+
+  onShowRotationForm = (shiftId: Shift['id']) => {
+    const { onShowRotationForm } = this.props;
+
+    onShowRotationForm(shiftId);
   };
 }
 

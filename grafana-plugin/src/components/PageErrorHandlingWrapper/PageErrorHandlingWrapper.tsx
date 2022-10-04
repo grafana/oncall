@@ -1,30 +1,59 @@
-import React, { FC } from 'react';
+import React, { useEffect } from 'react';
 
-import { Button, VerticalGroup, Icon } from '@grafana/ui';
+import { Button, VerticalGroup } from '@grafana/ui';
 import cn from 'classnames/bind';
+import { PropTypes } from 'mobx-react';
 
 import PluginLink from 'components/PluginLink/PluginLink';
 import Text from 'components/Text/Text';
 import { ChangeTeamIcon } from 'icons';
 import { GrafanaTeam } from 'models/grafana_team/grafana_team.types';
 import { useStore } from 'state/useStore';
+import { openWarningNotification } from 'utils';
 
-import styles from './WrongTeamStub.module.css';
+import styles from './PageErrorHandlingWrapper.module.css';
 
 const cx = cn.bind(styles);
 
-export interface WrongTeamStubProps {
-  className?: string;
-  objectName: string;
-  pageName: string;
-  currentTeam?: string;
-  switchToTeam?: { name: string; id: string };
-  wrongTeamNoPermissions?: boolean;
+export interface PageBaseState {
+  errorData: PageErrorData;
 }
 
-const WrongTeamStub: FC<WrongTeamStubProps> = (props) => {
+export interface PageErrorData {
+  isNotFoundError?: boolean;
+  isWrongTeamError?: boolean;
+  wrongTeamNoPermissions?: boolean;
+  switchToTeam?: { name: string; id: string };
+}
+
+export default function PageErrorHandlingWrapper({
+  errorData,
+  objectName,
+  pageName,
+  itemNotFoundMessage,
+  children,
+}: {
+  errorData: PageErrorData;
+  objectName: string;
+  pageName: string;
+  itemNotFoundMessage?: string;
+  children: () => JSX.Element;
+}) {
+  useEffect(() => {
+    const { isWrongTeamError, isNotFoundError } = errorData;
+    if (!isWrongTeamError && isNotFoundError && itemNotFoundMessage) {
+      openWarningNotification(itemNotFoundMessage);
+    }
+  }, [errorData.isNotFoundError]);
+
   const store = useStore();
-  const { objectName, pageName, currentTeam, switchToTeam, className, wrongTeamNoPermissions } = props;
+
+  if (!errorData.isWrongTeamError) {return children();}
+
+  const currentTeamId = store.userStore.currentUser?.current_team;
+  const currentTeam = store.grafanaTeamStore.items[currentTeamId]?.name;
+
+  const { switchToTeam, wrongTeamNoPermissions } = errorData;
 
   const onTeamChange = async (teamId: GrafanaTeam['id']) => {
     await store.userStore.updateCurrentUser({ current_team: teamId });
@@ -57,12 +86,10 @@ const WrongTeamStub: FC<WrongTeamStubProps> = (props) => {
             Change the team
           </Button>
         )}
-        <Text type="secondary" className={cx('return-to-list')}>
+        <Text type="secondary">
           Or return to the <PluginLink query={{ page: pageName }}>{objectName} list</PluginLink> for team {currentTeam}
         </Text>
       </VerticalGroup>
     </div>
   );
-};
-
-export default WrongTeamStub;
+}

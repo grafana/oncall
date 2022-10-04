@@ -100,14 +100,14 @@ const ApiTokenForm = observer((props: TokenCreationModalProps) => {
     return (
       <VerticalGroup>
         <Label>Curl command example</Label>
-        <SourceCode showClipboardIconOnly>{getCurlExample(token)}</SourceCode>
+        <SourceCode showClipboardIconOnly>{getCurlExample(token, store.onCallApiUrl)}</SourceCode>
       </VerticalGroup>
     );
   }
 });
 
-function getCurlExample(token) {
-  return `curl -H "Authorization: ${token}" ${getItem('onCallApiUrl')}/api/v1/integrations`;
+function getCurlExample(token, onCallApiUrl) {
+  return `curl -H "Authorization: ${token}" ${onCallApiUrl}/api/v1/integrations`;
 }
 
 export default ApiTokenForm;

@@ -13,7 +13,6 @@
   font-size: 12px;
   line-height: 16px;
   text-align: center;
-  color: rgba(204, 204, 220, 0.4);
   margin: 4px 0;
   display: flex;
   align-items: center;
@@ -27,7 +26,7 @@
   display: block;
   content: "";
   flex-grow: 1;
-  border-bottom: 1px solid rgba(204, 204, 220, 0.15);
+  border-bottom: var(--border-medium);
   height: 0;
   margin-right: 5px;
 }
@@ -36,7 +35,7 @@
   display: block;
   content: "";
   flex-grow: 1;
-  border-bottom: 1px solid rgba(204, 204, 220, 0.15);
+  border-bottom: var(--border-medium);
   height: 0;
   margin-left: 5px;
 }
@@ -69,9 +68,13 @@
   background: var(--hover-selected-hardcoded);
 }
 
-.delete-icon {
-  /* display: none; */
+.icon {
   display: block;
+  color: var(--always-gray);
+}
+
+.icon:hover {
+  color: white;
 }
 
 .user:hover .delete-icon {

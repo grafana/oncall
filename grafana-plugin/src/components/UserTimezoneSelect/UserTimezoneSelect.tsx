@@ -20,46 +20,77 @@ interface UserTimezoneSelectProps {
 const cx = cn.bind(styles);
 
 const UserTimezoneSelect: FC<UserTimezoneSelectProps> = (props) => {
-  const { users, value, onChange } = props;
+  const { users, value: propValue, onChange } = props;
 
   const options = useMemo(() => {
-    return users.reduce((memo, user) => {
-      let item = memo.find((item) => item.label === user.timezone);
+    return users
+      .reduce(
+        (memo, user) => {
+          const moment = dayjs().tz(user.timezone);
+          const utcOffset = moment.utcOffset();
 
-      if (!item) {
-        item = {
-          value: user.pk,
-          label: `${user.timezone} ${getTzOffsetString(dayjs().tz(user.timezone))}`,
-          imgUrl: user.avatar,
-          description: user.username,
-        };
-        memo.push(item);
-      } else {
-        item.description += ', ' + user.name;
-        // item.imgUrl = undefined;
-      }
+          let item = memo.find((item) => item.utcOffset === utcOffset);
 
-      return memo;
-    }, []);
+          if (!item) {
+            item = {
+              value: utcOffset,
+              utcOffset,
+              timezone: user.timezone,
+              label: getTzOffsetString(moment),
+              description: user.username,
+            };
+            memo.push(item);
+          } else {
+            item.description += item.description ? ', ' + user.username : user.username;
+            // item.imgUrl = undefined;
+          }
+
+          return memo;
+        },
+        [
+          {
+            value: 0,
+            utcOffset: 0,
+            timezone: 'UTC' as Timezone,
+            label: 'GMT',
+            description: '',
+          },
+        ]
+      )
+      .sort((a, b) => {
+        if (b.utcOffset === 0) {
+          return 1;
+        }
+
+        if (a.utcOffset > b.utcOffset) {
+          return 1;
+        }
+        if (a.utcOffset < b.utcOffset) {
+          return -1;
+        }
+
+        return 0;
+      });
   }, [users]);
 
-  const selectValue = useMemo(() => {
-    const user = users.find((user) => user.timezone === value);
-    return user?.pk;
-  }, [value, users]);
+  const value = useMemo(() => {
+    const utcOffset = dayjs().tz(propValue).utcOffset();
+    const option = options.find((option) => option.utcOffset === utcOffset);
+
+    return option?.value;
+  }, [propValue, options]);
 
   const handleChange = useCallback(
     ({ value }) => {
-      const user = users.find((user) => user.pk === value);
-
-      onChange(user?.timezone);
+      const option = options.find((option) => option.utcOffset === value);
+      onChange(option?.timezone);
     },
-    [users]
+    [options]
   );
 
   return (
     <div className={cx('root')}>
-      <Select value={selectValue} onChange={handleChange} width={100} placeholder="UTC Timezone" options={options} />
+      <Select value={value} onChange={handleChange} width={100} placeholder={propValue} options={options} />
     </div>
   );
 };

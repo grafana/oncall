@@ -2,7 +2,16 @@ import React, { useMemo } from 'react';
 
 import { AppRootProps } from '@grafana/data';
 import { getLocationSrv } from '@grafana/runtime';
-import { Button, HorizontalGroup, VerticalGroup, RadioButtonGroup, IconButton, ToolbarButton, Icon } from '@grafana/ui';
+import {
+  Button,
+  HorizontalGroup,
+  VerticalGroup,
+  RadioButtonGroup,
+  IconButton,
+  ToolbarButton,
+  Icon,
+  Field,
+} from '@grafana/ui';
 import cn from 'classnames/bind';
 import dayjs from 'dayjs';
 import { observer } from 'mobx-react';
@@ -20,6 +29,7 @@ import Rotations from 'containers/Rotations/Rotations';
 import ScheduleFinal from 'containers/Rotations/ScheduleFinal';
 import ScheduleOverrides from 'containers/Rotations/ScheduleOverrides';
 import UsersTimezones from 'containers/UsersTimezones/UsersTimezones';
+import { Shift } from 'models/schedule/schedule.types';
 import { Timezone } from 'models/timezone/timezone.types';
 import { WithStoreProps } from 'state/types';
 import { withMobXProviderContext } from 'state/withStore';
@@ -36,6 +46,8 @@ interface SchedulePageState {
   startMoment: dayjs.Dayjs;
   schedulePeriodType: string;
   renderType: string;
+  shiftIdToShowRotationForm?: Shift['id'];
+  shiftIdToShowOverridesForm?: Shift['id'];
 }
 
 const INITIAL_TIMEZONE = 'UTC'; // todo check why doesn't work
@@ -50,6 +62,8 @@ class SchedulePage extends React.Component<SchedulePageProps, SchedulePageState>
       startMoment: getStartOfWeek(store.currentTimezone),
       schedulePeriodType: 'week',
       renderType: 'timeline',
+      shiftIdToShowRotationForm: undefined,
+      shiftIdToShowOverridesForm: undefined,
     };
   }
 
@@ -74,9 +88,16 @@ class SchedulePage extends React.Component<SchedulePageProps, SchedulePageState>
     this.updateEvents();
   }
 
+  componentWillUnmount() {
+    const { store } = this.props;
+
+    store.scheduleStore.clearPreview();
+  }
+
   render() {
     const { store } = this.props;
-    const { startMoment, schedulePeriodType, renderType } = this.state;
+    const { startMoment, schedulePeriodType, renderType, shiftIdToShowRotationForm, shiftIdToShowOverridesForm } =
+      this.state;
     const { query } = this.props;
     const { id: scheduleId } = query;
 
@@ -95,7 +116,7 @@ class SchedulePage extends React.Component<SchedulePageProps, SchedulePageState>
                 <PluginLink query={{ page: 'schedules-new' }}>
                   <IconButton style={{ marginTop: '5px' }} name="arrow-left" size="xxl" />
                 </PluginLink>
-                <Text.Title editable editModalTitle="Schedule name" level={3} onTextChange={this.handleNameChange}>
+                <Text.Title editable editModalTitle="Schedule name" level={2} onTextChange={this.handleNameChange}>
                   {schedule?.name}
                 </Text.Title>
                 {/*<ScheduleCounter
@@ -121,9 +142,12 @@ class SchedulePage extends React.Component<SchedulePageProps, SchedulePageState>
               </HorizontalGroup>
               <HorizontalGroup>
                 {users && (
-                  <UserTimezoneSelect value={currentTimezone} users={users} onChange={this.handleTimezoneChange} />
+                  <HorizontalGroup>
+                    <Text type="secondary">Current timezone:</Text>
+                    <UserTimezoneSelect value={currentTimezone} users={users} onChange={this.handleTimezoneChange} />
+                  </HorizontalGroup>
                 )}
-                <ScheduleQuality quality={0.89} />
+                {/*<ScheduleQuality quality={0.89} />*/}
                 {/*<ToolbarButton icon="copy" tooltip="Copy" />
                 <ToolbarButton icon="brackets-curly" tooltip="Code" />
                 <ToolbarButton icon="share-alt" tooltip="Share" />
@@ -162,9 +186,9 @@ class SchedulePage extends React.Component<SchedulePageProps, SchedulePageState>
                     <Icon name="angle-right" />
                   </Button>
                 </HorizontalGroup>
-                <div>
+                <Text.Title style={{ marginLeft: '8px' }} level={4} type="primary">
                   {startMoment.format('DD MMM')} - {startMoment.add(6, 'day').format('DD MMM')}
-                </div>
+                </Text.Title>
               </HorizontalGroup>
               {/*<HorizontalGroup width="auto">
                 <RadioButtonGroup
@@ -196,7 +220,12 @@ class SchedulePage extends React.Component<SchedulePageProps, SchedulePageState>
           </div>
           {/* <div className={'current-time'} />*/}
           <div className={cx('rotations')}>
-            <ScheduleFinal scheduleId={scheduleId} currentTimezone={currentTimezone} startMoment={startMoment} />
+            <ScheduleFinal
+              scheduleId={scheduleId}
+              currentTimezone={currentTimezone}
+              startMoment={startMoment}
+              onClick={this.handleShowForm}
+            />
             <Rotations
               scheduleId={scheduleId}
               currentTimezone={currentTimezone}
@@ -204,6 +233,8 @@ class SchedulePage extends React.Component<SchedulePageProps, SchedulePageState>
               onCreate={this.handleCreateRotation}
               onUpdate={this.handleUpdateRotation}
               onDelete={this.handleDeleteRotation}
+              shiftIdToShowRotationForm={shiftIdToShowRotationForm}
+              onShowRotationForm={this.handleShowRotationForm}
             />
             <ScheduleOverrides
               scheduleId={scheduleId}
@@ -212,12 +243,36 @@ class SchedulePage extends React.Component<SchedulePageProps, SchedulePageState>
               onCreate={this.handleCreateOverride}
               onUpdate={this.handleUpdateOverride}
               onDelete={this.handleDeleteOverride}
+              shiftIdToShowRotationForm={shiftIdToShowOverridesForm}
+              onShowRotationForm={this.handleShowOverridesForm}
             />
           </div>
         </VerticalGroup>
       </div>
     );
   }
+
+  handleShowForm = async (shiftId: Shift['id'] | 'new') => {
+    const {
+      store: { scheduleStore },
+    } = this.props;
+
+    const shift = await scheduleStore.updateOncallShift(shiftId);
+
+    if (shift.type === 2) {
+      this.setState({ shiftIdToShowRotationForm: shiftId });
+    } else if (shift.type === 3) {
+      this.setState({ shiftIdToShowOverridesForm: shiftId });
+    }
+  };
+
+  handleShowRotationForm = (shiftId: Shift['id'] | 'new') => {
+    this.setState({ shiftIdToShowRotationForm: shiftId });
+  };
+
+  handleShowOverridesForm = (shiftId: Shift['id'] | 'new') => {
+    this.setState({ shiftIdToShowOverridesForm: shiftId });
+  };
 
   handleNameChange = (value: string) => {
     const { store, query } = this.props;

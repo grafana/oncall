@@ -1,6 +1,7 @@
 import { AppPluginMeta } from '@grafana/data';
 import { getBackendSrv } from '@grafana/runtime';
 import { action, observable } from 'mobx';
+import moment from 'moment-timezone';
 import qs from 'query-string';
 import { OnCallAppSettings } from 'types';
 
@@ -40,7 +41,7 @@ export class RootBaseStore {
   appLoading = true;
 
   @observable
-  currentTimezone: Timezone = 'UTC';
+  currentTimezone: Timezone = moment.tz.guess() as Timezone;
 
   @observable
   backendVersion = '';
@@ -88,6 +89,9 @@ export class RootBaseStore {
 
   @observable
   incidentsPage: any = this.initialQuery.p ? Number(this.initialQuery.p) : 1;
+
+  @observable
+  onCallApiUrl: string;
 
   // --------------------------
 
@@ -186,6 +190,8 @@ export class RootBaseStore {
       return;
     }
 
+    this.onCallApiUrl = meta.jsonData.onCallApiUrl;
+
     let syncStartStatus = await this.startSync();
     if (syncStartStatus.is_user_anonymous) {
       this.isUserAnonymous = true;
@@ -219,7 +225,7 @@ export class RootBaseStore {
           this.handleSyncException(e);
         });
 
-      if (counter >= 5) {
+      if (counter >= 10) {
         clearInterval(interval);
         this.retrySync = true;
       }

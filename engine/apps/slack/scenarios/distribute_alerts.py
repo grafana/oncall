@@ -354,9 +354,9 @@ class SelectAttachGroupStep(
                 f"attached incidents ({attached_incidents.count()}):\n"
             )
             for dependent_alert in attached_incidents:
-                if dependent_alert.permalink:
+                if dependent_alert.slack_permalink:
                     dependent_alert_text = (
-                        f"\n<{dependent_alert.permalink}|{dependent_alert.long_verbose_name_without_formatting}>"
+                        f"\n<{dependent_alert.slack_permalink}|{dependent_alert.long_verbose_name_without_formatting}>"
                     )
                 else:
                     dependent_alert_text = f"\n{dependent_alert.long_verbose_name}"
