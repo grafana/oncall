@@ -417,8 +417,6 @@ class IncidentsFilters extends Component<IncidentsFiltersProps, IncidentsFilters
     const { onChange } = this.props;
     const { values } = this.state;
 
-    console.log('Change!');
-
     onChange(values, isOnMount);
   };
 

@@ -96,8 +96,7 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
   private pollingIntervalId: NodeJS.Timer = undefined;
 
   componentWillUnmount(): void {
-    clearInterval(this.pollingIntervalId);
-    this.pollingIntervalId = undefined;
+    this.clearPollingInterval();
   }
 
   render() {
