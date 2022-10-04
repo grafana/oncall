@@ -29,18 +29,17 @@ engine:
     #   cpu: 100m
     #   memory: 128Mi
 
-  ## @param affinity Affinity for pod assignment
-  ## Ref: https://kubernetes.io/docs/concepts/configuration/assign-pod-node/#affinity-and-anti-affinity
-  ##
-  affinity: { }
-  ## @param nodeSelector Node labels for pod assignment
+  ## Affinity for pod assignment
+  ## ref: https://kubernetes.io/docs/concepts/configuration/assign-pod-node/#affinity-and-anti-affinity
+  affinity: {}
+
+  ## Node labels for pod assignment
   ## ref: https://kubernetes.io/docs/user-guide/node-selection/
-  ##
-  nodeSelector: { }
-  ## @param tolerations Tolerations for pod assignment
+  nodeSelector: {}
+
+  ## Tolerations for pod assignment
   ## ref: https://kubernetes.io/docs/concepts/configuration/taint-and-toleration/
-  ##
-  tolerations: [ ]
+  tolerations: []
 
 # Celery workers pods configuration
 celery:
