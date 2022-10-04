@@ -64,9 +64,6 @@ TWILIO_VERIFY_SERVICE_SID = os.environ.get("TWILIO_VERIFY_SERVICE_SID")
 TELEGRAM_WEBHOOK_HOST = os.environ.get("TELEGRAM_WEBHOOK_HOST", BASE_URL)
 TELEGRAM_TOKEN = os.environ.get("TELEGRAM_TOKEN")
 
-os.environ.setdefault("MYSQL_PASSWORD", "empty")
-os.environ.setdefault("RABBIT_URI", "empty")
-
 # For Sending email
 SENDGRID_API_KEY = os.environ.get("SENDGRID_API_KEY")
 SENDGRID_FROM_EMAIL = os.environ.get("SENDGRID_FROM_EMAIL")
@@ -84,21 +81,101 @@ GRAFANA_CLOUD_ONCALL_TOKEN = os.environ.get("GRAFANA_CLOUD_ONCALL_TOKEN", None)
 # Outgoing webhook settings
 DANGEROUS_WEBHOOKS_ENABLED = getenv_boolean("DANGEROUS_WEBHOOKS_ENABLED", default=False)
 
-# DB backend defaults
-DB_BACKEND = os.environ.get("DB_BACKEND", "mysql")
-DB_BACKEND_DEFAULT_VALUES = {
-    "mysql": {
+
+# Database
+class DatabaseTypes:
+    MYSQL = "mysql"
+    POSTGRESQL = "postgresql"
+    SQLITE3 = "sqlite3"
+
+
+DATABASE_DEFAULTS = {
+    DatabaseTypes.MYSQL: {
         "USER": "root",
-        "PORT": "3306",
+        "PORT": 3306,
+    },
+    DatabaseTypes.POSTGRESQL: {
+        "USER": "postgres",
+        "PORT": 5432,
+    },
+}
+
+DATABASE_NAME = os.getenv("DATABASE_NAME") or os.getenv("MYSQL_DB_NAME")
+DATABASE_USER = os.getenv("DATABASE_USER") or os.getenv("MYSQL_USER")
+DATABASE_PASSWORD = os.getenv("DATABASE_PASSWORD") or os.getenv("MYSQL_PASSWORD")
+DATABASE_HOST = os.getenv("DATABASE_HOST") or os.getenv("MYSQL_HOST")
+DATABASE_PORT = os.getenv("DATABASE_PORT") or os.getenv("MYSQL_PORT")
+
+DATABASE_TYPE = os.getenv("DATABASE_TYPE", DatabaseTypes.MYSQL).lower()
+assert DATABASE_TYPE in {DatabaseTypes.MYSQL, DatabaseTypes.POSTGRESQL, DatabaseTypes.SQLITE3}
+
+DATABASE_ENGINE = f"django.db.backends.{DATABASE_TYPE}"
+
+DATABASE_CONFIGS = {
+    DatabaseTypes.SQLITE3: {
+        "ENGINE": DATABASE_ENGINE,
+        "NAME": DATABASE_NAME or "/var/lib/oncall/oncall.db",
+    },
+    DatabaseTypes.MYSQL: {
+        "ENGINE": DATABASE_ENGINE,
+        "NAME": DATABASE_NAME,
+        "USER": DATABASE_USER,
+        "PASSWORD": DATABASE_PASSWORD,
+        "HOST": DATABASE_HOST,
+        "PORT": DATABASE_PORT,
         "OPTIONS": {
             "charset": "utf8mb4",
             "connect_timeout": 1,
         },
     },
-    "postgresql": {
-        "USER": "postgres",
-        "PORT": "5432",
-        "OPTIONS": {},
+    DatabaseTypes.POSTGRESQL: {
+        "ENGINE": DATABASE_ENGINE,
+        "NAME": DATABASE_NAME,
+        "USER": DATABASE_USER,
+        "PASSWORD": DATABASE_PASSWORD,
+        "HOST": DATABASE_HOST,
+        "PORT": DATABASE_PORT,
+    },
+}
+
+DATABASES = {
+    "default": DATABASE_CONFIGS[DATABASE_TYPE],
+}
+if DATABASE_TYPE == DatabaseTypes.MYSQL:
+    # Workaround to use pymysql instead of mysqlclient
+    import pymysql
+
+    pymysql.install_as_MySQLdb()
+
+# Redis
+REDIS_USERNAME = os.getenv("REDIS_USERNAME", "")
+REDIS_PASSWORD = os.getenv("REDIS_PASSWORD")
+REDIS_HOST = os.getenv("REDIS_HOST")
+REDIS_PORT = os.getenv("REDIS_PORT", 6379)
+REDIS_PROTOCOL = os.getenv("REDIS_PROTOCOL", "redis")
+
+REDIS_URI = os.getenv("REDIS_URI")
+if not REDIS_URI:
+    REDIS_URI = f"{REDIS_PROTOCOL}://{REDIS_USERNAME}:{REDIS_PASSWORD}@{REDIS_HOST}:{REDIS_PORT}"
+
+# Cache
+CACHES = {
+    "default": {
+        "BACKEND": "redis_cache.RedisCache",
+        "LOCATION": [
+            REDIS_URI,
+        ],
+        "OPTIONS": {
+            "DB": 1,
+            "PARSER_CLASS": "redis.connection.HiredisParser",
+            "CONNECTION_POOL_CLASS": "redis.BlockingConnectionPool",
+            "CONNECTION_POOL_CLASS_KWARGS": {
+                "max_connections": 50,
+                "timeout": 20,
+            },
+            "MAX_CONNECTIONS": 1000,
+            "PICKLE_VERSION": -1,
+        },
     },
 }
 
@@ -261,7 +338,34 @@ USE_TZ = True
 STATIC_URL = os.environ.get("STATIC_URL", "/static/")
 STATIC_ROOT = "./static/"
 
-CELERY_BROKER_URL = "amqp://rabbitmq:rabbitmq@localhost:5672"
+# RabbitMQ
+RABBITMQ_USERNAME = os.getenv("RABBITMQ_USERNAME")
+RABBITMQ_PASSWORD = os.getenv("RABBITMQ_PASSWORD")
+RABBITMQ_HOST = os.getenv("RABBITMQ_HOST")
+RABBITMQ_PORT = os.getenv("RABBITMQ_PORT", 5672)
+RABBITMQ_PROTOCOL = os.getenv("RABBITMQ_PROTOCOL", "amqp")
+RABBITMQ_VHOST = os.getenv("RABBITMQ_VHOST", "")
+
+RABBITMQ_URI = os.getenv("RABBITMQ_URI") or os.getenv("RABBIT_URI")
+if not RABBITMQ_URI:
+    RABBITMQ_URI = f"{RABBITMQ_PROTOCOL}://{RABBITMQ_USERNAME}:{RABBITMQ_PASSWORD}@{RABBITMQ_HOST}:{RABBITMQ_PORT}/{RABBITMQ_VHOST}"
+
+
+# Celery
+class BrokerTypes:
+    RABBITMQ = "rabbitmq"
+    REDIS = "redis"
+
+
+BROKER_TYPE = os.getenv("BROKER_TYPE", BrokerTypes.RABBITMQ).lower()
+assert BROKER_TYPE in {BrokerTypes.RABBITMQ, BrokerTypes.REDIS}
+
+if BROKER_TYPE == BrokerTypes.RABBITMQ:
+    CELERY_BROKER_URL = RABBITMQ_URI
+elif BROKER_TYPE == BrokerTypes.REDIS:
+    CELERY_BROKER_URL = REDIS_URI
+else:
+    raise ValueError(f"Invalid BROKER_TYPE env variable: {BROKER_TYPE}")
 
 # By default, apply_async will just hang indefinitely trying to reach to RabbitMQ even if RabbitMQ is down.
 # This makes apply_async retry 3 times trying to reach to RabbitMQ, with some extra info on periods between retries.
