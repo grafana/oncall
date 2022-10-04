@@ -99,7 +99,7 @@ class SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSta
     const { store } = this.props;
     const { expandedSchedulesKeys, scheduleIdToDelete, scheduleIdToEdit, scheduleIdToExport } = this.state;
     const { filters } = this.state;
-    const { scheduleStore, userStore } = store;
+    const { scheduleStore } = store;
 
     const columns = [
       {
@@ -306,9 +306,6 @@ class SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSta
   };
 
   handleChangeFilters = (filters: SchedulesFiltersType) => {
-    const { store } = this.props;
-    const { scheduleStore } = store;
-
     this.setState({ filters }, () => {
       const { filters, expandedSchedulesKeys } = this.state;
 

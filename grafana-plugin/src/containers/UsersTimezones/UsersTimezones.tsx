@@ -12,8 +12,15 @@ import ScheduleUserDetails from 'components/ScheduleUserDetails/ScheduleUserDeta
 import Text from 'components/Text/Text';
 import { findColor } from 'containers/Rotations/Rotations.helpers';
 import { IsOncallIcon } from 'icons';
-import { getColor, getFromString, getOverrideColor } from 'models/schedule/schedule.helpers';
-import { Event, Layer } from 'models/schedule/schedule.types';
+import {
+  getColor,
+  getFromString,
+  getLayersFromStore,
+  getOverrideColor,
+  getOverridesFromStore,
+  getShiftsFromStore,
+} from 'models/schedule/schedule.helpers';
+import { Event, Layer, Schedule } from 'models/schedule/schedule.types';
 import { Timezone } from 'models/timezone/timezone.types';
 import { User } from 'models/user/user.types';
 import { getStartOfWeek } from 'pages/schedule/Schedule.helpers';
@@ -130,7 +137,7 @@ const UsersTimezones: FC<UsersTimezonesProps> = (props) => {
 interface UserAvatarsProps {
   users: User[];
   currentMoment: dayjs.Dayjs;
-  scheduleId: string;
+  scheduleId: Schedule['id'];
   onTzChange: (timezone: Timezone) => void;
   onCallNow: Array<Partial<User>>;
 }
@@ -195,7 +202,7 @@ interface AvatarGroupProps {
   xPos: number;
   currentMoment: dayjs.Dayjs;
   utcOffset: number;
-  scheduleId: string;
+  scheduleId: Schedule['id'];
   onSetActiveUtcOffset: (utcOffset: number | undefined) => void;
   activeUtcOffset: number;
   onTzChange: (timezone: Timezone) => void;
@@ -308,17 +315,11 @@ const AvatarGroup = (props: AvatarGroupProps) => {
 function getColorSchemeMappingForUsers(store: RootStore, scheduleId: string): { [userId: string]: Set<string> } {
   const startMoment = getStartOfWeek(store.currentTimezone);
 
-  const shifts: Array<{ shiftId: string; events: Event[] }> = false
-    ? store.scheduleStore.finalPreview
-    : (store.scheduleStore.events[scheduleId]?.['final']?.[getFromString(startMoment)] as any);
+  const shifts = getShiftsFromStore(store, scheduleId, startMoment, false);
 
-  const layers = store.scheduleStore.rotationPreview
-    ? store.scheduleStore.rotationPreview
-    : (store.scheduleStore.events[scheduleId]?.['rotation']?.[getFromString(startMoment)] as Layer[]);
+  const layers = getLayersFromStore(store, scheduleId, startMoment);
 
-  const overrides = store.scheduleStore.overridePreview
-    ? store.scheduleStore.overridePreview
-    : store.scheduleStore.events[scheduleId]?.['override']?.[getFromString(startMoment)];
+  const overrides = getOverridesFromStore(store, scheduleId, startMoment, false);
 
   const usersColorSchemeHash: { [userId: string]: Set<string> } = {};
 

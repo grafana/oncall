@@ -8,7 +8,7 @@ import { CSSTransition, TransitionGroup } from 'react-transition-group';
 
 import TimelineMarks from 'components/TimelineMarks/TimelineMarks';
 import Rotation from 'containers/Rotation/Rotation';
-import { getColor, getFromString, getOverrideColor } from 'models/schedule/schedule.helpers';
+import { getColor, getFromString, getLayersFromStore, getOverrideColor, getOverridesFromStore, getShiftsFromStore } from 'models/schedule/schedule.helpers';
 import { Event, Layer, Schedule, Shift } from 'models/schedule/schedule.types';
 import { Timezone } from 'models/timezone/timezone.types';
 import { WithStoreProps } from 'state/types';
@@ -24,6 +24,7 @@ const cx = cn.bind(styles);
 interface ScheduleFinalProps extends WithStoreProps {
   startMoment: dayjs.Dayjs;
   currentTimezone: Timezone;
+  scheduleId: Schedule['id'];
   hideHeader?: boolean;
   onClick: (shiftId: Shift['id']) => void;
 }
@@ -39,28 +40,19 @@ class ScheduleFinal extends Component<ScheduleFinalProps, ScheduleOverridesState
   };
 
   render() {
-    const { startMoment, currentTimezone, store, hideHeader } = this.props;
-    const { scheduleId } = store.scheduleStore;
+    const { startMoment, currentTimezone, store, hideHeader, scheduleId } = this.props;
 
     const base = 7 * 24 * 60; // in minutes
     const diff = dayjs().tz(currentTimezone).diff(startMoment, 'minutes');
 
     const currentTimeX = diff / base;
 
-    const shifts = store.scheduleStore.finalPreview
-      ? store.scheduleStore.finalPreview
-      : (store.scheduleStore.events[scheduleId]?.['final']?.[getFromString(startMoment)] as Array<{
-          shiftId: string;
-          events: Event[];
-        }>);
+    const shifts = getShiftsFromStore(store, scheduleId, startMoment, false);
 
-    const layers = store.scheduleStore.rotationPreview
-      ? store.scheduleStore.rotationPreview
-      : (store.scheduleStore.events[scheduleId]?.['rotation']?.[getFromString(startMoment)] as Layer[]);
+    const layers = getLayersFromStore(store, scheduleId, startMoment);
+    
+    const overrides = getOverridesFromStore(store, scheduleId, startMoment, true);
 
-    const overrides = store.scheduleStore.overridePreview
-      ? store.scheduleStore.overridePreview
-      : store.scheduleStore.events[scheduleId]?.['override']?.[getFromString(startMoment)];
     const currentTimeHidden = currentTimeX < 0 || currentTimeX > 1;
 
     return (

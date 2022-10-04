@@ -86,8 +86,6 @@ class SchedulePage extends React.Component<SchedulePageProps, SchedulePageState>
       this.updateEvents(),
     ]);
 
-    store.scheduleStore.scheduleId = id;
-
     this.setState({ isLoading: false });
   }
 
@@ -95,18 +93,15 @@ class SchedulePage extends React.Component<SchedulePageProps, SchedulePageState>
     const { store } = this.props;
 
     store.scheduleStore.clearPreview();
-    store.scheduleStore.scheduleId = undefined
   }
 
   render() {
     const { query: { id: scheduleId }, store } = this.props;
-    const { isLoading, startMoment, shiftIdToShowRotationForm, shiftIdToShowOverridesForm } = this.state;
+    const { startMoment, shiftIdToShowRotationForm, shiftIdToShowOverridesForm } = this.state;
     const { scheduleStore, currentTimezone } = store;
 
     const users = store.userStore.getSearchResult().results;
     const schedule = scheduleStore.items[scheduleId];
-
-    if (isLoading) {return <LoadingPlaceholder text="Loading..." />}
 
     return (
       <div className={cx('root')}>
@@ -173,6 +168,7 @@ class SchedulePage extends React.Component<SchedulePageProps, SchedulePageState>
               currentTimezone={currentTimezone}
               startMoment={startMoment}
               onClick={this.handleShowForm}
+              scheduleId={scheduleId}
             />
             <Rotations
               currentTimezone={currentTimezone}
@@ -182,6 +178,7 @@ class SchedulePage extends React.Component<SchedulePageProps, SchedulePageState>
               onDelete={this.handleDeleteRotation}
               shiftIdToShowRotationForm={shiftIdToShowRotationForm}
               onShowRotationForm={this.handleShowRotationForm}
+              scheduleId={scheduleId}
             />
             <ScheduleOverrides
               currentTimezone={currentTimezone}
@@ -191,6 +188,7 @@ class SchedulePage extends React.Component<SchedulePageProps, SchedulePageState>
               onDelete={this.handleDeleteOverride}
               shiftIdToShowRotationForm={shiftIdToShowOverridesForm}
               onShowRotationForm={this.handleShowOverridesForm}
+              scheduleId={scheduleId}
             />
           </div>
         </VerticalGroup>

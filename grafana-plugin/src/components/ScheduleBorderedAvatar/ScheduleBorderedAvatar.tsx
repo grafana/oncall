@@ -6,19 +6,21 @@ import styles from './ScheduleBorderedAvatar.module.scss';
 
 const cx = cn.bind(styles);
 
+interface ScheduleBorderedAvatarProps {
+  colors: string[];
+  width: number;
+  height: number;
+  renderAvatar: () => JSX.Element;
+  renderIcon: () => JSX.Element;
+}
+
 export default function ScheduleBorderedAvatar({
   colors,
   renderAvatar,
   renderIcon,
   width,
   height,
-}: {
-  colors: string[];
-  width: number;
-  height: number;
-  renderAvatar: () => JSX.Element;
-  renderIcon: () => JSX.Element;
-}) {
+}: ScheduleBorderedAvatarProps) {
   return <div className={cx('root')}>{colors?.length ? renderSVG() : renderAvatarIcon()}</div>;
 
   function renderAvatarIcon() {
@@ -50,16 +52,16 @@ export default function ScheduleBorderedAvatar({
     }
 
     const stepAngle = (2 * Math.PI) / colors.length;
-    const radius = 100;
+    const RADIUS = 100;
 
     let lastX = 0;
-    let lastY = -radius;
+    let lastY = -RADIUS;
 
     return colorSchemeList.map((_color, colorIndex) => {
       const angle = (colorIndex + 1) * stepAngle;
-      const x = radius * Math.sin(angle);
-      const y = -radius * Math.cos(angle);
-      const d = `M ${lastX.toFixed(3)},${lastY.toFixed(3)} A 100,100 0 0,1 ${x.toFixed(3)},${y.toFixed(3)}`;
+      const x = RADIUS * Math.sin(angle);
+      const y = -RADIUS * Math.cos(angle);
+      const d = `M ${lastX.toFixed(3)},${lastY.toFixed(3)} A ${RADIUS},${RADIUS} 0 0,1 ${x.toFixed(3)},${y.toFixed(3)}`;
 
       lastX = x;
       lastY = y;
