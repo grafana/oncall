@@ -51,10 +51,11 @@ const GTable: FC<Props> = (props) => {
     <VerticalGroup justify="flex-end">
       <Table
         rowKey={rowKey}
-        className={cx('root', 'filter-table', className)}
+        className={cx('root', className)}
         columns={columns}
         data={data}
         expandable={expandable}
+        rowClassName={(record, index) => (index % 2 === 0 ? cx('row-even') : cx('row-odd'))}
         {...restProps}
       />
       {pagination && (

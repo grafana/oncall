@@ -6,6 +6,10 @@
   width: 100%;
 }
 
+.root table tbody tr.row-even {
+  background: var(--background-secondary);
+}
+
 .root tr {
   min-height: 56px;
 }

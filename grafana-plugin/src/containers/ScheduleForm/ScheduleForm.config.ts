@@ -6,16 +6,6 @@ import { DEFAULT_USER_ROLES } from 'models/user/user.config';
 
 const commonFields: FormItem[] = [
   {
-    name: 'ical_url_overrides',
-    label: 'Overrides schedule iCal URL ',
-    type: FormItemType.TextArea,
-    description:
-      'You can use an override calendar to share with your team members. Users can add \n' +
-      'events to this calendar, and they will override existing events in the primary \n' +
-      'calendar. The iCal URL for your override calendar can be found in the calendar \n' +
-      'integration settings of your calendar service.',
-  },
-  {
     name: 'slack_channel_id',
     label: 'Slack channel',
     type: FormItemType.GSelect,
@@ -128,6 +118,16 @@ export const iCalForm: { name: string; fields: FormItem[] } = {
         'access. The iCal URL for your primary calendar can be found in the calendar \n' +
         'integration settings of your calendar service.',
     },
+    {
+      name: 'ical_url_overrides',
+      label: 'Overrides schedule iCal URL ',
+      type: FormItemType.TextArea,
+      description:
+        'You can use an override calendar to share with your team members. Users can add \n' +
+        'events to this calendar, and they will override existing events in the primary \n' +
+        'calendar. The iCal URL for your override calendar can be found in the calendar \n' +
+        'integration settings of your calendar service.',
+    },
     ...commonFields,
   ],
 };
@@ -139,6 +139,16 @@ export const calendarForm: { name: string; fields: FormItem[] } = {
       name: 'name',
       type: FormItemType.Input,
       validation: { required: true },
+    },
+    {
+      name: 'ical_url_overrides',
+      label: 'Overrides schedule iCal URL ',
+      type: FormItemType.TextArea,
+      description:
+        'You can use an override calendar to share with your team members. Users can add \n' +
+        'events to this calendar, and they will override existing events in the primary \n' +
+        'calendar. The iCal URL for your override calendar can be found in the calendar \n' +
+        'integration settings of your calendar service.',
     },
     ...commonFields,
   ],
@@ -152,5 +162,6 @@ export const apiForm: { name: string; fields: FormItem[] } = {
       type: FormItemType.Input,
       validation: { required: true },
     },
+    ...commonFields,
   ],
 };
