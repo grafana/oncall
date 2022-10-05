@@ -45,7 +45,7 @@ engine:
 celery:
   replicaCount: 1
   livenessProbe:
-    enabled: false
+    enabled: true
     initialDelaySeconds: 30
     periodSeconds: 300
     timeoutSeconds: 10
