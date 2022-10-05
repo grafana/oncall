@@ -13,8 +13,6 @@ import Text from 'components/Text/Text';
 import { findColor } from 'containers/Rotations/Rotations.helpers';
 import { IsOncallIcon } from 'icons';
 import {
-  getColor,
-  getFromString,
   getLayersFromStore,
   getOverrideColor,
   getOverridesFromStore,
@@ -33,6 +31,7 @@ interface UsersTimezonesProps {
   userIds: Array<User['pk']>;
   tz: Timezone;
   onCallNow: Array<Partial<User>>;
+  scheduleId: Schedule['id'];
 
   onTzChange: (tz: Timezone) => void;
 }
@@ -46,8 +45,7 @@ const jLimit = 24 / hoursToSplit;
 const UsersTimezones: FC<UsersTimezonesProps> = (props) => {
   const store = useStore();
 
-  const { userIds, tz, onTzChange, onCallNow } = props;
-  const { scheduleId } = store.scheduleStore;
+  const { userIds, tz, onTzChange, onCallNow, scheduleId } = props;
 
   useEffect(() => {
     userIds.forEach((userId) => {
@@ -313,13 +311,13 @@ const AvatarGroup = (props: AvatarGroupProps) => {
 };
 
 function getColorSchemeMappingForUsers(store: RootStore, scheduleId: string): { [userId: string]: Set<string> } {
+  const usersColorSchemeHash: { [userId: string]: Set<string> } = {};
+
   const startMoment = getStartOfWeek(store.currentTimezone);
 
-  const shifts = getShiftsFromStore(store, scheduleId, startMoment, false);
+  const shifts = getShiftsFromStore(store, scheduleId, startMoment);
   const layers = getLayersFromStore(store, scheduleId, startMoment);
-  const overrides = getOverridesFromStore(store, scheduleId, startMoment, false);
-
-  const usersColorSchemeHash: { [userId: string]: Set<string> } = {};
+  const overrides = getOverridesFromStore(store, scheduleId, startMoment);
 
   if (!shifts?.length || !layers?.length) {
     return usersColorSchemeHash;

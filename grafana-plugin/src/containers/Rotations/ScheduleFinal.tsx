@@ -47,11 +47,11 @@ class ScheduleFinal extends Component<ScheduleFinalProps, ScheduleOverridesState
 
     const currentTimeX = diff / base;
 
-    const shifts = getShiftsFromStore(store, scheduleId, startMoment, false);
+    const shifts = getShiftsFromStore(store, scheduleId, startMoment);
 
     const layers = getLayersFromStore(store, scheduleId, startMoment);
     
-    const overrides = getOverridesFromStore(store, scheduleId, startMoment, true);
+    const overrides = getOverridesFromStore(store, scheduleId, startMoment);
 
     const currentTimeHidden = currentTimeX < 0 || currentTimeX > 1;
 

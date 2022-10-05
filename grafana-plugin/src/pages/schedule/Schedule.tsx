@@ -141,6 +141,7 @@ class SchedulePage extends React.Component<SchedulePageProps, SchedulePageState>
               }
               tz={currentTimezone}
               onTzChange={this.handleTimezoneChange}
+              scheduleId={scheduleId}
             />
           </div>
           <div className={cx('controls')}>

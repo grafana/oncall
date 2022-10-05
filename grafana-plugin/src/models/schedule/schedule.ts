@@ -21,7 +21,7 @@ import {
   splitToLayers,
   splitToShiftsAndFillGaps,
 } from './schedule.helpers';
-import { Events, Rotation, RotationType, Schedule, ScheduleEvent, Shift, Event, Layer } from './schedule.types';
+import { Events, Rotation, RotationType, Schedule, ScheduleEvent, Shift, Event, Layer, ShiftEvents } from './schedule.types';
 
 const DEFAULT_FORMAT = 'YYYY-MM-DDTHH:mm:ss';
 
@@ -54,7 +54,7 @@ export class ScheduleStore extends BaseStore {
   events: {
     [scheduleId: string]: {
       [type: string]: {
-        [startMoment: string]: Array<{ shiftId: string; events: Event[]; isPreview?: boolean }> | Layer[];
+        [startMoment: string]: ShiftEvents[] | Layer[];
       };
     };
   } = {};
