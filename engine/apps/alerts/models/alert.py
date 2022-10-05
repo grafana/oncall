@@ -60,6 +60,9 @@ class Alert(models.Model):
         "alerts.AlertGroup", on_delete=models.CASCADE, null=True, default=None, related_name="alerts"
     )
 
+    class Meta:
+        index_together = ["group", "created_at"]
+
     def get_integration_optimization_hash(self):
         """
         Should be overloaded in child classes.

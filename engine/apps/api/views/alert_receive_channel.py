@@ -188,7 +188,6 @@ class AlertReceiveChannelView(
             response[alert_receive_channel.public_primary_key] = {
                 "alerts_count": alerts_count_total,
                 "alerts_count_last_week": alerts_count_last_week,
-                "alert_groups_count": alert_receive_channel.alert_groups_count,
             }
         return Response(response)
 
