@@ -47,16 +47,18 @@ spec:
             {{- if .Values.env }}
               {{- toYaml .Values.env | nindent 12 }}
             {{- end }}
+          {{- if .Values.celery.livenessProbe.enabled }}
           livenessProbe:
             exec:
               command: [
                 "bash",
                 "-c",
-                "celery inspect ping -A engine -d celery@$HOSTNAME"
+                "celery -A engine inspect ping -d celery@$HOSTNAME"
               ]
-            initialDelaySeconds: 30
-            periodSeconds: 300
-            timeoutSeconds: 10
+            initialDelaySeconds: {{ .Values.celery.livenessProbe.initialDelaySeconds }}
+            periodSeconds: {{ .Values.celery.livenessProbe.periodSeconds }}
+            timeoutSeconds: {{ .Values.celery.livenessProbe.timeoutSeconds }}
+          {{- end }}
           resources:
             {{- toYaml .Values.celery.resources | nindent 12 }}
 {{- end}}
