@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React from 'react';
 
 import { AppRootProps } from '@grafana/data';
 import { getLocationSrv } from '@grafana/runtime';
@@ -6,24 +6,16 @@ import {
   Button,
   HorizontalGroup,
   VerticalGroup,
-  RadioButtonGroup,
   IconButton,
   ToolbarButton,
   Icon,
-  Field,
-  LoadingPlaceholder,
 } from '@grafana/ui';
 import cn from 'classnames/bind';
 import dayjs from 'dayjs';
 import { observer } from 'mobx-react';
-import Draggable from 'react-draggable';
 
-// import Rotations from 'components/Rotations/Rotations';
 import PluginLink from 'components/PluginLink/PluginLink';
-import ScheduleCounter from 'components/ScheduleCounter/ScheduleCounter';
-import ScheduleQuality from 'components/ScheduleQuality/ScheduleQuality';
 import Text from 'components/Text/Text';
-// import UsersTimezones from 'components/UsersTimezones/UsersTimezones';
 import UserTimezoneSelect from 'components/UserTimezoneSelect/UserTimezoneSelect';
 import WithConfirm from 'components/WithConfirm/WithConfirm';
 import Rotations from 'containers/Rotations/Rotations';
@@ -35,7 +27,7 @@ import { Timezone } from 'models/timezone/timezone.types';
 import { WithStoreProps } from 'state/types';
 import { withMobXProviderContext } from 'state/withStore';
 
-import { getStartOfWeek, getUTCString } from './Schedule.helpers';
+import { getStartOfWeek } from './Schedule.helpers';
 
 import styles from './Schedule.module.css';
 
@@ -76,15 +68,12 @@ class SchedulePage extends React.Component<SchedulePageProps, SchedulePageState>
       query: { id },
     } = this.props;
 
-    await Promise.all([
-      store.userStore.updateItems(),
+    store.userStore.updateItems();
 
-      store.scheduleStore.updateFrequencyOptions(),
-      store.scheduleStore.updateDaysOptions(),
-
-      store.scheduleStore.updateOncallShifts(id), // TODO we should know shifts to render Rotations
-      this.updateEvents(),
-    ]);
+    store.scheduleStore.updateFrequencyOptions();
+    store.scheduleStore.updateDaysOptions();
+    await store.scheduleStore.updateOncallShifts(id); // TODO we should know shifts to render Rotations
+    await this.updateEvents();
 
     this.setState({ isLoading: false });
   }
@@ -96,7 +85,10 @@ class SchedulePage extends React.Component<SchedulePageProps, SchedulePageState>
   }
 
   render() {
-    const { query: { id: scheduleId }, store } = this.props;
+    const {
+      query: { id: scheduleId },
+      store,
+    } = this.props;
     const { startMoment, shiftIdToShowRotationForm, shiftIdToShowOverridesForm } = this.state;
     const { scheduleStore, currentTimezone } = store;
 
@@ -249,10 +241,7 @@ class SchedulePage extends React.Component<SchedulePageProps, SchedulePageState>
   };
 
   handleCreateRotation = () => {
-    const {
-      store,
-      query: { id: scheduleId },
-    } = this.props;
+    const { store } = this.props;
 
     this.updateEvents().then(() => {
       store.scheduleStore.clearPreview();

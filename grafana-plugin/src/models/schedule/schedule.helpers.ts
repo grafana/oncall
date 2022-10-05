@@ -1,4 +1,5 @@
 import dayjs from 'dayjs';
+
 import { RootStore } from 'state';
 
 import { Event, Layer, Schedule, ScheduleType, Shift, ShiftEvents } from './schedule.types';
@@ -80,11 +81,7 @@ export const getOverridesFromStore = (
   startMoment: dayjs.Dayjs,
 ):
   | Layer[]
-  | {
-      shiftId: string;
-      events: Event[];
-      isPreview?: boolean;
-    }[] => {
+  | ShiftEvents[] => {
 
   return store.scheduleStore.overridePreview
     ? store.scheduleStore.overridePreview

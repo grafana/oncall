@@ -287,8 +287,8 @@ const AvatarGroup = (props: AvatarGroupProps) => {
             >
               <ScheduleBorderedAvatar
                 colors={colorSchemeList}
-                width={32}
-                height={34}
+                width={35}
+                height={35}
                 renderAvatar={() => <Avatar src={user.avatar} size="large" />}
                 renderIcon={() => (isOncall ? <IsOncallIcon className={cx('is-oncall-icon')} /> : null)}
               ></ScheduleBorderedAvatar>
