@@ -67,7 +67,7 @@ export const getShiftsFromStore = (
   const source = isOverridePreview ? store.scheduleStore.overridePreview : store.scheduleStore.finalPreview;
   return source
     ? store.scheduleStore.finalPreview
-    : (store.scheduleStore.events[scheduleId]?.['final']?.[getFromString(startMoment)] as any);
+    : (store.scheduleStore.events[scheduleId]?.[isOverridePreview ? 'override' : 'final']?.[getFromString(startMoment)] as any);
 };
 
 export const getLayersFromStore = (store: RootStore, scheduleId: Schedule['id'], startMoment: dayjs.Dayjs): Layer[] => {
@@ -92,7 +92,7 @@ export const getOverridesFromStore = (
   const source = isOverridePreview ? store.scheduleStore.overridePreview : store.scheduleStore.rotationPreview;
   return source
     ? store.scheduleStore.rotationPreview
-    : (store.scheduleStore.events[scheduleId]?.['rotation']?.[getFromString(startMoment)] as Layer[]);
+    : (store.scheduleStore.events[scheduleId]?.[isOverridePreview ? 'override' : 'rotation']?.[getFromString(startMoment)] as Layer[]);
 };
 
 export const splitToLayers = (
