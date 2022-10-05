@@ -43,4 +43,5 @@ export interface AlertReceiveChannelOption {
 export interface AlertReceiveChannelCounters {
   alerts_count: number;
   alert_groups_count: number;
+  alerts_count_last_week: number;
 }
