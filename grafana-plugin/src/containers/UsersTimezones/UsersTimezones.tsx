@@ -316,9 +316,7 @@ function getColorSchemeMappingForUsers(store: RootStore, scheduleId: string): { 
   const startMoment = getStartOfWeek(store.currentTimezone);
 
   const shifts = getShiftsFromStore(store, scheduleId, startMoment, false);
-
   const layers = getLayersFromStore(store, scheduleId, startMoment);
-
   const overrides = getOverridesFromStore(store, scheduleId, startMoment, false);
 
   const usersColorSchemeHash: { [userId: string]: Set<string> } = {};
@@ -327,8 +325,10 @@ function getColorSchemeMappingForUsers(store: RootStore, scheduleId: string): { 
     return usersColorSchemeHash;
   }
 
-  shifts.forEach(({ shiftId, events }) => populateUserHashSet(events, shiftId, false));
-  shifts.forEach(({ events }, rotationIndex) => populateUserHashSet(events, rotationIndex, true));
+  shifts.forEach(({ shiftId, events }, rotationIndex) => {
+    populateUserHashSet(events, shiftId, false);
+    populateUserHashSet(events, rotationIndex, true);
+  });
 
   return usersColorSchemeHash;
 
