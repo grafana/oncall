@@ -153,7 +153,6 @@ class SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSta
                 onExpand: this.handleExpandRow,
                 expandedRowRender: this.renderSchedule,
                 expandRowByClick: true,
-                expandedRowClassName: () => cx('expanded-row'),
               }}
               emptyText={
                 <div className={cx('loader')}>
@@ -234,10 +233,17 @@ class SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSta
             scheduleId={data.id}
             currentTimezone={store.currentTimezone}
             startMoment={startMoment}
+            onClick={this.getScheduleClickHandler(data.id)}
           />
         </div>
       </div>
     );
+  };
+
+  getScheduleClickHandler = (scheduleId: Schedule['id']) => {
+    return () => {
+      getLocationSrv().update({ query: { page: 'schedule', id: scheduleId } });
+    };
   };
 
   renderStatus = (item: Schedule) => {
@@ -306,15 +312,15 @@ class SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSta
     return null;
   };
 
-  renderChatOps = (item: Schedule) => {
+  /* renderChatOps = (item: Schedule) => {
     return item.chatOps;
-  };
+  }; */
 
-  renderQuality = (item: Schedule) => {
+  /* renderQuality = (item: Schedule) => {
     const type = item.quality > 70 ? 'primary' : 'warning';
 
     return <Text type={type}>{item.quality || 70}%</Text>;
-  };
+  }; */
 
   renderButtons = (item: Schedule) => {
     return (

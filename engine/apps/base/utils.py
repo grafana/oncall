@@ -2,7 +2,9 @@ import json
 import re
 from urllib.parse import urlparse
 
+import phonenumbers
 from django.apps import apps
+from phonenumbers import NumberParseException
 from python_http_client import UnauthorizedError
 from sendgrid import SendGridAPIClient
 from telegram import Bot
@@ -125,7 +127,11 @@ class LiveSettingValidator:
 
     @staticmethod
     def _is_phone_number_valid(phone_number):
-        return re.match(r"^\+\d{11}$", phone_number)
+        try:
+            ph_num = phonenumbers.parse(phone_number)
+            return phonenumbers.is_valid_number(ph_num)
+        except NumberParseException:
+            return False
 
     @staticmethod
     def _prettify_twilio_error(exc):

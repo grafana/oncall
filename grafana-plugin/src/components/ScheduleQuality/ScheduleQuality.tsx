@@ -20,7 +20,6 @@ const ScheduleQuality: FC<ScheduleQualityProps> = (props) => {
     <Tooltip placement="bottom-end" interactive content={<SheduleQualityDetails quality={quality} />}>
       <div className={cx('root')}>
         <HorizontalGroup spacing="sm">
-          <Icon name="like" />
           <Text type="secondary">Quality:</Text>
           <Text type="primary">{Math.floor(quality * 100)}%</Text>
         </HorizontalGroup>

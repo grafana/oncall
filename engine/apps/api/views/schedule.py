@@ -32,6 +32,7 @@ from common.api_helpers.mixins import (
     CreateSerializerMixin,
     PublicPrimaryKeyMixin,
     ShortSerializerMixin,
+    TeamFilteringMixin,
     UpdateSerializerMixin,
 )
 from common.api_helpers.utils import create_engine_url, get_date_range_from_request
@@ -43,7 +44,12 @@ EVENTS_FILTER_BY_FINAL = "final"
 
 
 class ScheduleView(
-    PublicPrimaryKeyMixin, ShortSerializerMixin, CreateSerializerMixin, UpdateSerializerMixin, ModelViewSet
+    TeamFilteringMixin,
+    PublicPrimaryKeyMixin,
+    ShortSerializerMixin,
+    CreateSerializerMixin,
+    UpdateSerializerMixin,
+    ModelViewSet,
 ):
     authentication_classes = (PluginAuthentication,)
     permission_classes = (IsAuthenticated, ActionPermission)
@@ -124,28 +130,6 @@ class ScheduleView(
             queryset = self.serializer_class.setup_eager_loading(queryset)
         return queryset
 
-    def get_object(self):
-        # Override this method because we want to get object from organization instead of concrete team.
-        pk = self.kwargs["pk"]
-        organization = self.request.auth.organization
-        queryset = organization.oncall_schedules.filter(
-            public_primary_key=pk,
-        )
-        queryset = self._annotate_queryset(queryset)
-
-        try:
-            obj = queryset.get()
-        except ObjectDoesNotExist:
-            raise NotFound
-
-        # May raise a permission denied
-        self.check_object_permissions(self.request, obj)
-
-        return obj
-
-    def original_get_object(self):
-        return super().get_object()
-
     def perform_create(self, serializer):
         serializer.save()
         write_resource_insight_log(instance=serializer.instance, author=self.request.user, event=EntityEvent.CREATED)
@@ -178,6 +162,33 @@ class ScheduleView(
         if instance.user_group is not None:
             update_slack_user_group_for_schedules.apply_async((instance.user_group.pk,))
 
+    def get_object(self):
+        # get the object from the whole organization if there is a flag `get_from_organization=true`
+        # otherwise get the object from the current team
+        get_from_organization = self.request.query_params.get("from_organization", "false") == "true"
+        if get_from_organization:
+            return self.get_object_from_organization()
+        return super().get_object()
+
+    def get_object_from_organization(self):
+        # use this method to get the object from the whole organization instead of the current team
+        pk = self.kwargs["pk"]
+        organization = self.request.auth.organization
+        queryset = organization.oncall_schedules.filter(
+            public_primary_key=pk,
+        )
+        queryset = self._annotate_queryset(queryset)
+
+        try:
+            obj = queryset.get()
+        except ObjectDoesNotExist:
+            raise NotFound
+
+        # May raise a permission denied
+        self.check_object_permissions(self.request, obj)
+
+        return obj
+
     def get_request_timezone(self):
         user_tz = self.request.query_params.get("user_tz", "UTC")
         try:
@@ -203,7 +214,7 @@ class ScheduleView(
         with_empty = self.request.query_params.get("with_empty", False) == "true"
         with_gap = self.request.query_params.get("with_gap", False) == "true"
 
-        schedule = self.original_get_object()
+        schedule = self.get_object()
         events = schedule.filter_events(user_tz, date, days=1, with_empty=with_empty, with_gap=with_gap)
 
         slack_channel = (
@@ -235,7 +246,7 @@ class ScheduleView(
             raise BadRequest(detail="Invalid type value")
         resolve_schedule = filter_by is None or filter_by == EVENTS_FILTER_BY_FINAL
 
-        schedule = self.original_get_object()
+        schedule = self.get_object()
 
         if filter_by is not None and filter_by != EVENTS_FILTER_BY_FINAL:
             filter_by = OnCallSchedule.PRIMARY if filter_by == EVENTS_FILTER_BY_ROTATION else OnCallSchedule.OVERRIDES
@@ -259,7 +270,7 @@ class ScheduleView(
         user_tz, _ = self.get_request_timezone()
         now = timezone.now()
         starting_date = now.date()
-        schedule = self.original_get_object()
+        schedule = self.get_object()
         events = schedule.final_events(user_tz, starting_date, days=30)
 
         users = {u: None for u in schedule.related_users()}
@@ -274,7 +285,7 @@ class ScheduleView(
     @action(detail=True, methods=["get"])
     def related_escalation_chains(self, request, pk):
         """Return escalation chains associated to schedule."""
-        schedule = self.original_get_object()
+        schedule = self.get_object()
         escalation_chains = EscalationChain.objects.filter(escalation_policies__notify_schedule=schedule).distinct()
 
         result = [{"name": e.name, "pk": e.public_primary_key} for e in escalation_chains]
@@ -290,7 +301,7 @@ class ScheduleView(
 
     @action(detail=True, methods=["post"])
     def reload_ical(self, request, pk):
-        schedule = self.original_get_object()
+        schedule = self.get_object()
         schedule.drop_cached_ical()
         schedule.check_empty_shifts_for_next_week()
         schedule.check_gaps_for_next_week()
@@ -302,7 +313,7 @@ class ScheduleView(
 
     @action(detail=True, methods=["get", "post", "delete"])
     def export_token(self, request, pk):
-        schedule = self.original_get_object()
+        schedule = self.get_object()
 
         if self.request.method == "GET":
             try:

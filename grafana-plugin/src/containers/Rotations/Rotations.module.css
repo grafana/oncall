@@ -1,13 +1,15 @@
 .root {
-  border: var(--rotations-border);
-  border-radius: 2px;
   background: var(--rotations-background);
+  border: var(--rotations-border);
+  display: flex;
+  flex-direction: column;
+  border-radius: var(--border-radius);
 }
 
 .current-time {
   position: absolute;
   width: 1px;
-  background: #fff;
+  background: var(--gradient-brandVertical);
   top: 0;
   bottom: 0;
   z-index: 1;
@@ -19,10 +21,6 @@
 }
 
 .title {
-  font-weight: 500;
-  font-size: 19px;
-  line-height: 24px;
-  color: rgba(204, 204, 220, 0.65);
   margin: 16px 0;
 }
 
@@ -42,11 +40,7 @@
 .layer-title {
   text-align: center;
   font-weight: 500;
-  font-size: 11px;
   line-height: 16px;
-  letter-spacing: 0.1em;
-  color: rgba(204, 204, 220, 0.65);
-  text-transform: uppercase;
   padding: 8px;
   background: var(--secondary-background);
 }
@@ -82,7 +76,6 @@
   line-height: 16px;
   text-align: center;
   padding: 12px;
-  color: rgba(204, 204, 220, 0.65);
   cursor: pointer;
 }
 

@@ -1,52 +1,62 @@
-version: '3.2'
+version: "3.8"
 
 services:
-
   postgres:
     image: postgres:14.4
-    platform: linux/x86_64
-    mem_limit: 500m
-    cpus: 0.5
     restart: always
     ports:
-      - 5432:5432
+      - "5432:5432"
     environment:
       POSTGRES_DB: oncall_local_dev
       POSTGRES_PASSWORD: empty
-      POSTGRES_INITDB_ARGS: '--encoding=UTF-8'
+      POSTGRES_INITDB_ARGS: --encoding=UTF-8
+    deploy:
+      resources:
+        limits:
+          memory: 500m
+          cpus: '0.5'
 
   redis:
     image: redis
-    mem_limit: 100m
-    cpus: 0.1
     restart: always
     ports:
-      - 6379:6379
+      - "6379:6379"
+    deploy:
+      resources:
+        limits:
+          memory: 100m
+          cpus: '0.1'
 
   rabbit:
     image: "rabbitmq:3.7.15-management"
-    mem_limit: 1000m
-    cpus: 0.5
     environment:
       RABBITMQ_DEFAULT_USER: "rabbitmq"
       RABBITMQ_DEFAULT_PASS: "rabbitmq"
       RABBITMQ_DEFAULT_VHOST: "/"
+    deploy:
+      resources:
+        limits:
+          memory: 1000m
+          cpus: '0.5'
     ports:
-      - 15672:15672
-      - 5672:5672
+      - "15672:15672"
+      - "5672:5672"
 
   mysql-to-create-grafana-db:
     image: mysql:5.7
     platform: linux/x86_64
-    mem_limit: 500m
-    cpus: 0.5
     command: --default-authentication-plugin=mysql_native_password --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
     restart: always
     ports:
-      - 3306:3306
+      - "3306:3306"
     environment:
       MYSQL_ROOT_PASSWORD: empty
       MYSQL_DATABASE: grafana
+    deploy:
+      resources:
+        limits:
+          memory: 500m
+          cpus: '0.5'
     healthcheck:
       test: [ "CMD", "mysqladmin" ,"ping", "-h", "localhost" ]
       timeout: 20s
@@ -55,8 +65,6 @@ services:
   grafana:
     image: "grafana/grafana:main"
     restart: always
-    mem_limit: 500m
-    cpus: 0.5
     environment:
       GF_DATABASE_TYPE: mysql
       GF_DATABASE_HOST: mysql
@@ -65,10 +73,15 @@ services:
       GF_SECURITY_ADMIN_USER: oncall
       GF_SECURITY_ADMIN_PASSWORD: oncall
       GF_PLUGINS_ALLOW_LOADING_UNSIGNED_PLUGINS: grafana-oncall-app
+    deploy:
+      resources:
+        limits:
+          memory: 500m
+          cpus: '0.5'
     volumes:
       - ./grafana-plugin:/var/lib/grafana/plugins/grafana-plugin
     ports:
-      - 3000:3000
+      - "3000:3000"
     depends_on:
       mysql-to-create-grafana-db:
         condition: service_healthy

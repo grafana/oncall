@@ -4,7 +4,8 @@
 
 .draggable {
   top: 0;
-  transition: transform 300ms ease;
+
+  /* transition: transform 300ms ease; */
 }
 
 .header {
@@ -31,12 +32,8 @@
   pointer-events: none;
 }
 
-.date-time-picker {
-  display: block;
-}
-
 .inline-switch {
-  height: 22px;
+  height: 18px;
 }
 
 .days {
@@ -57,4 +54,18 @@
 
 .days .day__selected {
   background: #3d71d9;
+}
+
+.two-fields {
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+}
+
+.two-fields > div {
+  width: 50%;
+}
+
+.content {
+  margin: 8px 0 16px 0;
 }
