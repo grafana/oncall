@@ -44,6 +44,7 @@ from apps.base.tests.factories import (
     UserNotificationPolicyFactory,
     UserNotificationPolicyLogRecordFactory,
 )
+from apps.email.tests.factories import EmailMessageFactory
 from apps.heartbeat.tests.factories import IntegrationHeartBeatFactory
 from apps.schedules.tests.factories import (
     CustomOnCallShiftFactory,
@@ -627,13 +628,12 @@ def make_sms():
     return _make_sms
 
 
-# TODO: restore email notifications
-# @pytest.fixture()
-# def make_email_message():
-#     def _make_email_message(receiver, status, **kwargs):
-#         return EmailMessageFactory(receiver=receiver, status=status, **kwargs)
-#
-#     return _make_email_message
+@pytest.fixture()
+def make_email_message():
+    def _make_email_message(receiver, status, **kwargs):
+        return EmailMessageFactory(receiver=receiver, status=status, **kwargs)
+
+    return _make_email_message
 
 
 @pytest.fixture()

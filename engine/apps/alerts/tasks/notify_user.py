@@ -228,7 +228,6 @@ def notify_user_task(
 def perform_notification(log_record_pk):
     SMSMessage = apps.get_model("twilioapp", "SMSMessage")
     PhoneCall = apps.get_model("twilioapp", "PhoneCall")
-    # EmailMessage = apps.get_model("email", "EmailMessage")
     UserNotificationPolicy = apps.get_model("base", "UserNotificationPolicy")
     TelegramToUserConnector = apps.get_model("telegram", "TelegramToUserConnector")
     UserNotificationPolicyLogRecord = apps.get_model("base", "UserNotificationPolicyLogRecord")
@@ -279,10 +278,6 @@ def perform_notification(log_record_pk):
 
     elif notification_channel == UserNotificationPolicy.NotificationChannel.TELEGRAM:
         TelegramToUserConnector.notify_user(user, alert_group, notification_policy)
-
-    # TODO: restore email notifications
-    # elif notification_channel == UserNotificationPolicy.NotificationChannel.EMAIL:
-    #     EmailMessage.send_incident_mail(user, alert_group, notification_policy)
 
     elif notification_channel == UserNotificationPolicy.NotificationChannel.SLACK:
         # TODO: refactor checking the possibility of sending a notification in slack
