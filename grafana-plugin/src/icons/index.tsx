@@ -247,16 +247,20 @@ export const ExpandIcon = (props: IconProps) => {
 
 interface IsOncallIconProps {
   className: string;
+  width?: number;
+  height?: number;
 }
 
 export const IsOncallIcon = (props: IsOncallIconProps) => {
   const { className } = props;
+  const width = props.width || 17;
+  const height = props.height || 16;
 
   return (
     <svg
       className={className}
-      width="17"
-      height="16"
+      width={width}
+      height={height}
       viewBox="0 0 17 16"
       fill="none"
       xmlns="http://www.w3.org/2000/svg"

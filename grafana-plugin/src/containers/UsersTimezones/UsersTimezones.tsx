@@ -287,7 +287,9 @@ const AvatarGroup = (props: AvatarGroupProps) => {
                 width={35}
                 height={35}
                 renderAvatar={() => <Avatar src={user.avatar} size="large" />}
-                renderIcon={() => (isOncall ? <IsOncallIcon className={cx('is-oncall-icon')} /> : null)}
+                renderIcon={() =>
+                  isOncall ? <IsOncallIcon className={cx('is-oncall-icon')} width={14} height={13} /> : null
+                }
               ></ScheduleBorderedAvatar>
             </div>
           </Tooltip>
