@@ -2,7 +2,6 @@ import sys
 
 import pytest
 
-from apps.sendgridapp.constants import SendgridEmailMessageStatuses
 from apps.twilioapp.constants import TwilioCallStatuses, TwilioMessageStatuses
 from common.constants.role import Role
 
@@ -78,7 +77,5 @@ def test_emails_left(
     admin = make_user_for_organization(organization, role=Role.ADMIN)
     alert_receive_channel = make_alert_receive_channel(organization)
     alert_group = make_alert_group(alert_receive_channel)
-    make_email_message(
-        receiver=admin, status=SendgridEmailMessageStatuses.DELIVERED, represents_alert_group=alert_group
-    ),
+    make_email_message(receiver=admin, represents_alert_group=alert_group)
     assert organization.emails_left(admin) == sys.maxsize

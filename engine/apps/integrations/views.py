@@ -25,8 +25,6 @@ from apps.integrations.mixins import (
     is_ratelimit_ignored,
 )
 from apps.integrations.tasks import create_alert, create_alertmanager_alerts
-from apps.sendgridapp.parse import Parse
-from apps.sendgridapp.permissions import AllowOnlySendgrid
 from common.api_helpers.utils import create_engine_url
 
 logger = logging.getLogger(__name__)
@@ -384,72 +382,7 @@ class HeartBeatAPIView(AlertChannelDefiningMixin, APIView):
 
 
 class InboundWebhookEmailView(AlertChannelDefiningMixin, APIView):
-    permission_classes = [AllowOnlySendgrid]
-
-    def dispatch(self, *args, **kwargs):
-        parse = Parse(self.request)
-        self.email_data = parse.key_values()
-        # When email is forwarded recipient field can be stored both in "to" and in "envelope" fields.
-        token_from_to = self._parse_token_from_to(self.email_data)
-        try:
-            kwargs["alert_channel_key"] = token_from_to
-            return super().dispatch(*args, **kwargs)
-        except KeyError as e:
-            logger.warning(f"InboundWebhookEmailView: {e}")
-        except PermissionDenied as e:
-            self._log_permission_denied(token_from_to, e)
-            kwargs.pop("alert_channel_key")
-
-        token_from_envelope = self._parse_token_from_envelope(self.email_data)
-        try:
-            kwargs["alert_channel_key"] = token_from_envelope
-            return super().dispatch(*args, **kwargs)
-        except KeyError as e:
-            logger.warning(f"InboundWebhookEmailView: {e}")
-        except PermissionDenied as e:
-            self._log_permission_denied(token_from_to, e)
-            kwargs.pop("alert_channel_key")
-
-        raise PermissionDenied("Integration key was not found. Permission denied.")
-
-    def _log_permission_denied(self, token, e):
-        logger.info(
-            f"InboundWebhookEmailView: Permission denied. token {token}. "
-            f"To {self.email_data.get('to')}. "
-            f"Envelope {self.email_data.get('envelope')}."
-            f"Exception: {e}"
-        )
-
-    def _parse_token_from_envelope(self, email_data):
-        envelope = email_data["envelope"]
-        envelope = json.loads(envelope)
-        token = envelope.get("to")[0].split("@")[0]
-        return token
-
-    def _parse_token_from_to(self, email_data):
-        return email_data["to"].split("@")[0]
-
-    def post(self, request, alert_receive_channel=None):
-        title = self.email_data["subject"]
-        message = self.email_data.get("text", "").strip()
-
-        payload = {"title": title, "message": message}
-
-        if alert_receive_channel:
-            create_alert.apply_async(
-                [],
-                {
-                    "title": title,
-                    "message": message,
-                    "alert_receive_channel_pk": alert_receive_channel.pk,
-                    "image_url": None,
-                    "link_to_upstream_details": payload.get("link_to_upstream_details"),
-                    "integration_unique_data": payload,
-                    "raw_request_data": request.data,
-                },
-            )
-
-        return Response("OK")
+    pass
 
 
 class IntegrationHeartBeatAPIView(AlertChannelDefiningMixin, IntegrationHeartBeatRateLimitMixin, APIView):
