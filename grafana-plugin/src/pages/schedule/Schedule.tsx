@@ -2,14 +2,7 @@ import React from 'react';
 
 import { AppRootProps } from '@grafana/data';
 import { getLocationSrv } from '@grafana/runtime';
-import {
-  Button,
-  HorizontalGroup,
-  VerticalGroup,
-  IconButton,
-  ToolbarButton,
-  Icon,
-} from '@grafana/ui';
+import { Button, HorizontalGroup, VerticalGroup, IconButton, ToolbarButton, Icon } from '@grafana/ui';
 import cn from 'classnames/bind';
 import dayjs from 'dayjs';
 import { observer } from 'mobx-react';
@@ -132,6 +125,7 @@ class SchedulePage extends React.Component<SchedulePageProps, SchedulePageState>
                 scheduleStore.relatedUsers[scheduleId] ? Object.keys(scheduleStore.relatedUsers[scheduleId]) : []
               }
               tz={currentTimezone}
+              startMoment={this.state.startMoment}
               onTzChange={this.handleTimezoneChange}
               scheduleId={scheduleId}
             />
@@ -310,16 +304,24 @@ class SchedulePage extends React.Component<SchedulePageProps, SchedulePageState>
     this.setState({ renderType: value });
   };
 
+  handleDateRangeUpdate = async () => {
+    await this.updateEvents();
+    this.forceUpdate();
+  };
+
   handleTodayClick = () => {
     const { store } = this.props;
-
-    this.setState({ startMoment: getStartOfWeek(store.currentTimezone) }, this.updateEvents);
+    this.setState({ startMoment: getStartOfWeek(store.currentTimezone) }, this.handleDateRangeUpdate);
   };
 
   handleLeftClick = () => {
     const { startMoment } = this.state;
+    this.setState({ startMoment: startMoment.add(-7, 'day') }, this.handleDateRangeUpdate);
+  };
 
-    this.setState({ startMoment: startMoment.add(-7, 'day') }, this.updateEvents);
+  handleRightClick = () => {
+    const { startMoment } = this.state;
+    this.setState({ startMoment: startMoment.add(7, 'day') }, this.handleDateRangeUpdate);
   };
 
   handleDelete = () => {
@@ -331,12 +333,6 @@ class SchedulePage extends React.Component<SchedulePageProps, SchedulePageState>
     store.scheduleStore.delete(scheduleId).then(() => {
       getLocationSrv().update({ query: { page: 'schedules-new' } });
     });
-  };
-
-  handleRightClick = () => {
-    const { startMoment } = this.state;
-
-    this.setState({ startMoment: startMoment.add(7, 'day') }, this.updateEvents);
   };
 }
 

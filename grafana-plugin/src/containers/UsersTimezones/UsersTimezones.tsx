@@ -2,7 +2,7 @@ import React, { FC, useCallback, useEffect, useMemo, useState } from 'react';
 
 import { HorizontalGroup, InlineSwitch, Tooltip } from '@grafana/ui';
 import cn from 'classnames/bind';
-import dayjs from 'dayjs';
+import dayjs, { Dayjs } from 'dayjs';
 import { toJS } from 'mobx';
 import moment from 'moment';
 
@@ -21,7 +21,6 @@ import {
 import { Event, Layer, Schedule } from 'models/schedule/schedule.types';
 import { Timezone } from 'models/timezone/timezone.types';
 import { User } from 'models/user/user.types';
-import { getStartOfWeek } from 'pages/schedule/Schedule.helpers';
 import { RootStore } from 'state';
 import { useStore } from 'state/useStore';
 
@@ -32,6 +31,7 @@ interface UsersTimezonesProps {
   tz: Timezone;
   onCallNow: Array<Partial<User>>;
   scheduleId: Schedule['id'];
+  startMoment: dayjs.Dayjs;
 
   onTzChange: (tz: Timezone) => void;
 }
@@ -45,7 +45,7 @@ const jLimit = 24 / hoursToSplit;
 const UsersTimezones: FC<UsersTimezonesProps> = (props) => {
   const store = useStore();
 
-  const { userIds, tz, onTzChange, onCallNow, scheduleId } = props;
+  const { userIds, tz, onTzChange, onCallNow, scheduleId, startMoment } = props;
 
   useEffect(() => {
     userIds.forEach((userId) => {
@@ -106,6 +106,7 @@ const UsersTimezones: FC<UsersTimezonesProps> = (props) => {
           onCallNow={onCallNow}
           onTzChange={onTzChange}
           currentMoment={currentMoment}
+          startMoment={startMoment}
           scheduleId={scheduleId}
         />
       </div>
@@ -135,13 +136,14 @@ const UsersTimezones: FC<UsersTimezonesProps> = (props) => {
 interface UserAvatarsProps {
   users: User[];
   currentMoment: dayjs.Dayjs;
+  startMoment: dayjs.Dayjs;
   scheduleId: Schedule['id'];
   onTzChange: (timezone: Timezone) => void;
   onCallNow: Array<Partial<User>>;
 }
 
 const UserAvatars = (props: UserAvatarsProps) => {
-  const { users, currentMoment, onTzChange, onCallNow, scheduleId } = props;
+  const { users, currentMoment, onTzChange, onCallNow, scheduleId, startMoment } = props;
   const userGroups = useMemo(() => {
     return users
       .reduce((memo, user) => {
@@ -185,6 +187,7 @@ const UserAvatars = (props: UserAvatarsProps) => {
             onTzChange={onTzChange}
             xPos={xPos}
             users={group.users}
+            startMoment={startMoment}
             currentMoment={currentMoment}
             scheduleId={scheduleId}
             onCallNow={onCallNow}
@@ -198,6 +201,7 @@ const UserAvatars = (props: UserAvatarsProps) => {
 interface AvatarGroupProps {
   users: User[];
   xPos: number;
+  startMoment: dayjs.Dayjs;
   currentMoment: dayjs.Dayjs;
   utcOffset: number;
   scheduleId: Schedule['id'];
@@ -222,6 +226,7 @@ const AvatarGroup = (props: AvatarGroupProps) => {
     activeUtcOffset,
     onCallNow,
     scheduleId,
+    startMoment,
   } = props;
 
   const store = useStore();
@@ -252,7 +257,7 @@ const AvatarGroup = (props: AvatarGroupProps) => {
     };
   }, []);
 
-  const colorSchemeMapping = getColorSchemeMappingForUsers(store, scheduleId);
+  const colorSchemeMapping = getColorSchemeMappingForUsers(store, scheduleId, startMoment);
   const width = active ? users.length * AVATAR_WIDTH + (users.length - 1) * AVATAR_GAP : AVATAR_WIDTH;
 
   return (
@@ -310,10 +315,8 @@ const AvatarGroup = (props: AvatarGroupProps) => {
   );
 };
 
-function getColorSchemeMappingForUsers(store: RootStore, scheduleId: string): { [userId: string]: Set<string> } {
+function getColorSchemeMappingForUsers(store: RootStore, scheduleId: string, startMoment: dayjs.Dayjs): { [userId: string]: Set<string> } {
   const usersColorSchemeHash: { [userId: string]: Set<string> } = {};
-
-  const startMoment = getStartOfWeek(store.currentTimezone);
 
   const shifts = getShiftsFromStore(store, scheduleId, startMoment);
   const layers = getLayersFromStore(store, scheduleId, startMoment);

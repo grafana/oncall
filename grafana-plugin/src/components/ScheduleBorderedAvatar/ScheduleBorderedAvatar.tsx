@@ -21,7 +21,7 @@ export default function ScheduleBorderedAvatar({
   width,
   height,
 }: ScheduleBorderedAvatarProps) {
-  return <div className={cx('root')}>{colors?.length ? renderSVG() : renderAvatarIcon()}</div>;
+  return <div className={cx('root')}>{renderSVG()}</div>;
 
   function renderAvatarIcon() {
     return (
@@ -46,6 +46,8 @@ export default function ScheduleBorderedAvatar({
   }
 
   function renderColorPaths(colors: string[]) {
+    if (!colors?.length) return null;
+
     const colorSchemeList = colors;
     if (colors.length === 1) { // minimum is 2 arcs to round the circle
       colorSchemeList.push(colors[0]);
