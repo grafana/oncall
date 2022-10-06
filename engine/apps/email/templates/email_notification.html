@@ -10,11 +10,13 @@ Title: {{ title }}
 <br>
 Message:
 <br>
-{{ message | linebreaks }}
+{% autoescape off %}
+    {{ message }}
+{% endautoescape %}
 {% endif %}
-<br><br>
+<br>
 <strong><a href="{{ url }}">Go to the alert group</a></strong>
-<br><br>
+<br>
 Your Grafana OnCall
 {% if limit_notification %}
     <br><br>

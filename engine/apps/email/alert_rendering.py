@@ -3,7 +3,7 @@ from emoji.core import emojize
 
 from apps.alerts.incident_appearance.renderers.constants import DEFAULT_BACKUP_TITLE
 from apps.alerts.incident_appearance.templaters.alert_templater import AlertTemplater
-from common.utils import str_or_backup
+from common.utils import convert_md_to_html, str_or_backup
 
 
 class AlertEmailTemplater(AlertTemplater):
@@ -31,12 +31,15 @@ def build_subject_and_title(alert_group, limit_notification=False):
         f"#{alert_group.inside_organization_number} " f"{DEFAULT_BACKUP_TITLE} via {alert_group.channel.verbal_name}"
     )
 
+    # default templates are the same as web templates, which are in Markdown format
+    message = convert_md_to_html(templated_alert.message)
+
     content = render_to_string(
         "email_notification.html",
         {
             "url": alert_group.slack_permalink or alert_group.web_link,
             "title": str_or_backup(templated_alert.title, title_fallback),
-            "message": str_or_backup(templated_alert.message, ""),  # not render message at all if smth goes wrong
+            "message": str_or_backup(message, ""),  # not render message at all if smth goes wrong
             "organization": alert_group.channel.organization.org_title,
             "integration": emojize(alert_group.channel.short_name, use_aliases=True),
             "limit_notification": limit_notification,
