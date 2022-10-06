@@ -254,18 +254,6 @@ class AlertReceiveChannelTemplatesSerializer(EagerLoadingMixin, serializers.Mode
         validators=[valid_jinja_template_for_serializer_method_field],
         required=False,
     )
-    email_title_template = WritableSerializerMethodField(
-        allow_null=True,
-        deserializer_field=serializers.CharField(),
-        validators=[valid_jinja_template_for_serializer_method_field],
-        required=False,
-    )
-    email_message_template = WritableSerializerMethodField(
-        allow_null=True,
-        deserializer_field=serializers.CharField(),
-        validators=[valid_jinja_template_for_serializer_method_field],
-        required=False,
-    )
     source_link_template = WritableSerializerMethodField(
         allow_null=True,
         deserializer_field=serializers.CharField(),
@@ -306,8 +294,6 @@ class AlertReceiveChannelTemplatesSerializer(EagerLoadingMixin, serializers.Mode
             "web_title_template",
             "web_message_template",
             "web_image_url_template",
-            "email_title_template",
-            "email_message_template",
             "telegram_title_template",
             "telegram_message_template",
             "telegram_image_url_template",
@@ -391,17 +377,6 @@ class AlertReceiveChannelTemplatesSerializer(EagerLoadingMixin, serializers.Mode
         elif default_template is not None and default_template.strip() == value.strip():
             self.instance.web_title_template = None
 
-    def get_email_title_template(self, obj):
-        default_template = AlertReceiveChannel.INTEGRATION_TO_DEFAULT_EMAIL_TITLE_TEMPLATE[obj.integration]
-        return obj.email_title_template or default_template
-
-    def set_email_title_template(self, value):
-        default_template = AlertReceiveChannel.INTEGRATION_TO_DEFAULT_EMAIL_TITLE_TEMPLATE[self.instance.integration]
-        if default_template is None or default_template.strip() != value.strip():
-            self.instance.email_title_template = value.strip()
-        elif default_template is not None and default_template.strip() == value.strip():
-            self.instance.email_title_template = None
-
     def get_web_message_template(self, obj):
         default_template = AlertReceiveChannel.INTEGRATION_TO_DEFAULT_WEB_MESSAGE_TEMPLATE[obj.integration]
         return obj.web_message_template or default_template
@@ -423,17 +398,6 @@ class AlertReceiveChannelTemplatesSerializer(EagerLoadingMixin, serializers.Mode
             self.instance.web_image_url_template = value.strip()
         elif default_template is not None and default_template.strip() == value.strip():
             self.instance.web_image_url_template = None
-
-    def get_email_message_template(self, obj):
-        default_template = AlertReceiveChannel.INTEGRATION_TO_DEFAULT_EMAIL_MESSAGE_TEMPLATE[obj.integration]
-        return obj.email_message_template or default_template
-
-    def set_email_message_template(self, value):
-        default_template = AlertReceiveChannel.INTEGRATION_TO_DEFAULT_EMAIL_MESSAGE_TEMPLATE[self.instance.integration]
-        if default_template is None or default_template.strip() != value.strip():
-            self.instance.email_message_template = value.strip()
-        elif default_template is not None and default_template.strip() == value.strip():
-            self.instance.email_message_template = None
 
     def get_telegram_title_template(self, obj):
         default_template = AlertReceiveChannel.INTEGRATION_TO_DEFAULT_TELEGRAM_TITLE_TEMPLATE[obj.integration]
