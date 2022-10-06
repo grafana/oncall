@@ -106,7 +106,7 @@ register(ResolutionNoteSlackMessageFactory)
 
 register(PhoneCallFactory)
 register(SMSFactory)
-# register(EmailMessageFactory)
+register(EmailMessageFactory)
 
 register(IntegrationHeartBeatFactory)
 

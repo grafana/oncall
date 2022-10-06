@@ -22,7 +22,6 @@ class FreePublicBetaSubscriptionStrategy(BaseSubscriptionStrategy):
         return self._calculate_phone_notifications_left(user)
 
     def emails_left(self, user):
-        # Email notifications are disabled now.
         from apps.email.models import EmailMessage
 
         now = datetime.now()
