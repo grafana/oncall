@@ -1,26 +1,18 @@
 import React, { FC, useCallback, useEffect, useMemo, useState } from 'react';
 
-import { HorizontalGroup, InlineSwitch, Tooltip } from '@grafana/ui';
+import { HorizontalGroup, Tooltip } from '@grafana/ui';
 import cn from 'classnames/bind';
-import dayjs, { Dayjs } from 'dayjs';
-import { toJS } from 'mobx';
-import moment from 'moment';
+import dayjs from 'dayjs';
 
 import Avatar from 'components/Avatar/Avatar';
 import ScheduleBorderedAvatar from 'components/ScheduleBorderedAvatar/ScheduleBorderedAvatar';
 import ScheduleUserDetails from 'components/ScheduleUserDetails/ScheduleUserDetails';
 import Text from 'components/Text/Text';
-import { findColor } from 'containers/Rotations/Rotations.helpers';
 import { IsOncallIcon } from 'icons';
-import {
-  getLayersFromStore,
-  getOverrideColor,
-  getOverridesFromStore,
-  getShiftsFromStore,
-} from 'models/schedule/schedule.helpers';
 import { Event, Layer, Schedule } from 'models/schedule/schedule.types';
 import { Timezone } from 'models/timezone/timezone.types';
 import { User } from 'models/user/user.types';
+import { getColorSchemeMappingForUsers } from 'pages/schedule/Schedule.helpers';
 import { RootStore } from 'state';
 import { useStore } from 'state/useStore';
 
@@ -314,38 +306,5 @@ const AvatarGroup = (props: AvatarGroupProps) => {
     </div>
   );
 };
-
-function getColorSchemeMappingForUsers(store: RootStore, scheduleId: string, startMoment: dayjs.Dayjs): { [userId: string]: Set<string> } {
-  const usersColorSchemeHash: { [userId: string]: Set<string> } = {};
-
-  const shifts = getShiftsFromStore(store, scheduleId, startMoment);
-  const layers = getLayersFromStore(store, scheduleId, startMoment);
-  const overrides = getOverridesFromStore(store, scheduleId, startMoment);
-
-  if (!shifts?.length || !layers?.length) {
-    return usersColorSchemeHash;
-  }
-
-  shifts.forEach(({ shiftId, events }, rotationIndex) => {
-    populateUserHashSet(events, shiftId, false);
-    populateUserHashSet(events, rotationIndex, true);
-  });
-
-  return usersColorSchemeHash;
-
-  function populateUserHashSet(events: Event[], id: string | number, isOverride: boolean) {
-    events.forEach((event) => {
-      event.users.forEach((user) => {
-        if (!usersColorSchemeHash[user.pk]) {
-          usersColorSchemeHash[user.pk] = new Set<string>();
-        }
-
-        usersColorSchemeHash[user.pk].add(
-          isOverride ? getOverrideColor(id as number) : findColor(id as string, layers, overrides)
-        );
-      });
-    });
-  }
-}
 
 export default UsersTimezones;

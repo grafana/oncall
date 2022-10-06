@@ -1,8 +1,14 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 
+import { FadeTransition } from '@grafana/ui';
 import cn from 'classnames/bind';
+import dayjs from 'dayjs';
+import { CSSTransition } from 'react-transition-group';
 
 import styles from './ScheduleBorderedAvatar.module.scss';
+
+import animationStyles from 'containers/Rotations/Rotations.module.css';
+
 
 const cx = cn.bind(styles);
 
@@ -36,7 +42,7 @@ export default function ScheduleBorderedAvatar({
     return (
       <>
         <svg xmlns="http://www.w3.org/2000/svg" version="1.1" width={width} height={height} viewBox="-14 -8 240 230">
-          <g fill="none" strokeWidth="28" transform="translate(100,100)">
+          <g fill="none" strokeWidth="25" transform="translate(100,100)">
             {renderColorPaths(colors)}
           </g>
         </svg>
@@ -46,10 +52,11 @@ export default function ScheduleBorderedAvatar({
   }
 
   function renderColorPaths(colors: string[]) {
-    if (!colors?.length) return null;
+    if (!colors?.length) {return null;}
 
     const colorSchemeList = colors;
-    if (colors.length === 1) { // minimum is 2 arcs to round the circle
+    if (colors.length === 1) {
+      // minimum is 2 arcs to round the circle
       colorSchemeList.push(colors[0]);
     }
 
