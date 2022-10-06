@@ -23,7 +23,8 @@ class FreePublicBetaSubscriptionStrategy(BaseSubscriptionStrategy):
 
     def emails_left(self, user):
         # Email notifications are disabled now.
-        EmailMessage = apps.get_model("sendgridapp", "EmailMessage")
+        from apps.email.models import EmailMessage
+
         now = datetime.now()
         day_start = now.replace(hour=0, minute=0, second=0, microsecond=0)
         emails_this_week = EmailMessage.objects.filter(

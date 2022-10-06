@@ -1,6 +1,6 @@
 # import factory
 #
-# from apps.sendgridapp.models import EmailMessage
+# from apps.emails.models import EmailMessage
 #
 #
 # class EmailMessageFactory(factory.DjangoModelFactory):
