@@ -5,8 +5,6 @@ from urllib.parse import urlparse
 import phonenumbers
 from django.apps import apps
 from phonenumbers import NumberParseException
-from python_http_client import UnauthorizedError
-from sendgrid import SendGridAPIClient
 from telegram import Bot
 from twilio.base.exceptions import TwilioException
 from twilio.rest import Client
@@ -78,20 +76,6 @@ class LiveSettingValidator:
             return "Please specify a valid phone number in the following format: +XXXXXXXXXXX"
 
     @classmethod
-    def _check_sendgrid_api_key(cls, sendgrid_api_key):
-        sendgrid_client = SendGridAPIClient(sendgrid_api_key)
-
-        try:
-            sendgrid_client.client.mail_settings.get()
-        except Exception as e:
-            return cls._prettify_sendgrid_error(e)
-
-    @classmethod
-    def _check_sendgrid_from_email(cls, sendgrid_from_email):
-        if not cls._is_email_valid(sendgrid_from_email):
-            return "Please specify a valid email"
-
-    @classmethod
     def _check_slack_install_return_redirect_host(cls, slack_install_return_redirect_host):
         scheme = urlparse(slack_install_return_redirect_host).scheme
         if scheme != "https":
@@ -147,10 +131,3 @@ class LiveSettingValidator:
                 return f"Twilio error: {exc.args[0]}"
         else:
             return f"Twilio error: {str(exc)}"
-
-    @staticmethod
-    def _prettify_sendgrid_error(exc):
-        if isinstance(exc, UnauthorizedError):
-            return "Sendgrid error: couldn't authorize with given credentials"
-        else:
-            return f"Sendgrid error: {str(exc)}"

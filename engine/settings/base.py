@@ -64,14 +64,6 @@ TWILIO_VERIFY_SERVICE_SID = os.environ.get("TWILIO_VERIFY_SERVICE_SID")
 TELEGRAM_WEBHOOK_HOST = os.environ.get("TELEGRAM_WEBHOOK_HOST", BASE_URL)
 TELEGRAM_TOKEN = os.environ.get("TELEGRAM_TOKEN")
 
-# For Sending email
-SENDGRID_API_KEY = os.environ.get("SENDGRID_API_KEY")
-SENDGRID_FROM_EMAIL = os.environ.get("SENDGRID_FROM_EMAIL")
-
-# For Inbound email
-SENDGRID_SECRET_KEY = os.environ.get("SENDGRID_SECRET_KEY")
-SENDGRID_INBOUND_EMAIL_DOMAIN = os.environ.get("SENDGRID_INBOUND_EMAIL_DOMAIN")
-
 # For Grafana Cloud integration
 GRAFANA_CLOUD_ONCALL_API_URL = os.environ.get(
     "GRAFANA_CLOUD_ONCALL_API_URL", "https://oncall-prod-us-central-0.grafana.net/oncall"

@@ -21,7 +21,6 @@ from apps.alerts.integration_options_mixin import IntegrationOptionsMixin
 from apps.alerts.models.maintainable_object import MaintainableObject
 from apps.alerts.tasks import disable_maintenance, sync_grafana_alerting_contact_points
 from apps.base.messaging import get_messaging_backend_from_id
-from apps.base.utils import live_settings
 from apps.integrations.metadata import heartbeat
 from apps.integrations.tasks import create_alert, create_alertmanager_alerts
 from apps.slack.constants import SLACK_RATE_LIMIT_DELAY, SLACK_RATE_LIMIT_TIMEOUT
@@ -438,7 +437,8 @@ class AlertReceiveChannel(IntegrationOptionsMixin, MaintainableObject):
 
     @property
     def inbound_email(self):
-        return f"{self.token}@{live_settings.SENDGRID_INBOUND_EMAIL_DOMAIN}"
+        # todo: implement inbound emails
+        pass
 
     @property
     def default_channel_filter(self):

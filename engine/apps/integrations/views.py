@@ -382,6 +382,7 @@ class HeartBeatAPIView(AlertChannelDefiningMixin, APIView):
 
 
 class InboundWebhookEmailView(AlertChannelDefiningMixin, APIView):
+    # todo: implement inbound emails
     pass
 
 

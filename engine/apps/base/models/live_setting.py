@@ -98,16 +98,6 @@ class LiveSetting(models.Model):
             "You can create a service in Twilio web interface. "
             "twilio.com -> verify -> create new service."
         ),
-        "SENDGRID_API_KEY": (
-            "Sendgrid api key to send emails, "
-            "<a href='https://sendgrid.com/docs/ui/account-and-settings/api-keys/' target='_blank'>more info</a>."
-        ),
-        "SENDGRID_FROM_EMAIL": (
-            "Address to send emails, <a href='https://sendgrid.com/docs/ui/sending-email/senders/' target='_blank'>"
-            "more info</a>."
-        ),
-        "SENDGRID_SECRET_KEY": "It is the secret key to secure receiving inbound emails.",
-        "SENDGRID_INBOUND_EMAIL_DOMAIN": "Domain to receive emails for inbound emails integration.",
         "TELEGRAM_TOKEN": (
             "Secret token for Telegram bot, you can get one via <a href='https://t.me/BotFather' target='_blank'>BotFather</a>."
         ),
@@ -129,8 +119,6 @@ class LiveSetting(models.Model):
         "TWILIO_ACCOUNT_SID",
         "TWILIO_AUTH_TOKEN",
         "TWILIO_VERIFY_SERVICE_SID",
-        "SENDGRID_API_KEY",
-        "SENDGRID_SECRET_KEY",
         "SLACK_CLIENT_OAUTH_ID",
         "SLACK_CLIENT_OAUTH_SECRET",
         "SLACK_SIGNING_SECRET",

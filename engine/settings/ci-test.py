@@ -36,8 +36,6 @@ if BROKER_TYPE != BrokerTypes.REDIS:
 # Dummy Telegram token (fake one)
 TELEGRAM_TOKEN = "0000000000:XXXXXXXXXXXXXXXXXXXXXXXXXXXX-XXXXXX"
 
-SENDGRID_FROM_EMAIL = "dummy_sendgrid_from_email@test.ci-test"
-SENDGRID_SECRET_KEY = "dummy_sendgrid_secret_key"
 TWILIO_ACCOUNT_SID = "dummy_twilio_account_sid"
 TWILIO_AUTH_TOKEN = "dummy_twilio_auth_token"
 
