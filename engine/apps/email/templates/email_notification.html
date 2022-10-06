@@ -1,26 +1,26 @@
 <!DOCTYPE html>
-<!-- this ensures Gmail doesn't trim the email. Add this line at the beginning and end of email content. -->
-<span style="display:none;">{% now "H:i.u e"%}</span>
-<!---->
-You are invited to check Incident
+You are invited to check an alert group in Grafana OnCall!
 <br><br>
-<strong><a href="{{ url }}">{{ title }}</a></strong>
-{% if message %}
-    {{ message|linebreaks }}
-{% endif %}
-{#<br>#}
-{#<img src="{{ image_url }}" alt="image" />#}
-Amixr team: {{ amixr_team }}
+Organization: {{ organization }}
 <br>
-Alert channel: {{ alert_channel }}
+Integration: {{ integration }}
+<br>
+Title: {{ title }}
+{% if message %}
+<br>
+Message:
+<br>
+{{ message | linebreaks }}
+{% endif %}
 <br><br>
-<strong><a href="{{ url }}">Check Incident</a></strong>
+<strong><a href="{{ url }}">Go to the alert group</a></strong>
 <br><br>
-Your Amixr.IO
+Your Grafana OnCall
 {% if limit_notification %}
     <br><br>
-    <span style="color: #333333;"><em>{{ emails_left }} mail(s) left for this week. Contact your admin.</em></span>
+    <span style="color: #333333;"><em>{{ emails_left }} emails left for this week. Contact your admin.</em></span>
 {% endif %}
-<!-- this ensures Gmail doesn't trim the email. Add this line at the beginning and end of email content. -->
+
+<!-- this ensures Gmail doesn't trim the email -->
 <span style="display:none;">{% now "H:i.u e"%}</span>
 <!---->
