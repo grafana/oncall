@@ -57,7 +57,7 @@ class OpenAlertAppearanceDialogStep(
 
         # This is a special case for amazon sns notifications in str format CHEKED
         if (
-            AlertReceiveChannel.INTEGRATION_AMAZON_SNS is not None
+            hasattr(AlertReceiveChannel, "INTEGRATION_AMAZON_SNS")
             and alert_group.channel.integration == AlertReceiveChannel.INTEGRATION_AMAZON_SNS
             and raw_request_data == "{}"
         ):

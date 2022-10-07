@@ -54,6 +54,11 @@ celery:
   ## If this setting is set numbers of pod restarts will increase
   ## Comment this line out if you want to remove restarts
   worker_shutdown_interval: "65m"
+  livenessProbe:
+    enabled: true
+    initialDelaySeconds: 30
+    periodSeconds: 300
+    timeoutSeconds: 10
   resources: {}
     # limits:
     #   cpu: 100m
