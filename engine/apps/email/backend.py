@@ -3,6 +3,7 @@ from django.core.mail import get_connection, send_mail
 from django.utils.html import strip_tags
 
 from apps.base.messaging import BaseMessagingBackend
+from apps.base.utils import live_settings
 from apps.email.alert_rendering import build_subject_and_title
 
 
@@ -25,11 +26,11 @@ class EmailBackend(BaseMessagingBackend):
 
         # todo: add to live settings
         connection = get_connection(
-            host=settings.EMAIL_HOST,
-            port=settings.EMAIL_PORT,
-            username=settings.EMAIL_HOST_USER,
-            password=settings.EMAIL_HOST_PASSWORD,
-            use_tls=settings.EMAIL_USE_TLS,
+            host=live_settings.EMAIL_HOST,
+            port=live_settings.EMAIL_PORT,
+            username=live_settings.EMAIL_HOST_USER,
+            password=live_settings.EMAIL_HOST_PASSWORD,
+            use_tls=live_settings.EMAIL_USE_TLS,
             fail_silently=False,
         )
 

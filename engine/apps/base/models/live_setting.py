@@ -33,6 +33,11 @@ class LiveSetting(models.Model):
     error = models.TextField(null=True, default=None)
 
     AVAILABLE_NAMES = (
+        "EMAIL_HOST",
+        "EMAIL_PORT",
+        "EMAIL_HOST_USER",
+        "EMAIL_HOST_PASSWORD",
+        "EMAIL_USE_TLS",
         "TWILIO_ACCOUNT_SID",
         "TWILIO_AUTH_TOKEN",
         "TWILIO_NUMBER",
@@ -51,6 +56,12 @@ class LiveSetting(models.Model):
     )
 
     DESCRIPTIONS = {
+        # todo: add better descriptions for email settings
+        "EMAIL_HOST": "SMTP server host",
+        "EMAIL_PORT": "SMTP server port",
+        "EMAIL_HOST_USER": "SMTP server user",
+        "EMAIL_HOST_PASSWORD": "SMTP server password",
+        "EMAIL_USE_TLS": "SMTP use TLS",
         "SLACK_SIGNING_SECRET": (
             "Check <a href='"
             "https://grafana.com/docs/grafana-cloud/oncall/open-source/#slack-setup"
@@ -116,6 +127,7 @@ class LiveSetting(models.Model):
     }
 
     SECRET_SETTING_NAMES = (
+        "EMAIL_HOST_PASSWORD",
         "TWILIO_ACCOUNT_SID",
         "TWILIO_AUTH_TOKEN",
         "TWILIO_VERIFY_SERVICE_SID",
