@@ -1,9 +1,9 @@
-import { AppPluginMeta } from '@grafana/data';
-import { getBackendSrv } from '@grafana/runtime';
+import { OrgRole } from '@grafana/data';
+import { contextSrv } from 'grafana/app/core/core';
 import { action, observable } from 'mobx';
 import moment from 'moment-timezone';
 import qs from 'query-string';
-import { OnCallAppSettings } from 'types';
+import { OnCallAppPluginMeta } from 'types';
 
 import { AlertReceiveChannelStore } from 'models/alert_receive_channel/alert_receive_channel';
 import { AlertReceiveChannel } from 'models/alert_receive_channel/alert_receive_channel.types';
@@ -30,16 +30,9 @@ import { UserStore } from 'models/user/user';
 import { UserGroupStore } from 'models/user_group/user_group';
 import { makeRequest } from 'network';
 import { NavMenuItem } from 'pages/routes';
-
-import { AppFeature } from './features';
-import {
-  getPluginSyncStatus,
-  installPlugin,
-  startPluginSync,
-  SYNC_STATUS_RETRY_LIMIT,
-  syncStatusDelay,
-} from './plugin';
-import { UserAction } from './userAction';
+import { AppFeature } from 'state/features';
+import PluginState from 'state/plugin';
+import { UserAction } from 'state/userAction';
 
 // ------ Dashboard ------ //
 
@@ -57,25 +50,7 @@ export class RootBaseStore {
   backendLicense = '';
 
   @observable
-  pluginIsInitialized = true;
-
-  @observable
-  correctProvisioningForInstallation = true;
-
-  @observable
-  correctRoleForInstallation = true;
-
-  @observable
-  signupAllowedForPlugin = true;
-
-  @observable
-  initializationError = '';
-
-  @observable
-  retrySync = false;
-
-  @observable
-  isUserAnonymous = false;
+  initializationError = null;
 
   @observable
   isMobile = false;
@@ -143,107 +118,80 @@ export class RootBaseStore {
     ]);
   }
 
-  async getUserRole() {
-    const user = await getBackendSrv().get('/api/user');
-    const userRoles = await getBackendSrv().get('/api/user/orgs');
-    const userRole = userRoles.find(
-      (userRole: { name: string; orgId: number; role: string }) => userRole.orgId === user.orgId
-    );
-    return userRole.role;
+  setupPluginError(errorMsg: string) {
+    this.appLoading = false;
+    this.initializationError = errorMsg;
   }
 
-  async finishSync(get_sync_response: any) {
-    if (!get_sync_response.token_ok) {
-      this.initializationError = 'OnCall was not able to connect back to this Grafana';
-      return;
+  /**
+   * First check to see if the plugin's meta jsonData has an onCallApiUrl saved
+   * If not, tell the user they first need to configure the plugin.
+   *
+   * Otherwise, get the plugin connection status from the OnCall API and check a few pre-conditions:
+   * - plugin must be considered installed by the OnCall API
+   * - user must be not "anonymous" (this is determined by the plugin-proxy)
+   * - the OnCall API must be currently allowing signup
+   * - the user must have an Admin role
+   * If these conditions are all met then trigger a data sync w/ the OnCall backend and poll its response
+   * Finally, try to load the current user from the OnCall backend
+   */
+  async setupPlugin(meta: OnCallAppPluginMeta) {
+    this.appLoading = true;
+    this.initializationError = null;
+    this.onCallApiUrl = meta.jsonData?.onCallApiUrl;
+
+    if (!this.onCallApiUrl) {
+      return this.setupPluginError('🚫 Plugin has not been initialized');
     }
-    this.backendVersion = get_sync_response.version;
-    this.backendLicense = get_sync_response.license;
+
+    const pluginConnectionStatus = await PluginState.checkIfPluginIsConnected(this.onCallApiUrl);
+    if (typeof pluginConnectionStatus === 'string') {
+      return this.setupPluginError(pluginConnectionStatus);
+    }
+
+    const { allow_signup, is_installed, is_user_anonymous } = pluginConnectionStatus;
+    if (is_user_anonymous) {
+      return this.setupPluginError(
+        '😞 Unfortunately Grafana OnCall is available for authorized users only, please sign in to proceed.'
+      );
+    } else if (!is_installed) {
+      if (!allow_signup) {
+        return this.setupPluginError('🚫 OnCall has temporarily disabled signup of new users. Please try again later.');
+      }
+
+      if (!contextSrv.hasRole(OrgRole.Admin)) {
+        return this.setupPluginError('🚫 Admin must sign on to setup OnCall before a Viewer can use it');
+      }
+
+      try {
+        /**
+         * this will install AND sync the necessary data
+         * the sync is done automatically by the /plugin/install OnCall API endpoint
+         * therefore there is no need to trigger an additional/separate sync, nor poll a status
+         */
+        await PluginState.installPlugin();
+      } catch (e) {
+        return this.setupPluginError(PluginState.getHumanReadableErrorFromOnCallError(e, this.onCallApiUrl, 'install'));
+      }
+    } else {
+      const syncDataResponse = await PluginState.syncDataWithOnCall(this.onCallApiUrl);
+
+      if (typeof syncDataResponse === 'string') {
+        return this.setupPluginError(syncDataResponse);
+      }
+
+      // everything is all synced successfully at this point..
+      this.backendVersion = syncDataResponse.version;
+      this.backendLicense = syncDataResponse.license;
+    }
 
     try {
       await this.userStore.loadCurrentUser();
-
-      this.appLoading = false;
     } catch (e) {
-      this.initializationError = 'OnCall was not able to initialize current user';
-    }
-  }
-
-  handleSyncException(e: any) {
-    this.initializationError = e.response.status;
-  }
-
-  async startSync() {
-    try {
-      return await startPluginSync();
-    } catch (e) {
-      if (e.response.status === 403) {
-        this.correctProvisioningForInstallation = false;
-        return;
-      } else {
-        this.initializationError = e.response.status;
-        return;
-      }
-    }
-  }
-
-  resetStatusToDefault() {
-    this.appLoading = true;
-    this.pluginIsInitialized = true;
-    this.correctProvisioningForInstallation = true;
-    this.correctRoleForInstallation = true;
-    this.signupAllowedForPlugin = true;
-    this.initializationError = '';
-    this.retrySync = false;
-    this.isUserAnonymous = false;
-  }
-
-  async waitForSyncStatus(retryCount = 0) {
-    if (retryCount > SYNC_STATUS_RETRY_LIMIT) {
-      this.retrySync = true;
-      return;
+      return this.setupPluginError('OnCall was not able to load the current user. Try refreshing the page');
     }
 
-    getPluginSyncStatus()
-      .then((get_sync_response) => {
-        if (get_sync_response.hasOwnProperty('token_ok')) {
-          this.finishSync(get_sync_response);
-        } else {
-          syncStatusDelay(retryCount + 1).then(() => this.waitForSyncStatus(retryCount + 1));
-        }
-      })
-      .catch((e) => {
-        this.handleSyncException(e);
-      });
-  }
-
-  async setupPlugin(meta: AppPluginMeta<OnCallAppSettings>) {
-    this.resetStatusToDefault();
-
-    if (!meta.jsonData?.onCallApiUrl) {
-      this.pluginIsInitialized = false;
-      return;
-    }
-
-    this.onCallApiUrl = meta.jsonData.onCallApiUrl;
-
-    let syncStartStatus = await this.startSync();
-    if (syncStartStatus.is_user_anonymous) {
-      this.isUserAnonymous = true;
-      return;
-    } else if (!syncStartStatus.is_installed) {
-      if (!syncStartStatus.allow_signup) {
-        this.signupAllowedForPlugin = false;
-        return;
-      }
-      const userRole = await this.getUserRole();
-      if (userRole !== 'Admin') {
-        this.correctRoleForInstallation = false;
-        return;
-      }
-      await installPlugin();
-    }
-    await this.waitForSyncStatus();
+    this.appLoading = false;
   }
 
   isUserActionAllowed(action: UserAction) {
@@ -278,7 +226,7 @@ export class RootBaseStore {
   }
 
   async getApiUrlForSettings() {
-    const settings = await getBackendSrv().get('/api/plugins/grafana-oncall-app/settings');
+    const settings = await PluginState.getGrafanaPluginSettings();
     return settings.jsonData?.onCallApiUrl;
   }
 }

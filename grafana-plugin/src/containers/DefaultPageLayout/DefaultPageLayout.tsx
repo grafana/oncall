@@ -1,11 +1,11 @@
 import plugin from '../../../package.json'; // eslint-disable-line
 import React, { FC, useEffect, useState, useCallback } from 'react';
 
-import { AppRootProps } from '@grafana/data';
 import { getLocationSrv } from '@grafana/runtime';
 import { Alert } from '@grafana/ui';
 import cn from 'classnames/bind';
 import { observer } from 'mobx-react';
+import { AppRootProps } from 'types';
 
 import PluginLink from 'components/PluginLink/PluginLink';
 import { getIfChatOpsConnected } from 'containers/DefaultPageLayout/helper';

@@ -12,8 +12,8 @@ Architecture diagram can be found [here](https://raw.githubusercontent.com/grafa
 
 ### Cluster requirements
 
-* ensure you can run x86-64/amd64 workloads. arm64 architecture is currently not supported
-* kubernetes version 1.25+ is not supported, if cert-manager is enabled
+- ensure you can run x86-64/amd64 workloads. arm64 architecture is currently not supported
+- kubernetes version 1.25+ is not supported, if cert-manager is enabled
 
 ## Install
 
@@ -58,11 +58,6 @@ Follow the `helm install` output to finish setting up Grafana OnCall backend and
         kubectl get secret --namespace default release-oncall-grafana -o jsonpath="{.data.admin-password}" | base64 --decode ; echo
 
   🔗 Connect Grafana OnCall Plugin to Grafana OnCall backend:
-
-     Issue the one-time token to connect Grafana OnCall backend and Grafana OnCall plugin by running these commands:
-
-        export POD_NAME=$(kubectl get pods --namespace default -l "app.kubernetes.io/name=oncall,app.kubernetes.io/instance=release-oncall,app.kubernetes.io/component=engine" -o jsonpath="{.items[0].metadata.name}")
-        kubectl exec -it $POD_NAME -- bash -c "python manage.py issue_invite_for_the_frontend --override"
 
      Fill the Grafana OnCall Backend URL:
 
@@ -131,7 +126,7 @@ ingress-nginx:
 
 cert-manager:
   enabled: false
- 
+
 ingress:
   enabled: true
   annotations:
@@ -178,7 +173,7 @@ externalMysql:
   db_name:
   user:
   password:
-  ```
+```
 
 ### Connect external PostgreSQL
 
@@ -206,7 +201,7 @@ externalPostgresql:
   password:
   existingSecret: ""
   passwordKey: password
-  ```
+```
 
 ### Connect external RabbitMQ
 
@@ -217,8 +212,8 @@ To use an external RabbitMQ instance set rabbitmq.enabled to `false` and configu
 
 ```yaml
 rabbitmq:
-  enabled: false  # Disable the RabbitMQ dependency from the release
- 
+  enabled: false # Disable the RabbitMQ dependency from the release
+
 externalRabbitmq:
   host:
   port:
@@ -237,8 +232,8 @@ To use an external Redis instance set redis.enabled to `false` and configure the
 
 ```yaml
 redis:
-  enabled: false  # Disable the Redis dependency from the release
- 
+  enabled: false # Disable the Redis dependency from the release
+
 externalRedis:
   host:
   password:

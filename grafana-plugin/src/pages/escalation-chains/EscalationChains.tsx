@@ -1,12 +1,12 @@
 import React from 'react';
 
-import { AppRootProps } from '@grafana/data';
 import { getLocationSrv } from '@grafana/runtime';
 import { Button, HorizontalGroup, Icon, IconButton, LoadingPlaceholder, Tooltip, VerticalGroup } from '@grafana/ui';
 import { PluginPage } from 'PluginPage';
 import cn from 'classnames/bind';
 import { debounce } from 'lodash-es';
 import { observer } from 'mobx-react';
+import { AppRootProps } from 'types';
 
 import Collapse from 'components/Collapse/Collapse';
 import EscalationsFilters from 'components/EscalationsFilters/EscalationsFilters';

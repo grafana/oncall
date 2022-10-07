@@ -1,3 +1,5 @@
+export const ONCALL_API_URL_LOCAL_STORAGE_KEY = 'onCallApiUrl';
+
 export function setItem(key: string, value: any) {
   try {
     localStorage.setItem(key, JSON.stringify(value));

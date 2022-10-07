@@ -105,9 +105,6 @@ lint: install-pre-commit
 install-precommit-hook: install-pre-commit
 	pre-commit install
 
-get-invite-token:
-	$(call run_engine_docker_command,python manage.py issue_invite_for_the_frontend --override)
-
 test:
 	$(call run_engine_docker_command,pytest)
 

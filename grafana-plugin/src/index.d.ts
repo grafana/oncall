@@ -16,3 +16,12 @@ declare module '*.scss' {
   const content: Record<string, string>;
   export default content;
 }
+
+declare module 'grafana/app/core/core' {
+  import { OrgRole } from '@grafana/data';
+
+  // https://github.com/grafana/grafana/blob/main/public/app/core/services/context_srv.ts#L59
+  export const contextSrv: {
+    hasRole(role: OrgRole): boolean;
+  };
+}

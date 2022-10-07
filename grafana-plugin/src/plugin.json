@@ -109,11 +109,7 @@
       "headers": [
         {
           "name": "X-Instance-Context",
-          "content": "{ \"grafana_token\": \"{{ .SecureJsonData.grafanaToken }}\", \"grafana_url\": \"{{ .JsonData.grafanaUrl }}\" }"
-        },
-        {
-          "name": "Authorization",
-          "content": "{{ .SecureJsonData.onCallInvitationToken }}"
+          "content": "{ \"grafana_token\": \"{{ .SecureJsonData.grafanaToken }}\" }"
         }
       ]
     },

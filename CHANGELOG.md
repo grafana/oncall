@@ -1,4 +1,22 @@
-# Change Log
+# Changelog
+
+All notable changes to this project will be documented in this file.
+
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
+and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+
+## [Unreleased]
+
+### Added
+
+### Changed
+
+- For OSS installations of OnCall, initial configuration is now simplified. When running for local development, you no longer need to configure the plugin via the UI. This is achieved through passing one environment variable to both the backend & frontend containers, both of which have been preconfigured for you in `docker-compose-developer.yml`.
+  - The Grafana API URL **must be** passed as an environment variable, `GRAFANA_API_URL`, to the OnCall backend (and can be configured by updating this env var in your `./dev/.env.dev` file)
+  - The OnCall API URL can optionally be passed as an environment variable, `ONCALL_API_URL`, to the OnCall UI. If the environment variable is found, the plugin will "auto-configure", otherwise you will be shown a simple configuration form to provide this info.
+- For Helm installations TODO:
+
+### Fixed
 
 ## v1.1.2 (2022-16-09)
 

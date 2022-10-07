@@ -1,4 +1,5 @@
 import logging
+import typing
 from urllib.parse import urljoin
 
 from django.apps import apps
@@ -30,6 +31,14 @@ def generate_public_primary_key_for_organization():
         failure_counter += 1
 
     return new_public_primary_key
+
+
+class ProvisionedPlugin(typing.TypedDict):
+    error: typing.Union[str, None]
+    stackId: int
+    orgId: int
+    onCallToken: str
+    license: str
 
 
 class OrganizationQuerySet(models.QuerySet):
@@ -187,18 +196,14 @@ class Organization(MaintainableObject):
     class Meta:
         unique_together = ("stack_id", "org_id")
 
-    def provision_plugin(self) -> dict:
+    def provision_plugin(self) -> ProvisionedPlugin:
         PluginAuthToken = apps.get_model("auth_token", "PluginAuthToken")
         _, token = PluginAuthToken.create_auth_token(organization=self)
         return {
-            "pk": self.public_primary_key,
-            "jsonData": {
-                "stackId": self.stack_id,
-                "orgId": self.org_id,
-                "onCallApiUrl": settings.BASE_URL,
-                "license": settings.LICENSE,
-            },
-            "secureJsonData": {"onCallToken": token},
+            "stackId": self.stack_id,
+            "orgId": self.org_id,
+            "onCallToken": token,
+            "license": settings.LICENSE,
         }
 
     def revoke_plugin(self):
