@@ -48,7 +48,9 @@ export default function PageErrorHandlingWrapper({
 
   const store = useStore();
 
-  if (!errorData.isWrongTeamError) {return children();}
+  if (!errorData.isWrongTeamError) {
+    return children();
+  }
 
   const currentTeamId = store.userStore.currentUser?.current_team;
   const currentTeam = store.grafanaTeamStore.items[currentTeamId]?.name;
