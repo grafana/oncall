@@ -64,10 +64,9 @@ def notify_user_async(user_pk, alert_group_pk, notification_policy_pk):
             type=UserNotificationPolicyLogRecord.TYPE_PERSONAL_NOTIFICATION_FAILED,
             notification_policy=notification_policy,
             alert_group=alert_group,
-            reason="Email sending error",
+            reason="Error while sending email",
             notification_step=notification_policy.step,
             notification_channel=notification_policy.notify_by,
-            notification_error_code=UserNotificationPolicyLogRecord.ERROR_NOTIFICATION_MAIL_DELIVERY_FAILED,
         )
-        logger.error(f"Error sending email message: {e}")
+        logger.error(f"Error while sending email: {e}")
         return
