@@ -1443,7 +1443,7 @@ def test_alert_group_preview_body_non_existent_template_var(
     client = APIClient()
     url = reverse("api-internal:alertgroup-preview-template", kwargs={"pk": alert_group.public_primary_key})
 
-    data = {"template_name": "email_title_template", "template_body": "foobar: {{ foobar.does_not_exist }}"}
+    data = {"template_name": "testonly_title_template", "template_body": "foobar: {{ foobar.does_not_exist }}"}
     response = client.post(url, data, format="json", **make_user_auth_headers(user, token))
 
     assert response.status_code == status.HTTP_200_OK
@@ -1465,7 +1465,7 @@ def test_alert_group_preview_body_invalid_template_syntax(
     client = APIClient()
     url = reverse("api-internal:alertgroup-preview-template", kwargs={"pk": alert_group.public_primary_key})
 
-    data = {"template_name": "email_title_template", "template_body": "{{'' if foo is None else foo}}"}
+    data = {"template_name": "testonly_title_template", "template_body": "{{'' if foo is None else foo}}"}
     response = client.post(url, data, format="json", **make_user_auth_headers(user, token))
 
     assert response.status_code == status.HTTP_400_BAD_REQUEST
