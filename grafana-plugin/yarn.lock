@@ -2954,7 +2954,7 @@
     "@types/history" "^4.7.11"
     "@types/react" "*"
 
-"@types/react-test-renderer@^17.0.2":
+"@types/react-test-renderer@17.0.2":
   version "17.0.2"
   resolved "https://registry.yarnpkg.com/@types/react-test-renderer/-/react-test-renderer-17.0.2.tgz#5f800a39b12ac8d2a2149e7e1885215bcf4edbbf"
   integrity sha512-+F1KONQTBHDBBhbHuT2GNydeMpPuviduXIVJRB7Y4nma4NR5DrTJfMMZ+jbhEHbpwL+Uqhs1WXh4KHiyrtYTPg==
@@ -7587,6 +7587,11 @@ jest-matcher-utils@^29.1.2:
     jest-diff "^29.1.2"
     jest-get-type "^29.0.0"
     pretty-format "^29.1.2"
+
+jest-matchmedia-mock@^1.1.0:
+  version "1.1.0"
+  resolved "https://registry.yarnpkg.com/jest-matchmedia-mock/-/jest-matchmedia-mock-1.1.0.tgz#eaae8c5d1dee4e4f7c59f8cb1b38b5d7ea842552"
+  integrity sha512-REnJRsOSCMpGAlkxmvVTqEBpregyFVi9MPEH3N83W1yLKzDdNehtCkcdDZduXq74PLtfI+11NyM4zKCK5ynV9g==
 
 jest-message-util@^27.5.1:
   version "27.5.1"

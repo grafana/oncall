@@ -1,6 +1,6 @@
+import 'jest/matchMedia.ts';
 import { describe, expect, test } from '@jest/globals';
 import { render, fireEvent, screen } from '@testing-library/react';
-import { Icon } from '@grafana/ui';
 
 import Collapse, { CollapseProps } from 'components/Collapse/Collapse';
 import React from 'react';
@@ -8,17 +8,15 @@ import React from 'react';
 import '@testing-library/jest-dom';
 
 describe('Collapse', () => {
-  function getProps(isOpen: boolean, onClick: jest.Mock = null) {
+  function getProps(isOpen: boolean, onClick: jest.Mock = jest.fn()) {
     return {
       label: 'Toggle',
-      isOpen: false,
+      isOpen: isOpen,
       onClick: onClick
-    }
+    } as CollapseProps
   }
 
-  test('It renders the content of children on click', () => {
-    const mock = jest.fn()
-
+  test('Content becomes visible on click', () => {
     render(<Collapse {...getProps(false)} />);
 
     const hiddenChildrenContent = getChildrenEl();
@@ -27,12 +25,17 @@ describe('Collapse', () => {
     const toggler = getTogglerEl();
     fireEvent.click(toggler);
 
-    expect(mock).toHaveBeenCalledTimes(1);
-
     expect(hiddenChildrenContent).toBeDefined();
   });
 
-  test('It renders open if isOpen=true', () => {
+  test('Content is collapsed for [isOpen=false]', () => {
+    render(<Collapse {...getProps(false)} />);
+
+    const content = getChildrenEl();
+    expect(content).toBeNull();
+  })
+
+  test('Content is not collapsed for [isOpen=true]', () => {
     render(<Collapse {...getProps(true)} />);
 
     const content = getChildrenEl();
@@ -44,6 +47,6 @@ describe('Collapse', () => {
   }
 
   function getTogglerEl(): HTMLElement {
-    return screen.getByTestId<HTMLElement>('test__toggle');
+    return screen.queryByTestId<HTMLElement>('test__toggle');
   }
 });
