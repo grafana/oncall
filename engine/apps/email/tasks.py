@@ -9,6 +9,7 @@ from django.utils.html import strip_tags
 from apps.alerts.models import AlertGroup
 from apps.base.utils import live_settings
 from apps.email.alert_rendering import build_subject_and_title
+from apps.email.models import EmailMessage
 from apps.user_management.models import User
 from common.custom_celery_tasks import shared_dedicated_queue_retry_task
 
@@ -33,13 +34,32 @@ def notify_user_async(user_pk, alert_group_pk, notification_policy_pk):
         return
 
     try:
-
         notification_policy = UserNotificationPolicy.objects.get(pk=notification_policy_pk)
     except UserNotificationPolicy.DoesNotExist:
         logger.warning(f"User notification policy {notification_policy_pk} does not exist")
         return
 
-    subject, html_message = build_subject_and_title(alert_group)
+    emails_left = user.organization.emails_left(user)
+    if emails_left <= 0:
+        UserNotificationPolicyLogRecord.objects.create(
+            author=user,
+            type=UserNotificationPolicyLogRecord.TYPE_PERSONAL_NOTIFICATION_FAILED,
+            notification_policy=notification_policy,
+            alert_group=alert_group,
+            reason="Error while sending email",
+            notification_step=notification_policy.step,
+            notification_channel=notification_policy.notify_by,
+            notification_error_code=UserNotificationPolicyLogRecord.ERROR_NOTIFICATION_MAIL_LIMIT_EXCEEDED,
+        )
+        EmailMessage.objects.create(
+            represents_alert_group=alert_group,
+            notification_policy=notification_policy,
+            receiver=user,
+            exceeded_limit=True,
+        )
+        return
+
+    subject, html_message = build_subject_and_title(alert_group, emails_left)
 
     message = strip_tags(html_message)
     email_from = settings.EMAIL_HOST_USER
@@ -56,8 +76,13 @@ def notify_user_async(user_pk, alert_group_pk, notification_policy_pk):
     )
 
     try:
-        # send email through Django setup
         send_mail(subject, message, email_from, recipient_list, html_message=html_message, connection=connection)
+        EmailMessage.objects.create(
+            represents_alert_group=alert_group,
+            notification_policy=notification_policy,
+            receiver=user,
+            exceeded_limit=False,
+        )
     except (gaierror, SMTPException, BadHeaderError, TimeoutError) as e:
         UserNotificationPolicyLogRecord.objects.create(
             author=user,

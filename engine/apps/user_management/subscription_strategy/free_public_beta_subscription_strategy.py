@@ -1,6 +1,7 @@
-from datetime import datetime
-
 from django.apps import apps
+from django.utils import timezone
+
+from apps.email.models import EmailMessage
 
 from .base_subsription_strategy import BaseSubscriptionStrategy
 
@@ -21,17 +22,16 @@ class FreePublicBetaSubscriptionStrategy(BaseSubscriptionStrategy):
     def sms_left(self, user):
         return self._calculate_phone_notifications_left(user)
 
+    # todo: manage backend specific limits in backend itself
     def emails_left(self, user):
-        from apps.email.models import EmailMessage
-
-        now = datetime.now()
+        now = timezone.now()
         day_start = now.replace(hour=0, minute=0, second=0, microsecond=0)
-        emails_this_week = EmailMessage.objects.filter(
+        emails_today = EmailMessage.objects.filter(
             created_at__gte=day_start,
             represents_alert_group__channel__organization=self.organization,
             receiver=user,
         ).count()
-        return self._emails_limit - emails_this_week
+        return self._emails_limit - emails_today
 
     def notifications_limit_web_report(self, user):
         limits_to_show = []
@@ -59,7 +59,7 @@ class FreePublicBetaSubscriptionStrategy(BaseSubscriptionStrategy):
         """
         PhoneCall = apps.get_model("twilioapp", "PhoneCall")
         SMSMessage = apps.get_model("twilioapp", "SMSMessage")
-        now = datetime.now()
+        now = timezone.now()
         day_start = now.replace(hour=0, minute=0, second=0, microsecond=0)
         calls_today = PhoneCall.objects.filter(
             created_at__gte=day_start,

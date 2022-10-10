@@ -23,7 +23,7 @@ class AlertEmailTemplater(AlertTemplater):
         return sf.format(data)
 
 
-def build_subject_and_title(alert_group, limit_notification=False):
+def build_subject_and_title(alert_group, emails_left):
     alert = alert_group.alerts.first()
     templated_alert = AlertEmailTemplater(alert).render()
 
@@ -42,8 +42,8 @@ def build_subject_and_title(alert_group, limit_notification=False):
             "message": str_or_backup(message, ""),  # not render message at all if smth goes wrong
             "organization": alert_group.channel.organization.org_title,
             "integration": emojize(alert_group.channel.short_name, use_aliases=True),
-            "limit_notification": limit_notification,
-            "emails_left": alert_group.channel.organization.emails_left,
+            "limit_notification": emails_left <= 20,
+            "emails_left": emails_left,
         },
     )
 
