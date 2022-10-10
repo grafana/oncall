@@ -50,7 +50,7 @@ class UserNotificationPolicyLogRecord(models.Model):
         ERROR_NOTIFICATION_PHONE_NUMBER_IS_NOT_VERIFIED,
         ERROR_NOTIFICATION_NOT_ABLE_TO_SEND_MAIL,
         ERROR_NOTIFICATION_MAIL_LIMIT_EXCEEDED,
-        ERROR_NOTIFICATION_EMAIL_IS_NOT_VERIFIED,
+        ERROR_NOTIFICATION_EMAIL_IS_NOT_VERIFIED,  # deprecated
         ERROR_NOTIFICATION_TELEGRAM_IS_NOT_LINKED_TO_SLACK_ACC,
         ERROR_NOTIFICATION_PHONE_CALL_LINE_BUSY,
         ERROR_NOTIFICATION_PHONE_CALL_FAILED,
@@ -78,7 +78,6 @@ class UserNotificationPolicyLogRecord(models.Model):
         ERROR_NOTIFICATION_PHONE_CALLS_LIMIT_EXCEEDED,
         ERROR_NOTIFICATION_MAIL_LIMIT_EXCEEDED,
         ERROR_NOTIFICATION_PHONE_NUMBER_IS_NOT_VERIFIED,
-        ERROR_NOTIFICATION_EMAIL_IS_NOT_VERIFIED,
     ]
 
     type = models.IntegerField(choices=TYPE_CHOICES)
@@ -273,7 +272,7 @@ class UserNotificationPolicyLogRecord(models.Model):
                 except ValueError:
                     backend = None
                 result += (
-                    f"failed to notify {user_verbal} in {backend.label.lower() if backend else 'disabled backend'}"
+                    f"failed to notify {user_verbal} by {backend.label.lower() if backend else 'disabled backend'}"
                 )
         elif self.type == UserNotificationPolicyLogRecord.TYPE_PERSONAL_NOTIFICATION_TRIGGERED:
             if notification_step == UserNotificationPolicy.Step.NOTIFY:
