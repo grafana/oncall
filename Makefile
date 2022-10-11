@@ -44,7 +44,7 @@ test: bootstrap
 manage: bootstrap
 	$(setup_engine_env) && $(PYTHON3) manage.py $(ARGS)
 
-run: bootstrap
+run: bootstrap migrate
 	$(setup_engine_env) && $(PYTHON3) manage.py runserver
 
 start-celery: bootstrap
