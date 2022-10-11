@@ -1,6 +1,7 @@
 include .env.dev
 
-ENV = $(CURDIR)/venv
+ENV_DIR ?= venv
+ENV = $(CURDIR)/$(ENV_DIR)
 CELERY = $(ENV)/bin/celery
 PRECOMMIT = $(ENV)/bin/pre-commit
 PIP = $(ENV)/bin/pip
@@ -14,11 +15,11 @@ define setup_engine_env
 endef
 
 $(ENV):
-	python3.9 -m venv venv
+	python3.9 -m venv $(ENV_DIR)
 
 bootstrap: $(ENV)
 	$(PIP) install -U pip wheel
-	cp .env.dev.example .env.dev
+	cp -n .env.dev.example .env.dev
 	cd engine && $(PIP) install -r requirements.txt
 	@touch $@
 
