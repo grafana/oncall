@@ -23,37 +23,37 @@ bootstrap: $(ENV)
 	cd engine && $(PIP) install -r requirements.txt
 	@touch $@
 
-migrate:
+migrate: bootstrap
 	$(setup_engine_env) && $(PYTHON3) manage.py migrate
 
 clean:
 	rm -rf $(ENV)
 
-lint: $(ENV)
+lint: bootstrap
 	cd engine && $(PRECOMMIT) run --all-files
 
-dbshell: $(ENV)
+dbshell: bootstrap
 	$(setup_engine_env) && $(PYTHON3) manage.py dbshell $(ARGS)
 
-shell: $(ENV)
+shell: bootstrap
 	$(setup_engine_env) && $(PYTHON3) manage.py shell $(ARGS)
 
-test: $(ENV)
+test: bootstrap
 	$(setup_engine_env) && $(PYTEST) --ds=settings.dev $(ARGS)
 
-manage:
+manage: bootstrap
 	$(setup_engine_env) && $(PYTHON3) manage.py $(ARGS)
 
-run:
+run: bootstrap
 	$(setup_engine_env) && $(PYTHON3) manage.py runserver
 
-start-celery:
+start-celery: bootstrap
 	. $(ENV)/bin/activate && $(setup_engine_env) && $(PYTHON3) manage.py start_celery
 
-start-celery-beat:
+start-celery-beat: bootstrap
 	$(setup_engine_env) && $(CELERY) -A engine beat -l info
 
-purge-queues:
+purge-queues: bootstrap
 	$(setup_engine_env) && $(CELERY) -A engine purge
 
 docker-services-start:
@@ -70,4 +70,4 @@ docker-services-stop:
 watch-plugin:
 	cd grafana-plugin && yarn install && yarn && yarn watch
 
-.PHONY: bootstrap grafana-plugin
+.PHONY: grafana-plugin
