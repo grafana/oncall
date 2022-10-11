@@ -20,7 +20,7 @@ Developer-friendly incident response with brilliant Slack integration.
 
 We prepared multiple environments: [production](https://grafana.com/docs/grafana-cloud/oncall/open-source/#production-environment), [developer](DEVELOPER.md) and hobby:
 
-1. Download [`docker-compose-mysql-rabbitmq.yml`](docker-compose-mysql-rabbitmq.yml) (or use [`docker-compose-sqlite-redis.yml`](docker-compose-sqlite-redis.yml) for minimal setup using SQLite and Redis):
+1. Download [`docker-compose-mysql-rabbitmq.yml`](docker-compose-mysql-rabbitmq.yml) (or use [`docker-compose-sqlite-redis.yml`](docker-compose-sqlite-redis.yml) for a minimal setup using SQLite and Redis):
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/grafana/oncall/dev/docker-compose-mysql-rabbitmq.yml -o docker-compose.yml
