@@ -29,6 +29,7 @@ def sync_organization(organization):
             "stack_slug",
             "org_slug",
             "org_title",
+            "region_slug",
             "grafana_url",
             "last_time_synced",
             "api_token_status",
@@ -47,6 +48,7 @@ def sync_instance_info(organization):
         organization.stack_slug = instance_info["slug"]
         organization.org_slug = instance_info["orgSlug"]
         organization.org_title = instance_info["orgName"]
+        organization.region_slug = instance_info["regionSlug"]
         organization.grafana_url = instance_info["url"]
         organization.gcom_token_org_last_time_synced = timezone.now()
 

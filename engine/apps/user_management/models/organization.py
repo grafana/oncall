@@ -53,6 +53,7 @@ class Organization(MaintainableObject):
     stack_slug = models.CharField(max_length=300)
     org_slug = models.CharField(max_length=300)
     org_title = models.CharField(max_length=300)
+    region_slug = models.CharField(max_length=300, null=True, default=None)
 
     grafana_url = models.URLField()
 
