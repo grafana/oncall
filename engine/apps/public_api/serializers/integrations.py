@@ -134,7 +134,7 @@ class IntegrationSerializer(EagerLoadingMixin, serializers.ModelSerializer, Main
         if not isinstance(templates, dict):
             raise BadRequest(detail="Invalid template data")
 
-        for notification_channel in ["slack", "web", "sms", "phone_call", "email", "telegram"]:
+        for notification_channel in ["slack", "web", "sms", "phone_call", "telegram"]:
             template_data = templates.get(notification_channel, {})
             if template_data is None:
                 continue

@@ -54,10 +54,6 @@ def test_get_list_integrations(
                     "phone_call": {
                         "title": None,
                     },
-                    "email": {
-                        "title": None,
-                        "message": None,
-                    },
                     "telegram": {
                         "title": None,
                         "message": None,
@@ -117,7 +113,6 @@ def test_create_integrations_with_none_templates(
             "web": None,
             "sms": None,
             "phone_call": None,
-            "email": None,
             "telegram": None,
         },
     }
@@ -183,10 +178,6 @@ def test_update_integration_template(
             },
             "phone_call": {
                 "title": None,
-            },
-            "email": {
-                "title": None,
-                "message": None,
             },
             "telegram": {
                 "title": None,
@@ -258,10 +249,6 @@ def test_update_resolve_signal_template(
             },
             "phone_call": {
                 "title": None,
-            },
-            "email": {
-                "title": None,
-                "message": None,
             },
             "telegram": {
                 "title": None,
@@ -366,10 +353,6 @@ def test_update_sms_template_with_empty_dict(
             "phone_call": {
                 "title": None,
             },
-            "email": {
-                "title": None,
-                "message": None,
-            },
             "telegram": {
                 "title": None,
                 "message": None,
@@ -424,10 +407,6 @@ def test_update_integration_name(
             },
             "phone_call": {
                 "title": None,
-            },
-            "email": {
-                "title": None,
-                "message": None,
             },
             "telegram": {
                 "title": None,
@@ -486,10 +465,6 @@ def test_set_default_template(
             },
             "phone_call": {
                 "title": None,
-            },
-            "email": {
-                "title": None,
-                "message": None,
             },
             "telegram": {
                 "title": None,
