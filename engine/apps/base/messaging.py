@@ -7,7 +7,9 @@ class BaseMessagingBackend:
     label = "The Backend"
     short_label = "Backend"
     available_for_use = False
+
     templater = None
+    template_fields = ["title", "message", "image_url"]
 
     def __init__(self, *args, **kwargs):
         self.notification_channel_id = kwargs.get("notification_channel_id")

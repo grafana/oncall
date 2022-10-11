@@ -608,8 +608,8 @@ class AlertReceiveChannelTemplatesSerializer(EagerLoadingMixin, serializers.Mode
     def _get_messaging_backend_templates(self, obj):
         """Return additional messaging backend templates if any."""
         templates = {}
-        for backend_id, _ in get_messaging_backends():
-            for field in ("title", "message", "image_url"):
+        for backend_id, backend in get_messaging_backends():
+            for field in backend.template_fields:
                 value = None
                 if obj.messaging_backends_templates:
                     value = obj.messaging_backends_templates.get(backend_id, {}).get(field)

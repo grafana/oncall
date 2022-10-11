@@ -7,7 +7,9 @@ class EmailBackend(BaseMessagingBackend):
     label = "Email"
     short_label = "Email"
     available_for_use = True
+
     templater = "apps.email.alert_rendering.AlertEmailTemplater"
+    template_fields = ["title", "message"]
 
     def serialize_user(self, user):
         return {"email": user.email}
