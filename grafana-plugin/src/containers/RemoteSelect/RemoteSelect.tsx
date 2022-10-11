@@ -61,8 +61,8 @@ const RemoteSelect = inject('store')(
     };
 
     function mergeOptions(oldOptions: SelectableValue[], newOptions: SelectableValue[]) {
-      const existedValues = oldOptions.map((o) => o.value);
-      return newOptions.filter(({ value }) => !existedValues.includes(value)).concat(oldOptions);
+      const existingValues = oldOptions.map((o) => o.value);
+      return oldOptions.concat(newOptions.filter(({ value }) => !existingValues.includes(value)));
     }
 
     const [options, setOptions] = useReducer(mergeOptions, []);
