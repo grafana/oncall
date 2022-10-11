@@ -2,6 +2,7 @@
 aliases:
   - /docs/grafana-cloud/oncall/integrations/add-integration/
   - /docs/oncall/latest/integrations/available-integrations/
+  - /docs/grafana-cloud/oncall/integrations/available-integration/
 keywords:
   - Grafana Cloud
   - Alerts
@@ -14,7 +15,7 @@ canonical: "https://grafana.com/docs/oncall/latest/integrations/available-integr
 weight: 100
 ---
 
-# Currently available integrations
+# Available integrations
 
 Grafana OnCall can connect directly to the monitoring services where your alerts originate. All currently available integrations are listed in the Grafana OnCall **Create Integration** section.
 

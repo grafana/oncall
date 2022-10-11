@@ -10,12 +10,12 @@ keywords:
   - amixr
   - oncall
   - integrations
-title: Connect to Grafana OnCall
+title: Grafana OnCall integrations
 canonical: "https://grafana.com/docs/oncall/latest/integrations/"
 weight: 500
 ---
 
-# Connect to Grafana OnCall
+# Grafana OnCall integrations
 
 Integrations allow you to connect monitoring systems of your choice to send alerts to Grafana OnCall. Regardless of where your alerts originate, you can configure alerts to be sent to Grafana OnCall for alert escalation and notification. Grafana OnCall receives alerts in JSON format via a POST request, OnCall then parses alert data using preconfigured alert templates to determine alert grouping, apply routes, and determine correct escalation.
 

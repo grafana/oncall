@@ -1,6 +1,7 @@
 ---
 aliases:
   - /docs/oncall/latest/integrations/add-webhook-integration/
+  - /docs/oncall/latest/integrations/available-integrations/configure-webhook/
 keywords:
   - Grafana Cloud
   - Alerts
@@ -13,7 +14,7 @@ canonical: "https://grafana.com/docs/oncall/latest/integrations/add-webhook-inte
 weight: 700
 ---
 
-# Configure Webhook integrations for Grafana OnCall
+# Webhook integrations for Grafana OnCall
 
 Grafana OnCall directly supports many integrations, those that aren’t currently listed in the Integrations menu can be connected using the webhook integration and configured alert templates.
 

@@ -1,6 +1,7 @@
 ---
 aliases:
   - /docs/oncall/latest/chat-options/configure-telegram/
+  - /docs/oncall/latest/integrations/chatops-integrations/configure-telegram/
 keywords:
   - Grafana Cloud
   - Alerts

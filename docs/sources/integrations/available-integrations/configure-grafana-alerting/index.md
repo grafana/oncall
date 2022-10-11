@@ -1,19 +1,20 @@
 ---
 aliases:
   - /docs/grafana-cloud/oncall/integrations/add-grafana-alerting/
-  - /docs/oncall/latest/integrations/available-integrations /add-grafana-alerting/
+  - /docs/oncall/latest/integrations/available-integrations/add-grafana-alerting/
+  - /docs/grafana-cloud/oncall/integrations/configure-grafana-alerting/
 keywords:
   - Grafana Cloud
   - Alerts
   - Notifications
   - on-call
   - Prometheus
-title: Connect Grafana Alerting to Grafana OnCall
+title: Grafana Alerting integration for Grafana OnCall
 canonical: "https://grafana.com/docs/oncall/latest/integrations/available-integrations/add-grafana-alerting/"
 weight: 100
 ---
 
-# Connect Grafana Alerting to Grafana OnCall
+# Grafana Alerting integration for Grafana OnCall
 
 Grafana Alerting for Grafana OnCall can be set up using two methods:
 
