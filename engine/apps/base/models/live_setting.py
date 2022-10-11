@@ -35,6 +35,8 @@ class LiveSetting(models.Model):
     AVAILABLE_NAMES = (
         "TWILIO_ACCOUNT_SID",
         "TWILIO_AUTH_TOKEN",
+        "TWILIO_API_KEY_SID",
+        "TWILIO_API_KEY_SECRET",
         "TWILIO_NUMBER",
         "TWILIO_VERIFY_SERVICE_SID",
         "TELEGRAM_TOKEN",
@@ -80,14 +82,24 @@ class LiveSetting(models.Model):
             "after you update them."
         ),
         "TWILIO_ACCOUNT_SID": (
-            "Twilio username to allow amixr send sms and make phone calls, "
+            "Twilio account SID/username to allow OnCall send sms and make phone calls, "
             "<a href='https://support.twilio.com/hc/en-us/articles/223136027-Auth-Tokens-and-How-to-Change-Them' target='_blank'>"
-            "more info</a>."
+            "more info</a>. Required."
+        ),
+        "TWILIO_API_KEY_SID": (
+            "Twilio API key SID/username to allow OnCall send sms and make phone calls, "
+            "<a href='https://www.twilio.com/docs/iam/keys/api-key' target='_blank'>"
+            "more info</a>. Either (TWILIO_API_KEY_SID + TWILIO_API_KEY_SECRET) or TWILIO_AUTH_TOKEN is required."
+        ),
+        "TWILIO_API_KEY_SECRET": (
+            "Twilio API key secret/password to allow OnCall send sms and make phone calls, "
+            "<a href='https://www.twilio.com/docs/iam/keys/api-key' target='_blank'>"
+            "more info</a>. Either (TWILIO_API_KEY_SID + TWILIO_API_KEY_SECRET) or TWILIO_AUTH_TOKEN is required."
         ),
         "TWILIO_AUTH_TOKEN": (
-            "Twilio password to allow amixr send sms and make calls, "
+            "Twilio password to allow OnCall send sms and make calls, "
             "<a href='https://support.twilio.com/hc/en-us/articles/223136027-Auth-Tokens-and-How-to-Change-Them' target='_blank'>"
-            "more info</a>."
+            "more info</a>. Either (TWILIO_API_KEY_SID + TWILIO_API_KEY_SECRET) or TWILIO_AUTH_TOKEN is required."
         ),
         "TWILIO_NUMBER": (
             "Number from which you will receive calls and SMS, "
