@@ -1,6 +1,6 @@
-# flake8: noqa: F405
+# flake8: noqa
 
-from .base import *  # noqa
+from .base import *
 
 SECRET_KEY = "u5/IIbuiJR3Y9FQMBActk+btReZ5oOxu+l8MIJQWLfVzESoan5REE6UNSYYEQdjBOcty9CDak2X"
 
@@ -9,27 +9,29 @@ MIRAGE_CIPHER_IV = "X+VFcDqtxJ5bbU+V"
 
 BASE_URL = "http://localhost"
 
-CELERY_BROKER_URL = "amqp://rabbitmq:rabbitmq@rabbit_test:5672"
+if DATABASE_TYPE == DatabaseTypes.SQLITE3:
+    DATABASES["default"]["NAME"] = DATABASE_NAME or "oncall_ci.db"
+else:
+    DATABASES["default"] |= {
+        "NAME": DATABASE_NAME or "oncall_local_dev",
+        "USER": DATABASE_USER or DATABASE_DEFAULTS[DATABASE_TYPE]["USER"],
+        "PASSWORD": DATABASE_PASSWORD or "local_dev_pwd",
+        "HOST": DATABASE_HOST or f"{DATABASE_TYPE}_test",
+        "PORT": DATABASE_PORT or DATABASE_DEFAULTS[DATABASE_TYPE]["PORT"],
+    }
 
-if DB_BACKEND == "mysql":
-    # Workaround to use pymysql instead of mysqlclient
-    import pymysql
+if BROKER_TYPE == BrokerTypes.RABBITMQ:
+    CELERY_BROKER_URL = "amqp://rabbitmq:rabbitmq@rabbit_test:5672"
+elif BROKER_TYPE == BrokerTypes.REDIS:
+    CELERY_BROKER_URL = REDIS_URI
 
-    pymysql.install_as_MySQLdb()
-    DB_BACKEND_DEFAULT_VALUES[DB_BACKEND]["OPTIONS"] = {"charset": "utf8mb4"}
-
-
-DATABASES = {
-    "default": {
-        "ENGINE": "django.db.backends.{}".format(DB_BACKEND),
-        "NAME": os.environ.get("DB_NAME", "oncall_local_dev"),
-        "USER": os.environ.get("DB_USER", DB_BACKEND_DEFAULT_VALUES.get(DB_BACKEND, {}).get("USER", "root")),
-        "PASSWORD": "local_dev_pwd",
-        "HOST": "{}_test".format(DB_BACKEND),
-        "PORT": os.environ.get("DB_PORT", DB_BACKEND_DEFAULT_VALUES.get(DB_BACKEND, {}).get("PORT", "3306")),
-        "OPTIONS": DB_BACKEND_DEFAULT_VALUES.get(DB_BACKEND, {}).get("OPTIONS", {}),
-    },
-}
+# use redis as cache and celery broker on CI tests
+if BROKER_TYPE != BrokerTypes.REDIS:
+    CACHES = {
+        "default": {
+            "BACKEND": "django.core.cache.backends.locmem.LocMemCache",
+        }
+    }
 
 # Dummy Telegram token (fake one)
 TELEGRAM_TOKEN = "0000000000:XXXXXXXXXXXXXXXXXXXXXXXXXXXX-XXXXXX"

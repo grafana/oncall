@@ -1,6 +1,7 @@
 import { AppPluginMeta } from '@grafana/data';
 import { getBackendSrv } from '@grafana/runtime';
 import { action, observable } from 'mobx';
+import moment from 'moment-timezone';
 import qs from 'query-string';
 import { OnCallAppSettings } from 'types';
 
@@ -24,12 +25,20 @@ import { SlackStore } from 'models/slack/slack';
 import { SlackChannelStore } from 'models/slack_channel/slack_channel';
 import { TeamStore } from 'models/team/team';
 import { TelegramChannelStore } from 'models/telegram_channel/telegram_channel';
+import { Timezone } from 'models/timezone/timezone.types';
 import { UserStore } from 'models/user/user';
 import { UserGroupStore } from 'models/user_group/user_group';
 import { makeRequest } from 'network';
 
 import { AppFeature } from './features';
-import { createGrafanaToken, getPluginSyncStatus, installPlugin, startPluginSync, updateGrafanaToken } from './plugin';
+import {
+  createGrafanaToken,
+  getPluginSyncStatus,
+  installPlugin,
+  startPluginSync,
+  SYNC_STATUS_RETRY_LIMIT, syncStatusDelay,
+  updateGrafanaToken
+} from './plugin';
 import { UserAction } from './userAction';
 
 // ------ Dashboard ------ //
@@ -37,6 +46,9 @@ import { UserAction } from './userAction';
 export class RootBaseStore {
   @observable
   appLoading = true;
+
+  @observable
+  currentTimezone: Timezone = moment.tz.guess() as Timezone;
 
   @observable
   backendVersion = '';
@@ -84,6 +96,9 @@ export class RootBaseStore {
 
   @observable
   incidentsPage: any = this.initialQuery.p ? Number(this.initialQuery.p) : 1;
+
+  @observable
+  onCallApiUrl: string;
 
   // --------------------------
 
@@ -174,6 +189,26 @@ export class RootBaseStore {
     this.isUserAnonymous = false;
   }
 
+  async waitForSyncStatus(retryCount = 0) {
+
+    if (retryCount > SYNC_STATUS_RETRY_LIMIT) {
+      this.retrySync = true;
+      return;
+    }
+
+    getPluginSyncStatus().then((get_sync_response) => {
+      if (get_sync_response.hasOwnProperty('token_ok')) {
+        this.finishSync(get_sync_response);
+      } else {
+        syncStatusDelay(retryCount + 1)
+            .then(() => this.waitForSyncStatus(retryCount + 1))
+      }
+      }).catch((e) => {
+        this.handleSyncException(e);
+      });
+
+  }
+
   async setupPlugin(meta: AppPluginMeta<OnCallAppSettings>) {
     this.resetStatusToDefault();
 
@@ -181,6 +216,8 @@ export class RootBaseStore {
       this.pluginIsInitialized = false;
       return;
     }
+
+    this.onCallApiUrl = meta.jsonData.onCallApiUrl;
 
     let syncStartStatus = await this.startSync();
     if (syncStartStatus.is_user_anonymous) {
@@ -198,28 +235,7 @@ export class RootBaseStore {
       }
       await installPlugin();
     }
-
-    let counter = 0;
-    const interval = setInterval(() => {
-      counter++;
-
-      getPluginSyncStatus()
-        .then((get_sync_response) => {
-          if (get_sync_response.hasOwnProperty('token_ok')) {
-            clearInterval(interval);
-            this.finishSync(get_sync_response);
-          }
-        })
-        .catch((e) => {
-          clearInterval(interval);
-          this.handleSyncException(e);
-        });
-
-      if (counter >= 5) {
-        clearInterval(interval);
-        this.retrySync = true;
-      }
-    }, 2000);
+    await this.waitForSyncStatus();
   }
 
   isUserActionAllowed(action: UserAction) {

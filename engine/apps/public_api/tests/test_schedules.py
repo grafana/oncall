@@ -94,6 +94,56 @@ def test_create_calendar_schedule(make_organization_and_user_with_token):
 
 
 @pytest.mark.django_db
+def test_create_calendar_schedule_with_shifts(make_organization_and_user_with_token, make_team, make_on_call_shift):
+    organization, user, token = make_organization_and_user_with_token()
+    team = make_team(organization)
+    # request user must belong to the team
+    team.users.add(user)
+    client = APIClient()
+
+    start_date = timezone.datetime.now().replace(microsecond=0)
+    data = {
+        "team": team,
+        "start": start_date,
+        "rotation_start": start_date,
+        "duration": timezone.timedelta(seconds=10800),
+    }
+    on_call_shift = make_on_call_shift(
+        organization=organization, shift_type=CustomOnCallShift.TYPE_SINGLE_EVENT, **data
+    )
+
+    url = reverse("api-public:schedules-list")
+    data = {
+        "team_id": team.public_primary_key,
+        "name": "schedule test name",
+        "time_zone": "Europe/Moscow",
+        "type": "calendar",
+        "shifts": [on_call_shift.public_primary_key],
+    }
+
+    response = client.post(url, data=data, format="json", HTTP_AUTHORIZATION=f"{token}")
+    schedule = OnCallSchedule.objects.get(public_primary_key=response.data["id"])
+
+    result = {
+        "id": schedule.public_primary_key,
+        "team_id": team.public_primary_key,
+        "name": schedule.name,
+        "type": "calendar",
+        "time_zone": "Europe/Moscow",
+        "on_call_now": [],
+        "shifts": [on_call_shift.public_primary_key],
+        "slack": {
+            "channel_id": None,
+            "user_group_id": None,
+        },
+        "ical_url_overrides": None,
+    }
+
+    assert response.status_code == status.HTTP_201_CREATED
+    assert response.json() == result
+
+
+@pytest.mark.django_db
 def test_update_calendar_schedule(
     make_organization_and_user_with_token,
     make_schedule,

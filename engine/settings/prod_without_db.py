@@ -15,36 +15,6 @@ except ModuleNotFoundError:
 
 from .base import *  # noqa
 
-# It's required for collectstatic to avoid connecting it to MySQL
-
-# Primary database must have the name "default"
-DATABASES = {
-    "default": {
-        "ENGINE": "django.db.backends.sqlite3",
-        "NAME": os.path.join(BASE_DIR, "db.sqlite3"),  # noqa
-    }
-}
-
-CACHES = {
-    "default": {
-        "BACKEND": "redis_cache.RedisCache",
-        "LOCATION": [
-            os.environ.get("REDIS_URI"),
-        ],
-        "OPTIONS": {
-            "DB": 1,
-            "PARSER_CLASS": "redis.connection.HiredisParser",
-            "CONNECTION_POOL_CLASS": "redis.BlockingConnectionPool",
-            "CONNECTION_POOL_CLASS_KWARGS": {
-                "max_connections": 50,
-                "timeout": 20,
-            },
-            "MAX_CONNECTIONS": 1000,
-            "PICKLE_VERSION": -1,
-        },
-    },
-}
-
 SLACK_SIGNING_SECRET = os.environ.get("SLACK_SIGNING_SECRET")
 SLACK_SIGNING_SECRET_LIVE = os.environ.get("SLACK_SIGNING_SECRET_LIVE", "")
 
@@ -55,8 +25,6 @@ STATICFILES_DIRS = [
 STATIC_ROOT = "./collected_static/"
 
 DEBUG = False
-
-CELERY_BROKER_URL = os.environ["RABBIT_URI"]
 
 SECURE_SSL_REDIRECT = True
 SECURE_REDIRECT_EXEMPT = [
@@ -142,6 +110,8 @@ CELERY_TASK_ROUTES = {
     "apps.alerts.tasks.alert_group_web_title_cache.update_web_title_cache_for_alert_receive_channel": {"queue": "long"},
     "apps.alerts.tasks.alert_group_web_title_cache.update_web_title_cache": {"queue": "long"},
     "apps.alerts.tasks.check_escalation_finished.check_escalation_finished_task": {"queue": "long"},
+    "apps.grafana_plugin.tasks.sync.cleanup_organization_async": {"queue": "long"},
+    "apps.grafana_plugin.tasks.sync.start_cleanup_deleted_organizations": {"queue": "long"},
     "apps.grafana_plugin.tasks.sync.start_sync_organizations": {"queue": "long"},
     "apps.grafana_plugin.tasks.sync.sync_organization_async": {"queue": "long"},
     # SLACK

@@ -1,0 +1,35 @@
+
+.root {
+  max-width: 1600px;
+  margin: 0 auto;
+  margin-top: 24px;
+
+  --rotations-border: var(--border-medium);
+  --rotations-background: var(--background-secondary);
+}
+
+.header {
+  position: sticky; /* TODO check */
+  width: 100%;
+}
+
+.desc {
+  width: 736px;
+}
+
+.users-timezones {
+  width: 100%;
+  margin-bottom: 16px;
+}
+
+.controls {
+  width: 100%;
+}
+
+.rotations {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  position: relative;
+  width: 100%;
+}

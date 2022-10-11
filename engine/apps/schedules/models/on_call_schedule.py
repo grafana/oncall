@@ -1,7 +1,9 @@
 import datetime
+import functools
 import itertools
 
 import icalendar
+import pytz
 from django.apps import apps
 from django.conf import settings
 from django.core.validators import MinLengthValidator
@@ -196,6 +198,10 @@ class OnCallSchedule(PolymorphicModel):
         self.cached_ical_file_overrides = None
         self.save(update_fields=["cached_ical_file_overrides", "prev_ical_file_overrides"])
 
+    def related_users(self):
+        """Return public primary keys for all users referenced in the schedule."""
+        return set()
+
     def filter_events(self, user_timezone, starting_date, days, with_empty=False, with_gap=False, filter_by=None):
         """Return filtered events from schedule."""
         shifts = (
@@ -249,12 +255,20 @@ class OnCallSchedule(PolymorphicModel):
         if not events:
             return []
 
+        def event_start_cmp_key(e):
+            # all day events: compare using a datetime object at 00:00
+            start = e["start"]
+            if not isinstance(start, datetime.datetime):
+                start = datetime.datetime.combine(start, datetime.datetime.min.time(), tzinfo=pytz.UTC)
+            return start
+
         def event_cmp_key(e):
             """Sorting key criteria for events."""
+            start = event_start_cmp_key(e)
             return (
                 -e["calendar_type"] if e["calendar_type"] else 0,  # overrides: 1, shifts: 0, gaps: None
                 -e["priority_level"] if e["priority_level"] else 0,
-                e["start"],
+                start,
             )
 
         def insort_event(eventlist, e):
@@ -309,7 +323,7 @@ class OnCallSchedule(PolymorphicModel):
             if ev["priority_level"] != current_priority:
                 # update scheduled intervals on priority change
                 # and start from the beginning for the new priority level
-                resolved.sort(key=lambda e: e["start"])
+                resolved.sort(key=event_start_cmp_key)
                 intervals = _merge_intervals(resolved)
                 current_interval_idx = 0
                 current_priority = ev["priority_level"]
@@ -362,7 +376,7 @@ class OnCallSchedule(PolymorphicModel):
                 # TODO: switch to bisect insert on python 3.10 (or consider heapq)
                 insort_event(pending, ev)
 
-        resolved.sort(key=lambda e: (e["start"], e["shift"]["pk"]))
+        resolved.sort(key=lambda e: (event_start_cmp_key(e), e["shift"]["pk"] or ""))
         return resolved
 
     def _merge_events(self, events):
@@ -628,6 +642,22 @@ class OnCallScheduleWeb(OnCallSchedule):
         self.cached_ical_file_overrides = self._generate_ical_file_overrides()
         self.save(update_fields=["cached_ical_file_overrides", "prev_ical_file_overrides"])
 
+    def related_users(self):
+        """Return public primary keys for all users referenced in the schedule."""
+        rolling_users = self.custom_shifts.values_list("rolling_users", flat=True)
+        users = functools.reduce(
+            set.union,
+            (
+                set(g.values())
+                for rolling_groups in rolling_users
+                if rolling_groups is not None
+                for g in rolling_groups
+                if g is not None
+            ),
+            set(),
+        )
+        return users
+
     def preview_shift(self, custom_shift, user_tz, starting_date, days, updated_shift_pk=None):
         """Return unsaved rotation and final schedule preview events."""
         if custom_shift.type == CustomOnCallShift.TYPE_OVERRIDE:
@@ -656,9 +686,15 @@ class OnCallScheduleWeb(OnCallSchedule):
                 pass
             else:
                 if update_shift.event_is_started:
+                    custom_shift.rotation_start = max(
+                        custom_shift.rotation_start, timezone.now().replace(microsecond=0)
+                    )
+                    custom_shift.start_rotation_from_user_index = update_shift.start_rotation_from_user_index
                     update_shift.until = custom_shift.rotation_start
                     extra_shifts.append(update_shift)
-                custom_shift.public_primary_key = updated_shift_pk
+                else:
+                    # only reuse PK for preview when updating a rotation that won't be started after the update
+                    custom_shift.public_primary_key = updated_shift_pk
                 qs = qs.exclude(public_primary_key=updated_shift_pk)
 
         ical_file = self._generate_ical_file_from_shifts(qs, extra_shifts=extra_shifts, allow_empty_users=True)
@@ -669,7 +705,9 @@ class OnCallScheduleWeb(OnCallSchedule):
 
         # filter events using a temporal overriden calendar including the not-yet-saved shift
         events = self.filter_events(user_tz, starting_date, days=days, with_empty=True, with_gap=True)
-        shift_events = [e for e in events if e["shift"]["pk"] == custom_shift.public_primary_key]
+        # return preview events for affected shifts
+        updated_shift_pks = {s.public_primary_key for s in extra_shifts}
+        shift_events = [e for e in events if e["shift"]["pk"] in updated_shift_pks]
         final_events = self._resolve_schedule(events)
 
         _invalidate_cache(self, ical_property)

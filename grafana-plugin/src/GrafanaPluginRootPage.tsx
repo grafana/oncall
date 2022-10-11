@@ -2,6 +2,14 @@ import React, { useEffect, useMemo } from 'react';
 
 import { AppRootProps } from '@grafana/data';
 import { Button, HorizontalGroup, LinkButton, VerticalGroup } from '@grafana/ui';
+import dayjs from 'dayjs';
+import isSameOrAfter from 'dayjs/plugin/isSameOrAfter';
+import isSameOrBefore from 'dayjs/plugin/isSameOrBefore';
+import isoWeek from 'dayjs/plugin/isoWeek';
+import localeData from 'dayjs/plugin/localeData';
+import timezone from 'dayjs/plugin/timezone';
+import utc from 'dayjs/plugin/utc';
+import weekday from 'dayjs/plugin/weekday';
 import { observer, Provider } from 'mobx-react';
 
 import 'interceptors';
@@ -13,6 +21,16 @@ import { pages } from 'pages';
 import { rootStore } from 'state';
 import { useStore } from 'state/useStore';
 import { useNavModel } from 'utils/hooks';
+
+dayjs.extend(utc);
+dayjs.extend(timezone);
+dayjs.extend(weekday);
+dayjs.extend(localeData);
+dayjs.extend(isSameOrBefore);
+dayjs.extend(isSameOrAfter);
+dayjs.extend(isoWeek);
+
+// dayjs().weekday(0);
 
 import './style/vars.css';
 import './style/index.css';
@@ -121,9 +139,10 @@ export const Root = observer((props: AppRootProps) => {
         grafanaUser: window.grafanaBootData.user,
         enableLiveSettings: store.hasFeature(AppFeature.LiveSettings),
         enableCloudPage: store.hasFeature(AppFeature.CloudConnection),
+        enableNewSchedulesPage: store.hasFeature(AppFeature.WebSchedules),
         backendLicense,
       }),
-      [meta, pathWithoutLeadingSlash, page, store.features]
+      [meta, pathWithoutLeadingSlash, page, store.features, backendLicense]
     )
   );
   useEffect(() => {
@@ -135,7 +154,7 @@ export const Root = observer((props: AppRootProps) => {
 
   return (
     <DefaultPageLayout {...props}>
-      <GrafanaTeamSelect />
+      <GrafanaTeamSelect currentPage={page} />
       <Page {...props} path={pathWithoutLeadingSlash} />
     </DefaultPageLayout>
   );

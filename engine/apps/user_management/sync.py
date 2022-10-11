@@ -1,8 +1,8 @@
 import logging
 
 from celery.utils.log import get_task_logger
+from django.conf import settings
 from django.utils import timezone
-from rest_framework import status
 
 from apps.grafana_plugin.helpers.client import GcomAPIClient, GrafanaAPIClient
 from apps.user_management.models import Organization, Team, User
@@ -15,13 +15,6 @@ def sync_organization(organization):
     client = GrafanaAPIClient(api_url=organization.grafana_url, api_token=organization.api_token)
 
     api_users, call_status = client.get_users()
-    status_code = call_status["status_code"]
-
-    # if stack is 404ing, delete the organization in case gcom stack is deleted.
-    if status_code == status.HTTP_404_NOT_FOUND:
-        is_deleted = delete_organization_if_needed(organization)
-        if is_deleted:
-            return
 
     sync_instance_info(organization)
 
@@ -82,19 +75,31 @@ def sync_users_and_teams(client, api_users, organization):
 
 
 def delete_organization_if_needed(organization):
+    # Organization has a manually set API token, it will not be found within GCOM
+    # and would need to be deleted manually.
     if organization.gcom_token is None:
         return False
 
-    gcom_client = GcomAPIClient(organization.gcom_token)
-    is_stack_deleted = gcom_client.is_stack_deleted(organization.stack_id)
-
+    # Use common token as organization.gcom_token could be already revoked
+    client = GcomAPIClient(settings.GRAFANA_COM_API_TOKEN)
+    is_stack_deleted = client.is_stack_deleted(organization.stack_id)
     if not is_stack_deleted:
         return False
 
-    logger.info(
-        f"Deleting organization due to stack deletion. "
-        f"pk: {organization.pk}, stack_id: {organization.stack_id}, org_id: {organization.org_id}"
-    )
     organization.delete()
-
     return True
+
+
+def cleanup_organization(organization_pk):
+    logger.info(f"Start cleanup Organization {organization_pk}")
+    try:
+        organization = Organization.objects.get(pk=organization_pk)
+        if delete_organization_if_needed(organization):
+            logger.info(
+                f"Deleting organization due to stack deletion. "
+                f"pk: {organization_pk}, stack_id: {organization.stack_id}, org_id: {organization.org_id}"
+            )
+        else:
+            logger.info(f"Organization {organization_pk} not deleted in gcom, no action taken")
+    except Organization.DoesNotExist:
+        logger.info(f"Organization {organization_pk} was not found")

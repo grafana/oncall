@@ -1,0 +1,42 @@
+.root {
+  width: 100%;
+}
+
+.root table {
+  width: 100%;
+}
+
+.root tr {
+  min-height: 56px;
+}
+
+.root tr:hover {
+  /* background: var(--secondary-background); */
+}
+
+.root th:first-child {
+  padding-left: 20px;
+}
+
+.root td {
+  min-height: 60px;
+  padding: 10px 0;
+}
+
+.pagination {
+  width: 100%;
+  margin-top: 20px;
+}
+
+.expand-icon {
+  padding: 10px;
+  color: var(--primary-text-color);
+  pointer-events: none;
+  transform: rotate(-90deg);
+  transform-origin: center;
+  transition: transform 0.2s;
+}
+
+.expand-icon__expanded {
+  transform: rotate(0deg);
+}

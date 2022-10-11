@@ -1,0 +1,106 @@
+.root {
+  background: var(--rotations-background);
+  border: var(--rotations-border);
+  display: flex;
+  flex-direction: column;
+  border-radius: var(--border-radius);
+}
+
+.current-time {
+  position: absolute;
+  width: 1px;
+  background: var(--gradient-brandVertical);
+  top: 0;
+  bottom: 0;
+  z-index: 1;
+  transition: left 500ms ease;
+}
+
+.header {
+  padding: 0 10px;
+}
+
+.title {
+  margin: 16px 0;
+}
+
+.rotations-plus-title {
+  display: flex;
+  flex-direction: column;
+}
+
+.layer {
+  display: block;
+}
+
+.rotations {
+  position: relative;
+}
+
+.layer-title {
+  text-align: center;
+  font-weight: 500;
+  line-height: 16px;
+  padding: 8px;
+  background: var(--secondary-background);
+}
+
+.layer-title:hover {
+  background: rgba(204, 204, 220, 0.12);
+}
+
+.header-plus-content {
+  position: relative;
+}
+
+.layer-header {
+  padding: 12px;
+  display: flex;
+  justify-content: space-between;
+}
+
+.layer-header-title {
+  font-weight: 400;
+  font-size: 14px;
+  line-height: 20px;
+  color: rgba(204, 204, 220, 0.65);
+}
+
+.layer-content {
+  position: relative;
+}
+
+.add-rotations-layer {
+  font-weight: 400;
+  font-size: 12px;
+  line-height: 16px;
+  text-align: center;
+  padding: 12px;
+  cursor: pointer;
+}
+
+.add-rotations-layer:hover {
+  background: var(--secondary-background);
+}
+
+/*
+animation
+*/
+
+.enter {
+  opacity: 0;
+}
+
+.enterActive {
+  opacity: 1;
+  transition: opacity 500ms ease-in;
+}
+
+.exit {
+  opacity: 1;
+}
+
+.exitActive {
+  opacity: 0;
+  transition: opacity 500ms ease-in;
+}

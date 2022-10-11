@@ -112,3 +112,7 @@
 .slack-channel-switch {
   margin-left: -8px;
 }
+
+.description-style a {
+  color: var(--primary-text-link);
+}

@@ -1,0 +1,71 @@
+.root {
+  display: block;
+}
+
+.draggable {
+  top: 0;
+
+  /* transition: transform 300ms ease; */
+}
+
+.header {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+}
+
+.control {
+  width: 195px;
+}
+
+.user-title {
+  padding: 6px 10px;
+  z-index: 1;
+  color: #fff;
+}
+
+.working-hours {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  pointer-events: none;
+}
+
+.inline-switch {
+  height: 18px;
+}
+
+.days {
+  display: flex;
+  gap: 14px;
+  width: 100%;
+}
+
+.day {
+  width: 28px;
+  height: 28px;
+  background: var(--secondary-background-shade);
+  border-radius: 2px;
+  line-height: 28px;
+  text-align: center;
+  cursor: pointer;
+}
+
+.days .day__selected {
+  background: #3d71d9;
+}
+
+.two-fields {
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+}
+
+.two-fields > div {
+  width: 50%;
+}
+
+.content {
+  margin: 8px 0 16px 0;
+}

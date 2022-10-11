@@ -47,7 +47,8 @@ def refresh_ical_file(schedule_pk):
             task_logger.info(f"run_task_primary {schedule_pk} {run_task_primary} prev_ical_file_primary is None")
         else:
             run_task_primary = not is_icals_equal(
-                schedule.cached_ical_file_primary, schedule.prev_ical_file_primary, schedule
+                schedule.cached_ical_file_primary,
+                schedule.prev_ical_file_primary,
             )
             task_logger.info(f"run_task_primary {schedule_pk} {run_task_primary} icals not equal")
     run_task_overrides = False
@@ -57,7 +58,8 @@ def refresh_ical_file(schedule_pk):
             task_logger.info(f"run_task_overrides {schedule_pk} {run_task_primary} prev_ical_file_overrides is None")
         else:
             run_task_overrides = not is_icals_equal(
-                schedule.cached_ical_file_overrides, schedule.prev_ical_file_overrides, schedule
+                schedule.cached_ical_file_overrides,
+                schedule.prev_ical_file_overrides,
             )
             task_logger.info(f"run_task_overrides {schedule_pk} {run_task_primary} icals not equal")
     run_task = run_task_primary or run_task_overrides

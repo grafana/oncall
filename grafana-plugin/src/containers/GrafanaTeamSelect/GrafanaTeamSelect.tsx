@@ -1,12 +1,10 @@
 import React from 'react';
 
-import { SelectableValue } from '@grafana/data';
-import { HorizontalGroup, Icon, IconButton, Label, Tooltip } from '@grafana/ui';
+import { Icon, Label, Tooltip } from '@grafana/ui';
 import cn from 'classnames/bind';
 import { observer } from 'mobx-react';
 import ReactDOM from 'react-dom';
 
-import Avatar from 'components/Avatar/Avatar';
 import PluginLink from 'components/PluginLink/PluginLink';
 import GSelect from 'containers/GSelect/GSelect';
 import { WithPermissionControl } from 'containers/WithPermissionControl/WithPermissionControl';
@@ -18,11 +16,14 @@ import styles from './GrafanaTeamSelect.module.css';
 
 const cx = cn.bind(styles);
 
-interface GrafanaTeamSelectProps {}
+interface GrafanaTeamSelectProps {
+  currentPage: string;
+}
 
 const GrafanaTeamSelect = observer((props: GrafanaTeamSelectProps) => {
   const store = useStore();
 
+  const { currentPage } = props;
   const { userStore, grafanaTeamStore } = store;
   const grafanaTeams = grafanaTeamStore.getSearchResult();
   const user = userStore.currentUser;
@@ -33,7 +34,15 @@ const GrafanaTeamSelect = observer((props: GrafanaTeamSelectProps) => {
 
   const onTeamChange = async (teamId: GrafanaTeam['id']) => {
     await userStore.updateCurrentUser({ current_team: teamId });
-    window.location.reload();
+
+    const queryParams = new URLSearchParams();
+    queryParams.set('page', mapCurrentPage());
+    window.location.search = queryParams.toString();
+
+    function mapCurrentPage() {
+      if (currentPage === 'incident') {return 'incidents'}
+      return currentPage
+    }
   };
 
   return document.getElementsByClassName('page-header__inner')[0]

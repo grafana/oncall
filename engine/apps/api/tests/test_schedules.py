@@ -9,6 +9,8 @@ from rest_framework.response import Response
 from rest_framework.serializers import ValidationError
 from rest_framework.test import APIClient
 
+from apps.alerts.models import EscalationPolicy
+from apps.schedules.ical_utils import memoized_users_in_ical
 from apps.schedules.models import (
     CustomOnCallShift,
     OnCallSchedule,
@@ -57,10 +59,20 @@ def schedule_internal_api_setup(
 
 
 @pytest.mark.django_db
-def test_get_list_schedules(schedule_internal_api_setup, make_user_auth_headers):
+def test_get_list_schedules(
+    schedule_internal_api_setup, make_escalation_chain, make_escalation_policy, make_user_auth_headers
+):
     user, token, calendar_schedule, ical_schedule, web_schedule, slack_channel = schedule_internal_api_setup
     client = APIClient()
     url = reverse("api-internal:schedule-list")
+
+    # setup escalation chain linked to web schedule
+    escalation_chain = make_escalation_chain(user.organization)
+    make_escalation_policy(
+        escalation_chain=escalation_chain,
+        escalation_policy_step=EscalationPolicy.STEP_NOTIFY_SCHEDULE,
+        notify_schedule=web_schedule,
+    )
 
     expected_payload = [
         {
@@ -79,6 +91,7 @@ def test_get_list_schedules(schedule_internal_api_setup, make_user_auth_headers)
             "mention_oncall_start": True,
             "notify_empty_oncall": 0,
             "notify_oncall_shift_freq": 1,
+            "number_of_escalation_chains": 0,
         },
         {
             "id": ical_schedule.public_primary_key,
@@ -96,6 +109,7 @@ def test_get_list_schedules(schedule_internal_api_setup, make_user_auth_headers)
             "mention_oncall_start": True,
             "notify_empty_oncall": 0,
             "notify_oncall_shift_freq": 1,
+            "number_of_escalation_chains": 0,
         },
         {
             "id": web_schedule.public_primary_key,
@@ -112,6 +126,7 @@ def test_get_list_schedules(schedule_internal_api_setup, make_user_auth_headers)
             "mention_oncall_start": True,
             "notify_empty_oncall": 0,
             "notify_oncall_shift_freq": 1,
+            "number_of_escalation_chains": 1,
         },
     ]
     response = client.get(url, format="json", **make_user_auth_headers(user, token))
@@ -141,6 +156,7 @@ def test_get_detail_calendar_schedule(schedule_internal_api_setup, make_user_aut
         "mention_oncall_start": True,
         "notify_empty_oncall": 0,
         "notify_oncall_shift_freq": 1,
+        "number_of_escalation_chains": 0,
     }
 
     response = client.get(url, format="json", **make_user_auth_headers(user, token))
@@ -170,6 +186,7 @@ def test_get_detail_ical_schedule(schedule_internal_api_setup, make_user_auth_he
         "mention_oncall_start": True,
         "notify_empty_oncall": 0,
         "notify_oncall_shift_freq": 1,
+        "number_of_escalation_chains": 0,
     }
 
     response = client.get(url, format="json", **make_user_auth_headers(user, token))
@@ -178,8 +195,18 @@ def test_get_detail_ical_schedule(schedule_internal_api_setup, make_user_auth_he
 
 
 @pytest.mark.django_db
-def test_get_detail_web_schedule(schedule_internal_api_setup, make_user_auth_headers):
+def test_get_detail_web_schedule(
+    schedule_internal_api_setup, make_escalation_chain, make_escalation_policy, make_user_auth_headers
+):
     user, token, _, _, web_schedule, _ = schedule_internal_api_setup
+    # setup escalation chain linked to web schedule
+    escalation_chain = make_escalation_chain(user.organization)
+    make_escalation_policy(
+        escalation_chain=escalation_chain,
+        escalation_policy_step=EscalationPolicy.STEP_NOTIFY_SCHEDULE,
+        notify_schedule=web_schedule,
+    )
+
     client = APIClient()
     url = reverse("api-internal:schedule-detail", kwargs={"pk": web_schedule.public_primary_key})
 
@@ -198,6 +225,7 @@ def test_get_detail_web_schedule(schedule_internal_api_setup, make_user_auth_hea
         "mention_oncall_start": True,
         "notify_empty_oncall": 0,
         "notify_oncall_shift_freq": 1,
+        "number_of_escalation_chains": 1,
     }
 
     response = client.get(url, format="json", **make_user_auth_headers(user, token))
@@ -230,6 +258,7 @@ def test_create_calendar_schedule(schedule_internal_api_setup, make_user_auth_he
     # modify initial data by adding id and None for optional fields
     schedule = OnCallSchedule.objects.get(public_primary_key=response.data["id"])
     data["id"] = schedule.public_primary_key
+    data["number_of_escalation_chains"] = 0
     assert response.status_code == status.HTTP_201_CREATED
     assert response.data == data
 
@@ -262,6 +291,7 @@ def test_create_ical_schedule(schedule_internal_api_setup, make_user_auth_header
         # modify initial data by adding id and None for optional fields
         schedule = OnCallSchedule.objects.get(public_primary_key=response.data["id"])
         data["id"] = schedule.public_primary_key
+        data["number_of_escalation_chains"] = 0
         assert response.status_code == status.HTTP_201_CREATED
         assert response.data == data
 
@@ -290,6 +320,7 @@ def test_create_web_schedule(schedule_internal_api_setup, make_user_auth_headers
     # modify initial data by adding id and None for optional fields
     schedule = OnCallSchedule.objects.get(public_primary_key=response.data["id"])
     data["id"] = schedule.public_primary_key
+    data["number_of_escalation_chains"] = 0
     assert response.status_code == status.HTTP_201_CREATED
     assert response.data == data
 
@@ -712,6 +743,8 @@ def test_filter_events_final_schedule(
     request_date = start_date
 
     user_a, user_b, user_c, user_d, user_e = (make_user_for_organization(organization, username=i) for i in "ABCDE")
+    # clear users pks <-> organization cache (persisting between tests)
+    memoized_users_in_ical.cache_clear()
 
     shifts = (
         # user, priority, start time (h), duration (hs)
@@ -807,7 +840,7 @@ def test_next_shifts_per_user(
     make_schedule,
     make_on_call_shift,
 ):
-    organization, user, token = make_organization_and_user_with_plugin_token()
+    organization, admin, token = make_organization_and_user_with_plugin_token()
     client = APIClient()
 
     schedule = make_schedule(
@@ -817,7 +850,9 @@ def test_next_shifts_per_user(
     )
 
     tomorrow = timezone.now().replace(hour=0, minute=0, second=0, microsecond=0) + timezone.timedelta(days=1)
-    user_a, user_b, user_c = (make_user_for_organization(organization, username=i) for i in "ABC")
+    user_a, user_b, user_c, user_d = (make_user_for_organization(organization, username=i) for i in "ABCD")
+    # clear users pks <-> organization cache (persisting between tests)
+    memoized_users_in_ical.cache_clear()
 
     shifts = (
         # user, priority, start time (h), duration (hs)
@@ -830,16 +865,29 @@ def test_next_shifts_per_user(
     for user, priority, start_h, duration in shifts:
         data = {
             "start": tomorrow + timezone.timedelta(hours=start_h),
-            "rotation_start": tomorrow,
+            "rotation_start": tomorrow + timezone.timedelta(hours=start_h),
             "duration": timezone.timedelta(hours=duration),
             "priority_level": priority,
             "frequency": CustomOnCallShift.FREQUENCY_DAILY,
             "schedule": schedule,
         }
         on_call_shift = make_on_call_shift(
-            organization=organization, shift_type=CustomOnCallShift.TYPE_RECURRENT_EVENT, **data
+            organization=organization, shift_type=CustomOnCallShift.TYPE_ROLLING_USERS_EVENT, **data
         )
-        on_call_shift.users.add(user)
+        on_call_shift.add_rolling_users([[user]])
+
+    # override in the past: 17-18 / D
+    # won't be listed, but user D will still be included in the response
+    override_data = {
+        "start": tomorrow - timezone.timedelta(days=3),
+        "rotation_start": tomorrow - timezone.timedelta(days=3),
+        "duration": timezone.timedelta(hours=1),
+        "schedule": schedule,
+    }
+    override = make_on_call_shift(
+        organization=organization, shift_type=CustomOnCallShift.TYPE_OVERRIDE, **override_data
+    )
+    override.add_rolling_users([[user_d]])
 
     # override: 17-18 / C
     override_data = {
@@ -856,16 +904,62 @@ def test_next_shifts_per_user(
     # final schedule: 7-12: B, 15-16: A, 16-17: B, 17-18: C (override), 18-20: C
 
     url = reverse("api-internal:schedule-next-shifts-per-user", kwargs={"pk": schedule.public_primary_key})
-    response = client.get(url, format="json", **make_user_auth_headers(user, token))
+    response = client.get(url, format="json", **make_user_auth_headers(admin, token))
     assert response.status_code == status.HTTP_200_OK
 
     expected = {
         user_a.public_primary_key: (tomorrow + timezone.timedelta(hours=15), tomorrow + timezone.timedelta(hours=16)),
         user_b.public_primary_key: (tomorrow + timezone.timedelta(hours=7), tomorrow + timezone.timedelta(hours=12)),
         user_c.public_primary_key: (tomorrow + timezone.timedelta(hours=17), tomorrow + timezone.timedelta(hours=18)),
+        user_d.public_primary_key: None,
     }
-    returned_data = {u: (ev["start"], ev["end"]) for u, ev in response.data["users"].items()}
+    returned_data = {
+        u: (ev["start"], ev["end"]) if ev is not None else None for u, ev in response.data["users"].items()
+    }
     assert returned_data == expected
+
+
+@pytest.mark.django_db
+def test_related_escalation_chains(
+    make_organization_and_user_with_plugin_token,
+    make_user_auth_headers,
+    make_schedule,
+    make_escalation_chain,
+    make_escalation_policy,
+):
+    organization, user, token = make_organization_and_user_with_plugin_token()
+    client = APIClient()
+
+    schedule = make_schedule(
+        organization,
+        schedule_class=OnCallScheduleWeb,
+        name="test_web_schedule",
+    )
+    # setup escalation chains linked to web schedule
+    escalation_chains = []
+    for i in range(3):
+        chain = make_escalation_chain(user.organization)
+        make_escalation_policy(
+            escalation_chain=chain,
+            escalation_policy_step=EscalationPolicy.STEP_NOTIFY_SCHEDULE,
+            notify_schedule=schedule,
+        )
+        escalation_chains.append(chain)
+    # setup other unrelated schedule
+    other_schedule = make_schedule(organization, schedule_class=OnCallScheduleWeb)
+    other_chain = make_escalation_chain(user.organization)
+    make_escalation_policy(
+        escalation_chain=other_chain,
+        escalation_policy_step=EscalationPolicy.STEP_NOTIFY_SCHEDULE,
+        notify_schedule=other_schedule,
+    )
+
+    url = reverse("api-internal:schedule-related-escalation-chains", kwargs={"pk": schedule.public_primary_key})
+    response = client.get(url, format="json", **make_user_auth_headers(user, token))
+    assert response.status_code == status.HTTP_200_OK
+
+    expected = [{"name": chain.name, "pk": chain.public_primary_key} for chain in escalation_chains]
+    assert sorted(response.data, key=lambda e: e["name"]) == sorted(expected, key=lambda e: e["name"])
 
 
 @pytest.mark.django_db
@@ -891,6 +985,8 @@ def test_merging_same_shift_events(
     user_a = make_user_for_organization(organization)
     user_b = make_user_for_organization(organization)
     user_c = make_user_for_organization(organization, role=Role.VIEWER)
+    # clear users pks <-> organization cache (persisting between tests)
+    memoized_users_in_ical.cache_clear()
 
     data = {
         "start": start_date + timezone.timedelta(hours=10),
@@ -1312,3 +1408,54 @@ def test_schedule_mention_options_permissions(
     response = client.get(url, format="json", **make_user_auth_headers(user, token))
 
     assert response.status_code == expected_status
+
+
+@pytest.mark.django_db
+def test_get_schedule_from_other_team_with_flag(
+    make_organization_and_user_with_plugin_token,
+    make_team,
+    make_user_auth_headers,
+    make_schedule,
+):
+    organization, user, token = make_organization_and_user_with_plugin_token()
+
+    team = make_team(organization)
+
+    calendar_schedule = make_schedule(
+        organization,
+        schedule_class=OnCallScheduleCalendar,
+        name="test_calendar_schedule",
+        team=team,
+    )
+
+    client = APIClient()
+    url = reverse("api-internal:schedule-detail", kwargs={"pk": calendar_schedule.public_primary_key})
+    url = f"{url}?from_organization=true"
+
+    response = client.get(url, format="json", **make_user_auth_headers(user, token))
+    assert response.status_code == status.HTTP_200_OK
+
+
+@pytest.mark.django_db
+def test_get_schedule_from_other_team_without_flag(
+    make_organization_and_user_with_plugin_token,
+    make_team,
+    make_user_auth_headers,
+    make_schedule,
+):
+    organization, user, token = make_organization_and_user_with_plugin_token()
+
+    team = make_team(organization)
+
+    calendar_schedule = make_schedule(
+        organization,
+        schedule_class=OnCallScheduleCalendar,
+        name="test_calendar_schedule",
+        team=team,
+    )
+
+    client = APIClient()
+    url = reverse("api-internal:schedule-detail", kwargs={"pk": calendar_schedule.public_primary_key})
+
+    response = client.get(url, format="json", **make_user_auth_headers(user, token))
+    assert response.status_code == status.HTTP_403_FORBIDDEN
