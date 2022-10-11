@@ -1,26 +1,28 @@
 import React, { useCallback, useState, FC } from 'react';
-import { SlackNewIcon } from '../../icons';
-import { Button, VerticalGroup, Icon, Field, Input } from '@grafana/ui';
-import { observer } from 'mobx-react';
-import cn from 'classnames/bind';
 
-import Text from 'components/Text/Text';
+import { Button, VerticalGroup, Icon, Field, Input } from '@grafana/ui';
+import cn from 'classnames/bind';
+import { observer } from 'mobx-react';
+
+import { SlackNewIcon } from 'icons';
 import Block from 'components/GBlock/Block';
+import Text from 'components/Text/Text';
 
 import styles from './SlackInstructions.module.css';
 
 const cx = cn.bind(styles);
 
 interface SlackInstructionsProps {}
-
+/* This component will be used when we will work on moving ENV variables to chat-ops, but we need to do work on backend side first */
 const SlackInstructions: FC<SlackInstructionsProps> = observer((props) => {
   return (
     <div>
-      <SlackNewIcon />
-      {/* <VerticalGroup spacing="lg">
-        <Text.Title level={2}>Setup Slack workspace</Text.Title>
+      <VerticalGroup spacing="lg">
+        <Text.Title level={2}>Connect Slack workspace</Text.Title>
+
         <Block bordered withBackground className={cx('slack-infoblock')}>
           <VerticalGroup align="center" spacing="lg">
+            <SlackNewIcon />
             <Text>You can manage incidents in your Slack workspace. </Text>
             <Text>Before start you need to connect your Slack bot to Grafana OnCall.</Text>
             <Text type="secondary">
@@ -61,7 +63,7 @@ const SlackInstructions: FC<SlackInstructionsProps> = observer((props) => {
           </Text>
         </Block>
         <Button onClick={() => {}}>Save environment</Button>
-      </VerticalGroup> */}
+      </VerticalGroup>
     </div>
   );
 });
