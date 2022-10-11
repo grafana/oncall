@@ -1,5 +1,10 @@
 # Change Log
 
+## v1.0.40 (2022-10-05)
+- Improved database and celery backends support
+- Added script to import PagerDuty users to Grafana
+- Bug fixes
+
 ## v1.0.39 (2022-10-03)
 
 - Fix issue in v1.0.38 blocking the creation of schedules and webhooks in the UI

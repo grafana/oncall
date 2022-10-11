@@ -44,6 +44,11 @@ engine:
 # Celery workers pods configuration
 celery:
   replicaCount: 1
+  livenessProbe:
+    enabled: true
+    initialDelaySeconds: 30
+    periodSeconds: 300
+    timeoutSeconds: 10
   resources: {}
     # limits:
     #   cpu: 100m
