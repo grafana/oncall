@@ -114,7 +114,7 @@ class SchedulePage extends React.Component<SchedulePageProps, SchedulePageState>
             <HorizontalGroup justify="space-between">
               <HorizontalGroup>
                 <PluginLink query={{ page: 'schedules-new' }}>
-                  <IconButton style={{ marginTop: '5px' }} name="arrow-left" size="xxl" />
+                  <IconButton style={{ marginTop: '5px' }} name="arrow-left" size="xl" />
                 </PluginLink>
                 <Text.Title editable editModalTitle="Schedule name" level={2} onTextChange={this.handleNameChange}>
                   {schedule?.name}
@@ -140,7 +140,7 @@ class SchedulePage extends React.Component<SchedulePageProps, SchedulePageState>
                   tooltipContent="Schedule has unassigned time periods during next 7 days"
                 />*/}
               </HorizontalGroup>
-              <HorizontalGroup>
+              <HorizontalGroup spacing="lg">
                 {users && (
                   <HorizontalGroup>
                     <Text type="secondary">Current timezone:</Text>
@@ -151,17 +151,16 @@ class SchedulePage extends React.Component<SchedulePageProps, SchedulePageState>
                 {/*<ToolbarButton icon="copy" tooltip="Copy" />
                 <ToolbarButton icon="brackets-curly" tooltip="Code" />
                 <ToolbarButton icon="share-alt" tooltip="Share" />
-                <ToolbarButton icon="cog" tooltip="Settings" />*/}
-                <WithConfirm>
-                  <ToolbarButton icon="trash-alt" tooltip="Delete" onClick={this.handleDelete} />
-                </WithConfirm>
+                */}
+                <HorizontalGroup>
+                  <ToolbarButton icon="cog" tooltip="Settings" />
+                  <WithConfirm>
+                    <ToolbarButton icon="trash-alt" tooltip="Delete" onClick={this.handleDelete} />
+                  </WithConfirm>
+                </HorizontalGroup>
               </HorizontalGroup>
             </HorizontalGroup>
           </div>
-          <Text className={cx('desc')} size="small" type="secondary">
-            On-call Schedules. Use this to distribute notifications among team members you specified in the "Notify
-            Users from on-call schedule" step in escalation chains.
-          </Text>
           <div className={cx('users-timezones')}>
             <UsersTimezones
               onCallNow={schedule?.on_call_now || []}
@@ -172,25 +171,28 @@ class SchedulePage extends React.Component<SchedulePageProps, SchedulePageState>
               onTzChange={this.handleTimezoneChange}
             />
           </div>
-          <div className={cx('controls')}>
-            <HorizontalGroup justify="space-between">
-              <HorizontalGroup>
-                <Button variant="secondary" onClick={this.handleTodayClick}>
-                  Today
-                </Button>
-                <HorizontalGroup spacing="xs">
-                  <Button variant="secondary" onClick={this.handleLeftClick}>
-                    <Icon name="angle-left" />
+
+          {/* <div className={'current-time'} />*/}
+          <div className={cx('rotations')}>
+            <div className={cx('controls')}>
+              <HorizontalGroup justify="space-between">
+                <HorizontalGroup>
+                  <Button variant="secondary" onClick={this.handleTodayClick}>
+                    Today
                   </Button>
-                  <Button variant="secondary" onClick={this.handleRightClick}>
-                    <Icon name="angle-right" />
-                  </Button>
+                  <HorizontalGroup spacing="xs">
+                    <Button variant="secondary" onClick={this.handleLeftClick}>
+                      <Icon name="angle-left" />
+                    </Button>
+                    <Button variant="secondary" onClick={this.handleRightClick}>
+                      <Icon name="angle-right" />
+                    </Button>
+                  </HorizontalGroup>
+                  <Text.Title style={{ marginLeft: '8px' }} level={4} type="primary">
+                    {startMoment.format('DD MMM')} - {startMoment.add(6, 'day').format('DD MMM')}
+                  </Text.Title>
                 </HorizontalGroup>
-                <Text.Title style={{ marginLeft: '8px' }} level={4} type="primary">
-                  {startMoment.format('DD MMM')} - {startMoment.add(6, 'day').format('DD MMM')}
-                </Text.Title>
-              </HorizontalGroup>
-              {/*<HorizontalGroup width="auto">
+                {/*<HorizontalGroup width="auto">
                 <RadioButtonGroup
                   options={[
                     { label: 'Day', value: 'day' },
@@ -216,10 +218,8 @@ class SchedulePage extends React.Component<SchedulePageProps, SchedulePageState>
                   onChange={this.handleRenderTypeChange}
                 />
               </HorizontalGroup>*/}
-            </HorizontalGroup>
-          </div>
-          {/* <div className={'current-time'} />*/}
-          <div className={cx('rotations')}>
+              </HorizontalGroup>
+            </div>
             <ScheduleFinal
               scheduleId={scheduleId}
               currentTimezone={currentTimezone}
@@ -235,6 +235,7 @@ class SchedulePage extends React.Component<SchedulePageProps, SchedulePageState>
               onDelete={this.handleDeleteRotation}
               shiftIdToShowRotationForm={shiftIdToShowRotationForm}
               onShowRotationForm={this.handleShowRotationForm}
+              disabled={shiftIdToShowRotationForm || shiftIdToShowOverridesForm}
             />
             <ScheduleOverrides
               scheduleId={scheduleId}
@@ -245,6 +246,7 @@ class SchedulePage extends React.Component<SchedulePageProps, SchedulePageState>
               onDelete={this.handleDeleteOverride}
               shiftIdToShowRotationForm={shiftIdToShowOverridesForm}
               onShowRotationForm={this.handleShowOverridesForm}
+              disabled={shiftIdToShowRotationForm || shiftIdToShowOverridesForm}
             />
           </div>
         </VerticalGroup>
@@ -260,17 +262,29 @@ class SchedulePage extends React.Component<SchedulePageProps, SchedulePageState>
     const shift = await scheduleStore.updateOncallShift(shiftId);
 
     if (shift.type === 2) {
-      this.setState({ shiftIdToShowRotationForm: shiftId });
+      this.handleShowRotationForm(shiftId);
     } else if (shift.type === 3) {
-      this.setState({ shiftIdToShowOverridesForm: shiftId });
+      this.handleShowOverridesForm(shiftId);
     }
   };
 
   handleShowRotationForm = (shiftId: Shift['id'] | 'new') => {
+    const { shiftIdToShowRotationForm, shiftIdToShowOverridesForm } = this.state;
+
+    if (shiftId && (shiftIdToShowRotationForm || shiftIdToShowOverridesForm)) {
+      return;
+    }
+
     this.setState({ shiftIdToShowRotationForm: shiftId });
   };
 
   handleShowOverridesForm = (shiftId: Shift['id'] | 'new') => {
+    const { shiftIdToShowRotationForm, shiftIdToShowOverridesForm } = this.state;
+
+    if (shiftId && (shiftIdToShowRotationForm || shiftIdToShowOverridesForm)) {
+      return;
+    }
+
     this.setState({ shiftIdToShowOverridesForm: shiftId });
   };
 

@@ -23,6 +23,7 @@ import ScheduleForm from 'containers/ScheduleForm/ScheduleForm';
 import { WithPermissionControl } from 'containers/WithPermissionControl/WithPermissionControl';
 import { getFromString } from 'models/schedule/schedule.helpers';
 import { Schedule, ScheduleType } from 'models/schedule/schedule.types';
+import { getSlackChannelName } from 'models/slack_channel/slack_channel.helpers';
 import { Timezone } from 'models/timezone/timezone.types';
 import { getStartOfWeek } from 'pages/schedule/Schedule.helpers';
 import { AppFeature } from 'state/features';
@@ -80,21 +81,37 @@ class SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSta
     const columns = [
       {
         width: '10%',
+        title: 'Type',
+        dataIndex: 'type',
+        render: this.renderType,
+      },
+      {
+        width: '10%',
         title: 'Status',
         key: 'name',
         render: this.renderStatus,
       },
       {
-        width: '40%',
+        width: '30%',
         title: 'Name',
         key: 'name',
         render: this.renderName,
       },
       {
-        width: '45%',
+        width: '30%',
         title: 'Oncall',
         key: 'users',
         render: this.renderOncallNow,
+      },
+      {
+        width: '10%',
+        title: 'Slack channel',
+        render: this.renderChannelName,
+      },
+      {
+        width: '10%',
+        title: 'Slack user group',
+        render: this.renderUserGroup,
       },
       /* {
         width: '20%',
@@ -109,9 +126,10 @@ class SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSta
         render: this.renderQuality,
       },*/
       {
-        width: '5%',
+        width: '50px',
         key: 'buttons',
         render: this.renderButtons,
+        className: cx('buttons'),
       },
     ];
 
@@ -260,6 +278,14 @@ class SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSta
     };
   };
 
+  renderType = (value: number) => {
+    type tTypeToVerbal = {
+      [key: number]: string;
+    };
+    const typeToVerbal: tTypeToVerbal = { 0: 'API/Terraform', 1: 'Ical', 2: 'Web' };
+    return typeToVerbal[value];
+  };
+
   renderStatus = (item: Schedule) => {
     const {
       store: { scheduleStore },
@@ -324,6 +350,14 @@ class SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSta
       );
     }
     return null;
+  };
+
+  renderChannelName = (value: Schedule) => {
+    return getSlackChannelName(value.slack_channel) || '-';
+  };
+
+  renderUserGroup = (value: Schedule) => {
+    return value.user_group?.handle || '-';
   };
 
   /* renderChatOps = (item: Schedule) => {

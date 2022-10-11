@@ -33,6 +33,7 @@ interface ScheduleOverridesProps extends WithStoreProps {
   onCreate: () => void;
   onUpdate: () => void;
   onDelete: () => void;
+  disabled: boolean;
 }
 
 interface ScheduleOverridesState {
@@ -46,8 +47,17 @@ class ScheduleOverrides extends Component<ScheduleOverridesProps, ScheduleOverri
   };
 
   render() {
-    const { scheduleId, startMoment, currentTimezone, onCreate, onUpdate, onDelete, store, shiftIdToShowRotationForm } =
-      this.props;
+    const {
+      scheduleId,
+      startMoment,
+      currentTimezone,
+      onCreate,
+      onUpdate,
+      onDelete,
+      store,
+      shiftIdToShowRotationForm,
+      disabled,
+    } = this.props;
     const { shiftMomentToShowOverrideForm } = this.state;
 
     const shifts = store.scheduleStore.overridePreview
@@ -75,7 +85,7 @@ class ScheduleOverrides extends Component<ScheduleOverridesProps, ScheduleOverri
                   Overrides
                 </Text.Title>
               </div>
-              <Button icon="plus" onClick={this.handleAddOverride} variant="secondary">
+              <Button disabled={disabled} icon="plus" onClick={this.handleAddOverride} variant="secondary">
                 Add override
               </Button>
             </HorizontalGroup>
@@ -155,13 +165,23 @@ class ScheduleOverrides extends Component<ScheduleOverridesProps, ScheduleOverri
   }
 
   onRotationClick = (shiftId: Shift['id'], moment: dayjs.Dayjs) => {
+    const { disabled } = this.props;
+
+    if (disabled) {
+      return;
+    }
+
     this.setState({ shiftMomentToShowOverrideForm: moment }, () => {
       this.onShowRotationForm(shiftId);
     });
   };
 
   handleAddOverride = () => {
-    const { startMoment } = this.props;
+    const { startMoment, disabled } = this.props;
+
+    if (disabled) {
+      return;
+    }
 
     this.setState({ shiftMomentToShowOverrideForm: startMoment }, () => {
       this.onShowRotationForm('new');
