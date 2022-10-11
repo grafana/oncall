@@ -1,5 +1,3 @@
-import sys
-
 import pytest
 
 from apps.twilioapp.constants import TwilioCallStatuses, TwilioMessageStatuses
@@ -64,7 +62,6 @@ def test_phone_calls_and_sms_counts_together(
     assert organization.sms_left(user) == organization.subscription_strategy._phone_notifications_limit
 
 
-@pytest.mark.skip(reason="email disabled")
 @pytest.mark.django_db
 def test_emails_left(
     make_organization,
@@ -74,8 +71,11 @@ def test_emails_left(
     make_alert_group,
 ):
     organization = make_organization()
-    admin = make_user_for_organization(organization, role=Role.ADMIN)
+    user = make_user_for_organization(organization)
+
     alert_receive_channel = make_alert_receive_channel(organization)
     alert_group = make_alert_group(alert_receive_channel)
-    make_email_message(receiver=admin, represents_alert_group=alert_group)
-    assert organization.emails_left(admin) == sys.maxsize
+
+    make_email_message(receiver=user, represents_alert_group=alert_group)
+
+    assert organization.emails_left(user) == organization.subscription_strategy._emails_limit - 1

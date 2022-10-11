@@ -630,8 +630,8 @@ def make_sms():
 
 @pytest.fixture()
 def make_email_message():
-    def _make_email_message(receiver, status, **kwargs):
-        return EmailMessageFactory(receiver=receiver, status=status, **kwargs)
+    def _make_email_message(receiver, **kwargs):
+        return EmailMessageFactory(receiver=receiver, **kwargs)
 
     return _make_email_message
 

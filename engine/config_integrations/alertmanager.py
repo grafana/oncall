@@ -73,22 +73,6 @@ web_image_url = slack_image_url
 sms_title = '{{ payload.get("labels", {}).get("alertname", "Title undefined") }}'
 phone_call_title = sms_title
 
-email_title = web_title
-
-email_message = """\
-{{- payload.messsage }}
-{%- if "status" in payload -%}
-**Status**: {{ payload.status }}
-{% endif -%}
-**Labels:** {% for k, v in payload["labels"].items() %}
-{{ k }}: {{ v }}{% endfor %}
-**Annotations:** 
-{%- for k, v in payload.get("annotations", {}).items() %}
-{#- render annotation as markdown url if it starts with http #}
-{{ k }}: {{v}}
-{% endfor %}
-"""  # noqa: W291
-
 telegram_title = sms_title
 
 telegram_message = """\

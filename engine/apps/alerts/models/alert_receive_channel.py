@@ -193,10 +193,6 @@ class AlertReceiveChannel(IntegrationOptionsMixin, MaintainableObject):
         "phone_call": {
             "title": "phone_call_title_template",
         },
-        "email": {
-            "title": "email_title_template",
-            "message": "email_message_template",
-        },
         "telegram": {
             "title": "telegram_title_template",
             "message": "telegram_message_template",
@@ -461,10 +457,6 @@ class AlertReceiveChannel(IntegrationOptionsMixin, MaintainableObject):
                 "message": self.web_message_template,
                 "image_url": self.web_image_url_template,
             },
-            "email": {
-                "title": self.email_title_template,
-                "message": self.email_message_template,
-            },
             "sms": {
                 "title": self.sms_title_template,
             },
@@ -620,8 +612,6 @@ class AlertReceiveChannel(IntegrationOptionsMixin, MaintainableObject):
             "web_title": self.web_title_template or "default",
             "web_message": self.web_message_template or "default",
             "web_image_url_template": self.web_image_url_template or "default",
-            "email_title_template": self.email_title_template or "default",
-            "email_message": self.email_message_template or "default",
             "telegram_title": self.telegram_title_template or "default",
             "telegram_message": self.telegram_message_template or "default",
             "telegram_image_url": self.telegram_image_url_template or "default",
