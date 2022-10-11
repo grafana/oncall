@@ -61,7 +61,7 @@ class LiveSetting(models.Model):
         "EMAIL_PORT": "SMTP server port",
         "EMAIL_HOST_USER": "SMTP server user",
         "EMAIL_HOST_PASSWORD": "SMTP server password",
-        "EMAIL_USE_TLS": "SMTP use TLS",
+        "EMAIL_USE_TLS": "SMTP enable/disable TLS",
         "SLACK_SIGNING_SECRET": (
             "Check <a href='"
             "https://grafana.com/docs/grafana-cloud/oncall/open-source/#slack-setup"
