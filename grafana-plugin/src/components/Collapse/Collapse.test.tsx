@@ -1,9 +1,10 @@
 import 'jest/matchMedia.ts';
+import React from 'react';
+
 import { describe, expect, test } from '@jest/globals';
 import { render, fireEvent, screen } from '@testing-library/react';
 
 import Collapse, { CollapseProps } from 'components/Collapse/Collapse';
-import React from 'react';
 
 import '@testing-library/jest-dom';
 

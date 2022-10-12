@@ -1,14 +1,17 @@
 import 'jest/matchMedia.ts';
+import React from 'react';
+
 import { describe, expect, test } from '@jest/globals';
 import { render, fireEvent, screen, getByTestId, waitFor } from '@testing-library/react';
 
-import React from 'react';
 
 import '@testing-library/jest-dom';
+import outgoingWebhooksStub from 'jest/outgoingWebhooksStub';
+
+import { OutgoingWebhook } from 'models/outgoing_webhook/outgoing_webhook.types';
+
 import { OutgoingWebhooks } from './OutgoingWebhooks';
 
-import outgoingWebhooksStub from 'jest/outgoingWebhooksStub';
-import { OutgoingWebhook } from 'models/outgoing_webhook/outgoing_webhook.types';
 
 const outgoingWebhooks = outgoingWebhooksStub as OutgoingWebhook[];
 const outgoingWebhookStore = () => ({

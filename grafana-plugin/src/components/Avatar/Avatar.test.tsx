@@ -1,8 +1,9 @@
+import React from 'react';
+
 import { describe, expect, test } from '@jest/globals';
 import { render, fireEvent, screen } from '@testing-library/react';
 
 import Avatar from 'components/Avatar/Avatar';
-import React from 'react';
 
 import '@testing-library/jest-dom';
 

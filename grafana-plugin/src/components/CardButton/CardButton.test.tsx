@@ -1,8 +1,9 @@
 import 'jest/matchMedia.ts';
+import React from 'react';
+
 import { describe, expect, test } from '@jest/globals';
 import { fireEvent, render, screen } from '@testing-library/react';
 
-import React from 'react';
 
 import '@testing-library/jest-dom';
 import CardButton from 'components/CardButton/CardButton';
