@@ -82,24 +82,24 @@ class LiveSetting(models.Model):
             "after you update them."
         ),
         "TWILIO_ACCOUNT_SID": (
-            "Twilio account SID/username to allow OnCall send sms and make phone calls, "
+            "Twilio account SID/username to allow OnCall to send SMSes and make phone calls, see "
             "<a href='https://support.twilio.com/hc/en-us/articles/223136027-Auth-Tokens-and-How-to-Change-Them' target='_blank'>"
-            "more info</a>. Required."
+            "here</a> for more info. Required."
         ),
         "TWILIO_API_KEY_SID": (
-            "Twilio API key SID/username to allow OnCall send sms and make phone calls, "
+            "Twilio API key SID/username to allow OnCall to send SMSes and make phone calls, see"
             "<a href='https://www.twilio.com/docs/iam/keys/api-key' target='_blank'>"
-            "more info</a>. Either (TWILIO_API_KEY_SID + TWILIO_API_KEY_SECRET) or TWILIO_AUTH_TOKEN is required."
+            "here</a> for more info. Either (TWILIO_API_KEY_SID + TWILIO_API_KEY_SECRET) or TWILIO_AUTH_TOKEN is required."
         ),
         "TWILIO_API_KEY_SECRET": (
-            "Twilio API key secret/password to allow OnCall send sms and make phone calls, "
+            "Twilio API key secret/password to allow OnCall to send SMSes and make phone calls, see"
             "<a href='https://www.twilio.com/docs/iam/keys/api-key' target='_blank'>"
-            "more info</a>. Either (TWILIO_API_KEY_SID + TWILIO_API_KEY_SECRET) or TWILIO_AUTH_TOKEN is required."
+            "here</a> for more info. Either (TWILIO_API_KEY_SID + TWILIO_API_KEY_SECRET) or TWILIO_AUTH_TOKEN is required."
         ),
         "TWILIO_AUTH_TOKEN": (
-            "Twilio password to allow OnCall send sms and make calls, "
+            "Twilio password to allow OnCall to send SMSes and make calls, "
             "<a href='https://support.twilio.com/hc/en-us/articles/223136027-Auth-Tokens-and-How-to-Change-Them' target='_blank'>"
-            "more info</a>. Either (TWILIO_API_KEY_SID + TWILIO_API_KEY_SECRET) or TWILIO_AUTH_TOKEN is required."
+            "here</a> for more info. Either (TWILIO_API_KEY_SID + TWILIO_API_KEY_SECRET) or TWILIO_AUTH_TOKEN is required."
         ),
         "TWILIO_NUMBER": (
             "Number from which you will receive calls and SMS, "
