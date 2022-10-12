@@ -59,7 +59,7 @@ Regardless of where your alerts originate, you can send them to Grafana OnCall v
 2. Explore the alert by clicking on the title of the alert.
 3. Acknowledge and resolve the test alert.
 
-For more information on Grafana OnCall integrations and further configuration guidance, refer to, [Connect to Grafana OnCall]({{< relref "../integrations" >}})
+For more information on Grafana OnCall integrations and further configuration guidance, refer to, [Grafana OnCall integrations]({{< relref "/../../integrations/_index.md" >}})
 
 
 ### Configure Escalation Chains
@@ -105,7 +105,7 @@ To configure Slack for Grafana OnCall:
 5. Click Allow to allow Grafana OnCall to access Slack.
 6. Ensure users verify their Slack accounts in their user profile in Grafana OnCall.
 
-For further instruction on connecting to your Slack workspace, refer to [Connect Slack to Grafana OnCall]({{< relref "../chat-options/configure-slack" >}})
+For further instruction on connecting to your Slack workspace, refer to [Slack integration for Grafana OnCall]({{< relref "/../../integrations/chatops-integrations/configure-slack/index.md" >}})
 
 
 ### Add your on-call schedule
