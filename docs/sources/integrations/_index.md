@@ -53,7 +53,7 @@ To customize alert grouping for an integration:
 2. Select **Alert Behavior** from the dropdown menu next to **Edit template for**.
 3. Edit the **grouping id**, **acknowledge condition**, and **resolve condition** templates as needed to customize your alert behavior.
 
-For more information on alert templates, see [Configure alerts in Grafana OnCall]({{< relref "create-custom-templates/" >}})
+For more information on alert templates, see [Configure alerts templates]({{< relref "../alert-behavior/alert-templates" >}})
 
 #### Add Routes
 
