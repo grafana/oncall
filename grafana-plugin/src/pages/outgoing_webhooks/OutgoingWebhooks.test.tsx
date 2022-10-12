@@ -1,6 +1,6 @@
 import 'jest/matchMedia.ts';
 import { describe, expect, test } from '@jest/globals';
-import { render, fireEvent, screen } from '@testing-library/react';
+import { render, fireEvent, screen, getByTestId, waitFor } from '@testing-library/react';
 
 import React from 'react';
 
@@ -8,11 +8,22 @@ import '@testing-library/jest-dom';
 import { OutgoingWebhooks } from './OutgoingWebhooks';
 
 import outgoingWebhooksStub from 'jest/outgoingWebhooksStub';
-import { mockGrafanaLocationSrv, mockUseStore } from 'jest/utils';
 import { OutgoingWebhook } from 'models/outgoing_webhook/outgoing_webhook.types';
+
+const outgoingWebhooks = outgoingWebhooksStub as OutgoingWebhook[];
+const outgoingWebhookStore = () => ({
+  loadItem: () => Promise.resolve(outgoingWebhooks[0]),
+  updateItems: () => Promise.resolve(),
+  getSearchResult: () => outgoingWebhooks,
+  items: outgoingWebhooks.reduce((prev, current) => {
+    prev[current.id] = current;
+    return prev;
+  }, {}),
+});
 
 jest.mock('state/useStore', () => ({
   useStore: () => ({
+    outgoingWebhookStore: outgoingWebhookStore(),
     isUserActionAllowed: jest.fn().mockReturnValue(true),
   }),
 }));
@@ -21,17 +32,15 @@ jest.mock('@grafana/runtime', () => ({
 }));
 
 describe('OutgoingWebhooks', () => {
-  const outgoingWebhooks = outgoingWebhooksStub as OutgoingWebhook[];
-
   const storeMock = {
     isUserActionAllowed: jest.fn().mockReturnValue(true),
-    outgoingWebhookStore: {
-      loadItem: () => Promise.resolve(outgoingWebhooks[0]),
-      updateItems: () => Promise.resolve(),
-      getSearchResult: () => outgoingWebhooks,
-      items: outgoingWebhooks
-    },
+    outgoingWebhookStore: outgoingWebhookStore(),
   };
+
+  beforeAll(() => {
+    console.warn = () => {};
+    console.error = () => {};
+  });
 
   test('It renders all retrieved webhooks', async () => {
     render(<OutgoingWebhooks {...getProps()} />);
@@ -39,22 +48,27 @@ describe('OutgoingWebhooks', () => {
     const gTable = screen.queryByTestId('test__gTable');
     const rows = gTable.querySelectorAll('tbody tr');
 
-    expect(getEditForm()).toBeNull(); // edit doesn't show for [id=undefined]
-    expect(rows.length).toBe(outgoingWebhooks.length);
+    await waitFor(() => {
+      expect(() => queryEditForm()).toThrow(); // edit doesn't show for [id=undefined]
+      expect(rows.length).toBe(outgoingWebhooks.length);
+    });
   });
 
   test('It opens Edit View if [id] is supplied', async () => {
     const id = outgoingWebhooks[0].id;
     render(<OutgoingWebhooks {...getProps(id)} />);
 
-    expect(getEditForm()).toBeDefined(); // edit shows for [id=?]
+    expect(() => queryEditForm()).toThrow(); // before updates kick in
+    await waitFor(() => {
+      expect(queryEditForm()).toBeDefined(); // edit shows for [id=?]
+    });
   });
 
   function getProps(id: OutgoingWebhook['id'] = undefined): any {
     return { store: storeMock, query: { id } };
   }
 
-  function getEditForm(): HTMLElement {
-    return screen.queryByTestId('test__outgoingWebhookEditForm');
+  function queryEditForm(): HTMLElement {
+    return screen.getByTestId<HTMLElement>('test__outgoingWebhookEditForm');
   }
 });

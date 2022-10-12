@@ -99,9 +99,10 @@ const GForm = (props: GFormProps) => {
   return (
     <Form maxWidth="none" id={form.name} defaultValues={data} onSubmit={handleSubmit}>
       {({ register, errors, control }) => {
-        return form.fields.map((formItem: FormItem) => {
+        return form.fields.map((formItem: FormItem, formIndex: number) => {
           return (
             <Field
+              key={formIndex}
               disabled={formItem.getDisabled ? formItem.getDisabled(data) : false}
               label={formItem.label || capitalCase(formItem.name)}
               invalid={!!errors[formItem.name]}
