@@ -8,7 +8,7 @@
     "stylelint": "stylelint ./src/**/*.css",
     "stylelint:fix": "stylelint --fix ./src/**/*.css",
     "build": "grafana-toolkit plugin:build",
-    "test": "jest",
+    "test": "jest --verbose",
     "dev": "grafana-toolkit plugin:dev",
     "watch": "grafana-toolkit plugin:dev --watch",
     "sign": "grafana-toolkit plugin:sign",
