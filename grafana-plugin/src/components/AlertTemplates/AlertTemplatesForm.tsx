@@ -244,8 +244,8 @@ const AlertTemplatesForm = (props: AlertTemplatesFormProps) => {
                     <div className={cx('web-title-message')}>
                       <Text type="secondary" size="small">
                         Please note that after changing the web title template new alert groups will be searchable by
-                        new title. Alert groups created before the template was changed will be still searchable by
-                        old title only.
+                        new title. Alert groups created before the template was changed will be still searchable by old
+                        title only.
                       </Text>
                     </div>
                   )}

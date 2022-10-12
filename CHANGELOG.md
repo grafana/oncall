@@ -1,8 +1,28 @@
 # Change Log
 
+## v1.0.40 (2022-10-05)
+- Improved database and celery backends support
+- Added script to import PagerDuty users to Grafana
+- Bug fixes
+
+## v1.0.39 (2022-10-03)
+
+- Fix issue in v1.0.38 blocking the creation of schedules and webhooks in the UI
+
+## v1.0.38 (2022-09-30)
+
+- Fix exception handling for adding resolution notes when slack and oncall users are out of sync.
+- Fix all day events showing as having gaps in slack notifications
+- Improve plugin configuration error message readability
+- Add `telegram` key to `permalinks` property in `AlertGroup` public API response schema
+
 ## v1.0.37 (2022-09-21)
 
+- Improve API token creation form
+- Fix alert group bulk action bugs
 - Add `permalinks` property to `AlertGroup` public API response schema
+- Scheduling system bug fixes
+- Public API bug fixes
 
 ## v1.0.36 (2022-09-12)
 

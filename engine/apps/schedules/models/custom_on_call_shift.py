@@ -5,6 +5,7 @@ from calendar import monthrange
 from uuid import uuid4
 
 import pytz
+from dateutil import relativedelta
 from django.apps import apps
 from django.conf import settings
 from django.core.validators import MinLengthValidator
@@ -353,6 +354,13 @@ class CustomOnCallShift(models.Model):
         ONE_DAY = 1
         ONE_HOUR = 1
 
+        def add_months(year, month, months_add):
+            """
+            Utility method for month calculation. E.g. (2022, 12) + 1 month = (2023, 1)
+            """
+            dt = timezone.datetime.min.replace(year=year, month=month) + relativedelta.relativedelta(months=months_add)
+            return dt.year, dt.month
+
         current_event = Event.from_ical(event_ical)
         # take shift interval, not event interval. For rolling_users shift it is not the same.
         interval = self.interval or 1
@@ -385,7 +393,8 @@ class CustomOnCallShift(models.Model):
                 days_for_next_event = DAYS_IN_A_MONTH - current_event_start.day + ONE_DAY
                 # count next event start date with respect to event interval
                 for i in range(1, interval):
-                    next_month_days = monthrange(current_event_start.year, current_event_start.month + i)[1]
+                    year, month = add_months(current_event_start.year, current_event_start.month, i)
+                    next_month_days = monthrange(year, month)[1]
                     days_for_next_event += next_month_days
                 next_event_start = current_event_start + timezone.timedelta(days=days_for_next_event)
 
@@ -411,8 +420,7 @@ class CustomOnCallShift(models.Model):
         repetitions = UnfoldableCalendar(current_event).RepeatedEvent(
             current_event, next_event_start.replace(microsecond=0)
         )
-        ical_iter = repetitions.__iter__()
-        for event in ical_iter:
+        for event in repetitions.__iter__():
             if end_date:  # end_date exists for long events with frequency weekly and monthly
                 if end_date >= event.start >= next_event_start:
                     if (
@@ -451,8 +459,7 @@ class CustomOnCallShift(models.Model):
         repetitions = UnfoldableCalendar(initial_event).RepeatedEvent(
             initial_event, initial_event_start.replace(microsecond=0)
         )
-        ical_iter = repetitions.__iter__()
-        for event in ical_iter:
+        for event in repetitions.__iter__():
             if event.start > date:
                 break
             last_event = event

@@ -86,6 +86,18 @@ export class ScheduleStore extends BaseStore {
   }
 
   @action
+  async loadItem(id: Schedule['id'], skipErrorHandling = false): Promise<Schedule> {
+    const schedule = await this.getById(id, skipErrorHandling);
+
+    this.items = {
+      ...this.items,
+      [id]: schedule,
+    };
+
+    return schedule;
+  }
+
+  @action
   async updateScheduleEvents(
     scheduleId: Schedule['id'],
     withEmpty: boolean,
@@ -124,9 +136,9 @@ export class ScheduleStore extends BaseStore {
     };
   }
 
-  async updateItem(id: Schedule['id']) {
+  async updateItem(id: Schedule['id'], fromOrganization = false) {
     if (id) {
-      const item = await this.getById(id);
+      const item = await this.getById(id, true, fromOrganization);
 
       this.items = {
         ...this.items,

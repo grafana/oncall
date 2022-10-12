@@ -39,7 +39,7 @@ jobs:
         run: |
           docker run -v ${PWD}/docs/sources:/hugo/content/docs/oncall/latest -e HUGO_REFLINKSERRORLEVEL=ERROR --rm grafana/docs-base:latest /bin/bash -c 'make hugo'
 
-  unit-test-backend:
+  unit-test-backend-mysql-rabbitmq:
     runs-on: ubuntu-latest
     container: python:3.9
     env:
@@ -66,11 +66,11 @@ jobs:
           pip install -r requirements.txt
           ./wait_for_test_mysql_start.sh && pytest --ds=settings.ci-test -x
 
-  unit-test-backend-postgresql:
+  unit-test-backend-postgresql-rabbitmq:
     runs-on: ubuntu-latest
     container: python:3.9
     env:
-      DB_BACKEND: postgresql
+      DATABASE_TYPE: postgresql
       DJANGO_SETTINGS_MODULE: settings.ci-test
       SLACK_CLIENT_OAUTH_ID: 1
     services:
@@ -98,3 +98,29 @@ jobs:
           pip install -r requirements.txt
           pytest --ds=settings.ci-test -x
 
+  unit-test-backend-sqlite-redis:
+    runs-on: ubuntu-latest
+    container: python:3.9
+    env:
+      DATABASE_TYPE: sqlite3
+      BROKER_TYPE: redis
+      REDIS_URI: redis://redis_test:6379
+      DJANGO_SETTINGS_MODULE: settings.ci-test
+      SLACK_CLIENT_OAUTH_ID: 1
+    services:
+      redis_test:
+        image: redis:7.0.5
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - uses: actions/checkout@v2
+      - name: Unit Test Backend
+        run: |
+          apt-get update && apt-get install -y netcat
+          cd engine/
+          pip install -r requirements.txt
+          pytest --ds=settings.ci-test -x

@@ -51,6 +51,7 @@ const Text: TextInterface = (props) => {
     clearBeforeEdit = false,
     hidden = false,
     editModalTitle = 'New value',
+    style,
   } = props;
 
   const [isEditMode, setIsEditMode] = useState<boolean>(false);
@@ -87,6 +88,7 @@ const Text: TextInterface = (props) => {
         'no-wrap': !wrap,
         keyboard,
       })}
+      style={style}
     >
       {hidden ? PLACEHOLDER : children}
       {editable && (
@@ -148,12 +150,12 @@ interface TitleProps extends TextProps {
 }
 
 const Title: FC<TitleProps> = (props) => {
-  const { level, className, ...restProps } = props;
+  const { level, className, style, ...restProps } = props;
   // @ts-ignore
   const Tag: keyof JSX.IntrinsicElements = `h${level}`;
 
   return (
-    <Tag className={cx('title', className)}>
+    <Tag className={cx('title', className)} style={style}>
       <Text {...restProps} />
     </Tag>
   );

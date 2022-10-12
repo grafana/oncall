@@ -654,6 +654,7 @@ class OnCallScheduleWeb(OnCallSchedule):
                 for g in rolling_groups
                 if g is not None
             ),
+            set(),
         )
         return users
 
