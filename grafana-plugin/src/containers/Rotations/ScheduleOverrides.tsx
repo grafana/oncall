@@ -11,8 +11,13 @@ import TimelineMarks from 'components/TimelineMarks/TimelineMarks';
 import Rotation from 'containers/Rotation/Rotation';
 import { RotationCreateData } from 'containers/RotationForm/RotationForm.types';
 import ScheduleOverrideForm from 'containers/RotationForm/ScheduleOverrideForm';
-import { getFromString, getOverrideColor } from 'models/schedule/schedule.helpers';
-import { Event, Schedule, Shift } from 'models/schedule/schedule.types';
+import {
+  getFromString,
+  getOverrideColor,
+  getOverridesFromStore,
+  getShiftsFromStore,
+} from 'models/schedule/schedule.helpers';
+import { Event, Schedule, Shift, ShiftEvents } from 'models/schedule/schedule.types';
 import { Timezone } from 'models/timezone/timezone.types';
 import { WithStoreProps } from 'state/types';
 import { withMobXProviderContext } from 'state/withStore';
@@ -46,17 +51,11 @@ class ScheduleOverrides extends Component<ScheduleOverridesProps, ScheduleOverri
   };
 
   render() {
-    const { scheduleId, startMoment, currentTimezone, onCreate, onUpdate, onDelete, store, shiftIdToShowRotationForm } =
+    const { startMoment, currentTimezone, onCreate, onUpdate, onDelete, store, shiftIdToShowRotationForm, scheduleId } =
       this.props;
     const { shiftMomentToShowOverrideForm } = this.state;
 
-    const shifts = store.scheduleStore.overridePreview
-      ? store.scheduleStore.overridePreview
-      : (store.scheduleStore.events[scheduleId]?.['override']?.[getFromString(startMoment)] as Array<{
-          shiftId: string;
-          events: Event[];
-          isPreview?: boolean;
-        }>);
+    const shifts = getOverridesFromStore(store, scheduleId, startMoment) as ShiftEvents[];
 
     const base = 7 * 24 * 60; // in minutes
     const diff = dayjs().tz(currentTimezone).diff(startMoment, 'minutes');
