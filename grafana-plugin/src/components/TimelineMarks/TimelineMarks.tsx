@@ -62,10 +62,12 @@ const TimelineMarks: FC<TimelineMarksProps> = (props) => {
         </svg>
       )}
       {momentsToRender.map((m, i) => {
+        const isCurrentDay = currentMoment.isSame(m.moment, 'day');
+
         return (
           <div key={i} className={cx('weekday')}>
             <div className={cx('weekday-title')}>
-              <Text type="secondary" strong={currentMoment.isSame(m.moment, 'day')}>
+              <Text type="secondary" strong={isCurrentDay}>
                 {m.moment.format('ddd D MMM')}
               </Text>
             </div>

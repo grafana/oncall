@@ -28,6 +28,7 @@ import WithConfirm from 'components/WithConfirm/WithConfirm';
 import Rotations from 'containers/Rotations/Rotations';
 import ScheduleFinal from 'containers/Rotations/ScheduleFinal';
 import ScheduleOverrides from 'containers/Rotations/ScheduleOverrides';
+import ScheduleForm from 'containers/ScheduleForm/ScheduleForm';
 import UsersTimezones from 'containers/UsersTimezones/UsersTimezones';
 import { Shift } from 'models/schedule/schedule.types';
 import { Timezone } from 'models/timezone/timezone.types';
@@ -48,6 +49,7 @@ interface SchedulePageState {
   renderType: string;
   shiftIdToShowRotationForm?: Shift['id'];
   shiftIdToShowOverridesForm?: Shift['id'];
+  showEditForm: boolean;
 }
 
 const INITIAL_TIMEZONE = 'UTC'; // todo check why doesn't work
@@ -64,6 +66,7 @@ class SchedulePage extends React.Component<SchedulePageProps, SchedulePageState>
       renderType: 'timeline',
       shiftIdToShowRotationForm: undefined,
       shiftIdToShowOverridesForm: undefined,
+      showEditForm: false,
     };
   }
 
@@ -96,8 +99,14 @@ class SchedulePage extends React.Component<SchedulePageProps, SchedulePageState>
 
   render() {
     const { store } = this.props;
-    const { startMoment, schedulePeriodType, renderType, shiftIdToShowRotationForm, shiftIdToShowOverridesForm } =
-      this.state;
+    const {
+      startMoment,
+      schedulePeriodType,
+      renderType,
+      shiftIdToShowRotationForm,
+      shiftIdToShowOverridesForm,
+      showEditForm,
+    } = this.state;
     const { query } = this.props;
     const { id: scheduleId } = query;
 
@@ -108,18 +117,19 @@ class SchedulePage extends React.Component<SchedulePageProps, SchedulePageState>
     const schedule = scheduleStore.items[scheduleId];
 
     return (
-      <div className={cx('root')}>
-        <VerticalGroup spacing="lg">
-          <div className={cx('header')}>
-            <HorizontalGroup justify="space-between">
-              <HorizontalGroup>
-                <PluginLink query={{ page: 'schedules-new' }}>
-                  <IconButton style={{ marginTop: '5px' }} name="arrow-left" size="xl" />
-                </PluginLink>
-                <Text.Title editable editModalTitle="Schedule name" level={2} onTextChange={this.handleNameChange}>
-                  {schedule?.name}
-                </Text.Title>
-                {/*<ScheduleCounter
+      <>
+        <div className={cx('root')}>
+          <VerticalGroup spacing="lg">
+            <div className={cx('header')}>
+              <HorizontalGroup justify="space-between">
+                <HorizontalGroup>
+                  <PluginLink query={{ page: 'schedules-new' }}>
+                    <IconButton style={{ marginTop: '5px' }} name="arrow-left" size="xl" />
+                  </PluginLink>
+                  <Text.Title editable editModalTitle="Schedule name" level={2} onTextChange={this.handleNameChange}>
+                    {schedule?.name}
+                  </Text.Title>
+                  {/*<ScheduleCounter
                   type="link"
                   count={5}
                   tooltipTitle="Used in escalations"
@@ -139,60 +149,66 @@ class SchedulePage extends React.Component<SchedulePageProps, SchedulePageState>
                   tooltipTitle="Warnings"
                   tooltipContent="Schedule has unassigned time periods during next 7 days"
                 />*/}
-              </HorizontalGroup>
-              <HorizontalGroup spacing="lg">
-                {users && (
-                  <HorizontalGroup>
-                    <Text type="secondary">Current timezone:</Text>
-                    <UserTimezoneSelect value={currentTimezone} users={users} onChange={this.handleTimezoneChange} />
-                  </HorizontalGroup>
-                )}
-                {/*<ScheduleQuality quality={0.89} />*/}
-                {/*<ToolbarButton icon="copy" tooltip="Copy" />
+                </HorizontalGroup>
+                <HorizontalGroup spacing="lg">
+                  {users && (
+                    <HorizontalGroup>
+                      <Text type="secondary">Current timezone:</Text>
+                      <UserTimezoneSelect value={currentTimezone} users={users} onChange={this.handleTimezoneChange} />
+                    </HorizontalGroup>
+                  )}
+                  {/*<ScheduleQuality quality={0.89} />*/}
+                  {/*<ToolbarButton icon="copy" tooltip="Copy" />
                 <ToolbarButton icon="brackets-curly" tooltip="Code" />
                 <ToolbarButton icon="share-alt" tooltip="Share" />
                 */}
-                <HorizontalGroup>
-                  <ToolbarButton icon="cog" tooltip="Settings" />
-                  <WithConfirm>
-                    <ToolbarButton icon="trash-alt" tooltip="Delete" onClick={this.handleDelete} />
-                  </WithConfirm>
+                  <HorizontalGroup>
+                    <ToolbarButton
+                      icon="cog"
+                      tooltip="Settings"
+                      onClick={() => {
+                        this.setState({ showEditForm: true });
+                      }}
+                    />
+                    <WithConfirm>
+                      <ToolbarButton icon="trash-alt" tooltip="Delete" onClick={this.handleDelete} />
+                    </WithConfirm>
+                  </HorizontalGroup>
                 </HorizontalGroup>
               </HorizontalGroup>
-            </HorizontalGroup>
-          </div>
-          <div className={cx('users-timezones')}>
-            <UsersTimezones
-              onCallNow={schedule?.on_call_now || []}
-              userIds={
-                scheduleStore.relatedUsers[scheduleId] ? Object.keys(scheduleStore.relatedUsers[scheduleId]) : []
-              }
-              tz={currentTimezone}
-              onTzChange={this.handleTimezoneChange}
-            />
-          </div>
+            </div>
+            <div className={cx('users-timezones')}>
+              <UsersTimezones
+                onCallNow={schedule?.on_call_now || []}
+                userIds={
+                  scheduleStore.relatedUsers[scheduleId] ? Object.keys(scheduleStore.relatedUsers[scheduleId]) : []
+                }
+                tz={currentTimezone}
+                onTzChange={this.handleTimezoneChange}
+              />
+            </div>
 
-          {/* <div className={'current-time'} />*/}
-          <div className={cx('rotations')}>
-            <div className={cx('controls')}>
-              <HorizontalGroup justify="space-between">
-                <HorizontalGroup>
-                  <Button variant="secondary" onClick={this.handleTodayClick}>
-                    Today
-                  </Button>
-                  <HorizontalGroup spacing="xs">
-                    <Button variant="secondary" onClick={this.handleLeftClick}>
-                      <Icon name="angle-left" />
+            {/* <div className={'current-time'} />*/}
+            <div className={cx('rotations')}>
+              <div className={cx('controls')}>
+                <HorizontalGroup justify="space-between">
+                  <HorizontalGroup>
+                    <Button variant="secondary" onClick={this.handleTodayClick}>
+                      Today
                     </Button>
-                    <Button variant="secondary" onClick={this.handleRightClick}>
-                      <Icon name="angle-right" />
-                    </Button>
+                    <HorizontalGroup spacing="xs">
+                      <Button variant="secondary" onClick={this.handleLeftClick}>
+                        <Icon name="angle-left" />
+                      </Button>
+                      <Button variant="secondary" onClick={this.handleRightClick}>
+                        <Icon name="angle-right" />
+                      </Button>
+                    </HorizontalGroup>
+                    <Text.Title style={{ marginLeft: '8px' }} level={4} type="primary">
+                      {startMoment.format('DD MMM')} - {startMoment.add(6, 'day').format('DD MMM')}
+                    </Text.Title>
                   </HorizontalGroup>
-                  <Text.Title style={{ marginLeft: '8px' }} level={4} type="primary">
-                    {startMoment.format('DD MMM')} - {startMoment.add(6, 'day').format('DD MMM')}
-                  </Text.Title>
-                </HorizontalGroup>
-                {/*<HorizontalGroup width="auto">
+                  {/*<HorizontalGroup width="auto">
                 <RadioButtonGroup
                   options={[
                     { label: 'Day', value: 'day' },
@@ -218,41 +234,59 @@ class SchedulePage extends React.Component<SchedulePageProps, SchedulePageState>
                   onChange={this.handleRenderTypeChange}
                 />
               </HorizontalGroup>*/}
-              </HorizontalGroup>
+                </HorizontalGroup>
+              </div>
+              <ScheduleFinal
+                scheduleId={scheduleId}
+                currentTimezone={currentTimezone}
+                startMoment={startMoment}
+                onClick={this.handleShowForm}
+              />
+              <Rotations
+                scheduleId={scheduleId}
+                currentTimezone={currentTimezone}
+                startMoment={startMoment}
+                onCreate={this.handleCreateRotation}
+                onUpdate={this.handleUpdateRotation}
+                onDelete={this.handleDeleteRotation}
+                shiftIdToShowRotationForm={shiftIdToShowRotationForm}
+                onShowRotationForm={this.handleShowRotationForm}
+                disabled={shiftIdToShowRotationForm || shiftIdToShowOverridesForm}
+              />
+              <ScheduleOverrides
+                scheduleId={scheduleId}
+                currentTimezone={currentTimezone}
+                startMoment={startMoment}
+                onCreate={this.handleCreateOverride}
+                onUpdate={this.handleUpdateOverride}
+                onDelete={this.handleDeleteOverride}
+                shiftIdToShowRotationForm={shiftIdToShowOverridesForm}
+                onShowRotationForm={this.handleShowOverridesForm}
+                disabled={shiftIdToShowRotationForm || shiftIdToShowOverridesForm}
+              />
             </div>
-            <ScheduleFinal
-              scheduleId={scheduleId}
-              currentTimezone={currentTimezone}
-              startMoment={startMoment}
-              onClick={this.handleShowForm}
-            />
-            <Rotations
-              scheduleId={scheduleId}
-              currentTimezone={currentTimezone}
-              startMoment={startMoment}
-              onCreate={this.handleCreateRotation}
-              onUpdate={this.handleUpdateRotation}
-              onDelete={this.handleDeleteRotation}
-              shiftIdToShowRotationForm={shiftIdToShowRotationForm}
-              onShowRotationForm={this.handleShowRotationForm}
-              disabled={shiftIdToShowRotationForm || shiftIdToShowOverridesForm}
-            />
-            <ScheduleOverrides
-              scheduleId={scheduleId}
-              currentTimezone={currentTimezone}
-              startMoment={startMoment}
-              onCreate={this.handleCreateOverride}
-              onUpdate={this.handleUpdateOverride}
-              onDelete={this.handleDeleteOverride}
-              shiftIdToShowRotationForm={shiftIdToShowOverridesForm}
-              onShowRotationForm={this.handleShowOverridesForm}
-              disabled={shiftIdToShowRotationForm || shiftIdToShowOverridesForm}
-            />
-          </div>
-        </VerticalGroup>
-      </div>
+          </VerticalGroup>
+        </div>
+        {showEditForm && (
+          <ScheduleForm
+            id={schedule.id}
+            onUpdate={this.update}
+            onHide={() => {
+              this.setState({ showEditForm: false });
+            }}
+          />
+        )}
+      </>
     );
   }
+
+  update = () => {
+    const { store, query } = this.props;
+    const { id: scheduleId } = query;
+    const { scheduleStore } = store;
+
+    return scheduleStore.updateItem(scheduleId);
+  };
 
   handleShowForm = async (shiftId: Shift['id'] | 'new') => {
     const {

@@ -6,6 +6,18 @@ import { DEFAULT_USER_ROLES } from 'models/user/user.config';
 
 const commonFields: FormItem[] = [
   {
+    name: 'team',
+    label: 'Assign to team',
+    type: FormItemType.GSelect,
+    extra: {
+      modelName: 'grafanaTeamStore',
+      displayField: 'name',
+      valueField: 'id',
+      showSearch: true,
+      allowClear: true,
+    },
+  },
+  {
     name: 'slack_channel_id',
     label: 'Slack channel',
     type: FormItemType.GSelect,
@@ -18,6 +30,19 @@ const commonFields: FormItem[] = [
     },
     description:
       'Calendar parsing errors and notifications about the new on-call shift will be published in this channel.',
+  },
+  {
+    name: 'user_group',
+    label: 'Slack user group',
+    type: FormItemType.GSelect,
+    extra: {
+      modelName: 'userGroupStore',
+      displayField: 'handle',
+      showSearch: true,
+      allowClear: true,
+    },
+    description:
+      'Group members will be automatically updated with current on-call. In case you want to ping on-call with @group_name.',
   },
   {
     name: 'notify_oncall_shift_freq',
@@ -67,37 +92,12 @@ const commonFields: FormItem[] = [
     },
     description: 'Specify how to notify a team member when their shift is the next one scheduled',
   },
-  {
-    name: 'user_group',
-    label: 'Slack user group',
-    type: FormItemType.GSelect,
-    extra: {
-      modelName: 'userGroupStore',
-      displayField: 'handle',
-      showSearch: true,
-      allowClear: true,
-    },
-    description:
-      'Group members will be automatically updated with current on-call. In case you want to ping on-call with @group_name.',
-  },
   // {
   //   name: 'send_empty_shifts_report',
   //   normalize: (value) => Boolean(value),
   //   label: 'Send reports about empty shifts to Slack',
   //   type: FormItemType.Switch,
   // },
-  {
-    name: 'team',
-    label: 'Assign to team',
-    type: FormItemType.GSelect,
-    extra: {
-      modelName: 'grafanaTeamStore',
-      displayField: 'name',
-      valueField: 'id',
-      showSearch: true,
-      allowClear: true,
-    },
-  },
 ];
 
 export const iCalForm: { name: string; fields: FormItem[] } = {
