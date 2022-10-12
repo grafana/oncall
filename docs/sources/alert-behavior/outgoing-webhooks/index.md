@@ -1,6 +1,7 @@
 ---
 aliases:
   - /docs/oncall/latest/integrations/configure-outgoing-webhooks/
+  - /docs/oncall/latest/alert-behavior/outgoing-webhooks/
 keywords:
   - Grafana Cloud
   - Alerts
