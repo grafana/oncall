@@ -32,7 +32,9 @@ def build_subject_and_title(alert_group, emails_left):
     )
 
     # default templates are the same as web templates, which are in Markdown format
-    message = convert_md_to_html(templated_alert.message)
+    message = templated_alert.message
+    if message:
+        message = convert_md_to_html(templated_alert.message) if templated_alert.message else ""
 
     content = render_to_string(
         "email_notification.html",
