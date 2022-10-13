@@ -2,7 +2,7 @@ import dayjs from 'dayjs';
 
 import { findColor } from 'containers/Rotations/Rotations.helpers';
 import { getLayersFromStore, getOverridesFromStore, getShiftsFromStore } from 'models/schedule/schedule.helpers';
-import { Event } from 'models/schedule/schedule.types';
+import { Event, Layer } from 'models/schedule/schedule.types';
 import { Timezone } from 'models/timezone/timezone.types';
 import { RootStore } from 'state';
 
@@ -18,7 +18,6 @@ export const getDateTime = (date: string) => {
   return dayjs(date);
 };
 
-
 export const getColorSchemeMappingForUsers = (
   store: RootStore,
   scheduleId: string,
@@ -26,15 +25,19 @@ export const getColorSchemeMappingForUsers = (
 ): { [userId: string]: Set<string> } => {
   const usersColorSchemeHash: { [userId: string]: Set<string> } = {};
 
-  const shifts = getShiftsFromStore(store, scheduleId, startMoment);
-  const layers = getLayersFromStore(store, scheduleId, startMoment);
+  const layers: Layer[] = getLayersFromStore(store, scheduleId, startMoment);
   const overrides = getOverridesFromStore(store, scheduleId, startMoment);
 
-  if (!shifts?.length || !layers?.length) {
+  if (!layers?.length) {
     return usersColorSchemeHash;
   }
 
-  shifts.forEach(({ shiftId, events }) => populateUserHashSet(events, shiftId));
+  const shiftsFromLayers = layers.reduce((prev, current) => {
+    prev.push(...current.shifts);
+    return prev;
+  }, []);
+
+  shiftsFromLayers.forEach(({ shiftId, events }) => populateUserHashSet(events, shiftId));
 
   return usersColorSchemeHash;
 
@@ -49,4 +52,4 @@ export const getColorSchemeMappingForUsers = (
       });
     });
   }
-}
+};
