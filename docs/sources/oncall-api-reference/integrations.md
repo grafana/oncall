@@ -48,6 +48,10 @@ The above command returns JSON structured in the following way:
       "message": null,
       "image_url": null
     },
+    "email": {
+      "title": null,
+      "message": null
+    },
     "sms": {
       "title": null
     },
@@ -107,6 +111,10 @@ The above command returns JSON structured in the following way:
       "title": null,
       "message": null,
       "image_url": null
+    },
+    "email": {
+      "title": null,
+      "message": null
     },
     "sms": {
       "title": null
@@ -171,6 +179,10 @@ The above command returns JSON structured in the following way:
           "title": null,
           "message": null,
           "image_url": null
+        },
+        "email": {
+          "title": null,
+          "message": null
         },
         "sms": {
           "title": null
@@ -241,6 +253,10 @@ The above command returns JSON structured in the following way:
       "title": null,
       "message": null,
       "image_url": null
+    },
+    "email": {
+      "title": null,
+      "message": null
     },
     "sms": {
       "title": null
