@@ -8,6 +8,7 @@ import cn from 'classnames/bind';
 import { observer } from 'mobx-react';
 
 import PluginLink from 'components/PluginLink/PluginLink';
+import { getIfChatOpsConnected } from 'containers/DefaultPageLayout/helper';
 import { useStore } from 'state/useStore';
 import { UserAction } from 'state/userAction';
 import { GRAFANA_LICENSE_OSS } from 'utils/consts';
@@ -63,6 +64,9 @@ const DefaultPageLayout: FC<DefaultPageLayoutProps> = observer((props) => {
 
   const { currentTeam } = teamStore;
   const { currentUser } = userStore;
+
+  const isChatOpsConnected = getIfChatOpsConnected(currentUser);
+  const isPhoneVerified = currentUser?.cloud_connection_status === 3 || currentUser?.verified_phone_number;
 
   return (
     <div className={cx('root')}>
@@ -124,9 +128,7 @@ const DefaultPageLayout: FC<DefaultPageLayoutProps> = observer((props) => {
           currentTeam &&
             currentUser &&
             store.isUserActionAllowed(UserAction.UpdateOwnSettings) &&
-            (!currentUser.verified_phone_number ||
-              !currentUser.slack_user_identity ||
-              currentUser.cloud_connection_status !== 3) &&
+            (!isPhoneVerified || !isChatOpsConnected) &&
             !getItem(AlertID.CONNECTIVITY_WARNING)
         ) && (
           <Alert
@@ -138,21 +140,17 @@ const DefaultPageLayout: FC<DefaultPageLayoutProps> = observer((props) => {
           >
             {
               <>
-                {!currentTeam.slack_team_identity && (
+                {!isChatOpsConnected && (
                   <>
-                    Slack Integration is not installed. Please fix it in{' '}
-                    <PluginLink query={{ page: 'chat-ops' }}>Slack Settings</PluginLink>
-                    {'. '}
+                    Communication channels are not connected. Configure at least one channel to receive notifications.
                   </>
                 )}
-                {currentUser.cloud_connection_status !== 3 &&
-                  !currentUser.verified_phone_number &&
-                  'Your phone number is not verified. '}
-                {currentTeam.slack_team_identity &&
-                  !currentUser.slack_user_identity &&
-                  'Your slack account is not connected. '}
-                You can change your configuration in{' '}
-                <PluginLink query={{ page: 'users', id: 'me' }}>User settings</PluginLink>
+                {!isPhoneVerified && (
+                  <>
+                    Your phone number is not verified. You can change your configuration in{' '}
+                    <PluginLink query={{ page: 'users', id: 'me' }}>User settings</PluginLink>
+                  </>
+                )}
               </>
             }
           </Alert>

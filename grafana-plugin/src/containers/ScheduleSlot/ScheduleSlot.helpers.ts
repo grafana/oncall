@@ -20,12 +20,6 @@ export const getRandomUser = () => {
 
 export const getTitle = (user: User) => {
   return user ? user.username.split(' ')[0] : null;
-  return user
-    ? user.username
-        .split(' ')
-        .map((word) => word.charAt(0).toUpperCase())
-        .join('')
-    : null;
 };
 
 export const getOuRanges = (shift: Shift, user: User) => {};
