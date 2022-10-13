@@ -33,14 +33,14 @@ export interface Props<RecordType = unknown> extends TableProps<RecordType> {
 }
 
 const GTable: FC<Props> = (props) => {
-  const { columns, data, className, pagination, loading, rowKey, expandable: expandableProp, ...restProps } = props;
+  const { columns, data, className, pagination, loading, rowKey, expandable, ...restProps } = props;
 
   const { page, total: numberOfPages, onChange: onNavigate } = pagination || {};
 
-  const expandable = useMemo(() => {
-    return expandableProp
+  const expandableFn = useMemo(() => {
+    return expandable
       ? {
-          ...expandableProp,
+          ...expandable,
           expandIcon: ({ expanded, record }) => {
             return (
               <div className={cx('expand-icon', { [`expand-icon__expanded`]: expanded })}>
@@ -51,7 +51,7 @@ const GTable: FC<Props> = (props) => {
           expandedRowClassName: (record, index) => (index % 2 === 0 ? cx('row-even') : cx('row-odd')),
         }
       : null;
-  }, [expandableProp]);
+  }, [expandable]);
 
   return (
     <VerticalGroup justify="flex-end">
@@ -60,7 +60,7 @@ const GTable: FC<Props> = (props) => {
         className={cx('root', className)}
         columns={columns}
         data={data}
-        expandable={expandable}
+        expandable={expandableFn}
         rowClassName={(record, index) => (index % 2 === 0 ? cx('row-even') : cx('row-odd'))}
         {...restProps}
       />
