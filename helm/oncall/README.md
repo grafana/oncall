@@ -8,7 +8,7 @@ Architecture diagram can be found [here](https://raw.githubusercontent.com/grafa
 
 
 ### Production usage
-**Default helm chart configuration is not intended for production.** The helm chart includes all the services into a single release, which is not recommended for production usage. It is recommended to run stateful services such as MySQL and RabbitMQ separately from this release or use managed PaaS solutions. It will significantly reduce the overhead of managing them. Set up your own [ingress](#set-up-external-access), [MySQL](#connect-external-mysql), [RabbitMQ](#connect-external-rabbitmq), [Redis](#connect-external-redis)
+**Default helm chart configuration is not intended for production.** The helm chart includes all the services into a single release, which is not recommended for production usage. It is recommended to run stateful services such as MySQL and RabbitMQ separately from this release or use managed PaaS solutions. It will significantly reduce the overhead of managing them. Here are the instructions on how to set up your own [ingress](#set-up-external-access), [MySQL](#connect-external-mysql), [RabbitMQ](#connect-external-rabbitmq), [Redis](#connect-external-redis)
 
 
 ### Cluster requirements
