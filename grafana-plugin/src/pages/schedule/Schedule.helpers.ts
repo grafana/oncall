@@ -25,19 +25,21 @@ export const getColorSchemeMappingForUsers = (
 ): { [userId: string]: Set<string> } => {
   const usersColorSchemeHash: { [userId: string]: Set<string> } = {};
 
+  const finalScheduleShifts = getShiftsFromStore(store, scheduleId, startMoment);
   const layers: Layer[] = getLayersFromStore(store, scheduleId, startMoment);
   const overrides = getOverridesFromStore(store, scheduleId, startMoment);
 
-  if (!layers?.length) {
+  if (!finalScheduleShifts?.length || !layers?.length) {
     return usersColorSchemeHash;
   }
 
-  const shiftsFromLayers = layers.reduce((prev, current) => {
+  const rotationShifts = layers.reduce((prev, current) => {
     prev.push(...current.shifts);
     return prev;
   }, []);
 
-  shiftsFromLayers.forEach(({ shiftId, events }) => populateUserHashSet(events, shiftId));
+  finalScheduleShifts.forEach(({ shiftId, events }) => populateUserHashSet(events, shiftId));
+  rotationShifts.forEach(({ shiftId, events }) => populateUserHashSet(events, shiftId));
 
   return usersColorSchemeHash;
 
