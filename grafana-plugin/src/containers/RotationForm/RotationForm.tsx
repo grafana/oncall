@@ -96,6 +96,16 @@ const RotationForm: FC<RotationFormProps> = observer((props) => {
     }
   }, [rotationStart, shiftStart]);
 
+  const updateShiftStart = useCallback(
+    (value) => {
+      const diff = shiftEnd.diff(shiftStart);
+
+      setShiftStart(value);
+      setShiftEnd(value.add(diff));
+    },
+    [shiftStart, shiftEnd]
+  );
+
   const store = useStore();
 
   const shift = store.scheduleStore.shifts[shiftId];
@@ -247,8 +257,6 @@ const RotationForm: FC<RotationFormProps> = observer((props) => {
 
   const isFormValid = useMemo(() => userGroups.some((group) => group.length), [userGroups]);
 
-  const moment = dayjs();
-
   return (
     <Modal
       isOpen={isOpen}
@@ -355,17 +363,17 @@ const RotationForm: FC<RotationFormProps> = observer((props) => {
                 className={cx('date-time-picker')}
                 label={
                   <Text type="primary" size="small">
-                    Shift start
+                    Parent shift start
                   </Text>
                 }
               >
-                <DateTimePicker value={shiftStart} onChange={setShiftStart} timezone={currentTimezone} />
+                <DateTimePicker value={shiftStart} onChange={updateShiftStart} timezone={currentTimezone} />
               </Field>
               <Field
                 className={cx('date-time-picker')}
                 label={
                   <Text type="primary" size="small">
-                    Shift end
+                    Parent shift end
                   </Text>
                 }
               >

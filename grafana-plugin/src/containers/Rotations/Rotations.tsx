@@ -37,6 +37,7 @@ interface RotationsProps extends WithStoreProps {
   onCreate: () => void;
   onUpdate: () => void;
   onDelete: () => void;
+  disabled: boolean;
 }
 
 interface RotationsState {
@@ -52,7 +53,17 @@ class Rotations extends Component<RotationsProps, RotationsState> {
   };
 
   render() {
-    const { scheduleId, startMoment, currentTimezone, onCreate, onUpdate, onDelete, store, shiftIdToShowRotationForm } = this.props;
+    const {
+      scheduleId,
+      startMoment,
+      currentTimezone,
+      onCreate,
+      onUpdate,
+      onDelete,
+      store,
+      shiftIdToShowRotationForm,
+      disabled,
+    } = this.props;
     const { layerPriority, shiftMomentToShowRotationForm } = this.state;
 
     const base = 7 * 24 * 60; // in minutes
@@ -87,13 +98,19 @@ class Rotations extends Component<RotationsProps, RotationsState> {
                   Rotations
                 </Text.Title>
               </div>
-              <ValuePicker
-                label="Add rotation"
-                options={options}
-                onChange={this.handleAddRotation}
-                variant="primary"
-                size="md"
-              />
+              {disabled ? (
+                <Button variant="primary" icon="plus" disabled>
+                  Add rotation
+                </Button>
+              ) : (
+                <ValuePicker
+                  label="Add rotation"
+                  options={options}
+                  onChange={this.handleAddRotation}
+                  variant="primary"
+                  size="md"
+                />
+              )}
             </HorizontalGroup>
           </div>
           <div className={cx('rotations-plus-title')}>
@@ -217,19 +234,35 @@ class Rotations extends Component<RotationsProps, RotationsState> {
   }
 
   onRotationClick = (shiftId: Shift['id'], moment?: dayjs.Dayjs) => {
+    const { disabled } = this.props;
+
+    if (disabled) {
+      return;
+    }
+
     this.setState({ shiftMomentToShowRotationForm: moment }, () => {
       this.onShowRotationForm(shiftId);
     });
   };
 
   handleAddLayer = (layerPriority: number, moment?: dayjs.Dayjs) => {
+    const { disabled } = this.props;
+
+    if (disabled) {
+      return;
+    }
+
     this.setState({ layerPriority, shiftMomentToShowRotationForm: moment }, () => {
       this.onShowRotationForm('new');
     });
   };
 
   handleAddRotation = (option: SelectableValue) => {
-    const { startMoment } = this.props;
+    const { startMoment, disabled } = this.props;
+
+    if (disabled) {
+      return;
+    }
 
     this.setState(
       {
