@@ -56,7 +56,7 @@ class LiveSetting(models.Model):
     )
 
     DESCRIPTIONS = {
-        "EMAIL_HOST": "SMTP server host. This SMTP server will be used to notify users via email.",
+        "EMAIL_HOST": "SMTP server host. This email server will be used to notify users via email.",
         "EMAIL_PORT": "SMTP server port",
         "EMAIL_HOST_USER": "SMTP server user",
         "EMAIL_HOST_PASSWORD": "SMTP server password",
