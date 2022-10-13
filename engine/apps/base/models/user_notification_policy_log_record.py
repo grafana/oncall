@@ -49,7 +49,7 @@ class UserNotificationPolicyLogRecord(models.Model):
         ERROR_NOTIFICATION_PHONE_CALLS_LIMIT_EXCEEDED,
         ERROR_NOTIFICATION_PHONE_NUMBER_IS_NOT_VERIFIED,
         ERROR_NOTIFICATION_NOT_ABLE_TO_SEND_MAIL,
-        ERROR_NOTIFICATION_MAIL_LIMIT_EXCEEDED,  # todo: manage backend specific limits in backend itself
+        ERROR_NOTIFICATION_MAIL_LIMIT_EXCEEDED,  # todo: manage backend specific limits in messaging backend
         ERROR_NOTIFICATION_EMAIL_IS_NOT_VERIFIED,  # deprecated
         ERROR_NOTIFICATION_TELEGRAM_IS_NOT_LINKED_TO_SLACK_ACC,
         ERROR_NOTIFICATION_PHONE_CALL_LINE_BUSY,
@@ -181,6 +181,9 @@ class UserNotificationPolicyLogRecord(models.Model):
                 == UserNotificationPolicyLogRecord.ERROR_NOTIFICATION_PHONE_CALLS_LIMIT_EXCEEDED
             ):
                 result += f"attempt to call to {user_verbal} has been failed due to a plan limit"
+            # todo: manage backend specific limits in messaging backend
+            elif self.notification_error_code == UserNotificationPolicyLogRecord.ERROR_NOTIFICATION_MAIL_LIMIT_EXCEEDED:
+                result += f"failed to send email to {user_verbal}. Exceeded limit for mails"
             elif (
                 self.notification_error_code
                 == UserNotificationPolicyLogRecord.ERROR_NOTIFICATION_PHONE_NUMBER_IS_NOT_VERIFIED

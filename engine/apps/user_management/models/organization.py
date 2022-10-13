@@ -218,7 +218,7 @@ class Organization(MaintainableObject):
     def sms_left(self, user):
         return self.subscription_strategy.sms_left(user)
 
-    # todo: manage backend specific limits in backend itself
+    # todo: manage backend specific limits in messaging backend
     def emails_left(self, user):
         return self.subscription_strategy.emails_left(user)
 

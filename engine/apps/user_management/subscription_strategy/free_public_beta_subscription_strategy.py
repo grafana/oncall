@@ -22,7 +22,7 @@ class FreePublicBetaSubscriptionStrategy(BaseSubscriptionStrategy):
     def sms_left(self, user):
         return self._calculate_phone_notifications_left(user)
 
-    # todo: manage backend specific limits in backend itself
+    # todo: manage backend specific limits in messaging backend
     def emails_left(self, user):
         now = timezone.now()
         day_start = now.replace(hour=0, minute=0, second=0, microsecond=0)
