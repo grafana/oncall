@@ -1,4 +1,3 @@
-from smtplib import SMTPException
 from socket import gaierror
 
 from celery.utils.log import get_task_logger
@@ -83,7 +82,7 @@ def notify_user_async(user_pk, alert_group_pk, notification_policy_pk):
             receiver=user,
             exceeded_limit=False,
         )
-    except (gaierror, SMTPException, BadHeaderError, TimeoutError) as e:
+    except (gaierror, BadHeaderError) as e:
         UserNotificationPolicyLogRecord.objects.create(
             author=user,
             type=UserNotificationPolicyLogRecord.TYPE_PERSONAL_NOTIFICATION_FAILED,
