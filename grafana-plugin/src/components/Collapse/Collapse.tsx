@@ -15,7 +15,7 @@ interface CollapseProps {
   className?: string;
   contentClassName?: string;
   headerWithBackground?: boolean;
-  children?: any
+  children?: any;
 }
 
 const cx = cn.bind(styles);

@@ -57,10 +57,6 @@ class SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSta
   async componentDidMount() {
     const { store } = this.props;
 
-    /* if (!store.hasFeature(AppFeature.WebSchedules)) {
-      getLocationSrv().update({ query: { page: 'schedules' } });
-    } */
-
     store.userStore.updateItems();
     store.scheduleStore.updateItems();
   }
@@ -91,18 +87,6 @@ class SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSta
         key: 'users',
         render: this.renderOncallNow,
       },
-      /* {
-        width: '20%',
-        title: 'ChatOps',
-        key: 'chatops',
-        render: this.renderChatOps,
-      },*/
-      /*{
-        width: '10%',
-        title: 'Quality',
-        key: 'quality',
-        render: this.renderQuality,
-      },*/
       {
         width: '5%',
         key: 'buttons',
@@ -188,17 +172,14 @@ class SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSta
   };
 
   handleCreateSchedule = (data: Schedule) => {
-    const { store } = this.props;
-
     if (data.type === ScheduleType.API) {
       getLocationSrv().update({ query: { page: 'schedule', id: data.id } });
     }
   };
 
   handleExpandRow = (expanded: boolean, data: Schedule) => {
-    const { store } = this.props;
     const { expandedRowKeys } = this.state;
-    const { startMoment } = this.state;
+
     if (expanded && !expandedRowKeys.includes(data.id)) {
       this.setState({ expandedRowKeys: [...this.state.expandedRowKeys, data.id] }, this.updateEvents);
     } else if (!expanded && expandedRowKeys.includes(data.id)) {

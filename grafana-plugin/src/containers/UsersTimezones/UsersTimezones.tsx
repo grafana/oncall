@@ -1,15 +1,19 @@
 import React, { FC, useCallback, useEffect, useMemo, useState } from 'react';
 
-import { HorizontalGroup, InlineSwitch, Tooltip } from '@grafana/ui';
+import { HorizontalGroup, Tooltip } from '@grafana/ui';
 import cn from 'classnames/bind';
 import dayjs from 'dayjs';
 
 import Avatar from 'components/Avatar/Avatar';
+import ScheduleBorderedAvatar from 'components/ScheduleBorderedAvatar/ScheduleBorderedAvatar';
 import ScheduleUserDetails from 'components/ScheduleUserDetails/ScheduleUserDetails';
 import Text from 'components/Text/Text';
 import { IsOncallIcon } from 'icons';
+import { Event, Layer, Schedule } from 'models/schedule/schedule.types';
 import { Timezone } from 'models/timezone/timezone.types';
 import { User } from 'models/user/user.types';
+import { getColorSchemeMappingForUsers } from 'pages/schedule/Schedule.helpers';
+import { RootStore } from 'state';
 import { useStore } from 'state/useStore';
 
 import styles from './UsersTimezones.module.css';
@@ -17,8 +21,11 @@ import styles from './UsersTimezones.module.css';
 interface UsersTimezonesProps {
   userIds: Array<User['pk']>;
   tz: Timezone;
-  onTzChange: (tz: Timezone) => void;
   onCallNow: Array<Partial<User>>;
+  scheduleId: Schedule['id'];
+  startMoment: dayjs.Dayjs;
+
+  onTzChange: (tz: Timezone) => void;
 }
 
 const cx = cn.bind(styles);
@@ -28,9 +35,9 @@ const hoursToSplit = 3;
 const jLimit = 24 / hoursToSplit;
 
 const UsersTimezones: FC<UsersTimezonesProps> = (props) => {
-  const { userIds, tz, onTzChange, onCallNow } = props;
-
   const store = useStore();
+
+  const { userIds, tz, onTzChange, onCallNow, scheduleId, startMoment } = props;
 
   useEffect(() => {
     userIds.forEach((userId) => {
@@ -90,7 +97,14 @@ const UsersTimezones: FC<UsersTimezonesProps> = (props) => {
       </div>
       <div className={cx('users')}>
         <div className={cx('current-time')} style={{ left: `${currentTimeX}%` }} />
-        <UserAvatars users={users} onCallNow={onCallNow} onTzChange={onTzChange} currentMoment={currentMoment} />
+        <UserAvatars
+          users={users}
+          onCallNow={onCallNow}
+          onTzChange={onTzChange}
+          currentMoment={currentMoment}
+          startMoment={startMoment}
+          scheduleId={scheduleId}
+        />
       </div>
       <div className={cx('time-stripe')}>
         <div className={cx('current-user-stripe')} />
@@ -124,12 +138,14 @@ const UsersTimezones: FC<UsersTimezonesProps> = (props) => {
 interface UserAvatarsProps {
   users: User[];
   currentMoment: dayjs.Dayjs;
+  startMoment: dayjs.Dayjs;
+  scheduleId: Schedule['id'];
   onTzChange: (timezone: Timezone) => void;
   onCallNow: Array<Partial<User>>;
 }
 
 const UserAvatars = (props: UserAvatarsProps) => {
-  const { users, currentMoment, onTzChange, onCallNow } = props;
+  const { users, currentMoment, onTzChange, onCallNow, scheduleId, startMoment } = props;
   const userGroups = useMemo(() => {
     return users
       .reduce((memo, user) => {
@@ -173,7 +189,9 @@ const UserAvatars = (props: UserAvatarsProps) => {
             onTzChange={onTzChange}
             xPos={xPos}
             users={group.users}
+            startMoment={startMoment}
             currentMoment={currentMoment}
+            scheduleId={scheduleId}
             onCallNow={onCallNow}
           />
         );
@@ -185,8 +203,10 @@ const UserAvatars = (props: UserAvatarsProps) => {
 interface AvatarGroupProps {
   users: User[];
   xPos: number;
+  startMoment: dayjs.Dayjs;
   currentMoment: dayjs.Dayjs;
   utcOffset: number;
+  scheduleId: Schedule['id'];
   onSetActiveUtcOffset: (utcOffset: number | undefined) => void;
   activeUtcOffset: number;
   onTzChange: (timezone: Timezone) => void;
@@ -207,7 +227,11 @@ const AvatarGroup = (props: AvatarGroupProps) => {
     onSetActiveUtcOffset,
     activeUtcOffset,
     onCallNow,
+    scheduleId,
+    startMoment,
   } = props;
+
+  const store = useStore();
 
   const active = !isNaN(activeUtcOffset) && activeUtcOffset === utcOffset;
 
@@ -235,6 +259,7 @@ const AvatarGroup = (props: AvatarGroupProps) => {
     };
   }, []);
 
+  const colorSchemeMapping = getColorSchemeMappingForUsers(store, scheduleId, startMoment);
   const width = active ? users.length * AVATAR_WIDTH + (users.length - 1) * AVATAR_GAP : AVATAR_WIDTH;
 
   return (
@@ -248,6 +273,7 @@ const AvatarGroup = (props: AvatarGroupProps) => {
     >
       {users.map((user, index, array) => {
         const isOncall = onCallNow.some((onCallUser) => user.pk === onCallUser.pk);
+        const colorSchemeList = colorSchemeMapping[user.pk] ? Array.from(colorSchemeMapping[user.pk]) : [];
 
         return (
           <Tooltip
@@ -263,12 +289,18 @@ const AvatarGroup = (props: AvatarGroupProps) => {
                 opacity: active ? 1 : Math.max(1 - index * 0.25, 0.25),
                 visibility: !active && index >= LIMIT ? 'hidden' : 'visible',
                 zIndex: array.length - index - 1,
-                /* opacity: userHour >= 9 && userHour < 18 ? 1 : 0.5,*/
               }}
               onClick={getAvatarClickHandler(user.timezone)}
             >
-              <Avatar src={user.avatar} size="large" />
-              {isOncall && <IsOncallIcon className={cx('is-oncall-icon')} />}
+              <ScheduleBorderedAvatar
+                colors={colorSchemeList}
+                width={35}
+                height={35}
+                renderAvatar={() => <Avatar src={user.avatar} size="large" />}
+                renderIcon={() =>
+                  isOncall ? <IsOncallIcon className={cx('is-oncall-icon')} width={14} height={13} /> : null
+                }
+              ></ScheduleBorderedAvatar>
             </div>
           </Tooltip>
         );
