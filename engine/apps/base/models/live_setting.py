@@ -56,7 +56,6 @@ class LiveSetting(models.Model):
     )
 
     DESCRIPTIONS = {
-        # todo: add better descriptions for email settings
         "EMAIL_HOST": "SMTP server host",
         "EMAIL_PORT": "SMTP server port",
         "EMAIL_HOST_USER": "SMTP server user",

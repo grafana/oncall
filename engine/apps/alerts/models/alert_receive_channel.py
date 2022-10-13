@@ -161,6 +161,8 @@ class AlertReceiveChannel(IntegrationOptionsMixin, MaintainableObject):
     web_message_template = models.TextField(null=True, default=None)
     web_image_url_template = models.TextField(null=True, default=None)
 
+    # email related fields are deprecated in favour of messaging backend based templates
+    # these templates are stored in the messaging_backends_templates field
     email_title_template = models.TextField(null=True, default=None)
     email_message_template = models.TextField(null=True, default=None)
 
