@@ -244,6 +244,7 @@ MIDDLEWARE = [
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     "social_django.middleware.SocialAuthExceptionMiddleware",
     "apps.social_auth.middlewares.SocialAuthAuthCanceledExceptionMiddleware",
+    "apps.integrations.middlewares.IntegrationExceptionMiddleware",
 ]
 
 LOG_REQUEST_ID_HEADER = "HTTP_X_CLOUD_TRACE_CONTEXT"
