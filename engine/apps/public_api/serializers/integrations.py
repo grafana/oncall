@@ -5,9 +5,10 @@ from rest_framework import fields, serializers
 
 from apps.alerts.grafana_alerting_sync_manager.grafana_alerting_sync import GrafanaAlertingSyncManager
 from apps.alerts.models import AlertReceiveChannel
+from apps.base.messaging import get_messaging_backends
 from common.api_helpers.custom_fields import TeamPrimaryKeyRelatedField
 from common.api_helpers.exceptions import BadRequest
-from common.api_helpers.mixins import EagerLoadingMixin
+from common.api_helpers.mixins import NOTIFICATION_CHANNEL_OPTIONS, EagerLoadingMixin
 from common.jinja_templater import jinja_template_env
 from common.utils import timed_lru_cache
 
@@ -62,6 +63,9 @@ class IntegrationSerializer(EagerLoadingMixin, serializers.ModelSerializer, Main
         serializer = DefaultChannelFilterSerializer(default_route, context=self.context)
         result["default_route"] = serializer.data
 
+        # add additional templates for messaging backends
+        result["templates"].update(self._get_messaging_backend_templates(instance))
+
         return result
 
     def create(self, validated_data):
@@ -102,6 +106,8 @@ class IntegrationSerializer(EagerLoadingMixin, serializers.ModelSerializer, Main
             raise BadRequest(detail="Integration with this name already exists")
 
     def _correct_validated_data(self, validated_data):
+        validated_data = self._correct_validated_data_for_messaging_backends(validated_data)
+
         templates = validated_data.pop("templates", {})
         for template_name, templates_for_notification_channel in templates.items():
             if type(templates_for_notification_channel) is dict:
@@ -134,7 +140,7 @@ class IntegrationSerializer(EagerLoadingMixin, serializers.ModelSerializer, Main
         if not isinstance(templates, dict):
             raise BadRequest(detail="Invalid template data")
 
-        for notification_channel in ["slack", "web", "sms", "phone_call", "telegram"]:
+        for notification_channel in NOTIFICATION_CHANNEL_OPTIONS:
             template_data = templates.get(notification_channel, {})
             if template_data is None:
                 continue
@@ -159,6 +165,45 @@ class IntegrationSerializer(EagerLoadingMixin, serializers.ModelSerializer, Main
             except TemplateSyntaxError:
                 raise BadRequest(detail=f"Invalid {common_template} template data")
         return templates
+
+    def _correct_validated_data_for_messaging_backends(self, validated_data):
+        templates = validated_data.get("templates", {})
+
+        messaging_backends_templates = self.instance.messaging_backends_templates if self.instance else None
+
+        for backend_id, backend in get_messaging_backends():
+            backend_templates = {}
+            if messaging_backends_templates is not None:
+                backend_templates = messaging_backends_templates.get(backend_id, {})
+
+            for field in backend.template_fields:
+                try:
+                    template = templates[backend_id.lower()][field]
+                except KeyError:
+                    continue
+
+                backend_templates[field] = template
+
+            # remove backend-specific template from payload
+            templates.pop(backend_id.lower(), None)
+
+            if backend_templates:
+                validated_data["messaging_backends_templates"] = messaging_backends_templates or {} | {
+                    backend_id: backend_templates
+                }
+
+        return validated_data
+
+    @staticmethod
+    def _get_messaging_backend_templates(instance):
+        result = {}
+        messaging_backends_templates = instance.messaging_backends_templates or {}
+
+        for backend_id, backend in get_messaging_backends():
+            result[backend_id.lower()] = {
+                field: messaging_backends_templates.get(backend_id, {}).get(field) for field in backend.template_fields
+            }
+        return result
 
     def get_heartbeat(self, obj):
         try:
