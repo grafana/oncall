@@ -200,9 +200,13 @@ class IntegrationSerializer(EagerLoadingMixin, serializers.ModelSerializer, Main
         messaging_backends_templates = instance.messaging_backends_templates or {}
 
         for backend_id, backend in get_messaging_backends():
+            if not backend.template_fields:
+                continue
+
             result[backend_id.lower()] = {
                 field: messaging_backends_templates.get(backend_id, {}).get(field) for field in backend.template_fields
             }
+
         return result
 
     def get_heartbeat(self, obj):
