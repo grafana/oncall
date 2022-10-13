@@ -2,9 +2,7 @@ import 'jest/matchMedia.ts';
 import React from 'react';
 
 import { describe, expect, test } from '@jest/globals';
-import { render, fireEvent, screen, getByTestId, waitFor } from '@testing-library/react';
-
-
+import { render, screen, waitFor } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import outgoingWebhooksStub from 'jest/outgoingWebhooksStub';
 
