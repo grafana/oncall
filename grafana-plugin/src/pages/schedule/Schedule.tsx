@@ -83,7 +83,8 @@ class SchedulePage extends React.Component<SchedulePageProps, SchedulePageState>
   render() {
     const {
       query: { id: scheduleId },
-      store, } = this.props;
+      store,
+    } = this.props;
     const {
       startMoment,
 
@@ -160,6 +161,8 @@ class SchedulePage extends React.Component<SchedulePageProps, SchedulePageState>
             </div>
             <div className={cx('users-timezones')}>
               <UsersTimezones
+                scheduleId={scheduleId}
+                startMoment={startMoment}
                 onCallNow={schedule?.on_call_now || []}
                 userIds={
                   scheduleStore.relatedUsers[scheduleId] ? Object.keys(scheduleStore.relatedUsers[scheduleId]) : []
