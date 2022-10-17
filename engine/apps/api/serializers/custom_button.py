@@ -69,7 +69,7 @@ class CustomButtonSerializer(serializers.ModelSerializer):
                     # If we instead used a `defaultdict(dict)` or `defaultdict(lambda: 1)` we
                     # would accidentally accept templates such as `{"name": {{ alert_payload.name }}}`
                     # which would then fail at the true render time due to the
-                    "alert_payload": defaultdict(lambda: ""),
+                    "alert_payload": defaultdict(str),
                     "alert_group_id": "abcd",
                 }
             )
