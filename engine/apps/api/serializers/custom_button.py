@@ -69,6 +69,8 @@ class CustomButtonSerializer(serializers.ModelSerializer):
                     # If we instead used a `defaultdict(dict)` or `defaultdict(lambda: 1)` we
                     # would accidentally accept templates such as `{"name": {{ alert_payload.name }}}`
                     # which would then fail at the true render time due to the
+                    # lack of explicit quotes around the template variable; this would render
+                    # as `{"name": some_alert_name}` which is not valid JSON.
                     "alert_payload": defaultdict(str),
                     "alert_group_id": "abcd",
                 }
