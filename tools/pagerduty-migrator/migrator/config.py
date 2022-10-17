@@ -9,7 +9,7 @@ assert MODE in (MODE_PLAN, MODE_MIGRATE)
 PAGERDUTY_API_TOKEN = os.environ["PAGERDUTY_API_TOKEN"]
 ONCALL_API_TOKEN = os.environ["ONCALL_API_TOKEN"]
 ONCALL_API_URL = urljoin(
-    os.environ["ONCALL_API_URL"].removesuffix("/") + "/"
+    os.environ["ONCALL_API_URL"].removesuffix("/") + "/",
     "api/v1/"
 )
 
