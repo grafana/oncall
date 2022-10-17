@@ -1,9 +1,9 @@
 import os
 import secrets
 import sys
-import requests
-
 from urllib.parse import urljoin
+
+import requests
 from pdpyras import APISession
 
 PAGERDUTY_API_TOKEN = os.environ["PAGERDUTY_API_TOKEN"]
