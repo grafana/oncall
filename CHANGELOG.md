@@ -1,5 +1,8 @@
 # Change Log
 
+## v1.0.41 (TBD)
+- Allow use of API keys as alternative to account auth token for Twilio
+
 ## v1.0.40 (2022-10-05)
 - Improved database and celery backends support
 - Added script to import PagerDuty users to Grafana
