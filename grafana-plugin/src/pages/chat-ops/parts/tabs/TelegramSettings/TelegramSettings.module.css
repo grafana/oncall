@@ -6,3 +6,12 @@
   display: flex;
   justify-content: space-between;
 }
+
+.telegram-infoblock {
+  text-align: center;
+  width: 725px;
+}
+
+ul {
+  margin: 20px 30px;
+}

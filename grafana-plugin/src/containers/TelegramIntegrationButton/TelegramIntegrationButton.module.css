@@ -19,3 +19,13 @@
 .telegram-instruction-cancel {
   margin-top: 24px;
 }
+
+.telegram-block {
+  width: 100%;
+}
+
+.field-command {
+  margin-top: 8px;
+  width: 100%;
+  display: inline-block;
+}

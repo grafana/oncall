@@ -6,3 +6,14 @@
   display: flex;
   justify-content: space-between;
 }
+
+.automatic-connect-telegram-block {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+}
+
+.field-command {
+  width: 100%;
+  display: inline-block;
+}
