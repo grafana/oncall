@@ -52,8 +52,7 @@ def format_integration(integration: dict) -> str:
     if not integration["oncall_type"]:
         result = (
             "{} {} — cannot find appropriate Grafana OnCall integration type".format(
-                ERROR_SIGN,
-                result,
+                ERROR_SIGN, result
             )
         )
 
