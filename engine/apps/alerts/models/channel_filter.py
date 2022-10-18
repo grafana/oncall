@@ -120,6 +120,7 @@ class ChannelFilter(OrderedModel):
             return re.search(self.filtering_term, value)
         except re.error:
             logger.error(f"channel_filter={self.id} failed to parse regex={self.filtering_term}")
+            return False
 
     @property
     def slack_channel_id_or_general_log_id(self):
