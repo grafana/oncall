@@ -7,7 +7,7 @@ from django.utils.html import strip_tags
 
 from apps.alerts.models import AlertGroup
 from apps.base.utils import live_settings
-from apps.email.alert_rendering import build_subject_and_title
+from apps.email.alert_rendering import build_subject_and_message
 from apps.email.models import EmailMessage
 from apps.user_management.models import User
 from common.custom_celery_tasks import shared_dedicated_queue_retry_task
@@ -58,7 +58,7 @@ def notify_user_async(user_pk, alert_group_pk, notification_policy_pk):
         )
         return
 
-    subject, html_message = build_subject_and_title(alert_group, emails_left)
+    subject, html_message = build_subject_and_message(alert_group, emails_left)
 
     message = strip_tags(html_message)
     email_from = settings.EMAIL_HOST_USER

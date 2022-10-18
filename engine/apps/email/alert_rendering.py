@@ -23,7 +23,7 @@ class AlertEmailTemplater(AlertTemplater):
         return sf.format(data)
 
 
-def build_subject_and_title(alert_group, emails_left):
+def build_subject_and_message(alert_group, emails_left):
     alert = alert_group.alerts.first()
     templated_alert = AlertEmailTemplater(alert).render()
 
