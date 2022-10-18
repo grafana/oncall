@@ -58,16 +58,26 @@
 {{- end }}
 
 {{- define "snippet.celery.env" -}}
+{{- if .Values.celery.worker_queue }}
 - name: CELERY_WORKER_QUEUE
-  value: "default,critical,long,slack,telegram,webhook,celery"
+  value: {{ .Values.celery.worker_queue }}
+{{- end -}}
+{{- if .Values.celery.worker_concurrency }}
 - name: CELERY_WORKER_CONCURRENCY
-  value: "1"
+  value: {{ .Values.celery.worker_concurrency | quote }}
+{{- end -}}
+{{- if .Values.celery.worker_max_tasks_per_child }}
 - name: CELERY_WORKER_MAX_TASKS_PER_CHILD
-  value: "100"
-- name: CELERY_WORKER_SHUTDOWN_INTERVAL
-  value: "65m"
+  value: {{ .Values.celery.worker_max_tasks_per_child | quote }}
+{{- end -}}
+{{- if .Values.celery.worker_beat_enabled }}
 - name: CELERY_WORKER_BEAT_ENABLED
-  value: "True"
+  value: {{ .Values.celery.worker_beat_enabled | quote }}
+{{- end -}}
+{{- if .Values.celery.worker_shutdown_interval }}
+- name: CELERY_WORKER_SHUTDOWN_INTERVAL
+  value: {{ .Values.celery.worker_shutdown_interval }}
+{{- end -}}
 {{- end }}
 
 {{- define "snippet.mysql.env" -}}
