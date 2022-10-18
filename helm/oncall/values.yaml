@@ -44,6 +44,16 @@ engine:
 # Celery workers pods configuration
 celery:
   replicaCount: 1
+  worker_queue: "default,critical,long,slack,telegram,webhook,celery"
+  worker_concurrency: "1"
+  worker_max_tasks_per_child: "100"
+  worker_beat_enabled: "True"
+  ## Restart of the celery workers once in a given interval as an additional precaution to the probes
+  ## If this setting is enabled TERM signal will be sent to celery workers
+  ## It will lead to warm shutdown (waiting for the tasks to complete) and restart the container
+  ## If this setting is set numbers of pod restarts will increase
+  ## Comment this line out if you want to remove restarts
+  worker_shutdown_interval: "65m"
   livenessProbe:
     enabled: true
     initialDelaySeconds: 30
