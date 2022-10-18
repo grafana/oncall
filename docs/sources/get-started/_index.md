@@ -105,7 +105,7 @@ To configure Slack for Grafana OnCall:
 5. Click Allow to allow Grafana OnCall to access Slack.
 6. Ensure users verify their Slack accounts in their user profile in Grafana OnCall.
 
-For further instruction on connecting to your Slack workspace, refer to [Slack integration for Grafana OnCall]({{< relref "../chatops-integrations/configure-slack" >}})
+For further instruction on connecting to your Slack workspace, refer to [Slack integration for Grafana OnCall]({{< relref "../integrations/chatops-integrations/configure-slack/" >}})
 
 
 ### Add your on-call schedule

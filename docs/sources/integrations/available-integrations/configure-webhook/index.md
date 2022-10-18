@@ -57,4 +57,4 @@ For example:
     }'
         ```
 
-To learn how to use custom alert templates for formatted webhooks, see [Configure alerts templates]({{< relref "../alert-behavior/alert-templates" >}}).
+To learn how to use custom alert templates for formatted webhooks, see [Configure alerts templates]({{< relref "../../../alert-behavior/alert-templates/" >}}).
