@@ -2,7 +2,7 @@
 
 When running the migrator in `plan` mode, it can potentially show that some users cannot be matched (meaning that there are no users in Grafana with the same email as in PagerDuty). 
 
-If there are a large number of unmatched users, it can be easier to use the following script that automatically creates missing Grafana users:
+If there is a large number of unmatched users, it can be easier to use the following script that automatically creates missing Grafana users:
 
 ```bash
 docker run --rm \
