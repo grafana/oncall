@@ -47,7 +47,7 @@
 {{- if .Values.oncall.telegram.enabled -}}
 - name: FEATURE_TELEGRAM_INTEGRATION_ENABLED
   value: {{ .Values.oncall.telegram.enabled | toString | title | quote }}
-- name: TELEGRAM_WEBHOOK_URL
+- name: TELEGRAM_WEBHOOK_HOST
   value: {{ .Values.oncall.telegram.webhookUrl | default "" | quote }}
 - name: TELEGRAM_TOKEN
   value: {{ .Values.oncall.telegram.token | default "" | quote }}
