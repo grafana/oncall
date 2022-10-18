@@ -87,22 +87,22 @@ class LiveSetting(models.Model):
             "here</a> for more info. Required."
         ),
         "TWILIO_API_KEY_SID": (
-            "Twilio API key SID/username to allow OnCall to send SMSes and make phone calls, see"
+            "Twilio API key SID/username to allow OnCall to send SMSes and make phone calls, see "
             "<a href='https://www.twilio.com/docs/iam/keys/api-key' target='_blank'>"
             "here</a> for more info. Either (TWILIO_API_KEY_SID + TWILIO_API_KEY_SECRET) or TWILIO_AUTH_TOKEN is required."
         ),
         "TWILIO_API_KEY_SECRET": (
-            "Twilio API key secret/password to allow OnCall to send SMSes and make phone calls, see"
+            "Twilio API key secret/password to allow OnCall to send SMSes and make phone calls, see "
             "<a href='https://www.twilio.com/docs/iam/keys/api-key' target='_blank'>"
             "here</a> for more info. Either (TWILIO_API_KEY_SID + TWILIO_API_KEY_SECRET) or TWILIO_AUTH_TOKEN is required."
         ),
         "TWILIO_AUTH_TOKEN": (
-            "Twilio password to allow OnCall to send SMSes and make calls, "
+            "Twilio password to allow OnCall to send SMSes and make calls, see "
             "<a href='https://support.twilio.com/hc/en-us/articles/223136027-Auth-Tokens-and-How-to-Change-Them' target='_blank'>"
             "here</a> for more info. Either (TWILIO_API_KEY_SID + TWILIO_API_KEY_SECRET) or TWILIO_AUTH_TOKEN is required."
         ),
         "TWILIO_NUMBER": (
-            "Number from which you will receive calls and SMS, "
+            "Number from which you will receive calls and SMSes, "
             "<a href='https://www.twilio.com/docs/phone-numbers' target='_blank'>more info</a>."
         ),
         "TWILIO_VERIFY_SERVICE_SID": (
@@ -140,6 +140,8 @@ class LiveSetting(models.Model):
     SECRET_SETTING_NAMES = (
         "TWILIO_ACCOUNT_SID",
         "TWILIO_AUTH_TOKEN",
+        "TWILIO_API_KEY_SID",
+        "TWILIO_API_KEY_SECRET",
         "TWILIO_VERIFY_SERVICE_SID",
         "SENDGRID_API_KEY",
         "SENDGRID_SECRET_KEY",
@@ -186,8 +188,21 @@ class LiveSetting(models.Model):
         settings_in_db = cls.objects.filter(name__in=cls.AVAILABLE_NAMES).values_list("name", flat=True)
         setting_names_to_populate = set(cls.AVAILABLE_NAMES) - set(settings_in_db)
 
+        revalidate_twilio = False
         for setting_name in setting_names_to_populate:
-            cls.objects.create(name=setting_name, value=cls._get_setting_from_setting_file(setting_name))
+            setting = cls.objects.create(name=setting_name, value=cls._get_setting_from_setting_file(setting_name))
+            if setting.name.startswith("TWILIO"):
+                revalidate_twilio = True
+
+        if revalidate_twilio:
+            cls.revalidate_twilio()
+
+    @classmethod
+    def revalidate_twilio(cls):
+        twilio_settings = cls.objects.filter(name__startswith="TWILIO")
+        for setting in twilio_settings:
+            setting.error = LiveSettingValidator(live_setting=setting).get_error()
+            setting.save(update_fields=["error"])
 
     @staticmethod
     def _get_setting_from_setting_file(setting_name):

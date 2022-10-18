@@ -34,13 +34,20 @@ live_settings = LiveSettingProxy()
 
 
 class LiveSettingValidator:
+
+    EMPTY_VALID_NAMES = (
+        "TWILIO_AUTH_TOKEN",
+        "TWILIO_API_KEY_SID",
+        "TWILIO_API_KEY_SECRET",
+    )
+
     def __init__(self, live_setting):
         self.live_setting = live_setting
 
     def get_error(self):
         check_fn_name = f"_check_{self.live_setting.name.lower()}"
 
-        if self.live_setting.value is None:
+        if self.live_setting.value is None and self.live_setting.name not in self.EMPTY_VALID_NAMES:
             return "Empty"
 
         # skip validation if there's no handler for it
