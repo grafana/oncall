@@ -163,8 +163,8 @@ class AlertReceiveChannel(IntegrationOptionsMixin, MaintainableObject):
 
     # email related fields are deprecated in favour of messaging backend based templates
     # these templates are stored in the messaging_backends_templates field
-    email_title_template = models.TextField(null=True, default=None)
-    email_message_template = models.TextField(null=True, default=None)
+    email_title_template = models.TextField(null=True, default=None)  # deprecated
+    email_message_template = models.TextField(null=True, default=None)  # deprecated
 
     telegram_title_template = models.TextField(null=True, default=None)
     telegram_message_template = models.TextField(null=True, default=None)
