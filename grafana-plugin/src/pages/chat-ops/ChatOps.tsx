@@ -10,6 +10,7 @@ import { withMobXProviderContext } from 'state/withStore';
 import { ChatOpsTab } from './ChatOps.types';
 
 import styles from './ChatOps.module.css';
+import PluginLink from 'components/PluginLink/PluginLink';
 
 const cx = cn.bind(styles);
 
@@ -31,19 +32,21 @@ class ChatOpsPage extends React.Component<MessengersPageProps, MessengersPageSta
     const { teamStore } = store;
 
     return (
-      <div className={cx('root')}>
-        <div className={cx('tabs')}>
-          <Tabs
-            activeTab={activeTab}
-            onTabChange={(tab: ChatOpsTab) => {
-              this.setState({ activeTab: tab });
-            }}
-          />
+      <PluginLink>
+        <div className={cx('root')}>
+          <div className={cx('tabs')}>
+            <Tabs
+              activeTab={activeTab}
+              onTabChange={(tab: ChatOpsTab) => {
+                this.setState({ activeTab: tab });
+              }}
+            />
+          </div>
+          <div className={cx('content')}>
+            <TabsContent activeTab={activeTab} />
+          </div>
         </div>
-        <div className={cx('content')}>
-          <TabsContent activeTab={activeTab} />
-        </div>
-      </div>
+      </PluginLink>
     );
   }
 }

@@ -33,6 +33,7 @@ import { PLACEHOLDER } from './LiveSettings.config';
 import { normalizeValue, prepareForUpdate } from './LiveSettings.helpers';
 
 import styles from './LiveSettings.module.css';
+import PluginLink from 'components/PluginLink/PluginLink';
 
 const cx = cn.bind(styles);
 
@@ -125,35 +126,37 @@ class LiveSettings extends React.Component<LiveSettingsProps, LiveSettingsState>
     const loading = !data;
 
     return (
-      <div className={cx('root')}>
-        <GTable
-          rowClassName={cx('row')}
-          emptyText={data ? 'No variables found' : 'Loading...'}
-          title={() => (
-            <div className={cx('header')}>
-              <HorizontalGroup>
-                <Text.Title level={3}>Env Variables</Text.Title>
-                {/*<Text type="secondary">Some information</Text>*/}
-              </HorizontalGroup>
-              <HorizontalGroup justify="flex-end">
-                <WithPermissionControl userAction={UserAction.UpdateGlobalSettings}>
-                  <Button
-                    variant="primary"
-                    icon={hideValues ? 'eye' : 'eye-slash'}
-                    onClick={this.handleToggleSecretsClick}
-                  >
-                    {hideValues ? 'Show values' : 'Hide values'}
-                  </Button>
-                </WithPermissionControl>
-              </HorizontalGroup>
-            </div>
-          )}
-          rowKey="id"
-          // @ts-ignore // how to import AlignType?
-          columns={columns}
-          data={data}
-        />
-      </div>
+      <PluginLink>
+        <div className={cx('root')}>
+          <GTable
+            rowClassName={cx('row')}
+            emptyText={data ? 'No variables found' : 'Loading...'}
+            title={() => (
+              <div className={cx('header')}>
+                <HorizontalGroup>
+                  <Text.Title level={3}>Env Variables</Text.Title>
+                  {/*<Text type="secondary">Some information</Text>*/}
+                </HorizontalGroup>
+                <HorizontalGroup justify="flex-end">
+                  <WithPermissionControl userAction={UserAction.UpdateGlobalSettings}>
+                    <Button
+                      variant="primary"
+                      icon={hideValues ? 'eye' : 'eye-slash'}
+                      onClick={this.handleToggleSecretsClick}
+                    >
+                      {hideValues ? 'Show values' : 'Hide values'}
+                    </Button>
+                  </WithPermissionControl>
+                </HorizontalGroup>
+              </div>
+            )}
+            rowKey="id"
+            // @ts-ignore // how to import AlignType?
+            columns={columns}
+            data={data}
+          />
+        </div>
+      </PluginLink>
     );
   }
 

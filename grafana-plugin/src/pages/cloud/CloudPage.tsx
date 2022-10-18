@@ -370,20 +370,22 @@ const CloudPage = observer((props: CloudPageProps) => {
   );
 
   return (
-    <div className={cx('root')}>
-      <VerticalGroup spacing="lg">
-        <Text.Title level={3} className={cx('cloud-page-title')}>
-          Connect Open Source OnCall and <Text className={cx('cloud-oncall-name')}>Cloud OnCall</Text>
-        </Text.Title>
-        {cloudIsConnected === undefined ? (
-          <LoadingPlaceholder text="Loading..." />
-        ) : cloudIsConnected ? (
-          ConnectedBlock
-        ) : (
-          DisconnectedBlock
-        )}
-      </VerticalGroup>
-    </div>
+    <PluginLink>
+      <div className={cx('root')}>
+        <VerticalGroup spacing="lg">
+          <Text.Title level={3} className={cx('cloud-page-title')}>
+            Connect Open Source OnCall and <Text className={cx('cloud-oncall-name')}>Cloud OnCall</Text>
+          </Text.Title>
+          {cloudIsConnected === undefined ? (
+            <LoadingPlaceholder text="Loading..." />
+          ) : cloudIsConnected ? (
+            ConnectedBlock
+          ) : (
+            DisconnectedBlock
+          )}
+        </VerticalGroup>
+      </div>
+    </PluginLink>
   );
 });
 

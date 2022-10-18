@@ -30,6 +30,7 @@ import { withMobXProviderContext } from 'state/withStore';
 import SilenceDropdown from './parts/SilenceDropdown';
 
 import styles from './Incidents.module.css';
+import { PluginPage } from 'PluginPage';
 
 const cx = cn.bind(styles);
 
@@ -98,10 +99,12 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
 
   render() {
     return (
-      <div className={cx('root')}>
-        {this.renderIncidentFilters()}
-        {this.renderTable()}
-      </div>
+      <PluginPage>
+        <div className={cx('root')}>
+          {this.renderIncidentFilters()}
+          {this.renderTable()}
+        </div>
+      </PluginPage>
     );
   }
 

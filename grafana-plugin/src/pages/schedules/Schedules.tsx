@@ -85,7 +85,9 @@ class SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSta
       query: { id },
     } = this.props;
 
-    if (!id) {return;}
+    if (!id) {
+      return;
+    }
 
     let scheduleId: string = undefined;
     const isNewSchedule = id === 'new';
@@ -167,117 +169,119 @@ class SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSta
     const offset = moment().tz(timezoneStr).format('Z');
 
     return (
-      <PageErrorHandlingWrapper
-        errorData={errorData}
-        objectName="schedule"
-        pageName="schedules"
-        itemNotFoundMessage={`Schedule with id=${query?.id} is not found. Please select schedule from the list.`}
-      >
-        {() => (
-          <>
-            <div className={cx('root')}>
-              <div className={cx('title')}>
-                <HorizontalGroup align="flex-end">
-                  <Text.Title level={3}>On-call Schedules</Text.Title>
-                  <Text type="secondary">
-                    Use this to distribute notifications among team members you specified in the "Notify Users from
-                    on-call schedule" step in{' '}
-                    <PluginLink query={{ page: 'integrations' }}>escalation chains</PluginLink>.
-                  </Text>
-                </HorizontalGroup>
+      <PluginLink>
+        <PageErrorHandlingWrapper
+          errorData={errorData}
+          objectName="schedule"
+          pageName="schedules"
+          itemNotFoundMessage={`Schedule with id=${query?.id} is not found. Please select schedule from the list.`}
+        >
+          {() => (
+            <>
+              <div className={cx('root')}>
+                <div className={cx('title')}>
+                  <HorizontalGroup align="flex-end">
+                    <Text.Title level={3}>On-call Schedules</Text.Title>
+                    <Text type="secondary">
+                      Use this to distribute notifications among team members you specified in the "Notify Users from
+                      on-call schedule" step in{' '}
+                      <PluginLink query={{ page: 'integrations' }}>escalation chains</PluginLink>.
+                    </Text>
+                  </HorizontalGroup>
+                </div>
+
+                {!schedules || schedules.length ? (
+                  <GTable
+                    emptyText={schedules ? 'No schedules found' : 'Loading...'}
+                    title={() => (
+                      <div className={cx('header')}>
+                        <HorizontalGroup className={cx('filters')} spacing="md">
+                          <SchedulesFilters value={filters} onChange={this.handleChangeFilters} />
+                          <Text type="secondary">
+                            <Icon name="info-circle" /> Your timezone is {timezoneStr} UTC{offset}
+                          </Text>
+                        </HorizontalGroup>
+                        <PluginLink
+                          partial
+                          query={{ id: 'new' }}
+                          disabled={!store.isUserActionAllowed(UserAction.UpdateSchedules)}
+                        >
+                          <WithPermissionControl userAction={UserAction.UpdateSchedules}>
+                            <Button variant="primary" icon="plus">
+                              New schedule
+                            </Button>
+                          </WithPermissionControl>
+                        </PluginLink>
+                      </div>
+                    )}
+                    rowKey="id"
+                    columns={columns}
+                    data={schedules}
+                    expandable={{
+                      expandedRowRender: this.renderEvents,
+                      expandRowByClick: true,
+                      onExpand: this.onRowExpand,
+                      expandedRowKeys: expandedSchedulesKeys,
+                      onExpandedRowsChange: this.handleExpandedRowsChange,
+                    }}
+                  />
+                ) : (
+                  <Tutorial
+                    step={TutorialStep.Schedules}
+                    title={
+                      <VerticalGroup align="center" spacing="lg">
+                        <Text type="secondary">You haven’t added a schedule yet.</Text>
+                        <PluginLink partial query={{ id: 'new' }}>
+                          <Button icon="plus" variant="primary" size="lg">
+                            Add team schedule for on-call rotation
+                          </Button>
+                        </PluginLink>
+                      </VerticalGroup>
+                    }
+                  />
+                )}
               </div>
 
-              {!schedules || schedules.length ? (
-                <GTable
-                  emptyText={schedules ? 'No schedules found' : 'Loading...'}
-                  title={() => (
-                    <div className={cx('header')}>
-                      <HorizontalGroup className={cx('filters')} spacing="md">
-                        <SchedulesFilters value={filters} onChange={this.handleChangeFilters} />
-                        <Text type="secondary">
-                          <Icon name="info-circle" /> Your timezone is {timezoneStr} UTC{offset}
-                        </Text>
-                      </HorizontalGroup>
-                      <PluginLink
-                        partial
-                        query={{ id: 'new' }}
-                        disabled={!store.isUserActionAllowed(UserAction.UpdateSchedules)}
-                      >
-                        <WithPermissionControl userAction={UserAction.UpdateSchedules}>
-                          <Button variant="primary" icon="plus">
-                            New schedule
-                          </Button>
-                        </WithPermissionControl>
-                      </PluginLink>
-                    </div>
-                  )}
-                  rowKey="id"
-                  columns={columns}
-                  data={schedules}
-                  expandable={{
-                    expandedRowRender: this.renderEvents,
-                    expandRowByClick: true,
-                    onExpand: this.onRowExpand,
-                    expandedRowKeys: expandedSchedulesKeys,
-                    onExpandedRowsChange: this.handleExpandedRowsChange,
+              {scheduleIdToEdit && (
+                <ScheduleForm
+                  id={scheduleIdToEdit}
+                  type={ScheduleType.Ical}
+                  onUpdate={this.update}
+                  onHide={() => {
+                    this.setState({ scheduleIdToEdit: undefined });
+                    getLocationSrv().update({ partial: true, query: { id: undefined } });
                   }}
                 />
-              ) : (
-                <Tutorial
-                  step={TutorialStep.Schedules}
-                  title={
-                    <VerticalGroup align="center" spacing="lg">
-                      <Text type="secondary">You haven’t added a schedule yet.</Text>
-                      <PluginLink partial query={{ id: 'new' }}>
-                        <Button icon="plus" variant="primary" size="lg">
-                          Add team schedule for on-call rotation
-                        </Button>
-                      </PluginLink>
-                    </VerticalGroup>
-                  }
+              )}
+
+              {scheduleIdToDelete && (
+                <ConfirmModal
+                  isOpen
+                  title="Are you sure to delete?"
+                  confirmText="Delete"
+                  dismissText="Cancel"
+                  onConfirm={this.handleDelete}
+                  body={null}
+                  onDismiss={() => {
+                    this.setState({ scheduleIdToDelete: undefined });
+                  }}
                 />
               )}
-            </div>
 
-            {scheduleIdToEdit && (
-              <ScheduleForm
-                id={scheduleIdToEdit}
-                type={ScheduleType.Ical}
-                onUpdate={this.update}
-                onHide={() => {
-                  this.setState({ scheduleIdToEdit: undefined });
-                  getLocationSrv().update({ partial: true, query: { id: undefined } });
-                }}
-              />
-            )}
-
-            {scheduleIdToDelete && (
-              <ConfirmModal
-                isOpen
-                title="Are you sure to delete?"
-                confirmText="Delete"
-                dismissText="Cancel"
-                onConfirm={this.handleDelete}
-                body={null}
-                onDismiss={() => {
-                  this.setState({ scheduleIdToDelete: undefined });
-                }}
-              />
-            )}
-
-            {scheduleIdToExport && (
-              <Modal
-                isOpen
-                title="Schedule export"
-                closeOnEscape
-                onDismiss={() => this.setState({ scheduleIdToExport: undefined })}
-              >
-                <ScheduleICalSettings id={scheduleIdToExport} />
-              </Modal>
-            )}
-          </>
-        )}
-      </PageErrorHandlingWrapper>
+              {scheduleIdToExport && (
+                <Modal
+                  isOpen
+                  title="Schedule export"
+                  closeOnEscape
+                  onDismiss={() => this.setState({ scheduleIdToExport: undefined })}
+                >
+                  <ScheduleICalSettings id={scheduleIdToExport} />
+                </Modal>
+              )}
+            </>
+          )}
+        </PageErrorHandlingWrapper>
+      </PluginLink>
     );
   }
 

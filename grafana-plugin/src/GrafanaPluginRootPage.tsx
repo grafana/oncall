@@ -22,6 +22,8 @@ import { rootStore } from 'state';
 import { useStore } from 'state/useStore';
 import { useNavModel } from 'utils/hooks';
 
+import { config, PluginPage } from '@grafana/runtime';
+
 dayjs.extend(utc);
 dayjs.extend(timezone);
 dayjs.extend(weekday);
@@ -42,6 +44,8 @@ export const GrafanaPluginRootPage = (props: AppRootProps) => (
     <RootWithLoader {...props} />
   </Provider>
 );
+
+PluginPage
 
 const RootWithLoader = observer((props: AppRootProps) => {
   const store = useStore();
@@ -145,9 +149,11 @@ export const Root = observer((props: AppRootProps) => {
       [meta, pathWithoutLeadingSlash, page, store.features, backendLicense]
     )
   );
+
   useEffect(() => {
-    /* @ts-ignore */
-    onNavChanged(navModel);
+    if (!config.featureToggles.topnav) {
+      onNavChanged(navModel as any);
+    }
   }, [navModel, onNavChanged]);
 
   const Page = pages.find(({ id }) => id === page)?.component || pages[0].component;

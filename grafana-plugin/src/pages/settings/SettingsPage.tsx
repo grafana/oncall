@@ -15,6 +15,7 @@ import { UserAction } from 'state/userAction';
 import { withMobXProviderContext } from 'state/withStore';
 
 import styles from './SettingsPage.module.css';
+import PluginLink from 'components/PluginLink/PluginLink';
 
 const cx = cn.bind(styles);
 
@@ -41,28 +42,29 @@ class SettingsPage extends React.Component<SettingsPageProps, SettingsPageState>
     const { apiUrl } = this.state;
 
     return (
-      <div className={cx('root')}>
-        <Text.Title level={3} className={cx('title')}>
-          Organization settings
-        </Text.Title>
-        <div className={cx('settings')}>
-          <Field
-            loading={!teamStore.currentTeam}
-            label="Require resolution note when resolve incident"
-            description="Once user clicks “Resolve” for an incident they are require to fill a resolution note about the incident"
-          >
-            <WithPermissionControl userAction={UserAction.UpdateGlobalSettings}>
-              <Switch
-                value={teamStore.currentTeam?.is_resolution_note_required}
-                onChange={(event) => {
-                  teamStore.saveCurrentTeam({
-                    is_resolution_note_required: event.currentTarget.checked,
-                  });
-                }}
-              />
-            </WithPermissionControl>
-          </Field>
-          {/*<Field
+      <PluginLink>
+        <div className={cx('root')}>
+          <Text.Title level={3} className={cx('title')}>
+            Organization settings
+          </Text.Title>
+          <div className={cx('settings')}>
+            <Field
+              loading={!teamStore.currentTeam}
+              label="Require resolution note when resolve incident"
+              description="Once user clicks “Resolve” for an incident they are require to fill a resolution note about the incident"
+            >
+              <WithPermissionControl userAction={UserAction.UpdateGlobalSettings}>
+                <Switch
+                  value={teamStore.currentTeam?.is_resolution_note_required}
+                  onChange={(event) => {
+                    teamStore.saveCurrentTeam({
+                      is_resolution_note_required: event.currentTarget.checked,
+                    });
+                  }}
+                />
+              </WithPermissionControl>
+            </Field>
+            {/*<Field
             loading={!teamStore.currentTeam}
             label="Archive alert created before given date"
             description="Alerts before and including this date will be resolved and archived"
@@ -82,17 +84,18 @@ class SettingsPage extends React.Component<SettingsPageProps, SettingsPageState>
               />
             </WithPermissionControl>
           </Field>*/}
+          </div>
+          <Text.Title level={3} className={cx('title')}>
+            API URL
+          </Text.Title>
+          <div>
+            <Field>
+              <Input value={apiUrl} disabled />
+            </Field>
+          </div>
+          <ApiTokenSettings />
         </div>
-        <Text.Title level={3} className={cx('title')}>
-          API URL
-        </Text.Title>
-        <div>
-          <Field>
-            <Input value={apiUrl} disabled />
-          </Field>
-        </div>
-        <ApiTokenSettings />
-      </div>
+      </PluginLink>
     );
   }
 }

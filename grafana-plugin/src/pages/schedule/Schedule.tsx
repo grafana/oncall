@@ -99,7 +99,7 @@ class SchedulePage extends React.Component<SchedulePageProps, SchedulePageState>
     const schedule = scheduleStore.items[scheduleId];
 
     return (
-      <>
+      <PluginLink>
         <div className={cx('root')}>
           <VerticalGroup spacing="lg">
             <div className={cx('header')}>
@@ -260,7 +260,7 @@ class SchedulePage extends React.Component<SchedulePageProps, SchedulePageState>
             }}
           />
         )}
-      </>
+      </PluginLink>
     );
   }
 

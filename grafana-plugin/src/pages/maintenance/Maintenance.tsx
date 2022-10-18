@@ -121,7 +121,7 @@ class MaintenancePage extends React.Component<MaintenancePageProps, MaintenanceP
     ];
 
     return (
-      <>
+      <PluginLink>
         <div className={cx('root')}>
           <GTable
             emptyText={data ? 'No maintenances found' : 'Loading...'}
@@ -162,7 +162,7 @@ class MaintenancePage extends React.Component<MaintenancePageProps, MaintenanceP
             }}
           />
         )}
-      </>
+      </PluginLink>
     );
   }
 

@@ -60,7 +60,9 @@ class OutgoingWebhooks extends React.Component<OutgoingWebhooksProps, OutgoingWe
       query: { id },
     } = this.props;
 
-    if (!id) {return;}
+    if (!id) {
+      return;
+    }
 
     let outgoingWebhook: OutgoingWebhook | void = undefined;
     const isNewWebhook = id === 'new';
@@ -107,48 +109,50 @@ class OutgoingWebhooks extends React.Component<OutgoingWebhooksProps, OutgoingWe
     ];
 
     return (
-      <PageErrorHandlingWrapper
-        errorData={errorData}
-        objectName="outgoing webhook"
-        pageName="outgoing_webhooks"
-        itemNotFoundMessage={`Outgoing webhook with id=${query?.id} is not found. Please select outgoing webhook from the list.`}
-      >
-        {() => (
-          <>
-            <div className={cx('root')}>
-              <GTable
-                emptyText={webhooks ? 'No outgoing webhooks found' : 'Loading...'}
-                title={() => (
-                  <div className={cx('header')}>
-                    <Text.Title level={3}>Outgoing Webhooks</Text.Title>
-                    <PluginLink
-                      partial
-                      query={{ id: 'new' }}
-                      disabled={!store.isUserActionAllowed(UserAction.UpdateCustomActions)}
-                    >
-                      <WithPermissionControl userAction={UserAction.UpdateCustomActions}>
-                        <Button variant="primary" icon="plus">
-                          Create
-                        </Button>
-                      </WithPermissionControl>
-                    </PluginLink>
-                  </div>
-                )}
-                rowKey="id"
-                columns={columns}
-                data={webhooks}
-              />
-            </div>
-            {outgoingWebhookIdToEdit && (
-              <OutgoingWebhookForm
-                id={outgoingWebhookIdToEdit}
-                onUpdate={this.update}
-                onHide={this.handleOutgoingWebhookFormHide}
-              />
-            )}
-          </>
-        )}
-      </PageErrorHandlingWrapper>
+      <PluginLink>
+        <PageErrorHandlingWrapper
+          errorData={errorData}
+          objectName="outgoing webhook"
+          pageName="outgoing_webhooks"
+          itemNotFoundMessage={`Outgoing webhook with id=${query?.id} is not found. Please select outgoing webhook from the list.`}
+        >
+          {() => (
+            <>
+              <div className={cx('root')}>
+                <GTable
+                  emptyText={webhooks ? 'No outgoing webhooks found' : 'Loading...'}
+                  title={() => (
+                    <div className={cx('header')}>
+                      <Text.Title level={3}>Outgoing Webhooks</Text.Title>
+                      <PluginLink
+                        partial
+                        query={{ id: 'new' }}
+                        disabled={!store.isUserActionAllowed(UserAction.UpdateCustomActions)}
+                      >
+                        <WithPermissionControl userAction={UserAction.UpdateCustomActions}>
+                          <Button variant="primary" icon="plus">
+                            Create
+                          </Button>
+                        </WithPermissionControl>
+                      </PluginLink>
+                    </div>
+                  )}
+                  rowKey="id"
+                  columns={columns}
+                  data={webhooks}
+                />
+              </div>
+              {outgoingWebhookIdToEdit && (
+                <OutgoingWebhookForm
+                  id={outgoingWebhookIdToEdit}
+                  onUpdate={this.update}
+                  onHide={this.handleOutgoingWebhookFormHide}
+                />
+              )}
+            </>
+          )}
+        </PageErrorHandlingWrapper>
+      </PluginLink>
     );
   }
 

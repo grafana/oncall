@@ -4,6 +4,7 @@ import { AppRootProps, NavModelItem } from '@grafana/data';
 
 import NavBarSubtitle from 'components/NavBar/NavBarSubtitle';
 import { PageDefinition } from 'pages';
+import { useLocation } from 'react-router-dom';
 
 import { APP_TITLE } from './consts';
 
@@ -19,6 +20,7 @@ type Args = {
   enableCloudPage: boolean;
   enableNewSchedulesPage: boolean;
   backendLicense: string;
+  onNavChanged: any;
 };
 
 export function useForceUpdate() {
@@ -36,31 +38,30 @@ export function useNavModel({
   enableCloudPage,
   enableNewSchedulesPage,
   backendLicense,
+  onNavChanged
 }: Args) {
-  return useMemo(() => {
-    const tabs: NavModelItem[] = [];
+  const location = useLocation();
 
-    pages.forEach(({ text, icon, id, role, hideFromTabs }) => {
-      tabs.push({
-        text,
-        icon,
-        id,
-        url: `${path}?page=${id}`,
+  useEffect(() => {
+    let hasActivePage = false;
+    const tabs = pages.map(({ text, icon, path, role, hideFromTabs, id }) => {
+      hasActivePage = hasActivePage || page === id;
+      return {
+        text: text,
+        icon: icon,
+        id: id,
+        url: path,
+        active: page === id,
         hideFromTabs:
           hideFromTabs ||
           (role === 'Admin' && grafanaUser.orgRole !== role) ||
           (id === 'live-settings' && !enableLiveSettings) ||
           (id === 'cloud' && !enableCloudPage) ||
           (id === 'schedules-new' && !enableNewSchedulesPage),
-      });
-
-      if (page === id) {
-        tabs[tabs.length - 1].active = true;
-      }
+      };
     });
 
-    // Fallback if current `tab` doesn't match any page
-    if (!tabs.some(({ active }) => active)) {
+    if (!hasActivePage) {
       tabs[0].active = true;
     }
 
@@ -72,15 +73,18 @@ export function useNavModel({
       children: tabs,
     };
 
-    return {
+    const navModel = {
       node,
       main: node,
     };
+
+    onNavChanged(navModel)
   }, [
     meta.info.logos.large,
     pages,
     path,
     page,
+    location,
     enableLiveSettings,
     enableCloudPage,
     backendLicense,

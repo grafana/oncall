@@ -144,7 +144,7 @@ class SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSta
       : undefined;
 
     return (
-      <>
+      <PluginLink>
         <div className={cx('root')}>
           <VerticalGroup>
             <HorizontalGroup justify="space-between">
@@ -199,7 +199,7 @@ class SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSta
             }}
           />
         )}
-      </>
+      </PluginLink>
     );
   }
 

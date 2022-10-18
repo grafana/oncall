@@ -1,13 +1,12 @@
 import React, { useCallback, FC } from 'react';
 
-import { getLocationSrv } from '@grafana/runtime';
-import { LocationUpdate } from '@grafana/runtime/services/LocationSrv';
+import { locationService } from '@grafana/runtime';
 import cn from 'classnames/bind';
 import qs from 'query-string';
 
 import styles from './PluginLink.module.css';
 
-interface PluginLinkProps extends LocationUpdate {
+interface PluginLinkProps {
   disabled?: boolean;
   className?: string;
   wrap?: boolean;
@@ -30,7 +29,7 @@ const PluginLink: FC<PluginLinkProps> = (props) => {
         return;
       }
 
-      !disabled && getLocationSrv().update({ partial, path, query });
+      !disabled && locationService.push({ partial, path, query });
     },
     [children]
   );
