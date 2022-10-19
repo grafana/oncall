@@ -9,6 +9,7 @@ import { withMobXProviderContext } from 'state/withStore';
 
 import styles from './Test.module.css';
 import PluginLink from 'components/PluginLink/PluginLink';
+import { PluginPage } from 'PluginPage';
 
 const cx = cn.bind(styles);
 
@@ -20,7 +21,7 @@ class Test extends React.Component<any, any> {
 
   render() {
     return (
-      <PluginLink>
+      <PluginPage>
         <div className={cx('root')}>
           <GSelect
             isMulti
@@ -36,7 +37,7 @@ class Test extends React.Component<any, any> {
             nullItemName={PRIVATE_CHANNEL_NAME}
           />
         </div>
-      </PluginLink>
+      </PluginPage>
     );
   }
 

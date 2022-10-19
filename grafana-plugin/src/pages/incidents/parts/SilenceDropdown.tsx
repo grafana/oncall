@@ -1,7 +1,6 @@
 import React, { useCallback } from 'react';
 
-import { ButtonCascader } from '@grafana/ui';
-import { ComponentSize } from '@grafana/ui/types/size';
+import { ButtonCascader, ComponentSize } from '@grafana/ui';
 import { observer } from 'mobx-react';
 
 import { WithPermissionControl } from 'containers/WithPermissionControl/WithPermissionControl';

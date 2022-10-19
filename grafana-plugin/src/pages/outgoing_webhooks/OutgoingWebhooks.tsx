@@ -24,6 +24,7 @@ import { UserAction } from 'state/userAction';
 import { withMobXProviderContext } from 'state/withStore';
 
 import styles from './OutgoingWebhooks.module.css';
+import { PluginPage } from 'PluginPage';
 
 const cx = cn.bind(styles);
 
@@ -109,7 +110,7 @@ class OutgoingWebhooks extends React.Component<OutgoingWebhooksProps, OutgoingWe
     ];
 
     return (
-      <PluginLink>
+      <PluginPage>
         <PageErrorHandlingWrapper
           errorData={errorData}
           objectName="outgoing webhook"
@@ -152,7 +153,7 @@ class OutgoingWebhooks extends React.Component<OutgoingWebhooksProps, OutgoingWe
             </>
           )}
         </PageErrorHandlingWrapper>
-      </PluginLink>
+      </PluginPage>
     );
   }
 

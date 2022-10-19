@@ -26,6 +26,7 @@ import { UserAction } from 'state/userAction';
 import { withMobXProviderContext } from 'state/withStore';
 
 import styles from './Maintenance.module.css';
+import { PluginPage } from 'PluginPage';
 
 const cx = cn.bind(styles);
 
@@ -121,7 +122,7 @@ class MaintenancePage extends React.Component<MaintenancePageProps, MaintenanceP
     ];
 
     return (
-      <PluginLink>
+      <PluginPage>
         <div className={cx('root')}>
           <GTable
             emptyText={data ? 'No maintenances found' : 'Loading...'}
@@ -162,7 +163,7 @@ class MaintenancePage extends React.Component<MaintenancePageProps, MaintenanceP
             }}
           />
         )}
-      </PluginLink>
+      </PluginPage>
     );
   }
 

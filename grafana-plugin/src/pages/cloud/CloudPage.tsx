@@ -29,6 +29,7 @@ import { withMobXProviderContext } from 'state/withStore';
 import { openErrorNotification } from 'utils';
 
 import styles from './CloudPage.module.css';
+import { PluginPage } from 'PluginPage';
 
 const cx = cn.bind(styles);
 
@@ -370,7 +371,7 @@ const CloudPage = observer((props: CloudPageProps) => {
   );
 
   return (
-    <PluginLink>
+    <PluginPage>
       <div className={cx('root')}>
         <VerticalGroup spacing="lg">
           <Text.Title level={3} className={cx('cloud-page-title')}>
@@ -385,7 +386,7 @@ const CloudPage = observer((props: CloudPageProps) => {
           )}
         </VerticalGroup>
       </div>
-    </PluginLink>
+    </PluginPage>
   );
 });
 

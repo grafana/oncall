@@ -24,6 +24,7 @@ import { withMobXProviderContext } from 'state/withStore';
 import { getStartOfWeek } from './Schedule.helpers';
 
 import styles from './Schedule.module.css';
+import { PluginPage } from 'PluginPage';
 
 const cx = cn.bind(styles);
 
@@ -99,7 +100,7 @@ class SchedulePage extends React.Component<SchedulePageProps, SchedulePageState>
     const schedule = scheduleStore.items[scheduleId];
 
     return (
-      <PluginLink>
+      <PluginPage>
         <div className={cx('root')}>
           <VerticalGroup spacing="lg">
             <div className={cx('header')}>
@@ -260,7 +261,7 @@ class SchedulePage extends React.Component<SchedulePageProps, SchedulePageState>
             }}
           />
         )}
-      </PluginLink>
+      </PluginPage>
     );
   }
 

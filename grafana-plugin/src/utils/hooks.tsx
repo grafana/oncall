@@ -38,7 +38,7 @@ export function useNavModel({
   enableCloudPage,
   enableNewSchedulesPage,
   backendLicense,
-  onNavChanged
+  onNavChanged,
 }: Args) {
   const location = useLocation();
 
@@ -78,7 +78,7 @@ export function useNavModel({
       main: node,
     };
 
-    onNavChanged(navModel)
+    onNavChanged(navModel);
   }, [
     meta.info.logos.large,
     pages,

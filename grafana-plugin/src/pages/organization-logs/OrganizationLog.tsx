@@ -19,6 +19,7 @@ import { withMobXProviderContext } from 'state/withStore';
 import sanitize from 'utils/sanitize';
 
 import styles from './OrganizationLog.module.css';
+import { PluginPage } from 'PluginPage';
 
 const cx = cn.bind(styles);
 
@@ -95,7 +96,7 @@ class OrganizationLogPage extends React.Component<OrganizationLogProps, Organiza
     const loading = !results;
 
     return (
-      <PluginLink>
+      <PluginPage>
         <div className={cx('root')}>
           <OrganizationLogFilters value={filters} onChange={this.handleChangeOrganizationLogFilters} />
           <GTable
@@ -129,7 +130,7 @@ class OrganizationLogPage extends React.Component<OrganizationLogProps, Organiza
             }}
           />
         </div>
-      </PluginLink>
+      </PluginPage>
     );
   }
 

@@ -17,6 +17,7 @@ import { showApiError } from 'utils';
 import apiTokensImg from './img/api-tokens.png';
 
 import styles from './MigrationTool.module.css';
+import { PluginPage } from 'PluginPage';
 
 const cx = cn.bind(styles);
 
@@ -61,7 +62,7 @@ class MigrationToolPage extends React.Component<MigrationToolProps, MigrationToo
     const { migrationStatus, migrationInitiated, migrationPlan, apiKey, endpointsList } = this.state;
 
     return (
-      <PluginLink>
+      <PluginPage>
         <div className={cx('root')}>
           <p>
             <Text.Title level={3} className={cx('title')}>
@@ -295,7 +296,7 @@ class MigrationToolPage extends React.Component<MigrationToolProps, MigrationToo
             <LoadingPlaceholder text={'Loading migration status'} />
           )}
         </div>
-      </PluginLink>
+      </PluginPage>
     );
   }
 

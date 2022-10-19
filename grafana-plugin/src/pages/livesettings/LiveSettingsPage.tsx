@@ -34,6 +34,7 @@ import { normalizeValue, prepareForUpdate } from './LiveSettings.helpers';
 
 import styles from './LiveSettings.module.css';
 import PluginLink from 'components/PluginLink/PluginLink';
+import { PluginPage } from 'PluginPage';
 
 const cx = cn.bind(styles);
 
@@ -126,7 +127,7 @@ class LiveSettings extends React.Component<LiveSettingsProps, LiveSettingsState>
     const loading = !data;
 
     return (
-      <PluginLink>
+      <PluginPage>
         <div className={cx('root')}>
           <GTable
             rowClassName={cx('row')}
@@ -156,7 +157,7 @@ class LiveSettings extends React.Component<LiveSettingsProps, LiveSettingsState>
             data={data}
           />
         </div>
-      </PluginLink>
+      </PluginPage>
     );
   }
 

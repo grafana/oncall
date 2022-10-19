@@ -22,7 +22,7 @@ import { rootStore } from 'state';
 import { useStore } from 'state/useStore';
 import { useNavModel } from 'utils/hooks';
 
-import { config, PluginPage } from '@grafana/runtime';
+import { config } from '@grafana/runtime';
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
@@ -38,14 +38,14 @@ import './style/vars.css';
 import './style/index.css';
 
 import { AppFeature } from './state/features';
+import { Route, Switch } from 'react-router-dom';
+import { routes } from 'components/PluginLink/routes';
 
 export const GrafanaPluginRootPage = (props: AppRootProps) => (
   <Provider store={rootStore}>
     <RootWithLoader {...props} />
   </Provider>
 );
-
-PluginPage
 
 const RootWithLoader = observer((props: AppRootProps) => {
   const store = useStore();
@@ -103,10 +103,10 @@ const RootWithLoader = observer((props: AppRootProps) => {
 
 export const Root = observer((props: AppRootProps) => {
   const {
-    path,
-    onNavChanged,
     query: { page },
     meta,
+    path,
+    onNavChanged,
   } = props;
 
   // Required to support grafana instances that use a custom `root_url`.
@@ -145,6 +145,7 @@ export const Root = observer((props: AppRootProps) => {
         enableCloudPage: store.hasFeature(AppFeature.CloudConnection),
         enableNewSchedulesPage: store.hasFeature(AppFeature.WebSchedules),
         backendLicense,
+        onNavChanged,
       }),
       [meta, pathWithoutLeadingSlash, page, store.features, backendLicense]
     )
@@ -156,12 +157,16 @@ export const Root = observer((props: AppRootProps) => {
     }
   }, [navModel, onNavChanged]);
 
-  const Page = pages.find(({ id }) => id === page)?.component || pages[0].component;
+  console.log({routes})
 
   return (
     <DefaultPageLayout {...props}>
       <GrafanaTeamSelect currentPage={page} />
-      <Page {...props} path={pathWithoutLeadingSlash} />
+      <Switch>
+        {pages.map((page) => (
+          <Route exact path={page.path} component={routes[page.id].component} />
+        ))}
+      </Switch>
     </DefaultPageLayout>
   );
 });

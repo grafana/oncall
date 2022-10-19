@@ -32,6 +32,7 @@ import { withMobXProviderContext } from 'state/withStore';
 import { openWarningNotification } from 'utils';
 
 import styles from './EscalationChains.module.css';
+import { PluginPage } from 'PluginPage';
 
 const cx = cn.bind(styles);
 
@@ -135,7 +136,7 @@ class EscalationChainsPage extends React.Component<EscalationChainsPageProps, Es
     const searchResult = escalationChainStore.getSearchResult(escalationChainsFilters.searchTerm);
 
     return (
-      <PluginLink>
+      <PluginPage>
         <PageErrorHandlingWrapper
           errorData={errorData}
           objectName="escalation"
@@ -218,7 +219,7 @@ class EscalationChainsPage extends React.Component<EscalationChainsPageProps, Es
             </>
           )}
         </PageErrorHandlingWrapper>
-      </PluginLink>
+      </PluginPage>
     );
   }
 

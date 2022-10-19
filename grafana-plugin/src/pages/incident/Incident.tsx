@@ -57,6 +57,7 @@ import sanitize from 'utils/sanitize';
 import { getActionButtons, getIncidentStatusTag, renderRelatedUsers } from './Incident.helpers';
 
 import styles from './Incident.module.css';
+import { PluginPage } from 'PluginPage';
 
 const cx = cn.bind(styles);
 
@@ -126,7 +127,7 @@ class IncidentPage extends React.Component<IncidentPageProps, IncidentPageState>
     }
 
     return (
-      <PluginLink>
+      <PluginPage>
         <PageErrorHandlingWrapper errorData={errorData} objectName="alert group" pageName="incidents">
           {() =>
             errorData.isNotFoundError ? (
@@ -192,7 +193,7 @@ class IncidentPage extends React.Component<IncidentPageProps, IncidentPageState>
             )
           }
         </PageErrorHandlingWrapper>
-      </PluginLink>
+      </PluginPage>
     );
   }
 

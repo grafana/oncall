@@ -32,6 +32,7 @@ import { UserAction } from 'state/userAction';
 import { withMobXProviderContext } from 'state/withStore';
 
 import styles from './Schedules.module.css';
+import { PluginPage } from 'PluginPage';
 
 const cx = cn.bind(styles);
 
@@ -144,7 +145,7 @@ class SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSta
       : undefined;
 
     return (
-      <PluginLink>
+      <PluginPage>
         <div className={cx('root')}>
           <VerticalGroup>
             <HorizontalGroup justify="space-between">
@@ -199,7 +200,7 @@ class SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSta
             }}
           />
         )}
-      </PluginLink>
+      </PluginPage>
     );
   }
 
