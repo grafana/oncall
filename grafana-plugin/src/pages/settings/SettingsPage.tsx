@@ -46,9 +46,6 @@ class SettingsPage extends React.Component<SettingsPageProps, SettingsPageState>
     return (
       <PluginPage pageNav={pages['settings']}>
         <div className={cx('root')}>
-          <Text.Title level={3} className={cx('title')}>
-            Organization settings
-          </Text.Title>
           <div className={cx('settings')}>
             <Field
               loading={!teamStore.currentTeam}

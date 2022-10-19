@@ -183,7 +183,6 @@ class SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSta
               <div className={cx('root')}>
                 <div className={cx('title')}>
                   <HorizontalGroup align="flex-end">
-                    <Text.Title level={3}>On-call Schedules</Text.Title>
                     <Text type="secondary">
                       Use this to distribute notifications among team members you specified in the "Notify Users from
                       on-call schedule" step in{' '}

@@ -125,7 +125,6 @@ class OutgoingWebhooks extends React.Component<OutgoingWebhooksProps, OutgoingWe
                   emptyText={webhooks ? 'No outgoing webhooks found' : 'Loading...'}
                   title={() => (
                     <div className={cx('header')}>
-                      <Text.Title level={3}>Outgoing Webhooks</Text.Title>
                       <PluginLink
                         partial
                         query={{ id: 'new' }}

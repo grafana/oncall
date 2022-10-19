@@ -186,7 +186,6 @@ class Users extends React.Component<UsersProps, UsersState> {
                   <div className={cx('users-header')}>
                     <div style={{ display: 'flex', alignItems: 'baseline' }}>
                       <div>
-                        <Text.Title level={3}>Users</Text.Title>
                         <Text type="secondary">
                           To manage permissions or add users, please visit{' '}
                           <a href="/org/users">Grafana user management</a>
