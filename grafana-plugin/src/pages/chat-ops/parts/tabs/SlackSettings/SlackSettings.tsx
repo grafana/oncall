@@ -1,16 +1,16 @@
 import React, { Component } from 'react';
 
-import { Field, HorizontalGroup, LoadingPlaceholder, VerticalGroup } from '@grafana/ui';
+import { Field, HorizontalGroup, LoadingPlaceholder, VerticalGroup, Icon, Button } from '@grafana/ui';
 import cn from 'classnames/bind';
 import { observer } from 'mobx-react';
 
+import { SlackNewIcon } from 'icons';
+import Block from 'components/GBlock/Block';
 import PluginLink from 'components/PluginLink/PluginLink';
 import Text from 'components/Text/Text';
-import Tutorial from 'components/Tutorial/Tutorial';
-import { TutorialStep } from 'components/Tutorial/Tutorial.types';
+import WithConfirm from 'components/WithConfirm/WithConfirm';
 import GSelect from 'containers/GSelect/GSelect';
 import RemoteSelect from 'containers/RemoteSelect/RemoteSelect';
-import SlackIntegrationButton from 'containers/SlackIntegrationButton/SlackIntegrationButton';
 import { WithPermissionControl } from 'containers/WithPermissionControl/WithPermissionControl';
 import { PRIVATE_CHANNEL_NAME } from 'models/slack_channel/slack_channel.config';
 import { SlackChannel } from 'models/slack_channel/slack_channel.types';
@@ -25,21 +25,57 @@ const cx = cn.bind(styles);
 
 interface SlackProps extends WithStoreProps {}
 
-interface SlackState {}
+interface SlackState {
+  showENVVariablesButton: boolean;
+}
 
 @observer
 class SlackSettings extends Component<SlackProps, SlackState> {
-  state: SlackState = {};
+  state: SlackState = {
+    showENVVariablesButton: false,
+  };
 
   componentDidMount() {
+    this.getSlackLiveSettings();
     this.update();
   }
+
+  handleOpenSlackInstructions = () => {
+    const { store } = this.props;
+    store.slackStore.installSlackIntegration();
+  };
 
   update = () => {
     const { store } = this.props;
 
     store.slackChannelStore.updateItems();
     store.slackStore.updateSlackSettings();
+  };
+
+  getSlackLiveSettings = async () => {
+    const { store } = this.props;
+    const slackClientOAUTH = await store.globalSettingStore.getGlobalSettingItemByName('SLACK_CLIENT_OAUTH_ID');
+    const slackClientOAUTHSecret = await store.globalSettingStore.getGlobalSettingItemByName(
+      'SLACK_CLIENT_OAUTH_SECRET'
+    );
+    const slackRedirectHost = await store.globalSettingStore.getGlobalSettingItemByName(
+      'SLACK_INSTALL_RETURN_REDIRECT_HOST'
+    );
+    const slackSigningSecret = await store.globalSettingStore.getGlobalSettingItemByName('SLACK_SIGNING_SECRET');
+
+    console.log('slackClientOAUTH', slackClientOAUTH?.error);
+    console.log('slackClientOAUTHSecret', slackClientOAUTHSecret?.error);
+    console.log('slackRedirectHost', slackRedirectHost?.error);
+    console.log('slackSigningSecret', slackSigningSecret?.error);
+    if (
+      slackClientOAUTH?.error ||
+      slackClientOAUTHSecret?.error ||
+      slackRedirectHost?.error ||
+      slackSigningSecret?.error
+    ) {
+      console.log('BLA BLA');
+      this.setState({ showENVVariablesButton: true });
+    }
   };
 
   render() {
@@ -59,34 +95,47 @@ class SlackSettings extends Component<SlackProps, SlackState> {
 
     return (
       <div className={cx('root')}>
-        <Text.Title level={4} className={cx('title')}>
-          Slack
-        </Text.Title>
-        <div className={cx('slack-settings')}>
-          <Field label="Default channel for Slack notifications">
-            <WithPermissionControl userAction={UserAction.UpdateGeneralLogChannelId}>
-              <GSelect
-                showSearch
-                className={cx('select', 'control')}
-                modelName="slackChannelStore"
-                displayField="display_name"
-                valueField="id"
-                placeholder="Select Slack Channel"
-                value={teamStore.currentTeam?.slack_channel?.id}
-                onChange={this.handleSlackChannelChange}
-                nullItemName={PRIVATE_CHANNEL_NAME}
-              />
-            </WithPermissionControl>
-          </Field>
+        <div className={cx('title')}>
+          <Text.Title level={3}>Slack</Text.Title>
         </div>
         <div className={cx('slack-settings')}>
-          <Text.Title level={4} className={cx('title')}>
+          <HorizontalGroup justify="space-between">
+            <HorizontalGroup align="center">
+              <Field label="Slack Workspace">
+                <div className={cx('select', 'control', 'team_workspace')}>
+                  <Text>{store.teamStore.currentTeam.slack_team_identity?.cached_name}</Text>
+                </div>
+              </Field>
+              <Field label="Default channel for Slack notifications">
+                <WithPermissionControl userAction={UserAction.UpdateGeneralLogChannelId}>
+                  <GSelect
+                    showSearch
+                    className={cx('select', 'control')}
+                    modelName="slackChannelStore"
+                    displayField="display_name"
+                    valueField="id"
+                    placeholder="Select Slack Channel"
+                    value={teamStore.currentTeam?.slack_channel?.id}
+                    onChange={this.handleSlackChannelChange}
+                    nullItemName={PRIVATE_CHANNEL_NAME}
+                  />
+                </WithPermissionControl>
+              </Field>
+            </HorizontalGroup>
+            <WithPermissionControl userAction={UserAction.UpdateIntegrations}>
+              <WithConfirm title="Are you sure to delete this Slack Integration?">
+                <Button variant="destructive" size="sm" onClick={() => this.removeSlackIntegration()}>
+                  Disconnect
+                </Button>
+              </WithConfirm>
+            </WithPermissionControl>
+          </HorizontalGroup>
+        </div>
+        <div className={cx('slack-settings')}>
+          <Text.Title level={5} className={cx('title')}>
             Additional settings
           </Text.Title>
-          <Field
-            label="Timeout for acknowledged alerts"
-            description="Set up a reminder and timeout for acknowledged alert to never forget about them"
-          >
+          <Field label="Timeout for acknowledged alerts">
             <HorizontalGroup>
               <WithPermissionControl userAction={UserAction.UpdateGeneralLogChannelId}>
                 <RemoteSelect
@@ -110,12 +159,49 @@ class SlackSettings extends Component<SlackProps, SlackState> {
             </HorizontalGroup>
           </Field>
         </div>
-        <Text.Title level={4} className={cx('title')}>
-          Remove integration
-        </Text.Title>
-        <SlackIntegrationButton className={cx('slack-button')} />
       </div>
     );
+  };
+
+  renderSlackWorkspace = () => {
+    const { store } = this.props;
+    return <Text>{store.teamStore.currentTeam.slack_team_identity?.cached_name}</Text>;
+  };
+
+  renderSlackChannels = () => {
+    const { store } = this.props;
+    return (
+      <WithPermissionControl userAction={UserAction.UpdateGeneralLogChannelId}>
+        <GSelect
+          showSearch
+          className={cx('select', 'control')}
+          modelName="slackChannelStore"
+          displayField="display_name"
+          valueField="id"
+          placeholder="Select Slack Channel"
+          value={store.teamStore.currentTeam?.slack_channel?.id}
+          onChange={this.handleSlackChannelChange}
+          nullItemName={PRIVATE_CHANNEL_NAME}
+        />
+      </WithPermissionControl>
+    );
+  };
+
+  renderActionButtons = () => {
+    <WithPermissionControl userAction={UserAction.UpdateIntegrations}>
+      <WithConfirm title="Are you sure to delete this Slack Integration?">
+        <Button variant="destructive" size="sm" onClick={() => this.removeSlackIntegration()}>
+          Disconnect
+        </Button>
+      </WithConfirm>
+    </WithPermissionControl>;
+  };
+
+  removeSlackIntegration = () => {
+    const { store } = this.props;
+    store.slackStore.removeSlackIntegration().then(() => {
+      store.teamStore.loadCurrentTeam();
+    });
   };
 
   getSlackSettingsChangeHandler = (field: string) => {
@@ -138,28 +224,49 @@ class SlackSettings extends Component<SlackProps, SlackState> {
 
   renderSlackStub = () => {
     const { store } = this.props;
-
+    const { showENVVariablesButton } = this.state;
+    const isLiveSettingAvailable = store.hasFeature(AppFeature.LiveSettings) && showENVVariablesButton;
     return (
-      <Tutorial
-        step={TutorialStep.Slack}
-        title={
+      <VerticalGroup spacing="lg">
+        <Text.Title level={2}>Connect Slack workspace</Text.Title>
+        <Block bordered withBackground className={cx('slack-infoblock')}>
           <VerticalGroup align="center" spacing="lg">
-            <Text type="secondary">
-              Bring the whole incident lifecycle to Slack, from alerts, monitoring, escalations to resolution notes and
-              reports.
+            <SlackNewIcon />
+            <Text>
+              Slack connection will allow you to manage incidents in your team Slack workspace.
+              <br />
+              After a basic workspace connection, your team members need to connect their personal Slack accounts in
+              order to be allowed to manage incidents.
             </Text>
-
-            <SlackIntegrationButton className={cx('slack-button')} />
-
-            {store.hasFeature(AppFeature.LiveSettings) && (
+            {isLiveSettingAvailable && (
               <Text type="secondary">
-                Before installing <PluginLink query={{ page: 'live-settings' }}>check ENV variables</PluginLink> related
-                to Slack please
+                For bot creating instructions and additional information please read{' '}
+                <a href="https://grafana.com/docs/grafana-cloud/oncall/open-source/#slack-setup">
+                  <Text type="link">our documentation</Text>
+                </a>
               </Text>
             )}
+            <img
+              style={{ height: '350px', display: 'block', margin: '0 auto' }}
+              src="public/plugins/grafana-oncall-app/img/slack_instructions.png"
+            />
           </VerticalGroup>
-        }
-      />
+        </Block>
+        {isLiveSettingAvailable ? (
+          <PluginLink query={{ page: 'live-settings' }}>
+            <Button variant="primary">Setup ENV Variables</Button>
+          </PluginLink>
+        ) : (
+          <HorizontalGroup>
+            <Button onClick={this.handleOpenSlackInstructions}>
+              <Icon name="external-link-alt" className={cx('external-link-style')} /> Open Slack connection page
+            </Button>
+            <PluginLink query={{ page: 'live-settings' }}>
+              <Button variant="secondary">See ENV Variables</Button>
+            </PluginLink>
+          </HorizontalGroup>
+        )}
+      </VerticalGroup>
     );
   };
 }

@@ -15,3 +15,17 @@
   margin-bottom: 20px;
   border-bottom: 1px solid rgba(204, 204, 220, 0.25);
 }
+
+.slack-infoblock {
+  text-align: center;
+  width: 725px;
+}
+
+.external-link-style {
+  margin-right: 4px;
+  align-self: baseline;
+}
+
+.team_workspace {
+  height: 30px;
+}
