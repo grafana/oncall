@@ -97,3 +97,17 @@ jobs:
           cd engine/
           pip install -r requirements.txt
           pytest --ds=settings.ci-test -x
+  
+  docker-build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Test docker build (no push)
+        id: docker_build
+        uses: docker/build-push-action@v2
+        with:
+          context: ./engine
+          file: ./engine/Dockerfile
+          push: false
+      - name: Image digest
+        run: echo ${{ steps.docker_build.outputs.digest }}

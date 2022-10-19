@@ -6,6 +6,7 @@ from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.test import APIClient
 
+from apps.base.messaging import BaseMessagingBackend
 from common.constants.role import Role
 
 
@@ -224,7 +225,7 @@ def test_update_alert_receive_channel_backend_template_update_values(
     # patch messaging backends to add OTHER as a valid backend
     with patch(
         "apps.api.serializers.alert_receive_channel.get_messaging_backends",
-        return_value=[("TESTONLY", None), ("OTHER", None)],
+        return_value=[("TESTONLY", BaseMessagingBackend), ("OTHER", BaseMessagingBackend)],
     ):
         response = client.put(
             url, format="json", data={"testonly_title_template": "updated-title"}, **make_user_auth_headers(user, token)

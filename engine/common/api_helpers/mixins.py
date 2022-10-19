@@ -11,7 +11,6 @@ from rest_framework.exceptions import NotFound, Throttled
 from rest_framework.response import Response
 
 from apps.alerts.incident_appearance.templaters import (
-    AlertEmailTemplater,
     AlertPhoneCallTemplater,
     AlertSlackTemplater,
     AlertSmsTemplater,
@@ -245,9 +244,8 @@ SLACK = "slack"
 WEB = "web"
 PHONE_CALL = "phone_call"
 SMS = "sms"
-EMAIL = "email"
 TELEGRAM = "telegram"
-NOTIFICATION_CHANNEL_OPTIONS = [SLACK, WEB, PHONE_CALL, SMS, EMAIL, TELEGRAM]
+NOTIFICATION_CHANNEL_OPTIONS = [SLACK, WEB, PHONE_CALL, SMS, TELEGRAM]
 TITLE = "title"
 MESSAGE = "message"
 IMAGE_URL = "image_url"
@@ -261,7 +259,6 @@ NOTIFICATION_CHANNEL_TO_TEMPLATER_MAP = {
     WEB: AlertWebTemplater,
     PHONE_CALL: AlertPhoneCallTemplater,
     SMS: AlertSmsTemplater,
-    EMAIL: AlertEmailTemplater,
     TELEGRAM: AlertTelegramTemplater,
 }
 
