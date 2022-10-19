@@ -12,6 +12,8 @@ import utc from 'dayjs/plugin/utc';
 import weekday from 'dayjs/plugin/weekday';
 import { observer, Provider } from 'mobx-react';
 
+import { useParams } from 'react-router-dom';
+
 import 'interceptors';
 
 import DefaultPageLayout from 'containers/DefaultPageLayout/DefaultPageLayout';
@@ -20,7 +22,6 @@ import logo from 'img/logo.svg';
 import { pages } from 'pages';
 import { rootStore } from 'state';
 import { useStore } from 'state/useStore';
-import { useNavModel } from 'utils/hooks';
 
 import { config } from '@grafana/runtime';
 
@@ -38,8 +39,8 @@ import './style/vars.css';
 import './style/index.css';
 
 import { AppFeature } from './state/features';
-import { Route, Switch } from 'react-router-dom';
 import { routes } from 'components/PluginLink/routes';
+import { useQueryParams, useQueryPath } from 'utils/hooks';
 
 export const GrafanaPluginRootPage = (props: AppRootProps) => (
   <Provider store={rootStore}>
@@ -102,18 +103,14 @@ const RootWithLoader = observer((props: AppRootProps) => {
 });
 
 export const Root = observer((props: AppRootProps) => {
-  const {
-    query: { page },
-    path,
-    meta,
-    onNavChanged,
-  } = props;
+  const queryParams = useQueryParams();
+  const page = queryParams.get('page');
+  const path = useQueryPath();
 
   // Required to support grafana instances that use a custom `root_url`.
   const pathWithoutLeadingSlash = path.replace(/^\//, '');
 
   const store = useStore();
-  const { backendLicense } = store;
 
   useEffect(() => {
     store.updateBasicData();
@@ -131,22 +128,6 @@ export const Root = observer((props: AppRootProps) => {
       document.head.removeChild(link);
     };
   }, []);
-
-  if (!config.featureToggles.topnav) {
-    // eslint-disable-next-line react-hooks/rules-of-hooks
-    useNavModel({
-      page,
-      pages,
-      path: pathWithoutLeadingSlash,
-      meta,
-      grafanaUser: window.grafanaBootData.user,
-      enableLiveSettings: store.hasFeature(AppFeature.LiveSettings),
-      enableCloudPage: store.hasFeature(AppFeature.CloudConnection),
-      enableNewSchedulesPage: store.hasFeature(AppFeature.WebSchedules),
-      backendLicense,
-      onNavChanged,
-    });
-  }
 
   const Page = routes[page].component;
 

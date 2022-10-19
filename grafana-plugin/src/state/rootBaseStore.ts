@@ -32,14 +32,13 @@ import { makeRequest } from 'network';
 
 import { AppFeature } from './features';
 import {
-  createGrafanaToken,
   getPluginSyncStatus,
   installPlugin,
   startPluginSync,
   SYNC_STATUS_RETRY_LIMIT, syncStatusDelay,
-  updateGrafanaToken
 } from './plugin';
 import { UserAction } from './userAction';
+import { NavMenuItem } from 'components/PluginLink/routes';
 
 // ------ Dashboard ------ //
 
@@ -99,6 +98,9 @@ export class RootBaseStore {
 
   @observable
   onCallApiUrl: string;
+
+  @observable
+  navMenuItem: NavMenuItem;
 
   // --------------------------
 

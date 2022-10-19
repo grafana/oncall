@@ -1,3 +1,5 @@
+import { AppRootProps } from '@grafana/data';
+import { PageDefinition } from 'pages';
 import ChatOpsPage from 'pages/chat-ops/ChatOps';
 import CloudPage from 'pages/cloud/CloudPage';
 import EscalationsChainsPage from 'pages/escalation-chains/EscalationChains';
@@ -16,12 +18,27 @@ import SettingsPage from 'pages/settings/SettingsPage';
 import Test from 'pages/test/Test';
 import UsersPage from 'pages/users/Users';
 
-interface Route {
+export interface NavMenuItem {
+  meta: AppRootProps['meta'];
+  pages: { [id: string]: PageDefinition };
+  path: string;
+  page: string;
+  grafanaUser: {
+    orgRole: 'Viewer' | 'Editor' | 'Admin';
+  };
+  enableLiveSettings: boolean;
+  enableCloudPage: boolean;
+  enableNewSchedulesPage: boolean;
+  backendLicense: string;
+  onNavChanged: any;
+}
+
+export interface NavRoute {
   id: string;
   component: (props?: any) => JSX.Element;
 }
 
-export const routes: { [id: string]: Route } = [
+export const routes: { [id: string]: NavRoute } = [
   {
     component: IncidentsPage,
     id: 'incidents',

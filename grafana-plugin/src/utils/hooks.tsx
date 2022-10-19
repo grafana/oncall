@@ -7,91 +7,11 @@ import { PageDefinition } from 'pages';
 import { useLocation } from 'react-router-dom';
 
 import { APP_TITLE } from './consts';
-
-type Args = {
-  meta: AppRootProps['meta'];
-  pages: { [id: string]: PageDefinition };
-  path: string;
-  page: string;
-  grafanaUser: {
-    orgRole: 'Viewer' | 'Editor' | 'Admin';
-  };
-  enableLiveSettings: boolean;
-  enableCloudPage: boolean;
-  enableNewSchedulesPage: boolean;
-  backendLicense: string;
-  onNavChanged: any;
-};
+import { NavMenuItem } from 'components/PluginLink/routes';
 
 export function useForceUpdate() {
   const [, setValue] = useState(0);
   return () => setValue((value) => value + 1);
-}
-
-export function useNavModel({
-  meta,
-  pages,
-  path,
-  page,
-  grafanaUser,
-  enableLiveSettings,
-  enableCloudPage,
-  enableNewSchedulesPage,
-  backendLicense,
-  onNavChanged,
-}: Args) {
-  const location = useLocation();
-
-  useEffect(() => {
-    let hasActivePage = false;
-    const tabs = Object.keys(pages).map((pageId) => {
-      const { text, icon, path, role, hideFromTabs, id } = pages[pageId];
-      hasActivePage = hasActivePage || page === id;
-      return {
-        text: text,
-        icon: icon,
-        id: id,
-        url: path,
-        active: page === id,
-        hideFromTabs:
-          hideFromTabs ||
-          (role === 'Admin' && grafanaUser.orgRole !== role) ||
-          (id === 'live-settings' && !enableLiveSettings) ||
-          (id === 'cloud' && !enableCloudPage) ||
-          (id === 'schedules-new' && !enableNewSchedulesPage),
-      };
-    });
-
-    if (!hasActivePage) {
-      tabs[0].active = true;
-    }
-
-    const node = {
-      text: APP_TITLE,
-      img: meta.info.logos.large,
-      subTitle: <NavBarSubtitle backendLicense={backendLicense} />,
-      url: path,
-      children: tabs,
-    };
-
-    const navModel = {
-      node,
-      main: node,
-    };
-
-    onNavChanged(navModel);
-  }, [
-    meta.info.logos.large,
-    pages,
-    path,
-    page,
-    location,
-    enableLiveSettings,
-    enableCloudPage,
-    backendLicense,
-    enableNewSchedulesPage,
-    grafanaUser.orgRole,
-  ]);
 }
 
 export function usePrevious(value: any) {
@@ -100,6 +20,17 @@ export function usePrevious(value: any) {
     ref.current = value;
   });
   return ref.current;
+}
+
+export function useQueryParams() {
+  const { search } = useLocation();
+
+  return React.useMemo(() => new URLSearchParams(search), [search]);
+}
+
+export function useQueryPath() {
+  const location = useLocation();
+  return React.useMemo(() => location.pathname, [location])
 }
 
 export function useDebouncedCallback<A extends any[]>(callback: (...args: A) => void, wait: number) {
