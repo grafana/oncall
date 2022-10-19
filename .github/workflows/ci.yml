@@ -129,7 +129,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
-      - name: Build and push
+      - name: Test docker build (no push)
         id: docker_build
         uses: docker/build-push-action@v2
         with:
