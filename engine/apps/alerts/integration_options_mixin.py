@@ -59,8 +59,6 @@ class IntegrationOptionsMixin:
         "web_title",
         "web_message",
         "web_image_url",
-        "email_title",
-        "email_message",
         "sms_title",
         "phone_call_title",
         "telegram_title",

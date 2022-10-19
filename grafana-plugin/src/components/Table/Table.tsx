@@ -37,24 +37,31 @@ const GTable: FC<Props> = (props) => {
 
   const { page, total: numberOfPages, onChange: onNavigate } = pagination || {};
 
-  if (expandable) {
-    expandable.expandIcon = ({ expanded, record }) => {
-      return (
-        <div className={cx('expand-icon', { [`expand-icon__expanded`]: expanded })}>
-          <ExpandIcon />
-        </div>
-      );
-    };
-  }
+  const expandableFn = useMemo(() => {
+    return expandable
+      ? {
+          ...expandable,
+          expandIcon: ({ expanded, record }) => {
+            return (
+              <div className={cx('expand-icon', { [`expand-icon__expanded`]: expanded })}>
+                <ExpandIcon />
+              </div>
+            );
+          },
+          expandedRowClassName: (record, index) => (index % 2 === 0 ? cx('row-even') : cx('row-odd')),
+        }
+      : null;
+  }, [expandable]);
 
   return (
     <VerticalGroup justify="flex-end">
       <Table
         rowKey={rowKey}
-        className={cx('root', 'filter-table', className)}
+        className={cx('root', className)}
         columns={columns}
         data={data}
-        expandable={expandable}
+        expandable={expandableFn}
+        rowClassName={(record, index) => (index % 2 === 0 ? cx('row-even') : cx('row-odd'))}
         {...restProps}
       />
       {pagination && (

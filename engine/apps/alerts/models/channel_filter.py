@@ -116,7 +116,11 @@ class ChannelFilter(OrderedModel):
         return self.is_default or self.check_filter(json.dumps(raw_request_data)) or self.check_filter(str(title))
 
     def check_filter(self, value):
-        return re.search(self.filtering_term, value)
+        try:
+            return re.search(self.filtering_term, value)
+        except re.error:
+            logger.error(f"channel_filter={self.id} failed to parse regex={self.filtering_term}")
+            return False
 
     @property
     def slack_channel_id_or_general_log_id(self):

@@ -36,10 +36,6 @@ sms_title = web_title
 
 phone_call_title = sms_title
 
-email_title = web_title
-
-email_message = "{{ payload|tojson_pretty }}"
-
 telegram_title = sms_title
 
 telegram_message = "<code>{{ payload|tojson_pretty }}</code>"

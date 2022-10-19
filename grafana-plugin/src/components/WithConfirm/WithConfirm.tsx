@@ -20,7 +20,9 @@ const WithConfirm = (props: WithConfirmProps) => {
 
   const [showConfirmation, setShowConfirmation] = useState<boolean>(false);
 
-  const onClickCallback = useCallback(() => {
+  const onClickCallback = useCallback((event) => {
+    event.stopPropagation();
+
     setShowConfirmation(true);
   }, []);
 
