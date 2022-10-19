@@ -86,6 +86,7 @@ oncall:
     username: ~
     password: ~
     tls: ~
+    fromEmail: ~
 
 # Whether to run django database migrations automatically
 migrate:
