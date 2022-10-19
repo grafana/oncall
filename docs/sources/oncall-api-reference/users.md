@@ -31,8 +31,7 @@ The above command returns JSON structured in the following way:
       "team_id": "TALEXSLACKDJPK"
     }
   ],
-  "username": "alex",
-  "role": "admin"
+  "username": "alex"
 }
 ```
 
@@ -48,7 +47,6 @@ Use `{{API_URL}}/api/v1/users/current` to retrieve the current user.
 | `email`    | Yes/org | User e-mail                                                        |
 | `slack`    | Yes/org | List of user IDs from connected Slack. User linking key is e-mail. |
 | `username` | Yes/org | User username                                                      |
-| `role`     |   No    | One of: `user`, `observer`, `admin`.                               |
 
 # List Users
 
@@ -76,8 +74,7 @@ The above command returns JSON structured in the following way:
           "team_id": "TALEXSLACKDJPK"
         }
       ],
-      "username": "alex",
-      "role": "admin"
+      "username": "alex"
     }
   ]
 }
