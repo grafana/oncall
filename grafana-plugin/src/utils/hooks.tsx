@@ -10,7 +10,7 @@ import { APP_TITLE } from './consts';
 
 type Args = {
   meta: AppRootProps['meta'];
-  pages: PageDefinition[];
+  pages: { [id: string]: PageDefinition };
   path: string;
   page: string;
   grafanaUser: {
@@ -44,7 +44,8 @@ export function useNavModel({
 
   useEffect(() => {
     let hasActivePage = false;
-    const tabs = pages.map(({ text, icon, path, role, hideFromTabs, id }) => {
+    const tabs = Object.keys(pages).map((pageId) => {
+      const { text, icon, path, role, hideFromTabs, id } = pages[pageId];
       hasActivePage = hasActivePage || page === id;
       return {
         text: text,

@@ -131,7 +131,7 @@ export const pages: { [id: string]: PageDefinition } = [
     getPageNav: () => ({
       text: current.text,
       description: ''
-    })
+    }),
   };
 
   return prev;

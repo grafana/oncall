@@ -56,7 +56,7 @@ services:
         condition: service_healthy
 
   grafana:
-    image: "grafana/grafana:main"
+    image: "grafana/grafana-oss-dev:9.3.0-83735pre-ubuntu"
     restart: always
     environment:
       GF_DATABASE_TYPE: mysql
@@ -66,6 +66,7 @@ services:
       GF_SECURITY_ADMIN_USER: oncall
       GF_SECURITY_ADMIN_PASSWORD: oncall
       GF_PLUGINS_ALLOW_LOADING_UNSIGNED_PLUGINS: grafana-oncall-app
+      GF_FEATURE_TOGGLES_ENABLE: topnav
     deploy:
       resources:
         limits:
@@ -78,3 +79,5 @@ services:
     depends_on:
       mysql:
         condition: service_healthy
+    extra_hosts:
+      - "host.docker.internal:host-gateway"

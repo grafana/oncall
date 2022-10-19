@@ -104,9 +104,16 @@ const RootWithLoader = observer((props: AppRootProps) => {
 export const Root = observer((props: AppRootProps) => {
   const {
     query: { page },
+    path,
+    meta,
+    onNavChanged,
   } = props;
 
+  // Required to support grafana instances that use a custom `root_url`.
+  const pathWithoutLeadingSlash = path.replace(/^\//, '');
+
   const store = useStore();
+  const { backendLicense } = store;
 
   useEffect(() => {
     store.updateBasicData();
@@ -125,14 +132,28 @@ export const Root = observer((props: AppRootProps) => {
     };
   }, []);
 
+  if (!config.featureToggles.topnav) {
+    // eslint-disable-next-line react-hooks/rules-of-hooks
+    useNavModel({
+      page,
+      pages,
+      path: pathWithoutLeadingSlash,
+      meta,
+      grafanaUser: window.grafanaBootData.user,
+      enableLiveSettings: store.hasFeature(AppFeature.LiveSettings),
+      enableCloudPage: store.hasFeature(AppFeature.CloudConnection),
+      enableNewSchedulesPage: store.hasFeature(AppFeature.WebSchedules),
+      backendLicense,
+      onNavChanged,
+    });
+  }
+
+  const Page = routes[page].component;
+
   return (
     <DefaultPageLayout {...props}>
       <GrafanaTeamSelect currentPage={page} />
-      <Switch>
-        {Object.keys(pages).map((pageId) => {
-          return <Route exact path={pages[pageId].path} component={routes[pageId].component} />;
-        })}
-      </Switch>
+      <Page {...props} path={pathWithoutLeadingSlash} />
     </DefaultPageLayout>
   );
 });
