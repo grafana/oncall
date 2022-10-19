@@ -196,3 +196,5 @@ Grafana OnCall is capable of sending emails using SMTP as a user notification st
 - `EMAIL_HOST_PASSWORD` - SMTP server password
 - `EMAIL_PORT` (default is `587`) - SMTP server port
 - `EMAIL_USE_TLS` (default is `True`) - to enable/disable TLS
+
+After enabling the email integration, it will be possible to use the `Notify by email` notification step in user settings.
