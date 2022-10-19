@@ -1,6 +1,11 @@
 # Change Log
 
+## v1.0.41 (2022-10-05)
+
+- Remove sqlite support. Including references to it in the codebase + sqlite CI tests
+
 ## v1.0.40 (2022-10-05)
+
 - Improved database and celery backends support
 - Added script to import PagerDuty users to Grafana
 - Bug fixes
