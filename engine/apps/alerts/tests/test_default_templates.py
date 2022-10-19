@@ -2,7 +2,6 @@ import pytest
 from jinja2 import TemplateSyntaxError
 
 from apps.alerts.incident_appearance.templaters import (
-    AlertEmailTemplater,
     AlertPhoneCallTemplater,
     AlertSlackTemplater,
     AlertSmsTemplater,
@@ -45,14 +44,12 @@ def test_default_templates(
     slack_templater = AlertSlackTemplater(alert)
     web_templater = AlertWebTemplater(alert)
     sms_templater = AlertSmsTemplater(alert)
-    email_templater = AlertEmailTemplater(alert)
     telegram_templater = AlertTelegramTemplater(alert)
     phone_call_templater = AlertPhoneCallTemplater(alert)
     templaters = {
         "slack": slack_templater,
         "web": web_templater,
         "sms": sms_templater,
-        "email": email_templater,
         "telegram": telegram_templater,
         "phone_call": phone_call_templater,
     }

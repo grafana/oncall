@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+You are invited to check an alert group in Grafana OnCall!
+<br><br>
+Organization: {{ organization }}
+<br>
+Integration: {{ integration }}
+<br>
+Title: {{ title }}
+{% if message %}
+<br>
+Message:
+<br>
+{% autoescape off %}
+    {{ message }}
+{% endautoescape %}
+{% endif %}
+<br>
+<strong><a href="{{ url }}">Go to the alert group</a></strong>
+<br>
+Your Grafana OnCall
+{% if limit_notification %}
+    <br><br>
+    <span style="color: #333333;"><em>{{ emails_left }} emails left for the organization today. Contact your admin.</em></span>
+{% endif %}
+
+<!-- this ensures Gmail doesn't trim the email -->
+<span style="display:none;">{% now "H:i.u e"%}</span>
+<!---->

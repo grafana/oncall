@@ -35,7 +35,6 @@ BUILT_IN_BACKENDS = (
     ("SMS", 1),
     ("PHONE_CALL", 2),
     ("TELEGRAM", 3),
-    ("EMAIL", 4),
     ("MOBILE_PUSH_GENERAL", 5),
     ("MOBILE_PUSH_CRITICAL", 6),
 )
@@ -214,7 +213,6 @@ class NotificationChannelOptions:
 
     SLACK_INTEGRATION_REQUIRED_NOTIFICATION_CHANNELS = [UserNotificationPolicy.NotificationChannel.SLACK]
     TELEGRAM_INTEGRATION_REQUIRED_NOTIFICATION_CHANNELS = [UserNotificationPolicy.NotificationChannel.TELEGRAM]
-    EMAIL_INTEGRATION_REQUIRED_NOTIFICATION_CHANNELS = [UserNotificationPolicy.NotificationChannel.EMAIL]
     MOBILE_APP_INTEGRATION_REQUIRED_NOTIFICATION_CHANNELS = [
         UserNotificationPolicy.NotificationChannel.MOBILE_PUSH_GENERAL,
         UserNotificationPolicy.NotificationChannel.MOBILE_PUSH_CRITICAL,
@@ -227,7 +225,6 @@ class NotificationChannelAPIOptions(NotificationChannelOptions):
         UserNotificationPolicy.NotificationChannel.SMS: "SMS \U00002709\U0001F4F2",
         UserNotificationPolicy.NotificationChannel.PHONE_CALL: "Phone call \U0000260E",
         UserNotificationPolicy.NotificationChannel.TELEGRAM: "Telegram \U0001F916",
-        UserNotificationPolicy.NotificationChannel.EMAIL: "Email \U0001F4E8",
         UserNotificationPolicy.NotificationChannel.MOBILE_PUSH_GENERAL: "Mobile App",
         UserNotificationPolicy.NotificationChannel.MOBILE_PUSH_CRITICAL: "Mobile App Critical",
     }
@@ -243,7 +240,6 @@ class NotificationChannelAPIOptions(NotificationChannelOptions):
         UserNotificationPolicy.NotificationChannel.SMS: "SMS",
         UserNotificationPolicy.NotificationChannel.PHONE_CALL: "\U0000260E",
         UserNotificationPolicy.NotificationChannel.TELEGRAM: "Telegram",
-        UserNotificationPolicy.NotificationChannel.EMAIL: "Email",
         UserNotificationPolicy.NotificationChannel.MOBILE_PUSH_GENERAL: "Mobile App",
         UserNotificationPolicy.NotificationChannel.MOBILE_PUSH_CRITICAL: "Mobile App Critical",
     }
@@ -261,7 +257,6 @@ class NotificationChannelPublicAPIOptions(NotificationChannelAPIOptions):
         UserNotificationPolicy.NotificationChannel.SMS: "notify_by_sms",
         UserNotificationPolicy.NotificationChannel.PHONE_CALL: "notify_by_phone_call",
         UserNotificationPolicy.NotificationChannel.TELEGRAM: "notify_by_telegram",
-        UserNotificationPolicy.NotificationChannel.EMAIL: "notify_by_email",
         UserNotificationPolicy.NotificationChannel.MOBILE_PUSH_GENERAL: "notify_by_mobile_app",
         UserNotificationPolicy.NotificationChannel.MOBILE_PUSH_CRITICAL: "notify_by_mobile_app_critical",
     }
