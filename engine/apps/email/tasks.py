@@ -18,6 +18,7 @@ logger = get_task_logger(__name__)
 
 @shared_dedicated_queue_retry_task(autoretry_for=(Exception,), retry_backoff=True, max_retries=MAX_RETRIES)
 def notify_user_async(user_pk, alert_group_pk, notification_policy_pk):
+    # imported here to avoid circular import error
     from apps.base.models import UserNotificationPolicy, UserNotificationPolicyLogRecord
 
     try:
