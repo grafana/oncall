@@ -31,6 +31,7 @@ import SilenceDropdown from './parts/SilenceDropdown';
 
 import styles from './Incidents.module.css';
 import { PluginPage } from 'PluginPage';
+import { pages } from 'pages';
 
 const cx = cn.bind(styles);
 
@@ -99,7 +100,7 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
 
   render() {
     return (
-      <PluginPage>
+      <PluginPage pageNav={pages['incidents']}>
         <div className={cx('root')}>
           {this.renderIncidentFilters()}
           {this.renderTable()}

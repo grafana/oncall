@@ -30,6 +30,7 @@ import { openErrorNotification } from 'utils';
 
 import styles from './CloudPage.module.css';
 import { PluginPage } from 'PluginPage';
+import { pages } from 'pages';
 
 const cx = cn.bind(styles);
 
@@ -371,7 +372,7 @@ const CloudPage = observer((props: CloudPageProps) => {
   );
 
   return (
-    <PluginPage>
+    <PluginPage pageNav={pages['cloud']}>
       <div className={cx('root')}>
         <VerticalGroup spacing="lg">
           <Text.Title level={3} className={cx('cloud-page-title')}>

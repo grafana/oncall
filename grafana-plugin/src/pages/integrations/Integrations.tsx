@@ -33,6 +33,7 @@ import { openWarningNotification } from 'utils';
 import styles from './Integrations.module.css';
 import PluginLink from 'components/PluginLink/PluginLink';
 import { PluginPage } from 'PluginPage';
+import { pages } from 'pages';
 
 const cx = cn.bind(styles);
 
@@ -133,7 +134,7 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
     const searchResult = alertReceiveChannelStore.getSearchResult();
 
     return (
-      <PluginPage>
+      <PluginPage pageNav={pages['integrations']}>
         <PageErrorHandlingWrapper
           errorData={errorData}
           objectName="integration"

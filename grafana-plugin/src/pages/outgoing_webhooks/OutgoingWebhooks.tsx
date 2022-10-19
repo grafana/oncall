@@ -25,6 +25,7 @@ import { withMobXProviderContext } from 'state/withStore';
 
 import styles from './OutgoingWebhooks.module.css';
 import { PluginPage } from 'PluginPage';
+import { pages } from 'pages';
 
 const cx = cn.bind(styles);
 
@@ -110,7 +111,7 @@ class OutgoingWebhooks extends React.Component<OutgoingWebhooksProps, OutgoingWe
     ];
 
     return (
-      <PluginPage>
+      <PluginPage pageNav={pages['outgoing_webhooks']}>
         <PageErrorHandlingWrapper
           errorData={errorData}
           objectName="outgoing webhook"

@@ -46,6 +46,7 @@ import { getDatesString } from './Schedules.helpers';
 
 import styles from './Schedules.module.css';
 import { PluginPage } from 'PluginPage';
+import { pages } from 'pages';
 
 const cx = cn.bind(styles);
 
@@ -170,7 +171,7 @@ class SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSta
     const offset = moment().tz(timezoneStr).format('Z');
 
     return (
-      <PluginPage>
+      <PluginPage pageNav={pages['schedules']}>
         <PageErrorHandlingWrapper
           errorData={errorData}
           objectName="schedule"

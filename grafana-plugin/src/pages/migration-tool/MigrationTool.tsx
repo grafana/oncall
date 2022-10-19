@@ -18,6 +18,7 @@ import apiTokensImg from './img/api-tokens.png';
 
 import styles from './MigrationTool.module.css';
 import { PluginPage } from 'PluginPage';
+import { pages } from 'pages';
 
 const cx = cn.bind(styles);
 
@@ -62,7 +63,7 @@ class MigrationToolPage extends React.Component<MigrationToolProps, MigrationToo
     const { migrationStatus, migrationInitiated, migrationPlan, apiKey, endpointsList } = this.state;
 
     return (
-      <PluginPage>
+      <PluginPage pageNav={pages['migration-tool']}>
         <div className={cx('root')}>
           <p>
             <Text.Title level={3} className={cx('title')}>

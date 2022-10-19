@@ -1,11 +1,3 @@
-import React from 'react';
-
-import { AppRootProps } from '@grafana/data';
-
-import { config } from '@grafana/runtime';
-import { useNavModel } from 'utils/hooks';
-import { Switch, Route } from 'react-router-dom';
-
 export const PLUGIN_URL_PATH = '/a/grafana-oncall-app';
 
 export type PageDefinition = {
@@ -15,13 +7,15 @@ export type PageDefinition = {
   text: string;
   hideFromTabs?: boolean;
   role?: 'Viewer' | 'Editor' | 'Admin';
+
+  getPageNav(): { text: string, description: string }
 };
 
 function getPath(name = '') {
   return `${PLUGIN_URL_PATH}/${name}`;
 }
 
-export const pages: PageDefinition[] = [
+export const pages: { [id: string]: PageDefinition } = [
   {
     icon: 'bell',
     id: 'incidents',
@@ -131,4 +125,14 @@ export const pages: PageDefinition[] = [
     hideFromTabs: true,
     path: getPath('test'),
   },
-];
+].reduce((prev, current) => {
+  prev[current.id] = {
+    ...current,
+    getPageNav: () => ({
+      text: current.text,
+      description: ''
+    })
+  };
+
+  return prev;
+}, {});

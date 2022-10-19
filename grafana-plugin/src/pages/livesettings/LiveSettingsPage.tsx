@@ -35,6 +35,7 @@ import { normalizeValue, prepareForUpdate } from './LiveSettings.helpers';
 import styles from './LiveSettings.module.css';
 import PluginLink from 'components/PluginLink/PluginLink';
 import { PluginPage } from 'PluginPage';
+import { pages } from 'pages';
 
 const cx = cn.bind(styles);
 
@@ -124,10 +125,8 @@ class LiveSettings extends React.Component<LiveSettingsProps, LiveSettingsState>
 
     const data: any = globalSettingStore.getSearchResult();
 
-    const loading = !data;
-
     return (
-      <PluginPage>
+      <PluginPage pageNav={pages['live-settings']}>
         <div className={cx('root')}>
           <GTable
             rowClassName={cx('row')}

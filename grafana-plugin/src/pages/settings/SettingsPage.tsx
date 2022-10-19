@@ -17,6 +17,7 @@ import { withMobXProviderContext } from 'state/withStore';
 import styles from './SettingsPage.module.css';
 import PluginLink from 'components/PluginLink/PluginLink';
 import { PluginPage } from 'PluginPage';
+import { pages } from 'pages';
 
 const cx = cn.bind(styles);
 
@@ -43,7 +44,7 @@ class SettingsPage extends React.Component<SettingsPageProps, SettingsPageState>
     const { apiUrl } = this.state;
 
     return (
-      <PluginPage>
+      <PluginPage pageNav={pages['settings']}>
         <div className={cx('root')}>
           <Text.Title level={3} className={cx('title')}>
             Organization settings

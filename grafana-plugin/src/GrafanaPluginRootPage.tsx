@@ -104,16 +104,9 @@ const RootWithLoader = observer((props: AppRootProps) => {
 export const Root = observer((props: AppRootProps) => {
   const {
     query: { page },
-    meta,
-    path,
-    onNavChanged,
   } = props;
 
-  // Required to support grafana instances that use a custom `root_url`.
-  const pathWithoutLeadingSlash = path.replace(/^\//, '');
-
   const store = useStore();
-  const { backendLicense } = store;
 
   useEffect(() => {
     store.updateBasicData();
@@ -132,40 +125,13 @@ export const Root = observer((props: AppRootProps) => {
     };
   }, []);
 
-  // Update the navigation when the page or path changes
-  const navModel = useNavModel(
-    useMemo(
-      () => ({
-        page,
-        pages,
-        path: pathWithoutLeadingSlash,
-        meta,
-        grafanaUser: window.grafanaBootData.user,
-        enableLiveSettings: store.hasFeature(AppFeature.LiveSettings),
-        enableCloudPage: store.hasFeature(AppFeature.CloudConnection),
-        enableNewSchedulesPage: store.hasFeature(AppFeature.WebSchedules),
-        backendLicense,
-        onNavChanged,
-      }),
-      [meta, pathWithoutLeadingSlash, page, store.features, backendLicense]
-    )
-  );
-
-  useEffect(() => {
-    if (!config.featureToggles.topnav) {
-      onNavChanged(navModel as any);
-    }
-  }, [navModel, onNavChanged]);
-
-  console.log({routes})
-
   return (
     <DefaultPageLayout {...props}>
       <GrafanaTeamSelect currentPage={page} />
       <Switch>
-        {pages.map((page) => (
-          <Route exact path={page.path} component={routes[page.id].component} />
-        ))}
+        {Object.keys(pages).map((pageId) => {
+          return <Route exact path={pages[pageId].path} component={routes[pageId].component} />;
+        })}
       </Switch>
     </DefaultPageLayout>
   );
