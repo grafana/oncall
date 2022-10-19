@@ -86,7 +86,6 @@ DANGEROUS_WEBHOOKS_ENABLED = getenv_boolean("DANGEROUS_WEBHOOKS_ENABLED", defaul
 class DatabaseTypes:
     MYSQL = "mysql"
     POSTGRESQL = "postgresql"
-    SQLITE3 = "sqlite3"
 
 
 DATABASE_DEFAULTS = {
@@ -107,15 +106,11 @@ DATABASE_HOST = os.getenv("DATABASE_HOST") or os.getenv("MYSQL_HOST")
 DATABASE_PORT = os.getenv("DATABASE_PORT") or os.getenv("MYSQL_PORT")
 
 DATABASE_TYPE = os.getenv("DATABASE_TYPE", DatabaseTypes.MYSQL).lower()
-assert DATABASE_TYPE in {DatabaseTypes.MYSQL, DatabaseTypes.POSTGRESQL, DatabaseTypes.SQLITE3}
+assert DATABASE_TYPE in {DatabaseTypes.MYSQL, DatabaseTypes.POSTGRESQL}
 
 DATABASE_ENGINE = f"django.db.backends.{DATABASE_TYPE}"
 
 DATABASE_CONFIGS = {
-    DatabaseTypes.SQLITE3: {
-        "ENGINE": DATABASE_ENGINE,
-        "NAME": DATABASE_NAME or "/var/lib/oncall/oncall.db",
-    },
     DatabaseTypes.MYSQL: {
         "ENGINE": DATABASE_ENGINE,
         "NAME": DATABASE_NAME,

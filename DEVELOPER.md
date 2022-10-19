@@ -61,7 +61,7 @@ pip install -U pip wheel
 cp .env.dev.example .env.dev
 
 # NOTE: if you want to use the PostgreSQL db backend add DATABASE_TYPE=postgresql to your .env.dev file;
-#       currently allowed backend values are `mysql` (default), `postgresql` and `sqlite3`
+#       currently allowed backend values are `mysql` (default) and `postgresql`
 
 # Apply .env.dev to current terminal.
 # For PyCharm it's better to use https://plugins.jetbrains.com/plugin/7861-envfile/
@@ -147,31 +147,33 @@ extra_hosts:
 
 - Make sure you have `make` installed
 - Backend setup:
-  - Run stateful services:  
-  `$ make docker-services-start`
 
-     (you can change your preferred docker file by defining the `DOCKER_FILE` env variable)
+  - Run stateful services:  
+    `$ make docker-services-start`
+
+    (you can change your preferred docker file by defining the `DOCKER_FILE` env variable)
 
   - Setup environment:  
-  `$ make bootstrap`
+    `$ make bootstrap`
 
-     (you can change your preferred directory for your Python virtualenv by defining the `ENV_DIR` env variable)
+    (you can change your preferred directory for your Python virtualenv by defining the `ENV_DIR` env variable)
 
   - Start the server (this will run bootstrap if needed and apply db migrations):  
-  `$ make run`
+    `$ make run`
 
   - Start the celery workers:  
-  `$ make start-celery`
+    `$ make start-celery`
 
   - Start celery beat:  
-  `$ make start-celery-beat`
+    `$ make start-celery-beat`
 
 - Frontend:
+
   - Build and watch plugin:  
-  `$ make watch-plugin`
+    `$ make watch-plugin`
 
   - Generate invitation token:  
-  `$ make manage ARGS="issue_invite_for_the_frontend --override"`
+    `$ make manage ARGS="issue_invite_for_the_frontend --override"`
 
   - Follow instructions above to setup plugin (see steps 5 and 6)
 
@@ -180,7 +182,6 @@ extra_hosts:
   - `$ make dbshell` (open DB shell)
   - `$ make test` (run tests)
   - `$ make lint` (run lint checks)
-
 
 ### Slack application setup
 

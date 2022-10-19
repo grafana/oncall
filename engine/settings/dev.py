@@ -6,16 +6,13 @@ from .base import *
 
 DEBUG = True
 
-if DATABASE_TYPE == DatabaseTypes.SQLITE3:
-    DATABASES["default"]["NAME"] = DATABASE_NAME or "oncall_dev.db"
-else:
-    DATABASES["default"] |= {
-        "NAME": DATABASE_NAME or "oncall_local_dev",
-        "USER": DATABASE_USER or DATABASE_DEFAULTS[DATABASE_TYPE]["USER"],
-        "PASSWORD": DATABASE_PASSWORD or "empty",
-        "HOST": DATABASE_HOST or "127.0.0.1",
-        "PORT": DATABASE_PORT or DATABASE_DEFAULTS[DATABASE_TYPE]["PORT"],
-    }
+DATABASES["default"] |= {
+    "NAME": DATABASE_NAME or "oncall_local_dev",
+    "USER": DATABASE_USER or DATABASE_DEFAULTS[DATABASE_TYPE]["USER"],
+    "PASSWORD": DATABASE_PASSWORD or "empty",
+    "HOST": DATABASE_HOST or "127.0.0.1",
+    "PORT": DATABASE_PORT or DATABASE_DEFAULTS[DATABASE_TYPE]["PORT"],
+}
 
 if BROKER_TYPE == BrokerTypes.RABBITMQ:
     CELERY_BROKER_URL = "pyamqp://rabbitmq:rabbitmq@localhost:5672"
