@@ -571,7 +571,7 @@ EMAIL_USE_TLS = getenv_boolean("EMAIL_USE_TLS", True)
 DEFAULT_FROM_EMAIL = os.getenv("DEFAULT_FROM_EMAIL")
 
 if FEATURE_EMAIL_INTEGRATION_ENABLED:
-    EXTRA_MESSAGING_BACKENDS = [("apps.email.backend.EmailBackend", 587)]
+    EXTRA_MESSAGING_BACKENDS = [("apps.email.backend.EmailBackend", 8)]
 
 INSTALLED_ONCALL_INTEGRATIONS = [
     "config_integrations.alertmanager",

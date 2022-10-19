@@ -36,7 +36,7 @@ def test_notify_user(
     notification_policy = make_user_notification_policy(
         user,
         UserNotificationPolicy.Step.NOTIFY,
-        notify_by=587,
+        notify_by=8,
         important=False,
     )
 
@@ -68,7 +68,7 @@ def test_notify_user_bad_smtp_host(
     notification_policy = make_user_notification_policy(
         user,
         UserNotificationPolicy.Step.NOTIFY,
-        notify_by=587,
+        notify_by=8,
         important=False,
     )
 
@@ -105,7 +105,7 @@ def test_notify_user_no_emails_left(
     notification_policy = make_user_notification_policy(
         user,
         UserNotificationPolicy.Step.NOTIFY,
-        notify_by=587,
+        notify_by=8,
         important=False,
     )
 
