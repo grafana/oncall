@@ -10,7 +10,7 @@ RUN pip install -r requirements.txt
 COPY ./ ./
 
 RUN mkdir -p /var/lib/oncall
-RUN DJANGO_SETTINGS_MODULE=settings.prod_without_db SECRET_KEY="ThEmUsTSecretKEYforBUILDstage123" python manage.py collectstatic --no-input
+RUN DJANGO_SETTINGS_MODULE=settings.prod_without_db _ONCALL_DOCKER_BUILD=True SECRET_KEY="ThEmUsTSecretKEYforBUILDstage123" python manage.py collectstatic --no-input
 RUN chown -R 1000:2000 /var/lib/oncall
 
 # This is required for prometheus_client to sync between uwsgi workers

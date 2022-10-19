@@ -6,9 +6,11 @@ from celery.app.log import TaskFormatter
 # set the default Django settings module for the 'celery' program.
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "settings.prod")
 
-from django.db import connection  # noqa: E402
+if bool(os.getenv("_ONCALL_DOCKER_BUILD", False)) is False:
+    from django.db import connection  # noqa: E402
 
-connection.cursor()
+    connection.cursor()
+
 from celery import Celery  # noqa: E402
 
 app = Celery("proj")
