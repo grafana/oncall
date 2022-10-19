@@ -124,9 +124,12 @@ class ScheduleView(
     def get_queryset(self):
         is_short_request = self.request.query_params.get("short", "false") == "true"
         organization = self.request.auth.organization
-        queryset = OnCallSchedule.objects.filter(
-            organization=organization,
-            team=self.request.user.current_team,
+        queryset = OnCallSchedule.objects.filter(organization=organization, team=self.request.user.current_team).defer(
+            # avoid requesting large text fields which are not used when listing schedules
+            "cached_ical_file_primary",
+            "prev_ical_file_primary",
+            "cached_ical_file_overrides",
+            "prev_ical_file_overrides",
         )
         if not is_short_request:
             queryset = self._annotate_queryset(queryset)
