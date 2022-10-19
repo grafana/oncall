@@ -338,9 +338,6 @@ class SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSta
   };
 
   handleChangeFilters = (filters: SchedulesFiltersType) => {
-    const { store } = this.props;
-    const { scheduleStore } = store;
-
     this.setState({ filters }, () => {
       const { filters, expandedSchedulesKeys } = this.state;
 

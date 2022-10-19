@@ -95,3 +95,9 @@ export interface Layer {
   priority: Shift['priority_level'];
   shifts: Array<{ shiftId: Shift['id']; isPreview?: boolean; events: Event[] }>;
 }
+
+export interface ShiftEvents {
+  shiftId: string;
+  events: Event[];
+  isPreview?: boolean;
+}

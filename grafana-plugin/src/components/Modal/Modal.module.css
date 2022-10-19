@@ -17,17 +17,21 @@
   border: var(--border-weak);
   box-shadow: var(--shadows-z3);
   border-radius: 2px;
+  z-index: 10;
 }
 
+/*
+
 .overlay {
-  position: fixed;
+  position: relative;
   inset: 0;
   z-index: 10;
-
-  /* background-color: rgba(0, 0, 0, 0.45);
-    backdrop-filter: blur(1px); */
+  background-color: rgba(0, 0, 0, 0.45);
+  backdrop-filter: blur(1px);
 }
 
 .body-open {
   overflow: hidden;
 }
+
+ */

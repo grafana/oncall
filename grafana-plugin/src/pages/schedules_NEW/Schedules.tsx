@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { SyntheticEvent } from 'react';
 
 import { getLocationSrv } from '@grafana/runtime';
 import { Button, HorizontalGroup, IconButton, LoadingPlaceholder, VerticalGroup } from '@grafana/ui';
@@ -19,12 +19,16 @@ import TimelineMarks from 'components/TimelineMarks/TimelineMarks';
 import UserTimezoneSelect from 'components/UserTimezoneSelect/UserTimezoneSelect';
 import WithConfirm from 'components/WithConfirm/WithConfirm';
 import ScheduleFinal from 'containers/Rotations/ScheduleFinal';
+import ScheduleForm from 'containers/ScheduleForm/ScheduleForm';
+import { WithPermissionControl } from 'containers/WithPermissionControl/WithPermissionControl';
 import { getFromString } from 'models/schedule/schedule.helpers';
 import { Schedule, ScheduleType } from 'models/schedule/schedule.types';
+import { getSlackChannelName } from 'models/slack_channel/slack_channel.helpers';
 import { Timezone } from 'models/timezone/timezone.types';
 import { getStartOfWeek } from 'pages/schedule/Schedule.helpers';
 import { AppFeature } from 'state/features';
 import { WithStoreProps } from 'state/types';
+import { UserAction } from 'state/userAction';
 import { withMobXProviderContext } from 'state/withStore';
 
 import styles from './Schedules.module.css';
@@ -38,6 +42,7 @@ interface SchedulesPageState {
   filters: SchedulesFiltersType;
   showNewScheduleSelector: boolean;
   expandedRowKeys: Array<Schedule['id']>;
+  scheduleIdToEdit?: Schedule['id'];
 }
 
 @observer
@@ -51,15 +56,12 @@ class SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSta
       filters: { searchTerm: '', status: 'all', type: ScheduleType.API },
       showNewScheduleSelector: false,
       expandedRowKeys: [],
+      scheduleIdToEdit: undefined,
     };
   }
 
   async componentDidMount() {
     const { store } = this.props;
-
-    /* if (!store.hasFeature(AppFeature.WebSchedules)) {
-      getLocationSrv().update({ query: { page: 'schedules' } });
-    } */
 
     store.userStore.updateItems();
     store.scheduleStore.updateItems();
@@ -67,7 +69,7 @@ class SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSta
 
   render() {
     const { store } = this.props;
-    const { filters, showNewScheduleSelector, expandedRowKeys } = this.state;
+    const { filters, showNewScheduleSelector, expandedRowKeys, scheduleIdToEdit } = this.state;
 
     const { scheduleStore } = store;
 
@@ -75,21 +77,37 @@ class SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSta
     const columns = [
       {
         width: '10%',
+        title: 'Type',
+        dataIndex: 'type',
+        render: this.renderType,
+      },
+      {
+        width: '10%',
         title: 'Status',
         key: 'name',
         render: this.renderStatus,
       },
       {
-        width: '40%',
+        width: '30%',
         title: 'Name',
         key: 'name',
         render: this.renderName,
       },
       {
-        width: '45%',
+        width: '30%',
         title: 'Oncall',
         key: 'users',
         render: this.renderOncallNow,
+      },
+      {
+        width: '10%',
+        title: 'Slack channel',
+        render: this.renderChannelName,
+      },
+      {
+        width: '10%',
+        title: 'Slack user group',
+        render: this.renderUserGroup,
       },
       /* {
         width: '20%',
@@ -104,9 +122,10 @@ class SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSta
         render: this.renderQuality,
       },*/
       {
-        width: '5%',
+        width: '50px',
         key: 'buttons',
         render: this.renderButtons,
+        className: cx('buttons'),
       },
     ];
 
@@ -171,6 +190,15 @@ class SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSta
             }}
           />
         )}
+        {scheduleIdToEdit && (
+          <ScheduleForm
+            id={scheduleIdToEdit}
+            onUpdate={this.update}
+            onHide={() => {
+              this.setState({ scheduleIdToEdit: undefined });
+            }}
+          />
+        )}
       </>
     );
   }
@@ -188,17 +216,14 @@ class SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSta
   };
 
   handleCreateSchedule = (data: Schedule) => {
-    const { store } = this.props;
-
     if (data.type === ScheduleType.API) {
       getLocationSrv().update({ query: { page: 'schedule', id: data.id } });
     }
   };
 
   handleExpandRow = (expanded: boolean, data: Schedule) => {
-    const { store } = this.props;
     const { expandedRowKeys } = this.state;
-    const { startMoment } = this.state;
+
     if (expanded && !expandedRowKeys.includes(data.id)) {
       this.setState({ expandedRowKeys: [...this.state.expandedRowKeys, data.id] }, this.updateEvents);
     } else if (!expanded && expandedRowKeys.includes(data.id)) {
@@ -244,6 +269,14 @@ class SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSta
     return () => {
       getLocationSrv().update({ query: { page: 'schedule', id: scheduleId } });
     };
+  };
+
+  renderType = (value: number) => {
+    type tTypeToVerbal = {
+      [key: number]: string;
+    };
+    const typeToVerbal: tTypeToVerbal = { 0: 'API/Terraform', 1: 'Ical', 2: 'Web' };
+    return typeToVerbal[value];
   };
 
   renderStatus = (item: Schedule) => {
@@ -312,6 +345,14 @@ class SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSta
     return null;
   };
 
+  renderChannelName = (value: Schedule) => {
+    return getSlackChannelName(value.slack_channel) || '-';
+  };
+
+  renderUserGroup = (value: Schedule) => {
+    return value.user_group?.handle || '-';
+  };
+
   /* renderChatOps = (item: Schedule) => {
     return item.chatOps;
   }; */
@@ -328,18 +369,33 @@ class SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSta
         {/*<IconButton tooltip="Copy" name="copy" />
         <IconButton tooltip="Settings" name="cog" />
         <IconButton tooltip="Code" name="brackets-curly" />*/}
-        <WithConfirm>
-          <IconButton tooltip="Delete" name="trash-alt" onClick={this.getDeleteScheduleClickHandler(item.id)} />
-        </WithConfirm>
+        <WithPermissionControl key="edit" userAction={UserAction.UpdateSchedules}>
+          <IconButton tooltip="Settings" name="cog" onClick={this.getEditScheduleClickHandler(item.id)} />
+        </WithPermissionControl>
+        <WithPermissionControl key="edit" userAction={UserAction.UpdateSchedules}>
+          <WithConfirm>
+            <IconButton tooltip="Delete" name="trash-alt" onClick={this.getDeleteScheduleClickHandler(item.id)} />
+          </WithConfirm>
+        </WithPermissionControl>
       </HorizontalGroup>
     );
+  };
+
+  getEditScheduleClickHandler = (id: Schedule['id']) => {
+    return (event) => {
+      event.stopPropagation();
+
+      this.setState({ scheduleIdToEdit: id });
+    };
   };
 
   getDeleteScheduleClickHandler = (id: Schedule['id']) => {
     const { store } = this.props;
     const { scheduleStore } = store;
 
-    return () => {
+    return (event: SyntheticEvent) => {
+      event.stopPropagation();
+
       scheduleStore.delete(id).then(this.update);
     };
   };

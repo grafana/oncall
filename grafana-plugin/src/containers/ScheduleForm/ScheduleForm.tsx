@@ -78,10 +78,10 @@ const ScheduleForm = observer((props: ScheduleFormProps) => {
     >
       <div className={cx('content')}>
         <VerticalGroup>
-          <Text type="secondary">
+          {/*<Text type="secondary">
             Manage on-call schedules using your favourite calendar app, such as Google Calendar or Microsoft Outlook. To
             schedule on-call shifts create a new calendar and use events with the teammates usernames
-          </Text>
+          </Text>*/}
           <GForm form={formConfig} data={data} onSubmit={handleSubmit} />
           <WithPermissionControl userAction={UserAction.UpdateSchedules}>
             <Button form={formConfig.name} type="submit">

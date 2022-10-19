@@ -64,14 +64,6 @@ TWILIO_VERIFY_SERVICE_SID = os.environ.get("TWILIO_VERIFY_SERVICE_SID")
 TELEGRAM_WEBHOOK_HOST = os.environ.get("TELEGRAM_WEBHOOK_HOST", BASE_URL)
 TELEGRAM_TOKEN = os.environ.get("TELEGRAM_TOKEN")
 
-# For Sending email
-SENDGRID_API_KEY = os.environ.get("SENDGRID_API_KEY")
-SENDGRID_FROM_EMAIL = os.environ.get("SENDGRID_FROM_EMAIL")
-
-# For Inbound email
-SENDGRID_SECRET_KEY = os.environ.get("SENDGRID_SECRET_KEY")
-SENDGRID_INBOUND_EMAIL_DOMAIN = os.environ.get("SENDGRID_INBOUND_EMAIL_DOMAIN")
-
 # For Grafana Cloud integration
 GRAFANA_CLOUD_ONCALL_API_URL = os.environ.get(
     "GRAFANA_CLOUD_ONCALL_API_URL", "https://oncall-prod-us-central-0.grafana.net/oncall"
@@ -198,13 +190,13 @@ INSTALLED_APPS = [
     "apps.integrations",
     "apps.schedules",
     "apps.heartbeat",
+    "apps.email",
     "apps.slack",
     "apps.telegram",
     "apps.twilioapp",
     "apps.api",
     "apps.api_for_grafana_incident",
     "apps.base",
-    # "apps.sendgridapp",  TODO: restore email notifications
     "apps.auth_token",
     "apps.public_api",
     "apps.grafana_plugin",
@@ -244,6 +236,7 @@ MIDDLEWARE = [
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     "social_django.middleware.SocialAuthExceptionMiddleware",
     "apps.social_auth.middlewares.SocialAuthAuthCanceledExceptionMiddleware",
+    "apps.integrations.middlewares.IntegrationExceptionMiddleware",
 ]
 
 LOG_REQUEST_ID_HEADER = "HTTP_X_CLOUD_TRACE_CONTEXT"
@@ -569,6 +562,18 @@ DATA_UPLOAD_MAX_MEMORY_SIZE = getenv_integer("DATA_UPLOAD_MAX_MEMORY_SIZE", 1_04
 SLOW_THRESHOLD_SECONDS = 2.0
 
 EXTRA_MESSAGING_BACKENDS = []
+
+# Email messaging backend
+EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
+EMAIL_HOST = os.getenv("EMAIL_HOST")
+EMAIL_HOST_USER = os.getenv("EMAIL_HOST_USER")
+EMAIL_HOST_PASSWORD = os.getenv("EMAIL_HOST_PASSWORD")
+EMAIL_PORT = getenv_integer("EMAIL_PORT", 587)
+EMAIL_USE_TLS = getenv_boolean("EMAIL_USE_TLS", True)
+DEFAULT_FROM_EMAIL = os.getenv("DEFAULT_FROM_EMAIL")
+
+if FEATURE_EMAIL_INTEGRATION_ENABLED:
+    EXTRA_MESSAGING_BACKENDS = [("apps.email.backend.EmailBackend", 8)]
 
 INSTALLED_ONCALL_INTEGRATIONS = [
     "config_integrations.alertmanager",

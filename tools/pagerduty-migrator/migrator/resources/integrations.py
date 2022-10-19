@@ -17,20 +17,15 @@ def match_integration(integration: dict, oncall_integrations: list[dict]) -> Non
 def match_integration_type(integration: dict, vendors: list[dict]) -> None:
     vendors_map = {vendor["id"]: vendor for vendor in vendors}
 
-    if (
-        integration["type"]
-        not in [
-            "generic_events_api_inbound_integration",
-            "events_api_v2_inbound_integration",
-        ]
-        or integration["vendor"] is None
-    ):
+    if integration["vendor"] is None:
+        integration["vendor_name"] = None
         integration["oncall_type"] = None
         return
 
     vendor_id = integration["vendor"]["id"]
     vendor_name = vendors_map[vendor_id]["name"]
 
+    integration["vendor_name"] = vendor_name
     integration["oncall_type"] = PAGERDUTY_TO_ONCALL_VENDOR_MAP.get(vendor_name)
 
 
