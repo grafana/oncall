@@ -241,7 +241,6 @@
 - name: EMAIL_HOST_USER
   value: {{ .Values.oncall.smtp.username | quote }}
 - name: EMAIL_HOST_PASSWORD
-  value: {{ .Values.oncall.smtp.password | quote }}
   valueFrom:
     secretKeyRef:
       name: {{ include "oncall.fullname" . }}-smtp
