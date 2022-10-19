@@ -229,3 +229,20 @@
       name: {{ template "snippet.redis.password.secret.name" . }}
       key: redis-password
 {{- end }}
+
+{{- define "snippet.oncall.smtp.env" -}}
+- name: EMAIL_HOST
+  value: {{ .Values.oncall.smtp.host | quote }}
+- name: EMAIL_PORT
+  value: {{ .Values.oncall.smtp.port | default "587" | quote }}
+- name: EMAIL_HOST_USER
+  value: {{ .Values.oncall.smtp.username | quote }}
+- name: EMAIL_HOST_PASSWORD
+  value: {{ .Values.oncall.smtp.password | quote }}
+  valueFrom:
+    secretKeyRef:
+      name: {{ include "oncall.fullname" . }}-smtp
+      key: smtp-password
+- name: EMAIL_USE_TLS
+  value: {{ .Values.oncall.smtp.tls | toString | title | quote }}
+{{- end }}
