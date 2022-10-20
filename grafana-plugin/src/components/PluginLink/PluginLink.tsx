@@ -22,7 +22,7 @@ const cx = cn.bind(styles);
 const PluginLink: FC<PluginLinkProps> = (props) => {
   const { children, partial = false, path = PLUGIN_URL_PATH, query, disabled, className, wrap = true } = props;
 
-  const href = `${path}?${qs.stringify(query)}`;
+  const href = `${path}/?${qs.stringify(query)}`;
 
   const onClickCallback = useCallback(
     (event) => {
@@ -35,7 +35,7 @@ const PluginLink: FC<PluginLinkProps> = (props) => {
 
       if (disabled) return;
       if (partial) locationService.partial(query);
-      else locationService.push(href)
+      else locationService.push(href);
     },
     [children]
   );
