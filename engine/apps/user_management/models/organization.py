@@ -54,6 +54,12 @@ class Organization(MaintainableObject):
     org_slug = models.CharField(max_length=300)
     org_title = models.CharField(max_length=300)
     region_slug = models.CharField(max_length=300, null=True, default=None)
+    migration_destination = models.ForeignKey(
+        to="user_management.Region",
+        on_delete=models.SET_NULL,
+        related_name="regions",
+        default=None,
+    )
 
     grafana_url = models.URLField()
 
