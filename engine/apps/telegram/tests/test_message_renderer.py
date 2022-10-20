@@ -72,7 +72,7 @@ def test_alert_group_message(make_organization, make_alert_receive_channel, make
     renderer = TelegramMessageRenderer(alert_group=alert_group)
     text = renderer.render_alert_group_message()
     assert text == (
-        f"{organization.web_link_with_id}🔴 #{alert_group.inside_organization_number}, {alert_receive_channel.config.tests['telegram']['title']}\n"
+        f"<a href='{organization.web_link_with_id}'>&#8205;</a>🔴 #{alert_group.inside_organization_number}, {alert_receive_channel.config.tests['telegram']['title']}\n"
         "Alerting, alerts: 1\n"
         "Source: Test integration - Grafana\n"
         f"{alert_group.web_link}\n\n"
