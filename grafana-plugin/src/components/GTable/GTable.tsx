@@ -107,16 +107,6 @@ const GTable: FC<Props> = (props) => {
     [data]
   );
 
-  /* useEffect(() => { // todo clear selection on data change
-    if (rowSelection && rowSelection.selectedRowKeys.length) {
-      const { selectedRowKeys, onChange } = rowSelection;
-      const newSelectedRowKeys = selectedRowKeys.filter((key: string) =>
-        data.some((item: any) => item[rowKey as string] === key)
-      );
-      onChange(newSelectedRowKeys);
-    }
-  }, [data?.length]); */
-
   const columns = useMemo(() => {
     const columns = [...columnsProp];
 
@@ -146,7 +136,7 @@ const GTable: FC<Props> = (props) => {
   }, [rowSelection, columnsProp, data]);
 
   return (
-    <div className={cx('root')}>
+    <div className={cx('root')} data-testid="test__gTable">
       <Table
         expandable={expandable}
         rowKey={rowKey}
