@@ -6,9 +6,9 @@ It will also deploy cert manager and nginx ingress controller, as Grafana OnCall
 to receive alerts from other monitoring systems. Grafana OnCall engine acts as a backend and can be connected to the Grafana frontend plugin named Grafana OnCall.
 Architecture diagram can be found [here](https://raw.githubusercontent.com/grafana/oncall/dev/docs/img/architecture_diagram.png)
 
-> Default helm chart configuration is not intended for production. The helm chart includes all the services into a single release,
-> which is not recommended for production usage. It is recommended to run stateful services such as MySQL and RabbitMQ
-> separately from this release or use managed PaaS solutions. It will significantly reduce the overhead of managing them
+
+### Production usage
+**Default helm chart configuration is not intended for production.** The helm chart includes all the services into a single release, which is not recommended for production usage. It is recommended to run stateful services such as MySQL and RabbitMQ separately from this release or use managed PaaS solutions. It will significantly reduce the overhead of managing them. Here are the instructions on how to set up your own [ingress](#set-up-external-access), [MySQL](#connect-external-mysql), [RabbitMQ](#connect-external-rabbitmq), [Redis](#connect-external-redis)
 
 
 ### Cluster requirements
@@ -169,6 +169,18 @@ externalRabbitmq:
   host:
   port:
   user:
+  password:
+```
+
+### Connect external Redis
+
+To use an external Redis instance set redis.enabled to `false` and configure the `externalRedis` parameters.
+```
+redis:
+  enabled: false  # Disable the Redis dependency from the release
+ 
+externalRedis:
+  host:
   password:
 ```
 

@@ -44,6 +44,21 @@ engine:
 # Celery workers pods configuration
 celery:
   replicaCount: 1
+  worker_queue: "default,critical,long,slack,telegram,webhook,celery"
+  worker_concurrency: "1"
+  worker_max_tasks_per_child: "100"
+  worker_beat_enabled: "True"
+  ## Restart of the celery workers once in a given interval as an additional precaution to the probes
+  ## If this setting is enabled TERM signal will be sent to celery workers
+  ## It will lead to warm shutdown (waiting for the tasks to complete) and restart the container
+  ## If this setting is set numbers of pod restarts will increase
+  ## Comment this line out if you want to remove restarts
+  worker_shutdown_interval: "65m"
+  livenessProbe:
+    enabled: true
+    initialDelaySeconds: 30
+    periodSeconds: 300
+    timeoutSeconds: 10
   resources: {}
     # limits:
     #   cpu: 100m
@@ -53,13 +68,22 @@ celery:
     #   memory: 128Mi
 
 oncall:
+  # slack configures the Grafana Oncall Slack ChatOps integration.
   slack:
+    # enabled enable the Slack ChatOps integration for the Oncall Engine.
     enabled: false
-    command: ~
+    # command sets the Slack bot slash-command
+    command: oncall
+    # clientId configures the Slack app OAuth2 client ID.
+    # api.slack.com/apps/<yourApp> -> Basic Information -> App Credentials -> Client ID
     clientId: ~
+    # clientSecret configures the Slack app OAuth2 client secret.
+    # api.slack.com/apps/<yourApp> -> Basic Information -> App Credentials -> Client Secret
     clientSecret: ~
-    apiToken: ~
-    apiTokenCommon: ~
+    # signingSecret configures the Slack app signature secret used to sign
+    # requests comming from Slack.
+    # api.slack.com/apps/<yourApp> -> Basic Information -> App Credentials -> Signing Secret
+    signingSecret: ~
   telegram:
     enabled: false
     token: ~

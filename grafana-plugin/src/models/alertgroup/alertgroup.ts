@@ -133,7 +133,7 @@ export class AlertGroupStore extends BaseStore {
 
   @action
   async resolve(id: Alert['pk'], delay: number) {
-    const response = await makeRequest(`${this.path}${id}/silence/`, {
+    await makeRequest(`${this.path}${id}/silence/`, {
       method: 'POST',
       data: { delay },
     });
@@ -141,28 +141,28 @@ export class AlertGroupStore extends BaseStore {
 
   @action
   async unresolve(id: Alert['pk']) {
-    const response = await makeRequest(`${this.path}${id}/unresolve/`, {
+    await makeRequest(`${this.path}${id}/unresolve/`, {
       method: 'POST',
     });
   }
 
   @action
   async acknowledge(id: Alert['pk']) {
-    const response = await makeRequest(`${this.path}${id}/acknowledge/`, {
+    await makeRequest(`${this.path}${id}/acknowledge/`, {
       method: 'POST',
     });
   }
 
   @action
   async unacknowledge(id: Alert['pk']) {
-    const response = await makeRequest(`${this.path}${id}/unacknowledge/`, {
+    await makeRequest(`${this.path}${id}/unacknowledge/`, {
       method: 'POST',
     });
   }
 
   @action
   async silence(id: Alert['pk'], delay: number) {
-    const response = await makeRequest(`${this.path}${id}/silence/`, {
+    await makeRequest(`${this.path}${id}/silence/`, {
       method: 'POST',
       data: { delay },
     });
@@ -170,7 +170,7 @@ export class AlertGroupStore extends BaseStore {
 
   @action
   async unsilence(id: Alert['pk']) {
-    const response = await makeRequest(`${this.path}${id}/unsilence/`, {
+    await makeRequest(`${this.path}${id}/unsilence/`, {
       method: 'POST',
     });
   }

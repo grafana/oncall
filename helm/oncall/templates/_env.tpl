@@ -33,10 +33,10 @@
   value: {{ .Values.oncall.slack.clientId | default "" | quote }}
 - name: SLACK_CLIENT_OAUTH_SECRET
   value: {{ .Values.oncall.slack.clientSecret | default "" | quote }}
-- name: SLACK_API_TOKEN
-  value: {{ .Values.oncall.slack.apiToken | default "" | quote }}
-- name: SLACK_API_TOKEN_COMMON
-  value: {{ .Values.oncall.slack.apiTokenCommon | default "" | quote }}
+- name: SLACK_SIGNING_SECRET
+  value: {{ .Values.oncall.slack.signingSecret | default "" | quote }}
+- name: SLACK_INSTALL_RETURN_REDIRECT_HOST
+  value: "https://{{ .Values.base_url }}"
 {{- else -}}
 - name: FEATURE_SLACK_INTEGRATION_ENABLED
   value: {{ .Values.oncall.slack.enabled | toString | title | quote }}
@@ -47,7 +47,7 @@
 {{- if .Values.oncall.telegram.enabled -}}
 - name: FEATURE_TELEGRAM_INTEGRATION_ENABLED
   value: {{ .Values.oncall.telegram.enabled | toString | title | quote }}
-- name: TELEGRAM_WEBHOOK_URL
+- name: TELEGRAM_WEBHOOK_HOST
   value: {{ .Values.oncall.telegram.webhookUrl | default "" | quote }}
 - name: TELEGRAM_TOKEN
   value: {{ .Values.oncall.telegram.token | default "" | quote }}
@@ -58,16 +58,26 @@
 {{- end }}
 
 {{- define "snippet.celery.env" -}}
+{{- if .Values.celery.worker_queue }}
 - name: CELERY_WORKER_QUEUE
-  value: "default,critical,long,slack,telegram,webhook,celery"
+  value: {{ .Values.celery.worker_queue }}
+{{- end -}}
+{{- if .Values.celery.worker_concurrency }}
 - name: CELERY_WORKER_CONCURRENCY
-  value: "1"
+  value: {{ .Values.celery.worker_concurrency | quote }}
+{{- end -}}
+{{- if .Values.celery.worker_max_tasks_per_child }}
 - name: CELERY_WORKER_MAX_TASKS_PER_CHILD
-  value: "100"
-- name: CELERY_WORKER_SHUTDOWN_INTERVAL
-  value: "65m"
+  value: {{ .Values.celery.worker_max_tasks_per_child | quote }}
+{{- end -}}
+{{- if .Values.celery.worker_beat_enabled }}
 - name: CELERY_WORKER_BEAT_ENABLED
-  value: "True"
+  value: {{ .Values.celery.worker_beat_enabled | quote }}
+{{- end -}}
+{{- if .Values.celery.worker_shutdown_interval }}
+- name: CELERY_WORKER_SHUTDOWN_INTERVAL
+  value: {{ .Values.celery.worker_shutdown_interval }}
+{{- end -}}
 {{- end }}
 
 {{- define "snippet.mysql.env" -}}

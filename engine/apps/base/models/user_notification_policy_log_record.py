@@ -49,14 +49,14 @@ class UserNotificationPolicyLogRecord(models.Model):
         ERROR_NOTIFICATION_PHONE_CALLS_LIMIT_EXCEEDED,
         ERROR_NOTIFICATION_PHONE_NUMBER_IS_NOT_VERIFIED,
         ERROR_NOTIFICATION_NOT_ABLE_TO_SEND_MAIL,
-        ERROR_NOTIFICATION_MAIL_LIMIT_EXCEEDED,
-        ERROR_NOTIFICATION_EMAIL_IS_NOT_VERIFIED,
+        ERROR_NOTIFICATION_MAIL_LIMIT_EXCEEDED,  # todo: manage backend specific limits in messaging backend
+        ERROR_NOTIFICATION_EMAIL_IS_NOT_VERIFIED,  # deprecated
         ERROR_NOTIFICATION_TELEGRAM_IS_NOT_LINKED_TO_SLACK_ACC,
         ERROR_NOTIFICATION_PHONE_CALL_LINE_BUSY,
         ERROR_NOTIFICATION_PHONE_CALL_FAILED,
         ERROR_NOTIFICATION_PHONE_CALL_NO_ANSWER,
         ERROR_NOTIFICATION_SMS_DELIVERY_FAILED,
-        ERROR_NOTIFICATION_MAIL_DELIVERY_FAILED,
+        ERROR_NOTIFICATION_MAIL_DELIVERY_FAILED,  # deprecated
         ERROR_NOTIFICATION_TELEGRAM_BOT_IS_DELETED,
         ERROR_NOTIFICATION_POSTING_TO_SLACK_IS_DISABLED,
         ERROR_NOTIFICATION_POSTING_TO_TELEGRAM_IS_DISABLED,  # deprecated
@@ -78,7 +78,6 @@ class UserNotificationPolicyLogRecord(models.Model):
         ERROR_NOTIFICATION_PHONE_CALLS_LIMIT_EXCEEDED,
         ERROR_NOTIFICATION_MAIL_LIMIT_EXCEEDED,
         ERROR_NOTIFICATION_PHONE_NUMBER_IS_NOT_VERIFIED,
-        ERROR_NOTIFICATION_EMAIL_IS_NOT_VERIFIED,
     ]
 
     type = models.IntegerField(choices=TYPE_CHOICES)
@@ -172,9 +171,6 @@ class UserNotificationPolicyLogRecord(models.Model):
                 result += f"SMS to {user_verbal} was delivered successfully"
             elif notification_channel == UserNotificationPolicy.NotificationChannel.PHONE_CALL:
                 result += f"phone call to {user_verbal} was successful"
-            # TODO: restore email notifications
-            # elif notification_channel == UserNotificationPolicy.NotificationChannel.EMAIL:
-            #     result += f"email to {user_verbal} was delivered successfully"
             elif notification_channel is None:
                 result += f"notification to {user_verbal} was delivered successfully"
         elif self.type == UserNotificationPolicyLogRecord.TYPE_PERSONAL_NOTIFICATION_FAILED:
@@ -185,6 +181,7 @@ class UserNotificationPolicyLogRecord(models.Model):
                 == UserNotificationPolicyLogRecord.ERROR_NOTIFICATION_PHONE_CALLS_LIMIT_EXCEEDED
             ):
                 result += f"attempt to call to {user_verbal} has been failed due to a plan limit"
+            # todo: manage backend specific limits in messaging backend
             elif self.notification_error_code == UserNotificationPolicyLogRecord.ERROR_NOTIFICATION_MAIL_LIMIT_EXCEEDED:
                 result += f"failed to send email to {user_verbal}. Exceeded limit for mails"
             elif (
@@ -201,10 +198,6 @@ class UserNotificationPolicyLogRecord(models.Model):
                 result += f"OnCall was not able to send an SMS to {user_verbal}"
             elif self.notification_error_code == UserNotificationPolicyLogRecord.ERROR_NOTIFICATION_NOT_ABLE_TO_CALL:
                 result += f"OnCall was not able to call to {user_verbal}"
-            elif (
-                self.notification_error_code == UserNotificationPolicyLogRecord.ERROR_NOTIFICATION_NOT_ABLE_TO_SEND_MAIL
-            ):
-                result += f"OnCall was not able to send an email to {user_verbal}"
             elif (
                 self.notification_error_code
                 == UserNotificationPolicyLogRecord.ERROR_NOTIFICATION_POSTING_TO_SLACK_IS_DISABLED
@@ -242,10 +235,6 @@ class UserNotificationPolicyLogRecord(models.Model):
                 result += f"phone call to {user_verbal} ended without being answered"
             elif self.notification_error_code == UserNotificationPolicyLogRecord.ERROR_NOTIFICATION_SMS_DELIVERY_FAILED:
                 result += f"SMS {user_verbal} was not delivered"
-            elif (
-                self.notification_error_code == UserNotificationPolicyLogRecord.ERROR_NOTIFICATION_MAIL_DELIVERY_FAILED
-            ):
-                result += f"email to {user_verbal} was not delivered"
             elif self.notification_error_code == UserNotificationPolicyLogRecord.ERROR_NOTIFICATION_IN_SLACK:
                 result += f"failed to notify {user_verbal} in Slack"
             elif (
@@ -286,7 +275,7 @@ class UserNotificationPolicyLogRecord(models.Model):
                 except ValueError:
                     backend = None
                 result += (
-                    f"failed to notify {user_verbal} in {backend.label.lower() if backend else 'disabled backend'}"
+                    f"failed to notify {user_verbal} by {backend.label.lower() if backend else 'disabled backend'}"
                 )
         elif self.type == UserNotificationPolicyLogRecord.TYPE_PERSONAL_NOTIFICATION_TRIGGERED:
             if notification_step == UserNotificationPolicy.Step.NOTIFY:
@@ -298,9 +287,6 @@ class UserNotificationPolicyLogRecord(models.Model):
                     result += f"called {user_verbal} by phone"
                 elif notification_channel == UserNotificationPolicy.NotificationChannel.TELEGRAM:
                     result += f"sent telegram message to {user_verbal}"
-                # TODO: restore email notifications
-                # elif notification_channel == UserNotificationPolicy.NotificationChannel.EMAIL:
-                #     result += f"sent email to {user_verbal}"
                 elif notification_channel == UserNotificationPolicy.NotificationChannel.MOBILE_PUSH_GENERAL:
                     result += f"sent push notifications to {user_verbal}"
                 elif notification_channel == UserNotificationPolicy.NotificationChannel.MOBILE_PUSH_CRITICAL:

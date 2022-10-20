@@ -2,6 +2,7 @@
   - [Code style](#code-style)
   - [Backend setup](#backend-setup)
   - [Frontend setup](#frontend-setup)
+  - [Setup using Makefile](#setup-using-makefile)
   - [Slack application setup](#slack-application-setup)
   - [Update drone build](#update-drone-build)
 - [Troubleshooting](#troubleshooting)
@@ -141,6 +142,45 @@ extra_hosts:
   - "host.docker.internal:host-gateway"
 
 ```
+
+### Setup using Makefile
+
+- Make sure you have `make` installed
+- Backend setup:
+  - Run stateful services:  
+  `$ make docker-services-start`
+
+     (you can change your preferred docker file by defining the `DOCKER_FILE` env variable)
+
+  - Setup environment:  
+  `$ make bootstrap`
+
+     (you can change your preferred directory for your Python virtualenv by defining the `ENV_DIR` env variable)
+
+  - Start the server (this will run bootstrap if needed and apply db migrations):  
+  `$ make run`
+
+  - Start the celery workers:  
+  `$ make start-celery`
+
+  - Start celery beat:  
+  `$ make start-celery-beat`
+
+- Frontend:
+  - Build and watch plugin:  
+  `$ make watch-plugin`
+
+  - Generate invitation token:  
+  `$ make manage ARGS="issue_invite_for_the_frontend --override"`
+
+  - Follow instructions above to setup plugin (see steps 5 and 6)
+
+- Other useful targets:
+  - `$ make shell` (open Django shell)
+  - `$ make dbshell` (open DB shell)
+  - `$ make test` (run tests)
+  - `$ make lint` (run lint checks)
+
 
 ### Slack application setup
 

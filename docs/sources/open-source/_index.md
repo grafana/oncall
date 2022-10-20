@@ -187,3 +187,14 @@ Grafana OnCall supports Twilio SMS and phone call notifications delivery. If you
 
 1. Set `GRAFANA_CLOUD_NOTIFICATIONS_ENABLED` as **False** to ensure the Grafana OSS <-> Cloud connector is disabled.
 1. From your **OnCall** environment, select **Env Variables** and configure all variables starting with `TWILIO_`. 
+
+## Email Setup
+Grafana OnCall is capable of sending emails using SMTP as a user notification step. To setup email notifications, populate the following env variables with your SMTP server credentials:
+
+- `EMAIL_HOST` - SMTP server host
+- `EMAIL_HOST_USER` - SMTP server user
+- `EMAIL_HOST_PASSWORD` - SMTP server password
+- `EMAIL_PORT` (default is `587`) - SMTP server port
+- `EMAIL_USE_TLS` (default is `True`) - to enable/disable TLS
+
+After enabling the email integration, it will be possible to use the `Notify by email` notification step in user settings.
