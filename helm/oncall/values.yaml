@@ -84,6 +84,8 @@ oncall:
     # requests comming from Slack.
     # api.slack.com/apps/<yourApp> -> Basic Information -> App Credentials -> Signing Secret
     signingSecret: ~
+    # OnCall external URL
+    redirectHost: ~
   telegram:
     enabled: false
     token: ~
@@ -96,13 +98,18 @@ oncall:
     password: ~
     tls: ~
     fromEmail: ~
+  twilio:
+    accountSid: ~
+    authToken: ~
+    phoneNumber: ~
+    verifySid: ~
 
 # Whether to run django database migrations automatically
 migrate:
   enabled: true
 
 # Additional env variables to add to deployments
-env: []
+env: {}
 
 # Enable ingress object for external access to the resources
 ingress:

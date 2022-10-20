@@ -21,7 +21,7 @@
   value: "True"
 - name: UWSGI_LISTEN
   value: "1024"
-{{- end }}
+{{- end -}}
 
 {{- define "snippet.oncall.slack.env" -}}
 {{- if .Values.oncall.slack.enabled -}}
@@ -36,12 +36,12 @@
 - name: SLACK_SIGNING_SECRET
   value: {{ .Values.oncall.slack.signingSecret | default "" | quote }}
 - name: SLACK_INSTALL_RETURN_REDIRECT_HOST
-  value: "https://{{ .Values.base_url }}"
+  value: {{ .Values.oncall.slack.redirectHost | default "https://{{ .Values.base_url }}" | quote }}
 {{- else -}}
 - name: FEATURE_SLACK_INTEGRATION_ENABLED
   value: {{ .Values.oncall.slack.enabled | toString | title | quote }}
 {{- end -}}
-{{- end }}
+{{- end -}}
 
 {{- define "snippet.oncall.telegram.env" -}}
 {{- if .Values.oncall.telegram.enabled -}}
@@ -55,7 +55,18 @@
 - name: FEATURE_TELEGRAM_INTEGRATION_ENABLED
   value: {{ .Values.oncall.telegram.enabled | toString | title | quote }}
 {{- end -}}
-{{- end }}
+{{- end -}}
+
+{{- define "snippet.oncall.twilio.env" -}}
+- name: TWILIO_ACCOUNT_SID
+  value: {{ .Values.oncall.twilio.accountSid | default "" | quote }}
+- name: TWILIO_AUTH_TOKEN
+  value: {{ .Values.oncall.twilio.authToken | default "" | quote }}
+- name: TWILIO_NUMBER
+  value: {{ .Values.oncall.twilio.phoneNumber | default "" | quote }}
+- name: TWILIO_VERIFY_SERVICE_SID
+  value: {{ .Values.oncall.twilio.verifySid | default "" | quote }}
+{{- end -}}
 
 {{- define "snippet.celery.env" -}}
 {{- if .Values.celery.worker_queue }}
@@ -130,7 +141,7 @@
 
 {{- define "snippet.mysql.user" -}}
 {{- if and (not .Values.mariadb.enabled) .Values.externalMysql.user -}}
-{{- .Values.externalMysql.user | quote}}
+{{- .Values.externalMysql.user | quote }}
 {{- else -}}
 "root"
 {{- end -}}
@@ -152,7 +163,7 @@
   value: {{ include "snippet.rabbitmq.protocol" . }}
 - name: RABBITMQ_VHOST
   value: {{ include "snippet.rabbitmq.vhost" . }}
-{{- end }}
+{{- end -}}
 
 {{- define "snippet.rabbitmq.user" -}}
 {{- if and (not .Values.rabbitmq.enabled) .Values.externalRabbitmq.user -}}
