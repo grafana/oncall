@@ -15,7 +15,7 @@
 .users-header {
   display: flex;
   justify-content: space-between;
-  margin-bottom: 24px;
+  margin-bottom: var(--title-marginBottom);
 }
 
 .users-header-left {

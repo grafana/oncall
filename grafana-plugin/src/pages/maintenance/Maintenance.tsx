@@ -132,7 +132,7 @@ class MaintenancePage extends React.Component<MaintenancePageProps, MaintenanceP
               <div className={cx('header')}>
                 <div style={{ display: 'flex', alignItems: 'baseline' }}>
                   <HorizontalGroup>
-                    <Text type="secondary">
+                    <Text type="secondary" className={cx('title')}>
                       Mute noisy sources or use for debugging and avoid bothering your colleagues.
                     </Text>
                   </HorizontalGroup>

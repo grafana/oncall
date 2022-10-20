@@ -6,3 +6,7 @@
   display: flex;
   justify-content: space-between;
 }
+
+.title {
+  margin-bottom: var(--title-marginBottom);
+}

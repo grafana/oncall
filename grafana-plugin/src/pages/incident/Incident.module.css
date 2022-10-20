@@ -7,7 +7,7 @@
 }
 
 .payload-subtitle {
-  margin-bottom: 16px;
+  margin-bottom: var(--title-marginBottom);
 }
 
 .info-row {

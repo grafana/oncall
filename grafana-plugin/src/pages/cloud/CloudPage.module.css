@@ -59,7 +59,7 @@
 }
 
 .table-title {
-  margin-bottom: 16px;
+  margin-bottom: var(--title-marginBottom);
 }
 
 .table-button {
