@@ -27,6 +27,25 @@ jobs:
         run: |
           pre-commit run --all-files
 
+  test:
+    runs-on: ubuntu-latest
+    container: python:3.9
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+        with:
+          node-version: 14.17.0
+      - name: Build
+        run: |
+          pip install $(grep "pre-commit" engine/requirements.txt)
+          npm install -g yarn
+          cd grafana-plugin/
+          yarn --network-timeout 500000
+          yarn build
+      - name: Unit Testing Frontend
+        run: |
+          yarn test
+
   test-technical-documentation:
     runs-on: ubuntu-latest
     steps:
