@@ -18,6 +18,7 @@ import styles from './SettingsPage.module.css';
 import PluginLink from 'components/PluginLink/PluginLink';
 import { PluginPage } from 'PluginPage';
 import { pages } from 'pages';
+import { config } from '@grafana/runtime';
 
 const cx = cn.bind(styles);
 
@@ -44,8 +45,8 @@ class SettingsPage extends React.Component<SettingsPageProps, SettingsPageState>
     const { apiUrl } = this.state;
 
     return (
-      <PluginPage pageNav={pages['settings']}>
-        <div className={cx('root')}>
+      <PluginPage pageNav={pages['settings'].getPageNav()}>
+        <div className={cx('root', { navbarRootFallback: !config.featureToggles.topnav })}>
           <div className={cx('settings')}>
             <Field
               loading={!teamStore.currentTeam}

@@ -1,7 +1,7 @@
 import React from 'react';
 
 import { AppRootProps } from '@grafana/data';
-import { getLocationSrv } from '@grafana/runtime';
+import { config, getLocationSrv } from '@grafana/runtime';
 import { Button, HorizontalGroup, Icon, IconButton, LoadingPlaceholder, Tooltip, VerticalGroup } from '@grafana/ui';
 import cn from 'classnames/bind';
 import { debounce } from 'lodash-es';
@@ -137,7 +137,7 @@ class EscalationChainsPage extends React.Component<EscalationChainsPageProps, Es
     const searchResult = escalationChainStore.getSearchResult(escalationChainsFilters.searchTerm);
 
     return (
-      <PluginPage pageNav={pages['escalations']}>
+      <PluginPage pageNav={pages['escalations'].getPageNav()}>
         <PageErrorHandlingWrapper
           errorData={errorData}
           objectName="escalation"
@@ -146,7 +146,7 @@ class EscalationChainsPage extends React.Component<EscalationChainsPageProps, Es
         >
           {() => (
             <>
-              <div className={cx('root')}>
+              <div className={cx('root', { navbarRootFallback: !config.featureToggles.topnav } )}>
                 <div className={cx('filters')}>
                   <EscalationsFilters value={escalationChainsFilters} onChange={this.handleEscalationsFiltersChange} />
                 </div>

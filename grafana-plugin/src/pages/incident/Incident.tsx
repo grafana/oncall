@@ -1,7 +1,7 @@
 import React, { useState, SyntheticEvent } from 'react';
 
 import { AppRootProps } from '@grafana/data';
-import { getLocationSrv } from '@grafana/runtime';
+import { config, getLocationSrv } from '@grafana/runtime';
 import {
   Button,
   HorizontalGroup,
@@ -128,11 +128,11 @@ class IncidentPage extends React.Component<IncidentPageProps, IncidentPageState>
     }
 
     return (
-      <PluginPage pageNav={pages['incident']}>
+      <PluginPage pageNav={pages['incident'].getPageNav()}>
         <PageErrorHandlingWrapper errorData={errorData} objectName="alert group" pageName="incidents">
           {() =>
             errorData.isNotFoundError ? (
-              <div className={cx('root')}>
+              <div className={cx('root', { navbarRootFallback: !config.featureToggles.topnav } )}>
                 <div className={cx('not-found')}>
                   <VerticalGroup spacing="lg" align="center">
                     <Text.Title level={1}>404</Text.Title>

@@ -1,7 +1,7 @@
 import React, { ReactElement, SyntheticEvent } from 'react';
 
 import { AppRootProps } from '@grafana/data';
-import { getLocationSrv } from '@grafana/runtime';
+import { config, getLocationSrv } from '@grafana/runtime';
 import { Button, Icon, Tooltip, VerticalGroup, LoadingPlaceholder, HorizontalGroup } from '@grafana/ui';
 import cn from 'classnames/bind';
 import { get } from 'lodash-es';
@@ -100,8 +100,8 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
 
   render() {
     return (
-      <PluginPage pageNav={pages['incidents']}>
-        <div className={cx('root')}>
+      <PluginPage pageNav={pages['incidents'].getPageNav()}>
+        <div className={cx('root', { navbarRootFallback: !config.featureToggles.topnav })}>
           {this.renderIncidentFilters()}
           {this.renderTable()}
         </div>

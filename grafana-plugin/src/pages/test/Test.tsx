@@ -22,7 +22,7 @@ class Test extends React.Component<any, any> {
 
   render() {
     return (
-      <PluginPage pageNav={pages['test']}>
+      <PluginPage pageNav={pages['test'].getPageNav()}>
         <div className={cx('root')}>
           <GSelect
             isMulti

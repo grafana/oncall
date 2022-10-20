@@ -12,6 +12,7 @@ import { ChatOpsTab } from './ChatOps.types';
 import styles from './ChatOps.module.css';
 import { PluginPage } from 'PluginPage';
 import { pages } from 'pages';
+import { config } from '@grafana/runtime';
 
 const cx = cn.bind(styles);
 
@@ -33,8 +34,8 @@ class ChatOpsPage extends React.Component<MessengersPageProps, MessengersPageSta
     const { teamStore } = store;
 
     return (
-      <PluginPage pageNav={pages['chat-ops']}>
-        <div className={cx('root')}>
+      <PluginPage pageNav={pages['chat-ops'].getPageNav()}>
+        <div className={cx('root', { navbarRootFallback: !config.featureToggles.topnav })}>
           <div className={cx('tabs')}>
             <Tabs
               activeTab={activeTab}

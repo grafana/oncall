@@ -21,6 +21,7 @@ import sanitize from 'utils/sanitize';
 import styles from './OrganizationLog.module.css';
 import { PluginPage } from 'PluginPage';
 import { pages } from 'pages';
+import { config } from '@grafana/runtime';
 
 const cx = cn.bind(styles);
 
@@ -97,8 +98,8 @@ class OrganizationLogPage extends React.Component<OrganizationLogProps, Organiza
     const loading = !results;
 
     return (
-      <PluginPage pageNav={pages['organization-logs']}>
-        <div className={cx('root')}>
+      <PluginPage pageNav={pages['organization-logs'].getPageNav()}>
+        <div className={cx('root', { navbarRootFallback: !config.featureToggles.topnav } )}>
           <OrganizationLogFilters value={filters} onChange={this.handleChangeOrganizationLogFilters} />
           <GTable
             rowKey="id"

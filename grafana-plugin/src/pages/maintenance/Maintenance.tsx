@@ -28,6 +28,7 @@ import { withMobXProviderContext } from 'state/withStore';
 import styles from './Maintenance.module.css';
 import { PluginPage } from 'PluginPage';
 import { pages } from 'pages';
+import { config } from '@grafana/runtime';
 
 const cx = cn.bind(styles);
 
@@ -123,8 +124,8 @@ class MaintenancePage extends React.Component<MaintenancePageProps, MaintenanceP
     ];
 
     return (
-      <PluginPage pageNav={pages['maintenance']}>
-        <div className={cx('root')}>
+      <PluginPage pageNav={pages['maintenance'].getPageNav()}>
+        <div className={cx('root', { navbarRootFallback: !config.featureToggles.topnav })}>
           <GTable
             emptyText={data ? 'No maintenances found' : 'Loading...'}
             title={() => (

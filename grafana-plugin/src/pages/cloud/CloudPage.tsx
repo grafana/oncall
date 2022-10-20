@@ -372,7 +372,7 @@ const CloudPage = observer((props: CloudPageProps) => {
   );
 
   return (
-    <PluginPage pageNav={pages['cloud']}>
+    <PluginPage pageNav={pages['cloud'].getPageNav()}>
       <div className={cx('root')}>
         <VerticalGroup spacing="lg">
           <Text.Title level={3} className={cx('cloud-page-title')}>

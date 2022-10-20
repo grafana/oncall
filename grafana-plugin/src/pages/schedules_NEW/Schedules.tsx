@@ -146,7 +146,7 @@ class SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSta
       : undefined;
 
     return (
-      <PluginPage pageNav={pages['schedules-new']}>
+      <PluginPage pageNav={pages['schedules-new'].getPageNav()}>
         <div className={cx('root')}>
           <VerticalGroup>
             <HorizontalGroup justify="space-between">

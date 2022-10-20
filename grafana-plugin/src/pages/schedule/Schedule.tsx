@@ -1,7 +1,7 @@
 import React from 'react';
 
 import { AppRootProps } from '@grafana/data';
-import { getLocationSrv } from '@grafana/runtime';
+import { config, getLocationSrv } from '@grafana/runtime';
 import { Button, HorizontalGroup, VerticalGroup, IconButton, ToolbarButton, Icon } from '@grafana/ui';
 import cn from 'classnames/bind';
 import dayjs from 'dayjs';
@@ -101,8 +101,8 @@ class SchedulePage extends React.Component<SchedulePageProps, SchedulePageState>
     const schedule = scheduleStore.items[scheduleId];
 
     return (
-      <PluginPage pageNav={pages['schedule']}>
-        <div className={cx('root')}>
+      <PluginPage pageNav={pages['schedule'].getPageNav()}>
+        <div className={cx('root', { navbarRootFallback: !config.featureToggles.topnav })}>
           <VerticalGroup spacing="lg">
             <div className={cx('header')}>
               <HorizontalGroup justify="space-between">

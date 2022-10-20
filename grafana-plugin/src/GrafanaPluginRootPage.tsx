@@ -33,7 +33,7 @@ dayjs.extend(isoWeek);
 // dayjs().weekday(0);
 
 import './style/vars.css';
-import './style/index.css';
+import './style/global.css';
 
 import { routes } from 'components/PluginLink/routes';
 import { useQueryParams, useQueryPath } from 'utils/hooks';

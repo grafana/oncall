@@ -19,6 +19,7 @@ import apiTokensImg from './img/api-tokens.png';
 import styles from './MigrationTool.module.css';
 import { PluginPage } from 'PluginPage';
 import { pages } from 'pages';
+import { config } from '@grafana/runtime';
 
 const cx = cn.bind(styles);
 
@@ -63,8 +64,8 @@ class MigrationToolPage extends React.Component<MigrationToolProps, MigrationToo
     const { migrationStatus, migrationInitiated, migrationPlan, apiKey, endpointsList } = this.state;
 
     return (
-      <PluginPage pageNav={pages['migration-tool']}>
-        <div className={cx('root')}>
+      <PluginPage pageNav={pages['migration-tool'].getPageNav()}>
+        <div className={cx('root', { navbarRootFallback: !config.featureToggles.topnav })}>
           <p>
             <Text.Title level={3} className={cx('title')}>
               Migrate From Amixr.IO

@@ -1,7 +1,7 @@
 import React from 'react';
 
 import { AppRootProps } from '@grafana/data';
-import { getLocationSrv } from '@grafana/runtime';
+import { config, getLocationSrv } from '@grafana/runtime';
 import { Alert, Button, HorizontalGroup, Icon, VerticalGroup } from '@grafana/ui';
 import cn from 'classnames/bind';
 import { debounce } from 'lodash-es';
@@ -173,7 +173,7 @@ class Users extends React.Component<UsersProps, UsersState> {
     const { count, results } = userStore.getSearchResult();
 
     return (
-      <PluginPage pageNav={pages['users']}>
+      <PluginPage pageNav={pages['users'].getPageNav()} >
         <PageErrorHandlingWrapper
           errorData={errorData}
           objectName="user"
@@ -182,7 +182,7 @@ class Users extends React.Component<UsersProps, UsersState> {
         >
           {() => (
             <>
-              <div className={cx('root')}>
+              <div className={cx('root', { navbarRootFallback: !config.featureToggles.topnav } )}>
                 <div className={cx('root', 'TEST-users-page')}>
                   <div className={cx('users-header')}>
                     <div style={{ display: 'flex', alignItems: 'baseline' }}>

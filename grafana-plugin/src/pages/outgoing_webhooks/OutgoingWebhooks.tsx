@@ -1,7 +1,7 @@
 import React from 'react';
 
 import { AppRootProps } from '@grafana/data';
-import { getLocationSrv } from '@grafana/runtime';
+import { config, getLocationSrv } from '@grafana/runtime';
 import { Button, HorizontalGroup } from '@grafana/ui';
 import cn from 'classnames/bind';
 import { observer } from 'mobx-react';
@@ -111,7 +111,7 @@ class OutgoingWebhooks extends React.Component<OutgoingWebhooksProps, OutgoingWe
     ];
 
     return (
-      <PluginPage pageNav={pages['outgoing_webhooks']}>
+      <PluginPage pageNav={pages['outgoing_webhooks'].getPageNav()}>
         <PageErrorHandlingWrapper
           errorData={errorData}
           objectName="outgoing webhook"
@@ -120,7 +120,7 @@ class OutgoingWebhooks extends React.Component<OutgoingWebhooksProps, OutgoingWe
         >
           {() => (
             <>
-              <div className={cx('root')}>
+              <div className={cx('root', { navbarRootFallback: !config.featureToggles.topnav })}>
                 <GTable
                   emptyText={webhooks ? 'No outgoing webhooks found' : 'Loading...'}
                   title={() => (

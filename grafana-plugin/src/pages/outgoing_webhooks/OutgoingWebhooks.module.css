@@ -1,8 +1,5 @@
-.root {
-  margin-top: 24px;
-}
-
 .header {
   display: flex;
-  justify-content: space-between;
+  justify-content: flex-end;
+  width: 100%;
 }

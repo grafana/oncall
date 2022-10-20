@@ -6,8 +6,10 @@
   flex-direction: column;
   justify-content: center;
   align-items: center;
+}
 
-  /* animation: fadeIn 1s infinite alternate; */
+.navbarRootFallback {
+  margin-top: 24px;
 }
 
 .spin-text {

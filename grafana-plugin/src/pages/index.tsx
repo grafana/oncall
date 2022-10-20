@@ -1,3 +1,5 @@
+import { NavModelItem } from "@grafana/data";
+
 export const PLUGIN_URL_PATH = '/a/grafana-oncall-app';
 
 export type PageDefinition = {
@@ -131,7 +133,7 @@ export const pages: { [id: string]: PageDefinition } = [
     getPageNav: () => ({
       text: current.text,
       description: ''
-    }),
+    } as NavModelItem),
   };
 
   return prev;
