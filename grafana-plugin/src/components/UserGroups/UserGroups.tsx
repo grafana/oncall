@@ -45,7 +45,7 @@ const UserGroups = (props: UserGroupsProps) => {
         k++;
 
         if (k === index) {
-          newGroups[i] = newGroups[i].filter((item, itemIndex) => itemIndex !== j);
+          newGroups[i] = newGroups[i].filter((_item, itemIndex) => itemIndex !== j);
           onChange(newGroups.filter((group) => group.length));
           return;
         }

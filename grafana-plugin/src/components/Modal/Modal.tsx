@@ -39,7 +39,7 @@ const Modal: FC<PropsWithChildren<ModalProps>> = (props) => {
       contentLabel={title}
       className={cx('root')}
       overlayClassName={cx('overlay')}
-      overlayElement={(props, contentElement) => contentElement} // render without overlay to allow body scroll
+      overlayElement={(_props, contentElement) => contentElement} // render without overlay to allow body scroll
       contentElement={contentElement}
     >
       {children}
