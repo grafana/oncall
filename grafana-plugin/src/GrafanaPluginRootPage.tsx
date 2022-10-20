@@ -19,11 +19,8 @@ import 'interceptors';
 import DefaultPageLayout from 'containers/DefaultPageLayout/DefaultPageLayout';
 import GrafanaTeamSelect from 'containers/GrafanaTeamSelect/GrafanaTeamSelect';
 import logo from 'img/logo.svg';
-import { pages } from 'pages';
 import { rootStore } from 'state';
 import { useStore } from 'state/useStore';
-
-import { config } from '@grafana/runtime';
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
@@ -38,9 +35,10 @@ dayjs.extend(isoWeek);
 import './style/vars.css';
 import './style/index.css';
 
-import { AppFeature } from './state/features';
 import { routes } from 'components/PluginLink/routes';
 import { useQueryParams, useQueryPath } from 'utils/hooks';
+import { pages } from 'pages';
+import { locationService } from '@grafana/runtime';
 
 export const GrafanaPluginRootPage = (props: AppRootProps) => (
   <Provider store={rootStore}>
@@ -129,7 +127,9 @@ export const Root = observer((props: AppRootProps) => {
     };
   }, []);
 
-  const Page = routes[page].component;
+  const Page = useMemo(() => {
+    return getPageMatchingComponent(page);
+  }, [page]);
 
   return (
     <DefaultPageLayout {...props}>
@@ -138,3 +138,14 @@ export const Root = observer((props: AppRootProps) => {
     </DefaultPageLayout>
   );
 });
+
+function getPageMatchingComponent(pageId: string): (props?: any) => JSX.Element {
+  let matchingPage = routes[pageId];
+  if (!matchingPage) {
+    const defaultPageId = Object.keys(pages)[0];
+    matchingPage = routes[defaultPageId];
+    locationService.replace(pages[defaultPageId].path);
+  }
+
+  return matchingPage.component;
+}

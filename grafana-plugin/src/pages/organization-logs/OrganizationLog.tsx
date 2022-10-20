@@ -20,6 +20,7 @@ import sanitize from 'utils/sanitize';
 
 import styles from './OrganizationLog.module.css';
 import { PluginPage } from 'PluginPage';
+import { pages } from 'pages';
 
 const cx = cn.bind(styles);
 
@@ -96,7 +97,7 @@ class OrganizationLogPage extends React.Component<OrganizationLogProps, Organiza
     const loading = !results;
 
     return (
-      <PluginPage>
+      <PluginPage pageNav={pages['organization-logs']}>
         <div className={cx('root')}>
           <OrganizationLogFilters value={filters} onChange={this.handleChangeOrganizationLogFilters} />
           <GTable

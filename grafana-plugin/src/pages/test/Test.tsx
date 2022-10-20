@@ -10,6 +10,7 @@ import { withMobXProviderContext } from 'state/withStore';
 import styles from './Test.module.css';
 import PluginLink from 'components/PluginLink/PluginLink';
 import { PluginPage } from 'PluginPage';
+import { pages } from 'pages';
 
 const cx = cn.bind(styles);
 
@@ -21,7 +22,7 @@ class Test extends React.Component<any, any> {
 
   render() {
     return (
-      <PluginPage>
+      <PluginPage pageNav={pages['test']}>
         <div className={cx('root')}>
           <GSelect
             isMulti

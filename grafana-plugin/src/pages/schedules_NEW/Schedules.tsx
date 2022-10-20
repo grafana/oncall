@@ -33,6 +33,7 @@ import { withMobXProviderContext } from 'state/withStore';
 
 import styles from './Schedules.module.css';
 import { PluginPage } from 'PluginPage';
+import { pages } from 'pages';
 
 const cx = cn.bind(styles);
 
@@ -145,7 +146,7 @@ class SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSta
       : undefined;
 
     return (
-      <PluginPage>
+      <PluginPage pageNav={pages['schedules-new']}>
         <div className={cx('root')}>
           <VerticalGroup>
             <HorizontalGroup justify="space-between">

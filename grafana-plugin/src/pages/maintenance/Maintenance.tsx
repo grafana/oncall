@@ -27,6 +27,7 @@ import { withMobXProviderContext } from 'state/withStore';
 
 import styles from './Maintenance.module.css';
 import { PluginPage } from 'PluginPage';
+import { pages } from 'pages';
 
 const cx = cn.bind(styles);
 
@@ -122,7 +123,7 @@ class MaintenancePage extends React.Component<MaintenancePageProps, MaintenanceP
     ];
 
     return (
-      <PluginPage>
+      <PluginPage pageNav={pages['maintenance']}>
         <div className={cx('root')}>
           <GTable
             emptyText={data ? 'No maintenances found' : 'Loading...'}

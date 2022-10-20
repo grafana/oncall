@@ -12,7 +12,7 @@ export type PageDefinition = {
 };
 
 function getPath(name = '') {
-  return `${PLUGIN_URL_PATH}/${name}`;
+  return `${PLUGIN_URL_PATH}/?page=${name}`;
 }
 
 export const pages: { [id: string]: PageDefinition } = [

@@ -58,6 +58,7 @@ import { getActionButtons, getIncidentStatusTag, renderRelatedUsers } from './In
 
 import styles from './Incident.module.css';
 import { PluginPage } from 'PluginPage';
+import { pages } from 'pages';
 
 const cx = cn.bind(styles);
 
@@ -127,7 +128,7 @@ class IncidentPage extends React.Component<IncidentPageProps, IncidentPageState>
     }
 
     return (
-      <PluginPage>
+      <PluginPage pageNav={pages['incident']}>
         <PageErrorHandlingWrapper errorData={errorData} objectName="alert group" pageName="incidents">
           {() =>
             errorData.isNotFoundError ? (

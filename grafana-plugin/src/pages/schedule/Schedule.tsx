@@ -25,6 +25,7 @@ import { getStartOfWeek } from './Schedule.helpers';
 
 import styles from './Schedule.module.css';
 import { PluginPage } from 'PluginPage';
+import { pages } from 'pages';
 
 const cx = cn.bind(styles);
 
@@ -100,7 +101,7 @@ class SchedulePage extends React.Component<SchedulePageProps, SchedulePageState>
     const schedule = scheduleStore.items[scheduleId];
 
     return (
-      <PluginPage>
+      <PluginPage pageNav={pages['schedule']}>
         <div className={cx('root')}>
           <VerticalGroup spacing="lg">
             <div className={cx('header')}>
