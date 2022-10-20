@@ -187,20 +187,18 @@ class LiveSetting(models.Model):
     def populate_settings_if_needed(cls):
         settings_in_db = cls.objects.filter(name__in=cls.AVAILABLE_NAMES).values_list("name", flat=True)
         setting_names_to_populate = set(cls.AVAILABLE_NAMES) - set(settings_in_db)
+        if len(setting_names_to_populate) == 0:
+            return
 
-        revalidate_twilio = False
         for setting_name in setting_names_to_populate:
-            setting = cls.objects.create(name=setting_name, value=cls._get_setting_from_setting_file(setting_name))
-            if setting.name.startswith("TWILIO"):
-                revalidate_twilio = True
+            cls.objects.create(name=setting_name, value=cls._get_setting_from_setting_file(setting_name))
 
-        if revalidate_twilio:
-            cls.revalidate_twilio()
+        cls.revalidate_settings()
 
     @classmethod
-    def revalidate_twilio(cls):
-        twilio_settings = cls.objects.filter(name__startswith="TWILIO")
-        for setting in twilio_settings:
+    def revalidate_settings(cls):
+        settings_to_validate = cls.objects.all()
+        for setting in settings_to_validate:
             setting.error = LiveSettingValidator(live_setting=setting).get_error()
             setting.save(update_fields=["error"])
 
