@@ -35,15 +35,12 @@ jobs:
       - uses: actions/setup-node@v3
         with:
           node-version: 14.17.0
-      - name: Build
+      - name: Unit Testing Frontend
         run: |
           pip install $(grep "pre-commit" engine/requirements.txt)
           npm install -g yarn
           cd grafana-plugin/
           yarn --network-timeout 500000
-          yarn build
-      - name: Unit Testing Frontend
-        run: |
           yarn test
 
   test-technical-documentation:
