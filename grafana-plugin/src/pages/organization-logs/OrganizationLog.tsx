@@ -4,7 +4,7 @@ import { Button, HorizontalGroup, Tag, Tooltip } from '@grafana/ui';
 import cn from 'classnames/bind';
 import { debounce } from 'lodash-es';
 import { observer } from 'mobx-react';
-import moment, { Moment } from 'moment';
+import moment, { Moment } from 'moment-timezone';
 import { RouteComponentProps } from 'react-router-dom';
 
 import Avatar from 'components/Avatar/Avatar';

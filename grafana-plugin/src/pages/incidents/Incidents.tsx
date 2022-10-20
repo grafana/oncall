@@ -6,7 +6,7 @@ import { Button, Icon, Tooltip, VerticalGroup, LoadingPlaceholder, HorizontalGro
 import cn from 'classnames/bind';
 import { get } from 'lodash-es';
 import { observer } from 'mobx-react';
-import moment from 'moment';
+import moment from 'moment-timezone';
 import Emoji from 'react-emoji-render';
 
 import CursorPagination from 'components/CursorPagination/CursorPagination';

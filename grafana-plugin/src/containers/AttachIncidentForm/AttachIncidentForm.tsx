@@ -4,7 +4,7 @@ import { SelectableValue } from '@grafana/data';
 import { Button, Field, HorizontalGroup, Icon, Modal } from '@grafana/ui';
 import cn from 'classnames/bind';
 import { observer } from 'mobx-react';
-import moment from 'moment';
+import moment from 'moment-timezone';
 
 import Text from 'components/Text/Text';
 import GSelect from 'containers/GSelect/GSelect';
@@ -43,7 +43,7 @@ const AttachIncidentForm = observer(({ id, onUpdate, onHide }: AttachIncidentFor
       onHide();
       onUpdate();
     });
-  }, [selected]);
+  }, [selected, alertGroupStore, id, onHide, onUpdate]);
 
   const GroupedAlertNumber = observer(({ value }: GroupedAlertNumberProps) => {
     const { alertGroupStore } = useStore();

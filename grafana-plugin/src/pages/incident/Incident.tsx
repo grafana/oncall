@@ -18,7 +18,7 @@ import {
 } from '@grafana/ui';
 import cn from 'classnames/bind';
 import { observer } from 'mobx-react';
-import moment from 'moment';
+import moment from 'moment-timezone';
 import CopyToClipboard from 'react-copy-to-clipboard';
 import Emoji from 'react-emoji-render';
 import reactStringReplace from 'react-string-replace';
