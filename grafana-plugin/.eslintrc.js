@@ -16,7 +16,7 @@ module.exports = {
         args: 'after-used',
         argsIgnorePattern: '^_',
         destructuredArrayIgnorePattern: '^_',
-        ignoreRestSiblings: false,
+        ignoreRestSiblings: true,
       },
     ],
     'react/prop-types': 'warn',
