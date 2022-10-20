@@ -83,7 +83,7 @@ class Users extends React.Component<UsersProps, UsersState> {
     return await userStore.updateItems(getRealFilters(usersFilters), page);
   };
 
-  componentDidUpdate(prevProps: Readonly<UsersProps>, prevState: Readonly<UsersState>, snapshot?: any) {
+  componentDidUpdate(prevProps: Readonly<UsersProps>, _prevState: Readonly<UsersState>, _snapshot?: any) {
     const { store } = this.props;
 
     if (!this.initialUsersLoaded && store.isUserActionAllowed(UserAction.ViewOtherUsers)) {
@@ -233,7 +233,7 @@ class Users extends React.Component<UsersProps, UsersState> {
                     /* @ts-ignore */
                     title={
                       <>
-                        You don't have enough permissions to view other users because you are not Admin.{' '}
+                        You don&apos;t have enough permissions to view other users because you are not Admin.{' '}
                         <PluginLink query={{ page: 'users', id: 'me' }}>Click here</PluginLink> to open your profile
                       </>
                     }

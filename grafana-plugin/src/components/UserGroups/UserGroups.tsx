@@ -1,6 +1,6 @@
-import React, { useCallback, useEffect, useMemo } from 'react';
+import React, { useCallback, useMemo } from 'react';
 
-import { VerticalGroup, HorizontalGroup, IconButton, Field, Input } from '@grafana/ui';
+import { VerticalGroup, HorizontalGroup, IconButton } from '@grafana/ui';
 import { arrayMoveImmutable } from 'array-move';
 import cn from 'classnames/bind';
 import { SortableContainer, SortableElement, SortableHandle } from 'react-sortable-hoc';

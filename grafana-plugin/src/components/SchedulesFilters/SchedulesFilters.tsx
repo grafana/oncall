@@ -1,4 +1,4 @@
-import React, { ChangeEvent, useCallback, useMemo, useState } from 'react';
+import React, { useCallback, useMemo } from 'react';
 
 import { DatePickerWithInput, Field, HorizontalGroup, RadioButtonGroup } from '@grafana/ui';
 import cn from 'classnames/bind';

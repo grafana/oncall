@@ -72,7 +72,8 @@ const PersonalNotificationSettings = observer((props: PersonalNotificationSettin
           placement="top"
           content={
             <>
-              Trigger different notification policies from escalation setup (page "Integrations"). <img src={img} />
+              Trigger different notification policies from escalation setup (page &quot;Integrations&quot;).{' '}
+              <img src={img} />
             </>
           }
         >

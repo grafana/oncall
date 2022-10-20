@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useState } from 'react';
 
 import { SelectableValue } from '@grafana/data';
-import { Button, HorizontalGroup, Modal, Select } from '@grafana/ui';
+import { Button, HorizontalGroup, Select } from '@grafana/ui';
 import cn from 'classnames/bind';
 import { observer } from 'mobx-react';
 import Emoji from 'react-emoji-render';
@@ -86,7 +86,7 @@ const HeartbeatForm = observer(({ alertReceveChannelId, onUpdate }: HeartBeatMod
       <br />
       <p>
         A heartbeat acts as a healthcheck for incident monitoring. You can configure OnCall to regularly send alerts to
-        the heartbeat endpoint. If you don't receive one of these alerts, OnCall will issue an incident.
+        the heartbeat endpoint. If you don&apos;t receive one of these alerts, OnCall will issue an incident.
       </p>
       <p>
         <span>OnCall will issue an incident if no alert is received every</span>

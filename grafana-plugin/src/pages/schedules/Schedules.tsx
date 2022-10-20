@@ -85,7 +85,9 @@ class SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSta
       query: { id },
     } = this.props;
 
-    if (!id) {return;}
+    if (!id) {
+      return;
+    }
 
     let scheduleId: string = undefined;
     const isNewSchedule = id === 'new';
@@ -180,8 +182,8 @@ class SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSta
                 <HorizontalGroup align="flex-end">
                   <Text.Title level={3}>On-call Schedules</Text.Title>
                   <Text type="secondary">
-                    Use this to distribute notifications among team members you specified in the "Notify Users from
-                    on-call schedule" step in{' '}
+                    Use this to distribute notifications among team members you specified in the &quot;Notify Users from
+                    on-call schedule&quot; step in{' '}
                     <PluginLink query={{ page: 'integrations' }}>escalation chains</PluginLink>.
                   </Text>
                 </HorizontalGroup>
@@ -305,8 +307,8 @@ class SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSta
             Events
           </Text.Title>
           <ul className={cx('events-list')}>
-            {(events || []).map((event) => (
-              <li className={cx('events-list-item')}>
+            {(events || []).map((event, idx) => (
+              <li key={idx} className={cx('events-list-item')}>
                 <Event event={event} />
               </li>
             ))}
@@ -357,9 +359,9 @@ class SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSta
     return value.user_group?.handle || '-';
   };
 
-  renderOncallNow = (item: Schedule, index: number) => {
+  renderOncallNow = (item: Schedule, _index: number) => {
     if (item.on_call_now?.length > 0) {
-      return item.on_call_now.map((user, index) => {
+      return item.on_call_now.map((user, _index) => {
         return (
           <PluginLink key={user.pk} query={{ page: 'users', id: user.pk }}>
             <div>
@@ -386,7 +388,7 @@ class SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSta
       const tooltipContent = (
         <div>
           {item.warnings.map((warning: string) => (
-            <p>{warning}</p>
+            <p key={warning}>{warning}</p>
           ))}
         </div>
       );
@@ -526,7 +528,7 @@ const Event = ({ event }: EventProps) => {
                   {event.missing_users[0] && (
                     <Text type="secondary">
                       (check if {event.missing_users[0].includes(',') ? 'some of these users -' : 'user -'}{' '}
-                      <Text type="secondary">"{event.missing_users[0]}"</Text>{' '}
+                      <Text type="secondary">&quot;{event.missing_users[0]}&quot;</Text>{' '}
                       {event.missing_users[0].includes(',') ? 'are' : 'is'} existing in OnCall or{' '}
                       {event.missing_users[0].includes(',') ? 'have' : 'has'} Viewer role)
                     </Text>

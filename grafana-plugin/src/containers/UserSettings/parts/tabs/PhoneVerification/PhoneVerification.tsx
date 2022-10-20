@@ -1,4 +1,4 @@
-import React, { HTMLAttributes, useCallback, useRef, useReducer } from 'react';
+import React, { HTMLAttributes, useCallback, useRef, useReducer, useState } from 'react';
 
 import { Alert, Button, Field, HorizontalGroup, Icon, Input, Switch, Tooltip, VerticalGroup } from '@grafana/ui';
 import cn from 'classnames/bind';
@@ -39,7 +39,7 @@ const PhoneVerification = observer((props: PhoneVerificationProps) => {
   const { userStore, teamStore } = store;
 
   const userPk = (propsUserPk || userStore.currentUserPk) as User['pk'];
-  let user = userStore.items[userPk];
+  const [user, setUser] = useState<User>(userStore.items[userPk]);
 
   const [{ showForgetScreen, phone, code, isCodeSent, isPhoneNumberHidden, isLoading }, setState] = useReducer(
     (state: PhoneVerificationState, newState: Partial<PhoneVerificationState>) => ({
@@ -63,11 +63,11 @@ const PhoneVerification = observer((props: PhoneVerificationProps) => {
       setState({ isPhoneNumberHidden, isLoading: true });
 
       await userStore.updateUser({ pk: userPk, hide_phone_number: isPhoneNumberHidden });
-      user = userStore.items[userPk];
+      setUser(userStore.items[userPk]);
 
       setState({ phone: user.verified_phone_number, isLoading: false });
     },
-    []
+    [user.verified_phone_number, userPk, userStore]
   );
 
   const onChangePhoneCallback = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
@@ -80,14 +80,14 @@ const PhoneVerification = observer((props: PhoneVerificationProps) => {
 
   const handleMakeTestCallClick = useCallback(() => {
     userStore.makeTestCall(userPk);
-  }, [userPk]);
+  }, [userPk, userStore]);
 
   const handleForgetNumberClick = useCallback(() => {
     userStore.forgetPhone(userPk).then(async () => {
       await userStore.loadUser(userPk);
       setState({ phone: '', showForgetScreen: false, isCodeSent: false });
     });
-  }, [userPk]);
+  }, [userPk, userStore]);
 
   const { isTestCallInProgress } = userStore;
 
@@ -123,7 +123,7 @@ const PhoneVerification = observer((props: PhoneVerificationProps) => {
           );
         });
     }
-  }, [code, isCodeSent, phone, store, user.email, userPk, userStore]);
+  }, [code, isCodeSent, phone, user.email, userPk, userStore]);
 
   const isTwilioConfigured = teamStore.currentTeam?.env_status.twilio_configured;
   const phoneHasMinimumLength = phone?.length > 8;
@@ -166,7 +166,7 @@ const PhoneVerification = observer((props: PhoneVerificationProps) => {
             // @ts-ignore
             title={
               <>
-                Can't verify phone. <PluginLink query={{ page: 'live-settings' }}> Check ENV variables</PluginLink>{' '}
+                Can&apos;t verify phone. <PluginLink query={{ page: 'live-settings' }}> Check ENV variables</PluginLink>{' '}
                 related to Twilio.
               </>
             }

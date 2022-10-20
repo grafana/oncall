@@ -1,17 +1,12 @@
 import React from 'react';
 
 import { VerticalGroup } from '@grafana/ui';
-import cn from 'classnames/bind';
 
 import Timeline from 'components/Timeline/Timeline';
 import SlackConnector from 'containers/AlertRules/parts/connectors/SlackConnector';
 import TelegramConnector from 'containers/AlertRules/parts/connectors/TelegramConnector';
 import { ChannelFilter } from 'models/channel_filter';
 import { useStore } from 'state/useStore';
-
-import styles from 'containers/AlertRules/parts/index.module.css';
-
-const cx = cn.bind(styles);
 
 interface ChatOpsConnectorsProps {
   channelFilterId: ChannelFilter['id'];

@@ -56,8 +56,8 @@ const ScheduleICalSettings: FC<ScheduleICalSettingsProps> = observer((props) => 
     <VerticalGroup>
       <Label>iCal link:</Label>
       <Text type="secondary">
-        Secret iCal export link to export schedule's on call shifts to Google Calendar, iCal, etc. If you forget it,
-        you’ll need to revoke this link and create another one
+        Secret iCal export link to export schedule&apos;s on call shifts to Google Calendar, iCal, etc. If you forget
+        it, you&apos;ll need to revoke this link and create another one
       </Text>
       {isICalLinkLoading ? (
         <LoadingPlaceholder text="Loading..." />
@@ -69,7 +69,7 @@ const ScheduleICalSettings: FC<ScheduleICalSettingsProps> = observer((props) => 
                 <VerticalGroup>
                   <HorizontalGroup>
                     <Icon name="exclamation-triangle" />
-                    <Text type="warning">Make sure you copy it - you won't be able to access it again.</Text>
+                    <Text type="warning">Make sure you copy it - you won&apos;t be able to access it again.</Text>
                   </HorizontalGroup>
                   <Text className={cx('link-container')}>{ICalLink}</Text>
                   <CopyToClipboard

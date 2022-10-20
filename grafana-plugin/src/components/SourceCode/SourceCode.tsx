@@ -1,6 +1,6 @@
 import React, { FC } from 'react';
 
-import { Button, Icon, IconButton } from '@grafana/ui';
+import { Button, IconButton } from '@grafana/ui';
 import cn from 'classnames/bind';
 import CopyToClipboard from 'react-copy-to-clipboard';
 

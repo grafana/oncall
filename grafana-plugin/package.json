@@ -3,8 +3,8 @@
   "version": "1.0.0",
   "description": "Grafana OnCall Plugin",
   "scripts": {
-    "lint": "eslint --cache --ext .js,.jsx,.ts,.tsx ./src",
-    "lint:fix": "eslint --fix --cache --ext .js,.jsx,.ts,.tsx --quiet ./src",
+    "lint": "eslint --cache --ext .js,.jsx,.ts,.tsx --max-warnings=0 ./src",
+    "lint:fix": "eslint --fix --cache --ext .js,.jsx,.ts,.tsx --max-warnings=0 --quiet ./src",
     "stylelint": "stylelint ./src/**/*.css",
     "stylelint:fix": "stylelint --fix ./src/**/*.css",
     "build": "grafana-toolkit plugin:build",
@@ -80,6 +80,7 @@
     "react-test-renderer": "^17.0.2",
     "ts-jest": "^27.1.3",
     "ts-loader": "^9.3.1",
+    "typescript": "4.6.4",
     "webpack-bundle-analyzer": "^4.6.1"
   },
   "engines": {

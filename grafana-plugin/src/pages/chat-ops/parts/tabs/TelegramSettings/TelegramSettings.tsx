@@ -52,8 +52,8 @@ class TelegramSettings extends Component<TelegramProps, TelegramState> {
           // @ts-ignore
           title={
             <>
-              Can't connect Telegram. <PluginLink query={{ page: 'live-settings' }}> Check ENV variables</PluginLink>{' '}
-              related to Telegram.
+              Can&apos;t connect Telegram.{' '}
+              <PluginLink query={{ page: 'live-settings' }}> Check ENV variables</PluginLink> related to Telegram.
             </>
           }
         />

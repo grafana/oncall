@@ -2,16 +2,7 @@ import React, { useCallback, useEffect, useState } from 'react';
 
 import { AppPluginMeta, PluginConfigPageProps } from '@grafana/data';
 import { getBackendSrv } from '@grafana/runtime';
-import {
-  Button,
-  Field,
-  HorizontalGroup,
-  VerticalGroup,
-  Input,
-  Label,
-  Legend,
-  LoadingPlaceholder,
-} from '@grafana/ui';
+import { Button, Field, HorizontalGroup, VerticalGroup, Input, Label, Legend, LoadingPlaceholder } from '@grafana/ui';
 import cn from 'classnames/bind';
 import { OnCallAppSettings } from 'types';
 
@@ -23,9 +14,10 @@ import { makeRequest } from 'network';
 import {
   createGrafanaToken,
   getPluginSyncStatus,
-  startPluginSync, SYNC_STATUS_RETRY_LIMIT,
+  startPluginSync,
+  SYNC_STATUS_RETRY_LIMIT,
   syncStatusDelay,
-  updateGrafanaToken
+  updateGrafanaToken,
 } from 'state/plugin';
 import { GRAFANA_LICENSE_OSS } from 'utils/consts';
 import { getItem, setItem } from 'utils/localStorage';
@@ -49,7 +41,9 @@ export const PluginConfigPage = (props: Props) => {
   const [isSelfHostedInstall, setIsSelfHostedInstall] = useState<boolean>(true);
   const [retrySync, setRetrySync] = useState<boolean>(false);
 
-  const INVALID_INVITE_TOKEN_ERROR_MSG = `It seems like your invite token may be invalid. ${constructErrorActionMessage('generating a new invite token')}`;
+  const INVALID_INVITE_TOKEN_ERROR_MSG = `It seems like your invite token may be invalid. ${constructErrorActionMessage(
+    'generating a new invite token'
+  )}`;
 
   const setupPlugin = useCallback(async () => {
     setItem('onCallApiUrl', onCallApiUrl);
@@ -135,22 +129,29 @@ export const PluginConfigPage = (props: Props) => {
   }, []);
 
   const handleSyncException = useCallback((e) => {
-    const buildErrMsg = (msg: string): string =>
-      constructSyncErrorMessage(msg, plugin.meta.jsonData?.onCallApiUrl);
+    const buildErrMsg = (msg: string): string => constructSyncErrorMessage(msg, plugin.meta.jsonData?.onCallApiUrl);
 
     if (plugin.meta.jsonData?.onCallApiUrl) {
-      const { status: statusCode  } = e.response;
+      const { status: statusCode } = e.response;
 
       let statusMessage: string;
 
-      if (statusCode == 403) {
+      if (statusCode === 403) {
         statusMessage = buildErrMsg(INVALID_INVITE_TOKEN_ERROR_MSG);
       } else if (statusCode === 404) {
-        statusMessage = buildErrMsg('If Grafana OnCall was just installed, restart Grafana for OnCall routes to be available.');
+        statusMessage = buildErrMsg(
+          'If Grafana OnCall was just installed, restart Grafana for OnCall routes to be available.'
+        );
       } else if (statusCode === 502) {
-        statusMessage = buildErrMsg(`Unable to communicate with either the Grafana API, or Grafana OnCall engine API. ${constructErrorActionMessage('verify that the API URLs that you entered are correct')}`);
+        statusMessage = buildErrMsg(
+          `Unable to communicate with either the Grafana API, or Grafana OnCall engine API. ${constructErrorActionMessage(
+            'verify that the API URLs that you entered are correct'
+          )}`
+        );
       } else {
-        statusMessage = buildErrMsg(`An unknown error occured. ${constructErrorActionMessage()}. If the error still occurs please reach out to support.`)
+        statusMessage = buildErrMsg(
+          `An unknown error occured. ${constructErrorActionMessage()}. If the error still occurs please reach out to support.`
+        );
       }
       setPluginStatusMessage(statusMessage);
       setRetrySync(true);
@@ -168,17 +169,18 @@ export const PluginConfigPage = (props: Props) => {
           ? ` (${getSyncResponse.license}, ${getSyncResponse.version})`
           : '';
 
-      let pluginStatusMessage = `Connected to OnCall${versionInfo}\n - OnCall URL: ${plugin.meta.jsonData.onCallApiUrl}\n`
+      let pluginStatusMessage = `Connected to OnCall${versionInfo}\n - OnCall URL: ${plugin.meta.jsonData.onCallApiUrl}\n`;
       if (plugin.meta.jsonData.grafanaUrl) {
-        pluginStatusMessage = `${pluginStatusMessage} - Grafana URL: ${plugin.meta.jsonData.grafanaUrl}`
+        pluginStatusMessage = `${pluginStatusMessage} - Grafana URL: ${plugin.meta.jsonData.grafanaUrl}`;
       }
 
-      setPluginStatusMessage(pluginStatusMessage)
+      setPluginStatusMessage(pluginStatusMessage);
       setIsSelfHostedInstall(plugin.meta.jsonData?.license === GRAFANA_LICENSE_OSS);
       setPluginStatusOk(true);
     } else {
-      setPluginStatusMessage(constructSyncErrorMessage(INVALID_INVITE_TOKEN_ERROR_MSG,
-        plugin.meta.jsonData.grafanaUrl));
+      setPluginStatusMessage(
+        constructSyncErrorMessage(INVALID_INVITE_TOKEN_ERROR_MSG, plugin.meta.jsonData.grafanaUrl)
+      );
       setRetrySync(true);
     }
     setPluginConfigLoading(false);
@@ -195,16 +197,18 @@ export const PluginConfigPage = (props: Props) => {
       return;
     }
 
-    getPluginSyncStatus().then((get_sync_response) => {
-      if (get_sync_response.hasOwnProperty('token_ok')) {
-        finishSync(get_sync_response);
-      } else {
-        syncStatusDelay(retryCount + 1).then(() => waitForSyncStatus(retryCount + 1))
-      }
-    }).catch((e) => {
-      handleSyncException(e);
-    });
-  }
+    getPluginSyncStatus()
+      .then((get_sync_response) => {
+        if (get_sync_response.hasOwnProperty('token_ok')) {
+          finishSync(get_sync_response);
+        } else {
+          syncStatusDelay(retryCount + 1).then(() => waitForSyncStatus(retryCount + 1));
+        }
+      })
+      .catch((e) => {
+        handleSyncException(e);
+      });
+  };
 
   const startSync = useCallback(() => {
     setRetrySync(false);

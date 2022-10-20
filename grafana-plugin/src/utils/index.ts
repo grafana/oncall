@@ -2,7 +2,7 @@ import { AppEvents } from '@grafana/data';
 import { sentenceCase } from 'change-case';
 // @ts-ignore
 import appEvents from 'grafana/app/core/app_events';
-import { isArray, concat, isPlainObject, flatMap, map, keys, isNil } from 'lodash-es';
+import { isArray, concat, isPlainObject, flatMap, map, keys } from 'lodash-es';
 import qs from 'query-string';
 
 export const TZ_OFFSET = new Date().getTimezoneOffset();
@@ -27,7 +27,7 @@ export function showApiError(error: any) {
 }
 
 export function refreshPageError(error: any) {
-  if (error.response.status == 502) {
+  if (error.response.status === 502) {
     const payload = error.response.data;
     const text = `Try to refresh the page. ${payload}`;
     openErrorNotification(text);

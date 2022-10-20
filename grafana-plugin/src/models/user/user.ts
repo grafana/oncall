@@ -1,11 +1,9 @@
 import dayjs from 'dayjs';
 import { get } from 'lodash-es';
 import { action, computed, observable } from 'mobx';
-import moment from 'moment-timezone';
 
 import BaseStore from 'models/base_store';
 import { NotificationPolicyType } from 'models/notification_policy';
-import { getRandomTimezone } from 'models/timezone/timezone.helpers';
 import { makeRequest } from 'network';
 import { Mixpanel } from 'services/mixpanel';
 import { RootStore } from 'state';
@@ -68,8 +66,6 @@ export class UserStore extends BaseStore {
     };
 
     this.currentUserPk = response.pk;
-
-    // this.rootStore.currentTimezone = timezone;
   }
 
   @action

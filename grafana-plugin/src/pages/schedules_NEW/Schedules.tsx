@@ -4,7 +4,6 @@ import { getLocationSrv } from '@grafana/runtime';
 import { Button, HorizontalGroup, IconButton, LoadingPlaceholder, VerticalGroup } from '@grafana/ui';
 import cn from 'classnames/bind';
 import dayjs from 'dayjs';
-import { debounce } from 'lodash-es';
 import { observer } from 'mobx-react';
 
 import Avatar from 'components/Avatar/Avatar';
@@ -21,12 +20,10 @@ import WithConfirm from 'components/WithConfirm/WithConfirm';
 import ScheduleFinal from 'containers/Rotations/ScheduleFinal';
 import ScheduleForm from 'containers/ScheduleForm/ScheduleForm';
 import { WithPermissionControl } from 'containers/WithPermissionControl/WithPermissionControl';
-import { getFromString } from 'models/schedule/schedule.helpers';
 import { Schedule, ScheduleType } from 'models/schedule/schedule.types';
 import { getSlackChannelName } from 'models/slack_channel/slack_channel.helpers';
 import { Timezone } from 'models/timezone/timezone.types';
 import { getStartOfWeek } from 'pages/schedule/Schedule.helpers';
-import { AppFeature } from 'state/features';
 import { WithStoreProps } from 'state/types';
 import { UserAction } from 'state/userAction';
 import { withMobXProviderContext } from 'state/withStore';
@@ -73,7 +70,7 @@ class SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSta
 
     const { scheduleStore } = store;
 
-    const schedules = scheduleStore.getSearchResult(/*filters.searchTerm*/);
+    const schedules = scheduleStore.getSearchResult();
     const columns = [
       {
         width: '10%',
@@ -109,18 +106,6 @@ class SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSta
         title: 'Slack user group',
         render: this.renderUserGroup,
       },
-      /* {
-        width: '20%',
-        title: 'ChatOps',
-        key: 'chatops',
-        render: this.renderChatOps,
-      },*/
-      /*{
-        width: '10%',
-        title: 'Quality',
-        key: 'quality',
-        render: this.renderQuality,
-      },*/
       {
         width: '50px',
         key: 'buttons',
@@ -297,7 +282,7 @@ class SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSta
               {relatedEscalationChains ? (
                 relatedEscalationChains.length ? (
                   relatedEscalationChains.map((escalationChain) => (
-                    <PluginLink query={{ page: 'escalations', id: escalationChain.pk }}>
+                    <PluginLink key={escalationChain.pk} query={{ page: 'escalations', id: escalationChain.pk }}>
                       {escalationChain.name}
                     </PluginLink>
                   ))
@@ -311,12 +296,6 @@ class SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSta
           }
           onHover={this.getUpdateRelatedEscalationChainsHandler(item.id)}
         />
-        {/* <ScheduleCounter
-          type="warning"
-          count={warningsCount}
-          tooltipTitle="Warnings"
-          tooltipContent="Schedule has unassigned time periods during next 7 days"
-        />*/}
       </HorizontalGroup>
     );
   };
@@ -325,11 +304,11 @@ class SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSta
     return <PluginLink query={{ page: 'schedule', id: item.id }}>{item.name}</PluginLink>;
   };
 
-  renderOncallNow = (item: Schedule, index: number) => {
+  renderOncallNow = (item: Schedule, _index: number) => {
     if (item.on_call_now?.length > 0) {
       return (
         <VerticalGroup>
-          {item.on_call_now.map((user, index) => {
+          {item.on_call_now.map((user, _index) => {
             return (
               <PluginLink key={user.pk} query={{ page: 'users', id: user.pk }}>
                 <div>
@@ -353,22 +332,9 @@ class SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSta
     return value.user_group?.handle || '-';
   };
 
-  /* renderChatOps = (item: Schedule) => {
-    return item.chatOps;
-  }; */
-
-  /* renderQuality = (item: Schedule) => {
-    const type = item.quality > 70 ? 'primary' : 'warning';
-
-    return <Text type={type}>{item.quality || 70}%</Text>;
-  }; */
-
   renderButtons = (item: Schedule) => {
     return (
       <HorizontalGroup>
-        {/*<IconButton tooltip="Copy" name="copy" />
-        <IconButton tooltip="Settings" name="cog" />
-        <IconButton tooltip="Code" name="brackets-curly" />*/}
         <WithPermissionControl key="edit" userAction={UserAction.UpdateSchedules}>
           <IconButton tooltip="Settings" name="cog" onClick={this.getEditScheduleClickHandler(item.id)} />
         </WithPermissionControl>
@@ -401,20 +367,10 @@ class SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSta
   };
 
   handleSchedulesFiltersChange = (filters: SchedulesFiltersType) => {
-    this.setState({ filters }, this.debouncedUpdateSchedules);
+    this.setState({ filters });
   };
 
-  applyFilters = () => {
-    const { filters } = this.state;
-    const { store } = this.props;
-    const { scheduleStore } = store;
-
-    // scheduleStore.updateItems(filters.searchTerm);
-  };
-
-  debouncedUpdateSchedules = debounce(this.applyFilters, 1000);
-
-  handlePageChange = (page: number) => {};
+  handlePageChange = (_page: number) => {};
 
   update = () => {
     const { store } = this.props;

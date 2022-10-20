@@ -11,6 +11,6 @@ export function getLabelFromTemplateName(templateName: string, group: any) {
   return arrayWithNeededValues.join(' ');
 }
 
-export function includeTemplateGroup(groupName: string) {
+export function includeTemplateGroup(_groupName: string) {
   return true;
 }

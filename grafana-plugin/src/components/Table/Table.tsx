@@ -1,6 +1,6 @@
-import React, { FC, useState, useCallback, useMemo, ChangeEvent } from 'react';
+import React, { FC, useMemo } from 'react';
 
-import { Pagination, Checkbox, Icon, VerticalGroup } from '@grafana/ui';
+import { Pagination, VerticalGroup } from '@grafana/ui';
 import cn from 'classnames/bind';
 import Table from 'rc-table';
 import { TableProps } from 'rc-table/lib/Table';
@@ -34,21 +34,20 @@ export interface Props<RecordType = unknown> extends TableProps<RecordType> {
 
 const GTable: FC<Props> = (props) => {
   const { columns, data, className, pagination, loading, rowKey, expandable, ...restProps } = props;
-
   const { page, total: numberOfPages, onChange: onNavigate } = pagination || {};
 
   const expandableFn = useMemo(() => {
     return expandable
       ? {
           ...expandable,
-          expandIcon: ({ expanded, record }) => {
+          expandIcon: ({ expanded }) => {
             return (
               <div className={cx('expand-icon', { [`expand-icon__expanded`]: expanded })}>
                 <ExpandIcon />
               </div>
             );
           },
-          expandedRowClassName: (record, index) => (index % 2 === 0 ? cx('row-even') : cx('row-odd')),
+          expandedRowClassName: (_record, index) => (index % 2 === 0 ? cx('row-even') : cx('row-odd')),
         }
       : null;
   }, [expandable]);
@@ -61,7 +60,7 @@ const GTable: FC<Props> = (props) => {
         columns={columns}
         data={data}
         expandable={expandableFn}
-        rowClassName={(record, index) => (index % 2 === 0 ? cx('row-even') : cx('row-odd'))}
+        rowClassName={(_record, index) => (index % 2 === 0 ? cx('row-even') : cx('row-odd'))}
         {...restProps}
       />
       {pagination && (

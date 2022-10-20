@@ -3,7 +3,6 @@ import React, { ChangeEvent, FC, useCallback, useState } from 'react';
 import { Button, Field, HorizontalGroup, Input, Modal } from '@grafana/ui';
 import cn from 'classnames/bind';
 
-import { ChannelFilter } from 'models/channel_filter/channel_filter.types';
 import { EscalationChain } from 'models/escalation_chain/escalation_chain.types';
 import { useStore } from 'state/useStore';
 

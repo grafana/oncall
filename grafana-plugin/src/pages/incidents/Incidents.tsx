@@ -39,13 +39,15 @@ interface Pagination {
 }
 
 function withSkeleton(fn: (alert: AlertType) => ReactElement | ReactElement[]) {
-  return (alert: AlertType) => {
+  const WithSkeleton = (alert: AlertType) => {
     if (alert.short) {
       return <LoadingPlaceholder text={''} />;
     }
 
     return fn(alert);
   };
+
+  return WithSkeleton;
 }
 
 interface IncidentsPageProps extends WithStoreProps, AppRootProps {}

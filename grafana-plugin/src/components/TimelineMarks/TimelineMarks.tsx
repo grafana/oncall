@@ -51,6 +51,7 @@ const TimelineMarks: FC<TimelineMarksProps> = (props) => {
         <svg version="1.1" width="100%" height="6px" xmlns="http://www.w3.org/2000/svg" className={cx('debug-scale')}>
           {cuts.map((cut, index) => (
             <line
+              key={index}
               x1={`${(index * 100) / (24 * 7)}%`}
               strokeWidth={1}
               y1="0"
