@@ -94,8 +94,18 @@ def test_actions_keyboard_acknowledged(
     keyboard = renderer.render_actions_keyboard()
 
     expected_keyboard = [
-        [InlineKeyboardButton(text="Unacknowledge", callback_data=f"{alert_group.pk}:unacknowledge")],
-        [InlineKeyboardButton(text="Resolve", callback_data=f"{alert_group.pk}:resolve")],
+        [
+            InlineKeyboardButton(
+                text="Unacknowledge",
+                callback_data=f"{alert_group.pk}:unacknowledge:x-oncall-org-id{organization.public_primary_key}",
+            )
+        ],
+        [
+            InlineKeyboardButton(
+                text="Resolve",
+                callback_data=f"{alert_group.pk}:resolve:x-oncall-org-id{organization.public_primary_key}",
+            )
+        ],
     ]
 
     assert are_keyboards_equal(keyboard.inline_keyboard, expected_keyboard) is True
@@ -118,7 +128,12 @@ def test_actions_keyboard_resolved(
     keyboard = renderer.render_actions_keyboard()
 
     expected_keyboard = [
-        [InlineKeyboardButton(text="Unresolve", callback_data=f"{alert_group.pk}:unresolve")],
+        [
+            InlineKeyboardButton(
+                text="Unresolve",
+                callback_data=f"{alert_group.pk}:unresolve:x-oncall-org-id{organization.public_primary_key}",
+            )
+        ],
     ]
 
     assert are_keyboards_equal(keyboard.inline_keyboard, expected_keyboard) is True
@@ -141,9 +156,24 @@ def test_actions_keyboard_silenced(
     keyboard = renderer.render_actions_keyboard()
 
     expected_keyboard = [
-        [InlineKeyboardButton(text="Acknowledge", callback_data=f"{alert_group.pk}:acknowledge")],
-        [InlineKeyboardButton(text="Resolve", callback_data=f"{alert_group.pk}:resolve")],
-        [InlineKeyboardButton(text="Unsilence", callback_data=f"{alert_group.pk}:unsilence")],
+        [
+            InlineKeyboardButton(
+                text="Acknowledge",
+                callback_data=f"{alert_group.pk}:acknowledge:x-oncall-org-id{organization.public_primary_key}",
+            )
+        ],
+        [
+            InlineKeyboardButton(
+                text="Resolve",
+                callback_data=f"{alert_group.pk}:resolve:x-oncall-org-id{organization.public_primary_key}",
+            )
+        ],
+        [
+            InlineKeyboardButton(
+                text="Unsilence",
+                callback_data=f"{alert_group.pk}:unsilence:x-oncall-org-id{organization.public_primary_key}",
+            )
+        ],
     ]
 
     assert are_keyboards_equal(keyboard.inline_keyboard, expected_keyboard) is True
