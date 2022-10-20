@@ -34,6 +34,15 @@ repos:
           - eslint-plugin-import@^2.25.4
           - eslint-plugin-rulesdir@^0.2.1
 
+  - repo: https://github.com/pre-commit/mirrors-prettier
+    rev: "v2.7.1"
+    hooks:
+      - id: prettier
+        types_or: [css, javascript, jsx, ts, tsx, json]
+        files: ^grafana-plugin/src
+        additional_dependencies:
+          - prettier@^2.7.1
+
   - repo: https://github.com/thibaudcolas/pre-commit-stylelint
     rev: v13.13.1
     hooks:
@@ -43,4 +52,6 @@ repos:
         files: ^grafana-plugin/src/.*\.css$
         additional_dependencies:
           - stylelint@^13.13.1
+          - stylelint-prettier@^2.0.0
           - stylelint-config-standard@^22.0.0
+          - stylelint-config-prettier@^9.0.3
