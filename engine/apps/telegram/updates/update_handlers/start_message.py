@@ -1,5 +1,4 @@
 from apps.telegram.client import TelegramClient
-from apps.telegram.models import TelegramToUserConnector
 from apps.telegram.updates.update_handlers.update_handler import UpdateHandler
 
 START_TEXT = """Hi!
@@ -24,12 +23,5 @@ class StartMessageHandler(UpdateHandler):
         return is_from_private_chat and is_start_message
 
     def process_update(self) -> None:
-        connector = TelegramToUserConnector.objects.filter(telegram_chat_id=self.update.effective_user.id).first()
         telegram_client = TelegramClient()
-
-        if connector is not None:
-            user = connector.user
-            text = START_TEXT_FOR_CONNECTED_USER.format(username=user.username)
-            telegram_client.send_raw_message(chat_id=self.update.effective_user.id, text=text)
-        else:
-            telegram_client.send_raw_message(chat_id=self.update.effective_user.id, text=START_TEXT)
+        telegram_client.send_raw_message(chat_id=self.update.effective_user.id, text=START_TEXT)
