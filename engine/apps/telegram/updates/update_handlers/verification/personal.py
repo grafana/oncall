@@ -33,7 +33,7 @@ class PersonalVerificationCodeHandler(UpdateHandler):
         verification_code = text if is_verification_message(text) else text.split()[1]
 
         connector, created = TelegramVerificationCode.verify_user(
-            uuid_code=verification_code, telegram_chat_id=user.id, telegram_nick_name=nickname
+            verification_code=verification_code, telegram_chat_id=user.id, telegram_nick_name=nickname
         )
 
         if created:
