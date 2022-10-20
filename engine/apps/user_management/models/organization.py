@@ -59,6 +59,7 @@ class Organization(MaintainableObject):
         on_delete=models.SET_NULL,
         related_name="regions",
         default=None,
+        null=True,
     )
 
     grafana_url = models.URLField()

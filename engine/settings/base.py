@@ -237,6 +237,7 @@ MIDDLEWARE = [
     "social_django.middleware.SocialAuthExceptionMiddleware",
     "apps.social_auth.middlewares.SocialAuthAuthCanceledExceptionMiddleware",
     "apps.integrations.middlewares.IntegrationExceptionMiddleware",
+    "apps.user_management.middlewares.OrganizationMovedMiddleware",
 ]
 
 LOG_REQUEST_ID_HEADER = "HTTP_X_CLOUD_TRACE_CONTEXT"

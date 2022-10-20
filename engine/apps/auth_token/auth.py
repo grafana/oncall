@@ -18,6 +18,7 @@ from .exceptions import InvalidToken
 from .models import ApiAuthToken, PluginAuthToken, ScheduleExportAuthToken, SlackAuthToken, UserScheduleExportAuthToken
 from .models.mobile_app_auth_token import MobileAppAuthToken
 from .models.mobile_app_verification_token import MobileAppVerificationToken
+from ..user_management.models.region import OrganizationMovedException
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
@@ -46,6 +47,10 @@ class ApiTokenAuthentication(BaseAuthentication):
             auth_token = self.model.validate_token_string(token)
         except InvalidToken:
             raise exceptions.AuthenticationFailed("Invalid token.")
+
+        if auth_token.organization.migration_destination is not None:
+            raise OrganizationMovedException(auth_token.organization)
+
         return auth_token.user, auth_token
 
 
@@ -167,6 +172,9 @@ class ScheduleExportAuthentication(BaseAuthentication):
         except InvalidToken:
             raise exceptions.AuthenticationFailed("Invalid token.")
 
+        if auth_token.organization.migration_destination is not None:
+            raise OrganizationMovedException(auth_token.organization)
+
         if auth_token.schedule.public_primary_key != public_primary_key:
             raise exceptions.AuthenticationFailed("Invalid schedule export token for schedule")
 
@@ -196,6 +204,9 @@ class UserScheduleExportAuthentication(BaseAuthentication):
             auth_token = self.model.validate_token_string(token_string)
         except InvalidToken:
             raise exceptions.AuthenticationFailed("Invalid token")
+
+        if auth_token.organization.migration_destination is not None:
+            raise OrganizationMovedException(auth_token.organization)
 
         if auth_token.user.public_primary_key != public_primary_key:
             raise exceptions.AuthenticationFailed("Invalid schedule export token for user")

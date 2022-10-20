@@ -1,8 +1,22 @@
+import logging
+
 from django.conf import settings
 from django.core.validators import MinLengthValidator
 from django.db import models
+from rest_framework.request import Request
+from rest_framework.response import Response
 
+from apps.user_management.models import Organization
 from common.public_primary_keys import generate_public_primary_key, increase_public_primary_key_length
+
+
+logger = logging.getLogger(__name__)
+
+
+class OrganizationMovedException(Exception):
+
+    def __init__(self, organization: Organization):
+        self.organization = organization
 
 
 def generate_public_primary_key_for_region():
@@ -19,6 +33,10 @@ def generate_public_primary_key_for_region():
     return new_public_primary_key
 
 
+def redirect_organization_request(organization: Organization, request: Request):
+    logger.info("**** Redirect! ****")
+
+
 class Region(models.Model):
     public_primary_key = models.CharField(
         max_length=20,
@@ -28,6 +46,6 @@ class Region(models.Model):
     )
 
     name = models.CharField(max_length=300)
-    slug = models.CharField(max_length=300, unique=True)
+    slug = models.CharField(max_length=50, unique=True)
     oncall_backend_url = models.URLField()
     is_default = models.BooleanField(default=False)
