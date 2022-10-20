@@ -99,10 +99,19 @@ oncall:
     tls: ~
     fromEmail: ~
   twilio:
+    # Twilio account SID/username to allow OnCall to send SMSes and make phone calls
     accountSid: ~
+    # Twilio password to allow OnCall to send SMSes and make calls
     authToken: ~
+    # Number from which you will receive calls and SMS
     phoneNumber: ~
+    # SID of Twilio service for number verification. You can create a service in Twilio web interface.
+    # twilio.com -> verify -> create new service
     verifySid: ~
+    # Twilio API key SID/username to allow OnCall to send SMSes and make phone calls
+    apiKeySid: ~
+    # Twilio API key secret/password to allow OnCall to send SMSes and make phone calls
+    apiKeySecret: ~
 
 # Whether to run django database migrations automatically
 migrate:

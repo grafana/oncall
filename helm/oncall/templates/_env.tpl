@@ -58,14 +58,32 @@
 {{- end -}}
 
 {{- define "snippet.oncall.twilio.env" -}}
+{{- with .Values.oncall.twilio -}}
+{{- if .accountSid }}
 - name: TWILIO_ACCOUNT_SID
-  value: {{ .Values.oncall.twilio.accountSid | default "" | quote }}
+  value: {{ .accountSid | quote }}
+{{- end -}}
+{{- if .authToken }}
 - name: TWILIO_AUTH_TOKEN
-  value: {{ .Values.oncall.twilio.authToken | default "" | quote }}
+  value: {{ .authToken | quote }}
+{{- end -}}
+{{- if .phoneNumber }}
 - name: TWILIO_NUMBER
-  value: {{ .Values.oncall.twilio.phoneNumber | default "" | quote }}
+  value: {{ .phoneNumber | quote }}
+{{- end -}}
+{{- if .verifySid }}
 - name: TWILIO_VERIFY_SERVICE_SID
-  value: {{ .Values.oncall.twilio.verifySid | default "" | quote }}
+  value: {{ .verifySid | quote }}
+{{- end -}}
+{{- if .apiKeySid }}
+- name: TWILIO_API_KEY_SID
+  value: {{ .apiKeySid | quote }}
+{{- end -}}
+{{- if .apiKeySecret }}
+- name: TWILIO_API_KEY_SECRET
+  value: {{ .apiKeySecret | quote }}
+{{- end -}}
+{{- end -}}
 {{- end -}}
 
 {{- define "snippet.celery.env" -}}
@@ -89,7 +107,7 @@
 - name: CELERY_WORKER_SHUTDOWN_INTERVAL
   value: {{ .Values.celery.worker_shutdown_interval }}
 {{- end -}}
-{{- end }}
+{{- end -}}
 
 {{- define "snippet.mysql.env" -}}
 - name: MYSQL_HOST
