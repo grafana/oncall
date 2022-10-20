@@ -36,7 +36,7 @@
 - name: SLACK_SIGNING_SECRET
   value: {{ .Values.oncall.slack.signingSecret | default "" | quote }}
 - name: SLACK_INSTALL_RETURN_REDIRECT_HOST
-  value: {{ .Values.oncall.slack.redirectHost | default "https://{{ .Values.base_url }}" | quote }}
+  value: {{ .Values.oncall.slack.redirectHost | default (printf "https://%s" .Values.base_url) | quote }}
 {{- else -}}
 - name: FEATURE_SLACK_INTEGRATION_ENABLED
   value: {{ .Values.oncall.slack.enabled | toString | title | quote }}
