@@ -77,7 +77,7 @@ class ScheduleBaseSerializer(EagerLoadingMixin, serializers.ModelSerializer):
         # num_escalation_chains param added in queryset via annotate. Check ScheduleView.get_queryset
         # return 0 for just created schedules
         num = getattr(obj, "num_escalation_chains", 0)
-        return num if num is not None else 0
+        return num or 0
 
     def validate(self, attrs):
         if "slack_channel_id" in attrs:
