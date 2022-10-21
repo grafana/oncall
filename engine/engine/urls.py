@@ -38,7 +38,6 @@ urlpatterns = [
     path("twilioapp/", include("apps.twilioapp.urls")),
     # path('sendgridapp/', include('apps.sendgridapp.urls')),  TODO: restore email notifications
     path("api/v1/", include("apps.public_api.urls", namespace="api-public")),
-    path("api/internal/v1/", include("apps.migration_tool.urls", namespace="migration-tool")),
 ] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
 
 if settings.FEATURE_SLACK_INTEGRATION_ENABLED:
