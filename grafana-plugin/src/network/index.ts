@@ -7,7 +7,7 @@ export const API_PATH_PREFIX = '/api/internal/v1';
 
 const instance = axios.create();
 
-instance.interceptors.request.use(function (config) {
+instance.interceptors.request.use((config) => {
   // Do something before request is sent
   config.paramsSerializer = (params) => qs.stringify(params, { arrayFormat: 'none' });
 

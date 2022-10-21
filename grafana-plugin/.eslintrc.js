@@ -50,6 +50,7 @@ module.exports = {
     ],
     'no-duplicate-imports': 'error',
     'no-restricted-imports': 'warn',
+    'prefer-arrow-callback': 'warn',
     'prefer-const': 'warn',
     'react/display-name': 'warn',
     /**

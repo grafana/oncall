@@ -51,15 +51,11 @@ export const getPaths = (obj?: any, parentKey?: string): string[] => {
   let result: any;
   if (isArray(obj)) {
     let idx = 0;
-    result = flatMap(obj, function (obj) {
-      return getPaths(obj, (parentKey || '') + '[' + idx++ + ']');
-    });
+    result = flatMap(obj, (obj) => getPaths(obj, (parentKey || '') + '[' + idx++ + ']'));
   } else if (isPlainObject(obj)) {
-    result = flatMap(keys(obj), function (key) {
-      return map(getPaths(obj[key], key), function (subkey) {
-        return (parentKey ? parentKey + '.' : '') + subkey;
-      });
-    });
+    result = flatMap(keys(obj), (key) =>
+      map(getPaths(obj[key], key), (subkey) => (parentKey ? parentKey + '.' : '') + subkey)
+    );
   } else {
     result = [];
   }
