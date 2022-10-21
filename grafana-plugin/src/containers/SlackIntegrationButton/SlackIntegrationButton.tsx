@@ -6,7 +6,7 @@ import { observer } from 'mobx-react';
 import WithConfirm from 'components/WithConfirm/WithConfirm';
 import { WithPermissionControl } from 'containers/WithPermissionControl/WithPermissionControl';
 import { useStore } from 'state/useStore';
-import { UserAction } from 'state/userAction';
+import { UserActions } from 'utils/authorization';
 
 const SlackIntegrationButton = observer((props: { className: string; disabled?: boolean }) => {
   const { className, disabled } = props;
@@ -35,7 +35,7 @@ const SlackIntegrationButton = observer((props: { className: string; disabled?: 
 
   if (store.teamStore.currentTeam?.slack_team_identity) {
     return (
-      <WithPermissionControl userAction={UserAction.UpdateIntegrations}>
+      <WithPermissionControl userAction={UserActions.IntegrationsWrite}>
         <WithConfirm title="Are you sure to delete this Slack Integration?">
           <Button
             variant="destructive"
@@ -54,7 +54,7 @@ const SlackIntegrationButton = observer((props: { className: string; disabled?: 
 
   return (
     <>
-      <WithPermissionControl userAction={UserAction.UpdateIntegrations}>
+      <WithPermissionControl userAction={UserActions.IntegrationsWrite}>
         <Button
           size="lg"
           variant="primary"

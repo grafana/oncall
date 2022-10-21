@@ -4,6 +4,7 @@ import { AppRootProps, NavModelItem } from '@grafana/data';
 
 import NavBarSubtitle from 'components/NavBar/NavBarSubtitle';
 import { PageDefinition } from 'pages';
+import { RootBaseStore } from 'state/rootBaseStore';
 
 import { APP_TITLE } from './consts';
 
@@ -12,9 +13,7 @@ type Args = {
   pages: PageDefinition[];
   path: string;
   page: string;
-  grafanaUser: {
-    orgRole: 'Viewer' | 'Editor' | 'Admin';
-  };
+  store: RootBaseStore;
   enableLiveSettings: boolean;
   enableCloudPage: boolean;
   enableNewSchedulesPage: boolean;
@@ -31,7 +30,7 @@ export function useNavModel({
   pages,
   path,
   page,
-  grafanaUser,
+  store,
   enableLiveSettings,
   enableCloudPage,
   enableNewSchedulesPage,
@@ -40,7 +39,7 @@ export function useNavModel({
   return useMemo(() => {
     const tabs: NavModelItem[] = [];
 
-    pages.forEach(({ text, icon, id, role, hideFromTabs }) => {
+    pages.forEach(({ text, icon, id, action, hideFromTabs }) => {
       tabs.push({
         text,
         icon,
@@ -48,7 +47,7 @@ export function useNavModel({
         url: `${path}?page=${id}`,
         hideFromTabs:
           hideFromTabs ||
-          (role === 'Admin' && grafanaUser.orgRole !== role) ||
+          (action && !store.isUserActionAllowed(action)) ||
           (id === 'live-settings' && !enableLiveSettings) ||
           (id === 'cloud' && !enableCloudPage) ||
           (id === 'schedules-new' && !enableNewSchedulesPage),
@@ -85,7 +84,6 @@ export function useNavModel({
     enableCloudPage,
     backendLicense,
     enableNewSchedulesPage,
-    grafanaUser.orgRole,
   ]);
 }
 

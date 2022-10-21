@@ -26,8 +26,8 @@ import { getSlackChannelName } from 'models/slack_channel/slack_channel.helpers'
 import { Timezone } from 'models/timezone/timezone.types';
 import { getStartOfWeek } from 'pages/schedule/Schedule.helpers';
 import { WithStoreProps } from 'state/types';
-import { UserAction } from 'state/userAction';
 import { withMobXProviderContext } from 'state/withStore';
+import { UserActions } from 'utils/authorization';
 
 import styles from './Schedules.module.css';
 
@@ -336,10 +336,10 @@ class SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSta
   renderButtons = (item: Schedule) => {
     return (
       <HorizontalGroup>
-        <WithPermissionControl key="edit" userAction={UserAction.UpdateSchedules}>
+        <WithPermissionControl key="edit" userAction={UserActions.SchedulesWrite}>
           <IconButton tooltip="Settings" name="cog" onClick={this.getEditScheduleClickHandler(item.id)} />
         </WithPermissionControl>
-        <WithPermissionControl key="edit" userAction={UserAction.UpdateSchedules}>
+        <WithPermissionControl key="edit" userAction={UserActions.SchedulesWrite}>
           <WithConfirm>
             <IconButton tooltip="Delete" name="trash-alt" onClick={this.getDeleteScheduleClickHandler(item.id)} />
           </WithConfirm>

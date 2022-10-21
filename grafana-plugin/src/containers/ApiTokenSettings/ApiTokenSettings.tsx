@@ -11,8 +11,8 @@ import WithConfirm from 'components/WithConfirm/WithConfirm';
 import { WithPermissionControl } from 'containers/WithPermissionControl/WithPermissionControl';
 import { ApiToken } from 'models/api_token/api_token.types';
 import { WithStoreProps } from 'state/types';
-import { UserAction } from 'state/userAction';
 import { withMobXProviderContext } from 'state/withStore';
+import { UserActions } from 'utils/authorization';
 
 import ApiTokenForm from './ApiTokenForm';
 
@@ -75,7 +75,7 @@ class ApiTokens extends React.Component<ApiTokensProps, any> {
               <HorizontalGroup align="flex-end">
                 <Text.Title level={3}>API Tokens</Text.Title>
               </HorizontalGroup>
-              <WithPermissionControl userAction={UserAction.UpdateApiTokens}>
+              <WithPermissionControl userAction={UserActions.APIKeysWrite}>
                 <Button
                   icon="plus"
                   disabled={apiTokens && apiTokens.length >= MAX_TOKENS_PER_USER}
@@ -93,7 +93,7 @@ class ApiTokens extends React.Component<ApiTokensProps, any> {
           showHeader={!isMobile}
           data={apiTokens}
           emptyText={
-            store.isUserActionAllowed(UserAction.UpdateApiTokens)
+            store.isUserActionAllowed(UserActions.APIKeysWrite)
               ? apiTokens
                 ? 'No tokens found'
                 : 'Loading...'
@@ -116,7 +116,7 @@ class ApiTokens extends React.Component<ApiTokensProps, any> {
 
   renderActionButtons = (record: ApiToken) => {
     const revokeButton = (
-      <WithPermissionControl userAction={UserAction.UpdateApiTokens}>
+      <WithPermissionControl userAction={UserActions.APIKeysWrite}>
         <WithConfirm title={`Are you sure to revoke "${record.name}" API token?`} confirmText="Revoke token">
           <Button fill="text" variant="destructive" onClick={this.getRevokeTokenClickHandler(record.id)}>
             Revoke

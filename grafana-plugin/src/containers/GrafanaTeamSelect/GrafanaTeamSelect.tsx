@@ -10,7 +10,7 @@ import GSelect from 'containers/GSelect/GSelect';
 import { WithPermissionControl } from 'containers/WithPermissionControl/WithPermissionControl';
 import { GrafanaTeam } from 'models/grafana_team/grafana_team.types';
 import { useStore } from 'state/useStore';
-import { UserAction } from 'state/userAction';
+import { UserActions } from 'utils/authorization';
 
 import styles from './GrafanaTeamSelect.module.css';
 
@@ -57,7 +57,7 @@ const GrafanaTeamSelect = observer((props: GrafanaTeamSelectProps) => {
                 <Icon name="info-circle" size="md" className={cx('teamSelectInfo')}></Icon>
               </Tooltip>
             </Label>
-            <WithPermissionControl userAction={UserAction.UpdateTeams}>
+            <WithPermissionControl userAction={UserActions.TeamsWrite}>
               <PluginLink path="/org/teams" className={cx('teamSelectLink')}>
                 Edit teams
               </PluginLink>

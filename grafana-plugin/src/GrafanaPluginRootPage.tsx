@@ -14,6 +14,7 @@ import { observer, Provider } from 'mobx-react';
 
 import 'interceptors';
 
+import Unauthorized from 'components/Unauthorized';
 import DefaultPageLayout from 'containers/DefaultPageLayout/DefaultPageLayout';
 import GrafanaTeamSelect from 'containers/GrafanaTeamSelect/GrafanaTeamSelect';
 import logo from 'img/logo.svg';
@@ -55,8 +56,9 @@ const RootWithLoader = observer((props: AppRootProps) => {
       text = '🚫 Plugin has not been initialized';
     } else if (!store.correctProvisioningForInstallation) {
       text = '🚫 Plugin could not be initialized due to provisioning error';
-    } else if (!store.correctRoleForInstallation) {
-      text = '🚫 Admin must sign on to setup OnCall before a Viewer can use it';
+    } else if (!store.currentUserHasPermissionForInstallation) {
+      text =
+        '🚫 An admin (or a user with the "Plugin Maintainer" role granted) must sign on to setup OnCall before it can be used';
     } else if (!store.signupAllowedForPlugin) {
       text = '🚫 OnCall has temporarily disabled signup of new users. Please try again later.';
     } else if (store.initializationError) {
@@ -128,32 +130,35 @@ export const Root = observer((props: AppRootProps) => {
 
   // Update the navigation when the page or path changes
   const navModel = useNavModel(
+    // TODO: do we really need useMemo here??
     useMemo(
       () => ({
         page,
         pages,
         path: pathWithoutLeadingSlash,
         meta,
-        grafanaUser: window.grafanaBootData.user,
+        store,
         enableLiveSettings: store.hasFeature(AppFeature.LiveSettings),
         enableCloudPage: store.hasFeature(AppFeature.CloudConnection),
         enableNewSchedulesPage: store.hasFeature(AppFeature.WebSchedules),
         backendLicense,
       }),
-      [meta, pathWithoutLeadingSlash, page, store.features, backendLicense]
+      [meta, pathWithoutLeadingSlash, page, store, store.features, backendLicense]
     )
   );
+
   useEffect(() => {
     /* @ts-ignore */
     onNavChanged(navModel);
   }, [navModel, onNavChanged]);
 
-  const Page = pages.find(({ id }) => id === page)?.component || pages[0].component;
+  const { action: pagePermissionAction, component: PageComponent } = pages.find(({ id }) => id === page) || pages[0];
+  const userHasAccess = pagePermissionAction ? store.isUserActionAllowed(pagePermissionAction) : true;
 
   return (
     <DefaultPageLayout {...props}>
       <GrafanaTeamSelect currentPage={page} />
-      <Page {...props} path={pathWithoutLeadingSlash} />
+      {userHasAccess ? <PageComponent {...props} path={pathWithoutLeadingSlash} /> : <Unauthorized />}
     </DefaultPageLayout>
   );
 });

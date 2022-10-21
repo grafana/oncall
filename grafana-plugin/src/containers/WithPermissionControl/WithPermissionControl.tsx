@@ -5,7 +5,7 @@ import cn from 'classnames/bind';
 import { observer } from 'mobx-react';
 
 import { useStore } from 'state/useStore';
-import { UserAction } from 'state/userAction';
+import { UserAction } from 'utils/authorization';
 
 import styles from './WithPermissionControl.module.css';
 

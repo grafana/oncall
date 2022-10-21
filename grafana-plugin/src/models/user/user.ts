@@ -94,11 +94,11 @@ export class UserStore extends BaseStore {
   }
 
   @action
-  async updateItems(f: any = { searchTerm: '', roles: undefined }, page = 1) {
+  async updateItems(f: any = { searchTerm: '' }, page = 1) {
     const filters = typeof f === 'string' ? { searchTerm: f } : f; // for GSelect compatibility
-    const { searchTerm: search, roles } = filters;
+    const { searchTerm: search } = filters;
     const { count, results } = await makeRequest(this.path, {
-      params: { search, roles, page },
+      params: { search, page },
     });
 
     this.items = {

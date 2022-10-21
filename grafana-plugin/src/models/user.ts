@@ -1,7 +1,3 @@
-import { UserAction } from 'state/userAction';
-
-import { UserRole } from './user/user.types';
-
 export interface UserDTO {
   pk: number;
   slack_login: string;
@@ -16,7 +12,6 @@ export interface UserDTO {
   verified_phone_number?: string;
   unverified_phone_number?: string;
   phone_verified: boolean;
-  role: UserRole;
   telegram_configuration: {
     telegram_nick_name: string;
     telegram_chat_id: number;
@@ -29,6 +24,5 @@ export interface UserDTO {
     inviter_name: string | null;
     video_conference_link: string | null;
   };
-  permissions: UserAction[];
   trigger_video_call?: boolean;
 }

@@ -16,8 +16,8 @@ import { PRIVATE_CHANNEL_NAME } from 'models/slack_channel/slack_channel.config'
 import { SlackChannel } from 'models/slack_channel/slack_channel.types';
 import { AppFeature } from 'state/features';
 import { WithStoreProps } from 'state/types';
-import { UserAction } from 'state/userAction';
 import { withMobXProviderContext } from 'state/withStore';
+import { UserActions } from 'utils/authorization';
 
 import styles from './SlackSettings.module.css';
 
@@ -63,21 +63,37 @@ class SlackSettings extends Component<SlackProps, SlackState> {
           Slack
         </Text.Title>
         <div className={cx('slack-settings')}>
-          <Field label="Default channel for Slack notifications">
-            <WithPermissionControl userAction={UserAction.UpdateGeneralLogChannelId}>
-              <GSelect
-                showSearch
-                className={cx('select', 'control')}
-                modelName="slackChannelStore"
-                displayField="display_name"
-                valueField="id"
-                placeholder="Select Slack Channel"
-                value={teamStore.currentTeam?.slack_channel?.id}
-                onChange={this.handleSlackChannelChange}
-                nullItemName={PRIVATE_CHANNEL_NAME}
-              />
+          <HorizontalGroup justify="space-between">
+            <HorizontalGroup align="center">
+              <Field label="Slack Workspace">
+                <div className={cx('select', 'control', 'team_workspace')}>
+                  <Text>{store.teamStore.currentTeam.slack_team_identity?.cached_name}</Text>
+                </div>
+              </Field>
+              <Field label="Default channel for Slack notifications">
+                <WithPermissionControl userAction={UserActions.ChatOpsUpdateSettings}>
+                  <GSelect
+                    showSearch
+                    className={cx('select', 'control')}
+                    modelName="slackChannelStore"
+                    displayField="display_name"
+                    valueField="id"
+                    placeholder="Select Slack Channel"
+                    value={teamStore.currentTeam?.slack_channel?.id}
+                    onChange={this.handleSlackChannelChange}
+                    nullItemName={PRIVATE_CHANNEL_NAME}
+                  />
+                </WithPermissionControl>
+              </Field>
+            </HorizontalGroup>
+            <WithPermissionControl userAction={UserActions.ChatOpsWrite}>
+              <WithConfirm title="Are you sure to delete this Slack Integration?">
+                <Button variant="destructive" size="sm" onClick={() => this.removeSlackIntegration()}>
+                  Disconnect
+                </Button>
+              </WithConfirm>
             </WithPermissionControl>
-          </Field>
+          </HorizontalGroup>
         </div>
         <div className={cx('slack-settings')}>
           <Text.Title level={4} className={cx('title')}>
@@ -88,7 +104,7 @@ class SlackSettings extends Component<SlackProps, SlackState> {
             description="Set up a reminder and timeout for acknowledged alert to never forget about them"
           >
             <HorizontalGroup>
-              <WithPermissionControl userAction={UserAction.UpdateGeneralLogChannelId}>
+              <WithPermissionControl userAction={UserActions.ChatOpsWrite}>
                 <RemoteSelect
                   className={cx('select')}
                   showSearch={false}
@@ -97,7 +113,7 @@ class SlackSettings extends Component<SlackProps, SlackState> {
                   onChange={this.getSlackSettingsChangeHandler('acknowledge_remind_timeout')}
                 />
               </WithPermissionControl>
-              <WithPermissionControl userAction={UserAction.UpdateGeneralLogChannelId}>
+              <WithPermissionControl userAction={UserActions.ChatOpsWrite}>
                 <RemoteSelect
                   className={cx('select')}
                   disabled={slackStore.slackSettings?.acknowledge_remind_timeout === 0}
@@ -116,6 +132,47 @@ class SlackSettings extends Component<SlackProps, SlackState> {
         <SlackIntegrationButton className={cx('slack-button')} />
       </div>
     );
+  };
+
+  renderSlackWorkspace = () => {
+    const { store } = this.props;
+    return <Text>{store.teamStore.currentTeam.slack_team_identity?.cached_name}</Text>;
+  };
+
+  renderSlackChannels = () => {
+    const { store } = this.props;
+    return (
+      <WithPermissionControl userAction={UserActions.ChatOpsUpdateSettings}>
+        <GSelect
+          showSearch
+          className={cx('select', 'control')}
+          modelName="slackChannelStore"
+          displayField="display_name"
+          valueField="id"
+          placeholder="Select Slack Channel"
+          value={store.teamStore.currentTeam?.slack_channel?.id}
+          onChange={this.handleSlackChannelChange}
+          nullItemName={PRIVATE_CHANNEL_NAME}
+        />
+      </WithPermissionControl>
+    );
+  };
+
+  renderActionButtons = () => {
+    <WithPermissionControl userAction={UserActions.ChatOpsWrite}>
+      <WithConfirm title="Are you sure to delete this Slack Integration?">
+        <Button variant="destructive" size="sm" onClick={() => this.removeSlackIntegration()}>
+          Disconnect
+        </Button>
+      </WithConfirm>
+    </WithPermissionControl>;
+  };
+
+  removeSlackIntegration = () => {
+    const { store } = this.props;
+    store.slackStore.removeSlackIntegration().then(() => {
+      store.teamStore.loadCurrentTeam();
+    });
   };
 
   getSlackSettingsChangeHandler = (field: string) => {

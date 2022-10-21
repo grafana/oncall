@@ -49,9 +49,9 @@ import {
 import { ResolutionNoteSourceTypesToDisplayName } from 'models/resolution_note/resolution_note.types';
 import { WithStoreProps } from 'state/types';
 import { useStore } from 'state/useStore';
-import { UserAction } from 'state/userAction';
 import { withMobXProviderContext } from 'state/withStore';
 import { openNotification } from 'utils';
+import { UserActions } from 'utils/authorization';
 import sanitize from 'utils/sanitize';
 
 import { getActionButtons, getIncidentStatusTag, renderRelatedUsers } from './Incident.helpers';
@@ -228,7 +228,7 @@ class IncidentPage extends React.Component<IncidentPageProps, IncidentPageState>
                     #{incident.root_alert_group.inside_organization_number}{' '}
                     {incident.root_alert_group.render_for_web.title}
                   </PluginLink>{' '}
-                  <WithPermissionControl userAction={UserAction.UpdateIncidents}>
+                  <WithPermissionControl userAction={UserActions.AlertGroupsWrite}>
                     <Button variant="secondary" onClick={this.getUnattachClickHandler(incident.pk)} size="sm">
                       Unattach
                     </Button>
@@ -647,7 +647,7 @@ function AttachedIncidentsList({
             <PluginLink query={{ page: 'incident', id: incident.pk }}>
               #{incident.inside_organization_number} {incident.render_for_web.title}
             </PluginLink>
-            <WithPermissionControl userAction={UserAction.UpdateIncidents}>
+            <WithPermissionControl userAction={UserActions.AlertGroupsWrite}>
               <Button size="sm" onClick={() => getUnattachClickHandler(incident.pk)} variant="secondary">
                 Unattach
               </Button>
