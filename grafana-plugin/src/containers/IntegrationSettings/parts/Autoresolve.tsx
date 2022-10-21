@@ -31,8 +31,8 @@ const Autoresolve = ({ alertReceiveChannelId, onSwitchToTemplate, alertGroupId }
   const { alertReceiveChannelStore, grafanaTeamStore, userStore } = store;
 
   const currentTeam = userStore.currentUser?.current_team;
-
   const alertReceiveChannel = alertReceiveChannelStore.items[alertReceiveChannelId];
+  const alertTemplate = alertReceiveChannelStore.templates[alertReceiveChannelId];
 
   const [teamId, setTeamId] = useState<Team['pk']>(currentTeam);
   const [showSaveConfirmationModal, setShowSaveConfirmationModal] = useState<boolean>(false);
@@ -45,19 +45,16 @@ const Autoresolve = ({ alertReceiveChannelId, onSwitchToTemplate, alertGroupId }
   const [autoresolveConditionInvalid, setAutoresolveConditionInvalid] = useState<boolean>(false);
 
   useEffect(() => {
-    store.alertReceiveChannelStore.updateItem(alertReceiveChannelId);
-    store.alertReceiveChannelStore.updateTemplates(alertReceiveChannelId, alertGroupId);
-  }, [alertGroupId, alertReceiveChannelId, store]);
+    alertReceiveChannelStore.updateItem(alertReceiveChannelId);
+    alertReceiveChannelStore.updateTemplates(alertReceiveChannelId, alertGroupId);
+  }, [alertGroupId, alertReceiveChannelId, alertReceiveChannelStore]);
 
   useEffect(() => {
-    const autoresolveCondition = get(
-      store.alertReceiveChannelStore.templates[alertReceiveChannelId],
-      'resolve_condition_template'
-    );
+    const autoresolveCondition = get(alertTemplate, 'resolve_condition_template');
     if (autoresolveCondition === 'invalid template') {
       setAutoresolveConditionInvalid(true);
     }
-  }, [store.alertReceiveChannelStore.templates[alertReceiveChannelId]]);
+  }, [alertTemplate]);
 
   const handleAutoresolveSelected = useCallback(
     (autoresolveSelectedOption) => {
@@ -81,7 +78,7 @@ const Autoresolve = ({ alertReceiveChannelId, onSwitchToTemplate, alertGroupId }
   );
 
   const handleSaveTeam = () => {
-    store.alertReceiveChannelStore
+    alertReceiveChannelStore
       .changeTeam(alertReceiveChannelId, teamId)
       .then(async () => {
         await alertReceiveChannelStore.updateItems();
@@ -107,7 +104,7 @@ const Autoresolve = ({ alertReceiveChannelId, onSwitchToTemplate, alertGroupId }
       setShowSaveConfirmationModal(true);
     }
     if (autoresolveChanged) {
-      store.alertReceiveChannelStore.saveAlertReceiveChannel(alertReceiveChannelId, {
+      alertReceiveChannelStore.saveAlertReceiveChannel(alertReceiveChannelId, {
         allow_source_based_resolving: autoresolveValue,
       });
     }

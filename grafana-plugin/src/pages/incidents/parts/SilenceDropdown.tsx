@@ -16,8 +16,9 @@ interface SilenceDropdownProps {
   buttonSize?: string;
 }
 
-const SilenceDropdown = observer((props: SilenceDropdownProps) => {
-  const { onSelect, className, disabled = false, buttonSize } = props;
+const SilenceDropdown = observer(({ onSelect, className, disabled = false, buttonSize }: SilenceDropdownProps) => {
+  const { alertGroupStore } = useStore();
+  const silenceOptions = alertGroupStore.silenceOptions || [];
 
   const onSelectCallback = useCallback(
     ([value]) => {
@@ -25,12 +26,6 @@ const SilenceDropdown = observer((props: SilenceDropdownProps) => {
     },
     [onSelect]
   );
-
-  const store = useStore();
-
-  const { alertGroupStore } = store;
-
-  const silenceOptions = alertGroupStore.silenceOptions || [];
 
   return (
     <WithPermissionControl key="silence" userAction={UserAction.UpdateIncidents}>

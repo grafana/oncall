@@ -22,61 +22,57 @@ interface TutorialProps {
 
 const cx = cn.bind(styles);
 
-const Tutorial: FC<TutorialProps> = (props) => {
-  const { title, step } = props;
-
-  return (
-    <Block className={cx('root')} bordered>
-      <div className={cx('title')}>{title}</div>
-      <div className={cx('steps')}>
-        <div className={cx('step')}>
-          <PluginLink query={{ page: 'integrations' }}>
-            <div className={cx('icon', { icon_active: step === TutorialStep.Integrations })}>
-              <img src={integrationsIcon} />
-            </div>
-          </PluginLink>
-          <Text type="secondary">Add integration with a monitoring system</Text>
-        </div>
-        <Arrow />
-        <div className={cx('step')}>
-          <PluginLink query={{ page: 'escalations' }}>
-            <div className={cx('icon', { icon_active: step === TutorialStep.Escalations })}>
-              <img src={escalationIcon} />
-            </div>
-          </PluginLink>
-          <Text type="secondary">Setup escalation chain to handle notifications</Text>
-        </div>
-        <Arrow />
-        <div className={cx('step')}>
-          <PluginLink query={{ page: 'chat-ops' }}>
-            <div className={cx('icon', { icon_active: step === TutorialStep.Slack })}>
-              <img src={chatIcon} />
-            </div>
-          </PluginLink>
-          <Text type="secondary">Connect to your chat workspace</Text>
-        </div>
-        <Arrow />
-        <div className={cx('step')}>
-          <PluginLink query={{ page: 'schedules' }}>
-            <div className={cx('icon', { icon_active: step === TutorialStep.Schedules })}>
-              <img src={scheduleIcon} />
-            </div>
-          </PluginLink>
-          <Text type="secondary">Add your team calendar to define an on-call rotation.</Text>
-        </div>
-        <Arrow />
-        <div className={cx('step')}>
-          <PluginLink query={{ page: 'incidents' }}>
-            <div className={cx('icon', { icon_active: step === TutorialStep.Incidents })}>
-              <img src={bellIcon} />
-            </div>
-          </PluginLink>
-          <Text type="secondary">OnCall manages your alerts</Text>
-        </div>
+const Tutorial: FC<TutorialProps> = ({ title, step }) => (
+  <Block className={cx('root')} bordered>
+    <div className={cx('title')}>{title}</div>
+    <div className={cx('steps')}>
+      <div className={cx('step')}>
+        <PluginLink query={{ page: 'integrations' }}>
+          <div className={cx('icon', { icon_active: step === TutorialStep.Integrations })}>
+            <img src={integrationsIcon} />
+          </div>
+        </PluginLink>
+        <Text type="secondary">Add integration with a monitoring system</Text>
       </div>
-    </Block>
-  );
-};
+      <Arrow />
+      <div className={cx('step')}>
+        <PluginLink query={{ page: 'escalations' }}>
+          <div className={cx('icon', { icon_active: step === TutorialStep.Escalations })}>
+            <img src={escalationIcon} />
+          </div>
+        </PluginLink>
+        <Text type="secondary">Setup escalation chain to handle notifications</Text>
+      </div>
+      <Arrow />
+      <div className={cx('step')}>
+        <PluginLink query={{ page: 'chat-ops' }}>
+          <div className={cx('icon', { icon_active: step === TutorialStep.Slack })}>
+            <img src={chatIcon} />
+          </div>
+        </PluginLink>
+        <Text type="secondary">Connect to your chat workspace</Text>
+      </div>
+      <Arrow />
+      <div className={cx('step')}>
+        <PluginLink query={{ page: 'schedules' }}>
+          <div className={cx('icon', { icon_active: step === TutorialStep.Schedules })}>
+            <img src={scheduleIcon} />
+          </div>
+        </PluginLink>
+        <Text type="secondary">Add your team calendar to define an on-call rotation.</Text>
+      </div>
+      <Arrow />
+      <div className={cx('step')}>
+        <PluginLink query={{ page: 'incidents' }}>
+          <div className={cx('icon', { icon_active: step === TutorialStep.Incidents })}>
+            <img src={bellIcon} />
+          </div>
+        </PluginLink>
+        <Text type="secondary">OnCall manages your alerts</Text>
+      </div>
+    </div>
+  </Block>
+);
 
 const Arrow = () => (
   <div className={cx('arrow')}>

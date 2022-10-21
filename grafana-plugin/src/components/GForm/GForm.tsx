@@ -69,9 +69,7 @@ function renderFormControl(formItem: FormItem, register: any, control: any) {
   }
 }
 
-const GForm = (props: GFormProps) => {
-  const { data, form, onSubmit } = props;
-
+const GForm = ({ data, form, onSubmit }: GFormProps) => {
   const handleSubmit = useCallback(
     (data: any) => {
       const normalizedData = Object.keys(data).reduce((acc, key) => {

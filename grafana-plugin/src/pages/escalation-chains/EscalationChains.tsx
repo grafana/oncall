@@ -64,8 +64,10 @@ class EscalationChainsPage extends React.Component<EscalationChainsPageProps, Es
   parseQueryParams = async () => {
     this.setState({ errorData: initErrorDataState() }); // reset on query parse
 
-    const { store, query } = this.props;
-    const { escalationChainStore } = store;
+    const {
+      store: { escalationChainStore },
+      query,
+    } = this.props;
     const {
       escalationChainsFilters: { searchTerm },
     } = this.state;
@@ -96,9 +98,7 @@ class EscalationChainsPage extends React.Component<EscalationChainsPageProps, Es
   };
 
   setSelectedEscalationChain = (escalationChain: EscalationChain['id']) => {
-    const { store } = this.props;
-
-    const { escalationChainStore } = store;
+    const { escalationChainStore } = this.props.store;
 
     this.setState({ selectedEscalationChain: escalationChain }, () => {
       getLocationSrv().update({ partial: true, query: { id: escalationChain } });
@@ -109,9 +109,9 @@ class EscalationChainsPage extends React.Component<EscalationChainsPageProps, Es
   };
 
   update = () => {
-    const { store } = this.props;
+    const { escalationChainStore } = this.props.store;
 
-    return store.escalationChainStore.updateItems('');
+    return escalationChainStore.updateItems('');
   };
 
   componentDidUpdate(prevProps: EscalationChainsPageProps) {
@@ -121,7 +121,10 @@ class EscalationChainsPage extends React.Component<EscalationChainsPageProps, Es
   }
 
   render() {
-    const { store, query } = this.props;
+    const {
+      store: { escalationChainStore },
+      query,
+    } = this.props;
     const {
       showCreateEscalationChainModal,
       escalationChainIdToCopy,
@@ -130,7 +133,6 @@ class EscalationChainsPage extends React.Component<EscalationChainsPageProps, Es
       errorData,
     } = this.state;
 
-    const { escalationChainStore } = store;
     const searchResult = escalationChainStore.getSearchResult(escalationChainsFilters.searchTerm);
 
     return (
@@ -220,8 +222,7 @@ class EscalationChainsPage extends React.Component<EscalationChainsPageProps, Es
   }
 
   applyFilters = () => {
-    const { store } = this.props;
-    const { escalationChainStore } = store;
+    const { escalationChainStore } = this.props.store;
     const { escalationChainsFilters, selectedEscalationChain } = this.state;
 
     escalationChainStore.updateItems(escalationChainsFilters.searchTerm).then(() => {
@@ -240,10 +241,8 @@ class EscalationChainsPage extends React.Component<EscalationChainsPageProps, Es
   };
 
   renderEscalation = () => {
-    const { store } = this.props;
+    const { escalationChainStore } = this.props.store;
     const { selectedEscalationChain } = this.state;
-
-    const { escalationChainStore } = store;
 
     if (!selectedEscalationChain) {
       return null;
@@ -340,8 +339,7 @@ class EscalationChainsPage extends React.Component<EscalationChainsPageProps, Es
   };
 
   handleDeleteEscalationChain = () => {
-    const { store } = this.props;
-    const { escalationChainStore } = store;
+    const { escalationChainStore } = this.props.store;
     const { selectedEscalationChain, escalationChainsFilters } = this.state;
 
     const index = escalationChainStore
@@ -361,10 +359,8 @@ class EscalationChainsPage extends React.Component<EscalationChainsPageProps, Es
   };
 
   handleEscalationChainNameChange = (value: string) => {
-    const { store } = this.props;
+    const { escalationChainStore } = this.props.store;
     const { selectedEscalationChain } = this.state;
-
-    const { escalationChainStore } = store;
 
     escalationChainStore.save(selectedEscalationChain, { name: value });
   };

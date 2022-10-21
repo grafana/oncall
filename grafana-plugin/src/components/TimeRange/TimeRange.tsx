@@ -45,9 +45,7 @@ function getRangeStrings(from: moment.Moment, to: moment.Moment) {
   return [fromString, toString];
 }
 
-const TimeRange = (props: TimeRangeProps) => {
-  const { className, from: f, to: t, onChange, disabled } = props;
-
+const TimeRange = ({ className, from: f, to: t, onChange, disabled }: TimeRangeProps) => {
   // @ts-ignore
   const [from, setFrom] = useState<moment.Moment>(getMoments(f, t)[0]);
   // @ts-ignore

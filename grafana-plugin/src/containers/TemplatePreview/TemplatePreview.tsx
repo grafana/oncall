@@ -23,33 +23,31 @@ interface TemplatePreviewProps {
   active?: boolean;
 }
 
-const TemplatePreview = observer((props: TemplatePreviewProps) => {
-  const { templateName, templateBody, alertReceiveChannelId, alertGroupId } = props;
+const TemplatePreview = observer(
+  ({ templateName, templateBody, alertReceiveChannelId, alertGroupId }: TemplatePreviewProps) => {
+    const [result, setResult] = useState<{ preview: string | null } | undefined>(undefined);
+    const { alertReceiveChannelStore, alertGroupStore } = useStore();
 
-  const [result, setResult] = useState<{ preview: string | null } | undefined>(undefined);
+    const handleTemplateBodyChange = useDebouncedCallback(() => {
+      (alertGroupId
+        ? alertGroupStore.renderPreview(alertGroupId, templateName, templateBody)
+        : alertReceiveChannelStore.renderPreview(alertReceiveChannelId, templateName, templateBody)
+      ).then(setResult);
+    }, 1000);
 
-  const store = useStore();
-  const { alertReceiveChannelStore, alertGroupStore } = store;
+    useEffect(handleTemplateBodyChange, [templateBody]);
 
-  const handleTemplateBodyChange = useDebouncedCallback(() => {
-    (alertGroupId
-      ? alertGroupStore.renderPreview(alertGroupId, templateName, templateBody)
-      : alertReceiveChannelStore.renderPreview(alertReceiveChannelId, templateName, templateBody)
-    ).then(setResult);
-  }, 1000);
-
-  useEffect(handleTemplateBodyChange, [templateBody]);
-
-  return result ? (
-    <div
-      className={cx('message')}
-      dangerouslySetInnerHTML={{
-        __html: sanitize(result.preview || ''),
-      }}
-    />
-  ) : (
-    <LoadingPlaceholder text="Loading..." />
-  );
-});
+    return result ? (
+      <div
+        className={cx('message')}
+        dangerouslySetInnerHTML={{
+          __html: sanitize(result.preview || ''),
+        }}
+      />
+    ) : (
+      <LoadingPlaceholder text="Loading..." />
+    );
+  }
+);
 
 export default TemplatePreview;

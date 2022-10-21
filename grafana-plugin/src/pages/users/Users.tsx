@@ -71,11 +71,10 @@ class Users extends React.Component<UsersProps, UsersState> {
   }
 
   updateUsers = async () => {
-    const { store } = this.props;
+    const { userStore, isUserActionAllowed } = this.props.store;
     const { usersFilters, page } = this.state;
-    const { userStore } = store;
 
-    if (!store.isUserActionAllowed(UserAction.ViewOtherUsers)) {
+    if (!isUserActionAllowed(UserAction.ViewOtherUsers)) {
       return;
     }
 
@@ -84,14 +83,17 @@ class Users extends React.Component<UsersProps, UsersState> {
   };
 
   componentDidUpdate(prevProps: Readonly<UsersProps>, _prevState: Readonly<UsersState>, _snapshot?: any) {
-    const { store } = this.props;
+    const {
+      query: { id },
+      store: { isUserActionAllowed },
+    } = this.props;
 
-    if (!this.initialUsersLoaded && store.isUserActionAllowed(UserAction.ViewOtherUsers)) {
+    if (!this.initialUsersLoaded && isUserActionAllowed(UserAction.ViewOtherUsers)) {
       this.updateUsers();
       this.initialUsersLoaded = true;
     }
 
-    if (this.props.query.id !== prevProps.query.id) {
+    if (id !== prevProps.query.id) {
       this.parseParams();
     }
   }
@@ -100,18 +102,18 @@ class Users extends React.Component<UsersProps, UsersState> {
     this.setState({ errorData: initErrorDataState() }); // reset wrong team error to false on query parse
 
     const {
-      store,
+      store: { userStore },
       query: { id },
     } = this.props;
 
     if (id) {
-      await (id === 'me' ? store.userStore.loadCurrentUser() : store.userStore.loadUser(String(id), true)).catch(
-        (error) => this.setState({ errorData: { ...getWrongTeamResponseInfo(error) } })
+      await (id === 'me' ? userStore.loadCurrentUser() : userStore.loadUser(String(id), true)).catch((error) =>
+        this.setState({ errorData: { ...getWrongTeamResponseInfo(error) } })
       );
 
-      const userPkToEdit = String(id === 'me' ? store.userStore.currentUserPk : id);
+      const userPkToEdit = String(id === 'me' ? userStore.currentUserPk : id);
 
-      if (store.userStore.items[userPkToEdit]) {
+      if (userStore.items[userPkToEdit]) {
         this.setState({ userPkToEdit });
       }
     }
@@ -119,8 +121,10 @@ class Users extends React.Component<UsersProps, UsersState> {
 
   render() {
     const { usersFilters, userPkToEdit, page, errorData } = this.state;
-    const { store, query } = this.props;
-    const { userStore } = store;
+    const {
+      store: { userStore, isUserActionAllowed },
+      query,
+    } = this.props;
 
     const columns = [
       {
@@ -197,7 +201,7 @@ class Users extends React.Component<UsersProps, UsersState> {
                     </Button>
                   </PluginLink>
                 </div>
-                {store.isUserActionAllowed(UserAction.ViewOtherUsers) ? (
+                {isUserActionAllowed(UserAction.ViewOtherUsers) ? (
                   <>
                     <div className={cx('user-filters-container')}>
                       <UsersFilters
@@ -289,15 +293,14 @@ class Users extends React.Component<UsersProps, UsersState> {
   };
 
   renderButtons = (user: UserType) => {
-    const { store } = this.props;
-    const { userStore } = store;
+    const { userStore, isUserActionAllowed } = this.props.store;
 
     const isCurrent = userStore.currentUserPk === user.pk;
     const action = isCurrent ? UserAction.UpdateOwnSettings : UserAction.UpdateOtherUsersSettings;
 
     return (
       <VerticalGroup justify="center">
-        <PluginLink partial query={{ id: user.pk }} disabled={!store.isUserActionAllowed(action)}>
+        <PluginLink partial query={{ id: user.pk }} disabled={!isUserActionAllowed(action)}>
           <WithPermissionControl userAction={action}>
             <Button
               className={cx({

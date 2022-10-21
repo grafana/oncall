@@ -21,15 +21,14 @@ interface TokenCreationModalProps extends HTMLAttributes<HTMLElement> {
   onUpdate: () => void;
 }
 
-const ApiTokenForm = observer((props: TokenCreationModalProps) => {
-  const { onHide = () => {}, onUpdate = () => {} } = props;
+const ApiTokenForm = observer(({ onHide = () => {}, onUpdate = () => {} }: TokenCreationModalProps) => {
   const [name, setName] = useState('');
   const [token, setToken] = useState('');
 
-  const store = useStore();
+  const { apiTokenStore, onCallApiUrl } = useStore();
 
   const onCreateTokenCallback = useCallback(() => {
-    store.apiTokenStore
+    apiTokenStore
       .create({ name })
       .then((data: ApiToken) => {
         setToken(data.token);
@@ -99,7 +98,7 @@ const ApiTokenForm = observer((props: TokenCreationModalProps) => {
     return (
       <VerticalGroup>
         <Label>Curl command example</Label>
-        <SourceCode showClipboardIconOnly>{getCurlExample(token, store.onCallApiUrl)}</SourceCode>
+        <SourceCode showClipboardIconOnly>{getCurlExample(token, onCallApiUrl)}</SourceCode>
       </VerticalGroup>
     );
   }

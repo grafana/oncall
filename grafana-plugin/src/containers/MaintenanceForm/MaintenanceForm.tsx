@@ -28,12 +28,8 @@ interface MaintenanceFormProps {
   onUpdate: () => void;
 }
 
-const MaintenanceForm = observer((props: MaintenanceFormProps) => {
-  const { onUpdate, onHide, initialData = {} } = props;
-
-  const store = useStore();
-
-  const { maintenanceStore } = store;
+const MaintenanceForm = observer(({ onUpdate, onHide, initialData = {} }: MaintenanceFormProps) => {
+  const { maintenanceStore } = useStore();
 
   const handleSubmit = useCallback((data) => {
     maintenanceStore

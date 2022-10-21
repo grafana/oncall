@@ -19,11 +19,8 @@ interface CreateAlertReceiveChannelContainerProps {
   onCreate: (option: AlertReceiveChannelOption) => void;
 }
 
-const CreateAlertReceiveChannelContainer = observer((props: CreateAlertReceiveChannelContainerProps) => {
-  const { onHide, onCreate } = props;
-
+const CreateAlertReceiveChannelContainer = observer(({ onHide, onCreate }: CreateAlertReceiveChannelContainerProps) => {
   const { alertReceiveChannelStore } = useStore();
-
   const [filterValue, setFilterValue] = useState('');
 
   const handleCreateNewIntegrationClickCallback = useCallback(

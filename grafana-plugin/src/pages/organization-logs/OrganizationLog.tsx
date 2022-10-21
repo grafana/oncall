@@ -43,10 +43,10 @@ class OrganizationLogPage extends React.Component<OrganizationLogProps, Organiza
   }
 
   refresh = () => {
-    const { store } = this.props;
-
+    const { OrganizationLogStore } = this.props.store;
     const { filters, page } = this.state;
-    store.OrganizationLogStore.updateItems('', page, {
+
+    OrganizationLogStore.updateItems('', page, {
       ...filters,
       created_at: filters.created_at
         ? filters.created_at.map((m: Moment) => m.utc().format('YYYY-MM-DDTHH:mm:ss')).join('/')
@@ -58,8 +58,7 @@ class OrganizationLogPage extends React.Component<OrganizationLogProps, Organiza
 
   render() {
     const { filters, expandedLogsKeys } = this.state;
-    const { store } = this.props;
-    const { OrganizationLogStore } = store;
+    const { OrganizationLogStore } = this.props.store;
 
     const columns = [
       {

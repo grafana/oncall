@@ -48,9 +48,9 @@ class SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSta
   constructor(props: SchedulesPageProps) {
     super(props);
 
-    const { store } = this.props;
+    const { currentTimezone } = this.props.store;
     this.state = {
-      startMoment: getStartOfWeek(store.currentTimezone),
+      startMoment: getStartOfWeek(currentTimezone),
       filters: { searchTerm: '', status: 'all', type: ScheduleType.API },
       showNewScheduleSelector: false,
       expandedRowKeys: [],
@@ -59,19 +59,19 @@ class SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSta
   }
 
   async componentDidMount() {
-    const { store } = this.props;
+    const { userStore, scheduleStore } = this.props.store;
 
-    store.userStore.updateItems();
-    store.scheduleStore.updateItems();
+    userStore.updateItems();
+    scheduleStore.updateItems();
   }
 
   render() {
-    const { store } = this.props;
+    const { scheduleStore, userStore, currentTimezone } = this.props.store;
     const { filters, showNewScheduleSelector, expandedRowKeys, scheduleIdToEdit } = this.state;
 
-    const { scheduleStore } = store;
-
     const schedules = scheduleStore.getSearchResult();
+    const users = userStore.getSearchResult().results;
+
     const columns = [
       {
         width: '10%',
@@ -115,8 +115,6 @@ class SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSta
       },
     ];
 
-    const users = store.userStore.getSearchResult().results;
-
     const data = schedules
       ? schedules
           .filter((schedule) => schedule.type === ScheduleType.API)
@@ -137,11 +135,7 @@ class SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSta
               <SchedulesFilters value={filters} onChange={this.handleSchedulesFiltersChange} />
               <HorizontalGroup spacing="lg">
                 {users && (
-                  <UserTimezoneSelect
-                    value={store.currentTimezone}
-                    users={users}
-                    onChange={this.handleTimezoneChange}
-                  />
+                  <UserTimezoneSelect value={currentTimezone} users={users} onChange={this.handleTimezoneChange} />
                 )}
                 <Button variant="primary" onClick={this.handleCreateScheduleClick}>
                   + New schedule
@@ -221,19 +215,19 @@ class SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSta
   };
 
   updateEvents = () => {
-    const { store } = this.props;
+    const { scheduleStore } = this.props.store;
     const { expandedRowKeys, startMoment } = this.state;
 
     expandedRowKeys.forEach((scheduleId) => {
-      store.scheduleStore.updateEvents(scheduleId, startMoment, 'rotation');
-      store.scheduleStore.updateEvents(scheduleId, startMoment, 'override');
-      store.scheduleStore.updateEvents(scheduleId, startMoment, 'final');
+      scheduleStore.updateEvents(scheduleId, startMoment, 'rotation');
+      scheduleStore.updateEvents(scheduleId, startMoment, 'override');
+      scheduleStore.updateEvents(scheduleId, startMoment, 'final');
     });
   };
 
   renderSchedule = (data: Schedule) => {
     const { startMoment } = this.state;
-    const { store } = this.props;
+    const { currentTimezone } = this.props.store;
 
     return (
       <div className={cx('schedule')}>
@@ -242,7 +236,7 @@ class SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSta
           <ScheduleFinal
             hideHeader
             scheduleId={data.id}
-            currentTimezone={store.currentTimezone}
+            currentTimezone={currentTimezone}
             startMoment={startMoment}
             onClick={this.getScheduleClickHandler(data.id)}
           />
@@ -357,8 +351,7 @@ class SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSta
   };
 
   getDeleteScheduleClickHandler = (id: Schedule['id']) => {
-    const { store } = this.props;
-    const { scheduleStore } = store;
+    const { scheduleStore } = this.props.store;
 
     return (event: SyntheticEvent) => {
       event.stopPropagation();
@@ -382,16 +375,12 @@ class SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSta
   handlePageChange = (_page: number) => {};
 
   update = () => {
-    const { store } = this.props;
-    const { scheduleStore } = store;
-
+    const { scheduleStore } = this.props.store;
     return scheduleStore.updateItems();
   };
 
   getUpdateRelatedEscalationChainsHandler = (scheduleId: Schedule['id']) => {
-    const { store } = this.props;
-    const { scheduleStore } = store;
-
+    const { scheduleStore } = this.props.store;
     return () => {
       scheduleStore.updateRelatedEscalationChains(scheduleId).then(() => {
         this.forceUpdate();

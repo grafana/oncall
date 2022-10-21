@@ -21,12 +21,8 @@ interface AlertReceiveChannelCardProps {
   onShowHeartbeatModal: () => void;
 }
 
-const AlertReceiveChannelCard = observer((props: AlertReceiveChannelCardProps) => {
-  const { id, onShowHeartbeatModal } = props;
-
-  const store = useStore();
-
-  const { alertReceiveChannelStore, heartbeatStore } = store;
+const AlertReceiveChannelCard = observer(({ id, onShowHeartbeatModal }: AlertReceiveChannelCardProps) => {
+  const { alertReceiveChannelStore, heartbeatStore } = useStore();
 
   const alertReceiveChannel = alertReceiveChannelStore.items[id];
   const alertReceiveChannelCounter = alertReceiveChannelStore.counters[id];

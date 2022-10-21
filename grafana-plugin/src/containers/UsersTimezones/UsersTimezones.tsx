@@ -33,22 +33,20 @@ const hoursToSplit = 3;
 
 const jLimit = 24 / hoursToSplit;
 
-const UsersTimezones: FC<UsersTimezonesProps> = (props) => {
-  const store = useStore();
-
-  const { userIds, tz, onTzChange, onCallNow, scheduleId, startMoment } = props;
+const UsersTimezones: FC<UsersTimezonesProps> = ({ userIds, tz, onTzChange, onCallNow, scheduleId, startMoment }) => {
+  const { userStore } = useStore();
 
   useEffect(() => {
     userIds.forEach((userId) => {
-      if (!store.userStore.items[userId]) {
-        store.userStore.updateItem(userId);
+      if (!userStore.items[userId]) {
+        userStore.updateItem(userId);
       }
     });
-  }, [userIds]);
+  }, [userIds, userStore]);
 
   const users = useMemo(
-    () => userIds.map((userId) => store.userStore.items[userId]).filter(Boolean),
-    [userIds, store.userStore.items]
+    () => userIds.map((userId) => userStore.items[userId]).filter(Boolean),
+    [userIds, userStore.items]
   );
 
   const currentMoment = useMemo(() => dayjs().tz(tz), [tz]);
@@ -139,8 +137,7 @@ interface UserAvatarsProps {
   onCallNow: Array<Partial<User>>;
 }
 
-const UserAvatars = (props: UserAvatarsProps) => {
-  const { users, currentMoment, onTzChange, onCallNow, scheduleId, startMoment } = props;
+const UserAvatars = ({ users, currentMoment, onTzChange, onCallNow, scheduleId, startMoment }: UserAvatarsProps) => {
   const userGroups = useMemo(() => {
     return users
       .reduce((memo, user) => {
@@ -213,20 +210,18 @@ const LIMIT = 3;
 const AVATAR_WIDTH = 32;
 const AVATAR_GAP = 5;
 
-const AvatarGroup = (props: AvatarGroupProps) => {
-  const {
-    users: propsUsers,
-    currentMoment,
-    xPos,
-    onTzChange,
-    utcOffset,
-    onSetActiveUtcOffset,
-    activeUtcOffset,
-    onCallNow,
-    scheduleId,
-    startMoment,
-  } = props;
-
+const AvatarGroup = ({
+  users: propsUsers,
+  currentMoment,
+  xPos,
+  onTzChange,
+  utcOffset,
+  onSetActiveUtcOffset,
+  activeUtcOffset,
+  onCallNow,
+  scheduleId,
+  startMoment,
+}: AvatarGroupProps) => {
   const store = useStore();
 
   const active = !isNaN(activeUtcOffset) && activeUtcOffset === utcOffset;

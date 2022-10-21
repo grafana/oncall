@@ -29,30 +29,25 @@ interface ScheduleSlotProps {
 
 const cx = cn.bind(styles);
 
-const ScheduleSlot: FC<ScheduleSlotProps> = observer((props) => {
-  const { event, scheduleId, currentTimezone, color, label } = props;
-  const { users } = event;
-
-  const trackMouse = false;
-
+const ScheduleSlot: FC<ScheduleSlotProps> = observer(({ event, scheduleId, currentTimezone, color, label }) => {
+  const { scheduleStore, userStore } = useStore();
   const [mouseX, setMouseX] = useState<number>(0);
 
+  const { users } = event;
+  const trackMouse = false;
   const start = dayjs(event.start);
   const end = dayjs(event.end);
 
   const duration = end.diff(start, 'seconds');
 
-  const store = useStore();
-
   const base = 60 * 60 * 24 * 7;
-
   const width = duration / base;
 
   const handleMouseMove = useCallback((event) => {
     setMouseX(event.nativeEvent.offsetX);
   }, []);
 
-  const onCallNow = store.scheduleStore.items[scheduleId]?.on_call_now;
+  const onCallNow = scheduleStore.items[scheduleId]?.on_call_now;
 
   return (
     <div className={cx('stack')} style={{ width: `${width * 100}%` }}>
@@ -78,11 +73,11 @@ const ScheduleSlot: FC<ScheduleSlotProps> = observer((props) => {
         </div>
       ) : (
         users.map(({ pk: userPk }, userIndex) => {
-          const storeUser = store.userStore.items[userPk];
+          const storeUser = userStore.items[userPk];
 
           // TODO remove
           if (!storeUser) {
-            store.userStore.updateItem(userPk);
+            userStore.updateItem(userPk);
           }
 
           const inactive = false;
@@ -147,60 +142,52 @@ interface ScheduleSlotDetailsProps {
   event: Event;
 }
 
-const ScheduleSlotDetails = (props: ScheduleSlotDetailsProps) => {
-  const { user, currentTimezone, event, isOncall } = props;
-
-  return (
-    <div className={cx('details')}>
-      <HorizontalGroup>
-        <VerticalGroup spacing="sm">
-          <HorizontalGroup spacing="sm">
-            {isOncall && <IsOncallIcon className={cx('is-oncall-icon')} />}
-            <Text type="secondary">{user?.username}</Text>
-          </HorizontalGroup>
-          <HorizontalGroup>
-            <VerticalGroup spacing="none">
-              <HorizontalGroup spacing="sm">
-                <img src={Line} />
-                <VerticalGroup spacing="none">
-                  <Text type="secondary">{dayjs(event.start).tz(user?.timezone).format('DD MMM, HH:mm')}</Text>
-                  <Text type="secondary">{dayjs(event.end).tz(user?.timezone).format('DD MMM, HH:mm')}</Text>
-                </VerticalGroup>
-              </HorizontalGroup>
-            </VerticalGroup>
-          </HorizontalGroup>
-        </VerticalGroup>
-        <VerticalGroup spacing="sm">
-          <Text type="primary">{currentTimezone}</Text>
+const ScheduleSlotDetails = ({ user, currentTimezone, event, isOncall }: ScheduleSlotDetailsProps) => (
+  <div className={cx('details')}>
+    <HorizontalGroup>
+      <VerticalGroup spacing="sm">
+        <HorizontalGroup spacing="sm">
+          {isOncall && <IsOncallIcon className={cx('is-oncall-icon')} />}
+          <Text type="secondary">{user?.username}</Text>
+        </HorizontalGroup>
+        <HorizontalGroup>
           <VerticalGroup spacing="none">
-            <Text type="primary">{dayjs(event.start).tz(currentTimezone).format('DD MMM, HH:mm')}</Text>
-            <Text type="primary">{dayjs(event.end).tz(currentTimezone).format('DD MMM, HH:mm')}</Text>
+            <HorizontalGroup spacing="sm">
+              <img src={Line} />
+              <VerticalGroup spacing="none">
+                <Text type="secondary">{dayjs(event.start).tz(user?.timezone).format('DD MMM, HH:mm')}</Text>
+                <Text type="secondary">{dayjs(event.end).tz(user?.timezone).format('DD MMM, HH:mm')}</Text>
+              </VerticalGroup>
+            </HorizontalGroup>
           </VerticalGroup>
+        </HorizontalGroup>
+      </VerticalGroup>
+      <VerticalGroup spacing="sm">
+        <Text type="primary">{currentTimezone}</Text>
+        <VerticalGroup spacing="none">
+          <Text type="primary">{dayjs(event.start).tz(currentTimezone).format('DD MMM, HH:mm')}</Text>
+          <Text type="primary">{dayjs(event.end).tz(currentTimezone).format('DD MMM, HH:mm')}</Text>
         </VerticalGroup>
-      </HorizontalGroup>
-    </div>
-  );
-};
+      </VerticalGroup>
+    </HorizontalGroup>
+  </div>
+);
 
 interface ScheduleGapDetailsProps {
   currentTimezone: Timezone;
   event: Event;
 }
 
-const ScheduleGapDetails = (props: ScheduleGapDetailsProps) => {
-  const { currentTimezone, event } = props;
-
-  return (
-    <div className={cx('details')}>
-      <VerticalGroup>
-        <HorizontalGroup spacing="sm">
-          <VerticalGroup spacing="none">
-            <Text type="primary">{currentTimezone}</Text>
-            <Text type="primary">{dayjs(event.start).tz(currentTimezone).format('DD MMM, HH:mm')}</Text>
-            <Text type="primary">{dayjs(event.end).tz(currentTimezone).format('DD MMM, HH:mm')}</Text>
-          </VerticalGroup>
-        </HorizontalGroup>
-      </VerticalGroup>
-    </div>
-  );
-};
+const ScheduleGapDetails = ({ currentTimezone, event }: ScheduleGapDetailsProps) => (
+  <div className={cx('details')}>
+    <VerticalGroup>
+      <HorizontalGroup spacing="sm">
+        <VerticalGroup spacing="none">
+          <Text type="primary">{currentTimezone}</Text>
+          <Text type="primary">{dayjs(event.start).tz(currentTimezone).format('DD MMM, HH:mm')}</Text>
+          <Text type="primary">{dayjs(event.end).tz(currentTimezone).format('DD MMM, HH:mm')}</Text>
+        </VerticalGroup>
+      </HorizontalGroup>
+    </VerticalGroup>
+  </div>
+);

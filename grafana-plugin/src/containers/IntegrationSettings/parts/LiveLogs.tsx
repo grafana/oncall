@@ -11,8 +11,7 @@ interface LiveLogsProps {
 }
 
 const LiveLogs = ({ alertReceiveChannelId }: LiveLogsProps) => {
-  const store = useStore();
-  const { alertReceiveChannelStore } = store;
+  const { alertReceiveChannelStore } = useStore();
 
   const [logs, setLogs] = useState<string[]>();
 

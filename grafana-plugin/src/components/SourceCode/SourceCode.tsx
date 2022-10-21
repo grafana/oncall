@@ -17,8 +17,12 @@ interface SourceCodeProps {
   children?: any;
 }
 
-const SourceCode: FC<SourceCodeProps> = (props) => {
-  const { children, noMaxHeight = false, showClipboardIconOnly = false, showCopyToClipboard = true } = props;
+const SourceCode: FC<SourceCodeProps> = ({
+  children,
+  noMaxHeight = false,
+  showClipboardIconOnly = false,
+  showCopyToClipboard = true,
+}) => {
   const showClipboardCopy = showClipboardIconOnly || showCopyToClipboard;
 
   return (

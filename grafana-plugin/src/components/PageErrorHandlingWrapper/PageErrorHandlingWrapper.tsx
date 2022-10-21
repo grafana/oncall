@@ -38,6 +38,8 @@ export default function PageErrorHandlingWrapper({
   itemNotFoundMessage?: string;
   children: () => JSX.Element;
 }) {
+  const { userStore, grafanaTeamStore } = useStore();
+
   useEffect(() => {
     const { isWrongTeamError, isNotFoundError } = errorData;
     if (!isWrongTeamError && isNotFoundError && itemNotFoundMessage) {
@@ -45,19 +47,17 @@ export default function PageErrorHandlingWrapper({
     }
   }, [errorData.isNotFoundError]);
 
-  const store = useStore();
-
   if (!errorData.isWrongTeamError) {
     return children();
   }
 
-  const currentTeamId = store.userStore.currentUser?.current_team;
-  const currentTeam = store.grafanaTeamStore.items[currentTeamId]?.name;
+  const currentTeamId = userStore.currentUser?.current_team;
+  const currentTeam = grafanaTeamStore.items[currentTeamId]?.name;
 
   const { switchToTeam, wrongTeamNoPermissions } = errorData;
 
   const onTeamChange = async (teamId: GrafanaTeam['id']) => {
-    await store.userStore.updateCurrentUser({ current_team: teamId });
+    await userStore.updateCurrentUser({ current_team: teamId });
     window.location.reload();
   };
 

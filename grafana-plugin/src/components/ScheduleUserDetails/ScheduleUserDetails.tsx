@@ -18,8 +18,7 @@ interface ScheduleUserDetailsProps {
 
 const cx = cn.bind(styles);
 
-const ScheduleUserDetails: FC<ScheduleUserDetailsProps> = (props) => {
-  const { user, currentMoment } = props;
+const ScheduleUserDetails: FC<ScheduleUserDetailsProps> = ({ user, currentMoment }) => {
   const userMoment = currentMoment.tz(user.timezone);
   const userOffsetHoursStr = getTzOffsetString(userMoment);
 

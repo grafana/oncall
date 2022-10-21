@@ -21,9 +21,7 @@ const roleOptions = [
   { label: 'Viewer', value: UserRole.VIEWER },
 ];
 
-const UsersFilters = (props: UsersFiltersProps) => {
-  const { value = { searchTerm: '' }, onChange, className } = props;
-
+const UsersFilters = ({ value = { searchTerm: '' }, onChange, className }: UsersFiltersProps) => {
   const onChangeRolesCallback = useCallback(
     (role: UserRole) => {
       return (event: ChangeEvent<HTMLInputElement>) => {

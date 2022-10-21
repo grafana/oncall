@@ -39,25 +39,37 @@ interface RotationFormProps {
 
 const cx = cn.bind(styles);
 
-const ScheduleOverrideForm: FC<RotationFormProps> = (props) => {
+const ScheduleOverrideForm: FC<RotationFormProps> = ({
+  onHide,
+  onCreate,
+  currentTimezone,
+  scheduleId,
+  onUpdate,
+  onDelete,
+  shiftId,
+  startMoment,
+  shiftMoment = dayjs().startOf('day').add(1, 'day'),
+  shiftColor = '#C69B06',
+}) => {
   const {
-    onHide,
-    onCreate,
-    currentTimezone,
-    scheduleId,
-    onUpdate,
-    onDelete,
-    shiftId,
-    startMoment,
-    shiftMoment = dayjs().startOf('day').add(1, 'day'),
-    shiftColor = '#C69B06',
-  } = props;
+    userStore: { items },
+    scheduleStore: {
+      shifts,
+      updateOncallShift,
+      deleteOncallShift,
+      createRotation,
+      updateRotation,
+      updateRotationPreview,
+    },
+  } = useStore();
 
-  const store = useStore();
+  const shift = shifts[shiftId];
 
   const [offsetTop, setOffsetTop] = useState<number>(0);
-
   const [isOpen, setIsOpen] = useState<boolean>(false);
+  const [shiftStart, setShiftStart] = useState<dayjs.Dayjs>(shiftMoment);
+  const [shiftEnd, setShiftEnd] = useState<dayjs.Dayjs>(shiftMoment.add(24, 'hours'));
+  const [userGroups, setUserGroups] = useState([[]]);
 
   useEffect(() => {
     if (isOpen) {
@@ -76,42 +88,6 @@ const ScheduleOverrideForm: FC<RotationFormProps> = (props) => {
     }
   }, [isOpen]);
 
-  const [shiftStart, setShiftStart] = useState<dayjs.Dayjs>(shiftMoment);
-  const [shiftEnd, setShiftEnd] = useState<dayjs.Dayjs>(shiftMoment.add(24, 'hours'));
-
-  const [userGroups, setUserGroups] = useState([[]]);
-
-  const renderUser = (userPk: User['pk']) => {
-    const name = store.userStore.items[userPk]?.username;
-    const desc = store.userStore.items[userPk]?.timezone;
-    const workingHours = store.userStore.items[userPk]?.working_hours;
-    const timezone = store.userStore.items[userPk]?.timezone;
-
-    return (
-      <>
-        <div className={cx('user-title')}>
-          <Text strong>{name}</Text> <Text style={{ color: 'var(--always-gray)' }}>({desc})</Text>
-        </div>
-        <WorkingHours
-          timezone={timezone}
-          workingHours={workingHours}
-          startMoment={dayjs(params.shift_start)}
-          duration={dayjs(params.shift_end).diff(dayjs(params.shift_start), 'seconds')}
-          className={cx('working-hours')}
-          style={{ backgroundColor: shiftColor }}
-        />
-      </>
-    );
-  };
-
-  const shift = store.scheduleStore.shifts[shiftId];
-
-  useEffect(() => {
-    if (shiftId !== 'new') {
-      store.scheduleStore.updateOncallShift(shiftId);
-    }
-  }, [shiftId]);
-
   const params = useMemo(
     () => ({
       rotation_start: getUTCString(shiftStart),
@@ -120,8 +96,49 @@ const ScheduleOverrideForm: FC<RotationFormProps> = (props) => {
       rolling_users: userGroups,
       frequency: null,
     }),
-    [currentTimezone, shiftStart, shiftEnd, userGroups]
+    [shiftStart, shiftEnd, userGroups]
   );
+
+  const { shift_start, shift_end } = params;
+
+  const renderUser = useCallback(
+    (userPk: User['pk']) => {
+      const name = items[userPk]?.username;
+      const desc = items[userPk]?.timezone;
+      const workingHours = items[userPk]?.working_hours;
+      const timezone = items[userPk]?.timezone;
+
+      return (
+        <>
+          <div className={cx('user-title')}>
+            <Text strong>{name}</Text> <Text style={{ color: 'var(--always-gray)' }}>({desc})</Text>
+          </div>
+          <WorkingHours
+            timezone={timezone}
+            workingHours={workingHours}
+            startMoment={dayjs(shift_start)}
+            duration={dayjs(shift_end).diff(dayjs(shift_start), 'seconds')}
+            className={cx('working-hours')}
+            style={{ backgroundColor: shiftColor }}
+          />
+        </>
+      );
+    },
+    [items, shift_start, shift_end, shiftColor]
+  );
+
+  const updatePreview = useCallback(() => {
+    updateRotationPreview(scheduleId, shiftId, getFromString(startMoment), true, params).then(() => {
+      setIsOpen(true);
+    });
+  }, [updateRotationPreview, scheduleId, shiftId, startMoment, params]);
+
+  useEffect(() => {
+    if (shiftId !== 'new') {
+      updateOncallShift(shiftId);
+      updatePreview();
+    }
+  }, [shiftId, updateOncallShift, updatePreview]);
 
   useEffect(() => {
     if (shift) {
@@ -133,38 +150,23 @@ const ScheduleOverrideForm: FC<RotationFormProps> = (props) => {
   }, [shift]);
 
   const handleDeleteClick = useCallback(() => {
-    store.scheduleStore.deleteOncallShift(shiftId).then(() => {
+    deleteOncallShift(shiftId).then(() => {
       onHide();
-
       onDelete();
     });
-  }, []);
+  }, [deleteOncallShift, shiftId, onHide, onDelete]);
 
   const handleCreate = useCallback(() => {
     if (shiftId === 'new') {
-      store.scheduleStore.createRotation(scheduleId, true, params).then(() => {
+      createRotation(scheduleId, true, params).then(() => {
         onCreate();
       });
     } else {
-      store.scheduleStore.updateRotation(shiftId, params).then(() => {
+      updateRotation(shiftId, params).then(() => {
         onUpdate();
       });
     }
-  }, [scheduleId, shiftId, params]);
-
-  useEffect(() => {
-    if (shiftId === 'new') {
-      updatePreview();
-    }
-  }, []);
-
-  const updatePreview = () => {
-    store.scheduleStore
-      .updateRotationPreview(scheduleId, shiftId, getFromString(startMoment), true, params)
-      .then(() => {
-        setIsOpen(true);
-      });
-  };
+  }, [scheduleId, shiftId, createRotation, updateRotation, onCreate, onUpdate, params]);
 
   const handleChange = useDebouncedCallback(updatePreview, 200);
 

@@ -78,11 +78,11 @@ class IncidentPage extends React.Component<IncidentPageProps, IncidentPageState>
   };
 
   componentDidMount() {
-    const { store } = this.props;
+    const { alertGroupStore } = this.props.store;
 
     this.update();
 
-    store.alertGroupStore.updateSilenceOptions();
+    alertGroupStore.updateSilenceOptions();
   }
 
   componentDidUpdate(prevProps: IncidentPageProps) {
@@ -95,26 +95,23 @@ class IncidentPage extends React.Component<IncidentPageProps, IncidentPageState>
     this.setState({ errorData: initErrorDataState() }); // reset wrong team error to false
 
     const {
-      store,
+      store: { alertGroupStore },
       query: { id },
     } = this.props;
 
-    store.alertGroupStore
-      .getAlert(id)
-      .catch((error) => this.setState({ errorData: { ...getWrongTeamResponseInfo(error) } }));
+    alertGroupStore.getAlert(id).catch((error) => this.setState({ errorData: { ...getWrongTeamResponseInfo(error) } }));
   };
 
   render() {
     const {
-      store,
+      store: { alertGroupStore, alertReceiveChannelStore },
       query: { id, cursor, start, perpage },
     } = this.props;
 
     const { errorData, showIntegrationSettings, showAttachIncidentForm } = this.state;
     const { isNotFoundError, isWrongTeamError } = errorData;
-    const { alertReceiveChannelStore } = store;
-    const { alerts } = store.alertGroupStore;
 
+    const { alerts } = alertGroupStore;
     const incident = alerts.get(id);
 
     if (!incident && !isNotFoundError && !isWrongTeamError) {
@@ -165,7 +162,7 @@ class IncidentPage extends React.Component<IncidentPageProps, IncidentPageState>
                     alertReceiveChannelStore.updateItem(incident.alert_receive_channel.id);
                   }}
                   onUpdateTemplates={() => {
-                    store.alertGroupStore.getAlert(id);
+                    alertGroupStore.getAlert(id);
                   }}
                   startTab={IntegrationSettingsTab.Templates}
                   id={incident.alert_receive_channel.id}
@@ -196,15 +193,15 @@ class IncidentPage extends React.Component<IncidentPageProps, IncidentPageState>
 
   renderHeader = () => {
     const {
-      store,
+      store: {
+        alertGroupStore: { alerts },
+        alertReceiveChannelStore,
+      },
       query: { id, cursor, start, perpage },
     } = this.props;
 
-    const { alerts } = store.alertGroupStore;
-
     const incident = alerts.get(id);
-
-    const integration = store.alertReceiveChannelStore.getIntegration(incident.alert_receive_channel);
+    const integration = alertReceiveChannelStore.getIntegration(incident.alert_receive_channel);
 
     const showLinkTo = !incident.dependent_alert_groups.length && !incident.root_alert_group && !incident.resolved;
 
@@ -308,20 +305,20 @@ class IncidentPage extends React.Component<IncidentPageProps, IncidentPageState>
   };
 
   getUnattachClickHandler = (pk: Alert['pk']) => {
-    const { store } = this.props;
+    const { alertGroupStore } = this.props.store;
 
     return () => {
-      store.alertGroupStore.unattachAlert(pk).then(this.update);
+      alertGroupStore.unattachAlert(pk).then(this.update);
     };
   };
 
   renderTimeline = () => {
     const {
-      store,
+      store: { alertGroupStore },
       query: { id },
     } = this.props;
 
-    const incident = store.alertGroupStore.alerts.get(id);
+    const incident = alertGroupStore.alerts.get(id);
 
     if (!incident.render_after_resolve_report_json) {
       return null;
@@ -409,12 +406,12 @@ class IncidentPage extends React.Component<IncidentPageProps, IncidentPageState>
 
   handleCreateResolutionNote = () => {
     const {
-      store,
+      store: { resolutionNotesStore },
       query: { id },
     } = this.props;
 
     const { resolutionNoteText } = this.state;
-    store.resolutionNotesStore
+    resolutionNotesStore
       .createResolutionNote(id, resolutionNoteText)
       .then(() => {
         this.setState({ resolutionNoteText: '' });
@@ -444,32 +441,32 @@ class IncidentPage extends React.Component<IncidentPageProps, IncidentPageState>
   };
 
   getOnActionButtonClick = (incidentId: string, action: AlertAction) => {
-    const { store } = this.props;
+    const { alertGroupStore } = this.props.store;
 
     return (e: SyntheticEvent) => {
       e.stopPropagation();
 
-      store.alertGroupStore.doIncidentAction(incidentId, action, false);
+      alertGroupStore.doIncidentAction(incidentId, action, false);
     };
   };
 
   getSilenceClickHandler = (alert: AlertType) => {
-    const { store } = this.props;
+    const { alertGroupStore } = this.props.store;
 
     return (value: number) => {
-      store.alertGroupStore.doIncidentAction(alert.pk, AlertAction.Silence, false, {
+      alertGroupStore.doIncidentAction(alert.pk, AlertAction.Silence, false, {
         delay: value,
       });
     };
   };
 
   getUnsilenceClickHandler = (alert: AlertType) => {
-    const { store } = this.props;
+    const { alertGroupStore } = this.props.store;
 
     return (event: any) => {
       event.stopPropagation();
 
-      store.alertGroupStore.doIncidentAction(alert.pk, AlertAction.unSilence, false);
+      alertGroupStore.doIncidentAction(alert.pk, AlertAction.unSilence, false);
     };
   };
 
@@ -513,8 +510,8 @@ function GroupedIncidentsList({
   id: string;
   getIncidentDatetimeReference: (incident: GroupedAlert) => string;
 }) {
-  const store = useStore();
-  const incident = store.alertGroupStore.alerts.get(id);
+  const { alertGroupStore } = useStore();
+  const incident = alertGroupStore.alerts.get(id);
 
   const alerts = incident.alerts;
   if (!alerts) {
@@ -547,7 +544,8 @@ function GroupedIncidentsList({
 }
 
 function GroupedIncident({ incident, datetimeReference }: { incident: GroupedAlert; datetimeReference: string }) {
-  const store = useStore();
+  const { alertGroupStore } = useStore();
+
   const [incidentRawResponse, setIncidentRawResponse] = useState<{ id: string; raw_request_data: any }>(undefined);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const payloadJSON = isModalOpen ? JSON.stringify(incidentRawResponse.raw_request_data, null, 4) : undefined;
@@ -611,7 +609,7 @@ function GroupedIncident({ incident, datetimeReference }: { incident: GroupedAle
   );
 
   async function openIncidentResponse(incident: GroupedAlert) {
-    const currentIncidentRawResponse = await store.alertGroupStore.getPayloadForIncident(incident.id);
+    const currentIncidentRawResponse = await alertGroupStore.getPayloadForIncident(incident.id);
     setIncidentRawResponse(currentIncidentRawResponse);
     setIsModalOpen(true);
   }
@@ -624,8 +622,8 @@ function AttachedIncidentsList({
   id: string;
   getUnattachClickHandler(pk: string): void;
 }) {
-  const store = useStore();
-  const incident = store.alertGroupStore.alerts.get(id);
+  const { alertGroupStore } = useStore();
+  const incident = alertGroupStore.alerts.get(id);
 
   if (!incident.dependent_alert_groups.length) {
     return null;

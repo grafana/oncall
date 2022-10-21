@@ -32,9 +32,7 @@ interface PhoneVerificationState {
 
 const PHONE_REGEX = /^\+\d{8,15}$/;
 
-const PhoneVerification = observer((props: PhoneVerificationProps) => {
-  const { userPk: propsUserPk } = props;
-
+const PhoneVerification = observer(({ userPk: propsUserPk }: PhoneVerificationProps) => {
   const {
     userStore: {
       items: users,

@@ -27,20 +27,18 @@ interface RotationProps {
   transparent?: boolean;
 }
 
-const Rotation: FC<RotationProps> = (props) => {
-  const {
-    events,
-    scheduleId,
-    layerIndex,
-    rotationIndex,
-    startMoment,
-    currentTimezone,
-    color,
-    onClick,
-    days = 7,
-    transparent = false,
-  } = props;
-
+const Rotation: FC<RotationProps> = ({
+  events,
+  scheduleId,
+  layerIndex,
+  rotationIndex,
+  startMoment,
+  currentTimezone,
+  color,
+  onClick,
+  days = 7,
+  transparent = false,
+}) => {
   const [animate, _setAnimate] = useState<boolean>(true);
 
   const handleClick = (event) => {

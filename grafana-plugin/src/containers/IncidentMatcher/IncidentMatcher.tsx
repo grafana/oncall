@@ -9,7 +9,6 @@ import SourceCode from 'components/SourceCode/SourceCode';
 import Text from 'components/Text/Text';
 import { Alert } from 'models/alertgroup/alertgroup.types';
 import { makeRequest } from 'network';
-import { useStore } from 'state/useStore';
 import { useDebouncedCallback } from 'utils/hooks';
 
 import styles from 'containers/IncidentMatcher/IncidentMatcher.module.css';
@@ -29,16 +28,10 @@ interface AlertItem {
   inside_organization_number: number;
 }
 
-const IncidentMatcher = observer((props: IncidentMatcherProps) => {
-  const { regexp, className, onError } = props;
-
-  const store = useStore();
-
+const IncidentMatcher = observer(({ regexp, className, onError }: IncidentMatcherProps) => {
   const [searchResult, setSearchResult] = useState<AlertItem[] | undefined>(undefined);
   const [isLoading, setLoading] = useState<boolean | undefined>(false);
   const [selectedAlertItem, setSelectedAlertItem] = useState<AlertItem | undefined>(undefined);
-
-  const {} = store;
 
   const handleRegexpChange = useDebouncedCallback(() => {
     setLoading(true);

@@ -31,11 +31,16 @@ enum AlertID {
   CONNECTIVITY_WARNING = 'Connectivity Warning',
 }
 
-const DefaultPageLayout: FC<DefaultPageLayoutProps> = observer((props) => {
-  const { children, query } = props;
+const DefaultPageLayout: FC<DefaultPageLayoutProps> = observer(({ children, query }) => {
+  const {
+    userStore: { currentUser },
+    teamStore: { currentTeam },
+    backendLicense,
+    backendVersion,
+    isUserActionAllowed,
+  } = useStore();
 
   const [showSlackInstallAlert, setShowSlackInstallAlert] = useState<SlackError | undefined>();
-
   const forceUpdate = useForceUpdate();
 
   const handleCloseInstallSlackAlert = useCallback(() => {
@@ -45,7 +50,6 @@ const DefaultPageLayout: FC<DefaultPageLayoutProps> = observer((props) => {
   useEffect(() => {
     if (query.slack_error) {
       setShowSlackInstallAlert(query.slack_error);
-
       getLocationSrv().update({ partial: true, query: { slack_error: undefined }, replace: true });
     }
   }, []);
@@ -53,17 +57,9 @@ const DefaultPageLayout: FC<DefaultPageLayoutProps> = observer((props) => {
   const getRemoveAlertHandler = useCallback((id: string) => {
     return () => {
       setItem(id, true);
-
       forceUpdate();
     };
   }, []);
-
-  const store = useStore();
-
-  const { userStore, teamStore } = store;
-
-  const { currentTeam } = teamStore;
-  const { currentUser } = userStore;
 
   const isChatOpsConnected = getIfChatOpsConnected(currentUser);
   const isPhoneVerified = currentUser?.cloud_connection_status === 3 || currentUser?.verified_phone_number;
@@ -79,7 +75,7 @@ const DefaultPageLayout: FC<DefaultPageLayoutProps> = observer((props) => {
             // @ts-ignore
             title="Slack integration warning"
           >
-            {getSlackMessage(showSlackInstallAlert, store.teamStore.currentTeam)}
+            {getSlackMessage(showSlackInstallAlert, currentTeam)}
           </Alert>
         )}
         {currentTeam?.banner.title != null && !getItem(currentTeam?.banner.title) && (
@@ -96,21 +92,21 @@ const DefaultPageLayout: FC<DefaultPageLayoutProps> = observer((props) => {
             />
           </Alert>
         )}
-        {store.backendLicense === GRAFANA_LICENSE_OSS &&
-          store.backendVersion &&
+        {backendLicense === GRAFANA_LICENSE_OSS &&
+          backendVersion &&
           plugin?.version &&
-          store.backendVersion !== plugin?.version &&
-          !getItem(`version_mismatch_${store.backendVersion}_${plugin?.version}`) && (
+          backendVersion !== plugin?.version &&
+          !getItem(`version_mismatch_${backendVersion}_${plugin?.version}`) && (
             <Alert
               className={styles.alert}
               severity="warning"
               title={'Version mismatch!'}
-              onRemove={getRemoveAlertHandler(`version_mismatch_${store.backendVersion}_${plugin?.version}`)}
+              onRemove={getRemoveAlertHandler(`version_mismatch_${backendVersion}_${plugin?.version}`)}
             >
               Please make sure you have the same versions of the Grafana OnCall plugin and the Grafana OnCall engine,
               otherwise there could be issues with your Grafana OnCall installation!
               <br />
-              {`Current plugin version: ${plugin.version}, current engine version: ${store.backendVersion}`}
+              {`Current plugin version: ${plugin.version}, current engine version: ${backendVersion}`}
               <br />
               Please see{' '}
               <a
@@ -127,7 +123,7 @@ const DefaultPageLayout: FC<DefaultPageLayoutProps> = observer((props) => {
         {Boolean(
           currentTeam &&
             currentUser &&
-            store.isUserActionAllowed(UserAction.UpdateOwnSettings) &&
+            isUserActionAllowed(UserAction.UpdateOwnSettings) &&
             (!isPhoneVerified || !isChatOpsConnected) &&
             !getItem(AlertID.CONNECTIVITY_WARNING)
         ) && (

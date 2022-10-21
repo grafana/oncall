@@ -26,15 +26,14 @@ class SettingsPage extends React.Component<SettingsPageProps, SettingsPageState>
   state: SettingsPageState = {
     apiUrl: '',
   };
+
   async componentDidMount() {
-    const { store } = this.props;
-    const url = await store.getApiUrlForSettings();
+    const url = await this.props.store.getApiUrlForSettings();
     this.setState({ apiUrl: url });
   }
 
   render() {
-    const { store } = this.props;
-    const { teamStore } = store;
+    const { teamStore } = this.props.store;
     const { apiUrl } = this.state;
 
     return (

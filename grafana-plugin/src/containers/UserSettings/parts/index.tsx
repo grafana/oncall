@@ -30,16 +30,14 @@ interface TabsProps {
   showTelegramConnectionTab: boolean;
 }
 
-export const Tabs = (props: TabsProps) => {
-  const {
-    activeTab,
-    onTabChange,
-    showNotificationSettingsTab,
-    showMobileAppVerificationTab,
-    showSlackConnectionTab,
-    showTelegramConnectionTab,
-  } = props;
-
+export const Tabs = ({
+  activeTab,
+  onTabChange,
+  showNotificationSettingsTab,
+  showMobileAppVerificationTab,
+  showSlackConnectionTab,
+  showTelegramConnectionTab,
+}: TabsProps) => {
   const getTabClickHandler = useCallback(
     (tab: UserSettingsTab) => {
       return () => {
@@ -106,16 +104,13 @@ interface TabsContentProps {
   isDesktopOrLaptop: boolean;
 }
 
-export const TabsContent = observer((props: TabsContentProps) => {
-  const { id, activeTab, onTabChange, isDesktopOrLaptop } = props;
-  useEffect(() => {
-    store.updateFeatures();
-  }, []);
-
-  const store = useStore();
-  const { userStore } = store;
-
+export const TabsContent = observer(({ id, activeTab, onTabChange, isDesktopOrLaptop }: TabsContentProps) => {
+  const { userStore, updateFeatures, hasFeature } = useStore();
   const storeUser = userStore.items[id];
+
+  useEffect(() => {
+    updateFeatures();
+  }, [updateFeatures]);
 
   return (
     <TabContent className={cx('content')}>
@@ -134,7 +129,7 @@ export const TabsContent = observer((props: TabsContentProps) => {
         ))}
       {activeTab === UserSettingsTab.NotificationSettings && <NotificationSettingsTab id={id} />}
       {activeTab === UserSettingsTab.PhoneVerification &&
-        (store.hasFeature(AppFeature.CloudNotifications) ? (
+        (hasFeature(AppFeature.CloudNotifications) ? (
           <CloudPhoneSettings userPk={id} />
         ) : (
           <PhoneVerification userPk={id} />

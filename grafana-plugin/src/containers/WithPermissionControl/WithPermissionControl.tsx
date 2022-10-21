@@ -18,12 +18,9 @@ interface WithPermissionControlProps {
   className?: string;
 }
 
-export const WithPermissionControl = observer((props: WithPermissionControlProps) => {
-  const { userAction, children, className } = props;
-
-  const store = useStore();
-
-  const disabledByPermissions = !store.isUserActionAllowed(userAction);
+export const WithPermissionControl = observer(({ userAction, children, className }: WithPermissionControlProps) => {
+  const { isUserActionAllowed } = useStore();
+  const disabledByPermissions = !isUserActionAllowed(userAction);
 
   const onClickCallback = useCallback(
     (event: any) => {

@@ -24,12 +24,8 @@ interface EscalationChainStepsProps {
   offset?: number;
 }
 
-const EscalationChainSteps = observer((props: EscalationChainStepsProps) => {
-  const { id, offset = 0, addonBefore } = props;
-
-  const store = useStore();
-
-  const { escalationPolicyStore } = store;
+const EscalationChainSteps = observer(({ id, offset = 0, addonBefore }: EscalationChainStepsProps) => {
+  const { escalationPolicyStore, teamStore } = useStore();
 
   useEffect(() => {
     escalationPolicyStore.updateEscalationPolicies(id);
@@ -54,7 +50,7 @@ const EscalationChainSteps = observer((props: EscalationChainStepsProps) => {
   );
 
   const escalationPolicyIds = escalationPolicyStore.escalationChainToEscalationPolicy[id];
-  const isSlackInstalled = Boolean(store.teamStore.currentTeam?.slack_team_identity);
+  const isSlackInstalled = Boolean(teamStore.currentTeam?.slack_team_identity);
 
   return (
     // @ts-ignore
@@ -65,7 +61,6 @@ const EscalationChainSteps = observer((props: EscalationChainStepsProps) => {
           const COLOR_RED = '#E60000';
           const STEP_COLORS = ['#1A7F4B', '#33cc33', '#ffbf00', '#FF8000', COLOR_RED];
 
-          const { escalationPolicyStore } = store;
           const escalationPolicy = escalationPolicyStore.items[escalationPolicyId];
 
           if (!escalationPolicy) {

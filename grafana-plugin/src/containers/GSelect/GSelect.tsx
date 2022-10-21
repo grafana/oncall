@@ -37,8 +37,8 @@ interface GSelectProps {
   getDescription?: (item: any) => React.ReactNode;
 }
 
-const GSelect = observer((props: GSelectProps) => {
-  const {
+const GSelect = observer(
+  ({
     autoFocus,
     showSearch = false,
     allowClear = false,
@@ -59,101 +59,101 @@ const GSelect = observer((props: GSelectProps) => {
     getDescription,
     filterOptions,
     fromOrganization,
-  } = props;
+  }: GSelectProps) => {
+    const store = useStore();
+    const model = (store as any)[modelName];
 
-  const store = useStore();
-  const model = (store as any)[modelName];
+    const onChangeCallback = useCallback(
+      (option) => {
+        if (isMulti) {
+          const values = option.map((option: SelectableValue) => option.value);
+          const items = option.map((option: SelectableValue) => model.items[option.value]);
 
-  const onChangeCallback = useCallback(
-    (option) => {
-      if (isMulti) {
-        const values = option.map((option: SelectableValue) => option.value);
-        const items = option.map((option: SelectableValue) => model.items[option.value]);
-
-        onChange(values, items);
-      } else {
-        if (option) {
-          const id = option.value;
-          const item = model.items[id];
-          onChange(id, item);
+          onChange(values, items);
         } else {
-          onChange(null, null);
+          if (option) {
+            const id = option.value;
+            const item = model.items[id];
+            onChange(id, item);
+          } else {
+            onChange(null, null);
+          }
         }
-      }
-    },
-    [model, onChange]
-  );
+      },
+      [model, onChange]
+    );
 
-  const loadOptions = (query: string) => {
-    return model.updateItems(query).then(() => {
-      const searchResult = model.getSearchResult(query);
-      let items = Array.isArray(searchResult.results) ? searchResult.results : searchResult;
+    const loadOptions = (query: string) => {
+      return model.updateItems(query).then(() => {
+        const searchResult = model.getSearchResult(query);
+        let items = Array.isArray(searchResult.results) ? searchResult.results : searchResult;
 
-      if (filterOptions) {
-        items = items.filter((opt: any) => filterOptions(opt[valueField]));
-      }
+        if (filterOptions) {
+          items = items.filter((opt: any) => filterOptions(opt[valueField]));
+        }
 
-      return items.map((item: any) => ({
-        value: item[valueField],
-        label: get(item, displayField),
-        imgUrl: item.avatar_url,
-        description: getDescription && getDescription(item),
-      }));
-    });
-  };
+        return items.map((item: any) => ({
+          value: item[valueField],
+          label: get(item, displayField),
+          imgUrl: item.avatar_url,
+          description: getDescription && getDescription(item),
+        }));
+      });
+    };
 
-  const values = isMulti
-    ? (value as string[])
-        .filter((id) => id in model.items)
-        .map((id: string) => ({
-          value: id,
-          label: get(model.items[id], displayField),
-          description: getDescription && getDescription(model.items[id]),
-        }))
-    : model.items[value as string]
-    ? {
-        value,
-        label: get(model.items[value as string], displayField),
-        description: getDescription && getDescription(model.items[value as string]),
-      }
-    : value;
+    const values = isMulti
+      ? (value as string[])
+          .filter((id) => id in model.items)
+          .map((id: string) => ({
+            value: id,
+            label: get(model.items[id], displayField),
+            description: getDescription && getDescription(model.items[id]),
+          }))
+      : model.items[value as string]
+      ? {
+          value,
+          label: get(model.items[value as string], displayField),
+          description: getDescription && getDescription(model.items[value as string]),
+        }
+      : value;
 
-  useEffect(() => {
-    const values = isMulti ? value : [value];
+    useEffect(() => {
+      const values = isMulti ? value : [value];
 
-    (values as string[]).forEach((value: string) => {
-      if (!isNil(value) && !model.items[value] && model.updateItem) {
-        model.updateItem(value, fromOrganization);
-      }
-    });
-  }, [value]);
+      (values as string[]).forEach((value: string) => {
+        if (!isNil(value) && !model.items[value] && model.updateItem) {
+          model.updateItem(value, fromOrganization);
+        }
+      });
+    }, [value]);
 
-  const Tag = isMulti ? AsyncMultiSelect : AsyncSelect;
+    const Tag = isMulti ? AsyncMultiSelect : AsyncSelect;
 
-  return (
-    <div className={cx('root', className)}>
-      {/*@ts-ignore*/}
-      <Tag
-        autoFocus={autoFocus}
-        isSearchable={showSearch}
-        isClearable={allowClear}
-        placeholder={placeholder}
-        openMenuOnFocus={defaultOpen}
-        disabled={disabled}
-        menuShouldPortal
-        onChange={onChangeCallback}
-        defaultOptions={!disabled}
-        loadOptions={loadOptions}
-        // @ts-ignore
-        value={values}
-        defaultValue={defaultValue}
-        loadingMessage={`Loading...`}
-        noOptionsMessage={`Not found`}
-        getOptionLabel={getOptionLabel}
-        invalid={showError || (showWarningIfEmptyValue && !value)}
-      />
-    </div>
-  );
-});
+    return (
+      <div className={cx('root', className)}>
+        {/*@ts-ignore*/}
+        <Tag
+          autoFocus={autoFocus}
+          isSearchable={showSearch}
+          isClearable={allowClear}
+          placeholder={placeholder}
+          openMenuOnFocus={defaultOpen}
+          disabled={disabled}
+          menuShouldPortal
+          onChange={onChangeCallback}
+          defaultOptions={!disabled}
+          loadOptions={loadOptions}
+          // @ts-ignore
+          value={values}
+          defaultValue={defaultValue}
+          loadingMessage={`Loading...`}
+          noOptionsMessage={`Not found`}
+          getOptionLabel={getOptionLabel}
+          invalid={showError || (showWarningIfEmptyValue && !value)}
+        />
+      </div>
+    );
+  }
+);
 
 export default GSelect;

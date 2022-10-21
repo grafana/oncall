@@ -22,13 +22,10 @@ interface SlackConnectorProps {
   channelFilterId: ChannelFilter['id'];
 }
 
-const SlackConnector = (props: SlackConnectorProps) => {
-  const { channelFilterId } = props;
+const SlackConnector = ({ channelFilterId }: SlackConnectorProps) => {
+  const { teamStore, alertReceiveChannelStore, isUserActionAllowed } = useStore();
 
-  const store = useStore();
-  const { teamStore, alertReceiveChannelStore } = store;
-
-  const channelFilter = store.alertReceiveChannelStore.channelFilters[channelFilterId];
+  const channelFilter = alertReceiveChannelStore.channelFilters[channelFilterId];
 
   const handleSlackChannelChange = useCallback((_value: SlackChannel['id'], slackChannel: SlackChannel) => {
     // @ts-ignore actually slack_channel is just slack_channel_id when saving
@@ -73,8 +70,7 @@ const SlackConnector = (props: SlackConnectorProps) => {
               channelFilter.slack_channel?.id !== teamStore.currentTeam?.slack_channel?.id
           ) ? (
             <Text type="secondary">
-              default slack channel is{' '}
-              <Text strong>#{getSlackChannelName(store.teamStore.currentTeam?.slack_channel)}</Text>{' '}
+              default slack channel is <Text strong>#{getSlackChannelName(teamStore.currentTeam?.slack_channel)}</Text>{' '}
               <WithPermissionControl userAction={UserAction.UpdateAlertReceiveChannels}>
                 <Button
                   variant="primary"
@@ -96,7 +92,7 @@ const SlackConnector = (props: SlackConnectorProps) => {
               This is the default slack channel{' '}
               <PluginLink
                 query={{ page: 'chat-ops' }}
-                disabled={!store.isUserActionAllowed(UserAction.UpdateGeneralLogChannelId)}
+                disabled={!isUserActionAllowed(UserAction.UpdateGeneralLogChannelId)}
               >
                 <WithPermissionControl userAction={UserAction.UpdateGeneralLogChannelId}>
                   <Button variant="primary" size="sm" fill="text">

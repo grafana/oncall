@@ -18,17 +18,13 @@ interface PhoneConnectorProps {
   onTabChange: (tab: UserSettingsTab) => void;
 }
 
-const PhoneConnector = (props: PhoneConnectorProps) => {
-  const { id, onTabChange } = props;
-
-  const store = useStore();
-  const { userStore } = store;
-
+const PhoneConnector = ({ id, onTabChange }: PhoneConnectorProps) => {
+  const { userStore, hasFeature } = useStore();
   const storeUser = userStore.items[id];
 
   const handleClickConfirmPhoneButton = useCallback(() => {
     onTabChange(UserSettingsTab.PhoneVerification);
-  }, [storeUser?.unverified_phone_number, onTabChange]);
+  }, [onTabChange]);
 
   const cloudVersionPhone = (user: User) => {
     switch (user.cloud_connection_status) {
@@ -77,7 +73,7 @@ const PhoneConnector = (props: PhoneConnectorProps) => {
 
   return (
     <div className={cx('user-item')}>
-      {store.hasFeature(AppFeature.CloudNotifications) ? (
+      {hasFeature(AppFeature.CloudNotifications) ? (
         <>
           <Label>Cloud phone status:</Label>
           {cloudVersionPhone(storeUser)}

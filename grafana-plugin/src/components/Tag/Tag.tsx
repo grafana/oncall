@@ -12,14 +12,10 @@ interface TagProps {
 
 const cx = cn.bind(styles);
 
-const Tag: FC<TagProps> = (props) => {
-  const { children, color, className } = props;
-
-  return (
-    <span style={{ backgroundColor: color }} className={cx('root', className)}>
-      {children}
-    </span>
-  );
-};
+const Tag: FC<TagProps> = ({ children, color, className }) => (
+  <span style={{ backgroundColor: color }} className={cx('root', className)}>
+    {children}
+  </span>
+);
 
 export default Tag;

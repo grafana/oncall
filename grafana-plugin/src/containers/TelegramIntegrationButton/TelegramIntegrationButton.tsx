@@ -21,9 +21,7 @@ interface TelegramIntegrationProps {
   onUpdate: () => void;
 }
 
-const TelegramIntegrationButton = observer((props: TelegramIntegrationProps) => {
-  const { disabled, size = 'md', onUpdate } = props;
-
+const TelegramIntegrationButton = observer(({ disabled, size = 'md', onUpdate }: TelegramIntegrationProps) => {
   const [showModal, setShowModal] = useState<boolean>(false);
 
   const onInstallModalHideCallback = useCallback(() => {
@@ -57,11 +55,8 @@ interface TelegramModalProps {
   onUpdate: () => void;
 }
 
-const TelegramModal = (props: TelegramModalProps) => {
-  const { onHide, onUpdate } = props;
-  const store = useStore();
-  const { telegramChannelStore } = store;
-
+const TelegramModal = ({ onHide, onUpdate }: TelegramModalProps) => {
+  const { telegramChannelStore } = useStore();
   const [verificationCode, setVerificationCode] = useState<string>();
   const [botLink, setBotLink] = useState<string>();
 

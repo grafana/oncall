@@ -17,11 +17,7 @@ interface TimelineType extends React.FC<TimelineProps> {
   Item: React.FC<TimelineItemProps>;
 }
 
-const Timeline: TimelineType = (props) => {
-  const { className, children } = props;
-
-  return <ul className={cx('root', className)}>{children}</ul>;
-};
+const Timeline: TimelineType = ({ className, children }) => <ul className={cx('root', className)}>{children}</ul>;
 
 Timeline.Item = TimelineItem;
 

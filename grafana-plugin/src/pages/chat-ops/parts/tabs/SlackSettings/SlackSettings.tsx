@@ -36,26 +36,26 @@ class SlackSettings extends Component<SlackProps, SlackState> {
   }
 
   update = () => {
-    const { store } = this.props;
+    const { slackStore, slackChannelStore } = this.props.store;
 
-    store.slackChannelStore.updateItems();
-    store.slackStore.updateSlackSettings();
+    slackChannelStore.updateItems();
+    slackStore.updateSlackSettings();
   };
 
   render() {
-    const { store } = this.props;
-    const { teamStore } = store;
+    const {
+      teamStore: { currentTeam },
+    } = this.props.store;
 
-    if (!teamStore.currentTeam) {
+    if (!currentTeam) {
       return <LoadingPlaceholder text="Loading..." />;
     }
 
-    return teamStore.currentTeam?.slack_team_identity ? this.renderSlackIntegration() : this.renderSlackStub();
+    return currentTeam?.slack_team_identity ? this.renderSlackIntegration() : this.renderSlackStub();
   }
 
   renderSlackIntegration = () => {
-    const { store } = this.props;
-    const { teamStore, slackStore } = store;
+    const { teamStore, slackStore } = this.props.store;
 
     return (
       <div className={cx('root')}>
@@ -119,25 +119,24 @@ class SlackSettings extends Component<SlackProps, SlackState> {
   };
 
   getSlackSettingsChangeHandler = (field: string) => {
-    const { store } = this.props;
-    const { slackStore } = store;
+    const {
+      slackStore: { saveSlackSettings },
+    } = this.props.store;
 
     return (value: number | boolean) => {
-      slackStore.saveSlackSettings({ [field]: value });
+      saveSlackSettings({ [field]: value });
     };
   };
 
   handleSlackChannelChange = async (value: SlackChannel['id']) => {
-    const { store } = this.props;
-    const { slackStore } = store;
+    const { slackStore, teamStore } = this.props.store;
 
     await slackStore.setGeneralLogChannelId(value);
-
-    store.teamStore.loadCurrentTeam();
+    teamStore.loadCurrentTeam();
   };
 
   renderSlackStub = () => {
-    const { store } = this.props;
+    const { hasFeature } = this.props.store;
 
     return (
       <Tutorial
@@ -151,7 +150,7 @@ class SlackSettings extends Component<SlackProps, SlackState> {
 
             <SlackIntegrationButton className={cx('slack-button')} />
 
-            {store.hasFeature(AppFeature.LiveSettings) && (
+            {hasFeature(AppFeature.LiveSettings) && (
               <Text type="secondary">
                 Before installing <PluginLink query={{ page: 'live-settings' }}>check ENV variables</PluginLink> related
                 to Slack please

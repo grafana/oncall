@@ -16,9 +16,7 @@ interface SchedulesFiltersProps {
   onChange: (filters: SchedulesFiltersType) => void;
 }
 
-const SchedulesFilters = (props: SchedulesFiltersProps) => {
-  const { value, onChange } = props;
-
+const SchedulesFilters = ({ value, onChange }: SchedulesFiltersProps) => {
   const onSearchTermChangeCallback = useCallback(
     (e: ChangeEvent<HTMLInputElement>) => {
       onChange({ ...value, searchTerm: e.currentTarget.value });

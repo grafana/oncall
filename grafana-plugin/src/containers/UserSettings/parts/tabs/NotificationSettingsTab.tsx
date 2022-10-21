@@ -4,12 +4,12 @@ import PersonalNotificationSettings from 'containers/PersonalNotificationSetting
 import { User } from 'models/user/user.types';
 import { useStore } from 'state/useStore';
 
-export const NotificationSettingsTab = (props: { id: User['pk'] }) => {
-  const { id } = props;
+type Props = {
+  id: User['pk'];
+};
 
-  const store = useStore();
-
-  const { userStore } = store;
+export const NotificationSettingsTab = ({ id }: Props) => {
+  const { userStore } = useStore();
 
   useEffect(() => {
     userStore.updateNotificationPolicies(id);

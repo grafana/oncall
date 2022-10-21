@@ -20,9 +20,7 @@ interface NewScheduleSelectorProps {
 
 const cx = cn.bind(styles);
 
-const NewScheduleSelector: FC<NewScheduleSelectorProps> = (props) => {
-  const { onHide, onCreate, onUpdate } = props;
-
+const NewScheduleSelector: FC<NewScheduleSelectorProps> = ({ onHide, onCreate, onUpdate }) => {
   const [showScheduleForm, setShowScheduleForm] = useState<boolean>(false);
   const [type, setType] = useState<ScheduleType | undefined>();
 

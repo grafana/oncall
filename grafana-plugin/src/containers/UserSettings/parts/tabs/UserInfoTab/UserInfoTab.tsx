@@ -21,10 +21,7 @@ interface UserInfoTabProps {
 
 export const UserInfoTab = (props: UserInfoTabProps) => {
   const { id } = props;
-
-  const store = useStore();
-  const { userStore } = store;
-
+  const { userStore } = useStore();
   const storeUser = userStore.items[id];
 
   return (

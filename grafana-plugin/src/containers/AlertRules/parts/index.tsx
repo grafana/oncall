@@ -12,13 +12,10 @@ interface ChatOpsConnectorsProps {
   channelFilterId: ChannelFilter['id'];
 }
 
-export const ChatOpsConnectors = (props: ChatOpsConnectorsProps) => {
-  const { channelFilterId } = props;
+export const ChatOpsConnectors = ({ channelFilterId }: ChatOpsConnectorsProps) => {
+  const { telegramChannelStore, teamStore } = useStore();
 
-  const store = useStore();
-  const { telegramChannelStore } = store;
-
-  const isSlackInstalled = Boolean(store.teamStore.currentTeam?.slack_team_identity);
+  const isSlackInstalled = Boolean(teamStore.currentTeam?.slack_team_identity);
   const isTelegramInstalled = Boolean(telegramChannelStore.currentTeamToTelegramChannel?.length > 0);
 
   if (!isSlackInstalled && !isTelegramInstalled) {

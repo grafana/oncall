@@ -15,16 +15,14 @@ interface SlackConnectorProps {
   onTabChange: (tab: UserSettingsTab) => void;
 }
 
-const SlackConnector = (props: SlackConnectorProps) => {
-  const { onTabChange } = props;
-
-  const store = useStore();
+const SlackConnector = ({ onTabChange }: SlackConnectorProps) => {
+  const { hasFeature } = useStore();
 
   const handleClickConfirmMobileAppButton = useCallback(() => {
     onTabChange(UserSettingsTab.MobileAppVerification);
   }, [onTabChange]);
 
-  if (!store.hasFeature(AppFeature.MobileApp)) {
+  if (!hasFeature(AppFeature.MobileApp)) {
     return null;
   }
 

@@ -71,15 +71,12 @@ class MaintenancePage extends React.Component<MaintenancePageProps, MaintenanceP
   };
 
   update = () => {
-    const { store } = this.props;
-    const { maintenanceStore } = store;
-
+    const { maintenanceStore } = this.props.store;
     return maintenanceStore.updateMaintenances();
   };
 
   render() {
-    const { store } = this.props;
-    const { maintenanceStore } = store;
+    const { maintenanceStore } = this.props.store;
     const { maintenanceData } = this.state;
 
     const data = maintenanceStore?.maintenances;
@@ -161,8 +158,7 @@ class MaintenancePage extends React.Component<MaintenancePageProps, MaintenanceP
   }
 
   renderTitle = (maintenance: Maintenance) => {
-    const { store } = this.props;
-    const { alertReceiveChannelStore } = store;
+    const { alertReceiveChannelStore, teamStore } = this.props.store;
     const alertReceiveChannel = alertReceiveChannelStore.items
       ? alertReceiveChannelStore.items[maintenance.alert_receive_channel_id]
       : undefined;
@@ -172,7 +168,7 @@ class MaintenancePage extends React.Component<MaintenancePageProps, MaintenanceP
         return <Emoji text={getAlertReceiveChannelDisplayName(alertReceiveChannel)} />;
 
       case MaintenanceType.organization:
-        return `${store.teamStore.currentTeam?.name} Team`;
+        return `${teamStore.currentTeam?.name} Team`;
     }
   };
 
@@ -205,8 +201,7 @@ class MaintenancePage extends React.Component<MaintenancePageProps, MaintenanceP
   };
 
   getStopMaintenanceHandler = (maintenance: Maintenance) => {
-    const { store } = this.props;
-    const { maintenanceStore } = store;
+    const { maintenanceStore } = this.props.store;
 
     return () => {
       maintenanceStore.stopMaintenanceMode(maintenance.type, maintenance.alert_receive_channel_id).then(this.update);

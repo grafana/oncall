@@ -28,10 +28,10 @@ interface PersonalNotificationSettingsProps {
   isImportant: boolean;
 }
 
-const PersonalNotificationSettings = observer((props: PersonalNotificationSettingsProps) => {
-  const { userPk, isImportant } = props;
-  const store = useStore();
-  const { userStore } = store;
+const PersonalNotificationSettings = observer(({ userPk, isImportant }: PersonalNotificationSettingsProps) => {
+  const { teamStore, userStore, hasFeature } = useStore();
+  const isCurrent = userStore.currentUserPk === userPk;
+  const user = userStore.items[userPk];
 
   const getNotificationPolicySortEndHandler = useCallback(
     (indexOffset: number) => {
@@ -101,13 +101,9 @@ const PersonalNotificationSettings = observer((props: PersonalNotificationSettin
     ? allNotificationPolicies.findIndex((notificationPolicy: NotificationPolicyType) => notificationPolicy.important)
     : 0;
 
-  const isCurrent = store.userStore.currentUserPk === userPk;
-
-  const user = userStore.items[userPk];
-
   const userAction = isCurrent ? UserAction.UpdateOwnSettings : UserAction.UpdateNotificationPolicies;
   const getPhoneStatus = () => {
-    if (store.hasFeature(AppFeature.CloudNotifications)) {
+    if (hasFeature(AppFeature.CloudNotifications)) {
       return user.cloud_connection_status;
     }
     return Number(user.verified_phone_number) + 2;
@@ -134,7 +130,7 @@ const PersonalNotificationSettings = observer((props: PersonalNotificationSettin
             number={index + 1}
             telegramVerified={Boolean(user.telegram_configuration)}
             phoneStatus={getPhoneStatus()}
-            slackTeamIdentity={store.teamStore.currentTeam?.slack_team_identity}
+            slackTeamIdentity={teamStore.currentTeam?.slack_team_identity}
             slackUserIdentity={user.slack_user_identity}
             data={notificationPolicy}
             onChange={getNotificationPolicyUpdateHandler}

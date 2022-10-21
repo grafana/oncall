@@ -23,13 +23,8 @@ interface OutgoingWebhookFormProps {
   onUpdate: () => void;
 }
 
-const OutgoingWebhookForm = observer((props: OutgoingWebhookFormProps) => {
-  const { id, onUpdate, onHide } = props;
-
-  const store = useStore();
-
-  const { outgoingWebhookStore } = store;
-
+const OutgoingWebhookForm = observer(({ id, onUpdate, onHide }: OutgoingWebhookFormProps) => {
+  const { outgoingWebhookStore } = useStore();
   const data = id === 'new' ? {} : outgoingWebhookStore.items[id];
 
   const handleSubmit = useCallback(

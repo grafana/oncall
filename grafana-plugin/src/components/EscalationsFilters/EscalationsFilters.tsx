@@ -16,9 +16,7 @@ interface EscalationsFiltersProps {
 
 const cx = cn.bind(styles);
 
-const EscalationsFilters: FC<EscalationsFiltersProps> = (props) => {
-  const { value, onChange } = props;
-
+const EscalationsFilters: FC<EscalationsFiltersProps> = ({ value, onChange }) => {
   const onSearchTermChangeCallback = useCallback(
     (e: ChangeEvent<HTMLInputElement>) => {
       const filters = {

@@ -13,32 +13,25 @@ interface ScheduleQualityProps {
 
 const cx = cn.bind(styles);
 
-const ScheduleQuality: FC<ScheduleQualityProps> = (props) => {
-  const { quality } = props;
-
-  return (
-    <Tooltip placement="bottom-end" interactive content={<SheduleQualityDetails quality={quality} />}>
-      <div className={cx('root')}>
-        <HorizontalGroup spacing="sm">
-          <Text type="secondary">Quality:</Text>
-          <Text type="primary">{Math.floor(quality * 100)}%</Text>
-        </HorizontalGroup>
-      </div>
-    </Tooltip>
-  );
-};
+const ScheduleQuality: FC<ScheduleQualityProps> = ({ quality }) => (
+  <Tooltip placement="bottom-end" interactive content={<SheduleQualityDetails quality={quality} />}>
+    <div className={cx('root')}>
+      <HorizontalGroup spacing="sm">
+        <Text type="secondary">Quality:</Text>
+        <Text type="primary">{Math.floor(quality * 100)}%</Text>
+      </HorizontalGroup>
+    </div>
+  </Tooltip>
+);
 
 interface ScheduleQualityDetailsProps {
   quality: number;
 }
 
-const SheduleQualityDetails = (props: ScheduleQualityDetailsProps) => {
-  const { quality } = props;
-
+const SheduleQualityDetails = ({ quality }: ScheduleQualityDetailsProps) => {
   const [expanded, setExpanded] = useState<boolean>(false);
 
   const type = quality > 0.8 ? 'success' : 'warning';
-
   const qualityPercent = quality * 100;
 
   const handleExpandClick = useCallback(() => {

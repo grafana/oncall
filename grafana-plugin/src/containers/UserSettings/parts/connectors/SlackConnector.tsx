@@ -19,23 +19,22 @@ interface SlackConnectorProps {
   onTabChange: (tab: UserSettingsTab) => void;
 }
 
-const SlackConnector = (props: SlackConnectorProps) => {
-  const { id, onTabChange } = props;
+const SlackConnector = ({ id, onTabChange }: SlackConnectorProps) => {
+  const {
+    userStore: { items, currentUserPk, unlinkSlack },
+    teamStore,
+  } = useStore();
 
-  const store = useStore();
-  const { userStore, teamStore } = store;
-
-  const storeUser = userStore.items[id];
-
-  const isCurrent = id === store.userStore.currentUserPk;
+  const storeUser = items[id];
+  const isCurrent = id === currentUserPk;
 
   const handleConnectButtonClick = useCallback(() => {
     onTabChange(UserSettingsTab.SlackInfo);
   }, [onTabChange]);
 
   const handleUnlinkSlackAccount = useCallback(() => {
-    userStore.unlinkSlack(userStore.currentUserPk);
-  }, []);
+    unlinkSlack(currentUserPk);
+  }, [unlinkSlack, currentUserPk]);
 
   return (
     <div className={cx('user-item')}>

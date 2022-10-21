@@ -57,7 +57,7 @@ class Rotations extends Component<RotationsProps, RotationsState> {
       onCreate,
       onUpdate,
       onDelete,
-      store,
+      store: { scheduleStore },
       shiftIdToShowRotationForm,
       disabled,
     } = this.props;
@@ -70,9 +70,9 @@ class Rotations extends Component<RotationsProps, RotationsState> {
 
     const currentTimeHidden = currentTimeX < 0 || currentTimeX > 1;
 
-    const layers = store.scheduleStore.rotationPreview
-      ? store.scheduleStore.rotationPreview
-      : (store.scheduleStore.events[scheduleId]?.['rotation']?.[getFromString(startMoment)] as Layer[]);
+    const layers = scheduleStore.rotationPreview
+      ? scheduleStore.rotationPreview
+      : (scheduleStore.events[scheduleId]?.['rotation']?.[getFromString(startMoment)] as Layer[]);
 
     const options = layers
       ? layers.map((layer) => ({
@@ -205,8 +205,7 @@ class Rotations extends Component<RotationsProps, RotationsState> {
             shiftMoment={shiftMomentToShowRotationForm}
             onHide={() => {
               this.hideRotationForm();
-
-              store.scheduleStore.clearPreview();
+              scheduleStore.clearPreview();
             }}
             onUpdate={() => {
               this.hideRotationForm();

@@ -32,12 +32,8 @@ const scheduleTypeToForm = {
   [ScheduleType.API]: apiForm,
 };
 
-const ScheduleForm = observer((props: ScheduleFormProps) => {
-  const { id, type, onUpdate, onCreate, onHide } = props;
-
-  const store = useStore();
-
-  const { scheduleStore, userStore } = store;
+const ScheduleForm = observer(({ id, type, onUpdate, onCreate, onHide }: ScheduleFormProps) => {
+  const { scheduleStore, userStore } = useStore();
 
   const data = useMemo(() => {
     return id === 'new' ? { team: userStore.currentUser?.current_team, type } : prepareForEdit(scheduleStore.items[id]);

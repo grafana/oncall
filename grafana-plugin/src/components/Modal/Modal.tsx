@@ -21,30 +21,33 @@ export interface ModalProps {
 
 const cx = cn.bind(styles);
 
-const Modal: FC<PropsWithChildren<ModalProps>> = (props) => {
-  const { title, children, onDismiss, width = '600px', contentElement, isOpen = true } = props;
-
-  return (
-    <ReactModal
-      shouldCloseOnOverlayClick={false}
-      style={{
-        overlay: {},
-        content: {
-          width,
-        },
-      }}
-      isOpen={isOpen}
-      onAfterOpen={() => {}}
-      onRequestClose={onDismiss}
-      contentLabel={title}
-      className={cx('root')}
-      overlayClassName={cx('overlay')}
-      overlayElement={(_props, contentElement) => contentElement} // render without overlay to allow body scroll
-      contentElement={contentElement}
-    >
-      {children}
-    </ReactModal>
-  );
-};
+const Modal: FC<PropsWithChildren<ModalProps>> = ({
+  title,
+  children,
+  onDismiss,
+  width = '600px',
+  contentElement,
+  isOpen = true,
+}) => (
+  <ReactModal
+    shouldCloseOnOverlayClick={false}
+    style={{
+      overlay: {},
+      content: {
+        width,
+      },
+    }}
+    isOpen={isOpen}
+    onAfterOpen={() => {}}
+    onRequestClose={onDismiss}
+    contentLabel={title}
+    className={cx('root')}
+    overlayClassName={cx('overlay')}
+    overlayElement={(_props, contentElement) => contentElement} // render without overlay to allow body scroll
+    contentElement={contentElement}
+  >
+    {children}
+  </ReactModal>
+);
 
 export default Modal;

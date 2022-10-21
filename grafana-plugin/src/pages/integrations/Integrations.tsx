@@ -99,8 +99,8 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
   };
 
   update = () => {
-    const { store } = this.props;
-    return store.alertReceiveChannelStore.updateItems();
+    const { alertReceiveChannelStore } = this.props.store;
+    return alertReceiveChannelStore.updateItems();
   };
 
   componentDidUpdate(prevProps: IntegrationsProps) {
@@ -117,7 +117,10 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
   }
 
   render() {
-    const { store, query } = this.props;
+    const {
+      store: { alertReceiveChannelStore, selectedAlertReceiveChannel },
+      query,
+    } = this.props;
     const {
       integrationsFilters,
       alertReceiveChannelToShowSettings,
@@ -126,7 +129,6 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
       errorData,
     } = this.state;
 
-    const { alertReceiveChannelStore } = store;
     const searchResult = alertReceiveChannelStore.getSearchResult();
 
     return (
@@ -159,7 +161,7 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
                     <div className={cx('alert-receive-channels-list')}>
                       <GList
                         autoScroll
-                        selectedId={store.selectedAlertReceiveChannel}
+                        selectedId={selectedAlertReceiveChannel}
                         items={searchResult}
                         itemKey="id"
                         onSelect={this.handleAlertReceiveChannelSelect}
@@ -180,11 +182,11 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
                   </div>
                   <div className={cx('alert-rules', 'alertRulesBorder')}>
                     <AlertRules
-                      alertReceiveChannelId={store.selectedAlertReceiveChannel}
+                      alertReceiveChannelId={selectedAlertReceiveChannel}
                       onDelete={this.handleDeleteAlertReceiveChannel}
                       onShowSettings={(integrationSettingsTab?: IntegrationSettingsTab) => {
                         this.setState({
-                          alertReceiveChannelToShowSettings: store.selectedAlertReceiveChannel,
+                          alertReceiveChannelToShowSettings: selectedAlertReceiveChannel,
                           integrationSettingsTab,
                         });
                       }}
@@ -247,12 +249,12 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
   }
 
   handleCreateNewAlertReceiveChannel = (option: AlertReceiveChannelOption) => {
-    const { store } = this.props;
+    const { alertReceiveChannelStore } = this.props.store;
 
-    store.alertReceiveChannelStore
+    alertReceiveChannelStore
       .create({ integration: option.value })
       .then(async (alertReceiveChannel: AlertReceiveChannel) => {
-        await store.alertReceiveChannelStore.updateItems();
+        await alertReceiveChannelStore.updateItems();
 
         this.setSelectedAlertReceiveChannel(alertReceiveChannel.id);
 
@@ -261,7 +263,7 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
           integrationSettingsTab: IntegrationSettingsTab.HowToConnect,
         });
 
-        const integration = store.alertReceiveChannelStore.getIntegration(alertReceiveChannel);
+        const integration = alertReceiveChannelStore.getIntegration(alertReceiveChannel);
         if (integration?.display_name === 'Grafana Alerting') {
           this.alertReceiveChanneltoPoll = { ...this.alertReceiveChanneltoPoll, [alertReceiveChannel.id]: 200 };
           if (!this.alertReceiveChannelTimerId) {
@@ -272,24 +274,22 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
   };
 
   checkTimerTick = () => {
-    const { store } = this.props;
+    const { alertReceiveChannelStore, selectedAlertReceiveChannel } = this.props.store;
 
-    if (store.selectedAlertReceiveChannel in this.alertReceiveChanneltoPoll) {
-      let counter = this.alertReceiveChanneltoPoll[store.selectedAlertReceiveChannel];
+    if (selectedAlertReceiveChannel in this.alertReceiveChanneltoPoll) {
+      let counter = this.alertReceiveChanneltoPoll[selectedAlertReceiveChannel];
       if (counter > 0) {
-        store.alertReceiveChannelStore.updateItem(store.selectedAlertReceiveChannel);
-        this.alertReceiveChanneltoPoll[store.selectedAlertReceiveChannel]--;
+        alertReceiveChannelStore.updateItem(selectedAlertReceiveChannel);
+        this.alertReceiveChanneltoPoll[selectedAlertReceiveChannel]--;
       } else {
-        delete this.alertReceiveChanneltoPoll[store.selectedAlertReceiveChannel];
+        delete this.alertReceiveChanneltoPoll[selectedAlertReceiveChannel];
       }
     }
   };
 
   handleDeleteAlertReceiveChannel = (alertReceiveChannelId: AlertReceiveChannel['id']) => {
-    const { store } = this.props;
+    const { alertReceiveChannelStore, selectedAlertReceiveChannel } = this.props.store;
     const { alertReceiveChanneltoPoll } = this;
-
-    const { alertReceiveChannelStore } = store;
 
     if (alertReceiveChanneltoPoll[alertReceiveChannelId]) {
       delete alertReceiveChanneltoPoll[alertReceiveChannelId];
@@ -298,7 +298,7 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
     alertReceiveChannelStore.deleteAlertReceiveChannel(alertReceiveChannelId).then(async () => {
       await alertReceiveChannelStore.updateItems();
 
-      if (alertReceiveChannelId === store.selectedAlertReceiveChannel) {
+      if (alertReceiveChannelId === selectedAlertReceiveChannel) {
         const searchResult = alertReceiveChannelStore.getSearchResult();
 
         this.setSelectedAlertReceiveChannel(searchResult && searchResult[0]?.id);

@@ -16,9 +16,7 @@ interface IntegrationsFiltersProps {
 
 const cx = cn.bind(styles);
 
-const IntegrationsFilters: FC<IntegrationsFiltersProps> = (props) => {
-  const { value, onChange } = props;
-
+const IntegrationsFilters: FC<IntegrationsFiltersProps> = ({ value, onChange }) => {
   const onSearchTermChangeCallback = useCallback(
     (e: ChangeEvent<HTMLInputElement>) => {
       const filters = {

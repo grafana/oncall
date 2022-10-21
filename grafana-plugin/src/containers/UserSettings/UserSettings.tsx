@@ -26,11 +26,9 @@ interface UserFormProps {
 }
 
 const UserSettings = observer(({ id, onHide, tab = UserSettingsTab.UserInfo }: UserFormProps) => {
-  const store = useStore();
-  const { userStore, teamStore } = store;
-
+  const { userStore, teamStore, hasFeature } = useStore();
   const storeUser = userStore.items[id];
-  const isCurrent = id === store.userStore.currentUserPk;
+  const isCurrent = id === userStore.currentUserPk;
 
   const [activeTab, setActiveTab] = useState<UserSettingsTab>(tab);
 
@@ -56,7 +54,7 @@ const UserSettings = observer(({ id, onHide, tab = UserSettingsTab.UserInfo }: U
       !isDesktopOrLaptop,
       isCurrent && teamStore.currentTeam?.slack_team_identity && !storeUser.slack_user_identity,
       isCurrent && !storeUser.telegram_configuration,
-      store.hasFeature(AppFeature.MobileApp),
+      hasFeature(AppFeature.MobileApp),
     ];
 
   return (

@@ -81,7 +81,7 @@ class SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSta
     this.setState({ errorData: initErrorDataState() }); // reset wrong team error to false on query parse
 
     const {
-      store,
+      store: { scheduleStore },
       query: { id },
     } = this.props;
 
@@ -94,7 +94,7 @@ class SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSta
 
     if (!isNewSchedule) {
       // load schedule only for valid id
-      const schedule = await store.scheduleStore
+      const schedule = await scheduleStore
         .loadItem(id, true)
         .catch((error) => this.setState({ errorData: { ...getWrongTeamResponseInfo(error) } }));
       if (!schedule) {
@@ -112,17 +112,17 @@ class SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSta
   };
 
   update = () => {
-    const { store } = this.props;
-    const { scheduleStore } = store;
-
+    const { scheduleStore } = this.props.store;
     return scheduleStore.updateItems();
   };
 
   render() {
-    const { store, query } = this.props;
+    const {
+      store: { scheduleStore, isUserActionAllowed },
+      query,
+    } = this.props;
     const { expandedSchedulesKeys, scheduleIdToDelete, scheduleIdToEdit, scheduleIdToExport } = this.state;
     const { filters, errorData } = this.state;
-    const { scheduleStore } = store;
 
     const columns = [
       {
@@ -203,7 +203,7 @@ class SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSta
                       <PluginLink
                         partial
                         query={{ id: 'new' }}
-                        disabled={!store.isUserActionAllowed(UserAction.UpdateSchedules)}
+                        disabled={!isUserActionAllowed(UserAction.UpdateSchedules)}
                       >
                         <WithPermissionControl userAction={UserAction.UpdateSchedules}>
                           <Button variant="primary" icon="plus">
@@ -294,10 +294,7 @@ class SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSta
   };
 
   renderEvents = (schedule: Schedule) => {
-    const { store } = this.props;
-    const { scheduleStore } = store;
-    const { scheduleToScheduleEvents } = scheduleStore;
-
+    const { scheduleToScheduleEvents } = this.props.store.scheduleStore;
     const events = scheduleToScheduleEvents[schedule.id];
 
     return events ? (
@@ -323,8 +320,7 @@ class SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSta
   };
 
   renderInstruction = () => {
-    const { store } = this.props;
-    const { userStore } = store;
+    const { userStore } = this.props.store;
 
     return (
       <div className={cx('instructions')}>
@@ -439,14 +435,12 @@ class SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSta
   };
 
   updateEventsFor = async (scheduleId: Schedule['id'], withEmpty = true, with_gap = true) => {
-    const { store } = this.props;
-
-    const { scheduleStore } = store;
+    const { scheduleStore } = this.props.store;
     const {
       filters: { selectedDate },
     } = this.state;
 
-    store.scheduleStore.scheduleToScheduleEvents = omit(store.scheduleStore.scheduleToScheduleEvents, [scheduleId]);
+    scheduleStore.scheduleToScheduleEvents = omit(scheduleStore.scheduleToScheduleEvents, [scheduleId]);
 
     this.forceUpdate();
 
@@ -456,9 +450,7 @@ class SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSta
   };
 
   getReloadScheduleClickHandler = (scheduleId: Schedule['id']) => {
-    const { store } = this.props;
-
-    const { scheduleStore } = store;
+    const { scheduleStore } = this.props.store;
 
     return async (event: SyntheticEvent) => {
       event.stopPropagation();
@@ -486,11 +478,9 @@ class SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSta
 
   handleDelete = async () => {
     const { scheduleIdToDelete } = this.state;
-    const { store } = this.props;
+    const { scheduleStore } = this.props.store;
 
     this.setState({ scheduleIdToDelete: undefined });
-
-    const { scheduleStore } = store;
 
     await scheduleStore.delete(scheduleIdToDelete);
 

@@ -36,18 +36,16 @@ interface AlertTemplatesFormProps {
   selectedTemplateName?: string;
 }
 
-const AlertTemplatesForm = (props: AlertTemplatesFormProps) => {
-  const {
-    onUpdateTemplates,
-    templates,
-    alertReceiveChannelId,
-    alertGroupId,
-    demoAlertEnabled,
-    handleSendDemoAlertClick,
-    templatesRefreshing,
-    selectedTemplateName,
-  } = props;
-
+const AlertTemplatesForm = ({
+  onUpdateTemplates,
+  templates,
+  alertReceiveChannelId,
+  alertGroupId,
+  demoAlertEnabled,
+  handleSendDemoAlertClick,
+  templatesRefreshing,
+  selectedTemplateName,
+}: AlertTemplatesFormProps) => {
   const [tempValues, setTempValues] = useState<{
     [key: string]: string | null;
   }>({});

@@ -32,8 +32,7 @@ export interface Props<RecordType = unknown> extends TableProps<RecordType> {
   };
 }
 
-const GTable: FC<Props> = (props) => {
-  const { columns, data, className, pagination, loading, rowKey, expandable, ...restProps } = props;
+const GTable: FC<Props> = ({ columns, data, className, pagination, loading, rowKey, expandable, ...restProps }) => {
   const { page, total: numberOfPages, onChange: onNavigate } = pagination || {};
 
   const expandableFn = useMemo(() => {

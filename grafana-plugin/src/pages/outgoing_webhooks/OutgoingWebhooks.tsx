@@ -56,7 +56,7 @@ class OutgoingWebhooks extends React.Component<OutgoingWebhooksProps, OutgoingWe
     })); // reset state on query parse
 
     const {
-      store,
+      store: { outgoingWebhookStore },
       query: { id },
     } = this.props;
 
@@ -68,7 +68,7 @@ class OutgoingWebhooks extends React.Component<OutgoingWebhooksProps, OutgoingWe
     const isNewWebhook = id === 'new';
 
     if (!isNewWebhook) {
-      outgoingWebhook = await store.outgoingWebhookStore
+      outgoingWebhook = await outgoingWebhookStore
         .loadItem(id, true)
         .catch((error) => this.setState({ errorData: { ...getWrongTeamResponseInfo(error) } }));
     }
@@ -79,16 +79,18 @@ class OutgoingWebhooks extends React.Component<OutgoingWebhooksProps, OutgoingWe
   };
 
   update = () => {
-    const { store } = this.props;
-
-    return store.outgoingWebhookStore.updateItems();
+    const { outgoingWebhookStore } = this.props.store;
+    return outgoingWebhookStore.updateItems();
   };
 
   render() {
-    const { store, query } = this.props;
+    const {
+      store: { outgoingWebhookStore, isUserActionAllowed },
+      query,
+    } = this.props;
     const { outgoingWebhookIdToEdit, errorData } = this.state;
 
-    const webhooks = store.outgoingWebhookStore.getSearchResult();
+    const webhooks = outgoingWebhookStore.getSearchResult();
 
     const columns = [
       {
@@ -126,7 +128,7 @@ class OutgoingWebhooks extends React.Component<OutgoingWebhooksProps, OutgoingWe
                     <PluginLink
                       partial
                       query={{ id: 'new' }}
-                      disabled={!store.isUserActionAllowed(UserAction.UpdateCustomActions)}
+                      disabled={!isUserActionAllowed(UserAction.UpdateCustomActions)}
                     >
                       <WithPermissionControl userAction={UserAction.UpdateCustomActions}>
                         <Button variant="primary" icon="plus">
@@ -174,9 +176,9 @@ class OutgoingWebhooks extends React.Component<OutgoingWebhooksProps, OutgoingWe
   };
 
   getDeleteClickHandler = (id: OutgoingWebhook['id']) => {
-    const { store } = this.props;
+    const { alertReceiveChannelStore } = this.props.store;
     return () => {
-      store.alertReceiveChannelStore.deleteCustomButton(id).then(this.update);
+      alertReceiveChannelStore.deleteCustomButton(id).then(this.update);
     };
   };
 

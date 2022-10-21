@@ -18,16 +18,15 @@ interface ScheduleICalSettingsProps {
   id: Schedule['id'];
 }
 
-const ScheduleICalSettings: FC<ScheduleICalSettingsProps> = observer((props) => {
-  const { id } = props;
-  const store = useStore();
+const ScheduleICalSettings: FC<ScheduleICalSettingsProps> = observer(({ id }) => {
+  const { scheduleStore } = useStore();
 
   const [ICalLink, setICalLink] = useState<string>(undefined);
   const [isiCalLinkExist, setIsICalLinkExist] = useState<boolean>(false);
   const [isICalLinkLoading, setIsICalLinkLoading] = useState<boolean>(true);
 
   useEffect(() => {
-    store.scheduleStore
+    scheduleStore
       .getICalLink(id)
       .then(() => {
         setIsICalLinkExist(true);
@@ -41,7 +40,7 @@ const ScheduleICalSettings: FC<ScheduleICalSettingsProps> = observer((props) => 
 
   const handleCreateICalLink = async () => {
     setIsICalLinkExist(true);
-    await store.scheduleStore
+    await scheduleStore
       .createICalLink(id)
       .then((res: CreateScheduleExportTokenResponse) => setICalLink(res?.export_url));
   };
@@ -49,7 +48,7 @@ const ScheduleICalSettings: FC<ScheduleICalSettingsProps> = observer((props) => 
   const handleRevokeICalLink = async () => {
     setIsICalLinkExist(false);
     setICalLink(undefined);
-    await store.scheduleStore.deleteICalLink(id);
+    await scheduleStore.deleteICalLink(id);
   };
 
   return (

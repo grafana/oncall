@@ -32,141 +32,139 @@ interface IntegrationSettingsProps {
   onUpdateTemplates?: () => void;
 }
 
-const IntegrationSettings = observer((props: IntegrationSettingsProps) => {
-  const { id, onHide, onUpdate, onUpdateTemplates, startTab, alertGroupId } = props;
-  const [activeTab, setActiveTab] = useState<IntegrationSettingsTab>(startTab || IntegrationSettingsTab.Templates);
-  const [selectedTemplate, setSelectedTemplate] = useState<string>('');
+const IntegrationSettings = observer(
+  ({ id, onHide, onUpdate, onUpdateTemplates, startTab, alertGroupId }: IntegrationSettingsProps) => {
+    const [activeTab, setActiveTab] = useState<IntegrationSettingsTab>(startTab || IntegrationSettingsTab.Templates);
+    const [selectedTemplate, setSelectedTemplate] = useState<string>('');
 
-  const store = useStore();
+    const { alertReceiveChannelStore } = useStore();
+    const alertReceiveChannel = alertReceiveChannelStore.items[id];
 
-  const { alertReceiveChannelStore } = store;
+    const getTabClickHandler = useCallback((tab: IntegrationSettingsTab) => {
+      return () => {
+        setActiveTab(tab);
+        getLocationSrv().update({ partial: true, query: { tab: tab } });
+      };
+    }, []);
 
-  const alertReceiveChannel = alertReceiveChannelStore.items[id];
+    useEffect(() => {
+      alertReceiveChannelStore.updateItem(id);
+    }, []);
 
-  const getTabClickHandler = useCallback((tab: IntegrationSettingsTab) => {
-    return () => {
-      setActiveTab(tab);
-      getLocationSrv().update({ partial: true, query: { tab: tab } });
+    useEffect(() => {
+      setActiveTab(startTab || IntegrationSettingsTab.Templates);
+      getLocationSrv().update({ partial: true, query: { tab: startTab || IntegrationSettingsTab.Templates } });
+    }, [startTab]);
+
+    const integration = alertReceiveChannelStore.getIntegration(alertReceiveChannel);
+
+    const [expanded, _setExpanded] = useState(false);
+
+    const handleSwitchToTemplate = (templateName: string) => {
+      setSelectedTemplate(templateName);
     };
-  }, []);
 
-  useEffect(() => {
-    alertReceiveChannelStore.updateItem(id);
-  }, []);
-
-  useEffect(() => {
-    setActiveTab(startTab || IntegrationSettingsTab.Templates);
-    getLocationSrv().update({ partial: true, query: { tab: startTab || IntegrationSettingsTab.Templates } });
-  }, [startTab]);
-
-  const integration = alertReceiveChannelStore.getIntegration(alertReceiveChannel);
-
-  const [expanded, _setExpanded] = useState(false);
-
-  const handleSwitchToTemplate = (templateName: string) => {
-    setSelectedTemplate(templateName);
-  };
-
-  return (
-    <Drawer
-      scrollableContent
-      expandable
-      title={
-        <div className={cx('title')}>
-          {integration && <IntegrationLogo integration={integration} scale={0.2} />}
-          <div className={cx('title-column')}>
-            {alertReceiveChannel && (
-              <Text.Title level={4}>
-                <Emoji text={alertReceiveChannel.verbal_name} /> settings
-              </Text.Title>
-            )}
-            {integration && <Text type="secondary">Type: {integration.display_name}</Text>}
+    return (
+      <Drawer
+        scrollableContent
+        expandable
+        title={
+          <div className={cx('title')}>
+            {integration && <IntegrationLogo integration={integration} scale={0.2} />}
+            <div className={cx('title-column')}>
+              {alertReceiveChannel && (
+                <Text.Title level={4}>
+                  <Emoji text={alertReceiveChannel.verbal_name} /> settings
+                </Text.Title>
+              )}
+              {integration && <Text type="secondary">Type: {integration.display_name}</Text>}
+            </div>
           </div>
-        </div>
-      }
-      width={expanded ? '100%' : '70%'}
-      onClose={onHide}
-    >
-      <TabsBar>
-        <Tab
-          active={activeTab === IntegrationSettingsTab.HowToConnect}
-          label="How to connect"
-          key={IntegrationSettingsTab.HowToConnect}
-          onChangeTab={getTabClickHandler(IntegrationSettingsTab.HowToConnect)}
-        />
-        <Tab
-          active={activeTab === IntegrationSettingsTab.Templates}
-          label="Alert Templates"
-          key={IntegrationSettingsTab.Templates}
-          onChangeTab={getTabClickHandler(IntegrationSettingsTab.Templates)}
-        />
-        {alertReceiveChannel?.is_available_for_integration_heartbeat && (
+        }
+        width={expanded ? '100%' : '70%'}
+        onClose={onHide}
+      >
+        <TabsBar>
           <Tab
-            active={activeTab === IntegrationSettingsTab.Heartbeat}
-            label="Heartbeat"
-            key={IntegrationSettingsTab.Heartbeat}
-            onChangeTab={getTabClickHandler(IntegrationSettingsTab.Heartbeat)}
+            active={activeTab === IntegrationSettingsTab.HowToConnect}
+            label="How to connect"
+            key={IntegrationSettingsTab.HowToConnect}
+            onChangeTab={getTabClickHandler(IntegrationSettingsTab.HowToConnect)}
           />
-        )}
-        <Tab
-          active={activeTab === IntegrationSettingsTab.Autoresolve}
-          label="Settings"
-          key={IntegrationSettingsTab.Autoresolve}
-          onChangeTab={getTabClickHandler(IntegrationSettingsTab.Autoresolve)}
-        />
-      </TabsBar>
-      <TabContent className={cx('content')}>
-        {activeTab === IntegrationSettingsTab.Templates && (
-          <AlertTemplatesFormContainer
-            alertReceiveChannelId={id}
-            alertGroupId={alertGroupId}
-            onUpdate={onUpdate}
-            onHide={onHide}
-            onUpdateTemplates={onUpdateTemplates}
-            selectedTemplateName={selectedTemplate}
+          <Tab
+            active={activeTab === IntegrationSettingsTab.Templates}
+            label="Alert Templates"
+            key={IntegrationSettingsTab.Templates}
+            onChangeTab={getTabClickHandler(IntegrationSettingsTab.Templates)}
           />
-        )}
-        {activeTab === IntegrationSettingsTab.Heartbeat && (
-          <div className="container">
-            <HeartbeatForm alertReceveChannelId={id} onUpdate={onUpdate} />
-          </div>
-        )}
-        {activeTab === IntegrationSettingsTab.Autoresolve && (
-          <Autoresolve
-            alertReceiveChannelId={id}
-            onSwitchToTemplate={handleSwitchToTemplate}
-            alertGroupId={alertGroupId}
+          {alertReceiveChannel?.is_available_for_integration_heartbeat && (
+            <Tab
+              active={activeTab === IntegrationSettingsTab.Heartbeat}
+              label="Heartbeat"
+              key={IntegrationSettingsTab.Heartbeat}
+              onChangeTab={getTabClickHandler(IntegrationSettingsTab.Heartbeat)}
+            />
+          )}
+          <Tab
+            active={activeTab === IntegrationSettingsTab.Autoresolve}
+            label="Settings"
+            key={IntegrationSettingsTab.Autoresolve}
+            onChangeTab={getTabClickHandler(IntegrationSettingsTab.Autoresolve)}
           />
-        )}
-        {activeTab === IntegrationSettingsTab.HowToConnect && (
-          <div className="container">
-            <VerticalGroup>
-              <h4>This is the unique webhook URL for the integration:</h4>
-              <div style={{ width: '70%' }}>
-                <Input
-                  value={alertReceiveChannel.integration_url}
-                  addonAfter={
-                    <CopyToClipboard
-                      text={alertReceiveChannel.integration_url}
-                      onCopy={() => {
-                        openNotification('Unique webhook URL copied');
-                      }}
-                    >
-                      <Button icon="copy" variant="primary" />
-                    </CopyToClipboard>
-                  }
-                />
-              </div>
-              <div dangerouslySetInnerHTML={{ __html: alertReceiveChannel?.instructions }} />
-              <Button variant="primary" onClick={onHide}>
-                Open Escalations Settings
-              </Button>
-            </VerticalGroup>
-          </div>
-        )}
-      </TabContent>
-    </Drawer>
-  );
-});
+        </TabsBar>
+        <TabContent className={cx('content')}>
+          {activeTab === IntegrationSettingsTab.Templates && (
+            <AlertTemplatesFormContainer
+              alertReceiveChannelId={id}
+              alertGroupId={alertGroupId}
+              onUpdate={onUpdate}
+              onHide={onHide}
+              onUpdateTemplates={onUpdateTemplates}
+              selectedTemplateName={selectedTemplate}
+            />
+          )}
+          {activeTab === IntegrationSettingsTab.Heartbeat && (
+            <div className="container">
+              <HeartbeatForm alertReceveChannelId={id} onUpdate={onUpdate} />
+            </div>
+          )}
+          {activeTab === IntegrationSettingsTab.Autoresolve && (
+            <Autoresolve
+              alertReceiveChannelId={id}
+              onSwitchToTemplate={handleSwitchToTemplate}
+              alertGroupId={alertGroupId}
+            />
+          )}
+          {activeTab === IntegrationSettingsTab.HowToConnect && (
+            <div className="container">
+              <VerticalGroup>
+                <h4>This is the unique webhook URL for the integration:</h4>
+                <div style={{ width: '70%' }}>
+                  <Input
+                    value={alertReceiveChannel.integration_url}
+                    addonAfter={
+                      <CopyToClipboard
+                        text={alertReceiveChannel.integration_url}
+                        onCopy={() => {
+                          openNotification('Unique webhook URL copied');
+                        }}
+                      >
+                        <Button icon="copy" variant="primary" />
+                      </CopyToClipboard>
+                    }
+                  />
+                </div>
+                <div dangerouslySetInnerHTML={{ __html: alertReceiveChannel?.instructions }} />
+                <Button variant="primary" onClick={onHide}>
+                  Open Escalations Settings
+                </Button>
+              </VerticalGroup>
+            </div>
+          )}
+        </TabContent>
+      </Drawer>
+    );
+  }
+);
 
 export default IntegrationSettings;

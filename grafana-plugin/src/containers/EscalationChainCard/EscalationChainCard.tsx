@@ -16,13 +16,8 @@ interface AlertReceiveChannelCardProps {
   id: EscalationChain['id'];
 }
 
-const EscalationChainCard = observer((props: AlertReceiveChannelCardProps) => {
-  const { id } = props;
-
-  const store = useStore();
-
-  const { escalationChainStore } = store;
-
+const EscalationChainCard = observer(({ id }: AlertReceiveChannelCardProps) => {
+  const { escalationChainStore } = useStore();
   const escalationChain = escalationChainStore.items[id];
 
   return (

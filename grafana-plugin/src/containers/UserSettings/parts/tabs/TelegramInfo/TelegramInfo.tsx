@@ -18,8 +18,7 @@ const cx = cn.bind(styles);
 interface TelegramInfoProps extends HTMLAttributes<HTMLElement> {}
 
 const TelegramInfo = observer((_props: TelegramInfoProps) => {
-  const store = useStore();
-  const { userStore, teamStore } = store;
+  const { userStore, teamStore, hasFeature } = useStore();
 
   const [verificationCode, setVerificationCode] = useState<string>();
   const [botLink, setBotLink] = useState<string>();
@@ -31,11 +30,11 @@ const TelegramInfo = observer((_props: TelegramInfoProps) => {
       setVerificationCode(res.telegram_code);
       setBotLink(res.bot_link);
     });
-  }, []);
+  }, [userStore]);
 
   return (
     <>
-      {telegramConfigured || !store.hasFeature(AppFeature.LiveSettings) ? (
+      {telegramConfigured || !hasFeature(AppFeature.LiveSettings) ? (
         <VerticalGroup>
           <a href={`${botLink}/?start=${verificationCode}`} target="_blank" rel="noreferrer">
             <Button size="sm" fill="outline">

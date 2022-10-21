@@ -30,47 +30,43 @@ export interface Props<RecordType = unknown> extends TableProps<RecordType> {
   };
 }
 
-const GTable: FC<Props> = (props) => {
-  const {
-    columns: columnsProp,
-    data,
-    className,
-    pagination,
-    loading,
-    rowSelection,
-    rowKey,
-    expandable,
-    ...restProps
-  } = props;
-
-  if (expandable) {
-    expandable.expandIcon = (props: { expanded: boolean; record: any }) => {
-      const { expanded, record } = props;
-      return (
-        <Icon
-          style={{ cursor: 'pointer' }}
-          name={expanded ? 'angle-down' : 'angle-right'}
-          onClick={(event) => {
-            event.stopPropagation();
-
-            const newExpanded = !expanded;
-            const newExpandedRowKeys = [...expandable.expandedRowKeys];
-            if (newExpanded && !expandable.expandedRowKeys.includes(record[rowKey as string])) {
-              newExpandedRowKeys.push(record[rowKey as string]);
-            } else if (!newExpanded && expandable.expandedRowKeys.includes(record[rowKey as string])) {
-              const index = newExpandedRowKeys.indexOf(record[rowKey as string]);
-              newExpandedRowKeys.splice(index, 1);
-            }
-
-            expandable.onExpand && expandable.onExpand(newExpanded, record);
-            expandable.onExpandedRowsChange(newExpandedRowKeys);
-          }}
-        />
-      );
-    };
-  }
-
+const GTable: FC<Props> = ({
+  columns: columnsProp,
+  data,
+  className,
+  pagination,
+  loading,
+  rowSelection,
+  rowKey,
+  expandable,
+  ...restProps
+}) => {
   const { page, total: numberOfPages, onChange: onNavigate } = pagination || {};
+
+  const expandIcon = useCallback(
+    ({ expanded, record }: { expanded: boolean; record: any }) => (
+      <Icon
+        style={{ cursor: 'pointer' }}
+        name={expanded ? 'angle-down' : 'angle-right'}
+        onClick={(event) => {
+          event.stopPropagation();
+
+          const newExpanded = !expanded;
+          const newExpandedRowKeys = [...expandable.expandedRowKeys];
+          if (newExpanded && !expandable.expandedRowKeys.includes(record[rowKey as string])) {
+            newExpandedRowKeys.push(record[rowKey as string]);
+          } else if (!newExpanded && expandable.expandedRowKeys.includes(record[rowKey as string])) {
+            const index = newExpandedRowKeys.indexOf(record[rowKey as string]);
+            newExpandedRowKeys.splice(index, 1);
+          }
+
+          expandable.onExpand && expandable.onExpand(newExpanded, record);
+          expandable.onExpandedRowsChange(newExpandedRowKeys);
+        }}
+      />
+    ),
+    [expandable, rowKey]
+  );
 
   const getCheckboxClickHandler = useCallback(
     (id: string) => {
@@ -134,6 +130,10 @@ const GTable: FC<Props> = (props) => {
     }
     return columns;
   }, [rowSelection, columnsProp, data]);
+
+  if (expandable) {
+    expandable.expandIcon = expandIcon;
+  }
 
   return (
     <div className={cx('root')} data-testid="test__gTable">

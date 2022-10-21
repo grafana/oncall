@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 
 import { Button, HorizontalGroup, VerticalGroup, LoadingPlaceholder } from '@grafana/ui';
 import { observer } from 'mobx-react';
@@ -16,40 +16,45 @@ interface CloudPhoneSettingsProps extends WithStoreProps {
   userPk?: User['pk'];
 }
 
-const CloudPhoneSettings = observer((props: CloudPhoneSettingsProps) => {
-  const { userPk } = props;
-  const store = useStore();
+const CloudPhoneSettings = observer(({ userPk }: CloudPhoneSettingsProps) => {
+  const {
+    cloudStore: { getCloudUser, syncCloudUser },
+    hasFeature,
+    isUserActionAllowed,
+  } = useStore();
   const [syncing, setSyncing] = useState<boolean>(false);
   const [userStatus, setUserStatus] = useState<number>(0);
   const [userLink, setUserLink] = useState<string>(null);
 
-  useEffect(() => {
-    getCloudUserInfo();
+  const getCloudUserInfo = useCallback(async () => {
+    const cloudUser = await getCloudUser(userPk);
+    setUserStatus(cloudUser?.cloud_data?.status);
+    setUserLink(cloudUser?.cloud_data?.link);
+  }, [getCloudUser, userPk]);
+
+  const handleLinkClick = useCallback((link: string) => {
+    window.open(link, '_blank');
   }, []);
 
-  const handleLinkClick = (link: string) => {
-    window.open(link, '_blank');
-  };
-
-  const syncUser = async () => {
+  const syncUser = useCallback(async () => {
     setSyncing(true);
-    await store.cloudStore.syncCloudUser(userPk);
-    const cloudUser = await store.cloudStore.getCloudUser(userPk);
+
+    await syncCloudUser(userPk);
+    const cloudUser = await getCloudUser(userPk);
+
     setUserStatus(cloudUser?.cloud_data?.status);
     setUserLink(cloudUser?.cloud_data?.link);
     setSyncing(false);
-  };
+  }, [syncCloudUser, getCloudUser, userPk]);
 
-  const getCloudUserInfo = async () => {
-    const cloudUser = await store.cloudStore.getCloudUser(userPk);
-    setUserStatus(cloudUser?.cloud_data?.status);
-    setUserLink(cloudUser?.cloud_data?.link);
-  };
+  useEffect(() => {
+    getCloudUserInfo();
+  }, [getCloudUserInfo]);
 
   const UserCloudStatus = () => {
     switch (userStatus) {
       case 0:
-        if (store.hasFeature(AppFeature.CloudNotifications)) {
+        if (hasFeature(AppFeature.CloudNotifications)) {
           return (
             <VerticalGroup spacing="lg">
               <Text>Your account successfully matched, but Cloud is not connected. </Text>
@@ -119,7 +124,7 @@ const CloudPhoneSettings = observer((props: CloudPhoneSettingsProps) => {
 
   return (
     <>
-      {store.isUserActionAllowed(UserAction.UpdateOtherUsersSettings) ? (
+      {isUserActionAllowed(UserAction.UpdateOtherUsersSettings) ? (
         <VerticalGroup spacing="lg">
           <HorizontalGroup justify="space-between">
             <Text.Title level={3}>OnCall use Grafana Cloud for SMS and phone call notifications</Text.Title>

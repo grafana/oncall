@@ -20,11 +20,9 @@ interface GrafanaTeamSelectProps {
   currentPage: string;
 }
 
-const GrafanaTeamSelect = observer((props: GrafanaTeamSelectProps) => {
-  const store = useStore();
+const GrafanaTeamSelect = observer(({ currentPage }: GrafanaTeamSelectProps) => {
+  const { userStore, grafanaTeamStore } = useStore();
 
-  const { currentPage } = props;
-  const { userStore, grafanaTeamStore } = store;
   const grafanaTeams = grafanaTeamStore.getSearchResult();
   const user = userStore.currentUser;
 

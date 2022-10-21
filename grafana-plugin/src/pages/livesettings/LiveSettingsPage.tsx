@@ -39,9 +39,9 @@ class LiveSettings extends React.Component<LiveSettingsProps, LiveSettingsState>
   constructor(props: LiveSettingsProps) {
     super(props);
 
-    const { store } = props;
+    const { userStore } = props.store;
 
-    this.disposer = observe(store.userStore, (change) => {
+    this.disposer = observe(userStore, (change) => {
       if (change.name === 'currentUserPk') {
         this.update();
       }
@@ -56,14 +56,12 @@ class LiveSettings extends React.Component<LiveSettingsProps, LiveSettingsState>
   }
 
   update = () => {
-    const { store } = this.props;
-
-    store.globalSettingStore.updateItems();
+    const { globalSettingStore } = this.props.store;
+    globalSettingStore.updateItems();
   };
 
   render() {
-    const { store } = this.props;
-    const { globalSettingStore } = store;
+    const { globalSettingStore } = this.props.store;
     const { hideValues } = this.state;
 
     const columns = [
@@ -145,7 +143,7 @@ class LiveSettings extends React.Component<LiveSettingsProps, LiveSettingsState>
   };
 
   renderValue = (item: GlobalSetting) => {
-    const { store } = this.props;
+    const { isUserActionAllowed } = this.props.store;
     const { hideValues } = this.state;
 
     if (item.value === true || item.value === false) {
@@ -165,7 +163,7 @@ class LiveSettings extends React.Component<LiveSettingsProps, LiveSettingsState>
         <Text
           copyable={!item.is_secret && Boolean(item.value)}
           onTextChange={this.getEditValueChangeHandler(item)}
-          editable={store.isUserActionAllowed(UserAction.UpdateGlobalSettings)}
+          editable={isUserActionAllowed(UserAction.UpdateGlobalSettings)}
           clearBeforeEdit={item.is_secret}
           hidden={hideValues}
         >
@@ -215,8 +213,7 @@ class LiveSettings extends React.Component<LiveSettingsProps, LiveSettingsState>
   };
 
   getEditValueChangeHandler = ({ id, name }: GlobalSetting) => {
-    const { store } = this.props;
-    const { globalSettingStore } = store;
+    const { globalSettingStore } = this.props.store;
 
     return (value: string | boolean) => {
       globalSettingStore.update(id, { name, value: prepareForUpdate(value) }).then(this.update);
@@ -238,8 +235,7 @@ class LiveSettings extends React.Component<LiveSettingsProps, LiveSettingsState>
   };
 
   getResetGlobalSettingClickHandler = (item: GlobalSetting) => {
-    const { store } = this.props;
-    const { globalSettingStore } = store;
+    const { globalSettingStore } = this.props.store;
 
     return () => {
       globalSettingStore.delete(item.id).then(this.update);

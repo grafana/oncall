@@ -25,14 +25,12 @@ interface HeartBeatModalProps {
 }
 
 const HeartbeatForm = observer(({ alertReceveChannelId, onUpdate }: HeartBeatModalProps) => {
-  const store = useStore();
-  const { alertReceiveChannelStore, heartbeatStore } = store;
+  const { alertReceiveChannelStore, heartbeatStore } = useStore();
+
   const [timeout, setTimeoutSeconds] = useState<number | undefined>();
 
   const alertReceiveChannel = alertReceiveChannelStore.items[alertReceveChannelId];
-
   const heartbeatId = alertReceiveChannelStore.alertReceiveChannelToHeartbeat[alertReceveChannelId];
-
   const heartbeat = heartbeatStore.items[heartbeatId];
 
   useEffect(() => {

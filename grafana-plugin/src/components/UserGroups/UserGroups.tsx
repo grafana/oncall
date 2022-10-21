@@ -28,9 +28,7 @@ const DragHandle = () => <IconButton className={cx('icon')} name="draggabledots"
 
 const SortableHandleHoc = SortableHandle(DragHandle);
 
-const UserGroups = (props: UserGroupsProps) => {
-  const { value, onChange, isMultipleGroups, renderUser, showError } = props;
-
+const UserGroups = ({ value, onChange, isMultipleGroups, renderUser, showError }: UserGroupsProps) => {
   const handleAddUserGroup = useCallback(() => {
     onChange([...value, []]);
   }, [value]);

@@ -17,9 +17,7 @@ interface OrganizationLogFiltersProps {
   className?: string;
 }
 
-const OrganizationLogFilters = observer((props: OrganizationLogFiltersProps) => {
-  const { value, onChange } = props;
-
+const OrganizationLogFilters = observer(({ value, onChange }: OrganizationLogFiltersProps) => {
   const [createAtRaw, setCreateAtRaw] = useState<RawTimeRange>();
 
   const onSearchTermChangeCallback = useCallback(
@@ -52,7 +50,7 @@ const OrganizationLogFilters = observer((props: OrganizationLogFiltersProps) => 
 
       setCreateAtRaw(filter.raw);
     },
-    [value]
+    [value, onChange]
   );
 
   const createdAtValue = useMemo(() => {
@@ -60,7 +58,7 @@ const OrganizationLogFilters = observer((props: OrganizationLogFiltersProps) => 
       return { from: value['created_at'][0].toDate(), to: value['created_at'][1].toDate(), raw: createAtRaw };
     }
     return { from: undefined, to: undefined, raw: undefined };
-  }, [value]);
+  }, [value, createAtRaw]);
 
   return (
     <div className={cx('root')}>

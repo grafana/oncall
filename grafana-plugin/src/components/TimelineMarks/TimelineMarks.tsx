@@ -14,9 +14,7 @@ interface TimelineMarksProps {
 
 const cx = cn.bind(styles);
 
-const TimelineMarks: FC<TimelineMarksProps> = (props) => {
-  const { startMoment, debug } = props;
-
+const TimelineMarks: FC<TimelineMarksProps> = ({ startMoment, debug }) => {
   const currentMoment = useMemo(() => dayjs(), []);
 
   const momentsToRender = useMemo(() => {

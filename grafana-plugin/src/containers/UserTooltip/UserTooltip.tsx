@@ -11,13 +11,8 @@ interface UserTooltipProps {
   id: User['pk'];
 }
 
-const UserTooltip = observer((props: UserTooltipProps) => {
-  const { id } = props;
-
-  const store = useStore();
-
-  const { userStore } = store;
-
+const UserTooltip = observer(({ id }: UserTooltipProps) => {
+  const { userStore } = useStore();
   const user = userStore.items[id];
 
   return (

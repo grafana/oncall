@@ -18,9 +18,15 @@ export interface CollapseProps {
 
 const cx = cn.bind(styles);
 
-const Collapse: FC<CollapseProps> = (props) => {
-  const { label, isOpen: propsIsOpen, onToggle, children, className, contentClassName, headerWithBackground } = props;
-
+const Collapse: FC<CollapseProps> = ({
+  label,
+  isOpen: propsIsOpen,
+  onToggle,
+  children,
+  className,
+  contentClassName,
+  headerWithBackground,
+}) => {
   const [stateIsOpen, setStateIsOpen] = useState<boolean>(propsIsOpen);
 
   const isOpen = onToggle ? propsIsOpen : stateIsOpen;

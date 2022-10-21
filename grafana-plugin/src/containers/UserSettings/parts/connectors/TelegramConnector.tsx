@@ -17,23 +17,21 @@ interface TelegramConnectorProps {
   onTabChange: (tab: UserSettingsTab) => void;
 }
 
-const TelegramConnector = (props: TelegramConnectorProps) => {
-  const { id, onTabChange } = props;
+const TelegramConnector = ({ id, onTabChange }: TelegramConnectorProps) => {
+  const {
+    userStore: { items, unlinkTelegram, currentUserPk },
+  } = useStore();
 
-  const store = useStore();
-  const { userStore } = store;
-
-  const storeUser = userStore.items[id];
-
-  const isCurrent = id === store.userStore.currentUserPk;
+  const storeUser = items[id];
+  const isCurrent = id === currentUserPk;
 
   const handleConnectButtonClick = useCallback(() => {
     onTabChange(UserSettingsTab.TelegramInfo);
   }, [onTabChange]);
 
   const handleUnlinkTelegramAccount = useCallback(() => {
-    userStore.unlinkTelegram(userStore.currentUserPk);
-  }, []);
+    unlinkTelegram(currentUserPk);
+  }, [unlinkTelegram, currentUserPk]);
 
   return (
     <div className={cx('user-item')}>

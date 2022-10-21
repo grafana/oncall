@@ -33,19 +33,17 @@ class TelegramSettings extends Component<TelegramProps, TelegramState> {
   }
 
   update = () => {
-    const { store } = this.props;
-
-    store.telegramChannelStore.updateItems();
+    const { telegramChannelStore } = this.props.store;
+    telegramChannelStore.updateItems();
   };
 
   render() {
-    const { store } = this.props;
-    const { telegramChannelStore, teamStore } = store;
+    const { hasFeature, telegramChannelStore, teamStore } = this.props.store;
     const connectedChannels = telegramChannelStore.getSearchResult();
 
     const telegramConfigured = teamStore.currentTeam?.env_status.telegram_configured;
 
-    if (!telegramConfigured && store.hasFeature(AppFeature.LiveSettings)) {
+    if (!telegramConfigured && hasFeature(AppFeature.LiveSettings)) {
       return (
         <Alert
           severity="warning"
@@ -150,16 +148,14 @@ class TelegramSettings extends Component<TelegramProps, TelegramState> {
   };
 
   makeTelegramChannelDefault = async (id: TelegramChannel['id']) => {
-    const { store } = this.props;
-    const { telegramChannelStore } = store;
+    const { telegramChannelStore } = this.props.store;
 
     await telegramChannelStore.makeTelegramChannelDefault(id);
     telegramChannelStore.updateItems();
   };
 
   disconnectTelegramChannelDefault = async (id: TelegramChannel['id']) => {
-    const { store } = this.props;
-    const { telegramChannelStore } = store;
+    const { telegramChannelStore } = this.props.store;
 
     await telegramChannelStore.deleteTelegramChannel(id);
     telegramChannelStore.updateItems();

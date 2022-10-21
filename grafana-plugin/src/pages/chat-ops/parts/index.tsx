@@ -18,46 +18,38 @@ interface TabsProps {
   onTabChange: (tab: string) => void;
 }
 
-export const Tabs = (props: TabsProps) => {
-  const { activeTab, onTabChange } = props;
-
-  return (
-    <VerticalTabsBar activeTab={activeTab} onChange={onTabChange}>
-      <VerticalTab id={ChatOpsTab.Slack}>
-        <HorizontalGroup>
-          <Icon name="slack" />
-          Slack
-        </HorizontalGroup>
-      </VerticalTab>
-      <VerticalTab id={ChatOpsTab.Telegram}>
-        <HorizontalGroup>
-          <Icon name="message" />
-          Telegram
-        </HorizontalGroup>
-      </VerticalTab>
-    </VerticalTabsBar>
-  );
-};
+export const Tabs = ({ activeTab, onTabChange }: TabsProps) => (
+  <VerticalTabsBar activeTab={activeTab} onChange={onTabChange}>
+    <VerticalTab id={ChatOpsTab.Slack}>
+      <HorizontalGroup>
+        <Icon name="slack" />
+        Slack
+      </HorizontalGroup>
+    </VerticalTab>
+    <VerticalTab id={ChatOpsTab.Telegram}>
+      <HorizontalGroup>
+        <Icon name="message" />
+        Telegram
+      </HorizontalGroup>
+    </VerticalTab>
+  </VerticalTabsBar>
+);
 
 interface TabsContentProps {
   activeTab: string;
 }
 
-export const TabsContent = (props: TabsContentProps) => {
-  const { activeTab } = props;
-
-  return (
-    <>
-      {activeTab === ChatOpsTab.Slack && (
-        <div className={cx('messenger-settings')}>
-          <SlackSettings />
-        </div>
-      )}
-      {activeTab === ChatOpsTab.Telegram && (
-        <div className={cx('messenger-settings')}>
-          <TelegramSettings />
-        </div>
-      )}
-    </>
-  );
-};
+export const TabsContent = ({ activeTab }: TabsContentProps) => (
+  <>
+    {activeTab === ChatOpsTab.Slack && (
+      <div className={cx('messenger-settings')}>
+        <SlackSettings />
+      </div>
+    )}
+    {activeTab === ChatOpsTab.Telegram && (
+      <div className={cx('messenger-settings')}>
+        <TelegramSettings />
+      </div>
+    )}
+  </>
+);

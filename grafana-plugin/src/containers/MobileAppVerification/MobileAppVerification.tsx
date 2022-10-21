@@ -19,11 +19,8 @@ interface MobileAppVerificationProps extends HTMLAttributes<HTMLElement> {
   phone?: string;
 }
 
-const MobileAppVerification = observer((props: MobileAppVerificationProps) => {
-  const { userPk: propsUserPk } = props;
-
-  const store = useStore();
-  const { userStore } = store;
+const MobileAppVerification = observer(({ userPk: propsUserPk }: MobileAppVerificationProps) => {
+  const { userStore } = useStore();
 
   const userPk = (propsUserPk || userStore.currentUserPk) as User['pk'];
   const user = userStore.items[userPk as User['pk']];

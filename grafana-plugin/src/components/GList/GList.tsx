@@ -20,9 +20,7 @@ interface WithId {
   id: string;
 }
 
-const GList = <T extends WithId>(props: GListProps<T>) => {
-  const { selectedId, items, onSelect, children, autoScroll } = props;
-
+const GList = <T extends WithId>({ selectedId, items, onSelect, children, autoScroll }: GListProps<T>) => {
   const getitemClickHandler = useCallback((id: string) => {
     return () => {
       onSelect && onSelect(id);

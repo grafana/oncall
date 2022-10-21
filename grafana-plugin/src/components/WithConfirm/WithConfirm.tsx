@@ -10,9 +10,13 @@ interface WithConfirmProps {
   disabled?: boolean;
 }
 
-const WithConfirm = (props: WithConfirmProps) => {
-  const { children, title = 'Are you sure to delete?', body, confirmText = 'Delete', disabled } = props;
-
+const WithConfirm = ({
+  children,
+  title = 'Are you sure to delete?',
+  body,
+  confirmText = 'Delete',
+  disabled,
+}: WithConfirmProps) => {
   const [showConfirmation, setShowConfirmation] = useState<boolean>(false);
 
   const onClickCallback = useCallback((event) => {

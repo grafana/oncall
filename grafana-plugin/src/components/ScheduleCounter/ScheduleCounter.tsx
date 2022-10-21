@@ -27,30 +27,26 @@ const typeToColor = {
 
 const cx = cn.bind(styles);
 
-const ScheduleCounter: FC<ScheduleCounterProps> = (props) => {
-  const { type, count, tooltipTitle, tooltipContent, onHover } = props;
-
-  return (
-    <Tooltip
-      placement="bottom-start"
-      interactive
-      content={
-        <div className={cx('tooltip', { [`tooltip__type_${type}`]: true })}>
-          <VerticalGroup>
-            <Text type={typeToColor[type]}>{tooltipTitle}</Text>
-            <Text type="secondary">{tooltipContent}</Text>
-          </VerticalGroup>
-        </div>
-      }
-    >
-      <div className={cx('root', { [`root__type_${type}`]: true })} onMouseEnter={onHover}>
-        <HorizontalGroup spacing="xs">
-          <Icon className={cx('icon', { [`icon__type_${type}`]: true })} name={typeToIcon[type] as IconName} />
-          <Text type={typeToColor[type] as TextType}>{count}</Text>
-        </HorizontalGroup>
+const ScheduleCounter: FC<ScheduleCounterProps> = ({ type, count, tooltipTitle, tooltipContent, onHover }) => (
+  <Tooltip
+    placement="bottom-start"
+    interactive
+    content={
+      <div className={cx('tooltip', { [`tooltip__type_${type}`]: true })}>
+        <VerticalGroup>
+          <Text type={typeToColor[type]}>{tooltipTitle}</Text>
+          <Text type="secondary">{tooltipContent}</Text>
+        </VerticalGroup>
       </div>
-    </Tooltip>
-  );
-};
+    }
+  >
+    <div className={cx('root', { [`root__type_${type}`]: true })} onMouseEnter={onHover}>
+      <HorizontalGroup spacing="xs">
+        <Icon className={cx('icon', { [`icon__type_${type}`]: true })} name={typeToIcon[type] as IconName} />
+        <Text type={typeToColor[type] as TextType}>{count}</Text>
+      </HorizontalGroup>
+    </div>
+  </Tooltip>
+);
 
 export default ScheduleCounter;

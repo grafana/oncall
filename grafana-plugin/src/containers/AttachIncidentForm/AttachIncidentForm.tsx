@@ -28,9 +28,7 @@ interface GroupedAlertNumberProps {
 }
 
 const AttachIncidentForm = observer(({ id, onUpdate, onHide }: AttachIncidentFormProps) => {
-  const store = useStore();
-
-  const { alertGroupStore } = store;
+  const { alertGroupStore } = useStore();
 
   const [selected, setSelected] = useState<Alert['pk']>(undefined);
 

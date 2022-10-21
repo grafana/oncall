@@ -102,18 +102,20 @@ class AlertRules extends React.Component<AlertRulesProps, AlertRulesState> {
   }
 
   async update() {
-    const { store, alertReceiveChannelId } = this.props;
-    const { alertReceiveChannelStore, telegramChannelStore } = store;
+    const {
+      store: { alertReceiveChannelStore, telegramChannelStore, escalationChainStore, escalationPolicyStore },
+      alertReceiveChannelId,
+    } = this.props;
 
-    store.alertReceiveChannelStore.updateItem(alertReceiveChannelId);
+    alertReceiveChannelStore.updateItem(alertReceiveChannelId);
 
-    await store.alertReceiveChannelStore.updateChannelFilters(alertReceiveChannelId);
-    await store.escalationChainStore.updateItems();
+    await alertReceiveChannelStore.updateChannelFilters(alertReceiveChannelId);
+    await escalationChainStore.updateItems();
     await telegramChannelStore.updateTelegramChannels();
 
-    const channelFilterIds = store.alertReceiveChannelStore.channelFilterIds[alertReceiveChannelId];
+    const channelFilterIds = alertReceiveChannelStore.channelFilterIds[alertReceiveChannelId];
 
-    store.alertReceiveChannelStore.updateCustomButtons(alertReceiveChannelId);
+    alertReceiveChannelStore.updateCustomButtons(alertReceiveChannelId);
 
     const expandedRoutes: Array<ChannelFilter['id']> = [];
     channelFilterIds
@@ -124,7 +126,7 @@ class AlertRules extends React.Component<AlertRulesProps, AlertRulesState> {
       })
       .forEach((channelFilterId: ChannelFilter['id']) => {
         const channelFilter = alertReceiveChannelStore.channelFilters[channelFilterId];
-        store.escalationPolicyStore.updateEscalationPolicies(channelFilter.escalation_chain);
+        escalationPolicyStore.updateEscalationPolicies(channelFilter.escalation_chain);
 
         expandedRoutes.push(channelFilterId);
       });
@@ -140,8 +142,11 @@ class AlertRules extends React.Component<AlertRulesProps, AlertRulesState> {
       channelFilterIdToCopyEscalationChain,
       editIntegrationName,
     } = this.state;
-    const { store, alertReceiveChannelId, onShowSettings } = this.props;
-    const { alertReceiveChannelStore } = store;
+    const {
+      store: { alertReceiveChannelStore, isUserActionAllowed },
+      alertReceiveChannelId,
+      onShowSettings,
+    } = this.props;
 
     const alertReceiveChannel = alertReceiveChannelStore.items[alertReceiveChannelId];
 
@@ -223,7 +228,7 @@ class AlertRules extends React.Component<AlertRulesProps, AlertRulesState> {
                     <Tooltip placement="top" content="Stop maintenance mode">
                       <Button
                         className="grey-button"
-                        disabled={!store.isUserActionAllowed(UserAction.UpdateMaintenances)}
+                        disabled={!isUserActionAllowed(UserAction.UpdateMaintenances)}
                         fill="text"
                         icon="square-shape"
                         onClick={this.handleStopMaintenance}
@@ -236,7 +241,7 @@ class AlertRules extends React.Component<AlertRulesProps, AlertRulesState> {
                         maintenance_type: MaintenanceType.alert_receive_channel,
                         alert_receive_channel: alertReceiveChannel.id,
                       }}
-                      disabled={!store.isUserActionAllowed(UserAction.UpdateMaintenances)}
+                      disabled={!isUserActionAllowed(UserAction.UpdateMaintenances)}
                     >
                       <WithPermissionControl userAction={UserAction.UpdateMaintenances}>
                         <IconButton
@@ -244,7 +249,7 @@ class AlertRules extends React.Component<AlertRulesProps, AlertRulesState> {
                           size="sm"
                           tooltip="Setup maintenance mode"
                           tooltipPlacement="top"
-                          disabled={!store.isUserActionAllowed(UserAction.UpdateMaintenances)}
+                          disabled={!isUserActionAllowed(UserAction.UpdateMaintenances)}
                         />
                       </WithPermissionControl>
                     </PluginLink>
@@ -364,11 +369,9 @@ class AlertRules extends React.Component<AlertRulesProps, AlertRulesState> {
 
   handleDeleteRoute = async () => {
     const { routeToDelete } = this.state;
-    const { store } = this.props;
+    const { alertReceiveChannelStore } = this.props.store;
 
     this.setState({ routeToDelete: undefined });
-
-    const { alertReceiveChannelStore } = store;
 
     await alertReceiveChannelStore.deleteChannelFilter(routeToDelete);
 
@@ -376,17 +379,16 @@ class AlertRules extends React.Component<AlertRulesProps, AlertRulesState> {
   };
 
   handleEscalationChainCreate = async (id: EscalationChain['id']) => {
-    const { store } = this.props;
-    const { alertReceiveChannelStore } = store;
+    const { alertReceiveChannelStore, escalationPolicyStore, escalationChainStore } = this.props.store;
     const { channelFilterIdToCopyEscalationChain } = this.state;
 
     await alertReceiveChannelStore
       .saveChannelFilter(channelFilterIdToCopyEscalationChain, { escalation_chain: id })
       .then(() => {
-        store.escalationPolicyStore.updateEscalationPolicies(id);
+        escalationPolicyStore.updateEscalationPolicies(id);
       });
 
-    store.escalationChainStore.updateItems();
+    escalationChainStore.updateItems();
   };
 
   handleDeleteAlertReceiveChannel = () => {
@@ -395,8 +397,10 @@ class AlertRules extends React.Component<AlertRulesProps, AlertRulesState> {
   };
 
   handleStopMaintenance = () => {
-    const { store, alertReceiveChannelId } = this.props;
-    const { maintenanceStore, alertReceiveChannelStore } = store;
+    const {
+      store: { maintenanceStore, alertReceiveChannelStore },
+      alertReceiveChannelId,
+    } = this.props;
 
     maintenanceStore.stopMaintenanceMode(MaintenanceType.alert_receive_channel, alertReceiveChannelId).then(() => {
       alertReceiveChannelStore.updateItem(alertReceiveChannelId);
@@ -411,20 +415,23 @@ class AlertRules extends React.Component<AlertRulesProps, AlertRulesState> {
   };
 
   handleChangeAlertReceiveChannelName = () => {
-    const { store, alertReceiveChannelId } = this.props;
+    const {
+      store: { alertReceiveChannelStore },
+      alertReceiveChannelId,
+    } = this.props;
     const { editIntegrationName } = this.state;
 
-    store.alertReceiveChannelStore
+    alertReceiveChannelStore
       .saveAlertReceiveChannel(alertReceiveChannelId, { verbal_name: editIntegrationName })
       .then(() => {
-        store.alertReceiveChannelStore.updateItem(alertReceiveChannelId);
+        alertReceiveChannelStore.updateItem(alertReceiveChannelId);
       });
     this.setState({ editIntegrationName: undefined });
     this.update();
   };
 
   handleCreateChannelFilter = (id: ChannelFilter['id']) => {
-    const { store } = this.props;
+    const { alertReceiveChannelStore, escalationPolicyStore } = this.props.store;
     const { alertReceiveChannelIdToCreateChannelFilter, expandedRoutes } = this.state;
 
     if (!expandedRoutes.includes(id)) {
@@ -433,10 +440,10 @@ class AlertRules extends React.Component<AlertRulesProps, AlertRulesState> {
       });
     }
 
-    store.alertReceiveChannelStore.updateChannelFilters(alertReceiveChannelIdToCreateChannelFilter).then(() => {
-      const channelFilter = store.alertReceiveChannelStore.channelFilters[id];
+    alertReceiveChannelStore.updateChannelFilters(alertReceiveChannelIdToCreateChannelFilter).then(() => {
+      const channelFilter = alertReceiveChannelStore.channelFilters[id];
 
-      store.escalationPolicyStore.updateEscalationPolicies(channelFilter.escalation_chain);
+      escalationPolicyStore.updateEscalationPolicies(channelFilter.escalation_chain);
     });
   };
 
@@ -450,9 +457,9 @@ class AlertRules extends React.Component<AlertRulesProps, AlertRulesState> {
 
   renderRoutes = (alertReceiveChannelId: AlertReceiveChannel['id']) => {
     const { expandedRoutes, channelFilterToEdit } = this.state;
-    const { store } = this.props;
+    const { alertReceiveChannelStore, escalationChainStore } = this.props.store;
 
-    const channelFilterIds = store.alertReceiveChannelStore.channelFilterIds[alertReceiveChannelId];
+    const channelFilterIds = alertReceiveChannelStore.channelFilterIds[alertReceiveChannelId];
 
     if (!channelFilterIds) {
       return <LoadingPlaceholder text="Loading..." />;
@@ -461,7 +468,7 @@ class AlertRules extends React.Component<AlertRulesProps, AlertRulesState> {
     return (
       <div>
         {channelFilterIds.map((channelFilterId: ChannelFilter['id']) => {
-          const channelFilter = store.alertReceiveChannelStore.channelFilters[channelFilterId];
+          const channelFilter = alertReceiveChannelStore.channelFilters[channelFilterId];
 
           if (channelFilterId === channelFilterToEdit?.id) {
             return (
@@ -477,13 +484,13 @@ class AlertRules extends React.Component<AlertRulesProps, AlertRulesState> {
                   });
                 }}
                 onUpdate={() => {
-                  store.alertReceiveChannelStore.updateChannelFilters(channelFilterToEdit.alert_receive_channel);
+                  alertReceiveChannelStore.updateChannelFilters(channelFilterToEdit.alert_receive_channel);
                 }}
               />
             );
           }
 
-          const escalationChain = store.escalationChainStore.items[channelFilter.escalation_chain];
+          const escalationChain = escalationChainStore.items[channelFilter.escalation_chain];
 
           let warningAboutModifyingEscalationChain = null;
           const otherRoutes = escalationChain?.number_of_routes - 1;
@@ -606,9 +613,10 @@ class AlertRules extends React.Component<AlertRulesProps, AlertRulesState> {
   };
 
   renderChannelFilterButtons = (channelFilterId: ChannelFilter['id'], index: number) => {
-    const { store, alertReceiveChannelId } = this.props;
-
-    const { alertReceiveChannelStore } = store;
+    const {
+      store: { alertReceiveChannelStore },
+      alertReceiveChannelId,
+    } = this.props;
 
     const channelFilterIds = alertReceiveChannelStore.channelFilterIds[alertReceiveChannelId];
 
@@ -683,9 +691,9 @@ class AlertRules extends React.Component<AlertRulesProps, AlertRulesState> {
     alertReceiveChannelId: AlertReceiveChannel['id'],
     channelFilterId: ChannelFilter['id']
   ) => {
-    const { store } = this.props;
-    const channelFilterIds = store.alertReceiveChannelStore.channelFilterIds[alertReceiveChannelId];
-    const channelFilter = store.alertReceiveChannelStore.channelFilters[channelFilterId];
+    const { alertReceiveChannelStore } = this.props.store;
+    const channelFilterIds = alertReceiveChannelStore.channelFilterIds[alertReceiveChannelId];
+    const channelFilter = alertReceiveChannelStore.channelFilters[channelFilterId];
 
     const index = channelFilterIds.indexOf(channelFilterId);
     return (
@@ -727,15 +735,17 @@ class AlertRules extends React.Component<AlertRulesProps, AlertRulesState> {
   };
 
   getEscalationChainChangeHandler = (channelFilterId: ChannelFilter['id']) => {
-    const { store } = this.props;
+    const {
+      store: { alertReceiveChannelStore, escalationChainStore, escalationPolicyStore },
+    } = this.props;
     return (value: EscalationChain['id']) => {
-      store.alertReceiveChannelStore
+      alertReceiveChannelStore
         .saveChannelFilter(channelFilterId, {
           escalation_chain: value,
         })
         .then(() => {
-          store.escalationChainStore.updateItems(); // to update number_of_integrations and number_of_routes
-          store.escalationPolicyStore.updateEscalationPolicies(value);
+          escalationChainStore.updateItems(); // to update number_of_integrations and number_of_routes
+          escalationPolicyStore.updateEscalationPolicies(value);
         });
     };
   };
@@ -750,8 +760,8 @@ class AlertRules extends React.Component<AlertRulesProps, AlertRulesState> {
   };
 
   _renderEscalationPolicies = (channelFilterId: ChannelFilter['id']) => {
-    const { store } = this.props;
-    const channelFilter = store.alertReceiveChannelStore.channelFilters[channelFilterId];
+    const { alertReceiveChannelStore } = this.props.store;
+    const channelFilter = alertReceiveChannelStore.channelFilters[channelFilterId];
     const escalationChainId = channelFilter.escalation_chain;
 
     return (
@@ -763,8 +773,7 @@ class AlertRules extends React.Component<AlertRulesProps, AlertRulesState> {
   };
 
   getCreateEscalationPolicyClickHandler = (escalationChainId: EscalationChain['id']) => {
-    const { store } = this.props;
-    const { escalationPolicyStore } = store;
+    const { escalationPolicyStore } = this.props.store;
 
     return async (option: EscalationPolicyOption) => {
       await escalationPolicyStore.createEscalationPolicy(escalationChainId, {
@@ -776,8 +785,7 @@ class AlertRules extends React.Component<AlertRulesProps, AlertRulesState> {
   };
 
   getEscalationPoliciesSortEndHandler = (escalationChainId: EscalationChain['id']) => {
-    const { store } = this.props;
-    const { escalationPolicyStore } = store;
+    const { escalationPolicyStore } = this.props.store;
 
     return ({ oldIndex, newIndex }: any) => {
       escalationPolicyStore.moveEscalationPolicyToPosition(oldIndex, newIndex, escalationChainId);

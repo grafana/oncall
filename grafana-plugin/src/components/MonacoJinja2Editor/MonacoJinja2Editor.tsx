@@ -24,9 +24,7 @@ const PREDEFINED_TERMS = [
   'tojson_pretty',
 ];
 
-const MonacoJinja2Editor: FC<MonacoJinja2EditorProps> = (props) => {
-  const { value, onChange, disabled, data, loading } = props;
-
+const MonacoJinja2Editor: FC<MonacoJinja2EditorProps> = ({ value, onChange, disabled, data, loading }) => {
   const autoCompleteList = useCallback(
     () =>
       [...PREDEFINED_TERMS, ...getPaths(data?.payload_example).map((str) => `payload.${str}`)].map((str) => ({

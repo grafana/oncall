@@ -10,20 +10,15 @@ interface UserSummaryProps {
   id: User['pk'];
 }
 
-const UserSummary = observer((props: UserSummaryProps) => {
-  const { id } = props;
-
-  const store = useStore();
-
-  const { userStore } = store;
+const UserSummary = observer(({ id }: UserSummaryProps) => {
+  const { userStore } = useStore();
+  const user = userStore.items[id];
 
   useEffect(() => {
     if (!userStore.items[id]) {
       userStore.loadUser(id);
     }
   });
-
-  const user = userStore.items[id];
 
   return getUserNotificationsSummary(user);
 });

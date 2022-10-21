@@ -27,11 +27,8 @@ const toDate = (moment: dayjs.Dayjs, timezone: Timezone) => {
   );
 };
 
-const DateTimePicker = (props: UserTooltipProps) => {
-  const { value: propValue, minMoment, timezone, onChange, disabled } = props;
-
+const DateTimePicker = ({ value: propValue, minMoment, timezone, onChange, disabled }: UserTooltipProps) => {
   const value = useMemo(() => toDate(propValue, timezone), [propValue, timezone]);
-
   const minDate = useMemo(() => (minMoment ? toDate(minMoment, timezone) : undefined), [minMoment, timezone]);
 
   const handleDateChange = (newDate: Date) => {

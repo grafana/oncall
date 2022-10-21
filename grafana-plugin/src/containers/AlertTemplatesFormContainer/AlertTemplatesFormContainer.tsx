@@ -18,61 +18,61 @@ interface TeamEditContainerProps {
   selectedTemplateName?: string;
 }
 
-const AlertTemplatesFormContainer = observer((props: TeamEditContainerProps) => {
-  const { alertReceiveChannelId, alertGroupId, onUpdateTemplates, selectedTemplateName } = props;
+const AlertTemplatesFormContainer = observer(
+  ({ alertReceiveChannelId, alertGroupId, onUpdateTemplates, selectedTemplateName }: TeamEditContainerProps) => {
+    const { alertReceiveChannelStore } = useStore();
 
-  const store = useStore();
+    const [templatesRefreshing, setTemplatesRefreshing] = useState<boolean>(false);
+    const [errors, setErrors] = useState({});
 
-  const [templatesRefreshing, setTemplatesRefreshing] = useState<boolean>(false);
-  const [errors, setErrors] = useState({});
+    useEffect(() => {
+      alertReceiveChannelStore.updateItem(alertReceiveChannelId);
+      alertReceiveChannelStore.updateTemplates(alertReceiveChannelId, alertGroupId);
+    }, [alertGroupId, alertReceiveChannelId, alertReceiveChannelStore]);
 
-  useEffect(() => {
-    store.alertReceiveChannelStore.updateItem(alertReceiveChannelId);
-    store.alertReceiveChannelStore.updateTemplates(alertReceiveChannelId, alertGroupId);
-  }, [alertGroupId, alertReceiveChannelId, store]);
+    const onUpdateTemplatesCallback = useCallback(
+      (data) => {
+        alertReceiveChannelStore
+          .saveTemplates(alertReceiveChannelId, data)
+          .then(() => {
+            openNotification('Alert templates are successfully updated');
+            if (onUpdateTemplates) {
+              onUpdateTemplates();
+            }
+          })
+          .catch((data) => {
+            setErrors(data.response.data);
+          });
+      },
+      [alertReceiveChannelId, onUpdateTemplates, alertReceiveChannelStore]
+    );
 
-  const onUpdateTemplatesCallback = useCallback(
-    (data) => {
-      store.alertReceiveChannelStore
-        .saveTemplates(alertReceiveChannelId, data)
-        .then(() => {
-          openNotification('Alert templates are successfully updated');
-          if (onUpdateTemplates) {
-            onUpdateTemplates();
-          }
-        })
-        .catch((data) => {
-          setErrors(data.response.data);
+    const handleSendDemoAlertClickCallback = useCallback(() => {
+      alertReceiveChannelStore.sendDemoAlert(alertReceiveChannelId).then(() => {
+        setTemplatesRefreshing(true);
+        alertReceiveChannelStore.updateTemplates(alertReceiveChannelId).then(() => {
+          setTemplatesRefreshing(false);
         });
-    },
-    [alertReceiveChannelId, onUpdateTemplates, store.alertReceiveChannelStore]
-  );
-
-  const handleSendDemoAlertClickCallback = useCallback(() => {
-    store.alertReceiveChannelStore.sendDemoAlert(alertReceiveChannelId).then(() => {
-      setTemplatesRefreshing(true);
-      store.alertReceiveChannelStore.updateTemplates(alertReceiveChannelId).then(() => {
-        setTemplatesRefreshing(false);
       });
-    });
-  }, []);
+    }, []);
 
-  const templates = store.alertReceiveChannelStore.templates[alertReceiveChannelId];
-  const alertReceiveChannel = store.alertReceiveChannelStore.items[alertReceiveChannelId];
+    const templates = alertReceiveChannelStore.templates[alertReceiveChannelId];
+    const alertReceiveChannel = alertReceiveChannelStore.items[alertReceiveChannelId];
 
-  return (
-    <AlertTemplatesForm
-      alertReceiveChannelId={alertReceiveChannelId}
-      alertGroupId={alertGroupId}
-      errors={errors}
-      templates={templates}
-      onUpdateTemplates={onUpdateTemplatesCallback}
-      demoAlertEnabled={alertReceiveChannel?.demo_alert_enabled}
-      handleSendDemoAlertClick={handleSendDemoAlertClickCallback}
-      templatesRefreshing={templatesRefreshing}
-      selectedTemplateName={selectedTemplateName}
-    />
-  );
-});
+    return (
+      <AlertTemplatesForm
+        alertReceiveChannelId={alertReceiveChannelId}
+        alertGroupId={alertGroupId}
+        errors={errors}
+        templates={templates}
+        onUpdateTemplates={onUpdateTemplatesCallback}
+        demoAlertEnabled={alertReceiveChannel?.demo_alert_enabled}
+        handleSendDemoAlertClick={handleSendDemoAlertClickCallback}
+        templatesRefreshing={templatesRefreshing}
+        selectedTemplateName={selectedTemplateName}
+      />
+    );
+  }
+);
 
 export default AlertTemplatesFormContainer;

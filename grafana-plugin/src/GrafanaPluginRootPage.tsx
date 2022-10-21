@@ -42,28 +42,39 @@ export const GrafanaPluginRootPage = (props: AppRootProps) => (
 );
 
 const RootWithLoader = observer((props: AppRootProps) => {
-  const store = useStore();
+  const { meta } = props;
+  const {
+    setupPlugin,
+    appLoading,
+    pluginIsInitialized,
+    correctProvisioningForInstallation,
+    correctRoleForInstallation,
+    signupAllowedForPlugin,
+    initializationError,
+    isUserAnonymous,
+    retrySync,
+  } = useStore();
 
   useEffect(() => {
-    store.setupPlugin(props.meta);
+    setupPlugin(meta);
   }, []);
 
-  if (store.appLoading) {
+  if (appLoading) {
     let text = 'Initializing plugin...';
 
-    if (!store.pluginIsInitialized) {
+    if (!pluginIsInitialized) {
       text = '🚫 Plugin has not been initialized';
-    } else if (!store.correctProvisioningForInstallation) {
+    } else if (!correctProvisioningForInstallation) {
       text = '🚫 Plugin could not be initialized due to provisioning error';
-    } else if (!store.correctRoleForInstallation) {
+    } else if (!correctRoleForInstallation) {
       text = '🚫 Admin must sign on to setup OnCall before a Viewer can use it';
-    } else if (!store.signupAllowedForPlugin) {
+    } else if (!signupAllowedForPlugin) {
       text = '🚫 OnCall has temporarily disabled signup of new users. Please try again later.';
-    } else if (store.initializationError) {
-      text = `🚫 Error during initialization: ${store.initializationError}`;
-    } else if (store.isUserAnonymous) {
+    } else if (initializationError) {
+      text = `🚫 Error during initialization: ${initializationError}`;
+    } else if (isUserAnonymous) {
       text = '😞 Unfortunately Grafana OnCall is available for authorized users only, please sign in to proceed.';
-    } else if (store.retrySync) {
+    } else if (retrySync) {
       text = `🚫 OnCall took too many tries to synchronize... Are background workers up and running?`;
     }
 
@@ -71,13 +82,10 @@ const RootWithLoader = observer((props: AppRootProps) => {
       <div className="spin">
         <img alt="Grafana OnCall Logo" src={logo} />
         <div className="spin-text">{text}</div>
-        {!store.pluginIsInitialized ||
-        !store.correctProvisioningForInstallation ||
-        store.initializationError ||
-        store.retrySync ? (
+        {!pluginIsInitialized || !correctProvisioningForInstallation || initializationError || retrySync ? (
           <div className="configure-plugin">
             <HorizontalGroup>
-              <Button variant="primary" onClick={() => store.setupPlugin(props.meta)} size="sm">
+              <Button variant="primary" onClick={() => setupPlugin(meta)} size="sm">
                 Retry
               </Button>
               <LinkButton href={`/plugins/grafana-oncall-app?page=configuration`} variant="primary" size="sm">
@@ -103,14 +111,13 @@ export const Root = observer((props: AppRootProps) => {
     meta,
   } = props;
 
+  const { backendLicense, updateBasicData, hasFeature, features } = useStore();
+
   // Required to support grafana instances that use a custom `root_url`.
   const pathWithoutLeadingSlash = path.replace(/^\//, '');
 
-  const store = useStore();
-  const { backendLicense } = store;
-
   useEffect(() => {
-    store.updateBasicData();
+    updateBasicData();
   }, []);
 
   useEffect(() => {
@@ -135,14 +142,15 @@ export const Root = observer((props: AppRootProps) => {
         path: pathWithoutLeadingSlash,
         meta,
         grafanaUser: window.grafanaBootData.user,
-        enableLiveSettings: store.hasFeature(AppFeature.LiveSettings),
-        enableCloudPage: store.hasFeature(AppFeature.CloudConnection),
-        enableNewSchedulesPage: store.hasFeature(AppFeature.WebSchedules),
+        enableLiveSettings: hasFeature(AppFeature.LiveSettings),
+        enableCloudPage: hasFeature(AppFeature.CloudConnection),
+        enableNewSchedulesPage: hasFeature(AppFeature.WebSchedules),
         backendLicense,
       }),
-      [meta, pathWithoutLeadingSlash, page, store.features, backendLicense]
+      [meta, pathWithoutLeadingSlash, page, features, backendLicense]
     )
   );
+
   useEffect(() => {
     /* @ts-ignore */
     onNavChanged(navModel);

@@ -8,12 +8,15 @@ import { WithPermissionControl } from 'containers/WithPermissionControl/WithPerm
 import { useStore } from 'state/useStore';
 import { UserAction } from 'state/userAction';
 
-const SlackIntegrationButton = observer((props: { className: string; disabled?: boolean }) => {
-  const { className, disabled } = props;
+type Props = {
+  className: string;
+  disabled?: boolean;
+};
 
+const SlackIntegrationButton = observer(({ className, disabled }: Props) => {
   const [showModal, setShowModal] = useState<boolean>(false);
 
-  const store = useStore();
+  const { slackStore, teamStore } = useStore();
 
   const onInstallModalCallback = useCallback(() => {
     setShowModal(true);
@@ -24,16 +27,16 @@ const SlackIntegrationButton = observer((props: { className: string; disabled?: 
   }, []);
 
   const onRemoveClickCallback = useCallback(() => {
-    store.slackStore.removeSlackIntegration().then(() => {
-      store.teamStore.loadCurrentTeam();
+    slackStore.removeSlackIntegration().then(() => {
+      teamStore.loadCurrentTeam();
     });
   }, []);
 
   const onInstallClickCallback = useCallback(() => {
-    store.slackStore.installSlackIntegration();
+    slackStore.installSlackIntegration();
   }, []);
 
-  if (store.teamStore.currentTeam?.slack_team_identity) {
+  if (teamStore.currentTeam?.slack_team_identity) {
     return (
       <WithPermissionControl userAction={UserAction.UpdateIntegrations}>
         <WithConfirm title="Are you sure to delete this Slack Integration?">
@@ -45,7 +48,7 @@ const SlackIntegrationButton = observer((props: { className: string; disabled?: 
             disabled={disabled}
             onClick={onRemoveClickCallback}
           >
-            Remove Slack Integration ({store.teamStore.currentTeam.slack_team_identity?.cached_name})
+            Remove Slack Integration ({teamStore.currentTeam.slack_team_identity?.cached_name})
           </Button>
         </WithConfirm>
       </WithPermissionControl>
@@ -76,22 +79,18 @@ interface SlackModalProps {
   onConfirm: () => void;
 }
 
-const SlackModal = (props: SlackModalProps) => {
-  const { onHide, onConfirm } = props;
-
-  return (
-    <Modal title="One more thing..." closeOnEscape isOpen onDismiss={onHide}>
-      <div style={{ textAlign: 'center' }}>
-        You can view your Slack Workspace at the top-right corner after you are redirected. It should be a Workspace
-        with App Bot installed:
-      </div>
-      <img
-        style={{ height: '350px', display: 'block', margin: '0 auto' }}
-        src="public/plugins/grafana-oncall-app/img/slack_workspace_choose_attention.png"
-      />
-      <Button onClick={onConfirm}>I'll check! Proceed to Slack...</Button>
-    </Modal>
-  );
-};
+const SlackModal = ({ onHide, onConfirm }: SlackModalProps) => (
+  <Modal title="One more thing..." closeOnEscape isOpen onDismiss={onHide}>
+    <div style={{ textAlign: 'center' }}>
+      You can view your Slack Workspace at the top-right corner after you are redirected. It should be a Workspace with
+      App Bot installed:
+    </div>
+    <img
+      style={{ height: '350px', display: 'block', margin: '0 auto' }}
+      src="public/plugins/grafana-oncall-app/img/slack_workspace_choose_attention.png"
+    />
+    <Button onClick={onConfirm}>I'll check! Proceed to Slack...</Button>
+  </Modal>
+);
 
 export default SlackIntegrationButton;

@@ -16,9 +16,15 @@ interface PluginLinkProps extends LocationUpdate {
 
 const cx = cn.bind(styles);
 
-const PluginLink: FC<PluginLinkProps> = (props) => {
-  const { children, partial = false, path = '/a/grafana-oncall-app/', query, disabled, className, wrap = true } = props;
-
+const PluginLink: FC<PluginLinkProps> = ({
+  children,
+  partial = false,
+  path = '/a/grafana-oncall-app/',
+  query,
+  disabled,
+  className,
+  wrap = true,
+}) => {
   const href = `${path}?${qs.stringify(query)}`;
 
   const onClickCallback = useCallback(

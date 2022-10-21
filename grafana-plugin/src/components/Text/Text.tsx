@@ -34,26 +34,24 @@ const PLACEHOLDER = '**********';
 
 const cx = cn.bind(styles);
 
-const Text: TextInterface = (props) => {
-  const {
-    type,
-    size = 'medium',
-    strong = false,
-    underline = false,
-    children,
-    onClick,
-    keyboard = false,
-    className,
-    wrap = true,
-    copyable = false,
-    editable = false,
-    onTextChange,
-    clearBeforeEdit = false,
-    hidden = false,
-    editModalTitle = 'New value',
-    style,
-  } = props;
-
+const Text: TextInterface = ({
+  type,
+  size = 'medium',
+  strong = false,
+  underline = false,
+  children,
+  onClick,
+  keyboard = false,
+  className,
+  wrap = true,
+  copyable = false,
+  editable = false,
+  onTextChange,
+  clearBeforeEdit = false,
+  hidden = false,
+  editModalTitle = 'New value',
+  style,
+}) => {
   const [isEditMode, setIsEditMode] = useState<boolean>(false);
   const [value, setValue] = useState<string | undefined>();
 
@@ -148,8 +146,7 @@ interface TitleProps extends TextProps {
   level: 1 | 2 | 3 | 4 | 5 | 6;
 }
 
-const Title: FC<TitleProps> = (props) => {
-  const { level, className, style, ...restProps } = props;
+const Title: FC<TitleProps> = ({ level, className, style, ...restProps }) => {
   // @ts-ignore
   const Tag: keyof JSX.IntrinsicElements = `h${level}`;
 

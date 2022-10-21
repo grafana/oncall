@@ -57,7 +57,10 @@ class IncidentsFilters extends Component<IncidentsFiltersProps, IncidentsFilters
   searchRef = React.createRef<HTMLInputElement>();
 
   async componentDidMount() {
-    const { query, store } = this.props;
+    const {
+      query,
+      store: { incidentFilters },
+    } = this.props;
 
     const filterOptions = await makeRequest('/alertgroups/filters/', {});
 
@@ -66,8 +69,8 @@ class IncidentsFilters extends Component<IncidentsFiltersProps, IncidentsFilters
     if (isEmpty(values)) {
       // TODO fill filters if no filters in query
       let newQuery;
-      if (store.incidentFilters) {
-        newQuery = { ...store.incidentFilters };
+      if (incidentFilters) {
+        newQuery = { ...incidentFilters };
       } else {
         newQuery = {
           status: [IncidentStatus.New, IncidentStatus.Acknowledged],
@@ -129,10 +132,9 @@ class IncidentsFilters extends Component<IncidentsFiltersProps, IncidentsFilters
   };
 
   renderCards() {
-    const { store } = this.props;
+    const { newIncidents, acknowledgedIncidents, resolvedIncidents, silencedIncidents } =
+      this.props.store.alertGroupStore;
     const { values } = this.state;
-
-    const { newIncidents, acknowledgedIncidents, resolvedIncidents, silencedIncidents } = store.alertGroupStore;
 
     const { count: newIncidentsCount } = newIncidents;
     const { count: acknowledgedIncidentsCount } = acknowledgedIncidents;

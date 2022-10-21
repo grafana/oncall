@@ -41,14 +41,11 @@ class ApiTokens extends React.Component<ApiTokensProps, any> {
   }
 
   render() {
-    const { store } = this.props;
-    const { apiTokenStore } = store;
-
-    const { isMobile } = store;
-
-    const apiTokens = apiTokenStore.getSearchResult();
-
     const { showCreateTokenModal } = this.state;
+    const {
+      store: { apiTokenStore, isMobile, isUserActionAllowed },
+    } = this.props;
+    const apiTokens = apiTokenStore.getSearchResult();
 
     const columns = [
       {
@@ -93,7 +90,7 @@ class ApiTokens extends React.Component<ApiTokensProps, any> {
           showHeader={!isMobile}
           data={apiTokens}
           emptyText={
-            store.isUserActionAllowed(UserAction.UpdateApiTokens)
+            isUserActionAllowed(UserAction.UpdateApiTokens)
               ? apiTokens
                 ? 'No tokens found'
                 : 'Loading...'

@@ -18,9 +18,7 @@ interface CardButtonProps {
 
 const cx = cn.bind(styles);
 
-const CardButton: FC<CardButtonProps> = (props) => {
-  const { icon, description, title, selected, onClick } = props;
-
+const CardButton: FC<CardButtonProps> = ({ icon, description, title, selected, onClick }) => {
   const handleClick = useCallback(() => {
     onClick(!selected);
   }, [selected]);

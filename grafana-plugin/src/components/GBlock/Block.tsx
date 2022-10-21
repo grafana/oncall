@@ -12,22 +12,26 @@ interface BlockProps extends HTMLAttributes<HTMLElement> {
 
 const cx = cn.bind(styles);
 
-const Block: FC<BlockProps> = (props) => {
-  const { children, style, className, bordered = false, shadowed = false, withBackground = false, ...rest } = props;
-
-  return (
-    <div
-      className={cx('root', className, {
-        root_bordered: bordered,
-        root_shadowed: shadowed,
-        'root_with-background': withBackground,
-      })}
-      style={style}
-      {...rest}
-    >
-      {children}
-    </div>
-  );
-};
+const Block: FC<BlockProps> = ({
+  children,
+  style,
+  className,
+  bordered = false,
+  shadowed = false,
+  withBackground = false,
+  ...rest
+}) => (
+  <div
+    className={cx('root', className, {
+      root_bordered: bordered,
+      root_shadowed: shadowed,
+      'root_with-background': withBackground,
+    })}
+    style={style}
+    {...rest}
+  >
+    {children}
+  </div>
+);
 
 export default Block;

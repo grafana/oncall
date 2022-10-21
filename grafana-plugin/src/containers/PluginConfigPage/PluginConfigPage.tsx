@@ -31,8 +31,7 @@ const cx = cn.bind(styles);
 
 interface Props extends PluginConfigPageProps<AppPluginMeta<OnCallAppSettings>> {}
 
-export const PluginConfigPage = (props: Props) => {
-  const { plugin } = props;
+export const PluginConfigPage = ({ plugin }: Props) => {
   const [onCallApiUrl, setOnCallApiUrl] = useState<string>(getItem('onCallApiUrl'));
   const [onCallInvitationToken, setOnCallInvitationToken] = useState<string>();
   const [grafanaUrl, setGrafanaUrl] = useState<string>(getItem('grafanaUrl'));

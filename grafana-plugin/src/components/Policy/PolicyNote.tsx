@@ -24,9 +24,7 @@ function getIcon(type: PolicyNoteProps['type']) {
   }
 }
 
-const PolicyNote: FC<PolicyNoteProps> = (props) => {
-  const { children, type = 'info' } = props;
-
+const PolicyNote: FC<PolicyNoteProps> = ({ children, type = 'info' }) => {
   const icon = getIcon(type);
 
   return (

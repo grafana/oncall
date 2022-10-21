@@ -12,9 +12,7 @@ interface AvatarProps {
 
 const cx = cn.bind(styles);
 
-const Avatar: FC<AvatarProps> = (props) => {
-  const { src, size, className, ...rest } = props;
-
+const Avatar: FC<AvatarProps> = ({ src, size, className, ...rest }) => {
   if (!src) {
     return null;
   }

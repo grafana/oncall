@@ -68,7 +68,7 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
     super(props);
 
     const {
-      store,
+      store: { alertGroupStore },
       query: { cursor: cursorQuery, start: startQuery, perpage: perpageQuery },
     } = props;
 
@@ -76,8 +76,8 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
     const start = !isNaN(startQuery) ? Number(startQuery) : 1;
     const itemsPerPage = !isNaN(perpageQuery) ? Number(perpageQuery) : ITEMS_PER_PAGE;
 
-    store.alertGroupStore.incidentsCursor = cursor;
-    store.alertGroupStore.incidentsItemsPerPage = itemsPerPage;
+    alertGroupStore.incidentsCursor = cursor;
+    alertGroupStore.incidentsItemsPerPage = itemsPerPage;
 
     this.state = {
       selectedIncidentIds: [],
@@ -88,8 +88,8 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
       },
     };
 
-    store.alertGroupStore.updateBulkActions();
-    store.alertGroupStore.updateSilenceOptions();
+    alertGroupStore.updateBulkActions();
+    alertGroupStore.updateSilenceOptions();
   }
 
   private pollingIntervalId: NodeJS.Timer = undefined;
@@ -118,7 +118,7 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
   }
 
   handleFiltersChange = (filters: IncidentsFiltersType, isOnMount: boolean) => {
-    const { store } = this.props;
+    const { alertGroupStore } = this.props.store;
 
     this.setState({
       filters,
@@ -129,7 +129,7 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
       this.setState({
         pagination: {
           start: 1,
-          end: store.alertGroupStore.incidentsItemsPerPage,
+          end: alertGroupStore.incidentsItemsPerPage,
         },
       });
     }
@@ -140,49 +140,49 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
   };
 
   fetchIncidentData = (filters: IncidentsFiltersType, isOnMount: boolean) => {
-    const { store } = this.props;
-    store.alertGroupStore.updateIncidentFilters(filters, isOnMount); // this line fetches incidents
-    getLocationSrv().update({ query: { page: 'incidents', ...store.alertGroupStore.incidentFilters } });
+    const { alertGroupStore } = this.props.store;
+    alertGroupStore.updateIncidentFilters(filters, isOnMount); // this line fetches incidents
+    getLocationSrv().update({ query: { page: 'incidents', ...alertGroupStore.incidentFilters } });
   };
 
   onChangeCursor = (cursor: string, direction: 'prev' | 'next') => {
-    const { store } = this.props;
+    const { alertGroupStore } = this.props.store;
+    const { pagination } = this.state;
 
-    store.alertGroupStore.setIncidentsCursor(cursor);
+    alertGroupStore.setIncidentsCursor(cursor);
 
     this.setState({
       selectedIncidentIds: [],
       pagination: {
-        start:
-          this.state.pagination.start + store.alertGroupStore.incidentsItemsPerPage * (direction === 'prev' ? -1 : 1),
-        end: this.state.pagination.end + store.alertGroupStore.incidentsItemsPerPage * (direction === 'prev' ? -1 : 1),
+        start: pagination.start + alertGroupStore.incidentsItemsPerPage * (direction === 'prev' ? -1 : 1),
+        end: pagination.end + alertGroupStore.incidentsItemsPerPage * (direction === 'prev' ? -1 : 1),
       },
     });
   };
 
   handleChangeItemsPerPage = (value: number) => {
-    const { store } = this.props;
+    const { alertGroupStore } = this.props.store;
 
-    store.alertGroupStore.setIncidentsItemsPerPage(value);
+    alertGroupStore.setIncidentsItemsPerPage(value);
 
     this.setState({
       selectedIncidentIds: [],
       pagination: {
         start: 1,
-        end: store.alertGroupStore.incidentsItemsPerPage,
+        end: alertGroupStore.incidentsItemsPerPage,
       },
     });
   };
 
   renderBulkActions = () => {
     const { selectedIncidentIds, affectedRows } = this.state;
-    const { store } = this.props;
+    const { alertGroupsLoading, bulkActions, getAlertSearchResult } = this.props.store.alertGroupStore;
 
-    if (!store.alertGroupStore.bulkActions) {
+    if (!bulkActions) {
       return null;
     }
 
-    const results = store.alertGroupStore.getAlertSearchResult('default');
+    const results = getAlertSearchResult('default');
 
     const hasSelected = selectedIncidentIds.length > 0;
     const hasInvalidatedAlert = Boolean(
@@ -193,7 +193,7 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
       <div className={cx('above-incidents-table')}>
         <div className={cx('bulk-actions')}>
           <HorizontalGroup>
-            {'resolve' in store.alertGroupStore.bulkActions && (
+            {'resolve' in bulkActions && (
               <WithPermissionControl key="resolve" userAction={UserAction.UpdateIncidents}>
                 <Button
                   disabled={!hasSelected}
@@ -204,7 +204,7 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
                 </Button>
               </WithPermissionControl>
             )}
-            {'acknowledge' in store.alertGroupStore.bulkActions && (
+            {'acknowledge' in bulkActions && (
               <WithPermissionControl key="resolve" userAction={UserAction.UpdateIncidents}>
                 <Button
                   disabled={!hasSelected}
@@ -215,7 +215,7 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
                 </Button>
               </WithPermissionControl>
             )}
-            {'silence' in store.alertGroupStore.bulkActions && (
+            {'silence' in bulkActions && (
               <WithPermissionControl key="restart" userAction={UserAction.UpdateIncidents}>
                 <Button
                   disabled={!hasSelected}
@@ -226,7 +226,7 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
                 </Button>
               </WithPermissionControl>
             )}
-            {'restart' in store.alertGroupStore.bulkActions && (
+            {'restart' in bulkActions && (
               <WithPermissionControl key="silence" userAction={UserAction.UpdateIncidents}>
                 <SilenceDropdown
                   disabled={!hasSelected}
@@ -246,7 +246,7 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
             <Text type="secondary">Results out of date</Text>
             <Button
               style={{ marginLeft: '8px' }}
-              disabled={store.alertGroupStore.alertGroupsLoading}
+              disabled={alertGroupsLoading}
               variant="primary"
               onClick={this.onIncidentsUpdateClick}
             >
@@ -260,12 +260,12 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
 
   renderTable() {
     const { selectedIncidentIds, pagination } = this.state;
-    const { store } = this.props;
-    const { alertGroupsLoading } = store.alertGroupStore;
+    const { alertGroupStore } = this.props.store;
+    const { alertGroupsLoading } = alertGroupStore;
 
-    const results = store.alertGroupStore.getAlertSearchResult('default');
-    const prev = get(store.alertGroupStore.alertsSearchResult, `default.prev`);
-    const next = get(store.alertGroupStore.alertsSearchResult, `default.next`);
+    const results = alertGroupStore.getAlertSearchResult('default');
+    const prev = get(alertGroupStore.alertsSearchResult, `default.prev`);
+    const next = get(alertGroupStore.alertsSearchResult, `default.next`);
 
     if (results && !results.length) {
       return (
@@ -354,7 +354,7 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
         <div className={cx('pagination')}>
           <CursorPagination
             current={`${pagination.start}-${pagination.end}`}
-            itemsPerPage={store.alertGroupStore.incidentsItemsPerPage}
+            itemsPerPage={alertGroupStore.incidentsItemsPerPage}
             itemsPerPageOptions={[
               { label: '25', value: 25 },
               { label: '50', value: 50 },
@@ -381,12 +381,10 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
   }
 
   renderTitle = (record: AlertType) => {
-    const { store } = this.props;
+    const { incidentsItemsPerPage, incidentsCursor } = this.props.store.alertGroupStore;
     const {
       pagination: { start },
     } = this.state;
-
-    const { incidentsItemsPerPage, incidentsCursor } = store.alertGroupStore;
 
     return (
       <VerticalGroup spacing="none" justify="center">
@@ -498,42 +496,42 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
   };
 
   getOnActionButtonClick = (incidentId: string, action: AlertAction) => {
-    const { store } = this.props;
+    const { alertGroupStore } = this.props.store;
 
     return (e: SyntheticEvent) => {
       e.stopPropagation();
 
-      store.alertGroupStore.doIncidentAction(incidentId, action, false);
+      alertGroupStore.doIncidentAction(incidentId, action, false);
     };
   };
 
   getSilenceClickHandler = (alert: AlertType) => {
-    const { store } = this.props;
+    const { alertGroupStore } = this.props.store;
 
     return (value: number) => {
-      store.alertGroupStore.doIncidentAction(alert.pk, AlertAction.Silence, false, {
+      alertGroupStore.doIncidentAction(alert.pk, AlertAction.Silence, false, {
         delay: value,
       });
     };
   };
 
   getUnsilenceClickHandler = (alert: AlertType) => {
-    const { store } = this.props;
+    const { alertGroupStore } = this.props.store;
 
     return (event: any) => {
       event.stopPropagation();
 
-      store.alertGroupStore.doIncidentAction(alert.pk, AlertAction.unSilence, false);
+      alertGroupStore.doIncidentAction(alert.pk, AlertAction.unSilence, false);
     };
   };
 
   getBulkActionClickHandler = (action: string | number, event?: any) => {
     const { selectedIncidentIds, affectedRows } = this.state;
-    const { store } = this.props;
+    const { alertGroupStore } = this.props.store;
 
     this.setPollingInterval();
 
-    store.alertGroupStore.liveUpdatesPaused = true;
+    alertGroupStore.liveUpdatesPaused = true;
     const delay = typeof event === 'number' ? event : 0;
 
     this.setState(
@@ -548,7 +546,7 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
         ),
       },
       () => {
-        store.alertGroupStore.bulkAction({
+        alertGroupStore.bulkAction({
           action,
           alert_group_pks: selectedIncidentIds,
           delay,
@@ -558,10 +556,10 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
   };
 
   onIncidentsUpdateClick = () => {
-    const { store } = this.props;
+    const { alertGroupStore } = this.props.store;
 
     this.setState({ affectedRows: {} }, () => {
-      store.alertGroupStore.updateIncidents();
+      alertGroupStore.updateIncidents();
     });
   };
 

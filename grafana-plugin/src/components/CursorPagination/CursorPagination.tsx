@@ -15,9 +15,15 @@ interface CursorPaginationProps {
   next: string;
 }
 
-const CursorPagination: FC<CursorPaginationProps> = (props) => {
-  const { current, onChange, prev, next, itemsPerPage, itemsPerPageOptions, onChangeItemsPerPage } = props;
-
+const CursorPagination: FC<CursorPaginationProps> = ({
+  current,
+  onChange,
+  prev,
+  next,
+  itemsPerPage,
+  itemsPerPageOptions,
+  onChangeItemsPerPage,
+}) => {
   const [disabled, setDisabled] = useState<boolean>(false);
 
   useEffect(() => {

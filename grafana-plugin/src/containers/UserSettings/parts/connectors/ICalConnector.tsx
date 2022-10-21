@@ -20,19 +20,17 @@ interface ICalConnectorProps {
   id: User['pk'];
 }
 
-const ICalConnector = (props: ICalConnectorProps) => {
-  const { id } = props;
-
-  const store = useStore();
-  const { userStore } = store;
+const ICalConnector = ({ id }: ICalConnectorProps) => {
+  const {
+    userStore: { getiCalLink, createiCalLink, deleteiCalLink },
+  } = useStore();
 
   const [showiCalLink, setShowiCalLink] = useState<string>(undefined);
   const [isiCalLinkExisting, setIsiCalLinkExisting] = useState<boolean>(false);
   const [iCalLoading, setiCalLoading] = useState<boolean>(true);
 
   useEffect(() => {
-    userStore
-      .getiCalLink(id)
+    getiCalLink(id)
       .then((_res) => {
         setIsiCalLinkExisting(true);
         setiCalLoading(false);
@@ -41,17 +39,17 @@ const ICalConnector = (props: ICalConnectorProps) => {
         setIsiCalLinkExisting(false);
         setiCalLoading(false);
       });
-  }, []);
+  }, [getiCalLink, id]);
 
   const handleCreateiCalLink = async () => {
     setIsiCalLinkExisting(true);
-    await userStore.createiCalLink(id).then((res) => setShowiCalLink(res?.export_url));
+    await createiCalLink(id).then((res) => setShowiCalLink(res?.export_url));
   };
 
   const handleRevokeiCalLink = async () => {
     setIsiCalLinkExisting(false);
     setShowiCalLink(undefined);
-    await userStore.deleteiCalLink(id);
+    await deleteiCalLink(id);
   };
 
   return (

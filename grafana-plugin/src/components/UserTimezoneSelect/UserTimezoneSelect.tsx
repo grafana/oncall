@@ -18,9 +18,7 @@ interface UserTimezoneSelectProps {
 
 const cx = cn.bind(styles);
 
-const UserTimezoneSelect: FC<UserTimezoneSelectProps> = (props) => {
-  const { users, value: propValue, onChange } = props;
-
+const UserTimezoneSelect: FC<UserTimezoneSelectProps> = ({ users, value: propValue, onChange }) => {
   const options = useMemo(() => {
     return users
       .reduce(

@@ -16,12 +16,8 @@ interface EscalationChainFormProps {
 
 const cx = cn.bind(styles);
 
-const EscalationChainForm: FC<EscalationChainFormProps> = (props) => {
-  const { escalationChainId, onHide, onUpdate } = props;
-
-  const store = useStore();
-  const { escalationChainStore } = store;
-
+const EscalationChainForm: FC<EscalationChainFormProps> = ({ escalationChainId, onHide, onUpdate }) => {
+  const { escalationChainStore } = useStore();
   const escalationChain = escalationChainId ? escalationChainStore.items[escalationChainId] : undefined;
 
   const [name, setName] = useState<string | undefined>(escalationChain?.name);

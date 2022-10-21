@@ -18,8 +18,7 @@ const cx = cn.bind(styles);
 const SPRITESHEET_WIDTH = 3000;
 const LOGO_WIDTH = 200;
 
-const IntegrationLogo: FC<IntegrationLogoProps> = (props) => {
-  const { integration, scale } = props;
+const IntegrationLogo: FC<IntegrationLogoProps> = ({ integration, scale }) => {
   if (!integration) {
     return null;
   }
