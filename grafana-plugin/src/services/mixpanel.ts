@@ -1,6 +1,6 @@
 const mixpanel = window.mixpanel;
 
-let actions = {
+const actions = {
   identify: (id: any) => {
     if (mixpanel) {
       mixpanel.identify(id);
@@ -25,4 +25,4 @@ let actions = {
   },
 };
 
-export let Mixpanel = actions;
+export const Mixpanel = actions;

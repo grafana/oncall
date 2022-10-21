@@ -73,7 +73,7 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
     let selectedAlertReceiveChannel = store.selectedAlertReceiveChannel;
 
     if (query.id) {
-      let alertReceiveChannel = await alertReceiveChannelStore
+      const alertReceiveChannel = await alertReceiveChannelStore
         .loadItem(query.id, true)
         .catch((error) => this.setState({ errorData: { ...getWrongTeamResponseInfo(error) } }));
 
@@ -277,7 +277,7 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
     const { alertReceiveChannelStore, selectedAlertReceiveChannel } = this.props.store;
 
     if (selectedAlertReceiveChannel in this.alertReceiveChanneltoPoll) {
-      let counter = this.alertReceiveChanneltoPoll[selectedAlertReceiveChannel];
+      const counter = this.alertReceiveChanneltoPoll[selectedAlertReceiveChannel];
       if (counter > 0) {
         alertReceiveChannelStore.updateItem(selectedAlertReceiveChannel);
         this.alertReceiveChanneltoPoll[selectedAlertReceiveChannel]--;

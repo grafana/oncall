@@ -50,6 +50,7 @@ module.exports = {
     ],
     'no-duplicate-imports': 'error',
     'no-restricted-imports': 'warn',
+    'prefer-const': 'warn',
     'react/display-name': 'warn',
     /**
      * It appears as though the react/prop-types rule has a bug in it

@@ -46,9 +46,9 @@ export const getDatesString = (start: string, end: string, allDay: boolean): str
     return `${startMoment.format('LT')} — ${endMoment.format('LT')}`;
   }
 
-  let startString = humanize(startMoment, currentMoment);
+  const startString = humanize(startMoment, currentMoment);
 
-  let endString = humanize(endMoment, currentMoment);
+  const endString = humanize(endMoment, currentMoment);
 
   return `${startString} — ${endString}`;
 };

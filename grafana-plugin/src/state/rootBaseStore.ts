@@ -215,7 +215,7 @@ export class RootBaseStore {
 
     this.onCallApiUrl = meta.jsonData.onCallApiUrl;
 
-    let syncStartStatus = await this.startSync();
+    const syncStartStatus = await this.startSync();
     if (syncStartStatus.is_user_anonymous) {
       this.isUserAnonymous = true;
       return;

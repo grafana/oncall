@@ -121,7 +121,7 @@ export const Root = observer((props: AppRootProps) => {
   }, []);
 
   useEffect(() => {
-    let link = document.createElement('link');
+    const link = document.createElement('link');
     link.type = 'text/css';
     link.rel = 'stylesheet';
     link.href = '/public/plugins/grafana-oncall-app/img/grafanaGlobalStyles.css';

@@ -332,7 +332,7 @@ class Users extends React.Component<UsersProps, UsersState> {
     }
 
     if (!phone_verified || !user.slack_user_identity || !user.telegram_configuration) {
-      let texts = [];
+      const texts = [];
       if (!phone_verified) {
         texts.push(phone_not_verified_message);
       }

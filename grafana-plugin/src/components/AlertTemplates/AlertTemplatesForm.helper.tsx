@@ -1,7 +1,7 @@
 import { capitalCase } from 'change-case';
 
 export const getLabelFromTemplateName = (templateName: string, group: any) => {
-  let arrayFromName = capitalCase(templateName).split(' ', 4);
+  const arrayFromName = capitalCase(templateName).split(' ', 4);
   let arrayWithNeededValues;
   if (group === 'alert behaviour') {
     arrayWithNeededValues = arrayFromName.slice(0, arrayFromName.lastIndexOf('Template'));
