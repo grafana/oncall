@@ -3,13 +3,13 @@ rulesDirPlugin.RULES_DIR = 'tools/eslint-rules';
 
 module.exports = {
   extends: ['@grafana/eslint-config'],
-  plugins: ['rulesdir', 'import'],
+  plugins: ['rulesdir', 'import', 'prefer-arrow-functions'],
   settings: {
     'import/internal-regex':
       '^assets|^components|^containers|^declare|^icons|^img|^interceptors|^models|^network|^pages|^services|^state|^utils',
   },
   rules: {
-    'arrow-body-style': 'warn',
+    'arrow-body-style': ['warn', 'as-needed'],
     eqeqeq: 'warn',
     'func-style': 'warn',
     'import/order': [
@@ -51,6 +51,15 @@ module.exports = {
     'no-duplicate-imports': 'error',
     'no-restricted-imports': 'warn',
     'prefer-arrow-callback': 'warn',
+    'prefer-arrow-functions/prefer-arrow-functions': [
+      'warn',
+      {
+        classPropertiesAllowed: true,
+        disallowPrototype: true,
+        returnStyle: 'unchanged',
+        singleReturnOnly: true,
+      },
+    ],
     'prefer-const': 'warn',
     'react/display-name': 'warn',
     /**

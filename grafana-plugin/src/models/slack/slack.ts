@@ -31,13 +31,11 @@ export class SlackStore extends BaseStore {
     });
   }
 
-  @action
-  async setGeneralLogChannelId(id: SlackChannel['id']) {
-    return await makeRequest('/set_general_channel/', {
+  setGeneralLogChannelId = async (id: SlackChannel['id']) =>
+    await makeRequest('/set_general_channel/', {
       method: 'POST',
       data: { id },
     });
-  }
 
   @action
   async updateSlackIntegrationData(slack_id: string) {
@@ -49,9 +47,7 @@ export class SlackStore extends BaseStore {
   @action
   async reinstallSlackIntegration(slack_id: string) {
     return await makeRequest('/slack_integration/', {
-      validateStatus: function (status) {
-        return status === 200 || status === 403;
-      },
+      validateStatus: (status) => status === 200 || status === 403,
       method: 'POST',
       params: { slack_id },
     }).catch(this.onApiError);
@@ -68,7 +64,5 @@ export class SlackStore extends BaseStore {
     window.location = url_for_redirect;
   }
 
-  async removeSlackIntegration() {
-    return await makeRequest('/slack/reset_slack/', { method: 'POST' });
-  }
+  removeSlackIntegration = async () => await makeRequest('/slack/reset_slack/', { method: 'POST' });
 }

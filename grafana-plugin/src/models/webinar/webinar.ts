@@ -1,4 +1,4 @@
-import { action, observable } from 'mobx';
+import { observable } from 'mobx';
 import moment from 'moment-timezone';
 
 import BaseStore from 'models/base_store';
@@ -20,13 +20,11 @@ export class WebinarStore extends BaseStore {
     this.path = '/webinars/';
   }
 
-  @action
-  async subscribe(id: Webinar['id']) {
-    return await makeRequest(`/webinars/${id}/subscribe/`, {
+  subscribe = async (id: Webinar['id']) =>
+    await makeRequest(`/webinars/${id}/subscribe/`, {
       method: 'POST',
       withCredentials: true,
     });
-  }
 
   async updateItems(query = '') {
     const result = await this.getAll();

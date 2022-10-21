@@ -70,13 +70,11 @@ export class TeamStore extends BaseStore {
     });
   }
 
-  @action
-  async justSaveCurrentTeam(data: any) {
-    return await makeRequest('/current_team/', {
+  justSaveCurrentTeam = async (data: any) =>
+    await makeRequest('/current_team/', {
       method: 'PUT',
       data,
     });
-  }
 
   @action
   async getTelegramVerificationCode(pk: Team['pk']) {

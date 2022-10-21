@@ -97,18 +97,15 @@ export class TelegramChannelStore extends BaseStore {
     }
   }
 
-  async getTelegramVerificationCode() {
-    return await makeRequest(`/current_team/get_telegram_verification_code/`, {
+  getTelegramVerificationCode = async () =>
+    await makeRequest(`/current_team/get_telegram_verification_code/`, {
       withCredentials: true,
     });
-  }
 
-  @action
-  async makeTelegramChannelDefault(id: TelegramChannel['id']) {
-    return makeRequest(`/telegram_channels/${id}/set_default/`, {
+  makeTelegramChannelDefault = async (id: TelegramChannel['id']) =>
+    makeRequest(`/telegram_channels/${id}/set_default/`, {
       method: 'POST',
     });
-  }
 
   @action
   async deleteTelegramChannel(id: TelegramChannel['id']) {

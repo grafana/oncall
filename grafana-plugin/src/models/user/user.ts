@@ -226,19 +226,15 @@ export class UserStore extends BaseStore {
     });
   }
 
-  @action
-  async verifyPhone(userPk: User['pk'], token: string) {
-    return await makeRequest(`/users/${userPk}/verify_number/?token=${token}`, {
+  verifyPhone = async (userPk: User['pk'], token: string) =>
+    await makeRequest(`/users/${userPk}/verify_number/?token=${token}`, {
       method: 'PUT',
     });
-  }
 
-  @action
-  async forgetPhone(userPk: User['pk']) {
-    return await makeRequest(`/users/${userPk}/forget_number/`, {
+  forgetPhone = async (userPk: User['pk']) =>
+    await makeRequest(`/users/${userPk}/forget_number/`, {
       method: 'PUT',
     });
-  }
 
   @action
   async updateNotificationPolicies(id: User['pk']) {
@@ -347,17 +343,15 @@ export class UserStore extends BaseStore {
       });
   }
 
-  async getiCalLink(userPk: User['pk']) {
-    return await makeRequest(`/users/${userPk}/export_token/`, {
+  getiCalLink = async (userPk: User['pk']) =>
+    await makeRequest(`/users/${userPk}/export_token/`, {
       method: 'GET',
     });
-  }
 
-  async createiCalLink(userPk: User['pk']) {
-    return await makeRequest(`/users/${userPk}/export_token/`, {
+  createiCalLink = async (userPk: User['pk']) =>
+    await makeRequest(`/users/${userPk}/export_token/`, {
       method: 'POST',
     });
-  }
 
   async deleteiCalLink(userPk: User['pk']) {
     await makeRequest(`/users/${userPk}/export_token/`, {
@@ -365,15 +359,13 @@ export class UserStore extends BaseStore {
     });
   }
 
-  async getMobileAppVerificationToken(userPk: User['pk']) {
-    return await makeRequest(`/users/${userPk}/mobile_app_verification_token/`, {
+  getMobileAppVerificationToken = async (userPk: User['pk']) =>
+    await makeRequest(`/users/${userPk}/mobile_app_verification_token/`, {
       method: 'GET',
     });
-  }
 
-  async createMobileAppVerificationToken(userPk: User['pk']) {
-    return await makeRequest(`/users/${userPk}/mobile_app_verification_token/`, {
+  createMobileAppVerificationToken = async (userPk: User['pk']) =>
+    await makeRequest(`/users/${userPk}/mobile_app_verification_token/`, {
       method: 'POST',
     });
-  }
 }

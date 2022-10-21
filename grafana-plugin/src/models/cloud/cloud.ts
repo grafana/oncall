@@ -57,22 +57,16 @@ export class CloudStore extends BaseStore {
     return await makeRequest(`${this.path}${id}/sync/`, { method: 'POST' });
   }
 
-  async getCloudHeartbeat() {
-    return await makeRequest(`/cloud_heartbeat/`, { method: 'POST' }).catch((error) => {
+  getCloudHeartbeat = async () =>
+    await makeRequest(`/cloud_heartbeat/`, { method: 'POST' }).catch((error) => {
       console.log(error);
     });
-  }
 
   async getCloudUser(id: string) {
     return await makeRequest(`${this.path}${id}`, { method: 'GET' });
   }
 
-  async getCloudConnectionStatus() {
-    return await makeRequest(`/cloud_connection/`, { method: 'GET' });
-  }
+  getCloudConnectionStatus = async () => await makeRequest(`/cloud_connection/`, { method: 'GET' });
 
-  @action
-  async disconnectToCloud() {
-    return await makeRequest(`/cloud_connection/`, { method: 'DELETE' });
-  }
+  disconnectToCloud = async () => await makeRequest(`/cloud_connection/`, { method: 'DELETE' });
 }

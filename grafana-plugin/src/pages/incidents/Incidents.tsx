@@ -376,9 +376,7 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
     });
   };
 
-  renderId(record: AlertType) {
-    return <Text type="secondary">#{record.inside_organization_number}</Text>;
-  }
+  renderId = (record: AlertType) => <Text type="secondary">#{record.inside_organization_number}</Text>;
 
   renderTitle = (record: AlertType) => {
     const { incidentsItemsPerPage, incidentsCursor } = this.props.store.alertGroupStore;
@@ -398,9 +396,7 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
     );
   };
 
-  renderAlertsCounter(record: AlertType) {
-    return <Text type="secondary">{record.alerts_count}</Text>;
-  }
+  renderAlertsCounter = (record: AlertType) => <Text type="secondary">{record.alerts_count}</Text>;
 
   renderSource = (record: AlertType) => {
     const {
@@ -416,9 +412,7 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
     );
   };
 
-  renderStatus(record: AlertType) {
-    return getIncidentStatusTag(record);
-  }
+  renderStatus = (record: AlertType) => getIncidentStatusTag(record);
 
   renderStartedAt(alert: AlertType) {
     const m = moment(alert.started_at);

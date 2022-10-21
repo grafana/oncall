@@ -151,17 +151,15 @@ export class ScheduleStore extends BaseStore {
     });
   }
 
-  async getICalLink(scheduleId: Schedule['id']) {
-    return await makeRequest(`/schedules/${scheduleId}/export_token/`, {
+  getICalLink = async (scheduleId: Schedule['id']) =>
+    await makeRequest(`/schedules/${scheduleId}/export_token/`, {
       method: 'GET',
     });
-  }
 
-  async createICalLink(scheduleId: Schedule['id']) {
-    return await makeRequest(`/schedules/${scheduleId}/export_token/`, {
+  createICalLink = async (scheduleId: Schedule['id']) =>
+    await makeRequest(`/schedules/${scheduleId}/export_token/`, {
       method: 'POST',
     });
-  }
 
   async deleteICalLink(scheduleId: Schedule['id']) {
     await makeRequest(`/schedules/${scheduleId}/export_token/`, {
@@ -335,11 +333,10 @@ export class ScheduleStore extends BaseStore {
     };
   }
 
-  async updateFrequencyOptions() {
-    return await makeRequest(`/oncall_shifts/frequency_options/`, {
+  updateFrequencyOptions = async () =>
+    await makeRequest(`/oncall_shifts/frequency_options/`, {
       method: 'GET',
     });
-  }
 
   async updateDaysOptions() {
     this.byDayOptions = await makeRequest(`/oncall_shifts/days_options/`, {

@@ -22,14 +22,13 @@ export class MaintenanceStore extends BaseStore {
     this.maintenances = await this.getAll();
   }
 
-  @action
-  async startMaintenanceMode(
+  startMaintenanceMode = async (
     type: MaintenanceType,
     mode: MaintenanceMode,
     duration: number,
     alertReceiveChannelId?: AlertReceiveChannel['id']
-  ) {
-    return await makeRequest(`/start_maintenance/`, {
+  ) =>
+    await makeRequest(`/start_maintenance/`, {
       method: 'POST',
       data: {
         type,
@@ -39,11 +38,9 @@ export class MaintenanceStore extends BaseStore {
       },
       withCredentials: true,
     });
-  }
 
-  @action
-  async stopMaintenanceMode(type: MaintenanceType, alertReceiveChannelId: AlertReceiveChannel['id']) {
-    return await makeRequest(`/stop_maintenance/`, {
+  stopMaintenanceMode = async (type: MaintenanceType, alertReceiveChannelId: AlertReceiveChannel['id']) =>
+    await makeRequest(`/stop_maintenance/`, {
       method: 'POST',
       data: {
         type,
@@ -51,5 +48,4 @@ export class MaintenanceStore extends BaseStore {
       },
       withCredentials: true,
     });
-  }
 }

@@ -161,13 +161,11 @@ export class AlertReceiveChannelStore extends BaseStore {
     };
   }
 
-  @action
-  async createChannelFilter(data: Partial<ChannelFilter>) {
-    return await makeRequest('/channel_filters/', {
+  createChannelFilter = async (data: Partial<ChannelFilter>) =>
+    await makeRequest('/channel_filters/', {
       method: 'POST',
       data,
     });
-  }
 
   @action
   async saveChannelFilter(channelFilterId: ChannelFilter['id'], data: Partial<ChannelFilter>) {
@@ -314,12 +312,11 @@ export class AlertReceiveChannelStore extends BaseStore {
     });
   }
 
-  async doCustomButtonAction(actionId: ActionDTO['id'], alertId: Alert['pk']) {
-    return await makeRequest(`/custom_buttons/${actionId}/action/`, {
+  doCustomButtonAction = async (actionId: ActionDTO['id'], alertId: Alert['pk']) =>
+    await makeRequest(`/custom_buttons/${actionId}/action/`, {
       method: 'POST',
       params: { alert_group: alertId },
     });
-  }
 
   async getAccessLogs(alertReceiveChannelId: AlertReceiveChannel['id']) {
     const { integration_log } = await makeRequest(`/alert_receive_channel_access_log/${alertReceiveChannelId}/`, {});
@@ -327,12 +324,11 @@ export class AlertReceiveChannelStore extends BaseStore {
     return integration_log;
   }
 
-  async installSentry(sentry_payload: string) {
-    return await makeRequest('/sentry_complete_install/', {
+  installSentry = async (sentry_payload: string) =>
+    await makeRequest('/sentry_complete_install/', {
       method: 'POST',
       params: { sentry_payload },
     });
-  }
 
   async sendDemoAlert(id: AlertReceiveChannel['id']) {
     await makeRequest(`${this.path}${id}/send_demo_alert/`, { method: 'POST' }).catch(showApiError);

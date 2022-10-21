@@ -297,9 +297,7 @@ export class AlertGroupStore extends BaseStore {
     });
   }
 
-  async getPayloadForIncident(pk: Alert['pk']) {
-    return await makeRequest(`/alerts/${pk}`, {});
-  }
+  getPayloadForIncident = async (pk: Alert['pk']) => await makeRequest(`/alerts/${pk}`, {});
 
   @action
   async getNewIncidentsStats() {
