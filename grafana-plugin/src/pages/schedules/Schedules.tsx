@@ -41,6 +41,7 @@ import { WithStoreProps } from 'state/types';
 import { UserAction } from 'state/userAction';
 import { withMobXProviderContext } from 'state/withStore';
 import { openErrorNotification } from 'utils';
+import LocationHelper from 'utils/LocationHelper';
 
 import { getDatesString } from './Schedules.helpers';
 
@@ -246,7 +247,8 @@ class SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSta
                 onUpdate={this.update}
                 onHide={() => {
                   this.setState({ scheduleIdToEdit: undefined });
-                  getLocationSrv().update({ partial: true, query: { id: undefined } });
+                  // getLocationSrv().update({ partial: true, query: { id: undefined } });
+                  LocationHelper.update({ page: 'schedule', id: undefined }, 'replace');
                 }}
               />
             )}
@@ -410,7 +412,8 @@ class SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSta
 
               this.setState({ scheduleIdToEdit: record.id });
 
-              getLocationSrv().update({ partial: true, query: { id: record.id } });
+              // getLocationSrv().update({ partial: true, query: { id: record.id } });
+              LocationHelper.update({ page: 'schedule', id: record.id }, 'replace');
             }}
             fill="text"
           >

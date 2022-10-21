@@ -24,6 +24,7 @@ import { User as UserType, UserRole } from 'models/user/user.types';
 import { WithStoreProps } from 'state/types';
 import { UserAction } from 'state/userAction';
 import { withMobXProviderContext } from 'state/withStore';
+import LocationHelper from 'utils/LocationHelper';
 
 import { getRealFilters, getUserRowClassNameFn } from './Users.helpers';
 
@@ -79,7 +80,8 @@ class Users extends React.Component<UsersProps, UsersState> {
       return;
     }
 
-    getLocationSrv().update({ query: { p: page }, partial: true });
+    // getLocationSrv().update({ query: { p: page }, partial: true });
+    LocationHelper.update({ page: 'users' }, 'replace');
     return await userStore.updateItems(getRealFilters(usersFilters), page);
   };
 
@@ -372,7 +374,8 @@ class Users extends React.Component<UsersProps, UsersState> {
   handleHideUserSettings = () => {
     this.setState({ userPkToEdit: undefined });
 
-    getLocationSrv().update({ partial: true, query: { id: undefined } });
+    // getLocationSrv().update({ partial: true, query: { id: undefined } });
+    LocationHelper.update({ page: 'users' }, 'replace');
   };
 
   handleUserUpdate = () => {

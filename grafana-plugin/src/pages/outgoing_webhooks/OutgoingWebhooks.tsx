@@ -22,6 +22,7 @@ import { OutgoingWebhook } from 'models/outgoing_webhook/outgoing_webhook.types'
 import { WithStoreProps } from 'state/types';
 import { UserAction } from 'state/userAction';
 import { withMobXProviderContext } from 'state/withStore';
+import LocationHelper from 'utils/LocationHelper';
 
 import styles from './OutgoingWebhooks.module.css';
 
@@ -184,14 +185,16 @@ class OutgoingWebhooks extends React.Component<OutgoingWebhooksProps, OutgoingWe
     return () => {
       this.setState({ outgoingWebhookIdToEdit: id });
 
-      getLocationSrv().update({ partial: true, query: { id } });
+      // getLocationSrv().update({ partial: true, query: { id } });
+      LocationHelper.update({ page: 'outgoing_webhooks', id }, 'replace');
     };
   };
 
   handleOutgoingWebhookFormHide = () => {
     this.setState({ outgoingWebhookIdToEdit: undefined });
 
-    getLocationSrv().update({ partial: true, query: { id: undefined } });
+    // getLocationSrv().update({ partial: true, query: { id: undefined } });
+    LocationHelper.update({ page: 'outgoing_webhooks', id: undefined }, 'replace');
   };
 }
 

@@ -7334,14 +7334,6 @@ jest-canvas-mock@2.3.1:
     cssfontparser "^1.2.1"
     moo-color "^1.0.2"
 
-jest-canvas-mock@^2.3.1:
-  version "2.4.0"
-  resolved "https://registry.yarnpkg.com/jest-canvas-mock/-/jest-canvas-mock-2.4.0.tgz#947b71442d7719f8e055decaecdb334809465341"
-  integrity sha512-mmMpZzpmLzn5vepIaHk5HoH3Ka4WykbSoLuG/EKoJd0x0ID/t+INo1l8ByfcUJuDM+RIsL4QDg/gDnBbrj2/IQ==
-  dependencies:
-    cssfontparser "^1.2.1"
-    moo-color "^1.0.2"
-
 jest-changed-files@^27.5.1:
   version "27.5.1"
   resolved "https://registry.yarnpkg.com/jest-changed-files/-/jest-changed-files-27.5.1.tgz#a348aed00ec9bf671cc58a66fcbe7c3dfd6a68f5"
@@ -7550,16 +7542,6 @@ jest-junit@13.1.0:
     uuid "^8.3.2"
     xml "^1.0.1"
 
-jest-junit@^13.1.0:
-  version "13.2.0"
-  resolved "https://registry.yarnpkg.com/jest-junit/-/jest-junit-13.2.0.tgz#66eeb86429aafac8c1745a70f44ace185aacb943"
-  integrity sha512-B0XNlotl1rdsvFZkFfoa19mc634+rrd8E4Sskb92Bb8MmSXeWV9XJGUyctunZS1W410uAxcyYuPUGVnbcOH8cg==
-  dependencies:
-    mkdirp "^1.0.4"
-    strip-ansi "^6.0.1"
-    uuid "^8.3.2"
-    xml "^1.0.1"
-
 jest-leak-detector@^27.5.1:
   version "27.5.1"
   resolved "https://registry.yarnpkg.com/jest-leak-detector/-/jest-leak-detector-27.5.1.tgz#6ec9d54c3579dd6e3e66d70e3498adf80fde3fb8"
@@ -7587,11 +7569,6 @@ jest-matcher-utils@^29.1.2:
     jest-diff "^29.1.2"
     jest-get-type "^29.0.0"
     pretty-format "^29.1.2"
-
-jest-matchmedia-mock@^1.1.0:
-  version "1.1.0"
-  resolved "https://registry.yarnpkg.com/jest-matchmedia-mock/-/jest-matchmedia-mock-1.1.0.tgz#eaae8c5d1dee4e4f7c59f8cb1b38b5d7ea842552"
-  integrity sha512-REnJRsOSCMpGAlkxmvVTqEBpregyFVi9MPEH3N83W1yLKzDdNehtCkcdDZduXq74PLtfI+11NyM4zKCK5ynV9g==
 
 jest-message-util@^27.5.1:
   version "27.5.1"

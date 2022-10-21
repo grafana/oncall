@@ -20,6 +20,7 @@ import { ScheduleType, Shift } from 'models/schedule/schedule.types';
 import { Timezone } from 'models/timezone/timezone.types';
 import { WithStoreProps } from 'state/types';
 import { withMobXProviderContext } from 'state/withStore';
+import LocationHelper from 'utils/LocationHelper';
 
 import { getStartOfWeek } from './Schedule.helpers';
 
@@ -432,7 +433,8 @@ class SchedulePage extends React.Component<SchedulePageProps, SchedulePageState>
     } = this.props;
 
     store.scheduleStore.delete(scheduleId).then(() => {
-      getLocationSrv().update({ query: { page: 'schedules-new' } });
+      // getLocationSrv().update({ query: { page: 'schedules-new' } });
+      LocationHelper.update({ page: 'schedule-new' }, 'replace');
     });
   };
 }

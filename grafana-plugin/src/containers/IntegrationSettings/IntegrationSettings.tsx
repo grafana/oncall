@@ -27,6 +27,7 @@ import { Alert } from 'models/alertgroup/alertgroup.types';
 import { SelectOption } from 'state/types';
 import { useStore } from 'state/useStore';
 import { openNotification } from 'utils';
+import LocationHelper from 'utils/LocationHelper';
 
 import { IntegrationSettingsTab } from './IntegrationSettings.types';
 import Autoresolve from './parts/Autoresolve';
@@ -59,7 +60,8 @@ const IntegrationSettings = observer((props: IntegrationSettingsProps) => {
   const getTabClickHandler = useCallback((tab: IntegrationSettingsTab) => {
     return () => {
       setActiveTab(tab);
-      getLocationSrv().update({ partial: true, query: { tab: tab } });
+      // getLocationSrv().update({ partial: true, query: { tab: tab } });
+      LocationHelper.update({ page: 'integrations', tab }, 'replace');
     };
   }, []);
 
@@ -69,7 +71,8 @@ const IntegrationSettings = observer((props: IntegrationSettingsProps) => {
 
   useEffect(() => {
     setActiveTab(startTab || IntegrationSettingsTab.Templates);
-    getLocationSrv().update({ partial: true, query: { tab: startTab || IntegrationSettingsTab.Templates } });
+    // getLocationSrv().update({ partial: true, query: { tab: startTab || IntegrationSettingsTab.Templates } });
+    LocationHelper.update({ page: 'integrations', tab: startTab || IntegrationSettingsTab.Templates }, 'replace');
   }, [startTab]);
 
   const integration = alertReceiveChannelStore.getIntegration(alertReceiveChannel);

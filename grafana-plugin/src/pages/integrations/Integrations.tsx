@@ -29,6 +29,7 @@ import { WithStoreProps } from 'state/types';
 import { UserAction } from 'state/userAction';
 import { withMobXProviderContext } from 'state/withStore';
 import { openWarningNotification } from 'utils';
+import LocationHelper from 'utils/LocationHelper';
 
 import styles from './Integrations.module.css';
 
@@ -61,7 +62,8 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
   setSelectedAlertReceiveChannel = (alertReceiveChannelId: AlertReceiveChannel['id']) => {
     const { store } = this.props;
     store.selectedAlertReceiveChannel = alertReceiveChannelId;
-    getLocationSrv().update({ partial: true, query: { id: alertReceiveChannelId } });
+    // getLocationSrv().update({ partial: true, query: { id: alertReceiveChannelId } });
+    LocationHelper.update({ page: 'integrations', id: alertReceiveChannelId }, 'replace');
   };
 
   parseQueryParams = async () => {
@@ -232,7 +234,8 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
                     alertReceiveChannelToShowSettings: undefined,
                     integrationSettingsTab: undefined,
                   });
-                  getLocationSrv().update({ partial: true, query: { tab: undefined } });
+                  // getLocationSrv().update({ partial: true, query: { tab: undefined } });
+                  LocationHelper.update({ page: 'integrations', tab: undefined }, 'replace');
                 }}
               />
             )}

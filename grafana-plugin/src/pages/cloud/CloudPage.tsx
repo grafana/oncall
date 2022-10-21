@@ -27,6 +27,7 @@ import { WithStoreProps } from 'state/types';
 import { useStore } from 'state/useStore';
 import { withMobXProviderContext } from 'state/withStore';
 import { openErrorNotification } from 'utils';
+import LocationHelper from 'utils/LocationHelper';
 
 import styles from './CloudPage.module.css';
 
@@ -128,7 +129,10 @@ const CloudPage = observer((props: CloudPageProps) => {
             variant="secondary"
             size="sm"
             className={cx('table-button')}
-            onClick={() => getLocationSrv().update({ query: { page: 'users', p: page, id: user.id } })}
+            onClick={() => {
+              // getLocationSrv().update({ query: { page: 'users', p: page, id: user.id } });
+              LocationHelper.update({ page: 'users', p: page, id: user.id }, 'replace');
+            }}
           >
             Configure notifications
           </Button>

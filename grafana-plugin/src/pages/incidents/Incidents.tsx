@@ -26,6 +26,7 @@ import { move } from 'state/helpers';
 import { WithStoreProps } from 'state/types';
 import { UserAction } from 'state/userAction';
 import { withMobXProviderContext } from 'state/withStore';
+import LocationHelper from 'utils/LocationHelper';
 
 import SilenceDropdown from './parts/SilenceDropdown';
 
@@ -140,7 +141,8 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
   fetchIncidentData = (filters: IncidentsFiltersType, isOnMount: boolean) => {
     const { store } = this.props;
     store.alertGroupStore.updateIncidentFilters(filters, isOnMount); // this line fetches incidents
-    getLocationSrv().update({ query: { page: 'incidents', ...store.alertGroupStore.incidentFilters } });
+    // getLocationSrv().update({ query: { page: 'incidents', ...store.alertGroupStore.incidentFilters } });
+    LocationHelper.update({ page: 'incidents', ...store.alertGroupStore.incidentFilters }, 'replace');
   };
 
   onChangeCursor = (cursor: string, direction: 'prev' | 'next') => {

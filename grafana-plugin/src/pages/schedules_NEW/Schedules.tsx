@@ -30,6 +30,7 @@ import { AppFeature } from 'state/features';
 import { WithStoreProps } from 'state/types';
 import { UserAction } from 'state/userAction';
 import { withMobXProviderContext } from 'state/withStore';
+import LocationHelper from 'utils/LocationHelper';
 
 import styles from './Schedules.module.css';
 
@@ -217,7 +218,8 @@ class SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSta
 
   handleCreateSchedule = (data: Schedule) => {
     if (data.type === ScheduleType.API) {
-      getLocationSrv().update({ query: { page: 'schedule', id: data.id } });
+      // getLocationSrv().update({ query: { page: 'schedule', id: data.id } });
+      LocationHelper.update({ page: 'schedule-new', id: data.id }, 'replace');
     }
   };
 
@@ -267,7 +269,8 @@ class SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSta
 
   getScheduleClickHandler = (scheduleId: Schedule['id']) => {
     return () => {
-      getLocationSrv().update({ query: { page: 'schedule', id: scheduleId } });
+      // getLocationSrv().update({ query: { page: 'schedule', id: scheduleId } });
+      LocationHelper.update({ page: 'schedule', id: scheduleId }, 'replace');
     };
   };
 

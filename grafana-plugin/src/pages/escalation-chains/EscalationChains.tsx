@@ -1,7 +1,7 @@
 import React from 'react';
 
 import { AppRootProps } from '@grafana/data';
-import { getLocationSrv } from '@grafana/runtime';
+import { getLocationSrv, locationService } from '@grafana/runtime';
 import { Button, HorizontalGroup, Icon, IconButton, LoadingPlaceholder, Tooltip, VerticalGroup } from '@grafana/ui';
 import cn from 'classnames/bind';
 import { debounce } from 'lodash-es';
@@ -30,6 +30,7 @@ import { WithStoreProps } from 'state/types';
 import { UserAction } from 'state/userAction';
 import { withMobXProviderContext } from 'state/withStore';
 import { openWarningNotification } from 'utils';
+import LocationHelper from 'utils/LocationHelper';
 
 import styles from './EscalationChains.module.css';
 
@@ -102,7 +103,8 @@ class EscalationChainsPage extends React.Component<EscalationChainsPageProps, Es
     const { escalationChainStore } = store;
 
     this.setState({ selectedEscalationChain: escalationChain }, () => {
-      getLocationSrv().update({ partial: true, query: { id: escalationChain } });
+      LocationHelper.update({ page: 'escalations', id: escalationChain }, 'replace');
+
       if (escalationChain) {
         escalationChainStore.updateEscalationChainDetails(escalationChain);
       }
