@@ -5,10 +5,6 @@ START_TEXT = """Hi!
 This is Grafana OnCall notification bot. You can connect your Grafana OnCall account to Telegram on user settings page.
 """
 
-START_TEXT_FOR_CONNECTED_USER = """Hi!
-This is Grafana OnCall notification bot. Your Telegram account is connected to user <b>{username}</b>
-"""
-
 
 class StartMessageHandler(UpdateHandler):
     def matches(self) -> bool:

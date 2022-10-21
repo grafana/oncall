@@ -83,6 +83,9 @@ class TelegramKeyboardRenderer:
         callback_data_args = [self.alert_group.pk, action.value]
         if action_data is not None:
             callback_data_args.append(action_data)
+        # Add org id with 'x-oncall-org-id' prefix to callback data.
+        # It's a workaroung to pass org_id to the oncall-gateway while proxying requests.
+        # TODO: switch to json str instead of ':' separated string.
         callback_data_args.append(f"x-oncall-org-id{self.alert_group.channel.organization.public_primary_key}")
         button = InlineKeyboardButton(text=text, callback_data=CallbackQueryFactory.encode_data(*callback_data_args))
 

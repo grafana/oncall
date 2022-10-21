@@ -246,6 +246,7 @@ class Organization(MaintainableObject):
 
     @property
     def web_link_with_id(self):
+        # It's a workaround to pass org id to the oncall gateway while proxying telegram requests
         return urljoin(self.grafana_url, f"a/grafana-oncall-app/?x-oncall-org-id={self.public_primary_key}")
 
     def __str__(self):
