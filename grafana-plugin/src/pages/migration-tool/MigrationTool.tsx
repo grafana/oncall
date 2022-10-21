@@ -190,9 +190,8 @@ class MigrationToolPage extends React.Component<MigrationToolProps, MigrationToo
                     <p>
                       <Tag colorIndex={7} name="Attention" />{' '}
                       <Text>
-                        Migration will be applied to the &quot;General&quot; team. Once you perform the migration there
-                        won&apos;t be possible to migrate data to the current Grafana OnCall workspace again. It&apos;s
-                        a 1-time operation.
+                        Migration will be applied to the "General" team. Once you perform the migration there won't be
+                        possible to migrate data to the current Grafana OnCall workspace again. It's a 1-time operation.
                       </Text>
                     </p>
                     <p>
@@ -205,8 +204,8 @@ class MigrationToolPage extends React.Component<MigrationToolProps, MigrationToo
                     <p>
                       <Tag colorIndex={7} name="Attention" />{' '}
                       <Text>
-                        Only &quot;ical&quot; schedules will be migrated. User names in your calendars should not be
-                        prefixed with &apos;@&apos;, use bare usernames or emails.
+                        Only "ical" schedules will be migrated. User names in your calendars should not be prefixed with
+                        '@', use bare usernames or emails.
                       </Text>
                     </p>
                     <p>

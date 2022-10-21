@@ -233,7 +233,7 @@ class Users extends React.Component<UsersProps, UsersState> {
                     /* @ts-ignore */
                     title={
                       <>
-                        You don&apos;t have enough permissions to view other users because you are not Admin.{' '}
+                        You don't have enough permissions to view other users because you are not Admin.{' '}
                         <PluginLink query={{ page: 'users', id: 'me' }}>Click here</PluginLink> to open your profile
                       </>
                     }

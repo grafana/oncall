@@ -166,7 +166,7 @@ const PhoneVerification = observer((props: PhoneVerificationProps) => {
             // @ts-ignore
             title={
               <>
-                Can&apos;t verify phone. <PluginLink query={{ page: 'live-settings' }}> Check ENV variables</PluginLink>{' '}
+                Can't verify phone. <PluginLink query={{ page: 'live-settings' }}> Check ENV variables</PluginLink>{' '}
                 related to Twilio.
               </>
             }

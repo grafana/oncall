@@ -29,7 +29,7 @@ export const SlackTab = () => {
       />
       <div className={cx('footer')}>
         <Button key="back" onClick={handleClickConnectSlackAccount}>
-          I&apos;ll check! Proceed to Slack...
+          I'll check! Proceed to Slack...
         </Button>
       </div>
     </VerticalGroup>

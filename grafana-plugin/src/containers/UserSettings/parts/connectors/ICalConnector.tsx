@@ -69,7 +69,7 @@ const ICalConnector = (props: ICalConnectorProps) => {
                   <>
                     <div className={cx('iCal-link-container')}>
                       <Icon name="exclamation-triangle" className={cx('warning-icon')} />{' '}
-                      <Text type="warning">Make sure you copy it - you won&apos;t be able to access it again.</Text>
+                      <Text type="warning">Make sure you copy it - you won't be able to access it again.</Text>
                       <div className={cx('iCal-link')}>{showiCalLink}</div>
                     </div>
                     <CopyToClipboard

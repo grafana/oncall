@@ -65,8 +65,8 @@ interface AlertRulesState {
 const Notification: React.FC = () => (
   <div>
     Demo alert was generated. Find it on the
-    <PluginLink query={{ page: 'incidents' }}> &quot;Alert Groups&quot; </PluginLink>
-    page and make sure it didn&apos;t freak out your colleagues 😉
+    <PluginLink query={{ page: 'incidents' }}> "Alert Groups" </PluginLink>
+    page and make sure it didn't freak out your colleagues 😉
   </div>
 );
 

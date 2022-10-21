@@ -9,7 +9,7 @@ export function getSlackMessage(slackError: SlackError, team: Team) {
   if (slackError === SlackError.WRONG_WORKSPACE) {
     return (
       <>
-        Couldn&apos;t connect Slack.
+        Couldn't connect Slack.
         {Boolean(team?.slack_team_identity) && (
           <>
             {' '}
@@ -22,10 +22,7 @@ export function getSlackMessage(slackError: SlackError, team: Team) {
 
   if (slackError === SlackError.USER_ALREADY_CONNECTED) {
     return (
-      <>
-        Couldn&apos;t connect to Slack. This Slack account has already been connected to another user in this
-        organization
-      </>
+      <>Couldn't connect to Slack. This Slack account has already been connected to another user in this organization</>
     );
   }
 
@@ -39,5 +36,5 @@ export function getSlackMessage(slackError: SlackError, team: Team) {
     );
   }
 
-  return <>Couldn&apos;t connect Slack.</>;
+  return <>Couldn't connect Slack.</>;
 }

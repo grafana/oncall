@@ -86,7 +86,7 @@ const HeartbeatForm = observer(({ alertReceveChannelId, onUpdate }: HeartBeatMod
       <br />
       <p>
         A heartbeat acts as a healthcheck for incident monitoring. You can configure OnCall to regularly send alerts to
-        the heartbeat endpoint. If you don&apos;t receive one of these alerts, OnCall will issue an incident.
+        the heartbeat endpoint. If you don't receive one of these alerts, OnCall will issue an incident.
       </p>
       <p>
         <span>OnCall will issue an incident if no alert is received every</span>

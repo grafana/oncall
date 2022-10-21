@@ -89,7 +89,7 @@ const SlackModal = (props: SlackModalProps) => {
         style={{ height: '350px', display: 'block', margin: '0 auto' }}
         src="public/plugins/grafana-oncall-app/img/slack_workspace_choose_attention.png"
       />
-      <Button onClick={onConfirm}>I&apos;ll check! Proceed to Slack...</Button>
+      <Button onClick={onConfirm}>I'll check! Proceed to Slack...</Button>
     </Modal>
   );
 };

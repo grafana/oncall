@@ -182,8 +182,8 @@ class SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSta
                 <HorizontalGroup align="flex-end">
                   <Text.Title level={3}>On-call Schedules</Text.Title>
                   <Text type="secondary">
-                    Use this to distribute notifications among team members you specified in the &quot;Notify Users from
-                    on-call schedule&quot; step in{' '}
+                    Use this to distribute notifications among team members you specified in the "Notify Users from
+                    on-call schedule" step in{' '}
                     <PluginLink query={{ page: 'integrations' }}>escalation chains</PluginLink>.
                   </Text>
                 </HorizontalGroup>
@@ -528,7 +528,7 @@ const Event = ({ event }: EventProps) => {
                   {event.missing_users[0] && (
                     <Text type="secondary">
                       (check if {event.missing_users[0].includes(',') ? 'some of these users -' : 'user -'}{' '}
-                      <Text type="secondary">&quot;{event.missing_users[0]}&quot;</Text>{' '}
+                      <Text type="secondary">"{event.missing_users[0]}"</Text>{' '}
                       {event.missing_users[0].includes(',') ? 'are' : 'is'} existing in OnCall or{' '}
                       {event.missing_users[0].includes(',') ? 'have' : 'has'} Viewer role)
                     </Text>

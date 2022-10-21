@@ -57,7 +57,7 @@ module.exports = {
     'react/prop-types': 'off',
     'react/jsx-key': 'warn',
     'react/jsx-no-target-blank': 'warn',
-    'react/no-unescaped-entities': 'warn',
+    'react/no-unescaped-entities': 'off',
     /**
      * TODO: react-hooks/exhaustive-deps is temporarily disabled
      * this will be turned back on, and the warnings fixed, in a forthcoming PR
