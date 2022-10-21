@@ -33,7 +33,13 @@ const SourceCode: FC<SourceCodeProps> = (props) => {
           {showClipboardIconOnly ? (
             <IconButton className={cx('copyIcon')} size={'lg'} name="copy" data-testid="test__copyIcon" />
           ) : (
-            <Button className={cx('copyButton')} variant="primary" size="xs" icon="copy" data-testid="test__copyIconWithText">
+            <Button
+              className={cx('copyButton')}
+              variant="primary"
+              size="xs"
+              icon="copy"
+              data-testid="test__copyIconWithText"
+            >
               Copy
             </Button>
           )}
