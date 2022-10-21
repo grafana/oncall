@@ -58,7 +58,11 @@ module.exports = {
     'react/jsx-key': 'warn',
     'react/jsx-no-target-blank': 'warn',
     'react/no-unescaped-entities': 'warn',
-    'react-hooks/exhaustive-deps': 'warn',
+    /**
+     * TODO: react-hooks/exhaustive-deps is temporarily disabled
+     * this will be turned back on, and the warnings fixed, in a forthcoming PR
+     */
+    'react-hooks/exhaustive-deps': 'off',
     'rulesdir/no-relative-import-paths': ['error', { allowSameFolder: true }],
   },
 };
