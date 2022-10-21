@@ -1,0 +1,7 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Unauthorized renders properly 1`] = `
+<p>
+  You don't have access!
+</p>
+`;

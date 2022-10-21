@@ -8,8 +8,8 @@ import Text from 'components/Text/Text';
 import { WithPermissionControl } from 'containers/WithPermissionControl/WithPermissionControl';
 import { User } from 'models/user/user.types';
 import { useStore } from 'state/useStore';
-import { UserAction } from 'state/userAction';
 import { openNotification } from 'utils';
+import { UserActions } from 'utils/authorization';
 
 import styles from './index.module.css';
 
@@ -88,7 +88,7 @@ const ICalConnector = (props: ICalConnectorProps) => {
                     <Text type="secondary">
                       In case you lost your iCal link you can revoke it and generate a new one.
                     </Text>
-                    <WithPermissionControl userAction={UserAction.UpdateOtherUsersSettings}>
+                    <WithPermissionControl userAction={UserActions.OtherSettingsWrite}>
                       <Button
                         icon="trash-alt"
                         onClick={handleRevokeiCalLink}
@@ -103,7 +103,7 @@ const ICalConnector = (props: ICalConnectorProps) => {
                 )}
               </>
             ) : (
-              <WithPermissionControl userAction={UserAction.UpdateOtherUsersSettings}>
+              <WithPermissionControl userAction={UserActions.OtherSettingsWrite}>
                 <Button icon="plus" onClick={handleCreateiCalLink} className={cx('iCal-button')} variant="secondary">
                   Create iCal link
                 </Button>
