@@ -81,7 +81,7 @@ class Users extends React.Component<UsersProps, UsersState> {
     }
 
     // getLocationSrv().update({ query: { p: page }, partial: true });
-    LocationHelper.update({ page: 'users' }, 'replace');
+    LocationHelper.update({ page: 'users' }, 'partial');
     return await userStore.updateItems(getRealFilters(usersFilters), page);
   };
 
@@ -375,7 +375,7 @@ class Users extends React.Component<UsersProps, UsersState> {
     this.setState({ userPkToEdit: undefined });
 
     // getLocationSrv().update({ partial: true, query: { id: undefined } });
-    LocationHelper.update({ page: 'users' }, 'replace');
+    LocationHelper.update({ page: 'users' }, 'partial');
   };
 
   handleUserUpdate = () => {

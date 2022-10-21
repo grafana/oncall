@@ -186,7 +186,7 @@ class OutgoingWebhooks extends React.Component<OutgoingWebhooksProps, OutgoingWe
       this.setState({ outgoingWebhookIdToEdit: id });
 
       // getLocationSrv().update({ partial: true, query: { id } });
-      LocationHelper.update({ page: 'outgoing_webhooks', id }, 'replace');
+      LocationHelper.update({ page: 'outgoing_webhooks', id }, 'partial');
     };
   };
 
@@ -194,7 +194,7 @@ class OutgoingWebhooks extends React.Component<OutgoingWebhooksProps, OutgoingWe
     this.setState({ outgoingWebhookIdToEdit: undefined });
 
     // getLocationSrv().update({ partial: true, query: { id: undefined } });
-    LocationHelper.update({ page: 'outgoing_webhooks', id: undefined }, 'replace');
+    LocationHelper.update({ page: 'outgoing_webhooks', id: undefined }, 'partial');
   };
 }
 

@@ -61,7 +61,7 @@ const IntegrationSettings = observer((props: IntegrationSettingsProps) => {
     return () => {
       setActiveTab(tab);
       // getLocationSrv().update({ partial: true, query: { tab: tab } });
-      LocationHelper.update({ page: 'integrations', tab }, 'replace');
+      LocationHelper.update({ page: 'integrations', tab }, 'partial');
     };
   }, []);
 
@@ -72,7 +72,7 @@ const IntegrationSettings = observer((props: IntegrationSettingsProps) => {
   useEffect(() => {
     setActiveTab(startTab || IntegrationSettingsTab.Templates);
     // getLocationSrv().update({ partial: true, query: { tab: startTab || IntegrationSettingsTab.Templates } });
-    LocationHelper.update({ page: 'integrations', tab: startTab || IntegrationSettingsTab.Templates }, 'replace');
+    LocationHelper.update({ page: 'integrations', tab: startTab || IntegrationSettingsTab.Templates }, 'partial');
   }, [startTab]);
 
   const integration = alertReceiveChannelStore.getIntegration(alertReceiveChannel);

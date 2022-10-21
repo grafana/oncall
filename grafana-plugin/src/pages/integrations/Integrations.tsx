@@ -63,7 +63,7 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
     const { store } = this.props;
     store.selectedAlertReceiveChannel = alertReceiveChannelId;
     // getLocationSrv().update({ partial: true, query: { id: alertReceiveChannelId } });
-    LocationHelper.update({ page: 'integrations', id: alertReceiveChannelId }, 'replace');
+    LocationHelper.update({ page: 'integrations', id: alertReceiveChannelId }, 'partial');
   };
 
   parseQueryParams = async () => {
@@ -235,7 +235,7 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
                     integrationSettingsTab: undefined,
                   });
                   // getLocationSrv().update({ partial: true, query: { tab: undefined } });
-                  LocationHelper.update({ page: 'integrations', tab: undefined }, 'replace');
+                  LocationHelper.update({ page: 'integrations', tab: undefined }, 'partial');
                 }}
               />
             )}

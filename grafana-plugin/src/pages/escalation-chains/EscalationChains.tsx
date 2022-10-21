@@ -103,7 +103,7 @@ class EscalationChainsPage extends React.Component<EscalationChainsPageProps, Es
     const { escalationChainStore } = store;
 
     this.setState({ selectedEscalationChain: escalationChain }, () => {
-      LocationHelper.update({ page: 'escalations', id: escalationChain }, 'replace');
+      LocationHelper.update({ page: 'escalations', id: escalationChain }, 'partial');
 
       if (escalationChain) {
         escalationChainStore.updateEscalationChainDetails(escalationChain);

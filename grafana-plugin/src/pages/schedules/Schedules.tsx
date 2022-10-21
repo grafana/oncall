@@ -248,7 +248,7 @@ class SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSta
                 onHide={() => {
                   this.setState({ scheduleIdToEdit: undefined });
                   // getLocationSrv().update({ partial: true, query: { id: undefined } });
-                  LocationHelper.update({ page: 'schedule', id: undefined }, 'replace');
+                  LocationHelper.update({ page: 'schedule', id: undefined }, 'partial');
                 }}
               />
             )}
@@ -413,7 +413,7 @@ class SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSta
               this.setState({ scheduleIdToEdit: record.id });
 
               // getLocationSrv().update({ partial: true, query: { id: record.id } });
-              LocationHelper.update({ page: 'schedule', id: record.id }, 'replace');
+              LocationHelper.update({ page: 'schedule', id: record.id }, 'partial');
             }}
             fill="text"
           >
