@@ -144,31 +144,29 @@ interface SortableListProps {
   renderItem: (item: Item, index: number) => React.ReactElement;
 }
 
-const SortableList = SortableContainer<SortableListProps>(({ items, handleAddGroup, isMultipleGroups, renderItem }) => {
-  return (
-    <ul className={cx('groups')}>
-      {items.map((item, index) =>
-        item.type === 'item' ? (
-          <SortableItem key={item.key} index={index}>
-            {renderItem(item, index)}
-          </SortableItem>
-        ) : isMultipleGroups ? (
-          <SortableItem key={item.key} index={index}>
-            <li className={cx('separator')}>
-              <Text type="secondary">{item.data.name}</Text>
-            </li>
-          </SortableItem>
-        ) : null
-      )}
-      {isMultipleGroups && items[items.length - 1]?.type === 'item' && (
-        <SortableItem disabled key="New Group" index={items.length + 1}>
-          <li onClick={handleAddGroup} className={cx('separator', { separator__clickable: true })}>
-            <Text type="secondary">Add user group +</Text>
+const SortableList = SortableContainer<SortableListProps>(({ items, handleAddGroup, isMultipleGroups, renderItem }) => (
+  <ul className={cx('groups')}>
+    {items.map((item, index) =>
+      item.type === 'item' ? (
+        <SortableItem key={item.key} index={index}>
+          {renderItem(item, index)}
+        </SortableItem>
+      ) : isMultipleGroups ? (
+        <SortableItem key={item.key} index={index}>
+          <li className={cx('separator')}>
+            <Text type="secondary">{item.data.name}</Text>
           </li>
         </SortableItem>
-      )}
-    </ul>
-  );
-});
+      ) : null
+    )}
+    {isMultipleGroups && items[items.length - 1]?.type === 'item' && (
+      <SortableItem disabled key="New Group" index={items.length + 1}>
+        <li onClick={handleAddGroup} className={cx('separator', { separator__clickable: true })}>
+          <Text type="secondary">Add user group +</Text>
+        </li>
+      </SortableItem>
+    )}
+  </ul>
+));
 
 export default UserGroups;

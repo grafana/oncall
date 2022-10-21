@@ -8,11 +8,9 @@ import qs from 'query-string';
 
 export const TZ_OFFSET = new Date().getTimezoneOffset();
 
-export const getTzOffsetHours = (): number => {
-  return TZ_OFFSET / 60;
-};
+export const getTzOffsetHours = (): number => TZ_OFFSET / 60;
 
-export function showApiError(error: any) {
+export const showApiError = (error: any) => {
   if (error.response.status >= 400 && error.response.status < 500) {
     const payload = error.response.data;
     const text =
@@ -25,9 +23,9 @@ export function showApiError(error: any) {
   }
 
   throw error;
-}
+};
 
-export function refreshPageError(error: AxiosError) {
+export const refreshPageError = (error: AxiosError): void => {
   if (error.response?.status === 502) {
     const payload = error.response.data;
     const text = `Try to refresh the page. ${payload}`;
@@ -35,21 +33,21 @@ export function refreshPageError(error: AxiosError) {
   }
 
   throw error;
-}
+};
 
-export function openNotification(message: React.ReactNode) {
+export const openNotification = (message: React.ReactNode) => {
   appEvents.emit(AppEvents.alertSuccess, [message]);
-}
+};
 
-export function openErrorNotification(message: string) {
+export const openErrorNotification = (message: string) => {
   appEvents.emit(AppEvents.alertError, [message]);
-}
+};
 
-export function openWarningNotification(message: string) {
+export const openWarningNotification = (message: string) => {
   appEvents.emit(AppEvents.alertWarning, [message]);
-}
+};
 
-export function getPaths(obj?: any, parentKey?: string): string[] {
+export const getPaths = (obj?: any, parentKey?: string): string[] => {
   let result: any;
   if (isArray(obj)) {
     let idx = 0;
@@ -66,21 +64,14 @@ export function getPaths(obj?: any, parentKey?: string): string[] {
     result = [];
   }
   return concat(result, parentKey || []);
-}
+};
 
-export function rateToPercent(rate: number): string | undefined {
-  if (isNaN(rate)) {
-    return undefined;
-  }
-  return ((rate - 1) * 100).toFixed(2);
-}
+export const rateToPercent = (rate: number): string | undefined =>
+  isNaN(rate) ? undefined : ((rate - 1) * 100).toFixed(2);
 
-export function getIsMobile(): boolean {
-  const width = document.documentElement.clientWidth;
-  return width < 900;
-}
+export const getIsMobile = (): boolean => document.documentElement.clientWidth < 900;
 
-export function splitTime(seconds: number): number[] {
+export const splitTime = (seconds: number): number[] => {
   let days = 0;
   let hours = 0;
   let mins = 0;
@@ -95,9 +86,9 @@ export function splitTime(seconds: number): number[] {
   }
 
   return [days, hours, mins, secs];
-}
+};
 
-export function secondsToHumanReadable(duration: number): string {
+export const secondsToHumanReadable = (duration: number): string => {
   const [days, hours, mins, secs] = splitTime(duration);
 
   let timeText = '';
@@ -119,21 +110,17 @@ export function secondsToHumanReadable(duration: number): string {
   }
 
   return timeText;
-}
+};
 
-export function secondsToHours(seconds: number) {
-  return seconds / 3600;
-}
+export const secondsToHours = (seconds: number) => seconds / 3600;
 
-export function getApiOrigin() {
-  return process.env.REACT_APP_API || '';
-}
+export const getApiOrigin = () => process.env.REACT_APP_API || '';
 
-export function replaceQueryParams(params: any) {
+export const replaceQueryParams = (params: any) => {
   const query = qs.stringify({
     ...qs.parse(window.location.search),
     ...params,
   });
 
   window.history.replaceState(null, '', `${window.location.pathname}?${query}${window.location.hash}`);
-}
+};

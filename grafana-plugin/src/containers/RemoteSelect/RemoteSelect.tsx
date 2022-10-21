@@ -46,18 +46,20 @@ const RemoteSelect = inject('store')(
       showError,
       maxMenuHeight,
     }: RemoteSelectProps) => {
-      const getOptions = (data: any[]) => {
-        return data.map((option: any) => ({
-          value: option[valueField],
-          label: option[fieldToShow],
-          data: option,
-        }));
-      };
+      const getOptions = useCallback(
+        (data: any[]) =>
+          data.map((option: any) => ({
+            value: option[valueField],
+            label: option[fieldToShow],
+            data: option,
+          })),
+        [valueField, fieldToShow]
+      );
 
-      function mergeOptions(oldOptions: SelectableValue[], newOptions: SelectableValue[]) {
+      const mergeOptions = useCallback((oldOptions: SelectableValue[], newOptions: SelectableValue[]) => {
         const existingValues = oldOptions.map((o) => o.value);
         return oldOptions.concat(newOptions.filter(({ value }) => !existingValues.includes(value)));
-      }
+      }, []);
 
       const [options, setOptions] = useReducer(mergeOptions, []);
 

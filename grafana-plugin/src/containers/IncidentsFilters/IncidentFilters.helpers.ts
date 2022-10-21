@@ -2,7 +2,7 @@ import { convertRelativeToAbsoluteDate } from 'utils/datetime';
 
 import { FilterOption } from './IncidentFilters.types';
 
-export function parseFilters(query: { [key: string]: any }, filterOptions: FilterOption[]) {
+export const parseFilters = (query: { [key: string]: any }, filterOptions: FilterOption[]) => {
   const filters = filterOptions.filter((filterOption: FilterOption) => filterOption.name in query);
 
   const values = filters.reduce((memo: any, filterOption: FilterOption) => {
@@ -28,4 +28,4 @@ export function parseFilters(query: { [key: string]: any }, filterOptions: Filte
   }, {});
 
   return { filters, values };
-}
+};

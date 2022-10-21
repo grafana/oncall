@@ -1,17 +1,5 @@
 import { NULL_VALUE } from './LiveSettings.config';
 
-export function normalizeValue(value: string) {
-  if (value === null) {
-    return NULL_VALUE;
-  }
+export const normalizeValue = (value: string): string => (value === null ? NULL_VALUE : String(value));
 
-  return String(value);
-}
-
-export function prepareForUpdate(value: string | boolean) {
-  if (value === '') {
-    return null;
-  }
-
-  return value;
-}
+export const prepareForUpdate = (value: string | boolean): string | boolean => (value === '' ? null : value);

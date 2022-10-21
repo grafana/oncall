@@ -13,11 +13,9 @@ interface GFormProps {
   onSubmit: (data: any) => void;
 }
 
-const nullNormalizer = (value: string) => {
-  return value || null;
-};
+const nullNormalizer = (value: string) => value || null;
 
-function renderFormControl(formItem: FormItem, register: any, control: any) {
+const renderFormControl = (formItem: FormItem, register: any, control: any) => {
   switch (formItem.type) {
     case FormItemType.Input:
       return <Input {...register(formItem.name, formItem.validation)} />;
@@ -67,7 +65,7 @@ function renderFormControl(formItem: FormItem, register: any, control: any) {
     default:
       return null;
   }
-}
+};
 
 const GForm = ({ data, form, onSubmit }: GFormProps) => {
   const handleSubmit = useCallback(

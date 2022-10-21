@@ -32,11 +32,11 @@ enum MIGRATION_STATUS {
   FINISHED = 'finished',
 }
 
-function scrollIntoView(node: HTMLDivElement | null) {
+const scrollIntoView = (node: HTMLDivElement | null): void => {
   if (node) {
     node.scrollIntoView({ behavior: 'smooth' });
   }
-}
+};
 
 @observer
 class MigrationToolPage extends React.Component<MigrationToolProps, MigrationToolState> {

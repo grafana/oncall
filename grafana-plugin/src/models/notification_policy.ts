@@ -10,10 +10,8 @@ export interface NotificationPolicyType {
   user: User['pk'];
 }
 
-export function prepareNotificationPolicy(value: NotificationPolicyType): NotificationPolicyType {
-  return {
-    ...value,
-    notify_by: null,
-    wait_delay: null,
-  };
-}
+export const prepareNotificationPolicy = (value: NotificationPolicyType): NotificationPolicyType => ({
+  ...value,
+  notify_by: null,
+  wait_delay: null,
+});

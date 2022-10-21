@@ -14,7 +14,7 @@ import SilenceDropdown from 'pages/incidents/parts/SilenceDropdown';
 import { move } from 'state/helpers';
 import { UserAction } from 'state/userAction';
 
-export function getIncidentStatusTag(alert: Alert) {
+export const getIncidentStatusTag = (alert: Alert) => {
   switch (alert.status) {
     case IncidentStatus.New:
       return (
@@ -51,22 +51,23 @@ export function getIncidentStatusTag(alert: Alert) {
     default:
       return null;
   }
-}
+};
 
-export function renderRelatedUsers(incident: Alert, isFull = false) {
-  const { related_users } = incident;
-
+export const renderRelatedUsers = (
+  { related_users, resolved_by_user, acknowledged_by_user }: Alert,
+  isFull = false
+) => {
   let users = [...related_users];
 
   if (!users.length && isFull) {
     return <Text type="secondary">No users involved</Text>;
   }
 
-  function renderUser(user: User) {
+  const renderUser = (user: User) => {
     let badge = undefined;
-    if (incident.resolved_by_user && user.pk === incident.resolved_by_user.pk) {
+    if (resolved_by_user && user.pk === resolved_by_user.pk) {
       badge = <Icon name="check-circle" style={{ color: '#52c41a' }} />;
-    } else if (incident.acknowledged_by_user && user.pk === incident.acknowledged_by_user.pk) {
+    } else if (acknowledged_by_user && user.pk === acknowledged_by_user.pk) {
       badge = <Icon name="eye" style={{ color: '#f2c94c' }} />;
     }
 
@@ -77,17 +78,17 @@ export function renderRelatedUsers(incident: Alert, isFull = false) {
         </Text>
       </PluginLink>
     );
-  }
+  };
 
-  if (incident.resolved_by_user) {
-    const index = users.findIndex((user) => user.pk === incident.resolved_by_user.pk);
+  if (resolved_by_user) {
+    const index = users.findIndex((user) => user.pk === resolved_by_user.pk);
     if (index > -1) {
       users = move(users, index, 0);
     }
   }
 
-  if (incident.acknowledged_by_user) {
-    const index = users.findIndex((user) => user.pk === incident.acknowledged_by_user.pk);
+  if (acknowledged_by_user) {
+    const index = users.findIndex((user) => user.pk === acknowledged_by_user.pk);
     if (index > -1) {
       users = move(users, index, 0);
     }
@@ -131,10 +132,14 @@ export function renderRelatedUsers(incident: Alert, isFull = false) {
       )}
     </VerticalGroup>
   );
-}
+};
 
-export function getActionButtons(incident: AlertType, cx: any, callbacks: { [key: string]: any }) {
-  if (incident.root_alert_group) {
+export const getActionButtons = (
+  { root_alert_group, loading, resolved, acknowledged, status, alert_receive_channel }: AlertType,
+  cx: any,
+  callbacks: { [key: string]: any }
+) => {
+  if (root_alert_group) {
     return null;
   }
 
@@ -142,7 +147,7 @@ export function getActionButtons(incident: AlertType, cx: any, callbacks: { [key
 
   const resolveButton = (
     <WithPermissionControl key="resolve" userAction={UserAction.UpdateIncidents}>
-      <Button size="sm" disabled={incident.loading} onClick={onResolve} variant="primary">
+      <Button size="sm" disabled={loading} onClick={onResolve} variant="primary">
         Resolve
       </Button>
     </WithPermissionControl>
@@ -150,7 +155,7 @@ export function getActionButtons(incident: AlertType, cx: any, callbacks: { [key
 
   const unacknowledgeButton = (
     <WithPermissionControl key="unacknowledge" userAction={UserAction.UpdateIncidents}>
-      <Button size="sm" disabled={incident.loading} onClick={onUnacknowledge} variant="secondary">
+      <Button size="sm" disabled={loading} onClick={onUnacknowledge} variant="secondary">
         Unacknowledge
       </Button>
     </WithPermissionControl>
@@ -158,7 +163,7 @@ export function getActionButtons(incident: AlertType, cx: any, callbacks: { [key
 
   const unresolveButton = (
     <WithPermissionControl key="unacknowledge" userAction={UserAction.UpdateIncidents}>
-      <Button size="sm" disabled={incident.loading} onClick={onUnresolve} variant="primary">
+      <Button size="sm" disabled={loading} onClick={onUnresolve} variant="primary">
         Unresolve
       </Button>
     </WithPermissionControl>
@@ -166,7 +171,7 @@ export function getActionButtons(incident: AlertType, cx: any, callbacks: { [key
 
   const acknowledgeButton = (
     <WithPermissionControl key="acknowledge" userAction={UserAction.UpdateIncidents}>
-      <Button size="sm" disabled={incident.loading} onClick={onAcknowledge} variant="secondary">
+      <Button size="sm" disabled={loading} onClick={onAcknowledge} variant="secondary">
         Acknowledge
       </Button>
     </WithPermissionControl>
@@ -174,39 +179,39 @@ export function getActionButtons(incident: AlertType, cx: any, callbacks: { [key
 
   const buttons = [];
 
-  if (incident.alert_receive_channel.integration !== MaintenanceIntegration) {
-    if (incident.status === IncidentStatus.New) {
+  if (alert_receive_channel.integration !== MaintenanceIntegration) {
+    if (status === IncidentStatus.New) {
       buttons.push(
         <SilenceDropdown
           className={cx('silence-button-inline')}
           key="silence"
-          disabled={incident.loading}
+          disabled={loading}
           onSelect={onSilence}
           buttonSize="sm"
         />
       );
     }
 
-    if (incident.status === IncidentStatus.Silenced) {
+    if (status === IncidentStatus.Silenced) {
       buttons.push(
         <WithPermissionControl key="silence" userAction={UserAction.UpdateIncidents}>
-          <Button size="sm" disabled={incident.loading} variant="secondary" onClick={onUnsilence}>
+          <Button size="sm" disabled={loading} variant="secondary" onClick={onUnsilence}>
             Unsilence
           </Button>
         </WithPermissionControl>
       );
     }
 
-    if (!incident.resolved && !incident.acknowledged) {
+    if (!resolved && !acknowledged) {
       buttons.push(acknowledgeButton, resolveButton);
-    } else if (!incident.resolved) {
+    } else if (!resolved) {
       buttons.push(unacknowledgeButton, resolveButton);
     } else {
       buttons.push(unresolveButton);
     }
-  } else if (!incident.resolved) {
+  } else if (!resolved) {
     buttons.push(resolveButton);
   }
 
   return <HorizontalGroup justify="flex-end">{buttons}</HorizontalGroup>;
-}
+};

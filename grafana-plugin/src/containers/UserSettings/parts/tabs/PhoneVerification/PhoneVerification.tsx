@@ -241,31 +241,29 @@ const PhoneVerification = observer(({ userPk: propsUserPk }: PhoneVerificationPr
   );
 });
 
-interface ForgetPhoneScreenProps {
+type ForgetPhoneScreenProps = {
   phone: string;
   onCancel(): void;
   onForget(): void;
-}
+};
 
-function ForgetPhoneScreen({ phone, onCancel, onForget }: ForgetPhoneScreenProps) {
-  return (
-    <>
-      <Text size="large" className={cx('phone__forgetHeading')}>
-        Do you really want to forget the verified phone number <strong>{phone}</strong> ?
-      </Text>
-      <HorizontalGroup justify="flex-end">
-        <Button variant="secondary" onClick={onCancel}>
-          Cancel
-        </Button>
-        <Button variant="destructive" onClick={onForget}>
-          Forget
-        </Button>
-      </HorizontalGroup>
-    </>
-  );
-}
+const ForgetPhoneScreen: React.FC<ForgetPhoneScreenProps> = ({ phone, onCancel, onForget }) => (
+  <>
+    <Text size="large" className={cx('phone__forgetHeading')}>
+      Do you really want to forget the verified phone number <strong>{phone}</strong> ?
+    </Text>
+    <HorizontalGroup justify="flex-end">
+      <Button variant="secondary" onClick={onCancel}>
+        Cancel
+      </Button>
+      <Button variant="destructive" onClick={onForget}>
+        Forget
+      </Button>
+    </HorizontalGroup>
+  </>
+);
 
-interface PhoneVerificationButtonsGroupProps {
+type PhoneVerificationButtonsGroupProps = {
   action: UserAction.UpdateOwnSettings | UserAction.UpdateOtherUsersSettings;
 
   isCodeSent: boolean;
@@ -278,9 +276,9 @@ interface PhoneVerificationButtonsGroupProps {
   onShowForgetScreen(): void;
 
   user: User;
-}
+};
 
-function PhoneVerificationButtonsGroup({
+const PhoneVerificationButtonsGroup: React.FC<PhoneVerificationButtonsGroupProps> = ({
   action,
   isCodeSent,
   isButtonDisabled,
@@ -290,7 +288,7 @@ function PhoneVerificationButtonsGroup({
   handleMakeTestCallClick,
   onShowForgetScreen,
   user,
-}: PhoneVerificationButtonsGroupProps) {
+}) => {
   const showForgetNumber = !!user.verified_phone_number;
   const showVerifyOrSendCodeButton = !user.verified_phone_number;
 
@@ -338,6 +336,6 @@ function PhoneVerificationButtonsGroup({
       </Tooltip>
     </HorizontalGroup>
   );
-}
+};
 
 export default PhoneVerification;

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useCallback } from 'react';
 
 import { Icon, Label, Tooltip } from '@grafana/ui';
 import cn from 'classnames/bind';
@@ -21,29 +21,34 @@ interface GrafanaTeamSelectProps {
 }
 
 const GrafanaTeamSelect = observer(({ currentPage }: GrafanaTeamSelectProps) => {
-  const { userStore, grafanaTeamStore } = useStore();
+  const {
+    userStore: { currentUser: user, updateCurrentUser },
+    grafanaTeamStore,
+  } = useStore();
 
   const grafanaTeams = grafanaTeamStore.getSearchResult();
-  const user = userStore.currentUser;
 
   if (!grafanaTeams || !user) {
     return null;
   }
 
-  const onTeamChange = async (teamId: GrafanaTeam['id']) => {
-    await userStore.updateCurrentUser({ current_team: teamId });
-
-    const queryParams = new URLSearchParams();
-    queryParams.set('page', mapCurrentPage());
-    window.location.search = queryParams.toString();
-
-    function mapCurrentPage() {
-      if (currentPage === 'incident') {
-        return 'incidents';
-      }
-      return currentPage;
+  const mapCurrentPage = useCallback(() => {
+    if (currentPage === 'incident') {
+      return 'incidents';
     }
-  };
+    return currentPage;
+  }, [currentPage]);
+
+  const onTeamChange = useCallback(
+    async (teamId: GrafanaTeam['id']) => {
+      await updateCurrentUser({ current_team: teamId });
+
+      const queryParams = new URLSearchParams();
+      queryParams.set('page', mapCurrentPage());
+      window.location.search = queryParams.toString();
+    },
+    [updateCurrentUser, mapCurrentPage]
+  );
 
   return document.getElementsByClassName('page-header__inner')[0]
     ? ReactDOM.createPortal(

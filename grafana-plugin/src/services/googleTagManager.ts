@@ -1,5 +1,5 @@
-export function pushConvertion(message: any) {
+export const pushConvertion = (message: any) => {
   if (window.dataLayer) {
     window.dataLayer.push(message);
   }
-}
+};

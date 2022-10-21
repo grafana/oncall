@@ -10,6 +10,7 @@ module.exports = {
   },
   rules: {
     eqeqeq: 'warn',
+    'func-style': 'warn',
     'import/order': [
       'error',
       {

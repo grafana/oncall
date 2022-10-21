@@ -56,13 +56,11 @@ const AlertTemplatesForm = ({
     makeRequest('/preview_template_options/', {});
   }, []);
 
-  const getChangeHandler = (templateName: string) => {
-    return (value: string) => {
-      setTempValues((oldTempValues) => ({
-        ...oldTempValues, // erase another edited templates
-        [templateName]: value,
-      }));
-    };
+  const getChangeHandler = (templateName: string) => (value: string) => {
+    setTempValues((oldTempValues) => ({
+      ...oldTempValues, // erase another edited templates
+      [templateName]: value,
+    }));
   };
 
   const handleSubmit = useCallback(() => {

@@ -2,7 +2,7 @@ import { Alert } from 'models/alertgroup/alertgroup.types';
 
 type Anims = { [key: number]: number[] };
 
-export function getAnims(oldStats: any, newStats: any, ids: number[]) {
+export const getAnims = (oldStats: any, newStats: any, ids: number[]) => {
   const anims: Anims = {};
 
   const map = ids.reduce((acc: any, id: number) => {
@@ -41,9 +41,9 @@ export function getAnims(oldStats: any, newStats: any, ids: number[]) {
     });
 
   return anims;
-}
+};
 
-export function move(arr: any[], old_index: number, new_index: number) {
+export const move = (arr: any[], old_index: number, new_index: number) => {
   while (old_index < 0) {
     old_index += arr.length;
   }
@@ -58,4 +58,4 @@ export function move(arr: any[], old_index: number, new_index: number) {
   }
   arr.splice(new_index, 0, arr.splice(old_index, 1)[0]);
   return arr;
-}
+};

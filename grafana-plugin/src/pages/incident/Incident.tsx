@@ -1,4 +1,4 @@
-import React, { useState, SyntheticEvent } from 'react';
+import React, { useState, useCallback, SyntheticEvent } from 'react';
 
 import { AppRootProps } from '@grafana/data';
 import { getLocationSrv } from '@grafana/runtime';
@@ -68,6 +68,26 @@ interface IncidentPageState extends PageBaseState {
   timelineFilter: string;
   resolutionNoteText: string;
 }
+
+type IncidentProps = {
+  incident: Alert;
+  datetimeReference: string;
+};
+
+type GroupedIncidentsListProps = {
+  id: string;
+  getIncidentDatetimeReference: (incident: GroupedAlert) => string;
+};
+
+type GroupedIncidentProps = {
+  incident: GroupedAlert;
+  datetimeReference: string;
+};
+
+type AttachedIncidentsListProps = {
+  id: string;
+  getUnattachClickHandler(pk: string): void;
+};
 
 @observer
 class IncidentPage extends React.Component<IncidentPageProps, IncidentPageState> {
@@ -481,35 +501,27 @@ class IncidentPage extends React.Component<IncidentPageProps, IncidentPageState>
   };
 }
 
-function Incident({ incident, datetimeReference }: { incident: Alert; datetimeReference: string }) {
-  return (
-    <div key={incident.pk} className={cx('incident')}>
-      <HorizontalGroup wrap={false}>
-        <Text.Title type="secondary" level={4}>
-          {incident.inside_organization_number
-            ? `#${incident.inside_organization_number} ${incident.render_for_web.title}`
-            : incident.render_for_web.title}
-        </Text.Title>
-        <Text type="secondary">{datetimeReference}</Text>
-      </HorizontalGroup>
-      <div
-        className={cx('message')}
-        dangerouslySetInnerHTML={{
-          __html: sanitize(incident.render_for_web.message),
-        }}
-      />
-      {incident.render_for_web.image_url && <img className={cx('image')} src={incident.render_for_web.image_url} />}
-    </div>
-  );
-}
+const Incident: React.FC<IncidentProps> = ({ incident, datetimeReference }) => (
+  <div key={incident.pk} className={cx('incident')}>
+    <HorizontalGroup wrap={false}>
+      <Text.Title type="secondary" level={4}>
+        {incident.inside_organization_number
+          ? `#${incident.inside_organization_number} ${incident.render_for_web.title}`
+          : incident.render_for_web.title}
+      </Text.Title>
+      <Text type="secondary">{datetimeReference}</Text>
+    </HorizontalGroup>
+    <div
+      className={cx('message')}
+      dangerouslySetInnerHTML={{
+        __html: sanitize(incident.render_for_web.message),
+      }}
+    />
+    {incident.render_for_web.image_url && <img className={cx('image')} src={incident.render_for_web.image_url} />}
+  </div>
+);
 
-function GroupedIncidentsList({
-  id,
-  getIncidentDatetimeReference,
-}: {
-  id: string;
-  getIncidentDatetimeReference: (incident: GroupedAlert) => string;
-}) {
+const GroupedIncidentsList: React.FC<GroupedIncidentsListProps> = ({ id, getIncidentDatetimeReference }) => {
   const { alertGroupStore } = useStore();
   const incident = alertGroupStore.alerts.get(id);
 
@@ -541,14 +553,22 @@ function GroupedIncidentsList({
       ))}
     </Collapse>
   );
-}
+};
 
-function GroupedIncident({ incident, datetimeReference }: { incident: GroupedAlert; datetimeReference: string }) {
-  const { alertGroupStore } = useStore();
+const GroupedIncident: React.FC<GroupedIncidentProps> = ({ incident: { id, render_for_web }, datetimeReference }) => {
+  const {
+    alertGroupStore: { getPayloadForIncident },
+  } = useStore();
 
   const [incidentRawResponse, setIncidentRawResponse] = useState<{ id: string; raw_request_data: any }>(undefined);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const payloadJSON = isModalOpen ? JSON.stringify(incidentRawResponse.raw_request_data, null, 4) : undefined;
+
+  const openIncidentResponse = useCallback(async () => {
+    const currentIncidentRawResponse = await getPayloadForIncident(id);
+    setIncidentRawResponse(currentIncidentRawResponse);
+    setIsModalOpen(true);
+  }, [id, getPayloadForIncident]);
 
   return (
     <>
@@ -557,7 +577,7 @@ function GroupedIncident({ incident, datetimeReference }: { incident: GroupedAle
           <div className={cx('payload-subtitle')}>
             <HorizontalGroup>
               <Text type="secondary">
-                {incident.render_for_web.title} - {datetimeReference}
+                {render_for_web.title} - {datetimeReference}
               </Text>
             </HorizontalGroup>
           </div>
@@ -579,12 +599,12 @@ function GroupedIncident({ incident, datetimeReference }: { incident: GroupedAle
         </Modal>
       )}
 
-      <div key={incident.id}>
+      <div>
         <div className={cx('incident-row')}>
           <div className={cx('incident-row-left')}>
             <HorizontalGroup wrap={false} justify={'flex-start'}>
               <Text.Title type="secondary" level={4}>
-                {incident.render_for_web.title}
+                {render_for_web.title}
               </Text.Title>
               <Text type="secondary">{datetimeReference}</Text>
             </HorizontalGroup>
@@ -592,7 +612,7 @@ function GroupedIncident({ incident, datetimeReference }: { incident: GroupedAle
           <div className={cx('incident-row-right')}>
             <HorizontalGroup wrap={false} justify={'flex-end'}>
               <Tooltip placement="top" content="Alert Payload">
-                <IconButton name="arrow" onClick={() => openIncidentResponse(incident)} />
+                <IconButton name="arrow" onClick={openIncidentResponse} />
               </Tooltip>
             </HorizontalGroup>
           </div>
@@ -600,28 +620,16 @@ function GroupedIncident({ incident, datetimeReference }: { incident: GroupedAle
         <div
           className={cx('message')}
           dangerouslySetInnerHTML={{
-            __html: sanitize(incident.render_for_web.message),
+            __html: sanitize(render_for_web.message),
           }}
         />
-        {incident.render_for_web.image_url && <img className={cx('image')} src={incident.render_for_web.image_url} />}
+        {render_for_web.image_url && <img className={cx('image')} src={render_for_web.image_url} />}
       </div>
     </>
   );
+};
 
-  async function openIncidentResponse(incident: GroupedAlert) {
-    const currentIncidentRawResponse = await alertGroupStore.getPayloadForIncident(incident.id);
-    setIncidentRawResponse(currentIncidentRawResponse);
-    setIsModalOpen(true);
-  }
-}
-
-function AttachedIncidentsList({
-  id,
-  getUnattachClickHandler,
-}: {
-  id: string;
-  getUnattachClickHandler(pk: string): void;
-}) {
+const AttachedIncidentsList: React.FC<AttachedIncidentsListProps> = ({ id, getUnattachClickHandler }) => {
   const { alertGroupStore } = useStore();
   const incident = alertGroupStore.alerts.get(id);
 
@@ -655,6 +663,6 @@ function AttachedIncidentsList({
       })}
     </Collapse>
   );
-}
+};
 
 export default withMobXProviderContext(IncidentPage);

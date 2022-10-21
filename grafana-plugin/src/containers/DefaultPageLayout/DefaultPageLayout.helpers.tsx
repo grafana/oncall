@@ -5,7 +5,7 @@ import { Team } from 'models/team/team.types';
 
 import { SlackError } from './DefaultPageLayout.types';
 
-export function getSlackMessage(slackError: SlackError, team: Team) {
+export const getSlackMessage = (slackError: SlackError, team: Team) => {
   if (slackError === SlackError.WRONG_WORKSPACE) {
     return (
       <>
@@ -37,4 +37,4 @@ export function getSlackMessage(slackError: SlackError, team: Team) {
   }
 
   return <>Couldn't connect Slack.</>;
-}
+};

@@ -14,38 +14,15 @@ interface ScheduleBorderedAvatarProps {
   renderIcon: () => JSX.Element;
 }
 
-export default function ScheduleBorderedAvatar({
-  colors,
-  renderAvatar,
-  renderIcon,
-  width,
-  height,
-}: ScheduleBorderedAvatarProps) {
-  return <div className={cx('root')}>{renderSVG()}</div>;
+const ScheduleBorderedAvatar = ({ colors, renderAvatar, renderIcon, width, height }: ScheduleBorderedAvatarProps) => {
+  const renderAvatarIcon = () => (
+    <>
+      <div className={cx('avatar')}>{renderAvatar()}</div>
+      <div className={cx('icon')}>{renderIcon()}</div>
+    </>
+  );
 
-  function renderAvatarIcon() {
-    return (
-      <>
-        <div className={cx('avatar')}>{renderAvatar()}</div>
-        <div className={cx('icon')}>{renderIcon()}</div>
-      </>
-    );
-  }
-
-  function renderSVG() {
-    return (
-      <>
-        <svg xmlns="http://www.w3.org/2000/svg" version="1.1" width={width} height={height} viewBox="-14 -8 240 230">
-          <g fill="none" strokeWidth="25" transform="translate(100,100)">
-            {renderColorPaths(colors)}
-          </g>
-        </svg>
-        {renderAvatarIcon()}
-      </>
-    );
-  }
-
-  function renderColorPaths(colors: string[]) {
+  const renderColorPaths = (colors: string[]) => {
     if (!colors?.length) {
       return null;
     }
@@ -73,5 +50,20 @@ export default function ScheduleBorderedAvatar({
 
       return <path key={colorIndex} d={d} stroke={colors[colorIndex]} />;
     });
-  }
-}
+  };
+
+  const renderSVG = () => (
+    <>
+      <svg xmlns="http://www.w3.org/2000/svg" version="1.1" width={width} height={height} viewBox="-14 -8 240 230">
+        <g fill="none" strokeWidth="25" transform="translate(100,100)">
+          {renderColorPaths(colors)}
+        </g>
+      </svg>
+      {renderAvatarIcon()}
+    </>
+  );
+
+  return <div className={cx('root')}>{renderSVG()}</div>;
+};
+
+export default ScheduleBorderedAvatar;

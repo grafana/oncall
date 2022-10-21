@@ -14,14 +14,12 @@ interface ConnectorsProps {
   onTabChange: (tab: UserSettingsTab) => void;
 }
 
-export const Connectors: FC<ConnectorsProps> = (props) => {
-  return (
-    <div>
-      <PhoneConnector {...props} />
-      <SlackConnector {...props} />
-      <TelegramConnector {...props} />
-      <ICalConnector {...props} />
-      <MobileAppConnector {...props} />
-    </div>
-  );
-};
+export const Connectors: FC<ConnectorsProps> = (props) => (
+  <div>
+    <PhoneConnector {...props} />
+    <SlackConnector {...props} />
+    <TelegramConnector {...props} />
+    <ICalConnector {...props} />
+    <MobileAppConnector {...props} />
+  </div>
+);

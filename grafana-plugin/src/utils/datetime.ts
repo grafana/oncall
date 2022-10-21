@@ -44,7 +44,7 @@ export const mapOptionToTimeRange = (option: TimeOption, timeZone?: TimeZone): T
   return rangeUtil.convertRawToRange({ from: option.from, to: option.to }, timeZone);
 };
 
-export function convertRelativeToAbsoluteDate(dateRangeString: string) {
+export const convertRelativeToAbsoluteDate = (dateRangeString: string) => {
   const [from, to] = dateRangeString?.split('/') || [];
   const isValidMapping = quickOptions.find((option) => option.from === from && option.to === to);
 
@@ -64,4 +64,4 @@ export function convertRelativeToAbsoluteDate(dateRangeString: string) {
   }
 
   return dateRangeString;
-}
+};

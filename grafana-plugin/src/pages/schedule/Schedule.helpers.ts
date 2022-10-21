@@ -6,13 +6,14 @@ import { Event, Layer } from 'models/schedule/schedule.types';
 import { Timezone } from 'models/timezone/timezone.types';
 import { RootStore } from 'state';
 
-export const getStartOfWeek = (tz: Timezone) => {
-  return dayjs().tz(tz).utcOffset() === 0 ? dayjs().utc().startOf('isoWeek') : dayjs().tz(tz).startOf('isoWeek');
+type UsersColorScheme = {
+  [userId: string]: Set<string>;
 };
 
-export const getUTCString = (moment: dayjs.Dayjs) => {
-  return moment.utc().format('YYYY-MM-DDTHH:mm:ss.000Z');
-};
+export const getStartOfWeek = (tz: Timezone): dayjs.Dayjs =>
+  dayjs().tz(tz).utcOffset() === 0 ? dayjs().utc().startOf('isoWeek') : dayjs().tz(tz).startOf('isoWeek');
+
+export const getUTCString = (moment: dayjs.Dayjs): string => moment.utc().format('YYYY-MM-DDTHH:mm:ss.000Z');
 
 export const getDateTime = (date: string) => {
   return dayjs(date);
@@ -22,12 +23,24 @@ export const getColorSchemeMappingForUsers = (
   store: RootStore,
   scheduleId: string,
   startMoment: dayjs.Dayjs
-): { [userId: string]: Set<string> } => {
-  const usersColorSchemeHash: { [userId: string]: Set<string> } = {};
+): UsersColorScheme => {
+  const usersColorSchemeHash: UsersColorScheme = {};
 
   const finalScheduleShifts = getShiftsFromStore(store, scheduleId, startMoment);
   const layers: Layer[] = getLayersFromStore(store, scheduleId, startMoment);
   const overrides = getOverridesFromStore(store, scheduleId, startMoment);
+
+  const populateUserHashSet = (events: Event[], id: string): void => {
+    events.forEach((event) => {
+      event.users.forEach((user) => {
+        if (!usersColorSchemeHash[user.pk]) {
+          usersColorSchemeHash[user.pk] = new Set<string>();
+        }
+
+        usersColorSchemeHash[user.pk].add(findColor(id as string, layers, overrides));
+      });
+    });
+  };
 
   if (!finalScheduleShifts?.length || !layers?.length) {
     return usersColorSchemeHash;
@@ -42,16 +55,4 @@ export const getColorSchemeMappingForUsers = (
   rotationShifts.forEach(({ shiftId, events }) => populateUserHashSet(events, shiftId));
 
   return usersColorSchemeHash;
-
-  function populateUserHashSet(events: Event[], id: string) {
-    events.forEach((event) => {
-      event.users.forEach((user) => {
-        if (!usersColorSchemeHash[user.pk]) {
-          usersColorSchemeHash[user.pk] = new Set<string>();
-        }
-
-        usersColorSchemeHash[user.pk].add(findColor(id as string, layers, overrides));
-      });
-    });
-  }
 };

@@ -16,9 +16,9 @@ interface TimeRangeProps {
   onChange: (value: string[]) => void;
 }
 
-function getMoments(from: string, to: string) {
-  let fromMoment;
-  let toMoment;
+const getMoments = (from: string, to: string) => {
+  let fromMoment: moment.Moment;
+  let toMoment: moment.Moment;
 
   if (!from || !to) {
     fromMoment = moment().startOf('hour');
@@ -36,14 +36,14 @@ function getMoments(from: string, to: string) {
   }
 
   return [fromMoment, toMoment];
-}
+};
 
-function getRangeStrings(from: moment.Moment, to: moment.Moment) {
+const getRangeStrings = (from: moment.Moment, to: moment.Moment) => {
   const fromString = from.clone().utc().format('HH:mm:00');
   const toString = to.clone().utc().format('HH:mm:00');
 
   return [fromString, toString];
-}
+};
 
 const TimeRange = ({ className, from: f, to: t, onChange, disabled }: TimeRangeProps) => {
   // @ts-ignore

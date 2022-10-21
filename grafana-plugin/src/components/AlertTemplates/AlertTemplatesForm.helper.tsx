@@ -1,6 +1,6 @@
 import { capitalCase } from 'change-case';
 
-export function getLabelFromTemplateName(templateName: string, group: any) {
+export const getLabelFromTemplateName = (templateName: string, group: any) => {
   let arrayFromName = capitalCase(templateName).split(' ', 4);
   let arrayWithNeededValues;
   if (group === 'alert behaviour') {
@@ -9,4 +9,4 @@ export function getLabelFromTemplateName(templateName: string, group: any) {
     arrayWithNeededValues = arrayFromName.slice(1, arrayFromName.lastIndexOf('Template'));
   }
   return arrayWithNeededValues.join(' ');
-}
+};

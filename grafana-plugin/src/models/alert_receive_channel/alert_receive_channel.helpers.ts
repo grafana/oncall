@@ -1,11 +1,13 @@
 import { AlertReceiveChannel } from './alert_receive_channel.types';
 
-export function getAlertReceiveChannelDisplayName(alertReceiveChannel?: AlertReceiveChannel, withDescription = true) {
+export const getAlertReceiveChannelDisplayName = (
+  alertReceiveChannel?: AlertReceiveChannel,
+  withDescription = true
+) => {
   if (!alertReceiveChannel) {
     return '';
   }
 
-  return withDescription && alertReceiveChannel.description
-    ? `${alertReceiveChannel.verbal_name} (${alertReceiveChannel.description})`
-    : alertReceiveChannel.verbal_name;
-}
+  const { description, verbal_name } = alertReceiveChannel;
+  return withDescription && description ? `${verbal_name} (${description})` : verbal_name;
+};

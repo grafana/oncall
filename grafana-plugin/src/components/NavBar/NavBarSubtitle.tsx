@@ -10,7 +10,11 @@ import styles from './NavBarSubtitle.module.css';
 
 const cx = cn.bind(styles);
 
-function NavBarSubtitle({ backendLicense }: { backendLicense: string }) {
+type NavBarSubtitleProps = {
+  backendLicense: string;
+};
+
+const NavBarSubtitle: React.FC<NavBarSubtitleProps> = ({ backendLicense }) => {
   if (backendLicense === GRAFANA_LICENSE_OSS) {
     return (
       <div className={cx('root')}>
@@ -25,6 +29,6 @@ function NavBarSubtitle({ backendLicense }: { backendLicense: string }) {
   }
 
   return <>{APP_SUBTITLE}</>;
-}
+};
 
 export default NavBarSubtitle;

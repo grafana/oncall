@@ -1,6 +1,6 @@
 import qs from 'query-string';
 
-export function updateQueryParams(params: any, isReplace = false) {
+export const updateQueryParams = (params: any, isReplace = false) => {
   const query = qs.stringify(params);
 
   if (isReplace) {
@@ -9,9 +9,9 @@ export function updateQueryParams(params: any, isReplace = false) {
   }
 
   window.history.pushState(null, '', `${window.location.pathname}?${query}`);
-}
+};
 
-export function mergeQueryParams(params: any) {
+export const mergeQueryParams = (params: any) => {
   const currentParams = qs.parse(window.location.search);
   const newParams = {
     ...currentParams,
@@ -21,4 +21,4 @@ export function mergeQueryParams(params: any) {
   const query = qs.stringify(newParams);
 
   return query;
-}
+};

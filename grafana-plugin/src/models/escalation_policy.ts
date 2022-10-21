@@ -26,15 +26,13 @@ export interface EscalationPolicyType {
   notify_schedule: Schedule['id'];
 }
 
-export function prepareEscalationPolicy(value: EscalationPolicyType): EscalationPolicyType {
-  return {
-    ...value,
-    notify_to_user: null,
-    wait_delay: null,
-    notify_to_users_queue: [],
-    from_time: null,
-    to_time: null,
-    notify_to_schedule: null,
-    custom_button_trigger: null,
-  };
-}
+export const prepareEscalationPolicy = (value: EscalationPolicyType): EscalationPolicyType => ({
+  ...value,
+  notify_to_user: null,
+  wait_delay: null,
+  notify_to_users_queue: [],
+  from_time: null,
+  to_time: null,
+  notify_to_schedule: null,
+  custom_button_trigger: null,
+});

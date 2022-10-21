@@ -2,7 +2,9 @@ import { getBackendSrv } from '@grafana/runtime';
 
 import { makeRequest } from 'network';
 
-export async function createGrafanaToken() {
+export const SYNC_STATUS_RETRY_LIMIT = 10;
+
+export const createGrafanaToken = async () => {
   const keys = await getBackendSrv().get('/api/auth/keys');
   const existingKey = keys.find((key: { id: number; name: string; role: string }) => key.name === 'OnCall');
 
@@ -10,37 +12,31 @@ export async function createGrafanaToken() {
     await getBackendSrv().delete(`/api/auth/keys/${existingKey.id}`);
   }
 
-  return await getBackendSrv().post('/api/auth/keys', {
+  return getBackendSrv().post('/api/auth/keys', {
     name: 'OnCall',
     role: 'Admin',
     secondsToLive: null,
   });
-}
+};
 
-export async function updateGrafanaToken(key: string) {
-  await getBackendSrv().post(`/api/plugins/grafana-oncall-app/settings`, {
+export const updateGrafanaToken = (key: string) =>
+  getBackendSrv().post(`/api/plugins/grafana-oncall-app/settings`, {
     enabled: true,
     pinned: true,
     secureJsonData: {
       grafanaToken: key,
     },
   });
-}
 
-export async function startPluginSync() {
-  return await makeRequest('/plugin/sync', { method: 'POST' });
-}
+export const startPluginSync = () => makeRequest('/plugin/sync', { method: 'POST' });
 
-export const SYNC_STATUS_RETRY_LIMIT = 10;
+export const syncStatusDelay = (retryCount: number) =>
+  new Promise((resolve) => setTimeout(resolve, 10 * 2 ** retryCount));
 
-export const syncStatusDelay = (retryCount) => new Promise((resolve) => setTimeout(resolve, 10 * 2 ** retryCount));
+export const getPluginSyncStatus = () => makeRequest(`/plugin/sync`, { method: 'GET' });
 
-export async function getPluginSyncStatus() {
-  return await makeRequest(`/plugin/sync`, { method: 'GET' });
-}
-
-export async function installPlugin() {
+export const installPlugin = async () => {
   const grafanaToken = await createGrafanaToken();
   await updateGrafanaToken(grafanaToken.key);
-  return await makeRequest('/plugin/install', { method: 'POST' });
-}
+  return makeRequest('/plugin/install', { method: 'POST' });
+};

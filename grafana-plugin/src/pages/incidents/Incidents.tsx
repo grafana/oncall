@@ -38,7 +38,7 @@ interface Pagination {
   end: number;
 }
 
-function withSkeleton(fn: (alert: AlertType) => ReactElement | ReactElement[]) {
+const withSkeleton = (fn: (alert: AlertType) => ReactElement | ReactElement[]) => {
   const WithSkeleton = (alert: AlertType) => {
     if (alert.short) {
       return <LoadingPlaceholder text={''} />;
@@ -48,7 +48,7 @@ function withSkeleton(fn: (alert: AlertType) => ReactElement | ReactElement[]) {
   };
 
   return WithSkeleton;
-}
+};
 
 interface IncidentsPageProps extends WithStoreProps, AppRootProps {}
 
@@ -435,7 +435,7 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
     const { related_users } = record;
     let users = [...related_users];
 
-    function renderUser(user: User, index: number) {
+    const renderUser = (user: User, index: number) => {
       let badge = undefined;
       if (record.resolved_by_user && user.pk === record.resolved_by_user.pk) {
         badge = <Icon name="check-circle" style={{ color: '#52c41a' }} />;
@@ -451,7 +451,7 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
           </Text>
         </PluginLink>
       );
-    }
+    };
 
     if (record.resolved_by_user) {
       const index = users.findIndex((user) => user.pk === record.resolved_by_user.pk);

@@ -4,27 +4,17 @@ import { Schedule } from 'models/schedule/schedule.types';
 
 const DATE_FORMAT = 'HH:mm YYYY-MM-DD';
 
-function isToday(m: moment.Moment) {
-  return m.isSame('day');
-}
+const isToday = (m: moment.Moment): boolean => m.isSame('day');
+const isYesterday = (m: moment.Moment, currentMoment: moment.Moment): boolean => m.diff(currentMoment, 'days') === -1;
+const isTomorrow = (m: moment.Moment, currentMoment: moment.Moment): boolean => m.diff(currentMoment, 'days') === 1;
 
-function isYesterday(m: moment.Moment, currentMoment: moment.Moment) {
-  return m.diff(currentMoment, 'days') === -1;
-}
+export const prepareForEdit = (schedule: Schedule) => ({
+  ...schedule,
+  slack_channel_id: schedule.slack_channel?.id,
+  user_group: schedule.user_group?.id,
+});
 
-function isTomorrow(m: moment.Moment, currentMoment: moment.Moment) {
-  return m.diff(currentMoment, 'days') === 1;
-}
-
-export function prepareForEdit(schedule: Schedule) {
-  return {
-    ...schedule,
-    slack_channel_id: schedule.slack_channel?.id,
-    user_group: schedule.user_group?.id,
-  };
-}
-
-function humanize(m: moment.Moment, currentMoment: moment.Moment) {
+const humanize = (m: moment.Moment, currentMoment: moment.Moment): string => {
   if (isToday(m)) {
     return 'Today';
   }
@@ -37,9 +27,9 @@ function humanize(m: moment.Moment, currentMoment: moment.Moment) {
   }
 
   return m.format(DATE_FORMAT);
-}
+};
 
-export function getDatesString(start: string, end: string, allDay: boolean) {
+export const getDatesString = (start: string, end: string, allDay: boolean): string => {
   const startMoment = moment(start);
   const endMoment = moment(end);
   const currentMoment = moment();
@@ -61,4 +51,4 @@ export function getDatesString(start: string, end: string, allDay: boolean) {
   let endString = humanize(endMoment, currentMoment);
 
   return `${startString} — ${endString}`;
-}
+};

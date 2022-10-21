@@ -21,12 +21,12 @@ type Args = {
   backendLicense: string;
 };
 
-export function useForceUpdate() {
+export const useForceUpdate = () => {
   const [, setValue] = useState(0);
   return () => setValue((value) => value + 1);
-}
+};
 
-export function useNavModel({
+export const useNavModel = ({
   meta,
   pages,
   path,
@@ -36,7 +36,7 @@ export function useNavModel({
   enableCloudPage,
   enableNewSchedulesPage,
   backendLicense,
-}: Args) {
+}: Args) => {
   return useMemo(() => {
     const tabs: NavModelItem[] = [];
 
@@ -87,32 +87,32 @@ export function useNavModel({
     enableNewSchedulesPage,
     grafanaUser.orgRole,
   ]);
-}
+};
 
-export function usePrevious(value: any) {
+export const usePrevious = (value: any) => {
   const ref = useRef();
   useEffect(() => {
     ref.current = value;
   });
   return ref.current;
-}
+};
 
-export function useDebouncedCallback<A extends any[]>(callback: (...args: A) => void, wait: number) {
+export const useDebouncedCallback = <A extends any[]>(callback: (...args: A) => void, wait: number) => {
   // track args & timeout handle between calls
   const argsRef = useRef<A>();
   const timeout = useRef<ReturnType<typeof setTimeout>>();
 
-  function cleanup() {
+  const cleanup = () => {
     if (timeout.current) {
       clearTimeout(timeout.current);
     }
-  }
+  };
 
   // make sure our timeout gets cleared if
   // our consuming component gets unmounted
   useEffect(() => cleanup, []);
 
-  return function debouncedCallback(...args: A) {
+  return (...args: A) => {
     // capture latest args
     argsRef.current = args;
 
@@ -126,4 +126,4 @@ export function useDebouncedCallback<A extends any[]>(callback: (...args: A) => 
       }
     }, wait);
   };
-}
+};

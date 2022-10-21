@@ -1,12 +1,12 @@
-export function setItem(key: string, value: any) {
+export const setItem = (key: string, value: any) => {
   try {
     localStorage.setItem(key, JSON.stringify(value));
   } catch (e) {
     console.warn('Local Storage is not available');
   }
-}
+};
 
-export function getItem(key: string) {
+export const getItem = (key: string) => {
   try {
     const raw = localStorage.getItem(key);
     if (raw) {
@@ -15,17 +15,17 @@ export function getItem(key: string) {
   } catch (e) {
     console.warn('Local Storage is not available');
   }
-}
+};
 
-export function removeItem(key: string) {
+export const removeItem = (key: string) => {
   try {
     localStorage.removeItem(key);
   } catch (e) {
     console.warn('Local Storage is not available');
   }
-}
+};
 
-export function setLocalStorageItemWithTTL(key: string, value: any, ttl: number) {
+export const setLocalStorageItemWithTTL = (key: string, value: any, ttl: number) => {
   const now = new Date();
 
   const item = {
@@ -37,9 +37,9 @@ export function setLocalStorageItemWithTTL(key: string, value: any, ttl: number)
   } catch (e) {
     console.warn('Local Storage is not available');
   }
-}
+};
 
-export function getLocalStorageItemWithTTL(key: string) {
+export const getLocalStorageItemWithTTL = (key: string) => {
   let itemStr;
   try {
     itemStr = localStorage.getItem(key);
@@ -57,4 +57,4 @@ export function getLocalStorageItemWithTTL(key: string) {
     return false;
   }
   return item.value;
-}
+};

@@ -13,7 +13,7 @@ interface PolicyNoteProps {
   children?: any;
 }
 
-function getIcon(type: PolicyNoteProps['type']) {
+const getIcon = (type: PolicyNoteProps['type']) => {
   switch (type) {
     case 'success':
       return <Icon size="lg" className={cx('note-icon')} name="check-circle" style={{ color: 'green' }} />;
@@ -22,7 +22,7 @@ function getIcon(type: PolicyNoteProps['type']) {
     default:
       return <Icon size="lg" className={cx('note-icon')} name="info-circle" style={{ color: '#1890ff' }} />;
   }
-}
+};
 
 const PolicyNote: FC<PolicyNoteProps> = ({ children, type = 'info' }) => {
   const icon = getIcon(type);

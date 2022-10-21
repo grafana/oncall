@@ -1,6 +1,6 @@
 import moment from 'moment-timezone';
 
-export function optionToDateString(option: string) {
+export const optionToDateString = (option: string): string => {
   switch (option) {
     case 'today':
       return moment().startOf('day').format('YYYY-MM-DD');
@@ -9,9 +9,9 @@ export function optionToDateString(option: string) {
     default:
       return moment().add(2, 'day').startOf('day').format('YYYY-MM-DD');
   }
-}
+};
 
-export function dateStringToOption(dateString: string) {
+export const dateStringToOption = (dateString: string): string => {
   const today = moment().startOf('day').format('YYYY-MM-DD');
   if (dateString === today) {
     return 'today';
@@ -22,4 +22,4 @@ export function dateStringToOption(dateString: string) {
   }
 
   return 'custom';
-}
+};
