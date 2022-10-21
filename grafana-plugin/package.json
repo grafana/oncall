@@ -74,6 +74,7 @@
     "eslint": "^8.25.0",
     "eslint-plugin-jsdoc": "^39.3.14",
     "eslint-plugin-react": "^7.31.10",
+    "eslint-plugin-react-hooks": "^4.6.0",
     "eslint-plugin-rulesdir": "^0.2.1",
     "jest": "^27.5.1",
     "jest-environment-jsdom": "^27.5.1",
