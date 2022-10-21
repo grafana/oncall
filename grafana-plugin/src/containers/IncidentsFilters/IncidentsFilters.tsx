@@ -322,67 +322,57 @@ class IncidentsFilters extends Component<IncidentsFiltersProps, IncidentsFilters
     }
   };
 
-  getStatusButtonClickHandler = (status: IncidentStatus) => {
-    return (selected: boolean) => {
-      const { values } = this.state;
+  getStatusButtonClickHandler = (status: IncidentStatus) => (selected: boolean) => {
+    const { values } = this.state;
 
-      const { status: statusFilter = [] } = values;
+    const { status: statusFilter = [] } = values;
 
-      let newStatuses = [...statusFilter];
+    let newStatuses = [...statusFilter];
 
-      if (selected) {
-        newStatuses.push(status);
-      } else {
-        newStatuses = newStatuses.filter((s: IncidentStatus) => s !== Number(status));
-      }
+    if (selected) {
+      newStatuses.push(status);
+    } else {
+      newStatuses = newStatuses.filter((s: IncidentStatus) => s !== Number(status));
+    }
 
-      const statusFilterOption = this.state.filterOptions.find((filterOption) => filterOption.name === 'status');
-      const statusFilterExist = this.state.filters.some((statusFilter) => statusFilter.name === 'status');
+    const statusFilterOption = this.state.filterOptions.find((filterOption) => filterOption.name === 'status');
+    const statusFilterExist = this.state.filters.some((statusFilter) => statusFilter.name === 'status');
 
-      if (statusFilterExist) {
-        this.onFiltersValueChange('status', newStatuses);
-      } else {
-        this.setState(
-          {
-            hadInteraction: false,
-            filters: [...this.state.filters, statusFilterOption],
-          },
-          () => {
-            this.onFiltersValueChange('status', newStatuses);
-          }
-        );
-      }
-    };
-  };
-
-  getOptionsFilterChangeHandler = (name: FilterOption['name']) => {
-    return (options: SelectableValue[]) => {
-      this.onFiltersValueChange(
-        name,
-        options.map((option) => option.value)
+    if (statusFilterExist) {
+      this.onFiltersValueChange('status', newStatuses);
+    } else {
+      this.setState(
+        {
+          hadInteraction: false,
+          filters: [...this.state.filters, statusFilterOption],
+        },
+        () => {
+          this.onFiltersValueChange('status', newStatuses);
+        }
       );
-    };
+    }
   };
 
-  getRemoteOptionsChangeHandler = (name: FilterOption['name']) => {
-    return (value: SelectableValue[], _items: any[]) => {
-      this.onFiltersValueChange(name, value);
-    };
+  getOptionsFilterChangeHandler = (name: FilterOption['name']) => (options: SelectableValue[]) => {
+    this.onFiltersValueChange(
+      name,
+      options.map((option) => option.value)
+    );
   };
 
-  getBooleanFilterChangeHandler = (name: FilterOption['name']) => {
-    return (event: React.ChangeEvent<HTMLInputElement>) => {
-      this.onFiltersValueChange(name, event.target.checked);
-    };
+  getRemoteOptionsChangeHandler = (name: FilterOption['name']) => (value: SelectableValue[], _items: any[]) => {
+    this.onFiltersValueChange(name, value);
   };
 
-  getDateRangeFilterChangeHandler = (name: FilterOption['name']) => {
-    return (timeRange: TimeRange) => {
-      const value =
-        timeRange.from.utc().format('YYYY-MM-DDTHH:mm:ss') + '/' + timeRange.to.utc().format('YYYY-MM-DDTHH:mm:ss');
+  getBooleanFilterChangeHandler = (name: FilterOption['name']) => (event: React.ChangeEvent<HTMLInputElement>) => {
+    this.onFiltersValueChange(name, event.target.checked);
+  };
 
-      this.onFiltersValueChange(name, value);
-    };
+  getDateRangeFilterChangeHandler = (name: FilterOption['name']) => (timeRange: TimeRange) => {
+    const value =
+      timeRange.from.utc().format('YYYY-MM-DDTHH:mm:ss') + '/' + timeRange.to.utc().format('YYYY-MM-DDTHH:mm:ss');
+
+    this.onFiltersValueChange(name, value);
   };
 
   onFiltersValueChange = (name: FilterOption['name'], value: any) => {
@@ -393,11 +383,9 @@ class IncidentsFilters extends Component<IncidentsFiltersProps, IncidentsFilters
     this.setState({ values: newValues }, this.debouncedOnChange);
   };
 
-  getSearchFilterChangeHandler = (name: FilterOption['name']) => {
-    return (event: React.ChangeEvent<HTMLInputElement>) => {
-      const text = event.target.value;
-      this.onFiltersValueChange(name, text);
-    };
+  getSearchFilterChangeHandler = (name: FilterOption['name']) => (event: React.ChangeEvent<HTMLInputElement>) => {
+    const text = event.target.value;
+    this.onFiltersValueChange(name, text);
   };
 
   onChange = (isOnMount = false) => {

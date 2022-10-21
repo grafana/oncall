@@ -347,26 +347,20 @@ class SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSta
     });
   };
 
-  renderChannelName = (value: Schedule) => {
-    return getSlackChannelName(value.slack_channel) || '-';
-  };
+  renderChannelName = (value: Schedule) => getSlackChannelName(value.slack_channel) || '-';
 
-  renderUserGroup = (value: Schedule) => {
-    return value.user_group?.handle || '-';
-  };
+  renderUserGroup = (value: Schedule) => value.user_group?.handle || '-';
 
   renderOncallNow = (item: Schedule, _index: number) => {
     if (item.on_call_now?.length > 0) {
-      return item.on_call_now.map((user, _index) => {
-        return (
-          <PluginLink key={user.pk} query={{ page: 'users', id: user.pk }}>
-            <div>
-              <Avatar size="small" src={user.avatar} />
-              <Text type="secondary"> {user.username}</Text>
-            </div>
-          </PluginLink>
-        );
-      });
+      return item.on_call_now.map((user, _index) => (
+        <PluginLink key={user.pk} query={{ page: 'users', id: user.pk }}>
+          <div>
+            <Avatar size="small" src={user.avatar} />
+            <Text type="secondary"> {user.username}</Text>
+          </div>
+        </PluginLink>
+      ));
     }
     return null;
   };
@@ -398,41 +392,39 @@ class SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSta
     return null;
   };
 
-  renderActionButtons = (record: Schedule) => {
-    return (
-      <HorizontalGroup justify="flex-end">
-        <WithPermissionControl key="edit" userAction={UserAction.UpdateSchedules}>
-          <Button
-            onClick={(event) => {
-              event.stopPropagation();
+  renderActionButtons = (record: Schedule) => (
+    <HorizontalGroup justify="flex-end">
+      <WithPermissionControl key="edit" userAction={UserAction.UpdateSchedules}>
+        <Button
+          onClick={(event) => {
+            event.stopPropagation();
 
-              this.setState({ scheduleIdToEdit: record.id });
+            this.setState({ scheduleIdToEdit: record.id });
 
-              getLocationSrv().update({ partial: true, query: { id: record.id } });
-            }}
-            fill="text"
-          >
-            Edit
-          </Button>
-        </WithPermissionControl>
-        <WithPermissionControl key="reload" userAction={UserAction.UpdateSchedules}>
-          <Button onClick={this.getReloadScheduleClickHandler(record.id)} fill="text">
-            Reload
-          </Button>
-        </WithPermissionControl>
-        <WithPermissionControl key="export" userAction={UserAction.UpdateSchedules}>
-          <Button onClick={this.getExportScheduleClickHandler(record.id)} fill="text">
-            Export
-          </Button>
-        </WithPermissionControl>
-        <WithPermissionControl key="delete" userAction={UserAction.UpdateSchedules}>
-          <Button onClick={this.getDeleteScheduleClickHandler(record.id)} fill="text" variant="destructive">
-            Delete
-          </Button>
-        </WithPermissionControl>
-      </HorizontalGroup>
-    );
-  };
+            getLocationSrv().update({ partial: true, query: { id: record.id } });
+          }}
+          fill="text"
+        >
+          Edit
+        </Button>
+      </WithPermissionControl>
+      <WithPermissionControl key="reload" userAction={UserAction.UpdateSchedules}>
+        <Button onClick={this.getReloadScheduleClickHandler(record.id)} fill="text">
+          Reload
+        </Button>
+      </WithPermissionControl>
+      <WithPermissionControl key="export" userAction={UserAction.UpdateSchedules}>
+        <Button onClick={this.getExportScheduleClickHandler(record.id)} fill="text">
+          Export
+        </Button>
+      </WithPermissionControl>
+      <WithPermissionControl key="delete" userAction={UserAction.UpdateSchedules}>
+        <Button onClick={this.getDeleteScheduleClickHandler(record.id)} fill="text" variant="destructive">
+          Delete
+        </Button>
+      </WithPermissionControl>
+    </HorizontalGroup>
+  );
 
   updateEventsFor = async (scheduleId: Schedule['id'], withEmpty = true, with_gap = true) => {
     const { scheduleStore } = this.props.store;
@@ -462,18 +454,14 @@ class SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSta
     };
   };
 
-  getDeleteScheduleClickHandler = (scheduleId: Schedule['id']) => {
-    return (event: SyntheticEvent) => {
-      event.stopPropagation();
-      this.setState({ scheduleIdToDelete: scheduleId });
-    };
+  getDeleteScheduleClickHandler = (scheduleId: Schedule['id']) => (event: SyntheticEvent) => {
+    event.stopPropagation();
+    this.setState({ scheduleIdToDelete: scheduleId });
   };
 
-  getExportScheduleClickHandler = (scheduleId: Schedule['id']) => {
-    return (event: SyntheticEvent) => {
-      event.stopPropagation();
-      this.setState({ scheduleIdToExport: scheduleId });
-    };
+  getExportScheduleClickHandler = (scheduleId: Schedule['id']) => (event: SyntheticEvent) => {
+    event.stopPropagation();
+    this.setState({ scheduleIdToExport: scheduleId });
   };
 
   handleDelete = async () => {

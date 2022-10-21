@@ -360,11 +360,9 @@ class AlertRules extends React.Component<AlertRulesProps, AlertRulesState> {
     );
   }
 
-  getDeleteRouteClickHandler = (routeId: ChannelFilter['id']) => {
-    return (event: SyntheticEvent) => {
-      event.stopPropagation();
-      this.setState({ routeToDelete: routeId });
-    };
+  getDeleteRouteClickHandler = (routeId: ChannelFilter['id']) => (event: SyntheticEvent) => {
+    event.stopPropagation();
+    this.setState({ routeToDelete: routeId });
   };
 
   handleDeleteRoute = async () => {
@@ -407,11 +405,9 @@ class AlertRules extends React.Component<AlertRulesProps, AlertRulesState> {
     });
   };
 
-  getChangeIntegrationNameHandler = (name: string) => {
-    return () => {
-      this.newAlertReceiveChannelName = name;
-      this.setState({ editIntegrationName: name });
-    };
+  getChangeIntegrationNameHandler = (name: string) => () => {
+    this.newAlertReceiveChannelName = name;
+    this.setState({ editIntegrationName: name });
   };
 
   handleChangeAlertReceiveChannelName = () => {
@@ -447,12 +443,10 @@ class AlertRules extends React.Component<AlertRulesProps, AlertRulesState> {
     });
   };
 
-  getCreateChannelFilterClickHandler = (alertReceiveChannelId: AlertReceiveChannel['id']) => {
-    return () => {
-      this.setState({
-        alertReceiveChannelIdToCreateChannelFilter: alertReceiveChannelId,
-      });
-    };
+  getCreateChannelFilterClickHandler = (alertReceiveChannelId: AlertReceiveChannel['id']) => () => {
+    this.setState({
+      alertReceiveChannelIdToCreateChannelFilter: alertReceiveChannelId,
+    });
   };
 
   renderRoutes = (alertReceiveChannelId: AlertReceiveChannel['id']) => {
@@ -597,19 +591,17 @@ class AlertRules extends React.Component<AlertRulesProps, AlertRulesState> {
     );
   };
 
-  getChannelFilterToggleHandler = (channelFilterId: ChannelFilter['id']) => {
-    return (isOpen: boolean) => {
-      const { expandedRoutes } = this.state;
+  getChannelFilterToggleHandler = (channelFilterId: ChannelFilter['id']) => (isOpen: boolean) => {
+    const { expandedRoutes } = this.state;
 
-      if (!isOpen && expandedRoutes.includes(channelFilterId)) {
-        const index = expandedRoutes.indexOf(channelFilterId);
-        const newExpandedRoutes = [...expandedRoutes];
-        newExpandedRoutes.splice(index, 1);
-        this.setState({ expandedRoutes: newExpandedRoutes });
-      } else if (isOpen && !expandedRoutes.includes(channelFilterId)) {
-        this.setState({ expandedRoutes: [...expandedRoutes, channelFilterId] });
-      }
-    };
+    if (!isOpen && expandedRoutes.includes(channelFilterId)) {
+      const index = expandedRoutes.indexOf(channelFilterId);
+      const newExpandedRoutes = [...expandedRoutes];
+      newExpandedRoutes.splice(index, 1);
+      this.setState({ expandedRoutes: newExpandedRoutes });
+    } else if (isOpen && !expandedRoutes.includes(channelFilterId)) {
+      this.setState({ expandedRoutes: [...expandedRoutes, channelFilterId] });
+    }
   };
 
   renderChannelFilterButtons = (channelFilterId: ChannelFilter['id'], index: number) => {
@@ -750,13 +742,11 @@ class AlertRules extends React.Component<AlertRulesProps, AlertRulesState> {
     };
   };
 
-  getEditChannelFilterClickHandler = (channelFilter: ChannelFilter) => {
-    return (event: MouseEvent) => {
-      event.stopPropagation();
-      this.setState({
-        channelFilterToEdit: channelFilter,
-      });
-    };
+  getEditChannelFilterClickHandler = (channelFilter: ChannelFilter) => (event: MouseEvent) => {
+    event.stopPropagation();
+    this.setState({
+      channelFilterToEdit: channelFilter,
+    });
   };
 
   _renderEscalationPolicies = (channelFilterId: ChannelFilter['id']) => {

@@ -321,18 +321,16 @@ export class EscalationPolicy extends React.Component<EscalationPolicyProps, any
     );
   }
 
-  _getOnSelectChangeHandler = (field: string) => {
-    return (option: SelectableValue) => {
-      const { data, onChange = () => {} } = this.props;
-      const { id } = data;
+  _getOnSelectChangeHandler = (field: string) => (option: SelectableValue) => {
+    const { data, onChange = () => {} } = this.props;
+    const { id } = data;
 
-      const newData: Partial<EscalationPolicyType> = {
-        ...prepareEscalationPolicy(data),
-        [field]: option.value,
-      };
-
-      onChange(id, newData);
+    const newData: Partial<EscalationPolicyType> = {
+      ...prepareEscalationPolicy(data),
+      [field]: option.value,
     };
+
+    onChange(id, newData);
   };
 
   _getOnInputChangeHandler = (field: string) => {
@@ -349,18 +347,16 @@ export class EscalationPolicy extends React.Component<EscalationPolicyProps, any
     };
   };
 
-  _getOnChangeHandler = (field: string) => {
-    return (value: any) => {
-      const { data, onChange = () => {} } = this.props;
-      const { id } = data;
+  _getOnChangeHandler = (field: string) => (value: any) => {
+    const { data, onChange = () => {} } = this.props;
+    const { id } = data;
 
-      const newData: Partial<EscalationPolicyType> = {
-        ...prepareEscalationPolicy(data),
-        [field]: value,
-      };
-
-      onChange(id, newData);
+    const newData: Partial<EscalationPolicyType> = {
+      ...prepareEscalationPolicy(data),
+      [field]: value,
     };
+
+    onChange(id, newData);
   };
 
   _getOnTimeRangeChangeHandler() {

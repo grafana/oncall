@@ -60,34 +60,30 @@ const CreateAlertReceiveChannelContainer = observer(({ onHide, onCreate }: Creat
       </div>
       <div className={cx('cards', { cards_centered: !options.length })}>
         {options.length ? (
-          options.map((alertReceiveChannelChoice) => {
-            return (
-              <Block
-                bordered
-                shadowed
-                onClick={() => {
-                  handleCreateNewIntegrationClickCallback(alertReceiveChannelChoice);
-                }}
-                key={alertReceiveChannelChoice.value}
-                className={cx('card', { card_featured: alertReceiveChannelChoice.featured })}
-              >
-                <div className={cx('card-bg')}>
-                  <IntegrationLogo integration={alertReceiveChannelChoice} scale={0.2} />
-                </div>
-                <div className={cx('title')}>
-                  <VerticalGroup spacing="none">
-                    <Text strong>{alertReceiveChannelChoice.display_name}</Text>
-                    <Text type="secondary" size="small">
-                      {alertReceiveChannelChoice.short_description}
-                    </Text>
-                  </VerticalGroup>
-                </div>
-                {alertReceiveChannelChoice.featured && (
-                  <Tag name="Quick connect" className={cx('tag')} colorIndex={7} />
-                )}
-              </Block>
-            );
-          })
+          options.map((alertReceiveChannelChoice) => (
+            <Block
+              bordered
+              shadowed
+              onClick={() => {
+                handleCreateNewIntegrationClickCallback(alertReceiveChannelChoice);
+              }}
+              key={alertReceiveChannelChoice.value}
+              className={cx('card', { card_featured: alertReceiveChannelChoice.featured })}
+            >
+              <div className={cx('card-bg')}>
+                <IntegrationLogo integration={alertReceiveChannelChoice} scale={0.2} />
+              </div>
+              <div className={cx('title')}>
+                <VerticalGroup spacing="none">
+                  <Text strong>{alertReceiveChannelChoice.display_name}</Text>
+                  <Text type="secondary" size="small">
+                    {alertReceiveChannelChoice.short_description}
+                  </Text>
+                </VerticalGroup>
+              </div>
+              {alertReceiveChannelChoice.featured && <Tag name="Quick connect" className={cx('tag')} colorIndex={7} />}
+            </Block>
+          ))
         ) : (
           <EmptySearchResult>Could not find anything matching your query</EmptySearchResult>
         )}

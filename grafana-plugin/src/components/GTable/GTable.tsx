@@ -117,15 +117,13 @@ const GTable: FC<Props> = ({
             value={data?.length > 0 && rowSelection.selectedRowKeys.length === data?.length}
           />
         ),
-        render: (item: any) => {
-          return (
-            <Checkbox
-              className={cx('checkbox')}
-              value={rowSelection.selectedRowKeys.includes(item[rowKey as string])}
-              onChange={getCheckboxClickHandler(item[rowKey as string])}
-            />
-          );
-        },
+        render: (item: any) => (
+          <Checkbox
+            className={cx('checkbox')}
+            value={rowSelection.selectedRowKeys.includes(item[rowKey as string])}
+            onChange={getCheckboxClickHandler(item[rowKey as string])}
+          />
+        ),
       });
     }
     return columns;

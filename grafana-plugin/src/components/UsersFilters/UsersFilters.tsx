@@ -23,23 +23,21 @@ const roleOptions = [
 
 const UsersFilters = ({ value = { searchTerm: '' }, onChange, className }: UsersFiltersProps) => {
   const onChangeRolesCallback = useCallback(
-    (role: UserRole) => {
-      return (event: ChangeEvent<HTMLInputElement>) => {
-        const checked = event.target.checked;
-        const roles = [...value.roles];
+    (role: UserRole) => (event: ChangeEvent<HTMLInputElement>) => {
+      const checked = event.target.checked;
+      const roles = [...value.roles];
 
-        if (checked && !roles.includes(role)) {
-          roles.push(role);
-        } else if (!checked && roles.includes(role)) {
-          const index = roles.indexOf(role);
-          roles.splice(index, 1);
-        }
+      if (checked && !roles.includes(role)) {
+        roles.push(role);
+      } else if (!checked && roles.includes(role)) {
+        const index = roles.indexOf(role);
+        roles.splice(index, 1);
+      }
 
-        onChange({
-          ...value,
-          roles,
-        });
-      };
+      onChange({
+        ...value,
+        roles,
+      });
     },
     [value]
   );

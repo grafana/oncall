@@ -191,16 +191,14 @@ class LiveSettings extends React.Component<LiveSettingsProps, LiveSettingsState>
     );
   };
 
-  renderDescription = (item: GlobalSetting) => {
-    return (
-      <div
-        dangerouslySetInnerHTML={{
-          __html: item.description,
-        }}
-        className={cx('description-style')}
-      />
-    );
-  };
+  renderDescription = (item: GlobalSetting) => (
+    <div
+      dangerouslySetInnerHTML={{
+        __html: item.description,
+      }}
+      className={cx('description-style')}
+    />
+  );
 
   renderDefault = (item: GlobalSetting) => {
     const { hideValues } = this.state;

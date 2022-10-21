@@ -439,25 +439,23 @@ class IncidentPage extends React.Component<IncidentPageProps, IncidentPageState>
       .then(this.update);
   };
 
-  getPlaceholderReplaceFn = (entity: any) => {
-    return (match: string) => {
-      switch (match) {
-        case 'author':
-          return (
-            <span
-              onClick={() => {
-                getLocationSrv().update({ query: { page: 'users', id: entity?.author?.pk } });
-              }}
-              style={{ textDecoration: 'underline', cursor: 'pointer' }}
-            >
-              {entity.author?.username}
-            </span>
-          );
-        default:
-          console.warn('Unknown render_after_resolve_report_json enity placeholder');
-          return '';
-      }
-    };
+  getPlaceholderReplaceFn = (entity: any) => (match: string) => {
+    switch (match) {
+      case 'author':
+        return (
+          <span
+            onClick={() => {
+              getLocationSrv().update({ query: { page: 'users', id: entity?.author?.pk } });
+            }}
+            style={{ textDecoration: 'underline', cursor: 'pointer' }}
+          >
+            {entity.author?.username}
+          </span>
+        );
+      default:
+        console.warn('Unknown render_after_resolve_report_json enity placeholder');
+        return '';
+    }
   };
 
   getOnActionButtonClick = (incidentId: string, action: AlertAction) => {
@@ -647,20 +645,18 @@ const AttachedIncidentsList: React.FC<AttachedIncidentsListProps> = ({ id, getUn
       label={<HorizontalGroup wrap>{incident.dependent_alert_groups.length} Attached Incidents</HorizontalGroup>}
       contentClassName={cx('incidents-content')}
     >
-      {alerts.map((incident) => {
-        return (
-          <HorizontalGroup key={incident.pk} justify={'space-between'}>
-            <PluginLink query={{ page: 'incident', id: incident.pk }}>
-              #{incident.inside_organization_number} {incident.render_for_web.title}
-            </PluginLink>
-            <WithPermissionControl userAction={UserAction.UpdateIncidents}>
-              <Button size="sm" onClick={() => getUnattachClickHandler(incident.pk)} variant="secondary">
-                Unattach
-              </Button>
-            </WithPermissionControl>
-          </HorizontalGroup>
-        );
-      })}
+      {alerts.map((incident) => (
+        <HorizontalGroup key={incident.pk} justify={'space-between'}>
+          <PluginLink query={{ page: 'incident', id: incident.pk }}>
+            #{incident.inside_organization_number} {incident.render_for_web.title}
+          </PluginLink>
+          <WithPermissionControl userAction={UserAction.UpdateIncidents}>
+            <Button size="sm" onClick={() => getUnattachClickHandler(incident.pk)} variant="secondary">
+              Unattach
+            </Button>
+          </WithPermissionControl>
+        </HorizontalGroup>
+      ))}
     </Collapse>
   );
 };

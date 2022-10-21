@@ -142,19 +142,15 @@ class OrganizationLogPage extends React.Component<OrganizationLogProps, Organiza
     this.setState({ filters, page: 1 }, this.debouncedRefresh);
   };
 
-  renderShortDescription = (item: OrganizationLog) => {
-    return <div className={cx('short-description')}>{item.description}</div>;
-  };
+  renderShortDescription = (item: OrganizationLog) => <div className={cx('short-description')}>{item.description}</div>;
 
-  renderFullDescription = (item: OrganizationLog) => {
-    return (
-      <div
-        dangerouslySetInnerHTML={{
-          __html: sanitize(item.description),
-        }}
-      />
-    );
-  };
+  renderFullDescription = (item: OrganizationLog) => (
+    <div
+      dangerouslySetInnerHTML={{
+        __html: sanitize(item.description),
+      }}
+    />
+  );
 
   renderUser = (item: OrganizationLog) => {
     if (!item.author) {
@@ -190,9 +186,7 @@ class OrganizationLogPage extends React.Component<OrganizationLogProps, Organiza
     );
   };
 
-  renderCreatedAt = (item: OrganizationLog) => {
-    return moment(item.created_at).toString();
-  };
+  renderCreatedAt = (item: OrganizationLog) => moment(item.created_at).toString();
 }
 
 export default withMobXProviderContext(OrganizationLogPage);

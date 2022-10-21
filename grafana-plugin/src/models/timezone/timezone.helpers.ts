@@ -595,9 +595,7 @@ const tzs = [
   'Zulu',
 ];
 
-export const getRandomTimezone = () => {
-  return tzs[Math.floor(Math.random() * tzs.length)];
-};
+export const getRandomTimezone = () => tzs[Math.floor(Math.random() * tzs.length)];
 
 export const getTzOffsetString = (moment: dayjs.Dayjs) => {
   const userOffset = moment.utcOffset();

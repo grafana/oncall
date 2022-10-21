@@ -36,8 +36,8 @@ export const useNavModel = ({
   enableCloudPage,
   enableNewSchedulesPage,
   backendLicense,
-}: Args) => {
-  return useMemo(() => {
+}: Args) =>
+  useMemo(() => {
     const tabs: NavModelItem[] = [];
 
     pages.forEach(({ text, icon, id, role, hideFromTabs }) => {
@@ -87,7 +87,6 @@ export const useNavModel = ({
     enableNewSchedulesPage,
     grafanaUser.orgRole,
   ]);
-};
 
 export const usePrevious = (value: any) => {
   const ref = useRef();

@@ -8,9 +8,7 @@ axios.defaults.headers.common['X-OnCall-Plugin-Version'] = plugin?.version;
 
 axios.interceptors.request.use(function (config) {
   // Do something before request is sent
-  config.paramsSerializer = (params) => {
-    return qs.stringify(params, { arrayFormat: 'none' });
-  };
+  config.paramsSerializer = (params) => qs.stringify(params, { arrayFormat: 'none' });
 
   return {
     ...config,

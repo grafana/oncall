@@ -45,11 +45,12 @@ const IncidentMatcher = observer(({ regexp, className, onError }: IncidentMatche
 
   useEffect(handleRegexpChange, [regexp]);
 
-  const getIncidentClickHandler = useCallback((item: AlertItem) => {
-    return () => {
+  const getIncidentClickHandler = useCallback(
+    (item: AlertItem) => () => {
       setSelectedAlertItem(item);
-    };
-  }, []);
+    },
+    []
+  );
 
   return (
     <Block bordered className={cx('root', className)} withBackground>

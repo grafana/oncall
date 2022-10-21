@@ -24,12 +24,13 @@ const NewScheduleSelector: FC<NewScheduleSelectorProps> = ({ onHide, onCreate, o
   const [showScheduleForm, setShowScheduleForm] = useState<boolean>(false);
   const [type, setType] = useState<ScheduleType | undefined>();
 
-  const getCreateScheduleClickHandler = useCallback((type: ScheduleType) => {
-    return () => {
+  const getCreateScheduleClickHandler = useCallback(
+    (type: ScheduleType) => () => {
       setType(type);
       setShowScheduleForm(true);
-    };
-  }, []);
+    },
+    []
+  );
 
   return (
     <>

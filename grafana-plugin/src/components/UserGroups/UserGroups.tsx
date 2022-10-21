@@ -82,10 +82,8 @@ const UserGroups = ({ value, onChange, isMultipleGroups, renderUser, showError }
     [items]
   );
 
-  const getDeleteItemHandler = (index: number) => {
-    return () => {
-      handleDeleteUser(index);
-    };
+  const getDeleteItemHandler = (index: number) => () => {
+    handleDeleteUser(index);
   };
 
   const renderItem = (item: Item, index: number) => (

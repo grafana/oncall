@@ -26,9 +26,9 @@ const renderFormControl = (formItem: FormItem, register: any, control: any) => {
     case FormItemType.Select:
       return (
         <InputControl
-          render={({ field: { onChange, ...field } }) => {
-            return <Select {...field} {...formItem.extra} onChange={(value) => onChange(value.value)} />;
-          }}
+          render={({ field: { onChange, ...field } }) => (
+            <Select {...field} {...formItem.extra} onChange={(value) => onChange(value.value)} />
+          )}
           control={control}
           // @ts-ignore
           name={formItem.name}
@@ -38,9 +38,7 @@ const renderFormControl = (formItem: FormItem, register: any, control: any) => {
     case FormItemType.GSelect:
       return (
         <InputControl
-          render={({ field: { ...field } }) => {
-            return <GSelect {...field} {...formItem.extra} />;
-          }}
+          render={({ field: { ...field } }) => <GSelect {...field} {...formItem.extra} />}
           control={control}
           // @ts-ignore
           name={formItem.name}
@@ -53,9 +51,7 @@ const renderFormControl = (formItem: FormItem, register: any, control: any) => {
     case FormItemType.RemoteSelect:
       return (
         <InputControl
-          render={({ field: { ...field } }) => {
-            return <RemoteSelect {...field} {...formItem.extra} />;
-          }}
+          render={({ field: { ...field } }) => <RemoteSelect {...field} {...formItem.extra} />}
           control={control}
           // @ts-ignore
           name={formItem.name}
@@ -88,8 +84,8 @@ const GForm = ({ data, form, onSubmit }: GFormProps) => {
 
   return (
     <Form maxWidth="none" id={form.name} defaultValues={data} onSubmit={handleSubmit}>
-      {({ register, errors, control }) => {
-        return form.fields.map((formItem: FormItem, formIndex: number) => (
+      {({ register, errors, control }) =>
+        form.fields.map((formItem: FormItem, formIndex: number) => (
           <Field
             key={formIndex}
             disabled={formItem.getDisabled ? formItem.getDisabled(data) : false}
@@ -100,8 +96,8 @@ const GForm = ({ data, form, onSubmit }: GFormProps) => {
           >
             {renderFormControl(formItem, register, control)}
           </Field>
-        ));
-      }}
+        ))
+      }
     </Form>
   );
 };

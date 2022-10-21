@@ -21,11 +21,12 @@ interface WithId {
 }
 
 const GList = <T extends WithId>({ selectedId, items, onSelect, children, autoScroll }: GListProps<T>) => {
-  const getitemClickHandler = useCallback((id: string) => {
-    return () => {
+  const getitemClickHandler = useCallback(
+    (id: string) => () => {
       onSelect && onSelect(id);
-    };
-  }, []);
+    },
+    []
+  );
 
   const selectedRef = useRef<HTMLDivElement>();
 

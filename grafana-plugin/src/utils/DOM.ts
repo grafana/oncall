@@ -1,5 +1,5 @@
-export const waitForElement = (selector: string) => {
-  return new Promise((resolve) => {
+export const waitForElement = (selector: string) =>
+  new Promise((resolve) => {
     if (document.querySelector(selector)) {
       return resolve(document.querySelector(selector));
     }
@@ -16,7 +16,6 @@ export const waitForElement = (selector: string) => {
       subtree: true,
     });
   });
-};
 
 export const getCoords = (elem) => {
   // crossbrowser version

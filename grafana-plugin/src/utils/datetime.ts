@@ -40,9 +40,8 @@ export const quickOptions = [
   { from: 'now/fy', to: 'now/fy', display: 'This fiscal year' },
 ];
 
-export const mapOptionToTimeRange = (option: TimeOption, timeZone?: TimeZone): TimeRange => {
-  return rangeUtil.convertRawToRange({ from: option.from, to: option.to }, timeZone);
-};
+export const mapOptionToTimeRange = (option: TimeOption, timeZone?: TimeZone): TimeRange =>
+  rangeUtil.convertRawToRange({ from: option.from, to: option.to }, timeZone);
 
 export const convertRelativeToAbsoluteDate = (dateRangeString: string) => {
   const [from, to] = dateRangeString?.split('/') || [];

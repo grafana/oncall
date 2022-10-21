@@ -19,56 +19,58 @@ interface UserTimezoneSelectProps {
 const cx = cn.bind(styles);
 
 const UserTimezoneSelect: FC<UserTimezoneSelectProps> = ({ users, value: propValue, onChange }) => {
-  const options = useMemo(() => {
-    return users
-      .reduce(
-        (memo, user) => {
-          const moment = dayjs().tz(user.timezone);
-          const utcOffset = moment.utcOffset();
+  const options = useMemo(
+    () =>
+      users
+        .reduce(
+          (memo, user) => {
+            const moment = dayjs().tz(user.timezone);
+            const utcOffset = moment.utcOffset();
 
-          let item = memo.find((item) => item.utcOffset === utcOffset);
+            let item = memo.find((item) => item.utcOffset === utcOffset);
 
-          if (!item) {
-            item = {
-              value: utcOffset,
-              utcOffset,
-              timezone: user.timezone,
-              label: getTzOffsetString(moment),
-              description: user.username,
-            };
-            memo.push(item);
-          } else {
-            item.description += item.description ? ', ' + user.username : user.username;
-            // item.imgUrl = undefined;
+            if (!item) {
+              item = {
+                value: utcOffset,
+                utcOffset,
+                timezone: user.timezone,
+                label: getTzOffsetString(moment),
+                description: user.username,
+              };
+              memo.push(item);
+            } else {
+              item.description += item.description ? ', ' + user.username : user.username;
+              // item.imgUrl = undefined;
+            }
+
+            return memo;
+          },
+          [
+            {
+              value: 0,
+              utcOffset: 0,
+              timezone: 'UTC' as Timezone,
+              label: 'GMT',
+              description: '',
+            },
+          ]
+        )
+        .sort((a, b) => {
+          if (b.utcOffset === 0) {
+            return 1;
           }
 
-          return memo;
-        },
-        [
-          {
-            value: 0,
-            utcOffset: 0,
-            timezone: 'UTC' as Timezone,
-            label: 'GMT',
-            description: '',
-          },
-        ]
-      )
-      .sort((a, b) => {
-        if (b.utcOffset === 0) {
-          return 1;
-        }
+          if (a.utcOffset > b.utcOffset) {
+            return 1;
+          }
+          if (a.utcOffset < b.utcOffset) {
+            return -1;
+          }
 
-        if (a.utcOffset > b.utcOffset) {
-          return 1;
-        }
-        if (a.utcOffset < b.utcOffset) {
-          return -1;
-        }
-
-        return 0;
-      });
-  }, [users]);
+          return 0;
+        }),
+    [users]
+  );
 
   const value = useMemo(() => {
     const utcOffset = dayjs().tz(propValue).utcOffset();

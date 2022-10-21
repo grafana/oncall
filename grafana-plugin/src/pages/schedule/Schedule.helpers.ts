@@ -15,9 +15,7 @@ export const getStartOfWeek = (tz: Timezone): dayjs.Dayjs =>
 
 export const getUTCString = (moment: dayjs.Dayjs): string => moment.utc().format('YYYY-MM-DDTHH:mm:ss.000Z');
 
-export const getDateTime = (date: string) => {
-  return dayjs(date);
-};
+export const getDateTime = (date: string) => dayjs(date);
 
 export const getColorSchemeMappingForUsers = (
   store: RootStore,

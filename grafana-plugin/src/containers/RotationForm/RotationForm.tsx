@@ -381,17 +381,15 @@ interface DaysSelectorProps {
 }
 
 const DaysSelector = ({ value, onChange, options }: DaysSelectorProps) => {
-  const getDayClickHandler = (day: string) => {
-    return () => {
-      const newValue = [...value];
-      if (newValue.includes(day)) {
-        const index = newValue.indexOf(day);
-        newValue.splice(index, 1);
-      } else {
-        newValue.push(day);
-      }
-      onChange(newValue);
-    };
+  const getDayClickHandler = (day: string) => () => {
+    const newValue = [...value];
+    if (newValue.includes(day)) {
+      const index = newValue.indexOf(day);
+      newValue.splice(index, 1);
+    } else {
+      newValue.push(day);
+    }
+    onChange(newValue);
   };
 
   return (

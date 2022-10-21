@@ -138,30 +138,32 @@ interface UserAvatarsProps {
 }
 
 const UserAvatars = ({ users, currentMoment, onTzChange, onCallNow, scheduleId, startMoment }: UserAvatarsProps) => {
-  const userGroups = useMemo(() => {
-    return users
-      .reduce((memo, user) => {
-        const userUtcOffset = dayjs().tz(user.timezone).utcOffset();
-        let group = memo.find((group) => group.utcOffset === userUtcOffset);
-        if (!group) {
-          group = { utcOffset: userUtcOffset, users: [] };
-          memo.push(group);
-        }
-        group.users.push(user);
+  const userGroups = useMemo(
+    () =>
+      users
+        .reduce((memo, user) => {
+          const userUtcOffset = dayjs().tz(user.timezone).utcOffset();
+          let group = memo.find((group) => group.utcOffset === userUtcOffset);
+          if (!group) {
+            group = { utcOffset: userUtcOffset, users: [] };
+            memo.push(group);
+          }
+          group.users.push(user);
 
-        return memo;
-      }, [])
-      .sort((a, b) => {
-        if (a.utcOffset > b.utcOffset) {
-          return 1;
-        }
-        if (a.utcOffset < b.utcOffset) {
-          return -1;
-        }
+          return memo;
+        }, [])
+        .sort((a, b) => {
+          if (a.utcOffset > b.utcOffset) {
+            return 1;
+          }
+          if (a.utcOffset < b.utcOffset) {
+            return -1;
+          }
 
-        return 0;
-      });
-  }, [users]);
+          return 0;
+        }),
+    [users]
+  );
 
   const [activeUtcOffset, setActiveUtcOffset] = useState<number | undefined>(undefined);
 
@@ -228,27 +230,27 @@ const AvatarGroup = ({
 
   const translateLeft = -AVATAR_WIDTH / 2;
 
-  const users = useMemo(() => {
-    return [...propsUsers].sort((a, b) => {
-      const aIsOncall = Number(onCallNow.some((onCallUser) => a.pk === onCallUser.pk));
-      const bIsOncall = Number(onCallNow.some((onCallUser) => b.pk === onCallUser.pk));
+  const users = useMemo(
+    () =>
+      [...propsUsers].sort((a, b) => {
+        const aIsOncall = Number(onCallNow.some((onCallUser) => a.pk === onCallUser.pk));
+        const bIsOncall = Number(onCallNow.some((onCallUser) => b.pk === onCallUser.pk));
 
-      if (aIsOncall < bIsOncall) {
-        return 1;
-      }
-      if (aIsOncall > bIsOncall) {
-        return -1;
-      }
+        if (aIsOncall < bIsOncall) {
+          return 1;
+        }
+        if (aIsOncall > bIsOncall) {
+          return -1;
+        }
 
-      return 0;
-    });
-  }, [propsUsers, onCallNow]);
+        return 0;
+      }),
+    [propsUsers, onCallNow]
+  );
 
   const getAvatarClickHandler = useCallback(
-    (timezone: Timezone) => {
-      return () => {
-        onTzChange(timezone);
-      };
+    (timezone: Timezone) => () => {
+      onTzChange(timezone);
     },
     [onTzChange]
   );

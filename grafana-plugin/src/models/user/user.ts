@@ -128,13 +128,11 @@ export class UserStore extends BaseStore {
     };
   }
 
-  sendTelegramConfirmationCode = async (userPk: User['pk']) => {
-    return await makeRequest(`/users/${userPk}/get_telegram_verification_code/`, {});
-  };
+  sendTelegramConfirmationCode = async (userPk: User['pk']) =>
+    await makeRequest(`/users/${userPk}/get_telegram_verification_code/`, {});
 
-  sendBackendConfirmationCode = async (userPk: User['pk'], backend: string) => {
-    return await makeRequest(`/users/${userPk}/get_backend_verification_code/?backend=${backend}`, {});
-  };
+  sendBackendConfirmationCode = async (userPk: User['pk'], backend: string) =>
+    await makeRequest(`/users/${userPk}/get_backend_verification_code/?backend=${backend}`, {});
 
   @action
   unlinkSlack = async (userPk: User['pk']) => {

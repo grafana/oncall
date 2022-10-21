@@ -83,8 +83,8 @@ const GSelect = observer(
       [model, onChange]
     );
 
-    const loadOptions = (query: string) => {
-      return model.updateItems(query).then(() => {
+    const loadOptions = (query: string) =>
+      model.updateItems(query).then(() => {
         const searchResult = model.getSearchResult(query);
         let items = Array.isArray(searchResult.results) ? searchResult.results : searchResult;
 
@@ -99,7 +99,6 @@ const GSelect = observer(
           description: getDescription && getDescription(item),
         }));
       });
-    };
 
     const values = isMulti
       ? (value as string[])

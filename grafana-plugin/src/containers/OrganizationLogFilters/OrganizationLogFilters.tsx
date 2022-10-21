@@ -32,13 +32,11 @@ const OrganizationLogFilters = observer(({ value, onChange }: OrganizationLogFil
     [onChange, value]
   );
 
-  const getChangeHandler = (field: string) => {
-    return (newValue: any) => {
-      onChange({
-        ...value,
-        [field]: newValue,
-      });
-    };
+  const getChangeHandler = (field: string) => (newValue: any) => {
+    onChange({
+      ...value,
+      [field]: newValue,
+    });
   };
 
   const handleChangeCreatedAt = useCallback(

@@ -124,28 +124,24 @@ class TelegramSettings extends Component<TelegramProps, TelegramState> {
     );
   }
 
-  renderDefaultChannel = (isDefault: boolean) => {
-    return <>{isDefault && <Icon name="check" />}</>;
-  };
+  renderDefaultChannel = (isDefault: boolean) => <>{isDefault && <Icon name="check" />}</>;
 
-  renderActionButtons = (record: TelegramChannel) => {
-    return (
-      <HorizontalGroup justify="flex-end">
-        <Button
-          onClick={() => this.makeTelegramChannelDefault(record.id)}
-          disabled={record.is_default_channel}
-          fill="text"
-        >
-          Make default
+  renderActionButtons = (record: TelegramChannel) => (
+    <HorizontalGroup justify="flex-end">
+      <Button
+        onClick={() => this.makeTelegramChannelDefault(record.id)}
+        disabled={record.is_default_channel}
+        fill="text"
+      >
+        Make default
+      </Button>
+      <WithConfirm title="Are you sure to disconnect?">
+        <Button onClick={() => this.disconnectTelegramChannelDefault(record.id)} fill="text" variant="destructive">
+          Disconnect
         </Button>
-        <WithConfirm title="Are you sure to disconnect?">
-          <Button onClick={() => this.disconnectTelegramChannelDefault(record.id)} fill="text" variant="destructive">
-            Disconnect
-          </Button>
-        </WithConfirm>
-      </HorizontalGroup>
-    );
-  };
+      </WithConfirm>
+    </HorizontalGroup>
+  );
 
   makeTelegramChannelDefault = async (id: TelegramChannel['id']) => {
     const { telegramChannelStore } = this.props.store;

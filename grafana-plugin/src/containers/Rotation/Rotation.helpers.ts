@@ -1,3 +1,1 @@
-export const getLabel = (layerIndex: number, rotationIndex) => {
-  return `L ${layerIndex + 1}-${rotationIndex + 1}`;
-};
+export const getLabel = (layerIndex: number, rotationIndex) => `L ${layerIndex + 1}-${rotationIndex + 1}`;

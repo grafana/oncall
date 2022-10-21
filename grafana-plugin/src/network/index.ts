@@ -9,13 +9,9 @@ const instance = axios.create();
 
 instance.interceptors.request.use(function (config) {
   // Do something before request is sent
-  config.paramsSerializer = (params) => {
-    return qs.stringify(params, { arrayFormat: 'none' });
-  };
+  config.paramsSerializer = (params) => qs.stringify(params, { arrayFormat: 'none' });
 
-  config.validateStatus = (status) => {
-    return status >= 200 && status < 300; // default
-  };
+  config.validateStatus = (status) => status >= 200 && status < 300; // default
 
   return {
     ...config,

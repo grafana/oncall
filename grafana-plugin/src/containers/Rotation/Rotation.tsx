@@ -77,19 +77,17 @@ const Rotation: FC<RotationProps> = ({
               className={cx('slots', { slots__animate: animate, slots__transparent: transparent })}
               style={{ transform: `translate(${x * 100}%, 0)` }}
             >
-              {events.map((event, index) => {
-                return (
-                  <ScheduleSlot
-                    scheduleId={scheduleId}
-                    key={event.start}
-                    event={event}
-                    startMoment={startMoment}
-                    currentTimezone={currentTimezone}
-                    color={color}
-                    label={index === eventIndexToShowLabel && getLabel(layerIndex, rotationIndex)}
-                  />
-                );
-              })}
+              {events.map((event, index) => (
+                <ScheduleSlot
+                  scheduleId={scheduleId}
+                  key={event.start}
+                  event={event}
+                  startMoment={startMoment}
+                  currentTimezone={currentTimezone}
+                  color={color}
+                  label={index === eventIndexToShowLabel && getLabel(layerIndex, rotationIndex)}
+                />
+              ))}
             </div>
           ) : (
             <Empty />
@@ -104,8 +102,6 @@ const Rotation: FC<RotationProps> = ({
   );
 };
 
-const Empty = () => {
-  return <div className={cx('empty')} />;
-};
+const Empty = () => <div className={cx('empty')} />;
 
 export default Rotation;

@@ -9,6 +9,7 @@ module.exports = {
       '^assets|^components|^containers|^declare|^icons|^img|^interceptors|^models|^network|^pages|^services|^state|^utils',
   },
   rules: {
+    'arrow-body-style': 'warn',
     eqeqeq: 'warn',
     'func-style': 'warn',
     'import/order': [

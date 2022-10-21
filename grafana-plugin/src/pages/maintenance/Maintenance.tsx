@@ -172,23 +172,20 @@ class MaintenancePage extends React.Component<MaintenancePageProps, MaintenanceP
     }
   };
 
-  renderMode = (maintenance: Maintenance) => {
-    return maintenance.maintenance_mode === MaintenanceMode.Debug ? 'Debug' : 'Maintenance';
-  };
+  renderMode = (maintenance: Maintenance) =>
+    maintenance.maintenance_mode === MaintenanceMode.Debug ? 'Debug' : 'Maintenance';
 
-  renderActionButtons = (maintenance: Maintenance) => {
-    return (
-      <div className={cx('buttons')}>
-        <WithPermissionControl userAction={UserAction.UpdateMaintenances}>
-          <WithConfirm title="Are you sure to stop?" confirmText="Stop">
-            <Button variant="destructive" fill="text" onClick={this.getStopMaintenanceHandler(maintenance)}>
-              Stop
-            </Button>
-          </WithConfirm>
-        </WithPermissionControl>
-      </div>
-    );
-  };
+  renderActionButtons = (maintenance: Maintenance) => (
+    <div className={cx('buttons')}>
+      <WithPermissionControl userAction={UserAction.UpdateMaintenances}>
+        <WithConfirm title="Are you sure to stop?" confirmText="Stop">
+          <Button variant="destructive" fill="text" onClick={this.getStopMaintenanceHandler(maintenance)}>
+            Stop
+          </Button>
+        </WithConfirm>
+      </WithPermissionControl>
+    </div>
+  );
 
   renderDuration = (maintenance: Maintenance) => {
     const started = moment(maintenance.started_at_timestamp * 1000);
@@ -196,9 +193,7 @@ class MaintenancePage extends React.Component<MaintenancePageProps, MaintenanceP
     return `${started.format('MMM DD, YYYY hh:mm A')} - ${ended.format('MMM DD, YYYY hh:mm A')}`;
   };
 
-  renderTimer = (maintenance: Maintenance) => {
-    return `ends ${moment(maintenance.maintenance_till_timestamp * 1000).fromNow()}`;
-  };
+  renderTimer = (maintenance: Maintenance) => `ends ${moment(maintenance.maintenance_till_timestamp * 1000).fromNow()}`;
 
   getStopMaintenanceHandler = (maintenance: Maintenance) => {
     const { maintenanceStore } = this.props.store;

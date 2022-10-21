@@ -15,12 +15,13 @@ export const getAnims = (oldStats: any, newStats: any, ids: number[]) => {
     return acc;
   }, {});
 
-  const filteredStats = ids.reduce((acc: any, id: any) => {
-    return {
+  const filteredStats = ids.reduce(
+    (acc: any, id: any) => ({
       ...acc,
       [id]: oldStats[id] || { list: [] },
-    };
-  }, {});
+    }),
+    {}
+  );
 
   Object.keys(map)
     .map(Number)

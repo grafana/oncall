@@ -69,12 +69,14 @@ const RemoteSelect = inject('store')(
         });
       }, []);
 
-      const loadOptionsCallback = useCallback((query: string) => {
-        return makeRequest(href, { params: { search: query } }).then((data) => {
-          setOptions(getOptions(data.results || data));
-          return getOptions(data.results || data);
-        });
-      }, []);
+      const loadOptionsCallback = useCallback(
+        (query: string) =>
+          makeRequest(href, { params: { search: query } }).then((data) => {
+            setOptions(getOptions(data.results || data));
+            return getOptions(data.results || data);
+          }),
+        []
+      );
 
       const onChangeCallback = useCallback(
         (option) => {

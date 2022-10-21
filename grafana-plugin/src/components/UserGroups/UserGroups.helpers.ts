@@ -21,8 +21,8 @@ export const toPlainArray = (groups: string[][]) => {
   return items;
 };
 
-export const fromPlainArray = (items: Item[], createNewGroup = false, deleteEmptyGroups = true) => {
-  return items
+export const fromPlainArray = (items: Item[], createNewGroup = false, deleteEmptyGroups = true) =>
+  items
     .reduce((memo: any, item: Item, currentIndex: number) => {
       if (item.type === 'item') {
         let lastGroup = memo[memo.length - 1];
@@ -38,4 +38,3 @@ export const fromPlainArray = (items: Item[], createNewGroup = false, deleteEmpt
       return memo;
     }, [])
     .filter((group: string[][]) => !deleteEmptyGroups || group.length);
-};

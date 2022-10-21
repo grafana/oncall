@@ -30,9 +30,7 @@ export const getRole = (role: UserRole) => {
   }
 };
 
-export const getTimezone = (user: User) => {
-  return user.timezone || 'UTC';
-};
+export const getTimezone = (user: User) => user.timezone || 'UTC';
 
 export const getUserNotificationsSummary = (user: User) => {
   if (!user) {

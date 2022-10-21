@@ -170,9 +170,7 @@ const CloudPage = observer((_props: CloudPageProps) => {
     }
   };
 
-  const renderEmail = (user: Cloud) => {
-    return <Text type="primary">{user.email}</Text>;
-  };
+  const renderEmail = (user: Cloud) => <Text type="primary">{user.email}</Text>;
 
   const columns = [
     {

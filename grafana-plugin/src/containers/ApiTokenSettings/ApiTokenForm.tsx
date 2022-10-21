@@ -44,8 +44,8 @@ const ApiTokenForm = observer(({ onHide = () => {}, onUpdate = () => {} }: Token
     setName(event.target.value);
   }, []);
 
-  const renderTokenInput = () => {
-    return token ? (
+  const renderTokenInput = () =>
+    token ? (
       <Input value={token} disabled={!!token} className={cx('token__input')} />
     ) : (
       <Input
@@ -56,7 +56,6 @@ const ApiTokenForm = observer(({ onHide = () => {}, onUpdate = () => {} }: Token
         autoFocus
       />
     );
-  };
 
   const renderCopyToClipboard = () => {
     if (!token) {

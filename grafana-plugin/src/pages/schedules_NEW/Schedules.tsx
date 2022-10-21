@@ -245,10 +245,8 @@ class SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSta
     );
   };
 
-  getScheduleClickHandler = (scheduleId: Schedule['id']) => {
-    return () => {
-      getLocationSrv().update({ query: { page: 'schedule', id: scheduleId } });
-    };
+  getScheduleClickHandler = (scheduleId: Schedule['id']) => () => {
+    getLocationSrv().update({ query: { page: 'schedule', id: scheduleId } });
   };
 
   renderType = (value: number) => {
@@ -295,59 +293,47 @@ class SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSta
     );
   };
 
-  renderName = (item: Schedule) => {
-    return <PluginLink query={{ page: 'schedule', id: item.id }}>{item.name}</PluginLink>;
-  };
+  renderName = (item: Schedule) => <PluginLink query={{ page: 'schedule', id: item.id }}>{item.name}</PluginLink>;
 
   renderOncallNow = (item: Schedule, _index: number) => {
     if (item.on_call_now?.length > 0) {
       return (
         <VerticalGroup>
-          {item.on_call_now.map((user, _index) => {
-            return (
-              <PluginLink key={user.pk} query={{ page: 'users', id: user.pk }}>
-                <div>
-                  <Avatar size="big" src={user.avatar} />
-                  <Text type="secondary"> {user.username}</Text>
-                </div>
-              </PluginLink>
-            );
-          })}
+          {item.on_call_now.map((user, _index) => (
+            <PluginLink key={user.pk} query={{ page: 'users', id: user.pk }}>
+              <div>
+                <Avatar size="big" src={user.avatar} />
+                <Text type="secondary"> {user.username}</Text>
+              </div>
+            </PluginLink>
+          ))}
         </VerticalGroup>
       );
     }
     return null;
   };
 
-  renderChannelName = (value: Schedule) => {
-    return getSlackChannelName(value.slack_channel) || '-';
-  };
+  renderChannelName = (value: Schedule) => getSlackChannelName(value.slack_channel) || '-';
 
-  renderUserGroup = (value: Schedule) => {
-    return value.user_group?.handle || '-';
-  };
+  renderUserGroup = (value: Schedule) => value.user_group?.handle || '-';
 
-  renderButtons = (item: Schedule) => {
-    return (
-      <HorizontalGroup>
-        <WithPermissionControl key="edit" userAction={UserAction.UpdateSchedules}>
-          <IconButton tooltip="Settings" name="cog" onClick={this.getEditScheduleClickHandler(item.id)} />
-        </WithPermissionControl>
-        <WithPermissionControl key="edit" userAction={UserAction.UpdateSchedules}>
-          <WithConfirm>
-            <IconButton tooltip="Delete" name="trash-alt" onClick={this.getDeleteScheduleClickHandler(item.id)} />
-          </WithConfirm>
-        </WithPermissionControl>
-      </HorizontalGroup>
-    );
-  };
+  renderButtons = (item: Schedule) => (
+    <HorizontalGroup>
+      <WithPermissionControl key="edit" userAction={UserAction.UpdateSchedules}>
+        <IconButton tooltip="Settings" name="cog" onClick={this.getEditScheduleClickHandler(item.id)} />
+      </WithPermissionControl>
+      <WithPermissionControl key="edit" userAction={UserAction.UpdateSchedules}>
+        <WithConfirm>
+          <IconButton tooltip="Delete" name="trash-alt" onClick={this.getDeleteScheduleClickHandler(item.id)} />
+        </WithConfirm>
+      </WithPermissionControl>
+    </HorizontalGroup>
+  );
 
-  getEditScheduleClickHandler = (id: Schedule['id']) => {
-    return (event) => {
-      event.stopPropagation();
+  getEditScheduleClickHandler = (id: Schedule['id']) => (event) => {
+    event.stopPropagation();
 
-      this.setState({ scheduleIdToEdit: id });
-    };
+    this.setState({ scheduleIdToEdit: id });
   };
 
   getDeleteScheduleClickHandler = (id: Schedule['id']) => {

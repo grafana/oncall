@@ -208,8 +208,9 @@ export class NotificationPolicy extends React.Component<NotificationPolicyProps,
     }
   }
 
-  _getOnChangeHandler = (field: string) => {
-    return ({ value }: SelectableValue) => {
+  _getOnChangeHandler =
+    (field: string) =>
+    ({ value }: SelectableValue) => {
       const { data, onChange = () => {} } = this.props;
       const { id } = data;
 
@@ -220,7 +221,6 @@ export class NotificationPolicy extends React.Component<NotificationPolicyProps,
 
       onChange(id, newData);
     };
-  };
 
   _getDeleteClickHandler = (id: string) => {
     const { onDelete } = this.props;

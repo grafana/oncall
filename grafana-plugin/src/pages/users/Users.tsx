@@ -257,40 +257,30 @@ class Users extends React.Component<UsersProps, UsersState> {
     this.setState({ page }, this.updateUsers);
   };
 
-  renderTitle = (user: UserType) => {
-    return (
-      <HorizontalGroup>
-        <Avatar className={cx('user-avatar')} size="large" src={user.avatar} />
-        <div>
-          <div>{user.username}</div>
-          <Text type="secondary">{user.email}</Text>
-          <br />
-          <Text type="secondary">{user.verified_phone_number}</Text>
-        </div>
-      </HorizontalGroup>
-    );
-  };
-
-  renderRole = (user: UserType) => {
-    return getRole(user.role);
-  };
-
-  renderNotificationsChain = (user: UserType) => {
-    return user.notification_chain_verbal.default;
-  };
-
-  renderImportantNotificationsChain = (user: UserType) => {
-    return user.notification_chain_verbal.important;
-  };
-
-  renderContacts = (user: UserType) => {
-    return (
-      <div className={cx('contacts')}>
-        <div className={cx('contact')}>Slack: {user.slack_user_identity?.name || '-'}</div>
-        <div className={cx('contact')}>Telegram: {user.telegram_configuration?.telegram_nick_name || '-'}</div>
+  renderTitle = (user: UserType) => (
+    <HorizontalGroup>
+      <Avatar className={cx('user-avatar')} size="large" src={user.avatar} />
+      <div>
+        <div>{user.username}</div>
+        <Text type="secondary">{user.email}</Text>
+        <br />
+        <Text type="secondary">{user.verified_phone_number}</Text>
       </div>
-    );
-  };
+    </HorizontalGroup>
+  );
+
+  renderRole = (user: UserType) => getRole(user.role);
+
+  renderNotificationsChain = (user: UserType) => user.notification_chain_verbal.default;
+
+  renderImportantNotificationsChain = (user: UserType) => user.notification_chain_verbal.important;
+
+  renderContacts = (user: UserType) => (
+    <div className={cx('contacts')}>
+      <div className={cx('contact')}>Slack: {user.slack_user_identity?.name || '-'}</div>
+      <div className={cx('contact')}>Telegram: {user.telegram_configuration?.telegram_nick_name || '-'}</div>
+    </div>
+  );
 
   renderButtons = (user: UserType) => {
     const { userStore, isUserActionAllowed } = this.props.store;

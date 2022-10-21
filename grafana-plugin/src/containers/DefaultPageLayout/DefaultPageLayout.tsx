@@ -54,12 +54,13 @@ const DefaultPageLayout: FC<DefaultPageLayoutProps> = observer(({ children, quer
     }
   }, []);
 
-  const getRemoveAlertHandler = useCallback((id: string) => {
-    return () => {
+  const getRemoveAlertHandler = useCallback(
+    (id: string) => () => {
       setItem(id, true);
       forceUpdate();
-    };
-  }, []);
+    },
+    []
+  );
 
   const isChatOpsConnected = getIfChatOpsConnected(currentUser);
   const isPhoneVerified = currentUser?.cloud_connection_status === 3 || currentUser?.verified_phone_number;

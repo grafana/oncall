@@ -484,8 +484,8 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
     );
   };
 
-  renderActionButtons = (incident: AlertType) => {
-    return getActionButtons(incident, cx, {
+  renderActionButtons = (incident: AlertType) =>
+    getActionButtons(incident, cx, {
       onResolve: this.getOnActionButtonClick(incident.pk, AlertAction.Resolve),
       onUnacknowledge: this.getOnActionButtonClick(incident.pk, AlertAction.unAcknowledge),
       onUnresolve: this.getOnActionButtonClick(incident.pk, AlertAction.unResolve),
@@ -493,7 +493,6 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
       onSilence: this.getSilenceClickHandler(incident),
       onUnsilence: this.getUnsilenceClickHandler(incident),
     });
-  };
 
   getOnActionButtonClick = (incidentId: string, action: AlertAction) => {
     const { alertGroupStore } = this.props.store;

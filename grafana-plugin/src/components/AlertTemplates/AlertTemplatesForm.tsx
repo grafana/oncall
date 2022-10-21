@@ -81,13 +81,10 @@ const AlertTemplatesForm = ({
     setTempValues(temValuesCopy);
   };
 
-  const filteredTemplatesToRender = useMemo(() => {
-    return templates
-      ? templatesToRender.filter((template) => {
-          return template.name in templates;
-        })
-      : [];
-  }, [templates]);
+  const filteredTemplatesToRender = useMemo(
+    () => (templates ? templatesToRender.filter((template) => template.name in templates) : []),
+    [templates]
+  );
 
   const groups = useMemo(() => {
     const groups: { [key: string]: Template[] } = {};
@@ -129,11 +126,9 @@ const AlertTemplatesForm = ({
     }
   }, [activeGroup]);
 
-  const getTemplatePreviewEditClickHandler = (templateName: string) => {
-    return () => {
-      const template = templatesToRender.find((template) => template.name === templateName);
-      setActiveTemplate(template);
-    };
+  const getTemplatePreviewEditClickHandler = (templateName: string) => () => {
+    const template = templatesToRender.find((template) => template.name === templateName);
+    setActiveTemplate(template);
   };
 
   useEffect(() => {

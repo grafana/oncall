@@ -34,19 +34,19 @@ const PersonalNotificationSettings = observer(({ userPk, isImportant }: Personal
   const user = userStore.items[userPk];
 
   const getNotificationPolicySortEndHandler = useCallback(
-    (indexOffset: number) => {
-      return ({ oldIndex, newIndex }: any) => {
+    (indexOffset: number) =>
+      ({ oldIndex, newIndex }: any) => {
         userStore.moveNotificationPolicyToPosition(userPk, oldIndex, newIndex, indexOffset);
-      };
-    },
+      },
     [userPk, userStore]
   );
 
-  const getAddNotificationPolicyHandler = useCallback(() => {
-    return () => {
+  const getAddNotificationPolicyHandler = useCallback(
+    () => () => {
       userStore.addNotificationPolicy(userPk, isImportant);
-    };
-  }, [isImportant, userPk, userStore]);
+    },
+    [isImportant, userPk, userStore]
+  );
 
   const getNotificationPolicyUpdateHandler = useCallback(
     (id: NotificationPolicyType['id'], data) => {

@@ -40,12 +40,13 @@ const IntegrationSettings = observer(
     const { alertReceiveChannelStore } = useStore();
     const alertReceiveChannel = alertReceiveChannelStore.items[id];
 
-    const getTabClickHandler = useCallback((tab: IntegrationSettingsTab) => {
-      return () => {
+    const getTabClickHandler = useCallback(
+      (tab: IntegrationSettingsTab) => () => {
         setActiveTab(tab);
         getLocationSrv().update({ partial: true, query: { tab: tab } });
-      };
-    }, []);
+      },
+      []
+    );
 
     useEffect(() => {
       alertReceiveChannelStore.updateItem(id);

@@ -75,21 +75,19 @@ class ScheduleFinal extends Component<ScheduleFinalProps, ScheduleOverridesState
             <TimelineMarks startMoment={startMoment} />
             <TransitionGroup className={cx('rotations')}>
               {shifts && shifts.length ? (
-                shifts.map(({ shiftId, events }, index) => {
-                  return (
-                    <CSSTransition key={index} timeout={DEFAULT_TRANSITION_TIMEOUT} classNames={{ ...styles }}>
-                      <Rotation
-                        key={index}
-                        scheduleId={scheduleId}
-                        events={events}
-                        startMoment={startMoment}
-                        currentTimezone={currentTimezone}
-                        color={findColor(shiftId, layers, overrides)}
-                        onClick={this.getRotationClickHandler(shiftId)}
-                      />
-                    </CSSTransition>
-                  );
-                })
+                shifts.map(({ shiftId, events }, index) => (
+                  <CSSTransition key={index} timeout={DEFAULT_TRANSITION_TIMEOUT} classNames={{ ...styles }}>
+                    <Rotation
+                      key={index}
+                      scheduleId={scheduleId}
+                      events={events}
+                      startMoment={startMoment}
+                      currentTimezone={currentTimezone}
+                      color={findColor(shiftId, layers, overrides)}
+                      onClick={this.getRotationClickHandler(shiftId)}
+                    />
+                  </CSSTransition>
+                ))
               ) : (
                 <CSSTransition key={0} timeout={DEFAULT_TRANSITION_TIMEOUT} classNames={{ ...styles }}>
                   <Rotation

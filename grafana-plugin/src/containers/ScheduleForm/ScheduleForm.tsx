@@ -35,9 +35,11 @@ const scheduleTypeToForm = {
 const ScheduleForm = observer(({ id, type, onUpdate, onCreate, onHide }: ScheduleFormProps) => {
   const { scheduleStore, userStore } = useStore();
 
-  const data = useMemo(() => {
-    return id === 'new' ? { team: userStore.currentUser?.current_team, type } : prepareForEdit(scheduleStore.items[id]);
-  }, [id]);
+  const data = useMemo(
+    () =>
+      id === 'new' ? { team: userStore.currentUser?.current_team, type } : prepareForEdit(scheduleStore.items[id]),
+    [id]
+  );
 
   const handleSubmit = useCallback(
     (formData: Partial<Schedule>) => {

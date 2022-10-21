@@ -10,9 +10,7 @@ interface TabProps {
   children?: any;
 }
 
-export const VerticalTab: FC<TabProps> = ({ children }) => {
-  return <>{children}</>;
-};
+export const VerticalTab: FC<TabProps> = ({ children }) => <>{children}</>;
 
 interface VerticalTabsBarProps {
   children: Array<React.ReactElement<TabProps>> | React.ReactElement<TabProps>;
@@ -21,10 +19,8 @@ interface VerticalTabsBarProps {
 }
 
 const VerticalTabsBar = ({ children, activeTab, onChange }: VerticalTabsBarProps) => {
-  const getClickHandler = (id: string) => {
-    return () => {
-      onChange(id);
-    };
+  const getClickHandler = (id: string) => () => {
+    onChange(id);
   };
 
   return (
