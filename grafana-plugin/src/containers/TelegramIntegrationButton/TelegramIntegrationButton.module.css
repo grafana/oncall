@@ -29,3 +29,8 @@
   width: 100%;
   display: inline-block;
 }
+
+.infoblock-text {
+  margin-left: 48px;
+  margin-right: 48px;
+}

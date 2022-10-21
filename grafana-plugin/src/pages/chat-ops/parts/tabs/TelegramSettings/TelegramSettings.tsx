@@ -52,14 +52,18 @@ class TelegramSettings extends Component<TelegramProps, TelegramState> {
         <VerticalGroup spacing="lg">
           <Text.Title level={2}>Connect Telegram workspace</Text.Title>
           <Block bordered withBackground className={cx('telegram-infoblock')}>
-            <VerticalGroup align="center" spacing="lg">
-              <TelegramColorIcon />
-              <Text>You can manage incidents in your team Telegram channel or from personal direct messages. </Text>
+            <VerticalGroup align="center">
+              <div className={cx('infoblock-icon')}>
+                <TelegramColorIcon />
+              </div>
+              <Text className={cx('infoblock-text')}>
+                You can manage incidents in your team Telegram channel or from personal direct messages.{' '}
+              </Text>
 
-              <Text>
+              <Text className={cx('infoblock-text')}>
                 To connect channel setup Telegram environment first, which includes connection to your bot and host URL.
               </Text>
-              <Text type="secondary">
+              <Text type="secondary" className={cx('infoblock-text')}>
                 More details in{' '}
                 <a href="https://grafana.com/docs/grafana-cloud/oncall/chat-options/configure-telegram/">
                   <Text type="link">our documentation</Text>
@@ -83,10 +87,14 @@ class TelegramSettings extends Component<TelegramProps, TelegramState> {
         <VerticalGroup spacing="lg">
           <Text.Title level={2}>Connect Telegram workspace</Text.Title>
           <Block bordered withBackground className={cx('telegram-infoblock')}>
-            <VerticalGroup align="center" spacing="lg">
-              <TelegramColorIcon />
-              <Text>You can manage incidents in your team Telegram channel or from personal direct messages. </Text>
-              <Text type="secondary">
+            <VerticalGroup align="center">
+              <div className={cx('infoblock-icon')}>
+                <TelegramColorIcon />
+              </div>
+              <Text className={cx('infoblock-text')}>
+                You can manage incidents in your team Telegram channel or from personal direct messages.{' '}
+              </Text>
+              <Text type="secondary" className={cx('infoblock-text')}>
                 More details in{' '}
                 <a href="https://grafana.com/docs/grafana-cloud/oncall/chat-options/configure-telegram/">
                   <Text type="link">our documentation</Text>
@@ -95,7 +103,7 @@ class TelegramSettings extends Component<TelegramProps, TelegramState> {
             </VerticalGroup>
           </Block>
           <Text>
-            Features
+            <Text.Title level={4}>Features</Text.Title>
             <ul>
               <li>perform actions (acknowledge, resolve, silence)</li>
               <li>discuss alerts in comments</li>

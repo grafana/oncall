@@ -46,7 +46,7 @@ const TelegramInfo = observer((props: TelegramInfoProps) => {
               <Button size="sm">Connect account</Button>
             </a>
           </Block>
-          <Text>Manual connection:</Text>
+          <Text.Title level={5}>Manual connection</Text.Title>
 
           <Text type="secondary">
             1. Go to{' '}

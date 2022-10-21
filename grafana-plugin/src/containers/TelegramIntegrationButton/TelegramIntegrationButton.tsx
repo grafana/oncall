@@ -100,7 +100,7 @@ const TelegramModal = (props: TelegramModalProps) => {
             />
           </Field>
         </Block>
-        <Text.Title level={5}>Setup new channel.</Text.Title>
+        <Text.Title level={5}>Setup new channel</Text.Title>
         <Text type="secondary">
           1. Open Telegram, create a new <Text type="primary">Private Channel</Text> and enable{' '}
           <Text type="primary">Sign Messages</Text> in settings.
@@ -137,16 +137,14 @@ const TelegramModal = (props: TelegramModalProps) => {
           </Field>
         </Text>
         <Text type="secondary">7. Start to manage alerts in your team Telegram workspace.</Text>
-        <div className={cx('telegram-instruction-cancel')}>
-          <HorizontalGroup justify="flex-end">
-            <Button variant="secondary" onClick={onHide}>
-              Cancel
-            </Button>
-            <Button variant="primary" onClick={onUpdate}>
-              Done
-            </Button>
-          </HorizontalGroup>
-        </div>
+        <HorizontalGroup justify="flex-end">
+          <Button variant="secondary" onClick={onHide}>
+            Cancel
+          </Button>
+          <Button variant="primary" onClick={onUpdate}>
+            Done
+          </Button>
+        </HorizontalGroup>
       </VerticalGroup>
     </Modal>
   );

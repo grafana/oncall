@@ -63,17 +63,12 @@ class SlackSettings extends Component<SlackProps, SlackState> {
     );
     const slackSigningSecret = await store.globalSettingStore.getGlobalSettingItemByName('SLACK_SIGNING_SECRET');
 
-    console.log('slackClientOAUTH', slackClientOAUTH?.error);
-    console.log('slackClientOAUTHSecret', slackClientOAUTHSecret?.error);
-    console.log('slackRedirectHost', slackRedirectHost?.error);
-    console.log('slackSigningSecret', slackSigningSecret?.error);
     if (
       slackClientOAUTH?.error ||
       slackClientOAUTHSecret?.error ||
       slackRedirectHost?.error ||
       slackSigningSecret?.error
     ) {
-      console.log('BLA BLA');
       this.setState({ showENVVariablesButton: true });
     }
   };
@@ -230,22 +225,26 @@ class SlackSettings extends Component<SlackProps, SlackState> {
       <VerticalGroup spacing="lg">
         <Text.Title level={2}>Connect Slack workspace</Text.Title>
         <Block bordered withBackground className={cx('slack-infoblock')}>
-          <VerticalGroup align="center" spacing="lg">
-            <SlackNewIcon />
-            <Text>
+          <VerticalGroup align="center">
+            <div className={cx('infoblock-icon')}>
+              <SlackNewIcon />
+            </div>
+            <Text className={cx('infoblock-text')}>
               Slack connection will allow you to manage incidents in your team Slack workspace.
-              <br />
-              After a basic workspace connection, your team members need to connect their personal Slack accounts in
+            </Text>
+            <Text className={cx('infoblock-text')}>
+              After a basic workspace connection your team members need to connect their personal Slack accounts in
               order to be allowed to manage incidents.
             </Text>
             {isLiveSettingAvailable && (
-              <Text type="secondary">
+              <Text type="secondary" className={cx('infoblock-text')}>
                 For bot creating instructions and additional information please read{' '}
                 <a href="https://grafana.com/docs/grafana-cloud/oncall/open-source/#slack-setup">
                   <Text type="link">our documentation</Text>
                 </a>
               </Text>
             )}
+
             <img
               style={{ height: '350px', display: 'block', margin: '0 auto' }}
               src="public/plugins/grafana-oncall-app/img/slack_instructions.png"
