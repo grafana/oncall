@@ -6,6 +6,7 @@ import cn from 'classnames/bind';
 import qs from 'query-string';
 
 import styles from './PluginLink.module.css';
+import LocationHelper from 'utils/LocationHelper';
 
 interface PluginLinkProps extends LocationUpdate {
   disabled?: boolean;
@@ -30,7 +31,10 @@ const PluginLink: FC<PluginLinkProps> = (props) => {
         return;
       }
 
-      !disabled && getLocationSrv().update({ partial, path, query });
+      if (!disabled) {
+        // TODO: remove this and figure out page within LocationHelper instead
+        query.page ? LocationHelper.update({ ...query }, 'replace') : getLocationSrv().update({ partial, path, query });
+      }
     },
     [children]
   );
