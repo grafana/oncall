@@ -88,6 +88,14 @@ oncall:
     enabled: false
     token: ~
     webhookUrl: ~
+  smtp:
+    enabled: false
+    host: ~
+    port: ~
+    username: ~
+    password: ~
+    tls: ~
+    fromEmail: ~
 
 # Whether to run django database migrations automatically
 migrate:
