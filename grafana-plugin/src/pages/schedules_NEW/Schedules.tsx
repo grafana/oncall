@@ -4,6 +4,7 @@ import { getLocationSrv } from '@grafana/runtime';
 import { Button, HorizontalGroup, IconButton, LoadingPlaceholder, VerticalGroup } from '@grafana/ui';
 import cn from 'classnames/bind';
 import dayjs from 'dayjs';
+import { debounce } from 'lodash-es';
 import { observer } from 'mobx-react';
 
 import Avatar from 'components/Avatar/Avatar';
@@ -367,8 +368,16 @@ class SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSta
   };
 
   handleSchedulesFiltersChange = (filters: SchedulesFiltersType) => {
-    this.setState({ filters });
+    this.setState({ filters }, this.debouncedUpdateSchedules);
   };
+
+  applyFilters = () => {
+    // const { filters } = this.state;
+    // const { scheduleStore } = this.props.store;
+    // scheduleStore.updateItems(filters.searchTerm);
+  };
+
+  debouncedUpdateSchedules = debounce(this.applyFilters, 1000);
 
   handlePageChange = (_page: number) => {};
 
