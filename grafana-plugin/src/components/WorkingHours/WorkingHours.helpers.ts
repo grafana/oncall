@@ -71,7 +71,7 @@ export const getNonWorkingMoments = (startMoment, endMoment, workingHours) => {
   const nonWorkingMoments = [{ start: startMoment, end: endMoment }];
 
   let lastNonWorkingRange = nonWorkingMoments[0];
-  for (const [i, range] of workingHours.entries()) {
+  for (const [_i, range] of workingHours.entries()) {
     lastNonWorkingRange.end = range.start;
 
     lastNonWorkingRange = { start: range.end, end: undefined };

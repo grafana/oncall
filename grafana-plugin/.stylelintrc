@@ -1,12 +1,14 @@
 {
-  "extends": "stylelint-config-standard",
-   "rules": {
-     "block-no-empty": [true,{ "severity": "warning"}],
+  "extends": ["stylelint-config-standard", "stylelint-prettier/recommended"],
+  "plugins": ["stylelint-prettier"],
+  "rules": {
+    "block-no-empty": [true, { "severity": "warning" }],
     "selector-pseudo-class-no-unknown": [
       true,
       {
         "ignorePseudoClasses": ["global"]
       }
-    ]
+    ],
+    "prettier/prettier": true
   }
 }

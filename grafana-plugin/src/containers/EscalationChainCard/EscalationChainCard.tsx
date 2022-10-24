@@ -49,22 +49,6 @@ const EscalationChainCard = observer((props: AlertReceiveChannelCardProps) => {
               </Tooltip>
             )}
           </HorizontalGroup>
-          {/*<HorizontalGroup>
-            <PluginLink
-              query={{ page: 'incidents', integration: alertReceiveChannel.id }}
-              className={cx('alertsInfoText')}
-            >
-              <b>{alertReceiveChannel.alert_count}</b> alerts in <b>{alertReceiveChannel.alert_groups_count}</b>{' '}
-              incidents
-            </PluginLink>
-            <Text type="secondary" size="small">
-              |
-            </Text>
-            <IntegrationLogo scale={0.08} integration={integration} />
-            <Text type="secondary" size="small">
-              {integration?.display_name}
-            </Text>
-          </HorizontalGroup>*/}
         </VerticalGroup>
       </HorizontalGroup>
     </div>

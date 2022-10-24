@@ -33,11 +33,11 @@ const ICalConnector = (props: ICalConnectorProps) => {
   useEffect(() => {
     userStore
       .getiCalLink(id)
-      .then((res) => {
+      .then((_res) => {
         setIsiCalLinkExisting(true);
         setiCalLoading(false);
       })
-      .catch((res) => {
+      .catch((_res) => {
         setIsiCalLinkExisting(false);
         setiCalLoading(false);
       });

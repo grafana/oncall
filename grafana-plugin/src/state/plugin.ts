@@ -31,10 +31,9 @@ export async function startPluginSync() {
   return await makeRequest('/plugin/sync', { method: 'POST' });
 }
 
-
 export const SYNC_STATUS_RETRY_LIMIT = 10;
 
-export const syncStatusDelay = retryCount => new Promise(resolve => setTimeout(resolve, 10 * 2 ** retryCount));
+export const syncStatusDelay = (retryCount) => new Promise((resolve) => setTimeout(resolve, 10 * 2 ** retryCount));
 
 export async function getPluginSyncStatus() {
   return await makeRequest(`/plugin/sync`, { method: 'GET' });

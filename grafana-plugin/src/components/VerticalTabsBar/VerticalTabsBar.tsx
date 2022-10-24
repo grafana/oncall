@@ -4,13 +4,21 @@ import cn from 'classnames/bind';
 
 import styles from './VerticalTabsBar.module.css';
 
+const cx = cn.bind(styles);
+interface TabProps {
+  id: string;
+  children?: any;
+}
+
+export const VerticalTab: FC<TabProps> = ({ children }) => {
+  return <>{children}</>;
+};
+
 interface VerticalTabsBarProps {
   children: Array<React.ReactElement<TabProps>> | React.ReactElement<TabProps>;
   activeTab: string;
   onChange: (id: string) => void;
 }
-
-const cx = cn.bind(styles);
 
 const VerticalTabsBar = (props: VerticalTabsBarProps) => {
   const { children, activeTab, onChange } = props;
@@ -25,8 +33,9 @@ const VerticalTabsBar = (props: VerticalTabsBarProps) => {
     <div className={cx('root')}>
       {React.Children.toArray(children)
         .filter(Boolean)
-        .map((child: React.ReactElement) => (
+        .map((child: React.ReactElement, idx) => (
           <div
+            key={idx}
             onClick={getClickHandler(child.props.id)}
             className={cx('tab', { tab_active: activeTab === child.props.id })}
           >
@@ -38,12 +47,3 @@ const VerticalTabsBar = (props: VerticalTabsBarProps) => {
 };
 
 export default VerticalTabsBar;
-
-interface TabProps {
-  id: string;
-  children?: any;
-}
-
-export const VerticalTab: FC<TabProps> = ({ children }) => {
-  return <>{children}</>;
-};

@@ -34,7 +34,6 @@ import { ChannelFilter } from 'models/channel_filter/channel_filter.types';
 import { EscalationChain } from 'models/escalation_chain/escalation_chain.types';
 import { EscalationPolicyOption } from 'models/escalation_policy/escalation_policy.types';
 import { MaintenanceType } from 'models/maintenance/maintenance.types';
-import { getSlackChannelName } from 'models/slack_channel/slack_channel.helpers';
 import { WithStoreProps } from 'state/types';
 import { UserAction } from 'state/userAction';
 import { withMobXProviderContext } from 'state/withStore';
@@ -63,6 +62,14 @@ interface AlertRulesState {
   editIntegrationName?: string;
 }
 
+const Notification: React.FC = () => (
+  <div>
+    Demo alert was generated. Find it on the
+    <PluginLink query={{ page: 'incidents' }}> "Alert Groups" </PluginLink>
+    page and make sure it didn't freak out your colleagues 😉
+  </div>
+);
+
 @observer
 class AlertRules extends React.Component<AlertRulesProps, AlertRulesState> {
   state: AlertRulesState = {
@@ -77,9 +84,7 @@ class AlertRules extends React.Component<AlertRulesProps, AlertRulesState> {
     }
   }
 
-  componentDidUpdate(prevProps: Readonly<AlertRulesProps>, prevState: Readonly<AlertRulesState>, snapshot?: any) {
-    const { store } = this.props;
-
+  componentDidUpdate(prevProps: Readonly<AlertRulesProps>, _prevState: Readonly<AlertRulesState>, _snapshot?: any) {
     if (this.props.alertReceiveChannelId && prevProps.alertReceiveChannelId !== this.props.alertReceiveChannelId) {
       if (prevProps.alertReceiveChannelId) {
         this.setState({
@@ -130,14 +135,12 @@ class AlertRules extends React.Component<AlertRulesProps, AlertRulesState> {
   render() {
     const {
       alertReceiveChannelIdToCreateChannelFilter,
-      channelFilterToEdit,
-      settingsVisible,
       routeToDelete,
       escalationChainIdToCopy,
       channelFilterIdToCopyEscalationChain,
       editIntegrationName,
     } = this.state;
-    const { store, alertReceiveChannelId, onEditAlertReceiveChannelTemplates, onShowSettings } = this.props;
+    const { store, alertReceiveChannelId, onShowSettings } = this.props;
     const { alertReceiveChannelStore } = store;
 
     const alertReceiveChannel = alertReceiveChannelStore.items[alertReceiveChannelId];
@@ -153,7 +156,6 @@ class AlertRules extends React.Component<AlertRulesProps, AlertRulesState> {
         <div className={cx('root')}>
           <Block className={cx('headerBlock')}>
             <div className={cx('header')}>
-              {/* <HorizontalGroup> */}
               <Text.Title level={4}>
                 <HorizontalGroup>
                   Escalate
@@ -197,7 +199,6 @@ class AlertRules extends React.Component<AlertRulesProps, AlertRulesState> {
                   </div>
                 </Modal>
               )}
-              {/* </HorizontalGroup> */}
               <div className={cx('buttons')}>
                 <Button
                   variant="secondary"
@@ -377,7 +378,7 @@ class AlertRules extends React.Component<AlertRulesProps, AlertRulesState> {
   handleEscalationChainCreate = async (id: EscalationChain['id']) => {
     const { store } = this.props;
     const { alertReceiveChannelStore } = store;
-    const { escalationChainIdToCopy, channelFilterIdToCopyEscalationChain } = this.state;
+    const { channelFilterIdToCopyEscalationChain } = this.state;
 
     await alertReceiveChannelStore
       .saveChannelFilter(channelFilterIdToCopyEscalationChain, { escalation_chain: id })
@@ -389,8 +390,7 @@ class AlertRules extends React.Component<AlertRulesProps, AlertRulesState> {
   };
 
   handleDeleteAlertReceiveChannel = () => {
-    const { store, alertReceiveChannelId, onDelete } = this.props;
-
+    const { alertReceiveChannelId, onDelete } = this.props;
     onDelete(alertReceiveChannelId);
   };
 
@@ -460,12 +460,13 @@ class AlertRules extends React.Component<AlertRulesProps, AlertRulesState> {
 
     return (
       <div>
-        {channelFilterIds.map((channelFilterId: ChannelFilter['id'], index: number) => {
+        {channelFilterIds.map((channelFilterId: ChannelFilter['id']) => {
           const channelFilter = store.alertReceiveChannelStore.channelFilters[channelFilterId];
 
           if (channelFilterId === channelFilterToEdit?.id) {
             return (
               <ChannelFilterForm
+                key={channelFilterId}
                 className={cx('route')}
                 id={channelFilterToEdit.id}
                 alertReceiveChannelId={channelFilterToEdit.alert_receive_channel}
@@ -590,8 +591,6 @@ class AlertRules extends React.Component<AlertRulesProps, AlertRulesState> {
   };
 
   getChannelFilterToggleHandler = (channelFilterId: ChannelFilter['id']) => {
-    const { store } = this.props;
-
     return (isOpen: boolean) => {
       const { expandedRoutes } = this.state;
 
@@ -685,16 +684,8 @@ class AlertRules extends React.Component<AlertRulesProps, AlertRulesState> {
     channelFilterId: ChannelFilter['id']
   ) => {
     const { store } = this.props;
-
-    const { telegramChannelStore, teamStore } = store;
     const channelFilterIds = store.alertReceiveChannelStore.channelFilterIds[alertReceiveChannelId];
-
     const channelFilter = store.alertReceiveChannelStore.channelFilters[channelFilterId];
-
-    const telegramChannel =
-      channelFilter.telegram_channel && telegramChannelStore.items[channelFilter.telegram_channel];
-
-    const slackChannelName = getSlackChannelName(channelFilter.slack_channel || teamStore.currentTeam?.slack_channel);
 
     const index = channelFilterIds.indexOf(channelFilterId);
     return (
@@ -760,9 +751,7 @@ class AlertRules extends React.Component<AlertRulesProps, AlertRulesState> {
 
   _renderEscalationPolicies = (channelFilterId: ChannelFilter['id']) => {
     const { store } = this.props;
-
     const channelFilter = store.alertReceiveChannelStore.channelFilters[channelFilterId];
-
     const escalationChainId = channelFilter.escalation_chain;
 
     return (
@@ -802,13 +791,7 @@ class AlertRules extends React.Component<AlertRulesProps, AlertRulesState> {
     return () => {
       alertReceiveChannelStore.sendDemoAlert(id).then(() => {
         alertReceiveChannelStore.updateCounters();
-        openNotification(
-          <div>
-            Demo alert was generated. Find it on the
-            <PluginLink query={{ page: 'incidents' }}> "Alert Groups" </PluginLink>
-            page and make sure it didn't freak out your colleagues 😉
-          </div>
-        );
+        openNotification(<Notification />);
       });
     };
   };
@@ -819,13 +802,7 @@ class AlertRules extends React.Component<AlertRulesProps, AlertRulesState> {
     } = this.props;
     return () => {
       alertReceiveChannelStore.sendDemoAlertToParticularRoute(id).then(() => {
-        openNotification(
-          <div>
-            Demo alert was generated. Find it on the
-            <PluginLink query={{ page: 'incidents' }}> "Alert Groups" </PluginLink>
-            page and make sure it didn't freak out your colleagues 😉
-          </div>
-        );
+        openNotification(<Notification />);
       });
     };
   };

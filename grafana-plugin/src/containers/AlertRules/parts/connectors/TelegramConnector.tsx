@@ -18,15 +18,11 @@ interface TelegramConnectorProps {
   channelFilterId: ChannelFilter['id'];
 }
 
-const TelegramConnector = (props: TelegramConnectorProps) => {
-  const { channelFilterId } = props;
+const TelegramConnector = ({ channelFilterId }: TelegramConnectorProps) => {
+  const { alertReceiveChannelStore } = useStore();
+  const channelFilter = alertReceiveChannelStore.channelFilters[channelFilterId];
 
-  const store = useStore();
-  const { teamStore, alertReceiveChannelStore } = store;
-
-  const channelFilter = store.alertReceiveChannelStore.channelFilters[channelFilterId];
-
-  const handleTelegramChannelChange = useCallback((value: TelegramChannel['id'], telegramChannel: TelegramChannel) => {
+  const handleTelegramChannelChange = useCallback((_value: TelegramChannel['id'], telegramChannel: TelegramChannel) => {
     alertReceiveChannelStore.saveChannelFilter(channelFilterId, { telegram_channel: telegramChannel?.id || null });
   }, []);
 

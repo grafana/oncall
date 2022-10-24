@@ -1,5 +1,4 @@
 const path = require('path');
-const fs = require('fs');
 
 const CircularDependencyPlugin = require('circular-dependency-plugin');
 
@@ -133,8 +132,7 @@ module.exports.getWebpackConfig = (config, options) => {
         allowAsyncCycles: false,
         // set the current working directory for displaying module paths
         cwd: process.cwd(),
-      })
-      // new BundleAnalyzerPlugin(),
+      }),
     ],
 
     resolve: {
@@ -143,13 +141,6 @@ module.exports.getWebpackConfig = (config, options) => {
       modules: [path.resolve(__dirname, './frontend_enterprise/src'), ...config.resolve.modules],
     },
   };
-
-  /* fs.writeFile('webpack-conf.json', JSON.stringify(newConfig, null, 2), function (err) {
-    if (err) {
-      return console.log(err);
-    }
-    console.log('config > webpack-conf.json');
-  }); */
 
   return newConfig;
 };

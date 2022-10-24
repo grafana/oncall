@@ -6,7 +6,6 @@ import cn from 'classnames/bind';
 import { get } from 'lodash-es';
 
 import Block from 'components/GBlock/Block';
-import PluginLink from 'components/PluginLink/PluginLink';
 import Text from 'components/Text/Text';
 import GSelect from 'containers/GSelect/GSelect';
 import { WithPermissionControl } from 'containers/WithPermissionControl/WithPermissionControl';
@@ -55,8 +54,7 @@ const Autoresolve = ({ alertReceiveChannelId, onSwitchToTemplate, alertGroupId }
       store.alertReceiveChannelStore.templates[alertReceiveChannelId],
       'resolve_condition_template'
     );
-    // @ts-ignore
-    if (autoresolveCondition == ['invalid template']) {
+    if (autoresolveCondition === 'invalid template') {
       setAutoresolveConditionInvalid(true);
     }
   }, [store.alertReceiveChannelStore.templates[alertReceiveChannelId]]);
