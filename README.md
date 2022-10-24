@@ -20,10 +20,10 @@ Developer-friendly incident response with brilliant Slack integration.
 
 We prepared multiple environments: [production](https://grafana.com/docs/grafana-cloud/oncall/open-source/#production-environment), [developer](DEVELOPER.md) and hobby:
 
-1. Download [`docker-compose-mysql-rabbitmq.yml`](docker-compose-mysql-rabbitmq.yml) (or use [`docker-compose-sqlite-redis.yml`](docker-compose-sqlite-redis.yml) for a minimal setup using SQLite and Redis):
+1. Download [`docker-compose.yml`](docker-compose.yml):
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/grafana/oncall/dev/docker-compose-mysql-rabbitmq.yml -o docker-compose.yml
+curl -fsSL https://raw.githubusercontent.com/grafana/oncall/dev/docker-compose.yml -o docker-compose.yml
 ```
 
 2. Set variables:
@@ -31,9 +31,7 @@ curl -fsSL https://raw.githubusercontent.com/grafana/oncall/dev/docker-compose-m
 ```bash
 echo "DOMAIN=http://localhost:8080
 COMPOSE_PROFILES=with_grafana  # Remove this line if you want to use existing grafana
-SECRET_KEY=my_random_secret_must_be_more_than_32_characters_long
-RABBITMQ_PASSWORD=rabbitmq_secret_pw
-MYSQL_PASSWORD=mysql_secret_pw" > .env
+SECRET_KEY=my_random_secret_must_be_more_than_32_characters_long" > .env
 ```
 
 3. Launch services:
