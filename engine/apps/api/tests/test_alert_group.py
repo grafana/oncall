@@ -1468,4 +1468,5 @@ def test_alert_group_preview_body_invalid_template_syntax(
     data = {"template_name": "testonly_title_template", "template_body": "{{'' if foo is None else foo}}"}
     response = client.post(url, data, format="json", **make_user_auth_headers(user, token))
 
-    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert response.status_code == status.HTTP_200_OK
+    assert response.json()["preview"] is None
