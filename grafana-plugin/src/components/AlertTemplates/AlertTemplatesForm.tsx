@@ -8,7 +8,7 @@ import cn from 'classnames/bind';
 import { omit } from 'lodash-es';
 
 import { templatesToRender } from 'components/AlertTemplates/AlertTemplatesForm.config';
-import { getLabelFromTemplateName, includeTemplateGroup } from 'components/AlertTemplates/AlertTemplatesForm.helper';
+import { getLabelFromTemplateName } from 'components/AlertTemplates/AlertTemplatesForm.helper';
 import Block from 'components/GBlock/Block';
 import MonacoJinja2Editor from 'components/MonacoJinja2Editor/MonacoJinja2Editor';
 import SourceCode from 'components/SourceCode/SourceCode';
@@ -99,9 +99,6 @@ const AlertTemplatesForm = (props: AlertTemplatesFormProps) => {
 
     filteredTemplatesToRender.forEach((templateToRender) => {
       if (!groups[templateToRender.group]) {
-        if (!includeTemplateGroup(templateToRender.group)) {
-          return;
-        }
         groups[templateToRender.group] = [];
       }
       groups[templateToRender.group].push(templateToRender);
