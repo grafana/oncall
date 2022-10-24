@@ -140,11 +140,11 @@ if DATABASE_TYPE == DatabaseTypes.MYSQL:
     pymysql.install_as_MySQLdb()
 
 # Redis
+REDIS_PROTOCOL = os.getenv("REDIS_PROTOCOL", "redis")
 REDIS_USERNAME = os.getenv("REDIS_USERNAME", "")
 REDIS_PASSWORD = os.getenv("REDIS_PASSWORD")
 REDIS_HOST = os.getenv("REDIS_HOST")
 REDIS_PORT = os.getenv("REDIS_PORT", 6379)
-REDIS_PROTOCOL = os.getenv("REDIS_PROTOCOL", "redis")
 
 REDIS_URI = os.getenv("REDIS_URI")
 if not REDIS_URI:

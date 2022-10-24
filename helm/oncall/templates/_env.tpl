@@ -202,11 +202,35 @@
 {{- end -}}
 {{- end -}}
 
+{{- define "snippet.redis.protocol" -}}
+{{- if and (not .Values.redis.enabled) .Values.externalRedis.protocol -}}
+{{ .Values.externalRedis.protocol | quote }}
+{{- else -}}
+"redis"
+{{- end -}}
+{{- end -}}
+
+{{- define "snippet.redis.username" -}}
+{{- if and (not .Values.redis.enabled) .Values.externalRedis.username -}}
+{{ .Values.externalRedis.username | quote }}
+{{- else -}}
+""
+{{- end -}}
+{{- end -}}
+
 {{- define "snippet.redis.host" -}}
 {{- if and (not .Values.redis.enabled) .Values.externalRedis.host -}}
 {{- required "externalRedis.host is required if not redis.enabled" .Values.externalRedis.host | quote }}
 {{- else -}}
 {{ include "oncall.redis.fullname" . }}-master
+{{- end -}}
+{{- end -}}
+
+{{- define "snippet.redis.port" -}}
+{{- if and (not .Values.redis.enabled) .Values.externalRedis.port -}}
+{{ .Values.externalRedis.port | quote }}
+{{- else -}}
+"6379"
 {{- end -}}
 {{- end -}}
 
@@ -219,15 +243,20 @@
 {{- end -}}
 
 {{- define "snippet.redis.env" -}}
-- name: REDIS_HOST
-  value: {{ include "snippet.redis.host" . }}
-- name: REDIS_PORT
-  value: "6379"
+- name: REDIS_PROTOCOL
+  value: {{ include "snippet.redis.protocol . }}
+- name: REDIS_USERNAME
+  value: {{ include "snippet.redis.username" . }}
 - name: REDIS_PASSWORD
   valueFrom:
     secretKeyRef:
       name: {{ template "snippet.redis.password.secret.name" . }}
       key: redis-password
+- name: REDIS_HOST
+  value: {{ include "snippet.redis.host" . }}
+- name: REDIS_PORT
+  value: {{ include "snippet.redis.port" . }}
+
 {{- end }}
 
 {{- define "snippet.oncall.smtp.env" -}}
