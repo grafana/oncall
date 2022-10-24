@@ -1,4 +1,4 @@
-from jinja2 import TemplateSyntaxError, UndefinedError
+from jinja2 import TemplateSyntaxError, UndefinedError, TemplateRuntimeError
 
 from .jinja_template_env import jinja_template_env
 
@@ -8,5 +8,5 @@ def apply_jinja_template(template, payload=None, **kwargs):
         template = jinja_template_env.from_string(template)
         result = template.render(payload=payload, **kwargs)
         return result, True
-    except (UndefinedError, TypeError, ValueError, KeyError, TemplateSyntaxError):
+    except (UndefinedError, TypeError, ValueError, KeyError, TemplateSyntaxError, TemplateRuntimeError):
         return None, False
