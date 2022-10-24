@@ -1,7 +1,16 @@
 import React, { SyntheticEvent } from 'react';
 
 import { getLocationSrv } from '@grafana/runtime';
-import { Button, HorizontalGroup, IconButton, LoadingPlaceholder, VerticalGroup } from '@grafana/ui';
+import {
+  Button,
+  HorizontalGroup,
+  IconButton,
+  LoadingPlaceholder,
+  VerticalGroup,
+  PENDING_COLOR,
+  Tooltip,
+  Icon,
+} from '@grafana/ui';
 import cn from 'classnames/bind';
 import dayjs from 'dayjs';
 import { debounce } from 'lodash-es';
@@ -82,7 +91,7 @@ class SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSta
         render: this.renderType,
       },
       {
-        width: '10%',
+        width: '5%',
         title: 'Status',
         key: 'name',
         render: this.renderStatus,
@@ -121,6 +130,11 @@ class SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSta
         key: 'quality',
         render: this.renderQuality,
       },*/
+      {
+        width: '5%',
+        key: 'warning',
+        render: this.renderWarning,
+      },
       {
         width: '50px',
         key: 'buttons',
@@ -279,38 +293,60 @@ class SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSta
     return typeToVerbal[value];
   };
 
+  renderWarning = (item: Schedule) => {
+    if (item.warnings.length > 0) {
+      const tooltipContent = (
+        <div>
+          {item.warnings.map((warning: string) => (
+            <p>{warning}</p>
+          ))}
+        </div>
+      );
+      return (
+        <Tooltip placement="top" content={tooltipContent}>
+          <Icon style={{ color: PENDING_COLOR }} name="exclamation-triangle" />
+        </Tooltip>
+      );
+    }
+
+    return null;
+  };
+
   renderStatus = (item: Schedule) => {
     const {
       store: { scheduleStore },
     } = this.props;
 
     const relatedEscalationChains = scheduleStore.relatedEscalationChains[item.id];
-
+    console.log('esc chains', item.number_of_escalation_chains);
     return (
       <HorizontalGroup>
-        <ScheduleCounter
-          type="link"
-          count={item.number_of_escalation_chains}
-          tooltipTitle="Used in escalations"
-          tooltipContent={
-            <VerticalGroup spacing="sm">
-              {relatedEscalationChains ? (
-                relatedEscalationChains.length ? (
-                  relatedEscalationChains.map((escalationChain) => (
-                    <PluginLink query={{ page: 'escalations', id: escalationChain.pk }}>
-                      {escalationChain.name}
-                    </PluginLink>
-                  ))
+        {item.number_of_escalation_chains > 0 && (
+          <ScheduleCounter
+            type="link"
+            count={item.number_of_escalation_chains}
+            tooltipTitle="Used in escalations"
+            tooltipContent={
+              <VerticalGroup spacing="sm">
+                {relatedEscalationChains ? (
+                  relatedEscalationChains.length ? (
+                    relatedEscalationChains.map((escalationChain) => (
+                      <PluginLink query={{ page: 'escalations', id: escalationChain.pk }}>
+                        {escalationChain.name}
+                      </PluginLink>
+                    ))
+                  ) : (
+                    'Not used yet'
+                  )
                 ) : (
-                  'Not used yet'
-                )
-              ) : (
-                <LoadingPlaceholder>Loading related escalation chains....</LoadingPlaceholder>
-              )}
-            </VerticalGroup>
-          }
-          onHover={this.getUpdateRelatedEscalationChainsHandler(item.id)}
-        />
+                  <LoadingPlaceholder>Loading related escalation chains....</LoadingPlaceholder>
+                )}
+              </VerticalGroup>
+            }
+            onHover={this.getUpdateRelatedEscalationChainsHandler(item.id)}
+          />
+        )}
+
         {/* <ScheduleCounter
           type="warning"
           count={warningsCount}
