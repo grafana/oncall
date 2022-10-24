@@ -21,6 +21,8 @@
   value: "True"
 - name: UWSGI_LISTEN
   value: "1024"
+- name: BROKER_TYPE
+  value: {{ .Values.broker.type | default "rabbitmq" }}
 {{- end }}
 
 {{- define "snippet.oncall.slack.env" -}}
@@ -121,8 +123,8 @@
 {{- end -}}
 
 {{- define "snippet.mysql.db" -}}
-{{- if and (not .Values.mariadb.enabled) .Values.externalMysql.db -}}
-{{- required "externalMysql.db is required if not mariadb.enabled" .Values.externalMysql.db | quote}}
+{{- if and (not .Values.mariadb.enabled) .Values.externalMysql.db_name -}}
+{{- required "externalMysql.db is required if not mariadb.enabled" .Values.externalMysql.db_name | quote}}
 {{- else -}}
 "oncall"
 {{- end -}}
@@ -137,6 +139,7 @@
 {{- end -}}
 
 {{- define "snippet.rabbitmq.env" -}}
+{{- if eq .Values.broker.type "rabbitmq" -}}
 - name: RABBITMQ_USERNAME
   value: {{ include "snippet.rabbitmq.user" . }}
 - name: RABBITMQ_PASSWORD
@@ -152,6 +155,7 @@
   value: {{ include "snippet.rabbitmq.protocol" . }}
 - name: RABBITMQ_VHOST
   value: {{ include "snippet.rabbitmq.vhost" . }}
+{{- end }}
 {{- end }}
 
 {{- define "snippet.rabbitmq.user" -}}

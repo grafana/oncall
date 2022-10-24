@@ -180,6 +180,9 @@ externalMysql:
 rabbitmq:
   enabled: true
 
+broker:
+  type: rabbitmq
+
 externalRabbitmq:
   host:
   port:
