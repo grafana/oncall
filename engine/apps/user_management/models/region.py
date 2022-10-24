@@ -33,10 +33,6 @@ def generate_public_primary_key_for_region():
     return new_public_primary_key
 
 
-def redirect_organization_request(organization: Organization, request: Request):
-    logger.info("**** Redirect! ****")
-
-
 class Region(models.Model):
     public_primary_key = models.CharField(
         max_length=20,
