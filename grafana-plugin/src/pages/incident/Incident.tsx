@@ -126,21 +126,17 @@ class IncidentPage extends React.Component<IncidentPageProps, IncidentPageState>
     }
 
     return (
-      <PageErrorHandlingWrapper
-        errorData={errorData}
-        objectName="alert group"
-        pageName="incidents"
-      >
+      <PageErrorHandlingWrapper errorData={errorData} objectName="alert group" pageName="incidents">
         {() =>
           errorData.isNotFoundError ? (
             <div className={cx('root')}>
               <div className={cx('not-found')}>
                 <VerticalGroup spacing="lg" align="center">
                   <Text.Title level={1}>404</Text.Title>
-                  <Text.Title level={4}>Incident not found</Text.Title>
+                  <Text.Title level={4}>Alert group not found</Text.Title>
                   <PluginLink query={{ page: 'incidents', cursor, start, perpage }}>
                     <Button variant="secondary" icon="arrow-left" size="md">
-                      Go to incidents page
+                      Go to Alert groups page
                     </Button>
                   </PluginLink>
                 </VerticalGroup>
