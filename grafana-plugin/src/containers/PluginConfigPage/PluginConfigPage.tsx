@@ -3,6 +3,7 @@ import React, { useCallback, useEffect, useState } from 'react';
 import { AppPluginMeta, PluginConfigPageProps } from '@grafana/data';
 import { getBackendSrv } from '@grafana/runtime';
 import { Button, Field, HorizontalGroup, VerticalGroup, Input, Label, Legend, LoadingPlaceholder } from '@grafana/ui';
+import { AxiosError } from 'axios';
 import cn from 'classnames/bind';
 import { OnCallAppSettings } from 'types';
 
@@ -128,7 +129,7 @@ export const PluginConfigPage = (props: Props) => {
     setGrafanaUrl(e.target.value);
   }, []);
 
-  const handleSyncException = useCallback((e) => {
+  const handleSyncException = useCallback((e: AxiosError) => {
     const buildErrMsg = (msg: string): string => constructSyncErrorMessage(msg, plugin.meta.jsonData?.onCallApiUrl);
 
     if (plugin.meta.jsonData?.onCallApiUrl) {
@@ -205,9 +206,7 @@ export const PluginConfigPage = (props: Props) => {
           syncStatusDelay(retryCount + 1).then(() => waitForSyncStatus(retryCount + 1));
         }
       })
-      .catch((e) => {
-        handleSyncException(e);
-      });
+      .catch(handleSyncException);
   };
 
   const startSync = useCallback(() => {
@@ -218,9 +217,7 @@ export const PluginConfigPage = (props: Props) => {
       .catch(handleSyncException);
   }, []);
 
-  useEffect(() => {
-    startSync();
-  }, []);
+  useEffect(startSync, []);
 
   return (
     <div>
