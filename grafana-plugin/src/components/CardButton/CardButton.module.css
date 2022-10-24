@@ -19,7 +19,7 @@
 
 .root_selected::before {
   display: block;
-  content: "";
+  content: '';
   position: absolute;
   left: 0;
   top: 0;

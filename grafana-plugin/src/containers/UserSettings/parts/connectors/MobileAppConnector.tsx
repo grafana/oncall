@@ -22,7 +22,7 @@ const SlackConnector = (props: SlackConnectorProps) => {
 
   const handleClickConfirmMobileAppButton = useCallback(() => {
     onTabChange(UserSettingsTab.MobileAppVerification);
-  }, []);
+  }, [onTabChange]);
 
   if (!store.hasFeature(AppFeature.MobileApp)) {
     return null;
@@ -32,7 +32,6 @@ const SlackConnector = (props: SlackConnectorProps) => {
     <div className={cx('user-item')}>
       <Label>Mobile App:</Label>
       <div>
-        {/*<Text type="warning">Mobile App is not added</Text>*/}
         <Button size="sm" fill="text" onClick={handleClickConfirmMobileAppButton}>
           Click to add a mobile app
         </Button>

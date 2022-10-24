@@ -62,13 +62,10 @@ const EscalationChainSteps = observer((props: EscalationChainStepsProps) => {
       {addonBefore}
       {escalationPolicyIds ? (
         escalationPolicyIds.map((escalationPolicyId, index) => {
-          // const COLOR_RED = '#FF0000';
           const COLOR_RED = '#E60000';
-          // const STEP_COLORS = ['#52C41A', '#A0D911', '#FADB14', '#FAAD14', COLOR_RED];
           const STEP_COLORS = ['#1A7F4B', '#33cc33', '#ffbf00', '#FF8000', COLOR_RED];
 
           const { escalationPolicyStore } = store;
-
           const escalationPolicy = escalationPolicyStore.items[escalationPolicyId];
 
           if (!escalationPolicy) {
@@ -102,7 +99,6 @@ const EscalationChainSteps = observer((props: EscalationChainStepsProps) => {
             menuShouldPortal
             placeholder="Add escalation step..."
             onChange={handleCreateEscalationStep}
-            /* isOptionDisabled={(...rest) => console.log(rest)}*/
             options={escalationPolicyStore.webEscalationChoices.map((choice: EscalationPolicyOption) => ({
               value: choice.value,
               label: choice.create_display_name,

@@ -9,12 +9,7 @@
       "name": "Grafana Labs",
       "url": "https://grafana.com"
     },
-    "keywords": [
-      "oncall",
-      "irm",
-      "incident",
-      "response"
-    ],
+    "keywords": ["oncall", "irm", "incident", "response"],
     "logos": {
       "small": "img/logo.svg",
       "large": "img/logo.svg"
@@ -29,9 +24,7 @@
         "url": "https://github.com/grafana/oncall/blob/main/LICENSE"
       }
     ],
-    "screenshots": [
-      { "name": "Escalation chain", "path": "img/screenshot.png" }
-    ],
+    "screenshots": [{ "name": "Escalation chain", "path": "img/screenshot.png" }],
     "version": "%VERSION%",
     "updated": "%TODAY%"
   },
@@ -57,7 +50,8 @@
       "path": "/a/grafana-oncall-app/?page=integrations",
       "role": "Viewer",
       "addToNav": true
-    },{
+    },
+    {
       "type": "page",
       "name": "Escalation Chains",
       "path": "/a/grafana-oncall-app/?page=escalations",

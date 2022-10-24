@@ -2,7 +2,7 @@ import { Item } from './UserGroups.types';
 
 export const toPlainArray = (groups: string[][]) => {
   const items: Item[] = [];
-  groups.forEach((group: string[], groupIndex: number) => {
+  groups.forEach((_group: string[], groupIndex: number) => {
     items.push({
       key: `group-${groupIndex}`,
       type: 'group',

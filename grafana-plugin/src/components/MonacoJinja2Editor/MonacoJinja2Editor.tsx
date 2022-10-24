@@ -1,13 +1,10 @@
-import React, { FC, useCallback, useMemo, useRef, useEffect } from 'react';
+import React, { FC, useCallback } from 'react';
 
 import { CodeEditor, CodeEditorSuggestionItemKind, LoadingPlaceholder } from '@grafana/ui';
-import cn from 'classnames/bind';
 
 import { getPaths } from 'utils';
 
 import { conf, language } from './jinja2';
-
-import styles from './MonacoJinja2Editor.module.css';
 
 declare const monaco: any;
 
@@ -18,8 +15,6 @@ interface MonacoJinja2EditorProps {
   onChange: (value: string) => void;
   loading: boolean;
 }
-
-const cx = cn.bind(styles);
 
 const PREDEFINED_TERMS = [
   'grafana_oncall_link',

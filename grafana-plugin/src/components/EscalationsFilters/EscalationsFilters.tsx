@@ -1,6 +1,6 @@
 import React, { ChangeEvent, FC, useCallback } from 'react';
 
-import { Icon, Input, Button, IconButton } from '@grafana/ui';
+import { Icon, Input, IconButton } from '@grafana/ui';
 import cn from 'classnames/bind';
 
 import styles from './EscalationsFilters.module.css';

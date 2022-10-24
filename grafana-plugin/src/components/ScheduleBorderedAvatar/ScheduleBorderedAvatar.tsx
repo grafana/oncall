@@ -1,14 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 
-import { FadeTransition } from '@grafana/ui';
 import cn from 'classnames/bind';
-import dayjs from 'dayjs';
-import { CSSTransition } from 'react-transition-group';
 
 import styles from './ScheduleBorderedAvatar.module.scss';
-
-import animationStyles from 'containers/Rotations/Rotations.module.css';
-
 
 const cx = cn.bind(styles);
 
@@ -52,7 +46,9 @@ export default function ScheduleBorderedAvatar({
   }
 
   function renderColorPaths(colors: string[]) {
-    if (!colors?.length) {return null;}
+    if (!colors?.length) {
+      return null;
+    }
 
     const colorSchemeList = colors;
     if (colors.length === 1) {
@@ -75,7 +71,7 @@ export default function ScheduleBorderedAvatar({
       lastX = x;
       lastY = y;
 
-      return <path d={d} stroke={colors[colorIndex]} />;
+      return <path key={colorIndex} d={d} stroke={colors[colorIndex]} />;
     });
   }
 }

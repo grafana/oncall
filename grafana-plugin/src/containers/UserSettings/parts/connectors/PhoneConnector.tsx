@@ -28,7 +28,7 @@ const PhoneConnector = (props: PhoneConnectorProps) => {
 
   const handleClickConfirmPhoneButton = useCallback(() => {
     onTabChange(UserSettingsTab.PhoneVerification);
-  }, [storeUser?.unverified_phone_number]);
+  }, [storeUser?.unverified_phone_number, onTabChange]);
 
   const cloudVersionPhone = (user: User) => {
     switch (user.cloud_connection_status) {

@@ -83,7 +83,7 @@ class Users extends React.Component<UsersProps, UsersState> {
     return await userStore.updateItems(getRealFilters(usersFilters), page);
   };
 
-  componentDidUpdate(prevProps: Readonly<UsersProps>, prevState: Readonly<UsersState>, snapshot?: any) {
+  componentDidUpdate(prevProps: Readonly<UsersProps>, _prevState: Readonly<UsersState>, _snapshot?: any) {
     const { store } = this.props;
 
     if (!this.initialUsersLoaded && store.isUserActionAllowed(UserAction.ViewOtherUsers)) {

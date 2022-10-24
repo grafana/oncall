@@ -385,10 +385,19 @@ class AlertReceiveChannel(IntegrationOptionsMixin, MaintainableObject):
                 organization=kwargs["organization"],
                 integration=kwargs["integration"],
                 team=kwargs["team"],
+                deleted_at=None,
             )
         except cls.DoesNotExist:
             kwargs.update(defaults)
             alert_receive_channel = cls.create(**kwargs)
+        except cls.MultipleObjectsReturned:
+            # general team may inherit integrations from deleted teams
+            alert_receive_channel = cls.objects.filter(
+                organization=kwargs["organization"],
+                integration=kwargs["integration"],
+                team=kwargs["team"],
+                deleted_at=None,
+            ).first()
         return alert_receive_channel
 
     @property

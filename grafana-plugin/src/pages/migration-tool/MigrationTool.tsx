@@ -1,15 +1,11 @@
 import React from 'react';
 
-import { Button, Icon, LoadingPlaceholder, Tag, TextArea } from '@grafana/ui';
-import { sentenceCase } from 'change-case';
+import { Button, LoadingPlaceholder, Tag, TextArea } from '@grafana/ui';
 import cn from 'classnames/bind';
 import { observer } from 'mobx-react';
 import Emoji from 'react-emoji-render';
 
-import PluginLink from 'components/PluginLink/PluginLink';
 import Text from 'components/Text/Text';
-import GSelect from 'containers/GSelect/GSelect';
-import { PRIVATE_CHANNEL_NAME } from 'models/slack_channel/slack_channel.config';
 import { makeRequest } from 'network';
 import { withMobXProviderContext } from 'state/withStore';
 import { showApiError } from 'utils';
@@ -173,12 +169,12 @@ class MigrationToolPage extends React.Component<MigrationToolProps, MigrationToo
                       const item = migrationPlan[key];
 
                       return (
-                        <p>
+                        <p key={key}>
                           {key}:{' '}
                           {Array.isArray(item) && item.length ? (
                             <ul>
                               {item.map((subItem) => (
-                                <li>
+                                <li key={subItem}>
                                   <Emoji text={subItem || ''} />
                                 </li>
                               ))}
@@ -194,8 +190,8 @@ class MigrationToolPage extends React.Component<MigrationToolProps, MigrationToo
                     <p>
                       <Tag colorIndex={7} name="Attention" />{' '}
                       <Text>
-                        Migration will be applied to the "General" team. Once you perform the migration there won’t be
-                        possible to migrate data to the current Grafana OnCall workspace again. It’s a 1-time operation.
+                        Migration will be applied to the "General" team. Once you perform the migration there won't be
+                        possible to migrate data to the current Grafana OnCall workspace again. It's a 1-time operation.
                       </Text>
                     </p>
                     <p>
@@ -208,7 +204,7 @@ class MigrationToolPage extends React.Component<MigrationToolProps, MigrationToo
                     <p>
                       <Tag colorIndex={7} name="Attention" />{' '}
                       <Text>
-                        Only “ical” schedules will be migrated. User names in your calendars should not be prefixed with
+                        Only "ical" schedules will be migrated. User names in your calendars should not be prefixed with
                         '@', use bare usernames or emails.
                       </Text>
                     </p>
@@ -267,7 +263,7 @@ class MigrationToolPage extends React.Component<MigrationToolProps, MigrationToo
                       {endpointsList ? (
                         <ul>
                           {endpointsList.map((item) => (
-                            <li>
+                            <li key={item}>
                               <Emoji text={item || ''} />{' '}
                             </li>
                           ))}
