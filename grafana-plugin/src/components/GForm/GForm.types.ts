@@ -1,5 +1,3 @@
-import { Moment } from 'moment';
-
 export enum FormItemType {
   'Input' = 'input',
   'TextArea' = 'textarea',
@@ -7,13 +5,6 @@ export enum FormItemType {
   'GSelect' = 'gselect',
   'Switch' = 'switch',
   'RemoteSelect' = 'remoteselect',
-
-  /* 'InputNumber' = 'input-number',
-  'Select' = 'select',
-  'Switch' = 'switch',
-  'ASelect' = 'aselect',
-  'JustSelect' = 'just-select',
-  'DatePicker' = 'datepicker', */
 }
 
 export interface FormItem {

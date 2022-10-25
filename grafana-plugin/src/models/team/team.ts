@@ -5,7 +5,7 @@ import { makeRequest } from 'network';
 import { Mixpanel } from 'services/mixpanel';
 import { RootStore } from 'state';
 import { openErrorNotification } from 'utils';
-import { getPathnameByTeamNameSlug, getTeamNameSlugFromUrl } from 'utils/url';
+import { getPathnameByTeamNameSlug } from 'utils/url';
 
 import { Team } from './team.types';
 
@@ -118,8 +118,8 @@ export class TeamStore extends BaseStore {
   }
 
   @action
-  async updateTeam(teamId: Team['pk']) {
-    const response = await makeRequest(this.path, {
+  async updateTeam(_teamId: Team['pk']) {
+    await makeRequest(this.path, {
       params: {},
       withCredentials: true,
     });

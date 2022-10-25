@@ -2,14 +2,9 @@ import React, { useCallback, useEffect, useMemo, useReducer } from 'react';
 
 import { SelectableValue } from '@grafana/data';
 import { AsyncMultiSelect, AsyncSelect } from '@grafana/ui';
-import cn from 'classnames/bind';
 import { inject, observer } from 'mobx-react';
 
 import { makeRequest } from 'network';
-
-import styles from './RemoteSelect.module.css';
-
-const cx = cn.bind(styles);
 
 interface RemoteSelectProps {
   autoFocus?: boolean;

@@ -1,12 +1,10 @@
 import React, { useCallback, useEffect, useState } from 'react';
 
-import { Button } from '@grafana/ui';
 import { observer } from 'mobx-react';
 
 import AlertTemplatesForm from 'components/AlertTemplates/AlertTemplatesForm';
 import { AlertReceiveChannel } from 'models/alert_receive_channel';
 import { Alert } from 'models/alertgroup/alertgroup.types';
-import { RootStore } from 'state';
 import { useStore } from 'state/useStore';
 import { openNotification } from 'utils';
 

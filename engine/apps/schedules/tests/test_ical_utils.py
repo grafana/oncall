@@ -16,6 +16,16 @@ from common.constants.role import Role
 
 
 @pytest.mark.django_db
+def test_users_in_ical_email_case_insensitive(make_organization_and_user, make_user_for_organization):
+    organization, user = make_organization_and_user()
+    user = make_user_for_organization(organization, username="foo", email="TestingUser@test.com")
+
+    usernames = ["testinguser@test.com"]
+    result = users_in_ical(usernames, organization)
+    assert set(result) == {user}
+
+
+@pytest.mark.django_db
 @pytest.mark.parametrize(
     "include_viewers",
     [True, False],

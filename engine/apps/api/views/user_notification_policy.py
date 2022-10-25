@@ -160,9 +160,6 @@ class UserNotificationPolicyView(UpdateSerializerMixin, ModelViewSet):
                 notification_channel
                 in NotificationChannelAPIOptions.TELEGRAM_INTEGRATION_REQUIRED_NOTIFICATION_CHANNELS
             )
-            email_integration_required = (
-                notification_channel in NotificationChannelAPIOptions.EMAIL_INTEGRATION_REQUIRED_NOTIFICATION_CHANNELS
-            )
             mobile_app_integration_required = (
                 notification_channel
                 in NotificationChannelAPIOptions.MOBILE_APP_INTEGRATION_REQUIRED_NOTIFICATION_CHANNELS
@@ -170,8 +167,6 @@ class UserNotificationPolicyView(UpdateSerializerMixin, ModelViewSet):
             if slack_integration_required and not settings.FEATURE_SLACK_INTEGRATION_ENABLED:
                 continue
             if telegram_integration_required and not settings.FEATURE_TELEGRAM_INTEGRATION_ENABLED:
-                continue
-            if email_integration_required and not settings.FEATURE_EMAIL_INTEGRATION_ENABLED:
                 continue
             if mobile_app_integration_required and not settings.MOBILE_APP_PUSH_NOTIFICATIONS_ENABLED:
                 continue

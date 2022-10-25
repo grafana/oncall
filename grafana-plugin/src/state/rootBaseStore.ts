@@ -32,13 +32,11 @@ import { makeRequest } from 'network';
 
 import { AppFeature } from './features';
 import {
-  createGrafanaToken,
   getPluginSyncStatus,
   installPlugin,
   startPluginSync,
   SYNC_STATUS_RETRY_LIMIT,
   syncStatusDelay,
-  updateGrafanaToken,
 } from './plugin';
 import { UserAction } from './userAction';
 
@@ -131,8 +129,6 @@ export class RootBaseStore {
     this.teamStore.loadCurrentTeam();
     this.grafanaTeamStore.updateItems();
     this.updateFeatures();
-    // this.userStore.updateItems();
-    // this.maintenanceStore.updateMaintenances();
     this.userStore.updateNotificationPolicyOptions();
     this.userStore.updateNotifyByOptions();
     this.alertReceiveChannelStore.updateAlertReceiveChannelOptions();
@@ -165,7 +161,7 @@ export class RootBaseStore {
     this.initializationError = e.response.status;
   }
 
-  async startSync(key?: string) {
+  async startSync() {
     try {
       return await startPluginSync();
     } catch (e) {

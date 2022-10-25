@@ -42,13 +42,13 @@ def users_in_ical(usernames_from_ical, organization, include_viewers=False):
     Parse ical file and return list of users found
     """
     # Only grafana username will be used, consider adding grafana email and id
-
     users_found_in_ical = organization.users
     if not include_viewers:
         users_found_in_ical = users_found_in_ical.filter(role__in=(Role.ADMIN, Role.EDITOR))
 
+    user_emails = [v.lower() for v in usernames_from_ical]
     users_found_in_ical = users_found_in_ical.filter(
-        (Q(username__in=usernames_from_ical) | Q(email__in=usernames_from_ical))
+        (Q(username__in=usernames_from_ical) | Q(email__lower__in=user_emails))
     ).distinct()
 
     # Here is the example how we extracted users previously, using slack fields too
@@ -394,8 +394,8 @@ def get_missing_users_from_ical_event(event, organization):
     all_usernames, _ = get_usernames_from_ical_event(event)
     users = list(get_users_from_ical_event(event, organization))
     found_usernames = [u.username for u in users]
-    found_emails = [u.email for u in users]
-    return [u for u in all_usernames if u != "" and u not in found_usernames and u not in found_emails]
+    found_emails = [u.email.lower() for u in users]
+    return [u for u in all_usernames if u != "" and u not in found_usernames and u.lower() not in found_emails]
 
 
 def get_users_from_ical_event(event, organization):
@@ -536,7 +536,8 @@ def get_user_events_from_calendars(ical_obj: Calendar, calendars: tuple, user: U
             for component in calendar.walk():
                 if component.name == "VEVENT":
                     event_user = get_usernames_from_ical_event(component)
-                    if event_user[0][0] in [user.username, user.email]:
+                    event_user_value = event_user[0][0]
+                    if event_user_value == user.username or event_user_value.lower() == user.email.lower():
                         ical_obj.add_component(component)
 
 

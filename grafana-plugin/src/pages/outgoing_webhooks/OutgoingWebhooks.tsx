@@ -50,7 +50,7 @@ class OutgoingWebhooks extends React.Component<OutgoingWebhooksProps, OutgoingWe
   }
 
   parseQueryParams = async () => {
-    this.setState((prevState) => ({
+    this.setState((_prevState) => ({
       errorData: initErrorDataState(),
       outgoingWebhookIdToEdit: undefined,
     })); // reset state on query parse
@@ -60,7 +60,9 @@ class OutgoingWebhooks extends React.Component<OutgoingWebhooksProps, OutgoingWe
       query: { id },
     } = this.props;
 
-    if (!id) {return;}
+    if (!id) {
+      return;
+    }
 
     let outgoingWebhook: OutgoingWebhook | void = undefined;
     const isNewWebhook = id === 'new';
@@ -192,5 +194,7 @@ class OutgoingWebhooks extends React.Component<OutgoingWebhooksProps, OutgoingWe
     getLocationSrv().update({ partial: true, query: { id: undefined } });
   };
 }
+
+export { OutgoingWebhooks };
 
 export default withMobXProviderContext(OutgoingWebhooks);

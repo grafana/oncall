@@ -1,7 +1,6 @@
 import { action, observable } from 'mobx';
 
 import BaseStore from 'models/base_store';
-import { makeRequest } from 'network';
 import { RootStore } from 'state';
 
 import { GlobalSetting } from './global_setting.types';
@@ -31,9 +30,6 @@ export class GlobalSettingStore extends BaseStore {
 
   @action
   async updateItems(query = '') {
-    // const results = await makeRequest(`${this.path}`, {
-    //   params: { search: query },
-    // });
     const results = await this.getAll();
 
     this.items = {

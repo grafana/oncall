@@ -26,7 +26,12 @@ const CardButton: FC<CardButtonProps> = (props) => {
   }, [selected]);
 
   return (
-    <Block onClick={handleClick} withBackground className={cx('root', { root_selected: selected })}>
+    <Block
+      onClick={handleClick}
+      withBackground
+      className={cx('root', { root_selected: selected })}
+      data-testid="test__cardButton"
+    >
       <div className={cx('icon')}>{icon}</div>
       <div className={cx('meta')}>
         <VerticalGroup spacing="xs">
