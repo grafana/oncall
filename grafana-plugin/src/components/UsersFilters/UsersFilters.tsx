@@ -70,6 +70,7 @@ const UsersFilters = (props: UsersFiltersProps) => {
       <HorizontalGroup>
         {roleOptions.map((option) => (
           <Checkbox
+            key={option.value}
             value={value.roles.includes(option.value)}
             label={option.label}
             onChange={onChangeRolesCallback(option.value)}

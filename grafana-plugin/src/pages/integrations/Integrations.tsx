@@ -28,7 +28,6 @@ import { AlertReceiveChannelOption } from 'models/alert_receive_channel/alert_re
 import { WithStoreProps } from 'state/types';
 import { UserAction } from 'state/userAction';
 import { withMobXProviderContext } from 'state/withStore';
-import { openWarningNotification } from 'utils';
 
 import styles from './Integrations.module.css';
 
@@ -189,9 +188,6 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
                           integrationSettingsTab,
                         });
                       }}
-                      /*onEditAlertReceiveChannelTemplates={this.getShowAlertReceiveChannelSettingsClickHandler(
-                  store.selectedAlertReceiveChannel
-                )}*/
                     />
                   </div>
                 </div>
@@ -269,7 +265,6 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
         if (integration?.display_name === 'Grafana Alerting') {
           this.alertReceiveChanneltoPoll = { ...this.alertReceiveChanneltoPoll, [alertReceiveChannel.id]: 200 };
           if (!this.alertReceiveChannelTimerId) {
-            let counter = 200;
             this.alertReceiveChannelTimerId = setInterval(this.checkTimerTick, 3000);
           }
         }

@@ -1,7 +1,6 @@
 import { action, computed, observable } from 'mobx';
 
 import BaseStore from 'models/base_store';
-import { Team } from 'models/team/team.types';
 import { makeRequest } from 'network';
 import { RootStore } from 'state';
 

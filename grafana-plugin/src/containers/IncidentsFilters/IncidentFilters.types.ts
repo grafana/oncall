@@ -1,5 +1,3 @@
-import { AlertReceiveChannel } from 'models/alert_receive_channel/alert_receive_channel.types';
-import { IncidentStatus } from 'models/alertgroup/alertgroup.types';
 import { SelectOption } from 'state/types';
 
 export interface IncidentsFiltersType {}

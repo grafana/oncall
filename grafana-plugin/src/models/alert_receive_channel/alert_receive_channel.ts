@@ -1,5 +1,5 @@
 import { omit } from 'lodash-es';
-import { action, observable, toJS } from 'mobx';
+import { action, observable } from 'mobx';
 
 import { ActionDTO } from 'models/action';
 import { AlertTemplatesDTO } from 'models/alert_templates';
@@ -12,7 +12,7 @@ import { Team } from 'models/team/team.types';
 import { makeRequest } from 'network';
 import { Mixpanel } from 'services/mixpanel';
 import { RootStore } from 'state';
-import { getAnims, move } from 'state/helpers';
+import { move } from 'state/helpers';
 import { SelectOption } from 'state/types';
 import { showApiError } from 'utils';
 
@@ -21,8 +21,6 @@ import {
   AlertReceiveChannelOption,
   AlertReceiveChannelCounters,
 } from './alert_receive_channel.types';
-
-const UPDATE_TIMER_INTERVAL = 10000;
 
 export class AlertReceiveChannelStore extends BaseStore {
   @observable.shallow
@@ -60,7 +58,7 @@ export class AlertReceiveChannelStore extends BaseStore {
     this.path = '/alert_receive_channels/';
   }
 
-  getSearchResult(query = '') {
+  getSearchResult(_query = '') {
     if (!this.searchResult) {
       return undefined;
     }
@@ -76,10 +74,10 @@ export class AlertReceiveChannelStore extends BaseStore {
 
     this.items = {
       ...this.items,
-      [id]: alertReceiveChannel
-    }
+      [id]: alertReceiveChannel,
+    };
 
-    return alertReceiveChannel
+    return alertReceiveChannel;
   }
 
   @action

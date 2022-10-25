@@ -37,7 +37,8 @@ pd-oncall-migrator
 
 Please read the generated report carefully since depending on the content of the report, some PagerDuty resources could not be migrated and some existing Grafana OnCall resources could be deleted.
 
-Note that users are matched by email, so if there are users in the report with "no Grafana OnCall user found with this email" error, it's possible to fix it by adding these users to your Grafana organization.
+Note that users are matched by email, so if there are users in the report with "no Grafana OnCall user found with this email" error, it's possible to fix it by adding these users to your Grafana organization. 
+If there is a large number of unmatched users, please also [see the script](scripts/README.md) that can automatically create missing Grafana users via Grafana HTTP API.
 
 
 ### Example migration plan

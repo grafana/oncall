@@ -1,5 +1,12 @@
 # Change Log
 
+## v1.0.42 (2022-10-24)
+- Fix posting resolution notes to Slack
+
+## v1.0.41 (2022-10-24)
+- Add personal email notifications
+- Bug fixes
+
 ## v1.0.40 (2022-10-05)
 - Improved database and celery backends support
 - Added script to import PagerDuty users to Grafana

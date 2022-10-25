@@ -1,11 +1,10 @@
-import React, { ChangeEvent, useCallback, useMemo, useState } from 'react';
+import React, { ChangeEvent, useCallback } from 'react';
 
-import { DatePickerWithInput, Field, HorizontalGroup, Icon, Input, RadioButtonGroup } from '@grafana/ui';
+import { Field, HorizontalGroup, Icon, Input, RadioButtonGroup } from '@grafana/ui';
 import cn from 'classnames/bind';
 
 import { ScheduleType } from 'models/schedule/schedule.types';
 
-import { dateStringToOption, optionToDateString } from './SchedulesFilters.helpers';
 import { SchedulesFiltersType } from './SchedulesFilters.types';
 
 import styles from './SchedulesFilters.module.css';
