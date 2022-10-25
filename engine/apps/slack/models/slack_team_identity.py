@@ -4,10 +4,10 @@ from django.apps import apps
 from django.db import models
 from django.db.models import JSONField
 
+from apps.api.permissions import RBACPermission, user_is_authorized
 from apps.slack.constants import SLACK_INVALID_AUTH_RESPONSE, SLACK_WRONG_TEAM_NAMES
 from apps.slack.slack_client import SlackClientWithErrorHandling
 from apps.slack.slack_client.exceptions import SlackAPIException, SlackAPITokenException
-from common.constants.role import Role
 from common.insight_log.chatops_insight_logs import ChatOpsEvent, ChatOpsType, write_chatops_insight_log
 
 logger = logging.getLogger(__name__)
@@ -127,8 +127,8 @@ class SlackTeamIdentity(models.Model):
         sc = SlackClientWithErrorHandling(self.bot_access_token)
         members = self.get_conversation_members(sc, channel_id)
 
-        users = organization.users.filter(slack_user_identity__slack_id__in=members, role__in=[Role.ADMIN, Role.EDITOR])
-        return users
+        users = organization.users.filter(slack_user_identity__slack_id__in=members)
+        return [user for user in users if user_is_authorized(user, [RBACPermission.Permissions.CHATOPS_WRITE])]
 
     def get_conversation_members(self, slack_client, channel_id):
         try:

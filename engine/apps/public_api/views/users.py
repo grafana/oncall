@@ -14,7 +14,6 @@ from apps.schedules.models import OnCallSchedule
 from apps.user_management.models import User
 from common.api_helpers.mixins import RateLimitHeadersMixin, ShortSerializerMixin
 from common.api_helpers.paginators import HundredPageSizePaginator
-from common.constants.role import Role
 
 
 class UserFilter(filters.FilterSet):
@@ -23,12 +22,11 @@ class UserFilter(filters.FilterSet):
     """
 
     email = filters.CharFilter(field_name="email", lookup_expr="iexact")
-    roles = filters.MultipleChoiceFilter(field_name="role", choices=Role.choices())
     username = filters.CharFilter(field_name="username", lookup_expr="iexact")
 
     class Meta:
         model = User
-        fields = ["email", "roles", "username"]
+        fields = ["email", "username"]
 
 
 class UserView(RateLimitHeadersMixin, ShortSerializerMixin, ReadOnlyModelViewSet):

@@ -3,7 +3,6 @@ from rest_framework import serializers
 from apps.slack.models import SlackUserIdentity
 from apps.user_management.models import User
 from common.api_helpers.mixins import EagerLoadingMixin
-from common.constants.role import Role
 
 
 class SlackUserIdentitySerializer(serializers.ModelSerializer):
@@ -21,16 +20,11 @@ class SlackUserIdentitySerializer(serializers.ModelSerializer):
 class FastUserSerializer(serializers.ModelSerializer):
     id = serializers.ReadOnlyField(read_only=True, source="public_primary_key")
     email = serializers.EmailField(read_only=True)
-    role = serializers.SerializerMethodField()
     is_phone_number_verified = serializers.SerializerMethodField()
 
     class Meta:
         model = User
-        fields = ["id", "email", "username", "role", "is_phone_number_verified"]
-
-    @staticmethod
-    def get_role(obj):
-        return Role(obj.role).name.lower()
+        fields = ["id", "email", "username", "is_phone_number_verified"]
 
     def get_is_phone_number_verified(self, obj):
         return obj.verified_phone_number is not None
@@ -39,7 +33,6 @@ class FastUserSerializer(serializers.ModelSerializer):
 class UserSerializer(serializers.ModelSerializer, EagerLoadingMixin):
     id = serializers.ReadOnlyField(read_only=True, source="public_primary_key")
     email = serializers.EmailField(read_only=True)
-    role = serializers.SerializerMethodField()
     slack = SlackUserIdentitySerializer(read_only=True, source="slack_user_identity")
     is_phone_number_verified = serializers.SerializerMethodField()
 
@@ -50,11 +43,7 @@ class UserSerializer(serializers.ModelSerializer, EagerLoadingMixin):
 
     class Meta:
         model = User
-        fields = ["id", "email", "slack", "username", "role", "is_phone_number_verified"]
-
-    @staticmethod
-    def get_role(obj):
-        return Role(obj.role).name.lower()
+        fields = ["id", "email", "slack", "username", "is_phone_number_verified"]
 
     def get_is_phone_number_verified(self, obj):
         return obj.verified_phone_number is not None
