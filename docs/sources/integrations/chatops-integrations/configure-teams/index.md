@@ -1,18 +1,18 @@
 ---
 aliases:
-  - /docs/oncall/latest/chat-options/configure-teams/
-  - /docs/oncall/latest/integrations/chatops-integrations/configure-teams/
+- ../../chat-options/configure-teams/
+- /docs/oncall/latest/integrations/chatops-integrations/configure-teams/
+canonical: https://grafana.com/docs/oncall/latest/chat-options/configure-teams/
 keywords:
-  - Grafana Cloud
-  - Alerts
-  - Notifications
-  - on-call
-  - amixr
-  - oncall
-  - MS Team
-  - Microsoft
+- Grafana Cloud
+- Alerts
+- Notifications
+- on-call
+- amixr
+- oncall
+- MS Team
+- Microsoft
 title: Microsoft Teams integration for Grafana OnCall
-canonical: "https://grafana.com/docs/oncall/latest/chat-options/configure-teams/"
 weight: 500
 ---
 

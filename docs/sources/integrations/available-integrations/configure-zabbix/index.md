@@ -1,15 +1,15 @@
 ---
 aliases:
-  - /docs/oncall/latest/integrations/available-integrations/add-zabbix/
-  - /docs/oncall/latest/integrations/available-integrations/configure-zabbix/
+- add-zabbix/
+- /docs/oncall/latest/integrations/available-integrations/configure-zabbix/
+canonical: https://grafana.com/docs/oncall/latest/integrations/available-integrations/add-zabbix/
 keywords:
-  - Grafana Cloud
-  - Alerts
-  - Notifications
-  - on-call
-  - Zabbix
+- Grafana Cloud
+- Alerts
+- Notifications
+- on-call
+- Zabbix
 title: Zabbix integration for Grafana OnCall
-canonical: "https://grafana.com/docs/oncall/latest/integrations/available-integrations/add-zabbix/"
 weight: 500
 ---
 

@@ -1,16 +1,16 @@
 ---
 aliases:
-  - /docs/oncall/latest/integrations/configure-outgoing-webhooks/
-  - /docs/oncall/latest/alert-behavior/outgoing-webhooks/
+- ../integrations/configure-outgoing-webhooks/
+- /docs/oncall/latest/alert-behavior/outgoing-webhooks/
+canonical: https://grafana.com/docs/oncall/latest/integrations/configure-outgoing-webhooks/
 keywords:
-  - Grafana Cloud
-  - Alerts
-  - Notifications
-  - on-call
-  - amixr
-  - webhooks
+- Grafana Cloud
+- Alerts
+- Notifications
+- on-call
+- amixr
+- webhooks
 title: Configure outgoing webhooks for Grafana OnCall
-canonical: "https://grafana.com/docs/oncall/latest/integrations/configure-outgoing-webhooks/"
 weight: 500
 ---
 
