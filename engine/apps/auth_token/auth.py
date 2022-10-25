@@ -11,6 +11,7 @@ from rest_framework.request import Request
 from apps.grafana_plugin.helpers.gcom import check_token
 from apps.user_management.models import User
 from apps.user_management.models.organization import Organization
+from apps.user_management.models.region import OrganizationMovedException
 from common.constants.role import Role
 
 from .constants import SCHEDULE_EXPORT_TOKEN_NAME, SLACK_AUTH_TOKEN_NAME
@@ -18,7 +19,6 @@ from .exceptions import InvalidToken
 from .models import ApiAuthToken, PluginAuthToken, ScheduleExportAuthToken, SlackAuthToken, UserScheduleExportAuthToken
 from .models.mobile_app_auth_token import MobileAppAuthToken
 from .models.mobile_app_verification_token import MobileAppVerificationToken
-from ..user_management.models.region import OrganizationMovedException
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)

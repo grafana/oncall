@@ -56,6 +56,8 @@ class Organization(MaintainableObject):
     region_slug = models.CharField(max_length=300, null=True, default=None)
     migration_destination = models.ForeignKey(
         to="user_management.Region",
+        to_field="slug",
+        db_column="migration_destination_slug",
         on_delete=models.SET_NULL,
         related_name="regions",
         default=None,

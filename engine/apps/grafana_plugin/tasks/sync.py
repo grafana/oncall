@@ -5,8 +5,9 @@ from django.conf import settings
 from django.utils import timezone
 
 from apps.grafana_plugin.helpers import GcomAPIClient
-from apps.grafana_plugin.helpers.gcom import get_active_instance_ids, get_deleted_instance_ids
+from apps.grafana_plugin.helpers.gcom import get_active_instance_ids, get_deleted_instance_ids, get_stack_regions
 from apps.user_management.models import Organization
+from apps.user_management.models.region import sync_regions
 from apps.user_management.sync import cleanup_organization, sync_organization
 from common.custom_celery_tasks import shared_dedicated_queue_retry_task
 
@@ -103,3 +104,16 @@ def start_cleanup_deleted_organizations():
 @shared_dedicated_queue_retry_task(autoretry_for=(Exception,), max_retries=1)
 def cleanup_organization_async(organization_pk):
     cleanup_organization(organization_pk)
+
+
+@shared_dedicated_queue_retry_task(autoretry_for=(Exception,), max_retries=1)
+def start_sync_regions():
+    regions, is_cloud_configured = get_stack_regions()
+    if not is_cloud_configured:
+        return
+
+    if not regions:
+        logger.warning("Did not find any stack-regions!")
+        return
+
+    sync_regions(regions)

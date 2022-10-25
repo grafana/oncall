@@ -1,47 +1,52 @@
 import logging
 
-from django.conf import settings
-from django.core.validators import MinLengthValidator
+from django.apps import apps
 from django.db import models
-from rest_framework.request import Request
-from rest_framework.response import Response
 
 from apps.user_management.models import Organization
-from common.public_primary_keys import generate_public_primary_key, increase_public_primary_key_length
-
 
 logger = logging.getLogger(__name__)
 
 
-class OrganizationMovedException(Exception):
+def sync_regions(regions: list[dict]):
+    Region = apps.get_model("user_management", "Region")
+    gcom_regions = {region["slug"]: region for region in regions}
+    existing_region_slugs = set(Region.objects.all().values_list("slug", flat=True))
 
+    # create new regions
+    regions_to_create = tuple(
+        Region(
+            name=region["name"],
+            slug=region["slug"],
+            oncall_backend_url=region["oncallApiUrl"],
+        )
+        for region in gcom_regions.values()
+        if region["slug"] not in existing_region_slugs
+    )
+    Region.objects.bulk_create(regions_to_create, batch_size=5000)
+
+    # delete excess regions
+    regions_to_delete = existing_region_slugs - gcom_regions.keys()
+    Region.objects.filter(slug__in=regions_to_delete).delete()
+
+    # update existing regions
+    regions_to_update = []
+    for region in Region.objects.filter(slug__in=existing_region_slugs):
+        gcom_region = gcom_regions[region.slug]
+        if region.name != gcom_region["name"] or region.oncall_backend_url != gcom_region["oncallApiUrl"]:
+            region.name = gcom_region["name"]
+            region.oncall_backend_url = gcom_region["oncallApiUrl"]
+            regions_to_update.append(region)
+
+    Region.objects.bulk_update(regions_to_update, ["name", "oncall_backend_url"], batch_size=5000)
+
+
+class OrganizationMovedException(Exception):
     def __init__(self, organization: Organization):
         self.organization = organization
 
 
-def generate_public_primary_key_for_region():
-    prefix = "R"
-    new_public_primary_key = generate_public_primary_key(prefix)
-
-    failure_counter = 0
-    while Region.objects.filter(public_primary_key=new_public_primary_key).exists():
-        new_public_primary_key = increase_public_primary_key_length(
-            failure_counter=failure_counter, prefix=prefix, model_name="Region"
-        )
-        failure_counter += 1
-
-    return new_public_primary_key
-
-
 class Region(models.Model):
-    public_primary_key = models.CharField(
-        max_length=20,
-        validators=[MinLengthValidator(settings.PUBLIC_PRIMARY_KEY_MIN_LENGTH + 1)],
-        unique=True,
-        default=generate_public_primary_key_for_region,
-    )
-
     name = models.CharField(max_length=300)
     slug = models.CharField(max_length=50, unique=True)
-    oncall_backend_url = models.URLField()
-    is_default = models.BooleanField(default=False)
+    oncall_backend_url = models.URLField(null=True)

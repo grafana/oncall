@@ -112,3 +112,16 @@ def get_active_instance_ids() -> Tuple[Optional[set], bool]:
 
 def get_deleted_instance_ids() -> Tuple[Optional[set], bool]:
     return get_instance_ids(GcomAPIClient.DELETED_INSTANCE_QUERY)
+
+
+def get_stack_regions() -> Tuple[Optional[set], bool]:
+    if not settings.GRAFANA_COM_API_TOKEN or settings.LICENSE != settings.CLOUD_LICENSE_NAME:
+        return None, False
+
+    client = GcomAPIClient(settings.GRAFANA_COM_API_TOKEN)
+    regions, status = client.get_stack_regions()
+
+    if not regions or "items" not in regions:
+        return None, True
+
+    return regions["items"], True
