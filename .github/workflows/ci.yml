@@ -83,7 +83,7 @@ jobs:
           apt-get update && apt-get install -y netcat
           cd engine/
           pip install -r requirements.txt
-          ./wait_for_test_mysql_start.sh && ONCALL_TESTING_RBAC_ENABLED=${{ matrix.rbac_enabled }} pytest --ds=settings.ci-test -x
+          ./wait_for_test_mysql_start.sh && ONCALL_TESTING_RBAC_ENABLED=${{ matrix.rbac_enabled }} pytest -x
 
   unit-test-backend-postgresql-rabbitmq:
     name: "Backend Tests: PostgreSQL + RabbitMQ (RBAC enabled: ${{ matrix.rbac_enabled }})"
@@ -119,7 +119,7 @@ jobs:
         run: |
           cd engine/
           pip install -r requirements.txt
-          ONCALL_TESTING_RBAC_ENABLED=${{ matrix.rbac_enabled }} pytest --ds=settings.ci-test -x
+          ONCALL_TESTING_RBAC_ENABLED=${{ matrix.rbac_enabled }} pytest -x
 
   unit-test-backend-sqlite-redis:
     name: "Backend Tests: SQLite + Redis (RBAC enabled: ${{ matrix.rbac_enabled }})"
@@ -149,7 +149,7 @@ jobs:
           apt-get update && apt-get install -y netcat
           cd engine/
           pip install -r requirements.txt
-          ONCALL_TESTING_RBAC_ENABLED=${{ matrix.rbac_enabled }} pytest --ds=settings.ci-test -x
+          ONCALL_TESTING_RBAC_ENABLED=${{ matrix.rbac_enabled }} pytest -x
 
   docker-build:
     runs-on: ubuntu-latest
