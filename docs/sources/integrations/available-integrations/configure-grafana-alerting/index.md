@@ -1,8 +1,9 @@
 ---
 aliases:
   - /docs/grafana-cloud/oncall/integrations/add-grafana-alerting/
-  - /docs/oncall/latest/integrations/available-integrations/add-grafana-alerting/
+  - add-grafana-alerting/
   - /docs/grafana-cloud/oncall/integrations/configure-grafana-alerting/
+canonical: https://grafana.com/docs/oncall/latest/integrations/available-integrations/add-grafana-alerting/
 keywords:
   - Grafana Cloud
   - Alerts
@@ -10,7 +11,6 @@ keywords:
   - on-call
   - Prometheus
 title: Grafana Alerting integration for Grafana OnCall
-canonical: "https://grafana.com/docs/oncall/latest/integrations/available-integrations/add-grafana-alerting/"
 weight: 100
 ---
 

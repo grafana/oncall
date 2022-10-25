@@ -2,7 +2,8 @@
 aliases:
   - /docs/grafana-cloud/oncall/available-integrations/add-alertmanager/
   - /docs/grafana-cloud/oncall/available-integrations/configure-alertmanager/
-  - /docs/oncall/latest/integrations/available-integrations/add-alertmanager/
+  - add-alertmanager/
+canonical: https://grafana.com/docs/oncall/latest/integrations/available-integrations/add-alertmanager/
 keywords:
   - Grafana Cloud
   - Alerts
@@ -11,7 +12,6 @@ keywords:
   - Alertmanager
   - Prometheus
 title: AlertManager integration for Grafana OnCall
-canonical: "https://grafana.com/docs/oncall/latest/integrations/available-integrations/add-alertmanager/"
 weight: 300
 ---
 
