@@ -10,7 +10,6 @@ from apps.alerts.escalation_snapshot.utils import eta_for_escalation_step_notify
 from apps.alerts.models import AlertGroupLogRecord, EscalationPolicy
 from apps.schedules.ical_utils import list_users_to_notify_from_ical
 from apps.schedules.models import CustomOnCallShift, OnCallScheduleCalendar
-from common.constants.role import Role
 
 
 def get_escalation_policy_snapshot_from_model(escalation_policy):
@@ -213,8 +212,8 @@ def test_escalation_step_notify_on_call_schedule_viewer_user(
     make_schedule,
     make_on_call_shift,
 ):
-    organization, user, _, channel_filter, alert_group, reason = escalation_step_test_setup
-    viewer = make_user_for_organization(organization=organization, role=Role.VIEWER)
+    organization, _, _, channel_filter, alert_group, reason = escalation_step_test_setup
+    viewer = make_user_for_organization(organization=organization)
 
     schedule = make_schedule(organization, schedule_class=OnCallScheduleCalendar)
     # create on_call_shift with user to notify

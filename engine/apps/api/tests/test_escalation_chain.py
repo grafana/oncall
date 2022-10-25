@@ -24,7 +24,7 @@ def test_delete_escalation_chain(escalation_chain_internal_api_setup, make_user_
 
 
 @pytest.mark.django_db
-def test_update_escalation_chain(escalation_chain_internal_api_setup, make_user_auth_headers, make_organization):
+def test_update_escalation_chain(escalation_chain_internal_api_setup, make_user_auth_headers):
     user, token, escalation_chain = escalation_chain_internal_api_setup
     client = APIClient()
     url = reverse("api-internal:escalation_chain-detail", kwargs={"pk": escalation_chain.public_primary_key})
