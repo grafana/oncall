@@ -5,6 +5,7 @@ import pytest
 import pytz
 from django.utils import timezone
 
+from apps.api.permissions import LegacyAccessControlRole
 from apps.schedules.ical_utils import (
     list_of_oncall_shifts_from_ical,
     list_users_to_notify_from_ical,
@@ -12,7 +13,6 @@ from apps.schedules.ical_utils import (
     users_in_ical,
 )
 from apps.schedules.models import CustomOnCallShift, OnCallScheduleCalendar
-from common.constants.role import Role
 
 
 @pytest.mark.django_db
@@ -26,13 +26,10 @@ def test_users_in_ical_email_case_insensitive(make_organization_and_user, make_u
 
 
 @pytest.mark.django_db
-@pytest.mark.parametrize(
-    "include_viewers",
-    [True, False],
-)
+@pytest.mark.parametrize("include_viewers", [True, False])
 def test_users_in_ical_viewers_inclusion(make_organization_and_user, make_user_for_organization, include_viewers):
     organization, user = make_organization_and_user()
-    viewer = make_user_for_organization(organization, Role.VIEWER)
+    viewer = make_user_for_organization(organization, role=LegacyAccessControlRole.VIEWER)
 
     usernames = [user.username, viewer.username]
     result = users_in_ical(usernames, organization, include_viewers=include_viewers)
@@ -43,15 +40,12 @@ def test_users_in_ical_viewers_inclusion(make_organization_and_user, make_user_f
 
 
 @pytest.mark.django_db
-@pytest.mark.parametrize(
-    "include_viewers",
-    [True, False],
-)
+@pytest.mark.parametrize("include_viewers", [True, False])
 def test_list_users_to_notify_from_ical_viewers_inclusion(
     make_organization_and_user, make_user_for_organization, make_schedule, make_on_call_shift, include_viewers
 ):
     organization, user = make_organization_and_user()
-    viewer = make_user_for_organization(organization, Role.VIEWER)
+    viewer = make_user_for_organization(organization, role=LegacyAccessControlRole.VIEWER)
 
     schedule = make_schedule(organization, schedule_class=OnCallScheduleCalendar)
     date = timezone.now().replace(tzinfo=None, microsecond=0)

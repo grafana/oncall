@@ -6,16 +6,16 @@ from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.test import APIClient
 
-from common.constants.role import Role
+from apps.api.permissions import LegacyAccessControlRole
 
 
 @pytest.mark.django_db
 @pytest.mark.parametrize(
     "role,expected_status",
     [
-        (Role.ADMIN, status.HTTP_200_OK),
-        (Role.EDITOR, status.HTTP_200_OK),
-        (Role.VIEWER, status.HTTP_200_OK),
+        (LegacyAccessControlRole.ADMIN, status.HTTP_200_OK),
+        (LegacyAccessControlRole.EDITOR, status.HTTP_200_OK),
+        (LegacyAccessControlRole.VIEWER, status.HTTP_200_OK),
     ],
 )
 def test_get_slack_settings_permissions(
@@ -24,7 +24,7 @@ def test_get_slack_settings_permissions(
     role,
     expected_status,
 ):
-    organization, user, token = make_organization_and_user_with_plugin_token(role=role)
+    _, user, token = make_organization_and_user_with_plugin_token(role)
     client = APIClient()
 
     url = reverse("api-internal:slack-settings")
@@ -43,9 +43,9 @@ def test_get_slack_settings_permissions(
 @pytest.mark.parametrize(
     "role,expected_status",
     [
-        (Role.ADMIN, status.HTTP_200_OK),
-        (Role.EDITOR, status.HTTP_403_FORBIDDEN),
-        (Role.VIEWER, status.HTTP_403_FORBIDDEN),
+        (LegacyAccessControlRole.ADMIN, status.HTTP_200_OK),
+        (LegacyAccessControlRole.EDITOR, status.HTTP_403_FORBIDDEN),
+        (LegacyAccessControlRole.VIEWER, status.HTTP_403_FORBIDDEN),
     ],
 )
 def test_update_slack_settings_permissions(
@@ -54,7 +54,7 @@ def test_update_slack_settings_permissions(
     role,
     expected_status,
 ):
-    organization, user, token = make_organization_and_user_with_plugin_token(role=role)
+    _, user, token = make_organization_and_user_with_plugin_token(role)
     client = APIClient()
 
     url = reverse("api-internal:slack-settings")
@@ -73,9 +73,9 @@ def test_update_slack_settings_permissions(
 @pytest.mark.parametrize(
     "role,expected_status",
     [
-        (Role.ADMIN, status.HTTP_200_OK),
-        (Role.EDITOR, status.HTTP_200_OK),
-        (Role.VIEWER, status.HTTP_200_OK),
+        (LegacyAccessControlRole.ADMIN, status.HTTP_200_OK),
+        (LegacyAccessControlRole.EDITOR, status.HTTP_200_OK),
+        (LegacyAccessControlRole.VIEWER, status.HTTP_200_OK),
     ],
 )
 def test_get_acknowledge_remind_options_permissions(
@@ -84,7 +84,7 @@ def test_get_acknowledge_remind_options_permissions(
     role,
     expected_status,
 ):
-    organization, user, token = make_organization_and_user_with_plugin_token(role=role)
+    _, user, token = make_organization_and_user_with_plugin_token(role)
     client = APIClient()
 
     url = reverse("api-internal:acknowledge-reminder-options")
@@ -103,9 +103,9 @@ def test_get_acknowledge_remind_options_permissions(
 @pytest.mark.parametrize(
     "role,expected_status",
     [
-        (Role.ADMIN, status.HTTP_200_OK),
-        (Role.EDITOR, status.HTTP_200_OK),
-        (Role.VIEWER, status.HTTP_200_OK),
+        (LegacyAccessControlRole.ADMIN, status.HTTP_200_OK),
+        (LegacyAccessControlRole.EDITOR, status.HTTP_200_OK),
+        (LegacyAccessControlRole.VIEWER, status.HTTP_200_OK),
     ],
 )
 def test_get_unacknowledge_timeout_options_permissions(
@@ -114,7 +114,7 @@ def test_get_unacknowledge_timeout_options_permissions(
     role,
     expected_status,
 ):
-    organization, user, token = make_organization_and_user_with_plugin_token(role=role)
+    _, user, token = make_organization_and_user_with_plugin_token(role)
     client = APIClient()
 
     url = reverse("api-internal:unacknowledge-timeout-options")

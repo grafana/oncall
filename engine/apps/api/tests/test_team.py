@@ -3,9 +3,9 @@ from django.urls import reverse
 from rest_framework import status
 from rest_framework.test import APIClient
 
+from apps.api.permissions import LegacyAccessControlRole
 from apps.schedules.models import OnCallScheduleCalendar
 from apps.user_management.models import Team
-from common.constants.role import Role
 
 GENERAL_TEAM = Team(public_primary_key=None, name="General", email=None, avatar_url=None)
 
@@ -64,28 +64,24 @@ def test_list_teams_for_non_member(
 @pytest.mark.parametrize(
     "role,expected_status",
     [
-        (Role.ADMIN, status.HTTP_200_OK),
-        (Role.EDITOR, status.HTTP_200_OK),
-        (Role.VIEWER, status.HTTP_200_OK),
+        (LegacyAccessControlRole.ADMIN, status.HTTP_200_OK),
+        (LegacyAccessControlRole.EDITOR, status.HTTP_200_OK),
+        (LegacyAccessControlRole.VIEWER, status.HTTP_200_OK),
     ],
 )
 def test_list_teams_permissions(
-    make_organization,
-    make_token_for_organization,
-    make_user_for_organization,
+    make_organization_and_user_with_plugin_token,
     make_user_auth_headers,
     role,
     expected_status,
 ):
-    organization = make_organization()
-    _, token = make_token_for_organization(organization)
-    user = make_user_for_organization(organization, role=role)
+    _, user, token = make_organization_and_user_with_plugin_token(role)
 
     client = APIClient()
     url = reverse("api-internal:team-list")
     response = client.get(url, format="json", **make_user_auth_headers(user, token))
 
-    assert response.status_code == status.HTTP_200_OK
+    assert response.status_code == expected_status
 
 
 @pytest.mark.django_db

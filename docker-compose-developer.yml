@@ -15,9 +15,9 @@ services:
       resources:
         limits:
           memory: 500m
-          cpus: '0.5'
+          cpus: "0.5"
     healthcheck:
-      test: [ "CMD", "mysqladmin" ,"ping", "-h", "localhost" ]
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
       timeout: 20s
       retries: 10
 
@@ -30,7 +30,7 @@ services:
       resources:
         limits:
           memory: 100m
-          cpus: '0.1'
+          cpus: "0.1"
 
   rabbit:
     image: "rabbitmq:3.7.15-management"
@@ -42,7 +42,7 @@ services:
       resources:
         limits:
           memory: 1000m
-          cpus: '0.5'
+          cpus: "0.5"
     ports:
       - "15672:15672"
       - "5672:5672"
@@ -70,7 +70,7 @@ services:
       resources:
         limits:
           memory: 500m
-          cpus: '0.5'
+          cpus: "0.5"
     volumes:
       - ./grafana-plugin:/var/lib/grafana/plugins/grafana-plugin
     ports:
