@@ -1,5 +1,3 @@
-import { concat } from 'lodash-es';
-
 const tzs = [
   'Africa/Abidjan',
   'Africa/Accra',

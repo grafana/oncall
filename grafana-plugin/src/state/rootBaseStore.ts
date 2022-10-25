@@ -32,12 +32,11 @@ import { makeRequest } from 'network';
 
 import { AppFeature } from './features';
 import {
-  createGrafanaToken,
   getPluginSyncStatus,
   installPlugin,
   startPluginSync,
-  SYNC_STATUS_RETRY_LIMIT, syncStatusDelay,
-  updateGrafanaToken
+  SYNC_STATUS_RETRY_LIMIT,
+  syncStatusDelay,
 } from './plugin';
 import { UserAction } from './userAction';
 
@@ -130,8 +129,6 @@ export class RootBaseStore {
     this.teamStore.loadCurrentTeam();
     this.grafanaTeamStore.updateItems();
     this.updateFeatures();
-    // this.userStore.updateItems();
-    // this.maintenanceStore.updateMaintenances();
     this.userStore.updateNotificationPolicyOptions();
     this.userStore.updateNotifyByOptions();
     this.alertReceiveChannelStore.updateAlertReceiveChannelOptions();
@@ -164,7 +161,7 @@ export class RootBaseStore {
     this.initializationError = e.response.status;
   }
 
-  async startSync(key?: string) {
+  async startSync() {
     try {
       return await startPluginSync();
     } catch (e) {
@@ -190,23 +187,22 @@ export class RootBaseStore {
   }
 
   async waitForSyncStatus(retryCount = 0) {
-
     if (retryCount > SYNC_STATUS_RETRY_LIMIT) {
       this.retrySync = true;
       return;
     }
 
-    getPluginSyncStatus().then((get_sync_response) => {
-      if (get_sync_response.hasOwnProperty('token_ok')) {
-        this.finishSync(get_sync_response);
-      } else {
-        syncStatusDelay(retryCount + 1)
-            .then(() => this.waitForSyncStatus(retryCount + 1))
-      }
-      }).catch((e) => {
+    getPluginSyncStatus()
+      .then((get_sync_response) => {
+        if (get_sync_response.hasOwnProperty('token_ok')) {
+          this.finishSync(get_sync_response);
+        } else {
+          syncStatusDelay(retryCount + 1).then(() => this.waitForSyncStatus(retryCount + 1));
+        }
+      })
+      .catch((e) => {
         this.handleSyncException(e);
       });
-
   }
 
   async setupPlugin(meta: AppPluginMeta<OnCallAppSettings>) {

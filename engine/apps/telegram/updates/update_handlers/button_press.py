@@ -70,7 +70,7 @@ class ButtonPressHandler(UpdateHandler):
         action_name = args[1]
         action = Action(action_name)
 
-        action_data = args[2] if len(args) >= 3 else None
+        action_data = args[2] if len(args) >= 3 and not args[2].startswith("x-oncall-org-id") else None
 
         return ActionContext(alert_group=alert_group, action=action, action_data=action_data)
 

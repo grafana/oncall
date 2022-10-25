@@ -13,8 +13,8 @@ describe('Collapse', () => {
     return {
       label: 'Toggle',
       isOpen: isOpen,
-      onClick: onClick
-    } as CollapseProps
+      onClick: onClick,
+    } as CollapseProps;
   }
 
   test('Content becomes visible on click', () => {
@@ -34,7 +34,7 @@ describe('Collapse', () => {
 
     const content = getChildrenEl();
     expect(content).toBeNull();
-  })
+  });
 
   test('Content is not collapsed for [isOpen=true]', () => {
     render(<Collapse {...getProps(true)} />);
