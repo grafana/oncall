@@ -1,16 +1,16 @@
 ---
 aliases:
-- ../../chat-options/configure-telegram/
-- /docs/oncall/latest/integrations/chatops-integrations/configure-telegram/
+  - ../../chat-options/configure-telegram/
+  - /docs/oncall/latest/integrations/chatops-integrations/configure-telegram/
 canonical: https://grafana.com/docs/oncall/latest/chat-options/configure-telegram/
 keywords:
-- Grafana Cloud
-- Alerts
-- Notifications
-- on-call
-- amixr
-- oncall
-- telegram
+  - Grafana Cloud
+  - Alerts
+  - Notifications
+  - on-call
+  - amixr
+  - oncall
+  - telegram
 title: Telegram integration for Grafana OnCall
 weight: 300
 ---

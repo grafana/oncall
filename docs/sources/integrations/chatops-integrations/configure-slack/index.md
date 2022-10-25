@@ -1,16 +1,16 @@
 ---
 aliases:
-- ../../chat-options/configure-slack/
-- /docs/oncall/latest/integrations/chatops-integrations/configure-slack/
+  - ../../chat-options/configure-slack/
+  - /docs/oncall/latest/integrations/chatops-integrations/configure-slack/
 canonical: https://grafana.com/docs/oncall/latest/chat-options/configure-slack/
 keywords:
-- Grafana Cloud
-- Alerts
-- Notifications
-- on-call
-- amixr
-- oncall
-- slack
+  - Grafana Cloud
+  - Alerts
+  - Notifications
+  - on-call
+  - amixr
+  - oncall
+  - slack
 title: Slack integration for Grafana OnCall
 weight: 100
 ---

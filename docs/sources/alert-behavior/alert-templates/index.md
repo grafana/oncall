@@ -1,15 +1,15 @@
 ---
 aliases:
-- ../integrations/create-custom-templates/
-- /docs/oncall/latest/alert-behavior/alert-templates/
-- /docs/grafana-cloud/oncall/alert-behavior/alert-templates/
+  - ../integrations/create-custom-templates/
+  - /docs/oncall/latest/alert-behavior/alert-templates/
+  - /docs/grafana-cloud/oncall/alert-behavior/alert-templates/
 canonical: https://grafana.com/docs/oncall/latest/integrations/create-custom-templates/
 keywords:
-- Grafana Cloud
-- Alerts
-- Notifications
-- on-call
-- Jinja
+  - Grafana Cloud
+  - Alerts
+  - Notifications
+  - on-call
+  - Jinja
 title: Configure alert templates
 weight: 300
 ---

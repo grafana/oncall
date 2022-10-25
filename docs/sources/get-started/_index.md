@@ -1,12 +1,12 @@
 ---
 aliases:
-- /docs/grafana-cloud/oncall/getting-started/
-- getting-started/
+  - /docs/grafana-cloud/oncall/getting-started/
+  - getting-started/
 canonical: https://grafana.com/docs/oncall/latest/getting-started/
 keywords:
-- Get started
-- On call
-- Grafana Cloud
+  - Get started
+  - On call
+  - Grafana Cloud
 title: Get started with Grafana OnCall
 weight: 300
 ---

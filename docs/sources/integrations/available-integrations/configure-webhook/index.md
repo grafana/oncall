@@ -1,15 +1,15 @@
 ---
 aliases:
-- ../add-webhook-integration/
-- /docs/oncall/latest/integrations/available-integrations/configure-webhook/
+  - ../add-webhook-integration/
+  - /docs/oncall/latest/integrations/available-integrations/configure-webhook/
 canonical: https://grafana.com/docs/oncall/latest/integrations/add-webhook-integration/
 keywords:
-- Grafana Cloud
-- Alerts
-- Notifications
-- on-call
-- Alertmanager
-- Prometheus
+  - Grafana Cloud
+  - Alerts
+  - Notifications
+  - on-call
+  - Alertmanager
+  - Prometheus
 title: Webhook integration for Grafana OnCall
 weight: 700
 ---

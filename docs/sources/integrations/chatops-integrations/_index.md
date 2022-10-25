@@ -1,16 +1,16 @@
 ---
 aliases:
-- ../chat-options/
-- /docs/oncall/latest/integrations/chatops-integrations/
+  - ../chat-options/
+  - /docs/oncall/latest/integrations/chatops-integrations/
 canonical: https://grafana.com/docs/oncall/latest/chat-options/
 keywords:
-- Grafana Cloud
-- Alerts
-- Notifications
-- on-call
-- amixr
-- oncall
-- slack
+  - Grafana Cloud
+  - Alerts
+  - Notifications
+  - on-call
+  - amixr
+  - oncall
+  - slack
 title: Available ChatOps integrations
 weight: 300
 ---
