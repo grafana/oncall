@@ -24,7 +24,7 @@ from apps.api.serializers.schedule_polymorphic import (
 from apps.auth_token.auth import PluginAuthentication
 from apps.auth_token.constants import SCHEDULE_EXPORT_TOKEN_NAME
 from apps.auth_token.models import ScheduleExportAuthToken
-from apps.schedules.models import OnCallSchedule
+from apps.schedules.models import OnCallSchedule, OnCallScheduleCalendar, OnCallScheduleICal, OnCallScheduleWeb
 from apps.slack.models import SlackChannel
 from apps.slack.tasks import update_slack_user_group_for_schedules
 from common.api_helpers.exceptions import BadRequest, Conflict
@@ -41,6 +41,8 @@ from common.insight_log import EntityEvent, write_resource_insight_log
 EVENTS_FILTER_BY_ROTATION = "rotation"
 EVENTS_FILTER_BY_OVERRIDE = "override"
 EVENTS_FILTER_BY_FINAL = "final"
+
+SCHEDULE_TYPE_TO_CLASS = {"api": OnCallScheduleCalendar, "ical": OnCallScheduleICal, "web": OnCallScheduleWeb}
 
 
 class ScheduleView(
@@ -123,6 +125,7 @@ class ScheduleView(
 
     def get_queryset(self):
         is_short_request = self.request.query_params.get("short", "false") == "true"
+        filter_by_type = self.request.query_params.get("type")
         organization = self.request.auth.organization
         queryset = OnCallSchedule.objects.filter(organization=organization, team=self.request.user.current_team).defer(
             # avoid requesting large text fields which are not used when listing schedules
@@ -134,6 +137,8 @@ class ScheduleView(
         if not is_short_request:
             queryset = self._annotate_queryset(queryset)
             queryset = self.serializer_class.setup_eager_loading(queryset)
+        if filter_by_type is not None and filter_by_type in SCHEDULE_TYPE_TO_CLASS:
+            queryset = queryset.filter().instance_of(SCHEDULE_TYPE_TO_CLASS[filter_by_type])
         return queryset
 
     def perform_create(self, serializer):
