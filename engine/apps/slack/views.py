@@ -11,7 +11,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from apps.api.permissions import IsAdmin, MethodPermission
+from apps.api.permissions import RBACPermission
 from apps.auth_token.auth import PluginAuthentication
 from apps.base.utils import live_settings
 from apps.slack.scenarios.alertgroup_appearance import STEPS_ROUTING as ALERTGROUP_APPEARANCE_ROUTING
@@ -527,10 +527,12 @@ class SlackEventApiEndpointView(APIView):
 
 class ResetSlackView(APIView):
 
-    permission_classes = (IsAuthenticated, MethodPermission)
+    permission_classes = (IsAuthenticated, RBACPermission)
     authentication_classes = [PluginAuthentication]
 
-    method_permissions = {IsAdmin: {"POST"}}
+    rbac_permissions = {
+        "post": [RBACPermission.Permissions.CHATOPS_WRITE],
+    }
 
     def post(self, request):
         organization = request.auth.organization
