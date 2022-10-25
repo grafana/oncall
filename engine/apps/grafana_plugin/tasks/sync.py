@@ -68,8 +68,8 @@ def run_organization_sync(organization_pk, force_sync):
             return
         if settings.GRAFANA_COM_API_TOKEN and settings.LICENSE == settings.CLOUD_LICENSE_NAME:
             client = GcomAPIClient(settings.GRAFANA_COM_API_TOKEN)
-            instance_info, status = client.get_instance_info(organization.stack_id)
-            if not instance_info or instance_info["status"] != "active":
+            instance_info = client.get_instance_info(organization.stack_id)
+            if not instance_info or instance_info["status"] != client.STACK_STATUS_ACTIVE:
                 logger.debug(f"Canceling sync for Organization {organization_pk}, as it is no longer active.")
                 return
 

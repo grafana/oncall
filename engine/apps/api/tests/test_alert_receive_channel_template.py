@@ -280,7 +280,7 @@ def test_update_alert_receive_channel_templates(
         # set url here to pass *_url templates validation
         return "https://grafana.com"
 
-    organization, user, token = make_organization_and_user_with_plugin_token(role=Role.ADMIN)
+    organization, user, token = make_organization_and_user_with_plugin_token()
     alert_receive_channel = make_alert_receive_channel(
         organization,
         messaging_backends_templates={"TESTONLY": {"title": "the-title", "message": "the-message", "image_url": "url"}},

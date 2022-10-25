@@ -3,7 +3,7 @@ from rest_framework.viewsets import ModelViewSet
 
 from apps.alerts.models import ResolutionNote
 from apps.alerts.tasks import send_update_resolution_note_signal
-from apps.api.permissions import MODIFY_ACTIONS, READ_ACTIONS, ActionPermission, AnyRole, IsAdminOrEditor
+from apps.api.permissions import RBACPermission
 from apps.api.serializers.resolution_note import ResolutionNoteSerializer, ResolutionNoteUpdateSerializer
 from apps.auth_token.auth import PluginAuthentication
 from common.api_helpers.mixins import PublicPrimaryKeyMixin, UpdateSerializerMixin
@@ -11,11 +11,16 @@ from common.api_helpers.mixins import PublicPrimaryKeyMixin, UpdateSerializerMix
 
 class ResolutionNoteView(PublicPrimaryKeyMixin, UpdateSerializerMixin, ModelViewSet):
     authentication_classes = (PluginAuthentication,)
-    permission_classes = (IsAuthenticated, ActionPermission)
+    permission_classes = (IsAuthenticated, RBACPermission)
 
-    action_permissions = {
-        IsAdminOrEditor: MODIFY_ACTIONS,
-        AnyRole: READ_ACTIONS,
+    rbac_permissions = {
+        "metadata": [RBACPermission.Permissions.ALERT_GROUPS_READ],
+        "list": [RBACPermission.Permissions.ALERT_GROUPS_READ],
+        "retrieve": [RBACPermission.Permissions.ALERT_GROUPS_READ],
+        "create": [RBACPermission.Permissions.ALERT_GROUPS_WRITE],
+        "update": [RBACPermission.Permissions.ALERT_GROUPS_WRITE],
+        "partial_update": [RBACPermission.Permissions.ALERT_GROUPS_WRITE],
+        "destroy": [RBACPermission.Permissions.ALERT_GROUPS_WRITE],
     }
 
     model = ResolutionNote

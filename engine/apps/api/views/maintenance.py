@@ -5,7 +5,7 @@ from rest_framework.views import APIView
 
 from apps.alerts.models import AlertReceiveChannel
 from apps.alerts.models.maintainable_object import MaintainableObject
-from apps.api.permissions import IsAdmin
+from apps.api.permissions import RBACPermission
 from apps.auth_token.auth import PluginAuthentication
 from common.api_helpers.exceptions import BadRequest
 from common.exceptions import MaintenanceCouldNotBeStartedError
@@ -39,7 +39,11 @@ class GetObjectMixin:
 
 class MaintenanceAPIView(APIView):
     authentication_classes = (PluginAuthentication,)
-    permission_classes = (IsAuthenticated,)
+    permission_classes = (IsAuthenticated, RBACPermission)
+
+    rbac_permissions = {
+        "get": [RBACPermission.Permissions.MAINTENANCE_READ],
+    }
 
     def get(self, request):
         organization = self.request.auth.organization
@@ -77,7 +81,10 @@ class MaintenanceAPIView(APIView):
 
 class MaintenanceStartAPIView(GetObjectMixin, APIView):
     authentication_classes = (PluginAuthentication,)
-    permission_classes = (IsAuthenticated, IsAdmin)
+    permission_classes = (IsAuthenticated, RBACPermission)
+    rbac_permissions = {
+        "post": [RBACPermission.Permissions.MAINTENANCE_WRITE],
+    }
 
     def post(self, request):
         mode = request.data.get("mode", None)
@@ -110,7 +117,10 @@ class MaintenanceStartAPIView(GetObjectMixin, APIView):
 
 class MaintenanceStopAPIView(GetObjectMixin, APIView):
     authentication_classes = (PluginAuthentication,)
-    permission_classes = (IsAuthenticated, IsAdmin)
+    permission_classes = (IsAuthenticated, RBACPermission)
+    rbac_permissions = {
+        "post": [RBACPermission.Permissions.MAINTENANCE_WRITE],
+    }
 
     def post(self, request):
         instance = self.get_object(request)
