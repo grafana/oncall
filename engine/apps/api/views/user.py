@@ -16,12 +16,10 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from apps.api.permissions import (
-    MODIFY_ACTIONS,
-    READ_ACTIONS,
-    ActionPermission,
-    AnyRole,
-    IsAdminOrEditor,
-    IsOwnerOrAdmin,
+    IsOwnerOrHasRBACPermissions,
+    LegacyAccessControlRole,
+    RBACPermission,
+    user_is_authorized,
 )
 from apps.api.serializers.team import TeamSerializer
 from apps.api.serializers.user import FilterUserSerializer, UserHiddenFieldsSerializer, UserSerializer
@@ -45,7 +43,6 @@ from common.api_helpers.exceptions import Conflict
 from common.api_helpers.mixins import FilterSerializerMixin, PublicPrimaryKeyMixin
 from common.api_helpers.paginators import HundredPageSizePaginator
 from common.api_helpers.utils import create_engine_url
-from common.constants.role import Role
 from common.insight_log import (
     ChatOpsEvent,
     ChatOpsType,
@@ -55,6 +52,7 @@ from common.insight_log import (
 )
 
 logger = logging.getLogger(__name__)
+IsOwnerOrHasUserSettingsAdminPermission = IsOwnerOrHasRBACPermissions([RBACPermission.Permissions.USER_SETTINGS_ADMIN])
 
 
 class CurrentUserView(APIView):
@@ -93,7 +91,9 @@ class UserFilter(filters.FilterSet):
     """
 
     email = filters.CharFilter(field_name="email", lookup_expr="icontains")
-    roles = filters.MultipleChoiceFilter(field_name="role", choices=Role.choices())
+    roles = filters.MultipleChoiceFilter(
+        field_name="role", choices=LegacyAccessControlRole.choices()
+    )  # LEGACY.. this should get removed eventually
 
     class Meta:
         model = User
@@ -113,36 +113,37 @@ class UserView(
         PluginAuthentication,
     )
 
-    permission_classes = (IsAuthenticated, ActionPermission)
+    permission_classes = (IsAuthenticated, RBACPermission)
 
-    # Non-admin users are allowed to list and retrieve users
-    # The overridden get_serializer_class will return
-    # another Serializer for non-admin users with sensitive information hidden
-    action_permissions = {
-        IsAdminOrEditor: (
-            *MODIFY_ACTIONS,
-            "list",
-            "metadata",
-            "verify_number",
-            "forget_number",
-            "get_verification_code",
-            "get_backend_verification_code",
-            "get_telegram_verification_code",
-            "unlink_slack",
-            "unlink_telegram",
-            "unlink_backend",
-            "make_test_call",
-            "export_token",
-            "mobile_app_verification_token",
-            "mobile_app_auth_token",
-        ),
-        AnyRole: ("retrieve", "timezone_options"),
+    rbac_permissions = {
+        "retrieve": [RBACPermission.Permissions.USER_SETTINGS_READ],
+        "timezone_options": [RBACPermission.Permissions.USER_SETTINGS_READ],
+        "metadata": [RBACPermission.Permissions.USER_SETTINGS_WRITE],
+        "list": [RBACPermission.Permissions.USER_SETTINGS_WRITE],
+        "update": [RBACPermission.Permissions.USER_SETTINGS_WRITE],
+        "partial_update": [RBACPermission.Permissions.USER_SETTINGS_WRITE],
+        "verify_number": [RBACPermission.Permissions.USER_SETTINGS_WRITE],
+        "forget_number": [RBACPermission.Permissions.USER_SETTINGS_WRITE],
+        "get_verification_code": [RBACPermission.Permissions.USER_SETTINGS_WRITE],
+        "get_backend_verification_code": [RBACPermission.Permissions.USER_SETTINGS_WRITE],
+        "get_telegram_verification_code": [RBACPermission.Permissions.USER_SETTINGS_WRITE],
+        "unlink_slack": [RBACPermission.Permissions.USER_SETTINGS_WRITE],
+        "unlink_telegram": [RBACPermission.Permissions.USER_SETTINGS_WRITE],
+        "unlink_backend": [RBACPermission.Permissions.USER_SETTINGS_WRITE],
+        "make_test_call": [RBACPermission.Permissions.USER_SETTINGS_WRITE],
+        "export_token": [RBACPermission.Permissions.USER_SETTINGS_WRITE],
+        "mobile_app_verification_token": [RBACPermission.Permissions.USER_SETTINGS_WRITE],
+        "mobile_app_auth_token": [RBACPermission.Permissions.USER_SETTINGS_WRITE],
     }
 
-    action_object_permissions = {
-        IsOwnerOrAdmin: (
-            *MODIFY_ACTIONS,
-            *READ_ACTIONS,
+    rbac_object_permissions = {
+        IsOwnerOrHasUserSettingsAdminPermission: [
+            "metadata",
+            "list",
+            "retrieve",
+            "update",
+            "partial_update",
+            "destroy",
             "verify_number",
             "forget_number",
             "get_verification_code",
@@ -155,7 +156,7 @@ class UserView(
             "export_token",
             "mobile_app_verification_token",
             "mobile_app_auth_token",
-        ),
+        ],
     }
 
     filter_serializer_class = FilterUserSerializer
@@ -178,14 +179,18 @@ class UserView(
     filterset_class = UserFilter
 
     def get_serializer_class(self):
-        is_filters_request = self.request.query_params.get("filters", "false") == "true"
+        request = self.request
+        user = request.user
+        kwargs = self.kwargs
+
+        is_filters_request = request.query_params.get("filters", "false") == "true"
         if self.action in ["list"] and is_filters_request:
             return self.get_filter_serializer_class()
 
-        is_users_own_data = (
-            self.kwargs.get("pk") is not None and self.kwargs.get("pk") == self.request.user.public_primary_key
-        )
-        if is_users_own_data or self.request.user.role == Role.ADMIN:
+        is_users_own_data = kwargs.get("pk") is not None and kwargs.get("pk") == user.public_primary_key
+        has_admin_permission = user_is_authorized(user, [RBACPermission.Permissions.USER_SETTINGS_ADMIN])
+
+        if is_users_own_data or has_admin_permission:
             return UserSerializer
         return UserHiddenFieldsSerializer
 

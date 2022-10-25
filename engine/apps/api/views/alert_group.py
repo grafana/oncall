@@ -12,7 +12,7 @@ from rest_framework.response import Response
 
 from apps.alerts.constants import ActionSource
 from apps.alerts.models import Alert, AlertGroup, AlertReceiveChannel
-from apps.api.permissions import MODIFY_ACTIONS, READ_ACTIONS, ActionPermission, AnyRole, IsAdminOrEditor
+from apps.api.permissions import RBACPermission
 from apps.api.serializers.alert_group import AlertGroupListSerializer, AlertGroupSerializer
 from apps.auth_token.auth import MobileAppAuthTokenAuthentication, PluginAuthentication
 from apps.user_management.models import User
@@ -159,29 +159,29 @@ class AlertGroupView(
         MobileAppAuthTokenAuthentication,
         PluginAuthentication,
     )
-    permission_classes = (IsAuthenticated, ActionPermission)
+    permission_classes = (IsAuthenticated, RBACPermission)
 
-    action_permissions = {
-        IsAdminOrEditor: (
-            *MODIFY_ACTIONS,
-            "acknowledge",
-            "unacknowledge",
-            "resolve",
-            "unresolve",
-            "attach",
-            "unattach",
-            "silence",
-            "unsilence",
-            "bulk_action",
-            "preview_template",
-        ),
-        AnyRole: (
-            *READ_ACTIONS,
-            "stats",
-            "filters",
-            "silence_options",
-            "bulk_action_options",
-        ),
+    rbac_permissions = {
+        "metadata": [RBACPermission.Permissions.ALERT_GROUPS_READ],
+        "list": [RBACPermission.Permissions.ALERT_GROUPS_READ],
+        "retrieve": [RBACPermission.Permissions.ALERT_GROUPS_READ],
+        "stats": [RBACPermission.Permissions.ALERT_GROUPS_READ],
+        "filters": [RBACPermission.Permissions.ALERT_GROUPS_READ],
+        "silence_options": [RBACPermission.Permissions.ALERT_GROUPS_READ],
+        "bulk_action_options": [RBACPermission.Permissions.ALERT_GROUPS_READ],
+        "create": [RBACPermission.Permissions.ALERT_GROUPS_WRITE],
+        "update": [RBACPermission.Permissions.ALERT_GROUPS_WRITE],
+        "destroy": [RBACPermission.Permissions.ALERT_GROUPS_WRITE],
+        "acknowledge": [RBACPermission.Permissions.ALERT_GROUPS_WRITE],
+        "unacknowledge": [RBACPermission.Permissions.ALERT_GROUPS_WRITE],
+        "resolve": [RBACPermission.Permissions.ALERT_GROUPS_WRITE],
+        "unresolve": [RBACPermission.Permissions.ALERT_GROUPS_WRITE],
+        "attach": [RBACPermission.Permissions.ALERT_GROUPS_WRITE],
+        "unattach": [RBACPermission.Permissions.ALERT_GROUPS_WRITE],
+        "silence": [RBACPermission.Permissions.ALERT_GROUPS_WRITE],
+        "unsilence": [RBACPermission.Permissions.ALERT_GROUPS_WRITE],
+        "bulk_action": [RBACPermission.Permissions.ALERT_GROUPS_WRITE],
+        "preview_template": [RBACPermission.Permissions.INTEGRATIONS_TEST],
     }
 
     http_method_names = ["get", "post"]

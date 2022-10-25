@@ -6,6 +6,7 @@ from rest_framework.request import Request
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
+from apps.grafana_plugin.helpers.client import GrafanaAPIClient
 from apps.grafana_plugin.permissions import SelfHostedInvitationTokenVerified
 from apps.user_management.models import Organization
 from apps.user_management.sync import sync_organization
@@ -34,11 +35,19 @@ class SelfHostedInstallView(GrafanaHeadersMixin, APIView):
         org_id = settings.SELF_HOSTED_SETTINGS["ORG_ID"]
 
         organization = Organization.objects.filter(stack_id=stack_id, org_id=org_id).first()
+
+        grafana_url = self.instance_context["grafana_url"]
+        api_token = self.instance_context["grafana_token"]
+
+        client = GrafanaAPIClient(api_url=grafana_url, api_token=api_token)
+        rbac_is_enabled = client.is_rbac_enabled_for_organization()
+
         if organization:
             organization.revoke_plugin()
-            organization.grafana_url = self.instance_context["grafana_url"]
-            organization.api_token = self.instance_context["grafana_token"]
-            organization.save(update_fields=["grafana_url", "api_token"])
+            organization.grafana_url = grafana_url
+            organization.api_token = api_token
+            organization.is_rbac_permissions_enabled = rbac_is_enabled
+            organization.save(update_fields=["grafana_url", "api_token", "is_rbac_permissions_enabled"])
         else:
             organization = Organization.objects.create(
                 stack_id=stack_id,
@@ -46,8 +55,9 @@ class SelfHostedInstallView(GrafanaHeadersMixin, APIView):
                 org_id=org_id,
                 org_slug=settings.SELF_HOSTED_SETTINGS["ORG_SLUG"],
                 org_title=settings.SELF_HOSTED_SETTINGS["ORG_TITLE"],
-                grafana_url=self.instance_context["grafana_url"],
-                api_token=self.instance_context["grafana_token"],
+                grafana_url=grafana_url,
+                api_token=api_token,
+                is_rbac_permissions_enabled=rbac_is_enabled,
             )
         sync_organization(organization)
         provisioning_info = organization.provision_plugin()

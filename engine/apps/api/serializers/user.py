@@ -1,12 +1,13 @@
 import math
 import time
+import typing
 
 import pytz
 from django.conf import settings
 from rest_framework import serializers
 
+from apps.api.permissions import DONT_USE_LEGACY_PERMISSION_MAPPING
 from apps.api.serializers.telegram import TelegramToUserConnectorSerializer
-from apps.base.constants import ADMIN_PERMISSIONS, ALL_ROLES_PERMISSIONS, EDITOR_PERMISSIONS
 from apps.base.messaging import get_messaging_backends
 from apps.base.models import UserNotificationPolicy
 from apps.base.utils import live_settings
@@ -16,7 +17,6 @@ from apps.user_management.models import User
 from apps.user_management.models.user import default_working_hours
 from common.api_helpers.custom_fields import TeamPrimaryKeyRelatedField
 from common.api_helpers.mixins import EagerLoadingMixin
-from common.constants.role import Role
 
 from .custom_serializers import DynamicFieldsModelSerializer
 from .organization import FastOrganizationSerializer
@@ -51,7 +51,7 @@ class UserSerializer(DynamicFieldsModelSerializer, EagerLoadingMixin):
             "current_team",
             "email",
             "username",
-            "role",
+            "role",  # LEGACY.. this should get removed eventually
             "avatar",
             "timezone",
             "working_hours",
@@ -60,7 +60,7 @@ class UserSerializer(DynamicFieldsModelSerializer, EagerLoadingMixin):
             "slack_user_identity",
             "telegram_configuration",
             "messaging_backends",
-            "permissions",
+            "permissions",  # LEGACY.. this should get removed eventually
             "notification_chain_verbal",
             "cloud_connection_status",
             "hide_phone_number",
@@ -68,7 +68,7 @@ class UserSerializer(DynamicFieldsModelSerializer, EagerLoadingMixin):
         read_only_fields = [
             "email",
             "username",
-            "role",
+            "role",  # LEGACY.. this should get removed eventually
             "verified_phone_number",
         ]
 
@@ -136,13 +136,8 @@ class UserSerializer(DynamicFieldsModelSerializer, EagerLoadingMixin):
             serialized_data[backend_id] = backend.serialize_user(obj)
         return serialized_data
 
-    def get_permissions(self, obj):
-        if obj.role == Role.ADMIN:
-            return ADMIN_PERMISSIONS
-        elif obj.role == Role.EDITOR:
-            return EDITOR_PERMISSIONS
-        else:
-            return ALL_ROLES_PERMISSIONS
+    def get_permissions(self, obj) -> typing.List[str]:
+        return DONT_USE_LEGACY_PERMISSION_MAPPING[obj.role]
 
     def get_notification_chain_verbal(self, obj):
         default, important = UserNotificationPolicy.get_short_verbals_for_user(user=obj)
@@ -177,7 +172,7 @@ class UserSerializer(DynamicFieldsModelSerializer, EagerLoadingMixin):
 
 
 class UserHiddenFieldsSerializer(UserSerializer):
-    available_for_all_roles_fields = [
+    fields_available_for_all_users = [
         "pk",
         "organization",
         "current_team",
@@ -193,7 +188,7 @@ class UserHiddenFieldsSerializer(UserSerializer):
         ret = super(UserSerializer, self).to_representation(instance)
         if instance.id != self.context["request"].user.id:
             for field in ret:
-                if field not in self.available_for_all_roles_fields:
+                if field not in self.fields_available_for_all_users:
                     ret[field] = "******"
             ret["hidden_fields"] = True
         return ret

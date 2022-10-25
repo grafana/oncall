@@ -7,14 +7,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet
 
-from apps.api.permissions import (
-    MODIFY_ACTIONS,
-    READ_ACTIONS,
-    ActionPermission,
-    AnyRole,
-    IsAdminOrEditor,
-    IsOwnerOrAdmin,
-)
+from apps.api.permissions import IsOwnerOrHasRBACPermissions, RBACPermission
 from apps.api.serializers.user_notification_policy import (
     UserNotificationPolicySerializer,
     UserNotificationPolicyUpdateSerializer,
@@ -32,18 +25,34 @@ from common.insight_log import EntityEvent, write_resource_insight_log
 
 class UserNotificationPolicyView(UpdateSerializerMixin, ModelViewSet):
     authentication_classes = (PluginAuthentication,)
-    permission_classes = (IsAuthenticated, ActionPermission)
+    permission_classes = (IsAuthenticated, RBACPermission)
 
-    action_permissions = {
-        IsAdminOrEditor: (*MODIFY_ACTIONS, "move_to_position"),
-        AnyRole: (*READ_ACTIONS, "delay_options", "notify_by_options"),
-    }
-    action_object_permissions = {
-        IsOwnerOrAdmin: (*MODIFY_ACTIONS, "move_to_position"),
-        AnyRole: READ_ACTIONS,
+    rbac_permissions = {
+        "metadata": [RBACPermission.Permissions.USER_SETTINGS_READ],
+        "list": [RBACPermission.Permissions.USER_SETTINGS_READ],
+        "retrieve": [RBACPermission.Permissions.USER_SETTINGS_READ],
+        "delay_options": [RBACPermission.Permissions.USER_SETTINGS_READ],
+        "notify_by_options": [RBACPermission.Permissions.USER_SETTINGS_READ],
+        "create": [RBACPermission.Permissions.USER_SETTINGS_WRITE],
+        "update": [RBACPermission.Permissions.USER_SETTINGS_WRITE],
+        "partial_update": [RBACPermission.Permissions.USER_SETTINGS_WRITE],
+        "destroy": [RBACPermission.Permissions.USER_SETTINGS_WRITE],
+        "move_to_position": [RBACPermission.Permissions.USER_SETTINGS_WRITE],
     }
 
-    ownership_field = "user"
+    IsOwnerOrHasUserSettingsAdminPermission = IsOwnerOrHasRBACPermissions(
+        required_permissions=[RBACPermission.Permissions.USER_SETTINGS_ADMIN], ownership_field="user"
+    )
+
+    rbac_object_permissions = {
+        IsOwnerOrHasUserSettingsAdminPermission: [
+            "create",
+            "update",
+            "partial_update",
+            "destroy",
+            "move_to_position",
+        ],
+    }
 
     model = UserNotificationPolicy
     serializer_class = UserNotificationPolicySerializer

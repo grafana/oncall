@@ -13,6 +13,7 @@ from django.db.models import Q
 from django.utils import timezone
 from icalendar import Calendar
 
+from apps.api.permissions import RBACPermission
 from apps.schedules.constants import (
     ICAL_ATTENDEE,
     ICAL_DATETIME_END,
@@ -25,7 +26,6 @@ from apps.schedules.constants import (
     RE_PRIORITY,
 )
 from apps.schedules.ical_events import ical_events
-from common.constants.role import Role
 from common.utils import timed_lru_cache
 
 """
@@ -40,11 +40,16 @@ if TYPE_CHECKING:
 def users_in_ical(usernames_from_ical, organization, include_viewers=False):
     """
     Parse ical file and return list of users found
+    NOTE: only grafana username will be used, consider adding grafana email and id
     """
-    # Only grafana username will be used, consider adding grafana email and id
+    from apps.user_management.models import User
+
     users_found_in_ical = organization.users
     if not include_viewers:
-        users_found_in_ical = users_found_in_ical.filter(role__in=(Role.ADMIN, Role.EDITOR))
+        # TODO: this is a breaking change....
+        users_found_in_ical = users_found_in_ical.filter(
+            **User.build_permissions_query(RBACPermission.Permissions.SCHEDULES_WRITE, organization)
+        )
 
     user_emails = [v.lower() for v in usernames_from_ical]
     users_found_in_ical = users_found_in_ical.filter(

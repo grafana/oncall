@@ -1,4 +1,6 @@
+import json
 import logging
+import typing
 
 from django.apps import apps
 from django.conf import settings
@@ -8,11 +10,24 @@ from django.db.models.signals import post_save
 from django.dispatch import receiver
 from emoji import demojize
 
+from apps.api.permissions import (
+    LegacyAccessControlCompatiblePermission,
+    LegacyAccessControlRole,
+    RBACPermission,
+    user_is_authorized,
+)
 from apps.schedules.tasks import drop_cached_ical_for_custom_events_for_organization
-from common.constants.role import Role
 from common.public_primary_keys import generate_public_primary_key, increase_public_primary_key_length
 
 logger = logging.getLogger(__name__)
+
+
+class PermissionsRegexQuery(typing.TypedDict):
+    permissions__regex: str
+
+
+class RoleInQuery(typing.TypedDict):
+    role__in: typing.List[int]
 
 
 def generate_public_primary_key_for_user():
@@ -59,8 +74,9 @@ class UserManager(models.Manager):
                 email=user["email"],
                 name=user["name"],
                 username=user["login"],
-                role=Role[user["role"].upper()],
+                role=LegacyAccessControlRole[user["role"].upper()],
                 avatar_url=user["avatarUrl"],
+                permissions=user["permissions"],
             )
             for user in grafana_users.values()
             if user["userId"] not in existing_user_ids
@@ -75,23 +91,31 @@ class UserManager(models.Manager):
         users_to_update = []
         for user in organization.users.filter(user_id__in=existing_user_ids):
             grafana_user = grafana_users[user.user_id]
-            g_user_role = Role[grafana_user["role"].upper()]
+            g_user_role = LegacyAccessControlRole[grafana_user["role"].upper()]
+
             if (
                 user.email != grafana_user["email"]
                 or user.name != grafana_user["name"]
                 or user.username != grafana_user["login"]
                 or user.role != g_user_role
                 or user.avatar_url != grafana_user["avatarUrl"]
+                # instead of looping through the array of permission objects, simply take the hash
+                # of the string representation of the data structures and compare.
+                # Need to first convert the lists of objects to strings because lists/dicts are not hashable
+                # (because lists and dicts are not hashable.. as they are mutable)
+                # https://stackoverflow.com/a/22003440
+                or hash(json.dumps(user.permissions)) != hash(json.dumps(grafana_user["permissions"]))
             ):
                 user.email = grafana_user["email"]
                 user.name = grafana_user["name"]
                 user.username = grafana_user["login"]
                 user.role = g_user_role
                 user.avatar_url = grafana_user["avatarUrl"]
+                user.permissions = grafana_user["permissions"]
                 users_to_update.append(user)
 
         organization.users.bulk_update(
-            users_to_update, ["email", "name", "username", "role", "avatar_url"], batch_size=5000
+            users_to_update, ["email", "name", "username", "role", "avatar_url", "permissions"], batch_size=5000
         )
 
 
@@ -134,7 +158,7 @@ class User(models.Model):
     email = models.EmailField()
     name = models.CharField(max_length=300)
     username = models.CharField(max_length=300)
-    role = models.PositiveSmallIntegerField(choices=Role.choices())
+    role = models.PositiveSmallIntegerField(choices=LegacyAccessControlRole.choices())
     avatar_url = models.URLField()
 
     # don't use "_timezone" directly, use the "timezone" property since it can be populated via slack user identity
@@ -153,6 +177,7 @@ class User(models.Model):
 
     # is_active = None is used to be able to have multiple deleted users with the same user_id
     is_active = models.BooleanField(null=True, default=True)
+    permissions = models.JSONField(null=False, default=list)
 
     def __str__(self):
         return f"{self.pk}: {self.username}"
@@ -182,13 +207,14 @@ class User(models.Model):
         return hasattr(self, "telegram_connection")
 
     def self_or_admin(self, user_to_check, organization) -> bool:
+        has_admin_permission = user_is_authorized(user_to_check, [RBACPermission.Permissions.USER_SETTINGS_ADMIN])
         return user_to_check.pk == self.pk or (
-            user_to_check.role == Role.ADMIN and organization.pk == user_to_check.organization_id
+            has_admin_permission and organization.pk == user_to_check.organization_id
         )
 
     @property
     def is_notification_allowed(self):
-        return self.role in (Role.ADMIN, Role.EDITOR)
+        return user_is_authorized(self, [RBACPermission.Permissions.NOTIFICATIONS_READ])
 
     # using in-memory cache instead of redis to avoid pickling  python objects
     # @timed_lru_cache(timeout=100)
@@ -244,6 +270,7 @@ class User(models.Model):
 
         result = {
             "username": self.username,
+            # LEGACY.. role should get removed eventually.. it's probably safe to remove it now?
             "role": self.get_role_display(),
             "notification_policies": notification_policies_verbal,
         }
@@ -256,6 +283,24 @@ class User(models.Model):
     @property
     def insight_logs_metadata(self):
         return {}
+
+    @staticmethod
+    def build_permissions_query(
+        permission: LegacyAccessControlCompatiblePermission, organization
+    ) -> typing.Union[PermissionsRegexQuery, RoleInQuery]:
+        """
+        This method returns a django query filter that is compatible with RBAC
+        as well as legacy "basic" role based authorization. If a permission is provided we simply do
+        a regex search where the permission column contains the permission value (need to use regex because
+        the JSON contains method is not supported by sqlite)
+
+        If RBAC is not supported for the org, we make the assumption that we are looking for any users with AT LEAST
+        the fallback role. Ex: if the fallback role were editor than we would get editors and admins.
+        """
+        if organization.is_rbac_permissions_enabled:
+            # https://stackoverflow.com/a/50251879
+            return PermissionsRegexQuery(permissions__regex=r".*{0}.*".format(permission.value))
+        return RoleInQuery(role__lte=permission.fallback_role.value)
 
 
 # TODO: check whether this signal can be moved to save method of the model
