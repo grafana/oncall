@@ -4,15 +4,18 @@
 - name: SECRET_KEY
   valueFrom:
     secretKeyRef:
-      name: {{ template "oncall.fullname" . }}
+      name: {{ template "snippet.oncall.secret.name" . }}
       key: SECRET_KEY
 - name: MIRAGE_SECRET_KEY
   valueFrom:
     secretKeyRef:
-      name: {{ template "oncall.fullname" . }}
+      name: {{ template "snippet.oncall.secret.name" . }}
       key: MIRAGE_SECRET_KEY
 - name: MIRAGE_CIPHER_IV
-  value: "1234567890abcdef"
+  valueFrom:
+    secretKeyRef:
+      name: {{ template "snippet.oncall.secret.name" . }}
+      key: MIRAGE_CIPHER_IV
 - name: DJANGO_SETTINGS_MODULE
   value: "settings.helm"
 - name: AMIXR_DJANGO_ADMIN_PATH
@@ -22,6 +25,14 @@
 - name: UWSGI_LISTEN
   value: "1024"
 {{- end }}
+
+{{- define "snippet.oncall.secret.name" -}}
+{{- if .Values.oncall.secrets.existingSecretName -}}
+{{ .Values.oncall.secrets.existingSecretName }}
+{{- else -}}
+{{ template "oncall.fullname" . }}
+{{- end -}}
+{{- end -}}
 
 {{- define "snippet.oncall.slack.env" -}}
 {{- if .Values.oncall.slack.enabled -}}
