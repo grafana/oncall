@@ -1,9 +1,8 @@
 ---
 aliases:
-  - /docs/grafana-cloud/oncall/oncall-api-reference/personal_notification_rules/
   - /docs/oncall/latest/oncall-api-reference/personal_notification_rules/
+canonical: https://grafana.com/docs/oncall/latest/oncall-api-reference/personal_notification_rules/
 title: Personal Notification Rules HTTP API
-canonical: "https://grafana.com/docs/oncall/latest/oncall-api-reference/personal_notification_rules/"
 weight: 800
 ---
 

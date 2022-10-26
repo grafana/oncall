@@ -1,7 +1,7 @@
 ---
 aliases:
-  - /docs/grafana-cloud/oncall/integrations/
   - /docs/oncall/latest/integrations/
+canonical: https://grafana.com/docs/oncall/latest/integrations/
 keywords:
   - Grafana Cloud
   - Alerts
@@ -11,7 +11,6 @@ keywords:
   - oncall
   - integrations
 title: Grafana OnCall integrations
-canonical: "https://grafana.com/docs/oncall/latest/integrations/"
 weight: 500
 ---
 

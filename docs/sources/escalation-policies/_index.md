@@ -1,11 +1,10 @@
 ---
-title: Escalation Chains and Routes
-weight: 700
-canonical: "https://grafana.com/docs/oncall/latest/escalation-policies/"
 aliases:
   - /docs/oncall/latest/escalation-policies/
+canonical: https://grafana.com/docs/oncall/latest/escalation-policies/
+title: Escalation Chains and Routes
+weight: 700
 ---
-
 
 # Escalation Chains and Routes
 

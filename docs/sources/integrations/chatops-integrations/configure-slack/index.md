@@ -2,7 +2,7 @@
 aliases:
   - ../../chat-options/configure-slack/
   - /docs/oncall/latest/integrations/chatops-integrations/configure-slack/
-canonical: https://grafana.com/docs/oncall/latest/chat-options/configure-slack/
+canonical: https://grafana.com/docs/oncall/latest/integrations/chatops-integrations/configure-slack/
 keywords:
   - Grafana Cloud
   - Alerts

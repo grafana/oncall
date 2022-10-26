@@ -2,7 +2,7 @@
 aliases:
   - ../add-webhook-integration/
   - /docs/oncall/latest/integrations/available-integrations/configure-webhook/
-canonical: https://grafana.com/docs/oncall/latest/integrations/add-webhook-integration/
+canonical: https://grafana.com/docs/oncall/latest/integrations/available-integrations/configure-webhook/
 keywords:
   - Grafana Cloud
   - Alerts
