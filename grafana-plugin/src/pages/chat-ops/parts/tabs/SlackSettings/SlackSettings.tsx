@@ -36,8 +36,9 @@ class SlackSettings extends Component<SlackProps, SlackState> {
   };
 
   componentDidMount() {
-    this.getSlackLiveSettings();
-    this.update();
+    this.getSlackLiveSettings().then(() => {
+      this.update();
+    });
   }
 
   handleOpenSlackInstructions = () => {
@@ -54,14 +55,14 @@ class SlackSettings extends Component<SlackProps, SlackState> {
 
   getSlackLiveSettings = async () => {
     const { store } = this.props;
-    const slackClientOAUTH = await store.globalSettingStore.getGlobalSettingItemByName('SLACK_CLIENT_OAUTH_ID');
-    const slackClientOAUTHSecret = await store.globalSettingStore.getGlobalSettingItemByName(
-      'SLACK_CLIENT_OAUTH_SECRET'
+    const results = await store.globalSettingStore.getAll();
+
+    const slackClientOAUTH = results.find((element: { name: string }) => element.name === 'SLACK_CLIENT_OAUTH_ID');
+    const slackClientOAUTHSecret = results.find(
+      (element: { name: string }) => element.name === 'SLACK_CLIENT_OAUTH_SECRET'
     );
-    const slackRedirectHost = await store.globalSettingStore.getGlobalSettingItemByName(
-      'SLACK_INSTALL_RETURN_REDIRECT_HOST'
-    );
-    const slackSigningSecret = await store.globalSettingStore.getGlobalSettingItemByName('SLACK_SIGNING_SECRET');
+    const slackRedirectHost = results.find((element: { name: string }) => element.name === 'SLACK_CLIENT_OAUTH_ID');
+    const slackSigningSecret = results.find((element: { name: string }) => element.name === 'SLACK_SIGNING_SECRET');
 
     if (
       slackClientOAUTH?.error ||
@@ -221,6 +222,7 @@ class SlackSettings extends Component<SlackProps, SlackState> {
     const { store } = this.props;
     const { showENVVariablesButton } = this.state;
     const isLiveSettingAvailable = store.hasFeature(AppFeature.LiveSettings) && showENVVariablesButton;
+
     return (
       <VerticalGroup spacing="lg">
         <Text.Title level={2}>Connect Slack workspace</Text.Title>
@@ -230,11 +232,11 @@ class SlackSettings extends Component<SlackProps, SlackState> {
               <SlackNewIcon />
             </div>
             <Text className={cx('infoblock-text')}>
-              Slack connection will allow you to manage incidents in your team Slack workspace.
+              Slack connection will allow you to manage alert groups in your team Slack workspace.
             </Text>
             <Text className={cx('infoblock-text')}>
               After a basic workspace connection your team members need to connect their personal Slack accounts in
-              order to be allowed to manage incidents.
+              order to be allowed to manage alert groups.
             </Text>
             {isLiveSettingAvailable && (
               <Text type="secondary" className={cx('infoblock-text')}>

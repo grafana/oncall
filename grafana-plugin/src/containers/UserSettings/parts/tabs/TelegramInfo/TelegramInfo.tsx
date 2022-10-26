@@ -82,7 +82,7 @@ const TelegramInfo = observer((props: TelegramInfoProps) => {
           <Block bordered withBackground className={cx('telegram-infoblock')}>
             <VerticalGroup align="center" spacing="lg">
               <TelegramColorIcon />
-              <Text>You can manage incidents in your team Telegram channel or from personal direct messages. </Text>
+              <Text>You can manage alert groups in your team Telegram channel or from personal direct messages. </Text>
 
               <Text>
                 To connect channel setup Telegram environment first, which includes connection to your bot and host URL.

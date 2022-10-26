@@ -23,7 +23,7 @@ const SlackInstructions: FC<SlackInstructionsProps> = observer((props) => {
         <Block bordered withBackground className={cx('slack-infoblock')}>
           <VerticalGroup align="center" spacing="lg">
             <SlackNewIcon />
-            <Text>You can manage incidents in your Slack workspace. </Text>
+            <Text>You can manage alert groups in your Slack workspace. </Text>
             <Text>Before start you need to connect your Slack bot to Grafana OnCall.</Text>
             <Text type="secondary">
               For bot creating instructions and additional information please read{' '}

@@ -57,7 +57,7 @@ class TelegramSettings extends Component<TelegramProps, TelegramState> {
                 <TelegramColorIcon />
               </div>
               <Text className={cx('infoblock-text')}>
-                You can manage incidents in your team Telegram channel or from personal direct messages.{' '}
+                You can manage alert groups in your team Telegram channel or from personal direct messages.{' '}
               </Text>
 
               <Text className={cx('infoblock-text')}>
@@ -92,7 +92,7 @@ class TelegramSettings extends Component<TelegramProps, TelegramState> {
                 <TelegramColorIcon />
               </div>
               <Text className={cx('infoblock-text')}>
-                You can manage incidents in your team Telegram channel or from personal direct messages.{' '}
+                You can manage alert groups in your team Telegram channel or from personal direct messages.{' '}
               </Text>
               <Text type="secondary" className={cx('infoblock-text')}>
                 More details in{' '}
@@ -109,7 +109,7 @@ class TelegramSettings extends Component<TelegramProps, TelegramState> {
               <li>discuss alerts in comments</li>
               <li>notifications to users accounts will be served as links to the main channel</li>
             </ul>
-            Make sure your team connects Telegram in their OnCall user profiles too or they cannot manage incidents.
+            Make sure your team connects Telegram in their OnCall user profiles too or they cannot manage alert groups.
           </Text>
           <HorizontalGroup>
             <TelegramIntegrationButton size="md" onUpdate={this.update} />
