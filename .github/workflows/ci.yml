@@ -27,7 +27,7 @@ jobs:
         run: |
           pre-commit run --all-files
 
-  test:
+  test-frontend:
     runs-on: ubuntu-latest
     container: python:3.9
     steps:
