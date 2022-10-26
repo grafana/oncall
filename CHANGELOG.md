@@ -1,5 +1,8 @@
 # Change Log
 
+## v1.0.43 (2022-10-25)
+- Bug fixes
+
 ## v1.0.42 (2022-10-24)
 - Fix posting resolution notes to Slack
 
