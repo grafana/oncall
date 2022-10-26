@@ -1,6 +1,5 @@
 # Backend
 */db.sqlite3
-engine/oncall_dev.db
 *.pyc
 venv
 .python-version
@@ -10,7 +9,7 @@ venv
 .vscode
 dump.rdb
 .idea
-engine/celerybeat-schedule.db
+engine/*.db
 engine/sqlite_data
 jupiter_playbooks/*
 engine/reports/*.csv
