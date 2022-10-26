@@ -40,12 +40,30 @@
   value: {{ .Values.oncall.slack.enabled | toString | title | quote }}
 - name: SLACK_SLASH_COMMAND_NAME
   value: "/{{ .Values.oncall.slack.commandName | default "oncall" }}"
+{{- if .Values.oncall.slack.existingSecretName }}
+- name: SLACK_CLIENT_OAUTH_ID
+  valueFrom:
+    secretKeyRef:
+      name: {{ .Values.oncall.slack.existingSecretName }}
+      key: SLACK_CLIENT_OAUTH_ID
+- name: SLACK_CLIENT_OAUTH_SECRET
+  valueFrom:
+    secretKeyRef:
+      name: {{ .Values.oncall.slack.existingSecretName }}
+      key: SLACK_CLIENT_OAUTH_SECRET
+- name: SLACK_SIGNING_SECRET
+  valueFrom:
+    secretKeyRef:
+      name: {{ .Values.oncall.slack.existingSecretName }}
+      key: SLACK_SIGNING_SECRET
+{{- else }}
 - name: SLACK_CLIENT_OAUTH_ID
   value: {{ .Values.oncall.slack.clientId | default "" | quote }}
 - name: SLACK_CLIENT_OAUTH_SECRET
   value: {{ .Values.oncall.slack.clientSecret | default "" | quote }}
 - name: SLACK_SIGNING_SECRET
   value: {{ .Values.oncall.slack.signingSecret | default "" | quote }}
+{{- end }}
 - name: SLACK_INSTALL_RETURN_REDIRECT_HOST
   value: "https://{{ .Values.base_url }}"
 {{- else -}}
