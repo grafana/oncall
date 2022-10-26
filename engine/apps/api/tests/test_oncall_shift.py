@@ -789,7 +789,7 @@ def test_create_on_call_shift_invalid_data_interval(on_call_shift_internal_api_s
     assert response.status_code == status.HTTP_400_BAD_REQUEST
     assert response.data["interval"][0] == "Cannot set interval for non-recurrent shifts"
 
-    # by_day, daily, interval > 1
+    # by_day, daily, interval != 1
     data = {
         "title": "Test Shift 2",
         "type": CustomOnCallShift.TYPE_ROLLING_USERS_EVENT,
@@ -808,7 +808,7 @@ def test_create_on_call_shift_invalid_data_interval(on_call_shift_internal_api_s
     response = client.post(url, data, format="json", **make_user_auth_headers(user1, token))
 
     assert response.status_code == status.HTTP_400_BAD_REQUEST
-    assert response.data["interval"][0] == "Cannot set interval > 1 if a days value is set for a daily frequency"
+    assert response.data["interval"][0] == "Interval must be 1 if a days value is set for a daily frequency"
 
 
 @pytest.mark.django_db
