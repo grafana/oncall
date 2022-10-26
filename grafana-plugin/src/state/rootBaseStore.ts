@@ -40,8 +40,6 @@ import {
   syncStatusDelay,
 } from './plugin';
 
-// @ts-ignore
-
 // ------ Dashboard ------ //
 
 export class RootBaseStore {
