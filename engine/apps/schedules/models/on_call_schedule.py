@@ -320,13 +320,15 @@ class OnCallSchedule(PolymorphicModel):
                 resolved.append(ev)
                 continue
 
-            if ev["priority_level"] != current_priority:
+            # api/terraform shifts could be missing a priority; assume None means 0
+            priority = ev["priority_level"] or 0
+            if priority != current_priority:
                 # update scheduled intervals on priority change
                 # and start from the beginning for the new priority level
                 resolved.sort(key=event_start_cmp_key)
                 intervals = _merge_intervals(resolved)
                 current_interval_idx = 0
-                current_priority = ev["priority_level"]
+                current_priority = priority
 
             if current_interval_idx >= len(intervals):
                 # event outside scheduled intervals, add to resolved
@@ -390,8 +392,10 @@ class OnCallSchedule(PolymorphicModel):
                     and current["shift"]["pk"] is not None
                     and current["shift"]["pk"] == next_event["shift"]["pk"]
                 ):
-                    current["users"] += next_event["users"]
-                    current["missing_users"] += next_event["missing_users"]
+                    current["users"] += [u for u in next_event["users"] if u not in current["users"]]
+                    current["missing_users"] += [
+                        u for u in next_event["missing_users"] if u not in current["missing_users"]
+                    ]
                 else:
                     merged.append(next_event)
                     current = next_event

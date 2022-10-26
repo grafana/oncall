@@ -1,3 +1,5 @@
+import datetime
+
 import pytz
 from django.core.exceptions import ObjectDoesNotExist
 from django.db.models import Count, OuterRef, Subquery
@@ -289,7 +291,11 @@ class ScheduleView(
         users = {u: None for u in schedule.related_users()}
         for e in events:
             user = e["users"][0]["pk"] if e["users"] else None
-            if user is not None and users.get(user) is None and e["end"] > now:
+            event_end = e["end"]
+            if not isinstance(event_end, datetime.datetime):
+                # all day events end is a date, make it a datetime for comparison
+                event_end = datetime.datetime.combine(event_end, datetime.datetime.min.time(), tzinfo=pytz.UTC)
+            if user is not None and users.get(user) is None and event_end > now:
                 users[user] = e
 
         result = {"users": users}
