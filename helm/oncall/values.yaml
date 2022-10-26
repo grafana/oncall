@@ -97,6 +97,9 @@ oncall:
     enabled: false
     token: ~
     webhookUrl: ~
+    # Use exsting secret for token.
+    # the key should be TELEGRAM_TOKEN
+    existingSecretName: ""
   smtp:
     enabled: false
     host: ~

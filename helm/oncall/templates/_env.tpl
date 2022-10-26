@@ -78,8 +78,16 @@
   value: {{ .Values.oncall.telegram.enabled | toString | title | quote }}
 - name: TELEGRAM_WEBHOOK_HOST
   value: {{ .Values.oncall.telegram.webhookUrl | default "" | quote }}
+{{- if .Values.oncall.telegram.existingSecretName }}
+- name: TELEGRAM_TOKEN
+  valueFrom:
+    secretKeyRef:
+      name: {{ .Values.oncall.telegram.existingSecretName }}
+      key: TELEGRAM_TOKEN
+{{- else }}
 - name: TELEGRAM_TOKEN
   value: {{ .Values.oncall.telegram.token | default "" | quote }}
+{{- end }}
 {{- else -}}
 - name: FEATURE_TELEGRAM_INTEGRATION_ENABLED
   value: {{ .Values.oncall.telegram.enabled | toString | title | quote }}
