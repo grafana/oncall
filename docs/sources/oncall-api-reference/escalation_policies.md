@@ -1,8 +1,8 @@
 ---
 aliases:
   - /docs/oncall/latest/oncall-api-reference/escalation_policies/
+canonical: https://grafana.com/docs/oncall/latest/oncall-api-reference/escalation_policies/
 title: Escalation Policies HTTP API
-canonical: "https://grafana.com/docs/oncall/latest/oncall-api-reference/escalation_policies/"
 weight: 300
 ---
 

@@ -1,8 +1,8 @@
 ---
 aliases:
   - /docs/oncall/latest/oncall-api-reference/on_call_shifts/
+canonical: https://grafana.com/docs/oncall/latest/oncall-api-reference/on_call_shifts/
 title: OnCall shifts HTTP API
-canonical: "https://grafana.com/docs/oncall/latest/oncall-api-reference/on_call_shifts/"
 weight: 600
 ---
 

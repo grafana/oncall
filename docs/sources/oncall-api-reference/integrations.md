@@ -1,8 +1,8 @@
 ---
 aliases:
   - /docs/oncall/latest/oncall-api-reference/integrations/
+canonical: https://grafana.com/docs/oncall/latest/oncall-api-reference/integrations/
 title: Integrations HTTP API
-canonical: "https://grafana.com/docs/oncall/latest/oncall-api-reference/integrations/"
 weight: 500
 ---
 

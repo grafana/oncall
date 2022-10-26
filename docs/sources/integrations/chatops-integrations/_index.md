@@ -2,7 +2,7 @@
 aliases:
   - ../chat-options/
   - /docs/oncall/latest/integrations/chatops-integrations/
-canonical: https://grafana.com/docs/oncall/latest/chat-options/
+canonical: https://grafana.com/docs/oncall/latest/integrations/chatops-integrations/
 keywords:
   - Grafana Cloud
   - Alerts

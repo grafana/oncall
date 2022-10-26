@@ -1,8 +1,8 @@
 ---
 aliases:
   - /docs/oncall/latest/oncall-api-reference/users/
+canonical: https://grafana.com/docs/oncall/latest/oncall-api-reference/users/
 title: Grafana OnCall Users HTTP API
-canonical: "https://grafana.com/docs/oncall/latest/oncall-api-reference/users/"
 weight: 1500
 ---
 

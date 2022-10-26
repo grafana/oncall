@@ -2,7 +2,7 @@
 aliases:
   - add-zabbix/
   - /docs/oncall/latest/integrations/available-integrations/configure-zabbix/
-canonical: https://grafana.com/docs/oncall/latest/integrations/available-integrations/add-zabbix/
+canonical: https://grafana.com/docs/oncall/latest/integrations/available-integrations/configure-zabbix/
 keywords:
   - Grafana Cloud
   - Alerts

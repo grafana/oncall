@@ -1,6 +1,7 @@
 ---
 aliases:
   - /docs/oncall/latest/calendar-schedules/
+canonical: https://grafana.com/docs/oncall/latest/calendar-schedules/
 description: ""
 keywords:
   - Grafana
@@ -8,7 +9,6 @@ keywords:
   - on-call
   - calendar
 title: Configure and manage on-call schedules
-canonical: "https://grafana.com/docs/oncall/latest/calendar-schedules/"
 weight: 1100
 ---
 

@@ -1,6 +1,7 @@
 ---
 aliases:
   - /docs/oncall/latest/escalation-policies/configure-routes/
+canonical: https://grafana.com/docs/oncall/latest/escalation-policies/configure-routes/
 keywords:
   - Grafana Cloud
   - Alerts
@@ -10,7 +11,6 @@ keywords:
   - oncall
   - integrations
 title: Configure and manage routes
-canonical: "https://grafana.com/docs/oncall/latest/escalation-policies/configure-routes/"
 weight: 300
 ---
 

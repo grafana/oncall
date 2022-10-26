@@ -1,7 +1,8 @@
 ---
 aliases:
   - add-grafana-alerting/
-canonical: https://grafana.com/docs/oncall/latest/integrations/available-integrations/add-grafana-alerting/
+  - /docs/oncall/latest/integrations/available-integrations/configure-grafana-alerting/
+canonical: https://grafana.com/docs/oncall/latest/integrations/available-integrations/configure-grafana-alerting/
 keywords:
   - Grafana Cloud
   - Alerts
