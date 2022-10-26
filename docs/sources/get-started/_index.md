@@ -1,6 +1,5 @@
 ---
 aliases:
-  - /docs/grafana-cloud/oncall/getting-started/
   - getting-started/
 canonical: https://grafana.com/docs/oncall/latest/getting-started/
 keywords:

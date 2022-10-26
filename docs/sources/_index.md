@@ -1,6 +1,5 @@
 ---
 aliases:
-  - /docs/grafana-cloud/oncall/
   - /docs/oncall/latest/
 keywords:
   - Grafana Cloud

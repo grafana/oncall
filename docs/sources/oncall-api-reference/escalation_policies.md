@@ -1,6 +1,5 @@
 ---
 aliases:
-  - /docs/grafana-cloud/oncall/oncall-api-reference/escalation_policies/
   - /docs/oncall/latest/oncall-api-reference/escalation_policies/
 title: Escalation Policies HTTP API
 canonical: "https://grafana.com/docs/oncall/latest/oncall-api-reference/escalation_policies/"

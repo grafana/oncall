@@ -1,8 +1,6 @@
 ---
 aliases:
-  - /docs/grafana-cloud/oncall/integrations/add-integration/
   - /docs/oncall/latest/integrations/available-integrations/
-  - /docs/grafana-cloud/oncall/integrations/available-integration/
 keywords:
   - Grafana Cloud
   - Alerts

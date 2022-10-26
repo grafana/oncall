@@ -1,6 +1,5 @@
 ---
 aliases:
-  - /docs/grafana-cloud/oncall/oncall-api-reference/postmortems/
   - /docs/oncall/latest/oncall-api-reference/postmortems/
 draft: true
 title: Postmortem HTTP API

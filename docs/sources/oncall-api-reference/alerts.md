@@ -1,6 +1,5 @@
 ---
 aliases:
-  - /docs/grafana-cloud/oncall/oncall-api-reference/alerts/
   - /docs/oncall/latest/oncall-api-reference/alerts/
 title: Alerts HTTP API
 canonical: "https://grafana.com/docs/oncall/latest/oncall-api-reference/alerts/"
