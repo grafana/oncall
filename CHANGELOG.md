@@ -1,5 +1,10 @@
 # Change Log
 
+
+## v1.0.46 (2022-10-27)
+
+- Bug fixes
+
 ## v1.0.45 (2022-10-27)
 
 - Bug fix to revert commit which removed unused engine code
