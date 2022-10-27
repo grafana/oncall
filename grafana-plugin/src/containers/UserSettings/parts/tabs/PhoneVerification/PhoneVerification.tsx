@@ -34,27 +34,12 @@ const PHONE_REGEX = /^\+\d{8,15}$/;
 
 const PhoneVerification = observer((props: PhoneVerificationProps) => {
   const { userPk: propsUserPk } = props;
+  const store = useStore();
+  const { userStore, teamStore } = store;
 
-  const {
-    userStore: {
-      items: users,
-      currentUserPk,
-      updateUser,
-      makeTestCall,
-      forgetPhone,
-      loadUser,
-      isTestCallInProgress,
-      verifyPhone,
-      fetchVerificationCode,
-    },
-    teamStore,
-    isUserActionAllowed,
-    hasFeature,
-  } = useStore();
-
-  const userPk = (propsUserPk || currentUserPk) as User['pk'];
-  const user = users[userPk];
-  const isCurrentUser = currentUserPk === user.pk;
+  const userPk = (propsUserPk || userStore.currentUserPk) as User['pk'];
+  const user = userStore.items[userPk];
+  const isCurrentUser = userStore.currentUserPk === user.pk;
 
   const [{ showForgetScreen, phone, code, isCodeSent, isPhoneNumberHidden, isLoading }, setState] = useReducer(
     (state: PhoneVerificationState, newState: Partial<PhoneVerificationState>) => ({
@@ -77,11 +62,11 @@ const PhoneVerification = observer((props: PhoneVerificationProps) => {
     async ({ currentTarget: { checked: isPhoneNumberHidden } }: React.ChangeEvent<HTMLInputElement>) => {
       setState({ isPhoneNumberHidden, isLoading: true });
 
-      await updateUser({ pk: userPk, hide_phone_number: isPhoneNumberHidden });
+      await userStore.updateUser({ pk: userPk, hide_phone_number: isPhoneNumberHidden });
 
       setState({ phone: user.verified_phone_number, isLoading: false });
     },
-    [user, userPk, updateUser]
+    [user, userPk, userStore.updateUser]
   );
 
   const onChangePhoneCallback = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
@@ -93,33 +78,35 @@ const PhoneVerification = observer((props: PhoneVerificationProps) => {
   }, []);
 
   const handleMakeTestCallClick = useCallback(() => {
-    makeTestCall(userPk);
-  }, [userPk, makeTestCall]);
+    userStore.makeTestCall(userPk);
+  }, [userPk, userStore.makeTestCall]);
 
   const handleForgetNumberClick = useCallback(() => {
-    forgetPhone(userPk).then(async () => {
-      await loadUser(userPk);
+    userStore.forgetPhone(userPk).then(async () => {
+      await userStore.loadUser(userPk);
       setState({ phone: '', showForgetScreen: false, isCodeSent: false });
     });
-  }, [userPk, forgetPhone, loadUser]);
+  }, [userPk, userStore.forgetPhone, userStore.loadUser]);
 
   const onSubmitCallback = useCallback(async () => {
     if (isCodeSent) {
-      verifyPhone(userPk, code)
+      userStore
+        .verifyPhone(userPk, code)
         .then(() => {
-          loadUser(userPk);
+          userStore.loadUser(userPk);
         })
         .catch((error) => {
           openErrorNotification(error.response.data);
         });
     } else {
-      await updateUser({
+      await userStore.updateUser({
         pk: userPk,
         email: user.email,
         unverified_phone_number: phone,
       });
 
-      fetchVerificationCode(userPk)
+      userStore
+        .fetchVerificationCode(userPk)
         .then(() => {
           setState({ isCodeSent: true });
 
@@ -133,7 +120,16 @@ const PhoneVerification = observer((props: PhoneVerificationProps) => {
           );
         });
     }
-  }, [code, isCodeSent, phone, user.email, userPk, verifyPhone, updateUser, fetchVerificationCode]);
+  }, [
+    code,
+    isCodeSent,
+    phone,
+    user.email,
+    userPk,
+    userStore.verifyPhone,
+    userStore.updateUser,
+    userStore.fetchVerificationCode,
+  ]);
 
   const isTwilioConfigured = teamStore.currentTeam?.env_status.twilio_configured;
   const phoneHasMinimumLength = phone?.length > 8;
@@ -146,7 +142,7 @@ const PhoneVerification = observer((props: PhoneVerificationProps) => {
     phone === user.verified_phone_number || (!isCodeSent && !isPhoneValid) || !isTwilioConfigured;
 
   const isPhoneDisabled = !!user.verified_phone_number;
-  const isCodeFieldDisabled = !isCodeSent || !isUserActionAllowed(action);
+  const isCodeFieldDisabled = !isCodeSent || !store.isUserActionAllowed(action);
   const showToggle = user.verified_phone_number && isCurrentUser;
 
   if (showForgetScreen) {
@@ -168,7 +164,7 @@ const PhoneVerification = observer((props: PhoneVerificationProps) => {
         </>
       )}
 
-      {!isTwilioConfigured && hasFeature(AppFeature.LiveSettings) && (
+      {!isTwilioConfigured && store.hasFeature(AppFeature.LiveSettings) && (
         <>
           <Alert
             severity="warning"
@@ -232,7 +228,7 @@ const PhoneVerification = observer((props: PhoneVerificationProps) => {
         action={action}
         isCodeSent={isCodeSent}
         isButtonDisabled={isButtonDisabled}
-        isTestCallInProgress={isTestCallInProgress}
+        isTestCallInProgress={userStore.isTestCallInProgress}
         isTwilioConfigured={isTwilioConfigured}
         onSubmitCallback={onSubmitCallback}
         handleMakeTestCallClick={handleMakeTestCallClick}
