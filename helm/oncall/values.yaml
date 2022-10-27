@@ -108,13 +108,13 @@ env: []
 ingress:
   enabled: true
 #  className: ""
-  annotations: {}
-    # kubernetes.io/ingress.class: "nginx"
-    # cert-manager.io/issuer: "letsencrypt-prod"
-  tls: []
-    # - hosts:
-    #     - "{{ .Values.base_url }}"
-    #   secretName: certificate-tls
+  annotations:
+    kubernetes.io/ingress.class: "nginx"
+    cert-manager.io/issuer: "letsencrypt-prod"
+  tls:
+    - hosts:
+        - "{{ .Values.base_url }}"
+      secretName: certificate-tls
   # Extra paths to prepend to the host configuration. If using something 
   # like an ALB ingress controller, you may want to configure SSL redirects 
   extraPaths: []
@@ -154,6 +154,7 @@ cert-manager:
       - 1.1.1.1
 
 database:
+  # can be either mysql or postgresql
   type: mysql
 
 # MySQL is included into this release for the convenience.
@@ -201,7 +202,9 @@ externalPostgresql:
   db_name:
   user:
   password:
+  # use an existing secret for the database password
   existingSecret: ""
+  # the key in the secret containing the database password
   passwordKey: password
 
 # RabbitMQ is included into this release for the convenience.

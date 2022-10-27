@@ -138,7 +138,7 @@
 
 {{- define "snippet.postgresql.env" -}}
 - name: DATABASE_TYPE
-  value: "postgresql"
+  value: {{ .Values.database.type }}
 - name: DATABASE_HOST
   value: {{ include "snippet.postgresql.host" . }}
 - name: DATABASE_PORT
