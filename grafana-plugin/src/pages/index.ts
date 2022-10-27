@@ -10,7 +10,6 @@ import IncidentsPage2 from 'pages/incidents/Incidents';
 import IntegrationsPage2 from 'pages/integrations/Integrations';
 import LiveSettingsPage from 'pages/livesettings/LiveSettingsPage';
 import MaintenancePage2 from 'pages/maintenance/Maintenance';
-import MigrationTool from 'pages/migration-tool/MigrationTool';
 import OrganizationLogPage2 from 'pages/organization-logs/OrganizationLog';
 import OutgoingWebhooks2 from 'pages/outgoing_webhooks/OutgoingWebhooks';
 import SchedulePage from 'pages/schedule/Schedule';
@@ -123,13 +122,6 @@ export const pages: PageDefinition[] = [
     icon: 'gf-logs',
     id: 'organization-logs',
     text: 'Org Logs',
-    hideFromTabs: true,
-  },
-  {
-    component: MigrationTool,
-    icon: 'import',
-    id: 'migration-tool',
-    text: 'Migrate From Amixr.IO',
     hideFromTabs: true,
   },
   {

@@ -73,7 +73,7 @@ class ChannelVerificationCodeHandler(UpdateHandler):
             return
 
         connector, created = TelegramChannelVerificationCode.verify_channel_and_discussion_group(
-            uuid_code=verification_code,
+            verification_code=verification_code,
             channel_chat_id=channel_chat_id,
             channel_name=channel_name,
             discussion_group_chat_id=discussion_group_chat_id,

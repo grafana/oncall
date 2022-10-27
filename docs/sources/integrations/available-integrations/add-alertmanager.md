@@ -9,30 +9,30 @@ keywords:
   - on-call
   - Alertmanager
   - Prometheus
-title: Connect Alert Manager to Grafana OnCall
+title: Connect Alertmanager to Grafana OnCall
 canonical: "https://grafana.com/docs/oncall/latest/integrations/available-integrations/add-alertmanager/"
 weight: 300
 ---
 
-# Connect AlertManager to Grafana OnCall
+# Connect Alertmanager to Grafana OnCall
 
-The AlertManager integration for Grafana OnCall handles alerts sent by client applications such as the Prometheus server.
+The Alertmanager integration for Grafana OnCall handles alerts sent by client applications such as the Prometheus server.
 
-Grafana OnCall provides<!--[grouping](#alertmanager-grouping-amp-oncall-grouping)--> grouping abilities when processing alerts from Alert Manager, including initial deduplicating, grouping, and routing the alerts to Grafana OnCall.
+Grafana OnCall provides<!--[grouping](#alertmanager-grouping-amp-oncall-grouping)--> grouping abilities when processing alerts from Alertmanager, including initial deduplicating, grouping, and routing the alerts to Grafana OnCall.
 
-## Configure AlertManager integration for Grafana OnCall
+## Configure Alertmanager integration for Grafana OnCall
 
 You must have an Admin role to create integrations in Grafana OnCall.
 
 1. In the **Integrations** tab, click **+ New integration for receiving alerts**.
 
-2. Select **AlertManager** from the list of available integrations.
+2. Select **Alertmanager** from the list of available integrations.
 
 3. Follow the instructions in the **How to connect** window to get your unique integration URL and identify next steps.
 
 <!--![123](../_images/connect-new-monitoring.png)-->
 
-## Configure AlertManager
+## Configure Alertmanager
 
 Update the `receivers` section of your Alertmanager configuration to use a unique integration URL:
 
@@ -48,11 +48,11 @@ receivers:
     send_resolved: true
 ```
 
-## Configure grouping with AlertManager and Grafana OnCall
+## Configure grouping with Alertmanager and Grafana OnCall
 
-You can use the alert grouping mechanics of AlertManager and Grafana OnCall to configure your alert grouping preferences.
+You can use the alert grouping mechanics of Alertmanager and Grafana OnCall to configure your alert grouping preferences.
 
-AlertManager offers three alert grouping options:
+Alertmanager offers three alert grouping options:
 
 - `group_by` provides two options, `instance` or `job`.
 - `group_wait` sets the length of time to initially wait before sending a notification for a particular group of alerts. For example, `group_wait` can be set to 45s.
@@ -61,7 +61,7 @@ AlertManager offers three alert grouping options:
 
 - `group_interval` sets the length of time to wait before sending notifications about new alerts that have been added to a group of alerts that have been previously alerted on. This setting is usually set to five minutes or more.
 
-  During high alert volume periods, AlertManager will send alerts at each `group_interval`, which can mean a lot of distraction. Grafana OnCall grouping will help manage this in the following ways:
+  During high alert volume periods, Alertmanager will send alerts at each `group_interval`, which can mean a lot of distraction. Grafana OnCall grouping will help manage this in the following ways:
 
   - Grafana OnCall groups alerts based on the first label of each alert.
 
