@@ -232,21 +232,13 @@ class Alert(models.Model):
 
         return distinction
 
-    @property
-    def skip_signal(self):
-        try:
-            _ = self.migrator_lock
-            return True
-        except Alert.migrator_lock.RelatedObjectDoesNotExist:
-            return False
-
 
 def listen_for_alert_model_save(sender, instance, created, *args, **kwargs):
     AlertGroup = apps.get_model("alerts", "AlertGroup")
     """
     Here we invoke AlertShootingStep by model saving action.
     """
-    if created and instance.group.maintenance_uuid is None and not instance.skip_signal:
+    if created and instance.group.maintenance_uuid is None:
         # RFCT - why additinal save ?
         instance.save()
 
