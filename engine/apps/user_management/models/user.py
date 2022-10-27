@@ -270,6 +270,8 @@ class User(models.Model):
 
         result = {
             "username": self.username,
+            # LEGACY.. role should get removed eventually.. it's probably safe to remove it now?
+            "role": self.get_role_display(),
             "notification_policies": notification_policies_verbal,
         }
         if self.verified_phone_number:
@@ -288,6 +290,12 @@ class User(models.Model):
         org_has_rbac_enabled: bool,
         fallback_roles: typing.Optional[typing.List[LegacyAccessControlRole]] = None,
     ) -> typing.Union[PermissionsRegexQuery, RoleInQuery]:
+        """
+        This method returns a django query filter that is compatible with RBAC
+        as well as legacy "basic" role based authorization.
+
+        If a list of fallback roles is not provided then the `fallback_role` associated with `permission` is used.
+        """
         if org_has_rbac_enabled:
             # https://stackoverflow.com/a/50251879
             return PermissionsRegexQuery(permissions__regex=r".*{0}.*".format(permission.value))

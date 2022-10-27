@@ -15,7 +15,12 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from apps.api.permissions import IsOwnerOrHasRBACPermissions, RBACPermission, user_is_authorized
+from apps.api.permissions import (
+    IsOwnerOrHasRBACPermissions,
+    LegacyAccessControlRole,
+    RBACPermission,
+    user_is_authorized,
+)
 from apps.api.serializers.team import TeamSerializer
 from apps.api.serializers.user import FilterUserSerializer, UserHiddenFieldsSerializer, UserSerializer
 from apps.auth_token.auth import (
@@ -86,10 +91,13 @@ class UserFilter(filters.FilterSet):
     """
 
     email = filters.CharFilter(field_name="email", lookup_expr="icontains")
+    roles = filters.MultipleChoiceFilter(
+        field_name="role", choices=LegacyAccessControlRole.choices()
+    )  # LEGACY.. this should get removed eventually
 
     class Meta:
         model = User
-        fields = ["email"]
+        fields = ["email", "roles"]
 
 
 class UserView(

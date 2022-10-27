@@ -1,10 +1,12 @@
 import math
 import time
+import typing
 
 import pytz
 from django.conf import settings
 from rest_framework import serializers
 
+from apps.api.permissions import LegacyAccessControlRole
 from apps.api.serializers.telegram import TelegramToUserConnectorSerializer
 from apps.base.messaging import get_messaging_backends
 from apps.base.models import UserNotificationPolicy
@@ -35,6 +37,7 @@ class UserSerializer(DynamicFieldsModelSerializer, EagerLoadingMixin):
     timezone = serializers.CharField(allow_null=True, required=False)
     avatar = serializers.URLField(source="avatar_url", read_only=True)
 
+    permissions = serializers.SerializerMethodField()
     notification_chain_verbal = serializers.SerializerMethodField()
     cloud_connection_status = serializers.SerializerMethodField()
 
@@ -48,6 +51,7 @@ class UserSerializer(DynamicFieldsModelSerializer, EagerLoadingMixin):
             "current_team",
             "email",
             "username",
+            "role",  # LEGACY.. this should get removed eventually
             "avatar",
             "timezone",
             "working_hours",
@@ -56,6 +60,7 @@ class UserSerializer(DynamicFieldsModelSerializer, EagerLoadingMixin):
             "slack_user_identity",
             "telegram_configuration",
             "messaging_backends",
+            "permissions",  # LEGACY.. this should get removed eventually
             "notification_chain_verbal",
             "cloud_connection_status",
             "hide_phone_number",
@@ -63,6 +68,7 @@ class UserSerializer(DynamicFieldsModelSerializer, EagerLoadingMixin):
         read_only_fields = [
             "email",
             "username",
+            "role",  # LEGACY.. this should get removed eventually
             "verified_phone_number",
         ]
 
@@ -130,6 +136,34 @@ class UserSerializer(DynamicFieldsModelSerializer, EagerLoadingMixin):
             serialized_data[backend_id] = backend.serialize_user(obj)
         return serialized_data
 
+    def get_permissions(self, obj) -> typing.List[str]:
+        """
+        NOTE: this is legacy. This is only here to support older "pinned" versions of Grafana Cloud
+        that are communicating with this version, or later, of OnCall backend
+        """
+        editor_permissions = ["update_incidents", "update_own_settings", "view_other_users"]
+
+        if obj.role == LegacyAccessControlRole.ADMIN:
+            return editor_permissions + [
+                "update_alert_receive_channels",
+                "update_escalation_policies",
+                "update_notification_policies",
+                "update_general_log_channel_id",
+                "update_other_users_settings",
+                "update_integrations",
+                "update_schedules",
+                "update_custom_actions",
+                "update_api_tokens",
+                "update_teams",
+                "update_maintenances",
+                "update_global_settings",
+                "send_demo_alert",
+            ]
+        elif obj.role == LegacyAccessControlRole.EDITOR:
+            return editor_permissions
+        else:
+            return []
+
     def get_notification_chain_verbal(self, obj):
         default, important = UserNotificationPolicy.get_short_verbals_for_user(user=obj)
         return {"default": " - ".join(default), "important": " - ".join(important)}
@@ -163,7 +197,7 @@ class UserSerializer(DynamicFieldsModelSerializer, EagerLoadingMixin):
 
 
 class UserHiddenFieldsSerializer(UserSerializer):
-    available_for_all_permissions_fields = [
+    fields_available_for_all_users = [
         "pk",
         "organization",
         "current_team",
@@ -172,13 +206,14 @@ class UserHiddenFieldsSerializer(UserSerializer):
         "timezone",
         "working_hours",
         "notification_chain_verbal",
+        "permissions",
     ]
 
     def to_representation(self, instance):
         ret = super(UserSerializer, self).to_representation(instance)
         if instance.id != self.context["request"].user.id:
             for field in ret:
-                if field not in self.available_for_all_permissions_fields:
+                if field not in self.fields_available_for_all_users:
                     ret[field] = "******"
             ret["hidden_fields"] = True
         return ret
