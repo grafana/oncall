@@ -1,5 +1,7 @@
 # Contribute the new Integration to OnCall
 
+Related: [DEVELOPER.md](/DEVELOPER.md)
+
 "Integration" in OnCall is a pre-configured webhook for alert consumption from alert sources. Usually, alert sources are monitoring systems such as Grafana or Zabbix.
 
 Integration is a set of "templates" which are dumped from the integration config once the integration is created. Further changes to "templates" don't reflect on the integration config. Read more about templates [here](https://grafana.com/docs/oncall/latest/integrations/create-custom-templates/).
