@@ -6,7 +6,7 @@ import pytz
 from django.conf import settings
 from rest_framework import serializers
 
-from apps.api.permissions import LegacyAccessControlRole
+from apps.api.permissions import DONT_USE_LEGACY_PERMISSION_MAPPING
 from apps.api.serializers.telegram import TelegramToUserConnectorSerializer
 from apps.base.messaging import get_messaging_backends
 from apps.base.models import UserNotificationPolicy
@@ -137,32 +137,7 @@ class UserSerializer(DynamicFieldsModelSerializer, EagerLoadingMixin):
         return serialized_data
 
     def get_permissions(self, obj) -> typing.List[str]:
-        """
-        NOTE: this is legacy. This is only here to support older "pinned" versions of Grafana Cloud
-        that are communicating with this version, or later, of OnCall backend
-        """
-        editor_permissions = ["update_incidents", "update_own_settings", "view_other_users"]
-
-        if obj.role == LegacyAccessControlRole.ADMIN:
-            return editor_permissions + [
-                "update_alert_receive_channels",
-                "update_escalation_policies",
-                "update_notification_policies",
-                "update_general_log_channel_id",
-                "update_other_users_settings",
-                "update_integrations",
-                "update_schedules",
-                "update_custom_actions",
-                "update_api_tokens",
-                "update_teams",
-                "update_maintenances",
-                "update_global_settings",
-                "send_demo_alert",
-            ]
-        elif obj.role == LegacyAccessControlRole.EDITOR:
-            return editor_permissions
-        else:
-            return []
+        return DONT_USE_LEGACY_PERMISSION_MAPPING[obj.role]
 
     def get_notification_chain_verbal(self, obj):
         default, important = UserNotificationPolicy.get_short_verbals_for_user(user=obj)
