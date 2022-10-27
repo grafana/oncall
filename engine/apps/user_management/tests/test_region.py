@@ -86,7 +86,7 @@ def test_organization_moved_middleware(
         integration=AlertReceiveChannel.INTEGRATION_ALERTMANAGER,
     )
 
-    expected_message = bytes(f"Redirected to {region.oncall_backend_url}", 'utf-8')
+    expected_message = bytes(f"Redirected to {region.oncall_backend_url}", "utf-8")
     mocked_make_request.return_value = HttpResponse(expected_message, status=status.HTTP_200_OK)
 
     client = APIClient()
