@@ -1,5 +1,9 @@
 # Change Log
 
+## v1.0.45 (2022-10-27)
+
+- Bug fix to revert commit which removed unused engine code
+
 ## v1.0.44 (2022-10-26)
 
 - Bug fix for an issue that was affecting phone verification
