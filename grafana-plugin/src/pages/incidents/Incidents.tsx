@@ -6,7 +6,7 @@ import { Button, Icon, Tooltip, VerticalGroup, LoadingPlaceholder, HorizontalGro
 import cn from 'classnames/bind';
 import { get } from 'lodash-es';
 import { observer } from 'mobx-react';
-import moment from 'moment';
+import moment from 'moment-timezone';
 import Emoji from 'react-emoji-render';
 
 import CursorPagination from 'components/CursorPagination/CursorPagination';
@@ -39,13 +39,15 @@ interface Pagination {
 }
 
 function withSkeleton(fn: (alert: AlertType) => ReactElement | ReactElement[]) {
-  return (alert: AlertType) => {
+  const WithSkeleton = (alert: AlertType) => {
     if (alert.short) {
       return <LoadingPlaceholder text={''} />;
     }
 
     return fn(alert);
   };
+
+  return WithSkeleton;
 }
 
 interface IncidentsPageProps extends WithStoreProps, AppRootProps {}

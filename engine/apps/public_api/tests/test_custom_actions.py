@@ -168,6 +168,120 @@ def test_create_custom_action(make_organization_and_user_with_token):
 
 
 @pytest.mark.django_db
+def test_create_custom_action_nested_data(make_organization_and_user_with_token):
+
+    organization, user, token = make_organization_and_user_with_token()
+    client = APIClient()
+
+    url = reverse("api-public:actions-list")
+
+    data = {
+        "name": "Test outgoing webhook with nested data",
+        "url": "https://example.com",
+        # Assert that nested field access still works as long as the variable
+        # is quoted, making it valid JSON.
+        # This ensures backwards compatibility from when templates were required
+        # to be JSON.
+        "data": '{"nested_item": "{{ alert_payload.foo.bar }}"}',
+    }
+
+    response = client.post(url, data=data, format="json", HTTP_AUTHORIZATION=f"{token}")
+
+    custom_action = CustomButton.objects.get(public_primary_key=response.data["id"])
+
+    expected_result = {
+        "id": custom_action.public_primary_key,
+        "name": custom_action.name,
+        "team_id": None,
+        "url": custom_action.webhook,
+        "data": custom_action.data,
+        "user": custom_action.user,
+        "password": custom_action.password,
+        "authorization_header": custom_action.authorization_header,
+        "forward_whole_payload": custom_action.forward_whole_payload,
+    }
+
+    assert response.status_code == status.HTTP_201_CREATED
+    assert response.json() == expected_result
+
+
+@pytest.mark.django_db
+def test_create_custom_action_valid_after_render(make_organization_and_user_with_token):
+
+    organization, user, token = make_organization_and_user_with_token()
+    client = APIClient()
+
+    url = reverse("api-public:actions-list")
+
+    data = {
+        "name": "Test outgoing webhook with nested data",
+        "url": "https://example.com",
+        # Assert that nested field access still works as long as the variable
+        # is quoted, making it valid JSON.
+        # This ensures backwards compatibility from when templates were required
+        # to be JSON.
+        "data": '{"name": "{{ alert_payload.name }}", "labels": {{ alert_payload.labels | tojson }}}',
+    }
+
+    response = client.post(url, data=data, format="json", HTTP_AUTHORIZATION=f"{token}")
+
+    custom_action = CustomButton.objects.get(public_primary_key=response.data["id"])
+
+    expected_result = {
+        "id": custom_action.public_primary_key,
+        "name": custom_action.name,
+        "team_id": None,
+        "url": custom_action.webhook,
+        "data": custom_action.data,
+        "user": custom_action.user,
+        "password": custom_action.password,
+        "authorization_header": custom_action.authorization_header,
+        "forward_whole_payload": custom_action.forward_whole_payload,
+    }
+
+    assert response.status_code == status.HTTP_201_CREATED
+    assert response.json() == expected_result
+
+
+@pytest.mark.django_db
+def test_create_custom_action_valid_after_render_use_all_data(make_organization_and_user_with_token):
+
+    organization, user, token = make_organization_and_user_with_token()
+    client = APIClient()
+
+    url = reverse("api-public:actions-list")
+
+    data = {
+        "name": "Test outgoing webhook with nested data",
+        "url": "https://example.com",
+        # Assert that nested field access still works as long as the variable
+        # is quoted, making it valid JSON.
+        # This ensures backwards compatibility from when templates were required
+        # to be JSON.
+        "data": "{{ alert_payload | tojson }}",
+    }
+
+    response = client.post(url, data=data, format="json", HTTP_AUTHORIZATION=f"{token}")
+
+    custom_action = CustomButton.objects.get(public_primary_key=response.data["id"])
+
+    expected_result = {
+        "id": custom_action.public_primary_key,
+        "name": custom_action.name,
+        "team_id": None,
+        "url": custom_action.webhook,
+        "data": custom_action.data,
+        "user": custom_action.user,
+        "password": custom_action.password,
+        "authorization_header": custom_action.authorization_header,
+        "forward_whole_payload": custom_action.forward_whole_payload,
+    }
+
+    assert response.status_code == status.HTTP_201_CREATED
+    assert response.json() == expected_result
+
+
+@pytest.mark.django_db
 def test_create_custom_action_invalid_data(
     make_organization_and_user_with_token,
 ):
@@ -204,6 +318,29 @@ def test_create_custom_action_invalid_data(
 
     assert response.status_code == status.HTTP_400_BAD_REQUEST
     assert response.data["name"][0] == "This field is required."
+
+    data = {
+        "name": "Test outgoing webhook",
+        "url": "https://example.com",
+        "data": "invalid_json",
+    }
+
+    response = client.post(url, data=data, format="json", HTTP_AUTHORIZATION=f"{token}")
+
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert response.data["data"][0] == "Data has incorrect format"
+
+    data = {
+        "name": "Test outgoing webhook",
+        "url": "https://example.com",
+        # This would need a `| tojson` or some double quotes around it to pass validation.
+        "data": "{{ alert_payload.name }}",
+    }
+
+    response = client.post(url, data=data, format="json", HTTP_AUTHORIZATION=f"{token}")
+
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert response.data["data"][0] == "Data has incorrect format"
 
 
 @pytest.mark.django_db

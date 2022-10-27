@@ -31,7 +31,7 @@ def test_extra_messaging_backends_error_log(
     )
 
     output = log_record.render_log_line_action()
-    assert output == f"failed to notify {user_1.username} in {TestOnlyBackend.label.lower()}"
+    assert output == f"failed to notify {user_1.username} by {TestOnlyBackend.label.lower()}"
 
 
 @pytest.mark.django_db

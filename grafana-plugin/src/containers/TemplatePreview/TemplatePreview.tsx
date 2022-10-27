@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from 'react';
 
 import { LoadingPlaceholder } from '@grafana/ui';
-import { capitalCase } from 'change-case';
 import cn from 'classnames/bind';
 import { observer } from 'mobx-react';
 
@@ -24,10 +23,8 @@ interface TemplatePreviewProps {
   active?: boolean;
 }
 
-// web_title_template, web_message_template, web_image_url_template
-
 const TemplatePreview = observer((props: TemplatePreviewProps) => {
-  const { templateName, templateBody, alertReceiveChannelId, alertGroupId, onEditClick, active } = props;
+  const { templateName, templateBody, alertReceiveChannelId, alertGroupId } = props;
 
   const [result, setResult] = useState<{ preview: string | null } | undefined>(undefined);
 

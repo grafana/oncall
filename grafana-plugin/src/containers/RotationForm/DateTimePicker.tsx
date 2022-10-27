@@ -1,20 +1,10 @@
 import React, { useCallback, useMemo } from 'react';
 
 import { DateTime, dateTime } from '@grafana/data';
-import { DatePickerWithInput, HorizontalGroup, TimeOfDayPicker, Tooltip } from '@grafana/ui';
-import cn from 'classnames/bind';
+import { DatePickerWithInput, HorizontalGroup, TimeOfDayPicker } from '@grafana/ui';
 import dayjs from 'dayjs';
-import { observer } from 'mobx-react';
-import { Moment } from 'moment-timezone';
 
 import { Timezone } from 'models/timezone/timezone.types';
-import { getUserNotificationsSummary } from 'models/user/user.helpers';
-import { User } from 'models/user/user.types';
-import { useStore } from 'state/useStore';
-
-import styles from 'containers/UserTooltip/UserTooltip.module.css';
-
-const cx = cn.bind(styles);
 
 interface UserTooltipProps {
   value: dayjs.Dayjs;
@@ -44,23 +34,19 @@ const DateTimePicker = (props: UserTooltipProps) => {
 
   const minDate = useMemo(() => (minMoment ? toDate(minMoment, timezone) : undefined), [minMoment, timezone]);
 
-  const handleDateChange = useCallback(
-    (newDate: Date) => {
-      const localMoment = dayjs().tz(timezone).utcOffset() === 0 ? dayjs().utc() : dayjs().tz(timezone);
+  const handleDateChange = (newDate: Date) => {
+    const localMoment = dayjs().tz(timezone).utcOffset() === 0 ? dayjs().utc() : dayjs().tz(timezone);
 
-      const newValue = localMoment
-        .set('year', newDate.getFullYear())
-        .set('month', newDate.getMonth())
-        .set('date', newDate.getDate())
-        .set('hour', value.getHours())
-        .set('minute', value.getMinutes())
-        .set('second', value.getSeconds());
+    const newValue = localMoment
+      .set('year', newDate.getFullYear())
+      .set('month', newDate.getMonth())
+      .set('date', newDate.getDate())
+      .set('hour', value.getHours())
+      .set('minute', value.getMinutes())
+      .set('second', value.getSeconds());
 
-      onChange(newValue);
-    },
-    [value]
-  );
-
+    onChange(newValue);
+  };
   const handleTimeChange = useCallback(
     (newMoment: DateTime) => {
       const localMoment = dayjs().tz(timezone).utcOffset() === 0 ? dayjs().utc() : dayjs().tz(timezone);

@@ -85,7 +85,9 @@ class SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSta
       query: { id },
     } = this.props;
 
-    if (!id) {return;}
+    if (!id) {
+      return;
+    }
 
     let scheduleId: string = undefined;
     const isNewSchedule = id === 'new';
@@ -305,8 +307,8 @@ class SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSta
             Events
           </Text.Title>
           <ul className={cx('events-list')}>
-            {(events || []).map((event) => (
-              <li className={cx('events-list-item')}>
+            {(events || []).map((event, idx) => (
+              <li key={idx} className={cx('events-list-item')}>
                 <Event event={event} />
               </li>
             ))}
@@ -338,9 +340,6 @@ class SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSta
   };
 
   handleChangeFilters = (filters: SchedulesFiltersType) => {
-    const { store } = this.props;
-    const { scheduleStore } = store;
-
     this.setState({ filters }, () => {
       const { filters, expandedSchedulesKeys } = this.state;
 
@@ -360,9 +359,9 @@ class SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSta
     return value.user_group?.handle || '-';
   };
 
-  renderOncallNow = (item: Schedule, index: number) => {
+  renderOncallNow = (item: Schedule, _index: number) => {
     if (item.on_call_now?.length > 0) {
-      return item.on_call_now.map((user, index) => {
+      return item.on_call_now.map((user, _index) => {
         return (
           <PluginLink key={user.pk} query={{ page: 'users', id: user.pk }}>
             <div>
@@ -389,7 +388,7 @@ class SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSta
       const tooltipContent = (
         <div>
           {item.warnings.map((warning: string) => (
-            <p>{warning}</p>
+            <p key={warning}>{warning}</p>
           ))}
         </div>
       );

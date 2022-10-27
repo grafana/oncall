@@ -1,4 +1,4 @@
-import React, { FC } from 'react';
+import React from 'react';
 
 import cn from 'classnames/bind';
 
@@ -15,21 +15,19 @@ export interface TimelineItemProps {
   children?: any;
 }
 
-const TimelineItem: React.FC<TimelineItemProps> = (props) => {
-  const { className, contentClassName, children, color = '#3274D9', number } = props;
-
-  const style = { backgroundColor: color };
-
-  return (
-    <li className={cx('item', className)}>
-      {/*<Badge count={badge} style={style} showZero={false}>*/}
-      <div className={cx('dot')} style={{ backgroundColor: color }}>
-        {number}
-      </div>
-      {/*</Badge>*/}
-      <div className={cx('content', contentClassName)}>{children}</div>
-    </li>
-  );
-};
+const TimelineItem: React.FC<TimelineItemProps> = ({
+  className,
+  contentClassName,
+  children,
+  color = '#3274D9',
+  number,
+}) => (
+  <li className={cx('item', className)}>
+    <div className={cx('dot')} style={{ backgroundColor: color }}>
+      {number}
+    </div>
+    <div className={cx('content', contentClassName)}>{children}</div>
+  </li>
+);
 
 export default TimelineItem;

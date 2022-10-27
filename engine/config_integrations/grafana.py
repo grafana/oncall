@@ -81,29 +81,6 @@ sms_title = """\
 
 phone_call_title = sms_title
 
-email_title = web_title
-
-email_message = """\
-{{- payload.message }}
-{%- for value in payload.get("evalMatches", []) %}
-**{{ value.metric }}**: {{ value.value }}
-{% endfor -%}
-{%- if "status" in payload -%}
-**Status**: {{ payload.status }}
-{% endif -%}
-{%- if "labels" in payload -%}
-**Labels:** {% for k, v in payload["labels"].items() %}
-{{ k }}: {{ v }}{% endfor %}
-{% endif -%}
-{%- if "annotations" in payload -%}
-**Annotations:**
-{%- for k, v in payload.get("annotations", {}).items() %}
-{#- render annotation as markdown url if it starts with http #}
-{{ k }}: {{v}}
-{% endfor %}
-{%- endif -%}
-"""
-
 telegram_title = sms_title
 
 telegram_message = """\
@@ -214,23 +191,6 @@ tests = {
     },
     "phone_call": {
         "title": "KubeJobCompletion",
-    },
-    "email": {
-        "title": "KubeJobCompletion",
-        "message": (
-            "**Status**: firing\n"
-            "**Labels:** \n"
-            "job: kube-state-metrics\n"
-            "instance: 10.143.139.7:8443\n"
-            "job_name: email-tracking-perform-initialization-1.0.50\n"
-            "severity: warning\n"
-            "alertname: KubeJobCompletion\n"
-            "namespace: default\n"
-            "prometheus: monitoring/k8s\n"
-            "**Annotations:**\n"
-            "message: Job default/email-tracking-perform-initialization-1.0.50 is taking more than one hour to complete.\n\n"
-            "runbook_url: https://github.com/kubernetes-monitoring/kubernetes-mixin/tree/master/runbook.md#alert-name-kubejobcompletion\n"
-        ),
     },
     "telegram": {
         "title": "KubeJobCompletion",

@@ -1,14 +1,8 @@
-import { SelectOptions } from '@grafana/ui';
 import dayjs from 'dayjs';
-import { omit, reject } from 'lodash-es';
-import { action, observable, toJS } from 'mobx';
-import ReactCSSTransitionGroup from 'react-transition-group'; // ES6
+import { action, observable } from 'mobx';
 
 import BaseStore from 'models/base_store';
 import { EscalationChain } from 'models/escalation_chain/escalation_chain.types';
-import { SlackChannel } from 'models/slack_channel/slack_channel.types';
-import { Timezone } from 'models/timezone/timezone.types';
-import { User } from 'models/user/user.types';
 import { makeRequest } from 'network';
 import { RootStore } from 'state';
 import { SelectOption } from 'state/types';
@@ -16,16 +10,11 @@ import { SelectOption } from 'state/types';
 import {
   enrichLayers,
   enrichOverrides,
-  fillGaps,
   getFromString,
   splitToLayers,
   splitToShiftsAndFillGaps,
 } from './schedule.helpers';
-import { Events, Rotation, RotationType, Schedule, ScheduleEvent, Shift, Event, Layer } from './schedule.types';
-
-const DEFAULT_FORMAT = 'YYYY-MM-DDTHH:mm:ss';
-
-let I = 0;
+import { Rotation, RotationType, Schedule, ScheduleEvent, Shift, Event, Layer, ShiftEvents } from './schedule.types';
 
 export class ScheduleStore extends BaseStore {
   @observable
@@ -54,7 +43,7 @@ export class ScheduleStore extends BaseStore {
   events: {
     [scheduleId: string]: {
       [type: string]: {
-        [startMoment: string]: Array<{ shiftId: string; events: Event[]; isPreview?: boolean }> | Layer[];
+        [startMoment: string]: ShiftEvents[] | Layer[];
       };
     };
   } = {};
@@ -75,6 +64,9 @@ export class ScheduleStore extends BaseStore {
 
   @observable
   byDayOptions: SelectOption[];
+
+  @observable
+  scheduleId: Schedule['id'];
 
   constructor(rootStore: RootStore) {
     super(rootStore);
@@ -227,7 +219,7 @@ export class ScheduleStore extends BaseStore {
       this.rotationPreview = layers;
     }
 
-    this.finalPreview = splitToShiftsAndFillGaps(response.final); /*.filter((shift) => shift.shiftId !== shiftId);*/
+    this.finalPreview = splitToShiftsAndFillGaps(response.final);
   }
 
   @action
@@ -328,25 +320,7 @@ export class ScheduleStore extends BaseStore {
     });
 
     const fromString = getFromString(startMoment);
-
     const shifts = splitToShiftsAndFillGaps(response.events);
-
-    // merge users on frontend side, we don't need it now
-    /*shifts.forEach((shift) => {
-      for (let i = 0; i < shift.events.length; i++) {
-        const iEvent = shift.events[i];
-
-        for (let j = i + 1; j < shift.events.length; j++) {
-          const jEvent = shift.events[j];
-          if (iEvent.start === jEvent.start && iEvent.end === jEvent.end) {
-            iEvent.users.push(...jEvent.users);
-            jEvent.merged = true;
-          }
-        }
-        shift.events = shift.events.filter((event) => !event.merged);
-      }
-    });*/
-
     const layers = type === 'rotation' ? splitToLayers(shifts) : undefined;
 
     this.events = {
@@ -359,8 +333,6 @@ export class ScheduleStore extends BaseStore {
         },
       },
     };
-
-    // console.log(toJS(this.events));
   }
 
   async updateFrequencyOptions() {

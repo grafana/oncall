@@ -1,6 +1,5 @@
 import React, { FC, useCallback, useState } from 'react';
 
-import { getLocationSrv } from '@grafana/runtime';
 import { Button, Drawer, HorizontalGroup, Icon, VerticalGroup } from '@grafana/ui';
 import cn from 'classnames/bind';
 
@@ -39,10 +38,6 @@ const NewScheduleSelector: FC<NewScheduleSelectorProps> = (props) => {
       <Drawer scrollableContent title="Create new schedule" onClose={onHide} closeOnMaskClick>
         <div className={cx('content')}>
           <VerticalGroup spacing="lg">
-            {/*<Text type="secondary">
-            Manage on-call schedules using your favourite calendar app, such as Google Calendar or Microsoft Outlook. To
-            schedule on-call shifts create a new calendar and use events with the teammates usernames
-          </Text>*/}
             <Block bordered withBackground className={cx('block')}>
               <HorizontalGroup justify="space-between">
                 <HorizontalGroup spacing="md">

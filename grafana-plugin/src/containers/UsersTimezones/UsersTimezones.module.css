@@ -1,5 +1,5 @@
 .root {
-  border: var(--border-medium);
+  border: var(--border-weak);
   display: flex;
   flex-direction: column;
   background: var(--background-secondary);
@@ -15,7 +15,7 @@
   font-size: 19px;
   line-height: 24px;
   color: rgba(204, 204, 220, 0.65);
-  margin: 16px 0;
+  margin-top: 16px;
 }
 
 .current-time {
@@ -89,14 +89,7 @@
 
   --color: rgba(61, 113, 217, 0.2);
 
-  background:
-    repeating-linear-gradient(
-      -45deg,
-      var(--color),
-      var(--color) 4px,
-      transparent 4px,
-      transparent 8px
-    );
+  background: repeating-linear-gradient(-45deg, var(--color), var(--color) 4px, transparent 4px, transparent 8px);
 }
 
 .current-user-stripe {

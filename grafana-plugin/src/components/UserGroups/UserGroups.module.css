@@ -24,7 +24,7 @@
 
 .separator::before {
   display: block;
-  content: "";
+  content: '';
   flex-grow: 1;
   border-bottom: var(--border-medium);
   height: 0;
@@ -33,7 +33,7 @@
 
 .separator::after {
   display: block;
-  content: "";
+  content: '';
   flex-grow: 1;
   border-bottom: var(--border-medium);
   height: 0;

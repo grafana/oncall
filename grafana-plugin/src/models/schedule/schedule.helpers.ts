@@ -1,6 +1,8 @@
 import dayjs from 'dayjs';
 
-import { Event, Layer, ScheduleType, Shift } from './schedule.types';
+import { RootStore } from 'state';
+
+import { Event, Layer, Schedule, ScheduleType, Shift, ShiftEvents } from './schedule.types';
 
 export const getFromString = (moment: dayjs.Dayjs) => {
   return moment.format('YYYY-MM-DD');
@@ -39,7 +41,7 @@ export const fillGaps = (events: Event[]) => {
 export const splitToShiftsAndFillGaps = (events: Event[]) => {
   const shifts: Array<{ shiftId: Shift['id']; priority: Shift['priority_level']; events: Event[] }> = [];
 
-  for (const [i, event] of events.entries()) {
+  for (const [_i, event] of events.entries()) {
     if (event.shift?.pk) {
       let shift = shifts.find((shift) => shift.shiftId === event.shift?.pk);
       if (!shift) {
@@ -55,6 +57,32 @@ export const splitToShiftsAndFillGaps = (events: Event[]) => {
   });
 
   return shifts;
+};
+
+export const getShiftsFromStore = (
+  store: RootStore,
+  scheduleId: Schedule['id'],
+  startMoment: dayjs.Dayjs
+): ShiftEvents[] => {
+  return store.scheduleStore.finalPreview
+    ? store.scheduleStore.finalPreview
+    : (store.scheduleStore.events[scheduleId]?.['final']?.[getFromString(startMoment)] as any);
+};
+
+export const getLayersFromStore = (store: RootStore, scheduleId: Schedule['id'], startMoment: dayjs.Dayjs): Layer[] => {
+  return store.scheduleStore.rotationPreview
+    ? store.scheduleStore.rotationPreview
+    : (store.scheduleStore.events[scheduleId]?.['rotation']?.[getFromString(startMoment)] as Layer[]);
+};
+
+export const getOverridesFromStore = (
+  store: RootStore,
+  scheduleId: Schedule['id'],
+  startMoment: dayjs.Dayjs
+): Layer[] | ShiftEvents[] => {
+  return store.scheduleStore.overridePreview
+    ? store.scheduleStore.overridePreview
+    : (store.scheduleStore.events[scheduleId]?.['override']?.[getFromString(startMoment)] as Layer[]);
 };
 
 export const splitToLayers = (

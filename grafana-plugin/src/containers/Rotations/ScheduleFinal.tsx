@@ -1,6 +1,6 @@
-import React, { Component, useEffect } from 'react';
+import React, { Component } from 'react';
 
-import { Button, HorizontalGroup, Icon, Input, ValuePicker } from '@grafana/ui';
+import { HorizontalGroup } from '@grafana/ui';
 import cn from 'classnames/bind';
 import dayjs from 'dayjs';
 import { observer } from 'mobx-react';
@@ -9,8 +9,8 @@ import { CSSTransition, TransitionGroup } from 'react-transition-group';
 import Text from 'components/Text/Text';
 import TimelineMarks from 'components/TimelineMarks/TimelineMarks';
 import Rotation from 'containers/Rotation/Rotation';
-import { getColor, getFromString, getOverrideColor } from 'models/schedule/schedule.helpers';
-import { Event, Layer, Schedule, Shift } from 'models/schedule/schedule.types';
+import { getLayersFromStore, getOverridesFromStore, getShiftsFromStore } from 'models/schedule/schedule.helpers';
+import { Schedule, Shift } from 'models/schedule/schedule.types';
 import { Timezone } from 'models/timezone/timezone.types';
 import { WithStoreProps } from 'state/types';
 import { withMobXProviderContext } from 'state/withStore';
@@ -41,32 +41,20 @@ class ScheduleFinal extends Component<ScheduleFinalProps, ScheduleOverridesState
   };
 
   render() {
-    const { scheduleId, startMoment, currentTimezone, store, hideHeader } = this.props;
-    const { searchTerm } = this.state;
+    const { startMoment, currentTimezone, store, hideHeader, scheduleId } = this.props;
 
     const base = 7 * 24 * 60; // in minutes
     const diff = dayjs().tz(currentTimezone).diff(startMoment, 'minutes');
 
     const currentTimeX = diff / base;
 
-    const shifts = store.scheduleStore.finalPreview
-      ? store.scheduleStore.finalPreview
-      : (store.scheduleStore.events[scheduleId]?.['final']?.[getFromString(startMoment)] as Array<{
-          shiftId: string;
-          events: Event[];
-        }>);
+    const shifts = getShiftsFromStore(store, scheduleId, startMoment);
 
-    const layers = store.scheduleStore.rotationPreview
-      ? store.scheduleStore.rotationPreview
-      : (store.scheduleStore.events[scheduleId]?.['rotation']?.[getFromString(startMoment)] as Layer[]);
+    const layers = getLayersFromStore(store, scheduleId, startMoment);
 
-    const overrides = store.scheduleStore.overridePreview
-      ? store.scheduleStore.overridePreview
-      : store.scheduleStore.events[scheduleId]?.['override']?.[getFromString(startMoment)];
+    const overrides = getOverridesFromStore(store, scheduleId, startMoment);
+
     const currentTimeHidden = currentTimeX < 0 || currentTimeX > 1;
-
-    /* console.log('shifts', toJS(shifts));
-    console.log('layers', toJS(layers)); */
 
     return (
       <>
@@ -79,12 +67,6 @@ class ScheduleFinal extends Component<ScheduleFinalProps, ScheduleOverridesState
                     Final schedule
                   </Text.Title>
                 </div>
-                {/*<Input
-                  prefix={<Icon name="search" />}
-                  placeholder="Search..."
-                  value={searchTerm}
-                  onChange={this.onSearchTermChangeCallback}
-                />*/}
               </HorizontalGroup>
             </div>
           )}

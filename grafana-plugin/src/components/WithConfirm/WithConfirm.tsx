@@ -1,9 +1,6 @@
-import React, { FC, ReactElement, useCallback, useState } from 'react';
+import React, { ReactElement, useCallback, useState } from 'react';
 
 import { ConfirmModal } from '@grafana/ui';
-import cn from 'classnames/bind';
-
-import styles from './WithConfirm.module.css';
 
 interface WithConfirmProps {
   children: ReactElement;
@@ -13,14 +10,14 @@ interface WithConfirmProps {
   disabled?: boolean;
 }
 
-const cx = cn.bind(styles);
-
 const WithConfirm = (props: WithConfirmProps) => {
   const { children, title = 'Are you sure to delete?', body, confirmText = 'Delete', disabled } = props;
 
   const [showConfirmation, setShowConfirmation] = useState<boolean>(false);
 
-  const onClickCallback = useCallback(() => {
+  const onClickCallback = useCallback((event) => {
+    event.stopPropagation();
+
     setShowConfirmation(true);
   }, []);
 
