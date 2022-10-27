@@ -1,6 +1,6 @@
 # Change Log
 
-## v1.0.43 (2022-10-26)
+## v1.0.44 (2022-10-26)
 
 - Bug fix for an issue that was affecting phone verification
 
