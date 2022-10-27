@@ -5,6 +5,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.views import Response
 from rest_framework.viewsets import ReadOnlyModelViewSet
 
+from apps.api.permissions import LegacyAccessControlRole
 from apps.auth_token.auth import ApiTokenAuthentication, UserScheduleExportAuthentication
 from apps.public_api.custom_renderers import CalendarRenderer
 from apps.public_api.serializers import FastUserSerializer, UserSerializer
@@ -22,11 +23,14 @@ class UserFilter(filters.FilterSet):
     """
 
     email = filters.CharFilter(field_name="email", lookup_expr="iexact")
+    roles = filters.MultipleChoiceFilter(
+        field_name="role", choices=LegacyAccessControlRole.choices()
+    )  # LEGACY, should be removed eventually
     username = filters.CharFilter(field_name="username", lookup_expr="iexact")
 
     class Meta:
         model = User
-        fields = ["email", "username"]
+        fields = ["email", "roles", "username"]
 
 
 class UserView(RateLimitHeadersMixin, ShortSerializerMixin, ReadOnlyModelViewSet):

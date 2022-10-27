@@ -7,7 +7,7 @@ from django.db import models
 from django.db.models import JSONField
 from django.utils import timezone
 
-from apps.api.permissions import RBACPermission
+from apps.api.permissions import LegacyAccessControlRole, RBACPermission
 from apps.slack.slack_client import SlackClientWithErrorHandling
 from apps.slack.slack_client.exceptions import SlackAPIException
 from apps.user_management.models.user import User
@@ -110,6 +110,7 @@ class SlackUserGroup(models.Model):
             **User.build_permissions_query(
                 RBACPermission.Permissions.CHATOPS_WRITE,
                 org_has_rbac_enabled=organization.is_rbac_permissions_enabled,
+                fallback_roles=[LegacyAccessControlRole.ADMIN, LegacyAccessControlRole.EDITOR],
             ),
         )
 

@@ -22,8 +22,6 @@ from common.api_helpers.mixins import UpdateSerializerMixin
 from common.exceptions import UserNotificationPolicyCouldNotBeDeleted
 from common.insight_log import EntityEvent, write_resource_insight_log
 
-IsOwnerOrHasUserSettingsAdminPermission = IsOwnerOrHasRBACPermissions([RBACPermission.Permissions.USER_SETTINGS_ADMIN])
-
 
 class UserNotificationPolicyView(UpdateSerializerMixin, ModelViewSet):
     authentication_classes = (PluginAuthentication,)
@@ -41,6 +39,10 @@ class UserNotificationPolicyView(UpdateSerializerMixin, ModelViewSet):
         "destroy": [RBACPermission.Permissions.USER_SETTINGS_WRITE],
         "move_to_position": [RBACPermission.Permissions.USER_SETTINGS_WRITE],
     }
+
+    IsOwnerOrHasUserSettingsAdminPermission = IsOwnerOrHasRBACPermissions(
+        required_permissions=[RBACPermission.Permissions.USER_SETTINGS_ADMIN], ownership_field="user"
+    )
 
     rbac_object_permissions = {
         IsOwnerOrHasUserSettingsAdminPermission: [

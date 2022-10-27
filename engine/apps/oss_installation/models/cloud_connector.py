@@ -70,7 +70,7 @@ class CloudConnector(models.Model):
         page = 1
         while fetch_next_page:
             try:
-                url = urljoin(users_url, f"?page={page}&short=true")
+                url = urljoin(users_url, f"?page={page}&short=true&roles=0&roles=1")
                 r = requests.get(url, headers={"AUTHORIZATION": api_token}, timeout=5)
                 if r.status_code != 200:
                     logger.warning(
@@ -117,7 +117,7 @@ class CloudConnector(models.Model):
             error_msg = "GRAFANA_CLOUD_ONCALL_TOKEN is not set"
         else:
             url = create_engine_url(
-                f"api/v1/users/?email={user.email}&short=true",
+                f"api/v1/users/?email={user.email}&roles=0&roles=1&short=true",
                 override_base=GRAFANA_CLOUD_ONCALL_API_URL,
             )
             try:
