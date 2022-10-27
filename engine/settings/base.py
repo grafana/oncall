@@ -201,6 +201,7 @@ INSTALLED_APPS = [
     "apps.public_api",
     "apps.grafana_plugin",
     "apps.grafana_plugin_management",
+    "apps.migration_tool",
     "corsheaders",
     "debug_toolbar",
     "social_django",
