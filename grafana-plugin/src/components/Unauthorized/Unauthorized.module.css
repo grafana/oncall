@@ -1,3 +1,9 @@
-.wip {
-  display: block;
+.not-found {
+  margin: 50px auto;
+  text-align: center;
+  width: 400px;
+}
+
+.error-code {
+  color: var(--warning-text-color);
 }
