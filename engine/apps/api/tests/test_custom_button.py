@@ -448,39 +448,6 @@ def test_custom_button_delete_permissions(
 
 
 @pytest.mark.django_db
-@pytest.mark.parametrize(
-    "role,expected_status",
-    [
-        (Role.ADMIN, status.HTTP_200_OK),
-        (Role.EDITOR, status.HTTP_200_OK),
-        (Role.VIEWER, status.HTTP_403_FORBIDDEN),
-    ],
-)
-def test_custom_button_action_permissions(
-    make_organization_and_user_with_plugin_token,
-    make_custom_action,
-    make_user_auth_headers,
-    role,
-    expected_status,
-):
-    organization, user, token = make_organization_and_user_with_plugin_token(role)
-    custom_button = make_custom_action(organization=organization)
-    client = APIClient()
-
-    url = reverse("api-internal:custom_button-action", kwargs={"pk": custom_button.public_primary_key})
-
-    with patch(
-        "apps.api.views.custom_button.CustomButtonView.action",
-        return_value=Response(
-            status=status.HTTP_200_OK,
-        ),
-    ):
-        response = client.post(url, format="json", **make_user_auth_headers(user, token))
-
-    assert response.status_code == expected_status
-
-
-@pytest.mark.django_db
 def test_get_custom_button_from_other_team_with_flag(
     make_organization_and_user_with_plugin_token,
     make_team,
