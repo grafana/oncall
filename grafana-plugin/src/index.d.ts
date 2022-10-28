@@ -27,5 +27,6 @@ declare module 'grafana/app/core/core' {
     };
 
     hasAccess(action: string, fallBack: boolean): boolean;
+    accessControlEnabled(): boolean;
   };
 }

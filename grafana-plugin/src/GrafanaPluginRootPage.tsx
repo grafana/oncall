@@ -158,7 +158,11 @@ export const Root = observer((props: AppRootProps) => {
   return (
     <DefaultPageLayout {...props}>
       <GrafanaTeamSelect currentPage={page} />
-      {userHasAccess ? <PageComponent {...props} path={pathWithoutLeadingSlash} /> : <Unauthorized />}
+      {userHasAccess ? (
+        <PageComponent {...props} path={pathWithoutLeadingSlash} />
+      ) : (
+        <Unauthorized requiredUserAction={pagePermissionAction} />
+      )}
     </DefaultPageLayout>
   );
 });
