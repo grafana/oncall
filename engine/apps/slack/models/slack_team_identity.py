@@ -4,7 +4,7 @@ from django.apps import apps
 from django.db import models
 from django.db.models import JSONField
 
-from apps.api.permissions import LegacyAccessControlRole, RBACPermission
+from apps.api.permissions import RBACPermission
 from apps.slack.constants import SLACK_INVALID_AUTH_RESPONSE, SLACK_WRONG_TEAM_NAMES
 from apps.slack.slack_client import SlackClientWithErrorHandling
 from apps.slack.slack_client.exceptions import SlackAPIException, SlackAPITokenException
@@ -130,11 +130,7 @@ class SlackTeamIdentity(models.Model):
 
         return organization.users.filter(
             slack_user_identity__slack_id__in=members,
-            **User.build_permissions_query(
-                RBACPermission.Permissions.SCHEDULES_WRITE,
-                org_has_rbac_enabled=organization.is_rbac_permissions_enabled,
-                fallback_roles=[LegacyAccessControlRole.ADMIN, LegacyAccessControlRole.EDITOR],
-            ),
+            **User.build_permissions_query(RBACPermission.Permissions.CHATOPS_WRITE, organization),
         )
 
     def get_conversation_members(self, slack_client, channel_id):

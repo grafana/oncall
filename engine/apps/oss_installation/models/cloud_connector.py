@@ -60,8 +60,7 @@ class CloudConnector(models.Model):
             logger.warning("Unable to sync with cloud. GRAFANA_CLOUD_ONCALL_TOKEN is not set")
             error_msg = "GRAFANA_CLOUD_ONCALL_TOKEN is not set"
 
-        # TODO: hallpp
-        existing_emails = list(User.objects.filter().values_list("email", flat=True))
+        existing_emails = [user.email for user in User.objects.all() if user.is_notification_allowed]
         matching_users = []
         users_url = create_engine_url("api/v1/users", override_base=GRAFANA_CLOUD_ONCALL_API_URL)
 

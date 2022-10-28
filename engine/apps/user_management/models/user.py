@@ -286,20 +286,21 @@ class User(models.Model):
 
     @staticmethod
     def build_permissions_query(
-        permission: LegacyAccessControlCompatiblePermission,
-        org_has_rbac_enabled: bool,
-        fallback_roles: typing.Optional[typing.List[LegacyAccessControlRole]] = None,
+        permission: LegacyAccessControlCompatiblePermission, organization
     ) -> typing.Union[PermissionsRegexQuery, RoleInQuery]:
         """
         This method returns a django query filter that is compatible with RBAC
-        as well as legacy "basic" role based authorization.
+        as well as legacy "basic" role based authorization. If a permission is provided we simply do
+        a regex search where the permission column contains the permission value (need to use regex because
+        the JSON contains method is not supported by sqlite)
 
-        If a list of fallback roles is not provided then the `fallback_role` associated with `permission` is used.
+        If RBAC is not supported for the org, we make the assumption that we are looking for any users with AT LEAST
+        the fallback role. Ex: if the fallback role were editor than we would get editors and admins.
         """
-        if org_has_rbac_enabled:
+        if organization.is_rbac_permissions_enabled:
             # https://stackoverflow.com/a/50251879
             return PermissionsRegexQuery(permissions__regex=r".*{0}.*".format(permission.value))
-        return RoleInQuery(role__in=fallback_roles or [permission.fallback_role])
+        return RoleInQuery(role__lte=permission.fallback_role.value)
 
 
 # TODO: check whether this signal can be moved to save method of the model

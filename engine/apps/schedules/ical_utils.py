@@ -13,7 +13,7 @@ from django.db.models import Q
 from django.utils import timezone
 from icalendar import Calendar
 
-from apps.api.permissions import LegacyAccessControlRole, RBACPermission
+from apps.api.permissions import RBACPermission
 from apps.schedules.constants import (
     ICAL_ATTENDEE,
     ICAL_DATETIME_END,
@@ -46,12 +46,9 @@ def users_in_ical(usernames_from_ical, organization, include_viewers=False):
 
     users_found_in_ical = organization.users
     if not include_viewers:
+        # TODO: this is a breaking change....
         users_found_in_ical = users_found_in_ical.filter(
-            **User.build_permissions_query(
-                RBACPermission.Permissions.SCHEDULES_WRITE,
-                org_has_rbac_enabled=organization.is_rbac_permissions_enabled,
-                fallback_roles=[LegacyAccessControlRole.ADMIN, LegacyAccessControlRole.EDITOR],
-            )
+            **User.build_permissions_query(RBACPermission.Permissions.SCHEDULES_WRITE, organization)
         )
 
     user_emails = [v.lower() for v in usernames_from_ical]
