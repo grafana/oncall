@@ -33,7 +33,7 @@ class ChannelFilterView(PublicPrimaryKeyMixin, CreateSerializerMixin, UpdateSeri
         "partial_update": [RBACPermission.Permissions.INTEGRATIONS_WRITE],
         "destroy": [RBACPermission.Permissions.INTEGRATIONS_WRITE],
         "move_to_position": [RBACPermission.Permissions.INTEGRATIONS_WRITE],
-        "send_demo_alert": [RBACPermission.Permissions.INTEGRATIONS_WRITE],
+        "send_demo_alert": [RBACPermission.Permissions.INTEGRATIONS_TEST],
     }
 
     model = ChannelFilter

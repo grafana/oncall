@@ -40,6 +40,7 @@ class Actions(enum.Enum):
     READ = "read"
     WRITE = "write"
     ADMIN = "admin"
+    TEST = "test"
 
 
 class LegacyAccessControlRole(enum.IntEnum):
@@ -88,8 +89,12 @@ class RBACPermission(permissions.BasePermission):
         INTEGRATIONS_READ = LegacyAccessControlCompatiblePermission(
             Resources.INTEGRATIONS, Actions.READ, LegacyAccessControlRole.VIEWER
         )
+        # this should exceptionally only be assigned to Admins
         INTEGRATIONS_WRITE = LegacyAccessControlCompatiblePermission(
-            Resources.INTEGRATIONS, Actions.WRITE, LegacyAccessControlRole.EDITOR
+            Resources.INTEGRATIONS, Actions.WRITE, LegacyAccessControlRole.ADMIN
+        )
+        INTEGRATIONS_TEST = LegacyAccessControlCompatiblePermission(
+            Resources.INTEGRATIONS, Actions.TEST, LegacyAccessControlRole.EDITOR
         )
 
         ESCALATION_CHAINS_READ = LegacyAccessControlCompatiblePermission(
@@ -254,29 +259,6 @@ class IsStaff(permissions.BasePermission):
 RBACPermissionsAttribute = typing.Dict[str, typing.List[LegacyAccessControlCompatiblePermission]]
 RBACObjectPermissionsAttribute = typing.Dict[permissions.BasePermission, typing.List[str]]
 
-# The below stuff is mostly for testing purposes
-# ROLE_PERMISSION_MAPPING essentially represents the basic legacy role -> RBAC permission mapping
-# that is defined in plugin.json on the frontend
-
-
-def _get_list_of_perms_for_role(
-    role: LegacyAccessControlCompatiblePermission,
-) -> typing.List[LegacyAccessControlCompatiblePermission]:
-    return [
-        getattr(RBACPermission.Permissions, attr)
-        for attr in dir(RBACPermission.Permissions)
-        if not attr.startswith("_") and getattr(RBACPermission.Permissions, attr).fallback_role == role
-    ]
-
-
-_VIEWER_PERMISSIONS = _get_list_of_perms_for_role(LegacyAccessControlRole.VIEWER)
-_EDITOR_PERMISSIONS = _VIEWER_PERMISSIONS + _get_list_of_perms_for_role(LegacyAccessControlRole.EDITOR)
-_ADMIN_PERMISSIONS = _EDITOR_PERMISSIONS + _get_list_of_perms_for_role(LegacyAccessControlRole.ADMIN)
-ROLE_PERMISSION_MAPPING: typing.Dict[LegacyAccessControlRole, typing.List[LegacyAccessControlCompatiblePermission]] = {
-    LegacyAccessControlRole.VIEWER: _VIEWER_PERMISSIONS,
-    LegacyAccessControlRole.EDITOR: _EDITOR_PERMISSIONS,
-    LegacyAccessControlRole.ADMIN: _ADMIN_PERMISSIONS,
-}
 
 # The below is legacy, it is only needed currently for backward compatibility w/ users running
 # older "pinned" version of Grafana in Grafana Cloud

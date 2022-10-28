@@ -85,13 +85,13 @@ class AlertReceiveChannelView(
         "integration_options": [RBACPermission.Permissions.INTEGRATIONS_READ],
         "counters": [RBACPermission.Permissions.INTEGRATIONS_READ],
         "counters_per_integration": [RBACPermission.Permissions.INTEGRATIONS_READ],
+        "send_demo_alert": [RBACPermission.Permissions.INTEGRATIONS_TEST],
+        "preview_template": [RBACPermission.Permissions.INTEGRATIONS_TEST],
         "create": [RBACPermission.Permissions.INTEGRATIONS_WRITE],
         "update": [RBACPermission.Permissions.INTEGRATIONS_WRITE],
         "partial_update": [RBACPermission.Permissions.INTEGRATIONS_WRITE],
         "destroy": [RBACPermission.Permissions.INTEGRATIONS_WRITE],
-        "send_demo_alert": [RBACPermission.Permissions.INTEGRATIONS_WRITE],
         "change_team": [RBACPermission.Permissions.INTEGRATIONS_WRITE],
-        "preview_template": [RBACPermission.Permissions.INTEGRATIONS_WRITE],
     }
 
     def create(self, request, *args, **kwargs):
