@@ -66,7 +66,7 @@ class AlertChannelDefiningMixin(object):
                 logger.info("Cache is empty!")
                 raise
 
-        if alert_receive_channel.organization.migration_destination is not None:
+        if alert_receive_channel.organization.is_moved:
             raise OrganizationMovedException(alert_receive_channel.organization)
 
         del kwargs["alert_channel_key"]

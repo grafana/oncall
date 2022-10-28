@@ -48,7 +48,7 @@ class ApiTokenAuthentication(BaseAuthentication):
         except InvalidToken:
             raise exceptions.AuthenticationFailed("Invalid token.")
 
-        if auth_token.organization.migration_destination is not None:
+        if auth_token.organization.is_moved:
             raise OrganizationMovedException(auth_token.organization)
 
         return auth_token.user, auth_token
@@ -172,7 +172,7 @@ class ScheduleExportAuthentication(BaseAuthentication):
         except InvalidToken:
             raise exceptions.AuthenticationFailed("Invalid token.")
 
-        if auth_token.organization.migration_destination is not None:
+        if auth_token.organization.is_moved:
             raise OrganizationMovedException(auth_token.organization)
 
         if auth_token.schedule.public_primary_key != public_primary_key:
@@ -205,7 +205,7 @@ class UserScheduleExportAuthentication(BaseAuthentication):
         except InvalidToken:
             raise exceptions.AuthenticationFailed("Invalid token")
 
-        if auth_token.organization.migration_destination is not None:
+        if auth_token.organization.is_moved:
             raise OrganizationMovedException(auth_token.organization)
 
         if auth_token.user.public_primary_key != public_primary_key:

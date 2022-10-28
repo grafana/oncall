@@ -283,3 +283,7 @@ class Organization(MaintainableObject):
     @property
     def insight_logs_metadata(self):
         return {}
+
+    @property
+    def is_moved(self):
+        return self.migration_destination_id is not None
