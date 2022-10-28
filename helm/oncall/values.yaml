@@ -73,6 +73,7 @@ oncall:
     # Use existing secret. The secret should contain these keys
     # SECRET_KEY, MIRAGE_SECRET_KEY, MIRAGE_CIPHER_IV
     # or leave it as empty string to let chart create the secret.
+    # NOTE: MIRAGE_CIPHER_IV should be 16 bytes long.
     existingSecretName: ""
   # slack configures the Grafana Oncall Slack ChatOps integration.
   slack:
