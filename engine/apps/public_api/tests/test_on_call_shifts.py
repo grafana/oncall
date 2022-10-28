@@ -42,6 +42,7 @@ invalid_field_data_8 = {
 
 invalid_field_data_9 = {
     "frequency": CustomOnCallShift.FREQUENCY_DAILY,
+    "interval": 5,
 }
 
 

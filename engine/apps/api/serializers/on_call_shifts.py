@@ -116,9 +116,9 @@ class OnCallShiftSerializer(EagerLoadingMixin, serializers.ModelSerializer):
                 )
             if frequency not in (CustomOnCallShift.FREQUENCY_WEEKLY, CustomOnCallShift.FREQUENCY_DAILY) and by_day:
                 raise serializers.ValidationError({"by_day": ["Cannot set days value for this frequency type"]})
-            if frequency == CustomOnCallShift.FREQUENCY_DAILY and by_day and interval != 1:
+            if frequency == CustomOnCallShift.FREQUENCY_DAILY and by_day and interval > len(by_day):
                 raise serializers.ValidationError(
-                    {"interval": ["Interval must be 1 if a days value is set for a daily frequency"]}
+                    {"interval": ["Interval must be less than or equal to the number of selected days"]}
                 )
 
     def _validate_rotation_start(self, shift_start, rotation_start):

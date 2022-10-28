@@ -210,8 +210,8 @@ class CustomOnCallShiftSerializer(EagerLoadingMixin, serializers.ModelSerializer
                         detail="Day limits are temporarily disabled for on-call shifts with type 'rolling_users' "
                         "and frequency 'daily'"
                     )
-                if by_day and interval != 1:
-                    raise BadRequest(detail="Day limits and frequency 'daily' require 'interval' to be 1")
+                if by_day and interval > len(by_day):
+                    raise BadRequest(detail="Interval must be less than or equal to the number of selected days")
 
     def _validate_start_rotation_from_user_index(self, type, index):
         if type == CustomOnCallShift.TYPE_ROLLING_USERS_EVENT and index is None:

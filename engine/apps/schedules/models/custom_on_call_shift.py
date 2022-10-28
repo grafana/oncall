@@ -285,24 +285,33 @@ class CustomOnCallShift(models.Model):
         # we may need to iterate several times over users until we get a seen combination
         cycle_users = itertools.cycle(users_queue)
         orig_start = last_start = start
+        all_rotations_checked = False
+        # we need to go through each individual day
+        day_by_day_rrule = copy.deepcopy(self.event_ical_rules)
+        day_by_day_rrule["interval"] = 1
         for users in cycle_users:
-            if not start:  # means that rotation ends before next event starts
-                break
-            last_start = start
-            day = CustomOnCallShift.ICAL_WEEKDAY_MAP[start.weekday()]
-            if (users, day) in combinations:
-                break
+            for i in range(self.interval):
+                if not start:  # means that rotation ends before next event starts
+                    all_rotations_checked = True
+                    break
+                last_start = start
+                day = CustomOnCallShift.ICAL_WEEKDAY_MAP[start.weekday()]
+                if (users, day, i) in combinations:
+                    all_rotations_checked = True
+                    break
 
-            starting_dates.append(start)
-            combinations.append((users, day))
-            # get next event date following the original rule
-            event_ical = self.generate_ical(start, 1, None, 1, time_zone)
-            start = self.get_rotation_date(event_ical, get_next_date=True)
+                starting_dates.append(start)
+                combinations.append((users, day, i))
+                # get next event date following the original rule
+                event_ical = self.generate_ical(start, 1, None, 1, time_zone, custom_rrule=day_by_day_rrule)
+                start = self.get_rotation_date(event_ical, get_next_date=True, interval=1)
+            if all_rotations_checked:
+                break
 
         # number of weeks used to cover all combinations
         week_interval = ((last_start - orig_start).days // 7) or 1
         counter = 1
-        for ((users, day), start) in zip(combinations, starting_dates):
+        for ((users, day, _), start) in zip(combinations, starting_dates):
             for user_counter, user in enumerate(users, start=1):
                 # setup weekly events, for each user group/day combinations,
                 # setting the right interval and the corresponding day
@@ -398,7 +407,7 @@ class CustomOnCallShift(models.Model):
         summary += f"{user.username} "
         return summary
 
-    def get_rotation_date(self, event_ical, get_next_date=False):
+    def get_rotation_date(self, event_ical, get_next_date=False, interval=None):
         """Get date of the next event (for rolling_users shifts)"""
         ONE_DAY = 1
         ONE_HOUR = 1
@@ -412,7 +421,8 @@ class CustomOnCallShift(models.Model):
 
         current_event = Event.from_ical(event_ical)
         # take shift interval, not event interval. For rolling_users shift it is not the same.
-        interval = self.interval or 1
+        if interval is None:
+            interval = self.interval or 1
         if "rrule" in current_event:
             # when triggering shift previews, there could be no rrule information yet
             # (e.g. initial empty weekly rotation has no rrule set)
