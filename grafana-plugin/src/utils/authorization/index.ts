@@ -31,6 +31,8 @@ export enum Action {
   READ = 'read',
   WRITE = 'write',
   ADMIN = 'admin',
+  TEST = 'test',
+  EXPORT = 'export',
   INSTALL = 'install',
 }
 
@@ -39,10 +41,12 @@ type Actions =
   | 'AlertGroupsWrite'
   | 'IntegrationsRead'
   | 'IntegrationsWrite'
+  | 'IntegrationsTest'
   | 'EscalationChainsRead'
   | 'EscalationChainsWrite'
   | 'SchedulesRead'
   | 'SchedulesWrite'
+  | 'SchedulesExport'
   | 'ChatOpsRead'
   | 'ChatOpsWrite'
   | 'OutgoingWebhooksRead'
@@ -104,19 +108,21 @@ export const UserActions: { [action in Actions]: UserAction } = {
   AlertGroupsWrite: constructAction(Resource.ALERT_GROUPS, Action.WRITE, OrgRole.Editor),
 
   IntegrationsRead: constructAction(Resource.INTEGRATIONS, Action.READ, OrgRole.Viewer),
-  IntegrationsWrite: constructAction(Resource.INTEGRATIONS, Action.WRITE, OrgRole.Editor),
+  IntegrationsWrite: constructAction(Resource.INTEGRATIONS, Action.WRITE, OrgRole.Admin),
+  IntegrationsTest: constructAction(Resource.INTEGRATIONS, Action.TEST, OrgRole.Editor),
 
   EscalationChainsRead: constructAction(Resource.ESCALATION_CHAINS, Action.READ, OrgRole.Viewer),
-  EscalationChainsWrite: constructAction(Resource.ESCALATION_CHAINS, Action.WRITE, OrgRole.Editor),
+  EscalationChainsWrite: constructAction(Resource.ESCALATION_CHAINS, Action.WRITE, OrgRole.Admin),
 
   SchedulesRead: constructAction(Resource.SCHEDULES, Action.READ, OrgRole.Viewer),
-  SchedulesWrite: constructAction(Resource.SCHEDULES, Action.WRITE, OrgRole.Editor),
+  SchedulesWrite: constructAction(Resource.SCHEDULES, Action.WRITE, OrgRole.Admin),
+  SchedulesExport: constructAction(Resource.SCHEDULES, Action.WRITE, OrgRole.Editor),
 
   ChatOpsRead: constructAction(Resource.CHATOPS, Action.READ, OrgRole.Viewer),
   ChatOpsWrite: constructAction(Resource.CHATOPS, Action.WRITE, OrgRole.Editor),
 
   OutgoingWebhooksRead: constructAction(Resource.OUTGOING_WEBHOOKS, Action.READ, OrgRole.Viewer),
-  OutgoingWebhooksWrite: constructAction(Resource.OUTGOING_WEBHOOKS, Action.WRITE, OrgRole.Editor),
+  OutgoingWebhooksWrite: constructAction(Resource.OUTGOING_WEBHOOKS, Action.WRITE, OrgRole.Admin),
 
   MaintenanceRead: constructAction(Resource.MAINTENANCE, Action.READ, OrgRole.Viewer),
   MaintenanceWrite: constructAction(Resource.MAINTENANCE, Action.WRITE, OrgRole.Editor),
@@ -134,7 +140,7 @@ export const UserActions: { [action in Actions]: UserAction } = {
   UserSettingsAdmin: constructAction(Resource.USER_SETTINGS, Action.ADMIN, OrgRole.Admin),
 
   OtherSettingsRead: constructAction(Resource.OTHER_SETTINGS, Action.READ, OrgRole.Viewer),
-  OtherSettingsWrite: constructAction(Resource.OTHER_SETTINGS, Action.WRITE, OrgRole.Editor),
+  OtherSettingsWrite: constructAction(Resource.OTHER_SETTINGS, Action.WRITE, OrgRole.Admin),
 
   // These are not oncall specific
   TeamsWrite: constructAction(Resource.TEAMS, Action.WRITE, OrgRole.Admin, false),

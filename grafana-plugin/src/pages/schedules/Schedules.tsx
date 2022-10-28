@@ -424,7 +424,7 @@ class SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSta
             Reload
           </Button>
         </WithPermissionControl>
-        <WithPermissionControl key="export" userAction={UserActions.SchedulesWrite}>
+        <WithPermissionControl key="export" userAction={UserActions.SchedulesExport}>
           <Button onClick={this.getExportScheduleClickHandler(record.id)} fill="text">
             Export
           </Button>
