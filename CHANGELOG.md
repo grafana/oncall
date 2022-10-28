@@ -1,9 +1,9 @@
 # Change Log
 
-
-## v1.0.46 (2022-10-27)
+## v1.0.46 (2022-10-28)
 
 - Bug fixes
+- remove `POST /api/internal/v1/custom_buttons/{id}/action` endpoint
 
 ## v1.0.45 (2022-10-27)
 
