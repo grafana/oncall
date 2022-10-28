@@ -23,26 +23,39 @@ class TelegramChannelVerificationCode(models.Model):
     def is_active(self) -> bool:
         return self.datetime + timezone.timedelta(days=1) < timezone.now()
 
+    @property
+    def uuid_with_org_id(self) -> str:
+        return f"{self.organization.public_primary_key}_{self.uuid}"
+
+    @classmethod
+    def uuid_without_org_id(cls, verification_code: str) -> str:
+        try:
+            return verification_code.split("_")[1]
+        except IndexError:
+            raise ValidationError("Invalid verification code format")
+
     @classmethod
     def verify_channel_and_discussion_group(
         cls,
-        uuid_code: str,
+        verification_code: str,
         channel_chat_id: int,
         channel_name: str,
         discussion_group_chat_id: int,
         discussion_group_name: str,
     ) -> Tuple[Optional[TelegramToOrganizationConnector], bool]:
         try:
-            verification_code = cls.objects.get(uuid=uuid_code)
+            uuid_code = cls.uuid_without_org_id(verification_code)
+
+            code_instance = cls.objects.get(uuid=uuid_code)
 
             # see if a organization has other channels connected
             # if it is the first channel, make it default for the organization
-            connector_exists = verification_code.organization.telegram_channel.exists()
+            connector_exists = code_instance.organization.telegram_channel.exists()
 
             connector, created = TelegramToOrganizationConnector.objects.get_or_create(
                 channel_chat_id=channel_chat_id,
                 defaults={
-                    "organization": verification_code.organization,
+                    "organization": code_instance.organization,
                     "channel_name": channel_name,
                     "discussion_group_chat_id": discussion_group_chat_id,
                     "discussion_group_name": discussion_group_name,
@@ -51,14 +64,14 @@ class TelegramChannelVerificationCode(models.Model):
             )
 
             write_chatops_insight_log(
-                author=verification_code.author,
+                author=code_instance.author,
                 event_name=ChatOpsEvent.CHANNEL_CONNECTED,
                 chatops_type=ChatOpsType.TELEGRAM,
                 channel_name=channel_name,
             )
             if not connector_exists:
                 write_chatops_insight_log(
-                    author=verification_code.author,
+                    author=code_instance.author,
                     event_name=ChatOpsEvent.DEFAULT_CHANNEL_CHANGED,
                     chatops_type=ChatOpsType.TELEGRAM,
                     prev_channel=None,

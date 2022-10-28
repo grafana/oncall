@@ -1,15 +1,12 @@
-import React, { HTMLAttributes, useCallback, useEffect, useRef, useState } from 'react';
+import React, { HTMLAttributes, useEffect, useState } from 'react';
 
-import { Button, HorizontalGroup, Icon, LoadingPlaceholder } from '@grafana/ui';
+import { Button, LoadingPlaceholder } from '@grafana/ui';
 import cn from 'classnames/bind';
 import { observer } from 'mobx-react';
 
-import GTable from 'components/GTable/GTable';
 import Text from 'components/Text/Text';
-import { UserSettingsTab } from 'containers/UserSettings/UserSettings.types';
 import { WithPermissionControl } from 'containers/WithPermissionControl/WithPermissionControl';
 import { User } from 'models/user/user.types';
-import { makeRequest } from 'network';
 import { useStore } from 'state/useStore';
 import { UserAction } from 'state/userAction';
 
@@ -33,8 +30,6 @@ const MobileAppVerification = observer((props: MobileAppVerificationProps) => {
   const isCurrent = userStore.currentUserPk === user.pk;
   const action = isCurrent ? UserAction.UpdateOwnSettings : UserAction.UpdateOtherUsersSettings;
 
-  const { id = UserSettingsTab.UserInfo } = props;
-
   const [showMobileAppVerificationToken, setShowMobileAppVerificationToken] = useState<string>(undefined);
   const [isMobileAppVerificationTokenExisting, setIsMobileAppVerificationTokenExisting] = useState<boolean>(false);
   const [MobileAppVerificationTokenLoading, setMobileAppVerificationTokenLoading] = useState<boolean>(true);
@@ -42,11 +37,11 @@ const MobileAppVerification = observer((props: MobileAppVerificationProps) => {
   useEffect(() => {
     userStore
       .getMobileAppVerificationToken(userPk)
-      .then((res) => {
+      .then((_res) => {
         setIsMobileAppVerificationTokenExisting(true);
         setMobileAppVerificationTokenLoading(false);
       })
-      .catch((res) => {
+      .catch((_res) => {
         setIsMobileAppVerificationTokenExisting(false);
         setMobileAppVerificationTokenLoading(false);
       });
@@ -58,27 +53,6 @@ const MobileAppVerification = observer((props: MobileAppVerificationProps) => {
       .createMobileAppVerificationToken(userPk)
       .then((res) => setShowMobileAppVerificationToken(res?.token));
   };
-
-  // const [devices, setDevices] = useState();
-  //
-  // const updateDevices = useCallback(() => {
-  //   makeRequest(`/device/apns/`, {
-  //     method: 'GET',
-  //   }).then((data) => {
-  //     setDevices(data);
-  //   });
-  // }, []);
-  //
-  // useEffect(() => {
-  //   updateDevices();
-  // }, []);
-  //
-  // const columns = [
-  //   {
-  //     title: 'Name',
-  //     dataIndex: 'name',
-  //   },
-  // ];
 
   return (
     <div className={cx('mobile-app-settings')}>
@@ -114,41 +88,23 @@ const MobileAppVerification = observer((props: MobileAppVerificationProps) => {
               )}
             </>
           ) : (
-            <>
-              <p>
-                <WithPermissionControl userAction={action}>
-                  <Button
-                    onClick={handleCreateMobileAppVerificationToken}
-                    className={cx('iCal-button')}
-                    variant="secondary"
-                  >
-                    Get the code
-                  </Button>
-                </WithPermissionControl>
-              </p>
-            </>
+            <p>
+              <WithPermissionControl userAction={action}>
+                <Button
+                  onClick={handleCreateMobileAppVerificationToken}
+                  className={cx('iCal-button')}
+                  variant="secondary"
+                >
+                  Get the code
+                </Button>
+              </WithPermissionControl>
+            </p>
           )}
           <p>
             <Text>* Only iOS is currently supported</Text>
           </p>
         </>
       )}
-      {/*<>*/}
-      {/*  <GTable*/}
-      {/*    title={() => (*/}
-      {/*      <div className={cx('header')}>*/}
-      {/*        <HorizontalGroup align="flex-end">*/}
-      {/*          <Text.Title level={4}>Your devices</Text.Title>*/}
-      {/*        </HorizontalGroup>*/}
-      {/*      </div>*/}
-      {/*    )}*/}
-      {/*    rowKey="id"*/}
-      {/*    className="api-keys"*/}
-      {/*    data={devices}*/}
-      {/*    emptyText={devices ? 'No devices connected' : 'Loading...'}*/}
-      {/*    columns={columns}*/}
-      {/*  />*/}
-      {/*</>*/}
     </div>
   );
 });

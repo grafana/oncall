@@ -40,8 +40,10 @@ const GrafanaTeamSelect = observer((props: GrafanaTeamSelectProps) => {
     window.location.search = queryParams.toString();
 
     function mapCurrentPage() {
-      if (currentPage === 'incident') {return 'incidents'}
-      return currentPage
+      if (currentPage === 'incident') {
+        return 'incidents';
+      }
+      return currentPage;
     }
   };
 

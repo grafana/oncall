@@ -30,7 +30,7 @@ const SlackConnector = (props: SlackConnectorProps) => {
 
   const channelFilter = store.alertReceiveChannelStore.channelFilters[channelFilterId];
 
-  const handleSlackChannelChange = useCallback((value: SlackChannel['id'], slackChannel: SlackChannel) => {
+  const handleSlackChannelChange = useCallback((_value: SlackChannel['id'], slackChannel: SlackChannel) => {
     // @ts-ignore actually slack_channel is just slack_channel_id when saving
     alertReceiveChannelStore.saveChannelFilter(channelFilterId, { slack_channel: slackChannel?.slack_id || null });
   }, []);

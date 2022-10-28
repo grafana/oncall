@@ -1,4 +1,4 @@
-import { OutgoingWebhook } from "models/outgoing_webhook/outgoing_webhook.types";
+import { OutgoingWebhook } from 'models/outgoing_webhook/outgoing_webhook.types';
 
 export default [
   {

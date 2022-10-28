@@ -1,5 +1,3 @@
-import { UserDTO as User } from './user';
-
 export interface CurrentSubscriptionDTO {
   uuid: string;
   created_at: string;

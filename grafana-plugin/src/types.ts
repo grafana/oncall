@@ -5,7 +5,7 @@ export interface OnCallAppSettings {
 }
 
 declare global {
-  interface Window {
+  export interface Window {
     grafanaBootData: any;
     RECAPTCHA_SITE_KEY: string;
     grecaptcha: any;

@@ -1,8 +1,5 @@
-import { ReactElement } from 'react';
-
 import { FormItem, FormItemType } from 'components/GForm/GForm.types';
 import { PRIVATE_CHANNEL_NAME } from 'models/slack_channel/slack_channel.config';
-import { DEFAULT_USER_ROLES } from 'models/user/user.config';
 
 const commonFields: FormItem[] = [
   {
@@ -92,12 +89,6 @@ const commonFields: FormItem[] = [
     },
     description: 'Specify how to notify a team member when their shift is the next one scheduled',
   },
-  // {
-  //   name: 'send_empty_shifts_report',
-  //   normalize: (value) => Boolean(value),
-  //   label: 'Send reports about empty shifts to Slack',
-  //   type: FormItemType.Switch,
-  // },
 ];
 
 export const iCalForm: { name: string; fields: FormItem[] } = {

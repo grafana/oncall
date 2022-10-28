@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 
-import { Button, HorizontalGroup, Icon, ValuePicker } from '@grafana/ui';
+import { Button, HorizontalGroup } from '@grafana/ui';
 import cn from 'classnames/bind';
 import dayjs from 'dayjs';
 import { observer } from 'mobx-react';
@@ -9,15 +9,9 @@ import { CSSTransition, TransitionGroup } from 'react-transition-group';
 import Text from 'components/Text/Text';
 import TimelineMarks from 'components/TimelineMarks/TimelineMarks';
 import Rotation from 'containers/Rotation/Rotation';
-import { RotationCreateData } from 'containers/RotationForm/RotationForm.types';
 import ScheduleOverrideForm from 'containers/RotationForm/ScheduleOverrideForm';
-import {
-  getFromString,
-  getOverrideColor,
-  getOverridesFromStore,
-  getShiftsFromStore,
-} from 'models/schedule/schedule.helpers';
-import { Event, Schedule, Shift, ShiftEvents } from 'models/schedule/schedule.types';
+import { getOverrideColor, getOverridesFromStore } from 'models/schedule/schedule.helpers';
+import { Schedule, Shift, ShiftEvents } from 'models/schedule/schedule.types';
 import { Timezone } from 'models/timezone/timezone.types';
 import { WithStoreProps } from 'state/types';
 import { withMobXProviderContext } from 'state/withStore';
@@ -125,9 +119,6 @@ class ScheduleOverrides extends Component<ScheduleOverridesProps, ScheduleOverri
               )}
             </TransitionGroup>
           </div>
-          {/* <div className={cx('add-rotations-layer')} onClick={this.handleAddOverride}>
-            + Add override
-          </div>*/}
         </div>
         {shiftIdToShowRotationForm && (
           <ScheduleOverrideForm

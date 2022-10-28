@@ -1,5 +1,5 @@
 import { action, observable } from 'mobx';
-import moment from 'moment';
+import moment from 'moment-timezone';
 
 import BaseStore from 'models/base_store';
 import { makeRequest } from 'network';
