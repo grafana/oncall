@@ -52,7 +52,7 @@ class GetTelegramVerificationCode(APIView):
     permission_classes = (IsAuthenticated, RBACPermission)
 
     rbac_permissions = {
-        "get": [RBACPermission.Permissions.CHATOPS_READ],
+        "get": [RBACPermission.Permissions.OTHER_SETTINGS_WRITE],
     }
 
     def get(self, request):
@@ -76,7 +76,7 @@ class GetChannelVerificationCode(APIView):
     permission_classes = (IsAuthenticated, RBACPermission)
 
     rbac_permissions = {
-        "get": [RBACPermission.Permissions.CHATOPS_READ],
+        "get": [RBACPermission.Permissions.OTHER_SETTINGS_WRITE],
     }
 
     def get(self, request):
@@ -95,7 +95,7 @@ class SetGeneralChannel(APIView):
     permission_classes = (IsAuthenticated, RBACPermission)
 
     rbac_permissions = {
-        "post": [RBACPermission.Permissions.CHATOPS_WRITE],
+        "post": [RBACPermission.Permissions.OTHER_SETTINGS_WRITE],
     }
 
     def post(self, request):

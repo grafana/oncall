@@ -71,7 +71,7 @@ class ScheduleView(
         "partial_update": [RBACPermission.Permissions.SCHEDULES_WRITE],
         "destroy": [RBACPermission.Permissions.SCHEDULES_WRITE],
         "reload_ical": [RBACPermission.Permissions.SCHEDULES_WRITE],
-        "export_token": [RBACPermission.Permissions.SCHEDULES_WRITE],
+        "export_token": [RBACPermission.Permissions.SCHEDULES_EXPORT],
     }
 
     filter_backends = [SearchFilter]

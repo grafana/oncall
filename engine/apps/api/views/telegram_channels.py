@@ -25,8 +25,8 @@ class TelegramChannelViewSet(
         "metadata": [RBACPermission.Permissions.CHATOPS_READ],
         "list": [RBACPermission.Permissions.CHATOPS_READ],
         "retrieve": [RBACPermission.Permissions.CHATOPS_READ],
-        "destroy": [RBACPermission.Permissions.CHATOPS_WRITE],
-        "set_default": [RBACPermission.Permissions.CHATOPS_WRITE],
+        "destroy": [RBACPermission.Permissions.OTHER_SETTINGS_WRITE],
+        "set_default": [RBACPermission.Permissions.OTHER_SETTINGS_WRITE],
     }
 
     serializer_class = TelegramToOrganizationConnectorSerializer

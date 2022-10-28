@@ -41,6 +41,7 @@ class Actions(enum.Enum):
     WRITE = "write"
     ADMIN = "admin"
     TEST = "test"
+    EXPORT = "export"
 
 
 class LegacyAccessControlRole(enum.IntEnum):
@@ -89,7 +90,6 @@ class RBACPermission(permissions.BasePermission):
         INTEGRATIONS_READ = LegacyAccessControlCompatiblePermission(
             Resources.INTEGRATIONS, Actions.READ, LegacyAccessControlRole.VIEWER
         )
-        # this should exceptionally only be assigned to Admins
         INTEGRATIONS_WRITE = LegacyAccessControlCompatiblePermission(
             Resources.INTEGRATIONS, Actions.WRITE, LegacyAccessControlRole.ADMIN
         )
@@ -101,14 +101,17 @@ class RBACPermission(permissions.BasePermission):
             Resources.ESCALATION_CHAINS, Actions.READ, LegacyAccessControlRole.VIEWER
         )
         ESCALATION_CHAINS_WRITE = LegacyAccessControlCompatiblePermission(
-            Resources.ESCALATION_CHAINS, Actions.WRITE, LegacyAccessControlRole.EDITOR
+            Resources.ESCALATION_CHAINS, Actions.WRITE, LegacyAccessControlRole.ADMIN
         )
 
         SCHEDULES_READ = LegacyAccessControlCompatiblePermission(
             Resources.SCHEDULES, Actions.READ, LegacyAccessControlRole.VIEWER
         )
         SCHEDULES_WRITE = LegacyAccessControlCompatiblePermission(
-            Resources.SCHEDULES, Actions.WRITE, LegacyAccessControlRole.EDITOR
+            Resources.SCHEDULES, Actions.WRITE, LegacyAccessControlRole.ADMIN
+        )
+        SCHEDULES_EXPORT = LegacyAccessControlCompatiblePermission(
+            Resources.SCHEDULES, Actions.EXPORT, LegacyAccessControlRole.EDITOR
         )
 
         CHATOPS_READ = LegacyAccessControlCompatiblePermission(
@@ -122,7 +125,7 @@ class RBACPermission(permissions.BasePermission):
             Resources.OUTGOING_WEBHOOKS, Actions.READ, LegacyAccessControlRole.VIEWER
         )
         OUTGOING_WEBHOOKS_WRITE = LegacyAccessControlCompatiblePermission(
-            Resources.OUTGOING_WEBHOOKS, Actions.WRITE, LegacyAccessControlRole.EDITOR
+            Resources.OUTGOING_WEBHOOKS, Actions.WRITE, LegacyAccessControlRole.ADMIN
         )
 
         MAINTENANCE_READ = LegacyAccessControlCompatiblePermission(
@@ -164,7 +167,7 @@ class RBACPermission(permissions.BasePermission):
             Resources.OTHER_SETTINGS, Actions.READ, LegacyAccessControlRole.VIEWER
         )
         OTHER_SETTINGS_WRITE = LegacyAccessControlCompatiblePermission(
-            Resources.OTHER_SETTINGS, Actions.WRITE, LegacyAccessControlRole.EDITOR
+            Resources.OTHER_SETTINGS, Actions.WRITE, LegacyAccessControlRole.ADMIN
         )
 
     @staticmethod

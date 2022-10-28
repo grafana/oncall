@@ -15,7 +15,7 @@ class SlackTeamSettingsAPIView(views.APIView):
 
     rbac_permissions = {
         "get": [RBACPermission.Permissions.CHATOPS_READ],
-        "put": [RBACPermission.Permissions.CHATOPS_WRITE],
+        "put": [RBACPermission.Permissions.OTHER_SETTINGS_WRITE],
     }
 
     serializer_class = OrganizationSlackSettingsSerializer
