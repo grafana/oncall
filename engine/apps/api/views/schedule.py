@@ -24,7 +24,7 @@ from apps.api.serializers.schedule_polymorphic import (
 from apps.auth_token.auth import PluginAuthentication
 from apps.auth_token.constants import SCHEDULE_EXPORT_TOKEN_NAME
 from apps.auth_token.models import ScheduleExportAuthToken
-from apps.schedules.models import OnCallSchedule, OnCallScheduleCalendar, OnCallScheduleICal, OnCallScheduleWeb
+from apps.schedules.models import OnCallSchedule
 from apps.slack.models import SlackChannel
 from apps.slack.tasks import update_slack_user_group_for_schedules
 from common.api_helpers.exceptions import BadRequest, Conflict
@@ -42,7 +42,9 @@ EVENTS_FILTER_BY_ROTATION = "rotation"
 EVENTS_FILTER_BY_OVERRIDE = "override"
 EVENTS_FILTER_BY_FINAL = "final"
 
-SCHEDULE_TYPE_TO_CLASS = {"api": OnCallScheduleCalendar, "ical": OnCallScheduleICal, "web": OnCallScheduleWeb}
+SCHEDULE_TYPE_TO_CLASS = {
+    str(num_type): cls for cls, num_type in PolymorphicScheduleSerializer.SCHEDULE_CLASS_TO_TYPE.items()
+}
 
 
 class ScheduleView(
