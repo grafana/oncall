@@ -10,7 +10,6 @@ import { OutgoingWebhook } from 'models/outgoing_webhook/outgoing_webhook.types'
 
 import { OutgoingWebhooks } from './OutgoingWebhooks';
 
-
 const outgoingWebhooks = outgoingWebhooksStub as OutgoingWebhook[];
 const outgoingWebhookStore = () => ({
   loadItem: () => Promise.resolve(outgoingWebhooks[0]),

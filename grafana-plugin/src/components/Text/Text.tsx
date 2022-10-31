@@ -69,9 +69,8 @@ const Text: TextInterface = (props) => {
 
   const handleConfirmEdit = useCallback(() => {
     setIsEditMode(false);
-
     onTextChange(value);
-  }, [value]);
+  }, [value, onTextChange]);
 
   const handleInputChange = useCallback((e: ChangeEvent<HTMLInputElement>) => {
     setValue(e.target.value);

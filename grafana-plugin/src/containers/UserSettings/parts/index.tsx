@@ -40,11 +40,14 @@ export const Tabs = (props: TabsProps) => {
     showTelegramConnectionTab,
   } = props;
 
-  const getTabClickHandler = useCallback((tab: UserSettingsTab) => {
-    return () => {
-      onTabChange(tab);
-    };
-  }, []);
+  const getTabClickHandler = useCallback(
+    (tab: UserSettingsTab) => {
+      return () => {
+        onTabChange(tab);
+      };
+    },
+    [onTabChange]
+  );
 
   return (
     <TabsBar>

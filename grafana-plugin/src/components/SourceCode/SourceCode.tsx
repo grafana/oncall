@@ -1,6 +1,6 @@
 import React, { FC } from 'react';
 
-import { Button, Icon, IconButton } from '@grafana/ui';
+import { Button, IconButton } from '@grafana/ui';
 import cn from 'classnames/bind';
 import CopyToClipboard from 'react-copy-to-clipboard';
 
@@ -33,7 +33,13 @@ const SourceCode: FC<SourceCodeProps> = (props) => {
           {showClipboardIconOnly ? (
             <IconButton className={cx('copyIcon')} size={'lg'} name="copy" data-testid="test__copyIcon" />
           ) : (
-            <Button className={cx('copyButton')} variant="primary" size="xs" icon="copy" data-testid="test__copyIconWithText">
+            <Button
+              className={cx('copyButton')}
+              variant="primary"
+              size="xs"
+              icon="copy"
+              data-testid="test__copyIconWithText"
+            >
               Copy
             </Button>
           )}

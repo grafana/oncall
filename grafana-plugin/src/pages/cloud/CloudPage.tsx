@@ -1,24 +1,12 @@
 import React, { useCallback, useEffect, useState } from 'react';
 
-import { getLocationSrv, LocationUpdate } from '@grafana/runtime';
-import {
-  Field,
-  Input,
-  Button,
-  Modal,
-  HorizontalGroup,
-  Alert,
-  Icon,
-  VerticalGroup,
-  Table,
-  LoadingPlaceholder,
-} from '@grafana/ui';
+import { getLocationSrv } from '@grafana/runtime';
+import { Field, Input, Button, HorizontalGroup, Icon, VerticalGroup, LoadingPlaceholder } from '@grafana/ui';
 import cn from 'classnames/bind';
 import { observer } from 'mobx-react';
 
 import Block from 'components/GBlock/Block';
 import GTable from 'components/GTable/GTable';
-import PluginLink from 'components/PluginLink/PluginLink';
 import Text from 'components/Text/Text';
 import WithConfirm from 'components/WithConfirm/WithConfirm';
 import { CrossCircleIcon, HeartIcon } from 'icons';
@@ -35,7 +23,7 @@ const cx = cn.bind(styles);
 interface CloudPageProps extends WithStoreProps {}
 const ITEMS_PER_PAGE = 50;
 
-const CloudPage = observer((props: CloudPageProps) => {
+const CloudPage = observer((_props: CloudPageProps) => {
   const store = useStore();
   const [page, setPage] = useState<number>(1);
   const [cloudApiKey, setCloudApiKey] = useState<string>('');
@@ -44,7 +32,7 @@ const CloudPage = observer((props: CloudPageProps) => {
   const [cloudNotificationsEnabled, setCloudNotificationsEnabled] = useState<boolean>(false);
   const [heartbeatLink, setheartbeatLink] = useState<string>(null);
   const [heartbeatEnabled, setheartbeatEnabled] = useState<boolean>(false);
-  const [showConfirmationModal, setShowConfirmationModal] = useState<boolean>(false);
+  const [_showConfirmationModal, setShowConfirmationModal] = useState<boolean>(false);
   const [syncingUsers, setSyncingUsers] = useState<boolean>(false);
 
   useEffect(() => {
@@ -55,7 +43,7 @@ const CloudPage = observer((props: CloudPageProps) => {
       setheartbeatLink(cloudStatus.cloud_heartbeat_link);
       setCloudNotificationsEnabled(cloudStatus.cloud_notifications_enabled);
     });
-  }, [cloudIsConnected]);
+  }, [cloudIsConnected, page, store.cloudStore]);
 
   const { matched_users_count, results } = store.cloudStore.getSearchResult();
 

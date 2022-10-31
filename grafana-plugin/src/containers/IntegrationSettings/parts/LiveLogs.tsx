@@ -1,6 +1,6 @@
-import React, { ReactElement, useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 
-import { Alert, Button, EmptySearchResult, LoadingPlaceholder } from '@grafana/ui';
+import { Button, EmptySearchResult, LoadingPlaceholder } from '@grafana/ui';
 
 import SourceCode from 'components/SourceCode/SourceCode';
 import { AlertReceiveChannel } from 'models/alert_receive_channel/alert_receive_channel.types';

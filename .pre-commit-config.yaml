@@ -23,16 +23,26 @@ repos:
           - flake8-tidy-imports
 
   - repo: https://github.com/pre-commit/mirrors-eslint
-    rev: v7.21.0
+    rev: v8.25.0
     hooks:
       - id: eslint
-        entry: bash -c 'cd grafana-plugin && eslint --fix ${@/grafana-plugin\//}' --
+        entry: bash -c 'cd grafana-plugin && eslint --max-warnings=0 --fix ${@/grafana-plugin\//}' --
         types: [file]
         files: ^grafana-plugin/src/.*\.(js|jsx|ts|tsx)$
         additional_dependencies:
-          - eslint@7.21.0
+          - eslint@^8.25.0
           - eslint-plugin-import@^2.25.4
           - eslint-plugin-rulesdir@^0.2.1
+          - "@grafana/eslint-config@^5.0.0"
+
+  - repo: https://github.com/pre-commit/mirrors-prettier
+    rev: "v2.7.1"
+    hooks:
+      - id: prettier
+        types_or: [css, javascript, jsx, ts, tsx, json]
+        files: ^grafana-plugin/src
+        additional_dependencies:
+          - prettier@^2.7.1
 
   - repo: https://github.com/thibaudcolas/pre-commit-stylelint
     rev: v13.13.1
@@ -43,4 +53,6 @@ repos:
         files: ^grafana-plugin/src/.*\.css$
         additional_dependencies:
           - stylelint@^13.13.1
+          - stylelint-prettier@^2.0.0
           - stylelint-config-standard@^22.0.0
+          - stylelint-config-prettier@^9.0.3

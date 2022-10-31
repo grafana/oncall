@@ -6,7 +6,6 @@ import { observer } from 'mobx-react';
 import CopyToClipboard from 'react-copy-to-clipboard';
 
 import Text from 'components/Text/Text';
-import WithConfirm from 'components/WithConfirm/WithConfirm';
 import { WithPermissionControl } from 'containers/WithPermissionControl/WithPermissionControl';
 import { useStore } from 'state/useStore';
 import { UserAction } from 'state/userAction';
@@ -26,8 +25,6 @@ const TelegramIntegrationButton = observer((props: TelegramIntegrationProps) => 
   const { disabled, size = 'md', onUpdate } = props;
 
   const [showModal, setShowModal] = useState<boolean>(false);
-
-  const store = useStore();
 
   const onInstallModalHideCallback = useCallback(() => {
     setShowModal(false);
@@ -63,7 +60,7 @@ interface TelegramModalProps {
 const TelegramModal = (props: TelegramModalProps) => {
   const { onHide, onUpdate } = props;
   const store = useStore();
-  const { telegramChannelStore, userStore } = store;
+  const { telegramChannelStore } = store;
 
   const [verificationCode, setVerificationCode] = useState<string>();
   const [botLink, setBotLink] = useState<string>();

@@ -28,10 +28,10 @@ export class EscalationChainStore extends BaseStore {
 
     this.items = {
       ...this.items,
-      [id]: escalationChain
-    }
+      [id]: escalationChain,
+    };
 
-    return escalationChain
+    return escalationChain;
   }
 
   @action

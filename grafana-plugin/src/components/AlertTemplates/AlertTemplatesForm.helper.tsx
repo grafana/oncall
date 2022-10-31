@@ -10,7 +10,3 @@ export function getLabelFromTemplateName(templateName: string, group: any) {
   }
   return arrayWithNeededValues.join(' ');
 }
-
-export function includeTemplateGroup(groupName: string) {
-  return true;
-}
