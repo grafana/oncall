@@ -246,14 +246,38 @@ def test_filter_events_ical_all_day(make_organization, make_user_for_organizatio
 
     events = schedule.final_events("UTC", start_date, days=2)
     expected_events = [
-        # all_day, users, start
-        (False, ["@Bernard Desruisseaux"], datetime.datetime(2021, 1, 26, 8, 0, tzinfo=pytz.UTC)),
-        (True, ["@Alex"], datetime.date(2021, 1, 27)),
-        (False, ["@Bob"], datetime.datetime(2021, 1, 27, 8, 0, tzinfo=pytz.UTC)),
+        # all_day, users, start, end
+        (
+            False,
+            ["@Bernard Desruisseaux"],
+            datetime.datetime(2021, 1, 26, 8, 0, tzinfo=pytz.UTC),
+            datetime.datetime(2021, 1, 26, 17, 0, tzinfo=pytz.UTC),
+        ),
+        (
+            True,
+            ["@Alex"],
+            datetime.datetime(2021, 1, 27, 0, 0, tzinfo=pytz.UTC),
+            datetime.datetime(2021, 1, 27, 23, 59, 59, 999999, tzinfo=pytz.UTC),
+        ),
+        (
+            False,
+            ["@Bob"],
+            datetime.datetime(2021, 1, 27, 8, 0, tzinfo=pytz.UTC),
+            datetime.datetime(2021, 1, 27, 17, 0, tzinfo=pytz.UTC),
+        ),
     ]
-    expected = [{"all_day": all_day, "users": users, "start": start} for all_day, users, start in expected_events]
+    expected = [
+        {"all_day": all_day, "users": users, "start": start, "end": end}
+        for all_day, users, start, end in expected_events
+    ]
     returned = [
-        {"all_day": e["all_day"], "users": [u["display_name"] for u in e["users"]], "start": e["start"]} for e in events
+        {
+            "all_day": e["all_day"],
+            "users": [u["display_name"] for u in e["users"]],
+            "start": e["start"],
+            "end": e["end"],
+        }
+        for e in events
     ]
     assert returned == expected
 
