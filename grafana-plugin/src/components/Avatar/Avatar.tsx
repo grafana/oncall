@@ -19,7 +19,7 @@ const Avatar: FC<AvatarProps> = (props) => {
     return null;
   }
 
-  return <img src={src} className={cx('root', `avatarSize-${size}`, className)} {...rest} />;
+  return <img src={src} className={cx('root', `avatarSize-${size}`, className)} data-testid="test__avatar" {...rest} />;
 };
 
 export default Avatar;

@@ -33,10 +33,10 @@
   value: {{ .Values.oncall.slack.clientId | default "" | quote }}
 - name: SLACK_CLIENT_OAUTH_SECRET
   value: {{ .Values.oncall.slack.clientSecret | default "" | quote }}
-- name: SLACK_API_TOKEN
-  value: {{ .Values.oncall.slack.apiToken | default "" | quote }}
-- name: SLACK_API_TOKEN_COMMON
-  value: {{ .Values.oncall.slack.apiTokenCommon | default "" | quote }}
+- name: SLACK_SIGNING_SECRET
+  value: {{ .Values.oncall.slack.signingSecret | default "" | quote }}
+- name: SLACK_INSTALL_RETURN_REDIRECT_HOST
+  value: "https://{{ .Values.base_url }}"
 {{- else -}}
 - name: FEATURE_SLACK_INTEGRATION_ENABLED
   value: {{ .Values.oncall.slack.enabled | toString | title | quote }}
@@ -228,4 +228,29 @@
     secretKeyRef:
       name: {{ template "snippet.redis.password.secret.name" . }}
       key: redis-password
+{{- end }}
+
+{{- define "snippet.oncall.smtp.env" -}}
+{{- if .Values.oncall.smtp.enabled -}}
+- name: FEATURE_EMAIL_INTEGRATION_ENABLED
+  value: {{ .Values.oncall.smtp.enabled | toString | title | quote }}
+- name: EMAIL_HOST
+  value: {{ .Values.oncall.smtp.host | quote }}
+- name: EMAIL_PORT
+  value: {{ .Values.oncall.smtp.port | default "587" | quote }}
+- name: EMAIL_HOST_USER
+  value: {{ .Values.oncall.smtp.username | quote }}
+- name: EMAIL_HOST_PASSWORD
+  valueFrom:
+    secretKeyRef:
+      name: {{ include "oncall.fullname" . }}-smtp
+      key: smtp-password
+- name: EMAIL_USE_TLS
+  value: {{ .Values.oncall.smtp.tls | toString | title | quote }}
+- name: DEFAULT_FROM_EMAIL
+  value: {{ .Values.oncall.smtp.fromEmail | quote }}
+{{- else -}}
+- name: FEATURE_EMAIL_INTEGRATION_ENABLED
+  value: {{ .Values.oncall.smtp.enabled | toString | title | quote }}
+{{- end -}}
 {{- end }}

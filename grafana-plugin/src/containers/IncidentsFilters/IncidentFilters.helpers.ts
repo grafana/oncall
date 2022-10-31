@@ -1,6 +1,3 @@
-import { capitalCase } from 'change-case';
-import qs from 'query-string';
-
 import { convertRelativeToAbsoluteDate } from 'utils/datetime';
 
 import { FilterOption } from './IncidentFilters.types';

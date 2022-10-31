@@ -1,4 +1,4 @@
-import React, { FC, useState, useCallback, useRef, useEffect } from 'react';
+import React, { useCallback, useRef, useEffect } from 'react';
 
 import { LoadingPlaceholder } from '@grafana/ui';
 import cn from 'classnames/bind';
@@ -37,7 +37,6 @@ const GList = <T extends WithId>(props: GListProps<T>) => {
       const divToScroll = selectedElement.parentElement.parentElement;
 
       const maxScroll = Math.max(0, selectedElement.parentElement.offsetHeight - divToScroll.offsetHeight);
-      const minScroll = 0;
 
       const scrollTop =
         selectedElement.offsetTop -

@@ -1,11 +1,9 @@
-import React, { Component, useMemo, useState } from 'react';
+import React, { Component } from 'react';
 
 import { SelectableValue } from '@grafana/data';
-import { ValuePicker, IconButton, Icon, HorizontalGroup, Button, LoadingPlaceholder } from '@grafana/ui';
+import { ValuePicker, HorizontalGroup, Button } from '@grafana/ui';
 import cn from 'classnames/bind';
 import dayjs from 'dayjs';
-import utc from 'dayjs/plugin/utc';
-import { toJS } from 'mobx';
 import { observer } from 'mobx-react';
 import { CSSTransition, TransitionGroup } from 'react-transition-group';
 
@@ -13,11 +11,10 @@ import Text from 'components/Text/Text';
 import TimelineMarks from 'components/TimelineMarks/TimelineMarks';
 import Rotation from 'containers/Rotation/Rotation';
 import RotationForm from 'containers/RotationForm/RotationForm';
-import { RotationCreateData } from 'containers/RotationForm/RotationForm.types';
 import { getColor, getFromString } from 'models/schedule/schedule.helpers';
-import { Event, Layer, Schedule, Shift } from 'models/schedule/schedule.types';
+import { Layer, Schedule, Shift } from 'models/schedule/schedule.types';
 import { Timezone } from 'models/timezone/timezone.types';
-import { SelectOption, WithStoreProps } from 'state/types';
+import { WithStoreProps } from 'state/types';
 import { withMobXProviderContext } from 'state/withStore';
 
 import { DEFAULT_TRANSITION_TIMEOUT } from './Rotations.config';
@@ -122,7 +119,6 @@ class Rotations extends Component<RotationsProps, RotationsState> {
                       <div className={cx('layer-title')}>
                         <HorizontalGroup spacing="sm" justify="center">
                           <Text type="secondary">Layer {layer.priority}</Text>
-                          {/*<Icon name="info-circle" />*/}
                         </HorizontalGroup>
                       </div>
                       <div className={cx('rotations')}>

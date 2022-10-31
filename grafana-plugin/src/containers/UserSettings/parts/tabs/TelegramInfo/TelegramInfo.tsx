@@ -19,7 +19,7 @@ const cx = cn.bind(styles);
 
 interface TelegramInfoProps extends HTMLAttributes<HTMLElement> {}
 
-const TelegramInfo = observer((props: TelegramInfoProps) => {
+const TelegramInfo = observer((_props: TelegramInfoProps) => {
   const store = useStore();
   const { userStore, teamStore } = store;
 

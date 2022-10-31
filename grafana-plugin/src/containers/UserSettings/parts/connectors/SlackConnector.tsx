@@ -31,7 +31,7 @@ const SlackConnector = (props: SlackConnectorProps) => {
 
   const handleConnectButtonClick = useCallback(() => {
     onTabChange(UserSettingsTab.SlackInfo);
-  }, []);
+  }, [onTabChange]);
 
   const handleUnlinkSlackAccount = useCallback(() => {
     userStore.unlinkSlack(userStore.currentUserPk);

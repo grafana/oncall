@@ -135,6 +135,84 @@ def test_get_list_schedules(
 
 
 @pytest.mark.django_db
+def test_get_list_schedules_by_type(
+    schedule_internal_api_setup, make_escalation_chain, make_escalation_policy, make_user_auth_headers
+):
+    user, token, calendar_schedule, ical_schedule, web_schedule, slack_channel = schedule_internal_api_setup
+    client = APIClient()
+
+    # setup escalation chain linked to web schedule
+    escalation_chain = make_escalation_chain(user.organization)
+    make_escalation_policy(
+        escalation_chain=escalation_chain,
+        escalation_policy_step=EscalationPolicy.STEP_NOTIFY_SCHEDULE,
+        notify_schedule=web_schedule,
+    )
+
+    expected_payload = [
+        {
+            "id": calendar_schedule.public_primary_key,
+            "type": 0,
+            "team": None,
+            "name": "test_calendar_schedule",
+            "time_zone": "UTC",
+            "slack_channel": None,
+            "user_group": None,
+            "warnings": [],
+            "ical_url_overrides": None,
+            "on_call_now": [],
+            "has_gaps": False,
+            "mention_oncall_next": False,
+            "mention_oncall_start": True,
+            "notify_empty_oncall": 0,
+            "notify_oncall_shift_freq": 1,
+            "number_of_escalation_chains": 0,
+        },
+        {
+            "id": ical_schedule.public_primary_key,
+            "type": 1,
+            "team": None,
+            "name": "test_ical_schedule",
+            "ical_url_primary": ICAL_URL,
+            "ical_url_overrides": None,
+            "slack_channel": None,
+            "user_group": None,
+            "warnings": [],
+            "on_call_now": [],
+            "has_gaps": False,
+            "mention_oncall_next": False,
+            "mention_oncall_start": True,
+            "notify_empty_oncall": 0,
+            "notify_oncall_shift_freq": 1,
+            "number_of_escalation_chains": 0,
+        },
+        {
+            "id": web_schedule.public_primary_key,
+            "type": 2,
+            "time_zone": "UTC",
+            "team": None,
+            "name": "test_web_schedule",
+            "slack_channel": None,
+            "user_group": None,
+            "warnings": [],
+            "on_call_now": [],
+            "has_gaps": False,
+            "mention_oncall_next": False,
+            "mention_oncall_start": True,
+            "notify_empty_oncall": 0,
+            "notify_oncall_shift_freq": 1,
+            "number_of_escalation_chains": 1,
+        },
+    ]
+
+    for expected, schedule_type in enumerate(("api", "ical", "web")):
+        url = reverse("api-internal:schedule-list") + "?type={}".format(schedule_type)
+        response = client.get(url, format="json", **make_user_auth_headers(user, token))
+        assert response.status_code == status.HTTP_200_OK
+        assert response.json() == [expected_payload[expected]]
+
+
+@pytest.mark.django_db
 def test_get_detail_calendar_schedule(schedule_internal_api_setup, make_user_auth_headers):
     user, token, calendar_schedule, _, _, _ = schedule_internal_api_setup
     client = APIClient()

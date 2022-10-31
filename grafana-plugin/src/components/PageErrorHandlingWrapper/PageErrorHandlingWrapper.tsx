@@ -2,7 +2,6 @@ import React, { useEffect } from 'react';
 
 import { Button, VerticalGroup } from '@grafana/ui';
 import cn from 'classnames/bind';
-import { PropTypes } from 'mobx-react';
 
 import PluginLink from 'components/PluginLink/PluginLink';
 import Text from 'components/Text/Text';
@@ -48,7 +47,9 @@ export default function PageErrorHandlingWrapper({
 
   const store = useStore();
 
-  if (!errorData.isWrongTeamError) {return children();}
+  if (!errorData.isWrongTeamError) {
+    return children();
+  }
 
   const currentTeamId = store.userStore.currentUser?.current_team;
   const currentTeam = store.grafanaTeamStore.items[currentTeamId]?.name;

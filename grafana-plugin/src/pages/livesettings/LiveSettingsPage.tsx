@@ -1,24 +1,10 @@
 import React from 'react';
 
-import {
-  Button,
-  Checkbox,
-  ConfirmModal,
-  DatePickerWithInput,
-  HorizontalGroup,
-  Icon,
-  LoadingPlaceholder,
-  PENDING_COLOR,
-  Tooltip,
-  VerticalGroup,
-} from '@grafana/ui';
+import { Button, Checkbox, HorizontalGroup, Icon } from '@grafana/ui';
 import cn from 'classnames/bind';
-import { omit } from 'lodash-es';
 import { observe } from 'mobx';
 import { observer } from 'mobx-react';
 import { Lambda } from 'mobx/lib/internal';
-import { AlignType } from 'rc-table/lib/interface';
-import { Redirect } from 'react-router-dom';
 
 import GTable from 'components/GTable/GTable';
 import Text from 'components/Text/Text';
@@ -122,8 +108,6 @@ class LiveSettings extends React.Component<LiveSettingsProps, LiveSettingsState>
 
     const data: any = globalSettingStore.getSearchResult();
 
-    const loading = !data;
-
     return (
       <div className={cx('root')}>
         <GTable
@@ -133,7 +117,6 @@ class LiveSettings extends React.Component<LiveSettingsProps, LiveSettingsState>
             <div className={cx('header')}>
               <HorizontalGroup>
                 <Text.Title level={3}>Env Variables</Text.Title>
-                {/*<Text type="secondary">Some information</Text>*/}
               </HorizontalGroup>
               <HorizontalGroup justify="flex-end">
                 <WithPermissionControl userAction={UserAction.UpdateGlobalSettings}>
@@ -246,20 +229,6 @@ class LiveSettings extends React.Component<LiveSettingsProps, LiveSettingsState>
     }
 
     return (
-      // <Popconfirm
-      //     title={<>Are you sure to reset to default?</>}
-      //     onConfirm={this.getResetGlobalSettingClickHandler(item)}
-      //     okText="Yes"
-      //     cancelText="Cancel"
-      // >
-      //     <WithPermissionControl
-      //         key="delete"
-      //         userAction={UserAction.UpdateIntegrations}
-      //     >
-      //         <Button type="link">Reset</Button>
-      //     </WithPermissionControl>
-      // </Popconfirm>
-
       <WithConfirm title="Are you sure to reset to default?" confirmText="Reset">
         <Button fill="text" variant="destructive" onClick={this.getResetGlobalSettingClickHandler(item)}>
           Reset to default

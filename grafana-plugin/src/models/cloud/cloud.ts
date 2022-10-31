@@ -1,13 +1,8 @@
-import { get } from 'lodash-es';
-import { action, computed, observable } from 'mobx';
+import { action, observable } from 'mobx';
 
 import BaseStore from 'models/base_store';
-import { NotificationPolicyType } from 'models/notification_policy';
-import { User } from 'models/user/user.types';
 import { makeRequest } from 'network';
-import { Mixpanel } from 'services/mixpanel';
 import { RootStore } from 'state';
-import { move } from 'state/helpers';
 
 import { Cloud } from './cloud.types';
 
