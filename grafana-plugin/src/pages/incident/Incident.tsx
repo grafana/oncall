@@ -18,7 +18,7 @@ import {
 } from '@grafana/ui';
 import cn from 'classnames/bind';
 import { observer } from 'mobx-react';
-import moment from 'moment';
+import moment from 'moment-timezone';
 import CopyToClipboard from 'react-copy-to-clipboard';
 import Emoji from 'react-emoji-render';
 import reactStringReplace from 'react-string-replace';
@@ -58,7 +58,7 @@ import { getActionButtons, getIncidentStatusTag, renderRelatedUsers } from './In
 
 import styles from './Incident.module.css';
 import { PluginPage } from 'PluginPage';
-import { pages } from 'pages';
+import { pages } from 'pages/routes';
 
 const cx = cn.bind(styles);
 
@@ -430,14 +430,7 @@ class IncidentPage extends React.Component<IncidentPageProps, IncidentPageState>
     return (match: string) => {
       switch (match) {
         case 'author':
-          const {
-            store: { userStore },
-          } = this.props;
-
-          const user = userStore.items?.[entity?.author?.pk];
-
           return (
-            /* <Tooltip placement="top" content={<UserSummary id={entity?.author?.pk} />}>*/
             <span
               onClick={() => {
                 getLocationSrv().update({ query: { page: 'users', id: entity?.author?.pk } });
@@ -446,7 +439,6 @@ class IncidentPage extends React.Component<IncidentPageProps, IncidentPageState>
             >
               {entity.author?.username}
             </span>
-            /* </Tooltip>*/
           );
         default:
           console.warn('Unknown render_after_resolve_report_json enity placeholder');
@@ -552,7 +544,7 @@ function GroupedIncidentsList({
       contentClassName={cx('incidents-content')}
     >
       {alerts.map((alert) => (
-        <GroupedIncident incident={alert} datetimeReference={getIncidentDatetimeReference(alert)} />
+        <GroupedIncident key={alert.id} incident={alert} datetimeReference={getIncidentDatetimeReference(alert)} />
       ))}
     </Collapse>
   );
@@ -659,7 +651,6 @@ function AttachedIncidentsList({
             <PluginLink query={{ page: 'incident', id: incident.pk }}>
               #{incident.inside_organization_number} {incident.render_for_web.title}
             </PluginLink>
-            {/* <Emoji text={incident.alert_receive_channel?.verbal_name || ''} />*/}
             <WithPermissionControl userAction={UserAction.UpdateIncidents}>
               <Button size="sm" onClick={() => getUnattachClickHandler(incident.pk)} variant="secondary">
                 Unattach

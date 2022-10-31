@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo } from 'react';
 
 import { AppRootProps } from '@grafana/data';
-import { Button, HorizontalGroup, LinkButton, VerticalGroup } from '@grafana/ui';
+import { Button, HorizontalGroup, LinkButton } from '@grafana/ui';
 import dayjs from 'dayjs';
 import isSameOrAfter from 'dayjs/plugin/isSameOrAfter';
 import isSameOrBefore from 'dayjs/plugin/isSameOrBefore';
@@ -30,14 +30,12 @@ dayjs.extend(isSameOrBefore);
 dayjs.extend(isSameOrAfter);
 dayjs.extend(isoWeek);
 
-// dayjs().weekday(0);
-
 import './style/vars.css';
 import './style/global.css';
 
 import { routes } from 'components/PluginLink/routes';
 import { useQueryParams, useQueryPath } from 'utils/hooks';
-import { pages } from 'pages';
+import { pages } from 'pages/routes';
 import { locationService } from '@grafana/runtime';
 
 export const GrafanaPluginRootPage = (props: AppRootProps) => (

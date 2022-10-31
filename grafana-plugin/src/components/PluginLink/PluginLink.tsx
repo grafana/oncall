@@ -2,7 +2,7 @@ import React, { useCallback, FC } from 'react';
 
 import { locationService } from '@grafana/runtime';
 import cn from 'classnames/bind';
-import { PLUGIN_URL_PATH } from 'pages';
+import { PLUGIN_URL_PATH } from 'pages/routes';
 import qs from 'query-string';
 
 import styles from './PluginLink.module.css';

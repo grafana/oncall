@@ -1,24 +1,10 @@
 import React from 'react';
 
-import {
-  Button,
-  Checkbox,
-  ConfirmModal,
-  DatePickerWithInput,
-  HorizontalGroup,
-  Icon,
-  LoadingPlaceholder,
-  PENDING_COLOR,
-  Tooltip,
-  VerticalGroup,
-} from '@grafana/ui';
+import { Button, Checkbox, HorizontalGroup, Icon } from '@grafana/ui';
 import cn from 'classnames/bind';
-import { omit } from 'lodash-es';
 import { observe } from 'mobx';
 import { observer } from 'mobx-react';
 import { Lambda } from 'mobx/lib/internal';
-import { AlignType } from 'rc-table/lib/interface';
-import { Redirect } from 'react-router-dom';
 
 import GTable from 'components/GTable/GTable';
 import Text from 'components/Text/Text';
@@ -35,7 +21,7 @@ import { normalizeValue, prepareForUpdate } from './LiveSettings.helpers';
 import styles from './LiveSettings.module.css';
 import PluginLink from 'components/PluginLink/PluginLink';
 import { PluginPage } from 'PluginPage';
-import { pages } from 'pages';
+import { pages } from 'pages/routes';
 import { config } from '@grafana/runtime';
 
 const cx = cn.bind(styles);
@@ -250,20 +236,6 @@ class LiveSettings extends React.Component<LiveSettingsProps, LiveSettingsState>
     }
 
     return (
-      // <Popconfirm
-      //     title={<>Are you sure to reset to default?</>}
-      //     onConfirm={this.getResetGlobalSettingClickHandler(item)}
-      //     okText="Yes"
-      //     cancelText="Cancel"
-      // >
-      //     <WithPermissionControl
-      //         key="delete"
-      //         userAction={UserAction.UpdateIntegrations}
-      //     >
-      //         <Button type="link">Reset</Button>
-      //     </WithPermissionControl>
-      // </Popconfirm>
-
       <WithConfirm title="Are you sure to reset to default?" confirmText="Reset">
         <Button fill="text" variant="destructive" onClick={this.getResetGlobalSettingClickHandler(item)}>
           Reset to default

@@ -29,11 +29,10 @@ import { EscalationChain } from 'models/escalation_chain/escalation_chain.types'
 import { WithStoreProps } from 'state/types';
 import { UserAction } from 'state/userAction';
 import { withMobXProviderContext } from 'state/withStore';
-import { openWarningNotification } from 'utils';
 
 import styles from './EscalationChains.module.css';
 import { PluginPage } from 'PluginPage';
-import { pages } from 'pages';
+import { pages } from 'pages/routes';
 
 const cx = cn.bind(styles);
 
@@ -246,7 +245,7 @@ class EscalationChainsPage extends React.Component<EscalationChainsPageProps, Es
 
   renderEscalation = () => {
     const { store } = this.props;
-    const { selectedEscalationChain, showCreateEscalationChainModal, escalationChainIdToCopy } = this.state;
+    const { selectedEscalationChain } = this.state;
 
     const { escalationChainStore } = store;
 
@@ -309,14 +308,14 @@ class EscalationChainsPage extends React.Component<EscalationChainsPageProps, Es
             {escalationChainDetails.length ? (
               <ul className={cx('list')}>
                 {escalationChainDetails.map((alertReceiveChannel) => (
-                  <li>
+                  <li key={alertReceiveChannel.id}>
                     <HorizontalGroup align="flex-start">
                       <PluginLink query={{ page: 'integrations', id: alertReceiveChannel.id }}>
                         {alertReceiveChannel.display_name}
                       </PluginLink>
                       <ul className={cx('list')}>
                         {alertReceiveChannel.channel_filters.map((channelFilter) => (
-                          <li>
+                          <li key={channelFilter.id}>
                             <Icon name="arrow-right" />
                             {channelFilter.display_name}
                           </li>

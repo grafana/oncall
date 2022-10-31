@@ -1,6 +1,5 @@
 import { ActionDTO } from 'models/action';
 import { Channel } from 'models/channel';
-import { ChannelFilter } from 'models/channel_filter/channel_filter.types';
 import { EscalationChain } from 'models/escalation_chain/escalation_chain.types';
 import { Schedule } from 'models/schedule/schedule.types';
 import { User } from 'models/user/user.types';

@@ -46,7 +46,7 @@ import { getDatesString } from './Schedules.helpers';
 
 import styles from './Schedules.module.css';
 import { PluginPage } from 'PluginPage';
-import { pages } from 'pages';
+import { pages } from 'pages/routes';
 
 const cx = cn.bind(styles);
 
@@ -310,8 +310,8 @@ class SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSta
             Events
           </Text.Title>
           <ul className={cx('events-list')}>
-            {(events || []).map((event) => (
-              <li className={cx('events-list-item')}>
+            {(events || []).map((event, idx) => (
+              <li key={idx} className={cx('events-list-item')}>
                 <Event event={event} />
               </li>
             ))}
@@ -362,9 +362,9 @@ class SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSta
     return value.user_group?.handle || '-';
   };
 
-  renderOncallNow = (item: Schedule, index: number) => {
+  renderOncallNow = (item: Schedule, _index: number) => {
     if (item.on_call_now?.length > 0) {
-      return item.on_call_now.map((user, index) => {
+      return item.on_call_now.map((user, _index) => {
         return (
           <PluginLink key={user.pk} query={{ page: 'users', id: user.pk }}>
             <div>
@@ -391,7 +391,7 @@ class SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSta
       const tooltipContent = (
         <div>
           {item.warnings.map((warning: string) => (
-            <p>{warning}</p>
+            <p key={warning}>{warning}</p>
           ))}
         </div>
       );

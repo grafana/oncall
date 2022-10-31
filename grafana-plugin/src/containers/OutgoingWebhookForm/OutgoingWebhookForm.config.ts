@@ -1,7 +1,4 @@
-import { ReactElement } from 'react';
-
 import { FormItem, FormItemType } from 'components/GForm/GForm.types';
-import { DEFAULT_USER_ROLES } from 'models/user/user.config';
 
 export const form: { name: string; fields: FormItem[] } = {
   name: 'OutgoingWebhook',

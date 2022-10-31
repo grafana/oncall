@@ -1,14 +1,21 @@
 {
   "extends": "@grafana/toolkit/src/config/tsconfig.plugin.json",
   "include": ["src", "frontend_enterprise/src"],
+  "exclude": ["node_modules"],
   "types": ["node", "@emotion/core"],
   "compilerOptions": {
     "rootDirs": ["src", "frontend_enterprise/src"],
     "baseUrl": "src",
     "typeRoots": ["./node_modules/@types"],
-    "noUnusedLocals": false,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
     "strict": false,
     "resolveJsonModule": true,
     "noImplicitAny": false,
-  }
+    "allowJs": true,
+    "paths": {
+      "@jest/*": ["src/jest"]
+    },
+    "module": "commonjs",
+  },
 }

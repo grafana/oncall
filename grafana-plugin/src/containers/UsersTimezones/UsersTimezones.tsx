@@ -9,11 +9,10 @@ import ScheduleBorderedAvatar from 'components/ScheduleBorderedAvatar/ScheduleBo
 import ScheduleUserDetails from 'components/ScheduleUserDetails/ScheduleUserDetails';
 import Text from 'components/Text/Text';
 import { IsOncallIcon } from 'icons';
-import { Event, Layer, Schedule } from 'models/schedule/schedule.types';
+import { Schedule } from 'models/schedule/schedule.types';
 import { Timezone } from 'models/timezone/timezone.types';
 import { User } from 'models/user/user.types';
 import { getColorSchemeMappingForUsers } from 'pages/schedule/Schedule.helpers';
-import { RootStore } from 'state';
 import { useStore } from 'state/useStore';
 
 import styles from './UsersTimezones.module.css';
@@ -83,10 +82,6 @@ const UsersTimezones: FC<UsersTimezonesProps> = (props) => {
                 Schedule team and timezones
               </Text.Title>
             </div>
-            {/* <HorizontalGroup>
-              <InlineSwitch transparent />
-              Current schedule users only
-            </HorizontalGroup>*/}
           </HorizontalGroup>
           <div className={cx('timezone-select')}>
             <Text type="secondary">
@@ -175,7 +170,7 @@ const UserAvatars = (props: UserAvatarsProps) => {
 
   return (
     <div className={cx('user-avatars')}>
-      {userGroups.map((group) => {
+      {userGroups.map((group, idx) => {
         const userCurrentMoment = dayjs(currentMoment).tz(group.users[0].timezone); // TODO try using group.utcOffset
         const diff = userCurrentMoment.diff(userCurrentMoment.startOf('day'), 'minutes');
 
@@ -183,6 +178,7 @@ const UserAvatars = (props: UserAvatarsProps) => {
 
         return (
           <AvatarGroup
+            key={idx}
             activeUtcOffset={activeUtcOffset}
             utcOffset={group.utcOffset}
             onSetActiveUtcOffset={setActiveUtcOffset}
@@ -251,13 +247,16 @@ const AvatarGroup = (props: AvatarGroupProps) => {
 
       return 0;
     });
-  }, [propsUsers]);
+  }, [propsUsers, onCallNow]);
 
-  const getAvatarClickHandler = useCallback((timezone: Timezone) => {
-    return () => {
-      onTzChange(timezone);
-    };
-  }, []);
+  const getAvatarClickHandler = useCallback(
+    (timezone: Timezone) => {
+      return () => {
+        onTzChange(timezone);
+      };
+    },
+    [onTzChange]
+  );
 
   const colorSchemeMapping = getColorSchemeMappingForUsers(store, scheduleId, startMoment);
   const width = active ? users.length * AVATAR_WIDTH + (users.length - 1) * AVATAR_GAP : AVATAR_WIDTH;

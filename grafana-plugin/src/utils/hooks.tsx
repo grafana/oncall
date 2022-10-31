@@ -3,7 +3,7 @@ import React, { useEffect, useRef, useState, useMemo } from 'react';
 import { AppRootProps, NavModelItem } from '@grafana/data';
 
 import NavBarSubtitle from 'components/NavBar/NavBarSubtitle';
-import { PageDefinition } from 'pages';
+import { PageDefinition } from 'pages/routes';
 import { useLocation } from 'react-router-dom';
 
 import { APP_TITLE } from './consts';

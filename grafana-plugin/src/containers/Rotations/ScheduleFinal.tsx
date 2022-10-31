@@ -1,6 +1,6 @@
-import React, { Component, useEffect } from 'react';
+import React, { Component } from 'react';
 
-import { Button, HorizontalGroup, Icon, Input, ValuePicker } from '@grafana/ui';
+import { HorizontalGroup } from '@grafana/ui';
 import cn from 'classnames/bind';
 import dayjs from 'dayjs';
 import { observer } from 'mobx-react';
@@ -9,8 +9,8 @@ import { CSSTransition, TransitionGroup } from 'react-transition-group';
 import Text from 'components/Text/Text';
 import TimelineMarks from 'components/TimelineMarks/TimelineMarks';
 import Rotation from 'containers/Rotation/Rotation';
-import { getColor, getFromString, getLayersFromStore, getOverrideColor, getOverridesFromStore, getShiftsFromStore } from 'models/schedule/schedule.helpers';
-import { Event, Layer, Schedule, Shift } from 'models/schedule/schedule.types';
+import { getLayersFromStore, getOverridesFromStore, getShiftsFromStore } from 'models/schedule/schedule.helpers';
+import { Schedule, Shift } from 'models/schedule/schedule.types';
 import { Timezone } from 'models/timezone/timezone.types';
 import { WithStoreProps } from 'state/types';
 import { withMobXProviderContext } from 'state/withStore';
@@ -51,7 +51,7 @@ class ScheduleFinal extends Component<ScheduleFinalProps, ScheduleOverridesState
     const shifts = getShiftsFromStore(store, scheduleId, startMoment);
 
     const layers = getLayersFromStore(store, scheduleId, startMoment);
-    
+
     const overrides = getOverridesFromStore(store, scheduleId, startMoment);
 
     const currentTimeHidden = currentTimeX < 0 || currentTimeX > 1;
@@ -67,12 +67,6 @@ class ScheduleFinal extends Component<ScheduleFinalProps, ScheduleOverridesState
                     Final schedule
                   </Text.Title>
                 </div>
-                {/*<Input
-                  prefix={<Icon name="search" />}
-                  placeholder="Search..."
-                  value={searchTerm}
-                  onChange={this.onSearchTermChangeCallback}
-                />*/}
               </HorizontalGroup>
             </div>
           )}

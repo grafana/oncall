@@ -29,7 +29,7 @@ import { getRealFilters, getUserRowClassNameFn } from './Users.helpers';
 
 import styles from './Users.module.css';
 import { PluginPage } from 'PluginPage';
-import { pages } from 'pages';
+import { pages } from 'pages/routes';
 
 const cx = cn.bind(styles);
 
@@ -85,7 +85,7 @@ class Users extends React.Component<UsersProps, UsersState> {
     return await userStore.updateItems(getRealFilters(usersFilters), page);
   };
 
-  componentDidUpdate(prevProps: Readonly<UsersProps>, prevState: Readonly<UsersState>, snapshot?: any) {
+  componentDidUpdate(prevProps: Readonly<UsersProps>, _prevState: Readonly<UsersState>, _snapshot?: any) {
     const { store } = this.props;
 
     if (!this.initialUsersLoaded && store.isUserActionAllowed(UserAction.ViewOtherUsers)) {

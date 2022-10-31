@@ -3,6 +3,7 @@
 Developer-Friendly
 Alert Management
 with Brilliant Slack Integration
+
 - Connect monitoring systems
 - Collect and analyze data
 - On-call rotation
@@ -10,5 +11,6 @@ with Brilliant Slack Integration
 - Never miss alerts with calls and SMS
 
 ## Documentation
+
 - [On Github](http://github.com/grafana/oncall)
 - [Grafana OnCall](https://grafana.com/docs/grafana-cloud/oncall/)

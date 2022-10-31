@@ -28,12 +28,11 @@ import { AlertReceiveChannelOption } from 'models/alert_receive_channel/alert_re
 import { WithStoreProps } from 'state/types';
 import { UserAction } from 'state/userAction';
 import { withMobXProviderContext } from 'state/withStore';
-import { openWarningNotification } from 'utils';
 
 import styles from './Integrations.module.css';
 import PluginLink from 'components/PluginLink/PluginLink';
 import { PluginPage } from 'PluginPage';
-import { pages } from 'pages';
+import { pages } from 'pages/routes';
 
 const cx = cn.bind(styles);
 
@@ -274,7 +273,6 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
         if (integration?.display_name === 'Grafana Alerting') {
           this.alertReceiveChanneltoPoll = { ...this.alertReceiveChanneltoPoll, [alertReceiveChannel.id]: 200 };
           if (!this.alertReceiveChannelTimerId) {
-            let counter = 200;
             this.alertReceiveChannelTimerId = setInterval(this.checkTimerTick, 3000);
           }
         }

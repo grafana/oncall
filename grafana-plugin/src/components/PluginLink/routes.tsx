@@ -1,5 +1,5 @@
 import { AppRootProps } from '@grafana/data';
-import { PageDefinition } from 'pages';
+import { PageDefinition } from 'pages/routes';
 import ChatOpsPage from 'pages/chat-ops/ChatOps';
 import CloudPage from 'pages/cloud/CloudPage';
 import EscalationsChainsPage from 'pages/escalation-chains/EscalationChains';

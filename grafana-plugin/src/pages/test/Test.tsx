@@ -10,7 +10,7 @@ import { withMobXProviderContext } from 'state/withStore';
 import styles from './Test.module.css';
 import PluginLink from 'components/PluginLink/PluginLink';
 import { PluginPage } from 'PluginPage';
-import { pages } from 'pages';
+import { pages } from 'pages/routes';
 
 const cx = cn.bind(styles);
 
