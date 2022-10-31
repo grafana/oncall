@@ -9,6 +9,7 @@ from mirage import fields as mirage_fields
 
 from apps.alerts.models import MaintainableObject
 from apps.alerts.tasks import disable_maintenance
+from apps.oncall_gw.utils import create_oncall_connector
 from apps.slack.utils import post_message_to_channel
 from apps.user_management.subscription_strategy import FreePublicBetaSubscriptionStrategy
 from common.insight_log import ChatOpsEvent, ChatOpsType, write_chatops_insight_log
@@ -31,7 +32,16 @@ def generate_public_primary_key_for_organization():
     return new_public_primary_key
 
 
+class OrganizationQuerySet(models.QuerySet):
+    def create_for_cloud(self, **kwargs):
+        instance = super().create(**kwargs)
+        create_oncall_connector(instance.public_primary_key, settings.BACKEND_REGION)
+
+
 class Organization(MaintainableObject):
+
+    objects = OrganizationQuerySet.as_manager()
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.subscription_strategy = self._get_subscription_strategy()

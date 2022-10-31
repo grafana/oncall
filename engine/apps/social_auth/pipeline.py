@@ -2,10 +2,12 @@ import logging
 from urllib.parse import urljoin
 
 from django.apps import apps
-from django.http import HttpResponse
+from django.conf import settings
+from django.http import HttpResponse, JsonResponse
 from rest_framework import status
 from social_core.exceptions import AuthForbidden
 
+from apps.oncall_gw.utils import check_slack_installation_backend, create_slack_connector
 from apps.slack.tasks import populate_slack_channels_for_team, populate_slack_usergroups_for_team
 from common.constants.slack_auth import (
     REDIRECT_AFTER_SLACK_INSTALL,
@@ -93,13 +95,16 @@ def populate_slack_identities(response, backend, user, organization, **kwargs):
         return HttpResponse(status=status.HTTP_400_BAD_REQUEST)
 
     slack_team_id = response["team"]["id"]
+    if settings.FEATURE_MULTIREGION_ENABLED and not check_slack_installation_backend(
+        slack_team_id, settings.CLOUD_BACKEND
+    ):
+        return JsonResponse(status=status.HTTP_400_BAD_REQUEST, json={"detail": "error about regions"})
     slack_team_identity, is_slack_team_identity_created = SlackTeamIdentity.objects.get_or_create(
         slack_id=slack_team_id,
     )
-
     # update slack oauth fields by data from response
     slack_team_identity.update_oauth_fields(user, organization, response)
-
+    create_slack_connector(slack_team_id, settings.BACKEND_REGION)
     populate_slack_channels_for_team.apply_async((slack_team_identity.pk,))
     user.slack_user_identity.update_profile_info()
     # todo slack: do we need update info for all existing slack users in slack team?

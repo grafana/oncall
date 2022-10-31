@@ -771,3 +771,4 @@ def clean_slack_integration_leftovers(organization_id, *args, **kwargs):
     OnCallSchedule.objects.filter(organization_id=organization_id).update(channel=None)
     logger.info(f"Cleaned OnCallSchedule slack_channel_id for organization {organization_id}")
     logger.info(f"Finish clean slack leftovers for organization {organization_id}")
+    # TODO: unregister in oncall-gw
