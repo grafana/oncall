@@ -1,9 +1,11 @@
 import React, { useCallback } from 'react';
 
-import { Button, VerticalGroup } from '@grafana/ui';
+import { Button, VerticalGroup, Icon } from '@grafana/ui';
 import cn from 'classnames/bind';
 
+import Block from 'components/GBlock/Block';
 import Text from 'components/Text/Text';
+import { SlackNewIcon } from 'icons';
 import { useStore } from 'state/useStore';
 
 import styles from './SlackTab.module.css';
@@ -18,20 +20,32 @@ export const SlackTab = () => {
   }, [slackStore]);
 
   return (
-    <VerticalGroup>
-      <Text>
-        You can view your Slack Workspace at the top-right corner after you are redirected. It should be a Workspace
-        with App Bot installed:
-      </Text>
-      <img
-        style={{ height: '350px', display: 'block', margin: '0 auto' }}
-        src="public/plugins/grafana-oncall-app/img/slack_workspace_choose_attention.png"
-      />
-      <div className={cx('footer')}>
-        <Button key="back" onClick={handleClickConnectSlackAccount}>
-          I'll check! Proceed to Slack...
-        </Button>
-      </div>
+    <VerticalGroup spacing="lg">
+      <Block bordered withBackground className={cx('slack-infoblock', 'personal-slack-infoblock')}>
+        <VerticalGroup align="center" spacing="lg">
+          <SlackNewIcon />
+          <Text>
+            Personal Slack connection will allow you to manage alert grouops in your connected team Internal Slack
+            workspace.
+          </Text>
+          <Text>To setup personal Slack click the button below, choose workspace and click Allow.</Text>
+
+          <Text type="secondary">
+            More details in{' '}
+            <a href="https://grafana.com/docs/grafana-cloud/oncall/open-source/#slack-setup">
+              <Text type="link">our documentation</Text>
+            </a>
+          </Text>
+
+          <img
+            style={{ height: '350px', display: 'block', margin: '0 auto' }}
+            src="public/plugins/grafana-oncall-app/img/slack_instructions.png"
+          />
+        </VerticalGroup>
+      </Block>
+      <Button onClick={handleClickConnectSlackAccount}>
+        <Icon name="external-link-alt" className={cx('external-link-style')} /> Open Slack connection page
+      </Button>
     </VerticalGroup>
   );
 };
