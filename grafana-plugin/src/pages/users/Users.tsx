@@ -3,6 +3,7 @@ import React from 'react';
 import { AppRootProps } from '@grafana/data';
 import { config, getLocationSrv } from '@grafana/runtime';
 import { Alert, Button, HorizontalGroup, Icon, VerticalGroup } from '@grafana/ui';
+import { PluginPage } from 'PluginPage';
 import cn from 'classnames/bind';
 import { debounce } from 'lodash-es';
 import { observer } from 'mobx-react';
@@ -21,6 +22,7 @@ import UserSettings from 'containers/UserSettings/UserSettings';
 import { WithPermissionControl } from 'containers/WithPermissionControl/WithPermissionControl';
 import { getRole } from 'models/user/user.helpers';
 import { User as UserType, UserRole } from 'models/user/user.types';
+import { pages } from 'pages/routes';
 import { WithStoreProps } from 'state/types';
 import { UserAction } from 'state/userAction';
 import { withMobXProviderContext } from 'state/withStore';
@@ -28,8 +30,6 @@ import { withMobXProviderContext } from 'state/withStore';
 import { getRealFilters, getUserRowClassNameFn } from './Users.helpers';
 
 import styles from './Users.module.css';
-import { PluginPage } from 'PluginPage';
-import { pages } from 'pages/routes';
 
 const cx = cn.bind(styles);
 
@@ -173,7 +173,7 @@ class Users extends React.Component<UsersProps, UsersState> {
     const { count, results } = userStore.getSearchResult();
 
     return (
-      <PluginPage pageNav={pages['users'].getPageNav()} >
+      <PluginPage pageNav={pages['users'].getPageNav()}>
         <PageErrorHandlingWrapper
           errorData={errorData}
           objectName="user"
@@ -182,7 +182,7 @@ class Users extends React.Component<UsersProps, UsersState> {
         >
           {() => (
             <>
-              <div className={cx('root', { navbarRootFallback: !config.featureToggles.topnav } )}>
+              <div className={cx('root', { navbarRootFallback: !config.featureToggles.topnav })}>
                 <div className={cx('root', 'TEST-users-page')}>
                   <div className={cx('users-header')}>
                     <div style={{ display: 'flex', alignItems: 'baseline' }}>

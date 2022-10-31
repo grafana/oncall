@@ -11,7 +11,6 @@ import timezone from 'dayjs/plugin/timezone';
 import utc from 'dayjs/plugin/utc';
 import weekday from 'dayjs/plugin/weekday';
 import { observer, Provider } from 'mobx-react';
-
 import { useParams } from 'react-router-dom';
 
 import 'interceptors';
@@ -36,6 +35,7 @@ import './style/global.css';
 import { routes } from 'components/PluginLink/routes';
 import { useQueryParams, useQueryPath } from 'utils/hooks';
 import { pages } from 'pages/routes';
+
 import { locationService } from '@grafana/runtime';
 
 export const GrafanaPluginRootPage = (props: AppRootProps) => (

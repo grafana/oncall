@@ -16,6 +16,7 @@ import {
   Modal,
   Tooltip,
 } from '@grafana/ui';
+import { PluginPage } from 'PluginPage';
 import cn from 'classnames/bind';
 import { observer } from 'mobx-react';
 import moment from 'moment-timezone';
@@ -47,6 +48,7 @@ import {
   GroupedAlert,
 } from 'models/alertgroup/alertgroup.types';
 import { ResolutionNoteSourceTypesToDisplayName } from 'models/resolution_note/resolution_note.types';
+import { pages } from 'pages/routes';
 import { WithStoreProps } from 'state/types';
 import { useStore } from 'state/useStore';
 import { UserAction } from 'state/userAction';
@@ -57,8 +59,6 @@ import sanitize from 'utils/sanitize';
 import { getActionButtons, getIncidentStatusTag, renderRelatedUsers } from './Incident.helpers';
 
 import styles from './Incident.module.css';
-import { PluginPage } from 'PluginPage';
-import { pages } from 'pages/routes';
 
 const cx = cn.bind(styles);
 
@@ -132,7 +132,7 @@ class IncidentPage extends React.Component<IncidentPageProps, IncidentPageState>
         <PageErrorHandlingWrapper errorData={errorData} objectName="alert group" pageName="incidents">
           {() =>
             errorData.isNotFoundError ? (
-              <div className={cx('root', { navbarRootFallback: !config.featureToggles.topnav } )}>
+              <div className={cx('root', { navbarRootFallback: !config.featureToggles.topnav })}>
                 <div className={cx('not-found')}>
                   <VerticalGroup spacing="lg" align="center">
                     <Text.Title level={1}>404</Text.Title>

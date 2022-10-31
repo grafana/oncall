@@ -2,8 +2,9 @@ import React, { useCallback, FC } from 'react';
 
 import { locationService } from '@grafana/runtime';
 import cn from 'classnames/bind';
-import { PLUGIN_URL_PATH } from 'pages/routes';
 import qs from 'query-string';
+
+import { PLUGIN_URL_PATH } from 'pages/routes';
 
 import styles from './PluginLink.module.css';
 
@@ -33,9 +34,14 @@ const PluginLink: FC<PluginLinkProps> = (props) => {
         return;
       }
 
-      if (disabled) return;
-      if (partial) locationService.partial(query);
-      else locationService.push(href);
+      if (disabled) {
+        return;
+      }
+      if (partial) {
+        locationService.partial(query);
+      } else {
+        locationService.push(href);
+      }
     },
     [children]
   );

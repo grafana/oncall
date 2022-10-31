@@ -2,6 +2,7 @@ import React, { SyntheticEvent } from 'react';
 
 import { getLocationSrv } from '@grafana/runtime';
 import { Button, HorizontalGroup, IconButton, LoadingPlaceholder, VerticalGroup } from '@grafana/ui';
+import { PluginPage } from 'PluginPage';
 import cn from 'classnames/bind';
 import dayjs from 'dayjs';
 import { debounce } from 'lodash-es';
@@ -24,14 +25,13 @@ import { WithPermissionControl } from 'containers/WithPermissionControl/WithPerm
 import { Schedule, ScheduleType } from 'models/schedule/schedule.types';
 import { getSlackChannelName } from 'models/slack_channel/slack_channel.helpers';
 import { Timezone } from 'models/timezone/timezone.types';
+import { pages } from 'pages/routes';
 import { getStartOfWeek } from 'pages/schedule/Schedule.helpers';
 import { WithStoreProps } from 'state/types';
 import { UserAction } from 'state/userAction';
 import { withMobXProviderContext } from 'state/withStore';
 
 import styles from './Schedules.module.css';
-import { PluginPage } from 'PluginPage';
-import { pages } from 'pages/routes';
 
 const cx = cn.bind(styles);
 

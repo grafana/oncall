@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useState } from 'react';
 
 import { getLocationSrv } from '@grafana/runtime';
 import { Field, Input, Button, HorizontalGroup, Icon, VerticalGroup, LoadingPlaceholder } from '@grafana/ui';
+import { PluginPage } from 'PluginPage';
 import cn from 'classnames/bind';
 import { observer } from 'mobx-react';
 
@@ -11,14 +12,13 @@ import Text from 'components/Text/Text';
 import WithConfirm from 'components/WithConfirm/WithConfirm';
 import { CrossCircleIcon, HeartIcon } from 'icons';
 import { Cloud } from 'models/cloud/cloud.types';
+import { pages } from 'pages/routes';
 import { WithStoreProps } from 'state/types';
 import { useStore } from 'state/useStore';
 import { withMobXProviderContext } from 'state/withStore';
 import { openErrorNotification } from 'utils';
 
 import styles from './CloudPage.module.css';
-import { PluginPage } from 'PluginPage';
-import { pages } from 'pages/routes';
 
 const cx = cn.bind(styles);
 

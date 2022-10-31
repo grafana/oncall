@@ -3,6 +3,7 @@ import React from 'react';
 import { AppRootProps } from '@grafana/data';
 import { config, getLocationSrv } from '@grafana/runtime';
 import { Button, HorizontalGroup } from '@grafana/ui';
+import { PluginPage } from 'PluginPage';
 import cn from 'classnames/bind';
 import { observer } from 'mobx-react';
 
@@ -13,19 +14,17 @@ import {
   initErrorDataState,
 } from 'components/PageErrorHandlingWrapper/PageErrorHandlingWrapper.helpers';
 import PluginLink from 'components/PluginLink/PluginLink';
-import Text from 'components/Text/Text';
 import WithConfirm from 'components/WithConfirm/WithConfirm';
 import OutgoingWebhookForm from 'containers/OutgoingWebhookForm/OutgoingWebhookForm';
 import { WithPermissionControl } from 'containers/WithPermissionControl/WithPermissionControl';
 import { ActionDTO } from 'models/action';
 import { OutgoingWebhook } from 'models/outgoing_webhook/outgoing_webhook.types';
+import { pages } from 'pages/routes';
 import { WithStoreProps } from 'state/types';
 import { UserAction } from 'state/userAction';
 import { withMobXProviderContext } from 'state/withStore';
 
 import styles from './OutgoingWebhooks.module.css';
-import { PluginPage } from 'PluginPage';
-import { pages } from 'pages/routes';
 
 const cx = cn.bind(styles);
 
@@ -36,7 +35,7 @@ interface OutgoingWebhooksState extends PageBaseState {
 }
 
 @observer
-class OutgoingWebhooks extends React.Component<OutgoingWebhooksProps, OutgoingWebhooksState> {
+export class OutgoingWebhooks extends React.Component<OutgoingWebhooksProps, OutgoingWebhooksState> {
   state: OutgoingWebhooksState = {
     errorData: initErrorDataState(),
   };
@@ -197,7 +196,5 @@ class OutgoingWebhooks extends React.Component<OutgoingWebhooksProps, OutgoingWe
     getLocationSrv().update({ partial: true, query: { id: undefined } });
   };
 }
-
-export { OutgoingWebhooks };
 
 export default withMobXProviderContext(OutgoingWebhooks);

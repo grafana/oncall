@@ -13,6 +13,7 @@ import {
   Tooltip,
   VerticalGroup,
 } from '@grafana/ui';
+import { PluginPage } from 'PluginPage';
 import cn from 'classnames/bind';
 import { omit } from 'lodash-es';
 import { observer } from 'mobx-react';
@@ -37,6 +38,7 @@ import ScheduleICalSettings from 'containers/ScheduleIcalLink/ScheduleIcalLink';
 import { WithPermissionControl } from 'containers/WithPermissionControl/WithPermissionControl';
 import { Schedule, ScheduleEvent, ScheduleType } from 'models/schedule/schedule.types';
 import { getSlackChannelName } from 'models/slack_channel/slack_channel.helpers';
+import { pages } from 'pages/routes';
 import { WithStoreProps } from 'state/types';
 import { UserAction } from 'state/userAction';
 import { withMobXProviderContext } from 'state/withStore';
@@ -45,8 +47,6 @@ import { openErrorNotification } from 'utils';
 import { getDatesString } from './Schedules.helpers';
 
 import styles from './Schedules.module.css';
-import { PluginPage } from 'PluginPage';
-import { pages } from 'pages/routes';
 
 const cx = cn.bind(styles);
 

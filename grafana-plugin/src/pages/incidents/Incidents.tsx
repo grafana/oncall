@@ -3,6 +3,7 @@ import React, { ReactElement, SyntheticEvent } from 'react';
 import { AppRootProps } from '@grafana/data';
 import { config, getLocationSrv } from '@grafana/runtime';
 import { Button, Icon, Tooltip, VerticalGroup, LoadingPlaceholder, HorizontalGroup } from '@grafana/ui';
+import { PluginPage } from 'PluginPage';
 import cn from 'classnames/bind';
 import { get } from 'lodash-es';
 import { observer } from 'mobx-react';
@@ -22,6 +23,7 @@ import { WithPermissionControl } from 'containers/WithPermissionControl/WithPerm
 import { Alert, Alert as AlertType, AlertAction } from 'models/alertgroup/alertgroup.types';
 import { User } from 'models/user/user.types';
 import { getActionButtons, getIncidentStatusTag, renderRelatedUsers } from 'pages/incident/Incident.helpers';
+import { pages } from 'pages/routes';
 import { move } from 'state/helpers';
 import { WithStoreProps } from 'state/types';
 import { UserAction } from 'state/userAction';
@@ -30,8 +32,6 @@ import { withMobXProviderContext } from 'state/withStore';
 import SilenceDropdown from './parts/SilenceDropdown';
 
 import styles from './Incidents.module.css';
-import { PluginPage } from 'PluginPage';
-import { pages } from 'pages/routes';
 
 const cx = cn.bind(styles);
 

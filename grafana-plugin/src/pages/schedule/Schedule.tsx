@@ -3,6 +3,7 @@ import React from 'react';
 import { AppRootProps } from '@grafana/data';
 import { config, getLocationSrv } from '@grafana/runtime';
 import { Button, HorizontalGroup, VerticalGroup, IconButton, ToolbarButton, Icon } from '@grafana/ui';
+import { PluginPage } from 'PluginPage';
 import cn from 'classnames/bind';
 import dayjs from 'dayjs';
 import { observer } from 'mobx-react';
@@ -18,14 +19,13 @@ import ScheduleForm from 'containers/ScheduleForm/ScheduleForm';
 import UsersTimezones from 'containers/UsersTimezones/UsersTimezones';
 import { Shift } from 'models/schedule/schedule.types';
 import { Timezone } from 'models/timezone/timezone.types';
+import { pages } from 'pages/routes';
 import { WithStoreProps } from 'state/types';
 import { withMobXProviderContext } from 'state/withStore';
 
 import { getStartOfWeek } from './Schedule.helpers';
 
 import styles from './Schedule.module.css';
-import { PluginPage } from 'PluginPage';
-import { pages } from 'pages/routes';
 
 const cx = cn.bind(styles);
 

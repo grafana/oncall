@@ -8,7 +8,7 @@ import outgoingWebhooksStub from 'jest/outgoingWebhooksStub';
 
 import { OutgoingWebhook } from 'models/outgoing_webhook/outgoing_webhook.types';
 
-import { OutgoingWebhooks } from './OutgoingWebhooks';
+import { OutgoingWebhooks } from 'pages/outgoing_webhooks/OutgoingWebhooks';
 
 const outgoingWebhooks = outgoingWebhooksStub as OutgoingWebhook[];
 const outgoingWebhookStore = () => ({

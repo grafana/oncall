@@ -1,16 +1,20 @@
 import React from 'react';
 
+import { config } from '@grafana/runtime';
 import { Button, Checkbox, HorizontalGroup, Icon } from '@grafana/ui';
+import { PluginPage } from 'PluginPage';
 import cn from 'classnames/bind';
 import { observe } from 'mobx';
 import { observer } from 'mobx-react';
 import { Lambda } from 'mobx/lib/internal';
 
 import GTable from 'components/GTable/GTable';
+import PluginLink from 'components/PluginLink/PluginLink';
 import Text from 'components/Text/Text';
 import WithConfirm from 'components/WithConfirm/WithConfirm';
 import { WithPermissionControl } from 'containers/WithPermissionControl/WithPermissionControl';
 import { GlobalSetting } from 'models/global_setting/global_setting.types';
+import { pages } from 'pages/routes';
 import { WithStoreProps } from 'state/types';
 import { UserAction } from 'state/userAction';
 import { withMobXProviderContext } from 'state/withStore';
@@ -19,10 +23,6 @@ import { PLACEHOLDER } from './LiveSettings.config';
 import { normalizeValue, prepareForUpdate } from './LiveSettings.helpers';
 
 import styles from './LiveSettings.module.css';
-import PluginLink from 'components/PluginLink/PluginLink';
-import { PluginPage } from 'PluginPage';
-import { pages } from 'pages/routes';
-import { config } from '@grafana/runtime';
 
 const cx = cn.bind(styles);
 

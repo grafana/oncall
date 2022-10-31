@@ -6,10 +6,6 @@ module.exports = {
   moduleDirectories: ['node_modules', 'src'],
   moduleFileExtensions: ['ts', 'tsx', 'js'],
 
-  transformers: {
-    "\\.[jt]sx?$": "babel-jest"
-  },
-
   transformIgnorePatterns: [`/node_modules/(?!${esModules})`],
 
   moduleNameMapper: {

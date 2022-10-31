@@ -1,4 +1,4 @@
-import { NavModelItem } from "@grafana/data";
+import { NavModelItem } from '@grafana/data';
 
 export const PLUGIN_URL_PATH = '/a/grafana-oncall-app';
 
@@ -10,7 +10,7 @@ export type PageDefinition = {
   hideFromTabs?: boolean;
   role?: 'Viewer' | 'Editor' | 'Admin';
 
-  getPageNav(): { text: string, description: string }
+  getPageNav(): { text: string; description: string };
 };
 
 function getPath(name = '') {
@@ -130,10 +130,11 @@ export const pages: { [id: string]: PageDefinition } = [
 ].reduce((prev, current) => {
   prev[current.id] = {
     ...current,
-    getPageNav: () => ({
-      text: current.text,
-      description: ''
-    } as NavModelItem),
+    getPageNav: () =>
+      ({
+        text: current.text,
+        description: '',
+      } as NavModelItem),
   };
 
   return prev;

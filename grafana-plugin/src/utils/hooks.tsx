@@ -1,13 +1,13 @@
 import React, { useEffect, useRef, useState, useMemo } from 'react';
 
 import { AppRootProps, NavModelItem } from '@grafana/data';
-
-import NavBarSubtitle from 'components/NavBar/NavBarSubtitle';
-import { PageDefinition } from 'pages/routes';
 import { useLocation } from 'react-router-dom';
 
-import { APP_TITLE } from './consts';
+import NavBarSubtitle from 'components/NavBar/NavBarSubtitle';
 import { NavMenuItem } from 'components/PluginLink/routes';
+import { PageDefinition } from 'pages/routes';
+
+import { APP_TITLE } from './consts';
 
 export function useForceUpdate() {
   const [, setValue] = useState(0);
@@ -30,7 +30,7 @@ export function useQueryParams() {
 
 export function useQueryPath() {
   const location = useLocation();
-  return React.useMemo(() => location.pathname, [location])
+  return React.useMemo(() => location.pathname, [location]);
 }
 
 export function useDebouncedCallback<A extends any[]>(callback: (...args: A) => void, wait: number) {

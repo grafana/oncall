@@ -1,18 +1,18 @@
 import React from 'react';
 
+import { config } from '@grafana/runtime';
+import { PluginPage } from 'PluginPage';
 import cn from 'classnames/bind';
 import { observer } from 'mobx-react';
 
 import { Tabs, TabsContent } from 'pages/chat-ops/parts';
+import { pages } from 'pages/routes';
 import { WithStoreProps } from 'state/types';
 import { withMobXProviderContext } from 'state/withStore';
 
 import { ChatOpsTab } from './ChatOps.types';
 
 import styles from './ChatOps.module.css';
-import { PluginPage } from 'PluginPage';
-import { pages } from 'pages/routes';
-import { config } from '@grafana/runtime';
 
 const cx = cn.bind(styles);
 

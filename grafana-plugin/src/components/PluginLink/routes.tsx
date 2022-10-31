@@ -1,5 +1,5 @@
 import { AppRootProps } from '@grafana/data';
-import { PageDefinition } from 'pages/routes';
+
 import ChatOpsPage from 'pages/chat-ops/ChatOps';
 import CloudPage from 'pages/cloud/CloudPage';
 import EscalationsChainsPage from 'pages/escalation-chains/EscalationChains';
@@ -11,6 +11,7 @@ import MaintenancePage from 'pages/maintenance/Maintenance';
 import MigrationTool from 'pages/migration-tool/MigrationTool';
 import OrganizationLogPage from 'pages/organization-logs/OrganizationLog';
 import OutgoingWebhooks from 'pages/outgoing_webhooks/OutgoingWebhooks';
+import { PageDefinition } from 'pages/routes';
 import SchedulePage from 'pages/schedule/Schedule';
 import SchedulesPage2 from 'pages/schedules/Schedules';
 import SchedulesPage from 'pages/schedules_NEW/Schedules';

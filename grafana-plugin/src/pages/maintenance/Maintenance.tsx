@@ -1,7 +1,9 @@
 import React from 'react';
 
 import { AppRootProps } from '@grafana/data';
+import { config } from '@grafana/runtime';
 import { Button, HorizontalGroup } from '@grafana/ui';
+import { PluginPage } from 'PluginPage';
 import cn from 'classnames/bind';
 import { observer } from 'mobx-react';
 import moment from 'moment-timezone';
@@ -15,14 +17,12 @@ import { WithPermissionControl } from 'containers/WithPermissionControl/WithPerm
 import { getAlertReceiveChannelDisplayName } from 'models/alert_receive_channel/alert_receive_channel.helpers';
 import { AlertReceiveChannel } from 'models/alert_receive_channel/alert_receive_channel.types';
 import { Maintenance, MaintenanceMode, MaintenanceType } from 'models/maintenance/maintenance.types';
+import { pages } from 'pages/routes';
 import { WithStoreProps } from 'state/types';
 import { UserAction } from 'state/userAction';
 import { withMobXProviderContext } from 'state/withStore';
 
 import styles from './Maintenance.module.css';
-import { PluginPage } from 'PluginPage';
-import { pages } from 'pages/routes';
-import { config } from '@grafana/runtime';
 
 const cx = cn.bind(styles);
 
