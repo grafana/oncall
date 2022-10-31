@@ -4,7 +4,6 @@ import { Field, HorizontalGroup, LoadingPlaceholder, VerticalGroup, Icon, Button
 import cn from 'classnames/bind';
 import { observer } from 'mobx-react';
 
-import { SlackNewIcon } from 'icons';
 import Block from 'components/GBlock/Block';
 import PluginLink from 'components/PluginLink/PluginLink';
 import Text from 'components/Text/Text';
@@ -12,6 +11,7 @@ import WithConfirm from 'components/WithConfirm/WithConfirm';
 import GSelect from 'containers/GSelect/GSelect';
 import RemoteSelect from 'containers/RemoteSelect/RemoteSelect';
 import { WithPermissionControl } from 'containers/WithPermissionControl/WithPermissionControl';
+import { SlackNewIcon } from 'icons';
 import { PRIVATE_CHANNEL_NAME } from 'models/slack_channel/slack_channel.config';
 import { SlackChannel } from 'models/slack_channel/slack_channel.types';
 import { AppFeature } from 'state/features';

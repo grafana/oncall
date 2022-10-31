@@ -1,17 +1,17 @@
 import React, { HTMLAttributes, useEffect, useState } from 'react';
 
-import { Alert, Button, HorizontalGroup, Icon, VerticalGroup, Field, Input } from '@grafana/ui';
+import { Button, Icon, VerticalGroup, Field, Input } from '@grafana/ui';
 import cn from 'classnames/bind';
 import { observer } from 'mobx-react';
 import CopyToClipboard from 'react-copy-to-clipboard';
 
+import Block from 'components/GBlock/Block';
 import PluginLink from 'components/PluginLink/PluginLink';
 import Text from 'components/Text/Text';
-import Block from 'components/GBlock/Block';
+import { TelegramColorIcon } from 'icons';
 import { AppFeature } from 'state/features';
 import { useStore } from 'state/useStore';
 import { openNotification } from 'utils';
-import { TelegramColorIcon } from 'icons';
 
 import styles from './TelegramInfo.module.css';
 

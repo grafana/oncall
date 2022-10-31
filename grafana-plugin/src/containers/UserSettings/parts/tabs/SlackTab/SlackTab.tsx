@@ -3,8 +3,8 @@ import React, { useCallback } from 'react';
 import { Button, VerticalGroup, Icon } from '@grafana/ui';
 import cn from 'classnames/bind';
 
-import Text from 'components/Text/Text';
 import Block from 'components/GBlock/Block';
+import Text from 'components/Text/Text';
 import { SlackNewIcon } from 'icons';
 import { useStore } from 'state/useStore';
 

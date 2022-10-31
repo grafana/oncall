@@ -1,22 +1,20 @@
 import React, { Component } from 'react';
 
-import { Alert, Badge, Button, HorizontalGroup, Icon, LoadingPlaceholder, VerticalGroup } from '@grafana/ui';
+import { Badge, Button, HorizontalGroup, Icon, LoadingPlaceholder, VerticalGroup } from '@grafana/ui';
 import cn from 'classnames/bind';
 import { observer } from 'mobx-react';
 
+import Block from 'components/GBlock/Block';
 import GTable from 'components/GTable/GTable';
 import PluginLink from 'components/PluginLink/PluginLink';
 import Text from 'components/Text/Text';
-import Block from 'components/GBlock/Block';
-import Tutorial from 'components/Tutorial/Tutorial';
-import { TutorialStep } from 'components/Tutorial/Tutorial.types';
 import WithConfirm from 'components/WithConfirm/WithConfirm';
 import TelegramIntegrationButton from 'containers/TelegramIntegrationButton/TelegramIntegrationButton';
+import { TelegramColorIcon } from 'icons';
 import { TelegramChannel } from 'models/telegram_channel/telegram_channel.types';
 import { AppFeature } from 'state/features';
 import { WithStoreProps } from 'state/types';
 import { withMobXProviderContext } from 'state/withStore';
-import { TelegramColorIcon } from 'icons';
 
 import styles from './TelegramSettings.module.css';
 
