@@ -56,6 +56,7 @@ def test_notify_empty_email_host(
     make_alert,
     make_user_notification_policy,
 ):
+    settings.EMAIL_BACKEND = "django.core.mail.backends.locmem.EmailBackend"
     settings.EMAIL_HOST = None
 
     organization = make_organization()
@@ -74,7 +75,6 @@ def test_notify_empty_email_host(
     )
 
     notify_user_async(user.pk, alert_group.pk, notification_policy.pk)
-
     assert len(mail.outbox) == 0
 
     log_record = notification_policy.personal_log_records.last()
