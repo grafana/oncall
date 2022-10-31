@@ -2,3 +2,13 @@
   display: flex;
   justify-content: flex-end;
 }
+
+.slack-infoblock {
+  text-align: center;
+  width: 725px;
+}
+
+.external-link-style {
+  margin-right: 4px;
+  align-self: baseline;
+}
