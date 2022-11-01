@@ -11,7 +11,6 @@ import timezone from 'dayjs/plugin/timezone';
 import utc from 'dayjs/plugin/utc';
 import weekday from 'dayjs/plugin/weekday';
 import { observer, Provider } from 'mobx-react';
-import { useParams } from 'react-router-dom';
 
 import 'interceptors';
 

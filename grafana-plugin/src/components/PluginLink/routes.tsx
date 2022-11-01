@@ -8,7 +8,6 @@ import IncidentsPage from 'pages/incidents/Incidents';
 import IntegrationsPage from 'pages/integrations/Integrations';
 import LiveSettingsPage from 'pages/livesettings/LiveSettingsPage';
 import MaintenancePage from 'pages/maintenance/Maintenance';
-import MigrationTool from 'pages/migration-tool/MigrationTool';
 import OrganizationLogPage from 'pages/organization-logs/OrganizationLog';
 import OutgoingWebhooks from 'pages/outgoing_webhooks/OutgoingWebhooks';
 import { PageDefinition } from 'pages/routes';
@@ -95,10 +94,6 @@ export const routes: { [id: string]: NavRoute } = [
   {
     component: OrganizationLogPage,
     id: 'organization-logs',
-  },
-  {
-    component: MigrationTool,
-    id: 'migration-tool',
   },
   {
     component: CloudPage,

@@ -1,13 +1,6 @@
-import React, { useEffect, useRef, useState, useMemo } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 
-import { AppRootProps, NavModelItem } from '@grafana/data';
 import { useLocation } from 'react-router-dom';
-
-import NavBarSubtitle from 'components/NavBar/NavBarSubtitle';
-import { NavMenuItem } from 'components/PluginLink/routes';
-import { PageDefinition } from 'pages/routes';
-
-import { APP_TITLE } from './consts';
 
 export function useForceUpdate() {
   const [, setValue] = useState(0);

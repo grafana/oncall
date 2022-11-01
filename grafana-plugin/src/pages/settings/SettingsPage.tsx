@@ -1,18 +1,15 @@
 import React from 'react';
 
-import { Field, Input, Switch } from '@grafana/ui';
+import { Field, Switch } from '@grafana/ui';
 import cn from 'classnames/bind';
 import { observer } from 'mobx-react';
 
-import Text from 'components/Text/Text';
-import ApiTokenSettings from 'containers/ApiTokenSettings/ApiTokenSettings';
 import { WithPermissionControl } from 'containers/WithPermissionControl/WithPermissionControl';
 import { WithStoreProps } from 'state/types';
 import { UserAction } from 'state/userAction';
 import { withMobXProviderContext } from 'state/withStore';
 
 import styles from './SettingsPage.module.css';
-import PluginLink from 'components/PluginLink/PluginLink';
 import { PluginPage } from 'PluginPage';
 import { pages } from 'pages/routes';
 import { config } from '@grafana/runtime';
@@ -39,7 +36,6 @@ class SettingsPage extends React.Component<SettingsPageProps, SettingsPageState>
   render() {
     const { store } = this.props;
     const { teamStore } = store;
-    const { apiUrl } = this.state;
 
     return (
       <PluginPage pageNav={pages['settings'].getPageNav()}>
@@ -61,22 +57,7 @@ class SettingsPage extends React.Component<SettingsPageProps, SettingsPageState>
                 />
               </WithPermissionControl>
             </Field>
-            {/*<Field
-            loading={!teamStore.currentTeam}
-            label="Require resolution note when resolve incident"
-            description="Once user clicks “Resolve” for an incident they are require to fill a resolution note about the incident"
-          >
-            <WithPermissionControl userAction={UserAction.UpdateGlobalSettings}>
-              <Switch
-                value={teamStore.currentTeam?.is_resolution_note_required}
-                onChange={(event) => {
-                  teamStore.saveCurrentTeam({
-                    is_resolution_note_required: event.currentTarget.checked,
-                  });
-                }}
-              />
-            </WithPermissionControl>
-          </Field>
+          </div>
         </div>
       </PluginPage>
     );

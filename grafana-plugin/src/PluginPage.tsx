@@ -1,4 +1,4 @@
-import { PluginPageProps, PluginPage as RealPluginPage, config, PluginPageType } from '@grafana/runtime';
+import { PluginPageProps, PluginPage as RealPluginPage, config } from '@grafana/runtime';
 
 export const PluginPage =
   RealPluginPage &&

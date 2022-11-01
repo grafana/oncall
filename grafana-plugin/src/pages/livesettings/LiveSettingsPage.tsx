@@ -9,7 +9,6 @@ import { observer } from 'mobx-react';
 import { Lambda } from 'mobx/lib/internal';
 
 import GTable from 'components/GTable/GTable';
-import PluginLink from 'components/PluginLink/PluginLink';
 import Text from 'components/Text/Text';
 import WithConfirm from 'components/WithConfirm/WithConfirm';
 import { WithPermissionControl } from 'containers/WithPermissionControl/WithPermissionControl';

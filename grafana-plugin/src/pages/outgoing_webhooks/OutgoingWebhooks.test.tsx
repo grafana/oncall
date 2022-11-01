@@ -21,12 +21,21 @@ const outgoingWebhookStore = () => ({
   }, {}),
 });
 
+jest.mock('@grafana/runtime', () => ({
+  config: {
+    featureToggles: {
+      topNav: false
+    },
+  },
+}));
+
 jest.mock('state/useStore', () => ({
   useStore: () => ({
     outgoingWebhookStore: outgoingWebhookStore(),
     isUserActionAllowed: jest.fn().mockReturnValue(true),
   }),
 }));
+
 jest.mock('@grafana/runtime', () => ({
   getLocationSrv: jest.fn(),
 }));
