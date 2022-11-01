@@ -17,6 +17,8 @@ import { withMobXProviderContext } from 'state/withStore';
 import { openErrorNotification } from 'utils';
 
 import styles from './CloudPage.module.css';
+import { PluginPage } from 'PluginPage';
+import { pages } from 'pages';
 
 const cx = cn.bind(styles);
 
@@ -358,20 +360,22 @@ const CloudPage = observer((_props: CloudPageProps) => {
   );
 
   return (
-    <div className={cx('root')}>
-      <VerticalGroup spacing="lg">
-        <Text.Title level={3} className={cx('cloud-page-title')}>
-          Connect Open Source OnCall and <Text className={cx('cloud-oncall-name')}>Cloud OnCall</Text>
-        </Text.Title>
-        {cloudIsConnected === undefined ? (
-          <LoadingPlaceholder text="Loading..." />
-        ) : cloudIsConnected ? (
-          ConnectedBlock
-        ) : (
-          DisconnectedBlock
-        )}
-      </VerticalGroup>
-    </div>
+    <PluginPage pageNav={pages['cloud'].getPageNav()}>
+      <div className={cx('root')}>
+        <VerticalGroup spacing="lg">
+          <Text.Title level={3} className={cx('cloud-page-title')}>
+            Connect Open Source OnCall and <Text className={cx('cloud-oncall-name')}>Cloud OnCall</Text>
+          </Text.Title>
+          {cloudIsConnected === undefined ? (
+            <LoadingPlaceholder text="Loading..." />
+          ) : cloudIsConnected ? (
+            ConnectedBlock
+          ) : (
+            DisconnectedBlock
+          )}
+        </VerticalGroup>
+      </div>
+    </PluginPage>
   );
 });
 

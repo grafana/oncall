@@ -1,7 +1,7 @@
 import React, { ReactElement, SyntheticEvent } from 'react';
 
 import { AppRootProps } from '@grafana/data';
-import { getLocationSrv } from '@grafana/runtime';
+import { config, getLocationSrv } from '@grafana/runtime';
 import { Button, Icon, Tooltip, VerticalGroup, LoadingPlaceholder, HorizontalGroup } from '@grafana/ui';
 import cn from 'classnames/bind';
 import { get } from 'lodash-es';
@@ -30,6 +30,8 @@ import { withMobXProviderContext } from 'state/withStore';
 import SilenceDropdown from './parts/SilenceDropdown';
 
 import styles from './Incidents.module.css';
+import { PluginPage } from 'PluginPage';
+import { pages } from 'pages';
 
 const cx = cn.bind(styles);
 
@@ -100,10 +102,12 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
 
   render() {
     return (
-      <div className={cx('root')}>
-        {this.renderIncidentFilters()}
-        {this.renderTable()}
-      </div>
+      <PluginPage pageNav={pages['incidents'].getPageNav()}>
+        <div className={cx('root', { navbarRootFallback: !config.featureToggles.topnav })}>
+          {this.renderIncidentFilters()}
+          {this.renderTable()}
+        </div>
+      </PluginPage>
     );
   }
 

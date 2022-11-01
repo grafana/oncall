@@ -35,10 +35,10 @@ import {
   getPluginSyncStatus,
   installPlugin,
   startPluginSync,
-  SYNC_STATUS_RETRY_LIMIT,
-  syncStatusDelay,
+  SYNC_STATUS_RETRY_LIMIT, syncStatusDelay,
 } from './plugin';
 import { UserAction } from './userAction';
+import { NavMenuItem } from 'components/PluginLink/routes';
 
 // ------ Dashboard ------ //
 
@@ -98,6 +98,9 @@ export class RootBaseStore {
 
   @observable
   onCallApiUrl: string;
+
+  @observable
+  navMenuItem: NavMenuItem;
 
   // --------------------------
 

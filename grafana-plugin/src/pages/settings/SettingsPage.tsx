@@ -12,6 +12,9 @@ import { UserAction } from 'state/userAction';
 import { withMobXProviderContext } from 'state/withStore';
 
 import styles from './SettingsPage.module.css';
+import { PluginPage } from 'PluginPage';
+import { pages } from 'pages';
+import { config } from '@grafana/runtime';
 
 const cx = cn.bind(styles);
 
@@ -38,38 +41,57 @@ class SettingsPage extends React.Component<SettingsPageProps, SettingsPageState>
     const { apiUrl } = this.state;
 
     return (
-      <div className={cx('root')}>
-        <Text.Title level={3} className={cx('title')}>
-          Organization settings
-        </Text.Title>
-        <div className={cx('settings')}>
-          <Field
+      <PluginPage pageNav={pages['settings'].getPageNav()}>
+        <div className={cx('root', { navbarRootFallback: !config.featureToggles.topnav })}>
+          <div className={cx('settings')}>
+            <Field
+              loading={!teamStore.currentTeam}
+              label="Require resolution note when resolve incident"
+              description="Once user clicks “Resolve” for an incident they are require to fill a resolution note about the incident"
+            >
+              <WithPermissionControl userAction={UserAction.UpdateGlobalSettings}>
+                <Switch
+                  value={teamStore.currentTeam?.is_resolution_note_required}
+                  onChange={(event) => {
+                    teamStore.saveCurrentTeam({
+                      is_resolution_note_required: event.currentTarget.checked,
+                    });
+                  }}
+                />
+              </WithPermissionControl>
+            </Field>
+            {/*<Field
             loading={!teamStore.currentTeam}
-            label="Require resolution note when resolve incident"
-            description="Once user clicks “Resolve” for an incident they are require to fill a resolution note about the incident"
+            label="Archive alert created before given date"
+            description="Alerts before and including this date will be resolved and archived"
           >
             <WithPermissionControl userAction={UserAction.UpdateGlobalSettings}>
-              <Switch
-                value={teamStore.currentTeam?.is_resolution_note_required}
-                onChange={(event) => {
-                  teamStore.saveCurrentTeam({
-                    is_resolution_note_required: event.currentTarget.checked,
-                  });
+              <DatePickerWithInput
+                closeOnSelect
+                width={40}
+                value={
+                  teamStore.currentTeam?.archive_alerts_from
+                    ? moment(teamStore.currentTeam?.archive_alerts_from).toDate()
+                    : undefined
+                }
+                onChange={(value) => {
+                  teamStore.saveCurrentTeam({ archive_alerts_from: moment(value).format('YYYY-MM-DD') });
                 }}
               />
             </WithPermissionControl>
-          </Field>
+          </Field>*/}
+          </div>
+          <Text.Title level={3} className={cx('title')}>
+            API URL
+          </Text.Title>
+          <div>
+            <Field>
+              <Input value={apiUrl} disabled />
+            </Field>
+          </div>
+          <ApiTokenSettings />
         </div>
-        <Text.Title level={3} className={cx('title')}>
-          API URL
-        </Text.Title>
-        <div>
-          <Field>
-            <Input value={apiUrl} disabled />
-          </Field>
-        </div>
-        <ApiTokenSettings />
-      </div>
+      </PluginPage>
     );
   }
 }

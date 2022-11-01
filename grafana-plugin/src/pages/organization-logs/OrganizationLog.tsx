@@ -19,6 +19,9 @@ import { withMobXProviderContext } from 'state/withStore';
 import sanitize from 'utils/sanitize';
 
 import styles from './OrganizationLog.module.css';
+import { PluginPage } from 'PluginPage';
+import { pages } from 'pages';
+import { config } from '@grafana/runtime';
 
 const cx = cn.bind(styles);
 
@@ -95,39 +98,41 @@ class OrganizationLogPage extends React.Component<OrganizationLogProps, Organiza
     const loading = !results;
 
     return (
-      <div className={cx('root')}>
-        <OrganizationLogFilters value={filters} onChange={this.handleChangeOrganizationLogFilters} />
-        <GTable
-          rowKey="id"
-          title={() => (
-            <div className={cx('header')}>
-              <Text.Title className={cx('users-title')} level={3}>
-                Organization Logs
-              </Text.Title>
-              <Button onClick={this.refresh} icon={loading ? 'fa fa-spinner' : 'sync'}>
-                Refresh
-              </Button>
-            </div>
-          )}
-          showHeader={true}
-          data={results}
-          loading={loading}
-          emptyText={results ? 'No logs found' : 'Loading...'}
-          columns={columns}
-          pagination={{
-            page,
-            total: Math.ceil((total || 0) / ITEMS_PER_PAGE),
-            onChange: this.handleChangePage,
-          }}
-          rowClassName={cx('align-top')}
-          expandable={{
-            expandedRowRender: this.renderFullDescription,
-            expandRowByClick: true,
-            expandedRowKeys: expandedLogsKeys,
-            onExpandedRowsChange: this.handleExpandedRowsChange,
-          }}
-        />
-      </div>
+      <PluginPage pageNav={pages['organization-logs'].getPageNav()}>
+        <div className={cx('root', { navbarRootFallback: !config.featureToggles.topnav } )}>
+          <OrganizationLogFilters value={filters} onChange={this.handleChangeOrganizationLogFilters} />
+          <GTable
+            rowKey="id"
+            title={() => (
+              <div className={cx('header')}>
+                <Text.Title className={cx('users-title')} level={3}>
+                  Organization Logs
+                </Text.Title>
+                <Button onClick={this.refresh} icon={loading ? 'fa fa-spinner' : 'sync'}>
+                  Refresh
+                </Button>
+              </div>
+            )}
+            showHeader={true}
+            data={results}
+            loading={loading}
+            emptyText={results ? 'No logs found' : 'Loading...'}
+            columns={columns}
+            pagination={{
+              page,
+              total: Math.ceil((total || 0) / ITEMS_PER_PAGE),
+              onChange: this.handleChangePage,
+            }}
+            rowClassName={cx('align-top')}
+            expandable={{
+              expandedRowRender: this.renderFullDescription,
+              expandRowByClick: true,
+              expandedRowKeys: expandedLogsKeys,
+              onExpandedRowsChange: this.handleExpandedRowsChange,
+            }}
+          />
+        </div>
+      </PluginPage>
     );
   }
 

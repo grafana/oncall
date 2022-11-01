@@ -17,10 +17,8 @@ import 'interceptors';
 import DefaultPageLayout from 'containers/DefaultPageLayout/DefaultPageLayout';
 import GrafanaTeamSelect from 'containers/GrafanaTeamSelect/GrafanaTeamSelect';
 import logo from 'img/logo.svg';
-import { pages } from 'pages';
 import { rootStore } from 'state';
 import { useStore } from 'state/useStore';
-import { useNavModel } from 'utils/hooks';
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
@@ -31,9 +29,12 @@ dayjs.extend(isSameOrAfter);
 dayjs.extend(isoWeek);
 
 import './style/vars.css';
-import './style/index.css';
+import './style/global.css';
 
-import { AppFeature } from './state/features';
+import { routes } from 'components/PluginLink/routes';
+import { useQueryParams, useQueryPath } from 'utils/hooks';
+import { pages } from 'pages';
+import { locationService } from '@grafana/runtime';
 
 export const GrafanaPluginRootPage = (props: AppRootProps) => (
   <Provider store={rootStore}>
@@ -96,18 +97,14 @@ const RootWithLoader = observer((props: AppRootProps) => {
 });
 
 export const Root = observer((props: AppRootProps) => {
-  const {
-    path,
-    onNavChanged,
-    query: { page },
-    meta,
-  } = props;
+  const queryParams = useQueryParams();
+  const page = queryParams.get('page');
+  const path = useQueryPath();
 
   // Required to support grafana instances that use a custom `root_url`.
   const pathWithoutLeadingSlash = path.replace(/^\//, '');
 
   const store = useStore();
-  const { backendLicense } = store;
 
   useEffect(() => {
     store.updateBasicData();
@@ -126,29 +123,9 @@ export const Root = observer((props: AppRootProps) => {
     };
   }, []);
 
-  // Update the navigation when the page or path changes
-  const navModel = useNavModel(
-    useMemo(
-      () => ({
-        page,
-        pages,
-        path: pathWithoutLeadingSlash,
-        meta,
-        grafanaUser: window.grafanaBootData.user,
-        enableLiveSettings: store.hasFeature(AppFeature.LiveSettings),
-        enableCloudPage: store.hasFeature(AppFeature.CloudConnection),
-        enableNewSchedulesPage: store.hasFeature(AppFeature.WebSchedules),
-        backendLicense,
-      }),
-      [meta, pathWithoutLeadingSlash, page, store.features, backendLicense]
-    )
-  );
-  useEffect(() => {
-    /* @ts-ignore */
-    onNavChanged(navModel);
-  }, [navModel, onNavChanged]);
-
-  const Page = pages.find(({ id }) => id === page)?.component || pages[0].component;
+  const Page = useMemo(() => {
+    return getPageMatchingComponent(page);
+  }, [page]);
 
   return (
     <DefaultPageLayout {...props}>
@@ -157,3 +134,14 @@ export const Root = observer((props: AppRootProps) => {
     </DefaultPageLayout>
   );
 });
+
+function getPageMatchingComponent(pageId: string): (props?: any) => JSX.Element {
+  let matchingPage = routes[pageId];
+  if (!matchingPage) {
+    const defaultPageId = Object.keys(pages)[0];
+    matchingPage = routes[defaultPageId];
+    locationService.replace(pages[defaultPageId].path);
+  }
+
+  return matchingPage.component;
+}

@@ -1,9 +1,5 @@
-.root {
-  margin-top: 24px;
-}
-
 .title {
-  margin-bottom: 20px;
+  margin-bottom: var(--title-marginBottom);
 }
 
 .header {

@@ -1,7 +1,7 @@
 import React from 'react';
 
 import { AppRootProps } from '@grafana/data';
-import { getLocationSrv } from '@grafana/runtime';
+import { config, getLocationSrv } from '@grafana/runtime';
 import { Button, HorizontalGroup } from '@grafana/ui';
 import cn from 'classnames/bind';
 import { observer } from 'mobx-react';
@@ -13,7 +13,6 @@ import {
   initErrorDataState,
 } from 'components/PageErrorHandlingWrapper/PageErrorHandlingWrapper.helpers';
 import PluginLink from 'components/PluginLink/PluginLink';
-import Text from 'components/Text/Text';
 import WithConfirm from 'components/WithConfirm/WithConfirm';
 import OutgoingWebhookForm from 'containers/OutgoingWebhookForm/OutgoingWebhookForm';
 import { WithPermissionControl } from 'containers/WithPermissionControl/WithPermissionControl';
@@ -24,6 +23,8 @@ import { UserAction } from 'state/userAction';
 import { withMobXProviderContext } from 'state/withStore';
 
 import styles from './OutgoingWebhooks.module.css';
+import { PluginPage } from 'PluginPage';
+import { pages } from 'pages';
 
 const cx = cn.bind(styles);
 
@@ -109,48 +110,49 @@ class OutgoingWebhooks extends React.Component<OutgoingWebhooksProps, OutgoingWe
     ];
 
     return (
-      <PageErrorHandlingWrapper
-        errorData={errorData}
-        objectName="outgoing webhook"
-        pageName="outgoing_webhooks"
-        itemNotFoundMessage={`Outgoing webhook with id=${query?.id} is not found. Please select outgoing webhook from the list.`}
-      >
-        {() => (
-          <>
-            <div className={cx('root')}>
-              <GTable
-                emptyText={webhooks ? 'No outgoing webhooks found' : 'Loading...'}
-                title={() => (
-                  <div className={cx('header')}>
-                    <Text.Title level={3}>Outgoing Webhooks</Text.Title>
-                    <PluginLink
-                      partial
-                      query={{ id: 'new' }}
-                      disabled={!store.isUserActionAllowed(UserAction.UpdateCustomActions)}
-                    >
-                      <WithPermissionControl userAction={UserAction.UpdateCustomActions}>
-                        <Button variant="primary" icon="plus">
-                          Create
-                        </Button>
-                      </WithPermissionControl>
-                    </PluginLink>
-                  </div>
-                )}
-                rowKey="id"
-                columns={columns}
-                data={webhooks}
-              />
-            </div>
-            {outgoingWebhookIdToEdit && (
-              <OutgoingWebhookForm
-                id={outgoingWebhookIdToEdit}
-                onUpdate={this.update}
-                onHide={this.handleOutgoingWebhookFormHide}
-              />
-            )}
-          </>
-        )}
-      </PageErrorHandlingWrapper>
+      <PluginPage pageNav={pages['outgoing_webhooks'].getPageNav()}>
+        <PageErrorHandlingWrapper
+          errorData={errorData}
+          objectName="outgoing webhook"
+          pageName="outgoing_webhooks"
+          itemNotFoundMessage={`Outgoing webhook with id=${query?.id} is not found. Please select outgoing webhook from the list.`}
+        >
+          {() => (
+            <>
+              <div className={cx('root', { navbarRootFallback: !config.featureToggles.topnav })}>
+                <GTable
+                  emptyText={webhooks ? 'No outgoing webhooks found' : 'Loading...'}
+                  title={() => (
+                    <div className={cx('header')}>
+                      <PluginLink
+                        partial
+                        query={{ id: 'new' }}
+                        disabled={!store.isUserActionAllowed(UserAction.UpdateCustomActions)}
+                      >
+                        <WithPermissionControl userAction={UserAction.UpdateCustomActions}>
+                          <Button variant="primary" icon="plus">
+                            Create
+                          </Button>
+                        </WithPermissionControl>
+                      </PluginLink>
+                    </div>
+                  )}
+                  rowKey="id"
+                  columns={columns}
+                  data={webhooks}
+                />
+              </div>
+              {outgoingWebhookIdToEdit && (
+                <OutgoingWebhookForm
+                  id={outgoingWebhookIdToEdit}
+                  onUpdate={this.update}
+                  onHide={this.handleOutgoingWebhookFormHide}
+                />
+              )}
+            </>
+          )}
+        </PageErrorHandlingWrapper>
+      </PluginPage>
     );
   }
 

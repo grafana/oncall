@@ -1,7 +1,3 @@
-.root {
-  margin-top: 24px;
-}
-
 .incident-row {
   display: flex;
 }
@@ -11,7 +7,7 @@
 }
 
 .payload-subtitle {
-  margin-bottom: 16px;
+  margin-bottom: var(--title-marginBottom);
 }
 
 .info-row {

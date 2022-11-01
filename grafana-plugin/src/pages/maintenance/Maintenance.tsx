@@ -20,6 +20,9 @@ import { UserAction } from 'state/userAction';
 import { withMobXProviderContext } from 'state/withStore';
 
 import styles from './Maintenance.module.css';
+import { PluginPage } from 'PluginPage';
+import { pages } from 'pages';
+import { config } from '@grafana/runtime';
 
 const cx = cn.bind(styles);
 
@@ -115,16 +118,15 @@ class MaintenancePage extends React.Component<MaintenancePageProps, MaintenanceP
     ];
 
     return (
-      <>
-        <div className={cx('root')}>
+      <PluginPage pageNav={pages['maintenance'].getPageNav()}>
+        <div className={cx('root', { navbarRootFallback: !config.featureToggles.topnav })}>
           <GTable
             emptyText={data ? 'No maintenances found' : 'Loading...'}
             title={() => (
               <div className={cx('header')}>
                 <div style={{ display: 'flex', alignItems: 'baseline' }}>
                   <HorizontalGroup>
-                    <Text.Title level={3}>Maintenance</Text.Title>
-                    <Text type="secondary">
+                    <Text type="secondary" className={cx('title')}>
                       Mute noisy sources or use for debugging and avoid bothering your colleagues.
                     </Text>
                   </HorizontalGroup>
@@ -156,7 +158,7 @@ class MaintenancePage extends React.Component<MaintenancePageProps, MaintenanceP
             }}
           />
         )}
-      </>
+      </PluginPage>
     );
   }
 

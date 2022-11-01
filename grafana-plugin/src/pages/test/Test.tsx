@@ -8,6 +8,8 @@ import { PRIVATE_CHANNEL_NAME } from 'models/slack_channel/slack_channel.config'
 import { withMobXProviderContext } from 'state/withStore';
 
 import styles from './Test.module.css';
+import { PluginPage } from 'PluginPage';
+import { pages } from 'pages';
 
 const cx = cn.bind(styles);
 
@@ -19,21 +21,23 @@ class Test extends React.Component<any, any> {
 
   render() {
     return (
-      <div className={cx('root')}>
-        <GSelect
-          isMulti
-          showSearch
-          allowClear
-          modelName="userStore"
-          displayField="username"
-          valueField="pk"
-          placeholder="Select Users"
-          className={cx('select', 'control')}
-          value={undefined}
-          onChange={this.slackChannelChangeHandler}
-          nullItemName={PRIVATE_CHANNEL_NAME}
-        />
-      </div>
+      <PluginPage pageNav={pages['test'].getPageNav()}>
+        <div className={cx('root')}>
+          <GSelect
+            isMulti
+            showSearch
+            allowClear
+            modelName="userStore"
+            displayField="username"
+            valueField="pk"
+            placeholder="Select Users"
+            className={cx('select', 'control')}
+            value={undefined}
+            onChange={this.slackChannelChangeHandler}
+            nullItemName={PRIVATE_CHANNEL_NAME}
+          />
+        </div>
+      </PluginPage>
     );
   }
 

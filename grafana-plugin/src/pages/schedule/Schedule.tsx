@@ -1,7 +1,7 @@
 import React from 'react';
 
 import { AppRootProps } from '@grafana/data';
-import { getLocationSrv } from '@grafana/runtime';
+import { config, getLocationSrv } from '@grafana/runtime';
 import { Button, HorizontalGroup, VerticalGroup, IconButton, ToolbarButton, Icon } from '@grafana/ui';
 import cn from 'classnames/bind';
 import dayjs from 'dayjs';
@@ -24,6 +24,8 @@ import { withMobXProviderContext } from 'state/withStore';
 import { getStartOfWeek } from './Schedule.helpers';
 
 import styles from './Schedule.module.css';
+import { PluginPage } from 'PluginPage';
+import { pages } from 'pages';
 
 const cx = cn.bind(styles);
 
@@ -97,8 +99,8 @@ class SchedulePage extends React.Component<SchedulePageProps, SchedulePageState>
     const schedule = scheduleStore.items[scheduleId];
 
     return (
-      <>
-        <div className={cx('root')}>
+      <PluginPage pageNav={pages['schedule'].getPageNav()}>
+        <div className={cx('root', { navbarRootFallback: !config.featureToggles.topnav })}>
           <VerticalGroup spacing="lg">
             <div className={cx('header')}>
               <HorizontalGroup justify="space-between">
@@ -206,7 +208,7 @@ class SchedulePage extends React.Component<SchedulePageProps, SchedulePageState>
             }}
           />
         )}
-      </>
+      </PluginPage>
     );
   }
 
