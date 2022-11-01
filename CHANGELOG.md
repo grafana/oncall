@@ -1,9 +1,5 @@
 # Change Log
 
-## v1.0.47 (2022-11-01)
-
-- Add verify_phone manage command
-
 ## v1.0.46 (2022-10-28)
 
 - Bug fixes
