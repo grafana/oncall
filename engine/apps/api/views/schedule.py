@@ -42,7 +42,9 @@ EVENTS_FILTER_BY_ROTATION = "rotation"
 EVENTS_FILTER_BY_OVERRIDE = "override"
 EVENTS_FILTER_BY_FINAL = "final"
 
-SCHEDULE_TYPE_TO_CLASS = {"api": OnCallScheduleCalendar, "ical": OnCallScheduleICal, "web": OnCallScheduleWeb}
+SCHEDULE_TYPE_TO_CLASS = {
+    str(num_type): cls for cls, num_type in PolymorphicScheduleSerializer.SCHEDULE_CLASS_TO_TYPE.items()
+}
 
 
 class ScheduleView(

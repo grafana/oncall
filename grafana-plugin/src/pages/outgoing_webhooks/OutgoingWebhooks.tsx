@@ -197,4 +197,6 @@ export class OutgoingWebhooks extends React.Component<OutgoingWebhooksProps, Out
   };
 }
 
+export { OutgoingWebhooks };
+
 export default withMobXProviderContext(OutgoingWebhooks);
