@@ -1,5 +1,14 @@
 # Change Log
 
+## v1.0.48 (2022-11-01)
+
+- verify_number management command
+- chatops page redesign
+
+## v1.0.47 (2022-11-01)
+
+- Bug fixes
+
 ## v1.0.46 (2022-10-28)
 
 - Bug fixes

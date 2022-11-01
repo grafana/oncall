@@ -111,9 +111,11 @@ class TelegramSettings extends Component<TelegramProps, TelegramState> {
           </Text>
           <HorizontalGroup>
             <TelegramIntegrationButton size="md" onUpdate={this.update} />
-            <PluginLink query={{ page: 'live-settings' }}>
-              <Button variant="secondary">See ENV Variables</Button>
-            </PluginLink>
+            {store.hasFeature(AppFeature.LiveSettings) && (
+              <PluginLink query={{ page: 'live-settings' }}>
+                <Button variant="secondary">See ENV Variables</Button>
+              </PluginLink>
+            )}
           </HorizontalGroup>
         </VerticalGroup>
       );

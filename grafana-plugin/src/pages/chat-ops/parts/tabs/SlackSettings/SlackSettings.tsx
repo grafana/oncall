@@ -36,9 +36,14 @@ class SlackSettings extends Component<SlackProps, SlackState> {
   };
 
   componentDidMount() {
-    this.getSlackLiveSettings().then(() => {
+    const { store } = this.props;
+    if (store.hasFeature(AppFeature.LiveSettings)) {
+      this.getSlackLiveSettings().then(() => {
+        this.update();
+      });
+    } else {
       this.update();
-    });
+    }
   }
 
   handleOpenSlackInstructions = () => {
@@ -262,9 +267,11 @@ class SlackSettings extends Component<SlackProps, SlackState> {
             <Button onClick={this.handleOpenSlackInstructions}>
               <Icon name="external-link-alt" className={cx('external-link-style')} /> Open Slack connection page
             </Button>
-            <PluginLink query={{ page: 'live-settings' }}>
-              <Button variant="secondary">See ENV Variables</Button>
-            </PluginLink>
+            {store.hasFeature(AppFeature.LiveSettings) && (
+              <PluginLink query={{ page: 'live-settings' }}>
+                <Button variant="secondary">See ENV Variables</Button>
+              </PluginLink>
+            )}
           </HorizontalGroup>
         )}
       </VerticalGroup>
