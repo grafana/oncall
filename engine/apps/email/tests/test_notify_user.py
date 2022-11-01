@@ -93,6 +93,7 @@ def test_notify_user_bad_smtp_host(
     make_user_notification_policy,
 ):
     settings.EMAIL_BACKEND = "django.core.mail.backends.locmem.EmailBackend"
+    settings.EMAIL_HOST = "test"
 
     organization = make_organization()
     user = make_user_for_organization(organization)
@@ -130,6 +131,7 @@ def test_notify_user_no_emails_left(
     make_user_notification_policy,
 ):
     settings.EMAIL_BACKEND = "django.core.mail.backends.locmem.EmailBackend"
+    settings.EMAIL_HOST = "test"
 
     organization = make_organization()
     user = make_user_for_organization(organization)
