@@ -1,16 +1,16 @@
 import React, { Component } from 'react';
 
-import { Alert, Button, HorizontalGroup, Icon, LoadingPlaceholder, VerticalGroup } from '@grafana/ui';
+import { Badge, Button, HorizontalGroup, Icon, LoadingPlaceholder, VerticalGroup } from '@grafana/ui';
 import cn from 'classnames/bind';
 import { observer } from 'mobx-react';
 
+import Block from 'components/GBlock/Block';
 import GTable from 'components/GTable/GTable';
 import PluginLink from 'components/PluginLink/PluginLink';
 import Text from 'components/Text/Text';
-import Tutorial from 'components/Tutorial/Tutorial';
-import { TutorialStep } from 'components/Tutorial/Tutorial.types';
 import WithConfirm from 'components/WithConfirm/WithConfirm';
 import TelegramIntegrationButton from 'containers/TelegramIntegrationButton/TelegramIntegrationButton';
+import { TelegramColorIcon } from 'icons';
 import { TelegramChannel } from 'models/telegram_channel/telegram_channel.types';
 import { AppFeature } from 'state/features';
 import { WithStoreProps } from 'state/types';
@@ -47,16 +47,32 @@ class TelegramSettings extends Component<TelegramProps, TelegramState> {
 
     if (!telegramConfigured && store.hasFeature(AppFeature.LiveSettings)) {
       return (
-        <Alert
-          severity="warning"
-          // @ts-ignore
-          title={
-            <>
-              Can't connect Telegram. <PluginLink query={{ page: 'live-settings' }}> Check ENV variables</PluginLink>{' '}
-              related to Telegram.
-            </>
-          }
-        />
+        <VerticalGroup spacing="lg">
+          <Text.Title level={2}>Connect Telegram workspace</Text.Title>
+          <Block bordered withBackground className={cx('telegram-infoblock')}>
+            <VerticalGroup align="center">
+              <div className={cx('infoblock-icon')}>
+                <TelegramColorIcon />
+              </div>
+              <Text className={cx('infoblock-text')}>
+                You can manage alert groups in your team Telegram channel or from personal direct messages.{' '}
+              </Text>
+
+              <Text className={cx('infoblock-text')}>
+                To connect channel setup Telegram environment first, which includes connection to your bot and host URL.
+              </Text>
+              <Text type="secondary" className={cx('infoblock-text')}>
+                More details in{' '}
+                <a href="https://grafana.com/docs/grafana-cloud/oncall/chat-options/configure-telegram/">
+                  <Text type="link">our documentation</Text>
+                </a>
+              </Text>
+            </VerticalGroup>
+          </Block>
+          <PluginLink query={{ page: 'live-settings' }}>
+            <Button variant="primary">Setup ENV Variables</Button>
+          </PluginLink>
+        </VerticalGroup>
       );
     }
 
@@ -66,37 +82,56 @@ class TelegramSettings extends Component<TelegramProps, TelegramState> {
 
     if (!connectedChannels.length) {
       return (
-        <Tutorial
-          step={TutorialStep.Slack}
-          title={
-            <VerticalGroup align="center" spacing="lg">
-              <Text type="secondary">
-                Bring the whole incident lifecycle into your chat workspace. Everything from alerts, monitoring, and
-                escalations to reports.
+        <VerticalGroup spacing="lg">
+          <Text.Title level={2}>Connect Telegram workspace</Text.Title>
+          <Block bordered withBackground className={cx('telegram-infoblock')}>
+            <VerticalGroup align="center">
+              <div className={cx('infoblock-icon')}>
+                <TelegramColorIcon />
+              </div>
+              <Text className={cx('infoblock-text')}>
+                You can manage alert groups in your team Telegram channel or from personal direct messages.{' '}
               </Text>
-              <TelegramIntegrationButton size="lg" onUpdate={this.update} />
+              <Text type="secondary" className={cx('infoblock-text')}>
+                More details in{' '}
+                <a href="https://grafana.com/docs/grafana-cloud/oncall/chat-options/configure-telegram/">
+                  <Text type="link">our documentation</Text>
+                </a>
+              </Text>
             </VerticalGroup>
-          }
-        />
+          </Block>
+          <Text>
+            <Text.Title level={4}>Features</Text.Title>
+            <ul>
+              <li>perform actions (acknowledge, resolve, silence)</li>
+              <li>discuss alerts in comments</li>
+              <li>notifications to users accounts will be served as links to the main channel</li>
+            </ul>
+            Make sure your team connects Telegram in their OnCall user profiles too or they cannot manage alert groups.
+          </Text>
+          <HorizontalGroup>
+            <TelegramIntegrationButton size="md" onUpdate={this.update} />
+            {store.hasFeature(AppFeature.LiveSettings) && (
+              <PluginLink query={{ page: 'live-settings' }}>
+                <Button variant="secondary">See ENV Variables</Button>
+              </PluginLink>
+            )}
+          </HorizontalGroup>
+        </VerticalGroup>
       );
     }
 
     const columns = [
       {
-        width: '30%',
-        title: 'Channel name',
-        dataIndex: 'channel_name',
+        width: '35%',
+        title: 'Channel',
+        key: 'name',
+        render: this.renderChannelName,
       },
       {
-        width: '30%',
-        title: 'Discussion group name',
+        width: '35%',
+        title: 'Discussion group',
         dataIndex: 'discussion_group_name',
-      },
-      {
-        width: '10%',
-        title: 'Is default channel',
-        dataIndex: 'is_default_channel',
-        render: this.renderDefaultChannel,
       },
       {
         width: '30%',
@@ -126,6 +161,13 @@ class TelegramSettings extends Component<TelegramProps, TelegramState> {
     );
   }
 
+  renderChannelName = (record: TelegramChannel) => {
+    return (
+      <>
+        {record.channel_name} {record.is_default_channel && <Badge text="Default" color="green" />}
+      </>
+    );
+  };
   renderDefaultChannel = (isDefault: boolean) => {
     return <>{isDefault && <Icon name="check" />}</>;
   };

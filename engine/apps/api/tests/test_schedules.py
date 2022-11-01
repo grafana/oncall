@@ -205,11 +205,11 @@ def test_get_list_schedules_by_type(
         },
     ]
 
-    for expected, schedule_type in enumerate(("api", "ical", "web")):
+    for schedule_type in range(3):
         url = reverse("api-internal:schedule-list") + "?type={}".format(schedule_type)
         response = client.get(url, format="json", **make_user_auth_headers(user, token))
         assert response.status_code == status.HTTP_200_OK
-        assert response.json() == [expected_payload[expected]]
+        assert response.json() == [expected_payload[schedule_type]]
 
 
 @pytest.mark.django_db

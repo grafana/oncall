@@ -4,11 +4,11 @@
 }
 
 :global(.theme-dark) .root_bordered {
-  border: var(--border);
+  border: var(--border-weak);
 }
 
 :global(.theme-light) .root_bordered {
-  border: var(--border);
+  border: var(--border-weak);
 }
 
 :global(.theme-dark) .root_shadowed {

@@ -19,8 +19,10 @@ interface TelegramConnectorProps {
 }
 
 const TelegramConnector = ({ channelFilterId }: TelegramConnectorProps) => {
-  const { alertReceiveChannelStore } = useStore();
-  const channelFilter = alertReceiveChannelStore.channelFilters[channelFilterId];
+  const store = useStore();
+  const { alertReceiveChannelStore } = store;
+
+  const channelFilter = store.alertReceiveChannelStore.channelFilters[channelFilterId];
 
   const handleTelegramChannelChange = useCallback((_value: TelegramChannel['id'], telegramChannel: TelegramChannel) => {
     alertReceiveChannelStore.saveChannelFilter(channelFilterId, { telegram_channel: telegramChannel?.id || null });
