@@ -36,9 +36,14 @@ class SlackSettings extends Component<SlackProps, SlackState> {
   };
 
   componentDidMount() {
-    this.getSlackLiveSettings().then(() => {
+    const { store } = this.props;
+    if (store.hasFeature(AppFeature.LiveSettings)) {
+      this.getSlackLiveSettings().then(() => {
+        this.update();
+      });
+    } else {
       this.update();
-    });
+    }
   }
 
   handleOpenSlackInstructions = () => {
