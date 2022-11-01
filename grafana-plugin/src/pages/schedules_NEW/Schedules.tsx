@@ -60,7 +60,7 @@ class SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSta
     const { store } = this.props;
     this.state = {
       startMoment: getStartOfWeek(store.currentTimezone),
-      filters: { searchTerm: '', status: 'all', type: ScheduleType.API },
+      filters: { searchTerm: '', status: 'all', type: ScheduleType.all },
       showNewScheduleSelector: false,
       expandedRowKeys: [],
       scheduleIdToEdit: undefined,
@@ -133,7 +133,6 @@ class SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSta
 
     const data = schedules
       ? schedules
-          .filter((schedule) => schedule.type === ScheduleType.API)
           .filter(
             (schedule) =>
               filters.status === 'all' ||
@@ -145,6 +144,7 @@ class SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSta
 
     return (
       <>
+        {console.log('DATA', data)}
         <div className={cx('root')}>
           <VerticalGroup>
             <HorizontalGroup justify="space-between">
@@ -410,13 +410,16 @@ class SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSta
   };
 
   handleSchedulesFiltersChange = (filters: SchedulesFiltersType) => {
+    console.log('filters1', filters);
     this.setState({ filters }, this.debouncedUpdateSchedules);
   };
 
   applyFilters = () => {
-    // const { filters } = this.state;
-    // const { scheduleStore } = this.props.store;
-    // scheduleStore.updateItems(filters.searchTerm);
+    const { filters } = this.state;
+    const { store } = this.props;
+    const { scheduleStore } = store;
+    console.log('APPLY FILTERS');
+    scheduleStore.updateItems(filters);
   };
 
   debouncedUpdateSchedules = debounce(this.applyFilters, 1000);

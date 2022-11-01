@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { SyntheticEvent } from 'react';
 
 import { AppRootProps } from '@grafana/data';
 import { getLocationSrv } from '@grafana/runtime';
@@ -16,7 +16,7 @@ import ScheduleFinal from 'containers/Rotations/ScheduleFinal';
 import ScheduleOverrides from 'containers/Rotations/ScheduleOverrides';
 import ScheduleForm from 'containers/ScheduleForm/ScheduleForm';
 import UsersTimezones from 'containers/UsersTimezones/UsersTimezones';
-import { Shift } from 'models/schedule/schedule.types';
+import { Schedule, Shift } from 'models/schedule/schedule.types';
 import { Timezone } from 'models/timezone/timezone.types';
 import { WithStoreProps } from 'state/types';
 import { withMobXProviderContext } from 'state/withStore';
@@ -118,6 +118,16 @@ class SchedulePage extends React.Component<SchedulePageProps, SchedulePageState>
                     </HorizontalGroup>
                   )}
                   <HorizontalGroup>
+                    {schedule?.type === 1 && (
+                      <HorizontalGroup>
+                        <Button variant="secondary" onClick={this.handleExportClick}>
+                          Export
+                        </Button>
+                        <Button variant="secondary" onClick={this.handleReloadClick}>
+                          Reload
+                        </Button>
+                      </HorizontalGroup>
+                    )}
                     <ToolbarButton
                       icon="cog"
                       tooltip="Settings"
@@ -369,6 +379,25 @@ class SchedulePage extends React.Component<SchedulePageProps, SchedulePageState>
   handleRightClick = () => {
     const { startMoment } = this.state;
     this.setState({ startMoment: startMoment.add(7, 'day') }, this.handleDateRangeUpdate);
+  };
+
+  handleExportClick = () => {
+    console.log('EXPORT');
+  };
+
+  handleReloadClick = (scheduleId: Schedule['id']) => {
+    const { store } = this.props;
+
+    const { scheduleStore } = store;
+
+    return async (event: SyntheticEvent) => {
+      event.stopPropagation();
+
+      await scheduleStore.reloadIcal(scheduleId);
+
+      scheduleStore.updateItem(scheduleId);
+      this.updateEventsFor(scheduleId);
+    };
   };
 
   handleDelete = () => {

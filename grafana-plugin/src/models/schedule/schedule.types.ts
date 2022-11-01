@@ -7,6 +7,7 @@ export enum ScheduleType {
   'Calendar',
   'Ical',
   'API',
+  'all'
 }
 
 export interface Schedule {
