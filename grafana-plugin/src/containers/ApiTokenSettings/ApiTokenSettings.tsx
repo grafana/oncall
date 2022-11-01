@@ -3,7 +3,7 @@ import React from 'react';
 import { Button, HorizontalGroup } from '@grafana/ui';
 import cn from 'classnames/bind';
 import { observer } from 'mobx-react';
-import moment from 'moment';
+import moment from 'moment-timezone';
 
 import GTable from 'components/GTable/GTable';
 import Text from 'components/Text/Text';
@@ -74,13 +74,6 @@ class ApiTokens extends React.Component<ApiTokensProps, any> {
             <div className={cx('header')}>
               <HorizontalGroup align="flex-end">
                 <Text.Title level={3}>API Tokens</Text.Title>
-                {/*<a target="_blank" href="https://a-03-dev-us-central-0.grafana.net/api-docs/#introduction">
-                  API Docs
-                </a>
-                <Text type="secondary">|</Text>
-                <a target="_blank" href="https://github.com/grafana/amixr/tree/dev/docs/terraform-provider">
-                  Terraform Docs
-                </a>*/}
               </HorizontalGroup>
               <WithPermissionControl userAction={UserAction.UpdateApiTokens}>
                 <Button

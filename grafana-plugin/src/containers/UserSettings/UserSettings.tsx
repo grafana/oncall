@@ -25,14 +25,11 @@ interface UserFormProps {
   tab?: UserSettingsTab;
 }
 
-const UserSettings = observer((props: UserFormProps) => {
-  const { id, onHide, tab = UserSettingsTab.UserInfo } = props;
-
+const UserSettings = observer(({ id, onHide, tab = UserSettingsTab.UserInfo }: UserFormProps) => {
   const store = useStore();
   const { userStore, teamStore } = store;
 
   const storeUser = userStore.items[id];
-
   const isCurrent = id === store.userStore.currentUserPk;
 
   const [activeTab, setActiveTab] = useState<UserSettingsTab>(tab);
@@ -45,7 +42,7 @@ const UserSettings = observer((props: UserFormProps) => {
     if (isDesktopOrLaptop && activeTab === UserSettingsTab.NotificationSettings) {
       setActiveTab(UserSettingsTab.UserInfo);
     }
-  }, [isDesktopOrLaptop]);
+  }, [isDesktopOrLaptop, activeTab]);
 
   const onTabChange = useCallback((tab: UserSettingsTab) => {
     setActiveTab(tab);

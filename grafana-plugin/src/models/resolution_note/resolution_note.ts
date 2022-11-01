@@ -1,8 +1,7 @@
-import { action, observable } from 'mobx';
+import { observable } from 'mobx';
 
 import { Alert } from 'models/alertgroup/alertgroup.types';
 import BaseStore from 'models/base_store';
-import { EscalationChain } from 'models/escalation_chain/escalation_chain.types';
 import { makeRequest } from 'network';
 import { RootStore } from 'state';
 

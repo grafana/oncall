@@ -1,8 +1,8 @@
-import React, { ChangeEvent, useCallback, useMemo, useState } from 'react';
+import React, { useCallback, useMemo } from 'react';
 
 import { DatePickerWithInput, Field, HorizontalGroup, RadioButtonGroup } from '@grafana/ui';
 import cn from 'classnames/bind';
-import moment from 'moment';
+import moment from 'moment-timezone';
 
 import { dateStringToOption, optionToDateString } from './SchedulesFilters.helpers';
 import { SchedulesFiltersType } from './SchedulesFilters.types';
@@ -17,18 +17,22 @@ interface SchedulesFiltersProps {
   className?: string;
 }
 
-const SchedulesFilters = (props: SchedulesFiltersProps) => {
-  const { value, onChange, className } = props;
-
-  const handleDateChange = useCallback((date: Date) => {
-    onChange({ selectedDate: moment(date).format('YYYY-MM-DD') });
-  }, []);
+const SchedulesFilters = ({ value, onChange, className }: SchedulesFiltersProps) => {
+  const handleDateChange = useCallback(
+    (date: Date) => {
+      onChange({ selectedDate: moment(date).format('YYYY-MM-DD') });
+    },
+    [onChange]
+  );
 
   const option = useMemo(() => dateStringToOption(value.selectedDate), [value]);
 
-  const handleOptionChange = useCallback((option: string) => {
-    onChange({ ...value, selectedDate: optionToDateString(option) });
-  }, []);
+  const handleOptionChange = useCallback(
+    (option: string) => {
+      onChange({ ...value, selectedDate: optionToDateString(option) });
+    },
+    [onChange, value]
+  );
 
   const datePickerValue = useMemo(() => moment(value.selectedDate).toDate(), [value]);
 

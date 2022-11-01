@@ -1,4 +1,4 @@
-import React, { ReactElement, useCallback, useState } from 'react';
+import React, { ReactElement, useCallback } from 'react';
 
 import { Tooltip } from '@grafana/ui';
 import cn from 'classnames/bind';
@@ -19,7 +19,7 @@ interface WithPermissionControlProps {
 }
 
 export const WithPermissionControl = observer((props: WithPermissionControlProps) => {
-  const { userAction, children, disableByPaywall = false, className } = props;
+  const { userAction, children, className } = props;
 
   const store = useStore();
 

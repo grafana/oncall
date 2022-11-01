@@ -3,7 +3,6 @@ import React, { useCallback, useState } from 'react';
 import { Button, Modal } from '@grafana/ui';
 import { observer } from 'mobx-react';
 
-import Text from 'components/Text/Text';
 import WithConfirm from 'components/WithConfirm/WithConfirm';
 import { WithPermissionControl } from 'containers/WithPermissionControl/WithPermissionControl';
 import { useStore } from 'state/useStore';
@@ -64,7 +63,7 @@ const SlackIntegrationButton = observer((props: { className: string; disabled?: 
           disabled={disabled}
           onClick={onInstallModalCallback}
         >
-          Install Slack integration
+          Connect Slack
         </Button>
       </WithPermissionControl>
       {showModal && <SlackModal onHide={onInstallModalHideCallback} onConfirm={onInstallClickCallback} />}
@@ -81,8 +80,8 @@ const SlackModal = (props: SlackModalProps) => {
   const { onHide, onConfirm } = props;
 
   return (
-    <Modal title="One more thing..." closeOnEscape isOpen onDismiss={onHide}>
-      <div style={{ textAlign: 'center' }}>
+    <Modal title="Slack connection" closeOnEscape isOpen onDismiss={onHide}>
+      <div style={{ textAlign: 'left' }}>
         You can view your Slack Workspace at the top-right corner after you are redirected. It should be a Workspace
         with App Bot installed:
       </div>

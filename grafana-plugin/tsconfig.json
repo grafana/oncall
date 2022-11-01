@@ -6,9 +6,10 @@
     "rootDirs": ["src", "frontend_enterprise/src"],
     "baseUrl": "src",
     "typeRoots": ["./node_modules/@types"],
-    "noUnusedLocals": false,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
     "strict": false,
     "resolveJsonModule": true,
-    "noImplicitAny": false,
+    "noImplicitAny": false
   }
 }

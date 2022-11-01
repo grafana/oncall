@@ -1,18 +1,6 @@
 import React, { FC, useCallback, useEffect, useMemo, useState } from 'react';
 
-import { dateTime, DateTime } from '@grafana/data';
-import {
-  IconButton,
-  VerticalGroup,
-  HorizontalGroup,
-  Field,
-  Input,
-  Button,
-  Select,
-  InlineSwitch,
-  DatePickerWithInput,
-  TimeOfDayPicker,
-} from '@grafana/ui';
+import { IconButton, VerticalGroup, HorizontalGroup, Field, Button, Select, InlineSwitch } from '@grafana/ui';
 import cn from 'classnames/bind';
 import dayjs from 'dayjs';
 import { observer } from 'mobx-react';
@@ -21,16 +9,14 @@ import Draggable from 'react-draggable';
 import Modal from 'components/Modal/Modal';
 import Text from 'components/Text/Text';
 import UserGroups from 'components/UserGroups/UserGroups';
-import { Item } from 'components/UserGroups/UserGroups.types';
 import WithConfirm from 'components/WithConfirm/WithConfirm';
 import WorkingHours from 'components/WorkingHours/WorkingHours';
 import RemoteSelect from 'containers/RemoteSelect/RemoteSelect';
 import { getFromString } from 'models/schedule/schedule.helpers';
-import { Rotation, Schedule, Shift } from 'models/schedule/schedule.types';
+import { Schedule, Shift } from 'models/schedule/schedule.types';
 import { getTzOffsetString } from 'models/timezone/timezone.helpers';
 import { Timezone } from 'models/timezone/timezone.types';
 import { User } from 'models/user/user.types';
-import { makeRequest } from 'network';
 import { getDateTime, getUTCString } from 'pages/schedule/Schedule.helpers';
 import { SelectOption } from 'state/types';
 import { useStore } from 'state/useStore';
@@ -38,7 +24,6 @@ import { getCoords, waitForElement } from 'utils/DOM';
 import { useDebouncedCallback } from 'utils/hooks';
 
 import DateTimePicker from './DateTimePicker';
-import { RotationCreateData } from './RotationForm.types';
 
 import styles from './RotationForm.module.css';
 
@@ -77,10 +62,8 @@ const RotationForm: FC<RotationFormProps> = observer((props) => {
     shiftColor = '#3D71D9',
   } = props;
 
-  // console.log('shiftColor', shiftColor);
-
   const [isOpen, setIsOpen] = useState<boolean>(false);
-
+  const [offsetTop, setOffsetTop] = useState<number>(0);
   const [repeatEveryValue, setRepeatEveryValue] = useState<number>(1);
   const [repeatEveryPeriod, setRepeatEveryPeriod] = useState<number>(0);
   const [selectedDays, setSelectedDays] = useState<string[]>([]);
@@ -89,6 +72,9 @@ const RotationForm: FC<RotationFormProps> = observer((props) => {
   const [rotationStart, setRotationStart] = useState<dayjs.Dayjs>(shiftMoment);
   const [endLess, setEndless] = useState<boolean>(true);
   const [rotationEnd, setRotationEnd] = useState<dayjs.Dayjs>(shiftMoment.add(1, 'month'));
+
+  const store = useStore();
+  const shift = store.scheduleStore.shifts[shiftId];
 
   useEffect(() => {
     if (rotationStart.isBefore(shiftStart)) {
@@ -106,21 +92,11 @@ const RotationForm: FC<RotationFormProps> = observer((props) => {
     [shiftStart, shiftEnd]
   );
 
-  const store = useStore();
-
-  const shift = store.scheduleStore.shifts[shiftId];
-
-  const [offsetTop, setOffsetTop] = useState<number>(0);
-
   useEffect(() => {
     if (isOpen) {
       waitForElement(`#layer${shiftId === 'new' ? layerPriority : shift?.priority_level}`).then((elm) => {
         const modal = document.querySelector(`.${cx('draggable')}`) as HTMLDivElement;
-
         const coords = getCoords(elm);
-
-        // elm.scrollIntoView({ behavior: 'smooth', block: 'end', inline: 'nearest' });
-        // setOffsetTop(Math.max(coords.top + elm.offsetHeight, 0));
 
         const offsetTop = Math.min(
           Math.max(coords.top - modal?.offsetHeight - 10, 10),
@@ -277,8 +253,6 @@ const RotationForm: FC<RotationFormProps> = observer((props) => {
             </HorizontalGroup>
           </Text>
           <HorizontalGroup>
-            {/*<IconButton disabled variant="secondary" tooltip="Copy" name="copy" />
-            <IconButton disabled variant="secondary" tooltip="Code" name="brackets-curly" />*/}
             {shiftId !== 'new' && (
               <WithConfirm>
                 <IconButton variant="secondary" tooltip="Delete" name="trash-alt" onClick={handleDeleteClick} />
@@ -287,7 +261,6 @@ const RotationForm: FC<RotationFormProps> = observer((props) => {
             <IconButton variant="secondary" className={cx('drag-handler')} name="draggabledots" />
           </HorizontalGroup>
         </HorizontalGroup>
-        {/*<hr />*/}
         <div className={cx('content')}>
           <VerticalGroup>
             <div className={cx('two-fields')}>
@@ -348,7 +321,6 @@ const RotationForm: FC<RotationFormProps> = observer((props) => {
               </Field>
             </HorizontalGroup>
             {repeatEveryPeriod === 1 && (
-              /*<HorizontalGroup justify="center">*/
               <Field label="Select days to repeat">
                 <DaysSelector
                   options={store.scheduleStore.byDayOptions}
@@ -356,7 +328,6 @@ const RotationForm: FC<RotationFormProps> = observer((props) => {
                   onChange={(value) => setSelectedDays(value)}
                 />
               </Field>
-              /*</HorizontalGroup>*/
             )}
             <div className={cx('two-fields')}>
               <Field
@@ -429,6 +400,7 @@ const DaysSelector = ({ value, onChange, options }: DaysSelectorProps) => {
     <div className={cx('days')}>
       {options.map(({ display_name, value: itemValue }) => (
         <div
+          key={display_name}
           onClick={getDayClickHandler(itemValue as string)}
           className={cx('day', { day__selected: value.includes(itemValue as string) })}
         >

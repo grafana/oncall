@@ -13,7 +13,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.views import Response
 from rest_framework.viewsets import ModelViewSet
 
-from apps.alerts.models import EscalationChain
+from apps.alerts.models import EscalationChain, EscalationPolicy
 from apps.api.permissions import MODIFY_ACTIONS, READ_ACTIONS, ActionPermission, AnyRole, IsAdmin, IsAdminOrEditor
 from apps.api.serializers.schedule_base import ScheduleFastSerializer
 from apps.api.serializers.schedule_polymorphic import (
@@ -41,6 +41,10 @@ from common.insight_log import EntityEvent, write_resource_insight_log
 EVENTS_FILTER_BY_ROTATION = "rotation"
 EVENTS_FILTER_BY_OVERRIDE = "override"
 EVENTS_FILTER_BY_FINAL = "final"
+
+SCHEDULE_TYPE_TO_CLASS = {
+    str(num_type): cls for cls, num_type in PolymorphicScheduleSerializer.SCHEDULE_CLASS_TO_TYPE.items()
+}
 
 
 class ScheduleView(
@@ -108,26 +112,35 @@ class ScheduleView(
             slack_team_identity=organization.slack_team_identity,
             slack_id=OuterRef("channel"),
         )
+        escalation_policies = (
+            EscalationPolicy.objects.values("notify_schedule")
+            .order_by("notify_schedule")
+            .annotate(num_escalation_chains=Count("notify_schedule"))
+            .filter(notify_schedule=OuterRef("id"))
+        )
         queryset = queryset.annotate(
             slack_channel_name=Subquery(slack_channels.values("name")[:1]),
             slack_channel_pk=Subquery(slack_channels.values("public_primary_key")[:1]),
-            num_escalation_chains=Count(
-                "escalation_policies__escalation_chain",
-                distinct=True,
-            ),
+            num_escalation_chains=Subquery(escalation_policies.values("num_escalation_chains")[:1]),
         )
         return queryset
 
     def get_queryset(self):
         is_short_request = self.request.query_params.get("short", "false") == "true"
+        filter_by_type = self.request.query_params.get("type")
         organization = self.request.auth.organization
-        queryset = OnCallSchedule.objects.filter(
-            organization=organization,
-            team=self.request.user.current_team,
+        queryset = OnCallSchedule.objects.filter(organization=organization, team=self.request.user.current_team).defer(
+            # avoid requesting large text fields which are not used when listing schedules
+            "cached_ical_file_primary",
+            "prev_ical_file_primary",
+            "cached_ical_file_overrides",
+            "prev_ical_file_overrides",
         )
         if not is_short_request:
             queryset = self._annotate_queryset(queryset)
             queryset = self.serializer_class.setup_eager_loading(queryset)
+        if filter_by_type is not None and filter_by_type in SCHEDULE_TYPE_TO_CLASS:
+            queryset = queryset.filter().instance_of(SCHEDULE_TYPE_TO_CLASS[filter_by_type])
         return queryset
 
     def perform_create(self, serializer):

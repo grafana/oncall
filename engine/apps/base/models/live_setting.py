@@ -33,6 +33,11 @@ class LiveSetting(models.Model):
     error = models.TextField(null=True, default=None)
 
     AVAILABLE_NAMES = (
+        "EMAIL_HOST",
+        "EMAIL_PORT",
+        "EMAIL_HOST_USER",
+        "EMAIL_HOST_PASSWORD",
+        "EMAIL_USE_TLS",
         "TWILIO_ACCOUNT_SID",
         "TWILIO_AUTH_TOKEN",
         "TWILIO_API_KEY_SID",
@@ -53,6 +58,11 @@ class LiveSetting(models.Model):
     )
 
     DESCRIPTIONS = {
+        "EMAIL_HOST": "SMTP server host. This email server will be used to notify users via email.",
+        "EMAIL_PORT": "SMTP server port",
+        "EMAIL_HOST_USER": "SMTP server user",
+        "EMAIL_HOST_PASSWORD": "SMTP server password",
+        "EMAIL_USE_TLS": "SMTP enable/disable TLS",
         "SLACK_SIGNING_SECRET": (
             "Check <a href='"
             "https://grafana.com/docs/grafana-cloud/oncall/open-source/#slack-setup"
@@ -110,16 +120,6 @@ class LiveSetting(models.Model):
             "You can create a service in Twilio web interface. "
             "twilio.com -> verify -> create new service."
         ),
-        "SENDGRID_API_KEY": (
-            "Sendgrid api key to send emails, "
-            "<a href='https://sendgrid.com/docs/ui/account-and-settings/api-keys/' target='_blank'>more info</a>."
-        ),
-        "SENDGRID_FROM_EMAIL": (
-            "Address to send emails, <a href='https://sendgrid.com/docs/ui/sending-email/senders/' target='_blank'>"
-            "more info</a>."
-        ),
-        "SENDGRID_SECRET_KEY": "It is the secret key to secure receiving inbound emails.",
-        "SENDGRID_INBOUND_EMAIL_DOMAIN": "Domain to receive emails for inbound emails integration.",
         "TELEGRAM_TOKEN": (
             "Secret token for Telegram bot, you can get one via <a href='https://t.me/BotFather' target='_blank'>BotFather</a>."
         ),
@@ -138,13 +138,12 @@ class LiveSetting(models.Model):
     }
 
     SECRET_SETTING_NAMES = (
+        "EMAIL_HOST_PASSWORD",
         "TWILIO_ACCOUNT_SID",
         "TWILIO_AUTH_TOKEN",
         "TWILIO_API_KEY_SID",
         "TWILIO_API_KEY_SECRET",
         "TWILIO_VERIFY_SERVICE_SID",
-        "SENDGRID_API_KEY",
-        "SENDGRID_SECRET_KEY",
         "SLACK_CLIENT_OAUTH_ID",
         "SLACK_CLIENT_OAUTH_SECRET",
         "SLACK_SIGNING_SECRET",

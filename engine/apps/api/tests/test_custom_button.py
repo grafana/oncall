@@ -129,6 +129,91 @@ def test_create_valid_data_button(custom_button_internal_api_setup, make_user_au
 
 
 @pytest.mark.django_db
+def test_create_valid_nested_data_button(custom_button_internal_api_setup, make_user_auth_headers):
+    user, token, custom_button = custom_button_internal_api_setup
+    client = APIClient()
+    url = reverse("api-internal:custom_button-list")
+
+    data = {
+        "name": "amixr_button_with_valid_data",
+        "webhook": TEST_URL,
+        # Assert that nested field access still works as long as the variable
+        # is quoted, making it valid JSON.
+        # This ensures backwards compatibility from when templates were required
+        # to be JSON.
+        "data": '{"nested_item": "{{ alert_payload.foo.bar }}"}',
+        "team": None,
+    }
+
+    response = client.post(url, data, format="json", **make_user_auth_headers(user, token))
+    # modify initial data by adding id and None for optional fields
+    custom_button = CustomButton.objects.get(public_primary_key=response.data["id"])
+    expected_response = data | {
+        "id": custom_button.public_primary_key,
+        "user": None,
+        "password": None,
+        "authorization_header": None,
+        "forward_whole_payload": False,
+    }
+    assert response.status_code == status.HTTP_201_CREATED
+    assert response.json() == expected_response
+
+
+@pytest.mark.django_db
+def test_create_valid_data_after_render_button(custom_button_internal_api_setup, make_user_auth_headers):
+    user, token, custom_button = custom_button_internal_api_setup
+    client = APIClient()
+    url = reverse("api-internal:custom_button-list")
+
+    data = {
+        "name": "amixr_button_with_valid_data",
+        "webhook": TEST_URL,
+        "data": '{"name": "{{ alert_payload.name }}", "labels": {{ alert_payload.labels | tojson }}}',
+        "team": None,
+    }
+
+    response = client.post(url, data, format="json", **make_user_auth_headers(user, token))
+    # modify initial data by adding id and None for optional fields
+    custom_button = CustomButton.objects.get(public_primary_key=response.data["id"])
+    expected_response = data | {
+        "id": custom_button.public_primary_key,
+        "user": None,
+        "password": None,
+        "authorization_header": None,
+        "forward_whole_payload": False,
+    }
+    assert response.status_code == status.HTTP_201_CREATED
+    assert response.json() == expected_response
+
+
+@pytest.mark.django_db
+def test_create_valid_data_after_render_use_all_data_button(custom_button_internal_api_setup, make_user_auth_headers):
+    user, token, custom_button = custom_button_internal_api_setup
+    client = APIClient()
+    url = reverse("api-internal:custom_button-list")
+
+    data = {
+        "name": "amixr_button_with_valid_data",
+        "webhook": TEST_URL,
+        "data": "{{ alert_payload | tojson }}",
+        "team": None,
+    }
+
+    response = client.post(url, data, format="json", **make_user_auth_headers(user, token))
+    # modify initial data by adding id and None for optional fields
+    custom_button = CustomButton.objects.get(public_primary_key=response.data["id"])
+    expected_response = data | {
+        "id": custom_button.public_primary_key,
+        "user": None,
+        "password": None,
+        "authorization_header": None,
+        "forward_whole_payload": False,
+    }
+    assert response.status_code == status.HTTP_201_CREATED
+    assert response.json() == expected_response
+
+
+@pytest.mark.django_db
 def test_create_invalid_url_custom_button(custom_button_internal_api_setup, make_user_auth_headers):
     user, token, custom_button = custom_button_internal_api_setup
     client = APIClient()
@@ -152,6 +237,22 @@ def test_create_invalid_data_custom_button(custom_button_internal_api_setup, mak
         "name": "amixr_button_invalid_data",
         "webhook": TEST_URL,
         "data": "invalid_json",
+    }
+    response = client.post(url, data, format="json", **make_user_auth_headers(user, token))
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+
+
+@pytest.mark.django_db
+def test_create_invalid_templated_data_custom_button(custom_button_internal_api_setup, make_user_auth_headers):
+    user, token, custom_button = custom_button_internal_api_setup
+    client = APIClient()
+    url = reverse("api-internal:custom_button-list")
+
+    data = {
+        "name": "amixr_button_invalid_data",
+        "webhook": TEST_URL,
+        # This would need a `| tojson` or some double quotes around it to pass validation.
+        "data": "{{ alert_payload.name }}",
     }
     response = client.post(url, data, format="json", **make_user_auth_headers(user, token))
     assert response.status_code == status.HTTP_400_BAD_REQUEST
@@ -342,39 +443,6 @@ def test_custom_button_delete_permissions(
         ),
     ):
         response = client.delete(url, format="json", **make_user_auth_headers(user, token))
-
-    assert response.status_code == expected_status
-
-
-@pytest.mark.django_db
-@pytest.mark.parametrize(
-    "role,expected_status",
-    [
-        (Role.ADMIN, status.HTTP_200_OK),
-        (Role.EDITOR, status.HTTP_200_OK),
-        (Role.VIEWER, status.HTTP_403_FORBIDDEN),
-    ],
-)
-def test_custom_button_action_permissions(
-    make_organization_and_user_with_plugin_token,
-    make_custom_action,
-    make_user_auth_headers,
-    role,
-    expected_status,
-):
-    organization, user, token = make_organization_and_user_with_plugin_token(role)
-    custom_button = make_custom_action(organization=organization)
-    client = APIClient()
-
-    url = reverse("api-internal:custom_button-action", kwargs={"pk": custom_button.public_primary_key})
-
-    with patch(
-        "apps.api.views.custom_button.CustomButtonView.action",
-        return_value=Response(
-            status=status.HTTP_200_OK,
-        ),
-    ):
-        response = client.post(url, format="json", **make_user_auth_headers(user, token))
 
     assert response.status_code == expected_status
 

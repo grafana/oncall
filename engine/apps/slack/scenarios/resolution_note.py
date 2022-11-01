@@ -358,7 +358,7 @@ class UpdateResolutionNoteStep(scenario_step.ScenarioStep):
         author_verbal = resolution_note.author_verbal(mention=True)
         resolution_note_text_block = {
             "type": "section",
-            "text": {"type": "plain_text", "text": resolution_note.text, "emoji": True},
+            "text": {"type": "mrkdwn", "text": resolution_note.text},
         }
         blocks.append(resolution_note_text_block)
         context_block = {

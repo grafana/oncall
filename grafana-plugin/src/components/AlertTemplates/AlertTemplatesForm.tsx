@@ -8,8 +8,7 @@ import cn from 'classnames/bind';
 import { omit } from 'lodash-es';
 
 import { templatesToRender, Template } from 'components/AlertTemplates/AlertTemplatesForm.config';
-import { getLabelFromTemplateName, includeTemplateGroup } from 'components/AlertTemplates/AlertTemplatesForm.helper';
-import Collapse from 'components/Collapse/Collapse';
+import { getLabelFromTemplateName } from 'components/AlertTemplates/AlertTemplatesForm.helper';
 import Block from 'components/GBlock/Block';
 import MonacoJinja2Editor from 'components/MonacoJinja2Editor/MonacoJinja2Editor';
 import SourceCode from 'components/SourceCode/SourceCode';
@@ -41,7 +40,6 @@ const AlertTemplatesForm = (props: AlertTemplatesFormProps) => {
   const {
     onUpdateTemplates,
     templates,
-    errors,
     alertReceiveChannelId,
     alertGroupId,
     demoAlertEnabled,
@@ -53,6 +51,8 @@ const AlertTemplatesForm = (props: AlertTemplatesFormProps) => {
   const [tempValues, setTempValues] = useState<{
     [key: string]: string | null;
   }>({});
+  const [activeGroup, setActiveGroup] = useState<string>();
+  const [activeTemplate, setActiveTemplate] = useState<Template>();
 
   useEffect(() => {
     makeRequest('/preview_template_options/', {});
@@ -80,13 +80,10 @@ const AlertTemplatesForm = (props: AlertTemplatesFormProps) => {
   const handleReset = () => {
     const temValuesCopy = omit(
       tempValues,
-      groups[activeGroup].map((group: any) => group.name)
+      groups[activeGroup].map((group) => group.name)
     );
     setTempValues(temValuesCopy);
   };
-
-  const [activeGroup, setActiveGroup] = useState<string>();
-  const [activeTemplate, setActiveTemplate] = useState<any>();
 
   const filteredTemplatesToRender = useMemo(() => {
     return templates
@@ -97,13 +94,10 @@ const AlertTemplatesForm = (props: AlertTemplatesFormProps) => {
   }, [templates]);
 
   const groups = useMemo(() => {
-    const groups: { [key: string]: any } = {};
+    const groups: { [key: string]: Template[] } = {};
 
     filteredTemplatesToRender.forEach((templateToRender) => {
       if (!groups[templateToRender.group]) {
-        if (!includeTemplateGroup(templateToRender.group)) {
-          return;
-        }
         groups[templateToRender.group] = [];
       }
       groups[templateToRender.group].push(templateToRender);
@@ -113,11 +107,7 @@ const AlertTemplatesForm = (props: AlertTemplatesFormProps) => {
 
   const getGroupByTemplateName = (templateName: string) => {
     Object.values(groups).find((group) => {
-      const foundTemplate = group.find((obj: any) => {
-        if (obj.name == templateName) {
-          return obj;
-        }
-      });
+      const foundTemplate = group.find((obj) => obj.name === templateName);
       setActiveGroup(foundTemplate?.group);
     });
   };
@@ -210,18 +200,18 @@ const AlertTemplatesForm = (props: AlertTemplatesFormProps) => {
                 suggestions
               </p>
             </Text>
-            {groups[activeGroup].map((activeTemplate: any) => (
+            {groups[activeGroup].map((activeTemplate) => (
               <div
                 key={activeTemplate.name}
                 className={cx('template-form', {
                   'template-form-full': true,
-                  'autoresolve-condition': selectedTemplateName && activeTemplate.name == 'resolve_condition_template',
+                  'autoresolve-condition': selectedTemplateName && activeTemplate.name === 'resolve_condition_template',
                 })}
               >
-                <Label className={cx({ 'autoresolve-label': activeTemplate.name == 'resolve_condition_template' })}>
+                <Label className={cx({ 'autoresolve-label': activeTemplate.name === 'resolve_condition_template' })}>
                   {getLabelFromTemplateName(activeTemplate.name, activeGroup)}
                 </Label>
-                {activeTemplate.name == 'resolve_condition_template' && (
+                {activeTemplate.name === 'resolve_condition_template' && (
                   <Text type="secondary" size="small">
                     To activate autoresolving change integration
                     <Button fill="text" size="sm" onClick={handleGoToTemplateSettingsCllick}>
@@ -240,7 +230,7 @@ const AlertTemplatesForm = (props: AlertTemplatesFormProps) => {
                   <Text type="secondary">
                     Press <Text keyboard>Ctrl</Text>+<Text keyboard>Space</Text> to get suggestions
                   </Text>
-                  {activeGroup === 'web' && activeTemplate.name == 'web_title_template' && (
+                  {activeGroup === 'web' && activeTemplate.name === 'web_title_template' && (
                     <div className={cx('web-title-message')}>
                       <Text type="secondary" size="small">
                         Please note that after changing the web title template new alert groups will be searchable by
@@ -271,7 +261,7 @@ const AlertTemplatesForm = (props: AlertTemplatesFormProps) => {
                 <VerticalGroup>
                   <Label>{`${capitalCase(activeGroup)} Preview`}</Label>
                   <VerticalGroup style={{ width: '100%' }}>
-                    {groups[activeGroup].map((template: any) => (
+                    {groups[activeGroup].map((template) => (
                       <TemplatePreview
                         active={template.name === activeTemplate?.name}
                         key={template.name}

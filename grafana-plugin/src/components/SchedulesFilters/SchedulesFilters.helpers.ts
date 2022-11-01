@@ -1,4 +1,4 @@
-import moment from 'moment';
+import moment from 'moment-timezone';
 
 export function optionToDateString(option: string) {
   switch (option) {

@@ -22,7 +22,7 @@ export function getSlackMessage(slackError: SlackError, team: Team) {
 
   if (slackError === SlackError.USER_ALREADY_CONNECTED) {
     return (
-      <>Couldn’t connect to Slack. This Slack account has already been connected to another user in this organization</>
+      <>Couldn't connect to Slack. This Slack account has already been connected to another user in this organization</>
     );
   }
 

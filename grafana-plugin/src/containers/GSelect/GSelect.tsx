@@ -1,12 +1,10 @@
-import React, { ReactElement, useCallback, useEffect, useState, useMemo } from 'react';
+import React, { ReactElement, useCallback, useEffect } from 'react';
 
 import { SelectableValue } from '@grafana/data';
-import { Select, MultiSelect, AsyncMultiSelect, AsyncSelect, Tooltip } from '@grafana/ui';
+import { AsyncMultiSelect, AsyncSelect } from '@grafana/ui';
 import cn from 'classnames/bind';
 import { get, isNil } from 'lodash-es';
 import { observer } from 'mobx-react';
-import Emoji from 'react-emoji-render';
-import { debounce } from 'throttle-debounce';
 
 import { useStore } from 'state/useStore';
 

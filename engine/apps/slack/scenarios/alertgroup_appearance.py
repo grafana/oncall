@@ -90,7 +90,7 @@ class OpenAlertAppearanceDialogStep(
             blocks.append(block)
         blocks.append({"type": "divider"})
 
-        for notification_channel in ["slack", "web", "sms", "phone_call", "email", "telegram"]:
+        for notification_channel in ["slack", "web", "sms", "phone_call", "telegram"]:
             blocks.append(
                 {
                     "type": "header",
@@ -236,7 +236,7 @@ class UpdateAppearanceStep(scenario_step.ScenarioStep):
             prev_state = alert_receive_channel.insight_logs_serialized
 
             for templatizable_attr in ["title", "message", "image_url"]:
-                for notification_channel in ["slack", "web", "sms", "phone_call", "email", "telegram"]:
+                for notification_channel in ["slack", "web", "sms", "phone_call", "telegram"]:
                     attr_name = f"{notification_channel}_{templatizable_attr}_template"
                     try:
                         old_value = getattr(alert_receive_channel, attr_name)

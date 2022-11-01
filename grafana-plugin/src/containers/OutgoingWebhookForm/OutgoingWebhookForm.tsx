@@ -54,7 +54,7 @@ const OutgoingWebhookForm = observer((props: OutgoingWebhookFormProps) => {
       onClose={onHide}
       closeOnMaskClick
     >
-      <div className={cx('content')}>
+      <div className={cx('content')} data-testid="test__outgoingWebhookEditForm">
         <GForm form={form} data={data} onSubmit={handleSubmit} />
         <WithPermissionControl userAction={UserAction.UpdateCustomActions}>
           <Button form={form.name} type="submit">

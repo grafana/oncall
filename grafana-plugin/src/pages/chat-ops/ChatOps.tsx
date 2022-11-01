@@ -26,9 +26,7 @@ class ChatOpsPage extends React.Component<MessengersPageProps, MessengersPageSta
   };
 
   render() {
-    const { store } = this.props;
     const { activeTab } = this.state;
-    const { teamStore } = store;
 
     return (
       <div className={cx('root')}>

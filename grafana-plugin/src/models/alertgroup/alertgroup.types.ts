@@ -1,7 +1,3 @@
-import React from 'react';
-
-import { Icon } from '@grafana/ui';
-
 import { AlertReceiveChannel } from 'models/alert_receive_channel/alert_receive_channel.types';
 import { Channel } from 'models/channel';
 import { User } from 'models/user/user.types';
