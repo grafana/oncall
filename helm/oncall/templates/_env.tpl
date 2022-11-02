@@ -23,7 +23,7 @@
   value: "1024"
 - name: BROKER_TYPE
   value: {{ .Values.broker.type | default "rabbitmq" }}
-{{- end }}
+{{- end -}}
 
 {{- define "snippet.oncall.slack.env" -}}
 {{- if .Values.oncall.slack.enabled -}}
@@ -38,12 +38,12 @@
 - name: SLACK_SIGNING_SECRET
   value: {{ .Values.oncall.slack.signingSecret | default "" | quote }}
 - name: SLACK_INSTALL_RETURN_REDIRECT_HOST
-  value: "https://{{ .Values.base_url }}"
+  value: {{ .Values.oncall.slack.redirectHost | default (printf "https://%s" .Values.base_url) | quote }}
 {{- else -}}
 - name: FEATURE_SLACK_INTEGRATION_ENABLED
   value: {{ .Values.oncall.slack.enabled | toString | title | quote }}
 {{- end -}}
-{{- end }}
+{{- end -}}
 
 {{- define "snippet.oncall.telegram.env" -}}
 {{- if .Values.oncall.telegram.enabled -}}
@@ -57,7 +57,36 @@
 - name: FEATURE_TELEGRAM_INTEGRATION_ENABLED
   value: {{ .Values.oncall.telegram.enabled | toString | title | quote }}
 {{- end -}}
-{{- end }}
+{{- end -}}
+
+{{- define "snippet.oncall.twilio.env" -}}
+{{- with .Values.oncall.twilio -}}
+{{- if .accountSid }}
+- name: TWILIO_ACCOUNT_SID
+  value: {{ .accountSid | quote }}
+{{- end -}}
+{{- if .authToken }}
+- name: TWILIO_AUTH_TOKEN
+  value: {{ .authToken | quote }}
+{{- end -}}
+{{- if .phoneNumber }}
+- name: TWILIO_NUMBER
+  value: {{ .phoneNumber | quote }}
+{{- end -}}
+{{- if .verifySid }}
+- name: TWILIO_VERIFY_SERVICE_SID
+  value: {{ .verifySid | quote }}
+{{- end -}}
+{{- if .apiKeySid }}
+- name: TWILIO_API_KEY_SID
+  value: {{ .apiKeySid | quote }}
+{{- end -}}
+{{- if .apiKeySecret }}
+- name: TWILIO_API_KEY_SECRET
+  value: {{ .apiKeySecret | quote }}
+{{- end -}}
+{{- end -}}
+{{- end -}}
 
 {{- define "snippet.celery.env" -}}
 {{- if .Values.celery.worker_queue }}
@@ -80,7 +109,7 @@
 - name: CELERY_WORKER_SHUTDOWN_INTERVAL
   value: {{ .Values.celery.worker_shutdown_interval }}
 {{- end -}}
-{{- end }}
+{{- end -}}
 
 {{- define "snippet.mysql.env" -}}
 - name: MYSQL_HOST
@@ -132,7 +161,7 @@
 
 {{- define "snippet.mysql.user" -}}
 {{- if and (not .Values.mariadb.enabled) .Values.externalMysql.user -}}
-{{- .Values.externalMysql.user | quote}}
+{{- .Values.externalMysql.user | quote }}
 {{- else -}}
 "root"
 {{- end -}}
@@ -224,7 +253,7 @@
 - name: RABBITMQ_VHOST
   value: {{ include "snippet.rabbitmq.vhost" . }}
 {{- end }}
-{{- end }}
+{{- end -}}
 
 {{- define "snippet.rabbitmq.user" -}}
 {{- if and (not .Values.rabbitmq.enabled) .Values.externalRabbitmq.user -}}
