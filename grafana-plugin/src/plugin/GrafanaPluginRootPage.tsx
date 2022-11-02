@@ -28,14 +28,15 @@ dayjs.extend(isSameOrBefore);
 dayjs.extend(isSameOrAfter);
 dayjs.extend(isoWeek);
 
-import './style/vars.css';
-import './style/global.css';
+import 'style/vars.css';
+import 'style/global.css';
 
 import { routes } from 'components/PluginLink/routes';
 import { useQueryParams, useQueryPath } from 'utils/hooks';
 import { pages } from 'pages';
 import { config, locationService } from '@grafana/runtime';
-import Header from 'Header';
+import Header from 'plugin/Header';
+import NavLinks from 'plugin/NavLinks';
 
 export const GrafanaPluginRootPage = (props: AppRootProps) => (
   <Provider store={rootStore}>
@@ -132,7 +133,15 @@ export const Root = observer((props: AppRootProps) => {
 
   return (
     <DefaultPageLayout {...props}>
-      {!hasTopNav && <Header page={page} />}
+      {!hasTopNav && (
+        <>
+          <Header page={page} />
+          <nav className="page-container">
+            <NavLinks currentPage={page} />
+          </nav>
+        </>
+      )}
+
       <div
         className={classnames(
           { 'page-container': !hasTopNav },

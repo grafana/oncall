@@ -1,6 +1,6 @@
 import React, { useState, SyntheticEvent } from 'react';
 
-import { AppRootProps } from '@grafana/data';
+import { AppRootProps, PageLayoutType } from '@grafana/data';
 import { config, getLocationSrv } from '@grafana/runtime';
 import {
   Button,
@@ -128,7 +128,7 @@ class IncidentPage extends React.Component<IncidentPageProps, IncidentPageState>
     }
 
     return (
-      <PluginPage pageNav={pages['incident'].getPageNav()}>
+      <PluginPage layout={PageLayoutType.Standard} pageNav={pages['incident'].getPageNav()}>
         <PageErrorHandlingWrapper errorData={errorData} objectName="alert group" pageName="incidents">
           {() => (
             <div className={cx('root', { 'legacy-navBar': !config.featureToggles.topnav })}>
