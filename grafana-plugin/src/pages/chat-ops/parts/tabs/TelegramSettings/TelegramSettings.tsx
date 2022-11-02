@@ -102,11 +102,13 @@ class TelegramSettings extends Component<TelegramProps, TelegramState> {
           </Block>
           <Text>
             <Text.Title level={4}>Features</Text.Title>
-            <ul>
-              <li>perform actions (acknowledge, resolve, silence)</li>
-              <li>discuss alerts in comments</li>
-              <li>notifications to users accounts will be served as links to the main channel</li>
-            </ul>
+            <div className={cx('features-list')}>
+              <ul>
+                <li>perform actions (acknowledge, resolve, silence)</li>
+                <li>discuss alerts in comments</li>
+                <li>notifications to users accounts will be served as links to the main channel</li>
+              </ul>
+            </div>
             Make sure your team connects Telegram in their OnCall user profiles too or they cannot manage alert groups.
           </Text>
           <HorizontalGroup>

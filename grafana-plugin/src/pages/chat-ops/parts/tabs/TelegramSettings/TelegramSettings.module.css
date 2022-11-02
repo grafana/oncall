@@ -12,7 +12,7 @@
   width: 725px;
 }
 
-ul {
+.features-list > ul {
   margin: 20px 30px;
 }
 

@@ -127,7 +127,7 @@ ingress:
   annotations:
     kubernetes.io/ingress.class: "nginx"
     cert-manager.io/issuer: "letsencrypt-prod"
-  tls: 
+  tls:
     - hosts:
         - "{{ .Values.base_url }}"
       secretName: certificate-tls
@@ -169,6 +169,10 @@ cert-manager:
       - 8.8.8.8
       - 1.1.1.1
 
+database:
+  # can be either mysql or postgresql
+  type: mysql
+
 # MySQL is included into this release for the convenience.
 # It is recommended to host it separately from this release
 # Set mariadb.enabled = false and configure externalMysql
@@ -197,6 +201,27 @@ externalMysql:
   db_name:
   user:
   password:
+
+# PostgreSQL is included into this release for the convenience.
+# It is recommended to host it separately from this release
+# Set postgresql.enabled = false and configure externalPostgresql
+postgresql:
+  enabled: false
+  auth:
+    database: oncall
+
+# Make sure to create the database with the following parameters:
+# CREATE DATABASE oncall CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+externalPostgresql:
+  host:
+  port:
+  db_name:
+  user:
+  password:
+  # use an existing secret for the database password
+  existingSecret: ""
+  # the key in the secret containing the database password
+  passwordKey: password
 
 # RabbitMQ is included into this release for the convenience.
 # It is recommended to host it separately from this release
