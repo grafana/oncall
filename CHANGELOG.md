@@ -1,5 +1,10 @@
 # Change Log
 
+## v1.0.49 (2022-11-01)
+
+- Enable SMTP email backend by default
+- Fix Grafana sidebar frontend bug
+
 ## v1.0.48 (2022-11-01)
 
 - verify_number management command
