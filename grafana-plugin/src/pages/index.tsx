@@ -107,13 +107,6 @@ export const pages: { [id: string]: PageDefinition } = [
     path: getPath('organization-logs'),
   },
   {
-    icon: 'import',
-    id: 'migration-tool',
-    text: 'Migrate From Amixr.IO',
-    hideFromTabs: true,
-    path: getPath('migration-tool'),
-  },
-  {
     icon: 'cloud',
     id: 'cloud',
     text: 'Cloud',

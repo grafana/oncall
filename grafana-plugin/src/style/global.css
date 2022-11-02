@@ -1,21 +1,3 @@
-.spin {
-  width: 100%;
-  margin-top: 200px;
-  margin-bottom: 200px;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-}
-
-.navbarRootFallback {
-  margin-top: 24px;
-}
-
-.spin-text {
-  margin-top: 20px;
-}
-
 .configure-plugin {
   margin-top: 10px;
 }
@@ -26,10 +8,34 @@
   }
 }
 
+/* Spinner */
+
+.spin {
+  width: 100%;
+  margin-top: 200px;
+  margin-bottom: 200px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+.spin-text {
+  margin-top: 20px;
+}
+
+/* Tables */
+
 .disabled-row {
   background: #f0f0f0;
 }
 
 .highlighted-row {
   background: var(--highlighted-row-bg);
+}
+
+/* Navigation */
+
+.navbarRootFallback {
+  margin-top: 24px;
 }
