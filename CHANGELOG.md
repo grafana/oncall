@@ -42,7 +42,6 @@
 
 - Add personal email notifications
 - Bug fixes
->>>>>>> dev
 
 ## v1.0.40 (2022-10-05)
 
