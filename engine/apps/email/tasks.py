@@ -39,6 +39,20 @@ def notify_user_async(user_pk, alert_group_pk, notification_policy_pk):
         logger.warning(f"User notification policy {notification_policy_pk} does not exist")
         return
 
+    # create an error log in case EMAIL_HOST is not specified
+    if not live_settings.EMAIL_HOST:
+        UserNotificationPolicyLogRecord.objects.create(
+            author=user,
+            type=UserNotificationPolicyLogRecord.TYPE_PERSONAL_NOTIFICATION_FAILED,
+            notification_policy=notification_policy,
+            alert_group=alert_group,
+            reason="Error while sending email",
+            notification_step=notification_policy.step,
+            notification_channel=notification_policy.notify_by,
+        )
+        logger.error(f"Error while sending email: empty EMAIL_HOST env variable")
+        return
+
     emails_left = user.organization.emails_left(user)
     if emails_left <= 0:
         UserNotificationPolicyLogRecord.objects.create(

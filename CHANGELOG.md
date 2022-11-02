@@ -1,16 +1,47 @@
 # Change Log
 
+## v1.0.49 (2022-11-01)
+
+- Enable SMTP email backend by default
+- Fix Grafana sidebar frontend bug
+
+## v1.0.48 (2022-11-01)
+
+- verify_number management command
+- chatops page redesign
+
+## v1.0.47 (2022-11-01)
+
+- Bug fixes
+
+## v1.0.46 (2022-10-28)
+
+- Bug fixes
+- remove `POST /api/internal/v1/custom_buttons/{id}/action` endpoint
+
+## v1.0.45 (2022-10-27)
+
+- Bug fix to revert commit which removed unused engine code
+
+## v1.0.44 (2022-10-26)
+
+- Bug fix for an issue that was affecting phone verification
+
 ## v1.0.43 (2022-10-25)
+
 - Bug fixes
 
 ## v1.0.42 (2022-10-24)
+
 - Fix posting resolution notes to Slack
 
 ## v1.0.41 (2022-10-24)
+
 - Add personal email notifications
 - Bug fixes
 
 ## v1.0.40 (2022-10-05)
+
 - Improved database and celery backends support
 - Added script to import PagerDuty users to Grafana
 - Bug fixes

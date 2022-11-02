@@ -501,8 +501,8 @@ class SlackEventApiEndpointView(APIView):
             return
 
         text = (
-            "Your Grafana account is not connected to your Slack account. :flushed:\n"
-            "That's very easy to fix. Please go to the *Grafana* -> *OnCall* -> *Users*, "
+            "The information in workspace is read-only. To be able to intercat with OnCall alert groups you need to connect a personal account.\n"
+            "Please go to the *Grafana* -> *OnCall* -> *Users*, "
             "choose *your profile* and click the *connect* button.\n"
             ":rocket: :rocket: :rocket:"
         )

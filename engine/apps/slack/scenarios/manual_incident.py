@@ -365,7 +365,7 @@ def _get_manual_incident_form_view(routing_uid, blocks, private_metatada):
         "callback_id": routing_uid,
         "title": {
             "type": "plain_text",
-            "text": "Create an Incident",
+            "text": "Start New Escalation",
         },
         "close": {
             "type": "plain_text",
