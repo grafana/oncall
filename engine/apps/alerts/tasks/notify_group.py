@@ -37,7 +37,9 @@ def notify_group_task(alert_group_pk, escalation_policy_snapshot_order=None):
     escalation_policy_step = escalation_policy_snapshot.step
     usergroup = escalation_policy_snapshot.notify_to_group
 
-    usergroup_users = usergroup.get_users_from_members_for_organization(organization)
+    usergroup_users = []
+    if usergroup is not None:
+        usergroup_users = usergroup.get_users_from_members_for_organization(organization)
 
     if len(usergroup_users) == 0:
         log_record = AlertGroupLogRecord(

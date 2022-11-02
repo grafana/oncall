@@ -596,7 +596,7 @@ class IncidentLogBuilder:
                 except ValueError:
                     pass
                 else:
-                    result += f"send {backend.label.lower()} message to {user_verbal}"
+                    result += f"send {backend.label.lower() if backend else ''} message to {user_verbal}"
         if not result:
             result += f"inviting {user_verbal} but notification channel is unspecified"
         return result

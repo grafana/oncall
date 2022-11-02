@@ -1,6 +1,6 @@
 import React, { FC, useCallback, useState } from 'react';
 
-import { HorizontalGroup, Icon, Tooltip, VerticalGroup } from '@grafana/ui';
+import { HorizontalGroup, Tooltip, VerticalGroup } from '@grafana/ui';
 import cn from 'classnames/bind';
 import dayjs from 'dayjs';
 import { observer } from 'mobx-react';
@@ -30,7 +30,7 @@ interface ScheduleSlotProps {
 const cx = cn.bind(styles);
 
 const ScheduleSlot: FC<ScheduleSlotProps> = observer((props) => {
-  const { event, scheduleId, startMoment, currentTimezone, color, label } = props;
+  const { event, scheduleId, currentTimezone, color, label } = props;
   const { users } = event;
 
   const trackMouse = false;
@@ -55,7 +55,7 @@ const ScheduleSlot: FC<ScheduleSlotProps> = observer((props) => {
   const onCallNow = store.scheduleStore.items[scheduleId]?.on_call_now;
 
   return (
-    <div className={cx('stack')} style={{ width: `${width * 100}%` /*left: `${x * 100}%`*/ }}>
+    <div className={cx('stack')} style={{ width: `${width * 100}%` }}>
       {event.is_gap ? (
         <Tooltip content={<ScheduleGapDetails event={event} currentTimezone={currentTimezone} />}>
           <div className={cx('root', 'root__type_gap')} style={{}}>
@@ -95,6 +95,7 @@ const ScheduleSlot: FC<ScheduleSlotProps> = observer((props) => {
 
           return (
             <Tooltip
+              key={userPk}
               content={
                 <ScheduleSlotDetails
                   user={storeUser}
@@ -159,10 +160,6 @@ const ScheduleSlotDetails = (props: ScheduleSlotDetailsProps) => {
           </HorizontalGroup>
           <HorizontalGroup>
             <VerticalGroup spacing="none">
-              {/* <HorizontalGroup spacing="sm">
-                <Icon name="clock-nine" size="xs" />
-                <Text type="secondary">30 apr, 7:54 </Text>
-              </HorizontalGroup>*/}
               <HorizontalGroup spacing="sm">
                 <img src={Line} />
                 <VerticalGroup spacing="none">
@@ -176,7 +173,6 @@ const ScheduleSlotDetails = (props: ScheduleSlotDetailsProps) => {
         <VerticalGroup spacing="sm">
           <Text type="primary">{currentTimezone}</Text>
           <VerticalGroup spacing="none">
-            {/* <Text type="primary">30 apr, 12:54 </Text>*/}
             <Text type="primary">{dayjs(event.start).tz(currentTimezone).format('DD MMM, HH:mm')}</Text>
             <Text type="primary">{dayjs(event.end).tz(currentTimezone).format('DD MMM, HH:mm')}</Text>
           </VerticalGroup>
@@ -204,15 +200,6 @@ const ScheduleGapDetails = (props: ScheduleGapDetailsProps) => {
             <Text type="primary">{dayjs(event.end).tz(currentTimezone).format('DD MMM, HH:mm')}</Text>
           </VerticalGroup>
         </HorizontalGroup>
-        {/*<Text type="primary">Gaps this week</Text>
-        <HorizontalGroup justify="space-between">
-          <Text type="secondary">Number of gaps</Text>
-          <Text type="secondary">12</Text>
-        </HorizontalGroup>
-        <HorizontalGroup justify="space-between">
-          <Text type="secondary">Time</Text>
-          <Text type="secondary">23h 12m</Text>
-        </HorizontalGroup>*/}
       </VerticalGroup>
     </div>
   );

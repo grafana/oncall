@@ -4,13 +4,11 @@ import { SelectableValue } from '@grafana/data';
 import { Button, Field, HorizontalGroup, Icon, Modal } from '@grafana/ui';
 import cn from 'classnames/bind';
 import { observer } from 'mobx-react';
-import moment from 'moment';
-import Emoji from 'react-emoji-render';
+import moment from 'moment-timezone';
 
 import Text from 'components/Text/Text';
 import GSelect from 'containers/GSelect/GSelect';
 import { WithPermissionControl } from 'containers/WithPermissionControl/WithPermissionControl';
-import { AlertGroupStore } from 'models/alertgroup/alertgroup';
 import { Alert } from 'models/alertgroup/alertgroup.types';
 import { useStore } from 'state/useStore';
 import { UserAction } from 'state/userAction';
@@ -25,9 +23,11 @@ interface AttachIncidentFormProps {
   onHide: () => void;
 }
 
-const AttachIncidentForm = observer((props: AttachIncidentFormProps) => {
-  const { id, onUpdate, onHide } = props;
+interface GroupedAlertNumberProps {
+  value: Alert['pk'];
+}
 
+const AttachIncidentForm = observer(({ id, onUpdate, onHide }: AttachIncidentFormProps) => {
   const store = useStore();
 
   const { alertGroupStore } = store;
@@ -43,17 +43,10 @@ const AttachIncidentForm = observer((props: AttachIncidentFormProps) => {
       onHide();
       onUpdate();
     });
-  }, [selected]);
+  }, [selected, alertGroupStore, id, onHide, onUpdate]);
 
-  interface GroupedAlertNumberProps {
-    value: Alert['pk'];
-  }
-
-  const GroupedAlertNumber = observer((props: GroupedAlertNumberProps) => {
-    const store = useStore();
-    const { value } = props;
-
-    const { alertGroupStore } = store;
+  const GroupedAlertNumber = observer(({ value }: GroupedAlertNumberProps) => {
+    const { alertGroupStore } = useStore();
     const alert = alertGroupStore.items[value];
 
     return (
@@ -88,7 +81,7 @@ const AttachIncidentForm = observer((props: AttachIncidentFormProps) => {
             displayField="render_for_web.title"
             placeholder="Select Incident"
             className={cx('select', 'control')}
-            filterOptions={(id) => id !== props.id}
+            filterOptions={(optionId) => optionId !== id}
             value={selected}
             onChange={getChangeHandler}
             getDescription={(item: Alert) => moment(item.started_at).format('MMM DD, YYYY hh:mm A')}

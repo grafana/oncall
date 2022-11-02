@@ -17,7 +17,6 @@
   }
   &--link {
     color: var(--primary-text-link);
-    text-decoration: underline;
   }
   &--success {
     color: var(--green-5);
@@ -39,7 +38,6 @@
 .no-wrap {
   white-space: nowrap;
 }
-
 
 .keyboard {
   margin: 0 0.2em;

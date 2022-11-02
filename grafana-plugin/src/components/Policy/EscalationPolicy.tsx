@@ -1,7 +1,7 @@
 import React, { ChangeEvent } from 'react';
 
 import { SelectableValue } from '@grafana/data';
-import { Button, Input, Select, Tooltip, IconButton } from '@grafana/ui';
+import { Button, Input, Select, IconButton } from '@grafana/ui';
 import cn from 'classnames/bind';
 import moment from 'moment-timezone';
 import { SortableElement } from 'react-sortable-hoc';
@@ -11,7 +11,6 @@ import PluginLink from 'components/PluginLink/PluginLink';
 import TimeRange from 'components/TimeRange/TimeRange';
 import Timeline from 'components/Timeline/Timeline';
 import GSelect from 'containers/GSelect/GSelect';
-import RemoteSelect from 'containers/RemoteSelect/RemoteSelect';
 import UserTooltip from 'containers/UserTooltip/UserTooltip';
 import { WithPermissionControl } from 'containers/WithPermissionControl/WithPermissionControl';
 import { prepareEscalationPolicy } from 'models/escalation_policy/escalation_policy.helpers';
@@ -147,7 +146,7 @@ export class EscalationPolicy extends React.Component<EscalationPolicyProps, any
           className={cx('select', 'control', 'multiSelect')}
           value={notify_to_users_queue}
           onChange={this._getOnChangeHandler('notify_to_users_queue')}
-          getOptionLabel={({ label, value }: SelectableValue) => <UserTooltip id={value} />}
+          getOptionLabel={({ value }: SelectableValue) => <UserTooltip id={value} />}
         />
       </WithPermissionControl>
     );

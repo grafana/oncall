@@ -1,6 +1,6 @@
-import React, { FC, useCallback } from 'react';
+import React, { FC } from 'react';
 
-import { HorizontalGroup, VerticalGroup, Icon, IconButton, Tooltip, IconName } from '@grafana/ui';
+import { HorizontalGroup, VerticalGroup, Icon, Tooltip, IconName } from '@grafana/ui';
 import cn from 'classnames/bind';
 
 import Text, { TextType } from 'components/Text/Text';
@@ -23,16 +23,6 @@ const typeToIcon = {
 const typeToColor = {
   link: 'success',
   warning: 'warning',
-};
-
-const typeToBorderColor = {
-  link: '#6CCF8E',
-  warning: '#F8D06B',
-};
-
-const typeToBackgroundColor = {
-  link: '#132322',
-  warning: '#3A301E',
 };
 
 const cx = cn.bind(styles);

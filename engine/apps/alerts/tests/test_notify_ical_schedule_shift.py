@@ -6,6 +6,7 @@ import pytz
 from django.utils import timezone
 
 from apps.alerts.tasks.notify_ical_schedule_shift import notify_ical_schedule_shift
+from apps.schedules.ical_utils import memoized_users_in_ical
 from apps.schedules.models import OnCallScheduleICal
 
 ICAL_DATA = """
@@ -80,6 +81,8 @@ def test_next_shift_notification_long_shifts(
     organization, _, _, _ = make_organization_and_user_with_slack_identities()
     make_user(organization=organization, username="user1")
     make_user(organization=organization, username="user2")
+    # clear users pks <-> organization cache (persisting between tests)
+    memoized_users_in_ical.cache_clear()
 
     ical_schedule = make_schedule(
         organization,

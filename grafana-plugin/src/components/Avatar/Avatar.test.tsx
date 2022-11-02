@@ -1,7 +1,7 @@
 import React from 'react';
 
 import { describe, expect, test } from '@jest/globals';
-import { render, fireEvent, screen } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 
 import Avatar from 'components/Avatar/Avatar';
 

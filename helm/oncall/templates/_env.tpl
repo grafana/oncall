@@ -138,6 +138,74 @@
 {{- end -}}
 {{- end -}}
 
+{{- define "snippet.postgresql.env" -}}
+- name: DATABASE_TYPE
+  value: {{ .Values.database.type }}
+- name: DATABASE_HOST
+  value: {{ include "snippet.postgresql.host" . }}
+- name: DATABASE_PORT
+  value: {{ include "snippet.postgresql.port" . }}
+- name: DATABASE_NAME
+  value: {{ include "snippet.postgresql.db" . }}
+- name: DATABASE_USER
+  value: {{ include "snippet.postgresql.user" . }}
+- name: DATABASE_PASSWORD
+  valueFrom:
+    secretKeyRef:
+      name: {{ include "snippet.postgresql.password.secret.name" . }}
+      key: {{ include "snippet.postgresql.password.secret.key" . }}
+{{- end }}
+
+{{- define "snippet.postgresql.password.secret.name" -}}
+{{- if and (not .Values.postgresql.enabled) .Values.externalPostgresql.password -}}
+{{ include "oncall.fullname" . }}-postgresql-external
+{{- else if and (not .Values.postgresql.enabled) .Values.externalPostgresql.existingSecret -}}
+{{ .Values.externalPostgresql.existingSecret }}
+{{- else -}}
+{{ include "oncall.postgresql.fullname" . }}
+{{- end -}}
+{{- end -}}
+
+{{- define "snippet.postgresql.password.secret.key" -}}
+{{- if and (not .Values.postgresql.enabled) .Values.externalPostgresql.passwordKey -}}
+{{ .Values.externalPostgresql.passwordKey }}
+{{- else -}}
+"postgres-password"
+{{- end -}}
+{{- end -}}
+
+{{- define "snippet.postgresql.host" -}}
+{{- if and (not .Values.postgresql.enabled) .Values.externalPostgresql.host -}}
+{{- required "externalPostgresql.host is required if not postgresql.enabled" .Values.externalPostgresql.host | quote }}
+{{- else -}}
+{{ include "oncall.postgresql.fullname" . }}
+{{- end -}}
+{{- end -}}
+
+{{- define "snippet.postgresql.port" -}}
+{{- if and (not .Values.mariadb.enabled) .Values.externalPostgresql.port -}}
+{{- required "externalPostgresql.port is required if not postgresql.enabled"  .Values.externalPostgresql.port | quote }}
+{{- else -}}
+"5432"
+{{- end -}}
+{{- end -}}
+
+{{- define "snippet.postgresql.db" -}}
+{{- if and (not .Values.postgresql.enabled) .Values.externalPostgresql.db -}}
+{{- required "externalPostgresql.db is required if not postgresql.enabled" .Values.externalPostgresql.db | quote}}
+{{- else -}}
+"oncall"
+{{- end -}}
+{{- end -}}
+
+{{- define "snippet.postgresql.user" -}}
+{{- if and (not .Values.postgresql.enabled) .Values.externalPostgresql.user -}}
+{{- .Values.externalPostgresql.user | quote}}
+{{- else -}}
+"postgres"
+{{- end -}}
+{{- end -}}
+
 {{- define "snippet.rabbitmq.env" -}}
 {{- if eq .Values.broker.type "rabbitmq" -}}
 - name: RABBITMQ_USERNAME
@@ -232,4 +300,29 @@
     secretKeyRef:
       name: {{ template "snippet.redis.password.secret.name" . }}
       key: redis-password
+{{- end }}
+
+{{- define "snippet.oncall.smtp.env" -}}
+{{- if .Values.oncall.smtp.enabled -}}
+- name: FEATURE_EMAIL_INTEGRATION_ENABLED
+  value: {{ .Values.oncall.smtp.enabled | toString | title | quote }}
+- name: EMAIL_HOST
+  value: {{ .Values.oncall.smtp.host | quote }}
+- name: EMAIL_PORT
+  value: {{ .Values.oncall.smtp.port | default "587" | quote }}
+- name: EMAIL_HOST_USER
+  value: {{ .Values.oncall.smtp.username | quote }}
+- name: EMAIL_HOST_PASSWORD
+  valueFrom:
+    secretKeyRef:
+      name: {{ include "oncall.fullname" . }}-smtp
+      key: smtp-password
+- name: EMAIL_USE_TLS
+  value: {{ .Values.oncall.smtp.tls | toString | title | quote }}
+- name: DEFAULT_FROM_EMAIL
+  value: {{ .Values.oncall.smtp.fromEmail | quote }}
+{{- else -}}
+- name: FEATURE_EMAIL_INTEGRATION_ENABLED
+  value: {{ .Values.oncall.smtp.enabled | toString | title | quote }}
+{{- end -}}
 {{- end }}

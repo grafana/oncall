@@ -42,6 +42,10 @@ EVENTS_FILTER_BY_ROTATION = "rotation"
 EVENTS_FILTER_BY_OVERRIDE = "override"
 EVENTS_FILTER_BY_FINAL = "final"
 
+SCHEDULE_TYPE_TO_CLASS = {
+    str(num_type): cls for cls, num_type in PolymorphicScheduleSerializer.SCHEDULE_CLASS_TO_TYPE.items()
+}
+
 
 class ScheduleView(
     TeamFilteringMixin,
@@ -123,6 +127,7 @@ class ScheduleView(
 
     def get_queryset(self):
         is_short_request = self.request.query_params.get("short", "false") == "true"
+        filter_by_type = self.request.query_params.get("type")
         organization = self.request.auth.organization
         queryset = OnCallSchedule.objects.filter(organization=organization, team=self.request.user.current_team).defer(
             # avoid requesting large text fields which are not used when listing schedules
@@ -134,6 +139,8 @@ class ScheduleView(
         if not is_short_request:
             queryset = self._annotate_queryset(queryset)
             queryset = self.serializer_class.setup_eager_loading(queryset)
+        if filter_by_type is not None and filter_by_type in SCHEDULE_TYPE_TO_CLASS:
+            queryset = queryset.filter().instance_of(SCHEDULE_TYPE_TO_CLASS[filter_by_type])
         return queryset
 
     def perform_create(self, serializer):

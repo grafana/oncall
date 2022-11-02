@@ -1,6 +1,6 @@
 import React from 'react';
 
-import { Icon, Tooltip, HorizontalGroup, VerticalGroup } from '@grafana/ui';
+import { Tooltip, HorizontalGroup, VerticalGroup } from '@grafana/ui';
 import cn from 'classnames/bind';
 import { observer } from 'mobx-react';
 import Emoji from 'react-emoji-render';
@@ -8,9 +8,8 @@ import Emoji from 'react-emoji-render';
 import IntegrationLogo from 'components/IntegrationLogo/IntegrationLogo';
 import PluginLink from 'components/PluginLink/PluginLink';
 import Text from 'components/Text/Text';
-import { GrafanaIcon, HeartGreenIcon, HeartRedIcon } from 'icons';
+import { HeartGreenIcon, HeartRedIcon } from 'icons';
 import { AlertReceiveChannel } from 'models/alert_receive_channel/alert_receive_channel.types';
-import { SelectOption } from 'state/types';
 import { useStore } from 'state/useStore';
 
 import styles from './AlertReceiveChannelCard.module.css';
