@@ -50,7 +50,7 @@ def check_gcom_permission(token_string: str, context) -> Optional["GcomToken"]:
             name="allow_plugin_organization_signup", defaults={"boolean_value": True}
         )[0].boolean_value
         if allow_signup:
-            organization = Organization.objects.create(
+            organization = Organization.objects.create_for_cloud(
                 stack_id=str(instance_info["id"]),
                 stack_slug=instance_info["slug"],
                 grafana_url=instance_info["url"],

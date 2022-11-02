@@ -36,6 +36,7 @@ class OrganizationQuerySet(models.QuerySet):
     def create_for_cloud(self, **kwargs):
         instance = super().create(**kwargs)
         create_oncall_connector(instance.public_primary_key, settings.BACKEND_REGION)
+        return instance
 
 
 class Organization(MaintainableObject):
