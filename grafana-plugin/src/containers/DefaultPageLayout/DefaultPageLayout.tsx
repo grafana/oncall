@@ -79,7 +79,7 @@ const DefaultPageLayout: FC<DefaultPageLayoutProps> = observer((props) => {
             // @ts-ignore
             title="Slack integration warning"
           >
-            {getSlackMessage(showSlackInstallAlert, store.teamStore.currentTeam)}
+            {getSlackMessage(showSlackInstallAlert, store.teamStore.currentTeam, store)}
           </Alert>
         )}
         {currentTeam?.banner.title != null && !getItem(currentTeam?.banner.title) && (
