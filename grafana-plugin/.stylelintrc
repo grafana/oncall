@@ -3,6 +3,10 @@
   "plugins": ["stylelint-prettier"],
   "rules": {
     "block-no-empty": [true, { "severity": "warning" }],
+    "selector-max-type": [ 0, {
+      "severity": "error",
+      "ignore": ["child", "compounded", "descendant", "next-sibling"]
+    }],
     "selector-pseudo-class-no-unknown": [
       true,
       {
