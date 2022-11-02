@@ -208,8 +208,6 @@ export class RootBaseStore {
   async setupPlugin(meta: AppPluginMeta<OnCallAppSettings>) {
     this.resetStatusToDefault();
 
-    console.log(meta);
-
     if (!meta.jsonData?.onCallApiUrl) {
       this.pluginIsInitialized = false;
       return;

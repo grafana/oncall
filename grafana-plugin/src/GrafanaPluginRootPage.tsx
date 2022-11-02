@@ -135,7 +135,7 @@ export const Root = observer((props: AppRootProps) => {
         path: pathWithoutLeadingSlash,
         meta,
         grafanaUser: window.grafanaBootData.user,
-        enableLiveSettings: store.hasFeature(AppFeature.LiveSettings),
+        enableLiveSettings: true || store.hasFeature(AppFeature.LiveSettings),
         enableCloudPage: store.hasFeature(AppFeature.CloudConnection),
         enableNewSchedulesPage: store.hasFeature(AppFeature.WebSchedules),
         backendLicense,
