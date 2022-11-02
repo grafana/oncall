@@ -1,7 +1,7 @@
 import React from 'react';
 
 import { AppRootProps } from '@grafana/data';
-import { config, getLocationSrv } from '@grafana/runtime';
+import { getLocationSrv } from '@grafana/runtime';
 import { Button, LoadingPlaceholder, VerticalGroup } from '@grafana/ui';
 import cn from 'classnames/bind';
 import { debounce } from 'lodash-es';
@@ -31,7 +31,6 @@ import { withMobXProviderContext } from 'state/withStore';
 
 import styles from './Integrations.module.css';
 import { PluginPage } from 'PluginPage';
-import { pages } from 'pages';
 
 const cx = cn.bind(styles);
 
@@ -132,7 +131,7 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
     const searchResult = alertReceiveChannelStore.getSearchResult();
 
     return (
-      <PluginPage pageNav={pages['integrations'].getPageNav()}>
+      <PluginPage>
         <PageErrorHandlingWrapper
           errorData={errorData}
           objectName="integration"
@@ -141,7 +140,7 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
         >
           {() => (
             <>
-              <div className={cx('root', { navbarRootFallback: !config.featureToggles.topnav })}>
+              <div className={cx('root')}>
                 <div className={cx('filters')}>
                   <IntegrationsFilters value={integrationsFilters} onChange={this.handleIntegrationsFiltersChange} />
                 </div>

@@ -1,3 +1,7 @@
+.legacy-navBar {
+  margin-bottom: -24px;
+}
+
 .incident-row {
   display: flex;
 }

@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 
 import { SelectableValue } from '@grafana/data';
-import { config, getLocationSrv } from '@grafana/runtime';
+import { getLocationSrv } from '@grafana/runtime';
 import { Label, Button, HorizontalGroup, VerticalGroup, Select, LoadingPlaceholder } from '@grafana/ui';
 import { capitalCase } from 'change-case';
 import cn from 'classnames/bind';
@@ -167,7 +167,7 @@ const AlertTemplatesForm = (props: AlertTemplatesFormProps) => {
   };
 
   return (
-    <div className={cx('root', { navbarRootFallback: !config.featureToggles.topnav })}>
+    <div className={cx('root')}>
       <Block bordered>
         <VerticalGroup>
           <Label>Edit template for</Label>

@@ -29,7 +29,6 @@ import { getRealFilters, getUserRowClassNameFn } from './Users.helpers';
 
 import styles from './Users.module.css';
 import { PluginPage } from 'PluginPage';
-import { pages } from 'pages';
 
 const cx = cn.bind(styles);
 
@@ -173,7 +172,7 @@ class Users extends React.Component<UsersProps, UsersState> {
     const { count, results } = userStore.getSearchResult();
 
     return (
-      <PluginPage pageNav={pages['users'].getPageNav()} >
+      <PluginPage>
         <PageErrorHandlingWrapper
           errorData={errorData}
           objectName="user"

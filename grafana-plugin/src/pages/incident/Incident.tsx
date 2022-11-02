@@ -130,9 +130,9 @@ class IncidentPage extends React.Component<IncidentPageProps, IncidentPageState>
     return (
       <PluginPage pageNav={pages['incident'].getPageNav()}>
         <PageErrorHandlingWrapper errorData={errorData} objectName="alert group" pageName="incidents">
-          {() =>
-            errorData.isNotFoundError ? (
-              <div className={cx('root', { navbarRootFallback: !config.featureToggles.topnav } )}>
+          {() => (
+            <div className={cx('root', { 'legacy-navBar': !config.featureToggles.topnav })}>
+              {errorData.isNotFoundError ? (
                 <div className={cx('not-found')}>
                   <VerticalGroup spacing="lg" align="center">
                     <Text.Title level={1}>404</Text.Title>
@@ -144,10 +144,8 @@ class IncidentPage extends React.Component<IncidentPageProps, IncidentPageState>
                     </PluginLink>
                   </VerticalGroup>
                 </div>
-              </div>
-            ) : (
-              <>
-                <div className={cx('root')}>
+              ) : (
+                <>
                   {this.renderHeader()}
                   <div className={cx('content')}>
                     <div className={cx('column')}>
@@ -160,39 +158,39 @@ class IncidentPage extends React.Component<IncidentPageProps, IncidentPageState>
                     </div>
                     <div className={cx('column')}>{this.renderTimeline()}</div>
                   </div>
-                </div>
-                {showIntegrationSettings && (
-                  <IntegrationSettings
-                    alertGroupId={incident.pk}
-                    onUpdate={() => {
-                      alertReceiveChannelStore.updateItem(incident.alert_receive_channel.id);
-                    }}
-                    onUpdateTemplates={() => {
-                      store.alertGroupStore.getAlert(id);
-                    }}
-                    startTab={IntegrationSettingsTab.Templates}
-                    id={incident.alert_receive_channel.id}
-                    onHide={() =>
-                      this.setState({
-                        showIntegrationSettings: undefined,
-                      })
-                    }
-                  />
-                )}
-                {showAttachIncidentForm && (
-                  <AttachIncidentForm
-                    id={id}
-                    onHide={() => {
-                      this.setState({
-                        showAttachIncidentForm: false,
-                      });
-                    }}
-                    onUpdate={this.update}
-                  />
-                )}
-              </>
-            )
-          }
+                  {showIntegrationSettings && (
+                    <IntegrationSettings
+                      alertGroupId={incident.pk}
+                      onUpdate={() => {
+                        alertReceiveChannelStore.updateItem(incident.alert_receive_channel.id);
+                      }}
+                      onUpdateTemplates={() => {
+                        store.alertGroupStore.getAlert(id);
+                      }}
+                      startTab={IntegrationSettingsTab.Templates}
+                      id={incident.alert_receive_channel.id}
+                      onHide={() =>
+                        this.setState({
+                          showIntegrationSettings: undefined,
+                        })
+                      }
+                    />
+                  )}
+                  {showAttachIncidentForm && (
+                    <AttachIncidentForm
+                      id={id}
+                      onHide={() => {
+                        this.setState({
+                          showAttachIncidentForm: false,
+                        });
+                      }}
+                      onUpdate={this.update}
+                    />
+                  )}
+                </>
+              )}
+            </div>
+          )}
         </PageErrorHandlingWrapper>
       </PluginPage>
     );

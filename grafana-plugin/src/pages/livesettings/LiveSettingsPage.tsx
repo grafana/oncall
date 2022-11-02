@@ -20,8 +20,6 @@ import { normalizeValue, prepareForUpdate } from './LiveSettings.helpers';
 
 import styles from './LiveSettings.module.css';
 import { PluginPage } from 'PluginPage';
-import { pages } from 'pages';
-import { config } from '@grafana/runtime';
 
 const cx = cn.bind(styles);
 
@@ -112,8 +110,8 @@ class LiveSettings extends React.Component<LiveSettingsProps, LiveSettingsState>
     const data: any = globalSettingStore.getSearchResult();
 
     return (
-      <PluginPage pageNav={pages['live-settings'].getPageNav()}>
-        <div className={cx('root', { navbarRootFallback: !config.featureToggles.topnav })}>
+      <PluginPage>
+        <div className={cx('root')}>
           <GTable
             rowClassName={cx('row')}
             emptyText={data ? 'No variables found' : 'Loading...'}

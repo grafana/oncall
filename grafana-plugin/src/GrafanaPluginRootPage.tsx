@@ -11,11 +11,11 @@ import timezone from 'dayjs/plugin/timezone';
 import utc from 'dayjs/plugin/utc';
 import weekday from 'dayjs/plugin/weekday';
 import { observer, Provider } from 'mobx-react';
+import classnames from 'classnames';
 
 import 'interceptors';
 
 import DefaultPageLayout from 'containers/DefaultPageLayout/DefaultPageLayout';
-import GrafanaTeamSelect from 'containers/GrafanaTeamSelect/GrafanaTeamSelect';
 import logo from 'img/logo.svg';
 import { rootStore } from 'state';
 import { useStore } from 'state/useStore';
@@ -34,7 +34,8 @@ import './style/global.css';
 import { routes } from 'components/PluginLink/routes';
 import { useQueryParams, useQueryPath } from 'utils/hooks';
 import { pages } from 'pages';
-import { locationService } from '@grafana/runtime';
+import { config, locationService } from '@grafana/runtime';
+import Header from 'Header';
 
 export const GrafanaPluginRootPage = (props: AppRootProps) => (
   <Provider store={rootStore}>
@@ -127,10 +128,20 @@ export const Root = observer((props: AppRootProps) => {
     return getPageMatchingComponent(page);
   }, [page]);
 
+  const hasTopNav = config.featureToggles.topnav;
+
   return (
     <DefaultPageLayout {...props}>
-      <GrafanaTeamSelect currentPage={page} />
-      <Page {...props} path={pathWithoutLeadingSlash} />
+      {!hasTopNav && <Header page={page} />}
+      <div
+        className={classnames(
+          { 'page-container': !hasTopNav },
+          { 'page-body': !hasTopNav },
+          { navbarRootFallback: !config.featureToggles.topnav }
+        )}
+      >
+        <Page {...props} path={pathWithoutLeadingSlash} />
+      </div>
     </DefaultPageLayout>
   );
 });

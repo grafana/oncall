@@ -1,7 +1,7 @@
 import React, { SyntheticEvent } from 'react';
 
 import { AppRootProps } from '@grafana/data';
-import { config, getLocationSrv } from '@grafana/runtime';
+import { getLocationSrv } from '@grafana/runtime';
 import {
   Button,
   ConfirmModal,
@@ -46,7 +46,6 @@ import { getDatesString } from './Schedules.helpers';
 
 import styles from './Schedules.module.css';
 import { PluginPage } from 'PluginPage';
-import { pages } from 'pages';
 
 const cx = cn.bind(styles);
 
@@ -171,7 +170,7 @@ class SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSta
     const offset = moment().tz(timezoneStr).format('Z');
 
     return (
-      <PluginPage pageNav={pages['schedules'].getPageNav()}>
+      <PluginPage>
         <PageErrorHandlingWrapper
           errorData={errorData}
           objectName="schedule"
@@ -180,7 +179,7 @@ class SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSta
         >
           {() => (
             <>
-              <div className={cx('root', { navbarRootFallback: !config.featureToggles.topnav })}>
+              <div className={cx('root')}>
                 <div className={cx('title')}>
                   <HorizontalGroup align="flex-end">
                     <Text type="secondary">
