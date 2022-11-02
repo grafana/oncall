@@ -198,7 +198,6 @@ class LiveSetting(models.Model):
     def revalidate_settings(cls):
         settings_to_validate = cls.objects.all()
         for setting in settings_to_validate:
-            setting.error = LiveSettingValidator(live_setting=setting).get_error()
             setting.save(update_fields=["error"])
 
     @staticmethod

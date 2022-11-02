@@ -46,6 +46,7 @@ class LiveSettingViewSet(PublicPrimaryKeyMixin, viewsets.ModelViewSet):
 
         if new_value != old_value:
             self._post_update_hook(name, old_value)
+            LiveSetting.revalidate_settings()
 
     def perform_destroy(self, instance):
         name = instance.name
