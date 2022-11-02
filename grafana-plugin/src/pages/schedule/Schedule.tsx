@@ -2,9 +2,11 @@ import React, { SyntheticEvent } from 'react';
 
 import { AppRootProps } from '@grafana/data';
 import { getLocationSrv } from '@grafana/runtime';
-import { Button, HorizontalGroup, VerticalGroup, IconButton, ToolbarButton, Icon } from '@grafana/ui';
+import { Button, HorizontalGroup, VerticalGroup, IconButton, ToolbarButton, Icon, Modal } from '@grafana/ui';
 import cn from 'classnames/bind';
 import dayjs from 'dayjs';
+import timezone from 'dayjs/plugin/timezone';
+import { omit } from 'lodash-es';
 import { observer } from 'mobx-react';
 
 import PluginLink from 'components/PluginLink/PluginLink';
@@ -15,6 +17,7 @@ import Rotations from 'containers/Rotations/Rotations';
 import ScheduleFinal from 'containers/Rotations/ScheduleFinal';
 import ScheduleOverrides from 'containers/Rotations/ScheduleOverrides';
 import ScheduleForm from 'containers/ScheduleForm/ScheduleForm';
+import ScheduleICalSettings from 'containers/ScheduleIcalLink/ScheduleIcalLink';
 import UsersTimezones from 'containers/UsersTimezones/UsersTimezones';
 import { Schedule, Shift } from 'models/schedule/schedule.types';
 import { Timezone } from 'models/timezone/timezone.types';
@@ -24,7 +27,7 @@ import { withMobXProviderContext } from 'state/withStore';
 import { getStartOfWeek } from './Schedule.helpers';
 
 import styles from './Schedule.module.css';
-
+dayjs.extend(timezone);
 const cx = cn.bind(styles);
 
 interface SchedulePageProps extends AppRootProps, WithStoreProps {}
@@ -37,6 +40,7 @@ interface SchedulePageState {
   shiftIdToShowOverridesForm?: Shift['id'];
   isLoading: boolean;
   showEditForm: boolean;
+  scheduleIdToExport: Schedule['id'];
 }
 
 @observer
@@ -53,6 +57,7 @@ class SchedulePage extends React.Component<SchedulePageProps, SchedulePageState>
       shiftIdToShowOverridesForm: undefined,
       isLoading: true,
       showEditForm: false,
+      scheduleIdToExport: undefined,
     };
   }
 
@@ -89,6 +94,7 @@ class SchedulePage extends React.Component<SchedulePageProps, SchedulePageState>
       shiftIdToShowRotationForm,
       shiftIdToShowOverridesForm,
       showEditForm,
+      scheduleIdToExport,
     } = this.state;
 
     const { scheduleStore, currentTimezone } = store;
@@ -120,10 +126,10 @@ class SchedulePage extends React.Component<SchedulePageProps, SchedulePageState>
                   <HorizontalGroup>
                     {schedule?.type === 1 && (
                       <HorizontalGroup>
-                        <Button variant="secondary" onClick={this.handleExportClick}>
+                        <Button variant="secondary" onClick={this.handleExportClick(scheduleId)}>
                           Export
                         </Button>
-                        <Button variant="secondary" onClick={this.handleReloadClick}>
+                        <Button variant="secondary" onClick={this.handleReloadClick(scheduleId)}>
                           Reload
                         </Button>
                       </HorizontalGroup>
@@ -215,6 +221,16 @@ class SchedulePage extends React.Component<SchedulePageProps, SchedulePageState>
               this.setState({ showEditForm: false });
             }}
           />
+        )}
+        {scheduleIdToExport && (
+          <Modal
+            isOpen
+            title="Schedule export"
+            closeOnEscape
+            onDismiss={() => this.setState({ scheduleIdToExport: undefined })}
+          >
+            <ScheduleICalSettings id={scheduleIdToExport} />
+          </Modal>
         )}
       </>
     );
@@ -381,8 +397,11 @@ class SchedulePage extends React.Component<SchedulePageProps, SchedulePageState>
     this.setState({ startMoment: startMoment.add(7, 'day') }, this.handleDateRangeUpdate);
   };
 
-  handleExportClick = () => {
-    console.log('EXPORT');
+  handleExportClick = (scheduleId: Schedule['id']) => {
+    return (event: SyntheticEvent) => {
+      event.stopPropagation();
+      this.setState({ scheduleIdToExport: scheduleId });
+    };
   };
 
   handleReloadClick = (scheduleId: Schedule['id']) => {
@@ -398,6 +417,28 @@ class SchedulePage extends React.Component<SchedulePageProps, SchedulePageState>
       scheduleStore.updateItem(scheduleId);
       this.updateEventsFor(scheduleId);
     };
+  };
+
+  updateEventsFor = async (scheduleId: Schedule['id'], withEmpty = true, with_gap = true) => {
+    const {
+      store,
+      query: { id },
+    } = this.props;
+
+    const { scheduleStore } = store;
+
+    store.scheduleStore.scheduleToScheduleEvents = omit(store.scheduleStore.scheduleToScheduleEvents, [scheduleId]);
+
+    await scheduleStore.updateScheduleEvents(
+      scheduleId,
+      withEmpty,
+      with_gap,
+      dayjs().format('YYYY-MM-DD').toString(),
+      dayjs.tz.guess()
+    );
+
+    await store.scheduleStore.updateOncallShifts(id);
+    await this.updateEvents();
   };
 
   handleDelete = () => {

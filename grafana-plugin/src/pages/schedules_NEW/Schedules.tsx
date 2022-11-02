@@ -144,7 +144,6 @@ class SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSta
 
     return (
       <>
-        {console.log('DATA', data)}
         <div className={cx('root')}>
           <VerticalGroup>
             <HorizontalGroup justify="space-between">
@@ -283,8 +282,8 @@ class SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSta
     if (item.warnings.length > 0) {
       const tooltipContent = (
         <div>
-          {item.warnings.map((warning: string) => (
-            <p>{warning}</p>
+          {item.warnings.map((warning: string, key: number) => (
+            <p key={key}>{warning}</p>
           ))}
         </div>
       );
@@ -304,7 +303,6 @@ class SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSta
     } = this.props;
 
     const relatedEscalationChains = scheduleStore.relatedEscalationChains[item.id];
-    console.log('esc chains', item.number_of_escalation_chains);
     return (
       <HorizontalGroup>
         {item.number_of_escalation_chains > 0 && (
@@ -317,9 +315,11 @@ class SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSta
                 {relatedEscalationChains ? (
                   relatedEscalationChains.length ? (
                     relatedEscalationChains.map((escalationChain) => (
-                      <PluginLink query={{ page: 'escalations', id: escalationChain.pk }}>
-                        {escalationChain.name}
-                      </PluginLink>
+                      <div key={escalationChain.pk}>
+                        <PluginLink query={{ page: 'escalations', id: escalationChain.pk }}>
+                          {escalationChain.name}
+                        </PluginLink>
+                      </div>
                     ))
                   ) : (
                     'Not used yet'
@@ -410,7 +410,6 @@ class SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSta
   };
 
   handleSchedulesFiltersChange = (filters: SchedulesFiltersType) => {
-    console.log('filters1', filters);
     this.setState({ filters }, this.debouncedUpdateSchedules);
   };
 
@@ -418,7 +417,6 @@ class SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSta
     const { filters } = this.state;
     const { store } = this.props;
     const { scheduleStore } = store;
-    console.log('APPLY FILTERS');
     scheduleStore.updateItems(filters);
   };
 
