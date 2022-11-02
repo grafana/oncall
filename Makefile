@@ -1,73 +1,90 @@
-include .env.dev
+DOCKER_COMPOSE_FILE=docker-compose-developer.yml
+DOCKER_COMPOSE_DEV_LABEL=com.grafana.oncall.env=dev
 
-ENV_DIR ?= venv
-ENV = $(CURDIR)/$(ENV_DIR)
-CELERY = $(ENV)/bin/celery
-PRECOMMIT = $(ENV)/bin/pre-commit
-PIP = $(ENV)/bin/pip
-PYTHON3 = $(ENV)/bin/python3
-PYTEST = $(ENV)/bin/pytest
+# -n flag only copies .env.dev.example -> .env.dev if it doesn't already exist
+$(shell cp -n ./dev/.env.dev.example ./dev/.env.dev)
+include ./dev/.env.dev
 
-DOCKER_FILE ?= docker-compose-developer.yml
+# if COMPOSE_PROFILES is set in ./dev/.env.dev use it
+# otherwise use a default (or what is passed in as an arg)
+ifeq ($(COMPOSE_PROFILES),)
+	COMPOSE_PROFILES=engine,oncall_ui,redis,grafana
+endif
 
-define setup_engine_env
-	export `grep -v '^#' .env.dev | xargs -0` && cd engine
+# conditionally assign DB based on what is present in COMPOSE_PROFILES
+ifeq ($(findstring mysql,$(COMPOSE_PROFILES)),mysql)
+	DB=mysql
+else ifeq ($(findstring mysql,$(COMPOSE_PROFILES)),mysql)
+	DB=postgres
+else
+	DB=sqlite
+endif
+
+# conditionally assign BROKER_TYPE based on what is present in COMPOSE_PROFILES
+# if the user specifies both rabbitmq and redis, we'll make the assumption that rabbitmq is the broker
+ifeq ($(findstring rabbitmq,$(COMPOSE_PROFILES)),rabbitmq)
+	BROKER_TYPE=rabbitmq
+else
+	BROKER_TYPE=redis
+endif
+
+define run_engine_docker_command
+    DB=$(DB) BROKER_TYPE=$(BROKER_TYPE) docker-compose -f $(DOCKER_COMPOSE_FILE) run --rm oncall_engine_commands $(1)
 endef
 
-$(ENV):
-	python3.9 -m venv $(ENV_DIR)
+define run_docker_compose_command
+	COMPOSE_PROFILES=$(COMPOSE_PROFILES) DB=$(DB) BROKER_TYPE=$(BROKER_TYPE) docker-compose -f $(DOCKER_COMPOSE_FILE) $(1)
+endef
 
-bootstrap: $(ENV)
-	$(PIP) install -U pip wheel
-	cp -n .env.dev.example .env.dev
-	cd engine && $(PIP) install -r requirements.txt
-	@touch $@
+# touch ./engine/oncall.db if it does not exist and DB is eqaul to sqlite
+# conditionally set BROKER_TYPE env var that is passed to docker-compose, based on COMPOSE_PROFILES make arg
+# start docker-compose
+start:
+ifeq ($(DB),sqlite)
+	@if [ ! -f ./engine/oncall.db ]; then \
+		touch ./engine/oncall.db; \
+	fi
+endif
 
-migrate: bootstrap
-	$(setup_engine_env) && $(PYTHON3) manage.py migrate
+	$(call run_docker_compose_command,up --remove-orphans -d)
 
-clean:
-	rm -rf $(ENV)
+stop:
+	$(call run_docker_compose_command,down)
 
-lint: bootstrap
-	cd engine && $(PRECOMMIT) run --all-files
+restart:
+	$(call run_docker_compose_command,restart)
 
-dbshell: bootstrap
-	$(setup_engine_env) && $(PYTHON3) manage.py dbshell $(ARGS)
+cleanup:
+	docker system prune --filter label="$(DOCKER_COMPOSE_DEV_LABEL)" --all --volumes
 
-shell: bootstrap
-	$(setup_engine_env) && $(PYTHON3) manage.py shell $(ARGS)
+install-pre-commit:
+	@if [ ! -x "$$(command -v pre-commit)" ]; then \
+		echo "installing pre-commit"; \
+		pip install $$(grep "pre-commit" engine/requirements.txt); \
+	else \
+		echo "pre-commit already installed"; \
+	fi
 
-test: bootstrap
-	$(setup_engine_env) && $(PYTEST) --ds=settings.dev $(ARGS)
+lint: install-pre-commit
+	pre-commit run --all-files
 
-manage: bootstrap
-	$(setup_engine_env) && $(PYTHON3) manage.py $(ARGS)
+install-precommit-hook: install-pre-commit
+	pre-commit install
 
-run: bootstrap migrate
-	$(setup_engine_env) && $(PYTHON3) manage.py runserver
+get-invite-token:
+	$(call run_engine_docker_command,python manage.py issue_invite_for_the_frontend --override)
 
-start-celery: bootstrap
-	. $(ENV)/bin/activate && $(setup_engine_env) && $(PYTHON3) manage.py start_celery
+test:
+	$(call run_engine_docker_command,pytest)
 
-start-celery-beat: bootstrap
-	$(setup_engine_env) && $(CELERY) -A engine beat -l info
+start-celery-beat:
+	$(call run_engine_docker_command,celery -A engine beat -l info)
 
-purge-queues: bootstrap
-	$(setup_engine_env) && $(CELERY) -A engine purge
+purge-queues:
+	$(call run_engine_docker_command,celery -A engine purge -f)
 
-docker-services-start:
-	docker-compose -f $(DOCKER_FILE) up -d
-	@echo "Waiting for database connection..."
-	until $$(nc -z -v -w30 localhost 3306); do sleep 1; done;
+shell:
+	$(call run_engine_docker_command,python manage.py shell)
 
-docker-services-restart:
-	docker-compose -f $(DOCKER_FILE) restart
-
-docker-services-stop:
-	docker-compose -f $(DOCKER_FILE) stop
-
-watch-plugin:
-	cd grafana-plugin && yarn install && yarn && yarn watch
-
-.PHONY: grafana-plugin
+dbshell:
+	$(call run_engine_docker_command,python manage.py dbshell)
