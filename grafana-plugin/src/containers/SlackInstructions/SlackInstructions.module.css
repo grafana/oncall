@@ -1,0 +1,11 @@
+.slack-infoblock {
+  width: 725px;
+}
+
+.slack-infoblock input {
+  color: var(--primary-text-link);
+}
+
+.slack-icon {
+  width: 60px;
+}

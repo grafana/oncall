@@ -1,17 +1,12 @@
 from django.core.exceptions import ObjectDoesNotExist
-from rest_framework import status
-from rest_framework.decorators import action
 from rest_framework.exceptions import NotFound
 from rest_framework.permissions import IsAuthenticated
-from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet
 
-from apps.alerts.models import AlertGroup, CustomButton
-from apps.alerts.tasks.custom_button_result import custom_button_result
-from apps.api.permissions import MODIFY_ACTIONS, READ_ACTIONS, ActionPermission, AnyRole, IsAdmin, IsAdminOrEditor
+from apps.alerts.models import CustomButton
+from apps.api.permissions import MODIFY_ACTIONS, READ_ACTIONS, ActionPermission, AnyRole, IsAdmin
 from apps.api.serializers.custom_button import CustomButtonSerializer
 from apps.auth_token.auth import PluginAuthentication
-from common.api_helpers.exceptions import BadRequest
 from common.api_helpers.mixins import PublicPrimaryKeyMixin, TeamFilteringMixin
 from common.insight_log import EntityEvent, write_resource_insight_log
 
@@ -21,7 +16,6 @@ class CustomButtonView(TeamFilteringMixin, PublicPrimaryKeyMixin, ModelViewSet):
     permission_classes = (IsAuthenticated, ActionPermission)
     action_permissions = {
         IsAdmin: MODIFY_ACTIONS,
-        IsAdminOrEditor: ("action",),
         AnyRole: READ_ACTIONS,
     }
 
@@ -85,19 +79,3 @@ class CustomButtonView(TeamFilteringMixin, PublicPrimaryKeyMixin, ModelViewSet):
             event=EntityEvent.DELETED,
         )
         instance.delete()
-
-    @action(detail=True, methods=["post"])
-    def action(self, request, pk):
-        alert_group_id = request.query_params.get("alert_group", None)
-        if alert_group_id is not None:
-            custom_button = self.get_object()
-            try:
-                alert_group = AlertGroup.unarchived_objects.get(
-                    public_primary_key=alert_group_id, channel=custom_button.alert_receive_channel
-                )
-                custom_button_result.apply_async((custom_button.pk, alert_group.pk, self.request.user.pk))
-            except AlertGroup.DoesNotExist:
-                raise BadRequest(detail="AlertGroup does not exist or archived")
-            return Response(status=status.HTTP_200_OK)
-        else:
-            raise BadRequest(detail="AlertGroup is required")
