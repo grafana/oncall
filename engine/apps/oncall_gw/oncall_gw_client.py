@@ -25,33 +25,14 @@ class OnCallGwAPIClient:
         self.base_url = url
         self.api_token = token
 
-    def _get(self, url, params=None, **kwargs) -> requests.models.Response:
-        kwargs["params"] = params
-        response = self._call_api(method=requests.get, url=url, **kwargs)
-        return response
-
-    def _post(self, url, data=None, json=None, **kwargs) -> requests.models.Response:
-        kwargs["data"] = data
-        kwargs["json"] = json
-        response = self._call_api(method=requests.post, url=url, data=data**kwargs)
-        return response
-
-    def _delete(self, url, **kwargs) -> requests.models.Response:
-        response = self._call_api(method=requests.delete, url=url, **kwargs)
-        return response
-
-    def _call_api(self, method, url, **kwargs):
-        kwargs["headers"] = self._headers | kwargs.get("headers", {})
-        response = method(url, **kwargs)
-        self._check_response(response)
-        return response
-
     # OnCall Connector
     @property
     def _oncall_connectors_url(self) -> str:
         return urljoin(self.base_url, "oncall_connectors")
 
-    def post_oncall_connector(self, oncall_org_id: str, backend: str):
+    def post_oncall_connector(
+        self, oncall_org_id: str, backend: str
+    ) -> tuple[OnCallConnector, requests.models.Response]:
         d = {"oncall_org_id": oncall_org_id, "backend": backend}
         response = self._post(url=self._oncall_connectors_url, data=d)
         response_data = response.json()
@@ -68,7 +49,7 @@ class OnCallGwAPIClient:
     def _slack_connectors_url(self) -> str:
         return urljoin(self.base_url, "slack_installations")
 
-    def post_slack_connector(self, slack_id: str, backend: str):
+    def post_slack_connector(self, slack_id: str, backend: str) -> tuple[SlackConnector, requests.models.Response]:
         d = {"slack_id": slack_id, "backend": backend}
         response = self._post(url=self._slack_connectors_url, data=d)
         response_data = response.json()
@@ -80,7 +61,7 @@ class OnCallGwAPIClient:
             response,
         )
 
-    def get_slack_connector(self, slack_id):
+    def get_slack_connector(self, slack_id: str) -> tuple[SlackConnector, requests.models.Response]:
         url = urljoin(self._slack_connectors_url, slack_id)
         response = self._get(url=url)
         response_data = response.json()
@@ -92,12 +73,30 @@ class OnCallGwAPIClient:
             response,
         )
 
-    def delete_slack_connector(
-        self,
-        slack_id,
-    ):
+    def delete_slack_connector(self, slack_id: str) -> requests.models.Response:
         url = urljoin(self._slack_connectors_url, slack_id)
         response = self._delete(url=url)
+        return response
+
+    def _get(self, url, params=None, **kwargs) -> requests.models.Response:
+        kwargs["params"] = params
+        response = self._call_api(method=requests.get, url=url, **kwargs)
+        return response
+
+    def _post(self, url, data=None, json=None, **kwargs) -> requests.models.Response:
+        kwargs["data"] = data
+        kwargs["json"] = json
+        response = self._call_api(method=requests.post, url=url, data=data**kwargs)
+        return response
+
+    def _delete(self, url, **kwargs) -> requests.models.Response:
+        response = self._call_api(method=requests.delete, url=url, **kwargs)
+        return response
+
+    def _call_api(self, method, url, **kwargs) -> requests.models.Response:
+        kwargs["headers"] = self._headers | kwargs.get("headers", {})
+        response = method(url, **kwargs)
+        self._check_response(response)
         return response
 
     @property
@@ -115,7 +114,7 @@ class OnCallGwAPIClient:
             raise requests.exceptions.HTTPError(err_msg, response)
 
     @classmethod
-    def _get_error_msg_from_response(cls, response: requests.models.Response):
+    def _get_error_msg_from_response(cls, response: requests.models.Response) -> str:
         error_msg = ""
         try:
             error_msg = response.json["message"]

@@ -14,6 +14,7 @@ from rest_framework.views import APIView
 from apps.api.permissions import IsAdmin, MethodPermission
 from apps.auth_token.auth import PluginAuthentication
 from apps.base.utils import live_settings
+from apps.oncall_gw.tasks import delete_slack_connector_async
 from apps.slack.scenarios.alertgroup_appearance import STEPS_ROUTING as ALERTGROUP_APPEARANCE_ROUTING
 from apps.slack.scenarios.distribute_alerts import STEPS_ROUTING as DISTRIBUTION_STEPS_ROUTING
 from apps.slack.scenarios.invited_to_channel import STEPS_ROUTING as INVITED_TO_CHANNEL_ROUTING
@@ -537,6 +538,8 @@ class ResetSlackView(APIView):
         slack_team_identity = organization.slack_team_identity
         if slack_team_identity is not None:
             clean_slack_integration_leftovers.apply_async((organization.pk,))
+            if settings.FEATURE_MULTIREGION_ENABLED:
+                delete_slack_connector_async.apply_async((slack_team_identity.slack_id,))
             write_chatops_insight_log(
                 author=request.user,
                 event_name=ChatOpsEvent.WORKSPACE_DISCONNECTED,
