@@ -192,10 +192,10 @@ class LiveSetting(models.Model):
         for setting_name in setting_names_to_populate:
             cls.objects.create(name=setting_name, value=cls._get_setting_from_setting_file(setting_name))
 
-        cls.revalidate_settings()
+        cls.validate_settings()
 
     @classmethod
-    def revalidate_settings(cls):
+    def validate_settings(cls):
         settings_to_validate = cls.objects.all()
         for setting in settings_to_validate:
             setting.save(update_fields=["error"])
