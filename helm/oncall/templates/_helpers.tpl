@@ -93,12 +93,20 @@ Create the name of the service account to use
   securityContext:
   {{ toYaml .Values.init.securityContext| nindent 4}}
   env:
-    {{- include "snippet.oncall.env" . | nindent 12 }}
-    {{- include "snippet.mysql.env" . | nindent 12 }}
-    {{- include "snippet.rabbitmq.env" . | nindent 12 }}
-    {{- include "snippet.redis.env" . | nindent 12 }}
+    {{- include "snippet.oncall.env" . | nindent 4 }}
+    {{- include "snippet.mysql.env" . | nindent 4 }}
+    {{- include "snippet.rabbitmq.env" . | nindent 4 }}
+    {{- include "snippet.redis.env" . | nindent 4 }}
     {{- if .Values.env }}
-      {{- toYaml .Values.env | nindent 12 }}
+      {{- if (kindIs "map" .Values.env) }}
+        {{- range $key, $value := .Values.env }}
+    - name: {{ $key }}
+      value: {{ $value }}
+        {{- end -}}
+      {{/* support previous schema */}}
+      {{- else }}
+    {{- toYaml .Values.env | nindent 4 }}
+      {{- end }}
     {{- end }}
 {{- end }}
 
