@@ -348,7 +348,7 @@
       key: smtp-password
 - name: EMAIL_USE_TLS
   value: {{ .Values.oncall.smtp.tls | toString | title | quote }}
-- name: EMAIL_FROM
+- name: EMAIL_FROM_ADDRESS
   value: {{ .Values.oncall.smtp.fromEmail | quote }}
 {{- else -}}
 - name: FEATURE_EMAIL_INTEGRATION_ENABLED
