@@ -132,26 +132,28 @@ export const Root = observer((props: AppRootProps) => {
   const hasTopNav = config.featureToggles.topnav;
 
   return (
-    <DefaultPageLayout {...props}>
-      {!hasTopNav && (
-        <>
-          <Header page={page} />
-          <nav className="page-container">
-            <NavLinks currentPage={page} />
-          </nav>
-        </>
-      )}
-
-      <div
-        className={classnames(
-          { 'page-container': !hasTopNav },
-          { 'page-body': !hasTopNav },
-          { navbarRootFallback: !config.featureToggles.topnav }
+    <div className="page-scrollbar-content">
+      <DefaultPageLayout {...props}>
+        {!hasTopNav && (
+          <>
+            <Header page={page} />
+            <nav className="page-container">
+              <NavLinks currentPage={page} />
+            </nav>
+          </>
         )}
-      >
-        <Page {...props} path={pathWithoutLeadingSlash} />
-      </div>
-    </DefaultPageLayout>
+
+        <div
+          className={classnames(
+            { 'page-container': !hasTopNav },
+            { 'page-body': !hasTopNav },
+            { navbarRootFallback: !config.featureToggles.topnav }
+          )}
+        >
+          <Page {...props} path={pathWithoutLeadingSlash} />
+        </div>
+      </DefaultPageLayout>
+    </div>
   );
 });
 
