@@ -28,7 +28,7 @@ class RequestTimeLoggingMiddleware(MiddlewareMixin):
                 f"latency={str(seconds)} status={status_code} method={request.method} path={request.path} "
                 f"content-length={content_length} slow={int(seconds > settings.SLOW_THRESHOLD_SECONDS)} "
             )
-            if request.user and request.user.id:
+            if hasattr(request, "user") and request.user and request.user.id:
                 user_id = request.user.id
                 org_id = request.user.organization_id
                 message += f"user_id={user_id} org_id={org_id} "
