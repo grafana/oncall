@@ -89,13 +89,13 @@ class LiveSettings extends React.Component<LiveSettingsProps, LiveSettingsState>
       {
         width: '20%',
         title: 'Value',
-        render: this.renderValue,
+        render: (item: GlobalSetting) => this.renderValue(item), // to avoid caching previous render result
         key: 'value',
       },
       {
         width: '20%',
         title: 'ENV or default',
-        render: this.renderDefault,
+        render: (item: GlobalSetting) => this.renderDefault(item), // to avoid caching previous render result
         key: 'default',
       },
       {
