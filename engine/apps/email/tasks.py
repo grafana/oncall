@@ -76,7 +76,7 @@ def notify_user_async(user_pk, alert_group_pk, notification_policy_pk):
     subject, html_message = build_subject_and_message(alert_group, emails_left)
 
     message = strip_tags(html_message)
-    email_from = settings.EMAIL_HOST_USER
+    email_from = live_settings.EMAIL_FROM or live_settings.EMAIL_HOST_USER
     recipient_list = [user.email]
 
     connection = get_connection(
