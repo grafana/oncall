@@ -197,6 +197,7 @@
           { "action": "grafana-oncall-app.integrations:write" },
           { "action": "grafana-oncall-app.escalation-chains:write" },
           { "action": "grafana-oncall-app.schedules:write" },
+          { "action": "grafana-oncall-app.chatops:update-settings" },
           { "action": "grafana-oncall-app.outgoing-webhooks:write" },
           { "action": "grafana-oncall-app.user-settings:admin" },
           { "action": "grafana-oncall-app.other-settings:write" }
@@ -446,7 +447,8 @@
         "permissions": [
           { "action": "plugins.app:access", "scope": "plugins.app:id:grafana-oncall-app" },
           { "action": "grafana-oncall-app.chatops:read" },
-          { "action": "grafana-oncall-app.chatops:write" }
+          { "action": "grafana-oncall-app.chatops:write" },
+          { "action": "grafana-oncall-app.chatops:update-settings" }
         ],
         "hidden": false
       },
