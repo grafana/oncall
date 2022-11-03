@@ -96,8 +96,14 @@ oncall:
     # api.slack.com/apps/<yourApp> -> Basic Information -> App Credentials -> Signing Secret
     signingSecret: ~
     # Use existing secret for clientId, clientSecret and signingSecret.
-    # the keys should be SLACK_CLIENT_OAUTH_ID, SLACK_CLIENT_OAUTH_SECRET and SLACK_SIGNING_SECRET 
+    # clientIdKey, clientSecretKey and signingSecretKey are required
     existingSecretName: ""
+    # the key in the secret containing OAuth2 client ID
+    clientIdKey: ""
+    # the key in the secret containing OAuth2 client secret
+    clientSecretKey: ""
+    # the key in the secret containing the Slack app signature secret
+    signingSecretKey: ""
   telegram:
     enabled: false
     token: ~

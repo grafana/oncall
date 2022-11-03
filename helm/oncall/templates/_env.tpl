@@ -58,17 +58,17 @@ MIRAGE_SECRET_KEY
   valueFrom:
     secretKeyRef:
       name: {{ .Values.oncall.slack.existingSecretName }}
-      key: SLACK_CLIENT_OAUTH_ID
+      key: {{ required "oncall.slack.clientIdKey is required if oncall.slack.existingSecretName is not empty" .Values.oncall.slack.clientIdKey }}
 - name: SLACK_CLIENT_OAUTH_SECRET
   valueFrom:
     secretKeyRef:
       name: {{ .Values.oncall.slack.existingSecretName }}
-      key: SLACK_CLIENT_OAUTH_SECRET
+      key: {{ required "oncall.slack.clientSecretKey is required if oncall.slack.existingSecretName is not empty" .Values.oncall.slack.clientSecretKey }}
 - name: SLACK_SIGNING_SECRET
   valueFrom:
     secretKeyRef:
       name: {{ .Values.oncall.slack.existingSecretName }}
-      key: SLACK_SIGNING_SECRET
+      key: {{ required "oncall.slack.signingSecretKey is required if oncall.slack.existingSecretName is not empty" .Values.oncall.slack.signingSecretKey }}
 {{- else }}
 - name: SLACK_CLIENT_OAUTH_ID
   value: {{ .Values.oncall.slack.clientId | default "" | quote }}
