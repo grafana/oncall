@@ -74,7 +74,7 @@ oncall:
   # oncall secrets
   secrets:
     # Use existing secret. (secretKey and mirageSecretKey is required)
-    existingSecretName: ""
+    existingSecret: ""
     # the key in the secret containing secret key
     secretKey: ""
     # the key in the secret containing mirage secret key
@@ -97,7 +97,7 @@ oncall:
     signingSecret: ~
     # Use existing secret for clientId, clientSecret and signingSecret.
     # clientIdKey, clientSecretKey and signingSecretKey are required
-    existingSecretName: ""
+    existingSecret: ""
     # the key in the secret containing OAuth2 client ID
     clientIdKey: ""
     # the key in the secret containing OAuth2 client secret
@@ -109,7 +109,7 @@ oncall:
     token: ~
     webhookUrl: ~
     # Use exsting secret. (tokenKey is required)
-    existingSecretName: ""
+    existingSecret: ""
     # the key in the secret containing Telegram token
     tokenKey: ""
   smtp:

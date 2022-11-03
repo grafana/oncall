@@ -24,24 +24,24 @@
 {{- end }}
 
 {{- define "snippet.oncall.secret.name" -}}
-{{- if .Values.oncall.secrets.existingSecretName -}}
-{{ .Values.oncall.secrets.existingSecretName }}
+{{- if .Values.oncall.secrets.existingSecret -}}
+{{ .Values.oncall.secrets.existingSecret }}
 {{- else -}}
 {{ template "oncall.fullname" . }}
 {{- end -}}
 {{- end -}}
 
 {{- define "snippet.oncall.secret.secretKey" -}}
-{{- if .Values.oncall.secrets.existingSecretName -}}
-{{ required "oncall.secrets.secretKey is required if oncall.secret.existingSecretName is not empty" .Values.oncall.secrets.secretKey }}
+{{- if .Values.oncall.secrets.existingSecret -}}
+{{ required "oncall.secrets.secretKey is required if oncall.secret.existingSecret is not empty" .Values.oncall.secrets.secretKey }}
 {{- else -}}
 SECRET_KEY
 {{- end -}}
 {{- end -}}
 
 {{- define "snippet.oncall.secret.mirageSecretKey" -}}
-{{- if .Values.oncall.secrets.existingSecretName -}}
-{{ required "oncall.secrets.mirageSecretKey is required if oncall.secret.existingSecretName is not empty" .Values.oncall.secrets.mirageSecretKey }}
+{{- if .Values.oncall.secrets.existingSecret -}}
+{{ required "oncall.secrets.mirageSecretKey is required if oncall.secret.existingSecret is not empty" .Values.oncall.secrets.mirageSecretKey }}
 {{- else -}}
 MIRAGE_SECRET_KEY
 {{- end -}}
@@ -53,22 +53,22 @@ MIRAGE_SECRET_KEY
   value: {{ .Values.oncall.slack.enabled | toString | title | quote }}
 - name: SLACK_SLASH_COMMAND_NAME
   value: "/{{ .Values.oncall.slack.commandName | default "oncall" }}"
-{{- if .Values.oncall.slack.existingSecretName }}
+{{- if .Values.oncall.slack.existingSecret }}
 - name: SLACK_CLIENT_OAUTH_ID
   valueFrom:
     secretKeyRef:
-      name: {{ .Values.oncall.slack.existingSecretName }}
-      key: {{ required "oncall.slack.clientIdKey is required if oncall.slack.existingSecretName is not empty" .Values.oncall.slack.clientIdKey }}
+      name: {{ .Values.oncall.slack.existingSecret }}
+      key: {{ required "oncall.slack.clientIdKey is required if oncall.slack.existingSecret is not empty" .Values.oncall.slack.clientIdKey }}
 - name: SLACK_CLIENT_OAUTH_SECRET
   valueFrom:
     secretKeyRef:
-      name: {{ .Values.oncall.slack.existingSecretName }}
-      key: {{ required "oncall.slack.clientSecretKey is required if oncall.slack.existingSecretName is not empty" .Values.oncall.slack.clientSecretKey }}
+      name: {{ .Values.oncall.slack.existingSecret }}
+      key: {{ required "oncall.slack.clientSecretKey is required if oncall.slack.existingSecret is not empty" .Values.oncall.slack.clientSecretKey }}
 - name: SLACK_SIGNING_SECRET
   valueFrom:
     secretKeyRef:
-      name: {{ .Values.oncall.slack.existingSecretName }}
-      key: {{ required "oncall.slack.signingSecretKey is required if oncall.slack.existingSecretName is not empty" .Values.oncall.slack.signingSecretKey }}
+      name: {{ .Values.oncall.slack.existingSecret }}
+      key: {{ required "oncall.slack.signingSecretKey is required if oncall.slack.existingSecret is not empty" .Values.oncall.slack.signingSecretKey }}
 {{- else }}
 - name: SLACK_CLIENT_OAUTH_ID
   value: {{ .Values.oncall.slack.clientId | default "" | quote }}
@@ -91,12 +91,12 @@ MIRAGE_SECRET_KEY
   value: {{ .Values.oncall.telegram.enabled | toString | title | quote }}
 - name: TELEGRAM_WEBHOOK_HOST
   value: {{ .Values.oncall.telegram.webhookUrl | default "" | quote }}
-{{- if .Values.oncall.telegram.existingSecretName }}
+{{- if .Values.oncall.telegram.existingSecret }}
 - name: TELEGRAM_TOKEN
   valueFrom:
     secretKeyRef:
-      name: {{ .Values.oncall.telegram.existingSecretName }}
-      key: {{ required "oncall.telegram.tokenKey is required if oncall.telegram.existingSecretName is not empty" .Values.oncall.telegram.tokenKey }}
+      name: {{ .Values.oncall.telegram.existingSecret }}
+      key: {{ required "oncall.telegram.tokenKey is required if oncall.telegram.existingSecret is not empty" .Values.oncall.telegram.tokenKey }}
 {{- else }}
 - name: TELEGRAM_TOKEN
   value: {{ .Values.oncall.telegram.token | default "" | quote }}
