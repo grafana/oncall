@@ -96,7 +96,7 @@ MIRAGE_SECRET_KEY
   valueFrom:
     secretKeyRef:
       name: {{ .Values.oncall.telegram.existingSecretName }}
-      key: TELEGRAM_TOKEN
+      key: {{ required "oncall.telegram.tokenKey is required if oncall.telegram.existingSecretName is not empty" .Values.oncall.telegram.tokenKey }}
 {{- else }}
 - name: TELEGRAM_TOKEN
   value: {{ .Values.oncall.telegram.token | default "" | quote }}

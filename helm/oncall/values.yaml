@@ -108,9 +108,10 @@ oncall:
     enabled: false
     token: ~
     webhookUrl: ~
-    # Use exsting secret for token.
-    # the key should be TELEGRAM_TOKEN
+    # Use exsting secret. (tokenKey is required)
     existingSecretName: ""
+    # the key in the secret containing Telegram token
+    tokenKey: ""
   smtp:
     enabled: false
     host: ~
