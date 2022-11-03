@@ -56,7 +56,8 @@ services:
         condition: service_healthy
 
   grafana:
-    image: "grafana/grafana-oss-dev:9.3.0-83735pre-ubuntu"
+    # image: "grafana/grafana-oss-dev:9.3.0-83735pre-ubuntu"
+    image: "grafana/grafana:main"
     restart: always
     environment:
       GF_DATABASE_TYPE: mysql
@@ -79,3 +80,5 @@ services:
     depends_on:
       mysql:
         condition: service_healthy
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
