@@ -224,6 +224,11 @@ externalRabbitmq:
   port:
   user:
   password:
+  protocol:
+  vhost:
+  existingSecret: ""
+  passwordKey: password
+  usernameKey: username
 ```
 
 ### Connect external Redis
