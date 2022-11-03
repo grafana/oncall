@@ -1,5 +1,9 @@
 # Change Log
 
+## v2.0.0 (2022-10-28)
+
+- add RBAC support
+
 ## v1.0.49 (2022-11-01)
 
 - Enable SMTP email backend by default
