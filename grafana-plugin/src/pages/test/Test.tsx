@@ -1,5 +1,6 @@
 import React from 'react';
 
+import { PluginPage } from 'PluginPage';
 import cn from 'classnames/bind';
 import { observer } from 'mobx-react';
 
@@ -8,7 +9,6 @@ import { PRIVATE_CHANNEL_NAME } from 'models/slack_channel/slack_channel.config'
 import { withMobXProviderContext } from 'state/withStore';
 
 import styles from './Test.module.css';
-import { PluginPage } from 'PluginPage';
 
 const cx = cn.bind(styles);
 

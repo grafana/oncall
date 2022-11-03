@@ -1,11 +1,13 @@
 import React from 'react';
 
 import { AppRootProps } from '@grafana/data';
-import { config, getLocationSrv } from '@grafana/runtime';
+import { getLocationSrv } from '@grafana/runtime';
 import { Alert, Button, HorizontalGroup, Icon, VerticalGroup } from '@grafana/ui';
+import { PluginPage } from 'PluginPage';
 import cn from 'classnames/bind';
 import { debounce } from 'lodash-es';
 import { observer } from 'mobx-react';
+import { isNewNavigation } from 'plugin/GrafanaPluginRootPage.helpers';
 
 import Avatar from 'components/Avatar/Avatar';
 import GTable from 'components/GTable/GTable';
@@ -28,7 +30,6 @@ import { withMobXProviderContext } from 'state/withStore';
 import { getRealFilters, getUserRowClassNameFn } from './Users.helpers';
 
 import styles from './Users.module.css';
-import { PluginPage } from 'PluginPage';
 
 const cx = cn.bind(styles);
 
@@ -181,11 +182,12 @@ class Users extends React.Component<UsersProps, UsersState> {
         >
           {() => (
             <>
-              <div className={cx('root', { navbarRootFallback: !config.featureToggles.topnav } )}>
+              <div className={cx('root', { navbarRootFallback: !isNewNavigation() })}>
                 <div className={cx('root', 'TEST-users-page')}>
                   <div className={cx('users-header')}>
                     <div style={{ display: 'flex', alignItems: 'baseline' }}>
                       <div>
+                        {!isNewNavigation() && <Text.Title level={3}>Users</Text.Title>}
                         <Text type="secondary">
                           To manage permissions or add users, please visit{' '}
                           <a href="/org/users">Grafana user management</a>

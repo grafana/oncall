@@ -1,8 +1,10 @@
 import React from 'react';
 
 import { Field, Input, Switch } from '@grafana/ui';
+import { PluginPage } from 'PluginPage';
 import cn from 'classnames/bind';
 import { observer } from 'mobx-react';
+import { isNewNavigation } from 'plugin/GrafanaPluginRootPage.helpers';
 
 import Text from 'components/Text/Text';
 import ApiTokenSettings from 'containers/ApiTokenSettings/ApiTokenSettings';
@@ -12,7 +14,6 @@ import { UserAction } from 'state/userAction';
 import { withMobXProviderContext } from 'state/withStore';
 
 import styles from './SettingsPage.module.css';
-import { PluginPage } from 'PluginPage';
 
 const cx = cn.bind(styles);
 
@@ -41,6 +42,11 @@ class SettingsPage extends React.Component<SettingsPageProps, SettingsPageState>
     return (
       <PluginPage>
         <div className={cx('root')}>
+          {!isNewNavigation() && (
+            <Text.Title level={3} className={cx('title')}>
+              Organization settings
+            </Text.Title>
+          )}
           <div className={cx('settings')}>
             <Field
               loading={!teamStore.currentTeam}

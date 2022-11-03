@@ -1,5 +1,6 @@
 import React from 'react';
 
+import { PluginPage } from 'PluginPage';
 import cn from 'classnames/bind';
 import { observer } from 'mobx-react';
 
@@ -10,7 +11,6 @@ import { withMobXProviderContext } from 'state/withStore';
 import { ChatOpsTab } from './ChatOps.types';
 
 import styles from './ChatOps.module.css';
-import { PluginPage } from 'PluginPage';
 
 const cx = cn.bind(styles);
 

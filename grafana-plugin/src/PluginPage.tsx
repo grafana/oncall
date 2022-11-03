@@ -1,8 +1,8 @@
-import { PluginPageProps, PluginPage as RealPluginPage, config } from '@grafana/runtime';
+import { PluginPageProps, PluginPage as RealPluginPage } from '@grafana/runtime';
+import { isNewNavigation } from 'plugin/GrafanaPluginRootPage.helpers';
 
 export const PluginPage =
-  RealPluginPage &&
-  ((config.featureToggles.topnav ? RealPluginPage : PluginPageFallback) as React.ComponentType<PluginPageProps>);
+  RealPluginPage && ((isNewNavigation() ? RealPluginPage : PluginPageFallback) as React.ComponentType<PluginPageProps>);
 
 function PluginPageFallback(props: PluginPageProps): React.ReactNode {
   return props.children;

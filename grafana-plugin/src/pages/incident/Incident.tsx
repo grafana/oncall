@@ -1,7 +1,7 @@
 import React, { useState, SyntheticEvent } from 'react';
 
-import { AppRootProps, PageLayoutType } from '@grafana/data';
-import { config, getLocationSrv } from '@grafana/runtime';
+import { AppRootProps } from '@grafana/data';
+import { getLocationSrv } from '@grafana/runtime';
 import {
   Button,
   HorizontalGroup,
@@ -16,9 +16,11 @@ import {
   Modal,
   Tooltip,
 } from '@grafana/ui';
+import { PluginPage } from 'PluginPage';
 import cn from 'classnames/bind';
 import { observer } from 'mobx-react';
 import moment from 'moment-timezone';
+import { isNewNavigation } from 'plugin/GrafanaPluginRootPage.helpers';
 import CopyToClipboard from 'react-copy-to-clipboard';
 import Emoji from 'react-emoji-render';
 import reactStringReplace from 'react-string-replace';
@@ -57,8 +59,6 @@ import sanitize from 'utils/sanitize';
 import { getActionButtons, getIncidentStatusTag, renderRelatedUsers } from './Incident.helpers';
 
 import styles from './Incident.module.css';
-import { PluginPage } from 'PluginPage';
-import { pages } from 'pages';
 
 const cx = cn.bind(styles);
 
@@ -128,10 +128,10 @@ class IncidentPage extends React.Component<IncidentPageProps, IncidentPageState>
     }
 
     return (
-      <PluginPage layout={PageLayoutType.Standard} pageNav={pages['incident'].getPageNav()}>
+      <PluginPage pageNav={{ text: '', hideFromBreadcrumbs: true }}>
         <PageErrorHandlingWrapper errorData={errorData} objectName="alert group" pageName="incidents">
           {() => (
-            <div className={cx('root', { 'legacy-navBar': !config.featureToggles.topnav })}>
+            <div className={cx('root', { newNavbar: isNewNavigation() })}>
               {errorData.isNotFoundError ? (
                 <div className={cx('not-found')}>
                   <VerticalGroup spacing="lg" align="center">

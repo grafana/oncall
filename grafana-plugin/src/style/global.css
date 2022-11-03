@@ -39,3 +39,11 @@
 .navbarRootFallback {
   margin-top: 24px;
 }
+
+.u-pull-right {
+  margin-left: auto;
+}
+
+.u-pull-left {
+  margin-right: auto;
+}

@@ -17,9 +17,8 @@ import { getItem, setItem } from 'utils/localStorage';
 import sanitize from 'utils/sanitize';
 
 import { getSlackMessage } from './DefaultPageLayout.helpers';
+import styles from './DefaultPageLayout.module.scss';
 import { SlackError } from './DefaultPageLayout.types';
-
-import styles from './DefaultPageLayout.module.css';
 
 const cx = cn.bind(styles);
 

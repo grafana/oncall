@@ -1,9 +1,21 @@
+/* Navigation/Layout */
+
 .page-body {
   max-width: unset !important;
 }
 
+.page-container.page-body {
+  flex-grow: 1 !important;
+}
+
 .page-container {
   max-width: unset !important;
+  flex-grow: unset !important;
+  flex-basis: unset !important;
+}
+
+.page-scrollbar-content > div:first-child {
+  flex-grow: 1;
 }
 
 /* This is for Grafana 8, remove later */

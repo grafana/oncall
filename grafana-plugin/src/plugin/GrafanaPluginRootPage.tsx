@@ -1,7 +1,9 @@
 import React, { useEffect, useMemo } from 'react';
 
 import { AppRootProps } from '@grafana/data';
+import { locationService } from '@grafana/runtime';
 import { Button, HorizontalGroup, LinkButton } from '@grafana/ui';
+import classnames from 'classnames';
 import dayjs from 'dayjs';
 import isSameOrAfter from 'dayjs/plugin/isSameOrAfter';
 import isSameOrBefore from 'dayjs/plugin/isSameOrBefore';
@@ -10,15 +12,18 @@ import localeData from 'dayjs/plugin/localeData';
 import timezone from 'dayjs/plugin/timezone';
 import utc from 'dayjs/plugin/utc';
 import weekday from 'dayjs/plugin/weekday';
-import { observer, Provider } from 'mobx-react';
-import classnames from 'classnames';
-
 import 'interceptors';
+import { observer, Provider } from 'mobx-react';
+import Header from 'plugin/Header';
+import NavLinks from 'plugin/NavLinks';
 
+import { routes } from 'components/PluginLink/routes';
 import DefaultPageLayout from 'containers/DefaultPageLayout/DefaultPageLayout';
 import logo from 'img/logo.svg';
+import { pages } from 'pages';
 import { rootStore } from 'state';
 import { useStore } from 'state/useStore';
+import { useQueryParams, useQueryPath } from 'utils/hooks';
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
@@ -31,12 +36,7 @@ dayjs.extend(isoWeek);
 import 'style/vars.css';
 import 'style/global.css';
 
-import { routes } from 'components/PluginLink/routes';
-import { useQueryParams, useQueryPath } from 'utils/hooks';
-import { pages } from 'pages';
-import { config, locationService } from '@grafana/runtime';
-import Header from 'plugin/Header';
-import NavLinks from 'plugin/NavLinks';
+import { isNewNavigation } from './GrafanaPluginRootPage.helpers';
 
 export const GrafanaPluginRootPage = (props: AppRootProps) => (
   <Provider store={rootStore}>
@@ -129,31 +129,23 @@ export const Root = observer((props: AppRootProps) => {
     return getPageMatchingComponent(page);
   }, [page]);
 
-  const hasTopNav = config.featureToggles.topnav;
+  const hasTopNav = isNewNavigation();
 
   return (
-    <div className="page-scrollbar-content">
-      <DefaultPageLayout {...props}>
-        {!hasTopNav && (
-          <>
-            <Header page={page} />
-            <nav className="page-container">
-              <NavLinks currentPage={page} />
-            </nav>
-          </>
-        )}
+    <DefaultPageLayout {...props}>
+      {!hasTopNav && (
+        <>
+          <Header page={page} />
+          <nav className="page-container">
+            <NavLinks currentPage={page} />
+          </nav>
+        </>
+      )}
 
-        <div
-          className={classnames(
-            { 'page-container': !hasTopNav },
-            { 'page-body': !hasTopNav },
-            { navbarRootFallback: !config.featureToggles.topnav }
-          )}
-        >
-          <Page {...props} path={pathWithoutLeadingSlash} />
-        </div>
-      </DefaultPageLayout>
-    </div>
+      <div className={classnames({ 'page-container': !hasTopNav }, { 'page-body': !hasTopNav })}>
+        <Page {...props} path={pathWithoutLeadingSlash} />
+      </div>
+    </DefaultPageLayout>
   );
 });
 

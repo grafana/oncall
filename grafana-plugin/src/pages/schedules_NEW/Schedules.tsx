@@ -2,6 +2,7 @@ import React, { SyntheticEvent } from 'react';
 
 import { getLocationSrv } from '@grafana/runtime';
 import { Button, HorizontalGroup, IconButton, LoadingPlaceholder, VerticalGroup } from '@grafana/ui';
+import { PluginPage } from 'PluginPage';
 import cn from 'classnames/bind';
 import dayjs from 'dayjs';
 import { debounce } from 'lodash-es';
@@ -30,7 +31,6 @@ import { UserAction } from 'state/userAction';
 import { withMobXProviderContext } from 'state/withStore';
 
 import styles from './Schedules.module.css';
-import { PluginPage } from 'PluginPage';
 
 const cx = cn.bind(styles);
 

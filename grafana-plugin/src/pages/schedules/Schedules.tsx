@@ -13,10 +13,12 @@ import {
   Tooltip,
   VerticalGroup,
 } from '@grafana/ui';
+import { PluginPage } from 'PluginPage';
 import cn from 'classnames/bind';
 import { omit } from 'lodash-es';
 import { observer } from 'mobx-react';
 import moment from 'moment-timezone';
+import { isNewNavigation } from 'plugin/GrafanaPluginRootPage.helpers';
 
 import instructionsImage from 'assets/img/events_instructions.png';
 import Avatar from 'components/Avatar/Avatar';
@@ -45,7 +47,6 @@ import { openErrorNotification } from 'utils';
 import { getDatesString } from './Schedules.helpers';
 
 import styles from './Schedules.module.css';
-import { PluginPage } from 'PluginPage';
 
 const cx = cn.bind(styles);
 
@@ -181,13 +182,14 @@ class SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSta
             <>
               <div className={cx('root')}>
                 <div className={cx('title')}>
-                  <HorizontalGroup align="flex-end">
+                  <VerticalGroup>
+                    {!isNewNavigation() && <Text.Title level={3}>On-call Schedules</Text.Title>}
                     <Text type="secondary">
                       Use this to distribute notifications among team members you specified in the "Notify Users from
                       on-call schedule" step in{' '}
                       <PluginLink query={{ page: 'integrations' }}>escalation chains</PluginLink>.
                     </Text>
-                  </HorizontalGroup>
+                  </VerticalGroup>
                 </div>
 
                 {!schedules || schedules.length ? (

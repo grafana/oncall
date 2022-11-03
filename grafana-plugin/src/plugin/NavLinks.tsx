@@ -1,8 +1,9 @@
 import React from 'react';
 
-import { Tab, TabsBar } from '@grafana/ui';
-import { pages } from 'pages';
 import { IconName } from '@grafana/data';
+import { Tab, TabsBar } from '@grafana/ui';
+
+import { pages } from 'pages';
 
 export default function NavLinks({ currentPage }: { currentPage: string }): JSX.Element {
   const navigationPages = Object.keys(pages)
@@ -11,8 +12,14 @@ export default function NavLinks({ currentPage }: { currentPage: string }): JSX.
 
   return (
     <TabsBar>
-      {navigationPages.map((page) => (
-        <Tab icon={page.icon as IconName} label={page.text} href={page.path} active={currentPage === page.id} />
+      {navigationPages.map((page, index) => (
+        <Tab
+          key={index}
+          icon={page.icon as IconName}
+          label={page.text}
+          href={page.path}
+          active={currentPage === page.id}
+        />
       ))}
     </TabsBar>
   );

@@ -3,8 +3,10 @@ import React from 'react';
 import { AppRootProps } from '@grafana/data';
 import { getLocationSrv } from '@grafana/runtime';
 import { Button, HorizontalGroup } from '@grafana/ui';
+import { PluginPage } from 'PluginPage';
 import cn from 'classnames/bind';
 import { observer } from 'mobx-react';
+import { isNewNavigation } from 'plugin/GrafanaPluginRootPage.helpers';
 
 import GTable from 'components/GTable/GTable';
 import PageErrorHandlingWrapper, { PageBaseState } from 'components/PageErrorHandlingWrapper/PageErrorHandlingWrapper';
@@ -13,6 +15,7 @@ import {
   initErrorDataState,
 } from 'components/PageErrorHandlingWrapper/PageErrorHandlingWrapper.helpers';
 import PluginLink from 'components/PluginLink/PluginLink';
+import Text from 'components/Text/Text';
 import WithConfirm from 'components/WithConfirm/WithConfirm';
 import OutgoingWebhookForm from 'containers/OutgoingWebhookForm/OutgoingWebhookForm';
 import { WithPermissionControl } from 'containers/WithPermissionControl/WithPermissionControl';
@@ -23,7 +26,6 @@ import { UserAction } from 'state/userAction';
 import { withMobXProviderContext } from 'state/withStore';
 
 import styles from './OutgoingWebhooks.module.css';
-import { PluginPage } from 'PluginPage';
 
 const cx = cn.bind(styles);
 
@@ -123,17 +125,20 @@ class OutgoingWebhooks extends React.Component<OutgoingWebhooksProps, OutgoingWe
                   emptyText={webhooks ? 'No outgoing webhooks found' : 'Loading...'}
                   title={() => (
                     <div className={cx('header')}>
-                      <PluginLink
-                        partial
-                        query={{ id: 'new' }}
-                        disabled={!store.isUserActionAllowed(UserAction.UpdateCustomActions)}
-                      >
-                        <WithPermissionControl userAction={UserAction.UpdateCustomActions}>
-                          <Button variant="primary" icon="plus">
-                            Create
-                          </Button>
-                        </WithPermissionControl>
-                      </PluginLink>
+                      {!isNewNavigation() && <Text.Title level={3}>Outgoing Webhooks</Text.Title>}
+                      <div className="u-pull-right">
+                        <PluginLink
+                          partial
+                          query={{ id: 'new' }}
+                          disabled={!store.isUserActionAllowed(UserAction.UpdateCustomActions)}
+                        >
+                          <WithPermissionControl userAction={UserAction.UpdateCustomActions}>
+                            <Button variant="primary" icon="plus">
+                              Create
+                            </Button>
+                          </WithPermissionControl>
+                        </PluginLink>
+                      </div>
                     </div>
                   )}
                   rowKey="id"

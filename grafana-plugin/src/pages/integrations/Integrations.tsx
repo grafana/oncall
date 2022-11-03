@@ -3,6 +3,7 @@ import React from 'react';
 import { AppRootProps } from '@grafana/data';
 import { getLocationSrv } from '@grafana/runtime';
 import { Button, LoadingPlaceholder, VerticalGroup } from '@grafana/ui';
+import { PluginPage } from 'PluginPage';
 import cn from 'classnames/bind';
 import { debounce } from 'lodash-es';
 import { observer } from 'mobx-react';
@@ -30,7 +31,6 @@ import { UserAction } from 'state/userAction';
 import { withMobXProviderContext } from 'state/withStore';
 
 import styles from './Integrations.module.css';
-import { PluginPage } from 'PluginPage';
 
 const cx = cn.bind(styles);
 

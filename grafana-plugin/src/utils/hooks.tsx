@@ -23,7 +23,7 @@ export function useQueryParams() {
 
 export function useQueryPath() {
   const location = useLocation();
-  return React.useMemo(() => location.pathname, [location])
+  return React.useMemo(() => location.pathname, [location]);
 }
 
 export function useDebouncedCallback<A extends any[]>(callback: (...args: A) => void, wait: number) {

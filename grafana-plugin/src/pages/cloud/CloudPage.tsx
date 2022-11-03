@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useState } from 'react';
 
 import { getLocationSrv } from '@grafana/runtime';
 import { Field, Input, Button, HorizontalGroup, Icon, VerticalGroup, LoadingPlaceholder } from '@grafana/ui';
+import { PluginPage } from 'PluginPage';
 import cn from 'classnames/bind';
 import { observer } from 'mobx-react';
 
@@ -17,7 +18,6 @@ import { withMobXProviderContext } from 'state/withStore';
 import { openErrorNotification } from 'utils';
 
 import styles from './CloudPage.module.css';
-import { PluginPage } from 'PluginPage';
 
 const cx = cn.bind(styles);
 

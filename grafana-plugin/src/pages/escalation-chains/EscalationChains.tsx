@@ -1,11 +1,13 @@
 import React from 'react';
 
 import { AppRootProps } from '@grafana/data';
-import { config, getLocationSrv } from '@grafana/runtime';
+import { getLocationSrv } from '@grafana/runtime';
 import { Button, HorizontalGroup, Icon, IconButton, LoadingPlaceholder, Tooltip, VerticalGroup } from '@grafana/ui';
+import { PluginPage } from 'PluginPage';
 import cn from 'classnames/bind';
 import { debounce } from 'lodash-es';
 import { observer } from 'mobx-react';
+import { isNewNavigation } from 'plugin/GrafanaPluginRootPage.helpers';
 
 import Collapse from 'components/Collapse/Collapse';
 import EscalationsFilters from 'components/EscalationsFilters/EscalationsFilters';
@@ -31,7 +33,6 @@ import { UserAction } from 'state/userAction';
 import { withMobXProviderContext } from 'state/withStore';
 
 import styles from './EscalationChains.module.css';
-import { PluginPage } from 'PluginPage';
 
 const cx = cn.bind(styles);
 
@@ -144,7 +145,7 @@ class EscalationChainsPage extends React.Component<EscalationChainsPageProps, Es
         >
           {() => (
             <>
-              <div className={cx('root', { navbarRootFallback: !config.featureToggles.topnav } )}>
+              <div className={cx('root', { navbarRootFallback: !isNewNavigation() })}>
                 <div className={cx('filters')}>
                   <EscalationsFilters value={escalationChainsFilters} onChange={this.handleEscalationsFiltersChange} />
                 </div>

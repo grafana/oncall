@@ -1,10 +1,8 @@
 import React from 'react';
 
 import GrafanaTeamSelect from 'containers/GrafanaTeamSelect/GrafanaTeamSelect';
-
-import { APP_SUBTITLE } from 'utils/consts';
-
 import logo from 'img/logo.svg';
+import { APP_SUBTITLE } from 'utils/consts';
 
 export default function Header({ page }: { page: string }) {
   return (

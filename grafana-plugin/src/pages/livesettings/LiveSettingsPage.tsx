@@ -1,6 +1,7 @@
 import React from 'react';
 
 import { Button, Checkbox, HorizontalGroup, Icon } from '@grafana/ui';
+import { PluginPage } from 'PluginPage';
 import cn from 'classnames/bind';
 import { observe } from 'mobx';
 import { observer } from 'mobx-react';
@@ -19,7 +20,6 @@ import { PLACEHOLDER } from './LiveSettings.config';
 import { normalizeValue, prepareForUpdate } from './LiveSettings.helpers';
 
 import styles from './LiveSettings.module.css';
-import { PluginPage } from 'PluginPage';
 
 const cx = cn.bind(styles);
 

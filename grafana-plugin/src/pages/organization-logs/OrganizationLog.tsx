@@ -1,10 +1,12 @@
 import React from 'react';
 
 import { Button, HorizontalGroup, Tag, Tooltip } from '@grafana/ui';
+import { PluginPage } from 'PluginPage';
 import cn from 'classnames/bind';
 import { debounce } from 'lodash-es';
 import { observer } from 'mobx-react';
 import moment, { Moment } from 'moment-timezone';
+import { isNewNavigation } from 'plugin/GrafanaPluginRootPage.helpers';
 import { RouteComponentProps } from 'react-router-dom';
 
 import Avatar from 'components/Avatar/Avatar';
@@ -19,8 +21,6 @@ import { withMobXProviderContext } from 'state/withStore';
 import sanitize from 'utils/sanitize';
 
 import styles from './OrganizationLog.module.css';
-import { PluginPage } from 'PluginPage';
-import { config } from '@grafana/runtime';
 
 const cx = cn.bind(styles);
 
@@ -98,7 +98,7 @@ class OrganizationLogPage extends React.Component<OrganizationLogProps, Organiza
 
     return (
       <PluginPage>
-        <div className={cx('root', { navbarRootFallback: !config.featureToggles.topnav } )}>
+        <div className={cx('root', { navbarRootFallback: !isNewNavigation() })}>
           <OrganizationLogFilters value={filters} onChange={this.handleChangeOrganizationLogFilters} />
           <GTable
             rowKey="id"
