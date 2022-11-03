@@ -61,7 +61,7 @@ def notify_user_task(
                 type=UserNotificationPolicyLogRecord.TYPE_PERSONAL_NOTIFICATION_FAILED,
                 reason=f"notification is not allowed for user",
                 alert_group=alert_group,
-                notification_error_code=UserNotificationPolicyLogRecord.ERROR_NOTIFICATION_UNAUTHORIZED,
+                notification_error_code=UserNotificationPolicyLogRecord.ERROR_NOTIFICATION_FORBIDDEN,
             ).save()
             return
 
@@ -256,7 +256,7 @@ def perform_notification(log_record_pk):
             type=UserNotificationPolicyLogRecord.TYPE_PERSONAL_NOTIFICATION_FAILED,
             reason=f"notification is not allowed for user",
             alert_group=alert_group,
-            notification_error_code=UserNotificationPolicyLogRecord.ERROR_NOTIFICATION_UNAUTHORIZED,
+            notification_error_code=UserNotificationPolicyLogRecord.ERROR_NOTIFICATION_FORBIDDEN,
         ).save()
         return
 
