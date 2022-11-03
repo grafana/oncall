@@ -42,6 +42,7 @@ class Actions(enum.Enum):
     ADMIN = "admin"
     TEST = "test"
     EXPORT = "export"
+    UPDATE_SETTINGS = "update-settings"
 
 
 class LegacyAccessControlRole(enum.IntEnum):
@@ -119,6 +120,9 @@ class RBACPermission(permissions.BasePermission):
         )
         CHATOPS_WRITE = LegacyAccessControlCompatiblePermission(
             Resources.CHATOPS, Actions.WRITE, LegacyAccessControlRole.EDITOR
+        )
+        CHATOPS_UPDATE_SETTINGS = LegacyAccessControlCompatiblePermission(
+            Resources.CHATOPS, Actions.UPDATE_SETTINGS, LegacyAccessControlRole.ADMIN
         )
 
         OUTGOING_WEBHOOKS_READ = LegacyAccessControlCompatiblePermission(

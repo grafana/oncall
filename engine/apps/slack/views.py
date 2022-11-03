@@ -531,7 +531,7 @@ class ResetSlackView(APIView):
     authentication_classes = [PluginAuthentication]
 
     rbac_permissions = {
-        "post": [RBACPermission.Permissions.OTHER_SETTINGS_WRITE],
+        "post": [RBACPermission.Permissions.CHATOPS_UPDATE_SETTINGS],
     }
 
     def post(self, request):
