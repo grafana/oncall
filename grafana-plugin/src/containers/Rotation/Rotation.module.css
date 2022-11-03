@@ -1,6 +1,7 @@
 .root {
   transition: background-color 300ms;
   min-height: 28px;
+  overflow-x: hidden;
 }
 
 .loader {
@@ -9,6 +10,10 @@
   align-items: center;
   justify-content: center;
   width: 100%;
+}
+
+.root:first-child {
+  padding-top: 26px;
 }
 
 .root:last-child {
@@ -24,11 +29,7 @@
   flex-direction: column;
   gap: 5px;
   padding-bottom: 4px;
-  overflow: hidden;
-}
-
-.root:first-child .timeline {
-  padding-top: 26px;
+  position: relative;
 }
 
 .root:last-child .timeline {
@@ -42,12 +43,12 @@
   opacity: 1;
 }
 
-.slots__animate {
-  transition: transform 500ms ease;
-}
-
 .slots__transparent {
   opacity: 0.5;
+}
+
+.slots__animate {
+  transition: transform 500ms ease;
 }
 
 .current-time {
@@ -65,7 +66,33 @@
   cursor: pointer;
 
   /*  background: #5f505633;
-  border: 1px dashed #5c474d;
-  color: rgba(209, 14, 92, 0.5); */
+    border: 1px dashed #5c474d;
+    color: rgba(209, 14, 92, 0.5); */
   margin: 0 2px;
+}
+
+.slots--tutorial {
+  position: absolute;
+}
+
+.pointer {
+  position: absolute;
+  top: -9px;
+}
+
+.tutorial-slot {
+  width: 175px;
+  height: 28px;
+  background: rgba(61, 113, 217, 0.15);
+
+  /* opacity: 0.15; */
+
+  /* background: var(--background-primary); */
+  border-radius: 2px;
+  margin: 0 1px;
+  padding: 4px;
+}
+
+.tutorial-slot--active {
+  box-shadow: var(--shadows-z3);
 }

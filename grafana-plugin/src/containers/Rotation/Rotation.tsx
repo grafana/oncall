@@ -9,6 +9,7 @@ import { Schedule, Event } from 'models/schedule/schedule.types';
 import { Timezone } from 'models/timezone/timezone.types';
 
 import { getLabel } from './Rotation.helpers';
+import RotationTutorial from './RotationTutorial';
 
 import styles from './Rotation.module.css';
 
@@ -73,6 +74,7 @@ const Rotation: FC<RotationProps> = (props) => {
   return (
     <div className={cx('root')} onClick={handleClick}>
       <div className={cx('timeline')}>
+        {/*<RotationTutorial />*/}
         {events ? (
           events.length ? (
             <div

@@ -16,7 +16,7 @@ import ScheduleFinal from 'containers/Rotations/ScheduleFinal';
 import ScheduleOverrides from 'containers/Rotations/ScheduleOverrides';
 import ScheduleForm from 'containers/ScheduleForm/ScheduleForm';
 import UsersTimezones from 'containers/UsersTimezones/UsersTimezones';
-import { Shift } from 'models/schedule/schedule.types';
+import { ScheduleType, Shift } from 'models/schedule/schedule.types';
 import { Timezone } from 'models/timezone/timezone.types';
 import { WithStoreProps } from 'state/types';
 import { withMobXProviderContext } from 'state/withStore';
@@ -96,6 +96,8 @@ class SchedulePage extends React.Component<SchedulePageProps, SchedulePageState>
     const users = store.userStore.getSearchResult().results;
     const schedule = scheduleStore.items[scheduleId];
 
+    const disabled = schedule?.type !== ScheduleType.API || shiftIdToShowRotationForm || shiftIdToShowOverridesForm;
+
     return (
       <>
         <div className={cx('root')}>
@@ -132,6 +134,11 @@ class SchedulePage extends React.Component<SchedulePageProps, SchedulePageState>
                 </HorizontalGroup>
               </HorizontalGroup>
             </div>
+            {schedule?.type !== ScheduleType.API && (
+              <Text className={cx('desc')} type="secondary">
+                Ical and API/Terraform schedules are read-only
+              </Text>
+            )}
             <div className={cx('users-timezones')}>
               <UsersTimezones
                 scheduleId={scheduleId}
@@ -171,6 +178,7 @@ class SchedulePage extends React.Component<SchedulePageProps, SchedulePageState>
                 currentTimezone={currentTimezone}
                 startMoment={startMoment}
                 onClick={this.handleShowForm}
+                disabled={disabled}
               />
               <Rotations
                 scheduleId={scheduleId}
@@ -181,7 +189,7 @@ class SchedulePage extends React.Component<SchedulePageProps, SchedulePageState>
                 onDelete={this.handleDeleteRotation}
                 shiftIdToShowRotationForm={shiftIdToShowRotationForm}
                 onShowRotationForm={this.handleShowRotationForm}
-                disabled={shiftIdToShowRotationForm || shiftIdToShowOverridesForm}
+                disabled={disabled}
               />
               <ScheduleOverrides
                 scheduleId={scheduleId}
@@ -192,7 +200,7 @@ class SchedulePage extends React.Component<SchedulePageProps, SchedulePageState>
                 onDelete={this.handleDeleteOverride}
                 shiftIdToShowRotationForm={shiftIdToShowOverridesForm}
                 onShowRotationForm={this.handleShowOverridesForm}
-                disabled={shiftIdToShowRotationForm || shiftIdToShowOverridesForm}
+                disabled={disabled}
               />
             </div>
           </VerticalGroup>
@@ -233,22 +241,10 @@ class SchedulePage extends React.Component<SchedulePageProps, SchedulePageState>
   };
 
   handleShowRotationForm = (shiftId: Shift['id'] | 'new') => {
-    const { shiftIdToShowRotationForm, shiftIdToShowOverridesForm } = this.state;
-
-    if (shiftId && (shiftIdToShowRotationForm || shiftIdToShowOverridesForm)) {
-      return;
-    }
-
     this.setState({ shiftIdToShowRotationForm: shiftId });
   };
 
   handleShowOverridesForm = (shiftId: Shift['id'] | 'new') => {
-    const { shiftIdToShowRotationForm, shiftIdToShowOverridesForm } = this.state;
-
-    if (shiftId && (shiftIdToShowRotationForm || shiftIdToShowOverridesForm)) {
-      return;
-    }
-
     this.setState({ shiftIdToShowOverridesForm: shiftId });
   };
 
