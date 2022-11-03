@@ -1,9 +1,8 @@
 ---
 aliases:
-  - /docs/grafana-cloud/oncall/oncall-api-reference/outgoing_webhooks/
   - /docs/oncall/latest/oncall-api-reference/outgoing_webhooks/
+canonical: https://grafana.com/docs/oncall/latest/oncall-api-reference/outgoing_webhooks/
 title: Outgoing webhooks HTTP API
-canonical: "https://grafana.com/docs/oncall/latest/oncall-api-reference/outgoing_webhooks/"
 weight: 700
 ---
 

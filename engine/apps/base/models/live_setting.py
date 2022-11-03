@@ -38,6 +38,7 @@ class LiveSetting(models.Model):
         "EMAIL_HOST_USER",
         "EMAIL_HOST_PASSWORD",
         "EMAIL_USE_TLS",
+        "EMAIL_FROM_ADDRESS",
         "TWILIO_ACCOUNT_SID",
         "TWILIO_AUTH_TOKEN",
         "TWILIO_API_KEY_SID",
@@ -63,6 +64,7 @@ class LiveSetting(models.Model):
         "EMAIL_HOST_USER": "SMTP server user",
         "EMAIL_HOST_PASSWORD": "SMTP server password",
         "EMAIL_USE_TLS": "SMTP enable/disable TLS",
+        "EMAIL_FROM_ADDRESS": "Email address used to send emails. If not specified, EMAIL_HOST_USER will be used.",
         "SLACK_SIGNING_SECRET": (
             "Check <a href='"
             "https://grafana.com/docs/grafana-cloud/oncall/open-source/#slack-setup"

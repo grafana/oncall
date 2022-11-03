@@ -1,6 +1,5 @@
 ---
 aliases:
-  - /docs/grafana-cloud/oncall/open-source/
   - /docs/oncall/latest/open-source/
 keywords:
   - Open Source
@@ -195,6 +194,7 @@ Grafana OnCall is capable of sending emails using SMTP as a user notification st
 - `EMAIL_HOST_USER` - SMTP server user
 - `EMAIL_HOST_PASSWORD` - SMTP server password
 - `EMAIL_PORT` (default is `587`) - SMTP server port
-- `EMAIL_USE_TLS` (default is `True`) - to enable/disable TLS
+- `EMAIL_USE_TLS` (default is `True`) - To enable/disable TLS
+- `EMAIL_FROM_ADDRESS` (optional) - Email address used to send emails. If not specified, `EMAIL_HOST_USER` will be used.
 
 After enabling the email integration, it will be possible to use the `Notify by email` notification step in user settings.
