@@ -91,7 +91,7 @@ def test_shifts_dict_all_day_middle_event(make_organization, make_schedule, get_
     parsed_iso_day_to_check = datetime.datetime.fromisoformat(day_to_check_iso).replace(tzinfo=pytz.UTC)
     requested_date = (parsed_iso_day_to_check - timezone.timedelta(days=1)).date()
     shifts = list_of_oncall_shifts_from_ical(schedule, requested_date, days=3, with_empty_shifts=True)
-    assert len(shifts) == 4
+    assert len(shifts) == 5
     for s in shifts:
         start = s["start"].date() if isinstance(s["start"], datetime.datetime) else s["start"]
         end = s["end"].date() if isinstance(s["end"], datetime.datetime) else s["end"]
