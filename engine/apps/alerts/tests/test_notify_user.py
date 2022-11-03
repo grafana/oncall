@@ -155,7 +155,7 @@ def test_notify_user_perform_notification_error_if_viewer(
     error_log_record = UserNotificationPolicyLogRecord.objects.last()
     assert error_log_record.type == UserNotificationPolicyLogRecord.TYPE_PERSONAL_NOTIFICATION_FAILED
     assert error_log_record.reason == NOTIFICATION_UNAUTHORIZED_MSG
-    assert error_log_record.notification_error_code == UserNotificationPolicyLogRecord.ERROR_NOTIFICATION_UNAUTHORIZED
+    assert error_log_record.notification_error_code == UserNotificationPolicyLogRecord.ERROR_NOTIFICATION_FORBIDDEN
 
 
 @pytest.mark.django_db
@@ -177,4 +177,4 @@ def test_notify_user_error_if_viewer(
     error_log_record = UserNotificationPolicyLogRecord.objects.last()
     assert error_log_record.type == UserNotificationPolicyLogRecord.TYPE_PERSONAL_NOTIFICATION_FAILED
     assert error_log_record.reason == NOTIFICATION_UNAUTHORIZED_MSG
-    assert error_log_record.notification_error_code == UserNotificationPolicyLogRecord.ERROR_NOTIFICATION_UNAUTHORIZED
+    assert error_log_record.notification_error_code == UserNotificationPolicyLogRecord.ERROR_NOTIFICATION_FORBIDDEN
