@@ -95,7 +95,7 @@ const SlackConnector = (props: SlackConnectorProps) => {
             <Text type="secondary">
               This is the default slack channel{' '}
               <PluginLink query={{ page: 'chat-ops' }} disabled={!store.isUserActionAllowed(UserActions.ChatOpsWrite)}>
-                <WithPermissionControl userAction={UserActions.ChatOpsWrite}>
+                <WithPermissionControl userAction={UserActions.ChatOpsUpdateSettings}>
                   <Button variant="primary" size="sm" fill="text">
                     Change in Slack settings
                   </Button>
