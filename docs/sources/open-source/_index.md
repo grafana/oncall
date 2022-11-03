@@ -1,6 +1,5 @@
 ---
 aliases:
-  - /docs/grafana-cloud/oncall/open-source/
   - /docs/oncall/latest/open-source/
 keywords:
   - Open Source

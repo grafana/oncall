@@ -1,10 +1,9 @@
 ---
 aliases:
-  - /docs/grafana-cloud/oncall/oncall-api-reference/postmortem_messages/
   - /docs/oncall/latest/oncall-api-reference/postmortem_messages/
+canonical: https://grafana.com/docs/oncall/latest/oncall-api-reference/postmortem_messages/
 draft: true
 title: Postmortem Messages HTTP API
-canonical: "https://grafana.com/docs/oncall/latest/oncall-api-reference/postmortem_messages/"
 weight: 900
 ---
 
