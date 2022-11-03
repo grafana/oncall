@@ -1,3 +1,5 @@
+import copy
+import itertools
 import logging
 import random
 import string
@@ -274,6 +276,56 @@ class CustomOnCallShift(models.Model):
 
         return is_finished
 
+    def _daily_by_day_to_ical(self, time_zone, start, users_queue):
+        """Create ical weekly shifts to distribute user groups combining daily + by_day."""
+        result = ""
+        # keep tracking of (users, day) combinations, and starting dates for each
+        combinations = []
+        starting_dates = []
+        # we may need to iterate several times over users until we get a seen combination
+        cycle_users = itertools.cycle(users_queue)
+        orig_start = last_start = start
+        all_rotations_checked = False
+        # we need to go through each individual day
+        day_by_day_rrule = copy.deepcopy(self.event_ical_rules)
+        day_by_day_rrule["interval"] = 1
+        for users in cycle_users:
+            for i in range(self.interval):
+                if not start:  # means that rotation ends before next event starts
+                    all_rotations_checked = True
+                    break
+                last_start = start
+                day = CustomOnCallShift.ICAL_WEEKDAY_MAP[start.weekday()]
+                if (users, day, i) in combinations:
+                    all_rotations_checked = True
+                    break
+
+                starting_dates.append(start)
+                combinations.append((users, day, i))
+                # get next event date following the original rule
+                event_ical = self.generate_ical(start, 1, None, 1, time_zone, custom_rrule=day_by_day_rrule)
+                start = self.get_rotation_date(event_ical, get_next_date=True, interval=1)
+            if all_rotations_checked:
+                break
+
+        # number of weeks used to cover all combinations
+        week_interval = ((last_start - orig_start).days // 7) or 1
+        counter = 1
+        for ((users, day, _), start) in zip(combinations, starting_dates):
+            for user_counter, user in enumerate(users, start=1):
+                # setup weekly events, for each user group/day combinations,
+                # setting the right interval and the corresponding day
+                custom_rrule = copy.deepcopy(self.event_ical_rules)
+                custom_rrule["freq"] = ["WEEKLY"]
+                custom_rrule["interval"] = [week_interval]
+                custom_rrule["byday"] = [day]
+                custom_event_ical = self.generate_ical(
+                    start, user_counter, user, counter, time_zone, custom_rrule=custom_rrule
+                )
+                result += custom_event_ical
+            counter += 1
+        return result
+
     def convert_to_ical(self, time_zone="UTC", allow_empty_users=False):
         result = ""
         # use shift time_zone if it exists, otherwise use schedule or default time_zone
@@ -298,6 +350,10 @@ class CustomOnCallShift(models.Model):
                 start = self.start
             else:
                 start = self.get_rotation_date(event_ical)
+
+            if self.frequency == CustomOnCallShift.FREQUENCY_DAILY and self.by_day:
+                result = self._daily_by_day_to_ical(time_zone, start, users_queue)
+                all_rotation_checked = True
 
             while not all_rotation_checked:
                 for counter, users in enumerate(users_queue, start=1):
@@ -325,7 +381,7 @@ class CustomOnCallShift(models.Model):
                 result += self.generate_ical(self.start, user_counter, user, time_zone=time_zone)
         return result
 
-    def generate_ical(self, start, user_counter=0, user=None, counter=1, time_zone="UTC"):
+    def generate_ical(self, start, user_counter=0, user=None, counter=1, time_zone="UTC", custom_rrule=None):
         event = Event()
         event["uid"] = f"oncall-{self.uuid}-PK{self.public_primary_key}-U{user_counter}-E{counter}-S{self.source}"
         if user:
@@ -333,7 +389,9 @@ class CustomOnCallShift(models.Model):
         event.add("dtstart", self.convert_dt_to_schedule_timezone(start, time_zone))
         event.add("dtend", self.convert_dt_to_schedule_timezone(start + self.duration, time_zone))
         event.add("dtstamp", self.rotation_start)
-        if self.event_ical_rules:
+        if custom_rrule:
+            event.add("rrule", custom_rrule)
+        elif self.event_ical_rules:
             event.add("rrule", self.event_ical_rules)
         try:
             event_in_ical = event.to_ical().decode("utf-8")
@@ -349,7 +407,7 @@ class CustomOnCallShift(models.Model):
         summary += f"{user.username} "
         return summary
 
-    def get_rotation_date(self, event_ical, get_next_date=False):
+    def get_rotation_date(self, event_ical, get_next_date=False, interval=None):
         """Get date of the next event (for rolling_users shifts)"""
         ONE_DAY = 1
         ONE_HOUR = 1
@@ -363,7 +421,8 @@ class CustomOnCallShift(models.Model):
 
         current_event = Event.from_ical(event_ical)
         # take shift interval, not event interval. For rolling_users shift it is not the same.
-        interval = self.interval or 1
+        if interval is None:
+            interval = self.interval or 1
         if "rrule" in current_event:
             # when triggering shift previews, there could be no rrule information yet
             # (e.g. initial empty weekly rotation has no rrule set)
