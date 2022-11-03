@@ -5,8 +5,8 @@
   "scripts": {
     "lint": "eslint --cache --ext .js,.jsx,.ts,.tsx --max-warnings=0 ./src",
     "lint:fix": "eslint --fix --cache --ext .js,.jsx,.ts,.tsx --max-warnings=0 --quiet ./src",
-    "stylelint": "stylelint ./src/**/*.css",
-    "stylelint:fix": "stylelint --fix ./src/**/*.css",
+    "stylelint": "stylelint ./src/**/*.{css,scss,module.css,module.scss}",
+    "stylelint:fix": "stylelint --fix ./src/**/*.{css,scss,module.css,module.scss}",
     "build": "grafana-toolkit plugin:build",
     "test": "jest --verbose",
     "dev": "grafana-toolkit plugin:dev",
