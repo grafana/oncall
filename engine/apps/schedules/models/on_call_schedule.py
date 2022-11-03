@@ -202,7 +202,16 @@ class OnCallSchedule(PolymorphicModel):
         """Return public primary keys for all users referenced in the schedule."""
         return set()
 
-    def filter_events(self, user_timezone, starting_date, days, with_empty=False, with_gap=False, filter_by=None):
+    def filter_events(
+        self,
+        user_timezone,
+        starting_date,
+        days,
+        with_empty=False,
+        with_gap=False,
+        filter_by=None,
+        all_day_datetime=False,
+    ):
         """Return filtered events from schedule."""
         shifts = (
             list_of_oncall_shifts_from_ical(
@@ -212,13 +221,18 @@ class OnCallSchedule(PolymorphicModel):
         )
         events = []
         for shift in shifts:
-            all_day = type(shift["start"]) == datetime.date
+            start = shift["start"]
+            all_day = type(start) == datetime.date
+            # fix confusing end date for all-day event
+            end = shift["end"] - timezone.timedelta(days=1) if all_day else shift["end"]
+            if all_day and all_day_datetime:
+                start = datetime.datetime.combine(start, datetime.datetime.min.time(), tzinfo=pytz.UTC)
+                end = datetime.datetime.combine(start, datetime.datetime.max.time(), tzinfo=pytz.UTC)
             is_gap = shift.get("is_gap", False)
             shift_json = {
                 "all_day": all_day,
-                "start": shift["start"],
-                # fix confusing end date for all-day event
-                "end": shift["end"] - timezone.timedelta(days=1) if all_day else shift["end"],
+                "start": start,
+                "end": end,
                 "users": [
                     {
                         "display_name": user.username,
@@ -246,7 +260,9 @@ class OnCallSchedule(PolymorphicModel):
 
     def final_events(self, user_tz, starting_date, days):
         """Return schedule final events, after resolving shifts and overrides."""
-        events = self.filter_events(user_tz, starting_date, days=days, with_empty=True, with_gap=True)
+        events = self.filter_events(
+            user_tz, starting_date, days=days, with_empty=True, with_gap=True, all_day_datetime=True
+        )
         events = self._resolve_schedule(events)
         return events
 
