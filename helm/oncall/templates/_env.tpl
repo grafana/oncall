@@ -21,7 +21,9 @@
   value: "True"
 - name: UWSGI_LISTEN
   value: "1024"
-{{- end }}
+- name: BROKER_TYPE
+  value: {{ .Values.broker.type | default "rabbitmq" }}
+{{- end -}}
 
 {{- define "snippet.oncall.slack.env" -}}
 {{- if .Values.oncall.slack.enabled -}}
@@ -36,12 +38,12 @@
 - name: SLACK_SIGNING_SECRET
   value: {{ .Values.oncall.slack.signingSecret | default "" | quote }}
 - name: SLACK_INSTALL_RETURN_REDIRECT_HOST
-  value: "https://{{ .Values.base_url }}"
+  value: {{ .Values.oncall.slack.redirectHost | default (printf "https://%s" .Values.base_url) | quote }}
 {{- else -}}
 - name: FEATURE_SLACK_INTEGRATION_ENABLED
   value: {{ .Values.oncall.slack.enabled | toString | title | quote }}
 {{- end -}}
-{{- end }}
+{{- end -}}
 
 {{- define "snippet.oncall.telegram.env" -}}
 {{- if .Values.oncall.telegram.enabled -}}
@@ -55,7 +57,36 @@
 - name: FEATURE_TELEGRAM_INTEGRATION_ENABLED
   value: {{ .Values.oncall.telegram.enabled | toString | title | quote }}
 {{- end -}}
-{{- end }}
+{{- end -}}
+
+{{- define "snippet.oncall.twilio.env" -}}
+{{- with .Values.oncall.twilio -}}
+{{- if .accountSid }}
+- name: TWILIO_ACCOUNT_SID
+  value: {{ .accountSid | quote }}
+{{- end -}}
+{{- if .authToken }}
+- name: TWILIO_AUTH_TOKEN
+  value: {{ .authToken | quote }}
+{{- end -}}
+{{- if .phoneNumber }}
+- name: TWILIO_NUMBER
+  value: {{ .phoneNumber | quote }}
+{{- end -}}
+{{- if .verifySid }}
+- name: TWILIO_VERIFY_SERVICE_SID
+  value: {{ .verifySid | quote }}
+{{- end -}}
+{{- if .apiKeySid }}
+- name: TWILIO_API_KEY_SID
+  value: {{ .apiKeySid | quote }}
+{{- end -}}
+{{- if .apiKeySecret }}
+- name: TWILIO_API_KEY_SECRET
+  value: {{ .apiKeySecret | quote }}
+{{- end -}}
+{{- end -}}
+{{- end -}}
 
 {{- define "snippet.celery.env" -}}
 {{- if .Values.celery.worker_queue }}
@@ -78,7 +109,7 @@
 - name: CELERY_WORKER_SHUTDOWN_INTERVAL
   value: {{ .Values.celery.worker_shutdown_interval }}
 {{- end -}}
-{{- end }}
+{{- end -}}
 
 {{- define "snippet.mysql.env" -}}
 - name: MYSQL_HOST
@@ -121,8 +152,8 @@
 {{- end -}}
 
 {{- define "snippet.mysql.db" -}}
-{{- if and (not .Values.mariadb.enabled) .Values.externalMysql.db -}}
-{{- required "externalMysql.db is required if not mariadb.enabled" .Values.externalMysql.db | quote}}
+{{- if and (not .Values.mariadb.enabled) .Values.externalMysql.db_name -}}
+{{- required "externalMysql.db is required if not mariadb.enabled" .Values.externalMysql.db_name | quote}}
 {{- else -}}
 "oncall"
 {{- end -}}
@@ -130,20 +161,97 @@
 
 {{- define "snippet.mysql.user" -}}
 {{- if and (not .Values.mariadb.enabled) .Values.externalMysql.user -}}
-{{- .Values.externalMysql.user | quote}}
+{{- .Values.externalMysql.user | quote }}
 {{- else -}}
 "root"
 {{- end -}}
 {{- end -}}
 
+{{- define "snippet.postgresql.env" -}}
+- name: DATABASE_TYPE
+  value: {{ .Values.database.type }}
+- name: DATABASE_HOST
+  value: {{ include "snippet.postgresql.host" . }}
+- name: DATABASE_PORT
+  value: {{ include "snippet.postgresql.port" . }}
+- name: DATABASE_NAME
+  value: {{ include "snippet.postgresql.db" . }}
+- name: DATABASE_USER
+  value: {{ include "snippet.postgresql.user" . }}
+- name: DATABASE_PASSWORD
+  valueFrom:
+    secretKeyRef:
+      name: {{ include "snippet.postgresql.password.secret.name" . }}
+      key: {{ include "snippet.postgresql.password.secret.key" . }}
+{{- end }}
+
+{{- define "snippet.postgresql.password.secret.name" -}}
+{{- if and (not .Values.postgresql.enabled) .Values.externalPostgresql.password -}}
+{{ include "oncall.fullname" . }}-postgresql-external
+{{- else if and (not .Values.postgresql.enabled) .Values.externalPostgresql.existingSecret -}}
+{{ .Values.externalPostgresql.existingSecret }}
+{{- else -}}
+{{ include "oncall.postgresql.fullname" . }}
+{{- end -}}
+{{- end -}}
+
+{{- define "snippet.postgresql.password.secret.key" -}}
+{{- if and (not .Values.postgresql.enabled) .Values.externalPostgresql.passwordKey -}}
+{{ .Values.externalPostgresql.passwordKey }}
+{{- else -}}
+"postgres-password"
+{{- end -}}
+{{- end -}}
+
+{{- define "snippet.postgresql.host" -}}
+{{- if and (not .Values.postgresql.enabled) .Values.externalPostgresql.host -}}
+{{- required "externalPostgresql.host is required if not postgresql.enabled" .Values.externalPostgresql.host | quote }}
+{{- else -}}
+{{ include "oncall.postgresql.fullname" . }}
+{{- end -}}
+{{- end -}}
+
+{{- define "snippet.postgresql.port" -}}
+{{- if and (not .Values.mariadb.enabled) .Values.externalPostgresql.port -}}
+{{- required "externalPostgresql.port is required if not postgresql.enabled"  .Values.externalPostgresql.port | quote }}
+{{- else -}}
+"5432"
+{{- end -}}
+{{- end -}}
+
+{{- define "snippet.postgresql.db" -}}
+{{- if and (not .Values.postgresql.enabled) .Values.externalPostgresql.db -}}
+{{- required "externalPostgresql.db is required if not postgresql.enabled" .Values.externalPostgresql.db | quote}}
+{{- else -}}
+"oncall"
+{{- end -}}
+{{- end -}}
+
+{{- define "snippet.postgresql.user" -}}
+{{- if and (not .Values.postgresql.enabled) .Values.externalPostgresql.user -}}
+{{- .Values.externalPostgresql.user | quote}}
+{{- else -}}
+"postgres"
+{{- end -}}
+{{- end -}}
+
 {{- define "snippet.rabbitmq.env" -}}
+{{- if eq .Values.broker.type "rabbitmq" -}}
+{{- if and (not .Values.rabbitmq.enabled) (not .Values.externalRabbitmq.existingSecret) (not .Values.externalRabbitmq.usernameKey) .Values.externalRabbitmq.user }}
 - name: RABBITMQ_USERNAME
   value: {{ include "snippet.rabbitmq.user" . }}
+{{- else if and (not .Values.rabbitmq.enabled) .Values.externalRabbitmq.existingSecret .Values.externalRabbitmq.usernameKey (not .Values.externalRabbitmq.user) }}
+- name: RABBITMQ_USERNAME
+  valueFrom:
+    secretKeyRef:
+      name: {{ include "snippet.rabbitmq.password.secret.name" . }}
+      key: {{ .Values.externalRabbitmq.usernameKey }}
+{{- end }}
 - name: RABBITMQ_PASSWORD
   valueFrom:
     secretKeyRef:
       name: {{ include "snippet.rabbitmq.password.secret.name" . }}
-      key: rabbitmq-password
+      key: {{ include "snippet.rabbitmq.password.secret.key" . }}
 - name: RABBITMQ_HOST
   value: {{ include "snippet.rabbitmq.host" . }}
 - name: RABBITMQ_PORT
@@ -153,6 +261,7 @@
 - name: RABBITMQ_VHOST
   value: {{ include "snippet.rabbitmq.vhost" . }}
 {{- end }}
+{{- end -}}
 
 {{- define "snippet.rabbitmq.user" -}}
 {{- if and (not .Values.rabbitmq.enabled) .Values.externalRabbitmq.user -}}
@@ -197,8 +306,18 @@
 {{- define "snippet.rabbitmq.password.secret.name" -}}
 {{- if and (not .Values.rabbitmq.enabled) .Values.externalRabbitmq.password -}}
 {{ include "oncall.fullname" . }}-rabbitmq-external
+{{- else if and (not .Values.rabbitmq.enabled) .Values.externalRabbitmq.existingSecret -}}
+{{ .Values.externalRabbitmq.existingSecret }}
 {{- else -}}
 {{ include "oncall.rabbitmq.fullname" . }}
+{{- end -}}
+{{- end -}}
+
+{{- define "snippet.rabbitmq.password.secret.key" -}}
+{{- if and (not .Values.rabbitmq.enabled) .Values.externalRabbitmq.passwordKey -}}
+{{ .Values.externalRabbitmq.passwordKey }}
+{{- else -}}
+rabbitmq-password
 {{- end -}}
 {{- end -}}
 
@@ -247,7 +366,7 @@
       key: smtp-password
 - name: EMAIL_USE_TLS
   value: {{ .Values.oncall.smtp.tls | toString | title | quote }}
-- name: DEFAULT_FROM_EMAIL
+- name: EMAIL_FROM_ADDRESS
   value: {{ .Values.oncall.smtp.fromEmail | quote }}
 {{- else -}}
 - name: FEATURE_EMAIL_INTEGRATION_ENABLED

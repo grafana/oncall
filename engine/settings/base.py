@@ -568,7 +568,7 @@ EMAIL_HOST_USER = os.getenv("EMAIL_HOST_USER")
 EMAIL_HOST_PASSWORD = os.getenv("EMAIL_HOST_PASSWORD")
 EMAIL_PORT = getenv_integer("EMAIL_PORT", 587)
 EMAIL_USE_TLS = getenv_boolean("EMAIL_USE_TLS", True)
-DEFAULT_FROM_EMAIL = os.getenv("DEFAULT_FROM_EMAIL")
+EMAIL_FROM_ADDRESS = os.getenv("EMAIL_FROM_ADDRESS")
 
 if FEATURE_EMAIL_INTEGRATION_ENABLED:
     EXTRA_MESSAGING_BACKENDS = [("apps.email.backend.EmailBackend", 8)]
@@ -586,6 +586,7 @@ INSTALLED_ONCALL_INTEGRATIONS = [
     "config_integrations.maintenance",
     "config_integrations.manual",
     "config_integrations.slack_channel",
+    "config_integrations.zabbix",
 ]
 
 if OSS_INSTALLATION:

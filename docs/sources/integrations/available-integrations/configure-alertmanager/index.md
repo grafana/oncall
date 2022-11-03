@@ -1,7 +1,8 @@
 ---
 aliases:
-  - /docs/grafana-cloud/oncall/available-integrations/add-alertmanager/
-  - /docs/oncall/latest/integrations/available-integrations /add-alertmanager/
+  - add-alertmanager/
+  - /docs/oncall/latest/integrations/available-integrations/configure-alertmanager/
+canonical: https://grafana.com/docs/oncall/latest/integrations/available-integrations/configure-alertmanager/
 keywords:
   - Grafana Cloud
   - Alerts
@@ -9,12 +10,11 @@ keywords:
   - on-call
   - Alertmanager
   - Prometheus
-title: Connect Alertmanager to Grafana OnCall
-canonical: "https://grafana.com/docs/oncall/latest/integrations/available-integrations/add-alertmanager/"
+title: Alertmanager integration for Grafana OnCall
 weight: 300
 ---
 
-# Connect Alertmanager to Grafana OnCall
+# Alertmanager integration for Grafana OnCall
 
 The Alertmanager integration for Grafana OnCall handles alerts sent by client applications such as the Prometheus server.
 
