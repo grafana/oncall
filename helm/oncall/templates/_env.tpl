@@ -5,12 +5,12 @@
   valueFrom:
     secretKeyRef:
       name: {{ template "snippet.oncall.secret.name" . }}
-      key: SECRET_KEY
+      key: {{ template "snippet.oncall.secret.secretKey" . }}
 - name: MIRAGE_SECRET_KEY
   valueFrom:
     secretKeyRef:
       name: {{ template "snippet.oncall.secret.name" . }}
-      key: MIRAGE_SECRET_KEY
+      key: {{ template "snippet.oncall.secret.mirageSecretKey" . }}
 - name: MIRAGE_CIPHER_IV
   value: "{{ .Values.oncall.mirageCipherIV | default "1234567890abcdef" }}"
 - name: DJANGO_SETTINGS_MODULE
@@ -28,6 +28,22 @@
 {{ .Values.oncall.secrets.existingSecretName }}
 {{- else -}}
 {{ template "oncall.fullname" . }}
+{{- end -}}
+{{- end -}}
+
+{{- define "snippet.oncall.secret.secretKey" -}}
+{{- if .Values.oncall.secrets.existingSecretName -}}
+{{ required "oncall.secrets.secretKey is required if oncall.secret.existingSecretName is not empty" .Values.oncall.secrets.secretKey }}
+{{- else -}}
+SECRET_KEY
+{{- end -}}
+{{- end -}}
+
+{{- define "snippet.oncall.secret.mirageSecretKey" -}}
+{{- if .Values.oncall.secrets.existingSecretName -}}
+{{ required "oncall.secrets.mirageSecretKey is required if oncall.secret.existingSecretName is not empty" .Values.oncall.secrets.mirageSecretKey }}
+{{- else -}}
+MIRAGE_SECRET_KEY
 {{- end -}}
 {{- end -}}
 
