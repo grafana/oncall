@@ -76,8 +76,12 @@ def notify_user_async(user_pk, alert_group_pk, notification_policy_pk):
     subject, html_message = build_subject_and_message(alert_group, emails_left)
 
     message = strip_tags(html_message)
-    email_from = live_settings.EMAIL_FROM_ADDRESS or live_settings.EMAIL_HOST_USER
     recipient_list = [user.email]
+
+    if settings.LICENSE == settings.CLOUD_LICENSE_NAME:
+        email_from = live_settings.EMAIL_FROM_ADDRESS or "oncall@{}.grafana.net".format(user.organization.stack_slug)
+    else:
+        email_from = live_settings.EMAIL_FROM_ADDRESS or live_settings.EMAIL_HOST_USER
 
     connection = get_connection(
         host=live_settings.EMAIL_HOST,

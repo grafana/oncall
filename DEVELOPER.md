@@ -20,6 +20,8 @@
 
 ## Developer quickstart
 
+Related: [How to develop integrations](/engine/config_integrations/README.md)
+
 ### Code style
 
 - [isort](https://github.com/PyCQA/isort), [black](https://github.com/psf/black) and [flake8](https://github.com/PyCQA/flake8) are used to format backend code
