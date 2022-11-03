@@ -28,7 +28,12 @@ spec:
       securityContext:
         {{- toYaml .Values.podSecurityContext | nindent 8 }}
       initContainers:
-      {{- include "oncall.mariadb.wait-for-db" . | indent 8 }}
+        {{- if eq .Values.database.type "mysql" }}
+        {{- include "oncall.mariadb.wait-for-db" . | indent 8 }}
+        {{- end }}
+        {{- if eq .Values.database.type "postgresql" }}
+        {{- include "oncall.postgresql.wait-for-db" . | indent 8 }}
+        {{- end }}
       containers:
         - name: {{ .Chart.Name }}
           securityContext:
@@ -42,11 +47,24 @@ spec:
             {{- include "snippet.oncall.slack.env" . | nindent 12 }}
             {{- include "snippet.oncall.telegram.env" . | nindent 12 }}
             {{- include "snippet.oncall.smtp.env" . | nindent 12 }}
+            {{- if eq .Values.database.type "mysql" }}
             {{- include "snippet.mysql.env" . | nindent 12 }}
+            {{- end }}
+            {{- if eq .Values.database.type "postgresql" }}
+            {{- include "snippet.postgresql.env" . | nindent 12 }}
+            {{- end }}
             {{- include "snippet.rabbitmq.env" . | nindent 12 }}
             {{- include "snippet.redis.env" . | nindent 12 }}
             {{- if .Values.env }}
-              {{- toYaml .Values.env | nindent 12 }}
+              {{- if (kindIs "map" .Values.env) }}
+                {{- range $key, $value := .Values.env }}
+            - name: {{ $key }}
+              value: {{ $value }}
+                {{- end -}}
+              {{/* support previous schema */}}
+              {{- else }}
+            {{- toYaml .Values.env | nindent 12 }}
+              {{- end }}
             {{- end }}
           {{- if .Values.celery.livenessProbe.enabled }}
           livenessProbe:

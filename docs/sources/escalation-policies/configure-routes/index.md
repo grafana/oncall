@@ -1,6 +1,7 @@
 ---
 aliases:
   - /docs/oncall/latest/escalation-policies/configure-routes/
+canonical: https://grafana.com/docs/oncall/latest/escalation-policies/configure-routes/
 keywords:
   - Grafana Cloud
   - Alerts
@@ -10,11 +11,10 @@ keywords:
   - oncall
   - integrations
 title: Configure and manage routes
-canonical: "https://grafana.com/docs/oncall/latest/escalation-policies/configure-routes/"
 weight: 300
 ---
 
-# Configure and manage routes
+# Configure and manage Routes
 
 Set up escalation chains and routes to configure escalation behavior for alert group notifications.
 

@@ -5,7 +5,7 @@ from apps.base.models import LiveSetting
 
 class LiveSettingSerializer(serializers.ModelSerializer):
     id = serializers.CharField(read_only=True, source="public_primary_key")
-    value = serializers.JSONField(allow_null=False)
+    value = serializers.JSONField(allow_null=True)
 
     class Meta:
         model = LiveSetting
