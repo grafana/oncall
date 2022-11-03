@@ -33,6 +33,7 @@ export enum Action {
   ADMIN = 'admin',
   TEST = 'test',
   EXPORT = 'export',
+  UPDATE_SETTINGS = 'update-settings',
   INSTALL = 'install',
 }
 
@@ -49,6 +50,7 @@ type Actions =
   | 'SchedulesExport'
   | 'ChatOpsRead'
   | 'ChatOpsWrite'
+  | 'ChatOpsUpdateSettings'
   | 'OutgoingWebhooksRead'
   | 'OutgoingWebhooksWrite'
   | 'MaintenanceRead'
@@ -120,6 +122,7 @@ export const UserActions: { [action in Actions]: UserAction } = {
 
   ChatOpsRead: constructAction(Resource.CHATOPS, Action.READ, OrgRole.Viewer),
   ChatOpsWrite: constructAction(Resource.CHATOPS, Action.WRITE, OrgRole.Editor),
+  ChatOpsUpdateSettings: constructAction(Resource.CHATOPS, Action.UPDATE_SETTINGS, OrgRole.Admin),
 
   OutgoingWebhooksRead: constructAction(Resource.OUTGOING_WEBHOOKS, Action.READ, OrgRole.Viewer),
   OutgoingWebhooksWrite: constructAction(Resource.OUTGOING_WEBHOOKS, Action.WRITE, OrgRole.Admin),
