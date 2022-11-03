@@ -57,8 +57,8 @@ const RotationTutorial: FC<RotationProps> = (props) => {
   return (
     <div className={cx('slots', 'slots--tutorial')} style={{ transform: `translate(${x * 100}%, 0)` }}>
       <Pointer
-        className={cx('pointer')}
-        style={{ left: `calc(${pointerX * 100}% - 5px)`, visibility: pointerX === undefined ? 'hidden' : 'visible' }}
+        className={cx('pointer', { 'pointer--active': pointerX !== undefined })}
+        style={{ left: `calc(${pointerX * 100}% - 5px)` }}
       />
       {events.map((event, index) => {
         const duration = event.end.diff(event.start, 'seconds');

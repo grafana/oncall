@@ -79,7 +79,15 @@
 .pointer {
   position: absolute;
   top: -9px;
-  transition: left 500ms ease;
+  transition: left 500ms ease, opacity 500ms ease, transform 500ms ease;
+  transform-origin: bottom center;
+  opacity: 0;
+  transform: scale(0);
+}
+
+.pointer--active {
+  transform: scale(1);
+  opacity: 1;
 }
 
 .tutorial-slot {
