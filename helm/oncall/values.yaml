@@ -68,12 +68,14 @@ celery:
     #   memory: 128Mi
 
 oncall:
+  # Override default MIRAGE_CIPHER_IV (must be 16 bytes long)
+  # For existing installation, this should not be changed.
+  # mirageCipherIV: 1234567890abcdef
   # oncall secrets
   secrets:
     # Use existing secret. The secret should contain these keys
-    # SECRET_KEY, MIRAGE_SECRET_KEY, MIRAGE_CIPHER_IV
+    # SECRET_KEY, MIRAGE_SECRET_KEY
     # or leave it as empty string to let chart create the secret.
-    # NOTE: MIRAGE_CIPHER_IV should be 16 bytes long.
     existingSecretName: ""
   # slack configures the Grafana Oncall Slack ChatOps integration.
   slack:

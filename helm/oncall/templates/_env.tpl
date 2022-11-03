@@ -12,10 +12,7 @@
       name: {{ template "snippet.oncall.secret.name" . }}
       key: MIRAGE_SECRET_KEY
 - name: MIRAGE_CIPHER_IV
-  valueFrom:
-    secretKeyRef:
-      name: {{ template "snippet.oncall.secret.name" . }}
-      key: MIRAGE_CIPHER_IV
+  value: "{{ .Values.oncall.mirageCipherIV | default "1234567890abcdef" }}"
 - name: DJANGO_SETTINGS_MODULE
   value: "settings.helm"
 - name: AMIXR_DJANGO_ADMIN_PATH
