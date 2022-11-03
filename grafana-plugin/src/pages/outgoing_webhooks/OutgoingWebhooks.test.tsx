@@ -7,7 +7,6 @@ import '@testing-library/jest-dom';
 import outgoingWebhooksStub from 'jest/outgoingWebhooksStub';
 
 import { OutgoingWebhook } from 'models/outgoing_webhook/outgoing_webhook.types';
-
 import { OutgoingWebhooks } from 'pages/outgoing_webhooks/OutgoingWebhooks';
 
 const outgoingWebhooks = outgoingWebhooksStub as OutgoingWebhook[];
@@ -24,7 +23,7 @@ const outgoingWebhookStore = () => ({
 jest.mock('@grafana/runtime', () => ({
   config: {
     featureToggles: {
-      topNav: false
+      topNav: false,
     },
   },
 }));
