@@ -209,7 +209,7 @@ class AlertRules extends React.Component<AlertRulesProps, AlertRulesState> {
                 >
                   How to connect
                 </Button>
-                <WithPermissionControl userAction={UserActions.IntegrationsWrite}>
+                <WithPermissionControl userAction={UserActions.IntegrationsTest}>
                   <Button
                     variant="secondary"
                     size="sm"
@@ -670,7 +670,7 @@ class AlertRules extends React.Component<AlertRulesProps, AlertRulesState> {
             tooltipPlacement="top"
           />
         </WithPermissionControl>
-        <WithPermissionControl userAction={UserActions.IntegrationsWrite}>
+        <WithPermissionControl userAction={UserActions.IntegrationsTest}>
           <Button variant="secondary" size="sm" onClick={this.getSendDemoAlertToParticularRoute(channelFilterId)}>
             Send demo alert
           </Button>

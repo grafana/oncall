@@ -154,7 +154,7 @@ const AlertTemplatesForm = (props: AlertTemplatesFormProps) => {
     <HorizontalGroup>
       <Text type="secondary">There are no alerts from this monitoring yet.</Text>
       {demoAlertEnabled ? (
-        <WithPermissionControl userAction={UserActions.IntegrationsWrite}>
+        <WithPermissionControl userAction={UserActions.IntegrationsTest}>
           <Button className={cx('button')} variant="primary" onClick={handleSendDemoAlertClick} size="sm">
             Send demo alert
           </Button>
