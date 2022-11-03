@@ -239,6 +239,12 @@ externalRabbitmq:
   password:
   protocol:
   vhost:
+  # use an existing secret for the rabbitmq password
+  existingSecret: ""
+  # the key in the secret containing the rabbitmq password
+  passwordKey: password
+  # the key in the secret containing the rabbitmq username
+  usernameKey: username
 
 # Redis is included into this release for the convenience.
 # It is recommended to host it separately from this release
