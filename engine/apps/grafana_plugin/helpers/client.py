@@ -1,7 +1,7 @@
 import json
 import logging
 import time
-from typing import Optional, Tuple
+from typing import Dict, List, Optional, Tuple, TypedDict
 from urllib.parse import urljoin
 
 import requests
@@ -9,13 +9,44 @@ from django.conf import settings
 from rest_framework import status
 from rest_framework.response import Response
 
+from apps.api.permissions import ACTION_PREFIX, GrafanaAPIPermission
+
 logger = logging.getLogger(__name__)
+
+
+class GrafanaUser(TypedDict):
+    orgId: int
+    userId: int
+    email: str
+    name: str
+    avatarUrl: str
+    login: str
+    role: str
+    lastSeenAt: str
+    lastSeenAtAge: str
+
+
+class GrafanaUserWithPermissions(GrafanaUser):
+    permissions: List[GrafanaAPIPermission]
+
+
+class GCOMInstanceInfo(TypedDict):
+    id: int
+    orgId: int
+    slug: str
+    orgSlug: str
+    orgName: str
+    url: str
+    status: str
 
 
 class APIClient:
     def __init__(self, api_url: str, api_token: str):
         self.api_url = api_url
         self.api_token = api_token
+
+    def api_head(self, endpoint: str, body: dict = None) -> Tuple[Optional[Response], dict]:
+        return self.call_api(endpoint, requests.head, body)
 
     def api_get(self, endpoint: str) -> Tuple[Optional[Response], dict]:
         return self.call_api(endpoint, requests.get)
@@ -69,30 +100,45 @@ class APIClient:
 
 
 class GrafanaAPIClient(APIClient):
+    USER_PERMISSION_ENDPOINT = f"api/access-control/users/permissions?actionPrefix={ACTION_PREFIX}"
+
     def __init__(self, api_url: str, api_token: str):
         super().__init__(api_url, api_token)
 
     def check_token(self) -> Tuple[Optional[Response], dict]:
         return self.api_get("api/org")
 
-    def get_users(self) -> Tuple[Optional[Response], dict]:
+    def get_users_permissions(self, rbac_is_enabled_for_org: bool) -> Dict[str, List[GrafanaAPIPermission]]:
         """
-        Response example:
-        [
-            {
-                'orgId': 1,
-                'userId': 1,
-                'email': 'user@example.com',
-                'name': 'User User',
-                'avatarUrl': '/avatar/79163f696e9e08958c0d3f73c160e2cc',
-                'login': 'user',
-                'role': 'Admin',
-                'lastSeenAt': '2021-06-21T07:01:45Z',
-                'lastSeenAtAge': '9m'
-            },
-        ]
+        It is possible that this endpoint may not be available for certain Grafana orgs.
+        Ex: for Grafana Cloud orgs whom have pinned their Grafana version to an earlier version
+        where this endpoint is not available
         """
-        return self.api_get("api/org/users")
+        if not rbac_is_enabled_for_org:
+            return {}
+        data, _ = self.api_get(self.USER_PERMISSION_ENDPOINT)
+        return data if data is not None else {}
+
+    def is_rbac_enabled_for_organization(self) -> bool:
+        """
+        TODO: once the rbac status endpoint is OSS, switch to using that
+        In the mean time we will just assume that if the permissions endpoint is available, the grafana instance does support it
+        """
+        _, resp_status = self.api_head(self.USER_PERMISSION_ENDPOINT)
+        return resp_status["status_code"] == status.HTTP_200_OK
+
+    def get_users(self, rbac_is_enabled_for_org: bool) -> List[GrafanaUserWithPermissions]:
+        users, _ = self.api_get("api/org/users")
+
+        if not users:
+            return []
+
+        user_permissions = self.get_users_permissions(rbac_is_enabled_for_org)
+
+        # merge the users permissions response into the org users response
+        for user in users:
+            user["permissions"] = user_permissions.get(str(user["userId"]), [])
+        return users
 
     def get_teams(self):
         return self.api_get("api/teams/search?perpage=1000000")
@@ -124,6 +170,7 @@ class GcomAPIClient(APIClient):
     ACTIVE_INSTANCE_QUERY = "instances?status=active"
     DELETED_INSTANCE_QUERY = "instances?status=deleted&includeDeleted=true"
     STACK_STATUS_DELETED = "deleted"
+    STACK_STATUS_ACTIVE = "active"
 
     def __init__(self, api_token: str):
         super().__init__(settings.GRAFANA_COM_API_URL, api_token)
@@ -131,14 +178,15 @@ class GcomAPIClient(APIClient):
     def check_token(self):
         return self.api_post("api-keys/check", {"token": self.api_token})
 
-    def get_instance_info(self, stack_id: str):
-        return self.api_get(f"instances/{stack_id}")
+    def get_instance_info(self, stack_id: str) -> Optional[GCOMInstanceInfo]:
+        data, _ = self.api_get(f"instances/{stack_id}?config=true")
+        return data
 
     def get_instances(self, query: str):
         return self.api_get(query)
 
     def is_stack_deleted(self, stack_id: str) -> bool:
-        instance_info, call_status = self.get_instance_info(stack_id)
+        instance_info = self.get_instance_info(stack_id)
         return instance_info and instance_info.get("status") == self.STACK_STATUS_DELETED
 
     def post_active_users(self, body):

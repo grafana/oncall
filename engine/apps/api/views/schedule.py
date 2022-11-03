@@ -14,7 +14,7 @@ from rest_framework.views import Response
 from rest_framework.viewsets import ModelViewSet
 
 from apps.alerts.models import EscalationChain, EscalationPolicy
-from apps.api.permissions import MODIFY_ACTIONS, READ_ACTIONS, ActionPermission, AnyRole, IsAdmin, IsAdminOrEditor
+from apps.api.permissions import RBACPermission
 from apps.api.serializers.schedule_base import ScheduleFastSerializer
 from apps.api.serializers.schedule_polymorphic import (
     PolymorphicScheduleCreateSerializer,
@@ -56,24 +56,26 @@ class ScheduleView(
     ModelViewSet,
 ):
     authentication_classes = (PluginAuthentication,)
-    permission_classes = (IsAuthenticated, ActionPermission)
-    action_permissions = {
-        IsAdmin: (
-            *MODIFY_ACTIONS,
-            "reload_ical",
-        ),
-        IsAdminOrEditor: ("export_token",),
-        AnyRole: (
-            *READ_ACTIONS,
-            "events",
-            "filter_events",
-            "next_shifts_per_user",
-            "notify_empty_oncall_options",
-            "notify_oncall_shift_freq_options",
-            "mention_options",
-            "related_escalation_chains",
-        ),
+    permission_classes = (IsAuthenticated, RBACPermission)
+    rbac_permissions = {
+        "metadata": [RBACPermission.Permissions.SCHEDULES_READ],
+        "list": [RBACPermission.Permissions.SCHEDULES_READ],
+        "retrieve": [RBACPermission.Permissions.SCHEDULES_READ],
+        "events": [RBACPermission.Permissions.SCHEDULES_READ],
+        "filter_events": [RBACPermission.Permissions.SCHEDULES_READ],
+        "next_shifts_per_user": [RBACPermission.Permissions.SCHEDULES_READ],
+        "notify_empty_oncall_options": [RBACPermission.Permissions.SCHEDULES_READ],
+        "notify_oncall_shift_freq_options": [RBACPermission.Permissions.SCHEDULES_READ],
+        "mention_options": [RBACPermission.Permissions.SCHEDULES_READ],
+        "related_escalation_chains": [RBACPermission.Permissions.SCHEDULES_READ],
+        "create": [RBACPermission.Permissions.SCHEDULES_WRITE],
+        "update": [RBACPermission.Permissions.SCHEDULES_WRITE],
+        "partial_update": [RBACPermission.Permissions.SCHEDULES_WRITE],
+        "destroy": [RBACPermission.Permissions.SCHEDULES_WRITE],
+        "reload_ical": [RBACPermission.Permissions.SCHEDULES_WRITE],
+        "export_token": [RBACPermission.Permissions.SCHEDULES_EXPORT],
     }
+
     filter_backends = [SearchFilter]
     search_fields = ("name",)
 

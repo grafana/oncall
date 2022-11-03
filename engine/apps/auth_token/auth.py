@@ -8,10 +8,10 @@ from rest_framework import exceptions
 from rest_framework.authentication import BaseAuthentication, get_authorization_header
 from rest_framework.request import Request
 
+from apps.api.permissions import RBACPermission, user_is_authorized
 from apps.grafana_plugin.helpers.gcom import check_token
 from apps.user_management.models import User
 from apps.user_management.models.organization import Organization
-from common.constants.role import Role
 
 from .constants import SCHEDULE_EXPORT_TOKEN_NAME, SLACK_AUTH_TOKEN_NAME
 from .exceptions import InvalidToken
@@ -30,7 +30,7 @@ class ApiTokenAuthentication(BaseAuthentication):
         auth = get_authorization_header(request).decode("utf-8")
         user, auth_token = self.authenticate_credentials(auth)
 
-        if user.role != Role.ADMIN:
+        if not user_is_authorized(user, [RBACPermission.Permissions.API_KEYS_WRITE]):
             raise exceptions.AuthenticationFailed(
                 "Only users with Admin permissions are allowed to perform this action."
             )
