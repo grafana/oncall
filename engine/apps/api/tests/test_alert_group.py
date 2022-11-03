@@ -9,7 +9,7 @@ from rest_framework.response import Response
 from rest_framework.test import APIClient
 
 from apps.alerts.models import AlertGroup, AlertGroupLogRecord
-from common.constants.role import Role
+from apps.api.permissions import LegacyAccessControlRole
 
 alert_raw_request_data = {
     "evalMatches": [
@@ -23,15 +23,6 @@ alert_raw_request_data = {
     "state": "alerting",
     "title": "[Alerting] Test notification",
 }
-
-
-# # This function is for creating token and do not to change fixture alert_group_internal_api_setup return values.
-# # To create token amixr team is needed but in most tests using fixture alert_group_internal_api_setup team is redundant
-# # So it just extract amixr team form alert_groups.
-# def create_token_from_initial_test_data(make_func, alert_groups, role):
-#     organization = alert_groups[0].channel.organization
-#     _, token_user_role = make_func(organization, role)
-#     return token_user_role
 
 
 @pytest.fixture()
@@ -52,7 +43,7 @@ def alert_group_internal_api_setup(
 
 @pytest.mark.django_db
 def test_get_filter_started_at(alert_group_internal_api_setup, make_user_auth_headers):
-    user, token, alert_groups = alert_group_internal_api_setup
+    user, token, _ = alert_group_internal_api_setup
     client = APIClient()
 
     url = reverse("api-internal:alertgroup-list")
@@ -69,7 +60,7 @@ def test_get_filter_started_at(alert_group_internal_api_setup, make_user_auth_he
 @pytest.mark.django_db
 def test_get_filter_resolved_at_alertgroup_empty_result(alert_group_internal_api_setup, make_user_auth_headers):
     client = APIClient()
-    user, token, alert_groups = alert_group_internal_api_setup
+    user, token, _ = alert_group_internal_api_setup
 
     url = reverse("api-internal:alertgroup-list")
     response = client.get(
@@ -84,7 +75,7 @@ def test_get_filter_resolved_at_alertgroup_empty_result(alert_group_internal_api
 @pytest.mark.django_db
 def test_get_filter_resolved_at_alertgroup_invalid_format(alert_group_internal_api_setup, make_user_auth_headers):
     client = APIClient()
-    user, token, alert_groups = alert_group_internal_api_setup
+    user, token, _ = alert_group_internal_api_setup
 
     url = reverse("api-internal:alertgroup-list")
     response = client.get(
@@ -660,19 +651,25 @@ def test_get_filter_with_resolution_note_after_delete_resolution_note(
 @pytest.mark.parametrize(
     "role,expected_status",
     [
-        (Role.ADMIN, status.HTTP_200_OK),
-        (Role.EDITOR, status.HTTP_200_OK),
-        (Role.VIEWER, status.HTTP_403_FORBIDDEN),
+        (LegacyAccessControlRole.ADMIN, status.HTTP_200_OK),
+        (LegacyAccessControlRole.EDITOR, status.HTTP_200_OK),
+        (LegacyAccessControlRole.VIEWER, status.HTTP_403_FORBIDDEN),
     ],
 )
 def test_alert_group_acknowledge_permissions(
-    make_user_for_organization, alert_group_internal_api_setup, make_user_auth_headers, role, expected_status
+    alert_group_internal_api_setup,
+    make_user_for_organization,
+    make_user_auth_headers,
+    role,
+    expected_status,
 ):
-    client = APIClient()
     _, token, alert_groups = alert_group_internal_api_setup
     _, _, new_alert_group, _ = alert_groups
     organization = new_alert_group.channel.organization
     user = make_user_for_organization(organization, role)
+
+    client = APIClient()
+
     url = reverse("api-internal:alertgroup-acknowledge", kwargs={"pk": new_alert_group.public_primary_key})
 
     with patch(
@@ -689,19 +686,24 @@ def test_alert_group_acknowledge_permissions(
 @pytest.mark.parametrize(
     "role,expected_status",
     [
-        (Role.ADMIN, status.HTTP_200_OK),
-        (Role.EDITOR, status.HTTP_200_OK),
-        (Role.VIEWER, status.HTTP_403_FORBIDDEN),
+        (LegacyAccessControlRole.ADMIN, status.HTTP_200_OK),
+        (LegacyAccessControlRole.EDITOR, status.HTTP_200_OK),
+        (LegacyAccessControlRole.VIEWER, status.HTTP_403_FORBIDDEN),
     ],
 )
 def test_alert_group_unacknowledge_permissions(
-    make_user_for_organization, alert_group_internal_api_setup, make_user_auth_headers, role, expected_status
+    alert_group_internal_api_setup,
+    make_user_for_organization,
+    make_user_auth_headers,
+    role,
+    expected_status,
 ):
-    client = APIClient()
     _, token, alert_groups = alert_group_internal_api_setup
     _, _, new_alert_group, _ = alert_groups
     organization = new_alert_group.channel.organization
     user = make_user_for_organization(organization, role)
+
+    client = APIClient()
     url = reverse("api-internal:alertgroup-unacknowledge", kwargs={"pk": new_alert_group.public_primary_key})
 
     with patch(
@@ -718,19 +720,24 @@ def test_alert_group_unacknowledge_permissions(
 @pytest.mark.parametrize(
     "role,expected_status",
     [
-        (Role.ADMIN, status.HTTP_200_OK),
-        (Role.EDITOR, status.HTTP_200_OK),
-        (Role.VIEWER, status.HTTP_403_FORBIDDEN),
+        (LegacyAccessControlRole.ADMIN, status.HTTP_200_OK),
+        (LegacyAccessControlRole.EDITOR, status.HTTP_200_OK),
+        (LegacyAccessControlRole.VIEWER, status.HTTP_403_FORBIDDEN),
     ],
 )
 def test_alert_group_resolve_permissions(
-    make_user_for_organization, alert_group_internal_api_setup, make_user_auth_headers, role, expected_status
+    alert_group_internal_api_setup,
+    make_user_for_organization,
+    make_user_auth_headers,
+    role,
+    expected_status,
 ):
-    client = APIClient()
     _, token, alert_groups = alert_group_internal_api_setup
     _, _, new_alert_group, _ = alert_groups
     organization = new_alert_group.channel.organization
     user = make_user_for_organization(organization, role)
+
+    client = APIClient()
     url = reverse("api-internal:alertgroup-resolve", kwargs={"pk": new_alert_group.public_primary_key})
 
     with patch(
@@ -747,19 +754,24 @@ def test_alert_group_resolve_permissions(
 @pytest.mark.parametrize(
     "role,expected_status",
     [
-        (Role.ADMIN, status.HTTP_200_OK),
-        (Role.EDITOR, status.HTTP_200_OK),
-        (Role.VIEWER, status.HTTP_403_FORBIDDEN),
+        (LegacyAccessControlRole.ADMIN, status.HTTP_200_OK),
+        (LegacyAccessControlRole.EDITOR, status.HTTP_200_OK),
+        (LegacyAccessControlRole.VIEWER, status.HTTP_403_FORBIDDEN),
     ],
 )
 def test_alert_group_unresolve_permissions(
-    make_user_for_organization, alert_group_internal_api_setup, make_user_auth_headers, role, expected_status
+    alert_group_internal_api_setup,
+    make_user_for_organization,
+    make_user_auth_headers,
+    role,
+    expected_status,
 ):
-    client = APIClient()
     _, token, alert_groups = alert_group_internal_api_setup
     _, _, new_alert_group, _ = alert_groups
     organization = new_alert_group.channel.organization
     user = make_user_for_organization(organization, role)
+
+    client = APIClient()
     url = reverse("api-internal:alertgroup-unresolve", kwargs={"pk": new_alert_group.public_primary_key})
 
     with patch(
@@ -776,19 +788,24 @@ def test_alert_group_unresolve_permissions(
 @pytest.mark.parametrize(
     "role,expected_status",
     [
-        (Role.ADMIN, status.HTTP_200_OK),
-        (Role.EDITOR, status.HTTP_200_OK),
-        (Role.VIEWER, status.HTTP_403_FORBIDDEN),
+        (LegacyAccessControlRole.ADMIN, status.HTTP_200_OK),
+        (LegacyAccessControlRole.EDITOR, status.HTTP_200_OK),
+        (LegacyAccessControlRole.VIEWER, status.HTTP_403_FORBIDDEN),
     ],
 )
 def test_alert_group_silence_permissions(
-    make_user_for_organization, alert_group_internal_api_setup, make_user_auth_headers, role, expected_status
+    alert_group_internal_api_setup,
+    make_user_for_organization,
+    make_user_auth_headers,
+    role,
+    expected_status,
 ):
-    client = APIClient()
     _, token, alert_groups = alert_group_internal_api_setup
     _, _, new_alert_group, _ = alert_groups
     organization = new_alert_group.channel.organization
     user = make_user_for_organization(organization, role)
+
+    client = APIClient()
     url = reverse("api-internal:alertgroup-silence", kwargs={"pk": new_alert_group.public_primary_key})
 
     with patch(
@@ -805,19 +822,24 @@ def test_alert_group_silence_permissions(
 @pytest.mark.parametrize(
     "role,expected_status",
     [
-        (Role.ADMIN, status.HTTP_200_OK),
-        (Role.EDITOR, status.HTTP_200_OK),
-        (Role.VIEWER, status.HTTP_403_FORBIDDEN),
+        (LegacyAccessControlRole.ADMIN, status.HTTP_200_OK),
+        (LegacyAccessControlRole.EDITOR, status.HTTP_200_OK),
+        (LegacyAccessControlRole.VIEWER, status.HTTP_403_FORBIDDEN),
     ],
 )
 def test_alert_group_unsilence_permissions(
-    make_user_for_organization, alert_group_internal_api_setup, make_user_auth_headers, role, expected_status
+    alert_group_internal_api_setup,
+    make_user_for_organization,
+    make_user_auth_headers,
+    role,
+    expected_status,
 ):
-    client = APIClient()
     _, token, alert_groups = alert_group_internal_api_setup
     _, _, new_alert_group, _ = alert_groups
     organization = new_alert_group.channel.organization
     user = make_user_for_organization(organization, role)
+
+    client = APIClient()
     url = reverse("api-internal:alertgroup-unsilence", kwargs={"pk": new_alert_group.public_primary_key})
 
     with patch(
@@ -834,19 +856,24 @@ def test_alert_group_unsilence_permissions(
 @pytest.mark.parametrize(
     "role,expected_status",
     [
-        (Role.ADMIN, status.HTTP_200_OK),
-        (Role.EDITOR, status.HTTP_200_OK),
-        (Role.VIEWER, status.HTTP_403_FORBIDDEN),
+        (LegacyAccessControlRole.ADMIN, status.HTTP_200_OK),
+        (LegacyAccessControlRole.EDITOR, status.HTTP_200_OK),
+        (LegacyAccessControlRole.VIEWER, status.HTTP_403_FORBIDDEN),
     ],
 )
 def test_alert_group_attach_permissions(
-    make_user_for_organization, alert_group_internal_api_setup, make_user_auth_headers, role, expected_status
+    alert_group_internal_api_setup,
+    make_user_for_organization,
+    make_user_auth_headers,
+    role,
+    expected_status,
 ):
-    client = APIClient()
     _, token, alert_groups = alert_group_internal_api_setup
     _, _, new_alert_group, _ = alert_groups
     organization = new_alert_group.channel.organization
     user = make_user_for_organization(organization, role)
+
+    client = APIClient()
     url = reverse("api-internal:alertgroup-attach", kwargs={"pk": new_alert_group.public_primary_key})
 
     with patch(
@@ -863,19 +890,24 @@ def test_alert_group_attach_permissions(
 @pytest.mark.parametrize(
     "role,expected_status",
     [
-        (Role.ADMIN, status.HTTP_200_OK),
-        (Role.EDITOR, status.HTTP_200_OK),
-        (Role.VIEWER, status.HTTP_403_FORBIDDEN),
+        (LegacyAccessControlRole.ADMIN, status.HTTP_200_OK),
+        (LegacyAccessControlRole.EDITOR, status.HTTP_200_OK),
+        (LegacyAccessControlRole.VIEWER, status.HTTP_403_FORBIDDEN),
     ],
 )
 def test_alert_group_unattach_permissions(
-    make_user_for_organization, alert_group_internal_api_setup, make_user_auth_headers, role, expected_status
+    alert_group_internal_api_setup,
+    make_user_for_organization,
+    make_user_auth_headers,
+    role,
+    expected_status,
 ):
-    client = APIClient()
     _, token, alert_groups = alert_group_internal_api_setup
     _, _, new_alert_group, _ = alert_groups
     organization = new_alert_group.channel.organization
     user = make_user_for_organization(organization, role)
+
+    client = APIClient()
     url = reverse("api-internal:alertgroup-unattach", kwargs={"pk": new_alert_group.public_primary_key})
 
     with patch(
@@ -892,19 +924,24 @@ def test_alert_group_unattach_permissions(
 @pytest.mark.parametrize(
     "role,expected_status",
     [
-        (Role.ADMIN, status.HTTP_200_OK),
-        (Role.EDITOR, status.HTTP_200_OK),
-        (Role.VIEWER, status.HTTP_200_OK),
+        (LegacyAccessControlRole.ADMIN, status.HTTP_200_OK),
+        (LegacyAccessControlRole.EDITOR, status.HTTP_200_OK),
+        (LegacyAccessControlRole.VIEWER, status.HTTP_200_OK),
     ],
 )
 def test_alert_group_list_permissions(
-    make_user_for_organization, alert_group_internal_api_setup, make_user_auth_headers, role, expected_status
+    alert_group_internal_api_setup,
+    make_user_for_organization,
+    make_user_auth_headers,
+    role,
+    expected_status,
 ):
-    client = APIClient()
     _, token, alert_groups = alert_group_internal_api_setup
     _, _, new_alert_group, _ = alert_groups
     organization = new_alert_group.channel.organization
     user = make_user_for_organization(organization, role)
+
+    client = APIClient()
     url = reverse("api-internal:alertgroup-list")
 
     with patch(
@@ -921,19 +958,24 @@ def test_alert_group_list_permissions(
 @pytest.mark.parametrize(
     "role,expected_status",
     [
-        (Role.ADMIN, status.HTTP_200_OK),
-        (Role.EDITOR, status.HTTP_200_OK),
-        (Role.VIEWER, status.HTTP_200_OK),
+        (LegacyAccessControlRole.ADMIN, status.HTTP_200_OK),
+        (LegacyAccessControlRole.EDITOR, status.HTTP_200_OK),
+        (LegacyAccessControlRole.VIEWER, status.HTTP_200_OK),
     ],
 )
 def test_alert_group_stats_permissions(
-    make_user_for_organization, alert_group_internal_api_setup, make_user_auth_headers, role, expected_status
+    alert_group_internal_api_setup,
+    make_user_for_organization,
+    make_user_auth_headers,
+    role,
+    expected_status,
 ):
-    client = APIClient()
     _, token, alert_groups = alert_group_internal_api_setup
     _, _, new_alert_group, _ = alert_groups
     organization = new_alert_group.channel.organization
     user = make_user_for_organization(organization, role)
+
+    client = APIClient()
     url = reverse("api-internal:alertgroup-stats")
 
     with patch(
@@ -950,19 +992,24 @@ def test_alert_group_stats_permissions(
 @pytest.mark.parametrize(
     "role,expected_status",
     [
-        (Role.ADMIN, status.HTTP_200_OK),
-        (Role.EDITOR, status.HTTP_200_OK),
-        (Role.VIEWER, status.HTTP_403_FORBIDDEN),
+        (LegacyAccessControlRole.ADMIN, status.HTTP_200_OK),
+        (LegacyAccessControlRole.EDITOR, status.HTTP_200_OK),
+        (LegacyAccessControlRole.VIEWER, status.HTTP_403_FORBIDDEN),
     ],
 )
 def test_alert_group_bulk_action_permissions(
-    make_user_for_organization, alert_group_internal_api_setup, make_user_auth_headers, role, expected_status
+    alert_group_internal_api_setup,
+    make_user_for_organization,
+    make_user_auth_headers,
+    role,
+    expected_status,
 ):
-    client = APIClient()
     _, token, alert_groups = alert_group_internal_api_setup
     _, _, new_alert_group, _ = alert_groups
     organization = new_alert_group.channel.organization
     user = make_user_for_organization(organization, role)
+
+    client = APIClient()
     url = reverse("api-internal:alertgroup-bulk-action")
 
     with patch(
@@ -977,19 +1024,24 @@ def test_alert_group_bulk_action_permissions(
 @pytest.mark.parametrize(
     "role,expected_status",
     [
-        (Role.ADMIN, status.HTTP_200_OK),
-        (Role.EDITOR, status.HTTP_200_OK),
-        (Role.VIEWER, status.HTTP_200_OK),
+        (LegacyAccessControlRole.ADMIN, status.HTTP_200_OK),
+        (LegacyAccessControlRole.EDITOR, status.HTTP_200_OK),
+        (LegacyAccessControlRole.VIEWER, status.HTTP_200_OK),
     ],
 )
 def test_alert_group_filters_permissions(
-    make_user_for_organization, alert_group_internal_api_setup, make_user_auth_headers, role, expected_status
+    alert_group_internal_api_setup,
+    make_user_for_organization,
+    make_user_auth_headers,
+    role,
+    expected_status,
 ):
-    client = APIClient()
     _, token, alert_groups = alert_group_internal_api_setup
     _, _, new_alert_group, _ = alert_groups
     organization = new_alert_group.channel.organization
     user = make_user_for_organization(organization, role)
+
+    client = APIClient()
     url = reverse("api-internal:alertgroup-filters")
 
     with patch(
@@ -1006,19 +1058,24 @@ def test_alert_group_filters_permissions(
 @pytest.mark.parametrize(
     "role,expected_status",
     [
-        (Role.ADMIN, status.HTTP_200_OK),
-        (Role.EDITOR, status.HTTP_200_OK),
-        (Role.VIEWER, status.HTTP_200_OK),
+        (LegacyAccessControlRole.ADMIN, status.HTTP_200_OK),
+        (LegacyAccessControlRole.EDITOR, status.HTTP_200_OK),
+        (LegacyAccessControlRole.VIEWER, status.HTTP_200_OK),
     ],
 )
 def test_alert_group_detail_permissions(
-    make_user_for_organization, alert_group_internal_api_setup, make_user_auth_headers, role, expected_status
+    alert_group_internal_api_setup,
+    make_user_for_organization,
+    make_user_auth_headers,
+    role,
+    expected_status,
 ):
-    client = APIClient()
     _, token, alert_groups = alert_group_internal_api_setup
     _, _, new_alert_group, _ = alert_groups
     organization = new_alert_group.channel.organization
     user = make_user_for_organization(organization, role)
+
+    client = APIClient()
     url = reverse("api-internal:alertgroup-detail", kwargs={"pk": new_alert_group.public_primary_key})
 
     with patch(
@@ -1032,10 +1089,7 @@ def test_alert_group_detail_permissions(
 
 
 @pytest.mark.django_db
-def test_silence(
-    alert_group_internal_api_setup,
-    make_user_auth_headers,
-):
+def test_silence(alert_group_internal_api_setup, make_user_auth_headers):
     client = APIClient()
     user, token, alert_groups = alert_group_internal_api_setup
     _, _, new_alert_group, _ = alert_groups
@@ -1396,9 +1450,9 @@ def test_alert_group_status_field(
 @pytest.mark.parametrize(
     "role,expected_status",
     [
-        (Role.ADMIN, status.HTTP_200_OK),
-        (Role.EDITOR, status.HTTP_200_OK),
-        (Role.VIEWER, status.HTTP_403_FORBIDDEN),
+        (LegacyAccessControlRole.ADMIN, status.HTTP_200_OK),
+        (LegacyAccessControlRole.EDITOR, status.HTTP_200_OK),
+        (LegacyAccessControlRole.VIEWER, status.HTTP_403_FORBIDDEN),
     ],
 )
 def test_alert_group_preview_template_permissions(
@@ -1414,6 +1468,7 @@ def test_alert_group_preview_template_permissions(
     alert_receive_channel = make_alert_receive_channel(organization)
     alert_group = make_alert_group(alert_receive_channel)
     make_alert(alert_group=alert_group, raw_request_data=alert_receive_channel.config.example_payload)
+
     client = APIClient()
     url = reverse("api-internal:alertgroup-preview-template", kwargs={"pk": alert_group.public_primary_key})
 
@@ -1436,7 +1491,7 @@ def test_alert_group_preview_body_non_existent_template_var(
     make_alert_group,
     make_alert,
 ):
-    organization, user, token = make_organization_and_user_with_plugin_token(role=Role.ADMIN)
+    organization, user, token = make_organization_and_user_with_plugin_token()
     alert_receive_channel = make_alert_receive_channel(organization)
     alert_group = make_alert_group(alert_receive_channel)
     make_alert(alert_group=alert_group, raw_request_data=alert_receive_channel.config.example_payload)
@@ -1458,7 +1513,7 @@ def test_alert_group_preview_body_invalid_template_syntax(
     make_alert_group,
     make_alert,
 ):
-    organization, user, token = make_organization_and_user_with_plugin_token(role=Role.ADMIN)
+    organization, user, token = make_organization_and_user_with_plugin_token()
     alert_receive_channel = make_alert_receive_channel(organization)
     alert_group = make_alert_group(alert_receive_channel)
     make_alert(alert_group=alert_group, raw_request_data=alert_receive_channel.config.example_payload)
