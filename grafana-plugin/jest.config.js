@@ -8,7 +8,7 @@ module.exports = {
   globals: {
     'ts-jest': {
       isolatedModules: true,
-      babelConfig: true
+      babelConfig: true,
     },
   },
 
@@ -20,10 +20,12 @@ module.exports = {
   },
 
   moduleNameMapper: {
-    "grafana/app/(.*)": '<rootDir>/src/jest/grafanaMock.ts',
-    "jest/outgoingWebhooksStub": '<rootDir>/src/jest/outgoingWebhooksStub.ts',
-    "^jest$": '<rootDir>/src/jest',
+    'grafana/app/(.*)': '<rootDir>/src/jest/grafanaMock.ts',
+    'jest/outgoingWebhooksStub': '<rootDir>/src/jest/outgoingWebhooksStub.ts',
+    '^jest$': '<rootDir>/src/jest',
     '^.+\\.(css|scss)$': '<rootDir>/src/jest/styleMock.ts',
-    "^lodash-es$": "lodash",
-  }
+    '^lodash-es$': 'lodash',
+  },
+
+  setupFiles: ['<rootDir>/jest.setup.js'],
 };

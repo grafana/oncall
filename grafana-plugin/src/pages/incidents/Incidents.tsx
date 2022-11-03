@@ -24,8 +24,8 @@ import { User } from 'models/user/user.types';
 import { getActionButtons, getIncidentStatusTag, renderRelatedUsers } from 'pages/incident/Incident.helpers';
 import { move } from 'state/helpers';
 import { WithStoreProps } from 'state/types';
-import { UserAction } from 'state/userAction';
 import { withMobXProviderContext } from 'state/withStore';
+import { UserActions } from 'utils/authorization';
 
 import SilenceDropdown from './parts/SilenceDropdown';
 
@@ -194,7 +194,7 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
         <div className={cx('bulk-actions')}>
           <HorizontalGroup>
             {'resolve' in store.alertGroupStore.bulkActions && (
-              <WithPermissionControl key="resolve" userAction={UserAction.UpdateIncidents}>
+              <WithPermissionControl key="resolve" userAction={UserActions.AlertGroupsWrite}>
                 <Button
                   disabled={!hasSelected}
                   variant="primary"
@@ -205,7 +205,7 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
               </WithPermissionControl>
             )}
             {'acknowledge' in store.alertGroupStore.bulkActions && (
-              <WithPermissionControl key="resolve" userAction={UserAction.UpdateIncidents}>
+              <WithPermissionControl key="resolve" userAction={UserActions.AlertGroupsWrite}>
                 <Button
                   disabled={!hasSelected}
                   variant="secondary"
@@ -216,7 +216,7 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
               </WithPermissionControl>
             )}
             {'silence' in store.alertGroupStore.bulkActions && (
-              <WithPermissionControl key="restart" userAction={UserAction.UpdateIncidents}>
+              <WithPermissionControl key="restart" userAction={UserActions.AlertGroupsWrite}>
                 <Button
                   disabled={!hasSelected}
                   variant="secondary"
@@ -227,7 +227,7 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
               </WithPermissionControl>
             )}
             {'restart' in store.alertGroupStore.bulkActions && (
-              <WithPermissionControl key="silence" userAction={UserAction.UpdateIncidents}>
+              <WithPermissionControl key="silence" userAction={UserActions.AlertGroupsWrite}>
                 <SilenceDropdown
                   disabled={!hasSelected}
                   onSelect={(ev) => this.getBulkActionClickHandler('silence', ev)}

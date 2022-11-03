@@ -11,7 +11,7 @@ import GSelect from 'containers/GSelect/GSelect';
 import { WithPermissionControl } from 'containers/WithPermissionControl/WithPermissionControl';
 import { Alert } from 'models/alertgroup/alertgroup.types';
 import { useStore } from 'state/useStore';
-import { UserAction } from 'state/userAction';
+import { UserActions } from 'utils/authorization';
 
 import styles from './AttachIncidentForm.module.css';
 
@@ -73,7 +73,7 @@ const AttachIncidentForm = observer(({ id, onUpdate, onHide }: AttachIncidentFor
         label="Incident to be attached with"
         description="Linking incidents together can help the team investigate the underlying issue."
       >
-        <WithPermissionControl userAction={UserAction.UpdateIncidents}>
+        <WithPermissionControl userAction={UserActions.AlertGroupsWrite}>
           <GSelect
             showSearch
             modelName="alertGroupStore"

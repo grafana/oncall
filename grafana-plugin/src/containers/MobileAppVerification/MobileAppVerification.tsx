@@ -8,7 +8,7 @@ import Text from 'components/Text/Text';
 import { WithPermissionControl } from 'containers/WithPermissionControl/WithPermissionControl';
 import { User } from 'models/user/user.types';
 import { useStore } from 'state/useStore';
-import { UserAction } from 'state/userAction';
+import { UserActions } from 'utils/authorization';
 
 import styles from './MobileAppVerification.module.css';
 
@@ -28,7 +28,7 @@ const MobileAppVerification = observer((props: MobileAppVerificationProps) => {
   const userPk = (propsUserPk || userStore.currentUserPk) as User['pk'];
   const user = userStore.items[userPk as User['pk']];
   const isCurrent = userStore.currentUserPk === user.pk;
-  const action = isCurrent ? UserAction.UpdateOwnSettings : UserAction.UpdateOtherUsersSettings;
+  const action = isCurrent ? UserActions.UserSettingsWrite : UserActions.OtherSettingsWrite;
 
   const [showMobileAppVerificationToken, setShowMobileAppVerificationToken] = useState<string>(undefined);
   const [isMobileAppVerificationTokenExisting, setIsMobileAppVerificationTokenExisting] = useState<boolean>(false);

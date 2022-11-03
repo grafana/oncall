@@ -13,8 +13,8 @@ import { AlertReceiveChannel } from 'models/alert_receive_channel/alert_receive_
 import { Alert as AlertType } from 'models/alertgroup/alertgroup.types';
 import { Team } from 'models/team/team.types';
 import { useStore } from 'state/useStore';
-import { UserAction } from 'state/userAction';
 import { openErrorNotification, openNotification } from 'utils';
+import { UserActions } from 'utils/authorization';
 
 import styles from 'containers/IntegrationSettings/parts/Autoresolve.module.css';
 
@@ -149,7 +149,7 @@ const Autoresolve = ({ alertReceiveChannelId, onSwitchToTemplate, alertGroupId }
             </div>
           </Label>
           <div className={cx('team-select')}>
-            <WithPermissionControl userAction={UserAction.UpdateAlertReceiveChannels}>
+            <WithPermissionControl userAction={UserActions.IntegrationsWrite}>
               <Select
                 className={cx('team-select')}
                 //@ts-ignore

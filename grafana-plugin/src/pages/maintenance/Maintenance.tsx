@@ -16,8 +16,8 @@ import { getAlertReceiveChannelDisplayName } from 'models/alert_receive_channel/
 import { AlertReceiveChannel } from 'models/alert_receive_channel/alert_receive_channel.types';
 import { Maintenance, MaintenanceMode, MaintenanceType } from 'models/maintenance/maintenance.types';
 import { WithStoreProps } from 'state/types';
-import { UserAction } from 'state/userAction';
 import { withMobXProviderContext } from 'state/withStore';
+import { UserActions } from 'utils/authorization';
 
 import styles from './Maintenance.module.css';
 
@@ -129,7 +129,7 @@ class MaintenancePage extends React.Component<MaintenancePageProps, MaintenanceP
                     </Text>
                   </HorizontalGroup>
                 </div>
-                <WithPermissionControl userAction={UserAction.UpdateMaintenances}>
+                <WithPermissionControl userAction={UserActions.MaintenanceWrite}>
                   <Button
                     onClick={() => {
                       this.setState({ maintenanceData: {} });
@@ -183,7 +183,7 @@ class MaintenancePage extends React.Component<MaintenancePageProps, MaintenanceP
   renderActionButtons = (maintenance: Maintenance) => {
     return (
       <div className={cx('buttons')}>
-        <WithPermissionControl userAction={UserAction.UpdateMaintenances}>
+        <WithPermissionControl userAction={UserActions.MaintenanceWrite}>
           <WithConfirm title="Are you sure to stop?" confirmText="Stop">
             <Button variant="destructive" fill="text" onClick={this.getStopMaintenanceHandler(maintenance)}>
               Stop

@@ -9,7 +9,7 @@ import Text from 'components/Text/Text';
 import { WithPermissionControl } from 'containers/WithPermissionControl/WithPermissionControl';
 import { OutgoingWebhook } from 'models/outgoing_webhook/outgoing_webhook.types';
 import { useStore } from 'state/useStore';
-import { UserAction } from 'state/userAction';
+import { UserActions } from 'utils/authorization';
 
 import { form } from './OutgoingWebhookForm.config';
 
@@ -56,7 +56,7 @@ const OutgoingWebhookForm = observer((props: OutgoingWebhookFormProps) => {
     >
       <div className={cx('content')} data-testid="test__outgoingWebhookEditForm">
         <GForm form={form} data={data} onSubmit={handleSubmit} />
-        <WithPermissionControl userAction={UserAction.UpdateCustomActions}>
+        <WithPermissionControl userAction={UserActions.OutgoingWebhooksWrite}>
           <Button form={form.name} type="submit">
             {id === 'new' ? 'Create' : 'Update'} Webhook
           </Button>

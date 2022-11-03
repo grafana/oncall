@@ -10,7 +10,7 @@ import { observer } from 'mobx-react';
 import PluginLink from 'components/PluginLink/PluginLink';
 import { getIfChatOpsConnected } from 'containers/DefaultPageLayout/helper';
 import { useStore } from 'state/useStore';
-import { UserAction } from 'state/userAction';
+import { UserActions } from 'utils/authorization';
 import { GRAFANA_LICENSE_OSS } from 'utils/consts';
 import { useForceUpdate } from 'utils/hooks';
 import { getItem, setItem } from 'utils/localStorage';
@@ -127,7 +127,7 @@ const DefaultPageLayout: FC<DefaultPageLayoutProps> = observer((props) => {
         {Boolean(
           currentTeam &&
             currentUser &&
-            store.isUserActionAllowed(UserAction.UpdateOwnSettings) &&
+            store.isUserActionAllowed(UserActions.UserSettingsWrite) &&
             (!isPhoneVerified || !isChatOpsConnected) &&
             !getItem(AlertID.CONNECTIVITY_WARNING)
         ) && (
