@@ -73,21 +73,18 @@
 
 .slots--tutorial {
   position: absolute;
+  background: rgba(61, 113, 217, 0.15);
 }
 
 .pointer {
   position: absolute;
   top: -9px;
+  transition: left 500ms ease;
 }
 
 .tutorial-slot {
   width: 175px;
   height: 28px;
-  background: rgba(61, 113, 217, 0.15);
-
-  /* opacity: 0.15; */
-
-  /* background: var(--background-primary); */
   border-radius: 2px;
   margin: 0 1px;
   padding: 4px;

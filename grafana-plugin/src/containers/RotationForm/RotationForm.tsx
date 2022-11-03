@@ -233,6 +233,27 @@ const RotationForm: FC<RotationFormProps> = observer((props) => {
 
   const isFormValid = useMemo(() => userGroups.some((group) => group.length), [userGroups]);
 
+  const [focusElementName, setFocusElementName] = useState<undefined | string>(undefined);
+
+  const getFocusHandler = (elementName: string) => {
+    return () => {
+      setFocusElementName(elementName);
+    };
+  };
+
+  const handleBlur = useCallback(() => {
+    setFocusElementName(undefined);
+  }, []);
+
+  useEffect(() => {
+    store.scheduleStore.setRotationFormLiveParams({
+      rotationStart,
+      shiftStart,
+      shiftEnd,
+      focusElementName,
+    });
+  }, [params, focusElementName]);
+
   return (
     <Modal
       isOpen={isOpen}
@@ -276,6 +297,8 @@ const RotationForm: FC<RotationFormProps> = observer((props) => {
                   value={rotationStart}
                   onChange={setRotationStart}
                   timezone={currentTimezone}
+                  onFocus={getFocusHandler('rotationStart')}
+                  onBlur={handleBlur}
                 />
               </Field>
               <Field
@@ -338,7 +361,13 @@ const RotationForm: FC<RotationFormProps> = observer((props) => {
                   </Text>
                 }
               >
-                <DateTimePicker value={shiftStart} onChange={updateShiftStart} timezone={currentTimezone} />
+                <DateTimePicker
+                  value={shiftStart}
+                  onChange={updateShiftStart}
+                  timezone={currentTimezone}
+                  onFocus={getFocusHandler('shiftStart')}
+                  onBlur={handleBlur}
+                />
               </Field>
               <Field
                 className={cx('date-time-picker')}
@@ -348,7 +377,13 @@ const RotationForm: FC<RotationFormProps> = observer((props) => {
                   </Text>
                 }
               >
-                <DateTimePicker value={shiftEnd} onChange={setShiftEnd} timezone={currentTimezone} />
+                <DateTimePicker
+                  value={shiftEnd}
+                  onChange={setShiftEnd}
+                  timezone={currentTimezone}
+                  onFocus={getFocusHandler('shiftEnd')}
+                  onBlur={handleBlur}
+                />
               </Field>
             </div>
             <UserGroups

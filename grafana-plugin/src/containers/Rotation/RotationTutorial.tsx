@@ -1,47 +1,46 @@
-import React, { FC, useMemo, useState } from 'react';
+import React, { FC, useMemo } from 'react';
 
 import cn from 'classnames/bind';
 import dayjs from 'dayjs';
 
-import { Schedule, Event, ScheduleType } from 'models/schedule/schedule.types';
-import { Timezone } from 'models/timezone/timezone.types';
+import { RotationFormLiveParams } from 'models/schedule/schedule.types';
 
 import styles from './Rotation.module.css';
 
 const cx = cn.bind(styles);
 
-interface RotationProps {
-  scheduleId: Schedule['id'];
+interface RotationProps extends RotationFormLiveParams {
   startMoment: dayjs.Dayjs;
-  currentTimezone: Timezone;
   days?: number;
 }
 
 const RotationTutorial: FC<RotationProps> = (props) => {
-  const { startMoment, days = 7 /* shiftStart, shiftEnd, rotationStart*/ } = props;
-
-  const shiftStart = dayjs(startMoment);
-  const shiftEnd = dayjs(startMoment).add(1, 'days');
-  const rotationStart = dayjs(startMoment).add(1, 'days');
+  const { startMoment, days = 7, shiftStart, shiftEnd, rotationStart, focusElementName } = props;
 
   const duration = shiftEnd.diff(shiftStart, 'seconds');
 
   const events = useMemo(() => {
-    const events = [];
-    for (let i = 0; i < days; i++) {
-      events.push({
-        start: dayjs(shiftStart).add(i, 'days'),
-        end: dayjs(shiftStart).add(duration, 'seconds').add(i, 'days'),
-      });
+    return [
+      {
+        start: dayjs(shiftStart),
+        end: dayjs(shiftStart).add(duration, 'seconds'),
+      },
+    ];
+  }, [shiftStart, duration]);
+
+  const base = 60 * 60 * 24 * days;
+
+  const pointerX = useMemo(() => {
+    if (focusElementName === undefined) {
+      return undefined;
     }
-    return events;
-  }, []);
 
-  const base = 60 * 60 * 24 * 7;
+    const moment = props[focusElementName];
+    const firstEvent = events[0];
+    const diff = dayjs(moment).diff(firstEvent.start, 'seconds');
 
-  const diff = dayjs(rotationStart).diff(startMoment, 'seconds');
-
-  const currentTimeX = diff / base;
+    return diff / base;
+  }, [focusElementName, events, rotationStart]);
 
   const x = useMemo(() => {
     if (!events || !events.length) {
@@ -57,20 +56,29 @@ const RotationTutorial: FC<RotationProps> = (props) => {
 
   return (
     <div className={cx('slots', 'slots--tutorial')} style={{ transform: `translate(${x * 100}%, 0)` }}>
-      <Pointer className={cx('pointer')} style={{ left: `calc(${currentTimeX * 100}% - 5px)` }} />
+      <Pointer
+        className={cx('pointer')}
+        style={{ left: `calc(${pointerX * 100}% - 5px)`, visibility: pointerX === undefined ? 'hidden' : 'visible' }}
+      />
       {events.map((event, index) => {
         const duration = event.end.diff(event.start, 'seconds');
         const width = duration / base;
-        return <TutorialSlot style={{ width: `${width * 100}%` }} key={index} />;
+        return (
+          <TutorialSlot
+            active={focusElementName === 'shiftStart' || focusElementName === 'shiftEnd'}
+            style={{ width: `${width * 100}%` }}
+            key={index}
+          />
+        );
       })}
     </div>
   );
 };
 
-const TutorialSlot = (props: { style: React.CSSProperties }) => {
-  const { style } = props;
+const TutorialSlot = (props: { style: React.CSSProperties; active: boolean }) => {
+  const { style, active } = props;
 
-  return <div className={cx('tutorial-slot')} style={style} />;
+  return <div className={cx('tutorial-slot', { 'tutorial-slot--active': active })} style={style} />;
 };
 
 const Pointer = (props: { className: string; style: React.CSSProperties }) => {

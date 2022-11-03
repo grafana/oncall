@@ -5,7 +5,7 @@ import cn from 'classnames/bind';
 import dayjs from 'dayjs';
 
 import ScheduleSlot from 'containers/ScheduleSlot/ScheduleSlot';
-import { Schedule, Event } from 'models/schedule/schedule.types';
+import { Schedule, Event, RotationFormLiveParams } from 'models/schedule/schedule.types';
 import { Timezone } from 'models/timezone/timezone.types';
 
 import { getLabel } from './Rotation.helpers';
@@ -26,6 +26,7 @@ interface RotationProps {
   onClick?: (moment: dayjs.Dayjs) => void;
   days?: number;
   transparent?: boolean;
+  tutorialParams?: RotationFormLiveParams;
 }
 
 const Rotation: FC<RotationProps> = (props) => {
@@ -40,6 +41,7 @@ const Rotation: FC<RotationProps> = (props) => {
     onClick,
     days = 7,
     transparent = false,
+    tutorialParams,
   } = props;
 
   const [animate, _setAnimate] = useState<boolean>(true);
@@ -74,7 +76,7 @@ const Rotation: FC<RotationProps> = (props) => {
   return (
     <div className={cx('root')} onClick={handleClick}>
       <div className={cx('timeline')}>
-        {/*<RotationTutorial />*/}
+        {tutorialParams && <RotationTutorial startMoment={startMoment} {...tutorialParams} />}
         {events ? (
           events.length ? (
             <div

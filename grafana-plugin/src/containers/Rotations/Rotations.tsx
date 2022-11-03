@@ -145,6 +145,7 @@ class Rotations extends Component<RotationsProps, RotationsState> {
                                 startMoment={startMoment}
                                 currentTimezone={currentTimezone}
                                 transparent={isPreview}
+                                tutorialParams={isPreview && store.scheduleStore.rotationFormLiveParams}
                               />
                             </CSSTransition>
                           ))}
