@@ -16,6 +16,16 @@ MAX_RETRIES = 1 if settings.DEBUG else 10
 logger = get_task_logger(__name__)
 
 
+def get_from_email(user):
+    if live_settings.EMAIL_FROM_ADDRESS:
+        return live_settings.EMAIL_FROM_ADDRESS
+
+    if settings.LICENSE == settings.CLOUD_LICENSE_NAME:
+        return "oncall@{}.grafana.net".format(user.organization.stack_slug)
+
+    return live_settings.EMAIL_HOST_USER
+
+
 @shared_dedicated_queue_retry_task(autoretry_for=(Exception,), retry_backoff=True, max_retries=MAX_RETRIES)
 def notify_user_async(user_pk, alert_group_pk, notification_policy_pk):
     # imported here to avoid circular import error
@@ -76,12 +86,8 @@ def notify_user_async(user_pk, alert_group_pk, notification_policy_pk):
     subject, html_message = build_subject_and_message(alert_group, emails_left)
 
     message = strip_tags(html_message)
+    from_email = get_from_email(user)
     recipient_list = [user.email]
-
-    if settings.LICENSE == settings.CLOUD_LICENSE_NAME:
-        email_from = "oncall@{}.grafana.net".format(user.organization.stack_slug)
-    else:
-        email_from = live_settings.EMAIL_HOST_USER
 
     connection = get_connection(
         host=live_settings.EMAIL_HOST,
@@ -94,7 +100,7 @@ def notify_user_async(user_pk, alert_group_pk, notification_policy_pk):
     )
 
     try:
-        send_mail(subject, message, email_from, recipient_list, html_message=html_message, connection=connection)
+        send_mail(subject, message, from_email, recipient_list, html_message=html_message, connection=connection)
         EmailMessage.objects.create(
             represents_alert_group=alert_group,
             notification_policy=notification_policy,
