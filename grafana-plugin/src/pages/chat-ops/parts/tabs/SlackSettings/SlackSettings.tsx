@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 
-import { Field, HorizontalGroup, LoadingPlaceholder, VerticalGroup } from '@grafana/ui';
+import { Field, HorizontalGroup, LoadingPlaceholder, VerticalGroup, Button } from '@grafana/ui';
 import cn from 'classnames/bind';
 import { observer } from 'mobx-react';
 
@@ -8,6 +8,7 @@ import PluginLink from 'components/PluginLink/PluginLink';
 import Text from 'components/Text/Text';
 import Tutorial from 'components/Tutorial/Tutorial';
 import { TutorialStep } from 'components/Tutorial/Tutorial.types';
+import WithConfirm from 'components/WithConfirm/WithConfirm';
 import GSelect from 'containers/GSelect/GSelect';
 import RemoteSelect from 'containers/RemoteSelect/RemoteSelect';
 import SlackIntegrationButton from 'containers/SlackIntegrationButton/SlackIntegrationButton';
@@ -86,7 +87,7 @@ class SlackSettings extends Component<SlackProps, SlackState> {
                 </WithPermissionControl>
               </Field>
             </HorizontalGroup>
-            <WithPermissionControl userAction={UserActions.ChatOpsWrite}>
+            <WithPermissionControl userAction={UserActions.ChatOpsUpdateSettings}>
               <WithConfirm title="Are you sure to delete this Slack Integration?">
                 <Button variant="destructive" size="sm" onClick={() => this.removeSlackIntegration()}>
                   Disconnect
@@ -159,7 +160,7 @@ class SlackSettings extends Component<SlackProps, SlackState> {
   };
 
   renderActionButtons = () => {
-    <WithPermissionControl userAction={UserActions.ChatOpsWrite}>
+    <WithPermissionControl userAction={UserActions.ChatOpsUpdateSettings}>
       <WithConfirm title="Are you sure to delete this Slack Integration?">
         <Button variant="destructive" size="sm" onClick={() => this.removeSlackIntegration()}>
           Disconnect
