@@ -18,7 +18,7 @@ Zabbix is an open-source monitoring software tool for diverse IT components, inc
 
 ## Configure Zabbix integration for Grafana OnCall
 
-This integration is available for Grafana Cloud OnCall. You must have an Admin role to create integrations in Grafana OnCall.
+This integration is available for Grafana Cloud OnCall. You must have an Admin, or Integrations Editor, role to create integrations in Grafana OnCall.
 
 1. In the **Integrations** tab, click **+ New integration for receiving alerts**.
 2. Select **Zabbix** from the list of available integrations
@@ -88,7 +88,7 @@ To send alerts to Grafana OnCall, the {ALERT.SEND_TO} value must be set in the [
 1. Click **Test** in the last column to send a test alert to Grafana OnCall.
 <!--![](../_images/zabbix-3.png)-->
 
-1. Specify **Send to** OnCall using the unique integration URL from the above step in the testing window that opens.  
+1. Specify **Send to** OnCall using the unique integration URL from the above step in the testing window that opens.
    Create a test message with a body and optional subject and click **Test**.
    <!--![](../_images/zabbix-4.png)
         WHERE DID SLACK COME FROM?! 1. View the Grafana OnCall incident that appears in the Slack channel.

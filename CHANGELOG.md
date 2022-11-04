@@ -1,5 +1,9 @@
 # Change Log
 
+## v2.0.0 (2022-11-11)
+
+- add RBAC support
+
 ## v1.0.46 (2022-10-28)
 
 - Bug fixes

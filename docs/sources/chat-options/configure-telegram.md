@@ -33,7 +33,7 @@ If you want to connect manually, you can click the URL provided and then **SEND 
 
 In case you want to manage alerts in a dedicated Telegram channel, please use the following steps as a reference.
 
-> **NOTE:** Only Grafana users with the administrator role can configure OnCall settings.
+> **NOTE:** Only Grafana users with the Admin or Editor basic roles, or ChatOps Editor OnCall role, can configure OnCall settings.
 
 1. In OnCall, click on the **ChatOps** tab and select Telegram in the side menu.
 1. Click **Connect Telegram channel** and follow the instructions, mirrored here for reference. A unique verification code will be generated that you must use to activate the channel.
