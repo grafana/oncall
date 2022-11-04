@@ -5,14 +5,21 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## v1.1.6 (TBD)
+## v1.2.0 (TBD)
+
+### Added
+
+- RBAC permission support
 
 ### Fixed
+
 - Got 500 error when saving Outgoing Webhook ([#890](https://github.com/grafana/oncall/issues/890))
 
 ### Changed
+
 - When editing templates for alert group presentation or outgoing webhooks, errors and warnings are now displayed in the UI as notification popups or displayed in the preview.
 - Errors and warnings that occur when rendering templates during notification or webhooks will now render and display the error/warning as the result.
+
 ## v1.1.5 (2022-11-24)
 
 ### Added
