@@ -37,7 +37,6 @@ import 'style/vars.css';
 import 'style/global.css';
 
 import { isNewNavigation } from './GrafanaPluginRootPage.helpers';
-import GrafanaTeamSelect from 'containers/GrafanaTeamSelect/GrafanaTeamSelect';
 
 export const GrafanaPluginRootPage = (props: AppRootProps) => (
   <Provider store={rootStore}>
@@ -130,11 +129,11 @@ export const Root = observer((props: AppRootProps) => {
     return getPageMatchingComponent(page);
   }, [page]);
 
-  const hasTopNav = isNewNavigation();
+  const isNewNav = isNewNavigation();
 
   return (
     <DefaultPageLayout {...props}>
-      {!hasTopNav && (
+      {!isNewNav && (
         <>
           <Header page={page} />
           <nav className="page-container">
@@ -143,11 +142,8 @@ export const Root = observer((props: AppRootProps) => {
         </>
       )}
 
-      <div className={classnames({ 'page-container': !hasTopNav }, { 'page-body': !hasTopNav })}>
+      <div className={classnames({ 'page-container': !isNewNav }, { 'page-body': !isNewNav }, "u-position-relative")}>
         <Page {...props} path={pathWithoutLeadingSlash} />
-        <div>
-          <GrafanaTeamSelect currentPage={page} />
-        </div>
       </div>
     </DefaultPageLayout>
   );

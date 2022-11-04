@@ -31,6 +31,7 @@ import { withMobXProviderContext } from 'state/withStore';
 import SilenceDropdown from './parts/SilenceDropdown';
 
 import styles from './Incidents.module.css';
+import PageErrorHandlingWrapper from 'components/PageErrorHandlingWrapper/PageErrorHandlingWrapper';
 
 const cx = cn.bind(styles);
 
@@ -102,10 +103,14 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
   render() {
     return (
       <PluginPage>
-        <div className={cx('root')}>
-          {this.renderIncidentFilters()}
-          {this.renderTable()}
-        </div>
+        <PageErrorHandlingWrapper pageName='incidents'>
+          {() => (
+            <div className={cx('root')}>
+              {this.renderIncidentFilters()}
+              {this.renderTable()}
+            </div>
+          )}
+        </PageErrorHandlingWrapper>
       </PluginPage>
     );
   }

@@ -40,10 +40,12 @@
   margin-top: 24px;
 }
 
+.u-position-relative {
+  position: relative;
+}
 .u-pull-right {
   margin-left: auto;
 }
-
 .u-pull-left {
   margin-right: auto;
 }

@@ -4,6 +4,12 @@
   position: absolute;
   padding: 16px 0;
   margin-right: 24px;
+
+  &--topRight {
+    position: absolute;
+    right: 12px;
+    top: 24px;
+  }
 }
 
 .teamSelectLabel {

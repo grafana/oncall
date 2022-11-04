@@ -11,6 +11,8 @@ import { useStore } from 'state/useStore';
 import { openWarningNotification } from 'utils';
 
 import styles from './PageErrorHandlingWrapper.module.css';
+import { isNewNavigation } from 'plugin/GrafanaPluginRootPage.helpers';
+import GrafanaTeamSelect from 'containers/GrafanaTeamSelect/GrafanaTeamSelect';
 
 const cx = cn.bind(styles);
 
@@ -32,13 +34,14 @@ export default function PageErrorHandlingWrapper({
   itemNotFoundMessage,
   children,
 }: {
-  errorData: PageErrorData;
-  objectName: string;
+  errorData?: PageErrorData;
+  objectName?: string;
   pageName: string;
   itemNotFoundMessage?: string;
   children: () => JSX.Element;
 }) {
   useEffect(() => {
+    if (!errorData) return;
     const { isWrongTeamError, isNotFoundError } = errorData;
     if (!isWrongTeamError && isNotFoundError && itemNotFoundMessage) {
       openWarningNotification(itemNotFoundMessage);
@@ -47,7 +50,16 @@ export default function PageErrorHandlingWrapper({
 
   const store = useStore();
 
-  if (!errorData.isWrongTeamError) {
+  if (!errorData || !errorData.isWrongTeamError) {
+    if (isNewNavigation()) {
+      return (
+        <>
+          <GrafanaTeamSelect currentPage="integrations"></GrafanaTeamSelect>
+          {children()}
+        </>
+      );
+    }
+
     return children();
   }
 

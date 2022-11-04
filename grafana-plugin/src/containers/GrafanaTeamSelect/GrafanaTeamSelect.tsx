@@ -12,7 +12,8 @@ import { GrafanaTeam } from 'models/grafana_team/grafana_team.types';
 import { useStore } from 'state/useStore';
 import { UserAction } from 'state/userAction';
 
-import styles from './GrafanaTeamSelect.module.css';
+import styles from './GrafanaTeamSelect.module.scss';
+import { isNewNavigation } from 'plugin/GrafanaPluginRootPage.helpers';
 
 const cx = cn.bind(styles);
 
@@ -47,35 +48,36 @@ const GrafanaTeamSelect = observer((props: GrafanaTeamSelectProps) => {
     }
   };
 
+  const content = (
+    <div className={cx('teamSelect', { 'teamSelect--topRight': isNewNavigation() })}>
+      <div className={cx('teamSelectLabel')}>
+        <Label>
+          Select Team{' '}
+          <Tooltip content="The objects on this page are filtered by team and you can only view the objects that belong to your team. Note that filtering within Grafana OnCall is meant for usability, not access management.">
+            <Icon name="info-circle" size="md" className={cx('teamSelectInfo')}></Icon>
+          </Tooltip>
+        </Label>
+        <WithPermissionControl userAction={UserAction.UpdateTeams}>
+          <PluginLink path="/org/teams" className={cx('teamSelectLink')}>
+            Edit teams
+          </PluginLink>
+        </WithPermissionControl>
+      </div>
+      <GSelect
+        modelName="grafanaTeamStore"
+        displayField="name"
+        valueField="id"
+        placeholder="Select Team"
+        className={cx('select', 'control')}
+        value={user.current_team}
+        onChange={onTeamChange}
+      />
+    </div>
+  );
+
   return document.getElementsByClassName('page-header__inner')[0]
-    ? ReactDOM.createPortal(
-        <div className={cx('teamSelect')}>
-          <div className={cx('teamSelectLabel')}>
-            <Label>
-              Select Team{' '}
-              <Tooltip content="The objects on this page are filtered by team and you can only view the objects that belong to your team. Note that filtering within Grafana OnCall is meant for usability, not access management.">
-                <Icon name="info-circle" size="md" className={cx('teamSelectInfo')}></Icon>
-              </Tooltip>
-            </Label>
-            <WithPermissionControl userAction={UserAction.UpdateTeams}>
-              <PluginLink path="/org/teams" className={cx('teamSelectLink')}>
-                Edit teams
-              </PluginLink>
-            </WithPermissionControl>
-          </div>
-          <GSelect
-            modelName="grafanaTeamStore"
-            displayField="name"
-            valueField="id"
-            placeholder="Select Team"
-            className={cx('select', 'control')}
-            value={user.current_team}
-            onChange={onTeamChange}
-          />
-        </div>,
-        document.getElementsByClassName('page-header__inner')[0]
-      )
-    : null;
+    ? ReactDOM.createPortal(content, document.getElementsByClassName('page-header__inner')[0])
+    : (isNewNavigation() ? content : null);
 });
 
 export default GrafanaTeamSelect;
