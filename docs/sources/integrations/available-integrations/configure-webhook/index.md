@@ -1,6 +1,8 @@
 ---
 aliases:
-  - /docs/oncall/latest/integrations/add-webhook-integration/
+  - ../add-webhook-integration/
+  - /docs/oncall/latest/integrations/available-integrations/configure-webhook/
+canonical: https://grafana.com/docs/oncall/latest/integrations/available-integrations/configure-webhook/
 keywords:
   - Grafana Cloud
   - Alerts
@@ -9,11 +11,10 @@ keywords:
   - Alertmanager
   - Prometheus
 title: Webhook integration for Grafana OnCall
-canonical: "https://grafana.com/docs/oncall/latest/integrations/add-webhook-integration/"
 weight: 700
 ---
 
-# Configure Webhook integrations for Grafana OnCall
+# Webhook integrations for Grafana OnCall
 
 Grafana OnCall directly supports many integrations, those that aren’t currently listed in the Integrations menu can be connected using the webhook integration and configured alert templates.
 
@@ -56,4 +57,4 @@ For example:
     }'
         ```
 
-To learn how to use custom alert templates for formatted webhooks, see [Configure alerts in Grafana OnCall]({{< relref "../integrations/create-custom-templates/" >}}).
+To learn how to use custom alert templates for formatted webhooks, see [Configure alerts templates]({{< relref "../../../alert-behavior/alert-templates/" >}}).

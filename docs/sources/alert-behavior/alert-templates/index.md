@@ -1,18 +1,19 @@
 ---
 aliases:
-  - /docs/oncall/latest/integrations/create-custom-templates/
+  - ../integrations/create-custom-templates/
+  - /docs/oncall/latest/alert-behavior/alert-templates/
+canonical: https://grafana.com/docs/oncall/latest/alert-behavior/alert-templates/
 keywords:
   - Grafana Cloud
   - Alerts
   - Notifications
   - on-call
   - Jinja
-title: Configure alerts in Grafana OnCall
-canonical: "https://grafana.com/docs/oncall/latest/integrations/create-custom-templates/"
+title: Configure alert templates
 weight: 300
 ---
 
-# Configure alerts in Grafana OnCall
+# Configure alert templates
 
 Grafana OnCall can integrate with any monitoring systems that can send alerts using webhooks with JSON payloads. By default, webhooks deliver raw JSON payloads. When Grafana OnCall receives an alert and parses its payload, a default pre configured alert template is applied to modify the alert payload to be more human readable. These alert templates are customizable for any integration.
 

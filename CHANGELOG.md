@@ -1,5 +1,11 @@
 # Change Log
 
+## v1.0.50 (2022-11-03)
+
+- Updates to documentation
+- Improvements to web schedules
+- Bug fixes
+
 ## v1.0.49 (2022-11-01)
 
 - Enable SMTP email backend by default

@@ -1,9 +1,8 @@
 ---
 aliases:
-  - /docs/grafana-cloud/oncall/oncall-api-reference/escalation_chains/
   - /docs/oncall/latest/oncall-api-reference/escalation_chains/
+canonical: https://grafana.com/docs/oncall/latest/oncall-api-reference/escalation_chains/
 title: Escalation Chains HTTP API
-canonical: "https://grafana.com/docs/oncall/latest/oncall-api-reference/escalation_chains/"
 weight: 200
 ---
 
