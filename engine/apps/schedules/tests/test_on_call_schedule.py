@@ -235,7 +235,7 @@ def test_filter_events_ical_all_day(make_organization, make_user_for_organizatio
     organization = make_organization()
     schedule = make_schedule(organization, schedule_class=OnCallScheduleCalendar)
     schedule.cached_ical_file_primary = calendar.to_ical()
-    for u in ("@Bernard Desruisseaux", "@Bob", "@Alex"):
+    for u in ("@Bernard Desruisseaux", "@Bob", "@Alex", "@Alice"):
         make_user_for_organization(organization, username=u)
     # clear users pks <-> organization cache (persisting between tests)
     memoized_users_in_ical.cache_clear()
@@ -258,6 +258,12 @@ def test_filter_events_ical_all_day(make_organization, make_user_for_organizatio
             ["@Alex"],
             datetime.datetime(2021, 1, 27, 0, 0, tzinfo=pytz.UTC),
             datetime.datetime(2021, 1, 27, 23, 59, 59, 999999, tzinfo=pytz.UTC),
+        ),
+        (
+            True,
+            ["@Alice"],
+            datetime.datetime(2021, 1, 27, 0, 0, tzinfo=pytz.UTC),
+            datetime.datetime(2021, 1, 28, 23, 59, 59, 999999, tzinfo=pytz.UTC),
         ),
         (
             False,

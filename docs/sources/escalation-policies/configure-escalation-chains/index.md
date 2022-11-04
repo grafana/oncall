@@ -1,6 +1,7 @@
 ---
 aliases:
   - /docs/oncall/latest/escalation-policies/configure-escalation-chains/
+canonical: https://grafana.com/docs/oncall/latest/escalation-policies/configure-escalation-chains/
 keywords:
   - Grafana Cloud
   - Alerts
@@ -10,7 +11,6 @@ keywords:
   - oncall
   - integrations
 title: Configure and manage Escalation Chains
-canonical: "https://grafana.com/docs/oncall/latest/escalation-policies/configure-escalation-chains/"
 weight: 100
 ---
 

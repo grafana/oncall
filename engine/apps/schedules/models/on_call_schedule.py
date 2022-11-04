@@ -227,7 +227,7 @@ class OnCallSchedule(PolymorphicModel):
             end = shift["end"] - timezone.timedelta(days=1) if all_day else shift["end"]
             if all_day and all_day_datetime:
                 start = datetime.datetime.combine(start, datetime.datetime.min.time(), tzinfo=pytz.UTC)
-                end = datetime.datetime.combine(start, datetime.datetime.max.time(), tzinfo=pytz.UTC)
+                end = datetime.datetime.combine(end, datetime.datetime.max.time(), tzinfo=pytz.UTC)
             is_gap = shift.get("is_gap", False)
             shift_json = {
                 "all_day": all_day,

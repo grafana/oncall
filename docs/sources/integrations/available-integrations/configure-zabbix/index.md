@@ -1,18 +1,19 @@
 ---
 aliases:
-  - /docs/oncall/latest/integrations/available-integrations /add-zabbix/
+  - add-zabbix/
+  - /docs/oncall/latest/integrations/available-integrations/configure-zabbix/
+canonical: https://grafana.com/docs/oncall/latest/integrations/available-integrations/configure-zabbix/
 keywords:
   - Grafana Cloud
   - Alerts
   - Notifications
   - on-call
   - Zabbix
-title: Connect Zabbix to Grafana OnCall
-canonical: "https://grafana.com/docs/oncall/latest/integrations/available-integrations/add-zabbix/"
+title: Zabbix integration for Grafana OnCall
 weight: 500
 ---
 
-# Connect Zabbix to Grafana OnCall
+# Zabbix integration for Grafana OnCall
 
 Zabbix is an open-source monitoring software tool for diverse IT components, including networks, servers, virtual machines, and cloud services. Zabbix provides monitoring for metrics such as network utilization, CPU load, and disk space consumption.
 

@@ -2,12 +2,14 @@ import React from 'react';
 
 import { AppRootProps } from '@grafana/data';
 import { getLocationSrv } from '@grafana/runtime';
-import { Button, HorizontalGroup, VerticalGroup, IconButton, ToolbarButton, Icon } from '@grafana/ui';
+import { Button, HorizontalGroup, VerticalGroup, IconButton, ToolbarButton, Icon, Modal } from '@grafana/ui';
 import cn from 'classnames/bind';
 import dayjs from 'dayjs';
+import { omit } from 'lodash-es';
 import { observer } from 'mobx-react';
 
 import PluginLink from 'components/PluginLink/PluginLink';
+import ScheduleWarning from 'components/ScheduleWarning/ScheduleWarning';
 import Text from 'components/Text/Text';
 import UserTimezoneSelect from 'components/UserTimezoneSelect/UserTimezoneSelect';
 import WithConfirm from 'components/WithConfirm/WithConfirm';
@@ -15,8 +17,9 @@ import Rotations from 'containers/Rotations/Rotations';
 import ScheduleFinal from 'containers/Rotations/ScheduleFinal';
 import ScheduleOverrides from 'containers/Rotations/ScheduleOverrides';
 import ScheduleForm from 'containers/ScheduleForm/ScheduleForm';
+import ScheduleICalSettings from 'containers/ScheduleIcalLink/ScheduleIcalLink';
 import UsersTimezones from 'containers/UsersTimezones/UsersTimezones';
-import { ScheduleType, Shift } from 'models/schedule/schedule.types';
+import { Schedule, ScheduleType, Shift } from 'models/schedule/schedule.types';
 import { Timezone } from 'models/timezone/timezone.types';
 import { WithStoreProps } from 'state/types';
 import { withMobXProviderContext } from 'state/withStore';
@@ -24,7 +27,6 @@ import { withMobXProviderContext } from 'state/withStore';
 import { getStartOfWeek } from './Schedule.helpers';
 
 import styles from './Schedule.module.css';
-
 const cx = cn.bind(styles);
 
 interface SchedulePageProps extends AppRootProps, WithStoreProps {}
@@ -37,6 +39,7 @@ interface SchedulePageState {
   shiftIdToShowOverridesForm?: Shift['id'];
   isLoading: boolean;
   showEditForm: boolean;
+  showScheduleICalSettings: boolean;
 }
 
 @observer
@@ -53,6 +56,7 @@ class SchedulePage extends React.Component<SchedulePageProps, SchedulePageState>
       shiftIdToShowOverridesForm: undefined,
       isLoading: true,
       showEditForm: false,
+      showScheduleICalSettings: false,
     };
   }
 
@@ -89,6 +93,7 @@ class SchedulePage extends React.Component<SchedulePageProps, SchedulePageState>
       shiftIdToShowRotationForm,
       shiftIdToShowOverridesForm,
       showEditForm,
+      showScheduleICalSettings,
     } = this.state;
 
     const { scheduleStore, currentTimezone } = store;
@@ -111,6 +116,7 @@ class SchedulePage extends React.Component<SchedulePageProps, SchedulePageState>
                   <Text.Title editable editModalTitle="Schedule name" level={2} onTextChange={this.handleNameChange}>
                     {schedule?.name}
                   </Text.Title>
+                  {schedule && <ScheduleWarning item={schedule} />}
                 </HorizontalGroup>
                 <HorizontalGroup spacing="lg">
                   {users && (
@@ -120,6 +126,16 @@ class SchedulePage extends React.Component<SchedulePageProps, SchedulePageState>
                     </HorizontalGroup>
                   )}
                   <HorizontalGroup>
+                    {schedule?.type === ScheduleType.Ical && (
+                      <HorizontalGroup>
+                        <Button variant="secondary" onClick={this.handleExportClick()}>
+                          Export
+                        </Button>
+                        <Button variant="secondary" onClick={this.handleReloadClick(scheduleId)}>
+                          Reload
+                        </Button>
+                      </HorizontalGroup>
+                    )}
                     <ToolbarButton
                       icon="cog"
                       tooltip="Settings"
@@ -213,6 +229,16 @@ class SchedulePage extends React.Component<SchedulePageProps, SchedulePageState>
               this.setState({ showEditForm: false });
             }}
           />
+        )}
+        {showScheduleICalSettings && (
+          <Modal
+            isOpen
+            title="Schedule export"
+            closeOnEscape
+            onDismiss={() => this.setState({ showScheduleICalSettings: false })}
+          >
+            <ScheduleICalSettings id={scheduleId} />
+          </Modal>
         )}
       </>
     );
@@ -365,6 +391,47 @@ class SchedulePage extends React.Component<SchedulePageProps, SchedulePageState>
   handleRightClick = () => {
     const { startMoment } = this.state;
     this.setState({ startMoment: startMoment.add(7, 'day') }, this.handleDateRangeUpdate);
+  };
+
+  handleExportClick = () => {
+    return () => {
+      this.setState({ showScheduleICalSettings: true });
+    };
+  };
+
+  handleReloadClick = (scheduleId: Schedule['id']) => {
+    const { store } = this.props;
+
+    const { scheduleStore } = store;
+
+    return async () => {
+      await scheduleStore.reloadIcal(scheduleId);
+
+      scheduleStore.updateItem(scheduleId);
+      this.updateEventsFor(scheduleId);
+    };
+  };
+
+  updateEventsFor = async (scheduleId: Schedule['id'], withEmpty = true, with_gap = true) => {
+    const {
+      store,
+      query: { id },
+    } = this.props;
+
+    const { scheduleStore } = store;
+
+    store.scheduleStore.scheduleToScheduleEvents = omit(store.scheduleStore.scheduleToScheduleEvents, [scheduleId]);
+
+    await scheduleStore.updateScheduleEvents(
+      scheduleId,
+      withEmpty,
+      with_gap,
+      dayjs().format('YYYY-MM-DD').toString(),
+      dayjs.tz.guess()
+    );
+
+    await store.scheduleStore.updateOncallShifts(id);
+    await this.updateEvents();
   };
 
   handleDelete = () => {

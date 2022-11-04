@@ -1,6 +1,8 @@
 ---
 aliases:
-  - /docs/oncall/latest/chat-options/configure-slack/
+  - ../../chat-options/configure-slack/
+  - /docs/oncall/latest/integrations/chatops-integrations/configure-slack/
+canonical: https://grafana.com/docs/oncall/latest/integrations/chatops-integrations/configure-slack/
 keywords:
   - Grafana Cloud
   - Alerts
@@ -10,7 +12,6 @@ keywords:
   - oncall
   - slack
 title: Slack integration for Grafana OnCall
-canonical: "https://grafana.com/docs/oncall/latest/chat-options/configure-slack/"
 weight: 100
 ---
 
@@ -25,7 +26,7 @@ Integrating your Slack workspace with Grafana OnCall allows users and teams to b
 
 To install the Slack integration, you must have Admin permissions in your Grafana instance as well as the Slack workspace that you’d like to integrate with.
 
-For Open Source Grafana OnCall Slack installation guidance, refer to [Open Source Grafana OnCall]({{< relref "../open-source" >}}).
+For Open Source Grafana OnCall Slack installation guidance, refer to [Open Source Grafana OnCall]({{< relref "../../../open-source/" >}}).
 
 ## Install Slack integration for Grafana OnCall
 

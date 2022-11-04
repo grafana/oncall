@@ -1,13 +1,13 @@
 ---
 aliases:
-  - /docs/grafana-cloud/oncall/getting-started/
-  - /docs/oncall/latest/getting-started/
+  - /docs/oncall/latest/get-started/
+  - /getting-started/
+canonical: https://grafana.com/docs/oncall/latest/get-started/
 keywords:
   - Get started
   - On call
   - Grafana Cloud
 title: Get started with Grafana OnCall
-canonical: "https://grafana.com/docs/oncall/latest/getting-started/"
 weight: 300
 ---
 
@@ -26,10 +26,7 @@ These procedures introduce you to initial Grafana OnCall configuration steps, in
 
 ## Before you begin
 
-Grafana OnCall is available for Grafana Cloud as well as Grafana open source users. You must have a Grafana Cloud account or [Open Source Grafana OnCall]({{< relref "../open-source" >}})
-
-For more information, see [Grafana Pricing](https://grafana.com/pricing/) for details.
-
+Grafana OnCall is available for Grafana Cloud as well as Grafana open source users. You must have a Grafana Cloud account or use [Open Source Grafana OnCall]({{< relref "../open-source" >}})
 
 ## Install Open Source Grafana OnCall
 
@@ -59,7 +56,7 @@ Regardless of where your alerts originate, you can send them to Grafana OnCall v
 2. Explore the alert by clicking on the title of the alert.
 3. Acknowledge and resolve the test alert.
 
-For more information on Grafana OnCall integrations and further configuration guidance, refer to, [Connect to Grafana OnCall]({{< relref "../integrations" >}})
+For more information on Grafana OnCall integrations and further configuration guidance, refer to, [Grafana OnCall integrations]({{< relref "../integrations" >}})
 
 
 ### Configure Escalation Chains
@@ -105,7 +102,7 @@ To configure Slack for Grafana OnCall:
 5. Click Allow to allow Grafana OnCall to access Slack.
 6. Ensure users verify their Slack accounts in their user profile in Grafana OnCall.
 
-For further instruction on connecting to your Slack workspace, refer to [Connect Slack to Grafana OnCall]({{< relref "../chat-options/configure-slack" >}})
+For further instruction on connecting to your Slack workspace, refer to [Slack integration for Grafana OnCall]({{< relref "../integrations/chatops-integrations/configure-slack/" >}})
 
 
 ### Add your on-call schedule
