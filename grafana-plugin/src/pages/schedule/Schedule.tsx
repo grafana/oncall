@@ -10,6 +10,7 @@ import { omit } from 'lodash-es';
 import { observer } from 'mobx-react';
 
 import PluginLink from 'components/PluginLink/PluginLink';
+import ScheduleWarning from 'components/ScheduleWarning/ScheduleWarning';
 import Text from 'components/Text/Text';
 import UserTimezoneSelect from 'components/UserTimezoneSelect/UserTimezoneSelect';
 import WithConfirm from 'components/WithConfirm/WithConfirm';
@@ -115,6 +116,7 @@ class SchedulePage extends React.Component<SchedulePageProps, SchedulePageState>
                   <Text.Title editable editModalTitle="Schedule name" level={2} onTextChange={this.handleNameChange}>
                     {schedule?.name}
                   </Text.Title>
+                  {schedule && <ScheduleWarning item={schedule} />}
                 </HorizontalGroup>
                 <HorizontalGroup spacing="lg">
                   {users && (

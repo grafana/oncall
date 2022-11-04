@@ -1,16 +1,7 @@
 import React, { SyntheticEvent } from 'react';
 
 import { getLocationSrv } from '@grafana/runtime';
-import {
-  Button,
-  HorizontalGroup,
-  IconButton,
-  LoadingPlaceholder,
-  VerticalGroup,
-  PENDING_COLOR,
-  Tooltip,
-  Icon,
-} from '@grafana/ui';
+import { Button, HorizontalGroup, IconButton, LoadingPlaceholder, VerticalGroup } from '@grafana/ui';
 import cn from 'classnames/bind';
 import dayjs from 'dayjs';
 import { debounce } from 'lodash-es';
@@ -20,6 +11,7 @@ import Avatar from 'components/Avatar/Avatar';
 import NewScheduleSelector from 'components/NewScheduleSelector/NewScheduleSelector';
 import PluginLink from 'components/PluginLink/PluginLink';
 import ScheduleCounter from 'components/ScheduleCounter/ScheduleCounter';
+import ScheduleWarning from 'components/ScheduleWarning/ScheduleWarning';
 import SchedulesFilters from 'components/SchedulesFilters_NEW/SchedulesFilters';
 import { SchedulesFiltersType } from 'components/SchedulesFilters_NEW/SchedulesFilters.types';
 import Table from 'components/Table/Table';
@@ -92,7 +84,7 @@ class SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSta
         width: '5%',
         title: 'Status',
         key: 'name',
-        render: this.renderStatus,
+        render: (item: Schedule) => this.renderStatus(item),
       },
       {
         width: '30%',
@@ -279,22 +271,7 @@ class SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSta
   };
 
   renderWarning = (item: Schedule) => {
-    if (item.warnings.length > 0) {
-      const tooltipContent = (
-        <div>
-          {item.warnings.map((warning: string, key: number) => (
-            <p key={key}>{warning}</p>
-          ))}
-        </div>
-      );
-      return (
-        <Tooltip placement="top" content={tooltipContent}>
-          <Icon style={{ color: PENDING_COLOR }} name="exclamation-triangle" />
-        </Tooltip>
-      );
-    }
-
-    return null;
+    return <ScheduleWarning item={item} />;
   };
 
   renderStatus = (item: Schedule) => {
