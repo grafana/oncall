@@ -14,7 +14,7 @@ from rest_framework.views import APIView
 from apps.api.permissions import IsAdmin, MethodPermission
 from apps.auth_token.auth import PluginAuthentication
 from apps.base.utils import live_settings
-from apps.oncall_gw.tasks import delete_slack_connector_async
+from apps.oncall_gateway.tasks import delete_slack_connector_async
 from apps.slack.scenarios.alertgroup_appearance import STEPS_ROUTING as ALERTGROUP_APPEARANCE_ROUTING
 from apps.slack.scenarios.distribute_alerts import STEPS_ROUTING as DISTRIBUTION_STEPS_ROUTING
 from apps.slack.scenarios.invited_to_channel import STEPS_ROUTING as INVITED_TO_CHANNEL_ROUTING

@@ -9,7 +9,7 @@ from mirage import fields as mirage_fields
 
 from apps.alerts.models import MaintainableObject
 from apps.alerts.tasks import disable_maintenance
-from apps.oncall_gw.utils import create_oncall_connector
+from apps.oncall_gateway.utils import create_oncall_connector
 from apps.slack.utils import post_message_to_channel
 from apps.user_management.subscription_strategy import FreePublicBetaSubscriptionStrategy
 from common.insight_log import ChatOpsEvent, ChatOpsType, write_chatops_insight_log

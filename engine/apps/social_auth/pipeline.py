@@ -7,7 +7,7 @@ from django.http import HttpResponse, JsonResponse
 from rest_framework import status
 from social_core.exceptions import AuthForbidden
 
-from apps.oncall_gw.utils import check_slack_installation_backend, create_slack_connector
+from apps.oncall_gateway.utils import check_slack_installation_backend, create_slack_connector
 from apps.slack.tasks import populate_slack_channels_for_team, populate_slack_usergroups_for_team
 from common.constants.slack_auth import (
     REDIRECT_AFTER_SLACK_INSTALL,

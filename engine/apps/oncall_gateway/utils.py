@@ -3,14 +3,14 @@ import logging
 import requests
 from django.conf import settings
 
-from .oncall_gw_client import OnCallGwAPIClient
+from .oncall_gateway_client import OnCallGatewayAPIClient
 from .tasks import create_oncall_connector_async, create_slack_connector_async
 
 logger = logging.getLogger(__name__)
 
 
 def create_oncall_connector(oncall_org_id: str, backend: str):
-    client = OnCallGwAPIClient(settings.ONCALL_GW_URL, settings.ONCALL_GW_API_TOKEN)
+    client = OnCallGatewayAPIClient(settings.ONCALL_GATEWAY_URL, settings.ONCALL_GATEWAY_API_TOKEN)
     try:
         client.post_oncall_connector(oncall_org_id, backend)
     except Exception as e:
@@ -19,7 +19,7 @@ def create_oncall_connector(oncall_org_id: str, backend: str):
 
 
 def check_slack_installation_backend(slack_id: str, backend: str) -> bool:
-    client = OnCallGwAPIClient(settings.ONCALL_GW_URL, settings.ONCALL_GW_API_TOKEN)
+    client = OnCallGatewayAPIClient(settings.ONCALL_GATEWAY_URL, settings.ONCALL_GATEWAY_API_TOKEN)
     try:
         slack_connector, _ = client.get_slack_connector(slack_id)
         if slack_connector.backend == backend:
@@ -32,7 +32,7 @@ def check_slack_installation_backend(slack_id: str, backend: str) -> bool:
 
 
 def create_slack_connector(slack_id: str, backend: str):
-    client = OnCallGwAPIClient(settings.ONCALL_GW_URL, settings.ONCALL_GW_API_TOKEN)
+    client = OnCallGatewayAPIClient(settings.ONCALL_GATEWAY_URL, settings.ONCALL_GATEWAY_API_TOKEN)
     try:
         client.post_slack_connector(slack_id, backend)
     except Exception as e:
