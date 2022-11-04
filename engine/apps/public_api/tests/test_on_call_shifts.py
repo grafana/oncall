@@ -40,6 +40,11 @@ invalid_field_data_8 = {
     "until": "not-a-date",
 }
 
+invalid_field_data_9 = {
+    "frequency": CustomOnCallShift.FREQUENCY_DAILY,
+    "interval": 5,
+}
+
 
 @pytest.mark.django_db
 def test_get_on_call_shift(make_organization_and_user_with_token, make_on_call_shift, make_schedule):
@@ -284,6 +289,7 @@ def test_update_on_call_shift(make_organization_and_user_with_token, make_on_cal
         invalid_field_data_6,
         invalid_field_data_7,
         invalid_field_data_8,
+        invalid_field_data_9,
     ],
 )
 def test_update_on_call_shift_invalid_field(make_organization_and_user_with_token, make_on_call_shift, data_to_update):

@@ -11,7 +11,7 @@ PYTEST = $(ENV)/bin/pytest
 DOCKER_FILE ?= docker-compose-developer.yml
 
 define setup_engine_env
-	export `grep -v '^#' .env | xargs -0` && cd engine
+	export `grep -v '^#' .env.dev | xargs -0` && cd engine
 endef
 
 $(ENV):
