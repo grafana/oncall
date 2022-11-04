@@ -237,15 +237,15 @@
 
 {{- define "snippet.rabbitmq.env" -}}
 {{- if eq .Values.broker.type "rabbitmq" -}}
-{{- if and (not .Values.rabbitmq.enabled) (not .Values.externalRabbitmq.existingSecret) (not .Values.externalRabbitmq.usernameKey) .Values.externalRabbitmq.user }}
-- name: RABBITMQ_USERNAME
-  value: {{ include "snippet.rabbitmq.user" . }}
-{{- else if and (not .Values.rabbitmq.enabled) .Values.externalRabbitmq.existingSecret .Values.externalRabbitmq.usernameKey (not .Values.externalRabbitmq.user) }}
+{{- if and (not .Values.rabbitmq.enabled) .Values.externalRabbitmq.existingSecret .Values.externalRabbitmq.usernameKey (not .Values.externalRabbitmq.user) }}
 - name: RABBITMQ_USERNAME
   valueFrom:
     secretKeyRef:
       name: {{ include "snippet.rabbitmq.password.secret.name" . }}
       key: {{ .Values.externalRabbitmq.usernameKey }}
+{{- else }}
+- name: RABBITMQ_USERNAME
+  value: {{ include "snippet.rabbitmq.user" . }}
 {{- end }}
 - name: RABBITMQ_PASSWORD
   valueFrom:
