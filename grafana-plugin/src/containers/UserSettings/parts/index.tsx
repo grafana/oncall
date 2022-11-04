@@ -12,6 +12,7 @@ import CloudPhoneSettings from 'containers/UserSettings/parts/tabs/CloudPhoneSet
 import { NotificationSettingsTab } from 'containers/UserSettings/parts/tabs/NotificationSettingsTab';
 import PhoneVerification from 'containers/UserSettings/parts/tabs/PhoneVerification/PhoneVerification';
 import TelegramInfo from 'containers/UserSettings/parts/tabs/TelegramInfo/TelegramInfo';
+import { MatrixInfo } from 'containers/UserSettings/parts/tabs/MatrixTab/MatrixTab';
 import { UserInfoTab } from 'containers/UserSettings/parts/tabs/UserInfoTab/UserInfoTab';
 import { User } from 'models/user/user.types';
 import { AppFeature } from 'state/features';
@@ -28,6 +29,7 @@ interface TabsProps {
   showMobileAppVerificationTab: boolean;
   showSlackConnectionTab: boolean;
   showTelegramConnectionTab: boolean;
+  showMatrixConnectionTab: boolean;
 }
 
 export const Tabs = (props: TabsProps) => {
@@ -38,6 +40,7 @@ export const Tabs = (props: TabsProps) => {
     showMobileAppVerificationTab,
     showSlackConnectionTab,
     showTelegramConnectionTab,
+    showMatrixConnectionTab,
   } = props;
 
   const getTabClickHandler = useCallback(
@@ -95,6 +98,14 @@ export const Tabs = (props: TabsProps) => {
           onChangeTab={getTabClickHandler(UserSettingsTab.TelegramInfo)}
         />
       )}
+      {showMatrixConnectionTab && (
+        <Tab
+          active={activeTab === UserSettingsTab.MatrixInfo}
+          label="Matrix Connection"
+          key={UserSettingsTab.MatrixInfo}
+          onChangeTab={getTabClickHandler(UserSettingsTab.MatrixInfo)}
+        />
+      )}
     </TabsBar>
   );
 };
@@ -144,6 +155,7 @@ export const TabsContent = observer((props: TabsContentProps) => {
       )}
       {activeTab === UserSettingsTab.SlackInfo && <SlackTab />}
       {activeTab === UserSettingsTab.TelegramInfo && <TelegramInfo />}
+      {activeTab === UserSettingsTab.MatrixInfo && <MatrixInfo userPk={id} />}
     </TabContent>
   );
 });

@@ -60,4 +60,9 @@ export interface User {
   hidden_fields?: boolean;
   timezone: Timezone;
   working_hours: { [key: string]: [] };
+  matrix_user_identity: {
+    id: string
+    user_id: string;
+    paging_room_id: string;
+  } | null;
 }

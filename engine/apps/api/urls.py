@@ -18,6 +18,7 @@ from .views.gitops import TerraformGitOpsView, TerraformStateView
 from .views.integration_heartbeat import IntegrationHeartBeatView
 from .views.live_setting import LiveSettingViewSet
 from .views.maintenance import MaintenanceAPIView, MaintenanceStartAPIView, MaintenanceStopAPIView
+from .views.matrix_user_identities import MatrixUserIdentityView
 from .views.on_call_shifts import OnCallShiftView
 from .views.organization import (
     CurrentOrganizationView,
@@ -67,6 +68,9 @@ router.register(r"heartbeats", IntegrationHeartBeatView, basename="integration_h
 router.register(r"tokens", PublicApiTokenView, basename="api_token")
 router.register(r"live_settings", LiveSettingViewSet, basename="live_settings")
 router.register(r"oncall_shifts", OnCallShiftView, basename="oncall_shifts")
+
+if settings.FEATURE_MATRIX_INTEGRATION_ENABLED:
+    router.register(r"matrix_user_identities", MatrixUserIdentityView, basename="matrix_user_identity")
 
 if settings.MOBILE_APP_PUSH_NOTIFICATIONS_ENABLED:
     router.register(r"device/apns", APNSDeviceAuthorizedViewSet)

@@ -41,3 +41,5 @@ psycopg2-binary==2.9.3
 emoji==1.7.0
 apns2==0.7.2
 regex==2021.11.2
+# Docs recommends 0.20.0, but that leads to a version conflict with existing packages
+matrix-nio==0.10.0

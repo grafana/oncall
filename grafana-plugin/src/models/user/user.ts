@@ -390,4 +390,13 @@ export class UserStore extends BaseStore {
       method: 'POST',
     });
   }
+
+  @action
+  async createEmptyMatrixUserIdentity(args) {
+    // Creates an empty Matrix User Identity for this User, and return the id of the MUI
+    // so it can be updated by the frontend
+    return await makeRequest(`/users/${args.pk}/create_empty_matrix_user_identity/`, {
+      method: 'PUT',
+    });
+  }
 }

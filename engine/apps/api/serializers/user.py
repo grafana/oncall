@@ -21,11 +21,13 @@ from common.constants.role import Role
 from .custom_serializers import DynamicFieldsModelSerializer
 from .organization import FastOrganizationSerializer
 from .slack_user_identity import SlackUserIdentitySerializer
+from .matrix_user_identity import MatrixUserIdentitySerializer
 
 
 class UserSerializer(DynamicFieldsModelSerializer, EagerLoadingMixin):
     pk = serializers.CharField(read_only=True, source="public_primary_key")
     slack_user_identity = SlackUserIdentitySerializer(read_only=True)
+    matrix_user_identity = MatrixUserIdentitySerializer(read_only=True)
 
     telegram_configuration = TelegramToUserConnectorSerializer(source="telegram_connection", read_only=True)
 
@@ -64,6 +66,7 @@ class UserSerializer(DynamicFieldsModelSerializer, EagerLoadingMixin):
             "notification_chain_verbal",
             "cloud_connection_status",
             "hide_phone_number",
+            "matrix_user_identity",
         ]
         read_only_fields = [
             "email",

@@ -52,6 +52,7 @@ FEATURE_LIVE_SETTINGS_ENABLED = getenv_boolean("FEATURE_LIVE_SETTINGS_ENABLED", 
 FEATURE_TELEGRAM_INTEGRATION_ENABLED = getenv_boolean("FEATURE_TELEGRAM_INTEGRATION_ENABLED", default=True)
 FEATURE_EMAIL_INTEGRATION_ENABLED = getenv_boolean("FEATURE_EMAIL_INTEGRATION_ENABLED", default=True)
 FEATURE_SLACK_INTEGRATION_ENABLED = getenv_boolean("FEATURE_SLACK_INTEGRATION_ENABLED", default=True)
+FEATURE_MATRIX_INTEGRATION_ENABLED = getenv_boolean("FEATURE_MATRIX_INTEGRATION_ENABLED", default=False)
 FEATURE_WEB_SCHEDULES_ENABLED = getenv_boolean("FEATURE_WEB_SCHEDULES_ENABLED", default=False)
 FEATURE_MULTIREGION_ENABLED = getenv_boolean("FEATURE_MULTIREGION_ENABLED", default=False)
 GRAFANA_CLOUD_ONCALL_HEARTBEAT_ENABLED = getenv_boolean("GRAFANA_CLOUD_ONCALL_HEARTBEAT_ENABLED", default=True)
@@ -202,6 +203,7 @@ INSTALLED_APPS = [
     "apps.slack",
     "apps.telegram",
     "apps.twilioapp",
+    "apps.matrix",
     "apps.api",
     "apps.api_for_grafana_incident",
     "apps.base",
@@ -582,6 +584,13 @@ EMAIL_FROM_ADDRESS = os.getenv("EMAIL_FROM_ADDRESS")
 
 if FEATURE_EMAIL_INTEGRATION_ENABLED:
     EXTRA_MESSAGING_BACKENDS = [("apps.email.backend.EmailBackend", 8)]
+
+# Matrix settings
+if FEATURE_MATRIX_INTEGRATION_ENABLED:
+    EXTRA_MESSAGING_BACKENDS += [("apps.matrix.backend.MatrixBackend", 9)]
+MATRIX_USER_ID = os.environ.get("MATRIX_USER_ID", None)
+MATRIX_PASSWORD = os.environ.get("MATRIX_PASSWORD", None)
+MATRIX_HOMESERVER = os.environ.get("MATRIX_HOMESERVER", None)
 
 INSTALLED_ONCALL_INTEGRATIONS = [
     "config_integrations.alertmanager",

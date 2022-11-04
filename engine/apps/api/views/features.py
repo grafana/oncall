@@ -9,6 +9,7 @@ from apps.base.utils import live_settings
 FEATURE_SLACK = "slack"
 FEATURE_TELEGRAM = "telegram"
 FEATURE_LIVE_SETTINGS = "live_settings"
+FEATURE_MATRIX = "matrix"
 MOBILE_APP_PUSH_NOTIFICATIONS = "mobile_app"
 FEATURE_GRAFANA_CLOUD_NOTIFICATIONS = "grafana_cloud_notifications"
 FEATURE_GRAFANA_CLOUD_CONNECTION = "grafana_cloud_connection"
@@ -35,6 +36,9 @@ class FeaturesAPIView(APIView):
 
         if settings.FEATURE_TELEGRAM_INTEGRATION_ENABLED:
             enabled_features.append(FEATURE_TELEGRAM)
+
+        if settings.FEATURE_MATRIX_INTEGRATION_ENABLED:
+            enabled_features.append(FEATURE_MATRIX)
 
         if settings.MOBILE_APP_PUSH_NOTIFICATIONS_ENABLED:
             mobile_app_settings = DynamicSetting.objects.get_or_create(

@@ -58,6 +58,7 @@ const UserSettings = observer(({ id, onHide, tab = UserSettingsTab.UserInfo }: U
       isCurrent && !storeUser.telegram_configuration,
       store.hasFeature(AppFeature.MobileApp),
     ];
+  const showMatrixConnectionTab = store.hasFeature(AppFeature.Matrix)
 
   return (
     <>
@@ -76,6 +77,7 @@ const UserSettings = observer(({ id, onHide, tab = UserSettingsTab.UserInfo }: U
             showSlackConnectionTab={showSlackConnectionTab}
             showTelegramConnectionTab={showTelegramConnectionTab}
             showMobileAppVerificationTab={showMobileAppVerificationTab}
+            showMatrixConnectionTab={showMatrixConnectionTab}
           />
           <TabsContent id={id} activeTab={activeTab} onTabChange={onTabChange} isDesktopOrLaptop={isDesktopOrLaptop} />
         </div>

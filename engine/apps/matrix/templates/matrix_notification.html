@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+You are invited to check an alert group in Grafana OnCall!
+<br><br>
+Organization: {{ organization }}
+<br>
+Integration: {{ integration }}
+<br>
+Title: {{ title }}
+{% if message %}
+<br>
+Message:
+<br>
+{% autoescape off %}
+    {{ message }}
+{% endautoescape %}
+{% endif %}
+<br>
+<strong><a href="{{ url }}">Go to the alert group</a></strong>
+<br>
+Your Grafana OnCall

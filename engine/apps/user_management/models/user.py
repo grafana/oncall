@@ -151,6 +151,10 @@ class User(models.Model):
         "slack.SlackUserIdentity", on_delete=models.PROTECT, null=True, default=None, related_name="users"
     )
 
+    matrix_user_identity = models.ForeignKey(
+        "matrix.MatrixUserIdentity", on_delete=models.PROTECT, null=True, default=None, related_name="matrix"
+    )
+
     # is_active = None is used to be able to have multiple deleted users with the same user_id
     is_active = models.BooleanField(null=True, default=True)
 

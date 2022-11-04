@@ -36,6 +36,7 @@ from apps.auth_token.models.mobile_app_auth_token import MobileAppAuthToken
 from apps.auth_token.models.mobile_app_verification_token import MobileAppVerificationToken
 from apps.base.messaging import get_messaging_backend_from_id
 from apps.base.utils import live_settings
+from apps.matrix.models import MatrixUserIdentity
 from apps.telegram.client import TelegramClient
 from apps.telegram.models import TelegramVerificationCode
 from apps.twilioapp.phone_manager import PhoneManager
@@ -135,6 +136,7 @@ class UserView(
             "export_token",
             "mobile_app_verification_token",
             "mobile_app_auth_token",
+            "create_empty_matrix_user_identity",
         ),
         AnyRole: ("retrieve", "timezone_options"),
     }
@@ -155,6 +157,7 @@ class UserView(
             "export_token",
             "mobile_app_verification_token",
             "mobile_app_auth_token",
+            "create_empty_matrix_user_identity",
         ),
     }
 
@@ -586,3 +589,33 @@ class UserView(
                 raise NotFound
 
             return Response(status=status.HTTP_204_NO_CONTENT)
+
+    @action(
+        methods=["put"],
+        detail=True,
+        authentication_classes=(PluginAuthentication,),
+    )
+    def create_empty_matrix_user_identity(self, request, *args, **kwargs):
+        """
+        This method will be called if the MatrixTab in notifications is opened for a user with
+        no matrix_user_identity set up.
+        It creates an empty matrix_user_identity, associates it with the user, and returns the
+        id of the matrix_user_identity so that it can be used in update calls as the information
+        is entered in the UI.
+        """
+        user = self.get_object()
+        # (Attempt to) avoid race-conditions by fast-returning if the user already has
+        # a matrix_user_identity associated (I _guess_ we cannot 100% depend on this
+        # without proper concurrency primitives like locks, but this is probably good
+        # enough for the majority of cases. Hopefully Django experts can advise on
+        # a better practice!)
+        if user.matrix_user_identity:
+            return Response({"id": user.matrix_user_identity.id}, status=status.HTTP_200_OK)
+
+        matrix_user_id = MatrixUserIdentity(user_id=None, paging_room_id=None)
+        matrix_user_id.save()
+
+        user.matrix_user_identity = matrix_user_id
+        user.save()
+
+        return Response({"id": matrix_user_id.id}, status=status.HTTP_201_CREATED)
