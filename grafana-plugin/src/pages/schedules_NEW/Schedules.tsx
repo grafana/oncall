@@ -52,7 +52,7 @@ class SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSta
     const { store } = this.props;
     this.state = {
       startMoment: getStartOfWeek(store.currentTimezone),
-      filters: { searchTerm: '', status: 'all', type: ScheduleType.all },
+      filters: { searchTerm: '', status: 'all', type: undefined },
       showNewScheduleSelector: false,
       expandedRowKeys: [],
       scheduleIdToEdit: undefined,

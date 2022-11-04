@@ -1,4 +1,4 @@
-import React, { SyntheticEvent } from 'react';
+import React from 'react';
 
 import { AppRootProps } from '@grafana/data';
 import { getLocationSrv } from '@grafana/runtime';
@@ -20,7 +20,7 @@ import ScheduleOverrides from 'containers/Rotations/ScheduleOverrides';
 import ScheduleForm from 'containers/ScheduleForm/ScheduleForm';
 import ScheduleICalSettings from 'containers/ScheduleIcalLink/ScheduleIcalLink';
 import UsersTimezones from 'containers/UsersTimezones/UsersTimezones';
-import { Schedule, Shift } from 'models/schedule/schedule.types';
+import { Schedule, ScheduleType, Shift } from 'models/schedule/schedule.types';
 import { Timezone } from 'models/timezone/timezone.types';
 import { WithStoreProps } from 'state/types';
 import { withMobXProviderContext } from 'state/withStore';
@@ -41,7 +41,7 @@ interface SchedulePageState {
   shiftIdToShowOverridesForm?: Shift['id'];
   isLoading: boolean;
   showEditForm: boolean;
-  scheduleIdToExport: Schedule['id'];
+  showScheduleICalSettings: boolean;
 }
 
 @observer
@@ -58,7 +58,7 @@ class SchedulePage extends React.Component<SchedulePageProps, SchedulePageState>
       shiftIdToShowOverridesForm: undefined,
       isLoading: true,
       showEditForm: false,
-      scheduleIdToExport: undefined,
+      showScheduleICalSettings: false,
     };
   }
 
@@ -95,7 +95,7 @@ class SchedulePage extends React.Component<SchedulePageProps, SchedulePageState>
       shiftIdToShowRotationForm,
       shiftIdToShowOverridesForm,
       showEditForm,
-      scheduleIdToExport,
+      showScheduleICalSettings,
     } = this.state;
 
     const { scheduleStore, currentTimezone } = store;
@@ -126,9 +126,9 @@ class SchedulePage extends React.Component<SchedulePageProps, SchedulePageState>
                     </HorizontalGroup>
                   )}
                   <HorizontalGroup>
-                    {schedule?.type === 1 && (
+                    {schedule?.type === ScheduleType.Ical && (
                       <HorizontalGroup>
-                        <Button variant="secondary" onClick={this.handleExportClick(scheduleId)}>
+                        <Button variant="secondary" onClick={this.handleExportClick()}>
                           Export
                         </Button>
                         <Button variant="secondary" onClick={this.handleReloadClick(scheduleId)}>
@@ -224,14 +224,14 @@ class SchedulePage extends React.Component<SchedulePageProps, SchedulePageState>
             }}
           />
         )}
-        {scheduleIdToExport && (
+        {showScheduleICalSettings && (
           <Modal
             isOpen
             title="Schedule export"
             closeOnEscape
-            onDismiss={() => this.setState({ scheduleIdToExport: undefined })}
+            onDismiss={() => this.setState({ showScheduleICalSettings: false })}
           >
-            <ScheduleICalSettings id={scheduleIdToExport} />
+            <ScheduleICalSettings id={scheduleId} />
           </Modal>
         )}
       </>
@@ -399,10 +399,9 @@ class SchedulePage extends React.Component<SchedulePageProps, SchedulePageState>
     this.setState({ startMoment: startMoment.add(7, 'day') }, this.handleDateRangeUpdate);
   };
 
-  handleExportClick = (scheduleId: Schedule['id']) => {
-    return (event: SyntheticEvent) => {
-      event.stopPropagation();
-      this.setState({ scheduleIdToExport: scheduleId });
+  handleExportClick = () => {
+    return () => {
+      this.setState({ showScheduleICalSettings: true });
     };
   };
 
@@ -411,9 +410,7 @@ class SchedulePage extends React.Component<SchedulePageProps, SchedulePageState>
 
     const { scheduleStore } = store;
 
-    return async (event: SyntheticEvent) => {
-      event.stopPropagation();
-
+    return async () => {
       await scheduleStore.reloadIcal(scheduleId);
 
       scheduleStore.updateItem(scheduleId);

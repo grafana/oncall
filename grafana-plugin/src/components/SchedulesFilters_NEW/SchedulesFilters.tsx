@@ -69,7 +69,7 @@ const SchedulesFilters = (props: SchedulesFiltersProps) => {
         <Field label="Type">
           <RadioButtonGroup
             options={[
-              { label: 'All', value: ScheduleType.all },
+              { label: 'All', value: undefined },
               {
                 label: 'Web',
                 value: ScheduleType.API,
@@ -83,7 +83,7 @@ const SchedulesFilters = (props: SchedulesFiltersProps) => {
                 value: ScheduleType.Calendar,
               },
             ]}
-            value={value.type}
+            value={value?.type}
             onChange={handleTypeChange}
           />
         </Field>
