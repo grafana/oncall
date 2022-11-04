@@ -6,7 +6,6 @@ import cn from 'classnames/bind';
 import { debounce } from 'lodash-es';
 import { observer } from 'mobx-react';
 import moment, { Moment } from 'moment-timezone';
-import { isNewNavigation } from 'plugin/GrafanaPluginRootPage.helpers';
 import { RouteComponentProps } from 'react-router-dom';
 
 import Avatar from 'components/Avatar/Avatar';
@@ -16,6 +15,7 @@ import Text from 'components/Text/Text';
 import OrganizationLogFilters from 'containers/OrganizationLogFilters/OrganizationLogFilters';
 import logo from 'img/logo.svg';
 import { OrganizationLog } from 'models/organization_log/organization_log.types';
+import { isNewNavigation } from 'plugin/GrafanaPluginRootPage.helpers';
 import { WithStoreProps } from 'state/types';
 import { withMobXProviderContext } from 'state/withStore';
 import sanitize from 'utils/sanitize';

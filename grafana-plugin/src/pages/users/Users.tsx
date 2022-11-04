@@ -7,7 +7,6 @@ import { PluginPage } from 'PluginPage';
 import cn from 'classnames/bind';
 import { debounce } from 'lodash-es';
 import { observer } from 'mobx-react';
-import { isNewNavigation } from 'plugin/GrafanaPluginRootPage.helpers';
 
 import Avatar from 'components/Avatar/Avatar';
 import GTable from 'components/GTable/GTable';
@@ -23,6 +22,7 @@ import UserSettings from 'containers/UserSettings/UserSettings';
 import { WithPermissionControl } from 'containers/WithPermissionControl/WithPermissionControl';
 import { getRole } from 'models/user/user.helpers';
 import { User as UserType, UserRole } from 'models/user/user.types';
+import { isNewNavigation } from 'plugin/GrafanaPluginRootPage.helpers';
 import { WithStoreProps } from 'state/types';
 import { UserAction } from 'state/userAction';
 import { withMobXProviderContext } from 'state/withStore';

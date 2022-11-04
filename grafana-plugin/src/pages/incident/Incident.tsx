@@ -20,7 +20,6 @@ import { PluginPage } from 'PluginPage';
 import cn from 'classnames/bind';
 import { observer } from 'mobx-react';
 import moment from 'moment-timezone';
-import { isNewNavigation } from 'plugin/GrafanaPluginRootPage.helpers';
 import CopyToClipboard from 'react-copy-to-clipboard';
 import Emoji from 'react-emoji-render';
 import reactStringReplace from 'react-string-replace';
@@ -49,6 +48,7 @@ import {
   GroupedAlert,
 } from 'models/alertgroup/alertgroup.types';
 import { ResolutionNoteSourceTypesToDisplayName } from 'models/resolution_note/resolution_note.types';
+import { isNewNavigation } from 'plugin/GrafanaPluginRootPage.helpers';
 import { WithStoreProps } from 'state/types';
 import { useStore } from 'state/useStore';
 import { UserAction } from 'state/userAction';

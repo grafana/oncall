@@ -1,9 +1,9 @@
 import { ComponentClass } from 'react';
 
 import { AppPlugin, AppPluginMeta, AppRootProps, PluginConfigPageProps } from '@grafana/data';
-import { GrafanaPluginRootPage } from 'plugin/GrafanaPluginRootPage';
 
 import { PluginConfigPage } from 'containers/PluginConfigPage/PluginConfigPage';
+import { GrafanaPluginRootPage } from 'plugin/GrafanaPluginRootPage';
 
 import { OnCallAppSettings } from './types';
 

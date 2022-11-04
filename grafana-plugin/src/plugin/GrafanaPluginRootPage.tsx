@@ -14,13 +14,13 @@ import utc from 'dayjs/plugin/utc';
 import weekday from 'dayjs/plugin/weekday';
 import 'interceptors';
 import { observer, Provider } from 'mobx-react';
-import Header from 'plugin/Header';
-import NavLinks from 'plugin/NavLinks';
 
 import { routes } from 'components/PluginLink/routes';
 import DefaultPageLayout from 'containers/DefaultPageLayout/DefaultPageLayout';
 import logo from 'img/logo.svg';
 import { pages } from 'pages';
+import Header from 'plugin/Header';
+import NavLinks from 'plugin/NavLinks';
 import { rootStore } from 'state';
 import { useStore } from 'state/useStore';
 import { useQueryParams, useQueryPath } from 'utils/hooks';
@@ -45,9 +45,12 @@ export const GrafanaPluginRootPage = (props: AppRootProps) => (
 );
 
 const RootWithLoader = observer((props: AppRootProps) => {
+  console.log('Here!');
+
   const store = useStore();
 
   useEffect(() => {
+    console.log('here');
     store.setupPlugin(props.meta);
   }, []);
 

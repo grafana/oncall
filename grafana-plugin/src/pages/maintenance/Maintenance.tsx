@@ -6,7 +6,6 @@ import { PluginPage } from 'PluginPage';
 import cn from 'classnames/bind';
 import { observer } from 'mobx-react';
 import moment from 'moment-timezone';
-import { isNewNavigation } from 'plugin/GrafanaPluginRootPage.helpers';
 import Emoji from 'react-emoji-render';
 
 import GTable from 'components/GTable/GTable';
@@ -17,6 +16,7 @@ import { WithPermissionControl } from 'containers/WithPermissionControl/WithPerm
 import { getAlertReceiveChannelDisplayName } from 'models/alert_receive_channel/alert_receive_channel.helpers';
 import { AlertReceiveChannel } from 'models/alert_receive_channel/alert_receive_channel.types';
 import { Maintenance, MaintenanceMode, MaintenanceType } from 'models/maintenance/maintenance.types';
+import { isNewNavigation } from 'plugin/GrafanaPluginRootPage.helpers';
 import { WithStoreProps } from 'state/types';
 import { UserAction } from 'state/userAction';
 import { withMobXProviderContext } from 'state/withStore';

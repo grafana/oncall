@@ -18,7 +18,6 @@ import cn from 'classnames/bind';
 import { omit } from 'lodash-es';
 import { observer } from 'mobx-react';
 import moment from 'moment-timezone';
-import { isNewNavigation } from 'plugin/GrafanaPluginRootPage.helpers';
 
 import instructionsImage from 'assets/img/events_instructions.png';
 import Avatar from 'components/Avatar/Avatar';
@@ -39,6 +38,7 @@ import ScheduleICalSettings from 'containers/ScheduleIcalLink/ScheduleIcalLink';
 import { WithPermissionControl } from 'containers/WithPermissionControl/WithPermissionControl';
 import { Schedule, ScheduleEvent, ScheduleType } from 'models/schedule/schedule.types';
 import { getSlackChannelName } from 'models/slack_channel/slack_channel.helpers';
+import { isNewNavigation } from 'plugin/GrafanaPluginRootPage.helpers';
 import { WithStoreProps } from 'state/types';
 import { UserAction } from 'state/userAction';
 import { withMobXProviderContext } from 'state/withStore';

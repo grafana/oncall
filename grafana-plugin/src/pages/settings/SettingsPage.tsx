@@ -4,11 +4,11 @@ import { Field, Input, Switch } from '@grafana/ui';
 import { PluginPage } from 'PluginPage';
 import cn from 'classnames/bind';
 import { observer } from 'mobx-react';
-import { isNewNavigation } from 'plugin/GrafanaPluginRootPage.helpers';
 
 import Text from 'components/Text/Text';
 import ApiTokenSettings from 'containers/ApiTokenSettings/ApiTokenSettings';
 import { WithPermissionControl } from 'containers/WithPermissionControl/WithPermissionControl';
+import { isNewNavigation } from 'plugin/GrafanaPluginRootPage.helpers';
 import { WithStoreProps } from 'state/types';
 import { UserAction } from 'state/userAction';
 import { withMobXProviderContext } from 'state/withStore';
