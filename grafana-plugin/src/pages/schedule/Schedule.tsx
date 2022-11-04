@@ -5,7 +5,6 @@ import { getLocationSrv } from '@grafana/runtime';
 import { Button, HorizontalGroup, VerticalGroup, IconButton, ToolbarButton, Icon, Modal } from '@grafana/ui';
 import cn from 'classnames/bind';
 import dayjs from 'dayjs';
-import timezone from 'dayjs/plugin/timezone';
 import { omit } from 'lodash-es';
 import { observer } from 'mobx-react';
 
@@ -28,7 +27,6 @@ import { withMobXProviderContext } from 'state/withStore';
 import { getStartOfWeek } from './Schedule.helpers';
 
 import styles from './Schedule.module.css';
-dayjs.extend(timezone);
 const cx = cn.bind(styles);
 
 interface SchedulePageProps extends AppRootProps, WithStoreProps {}
