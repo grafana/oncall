@@ -1,13 +1,14 @@
 import React from 'react';
 
+import { Card } from '@grafana/ui';
 import cn from 'classnames/bind';
+
+import gitHubStarSVG from 'assets/img/github_star.svg';
 import GrafanaTeamSelect from 'containers/GrafanaTeamSelect/GrafanaTeamSelect';
 import logo from 'img/logo.svg';
-import gitHubStarSVG from 'assets/img/github_star.svg';
 import { APP_SUBTITLE, GRAFANA_LICENSE_OSS } from 'utils/consts';
 
 import styles from './Header.module.scss';
-import { Card } from '@grafana/ui';
 
 const cx = cn.bind(styles);
 
@@ -20,9 +21,7 @@ export default function Header({ page, backendLicense }: { page: string; backend
             <img className="page-header__img" src={logo} alt="Grafana OnCall" />
           </span>
 
-          <div className="page-header__info-block">
-            {renderHeading()}
-          </div>
+          <div className="page-header__info-block">{renderHeading()}</div>
 
           <GrafanaTeamSelect currentPage={page} />
         </div>

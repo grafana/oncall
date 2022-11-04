@@ -9,11 +9,11 @@ import PluginLink from 'components/PluginLink/PluginLink';
 import GSelect from 'containers/GSelect/GSelect';
 import { WithPermissionControl } from 'containers/WithPermissionControl/WithPermissionControl';
 import { GrafanaTeam } from 'models/grafana_team/grafana_team.types';
+import { isNewNavigation } from 'plugin/GrafanaPluginRootPage.helpers';
 import { useStore } from 'state/useStore';
 import { UserAction } from 'state/userAction';
 
 import styles from './GrafanaTeamSelect.module.scss';
-import { isNewNavigation } from 'plugin/GrafanaPluginRootPage.helpers';
 
 const cx = cn.bind(styles);
 
@@ -77,7 +77,9 @@ const GrafanaTeamSelect = observer((props: GrafanaTeamSelectProps) => {
 
   return document.getElementsByClassName('page-header__inner')[0]
     ? ReactDOM.createPortal(content, document.getElementsByClassName('page-header__inner')[0])
-    : (isNewNavigation() ? content : null);
+    : isNewNavigation()
+    ? content
+    : null;
 });
 
 export default GrafanaTeamSelect;

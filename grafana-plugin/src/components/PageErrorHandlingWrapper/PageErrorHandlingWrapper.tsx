@@ -5,14 +5,14 @@ import cn from 'classnames/bind';
 
 import PluginLink from 'components/PluginLink/PluginLink';
 import Text from 'components/Text/Text';
+import GrafanaTeamSelect from 'containers/GrafanaTeamSelect/GrafanaTeamSelect';
 import { ChangeTeamIcon } from 'icons';
 import { GrafanaTeam } from 'models/grafana_team/grafana_team.types';
+import { isNewNavigation } from 'plugin/GrafanaPluginRootPage.helpers';
 import { useStore } from 'state/useStore';
 import { openWarningNotification } from 'utils';
 
 import styles from './PageErrorHandlingWrapper.module.css';
-import { isNewNavigation } from 'plugin/GrafanaPluginRootPage.helpers';
-import GrafanaTeamSelect from 'containers/GrafanaTeamSelect/GrafanaTeamSelect';
 
 const cx = cn.bind(styles);
 
@@ -41,7 +41,9 @@ export default function PageErrorHandlingWrapper({
   children: () => JSX.Element;
 }) {
   useEffect(() => {
-    if (!errorData) return;
+    if (!errorData) {
+      return;
+    }
     const { isWrongTeamError, isNotFoundError } = errorData;
     if (!isWrongTeamError && isNotFoundError && itemNotFoundMessage) {
       openWarningNotification(itemNotFoundMessage);

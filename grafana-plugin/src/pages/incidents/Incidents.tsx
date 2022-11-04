@@ -13,6 +13,7 @@ import Emoji from 'react-emoji-render';
 import CursorPagination from 'components/CursorPagination/CursorPagination';
 import GTable from 'components/GTable/GTable';
 import IntegrationLogo from 'components/IntegrationLogo/IntegrationLogo';
+import PageErrorHandlingWrapper from 'components/PageErrorHandlingWrapper/PageErrorHandlingWrapper';
 import PluginLink from 'components/PluginLink/PluginLink';
 import Text from 'components/Text/Text';
 import Tutorial from 'components/Tutorial/Tutorial';
@@ -31,7 +32,6 @@ import { withMobXProviderContext } from 'state/withStore';
 import SilenceDropdown from './parts/SilenceDropdown';
 
 import styles from './Incidents.module.css';
-import PageErrorHandlingWrapper from 'components/PageErrorHandlingWrapper/PageErrorHandlingWrapper';
 
 const cx = cn.bind(styles);
 
@@ -103,7 +103,7 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
   render() {
     return (
       <PluginPage>
-        <PageErrorHandlingWrapper pageName='incidents'>
+        <PageErrorHandlingWrapper pageName="incidents">
           {() => (
             <div className={cx('root')}>
               {this.renderIncidentFilters()}
