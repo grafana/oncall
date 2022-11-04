@@ -1,4 +1,4 @@
-import 'src/jest/matchMedia.ts';
+import 'jest/matchMedia.ts';
 import React from 'react';
 
 import { describe, expect, test } from '@jest/globals';
