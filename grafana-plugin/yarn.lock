@@ -1466,7 +1466,7 @@
     ua-parser-js "^1.0.2"
     web-vitals "^2.1.4"
 
-"@grafana/data@9.2.3":
+"@grafana/data@9.2.3", "@grafana/data@^9.2.3":
   version "9.2.3"
   resolved "https://registry.yarnpkg.com/@grafana/data/-/data-9.2.3.tgz#ef8fcbb3de75a3e24dc65419beceae2125b2d052"
   integrity sha512-2gTStevikAAlOIlFE00fTf/6qQxtqpDjIIUDAhv1u0TqM9+R8wJX0vQSGUdW3LQ/EgtoW5uMGAK4ehiOnDhpOg==
@@ -1515,7 +1515,7 @@
     eslint-plugin-react-hooks "4.3.0"
     typescript "4.6.4"
 
-"@grafana/runtime@9.2.3":
+"@grafana/runtime@^9.2.3":
   version "9.2.3"
   resolved "https://registry.yarnpkg.com/@grafana/runtime/-/runtime-9.2.3.tgz#c6c0bdb9d18c8d62c5f70b01fe5724512aa7431e"
   integrity sha512-i9BpSBbSEn/Piu/4Huf5IQbD0J1LPdyTsJZtOvokgMXJ3Jca0TGJPUFPra7DFhoviPkBRnrZb+l+KkNP7p2Igw==
@@ -1538,7 +1538,7 @@
   dependencies:
     tslib "2.4.0"
 
-"@grafana/toolkit@9.2.3":
+"@grafana/toolkit@^9.2.3":
   version "9.2.3"
   resolved "https://registry.yarnpkg.com/@grafana/toolkit/-/toolkit-9.2.3.tgz#54b2f8214145898b370da2292e6723325911207b"
   integrity sha512-IMhRA+J9pOWpdJrjNOXYG9E4UkKZoSdy9csZG7WXTS6dh8hMzimKRAdEJQwqHphzq4Uawik9elwCdHMyEOBSlA==
@@ -1633,7 +1633,7 @@
   resolved "https://registry.yarnpkg.com/@grafana/tsconfig/-/tsconfig-1.2.0-rc1.tgz#10973c978ec95b0ea637511254b5f478bce04de7"
   integrity sha512-+SgQeBQ1pT6D/E3/dEdADqTrlgdIGuexUZ8EU+8KxQFKUeFeU7/3z/ayI2q/wpJ/Kr6WxBBNlrST6aOKia19Ag==
 
-"@grafana/ui@9.2.3":
+"@grafana/ui@9.2.3", "@grafana/ui@^9.2.3":
   version "9.2.3"
   resolved "https://registry.yarnpkg.com/@grafana/ui/-/ui-9.2.3.tgz#b7b957a118fa8a1382cab4ec5f5dcc3b7b64d9d1"
   integrity sha512-0XmjDqV4wieD17EsJE8n+EGEsMKo2NxPqcib8AfqC7o5xtWMdYnWwDPcs1h9y5K5pA9ulBcCfrHlUYo4LbhSZQ==

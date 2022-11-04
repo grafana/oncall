@@ -37,6 +37,7 @@ import 'style/vars.css';
 import 'style/global.css';
 
 import { isNewNavigation } from './GrafanaPluginRootPage.helpers';
+import GrafanaTeamSelect from 'containers/GrafanaTeamSelect/GrafanaTeamSelect';
 
 export const GrafanaPluginRootPage = (props: AppRootProps) => (
   <Provider store={rootStore}>
@@ -45,12 +46,9 @@ export const GrafanaPluginRootPage = (props: AppRootProps) => (
 );
 
 const RootWithLoader = observer((props: AppRootProps) => {
-  console.log('Here!');
-
   const store = useStore();
 
   useEffect(() => {
-    console.log('here');
     store.setupPlugin(props.meta);
   }, []);
 
@@ -147,6 +145,9 @@ export const Root = observer((props: AppRootProps) => {
 
       <div className={classnames({ 'page-container': !hasTopNav }, { 'page-body': !hasTopNav })}>
         <Page {...props} path={pathWithoutLeadingSlash} />
+        <div>
+          <GrafanaTeamSelect currentPage={page} />
+        </div>
       </div>
     </DefaultPageLayout>
   );

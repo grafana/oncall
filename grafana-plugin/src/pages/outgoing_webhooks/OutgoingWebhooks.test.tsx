@@ -20,6 +20,10 @@ const outgoingWebhookStore = () => ({
   }, {}),
 });
 
+jest.mock('plugin/GrafanaPluginRootPage.helpers', () => ({
+  isNewNavigation: () => false
+}))
+
 jest.mock('@grafana/runtime', () => ({
   config: {
     featureToggles: {
