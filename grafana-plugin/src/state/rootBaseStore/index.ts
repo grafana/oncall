@@ -1,5 +1,3 @@
-import { OrgRole } from '@grafana/data';
-import { contextSrv } from 'grafana/app/core/core';
 import { action, observable } from 'mobx';
 import moment from 'moment-timezone';
 import qs from 'query-string';
@@ -32,7 +30,7 @@ import { makeRequest } from 'network';
 import { NavMenuItem } from 'pages/routes';
 import { AppFeature } from 'state/features';
 import PluginState from 'state/plugin';
-import { UserAction } from 'state/userAction';
+import { UserActions, isUserActionAllowed } from 'utils/authorization';
 
 // ------ Dashboard ------ //
 
@@ -164,8 +162,10 @@ export class RootBaseStore {
         return this.setupPluginError('🚫 OnCall has temporarily disabled signup of new users. Please try again later.');
       }
 
-      if (!contextSrv.hasRole(OrgRole.Admin)) {
-        return this.setupPluginError('🚫 Admin must sign on to setup OnCall before a Viewer can use it');
+      if (!this.isUserActionAllowed(UserActions.PluginsInstall)) {
+        return this.setupPluginError(
+          '🚫 An Admin in your organization must sign on and setup OnCall before it can be used'
+        );
       }
 
       try {
@@ -199,9 +199,7 @@ export class RootBaseStore {
     this.appLoading = false;
   }
 
-  isUserActionAllowed(action: UserAction) {
-    return this.userStore.currentUser && this.userStore.currentUser.permissions.includes(action);
-  }
+  isUserActionAllowed = isUserActionAllowed;
 
   hasFeature(feature: string | AppFeature) {
     // todo use AppFeature only
