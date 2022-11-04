@@ -46,7 +46,7 @@ export default function PageErrorHandlingWrapper({
     if (!isWrongTeamError && isNotFoundError && itemNotFoundMessage) {
       openWarningNotification(itemNotFoundMessage);
     }
-  }, [errorData.isNotFoundError]);
+  }, [errorData?.isNotFoundError]);
 
   const store = useStore();
 

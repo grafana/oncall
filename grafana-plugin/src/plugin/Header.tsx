@@ -1,10 +1,17 @@
 import React from 'react';
 
+import cn from 'classnames/bind';
 import GrafanaTeamSelect from 'containers/GrafanaTeamSelect/GrafanaTeamSelect';
 import logo from 'img/logo.svg';
-import { APP_SUBTITLE } from 'utils/consts';
+import gitHubStarSVG from 'assets/img/github_star.svg';
+import { APP_SUBTITLE, GRAFANA_LICENSE_OSS } from 'utils/consts';
 
-export default function Header({ page }: { page: string }) {
+import styles from './Header.module.scss';
+import { Card } from '@grafana/ui';
+
+const cx = cn.bind(styles);
+
+export default function Header({ page, backendLicense }: { page: string; backendLicense: string }) {
   return (
     <div className="page-container">
       <div className="page-header">
@@ -14,8 +21,7 @@ export default function Header({ page }: { page: string }) {
           </span>
 
           <div className="page-header__info-block">
-            <h1 className="page-header__title">Grafana OnCall</h1>
-            <div className="page-header__sub-title">{APP_SUBTITLE}</div>
+            {renderHeading()}
           </div>
 
           <GrafanaTeamSelect currentPage={page} />
@@ -23,4 +29,28 @@ export default function Header({ page }: { page: string }) {
       </div>
     </div>
   );
+
+  function renderHeading() {
+    const heading = (
+      <>
+        <h1 className="page-header__title">Grafana OnCall</h1>
+        <div className="page-header__sub-title">{APP_SUBTITLE}</div>
+      </>
+    );
+
+    if (backendLicense === GRAFANA_LICENSE_OSS) {
+      return (
+        <div className={cx('heading')}>
+          {heading}
+          <Card heading={undefined} className={cx('navbar-heading')}>
+            <a href="https://github.com/grafana/oncall" className={cx('navbar-link')} target="_blank" rel="noreferrer">
+              <img src={gitHubStarSVG} className={cx('navbar-star-icon')} alt="" /> Star us on GitHub
+            </a>
+          </Card>
+        </div>
+      );
+    }
+
+    return heading;
+  }
 }

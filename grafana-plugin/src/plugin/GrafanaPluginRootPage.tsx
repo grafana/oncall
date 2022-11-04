@@ -135,14 +135,14 @@ export const Root = observer((props: AppRootProps) => {
     <DefaultPageLayout {...props}>
       {!isNewNav && (
         <>
-          <Header page={page} />
+          <Header page={page} backendLicense={store.backendLicense} />
           <nav className="page-container">
             <NavLinks currentPage={page} />
           </nav>
         </>
       )}
 
-      <div className={classnames({ 'page-container': !isNewNav }, { 'page-body': !isNewNav }, "u-position-relative")}>
+      <div className={classnames({ 'page-container': !isNewNav }, { 'page-body': !isNewNav }, 'u-position-relative')}>
         <Page {...props} path={pathWithoutLeadingSlash} />
       </div>
     </DefaultPageLayout>
