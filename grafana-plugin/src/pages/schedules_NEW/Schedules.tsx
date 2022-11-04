@@ -11,6 +11,7 @@ import Avatar from 'components/Avatar/Avatar';
 import NewScheduleSelector from 'components/NewScheduleSelector/NewScheduleSelector';
 import PluginLink from 'components/PluginLink/PluginLink';
 import ScheduleCounter from 'components/ScheduleCounter/ScheduleCounter';
+import ScheduleWarning from 'components/ScheduleWarning/ScheduleWarning';
 import SchedulesFilters from 'components/SchedulesFilters_NEW/SchedulesFilters';
 import { SchedulesFiltersType } from 'components/SchedulesFilters_NEW/SchedulesFilters.types';
 import Table from 'components/Table/Table';
@@ -51,7 +52,7 @@ class SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSta
     const { store } = this.props;
     this.state = {
       startMoment: getStartOfWeek(store.currentTimezone),
-      filters: { searchTerm: '', status: 'all', type: ScheduleType.API },
+      filters: { searchTerm: '', status: 'all', type: undefined },
       showNewScheduleSelector: false,
       expandedRowKeys: [],
       scheduleIdToEdit: undefined,
@@ -80,10 +81,10 @@ class SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSta
         render: this.renderType,
       },
       {
-        width: '10%',
+        width: '5%',
         title: 'Status',
         key: 'name',
-        render: this.renderStatus,
+        render: (item: Schedule) => this.renderStatus(item),
       },
       {
         width: '30%',
@@ -108,6 +109,11 @@ class SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSta
         render: this.renderUserGroup,
       },
       {
+        width: '5%',
+        key: 'warning',
+        render: this.renderWarning,
+      },
+      {
         width: '50px',
         key: 'buttons',
         render: this.renderButtons,
@@ -119,7 +125,6 @@ class SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSta
 
     const data = schedules
       ? schedules
-          .filter((schedule) => schedule.type === ScheduleType.API)
           .filter(
             (schedule) =>
               filters.status === 'all' ||
@@ -265,38 +270,52 @@ class SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSta
     return typeToVerbal[value];
   };
 
+  renderWarning = (item: Schedule) => {
+    return <ScheduleWarning item={item} />;
+  };
+
   renderStatus = (item: Schedule) => {
     const {
       store: { scheduleStore },
     } = this.props;
 
     const relatedEscalationChains = scheduleStore.relatedEscalationChains[item.id];
-
     return (
       <HorizontalGroup>
-        <ScheduleCounter
-          type="link"
-          count={item.number_of_escalation_chains}
-          tooltipTitle="Used in escalations"
-          tooltipContent={
-            <VerticalGroup spacing="sm">
-              {relatedEscalationChains ? (
-                relatedEscalationChains.length ? (
-                  relatedEscalationChains.map((escalationChain) => (
-                    <PluginLink key={escalationChain.pk} query={{ page: 'escalations', id: escalationChain.pk }}>
-                      {escalationChain.name}
-                    </PluginLink>
-                  ))
+        {item.number_of_escalation_chains > 0 && (
+          <ScheduleCounter
+            type="link"
+            count={item.number_of_escalation_chains}
+            tooltipTitle="Used in escalations"
+            tooltipContent={
+              <VerticalGroup spacing="sm">
+                {relatedEscalationChains ? (
+                  relatedEscalationChains.length ? (
+                    relatedEscalationChains.map((escalationChain) => (
+                      <div key={escalationChain.pk}>
+                        <PluginLink query={{ page: 'escalations', id: escalationChain.pk }}>
+                          {escalationChain.name}
+                        </PluginLink>
+                      </div>
+                    ))
+                  ) : (
+                    'Not used yet'
+                  )
                 ) : (
-                  'Not used yet'
-                )
-              ) : (
-                <LoadingPlaceholder>Loading related escalation chains....</LoadingPlaceholder>
-              )}
-            </VerticalGroup>
-          }
-          onHover={this.getUpdateRelatedEscalationChainsHandler(item.id)}
-        />
+                  <LoadingPlaceholder>Loading related escalation chains....</LoadingPlaceholder>
+                )}
+              </VerticalGroup>
+            }
+            onHover={this.getUpdateRelatedEscalationChainsHandler(item.id)}
+          />
+        )}
+
+        {/* <ScheduleCounter
+          type="warning"
+          count={warningsCount}
+          tooltipTitle="Warnings"
+          tooltipContent="Schedule has unassigned time periods during next 7 days"
+        />*/}
       </HorizontalGroup>
     );
   };
@@ -372,9 +391,10 @@ class SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSta
   };
 
   applyFilters = () => {
-    // const { filters } = this.state;
-    // const { scheduleStore } = this.props.store;
-    // scheduleStore.updateItems(filters.searchTerm);
+    const { filters } = this.state;
+    const { store } = this.props;
+    const { scheduleStore } = store;
+    scheduleStore.updateItems(filters);
   };
 
   debouncedUpdateSchedules = debounce(this.applyFilters, 1000);
