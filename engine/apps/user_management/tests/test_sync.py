@@ -6,6 +6,7 @@ from django.core.exceptions import ObjectDoesNotExist
 from apps.grafana_plugin.helpers.client import GcomAPIClient, GrafanaAPIClient
 from apps.user_management.models import Team, User
 from apps.user_management.sync import cleanup_organization, sync_organization
+from conftest import IS_RBAC_ENABLED
 
 
 @pytest.mark.django_db
@@ -21,6 +22,7 @@ def test_sync_users_for_organization(make_organization, make_user_for_organizati
             "login": "test",
             "role": "admin",
             "avatarUrl": "test.test/test",
+            "permissions": [],
         }
         for user_id in (2, 3)
     )
@@ -95,11 +97,7 @@ def test_sync_users_for_team(make_organization, make_user_for_organization, make
 
 
 @pytest.mark.django_db
-def test_sync_organization(
-    make_organization,
-    make_team,
-    make_user_for_organization,
-):
+def test_sync_organization(make_organization, make_team, make_user_for_organization):
     organization = make_organization()
 
     api_users_response = (
@@ -110,6 +108,7 @@ def test_sync_organization(
             "login": "test",
             "role": "admin",
             "avatarUrl": "test.test/test",
+            "permissions": [],
         },
     )
 
@@ -133,10 +132,11 @@ def test_sync_organization(
         },
     )
 
-    with patch.object(GrafanaAPIClient, "get_users", return_value=(api_users_response, {"status_code": 200})):
-        with patch.object(GrafanaAPIClient, "get_teams", return_value=(api_teams_response, None)):
-            with patch.object(GrafanaAPIClient, "get_team_members", return_value=(api_members_response, None)):
-                sync_organization(organization)
+    with patch.object(GrafanaAPIClient, "is_rbac_enabled_for_organization", return_value=IS_RBAC_ENABLED):
+        with patch.object(GrafanaAPIClient, "get_users", return_value=api_users_response):
+            with patch.object(GrafanaAPIClient, "get_teams", return_value=(api_teams_response, None)):
+                with patch.object(GrafanaAPIClient, "get_team_members", return_value=(api_members_response, None)):
+                    sync_organization(organization)
 
     # check that users are populated
     assert organization.users.count() == 1
@@ -151,6 +151,9 @@ def test_sync_organization(
     # check that team members are populated
     assert team.users.count() == 1
     assert team.users.get() == user
+
+    # check that the rbac flag is properly set on the org
+    assert organization.is_rbac_permissions_enabled == IS_RBAC_ENABLED
 
 
 @pytest.mark.django_db
@@ -176,6 +179,7 @@ def test_duplicate_user_ids(make_organization, make_user_for_organization):
             "login": "test",
             "role": "admin",
             "avatarUrl": "test.test/test",
+            "permissions": [],
         }
     ]
 
@@ -190,7 +194,7 @@ def test_duplicate_user_ids(make_organization, make_user_for_organization):
 def test_cleanup_organization_deleted(make_organization):
     organization = make_organization(gcom_token="TEST_GCOM_TOKEN")
 
-    with patch.object(GcomAPIClient, "get_instance_info", return_value=({"status": "deleted"}, None)):
+    with patch.object(GcomAPIClient, "get_instance_info", return_value={"status": "deleted"}):
         cleanup_organization(organization.id)
 
     with pytest.raises(ObjectDoesNotExist):
