@@ -18,7 +18,7 @@ import { Rotation, RotationType, Schedule, ScheduleEvent, Shift, Event, Layer, S
 
 export class ScheduleStore extends BaseStore {
   @observable
-  searchResult: { [key: string]: Array<Schedule['id']> } = {};
+  searchResult: { results?: Array<Schedule['id']> } = {};
 
   @observable.shallow
   items: { [id: string]: Schedule } = {};
@@ -105,8 +105,11 @@ export class ScheduleStore extends BaseStore {
   }
 
   @action
-  async updateItems(query = '') {
-    const result = await makeRequest(this.path, { method: 'GET', params: { search: query } });
+  async updateItems(f: any = { searchTerm: '', type: undefined }) {
+    // async updateItems(query = '') {
+    const filters = typeof f === 'string' ? { searchTerm: f } : f;
+    const { searchTerm: search, type } = filters;
+    const result = await makeRequest(this.path, { method: 'GET', params: { search: search, type } });
 
     this.items = {
       ...this.items,
@@ -118,10 +121,9 @@ export class ScheduleStore extends BaseStore {
         {}
       ),
     };
-
     this.searchResult = {
       ...this.searchResult,
-      [query]: result.map((item: Schedule) => item.id),
+      results: result.map((item: Schedule) => item.id),
     };
   }
 
@@ -136,12 +138,11 @@ export class ScheduleStore extends BaseStore {
     }
   }
 
-  getSearchResult(query = '') {
-    if (!this.searchResult[query]) {
+  getSearchResult() {
+    if (!this.searchResult.results) {
       return undefined;
     }
-
-    return this.searchResult[query].map((scheduleId: Schedule['id']) => this.items[scheduleId]);
+    return this.searchResult?.results?.map((scheduleId: Schedule['id']) => this.items[scheduleId]);
   }
 
   @action

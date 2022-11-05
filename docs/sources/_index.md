@@ -29,6 +29,4 @@ Grafana OnCall is an open source incident response management tool built to help
 - **Massive scalability:** Grafana OnCall is equipped with a full API and Terraform capabilities. Ready for GitOps and large organization configuration. 
 
 
-> **Note:** You can use [Grafana Cloud](https://grafana.com/products/cloud/?plcmt=nav-products-cta1&cta=cloud) to avoid installing, maintaining, and scaling your own instance of Grafana OnCall. The free forever plan includes 30 Grafana OnCall notification. [Create an account to get started](https://grafana.com/auth/sign-up/create-user?pg=oncall&plcmt=hero-btn-1).
-
 {{< section >}}

@@ -7,8 +7,7 @@ import '@testing-library/jest-dom';
 import outgoingWebhooksStub from 'jest/outgoingWebhooksStub';
 
 import { OutgoingWebhook } from 'models/outgoing_webhook/outgoing_webhook.types';
-
-import { OutgoingWebhooks } from './OutgoingWebhooks';
+import { OutgoingWebhooks } from 'pages/outgoing_webhooks/OutgoingWebhooks';
 
 const outgoingWebhooks = outgoingWebhooksStub as OutgoingWebhook[];
 const outgoingWebhookStore = () => ({
@@ -21,12 +20,21 @@ const outgoingWebhookStore = () => ({
   }, {}),
 });
 
+jest.mock('@grafana/runtime', () => ({
+  config: {
+    featureToggles: {
+      topNav: false,
+    },
+  },
+}));
+
 jest.mock('state/useStore', () => ({
   useStore: () => ({
     outgoingWebhookStore: outgoingWebhookStore(),
     isUserActionAllowed: jest.fn().mockReturnValue(true),
   }),
 }));
+
 jest.mock('@grafana/runtime', () => ({
   getLocationSrv: jest.fn(),
 }));
