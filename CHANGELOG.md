@@ -1,5 +1,9 @@
 # Change Log
 
+## v1.0.51 (2022-11-05)
+
+- Bug Fixes
+
 ## v1.0.50 (2022-11-03)
 
 - Updates to documentation
