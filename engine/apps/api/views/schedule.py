@@ -1,3 +1,5 @@
+import datetime
+
 import pytz
 from django.core.exceptions import ObjectDoesNotExist
 from django.db.models import Count, OuterRef, Subquery
@@ -264,7 +266,13 @@ class ScheduleView(
         if filter_by is not None and filter_by != EVENTS_FILTER_BY_FINAL:
             filter_by = OnCallSchedule.PRIMARY if filter_by == EVENTS_FILTER_BY_ROTATION else OnCallSchedule.OVERRIDES
             events = schedule.filter_events(
-                user_tz, starting_date, days=days, with_empty=True, with_gap=resolve_schedule, filter_by=filter_by
+                user_tz,
+                starting_date,
+                days=days,
+                with_empty=True,
+                with_gap=resolve_schedule,
+                filter_by=filter_by,
+                all_day_datetime=True,
             )
         else:  # return final schedule
             events = schedule.final_events(user_tz, starting_date, days)
@@ -289,7 +297,11 @@ class ScheduleView(
         users = {u: None for u in schedule.related_users()}
         for e in events:
             user = e["users"][0]["pk"] if e["users"] else None
-            if user is not None and users.get(user) is None and e["end"] > now:
+            event_end = e["end"]
+            if not isinstance(event_end, datetime.datetime):
+                # all day events end is a date, make it a datetime for comparison
+                event_end = datetime.datetime.combine(event_end, datetime.datetime.min.time(), tzinfo=pytz.UTC)
+            if user is not None and users.get(user) is None and event_end > now:
                 users[user] = e
 
         result = {"users": users}

@@ -106,6 +106,8 @@ class AmixrRecurringIcalEventsAdapter(IcalService):
 
         def filter_extra_days(event):
             event_start, event_end = self.get_start_and_end_with_respect_to_event_type(event)
+            if event_start > event_end:
+                return False
             return time_span_contains_event(start_date, end_date, event_start, event_end)
 
         return list(filter(filter_extra_days, events))

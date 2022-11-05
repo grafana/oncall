@@ -1,4 +1,4 @@
-FROM python:3.9-alpine
+FROM python:3.9-alpine3.16
 RUN apk add bash python3-dev build-base linux-headers pcre-dev mariadb-connector-c-dev openssl-dev libffi-dev git
 RUN pip install uwsgi
 

@@ -237,13 +237,21 @@
 
 {{- define "snippet.rabbitmq.env" -}}
 {{- if eq .Values.broker.type "rabbitmq" -}}
+{{- if and (not .Values.rabbitmq.enabled) .Values.externalRabbitmq.existingSecret .Values.externalRabbitmq.usernameKey (not .Values.externalRabbitmq.user) }}
+- name: RABBITMQ_USERNAME
+  valueFrom:
+    secretKeyRef:
+      name: {{ include "snippet.rabbitmq.password.secret.name" . }}
+      key: {{ .Values.externalRabbitmq.usernameKey }}
+{{- else }}
 - name: RABBITMQ_USERNAME
   value: {{ include "snippet.rabbitmq.user" . }}
+{{- end }}
 - name: RABBITMQ_PASSWORD
   valueFrom:
     secretKeyRef:
       name: {{ include "snippet.rabbitmq.password.secret.name" . }}
-      key: rabbitmq-password
+      key: {{ include "snippet.rabbitmq.password.secret.key" . }}
 - name: RABBITMQ_HOST
   value: {{ include "snippet.rabbitmq.host" . }}
 - name: RABBITMQ_PORT
@@ -298,8 +306,18 @@
 {{- define "snippet.rabbitmq.password.secret.name" -}}
 {{- if and (not .Values.rabbitmq.enabled) .Values.externalRabbitmq.password -}}
 {{ include "oncall.fullname" . }}-rabbitmq-external
+{{- else if and (not .Values.rabbitmq.enabled) .Values.externalRabbitmq.existingSecret -}}
+{{ .Values.externalRabbitmq.existingSecret }}
 {{- else -}}
 {{ include "oncall.rabbitmq.fullname" . }}
+{{- end -}}
+{{- end -}}
+
+{{- define "snippet.rabbitmq.password.secret.key" -}}
+{{- if and (not .Values.rabbitmq.enabled) .Values.externalRabbitmq.passwordKey -}}
+{{ .Values.externalRabbitmq.passwordKey }}
+{{- else -}}
+rabbitmq-password
 {{- end -}}
 {{- end -}}
 
@@ -348,7 +366,7 @@
       key: smtp-password
 - name: EMAIL_USE_TLS
   value: {{ .Values.oncall.smtp.tls | toString | title | quote }}
-- name: DEFAULT_FROM_EMAIL
+- name: EMAIL_FROM_ADDRESS
   value: {{ .Values.oncall.smtp.fromEmail | quote }}
 {{- else -}}
 - name: FEATURE_EMAIL_INTEGRATION_ENABLED
