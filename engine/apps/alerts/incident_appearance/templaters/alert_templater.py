@@ -172,9 +172,7 @@ class AlertTemplater(ABC):
                 "amixr_incident_id": self.incident_id,  # TODO: decide on variable names
                 "amixr_link": self.link,  # TODO: decide on variable names
             }
-            templated_attr, success = apply_jinja_template(attr_template, data, **context)
-            if success:
-                return templated_attr
+            return apply_jinja_template(attr_template, data, **context)
 
         return None
 

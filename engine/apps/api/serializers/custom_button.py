@@ -53,7 +53,7 @@ class CustomButtonSerializer(serializers.ModelSerializer):
 
         try:
             template = Template(data)
-        except TemplateError:
+        except TemplateError as e:
             raise serializers.ValidationError("Data has incorrect template")
 
         try:

@@ -1,5 +1,6 @@
-from rest_framework import mixins, viewsets
+from rest_framework import mixins, status, viewsets
 from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
 
 from apps.alerts.models import AlertReceiveChannel
 from apps.api.permissions import MODIFY_ACTIONS, READ_ACTIONS, ActionPermission, AnyRole, IsAdmin
@@ -7,6 +8,7 @@ from apps.api.serializers.alert_receive_channel import AlertReceiveChannelTempla
 from apps.auth_token.auth import PluginAuthentication
 from common.api_helpers.mixins import PublicPrimaryKeyMixin
 from common.insight_log import EntityEvent, write_resource_insight_log
+from common.jinja_templater.apply_jinja_template import JinjaTemplateRenderException
 
 
 class AlertReceiveChannelTemplateView(
@@ -36,7 +38,10 @@ class AlertReceiveChannelTemplateView(
     def update(self, request, *args, **kwargs):
         instance = self.get_object()
         prev_state = instance.insight_logs_serialized
-        result = super().update(request, *args, **kwargs)
+        try:
+            result = super().update(request, *args, **kwargs)
+        except JinjaTemplateRenderException as e:
+            return Response(e.fallback_message, status.HTTP_400_BAD_REQUEST)
         instance = self.get_object()
         new_state = instance.insight_logs_serialized
         write_resource_insight_log(

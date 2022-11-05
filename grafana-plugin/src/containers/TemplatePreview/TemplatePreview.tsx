@@ -35,7 +35,9 @@ const TemplatePreview = observer((props: TemplatePreviewProps) => {
     (alertGroupId
       ? alertGroupStore.renderPreview(alertGroupId, templateName, templateBody)
       : alertReceiveChannelStore.renderPreview(alertReceiveChannelId, templateName, templateBody)
-    ).then(setResult);
+    )
+      .then(setResult)
+      .catch((err) => setResult(err.response.data));
   }, 1000);
 
   useEffect(handleTemplateBodyChange, [templateBody]);
