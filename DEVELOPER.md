@@ -93,7 +93,7 @@ python manage.py start_celery
 celery -A engine beat -l info
 ```
 
-5. All set! Check out internal API endpoints at http://localhost:8000/.
+5. All set! Call http://localhost:8080/ to confirm correct setup - you should get a response `Ok`. You can call public API endpoints at http://localhost:8080/ with an Authorization token from the Settings page of the frontend (see below). URLs of the various APIs are defined at [`engine/engine/urls.py`](./engine/engine/urls.py).
 
 ### Frontend setup
 

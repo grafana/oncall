@@ -39,7 +39,7 @@ class ApiTokenAuthentication(BaseAuthentication):
 
     def authenticate_credentials(self, token):
         """
-        Due to the random nature of hashing a  value, this must inspect
+        Due to the random nature of hashing a value, this must inspect
         each auth_token individually to find the correct one.
         """
         try:
