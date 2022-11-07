@@ -387,6 +387,55 @@ def test_rolling_users_event_daily_by_day(
 
 
 @pytest.mark.django_db
+def test_rolling_users_event_daily_by_day_off_start(make_organization_and_user, make_on_call_shift, make_schedule):
+    organization, user_1 = make_organization_and_user()
+
+    schedule = make_schedule(organization, schedule_class=OnCallScheduleWeb)
+    now = timezone.now().replace(hour=0, minute=0, second=0, microsecond=0)
+    current_week_monday = now - timezone.timedelta(days=now.weekday())
+
+    # WE, FR
+    weekdays = [2, 4]
+    by_day = [CustomOnCallShift.ICAL_WEEKDAY_MAP[day] for day in weekdays]
+    data = {
+        "priority_level": 1,
+        "start": current_week_monday,
+        "rotation_start": current_week_monday,
+        "duration": timezone.timedelta(seconds=10800),
+        "frequency": CustomOnCallShift.FREQUENCY_DAILY,
+        "interval": 1,
+        "by_day": by_day,
+        "schedule": schedule,
+    }
+    rolling_users = [[user_1]]
+    on_call_shift = make_on_call_shift(
+        organization=organization, shift_type=CustomOnCallShift.TYPE_ROLLING_USERS_EVENT, **data
+    )
+    on_call_shift.add_rolling_users(rolling_users)
+
+    date = current_week_monday + timezone.timedelta(minutes=5)
+
+    user_1_on_call_dates = [date + timezone.timedelta(days=2), date + timezone.timedelta(days=4)]
+    nobody_on_call_dates = [
+        date,  # MO
+        date + timezone.timedelta(days=1),  # TU
+        date + timezone.timedelta(days=3),  # TH
+        date + timezone.timedelta(days=5),  # SA
+        date + timezone.timedelta(days=6),  # SU
+        date + timezone.timedelta(days=7),  # MO
+    ]
+
+    for dt in user_1_on_call_dates:
+        users_on_call = list_users_to_notify_from_ical(schedule, dt)
+        assert len(users_on_call) == 1
+        assert user_1 in users_on_call
+
+    for dt in nobody_on_call_dates:
+        users_on_call = list_users_to_notify_from_ical(schedule, dt)
+        assert len(users_on_call) == 0
+
+
+@pytest.mark.django_db
 def test_rolling_users_event_with_interval_daily_by_day(
     make_organization_and_user, make_user_for_organization, make_on_call_shift, make_schedule
 ):
