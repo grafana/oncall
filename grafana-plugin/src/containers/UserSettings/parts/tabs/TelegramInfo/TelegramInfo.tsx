@@ -95,9 +95,11 @@ const TelegramInfo = observer((_props: TelegramInfoProps) => {
               </Text>
             </VerticalGroup>
           </Block>
-          <PluginLink query={{ page: 'live-settings' }}>
-            <Button variant="primary">Setup ENV Variables</Button>
-          </PluginLink>
+          {store.hasFeature(AppFeature.LiveSettings) && (
+            <PluginLink query={{ page: 'live-settings' }}>
+              <Button variant="primary">Setup ENV Variables</Button>
+            </PluginLink>
+          )}
         </VerticalGroup>
       )}
     </>
