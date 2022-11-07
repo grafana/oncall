@@ -110,7 +110,7 @@ class SchedulePage extends React.Component<SchedulePageProps, SchedulePageState>
             <div className={cx('header')}>
               <HorizontalGroup justify="space-between">
                 <HorizontalGroup>
-                  <PluginLink query={{ page: 'schedules-new' }}>
+                  <PluginLink query={{ page: 'schedules' }}>
                     <IconButton style={{ marginTop: '5px' }} name="arrow-left" size="xl" />
                   </PluginLink>
                   <Text.Title editable editModalTitle="Schedule name" level={2} onTextChange={this.handleNameChange}>
