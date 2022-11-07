@@ -1,17 +1,12 @@
 # Backend
 */db.sqlite3
-engine/oncall_dev.db
+engine/*.db
 *.pyc
 venv
 .python-version
-.env
-.env_hobby
-.env.dev
 .vscode
 dump.rdb
 .idea
-engine/celerybeat-schedule.db
-engine/sqlite_data
 jupiter_playbooks/*
 engine/reports/*.csv
 engine/jupiter_playbooks/*
@@ -29,11 +24,8 @@ node_modules
 
 # misc
 .DS_Store
-.env.local
-.env.development.local
-.env.test.local
-.env.production.local
 .swp
+.env
 
 npm-debug.log*
 yarn-debug.log*
