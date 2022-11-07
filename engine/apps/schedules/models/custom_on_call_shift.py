@@ -401,7 +401,10 @@ class CustomOnCallShift(models.Model):
         if user:
             event.add("summary", self.get_summary_with_user_for_ical(user))
         event.add("dtstart", self.convert_dt_to_schedule_timezone(start, time_zone))
-        event.add("dtend", self.convert_dt_to_schedule_timezone(start + self.duration, time_zone))
+        dtend = start + self.duration
+        if self.until:
+            dtend = min(dtend, self.until)
+        event.add("dtend", self.convert_dt_to_schedule_timezone(dtend, time_zone))
         event.add("dtstamp", self.rotation_start)
         if custom_rrule:
             event.add("rrule", custom_rrule)
