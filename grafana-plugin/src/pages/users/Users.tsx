@@ -75,10 +75,6 @@ class Users extends React.Component<UsersProps, UsersState> {
     const { usersFilters, page } = this.state;
     const { userStore } = store;
 
-    if (!store.isUserActionAllowed(UserAction.ViewOtherUsers)) {
-      return;
-    }
-
     getLocationSrv().update({ query: { p: page }, partial: true });
     return await userStore.updateItems(getRealFilters(usersFilters), page);
   };
