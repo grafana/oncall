@@ -231,7 +231,7 @@ services:
   grafana:
     container_name: grafana
     labels: *oncall-labels
-    image: "grafana/grafana:main"
+    image: "grafana/grafana:${GRAFANA_VERSION:-main}"
     restart: always
     environment:
       GF_SECURITY_ADMIN_USER: oncall

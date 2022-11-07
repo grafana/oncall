@@ -112,35 +112,25 @@ dbshell:
 	$(call run_engine_docker_command,python manage.py dbshell)
 
 # The below commands are useful for running backend services outside of docker
-VENV_DIR ?= venv
-VENV = $(CURDIR)/$(VENV_DIR)
-CELERY = $(VENV)/bin/celery
-PIP = $(VENV)/bin/pip
-PYTHON3 = $(VENV)/bin/python3
-
-define backend_manage_command
+define backend_command
 	export `grep -v '^#' $(DEV_ENV_FILE) | xargs -0` && \
-	export `grep -v '^#' $(DEV_ENV_DIR)/.env.$(DB).dev | xargs -0` && \
 	export BROKER_TYPE=$(BROKER_TYPE) && \
 	cd engine && \
-	$(PYTHON3) manage.py $(1)
+	$(1)
 endef
 
-create-venv:
-	python3.9 -m venv $(VENV_DIR)
+backend-bootstrap:
+	pip install -U pip wheel
+	cd engine && pip install -r requirements.txt
 
-source-venv:
-	(source $(VENV_DIR)/bin/activate)
+backend-migrate:
+	$(call backend_command,python manage.py migrate)
 
-backend-bootstrap: create-venv source-venv
-	$(PIP) install -U pip wheel
-	cd engine && $(PIP) install -r requirements.txt
+run-backend-server:
+	$(call backend_command,python manage.py runserver)
 
-backend-migrate: source-venv
-	$(call backend_manage_command,migrate)
+run-backend-celery:
+	$(call backend_command,python manage.py start_celery)
 
-backend-manage: source-venv
-	$(call backend_manage_command,$(CMD))
-
-run-backend: source-venv
-	$(call backend_manage_command,runserver)
+backend-command:
+	$(call backend_command,$(CMD))

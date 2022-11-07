@@ -1,21 +1,27 @@
-- [Developer quickstart](#developer-quickstart)
-  - [Running the project](#running-the-project)
-  - [Running in Docker](#running-in-docker)
-    - [`COMPOSE_PROFILES`](#compose_profiles)
-  - [Useful `make` commands](#useful-make-commands)
-  - [Setting environment variables](#setting-environment-variables)
-  - [Slack application setup](#slack-application-setup)
-  - [Update drone build](#update-drone-build)
-- [IDE Specific Instructions](#ide-specific-instructions)
-  - [PyCharm](#pycharm)
+# Developer quickstart
 
-## Developer quickstart
+- [Running the project](#running-the-project)
+  - [`COMPOSE_PROFILES`](#compose_profiles)
+  - [`GRAFANA_VERSION`](#grafana_version)
+  - [Running backend services outside Docker](#running-backend-services-outside-docker)
+- [Useful `make` commands](#useful-make-commands)
+- [Setting environment variables](#setting-environment-variables)
+- [Slack application setup](#slack-application-setup)
+- [Update drone build](#update-drone-build)
+- [Troubleshooting](#troubleshooting)
+  - [ld: library not found for -lssl](#ld-library-not-found-for--lssl)
+  - [Could not build wheels for cryptography which use PEP 517 and cannot be installed directly](#could-not-build-wheels-for-cryptography-which-use-pep-517-and-cannot-be-installed-directly)
+  - [django.db.utils.OperationalError: (1366, "Incorrect string value ...")](#djangodbutilsoperationalerror-1366-incorrect-string-value)
+- [IDE Specific Instructions](#ide-specific-instructions)
+  - [PyCharm](#pycharm-professional-edition)
 
 Related: [How to develop integrations](/engine/config_integrations/README.md)
 
-### Running the project
+## Running the project
 
-1. Firstly, ensure that you have `docker` [installed](https://docs.docker.com/get-docker/) and running on your machine.
+By default everything runs inside Docker. These options can be modified via the [`COMPOSE_PROFILES`](#compose_profiles) environment variable.
+
+1. Firstly, ensure that you have `docker` [installed](https://docs.docker.com/get-docker/) and running on your machine. **NOTE**: the `docker-compose-developer.yml` file uses some syntax/features that are only supported by Docker Compose v2. For insturctions on how to enable this (if you haven't already done so), see [here](https://www.docker.com/blog/announcing-compose-v2-general-availability/).
 2. Run `make start`. By default this will run everything in Docker, using SQLite as the database and Redis as the message broker/cache. See [Running in Docker](#running-in-docker) below for more details on how to swap out/disable which components are run in Docker.
 3. Open Grafana in a browser [here](http://localhost:3000/plugins/grafana-oncall-app) (login: `oncall`, password: `oncall`).
 4. You should now see the OnCall plugin configuration page. Fill out the configuration options as follows:
@@ -27,11 +33,7 @@ Related: [How to develop integrations](/engine/config_integrations/README.md)
 5. Enjoy! Check our [OSS docs](https://grafana.com/docs/grafana-cloud/oncall/open-source/) if you want to set up Slack, Telegram, Twilio or SMS/calls through Grafana Cloud.
 6. (Optional) Install `pre-commit` hooks by running `make install-precommit-hook`
 
-### Running in Docker
-
-By default everything runs inside Docker. These options can be modified by configuring `COMPOSE_PROFILE`.
-
-#### `COMPOSE_PROFILES`
+### `COMPOSE_PROFILES`
 
 This configuration option represents a comma-separated list of [`docker-compose` profiles](https://docs.docker.com/compose/profiles/). It allows you to swap-out, or disable, certain components in Docker.
 
@@ -60,7 +62,25 @@ The default is `engine,oncall_ui,redis,grafana`. This runs:
 - Redis as the Celery message broker/cache
 - a Grafana container
 
-### Useful `make` commands
+### `GRAFANA_VERSION`
+
+If you would like to change the version of Grafana being run, simply pass in a `GRAFANA_VERSION` environment variable to `make start` (or alternatively set it in your `.env.dev` file). The value of this environment variable should be a valid `grafana/grafana` published Docker [image tag](https://hub.docker.com/r/grafana/grafana/tags).
+
+### Running backend services outside Docker
+
+By default everything runs inside Docker. If you would like to run the backend services outside of Docker (for integrating w/ PyCharm for example), follow these instructions:
+
+1. Create a Python 3.9 virtual environment using a method of your choosing (ex. [venv](https://docs.python.org/3.9/library/venv.html) or [pyenv-virtualenv](https://github.com/pyenv/pyenv-virtualenv)). Make sure the virtualenv is "activated".
+2. `postgres` is a dependency on some of our Python dependencies (notably `psycopg2` ([docs](https://www.psycopg.org/docs/install.html#prerequisites))). Please visit [here](https://www.postgresql.org/download/) for installation instructions.
+3. `make backend-bootstrap` - installs all backend dependencies
+4. Modify your `.env.dev` by copying the contents of one of `.env.mysql.dev`, `.env.postgres.dev`, or `.env.sqlite.dev` into `.env.dev` (you should exclude the `GF_` prefixed environment variables). In most cases where you are running stateful services via `docker-compose` and backend services outside of docker you will simply need to change the database host to `localhost` (or in the case of `sqlite` update the file-path to your `sqlite` database file).
+5. `make backend-migrate` - runs necessary database migrations
+6. Open two separate shells and then run the following:
+
+- `make run-backend-server` - runs the HTTP server
+- `make run-backend-celery` - runs Celery workers
+
+## Useful `make` commands
 
 See [`COMPOSE_PROFILES`](#compose_profiles) for more information on what this option is and how to configure it.
 
@@ -84,21 +104,21 @@ make test # run backend tests
 make lint
 ```
 
-### Setting environment variables
+## Setting environment variables
 
 If you need to override any additional environment variables, you should set these in a root `.env.dev` file. This file is automatically picked up by the OnCall engine Docker containers. This file is ignored from source control and also overrides any defaults that are set in other `.env*` files
 
-### Slack application setup
+## Slack application setup
 
 For Slack app configuration check our docs: https://grafana.com/docs/grafana-cloud/oncall/open-source/#slack-setup
 
-### Update drone build
+## Update drone build
 
-The .drone.yml build file must be signed when changes are made to it. Follow these steps:
+The `.drone.yml` build file must be signed when changes are made to it. Follow these steps:
 
 If you have not installed drone CLI follow [these instructions](https://docs.drone.io/cli/install/)
 
-To sign the .drone.yml file:
+To sign the `.drone.yml` file:
 
 ```bash
 export DRONE_SERVER=https://drone.grafana.net
@@ -109,11 +129,67 @@ export DRONE_TOKEN=<Your DRONE_TOKEN>
 drone sign --save grafana/oncall .drone.yml
 ```
 
+## Troubleshooting
+
+### ld: library not found for -lssl
+
+**Problem:**
+
+```
+make backend-bootstrap
+...
+    ld: library not found for -lssl
+    clang: error: linker command failed with exit code 1 (use -v to see invocation)
+    error: command 'gcc' failed with exit status 1
+...
+```
+
+**Solution:**
+
+```
+export LDFLAGS=-L/usr/local/opt/openssl/lib
+make backend-bootstrap
+```
+
+### Could not build wheels for cryptography which use PEP 517 and cannot be installed directly
+
+Happens on Apple Silicon
+
+**Problem:**
+
+```
+  build/temp.macosx-12-arm64-3.9/_openssl.c:575:10: fatal error: 'openssl/opensslv.h' file not found
+  #include <openssl/opensslv.h>
+           ^~~~~~~~~~~~~~~~~~~~
+  1 error generated.
+  error: command '/usr/bin/clang' failed with exit code 1
+  ----------------------------------------
+  ERROR: Failed building wheel for cryptography
+```
+
+**Solution:**
+
+```
+LDFLAGS="-L$(brew --prefix openssl@1.1)/lib" CFLAGS="-I$(brew --prefix openssl@1.1)/include" pip install `cat engine/requirements.txt | grep cryptography`
+```
+
+### django.db.utils.OperationalError: (1366, "Incorrect string value ...")
+
+**Problem:**
+
+```
+django.db.utils.OperationalError: (1366, "Incorrect string value: '\\xF0\\x9F\\x98\\x8A\\xF0\\x9F...' for column 'cached_name' at row 1")
+```
+
+**Solution:**
+
+Recreate the database with the correct encoding.
+
 ## IDE Specific Instructions
 
 ### PyCharm
 
-1. Create a Python virtual environment for the project, using your favorite tool (ex. [`venv`](https://docs.python.org/3.10/tutorial/venv.html) or [`pyenv-virtualenv`](https://github.com/pyenv/pyenv-virtualenv))
+1. Follow the instructions listed in ["Running backend services outside Docker"](#running-backend-services-outside-docker).
 2. Open the project in PyCharm
 3. Settings &rarr; Project OnCall
    - In Python Interpreter click the gear and create a new Virtualenv from existing environment selecting the venv created in Step 1.
