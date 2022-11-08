@@ -38,7 +38,7 @@ class LiveSettingValidator:
     def get_error(self):
         check_fn_name = f"_check_{self.live_setting.name.lower()}"
 
-        if self.live_setting.value is None:
+        if self.live_setting.value in (None, ""):
             return "Empty"
 
         # skip validation if there's no handler for it
