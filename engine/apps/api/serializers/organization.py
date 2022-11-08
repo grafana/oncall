@@ -170,4 +170,14 @@ class PluginOrganizationSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Organization
-        fields = ["pk", "stack_id", "stack_slug", "grafana_url", "org_id", "org_slug", "org_title", "grafana_token"]
+        fields = [
+            "pk",
+            "stack_id",
+            "stack_slug",
+            "grafana_url",
+            "org_id",
+            "org_slug",
+            "org_title",
+            "region_slug",
+            "grafana_token",
+        ]

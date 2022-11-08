@@ -244,6 +244,7 @@ MIDDLEWARE = [
     "social_django.middleware.SocialAuthExceptionMiddleware",
     "apps.social_auth.middlewares.SocialAuthAuthCanceledExceptionMiddleware",
     "apps.integrations.middlewares.IntegrationExceptionMiddleware",
+    "apps.user_management.middlewares.OrganizationMovedMiddleware",
 ]
 
 LOG_REQUEST_ID_HEADER = "HTTP_X_CLOUD_TRACE_CONTEXT"
@@ -558,6 +559,7 @@ SELF_HOSTED_SETTINGS = {
     "ORG_ID": 100,
     "ORG_SLUG": "self_hosted_org",
     "ORG_TITLE": "Self-Hosted Organization",
+    "REGION_SLUG": "self_hosted_region",
 }
 
 GRAFANA_INCIDENT_STATIC_API_KEY = os.environ.get("GRAFANA_INCIDENT_STATIC_API_KEY", None)

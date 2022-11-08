@@ -73,6 +73,16 @@ class Organization(MaintainableObject):
     stack_slug = models.CharField(max_length=300)
     org_slug = models.CharField(max_length=300)
     org_title = models.CharField(max_length=300)
+    region_slug = models.CharField(max_length=300, null=True, default=None)
+    migration_destination = models.ForeignKey(
+        to="user_management.Region",
+        to_field="slug",
+        db_column="migration_destination_slug",
+        on_delete=models.SET_NULL,
+        related_name="regions",
+        default=None,
+        null=True,
+    )
 
     grafana_url = models.URLField()
 
@@ -293,3 +303,7 @@ class Organization(MaintainableObject):
     @property
     def insight_logs_metadata(self):
         return {}
+
+    @property
+    def is_moved(self):
+        return self.migration_destination_id is not None
