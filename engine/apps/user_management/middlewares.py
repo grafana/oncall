@@ -29,7 +29,7 @@ class OrganizationMovedMiddleware(MiddlewareMixin):
             headers = dict(
                 (regex.sub("", header), value) for (header, value) in request.META.items() if header.startswith("HTTP_")
             )
-            headers.pop("HOST")
+            headers.pop("HOST", None)
             if request.META["CONTENT_TYPE"]:
                 headers["CONTENT_TYPE"] = request.META["CONTENT_TYPE"]
 
