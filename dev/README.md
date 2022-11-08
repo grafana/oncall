@@ -22,7 +22,7 @@ Related: [How to develop integrations](/engine/config_integrations/README.md)
 By default everything runs inside Docker. These options can be modified via the [`COMPOSE_PROFILES`](#compose_profiles) environment variable.
 
 1. Firstly, ensure that you have `docker` [installed](https://docs.docker.com/get-docker/) and running on your machine. **NOTE**: the `docker-compose-developer.yml` file uses some syntax/features that are only supported by Docker Compose v2. For insturctions on how to enable this (if you haven't already done so), see [here](https://www.docker.com/blog/announcing-compose-v2-general-availability/).
-2. Run `make start`. By default this will run everything in Docker, using SQLite as the database and Redis as the message broker/cache. See [Running in Docker](#running-in-docker) below for more details on how to swap out/disable which components are run in Docker.
+2. Run `make init start`. By default this will run everything in Docker, using SQLite as the database and Redis as the message broker/cache. See [Running in Docker](#running-in-docker) below for more details on how to swap out/disable which components are run in Docker.
 3. Open Grafana in a browser [here](http://localhost:3000/plugins/grafana-oncall-app) (login: `oncall`, password: `oncall`).
 4. You should now see the OnCall plugin configuration page. Fill out the configuration options as follows:
 
@@ -32,6 +32,8 @@ By default everything runs inside Docker. These options can be modified via the 
 
 5. Enjoy! Check our [OSS docs](https://grafana.com/docs/grafana-cloud/oncall/open-source/) if you want to set up Slack, Telegram, Twilio or SMS/calls through Grafana Cloud.
 6. (Optional) Install `pre-commit` hooks by running `make install-precommit-hook`
+
+**Note**: on subsequent startups you can simply run `make start`, this is a bit faster because it skips the frontend build step.
 
 ### `COMPOSE_PROFILES`
 
@@ -85,6 +87,8 @@ By default everything runs inside Docker. If you would like to run the backend s
 See [`COMPOSE_PROFILES`](#compose_profiles) for more information on what this option is and how to configure it.
 
 ```bash
+make init # build the frontend plugin code then run make start
+make start # start all of the docker containers
 make stop # stop all of the docker containers
 make restart # restart all docker containers
 
