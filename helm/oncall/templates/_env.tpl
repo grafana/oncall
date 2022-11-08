@@ -366,7 +366,7 @@ rabbitmq-password
       key: smtp-password
       optional: true
 - name: EMAIL_USE_TLS
-  value: {{ .Values.oncall.smtp.tls | toString | title | quote }}
+  value: {{ .Values.oncall.smtp.tls | default true | toString | title | quote }}
 - name: EMAIL_FROM_ADDRESS
   value: {{ .Values.oncall.smtp.fromEmail | quote }}
 {{- else -}}
