@@ -7,7 +7,6 @@ from django.http import HttpResponse, JsonResponse
 from rest_framework import status
 from social_core.exceptions import AuthForbidden
 
-from apps.oncall_gateway.utils import check_slack_installation_backend, create_slack_connector
 from apps.slack.tasks import populate_slack_channels_for_team, populate_slack_usergroups_for_team
 from common.constants.slack_auth import (
     REDIRECT_AFTER_SLACK_INSTALL,
@@ -15,6 +14,7 @@ from common.constants.slack_auth import (
     SLACK_AUTH_WRONG_WORKSPACE_ERROR,
 )
 from common.insight_log import ChatOpsEvent, ChatOpsType, write_chatops_insight_log
+from common.oncall_gateway import check_slack_installation_backend, create_slack_connector
 
 logger = logging.getLogger(__name__)
 
@@ -105,7 +105,7 @@ def populate_slack_identities(response, backend, user, organization, **kwargs):
     # update slack oauth fields by data from response
     slack_team_identity.update_oauth_fields(user, organization, response)
     if settings.FEATURE_MULTIREGION_ENABLED:
-        create_slack_connector(slack_team_id, settings.BACKEND_REGION)
+        create_slack_connector(slack_team_id, settings.ONCALL_BACKEND_REGION)
     populate_slack_channels_for_team.apply_async((slack_team_identity.pk,))
     user.slack_user_identity.update_profile_info()
     # todo slack: do we need update info for all existing slack users in slack team?
