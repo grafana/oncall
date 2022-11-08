@@ -364,6 +364,7 @@ rabbitmq-password
     secretKeyRef:
       name: {{ include "oncall.fullname" . }}-smtp
       key: smtp-password
+      optional: true
 - name: EMAIL_USE_TLS
   value: {{ .Values.oncall.smtp.tls | toString | title | quote }}
 - name: EMAIL_FROM_ADDRESS
