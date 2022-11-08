@@ -1,0 +1,68 @@
+.root {
+  margin-top: 24px;
+}
+
+.title {
+  margin-bottom: 20px;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.buttons {
+  width: 100%;
+  justify-content: flex-end;
+}
+
+.filters {
+  margin-bottom: 20px;
+}
+
+.instructions {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+  width: 50%;
+  margin: 20px auto;
+  white-space: break-spaces;
+  text-align: center;
+}
+
+.events {
+  margin: 16px 32px;
+}
+
+.events-list {
+  margin: 0;
+  list-style-type: none;
+}
+
+.events-list-item {
+  margin-top: 12px;
+}
+
+.priority-icon {
+  width: 32px;
+  border-radius: 50%;
+  background: var(--secondary-background);
+  line-height: 32px;
+  text-align: center;
+  font-size: 14px;
+  font-weight: 500;
+  flex-shrink: 0;
+}
+
+.gap-between-shifts {
+  width: 520px;
+  padding: 5px 5px 5px 24px;
+  background-color: rgba(209, 14, 92, 0.15);
+  border: 1px solid rgba(209, 14, 92, 0.15);
+  border-radius: 50px;
+  color: #ff5286;
+  font-weight: 400;
+  align-items: baseline;
+}

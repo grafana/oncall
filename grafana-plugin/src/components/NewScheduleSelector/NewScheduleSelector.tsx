@@ -80,12 +80,16 @@ const NewScheduleSelector: FC<NewScheduleSelectorProps> = (props) => {
                     <Text type="primary" size="large">
                       Create schedule by API
                     </Text>
-                    <Text type="secondary">Configure rotations and upload calendar by Terraform file</Text>
+                    <Text type="secondary">Use API or Terraform to manage rotations</Text>
                   </VerticalGroup>
                 </HorizontalGroup>
-                <Button variant="secondary" icon="plus" onClick={getCreateScheduleClickHandler(ScheduleType.Calendar)}>
-                  Create
-                </Button>
+                <a
+                  target="_blank"
+                  href="https://grafana.com/blog/2022/08/29/get-started-with-grafana-oncall-and-terraform/"
+                  rel="noreferrer"
+                >
+                  <Button variant="secondary">Read more</Button>
+                </a>
               </HorizontalGroup>
             </Block>
           </VerticalGroup>

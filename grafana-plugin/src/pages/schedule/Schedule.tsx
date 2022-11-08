@@ -2,7 +2,7 @@ import React from 'react';
 
 import { AppRootProps } from '@grafana/data';
 import { getLocationSrv } from '@grafana/runtime';
-import { Button, HorizontalGroup, VerticalGroup, IconButton, ToolbarButton, Icon, Modal } from '@grafana/ui';
+import { Button, HorizontalGroup, Icon, IconButton, Modal, ToolbarButton, VerticalGroup } from '@grafana/ui';
 import cn from 'classnames/bind';
 import dayjs from 'dayjs';
 import { omit } from 'lodash-es';
@@ -22,11 +22,13 @@ import UsersTimezones from 'containers/UsersTimezones/UsersTimezones';
 import { Schedule, ScheduleType, Shift } from 'models/schedule/schedule.types';
 import { Timezone } from 'models/timezone/timezone.types';
 import { WithStoreProps } from 'state/types';
+import { UserAction } from 'state/userAction';
 import { withMobXProviderContext } from 'state/withStore';
 
 import { getStartOfWeek } from './Schedule.helpers';
 
 import styles from './Schedule.module.css';
+
 const cx = cn.bind(styles);
 
 interface SchedulePageProps extends AppRootProps, WithStoreProps {}
@@ -101,6 +103,12 @@ class SchedulePage extends React.Component<SchedulePageProps, SchedulePageState>
     const users = store.userStore.getSearchResult().results;
     const schedule = scheduleStore.items[scheduleId];
 
+    const disabled =
+      !store.isUserActionAllowed(UserAction.UpdateSchedules) ||
+      schedule?.type !== ScheduleType.API ||
+      shiftIdToShowRotationForm ||
+      shiftIdToShowOverridesForm;
+
     return (
       <>
         <div className={cx('root')}>
@@ -108,7 +116,7 @@ class SchedulePage extends React.Component<SchedulePageProps, SchedulePageState>
             <div className={cx('header')}>
               <HorizontalGroup justify="space-between">
                 <HorizontalGroup>
-                  <PluginLink query={{ page: 'schedules-new' }}>
+                  <PluginLink query={{ page: 'schedules' }}>
                     <IconButton style={{ marginTop: '5px' }} name="arrow-left" size="xl" />
                   </PluginLink>
                   <Text.Title editable editModalTitle="Schedule name" level={2} onTextChange={this.handleNameChange}>
@@ -148,6 +156,11 @@ class SchedulePage extends React.Component<SchedulePageProps, SchedulePageState>
                 </HorizontalGroup>
               </HorizontalGroup>
             </div>
+            {schedule?.type !== ScheduleType.API && (
+              <Text className={cx('desc')} type="secondary">
+                Ical and API/Terraform schedules are read-only
+              </Text>
+            )}
             <div className={cx('users-timezones')}>
               <UsersTimezones
                 scheduleId={scheduleId}
@@ -187,6 +200,7 @@ class SchedulePage extends React.Component<SchedulePageProps, SchedulePageState>
                 currentTimezone={currentTimezone}
                 startMoment={startMoment}
                 onClick={this.handleShowForm}
+                disabled={disabled}
               />
               <Rotations
                 scheduleId={scheduleId}
@@ -197,7 +211,7 @@ class SchedulePage extends React.Component<SchedulePageProps, SchedulePageState>
                 onDelete={this.handleDeleteRotation}
                 shiftIdToShowRotationForm={shiftIdToShowRotationForm}
                 onShowRotationForm={this.handleShowRotationForm}
-                disabled={shiftIdToShowRotationForm || shiftIdToShowOverridesForm}
+                disabled={disabled}
               />
               <ScheduleOverrides
                 scheduleId={scheduleId}
@@ -208,7 +222,7 @@ class SchedulePage extends React.Component<SchedulePageProps, SchedulePageState>
                 onDelete={this.handleDeleteOverride}
                 shiftIdToShowRotationForm={shiftIdToShowOverridesForm}
                 onShowRotationForm={this.handleShowOverridesForm}
-                disabled={shiftIdToShowRotationForm || shiftIdToShowOverridesForm}
+                disabled={disabled}
               />
             </div>
           </VerticalGroup>
@@ -259,22 +273,10 @@ class SchedulePage extends React.Component<SchedulePageProps, SchedulePageState>
   };
 
   handleShowRotationForm = (shiftId: Shift['id'] | 'new') => {
-    const { shiftIdToShowRotationForm, shiftIdToShowOverridesForm } = this.state;
-
-    if (shiftId && (shiftIdToShowRotationForm || shiftIdToShowOverridesForm)) {
-      return;
-    }
-
     this.setState({ shiftIdToShowRotationForm: shiftId });
   };
 
   handleShowOverridesForm = (shiftId: Shift['id'] | 'new') => {
-    const { shiftIdToShowRotationForm, shiftIdToShowOverridesForm } = this.state;
-
-    if (shiftId && (shiftIdToShowRotationForm || shiftIdToShowOverridesForm)) {
-      return;
-    }
-
     this.setState({ shiftIdToShowOverridesForm: shiftId });
   };
 
