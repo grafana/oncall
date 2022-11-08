@@ -154,7 +154,7 @@ const RotationForm: FC<RotationFormProps> = observer((props) => {
       rolling_users: userGroups,
       interval: repeatEveryValue,
       frequency: repeatEveryPeriod,
-      by_day: (repeatEveryPeriod === 0 && repeatEveryValue === 1) || repeatEveryPeriod === 1 ? selectedDays : null,
+      by_day: repeatEveryPeriod === 0 || repeatEveryPeriod === 1 ? selectedDays : null,
       priority_level: shiftId === 'new' ? layerPriority : shift?.priority_level,
     }),
     [
@@ -343,7 +343,7 @@ const RotationForm: FC<RotationFormProps> = observer((props) => {
                 />
               </Field>
             </HorizontalGroup>
-            {((repeatEveryPeriod === 0 && repeatEveryValue === 1) || repeatEveryPeriod === 1) && (
+            {(repeatEveryPeriod === 0 || repeatEveryPeriod === 1) && (
               <Field label="Select days to repeat">
                 <DaysSelector
                   options={store.scheduleStore.byDayOptions}

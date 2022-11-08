@@ -146,9 +146,11 @@ class SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSta
                     onChange={this.handleTimezoneChange}
                   />
                 )}
-                <Button variant="primary" onClick={this.handleCreateScheduleClick}>
-                  + New schedule
-                </Button>
+                <WithPermissionControl userAction={UserAction.UpdateSchedules}>
+                  <Button variant="primary" onClick={this.handleCreateScheduleClick}>
+                    + New schedule
+                  </Button>
+                </WithPermissionControl>
               </HorizontalGroup>
             </HorizontalGroup>
             <Table

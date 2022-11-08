@@ -2,7 +2,7 @@ import React from 'react';
 
 import { AppRootProps } from '@grafana/data';
 import { getLocationSrv } from '@grafana/runtime';
-import { Button, HorizontalGroup, VerticalGroup, IconButton, ToolbarButton, Icon, Modal } from '@grafana/ui';
+import { Button, HorizontalGroup, Icon, IconButton, Modal, ToolbarButton, VerticalGroup } from '@grafana/ui';
 import cn from 'classnames/bind';
 import dayjs from 'dayjs';
 import { omit } from 'lodash-es';
@@ -22,11 +22,13 @@ import UsersTimezones from 'containers/UsersTimezones/UsersTimezones';
 import { Schedule, ScheduleType, Shift } from 'models/schedule/schedule.types';
 import { Timezone } from 'models/timezone/timezone.types';
 import { WithStoreProps } from 'state/types';
+import { UserAction } from 'state/userAction';
 import { withMobXProviderContext } from 'state/withStore';
 
 import { getStartOfWeek } from './Schedule.helpers';
 
 import styles from './Schedule.module.css';
+
 const cx = cn.bind(styles);
 
 interface SchedulePageProps extends AppRootProps, WithStoreProps {}
@@ -101,7 +103,11 @@ class SchedulePage extends React.Component<SchedulePageProps, SchedulePageState>
     const users = store.userStore.getSearchResult().results;
     const schedule = scheduleStore.items[scheduleId];
 
-    const disabled = schedule?.type !== ScheduleType.API || shiftIdToShowRotationForm || shiftIdToShowOverridesForm;
+    const disabled =
+      !store.isUserActionAllowed(UserAction.UpdateSchedules) ||
+      schedule?.type !== ScheduleType.API ||
+      shiftIdToShowRotationForm ||
+      shiftIdToShowOverridesForm;
 
     return (
       <>
