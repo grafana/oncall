@@ -22,7 +22,7 @@ class SlackConnector:
     SlackConnector represents connection between slack team with installed oncall app and oncall-gateway
     """
 
-    slack_id: str
+    slack_team_id: str
     backend: str
 
 
@@ -67,7 +67,7 @@ class OnCallGatewayAPIClient:
         return urljoin(self.api_base_url, "slack_team_connectors")
 
     def post_slack_connector(self, slack_id: str, backend: str) -> tuple[SlackConnector, requests.models.Response]:
-        d = {"slack_id": slack_id, "backend": backend}
+        d = {"slack_team_id": slack_id, "backend": backend}
         response = self._post(url=self._slack_connectors_url, json=d)
         response_data = response.json()
         return (
@@ -84,7 +84,7 @@ class OnCallGatewayAPIClient:
         response_data = response.json()
         return (
             SlackConnector(
-                response_data["slack_id"],
+                response_data["slack_team_id"],
                 response_data["backend"],
             ),
             response,
