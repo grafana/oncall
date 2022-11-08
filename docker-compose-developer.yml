@@ -174,7 +174,7 @@ services:
           memory: 500m
           cpus: "0.5"
     healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      test: "mysql -uroot -pempty oncall_local_dev -e 'select 1'"
       timeout: 20s
       retries: 10
     volumes:
