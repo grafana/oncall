@@ -96,7 +96,7 @@ def populate_slack_identities(response, backend, user, organization, **kwargs):
 
     slack_team_id = response["team"]["id"]
     if settings.FEATURE_MULTIREGION_ENABLED and not check_slack_installation_backend(
-        slack_team_id, settings.CLOUD_BACKEND
+        slack_team_id, settings.ONCALL_BACKEND_REGION
     ):
         return JsonResponse(status=status.HTTP_400_BAD_REQUEST, json={"detail": "error about regions"})
     slack_team_identity, is_slack_team_identity_created = SlackTeamIdentity.objects.get_or_create(
