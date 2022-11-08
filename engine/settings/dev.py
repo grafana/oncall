@@ -17,15 +17,7 @@ else:
         "PORT": DATABASE_PORT or DATABASE_DEFAULTS[DATABASE_TYPE]["PORT"],
     }
 
-if BROKER_TYPE == BrokerTypes.RABBITMQ:
-    CELERY_BROKER_URL = "pyamqp://rabbitmq:rabbitmq@localhost:5672"
-elif BROKER_TYPE == BrokerTypes.REDIS:
-    CELERY_BROKER_URL = "redis://localhost:6379"
-
-CACHES["default"]["LOCATION"] = ["localhost:6379"]
-
 SECRET_KEY = os.environ.get("SECRET_KEY", "osMsNM0PqlRHBlUvqmeJ7+ldU3IUETCrY9TrmiViaSmInBHolr1WUlS0OFS4AHrnnkp1vp9S9z1")
-
 MIRAGE_SECRET_KEY = os.environ.get(
     "MIRAGE_SECRET_KEY", "sIrmyTvh+Go+h/2E46SnYGwgkKyH6IF6MXZb65I40HVCbj0+dD3JvpAqppEwFb7Vxnxlvtey+EL"
 )

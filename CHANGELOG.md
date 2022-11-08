@@ -1,8 +1,12 @@
 # Change Log
 
-## v1.0.51 (TBD)
+## v1.0.52 (TBD)
 
 - Allow use of API keys as alternative to account auth token for Twilio
+
+## v1.0.51 (2022-11-05)
+
+- Bug Fixes
 
 ## v1.0.50 (2022-11-03)
 

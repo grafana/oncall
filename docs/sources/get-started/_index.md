@@ -26,10 +26,7 @@ These procedures introduce you to initial Grafana OnCall configuration steps, in
 
 ## Before you begin
 
-Grafana OnCall is available for Grafana Cloud as well as Grafana open source users. You must have a Grafana Cloud account or [Open Source Grafana OnCall]({{< relref "../open-source" >}})
-
-For more information, see [Grafana Pricing](https://grafana.com/pricing/) for details.
-
+Grafana OnCall is available for Grafana Cloud as well as Grafana open source users. You must have a Grafana Cloud account or use [Open Source Grafana OnCall]({{< relref "../open-source" >}})
 
 ## Install Open Source Grafana OnCall
 
