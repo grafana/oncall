@@ -7,9 +7,9 @@ from django.core.validators import MinLengthValidator
 from django.db import models
 from django.db.models import F
 from django.utils import timezone
-from jinja2 import Template
 from requests.auth import HTTPBasicAuth
 
+from common.jinja_templater import jinja_template_env
 from common.public_primary_keys import generate_public_primary_key, increase_public_primary_key_length
 
 logger = logging.getLogger(__name__)
@@ -103,7 +103,7 @@ class CustomButton(models.Model):
         if self.forward_whole_payload:
             post_kwargs["json"] = alert.raw_request_data
         elif self.data:
-            rendered_data = Template(self.data).render(
+            rendered_data = jinja_template_env.from_string(self.data).render(
                 {
                     "alert_payload": self._escape_alert_payload(alert.raw_request_data),
                     "alert_group_id": alert.group.public_primary_key,

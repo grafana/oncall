@@ -1,7 +1,6 @@
 version: "3.8"
 
-x-environment:
-  &oncall-environment
+x-environment: &oncall-environment
   DATABASE_TYPE: sqlite3
   BROKER_TYPE: redis
   BASE_URL: $DOMAIN
@@ -55,7 +54,7 @@ services:
         condition: service_healthy
 
   redis:
-    image: redis
+    image: redis:7.0.5
     restart: always
     expose:
       - 6379
@@ -65,7 +64,7 @@ services:
       resources:
         limits:
           memory: 500m
-          cpus: '0.5'
+          cpus: "0.5"
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
       timeout: 5s
@@ -88,7 +87,7 @@ services:
       resources:
         limits:
           memory: 500m
-          cpus: '0.5'
+          cpus: "0.5"
     profiles:
       - with_grafana
 

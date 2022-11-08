@@ -2,13 +2,14 @@ import json
 from collections import defaultdict
 
 from django.core.validators import URLValidator, ValidationError
-from jinja2 import Template, TemplateError
+from jinja2 import TemplateError
 from rest_framework import serializers
 from rest_framework.validators import UniqueTogetherValidator
 
 from apps.alerts.models import CustomButton
 from common.api_helpers.custom_fields import TeamPrimaryKeyRelatedField
 from common.api_helpers.utils import CurrentOrganizationDefault, CurrentTeamDefault
+from common.jinja_templater import jinja_template_env
 
 
 class CustomButtonSerializer(serializers.ModelSerializer):
@@ -52,8 +53,8 @@ class CustomButtonSerializer(serializers.ModelSerializer):
             return None
 
         try:
-            template = Template(data)
-        except TemplateError as e:
+            template = jinja_template_env.from_string(data)
+        except TemplateError:
             raise serializers.ValidationError("Data has incorrect template")
 
         try:
