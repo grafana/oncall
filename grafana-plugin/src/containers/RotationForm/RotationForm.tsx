@@ -17,7 +17,7 @@ import { Schedule, Shift } from 'models/schedule/schedule.types';
 import { getTzOffsetString } from 'models/timezone/timezone.helpers';
 import { Timezone } from 'models/timezone/timezone.types';
 import { User } from 'models/user/user.types';
-import { getDateTime, getUTCString } from 'pages/schedule/Schedule.helpers';
+import { getDateTime, getStartOfWeek, getUTCString } from 'pages/schedule/Schedule.helpers';
 import { SelectOption } from 'state/types';
 import { useStore } from 'state/useStore';
 import { getCoords, waitForElement } from 'utils/DOM';
@@ -58,7 +58,7 @@ const RotationForm: FC<RotationFormProps> = observer((props) => {
     onDelete,
     layerPriority,
     shiftId,
-    shiftMoment = dayjs().startOf('isoWeek'),
+    shiftMoment = getStartOfWeek(currentTimezone),
     shiftColor = '#3D71D9',
   } = props;
 
@@ -195,7 +195,7 @@ const RotationForm: FC<RotationFormProps> = observer((props) => {
   const updatePreview = () => {
     store.scheduleStore
       .updateRotationPreview(scheduleId, shiftId, getFromString(startMoment), false, params)
-      .then(() => {
+      .finally(() => {
         setIsOpen(true);
       });
   };

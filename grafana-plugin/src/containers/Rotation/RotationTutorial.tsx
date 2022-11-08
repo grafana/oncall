@@ -52,7 +52,7 @@ const RotationTutorial: FC<RotationProps> = (props) => {
     const base = 60 * 60 * 24 * days;
 
     return firstShiftOffset / base;
-  }, [events]);
+  }, [events, startMoment]);
 
   return (
     <div className={cx('slots', 'slots--tutorial')} style={{ transform: `translate(${x * 100}%, 0)` }}>
