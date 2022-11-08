@@ -60,6 +60,38 @@ def test_get_on_call_users_from_web_schedule_override(make_organization_and_user
 
 
 @pytest.mark.django_db
+def test_get_on_call_users_from_web_schedule_override_until(
+    make_organization_and_user, make_on_call_shift, make_schedule
+):
+    organization, user = make_organization_and_user()
+
+    schedule = make_schedule(organization, schedule_class=OnCallScheduleWeb)
+    date = timezone.now().replace(microsecond=0)
+
+    data = {
+        "start": date,
+        "rotation_start": date,
+        "duration": timezone.timedelta(seconds=10800),
+        "schedule": schedule,
+        "until": date + timezone.timedelta(seconds=3600),
+    }
+
+    on_call_shift = make_on_call_shift(organization=organization, shift_type=CustomOnCallShift.TYPE_OVERRIDE, **data)
+    on_call_shift.add_rolling_users([[user]])
+
+    # user is on-call
+    date = date + timezone.timedelta(minutes=5)
+    users_on_call = list_users_to_notify_from_ical(schedule, date)
+    assert len(users_on_call) == 1
+    assert user in users_on_call
+
+    # and the until is enforced
+    date = date + timezone.timedelta(hours=2)
+    users_on_call = list_users_to_notify_from_ical(schedule, date)
+    assert len(users_on_call) == 0
+
+
+@pytest.mark.django_db
 def test_get_on_call_users_from_recurrent_event(make_organization_and_user, make_on_call_shift, make_schedule):
     organization, user = make_organization_and_user()
 
