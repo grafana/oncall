@@ -272,11 +272,7 @@ class OnCallSchedule(PolymorphicModel):
             return []
 
         def event_start_cmp_key(e):
-            # all day events: compare using a datetime object at 00:00
-            start = e["start"]
-            if not isinstance(start, datetime.datetime):
-                start = datetime.datetime.combine(start, datetime.datetime.min.time(), tzinfo=pytz.UTC)
-            return start
+            return e["start"]
 
         def event_cmp_key(e):
             """Sorting key criteria for events."""
