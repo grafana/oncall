@@ -29,6 +29,9 @@ class OrganizationMovedMiddleware(MiddlewareMixin):
             headers = dict(
                 (regex.sub("", header), value) for (header, value) in request.META.items() if header.startswith("HTTP_")
             )
+            headers.pop("HOST")
+            if request.META["CONTENT_TYPE"]:
+                headers["CONTENT_TYPE"] = request.META["CONTENT_TYPE"]
 
             response = self.make_request(request.method, url, headers, request.body)
             return HttpResponse(response.content, status=response.status_code)
