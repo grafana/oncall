@@ -1,9 +1,8 @@
 import React from 'react';
 
-import { HorizontalGroup, Icon } from '@grafana/ui';
+import { HorizontalGroup, Icon, Tab, TabsBar } from '@grafana/ui';
 import cn from 'classnames/bind';
 
-import VerticalTabsBar, { VerticalTab } from 'components/VerticalTabsBar/VerticalTabsBar';
 import { ChatOpsTab } from 'pages/chat-ops/ChatOps.types';
 
 import SlackSettings from './tabs/SlackSettings/SlackSettings';
@@ -22,20 +21,24 @@ export const Tabs = (props: TabsProps) => {
   const { activeTab, onTabChange } = props;
 
   return (
-    <VerticalTabsBar activeTab={activeTab} onChange={onTabChange}>
-      <VerticalTab id={ChatOpsTab.Slack}>
-        <HorizontalGroup>
-          <Icon name="slack" />
-          Slack
-        </HorizontalGroup>
-      </VerticalTab>
-      <VerticalTab id={ChatOpsTab.Telegram}>
-        <HorizontalGroup>
-          <Icon name="message" />
-          Telegram
-        </HorizontalGroup>
-      </VerticalTab>
-    </VerticalTabsBar>
+    <TabsBar>
+      <Tab
+        key={ChatOpsTab.Slack}
+        onChangeTab={() => onTabChange(ChatOpsTab.Slack)}
+        active={activeTab === ChatOpsTab.Slack}
+        label={"Slack"}
+      >
+        <Icon name="slack" /> Slack
+      </Tab>
+      <Tab
+        key={ChatOpsTab.Telegram}
+        onChangeTab={() => onTabChange(ChatOpsTab.Telegram)}
+        active={activeTab === ChatOpsTab.Telegram}
+        label={"Telegram"}
+      >
+        <Icon name="message" /> Telegram
+      </Tab>
+    </TabsBar>
   );
 };
 

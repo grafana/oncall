@@ -190,9 +190,6 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
                             integrationSettingsTab,
                           });
                         }}
-                        /*onEditAlertReceiveChannelTemplates={this.getShowAlertReceiveChannelSettingsClickHandler(
-                  store.selectedAlertReceiveChannel
-                )}*/
                       />
                     </div>
                   </div>

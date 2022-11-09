@@ -5,7 +5,7 @@ import moment from 'moment-timezone';
 import qs from 'query-string';
 import { OnCallAppSettings } from 'types';
 
-import { NavMenuItem } from 'components/PluginLink/routes';
+import { NavMenuItem } from 'pages/routes';
 import { AlertReceiveChannelStore } from 'models/alert_receive_channel/alert_receive_channel';
 import { AlertReceiveChannel } from 'models/alert_receive_channel/alert_receive_channel.types';
 import { AlertReceiveChannelFiltersStore } from 'models/alert_receive_channel_filters/alert_receive_channel_filters';

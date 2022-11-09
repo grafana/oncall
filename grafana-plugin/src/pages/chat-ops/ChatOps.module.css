@@ -1,13 +1,8 @@
 .root {
   display: flex;
-}
-
-.tabs {
-  width: 250px;
+  flex-direction: column;
 }
 
 .content {
-  flex-grow: 1;
-  padding-left: 20px;
-  border-left: var(--border);
+  padding-top: 24px;
 }

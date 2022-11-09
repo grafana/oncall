@@ -15,7 +15,7 @@ import weekday from 'dayjs/plugin/weekday';
 import 'interceptors';
 import { observer, Provider } from 'mobx-react';
 
-import { routes } from 'components/PluginLink/routes';
+import { routes } from 'pages/routes';
 import DefaultPageLayout from 'containers/DefaultPageLayout/DefaultPageLayout';
 import logo from 'img/logo.svg';
 import { pages } from 'pages';
@@ -125,9 +125,7 @@ export const Root = observer((props: AppRootProps) => {
     };
   }, []);
 
-  const Page = useMemo(() => {
-    return getPageMatchingComponent(page);
-  }, [page]);
+  const Page = useMemo(() => getPageMatchingComponent(page), [page]);
 
   const isNewNav = isNewNavigation();
 

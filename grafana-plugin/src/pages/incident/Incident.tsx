@@ -59,6 +59,7 @@ import sanitize from 'utils/sanitize';
 import { getActionButtons, getIncidentStatusTag, renderRelatedUsers } from './Incident.helpers';
 
 import styles from './Incident.module.css';
+import { pages } from 'pages';
 
 const cx = cn.bind(styles);
 
@@ -128,7 +129,7 @@ class IncidentPage extends React.Component<IncidentPageProps, IncidentPageState>
     }
 
     return (
-      <PluginPage pageNav={{ text: '', hideFromBreadcrumbs: true }}>
+      <PluginPage pageNav={pages['incident'].getPageNav()}>
         <PageErrorHandlingWrapper errorData={errorData} objectName="alert group" pageName="incidents">
           {() => (
             <div className={cx('root', { newNavbar: isNewNavigation() })}>
