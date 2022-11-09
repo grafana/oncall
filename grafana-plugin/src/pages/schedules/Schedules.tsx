@@ -1,4 +1,4 @@
-import React, { SyntheticEvent } from 'react';
+import React from 'react';
 
 import { getLocationSrv } from '@grafana/runtime';
 import { Button, HorizontalGroup, IconButton, LoadingPlaceholder, VerticalGroup } from '@grafana/ui';
@@ -379,9 +379,7 @@ class SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSta
     const { store } = this.props;
     const { scheduleStore } = store;
 
-    return (event: SyntheticEvent) => {
-      event.stopPropagation();
-
+    return () => {
       scheduleStore.delete(id).then(this.update);
     };
   };
