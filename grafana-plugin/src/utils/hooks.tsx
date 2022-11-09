@@ -17,7 +17,6 @@ type Args = {
   };
   enableLiveSettings: boolean;
   enableCloudPage: boolean;
-  enableNewSchedulesPage: boolean;
   backendLicense: string;
 };
 
@@ -34,7 +33,6 @@ export function useNavModel({
   grafanaUser,
   enableLiveSettings,
   enableCloudPage,
-  enableNewSchedulesPage,
   backendLicense,
 }: Args) {
   return useMemo(() => {
@@ -50,8 +48,7 @@ export function useNavModel({
           hideFromTabs ||
           (role === 'Admin' && grafanaUser.orgRole !== role) ||
           (id === 'live-settings' && !enableLiveSettings) ||
-          (id === 'cloud' && !enableCloudPage) ||
-          (id === 'schedules-new' && !enableNewSchedulesPage),
+          (id === 'cloud' && !enableCloudPage),
       });
 
       if (page === id) {
@@ -84,7 +81,6 @@ export function useNavModel({
     enableLiveSettings,
     enableCloudPage,
     backendLicense,
-    enableNewSchedulesPage,
     grafanaUser.orgRole,
   ]);
 }

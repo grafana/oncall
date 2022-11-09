@@ -1,0 +1,8 @@
+__pycache__
+.pytest_cache
+*.pyc
+celerybeat-schedule
+*.db
+./extensions
+
+.DS_Store

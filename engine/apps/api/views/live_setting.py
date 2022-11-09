@@ -38,40 +38,41 @@ class LiveSettingViewSet(PublicPrimaryKeyMixin, viewsets.ModelViewSet):
         return queryset
 
     def perform_update(self, serializer):
+        name = serializer.instance.name
         old_value = serializer.instance.value
         new_value = serializer.validated_data["value"]
 
         super().perform_update(serializer)
 
         if new_value != old_value:
-            self._post_update_hook(old_value)
+            self._post_update_hook(name, old_value)
+            LiveSetting.validate_settings()
 
     def perform_destroy(self, instance):
+        name = instance.name
         old_value = instance.value
         new_value = instance.default_value
 
         super().perform_destroy(instance)
 
         if new_value != old_value:
-            self._post_update_hook(old_value)
+            self._post_update_hook(name, old_value)
 
-    def _post_update_hook(self, old_value):
-        instance = self.get_object()
-
-        if instance.name == "TELEGRAM_TOKEN":
+    def _post_update_hook(self, name, old_value):
+        if name == "TELEGRAM_TOKEN":
             self._reset_telegram_integration(old_token=old_value)
             register_telegram_webhook.delay()
 
-        if instance.name == "TELEGRAM_WEBHOOK_HOST":
+        if name == "TELEGRAM_WEBHOOK_HOST":
             register_telegram_webhook.delay()
 
-        if instance.name in ["SLACK_CLIENT_OAUTH_ID", "SLACK_CLIENT_OAUTH_SECRET"]:
+        if name in ["SLACK_CLIENT_OAUTH_ID", "SLACK_CLIENT_OAUTH_SECRET"]:
             organization = self.request.auth.organization
             slack_team_identity = organization.slack_team_identity
             if slack_team_identity is not None:
                 unpopulate_slack_user_identities.delay(organization_pk=organization.pk, force=True)
 
-        if instance.name == "GRAFANA_CLOUD_ONCALL_TOKEN":
+        if name == "GRAFANA_CLOUD_ONCALL_TOKEN":
             from apps.oss_installation.models import CloudConnector
 
             CloudConnector.remove_sync()

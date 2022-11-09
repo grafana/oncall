@@ -11,6 +11,7 @@ from rest_framework.request import Request
 from apps.grafana_plugin.helpers.gcom import check_token
 from apps.user_management.models import User
 from apps.user_management.models.organization import Organization
+from apps.user_management.models.region import OrganizationMovedException
 from common.constants.role import Role
 
 from .constants import SCHEDULE_EXPORT_TOKEN_NAME, SLACK_AUTH_TOKEN_NAME
@@ -46,6 +47,10 @@ class ApiTokenAuthentication(BaseAuthentication):
             auth_token = self.model.validate_token_string(token)
         except InvalidToken:
             raise exceptions.AuthenticationFailed("Invalid token.")
+
+        if auth_token.organization.is_moved:
+            raise OrganizationMovedException(auth_token.organization)
+
         return auth_token.user, auth_token
 
 
@@ -167,6 +172,9 @@ class ScheduleExportAuthentication(BaseAuthentication):
         except InvalidToken:
             raise exceptions.AuthenticationFailed("Invalid token.")
 
+        if auth_token.organization.is_moved:
+            raise OrganizationMovedException(auth_token.organization)
+
         if auth_token.schedule.public_primary_key != public_primary_key:
             raise exceptions.AuthenticationFailed("Invalid schedule export token for schedule")
 
@@ -196,6 +204,9 @@ class UserScheduleExportAuthentication(BaseAuthentication):
             auth_token = self.model.validate_token_string(token_string)
         except InvalidToken:
             raise exceptions.AuthenticationFailed("Invalid token")
+
+        if auth_token.organization.is_moved:
+            raise OrganizationMovedException(auth_token.organization)
 
         if auth_token.user.public_primary_key != public_primary_key:
             raise exceptions.AuthenticationFailed("Invalid schedule export token for user")

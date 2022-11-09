@@ -41,6 +41,7 @@
 .users {
   position: relative;
   height: 76px;
+  overflow: hidden;
 }
 
 .avatar-group {

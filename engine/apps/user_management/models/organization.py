@@ -12,6 +12,7 @@ from apps.alerts.tasks import disable_maintenance
 from apps.slack.utils import post_message_to_channel
 from apps.user_management.subscription_strategy import FreePublicBetaSubscriptionStrategy
 from common.insight_log import ChatOpsEvent, ChatOpsType, write_chatops_insight_log
+from common.oncall_gateway import create_oncall_connector, delete_oncall_connector_async
 from common.public_primary_keys import generate_public_primary_key, increase_public_primary_key_length
 
 logger = logging.getLogger(__name__)
@@ -31,7 +32,26 @@ def generate_public_primary_key_for_organization():
     return new_public_primary_key
 
 
+class OrganizationQuerySet(models.QuerySet):
+    def create(self, **kwargs):
+        instance = super().create(**kwargs)
+        if settings.FEATURE_MULTIREGION_ENABLED:
+            create_oncall_connector(instance.public_primary_key, settings.ONCALL_BACKEND_REGION)
+        return instance
+
+    def delete(self):
+        org_id = self.public_primary_key
+        super().delete(self)
+        if settings.FEATURE_MULTIREGION_ENABLED:
+            delete_oncall_connector_async.apply_async(
+                (org_id),
+            )
+
+
 class Organization(MaintainableObject):
+
+    objects = OrganizationQuerySet.as_manager()
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.subscription_strategy = self._get_subscription_strategy()
@@ -53,6 +73,16 @@ class Organization(MaintainableObject):
     stack_slug = models.CharField(max_length=300)
     org_slug = models.CharField(max_length=300)
     org_title = models.CharField(max_length=300)
+    region_slug = models.CharField(max_length=300, null=True, default=None)
+    migration_destination = models.ForeignKey(
+        to="user_management.Region",
+        to_field="slug",
+        db_column="migration_destination_slug",
+        on_delete=models.SET_NULL,
+        related_name="regions",
+        default=None,
+        null=True,
+    )
 
     grafana_url = models.URLField()
 
@@ -273,3 +303,7 @@ class Organization(MaintainableObject):
     @property
     def insight_logs_metadata(self):
         return {}
+
+    @property
+    def is_moved(self):
+        return self.migration_destination_id is not None

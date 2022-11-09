@@ -11,10 +11,12 @@ import Text from 'components/Text/Text';
 import TimelineMarks from 'components/TimelineMarks/TimelineMarks';
 import Rotation from 'containers/Rotation/Rotation';
 import RotationForm from 'containers/RotationForm/RotationForm';
+import { WithPermissionControl } from 'containers/WithPermissionControl/WithPermissionControl';
 import { getColor, getFromString } from 'models/schedule/schedule.helpers';
 import { Layer, Schedule, Shift } from 'models/schedule/schedule.types';
 import { Timezone } from 'models/timezone/timezone.types';
 import { WithStoreProps } from 'state/types';
+import { UserAction } from 'state/userAction';
 import { withMobXProviderContext } from 'state/withStore';
 
 import { DEFAULT_TRANSITION_TIMEOUT } from './Rotations.config';
@@ -96,9 +98,11 @@ class Rotations extends Component<RotationsProps, RotationsState> {
                 </Text.Title>
               </div>
               {disabled ? (
-                <Button variant="primary" icon="plus" disabled>
-                  Add rotation
-                </Button>
+                <WithPermissionControl userAction={UserAction.UpdateSchedules}>
+                  <Button variant="primary" icon="plus" disabled>
+                    Add rotation
+                  </Button>
+                </WithPermissionControl>
               ) : (
                 <ValuePicker
                   label="Add rotation"
@@ -145,6 +149,7 @@ class Rotations extends Component<RotationsProps, RotationsState> {
                                 startMoment={startMoment}
                                 currentTimezone={currentTimezone}
                                 transparent={isPreview}
+                                tutorialParams={isPreview && store.scheduleStore.rotationFormLiveParams}
                               />
                             </CSSTransition>
                           ))}
@@ -186,10 +191,13 @@ class Rotations extends Component<RotationsProps, RotationsState> {
               <div
                 className={cx('add-rotations-layer')}
                 onClick={() => {
-                  this.handleAddLayer(nextPriority);
+                  if (disabled) {
+                    return;
+                  }
+                  this.handleAddLayer(nextPriority, startMoment);
                 }}
               >
-                <Text type="primary">+ Add rotations layer</Text>
+                <Text type={disabled ? 'disabled' : 'primary'}>+ Add rotations layer</Text>
               </div>
             )}
           </div>
