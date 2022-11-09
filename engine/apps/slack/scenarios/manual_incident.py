@@ -122,7 +122,7 @@ class FinishCreateIncidentFromMessage(scenario_step.ScenarioStep):
             link_to_upstream_details=None,
             alert_receive_channel=alert_receive_channel,
             raw_request_data=payload,
-            integration_unique_data={"created_by": user.get_user_verbal_for_team_for_slack()},
+            integration_unique_data={"created_by": user.get_username_with_slack_verbal()},
             force_route_id=selected_route.pk,
         )
 

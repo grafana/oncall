@@ -40,7 +40,7 @@ def test_log_message(
     make_alert_group_log_record,
 ):
     organization, user = make_organization_and_user()
-    user_name = user.get_user_verbal_for_team_for_slack(organization)
+    user_name = user.get_username_with_slack_verbal()
 
     alert_receive_channel = make_alert_receive_channel(
         organization, integration=AlertReceiveChannel.INTEGRATION_GRAFANA, verbal_name="Test integration"
@@ -90,7 +90,7 @@ def test_log_message_too_long_is_trimmed(
     make_alert_group_log_record,
 ):
     organization, user = make_organization_and_user()
-    user_name = user.get_user_verbal_for_team_for_slack(organization)
+    user_name = user.get_username_with_slack_verbal()
 
     alert_receive_channel = make_alert_receive_channel(
         organization, integration=AlertReceiveChannel.INTEGRATION_GRAFANA, verbal_name="Test integration"
@@ -139,7 +139,7 @@ def test_personal_message(
     make_alert,
 ):
     organization, user = make_organization_and_user()
-    user_name = user.get_user_verbal_for_team_for_slack(organization)
+    user_name = user.get_username_with_slack_verbal()
 
     alert_receive_channel = make_alert_receive_channel(
         organization, integration=AlertReceiveChannel.INTEGRATION_GRAFANA, verbal_name="Test integration"

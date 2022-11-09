@@ -186,7 +186,7 @@ class ResolutionNote(models.Model):
         But AlertGroupPostmortem has no author field. So this method was introduces as workaround.
         """
         if self.author is not None:
-            return self.author.get_user_verbal_for_team_for_slack(mention)
+            return self.author.get_username_with_slack_verbal(mention)
         else:
             return ""
 

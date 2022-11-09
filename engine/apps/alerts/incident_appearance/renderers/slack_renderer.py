@@ -370,7 +370,7 @@ class AlertGroupSlackRenderer(AlertGroupBaseRenderer):
             return []
         buttons = []
         for invitation in invitations:
-            invitee_name = invitation.invitee.get_user_verbal_for_team_for_slack()
+            invitee_name = invitation.invitee.get_username_with_slack_verbal()
             buttons.append(
                 {
                     "name": "{}_{}".format(

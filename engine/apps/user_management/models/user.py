@@ -190,11 +190,8 @@ class User(models.Model):
     def is_notification_allowed(self):
         return self.role in (Role.ADMIN, Role.EDITOR)
 
-    # using in-memory cache instead of redis to avoid pickling  python objects
-    # @timed_lru_cache(timeout=100)
-    def get_user_verbal_for_team_for_slack(self, amixr_team=None, slack_team_identity=None, mention=False):
+    def get_username_with_slack_verbal(self, mention=False):
         slack_verbal = None
-        verbal = self.username
 
         if self.slack_user_identity:
             slack_verbal = (
@@ -204,10 +201,9 @@ class User(models.Model):
             )
 
         if slack_verbal:
-            slack_verbal_str = f" ({slack_verbal})"
-            verbal = f"{verbal}{slack_verbal_str}"
+            return f"{self.username} ({slack_verbal})"
 
-        return verbal
+        return self.username
 
     @property
     def timezone(self):
