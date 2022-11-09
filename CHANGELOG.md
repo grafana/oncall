@@ -3,6 +3,7 @@
 ## v1.0.52 (TBD)
 
 - Allow use of API keys as alternative to account auth token for Twilio
+- Remove `grafana_plugin_management` Django app
 
 ## v1.0.51 (2022-11-05)
 
