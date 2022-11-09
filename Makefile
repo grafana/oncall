@@ -77,6 +77,9 @@ stop:
 restart:
 	$(call run_docker_compose_command,restart)
 
+build:
+	$(call run_docker_compose_command,build)
+
 cleanup: stop
 	docker system prune --filter label="$(DOCKER_COMPOSE_DEV_LABEL)" --all --volumes
 
@@ -111,6 +114,9 @@ shell:
 
 dbshell:
 	$(call run_engine_docker_command,python manage.py dbshell)
+
+exec-engine:
+	docker exec -it oncall_engine bash
 
 # The below commands are useful for running backend services outside of docker
 define backend_command

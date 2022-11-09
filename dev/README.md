@@ -91,6 +91,7 @@ make init # build the frontend plugin code then run make start
 make start # start all of the docker containers
 make stop # stop all of the docker containers
 make restart # restart all docker containers
+make build # rebuild images (e.g. when changing requirements.txt)
 
 # this will remove all of the images, containers, volumes, and networks
 # associated with your local OnCall developer setup
@@ -101,6 +102,7 @@ make start-celery-beat # start celery beat
 make purge-queues # purge celery queues
 make shell # starts an OnCall engine Django shell
 make dbshell # opens a DB shell
+make exec-engine # exec into engine container's bash
 make test # run backend tests
 
 # run both frontend and backend linters
