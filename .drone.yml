@@ -100,6 +100,10 @@ steps:
 
   - name: Build and Push Engine Docker Image Backend to GCR
     image: plugins/docker
+    environment:
+      # force docker to use buildkit feature, this will skip build stages that aren't required in the final image (ie. dev & dev-enterprise)
+      # https://github.com/docker/cli/issues/1134#issuecomment-406449342
+      DOCKER_BUILDKIT: 1
     settings:
       repo: us.gcr.io/kubernetes-dev/oncall
       dockerfile: engine/Dockerfile
@@ -114,6 +118,10 @@ steps:
 
   - name: Build and Push Engine Docker Image Backend to Dockerhub
     image: plugins/docker
+    environment:
+      # force docker to use buildkit feature, this will skip build stages that aren't required in the final image (ie. dev & dev-enterprise)
+      # https://github.com/docker/cli/issues/1134#issuecomment-406449342
+      DOCKER_BUILDKIT: 1
     settings:
       repo: grafana/oncall
       dockerfile: engine/Dockerfile
@@ -227,6 +235,10 @@ steps:
 
   - name: build and push docker image
     image: plugins/docker
+    environment:
+      # force docker to use buildkit feature, this will skip build stages that aren't required in the final image (ie. dev & dev-enterprise)
+      # https://github.com/docker/cli/issues/1134#issuecomment-406449342
+      DOCKER_BUILDKIT: 1
     settings:
       repo: grafana/oncall
       tags: ${DRONE_TAG}-amd64-linux
@@ -265,6 +277,10 @@ steps:
 
   - name: build and push docker image
     image: plugins/docker
+    environment:
+      # force docker to use buildkit feature, this will skip build stages that aren't required in the final image (ie. dev & dev-enterprise)
+      # https://github.com/docker/cli/issues/1134#issuecomment-406449342
+      DOCKER_BUILDKIT: 1
     settings:
       repo: grafana/oncall
       tags: ${DRONE_TAG}-arm64-linux
