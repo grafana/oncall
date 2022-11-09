@@ -25,6 +25,7 @@ from apps.auth_token.auth import PluginAuthentication
 from apps.auth_token.constants import SCHEDULE_EXPORT_TOKEN_NAME
 from apps.auth_token.models import ScheduleExportAuthToken
 from apps.schedules.models import OnCallSchedule
+from apps.schedules.models.on_call_schedule import migrate_api_schedule_to_web
 from apps.slack.models import SlackChannel
 from apps.slack.tasks import update_slack_user_group_for_schedules
 from common.api_helpers.exceptions import BadRequest, Conflict
@@ -60,6 +61,7 @@ class ScheduleView(
     action_permissions = {
         IsAdmin: (
             *MODIFY_ACTIONS,
+            "migrate_to_web",
             "reload_ical",
         ),
         IsAdminOrEditor: ("export_token",),
@@ -329,6 +331,18 @@ class ScheduleView(
             update_slack_user_group_for_schedules.apply_async((schedule.user_group.pk,))
 
         return Response(status=status.HTTP_200_OK)
+
+    @action(detail=True, methods=["post"])
+    def migrate_to_web(self, request, pk):
+        schedule = self.get_object()
+        try:
+            schedule.oncallschedulecalendar
+        except ObjectDoesNotExist:
+            raise BadRequest(detail="Migration is only allowed for API schedules")
+
+        web_schedule = migrate_api_schedule_to_web(schedule)
+        serializer = self.get_serializer(web_schedule)
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
 
     @action(detail=True, methods=["get", "post", "delete"])
     def export_token(self, request, pk):

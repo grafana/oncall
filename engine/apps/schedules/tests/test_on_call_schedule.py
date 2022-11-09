@@ -6,6 +6,7 @@ from django.utils import timezone
 
 from apps.schedules.ical_utils import memoized_users_in_ical
 from apps.schedules.models import CustomOnCallShift, OnCallSchedule, OnCallScheduleCalendar, OnCallScheduleWeb
+from apps.schedules.models.on_call_schedule import migrate_api_schedule_to_web
 from common.constants.role import Role
 
 
@@ -924,3 +925,84 @@ def test_schedule_related_users(make_organization, make_user_for_organization, m
     schedule.refresh_from_db()
     users = schedule.related_users()
     assert users == set(u.public_primary_key for u in [user_a, user_d, user_e])
+
+
+@pytest.mark.django_db
+def test_migrate_calendar_schedule(make_organization, make_user_for_organization, make_on_call_shift, make_schedule):
+    organization = make_organization()
+    # setup a calendar schedule
+    schedule = make_schedule(
+        organization,
+        schedule_class=OnCallScheduleCalendar,
+        name="test_api_schedule",
+    )
+    now = timezone.now().replace(hour=0, minute=0, second=0, microsecond=0)
+    start_date = now - timezone.timedelta(days=7)
+
+    user_a, user_b, user_c = (make_user_for_organization(organization, username=i) for i in "ABC")
+    # clear users pks <-> organization cache (persisting between tests)
+    memoized_users_in_ical.cache_clear()
+
+    shifts = (
+        # user, priority, start time (h), duration (hs)
+        (user_a, 1, 10, 10),  # r1-1: 10-20 / A
+        (user_b, 1, 10, 10),  # r1-2: 10-20 / B
+        (user_c, 2, 10, 3),  # r2-1: 10-13 / C
+    )
+    calendar_shifts = []
+    for user, priority, start_h, duration in shifts:
+        data = {
+            "start": start_date + timezone.timedelta(hours=start_h),
+            "rotation_start": start_date + timezone.timedelta(hours=start_h),
+            "duration": timezone.timedelta(hours=duration),
+            "priority_level": priority,
+            "frequency": CustomOnCallShift.FREQUENCY_DAILY,
+        }
+        on_call_shift = make_on_call_shift(
+            organization=organization, shift_type=CustomOnCallShift.TYPE_ROLLING_USERS_EVENT, **data
+        )
+        on_call_shift.add_rolling_users([[user]])
+        on_call_shift.schedules.set([schedule])
+        assert on_call_shift.schedule is None
+        calendar_shifts.append(on_call_shift.public_primary_key)
+
+    # migrate to web schedule
+    web_schedule = migrate_api_schedule_to_web(schedule)
+    returned_events = web_schedule.final_events("UTC", start_date, days=1)
+
+    assert isinstance(web_schedule, OnCallScheduleWeb)
+    # new shifts are created
+    for e in returned_events:
+        if not e["is_gap"]:
+            assert e["shift"]["pk"] and e["shift"]["pk"] not in calendar_shifts
+            assert e["source"] == "web"
+
+    # final schedule looks as expected
+    expected = (
+        # start (h), duration (H), user, priority
+        (10, 3, "C", 2),  # 10-13 C
+        (13, 7, "A", 1),  # 13-20 A
+        (13, 7, "B", 1),  # 13-20 B
+    )
+    expected_events = [
+        {
+            "end": start_date + timezone.timedelta(hours=start + duration),
+            "priority_level": priority,
+            "start": start_date + timezone.timedelta(hours=start),
+            "user": user,
+        }
+        for start, duration, user, priority in expected
+    ]
+    returned_events = [
+        {
+            "end": e["end"],
+            "priority_level": e["priority_level"],
+            "start": e["start"],
+            "user": e["users"][0]["display_name"] if e["users"] else None,
+        }
+        for e in sorted(
+            returned_events, key=lambda e: (e["start"], e["users"][0]["display_name"] if e["users"] else None)
+        )
+        if not e["is_gap"]
+    ]
+    assert returned_events == expected_events

@@ -1537,3 +1537,55 @@ def test_get_schedule_from_other_team_without_flag(
 
     response = client.get(url, format="json", **make_user_auth_headers(user, token))
     assert response.status_code == status.HTTP_403_FORBIDDEN
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize(
+    "role,expected_status",
+    [
+        (Role.ADMIN, status.HTTP_201_CREATED),
+        (Role.EDITOR, status.HTTP_403_FORBIDDEN),
+        (Role.VIEWER, status.HTTP_403_FORBIDDEN),
+    ],
+)
+def test_migrate_to_web_permissions(
+    make_organization_and_user_with_plugin_token,
+    make_user_auth_headers,
+    make_schedule,
+    role,
+    expected_status,
+):
+    organization, user, token = make_organization_and_user_with_plugin_token(role=role)
+    schedule = make_schedule(
+        organization,
+        schedule_class=OnCallScheduleCalendar,
+        name="test_api_schedule",
+    )
+
+    client = APIClient()
+    url = reverse("api-internal:schedule-migrate-to-web", kwargs={"pk": schedule.public_primary_key})
+
+    response = client.post(url, **make_user_auth_headers(user, token))
+
+    assert response.status_code == expected_status
+
+
+@pytest.mark.django_db
+def test_migrate_to_web_invalid(
+    make_organization_and_user_with_plugin_token,
+    make_user_auth_headers,
+    make_schedule,
+):
+    organization, user, token = make_organization_and_user_with_plugin_token(role=Role.ADMIN)
+    schedule = make_schedule(
+        organization,
+        schedule_class=OnCallScheduleWeb,
+        name="test_schedule",
+    )
+
+    client = APIClient()
+    url = reverse("api-internal:schedule-migrate-to-web", kwargs={"pk": schedule.public_primary_key})
+
+    response = client.post(url, **make_user_auth_headers(user, token))
+
+    assert response.status_code == status.HTTP_400_BAD_REQUEST

@@ -1,6 +1,8 @@
 import datetime
 import functools
 import itertools
+import random
+import string
 
 import icalendar
 import pytz
@@ -23,6 +25,7 @@ from apps.schedules.ical_utils import (
     list_users_to_notify_from_ical,
 )
 from apps.schedules.models import CustomOnCallShift
+from apps.schedules.models.custom_on_call_shift import generate_public_primary_key_for_custom_oncall_shift
 from common.public_primary_keys import generate_public_primary_key, increase_public_primary_key_length
 
 
@@ -741,3 +744,27 @@ class OnCallScheduleWeb(OnCallSchedule):
         res = super().insight_logs_serialized
         res["time_zone"] = self.time_zone
         return res
+
+
+def migrate_api_schedule_to_web(schedule):
+    """Setup a new web schedule and migrate shifts from API schedule."""
+    random_suffix = "".join(random.choice(string.ascii_lowercase) for _ in range(5))
+    new_schedule = OnCallScheduleWeb.objects.create(
+        name="{}-{}".format(schedule.name, random_suffix),
+        time_zone=schedule.time_zone,
+        organization=schedule.organization,
+    )
+    for s in schedule.custom_on_call_shifts.all():
+        if s.type != CustomOnCallShift.TYPE_ROLLING_USERS_EVENT:
+            # TODO: should we support recurrent_events?
+            continue
+        s.pk = None
+        s.public_primary_key = generate_public_primary_key_for_custom_oncall_shift()
+        s.name = CustomOnCallShift.generate_name(new_schedule, s.priority_level, s.type)
+        s.source = CustomOnCallShift.SOURCE_WEB
+        s.schedule = new_schedule
+        s._state.adding = True
+        s.save()
+
+    # TODO: try to migrate overrides?
+    return new_schedule
