@@ -208,7 +208,6 @@ INSTALLED_APPS = [
     "apps.auth_token",
     "apps.public_api",
     "apps.grafana_plugin",
-    "apps.grafana_plugin_management",
     "corsheaders",
     "debug_toolbar",
     "social_django",
