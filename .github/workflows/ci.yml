@@ -152,5 +152,6 @@ jobs:
           context: ./engine
           file: ./engine/Dockerfile
           push: false
+          target: prod
       - name: Image digest
         run: echo ${{ steps.docker_build.outputs.digest }}
