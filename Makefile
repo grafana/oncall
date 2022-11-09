@@ -128,7 +128,7 @@ backend-migrate:
 	$(call backend_command,python manage.py migrate)
 
 run-backend-server:
-	$(call backend_command,python manage.py runserver)
+	$(call backend_command,python manage.py runserver 0.0.0.0:8080)
 
 run-backend-celery:
 	$(call backend_command,python manage.py start_celery)
