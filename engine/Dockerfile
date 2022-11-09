@@ -16,9 +16,10 @@ RUN DJANGO_SETTINGS_MODULE=settings.prod_without_db DATABASE_TYPE=sqlite3 DATABA
 RUN chown -R 1000:2000 /var/lib/oncall
 
 FROM base AS dev
-
-# these are needed for the django dbshell command
 RUN apk add sqlite mysql-client postgresql-client
+
+FROM dev AS dev-enterprise
+RUN pip install -r requirements-enterprise.txt
 
 FROM base AS prod
 

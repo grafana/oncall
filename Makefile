@@ -61,14 +61,15 @@ ifeq ($(DB),$(SQLITE_PROFILE))
 	fi
 endif
 
+	$(call run_docker_compose_command,up --remove-orphans -d)
+
+init:
 # if the oncall UI is to be run in docker we should do an initial build of the frontend code
 # this makes sure that it will be available when the grafana container starts up without the need to
 # restart the grafana container initially
 ifeq ($(findstring $(UI_PROFILE),$(COMPOSE_PROFILES)),$(UI_PROFILE))
 	cd grafana-plugin && yarn install && yarn build:dev
 endif
-
-	$(call run_docker_compose_command,up --remove-orphans -d)
 
 stop:
 	$(call run_docker_compose_command,down)

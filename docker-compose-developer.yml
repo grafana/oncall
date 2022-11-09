@@ -1,15 +1,17 @@
-version: "3.8"
+version: "3.9"
 
 x-labels: &oncall-labels
   - "com.grafana.oncall.env=dev"
 
 x-oncall-build: &oncall-build-args
   context: ./engine
-  target: dev
+  target: ${ONCALL_IMAGE_TARGET:-dev}
   labels: *oncall-labels
 
 x-oncall-volumes: &oncall-volumes
   - ./engine:/etc/app
+  # https://stackoverflow.com/a/60456034
+  - ${ENTERPRISE_ENGINE:-/dev/null}:/etc/app/extensions/engine_enterprise
   - ./engine/oncall.db:/var/lib/oncall/oncall.db
 
 x-env-files: &oncall-env-files
@@ -30,6 +32,8 @@ services:
     volumes:
       - ./grafana-plugin:/etc/app
       - /etc/app/node_modules
+      # https://stackoverflow.com/a/60456034
+      - ${ENTERPRISE_FRONTEND:-/dev/null}:/etc/app/frontend_enterprise
     profiles:
       - oncall_ui
 
@@ -170,7 +174,7 @@ services:
           memory: 500m
           cpus: "0.5"
     healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      test: "mysql -uroot -pempty oncall_local_dev -e 'select 1'"
       timeout: 20s
       retries: 10
     volumes:
@@ -252,6 +256,11 @@ services:
     volumes:
       - grafanadata_dev:/var/lib/grafana
       - ./grafana-plugin:/var/lib/grafana/plugins/grafana-plugin
+    depends_on:
+      postgres:
+        condition: service_healthy
+      mysql:
+        condition: service_healthy
     profiles:
       - grafana
 
