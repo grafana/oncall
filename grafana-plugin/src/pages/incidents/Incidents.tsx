@@ -104,12 +104,10 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
     return (
       <PluginPage>
         <PageErrorHandlingWrapper pageName="incidents">
-          {() => (
-            <div className={cx('root')}>
-              {this.renderIncidentFilters()}
-              {this.renderTable()}
-            </div>
-          )}
+          <div className={cx('root')}>
+            {this.renderIncidentFilters()}
+            {this.renderTable()}
+          </div>
         </PageErrorHandlingWrapper>
       </PluginPage>
     );

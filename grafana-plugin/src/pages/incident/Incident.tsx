@@ -48,6 +48,7 @@ import {
   GroupedAlert,
 } from 'models/alertgroup/alertgroup.types';
 import { ResolutionNoteSourceTypesToDisplayName } from 'models/resolution_note/resolution_note.types';
+import { pages } from 'pages';
 import { isNewNavigation } from 'plugin/GrafanaPluginRootPage.helpers';
 import { WithStoreProps } from 'state/types';
 import { useStore } from 'state/useStore';
@@ -59,7 +60,6 @@ import sanitize from 'utils/sanitize';
 import { getActionButtons, getIncidentStatusTag, renderRelatedUsers } from './Incident.helpers';
 
 import styles from './Incident.module.css';
-import { pages } from 'pages';
 
 const cx = cn.bind(styles);
 
@@ -131,67 +131,65 @@ class IncidentPage extends React.Component<IncidentPageProps, IncidentPageState>
     return (
       <PluginPage pageNav={pages['incident'].getPageNav()}>
         <PageErrorHandlingWrapper errorData={errorData} objectName="alert group" pageName="incidents">
-          {() => (
-            <div className={cx('root', { newNavbar: isNewNavigation() })}>
-              {errorData.isNotFoundError ? (
-                <div className={cx('not-found')}>
-                  <VerticalGroup spacing="lg" align="center">
-                    <Text.Title level={1}>404</Text.Title>
-                    <Text.Title level={4}>Incident not found</Text.Title>
-                    <PluginLink query={{ page: 'incidents', cursor, start, perpage }}>
-                      <Button variant="secondary" icon="arrow-left" size="md">
-                        Go to incidents page
-                      </Button>
-                    </PluginLink>
-                  </VerticalGroup>
-                </div>
-              ) : (
-                <>
-                  {this.renderHeader()}
-                  <div className={cx('content')}>
-                    <div className={cx('column')}>
-                      <Incident incident={incident} datetimeReference={this.getIncidentDatetimeReference(incident)} />
-                      <GroupedIncidentsList
-                        id={incident.pk}
-                        getIncidentDatetimeReference={this.getIncidentDatetimeReference}
-                      />
-                      <AttachedIncidentsList id={incident.pk} getUnattachClickHandler={this.getUnattachClickHandler} />
-                    </div>
-                    <div className={cx('column')}>{this.renderTimeline()}</div>
+          <div className={cx('root', { newNavbar: isNewNavigation() })}>
+            {errorData.isNotFoundError ? (
+              <div className={cx('not-found')}>
+                <VerticalGroup spacing="lg" align="center">
+                  <Text.Title level={1}>404</Text.Title>
+                  <Text.Title level={4}>Incident not found</Text.Title>
+                  <PluginLink query={{ page: 'incidents', cursor, start, perpage }}>
+                    <Button variant="secondary" icon="arrow-left" size="md">
+                      Go to incidents page
+                    </Button>
+                  </PluginLink>
+                </VerticalGroup>
+              </div>
+            ) : (
+              <>
+                {this.renderHeader()}
+                <div className={cx('content')}>
+                  <div className={cx('column')}>
+                    <Incident incident={incident} datetimeReference={this.getIncidentDatetimeReference(incident)} />
+                    <GroupedIncidentsList
+                      id={incident.pk}
+                      getIncidentDatetimeReference={this.getIncidentDatetimeReference}
+                    />
+                    <AttachedIncidentsList id={incident.pk} getUnattachClickHandler={this.getUnattachClickHandler} />
                   </div>
-                  {showIntegrationSettings && (
-                    <IntegrationSettings
-                      alertGroupId={incident.pk}
-                      onUpdate={() => {
-                        alertReceiveChannelStore.updateItem(incident.alert_receive_channel.id);
-                      }}
-                      onUpdateTemplates={() => {
-                        store.alertGroupStore.getAlert(id);
-                      }}
-                      startTab={IntegrationSettingsTab.Templates}
-                      id={incident.alert_receive_channel.id}
-                      onHide={() =>
-                        this.setState({
-                          showIntegrationSettings: undefined,
-                        })
-                      }
-                    />
-                  )}
-                  {showAttachIncidentForm && (
-                    <AttachIncidentForm
-                      id={id}
-                      onHide={() => {
-                        this.setState({
-                          showAttachIncidentForm: false,
-                        });
-                      }}
-                      onUpdate={this.update}
-                    />
-                  )}
-                </>
-              )}
-            </div>
-          )}
+                  <div className={cx('column')}>{this.renderTimeline()}</div>
+                </div>
+                {showIntegrationSettings && (
+                  <IntegrationSettings
+                    alertGroupId={incident.pk}
+                    onUpdate={() => {
+                      alertReceiveChannelStore.updateItem(incident.alert_receive_channel.id);
+                    }}
+                    onUpdateTemplates={() => {
+                      store.alertGroupStore.getAlert(id);
+                    }}
+                    startTab={IntegrationSettingsTab.Templates}
+                    id={incident.alert_receive_channel.id}
+                    onHide={() =>
+                      this.setState({
+                        showIntegrationSettings: undefined,
+                      })
+                    }
+                  />
+                )}
+                {showAttachIncidentForm && (
+                  <AttachIncidentForm
+                    id={id}
+                    onHide={() => {
+                      this.setState({
+                        showAttachIncidentForm: false,
+                      });
+                    }}
+                    onUpdate={this.update}
+                  />
+                )}
+              </>
+            )}
+          </div>
         </PageErrorHandlingWrapper>
       </PluginPage>
     );

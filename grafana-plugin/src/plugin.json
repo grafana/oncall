@@ -66,13 +66,6 @@
     },
     {
       "type": "page",
-      "name": "ChatOps",
-      "path": "/a/grafana-oncall-app/?page=chat-ops",
-      "role": "Viewer",
-      "addToNav": true
-    },
-    {
-      "type": "page",
       "name": "Outgoing Webhooks",
       "path": "/a/grafana-oncall-app/?page=outgoing_webhooks",
       "role": "Viewer",

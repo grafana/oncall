@@ -2,7 +2,6 @@ import React, { useCallback, useEffect, useState } from 'react';
 
 import { getLocationSrv } from '@grafana/runtime';
 import { Field, Input, Button, HorizontalGroup, Icon, VerticalGroup, LoadingPlaceholder } from '@grafana/ui';
-import { PluginPage } from 'PluginPage';
 import cn from 'classnames/bind';
 import { observer } from 'mobx-react';
 
@@ -359,22 +358,20 @@ const CloudPage = observer((_props: CloudPageProps) => {
   );
 
   return (
-    <PluginPage>
-      <div className={cx('root')}>
-        <VerticalGroup spacing="lg">
-          <Text.Title level={3} className={cx('cloud-page-title')}>
-            Connect Open Source OnCall and <Text className={cx('cloud-oncall-name')}>Cloud OnCall</Text>
-          </Text.Title>
-          {cloudIsConnected === undefined ? (
-            <LoadingPlaceholder text="Loading..." />
-          ) : cloudIsConnected ? (
-            ConnectedBlock
-          ) : (
-            DisconnectedBlock
-          )}
-        </VerticalGroup>
-      </div>
-    </PluginPage>
+    <div className={cx('root')}>
+      <VerticalGroup spacing="lg">
+        <Text.Title level={3} className={cx('cloud-page-title')}>
+          Connect Open Source OnCall and <Text className={cx('cloud-oncall-name')}>Cloud OnCall</Text>
+        </Text.Title>
+        {cloudIsConnected === undefined ? (
+          <LoadingPlaceholder text="Loading..." />
+        ) : cloudIsConnected ? (
+          ConnectedBlock
+        ) : (
+          DisconnectedBlock
+        )}
+      </VerticalGroup>
+    </div>
   );
 });
 

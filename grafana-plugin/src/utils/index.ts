@@ -6,6 +6,16 @@ import appEvents from 'grafana/app/core/app_events';
 import { isArray, concat, isPlainObject, flatMap, map, keys } from 'lodash-es';
 import qs from 'query-string';
 
+export class KeyValuePair {
+  public key: string;
+  public value: string;
+
+  constructor(key: string, value: string) {
+    this.key = key;
+    this.value = value;
+  }
+}
+
 export const TZ_OFFSET = new Date().getTimezoneOffset();
 
 export const getTzOffsetHours = (): number => {

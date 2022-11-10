@@ -1,13 +1,13 @@
 import { AppRootProps } from '@grafana/data';
 
 import { PageDefinition } from 'pages';
-import ChatOpsPage from 'pages/chat-ops/ChatOps';
-import CloudPage from 'pages/cloud/CloudPage';
+import ChatOpsPage from 'pages/settings/tabs/ChatOps/ChatOps';
+import CloudPage from 'pages/settings/tabs/Cloud/CloudPage';
 import EscalationsChainsPage from 'pages/escalation-chains/EscalationChains';
 import IncidentPage from 'pages/incident/Incident';
 import IncidentsPage from 'pages/incidents/Incidents';
 import IntegrationsPage from 'pages/integrations/Integrations';
-import LiveSettingsPage from 'pages/livesettings/LiveSettingsPage';
+import LiveSettingsPage from 'pages/settings/tabs/LiveSettings/LiveSettingsPage';
 import MaintenancePage from 'pages/maintenance/Maintenance';
 import OrganizationLogPage from 'pages/organization-logs/OrganizationLog';
 import OutgoingWebhooks from 'pages/outgoing_webhooks/OutgoingWebhooks';

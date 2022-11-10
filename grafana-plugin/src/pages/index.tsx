@@ -1,4 +1,5 @@
 import { NavModelItem } from '@grafana/data';
+import { isNewNavigation } from 'plugin/GrafanaPluginRootPage.helpers';
 
 export const PLUGIN_URL_PATH = '/a/grafana-oncall-app';
 
@@ -73,6 +74,7 @@ export const pages: { [id: string]: PageDefinition } = [
     id: 'chat-ops',
     text: 'ChatOps',
     path: getPath('chat-ops'),
+    hideFromTabs: isNewNavigation(),
   },
   {
     icon: 'link',
@@ -89,7 +91,7 @@ export const pages: { [id: string]: PageDefinition } = [
   {
     icon: 'cog',
     id: 'settings',
-    text: 'Settings',
+    text: 'Main Settings',
     path: getPath('settings'),
   },
   {
@@ -97,6 +99,7 @@ export const pages: { [id: string]: PageDefinition } = [
     id: 'live-settings',
     text: 'Env Variables',
     role: 'Admin',
+    hideFromTabs: isNewNavigation(),
     path: getPath('live-settings'),
   },
   {
@@ -111,6 +114,7 @@ export const pages: { [id: string]: PageDefinition } = [
     id: 'cloud',
     text: 'Cloud',
     role: 'Admin',
+    hideFromTabs: isNewNavigation(),
     path: getPath('cloud'),
   },
   {
@@ -127,6 +131,7 @@ export const pages: { [id: string]: PageDefinition } = [
       ({
         text: current.text,
         description: '',
+        hideFromTabs: current.hideFromTabs
       } as NavModelItem),
   };
 

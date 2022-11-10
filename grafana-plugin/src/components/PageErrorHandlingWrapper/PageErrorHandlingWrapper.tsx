@@ -38,8 +38,8 @@ export default function PageErrorHandlingWrapper({
   objectName?: string;
   pageName: string;
   itemNotFoundMessage?: string;
-  children: () => JSX.Element;
-}) {
+  children: React.ReactNode;
+}): JSX.Element {
   useEffect(() => {
     if (!errorData) {
       return;
@@ -57,12 +57,12 @@ export default function PageErrorHandlingWrapper({
       return (
         <>
           <GrafanaTeamSelect currentPage="integrations"></GrafanaTeamSelect>
-          {children()}
+          {children}
         </>
       );
     }
 
-    return children();
+    return <>{children}</>;
   }
 
   const currentTeamId = store.userStore.currentUser?.current_team;

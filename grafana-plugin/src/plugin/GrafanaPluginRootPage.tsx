@@ -15,10 +15,10 @@ import weekday from 'dayjs/plugin/weekday';
 import 'interceptors';
 import { observer, Provider } from 'mobx-react';
 
-import { routes } from 'pages/routes';
 import DefaultPageLayout from 'containers/DefaultPageLayout/DefaultPageLayout';
 import logo from 'img/logo.svg';
 import { pages } from 'pages';
+import { routes } from 'pages/routes';
 import Header from 'plugin/Header';
 import NavLinks from 'plugin/NavLinks';
 import { rootStore } from 'state';
