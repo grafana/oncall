@@ -16,6 +16,8 @@ DEV_ENV_FILE = $(DEV_ENV_DIR)/.env.dev
 DEV_ENV_EXAMPLE_FILE = $(DEV_ENV_FILE).example
 
 ENGINE_DIR = ./engine
+REQUIREMENTS_TXT = $(ENGINE_DIR)/requirements.txt
+REQUIREMENTS_ENTERPRISE_TXT = $(ENGINE_DIR)/requirements-enterprise.txt
 SQLITE_DB_FILE = $(ENGINE_DIR)/oncall.db
 
 # -n flag only copies DEV_ENV_EXAMPLE_FILE-> DEV_ENV_FILE if it doesn't already exist
@@ -122,7 +124,10 @@ endef
 
 backend-bootstrap:
 	pip install -U pip wheel
-	cd engine && pip install -r requirements.txt
+	pip install -r $(REQUIREMENTS_TXT)
+	@if [ -f $(REQUIREMENTS_ENTERPRISE_TXT) ]; then \
+		pip install -r $(REQUIREMENTS_ENTERPRISE_TXT); \
+	fi
 
 backend-migrate:
 	$(call backend_command,python manage.py migrate)
