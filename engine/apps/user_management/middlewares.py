@@ -22,16 +22,15 @@ class OrganizationMovedMiddleware(MiddlewareMixin):
                 )
 
             url = create_engine_url(request.path, override_base=region.oncall_backend_url)
-            if request.META["QUERY_STRING"]:
+            if request.META.get("QUERY_STRING", None):
                 url = f"{url}?{request.META['QUERY_STRING']}"
 
-            regex = re.compile("^HTTP_")
-            headers = dict(
-                (regex.sub("", header), value) for (header, value) in request.META.items() if header.startswith("HTTP_")
-            )
-            headers.pop("HOST", None)
-            if request.META["CONTENT_TYPE"]:
-                headers["CONTENT_TYPE"] = request.META["CONTENT_TYPE"]
+            headers = {}
+            if request.META.get("CONTENT_TYPE", None):
+                headers["Content-type"] = request.META["CONTENT_TYPE"]
+
+            if request.META.get("HTTP_AUTHORIZATION", None):
+                headers["Authorization"] = request.META["HTTP_AUTHORIZATION"]
 
             response = self.make_request(request.method, url, headers, request.body)
             return HttpResponse(response.content, status=response.status_code)
