@@ -21,15 +21,15 @@ class OrganizationMovedMiddleware(MiddlewareMixin):
                 )
 
             url = create_engine_url(request.path, override_base=region.oncall_backend_url)
-            if request.META.get("QUERY_STRING", None):
-                url = f"{url}?{request.META['QUERY_STRING']}"
+            if (v := request.META.get("QUERY_STRING", None)) is not None:
+                url = f"{url}?{v}"
 
             headers = {}
-            if request.META.get("CONTENT_TYPE", None):
-                headers["Content-type"] = request.META["CONTENT_TYPE"]
+            if (v := request.META.get("CONTENT_TYPE", None)) is not None:
+                headers["Content-type"] = v
 
-            if request.META.get("HTTP_AUTHORIZATION", None):
-                headers["Authorization"] = request.META["HTTP_AUTHORIZATION"]
+            if (v := request.META.get("HTTP_AUTHORIZATION", None)) is not None:
+                headers["Authorization"] = v
 
             response = self.make_request(request.method, url, headers, request.body)
             return HttpResponse(response.content, status=response.status_code)
