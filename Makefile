@@ -47,12 +47,18 @@ else
 	BROKER_TYPE=$(REDIS_PROFILE)
 endif
 
-define run_engine_docker_command
-    DB=$(DB) BROKER_TYPE=$(BROKER_TYPE) docker compose -f $(DOCKER_COMPOSE_FILE) run --rm oncall_engine_commands $(1)
-endef
+# SQLITE_DB_FiLE is set to properly mount the sqlite db file
+DOCKER_COMPOSE_ENV_VARS := COMPOSE_PROFILES=$(COMPOSE_PROFILES) DB=$(DB) BROKER_TYPE=$(BROKER_TYPE)
+ifeq ($(DB),$(SQLITE_PROFILE))
+	DOCKER_COMPOSE_ENV_VARS += SQLITE_DB_FILE=$(SQLITE_DB_FILE)
+endif
 
 define run_docker_compose_command
-	COMPOSE_PROFILES=$(COMPOSE_PROFILES) DB=$(DB) BROKER_TYPE=$(BROKER_TYPE) docker compose -f $(DOCKER_COMPOSE_FILE) $(1)
+	$(DOCKER_COMPOSE_ENV_VARS) docker compose -f $(DOCKER_COMPOSE_FILE) $(1)
+endef
+
+define run_engine_docker_command
+	$(call run_docker_compose_command,run --rm oncall_engine_commands $(1))
 endef
 
 # touch SQLITE_DB_FILE if it does not exist and DB is eqaul to SQLITE_PROFILE
