@@ -46,11 +46,11 @@ else
 endif
 
 define run_engine_docker_command
-    DB=$(DB) BROKER_TYPE=$(BROKER_TYPE) docker-compose -f $(DOCKER_COMPOSE_FILE) run --rm oncall_engine_commands $(1)
+    DB=$(DB) BROKER_TYPE=$(BROKER_TYPE) docker compose -f $(DOCKER_COMPOSE_FILE) run --rm oncall_engine_commands $(1)
 endef
 
 define run_docker_compose_command
-	COMPOSE_PROFILES=$(COMPOSE_PROFILES) DB=$(DB) BROKER_TYPE=$(BROKER_TYPE) docker-compose -f $(DOCKER_COMPOSE_FILE) $(1)
+	COMPOSE_PROFILES=$(COMPOSE_PROFILES) DB=$(DB) BROKER_TYPE=$(BROKER_TYPE) docker compose -f $(DOCKER_COMPOSE_FILE) $(1)
 endef
 
 # touch SQLITE_DB_FILE if it does not exist and DB is eqaul to SQLITE_PROFILE
