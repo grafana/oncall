@@ -52,9 +52,9 @@ MIRAGE_SECRET_KEY
 {{- end -}}
 
 {{- define "snippet.oncall.slack.env" -}}
-{{- if .Values.oncall.slack.enabled -}}
 - name: FEATURE_SLACK_INTEGRATION_ENABLED
   value: {{ .Values.oncall.slack.enabled | toString | title | quote }}
+{{- if .Values.oncall.slack.enabled }}
 - name: SLACK_SLASH_COMMAND_NAME
   value: "/{{ .Values.oncall.slack.commandName | default "oncall" }}"
 {{- if .Values.oncall.slack.existingSecret }}
@@ -83,18 +83,15 @@ MIRAGE_SECRET_KEY
 {{- end }}
 - name: SLACK_INSTALL_RETURN_REDIRECT_HOST
   value: {{ .Values.oncall.slack.redirectHost | default (printf "https://%s" .Values.base_url) | quote }}
-{{- else -}}
-- name: FEATURE_SLACK_INTEGRATION_ENABLED
-  value: {{ .Values.oncall.slack.enabled | toString | title | quote }}
 {{- end -}}
 {{- end -}}
 
 {{- define "snippet.oncall.telegram.env" -}}
-{{- if .Values.oncall.telegram.enabled -}}
 - name: FEATURE_TELEGRAM_INTEGRATION_ENABLED
   value: {{ .Values.oncall.telegram.enabled | toString | title | quote }}
+{{- if .Values.oncall.telegram.enabled }}
 - name: TELEGRAM_WEBHOOK_HOST
-  value: {{ .Values.oncall.telegram.webhookUrl | default "" | quote }}
+  value: {{ .Values.oncall.telegram.webhookUrl | default (printf "https://%s" .Values.base_url) | quote }}
 {{- if .Values.oncall.telegram.existingSecret }}
 - name: TELEGRAM_TOKEN
   valueFrom:
@@ -105,9 +102,6 @@ MIRAGE_SECRET_KEY
 - name: TELEGRAM_TOKEN
   value: {{ .Values.oncall.telegram.token | default "" | quote }}
 {{- end }}
-{{- else -}}
-- name: FEATURE_TELEGRAM_INTEGRATION_ENABLED
-  value: {{ .Values.oncall.telegram.enabled | toString | title | quote }}
 {{- end -}}
 {{- end -}}
 
@@ -407,7 +401,7 @@ rabbitmq-password
 - name: REDIS_PASSWORD
   valueFrom:
     secretKeyRef:
-      name: {{ template "snippet.redis.password.secret.name" . }}
+      name: {{ include "snippet.redis.password.secret.name" . }}
       key: redis-password
 {{- end }}
 
