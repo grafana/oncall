@@ -5,11 +5,20 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## v1.2.46 (2023-06-22)
+## Unreleased
 
 ### Added
 
 - Secrets consistency for the chart. Bugfixing [#1016](https://github.com/grafana/oncall/pull/1016)
+
+### Changed
+
+- `telegram.webhookUrl` now defaults to `https://<base_url>` if not set
+
+## v1.2.46 (2023-06-22)
+
+### Added
+
 - Make it possible to completely delete a rotation oncall ([#1505](https://github.com/grafana/oncall/issues/1505))
 - Polish rotation modal form oncall ([#1506](https://github.com/grafana/oncall/issues/1506))
 - Quick actions when editing a schedule oncall ([#1507](https://github.com/grafana/oncall/issues/1507))
