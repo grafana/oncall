@@ -6,9 +6,12 @@
   margin-right: 24px;
 
   &--topRight {
-    position: absolute;
     right: 14px;
     top: 12px;
+  }
+  &--topRightIncident {
+    right: 32px;
+    top: 36px;
   }
 }
 
@@ -17,8 +20,7 @@
 }
 
 .teamSelectLink {
-  position: absolute;
-  right: 0;
+  margin-left: auto;
 }
 
 .teamSelectInfo {

@@ -14,6 +14,7 @@ import { useStore } from 'state/useStore';
 import { UserAction } from 'state/userAction';
 
 import styles from './GrafanaTeamSelect.module.scss';
+import { useLocation } from 'react-router-dom';
 
 const cx = cn.bind(styles);
 
@@ -49,7 +50,7 @@ const GrafanaTeamSelect = observer((props: GrafanaTeamSelectProps) => {
   };
 
   const content = (
-    <div className={cx('teamSelect', { 'teamSelect--topRight': isNewNavigation() })}>
+    <div className={cx('teamSelect', { 'teamSelect--topRight': isNewNavigation() }, { 'teamSelect--topRightIncident': isIncidentScreen() })}>
       <div className={cx('teamSelectLabel')}>
         <Label>
           Select Team{' '}
@@ -80,6 +81,13 @@ const GrafanaTeamSelect = observer((props: GrafanaTeamSelectProps) => {
     : isNewNavigation()
     ? content
     : null;
+
+  function isIncidentScreen() {
+    const { search } = useLocation();
+    const page = new URLSearchParams(search).get('page');
+
+    return page === 'incident';
+  }
 });
 
 export default GrafanaTeamSelect;

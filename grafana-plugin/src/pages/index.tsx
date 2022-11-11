@@ -28,8 +28,10 @@ export const pages: { [id: string]: PageDefinition } = [
   {
     icon: 'bell',
     id: 'incident',
-    text: 'Incident',
+    parentItem: { text: 'Incident' },
+    text: '',
     hideFromTabs: true,
+    hideFromBreadcrumbs: true,
     path: getPath('incident/:id?'),
   },
   {
@@ -130,7 +132,8 @@ export const pages: { [id: string]: PageDefinition } = [
     getPageNav: () =>
       ({
         text: current.text,
-        description: '',
+        parentItem: current.parentItem,
+        hideFromBreadcrumbs: current.hideFromBreadcrumbs,
         hideFromTabs: current.hideFromTabs
       } as NavModelItem),
   };

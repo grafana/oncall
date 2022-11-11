@@ -12,6 +12,7 @@ import { UserAction } from 'state/userAction';
 import { withMobXProviderContext } from 'state/withStore';
 
 import styles from './MainSettings.module.css';
+import LegacyNavHeading from 'navbar/LegacyNavHeading';
 
 const cx = cn.bind(styles);
 
@@ -40,9 +41,11 @@ class SettingsPage extends React.Component<SettingsPageProps, SettingsPageState>
 
     return (
       <div className={cx('root')}>
-        <Text.Title level={3} className={cx('title')}>
-          Organization settings
-        </Text.Title>
+        <LegacyNavHeading>
+          <Text.Title level={3} className={cx('title')}>
+            Organization settings
+          </Text.Title>
+        </LegacyNavHeading>
 
         <div className={cx('settings')}>
           <Field

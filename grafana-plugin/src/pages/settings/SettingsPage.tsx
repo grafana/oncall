@@ -4,7 +4,6 @@ import cn from 'classnames/bind';
 import { observer } from 'mobx-react';
 
 import styles from './SettingsPage.module.css';
-import { pages } from 'pages';
 import { Tab, TabsBar } from '@grafana/ui';
 import { SettingsPageTab } from './SettingsPage.types';
 import ChatOpsPage from 'pages/settings/tabs/ChatOps/ChatOps';
@@ -70,20 +69,24 @@ class SettingsPage extends React.Component<SettingsPageProps, SettingsPageState>
     );
   }
 
-  getMatchingPageNav(): { text: string; description: string } {
-    const { activeTab } = this.state;
+  getMatchingPageNav() {
+    return {
+      parentItem: {
+        text: getTabText(this.state.activeTab),
+      },
+      text: 'Settings',
+      hideFromBreadcrumbs: true,
+    };
 
-    switch (activeTab) {
-      case SettingsPageTab.MainSettings.key:
-        return pages['settings'].getPageNav();
-      case SettingsPageTab.ChatOps.key:
-        return pages['chat-ops'].getPageNav();
-      case SettingsPageTab.EnvVariables.key:
-        return pages['live-settings'].getPageNav();
-      case SettingsPageTab.Cloud.key:
-        return pages['cloud'].getPageNav();
-      default:
-        return undefined;
+    function getTabText(activeTab: string) {
+      let result: string;
+      Object.keys(SettingsPageTab).forEach((tab) => {
+        if (activeTab === SettingsPageTab[tab].key) {
+          result = SettingsPageTab[tab].value;
+        }
+      });
+
+      return result;
     }
   }
 }
