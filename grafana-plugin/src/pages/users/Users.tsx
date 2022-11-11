@@ -30,6 +30,7 @@ import { withMobXProviderContext } from 'state/withStore';
 import { getRealFilters, getUserRowClassNameFn } from './Users.helpers';
 
 import styles from './Users.module.css';
+import LegacyNavHeading from 'navbar/LegacyNavHeading';
 
 const cx = cn.bind(styles);
 
@@ -186,7 +187,9 @@ class Users extends React.Component<UsersProps, UsersState> {
                 <div className={cx('users-header')}>
                   <div style={{ display: 'flex', alignItems: 'baseline' }}>
                     <div>
-                      {!isNewNavigation() && <Text.Title level={3}>Users</Text.Title>}
+                      <LegacyNavHeading>
+                        <Text.Title level={3}>Users</Text.Title>
+                      </LegacyNavHeading>
                       <Text type="secondary">
                         To manage permissions or add users, please visit{' '}
                         <a href="/org/users">Grafana user management</a>

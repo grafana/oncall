@@ -38,7 +38,6 @@ import ScheduleICalSettings from 'containers/ScheduleIcalLink/ScheduleIcalLink';
 import { WithPermissionControl } from 'containers/WithPermissionControl/WithPermissionControl';
 import { Schedule, ScheduleEvent, ScheduleType } from 'models/schedule/schedule.types';
 import { getSlackChannelName } from 'models/slack_channel/slack_channel.helpers';
-import { isNewNavigation } from 'plugin/GrafanaPluginRootPage.helpers';
 import { WithStoreProps } from 'state/types';
 import { UserAction } from 'state/userAction';
 import { withMobXProviderContext } from 'state/withStore';
@@ -47,6 +46,7 @@ import { openErrorNotification } from 'utils';
 import { getDatesString } from './Schedules.helpers';
 
 import styles from './Schedules.module.css';
+import LegacyNavHeading from 'navbar/LegacyNavHeading';
 
 const cx = cn.bind(styles);
 
@@ -182,7 +182,9 @@ class SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSta
             <div className={cx('root')}>
               <div className={cx('title')}>
                 <VerticalGroup>
-                  {!isNewNavigation() && <Text.Title level={3}>On-call Schedules</Text.Title>}
+                  <LegacyNavHeading>
+                    <Text.Title level={3}>On-call Schedules</Text.Title>
+                  </LegacyNavHeading>
                   <Text type="secondary">
                     Use this to distribute notifications among team members you specified in the "Notify Users from
                     on-call schedule" step in{' '}

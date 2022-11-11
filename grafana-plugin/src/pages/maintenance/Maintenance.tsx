@@ -16,12 +16,12 @@ import { WithPermissionControl } from 'containers/WithPermissionControl/WithPerm
 import { getAlertReceiveChannelDisplayName } from 'models/alert_receive_channel/alert_receive_channel.helpers';
 import { AlertReceiveChannel } from 'models/alert_receive_channel/alert_receive_channel.types';
 import { Maintenance, MaintenanceMode, MaintenanceType } from 'models/maintenance/maintenance.types';
-import { isNewNavigation } from 'plugin/GrafanaPluginRootPage.helpers';
 import { WithStoreProps } from 'state/types';
 import { UserAction } from 'state/userAction';
 import { withMobXProviderContext } from 'state/withStore';
 
 import styles from './Maintenance.module.css';
+import LegacyNavHeading from 'navbar/LegacyNavHeading';
 
 const cx = cn.bind(styles);
 
@@ -125,7 +125,9 @@ class MaintenancePage extends React.Component<MaintenancePageProps, MaintenanceP
               <div className={cx('header')}>
                 <div style={{ display: 'flex', alignItems: 'baseline' }}>
                   <VerticalGroup>
-                    {!isNewNavigation() && <Text.Title level={3}>Maintenance</Text.Title>}
+                    <LegacyNavHeading>
+                      <Text.Title level={3}>Maintenance</Text.Title>
+                    </LegacyNavHeading>
                     <Text type="secondary" className={cx('title')}>
                       Mute noisy sources or use for debugging and avoid bothering your colleagues.
                     </Text>

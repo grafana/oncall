@@ -19,8 +19,8 @@ import DefaultPageLayout from 'containers/DefaultPageLayout/DefaultPageLayout';
 import logo from 'img/logo.svg';
 import { pages } from 'pages';
 import { routes } from 'pages/routes';
-import Header from 'plugin/Header';
-import NavLinks from 'plugin/NavLinks';
+import Header from 'navbar/Header/Header';
+import NavLinks from 'navbar/NavLinks';
 import { rootStore } from 'state';
 import { useStore } from 'state/useStore';
 import { useQueryParams, useQueryPath } from 'utils/hooks';
@@ -150,7 +150,7 @@ export const Root = observer((props: AppRootProps) => {
 function getPageMatchingComponent(pageId: string): (props?: any) => JSX.Element {
   let matchingPage = routes[pageId];
   if (!matchingPage) {
-    const defaultPageId = Object.keys(pages)[0];
+    const defaultPageId = Object.keys(pages)[11];
     matchingPage = routes[defaultPageId];
     locationService.replace(pages[defaultPageId].path);
   }

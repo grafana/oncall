@@ -1,4 +1,9 @@
 /* Navigation/Layout */
+
+/* .scrollbar-view h1:first-child {
+  display: none;
+} */
+
 .page-body {
   max-width: unset !important;
 }

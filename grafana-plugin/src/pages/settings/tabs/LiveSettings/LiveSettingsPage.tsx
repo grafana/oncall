@@ -19,7 +19,6 @@ import { PLACEHOLDER } from './LiveSettings.config';
 import { normalizeValue, prepareForUpdate } from './LiveSettings.helpers';
 
 import styles from './LiveSettings.module.css';
-import { isNewNavigation } from 'plugin/GrafanaPluginRootPage.helpers';
 
 const cx = cn.bind(styles);
 
@@ -116,11 +115,9 @@ class LiveSettings extends React.Component<LiveSettingsProps, LiveSettingsState>
           emptyText={data ? 'No variables found' : 'Loading...'}
           title={() => (
             <div className={cx('header')}>
-              {!isNewNavigation() && (
-                <HorizontalGroup>
-                  <Text.Title level={3}>Env Variables</Text.Title>
-                </HorizontalGroup>
-              )}
+              <HorizontalGroup>
+                <Text.Title level={3}>Env Variables</Text.Title>
+              </HorizontalGroup>
               <HorizontalGroup justify="flex-end">
                 <WithPermissionControl userAction={UserAction.UpdateGlobalSettings}>
                   <Button

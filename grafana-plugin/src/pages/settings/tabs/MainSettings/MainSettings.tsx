@@ -7,7 +7,6 @@ import { observer } from 'mobx-react';
 import Text from 'components/Text/Text';
 import ApiTokenSettings from 'containers/ApiTokenSettings/ApiTokenSettings';
 import { WithPermissionControl } from 'containers/WithPermissionControl/WithPermissionControl';
-import { isNewNavigation } from 'plugin/GrafanaPluginRootPage.helpers';
 import { WithStoreProps } from 'state/types';
 import { UserAction } from 'state/userAction';
 import { withMobXProviderContext } from 'state/withStore';
@@ -41,11 +40,10 @@ class SettingsPage extends React.Component<SettingsPageProps, SettingsPageState>
 
     return (
       <div className={cx('root')}>
-        {!isNewNavigation() && (
-          <Text.Title level={3} className={cx('title')}>
-            Organization settings
-          </Text.Title>
-        )}
+        <Text.Title level={3} className={cx('title')}>
+          Organization settings
+        </Text.Title>
+
         <div className={cx('settings')}>
           <Field
             loading={!teamStore.currentTeam}
