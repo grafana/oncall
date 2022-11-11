@@ -447,7 +447,7 @@ class SchedulePage extends React.Component<SchedulePageProps, SchedulePageState>
     } = this.props;
 
     store.scheduleStore.delete(scheduleId).then(() => {
-      getLocationSrv().update({ query: { page: 'schedules-new' } });
+      getLocationSrv().update({ query: { page: 'schedules' } });
     });
   };
 }
