@@ -154,7 +154,6 @@ class OrderedModelSerializerMixin:
         if order is not None and (self.instance is None or self.instance.order != order):
             last_instance = self.Meta.model.objects.filter(**filter_kwargs).order_by("order").last()
             max_order = last_instance.order if last_instance else -1
-            print(f"MAX ORDER {max_order}")
             if self.instance is None:
                 max_order += 1
             if order > max_order:
