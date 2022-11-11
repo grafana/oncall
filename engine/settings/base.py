@@ -582,6 +582,11 @@ EMAIL_FROM_ADDRESS = os.getenv("EMAIL_FROM_ADDRESS")
 if FEATURE_EMAIL_INTEGRATION_ENABLED:
     EXTRA_MESSAGING_BACKENDS = [("apps.email.backend.EmailBackend", 8)]
 
+# Inbound email settings
+INBOUND_EMAIL_ESP = os.getenv("INBOUND_EMAIL_ESP")
+INBOUND_EMAIL_DOMAIN = os.getenv("INBOUND_EMAIL_DOMAIN")
+INBOUND_EMAIL_WEBHOOK_SECRET = os.getenv("INBOUND_EMAIL_WEBHOOK_SECRET")
+
 INSTALLED_ONCALL_INTEGRATIONS = [
     "config_integrations.alertmanager",
     "config_integrations.grafana",

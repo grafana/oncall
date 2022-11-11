@@ -1,10 +1,10 @@
 # Main
 enabled = True
-title = "Inboubd Email"
+title = "Inbound Email"
 slug = "inbound_email"
 short_description = None
 description = None
-is_displayed_on_web = False
+is_displayed_on_web = True
 is_featured = False
 is_able_to_autoresolve = False
 is_demo_alert_enabled = False
