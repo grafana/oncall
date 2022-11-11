@@ -91,7 +91,7 @@ class InboundEmailWebhookView(AlertChannelDefiningMixin, APIView):
             create_alert.delay(
                 title=title,
                 message=message,
-                alert_receive_channel=alert_receive_channel.pk,
+                alert_receive_channel_pk=alert_receive_channel.pk,
                 image_url=None,
                 link_to_upstream_details=payload.get("link_to_upstream_details"),
                 integration_unique_data=payload,

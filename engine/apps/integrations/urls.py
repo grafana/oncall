@@ -1,6 +1,10 @@
 from pathlib import Path
 
+from django.conf import settings
 from django.urls import path
+
+from apps.email.inbound import InboundEmailWebhookView
+from common.api_helpers.optional_slash_router import optional_slash_path
 
 from .views import (
     AlertManagerAPIView,
@@ -31,6 +35,11 @@ urlpatterns = [
     path("heartbeat/<str:alert_channel_key>/", HeartBeatAPIView.as_view(), name="heartbeat"),
     path("<str:integration_type>/<str:alert_channel_key>/", UniversalAPIView.as_view(), name="universal"),
 ]
+
+if settings.FEATURE_INBOUND_EMAIL_ENABLED:
+    urlpatterns += [
+        optional_slash_path("inbound_email_webhook", InboundEmailWebhookView.as_view(), name="inbound_email_webhook"),
+    ]
 
 
 def create_heartbeat_path(integration_url):

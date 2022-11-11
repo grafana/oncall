@@ -51,11 +51,6 @@ if settings.FEATURE_SLACK_INTEGRATION_ENABLED:
         path("slack/", include("apps.slack.urls")),
     ]
 
-if settings.FEATURE_INBOUND_EMAIL_ENABLED:
-    urlpatterns += [
-        path("email/", include("apps.email.urls", namespace="email")),
-    ]
-
 if settings.OSS_INSTALLATION:
     urlpatterns += [
         path("api/internal/v1/", include("apps.oss_installation.urls")),
