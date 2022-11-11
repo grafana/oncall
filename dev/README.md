@@ -12,6 +12,7 @@
   - [ld: library not found for -lssl](#ld-library-not-found-for--lssl)
   - [Could not build wheels for cryptography which use PEP 517 and cannot be installed directly](#could-not-build-wheels-for-cryptography-which-use-pep-517-and-cannot-be-installed-directly)
   - [django.db.utils.OperationalError: (1366, "Incorrect string value ...")](#djangodbutilsoperationalerror-1366-incorrect-string-value)
+  - [/bin/sh: line 0: cd: grafana-plugin: No such file or directory](#binsh-line-0-cd-grafana-plugin-no-such-file-or-directory)
 - [IDE Specific Instructions](#ide-specific-instructions)
   - [PyCharm](#pycharm-professional-edition)
 
@@ -190,6 +191,29 @@ django.db.utils.OperationalError: (1366, "Incorrect string value: '\\xF0\\x9F\\x
 **Solution:**
 
 Recreate the database with the correct encoding.
+
+### /bin/sh: line 0: cd: grafana-plugin: No such file or directory
+
+**Problem:**
+
+When running `make init`:
+
+```
+/bin/sh: line 0: cd: grafana-plugin: No such file or directory
+make: *** [init] Error 1
+```
+
+This arises when the environment variable `[CDPATH](https://www.theunixschool.com/2012/04/what-is-cdpath.html)` is set _and_ when the current path (`.`) is not explicitly part of `CDPATH`.
+
+**Solution:**
+
+Either make `.` part of `CDPATH` in your .rc file setup, or temporarily override the variable when running `make` commands:
+
+```
+$ CDPATH="." make init
+# Setting CDPATH to empty seems to also work - only tested on zsh, YMMV
+$ CDPATH="" make init
+```
 
 ## IDE Specific Instructions
 
