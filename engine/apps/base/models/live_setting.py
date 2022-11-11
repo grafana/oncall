@@ -4,7 +4,6 @@ from django.db import models
 from django.db.models import JSONField
 
 from apps.base.utils import LiveSettingValidator
-from apps.email.inbound import INBOUND_EMAIL_ESP_OPTIONS
 from common.public_primary_keys import generate_public_primary_key, increase_public_primary_key_length
 
 
@@ -70,7 +69,10 @@ class LiveSetting(models.Model):
         "EMAIL_USE_TLS": "SMTP enable/disable TLS",
         "EMAIL_FROM_ADDRESS": "Email address used to send emails. If not specified, EMAIL_HOST_USER will be used.",
         "INBOUND_EMAIL_DOMAIN": "Inbound email domain",
-        "INBOUND_EMAIL_ESP": f"Inbound email ESP. Available options: {', '.join(INBOUND_EMAIL_ESP_OPTIONS.keys())}",
+        "INBOUND_EMAIL_ESP": (
+            "Inbound email ESP name. "
+            "Available options: amazon_ses, mailgun, mailjet, mandrill, postal, postmark, sendgrid, sparkpost"
+        ),
         "INBOUND_EMAIL_WEBHOOK_SECRET": "Inbound email webhook secret",
         "SLACK_SIGNING_SECRET": (
             "Check <a href='"
@@ -148,6 +150,7 @@ class LiveSetting(models.Model):
 
     SECRET_SETTING_NAMES = (
         "EMAIL_HOST_PASSWORD",
+        "INBOUND_EMAIL_WEBHOOK_SECRET",
         "TWILIO_ACCOUNT_SID",
         "TWILIO_AUTH_TOKEN",
         "TWILIO_API_KEY_SID",

@@ -2,15 +2,12 @@ from pathlib import Path
 
 from django.urls import path
 
-from common.api_helpers.optional_slash_router import optional_slash_path
-
 from .views import (
     AlertManagerAPIView,
     AmazonSNS,
     GrafanaAlertingAPIView,
     GrafanaAPIView,
     HeartBeatAPIView,
-    InboundWebhookEmailView,
     IntegrationHeartBeatAPIView,
     UniversalAPIView,
 )
@@ -33,7 +30,6 @@ urlpatterns = [
     path("amazon_sns/<str:alert_channel_key>/", AmazonSNS.as_view(), name="amazon_sns"),
     path("heartbeat/<str:alert_channel_key>/", HeartBeatAPIView.as_view(), name="heartbeat"),
     path("<str:integration_type>/<str:alert_channel_key>/", UniversalAPIView.as_view(), name="universal"),
-    optional_slash_path("inbound_webhook_email", InboundWebhookEmailView.as_view(), name="inbound_email"),
 ]
 
 

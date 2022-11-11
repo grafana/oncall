@@ -12,13 +12,10 @@ from django.utils import timezone
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
 from django_sns_view.views import SNSEndpoint
-from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from apps.alerts.models import AlertReceiveChannel
-from apps.base.utils import live_settings
-from apps.email.inbound import get_messages_from_esp_request
 from apps.heartbeat.tasks import heartbeat_checkup, process_heartbeat_task
 from apps.integrations.mixins import (
     AlertChannelDefiningMixin,
@@ -382,60 +379,6 @@ class HeartBeatAPIView(AlertChannelDefiningMixin, APIView):
                 except IndexError:
                     return Response(status=400, data="heartbeat not found")
         return Response("Ok.")
-
-
-class InboundWebhookEmailView(AlertChannelDefiningMixin, APIView):
-    def dispatch(self, request, *args, **kwargs):
-        if not live_settings.INBOUND_EMAIL_ESP or not live_settings.INBOUND_EMAIL_DOMAIN:
-            return Response(status=status.HTTP_400_BAD_REQUEST)
-
-        if request.method.lower() == "head":
-            return Response(status=status.HTTP_200_OK)
-
-        message = get_messages_from_esp_request(request)[0]
-
-        token_to = message.to[0].address.split("@")[0]
-        token_recipient = message.envelope_recipient.split("@")[0]
-
-        result = self.try_dispatch_with_token(token_to, request, args, kwargs)
-        if result:
-            return result
-
-        result = self.try_dispatch_with_token(token_recipient, request, args, kwargs)
-        if result:
-            return result
-
-        raise PermissionDenied("Integration key was not found. Permission denied.")
-
-    def try_dispatch_with_token(self, token, request, args, kwargs):
-        try:
-            kwargs["alert_channel_key"] = token
-            return super().dispatch(request, *args, **kwargs)
-        except PermissionDenied:
-            logger.info(f"Permission denied for token: {token}")
-            kwargs.pop("alert_channel_key")
-            return None
-
-    def post(self, request, alert_receive_channel):
-        messages = get_messages_from_esp_request(request)
-
-        for message in messages:
-            title = message.subject
-            message = message.text.strip()
-
-            payload = {"title": title, "message": message}
-
-            create_alert.delay(
-                title=title,
-                message=message,
-                alert_receive_channel=alert_receive_channel.pk,
-                image_url=None,
-                link_to_upstream_details=payload.get("link_to_upstream_details"),
-                integration_unique_data=payload,
-                raw_request_data=request.data,
-            )
-
-        return Response("OK", status=status.HTTP_200_OK)
 
 
 class IntegrationHeartBeatAPIView(AlertChannelDefiningMixin, IntegrationHeartBeatRateLimitMixin, APIView):

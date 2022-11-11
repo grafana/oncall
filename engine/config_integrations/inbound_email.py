@@ -1,10 +1,12 @@
+from django.conf import settings
+
 # Main
 enabled = True
 title = "Inbound Email"
 slug = "inbound_email"
 short_description = None
 description = None
-is_displayed_on_web = True
+is_displayed_on_web = settings.FEATURE_INBOUND_EMAIL_ENABLED
 is_featured = False
 is_able_to_autoresolve = False
 is_demo_alert_enabled = False
