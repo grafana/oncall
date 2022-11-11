@@ -150,7 +150,7 @@ export const Root = observer((props: AppRootProps) => {
 function getPageMatchingComponent(pageId: string): (props?: any) => JSX.Element {
   let matchingPage = routes[pageId];
   if (!matchingPage) {
-    const defaultPageId = Object.keys(pages)[11];
+    const defaultPageId = pages['incidents'].id;
     matchingPage = routes[defaultPageId];
     locationService.replace(pages[defaultPageId].path);
   }
