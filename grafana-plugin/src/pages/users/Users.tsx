@@ -7,6 +7,7 @@ import { PluginPage } from 'PluginPage';
 import cn from 'classnames/bind';
 import { debounce } from 'lodash-es';
 import { observer } from 'mobx-react';
+import LegacyNavHeading from 'navbar/LegacyNavHeading';
 
 import Avatar from 'components/Avatar/Avatar';
 import GTable from 'components/GTable/GTable';
@@ -30,7 +31,6 @@ import { withMobXProviderContext } from 'state/withStore';
 import { getRealFilters, getUserRowClassNameFn } from './Users.helpers';
 
 import styles from './Users.module.css';
-import LegacyNavHeading from 'navbar/LegacyNavHeading';
 
 const cx = cn.bind(styles);
 

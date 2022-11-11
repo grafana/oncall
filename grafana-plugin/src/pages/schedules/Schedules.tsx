@@ -18,6 +18,7 @@ import cn from 'classnames/bind';
 import { omit } from 'lodash-es';
 import { observer } from 'mobx-react';
 import moment from 'moment-timezone';
+import LegacyNavHeading from 'navbar/LegacyNavHeading';
 
 import instructionsImage from 'assets/img/events_instructions.png';
 import Avatar from 'components/Avatar/Avatar';
@@ -46,7 +47,6 @@ import { openErrorNotification } from 'utils';
 import { getDatesString } from './Schedules.helpers';
 
 import styles from './Schedules.module.css';
-import LegacyNavHeading from 'navbar/LegacyNavHeading';
 
 const cx = cn.bind(styles);
 

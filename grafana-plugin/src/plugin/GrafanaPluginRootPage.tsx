@@ -14,13 +14,13 @@ import utc from 'dayjs/plugin/utc';
 import weekday from 'dayjs/plugin/weekday';
 import 'interceptors';
 import { observer, Provider } from 'mobx-react';
+import Header from 'navbar/Header/Header';
+import NavLinks from 'navbar/NavLinks';
 
 import DefaultPageLayout from 'containers/DefaultPageLayout/DefaultPageLayout';
 import logo from 'img/logo.svg';
 import { pages } from 'pages';
 import { routes } from 'pages/routes';
-import Header from 'navbar/Header/Header';
-import NavLinks from 'navbar/NavLinks';
 import { rootStore } from 'state';
 import { useStore } from 'state/useStore';
 import { useQueryParams, useQueryPath } from 'utils/hooks';

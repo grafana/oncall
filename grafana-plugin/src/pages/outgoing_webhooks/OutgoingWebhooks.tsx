@@ -6,6 +6,7 @@ import { Button, HorizontalGroup } from '@grafana/ui';
 import { PluginPage } from 'PluginPage';
 import cn from 'classnames/bind';
 import { observer } from 'mobx-react';
+import LegacyNavHeading from 'navbar/LegacyNavHeading';
 
 import GTable from 'components/GTable/GTable';
 import PageErrorHandlingWrapper, { PageBaseState } from 'components/PageErrorHandlingWrapper/PageErrorHandlingWrapper';
@@ -25,7 +26,6 @@ import { UserAction } from 'state/userAction';
 import { withMobXProviderContext } from 'state/withStore';
 
 import styles from './OutgoingWebhooks.module.css';
-import LegacyNavHeading from 'navbar/LegacyNavHeading';
 
 const cx = cn.bind(styles);
 

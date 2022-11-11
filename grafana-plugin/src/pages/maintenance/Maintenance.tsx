@@ -6,6 +6,7 @@ import { PluginPage } from 'PluginPage';
 import cn from 'classnames/bind';
 import { observer } from 'mobx-react';
 import moment from 'moment-timezone';
+import LegacyNavHeading from 'navbar/LegacyNavHeading';
 import Emoji from 'react-emoji-render';
 
 import GTable from 'components/GTable/GTable';
@@ -21,7 +22,6 @@ import { UserAction } from 'state/userAction';
 import { withMobXProviderContext } from 'state/withStore';
 
 import styles from './Maintenance.module.css';
-import LegacyNavHeading from 'navbar/LegacyNavHeading';
 
 const cx = cn.bind(styles);
 

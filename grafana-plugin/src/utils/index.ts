@@ -7,8 +7,8 @@ import { isArray, concat, isPlainObject, flatMap, map, keys } from 'lodash-es';
 import qs from 'query-string';
 
 export class KeyValuePair {
-  public key: string;
-  public value: string;
+  key: string;
+  value: string;
 
   constructor(key: string, value: string) {
     this.key = key;

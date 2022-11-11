@@ -1,4 +1,5 @@
 import { NavModelItem } from '@grafana/data';
+
 import { isNewNavigation } from 'plugin/GrafanaPluginRootPage.helpers';
 
 export const PLUGIN_URL_PATH = '/a/grafana-oncall-app';
@@ -28,10 +29,10 @@ export const pages: { [id: string]: PageDefinition } = [
   {
     icon: 'bell',
     id: 'incident',
-    parentItem: { text: 'Incident' },
     text: '',
     hideFromTabs: true,
     hideFromBreadcrumbs: true,
+    parentItem: { text: 'Incident' },
     path: getPath('incident/:id?'),
   },
   {
@@ -134,7 +135,7 @@ export const pages: { [id: string]: PageDefinition } = [
         text: current.text,
         parentItem: current.parentItem,
         hideFromBreadcrumbs: current.hideFromBreadcrumbs,
-        hideFromTabs: current.hideFromTabs
+        hideFromTabs: current.hideFromTabs,
       } as NavModelItem),
   };
 

@@ -4,6 +4,7 @@ import { Icon, Label, Tooltip } from '@grafana/ui';
 import cn from 'classnames/bind';
 import { observer } from 'mobx-react';
 import ReactDOM from 'react-dom';
+import { useLocation } from 'react-router-dom';
 
 import PluginLink from 'components/PluginLink/PluginLink';
 import GSelect from 'containers/GSelect/GSelect';
@@ -14,7 +15,6 @@ import { useStore } from 'state/useStore';
 import { UserAction } from 'state/userAction';
 
 import styles from './GrafanaTeamSelect.module.scss';
-import { useLocation } from 'react-router-dom';
 
 const cx = cn.bind(styles);
 
@@ -50,7 +50,13 @@ const GrafanaTeamSelect = observer((props: GrafanaTeamSelectProps) => {
   };
 
   const content = (
-    <div className={cx('teamSelect', { 'teamSelect--topRight': isNewNavigation() }, { 'teamSelect--topRightIncident': isIncidentScreen() })}>
+    <div
+      className={cx(
+        'teamSelect',
+        { 'teamSelect--topRight': isNewNavigation() },
+        { 'teamSelect--topRightIncident': isIncidentScreen() }
+      )}
+    >
       <div className={cx('teamSelectLabel')}>
         <Label>
           Select Team{' '}

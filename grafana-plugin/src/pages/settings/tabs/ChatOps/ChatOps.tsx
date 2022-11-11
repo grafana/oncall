@@ -2,14 +2,14 @@ import React from 'react';
 
 import { HorizontalGroup, Icon } from '@grafana/ui';
 import cn from 'classnames/bind';
+import { observer } from 'mobx-react';
 
+import VerticalTabsBar, { VerticalTab } from 'components/VerticalTabsBar/VerticalTabsBar';
 import SlackSettings from 'pages/settings/tabs/ChatOps/tabs/SlackSettings/SlackSettings';
 import TelegramSettings from 'pages/settings/tabs/ChatOps/tabs/TelegramSettings/TelegramSettings';
+import { withMobXProviderContext } from 'state/withStore';
 
 import styles from './ChatOps.module.css';
-import { observer } from 'mobx-react';
-import { withMobXProviderContext } from 'state/withStore';
-import VerticalTabsBar, { VerticalTab } from 'components/VerticalTabsBar/VerticalTabsBar';
 
 const cx = cn.bind(styles);
 

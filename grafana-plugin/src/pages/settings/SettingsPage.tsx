@@ -1,17 +1,19 @@
 import React from 'react';
 
+import { Tab, TabsBar } from '@grafana/ui';
+import { PluginPage } from 'PluginPage';
 import cn from 'classnames/bind';
 import { observer } from 'mobx-react';
 
-import styles from './SettingsPage.module.css';
-import { Tab, TabsBar } from '@grafana/ui';
-import { SettingsPageTab } from './SettingsPage.types';
 import ChatOpsPage from 'pages/settings/tabs/ChatOps/ChatOps';
-import { withMobXProviderContext } from 'state/withStore';
 import MainSettings from 'pages/settings/tabs/MainSettings/MainSettings';
-import { PluginPage } from 'PluginPage';
-import LiveSettingsPage from './tabs/LiveSettings/LiveSettingsPage';
+import { withMobXProviderContext } from 'state/withStore';
+
+import { SettingsPageTab } from './SettingsPage.types';
 import CloudPage from './tabs/Cloud/CloudPage';
+import LiveSettingsPage from './tabs/LiveSettings/LiveSettingsPage';
+
+import styles from './SettingsPage.module.css';
 
 const cx = cn.bind(styles);
 
