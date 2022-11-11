@@ -116,6 +116,8 @@ oncall:
 # Whether to run django database migrations automatically
 migrate:
   enabled: true
+  jobSpec:
+    ttlSecondsAfterFinished: 20
 
 # Additional env variables to add to deployments
 env: {}

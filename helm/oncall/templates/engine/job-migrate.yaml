@@ -6,7 +6,9 @@ metadata:
   labels:
     {{- include "oncall.engine.labels" . | nindent 4 }}
 spec:
-  ttlSecondsAfterFinished: 20
+  {{- with .Values.migrate.jobSpec.ttlSecondsAfterFinished }}
+  ttlSecondsAfterFinished: {{ .Values.migrate.jobSpec.ttlSecondsAfterFinished }}
+  {{- end }}
   template:
     metadata:
       name: {{ printf "%s-migrate-%s" (include "oncall.engine.fullname" .) (now | date "2006-01-02-15-04-05") }}
