@@ -19,6 +19,8 @@ export class UserStore extends BaseStore {
   @observable.shallow
   items: { [pk: string]: User } = {};
 
+  itemsCurrentlyUpdating = {};
+
   @observable
   notificationPolicies: any = {};
 
@@ -87,12 +89,20 @@ export class UserStore extends BaseStore {
 
   @action
   async updateItem(userPk: User['pk']) {
+    if (this.itemsCurrentlyUpdating[userPk]) {
+      return;
+    }
+
+    this.itemsCurrentlyUpdating[userPk] = true;
+
     const user = await this.getById(userPk);
 
     this.items = {
       ...this.items,
       [user.pk]: { ...user, timezone: getTimezone(user) },
     };
+
+    delete this.itemsCurrentlyUpdating[userPk];
   }
 
   @action
