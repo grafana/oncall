@@ -77,6 +77,7 @@ class ChannelFilterView(RateLimitHeadersMixin, UpdateSerializerMixin, ModelViewS
         )
 
     def perform_update(self, serializer):
+        print("PERFORM UPDATE")
         prev_state = serializer.instance.insight_logs_serialized
         serializer.save()
         new_state = serializer.instance.insight_logs_serialized

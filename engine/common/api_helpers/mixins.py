@@ -154,10 +154,23 @@ class OrderedModelSerializerMixin:
         if order is not None and (self.instance is None or self.instance.order != order):
             last_instance = self.Meta.model.objects.filter(**filter_kwargs).order_by("order").last()
             max_order = last_instance.order if last_instance else -1
+            print(f"MAX ORDER {max_order}")
             if self.instance is None:
                 max_order += 1
             if order > max_order:
                 raise BadRequest(detail="Invalid value for position field")
+
+    def _validate_manual_order(self, order):
+        """
+        For manual ordering validate just that order is valid PositiveIntegrer.
+        User of manual ordering is responsible for correct ordering.
+        However, manual ordering not intended for use somewhere, except terraform provider.
+        """
+
+        # https://docs.djangoproject.com/en/4.1/ref/models/fields/#positiveintegerfield
+        MAX_POSITIVE_INTEGER = 2147483647
+        if order is not None and order < 0 or order > MAX_POSITIVE_INTEGER:
+            raise BadRequest(detail="Invalid value for position field")
 
 
 class PublicPrimaryKeyMixin:
