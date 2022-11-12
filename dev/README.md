@@ -41,7 +41,7 @@ This configuration option represents a comma-separated list of [`docker-compose`
 
 This option can be configured in two ways:
 
-1. Setting a `COMPOSE_PROFILE` environment variable in `.env.dev`. This allows you to avoid having to set `COMPOSE_PROFILE` for each `make` command you execute afterwards.
+1. Setting a `COMPOSE_PROFILES` environment variable in `dev/.env.dev`. This allows you to avoid having to set `COMPOSE_PROFILES` for each `make` command you execute afterwards.
 2. Passing in a `COMPOSE_PROFILES` argument when running `make` commands. For example:
 
 ```bash
