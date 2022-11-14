@@ -12,6 +12,7 @@ from django.db.models.signals import post_save
 from apps.alerts.constants import TASK_DELAY_SECONDS
 from apps.alerts.incident_appearance.templaters import TemplateLoader
 from apps.alerts.tasks import distribute_alert, send_alert_group_signal
+from apps.alerts.tasks.distribute_alert import distribute_alert_group
 from common.jinja_templater import apply_jinja_template
 from common.public_primary_keys import generate_public_primary_key, increase_public_primary_key_length
 
@@ -99,6 +100,7 @@ class Alert(models.Model):
         if group_created:
             group.log_records.create(type=AlertGroupLogRecord.TYPE_REGISTERED)
             group.log_records.create(type=AlertGroupLogRecord.TYPE_ROUTE_ASSIGNED)
+            distribute_alert_group.apply_async(group.pk)
 
         mark_as_resolved = (
             enable_autoresolve and group_data.is_resolve_signal and alert_receive_channel.allow_source_based_resolving

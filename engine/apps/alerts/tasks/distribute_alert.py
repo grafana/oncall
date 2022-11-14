@@ -16,26 +16,35 @@ def distribute_alert(alert_id):
     We need this task to make task processing async and to make sure the task is delivered.
     """
     Alert = apps.get_model("alerts", "Alert")
-    AlertGroup = apps.get_model("alerts", "AlertGroup")
 
     alert = Alert.objects.get(pk=alert_id)
 
     task_logger.debug(f"Start distribute_alert for alert {alert_id} from alert_group {alert.group_id}")
     send_alert_create_signal.apply_async((alert_id,))
 
-    alert_group = AlertGroup.all_objects.filter(pk=alert.group_id).get()
-
-    # If it's the first alert, let's launch the escalation!
-    if alert.is_the_first_alert_in_group:
-        alert_group.start_escalation_if_needed(countdown=TASK_DELAY_SECONDS)
-
-    updated_rows = Alert.objects.filter(pk=alert_id, delivered=True).update(delivered=True)
-    if updated_rows != 1:
-        task_logger.critical(
-            f"Tried to mark alert {alert_id} as delivered but it's already marked as delivered. Possible concurrency issue."
-        )
+    # I don't understand what does this part
+    # TODO: check it with the author
+    # updated_rows = Alert.objects.filter(pk=alert_id, delivered=True).update(delivered=True)
+    # if updated_rows != 1:
+    #     task_logger.critical(
+    #         f"Tried to mark alert {alert_id} as delivered but it's already marked as delivered. Possible concurrency issue."
+    #     )
 
     task_logger.debug(f"Finish distribute_alert for alert {alert_id} from alert_group {alert.group_id}")
+
+
+@shared_dedicated_queue_retry_task(
+    autoretry_for=(Exception,), retry_backoff=True, max_retries=1 if settings.DEBUG else None, default_retry_delay=60
+)
+def distribute_alert_group(
+    alert_group_id,
+):
+    AlertGroup = apps.get_model("alerts", "AlertGroup")
+    alert_group = AlertGroup.all_objects.get(pk=alert_group_id)
+
+    task_logger.debug(f"Start distribute_alert_group for alert_group {alert_group_id}")
+    alert_group.start_escalation_if_needed(countdown=TASK_DELAY_SECONDS)
+    task_logger.debug(f"Finish distribute_alert_group for alert_group {alert_group_id}")
 
 
 @shared_dedicated_queue_retry_task(
