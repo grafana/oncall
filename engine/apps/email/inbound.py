@@ -1,9 +1,11 @@
 import logging
 
+from anymail.exceptions import AnymailWebhookValidationFailure
 from anymail.inbound import AnymailInboundMessage
 from anymail.signals import AnymailInboundEvent
 from anymail.webhooks import amazon_ses, mailgun, mailjet, mandrill, postal, postmark, sendgrid, sparkpost
 from django.core.exceptions import PermissionDenied
+from django.http import HttpResponse, HttpResponseNotAllowed
 from rest_framework import status
 from rest_framework.request import Request
 from rest_framework.response import Response
@@ -30,53 +32,64 @@ INBOUND_EMAIL_ESP_OPTIONS = {
 
 
 def get_messages_from_esp_request(request: Request) -> list[AnymailInboundMessage]:
-    assert (
-        live_settings.INBOUND_EMAIL_ESP in INBOUND_EMAIL_ESP_OPTIONS.keys()
-    ), f"INBOUND_EMAIL_ESP env variable must be on of the following: {INBOUND_EMAIL_ESP_OPTIONS.keys()}"
-    assert live_settings.INBOUND_EMAIL_WEBHOOK_SECRET, "INBOUND_EMAIL_WEBHOOK_SECRET env variable must be set"
-
     view_class, secret_name = INBOUND_EMAIL_ESP_OPTIONS[live_settings.INBOUND_EMAIL_ESP]
 
     kwargs = {secret_name: live_settings.INBOUND_EMAIL_WEBHOOK_SECRET} if secret_name else {}
     view = view_class(**kwargs)
 
-    view.run_validators(request)
-    events = view.parse_events(request)
+    try:
+        view.run_validators(request)
+        events = view.parse_events(request)
+    except AnymailWebhookValidationFailure:
+        return []
 
     return [event.message for event in events if isinstance(event, AnymailInboundEvent)]
 
 
 class InboundEmailWebhookView(AlertChannelDefiningMixin, APIView):
-    def dispatch(self, request, *args, **kwargs):
-        if not live_settings.INBOUND_EMAIL_ESP or not live_settings.INBOUND_EMAIL_DOMAIN:
-            return Response(status=status.HTTP_400_BAD_REQUEST)
+    def dispatch(self, request):
+        # http_method_names can't be used due to how AlertChannelDefiningMixin is implemented
+        # todo: refactor AlertChannelDefiningMixin
+        if not request.method.lower() in ["head", "post"]:
+            return HttpResponseNotAllowed(permitted_methods=["head", "post"])
+
+        if not live_settings.INBOUND_EMAIL_ESP:
+            return HttpResponse(
+                f"INBOUND_EMAIL_ESP env variable must be set. Options: {INBOUND_EMAIL_ESP_OPTIONS.keys()}",
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        if not live_settings.INBOUND_EMAIL_DOMAIN:
+            return HttpResponse("INBOUND_EMAIL_DOMAIN env variable must be set", status=status.HTTP_400_BAD_REQUEST)
 
         # Some ESPs verify the webhook with a HEAD request at configuration time
         if request.method.lower() == "head":
-            return Response(status=status.HTTP_200_OK)
+            return HttpResponse(status=status.HTTP_200_OK)
 
-        message = get_messages_from_esp_request(request)[0]
+        messages = get_messages_from_esp_request(request)
+        if not messages:
+            return HttpResponse(status=status.HTTP_400_BAD_REQUEST)
 
+        message = messages[0]
         token_to = message.to[0].address.split("@")[0]
-        token_recipient = message.envelope_recipient.split("@")[0]
 
-        result = self.try_dispatch_with_token(token_to, request, args, kwargs)
+        result = self.try_dispatch_with_token(request, token_to)
         if result:
             return result
 
-        result = self.try_dispatch_with_token(token_recipient, request, args, kwargs)
-        if result:
-            return result
+        token_recipient = message.envelope_recipient.split("@")[0] if message.envelope_recipient else None
+        if token_recipient:
+            result = self.try_dispatch_with_token(request, token_recipient)
+            if result:
+                return result
 
         raise PermissionDenied("Integration key was not found. Permission denied.")
 
-    def try_dispatch_with_token(self, token, request, args, kwargs):
+    def try_dispatch_with_token(self, request, token):
         try:
-            kwargs["alert_channel_key"] = token
-            return super().dispatch(request, *args, **kwargs)
+            return super().dispatch(request, alert_channel_key=token)
         except PermissionDenied:
             logger.info(f"Permission denied for token: {token}")
-            kwargs.pop("alert_channel_key")
             return None
 
     def post(self, request, alert_receive_channel):
