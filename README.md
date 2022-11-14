@@ -89,7 +89,7 @@ See [Grafana docs](https://grafana.com/docs/grafana/latest/administration/plugin
 
 ## Further Reading
 
-- _Migration from the PagerDuty_ - [Migrator](https://github.com/grafana/oncall/tree/dev/tools/pagerduty-migrator)
+- _Migration from PagerDuty_ - [Migrator](https://github.com/grafana/oncall/tree/dev/tools/pagerduty-migrator)
 - _Documentation_ - [Grafana OnCall](https://grafana.com/docs/grafana-cloud/oncall/)
 - _Overview Webinar_ - [YouTube](https://www.youtube.com/watch?v=7uSe1pulgs8)
 - _How To Add Integration_ - [How to Add Integration](https://github.com/grafana/oncall/tree/dev/engine/config_integrations/README.md)

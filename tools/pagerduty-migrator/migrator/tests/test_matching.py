@@ -1233,6 +1233,7 @@ expected_integrations_result = [
             "self": "https://api.pagerduty.com/vendors/TESTVENDOR1",
             "html_url": None,
         },
+        "vendor_name": "Datadog",
         "service": {
             "id": "TESTSERVICE1",
             "summary": "Service",
@@ -1294,6 +1295,7 @@ expected_integrations_result = [
             "self": "https://api.pagerduty.com/vendors/TESTVENDOR2",
             "html_url": None,
         },
+        "vendor_name": "Amazon CloudWatch",
         "service": {
             "id": "TESTSERVICE1",
             "summary": "Service",
@@ -1338,6 +1340,7 @@ expected_integrations_result = [
             "self": "https://api.pagerduty.com/vendors/TESTVENDOR1",
             "html_url": None,
         },
+        "vendor_name": "Datadog",
         "service": {
             "id": "TESTSERVICE2",
             "summary": "My Application Service",
@@ -1382,6 +1385,7 @@ expected_integrations_result = [
             "self": "https://api.pagerduty.com/vendors/TESTVENDOR2",
             "html_url": None,
         },
+        "vendor_name": "Amazon CloudWatch",
         "service": {
             "id": "TESTSERVICE2",
             "summary": "My Application Service",
@@ -1426,6 +1430,7 @@ expected_integrations_result = [
             "self": "https://api.pagerduty.com/vendors/TESTVENDOR1",
             "html_url": None,
         },
+        "vendor_name": "Datadog",
         "service": {
             "id": "TESTSERVICE2",
             "summary": "My Application Service",
@@ -1470,6 +1475,7 @@ expected_integrations_result = [
             "self": "https://api.pagerduty.com/vendors/TESTVENDOR2",
             "html_url": None,
         },
+        "vendor_name": "Amazon CloudWatch",
         "service": {
             "id": "TESTSERVICE2",
             "summary": "My Application Service",
@@ -1514,6 +1520,7 @@ expected_integrations_result = [
             "self": "https://api.pagerduty.com/vendors/TESTVENDOR3",
             "html_url": None,
         },
+        "vendor_name": "Email",
         "service": {
             "id": "TESTSERVICE1",
             "summary": "My Application Service",
