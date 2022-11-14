@@ -13,7 +13,7 @@ export default function NavLinks({ currentPage }: { currentPage: string }): JSX.
     .map((page) => pages[page])
     .filter((page) => {
       if (page.hideFromTabsFn) {
-        return page.hideFromTabsFn(store);
+        return !page.hideFromTabsFn(store);
       }
       return !page.hideFromTabs;
     });

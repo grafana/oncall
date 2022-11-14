@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 
 import { AppRootProps } from '@grafana/data';
 import { locationService } from '@grafana/runtime';
@@ -100,6 +100,7 @@ const RootWithLoader = observer((props: AppRootProps) => {
 });
 
 export const Root = observer((props: AppRootProps) => {
+  const [didFinishLoading, setDidFinishLoading] = useState(false);
   const queryParams = useQueryParams();
   const page = queryParams.get('page');
   const path = useQueryPath();
@@ -110,7 +111,7 @@ export const Root = observer((props: AppRootProps) => {
   const store = useStore();
 
   useEffect(() => {
-    store.updateBasicData();
+    updateBasicData();
   }, []);
 
   useEffect(() => {
@@ -126,9 +127,18 @@ export const Root = observer((props: AppRootProps) => {
     };
   }, []);
 
+  const updateBasicData = async () => {
+    await store.updateBasicData();
+    setDidFinishLoading(true);
+  };
+
   const Page = useMemo(() => getPageMatchingComponent(page), [page]);
 
   const isNewNav = isNewNavigation();
+
+  if (!didFinishLoading) {
+    return null;
+  }
 
   return (
     <DefaultPageLayout {...props}>

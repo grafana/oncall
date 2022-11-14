@@ -129,16 +129,18 @@ export class RootBaseStore {
   // stores
 
   async updateBasicData() {
-    this.teamStore.loadCurrentTeam();
-    this.grafanaTeamStore.updateItems();
-    this.updateFeatures();
-    this.userStore.updateNotificationPolicyOptions();
-    this.userStore.updateNotifyByOptions();
-    this.alertReceiveChannelStore.updateAlertReceiveChannelOptions();
-    this.alertReceiveChannelStore.updateAlertReceiveChannelOptions();
-    this.escalationPolicyStore.updateWebEscalationPolicyOptions();
-    this.escalationPolicyStore.updateEscalationPolicyOptions();
-    this.escalationPolicyStore.updateNumMinutesInWindowOptions();
+    return Promise.all([
+      this.teamStore.loadCurrentTeam(),
+      this.grafanaTeamStore.updateItems(),
+      this.updateFeatures(),
+      this.userStore.updateNotificationPolicyOptions(),
+      this.userStore.updateNotifyByOptions(),
+      this.alertReceiveChannelStore.updateAlertReceiveChannelOptions(),
+      this.alertReceiveChannelStore.updateAlertReceiveChannelOptions(),
+      this.escalationPolicyStore.updateWebEscalationPolicyOptions(),
+      this.escalationPolicyStore.updateEscalationPolicyOptions(),
+      this.escalationPolicyStore.updateNumMinutesInWindowOptions(),
+    ]);
   }
 
   async getUserRole() {
