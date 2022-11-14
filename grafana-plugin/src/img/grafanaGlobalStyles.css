@@ -18,6 +18,11 @@
   flex-grow: 1;
 }
 
+.page-header__title {
+  padding-top: 0 !important;
+  margin-right: 8px;
+}
+
 /* This is for Grafana 8, remove later */
 @media (max-width: 1540px) {
   .page-header__tabs > ul > li > a > div {

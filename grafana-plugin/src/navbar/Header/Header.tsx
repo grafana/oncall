@@ -30,26 +30,32 @@ export default function Header({ page, backendLicense }: { page: string; backend
   );
 
   function renderHeading() {
-    const heading = (
-      <>
-        <h1 className="page-header__title">Grafana OnCall</h1>
-        <div className="page-header__sub-title">{APP_SUBTITLE}</div>
-      </>
-    );
-
     if (backendLicense === GRAFANA_LICENSE_OSS) {
       return (
         <div className={cx('heading')}>
-          {heading}
-          <Card heading={undefined} className={cx('navbar-heading')}>
-            <a href="https://github.com/grafana/oncall" className={cx('navbar-link')} target="_blank" rel="noreferrer">
-              <img src={gitHubStarSVG} className={cx('navbar-star-icon')} alt="" /> Star us on GitHub
-            </a>
-          </Card>
+          <h1 className={cx('page-header__title')}>Grafana OnCall</h1>
+          <div className="u-flex u-align-items-center">
+            <div className={cx('page-header__sub-title')}>{APP_SUBTITLE}</div>
+            <Card heading={undefined} className={cx('navbar-heading')}>
+              <a
+                href="https://github.com/grafana/oncall"
+                className={cx('navbar-link')}
+                target="_blank"
+                rel="noreferrer"
+              >
+                <img src={gitHubStarSVG} className={cx('navbar-star-icon')} alt="" /> Star us on GitHub
+              </a>
+            </Card>
+          </div>
         </div>
       );
     }
 
-    return heading;
+    return (
+      <>
+        <h1 className={cx('page-header__title')}>Grafana OnCall</h1>
+        <div className={cx('page-header__sub-title')}>{APP_SUBTITLE}</div>
+      </>
+    );
   }
 }

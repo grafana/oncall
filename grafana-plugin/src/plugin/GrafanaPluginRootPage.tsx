@@ -35,6 +35,7 @@ dayjs.extend(isoWeek);
 
 import 'style/vars.css';
 import 'style/global.css';
+import 'style/utils.css';
 
 import { isNewNavigation } from './GrafanaPluginRootPage.helpers';
 

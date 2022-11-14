@@ -13,6 +13,7 @@ import {
   Tooltip,
   VerticalGroup,
 } from '@grafana/ui';
+import { PluginPage } from 'PluginPage';
 import cn from 'classnames/bind';
 import { omit } from 'lodash-es';
 import { observer } from 'mobx-react';
@@ -45,7 +46,6 @@ import { openErrorNotification } from 'utils';
 import { getDatesString } from './Schedules.helpers';
 
 import styles from './Schedules.module.css';
-import { PluginPage } from 'PluginPage';
 
 const cx = cn.bind(styles);
 

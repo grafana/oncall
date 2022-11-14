@@ -32,7 +32,6 @@ import { UserAction } from 'state/userAction';
 import { withMobXProviderContext } from 'state/withStore';
 
 import styles from './Schedules.module.css';
-import { isNewNavigation } from 'plugin/GrafanaPluginRootPage.helpers';
 
 const cx = cn.bind(styles);
 
@@ -136,7 +135,7 @@ class SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSta
 
     return (
       <PluginPage>
-        <div className={cx('root', { navbarRootFallback: !isNewNavigation() })}>
+        <div className={cx('root')}>
           <VerticalGroup>
             <HorizontalGroup justify="space-between">
               <SchedulesFilters value={filters} onChange={this.handleSchedulesFiltersChange} />

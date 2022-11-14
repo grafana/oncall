@@ -9,6 +9,7 @@ import dayjs from 'dayjs';
 import { omit } from 'lodash-es';
 import { observer } from 'mobx-react';
 
+import PageErrorHandlingWrapper from 'components/PageErrorHandlingWrapper/PageErrorHandlingWrapper';
 import PluginLink from 'components/PluginLink/PluginLink';
 import ScheduleWarning from 'components/ScheduleWarning/ScheduleWarning';
 import Text from 'components/Text/Text';
@@ -30,7 +31,6 @@ import { withMobXProviderContext } from 'state/withStore';
 import { getStartOfWeek } from './Schedule.helpers';
 
 import styles from './Schedule.module.css';
-import PageErrorHandlingWrapper from 'components/PageErrorHandlingWrapper/PageErrorHandlingWrapper';
 
 const cx = cn.bind(styles);
 

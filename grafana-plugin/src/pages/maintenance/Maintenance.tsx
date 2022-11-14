@@ -22,7 +22,6 @@ import { UserAction } from 'state/userAction';
 import { withMobXProviderContext } from 'state/withStore';
 
 import styles from './Maintenance.module.css';
-import { isNewNavigation } from 'plugin/GrafanaPluginRootPage.helpers';
 
 const cx = cn.bind(styles);
 
@@ -119,7 +118,7 @@ class MaintenancePage extends React.Component<MaintenancePageProps, MaintenanceP
 
     return (
       <PluginPage>
-        <div className={cx('root', { navbarRootFallback: !isNewNavigation() })}>
+        <div className={cx('root')}>
           <GTable
             emptyText={data ? 'No maintenances found' : 'Loading...'}
             title={() => (

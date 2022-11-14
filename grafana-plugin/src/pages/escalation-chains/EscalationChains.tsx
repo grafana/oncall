@@ -27,7 +27,6 @@ import EscalationChainForm from 'containers/EscalationChainForm/EscalationChainF
 import EscalationChainSteps from 'containers/EscalationChainSteps/EscalationChainSteps';
 import { WithPermissionControl } from 'containers/WithPermissionControl/WithPermissionControl';
 import { EscalationChain } from 'models/escalation_chain/escalation_chain.types';
-import { isNewNavigation } from 'plugin/GrafanaPluginRootPage.helpers';
 import { WithStoreProps } from 'state/types';
 import { UserAction } from 'state/userAction';
 import { withMobXProviderContext } from 'state/withStore';
@@ -144,7 +143,7 @@ class EscalationChainsPage extends React.Component<EscalationChainsPageProps, Es
           itemNotFoundMessage={`Escalation chain with id=${query?.id} is not found. Please select escalation chain from the list.`}
         >
           <>
-            <div className={cx('root', { navbarRootFallback: !isNewNavigation() })}>
+            <div className={cx('root')}>
               <div className={cx('filters')}>
                 <EscalationsFilters value={escalationChainsFilters} onChange={this.handleEscalationsFiltersChange} />
               </div>

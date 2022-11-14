@@ -31,7 +31,6 @@ import { UserAction } from 'state/userAction';
 import { withMobXProviderContext } from 'state/withStore';
 
 import styles from './Integrations.module.css';
-import { isNewNavigation } from 'plugin/GrafanaPluginRootPage.helpers';
 
 const cx = cn.bind(styles);
 
@@ -140,7 +139,7 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
           itemNotFoundMessage={`Integration with id=${query?.id} is not found. Please select integration from the list.`}
         >
           <>
-            <div className={cx('root', { navbarRootFallback: !isNewNavigation() })}>
+            <div className={cx('root')}>
               <div className={cx('filters')}>
                 <IntegrationsFilters value={integrationsFilters} onChange={this.handleIntegrationsFiltersChange} />
               </div>

@@ -23,7 +23,6 @@ import UserSettings from 'containers/UserSettings/UserSettings';
 import { WithPermissionControl } from 'containers/WithPermissionControl/WithPermissionControl';
 import { getRole } from 'models/user/user.helpers';
 import { User as UserType, UserRole } from 'models/user/user.types';
-import { isNewNavigation } from 'plugin/GrafanaPluginRootPage.helpers';
 import { WithStoreProps } from 'state/types';
 import { UserAction } from 'state/userAction';
 import { withMobXProviderContext } from 'state/withStore';
@@ -182,7 +181,7 @@ class Users extends React.Component<UsersProps, UsersState> {
           itemNotFoundMessage={`User with id=${query?.id} is not found. Please select user from the list.`}
         >
           <>
-            <div className={cx('root', { navbarRootFallback: !isNewNavigation() })}>
+            <div className={cx('root')}>
               <div className={cx('root', 'TEST-users-page')}>
                 <div className={cx('users-header')}>
                   <div style={{ display: 'flex', alignItems: 'baseline' }}>

@@ -26,7 +26,6 @@ import { UserAction } from 'state/userAction';
 import { withMobXProviderContext } from 'state/withStore';
 
 import styles from './OutgoingWebhooks.module.css';
-import { isNewNavigation } from 'plugin/GrafanaPluginRootPage.helpers';
 
 const cx = cn.bind(styles);
 
@@ -120,7 +119,7 @@ class OutgoingWebhooks extends React.Component<OutgoingWebhooksProps, OutgoingWe
           itemNotFoundMessage={`Outgoing webhook with id=${query?.id} is not found. Please select outgoing webhook from the list.`}
         >
           <>
-            <div className={cx('root', { navbarRootFallback: !isNewNavigation() })}>
+            <div className={cx('root')}>
               <GTable
                 emptyText={webhooks ? 'No outgoing webhooks found' : 'Loading...'}
                 title={() => (

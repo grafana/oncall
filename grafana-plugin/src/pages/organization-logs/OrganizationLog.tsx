@@ -15,7 +15,6 @@ import Text from 'components/Text/Text';
 import OrganizationLogFilters from 'containers/OrganizationLogFilters/OrganizationLogFilters';
 import logo from 'img/logo.svg';
 import { OrganizationLog } from 'models/organization_log/organization_log.types';
-import { isNewNavigation } from 'plugin/GrafanaPluginRootPage.helpers';
 import { WithStoreProps } from 'state/types';
 import { withMobXProviderContext } from 'state/withStore';
 import sanitize from 'utils/sanitize';
@@ -98,7 +97,7 @@ class OrganizationLogPage extends React.Component<OrganizationLogProps, Organiza
 
     return (
       <PluginPage>
-        <div className={cx('root', { navbarRootFallback: !isNewNavigation() })}>
+        <div className={cx('root')}>
           <OrganizationLogFilters value={filters} onChange={this.handleChangeOrganizationLogFilters} />
           <GTable
             rowKey="id"

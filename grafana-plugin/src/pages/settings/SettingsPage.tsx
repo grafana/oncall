@@ -5,8 +5,12 @@ import { PluginPage } from 'PluginPage';
 import cn from 'classnames/bind';
 import { observer } from 'mobx-react';
 
+import { pages } from 'pages';
 import ChatOpsPage from 'pages/settings/tabs/ChatOps/ChatOps';
 import MainSettings from 'pages/settings/tabs/MainSettings/MainSettings';
+import { isNewNavigation } from 'plugin/GrafanaPluginRootPage.helpers';
+import { AppFeature } from 'state/features';
+import { RootBaseStore } from 'state/rootBaseStore';
 import { withMobXProviderContext } from 'state/withStore';
 
 import { SettingsPageTab } from './SettingsPage.types';
@@ -14,15 +18,11 @@ import CloudPage from './tabs/Cloud/CloudPage';
 import LiveSettingsPage from './tabs/LiveSettings/LiveSettingsPage';
 
 import styles from './SettingsPage.module.css';
-import { isNewNavigation } from 'plugin/GrafanaPluginRootPage.helpers';
-import { AppFeature } from 'state/features';
-import { pages } from 'pages';
-import { RootBaseStore } from 'state/rootBaseStore';
 
 const cx = cn.bind(styles);
 
 interface SettingsPageProps {
-  store: RootBaseStore
+  store: RootBaseStore;
 }
 interface SettingsPageState {
   activeTab: string;
@@ -35,6 +35,14 @@ class SettingsPage extends React.Component<SettingsPageProps, SettingsPageState>
   };
 
   render() {
+    return (
+      <PluginPage pageNav={this.getMatchingPageNav()}>
+        <div className={cx('root')}>{this.renderContent()}</div>
+      </PluginPage>
+    );
+  }
+
+  renderContent() {
     const { activeTab } = this.state;
     const { store } = this.props;
 
@@ -50,9 +58,9 @@ class SettingsPage extends React.Component<SettingsPageProps, SettingsPageState>
     const showLiveSettings =
       hasLiveSettings && (pages['cloud'].role === 'Admin' ? pages['cloud'].role === grafanaUser.orgRole : true);
 
-    return (
-      <PluginPage pageNav={this.getMatchingPageNav()}>
-        <div className={cx('root', { navbarRootFallback: !isNewNavigation() })}>
+    if (isNewNavigation()) {
+      return (
+        <>
           <TabsBar>
             <Tab
               key={SettingsPageTab.MainSettings.key}
@@ -85,9 +93,11 @@ class SettingsPage extends React.Component<SettingsPageProps, SettingsPageState>
           </TabsBar>
 
           <TabsContent activeTab={activeTab} />
-        </div>
-      </PluginPage>
-    );
+        </>
+      );
+    }
+
+    return <MainSettings />;
   }
 
   getMatchingPageNav() {
