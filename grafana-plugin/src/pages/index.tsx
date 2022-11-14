@@ -1,6 +1,8 @@
 import { NavModelItem } from '@grafana/data';
 
 import { isNewNavigation } from 'plugin/GrafanaPluginRootPage.helpers';
+import { AppFeature } from 'state/features';
+import { RootBaseStore } from 'state/rootBaseStore';
 
 export const PLUGIN_URL_PATH = '/a/grafana-oncall-app';
 
@@ -9,6 +11,7 @@ export type PageDefinition = {
   icon: string;
   id: string;
   text: string;
+  hideFromTabsFn?: (store: RootBaseStore) => boolean;
   hideFromTabs?: boolean;
   role?: 'Viewer' | 'Editor' | 'Admin';
 
@@ -96,8 +99,22 @@ export const pages: { [id: string]: PageDefinition } = [
     id: 'live-settings',
     text: 'Env Variables',
     role: 'Admin',
-    hideFromTabs: isNewNavigation(),
+    hideFromTabsFn: (store: RootBaseStore) => {
+      const hasLiveSettings = store.hasFeature(AppFeature.LiveSettings);
+      return isNewNavigation() || window.grafanaBootData.user.orgRole !== 'Admin' || !hasLiveSettings;
+    },
     path: getPath('live-settings'),
+  },
+  {
+    icon: 'cloud',
+    id: 'cloud',
+    text: 'Cloud',
+    role: 'Admin',
+    hideFromTabsFn: (store: RootBaseStore) => {
+      const hasCloudFeature = store.hasFeature(AppFeature.CloudConnection);
+      return isNewNavigation() || window.grafanaBootData.user.orgRole !== 'Admin' || !hasCloudFeature;
+    },
+    path: getPath('cloud'),
   },
   {
     icon: 'gf-logs',
@@ -105,14 +122,6 @@ export const pages: { [id: string]: PageDefinition } = [
     text: 'Org Logs',
     hideFromTabs: true,
     path: getPath('organization-logs'),
-  },
-  {
-    icon: 'cloud',
-    id: 'cloud',
-    text: 'Cloud',
-    role: 'Admin',
-    hideFromTabs: isNewNavigation(),
-    path: getPath('cloud'),
   },
   {
     icon: 'cog',

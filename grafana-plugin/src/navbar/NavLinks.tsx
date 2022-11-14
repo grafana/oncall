@@ -4,11 +4,19 @@ import { IconName } from '@grafana/data';
 import { Tab, TabsBar } from '@grafana/ui';
 
 import { pages } from 'pages';
+import { useStore } from 'state/useStore';
 
 export default function NavLinks({ currentPage }: { currentPage: string }): JSX.Element {
+  const store = useStore();
+
   const navigationPages = Object.keys(pages)
     .map((page) => pages[page])
-    .filter((page) => !page.hideFromTabs);
+    .filter((page) => {
+      if (page.hideFromTabsFn) {
+        return page.hideFromTabsFn(store);
+      }
+      return !page.hideFromTabs;
+    });
 
   return (
     <TabsBar>

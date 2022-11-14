@@ -24,6 +24,7 @@ interface GrafanaTeamSelectProps {
 
 const GrafanaTeamSelect = observer((props: GrafanaTeamSelectProps) => {
   const store = useStore();
+  const { search } = useLocation();
 
   const { currentPage } = props;
   const { userStore, grafanaTeamStore } = store;
@@ -89,9 +90,7 @@ const GrafanaTeamSelect = observer((props: GrafanaTeamSelectProps) => {
     : null;
 
   function isIncidentScreen() {
-    const { search } = useLocation();
     const page = new URLSearchParams(search).get('page');
-
     return page === 'incident';
   }
 });
