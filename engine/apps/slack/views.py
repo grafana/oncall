@@ -272,9 +272,8 @@ class SlackEventApiEndpointView(APIView):
                 return Response(status=200)
         elif not slack_user_identity.users.exists():
             # Means that slack_user_identity doesn't have any connected user
-            warning_text = "Permission denied. Please connect your Slack account to OnCall."
             # Open pop-up to inform user why OnCall bot doesn't work if any action was triggered
-            self._open_warning_window_if_needed(payload, slack_team_identity, warning_text)
+            self._open_warning_for_unconnected_user(sc, payload)
             return Response(status=200)
 
         action_record = SlackActionRecord(user=user, organization=organization, payload=payload)
