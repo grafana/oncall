@@ -780,6 +780,7 @@ def clean_slack_channel_leftovers(slack_team_identity_id, slack_channel_id):
     """
     SlackTeamIdentity = apps.get_model("slack", "SlackTeamIdentity")
     ChannelFilter = apps.get_model("alerts", "ChannelFilter")
+    Organization = apps.get_model("user_management", "Organization")
 
     try:
         sti = SlackTeamIdentity.objects.get(id=slack_team_identity_id)
@@ -789,7 +790,13 @@ def clean_slack_channel_leftovers(slack_team_identity_id, slack_channel_id):
         )
         return
 
+    orgs_to_clean_general_log_channel_id = []
     for org in sti.organizations.all():
+        if org.general_log_channel_id == slack_channel_id:
+            logger.info(
+                f"Set general_log_channel_id to None for org_id={org.id}  slack_channel_id={slack_channel_id} since slack_channel is arcived or deleted"
+            )
+            orgs_to_clean_general_log_channel_id.append(org)
         ChannelFilter.objects.filter(alert_receive_channel__organization=org).update(slack_channel_id=None)
 
-    sti.organizations.filter(general_log_channel_id=slack_channel_id).update(general_log_channel_id=None)
+    Organization.objects.bulk_update(orgs_to_clean_general_log_channel_id, ["general_log_channel_id"], batch_size=5000)
