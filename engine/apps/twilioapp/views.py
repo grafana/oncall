@@ -19,12 +19,17 @@ class AllowOnlyTwilio(BasePermission):
     def has_permission(self, request, view):
         # https://www.twilio.com/docs/usage/tutorials/how-to-secure-your-django-project-by-validating-incoming-twilio-requests
         # https://www.django-rest-framework.org/api-guide/permissions/
-        validator = RequestValidator(live_settings.TWILIO_AUTH_TOKEN)
-        location = create_engine_url(request.get_full_path())
-        request_valid = validator.validate(
-            request.build_absolute_uri(location=location), request.POST, request.META.get("HTTP_X_TWILIO_SIGNATURE", "")
-        )
-        return request_valid
+        if live_settings.TWILIO_AUTH_TOKEN:
+            validator = RequestValidator(live_settings.TWILIO_AUTH_TOKEN)
+            location = create_engine_url(request.get_full_path())
+            request_valid = validator.validate(
+                request.build_absolute_uri(location=location),
+                request.POST,
+                request.META.get("HTTP_X_TWILIO_SIGNATURE", ""),
+            )
+            return request_valid
+        else:
+            return live_settings.TWILIO_ACCOUNT_SID == request.data["AccountSid"]
 
 
 class HealthCheckView(APIView):

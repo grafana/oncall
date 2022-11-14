@@ -1,84 +1,282 @@
-version: "3.8"
+version: "3.9"
+
+x-labels: &oncall-labels
+  - "com.grafana.oncall.env=dev"
+
+x-oncall-build: &oncall-build-args
+  context: ./engine
+  target: ${ONCALL_IMAGE_TARGET:-dev}
+  labels: *oncall-labels
+
+x-oncall-volumes: &oncall-volumes
+  - ./engine:/etc/app
+  # https://stackoverflow.com/a/60456034
+  - ${ENTERPRISE_ENGINE:-/dev/null}:/etc/app/extensions/engine_enterprise
+  - ${SQLITE_DB_FILE:-/dev/null}:/var/lib/oncall/oncall.db
+
+x-env-files: &oncall-env-files
+  - ./dev/.env.dev
+  - ./dev/.env.${DB}.dev
+
+x-env-vars: &oncall-env-vars
+  BROKER_TYPE: ${BROKER_TYPE}
 
 services:
-  mysql:
-    image: mysql:5.7
-    platform: linux/x86_64
-    command: --default-authentication-plugin=mysql_native_password --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
+  oncall_ui:
+    container_name: oncall_ui
+    labels: *oncall-labels
+    build:
+      context: ./grafana-plugin
+      dockerfile: Dockerfile.dev
+      labels: *oncall-labels
+    volumes:
+      - ./grafana-plugin:/etc/app
+      - /etc/app/node_modules
+      # https://stackoverflow.com/a/60456034
+      - ${ENTERPRISE_FRONTEND:-/dev/null}:/etc/app/frontend_enterprise
+    profiles:
+      - oncall_ui
+
+  oncall_engine:
+    container_name: oncall_engine
+    labels: *oncall-labels
+    build: *oncall-build-args
     restart: always
+    command: "python manage.py runserver 0.0.0.0:8080"
+    env_file: *oncall-env-files
+    environment: *oncall-env-vars
+    volumes: *oncall-volumes
     ports:
-      - "3306:3306"
-    environment:
-      MYSQL_ROOT_PASSWORD: empty
-      MYSQL_DATABASE: oncall_local_dev
-    deploy:
-      resources:
-        limits:
-          memory: 500m
-          cpus: '0.5'
-    healthcheck:
-      test: [ "CMD", "mysqladmin" ,"ping", "-h", "localhost" ]
-      timeout: 20s
-      retries: 10
+      - "8080:8080"
+    depends_on:
+      oncall_db_migration:
+        condition: service_completed_successfully
+    profiles:
+      - engine
+
+  # used to invoke one-off commands, primarily from the Makefile
+  # oncall_engine couldn't (easily) be used due to it's depends_on property
+  # we could alternatively just use `docker run` however that would require
+  # duplicating the env-files, volume mounts, etc in the Makefile
+  oncall_engine_commands:
+    container_name: oncall_engine_commands
+    labels: *oncall-labels
+    build: *oncall-build-args
+    env_file: *oncall-env-files
+    environment: *oncall-env-vars
+    volumes: *oncall-volumes
+    profiles:
+      # no need to start this except from within the Makefile
+      - _engine_commands
+
+  oncall_celery:
+    container_name: oncall_celery
+    labels: *oncall-labels
+    build: *oncall-build-args
+    restart: always
+    command: "python manage.py start_celery"
+    env_file: *oncall-env-files
+    environment: *oncall-env-vars
+    volumes: *oncall-volumes
+    depends_on:
+      oncall_db_migration:
+        condition: service_completed_successfully
+    profiles:
+      - engine
+
+  oncall_db_migration:
+    container_name: oncall_db_migration
+    labels: *oncall-labels
+    build: *oncall-build-args
+    command: "python manage.py migrate --noinput"
+    env_file: *oncall-env-files
+    environment: *oncall-env-vars
+    volumes: *oncall-volumes
+    depends_on:
+      postgres:
+        condition: service_healthy
+      mysql:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    profiles:
+      - engine
 
   redis:
-    image: redis
+    container_name: redis
+    labels: *oncall-labels
+    image: redis:7.0.5
     restart: always
     ports:
       - "6379:6379"
     deploy:
+      labels: *oncall-labels
       resources:
         limits:
-          memory: 100m
-          cpus: '0.1'
+          memory: 500m
+          cpus: "0.5"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      timeout: 5s
+      interval: 5s
+      retries: 10
+    volumes:
+      - redisdata_dev:/data
+    profiles:
+      - redis
 
-  rabbit:
+  rabbitmq:
+    container_name: rabbitmq
+    labels: *oncall-labels
     image: "rabbitmq:3.7.15-management"
+    restart: always
     environment:
       RABBITMQ_DEFAULT_USER: "rabbitmq"
       RABBITMQ_DEFAULT_PASS: "rabbitmq"
       RABBITMQ_DEFAULT_VHOST: "/"
-    deploy:
-      resources:
-        limits:
-          memory: 1000m
-          cpus: '0.5'
     ports:
       - "15672:15672"
       - "5672:5672"
+    deploy:
+      labels: *oncall-labels
+      resources:
+        limits:
+          memory: 1000m
+          cpus: "0.5"
+    healthcheck:
+      test: rabbitmq-diagnostics -q ping
+      interval: 30s
+      timeout: 30s
+      retries: 3
+    volumes:
+      - rabbitmqdata_dev:/var/lib/rabbitmq
+    profiles:
+      - rabbitmq
 
-  mysql-to-create-grafana-db:
+  mysql:
+    container_name: mysql
+    labels: *oncall-labels
+    image: mysql:5.7
+    platform: linux/x86_64
+    command: --default-authentication-plugin=mysql_native_password --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: empty
+      MYSQL_DATABASE: oncall_local_dev
+    ports:
+      - "3306:3306"
+    deploy:
+      labels: *oncall-labels
+      resources:
+        limits:
+          memory: 500m
+          cpus: "0.5"
+    healthcheck:
+      test: "mysql -uroot -pempty oncall_local_dev -e 'select 1'"
+      timeout: 20s
+      retries: 10
+    volumes:
+      - mysqldata_dev:/var/lib/mysql
+    profiles:
+      - mysql
+
+  mysql_to_create_grafana_db:
+    container_name: mysql_to_create_grafana_db
+    labels: *oncall-labels
     image: mysql:5.7
     platform: linux/x86_64
     command: bash -c "mysql -h mysql -uroot -pempty -e 'CREATE DATABASE IF NOT EXISTS grafana CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;'"
     depends_on:
       mysql:
         condition: service_healthy
+    profiles:
+      - mysql
 
-  grafana:
-    image: "grafana/grafana-oss-dev:9.3.0-83735pre-ubuntu"
-    # image: "grafana/grafana:main"
+  postgres:
+    container_name: postgres
+    labels: *oncall-labels
+    image: postgres:14.4
     restart: always
     environment:
-      GF_DATABASE_TYPE: mysql
-      GF_DATABASE_HOST: mysql
-      GF_DATABASE_USER: root
-      GF_DATABASE_PASSWORD: empty
-      GF_SECURITY_ADMIN_USER: oncall
-      GF_SECURITY_ADMIN_PASSWORD: oncall
-      GF_PLUGINS_ALLOW_LOADING_UNSIGNED_PLUGINS: grafana-oncall-app
-      GF_FEATURE_TOGGLES_ENABLE: topnav
+      POSTGRES_DB: oncall_local_dev
+      POSTGRES_PASSWORD: empty
+      POSTGRES_INITDB_ARGS: --encoding=UTF-8
+    ports:
+      - "5432:5432"
     deploy:
+      labels: *oncall-labels
       resources:
         limits:
           memory: 500m
-          cpus: '0.5'
+          cpus: "0.5"
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
     volumes:
-      - ./grafana-plugin:/var/lib/grafana/plugins/grafana-plugin
+      - postgresdata_dev:/var/lib/postgresql/data
+    profiles:
+      - postgres
+
+  postgres_to_create_grafana_db:
+    container_name: postgres_to_create_grafana_db
+    labels: *oncall-labels
+    image: postgres:14.4
+    command: bash -c "PGPASSWORD=empty psql -U postgres -h postgres -tc \"SELECT 1 FROM pg_database WHERE datname = 'grafana'\" | grep -q 1 || PGPASSWORD=empty psql -U postgres -h postgres -c \"CREATE DATABASE grafana\""
+    depends_on:
+      postgres:
+        condition: service_healthy
+    profiles:
+      - postgres
+
+  grafana:
+    container_name: grafana
+    labels: *oncall-labels
+    image: "grafana/grafana:${GRAFANA_VERSION:-latest}"
+    restart: always
+    environment:
+      GF_SECURITY_ADMIN_USER: oncall
+      GF_SECURITY_ADMIN_PASSWORD: oncall
+      GF_PLUGINS_ALLOW_LOADING_UNSIGNED_PLUGINS: grafana-oncall-app
+    env_file:
+      - ./dev/.env.${DB}.dev
     ports:
       - "3000:3000"
-    depends_on:
-      mysql:
-        condition: service_healthy
+    deploy:
+      labels: *oncall-labels
+      resources:
+        limits:
+          memory: 500m
+          cpus: "0.5"
     extra_hosts:
       - "host.docker.internal:host-gateway"
+    volumes:
+      - grafanadata_dev:/var/lib/grafana
+      - ./grafana-plugin:/var/lib/grafana/plugins/grafana-plugin
+    depends_on:
+      postgres:
+        condition: service_healthy
+      mysql:
+        condition: service_healthy
+    profiles:
+      - grafana
+
+volumes:
+  redisdata_dev:
+    labels: *oncall-labels
+  grafanadata_dev:
+    labels: *oncall-labels
+  rabbitmqdata_dev:
+    labels: *oncall-labels
+  postgresdata_dev:
+    labels: *oncall-labels
+  mysqldata_dev:
+    labels: *oncall-labels
+
+networks:
+  default:
+    name: oncall_dev
+    labels: *oncall-labels

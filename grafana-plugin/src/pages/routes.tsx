@@ -9,8 +9,7 @@ import MaintenancePage from 'pages/maintenance/Maintenance';
 import OrganizationLogPage from 'pages/organization-logs/OrganizationLog';
 import OutgoingWebhooks from 'pages/outgoing_webhooks/OutgoingWebhooks';
 import SchedulePage from 'pages/schedule/Schedule';
-import SchedulesPage2 from 'pages/schedules/Schedules';
-import SchedulesPage from 'pages/schedules_NEW/Schedules';
+import SchedulesPage from 'pages/schedules/Schedules';
 import SettingsPage from 'pages/settings/SettingsPage';
 import ChatOpsPage from 'pages/settings/tabs/ChatOps/ChatOps';
 import CloudPage from 'pages/settings/tabs/Cloud/CloudPage';
@@ -60,12 +59,8 @@ export const routes: { [id: string]: NavRoute } = [
     id: 'escalations',
   },
   {
-    component: SchedulesPage2,
-    id: 'schedules',
-  },
-  {
     component: SchedulesPage,
-    id: 'schedules-new',
+    id: 'schedules',
   },
   {
     component: SchedulePage,

@@ -9,6 +9,7 @@ import { observer } from 'mobx-react';
 
 import PluginLink from 'components/PluginLink/PluginLink';
 import { getIfChatOpsConnected } from 'containers/DefaultPageLayout/helper';
+import { AppFeature } from 'state/features';
 import { useStore } from 'state/useStore';
 import { UserAction } from 'state/userAction';
 import { GRAFANA_LICENSE_OSS } from 'utils/consts';
@@ -78,7 +79,11 @@ const DefaultPageLayout: FC<DefaultPageLayoutProps> = observer((props) => {
             // @ts-ignore
             title="Slack integration warning"
           >
-            {getSlackMessage(showSlackInstallAlert, store.teamStore.currentTeam)}
+            {getSlackMessage(
+              showSlackInstallAlert,
+              store.teamStore.currentTeam,
+              store.hasFeature(AppFeature.LiveSettings)
+            )}
           </Alert>
         )}
         {currentTeam?.banner.title != null && !getItem(currentTeam?.banner.title) && (

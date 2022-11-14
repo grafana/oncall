@@ -18,3 +18,6 @@ Once Grafana OnCall receives an alert, the following occurs, based on the alert 
 - Default or customized alert templates are applied to deliver the most useful alert fields with the most valuable information, in a readable format.
 - Alerts are grouped based on your alert grouping configurations, combining similar or related alerts to reduce alert noise.
 - Alerts automatically resolve if an alert from the monitoring system matches the resolve condition for that alert.
+
+
+{{< section >}}

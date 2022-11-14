@@ -8,6 +8,7 @@
     "stylelint": "stylelint ./src/**/*.{css,scss,module.css,module.scss}",
     "stylelint:fix": "stylelint --fix ./src/**/*.{css,scss,module.css,module.scss}",
     "build": "grafana-toolkit plugin:build",
+    "build:dev": "grafana-toolkit plugin:build --skipTest --skipLint",
     "test": "jest --verbose",
     "dev": "grafana-toolkit plugin:dev",
     "watch": "grafana-toolkit plugin:dev --watch",

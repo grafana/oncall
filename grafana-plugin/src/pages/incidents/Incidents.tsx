@@ -101,6 +101,8 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
   }
 
   render() {
+    alert('1');
+
     return (
       <PluginPage>
         <PageErrorHandlingWrapper pageName="incidents">

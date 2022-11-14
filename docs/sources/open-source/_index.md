@@ -18,7 +18,7 @@ This guide describes the necessary installation and configuration steps needed t
 There are three Grafana OnCall OSS environments available:
 
 - **Hobby** playground environment for local usage: [README.md](https://github.com/grafana/oncall#getting-started)
-- **Development** environment for contributors: [DEVELOPER.md](https://github.com/grafana/oncall/blob/dev/DEVELOPER.md)
+- **Development** environment for contributors: [development README.md](https://github.com/grafana/oncall/blob/dev/dev/README.md)
 - **Production** environment for reliable cloud installation using Helm: [Production Environment](#production-environment)
 
 ## Production Environment

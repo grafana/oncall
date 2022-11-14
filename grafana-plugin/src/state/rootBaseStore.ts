@@ -129,7 +129,6 @@ export class RootBaseStore {
   // stores
 
   async updateBasicData() {
-    this.userStore.loadCurrentUser();
     this.teamStore.loadCurrentTeam();
     this.grafanaTeamStore.updateItems();
     this.updateFeatures();
@@ -158,7 +157,14 @@ export class RootBaseStore {
     }
     this.backendVersion = get_sync_response.version;
     this.backendLicense = get_sync_response.license;
-    this.appLoading = false;
+
+    try {
+      await this.userStore.loadCurrentUser();
+
+      this.appLoading = false;
+    } catch (e) {
+      this.initializationError = 'OnCall was not able to initialize current user';
+    }
   }
 
   handleSyncException(e: any) {

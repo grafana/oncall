@@ -221,7 +221,7 @@ externalPostgresql:
   # use an existing secret for the database password
   existingSecret: ""
   # the key in the secret containing the database password
-  passwordKey: password
+  passwordKey:
 
 # RabbitMQ is included into this release for the convenience.
 # It is recommended to host it separately from this release

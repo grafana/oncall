@@ -18,7 +18,11 @@ Developer-friendly incident response with brilliant Slack integration.
 
 ## Getting Started
 
-We prepared multiple environments: [production](https://grafana.com/docs/grafana-cloud/oncall/open-source/#production-environment), [developer](DEVELOPER.md) and hobby:
+We prepared multiple environments:
+
+- [production](https://grafana.com/docs/grafana-cloud/oncall/open-source/#production-environment)
+- [developer](./dev/README.md)
+- hobby (described in the following steps)
 
 1. Download [`docker-compose.yml`](docker-compose.yml):
 
@@ -85,8 +89,9 @@ See [Grafana docs](https://grafana.com/docs/grafana/latest/administration/plugin
 
 ## Further Reading
 
-- _Migration from the PagerDuty_ - [Migrator](https://github.com/grafana/oncall/tree/dev/tools/pagerduty-migrator)
+- _Migration from PagerDuty_ - [Migrator](https://github.com/grafana/oncall/tree/dev/tools/pagerduty-migrator)
 - _Documentation_ - [Grafana OnCall](https://grafana.com/docs/grafana-cloud/oncall/)
+- _Overview Webinar_ - [YouTube](https://www.youtube.com/watch?v=7uSe1pulgs8)
 - _How To Add Integration_ - [How to Add Integration](https://github.com/grafana/oncall/tree/dev/engine/config_integrations/README.md)
 - _Blog Post_ - [Announcing Grafana OnCall, the easiest way to do on-call management](https://grafana.com/blog/2021/11/09/announcing-grafana-oncall/)
 - _Presentation_ - [Deep dive into the Grafana, Prometheus, and Alertmanager stack for alerting and on-call management](https://grafana.com/go/observabilitycon/2021/alerting/?pg=blog)

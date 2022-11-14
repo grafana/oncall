@@ -17,7 +17,12 @@ logger = logging.getLogger(__name__)
 class TwilioClient:
     @property
     def twilio_api_client(self):
-        return Client(live_settings.TWILIO_ACCOUNT_SID, live_settings.TWILIO_AUTH_TOKEN)
+        if live_settings.TWILIO_API_KEY_SID and live_settings.TWILIO_API_KEY_SECRET:
+            return Client(
+                live_settings.TWILIO_API_KEY_SID, live_settings.TWILIO_API_KEY_SECRET, live_settings.TWILIO_ACCOUNT_SID
+            )
+        else:
+            return Client(live_settings.TWILIO_ACCOUNT_SID, live_settings.TWILIO_AUTH_TOKEN)
 
     @property
     def twilio_number(self):
