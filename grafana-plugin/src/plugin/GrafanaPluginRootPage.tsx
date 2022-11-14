@@ -141,7 +141,7 @@ export const Root = observer((props: AppRootProps) => {
       )}
 
       <div className={classnames({ 'page-container': !isNewNav }, { 'page-body': !isNewNav }, 'u-position-relative')}>
-        <Page {...props} path={pathWithoutLeadingSlash} />
+        <Page {...props} path={pathWithoutLeadingSlash} store={store} />
       </div>
     </DefaultPageLayout>
   );

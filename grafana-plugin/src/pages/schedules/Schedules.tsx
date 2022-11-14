@@ -33,7 +33,6 @@ import { withMobXProviderContext } from 'state/withStore';
 
 import styles from './Schedules.module.css';
 import { isNewNavigation } from 'plugin/GrafanaPluginRootPage.helpers';
-import PageErrorHandlingWrapper from 'components/PageErrorHandlingWrapper/PageErrorHandlingWrapper';
 
 const cx = cn.bind(styles);
 

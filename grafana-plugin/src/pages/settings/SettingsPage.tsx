@@ -15,10 +15,15 @@ import LiveSettingsPage from './tabs/LiveSettings/LiveSettingsPage';
 
 import styles from './SettingsPage.module.css';
 import { isNewNavigation } from 'plugin/GrafanaPluginRootPage.helpers';
+import { AppFeature } from 'state/features';
+import { pages } from 'pages';
+import { RootBaseStore } from 'state/rootBaseStore';
 
 const cx = cn.bind(styles);
 
-interface SettingsPageProps {}
+interface SettingsPageProps {
+  store: RootBaseStore
+}
 interface SettingsPageState {
   activeTab: string;
 }
@@ -31,10 +36,19 @@ class SettingsPage extends React.Component<SettingsPageProps, SettingsPageState>
 
   render() {
     const { activeTab } = this.state;
+    const { store } = this.props;
 
     const onTabChange = (tab: string) => {
       this.setState({ activeTab: tab });
     };
+
+    const grafanaUser = window.grafanaBootData.user;
+    const hasLiveSettings = store.hasFeature(AppFeature.LiveSettings);
+    const hasCloudPage = store.hasFeature(AppFeature.CloudConnection);
+    const showCloudPage =
+      hasCloudPage && (pages['cloud'].role === 'Admin' ? pages['cloud'].role === grafanaUser.orgRole : true);
+    const showLiveSettings =
+      hasLiveSettings && (pages['cloud'].role === 'Admin' ? pages['cloud'].role === grafanaUser.orgRole : true);
 
     return (
       <PluginPage pageNav={this.getMatchingPageNav()}>
@@ -52,18 +66,22 @@ class SettingsPage extends React.Component<SettingsPageProps, SettingsPageState>
               active={activeTab === SettingsPageTab.ChatOps.key}
               label={SettingsPageTab.ChatOps.value}
             />
-            <Tab
-              key={SettingsPageTab.EnvVariables.key}
-              onChangeTab={() => onTabChange(SettingsPageTab.EnvVariables.key)}
-              active={activeTab === SettingsPageTab.EnvVariables.key}
-              label={SettingsPageTab.EnvVariables.value}
-            />
-            <Tab
-              key={SettingsPageTab.Cloud.key}
-              onChangeTab={() => onTabChange(SettingsPageTab.Cloud.key)}
-              active={activeTab === SettingsPageTab.Cloud.key}
-              label={SettingsPageTab.Cloud.value}
-            />
+            {showLiveSettings && (
+              <Tab
+                key={SettingsPageTab.EnvVariables.key}
+                onChangeTab={() => onTabChange(SettingsPageTab.EnvVariables.key)}
+                active={activeTab === SettingsPageTab.EnvVariables.key}
+                label={SettingsPageTab.EnvVariables.value}
+              />
+            )}
+            {showCloudPage && (
+              <Tab
+                key={SettingsPageTab.Cloud.key}
+                onChangeTab={() => onTabChange(SettingsPageTab.Cloud.key)}
+                active={activeTab === SettingsPageTab.Cloud.key}
+                label={SettingsPageTab.Cloud.value}
+              />
+            )}
           </TabsBar>
 
           <TabsContent activeTab={activeTab} />

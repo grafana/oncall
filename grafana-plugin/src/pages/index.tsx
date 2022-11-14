@@ -61,12 +61,6 @@ export const pages: { [id: string]: PageDefinition } = [
   },
   {
     icon: 'calendar-alt',
-    id: 'schedules-new',
-    text: 'Schedules α',
-    path: getPath('schedules-alfa'),
-  },
-  {
-    icon: 'calendar-alt',
     id: 'schedule',
     text: 'Schedule',
     hideFromTabs: true,
