@@ -14,6 +14,7 @@ import CloudPage from './tabs/Cloud/CloudPage';
 import LiveSettingsPage from './tabs/LiveSettings/LiveSettingsPage';
 
 import styles from './SettingsPage.module.css';
+import { isNewNavigation } from 'plugin/GrafanaPluginRootPage.helpers';
 
 const cx = cn.bind(styles);
 
@@ -37,7 +38,7 @@ class SettingsPage extends React.Component<SettingsPageProps, SettingsPageState>
 
     return (
       <PluginPage pageNav={this.getMatchingPageNav()}>
-        <div className={cx('root')}>
+        <div className={cx('root', { navbarRootFallback: !isNewNavigation() })}>
           <TabsBar>
             <Tab
               key={SettingsPageTab.MainSettings.key}

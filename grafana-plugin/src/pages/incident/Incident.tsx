@@ -131,7 +131,7 @@ class IncidentPage extends React.Component<IncidentPageProps, IncidentPageState>
     return (
       <PluginPage pageNav={pages['incident'].getPageNav()}>
         <PageErrorHandlingWrapper errorData={errorData} objectName="alert group" pageName="incidents">
-          <div className={cx('root', { newNavbar: isNewNavigation() })}>
+          <div className={cx('root', { navbarRootFallback: isNewNavigation() })}>
             {errorData.isNotFoundError ? (
               <div className={cx('not-found')}>
                 <VerticalGroup spacing="lg" align="center">
