@@ -100,7 +100,7 @@ class Alert(models.Model):
         if group_created:
             group.log_records.create(type=AlertGroupLogRecord.TYPE_REGISTERED)
             group.log_records.create(type=AlertGroupLogRecord.TYPE_ROUTE_ASSIGNED)
-            distribute_alert_group.apply_async(group.pk)
+            distribute_alert_group.apply_async((group.pk,))
 
         mark_as_resolved = (
             enable_autoresolve and group_data.is_resolve_signal and alert_receive_channel.allow_source_based_resolving
