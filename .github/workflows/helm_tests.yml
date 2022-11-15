@@ -6,5 +6,14 @@ jobs:
   create-cluster:
     runs-on: ubuntu-latest
     steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
       - name: Create k8s Kind Cluster
         uses: helm/kind-action@v1.3.0
+
+      - name: Check dir
+          run: ls helm/oncall
+
+      - name: Run test suite
+          run: helm install test-release --wait  helm/oncall
