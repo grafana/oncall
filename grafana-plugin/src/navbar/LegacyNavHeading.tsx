@@ -7,9 +7,5 @@ interface LegacyNavHeadingProps {
 
 export default function LegacyNavHeading(props: LegacyNavHeadingProps): JSX.Element {
   const { show = !isTopNavbar(), children } = props;
-
-  if (!show) {
-    return null;
-  }
-  return children;
+  return show ? children : null;
 }

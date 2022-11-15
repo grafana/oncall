@@ -11,12 +11,7 @@ export default function LegacyNavTabsBar({ currentPage }: { currentPage: string 
 
   const navigationPages = Object.keys(pages)
     .map((page) => pages[page])
-    .filter((page) => {
-      if (page.hideFromTabsFn) {
-        return !page.hideFromTabsFn(store);
-      }
-      return !page.hideFromTabs;
-    });
+    .filter((page) => (page.hideFromTabsFn ? !page.hideFromTabsFn(store) : !page.hideFromTabs));
 
   return (
     <TabsBar>
