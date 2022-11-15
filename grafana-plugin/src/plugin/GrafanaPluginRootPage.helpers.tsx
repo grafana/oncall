@@ -1,5 +1,5 @@
 import { config } from '@grafana/runtime';
 
-export function isNewNavigation(): boolean {
+export function isTopNavbar(): boolean {
   return !!config.featureToggles.topnav;
 }

@@ -6,7 +6,7 @@ import { Tab, TabsBar } from '@grafana/ui';
 import { pages } from 'pages';
 import { useStore } from 'state/useStore';
 
-export default function NavLinks({ currentPage }: { currentPage: string }): JSX.Element {
+export default function LegacyNavTabsBar({ currentPage }: { currentPage: string }): JSX.Element {
   const store = useStore();
 
   const navigationPages = Object.keys(pages)

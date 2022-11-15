@@ -15,7 +15,7 @@ import weekday from 'dayjs/plugin/weekday';
 import 'interceptors';
 import { observer, Provider } from 'mobx-react';
 import Header from 'navbar/Header/Header';
-import NavLinks from 'navbar/NavLinks';
+import LegacyNavTabsBar from 'navbar/LegacyNavTabsBar';
 
 import DefaultPageLayout from 'containers/DefaultPageLayout/DefaultPageLayout';
 import logo from 'img/logo.svg';
@@ -37,7 +37,7 @@ import 'style/vars.css';
 import 'style/global.css';
 import 'style/utils.css';
 
-import { isNewNavigation } from './GrafanaPluginRootPage.helpers';
+import { isTopNavbar } from './GrafanaPluginRootPage.helpers';
 
 export const GrafanaPluginRootPage = (props: AppRootProps) => (
   <Provider store={rootStore}>
@@ -134,24 +134,28 @@ export const Root = observer((props: AppRootProps) => {
 
   const Page = useMemo(() => getPageMatchingComponent(page), [page]);
 
-  const isNewNav = isNewNavigation();
-
   if (!didFinishLoading) {
     return null;
   }
 
   return (
     <DefaultPageLayout {...props}>
-      {!isNewNav && (
+      {!isTopNavbar() && (
         <>
           <Header page={page} backendLicense={store.backendLicense} />
           <nav className="page-container">
-            <NavLinks currentPage={page} />
+            <LegacyNavTabsBar currentPage={page} />
           </nav>
         </>
       )}
 
-      <div className={classnames({ 'page-container': !isNewNav }, { 'page-body': !isNewNav }, 'u-position-relative')}>
+      <div
+        className={classnames(
+          { 'page-container': !isTopNavbar() },
+          { 'page-body': !isTopNavbar() },
+          'u-position-relative'
+        )}
+      >
         <Page {...props} path={pathWithoutLeadingSlash} store={store} />
       </div>
     </DefaultPageLayout>

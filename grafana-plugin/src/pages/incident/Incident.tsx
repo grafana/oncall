@@ -49,7 +49,7 @@ import {
 } from 'models/alertgroup/alertgroup.types';
 import { ResolutionNoteSourceTypesToDisplayName } from 'models/resolution_note/resolution_note.types';
 import { pages } from 'pages';
-import { isNewNavigation } from 'plugin/GrafanaPluginRootPage.helpers';
+import { isTopNavbar } from 'plugin/GrafanaPluginRootPage.helpers';
 import { WithStoreProps } from 'state/types';
 import { useStore } from 'state/useStore';
 import { UserAction } from 'state/userAction';
@@ -131,7 +131,7 @@ class IncidentPage extends React.Component<IncidentPageProps, IncidentPageState>
     return (
       <PluginPage pageNav={pages['incident'].getPageNav()}>
         <PageErrorHandlingWrapper errorData={errorData} objectName="alert group" pageName="incidents">
-          <div className={cx('root', { navbarRootFallback: isNewNavigation() })}>
+          <div className={cx('root', { navbarRootFallback: isTopNavbar() })}>
             {errorData.isNotFoundError ? (
               <div className={cx('not-found')}>
                 <VerticalGroup spacing="lg" align="center">

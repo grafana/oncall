@@ -1,6 +1,6 @@
 import { NavModelItem } from '@grafana/data';
 
-import { isNewNavigation } from 'plugin/GrafanaPluginRootPage.helpers';
+import { isTopNavbar } from 'plugin/GrafanaPluginRootPage.helpers';
 import { AppFeature } from 'state/features';
 import { RootBaseStore } from 'state/rootBaseStore';
 
@@ -74,7 +74,7 @@ export const pages: { [id: string]: PageDefinition } = [
     id: 'chat-ops',
     text: 'ChatOps',
     path: getPath('chat-ops'),
-    hideFromTabs: isNewNavigation(),
+    hideFromTabs: isTopNavbar(),
   },
   {
     icon: 'link',
@@ -101,7 +101,7 @@ export const pages: { [id: string]: PageDefinition } = [
     role: 'Admin',
     hideFromTabsFn: (store: RootBaseStore) => {
       const hasLiveSettings = store.hasFeature(AppFeature.LiveSettings);
-      return isNewNavigation() || window.grafanaBootData.user.orgRole !== 'Admin' || !hasLiveSettings;
+      return isTopNavbar() || window.grafanaBootData.user.orgRole !== 'Admin' || !hasLiveSettings;
     },
     path: getPath('live-settings'),
   },
@@ -112,7 +112,7 @@ export const pages: { [id: string]: PageDefinition } = [
     role: 'Admin',
     hideFromTabsFn: (store: RootBaseStore) => {
       const hasCloudFeature = store.hasFeature(AppFeature.CloudConnection);
-      return isNewNavigation() || window.grafanaBootData.user.orgRole !== 'Admin' || !hasCloudFeature;
+      return isTopNavbar() || window.grafanaBootData.user.orgRole !== 'Admin' || !hasCloudFeature;
     },
     path: getPath('cloud'),
   },

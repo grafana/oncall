@@ -8,7 +8,7 @@ import { observer } from 'mobx-react';
 import { pages } from 'pages';
 import ChatOpsPage from 'pages/settings/tabs/ChatOps/ChatOps';
 import MainSettings from 'pages/settings/tabs/MainSettings/MainSettings';
-import { isNewNavigation } from 'plugin/GrafanaPluginRootPage.helpers';
+import { isTopNavbar } from 'plugin/GrafanaPluginRootPage.helpers';
 import { AppFeature } from 'state/features';
 import { RootBaseStore } from 'state/rootBaseStore';
 import { withMobXProviderContext } from 'state/withStore';
@@ -58,7 +58,7 @@ class SettingsPage extends React.Component<SettingsPageProps, SettingsPageState>
     const showLiveSettings =
       hasLiveSettings && (pages['cloud'].role === 'Admin' ? pages['cloud'].role === grafanaUser.orgRole : true);
 
-    if (isNewNavigation()) {
+    if (isTopNavbar()) {
       return (
         <>
           <TabsBar>
