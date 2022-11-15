@@ -14,11 +14,21 @@ import {
   splitToLayers,
   splitToShiftsAndFillGaps,
 } from './schedule.helpers';
-import { Rotation, RotationType, Schedule, ScheduleEvent, Shift, Event, Layer, ShiftEvents } from './schedule.types';
+import {
+  Rotation,
+  RotationType,
+  Schedule,
+  ScheduleEvent,
+  Shift,
+  Event,
+  Layer,
+  ShiftEvents,
+  RotationFormLiveParams,
+} from './schedule.types';
 
 export class ScheduleStore extends BaseStore {
   @observable
-  searchResult: { [key: string]: Array<Schedule['id']> } = {};
+  searchResult: { results?: Array<Schedule['id']> } = {};
 
   @observable.shallow
   items: { [id: string]: Schedule } = {};
@@ -56,6 +66,9 @@ export class ScheduleStore extends BaseStore {
 
   @observable
   overridePreview?: Array<{ shiftId: Shift['id']; isPreview?: boolean; events: Event[] }>;
+
+  @observable
+  rotationFormLiveParams: RotationFormLiveParams = undefined;
 
   @observable
   scheduleToScheduleEvents: {
@@ -105,8 +118,11 @@ export class ScheduleStore extends BaseStore {
   }
 
   @action
-  async updateItems(query = '') {
-    const result = await makeRequest(this.path, { method: 'GET', params: { search: query } });
+  async updateItems(f: any = { searchTerm: '', type: undefined }) {
+    // async updateItems(query = '') {
+    const filters = typeof f === 'string' ? { searchTerm: f } : f;
+    const { searchTerm: search, type } = filters;
+    const result = await makeRequest(this.path, { method: 'GET', params: { search: search, type } });
 
     this.items = {
       ...this.items,
@@ -118,10 +134,9 @@ export class ScheduleStore extends BaseStore {
         {}
       ),
     };
-
     this.searchResult = {
       ...this.searchResult,
-      [query]: result.map((item: Schedule) => item.id),
+      results: result.map((item: Schedule) => item.id),
     };
   }
 
@@ -136,12 +151,11 @@ export class ScheduleStore extends BaseStore {
     }
   }
 
-  getSearchResult(query = '') {
-    if (!this.searchResult[query]) {
+  getSearchResult() {
+    if (!this.searchResult.results) {
       return undefined;
     }
-
-    return this.searchResult[query].map((scheduleId: Schedule['id']) => this.items[scheduleId]);
+    return this.searchResult?.results?.map((scheduleId: Schedule['id']) => this.items[scheduleId]);
   }
 
   @action
@@ -187,6 +201,10 @@ export class ScheduleStore extends BaseStore {
     return response;
   }
 
+  setRotationFormLiveParams(params: RotationFormLiveParams) {
+    this.rotationFormLiveParams = params;
+  }
+
   async updateRotationPreview(
     scheduleId: Schedule['id'],
     shiftId: Shift['id'] | 'new',
@@ -227,6 +245,7 @@ export class ScheduleStore extends BaseStore {
     this.finalPreview = undefined;
     this.rotationPreview = undefined;
     this.overridePreview = undefined;
+    this.rotationFormLiveParams = undefined;
   }
 
   async updateRotation(shiftId: Shift['id'], params: Partial<Shift>) {

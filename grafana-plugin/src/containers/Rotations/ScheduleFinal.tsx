@@ -28,6 +28,7 @@ interface ScheduleFinalProps extends WithStoreProps {
   scheduleId: Schedule['id'];
   hideHeader?: boolean;
   onClick: (shiftId: Shift['id']) => void;
+  disabled?: boolean;
 }
 
 interface ScheduleOverridesState {
@@ -108,9 +109,13 @@ class ScheduleFinal extends Component<ScheduleFinalProps, ScheduleOverridesState
   }
 
   getRotationClickHandler = (shiftId: Shift['id']) => {
-    const { onClick } = this.props;
+    const { onClick, disabled } = this.props;
 
     return () => {
+      if (disabled) {
+        return;
+      }
+
       onClick(shiftId);
     };
   };

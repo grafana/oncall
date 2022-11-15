@@ -12,6 +12,8 @@ interface UserTooltipProps {
   onChange: (value: dayjs.Dayjs) => void;
   disabled?: boolean;
   minMoment?: dayjs.Dayjs;
+  onFocus?: () => void;
+  onBlur?: () => void;
 }
 
 const toDate = (moment: dayjs.Dayjs, timezone: Timezone) => {
@@ -28,7 +30,7 @@ const toDate = (moment: dayjs.Dayjs, timezone: Timezone) => {
 };
 
 const DateTimePicker = (props: UserTooltipProps) => {
-  const { value: propValue, minMoment, timezone, onChange, disabled } = props;
+  const { value: propValue, minMoment, timezone, onChange, disabled, onFocus, onBlur } = props;
 
   const value = useMemo(() => toDate(propValue, timezone), [propValue, timezone]);
 
@@ -66,8 +68,12 @@ const DateTimePicker = (props: UserTooltipProps) => {
 
   return (
     <HorizontalGroup spacing="sm">
-      <DatePickerWithInput minDate={minDate} disabled={disabled} value={value} onChange={handleDateChange} />
-      <TimeOfDayPicker disabled={disabled} value={dateTime(value)} onChange={handleTimeChange} />
+      <div onFocus={onFocus} onBlur={onBlur}>
+        <DatePickerWithInput minDate={minDate} disabled={disabled} value={value} onChange={handleDateChange} />
+      </div>
+      <div onFocus={onFocus} onBlur={onBlur}>
+        <TimeOfDayPicker disabled={disabled} value={dateTime(value)} onChange={handleTimeChange} />
+      </div>
     </HorizontalGroup>
   );
 };

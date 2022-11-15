@@ -70,7 +70,7 @@ from apps.telegram.tests.factories import (
 )
 from apps.twilioapp.tests.factories import PhoneCallFactory, SMSFactory
 from apps.user_management.models.user import User, listen_for_user_model_save
-from apps.user_management.tests.factories import OrganizationFactory, TeamFactory, UserFactory
+from apps.user_management.tests.factories import OrganizationFactory, RegionFactory, TeamFactory, UserFactory
 from common.constants.role import Role
 
 register(OrganizationFactory)
@@ -666,3 +666,23 @@ def load_slack_urls(settings):
         reload(sys.modules[urlconf])
     else:
         import_module(urlconf)
+
+
+@pytest.fixture
+def make_region():
+    def _make_region(**kwargs):
+        region = RegionFactory(**kwargs)
+        return region
+
+    return _make_region
+
+
+@pytest.fixture
+def make_organization_and_region(make_organization, make_region):
+    def _make_organization_and_region():
+        organization = make_organization()
+        region = make_region()
+        organization.migration_destination = region
+        return organization, region
+
+    return _make_organization_and_region

@@ -1,7 +1,7 @@
 import { NULL_VALUE } from './LiveSettings.config';
 
 export function normalizeValue(value: string) {
-  if (value === null) {
+  if (value === null || value === '') {
     return NULL_VALUE;
   }
 

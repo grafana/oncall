@@ -10,12 +10,11 @@ import IncidentsPage2 from 'pages/incidents/Incidents';
 import IntegrationsPage2 from 'pages/integrations/Integrations';
 import LiveSettingsPage from 'pages/livesettings/LiveSettingsPage';
 import MaintenancePage2 from 'pages/maintenance/Maintenance';
-import MigrationTool from 'pages/migration-tool/MigrationTool';
 import OrganizationLogPage2 from 'pages/organization-logs/OrganizationLog';
 import OutgoingWebhooks2 from 'pages/outgoing_webhooks/OutgoingWebhooks';
 import SchedulePage from 'pages/schedule/Schedule';
-import SchedulesPage2 from 'pages/schedules/Schedules';
-import SchedulesPage from 'pages/schedules_NEW/Schedules';
+import SchedulesPage from 'pages/schedules/Schedules';
+import SchedulesPageOld from 'pages/schedules_OLD/Schedules';
 import SettingsPage2 from 'pages/settings/SettingsPage';
 import Test from 'pages/test/Test';
 import UsersPage2 from 'pages/users/Users';
@@ -62,16 +61,17 @@ export const pages: PageDefinition[] = [
     text: 'Escalation Chains',
   },
   {
-    component: SchedulesPage2,
+    component: SchedulesPageOld,
     icon: 'calendar-alt',
-    id: 'schedules',
-    text: 'Schedules',
+    id: 'schedules-old',
+    text: 'Schedules OLD',
+    hideFromTabs: true,
   },
   {
     component: SchedulesPage,
     icon: 'calendar-alt',
-    id: 'schedules-new',
-    text: 'Schedules α',
+    id: 'schedules',
+    text: 'Schedules',
   },
   {
     component: SchedulePage,
@@ -123,13 +123,6 @@ export const pages: PageDefinition[] = [
     icon: 'gf-logs',
     id: 'organization-logs',
     text: 'Org Logs',
-    hideFromTabs: true,
-  },
-  {
-    component: MigrationTool,
-    icon: 'import',
-    id: 'migration-tool',
-    text: 'Migrate From Amixr.IO',
     hideFromTabs: true,
   },
   {

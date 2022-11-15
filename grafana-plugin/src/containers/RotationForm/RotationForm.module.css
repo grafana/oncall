@@ -45,7 +45,7 @@
 .day {
   width: 28px;
   height: 28px;
-  background: var(--secondary-background-shade);
+  background: var(--secondary-background);
   border-radius: 2px;
   line-height: 28px;
   text-align: center;

@@ -104,6 +104,8 @@ oncall:
     clientSecretKey: ""
     # the key in the secret containing the Slack app signature secret
     signingSecretKey: ""
+    # OnCall external URL
+    redirectHost: ~
   telegram:
     enabled: false
     token: ~
@@ -120,13 +122,27 @@ oncall:
     password: ~
     tls: ~
     fromEmail: ~
+  twilio:
+    # Twilio account SID/username to allow OnCall to send SMSes and make phone calls
+    accountSid: ""
+    # Twilio password to allow OnCall to send SMSes and make calls
+    authToken: ""
+    # Number from which you will receive calls and SMS (NOTE: must be quoted, otherwise would be rendered as float value)
+    phoneNumber: ""
+    # SID of Twilio service for number verification. You can create a service in Twilio web interface.
+    # twilio.com -> verify -> create new service
+    verifySid: ""
+    # Twilio API key SID/username to allow OnCall to send SMSes and make phone calls
+    apiKeySid: ""
+    # Twilio API key secret/password to allow OnCall to send SMSes and make phone calls
+    apiKeySecret: ""
 
 # Whether to run django database migrations automatically
 migrate:
   enabled: true
 
 # Additional env variables to add to deployments
-env: []
+env: {}
 
 # Enable ingress object for external access to the resources
 ingress:
@@ -135,7 +151,7 @@ ingress:
   annotations:
     kubernetes.io/ingress.class: "nginx"
     cert-manager.io/issuer: "letsencrypt-prod"
-  tls: 
+  tls:
     - hosts:
         - "{{ .Values.base_url }}"
       secretName: certificate-tls
@@ -177,6 +193,10 @@ cert-manager:
       - 8.8.8.8
       - 1.1.1.1
 
+database:
+  # can be either mysql or postgresql
+  type: mysql
+
 # MySQL is included into this release for the convenience.
 # It is recommended to host it separately from this release
 # Set mariadb.enabled = false and configure externalMysql
@@ -206,11 +226,35 @@ externalMysql:
   user:
   password:
 
+# PostgreSQL is included into this release for the convenience.
+# It is recommended to host it separately from this release
+# Set postgresql.enabled = false and configure externalPostgresql
+postgresql:
+  enabled: false
+  auth:
+    database: oncall
+
+# Make sure to create the database with the following parameters:
+# CREATE DATABASE oncall CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+externalPostgresql:
+  host:
+  port:
+  db_name:
+  user:
+  password:
+  # use an existing secret for the database password
+  existingSecret: ""
+  # the key in the secret containing the database password
+  passwordKey:
+
 # RabbitMQ is included into this release for the convenience.
 # It is recommended to host it separately from this release
 # Set rabbitmq.enabled = false and configure externalRabbitmq
 rabbitmq:
   enabled: true
+
+broker:
+  type: rabbitmq
 
 externalRabbitmq:
   host:
@@ -219,6 +263,12 @@ externalRabbitmq:
   password:
   protocol:
   vhost:
+  # use an existing secret for the rabbitmq password
+  existingSecret: ""
+  # the key in the secret containing the rabbitmq password
+  passwordKey: password
+  # the key in the secret containing the rabbitmq username
+  usernameKey: username
 
 # Redis is included into this release for the convenience.
 # It is recommended to host it separately from this release

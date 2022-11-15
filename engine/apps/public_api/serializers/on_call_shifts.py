@@ -129,6 +129,7 @@ class CustomOnCallShiftSerializer(EagerLoadingMixin, serializers.ModelSerializer
         self._validate_frequency_daily(
             validated_data["type"],
             validated_data.get("frequency"),
+            validated_data.get("interval"),
             validated_data.get("by_day"),
             validated_data.get("by_monthday"),
         )
@@ -201,14 +202,16 @@ class CustomOnCallShiftSerializer(EagerLoadingMixin, serializers.ModelSerializer
             elif frequency == CustomOnCallShift.FREQUENCY_WEEKLY and week_start is None:
                 raise BadRequest(detail="Field 'week_start' is required for frequency type 'weekly'")
 
-    def _validate_frequency_daily(self, event_type, frequency, by_day, by_monthday):
+    def _validate_frequency_daily(self, event_type, frequency, interval, by_day, by_monthday):
         if event_type == CustomOnCallShift.TYPE_ROLLING_USERS_EVENT:
             if frequency == CustomOnCallShift.FREQUENCY_DAILY:
-                if by_day or by_monthday:
+                if by_monthday:
                     raise BadRequest(
                         detail="Day limits are temporarily disabled for on-call shifts with type 'rolling_users' "
                         "and frequency 'daily'"
                     )
+                if by_day and interval > len(by_day):
+                    raise BadRequest(detail="Interval must be less than or equal to the number of selected days")
 
     def _validate_start_rotation_from_user_index(self, type, index):
         if type == CustomOnCallShift.TYPE_ROLLING_USERS_EVENT and index is None:
@@ -354,9 +357,10 @@ class CustomOnCallShiftUpdateSerializer(CustomOnCallShiftSerializer):
         if frequency != instance.frequency:
             self._validate_frequency_and_week_start(event_type, frequency, week_start)
 
+        interval = validated_data.get("interval", instance.interval)
         by_day = validated_data.get("by_day", instance.by_day)
         by_monthday = validated_data.get("by_monthday", instance.by_monthday)
-        self._validate_frequency_daily(event_type, frequency, by_day, by_monthday)
+        self._validate_frequency_daily(event_type, frequency, interval, by_day, by_monthday)
 
         if start_rotation_from_user_index != instance.start_rotation_from_user_index:
             self._validate_start_rotation_from_user_index(event_type, start_rotation_from_user_index)

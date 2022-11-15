@@ -314,13 +314,6 @@ export class AlertReceiveChannelStore extends BaseStore {
     });
   }
 
-  async doCustomButtonAction(actionId: ActionDTO['id'], alertId: Alert['pk']) {
-    return await makeRequest(`/custom_buttons/${actionId}/action/`, {
-      method: 'POST',
-      params: { alert_group: alertId },
-    });
-  }
-
   async getAccessLogs(alertReceiveChannelId: AlertReceiveChannel['id']) {
     const { integration_log } = await makeRequest(`/alert_receive_channel_access_log/${alertReceiveChannelId}/`, {});
 

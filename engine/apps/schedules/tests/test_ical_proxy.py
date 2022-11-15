@@ -45,8 +45,9 @@ def test_recurring_ical_events_with_all_day_event(get_ical):
         parsed_iso_day_to_check - timezone.timedelta(days=1),
         parsed_iso_day_to_check + timezone.timedelta(days=1),
     )
-    assert len(events) == 4
+    assert len(events) == 5
     assert events[0]["SUMMARY"] == "@Alex"
-    assert events[1]["SUMMARY"] == "@Bob"
-    assert events[2]["SUMMARY"] == "@Bernard Desruisseaux"
+    assert events[1]["SUMMARY"] == "@Alice"
+    assert events[2]["SUMMARY"] == "@Bob"
     assert events[3]["SUMMARY"] == "@Bernard Desruisseaux"
+    assert events[4]["SUMMARY"] == "@Bernard Desruisseaux"
