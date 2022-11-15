@@ -82,3 +82,8 @@ export const getNonWorkingMoments = (startMoment, endMoment, workingHours) => {
 
   return nonWorkingMoments;
 };
+
+export const isInWorkingHours = (currentMoment, workingHours) => {
+  console.log('current moment', currentMoment);
+  console.log('working hours', workingHours);
+};
