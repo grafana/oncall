@@ -19,7 +19,13 @@ jobs:
         run: kubectl get pods
 
       - name: Run test suite
-        run: helm install test-release --wait --timeout 30m helm/oncall
+        run: helm install test-release helm/oncall
+
+      - name: Check kubectl
+        run: kubectl get pods
+
+      - name: Check kubectl
+        run: sleep 300
 
       - name: Check kubectl
         run: kubectl get pods
