@@ -15,5 +15,11 @@ jobs:
       - name: Check dir
         run: ls helm/oncall
 
+      - name: Check kubectl
+        run: kubectl get pods
+
       - name: Run test suite
-        run: helm install test-release --wait  helm/oncall
+        run: helm install test-release --wait --timeout 30m helm/oncall
+
+      - name: Check kubectl
+        run: kubectl get pods
