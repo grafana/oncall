@@ -13,7 +13,7 @@ jobs:
         uses: helm/kind-action@v1.3.0
 
       - name: Check dir
-          run: ls helm/oncall
+        run: ls helm/oncall
 
       - name: Run test suite
-          run: helm install test-release --wait  helm/oncall
+        run: helm install test-release --wait  helm/oncall
