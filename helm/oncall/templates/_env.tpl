@@ -19,8 +19,6 @@
   value: "admin"
 - name: OSS
   value: "True"
-- name: UWSGI_LISTEN
-  value: "1024"
 - name: BROKER_TYPE
   value: {{ .Values.broker.type | default "rabbitmq" }}
 {{- end -}}
