@@ -25,7 +25,6 @@
   height: 32px;
 }
 
-.cloud-page-title,
 .heartbit-button {
   margin-top: 24px;
 }
@@ -59,7 +58,7 @@
 }
 
 .table-title {
-  margin-bottom: 16px;
+  margin-bottom: var(--title-marginBottom);
 }
 
 .table-button {

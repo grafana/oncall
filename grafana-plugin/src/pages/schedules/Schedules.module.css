@@ -1,10 +1,10 @@
-.root {
-  margin-top: 24px;
-}
-
 .schedule {
   position: relative;
   margin: 20px 0;
+}
+
+.title {
+  margin-bottom: var(--title-marginBottom);
 }
 
 .root .buttons {

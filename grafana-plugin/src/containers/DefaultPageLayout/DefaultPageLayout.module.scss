@@ -1,14 +1,16 @@
 .root {
-  margin-top: -24px;
-}
-
-.root .alerts_horizontal {
+  height: 100%;
   display: flex;
-  gap: 10px;
-}
+  flex-direction: column;
 
-.root .alert {
-  margin: 24px 0;
+  .alerts_horizontal {
+    display: flex;
+    gap: 10px;
+  }
+
+  .alert {
+    margin: 24px 0;
+  }
 }
 
 /* --- GRAFANA UI TUNINGS --- */

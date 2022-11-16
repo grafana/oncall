@@ -34,8 +34,7 @@
       "name": "Alert Groups",
       "path": "/a/grafana-oncall-app/?page=incidents",
       "role": "Viewer",
-      "addToNav": true,
-      "defaultNav": true
+      "addToNav": true
     },
     {
       "type": "page",
@@ -62,13 +61,6 @@
       "type": "page",
       "name": "Schedules",
       "path": "/a/grafana-oncall-app/?page=schedules",
-      "role": "Viewer",
-      "addToNav": true
-    },
-    {
-      "type": "page",
-      "name": "ChatOps",
-      "path": "/a/grafana-oncall-app/?page=chat-ops",
       "role": "Viewer",
       "addToNav": true
     },
