@@ -796,7 +796,10 @@ def clean_slack_channel_leftovers(slack_team_identity_id, slack_channel_id):
             logger.info(
                 f"Set general_log_channel_id to None for org_id={org.id}  slack_channel_id={slack_channel_id} since slack_channel is arcived or deleted"
             )
+            org.general_log_channel_id = None
             orgs_to_clean_general_log_channel_id.append(org)
-        ChannelFilter.objects.filter(alert_receive_channel__organization=org).update(slack_channel_id=None)
+        ChannelFilter.objects.filter(alert_receive_channel__organization=org, slack_channel_id=slack_channel_id).update(
+            slack_channel_id=None
+        )
 
     Organization.objects.bulk_update(orgs_to_clean_general_log_channel_id, ["general_log_channel_id"], batch_size=5000)
