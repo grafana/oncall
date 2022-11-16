@@ -23,11 +23,13 @@ jobs:
       - name: Run test suite
         run: helm install test-release helm/oncall --values helm/ci/simple.yml
 
-      - name: Check kubectl
-        run: kubectl get pods
-
-      - name: Check kubectl
-        run: sleep 300
+      - name: Await jupyterhub
+        uses: jupyterhub/action-k8s-await-workloads@v1
+        with:
+          workloads: "" # all
+          namespace: "" # default
+          timeout: 60
+          max-restarts: 0
 
       - name: Check kubectl
         run: kubectl get pods
