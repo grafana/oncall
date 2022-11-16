@@ -175,7 +175,6 @@ class AlertShootingStep(scenario_step.ScenarioStep):
     def _send_first_alert(self, alert, channel_id):
         attachments = alert.group.render_slack_attachments()
         blocks = alert.group.render_slack_blocks()
-
         self.publish_slack_messages(
             slack_team_identity=self.slack_team_identity,
             alert_group=alert.group,
