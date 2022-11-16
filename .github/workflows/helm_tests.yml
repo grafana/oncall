@@ -19,7 +19,7 @@ jobs:
         run: kubectl get pods
 
       - name: Run test suite
-        run: helm install test-release helm/oncall
+        run: helm install test-release helm/oncall --values helm/ci/simple.yml
 
       - name: Check kubectl
         run: kubectl get pods

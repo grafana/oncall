@@ -1,0 +1,6 @@
+ database:
+   type: postgresql
+ mariadb:
+   enabled: false
+ postgresql:
+   enabled: true
