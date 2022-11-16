@@ -1,6 +1,10 @@
- database:
+ingress:
+  enabled: false
+ingress-nginx:
+  enabled: false
+database:
    type: postgresql
- mariadb:
+mariadb:
    enabled: false
- postgresql:
+postgresql:
    enabled: true
