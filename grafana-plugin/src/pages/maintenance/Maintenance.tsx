@@ -17,6 +17,7 @@ import { WithPermissionControl } from 'containers/WithPermissionControl/WithPerm
 import { getAlertReceiveChannelDisplayName } from 'models/alert_receive_channel/alert_receive_channel.helpers';
 import { AlertReceiveChannel } from 'models/alert_receive_channel/alert_receive_channel.types';
 import { Maintenance, MaintenanceMode, MaintenanceType } from 'models/maintenance/maintenance.types';
+import { pages } from 'pages';
 import { WithStoreProps } from 'state/types';
 import { UserAction } from 'state/userAction';
 import { withMobXProviderContext } from 'state/withStore';
@@ -117,7 +118,7 @@ class MaintenancePage extends React.Component<MaintenancePageProps, MaintenanceP
     ];
 
     return (
-      <PluginPage>
+      <PluginPage pageNav={pages['maintenance'].getPageNav()}>
         <div className={cx('root')}>
           <GTable
             emptyText={data ? 'No maintenances found' : 'Loading...'}

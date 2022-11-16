@@ -26,6 +26,7 @@ import { IntegrationSettingsTab } from 'containers/IntegrationSettings/Integrati
 import { WithPermissionControl } from 'containers/WithPermissionControl/WithPermissionControl';
 import { AlertReceiveChannel } from 'models/alert_receive_channel';
 import { AlertReceiveChannelOption } from 'models/alert_receive_channel/alert_receive_channel.types';
+import { pages } from 'pages';
 import { WithStoreProps } from 'state/types';
 import { UserAction } from 'state/userAction';
 import { withMobXProviderContext } from 'state/withStore';
@@ -131,7 +132,7 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
     const searchResult = alertReceiveChannelStore.getSearchResult();
 
     return (
-      <PluginPage>
+      <PluginPage pageNav={pages['integrations'].getPageNav()}>
         <PageErrorHandlingWrapper
           errorData={errorData}
           objectName="integration"

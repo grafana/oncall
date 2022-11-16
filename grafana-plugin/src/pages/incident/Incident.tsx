@@ -49,6 +49,7 @@ import {
 } from 'models/alertgroup/alertgroup.types';
 import { ResolutionNoteSourceTypesToDisplayName } from 'models/resolution_note/resolution_note.types';
 import { pages } from 'pages';
+import { getQueryParams } from 'plugin/GrafanaPluginRootPage.helpers';
 import { WithStoreProps } from 'state/types';
 import { useStore } from 'state/useStore';
 import { UserAction } from 'state/userAction';
@@ -96,10 +97,8 @@ class IncidentPage extends React.Component<IncidentPageProps, IncidentPageState>
   update = () => {
     this.setState({ errorData: initErrorDataState() }); // reset wrong team error to false
 
-    const {
-      store,
-      query: { id },
-    } = this.props;
+    const { store } = this.props;
+    const { id } = getQueryParams();
 
     store.alertGroupStore
       .getAlert(id)
@@ -107,10 +106,8 @@ class IncidentPage extends React.Component<IncidentPageProps, IncidentPageState>
   };
 
   render() {
-    const {
-      store,
-      query: { id, cursor, start, perpage },
-    } = this.props;
+    const { store } = this.props;
+    const { id, cursor, start, perpage } = getQueryParams();
 
     const { errorData, showIntegrationSettings, showAttachIncidentForm } = this.state;
     const { isNotFoundError, isWrongTeamError } = errorData;
@@ -195,11 +192,9 @@ class IncidentPage extends React.Component<IncidentPageProps, IncidentPageState>
   }
 
   renderHeader = () => {
-    const {
-      store,
-      query: { id, cursor, start, perpage },
-    } = this.props;
+    const { store } = this.props;
 
+    const { id, cursor, start, perpage } = getQueryParams();
     const { alerts } = store.alertGroupStore;
 
     const incident = alerts.get(id);
@@ -316,11 +311,9 @@ class IncidentPage extends React.Component<IncidentPageProps, IncidentPageState>
   };
 
   renderTimeline = () => {
-    const {
-      store,
-      query: { id },
-    } = this.props;
+    const { store } = this.props;
 
+    const { id } = getQueryParams();
     const incident = store.alertGroupStore.alerts.get(id);
 
     if (!incident.render_after_resolve_report_json) {
@@ -408,11 +401,9 @@ class IncidentPage extends React.Component<IncidentPageProps, IncidentPageState>
   };
 
   handleCreateResolutionNote = () => {
-    const {
-      store,
-      query: { id },
-    } = this.props;
+    const { store } = this.props;
 
+    const { id } = getQueryParams();
     const { resolutionNoteText } = this.state;
     store.resolutionNotesStore
       .createResolutionNote(id, resolutionNoteText)

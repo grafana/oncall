@@ -4,6 +4,15 @@
   max-width: unset !important;
 }
 
+.oncall-header {
+  padding-top: 0;
+  padding-bottom: 36px;
+}
+
+.scrollbar-view [class*='-page-header'] {
+  margin-bottom: 0 !important;
+}
+
 .page-container.page-body {
   flex-grow: 1 !important;
 }

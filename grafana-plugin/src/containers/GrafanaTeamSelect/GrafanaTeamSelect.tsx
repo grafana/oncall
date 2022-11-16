@@ -4,7 +4,6 @@ import { Icon, Label, Tooltip } from '@grafana/ui';
 import cn from 'classnames/bind';
 import { observer } from 'mobx-react';
 import ReactDOM from 'react-dom';
-import { useLocation } from 'react-router-dom';
 
 import PluginLink from 'components/PluginLink/PluginLink';
 import GSelect from 'containers/GSelect/GSelect';
@@ -24,7 +23,6 @@ interface GrafanaTeamSelectProps {
 
 const GrafanaTeamSelect = observer((props: GrafanaTeamSelectProps) => {
   const store = useStore();
-  const { search } = useLocation();
 
   const { currentPage } = props;
   const { userStore, grafanaTeamStore } = store;
@@ -51,13 +49,7 @@ const GrafanaTeamSelect = observer((props: GrafanaTeamSelectProps) => {
   };
 
   const content = (
-    <div
-      className={cx(
-        'teamSelect',
-        { 'teamSelect--topRight': isTopNavbar() },
-        { 'teamSelect--topRightIncident': isIncidentScreen() }
-      )}
-    >
+    <div className={cx('teamSelect', { 'teamSelect--topRight': isTopNavbar() })}>
       <div className={cx('teamSelectLabel')}>
         <Label>
           Select Team{' '}
@@ -88,11 +80,6 @@ const GrafanaTeamSelect = observer((props: GrafanaTeamSelectProps) => {
     : isTopNavbar()
     ? content
     : null;
-
-  function isIncidentScreen() {
-    const page = new URLSearchParams(search).get('page');
-    return page === 'incident';
-  }
 });
 
 export default GrafanaTeamSelect;

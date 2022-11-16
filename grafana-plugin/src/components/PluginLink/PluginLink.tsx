@@ -37,6 +37,7 @@ const PluginLink: FC<PluginLinkProps> = (props) => {
       if (disabled) {
         return;
       }
+
       if (partial) {
         locationService.partial(query);
       } else {

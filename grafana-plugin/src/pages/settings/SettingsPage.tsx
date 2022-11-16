@@ -105,7 +105,7 @@ class SettingsPage extends React.Component<SettingsPageProps, SettingsPageState>
       parentItem: {
         text: getTabText(this.state.activeTab),
       },
-      text: 'Settings',
+      text: '',
       hideFromBreadcrumbs: true,
     };
 

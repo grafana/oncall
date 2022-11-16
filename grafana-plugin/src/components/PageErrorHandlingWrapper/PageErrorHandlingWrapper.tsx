@@ -5,10 +5,8 @@ import cn from 'classnames/bind';
 
 import PluginLink from 'components/PluginLink/PluginLink';
 import Text from 'components/Text/Text';
-import GrafanaTeamSelect from 'containers/GrafanaTeamSelect/GrafanaTeamSelect';
 import { ChangeTeamIcon } from 'icons';
 import { GrafanaTeam } from 'models/grafana_team/grafana_team.types';
-import { isTopNavbar } from 'plugin/GrafanaPluginRootPage.helpers';
 import { useStore } from 'state/useStore';
 import { openWarningNotification } from 'utils';
 
@@ -53,15 +51,6 @@ export default function PageErrorHandlingWrapper({
   const store = useStore();
 
   if (!errorData || !errorData.isWrongTeamError) {
-    if (isTopNavbar()) {
-      return (
-        <>
-          <GrafanaTeamSelect currentPage="integrations"></GrafanaTeamSelect>
-          {children}
-        </>
-      );
-    }
-
     return <>{children}</>;
   }
 

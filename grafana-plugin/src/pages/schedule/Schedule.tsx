@@ -24,6 +24,7 @@ import UsersTimezones from 'containers/UsersTimezones/UsersTimezones';
 import { Schedule, ScheduleType, Shift } from 'models/schedule/schedule.types';
 import { Timezone } from 'models/timezone/timezone.types';
 import { pages } from 'pages';
+import { getQueryParams } from 'plugin/GrafanaPluginRootPage.helpers';
 import { WithStoreProps } from 'state/types';
 import { UserAction } from 'state/userAction';
 import { withMobXProviderContext } from 'state/withStore';
@@ -67,9 +68,7 @@ class SchedulePage extends React.Component<SchedulePageProps, SchedulePageState>
 
   async componentDidMount() {
     const { store } = this.props;
-    const {
-      query: { id },
-    } = this.props;
+    const { id } = getQueryParams();
 
     store.userStore.updateItems();
 
@@ -88,10 +87,9 @@ class SchedulePage extends React.Component<SchedulePageProps, SchedulePageState>
   }
 
   render() {
-    const {
-      query: { id: scheduleId },
-      store,
-    } = this.props;
+    const { store } = this.props;
+    const { id: scheduleId } = getQueryParams();
+
     const {
       startMoment,
 
@@ -301,10 +299,8 @@ class SchedulePage extends React.Component<SchedulePageProps, SchedulePageState>
   };
 
   updateEvents = () => {
-    const {
-      store,
-      query: { id: scheduleId },
-    } = this.props;
+    const { store } = this.props;
+    const { id: scheduleId } = getQueryParams();
 
     const { startMoment } = this.state;
 
@@ -428,10 +424,8 @@ class SchedulePage extends React.Component<SchedulePageProps, SchedulePageState>
   };
 
   updateEventsFor = async (scheduleId: Schedule['id'], withEmpty = true, with_gap = true) => {
-    const {
-      store,
-      query: { id },
-    } = this.props;
+    const { store } = this.props;
+    const { id } = getQueryParams();
 
     const { scheduleStore } = store;
 
@@ -450,10 +444,8 @@ class SchedulePage extends React.Component<SchedulePageProps, SchedulePageState>
   };
 
   handleDelete = () => {
-    const {
-      store,
-      query: { id: scheduleId },
-    } = this.props;
+    const { store } = this.props;
+    const { id: scheduleId } = getQueryParams();
 
     store.scheduleStore.delete(scheduleId).then(() => {
       getLocationSrv().update({ query: { page: 'schedules' } });

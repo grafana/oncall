@@ -1,11 +1,13 @@
 import React from 'react';
 
 import { Card } from '@grafana/ui';
+import classnames from 'classnames';
 import cn from 'classnames/bind';
 
 import gitHubStarSVG from 'assets/img/github_star.svg';
 import GrafanaTeamSelect from 'containers/GrafanaTeamSelect/GrafanaTeamSelect';
 import logo from 'img/logo.svg';
+import { isTopNavbar } from 'plugin/GrafanaPluginRootPage.helpers';
 import { APP_SUBTITLE, GRAFANA_LICENSE_OSS } from 'utils/consts';
 
 import styles from './Header.module.scss';
@@ -16,7 +18,7 @@ export default function Header({ page, backendLicense }: { page: string; backend
   return (
     <div className="page-container">
       <div className="page-header">
-        <div className="page-header__inner">
+        <div className={classnames('page-header__inner', { 'oncall-header': isTopNavbar() })}>
           <span className="page-header__logo">
             <img className="page-header__img" src={logo} alt="Grafana OnCall" />
           </span>

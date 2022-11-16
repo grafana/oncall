@@ -21,6 +21,8 @@ import OutgoingWebhookForm from 'containers/OutgoingWebhookForm/OutgoingWebhookF
 import { WithPermissionControl } from 'containers/WithPermissionControl/WithPermissionControl';
 import { ActionDTO } from 'models/action';
 import { OutgoingWebhook } from 'models/outgoing_webhook/outgoing_webhook.types';
+import { pages } from 'pages';
+import { getQueryParams } from 'plugin/GrafanaPluginRootPage.helpers';
 import { WithStoreProps } from 'state/types';
 import { UserAction } from 'state/userAction';
 import { withMobXProviderContext } from 'state/withStore';
@@ -41,12 +43,14 @@ class OutgoingWebhooks extends React.Component<OutgoingWebhooksProps, OutgoingWe
     errorData: initErrorDataState(),
   };
 
+  private outgoingWebhookId: string;
+
   async componentDidMount() {
     this.update().then(this.parseQueryParams);
   }
 
-  componentDidUpdate(prevProps: OutgoingWebhooksProps) {
-    if (this.props.query.id !== prevProps.query.id) {
+  componentDidUpdate() {
+    if (this.outgoingWebhookId !== getQueryParams()['id']) {
       this.parseQueryParams();
     }
   }
@@ -57,10 +61,10 @@ class OutgoingWebhooks extends React.Component<OutgoingWebhooksProps, OutgoingWe
       outgoingWebhookIdToEdit: undefined,
     })); // reset state on query parse
 
-    const {
-      store,
-      query: { id },
-    } = this.props;
+    const { store } = this.props;
+    const { id } = getQueryParams();
+
+    this.outgoingWebhookId = id;
 
     if (!id) {
       return;
@@ -111,7 +115,7 @@ class OutgoingWebhooks extends React.Component<OutgoingWebhooksProps, OutgoingWe
     ];
 
     return (
-      <PluginPage>
+      <PluginPage pageNav={pages['outgoing_webhooks'].getPageNav()}>
         <PageErrorHandlingWrapper
           errorData={errorData}
           objectName="outgoing webhook"

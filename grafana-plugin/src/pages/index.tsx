@@ -26,6 +26,7 @@ export const pages: { [id: string]: PageDefinition } = [
   {
     icon: 'bell',
     id: 'incidents',
+    hideFromBreadcrumbs: true,
     text: 'Alert Groups',
     path: getPath('incidents'),
   },
@@ -41,31 +42,37 @@ export const pages: { [id: string]: PageDefinition } = [
   {
     icon: 'users-alt',
     id: 'users',
+    hideFromBreadcrumbs: true,
     text: 'Users',
     path: getPath('users'),
   },
   {
     icon: 'plug',
     id: 'integrations',
-    text: 'Integrations',
     path: getPath('integrations'),
+    hideFromBreadcrumbs: true,
+    text: 'Integrations',
   },
   {
     icon: 'list-ul',
     id: 'escalations',
     text: 'Escalation Chains',
+    hideFromBreadcrumbs: true,
     path: getPath('escalations'),
   },
   {
     icon: 'calendar-alt',
     id: 'schedules',
     text: 'Schedules',
+    hideFromBreadcrumbs: true,
     path: getPath('schedules'),
   },
   {
     icon: 'calendar-alt',
     id: 'schedule',
-    text: 'Schedule',
+    text: '',
+    parentItem: { text: 'Schedule' },
+    hideFromBreadcrumbs: true,
     hideFromTabs: true,
     path: getPath('schedule/:id?'),
   },
@@ -74,6 +81,7 @@ export const pages: { [id: string]: PageDefinition } = [
     id: 'chat-ops',
     text: 'ChatOps',
     path: getPath('chat-ops'),
+    hideFromBreadcrumbs: true,
     hideFromTabs: isTopNavbar(),
   },
   {
@@ -81,17 +89,20 @@ export const pages: { [id: string]: PageDefinition } = [
     id: 'outgoing_webhooks',
     text: 'Outgoing Webhooks',
     path: getPath('outgoing_webhooks'),
+    hideFromBreadcrumbs: true,
   },
   {
     icon: 'wrench',
     id: 'maintenance',
     text: 'Maintenance',
+    hideFromBreadcrumbs: true,
     path: getPath('maintenance'),
   },
   {
     icon: 'cog',
     id: 'settings',
     text: 'Organization Settings',
+    hideFromBreadcrumbs: true,
     path: getPath('settings'),
   },
   {
@@ -135,7 +146,7 @@ export const pages: { [id: string]: PageDefinition } = [
     ...current,
     getPageNav: () =>
       ({
-        text: current.text,
+        text: isTopNavbar() ? '' : current.text,
         parentItem: current.parentItem,
         hideFromBreadcrumbs: current.hideFromBreadcrumbs,
         hideFromTabs: current.hideFromTabs,
