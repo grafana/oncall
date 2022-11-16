@@ -2,6 +2,8 @@ ingress:
   enabled: false
 ingress-nginx:
   enabled: false
+cert-manager:
+  enabled: false
 database:
    type: postgresql
 mariadb:
