@@ -14,6 +14,7 @@
   --gradient-brandHorizontal: linear-gradient(90deg, #f83 0%, #f53e4c 100%);
   --gradient-brandVertical: linear-gradient(0.01deg, #f53e4c -31.2%, #f83 113.07%);
   --always-gray: #ccccdc;
+  --title-marginBottom: 16px;
 }
 
 .theme-light {

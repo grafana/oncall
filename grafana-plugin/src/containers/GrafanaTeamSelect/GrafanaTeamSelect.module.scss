@@ -4,6 +4,15 @@
   position: absolute;
   padding: 16px 0;
   margin-right: 24px;
+
+  &--topRight {
+    right: 14px;
+    top: 12px;
+  }
+  &--topRightIncident {
+    right: 32px;
+    top: 36px;
+  }
 }
 
 .teamSelectLabel {
@@ -11,8 +20,7 @@
 }
 
 .teamSelectLink {
-  position: absolute;
-  right: 0;
+  margin-left: auto;
 }
 
 .teamSelectInfo {

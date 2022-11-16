@@ -2,6 +2,7 @@ import React from 'react';
 
 import { getLocationSrv } from '@grafana/runtime';
 import { Button, HorizontalGroup, IconButton, LoadingPlaceholder, VerticalGroup } from '@grafana/ui';
+import { PluginPage } from 'PluginPage';
 import cn from 'classnames/bind';
 import dayjs from 'dayjs';
 import { debounce } from 'lodash-es';
@@ -25,6 +26,7 @@ import { WithPermissionControl } from 'containers/WithPermissionControl/WithPerm
 import { Schedule, ScheduleType } from 'models/schedule/schedule.types';
 import { getSlackChannelName } from 'models/slack_channel/slack_channel.helpers';
 import { Timezone } from 'models/timezone/timezone.types';
+import { pages } from 'pages';
 import { getStartOfWeek } from 'pages/schedule/Schedule.helpers';
 import { WithStoreProps } from 'state/types';
 import { UserAction } from 'state/userAction';
@@ -133,7 +135,7 @@ class SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSta
       : undefined;
 
     return (
-      <>
+      <PluginPage pageNav={pages['schedules'].getPageNav()}>
         <div className={cx('root')}>
           <VerticalGroup>
             <HorizontalGroup justify="space-between">
@@ -190,7 +192,7 @@ class SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSta
             }}
           />
         )}
-      </>
+      </PluginPage>
     );
   }
 
