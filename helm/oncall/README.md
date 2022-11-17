@@ -63,10 +63,6 @@ Follow the `helm install` output to finish setting up Grafana OnCall backend and
 
           http://release-oncall-engine:8080
 
-     Fill the Grafana URL:
-
-          http://release-oncall-grafana
-
 🎉🎉🎉  Done! 🎉🎉🎉
 ```
 

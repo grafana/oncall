@@ -38,10 +38,4 @@
 
           http://{{ include "oncall.engine.fullname" . }}:8080
 
-     Fill the Grafana URL:
-
-          {{ if .Values.grafana.enabled }}http://{{ include "oncall.grafana.fullname" . }}{{ else }}https://<external-grafana>{{- end }}
-
-
-
 🎉🎉🎉  Done! 🎉🎉🎉

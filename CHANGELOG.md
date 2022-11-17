@@ -7,16 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-### Added
-
 ### Changed
 
 - For OSS installations of OnCall, initial configuration is now simplified. When running for local development, you no longer need to configure the plugin via the UI. This is achieved through passing one environment variable to both the backend & frontend containers, both of which have been preconfigured for you in `docker-compose-developer.yml`.
   - The Grafana API URL **must be** passed as an environment variable, `GRAFANA_API_URL`, to the OnCall backend (and can be configured by updating this env var in your `./dev/.env.dev` file)
   - The OnCall API URL can optionally be passed as an environment variable, `ONCALL_API_URL`, to the OnCall UI. If the environment variable is found, the plugin will "auto-configure", otherwise you will be shown a simple configuration form to provide this info.
-- For Helm installations TODO:
-
-### Fixed
+- For Helm installations, if you are running Grafana externally (eg. `grafana.enabled` is set to `false` in your `values.yaml`), you will now be required to specify `externalGrafana.url` in `values.yaml`.
+- `make start` will now idempotently check to see if a "127.0.0.1 grafana" record exists in `/etc/hosts` (using a tool called [`hostess`](https://github.com/cbednarski/hostess)). This is to support using `http://grafana:3000` as the `Organization.grafana_url` in two scenarios:
+  - `oncall_engine`/`oncall_celery` -> `grafana` Docker container communication
+  - public URL generation. There are some instances where `Organization.grafana_url` is referenced to generate public URLs to a Grafana plugin page. Without the `/etc/hosts` record, navigating to `http://grafana:3000/some_page` in your browser, you would obviously get an error from your browser.
 
 ## v1.1.2 (2022-16-09)
 
