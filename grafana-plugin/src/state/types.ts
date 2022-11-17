@@ -1,4 +1,5 @@
 import { AppPluginMeta, KeyValue } from '@grafana/data';
+
 import { RootStore } from 'state/index';
 
 export interface WithStoreProps {
@@ -7,7 +8,7 @@ export interface WithStoreProps {
 
 export interface PageProps<T extends KeyValue = KeyValue> {
   meta: AppPluginMeta<T>;
-  query: KeyValue
+  query: KeyValue;
 }
 
 export interface SelectOption {

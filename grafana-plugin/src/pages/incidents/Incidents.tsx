@@ -27,11 +27,11 @@ import { move } from 'state/helpers';
 import { PageProps, WithStoreProps } from 'state/types';
 import { UserAction } from 'state/userAction';
 import { withMobXProviderContext } from 'state/withStore';
+import LocationHelper from 'utils/LocationHelper';
 
 import SilenceDropdown from './parts/SilenceDropdown';
 
 import styles from './Incidents.module.css';
-import LocationHelper from 'utils/LocationHelper';
 
 const cx = cn.bind(styles);
 

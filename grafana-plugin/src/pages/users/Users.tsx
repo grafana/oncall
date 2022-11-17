@@ -25,11 +25,11 @@ import { pages } from 'pages';
 import { PageProps, WithStoreProps } from 'state/types';
 import { UserAction } from 'state/userAction';
 import { withMobXProviderContext } from 'state/withStore';
+import LocationHelper from 'utils/LocationHelper';
 
 import { getRealFilters, getUserRowClassNameFn } from './Users.helpers';
 
 import styles from './Users.module.css';
-import LocationHelper from 'utils/LocationHelper';
 
 const cx = cn.bind(styles);
 

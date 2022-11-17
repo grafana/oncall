@@ -14,9 +14,9 @@ import { Team } from 'models/team/team.types';
 import { useStore } from 'state/useStore';
 import { UserAction } from 'state/userAction';
 import { openErrorNotification, openNotification } from 'utils';
+import LocationHelper from 'utils/LocationHelper';
 
 import styles from 'containers/IntegrationSettings/parts/Autoresolve.module.css';
-import LocationHelper from 'utils/LocationHelper';
 
 const cx = cn.bind(styles);
 

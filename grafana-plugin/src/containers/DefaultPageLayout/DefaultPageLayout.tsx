@@ -11,6 +11,7 @@ import { getIfChatOpsConnected } from 'containers/DefaultPageLayout/helper';
 import { AppFeature } from 'state/features';
 import { useStore } from 'state/useStore';
 import { UserAction } from 'state/userAction';
+import LocationHelper from 'utils/LocationHelper';
 import { GRAFANA_LICENSE_OSS } from 'utils/consts';
 import { useForceUpdate } from 'utils/hooks';
 import { getItem, setItem } from 'utils/localStorage';
@@ -19,7 +20,6 @@ import sanitize from 'utils/sanitize';
 import { getSlackMessage } from './DefaultPageLayout.helpers';
 import styles from './DefaultPageLayout.module.scss';
 import { SlackError } from './DefaultPageLayout.types';
-import LocationHelper from 'utils/LocationHelper';
 
 const cx = cn.bind(styles);
 

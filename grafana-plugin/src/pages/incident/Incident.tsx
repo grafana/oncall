@@ -52,12 +52,12 @@ import { useStore } from 'state/useStore';
 import { UserAction } from 'state/userAction';
 import { withMobXProviderContext } from 'state/withStore';
 import { openNotification } from 'utils';
+import LocationHelper from 'utils/LocationHelper';
 import sanitize from 'utils/sanitize';
 
 import { getActionButtons, getIncidentStatusTag, renderRelatedUsers } from './Incident.helpers';
 
 import styles from './Incident.module.css';
-import LocationHelper from 'utils/LocationHelper';
 
 const cx = cn.bind(styles);
 

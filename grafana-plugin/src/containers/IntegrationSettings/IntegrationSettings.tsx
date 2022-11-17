@@ -14,12 +14,12 @@ import { AlertReceiveChannel } from 'models/alert_receive_channel/alert_receive_
 import { Alert } from 'models/alertgroup/alertgroup.types';
 import { useStore } from 'state/useStore';
 import { openNotification } from 'utils';
+import LocationHelper from 'utils/LocationHelper';
 
 import { IntegrationSettingsTab } from './IntegrationSettings.types';
 import Autoresolve from './parts/Autoresolve';
 
 import styles from 'containers/IntegrationSettings/IntegrationSettings.module.css';
-import LocationHelper from 'utils/LocationHelper';
 
 const cx = cn.bind(styles);
 

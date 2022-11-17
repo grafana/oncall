@@ -14,9 +14,9 @@ import { WithStoreProps } from 'state/types';
 import { useStore } from 'state/useStore';
 import { withMobXProviderContext } from 'state/withStore';
 import { openErrorNotification } from 'utils';
+import LocationHelper from 'utils/LocationHelper';
 
 import styles from './CloudPage.module.css';
-import LocationHelper from 'utils/LocationHelper';
 
 const cx = cn.bind(styles);
 

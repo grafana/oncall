@@ -3,10 +3,10 @@ import React from 'react';
 import { PluginPageProps, PluginPage as RealPluginPage } from '@grafana/runtime';
 import Header from 'navbar/Header/Header';
 
+import { pages } from 'pages';
 import { isTopNavbar } from 'plugin/GrafanaPluginRootPage.helpers';
 import { useStore } from 'state/useStore';
 import { useQueryParams } from 'utils/hooks';
-import { pages } from 'pages';
 
 export const PluginPage = (isTopNavbar() ? RealPlugin : PluginPageFallback) as React.ComponentType<PluginPageProps>;
 

@@ -18,9 +18,9 @@ import { AlertReceiveChannel } from 'models/alert_receive_channel/alert_receive_
 import { Alert } from 'models/alertgroup/alertgroup.types';
 import { makeRequest } from 'network';
 import { UserAction } from 'state/userAction';
+import LocationHelper from 'utils/LocationHelper';
 
 import styles from './AlertTemplatesForm.module.css';
-import LocationHelper from 'utils/LocationHelper';
 
 const cx = cn.bind(styles);
 

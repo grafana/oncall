@@ -1,5 +1,6 @@
 import { KeyValue } from '@grafana/data';
 import { locationService } from '@grafana/runtime';
+
 import { getQueryParams } from 'plugin/GrafanaPluginRootPage.helpers';
 
 class LocationHelper {
