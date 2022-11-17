@@ -1,6 +1,5 @@
 import React, { useCallback, useState, useEffect } from 'react';
 
-import { getLocationSrv } from '@grafana/runtime';
 import { Alert, Button, Icon, Label, Modal, Select } from '@grafana/ui';
 import cn from 'classnames/bind';
 import { get } from 'lodash-es';
@@ -17,6 +16,7 @@ import { UserAction } from 'state/userAction';
 import { openErrorNotification, openNotification } from 'utils';
 
 import styles from 'containers/IntegrationSettings/parts/Autoresolve.module.css';
+import LocationHelper from 'utils/LocationHelper';
 
 const cx = cn.bind(styles);
 
@@ -114,7 +114,7 @@ const Autoresolve = ({ alertReceiveChannelId, onSwitchToTemplate, alertGroupId }
   };
 
   const handleGoToTemplateSettingsCllick = () => {
-    getLocationSrv().update({ partial: true, query: { tab: 'Templates' } });
+    LocationHelper.update({ tab: 'Templates' }, 'partial');
     onSwitchToTemplate('resolve_condition_template');
   };
 

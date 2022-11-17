@@ -1,6 +1,5 @@
 import React from 'react';
 
-import { getLocationSrv } from '@grafana/runtime';
 import { Button, HorizontalGroup, VerticalGroup, IconButton, ToolbarButton, Icon, Modal } from '@grafana/ui';
 import { PluginPage } from 'PluginPage';
 import cn from 'classnames/bind';
@@ -30,6 +29,7 @@ import { withMobXProviderContext } from 'state/withStore';
 import { getStartOfWeek } from './Schedule.helpers';
 
 import styles from './Schedule.module.css';
+import LocationHelper from 'utils/LocationHelper';
 
 const cx = cn.bind(styles);
 
@@ -455,9 +455,7 @@ class SchedulePage extends React.Component<SchedulePageProps, SchedulePageState>
       query: { id: scheduleId },
     } = this.props;
 
-    store.scheduleStore.delete(scheduleId).then(() => {
-      getLocationSrv().update({ query: { page: 'schedules' } });
-    });
+    store.scheduleStore.delete(scheduleId).then(() => LocationHelper.update({ page: 'schedules' }, 'replace'));
   };
 }
 

@@ -2,7 +2,6 @@ import plugin from '../../../package.json'; // eslint-disable-line
 import React, { FC, useEffect, useState, useCallback } from 'react';
 
 import { AppRootProps } from '@grafana/data';
-import { getLocationSrv } from '@grafana/runtime';
 import { Alert } from '@grafana/ui';
 import cn from 'classnames/bind';
 import { observer } from 'mobx-react';
@@ -20,6 +19,7 @@ import sanitize from 'utils/sanitize';
 import { getSlackMessage } from './DefaultPageLayout.helpers';
 import styles from './DefaultPageLayout.module.scss';
 import { SlackError } from './DefaultPageLayout.types';
+import LocationHelper from 'utils/LocationHelper';
 
 const cx = cn.bind(styles);
 
@@ -46,7 +46,7 @@ const DefaultPageLayout: FC<DefaultPageLayoutProps> = observer((props) => {
     if (query.slack_error) {
       setShowSlackInstallAlert(query.slack_error);
 
-      getLocationSrv().update({ partial: true, query: { slack_error: undefined }, replace: true });
+      LocationHelper.update({ slack_error: undefined }, 'replace');
     }
   }, []);
 

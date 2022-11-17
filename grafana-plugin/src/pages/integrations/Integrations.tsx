@@ -1,7 +1,6 @@
 import React from 'react';
 
 import { AppRootProps } from '@grafana/data';
-import { getLocationSrv } from '@grafana/runtime';
 import { Button, LoadingPlaceholder, VerticalGroup } from '@grafana/ui';
 import { PluginPage } from 'PluginPage';
 import cn from 'classnames/bind';
@@ -32,6 +31,7 @@ import { UserAction } from 'state/userAction';
 import { withMobXProviderContext } from 'state/withStore';
 
 import styles from './Integrations.module.css';
+import LocationHelper from 'utils/LocationHelper';
 
 const cx = cn.bind(styles);
 
@@ -62,7 +62,7 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
   setSelectedAlertReceiveChannel = (alertReceiveChannelId: AlertReceiveChannel['id']) => {
     const { store } = this.props;
     store.selectedAlertReceiveChannel = alertReceiveChannelId;
-    getLocationSrv().update({ partial: true, query: { id: alertReceiveChannelId } });
+    LocationHelper.update({ id: alertReceiveChannelId }, 'partial');
   };
 
   parseQueryParams = async () => {
@@ -230,7 +230,7 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
                     alertReceiveChannelToShowSettings: undefined,
                     integrationSettingsTab: undefined,
                   });
-                  getLocationSrv().update({ partial: true, query: { tab: undefined } });
+                  LocationHelper.update({ tab: undefined }, 'partial');
                 }}
               />
             )}

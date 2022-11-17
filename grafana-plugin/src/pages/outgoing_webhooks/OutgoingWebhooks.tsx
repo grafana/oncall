@@ -1,6 +1,5 @@
 import React from 'react';
 
-import { getLocationSrv } from '@grafana/runtime';
 import { Button, HorizontalGroup } from '@grafana/ui';
 import { PluginPage } from 'PluginPage';
 import cn from 'classnames/bind';
@@ -26,6 +25,7 @@ import { UserAction } from 'state/userAction';
 import { withMobXProviderContext } from 'state/withStore';
 
 import styles from './OutgoingWebhooks.module.css';
+import LocationHelper from 'utils/LocationHelper';
 
 const cx = cn.bind(styles);
 
@@ -190,14 +190,14 @@ class OutgoingWebhooks extends React.Component<OutgoingWebhooksProps, OutgoingWe
     return () => {
       this.setState({ outgoingWebhookIdToEdit: id });
 
-      getLocationSrv().update({ partial: true, query: { id } });
+      LocationHelper.update({ id }, 'partial');
     };
   };
 
   handleOutgoingWebhookFormHide = () => {
     this.setState({ outgoingWebhookIdToEdit: undefined });
 
-    getLocationSrv().update({ partial: true, query: { id: undefined } });
+    LocationHelper.update({ id: undefined }, 'partial');
   };
 }
 

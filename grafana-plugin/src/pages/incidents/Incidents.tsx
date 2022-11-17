@@ -1,6 +1,5 @@
 import React, { ReactElement, SyntheticEvent } from 'react';
 
-import { getLocationSrv } from '@grafana/runtime';
 import { Button, Icon, Tooltip, VerticalGroup, LoadingPlaceholder, HorizontalGroup } from '@grafana/ui';
 import { PluginPage } from 'PluginPage';
 import cn from 'classnames/bind';
@@ -32,6 +31,7 @@ import { withMobXProviderContext } from 'state/withStore';
 import SilenceDropdown from './parts/SilenceDropdown';
 
 import styles from './Incidents.module.css';
+import LocationHelper from 'utils/LocationHelper';
 
 const cx = cn.bind(styles);
 
@@ -148,7 +148,7 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
   fetchIncidentData = (filters: IncidentsFiltersType, isOnMount: boolean) => {
     const { store } = this.props;
     store.alertGroupStore.updateIncidentFilters(filters, isOnMount); // this line fetches incidents
-    getLocationSrv().update({ query: { page: 'incidents', ...store.alertGroupStore.incidentFilters } });
+    LocationHelper.update({ page: 'incidents', ...store.alertGroupStore.incidentFilters }, 'replace');
   };
 
   onChangeCursor = (cursor: string, direction: 'prev' | 'next') => {

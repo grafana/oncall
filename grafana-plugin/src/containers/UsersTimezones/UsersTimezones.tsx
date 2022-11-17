@@ -51,11 +51,7 @@ const UsersTimezones: FC<UsersTimezonesProps> = (props) => {
     [userIds, store.userStore.items]
   );
 
-  const currentMoment = useMemo(() => {
-    console.log({ tz });
-    console.log(dayjs().format());
-    return dayjs().tz(tz);
-  }, [tz]);
+  const currentMoment = useMemo(() => dayjs().tz(tz), [tz]);
 
   const currentTimeX = useMemo(() => {
     const midnight = dayjs().tz(tz).startOf('day');

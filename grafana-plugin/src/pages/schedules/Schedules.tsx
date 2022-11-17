@@ -1,6 +1,5 @@
 import React from 'react';
 
-import { getLocationSrv } from '@grafana/runtime';
 import { Button, HorizontalGroup, IconButton, LoadingPlaceholder, VerticalGroup } from '@grafana/ui';
 import { PluginPage } from 'PluginPage';
 import cn from 'classnames/bind';
@@ -33,6 +32,7 @@ import { UserAction } from 'state/userAction';
 import { withMobXProviderContext } from 'state/withStore';
 
 import styles from './Schedules.module.css';
+import LocationHelper from 'utils/LocationHelper';
 
 const cx = cn.bind(styles);
 
@@ -210,7 +210,7 @@ class SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSta
 
   handleCreateSchedule = (data: Schedule) => {
     if (data.type === ScheduleType.API) {
-      getLocationSrv().update({ query: { page: 'schedule', id: data.id } });
+      LocationHelper.update({ page: 'schedule', id: data.id }, 'replace');
     }
   };
 
@@ -259,9 +259,7 @@ class SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSta
   };
 
   getScheduleClickHandler = (scheduleId: Schedule['id']) => {
-    return () => {
-      getLocationSrv().update({ query: { page: 'schedule', id: scheduleId } });
-    };
+    return () => LocationHelper.update({ page: 'schedule', id: scheduleId }, 'replace');
   };
 
   renderType = (value: number) => {

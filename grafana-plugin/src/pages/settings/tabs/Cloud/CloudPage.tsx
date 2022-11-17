@@ -1,6 +1,5 @@
 import React, { useCallback, useEffect, useState } from 'react';
 
-import { getLocationSrv } from '@grafana/runtime';
 import { Field, Input, Button, HorizontalGroup, Icon, VerticalGroup, LoadingPlaceholder } from '@grafana/ui';
 import cn from 'classnames/bind';
 import { observer } from 'mobx-react';
@@ -17,6 +16,7 @@ import { withMobXProviderContext } from 'state/withStore';
 import { openErrorNotification } from 'utils';
 
 import styles from './CloudPage.module.css';
+import LocationHelper from 'utils/LocationHelper';
 
 const cx = cn.bind(styles);
 
@@ -116,7 +116,7 @@ const CloudPage = observer((_props: CloudPageProps) => {
             variant="secondary"
             size="sm"
             className={cx('table-button')}
-            onClick={() => getLocationSrv().update({ query: { page: 'users', p: page, id: user.id } })}
+            onClick={() => LocationHelper.update({ page: 'users', p: page, id: user.id }, 'replace')}
           >
             Configure notifications
           </Button>

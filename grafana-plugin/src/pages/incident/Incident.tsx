@@ -1,6 +1,5 @@
 import React, { useState, SyntheticEvent } from 'react';
 
-import { getLocationSrv } from '@grafana/runtime';
 import {
   Button,
   HorizontalGroup,
@@ -58,6 +57,7 @@ import sanitize from 'utils/sanitize';
 import { getActionButtons, getIncidentStatusTag, renderRelatedUsers } from './Incident.helpers';
 
 import styles from './Incident.module.css';
+import LocationHelper from 'utils/LocationHelper';
 
 const cx = cn.bind(styles);
 
@@ -427,9 +427,7 @@ class IncidentPage extends React.Component<IncidentPageProps, IncidentPageState>
         case 'author':
           return (
             <span
-              onClick={() => {
-                getLocationSrv().update({ query: { page: 'users', id: entity?.author?.pk } });
-              }}
+              onClick={() => LocationHelper.update({ id: entity?.author?.pk, page: 'users' }, 'replace')}
               style={{ textDecoration: 'underline', cursor: 'pointer' }}
             >
               {entity.author?.username}

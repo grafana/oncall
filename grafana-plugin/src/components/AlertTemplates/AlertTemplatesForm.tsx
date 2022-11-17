@@ -1,7 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 
 import { SelectableValue } from '@grafana/data';
-import { getLocationSrv } from '@grafana/runtime';
 import { Label, Button, HorizontalGroup, VerticalGroup, Select, LoadingPlaceholder } from '@grafana/ui';
 import { capitalCase } from 'change-case';
 import cn from 'classnames/bind';
@@ -21,6 +20,7 @@ import { makeRequest } from 'network';
 import { UserAction } from 'state/userAction';
 
 import styles from './AlertTemplatesForm.module.css';
+import LocationHelper from 'utils/LocationHelper';
 
 const cx = cn.bind(styles);
 
@@ -162,9 +162,7 @@ const AlertTemplatesForm = (props: AlertTemplatesFormProps) => {
       ) : null}
     </HorizontalGroup>
   );
-  const handleGoToTemplateSettingsCllick = () => {
-    getLocationSrv().update({ partial: true, query: { tab: 'Autoresolve' } });
-  };
+  const handleGoToTemplateSettingsCllick = () => LocationHelper.update({ tab: 'Autoresolve' }, 'partial');
 
   return (
     <div className={cx('root')}>

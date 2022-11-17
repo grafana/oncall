@@ -1,7 +1,6 @@
 import React from 'react';
 
 import { AppRootProps } from '@grafana/data';
-import { getLocationSrv } from '@grafana/runtime';
 import { Button, HorizontalGroup, Icon, IconButton, LoadingPlaceholder, Tooltip, VerticalGroup } from '@grafana/ui';
 import { PluginPage } from 'PluginPage';
 import cn from 'classnames/bind';
@@ -33,6 +32,7 @@ import { UserAction } from 'state/userAction';
 import { withMobXProviderContext } from 'state/withStore';
 
 import styles from './EscalationChains.module.css';
+import LocationHelper from 'utils/LocationHelper';
 
 const cx = cn.bind(styles);
 
@@ -103,7 +103,7 @@ class EscalationChainsPage extends React.Component<EscalationChainsPageProps, Es
     const { escalationChainStore } = store;
 
     this.setState({ selectedEscalationChain: escalationChain }, () => {
-      getLocationSrv().update({ partial: true, query: { id: escalationChain } });
+      LocationHelper.update({ id: escalationChain }, 'partial');
       if (escalationChain) {
         escalationChainStore.updateEscalationChainDetails(escalationChain);
       }

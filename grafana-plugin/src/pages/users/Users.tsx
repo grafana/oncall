@@ -1,6 +1,5 @@
 import React from 'react';
 
-import { getLocationSrv } from '@grafana/runtime';
 import { Alert, Button, HorizontalGroup, Icon, VerticalGroup } from '@grafana/ui';
 import { PluginPage } from 'PluginPage';
 import cn from 'classnames/bind';
@@ -30,6 +29,7 @@ import { withMobXProviderContext } from 'state/withStore';
 import { getRealFilters, getUserRowClassNameFn } from './Users.helpers';
 
 import styles from './Users.module.css';
+import LocationHelper from 'utils/LocationHelper';
 
 const cx = cn.bind(styles);
 
@@ -81,7 +81,7 @@ class Users extends React.Component<UsersProps, UsersState> {
       return;
     }
 
-    getLocationSrv().update({ query: { p: page }, partial: true });
+    LocationHelper.update({ p: page }, 'partial');
     return await userStore.updateItems(getRealFilters(usersFilters), page);
   };
 
@@ -376,7 +376,7 @@ class Users extends React.Component<UsersProps, UsersState> {
   handleHideUserSettings = () => {
     this.setState({ userPkToEdit: undefined });
 
-    getLocationSrv().update({ partial: true, query: { id: undefined } });
+    LocationHelper.update({ id: undefined }, 'partial');
   };
 
   handleUserUpdate = () => {
