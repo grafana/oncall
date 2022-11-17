@@ -1,6 +1,5 @@
 import React from 'react';
 
-import { AppRootProps } from '@grafana/data';
 import { getLocationSrv } from '@grafana/runtime';
 import { Alert, Button, HorizontalGroup, Icon, VerticalGroup } from '@grafana/ui';
 import { PluginPage } from 'PluginPage';
@@ -24,8 +23,7 @@ import { WithPermissionControl } from 'containers/WithPermissionControl/WithPerm
 import { getRole } from 'models/user/user.helpers';
 import { User as UserType, UserRole } from 'models/user/user.types';
 import { pages } from 'pages';
-import { getQueryParams } from 'plugin/GrafanaPluginRootPage.helpers';
-import { WithStoreProps } from 'state/types';
+import { PageProps, WithStoreProps } from 'state/types';
 import { UserAction } from 'state/userAction';
 import { withMobXProviderContext } from 'state/withStore';
 
@@ -35,7 +33,7 @@ import styles from './Users.module.css';
 
 const cx = cn.bind(styles);
 
-interface UsersProps extends WithStoreProps, AppRootProps {}
+interface UsersProps extends WithStoreProps, PageProps {}
 
 const ITEMS_PER_PAGE = 100;
 
@@ -65,10 +63,10 @@ class Users extends React.Component<UsersProps, UsersState> {
 
   initialUsersLoaded = false;
 
-  private userId: string;
-
   async componentDidMount() {
-    const { p } = getQueryParams();
+    const {
+      query: { p },
+    } = this.props;
     this.setState({ page: p ? Number(p) : 1 }, this.updateUsers);
 
     this.parseParams();
@@ -87,7 +85,7 @@ class Users extends React.Component<UsersProps, UsersState> {
     return await userStore.updateItems(getRealFilters(usersFilters), page);
   };
 
-  componentDidUpdate() {
+  componentDidUpdate(prevProps: UsersProps) {
     const { store } = this.props;
 
     if (!this.initialUsersLoaded && store.isUserActionAllowed(UserAction.ViewOtherUsers)) {
@@ -95,7 +93,7 @@ class Users extends React.Component<UsersProps, UsersState> {
       this.initialUsersLoaded = true;
     }
 
-    if (this.userId !== getQueryParams()['id']) {
+    if (prevProps.query.id !== this.props.query.id) {
       this.parseParams();
     }
   }
@@ -103,10 +101,10 @@ class Users extends React.Component<UsersProps, UsersState> {
   parseParams = async () => {
     this.setState({ errorData: initErrorDataState() }); // reset wrong team error to false on query parse
 
-    const { store } = this.props;
-    const { id } = getQueryParams();
-
-    this.userId = id;
+    const {
+      store,
+      query: { id },
+    } = this.props;
 
     if (id) {
       await (id === 'me' ? store.userStore.loadCurrentUser() : store.userStore.loadUser(String(id), true)).catch(

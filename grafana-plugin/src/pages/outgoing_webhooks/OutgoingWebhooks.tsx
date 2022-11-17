@@ -1,6 +1,5 @@
 import React from 'react';
 
-import { AppRootProps } from '@grafana/data';
 import { getLocationSrv } from '@grafana/runtime';
 import { Button, HorizontalGroup } from '@grafana/ui';
 import { PluginPage } from 'PluginPage';
@@ -22,8 +21,7 @@ import { WithPermissionControl } from 'containers/WithPermissionControl/WithPerm
 import { ActionDTO } from 'models/action';
 import { OutgoingWebhook } from 'models/outgoing_webhook/outgoing_webhook.types';
 import { pages } from 'pages';
-import { getQueryParams } from 'plugin/GrafanaPluginRootPage.helpers';
-import { WithStoreProps } from 'state/types';
+import { PageProps, WithStoreProps } from 'state/types';
 import { UserAction } from 'state/userAction';
 import { withMobXProviderContext } from 'state/withStore';
 
@@ -31,7 +29,7 @@ import styles from './OutgoingWebhooks.module.css';
 
 const cx = cn.bind(styles);
 
-interface OutgoingWebhooksProps extends WithStoreProps, AppRootProps {}
+interface OutgoingWebhooksProps extends WithStoreProps, PageProps {}
 
 interface OutgoingWebhooksState extends PageBaseState {
   outgoingWebhookIdToEdit?: OutgoingWebhook['id'] | 'new';
@@ -43,14 +41,12 @@ class OutgoingWebhooks extends React.Component<OutgoingWebhooksProps, OutgoingWe
     errorData: initErrorDataState(),
   };
 
-  private outgoingWebhookId: string;
-
   async componentDidMount() {
     this.update().then(this.parseQueryParams);
   }
 
-  componentDidUpdate() {
-    if (this.outgoingWebhookId !== getQueryParams()['id']) {
+  componentDidUpdate(prevProps: OutgoingWebhooksProps) {
+    if (prevProps.query.id !== this.props.query.id) {
       this.parseQueryParams();
     }
   }
@@ -61,10 +57,10 @@ class OutgoingWebhooks extends React.Component<OutgoingWebhooksProps, OutgoingWe
       outgoingWebhookIdToEdit: undefined,
     })); // reset state on query parse
 
-    const { store } = this.props;
-    const { id } = getQueryParams();
-
-    this.outgoingWebhookId = id;
+    const {
+      store,
+      query: { id },
+    } = this.props;
 
     if (!id) {
       return;

@@ -37,7 +37,7 @@ import 'style/vars.css';
 import 'style/global.css';
 import 'style/utils.css';
 
-import { isTopNavbar } from './GrafanaPluginRootPage.helpers';
+import { getQueryParams, isTopNavbar } from './GrafanaPluginRootPage.helpers';
 
 export const GrafanaPluginRootPage = (props: AppRootProps) => (
   <Provider store={rootStore}>
@@ -156,7 +156,7 @@ export const Root = observer((props: AppRootProps) => {
           'u-position-relative'
         )}
       >
-        <Page {...props} path={pathWithoutLeadingSlash} store={store} />
+        <Page {...props} query={...getQueryParams()} path={pathWithoutLeadingSlash} store={store} />
       </div>
     </DefaultPageLayout>
   );

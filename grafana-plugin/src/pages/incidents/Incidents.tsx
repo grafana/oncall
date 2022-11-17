@@ -1,6 +1,5 @@
 import React, { ReactElement, SyntheticEvent } from 'react';
 
-import { AppRootProps } from '@grafana/data';
 import { getLocationSrv } from '@grafana/runtime';
 import { Button, Icon, Tooltip, VerticalGroup, LoadingPlaceholder, HorizontalGroup } from '@grafana/ui';
 import { PluginPage } from 'PluginPage';
@@ -25,9 +24,8 @@ import { Alert, Alert as AlertType, AlertAction } from 'models/alertgroup/alertg
 import { User } from 'models/user/user.types';
 import { pages } from 'pages';
 import { getActionButtons, getIncidentStatusTag, renderRelatedUsers } from 'pages/incident/Incident.helpers';
-import { getQueryParams } from 'plugin/GrafanaPluginRootPage.helpers';
 import { move } from 'state/helpers';
-import { WithStoreProps } from 'state/types';
+import { PageProps, WithStoreProps } from 'state/types';
 import { UserAction } from 'state/userAction';
 import { withMobXProviderContext } from 'state/withStore';
 
@@ -54,7 +52,7 @@ function withSkeleton(fn: (alert: AlertType) => ReactElement | ReactElement[]) {
   return WithSkeleton;
 }
 
-interface IncidentsPageProps extends WithStoreProps, AppRootProps {}
+interface IncidentsPageProps extends WithStoreProps, PageProps {}
 
 interface IncidentsPageState {
   selectedIncidentIds: Array<Alert['pk']>;
@@ -71,8 +69,10 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
   constructor(props: IncidentsPageProps) {
     super(props);
 
-    const { store } = props;
-    const { cursor: cursorQuery, start: startQuery, perpage: perpageQuery } = getQueryParams();
+    const {
+      store,
+      query: { cursor: cursorQuery, start: startQuery, perpage: perpageQuery },
+    } = props;
 
     const cursor = cursorQuery || undefined;
     const start = !isNaN(startQuery) ? Number(startQuery) : 1;
