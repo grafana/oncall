@@ -7,7 +7,7 @@ exports[`Unauthorized renders properly - access control enabled: false 1`] = `
   <div
     className="css-9ztktj-vertical-group"
     style={
-      {
+      Object {
         "height": "100%",
         "width": "100%",
       }
@@ -55,7 +55,7 @@ exports[`Unauthorized renders properly - access control enabled: true 1`] = `
   <div
     className="css-9ztktj-vertical-group"
     style={
-      {
+      Object {
         "height": "100%",
         "width": "100%",
       }
@@ -103,7 +103,7 @@ exports[`Unauthorized renders properly the grammar for different roles - Admin 1
   <div
     className="css-9ztktj-vertical-group"
     style={
-      {
+      Object {
         "height": "100%",
         "width": "100%",
       }
@@ -151,7 +151,7 @@ exports[`Unauthorized renders properly the grammar for different roles - Editor 
   <div
     className="css-9ztktj-vertical-group"
     style={
-      {
+      Object {
         "height": "100%",
         "width": "100%",
       }
@@ -199,7 +199,7 @@ exports[`Unauthorized renders properly the grammar for different roles - Viewer 
   <div
     className="css-9ztktj-vertical-group"
     style={
-      {
+      Object {
         "height": "100%",
         "width": "100%",
       }

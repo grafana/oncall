@@ -1,4 +1,5 @@
 import { OrgRole } from '@grafana/data';
+import { config } from '@grafana/runtime';
 import { contextSrv } from 'grafana/app/core/core';
 
 const ONCALL_PERMISSION_PREFIX = 'grafana-oncall-app';
@@ -89,8 +90,12 @@ export const userHasMinimumRequiredRole = (minimumRoleRequired: OrgRole): boolea
  *
  * As a fallback (second argument), for cases where RBAC is not enabled for a grafana instance, rely on basic roles
  */
-export const isUserActionAllowed = ({ permission, fallbackMinimumRoleRequired }: UserAction): boolean =>
-  contextSrv.hasAccess(permission, userHasMinimumRequiredRole(fallbackMinimumRoleRequired));
+export const isUserActionAllowed = ({ permission, fallbackMinimumRoleRequired }: UserAction): boolean => {
+  if (config.featureToggles.accessControlOnCall) {
+    return !!contextSrv.user.permissions?.[permission];
+  }
+  return userHasMinimumRequiredRole(fallbackMinimumRoleRequired);
+};
 
 export const generatePermissionString = (resource: Resource, action: Action, includePrefix: boolean): string =>
   `${includePrefix ? `${ONCALL_PERMISSION_PREFIX}.` : ''}${resource}:${action}`;
