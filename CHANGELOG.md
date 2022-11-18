@@ -1,5 +1,9 @@
 # Change Log
 
+## v1.1.2 (2022-16-09)
+
+- Bug Fixes
+
 ## v1.1.1 (2022-16-09)
 
 - Compatibility with Grafana 9.3.0
