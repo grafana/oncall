@@ -67,7 +67,7 @@ class GrafanaAlertingSyncManager:
             datasource_attr = datasource_id
             config, response_info = client_method(datasource_attr, *args)
 
-            if response_info["status_code"] == status.HTTP_400_BAD_REQUEST:
+            if response_info["status_code"] in (status.HTTP_400_BAD_REQUEST, status.HTTP_404_NOT_FOUND):
                 # Get config by datasource uid for Grafana version >= 9
                 datasource_attr = datasource_uid
                 config, response_info = client_method(datasource_attr, *args)
