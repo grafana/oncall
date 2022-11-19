@@ -61,7 +61,7 @@ define run_engine_docker_command
 	$(call run_docker_compose_command,run --rm oncall_engine_commands $(1))
 endef
 
-# touch SQLITE_DB_FILE if it does not exist and DB is eqaul to SQLITE_PROFILE
+# touch SQLITE_DB_FILE if it does not exist and DB is equal to SQLITE_PROFILE
 start:
 ifeq ($(DB),$(SQLITE_PROFILE))
 	@if [ ! -f $(SQLITE_DB_FILE) ]; then \
@@ -107,6 +107,11 @@ install-precommit-hook: install-pre-commit
 
 get-invite-token:
 	$(call run_engine_docker_command,python manage.py issue_invite_for_the_frontend --override)
+
+copy-invite-token:
+	$(call run_engine_docker_command,python manage.py issue_invite_for_the_frontend --no-color --override) |\
+	grep 'Your invite token' | perl -pe 's/Your invite token: ([0-9a-f]*?)[^0-9a-f].*/$$1/' | pbcopy
+
 
 test:
 	$(call run_engine_docker_command,pytest)

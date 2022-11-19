@@ -42,4 +42,4 @@ class Command(BaseCommand):
         self_hosted_settings.json_value["keys"].append(invite_token)
         self_hosted_settings.save(update_fields=["json_value"])
 
-        self.stdout.write(f"Your invite token: \033[31m{invite_token}\033[39m , use it in the Grafana OnCall plugin.")
+        self.stdout.write(f"Your invite token: {self.style.ERROR(invite_token)}, use it in the Grafana OnCall plugin.")
