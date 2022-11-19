@@ -7,6 +7,8 @@ from django.conf import settings
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
 
+STARTUP_COMMANDS = ["runserver", "uwsgi"]
+
 
 class GrafanaPluginConfig(AppConfig):
     name = "apps.grafana_plugin"
@@ -16,11 +18,13 @@ class GrafanaPluginConfig(AppConfig):
         For OSS installations, validate that GRAFANA_API_URL environment variable is specified, otherwise
         abort app startup.
 
-        We only care to run this for OSS_INSTALLATIONS. The `"runserver" in sys.argv` check is to avoid running this
+        We only care to run this for OSS_INSTALLATIONS. The STARTUP_COMMANDS check is to avoid running this check
         for the django migrate command. For a fresh installation this would crash because user_management table would
         [not exist](https://stackoverflow.com/a/63326719).
         """
-        if "runserver" in sys.argv and settings.OSS_INSTALLATION is True:
+        # TODO: this logic should probably be moved out to a common utility
+        is_not_migration_script = any(startup_command in sys.argv for startup_command in STARTUP_COMMANDS)
+        if is_not_migration_script and settings.OSS_INSTALLATION is True:
             Organization = apps.get_model("user_management", "Organization")
             has_existing_org = Organization.objects.first() is not None
 

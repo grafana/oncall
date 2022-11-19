@@ -23,11 +23,15 @@ class SelfHostedInstallView(GrafanaHeadersMixin, APIView):
         grafana_url = settings.SELF_HOSTED_SETTINGS["GRAFANA_API_URL"]
         grafana_api_token = self.instance_context["grafana_token"]
 
+        provisioning_info: ProvisionedPlugin = {"error": None}
+
+        if settings.LICENSE != settings.OPEN_SOURCE_LICENSE_NAME:
+            provisioning_info["error"] = f"License type not authorized"
+            return Response(status=status.HTTP_403_FORBIDDEN)
+
         grafana_api_client = GrafanaAPIClient(api_url=grafana_url, api_token=grafana_api_token)
         _, client_status = grafana_api_client.check_token()
         status_code = client_status["status_code"]
-
-        provisioning_info: ProvisionedPlugin = {"error": None}
 
         if status_code == status.HTTP_404_NOT_FOUND:
             provisioning_info["error"] = f"Unable to connect to the specified Grafana API - {grafana_url}"

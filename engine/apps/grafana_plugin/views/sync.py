@@ -61,10 +61,6 @@ class PluginSyncView(GrafanaHeadersMixin, APIView):
             token_ok = organization.api_token_status == Organization.API_TOKEN_STATUS_OK
         except Organization.DoesNotExist:
             logger.info(f"Organization for stack {stack_id} org {org_id} was not found")
-        except Exception as e:
-            logger.warn(
-                f"An unknown exception occured while trying to get the plugin sync status: {e}\n org_id: {org_id}\n stack_id: {stack_id}"
-            )
 
         return Response(
             status=status.HTTP_200_OK,

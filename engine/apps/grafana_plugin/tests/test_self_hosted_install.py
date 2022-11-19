@@ -3,6 +3,7 @@ from unittest.mock import patch
 
 import pytest
 from django.apps import apps
+from django.conf import settings
 from django.test import override_settings
 from django.urls import reverse
 from rest_framework import status
@@ -42,6 +43,15 @@ def make_self_hosted_install_header():
         }
 
     return _make_instance_context_header
+
+
+@override_settings(LICENSE=settings.CLOUD_LICENSE_NAME)
+def test_a_cloud_license_gets_an_unauthorized_error(make_self_hosted_install_header):
+    client = APIClient()
+    url = reverse("grafana-plugin:self-hosted-install")
+    response = client.post(url, format="json", **make_self_hosted_install_header(GRAFANA_TOKEN))
+
+    assert response.status_code == status.HTTP_403_FORBIDDEN
 
 
 @pytest.mark.parametrize(
