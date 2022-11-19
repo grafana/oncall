@@ -36,7 +36,7 @@ import 'style/global.css';
 import 'style/utils.css';
 
 import { isTopNavbar } from './GrafanaPluginRootPage.helpers';
-import { PluginSetup } from './PluginSetup';
+import PluginSetup from './PluginSetup';
 
 export const GrafanaPluginRootPage = (props: AppRootProps) => (
   <Provider store={rootStore}>

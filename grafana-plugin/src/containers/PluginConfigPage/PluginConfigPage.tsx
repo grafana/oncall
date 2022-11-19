@@ -1,6 +1,7 @@
 import React, { FC, useCallback, useEffect, useState } from 'react';
 
 import { Button, Label, Legend, LoadingPlaceholder } from '@grafana/ui';
+import { useLocation } from 'react-router-dom';
 import { OnCallPluginConfigPageProps } from 'types';
 
 import logo from 'img/logo.svg';
@@ -11,14 +12,59 @@ import ConfigurationForm from './parts/ConfigurationForm';
 import RemoveCurrentConfigurationButton from './parts/RemoveCurrentConfigurationButton';
 import StatusMessageBlock from './parts/StatusMessageBlock';
 
+const PLUGIN_CONFIGURED_QUERY_PARAM = 'pluginConfigured';
+const PLUGIN_CONFIGURED_QUERY_PARAM_TRUTHY_VALUE = 'true';
+
+const PLUGIN_CONFIGURED_LICENSE_QUERY_PARAM = 'pluginConfiguredLicense';
+const PLUGIN_CONFIGURED_VERSION_QUERY_PARAM = 'pluginConfiguredVersion';
+
+/**
+ * When everything is successfully configured, reload the page, and pass along a few query parameters
+ * so that we avoid an infinite configuration-check/data-sync loop
+ *
+ * Don't refresh the page if the plugin is already enabled..
+ */
+export const reloadPageWithPluginConfiguredQueryParams = (
+  { license, version }: PluginStatusResponseBase,
+  pluginEnabled: boolean
+): void => {
+  if (!pluginEnabled) {
+    window.location.href = `${window.location.href}?${PLUGIN_CONFIGURED_QUERY_PARAM}=${PLUGIN_CONFIGURED_QUERY_PARAM_TRUTHY_VALUE}&${PLUGIN_CONFIGURED_LICENSE_QUERY_PARAM}=${license}&${PLUGIN_CONFIGURED_VERSION_QUERY_PARAM}=${version}`;
+  }
+};
+
+/**
+ * remove the query params used to track state for a page reload after successful configuration, without triggering
+ * a page reload
+ * https://stackoverflow.com/a/19279428
+ */
+export const removePluginConfiguredQueryParams = (pluginIsEnabled: boolean): void => {
+  if (history.pushState && pluginIsEnabled) {
+    const newurl = `${window.location.protocol}//${window.location.host}${window.location.pathname}`;
+    window.history.pushState({ path: newurl }, '', newurl);
+  }
+};
+
 const PluginConfigPage: FC<OnCallPluginConfigPageProps> = ({
   plugin: {
-    meta: { jsonData },
+    meta: { jsonData, enabled: pluginIsEnabled },
   },
 }) => {
-  const [checkingIfPluginIsConnected, setCheckingIfPluginIsConnected] = useState<boolean>(true);
+  const { search } = useLocation();
+  const queryParams = new URLSearchParams(search);
+  const pluginConfiguredQueryParam = queryParams.get(PLUGIN_CONFIGURED_QUERY_PARAM);
+  const pluginConfiguredLicenseQueryParam = queryParams.get(PLUGIN_CONFIGURED_LICENSE_QUERY_PARAM);
+  const pluginConfiguredVersionQueryParam = queryParams.get(PLUGIN_CONFIGURED_VERSION_QUERY_PARAM);
+
+  const pluginConfiguredRedirect = pluginConfiguredQueryParam === PLUGIN_CONFIGURED_QUERY_PARAM_TRUTHY_VALUE;
+
+  const [checkingIfPluginIsConnected, setCheckingIfPluginIsConnected] = useState<boolean>(!pluginConfiguredRedirect);
   const [pluginConnectionCheckError, setPluginConnectionCheckError] = useState<string>(null);
-  const [pluginIsConnected, setPluginIsConnected] = useState<PluginStatusResponseBase>(null);
+  const [pluginIsConnected, setPluginIsConnected] = useState<PluginStatusResponseBase>(
+    pluginConfiguredRedirect
+      ? { version: pluginConfiguredVersionQueryParam, license: pluginConfiguredLicenseQueryParam }
+      : null
+  );
 
   const [syncingPlugin, setSyncingPlugin] = useState<boolean>(false);
   const [syncError, setSyncError] = useState<string>(null);
@@ -31,6 +77,8 @@ const PluginConfigPage: FC<OnCallPluginConfigPageProps> = ({
   const onCallApiUrl = pluginMetaOnCallApiUrl || processEnvOnCallApiUrl;
   const licenseType = pluginIsConnected?.license;
 
+  const resetQueryParams = useCallback(() => removePluginConfiguredQueryParams(pluginIsEnabled), [pluginIsEnabled]);
+
   const triggerDataSyncWithOnCall = useCallback(async () => {
     setSyncingPlugin(true);
     setSyncError(null);
@@ -41,17 +89,17 @@ const PluginConfigPage: FC<OnCallPluginConfigPageProps> = ({
       setSyncError(syncDataResponse);
     } else {
       const { token_ok, ...versionLicenseInfo } = syncDataResponse;
-      /**
-       * TODO: refresh page, adding a query param, so that the OnCall logo shows up in the sidebar
-       */
       setPluginIsConnected(versionLicenseInfo);
+      reloadPageWithPluginConfiguredQueryParams(versionLicenseInfo, pluginIsEnabled);
     }
 
     setSyncingPlugin(false);
-  }, [onCallApiUrl]);
+  }, [onCallApiUrl, pluginIsEnabled]);
+
+  useEffect(resetQueryParams, [resetQueryParams]);
 
   useEffect(() => {
-    (async () => {
+    const configurePluginAndSyncData = async () => {
       /**
        * If the plugin has never been configured, onCallApiUrl will be undefined in the plugin's jsonData
        * In that case, check to see if ONCALL_API_URL has been supplied as an env var.
@@ -63,7 +111,7 @@ const PluginConfigPage: FC<OnCallPluginConfigPageProps> = ({
          * onCallApiUrl is not yet saved in the grafana plugin settings, but has been supplied as an env var
          * lets auto-trigger a self-hosted plugin install w/ the onCallApiUrl passed in as an env var
          */
-        const errorMsg = await PluginState.selfHostedInstallPlugin(processEnvOnCallApiUrl);
+        const errorMsg = await PluginState.selfHostedInstallPlugin(processEnvOnCallApiUrl, true);
         if (errorMsg) {
           setPluginConnectionCheckError(errorMsg);
           setCheckingIfPluginIsConnected(false);
@@ -85,16 +133,40 @@ const PluginConfigPage: FC<OnCallPluginConfigPageProps> = ({
         }
       }
       setCheckingIfPluginIsConnected(false);
-    })();
-  }, [pluginMetaOnCallApiUrl, processEnvOnCallApiUrl, onCallApiUrl]);
+    };
+
+    /**
+     * don't check the plugin status (or trigger a data sync) if the user was just redirected after a successful
+     * plugin setup
+     */
+    if (!pluginConfiguredRedirect) {
+      configurePluginAndSyncData();
+    }
+  }, [pluginMetaOnCallApiUrl, processEnvOnCallApiUrl, onCallApiUrl, pluginConfiguredRedirect]);
 
   const resetState = useCallback(() => {
     setPluginResetError(null);
     setPluginConnectionCheckError(null);
     setPluginIsConnected(null);
     setSyncError(null);
-  }, []);
+    resetQueryParams();
+  }, [resetQueryParams]);
 
+  /**
+   * NOTE: there is a possible edge case when resetting the plugin, that would lead to an error message being shown
+   * (which could be fixed by just reloading the page)
+   * This would happen if the user removes the plugin configuration, leaves the page, then comes back to the plugin
+   * configuration.
+   *
+   * This is because the props being passed into this component wouldn't reflect the actual plugin
+   * provisioning state. The props would still have onCallApiUrl set in the plugin jsonData, so when we make the API
+   * call to check the plugin state w/ OnCall API the plugin-proxy would return a 502 Bad Gateway because the actual
+   * provisioned plugin doesn't know about the onCallApiUrl.
+   *
+   * This could be fixed by instead of passing in the plugin provisioning information as props always fetching it
+   * when this component renders (via a useEffect). We probably don't need to worry about this because it should happen
+   * very rarely, if ever
+   */
   const triggerPluginReset = useCallback(async () => {
     setResettingPlugin(true);
     resetState();
@@ -137,7 +209,9 @@ const PluginConfigPage: FC<OnCallPluginConfigPageProps> = ({
       </>
     );
   } else if (!pluginIsConnected) {
-    content = <ConfigurationForm onSuccessfulSetup={triggerDataSyncWithOnCall} />;
+    content = (
+      <ConfigurationForm onSuccessfulSetup={triggerDataSyncWithOnCall} defaultOnCallApiUrl={processEnvOnCallApiUrl} />
+    );
   } else {
     // plugin is fully connected and synced
     content =
@@ -154,7 +228,8 @@ const PluginConfigPage: FC<OnCallPluginConfigPageProps> = ({
       {pluginIsConnected ? (
         <>
           <p>
-            Plugin is connected! Check Grafana OnCall 👈👈👈 <img alt="Grafana OnCall Logo" src={logo} width={18} />
+            Plugin is connected! Continue to Grafana OnCall by clicking the{' '}
+            <img alt="Grafana OnCall Logo" src={logo} width={18} /> icon over there 👈
           </p>
           <StatusMessageBlock
             text={`Connected to OnCall (${pluginIsConnected.version}, ${pluginIsConnected.license})`}

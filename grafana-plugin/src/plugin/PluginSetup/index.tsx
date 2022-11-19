@@ -23,13 +23,13 @@ const PluginSetupWrapper: FC<PluginSetupWrapperProps> = ({ text, children }) => 
   </div>
 );
 
-export const PluginSetup: FC<PluginSetupProps> = ({ InitializedComponent, ...props }): React.ReactElement => {
+const PluginSetup: FC<PluginSetupProps> = observer(({ InitializedComponent, ...props }) => {
   const store = useStore();
   const setupPlugin = useCallback(() => store.setupPlugin(props.meta), [props.meta]);
 
   useEffect(() => {
     setupPlugin();
-  }, []);
+  }, [setupPlugin]);
 
   if (store.appLoading) {
     return <PluginSetupWrapper text="Initializing plugin..." />;
@@ -53,6 +53,6 @@ export const PluginSetup: FC<PluginSetupProps> = ({ InitializedComponent, ...pro
   }
 
   return <InitializedComponent {...props} />;
-};
+});
 
-export default observer(PluginSetup);
+export default PluginSetup;

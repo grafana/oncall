@@ -4,7 +4,7 @@ import { OnCallAppPluginMeta, OnCallPluginMetaJSONData, OnCallPluginMetaSecureJS
 
 import { makeRequest } from 'network';
 
-type UpdateGrafanaPluginSettingsProps = {
+export type UpdateGrafanaPluginSettingsProps = {
   jsonData?: Partial<OnCallPluginMetaJSONData>;
   secureJsonData?: Partial<OnCallPluginMetaSecureJSONData>;
 };
@@ -13,7 +13,7 @@ export type PluginStatusResponseBase = Pick<OnCallPluginMetaJSONData, 'license'>
   version: string;
 };
 
-type PluginSyncStatusResponse = PluginStatusResponseBase & {
+export type PluginSyncStatusResponse = PluginStatusResponseBase & {
   token_ok: boolean;
 };
 
@@ -34,7 +34,7 @@ type InstallPluginResponse<OnCallAPIResponse = any> = Pick<OnCallPluginMetaSecur
   onCallAPIResponse: OnCallAPIResponse;
 };
 
-type InstallationVerb = 'install' | 'sync';
+export type InstallationVerb = 'install' | 'sync';
 
 class PluginState {
   static ONCALL_BASE_URL = '/plugin';
@@ -42,19 +42,37 @@ class PluginState {
   static SYNC_STATUS_POLLING_RETRY_LIMIT = 10;
   static grafanaBackend = getBackendSrv();
 
-  static generateInvalidOnCallApiURLErrorMsg = (onCallApiUrl: string): string =>
-    `Could not communicate with your OnCall API at ${onCallApiUrl}. Validate that the URL is correct`;
+  static generateOnCallApiUrlConfiguredThroughEnvVarMsg = (isConfiguredThroughEnvVar: boolean): string =>
+    isConfiguredThroughEnvVar
+      ? ' (NOTE: your OnCall API URL is currently being taken from process.env of your UI)'
+      : '';
 
-  static generateUnknownErrorMsg = (verb: InstallationVerb): string =>
-    `An unknown error occured when trying to ${verb} the plugin. Refresh your page and try again.`;
+  static generateInvalidOnCallApiURLErrorMsg = (onCallApiUrl: string, isConfiguredThroughEnvVar: boolean): string =>
+    `Could not communicate with your OnCall API at ${onCallApiUrl}${this.generateOnCallApiUrlConfiguredThroughEnvVarMsg(
+      isConfiguredThroughEnvVar
+    )}.\nValidate that the URL is correct, your OnCall API is running, and that it is accessible from your Grafana instance.`;
+
+  static generateUnknownErrorMsg = (
+    onCallApiUrl: string,
+    verb: InstallationVerb,
+    isConfiguredThroughEnvVar: boolean
+  ): string =>
+    `An unknown error occured when trying to ${verb} the plugin. Are you sure that your OnCall API URL, ${onCallApiUrl}, is correct${this.generateOnCallApiUrlConfiguredThroughEnvVarMsg(
+      isConfiguredThroughEnvVar
+    )}?\nRefresh your page and try again, or try removing your plugin configuration and reconfiguring.`;
 
   static getHumanReadableErrorFromOnCallError = (
     e: any,
     onCallApiUrl: string,
-    installationVerb: InstallationVerb
+    installationVerb: InstallationVerb,
+    onCallApiUrlIsConfiguredThroughEnvVar = false
   ): string => {
     let errorMsg: string;
-    const unknownErrorMsg = this.generateUnknownErrorMsg(installationVerb);
+    const unknownErrorMsg = this.generateUnknownErrorMsg(
+      onCallApiUrl,
+      installationVerb,
+      onCallApiUrlIsConfiguredThroughEnvVar
+    );
     const consoleMsg = `occured while trying to ${installationVerb} the plugin w/ the OnCall backend`;
 
     if (axios.isAxiosError(e)) {
@@ -64,7 +82,7 @@ class PluginState {
 
       if (statusCode === 502) {
         // 502 occurs when the plugin-proxy cannot communicate w/ the OnCall API using the provided URL
-        errorMsg = this.generateInvalidOnCallApiURLErrorMsg(onCallApiUrl);
+        errorMsg = this.generateInvalidOnCallApiURLErrorMsg(onCallApiUrl, onCallApiUrlIsConfiguredThroughEnvVar);
       } else if (statusCode === 400) {
         /**
          * A 400 is 'bubbled-up' from the OnCall API. It indicates one of three cases:
@@ -91,19 +109,19 @@ class PluginState {
   static getHumanReadableErrorFromGrafanaProvisioningError = (
     e: any,
     onCallApiUrl: string,
-    installationVerb: InstallationVerb
+    installationVerb: InstallationVerb,
+    onCallApiUrlIsConfiguredThroughEnvVar: boolean
   ): string => {
     let errorMsg: string;
 
-    // TODO: handle the case where user puts in a completely bogus URL that causes a CORS error (ex. https://grafana.com)
     if (axios.isAxiosError(e)) {
       // The user likely put in a bogus URL for the OnCall API URL
       console.warn('An HTTP related error occured while trying to provision the plugin w/ Grafana', e.response);
-      errorMsg = this.generateInvalidOnCallApiURLErrorMsg(onCallApiUrl);
+      errorMsg = this.generateInvalidOnCallApiURLErrorMsg(onCallApiUrl, onCallApiUrlIsConfiguredThroughEnvVar);
     } else {
       // a non-axios related error occured.. this scenario shouldn't occur...
       console.warn('An unknown error occured while trying to provision the plugin w/ Grafana', e);
-      errorMsg = this.generateUnknownErrorMsg(installationVerb);
+      errorMsg = this.generateUnknownErrorMsg(onCallApiUrl, installationVerb, onCallApiUrlIsConfiguredThroughEnvVar);
     }
     return errorMsg;
   };
@@ -136,15 +154,27 @@ class PluginState {
   static timeout = (pollCount: number) => new Promise((resolve) => setTimeout(resolve, 10 * 2 ** pollCount));
 
   /**
+   * DON'T CALL THIS METHOD DIRECTLY
+   * This really only exists to properly test the recursive nature of pollOnCallDataSyncStatus
+   * Without this it is impossible (or very hacky) to mock the recursive calls
+   */
+  static _pollOnCallDataSyncStatus = (
+    onCallApiUrl: string,
+    onCallApiUrlIsConfiguredThroughEnvVar: boolean,
+    pollCount: number
+  ) => this.pollOnCallDataSyncStatus(onCallApiUrl, onCallApiUrlIsConfiguredThroughEnvVar, pollCount);
+
+  /**
    * Poll, for a configured amount of time, the status of the OnCall backend data sync
    * Returns a PluginSyncStatusResponse if the sync was successful (ie. token_ok is true), otherwise null
    */
   static pollOnCallDataSyncStatus = async (
     onCallApiUrl: string,
+    onCallApiUrlIsConfiguredThroughEnvVar: boolean,
     pollCount = 0
   ): Promise<PluginSyncStatusResponse | string> => {
     if (pollCount > this.SYNC_STATUS_POLLING_RETRY_LIMIT) {
-      return 'There was an issue while synchronizing data required for the plugin. Verify your OnCall backend setup (ie. that Celery workers are launched and properly configured)';
+      return `There was an issue while synchronizing data required for the plugin.\nVerify your OnCall backend setup (ie. that Celery workers are launched and properly configured)`;
     }
 
     try {
@@ -154,9 +184,9 @@ class PluginState {
       }
 
       await this.timeout(pollCount);
-      return await this.pollOnCallDataSyncStatus(onCallApiUrl, pollCount + 1);
+      return await this._pollOnCallDataSyncStatus(onCallApiUrl, onCallApiUrlIsConfiguredThroughEnvVar, pollCount + 1);
     } catch (e) {
-      return this.getHumanReadableErrorFromOnCallError(e, onCallApiUrl, 'sync');
+      return this.getHumanReadableErrorFromOnCallError(e, onCallApiUrl, 'sync', onCallApiUrlIsConfiguredThroughEnvVar);
     }
   };
 
@@ -165,7 +195,10 @@ class PluginState {
    * If the
    * Returns a PluginSyncStatusResponse if the sync was succesful, otherwise null
    */
-  static syncDataWithOnCall = async (onCallApiUrl: string): Promise<PluginSyncStatusResponse | string> => {
+  static syncDataWithOnCall = async (
+    onCallApiUrl: string,
+    onCallApiUrlIsConfiguredThroughEnvVar = false
+  ): Promise<PluginSyncStatusResponse | string> => {
     try {
       const startSyncResponse = await makeRequest(`${this.ONCALL_BASE_URL}/sync`, { method: 'POST' });
 
@@ -174,9 +207,9 @@ class PluginState {
         return startSyncResponse;
       }
 
-      return await this.pollOnCallDataSyncStatus(onCallApiUrl);
+      return await this.pollOnCallDataSyncStatus(onCallApiUrl, onCallApiUrlIsConfiguredThroughEnvVar);
     } catch (e) {
-      return this.getHumanReadableErrorFromOnCallError(e, onCallApiUrl, 'sync');
+      return this.getHumanReadableErrorFromOnCallError(e, onCallApiUrl, 'sync', onCallApiUrlIsConfiguredThroughEnvVar);
     }
   };
 
@@ -194,7 +227,10 @@ class PluginState {
     return { grafanaToken, onCallAPIResponse };
   };
 
-  static selfHostedInstallPlugin = async (onCallApiUrl: string): Promise<string | null> => {
+  static selfHostedInstallPlugin = async (
+    onCallApiUrl: string,
+    onCallApiUrlIsConfiguredThroughEnvVar: boolean
+  ): Promise<string | null> => {
     let pluginInstallationOnCallResponse: InstallPluginResponse<SelfHostedProvisioningConfigResponse>;
     const errorMsgVerb: InstallationVerb = 'install';
 
@@ -202,7 +238,12 @@ class PluginState {
     try {
       await this.updateGrafanaPluginSettings({ jsonData: { onCallApiUrl: onCallApiUrl } });
     } catch (e) {
-      return this.getHumanReadableErrorFromGrafanaProvisioningError(e, onCallApiUrl, errorMsgVerb);
+      return this.getHumanReadableErrorFromGrafanaProvisioningError(
+        e,
+        onCallApiUrl,
+        errorMsgVerb,
+        onCallApiUrlIsConfiguredThroughEnvVar
+      );
     }
 
     /**
@@ -214,7 +255,12 @@ class PluginState {
     try {
       pluginInstallationOnCallResponse = await this.installPlugin<SelfHostedProvisioningConfigResponse>(true);
     } catch (e) {
-      return this.getHumanReadableErrorFromOnCallError(e, onCallApiUrl, errorMsgVerb);
+      return this.getHumanReadableErrorFromOnCallError(
+        e,
+        onCallApiUrl,
+        errorMsgVerb,
+        onCallApiUrlIsConfiguredThroughEnvVar
+      );
     }
 
     // Step 3. reprovision the Grafana plugin settings, storing information that we get back from OnCall's backend
@@ -235,17 +281,37 @@ class PluginState {
         },
       });
     } catch (e) {
-      return this.getHumanReadableErrorFromGrafanaProvisioningError(e, onCallApiUrl, errorMsgVerb);
+      return this.getHumanReadableErrorFromGrafanaProvisioningError(
+        e,
+        onCallApiUrl,
+        errorMsgVerb,
+        onCallApiUrlIsConfiguredThroughEnvVar
+      );
     }
 
     return null;
   };
 
-  static checkIfPluginIsConnected = async (onCallApiUrl: string): Promise<PluginConnectedStatusResponse | string> => {
+  static checkIfPluginIsConnected = async (
+    onCallApiUrl: string,
+    onCallApiUrlIsConfiguredThroughEnvVar = false
+  ): Promise<PluginConnectedStatusResponse | string> => {
     try {
-      return await makeRequest<PluginConnectedStatusResponse>(`${this.ONCALL_BASE_URL}/status`, { method: 'GET' });
+      const resp = await makeRequest<PluginConnectedStatusResponse>(`${this.ONCALL_BASE_URL}/status`, {
+        method: 'GET',
+      });
+
+      if (!resp.token_ok) {
+        return `There was an issue with the communication between your OnCall API and your Grafana instance.\nPlease ensure that your OnCall API is properly configured to communicate with your Grafana instance.`;
+      }
+      return resp;
     } catch (e) {
-      return this.getHumanReadableErrorFromOnCallError(e, onCallApiUrl, 'install');
+      return this.getHumanReadableErrorFromOnCallError(
+        e,
+        onCallApiUrl,
+        'install',
+        onCallApiUrlIsConfiguredThroughEnvVar
+      );
     }
   };
 

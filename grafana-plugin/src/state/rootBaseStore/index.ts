@@ -124,8 +124,8 @@ export class RootBaseStore {
   }
 
   /**
-   * First check to see if the plugin's meta jsonData has an onCallApiUrl saved
-   * If not, tell the user they first need to configure the plugin.
+   * First check to see if the plugin has been provisioned (plugin's meta jsonData has an onCallApiUrl saved)
+   * If not, tell the user they first need to configure/provision the plugin.
    *
    * Otherwise, get the plugin connection status from the OnCall API and check a few pre-conditions:
    * - plugin must be considered installed by the OnCall API
@@ -141,9 +141,11 @@ export class RootBaseStore {
     this.onCallApiUrl = meta.jsonData?.onCallApiUrl;
 
     if (!this.onCallApiUrl) {
+      // plugin is not provisioned
       return this.setupPluginError('🚫 Plugin has not been initialized');
     }
 
+    // at this point we know the plugin is provionsed
     const pluginConnectionStatus = await PluginState.checkIfPluginIsConnected(this.onCallApiUrl);
     if (typeof pluginConnectionStatus === 'string') {
       return this.setupPluginError(pluginConnectionStatus);

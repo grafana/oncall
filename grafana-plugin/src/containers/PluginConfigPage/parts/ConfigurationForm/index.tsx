@@ -8,7 +8,6 @@ import { SubmitHandler } from 'react-hook-form';
 import Block from 'components/GBlock/Block';
 import Text from 'components/Text/Text';
 import PluginState from 'state/plugin';
-import { getItem, ONCALL_API_URL_LOCAL_STORAGE_KEY, setItem } from 'utils/localStorage';
 
 import styles from './ConfigurationForm.module.css';
 
@@ -16,6 +15,7 @@ const cx = cn.bind(styles);
 
 type Props = {
   onSuccessfulSetup: () => void;
+  defaultOnCallApiUrl: string;
 };
 
 type FormProps = {
@@ -60,17 +60,16 @@ const FormErrorMessage: FC<{ errorMsg: string }> = ({ errorMsg }) => (
   </>
 );
 
-const ConfigurationForm: FC<Props> = ({ onSuccessfulSetup }) => {
+const ConfigurationForm: FC<Props> = ({ onSuccessfulSetup, defaultOnCallApiUrl }) => {
   const [setupErrorMsg, setSetupErrorMsg] = useState<string>(null);
   const [formLoading, setFormLoading] = useState<boolean>(false);
 
   const setupPlugin: SubmitHandler<FormProps> = useCallback(async ({ onCallApiUrl }) => {
     setFormLoading(true);
 
-    const errorMsg = await PluginState.selfHostedInstallPlugin(onCallApiUrl);
+    const errorMsg = await PluginState.selfHostedInstallPlugin(onCallApiUrl, false);
 
     if (!errorMsg) {
-      setItem(ONCALL_API_URL_LOCAL_STORAGE_KEY, onCallApiUrl);
       onSuccessfulSetup();
     } else {
       setSetupErrorMsg(errorMsg);
@@ -80,7 +79,7 @@ const ConfigurationForm: FC<Props> = ({ onSuccessfulSetup }) => {
 
   return (
     <Form<FormProps>
-      defaultValues={{ onCallApiUrl: getItem(ONCALL_API_URL_LOCAL_STORAGE_KEY) }}
+      defaultValues={{ onCallApiUrl: defaultOnCallApiUrl }}
       onSubmit={setupPlugin}
       data-testid="plugin-configuration-form"
     >

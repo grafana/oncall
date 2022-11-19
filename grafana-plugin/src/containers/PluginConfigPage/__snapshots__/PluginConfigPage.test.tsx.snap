@@ -165,6 +165,45 @@ exports[`PluginConfigPage If onCallApiUrl is set, and checkIfPluginIsConnected r
 </div>
 `;
 
+exports[`PluginConfigPage It doesn't make any network calls if the plugin configured query params are provided 1`] = `
+<div>
+  <legend
+    class="css-xim8hk"
+  >
+    Configure Grafana OnCall
+  </legend>
+  <p>
+    Plugin is connected! Continue to Grafana OnCall by clicking the
+     
+    <img
+      alt="Grafana OnCall Logo"
+      src="[object Object]"
+      width="18"
+    />
+     icon over there 👈
+  </p>
+  <pre
+    data-testid="status-message-block"
+  >
+    <span
+      class="root text text--undefined text--medium"
+    >
+      Connected to OnCall (v1.2.3, OpenSource)
+    </span>
+  </pre>
+  <button
+    class="css-mk7eo3-button"
+    type="button"
+  >
+    <span
+      class="css-1mhnkuh"
+    >
+      Remove current configuration
+    </span>
+  </button>
+</div>
+`;
+
 exports[`PluginConfigPage OnCallApiUrl is set, and syncDataWithOnCall does not return an error. It displays properly the plugin connected items based on the license - License: OpenSource 1`] = `
 <div>
   <legend
@@ -173,12 +212,14 @@ exports[`PluginConfigPage OnCallApiUrl is set, and syncDataWithOnCall does not r
     Configure Grafana OnCall
   </legend>
   <p>
-    Plugin is connected! Check Grafana OnCall 👈👈👈 
+    Plugin is connected! Continue to Grafana OnCall by clicking the
+     
     <img
       alt="Grafana OnCall Logo"
       src="[object Object]"
       width="18"
     />
+     icon over there 👈
   </p>
   <pre
     data-testid="status-message-block"
@@ -210,12 +251,14 @@ exports[`PluginConfigPage OnCallApiUrl is set, and syncDataWithOnCall does not r
     Configure Grafana OnCall
   </legend>
   <p>
-    Plugin is connected! Check Grafana OnCall 👈👈👈 
+    Plugin is connected! Continue to Grafana OnCall by clicking the
+     
     <img
       alt="Grafana OnCall Logo"
       src="[object Object]"
       width="18"
     />
+     icon over there 👈
   </p>
   <pre
     data-testid="status-message-block"

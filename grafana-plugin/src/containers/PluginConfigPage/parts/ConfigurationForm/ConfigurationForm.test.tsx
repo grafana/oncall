@@ -4,7 +4,6 @@ import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
 import PluginState from 'state/plugin';
-import { ONCALL_API_URL_LOCAL_STORAGE_KEY } from 'utils/localStorage';
 
 import ConfigurationForm from '.';
 
@@ -22,10 +21,15 @@ const fillOutFormAndTryToSubmit = async (onCallApiUrl: string, selfHostedInstall
 
   // setup
   const user = userEvent.setup();
-  const component = render(<ConfigurationForm onSuccessfulSetup={mockOnSuccessfulSetup} />);
+  const component = render(
+    <ConfigurationForm onSuccessfulSetup={mockOnSuccessfulSetup} defaultOnCallApiUrl="http://potato.com" />
+  );
 
   // fill out onCallApiUrl input
-  await user.click(screen.getByTestId('onCallApiUrl'));
+  const input = screen.getByTestId('onCallApiUrl');
+
+  await user.click(input);
+  await user.clear(input); // clear the input first before typing to wipe out the placeholder text
   await user.keyboard(onCallApiUrl);
 
   // submit form
@@ -37,14 +41,19 @@ const fillOutFormAndTryToSubmit = async (onCallApiUrl: string, selfHostedInstall
 describe('ConfigurationForm', () => {
   afterEach(() => {
     jest.resetAllMocks();
-    localStorage.clear();
+  });
+
+  test('it sets the default input value of onCallApiUrl to the passed in prop value of defaultOnCallApiUrl', () => {
+    const processEnvOnCallApiUrl = 'http://hello.com';
+    render(<ConfigurationForm onSuccessfulSetup={jest.fn()} defaultOnCallApiUrl={processEnvOnCallApiUrl} />);
+    expect(screen.getByDisplayValue(processEnvOnCallApiUrl)).toBeInTheDocument();
   });
 
   test('It calls the onSuccessfulSetup callback on successful form submission', async () => {
     const { mockOnSuccessfulSetup } = await fillOutFormAndTryToSubmit(VALID_ONCALL_API_URL);
 
     expect(PluginState.selfHostedInstallPlugin).toHaveBeenCalledTimes(1);
-    expect(PluginState.selfHostedInstallPlugin).toHaveBeenCalledWith(VALID_ONCALL_API_URL);
+    expect(PluginState.selfHostedInstallPlugin).toHaveBeenCalledWith(VALID_ONCALL_API_URL, false);
     expect(mockOnSuccessfulSetup).toHaveBeenCalledTimes(1);
   });
 
@@ -57,20 +66,10 @@ describe('ConfigurationForm', () => {
     expect(dom).toMatchSnapshot();
   });
 
-  test('It saves the OnCall API URL to localStorage when the self hosted plugin API call is successful', async () => {
-    await fillOutFormAndTryToSubmit(VALID_ONCALL_API_URL);
-    expect(localStorage.getItem(ONCALL_API_URL_LOCAL_STORAGE_KEY)).toEqual(JSON.stringify(VALID_ONCALL_API_URL));
-  });
-
-  test("It doesn't save the OnCall API URL to localStorage when if the self hosted plugin API call is not successful", async () => {
-    await fillOutFormAndTryToSubmit(VALID_ONCALL_API_URL, false);
-    expect(localStorage.getItem(ONCALL_API_URL_LOCAL_STORAGE_KEY)).toBeNull();
-  });
-
   test('It shows an error message if the self hosted plugin API call fails', async () => {
     const { dom, mockOnSuccessfulSetup } = await fillOutFormAndTryToSubmit(VALID_ONCALL_API_URL, false);
 
-    expect(PluginState.selfHostedInstallPlugin).toHaveBeenCalledWith(VALID_ONCALL_API_URL);
+    expect(PluginState.selfHostedInstallPlugin).toHaveBeenCalledWith(VALID_ONCALL_API_URL, false);
     expect(mockOnSuccessfulSetup).toHaveBeenCalledTimes(0);
     expect(dom).toMatchSnapshot();
   });
