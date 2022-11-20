@@ -25,8 +25,7 @@ jobs:
           config: ./helm/ci/kind.yml
 
       - name: Load image on the nodes of the cluster
-          run: |
-            kind load docker-image --name=kind oncall/engine:latest
+        run: kind load docker-image --name=kind oncall/engine:latest
 
       - name: Install helm chart
         run: helm install test-release helm/oncall --values helm/ci/simple.yml
