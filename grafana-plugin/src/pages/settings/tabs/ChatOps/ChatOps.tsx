@@ -2,23 +2,61 @@ import React from 'react';
 
 import { HorizontalGroup, Icon } from '@grafana/ui';
 import cn from 'classnames/bind';
+import { observer } from 'mobx-react';
 
 import VerticalTabsBar, { VerticalTab } from 'components/VerticalTabsBar/VerticalTabsBar';
-import { ChatOpsTab } from 'pages/chat-ops/ChatOps.types';
+import SlackSettings from 'pages/settings/tabs/ChatOps/tabs/SlackSettings/SlackSettings';
+import TelegramSettings from 'pages/settings/tabs/ChatOps/tabs/TelegramSettings/TelegramSettings';
+import { withMobXProviderContext } from 'state/withStore';
 
-import SlackSettings from './tabs/SlackSettings/SlackSettings';
-import TelegramSettings from './tabs/TelegramSettings/TelegramSettings';
-
-import styles from 'containers/UserSettings/parts/index.module.css';
+import styles from './ChatOps.module.css';
 
 const cx = cn.bind(styles);
+
+export enum ChatOpsTab {
+  Slack = 'Slack',
+  Telegram = 'Telegram',
+}
+
+interface ChatOpsState {
+  activeTab: ChatOpsTab;
+}
+
+@observer
+class ChatOpsPage extends React.Component<{}, ChatOpsState> {
+  state: ChatOpsState = {
+    activeTab: ChatOpsTab.Slack,
+  };
+
+  render() {
+    const { activeTab } = this.state;
+
+    return (
+      <div className={cx('root')}>
+        <div className={cx('tabs')}>
+          <Tabs
+            activeTab={activeTab}
+            onTabChange={(tab: ChatOpsTab) => {
+              this.setState({ activeTab: tab });
+            }}
+          />
+        </div>
+        <div className={cx('content')}>
+          <TabsContent activeTab={activeTab} />
+        </div>
+      </div>
+    );
+  }
+}
+
+export default withMobXProviderContext(ChatOpsPage);
 
 interface TabsProps {
   activeTab: string;
   onTabChange: (tab: string) => void;
 }
 
-export const Tabs = (props: TabsProps) => {
+const Tabs = (props: TabsProps) => {
   const { activeTab, onTabChange } = props;
 
   return (
@@ -43,7 +81,7 @@ interface TabsContentProps {
   activeTab: string;
 }
 
-export const TabsContent = (props: TabsContentProps) => {
+const TabsContent = (props: TabsContentProps) => {
   const { activeTab } = props;
 
   return (

@@ -771,3 +771,35 @@ def clean_slack_integration_leftovers(organization_id, *args, **kwargs):
     OnCallSchedule.objects.filter(organization_id=organization_id).update(channel=None)
     logger.info(f"Cleaned OnCallSchedule slack_channel_id for organization {organization_id}")
     logger.info(f"Finish clean slack leftovers for organization {organization_id}")
+
+
+@shared_dedicated_queue_retry_task(autoretry_for=(Exception,), retry_backoff=True, max_retries=10)
+def clean_slack_channel_leftovers(slack_team_identity_id, slack_channel_id):
+    """
+    This task removes binding to slack channel after channel arcived or deleted in slack.
+    """
+    SlackTeamIdentity = apps.get_model("slack", "SlackTeamIdentity")
+    ChannelFilter = apps.get_model("alerts", "ChannelFilter")
+    Organization = apps.get_model("user_management", "Organization")
+
+    try:
+        sti = SlackTeamIdentity.objects.get(id=slack_team_identity_id)
+    except SlackTeamIdentity.DoesNotExist:
+        logger.info(
+            f"Failed to clean_slack_channel_leftovers slack_channel_id={slack_channel_id} slack_team_identity_id={slack_team_identity_id} : Invalid slack_team_identity_id"
+        )
+        return
+
+    orgs_to_clean_general_log_channel_id = []
+    for org in sti.organizations.all():
+        if org.general_log_channel_id == slack_channel_id:
+            logger.info(
+                f"Set general_log_channel_id to None for org_id={org.id}  slack_channel_id={slack_channel_id} since slack_channel is arcived or deleted"
+            )
+            org.general_log_channel_id = None
+            orgs_to_clean_general_log_channel_id.append(org)
+        ChannelFilter.objects.filter(alert_receive_channel__organization=org, slack_channel_id=slack_channel_id).update(
+            slack_channel_id=None
+        )
+
+    Organization.objects.bulk_update(orgs_to_clean_general_log_channel_id, ["general_log_channel_id"], batch_size=5000)

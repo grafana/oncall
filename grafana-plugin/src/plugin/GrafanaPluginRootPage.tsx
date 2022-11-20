@@ -1,7 +1,9 @@
-import React, { useEffect, useMemo } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 
 import { AppRootProps } from '@grafana/data';
+import { locationService } from '@grafana/runtime';
 import { Button, HorizontalGroup, LinkButton } from '@grafana/ui';
+import classnames from 'classnames';
 import dayjs from 'dayjs';
 import isSameOrAfter from 'dayjs/plugin/isSameOrAfter';
 import isSameOrBefore from 'dayjs/plugin/isSameOrBefore';
@@ -10,17 +12,18 @@ import localeData from 'dayjs/plugin/localeData';
 import timezone from 'dayjs/plugin/timezone';
 import utc from 'dayjs/plugin/utc';
 import weekday from 'dayjs/plugin/weekday';
-import { observer, Provider } from 'mobx-react';
-
 import 'interceptors';
+import { observer, Provider } from 'mobx-react';
+import Header from 'navbar/Header/Header';
+import LegacyNavTabsBar from 'navbar/LegacyNavTabsBar';
 
 import DefaultPageLayout from 'containers/DefaultPageLayout/DefaultPageLayout';
-import GrafanaTeamSelect from 'containers/GrafanaTeamSelect/GrafanaTeamSelect';
 import logo from 'img/logo.svg';
 import { pages } from 'pages';
+import { routes } from 'pages/routes';
 import { rootStore } from 'state';
 import { useStore } from 'state/useStore';
-import { useNavModel } from 'utils/hooks';
+import { useQueryParams, useQueryPath } from 'utils/hooks';
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
@@ -30,10 +33,11 @@ dayjs.extend(isSameOrBefore);
 dayjs.extend(isSameOrAfter);
 dayjs.extend(isoWeek);
 
-import './style/vars.css';
-import './style/index.css';
+import 'style/vars.css';
+import 'style/global.css';
+import 'style/utils.css';
 
-import { AppFeature } from './state/features';
+import { isTopNavbar } from './GrafanaPluginRootPage.helpers';
 
 export const GrafanaPluginRootPage = (props: AppRootProps) => (
   <Provider store={rootStore}>
@@ -96,21 +100,18 @@ const RootWithLoader = observer((props: AppRootProps) => {
 });
 
 export const Root = observer((props: AppRootProps) => {
-  const {
-    path,
-    onNavChanged,
-    query: { page },
-    meta,
-  } = props;
+  const [didFinishLoading, setDidFinishLoading] = useState(false);
+  const queryParams = useQueryParams();
+  const page = queryParams.get('page');
+  const path = useQueryPath();
 
   // Required to support grafana instances that use a custom `root_url`.
   const pathWithoutLeadingSlash = path.replace(/^\//, '');
 
   const store = useStore();
-  const { backendLicense } = store;
 
   useEffect(() => {
-    store.updateBasicData();
+    updateBasicData();
   }, []);
 
   useEffect(() => {
@@ -126,33 +127,48 @@ export const Root = observer((props: AppRootProps) => {
     };
   }, []);
 
-  // Update the navigation when the page or path changes
-  const navModel = useNavModel(
-    useMemo(
-      () => ({
-        page,
-        pages,
-        path: pathWithoutLeadingSlash,
-        meta,
-        grafanaUser: window.grafanaBootData.user,
-        enableLiveSettings: store.hasFeature(AppFeature.LiveSettings),
-        enableCloudPage: store.hasFeature(AppFeature.CloudConnection),
-        backendLicense,
-      }),
-      [meta, pathWithoutLeadingSlash, page, store.features, backendLicense]
-    )
-  );
-  useEffect(() => {
-    /* @ts-ignore */
-    onNavChanged(navModel);
-  }, [navModel, onNavChanged]);
+  const updateBasicData = async () => {
+    await store.updateBasicData();
+    setDidFinishLoading(true);
+  };
 
-  const Page = pages.find(({ id }) => id === page)?.component || pages[0].component;
+  const Page = useMemo(() => getPageMatchingComponent(page), [page]);
+
+  if (!didFinishLoading) {
+    return null;
+  }
 
   return (
     <DefaultPageLayout {...props}>
-      <GrafanaTeamSelect currentPage={page} />
-      <Page {...props} path={pathWithoutLeadingSlash} />
+      {!isTopNavbar() && (
+        <>
+          <Header page={page} backendLicense={store.backendLicense} />
+          <nav className="page-container">
+            <LegacyNavTabsBar currentPage={page} />
+          </nav>
+        </>
+      )}
+
+      <div
+        className={classnames(
+          { 'page-container': !isTopNavbar() },
+          { 'page-body': !isTopNavbar() },
+          'u-position-relative'
+        )}
+      >
+        <Page {...props} path={pathWithoutLeadingSlash} store={store} />
+      </div>
     </DefaultPageLayout>
   );
 });
+
+function getPageMatchingComponent(pageId: string): (props?: any) => JSX.Element {
+  let matchingPage = routes[pageId];
+  if (!matchingPage) {
+    const defaultPageId = pages['incidents'].id;
+    matchingPage = routes[defaultPageId];
+    locationService.replace(pages[defaultPageId].path);
+  }
+
+  return matchingPage.component;
+}

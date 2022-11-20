@@ -1,9 +1,35 @@
+/* Navigation/Layout */
+
 .page-body {
   max-width: unset !important;
 }
 
+.oncall-header {
+  padding-top: 0;
+  padding-bottom: 36px;
+}
+
+.scrollbar-view [class*='-page-header'] {
+  margin-bottom: 0 !important;
+}
+
+.page-container.page-body {
+  flex-grow: 1 !important;
+}
+
 .page-container {
   max-width: unset !important;
+  flex-grow: unset !important;
+  flex-basis: unset !important;
+}
+
+.page-scrollbar-content > div:first-child {
+  flex-grow: 1;
+}
+
+.page-header__title {
+  padding-top: 0 !important;
+  margin-right: 8px;
 }
 
 /* This is for Grafana 8, remove later */

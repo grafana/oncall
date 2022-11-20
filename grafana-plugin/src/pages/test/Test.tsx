@@ -1,6 +1,7 @@
 import React from 'react';
 
 import { Button } from '@grafana/ui';
+import { PluginPage } from 'PluginPage';
 import cn from 'classnames/bind';
 import { observer } from 'mobx-react';
 
@@ -16,11 +17,13 @@ const cx = cn.bind(styles);
 class Test extends React.Component<any, any> {
   render() {
     return (
-      <div className={cx('root')}>
-        <WithPermissionControl userAction={UserAction.UpdateSchedules}>
-          {(disabled) => <Button disabled={disabled}>Click me!</Button>}
-        </WithPermissionControl>
-      </div>
+      <PluginPage>
+        <div className={cx('root')}>
+          <WithPermissionControl userAction={UserAction.UpdateSchedules}>
+            {(disabled) => <Button disabled={disabled}>Click me!</Button>}
+          </WithPermissionControl>
+        </div>
+      </PluginPage>
     );
   }
 }
