@@ -21,6 +21,8 @@ jobs:
           push: false
           load: true
           tags: oncall/engine:latest
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
 
       - name: Create k8s Kind Cluster
         uses: helm/kind-action@v1.3.0
