@@ -48,8 +48,8 @@ jobs:
 
       - name: Issue token
         run: |
-        export POD_NAME=$(kubectl get pods --namespace default -l "app.kubernetes.io/name=oncall,app.kubernetes.io/instance=release-oncall,app.kubernetes.io/component=engine" -o jsonpath="{.items[0].metadata.name}")
-        kubectl exec -it $POD_NAME -- bash -c "python manage.py issue_invite_for_the_frontend --override"
+          export POD_NAME=$(kubectl get pods --namespace default -l "app.kubernetes.io/name=oncall,app.kubernetes.io/instance=release-oncall,app.kubernetes.io/component=engine" -o jsonpath="{.items[0].metadata.name}")
+          kubectl exec -it $POD_NAME -- bash -c "python manage.py issue_invite_for_the_frontend --override"
 
       # GitHub Action reference: https://github.com/jupyterhub/action-k8s-namespace-report
       - name: Kubernetes namespace report
