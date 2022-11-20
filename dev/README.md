@@ -92,6 +92,7 @@ make start # start all of the docker containers
 make stop # stop all of the docker containers
 make restart # restart all docker containers
 make build # rebuild images (e.g. when changing requirements.txt)
+make make-migrations # generate Django migration files from model definitions
 
 # this will remove all of the images, containers, volumes, and networks
 # associated with your local OnCall developer setup

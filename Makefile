@@ -158,6 +158,9 @@ backend-bootstrap:
 backend-migrate:
 	$(call backend_command,python manage.py migrate)
 
+make-migrations:
+	$(call backend_command,python manage.py makemigrations)
+
 run-backend-server:
 	$(call backend_command,python manage.py runserver 0.0.0.0:8080)
 
