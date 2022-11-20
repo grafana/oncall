@@ -55,7 +55,7 @@ jobs:
       - name: Debug
         run: |
           echo $ONCALL_INTEGRATION_URL
-          echo "ONCALL_INTEGRATION_URL=test-0" >> $GITHUB_ENV
+          echo "TEST_ID=test-0" >> $GITHUB_ENV
 
       - name: Run local k6 test
         uses: grafana/k6-action@v0.2.0
