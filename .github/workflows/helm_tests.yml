@@ -11,10 +11,22 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v3
 
+      - name: Test docker build (no push)
+        uses: docker/build-push-action@v2
+        with:
+          context: ./engine
+          file: ./engine/Dockerfile
+          push: false
+          tags: oncall/engine:latest
+
       - name: Create k8s Kind Cluster
         uses: helm/kind-action@v1.3.0
         with:
           config: ./helm/ci/kind.yml
+
+      - name: Load image on the nodes of the cluster
+          run: |
+            kind load docker-image --name=kind oncall/engine:latest
 
       - name: Install helm chart
         run: helm install test-release helm/oncall --values helm/ci/simple.yml
