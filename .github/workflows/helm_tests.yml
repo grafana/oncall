@@ -2,7 +2,6 @@ name: Create Cluster
 
 on:
   - pull_request
-  - push
 
 jobs:
   create-cluster:
@@ -25,7 +24,7 @@ jobs:
           config: ./helm/ci/kind.yml
 
       - name: Load image on the nodes of the cluster
-        run: kind load docker-image --name=kind oncall/engine:latest
+        run: kind load docker-image --name=kind-chart-testing oncall/engine:latest
 
       - name: Install helm chart
         run: helm install test-release helm/oncall --values helm/ci/simple.yml
