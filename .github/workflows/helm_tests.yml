@@ -49,7 +49,7 @@ jobs:
       - name: Bootstrap organization
         run: |
           export POD_NAME=$(kubectl get pods --namespace default -l "app.kubernetes.io/name=oncall,app.kubernetes.io/instance=test-release,app.kubernetes.io/component=engine" -o jsonpath="{.items[0].metadata.name}")
-          export ONCALL_INTEGRATION_URL=http://host.docker.internal:30001$(kubectl exec -it $POD_NAME -- bash -c "python manage.py create_org_integration_for_e2e_test")
+          export ONCALL_INTEGRATION_URL=http://localhost:30001$(kubectl exec -it $POD_NAME -- bash -c "python manage.py create_org_integration_for_e2e_test")
           echo "ONCALL_INTEGRATION_URL=$ONCALL_INTEGRATION_URL" >> $GITHUB_ENV
 
       - name: Debug
@@ -57,10 +57,13 @@ jobs:
           echo $ONCALL_INTEGRATION_URL
           echo "TEST_ID=test-0" >> $GITHUB_ENV
 
-      - name: Run local k6 test
-        uses: grafana/k6-action@v0.2.0
-        with:
-          filename: helm/ci/k6new.js
+      # Running k6 on the local environment
+      # https://github.com/grafana/k6-action#side-by-side-with-the-system-under-test
+      - name: Install k6
+        run: |
+          curl https://github.com/loadimpact/k6/releases/download/v0.26.2/k6-v0.26.2-linux64.tar.gz -L | tar xvz --strip-components 1
+      - name: Start server and run tests
+        run: ./k6 run helm/ci/k6new.js
 
       # GitHub Action reference: https://github.com/jupyterhub/action-k8s-namespace-report
       - name: Kubernetes namespace report
