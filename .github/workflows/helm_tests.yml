@@ -13,7 +13,8 @@ jobs:
 
       - name: Create k8s Kind Cluster
         uses: helm/kind-action@v1.3.0
-        config: ./helm/ci/kind.yml
+        with:
+          config: ./helm/ci/kind.yml
 
       - name: Install helm chart
         run: helm install test-release helm/oncall --values helm/ci/simple.yml
