@@ -49,7 +49,7 @@ jobs:
       - name: Bootstrap organization
         run: |
           export POD_NAME=$(kubectl get pods --namespace default -l "app.kubernetes.io/name=oncall,app.kubernetes.io/instance=test-release,app.kubernetes.io/component=engine" -o jsonpath="{.items[0].metadata.name}")
-          export ONCALL_INTEGRATION_URL=http://localhost:30001$(kubectl exec -it $POD_NAME -- bash -c "python manage.py create_org_integration_for_e2e_test")
+          export ONCALL_INTEGRATION_URL=http://host.docker.internal:30001$(kubectl exec -it $POD_NAME -- bash -c "python manage.py create_org_integration_for_e2e_test")
           echo "ONCALL_INTEGRATION_URL=$ONCALL_INTEGRATION_URL" >> $GITHUB_ENV
 
       - name: Debug
