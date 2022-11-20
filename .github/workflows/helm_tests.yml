@@ -13,12 +13,7 @@ jobs:
 
       - name: Create k8s Kind Cluster
         uses: helm/kind-action@v1.3.0
-
-      - name: Check dir
-        run: ls helm/oncall
-
-      - name: Check kubectl
-        run: kubectl get pods
+        config: ./helm/ci/kind.yml
 
       - name: Install helm chart
         run: helm install test-release helm/oncall --values helm/ci/simple.yml
@@ -31,8 +26,8 @@ jobs:
           timeout: 300
           max-restarts: 0
 
-      - name: Check kubectl
-        run: kubectl get pods
+      - name: Ping
+        run: curl http://localhost:30001
 
       # GitHub Action reference: https://github.com/jupyterhub/action-k8s-namespace-report
       - name: Kubernetes namespace report
