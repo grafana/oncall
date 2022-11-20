@@ -1,8 +1,4 @@
 base_url: localhost:30001
-image:
-  repository: oncall/engine
-  tag: latest
-  pullPolicy: IfNotPresent
 ingress:
   enabled: false
 ingress-nginx:
