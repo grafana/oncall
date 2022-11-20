@@ -46,10 +46,20 @@ jobs:
       - name: Ping
         run: curl http://localhost:30001
 
-      - name: Issue token
+      - name: Bootstrap organization
         run: |
           export POD_NAME=$(kubectl get pods --namespace default -l "app.kubernetes.io/name=oncall,app.kubernetes.io/instance=test-release,app.kubernetes.io/component=engine" -o jsonpath="{.items[0].metadata.name}")
-          kubectl exec -it $POD_NAME -- bash -c "python manage.py issue_invite_for_the_frontend --override"
+          export ONCALL_INTEGRATION_URL=http://localhost:30001$(kubectl exec -it $POD_NAME -- bash -c "python manage.py create_org_integration_for_e2e_test")
+
+      - name: Debug
+        run: |
+          echo $ONCALL_INTEGRATION_URL
+          export TEST_ID=test-0
+
+      - name: Run local k6 test
+        uses: grafana/k6-action@v0.2.0
+        with:
+          filename: helm/ci/k6new.js
 
       # GitHub Action reference: https://github.com/jupyterhub/action-k8s-namespace-report
       - name: Kubernetes namespace report
