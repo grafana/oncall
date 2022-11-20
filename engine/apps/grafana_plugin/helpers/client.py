@@ -143,3 +143,6 @@ class GcomAPIClient(APIClient):
 
     def post_active_users(self, body):
         return self.api_post("app-active-users", body)
+
+    def get_stack_regions(self):
+        return self.api_get("stack-regions")

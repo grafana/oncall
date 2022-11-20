@@ -1,10 +1,12 @@
 import React from 'react';
 
 import { AppRootProps } from '@grafana/data';
-import { Button, HorizontalGroup } from '@grafana/ui';
+import { Button, VerticalGroup } from '@grafana/ui';
+import { PluginPage } from 'PluginPage';
 import cn from 'classnames/bind';
 import { observer } from 'mobx-react';
 import moment from 'moment-timezone';
+import LegacyNavHeading from 'navbar/LegacyNavHeading';
 import Emoji from 'react-emoji-render';
 
 import GTable from 'components/GTable/GTable';
@@ -15,6 +17,7 @@ import { WithPermissionControl } from 'containers/WithPermissionControl/WithPerm
 import { getAlertReceiveChannelDisplayName } from 'models/alert_receive_channel/alert_receive_channel.helpers';
 import { AlertReceiveChannel } from 'models/alert_receive_channel/alert_receive_channel.types';
 import { Maintenance, MaintenanceMode, MaintenanceType } from 'models/maintenance/maintenance.types';
+import { pages } from 'pages';
 import { WithStoreProps } from 'state/types';
 import { UserAction } from 'state/userAction';
 import { withMobXProviderContext } from 'state/withStore';
@@ -115,19 +118,21 @@ class MaintenancePage extends React.Component<MaintenancePageProps, MaintenanceP
     ];
 
     return (
-      <>
+      <PluginPage pageNav={pages['maintenance'].getPageNav()}>
         <div className={cx('root')}>
           <GTable
             emptyText={data ? 'No maintenances found' : 'Loading...'}
             title={() => (
               <div className={cx('header')}>
                 <div style={{ display: 'flex', alignItems: 'baseline' }}>
-                  <HorizontalGroup>
-                    <Text.Title level={3}>Maintenance</Text.Title>
-                    <Text type="secondary">
+                  <VerticalGroup>
+                    <LegacyNavHeading>
+                      <Text.Title level={3}>Maintenance</Text.Title>
+                    </LegacyNavHeading>
+                    <Text type="secondary" className={cx('title')}>
                       Mute noisy sources or use for debugging and avoid bothering your colleagues.
                     </Text>
-                  </HorizontalGroup>
+                  </VerticalGroup>
                 </div>
                 <WithPermissionControl userAction={UserAction.UpdateMaintenances}>
                   <Button
@@ -156,7 +161,7 @@ class MaintenancePage extends React.Component<MaintenancePageProps, MaintenanceP
             }}
           />
         )}
-      </>
+      </PluginPage>
     );
   }
 

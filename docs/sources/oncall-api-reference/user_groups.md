@@ -1,9 +1,8 @@
 ---
 aliases:
-  - /docs/grafana-cloud/oncall/oncall-api-reference/user_groups/
   - /docs/oncall/latest/oncall-api-reference/user_groups/
+canonical: https://grafana.com/docs/oncall/latest/oncall-api-reference/user_groups/
 title: OnCall User Groups HTTP API
-canonical: "https://grafana.com/docs/oncall/latest/oncall-api-reference/user_groups/"
 weight: 1400
 ---
 

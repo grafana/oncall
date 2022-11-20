@@ -8,6 +8,10 @@ export enum UserRole {
   VIEWER,
 }
 
+export interface MessagingBackends {
+  [key: string]: any;
+}
+
 export interface User {
   pk: string;
   slack_login: string;
@@ -26,9 +30,7 @@ export interface User {
     telegram_nick_name: string;
     telegram_chat_id: number; // TODO check if string
   };
-  messaging_backends: {
-    [key: string]: any;
-  };
+  messaging_backends: MessagingBackends;
   notification_chain_verbal: {
     default: string;
     important: string;

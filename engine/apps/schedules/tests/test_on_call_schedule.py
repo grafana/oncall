@@ -235,7 +235,7 @@ def test_filter_events_ical_all_day(make_organization, make_user_for_organizatio
     organization = make_organization()
     schedule = make_schedule(organization, schedule_class=OnCallScheduleCalendar)
     schedule.cached_ical_file_primary = calendar.to_ical()
-    for u in ("@Bernard Desruisseaux", "@Bob", "@Alex"):
+    for u in ("@Bernard Desruisseaux", "@Bob", "@Alex", "@Alice"):
         make_user_for_organization(organization, username=u)
     # clear users pks <-> organization cache (persisting between tests)
     memoized_users_in_ical.cache_clear()
@@ -246,14 +246,44 @@ def test_filter_events_ical_all_day(make_organization, make_user_for_organizatio
 
     events = schedule.final_events("UTC", start_date, days=2)
     expected_events = [
-        # all_day, users, start
-        (False, ["@Bernard Desruisseaux"], datetime.datetime(2021, 1, 26, 8, 0, tzinfo=pytz.UTC)),
-        (True, ["@Alex"], datetime.date(2021, 1, 27)),
-        (False, ["@Bob"], datetime.datetime(2021, 1, 27, 8, 0, tzinfo=pytz.UTC)),
+        # all_day, users, start, end
+        (
+            False,
+            ["@Bernard Desruisseaux"],
+            datetime.datetime(2021, 1, 26, 8, 0, tzinfo=pytz.UTC),
+            datetime.datetime(2021, 1, 26, 17, 0, tzinfo=pytz.UTC),
+        ),
+        (
+            True,
+            ["@Alex"],
+            datetime.datetime(2021, 1, 27, 0, 0, tzinfo=pytz.UTC),
+            datetime.datetime(2021, 1, 27, 23, 59, 59, 999999, tzinfo=pytz.UTC),
+        ),
+        (
+            True,
+            ["@Alice"],
+            datetime.datetime(2021, 1, 27, 0, 0, tzinfo=pytz.UTC),
+            datetime.datetime(2021, 1, 28, 23, 59, 59, 999999, tzinfo=pytz.UTC),
+        ),
+        (
+            False,
+            ["@Bob"],
+            datetime.datetime(2021, 1, 27, 8, 0, tzinfo=pytz.UTC),
+            datetime.datetime(2021, 1, 27, 17, 0, tzinfo=pytz.UTC),
+        ),
     ]
-    expected = [{"all_day": all_day, "users": users, "start": start} for all_day, users, start in expected_events]
+    expected = [
+        {"all_day": all_day, "users": users, "start": start, "end": end}
+        for all_day, users, start, end in expected_events
+    ]
     returned = [
-        {"all_day": e["all_day"], "users": [u["display_name"] for u in e["users"]], "start": e["start"]} for e in events
+        {
+            "all_day": e["all_day"],
+            "users": [u["display_name"] for u in e["users"]],
+            "start": e["start"],
+            "end": e["end"],
+        }
+        for e in events
     ]
     assert returned == expected
 
@@ -353,6 +383,86 @@ def test_final_schedule_events(make_organization, make_user_for_organization, ma
             "user": e["users"][0]["display_name"] if e["users"] else None,
         }
         for e in returned_events
+    ]
+    assert returned_events == expected_events
+
+
+@pytest.mark.django_db
+def test_final_schedule_override_no_priority_shift(
+    make_organization, make_user_for_organization, make_on_call_shift, make_schedule
+):
+    organization = make_organization()
+    schedule = make_schedule(
+        organization,
+        schedule_class=OnCallScheduleWeb,
+        name="test_web_schedule",
+    )
+
+    now = timezone.now().replace(hour=0, minute=0, second=0, microsecond=0)
+    start_date = now - timezone.timedelta(days=7)
+
+    user_a, user_b = (make_user_for_organization(organization, username=i) for i in "AB")
+    # clear users pks <-> organization cache (persisting between tests)
+    memoized_users_in_ical.cache_clear()
+
+    shifts = (
+        # user, priority, start time (h), duration (hs)
+        (user_a, 0, 10, 5),  # 10-15 / A
+    )
+    for user, priority, start_h, duration in shifts:
+        data = {
+            "start": start_date + timezone.timedelta(hours=start_h),
+            "rotation_start": start_date + timezone.timedelta(hours=start_h),
+            "duration": timezone.timedelta(hours=duration),
+            "priority_level": priority,
+            "frequency": CustomOnCallShift.FREQUENCY_DAILY,
+            "schedule": schedule,
+        }
+        on_call_shift = make_on_call_shift(
+            organization=organization, shift_type=CustomOnCallShift.TYPE_ROLLING_USERS_EVENT, **data
+        )
+        on_call_shift.add_rolling_users([[user]])
+
+    # override: 10-15 / B
+    override_data = {
+        "start": start_date + timezone.timedelta(hours=10),
+        "rotation_start": start_date + timezone.timedelta(hours=5),
+        "duration": timezone.timedelta(hours=5),
+        "schedule": schedule,
+    }
+    override = make_on_call_shift(
+        organization=organization, shift_type=CustomOnCallShift.TYPE_OVERRIDE, **override_data
+    )
+    override.add_rolling_users([[user_b]])
+
+    returned_events = schedule.final_events("UTC", start_date, days=1)
+
+    expected = (
+        # start (h), duration (H), user, priority, is_override
+        (10, 5, "B", None, True),  # 10-15 B
+    )
+    expected_events = [
+        {
+            "calendar_type": 1 if is_override else 0,
+            "end": start_date + timezone.timedelta(hours=start + duration),
+            "is_override": is_override,
+            "priority_level": priority,
+            "start": start_date + timezone.timedelta(hours=start, milliseconds=1 if start == 0 else 0),
+            "user": user,
+        }
+        for start, duration, user, priority, is_override in expected
+    ]
+    returned_events = [
+        {
+            "calendar_type": e["calendar_type"],
+            "end": e["end"],
+            "is_override": e["is_override"],
+            "priority_level": e["priority_level"],
+            "start": e["start"],
+            "user": e["users"][0]["display_name"] if e["users"] else None,
+        }
+        for e in returned_events
+        if not e["is_gap"]
     ]
     assert returned_events == expected_events
 

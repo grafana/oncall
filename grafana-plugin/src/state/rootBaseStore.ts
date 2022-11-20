@@ -29,6 +29,7 @@ import { Timezone } from 'models/timezone/timezone.types';
 import { UserStore } from 'models/user/user';
 import { UserGroupStore } from 'models/user_group/user_group';
 import { makeRequest } from 'network';
+import { NavMenuItem } from 'pages/routes';
 
 import { AppFeature } from './features';
 import {
@@ -99,6 +100,9 @@ export class RootBaseStore {
   @observable
   onCallApiUrl: string;
 
+  @observable
+  navMenuItem: NavMenuItem;
+
   // --------------------------
 
   userStore: UserStore = new UserStore(this);
@@ -125,17 +129,18 @@ export class RootBaseStore {
   // stores
 
   async updateBasicData() {
-    this.userStore.loadCurrentUser();
-    this.teamStore.loadCurrentTeam();
-    this.grafanaTeamStore.updateItems();
-    this.updateFeatures();
-    this.userStore.updateNotificationPolicyOptions();
-    this.userStore.updateNotifyByOptions();
-    this.alertReceiveChannelStore.updateAlertReceiveChannelOptions();
-    this.alertReceiveChannelStore.updateAlertReceiveChannelOptions();
-    this.escalationPolicyStore.updateWebEscalationPolicyOptions();
-    this.escalationPolicyStore.updateEscalationPolicyOptions();
-    this.escalationPolicyStore.updateNumMinutesInWindowOptions();
+    return Promise.all([
+      this.teamStore.loadCurrentTeam(),
+      this.grafanaTeamStore.updateItems(),
+      this.updateFeatures(),
+      this.userStore.updateNotificationPolicyOptions(),
+      this.userStore.updateNotifyByOptions(),
+      this.alertReceiveChannelStore.updateAlertReceiveChannelOptions(),
+      this.alertReceiveChannelStore.updateAlertReceiveChannelOptions(),
+      this.escalationPolicyStore.updateWebEscalationPolicyOptions(),
+      this.escalationPolicyStore.updateEscalationPolicyOptions(),
+      this.escalationPolicyStore.updateNumMinutesInWindowOptions(),
+    ]);
   }
 
   async getUserRole() {
@@ -154,7 +159,14 @@ export class RootBaseStore {
     }
     this.backendVersion = get_sync_response.version;
     this.backendLicense = get_sync_response.license;
-    this.appLoading = false;
+
+    try {
+      await this.userStore.loadCurrentUser();
+
+      this.appLoading = false;
+    } catch (e) {
+      this.initializationError = 'OnCall was not able to initialize current user';
+    }
   }
 
   handleSyncException(e: any) {

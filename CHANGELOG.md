@@ -1,5 +1,31 @@
 # Change Log
 
+## v1.1.2 (2022-16-09)
+
+- Bug Fixes
+
+## v1.1.1 (2022-16-09)
+
+- Compatibility with Grafana 9.3.0
+- Bug Fixes
+
+## v1.0.52 (2022-11-09)
+
+- Allow use of API keys as alternative to account auth token for Twilio
+- Remove `grafana_plugin_management` Django app
+- Enable new schedules UI
+- Bug fixes
+
+## v1.0.51 (2022-11-05)
+
+- Bug Fixes
+
+## v1.0.50 (2022-11-03)
+
+- Updates to documentation
+- Improvements to web schedules
+- Bug fixes
+
 ## v1.0.49 (2022-11-01)
 
 - Enable SMTP email backend by default

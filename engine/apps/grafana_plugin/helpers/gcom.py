@@ -57,6 +57,7 @@ def check_gcom_permission(token_string: str, context) -> Optional["GcomToken"]:
                 org_id=str(instance_info["orgId"]),
                 org_slug=instance_info["orgSlug"],
                 org_title=instance_info["orgName"],
+                region_slug=instance_info["regionSlug"],
                 gcom_token=token_string,
                 gcom_token_org_last_time_synced=timezone.now(),
             )
@@ -64,6 +65,7 @@ def check_gcom_permission(token_string: str, context) -> Optional["GcomToken"]:
         organization.stack_slug = instance_info["slug"]
         organization.org_slug = instance_info["orgSlug"]
         organization.org_title = instance_info["orgName"]
+        organization.region_slug = instance_info["regionSlug"]
         organization.grafana_url = instance_info["url"]
         organization.gcom_token = token_string
         organization.gcom_token_org_last_time_synced = timezone.now()
@@ -72,6 +74,7 @@ def check_gcom_permission(token_string: str, context) -> Optional["GcomToken"]:
                 "stack_slug",
                 "org_slug",
                 "org_title",
+                "region_slug",
                 "grafana_url",
                 "gcom_token",
                 "gcom_token_org_last_time_synced",
@@ -109,3 +112,16 @@ def get_active_instance_ids() -> Tuple[Optional[set], bool]:
 
 def get_deleted_instance_ids() -> Tuple[Optional[set], bool]:
     return get_instance_ids(GcomAPIClient.DELETED_INSTANCE_QUERY)
+
+
+def get_stack_regions() -> Tuple[Optional[set], bool]:
+    if not settings.GRAFANA_COM_API_TOKEN or settings.LICENSE != settings.CLOUD_LICENSE_NAME:
+        return None, False
+
+    client = GcomAPIClient(settings.GRAFANA_COM_API_TOKEN)
+    regions, status = client.get_stack_regions()
+
+    if not regions or "items" not in regions:
+        return None, True
+
+    return regions["items"], True
