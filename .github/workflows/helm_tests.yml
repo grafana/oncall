@@ -45,7 +45,6 @@ jobs:
 
       - name: Ping
         run: |
-          curl localhost:30001
           curl http://localhost:30001
           curl -X POST \
             http://localhost:30001/oncall/integrations/v1/formatted_webhook/E6YA0eZrs24CrPT9xLnHwNIcG/ \
