@@ -43,21 +43,6 @@ jobs:
           timeout: 300
           max-restarts: 0
 
-      - name: Ping
-        run: |
-          curl http://localhost:30001
-          curl -X POST \
-            http://localhost:30001/oncall/integrations/v1/formatted_webhook/E6YA0eZrs24CrPT9xLnHwNIcG/ \
-            -H 'Content-Type: Application/json' \
-            -d '{
-              "alert_uid": "08d6891a-835c-e661-39fa-96b6a9e26552",
-              "title": "The whole system is down",
-              "image_url": "https://upload.wikimedia.org/wikipedia/commons/e/ee/Grumpy_Cat_by_Gage_Skidmore.jpg",
-              "state": "alerting",
-              "link_to_upstream_details": "https://en.wikipedia.org/wiki/Downtime",
-              "message": "Smth happened. Oh no!"
-          }'
-
       - name: Bootstrap organization
         run: |
           export POD_NAME=$(kubectl get pods --namespace default -l "app.kubernetes.io/name=oncall,app.kubernetes.io/instance=test-release,app.kubernetes.io/component=engine" -o jsonpath="{.items[0].metadata.name}")
@@ -68,6 +53,18 @@ jobs:
         run: |
           echo $ONCALL_INTEGRATION_URL
           echo "TEST_ID=test-0" >> $GITHUB_ENV
+          curl http://localhost:30001
+          curl -X POST \
+            $ONCALL_INTEGRATION_URL \
+            -H 'Content-Type: Application/json' \
+            -d '{
+              "alert_uid": "08d6891a-835c-e661-39fa-96b6a9e26552",
+              "title": "The whole system is down",
+              "image_url": "https://upload.wikimedia.org/wikipedia/commons/e/ee/Grumpy_Cat_by_Gage_Skidmore.jpg",
+              "state": "alerting",
+              "link_to_upstream_details": "https://en.wikipedia.org/wiki/Downtime",
+              "message": "Smth happened. Oh no!"
+          }'
 
       # Running k6 on the local environment
       # https://github.com/grafana/k6-action#side-by-side-with-the-system-under-test
