@@ -68,7 +68,7 @@ router.register(r"tokens", PublicApiTokenView, basename="api_token")
 router.register(r"live_settings", LiveSettingViewSet, basename="live_settings")
 router.register(r"oncall_shifts", OnCallShiftView, basename="oncall_shifts")
 
-if settings.MOBILE_APP_PUSH_NOTIFICATIONS_ENABLED:
+if settings.FEATURE_MOBILE_APP_INTEGRATION_ENABLED:
     router.register(r"device/apns", APNSDeviceAuthorizedViewSet)
 
 urlpatterns = [

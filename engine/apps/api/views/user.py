@@ -477,7 +477,7 @@ class UserView(
     def mobile_app_verification_token(self, request, pk):
         DynamicSetting = apps.get_model("base", "DynamicSetting")
 
-        if not settings.MOBILE_APP_PUSH_NOTIFICATIONS_ENABLED:
+        if not settings.FEATURE_MOBILE_APP_INTEGRATION_ENABLED:
             return Response(status=status.HTTP_404_NOT_FOUND)
 
         mobile_app_settings = DynamicSetting.objects.get_or_create(
@@ -537,7 +537,7 @@ class UserView(
     def mobile_app_auth_token(self, request):
         DynamicSetting = apps.get_model("base", "DynamicSetting")
 
-        if not settings.MOBILE_APP_PUSH_NOTIFICATIONS_ENABLED:
+        if not settings.FEATURE_MOBILE_APP_INTEGRATION_ENABLED:
             return Response(status=status.HTTP_404_NOT_FOUND)
 
         mobile_app_settings = DynamicSetting.objects.get_or_create(
