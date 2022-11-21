@@ -62,7 +62,6 @@ def test_create_task(
         },
     )
     for _ in range(30):
-        print(TEST_ID)
         alert_groups_count = AlertGroup.all_objects.filter(web_title_cache=TEST_ID).count()
         if alert_groups_count > 0:
             break
