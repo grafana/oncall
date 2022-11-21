@@ -65,15 +65,6 @@ jobs:
               "message": "Smth happened. Oh no!"
             }'
 
-      # Running k6 on the local environment
-      # Commenting out because doesn't work for the local server
-      # https://github.com/grafana/k6-action#side-by-side-with-the-system-under-test
-#      - name: Install k6
-#        run: |
-#          curl https://github.com/loadimpact/k6/releases/download/v0.26.2/k6-v0.26.2-linux64.tar.gz -L | tar xvz --strip-components 1
-#      - name: Start server and run tests
-#        run: ./k6 run helm/k6.js
-
       # GitHub Action reference: https://github.com/jupyterhub/action-k8s-namespace-report
       - name: Kubernetes namespace report
         uses: jupyterhub/action-k8s-namespace-report@v1
