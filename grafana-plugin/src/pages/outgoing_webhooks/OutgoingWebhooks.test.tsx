@@ -57,10 +57,10 @@ describe('OutgoingWebhooks', () => {
   test('It renders all retrieved webhooks', async () => {
     render(<OutgoingWebhooks {...getProps()} />);
 
-    const gTable = screen.queryByTestId('test__gTable');
-    const rows = gTable.querySelectorAll('tbody tr');
-
     await waitFor(() => {
+      const gTable = screen.queryByTestId('test__gTable');
+      const rows = gTable.querySelectorAll('tbody tr');
+
       expect(() => queryEditForm()).toThrow(); // edit doesn't show for [id=undefined]
       expect(rows.length).toBe(outgoingWebhooks.length);
     });
