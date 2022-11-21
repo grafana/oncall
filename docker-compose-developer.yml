@@ -20,6 +20,7 @@ x-env-files: &oncall-env-files
 
 x-env-vars: &oncall-env-vars
   BROKER_TYPE: ${BROKER_TYPE}
+  GRAFANA_API_URL: http://grafana:3000
 
 services:
   oncall_ui:
@@ -29,6 +30,8 @@ services:
       context: ./grafana-plugin
       dockerfile: Dockerfile.dev
       labels: *oncall-labels
+    environment:
+      ONCALL_API_URL: http://host.docker.internal:8080
     volumes:
       - ./grafana-plugin:/etc/app
       - /etc/app/node_modules

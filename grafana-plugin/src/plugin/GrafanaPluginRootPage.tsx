@@ -1,8 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 
-import { AppRootProps } from '@grafana/data';
 import { locationService } from '@grafana/runtime';
-import { Button, HorizontalGroup, LinkButton } from '@grafana/ui';
 import classnames from 'classnames';
 import dayjs from 'dayjs';
 import isSameOrAfter from 'dayjs/plugin/isSameOrAfter';
@@ -12,13 +10,13 @@ import localeData from 'dayjs/plugin/localeData';
 import timezone from 'dayjs/plugin/timezone';
 import utc from 'dayjs/plugin/utc';
 import weekday from 'dayjs/plugin/weekday';
-import 'interceptors';
 import { observer, Provider } from 'mobx-react';
 import Header from 'navbar/Header/Header';
 import LegacyNavTabsBar from 'navbar/LegacyNavTabsBar';
+import { AppRootProps } from 'types';
 
 import DefaultPageLayout from 'containers/DefaultPageLayout/DefaultPageLayout';
-import logo from 'img/logo.svg';
+import 'interceptors';
 import { pages } from 'pages';
 import { routes } from 'pages/routes';
 import { rootStore } from 'state';
@@ -38,66 +36,13 @@ import 'style/global.css';
 import 'style/utils.css';
 
 import { isTopNavbar } from './GrafanaPluginRootPage.helpers';
+import PluginSetup from './PluginSetup';
 
 export const GrafanaPluginRootPage = (props: AppRootProps) => (
   <Provider store={rootStore}>
-    <RootWithLoader {...props} />
+    <PluginSetup InitializedComponent={Root} {...props} />
   </Provider>
 );
-
-const RootWithLoader = observer((props: AppRootProps) => {
-  const store = useStore();
-
-  useEffect(() => {
-    store.setupPlugin(props.meta);
-  }, []);
-
-  if (store.appLoading) {
-    let text = 'Initializing plugin...';
-
-    if (!store.pluginIsInitialized) {
-      text = '🚫 Plugin has not been initialized';
-    } else if (!store.correctProvisioningForInstallation) {
-      text = '🚫 Plugin could not be initialized due to provisioning error';
-    } else if (!store.correctRoleForInstallation) {
-      text = '🚫 Admin must sign on to setup OnCall before a Viewer can use it';
-    } else if (!store.signupAllowedForPlugin) {
-      text = '🚫 OnCall has temporarily disabled signup of new users. Please try again later.';
-    } else if (store.initializationError) {
-      text = `🚫 Error during initialization: ${store.initializationError}`;
-    } else if (store.isUserAnonymous) {
-      text = '😞 Unfortunately Grafana OnCall is available for authorized users only, please sign in to proceed.';
-    } else if (store.retrySync) {
-      text = `🚫 OnCall took too many tries to synchronize... Are background workers up and running?`;
-    }
-
-    return (
-      <div className="spin">
-        <img alt="Grafana OnCall Logo" src={logo} />
-        <div className="spin-text">{text}</div>
-        {!store.pluginIsInitialized ||
-        !store.correctProvisioningForInstallation ||
-        store.initializationError ||
-        store.retrySync ? (
-          <div className="configure-plugin">
-            <HorizontalGroup>
-              <Button variant="primary" onClick={() => store.setupPlugin(props.meta)} size="sm">
-                Retry
-              </Button>
-              <LinkButton href={`/plugins/grafana-oncall-app?page=configuration`} variant="primary" size="sm">
-                Configure Plugin
-              </LinkButton>
-            </HorizontalGroup>
-          </div>
-        ) : (
-          <></>
-        )}
-      </div>
-    );
-  }
-
-  return <Root {...props} />;
-});
 
 export const Root = observer((props: AppRootProps) => {
   const [didFinishLoading, setDidFinishLoading] = useState(false);

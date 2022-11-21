@@ -1,6 +1,5 @@
 import React from 'react';
 
-import { AppRootProps } from '@grafana/data';
 import { Button, VerticalGroup } from '@grafana/ui';
 import { PluginPage } from 'PluginPage';
 import cn from 'classnames/bind';
@@ -8,6 +7,7 @@ import { observer } from 'mobx-react';
 import moment from 'moment-timezone';
 import LegacyNavHeading from 'navbar/LegacyNavHeading';
 import Emoji from 'react-emoji-render';
+import { AppRootProps } from 'types';
 
 import GTable from 'components/GTable/GTable';
 import Text from 'components/Text/Text';

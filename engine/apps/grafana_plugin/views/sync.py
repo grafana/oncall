@@ -21,13 +21,15 @@ class PluginSyncView(GrafanaHeadersMixin, APIView):
     def post(self, request: Request) -> Response:
         stack_id = self.instance_context["stack_id"]
         org_id = self.instance_context["org_id"]
-
         is_installed = False
+
         try:
             organization = Organization.objects.get(stack_id=stack_id, org_id=org_id)
+
             if organization.api_token_status == Organization.API_TOKEN_STATUS_OK:
                 is_installed = True
             organization.api_token_status = Organization.API_TOKEN_STATUS_PENDING
+
             organization.save(update_fields=["api_token_status"])
             plugin_sync_organization_async.apply_async((organization.pk,))
         except Organization.DoesNotExist:
@@ -49,11 +51,11 @@ class PluginSyncView(GrafanaHeadersMixin, APIView):
             },
         )
 
-    def get(self, request: Request) -> Response:
+    def get(self, _request: Request) -> Response:
         stack_id = self.instance_context["stack_id"]
         org_id = self.instance_context["org_id"]
-
         token_ok = False
+
         try:
             organization = Organization.objects.get(stack_id=stack_id, org_id=org_id)
             if organization.api_token_status == Organization.API_TOKEN_STATUS_PENDING:
