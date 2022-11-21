@@ -51,7 +51,7 @@ export default function PageErrorHandlingWrapper({
   const store = useStore();
 
   if (!errorData || !errorData.isWrongTeamError) {
-    return <>{children}</>;
+    return <>{children()}</>;
   }
 
   const currentTeamId = store.userStore.currentUser?.current_team;
