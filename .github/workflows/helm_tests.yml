@@ -1,4 +1,4 @@
-name: Create Cluster
+name: Helm End to End Testing
 
 on:
   - pull_request
