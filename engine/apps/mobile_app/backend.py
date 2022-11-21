@@ -10,6 +10,14 @@ class MobileAppBackend(BaseMessagingBackend):
     short_label = "Mobile app"
     available_for_use = True
 
+    def generate_user_verification_code(self, user):
+        # TODO: add QR code generation (base64 encode?), see apps.api.views.user.UserView.mobile_app_verification_token
+        pass
+
+    def unlink_user(self, user):
+        # TODO: add mobile app revoke logic, see apps.api.views.user.UserView.mobile_app_verification_token
+        pass
+
     def serialize_user(self, user):
         # TODO: add Android support using GCMDevice
         return {"connected": APNSDevice.objects.filter(user_id=user.pk).exists()}
