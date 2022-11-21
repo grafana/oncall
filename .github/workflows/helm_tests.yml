@@ -43,13 +43,13 @@ jobs:
           timeout: 300
           max-restarts: 0
 
-      - name: Bootstrap organization
+      - name: Bootstrap organization and integration
         run: |
           export POD_NAME=$(kubectl get pods --namespace default -l "app.kubernetes.io/name=oncall,app.kubernetes.io/instance=test-release,app.kubernetes.io/component=engine" -o jsonpath="{.items[0].metadata.name}")
           export ONCALL_INTEGRATION_URL=http://localhost:30001$(kubectl exec -it $POD_NAME -- bash -c "python manage.py setup_end_to_end_test --bootstrap_integration")
           echo "ONCALL_INTEGRATION_URL=$ONCALL_INTEGRATION_URL" >> $GITHUB_ENV
 
-      - name: Debug
+      - name: Send an alert to the integration
         run: |
           echo $ONCALL_INTEGRATION_URL
           export TEST_ID=test-0
@@ -81,7 +81,19 @@ jobs:
 
       - name: Check test results # Sleep 30 should be changed to until loop
         run: |
-          sleep 30
           export POD_NAME=$(kubectl get pods --namespace default -l "app.kubernetes.io/name=oncall,app.kubernetes.io/instance=test-release,app.kubernetes.io/component=engine" -o jsonpath="{.items[0].metadata.name}")
-          export TEST_RESULT=$(kubectl exec -it $POD_NAME -- bash -c "python manage.py setup_end_to_end_test --return_results_for_test_id $TEST_ID")
-          echo $TEST_RESULT
+          tries=30
+          while [ "$tries" -gt 0 ]; do
+              if $(kubectl exec -it $POD_NAME -- bash -c "python manage.py setup_end_to_end_test --return_results_for_test_id $TEST_ID") | grep -q '1, 1'
+              then
+                  break
+              fi
+
+              tries=$(( tries - 1 ))
+              sleep 1
+          done
+
+          if [ "$tries" -eq 0 ]; then
+              echo 'Epected "1, 1" (alert groups, alerts). They were not created in 30 seconds during this integration test. Something is broken' >&2
+              exit 1
+          fi
