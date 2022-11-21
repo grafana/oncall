@@ -54,17 +54,16 @@ jobs:
           echo $ONCALL_INTEGRATION_URL
           export TEST_ID=test-0
           echo "TEST_ID=$TEST_ID" >> $GITHUB_ENV
-          curl -X POST \
-            "$ONCALL_INTEGRATION_URL" \
+          curl -X POST "$ONCALL_INTEGRATION_URL" \
             -H 'Content-Type: Application/json' \
-            -d '{ \
-              "alert_uid": "08d6891a-835c-e661-39fa-96b6a9e26552", \
-              "title": "$TEST_ID", \
-              "image_url": "https://upload.wikimedia.org/wikipedia/commons/e/ee/Grumpy_Cat_by_Gage_Skidmore.jpg", \
-              "state": "alerting", \
-              "link_to_upstream_details": "https://en.wikipedia.org/wiki/Downtime", \
-              "message": "Smth happened. Oh no!" \
-          }'
+            -d '{
+              "alert_uid": "08d6891a-835c-e661-39fa-96b6a9e26552",
+              "title": "$TEST_ID",
+              "image_url": "https://upload.wikimedia.org/wikipedia/commons/e/ee/Grumpy_Cat_by_Gage_Skidmore.jpg",
+              "state": "alerting",
+              "link_to_upstream_details": "https://en.wikipedia.org/wiki/Downtime",
+              "message": "Smth happened. Oh no!"
+            }'
 
       # Running k6 on the local environment
       # Commenting out because doesn't work for the local server
