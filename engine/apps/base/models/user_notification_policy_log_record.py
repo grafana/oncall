@@ -287,10 +287,6 @@ class UserNotificationPolicyLogRecord(models.Model):
                     result += f"called {user_verbal} by phone"
                 elif notification_channel == UserNotificationPolicy.NotificationChannel.TELEGRAM:
                     result += f"sent telegram message to {user_verbal}"
-                elif notification_channel == UserNotificationPolicy.NotificationChannel.MOBILE_PUSH_GENERAL:
-                    result += f"sent push notifications to {user_verbal}"
-                elif notification_channel == UserNotificationPolicy.NotificationChannel.MOBILE_PUSH_CRITICAL:
-                    result += f"sent push critical notifications to {user_verbal}"
                 elif notification_channel is None:
                     result += f"invited {user_verbal} but notification channel is unspecified"
                 else:
