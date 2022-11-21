@@ -62,12 +62,29 @@ define run_engine_docker_command
 endef
 
 # touch SQLITE_DB_FILE if it does not exist and DB is eqaul to SQLITE_PROFILE
+#
+# hostess installation (crossplatform/idempotent modification of /etc/hosts file)
+# see here (https://github.com/cbednarski/hostess#installation) for docs
+# basically this is needed because oncall api has been configured locally to communicate w/ grafana @
+# http://grafana:3000. This becomes a problem in certain parts of OnCall where we generate "public" URLs
+# and the user tries to access them via their browser.
 start:
 ifeq ($(DB),$(SQLITE_PROFILE))
 	@if [ ! -f $(SQLITE_DB_FILE) ]; then \
 		touch $(SQLITE_DB_FILE); \
 	fi
 endif
+
+	@if [ ! -x "$$(command -v hostess)" ]; then \
+		echo "installing hostess"; \
+		git clone https://github.com/cbednarski/hostess "${HOME}/hostess"; \
+		cd "${HOME}/hostess"; \
+		make install; \
+	fi
+
+	@if ! hostess has grafana; then \
+		sudo hostess add grafana 127.0.0.1; \
+	fi
 
 	$(call run_docker_compose_command,up --remove-orphans -d)
 

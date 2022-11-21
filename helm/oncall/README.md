@@ -275,3 +275,9 @@ redis-data-release-oncall-redis-replicas-1 redis-data-release-oncall-redis-repli
 ```bash
 kubectl delete secrets certificate-tls release-oncall-cert-manager-webhook-ca release-oncall-ingress-nginx-admission
 ```
+
+## Troubleshooting
+
+### Issues during initial configuration
+
+In the event that you run into issues during initial configuration, it is possible that mismatching versions between your OnCall backend and UI is the culprit. Ensure that the versions match, and if not consider updating your `helm` deployment.
