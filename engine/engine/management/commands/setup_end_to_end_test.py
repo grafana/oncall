@@ -46,6 +46,8 @@ class Command(BaseCommand):
             )
             return url
         elif test_id := options["return_results_for_test_id"]:
+            print(AlertGroup.all_objects.count())
+            print(AlertGroup.all_objects.last().web_title_cache)
             alert_groups_pks = list(AlertGroup.all_objects.filter(web_title_cache=test_id).values_list("id", flat=True))
             alert_groups_count = len(alert_groups_pks)
             alerts_count = Alert.objects.filter(group_id__in=alert_groups_pks).count()
