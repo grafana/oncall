@@ -1,4 +1,4 @@
-from typing import Tuple
+from typing import Optional, Tuple
 
 from rest_framework import exceptions
 from rest_framework.authentication import BaseAuthentication, get_authorization_header
@@ -29,14 +29,14 @@ class MobileAppVerificationTokenAuthentication(BaseAuthentication):
 class MobileAppAuthTokenAuthentication(BaseAuthentication):
     model = MobileAppAuthToken
 
-    def authenticate(self, request) -> Tuple[User, MobileAppAuthToken]:
+    def authenticate(self, request) -> Optional[Tuple[User, MobileAppAuthToken]]:
         auth = get_authorization_header(request).decode("utf-8")
         user, auth_token = self.authenticate_credentials(auth)
         if user is None:
             return None
         return user, auth_token
 
-    def authenticate_credentials(self, token_string: str) -> Tuple[User, MobileAppAuthToken]:
+    def authenticate_credentials(self, token_string: str) -> Tuple[Optional[User], Optional[MobileAppAuthToken]]:
         try:
             auth_token = self.model.validate_token_string(token_string)
         except InvalidToken:
