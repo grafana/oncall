@@ -117,7 +117,7 @@ oncall:
 migrate:
   enabled: true
   jobSpec:
-    ttlSecondsAfterFinished: 20
+    ttlSecondsAfterFinished:
 
 # Additional env variables to add to deployments
 env: {}

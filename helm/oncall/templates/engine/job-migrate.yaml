@@ -5,6 +5,9 @@ metadata:
   name: {{ printf "%s-migrate-%s" (include "oncall.engine.fullname" .) (now | date "2006-01-02-15-04-05") }}
   labels:
     {{- include "oncall.engine.labels" . | nindent 4 }}
+  annotations:
+    helm.sh/hook: "post-install,post-upgrade"
+    helm.sh/hook-delete-policy: "hook-succeeded,before-hook-creation"
 spec:
   {{- if .Values.migrate.jobSpec.ttlSecondsAfterFinished }}
   ttlSecondsAfterFinished: {{ .Values.migrate.jobSpec.ttlSecondsAfterFinished }}
