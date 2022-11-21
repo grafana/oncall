@@ -25,17 +25,13 @@ from apps.api.permissions import (
 )
 from apps.api.serializers.team import TeamSerializer
 from apps.api.serializers.user import FilterUserSerializer, UserHiddenFieldsSerializer, UserSerializer
-from apps.auth_token.auth import (
-    MobileAppAuthTokenAuthentication,
-    MobileAppVerificationTokenAuthentication,
-    PluginAuthentication,
-)
+from apps.auth_token.auth import PluginAuthentication
 from apps.auth_token.constants import SCHEDULE_EXPORT_TOKEN_NAME
 from apps.auth_token.models import UserScheduleExportAuthToken
-from apps.auth_token.models.mobile_app_auth_token import MobileAppAuthToken
-from apps.auth_token.models.mobile_app_verification_token import MobileAppVerificationToken
 from apps.base.messaging import get_messaging_backend_from_id
 from apps.base.utils import live_settings
+from apps.mobile_app.auth import MobileAppAuthTokenAuthentication, MobileAppVerificationTokenAuthentication
+from apps.mobile_app.models import MobileAppAuthToken, MobileAppVerificationToken
 from apps.telegram.client import TelegramClient
 from apps.telegram.models import TelegramVerificationCode
 from apps.twilioapp.phone_manager import PhoneManager
