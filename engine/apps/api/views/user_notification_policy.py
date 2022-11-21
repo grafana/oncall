@@ -1,4 +1,3 @@
-from django.apps import apps
 from django.conf import settings
 from django.http import Http404
 from rest_framework import status
@@ -150,7 +149,6 @@ class UserNotificationPolicyView(UpdateSerializerMixin, ModelViewSet):
         """
         Returns list of options for user notification policies dropping options that requires disabled features.
         """
-        DynamicSetting = apps.get_model("base", "DynamicSetting")
         choices = []
         for notification_channel in NotificationChannelAPIOptions.AVAILABLE_FOR_USE:
             slack_integration_required = (
@@ -160,15 +158,9 @@ class UserNotificationPolicyView(UpdateSerializerMixin, ModelViewSet):
                 notification_channel
                 in NotificationChannelAPIOptions.TELEGRAM_INTEGRATION_REQUIRED_NOTIFICATION_CHANNELS
             )
-            mobile_app_integration_required = (
-                notification_channel
-                in NotificationChannelAPIOptions.MOBILE_APP_INTEGRATION_REQUIRED_NOTIFICATION_CHANNELS
-            )
             if slack_integration_required and not settings.FEATURE_SLACK_INTEGRATION_ENABLED:
                 continue
             if telegram_integration_required and not settings.FEATURE_TELEGRAM_INTEGRATION_ENABLED:
-                continue
-            if mobile_app_integration_required and not settings.MOBILE_APP_PUSH_NOTIFICATIONS_ENABLED:
                 continue
 
             # extra backends may be enabled per organization
@@ -178,20 +170,6 @@ class UserNotificationPolicyView(UpdateSerializerMixin, ModelViewSet):
                 if extra_messaging_backend is None:
                     continue
 
-            mobile_app_settings = DynamicSetting.objects.get_or_create(
-                name="mobile_app_settings",
-                defaults={
-                    "json_value": {
-                        "org_ids": [],
-                    }
-                },
-            )[0]
-            if (
-                mobile_app_integration_required
-                and settings.MOBILE_APP_PUSH_NOTIFICATIONS_ENABLED
-                and self.request.auth.organization.pk not in mobile_app_settings.json_value["org_ids"]
-            ):
-                continue
             choices.append(
                 {
                     "value": notification_channel,
