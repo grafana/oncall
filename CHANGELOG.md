@@ -1,5 +1,14 @@
 # Change Log
 
+## v1.1.2 (2022-16-09)
+
+- Bug Fixes
+
+## v1.1.1 (2022-16-09)
+
+- Compatibility with Grafana 9.3.0
+- Bug Fixes
+
 ## v1.0.52 (2022-11-09)
 
 - Allow use of API keys as alternative to account auth token for Twilio
