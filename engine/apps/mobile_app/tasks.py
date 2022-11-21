@@ -34,6 +34,7 @@ def notify_user_async(user_pk, alert_group_pk, notification_policy_pk):
         logger.warning(f"User notification policy {notification_policy_pk} does not exist")
         return
 
+    # TODO: add Android support using GCMDevice
     devices_to_notify = APNSDevice.objects.filter(user_id=user.pk)
 
     # create an error log in case user has no devices set up
