@@ -58,7 +58,10 @@ class PluginSyncView(GrafanaHeadersMixin, APIView):
 
         try:
             organization = Organization.objects.get(stack_id=stack_id, org_id=org_id)
-            token_ok = organization.api_token_status == Organization.API_TOKEN_STATUS_OK
+            if organization.api_token_status == Organization.API_TOKEN_STATUS_PENDING:
+                return Response(status=status.HTTP_202_ACCEPTED)
+            elif organization.api_token_status == Organization.API_TOKEN_STATUS_OK:
+                token_ok = True
         except Organization.DoesNotExist:
             logger.info(f"Organization for stack {stack_id} org {org_id} was not found")
 
