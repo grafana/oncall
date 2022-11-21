@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 
-import { Button, HorizontalGroup } from '@grafana/ui';
+import { Button, HorizontalGroup, Tooltip } from '@grafana/ui';
 import cn from 'classnames/bind';
 import dayjs from 'dayjs';
 import { observer } from 'mobx-react';
@@ -12,7 +12,7 @@ import Rotation from 'containers/Rotation/Rotation';
 import ScheduleOverrideForm from 'containers/RotationForm/ScheduleOverrideForm';
 import { WithPermissionControl } from 'containers/WithPermissionControl/WithPermissionControl';
 import { getOverrideColor, getOverridesFromStore } from 'models/schedule/schedule.helpers';
-import { Schedule, Shift, ShiftEvents } from 'models/schedule/schedule.types';
+import { Schedule, ScheduleType, Shift, ShiftEvents } from 'models/schedule/schedule.types';
 import { Timezone } from 'models/timezone/timezone.types';
 import { WithStoreProps } from 'state/types';
 import { UserAction } from 'state/userAction';
@@ -70,6 +70,11 @@ class ScheduleOverrides extends Component<ScheduleOverridesProps, ScheduleOverri
 
     const currentTimeHidden = currentTimeX < 0 || currentTimeX > 1;
 
+    const schedule = store.scheduleStore.items[scheduleId];
+
+    const isTypeReadOnly =
+      schedule && (schedule?.type === ScheduleType.Ical || schedule?.type === ScheduleType.Calendar);
+
     return (
       <>
         <div id="overrides-list" className={cx('root')}>
@@ -80,11 +85,21 @@ class ScheduleOverrides extends Component<ScheduleOverridesProps, ScheduleOverri
                   Overrides
                 </Text.Title>
               </div>
-              <WithPermissionControl userAction={UserAction.UpdateSchedules}>
-                <Button disabled={disabled} icon="plus" onClick={this.handleAddOverride} variant="secondary">
-                  Add override
-                </Button>
-              </WithPermissionControl>
+              {isTypeReadOnly ? (
+                <Tooltip content="Ical and API/Terraform schedules are read-only" placement="top">
+                  <div>
+                    <Button variant="primary" icon="plus" disabled>
+                      Add override
+                    </Button>
+                  </div>
+                </Tooltip>
+              ) : (
+                <WithPermissionControl userAction={UserAction.UpdateSchedules}>
+                  <Button disabled={disabled} icon="plus" onClick={this.handleAddOverride} variant="secondary">
+                    Add override
+                  </Button>
+                </WithPermissionControl>
+              )}
             </HorizontalGroup>
           </div>
           <div className={cx('header-plus-content')}>
