@@ -36,7 +36,7 @@ export default function PageErrorHandlingWrapper({
   objectName?: string;
   pageName: string;
   itemNotFoundMessage?: string;
-  children: React.ReactNode;
+  children: () => React.ReactNode;
 }): JSX.Element {
   useEffect(() => {
     if (!errorData) {

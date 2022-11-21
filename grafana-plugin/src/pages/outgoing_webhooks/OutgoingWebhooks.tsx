@@ -118,43 +118,45 @@ class OutgoingWebhooks extends React.Component<OutgoingWebhooksProps, OutgoingWe
           pageName="outgoing_webhooks"
           itemNotFoundMessage={`Outgoing webhook with id=${query?.id} is not found. Please select outgoing webhook from the list.`}
         >
-          <>
-            <div className={cx('root')}>
-              <GTable
-                emptyText={webhooks ? 'No outgoing webhooks found' : 'Loading...'}
-                title={() => (
-                  <div className={cx('header')}>
-                    <LegacyNavHeading>
-                      <Text.Title level={3}>Outgoing Webhooks</Text.Title>
-                    </LegacyNavHeading>
-                    <div className="u-pull-right">
-                      <PluginLink
-                        partial
-                        query={{ id: 'new' }}
-                        disabled={!store.isUserActionAllowed(UserAction.UpdateCustomActions)}
-                      >
-                        <WithPermissionControl userAction={UserAction.UpdateCustomActions}>
-                          <Button variant="primary" icon="plus">
-                            Create
-                          </Button>
-                        </WithPermissionControl>
-                      </PluginLink>
+          {() => (
+            <>
+              <div className={cx('root')}>
+                <GTable
+                  emptyText={webhooks ? 'No outgoing webhooks found' : 'Loading...'}
+                  title={() => (
+                    <div className={cx('header')}>
+                      <LegacyNavHeading>
+                        <Text.Title level={3}>Outgoing Webhooks</Text.Title>
+                      </LegacyNavHeading>
+                      <div className="u-pull-right">
+                        <PluginLink
+                          partial
+                          query={{ id: 'new' }}
+                          disabled={!store.isUserActionAllowed(UserAction.UpdateCustomActions)}
+                        >
+                          <WithPermissionControl userAction={UserAction.UpdateCustomActions}>
+                            <Button variant="primary" icon="plus">
+                              Create
+                            </Button>
+                          </WithPermissionControl>
+                        </PluginLink>
+                      </div>
                     </div>
-                  </div>
-                )}
-                rowKey="id"
-                columns={columns}
-                data={webhooks}
-              />
-            </div>
-            {outgoingWebhookIdToEdit && (
-              <OutgoingWebhookForm
-                id={outgoingWebhookIdToEdit}
-                onUpdate={this.update}
-                onHide={this.handleOutgoingWebhookFormHide}
-              />
-            )}
-          </>
+                  )}
+                  rowKey="id"
+                  columns={columns}
+                  data={webhooks}
+                />
+              </div>
+              {outgoingWebhookIdToEdit && (
+                <OutgoingWebhookForm
+                  id={outgoingWebhookIdToEdit}
+                  onUpdate={this.update}
+                  onHide={this.handleOutgoingWebhookFormHide}
+                />
+              )}
+            </>
+          )}
         </PageErrorHandlingWrapper>
       </PluginPage>
     );
