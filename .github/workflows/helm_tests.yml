@@ -79,7 +79,7 @@ jobs:
         uses: jupyterhub/action-k8s-namespace-report@v1
         if: always()
 
-      - name: Check test results # Sleep 30 should be changed to until loop
+      - name: Await 1 alert group and 1 alert created during the test (timeout 30 seconds)
         run: |
           export POD_NAME=$(kubectl get pods --namespace default -l "app.kubernetes.io/name=oncall,app.kubernetes.io/instance=test-release,app.kubernetes.io/component=engine" -o jsonpath="{.items[0].metadata.name}")
           tries=30
@@ -94,6 +94,6 @@ jobs:
           done
 
           if [ "$tries" -eq 0 ]; then
-              echo 'Epected "1, 1" (alert groups, alerts). They were not created in 30 seconds during this integration test. Something is broken' >&2
+              echo 'Expected "1, 1" (alert groups, alerts). They were not created in 30 seconds during this integration test. Something is broken' >&2
               exit 1
           fi
