@@ -228,11 +228,6 @@ make: *** [start] Error 1
 clear everything in docker by resetting or: 
 
 ```
-docker stop 'everything'
-docker container prune
-docker image prune --all
-docker volume prune
-docker network prune
 make cleanup
 ```
 
