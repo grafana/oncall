@@ -215,6 +215,22 @@ $ CDPATH="." make init
 $ CDPATH="" make init
 ```
 
+**Problem:**
+
+When running `make init start`:
+
+```
+Error response from daemon: open /var/lib/docker/overlay2/ac57b871108ee1b98ff4455e36d2175eae90cbc7d4c9a54608c0b45cfb7c6da5/committed: is a directory
+make: *** [start] Error 1
+```
+
+**Solution:**
+clear everything in docker by resetting or: 
+
+```
+make cleanup
+```
+
 ## IDE Specific Instructions
 
 ### PyCharm
