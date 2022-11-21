@@ -18,6 +18,30 @@ export const getDateTime = (date: string) => {
   return dayjs(date);
 };
 
+export const getUTCByDay = (by_day: string[], moment: dayjs.Dayjs) => {
+  let UTCDays = [];
+  // FIXME: do this in a proper way
+  let byDayOptions = ['MO', 'TU', 'WE', 'TH', 'FR', 'SA', 'SU'];
+  if (by_day.length > 0 && moment.day() !== moment.utc().day()) {
+    // when converting to UTC, shift starts on a different day,
+    // so we need to update the by_day list
+    // depending on the UTC side, move one day before or after
+    let offset = moment.utcOffset();
+    by_day.forEach((element) => {
+      let index = byDayOptions.indexOf(element);
+      if (offset < 0) {
+        // move one day after
+        UTCDays.push(byDayOptions[(index + 1) % 7]);
+      } else {
+        // move one day before
+        UTCDays.push(byDayOptions[(((index - 1) % 7) + 7) % 7]);
+      }
+    });
+    return UTCDays;
+  }
+  return by_day;
+};
+
 export const getColorSchemeMappingForUsers = (
   store: RootStore,
   scheduleId: string,
