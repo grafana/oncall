@@ -19,6 +19,7 @@ class GrafanaAlertingSyncManager:
 
     GRAFANA_CONTACT_POINT = "grafana"
     ALERTING_DATASOURCE = "alertmanager"
+    IS_GRAFANA_VERSION_GRE_9 = None
 
     def __init__(self, alert_receive_channel):
         self.alert_receive_channel = alert_receive_channel
@@ -62,6 +63,10 @@ class GrafanaAlertingSyncManager:
         if is_grafana_datasource:
             datasource_attr = GrafanaAlertingSyncManager.GRAFANA_CONTACT_POINT
             config, response_info = client_method(datasource_attr, *args)
+        elif self.IS_GRAFANA_VERSION_GRE_9:
+            # Get config by datasource uid for Grafana version >= 9
+            datasource_attr = datasource_uid
+            config, response_info = client_method(datasource_attr, *args)
         else:
             # Get config by datasource id for Grafana version < 9
             datasource_attr = datasource_id
@@ -71,6 +76,12 @@ class GrafanaAlertingSyncManager:
                 # Get config by datasource uid for Grafana version >= 9
                 datasource_attr = datasource_uid
                 config, response_info = client_method(datasource_attr, *args)
+                if response_info["status_code"] in (
+                    status.HTTP_200_OK,
+                    status.HTTP_201_CREATED,
+                    status.HTTP_204_NO_CONTENT,
+                ):
+                    self.IS_GRAFANA_VERSION_GRE_9 = True
         if config is None:
             logger.warning(
                 f"Got config None in alerting_config_with_respect_to_grafana_version with method "
@@ -129,8 +140,11 @@ class GrafanaAlertingSyncManager:
 
         datasource_type = datasource.get("type") or GrafanaAlertingSyncManager.GRAFANA_CONTACT_POINT
         is_grafana_datasource = datasource.get("id") is None
+
+        grafana_version = ">= 9" if self.IS_GRAFANA_VERSION_GRE_9 else "< 9 or unknown"
         logger.info(
-            f"Create contact point for {datasource_type} datasource, integration {self.alert_receive_channel.pk}"
+            f"Create contact point for {datasource_type} datasource, integration {self.alert_receive_channel.pk}, "
+            f"Grafana version is {grafana_version}"
         )
         config, response_info = self.alerting_config_with_respect_to_grafana_version(
             is_grafana_datasource, datasource.get("id"), datasource.get("uid"), self.client.get_alerting_config
