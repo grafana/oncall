@@ -84,7 +84,7 @@ jobs:
           export POD_NAME=$(kubectl get pods --namespace default -l "app.kubernetes.io/name=oncall,app.kubernetes.io/instance=test-release,app.kubernetes.io/component=engine" -o jsonpath="{.items[0].metadata.name}")
           tries=30
           while [ "$tries" -gt 0 ]; do
-              if $(kubectl exec -it $POD_NAME -- bash -c "python manage.py setup_end_to_end_test --return_results_for_test_id $TEST_ID") | grep -q '1, 1'
+              if kubectl exec -it $POD_NAME -- bash -c "python manage.py setup_end_to_end_test --return_results_for_test_id $TEST_ID" | grep -q '1, 1'
               then
                   break
               fi
