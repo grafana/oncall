@@ -31,7 +31,7 @@ from apps.auth_token.models import UserScheduleExportAuthToken
 from apps.base.messaging import get_messaging_backend_from_id
 from apps.base.utils import live_settings
 from apps.mobile_app.auth import MobileAppAuthTokenAuthentication, MobileAppVerificationTokenAuthentication
-from apps.mobile_app.models import MobileAppAuthToken, MobileAppVerificationToken
+from apps.mobile_app.models import MobileAppAuthToken
 from apps.telegram.client import TelegramClient
 from apps.telegram.models import TelegramVerificationCode
 from apps.twilioapp.phone_manager import PhoneManager
@@ -469,62 +469,6 @@ class UserView(
                 raise NotFound
             return Response(status=status.HTTP_204_NO_CONTENT)
 
-    @action(detail=True, methods=["get", "post", "delete"])
-    def mobile_app_verification_token(self, request, pk):
-        DynamicSetting = apps.get_model("base", "DynamicSetting")
-
-        if not settings.FEATURE_MOBILE_APP_INTEGRATION_ENABLED:
-            return Response(status=status.HTTP_404_NOT_FOUND)
-
-        mobile_app_settings = DynamicSetting.objects.get_or_create(
-            name="mobile_app_settings",
-            defaults={
-                "json_value": {
-                    "org_ids": [],
-                }
-            },
-        )[0]
-        if self.request.auth.organization.pk not in mobile_app_settings.json_value["org_ids"]:
-            return Response(status=status.HTTP_404_NOT_FOUND)
-
-        user = self.get_object()
-
-        if self.request.method == "GET":
-            try:
-                token = MobileAppVerificationToken.objects.get(user=user)
-            except MobileAppVerificationToken.DoesNotExist:
-                raise NotFound
-
-            response = {
-                "token_id": token.id,
-                "user_id": token.user_id,
-                "organization_id": token.organization_id,
-                "created_at": token.created_at,
-                "revoked_at": token.revoked_at,
-            }
-            return Response(response, status=status.HTTP_200_OK)
-
-        if self.request.method == "POST":
-            # If token already exists revoke it
-            try:
-                token = MobileAppVerificationToken.objects.get(user=user)
-                token.delete()
-            except MobileAppVerificationToken.DoesNotExist:
-                pass
-
-            instance, token = MobileAppVerificationToken.create_auth_token(user, user.organization)
-            data = {"id": instance.pk, "token": token, "created_at": instance.created_at}
-            return Response(data, status=status.HTTP_201_CREATED)
-
-        if self.request.method == "DELETE":
-            try:
-                token = MobileAppVerificationToken.objects.get(user=user)
-                token.delete()
-            except MobileAppVerificationToken.DoesNotExist:
-                raise NotFound
-
-            return Response(status=status.HTTP_204_NO_CONTENT)
-
     @action(
         methods=["get", "post", "delete"],
         detail=False,
@@ -578,7 +522,7 @@ class UserView(
             try:
                 token = MobileAppAuthToken.objects.get(user=self.request.user)
                 token.delete()
-            except MobileAppVerificationToken.DoesNotExist:
+            except MobileAppAuthToken.DoesNotExist:
                 raise NotFound
 
             return Response(status=status.HTTP_204_NO_CONTENT)

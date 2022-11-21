@@ -10,13 +10,21 @@ class MobileAppBackend(BaseMessagingBackend):
     short_label = "Mobile app"
     available_for_use = True
 
+    # TODO: add QR code generation (base64 encode?)
     def generate_user_verification_code(self, user):
-        # TODO: add QR code generation (base64 encode?), see apps.api.views.user.UserView.mobile_app_verification_token
-        pass
+        from apps.mobile_app.models import MobileAppVerificationToken
+
+        # remove existing token before creating a new one
+        MobileAppVerificationToken.objects.filter(user=user).delete()
+
+        _, token = MobileAppVerificationToken.create_auth_token(user, user.organization)
+        return token
 
     def unlink_user(self, user):
-        # TODO: add mobile app revoke logic, see apps.api.views.user.UserView.mobile_app_verification_token
-        pass
+        from apps.mobile_app.models import MobileAppVerificationToken
+
+        token = MobileAppVerificationToken.objects.get(user=user)
+        token.delete()
 
     def serialize_user(self, user):
         # TODO: add Android support using GCMDevice
