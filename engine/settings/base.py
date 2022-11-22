@@ -545,8 +545,8 @@ GRAFANA_API_KEY_NAME = "Grafana OnCall"
 EXTRA_MESSAGING_BACKENDS = []
 if FEATURE_MOBILE_APP_INTEGRATION_ENABLED:
     EXTRA_MESSAGING_BACKENDS += [
-        ("apps.mobile_app.backend.MobileAppBackend", 9),
-        ("apps.mobile_app.backend.MobileAppCriticalBackend", 10),
+        ("apps.mobile_app.backend.MobileAppBackend", 5),
+        ("apps.mobile_app.backend.MobileAppCriticalBackend", 6),
     ]
 
 PUSH_NOTIFICATIONS_SETTINGS = {
