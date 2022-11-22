@@ -9,6 +9,7 @@ class MobileAppBackend(BaseMessagingBackend):
     label = "Mobile app"
     short_label = "Mobile app"
     available_for_use = True
+    template_fields = ["title"]
 
     # TODO: add QR code generation (base64 encode?)
     def generate_user_verification_code(self, user):
@@ -49,6 +50,7 @@ class MobileAppCriticalBackend(MobileAppBackend):
     backend_id = "MOBILE_APP_CRITICAL"
     label = "Mobile app critical"
     short_label = "Mobile app critical"
+    template_fields = []
 
     def notify_user(self, user, alert_group, notification_policy, critical=True):
         super().notify_user(user, alert_group, notification_policy, critical)

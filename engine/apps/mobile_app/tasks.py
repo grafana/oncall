@@ -2,8 +2,8 @@ from celery.utils.log import get_task_logger
 from django.conf import settings
 from push_notifications.models import APNSDevice
 
-from apps.alerts.incident_appearance.renderers.web_renderer import AlertGroupWebRenderer
 from apps.alerts.models import AlertGroup
+from apps.mobile_app.alert_rendering import get_push_notification_message
 from apps.user_management.models import User
 from common.custom_celery_tasks import shared_dedicated_queue_retry_task
 
@@ -51,8 +51,7 @@ def notify_user_async(user_pk, alert_group_pk, notification_policy_pk, critical)
         logger.error(f"Error while sending a mobile push notification: user {user_pk} has no devices set up")
         return
 
-    # TODO: refactor this to use mobile app templates
-    message = f"{AlertGroupWebRenderer(alert_group).render().get('title', 'Incident')}"
+    message = get_push_notification_message(alert_group)
     thread_id = f"{alert_group.channel.organization.public_primary_key}:{alert_group.public_primary_key}"
 
     if critical:
