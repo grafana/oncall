@@ -6,9 +6,6 @@ from celery.schedules import crontab
 from common.utils import getenv_boolean, getenv_integer
 
 VERSION = "dev-oss"
-# Indicates if instance is OSS installation.
-# It is needed to plug-in oss application and urls.
-OSS_INSTALLATION = getenv_boolean("GRAFANA_ONCALL_OSS_INSTALLATION", True)
 SEND_ANONYMOUS_USAGE_STATS = getenv_boolean("SEND_ANONYMOUS_USAGE_STATS", default=True)
 
 # License is OpenSource or Cloud
@@ -599,7 +596,7 @@ INSTALLED_ONCALL_INTEGRATIONS = [
     "config_integrations.zabbix",
 ]
 
-if OSS_INSTALLATION:
+if LICENSE == OPEN_SOURCE_LICENSE_NAME:
     INSTALLED_APPS += ["apps.oss_installation"]  # noqa
 
     CELERY_BEAT_SCHEDULE["send_usage_stats"] = {  # noqa

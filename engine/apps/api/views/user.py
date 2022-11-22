@@ -67,7 +67,7 @@ class CurrentUserView(APIView):
     def get(self, request):
         context = {"request": self.request, "format": self.format_kwarg, "view": self}
 
-        if settings.OSS_INSTALLATION and live_settings.GRAFANA_CLOUD_NOTIFICATIONS_ENABLED:
+        if settings.LICENSE == settings.OPEN_SOURCE_LICENSE_NAME and live_settings.GRAFANA_CLOUD_NOTIFICATIONS_ENABLED:
             from apps.oss_installation.models import CloudConnector, CloudUserIdentity
 
             connector = CloudConnector.objects.first()
@@ -210,7 +210,7 @@ class UserView(
         page = self.paginate_queryset(queryset)
         if page is not None:
             context = {"request": self.request, "format": self.format_kwarg, "view": self}
-            if settings.OSS_INSTALLATION:
+            if settings.LICENSE == settings.OPEN_SOURCE_LICENSE_NAME:
                 if live_settings.GRAFANA_CLOUD_NOTIFICATIONS_ENABLED:
                     from apps.oss_installation.models import CloudConnector, CloudUserIdentity
 
@@ -234,7 +234,7 @@ class UserView(
         except NotFound:
             return self.wrong_team_response()
 
-        if settings.OSS_INSTALLATION and live_settings.GRAFANA_CLOUD_NOTIFICATIONS_ENABLED:
+        if settings.LICENSE == settings.OPEN_SOURCE_LICENSE_NAME and live_settings.GRAFANA_CLOUD_NOTIFICATIONS_ENABLED:
             from apps.oss_installation.models import CloudConnector, CloudUserIdentity
 
             connector = CloudConnector.objects.first()

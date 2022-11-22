@@ -49,7 +49,7 @@ class FeaturesAPIView(APIView):
             if request.auth.organization.pk in mobile_app_settings.json_value["org_ids"]:
                 enabled_features.append(MOBILE_APP_PUSH_NOTIFICATIONS)
 
-        if settings.OSS_INSTALLATION:
+        if settings.LICENSE == settings.OPEN_SOURCE_LICENSE_NAME:
             # Features below should be enabled only in OSS
             enabled_features.append(FEATURE_GRAFANA_CLOUD_CONNECTION)
             if settings.FEATURE_LIVE_SETTINGS_ENABLED:

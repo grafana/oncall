@@ -51,7 +51,7 @@ if settings.FEATURE_SLACK_INTEGRATION_ENABLED:
         path("slack/", include("apps.slack.urls")),
     ]
 
-if settings.OSS_INSTALLATION:
+if settings.LICENSE == settings.OPEN_SOURCE_LICENSE_NAME:
     urlpatterns += [
         path("api/internal/v1/", include("apps.oss_installation.urls")),
     ]
