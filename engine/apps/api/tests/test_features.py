@@ -60,17 +60,34 @@ def test_select_features_all_enabled(
 
 
 @pytest.mark.django_db
+def test_oss_features_enabled_in_oss_installation(
+    settings,
+    make_organization_and_user_with_plugin_token,
+    make_user_auth_headers,
+):
+    _, user, token = make_organization_and_user_with_plugin_token()
+    settings.LICENSE == settings.OPEN_SOURCE_LICENSE_NAME
+    client = APIClient()
+    url = reverse("api-internal:features")
+    response = client.get(url, format="json", **make_user_auth_headers(user, token))
+
+    assert response.status_code == status.HTTP_200_OK
+    assert FEATURE_GRAFANA_CLOUD_CONNECTION in response.json()
+    assert FEATURE_GRAFANA_CLOUD_NOTIFICATIONS in response.json()
+
+
+@pytest.mark.django_db
 def test_select_features_all_disabled(
     settings,
     make_organization_and_user_with_plugin_token,
     make_user_auth_headers,
 ):
-    organization, user, token = make_organization_and_user_with_plugin_token()
+    _, user, token = make_organization_and_user_with_plugin_token()
     settings.FEATURE_SLACK_INTEGRATION_ENABLED = False
     settings.FEATURE_TELEGRAM_INTEGRATION_ENABLED = False
     settings.FEATURE_LIVE_SETTINGS_ENABLED = False
     settings.FEATURE_GRAFANA_CLOUD_CONNECTION = False
-    settings.FEATURE_GRAFANA_CLOUD_NOTIFICATIONS = FEATURE_GRAFANA_CLOUD_NOTIFICATIONS
+    settings.FEATURE_GRAFANA_CLOUD_NOTIFICATIONS = False
     settings.FEATURE_WEB_SCHEDULES_ENABLED = False
     client = APIClient()
     url = reverse("api-internal:features")
