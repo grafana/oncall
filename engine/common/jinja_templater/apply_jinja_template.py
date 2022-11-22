@@ -1,5 +1,6 @@
 import logging
 
+from django.conf import settings
 from jinja2.exceptions import SecurityError
 
 from .jinja_template_env import jinja_template_env
@@ -14,9 +15,17 @@ class JinjaTemplateRenderException(Exception):
 
 def apply_jinja_template(template, payload=None, raise_exception=False, **kwargs):
     try:
-        #TODO: Add template size check
+        if len(template) > settings.JINJA_TEMPLATE_MAX_LENGTH:
+            raise JinjaTemplateRenderException(
+                f"Template exceeds length limit ({len(template)} > {settings.JINJA_TEMPLATE_MAX_LENGTH})"
+            )
         compiled_template = jinja_template_env.from_string(template)
-        return compiled_template.render(payload=payload, **kwargs)
+        result = compiled_template.render(payload=payload, **kwargs)
+        return (
+            (result[: settings.JINJA_TEMPLATE_MAX_LENGTH] + "..")
+            if len(result) > settings.JINJA_TEMPLATE_MAX_LENGTH
+            else result
+        )
     except Exception as e:
         if isinstance(e, SecurityError):
             logger.warning(f"SecurityError process template={template} payload={payload}")
