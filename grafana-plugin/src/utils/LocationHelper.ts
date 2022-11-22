@@ -10,23 +10,25 @@ class LocationHelper {
     const sortedExistingParams = sort(queryParams);
     const sortedNewParams = sort(params);
 
-    if (getPathFromQueryParams(sortedExistingParams) !== getPathFromQueryParams(sortedNewParams)) {
+    if (toQueryString(sortedExistingParams) !== toQueryString(sortedNewParams)) {
       if (method === 'partial') {
         locationService.partial(params);
       } else {
-        locationService[method](getPathFromQueryParams(sortedNewParams));
+        locationService[method](toQueryString(sortedNewParams));
       }
     }
   }
 }
 
-function getPathFromQueryParams(queryParams) {
-  return Object.keys(queryParams)
-    .map((key) => `${key}=${queryParams[key]}`)
-    .reduce((result, param, index) => {
-      const delimitator = `${index > 0 ? '&' : ''}`;
-      return `${result}${delimitator}${param}`;
-    }, '?');
+function toQueryString(queryParams: KeyValue) {
+  const urlParams = new URLSearchParams(queryParams);
+  for (const [key, value] of Object.entries(queryParams)) {
+    if (Array.isArray(value)) {
+      urlParams.delete(key);
+      value.forEach((v) => urlParams.append(key, v));
+    }
+  }
+  return urlParams.toString();
 }
 
 function sort(object: KeyValue) {
