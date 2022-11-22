@@ -11,6 +11,7 @@ class Migration(migrations.Migration):
 
     dependencies = [
         ('user_management', '0004_auto_20221025_0316'),
+        ('auth_token', '0003_auto_20221121_1610'),
     ]
 
     operations = [
@@ -30,19 +31,24 @@ class Migration(migrations.Migration):
                 'abstract': False,
             },
         ),
-        migrations.CreateModel(
-            name='MobileAppAuthToken',
-            fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('token_key', models.CharField(db_index=True, max_length=8)),
-                ('digest', models.CharField(max_length=128)),
-                ('created_at', models.DateTimeField(auto_now_add=True)),
-                ('revoked_at', models.DateTimeField(null=True)),
-                ('organization', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='mobile_app_auth_tokens', to='user_management.organization')),
-                ('user', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='mobile_app_auth_tokens', to='user_management.user')),
+        migrations.SeparateDatabaseAndState(
+            state_operations=[
+                migrations.CreateModel(
+                    name='MobileAppAuthToken',
+                    fields=[
+                        ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
+                        ('token_key', models.CharField(db_index=True, max_length=8)),
+                        ('digest', models.CharField(max_length=128)),
+                        ('created_at', models.DateTimeField(auto_now_add=True)),
+                        ('revoked_at', models.DateTimeField(null=True)),
+                        ('organization', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='mobile_app_auth_tokens', to='user_management.organization')),
+                        ('user', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='mobile_app_auth_tokens', to='user_management.user')),
+                    ],
+                    options={
+                        'abstract': False,
+                    },
+                ),
             ],
-            options={
-                'abstract': False,
-            },
-        ),
+            database_operations=[],
+        )
     ]

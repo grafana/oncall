@@ -18,8 +18,18 @@ class Migration(migrations.Migration):
             model_name='mobileappverificationtoken',
             name='user',
         ),
-        migrations.DeleteModel(
-            name='MobileAppAuthToken',
+        migrations.SeparateDatabaseAndState(
+            state_operations=[
+                migrations.DeleteModel(
+                    name='MobileAppAuthToken',
+                ),
+            ],
+            database_operations=[
+                migrations.AlterModelTable(
+                    name='MobileAppAuthToken',
+                    table='mobile_app_mobileappauthtoken',
+                ),
+            ],
         ),
         migrations.DeleteModel(
             name='MobileAppVerificationToken',
