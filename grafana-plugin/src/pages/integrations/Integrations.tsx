@@ -1,11 +1,12 @@
 import React from 'react';
 
-import { AppRootProps } from '@grafana/data';
 import { getLocationSrv } from '@grafana/runtime';
 import { Button, LoadingPlaceholder, VerticalGroup } from '@grafana/ui';
+import { PluginPage } from 'PluginPage';
 import cn from 'classnames/bind';
 import { debounce } from 'lodash-es';
 import { observer } from 'mobx-react';
+import { AppRootProps } from 'types';
 
 import GList from 'components/GList/GList';
 import IntegrationsFilters, { Filters } from 'components/IntegrationsFilters/IntegrationsFilters';
@@ -25,6 +26,7 @@ import { IntegrationSettingsTab } from 'containers/IntegrationSettings/Integrati
 import { WithPermissionControl } from 'containers/WithPermissionControl/WithPermissionControl';
 import { AlertReceiveChannel } from 'models/alert_receive_channel';
 import { AlertReceiveChannelOption } from 'models/alert_receive_channel/alert_receive_channel.types';
+import { pages } from 'pages';
 import { WithStoreProps } from 'state/types';
 import { UserAction } from 'state/userAction';
 import { withMobXProviderContext } from 'state/withStore';
@@ -130,13 +132,13 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
     const searchResult = alertReceiveChannelStore.getSearchResult();
 
     return (
-      <PageErrorHandlingWrapper
-        errorData={errorData}
-        objectName="integration"
-        pageName="integrations"
-        itemNotFoundMessage={`Integration with id=${query?.id} is not found. Please select integration from the list.`}
-      >
-        {() => (
+      <PluginPage pageNav={pages['integrations'].getPageNav()}>
+        <PageErrorHandlingWrapper
+          errorData={errorData}
+          objectName="integration"
+          pageName="integrations"
+          itemNotFoundMessage={`Integration with id=${query?.id} is not found. Please select integration from the list.`}
+        >
           <>
             <div className={cx('root')}>
               <div className={cx('filters')}>
@@ -241,8 +243,8 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
               />
             )}
           </>
-        )}
-      </PageErrorHandlingWrapper>
+        </PageErrorHandlingWrapper>
+      </PluginPage>
     );
   }
 

@@ -1,16 +1,18 @@
-version: "3.8"
+version: "3.9"
 
 x-labels: &oncall-labels
   - "com.grafana.oncall.env=dev"
 
 x-oncall-build: &oncall-build-args
   context: ./engine
-  target: dev
+  target: ${ONCALL_IMAGE_TARGET:-dev}
   labels: *oncall-labels
 
 x-oncall-volumes: &oncall-volumes
   - ./engine:/etc/app
-  - ./engine/oncall.db:/var/lib/oncall/oncall.db
+  # https://stackoverflow.com/a/60456034
+  - ${ENTERPRISE_ENGINE:-/dev/null}:/etc/app/extensions/engine_enterprise
+  - ${SQLITE_DB_FILE:-/dev/null}:/var/lib/oncall/oncall.db
 
 x-env-files: &oncall-env-files
   - ./dev/.env.dev
@@ -18,6 +20,7 @@ x-env-files: &oncall-env-files
 
 x-env-vars: &oncall-env-vars
   BROKER_TYPE: ${BROKER_TYPE}
+  GRAFANA_API_URL: http://grafana:3000
 
 services:
   oncall_ui:
@@ -27,9 +30,13 @@ services:
       context: ./grafana-plugin
       dockerfile: Dockerfile.dev
       labels: *oncall-labels
+    environment:
+      ONCALL_API_URL: http://host.docker.internal:8080
     volumes:
       - ./grafana-plugin:/etc/app
       - /etc/app/node_modules
+      # https://stackoverflow.com/a/60456034
+      - ${ENTERPRISE_FRONTEND:-/dev/null}:/etc/app/frontend_enterprise
     profiles:
       - oncall_ui
 
@@ -170,7 +177,7 @@ services:
           memory: 500m
           cpus: "0.5"
     healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      test: "mysql -uroot -pempty oncall_local_dev -e 'select 1'"
       timeout: 20s
       retries: 10
     volumes:
@@ -231,7 +238,7 @@ services:
   grafana:
     container_name: grafana
     labels: *oncall-labels
-    image: "grafana/grafana:${GRAFANA_VERSION:-main}"
+    image: "grafana/grafana:${GRAFANA_VERSION:-latest}"
     restart: always
     environment:
       GF_SECURITY_ADMIN_USER: oncall
@@ -252,6 +259,11 @@ services:
     volumes:
       - grafanadata_dev:/var/lib/grafana
       - ./grafana-plugin:/var/lib/grafana/plugins/grafana-plugin
+    depends_on:
+      postgres:
+        condition: service_healthy
+      mysql:
+        condition: service_healthy
     profiles:
       - grafana
 

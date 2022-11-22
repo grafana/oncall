@@ -1,17 +1,19 @@
 import React, { ReactElement, SyntheticEvent } from 'react';
 
-import { AppRootProps } from '@grafana/data';
 import { getLocationSrv } from '@grafana/runtime';
 import { Button, Icon, Tooltip, VerticalGroup, LoadingPlaceholder, HorizontalGroup } from '@grafana/ui';
+import { PluginPage } from 'PluginPage';
 import cn from 'classnames/bind';
 import { get } from 'lodash-es';
 import { observer } from 'mobx-react';
 import moment from 'moment-timezone';
 import Emoji from 'react-emoji-render';
+import { AppRootProps } from 'types';
 
 import CursorPagination from 'components/CursorPagination/CursorPagination';
 import GTable from 'components/GTable/GTable';
 import IntegrationLogo from 'components/IntegrationLogo/IntegrationLogo';
+import PageErrorHandlingWrapper from 'components/PageErrorHandlingWrapper/PageErrorHandlingWrapper';
 import PluginLink from 'components/PluginLink/PluginLink';
 import Text from 'components/Text/Text';
 import Tutorial from 'components/Tutorial/Tutorial';
@@ -21,7 +23,9 @@ import IncidentsFilters from 'containers/IncidentsFilters/IncidentsFilters';
 import { WithPermissionControl } from 'containers/WithPermissionControl/WithPermissionControl';
 import { Alert, Alert as AlertType, AlertAction } from 'models/alertgroup/alertgroup.types';
 import { User } from 'models/user/user.types';
+import { pages } from 'pages';
 import { getActionButtons, getIncidentStatusTag, renderRelatedUsers } from 'pages/incident/Incident.helpers';
+import { getQueryParams } from 'plugin/GrafanaPluginRootPage.helpers';
 import { move } from 'state/helpers';
 import { WithStoreProps } from 'state/types';
 import { UserAction } from 'state/userAction';
@@ -67,10 +71,8 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
   constructor(props: IncidentsPageProps) {
     super(props);
 
-    const {
-      store,
-      query: { cursor: cursorQuery, start: startQuery, perpage: perpageQuery },
-    } = props;
+    const { store } = props;
+    const { cursor: cursorQuery, start: startQuery, perpage: perpageQuery } = getQueryParams();
 
     const cursor = cursorQuery || undefined;
     const start = !isNaN(startQuery) ? Number(startQuery) : 1;
@@ -100,10 +102,14 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
 
   render() {
     return (
-      <div className={cx('root')}>
-        {this.renderIncidentFilters()}
-        {this.renderTable()}
-      </div>
+      <PluginPage pageNav={pages['incidents'].getPageNav()}>
+        <PageErrorHandlingWrapper pageName="incidents">
+          <div className={cx('root')}>
+            {this.renderIncidentFilters()}
+            {this.renderTable()}
+          </div>
+        </PageErrorHandlingWrapper>
+      </PluginPage>
     );
   }
 

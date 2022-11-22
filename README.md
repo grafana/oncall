@@ -44,23 +44,13 @@ SECRET_KEY=my_random_secret_must_be_more_than_32_characters_long" > .env
 docker-compose up -d
 ```
 
-4. Issue one-time invite token:
-
-```bash
-docker-compose run engine python manage.py issue_invite_for_the_frontend --override
-```
-
-**Note**: if you remove the plugin configuration and reconfigure it, you will need to generate a new one-time invite token for your new configuration.
-
-5. Go to [OnCall Plugin Configuration](http://localhost:3000/plugins/grafana-oncall-app), using log in credentials as defined above: `admin`/`admin` (or find OnCall plugin in configuration->plugins) and connect OnCall _plugin_ with OnCall _backend_:
+4. Go to [OnCall Plugin Configuration](http://localhost:3000/plugins/grafana-oncall-app), using log in credentials as defined above: `admin`/`admin` (or find OnCall plugin in configuration->plugins) and connect OnCall _plugin_ with OnCall _backend_:
 
 ```
-Invite token: ^^^ from the previous step.
 OnCall backend URL: http://engine:8080
-Grafana Url: http://grafana:3000
 ```
 
-6. Enjoy! Check our [OSS docs](https://grafana.com/docs/grafana-cloud/oncall/open-source/) if you want to set up Slack, Telegram, Twilio or SMS/calls through Grafana Cloud.
+5. Enjoy! Check our [OSS docs](https://grafana.com/docs/grafana-cloud/oncall/open-source/) if you want to set up Slack, Telegram, Twilio or SMS/calls through Grafana Cloud.
 
 ## Update version
 
@@ -89,8 +79,9 @@ See [Grafana docs](https://grafana.com/docs/grafana/latest/administration/plugin
 
 ## Further Reading
 
-- _Migration from the PagerDuty_ - [Migrator](https://github.com/grafana/oncall/tree/dev/tools/pagerduty-migrator)
+- _Migration from PagerDuty_ - [Migrator](https://github.com/grafana/oncall/tree/dev/tools/pagerduty-migrator)
 - _Documentation_ - [Grafana OnCall](https://grafana.com/docs/grafana-cloud/oncall/)
+- _Overview Webinar_ - [YouTube](https://www.youtube.com/watch?v=7uSe1pulgs8)
 - _How To Add Integration_ - [How to Add Integration](https://github.com/grafana/oncall/tree/dev/engine/config_integrations/README.md)
 - _Blog Post_ - [Announcing Grafana OnCall, the easiest way to do on-call management](https://grafana.com/blog/2021/11/09/announcing-grafana-oncall/)
 - _Presentation_ - [Deep dive into the Grafana, Prometheus, and Alertmanager stack for alerting and on-call management](https://grafana.com/go/observabilitycon/2021/alerting/?pg=blog)

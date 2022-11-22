@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
 
 import { SelectableValue } from '@grafana/data';
-import { ValuePicker, HorizontalGroup, Button } from '@grafana/ui';
+import { ValuePicker, HorizontalGroup, Button, Tooltip } from '@grafana/ui';
 import cn from 'classnames/bind';
 import dayjs from 'dayjs';
 import { observer } from 'mobx-react';
@@ -11,10 +11,12 @@ import Text from 'components/Text/Text';
 import TimelineMarks from 'components/TimelineMarks/TimelineMarks';
 import Rotation from 'containers/Rotation/Rotation';
 import RotationForm from 'containers/RotationForm/RotationForm';
+import { WithPermissionControl } from 'containers/WithPermissionControl/WithPermissionControl';
 import { getColor, getFromString } from 'models/schedule/schedule.helpers';
-import { Layer, Schedule, Shift } from 'models/schedule/schedule.types';
+import { Layer, Schedule, ScheduleType, Shift } from 'models/schedule/schedule.types';
 import { Timezone } from 'models/timezone/timezone.types';
 import { WithStoreProps } from 'state/types';
+import { UserAction } from 'state/userAction';
 import { withMobXProviderContext } from 'state/withStore';
 
 import { DEFAULT_TRANSITION_TIMEOUT } from './Rotations.config';
@@ -85,6 +87,11 @@ class Rotations extends Component<RotationsProps, RotationsState> {
 
     options.push({ label: 'New Layer', value: nextPriority });
 
+    const schedule = store.scheduleStore.items[scheduleId];
+
+    const isTypeReadOnly =
+      schedule && (schedule?.type === ScheduleType.Ical || schedule?.type === ScheduleType.Calendar);
+
     return (
       <>
         <div className={cx('root')}>
@@ -96,9 +103,21 @@ class Rotations extends Component<RotationsProps, RotationsState> {
                 </Text.Title>
               </div>
               {disabled ? (
-                <Button variant="primary" icon="plus" disabled>
-                  Add rotation
-                </Button>
+                isTypeReadOnly ? (
+                  <Tooltip content="Ical and API/Terraform schedules are read-only" placement="top">
+                    <div>
+                      <Button variant="primary" icon="plus" disabled>
+                        Add rotation
+                      </Button>
+                    </div>
+                  </Tooltip>
+                ) : (
+                  <WithPermissionControl userAction={UserAction.UpdateSchedules}>
+                    <Button variant="primary" icon="plus" disabled>
+                      Add rotation
+                    </Button>
+                  </WithPermissionControl>
+                )
               ) : (
                 <ValuePicker
                   label="Add rotation"
@@ -145,6 +164,7 @@ class Rotations extends Component<RotationsProps, RotationsState> {
                                 startMoment={startMoment}
                                 currentTimezone={currentTimezone}
                                 transparent={isPreview}
+                                tutorialParams={isPreview && store.scheduleStore.rotationFormLiveParams}
                               />
                             </CSSTransition>
                           ))}
@@ -186,10 +206,13 @@ class Rotations extends Component<RotationsProps, RotationsState> {
               <div
                 className={cx('add-rotations-layer')}
                 onClick={() => {
-                  this.handleAddLayer(nextPriority);
+                  if (disabled) {
+                    return;
+                  }
+                  this.handleAddLayer(nextPriority, startMoment);
                 }}
               >
-                <Text type="primary">+ Add rotations layer</Text>
+                <Text type={disabled ? 'disabled' : 'primary'}>+ Add rotations layer</Text>
               </div>
             )}
           </div>

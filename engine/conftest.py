@@ -1,5 +1,6 @@
 import json
 import sys
+import typing
 import uuid
 from importlib import import_module, reload
 
@@ -70,7 +71,7 @@ from apps.telegram.tests.factories import (
 )
 from apps.twilioapp.tests.factories import PhoneCallFactory, SMSFactory
 from apps.user_management.models.user import User, listen_for_user_model_save
-from apps.user_management.tests.factories import OrganizationFactory, TeamFactory, UserFactory
+from apps.user_management.tests.factories import OrganizationFactory, RegionFactory, TeamFactory, UserFactory
 from common.constants.role import Role
 
 register(OrganizationFactory)
@@ -109,7 +110,6 @@ register(SMSFactory)
 register(EmailMessageFactory)
 
 register(IntegrationHeartBeatFactory)
-
 register(LiveSettingFactory)
 
 
@@ -178,12 +178,22 @@ def make_public_api_token():
 
 @pytest.fixture
 def make_user_auth_headers():
-    def _make_user_auth_headers(user, token):
+    def _make_user_auth_headers(
+        user,
+        token,
+        grafana_token: typing.Optional[str] = None,
+        grafana_context_data: typing.Optional[typing.Dict] = None,
+    ):
+        instance_context_headers = {"stack_id": user.organization.stack_id, "org_id": user.organization.org_id}
+        grafana_context_headers = {"UserId": user.user_id}
+        if grafana_token is not None:
+            instance_context_headers["grafana_token"] = grafana_token
+        if grafana_context_data is not None:
+            grafana_context_headers.update(grafana_context_data)
+
         return {
-            "HTTP_X-Instance-Context": json.dumps(
-                {"stack_id": user.organization.stack_id, "org_id": user.organization.org_id}
-            ),
-            "HTTP_X-Grafana-Context": json.dumps({"UserId": user.user_id}),
+            "HTTP_X-Instance-Context": json.dumps(instance_context_headers),
+            "HTTP_X-Grafana-Context": json.dumps(grafana_context_headers),
             "HTTP_AUTHORIZATION": f"{token}",
         }
 
@@ -666,3 +676,23 @@ def load_slack_urls(settings):
         reload(sys.modules[urlconf])
     else:
         import_module(urlconf)
+
+
+@pytest.fixture
+def make_region():
+    def _make_region(**kwargs):
+        region = RegionFactory(**kwargs)
+        return region
+
+    return _make_region
+
+
+@pytest.fixture
+def make_organization_and_region(make_organization, make_region):
+    def _make_organization_and_region():
+        organization = make_organization()
+        region = make_region()
+        organization.migration_destination = region
+        return organization, region
+
+    return _make_organization_and_region

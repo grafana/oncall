@@ -1,10 +1,12 @@
 import React from 'react';
 
-import { AppRootProps } from '@grafana/data';
 import { getLocationSrv } from '@grafana/runtime';
 import { Button, HorizontalGroup } from '@grafana/ui';
+import { PluginPage } from 'PluginPage';
 import cn from 'classnames/bind';
 import { observer } from 'mobx-react';
+import LegacyNavHeading from 'navbar/LegacyNavHeading';
+import { AppRootProps } from 'types';
 
 import GTable from 'components/GTable/GTable';
 import PageErrorHandlingWrapper, { PageBaseState } from 'components/PageErrorHandlingWrapper/PageErrorHandlingWrapper';
@@ -19,6 +21,8 @@ import OutgoingWebhookForm from 'containers/OutgoingWebhookForm/OutgoingWebhookF
 import { WithPermissionControl } from 'containers/WithPermissionControl/WithPermissionControl';
 import { ActionDTO } from 'models/action';
 import { OutgoingWebhook } from 'models/outgoing_webhook/outgoing_webhook.types';
+import { pages } from 'pages';
+import { getQueryParams } from 'plugin/GrafanaPluginRootPage.helpers';
 import { WithStoreProps } from 'state/types';
 import { UserAction } from 'state/userAction';
 import { withMobXProviderContext } from 'state/withStore';
@@ -39,12 +43,14 @@ class OutgoingWebhooks extends React.Component<OutgoingWebhooksProps, OutgoingWe
     errorData: initErrorDataState(),
   };
 
+  private outgoingWebhookId: string;
+
   async componentDidMount() {
     this.update().then(this.parseQueryParams);
   }
 
-  componentDidUpdate(prevProps: OutgoingWebhooksProps) {
-    if (this.props.query.id !== prevProps.query.id) {
+  componentDidUpdate() {
+    if (this.outgoingWebhookId !== getQueryParams()['id']) {
       this.parseQueryParams();
     }
   }
@@ -55,10 +61,10 @@ class OutgoingWebhooks extends React.Component<OutgoingWebhooksProps, OutgoingWe
       outgoingWebhookIdToEdit: undefined,
     })); // reset state on query parse
 
-    const {
-      store,
-      query: { id },
-    } = this.props;
+    const { store } = this.props;
+    const { id } = getQueryParams();
+
+    this.outgoingWebhookId = id;
 
     if (!id) {
       return;
@@ -109,31 +115,35 @@ class OutgoingWebhooks extends React.Component<OutgoingWebhooksProps, OutgoingWe
     ];
 
     return (
-      <PageErrorHandlingWrapper
-        errorData={errorData}
-        objectName="outgoing webhook"
-        pageName="outgoing_webhooks"
-        itemNotFoundMessage={`Outgoing webhook with id=${query?.id} is not found. Please select outgoing webhook from the list.`}
-      >
-        {() => (
+      <PluginPage pageNav={pages['outgoing_webhooks'].getPageNav()}>
+        <PageErrorHandlingWrapper
+          errorData={errorData}
+          objectName="outgoing webhook"
+          pageName="outgoing_webhooks"
+          itemNotFoundMessage={`Outgoing webhook with id=${query?.id} is not found. Please select outgoing webhook from the list.`}
+        >
           <>
             <div className={cx('root')}>
               <GTable
                 emptyText={webhooks ? 'No outgoing webhooks found' : 'Loading...'}
                 title={() => (
                   <div className={cx('header')}>
-                    <Text.Title level={3}>Outgoing Webhooks</Text.Title>
-                    <PluginLink
-                      partial
-                      query={{ id: 'new' }}
-                      disabled={!store.isUserActionAllowed(UserAction.UpdateCustomActions)}
-                    >
-                      <WithPermissionControl userAction={UserAction.UpdateCustomActions}>
-                        <Button variant="primary" icon="plus">
-                          Create
-                        </Button>
-                      </WithPermissionControl>
-                    </PluginLink>
+                    <LegacyNavHeading>
+                      <Text.Title level={3}>Outgoing Webhooks</Text.Title>
+                    </LegacyNavHeading>
+                    <div className="u-pull-right">
+                      <PluginLink
+                        partial
+                        query={{ id: 'new' }}
+                        disabled={!store.isUserActionAllowed(UserAction.UpdateCustomActions)}
+                      >
+                        <WithPermissionControl userAction={UserAction.UpdateCustomActions}>
+                          <Button variant="primary" icon="plus">
+                            Create
+                          </Button>
+                        </WithPermissionControl>
+                      </PluginLink>
+                    </div>
                   </div>
                 )}
                 rowKey="id"
@@ -149,8 +159,8 @@ class OutgoingWebhooks extends React.Component<OutgoingWebhooksProps, OutgoingWe
               />
             )}
           </>
-        )}
-      </PageErrorHandlingWrapper>
+        </PageErrorHandlingWrapper>
+      </PluginPage>
     );
   }
 

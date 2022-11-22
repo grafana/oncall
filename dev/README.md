@@ -12,6 +12,7 @@
   - [ld: library not found for -lssl](#ld-library-not-found-for--lssl)
   - [Could not build wheels for cryptography which use PEP 517 and cannot be installed directly](#could-not-build-wheels-for-cryptography-which-use-pep-517-and-cannot-be-installed-directly)
   - [django.db.utils.OperationalError: (1366, "Incorrect string value ...")](#djangodbutilsoperationalerror-1366-incorrect-string-value)
+  - [/bin/sh: line 0: cd: grafana-plugin: No such file or directory](#binsh-line-0-cd-grafana-plugin-no-such-file-or-directory)
 - [IDE Specific Instructions](#ide-specific-instructions)
   - [PyCharm](#pycharm-professional-edition)
 
@@ -21,17 +22,18 @@ Related: [How to develop integrations](/engine/config_integrations/README.md)
 
 By default everything runs inside Docker. These options can be modified via the [`COMPOSE_PROFILES`](#compose_profiles) environment variable.
 
-1. Firstly, ensure that you have `docker` [installed](https://docs.docker.com/get-docker/) and running on your machine. **NOTE**: the `docker-compose-developer.yml` file uses some syntax/features that are only supported by Docker Compose v2. For insturctions on how to enable this (if you haven't already done so), see [here](https://www.docker.com/blog/announcing-compose-v2-general-availability/).
-2. Run `make start`. By default this will run everything in Docker, using SQLite as the database and Redis as the message broker/cache. See [Running in Docker](#running-in-docker) below for more details on how to swap out/disable which components are run in Docker.
+1. Firstly, ensure that you have `docker` [installed](https://docs.docker.com/get-docker/) and running on your machine. **NOTE**: the `docker-compose-developer.yml` file uses some syntax/features that are only supported by Docker Compose v2. For instructions on how to enable this (if you haven't already done so), see [here](https://www.docker.com/blog/announcing-compose-v2-general-availability/).
+2. Run `make init start`. By default this will run everything in Docker, using SQLite as the database and Redis as the message broker/cache. See [Running in Docker](#running-in-docker) below for more details on how to swap out/disable which components are run in Docker.
 3. Open Grafana in a browser [here](http://localhost:3000/plugins/grafana-oncall-app) (login: `oncall`, password: `oncall`).
 4. You should now see the OnCall plugin configuration page. Fill out the configuration options as follows:
 
-- Invite token: run `make get-invite-token` and copy/paste the token that gets printed out
 - OnCall backend URL: http://host.docker.internal:8080 (this is the URL that is running the OnCall API; it should be accessible from Grafana)
 - Grafana URL: http://grafana:3000 (this is the URL OnCall will use to talk to the Grafana Instance)
 
 5. Enjoy! Check our [OSS docs](https://grafana.com/docs/grafana-cloud/oncall/open-source/) if you want to set up Slack, Telegram, Twilio or SMS/calls through Grafana Cloud.
 6. (Optional) Install `pre-commit` hooks by running `make install-precommit-hook`
+
+**Note**: on subsequent startups you can simply run `make start`, this is a bit faster because it skips the frontend build step.
 
 ### `COMPOSE_PROFILES`
 
@@ -39,7 +41,7 @@ This configuration option represents a comma-separated list of [`docker-compose`
 
 This option can be configured in two ways:
 
-1. Setting a `COMPOSE_PROFILE` environment variable in `.env.dev`. This allows you to avoid having to set `COMPOSE_PROFILE` for each `make` command you execute afterwards.
+1. Setting a `COMPOSE_PROFILES` environment variable in `dev/.env.dev`. This allows you to avoid having to set `COMPOSE_PROFILES` for each `make` command you execute afterwards.
 2. Passing in a `COMPOSE_PROFILES` argument when running `make` commands. For example:
 
 ```bash
@@ -85,18 +87,21 @@ By default everything runs inside Docker. If you would like to run the backend s
 See [`COMPOSE_PROFILES`](#compose_profiles) for more information on what this option is and how to configure it.
 
 ```bash
+make init # build the frontend plugin code then run make start
+make start # start all of the docker containers
 make stop # stop all of the docker containers
 make restart # restart all docker containers
+make build # rebuild images (e.g. when changing requirements.txt)
 
 # this will remove all of the images, containers, volumes, and networks
 # associated with your local OnCall developer setup
 make cleanup
 
-make get-invite-token # generate an invitation token
 make start-celery-beat # start celery beat
 make purge-queues # purge celery queues
 make shell # starts an OnCall engine Django shell
 make dbshell # opens a DB shell
+make exec-engine # exec into engine container's bash
 make test # run backend tests
 
 # run both frontend and backend linters
@@ -184,6 +189,45 @@ django.db.utils.OperationalError: (1366, "Incorrect string value: '\\xF0\\x9F\\x
 **Solution:**
 
 Recreate the database with the correct encoding.
+
+### /bin/sh: line 0: cd: grafana-plugin: No such file or directory
+
+**Problem:**
+
+When running `make init`:
+
+```
+/bin/sh: line 0: cd: grafana-plugin: No such file or directory
+make: *** [init] Error 1
+```
+
+This arises when the environment variable `[CDPATH](https://www.theunixschool.com/2012/04/what-is-cdpath.html)` is set _and_ when the current path (`.`) is not explicitly part of `CDPATH`.
+
+**Solution:**
+
+Either make `.` part of `CDPATH` in your .rc file setup, or temporarily override the variable when running `make` commands:
+
+```
+$ CDPATH="." make init
+# Setting CDPATH to empty seems to also work - only tested on zsh, YMMV
+$ CDPATH="" make init
+```
+
+**Problem:**
+
+When running `make init start`:
+
+```
+Error response from daemon: open /var/lib/docker/overlay2/ac57b871108ee1b98ff4455e36d2175eae90cbc7d4c9a54608c0b45cfb7c6da5/committed: is a directory
+make: *** [start] Error 1
+```
+
+**Solution:**
+clear everything in docker by resetting or: 
+
+```
+make cleanup
+```
 
 ## IDE Specific Instructions
 

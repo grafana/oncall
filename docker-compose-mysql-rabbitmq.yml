@@ -1,4 +1,4 @@
-version: "3.8"
+version: "3.9"
 
 x-environment: &oncall-environment
   BASE_URL: $DOMAIN
@@ -20,6 +20,7 @@ x-environment: &oncall-environment
   CELERY_WORKER_MAX_TASKS_PER_CHILD: "100"
   CELERY_WORKER_SHUTDOWN_INTERVAL: "65m"
   CELERY_WORKER_BEAT_ENABLED: "True"
+  GRAFANA_API_URL: http://grafana:3000
 
 services:
   engine:

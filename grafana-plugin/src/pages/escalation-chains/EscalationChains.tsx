@@ -1,11 +1,12 @@
 import React from 'react';
 
-import { AppRootProps } from '@grafana/data';
 import { getLocationSrv } from '@grafana/runtime';
 import { Button, HorizontalGroup, Icon, IconButton, LoadingPlaceholder, Tooltip, VerticalGroup } from '@grafana/ui';
+import { PluginPage } from 'PluginPage';
 import cn from 'classnames/bind';
 import { debounce } from 'lodash-es';
 import { observer } from 'mobx-react';
+import { AppRootProps } from 'types';
 
 import Collapse from 'components/Collapse/Collapse';
 import EscalationsFilters from 'components/EscalationsFilters/EscalationsFilters';
@@ -26,6 +27,7 @@ import EscalationChainForm from 'containers/EscalationChainForm/EscalationChainF
 import EscalationChainSteps from 'containers/EscalationChainSteps/EscalationChainSteps';
 import { WithPermissionControl } from 'containers/WithPermissionControl/WithPermissionControl';
 import { EscalationChain } from 'models/escalation_chain/escalation_chain.types';
+import { pages } from 'pages';
 import { WithStoreProps } from 'state/types';
 import { UserAction } from 'state/userAction';
 import { withMobXProviderContext } from 'state/withStore';
@@ -134,13 +136,13 @@ class EscalationChainsPage extends React.Component<EscalationChainsPageProps, Es
     const searchResult = escalationChainStore.getSearchResult(escalationChainsFilters.searchTerm);
 
     return (
-      <PageErrorHandlingWrapper
-        errorData={errorData}
-        objectName="escalation"
-        pageName="escalations"
-        itemNotFoundMessage={`Escalation chain with id=${query?.id} is not found. Please select escalation chain from the list.`}
-      >
-        {() => (
+      <PluginPage pageNav={pages['escalations'].getPageNav()}>
+        <PageErrorHandlingWrapper
+          errorData={errorData}
+          objectName="escalation"
+          pageName="escalations"
+          itemNotFoundMessage={`Escalation chain with id=${query?.id} is not found. Please select escalation chain from the list.`}
+        >
           <>
             <div className={cx('root')}>
               <div className={cx('filters')}>
@@ -214,8 +216,8 @@ class EscalationChainsPage extends React.Component<EscalationChainsPageProps, Es
               />
             )}
           </>
-        )}
-      </PageErrorHandlingWrapper>
+        </PageErrorHandlingWrapper>
+      </PluginPage>
     );
   }
 

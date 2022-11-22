@@ -68,6 +68,17 @@ celery:
     #   memory: 128Mi
 
 oncall:
+  # Override default MIRAGE_CIPHER_IV (must be 16 bytes long)
+  # For existing installation, this should not be changed.
+  # mirageCipherIV: 1234567890abcdef
+  # oncall secrets
+  secrets:
+    # Use existing secret. (secretKey and mirageSecretKey is required)
+    existingSecret: ""
+    # the key in the secret containing secret key
+    secretKey: ""
+    # the key in the secret containing mirage secret key
+    mirageSecretKey: ""
   # slack configures the Grafana Oncall Slack ChatOps integration.
   slack:
     # enabled enable the Slack ChatOps integration for the Oncall Engine.
@@ -84,12 +95,25 @@ oncall:
     # requests comming from Slack.
     # api.slack.com/apps/<yourApp> -> Basic Information -> App Credentials -> Signing Secret
     signingSecret: ~
+    # Use existing secret for clientId, clientSecret and signingSecret.
+    # clientIdKey, clientSecretKey and signingSecretKey are required
+    existingSecret: ""
+    # the key in the secret containing OAuth2 client ID
+    clientIdKey: ""
+    # the key in the secret containing OAuth2 client secret
+    clientSecretKey: ""
+    # the key in the secret containing the Slack app signature secret
+    signingSecretKey: ""
     # OnCall external URL
     redirectHost: ~
   telegram:
     enabled: false
     token: ~
     webhookUrl: ~
+    # Use exsting secret. (tokenKey is required)
+    existingSecret: ""
+    # the key in the secret containing Telegram token
+    tokenKey: ""
   smtp:
     enabled: false
     host: ~
@@ -221,7 +245,7 @@ externalPostgresql:
   # use an existing secret for the database password
   existingSecret: ""
   # the key in the secret containing the database password
-  passwordKey: password
+  passwordKey:
 
 # RabbitMQ is included into this release for the convenience.
 # It is recommended to host it separately from this release
@@ -268,6 +292,9 @@ grafana:
     enabled: true
   plugins:
     - grafana-oncall-app
+
+externalGrafana:
+  url:
 
 nameOverride: ""
 fullnameOverride: ""
