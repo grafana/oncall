@@ -373,6 +373,7 @@ class CustomOnCallShift(models.Model):
                     expected_start_day = min(CustomOnCallShift.ICAL_WEEKDAY_REVERSE_MAP[d] for d in self.by_day)
                     delta = (expected_start_day - start.weekday()) % 7
                     start = start + timezone.timedelta(days=delta)
+                    self.until = self.until + timezone.timedelta(days=delta)
 
             if self.frequency == CustomOnCallShift.FREQUENCY_DAILY and self.by_day:
                 result = self._daily_by_day_to_ical(time_zone, start, users_queue)
