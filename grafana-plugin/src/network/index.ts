@@ -30,7 +30,7 @@ interface RequestConfig {
   validateStatus?: (status: number) => boolean;
 }
 
-export const makeRequest = async (path: string, config: RequestConfig) => {
+export const makeRequest = async <RT = any>(path: string, config: RequestConfig) => {
   const { method = 'GET', params, data, validateStatus } = config;
 
   const url = `${API_PROXY_PREFIX}${API_PATH_PREFIX}${path}`;
@@ -43,5 +43,5 @@ export const makeRequest = async (path: string, config: RequestConfig) => {
     validateStatus,
   });
 
-  return response.data;
+  return response.data as RT;
 };

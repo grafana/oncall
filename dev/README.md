@@ -27,7 +27,6 @@ By default everything runs inside Docker. These options can be modified via the 
 3. Open Grafana in a browser [here](http://localhost:3000/plugins/grafana-oncall-app) (login: `oncall`, password: `oncall`).
 4. You should now see the OnCall plugin configuration page. Fill out the configuration options as follows:
 
-- Invite token: run `make get-invite-token` and copy/paste the token that gets printed out
 - OnCall backend URL: http://host.docker.internal:8080 (this is the URL that is running the OnCall API; it should be accessible from Grafana)
 - Grafana URL: http://grafana:3000 (this is the URL OnCall will use to talk to the Grafana Instance)
 
@@ -98,7 +97,6 @@ make build # rebuild images (e.g. when changing requirements.txt)
 # associated with your local OnCall developer setup
 make cleanup
 
-make get-invite-token # generate an invitation token
 make start-celery-beat # start celery beat
 make purge-queues # purge celery queues
 make shell # starts an OnCall engine Django shell
