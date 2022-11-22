@@ -18,7 +18,7 @@ app_name = "grafana_plugin"
     ],
 )
 @patch.object(sys, "exit")
-@override_settings(LICENSE=settings.OPENSOURCE_LICENSE_NAME)
+@override_settings(LICENSE=settings.OPEN_SOURCE_LICENSE_NAME)
 @override_settings(SELF_HOSTED_SETTINGS={"GRAFANA_API_URL": None})
 @pytest.mark.django_db
 def test_it_crashes_the_app_if_the_env_var_is_not_present_for_oss_installations_and_an_org_does_not_exist(
@@ -37,7 +37,7 @@ def test_it_crashes_the_app_if_the_env_var_is_not_present_for_oss_installations_
 
 @patch.object(sys, "argv", ["runserver"])
 @patch.object(sys, "exit")
-@override_settings(LICENSE=settings.OPENSOURCE_LICENSE_NAME)
+@override_settings(LICENSE=settings.OPEN_SOURCE_LICENSE_NAME)
 @override_settings(SELF_HOSTED_SETTINGS={"GRAFANA_API_URL": None})
 @pytest.mark.django_db
 def test_it_doesnt_crash_the_app_if_the_env_var_is_not_present_for_oss_installations_and_an_org_does_exist(
