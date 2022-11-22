@@ -106,6 +106,6 @@ def test_oss_features_switch(
     assert response.status_code == status.HTTP_200_OK
     assert expected_feature in response.json()
 
-    setattr(settings, feature_attr, True)
+    setattr(settings, feature_attr, False)
     response = client.get(url, format="json", **make_user_auth_headers(user, token))
     assert expected_feature not in response.json()
