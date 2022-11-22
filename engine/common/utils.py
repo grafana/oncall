@@ -206,7 +206,7 @@ def urlize_with_respect_to_a(html):
     Wrap links into <a> tag if not already
     """
     if len(html) > settings.URLIZE_MAX_LENGTH:
-        return html[: settings.URLIZE_MAX_LENGTH :] + ".."
+        return html[: settings.URLIZE_MAX_LENGTH] + ".."
 
     soup = BeautifulSoup(html, features="html.parser")
     textNodes = soup.find_all(text=True)

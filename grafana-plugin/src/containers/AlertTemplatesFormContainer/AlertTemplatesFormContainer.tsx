@@ -6,7 +6,7 @@ import AlertTemplatesForm from 'components/AlertTemplates/AlertTemplatesForm';
 import { AlertReceiveChannel } from 'models/alert_receive_channel';
 import { Alert } from 'models/alertgroup/alertgroup.types';
 import { useStore } from 'state/useStore';
-import { openNotification } from 'utils';
+import { openErrorNotification, openNotification } from 'utils';
 
 interface TeamEditContainerProps {
   onHide: () => void;
@@ -42,7 +42,11 @@ const AlertTemplatesFormContainer = observer((props: TeamEditContainerProps) => 
           }
         })
         .catch((data) => {
-          setErrors(data.response.data);
+          if (data.response.data?.length > 0) {
+            setErrors(data.response.data);
+          } else {
+            openErrorNotification(data.message);
+          }
         });
     },
     [alertReceiveChannelId, onUpdateTemplates, store.alertReceiveChannelStore]
