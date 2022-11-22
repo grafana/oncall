@@ -1,5 +1,7 @@
+from django.conf import settings
 from django.urls import include, path, re_path
 
+from apps.mobile_app.views import APNSDeviceAuthorizedViewSet
 from common.api_helpers.optional_slash_router import OptionalSlashRouter, optional_slash_path
 
 from .views import UserNotificationPolicyView, auth
@@ -65,6 +67,10 @@ router.register(r"heartbeats", IntegrationHeartBeatView, basename="integration_h
 router.register(r"tokens", PublicApiTokenView, basename="api_token")
 router.register(r"live_settings", LiveSettingViewSet, basename="live_settings")
 router.register(r"oncall_shifts", OnCallShiftView, basename="oncall_shifts")
+
+# TODO: remove this when the hackathon app is deprecated (APNSDeviceAuthorizedViewSet is registered in mobile_app)
+if settings.FEATURE_MOBILE_APP_INTEGRATION_ENABLED:
+    router.register(r"device/apns", APNSDeviceAuthorizedViewSet)
 
 urlpatterns = [
     path("", include(router.urls)),

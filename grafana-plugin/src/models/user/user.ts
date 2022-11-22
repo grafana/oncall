@@ -368,16 +368,4 @@ export class UserStore extends BaseStore {
       method: 'DELETE',
     });
   }
-
-  async getMobileAppVerificationToken(userPk: User['pk']) {
-    return await makeRequest(`/users/${userPk}/mobile_app_verification_token/`, {
-      method: 'GET',
-    });
-  }
-
-  async createMobileAppVerificationToken(userPk: User['pk']) {
-    return await makeRequest(`/users/${userPk}/mobile_app_verification_token/`, {
-      method: 'POST',
-    });
-  }
 }
