@@ -14,7 +14,7 @@ from apps.api.views.features import (
 
 
 @pytest.mark.django_db
-def test_features(
+def test_features_view(
     make_organization_and_user_with_plugin_token,
     make_user_auth_headers,
 ):
@@ -31,36 +31,41 @@ def test_features(
 
 
 @pytest.mark.django_db
-def test_select_features_all_enabled(
+@pytest.mark.parametrize(
+    "feature_attr,expected_feature",
+    [
+        ("FEATURE_SLACK_INTEGRATION_ENABLED", FEATURE_SLACK),
+        ("FEATURE_TELEGRAM_INTEGRATION_ENABLED", FEATURE_TELEGRAM),
+        ("FEATURE_LIVE_SETTINGS_ENABLED", FEATURE_LIVE_SETTINGS),
+        ("FEATURE_WEB_SCHEDULES_ENABLED", FEATURE_WEB_SCHEDULES),
+    ],
+)
+def test_common_features_switch(
     settings,
     make_organization_and_user_with_plugin_token,
     make_user_auth_headers,
+    feature_attr,
+    expected_feature,
 ):
-    organization, user, token = make_organization_and_user_with_plugin_token()
-    settings.LICENSE == settings.OPEN_SOURCE_LICENSE_NAME
-    settings.FEATURE_SLACK_INTEGRATION_ENABLED = True
-    settings.FEATURE_TELEGRAM_INTEGRATION_ENABLED = True
-    settings.FEATURE_LIVE_SETTINGS_ENABLED = True
-    settings.FEATURE_GRAFANA_CLOUD_CONNECTION = True
-    settings.FEATURE_GRAFANA_CLOUD_NOTIFICATIONS = True
-    settings.FEATURE_WEB_SCHEDULES_ENABLED = True
+    _, user, token = make_organization_and_user_with_plugin_token()
+    setattr(settings, feature_attr, True)
+
     client = APIClient()
     url = reverse("api-internal:features")
     response = client.get(url, format="json", **make_user_auth_headers(user, token))
 
     assert response.status_code == status.HTTP_200_OK
-    assert response.json() == [
-        FEATURE_SLACK,
-        FEATURE_TELEGRAM,
-        FEATURE_GRAFANA_CLOUD_CONNECTION,
-        FEATURE_LIVE_SETTINGS,
-        FEATURE_GRAFANA_CLOUD_NOTIFICATIONS,
-        FEATURE_WEB_SCHEDULES,
-    ]
+    assert expected_feature in response.json()
+
+    setattr(settings, feature_attr, False)
+    response = client.get(url, format="json", **make_user_auth_headers(user, token))
+
+    assert response.status_code == status.HTTP_200_OK
+    assert expected_feature not in response.json()
 
 
 @pytest.mark.django_db
-def test_oss_features_enabled_in_oss_installation(
+def test_oss_features_enabled_in_oss_installation_by_default(
     settings,
     make_organization_and_user_with_plugin_token,
     make_user_auth_headers,
@@ -77,21 +82,30 @@ def test_oss_features_enabled_in_oss_installation(
 
 
 @pytest.mark.django_db
-def test_select_features_all_disabled(
+@pytest.mark.parametrize(
+    "feature_attr,expected_feature",
+    [
+        ("GRAFANA_CLOUD_NOTIFICATIONS_ENABLED", FEATURE_GRAFANA_CLOUD_NOTIFICATIONS),
+    ],
+)
+def test_oss_features_switch(
     settings,
     make_organization_and_user_with_plugin_token,
     make_user_auth_headers,
+    feature_attr,
+    expected_feature,
 ):
     _, user, token = make_organization_and_user_with_plugin_token()
-    settings.FEATURE_SLACK_INTEGRATION_ENABLED = False
-    settings.FEATURE_TELEGRAM_INTEGRATION_ENABLED = False
-    settings.FEATURE_LIVE_SETTINGS_ENABLED = False
-    settings.FEATURE_GRAFANA_CLOUD_CONNECTION = False
-    settings.FEATURE_GRAFANA_CLOUD_NOTIFICATIONS = False
-    settings.FEATURE_WEB_SCHEDULES_ENABLED = False
+    settings.LICENSE == settings.OPEN_SOURCE_LICENSE_NAME
+    setattr(settings, feature_attr, True)
+
     client = APIClient()
     url = reverse("api-internal:features")
     response = client.get(url, format="json", **make_user_auth_headers(user, token))
 
     assert response.status_code == status.HTTP_200_OK
-    assert response.json() == []
+    assert expected_feature in response.json()
+
+    setattr(settings, feature_attr, True)
+    response = client.get(url, format="json", **make_user_auth_headers(user, token))
+    assert expected_feature not in response.json()
