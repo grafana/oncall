@@ -559,6 +559,7 @@ SELF_HOSTED_SETTINGS = {
     "ORG_SLUG": "self_hosted_org",
     "ORG_TITLE": "Self-Hosted Organization",
     "REGION_SLUG": "self_hosted_region",
+    "GRAFANA_API_URL": os.environ.get("GRAFANA_API_URL", default=None),
 }
 
 GRAFANA_INCIDENT_STATIC_API_KEY = os.environ.get("GRAFANA_INCIDENT_STATIC_API_KEY", None)

@@ -1,12 +1,12 @@
 import React from 'react';
 
-import { AppRootProps } from '@grafana/data';
 import { getLocationSrv } from '@grafana/runtime';
 import { Button, HorizontalGroup } from '@grafana/ui';
 import { PluginPage } from 'PluginPage';
 import cn from 'classnames/bind';
 import { observer } from 'mobx-react';
 import LegacyNavHeading from 'navbar/LegacyNavHeading';
+import { AppRootProps } from 'types';
 
 import GTable from 'components/GTable/GTable';
 import PageErrorHandlingWrapper, { PageBaseState } from 'components/PageErrorHandlingWrapper/PageErrorHandlingWrapper';

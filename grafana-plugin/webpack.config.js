@@ -1,3 +1,4 @@
+const webpack = require('webpack');
 const path = require('path');
 
 const CircularDependencyPlugin = require('circular-dependency-plugin');
@@ -132,6 +133,15 @@ module.exports.getWebpackConfig = (config, options) => {
         allowAsyncCycles: false,
         // set the current working directory for displaying module paths
         cwd: process.cwd(),
+      }),
+
+      /**
+       * From docs (https://webpack.js.org/plugins/environment-plugin/):
+       * Default values of null and undefined behave differently.
+       * Use undefined for variables that must be provided during bundling, or null if they are optional.
+       */
+      new webpack.EnvironmentPlugin({
+        ONCALL_API_URL: null,
       }),
     ],
 

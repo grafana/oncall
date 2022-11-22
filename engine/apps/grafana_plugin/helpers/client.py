@@ -23,6 +23,9 @@ class APIClient:
     def api_post(self, endpoint: str, body: dict = None) -> Tuple[Optional[Response], dict]:
         return self.call_api(endpoint, requests.post, body)
 
+    def api_head(self, endpoint: str, body: dict = None) -> Tuple[Optional[Response], dict]:
+        return self.call_api(endpoint, requests.head, body)
+
     def call_api(self, endpoint: str, http_method, body: dict = None) -> Tuple[Optional[Response], dict]:
         request_start = time.perf_counter()
         call_status = {
@@ -73,7 +76,7 @@ class GrafanaAPIClient(APIClient):
         super().__init__(api_url, api_token)
 
     def check_token(self) -> Tuple[Optional[Response], dict]:
-        return self.api_get("api/org")
+        return self.api_head("api/org")
 
     def get_users(self) -> Tuple[Optional[Response], dict]:
         """

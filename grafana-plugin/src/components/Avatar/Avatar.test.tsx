@@ -1,11 +1,8 @@
 import React from 'react';
 
-import { describe, expect, test } from '@jest/globals';
 import { render, screen } from '@testing-library/react';
 
 import Avatar from 'components/Avatar/Avatar';
-
-import '@testing-library/jest-dom';
 
 describe('Avatar', () => {
   const avatarSrc = 'http://avatar.com/';

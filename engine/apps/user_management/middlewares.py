@@ -1,5 +1,4 @@
 import logging
-import re
 
 import requests
 from django.http import HttpResponse
@@ -22,16 +21,15 @@ class OrganizationMovedMiddleware(MiddlewareMixin):
                 )
 
             url = create_engine_url(request.path, override_base=region.oncall_backend_url)
-            if request.META["QUERY_STRING"]:
-                url = f"{url}?{request.META['QUERY_STRING']}"
+            if (v := request.META.get("QUERY_STRING", None)) is not None:
+                url = f"{url}?{v}"
 
-            regex = re.compile("^HTTP_")
-            headers = dict(
-                (regex.sub("", header), value) for (header, value) in request.META.items() if header.startswith("HTTP_")
-            )
-            headers.pop("HOST", None)
-            if request.META["CONTENT_TYPE"]:
-                headers["CONTENT_TYPE"] = request.META["CONTENT_TYPE"]
+            headers = {}
+            if (v := request.META.get("CONTENT_TYPE", None)) is not None:
+                headers["Content-type"] = v
+
+            if (v := request.META.get("HTTP_AUTHORIZATION", None)) is not None:
+                headers["Authorization"] = v
 
             response = self.make_request(request.method, url, headers, request.body)
             return HttpResponse(response.content, status=response.status_code)
