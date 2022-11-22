@@ -51,13 +51,17 @@ const UserSettings = observer(({ id, onHide, tab = UserSettingsTab.UserInfo }: U
   const isModalWide =
     !isDesktopOrLaptop || activeTab === UserSettingsTab.UserInfo || activeTab === UserSettingsTab.PhoneVerification;
 
-  const [showNotificationSettingsTab, showSlackConnectionTab, showTelegramConnectionTab, showMobileAppVerificationTab] =
-    [
-      !isDesktopOrLaptop,
-      isCurrent && teamStore.currentTeam?.slack_team_identity && !storeUser.slack_user_identity,
-      isCurrent && !storeUser.telegram_configuration,
-      store.hasFeature(AppFeature.MobileApp),
-    ];
+  const [
+    showNotificationSettingsTab,
+    showSlackConnectionTab,
+    showTelegramConnectionTab,
+    _showMobileAppVerificationTab,
+  ] = [
+    !isDesktopOrLaptop,
+    isCurrent && teamStore.currentTeam?.slack_team_identity && !storeUser.slack_user_identity,
+    isCurrent && !storeUser.telegram_configuration,
+    store.hasFeature(AppFeature.MobileApp),
+  ];
 
   return (
     <>
@@ -75,7 +79,7 @@ const UserSettings = observer(({ id, onHide, tab = UserSettingsTab.UserInfo }: U
             showNotificationSettingsTab={showNotificationSettingsTab}
             showSlackConnectionTab={showSlackConnectionTab}
             showTelegramConnectionTab={showTelegramConnectionTab}
-            showMobileAppVerificationTab={showMobileAppVerificationTab}
+            showMobileAppVerificationTab={true}
           />
           <TabsContent id={id} activeTab={activeTab} onTabChange={onTabChange} isDesktopOrLaptop={isDesktopOrLaptop} />
         </div>

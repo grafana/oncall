@@ -1,6 +1,18 @@
 .root {
   padding: 16px;
   border-radius: 2px;
+
+  &--withBackGround {
+    background: var(--secondary-background);
+  }
+
+  &--fullWidth {
+    width: 100%;
+  }
+
+  &--hover:hover {
+    background: var(--hover-selected);
+  }
 }
 
 :global(.theme-dark) .root_bordered {
@@ -13,8 +25,4 @@
 
 :global(.theme-dark) .root_shadowed {
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.6);
-}
-
-.root_with-background {
-  background: var(--secondary-background);
 }
