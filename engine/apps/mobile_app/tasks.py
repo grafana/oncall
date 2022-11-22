@@ -12,7 +12,7 @@ logger = get_task_logger(__name__)
 
 
 @shared_dedicated_queue_retry_task(autoretry_for=(Exception,), retry_backoff=True, max_retries=MAX_RETRIES)
-def notify_user_async(user_pk, alert_group_pk, notification_policy_pk):
+def notify_user_async(user_pk, alert_group_pk, notification_policy_pk, critical):
     # avoid circular import
     from apps.base.models import UserNotificationPolicy, UserNotificationPolicyLogRecord
 
@@ -54,6 +54,19 @@ def notify_user_async(user_pk, alert_group_pk, notification_policy_pk):
     # TODO: refactor this to use mobile app templates
     message = f"{AlertGroupWebRenderer(alert_group).render().get('title', 'Incident')}"
     thread_id = f"{alert_group.channel.organization.public_primary_key}:{alert_group.public_primary_key}"
+
+    if critical:
+        aps = {
+            "alert": f"Critical page: {message}",
+            "interruption-level": "critical",
+            "sound": "ambulance.aiff",
+        }
+    else:
+        aps = {
+            "alert": message,
+            "sound": "bingbong.aiff",
+        }
+
     devices_to_notify.send_message(
         message,
         thread_id=thread_id,
@@ -63,9 +76,6 @@ def notify_user_async(user_pk, alert_group_pk, notification_policy_pk):
             "orgName": f"{alert_group.channel.organization.stack_slug}",
             "incidentId": f"{alert_group.public_primary_key}",
             "status": f"{alert_group.status}",
-            "aps": {
-                "alert": f"{message}",
-                "sound": "bingbong.aiff",
-            },
+            "aps": aps,
         },
     )
