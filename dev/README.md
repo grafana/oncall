@@ -104,6 +104,10 @@ make dbshell # opens a DB shell
 make exec-engine # exec into engine container's bash
 make test # run backend tests
 
+# run Django's `manage.py` script, passing `$CMD` as arguments.
+# e.g. `make backend-manage-command makemigrations` - https://docs.djangoproject.com/en/4.1/ref/django-admin/#django-admin-makemigrations
+make backend-manage-command CMD="..."
+
 # run both frontend and backend linters
 # may need to run `yarn install` from within `grafana-plugin` to install several `pre-commit` dependencies
 make lint
