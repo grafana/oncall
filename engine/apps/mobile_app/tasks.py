@@ -1,6 +1,6 @@
 from celery.utils.log import get_task_logger
 from django.conf import settings
-from push_notifications.models import APNSDevice
+from push_notifications.models import APNSDevice, GCMDevice
 
 from apps.alerts.models import AlertGroup
 from apps.mobile_app.alert_rendering import get_push_notification_message
@@ -34,11 +34,12 @@ def notify_user_async(user_pk, alert_group_pk, notification_policy_pk, critical)
         logger.warning(f"User notification policy {notification_policy_pk} does not exist")
         return
 
-    # TODO: add Android support using GCMDevice
-    devices_to_notify = APNSDevice.objects.filter(user_id=user.pk)
+    # APNS is for notifying iOS devices, GCM for Android
+    apns_devices_to_notify = APNSDevice.objects.filter(user=user)
+    gcm_devices_to_notify = GCMDevice.objects.filter(user=user)
 
     # create an error log in case user has no devices set up
-    if not devices_to_notify.exists():
+    if not apns_devices_to_notify.exists() and not gcm_devices_to_notify.exists():
         UserNotificationPolicyLogRecord.objects.create(
             author=user,
             type=UserNotificationPolicyLogRecord.TYPE_PERSONAL_NOTIFICATION_FAILED,
@@ -66,15 +67,29 @@ def notify_user_async(user_pk, alert_group_pk, notification_policy_pk, critical)
             "sound": "bingbong.aiff",
         }
 
-    devices_to_notify.send_message(
+    apns_devices_to_notify.send_message(
         message,
         thread_id=thread_id,
-        category="USER_NEW_INCIDENT",
+        category="USER_NEW_INCIDENT",  # TODO: rename to USER_NEW_ALERT_GROUP
         extra={
-            "orgId": f"{alert_group.channel.organization.public_primary_key}",
-            "orgName": f"{alert_group.channel.organization.stack_slug}",
-            "incidentId": f"{alert_group.public_primary_key}",
-            "status": f"{alert_group.status}",
+            "orgId": alert_group.channel.organization.public_primary_key,
+            "orgName": alert_group.channel.organization.stack_slug,
+            "alertGroupId": alert_group.public_primary_key,
+            "incidentId": alert_group.public_primary_key,  # TODO: remove after hackathon app is deprecated
+            "status": alert_group.status,
+            "aps": aps,
+        },
+    )
+
+    gcm_devices_to_notify.send_message(
+        message,
+        thread_id=thread_id,
+        category="USER_NEW_INCIDENT",  # TODO: rename to USER_NEW_ALERT_GROUP
+        extra={
+            "orgId": alert_group.channel.organization.public_primary_key,
+            "orgName": alert_group.channel.organization.stack_slug,
+            "alertGroupId": alert_group.public_primary_key,
+            "status": alert_group.status,
             "aps": aps,
         },
     )
