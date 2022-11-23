@@ -166,3 +166,6 @@ run-backend-celery:
 
 backend-command:
 	$(call backend_command,$(CMD))
+
+backend-manage-command:
+	$(call backend_command,python manage.py $(CMD))
