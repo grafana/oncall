@@ -49,7 +49,7 @@ def notify_user_async(user_pk, alert_group_pk, notification_policy_pk, critical)
             notification_step=notification_policy.step,
             notification_channel=notification_policy.notify_by,
         )
-        logger.error(f"Error while sending a mobile push notification: user {user_pk} has no devices set up")
+        logger.info(f"Error while sending a mobile push notification: user {user_pk} has no devices set up")
         return
 
     message = get_push_notification_message(alert_group)
