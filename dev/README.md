@@ -22,12 +22,11 @@ Related: [How to develop integrations](/engine/config_integrations/README.md)
 
 By default everything runs inside Docker. These options can be modified via the [`COMPOSE_PROFILES`](#compose_profiles) environment variable.
 
-1. Firstly, ensure that you have `docker` [installed](https://docs.docker.com/get-docker/) and running on your machine. **NOTE**: the `docker-compose-developer.yml` file uses some syntax/features that are only supported by Docker Compose v2. For instructions on how to enable this (if you haven't already done so), see [here](https://www.docker.com/blog/announcing-compose-v2-general-availability/).
+1. Firstly, ensure that you have `docker` [installed](https://docs.docker.com/get-docker/) and running on your machine. **NOTE**: the `docker-compose-developer.yml` file uses some syntax/features that are only supported by Docker Compose v2. For instructions on how to enable this (if you haven't already done so), see [here](https://www.docker.com/blog/announcing-compose-v2-general-availability/). Ensure you have Docker Compose version 2.10 or above installed - update instructions are [here](https://docs.docker.com/compose/install/linux/).
 2. Run `make init start`. By default this will run everything in Docker, using SQLite as the database and Redis as the message broker/cache. See [Running in Docker](#running-in-docker) below for more details on how to swap out/disable which components are run in Docker.
 3. Open Grafana in a browser [here](http://localhost:3000/plugins/grafana-oncall-app) (login: `oncall`, password: `oncall`).
 4. You should now see the OnCall plugin configuration page. Fill out the configuration options as follows:
 
-- Invite token: run `make get-invite-token` and copy/paste the token that gets printed out
 - OnCall backend URL: http://host.docker.internal:8080 (this is the URL that is running the OnCall API; it should be accessible from Grafana)
 - Grafana URL: http://grafana:3000 (this is the URL OnCall will use to talk to the Grafana Instance)
 
@@ -98,13 +97,16 @@ make build # rebuild images (e.g. when changing requirements.txt)
 # associated with your local OnCall developer setup
 make cleanup
 
-make get-invite-token # generate an invitation token
 make start-celery-beat # start celery beat
 make purge-queues # purge celery queues
 make shell # starts an OnCall engine Django shell
 make dbshell # opens a DB shell
 make exec-engine # exec into engine container's bash
 make test # run backend tests
+
+# run Django's `manage.py` script, passing `$CMD` as arguments.
+# e.g. `make backend-manage-command makemigrations` - https://docs.djangoproject.com/en/4.1/ref/django-admin/#django-admin-makemigrations
+make backend-manage-command CMD="..."
 
 # run both frontend and backend linters
 # may need to run `yarn install` from within `grafana-plugin` to install several `pre-commit` dependencies
@@ -213,6 +215,22 @@ Either make `.` part of `CDPATH` in your .rc file setup, or temporarily override
 $ CDPATH="." make init
 # Setting CDPATH to empty seems to also work - only tested on zsh, YMMV
 $ CDPATH="" make init
+```
+
+**Problem:**
+
+When running `make init start`:
+
+```
+Error response from daemon: open /var/lib/docker/overlay2/ac57b871108ee1b98ff4455e36d2175eae90cbc7d4c9a54608c0b45cfb7c6da5/committed: is a directory
+make: *** [start] Error 1
+```
+
+**Solution:**
+clear everything in docker by resetting or: 
+
+```
+make cleanup
 ```
 
 ## IDE Specific Instructions

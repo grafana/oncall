@@ -6,6 +6,7 @@ import { PluginPage } from 'PluginPage';
 import cn from 'classnames/bind';
 import { debounce } from 'lodash-es';
 import { observer } from 'mobx-react';
+import { AppRootProps } from 'types';
 
 import GList from 'components/GList/GList';
 import IntegrationsFilters, { Filters } from 'components/IntegrationsFilters/IntegrationsFilters';

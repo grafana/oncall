@@ -4,8 +4,8 @@ import { Button, HorizontalGroup, VerticalGroup, IconButton, ToolbarButton, Icon
 import { PluginPage } from 'PluginPage';
 import cn from 'classnames/bind';
 import dayjs from 'dayjs';
-import { omit } from 'lodash-es';
 import { observer } from 'mobx-react';
+import { AppRootProps } from 'types';
 
 import PageErrorHandlingWrapper from 'components/PageErrorHandlingWrapper/PageErrorHandlingWrapper';
 import PluginLink from 'components/PluginLink/PluginLink';
@@ -135,61 +135,44 @@ class SchedulePage extends React.Component<SchedulePageProps, SchedulePageState>
                         </Text.Title>
                         {schedule && <ScheduleWarning item={schedule} />}
                       </HorizontalGroup>
-                      <HorizontalGroup spacing="lg">
-                        {users && (
-                          <HorizontalGroup>
-                            <Text type="secondary">Current timezone:</Text>
-                            <UserTimezoneSelect
-                              value={currentTimezone}
-                              users={users}
-                              onChange={this.handleTimezoneChange}
-                            />
-                          </HorizontalGroup>
+                    )}
+                    <HorizontalGroup>
+                      <HorizontalGroup>
+                        <Button variant="secondary" onClick={this.handleExportClick()}>
+                          Export
+                        </Button>
+                        {(schedule?.type === ScheduleType.Ical || schedule?.type === ScheduleType.Calendar) && (
+                          <Button variant="secondary" onClick={this.handleReloadClick(scheduleId)}>
+                            Reload
+                          </Button>
                         )}
-                        <HorizontalGroup>
-                          {schedule?.type === ScheduleType.Ical && (
-                            <HorizontalGroup>
-                              <Button variant="secondary" onClick={this.handleExportClick()}>
-                                Export
-                              </Button>
-                              <Button variant="secondary" onClick={this.handleReloadClick(scheduleId)}>
-                                Reload
-                              </Button>
-                            </HorizontalGroup>
-                          )}
-                          <ToolbarButton
-                            icon="cog"
-                            tooltip="Settings"
-                            onClick={() => {
-                              this.setState({ showEditForm: true });
-                            }}
-                          />
-                          <WithConfirm>
-                            <ToolbarButton icon="trash-alt" tooltip="Delete" onClick={this.handleDelete} />
-                          </WithConfirm>
-                        </HorizontalGroup>
                       </HorizontalGroup>
+                      <ToolbarButton
+                        icon="cog"
+                        tooltip="Settings"
+                        onClick={() => {
+                          this.setState({ showEditForm: true });
+                        }}
+                      />
+                      <WithConfirm>
+                        <ToolbarButton icon="trash-alt" tooltip="Delete" onClick={this.handleDelete} />
+                      </WithConfirm>
                     </HorizontalGroup>
-                  </div>
-                  {schedule?.type !== ScheduleType.API && (
-                    <Text className={cx('desc')} type="secondary">
-                      Ical and API/Terraform schedules are read-only
-                    </Text>
-                  )}
-                  <div className={cx('users-timezones')}>
-                    <UsersTimezones
-                      scheduleId={scheduleId}
-                      startMoment={startMoment}
-                      onCallNow={schedule?.on_call_now || []}
-                      userIds={
-                        scheduleStore.relatedUsers[scheduleId]
-                          ? Object.keys(scheduleStore.relatedUsers[scheduleId])
-                          : []
-                      }
-                      tz={currentTimezone}
-                      onTzChange={this.handleTimezoneChange}
-                    />
-                  </div>
+                  </HorizontalGroup>
+                </HorizontalGroup>
+              </div>
+              <div className={cx('users-timezones')}>
+                <UsersTimezones
+                  scheduleId={scheduleId}
+                  startMoment={startMoment}
+                  onCallNow={schedule?.on_call_now || []}
+                  userIds={
+                    scheduleStore.relatedUsers[scheduleId] ? Object.keys(scheduleStore.relatedUsers[scheduleId]) : []
+                  }
+                  tz={currentTimezone}
+                  onTzChange={this.handleTimezoneChange}
+                />
+              </div>
 
                   <div className={cx('rotations')}>
                     <div className={cx('controls')}>
@@ -433,31 +416,9 @@ class SchedulePage extends React.Component<SchedulePageProps, SchedulePageState>
     return async () => {
       await scheduleStore.reloadIcal(scheduleId);
 
-      scheduleStore.updateItem(scheduleId);
-      this.updateEventsFor(scheduleId);
+      store.scheduleStore.updateOncallShifts(scheduleId);
+      this.updateEvents();
     };
-  };
-
-  updateEventsFor = async (scheduleId: Schedule['id'], withEmpty = true, with_gap = true) => {
-    const {
-      store,
-      query: { id },
-    } = this.props;
-
-    const { scheduleStore } = store;
-
-    store.scheduleStore.scheduleToScheduleEvents = omit(store.scheduleStore.scheduleToScheduleEvents, [scheduleId]);
-
-    await scheduleStore.updateScheduleEvents(
-      scheduleId,
-      withEmpty,
-      with_gap,
-      dayjs().format('YYYY-MM-DD').toString(),
-      dayjs.tz.guess()
-    );
-
-    await store.scheduleStore.updateOncallShifts(id);
-    await this.updateEvents();
   };
 
   handleDelete = () => {

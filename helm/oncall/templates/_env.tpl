@@ -23,6 +23,8 @@
   value: "1024"
 - name: BROKER_TYPE
   value: {{ .Values.broker.type | default "rabbitmq" }}
+- name: GRAFANA_API_URL
+  value: {{ include "snippet.grafana.url" . }}
 {{- end -}}
 
 {{- define "snippet.oncall.secret.name" -}}
@@ -158,6 +160,16 @@ MIRAGE_SECRET_KEY
 {{- if .Values.celery.worker_shutdown_interval }}
 - name: CELERY_WORKER_SHUTDOWN_INTERVAL
   value: {{ .Values.celery.worker_shutdown_interval }}
+{{- end -}}
+{{- end -}}
+
+{{- define "snippet.grafana.url" -}}
+{{- if .Values.externalGrafana.url -}}
+{{- .Values.externalGrafana.url | quote }}
+{{- else if .Values.grafana.enabled -}}
+http://{{ include "oncall.grafana.fullname" . }}
+{{- else -}}
+{{- required "externalGrafana.url is required when not grafana.enabled" .Values.externalGrafana.url | quote }}
 {{- end -}}
 {{- end -}}
 

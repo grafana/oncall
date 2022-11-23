@@ -293,6 +293,9 @@ grafana:
   plugins:
     - grafana-oncall-app
 
+externalGrafana:
+  url:
+
 nameOverride: ""
 fullnameOverride: ""
 
