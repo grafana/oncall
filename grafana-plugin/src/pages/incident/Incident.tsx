@@ -21,7 +21,6 @@ import moment from 'moment-timezone';
 import CopyToClipboard from 'react-copy-to-clipboard';
 import Emoji from 'react-emoji-render';
 import reactStringReplace from 'react-string-replace';
-import { AppRootProps } from 'types';
 
 import Collapse from 'components/Collapse/Collapse';
 import Block from 'components/GBlock/Block';

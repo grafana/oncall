@@ -7,7 +7,6 @@ import { get } from 'lodash-es';
 import { observer } from 'mobx-react';
 import moment from 'moment-timezone';
 import Emoji from 'react-emoji-render';
-import { AppRootProps } from 'types';
 
 import CursorPagination from 'components/CursorPagination/CursorPagination';
 import GTable from 'components/GTable/GTable';
@@ -27,11 +26,11 @@ import { move } from 'state/helpers';
 import { PageProps, WithStoreProps } from 'state/types';
 import { UserAction } from 'state/userAction';
 import { withMobXProviderContext } from 'state/withStore';
+import LocationHelper from 'utils/LocationHelper';
 
 import SilenceDropdown from './parts/SilenceDropdown';
 
 import styles from './Incidents.module.css';
-import LocationHelper from 'utils/LocationHelper';
 
 const cx = cn.bind(styles);
 

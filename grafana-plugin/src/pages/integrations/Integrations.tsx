@@ -1,12 +1,10 @@
 import React from 'react';
 
-import { AppRootProps } from '@grafana/data';
 import { Button, LoadingPlaceholder, VerticalGroup } from '@grafana/ui';
 import { PluginPage } from 'PluginPage';
 import cn from 'classnames/bind';
 import { debounce } from 'lodash-es';
 import { observer } from 'mobx-react';
-import { AppRootProps } from 'types';
 
 import GList from 'components/GList/GList';
 import IntegrationsFilters, { Filters } from 'components/IntegrationsFilters/IntegrationsFilters';
@@ -27,7 +25,7 @@ import { WithPermissionControl } from 'containers/WithPermissionControl/WithPerm
 import { AlertReceiveChannel } from 'models/alert_receive_channel';
 import { AlertReceiveChannelOption } from 'models/alert_receive_channel/alert_receive_channel.types';
 import { pages } from 'pages';
-import { WithStoreProps } from 'state/types';
+import { PageProps, WithStoreProps } from 'state/types';
 import { UserAction } from 'state/userAction';
 import { withMobXProviderContext } from 'state/withStore';
 import LocationHelper from 'utils/LocationHelper';
@@ -43,7 +41,7 @@ interface IntegrationsState extends PageBaseState {
   integrationSettingsTab?: IntegrationSettingsTab;
 }
 
-interface IntegrationsProps extends WithStoreProps, AppRootProps {}
+interface IntegrationsProps extends WithStoreProps, PageProps {}
 
 @observer
 class Integrations extends React.Component<IntegrationsProps, IntegrationsState> {

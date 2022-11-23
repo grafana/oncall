@@ -13,7 +13,7 @@ export function getQueryParams(): any {
       if (!Array.isArray(result[key])) {
         result[key] = new Array(result[key]);
       }
-      
+
       result[key].push(value);
     } else {
       result[key] = value;

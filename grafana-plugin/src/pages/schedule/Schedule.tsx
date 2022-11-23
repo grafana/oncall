@@ -5,7 +5,6 @@ import { PluginPage } from 'PluginPage';
 import cn from 'classnames/bind';
 import dayjs from 'dayjs';
 import { observer } from 'mobx-react';
-import { AppRootProps } from 'types';
 
 import PageErrorHandlingWrapper from 'components/PageErrorHandlingWrapper/PageErrorHandlingWrapper';
 import PluginLink from 'components/PluginLink/PluginLink';
@@ -135,44 +134,56 @@ class SchedulePage extends React.Component<SchedulePageProps, SchedulePageState>
                         </Text.Title>
                         {schedule && <ScheduleWarning item={schedule} />}
                       </HorizontalGroup>
-                    )}
-                    <HorizontalGroup>
-                      <HorizontalGroup>
-                        <Button variant="secondary" onClick={this.handleExportClick()}>
-                          Export
-                        </Button>
-                        {(schedule?.type === ScheduleType.Ical || schedule?.type === ScheduleType.Calendar) && (
-                          <Button variant="secondary" onClick={this.handleReloadClick(scheduleId)}>
-                            Reload
-                          </Button>
+                      <HorizontalGroup spacing="lg">
+                        {users && (
+                          <HorizontalGroup>
+                            <Text type="secondary">Current timezone:</Text>
+                            <UserTimezoneSelect
+                              value={currentTimezone}
+                              users={users}
+                              onChange={this.handleTimezoneChange}
+                            />
+                          </HorizontalGroup>
                         )}
+                        <HorizontalGroup>
+                          <HorizontalGroup>
+                            <Button variant="secondary" onClick={this.handleExportClick()}>
+                              Export
+                            </Button>
+                            {(schedule?.type === ScheduleType.Ical || schedule?.type === ScheduleType.Calendar) && (
+                              <Button variant="secondary" onClick={this.handleReloadClick(scheduleId)}>
+                                Reload
+                              </Button>
+                            )}
+                          </HorizontalGroup>
+                          <ToolbarButton
+                            icon="cog"
+                            tooltip="Settings"
+                            onClick={() => {
+                              this.setState({ showEditForm: true });
+                            }}
+                          />
+                          <WithConfirm>
+                            <ToolbarButton icon="trash-alt" tooltip="Delete" onClick={this.handleDelete} />
+                          </WithConfirm>
+                        </HorizontalGroup>
                       </HorizontalGroup>
-                      <ToolbarButton
-                        icon="cog"
-                        tooltip="Settings"
-                        onClick={() => {
-                          this.setState({ showEditForm: true });
-                        }}
-                      />
-                      <WithConfirm>
-                        <ToolbarButton icon="trash-alt" tooltip="Delete" onClick={this.handleDelete} />
-                      </WithConfirm>
                     </HorizontalGroup>
-                  </HorizontalGroup>
-                </HorizontalGroup>
-              </div>
-              <div className={cx('users-timezones')}>
-                <UsersTimezones
-                  scheduleId={scheduleId}
-                  startMoment={startMoment}
-                  onCallNow={schedule?.on_call_now || []}
-                  userIds={
-                    scheduleStore.relatedUsers[scheduleId] ? Object.keys(scheduleStore.relatedUsers[scheduleId]) : []
-                  }
-                  tz={currentTimezone}
-                  onTzChange={this.handleTimezoneChange}
-                />
-              </div>
+                  </div>
+                  <div className={cx('users-timezones')}>
+                    <UsersTimezones
+                      scheduleId={scheduleId}
+                      startMoment={startMoment}
+                      onCallNow={schedule?.on_call_now || []}
+                      userIds={
+                        scheduleStore.relatedUsers[scheduleId]
+                          ? Object.keys(scheduleStore.relatedUsers[scheduleId])
+                          : []
+                      }
+                      tz={currentTimezone}
+                      onTzChange={this.handleTimezoneChange}
+                    />
+                  </div>
 
                   <div className={cx('rotations')}>
                     <div className={cx('controls')}>

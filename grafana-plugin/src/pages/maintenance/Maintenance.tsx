@@ -7,7 +7,6 @@ import { observer } from 'mobx-react';
 import moment from 'moment-timezone';
 import LegacyNavHeading from 'navbar/LegacyNavHeading';
 import Emoji from 'react-emoji-render';
-import { AppRootProps } from 'types';
 
 import GTable from 'components/GTable/GTable';
 import Text from 'components/Text/Text';
@@ -18,7 +17,7 @@ import { getAlertReceiveChannelDisplayName } from 'models/alert_receive_channel/
 import { AlertReceiveChannel } from 'models/alert_receive_channel/alert_receive_channel.types';
 import { Maintenance, MaintenanceMode, MaintenanceType } from 'models/maintenance/maintenance.types';
 import { pages } from 'pages';
-import { WithStoreProps } from 'state/types';
+import { PageProps, WithStoreProps } from 'state/types';
 import { UserAction } from 'state/userAction';
 import { withMobXProviderContext } from 'state/withStore';
 
@@ -26,7 +25,7 @@ import styles from './Maintenance.module.css';
 
 const cx = cn.bind(styles);
 
-interface MaintenancePageProps extends AppRootProps, WithStoreProps {}
+interface MaintenancePageProps extends PageProps, WithStoreProps {}
 
 interface MaintenancePageState {
   maintenanceData?: {
