@@ -129,6 +129,9 @@ export class RootBaseStore {
    *
    * Otherwise, get the plugin connection status from the OnCall API and check a few pre-conditions:
    * - plugin must be considered installed by the OnCall API
+   * - token_ok must be true
+   *   - This represents the status of the Grafana API token. It can be false in the event that either the token
+   *   hasn't been created, or if the API token was revoked in Grafana.
    * - user must be not "anonymous" (this is determined by the plugin-proxy)
    * - the OnCall API must be currently allowing signup
    * - the user must have an Admin role
