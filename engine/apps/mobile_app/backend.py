@@ -22,9 +22,9 @@ class MobileAppBackend(BaseMessagingBackend):
         return token
 
     def unlink_user(self, user):
-        from apps.mobile_app.models import MobileAppVerificationToken
+        from apps.mobile_app.models import MobileAppAuthToken
 
-        token = MobileAppVerificationToken.objects.get(user=user)
+        token = MobileAppAuthToken.objects.get(user=user)
         token.delete()
 
     def serialize_user(self, user):
