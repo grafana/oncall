@@ -5,7 +5,16 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## v1.1.4 (2022-11-23)
+
+### Fixed
+
+- Bug fix for [#882](https://github.com/grafana/oncall/pull/882) which was causing the OnCall web calendars to not load
+- Bug fix which, when installing the plugin, or after removing a Grafana API token, caused the plugin to not load properly
+
+## v1.1.3 (2022-11-22)
+
+- Bug Fixes
 
 ### Changed
 
@@ -17,11 +26,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - `oncall_engine`/`oncall_celery` -> `grafana` Docker container communication
   - public URL generation. There are some instances where `Organization.grafana_url` is referenced to generate public URLs to a Grafana plugin page. Without the `/etc/hosts` record, navigating to `http://grafana:3000/some_page` in your browser, you would obviously get an error from your browser.
 
-## v1.1.2 (2022-16-09)
+## v1.1.2 (2022-11-18)
 
 - Bug Fixes
 
-## v1.1.1 (2022-16-09)
+## v1.1.1 (2022-11-16)
 
 - Compatibility with Grafana 9.3.0
 - Bug Fixes

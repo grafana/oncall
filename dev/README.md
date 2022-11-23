@@ -22,7 +22,7 @@ Related: [How to develop integrations](/engine/config_integrations/README.md)
 
 By default everything runs inside Docker. These options can be modified via the [`COMPOSE_PROFILES`](#compose_profiles) environment variable.
 
-1. Firstly, ensure that you have `docker` [installed](https://docs.docker.com/get-docker/) and running on your machine. **NOTE**: the `docker-compose-developer.yml` file uses some syntax/features that are only supported by Docker Compose v2. For instructions on how to enable this (if you haven't already done so), see [here](https://www.docker.com/blog/announcing-compose-v2-general-availability/).
+1. Firstly, ensure that you have `docker` [installed](https://docs.docker.com/get-docker/) and running on your machine. **NOTE**: the `docker-compose-developer.yml` file uses some syntax/features that are only supported by Docker Compose v2. For instructions on how to enable this (if you haven't already done so), see [here](https://www.docker.com/blog/announcing-compose-v2-general-availability/). Ensure you have Docker Compose version 2.10 or above installed - update instructions are [here](https://docs.docker.com/compose/install/linux/).
 2. Run `make init start`. By default this will run everything in Docker, using SQLite as the database and Redis as the message broker/cache. See [Running in Docker](#running-in-docker) below for more details on how to swap out/disable which components are run in Docker.
 3. Open Grafana in a browser [here](http://localhost:3000/plugins/grafana-oncall-app) (login: `oncall`, password: `oncall`).
 4. You should now see the OnCall plugin configuration page. Fill out the configuration options as follows:
@@ -103,6 +103,10 @@ make shell # starts an OnCall engine Django shell
 make dbshell # opens a DB shell
 make exec-engine # exec into engine container's bash
 make test # run backend tests
+
+# run Django's `manage.py` script, passing `$CMD` as arguments.
+# e.g. `make backend-manage-command makemigrations` - https://docs.djangoproject.com/en/4.1/ref/django-admin/#django-admin-makemigrations
+make backend-manage-command CMD="..."
 
 # run both frontend and backend linters
 # may need to run `yarn install` from within `grafana-plugin` to install several `pre-commit` dependencies
