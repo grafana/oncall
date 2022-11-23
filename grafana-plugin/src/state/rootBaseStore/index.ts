@@ -129,6 +129,9 @@ export class RootBaseStore {
    *
    * Otherwise, get the plugin connection status from the OnCall API and check a few pre-conditions:
    * - plugin must be considered installed by the OnCall API
+   * - token_ok must be true
+   *   - This represents the status of the Grafana API token. It can be false in the event that either the token
+   *   hasn't been created, or if the API token was revoked in Grafana.
    * - user must be not "anonymous" (this is determined by the plugin-proxy)
    * - the OnCall API must be currently allowing signup
    * - the user must have an Admin role
@@ -151,12 +154,12 @@ export class RootBaseStore {
       return this.setupPluginError(pluginConnectionStatus);
     }
 
-    const { allow_signup, is_installed, is_user_anonymous } = pluginConnectionStatus;
+    const { allow_signup, is_installed, is_user_anonymous, token_ok } = pluginConnectionStatus;
     if (is_user_anonymous) {
       return this.setupPluginError(
         '😞 Unfortunately Grafana OnCall is available for authorized users only, please sign in to proceed.'
       );
-    } else if (!is_installed) {
+    } else if (!is_installed || !token_ok) {
       if (!allow_signup) {
         return this.setupPluginError('🚫 OnCall has temporarily disabled signup of new users. Please try again later.');
       }

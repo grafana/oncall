@@ -1,16 +1,5 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`PluginState.checkIfPluginIsConnected token_ok: false 1`] = `
-"There was an issue with the communication between your OnCall API and your Grafana instance.
-Please ensure that your OnCall API is properly configured to communicate with your Grafana instance."
-`;
-
-exports[`PluginState.checkIfPluginIsConnected token_ok: true 1`] = `
-Object {
-  "token_ok": true,
-}
-`;
-
 exports[`PluginState.generateInvalidOnCallApiURLErrorMsg it returns the proper error message - configured through env var: false 1`] = `
 "Could not communicate with your OnCall API at http://hello.com.
 Validate that the URL is correct, your OnCall API is running, and that it is accessible from your Grafana instance."

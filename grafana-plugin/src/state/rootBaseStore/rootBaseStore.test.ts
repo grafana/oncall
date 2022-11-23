@@ -144,16 +144,18 @@ describe('rootBaseStore', () => {
     );
   });
 
-  test('plugin is not installed, signup is allowed, user is an admin, plugin installation is triggered', async () => {
+  test.each([
+    { is_installed: false, token_ok: true },
+    { is_installed: true, token_ok: false },
+  ])('signup is allowed, user is an admin, plugin installation is triggered', async (scenario) => {
     // mocks/setup
     const onCallApiUrl = 'http://asdfasdf.com';
     const rootBaseStore = new RootBaseStore();
     const mockedLoadCurrentUser = jest.fn();
 
     PluginState.checkIfPluginIsConnected = jest.fn().mockResolvedValueOnce({
+      ...scenario,
       is_user_anonymous: false,
-      is_installed: false,
-      token_ok: true,
       allow_signup: true,
       version: 'asdfasdf',
       license: 'asdfasdf',
