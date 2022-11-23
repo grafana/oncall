@@ -159,7 +159,7 @@ class EscalationChainsPage extends React.Component<EscalationChainsPageProps, Es
                           icon="plus"
                           className={cx('new-escalation-chain')}
                         >
-                          New escalation chain
+                          New Escalation Chain
                         </Button>
                       </WithPermissionControl>
                       <div className={cx('escalations-list')}>
