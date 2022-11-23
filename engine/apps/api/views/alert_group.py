@@ -14,7 +14,8 @@ from apps.alerts.constants import ActionSource
 from apps.alerts.models import Alert, AlertGroup, AlertReceiveChannel
 from apps.api.permissions import MODIFY_ACTIONS, READ_ACTIONS, ActionPermission, AnyRole, IsAdminOrEditor
 from apps.api.serializers.alert_group import AlertGroupListSerializer, AlertGroupSerializer
-from apps.auth_token.auth import MobileAppAuthTokenAuthentication, PluginAuthentication
+from apps.auth_token.auth import PluginAuthentication
+from apps.mobile_app.auth import MobileAppAuthTokenAuthentication
 from apps.user_management.models import User
 from common.api_helpers.exceptions import BadRequest
 from common.api_helpers.filters import DateRangeFilterMixin, ModelFieldFilterMixin
