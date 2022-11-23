@@ -297,14 +297,9 @@ class PluginState {
     onCallApiUrlIsConfiguredThroughEnvVar = false
   ): Promise<PluginConnectedStatusResponse | string> => {
     try {
-      const resp = await makeRequest<PluginConnectedStatusResponse>(`${this.ONCALL_BASE_URL}/status`, {
+      return await makeRequest<PluginConnectedStatusResponse>(`${this.ONCALL_BASE_URL}/status`, {
         method: 'GET',
       });
-
-      if (!resp.token_ok) {
-        return `There was an issue with the communication between your OnCall API and your Grafana instance.\nPlease ensure that your OnCall API is properly configured to communicate with your Grafana instance.`;
-      }
-      return resp;
     } catch (e) {
       return this.getHumanReadableErrorFromOnCallError(
         e,

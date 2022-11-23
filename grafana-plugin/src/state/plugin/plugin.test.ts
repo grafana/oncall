@@ -643,9 +643,9 @@ describe('PluginState.selfHostedInstallPlugin', () => {
 });
 
 describe('PluginState.checkIfPluginIsConnected', () => {
-  test.each([true, false])('token_ok: %s', async (tokenOk) => {
+  test('it returns the API response', async () => {
     // mocks
-    const mockedResp = { token_ok: tokenOk };
+    const mockedResp = { foo: 'bar' };
     const onCallApiUrl = 'http://hello.com';
     makeRequest.mockResolvedValueOnce(mockedResp);
 
@@ -653,7 +653,7 @@ describe('PluginState.checkIfPluginIsConnected', () => {
     const response = await PluginState.checkIfPluginIsConnected(onCallApiUrl);
 
     // assertions
-    expect(response).toMatchSnapshot();
+    expect(response).toEqual(mockedResp);
 
     expect(makeRequest).toHaveBeenCalledTimes(1);
     expect(makeRequest).toHaveBeenCalledWith(`${ONCALL_BASE_URL}/status`, { method: 'GET' });

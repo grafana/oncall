@@ -151,12 +151,12 @@ export class RootBaseStore {
       return this.setupPluginError(pluginConnectionStatus);
     }
 
-    const { allow_signup, is_installed, is_user_anonymous } = pluginConnectionStatus;
+    const { allow_signup, is_installed, is_user_anonymous, token_ok } = pluginConnectionStatus;
     if (is_user_anonymous) {
       return this.setupPluginError(
         '😞 Unfortunately Grafana OnCall is available for authorized users only, please sign in to proceed.'
       );
-    } else if (!is_installed) {
+    } else if (!is_installed || !token_ok) {
       if (!allow_signup) {
         return this.setupPluginError('🚫 OnCall has temporarily disabled signup of new users. Please try again later.');
       }
