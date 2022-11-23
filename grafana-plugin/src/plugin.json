@@ -34,6 +34,7 @@
       "name": "Alert Groups",
       "path": "/a/grafana-oncall-app/?page=incidents",
       "role": "Viewer",
+      "defaultNav": true,
       "addToNav": true
     },
     {

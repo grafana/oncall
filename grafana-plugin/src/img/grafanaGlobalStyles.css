@@ -21,6 +21,7 @@
   max-width: unset !important;
   flex-grow: unset !important;
   flex-basis: unset !important;
+  overflow-x: auto;
 }
 
 .page-scrollbar-content > div:first-child {
