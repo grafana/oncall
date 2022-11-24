@@ -33,7 +33,7 @@ def apply_jinja_template(template, payload=None, result_length_limit=settings.JI
         raise JinjaTemplateError(str(e))
     except (TemplateAssertionError, TemplateSyntaxError) as e:
         raise JinjaTemplateError(str(e))
-    except (TypeError, UndefinedError) as e:
+    except (TypeError, KeyError, ValueError, UndefinedError) as e:
         raise JinjaTemplateWarning(str(e))
     except Exception as e:
         logger.error(f"Unexpected template error: {str(e)} template={template} payload={payload}")
