@@ -1,6 +1,7 @@
 import logging
 
 from django.conf import settings
+from jinja2 import TemplateAssertionError, TemplateSyntaxError, UndefinedError
 from jinja2.exceptions import SecurityError
 
 from .jinja_template_env import jinja_template_env
@@ -8,28 +9,38 @@ from .jinja_template_env import jinja_template_env
 logger = logging.getLogger(__name__)
 
 
-class JinjaTemplateRenderException(Exception):
+class JinjaTemplateError(Exception):
     def __init__(self, fallback_message):
-        self.fallback_message = fallback_message
+        self.fallback_message = f"Template Error: {fallback_message}"
 
 
-def apply_jinja_template(template, payload=None, raise_exception=False, **kwargs):
+class JinjaTemplateWarning(Exception):
+    def __init__(self, fallback_message):
+        self.fallback_message = f"Template Warning: {fallback_message}"
+
+
+def apply_jinja_template(template, payload=None, **kwargs):
+    if len(template) > settings.JINJA_TEMPLATE_MAX_LENGTH:
+        raise JinjaTemplateError(
+            f"Template exceeds length limit ({len(template)} > {settings.JINJA_TEMPLATE_MAX_LENGTH})"
+        )
+
     try:
-        if len(template) > settings.JINJA_TEMPLATE_MAX_LENGTH:
-            raise JinjaTemplateRenderException(
-                f"Template exceeds length limit ({len(template)} > {settings.JINJA_TEMPLATE_MAX_LENGTH})"
-            )
         compiled_template = jinja_template_env.from_string(template)
         result = compiled_template.render(payload=payload, **kwargs)
-        return (
-            (result[: settings.JINJA_TEMPLATE_MAX_LENGTH] + "..")
-            if len(result) > settings.JINJA_TEMPLATE_MAX_LENGTH
-            else result
-        )
+    except SecurityError as e:
+        logger.warning(f"SecurityError process template={template} payload={payload}")
+        raise JinjaTemplateError(str(e))
+    except (TemplateAssertionError, TemplateSyntaxError) as e:
+        raise JinjaTemplateError(str(e))
+    except UndefinedError as e:
+        raise JinjaTemplateWarning(str(e))
     except Exception as e:
-        if isinstance(e, SecurityError):
-            logger.warning(f"SecurityError process template={template} payload={payload}")
-        message = f"Error {str(e)}"
-        if raise_exception:
-            raise JinjaTemplateRenderException(message)
-        return message
+        logger.error(f"Unexpected template error: {str(e)} template={template} payload={payload}")
+        raise JinjaTemplateError(str(e))
+
+    return (
+        (result[: settings.JINJA_TEMPLATE_MAX_LENGTH] + "..")
+        if len(result) > settings.JINJA_TEMPLATE_MAX_LENGTH
+        else result
+    )

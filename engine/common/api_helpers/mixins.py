@@ -22,7 +22,7 @@ from apps.base.messaging import get_messaging_backends
 from apps.user_management.models import Team
 from common.api_helpers.exceptions import BadRequest
 from common.jinja_templater import apply_jinja_template
-from common.jinja_templater.apply_jinja_template import JinjaTemplateRenderException
+from common.jinja_templater.apply_jinja_template import JinjaTemplateError, JinjaTemplateWarning
 
 
 class UpdateSerializerMixin:
@@ -324,18 +324,16 @@ class PreviewTemplateMixin:
             templater.template_manager = PreviewTemplateLoader()
             try:
                 templated_alert = templater.render()
-            except JinjaTemplateRenderException as e:
-                return Response({"preview": e.fallback_message}, status.HTTP_400_BAD_REQUEST)
+            except (JinjaTemplateError, JinjaTemplateWarning) as e:
+                return Response({"preview": e.fallback_message}, status.HTTP_200_OK)
 
             templated_attr = getattr(templated_alert, attr_name)
 
         elif attr_name in TEMPLATE_NAMES_WITHOUT_NOTIFICATION_CHANNEL:
             try:
-                templated_attr = apply_jinja_template(
-                    template_body, payload=alert_to_template.raw_request_data, raise_exception=True
-                )
-            except JinjaTemplateRenderException as e:
-                return Response({"preview": e.fallback_message}, status.HTTP_400_BAD_REQUEST)
+                templated_attr = apply_jinja_template(template_body, payload=alert_to_template.raw_request_data)
+            except (JinjaTemplateError, JinjaTemplateWarning) as e:
+                return Response({"preview": e.fallback_message}, status.HTTP_200_OK)
         else:
             templated_attr = None
         response = {"preview": templated_attr}

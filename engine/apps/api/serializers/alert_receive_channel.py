@@ -20,8 +20,8 @@ from common.api_helpers.custom_fields import TeamPrimaryKeyRelatedField, Writabl
 from common.api_helpers.exceptions import BadRequest
 from common.api_helpers.mixins import IMAGE_URL, TEMPLATE_NAMES_ONLY_WITH_NOTIFICATION_CHANNEL, EagerLoadingMixin
 from common.api_helpers.utils import CurrentTeamDefault
-from common.jinja_templater import jinja_template_env
-from common.jinja_templater.apply_jinja_template import JinjaTemplateRenderException
+from common.jinja_templater import apply_jinja_template, jinja_template_env
+from common.jinja_templater.apply_jinja_template import JinjaTemplateWarning
 
 from .integration_heartbeat import IntegrationHeartBeatSerializer
 
@@ -29,9 +29,10 @@ from .integration_heartbeat import IntegrationHeartBeatSerializer
 def valid_jinja_template_for_serializer_method_field(template):
     for _, val in template.items():
         try:
-            jinja_template_env.from_string(val)
-        except Exception:
-            raise JinjaTemplateRenderException("Invalid template")
+            apply_jinja_template(val, payload={})
+        except JinjaTemplateWarning:
+            # Suppress warnings, template may be valid with payload
+            pass
 
 
 class AlertReceiveChannelSerializer(EagerLoadingMixin, serializers.ModelSerializer):

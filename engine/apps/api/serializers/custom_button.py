@@ -1,4 +1,3 @@
-import json
 from collections import defaultdict
 
 from django.core.validators import URLValidator, ValidationError
@@ -9,7 +8,7 @@ from apps.alerts.models import CustomButton
 from common.api_helpers.custom_fields import TeamPrimaryKeyRelatedField
 from common.api_helpers.utils import CurrentOrganizationDefault, CurrentTeamDefault
 from common.jinja_templater import apply_jinja_template
-from common.jinja_templater.apply_jinja_template import JinjaTemplateRenderException
+from common.jinja_templater.apply_jinja_template import JinjaTemplateError, JinjaTemplateWarning
 
 
 class CustomButtonSerializer(serializers.ModelSerializer):
@@ -53,26 +52,12 @@ class CustomButtonSerializer(serializers.ModelSerializer):
             return None
 
         try:
-            rendered = apply_jinja_template(
-                data, raise_exception=True, alert_payload=defaultdict(str), alert_group_id="abcd"
-            )
-            # Validate that the template can be rendered with a JSON-ish alert payload.
-            # We don't know what the actual payload will be, so we use a defaultdict
-            # so that attribute access within a template will never fail
-            # (provided it's only one level deep - we won't accept templates that attempt
-            # to do nested attribute access).
-            # Every attribute access should return a string to ensure that users are
-            # correctly using `tojson` or wrapping fields in strings.
-            # If we instead used a `defaultdict(dict)` or `defaultdict(lambda: 1)` we
-            # would accidentally accept templates such as `{"name": {{ alert_payload.name }}}`
-            # which would then fail at the true render time due to the
-            # lack of explicit quotes around the template variable; this would render
-            # as `{"name": some_alert_name}` which is not valid JSON.
-            json.loads(rendered)
-        except JinjaTemplateRenderException as e:
+            apply_jinja_template(data, alert_payload=defaultdict(str), alert_group_id="abcd")
+        except JinjaTemplateError as e:
             raise serializers.ValidationError(e.fallback_message)
-        except ValueError:
-            raise serializers.ValidationError(f"Template should result in JSON value: {rendered}")
+        except JinjaTemplateWarning:
+            # Suppress render exceptions since we do not have a representative payload to test with
+            pass
 
         return data
 

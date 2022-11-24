@@ -24,7 +24,6 @@ const AlertTemplatesFormContainer = observer((props: TeamEditContainerProps) => 
   const store = useStore();
 
   const [templatesRefreshing, setTemplatesRefreshing] = useState<boolean>(false);
-  const [errors, setErrors] = useState({});
 
   useEffect(() => {
     store.alertReceiveChannelStore.updateItem(alertReceiveChannelId);
@@ -41,11 +40,11 @@ const AlertTemplatesFormContainer = observer((props: TeamEditContainerProps) => 
             onUpdateTemplates();
           }
         })
-        .catch((data) => {
-          if (data.response.data?.length > 0) {
-            setErrors(data.response.data);
+        .catch((err) => {
+          if (err.response?.data?.length > 0) {
+            openErrorNotification(err.response.data);
           } else {
-            openErrorNotification(data.message);
+            openErrorNotification(err.message);
           }
         });
     },
@@ -68,7 +67,6 @@ const AlertTemplatesFormContainer = observer((props: TeamEditContainerProps) => 
     <AlertTemplatesForm
       alertReceiveChannelId={alertReceiveChannelId}
       alertGroupId={alertGroupId}
-      errors={errors}
       templates={templates}
       onUpdateTemplates={onUpdateTemplatesCallback}
       demoAlertEnabled={alertReceiveChannel?.demo_alert_enabled}

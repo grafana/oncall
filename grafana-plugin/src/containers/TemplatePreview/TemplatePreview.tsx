@@ -39,8 +39,8 @@ const TemplatePreview = observer((props: TemplatePreviewProps) => {
     )
       .then(setResult)
       .catch((err) => {
-        if (err.response.data?.length > 0) {
-          setResult(err.response.data);
+        if (err.response?.data?.length > 0) {
+          openErrorNotification(err.response.data);
         } else {
           openErrorNotification(err.message);
         }

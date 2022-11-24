@@ -4,6 +4,7 @@ from dataclasses import dataclass
 from apps.base.messaging import get_messaging_backend_from_id
 from apps.slack.slack_formatter import SlackFormatter
 from common.jinja_templater import apply_jinja_template
+from common.jinja_templater.apply_jinja_template import JinjaTemplateError, JinjaTemplateWarning
 
 
 class TemplateLoader:
@@ -172,7 +173,10 @@ class AlertTemplater(ABC):
                 "amixr_incident_id": self.incident_id,  # TODO: decide on variable names
                 "amixr_link": self.link,  # TODO: decide on variable names
             }
-            return apply_jinja_template(attr_template, data, **context)
+            try:
+                return apply_jinja_template(attr_template, data, **context)
+            except (JinjaTemplateError, JinjaTemplateWarning) as e:
+                return e.fallback_message
 
         return None
 
