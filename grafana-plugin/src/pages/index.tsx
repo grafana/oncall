@@ -101,7 +101,7 @@ export const pages: { [id: string]: PageDefinition } = [
   {
     icon: 'cog',
     id: 'settings',
-    text: 'Organization Settings',
+    text: 'Settings',
     hideFromBreadcrumbs: true,
     path: getPath('settings'),
   },

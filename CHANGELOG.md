@@ -5,6 +5,21 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## v1.1.5 (2022-11-24)
+
+### Fixed
+
+- UI bug fixes for Grafana 9.3 ([#860](https://github.com/grafana/oncall/pull/860))
+- Bug fix for saving source link template ([#898](https://github.com/grafana/oncall/pull/898))
+
+
+## v1.1.4 (2022-11-23)
+
+### Fixed
+
+- Bug fix for [#882](https://github.com/grafana/oncall/pull/882) which was causing the OnCall web calendars to not load
+- Bug fix which, when installing the plugin, or after removing a Grafana API token, caused the plugin to not load properly
+
 ## v1.1.3 (2022-11-22)
 
 - Bug Fixes

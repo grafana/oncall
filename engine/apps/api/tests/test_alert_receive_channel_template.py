@@ -268,3 +268,45 @@ def test_preview_alert_receive_channel_backend_templater(
 
     assert response.status_code == status.HTTP_200_OK
     assert response.json() == {"preview": "title: alert!"}
+
+
+@pytest.mark.django_db
+def test_update_alert_receive_channel_templates(
+    make_organization_and_user_with_plugin_token,
+    make_user_auth_headers,
+    make_alert_receive_channel,
+):
+    def template_update_func(template):
+        # set url here to pass *_url templates validation
+        return "https://grafana.com"
+
+    organization, user, token = make_organization_and_user_with_plugin_token(role=Role.ADMIN)
+    alert_receive_channel = make_alert_receive_channel(
+        organization,
+        messaging_backends_templates={"TESTONLY": {"title": "the-title", "message": "the-message", "image_url": "url"}},
+    )
+    client = APIClient()
+
+    url = reverse(
+        "api-internal:alert_receive_channel_template-detail", kwargs={"pk": alert_receive_channel.public_primary_key}
+    )
+
+    response = client.get(url, format="json", **make_user_auth_headers(user, token))
+
+    assert response.status_code == status.HTTP_200_OK
+    existing_templates_data = response.json()
+
+    # leave only templates-related fields
+    del existing_templates_data["id"]
+    del existing_templates_data["verbal_name"]
+    del existing_templates_data["payload_example"]
+
+    new_templates_data = {}
+    for template_name, template_value in existing_templates_data.items():
+        new_templates_data[template_name] = template_update_func(template_value)
+
+    response = client.put(url, format="json", data=new_templates_data, **make_user_auth_headers(user, token))
+
+    updated_templates_data = response.json()
+    for template_name, prev_template_value in existing_templates_data.items():
+        assert updated_templates_data[template_name] == template_update_func(prev_template_value)

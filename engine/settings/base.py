@@ -52,6 +52,7 @@ FEATURE_LIVE_SETTINGS_ENABLED = getenv_boolean("FEATURE_LIVE_SETTINGS_ENABLED", 
 FEATURE_TELEGRAM_INTEGRATION_ENABLED = getenv_boolean("FEATURE_TELEGRAM_INTEGRATION_ENABLED", default=True)
 FEATURE_EMAIL_INTEGRATION_ENABLED = getenv_boolean("FEATURE_EMAIL_INTEGRATION_ENABLED", default=True)
 FEATURE_SLACK_INTEGRATION_ENABLED = getenv_boolean("FEATURE_SLACK_INTEGRATION_ENABLED", default=True)
+FEATURE_MOBILE_APP_INTEGRATION_ENABLED = getenv_boolean("FEATURE_MOBILE_APP_INTEGRATION_ENABLED", default=False)
 FEATURE_WEB_SCHEDULES_ENABLED = getenv_boolean("FEATURE_WEB_SCHEDULES_ENABLED", default=False)
 FEATURE_MULTIREGION_ENABLED = getenv_boolean("FEATURE_MULTIREGION_ENABLED", default=False)
 GRAFANA_CLOUD_ONCALL_HEARTBEAT_ENABLED = getenv_boolean("GRAFANA_CLOUD_ONCALL_HEARTBEAT_ENABLED", default=True)
@@ -202,6 +203,7 @@ INSTALLED_APPS = [
     "apps.slack",
     "apps.telegram",
     "apps.twilioapp",
+    "apps.mobile_app",
     "apps.api",
     "apps.api_for_grafana_incident",
     "apps.base",
@@ -540,9 +542,16 @@ GRAFANA_COM_ADMIN_API_TOKEN = os.environ.get("GRAFANA_COM_ADMIN_API_TOKEN", None
 
 GRAFANA_API_KEY_NAME = "Grafana OnCall"
 
-MOBILE_APP_PUSH_NOTIFICATIONS_ENABLED = getenv_boolean("MOBILE_APP_PUSH_NOTIFICATIONS_ENABLED", default=False)
+EXTRA_MESSAGING_BACKENDS = []
+if FEATURE_MOBILE_APP_INTEGRATION_ENABLED:
+    EXTRA_MESSAGING_BACKENDS += [
+        ("apps.mobile_app.backend.MobileAppBackend", 5),
+        ("apps.mobile_app.backend.MobileAppCriticalBackend", 6),
+    ]
 
 PUSH_NOTIFICATIONS_SETTINGS = {
+    "FCM_API_KEY": os.environ.get("FCM_API_KEY", None),
+    "GCM_API_KEY": os.environ.get("GCM_API_KEY", None),
     "APNS_AUTH_KEY_PATH": os.environ.get("APNS_AUTH_KEY_PATH", None),
     "APNS_TOPIC": os.environ.get("APNS_TOPIC", None),
     "APNS_AUTH_KEY_ID": os.environ.get("APNS_AUTH_KEY_ID", None),
@@ -572,8 +581,6 @@ JINJA_RESULT_MAX_LENGTH = 50000
 # Log inbound/outbound calls as slow=1 if they exceed threshold
 SLOW_THRESHOLD_SECONDS = 2.0
 
-EXTRA_MESSAGING_BACKENDS = []
-
 # Email messaging backend
 EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
 EMAIL_HOST = os.getenv("EMAIL_HOST")
@@ -584,7 +591,7 @@ EMAIL_USE_TLS = getenv_boolean("EMAIL_USE_TLS", True)
 EMAIL_FROM_ADDRESS = os.getenv("EMAIL_FROM_ADDRESS")
 
 if FEATURE_EMAIL_INTEGRATION_ENABLED:
-    EXTRA_MESSAGING_BACKENDS = [("apps.email.backend.EmailBackend", 8)]
+    EXTRA_MESSAGING_BACKENDS += [("apps.email.backend.EmailBackend", 8)]
 
 INSTALLED_ONCALL_INTEGRATIONS = [
     "config_integrations.alertmanager",
