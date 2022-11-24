@@ -305,6 +305,5 @@ def test_update_alert_receive_channel_templates(
     response = client.put(url, format="json", data=new_templates_data, **make_user_auth_headers(user, token))
 
     updated_templates_data = response.json()
-    assert len(existing_templates_data) == len(updated_templates_data)
     for template_name, prev_template_value in existing_templates_data.items():
         assert updated_templates_data[template_name] == template_update_func(prev_template_value)
