@@ -295,6 +295,9 @@ def test_update_alert_receive_channel_templates(
 
     assert response.status_code == status.HTTP_200_OK
     existing_templates_data = response.json()
+    # leave only templates-related fields
+    del existing_templates_data["id"]
+    del existing_templates_data["verbal_name"]
     new_templates_data = {}
     for template_name, template_value in existing_templates_data.items():
         new_templates_data[template_name] = template_update_func(template_value)
