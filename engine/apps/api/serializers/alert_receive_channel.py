@@ -443,9 +443,9 @@ class AlertReceiveChannelTemplatesSerializer(EagerLoadingMixin, serializers.Mode
     def set_source_link_template(self, value):
         default_template = AlertReceiveChannel.INTEGRATION_TO_DEFAULT_SOURCE_LINK_TEMPLATE[self.instance.integration]
         if default_template is None or default_template.strip() != value.strip():
-            self.instance.source_link = value.strip()
+            self.instance.source_link_template = value.strip()
         elif default_template is not None and default_template.strip() == value.strip():
-            self.instance.source_link = None
+            self.instance.source_link_template = None
 
     def get_grouping_id_template(self, obj):
         default_template = AlertReceiveChannel.INTEGRATION_TO_DEFAULT_GROUPING_ID_TEMPLATE[obj.integration]

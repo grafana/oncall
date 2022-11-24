@@ -277,6 +277,7 @@ def test_update_alert_receive_channel_templates(
     make_alert_receive_channel,
 ):
     def template_update_func(template):
+        # set url here to pass *_url templates validation
         return "https://grafana.com"
 
     organization, user, token = make_organization_and_user_with_plugin_token(role=Role.ADMIN)
