@@ -7,7 +7,7 @@ from .filters import datetimeformat, iso8601_to_time, regex_replace, to_pretty_j
 
 
 def raise_security_exception(name):
-    raise SecurityError(f"use of {name} is restricted")
+    raise SecurityError(f"use of '{name}' is restricted")
 
 
 jinja_template_env = SandboxedEnvironment(loader=BaseLoader())

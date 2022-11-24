@@ -1,6 +1,8 @@
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
 
+from django.conf import settings
+
 from apps.base.messaging import get_messaging_backend_from_id
 from apps.slack.slack_formatter import SlackFormatter
 from common.jinja_templater import apply_jinja_template
@@ -174,7 +176,12 @@ class AlertTemplater(ABC):
                 "amixr_link": self.link,  # TODO: decide on variable names
             }
             try:
-                return apply_jinja_template(attr_template, data, **context)
+                if attr == "title":
+                    return apply_jinja_template(
+                        attr_template, data, result_length_limit=settings.JINJA_RESULT_TITLE_MAX_LENGTH, **context
+                    )
+                else:
+                    return apply_jinja_template(attr_template, data, **context)
             except (JinjaTemplateError, JinjaTemplateWarning) as e:
                 return e.fallback_message
 

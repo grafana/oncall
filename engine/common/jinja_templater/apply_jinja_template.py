@@ -19,7 +19,7 @@ class JinjaTemplateWarning(Exception):
         self.fallback_message = f"Template Warning: {fallback_message}"
 
 
-def apply_jinja_template(template, payload=None, **kwargs):
+def apply_jinja_template(template, payload=None, result_length_limit=settings.JINJA_RESULT_MAX_LENGTH, **kwargs):
     if len(template) > settings.JINJA_TEMPLATE_MAX_LENGTH:
         raise JinjaTemplateError(
             f"Template exceeds length limit ({len(template)} > {settings.JINJA_TEMPLATE_MAX_LENGTH})"
@@ -39,8 +39,4 @@ def apply_jinja_template(template, payload=None, **kwargs):
         logger.error(f"Unexpected template error: {str(e)} template={template} payload={payload}")
         raise JinjaTemplateError(str(e))
 
-    return (
-        (result[: settings.JINJA_TEMPLATE_MAX_LENGTH] + "..")
-        if len(result) > settings.JINJA_TEMPLATE_MAX_LENGTH
-        else result
-    )
+    return (result[:result_length_limit] + "..") if len(result) > result_length_limit else result
