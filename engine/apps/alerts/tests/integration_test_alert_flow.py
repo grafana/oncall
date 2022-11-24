@@ -8,13 +8,6 @@ from apps.integrations.tasks import create_alert
 
 pytest_plugins = ["celery.contrib.pytest"]
 
-# Uncomment this block if you want to test specific queues
-# @pytest.fixture(scope='session')
-# def celery_worker_parameters():
-#     return {
-#         'queues':  ('celery', 'default', 'retry', 'critical'),
-#     }
-
 
 @pytest.fixture(scope="session")
 def celery_config():
