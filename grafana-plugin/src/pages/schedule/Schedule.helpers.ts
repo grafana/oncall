@@ -5,6 +5,7 @@ import { getLayersFromStore, getOverridesFromStore, getShiftsFromStore } from 'm
 import { Event, Layer } from 'models/schedule/schedule.types';
 import { Timezone } from 'models/timezone/timezone.types';
 import { RootStore } from 'state';
+import { SelectOption } from 'state/types';
 
 export const getStartOfWeek = (tz: Timezone) => {
   return dayjs().tz(tz).utcOffset() === 0 ? dayjs().utc().startOf('isoWeek') : dayjs().tz(tz).startOf('isoWeek');
@@ -18,14 +19,14 @@ export const getDateTime = (date: string) => {
   return dayjs(date);
 };
 
-export const getUTCByDay = (by_day: string[], moment: dayjs.Dayjs) => {
-  let UTCDays = [];
-  // FIXME: do this in a proper way
-  let byDayOptions = ['MO', 'TU', 'WE', 'TH', 'FR', 'SA', 'SU'];
+export const getUTCByDay = (dayOptions: SelectOption[], by_day: string[], moment: dayjs.Dayjs) => {
   if (by_day.length > 0 && moment.day() !== moment.utc().day()) {
     // when converting to UTC, shift starts on a different day,
     // so we need to update the by_day list
     // depending on the UTC side, move one day before or after
+    let UTCDays = [];
+    let byDayOptions = [];
+    Object.entries(dayOptions).forEach(([, option]) => byDayOptions.push(option.value));
     let offset = moment.utcOffset();
     by_day.forEach((element) => {
       let index = byDayOptions.indexOf(element);
