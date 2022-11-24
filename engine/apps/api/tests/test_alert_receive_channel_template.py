@@ -268,3 +268,39 @@ def test_preview_alert_receive_channel_backend_templater(
 
     assert response.status_code == status.HTTP_200_OK
     assert response.json() == {"preview": "title: alert!"}
+
+
+@pytest.mark.django_db
+def test_update_alert_receive_channel_templates(
+    make_organization_and_user_with_plugin_token,
+    make_user_auth_headers,
+    make_alert_receive_channel,
+):
+    def template_update_func(template):
+        return f"{template}_updated"
+
+    organization, user, token = make_organization_and_user_with_plugin_token(role=Role.ADMIN)
+    alert_receive_channel = make_alert_receive_channel(
+        organization,
+        messaging_backends_templates={"TESTONLY": {"title": "the-title", "message": "the-message", "image_url": "url"}},
+    )
+    client = APIClient()
+
+    url = reverse(
+        "api-internal:alert_receive_channel_template-detail", kwargs={"pk": alert_receive_channel.public_primary_key}
+    )
+
+    response = client.get(url, format="json", **make_user_auth_headers(user, token))
+
+    assert response.status_code == status.HTTP_200_OK
+    existing_templates_data = response.json()
+    new_templates_data = {}
+    for k, v in existing_templates_data:
+        new_templates_data[k] = template_update_func(v)
+
+    response = client.put(url, format="json", data=new_templates_data, **make_user_auth_headers(user, token))
+
+    updated_templates_data = response.json()
+    assert len(existing_templates_data) == len(updated_templates_data)
+    for k, v in existing_templates_data:
+        assert updated_templates_data[k] == template_update_func(v)
