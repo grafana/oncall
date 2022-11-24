@@ -1,6 +1,7 @@
 from django.conf import settings
 from django.urls import include, path, re_path
 
+from apps.mobile_app.views import APNSDeviceAuthorizedViewSet
 from common.api_helpers.optional_slash_router import OptionalSlashRouter, optional_slash_path
 
 from .views import UserNotificationPolicyView, auth
@@ -8,7 +9,6 @@ from .views.alert_group import AlertGroupView
 from .views.alert_receive_channel import AlertReceiveChannelView
 from .views.alert_receive_channel_template import AlertReceiveChannelTemplateView
 from .views.alerts import AlertDetailView
-from .views.apns_device import APNSDeviceAuthorizedViewSet
 from .views.channel_filter import ChannelFilterView
 from .views.custom_button import CustomButtonView
 from .views.escalation_chain import EscalationChainViewSet
@@ -68,7 +68,8 @@ router.register(r"tokens", PublicApiTokenView, basename="api_token")
 router.register(r"live_settings", LiveSettingViewSet, basename="live_settings")
 router.register(r"oncall_shifts", OnCallShiftView, basename="oncall_shifts")
 
-if settings.MOBILE_APP_PUSH_NOTIFICATIONS_ENABLED:
+# TODO: remove this when the hackathon app is deprecated (APNSDeviceAuthorizedViewSet is registered in mobile_app)
+if settings.FEATURE_MOBILE_APP_INTEGRATION_ENABLED:
     router.register(r"device/apns", APNSDeviceAuthorizedViewSet)
 
 urlpatterns = [

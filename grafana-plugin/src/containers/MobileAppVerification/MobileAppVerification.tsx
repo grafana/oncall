@@ -34,25 +34,18 @@ const MobileAppVerification = observer((props: MobileAppVerificationProps) => {
   const [isMobileAppVerificationTokenExisting, setIsMobileAppVerificationTokenExisting] = useState<boolean>(false);
   const [MobileAppVerificationTokenLoading, setMobileAppVerificationTokenLoading] = useState<boolean>(true);
 
-  useEffect(() => {
-    userStore
-      .getMobileAppVerificationToken(userPk)
-      .then((_res) => {
-        setIsMobileAppVerificationTokenExisting(true);
-        setMobileAppVerificationTokenLoading(false);
-      })
-      .catch((_res) => {
-        setIsMobileAppVerificationTokenExisting(false);
-        setMobileAppVerificationTokenLoading(false);
-      });
-  }, []);
-
   const handleCreateMobileAppVerificationToken = async () => {
     setIsMobileAppVerificationTokenExisting(true);
     await userStore
-      .createMobileAppVerificationToken(userPk)
-      .then((res) => setShowMobileAppVerificationToken(res?.token));
+      .sendBackendConfirmationCode(userPk, 'MOBILE_APP')
+      .then((res) => setShowMobileAppVerificationToken(res));
   };
+
+  useEffect(() => {
+    handleCreateMobileAppVerificationToken().then(() => {
+      setMobileAppVerificationTokenLoading(false);
+    });
+  }, []);
 
   return (
     <div className={cx('mobile-app-settings')}>

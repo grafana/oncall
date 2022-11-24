@@ -35,8 +35,6 @@ BUILT_IN_BACKENDS = (
     ("SMS", 1),
     ("PHONE_CALL", 2),
     ("TELEGRAM", 3),
-    ("MOBILE_PUSH_GENERAL", 5),
-    ("MOBILE_PUSH_CRITICAL", 6),
 )
 
 
@@ -201,8 +199,6 @@ class NotificationChannelOptions:
         UserNotificationPolicy.NotificationChannel.SMS,
         UserNotificationPolicy.NotificationChannel.PHONE_CALL,
         UserNotificationPolicy.NotificationChannel.TELEGRAM,
-        UserNotificationPolicy.NotificationChannel.MOBILE_PUSH_GENERAL,
-        UserNotificationPolicy.NotificationChannel.MOBILE_PUSH_CRITICAL,
     ] + [
         getattr(UserNotificationPolicy.NotificationChannel, backend_id)
         for backend_id, b in get_messaging_backends()
@@ -213,10 +209,6 @@ class NotificationChannelOptions:
 
     SLACK_INTEGRATION_REQUIRED_NOTIFICATION_CHANNELS = [UserNotificationPolicy.NotificationChannel.SLACK]
     TELEGRAM_INTEGRATION_REQUIRED_NOTIFICATION_CHANNELS = [UserNotificationPolicy.NotificationChannel.TELEGRAM]
-    MOBILE_APP_INTEGRATION_REQUIRED_NOTIFICATION_CHANNELS = [
-        UserNotificationPolicy.NotificationChannel.MOBILE_PUSH_GENERAL,
-        UserNotificationPolicy.NotificationChannel.MOBILE_PUSH_CRITICAL,
-    ]
 
 
 class NotificationChannelAPIOptions(NotificationChannelOptions):
@@ -225,8 +217,6 @@ class NotificationChannelAPIOptions(NotificationChannelOptions):
         UserNotificationPolicy.NotificationChannel.SMS: "SMS \U00002709\U0001F4F2",
         UserNotificationPolicy.NotificationChannel.PHONE_CALL: "Phone call \U0000260E",
         UserNotificationPolicy.NotificationChannel.TELEGRAM: "Telegram \U0001F916",
-        UserNotificationPolicy.NotificationChannel.MOBILE_PUSH_GENERAL: "Mobile App",
-        UserNotificationPolicy.NotificationChannel.MOBILE_PUSH_CRITICAL: "Mobile App Critical",
     }
     LABELS.update(
         {
@@ -240,8 +230,6 @@ class NotificationChannelAPIOptions(NotificationChannelOptions):
         UserNotificationPolicy.NotificationChannel.SMS: "SMS",
         UserNotificationPolicy.NotificationChannel.PHONE_CALL: "\U0000260E",
         UserNotificationPolicy.NotificationChannel.TELEGRAM: "Telegram",
-        UserNotificationPolicy.NotificationChannel.MOBILE_PUSH_GENERAL: "Mobile App",
-        UserNotificationPolicy.NotificationChannel.MOBILE_PUSH_CRITICAL: "Mobile App Critical",
     }
     SHORT_LABELS.update(
         {
@@ -257,8 +245,6 @@ class NotificationChannelPublicAPIOptions(NotificationChannelAPIOptions):
         UserNotificationPolicy.NotificationChannel.SMS: "notify_by_sms",
         UserNotificationPolicy.NotificationChannel.PHONE_CALL: "notify_by_phone_call",
         UserNotificationPolicy.NotificationChannel.TELEGRAM: "notify_by_telegram",
-        UserNotificationPolicy.NotificationChannel.MOBILE_PUSH_GENERAL: "notify_by_mobile_app",
-        UserNotificationPolicy.NotificationChannel.MOBILE_PUSH_CRITICAL: "notify_by_mobile_app_critical",
     }
     LABELS.update(
         {

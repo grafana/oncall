@@ -1,12 +1,10 @@
 import React from 'react';
 
-import { getLocationSrv } from '@grafana/runtime';
 import { Button, HorizontalGroup } from '@grafana/ui';
 import { PluginPage } from 'PluginPage';
 import cn from 'classnames/bind';
 import { observer } from 'mobx-react';
 import LegacyNavHeading from 'navbar/LegacyNavHeading';
-import { AppRootProps } from 'types';
 
 import GTable from 'components/GTable/GTable';
 import PageErrorHandlingWrapper, { PageBaseState } from 'components/PageErrorHandlingWrapper/PageErrorHandlingWrapper';
@@ -22,16 +20,16 @@ import { WithPermissionControl } from 'containers/WithPermissionControl/WithPerm
 import { ActionDTO } from 'models/action';
 import { OutgoingWebhook } from 'models/outgoing_webhook/outgoing_webhook.types';
 import { pages } from 'pages';
-import { getQueryParams } from 'plugin/GrafanaPluginRootPage.helpers';
-import { WithStoreProps } from 'state/types';
+import { PageProps, WithStoreProps } from 'state/types';
 import { UserAction } from 'state/userAction';
 import { withMobXProviderContext } from 'state/withStore';
+import LocationHelper from 'utils/LocationHelper';
 
 import styles from './OutgoingWebhooks.module.css';
 
 const cx = cn.bind(styles);
 
-interface OutgoingWebhooksProps extends WithStoreProps, AppRootProps {}
+interface OutgoingWebhooksProps extends WithStoreProps, PageProps {}
 
 interface OutgoingWebhooksState extends PageBaseState {
   outgoingWebhookIdToEdit?: OutgoingWebhook['id'] | 'new';
@@ -43,14 +41,12 @@ class OutgoingWebhooks extends React.Component<OutgoingWebhooksProps, OutgoingWe
     errorData: initErrorDataState(),
   };
 
-  private outgoingWebhookId: string;
-
   async componentDidMount() {
     this.update().then(this.parseQueryParams);
   }
 
-  componentDidUpdate() {
-    if (this.outgoingWebhookId !== getQueryParams()['id']) {
+  componentDidUpdate(prevProps: OutgoingWebhooksProps) {
+    if (prevProps.query.id !== this.props.query.id) {
       this.parseQueryParams();
     }
   }
@@ -61,10 +57,10 @@ class OutgoingWebhooks extends React.Component<OutgoingWebhooksProps, OutgoingWe
       outgoingWebhookIdToEdit: undefined,
     })); // reset state on query parse
 
-    const { store } = this.props;
-    const { id } = getQueryParams();
-
-    this.outgoingWebhookId = id;
+    const {
+      store,
+      query: { id },
+    } = this.props;
 
     if (!id) {
       return;
@@ -122,43 +118,45 @@ class OutgoingWebhooks extends React.Component<OutgoingWebhooksProps, OutgoingWe
           pageName="outgoing_webhooks"
           itemNotFoundMessage={`Outgoing webhook with id=${query?.id} is not found. Please select outgoing webhook from the list.`}
         >
-          <>
-            <div className={cx('root')}>
-              <GTable
-                emptyText={webhooks ? 'No outgoing webhooks found' : 'Loading...'}
-                title={() => (
-                  <div className={cx('header')}>
-                    <LegacyNavHeading>
-                      <Text.Title level={3}>Outgoing Webhooks</Text.Title>
-                    </LegacyNavHeading>
-                    <div className="u-pull-right">
-                      <PluginLink
-                        partial
-                        query={{ id: 'new' }}
-                        disabled={!store.isUserActionAllowed(UserAction.UpdateCustomActions)}
-                      >
-                        <WithPermissionControl userAction={UserAction.UpdateCustomActions}>
-                          <Button variant="primary" icon="plus">
-                            Create
-                          </Button>
-                        </WithPermissionControl>
-                      </PluginLink>
+          {() => (
+            <>
+              <div className={cx('root')}>
+                <GTable
+                  emptyText={webhooks ? 'No outgoing webhooks found' : 'Loading...'}
+                  title={() => (
+                    <div className={cx('header')}>
+                      <LegacyNavHeading>
+                        <Text.Title level={3}>Outgoing Webhooks</Text.Title>
+                      </LegacyNavHeading>
+                      <div className="u-pull-right">
+                        <PluginLink
+                          partial
+                          query={{ id: 'new' }}
+                          disabled={!store.isUserActionAllowed(UserAction.UpdateCustomActions)}
+                        >
+                          <WithPermissionControl userAction={UserAction.UpdateCustomActions}>
+                            <Button variant="primary" icon="plus">
+                              Create
+                            </Button>
+                          </WithPermissionControl>
+                        </PluginLink>
+                      </div>
                     </div>
-                  </div>
-                )}
-                rowKey="id"
-                columns={columns}
-                data={webhooks}
-              />
-            </div>
-            {outgoingWebhookIdToEdit && (
-              <OutgoingWebhookForm
-                id={outgoingWebhookIdToEdit}
-                onUpdate={this.update}
-                onHide={this.handleOutgoingWebhookFormHide}
-              />
-            )}
-          </>
+                  )}
+                  rowKey="id"
+                  columns={columns}
+                  data={webhooks}
+                />
+              </div>
+              {outgoingWebhookIdToEdit && (
+                <OutgoingWebhookForm
+                  id={outgoingWebhookIdToEdit}
+                  onUpdate={this.update}
+                  onHide={this.handleOutgoingWebhookFormHide}
+                />
+              )}
+            </>
+          )}
         </PageErrorHandlingWrapper>
       </PluginPage>
     );
@@ -194,14 +192,14 @@ class OutgoingWebhooks extends React.Component<OutgoingWebhooksProps, OutgoingWe
     return () => {
       this.setState({ outgoingWebhookIdToEdit: id });
 
-      getLocationSrv().update({ partial: true, query: { id } });
+      LocationHelper.update({ id }, 'partial');
     };
   };
 
   handleOutgoingWebhookFormHide = () => {
     this.setState({ outgoingWebhookIdToEdit: undefined });
 
-    getLocationSrv().update({ partial: true, query: { id: undefined } });
+    LocationHelper.update({ id: undefined }, 'partial');
   };
 }
 

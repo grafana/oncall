@@ -1,6 +1,5 @@
 import React, { useState, SyntheticEvent } from 'react';
 
-import { getLocationSrv } from '@grafana/runtime';
 import {
   Button,
   HorizontalGroup,
@@ -22,7 +21,6 @@ import moment from 'moment-timezone';
 import CopyToClipboard from 'react-copy-to-clipboard';
 import Emoji from 'react-emoji-render';
 import reactStringReplace from 'react-string-replace';
-import { AppRootProps } from 'types';
 
 import Collapse from 'components/Collapse/Collapse';
 import Block from 'components/GBlock/Block';
@@ -49,12 +47,12 @@ import {
 } from 'models/alertgroup/alertgroup.types';
 import { ResolutionNoteSourceTypesToDisplayName } from 'models/resolution_note/resolution_note.types';
 import { pages } from 'pages';
-import { getQueryParams } from 'plugin/GrafanaPluginRootPage.helpers';
-import { WithStoreProps } from 'state/types';
+import { PageProps, WithStoreProps } from 'state/types';
 import { useStore } from 'state/useStore';
 import { UserAction } from 'state/userAction';
 import { withMobXProviderContext } from 'state/withStore';
 import { openNotification } from 'utils';
+import LocationHelper from 'utils/LocationHelper';
 import sanitize from 'utils/sanitize';
 
 import { getActionButtons, getIncidentStatusTag, renderRelatedUsers } from './Incident.helpers';
@@ -63,7 +61,7 @@ import styles from './Incident.module.css';
 
 const cx = cn.bind(styles);
 
-interface IncidentPageProps extends WithStoreProps, AppRootProps {}
+interface IncidentPageProps extends WithStoreProps, PageProps {}
 
 interface IncidentPageState extends PageBaseState {
   showIntegrationSettings?: boolean;
@@ -97,8 +95,10 @@ class IncidentPage extends React.Component<IncidentPageProps, IncidentPageState>
   update = () => {
     this.setState({ errorData: initErrorDataState() }); // reset wrong team error to false
 
-    const { store } = this.props;
-    const { id } = getQueryParams();
+    const {
+      store,
+      query: { id },
+    } = this.props;
 
     store.alertGroupStore
       .getAlert(id)
@@ -106,8 +106,10 @@ class IncidentPage extends React.Component<IncidentPageProps, IncidentPageState>
   };
 
   render() {
-    const { store } = this.props;
-    const { id, cursor, start, perpage } = getQueryParams();
+    const {
+      store,
+      query: { id, cursor, start, perpage },
+    } = this.props;
 
     const { errorData, showIntegrationSettings, showAttachIncidentForm } = this.state;
     const { isNotFoundError, isWrongTeamError } = errorData;
@@ -127,74 +129,78 @@ class IncidentPage extends React.Component<IncidentPageProps, IncidentPageState>
     return (
       <PluginPage pageNav={pages['incident'].getPageNav()}>
         <PageErrorHandlingWrapper errorData={errorData} objectName="alert group" pageName="incidents">
-          <div className={cx('root')}>
-            {errorData.isNotFoundError ? (
-              <div className={cx('not-found')}>
-                <VerticalGroup spacing="lg" align="center">
-                  <Text.Title level={1}>404</Text.Title>
-                  <Text.Title level={4}>Incident not found</Text.Title>
-                  <PluginLink query={{ page: 'incidents', cursor, start, perpage }}>
-                    <Button variant="secondary" icon="arrow-left" size="md">
-                      Go to incidents page
-                    </Button>
-                  </PluginLink>
-                </VerticalGroup>
-              </div>
-            ) : (
-              <>
-                {this.renderHeader()}
-                <div className={cx('content')}>
-                  <div className={cx('column')}>
-                    <Incident incident={incident} datetimeReference={this.getIncidentDatetimeReference(incident)} />
-                    <GroupedIncidentsList
-                      id={incident.pk}
-                      getIncidentDatetimeReference={this.getIncidentDatetimeReference}
-                    />
-                    <AttachedIncidentsList id={incident.pk} getUnattachClickHandler={this.getUnattachClickHandler} />
-                  </div>
-                  <div className={cx('column')}>{this.renderTimeline()}</div>
+          {() => (
+            <div className={cx('root')}>
+              {errorData.isNotFoundError ? (
+                <div className={cx('not-found')}>
+                  <VerticalGroup spacing="lg" align="center">
+                    <Text.Title level={1}>404</Text.Title>
+                    <Text.Title level={4}>Incident not found</Text.Title>
+                    <PluginLink query={{ page: 'incidents', cursor, start, perpage }}>
+                      <Button variant="secondary" icon="arrow-left" size="md">
+                        Go to incidents page
+                      </Button>
+                    </PluginLink>
+                  </VerticalGroup>
                 </div>
-                {showIntegrationSettings && (
-                  <IntegrationSettings
-                    alertGroupId={incident.pk}
-                    onUpdate={() => {
-                      alertReceiveChannelStore.updateItem(incident.alert_receive_channel.id);
-                    }}
-                    onUpdateTemplates={() => {
-                      store.alertGroupStore.getAlert(id);
-                    }}
-                    startTab={IntegrationSettingsTab.Templates}
-                    id={incident.alert_receive_channel.id}
-                    onHide={() =>
-                      this.setState({
-                        showIntegrationSettings: undefined,
-                      })
-                    }
-                  />
-                )}
-                {showAttachIncidentForm && (
-                  <AttachIncidentForm
-                    id={id}
-                    onHide={() => {
-                      this.setState({
-                        showAttachIncidentForm: false,
-                      });
-                    }}
-                    onUpdate={this.update}
-                  />
-                )}
-              </>
-            )}
-          </div>
+              ) : (
+                <>
+                  {this.renderHeader()}
+                  <div className={cx('content')}>
+                    <div className={cx('column')}>
+                      <Incident incident={incident} datetimeReference={this.getIncidentDatetimeReference(incident)} />
+                      <GroupedIncidentsList
+                        id={incident.pk}
+                        getIncidentDatetimeReference={this.getIncidentDatetimeReference}
+                      />
+                      <AttachedIncidentsList id={incident.pk} getUnattachClickHandler={this.getUnattachClickHandler} />
+                    </div>
+                    <div className={cx('column')}>{this.renderTimeline()}</div>
+                  </div>
+                  {showIntegrationSettings && (
+                    <IntegrationSettings
+                      alertGroupId={incident.pk}
+                      onUpdate={() => {
+                        alertReceiveChannelStore.updateItem(incident.alert_receive_channel.id);
+                      }}
+                      onUpdateTemplates={() => {
+                        store.alertGroupStore.getAlert(id);
+                      }}
+                      startTab={IntegrationSettingsTab.Templates}
+                      id={incident.alert_receive_channel.id}
+                      onHide={() =>
+                        this.setState({
+                          showIntegrationSettings: undefined,
+                        })
+                      }
+                    />
+                  )}
+                  {showAttachIncidentForm && (
+                    <AttachIncidentForm
+                      id={id}
+                      onHide={() => {
+                        this.setState({
+                          showAttachIncidentForm: false,
+                        });
+                      }}
+                      onUpdate={this.update}
+                    />
+                  )}
+                </>
+              )}
+            </div>
+          )}
         </PageErrorHandlingWrapper>
       </PluginPage>
     );
   }
 
   renderHeader = () => {
-    const { store } = this.props;
+    const {
+      store,
+      query: { id, cursor, start, perpage },
+    } = this.props;
 
-    const { id, cursor, start, perpage } = getQueryParams();
     const { alerts } = store.alertGroupStore;
 
     const incident = alerts.get(id);
@@ -311,9 +317,11 @@ class IncidentPage extends React.Component<IncidentPageProps, IncidentPageState>
   };
 
   renderTimeline = () => {
-    const { store } = this.props;
+    const {
+      store,
+      query: { id },
+    } = this.props;
 
-    const { id } = getQueryParams();
     const incident = store.alertGroupStore.alerts.get(id);
 
     if (!incident.render_after_resolve_report_json) {
@@ -401,9 +409,11 @@ class IncidentPage extends React.Component<IncidentPageProps, IncidentPageState>
   };
 
   handleCreateResolutionNote = () => {
-    const { store } = this.props;
+    const {
+      store,
+      query: { id },
+    } = this.props;
 
-    const { id } = getQueryParams();
     const { resolutionNoteText } = this.state;
     store.resolutionNotesStore
       .createResolutionNote(id, resolutionNoteText)
@@ -419,9 +429,7 @@ class IncidentPage extends React.Component<IncidentPageProps, IncidentPageState>
         case 'author':
           return (
             <span
-              onClick={() => {
-                getLocationSrv().update({ query: { page: 'users', id: entity?.author?.pk } });
-              }}
+              onClick={() => LocationHelper.update({ id: entity?.author?.pk, page: 'users' }, 'replace')}
               style={{ textDecoration: 'underline', cursor: 'pointer' }}
             >
               {entity.author?.username}
