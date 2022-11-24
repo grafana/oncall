@@ -36,7 +36,7 @@ class FeaturesAPIView(APIView):
         if settings.FEATURE_TELEGRAM_INTEGRATION_ENABLED:
             enabled_features.append(FEATURE_TELEGRAM)
 
-        if settings.MOBILE_APP_PUSH_NOTIFICATIONS_ENABLED:
+        if settings.FEATURE_MOBILE_APP_INTEGRATION_ENABLED:
             mobile_app_settings = DynamicSetting.objects.get_or_create(
                 name="mobile_app_settings",
                 defaults={

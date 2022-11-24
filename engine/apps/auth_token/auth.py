@@ -17,8 +17,6 @@ from common.constants.role import Role
 from .constants import SCHEDULE_EXPORT_TOKEN_NAME, SLACK_AUTH_TOKEN_NAME
 from .exceptions import InvalidToken
 from .models import ApiAuthToken, PluginAuthToken, ScheduleExportAuthToken, SlackAuthToken, UserScheduleExportAuthToken
-from .models.mobile_app_auth_token import MobileAppAuthToken
-from .models.mobile_app_verification_token import MobileAppVerificationToken
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
@@ -213,41 +211,5 @@ class UserScheduleExportAuthentication(BaseAuthentication):
 
         if not auth_token.active:
             raise exceptions.AuthenticationFailed("Export token is deactivated")
-
-        return auth_token.user, auth_token
-
-
-class MobileAppVerificationTokenAuthentication(BaseAuthentication):
-    model = MobileAppVerificationToken
-
-    def authenticate(self, request) -> Tuple[User, MobileAppVerificationToken]:
-        auth = get_authorization_header(request).decode("utf-8")
-        user, auth_token = self.authenticate_credentials(auth)
-        return user, auth_token
-
-    def authenticate_credentials(self, token_string: str) -> Tuple[User, MobileAppVerificationToken]:
-        try:
-            auth_token = self.model.validate_token_string(token_string)
-        except InvalidToken:
-            raise exceptions.AuthenticationFailed("Invalid token")
-
-        return auth_token.user, auth_token
-
-
-class MobileAppAuthTokenAuthentication(BaseAuthentication):
-    model = MobileAppAuthToken
-
-    def authenticate(self, request) -> Tuple[User, MobileAppAuthToken]:
-        auth = get_authorization_header(request).decode("utf-8")
-        user, auth_token = self.authenticate_credentials(auth)
-        if user is None:
-            return None
-        return user, auth_token
-
-    def authenticate_credentials(self, token_string: str) -> Tuple[User, MobileAppAuthToken]:
-        try:
-            auth_token = self.model.validate_token_string(token_string)
-        except InvalidToken:
-            return None, None
 
         return auth_token.user, auth_token

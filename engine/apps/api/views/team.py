@@ -2,7 +2,8 @@ from rest_framework import mixins, viewsets
 from rest_framework.permissions import IsAuthenticated
 
 from apps.api.serializers.team import TeamSerializer
-from apps.auth_token.auth import MobileAppAuthTokenAuthentication, PluginAuthentication
+from apps.auth_token.auth import PluginAuthentication
+from apps.mobile_app.auth import MobileAppAuthTokenAuthentication
 from apps.user_management.models import Team
 
 
