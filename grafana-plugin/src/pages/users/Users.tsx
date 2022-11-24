@@ -1,13 +1,11 @@
 import React from 'react';
 
-import { getLocationSrv } from '@grafana/runtime';
 import { Alert, Button, HorizontalGroup, Icon, VerticalGroup } from '@grafana/ui';
 import { PluginPage } from 'PluginPage';
 import cn from 'classnames/bind';
 import { debounce } from 'lodash-es';
 import { observer } from 'mobx-react';
 import LegacyNavHeading from 'navbar/LegacyNavHeading';
-import { AppRootProps } from 'types';
 
 import Avatar from 'components/Avatar/Avatar';
 import GTable from 'components/GTable/GTable';
@@ -24,10 +22,10 @@ import { WithPermissionControl } from 'containers/WithPermissionControl/WithPerm
 import { getRole } from 'models/user/user.helpers';
 import { User as UserType, UserRole } from 'models/user/user.types';
 import { pages } from 'pages';
-import { getQueryParams } from 'plugin/GrafanaPluginRootPage.helpers';
-import { WithStoreProps } from 'state/types';
+import { PageProps, WithStoreProps } from 'state/types';
 import { UserAction } from 'state/userAction';
 import { withMobXProviderContext } from 'state/withStore';
+import LocationHelper from 'utils/LocationHelper';
 
 import { getRealFilters, getUserRowClassNameFn } from './Users.helpers';
 
@@ -35,7 +33,7 @@ import styles from './Users.module.css';
 
 const cx = cn.bind(styles);
 
-interface UsersProps extends WithStoreProps, AppRootProps {}
+interface UsersProps extends WithStoreProps, PageProps {}
 
 const ITEMS_PER_PAGE = 100;
 
@@ -65,10 +63,10 @@ class Users extends React.Component<UsersProps, UsersState> {
 
   initialUsersLoaded = false;
 
-  private userId: string;
-
   async componentDidMount() {
-    const { p } = getQueryParams();
+    const {
+      query: { p },
+    } = this.props;
     this.setState({ page: p ? Number(p) : 1 }, this.updateUsers);
 
     this.parseParams();
@@ -83,11 +81,11 @@ class Users extends React.Component<UsersProps, UsersState> {
       return;
     }
 
-    getLocationSrv().update({ query: { p: page }, partial: true });
+    LocationHelper.update({ p: page }, 'partial');
     return await userStore.updateItems(getRealFilters(usersFilters), page);
   };
 
-  componentDidUpdate() {
+  componentDidUpdate(prevProps: UsersProps) {
     const { store } = this.props;
 
     if (!this.initialUsersLoaded && store.isUserActionAllowed(UserAction.ViewOtherUsers)) {
@@ -95,7 +93,7 @@ class Users extends React.Component<UsersProps, UsersState> {
       this.initialUsersLoaded = true;
     }
 
-    if (this.userId !== getQueryParams()['id']) {
+    if (prevProps.query.id !== this.props.query.id) {
       this.parseParams();
     }
   }
@@ -103,10 +101,10 @@ class Users extends React.Component<UsersProps, UsersState> {
   parseParams = async () => {
     this.setState({ errorData: initErrorDataState() }); // reset wrong team error to false on query parse
 
-    const { store } = this.props;
-    const { id } = getQueryParams();
-
-    this.userId = id;
+    const {
+      store,
+      query: { id },
+    } = this.props;
 
     if (id) {
       await (id === 'me' ? store.userStore.loadCurrentUser() : store.userStore.loadUser(String(id), true)).catch(
@@ -182,74 +180,76 @@ class Users extends React.Component<UsersProps, UsersState> {
           pageName="users"
           itemNotFoundMessage={`User with id=${query?.id} is not found. Please select user from the list.`}
         >
-          <>
-            <div className={cx('root')}>
-              <div className={cx('root', 'TEST-users-page')}>
-                <div className={cx('users-header')}>
-                  <div style={{ display: 'flex', alignItems: 'baseline' }}>
-                    <div>
-                      <LegacyNavHeading>
-                        <Text.Title level={3}>Users</Text.Title>
-                      </LegacyNavHeading>
-                      <Text type="secondary">
-                        To manage permissions or add users, please visit{' '}
-                        <a href="/org/users">Grafana user management</a>
-                      </Text>
+          {() => (
+            <>
+              <div className={cx('root')}>
+                <div className={cx('root', 'TEST-users-page')}>
+                  <div className={cx('users-header')}>
+                    <div style={{ display: 'flex', alignItems: 'baseline' }}>
+                      <div>
+                        <LegacyNavHeading>
+                          <Text.Title level={3}>Users</Text.Title>
+                        </LegacyNavHeading>
+                        <Text type="secondary">
+                          To manage permissions or add users, please visit{' '}
+                          <a href="/org/users">Grafana user management</a>
+                        </Text>
+                      </div>
                     </div>
-                  </div>
-                  <PluginLink partial query={{ id: 'me' }}>
-                    <Button variant="primary" icon="user">
-                      View my profile
-                    </Button>
-                  </PluginLink>
-                </div>
-                {store.isUserActionAllowed(UserAction.ViewOtherUsers) ? (
-                  <>
-                    <div className={cx('user-filters-container')}>
-                      <UsersFilters
-                        className={cx('users-filters')}
-                        value={usersFilters}
-                        onChange={this.handleUsersFiltersChange}
-                      />
-                      <Button
-                        variant="secondary"
-                        icon="times"
-                        onClick={handleClear}
-                        className={cx('searchIntegrationClear')}
-                      >
-                        Clear filters
+                    <PluginLink partial query={{ id: 'me' }}>
+                      <Button variant="primary" icon="user">
+                        View my profile
                       </Button>
-                    </div>
+                    </PluginLink>
+                  </div>
+                  {store.isUserActionAllowed(UserAction.ViewOtherUsers) ? (
+                    <>
+                      <div className={cx('user-filters-container')}>
+                        <UsersFilters
+                          className={cx('users-filters')}
+                          value={usersFilters}
+                          onChange={this.handleUsersFiltersChange}
+                        />
+                        <Button
+                          variant="secondary"
+                          icon="times"
+                          onClick={handleClear}
+                          className={cx('searchIntegrationClear')}
+                        >
+                          Clear filters
+                        </Button>
+                      </div>
 
-                    <GTable
-                      emptyText={results ? 'No users found' : 'Loading...'}
-                      rowKey="pk"
-                      data={results}
-                      columns={columns}
-                      rowClassName={getUserRowClassNameFn(userPkToEdit, userStore.currentUserPk)}
-                      pagination={{
-                        page,
-                        total: Math.ceil((count || 0) / ITEMS_PER_PAGE),
-                        onChange: this.handleChangePage,
-                      }}
+                      <GTable
+                        emptyText={results ? 'No users found' : 'Loading...'}
+                        rowKey="pk"
+                        data={results}
+                        columns={columns}
+                        rowClassName={getUserRowClassNameFn(userPkToEdit, userStore.currentUserPk)}
+                        pagination={{
+                          page,
+                          total: Math.ceil((count || 0) / ITEMS_PER_PAGE),
+                          onChange: this.handleChangePage,
+                        }}
+                      />
+                    </>
+                  ) : (
+                    <Alert
+                      /* @ts-ignore */
+                      title={
+                        <>
+                          You don't have enough permissions to view other users because you are not Admin.{' '}
+                          <PluginLink query={{ page: 'users', id: 'me' }}>Click here</PluginLink> to open your profile
+                        </>
+                      }
+                      severity="info"
                     />
-                  </>
-                ) : (
-                  <Alert
-                    /* @ts-ignore */
-                    title={
-                      <>
-                        You don't have enough permissions to view other users because you are not Admin.{' '}
-                        <PluginLink query={{ page: 'users', id: 'me' }}>Click here</PluginLink> to open your profile
-                      </>
-                    }
-                    severity="info"
-                  />
-                )}
+                  )}
+                </div>
+                {userPkToEdit && <UserSettings id={userPkToEdit} onHide={this.handleHideUserSettings} />}
               </div>
-              {userPkToEdit && <UserSettings id={userPkToEdit} onHide={this.handleHideUserSettings} />}
-            </div>
-          </>
+            </>
+          )}
         </PageErrorHandlingWrapper>
       </PluginPage>
     );
@@ -378,7 +378,7 @@ class Users extends React.Component<UsersProps, UsersState> {
   handleHideUserSettings = () => {
     this.setState({ userPkToEdit: undefined });
 
-    getLocationSrv().update({ partial: true, query: { id: undefined } });
+    LocationHelper.update({ id: undefined }, 'partial');
   };
 
   handleUserUpdate = () => {
