@@ -9,7 +9,7 @@ from apps.integrations.tasks import create_alert
 pytest_plugins = ["celery.contrib.pytest"]
 
 
-@pytest.fixture(scope="session")
+@pytest.fixture(scope="module")
 def celery_config():
     return {
         "broker_url": "memory://",
