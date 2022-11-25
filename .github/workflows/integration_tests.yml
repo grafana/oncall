@@ -193,26 +193,28 @@ jobs:
         working-directory: ./grafana-plugin
         run: yarn build:dev
 
-      # TODO: need to figure out how to properly mount the grafana-plugin/dist
-      # to /var/lib/grafana/plugins/grafana-plugin inside of the grafana container
-      # right now the grafana container is actually pulling the latest published OnCall plugin from GCS and not
-      # using the local build (which means we're not testing any changes that would be made in the PR being tested)
-      # need to somehow tweak the grafana.extraVolumeMounts value to work properly
-      # https://github.com/grafana/helm-charts/blob/main/charts/grafana/README.md#example-of-extravolumemounts
-      #
-      # this SO answer broadly explains as to why we need the securityContext setting
-      # https://stackoverflow.com/a/51195446
+      # by settings grafana.plugins to [] and configuring grafana.extraVolumeMounts we are using the locally built
+      # OnCall plugin rather than the latest published version
+      # the /oncall-plugin hostPath refers to the kind volumeMount that points to the ./grafana-plugin dir
+      # see ./helm/kind.yml for more details
       - name: Install helm chart
+        # TODO: add the below secrets in the GitHub repo
         run: |
           helm install helm-testing \
             --values ./helm/simple.yml \
             --values ./helm/values-local-image.yml \
+            --set-json 'env=[{"name":"GRAFANA_CLOUD_NOTIFICATIONS_ENABLED","value":"False"}]' \
+            --set oncall.twilio.accountSid="${{ secrets.TWILIO_ACCOUNT_SID }}" \
+            --set oncall.twilio.authToken="${{ secrets.TWILIO_AUTH_TOKEN }}" \
+            --set oncall.twilio.phoneNumber="\"${{ secrets.TWILIO_PHONE_NUMBER }}"\" \
+            --set oncall.twilio.verifySid="${{ secrets.TWILIO_VERIFY_SID }}" \
             --set grafana.image.tag=${{ matrix.grafana-image-tag }} \
             --set grafana.env.GF_SECURITY_ADMIN_USER=oncall \
             --set grafana.env.GF_SECURITY_ADMIN_PASSWORD=oncall \
             --set grafana.env.GF_PLUGINS_ALLOW_LOADING_UNSIGNED_PLUGINS=grafana-oncall-app \
+            --set-json "grafana.plugins=[]" \
             --set-json 'grafana.securityContext={"runAsUser": 0, "runAsGroup": 0, "fsGroup": 0}' \
-            --set-json "grafana.extraVolumeMounts=[{\"name\":\"plugins\",\"mountPath\":\"/var/lib/grafana/plugins/grafana-plugin\",\"hostPath\":\"$(pwd)/grafana-plugin\",\"readOnly\":false}]" \
+            --set-json 'grafana.extraVolumeMounts=[{"name":"plugins","mountPath":"/var/lib/grafana/plugins/grafana-plugin","hostPath":"/oncall-plugin","readOnly":true}]' \
             ./helm/oncall
 
       # https://github.com/microsoft/playwright/issues/7249#issuecomment-1154603556
@@ -275,6 +277,8 @@ jobs:
           ONCALL_API_URL: http://172.17.0.1:30001
           GRAFANA_USERNAME: oncall
           GRAFANA_PASSWORD: oncall
+          # TODO: add the below secrets in the GitHub repo
+          MAILSLURP_API_KEY: ${{ secrets.MAILSLURP_API_KEY }}
         working-directory: ./grafana-plugin
         run: yarn test:integration
 
