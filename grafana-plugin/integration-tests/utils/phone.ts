@@ -4,18 +4,32 @@ import { MAILSLURP_API_KEY } from './constants';
 
 const mailslurp = new MailSlurp({ apiKey: MAILSLURP_API_KEY });
 
-// get a phone number from mailslurp for testing purposes
-export const getPhoneNumber = async (): Promise<PhoneNumberProjection> => {
-  const {
-    content: [phoneNumber],
-  } = await mailslurp.phoneController.getPhoneNumbers({
-    size: 1,
-    phoneCountry: GetPhoneNumbersPhoneCountryEnum.US,
-  });
-  return phoneNumber;
+const _getPhoneNumber = (): (() => Promise<PhoneNumberProjection>) => {
+  let cachedPhoneNumber: PhoneNumberProjection;
+
+  const __getPhoneNumber = async () => {
+    if (cachedPhoneNumber) {
+      return cachedPhoneNumber;
+    }
+
+    const {
+      content: [phoneNumber],
+    } = await mailslurp.phoneController.getPhoneNumbers({
+      size: 1,
+      phoneCountry: GetPhoneNumbersPhoneCountryEnum.US,
+    });
+
+    return phoneNumber;
+  };
+
+  return __getPhoneNumber;
 };
 
-export const waitForSms = async (phoneNumber: PhoneNumberProjection): Promise<string> => {
+export const getPhoneNumber = _getPhoneNumber();
+
+export const waitForSms = async (): Promise<string> => {
+  const phoneNumber = await getPhoneNumber();
+
   const [sms] = await mailslurp.waitController.waitForSms({
     waitForSmsConditions: {
       count: 1,
@@ -26,7 +40,6 @@ export const waitForSms = async (phoneNumber: PhoneNumberProjection): Promise<st
       timeout: 30_000,
     },
   });
-  console.log('GOT THE FUCKING SMS', sms);
   return sms.body;
 };
 

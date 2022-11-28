@@ -8,6 +8,6 @@ export const login = async (page: Page): Promise<void> => {
 
   await fillInInputByPlaceholderValue(page, 'email or username', GRAFANA_USERNAME);
   await fillInInputByPlaceholderValue(page, 'password', GRAFANA_PASSWORD);
-  await clickButton(page, 'Log in');
+  await clickButton({ page, buttonText: 'Log in' });
   await waitForNoNetworkActivity(page);
 };

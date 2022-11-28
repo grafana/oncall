@@ -3,13 +3,6 @@ import { GRAFANA_USERNAME } from './constants';
 import { clickButton, selectDropdownValue } from './forms';
 import { goToOnCallPageByClickingOnTab } from './navigation';
 
-const closeIntegrationSettingsModal = async (page: Page): Promise<void> => {
-  const integrationSettingsModal = page.locator('div[class="drawer-mask"]');
-  await integrationSettingsModal.waitFor({ state: 'attached' });
-  await integrationSettingsModal.click({ position: { x: 0, y: 0 } });
-  await integrationSettingsModal.waitFor({ state: 'detached' });
-};
-
 export const createIntegrationAndSendDemoAlert = async (page: Page, escalationChainName: string): Promise<void> => {
   // go to the integrations page
   await goToOnCallPageByClickingOnTab(page, 'Integrations');
@@ -21,21 +14,13 @@ export const createIntegrationAndSendDemoAlert = async (page: Page, escalationCh
   (await page.waitForSelector('div[class*="CreateAlertReceiveChannelContainer"] >> text=Webhook')).click();
 
   // wait for the integrations settings modal to open up... and then close it
-  await closeIntegrationSettingsModal(page);
-
-  // // wait for the escalation chains to be loaded...
-  // await page.locator('text=Select Escalation Chain first please ↑').waitFor({ state: 'visible' });
+  await page.waitForTimeout(2000);
+  await clickButton({ page, buttonText: 'Open Escalations Settings' });
 
   // get the surrounding element for the integration settings
   const integrationSettingsElement = page.locator(
     'div[class*="components-Collapse-Collapse-module__root containers-AlertRules-AlertRules-module__route"]'
   );
-
-  /**
-   * TODO: this is a bit of a hack but for some reason the integrations settings modal
-   * pops up twice.. and we have to close it twice
-   */
-  await closeIntegrationSettingsModal(page);
 
   // assign the escalation chain to the integration
   await selectDropdownValue({
@@ -49,7 +34,7 @@ export const createIntegrationAndSendDemoAlert = async (page: Page, escalationCh
   // add an escalation step to notify user
   await selectDropdownValue({
     page,
-    selectType: 'reactSelect',
+    selectType: 'grafanaSelect',
     placeholderText: 'Add escalation step...',
     value: 'Notify users',
     startingLocator: integrationSettingsElement,
@@ -58,12 +43,12 @@ export const createIntegrationAndSendDemoAlert = async (page: Page, escalationCh
   // select our current user..
   await selectDropdownValue({
     page,
-    selectType: 'reactSelect',
+    selectType: 'grafanaSelect',
     placeholderText: 'Select Users',
     value: GRAFANA_USERNAME,
     startingLocator: integrationSettingsElement,
   });
 
   // send demo alert
-  await clickButton(page, 'Send demo alert');
+  await clickButton({ page, buttonText: 'Send demo alert', startingLocator: integrationSettingsElement });
 };

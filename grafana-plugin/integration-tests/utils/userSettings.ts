@@ -9,7 +9,7 @@ type NotifyBy = 'SMS' | 'Phone call';
 
 const openUserSettingsModal = async (page: Page): Promise<void> => {
   await goToOnCallPageByClickingOnTab(page, 'Users');
-  await clickButton(page, 'View my profile');
+  await clickButton({ page, buttonText: 'View my profile' });
   await page.locator('text=To edit user details such as Username, email, and role').waitFor({ state: 'visible' });
 };
 
@@ -36,14 +36,14 @@ export const verifyUserPhoneNumber = async (page: Page): Promise<void> => {
    * on the backend this should trigger twilio to send out an SMS verification code
    */
   await fillInInputByPlaceholderValue(page, 'Please enter the phone number with country code', phoneNumber.phoneNumber);
-  await clickButton(page, 'Send Code');
+  await clickButton({ page, buttonText: 'Send Code' });
 
   // wait for the SMS verification code to arrive
-  const sms = await waitForSms(phoneNumber);
+  const sms = await waitForSms();
 
   // take the SMS verification code that we just received, input it into the form, and submit the form
   await fillInInputByPlaceholderValue(page, 'Please enter the code', getVerificationCodeFromSms(sms));
-  await clickButton(page, 'Verify');
+  await clickButton({ page, buttonText: 'Verify' });
 
   // wait for a confirmation that the number has been verified and then close the modal
   await getForgetPhoneNumberButton(page).click();
@@ -88,6 +88,7 @@ export const configureUserNotificationSettings = async (page: Page, notifyBy: No
     value: notifyBy,
     selectType: 'grafanaSelect',
     startingLocator: firstDefaultNotificationTypeDropdopdown,
+    optionExactMatch: false, // there are emojis at the end
   });
 
   // close the modal

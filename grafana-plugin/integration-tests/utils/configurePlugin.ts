@@ -18,7 +18,7 @@ export const configureOnCallPlugin = async (page: Page): Promise<void> => {
 
   if (!pluginIsAutoConfigured) {
     await onCallApiUrlInput.fill(ONCALL_API_URL);
-    await clickButton(page, 'Connect');
+    await clickButton({ page, buttonText: 'Connect' });
   }
 
   /**
