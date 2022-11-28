@@ -129,7 +129,6 @@ class UserView(
             "unlink_backend",
             "make_test_call",
             "export_token",
-            "mobile_app_verification_token",
             "mobile_app_auth_token",
         ),
         AnyRole: ("retrieve", "timezone_options"),
@@ -149,7 +148,6 @@ class UserView(
             "unlink_backend",
             "make_test_call",
             "export_token",
-            "mobile_app_verification_token",
             "mobile_app_auth_token",
         ),
     }
@@ -475,6 +473,9 @@ class UserView(
         authentication_classes=(MobileAppVerificationTokenAuthentication,),
     )
     def mobile_app_auth_token(self, request):
+        """
+        TODO: remove after hackathon app is deprecated (see apps.mobile_app.views.MobileAppAuthTokenAPIView)
+        """
         DynamicSetting = apps.get_model("base", "DynamicSetting")
 
         if not settings.FEATURE_MOBILE_APP_INTEGRATION_ENABLED:
