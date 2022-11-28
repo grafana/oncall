@@ -162,6 +162,7 @@ class User(models.Model):
     def is_authenticated(self):
         return True
 
+    @property
     def avatar_full_url(self):
         return urljoin(self.organization.grafana_url, self.avatar_url)
 
