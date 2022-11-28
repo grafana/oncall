@@ -36,5 +36,14 @@ CELERY_ARGS=(
 if [[ $CELERY_WORKER_BEAT_ENABLED = True ]]; then
   CELERY_ARGS+=("--beat")
 fi
+if [[ $CELERY_WORKER_WITHOUT_MINGLE = True ]]; then
+  CELERY_ARGS+=("--without-mingle")
+fi
+if [[ $CELERY_WORKER_WITHOUT_GOSSIP = True ]]; then
+  CELERY_ARGS+=("--without-gossip")
+fi
+if [[ $CELERY_WORKER_WITHOUT_HEARTBEAT = True ]]; then
+  CELERY_ARGS+=("--without-heartbeat")
+fi
 
 celery "${CELERY_ARGS[@]}"
