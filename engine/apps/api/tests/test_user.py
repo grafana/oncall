@@ -68,6 +68,7 @@ def test_update_user_cant_change_email_and_username(
         "email": admin.email,
         "hide_phone_number": False,
         "username": admin.username,
+        "name": admin.name,
         "role": admin.role,
         "timezone": None,
         "working_hours": default_working_hours(),
@@ -84,6 +85,7 @@ def test_update_user_cant_change_email_and_username(
         "notification_chain_verbal": {"default": "", "important": ""},
         "slack_user_identity": None,
         "avatar": admin.avatar_url,
+        "avatar_full": admin.avatar_full_url,
     }
     response = client.put(url, data, format="json", **make_user_auth_headers(admin, token))
     assert response.status_code == status.HTTP_200_OK
@@ -117,6 +119,7 @@ def test_list_users(
                 "email": admin.email,
                 "hide_phone_number": False,
                 "username": admin.username,
+                "name": admin.name,
                 "role": admin.role,
                 "timezone": None,
                 "working_hours": default_working_hours(),
@@ -132,6 +135,7 @@ def test_list_users(
                 "notification_chain_verbal": {"default": "", "important": ""},
                 "slack_user_identity": None,
                 "avatar": admin.avatar_url,
+                "avatar_full": admin.avatar_full_url,
                 "cloud_connection_status": 0,
             },
             {
@@ -141,6 +145,7 @@ def test_list_users(
                 "email": editor.email,
                 "hide_phone_number": False,
                 "username": editor.username,
+                "name": editor.name,
                 "role": editor.role,
                 "timezone": None,
                 "working_hours": default_working_hours(),
@@ -156,6 +161,7 @@ def test_list_users(
                 "notification_chain_verbal": {"default": "", "important": ""},
                 "slack_user_identity": None,
                 "avatar": editor.avatar_url,
+                "avatar_full": editor.avatar_full_url,
                 "cloud_connection_status": 0,
             },
         ],

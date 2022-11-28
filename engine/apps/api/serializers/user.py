@@ -70,6 +70,7 @@ class UserSerializer(DynamicFieldsModelSerializer, EagerLoadingMixin):
         read_only_fields = [
             "email",
             "username",
+            "name",
             "role",
             "verified_phone_number",
         ]

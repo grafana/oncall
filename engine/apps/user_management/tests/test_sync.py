@@ -10,7 +10,7 @@ from apps.user_management.sync import cleanup_organization, sync_organization
 
 @pytest.mark.django_db
 def test_sync_users_for_organization(make_organization, make_user_for_organization):
-    organization = make_organization()
+    organization = make_organization(grafana_url="https://test.test")
     users = tuple(make_user_for_organization(organization, user_id=user_id) for user_id in (1, 2))
 
     api_users = tuple(
@@ -20,7 +20,7 @@ def test_sync_users_for_organization(make_organization, make_user_for_organizati
             "name": "Test",
             "login": "test",
             "role": "admin",
-            "avatarUrl": "test.test/test",
+            "avatarUrl": "/test/1234",
         }
         for user_id in (2, 3)
     )
@@ -37,12 +37,14 @@ def test_sync_users_for_organization(make_organization, make_user_for_organizati
     assert updated_user is not None
     assert updated_user.name == api_users[0]["name"]
     assert updated_user.email == api_users[0]["email"]
+    assert updated_user.avatar_full_url == "https://test.test/test/1234"
 
     # check that missing users are created
     created_user = organization.users.filter(user_id=api_users[1]["userId"]).first()
     assert created_user is not None
     assert created_user.user_id == api_users[1]["userId"]
     assert created_user.name == api_users[1]["name"]
+    assert created_user.avatar_full_url == "https://test.test/test/1234"
 
 
 @pytest.mark.django_db
