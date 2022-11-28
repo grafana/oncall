@@ -1,4 +1,5 @@
 import logging
+from urllib.parse import urljoin
 
 from django.apps import apps
 from django.conf import settings
@@ -160,6 +161,9 @@ class User(models.Model):
     @property
     def is_authenticated(self):
         return True
+
+    def avatar_full_url(self):
+        return urljoin(self.organization.grafana_url, self.avatar_url)
 
     @property
     def verified_phone_number(self):

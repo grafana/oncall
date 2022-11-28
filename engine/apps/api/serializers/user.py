@@ -36,7 +36,7 @@ class UserSerializer(DynamicFieldsModelSerializer, EagerLoadingMixin):
 
     timezone = serializers.CharField(allow_null=True, required=False)
     avatar = serializers.URLField(source="avatar_url", read_only=True)
-
+    avatar_full = serializers.URLField(source="avatar_full_url", read_only=True)
     permissions = serializers.SerializerMethodField()
     notification_chain_verbal = serializers.SerializerMethodField()
     cloud_connection_status = serializers.SerializerMethodField()
@@ -51,8 +51,10 @@ class UserSerializer(DynamicFieldsModelSerializer, EagerLoadingMixin):
             "current_team",
             "email",
             "username",
+            "name",
             "role",
             "avatar",
+            "avatar_full",
             "timezone",
             "working_hours",
             "unverified_phone_number",
