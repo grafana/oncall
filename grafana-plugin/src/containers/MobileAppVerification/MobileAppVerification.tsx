@@ -1,104 +1,107 @@
-import React, { HTMLAttributes, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 
-import { Button, LoadingPlaceholder } from '@grafana/ui';
-import cn from 'classnames/bind';
+import { HorizontalGroup, LoadingPlaceholder, VerticalGroup } from '@grafana/ui';
 import { observer } from 'mobx-react';
 
+import Block from 'components/GBlock/Block';
 import Text from 'components/Text/Text';
-import { WithPermissionControl } from 'containers/WithPermissionControl/WithPermissionControl';
 import { User } from 'models/user/user.types';
 import { useStore } from 'state/useStore';
-import { UserAction } from 'state/userAction';
 
-import styles from './MobileAppVerification.module.css';
+import DisconnectButton from './parts/DisconnectButton';
+import DownloadIcons from './parts/DownloadIcons';
+import QRCode from './parts/QRCode';
 
-const cx = cn.bind(styles);
+type Props = {
+  userPk: User['pk'];
+};
 
-interface MobileAppVerificationProps extends HTMLAttributes<HTMLElement> {
-  userPk?: User['pk'];
-  phone?: string;
-}
+const BACKEND = 'MOBILE_APP';
 
-const MobileAppVerification = observer((props: MobileAppVerificationProps) => {
-  const { userPk: propsUserPk } = props;
+const MobileAppVerification = observer(({ userPk }: Props) => {
+  const { userStore } = useStore();
 
-  const store = useStore();
-  const { userStore } = store;
+  const [mobileAppIsCurrentlyConnected, setMobileAppIsCurrentlyConnected] = useState<boolean>(
+    userStore.currentUser.messaging_backends[BACKEND]?.connected === true
+  );
 
-  const userPk = (propsUserPk || userStore.currentUserPk) as User['pk'];
-  const user = userStore.items[userPk as User['pk']];
-  const isCurrent = userStore.currentUserPk === user.pk;
-  const action = isCurrent ? UserAction.UpdateOwnSettings : UserAction.UpdateOtherUsersSettings;
+  const [fetchingQRCode, setFetchingQRCode] = useState<boolean>(!mobileAppIsCurrentlyConnected);
+  const [QRCodeValue, setQRCodeValue] = useState<string>(null);
+  const [errorFetchingQRCode, setErrorFetchingQRCode] = useState<string>(null);
 
-  const [showMobileAppVerificationToken, setShowMobileAppVerificationToken] = useState<string>(undefined);
-  const [isMobileAppVerificationTokenExisting, setIsMobileAppVerificationTokenExisting] = useState<boolean>(false);
-  const [MobileAppVerificationTokenLoading, setMobileAppVerificationTokenLoading] = useState<boolean>(true);
+  const [disconnectingMobileApp, setDisconnectingMobileApp] = useState<boolean>(false);
+  const [errorDisconnectingMobileApp, setErrorDisconnectingMobileApp] = useState<string>(null);
 
-  const handleCreateMobileAppVerificationToken = async () => {
-    setIsMobileAppVerificationTokenExisting(true);
-    await userStore
-      .sendBackendConfirmationCode(userPk, 'MOBILE_APP')
-      .then((res) => setShowMobileAppVerificationToken(res));
-  };
+  const fetchQRCode = useCallback(async () => {
+    setFetchingQRCode(true);
+    try {
+      // backend verification code that we receive is a JSON object that has been "stringified"
+      const qrCodeContent = await userStore.sendBackendConfirmationCode(userPk, BACKEND);
+      setQRCodeValue(qrCodeContent);
+    } catch (e) {
+      setErrorFetchingQRCode('There was an error fetching your QR code. Please try again.');
+    }
+    setFetchingQRCode(false);
+  }, [userPk]);
 
-  useEffect(() => {
-    handleCreateMobileAppVerificationToken().then(() => {
-      setMobileAppVerificationTokenLoading(false);
-    });
+  const resetState = useCallback(() => {
+    setErrorDisconnectingMobileApp(null);
+    setMobileAppIsCurrentlyConnected(false);
+    setQRCodeValue(null);
   }, []);
 
+  const disconnectMobileApp = useCallback(async () => {
+    setDisconnectingMobileApp(true);
+
+    try {
+      await userStore.unlinkBackend(userPk, BACKEND);
+      resetState();
+    } catch (e) {
+      setErrorDisconnectingMobileApp('There was an error disconnecting your mobile app. Please try again.');
+    }
+    setDisconnectingMobileApp(false);
+  }, [userPk, resetState]);
+
+  useEffect(() => {
+    if (!mobileAppIsCurrentlyConnected) {
+      fetchQRCode();
+    }
+  }, [mobileAppIsCurrentlyConnected]);
+
+  let content: React.ReactNode = null;
+
+  if (fetchingQRCode || disconnectingMobileApp) {
+    content = <LoadingPlaceholder text="Loading..." />;
+  } else if (errorFetchingQRCode || errorDisconnectingMobileApp) {
+    content = <Text type="primary">{errorFetchingQRCode || errorDisconnectingMobileApp}</Text>;
+  } else if (mobileAppIsCurrentlyConnected) {
+    content = (
+      <VerticalGroup>
+        <Text type="primary">Your mobile app is currently connected. Click below to disconnect.</Text>
+        <DisconnectButton onClick={disconnectMobileApp} />
+      </VerticalGroup>
+    );
+  } else if (QRCodeValue) {
+    content = (
+      <VerticalGroup>
+        <QRCode value={QRCodeValue} />
+        <Text type="primary">
+          Note: the QR code is only valid for one minute. If you have issues connecting your mobile app, try refreshing
+          this page to generate a new code.
+        </Text>
+      </VerticalGroup>
+    );
+  }
+
   return (
-    <div className={cx('mobile-app-settings')}>
-      {MobileAppVerificationTokenLoading ? (
-        <LoadingPlaceholder text="Loading..." />
-      ) : (
-        <>
-          <p>
-            <Text>Open Grafana OnCall mobile application and enter the following code to add the new device:</Text>
-          </p>
-          {isMobileAppVerificationTokenExisting ? (
-            <>
-              {showMobileAppVerificationToken !== undefined ? (
-                <>
-                  <h1>{showMobileAppVerificationToken}</h1>
-                  <p>
-                    <Text>* This code is active only for a minute</Text>
-                  </p>
-                  <p>
-                    <WithPermissionControl userAction={action}>
-                      <Button
-                        onClick={handleCreateMobileAppVerificationToken}
-                        className={cx('iCal-button')}
-                        variant="secondary"
-                      >
-                        Refresh the code
-                      </Button>
-                    </WithPermissionControl>
-                  </p>
-                </>
-              ) : (
-                <></>
-              )}
-            </>
-          ) : (
-            <p>
-              <WithPermissionControl userAction={action}>
-                <Button
-                  onClick={handleCreateMobileAppVerificationToken}
-                  className={cx('iCal-button')}
-                  variant="secondary"
-                >
-                  Get the code
-                </Button>
-              </WithPermissionControl>
-            </p>
-          )}
-          <p>
-            <Text>* Only iOS is currently supported</Text>
-          </p>
-        </>
-      )}
-    </div>
+    <HorizontalGroup>
+      <Block bordered withBackground>
+        {content}
+      </Block>
+      <Block bordered withBackground>
+        <DownloadIcons />
+      </Block>
+    </HorizontalGroup>
   );
 });
 

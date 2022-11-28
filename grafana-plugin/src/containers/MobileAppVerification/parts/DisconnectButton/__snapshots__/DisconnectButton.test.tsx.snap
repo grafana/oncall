@@ -1,0 +1,16 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`DisconnectButton it renders properly 1`] = `
+<div>
+  <button
+    class="css-mk7eo3-button"
+    type="button"
+  >
+    <span
+      class="css-1mhnkuh"
+    >
+      Disconnect
+    </span>
+  </button>
+</div>
+`;

@@ -83,11 +83,6 @@ export class UserStore extends BaseStore {
   }
 
   @action
-  getCurrentUser() {
-    return this.items[this.currentUserPk as User['pk']];
-  }
-
-  @action
   async updateItem(userPk: User['pk']) {
     if (this.itemsCurrentlyUpdating[userPk]) {
       return;
@@ -144,10 +139,6 @@ export class UserStore extends BaseStore {
     return await makeRequest(`/users/${userPk}/get_telegram_verification_code/`, {});
   };
 
-  sendBackendConfirmationCode = async (userPk: User['pk'], backend: string) => {
-    return await makeRequest(`/users/${userPk}/get_backend_verification_code/?backend=${backend}`, {});
-  };
-
   @action
   unlinkSlack = async (userPk: User['pk']) => {
     await makeRequest(`/users/${userPk}/unlink_slack/`, {
@@ -175,6 +166,11 @@ export class UserStore extends BaseStore {
       [user.pk]: user,
     };
   };
+
+  sendBackendConfirmationCode = (userPk: User['pk'], backend: string) =>
+    makeRequest<string>(`/users/${userPk}/get_backend_verification_code?backend=${backend}`, {
+      method: 'GET',
+    });
 
   @action
   unlinkBackend = async (userPk: User['pk'], backend: string) => {

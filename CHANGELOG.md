@@ -15,11 +15,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Errors and warnings that occur when rendering templates during notification or webhooks will now render and display the error/warning as the result.
 ## v1.1.5 (2022-11-24)
 
+### Added
+
+- Added a QR code in the "Mobile App Verification" tab on the user settings modal to connect the mobile application to your OnCall instance
+
+## v1.1.5 (2022-11-24)
+
 ### Fixed
 
 - UI bug fixes for Grafana 9.3 ([#860](https://github.com/grafana/oncall/pull/860))
 - Bug fix for saving source link template ([#898](https://github.com/grafana/oncall/pull/898))
-
 
 ## v1.1.4 (2022-11-23)
 

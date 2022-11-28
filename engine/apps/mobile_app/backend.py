@@ -1,3 +1,7 @@
+import json
+
+from django.conf import settings
+
 from apps.base.messaging import BaseMessagingBackend
 from apps.mobile_app.tasks import notify_user_async
 
@@ -9,7 +13,6 @@ class MobileAppBackend(BaseMessagingBackend):
     available_for_use = True
     template_fields = ["title"]
 
-    # TODO: add QR code generation (base64 encode?)
     def generate_user_verification_code(self, user):
         from apps.mobile_app.models import MobileAppVerificationToken
 
@@ -17,7 +20,12 @@ class MobileAppBackend(BaseMessagingBackend):
         MobileAppVerificationToken.objects.filter(user=user).delete()
 
         _, token = MobileAppVerificationToken.create_auth_token(user, user.organization)
-        return token
+        return json.dumps(
+            {
+                "token": token,
+                "oncall_api_url": settings.BASE_URL,
+            }
+        )
 
     def unlink_user(self, user):
         from apps.mobile_app.models import MobileAppAuthToken
