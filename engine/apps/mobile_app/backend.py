@@ -1,5 +1,3 @@
-from push_notifications.models import APNSDevice
-
 from apps.base.messaging import BaseMessagingBackend
 from apps.mobile_app.tasks import notify_user_async
 
@@ -28,8 +26,9 @@ class MobileAppBackend(BaseMessagingBackend):
         token.delete()
 
     def serialize_user(self, user):
-        # TODO: add Android support using GCMDevice
-        return {"connected": APNSDevice.objects.filter(user_id=user.pk).exists()}
+        from apps.mobile_app.models import MobileAppAuthToken
+
+        return {"connected": MobileAppAuthToken.objects.filter(user=user).exists()}
 
     def notify_user(self, user, alert_group, notification_policy, critical=False):
         notify_user_async.delay(
