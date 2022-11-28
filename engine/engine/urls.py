@@ -53,7 +53,7 @@ if settings.FEATURE_SLACK_INTEGRATION_ENABLED:
 
 if settings.FEATURE_MOBILE_APP_INTEGRATION_ENABLED:
     urlpatterns += [
-        path("mobile_app/", include("apps.mobile_app.urls")),
+        path("mobile_app/v1/", include("apps.mobile_app.urls", namespace="mobile_app")),
     ]
 
 
