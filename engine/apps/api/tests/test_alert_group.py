@@ -1446,8 +1446,9 @@ def test_alert_group_preview_body_non_existent_template_var(
     data = {"template_name": "testonly_title_template", "template_body": "foobar: {{ foobar.does_not_exist }}"}
     response = client.post(url, data, format="json", **make_user_auth_headers(user, token))
 
+    # Return errors as preview body instead of None
     assert response.status_code == status.HTTP_200_OK
-    assert response.json()["preview"] is None
+    assert response.json()["preview"] == "Template Warning: &#x27;foobar&#x27; is undefined"
 
 
 @pytest.mark.django_db
@@ -1468,4 +1469,6 @@ def test_alert_group_preview_body_invalid_template_syntax(
     data = {"template_name": "testonly_title_template", "template_body": "{{'' if foo is None else foo}}"}
     response = client.post(url, data, format="json", **make_user_auth_headers(user, token))
 
-    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    # Errors now returned preview content
+    assert response.status_code == status.HTTP_200_OK
+    assert response.data["preview"] == "Template Error: No test named &#x27;None&#x27; found."

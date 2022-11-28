@@ -27,7 +27,6 @@ const cx = cn.bind(styles);
 interface AlertTemplatesFormProps {
   templates: any;
   onUpdateTemplates: (values: any) => void;
-  errors: any;
   alertReceiveChannelId: AlertReceiveChannel['id'];
   alertGroupId?: Alert['pk'];
   demoAlertEnabled: boolean;

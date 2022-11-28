@@ -236,23 +236,7 @@ def test_create_invalid_data_custom_button(custom_button_internal_api_setup, mak
     data = {
         "name": "amixr_button_invalid_data",
         "webhook": TEST_URL,
-        "data": "invalid_json",
-    }
-    response = client.post(url, data, format="json", **make_user_auth_headers(user, token))
-    assert response.status_code == status.HTTP_400_BAD_REQUEST
-
-
-@pytest.mark.django_db
-def test_create_invalid_templated_data_custom_button(custom_button_internal_api_setup, make_user_auth_headers):
-    user, token, custom_button = custom_button_internal_api_setup
-    client = APIClient()
-    url = reverse("api-internal:custom_button-list")
-
-    data = {
-        "name": "amixr_button_invalid_data",
-        "webhook": TEST_URL,
-        # This would need a `| tojson` or some double quotes around it to pass validation.
-        "data": "{{ alert_payload.name }}",
+        "data": "{{%",
     }
     response = client.post(url, data, format="json", **make_user_auth_headers(user, token))
     assert response.status_code == status.HTTP_400_BAD_REQUEST
