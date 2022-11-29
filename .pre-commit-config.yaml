@@ -39,8 +39,14 @@ repos:
     rev: "v2.7.1"
     hooks:
       - id: prettier
-        types_or: [css, javascript, jsx, ts, tsx, json]
+        name: prettier
+        types_or: [css, javascript, jsx, ts, tsx]
         files: ^grafana-plugin/src
+        additional_dependencies:
+          - prettier@^2.7.1
+      - id: prettier
+        name: prettier - json
+        types_or: [json]
         additional_dependencies:
           - prettier@^2.7.1
 
