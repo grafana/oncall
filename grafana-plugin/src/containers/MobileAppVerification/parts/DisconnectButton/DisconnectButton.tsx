@@ -10,7 +10,6 @@ import styles from './DisconnectButton.module.scss';
 const cx = cn.bind(styles);
 
 type Props = {
-  qrCode?: string;
   onClick: () => void;
 };
 

@@ -107,7 +107,7 @@ const MobileAppVerification = observer(({ userPk }: Props) => {
         </Text>
         <div className={cx('disconnect__container')}>
           <img src={qrCodeImage} className={cx('disconnect__qrCode')} />
-          <DisconnectButton onClick={disconnectMobileApp} qrCode={QRCodeValue} />
+          <DisconnectButton onClick={disconnectMobileApp} />
         </div>
       </VerticalGroup>
     );
