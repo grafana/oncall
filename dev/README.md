@@ -75,7 +75,12 @@ By default everything runs inside Docker. If you would like to run the backend s
 1. Create a Python 3.9 virtual environment using a method of your choosing (ex. [venv](https://docs.python.org/3.9/library/venv.html) or [pyenv-virtualenv](https://github.com/pyenv/pyenv-virtualenv)). Make sure the virtualenv is "activated".
 2. `postgres` is a dependency on some of our Python dependencies (notably `psycopg2` ([docs](https://www.psycopg.org/docs/install.html#prerequisites))). Please visit [here](https://www.postgresql.org/download/) for installation instructions.
 3. `make backend-bootstrap` - installs all backend dependencies
-4. Modify your `.env.dev` by copying the contents of one of `.env.mysql.dev`, `.env.postgres.dev`, or `.env.sqlite.dev` into `.env.dev` (you should exclude the `GF_` prefixed environment variables). In most cases where you are running stateful services via `docker-compose` and backend services outside of docker you will simply need to change the database host to `localhost` (or in the case of `sqlite` update the file-path to your `sqlite` database file).
+4. Modify your `.env.dev` by copying the contents of one of `.env.mysql.dev`, `.env.postgres.dev`, 
+or `.env.sqlite.dev` into `.env.dev` (you should exclude the `GF_` prefixed environment variables). 
+    > In most cases where you are running stateful services via `docker-compose` 
+    and backend services outside of docker you will simply need to change the database host to `localhost` 
+    (or in the case of `sqlite` update the file-path to your `sqlite` database file). You will need to change 
+    the broker host to `localhost` as well.
 5. `make backend-migrate` - runs necessary database migrations
 6. Open two separate shells and then run the following:
 
