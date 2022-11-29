@@ -19,15 +19,14 @@ import Text from 'components/Text/Text';
 import UsersFilters from 'components/UsersFilters/UsersFilters';
 import UserSettings from 'containers/UserSettings/UserSettings';
 import { WithPermissionControl } from 'containers/WithPermissionControl/WithPermissionControl';
-import { getRole } from 'models/user/user.helpers';
-import { User as UserType, UserRole } from 'models/user/user.types';
+import { User as UserType } from 'models/user/user.types';
 import { pages } from 'pages';
 import { PageProps, WithStoreProps } from 'state/types';
-import { UserAction } from 'state/userAction';
 import { withMobXProviderContext } from 'state/withStore';
 import LocationHelper from 'utils/LocationHelper';
+import { UserActions } from 'utils/authorization';
 
-import { getRealFilters, getUserRowClassNameFn } from './Users.helpers';
+import { getUserRowClassNameFn } from './Users.helpers';
 
 import styles from './Users.module.css';
 
@@ -43,7 +42,6 @@ interface UsersState extends PageBaseState {
   userPkToEdit?: UserType['pk'] | 'new';
   usersFilters?: {
     searchTerm: string;
-    roles?: UserRole[];
   };
 }
 
@@ -55,7 +53,6 @@ class Users extends React.Component<UsersProps, UsersState> {
     userPkToEdit: undefined,
     usersFilters: {
       searchTerm: '',
-      roles: [UserRole.ADMIN, UserRole.EDITOR, UserRole.VIEWER],
     },
 
     errorData: initErrorDataState(),
@@ -77,18 +74,18 @@ class Users extends React.Component<UsersProps, UsersState> {
     const { usersFilters, page } = this.state;
     const { userStore } = store;
 
-    if (!store.isUserActionAllowed(UserAction.ViewOtherUsers)) {
+    if (!store.isUserActionAllowed(UserActions.UserSettingsWrite)) {
       return;
     }
 
     LocationHelper.update({ p: page }, 'partial');
-    return await userStore.updateItems(getRealFilters(usersFilters), page);
+    return await userStore.updateItems(usersFilters, page);
   };
 
   componentDidUpdate(prevProps: UsersProps) {
     const { store } = this.props;
 
-    if (!this.initialUsersLoaded && store.isUserActionAllowed(UserAction.ViewOtherUsers)) {
+    if (!this.initialUsersLoaded && store.isUserActionAllowed(UserActions.UserSettingsWrite)) {
       this.updateUsers();
       this.initialUsersLoaded = true;
     }
@@ -132,12 +129,6 @@ class Users extends React.Component<UsersProps, UsersState> {
         render: this.renderTitle,
       },
       {
-        width: '5%',
-        title: 'Role',
-        key: 'role',
-        render: this.renderRole,
-      },
-      {
         width: '20%',
         title: 'Status',
         key: 'note',
@@ -163,12 +154,9 @@ class Users extends React.Component<UsersProps, UsersState> {
     ];
 
     const handleClear = () =>
-      this.setState(
-        { usersFilters: { searchTerm: '', roles: [UserRole.ADMIN, UserRole.EDITOR, UserRole.VIEWER] } },
-        () => {
-          this.debouncedUpdateUsers();
-        }
-      );
+      this.setState({ usersFilters: { searchTerm: '' } }, () => {
+        this.debouncedUpdateUsers();
+      });
 
     const { count, results } = userStore.getSearchResult();
 
@@ -202,7 +190,7 @@ class Users extends React.Component<UsersProps, UsersState> {
                       </Button>
                     </PluginLink>
                   </div>
-                  {store.isUserActionAllowed(UserAction.ViewOtherUsers) ? (
+                  {store.isUserActionAllowed(UserActions.UserSettingsRead) ? (
                     <>
                       <div className={cx('user-filters-container')}>
                         <UsersFilters
@@ -273,10 +261,6 @@ class Users extends React.Component<UsersProps, UsersState> {
     );
   };
 
-  renderRole = (user: UserType) => {
-    return getRole(user.role);
-  };
-
   renderNotificationsChain = (user: UserType) => {
     return user.notification_chain_verbal.default;
   };
@@ -299,7 +283,7 @@ class Users extends React.Component<UsersProps, UsersState> {
     const { userStore } = store;
 
     const isCurrent = userStore.currentUserPk === user.pk;
-    const action = isCurrent ? UserAction.UpdateOwnSettings : UserAction.UpdateOtherUsersSettings;
+    const action = isCurrent ? UserActions.UserSettingsWrite : UserActions.UserSettingsAdmin;
 
     return (
       <VerticalGroup justify="center">

@@ -192,6 +192,7 @@ class Organization(MaintainableObject):
     pricing_version = models.PositiveIntegerField(choices=PRICING_CHOICES, default=FREE_PUBLIC_BETA_PRICING)
 
     is_amixr_migration_started = models.BooleanField(default=False)
+    is_rbac_permissions_enabled = models.BooleanField(default=False)
 
     class Meta:
         unique_together = ("stack_id", "org_id")

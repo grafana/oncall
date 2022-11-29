@@ -14,9 +14,23 @@ logger.setLevel(logging.DEBUG)
 def sync_organization(organization):
     client = GrafanaAPIClient(api_url=organization.grafana_url, api_token=organization.api_token)
 
-    api_users, call_status = client.get_users()
+    rbac_is_enabled = client.is_rbac_enabled_for_organization()
+    organization.is_rbac_permissions_enabled = rbac_is_enabled
 
-    sync_instance_info(organization)
+    if organization.gcom_token:
+        gcom_client = GcomAPIClient(organization.gcom_token)
+        instance_info = gcom_client.get_instance_info(organization.stack_id)
+        if not instance_info or str(instance_info["orgId"]) != organization.org_id:
+            return
+
+        organization.stack_slug = instance_info["slug"]
+        organization.org_slug = instance_info["orgSlug"]
+        organization.org_title = instance_info["orgName"]
+        organization.region_slug = instance_info["regionSlug"]
+        organization.grafana_url = instance_info["url"]
+        organization.gcom_token_org_last_time_synced = timezone.now()
+
+    api_users = client.get_users(rbac_is_enabled)
 
     if api_users:
         organization.api_token_status = Organization.API_TOKEN_STATUS_OK
@@ -34,23 +48,9 @@ def sync_organization(organization):
             "last_time_synced",
             "api_token_status",
             "gcom_token_org_last_time_synced",
+            "is_rbac_permissions_enabled",
         ]
     )
-
-
-def sync_instance_info(organization):
-    if organization.gcom_token:
-        gcom_client = GcomAPIClient(organization.gcom_token)
-        instance_info, _ = gcom_client.get_instance_info(organization.stack_id)
-        if not instance_info or str(instance_info["orgId"]) != organization.org_id:
-            return
-
-        organization.stack_slug = instance_info["slug"]
-        organization.org_slug = instance_info["orgSlug"]
-        organization.org_title = instance_info["orgName"]
-        organization.region_slug = instance_info["regionSlug"]
-        organization.grafana_url = instance_info["url"]
-        organization.gcom_token_org_last_time_synced = timezone.now()
 
 
 def sync_users_and_teams(client, api_users, organization):

@@ -22,9 +22,9 @@ import { Schedule, ScheduleType, Shift } from 'models/schedule/schedule.types';
 import { Timezone } from 'models/timezone/timezone.types';
 import { pages } from 'pages';
 import { PageProps, WithStoreProps } from 'state/types';
-import { UserAction } from 'state/userAction';
 import { withMobXProviderContext } from 'state/withStore';
 import LocationHelper from 'utils/LocationHelper';
+import { UserActions } from 'utils/authorization';
 
 import { getStartOfWeek } from './Schedule.helpers';
 
@@ -106,7 +106,7 @@ class SchedulePage extends React.Component<SchedulePageProps, SchedulePageState>
     const schedule = scheduleStore.items[scheduleId];
 
     const disabled =
-      !store.isUserActionAllowed(UserAction.UpdateSchedules) ||
+      !store.isUserActionAllowed(UserActions.SchedulesWrite) ||
       schedule?.type !== ScheduleType.API ||
       shiftIdToShowRotationForm ||
       shiftIdToShowOverridesForm;

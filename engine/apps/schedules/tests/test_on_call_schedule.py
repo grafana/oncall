@@ -4,9 +4,9 @@ import pytest
 import pytz
 from django.utils import timezone
 
+from apps.api.permissions import LegacyAccessControlRole
 from apps.schedules.ical_utils import memoized_users_in_ical
 from apps.schedules.models import CustomOnCallShift, OnCallSchedule, OnCallScheduleCalendar, OnCallScheduleWeb
-from common.constants.role import Role
 
 
 @pytest.mark.django_db
@@ -18,7 +18,7 @@ def test_filter_events(make_organization, make_user_for_organization, make_sched
         name="test_web_schedule",
     )
     user = make_user_for_organization(organization)
-    viewer = make_user_for_organization(organization, role=Role.VIEWER)
+    viewer = make_user_for_organization(organization, role=LegacyAccessControlRole.VIEWER)
     now = timezone.now().replace(hour=0, minute=0, second=0, microsecond=0)
     start_date = now - timezone.timedelta(days=7)
 
@@ -190,7 +190,7 @@ def test_filter_events_include_empty(make_organization, make_user_for_organizati
         schedule_class=OnCallScheduleWeb,
         name="test_web_schedule",
     )
-    user = make_user_for_organization(organization, role=Role.VIEWER)
+    user = make_user_for_organization(organization, role=LegacyAccessControlRole.VIEWER)
     now = timezone.now().replace(hour=0, minute=0, second=0, microsecond=0)
     start_date = now - timezone.timedelta(days=7)
 

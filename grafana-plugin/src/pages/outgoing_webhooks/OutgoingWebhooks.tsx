@@ -21,9 +21,9 @@ import { ActionDTO } from 'models/action';
 import { OutgoingWebhook } from 'models/outgoing_webhook/outgoing_webhook.types';
 import { pages } from 'pages';
 import { PageProps, WithStoreProps } from 'state/types';
-import { UserAction } from 'state/userAction';
 import { withMobXProviderContext } from 'state/withStore';
 import LocationHelper from 'utils/LocationHelper';
+import { UserActions } from 'utils/authorization';
 
 import styles from './OutgoingWebhooks.module.css';
 
@@ -132,9 +132,9 @@ class OutgoingWebhooks extends React.Component<OutgoingWebhooksProps, OutgoingWe
                         <PluginLink
                           partial
                           query={{ id: 'new' }}
-                          disabled={!store.isUserActionAllowed(UserAction.UpdateCustomActions)}
+                          disabled={!store.isUserActionAllowed(UserActions.OutgoingWebhooksWrite)}
                         >
-                          <WithPermissionControl userAction={UserAction.UpdateCustomActions}>
+                          <WithPermissionControl userAction={UserActions.OutgoingWebhooksWrite}>
                             <Button variant="primary" icon="plus">
                               Create
                             </Button>
@@ -165,12 +165,12 @@ class OutgoingWebhooks extends React.Component<OutgoingWebhooksProps, OutgoingWe
   renderActionButtons = (record: ActionDTO) => {
     return (
       <HorizontalGroup justify="flex-end">
-        <WithPermissionControl key={'edit_action'} userAction={UserAction.UpdateCustomActions}>
+        <WithPermissionControl key={'edit_action'} userAction={UserActions.OutgoingWebhooksWrite}>
           <Button onClick={this.getEditClickHandler(record.id)} fill="text">
             Edit
           </Button>
         </WithPermissionControl>
-        <WithPermissionControl key={'delete_action'} userAction={UserAction.UpdateCustomActions}>
+        <WithPermissionControl key={'delete_action'} userAction={UserActions.OutgoingWebhooksWrite}>
           <WithConfirm>
             <Button onClick={this.getDeleteClickHandler(record.id)} fill="text" variant="destructive">
               Delete

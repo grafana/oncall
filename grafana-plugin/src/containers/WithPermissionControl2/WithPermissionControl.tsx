@@ -4,7 +4,7 @@ import { Tooltip } from '@grafana/ui';
 import { observer } from 'mobx-react';
 
 import { useStore } from 'state/useStore';
-import { UserAction } from 'state/userAction';
+import { UserAction } from 'utils/authorization';
 
 interface WithPermissionControlProps {
   userAction: UserAction;

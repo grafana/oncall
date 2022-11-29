@@ -4,12 +4,12 @@ from typing import Callable, Optional, Tuple
 
 from apps.alerts.constants import ActionSource
 from apps.alerts.models import AlertGroup
+from apps.api.permissions import RBACPermission, user_is_authorized
 from apps.telegram.models import TelegramToUserConnector
 from apps.telegram.renderers.keyboard import Action
 from apps.telegram.updates.update_handlers import UpdateHandler
 from apps.telegram.utils import CallbackQueryFactory
 from apps.user_management.models import User
-from common.constants.role import Role
 
 logger = logging.getLogger(__name__)
 
@@ -58,7 +58,8 @@ class ButtonPressHandler(UpdateHandler):
         if not user:
             return False
 
-        return user.organization == alert_group.channel.organization and user.role in [Role.ADMIN, Role.EDITOR]
+        has_permission = user_is_authorized(user, [RBACPermission.Permissions.CHATOPS_WRITE])
+        return user.organization == alert_group.channel.organization and has_permission
 
     @staticmethod
     def _get_action_context(data: str) -> ActionContext:

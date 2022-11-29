@@ -5,13 +5,13 @@ import { PluginPage } from 'PluginPage';
 import cn from 'classnames/bind';
 import { observer } from 'mobx-react';
 
-import { pages } from 'pages';
 import ChatOpsPage from 'pages/settings/tabs/ChatOps/ChatOps';
 import MainSettings from 'pages/settings/tabs/MainSettings/MainSettings';
 import { isTopNavbar } from 'plugin/GrafanaPluginRootPage.helpers';
 import { AppFeature } from 'state/features';
 import { RootBaseStore } from 'state/rootBaseStore';
 import { withMobXProviderContext } from 'state/withStore';
+import { UserActions } from 'utils/authorization';
 
 import { SettingsPageTab } from './SettingsPage.types';
 import CloudPage from './tabs/Cloud/CloudPage';
@@ -50,13 +50,10 @@ class SettingsPage extends React.Component<SettingsPageProps, SettingsPageState>
       this.setState({ activeTab: tab });
     };
 
-    const grafanaUser = window.grafanaBootData.user;
     const hasLiveSettings = store.hasFeature(AppFeature.LiveSettings);
     const hasCloudPage = store.hasFeature(AppFeature.CloudConnection);
-    const showCloudPage =
-      hasCloudPage && (pages['cloud'].role === 'Admin' ? pages['cloud'].role === grafanaUser.orgRole : true);
-    const showLiveSettings =
-      hasLiveSettings && (pages['cloud'].role === 'Admin' ? pages['cloud'].role === grafanaUser.orgRole : true);
+    const showCloudPage = hasCloudPage && store.isUserActionAllowed(UserActions.OtherSettingsWrite);
+    const showLiveSettings = hasLiveSettings && store.isUserActionAllowed(UserActions.OtherSettingsRead);
 
     if (isTopNavbar()) {
       return (

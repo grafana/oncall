@@ -3,7 +3,7 @@ from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
-from apps.api.permissions import MODIFY_ACTIONS, READ_ACTIONS, ActionPermission, AnyRole, IsAdmin
+from apps.api.permissions import RBACPermission
 from apps.api.serializers.integration_heartbeat import IntegrationHeartBeatSerializer
 from apps.auth_token.auth import PluginAuthentication
 from apps.heartbeat.models import IntegrationHeartBeat
@@ -20,10 +20,17 @@ class IntegrationHeartBeatView(
     viewsets.GenericViewSet,
 ):
     authentication_classes = (PluginAuthentication,)
-    permission_classes = (IsAuthenticated, ActionPermission)
-    action_permissions = {
-        IsAdmin: (*MODIFY_ACTIONS, "activate", "deactivate"),
-        AnyRole: (*READ_ACTIONS, "timeout_options"),
+    permission_classes = (IsAuthenticated, RBACPermission)
+    rbac_permissions = {
+        "metadata": [RBACPermission.Permissions.INTEGRATIONS_READ],
+        "list": [RBACPermission.Permissions.INTEGRATIONS_READ],
+        "retrieve": [RBACPermission.Permissions.INTEGRATIONS_READ],
+        "timeout_options": [RBACPermission.Permissions.INTEGRATIONS_READ],
+        "create": [RBACPermission.Permissions.INTEGRATIONS_WRITE],
+        "update": [RBACPermission.Permissions.INTEGRATIONS_WRITE],
+        "partial_update": [RBACPermission.Permissions.INTEGRATIONS_WRITE],
+        "activate": [RBACPermission.Permissions.INTEGRATIONS_WRITE],
+        "deactivate": [RBACPermission.Permissions.INTEGRATIONS_WRITE],
     }
 
     model = IntegrationHeartBeat

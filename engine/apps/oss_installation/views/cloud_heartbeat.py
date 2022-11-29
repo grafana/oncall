@@ -3,7 +3,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from apps.api.permissions import IsAdmin
+from apps.api.permissions import RBACPermission
 from apps.auth_token.auth import PluginAuthentication
 from apps.oss_installation.cloud_heartbeat import get_heartbeat_link, setup_heartbeat_integration
 from apps.oss_installation.models import CloudConnector, CloudHeartbeat
@@ -11,7 +11,10 @@ from apps.oss_installation.models import CloudConnector, CloudHeartbeat
 
 class CloudHeartbeatView(APIView):
     authentication_classes = (PluginAuthentication,)
-    permission_classes = (IsAuthenticated, IsAdmin)
+    permission_classes = (IsAuthenticated, RBACPermission)
+    rbac_permissions = {
+        "post": [RBACPermission.Permissions.OTHER_SETTINGS_WRITE],
+    }
 
     def post(self, request):
         connector = CloudConnector.objects.first()
