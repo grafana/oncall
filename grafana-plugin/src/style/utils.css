@@ -18,3 +18,7 @@
 .u-pull-left {
   margin-right: auto;
 }
+
+.u-break-word {
+  word-break: break-word;
+}

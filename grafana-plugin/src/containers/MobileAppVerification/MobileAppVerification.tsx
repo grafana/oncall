@@ -76,25 +76,27 @@ const MobileAppVerification = observer(({ userPk }: Props) => {
     content = <Text type="primary">{errorFetchingQRCode || errorDisconnectingMobileApp}</Text>;
   } else if (mobileAppIsCurrentlyConnected) {
     content = (
-      <VerticalGroup>
+      <VerticalGroup spacing="lg">
         <Text type="primary">Your mobile app is currently connected. Click below to disconnect.</Text>
         <DisconnectButton onClick={disconnectMobileApp} />
       </VerticalGroup>
     );
   } else if (QRCodeValue) {
     content = (
-      <VerticalGroup>
+      <VerticalGroup spacing="lg">
+        <Text type="primary">Sign In</Text>
+        <Text type="primary">Open Grafana IRM mobile application and scan this code to sync it with your account.</Text>
         <QRCode value={QRCodeValue} />
-        <Text type="primary">
-          Note: the QR code is only valid for one minute. If you have issues connecting your mobile app, try refreshing
-          this page to generate a new code.
+        <Text type="primary" className="u-break-word">
+          <strong>Note:</strong> the QR code is only valid for one minute. If you have issues connecting your mobile
+          app, try refreshing this page to generate a new code.
         </Text>
       </VerticalGroup>
     );
   }
 
   return (
-    <HorizontalGroup>
+    <HorizontalGroup align={'normal'}>
       <Block bordered withBackground>
         {content}
       </Block>
