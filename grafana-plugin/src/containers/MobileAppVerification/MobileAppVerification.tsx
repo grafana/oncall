@@ -35,7 +35,7 @@ const MobileAppVerification = observer(({ userPk }: Props) => {
 
   const [disconnectingMobileApp, setDisconnectingMobileApp] = useState<boolean>(false);
   const [errorDisconnectingMobileApp, setErrorDisconnectingMobileApp] = useState<string>(null);
-  const [userIntervalId, setUserIntervalId] = useState<NodeJS.Timeout>(undefined);
+  const [userTimeoutId, setUserTimeoutId] = useState<NodeJS.Timeout>(undefined);
 
   const fetchQRCode = useCallback(async () => {
     setFetchingQRCode(true);
@@ -84,8 +84,8 @@ const MobileAppVerification = observer(({ userPk }: Props) => {
   useEffect(() => {
     // clear on unmount
     return () => {
-      if (userIntervalId) {
-        clearInterval(userIntervalId);
+      if (userTimeoutId) {
+        clearTimeout(userTimeoutId);
       }
     };
   }, []);
@@ -145,12 +145,12 @@ const MobileAppVerification = observer(({ userPk }: Props) => {
   }
 
   async function pollUserProfile(): Promise<void> {
-    clearInterval(userIntervalId);
-    setUserIntervalId(undefined);
+    clearTimeout(userTimeoutId);
+    setUserTimeoutId(undefined);
 
     const user = await userStore.loadUser(userPk);
     if (!isUserConnected(user)) {
-      setUserIntervalId(setInterval(() => pollUserProfile(), INTERVAL_MS));
+      setUserTimeoutId(setTimeout(() => pollUserProfile(), INTERVAL_MS));
     } else {
       setMobileAppIsCurrentlyConnected(true);
     }
