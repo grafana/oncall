@@ -1,0 +1,35 @@
+.container {
+  display: flex;
+  flex-direction: row;
+
+  &__box {
+    flex-basis: 50%;
+  }
+
+  &__box:first-child {
+    margin-right: 8px;
+  }
+  &__box:last-child {
+    margin-left: 8px;
+  }
+}
+
+.icon {
+  margin-top: -6px;
+  margin-left: 4px;
+  fill: var(--green-6);
+}
+
+.disconnect__container {
+  position: relative;
+  display: flex;
+  justify-content: center;
+  width: 100%;
+}
+
+.disconnect__qrCode {
+  width: 240px;
+  height: auto;
+  filter: blur(6px);
+  opacity: 0.6;
+}

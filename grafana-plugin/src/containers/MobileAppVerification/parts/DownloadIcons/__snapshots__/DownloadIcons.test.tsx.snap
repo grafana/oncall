@@ -10,7 +10,7 @@ exports[`DownloadIcons it renders properly 1`] = `
       class="css-ztyofd-layoutChildrenWrapper"
     >
       <span
-        class="root text text--primary text--medium"
+        class="root text text--primary text--medium text--strong"
       >
         Download
       </span>

@@ -17,6 +17,7 @@ const useStore = useStoreOriginal as jest.Mock<ReturnType<typeof useStoreOrigina
 const mockUseStore = (rest?: any, connected = false) => {
   const store = {
     userStore: {
+      loadUser: jest.fn().mockReturnValue(undefined),
       currentUser: {
         messaging_backends: {
           MOBILE_APP: { connected },
@@ -81,7 +82,6 @@ describe('MobileAppVerification', () => {
     });
 
     const component = render(<MobileAppVerification userPk={USER_PK} />);
-    await screen.findByText(/.*the QR code is only valid for one minute.*/);
 
     expect(component.container).toMatchSnapshot();
 
@@ -107,8 +107,6 @@ describe('MobileAppVerification', () => {
     await user.click(button);
     // click the confirm button within the modal, which actually triggers the callback
     await user.click(screen.getByText('Remove'));
-
-    await screen.findByText(/.*the QR code is only valid for one minute.*/);
 
     expect(component.container).toMatchSnapshot();
 
@@ -163,7 +161,7 @@ describe('MobileAppVerification', () => {
     const component = render(<MobileAppVerification userPk={USER_PK} />);
 
     const user = userEvent.setup();
-    const button = await screen.findByRole('button');
+    const button = await screen.findByTestId('test__disconnect');
 
     // click the disconnect button, which opens the modal
     await user.click(button);
