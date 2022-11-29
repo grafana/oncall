@@ -84,9 +84,13 @@ const MobileAppVerification = observer(({ userPk }: Props) => {
   } else if (QRCodeValue) {
     content = (
       <VerticalGroup spacing="lg">
-        <Text type="primary">Sign In</Text>
+        <Text type="primary" strong>
+          Sign In
+        </Text>
         <Text type="primary">Open Grafana IRM mobile application and scan this code to sync it with your account.</Text>
-        <QRCode value={QRCodeValue} />
+        <div className="u-width-100 u-flex u-flex-center">
+          <QRCode value={QRCodeValue} />
+        </div>
         <Text type="primary" className="u-break-word">
           <strong>Note:</strong> the QR code is only valid for one minute. If you have issues connecting your mobile
           app, try refreshing this page to generate a new code.
