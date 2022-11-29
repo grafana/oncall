@@ -22,6 +22,12 @@ declare module 'grafana/app/core/core' {
 
   // https://github.com/grafana/grafana/blob/main/public/app/core/services/context_srv.ts#L59
   export const contextSrv: {
-    hasRole(role: OrgRole): boolean;
+    user: {
+      orgRole: OrgRole | '';
+      permissions?: Record<string, boolean>;
+    };
+
+    hasAccess(action: string, fallBack: boolean): boolean;
+    accessControlEnabled(): boolean;
   };
 }

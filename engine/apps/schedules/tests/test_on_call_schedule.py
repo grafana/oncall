@@ -4,9 +4,9 @@ import pytest
 import pytz
 from django.utils import timezone
 
+from apps.api.permissions import LegacyAccessControlRole
 from apps.schedules.ical_utils import memoized_users_in_ical
 from apps.schedules.models import CustomOnCallShift, OnCallSchedule, OnCallScheduleCalendar, OnCallScheduleWeb
-from common.constants.role import Role
 
 
 @pytest.mark.django_db
@@ -18,7 +18,7 @@ def test_filter_events(make_organization, make_user_for_organization, make_sched
         name="test_web_schedule",
     )
     user = make_user_for_organization(organization)
-    viewer = make_user_for_organization(organization, role=Role.VIEWER)
+    viewer = make_user_for_organization(organization, role=LegacyAccessControlRole.VIEWER)
     now = timezone.now().replace(hour=0, minute=0, second=0, microsecond=0)
     start_date = now - timezone.timedelta(days=7)
 
@@ -190,7 +190,7 @@ def test_filter_events_include_empty(make_organization, make_user_for_organizati
         schedule_class=OnCallScheduleWeb,
         name="test_web_schedule",
     )
-    user = make_user_for_organization(organization, role=Role.VIEWER)
+    user = make_user_for_organization(organization, role=LegacyAccessControlRole.VIEWER)
     now = timezone.now().replace(hour=0, minute=0, second=0, microsecond=0)
     start_date = now - timezone.timedelta(days=7)
 
@@ -924,3 +924,37 @@ def test_schedule_related_users(make_organization, make_user_for_organization, m
     schedule.refresh_from_db()
     users = schedule.related_users()
     assert users == set(u.public_primary_key for u in [user_a, user_d, user_e])
+
+
+@pytest.mark.django_db(transaction=True)
+def test_filter_events_none_cache_unchanged(
+    make_organization, make_user_for_organization, make_schedule, make_on_call_shift
+):
+    organization = make_organization()
+    user = make_user_for_organization(organization)
+    schedule = make_schedule(
+        organization,
+        schedule_class=OnCallScheduleWeb,
+        name="test_web_schedule",
+    )
+    start_date = timezone.now().replace(hour=0, minute=0, second=0, microsecond=0)
+
+    # add shift
+    data = {
+        "start": start_date + timezone.timedelta(hours=36),
+        "rotation_start": start_date + timezone.timedelta(hours=36),
+        "duration": timezone.timedelta(hours=2),
+        "frequency": CustomOnCallShift.FREQUENCY_DAILY,
+        "schedule": schedule,
+    }
+    on_call_shift = make_on_call_shift(
+        organization=organization, shift_type=CustomOnCallShift.TYPE_ROLLING_USERS_EVENT, **data
+    )
+    on_call_shift.add_rolling_users([[user]])
+
+    # schedule is removed from db
+    schedule.delete()
+
+    events = schedule.filter_events("UTC", start_date, days=5, filter_by=OnCallSchedule.TYPE_ICAL_PRIMARY)
+    expected = []
+    assert events == expected

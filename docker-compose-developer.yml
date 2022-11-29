@@ -13,6 +13,9 @@ x-oncall-volumes: &oncall-volumes
   # https://stackoverflow.com/a/60456034
   - ${ENTERPRISE_ENGINE:-/dev/null}:/etc/app/extensions/engine_enterprise
   - ${SQLITE_DB_FILE:-/dev/null}:/var/lib/oncall/oncall.db
+  # this is mounted for testing purposes. Some of the authorization tests
+  # reference this file
+  - ./grafana-plugin/src/plugin.json:/etc/grafana-plugin/src/plugin.json
 
 x-env-files: &oncall-env-files
   - ./dev/.env.dev

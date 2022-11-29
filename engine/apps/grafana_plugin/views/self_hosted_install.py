@@ -43,11 +43,14 @@ class SelfHostedInstallView(GrafanaHeadersMixin, APIView):
             return Response(data=provisioning_info, status=status.HTTP_400_BAD_REQUEST)
 
         organization = Organization.objects.filter(stack_id=stack_id, org_id=org_id).first()
+        rbac_is_enabled = grafana_api_client.is_rbac_enabled_for_organization()
+
         if organization:
             organization.revoke_plugin()
             organization.grafana_url = grafana_url
             organization.api_token = grafana_api_token
-            organization.save(update_fields=["grafana_url", "api_token"])
+            organization.is_rbac_permissions_enabled = rbac_is_enabled
+            organization.save(update_fields=["grafana_url", "api_token", "is_rbac_permissions_enabled"])
         else:
             organization = Organization.objects.create(
                 stack_id=stack_id,
@@ -58,6 +61,7 @@ class SelfHostedInstallView(GrafanaHeadersMixin, APIView):
                 region_slug=settings.SELF_HOSTED_SETTINGS["REGION_SLUG"],
                 grafana_url=grafana_url,
                 api_token=grafana_api_token,
+                is_rbac_permissions_enabled=rbac_is_enabled,
             )
 
         sync_organization(organization)

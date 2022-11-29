@@ -34,6 +34,7 @@
       "name": "Alert Groups",
       "path": "/a/grafana-oncall-app/?page=incidents",
       "role": "Viewer",
+      "action": "grafana-oncall-app.alert-groups:read",
       "defaultNav": true,
       "addToNav": true
     },
@@ -42,6 +43,7 @@
       "name": "Users",
       "path": "/a/grafana-oncall-app/?page=users",
       "role": "Viewer",
+      "action": "grafana-oncall-app.user-settings:read",
       "addToNav": true
     },
     {
@@ -49,6 +51,7 @@
       "name": "Integrations",
       "path": "/a/grafana-oncall-app/?page=integrations",
       "role": "Viewer",
+      "action": "grafana-oncall-app.integrations:read",
       "addToNav": true
     },
     {
@@ -56,6 +59,7 @@
       "name": "Escalation Chains",
       "path": "/a/grafana-oncall-app/?page=escalations",
       "role": "Viewer",
+      "action": "grafana-oncall-app.escalation-chains:read",
       "addToNav": true
     },
     {
@@ -63,6 +67,7 @@
       "name": "Schedules",
       "path": "/a/grafana-oncall-app/?page=schedules",
       "role": "Viewer",
+      "action": "grafana-oncall-app.schedules:read",
       "addToNav": true
     },
     {
@@ -70,6 +75,7 @@
       "name": "Outgoing Webhooks",
       "path": "/a/grafana-oncall-app/?page=outgoing_webhooks",
       "role": "Viewer",
+      "action": "grafana-oncall-app.outgoing-webhooks:read",
       "addToNav": true
     },
     {
@@ -77,6 +83,7 @@
       "name": "Maintenance",
       "path": "/a/grafana-oncall-app/?page=maintenance",
       "role": "Viewer",
+      "action": "grafana-oncall-app.maintenance:read",
       "addToNav": true
     },
     {
@@ -84,6 +91,7 @@
       "name": "Settings",
       "path": "/a/grafana-oncall-app/?page=settings",
       "role": "Viewer",
+      "action": "grafana-oncall-app.other-settings:read",
       "addToNav": true
     }
   ],
@@ -173,6 +181,418 @@
           "content": "{{ .SecureJsonData.onCallApiToken }}"
         }
       ]
+    }
+  ],
+  "roles": [
+    {
+      "role": {
+        "name": "Admin",
+        "description": "Read/write access to everything in OnCall",
+        "permissions": [
+          { "action": "plugins.app:access", "scope": "plugins.app:id:grafana-oncall-app" },
+
+          { "action": "grafana-oncall-app.alert-groups:read" },
+          { "action": "grafana-oncall-app.alert-groups:write" },
+
+          { "action": "grafana-oncall-app.integrations:read" },
+          { "action": "grafana-oncall-app.integrations:write" },
+          { "action": "grafana-oncall-app.integrations:test" },
+
+          { "action": "grafana-oncall-app.escalation-chains:read" },
+          { "action": "grafana-oncall-app.escalation-chains:write" },
+
+          { "action": "grafana-oncall-app.schedules:read" },
+          { "action": "grafana-oncall-app.schedules:write" },
+          { "action": "grafana-oncall-app.schedules:export" },
+
+          { "action": "grafana-oncall-app.chatops:read" },
+          { "action": "grafana-oncall-app.chatops:write" },
+          { "action": "grafana-oncall-app.chatops:update-settings" },
+
+          { "action": "grafana-oncall-app.outgoing-webhooks:read" },
+          { "action": "grafana-oncall-app.outgoing-webhooks:write" },
+
+          { "action": "grafana-oncall-app.maintenance:read" },
+          { "action": "grafana-oncall-app.maintenance:write" },
+
+          { "action": "grafana-oncall-app.api-keys:read" },
+          { "action": "grafana-oncall-app.api-keys:write" },
+
+          { "action": "grafana-oncall-app.notifications:read" },
+
+          { "action": "grafana-oncall-app.notification-settings:read" },
+          { "action": "grafana-oncall-app.notification-settings:write" },
+
+          { "action": "grafana-oncall-app.user-settings:read" },
+          { "action": "grafana-oncall-app.user-settings:write" },
+          { "action": "grafana-oncall-app.user-settings:admin" },
+
+          { "action": "grafana-oncall-app.other-settings:read" },
+          { "action": "grafana-oncall-app.other-settings:write" }
+        ],
+        "hidden": true
+      },
+      "grants": ["Grafana Admin", "Admin"]
+    },
+    {
+      "role": {
+        "name": "Editor",
+        "description": "Similar to the Admin role, minus the abilities to: create Integrations, create Escalation Chains, create Schedules, create Outgoing Webhooks, update ChatOps settings, update other user's settings, and update general OnCall setings.",
+        "permissions": [
+          { "action": "plugins.app:access", "scope": "plugins.app:id:grafana-oncall-app" },
+
+          { "action": "grafana-oncall-app.alert-groups:read" },
+          { "action": "grafana-oncall-app.alert-groups:write" },
+
+          { "action": "grafana-oncall-app.integrations:read" },
+          { "action": "grafana-oncall-app.integrations:test" },
+
+          { "action": "grafana-oncall-app.escalation-chains:read" },
+
+          { "action": "grafana-oncall-app.schedules:read" },
+          { "action": "grafana-oncall-app.schedules:export" },
+
+          { "action": "grafana-oncall-app.chatops:read" },
+          { "action": "grafana-oncall-app.chatops:write" },
+
+          { "action": "grafana-oncall-app.outgoing-webhooks:read" },
+
+          { "action": "grafana-oncall-app.maintenance:read" },
+          { "action": "grafana-oncall-app.maintenance:write" },
+
+          { "action": "grafana-oncall-app.api-keys:read" },
+          { "action": "grafana-oncall-app.api-keys:write" },
+
+          { "action": "grafana-oncall-app.notifications:read" },
+
+          { "action": "grafana-oncall-app.notification-settings:read" },
+          { "action": "grafana-oncall-app.notification-settings:write" },
+
+          { "action": "grafana-oncall-app.user-settings:read" },
+          { "action": "grafana-oncall-app.user-settings:write" },
+
+          { "action": "grafana-oncall-app.other-settings:read" }
+        ]
+      },
+      "grants": ["Editor"]
+    },
+    {
+      "role": {
+        "name": "Reader",
+        "description": "Read-only access to everything in OnCall",
+        "permissions": [
+          { "action": "plugins.app:access", "scope": "plugins.app:id:grafana-oncall-app" },
+
+          { "action": "grafana-oncall-app.alert-groups:read" },
+          { "action": "grafana-oncall-app.integrations:read" },
+          { "action": "grafana-oncall-app.escalation-chains:read" },
+          { "action": "grafana-oncall-app.schedules:read" },
+          { "action": "grafana-oncall-app.chatops:read" },
+          { "action": "grafana-oncall-app.outgoing-webhooks:read" },
+          { "action": "grafana-oncall-app.maintenance:read" },
+          { "action": "grafana-oncall-app.api-keys:read" },
+          { "action": "grafana-oncall-app.notification-settings:read" },
+          { "action": "grafana-oncall-app.user-settings:read" },
+          { "action": "grafana-oncall-app.other-settings:read" }
+        ]
+      },
+      "grants": ["Viewer"]
+    },
+    {
+      "role": {
+        "name": "OnCaller",
+        "description": "Grants read access to everything in OnCall. In addition, grants edit access to Alert Groups and Schedules",
+        "permissions": [
+          { "action": "plugins.app:access", "scope": "plugins.app:id:grafana-oncall-app" },
+
+          { "action": "grafana-oncall-app.alert-groups:read" },
+          { "action": "grafana-oncall-app.alert-groups:write" },
+
+          { "action": "grafana-oncall-app.integrations:read" },
+          { "action": "grafana-oncall-app.escalation-chains:read" },
+
+          { "action": "grafana-oncall-app.schedules:read" },
+          { "action": "grafana-oncall-app.schedules:write" },
+
+          { "action": "grafana-oncall-app.chatops:read" },
+          { "action": "grafana-oncall-app.outgoing-webhooks:read" },
+          { "action": "grafana-oncall-app.maintenance:read" },
+          { "action": "grafana-oncall-app.api-keys:read" },
+          { "action": "grafana-oncall-app.notification-settings:read" },
+          { "action": "grafana-oncall-app.user-settings:read" },
+          { "action": "grafana-oncall-app.other-settings:read" }
+        ]
+      },
+      "grants": []
+    },
+    {
+      "role": {
+        "name": "Alert Groups Reader",
+        "description": "Read-only access to OnCall Alert Groups",
+        "permissions": [
+          { "action": "plugins.app:access", "scope": "plugins.app:id:grafana-oncall-app" },
+          { "action": "grafana-oncall-app.alert-groups:read" }
+        ]
+      },
+      "grants": []
+    },
+    {
+      "role": {
+        "name": "Alert Groups Editor",
+        "description": "Read/write access to OnCall Alert Groups",
+        "permissions": [
+          { "action": "plugins.app:access", "scope": "plugins.app:id:grafana-oncall-app" },
+          { "action": "grafana-oncall-app.alert-groups:read" },
+          { "action": "grafana-oncall-app.alert-groups:write" }
+        ]
+      },
+      "grants": []
+    },
+    {
+      "role": {
+        "name": "Integrations Reader",
+        "description": "Read-only access to OnCall Integrations",
+        "permissions": [
+          { "action": "plugins.app:access", "scope": "plugins.app:id:grafana-oncall-app" },
+          { "action": "grafana-oncall-app.integrations:read" }
+        ]
+      },
+      "grants": []
+    },
+    {
+      "role": {
+        "name": "Integrations Editor",
+        "description": "Read/write access to OnCall Integrations",
+        "permissions": [
+          { "action": "plugins.app:access", "scope": "plugins.app:id:grafana-oncall-app" },
+          { "action": "grafana-oncall-app.integrations:read" },
+          { "action": "grafana-oncall-app.integrations:write" },
+          { "action": "grafana-oncall-app.integrations:test" }
+        ]
+      },
+      "grants": []
+    },
+    {
+      "role": {
+        "name": "Escalation Chains Reader",
+        "description": "Read-only access to OnCall Escalation Chains",
+        "permissions": [
+          { "action": "plugins.app:access", "scope": "plugins.app:id:grafana-oncall-app" },
+          { "action": "grafana-oncall-app.escalation-chains:read" }
+        ]
+      },
+      "grants": []
+    },
+    {
+      "role": {
+        "name": "Escalation Chains Editor",
+        "description": "Read/write access to OnCall Escalation Chains",
+        "permissions": [
+          { "action": "plugins.app:access", "scope": "plugins.app:id:grafana-oncall-app" },
+          { "action": "grafana-oncall-app.escalation-chains:read" },
+          { "action": "grafana-oncall-app.escalation-chains:write" }
+        ]
+      },
+      "grants": []
+    },
+    {
+      "role": {
+        "name": "Schedules Reader",
+        "description": "Read-only access to OnCall Schedules",
+        "permissions": [
+          { "action": "plugins.app:access", "scope": "plugins.app:id:grafana-oncall-app" },
+          { "action": "grafana-oncall-app.schedules:read" }
+        ]
+      },
+      "grants": []
+    },
+    {
+      "role": {
+        "name": "Schedules Editor",
+        "description": "Read/write access to OnCall Schedules",
+        "permissions": [
+          { "action": "plugins.app:access", "scope": "plugins.app:id:grafana-oncall-app" },
+          { "action": "grafana-oncall-app.schedules:read" },
+          { "action": "grafana-oncall-app.schedules:write" },
+          { "action": "grafana-oncall-app.schedules:export" }
+        ]
+      },
+      "grants": []
+    },
+    {
+      "role": {
+        "name": "ChatOps Reader",
+        "description": "Read-only access to OnCall ChatOps",
+        "permissions": [
+          { "action": "plugins.app:access", "scope": "plugins.app:id:grafana-oncall-app" },
+          { "action": "grafana-oncall-app.chatops:read" }
+        ]
+      },
+      "grants": []
+    },
+    {
+      "role": {
+        "name": "ChatOps Editor",
+        "description": "Read/write access to OnCall ChatOps",
+        "permissions": [
+          { "action": "plugins.app:access", "scope": "plugins.app:id:grafana-oncall-app" },
+          { "action": "grafana-oncall-app.chatops:read" },
+          { "action": "grafana-oncall-app.chatops:write" },
+          { "action": "grafana-oncall-app.chatops:update-settings" }
+        ]
+      },
+      "grants": []
+    },
+    {
+      "role": {
+        "name": "Outgoing Webhooks Reader",
+        "description": "Read-only access to OnCall Outgoing Webhooks",
+        "permissions": [
+          { "action": "plugins.app:access", "scope": "plugins.app:id:grafana-oncall-app" },
+          { "action": "grafana-oncall-app.outgoing-webhooks:read" }
+        ]
+      },
+      "grants": []
+    },
+    {
+      "role": {
+        "name": "Outgoing Webhooks Editor",
+        "description": "Read/write access to OnCall Outgoing Webhooks",
+        "permissions": [
+          { "action": "plugins.app:access", "scope": "plugins.app:id:grafana-oncall-app" },
+          { "action": "grafana-oncall-app.outgoing-webhooks:read" },
+          { "action": "grafana-oncall-app.outgoing-webhooks:write" }
+        ]
+      },
+      "grants": []
+    },
+    {
+      "role": {
+        "name": "Maintenance Reader",
+        "description": "Read-only access to OnCall Maintenance",
+        "permissions": [
+          { "action": "plugins.app:access", "scope": "plugins.app:id:grafana-oncall-app" },
+          { "action": "grafana-oncall-app.maintenance:read" }
+        ]
+      },
+      "grants": []
+    },
+    {
+      "role": {
+        "name": "Maintenance Editor",
+        "description": "Read/write access to OnCall Maintenance",
+        "permissions": [
+          { "action": "plugins.app:access", "scope": "plugins.app:id:grafana-oncall-app" },
+          { "action": "grafana-oncall-app.maintenance:read" },
+          { "action": "grafana-oncall-app.maintenance:write" }
+        ]
+      },
+      "grants": []
+    },
+    {
+      "role": {
+        "name": "API Keys Reader",
+        "description": "Read-only access to OnCall API Keys",
+        "permissions": [
+          { "action": "plugins.app:access", "scope": "plugins.app:id:grafana-oncall-app" },
+          { "action": "grafana-oncall-app.api-keys:read" }
+        ]
+      },
+      "grants": []
+    },
+    {
+      "role": {
+        "name": "API Keys Editor",
+        "description": "Read/write access to OnCall API Keys. Also grants access to be able to consume the API.",
+        "permissions": [
+          { "action": "plugins.app:access", "scope": "plugins.app:id:grafana-oncall-app" },
+          { "action": "grafana-oncall-app.api-keys:read" },
+          { "action": "grafana-oncall-app.api-keys:write" }
+        ]
+      },
+      "grants": []
+    },
+    {
+      "role": {
+        "name": "Notification Settings Reader",
+        "description": "Read-only access to OnCall Notification Settings",
+        "permissions": [
+          { "action": "plugins.app:access", "scope": "plugins.app:id:grafana-oncall-app" },
+          { "action": "grafana-oncall-app.notification-settings:read" }
+        ]
+      },
+      "grants": []
+    },
+    {
+      "role": {
+        "name": "Notification Settings Editor",
+        "description": "Read/write access to OnCall Notification Settings",
+        "permissions": [
+          { "action": "plugins.app:access", "scope": "plugins.app:id:grafana-oncall-app" },
+          { "action": "grafana-oncall-app.notification-settings:read" },
+          { "action": "grafana-oncall-app.notification-settings:write" }
+        ]
+      },
+      "grants": []
+    },
+    {
+      "role": {
+        "name": "User Settings Reader",
+        "description": "Read-only access to OnCall User Settings",
+        "permissions": [
+          { "action": "plugins.app:access", "scope": "plugins.app:id:grafana-oncall-app" },
+          { "action": "grafana-oncall-app.user-settings:read" }
+        ]
+      },
+      "grants": []
+    },
+    {
+      "role": {
+        "name": "User Settings Editor",
+        "description": "Read/write access to own OnCall User Settings",
+        "permissions": [
+          { "action": "plugins.app:access", "scope": "plugins.app:id:grafana-oncall-app" },
+          { "action": "grafana-oncall-app.user-settings:read" },
+          { "action": "grafana-oncall-app.user-settings:write" }
+        ]
+      },
+      "grants": []
+    },
+    {
+      "role": {
+        "name": "User Settings Admin",
+        "description": "Read/write access to your own, plus other's OnCall User Settings",
+        "permissions": [
+          { "action": "plugins.app:access", "scope": "plugins.app:id:grafana-oncall-app" },
+          { "action": "grafana-oncall-app.user-settings:read" },
+          { "action": "grafana-oncall-app.user-settings:write" },
+          { "action": "grafana-oncall-app.user-settings:admin" }
+        ]
+      },
+      "grants": []
+    },
+    {
+      "role": {
+        "name": "Settings Reader",
+        "description": "Read-only access to OnCall Settings",
+        "permissions": [
+          { "action": "plugins.app:access", "scope": "plugins.app:id:grafana-oncall-app" },
+          { "action": "grafana-oncall-app.other-settings:read" }
+        ]
+      },
+      "grants": []
+    },
+    {
+      "role": {
+        "name": "Settings Editor",
+        "description": "Read/write access to OnCall Settings",
+        "permissions": [
+          { "action": "plugins.app:access", "scope": "plugins.app:id:grafana-oncall-app" },
+          { "action": "grafana-oncall-app.other-settings:read" },
+          { "action": "grafana-oncall-app.other-settings:write" }
+        ]
+      },
+      "grants": []
     }
   ],
   "dependencies": {

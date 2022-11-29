@@ -14,7 +14,7 @@ import { NotificationPolicyType } from 'models/notification_policy';
 import { User as UserType } from 'models/user/user.types';
 import { AppFeature } from 'state/features';
 import { useStore } from 'state/useStore';
-import { UserAction } from 'state/userAction';
+import { UserActions } from 'utils/authorization';
 
 import { getColor } from './PersonalNotificationSettings.helpers';
 import img from './img/default-step.png';
@@ -105,7 +105,7 @@ const PersonalNotificationSettings = observer((props: PersonalNotificationSettin
 
   const user = userStore.items[userPk];
 
-  const userAction = isCurrent ? UserAction.UpdateOwnSettings : UserAction.UpdateNotificationPolicies;
+  const userAction = isCurrent ? UserActions.UserSettingsWrite : UserActions.NotificationSettingsWrite;
   const getPhoneStatus = () => {
     if (store.hasFeature(AppFeature.CloudNotifications)) {
       return user.cloud_connection_status;

@@ -99,6 +99,7 @@ def test_if_organization_exists_it_is_updated(
 
     mocked_provision_plugin.return_value = provision_plugin_response
     mocked_grafana_api_client.return_value.check_token.return_value = (None, {"status_code": status.HTTP_200_OK})
+    mocked_grafana_api_client.return_value.is_rbac_enabled_for_organization.return_value = True
 
     client = APIClient()
     url = reverse("grafana-plugin:self-hosted-install")
@@ -106,6 +107,8 @@ def test_if_organization_exists_it_is_updated(
 
     assert mocked_grafana_api_client.called_once_with(api_url=GRAFANA_API_URL, api_token=GRAFANA_TOKEN)
     assert mocked_grafana_api_client.return_value.check_token.called_once_with()
+    assert mocked_grafana_api_client.return_value.is_rbac_enabled_for_organization.called_once_with()
+
     assert mocked_sync_organization.called_once_with(organization)
     assert mocked_provision_plugin.called_once_with()
     assert mocked_revoke_plugin.called_once_with()
@@ -117,6 +120,7 @@ def test_if_organization_exists_it_is_updated(
 
     assert organization.grafana_url == GRAFANA_API_URL
     assert organization.api_token == GRAFANA_TOKEN
+    assert organization.is_rbac_permissions_enabled is True
 
 
 @override_settings(SELF_HOSTED_SETTINGS=SELF_HOSTED_SETTINGS)
@@ -136,6 +140,7 @@ def test_if_organization_does_not_exist_it_is_created(
 
     mocked_provision_plugin.return_value = provision_plugin_response
     mocked_grafana_api_client.return_value.check_token.return_value = (None, {"status_code": status.HTTP_200_OK})
+    mocked_grafana_api_client.return_value.is_rbac_enabled_for_organization.return_value = True
 
     client = APIClient()
     url = reverse("grafana-plugin:self-hosted-install")
@@ -146,6 +151,8 @@ def test_if_organization_does_not_exist_it_is_created(
 
     assert mocked_grafana_api_client.called_once_with(api_url=GRAFANA_API_URL, api_token=GRAFANA_TOKEN)
     assert mocked_grafana_api_client.return_value.check_token.called_once_with()
+    assert mocked_grafana_api_client.return_value.is_rbac_enabled_for_organization.called_once_with()
+
     assert mocked_sync_organization.called_once_with(organization)
     assert mocked_provision_plugin.called_once_with()
     assert not mocked_revoke_plugin.called
@@ -160,3 +167,4 @@ def test_if_organization_does_not_exist_it_is_created(
     assert organization.region_slug == REGION_SLUG
     assert organization.grafana_url == GRAFANA_API_URL
     assert organization.api_token == GRAFANA_TOKEN
+    assert organization.is_rbac_permissions_enabled is True

@@ -8,6 +8,7 @@ from django.apps import apps
 from django.conf import settings
 from django.core.validators import MinLengthValidator
 from django.db import models
+from django.db.utils import DatabaseError
 from django.utils import timezone
 from django.utils.functional import cached_property
 from icalendar.cal import Calendar
@@ -637,7 +638,11 @@ class OnCallScheduleWeb(OnCallSchedule):
         """Return cached ical file with iCal events from custom on-call shifts."""
         if self.cached_ical_file_primary is None:
             self.cached_ical_file_primary = self._generate_ical_file_primary()
-            self.save(update_fields=["cached_ical_file_primary"])
+            try:
+                self.save(update_fields=["cached_ical_file_primary"])
+            except DatabaseError:
+                # schedule may have been deleted from db
+                return
         return self.cached_ical_file_primary
 
     def _refresh_primary_ical_file(self):
@@ -650,7 +655,11 @@ class OnCallScheduleWeb(OnCallSchedule):
         """Return cached ical file with iCal events from custom on-call overrides shifts."""
         if self.cached_ical_file_overrides is None:
             self.cached_ical_file_overrides = self._generate_ical_file_overrides()
-            self.save(update_fields=["cached_ical_file_overrides"])
+            try:
+                self.save(update_fields=["cached_ical_file_overrides"])
+            except DatabaseError:
+                # schedule may have been deleted from db
+                return
         return self.cached_ical_file_overrides
 
     def _refresh_overrides_ical_file(self):

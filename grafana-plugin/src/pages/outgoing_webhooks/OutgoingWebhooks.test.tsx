@@ -35,8 +35,12 @@ jest.mock('@grafana/runtime', () => ({
 jest.mock('state/useStore', () => ({
   useStore: () => ({
     outgoingWebhookStore: outgoingWebhookStore(),
-    isUserActionAllowed: jest.fn().mockReturnValue(true),
   }),
+}));
+
+jest.mock('utils/authorization', () => ({
+  ...jest.requireActual('utils/authorization'),
+  isUserActionAllowed: jest.fn().mockReturnValue(true),
 }));
 
 jest.mock('@grafana/runtime', () => ({
@@ -45,7 +49,6 @@ jest.mock('@grafana/runtime', () => ({
 
 describe('OutgoingWebhooks', () => {
   const storeMock = {
-    isUserActionAllowed: jest.fn().mockReturnValue(true),
     outgoingWebhookStore: outgoingWebhookStore(),
   };
 

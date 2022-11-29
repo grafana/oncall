@@ -6,7 +6,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet
 
-from apps.api.permissions import MODIFY_ACTIONS, READ_ACTIONS, ActionPermission, AnyRole, IsAdmin
+from apps.api.permissions import RBACPermission
 from apps.api.serializers.on_call_shifts import OnCallShiftSerializer, OnCallShiftUpdateSerializer
 from apps.auth_token.auth import PluginAuthentication
 from apps.schedules.models import CustomOnCallShift
@@ -18,11 +18,20 @@ from common.insight_log import EntityEvent, write_resource_insight_log
 
 class OnCallShiftView(PublicPrimaryKeyMixin, UpdateSerializerMixin, ModelViewSet):
     authentication_classes = (PluginAuthentication,)
-    permission_classes = (IsAuthenticated, ActionPermission)
+    permission_classes = (IsAuthenticated, RBACPermission)
 
-    action_permissions = {
-        IsAdmin: (*MODIFY_ACTIONS, "preview"),
-        AnyRole: (*READ_ACTIONS, "details", "frequency_options", "days_options"),
+    rbac_permissions = {
+        "metadata": [RBACPermission.Permissions.SCHEDULES_READ],
+        "list": [RBACPermission.Permissions.SCHEDULES_READ],
+        "retrieve": [RBACPermission.Permissions.SCHEDULES_READ],
+        "details": [RBACPermission.Permissions.SCHEDULES_READ],
+        "frequency_options": [RBACPermission.Permissions.SCHEDULES_READ],
+        "days_options": [RBACPermission.Permissions.SCHEDULES_READ],
+        "create": [RBACPermission.Permissions.SCHEDULES_WRITE],
+        "update": [RBACPermission.Permissions.SCHEDULES_WRITE],
+        "partial_update": [RBACPermission.Permissions.SCHEDULES_WRITE],
+        "destroy": [RBACPermission.Permissions.SCHEDULES_WRITE],
+        "preview": [RBACPermission.Permissions.SCHEDULES_WRITE],
     }
 
     model = CustomOnCallShift

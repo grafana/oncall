@@ -15,8 +15,8 @@ import { getOverrideColor, getOverridesFromStore } from 'models/schedule/schedul
 import { Schedule, ScheduleType, Shift, ShiftEvents } from 'models/schedule/schedule.types';
 import { Timezone } from 'models/timezone/timezone.types';
 import { WithStoreProps } from 'state/types';
-import { UserAction } from 'state/userAction';
 import { withMobXProviderContext } from 'state/withStore';
+import { UserActions } from 'utils/authorization';
 
 import { DEFAULT_TRANSITION_TIMEOUT } from './Rotations.config';
 import { findColor } from './Rotations.helpers';
@@ -94,7 +94,7 @@ class ScheduleOverrides extends Component<ScheduleOverridesProps, ScheduleOverri
                   </div>
                 </Tooltip>
               ) : (
-                <WithPermissionControl userAction={UserAction.UpdateSchedules}>
+                <WithPermissionControl userAction={UserActions.SchedulesWrite}>
                   <Button disabled={disabled} icon="plus" onClick={this.handleAddOverride} variant="secondary">
                     Add override
                   </Button>
