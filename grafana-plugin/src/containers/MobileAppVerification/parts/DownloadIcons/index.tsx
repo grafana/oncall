@@ -14,7 +14,9 @@ const cx = cn.bind(styles);
 
 const DownloadIcons: FC = () => (
   <VerticalGroup spacing="lg">
-    <Text type="primary">Download</Text>
+    <Text type="primary" strong>
+      Download
+    </Text>
     <Text type="primary">The Grafana IRM app is available on both the App Store and Google Play Store.</Text>
     <VerticalGroup>
       <Block hover fullWidth withBackground bordered className={cx('icon-block')}>
