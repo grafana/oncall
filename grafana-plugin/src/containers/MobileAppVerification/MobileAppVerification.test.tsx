@@ -49,7 +49,7 @@ describe('MobileAppVerification', () => {
     const component = render(<MobileAppVerification userPk={USER_PK} />);
     expect(component.container).toMatchSnapshot();
 
-    waitFor(() => {
+    await waitFor(() => {
       expect(userStore.sendBackendConfirmationCode).toHaveBeenCalledTimes(1);
       expect(userStore.sendBackendConfirmationCode).toHaveBeenCalledWith(USER_PK, BACKEND);
     });
@@ -66,7 +66,7 @@ describe('MobileAppVerification', () => {
     const component = render(<MobileAppVerification userPk={USER_PK} />);
     expect(component.container).toMatchSnapshot();
 
-    waitFor(() => {
+    await waitFor(() => {
       expect(userStore.sendBackendConfirmationCode).toHaveBeenCalledTimes(0);
     });
   });
@@ -79,7 +79,7 @@ describe('MobileAppVerification', () => {
     const component = render(<MobileAppVerification userPk={USER_PK} />);
     await screen.findByText(/.*error fetching your QR code.*/);
 
-    waitFor(() => {
+    await waitFor(() => {
       expect(component.container).toMatchSnapshot();
 
       expect(userStore.sendBackendConfirmationCode).toHaveBeenCalledTimes(1);
@@ -95,7 +95,7 @@ describe('MobileAppVerification', () => {
     const component = render(<MobileAppVerification userPk={USER_PK} />);
     expect(component.container).toMatchSnapshot();
 
-    waitFor(() => {
+    await waitFor(() => {
       expect(userStore.sendBackendConfirmationCode).toHaveBeenCalledTimes(1);
       expect(userStore.sendBackendConfirmationCode).toHaveBeenCalledWith(USER_PK, BACKEND);
     });
@@ -122,7 +122,7 @@ describe('MobileAppVerification', () => {
 
     expect(component.container).toMatchSnapshot();
 
-    waitFor(() => {
+    await waitFor(() => {
       expect(userStore.sendBackendConfirmationCode).toHaveBeenCalledTimes(1);
       expect(userStore.sendBackendConfirmationCode).toHaveBeenCalledWith(USER_PK, BACKEND);
 
@@ -135,7 +135,7 @@ describe('MobileAppVerification', () => {
     const { userStore } = mockUseStore(
       {
         sendBackendConfirmationCode: jest.fn().mockResolvedValueOnce('dfd'),
-        unlinkBackend: jest.fn().mockResolvedValueOnce('aaa'),
+        unlinkBackend: jest.fn().mockResolvedValueOnce(new Promise((resolve) => setTimeout(resolve, 500))),
       },
       true
     );
@@ -148,15 +148,14 @@ describe('MobileAppVerification', () => {
     // click the disconnect button, which opens the modal
     await user.click(button);
     // click the confirm button within the modal, which actually triggers the callback
-    // this is maybe a bit "hacky" but by not awaiting the below promise it allows us to check the loading state..
-    user.click(screen.getByText('Remove'));
+    await user.click(screen.getByText('Remove'));
 
     // wait for loading state
     await screen.findByText(/.*Loading.*/);
 
     expect(component.container).toMatchSnapshot();
 
-    waitFor(() => {
+    await waitFor(() => {
       expect(userStore.sendBackendConfirmationCode).toHaveBeenCalledTimes(1);
       expect(userStore.sendBackendConfirmationCode).toHaveBeenCalledWith(USER_PK, BACKEND);
 
@@ -188,7 +187,7 @@ describe('MobileAppVerification', () => {
 
     expect(component.container).toMatchSnapshot();
 
-    waitFor(() => {
+    await waitFor(() => {
       expect(userStore.sendBackendConfirmationCode).toHaveBeenCalledTimes(0);
 
       expect(userStore.unlinkBackend).toHaveBeenCalledTimes(1);
