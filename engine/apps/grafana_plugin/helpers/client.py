@@ -100,7 +100,7 @@ class APIClient:
 
 
 class GrafanaAPIClient(APIClient):
-    USER_PERMISSION_ENDPOINT = f"api/access-control/users/permissions?actionPrefix={ACTION_PREFIX}"
+    USER_PERMISSION_ENDPOINT = f"api/access-control/users/permissions/search?actionPrefix={ACTION_PREFIX}"
 
     def __init__(self, api_url: str, api_token: str):
         super().__init__(api_url, api_token)
