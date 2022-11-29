@@ -28,7 +28,6 @@ CELERY_ARGS=(
   "--quiet"  # --quite parameter removes pointless banner when celery starts
   "-A" "engine"
   "worker"
-  "-l" "info"
   "--concurrency=$CELERY_WORKER_CONCURRENCY"
   "--max-tasks-per-child=$CELERY_WORKER_MAX_TASKS_PER_CHILD"
   "-Q" "$CELERY_WORKER_QUEUE"
@@ -44,6 +43,11 @@ if [[ $CELERY_WORKER_WITHOUT_GOSSIP = True ]]; then
 fi
 if [[ $CELERY_WORKER_WITHOUT_HEARTBEAT = True ]]; then
   CELERY_ARGS+=("--without-heartbeat")
+fi
+if [[ $CELERY_WORKER_DEBUG_LOGS = True ]]; then
+  CELERY_ARGS+=("-l" "debug")
+else
+  CELERY_ARGS+=("-l" "info")
 fi
 
 celery "${CELERY_ARGS[@]}"
