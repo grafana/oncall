@@ -8,7 +8,7 @@ import { makeRequest } from 'network';
 import { Mixpanel } from 'services/mixpanel';
 import { RootStore } from 'state';
 import { move } from 'state/helpers';
-import { UserActions } from 'utils/authorization';
+import { isUserActionAllowed, UserActions } from 'utils/authorization';
 
 import { getTimezone, prepareForUpdate } from './user.helpers';
 import { User } from './user.types';
@@ -56,7 +56,7 @@ export class UserStore extends BaseStore {
     const response = await makeRequest('/user/', {});
 
     let timezone;
-    if (!response.timezone && this.rootStore.isUserActionAllowed(UserActions.UserSettingsWrite)) {
+    if (!response.timezone && isUserActionAllowed(UserActions.UserSettingsWrite)) {
       timezone = dayjs.tz.guess();
       this.update(response.pk, { timezone });
     }

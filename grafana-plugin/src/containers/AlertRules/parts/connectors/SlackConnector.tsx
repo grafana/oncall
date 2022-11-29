@@ -12,7 +12,7 @@ import { PRIVATE_CHANNEL_NAME } from 'models/slack_channel/slack_channel.config'
 import { getSlackChannelName } from 'models/slack_channel/slack_channel.helpers';
 import { SlackChannel } from 'models/slack_channel/slack_channel.types';
 import { useStore } from 'state/useStore';
-import { UserActions } from 'utils/authorization';
+import { isUserActionAllowed, UserActions } from 'utils/authorization';
 
 import styles from './index.module.css';
 
@@ -94,7 +94,7 @@ const SlackConnector = (props: SlackConnectorProps) => {
           ) : teamStore.currentTeam?.slack_channel?.id ? (
             <Text type="secondary">
               This is the default slack channel{' '}
-              <PluginLink query={{ page: 'chat-ops' }} disabled={!store.isUserActionAllowed(UserActions.ChatOpsWrite)}>
+              <PluginLink query={{ page: 'chat-ops' }} disabled={!isUserActionAllowed(UserActions.ChatOpsWrite)}>
                 <WithPermissionControl userAction={UserActions.ChatOpsUpdateSettings}>
                   <Button variant="primary" size="sm" fill="text">
                     Change in Slack settings

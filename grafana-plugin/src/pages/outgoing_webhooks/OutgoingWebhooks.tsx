@@ -23,7 +23,7 @@ import { pages } from 'pages';
 import { PageProps, WithStoreProps } from 'state/types';
 import { withMobXProviderContext } from 'state/withStore';
 import LocationHelper from 'utils/LocationHelper';
-import { UserActions } from 'utils/authorization';
+import { isUserActionAllowed, UserActions } from 'utils/authorization';
 
 import styles from './OutgoingWebhooks.module.css';
 
@@ -132,7 +132,7 @@ class OutgoingWebhooks extends React.Component<OutgoingWebhooksProps, OutgoingWe
                         <PluginLink
                           partial
                           query={{ id: 'new' }}
-                          disabled={!store.isUserActionAllowed(UserActions.OutgoingWebhooksWrite)}
+                          disabled={!isUserActionAllowed(UserActions.OutgoingWebhooksWrite)}
                         >
                           <WithPermissionControl userAction={UserActions.OutgoingWebhooksWrite}>
                             <Button variant="primary" icon="plus">

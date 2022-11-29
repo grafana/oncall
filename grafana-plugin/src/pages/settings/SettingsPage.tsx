@@ -11,7 +11,7 @@ import { isTopNavbar } from 'plugin/GrafanaPluginRootPage.helpers';
 import { AppFeature } from 'state/features';
 import { RootBaseStore } from 'state/rootBaseStore';
 import { withMobXProviderContext } from 'state/withStore';
-import { UserActions } from 'utils/authorization';
+import { isUserActionAllowed, UserActions } from 'utils/authorization';
 
 import { SettingsPageTab } from './SettingsPage.types';
 import CloudPage from './tabs/Cloud/CloudPage';
@@ -52,8 +52,8 @@ class SettingsPage extends React.Component<SettingsPageProps, SettingsPageState>
 
     const hasLiveSettings = store.hasFeature(AppFeature.LiveSettings);
     const hasCloudPage = store.hasFeature(AppFeature.CloudConnection);
-    const showCloudPage = hasCloudPage && store.isUserActionAllowed(UserActions.OtherSettingsWrite);
-    const showLiveSettings = hasLiveSettings && store.isUserActionAllowed(UserActions.OtherSettingsRead);
+    const showCloudPage = hasCloudPage && isUserActionAllowed(UserActions.OtherSettingsWrite);
+    const showLiveSettings = hasLiveSettings && isUserActionAllowed(UserActions.OtherSettingsRead);
 
     if (isTopNavbar()) {
       return (

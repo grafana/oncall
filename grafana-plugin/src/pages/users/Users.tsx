@@ -24,7 +24,7 @@ import { pages } from 'pages';
 import { PageProps, WithStoreProps } from 'state/types';
 import { withMobXProviderContext } from 'state/withStore';
 import LocationHelper from 'utils/LocationHelper';
-import { UserActions } from 'utils/authorization';
+import { isUserActionAllowed, UserActions } from 'utils/authorization';
 
 import { getUserRowClassNameFn } from './Users.helpers';
 
@@ -74,7 +74,7 @@ class Users extends React.Component<UsersProps, UsersState> {
     const { usersFilters, page } = this.state;
     const { userStore } = store;
 
-    if (!store.isUserActionAllowed(UserActions.UserSettingsWrite)) {
+    if (!isUserActionAllowed(UserActions.UserSettingsWrite)) {
       return;
     }
 
@@ -83,9 +83,7 @@ class Users extends React.Component<UsersProps, UsersState> {
   };
 
   componentDidUpdate(prevProps: UsersProps) {
-    const { store } = this.props;
-
-    if (!this.initialUsersLoaded && store.isUserActionAllowed(UserActions.UserSettingsWrite)) {
+    if (!this.initialUsersLoaded && isUserActionAllowed(UserActions.UserSettingsWrite)) {
       this.updateUsers();
       this.initialUsersLoaded = true;
     }
@@ -190,7 +188,7 @@ class Users extends React.Component<UsersProps, UsersState> {
                       </Button>
                     </PluginLink>
                   </div>
-                  {store.isUserActionAllowed(UserActions.UserSettingsRead) ? (
+                  {isUserActionAllowed(UserActions.UserSettingsRead) ? (
                     <>
                       <div className={cx('user-filters-container')}>
                         <UsersFilters
@@ -287,7 +285,7 @@ class Users extends React.Component<UsersProps, UsersState> {
 
     return (
       <VerticalGroup justify="center">
-        <PluginLink partial query={{ id: user.pk }} disabled={!store.isUserActionAllowed(action)}>
+        <PluginLink partial query={{ id: user.pk }} disabled={!isUserActionAllowed(action)}>
           <WithPermissionControl userAction={action}>
             <Button
               className={cx({
