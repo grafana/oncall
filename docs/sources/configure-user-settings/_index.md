@@ -16,15 +16,20 @@ weight: 1300
 
 # Manage users and teams for Grafana OnCall
 
-Grafana OnCall is configured based on the teams you've created on the organization level of your Grafana instance, in **Configuration > Teams**. Administrators can create a different configuration for each team, and can navigate between team configurations in the **Select Team** dropdown menu in the **Incidents** section of Grafana OnCall.
+Grafana OnCall is configured based on the teams you've created on the organization level of your Grafana instance,
+in **Configuration > Teams**. Administrators can create a different configuration for each team, and can navigate
+between team configurations in the **Select Team** dropdown menu in the **Incidents** section of Grafana OnCall.
 
 Users can edit their contact information, but user permissions are assigned at the Cloud portal level.
 
 ## Configure user notification policies
 
-Administrators can configure how each user will receive notifications when they are are scheduled to receive them in escalation chains. Users can verify phone numbers and email addresses. Only users with the **Admin** or **Editor** role are allowed to get notifications.
+Administrators can configure how each user will receive notifications when they are are scheduled to receive them in
+escalation chains. Users can verify phone numbers and email addresses. Only users with the **Admin** or **Editor** role
+are allowed to get notifications.
 
-> **NOTE**: You cannot add users or manage permissions in Grafana OnCall. Most user settings are found on the organizational level of your Grafana instance in **Configuration > Users**.
+> **NOTE**: You cannot add users or manage permissions in Grafana OnCall. Most user settings are found on the
+> organizational level of your Grafana instance in **Configuration > Users**.
 
 1. Find users.
 
@@ -32,17 +37,21 @@ Administrators can configure how each user will receive notifications when they 
 
 1. Configure user settings.
 
-   Add and verify a phone number, a Slack username, and a Telegram account if you want to receive notifications using these mediums.
+   Add and verify a phone number, a Slack username, and a Telegram account if you want to receive notifications
+   using these mediums.
 
-   > **NOTE:** To edit a user's profile username, email, or role, you must do so in the **Users** tab in the **Configuration** menu of your Grafana instance.
+   > **NOTE:** To edit a user's profile username, email, or role, you must do so in the **Users** tab in
+   > the **Configuration** menu of your Grafana instance.
 
 1. Configure notification settings.
 
-   Specify the notification medium and frequency for each user. Notification steps will be followed in the order they are listed.
+   Specify the notification medium and frequency for each user. Notification steps will be followed in the order
+   they are listed.
 
    The settings you specify in **Default Notifications** dictate how a user is notified for most escalation thresholds.
 
-   **Important Notifications** are labeled in escalation chains. If an escalation event is marked as an important notification, it will bypass **Default Notification** settings and notify the user by the method specified.
+   **Important Notifications** are labeled in escalation chains. If an escalation event is marked as an important notification,
+   it will bypass **Default Notification** settings and notify the user by the method specified.
 
 ## Configure Telegram user settings in OnCall
 
@@ -50,7 +59,8 @@ Administrators can configure how each user will receive notifications when they 
 1. Click **Connect automatically** for the bot to message you and to bring up your telegram account.
 1. Click **Start** when the OnCall bot messages you.
 
-If you want to connect manually, you can click the URL provided and then **SEND MESSAGE**. In your Telegram account, click **Start**.
+If you want to connect manually, you can click the URL provided and then **SEND MESSAGE**. In your Telegram account,
+click **Start**.
 
 ## Configure Slack user settings in OnCall
 
