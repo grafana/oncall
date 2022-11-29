@@ -111,14 +111,12 @@ describe('MobileAppVerification', () => {
     );
 
     const component = render(<MobileAppVerification userPk={USER_PK} />);
-
-    const user = userEvent.setup();
     const button = await screen.findByRole('button');
 
     // click the disconnect button, which opens the modal
-    await user.click(button);
+    await userEvent.click(button);
     // click the confirm button within the modal, which actually triggers the callback
-    await user.click(screen.getByText('Remove'));
+    await userEvent.click(screen.getByText('Remove'));
 
     expect(component.container).toMatchSnapshot();
 
@@ -141,14 +139,12 @@ describe('MobileAppVerification', () => {
     );
 
     const component = render(<MobileAppVerification userPk={USER_PK} />);
-
-    const user = userEvent.setup();
     const button = await screen.findByRole('button');
 
     // click the disconnect button, which opens the modal
-    await user.click(button);
+    await userEvent.click(button);
     // click the confirm button within the modal, which actually triggers the callback
-    await user.click(screen.getByText('Remove'));
+    await userEvent.click(screen.getByText('Remove'));
 
     // wait for loading state
     await screen.findByText(/.*Loading.*/);
@@ -174,14 +170,12 @@ describe('MobileAppVerification', () => {
     );
 
     const component = render(<MobileAppVerification userPk={USER_PK} />);
-
-    const user = userEvent.setup();
     const button = await screen.findByTestId('test__disconnect');
 
     // click the disconnect button, which opens the modal
-    await user.click(button);
+    await userEvent.click(button);
     // click the confirm button within the modal, which actually triggers the callback
-    await user.click(screen.getByText('Remove'));
+    await userEvent.click(screen.getByText('Remove'));
 
     await screen.findByText(/.*error disconnecting your mobile app.*/);
 
@@ -221,14 +215,12 @@ describe('MobileAppVerification', () => {
     );
 
     render(<MobileAppVerification userPk={USER_PK} />);
-
-    const user = userEvent.setup();
     const button = await screen.findByRole('button');
 
     loadUserMock.mockClear();
 
-    await user.click(button); // click the disconnect button, which opens the modal
-    await user.click(screen.getByText('Remove')); // click the confirm button within the modal, which actually triggers the callback
+    await userEvent.click(button); // click the disconnect button, which opens the modal
+    await userEvent.click(screen.getByText('Remove')); // click the confirm button within the modal, which actually triggers the callback
 
     await waitFor(() => {
       expect(loadUserMock).toHaveBeenCalledTimes(1);
