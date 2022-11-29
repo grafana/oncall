@@ -88,7 +88,7 @@ const MobileAppVerification = observer(({ userPk }: Props) => {
         clearInterval(userIntervalId);
       }
     };
-  });
+  }, []);
 
   let content: React.ReactNode = null;
 
