@@ -11,7 +11,7 @@ import { getIfChatOpsConnected } from 'containers/DefaultPageLayout/helper';
 import { AppFeature } from 'state/features';
 import { useStore } from 'state/useStore';
 import LocationHelper from 'utils/LocationHelper';
-import { UserActions } from 'utils/authorization';
+import { isUserActionAllowed, UserActions } from 'utils/authorization';
 import { GRAFANA_LICENSE_OSS } from 'utils/consts';
 import { useForceUpdate } from 'utils/hooks';
 import { getItem, setItem } from 'utils/localStorage';
@@ -131,7 +131,7 @@ const DefaultPageLayout: FC<DefaultPageLayoutProps> = observer((props) => {
         {Boolean(
           currentTeam &&
             currentUser &&
-            store.isUserActionAllowed(UserActions.UserSettingsWrite) &&
+            isUserActionAllowed(UserActions.UserSettingsWrite) &&
             (!isPhoneVerified || !isChatOpsConnected) &&
             !getItem(AlertID.CONNECTIVITY_WARNING)
         ) && (

@@ -24,7 +24,7 @@ import { pages } from 'pages';
 import { PageProps, WithStoreProps } from 'state/types';
 import { withMobXProviderContext } from 'state/withStore';
 import LocationHelper from 'utils/LocationHelper';
-import { UserActions } from 'utils/authorization';
+import { isUserActionAllowed, UserActions } from 'utils/authorization';
 
 import { getStartOfWeek } from './Schedule.helpers';
 
@@ -106,7 +106,7 @@ class SchedulePage extends React.Component<SchedulePageProps, SchedulePageState>
     const schedule = scheduleStore.items[scheduleId];
 
     const disabled =
-      !store.isUserActionAllowed(UserActions.SchedulesWrite) ||
+      !isUserActionAllowed(UserActions.SchedulesWrite) ||
       schedule?.type !== ScheduleType.API ||
       shiftIdToShowRotationForm ||
       shiftIdToShowOverridesForm;

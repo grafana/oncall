@@ -37,7 +37,7 @@ import { MaintenanceType } from 'models/maintenance/maintenance.types';
 import { WithStoreProps } from 'state/types';
 import { withMobXProviderContext } from 'state/withStore';
 import { openNotification } from 'utils';
-import { UserActions } from 'utils/authorization';
+import { isUserActionAllowed, UserActions } from 'utils/authorization';
 import sanitize from 'utils/sanitize';
 
 import styles from './AlertRules.module.css';
@@ -223,7 +223,7 @@ class AlertRules extends React.Component<AlertRulesProps, AlertRulesState> {
                     <Tooltip placement="top" content="Stop maintenance mode">
                       <Button
                         className="grey-button"
-                        disabled={!store.isUserActionAllowed(UserActions.MaintenanceWrite)}
+                        disabled={!isUserActionAllowed(UserActions.MaintenanceWrite)}
                         fill="text"
                         icon="square-shape"
                         onClick={this.handleStopMaintenance}
@@ -236,7 +236,7 @@ class AlertRules extends React.Component<AlertRulesProps, AlertRulesState> {
                         maintenance_type: MaintenanceType.alert_receive_channel,
                         alert_receive_channel: alertReceiveChannel.id,
                       }}
-                      disabled={!store.isUserActionAllowed(UserActions.MaintenanceWrite)}
+                      disabled={!isUserActionAllowed(UserActions.MaintenanceWrite)}
                     >
                       <WithPermissionControl userAction={UserActions.MaintenanceWrite}>
                         <IconButton
@@ -244,7 +244,7 @@ class AlertRules extends React.Component<AlertRulesProps, AlertRulesState> {
                           size="sm"
                           tooltip="Setup maintenance mode"
                           tooltipPlacement="top"
-                          disabled={!store.isUserActionAllowed(UserActions.MaintenanceWrite)}
+                          disabled={!isUserActionAllowed(UserActions.MaintenanceWrite)}
                         />
                       </WithPermissionControl>
                     </PluginLink>

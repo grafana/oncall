@@ -11,7 +11,7 @@ import { User } from 'models/user/user.types';
 import { AppFeature } from 'state/features';
 import { useStore } from 'state/useStore';
 import { openErrorNotification } from 'utils';
-import { UserAction, UserActions } from 'utils/authorization';
+import { isUserActionAllowed, UserAction, UserActions } from 'utils/authorization';
 
 import styles from './PhoneVerification.module.css';
 
@@ -142,7 +142,7 @@ const PhoneVerification = observer((props: PhoneVerificationProps) => {
     phone === user.verified_phone_number || (!isCodeSent && !isPhoneValid) || !isTwilioConfigured;
 
   const isPhoneDisabled = !!user.verified_phone_number;
-  const isCodeFieldDisabled = !isCodeSent || !store.isUserActionAllowed(action);
+  const isCodeFieldDisabled = !isCodeSent || !isUserActionAllowed(action);
   const showToggle = user.verified_phone_number && isCurrentUser;
 
   if (showForgetScreen) {

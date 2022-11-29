@@ -22,6 +22,7 @@ import { pages } from 'pages';
 import { routes } from 'pages/routes';
 import { rootStore } from 'state';
 import { useStore } from 'state/useStore';
+import { isUserActionAllowed } from 'utils/authorization';
 import { useQueryParams, useQueryPath } from 'utils/hooks';
 
 dayjs.extend(utc);
@@ -85,7 +86,7 @@ export const Root = observer((props: AppRootProps) => {
   }
 
   const { action: pagePermissionAction } = pages[page];
-  const userHasAccess = pagePermissionAction ? store.isUserActionAllowed(pagePermissionAction) : true;
+  const userHasAccess = pagePermissionAction ? isUserActionAllowed(pagePermissionAction) : true;
 
   return (
     <DefaultPageLayout {...props}>

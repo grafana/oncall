@@ -27,10 +27,9 @@ import { Timezone } from 'models/timezone/timezone.types';
 import { UserStore } from 'models/user/user';
 import { UserGroupStore } from 'models/user_group/user_group';
 import { makeRequest } from 'network';
-import { NavMenuItem } from 'pages/routes';
 import { AppFeature } from 'state/features';
 import PluginState from 'state/plugin';
-import { UserActions, isUserActionAllowed } from 'utils/authorization';
+import { isUserActionAllowed, UserActions } from 'utils/authorization';
 
 // ------ Dashboard ------ //
 
@@ -72,9 +71,6 @@ export class RootBaseStore {
 
   @observable
   onCallApiUrl: string;
-
-  @observable
-  navMenuItem: NavMenuItem;
 
   // --------------------------
 
@@ -162,7 +158,7 @@ export class RootBaseStore {
         return this.setupPluginError('🚫 OnCall has temporarily disabled signup of new users. Please try again later.');
       }
 
-      if (!this.isUserActionAllowed(UserActions.PluginsInstall)) {
+      if (!isUserActionAllowed(UserActions.PluginsInstall)) {
         return this.setupPluginError(
           '🚫 An Admin in your organization must sign on and setup OnCall before it can be used'
         );
@@ -198,8 +194,6 @@ export class RootBaseStore {
 
     this.appLoading = false;
   }
-
-  isUserActionAllowed = isUserActionAllowed;
 
   hasFeature(feature: string | AppFeature) {
     // todo use AppFeature only

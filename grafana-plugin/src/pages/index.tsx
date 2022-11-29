@@ -3,7 +3,7 @@ import { NavModelItem } from '@grafana/data';
 import { isTopNavbar } from 'plugin/GrafanaPluginRootPage.helpers';
 import { AppFeature } from 'state/features';
 import { RootBaseStore } from 'state/rootBaseStore';
-import { UserActions, UserAction } from 'utils/authorization';
+import { UserActions, UserAction, isUserActionAllowed } from 'utils/authorization';
 
 export const PLUGIN_URL_PATH = '/a/grafana-oncall-app';
 
@@ -124,7 +124,7 @@ export const pages: { [id: string]: PageDefinition } = [
     role: 'Admin',
     hideFromTabsFn: (store: RootBaseStore) => {
       const hasLiveSettings = store.hasFeature(AppFeature.LiveSettings);
-      return isTopNavbar() || window.grafanaBootData.user.orgRole !== 'Admin' || !hasLiveSettings;
+      return isTopNavbar() || !hasLiveSettings;
     },
     path: getPath('live-settings'),
     action: UserActions.OtherSettingsRead,
@@ -136,7 +136,7 @@ export const pages: { [id: string]: PageDefinition } = [
     role: 'Admin',
     hideFromTabsFn: (store: RootBaseStore) => {
       const hasCloudFeature = store.hasFeature(AppFeature.CloudConnection);
-      return isTopNavbar() || window.grafanaBootData.user.orgRole !== 'Admin' || !hasCloudFeature;
+      return isTopNavbar() || !hasCloudFeature;
     },
     path: getPath('cloud'),
     action: UserActions.OtherSettingsWrite,
@@ -156,16 +156,18 @@ export const pages: { [id: string]: PageDefinition } = [
     path: getPath('test'),
   },
 ].reduce((prev, current) => {
-  prev[current.id] = {
-    ...current,
-    getPageNav: () =>
-      ({
-        text: isTopNavbar() ? '' : current.text,
-        parentItem: current.parentItem,
-        hideFromBreadcrumbs: current.hideFromBreadcrumbs,
-        hideFromTabs: current.hideFromTabs,
-      } as NavModelItem),
-  };
+  if (!current.action || (current.action && isUserActionAllowed(current.action))) {
+    prev[current.id] = {
+      ...current,
+      getPageNav: () =>
+        ({
+          text: isTopNavbar() ? '' : current.text,
+          parentItem: current.parentItem,
+          hideFromBreadcrumbs: current.hideFromBreadcrumbs,
+          hideFromTabs: current.hideFromTabs,
+        } as NavModelItem),
+    };
+  }
 
   return prev;
 }, {});

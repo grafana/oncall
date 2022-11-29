@@ -12,7 +12,7 @@ import { WithPermissionControl } from 'containers/WithPermissionControl/WithPerm
 import { ApiToken } from 'models/api_token/api_token.types';
 import { WithStoreProps } from 'state/types';
 import { withMobXProviderContext } from 'state/withStore';
-import { UserActions } from 'utils/authorization';
+import { isUserActionAllowed, UserActions } from 'utils/authorization';
 
 import ApiTokenForm from './ApiTokenForm';
 
@@ -93,7 +93,7 @@ class ApiTokens extends React.Component<ApiTokensProps, any> {
           showHeader={!isMobile}
           data={apiTokens}
           emptyText={
-            store.isUserActionAllowed(UserActions.APIKeysWrite)
+            isUserActionAllowed(UserActions.APIKeysWrite)
               ? apiTokens
                 ? 'No tokens found'
                 : 'Loading...'

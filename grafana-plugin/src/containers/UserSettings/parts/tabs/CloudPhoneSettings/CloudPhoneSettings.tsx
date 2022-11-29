@@ -10,7 +10,7 @@ import { AppFeature } from 'state/features';
 import { WithStoreProps } from 'state/types';
 import { useStore } from 'state/useStore';
 import { withMobXProviderContext } from 'state/withStore';
-import { UserActions } from 'utils/authorization';
+import { isUserActionAllowed, UserActions } from 'utils/authorization';
 
 interface CloudPhoneSettingsProps extends WithStoreProps {
   userPk?: User['pk'];
@@ -119,7 +119,7 @@ const CloudPhoneSettings = observer((props: CloudPhoneSettingsProps) => {
 
   return (
     <>
-      {store.isUserActionAllowed(UserActions.OtherSettingsWrite) ? (
+      {isUserActionAllowed(UserActions.OtherSettingsWrite) ? (
         <VerticalGroup spacing="lg">
           <HorizontalGroup justify="space-between">
             <Text.Title level={3}>OnCall use Grafana Cloud for SMS and phone call notifications</Text.Title>

@@ -1,11 +1,14 @@
 import { OnCallAppPluginMeta } from 'types';
 
 import PluginState from 'state/plugin';
-import { UserActions } from 'utils/authorization';
+import { UserActions, isUserActionAllowed as isUserActionAllowedOriginal } from 'utils/authorization';
 
 import { RootBaseStore } from './';
 
 jest.mock('state/plugin');
+jest.mock('utils/authorization');
+
+const isUserActionAllowed = isUserActionAllowedOriginal as jest.Mock<ReturnType<typeof isUserActionAllowedOriginal>>;
 
 const PluginInstallAction = UserActions.PluginsInstall;
 
@@ -122,7 +125,7 @@ describe('rootBaseStore', () => {
       version: 'asdfasdf',
       license: 'asdfasdf',
     });
-    rootBaseStore.isUserActionAllowed = jest.fn().mockReturnValueOnce(false);
+    isUserActionAllowed.mockReturnValueOnce(false);
     PluginState.installPlugin = jest.fn().mockResolvedValueOnce(null);
 
     // test
@@ -132,8 +135,8 @@ describe('rootBaseStore', () => {
     expect(PluginState.checkIfPluginIsConnected).toHaveBeenCalledTimes(1);
     expect(PluginState.checkIfPluginIsConnected).toHaveBeenCalledWith(onCallApiUrl);
 
-    expect(rootBaseStore.isUserActionAllowed).toHaveBeenCalledTimes(1);
-    expect(rootBaseStore.isUserActionAllowed).toHaveBeenCalledWith(PluginInstallAction);
+    expect(isUserActionAllowed).toHaveBeenCalledTimes(1);
+    expect(isUserActionAllowed).toHaveBeenCalledWith(PluginInstallAction);
 
     expect(PluginState.installPlugin).toHaveBeenCalledTimes(0);
 
@@ -159,7 +162,7 @@ describe('rootBaseStore', () => {
       version: 'asdfasdf',
       license: 'asdfasdf',
     });
-    rootBaseStore.isUserActionAllowed = jest.fn().mockReturnValueOnce(true);
+    isUserActionAllowed.mockReturnValueOnce(true);
     PluginState.installPlugin = jest.fn().mockResolvedValueOnce(null);
     rootBaseStore.userStore.loadCurrentUser = mockedLoadCurrentUser;
 
@@ -170,8 +173,8 @@ describe('rootBaseStore', () => {
     expect(PluginState.checkIfPluginIsConnected).toHaveBeenCalledTimes(1);
     expect(PluginState.checkIfPluginIsConnected).toHaveBeenCalledWith(onCallApiUrl);
 
-    expect(rootBaseStore.isUserActionAllowed).toHaveBeenCalledTimes(1);
-    expect(rootBaseStore.isUserActionAllowed).toHaveBeenCalledWith(PluginInstallAction);
+    expect(isUserActionAllowed).toHaveBeenCalledTimes(1);
+    expect(isUserActionAllowed).toHaveBeenCalledWith(PluginInstallAction);
 
     expect(PluginState.installPlugin).toHaveBeenCalledTimes(1);
     expect(PluginState.installPlugin).toHaveBeenCalledWith();
@@ -198,7 +201,7 @@ describe('rootBaseStore', () => {
       version: 'asdfasdf',
       license: 'asdfasdf',
     });
-    rootBaseStore.isUserActionAllowed = jest.fn().mockReturnValueOnce(true);
+    isUserActionAllowed.mockReturnValueOnce(true);
     PluginState.installPlugin = jest.fn().mockRejectedValueOnce(installPluginError);
     PluginState.getHumanReadableErrorFromOnCallError = jest.fn().mockReturnValueOnce(humanReadableErrorMsg);
 
@@ -209,8 +212,8 @@ describe('rootBaseStore', () => {
     expect(PluginState.checkIfPluginIsConnected).toHaveBeenCalledTimes(1);
     expect(PluginState.checkIfPluginIsConnected).toHaveBeenCalledWith(onCallApiUrl);
 
-    expect(rootBaseStore.isUserActionAllowed).toHaveBeenCalledTimes(1);
-    expect(rootBaseStore.isUserActionAllowed).toHaveBeenCalledWith(PluginInstallAction);
+    expect(isUserActionAllowed).toHaveBeenCalledTimes(1);
+    expect(isUserActionAllowed).toHaveBeenCalledWith(PluginInstallAction);
 
     expect(PluginState.installPlugin).toHaveBeenCalledTimes(1);
     expect(PluginState.installPlugin).toHaveBeenCalledWith();

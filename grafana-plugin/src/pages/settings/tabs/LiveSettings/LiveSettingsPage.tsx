@@ -13,7 +13,7 @@ import { WithPermissionControl } from 'containers/WithPermissionControl/WithPerm
 import { GlobalSetting } from 'models/global_setting/global_setting.types';
 import { WithStoreProps } from 'state/types';
 import { withMobXProviderContext } from 'state/withStore';
-import { UserActions } from 'utils/authorization';
+import { isUserActionAllowed, UserActions } from 'utils/authorization';
 
 import { PLACEHOLDER } from './LiveSettings.config';
 import { normalizeValue, prepareForUpdate } from './LiveSettings.helpers';
@@ -145,7 +145,6 @@ class LiveSettings extends React.Component<LiveSettingsProps, LiveSettingsState>
   };
 
   renderValue = (item: GlobalSetting) => {
-    const { store } = this.props;
     const { hideValues } = this.state;
 
     if (item.value === true || item.value === false) {
@@ -165,7 +164,7 @@ class LiveSettings extends React.Component<LiveSettingsProps, LiveSettingsState>
         <Text
           copyable={!item.is_secret && Boolean(item.value)}
           onTextChange={this.getEditValueChangeHandler(item)}
-          editable={store.isUserActionAllowed(UserActions.OtherSettingsWrite)}
+          editable={isUserActionAllowed(UserActions.OtherSettingsWrite)}
           clearBeforeEdit={item.is_secret}
           hidden={hideValues}
         >
