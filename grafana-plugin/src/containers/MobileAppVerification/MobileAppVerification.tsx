@@ -73,15 +73,7 @@ const MobileAppVerification = observer(({ userPk }: Props) => {
     if (!isUserConnected()) {
       pollUserProfile();
     }
-  }, []);
 
-  useEffect(() => {
-    if (!mobileAppIsCurrentlyConnected) {
-      fetchQRCode();
-    }
-  }, [mobileAppIsCurrentlyConnected]);
-
-  useEffect(() => {
     // clear on unmount
     return () => {
       if (userTimeoutId) {
@@ -89,6 +81,12 @@ const MobileAppVerification = observer(({ userPk }: Props) => {
       }
     };
   }, []);
+
+  useEffect(() => {
+    if (!mobileAppIsCurrentlyConnected) {
+      fetchQRCode();
+    }
+  }, [mobileAppIsCurrentlyConnected]);
 
   let content: React.ReactNode = null;
 
