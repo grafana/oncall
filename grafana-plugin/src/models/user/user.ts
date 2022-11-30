@@ -74,13 +74,15 @@ export class UserStore extends BaseStore {
   }
 
   @action
-  async loadUser(userPk: User['pk'], skipErrorHandling = false) {
+  async loadUser(userPk: User['pk'], skipErrorHandling = false): Promise<User> {
     const user = await this.getById(userPk, skipErrorHandling);
 
     this.items = {
       ...this.items,
       [user.pk]: { ...user, timezone: getTimezone(user) },
     };
+
+    return user;
   }
 
   @action

@@ -1,17 +1,27 @@
 import React, { FC } from 'react';
 
 import { Button } from '@grafana/ui';
+import cn from 'classnames/bind';
 
 import WithConfirm from 'components/WithConfirm/WithConfirm';
+
+import styles from './DisconnectButton.module.scss';
+
+const cx = cn.bind(styles);
 
 type Props = {
   onClick: () => void;
 };
 
-// TODO: right now this shows a confirmation pop-up modal on top of the user settings modal, do we want to maybe change this?
 const DisconnectButton: FC<Props> = ({ onClick }) => (
   <WithConfirm title="Are you sure to disconnect your mobile application?" confirmText="Remove">
-    <Button variant="destructive" onClick={onClick} size="md">
+    <Button
+      variant="destructive"
+      onClick={onClick}
+      size="md"
+      className={cx('disconnect-button')}
+      data-testid="test__disconnect"
+    >
       Disconnect
     </Button>
   </WithConfirm>
