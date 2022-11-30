@@ -234,8 +234,7 @@ def test_get_web_schedule(
 
 @pytest.mark.django_db
 def test_create_web_schedule(make_organization_and_user_with_token):
-
-    organization, user, token = make_organization_and_user_with_token()
+    _, _, token = make_organization_and_user_with_token()
     client = APIClient()
 
     url = reverse("api-public:schedules-list")
@@ -391,8 +390,7 @@ def test_update_calendar_schedule_invalid_override(
     make_schedule,
     make_on_call_shift,
 ):
-
-    organization, user, token = make_organization_and_user_with_token()
+    organization, _, token = make_organization_and_user_with_token()
     client = APIClient()
 
     schedule = make_schedule(
@@ -416,6 +414,29 @@ def test_update_calendar_schedule_invalid_override(
     response = client.put(url, data=data, format="json", HTTP_AUTHORIZATION=f"{token}")
     assert response.status_code == status.HTTP_400_BAD_REQUEST
     assert response.json() == {"detail": "Shifts of type override are not supported in this schedule"}
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize("ScheduleClass", [OnCallScheduleWeb, OnCallScheduleCalendar])
+def test_update_schedule_invalid_timezone(make_organization_and_user_with_token, make_schedule, ScheduleClass):
+    organization, _, token = make_organization_and_user_with_token()
+    client = APIClient()
+
+    schedule = make_schedule(organization, schedule_class=ScheduleClass)
+    start_date = timezone.datetime.now().replace(microsecond=0)
+    data = {
+        "start": start_date,
+        "rotation_start": start_date,
+        "duration": timezone.timedelta(seconds=10800),
+    }
+
+    url = reverse("api-public:schedules-detail", kwargs={"pk": schedule.public_primary_key})
+
+    data = {"time_zone": "asdfasdf"}
+
+    response = client.put(url, data=data, format="json", HTTP_AUTHORIZATION=f"{token}")
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert response.json() == {"detail": "Invalid timezone"}
 
 
 @pytest.mark.django_db
@@ -694,8 +715,7 @@ def test_get_schedule_list(
 
 @pytest.mark.django_db
 def test_create_schedule_wrong_type(make_organization_and_user_with_token):
-
-    organization, user, token = make_organization_and_user_with_token()
+    _, _, token = make_organization_and_user_with_token()
     client = APIClient()
 
     url = reverse("api-public:schedules-list")
@@ -716,9 +736,29 @@ def test_create_schedule_wrong_type(make_organization_and_user_with_token):
 
 
 @pytest.mark.django_db
-def test_create_ical_schedule_without_ical_url(make_organization_and_user_with_token):
+@pytest.mark.parametrize("schedule_type", ["web", "calendar"])
+def test_create_schedule_invalid_timezone(make_organization_and_user_with_token, schedule_type):
+    _, _, token = make_organization_and_user_with_token()
+    client = APIClient()
 
-    organization, user, token = make_organization_and_user_with_token()
+    url = reverse("api-public:schedules-list")
+
+    print(schedule_type)
+    data = {
+        "team_id": None,
+        "name": "schedule test name",
+        "time_zone": "asdfasdasdf",
+        "type": schedule_type,
+    }
+
+    response = client.post(url, data=data, format="json", HTTP_AUTHORIZATION=f"{token}")
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert response.json() == {"detail": "Invalid timezone"}
+
+
+@pytest.mark.django_db
+def test_create_ical_schedule_without_ical_url(make_organization_and_user_with_token):
+    _, _, token = make_organization_and_user_with_token()
     client = APIClient()
 
     url = reverse("api-public:schedules-list")

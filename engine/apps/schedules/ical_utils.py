@@ -26,6 +26,7 @@ from apps.schedules.constants import (
     RE_PRIORITY,
 )
 from apps.schedules.ical_events import ical_events
+from common.timezones import is_valid_timezone
 from common.utils import timed_lru_cache
 
 """
@@ -492,14 +493,14 @@ def get_icalendar_tz_or_utc(icalendar):
     except (IndexError, KeyError):
         calendar_timezone = "UTC"
 
-    try:
-        return pytz.timezone(calendar_timezone)
-    except pytz.UnknownTimeZoneError:
-        # try to convert the timezone from windows to iana
-        converted_timezone = convert_windows_timezone_to_iana(calendar_timezone)
-        if converted_timezone is None:
-            return "UTC"
-        return pytz.timezone(converted_timezone)
+    if (pytz_timezone := is_valid_timezone(calendar_timezone)) is not False:
+        return pytz_timezone
+
+    # try to convert the timezone from windows to iana
+    if (converted_timezone := convert_windows_timezone_to_iana(calendar_timezone)) is None:
+        return "UTC"
+
+    return pytz.timezone(converted_timezone)
 
 
 def fetch_ical_file_or_get_error(ical_url):

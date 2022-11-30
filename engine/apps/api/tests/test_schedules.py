@@ -405,7 +405,7 @@ def test_create_web_schedule(schedule_internal_api_setup, make_user_auth_headers
 
 @pytest.mark.django_db
 def test_create_invalid_ical_schedule(schedule_internal_api_setup, make_user_auth_headers):
-    user, token, _, ical_schedule, _, _ = schedule_internal_api_setup
+    user, token, _, _, _, _ = schedule_internal_api_setup
     client = APIClient()
     url = reverse("api-internal:custom_button-list")
     with patch(
@@ -420,6 +420,33 @@ def test_create_invalid_ical_schedule(schedule_internal_api_setup, make_user_aut
         }
         response = client.post(url, data, format="json", **make_user_auth_headers(user, token))
         assert response.status_code == status.HTTP_400_BAD_REQUEST
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize("calendar_type", [0, 2])
+def test_create_schedule_invalid_time_zone(schedule_internal_api_setup, make_user_auth_headers, calendar_type):
+    user, token, _, _, _, _ = schedule_internal_api_setup
+    client = APIClient()
+    url = reverse("api-internal:schedule-list")
+    data = {
+        "name": "created_web_schedule",
+        "type": calendar_type,
+        "time_zone": "asdfasdfasdf",
+        "slack_channel_id": None,
+        "user_group": None,
+        "team": None,
+        "warnings": [],
+        "on_call_now": [],
+        "has_gaps": False,
+        "mention_oncall_next": False,
+        "mention_oncall_start": True,
+        "notify_empty_oncall": 0,
+        "notify_oncall_shift_freq": 1,
+    }
+    response = client.post(url, data, format="json", **make_user_auth_headers(user, token))
+
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert response.json() == {"detail": "Invalid timezone"}
 
 
 @pytest.mark.django_db
@@ -477,6 +504,24 @@ def test_update_web_schedule(schedule_internal_api_setup, make_user_auth_headers
     updated_instance = OnCallSchedule.objects.get(public_primary_key=web_schedule.public_primary_key)
     assert response.status_code == status.HTTP_200_OK
     assert updated_instance.name == "updated_web_schedule"
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize("calendar_type", [0, 2])
+def test_update_schedule_invalid_time_zone(schedule_internal_api_setup, make_user_auth_headers, calendar_type):
+    user, token, *calendars, _ = schedule_internal_api_setup
+    schedule = calendars[calendar_type]
+
+    client = APIClient()
+
+    url = reverse("api-internal:schedule-detail", kwargs={"pk": schedule.public_primary_key})
+    data = {"type": calendar_type, "time_zone": "asdfasdfasdf"}
+    response = client.put(
+        url, data=json.dumps(data), content_type="application/json", **make_user_auth_headers(user, token)
+    )
+
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert response.json() == {"detail": "Invalid timezone"}
 
 
 @pytest.mark.django_db
