@@ -1,3 +1,4 @@
+from apps.mobile_app.fcm_relay import FCMRelayView
 from apps.mobile_app.views import APNSDeviceAuthorizedViewSet, GCMDeviceAuthorizedViewSet, MobileAppAuthTokenAPIView
 from common.api_helpers.optional_slash_router import OptionalSlashRouter, optional_slash_path
 
@@ -10,4 +11,5 @@ router.register("gcm", GCMDeviceAuthorizedViewSet, basename="gcm")
 urlpatterns = [
     *router.urls,
     optional_slash_path("auth_token", MobileAppAuthTokenAPIView.as_view(), name="auth_token"),
+    optional_slash_path("fcm_relay", FCMRelayView.as_view(), name="fcm_relay"),
 ]
