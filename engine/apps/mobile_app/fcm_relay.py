@@ -8,7 +8,12 @@ REQUIRED_FIELDS = {"registration_ids", "notification", "data"}
 
 class FCMRelayView(APIView):
     def post(self, request):
-        # make sure every field in REQUIRED_FIELDS is present in request payload
+        """
+        This view accepts requests from OSS instances of Grafana OnCall and forwards these requests to FCM.
+        Requests will be sent with the FCM_API_KEY configured in server settings
+        (see PUSH_NOTIFICATIONS_SETTINGS in settings/base.py)
+        """
+
         if not REQUIRED_FIELDS.issubset(request.data.keys()):
             return Response(status=status.HTTP_400_BAD_REQUEST)
 
@@ -18,4 +23,4 @@ class FCMRelayView(APIView):
             **request.data["notification"],
         }
 
-        return send_message(registration_ids=registration_ids, data=data, cloud_type="FCM", application_id=None)
+        return send_message(registration_ids=registration_ids, data=data, cloud_type="FCM")
