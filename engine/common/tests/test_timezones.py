@@ -41,7 +41,7 @@ def test_raise_exception_if_not_valid_timezone_custom_exception():
         "asdfasdf"
 
     with pytest.raises(MyCustomException, match="Invalid timezone"):
-        tz.raise_exception_if_not_valid_timezone("asdfasfd", Exception=MyCustomException)
+        tz.raise_exception_if_not_valid_timezone("asdfasfd", exception_class=MyCustomException)
 
 
 class TestTimeZoneField:
