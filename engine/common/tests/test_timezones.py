@@ -1,7 +1,7 @@
 import pytest
 import pytz
 from rest_framework import serializers
-from rest_framework.exceptions import ValidationError
+from rest_framework.exceptions import APIException
 
 import common.timezones as tz
 from common.api_helpers.exceptions import BadRequest
@@ -25,15 +25,23 @@ def test_is_valid_timezone(input, expected):
         ("asdfasdfasdf", True),
     ],
 )
-def test_raise_bad_request_exception_if_not_valid_timezone(input, raises_exception):
+def test_raise_exception_if_not_valid_timezone(input, raises_exception):
     if raises_exception:
         with pytest.raises(BadRequest, match="Invalid timezone"):
-            tz.raise_bad_request_exception_if_not_valid_timezone(input)
+            tz.raise_exception_if_not_valid_timezone(input)
     else:
         try:
-            tz.raise_bad_request_exception_if_not_valid_timezone(input)
+            tz.raise_exception_if_not_valid_timezone(input)
         except Exception:
             pytest.fail()
+
+
+def test_raise_exception_if_not_valid_timezone_custom_exception():
+    class MyCustomException(APIException):
+        "asdfasdf"
+
+    with pytest.raises(MyCustomException, match="Invalid timezone"):
+        tz.raise_exception_if_not_valid_timezone("asdfasfd", Exception=MyCustomException)
 
 
 class TestTimeZoneField:
@@ -54,7 +62,7 @@ class TestTimeZoneField:
         class MySerializer(serializers.Serializer):
             tz = tz.TimeZoneField()
 
-        with pytest.raises(BadRequest, match="Invalid timezone"):
+        with pytest.raises(serializers.ValidationError, match="Invalid timezone"):
             serializer = MySerializer(data={"tz": "potato"})
             serializer.is_valid(raise_exception=True)
 
@@ -77,7 +85,7 @@ class TestTimeZoneField:
         class MySerializer(serializers.Serializer):
             tz = tz.TimeZoneField(required=True)
 
-        with pytest.raises(ValidationError, match="This field is required"):
+        with pytest.raises(serializers.ValidationError, match="This field is required"):
             serializer = MySerializer(data={})
             serializer.is_valid(raise_exception=True)
 

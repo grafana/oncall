@@ -244,7 +244,7 @@ def test_create_on_call_shift_invalid_time_zone(make_organization_and_user_with_
     response = client.post(url, data=data, format="json", HTTP_AUTHORIZATION=f"{token}")
 
     assert response.status_code == status.HTTP_400_BAD_REQUEST
-    assert response.json() == {"detail": "Invalid timezone"}
+    assert response.json() == {"time_zone": ["Invalid timezone"]}
 
 
 @pytest.mark.django_db

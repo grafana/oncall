@@ -8,7 +8,7 @@ from icalendar import Calendar
 from rest_framework import serializers
 
 from common.api_helpers.exceptions import BadRequest
-from common.timezones import raise_bad_request_exception_if_not_valid_timezone
+from common.timezones import raise_exception_if_not_valid_timezone
 
 
 class CurrentOrganizationDefault:
@@ -84,7 +84,7 @@ def get_date_range_from_request(request):
     Used mainly for schedules and shifts API.
     """
     user_tz = request.query_params.get("user_tz", "UTC")
-    raise_bad_request_exception_if_not_valid_timezone(user_tz)
+    raise_exception_if_not_valid_timezone(user_tz)
 
     date = timezone.now().date()
     date_param = request.query_params.get("date")

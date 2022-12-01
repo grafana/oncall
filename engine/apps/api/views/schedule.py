@@ -36,7 +36,7 @@ from common.api_helpers.mixins import (
 )
 from common.api_helpers.utils import create_engine_url, get_date_range_from_request
 from common.insight_log import EntityEvent, write_resource_insight_log
-from common.timezones import raise_bad_request_exception_if_not_valid_timezone
+from common.timezones import raise_exception_if_not_valid_timezone
 
 EVENTS_FILTER_BY_ROTATION = "rotation"
 EVENTS_FILTER_BY_OVERRIDE = "override"
@@ -206,7 +206,7 @@ class ScheduleView(
 
     def get_request_timezone(self):
         user_tz = self.request.query_params.get("user_tz", "UTC")
-        raise_bad_request_exception_if_not_valid_timezone(user_tz)
+        raise_exception_if_not_valid_timezone(user_tz)
 
         date = timezone.now().date()
         date_param = self.request.query_params.get("date")

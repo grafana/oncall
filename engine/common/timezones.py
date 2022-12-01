@@ -11,15 +11,20 @@ def is_valid_timezone(timezone: str):
         return False
 
 
-def raise_bad_request_exception_if_not_valid_timezone(timezone):
+def raise_exception_if_not_valid_timezone(timezone, Exception=BadRequest):
     """
-    Like `is_valid_timezone` from `common.utils` but throws a `BadRequest`
-    exception if not a valid timezone
+    Like `is_valid_timezone` but throws specified Exception class
+    (default `common.api_helpers.exceptions.BadRequest`) if not a valid timezone.
+
+    **NOTE**: if an Exception class is provided, it should take a `detail` kwarg in its constructor
     """
     if not is_valid_timezone(timezone):
-        raise BadRequest(detail="Invalid timezone")
+        raise Exception(detail="Invalid timezone")
 
 
 class TimeZoneField(serializers.CharField):
+    def _validator(self, value: str):
+        raise_exception_if_not_valid_timezone(value, serializers.ValidationError)
+
     def __init__(self, **kwargs):
-        super().__init__(validators=[raise_bad_request_exception_if_not_valid_timezone], **kwargs)
+        super().__init__(validators=[self._validator], **kwargs)
