@@ -43,7 +43,7 @@ We prepared multiple environments:
 3. Launch services:
 
    ```bash
-   docker-compose up -d
+   docker-compose pull && docker-compose up -d
    ```
 
 4. Go to [OnCall Plugin Configuration](http://localhost:3000/plugins/grafana-oncall-app), using log in credentials
