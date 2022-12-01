@@ -493,7 +493,7 @@ def get_icalendar_tz_or_utc(icalendar):
     except (IndexError, KeyError):
         calendar_timezone = "UTC"
 
-    if (pytz_timezone := is_valid_timezone(calendar_timezone)) is not False:
+    if pytz_timezone := is_valid_timezone(calendar_timezone):
         return pytz_timezone
 
     # try to convert the timezone from windows to iana
