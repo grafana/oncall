@@ -563,6 +563,7 @@ PUSH_NOTIFICATIONS_SETTINGS = {
     "APNS_TEAM_ID": os.environ.get("APNS_TEAM_ID", None),
     "APNS_USE_SANDBOX": getenv_boolean("APNS_USE_SANDBOX", True),
 }
+FCM_RELAY_ENABLED = getenv_boolean("FCM_RELAY_ENABLED", default=False)
 
 SELF_HOSTED_SETTINGS = {
     "STACK_ID": 5,
