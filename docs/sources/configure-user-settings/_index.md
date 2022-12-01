@@ -22,7 +22,7 @@ Users can edit their contact information, but user permissions are assigned at t
 
 ## Configure user notification policies
 
-Administrators can configure how each user will receive notifications when they are are scheduled to receive them in escalation chains. Users can verify phone numbers and email addresses.
+Administrators can configure how each user will receive notifications when they are are scheduled to receive them in escalation chains. Users can verify phone numbers and email addresses. Only users with the **Admin** or **Editor** role are allowed to get notifications.
 
 > **NOTE**: You cannot add users or manage permissions in Grafana OnCall. Most user settings are found on the organizational level of your Grafana instance in **Configuration > Users**.
 
