@@ -39,8 +39,14 @@ repos:
     rev: "v2.7.1"
     hooks:
       - id: prettier
-        types_or: [css, javascript, jsx, ts, tsx, json]
+        name: prettier
+        types_or: [css, javascript, jsx, ts, tsx]
         files: ^grafana-plugin/src
+        additional_dependencies:
+          - prettier@^2.7.1
+      - id: prettier
+        name: prettier - json
+        types_or: [json]
         additional_dependencies:
           - prettier@^2.7.1
 
@@ -56,3 +62,13 @@ repos:
           - stylelint-prettier@^2.0.0
           - stylelint-config-standard@^22.0.0
           - stylelint-config-prettier@^9.0.3
+
+  - repo: https://github.com/igorshubovych/markdownlint-cli
+    rev: v0.32.2
+    hooks:
+      - id: markdownlint
+        name: markdownlint
+        entry: markdownlint --ignore grafana-plugin/node_modules --ignore grafana-plugin/dist --ignore docs **/*.md
+      - id: markdownlint
+        name: markdownlint - docs
+        entry: markdownlint --ignore grafana-plugin/node_modules --ignore grafana-plugin/dist -c ./docs/.markdownlint.json ./docs/**/*.md
