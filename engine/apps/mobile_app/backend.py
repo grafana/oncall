@@ -1,6 +1,7 @@
 import json
 
 from django.conf import settings
+from push_notifications.models import APNSDevice, GCMDevice
 
 from apps.base.messaging import BaseMessagingBackend
 from apps.mobile_app.tasks import notify_user_async
@@ -32,6 +33,10 @@ class MobileAppBackend(BaseMessagingBackend):
 
         token = MobileAppAuthToken.objects.get(user=user)
         token.delete()
+
+        # delete push notification related info for user
+        APNSDevice.objects.filter(user=user).delete()
+        GCMDevice.objects.filter(user=user).delete()
 
     def serialize_user(self, user):
         from apps.mobile_app.models import MobileAppAuthToken
