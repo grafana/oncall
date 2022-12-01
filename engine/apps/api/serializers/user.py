@@ -2,7 +2,6 @@ import math
 import time
 import typing
 
-import pytz
 from django.conf import settings
 from rest_framework import serializers
 
@@ -17,6 +16,7 @@ from apps.user_management.models import User
 from apps.user_management.models.user import default_working_hours
 from common.api_helpers.custom_fields import TeamPrimaryKeyRelatedField
 from common.api_helpers.mixins import EagerLoadingMixin
+from common.timezones import TimeZoneField
 
 from .custom_serializers import DynamicFieldsModelSerializer
 from .organization import FastOrganizationSerializer
@@ -34,7 +34,7 @@ class UserSerializer(DynamicFieldsModelSerializer, EagerLoadingMixin):
     organization = FastOrganizationSerializer(read_only=True)
     current_team = TeamPrimaryKeyRelatedField(allow_null=True, required=False)
 
-    timezone = serializers.CharField(allow_null=True, required=False)
+    timezone = TimeZoneField(allow_null=True, required=False)
     avatar = serializers.URLField(source="avatar_url", read_only=True)
     avatar_full = serializers.URLField(source="avatar_full_url", read_only=True)
     permissions = serializers.SerializerMethodField()
@@ -74,17 +74,6 @@ class UserSerializer(DynamicFieldsModelSerializer, EagerLoadingMixin):
             "role",  # LEGACY.. this should get removed eventually
             "verified_phone_number",
         ]
-
-    def validate_timezone(self, tz):
-        if tz is None:
-            return tz
-
-        try:
-            pytz.timezone(tz)
-        except pytz.UnknownTimeZoneError:
-            raise serializers.ValidationError("not a valid timezone")
-
-        return tz
 
     def validate_working_hours(self, working_hours):
         if not isinstance(working_hours, dict):

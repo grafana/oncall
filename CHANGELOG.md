@@ -10,6 +10,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - RBAC permission support
+- Add `time_zone` serializer validation for OnCall shifts and calendar/web schedules. In addition, add database migration
+  to update values that may be invalid
 
 ### Fixed
 
