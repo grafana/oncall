@@ -2,6 +2,7 @@
 
 import pytz
 from django.db import migrations
+from django.db.models import Q
 
 from common.timezones import is_valid_timezone
 
@@ -15,10 +16,13 @@ def fix_bad_timezone_values(model):
             version than this migration expects. We use the historical version.
         """
         Model = apps.get_model('schedules', model)
-        for obj in Model.objects.all():
-            if obj.time_zone and not is_valid_timezone(obj.time_zone):
+        objects_to_update = []
+        for obj in Model.objects.filter(Q(time_zone__isnull=False) & ~Q(time_zone__in=pytz.all_timezones)):
+            if not is_valid_timezone(obj.time_zone):
                 obj.time_zone = pytz.UTC
-                obj.save()
+                objects_to_update.append(obj)
+
+        Model.objects.bulk_update(objects_to_update, ['time_zone'])
 
     return _fix_bad_timezone_values
 
