@@ -16,6 +16,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - Got 500 error when saving Outgoing Webhook ([#890](https://github.com/grafana/oncall/issues/890))
+- v1.0.13 helm chart - update the OnCall backend pods image pull policy to "Always" (and explicitly set tag to `latest`).
+  This should resolve some recent issues experienced where the frontend/backend versions are not aligned.
 
 ### Changed
 
