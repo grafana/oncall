@@ -7,7 +7,7 @@ base_url: example.com
 image:
   # Grafana OnCall docker image repository
   repository: grafana/oncall
-  tag: latest
+  tag:
   pullPolicy: Always
 
 # Whether to create additional service for external connections
