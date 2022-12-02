@@ -1,26 +1,25 @@
 import plugin from '../../../package.json'; // eslint-disable-line
 import React, { FC, useEffect, useState, useCallback } from 'react';
 
-import { AppRootProps } from '@grafana/data';
-import { getLocationSrv } from '@grafana/runtime';
 import { Alert } from '@grafana/ui';
 import cn from 'classnames/bind';
 import { observer } from 'mobx-react';
+import { AppRootProps } from 'types';
 
 import PluginLink from 'components/PluginLink/PluginLink';
 import { getIfChatOpsConnected } from 'containers/DefaultPageLayout/helper';
 import { AppFeature } from 'state/features';
 import { useStore } from 'state/useStore';
-import { UserAction } from 'state/userAction';
+import LocationHelper from 'utils/LocationHelper';
+import { isUserActionAllowed, UserActions } from 'utils/authorization';
 import { GRAFANA_LICENSE_OSS } from 'utils/consts';
 import { useForceUpdate } from 'utils/hooks';
 import { getItem, setItem } from 'utils/localStorage';
 import sanitize from 'utils/sanitize';
 
 import { getSlackMessage } from './DefaultPageLayout.helpers';
+import styles from './DefaultPageLayout.module.scss';
 import { SlackError } from './DefaultPageLayout.types';
-
-import styles from './DefaultPageLayout.module.css';
 
 const cx = cn.bind(styles);
 
@@ -47,7 +46,7 @@ const DefaultPageLayout: FC<DefaultPageLayoutProps> = observer((props) => {
     if (query.slack_error) {
       setShowSlackInstallAlert(query.slack_error);
 
-      getLocationSrv().update({ partial: true, query: { slack_error: undefined }, replace: true });
+      LocationHelper.update({ slack_error: undefined }, 'replace');
     }
   }, []);
 
@@ -132,7 +131,7 @@ const DefaultPageLayout: FC<DefaultPageLayoutProps> = observer((props) => {
         {Boolean(
           currentTeam &&
             currentUser &&
-            store.isUserActionAllowed(UserAction.UpdateOwnSettings) &&
+            isUserActionAllowed(UserActions.UserSettingsWrite) &&
             (!isPhoneVerified || !isChatOpsConnected) &&
             !getItem(AlertID.CONNECTIVITY_WARNING)
         ) && (

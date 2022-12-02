@@ -1,0 +1,25 @@
+.align-top {
+  vertical-align: top;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+}
+
+.row {
+  /* vertical-align: top; */
+}
+
+.check-icon {
+  color: green;
+}
+
+.description-style > a {
+  color: var(--primary-text-link);
+}
+
+.description-style {
+  word-wrap: break-word;
+  word-break: break-word;
+}

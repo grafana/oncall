@@ -11,7 +11,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from apps.api.permissions import IsAdmin, MethodPermission
+from apps.api.permissions import RBACPermission
 from apps.auth_token.auth import PluginAuthentication
 from apps.base.utils import live_settings
 from apps.slack.scenarios.alertgroup_appearance import STEPS_ROUTING as ALERTGROUP_APPEARANCE_ROUTING
@@ -270,6 +270,11 @@ class SlackEventApiEndpointView(APIView):
                 # Open pop-up to inform user why OnCall bot doesn't work if any action was triggered
                 self._open_warning_window_if_needed(payload, slack_team_identity, warning_text)
                 return Response(status=200)
+        elif not slack_user_identity.users.exists():
+            # Means that slack_user_identity doesn't have any connected user
+            # Open pop-up to inform user why OnCall bot doesn't work if any action was triggered
+            self._open_warning_for_unconnected_user(sc, payload)
+            return Response(status=200)
 
         action_record = SlackActionRecord(user=user, organization=organization, payload=payload)
 
@@ -528,10 +533,12 @@ class SlackEventApiEndpointView(APIView):
 
 class ResetSlackView(APIView):
 
-    permission_classes = (IsAuthenticated, MethodPermission)
+    permission_classes = (IsAuthenticated, RBACPermission)
     authentication_classes = [PluginAuthentication]
 
-    method_permissions = {IsAdmin: {"POST"}}
+    rbac_permissions = {
+        "post": [RBACPermission.Permissions.CHATOPS_UPDATE_SETTINGS],
+    }
 
     def post(self, request):
         organization = request.auth.organization

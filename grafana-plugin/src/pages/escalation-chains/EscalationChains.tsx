@@ -1,8 +1,7 @@
 import React from 'react';
 
-import { AppRootProps } from '@grafana/data';
-import { getLocationSrv } from '@grafana/runtime';
 import { Button, HorizontalGroup, Icon, IconButton, LoadingPlaceholder, Tooltip, VerticalGroup } from '@grafana/ui';
+import { PluginPage } from 'PluginPage';
 import cn from 'classnames/bind';
 import { debounce } from 'lodash-es';
 import { observer } from 'mobx-react';
@@ -26,15 +25,17 @@ import EscalationChainForm from 'containers/EscalationChainForm/EscalationChainF
 import EscalationChainSteps from 'containers/EscalationChainSteps/EscalationChainSteps';
 import { WithPermissionControl } from 'containers/WithPermissionControl/WithPermissionControl';
 import { EscalationChain } from 'models/escalation_chain/escalation_chain.types';
-import { WithStoreProps } from 'state/types';
-import { UserAction } from 'state/userAction';
+import { pages } from 'pages';
+import { PageProps, WithStoreProps } from 'state/types';
 import { withMobXProviderContext } from 'state/withStore';
+import LocationHelper from 'utils/LocationHelper';
+import { UserActions } from 'utils/authorization';
 
 import styles from './EscalationChains.module.css';
 
 const cx = cn.bind(styles);
 
-interface EscalationChainsPageProps extends WithStoreProps, AppRootProps {}
+interface EscalationChainsPageProps extends WithStoreProps, PageProps {}
 
 interface EscalationChainsPageState extends PageBaseState {
   escalationChainsFilters: { searchTerm: string };
@@ -101,7 +102,7 @@ class EscalationChainsPage extends React.Component<EscalationChainsPageProps, Es
     const { escalationChainStore } = store;
 
     this.setState({ selectedEscalationChain: escalationChain }, () => {
-      getLocationSrv().update({ partial: true, query: { id: escalationChain } });
+      LocationHelper.update({ id: escalationChain }, 'partial');
       if (escalationChain) {
         escalationChainStore.updateEscalationChainDetails(escalationChain);
       }
@@ -134,88 +135,90 @@ class EscalationChainsPage extends React.Component<EscalationChainsPageProps, Es
     const searchResult = escalationChainStore.getSearchResult(escalationChainsFilters.searchTerm);
 
     return (
-      <PageErrorHandlingWrapper
-        errorData={errorData}
-        objectName="escalation"
-        pageName="escalations"
-        itemNotFoundMessage={`Escalation chain with id=${query?.id} is not found. Please select escalation chain from the list.`}
-      >
-        {() => (
-          <>
-            <div className={cx('root')}>
-              <div className={cx('filters')}>
-                <EscalationsFilters value={escalationChainsFilters} onChange={this.handleEscalationsFiltersChange} />
-              </div>
-              {!searchResult || searchResult.length ? (
-                <div className={cx('escalations')}>
-                  <div className={cx('left-column')}>
-                    <WithPermissionControl userAction={UserAction.UpdateAlertReceiveChannels}>
-                      <Button
-                        onClick={() => {
-                          this.setState({ showCreateEscalationChainModal: true });
-                        }}
-                        icon="plus"
-                        className={cx('new-escalation-chain')}
-                      >
-                        New escalation chain
-                      </Button>
-                    </WithPermissionControl>
-                    <div className={cx('escalations-list')}>
-                      {searchResult ? (
-                        <GList
-                          autoScroll
-                          selectedId={selectedEscalationChain}
-                          items={searchResult}
-                          itemKey="id"
-                          onSelect={this.setSelectedEscalationChain}
-                        >
-                          {(item) => <EscalationChainCard id={item.id} />}
-                        </GList>
-                      ) : (
-                        <LoadingPlaceholder className={cx('loading')} text="Loading..." />
-                      )}
-                    </div>
-                  </div>
-                  <div className={cx('escalation')}>{this.renderEscalation()}</div>
+      <PluginPage pageNav={pages['escalations'].getPageNav()}>
+        <PageErrorHandlingWrapper
+          errorData={errorData}
+          objectName="escalation"
+          pageName="escalations"
+          itemNotFoundMessage={`Escalation chain with id=${query?.id} is not found. Please select escalation chain from the list.`}
+        >
+          {() => (
+            <>
+              <div className={cx('root')}>
+                <div className={cx('filters')}>
+                  <EscalationsFilters value={escalationChainsFilters} onChange={this.handleEscalationsFiltersChange} />
                 </div>
-              ) : (
-                <Tutorial
-                  step={TutorialStep.Escalations}
-                  title={
-                    <VerticalGroup align="center" spacing="lg">
-                      <Text type="secondary">No escalations found, check your filtering and current team.</Text>
-                      <WithPermissionControl userAction={UserAction.UpdateEscalationPolicies}>
+                {!searchResult || searchResult.length ? (
+                  <div className={cx('escalations')}>
+                    <div className={cx('left-column')}>
+                      <WithPermissionControl userAction={UserActions.IntegrationsWrite}>
                         <Button
-                          icon="plus"
-                          variant="primary"
-                          size="lg"
                           onClick={() => {
                             this.setState({ showCreateEscalationChainModal: true });
                           }}
+                          icon="plus"
+                          className={cx('new-escalation-chain')}
                         >
                           New Escalation Chain
                         </Button>
                       </WithPermissionControl>
-                    </VerticalGroup>
-                  }
+                      <div className={cx('escalations-list')}>
+                        {searchResult ? (
+                          <GList
+                            autoScroll
+                            selectedId={selectedEscalationChain}
+                            items={searchResult}
+                            itemKey="id"
+                            onSelect={this.setSelectedEscalationChain}
+                          >
+                            {(item) => <EscalationChainCard id={item.id} />}
+                          </GList>
+                        ) : (
+                          <LoadingPlaceholder className={cx('loading')} text="Loading..." />
+                        )}
+                      </div>
+                    </div>
+                    <div className={cx('escalation')}>{this.renderEscalation()}</div>
+                  </div>
+                ) : (
+                  <Tutorial
+                    step={TutorialStep.Escalations}
+                    title={
+                      <VerticalGroup align="center" spacing="lg">
+                        <Text type="secondary">No escalations found, check your filtering and current team.</Text>
+                        <WithPermissionControl userAction={UserActions.EscalationChainsWrite}>
+                          <Button
+                            icon="plus"
+                            variant="primary"
+                            size="lg"
+                            onClick={() => {
+                              this.setState({ showCreateEscalationChainModal: true });
+                            }}
+                          >
+                            New Escalation Chain
+                          </Button>
+                        </WithPermissionControl>
+                      </VerticalGroup>
+                    }
+                  />
+                )}
+              </div>
+              {showCreateEscalationChainModal && (
+                <EscalationChainForm
+                  escalationChainId={escalationChainIdToCopy}
+                  onHide={() => {
+                    this.setState({
+                      showCreateEscalationChainModal: false,
+                      escalationChainIdToCopy: undefined,
+                    });
+                  }}
+                  onUpdate={this.handleEscalationChainCreate}
                 />
               )}
-            </div>
-            {showCreateEscalationChainModal && (
-              <EscalationChainForm
-                escalationChainId={escalationChainIdToCopy}
-                onHide={() => {
-                  this.setState({
-                    showCreateEscalationChainModal: false,
-                    escalationChainIdToCopy: undefined,
-                  });
-                }}
-                onUpdate={this.handleEscalationChainCreate}
-              />
-            )}
-          </>
-        )}
-      </PageErrorHandlingWrapper>
+            </>
+          )}
+        </PageErrorHandlingWrapper>
+      </PluginPage>
     );
   }
 
@@ -260,7 +263,7 @@ class EscalationChainsPage extends React.Component<EscalationChainsPageProps, Es
           </Text>
           <div className={cx('buttons')}>
             <HorizontalGroup>
-              <WithPermissionControl userAction={UserAction.UpdateEscalationPolicies}>
+              <WithPermissionControl userAction={UserActions.EscalationChainsWrite}>
                 <IconButton
                   tooltip="Copy"
                   tooltipPlacement="top"
@@ -273,7 +276,7 @@ class EscalationChainsPage extends React.Component<EscalationChainsPageProps, Es
                   }}
                 />
               </WithPermissionControl>
-              <WithPermissionControl userAction={UserAction.UpdateEscalationPolicies}>
+              <WithPermissionControl userAction={UserActions.EscalationChainsWrite}>
                 <WithConfirm title={`Are you sure to remove "${escalationChain.name}"?`} confirmText="Remove">
                   <IconButton
                     disabled={escalationChain.number_of_integrations > 0}

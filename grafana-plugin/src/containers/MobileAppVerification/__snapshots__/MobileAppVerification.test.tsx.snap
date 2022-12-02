@@ -1,0 +1,770 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`MobileAppVerification if we disconnect the app, it disconnects and fetches a new QR code 1`] = `
+<div>
+  <div
+    class="container"
+  >
+    <div
+      class="root container__box root_bordered root_shadowed root--withBackground"
+    >
+      <div
+        class="css-1j7sh2x-vertical-group"
+        style="width: 100%; height: 100%;"
+      >
+        <div
+          class="css-ztyofd-layoutChildrenWrapper"
+        >
+          <span
+            class="root text text--primary text--medium text--strong"
+          >
+            Download
+          </span>
+        </div>
+        <div
+          class="css-ztyofd-layoutChildrenWrapper"
+        >
+          <span
+            class="root text text--primary text--medium"
+          >
+            The Grafana IRM app is available on both the App Store and Google Play Store.
+          </span>
+        </div>
+        <div
+          class="css-ztyofd-layoutChildrenWrapper"
+        >
+          <div
+            class="css-1j7sh2x-vertical-group"
+            style="width: 100%; height: 100%;"
+          >
+            <div
+              class="css-bxa289-layoutChildrenWrapper"
+            >
+              <div
+                class="root icon-block root_bordered root--fullWidth root--withBackground root--hover"
+              >
+                <img
+                  alt="Apple"
+                  class="icon"
+                  src="[object Object]"
+                />
+                <span
+                  class="root text icon-text text--primary text--medium"
+                >
+                  iOS
+                </span>
+              </div>
+            </div>
+            <div
+              class="css-bxa289-layoutChildrenWrapper"
+            >
+              <div
+                class="root icon-block root_bordered root--fullWidth root--hover"
+              >
+                <img
+                  alt="Play Store"
+                  class="icon"
+                  src="[object Object]"
+                />
+                <span
+                  class="root text icon-text text--primary text--medium"
+                >
+                  Android
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div
+      class="root container__box root_bordered root_shadowed root--withBackground"
+    >
+      <div
+        class="css-1j7sh2x-vertical-group"
+        style="width: 100%; height: 100%;"
+      >
+        <div
+          class="css-ztyofd-layoutChildrenWrapper"
+        >
+          <span
+            class="root text text--primary text--medium text--strong"
+          >
+            App connected 
+            <div
+              class="css-wf08df-Icon"
+            >
+              <svg
+                class="css-eyx4do icon"
+                height="16"
+                viewBox="0 0 24 24"
+                width="16"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="M14.72,8.79l-4.29,4.3L8.78,11.44a1,1,0,1,0-1.41,1.41l2.35,2.36a1,1,0,0,0,.71.29,1,1,0,0,0,.7-.29l5-5a1,1,0,0,0,0-1.42A1,1,0,0,0,14.72,8.79ZM12,2A10,10,0,1,0,22,12,10,10,0,0,0,12,2Zm0,18a8,8,0,1,1,8-8A8,8,0,0,1,12,20Z"
+                />
+              </svg>
+            </div>
+          </span>
+        </div>
+        <div
+          class="css-ztyofd-layoutChildrenWrapper"
+        >
+          <span
+            class="root text text--primary text--medium"
+          >
+            You can sync one application to your account. To setup new device please disconnect app first.
+          </span>
+        </div>
+        <div
+          class="css-ztyofd-layoutChildrenWrapper"
+        >
+          <div
+            class="disconnect__container"
+          >
+            <img
+              class="disconnect__qrCode"
+              src="[object Object]"
+            />
+            <button
+              class="css-mk7eo3-button disconnect-button"
+              data-testid="test__disconnect"
+              type="button"
+            >
+              <span
+                class="css-1mhnkuh"
+              >
+                Disconnect
+              </span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`MobileAppVerification it shows a QR code if the app isn't already connected 1`] = `
+<div>
+  <div
+    class="container"
+  >
+    <div
+      class="root container__box root_bordered root_shadowed root--withBackground"
+    >
+      <div
+        class="css-1j7sh2x-vertical-group"
+        style="width: 100%; height: 100%;"
+      >
+        <div
+          class="css-ztyofd-layoutChildrenWrapper"
+        >
+          <span
+            class="root text text--primary text--medium text--strong"
+          >
+            Download
+          </span>
+        </div>
+        <div
+          class="css-ztyofd-layoutChildrenWrapper"
+        >
+          <span
+            class="root text text--primary text--medium"
+          >
+            The Grafana IRM app is available on both the App Store and Google Play Store.
+          </span>
+        </div>
+        <div
+          class="css-ztyofd-layoutChildrenWrapper"
+        >
+          <div
+            class="css-1j7sh2x-vertical-group"
+            style="width: 100%; height: 100%;"
+          >
+            <div
+              class="css-bxa289-layoutChildrenWrapper"
+            >
+              <div
+                class="root icon-block root_bordered root--fullWidth root--withBackground root--hover"
+              >
+                <img
+                  alt="Apple"
+                  class="icon"
+                  src="[object Object]"
+                />
+                <span
+                  class="root text icon-text text--primary text--medium"
+                >
+                  iOS
+                </span>
+              </div>
+            </div>
+            <div
+              class="css-bxa289-layoutChildrenWrapper"
+            >
+              <div
+                class="root icon-block root_bordered root--fullWidth root--hover"
+              >
+                <img
+                  alt="Play Store"
+                  class="icon"
+                  src="[object Object]"
+                />
+                <span
+                  class="root text icon-text text--primary text--medium"
+                >
+                  Android
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div
+      class="root container__box root_bordered root_shadowed root--withBackground"
+    >
+      <div
+        class="css-lq6a48"
+      >
+        Loading...
+         
+        <div
+          class="css-13pg8vy"
+          data-testid="Spinner"
+        >
+          <i
+            class="fa fa-spinner fa-spin fa-spin"
+          />
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`MobileAppVerification it shows a loading message if it is currently disconnecting 1`] = `
+<div>
+  <div
+    class="container"
+  >
+    <div
+      class="root container__box root_bordered root_shadowed root--withBackground"
+    >
+      <div
+        class="css-1j7sh2x-vertical-group"
+        style="width: 100%; height: 100%;"
+      >
+        <div
+          class="css-ztyofd-layoutChildrenWrapper"
+        >
+          <span
+            class="root text text--primary text--medium text--strong"
+          >
+            Download
+          </span>
+        </div>
+        <div
+          class="css-ztyofd-layoutChildrenWrapper"
+        >
+          <span
+            class="root text text--primary text--medium"
+          >
+            The Grafana IRM app is available on both the App Store and Google Play Store.
+          </span>
+        </div>
+        <div
+          class="css-ztyofd-layoutChildrenWrapper"
+        >
+          <div
+            class="css-1j7sh2x-vertical-group"
+            style="width: 100%; height: 100%;"
+          >
+            <div
+              class="css-bxa289-layoutChildrenWrapper"
+            >
+              <div
+                class="root icon-block root_bordered root--fullWidth root--withBackground root--hover"
+              >
+                <img
+                  alt="Apple"
+                  class="icon"
+                  src="[object Object]"
+                />
+                <span
+                  class="root text icon-text text--primary text--medium"
+                >
+                  iOS
+                </span>
+              </div>
+            </div>
+            <div
+              class="css-bxa289-layoutChildrenWrapper"
+            >
+              <div
+                class="root icon-block root_bordered root--fullWidth root--hover"
+              >
+                <img
+                  alt="Play Store"
+                  class="icon"
+                  src="[object Object]"
+                />
+                <span
+                  class="root text icon-text text--primary text--medium"
+                >
+                  Android
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div
+      class="root container__box root_bordered root_shadowed root--withBackground"
+    >
+      <div
+        class="css-lq6a48"
+      >
+        Loading...
+         
+        <div
+          class="css-13pg8vy"
+          data-testid="Spinner"
+        >
+          <i
+            class="fa fa-spinner fa-spin fa-spin"
+          />
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`MobileAppVerification it shows a loading message if it is currently fetching the QR code 1`] = `
+<div>
+  <div
+    class="container"
+  >
+    <div
+      class="root container__box root_bordered root_shadowed root--withBackground"
+    >
+      <div
+        class="css-1j7sh2x-vertical-group"
+        style="width: 100%; height: 100%;"
+      >
+        <div
+          class="css-ztyofd-layoutChildrenWrapper"
+        >
+          <span
+            class="root text text--primary text--medium text--strong"
+          >
+            Download
+          </span>
+        </div>
+        <div
+          class="css-ztyofd-layoutChildrenWrapper"
+        >
+          <span
+            class="root text text--primary text--medium"
+          >
+            The Grafana IRM app is available on both the App Store and Google Play Store.
+          </span>
+        </div>
+        <div
+          class="css-ztyofd-layoutChildrenWrapper"
+        >
+          <div
+            class="css-1j7sh2x-vertical-group"
+            style="width: 100%; height: 100%;"
+          >
+            <div
+              class="css-bxa289-layoutChildrenWrapper"
+            >
+              <div
+                class="root icon-block root_bordered root--fullWidth root--withBackground root--hover"
+              >
+                <img
+                  alt="Apple"
+                  class="icon"
+                  src="[object Object]"
+                />
+                <span
+                  class="root text icon-text text--primary text--medium"
+                >
+                  iOS
+                </span>
+              </div>
+            </div>
+            <div
+              class="css-bxa289-layoutChildrenWrapper"
+            >
+              <div
+                class="root icon-block root_bordered root--fullWidth root--hover"
+              >
+                <img
+                  alt="Play Store"
+                  class="icon"
+                  src="[object Object]"
+                />
+                <span
+                  class="root text icon-text text--primary text--medium"
+                >
+                  Android
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div
+      class="root container__box root_bordered root_shadowed root--withBackground"
+    >
+      <div
+        class="css-lq6a48"
+      >
+        Loading...
+         
+        <div
+          class="css-13pg8vy"
+          data-testid="Spinner"
+        >
+          <i
+            class="fa fa-spinner fa-spin fa-spin"
+          />
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`MobileAppVerification it shows a message when the mobile app is already connected 1`] = `
+<div>
+  <div
+    class="container"
+  >
+    <div
+      class="root container__box root_bordered root_shadowed root--withBackground"
+    >
+      <div
+        class="css-1j7sh2x-vertical-group"
+        style="width: 100%; height: 100%;"
+      >
+        <div
+          class="css-ztyofd-layoutChildrenWrapper"
+        >
+          <span
+            class="root text text--primary text--medium text--strong"
+          >
+            Download
+          </span>
+        </div>
+        <div
+          class="css-ztyofd-layoutChildrenWrapper"
+        >
+          <span
+            class="root text text--primary text--medium"
+          >
+            The Grafana IRM app is available on both the App Store and Google Play Store.
+          </span>
+        </div>
+        <div
+          class="css-ztyofd-layoutChildrenWrapper"
+        >
+          <div
+            class="css-1j7sh2x-vertical-group"
+            style="width: 100%; height: 100%;"
+          >
+            <div
+              class="css-bxa289-layoutChildrenWrapper"
+            >
+              <div
+                class="root icon-block root_bordered root--fullWidth root--withBackground root--hover"
+              >
+                <img
+                  alt="Apple"
+                  class="icon"
+                  src="[object Object]"
+                />
+                <span
+                  class="root text icon-text text--primary text--medium"
+                >
+                  iOS
+                </span>
+              </div>
+            </div>
+            <div
+              class="css-bxa289-layoutChildrenWrapper"
+            >
+              <div
+                class="root icon-block root_bordered root--fullWidth root--hover"
+              >
+                <img
+                  alt="Play Store"
+                  class="icon"
+                  src="[object Object]"
+                />
+                <span
+                  class="root text icon-text text--primary text--medium"
+                >
+                  Android
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div
+      class="root container__box root_bordered root_shadowed root--withBackground"
+    >
+      <div
+        class="css-1j7sh2x-vertical-group"
+        style="width: 100%; height: 100%;"
+      >
+        <div
+          class="css-ztyofd-layoutChildrenWrapper"
+        >
+          <span
+            class="root text text--primary text--medium text--strong"
+          >
+            App connected 
+            <div
+              class="css-wf08df-Icon"
+            >
+              <svg
+                class="css-eyx4do icon"
+                height="16"
+                viewBox="0 0 24 24"
+                width="16"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="M14.72,8.79l-4.29,4.3L8.78,11.44a1,1,0,1,0-1.41,1.41l2.35,2.36a1,1,0,0,0,.71.29,1,1,0,0,0,.7-.29l5-5a1,1,0,0,0,0-1.42A1,1,0,0,0,14.72,8.79ZM12,2A10,10,0,1,0,22,12,10,10,0,0,0,12,2Zm0,18a8,8,0,1,1,8-8A8,8,0,0,1,12,20Z"
+                />
+              </svg>
+            </div>
+          </span>
+        </div>
+        <div
+          class="css-ztyofd-layoutChildrenWrapper"
+        >
+          <span
+            class="root text text--primary text--medium"
+          >
+            You can sync one application to your account. To setup new device please disconnect app first.
+          </span>
+        </div>
+        <div
+          class="css-ztyofd-layoutChildrenWrapper"
+        >
+          <div
+            class="disconnect__container"
+          >
+            <img
+              class="disconnect__qrCode"
+              src="[object Object]"
+            />
+            <button
+              class="css-mk7eo3-button disconnect-button"
+              data-testid="test__disconnect"
+              type="button"
+            >
+              <span
+                class="css-1mhnkuh"
+              >
+                Disconnect
+              </span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`MobileAppVerification it shows an error message if there was an error disconnecting the mobile app 1`] = `
+<div>
+  <div
+    class="container"
+  >
+    <div
+      class="root container__box root_bordered root_shadowed root--withBackground"
+    >
+      <div
+        class="css-1j7sh2x-vertical-group"
+        style="width: 100%; height: 100%;"
+      >
+        <div
+          class="css-ztyofd-layoutChildrenWrapper"
+        >
+          <span
+            class="root text text--primary text--medium text--strong"
+          >
+            Download
+          </span>
+        </div>
+        <div
+          class="css-ztyofd-layoutChildrenWrapper"
+        >
+          <span
+            class="root text text--primary text--medium"
+          >
+            The Grafana IRM app is available on both the App Store and Google Play Store.
+          </span>
+        </div>
+        <div
+          class="css-ztyofd-layoutChildrenWrapper"
+        >
+          <div
+            class="css-1j7sh2x-vertical-group"
+            style="width: 100%; height: 100%;"
+          >
+            <div
+              class="css-bxa289-layoutChildrenWrapper"
+            >
+              <div
+                class="root icon-block root_bordered root--fullWidth root--withBackground root--hover"
+              >
+                <img
+                  alt="Apple"
+                  class="icon"
+                  src="[object Object]"
+                />
+                <span
+                  class="root text icon-text text--primary text--medium"
+                >
+                  iOS
+                </span>
+              </div>
+            </div>
+            <div
+              class="css-bxa289-layoutChildrenWrapper"
+            >
+              <div
+                class="root icon-block root_bordered root--fullWidth root--hover"
+              >
+                <img
+                  alt="Play Store"
+                  class="icon"
+                  src="[object Object]"
+                />
+                <span
+                  class="root text icon-text text--primary text--medium"
+                >
+                  Android
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div
+      class="root container__box root_bordered root_shadowed root--withBackground"
+    >
+      <span
+        class="root text text--primary text--medium"
+      >
+        There was an error disconnecting your mobile app. Please try again.
+      </span>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`MobileAppVerification it shows an error message if there was an error fetching the QR code 1`] = `
+<div>
+  <div
+    class="container"
+  >
+    <div
+      class="root container__box root_bordered root_shadowed root--withBackground"
+    >
+      <div
+        class="css-1j7sh2x-vertical-group"
+        style="width: 100%; height: 100%;"
+      >
+        <div
+          class="css-ztyofd-layoutChildrenWrapper"
+        >
+          <span
+            class="root text text--primary text--medium text--strong"
+          >
+            Download
+          </span>
+        </div>
+        <div
+          class="css-ztyofd-layoutChildrenWrapper"
+        >
+          <span
+            class="root text text--primary text--medium"
+          >
+            The Grafana IRM app is available on both the App Store and Google Play Store.
+          </span>
+        </div>
+        <div
+          class="css-ztyofd-layoutChildrenWrapper"
+        >
+          <div
+            class="css-1j7sh2x-vertical-group"
+            style="width: 100%; height: 100%;"
+          >
+            <div
+              class="css-bxa289-layoutChildrenWrapper"
+            >
+              <div
+                class="root icon-block root_bordered root--fullWidth root--withBackground root--hover"
+              >
+                <img
+                  alt="Apple"
+                  class="icon"
+                  src="[object Object]"
+                />
+                <span
+                  class="root text icon-text text--primary text--medium"
+                >
+                  iOS
+                </span>
+              </div>
+            </div>
+            <div
+              class="css-bxa289-layoutChildrenWrapper"
+            >
+              <div
+                class="root icon-block root_bordered root--fullWidth root--hover"
+              >
+                <img
+                  alt="Play Store"
+                  class="icon"
+                  src="[object Object]"
+                />
+                <span
+                  class="root text icon-text text--primary text--medium"
+                >
+                  Android
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div
+      class="root container__box root_bordered root_shadowed root--withBackground"
+    >
+      <span
+        class="root text text--primary text--medium"
+      >
+        There was an error fetching your QR code. Please try again.
+      </span>
+    </div>
+  </div>
+</div>
+`;

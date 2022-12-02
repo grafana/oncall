@@ -4,7 +4,7 @@ from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
-from apps.api.permissions import MODIFY_ACTIONS, READ_ACTIONS, ActionPermission, AnyRole, IsAdmin
+from apps.api.permissions import RBACPermission
 from apps.api.serializers.telegram import TelegramToOrganizationConnectorSerializer
 from apps.auth_token.auth import PluginAuthentication
 from common.api_helpers.mixins import PublicPrimaryKeyMixin
@@ -19,11 +19,14 @@ class TelegramChannelViewSet(
     viewsets.GenericViewSet,
 ):
     authentication_classes = (PluginAuthentication,)
-    permission_classes = (IsAuthenticated, ActionPermission)
+    permission_classes = (IsAuthenticated, RBACPermission)
 
-    action_permissions = {
-        IsAdmin: (*MODIFY_ACTIONS, "set_default"),
-        AnyRole: READ_ACTIONS,
+    rbac_permissions = {
+        "metadata": [RBACPermission.Permissions.CHATOPS_READ],
+        "list": [RBACPermission.Permissions.CHATOPS_READ],
+        "retrieve": [RBACPermission.Permissions.CHATOPS_READ],
+        "destroy": [RBACPermission.Permissions.CHATOPS_UPDATE_SETTINGS],
+        "set_default": [RBACPermission.Permissions.CHATOPS_UPDATE_SETTINGS],
     }
 
     serializer_class = TelegramToOrganizationConnectorSerializer

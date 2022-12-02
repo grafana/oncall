@@ -1,10 +1,11 @@
-.root {
-  margin-top: 24px;
-}
-
 .schedule {
   position: relative;
   margin: 20px 0;
+  max-width: calc(100vw - 104px);
+}
+
+.title {
+  margin-bottom: var(--title-marginBottom);
 }
 
 .root .buttons {

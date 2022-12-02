@@ -19,7 +19,7 @@ FROM base AS dev
 RUN apk add sqlite mysql-client postgresql-client
 
 FROM dev AS dev-enterprise
-RUN pip install -r requirements-enterprise.txt
+RUN pip install -r requirements-enterprise-docker.txt
 
 FROM base AS prod
 

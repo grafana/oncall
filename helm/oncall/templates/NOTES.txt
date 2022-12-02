@@ -34,19 +34,8 @@
 
   🔗 Connect Grafana OnCall Plugin to Grafana OnCall backend:
 
-     Issue the one-time token to connect Grafana OnCall backend and Grafana OnCall plugin by running these commands:
-
-        export POD_NAME=$(kubectl get pods --namespace {{ .Release.Namespace }} -l "app.kubernetes.io/name={{ include "oncall.name" . }},app.kubernetes.io/instance={{ .Release.Name }},app.kubernetes.io/component=engine" -o jsonpath="{.items[0].metadata.name}")
-        kubectl exec -it $POD_NAME --namespace {{ .Release.Namespace }} -- bash -c "python manage.py issue_invite_for_the_frontend --override"
-
      Fill the Grafana OnCall Backend URL:
 
           http://{{ include "oncall.engine.fullname" . }}:8080
-
-     Fill the Grafana URL:
-
-          {{ if .Values.grafana.enabled }}http://{{ include "oncall.grafana.fullname" . }}{{ else }}https://<external-grafana>{{- end }}
-
-
 
 🎉🎉🎉  Done! 🎉🎉🎉

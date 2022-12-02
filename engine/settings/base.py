@@ -39,6 +39,8 @@ MIRAGE_CIPHER_MODE = "CBC"
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = False
 
+DEBUG_CELERY_TASKS_PROFILING = getenv_boolean("DEBUG_CELERY_TASKS_PROFILING", False)
+
 ALLOWED_HOSTS = [item.strip() for item in os.environ.get("ALLOWED_HOSTS", "*").split(",")]
 
 # TODO: update link to up-to-date docs
@@ -52,6 +54,7 @@ FEATURE_LIVE_SETTINGS_ENABLED = getenv_boolean("FEATURE_LIVE_SETTINGS_ENABLED", 
 FEATURE_TELEGRAM_INTEGRATION_ENABLED = getenv_boolean("FEATURE_TELEGRAM_INTEGRATION_ENABLED", default=True)
 FEATURE_EMAIL_INTEGRATION_ENABLED = getenv_boolean("FEATURE_EMAIL_INTEGRATION_ENABLED", default=True)
 FEATURE_SLACK_INTEGRATION_ENABLED = getenv_boolean("FEATURE_SLACK_INTEGRATION_ENABLED", default=True)
+FEATURE_MOBILE_APP_INTEGRATION_ENABLED = getenv_boolean("FEATURE_MOBILE_APP_INTEGRATION_ENABLED", default=False)
 FEATURE_WEB_SCHEDULES_ENABLED = getenv_boolean("FEATURE_WEB_SCHEDULES_ENABLED", default=False)
 FEATURE_MULTIREGION_ENABLED = getenv_boolean("FEATURE_MULTIREGION_ENABLED", default=False)
 GRAFANA_CLOUD_ONCALL_HEARTBEAT_ENABLED = getenv_boolean("GRAFANA_CLOUD_ONCALL_HEARTBEAT_ENABLED", default=True)
@@ -202,13 +205,13 @@ INSTALLED_APPS = [
     "apps.slack",
     "apps.telegram",
     "apps.twilioapp",
+    "apps.mobile_app",
     "apps.api",
     "apps.api_for_grafana_incident",
     "apps.base",
     "apps.auth_token",
     "apps.public_api",
     "apps.grafana_plugin",
-    "apps.grafana_plugin_management",
     "corsheaders",
     "debug_toolbar",
     "social_django",
@@ -541,17 +544,26 @@ GRAFANA_COM_ADMIN_API_TOKEN = os.environ.get("GRAFANA_COM_ADMIN_API_TOKEN", None
 
 GRAFANA_API_KEY_NAME = "Grafana OnCall"
 
-MOBILE_APP_PUSH_NOTIFICATIONS_ENABLED = getenv_boolean("MOBILE_APP_PUSH_NOTIFICATIONS_ENABLED", default=False)
+EXTRA_MESSAGING_BACKENDS = []
+if FEATURE_MOBILE_APP_INTEGRATION_ENABLED:
+    EXTRA_MESSAGING_BACKENDS += [
+        ("apps.mobile_app.backend.MobileAppBackend", 5),
+        ("apps.mobile_app.backend.MobileAppCriticalBackend", 6),
+    ]
 
 PUSH_NOTIFICATIONS_SETTINGS = {
+    "FCM_API_KEY": os.getenv("FCM_API_KEY"),
+    "FCM_POST_URL": os.getenv("FCM_POST_URL", default="https://fcm.googleapis.com/fcm/send"),
+    "USER_MODEL": "user_management.User",
+    "UPDATE_ON_DUPLICATE_REG_ID": True,
+    # TODO: remove APNS related endpoints after the hackathon app is deprecated
     "APNS_AUTH_KEY_PATH": os.environ.get("APNS_AUTH_KEY_PATH", None),
     "APNS_TOPIC": os.environ.get("APNS_TOPIC", None),
     "APNS_AUTH_KEY_ID": os.environ.get("APNS_AUTH_KEY_ID", None),
     "APNS_TEAM_ID": os.environ.get("APNS_TEAM_ID", None),
     "APNS_USE_SANDBOX": getenv_boolean("APNS_USE_SANDBOX", True),
-    "USER_MODEL": "user_management.User",
-    "UPDATE_ON_DUPLICATE_REG_ID": True,
 }
+FCM_RELAY_ENABLED = getenv_boolean("FCM_RELAY_ENABLED", default=False)
 
 SELF_HOSTED_SETTINGS = {
     "STACK_ID": 5,
@@ -560,16 +572,18 @@ SELF_HOSTED_SETTINGS = {
     "ORG_SLUG": "self_hosted_org",
     "ORG_TITLE": "Self-Hosted Organization",
     "REGION_SLUG": "self_hosted_region",
+    "GRAFANA_API_URL": os.environ.get("GRAFANA_API_URL", default=None),
 }
 
 GRAFANA_INCIDENT_STATIC_API_KEY = os.environ.get("GRAFANA_INCIDENT_STATIC_API_KEY", None)
 
 DATA_UPLOAD_MAX_MEMORY_SIZE = getenv_integer("DATA_UPLOAD_MAX_MEMORY_SIZE", 1_048_576)  # 1mb by default
+JINJA_TEMPLATE_MAX_LENGTH = 50000
+JINJA_RESULT_TITLE_MAX_LENGTH = 500
+JINJA_RESULT_MAX_LENGTH = 50000
 
 # Log inbound/outbound calls as slow=1 if they exceed threshold
 SLOW_THRESHOLD_SECONDS = 2.0
-
-EXTRA_MESSAGING_BACKENDS = []
 
 # Email messaging backend
 EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
@@ -581,7 +595,7 @@ EMAIL_USE_TLS = getenv_boolean("EMAIL_USE_TLS", True)
 EMAIL_FROM_ADDRESS = os.getenv("EMAIL_FROM_ADDRESS")
 
 if FEATURE_EMAIL_INTEGRATION_ENABLED:
-    EXTRA_MESSAGING_BACKENDS = [("apps.email.backend.EmailBackend", 8)]
+    EXTRA_MESSAGING_BACKENDS += [("apps.email.backend.EmailBackend", 8)]
 
 INSTALLED_ONCALL_INTEGRATIONS = [
     "config_integrations.alertmanager",

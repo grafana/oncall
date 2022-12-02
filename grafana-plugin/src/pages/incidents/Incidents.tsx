@@ -1,8 +1,7 @@
 import React, { ReactElement, SyntheticEvent } from 'react';
 
-import { AppRootProps } from '@grafana/data';
-import { getLocationSrv } from '@grafana/runtime';
 import { Button, Icon, Tooltip, VerticalGroup, LoadingPlaceholder, HorizontalGroup } from '@grafana/ui';
+import { PluginPage } from 'PluginPage';
 import cn from 'classnames/bind';
 import { get } from 'lodash-es';
 import { observer } from 'mobx-react';
@@ -21,11 +20,13 @@ import IncidentsFilters from 'containers/IncidentsFilters/IncidentsFilters';
 import { WithPermissionControl } from 'containers/WithPermissionControl/WithPermissionControl';
 import { Alert, Alert as AlertType, AlertAction } from 'models/alertgroup/alertgroup.types';
 import { User } from 'models/user/user.types';
+import { pages } from 'pages';
 import { getActionButtons, getIncidentStatusTag, renderRelatedUsers } from 'pages/incident/Incident.helpers';
 import { move } from 'state/helpers';
-import { WithStoreProps } from 'state/types';
-import { UserAction } from 'state/userAction';
+import { PageProps, WithStoreProps } from 'state/types';
 import { withMobXProviderContext } from 'state/withStore';
+import LocationHelper from 'utils/LocationHelper';
+import { UserActions } from 'utils/authorization';
 
 import SilenceDropdown from './parts/SilenceDropdown';
 
@@ -50,7 +51,7 @@ function withSkeleton(fn: (alert: AlertType) => ReactElement | ReactElement[]) {
   return WithSkeleton;
 }
 
-interface IncidentsPageProps extends WithStoreProps, AppRootProps {}
+interface IncidentsPageProps extends WithStoreProps, PageProps {}
 
 interface IncidentsPageState {
   selectedIncidentIds: Array<Alert['pk']>;
@@ -100,10 +101,12 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
 
   render() {
     return (
-      <div className={cx('root')}>
-        {this.renderIncidentFilters()}
-        {this.renderTable()}
-      </div>
+      <PluginPage pageNav={pages['incidents'].getPageNav()}>
+        <div className={cx('root')}>
+          {this.renderIncidentFilters()}
+          {this.renderTable()}
+        </div>
+      </PluginPage>
     );
   }
 
@@ -142,7 +145,7 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
   fetchIncidentData = (filters: IncidentsFiltersType, isOnMount: boolean) => {
     const { store } = this.props;
     store.alertGroupStore.updateIncidentFilters(filters, isOnMount); // this line fetches incidents
-    getLocationSrv().update({ query: { page: 'incidents', ...store.alertGroupStore.incidentFilters } });
+    LocationHelper.update({ page: 'incidents', ...store.alertGroupStore.incidentFilters }, 'partial');
   };
 
   onChangeCursor = (cursor: string, direction: 'prev' | 'next') => {
@@ -194,7 +197,7 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
         <div className={cx('bulk-actions')}>
           <HorizontalGroup>
             {'resolve' in store.alertGroupStore.bulkActions && (
-              <WithPermissionControl key="resolve" userAction={UserAction.UpdateIncidents}>
+              <WithPermissionControl key="resolve" userAction={UserActions.AlertGroupsWrite}>
                 <Button
                   disabled={!hasSelected}
                   variant="primary"
@@ -205,7 +208,7 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
               </WithPermissionControl>
             )}
             {'acknowledge' in store.alertGroupStore.bulkActions && (
-              <WithPermissionControl key="resolve" userAction={UserAction.UpdateIncidents}>
+              <WithPermissionControl key="resolve" userAction={UserActions.AlertGroupsWrite}>
                 <Button
                   disabled={!hasSelected}
                   variant="secondary"
@@ -216,7 +219,7 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
               </WithPermissionControl>
             )}
             {'silence' in store.alertGroupStore.bulkActions && (
-              <WithPermissionControl key="restart" userAction={UserAction.UpdateIncidents}>
+              <WithPermissionControl key="restart" userAction={UserActions.AlertGroupsWrite}>
                 <Button
                   disabled={!hasSelected}
                   variant="secondary"
@@ -227,7 +230,7 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
               </WithPermissionControl>
             )}
             {'restart' in store.alertGroupStore.bulkActions && (
-              <WithPermissionControl key="silence" userAction={UserAction.UpdateIncidents}>
+              <WithPermissionControl key="silence" userAction={UserActions.AlertGroupsWrite}>
                 <SilenceDropdown
                   disabled={!hasSelected}
                   onSelect={(ev) => this.getBulkActionClickHandler('silence', ev)}
@@ -571,7 +574,9 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
   }
 
   setPollingInterval(filters: IncidentsFiltersType = this.state.filters, isOnMount = false) {
-    this.pollingIntervalId = setInterval(() => this.fetchIncidentData(filters, isOnMount), POLLING_NUM_SECONDS * 1000);
+    this.pollingIntervalId = setInterval(() => {
+      this.fetchIncidentData(filters, isOnMount);
+    }, POLLING_NUM_SECONDS * 1000);
   }
 }
 

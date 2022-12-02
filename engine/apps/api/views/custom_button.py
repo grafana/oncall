@@ -4,7 +4,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.viewsets import ModelViewSet
 
 from apps.alerts.models import CustomButton
-from apps.api.permissions import MODIFY_ACTIONS, READ_ACTIONS, ActionPermission, AnyRole, IsAdmin
+from apps.api.permissions import RBACPermission
 from apps.api.serializers.custom_button import CustomButtonSerializer
 from apps.auth_token.auth import PluginAuthentication
 from common.api_helpers.mixins import PublicPrimaryKeyMixin, TeamFilteringMixin
@@ -13,10 +13,16 @@ from common.insight_log import EntityEvent, write_resource_insight_log
 
 class CustomButtonView(TeamFilteringMixin, PublicPrimaryKeyMixin, ModelViewSet):
     authentication_classes = (PluginAuthentication,)
-    permission_classes = (IsAuthenticated, ActionPermission)
-    action_permissions = {
-        IsAdmin: MODIFY_ACTIONS,
-        AnyRole: READ_ACTIONS,
+    permission_classes = (IsAuthenticated, RBACPermission)
+
+    rbac_permissions = {
+        "metadata": [RBACPermission.Permissions.OUTGOING_WEBHOOKS_READ],
+        "list": [RBACPermission.Permissions.OUTGOING_WEBHOOKS_READ],
+        "retrieve": [RBACPermission.Permissions.OUTGOING_WEBHOOKS_READ],
+        "create": [RBACPermission.Permissions.OUTGOING_WEBHOOKS_WRITE],
+        "update": [RBACPermission.Permissions.OUTGOING_WEBHOOKS_WRITE],
+        "partial_update": [RBACPermission.Permissions.OUTGOING_WEBHOOKS_WRITE],
+        "destroy": [RBACPermission.Permissions.OUTGOING_WEBHOOKS_WRITE],
     }
 
     model = CustomButton
