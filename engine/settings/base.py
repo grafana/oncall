@@ -217,6 +217,7 @@ INSTALLED_APPS = [
     "social_django",
     "polymorphic",
     "push_notifications",
+    "apps.webhooks",
 ]
 
 REST_FRAMEWORK = {
