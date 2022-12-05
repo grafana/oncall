@@ -49,27 +49,27 @@ def test_actions_keyboard_alerting(make_organization, make_alert_receive_channel
         [
             InlineKeyboardButton(
                 text="Acknowledge",
-                callback_data=f"{alert_group.pk}:acknowledge:x-oncall-org-id{organization.public_primary_key}",
+                callback_data=f"{alert_group.pk}:acknowledge:oncall-uuid{organization.uuid}",
             )
         ],
         [
             InlineKeyboardButton(
                 text="Resolve",
-                callback_data=f"{alert_group.pk}:resolve:x-oncall-org-id{organization.public_primary_key}",
+                callback_data=f"{alert_group.pk}:resolve:oncall-uuid{organization.uuid}",
             )
         ],
         [
             InlineKeyboardButton(
                 text="🔕 forever",
-                callback_data=f"{alert_group.pk}:silence:x-oncall-org-id{organization.public_primary_key}",
+                callback_data=f"{alert_group.pk}:silence:oncall-uuid{organization.uuid}",
             ),
             InlineKeyboardButton(
                 text="... for 1h",
-                callback_data=f"{alert_group.pk}:silence:3600:x-oncall-org-id{organization.public_primary_key}",
+                callback_data=f"{alert_group.pk}:silence:3600:oncall-uuid{organization.uuid}",
             ),
             InlineKeyboardButton(
                 text="... for 4h",
-                callback_data=f"{alert_group.pk}:silence:14400:x-oncall-org-id{organization.public_primary_key}",
+                callback_data=f"{alert_group.pk}:silence:14400:oncall-uuid{organization.uuid}",
             ),
         ],
     ]

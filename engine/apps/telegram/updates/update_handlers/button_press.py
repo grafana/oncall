@@ -61,8 +61,8 @@ class ButtonPressHandler(UpdateHandler):
         has_permission = user_is_authorized(user, [RBACPermission.Permissions.CHATOPS_WRITE])
         return user.organization == alert_group.channel.organization and has_permission
 
-    @staticmethod
-    def _get_action_context(data: str) -> ActionContext:
+    @classmethod
+    def _get_action_context(cls, data: str) -> ActionContext:
         args = CallbackQueryFactory.decode_data(data)
 
         alert_group_pk = args[0]
@@ -71,9 +71,15 @@ class ButtonPressHandler(UpdateHandler):
         action_name = args[1]
         action = Action(action_name)
 
-        action_data = args[2] if len(args) >= 3 and not args[2].startswith("x-oncall-org-id") else None
+        action_data = args[2] if len(args) >= 3 and not args[2].startswith("oncall-uuid") else None
 
         return ActionContext(alert_group=alert_group, action=action, action_data=action_data)
+
+    @staticmethod
+    def _is_oncall_identifier(string: str) -> bool:
+        # determines if piece of data passed via callback_data is oncall_identifier
+        # x-oncall-org-id is kept here for backward compatibility.
+        return string.startswith("x-oncall-org-id") or string.startswith("oncall-uuid")
 
     @staticmethod
     def _map_action_context_to_fn(action_context: ActionContext) -> Tuple[Callable, dict]:
