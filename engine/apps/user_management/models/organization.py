@@ -288,7 +288,7 @@ class Organization(MaintainableObject):
     @property
     def web_link_with_uuid(self):
         # It's a workaround to pass some unique identifier to the oncall gateway while proxying telegram requests
-        return urljoin(self.grafana_url, f"a/grafana-oncall-app/?x-oncall-org-id={self.uuid}")
+        return urljoin(self.grafana_url, f"a/grafana-oncall-app/?oncall-uuid={self.uuid}")
 
     def __str__(self):
         return f"{self.pk}: {self.org_title}"

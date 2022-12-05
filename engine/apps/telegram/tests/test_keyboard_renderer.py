@@ -97,13 +97,13 @@ def test_actions_keyboard_acknowledged(
         [
             InlineKeyboardButton(
                 text="Unacknowledge",
-                callback_data=f"{alert_group.pk}:unacknowledge:x-oncall-org-id{organization.public_primary_key}",
+                callback_data=f"{alert_group.pk}:unacknowledge:oncall-uuid{organization.uuid}",
             )
         ],
         [
             InlineKeyboardButton(
                 text="Resolve",
-                callback_data=f"{alert_group.pk}:resolve:x-oncall-org-id{organization.public_primary_key}",
+                callback_data=f"{alert_group.pk}:resolve:oncall-uuid{organization.uuid}",
             )
         ],
     ]
@@ -131,7 +131,7 @@ def test_actions_keyboard_resolved(
         [
             InlineKeyboardButton(
                 text="Unresolve",
-                callback_data=f"{alert_group.pk}:unresolve:x-oncall-org-id{organization.public_primary_key}",
+                callback_data=f"{alert_group.pk}:unresolve:oncall-uuid{organization.uuid}",
             )
         ],
     ]
@@ -159,19 +159,19 @@ def test_actions_keyboard_silenced(
         [
             InlineKeyboardButton(
                 text="Acknowledge",
-                callback_data=f"{alert_group.pk}:acknowledge:x-oncall-org-id{organization.public_primary_key}",
+                callback_data=f"{alert_group.pk}:acknowledge:oncall-uuid{organization.uuid}",
             )
         ],
         [
             InlineKeyboardButton(
                 text="Resolve",
-                callback_data=f"{alert_group.pk}:resolve:x-oncall-org-id{organization.public_primary_key}",
+                callback_data=f"{alert_group.pk}:resolve:oncall-uuid{organization.uuid}",
             )
         ],
         [
             InlineKeyboardButton(
                 text="Unsilence",
-                callback_data=f"{alert_group.pk}:unsilence:x-oncall-org-id{organization.public_primary_key}",
+                callback_data=f"{alert_group.pk}:unsilence:oncall-uuid{organization.uud}",
             )
         ],
     ]
