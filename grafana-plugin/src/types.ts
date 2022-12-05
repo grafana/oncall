@@ -16,7 +16,9 @@ export type AppRootProps = BaseAppRootProps<OnCallPluginMetaJSONData>;
 
 // NOTE: it is possible that plugin.meta.jsonData is null (ex. on first-ever setup)
 // the typing on AppPluginMeta does not seem correct atm..
-export type OnCallAppPluginMeta = AppPluginMeta<null | OnCallPluginMetaJSONData>;
+export type OnCallAppPluginMeta = AppPluginMeta<null | OnCallPluginMetaJSONData> & {
+  secureJsonData?: Partial<OnCallPluginMetaSecureJSONData>;
+};
 export type OnCallPluginConfigPageProps = PluginConfigPageProps<OnCallAppPluginMeta>;
 
 declare global {

@@ -170,12 +170,14 @@ describe('PluginState.createGrafanaToken', () => {
     const onCallKeyName = 'OnCall';
     const onCallKey = { name: onCallKeyName, id: onCallKeyId };
     const existingKeys = [{ name: 'foo', id: 9595 }];
+    const newGrafanaAPIKey = 'dfjkfdkjfdjkdfkjdfkjfdkjdf';
 
     PluginState.grafanaBackend.get = jest
       .fn()
       .mockResolvedValueOnce(onCallKeyExists ? [...existingKeys, onCallKey] : existingKeys);
     PluginState.grafanaBackend.delete = jest.fn();
-    PluginState.grafanaBackend.post = jest.fn();
+    PluginState.grafanaBackend.post = jest.fn().mockResolvedValueOnce({ key: newGrafanaAPIKey });
+    PluginState.updateGrafanaPluginSettings = jest.fn();
 
     await PluginState.createGrafanaToken();
 
@@ -194,6 +196,11 @@ describe('PluginState.createGrafanaToken', () => {
       name: onCallKeyName,
       role: 'Admin',
       secondsToLive: null,
+    });
+
+    expect(PluginState.updateGrafanaPluginSettings).toHaveBeenCalledTimes(1);
+    expect(PluginState.updateGrafanaPluginSettings).toHaveBeenCalledWith({
+      secureJsonData: { grafanaToken: newGrafanaAPIKey },
     });
   });
 });
@@ -444,26 +451,15 @@ describe('PluginState.installPlugin', () => {
 
     makeRequest.mockResolvedValueOnce(mockedResponse);
     PluginState.createGrafanaToken = jest.fn().mockResolvedValueOnce(mockedCreateGrafanaTokenResponse);
-    PluginState.updateGrafanaPluginSettings = jest.fn();
 
     // test
     const response = await PluginState.installPlugin(selfHosted);
 
     // assertions
-    expect(response).toEqual({
-      grafanaToken,
-      onCallAPIResponse: mockedResponse,
-    });
+    expect(response).toEqual(mockedResponse);
 
     expect(PluginState.createGrafanaToken).toBeCalledTimes(1);
     expect(PluginState.createGrafanaToken).toBeCalledWith();
-
-    expect(PluginState.updateGrafanaPluginSettings).toBeCalledTimes(1);
-    expect(PluginState.updateGrafanaPluginSettings).toBeCalledWith({
-      secureJsonData: {
-        grafanaToken,
-      },
-    });
 
     expect(makeRequest).toBeCalledTimes(1);
     expect(makeRequest).toBeCalledWith(`${PluginState.ONCALL_BASE_URL}/${selfHosted ? 'self-hosted/' : ''}install`, {
@@ -477,18 +473,12 @@ describe('PluginState.selfHostedInstallPlugin', () => {
     // mocks
     const onCallApiUrl = 'http://hello.com';
     const installPluginResponse = {
-      grafanaToken: 'asldkaljkasdfjklfdasklj',
-      onCallAPIResponse: {
-        stackId: 5,
-        orgId: 5,
-        license: 'asdfasdf',
-        onCallToken: 'asdfasdf',
-      },
+      stackId: 5,
+      orgId: 5,
+      license: 'asdfasdf',
+      onCallToken: 'asdfasdf',
     };
-    const {
-      grafanaToken,
-      onCallAPIResponse: { onCallToken: onCallApiToken, ...jsonData },
-    } = installPluginResponse;
+    const { onCallToken: onCallApiToken, ...jsonData } = installPluginResponse;
 
     PluginState.updateGrafanaPluginSettings = jest.fn();
     PluginState.installPlugin = jest.fn().mockResolvedValueOnce(installPluginResponse);
@@ -514,7 +504,6 @@ describe('PluginState.selfHostedInstallPlugin', () => {
         onCallApiUrl,
       },
       secureJsonData: {
-        grafanaToken,
         onCallApiToken,
       },
     });
@@ -587,18 +576,12 @@ describe('PluginState.selfHostedInstallPlugin', () => {
     const mockedError = new Error('ohhh nooo');
     const mockedHumanReadableError = 'asdflkajsdflkajsdf';
     const installPluginResponse = {
-      grafanaToken: 'asldkaljkasdfjklfdasklj',
-      onCallAPIResponse: {
-        stackId: 5,
-        orgId: 5,
-        license: 'asdfasdf',
-        onCallToken: 'asdfasdf',
-      },
+      stackId: 5,
+      orgId: 5,
+      license: 'asdfasdf',
+      onCallToken: 'asdfasdf',
     };
-    const {
-      grafanaToken,
-      onCallAPIResponse: { onCallToken: onCallApiToken, ...jsonData },
-    } = installPluginResponse;
+    const { onCallToken: onCallApiToken, ...jsonData } = installPluginResponse;
 
     PluginState.updateGrafanaPluginSettings = jest.fn().mockResolvedValueOnce(null).mockRejectedValueOnce(mockedError);
     PluginState.installPlugin = jest.fn().mockResolvedValueOnce(installPluginResponse);
@@ -627,7 +610,6 @@ describe('PluginState.selfHostedInstallPlugin', () => {
         onCallApiUrl,
       },
       secureJsonData: {
-        grafanaToken,
         onCallApiToken,
       },
     });

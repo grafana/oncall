@@ -13,10 +13,12 @@ const isUserActionAllowed = isUserActionAllowedOriginal as jest.Mock<ReturnType<
 const PluginInstallAction = UserActions.PluginsInstall;
 
 const generatePluginData = (
-  onCallApiUrl: OnCallAppPluginMeta['jsonData']['onCallApiUrl'] = null
+  onCallApiUrl: OnCallAppPluginMeta['jsonData']['onCallApiUrl'] = null,
+  secureJsonData: OnCallAppPluginMeta['secureJsonData'] = { grafanaToken: 'dfkjdfkjdfkjdf' }
 ): OnCallAppPluginMeta =>
   ({
     jsonData: onCallApiUrl === null ? null : { onCallApiUrl },
+    secureJsonData,
   } as OnCallAppPluginMeta);
 
 describe('rootBaseStore', () => {
@@ -34,6 +36,22 @@ describe('rootBaseStore', () => {
     // assertions
     expect(rootBaseStore.appLoading).toBe(false);
     expect(rootBaseStore.initializationError).toEqual('🚫 Plugin has not been initialized');
+  });
+
+  test("grafanaToken is not set in the plugin's meta secureJsonData", async () => {
+    // mocks/setup
+    const onCallApiUrl = 'http://asdfasdf.com';
+    const rootBaseStore = new RootBaseStore();
+
+    PluginState.createGrafanaToken = jest.fn();
+    PluginState.checkIfPluginIsConnected = jest.fn().mockResolvedValueOnce('kdfjkdfkjdf');
+
+    // test
+    await rootBaseStore.setupPlugin(generatePluginData(onCallApiUrl, null));
+
+    // assertions
+    expect(PluginState.createGrafanaToken).toHaveBeenCalledTimes(1);
+    expect(PluginState.createGrafanaToken).toHaveBeenCalledWith();
   });
 
   test('when there is an issue checking the plugin connection, the error is properly handled', async () => {

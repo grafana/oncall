@@ -30,10 +30,6 @@ type SelfHostedProvisioningConfigResponse = Omit<OnCallPluginMetaJSONData, 'onCa
   onCallToken: string;
 };
 
-type InstallPluginResponse<OnCallAPIResponse = any> = Pick<OnCallPluginMetaSecureJSONData, 'grafanaToken'> & {
-  onCallAPIResponse: OnCallAPIResponse;
-};
-
 export type InstallationVerb = 'install' | 'sync';
 
 class PluginState {
@@ -132,7 +128,7 @@ class PluginState {
   static updateGrafanaPluginSettings = async (data: UpdateGrafanaPluginSettingsProps, enabled = true) =>
     this.grafanaBackend.post(this.GRAFANA_PLUGIN_SETTINGS_URL, { ...data, enabled, pinned: true });
 
-  static createGrafanaToken = async () => {
+  static createGrafanaToken = async (): Promise<void> => {
     const baseUrl = '/api/auth/keys';
     const keys = await this.grafanaBackend.get(baseUrl);
     const existingKey = keys.find((key: { id: number; name: string; role: string }) => key.name === 'OnCall');
@@ -141,11 +137,13 @@ class PluginState {
       await this.grafanaBackend.delete(`${baseUrl}/${existingKey.id}`);
     }
 
-    return await this.grafanaBackend.post(baseUrl, {
+    const { key: grafanaToken } = await this.grafanaBackend.post(baseUrl, {
       name: 'OnCall',
       role: 'Admin',
       secondsToLive: null,
     });
+
+    await this.updateGrafanaPluginSettings({ secureJsonData: { grafanaToken } });
   };
 
   static getPluginSyncStatus = (): Promise<PluginSyncStatusResponse> =>
@@ -213,25 +211,19 @@ class PluginState {
     }
   };
 
-  static installPlugin = async <RT = CloudProvisioningConfigResponse>(
-    selfHosted = false
-  ): Promise<InstallPluginResponse<RT>> => {
-    const { key: grafanaToken } = await this.createGrafanaToken();
-    await this.updateGrafanaPluginSettings({ secureJsonData: { grafanaToken } });
-    const onCallAPIResponse = await makeRequest<RT>(
-      `${this.ONCALL_BASE_URL}/${selfHosted ? 'self-hosted/' : ''}install`,
-      {
-        method: 'POST',
-      }
-    );
-    return { grafanaToken, onCallAPIResponse };
+  static installPlugin = async <RT = CloudProvisioningConfigResponse>(selfHosted = false): Promise<RT> => {
+    await this.createGrafanaToken();
+
+    return makeRequest<RT>(`${this.ONCALL_BASE_URL}/${selfHosted ? 'self-hosted/' : ''}install`, {
+      method: 'POST',
+    });
   };
 
   static selfHostedInstallPlugin = async (
     onCallApiUrl: string,
     onCallApiUrlIsConfiguredThroughEnvVar: boolean
   ): Promise<string | null> => {
-    let pluginInstallationOnCallResponse: InstallPluginResponse<SelfHostedProvisioningConfigResponse>;
+    let pluginInstallationOnCallResponse: SelfHostedProvisioningConfigResponse;
     const errorMsgVerb: InstallationVerb = 'install';
 
     // Step 1. Try provisioning the plugin w/ the Grafana API
@@ -248,8 +240,7 @@ class PluginState {
 
     /**
      * Step 2:
-     * - Create a grafana token
-     * - store that token in the Grafana plugin settings
+     * - Create a grafana token + store that token in the Grafana plugin settings
      * - configure the plugin in OnCall's backend
      */
     try {
@@ -265,10 +256,7 @@ class PluginState {
 
     // Step 3. reprovision the Grafana plugin settings, storing information that we get back from OnCall's backend
     try {
-      const {
-        grafanaToken,
-        onCallAPIResponse: { onCallToken: onCallApiToken, ...jsonData },
-      } = pluginInstallationOnCallResponse;
+      const { onCallToken: onCallApiToken, ...jsonData } = pluginInstallationOnCallResponse;
 
       await this.updateGrafanaPluginSettings({
         jsonData: {
@@ -276,7 +264,6 @@ class PluginState {
           onCallApiUrl,
         },
         secureJsonData: {
-          grafanaToken,
           onCallApiToken,
         },
       });

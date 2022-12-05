@@ -121,6 +121,9 @@ export class RootBaseStore {
    * First check to see if the plugin has been provisioned (plugin's meta jsonData has an onCallApiUrl saved)
    * If not, tell the user they first need to configure/provision the plugin.
    *
+   * Then validate that we have a Grafana API key available (plugin's meta.secureJsonData.grafanaToken
+   * is available), otherwise create one
+   *
    * Otherwise, get the plugin connection status from the OnCall API and check a few pre-conditions:
    * - plugin must be considered installed by the OnCall API
    * - token_ok must be true
@@ -140,9 +143,12 @@ export class RootBaseStore {
     if (!this.onCallApiUrl) {
       // plugin is not provisioned
       return this.setupPluginError('🚫 Plugin has not been initialized');
+    } else if (!meta.secureJsonData?.grafanaToken) {
+      // we need to ensure we have a Grafana API key available before making ANY calls to OnCall
+      await PluginState.createGrafanaToken();
     }
 
-    // at this point we know the plugin is provionsed
+    // at this point we know the plugin is provionsed + we have
     const pluginConnectionStatus = await PluginState.checkIfPluginIsConnected(this.onCallApiUrl);
     if (typeof pluginConnectionStatus === 'string') {
       return this.setupPluginError(pluginConnectionStatus);
