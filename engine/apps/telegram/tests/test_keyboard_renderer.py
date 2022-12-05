@@ -171,7 +171,7 @@ def test_actions_keyboard_silenced(
         [
             InlineKeyboardButton(
                 text="Unsilence",
-                callback_data=f"{alert_group.pk}:unsilence:oncall-uuid{organization.uud}",
+                callback_data=f"{alert_group.pk}:unsilence:oncall-uuid{organization.uuid}",
             )
         ],
     ]
