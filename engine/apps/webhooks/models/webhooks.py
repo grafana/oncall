@@ -140,12 +140,16 @@ class Webhook(models.Model):
         url = self.build_url(event_data)
         request_kwargs = self.build_request_kwargs(event_data)
         if self.http_method == "GET":
-            return requests.get(url, timeout=OUTGOING_WEBHOOK_TIMEOUT, **request_kwargs)
+            r = requests.get(url, timeout=OUTGOING_WEBHOOK_TIMEOUT, **request_kwargs)
         elif self.http_method == "POST":
-            return requests.post(url, timeout=OUTGOING_WEBHOOK_TIMEOUT, **request_kwargs)
+            r = requests.post(url, timeout=OUTGOING_WEBHOOK_TIMEOUT, **request_kwargs)
         elif self.http_method == "PUT":
-            return requests.put(url, timeout=OUTGOING_WEBHOOK_TIMEOUT, **request_kwargs)
+            r = requests.put(url, timeout=OUTGOING_WEBHOOK_TIMEOUT, **request_kwargs)
         elif self.http_method == "DELETE":
-            return requests.delete(url, timeout=OUTGOING_WEBHOOK_TIMEOUT, **request_kwargs)
+            r = requests.delete(url, timeout=OUTGOING_WEBHOOK_TIMEOUT, **request_kwargs)
         elif self.http_method == "OPTIONS":
-            return requests.options(url, timeout=OUTGOING_WEBHOOK_TIMEOUT, **request_kwargs)
+            r = requests.options(url, timeout=OUTGOING_WEBHOOK_TIMEOUT, **request_kwargs)
+        else:
+            raise Exception(f"Unsupported http method: {self.http_method}")
+        r.raise_for_status()
+        return r

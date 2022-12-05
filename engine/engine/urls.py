@@ -36,6 +36,7 @@ urlpatterns = [
     path("integrations/v1/", include("apps.integrations.urls", namespace="integrations")),
     path("twilioapp/", include("apps.twilioapp.urls")),
     path("api/v1/", include("apps.public_api.urls", namespace="api-public")),
+    path("api/v1/", include("apps.webhooks.urls", namespace="webhooks")),
 ] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
 
 if settings.FEATURE_SLACK_INTEGRATION_ENABLED:

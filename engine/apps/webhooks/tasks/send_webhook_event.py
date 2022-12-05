@@ -35,6 +35,6 @@ def execute_webhook(webhook_pk, data):
         if webhook.check_trigger(data):
             webhook.make_request(data)
         else:
-            logger.info(f"Webhook {webhook_pk} trigger_template evaluated as false not exist")
+            logger.info(f"Webhook {webhook_pk} trigger_template evaluated as false")
     except Webhooks.DoesNotExist:
         logger.warn(f"Webhook {webhook_pk} does not exist")

@@ -218,6 +218,7 @@ INSTALLED_APPS = [
     "polymorphic",
     "push_notifications",
     "apps.webhooks",
+    "django_extensions",  # TODO: Remove this
 ]
 
 REST_FRAMEWORK = {

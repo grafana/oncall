@@ -26,7 +26,7 @@ class Command(BaseCommand):
         # print(webhook.check_trigger(event_data))
         #
         # event_data["id"] = 10
-        # webhook.trigger_template = "{{ id == 10 }}"
+        # webhook.trigger_template = "{{ integration_id == 'assadasdwqe' }}"
         # print(webhook.check_trigger(event_data))
         # event_data["id"] = 9
         # print(webhook.check_trigger(event_data))
