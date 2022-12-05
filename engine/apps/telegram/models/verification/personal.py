@@ -23,7 +23,7 @@ class TelegramVerificationCode(models.Model):
 
     @property
     def uuid_with_org_id(self) -> str:
-        return f"{self.user.organization.public_primary_key}_{self.uuid}"
+        return f"{self.user.organization.uuid}_{self.uuid}"
 
     @classmethod
     def uuid_without_org_id(cls, verification_code: str) -> str:
