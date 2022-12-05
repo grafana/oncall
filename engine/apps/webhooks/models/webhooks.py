@@ -30,6 +30,22 @@ def generate_public_primary_key_for_webhook():
 
 
 class Webhook(models.Model):
+    (
+        TRIGGER_ESCALATION_STEP,
+        TRIGGER_USER_NOTIFICATION_STEP,
+        TRIGGER_ACKNOWLEDGE,
+        TRIGGER_RESOLVE,
+        TRIGGER_SILENCE,
+    ) = range(5)
+
+    # Must be the same order as previous
+    TRIGGER_TYPES = (
+        (TRIGGER_ESCALATION_STEP, "As escalation step"),
+        (TRIGGER_USER_NOTIFICATION_STEP, "As user notification step"),
+        (TRIGGER_ACKNOWLEDGE, "Alert group acknowledge"),
+        (TRIGGER_RESOLVE, "Alert group resolve"),
+        (TRIGGER_SILENCE, "Alert group silence"),
+    )
 
     public_primary_key = models.CharField(
         max_length=20,
@@ -64,6 +80,7 @@ class Webhook(models.Model):
     data = models.TextField(null=True, default=None)
     forward_all = models.BooleanField(default=True)
     http_method = models.CharField(max_length=32, default="POST")
+    trigger_type = models.IntegerField(choices=TRIGGER_TYPES, default=None, null=True)
 
     def build_request_kwargs(self, event_data):
         request_kwargs = {}
