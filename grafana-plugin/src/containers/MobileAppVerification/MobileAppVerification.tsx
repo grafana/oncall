@@ -13,7 +13,7 @@ import { useStore } from 'state/useStore';
 import styles from './MobileAppVerification.module.scss';
 import DisconnectButton from './parts/DisconnectButton/DisconnectButton';
 import DownloadIcons from './parts/DownloadIcons';
-import QRCode from './parts/QRCode';
+import QRCode from './parts/QRCode/QRCode';
 
 const cx = cn.bind(styles);
 
@@ -21,7 +21,8 @@ type Props = {
   userPk: User['pk'];
 };
 
-const INTERVAL_MS = 5000;
+const INTERVAL_QUEUE_QR = 50000;
+const INTERVAL_POLLING = 5000;
 const BACKEND = 'MOBILE_APP';
 
 const MobileAppVerification = observer(({ userPk }: Props) => {
@@ -36,18 +37,29 @@ const MobileAppVerification = observer(({ userPk }: Props) => {
   const [disconnectingMobileApp, setDisconnectingMobileApp] = useState<boolean>(false);
   const [errorDisconnectingMobileApp, setErrorDisconnectingMobileApp] = useState<string>(null);
   const [userTimeoutId, setUserTimeoutId] = useState<NodeJS.Timeout>(undefined);
+  const [refreshTimeoutId, setRefreshTimeoutId] = useState<NodeJS.Timeout>(undefined);
+  const [isQRBlurry, setIsQRBlurry] = useState<boolean>(false);
 
-  const fetchQRCode = useCallback(async () => {
-    setFetchingQRCode(true);
-    try {
-      // backend verification code that we receive is a JSON object that has been "stringified"
-      const qrCodeContent = await userStore.sendBackendConfirmationCode(userPk, BACKEND);
-      setQRCodeValue(qrCodeContent);
-    } catch (e) {
-      setErrorFetchingQRCode('There was an error fetching your QR code. Please try again.');
-    }
-    setFetchingQRCode(false);
-  }, [userPk]);
+  const fetchQRCode = useCallback(
+    async (showLoader: boolean = true) => {
+      if (showLoader) {
+        setFetchingQRCode(true);
+      }
+
+      try {
+        // backend verification code that we receive is a JSON object that has been "stringified"
+        const qrCodeContent = await userStore.sendBackendConfirmationCode(userPk, BACKEND);
+        setQRCodeValue(qrCodeContent);
+      } catch (e) {
+        setErrorFetchingQRCode('There was an error fetching your QR code. Please try again.');
+      }
+
+      if (showLoader) {
+        setFetchingQRCode(false);
+      }
+    },
+    [userPk]
+  );
 
   const resetState = useCallback(() => {
     setErrorDisconnectingMobileApp(null);
@@ -66,11 +78,13 @@ const MobileAppVerification = observer(({ userPk }: Props) => {
     }
 
     setDisconnectingMobileApp(false);
+    queueRefreshQR();
     pollUserProfile();
   }, [userPk, resetState]);
 
   useEffect(() => {
     if (!isUserConnected()) {
+      queueRefreshQR();
       pollUserProfile();
     }
 
@@ -116,13 +130,14 @@ const MobileAppVerification = observer(({ userPk }: Props) => {
           Sign In
         </Text>
         <Text type="primary">Open Grafana IRM mobile application and scan this code to sync it with your account.</Text>
-        <div className="u-width-100 u-flex u-flex-center">
-          <QRCode value={QRCodeValue} />
+        <div className={cx('u-width-100', 'u-flex', 'u-flex-center', 'u-position-relative')}>
+          <QRCode className={cx({ blurry: isQRBlurry })} value={QRCodeValue} />
+          {isQRBlurry && (
+            <div className={cx('blurry-loader')}>
+              <LoadingPlaceholder text="Regenerating QR code..." />
+            </div>
+          )}
         </div>
-        <Text type="primary" className="u-break-word">
-          <strong>Note:</strong> the QR code is only valid for one minute. If you have issues connecting your mobile
-          app, try refreshing this page to generate a new code.
-        </Text>
       </VerticalGroup>
     );
   }
@@ -142,13 +157,26 @@ const MobileAppVerification = observer(({ userPk }: Props) => {
     return !!(user || userStore.currentUser).messaging_backends[BACKEND]?.connected;
   }
 
+  async function queueRefreshQR(): Promise<void> {
+    clearTimeout(refreshTimeoutId);
+    setRefreshTimeoutId(undefined);
+
+    const user = await userStore.loadUser(userPk);
+    if (!isUserConnected(user)) {
+      setIsQRBlurry(true);
+      await fetchQRCode(false);
+      setIsQRBlurry(false);
+      setTimeout(() => queueRefreshQR(), INTERVAL_QUEUE_QR);
+    }
+  }
+
   async function pollUserProfile(): Promise<void> {
     clearTimeout(userTimeoutId);
     setUserTimeoutId(undefined);
 
     const user = await userStore.loadUser(userPk);
     if (!isUserConnected(user)) {
-      setUserTimeoutId(setTimeout(() => pollUserProfile(), INTERVAL_MS));
+      setUserTimeoutId(setTimeout(() => pollUserProfile(), INTERVAL_POLLING));
     } else {
       setMobileAppIsCurrentlyConnected(true);
     }

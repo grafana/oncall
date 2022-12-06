@@ -6,10 +6,11 @@ import Block from 'components/GBlock/Block';
 
 type Props = {
   value: string;
+  className: string;
 };
 
-const QRCode: FC<Props> = ({ value }) => (
-  <Block bordered>
+const QRCode: FC<Props> = ({ value, className }) => (
+  <Block bordered className={className}>
     <QRCodeBase value={value} />
   </Block>
 );

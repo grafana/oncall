@@ -33,3 +33,31 @@
   filter: blur(6px);
   opacity: 0.6;
 }
+
+.blurry {
+  filter: blur(4px);
+  opacity: 0.2;
+}
+
+.blurry-loader {
+  position: absolute;
+  z-index: 10;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+
+  > div {
+    margin-bottom: 0;
+    font-size: 16px;
+    text-align: center;
+  }
+
+  [data-testid='Spinner'] { // No other way to overwrite Grafana's LoadingPlaceholder unfortunately
+    width: 100%;
+    padding-top: 12px;
+  }
+
+  [data-testid='Spinner'] i { // No other way to overwrite Grafana's LoadingPlaceholder unfortunately
+    font-size: 32px;
+  }
+}
