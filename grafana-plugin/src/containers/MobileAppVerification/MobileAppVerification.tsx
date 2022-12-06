@@ -92,6 +92,7 @@ const MobileAppVerification = observer(({ userPk }: Props) => {
     return () => {
       if (userTimeoutId) {
         clearTimeout(userTimeoutId);
+        clearTimeout(refreshTimeoutId);
       }
     };
   }, []);
