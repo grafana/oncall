@@ -49,7 +49,7 @@ describe('MobileAppVerification', () => {
     const component = render(<MobileAppVerification userPk={USER_PK} />);
     expect(component.container).toMatchSnapshot();
 
-    waitFor(() => {
+    await waitFor(() => {
       expect(userStore.sendBackendConfirmationCode).toHaveBeenCalledTimes(1);
       expect(userStore.sendBackendConfirmationCode).toHaveBeenCalledWith(USER_PK, BACKEND);
     });
@@ -66,7 +66,7 @@ describe('MobileAppVerification', () => {
     const component = render(<MobileAppVerification userPk={USER_PK} />);
     expect(component.container).toMatchSnapshot();
 
-    waitFor(() => {
+    await waitFor(() => {
       expect(userStore.sendBackendConfirmationCode).toHaveBeenCalledTimes(0);
     });
   });
@@ -79,7 +79,7 @@ describe('MobileAppVerification', () => {
     const component = render(<MobileAppVerification userPk={USER_PK} />);
     await screen.findByText(/.*error fetching your QR code.*/);
 
-    waitFor(() => {
+    await waitFor(() => {
       expect(component.container).toMatchSnapshot();
 
       expect(userStore.sendBackendConfirmationCode).toHaveBeenCalledTimes(1);
@@ -95,7 +95,7 @@ describe('MobileAppVerification', () => {
     const component = render(<MobileAppVerification userPk={USER_PK} />);
     expect(component.container).toMatchSnapshot();
 
-    waitFor(() => {
+    await waitFor(() => {
       expect(userStore.sendBackendConfirmationCode).toHaveBeenCalledTimes(1);
       expect(userStore.sendBackendConfirmationCode).toHaveBeenCalledWith(USER_PK, BACKEND);
     });
@@ -111,18 +111,16 @@ describe('MobileAppVerification', () => {
     );
 
     const component = render(<MobileAppVerification userPk={USER_PK} />);
-
-    const user = userEvent.setup();
     const button = await screen.findByRole('button');
 
     // click the disconnect button, which opens the modal
-    await user.click(button);
+    await userEvent.click(button);
     // click the confirm button within the modal, which actually triggers the callback
-    await user.click(screen.getByText('Remove'));
+    await userEvent.click(screen.getByText('Remove'));
 
     expect(component.container).toMatchSnapshot();
 
-    waitFor(() => {
+    await waitFor(() => {
       expect(userStore.sendBackendConfirmationCode).toHaveBeenCalledTimes(1);
       expect(userStore.sendBackendConfirmationCode).toHaveBeenCalledWith(USER_PK, BACKEND);
 
@@ -135,28 +133,25 @@ describe('MobileAppVerification', () => {
     const { userStore } = mockUseStore(
       {
         sendBackendConfirmationCode: jest.fn().mockResolvedValueOnce('dfd'),
-        unlinkBackend: jest.fn().mockResolvedValueOnce('aaa'),
+        unlinkBackend: jest.fn().mockResolvedValueOnce(new Promise((resolve) => setTimeout(resolve, 500))),
       },
       true
     );
 
     const component = render(<MobileAppVerification userPk={USER_PK} />);
-
-    const user = userEvent.setup();
     const button = await screen.findByRole('button');
 
     // click the disconnect button, which opens the modal
-    await user.click(button);
+    await userEvent.click(button);
     // click the confirm button within the modal, which actually triggers the callback
-    // this is maybe a bit "hacky" but by not awaiting the below promise it allows us to check the loading state..
-    user.click(screen.getByText('Remove'));
+    await userEvent.click(screen.getByText('Remove'));
 
     // wait for loading state
     await screen.findByText(/.*Loading.*/);
 
     expect(component.container).toMatchSnapshot();
 
-    waitFor(() => {
+    await waitFor(() => {
       expect(userStore.sendBackendConfirmationCode).toHaveBeenCalledTimes(1);
       expect(userStore.sendBackendConfirmationCode).toHaveBeenCalledWith(USER_PK, BACKEND);
 
@@ -175,20 +170,18 @@ describe('MobileAppVerification', () => {
     );
 
     const component = render(<MobileAppVerification userPk={USER_PK} />);
-
-    const user = userEvent.setup();
     const button = await screen.findByTestId('test__disconnect');
 
     // click the disconnect button, which opens the modal
-    await user.click(button);
+    await userEvent.click(button);
     // click the confirm button within the modal, which actually triggers the callback
-    await user.click(screen.getByText('Remove'));
+    await userEvent.click(screen.getByText('Remove'));
 
     await screen.findByText(/.*error disconnecting your mobile app.*/);
 
     expect(component.container).toMatchSnapshot();
 
-    waitFor(() => {
+    await waitFor(() => {
       expect(userStore.sendBackendConfirmationCode).toHaveBeenCalledTimes(0);
 
       expect(userStore.unlinkBackend).toHaveBeenCalledTimes(1);
@@ -222,14 +215,12 @@ describe('MobileAppVerification', () => {
     );
 
     render(<MobileAppVerification userPk={USER_PK} />);
-
-    const user = userEvent.setup();
     const button = await screen.findByRole('button');
 
     loadUserMock.mockClear();
 
-    await user.click(button); // click the disconnect button, which opens the modal
-    await user.click(screen.getByText('Remove')); // click the confirm button within the modal, which actually triggers the callback
+    await userEvent.click(button); // click the disconnect button, which opens the modal
+    await userEvent.click(screen.getByText('Remove')); // click the confirm button within the modal, which actually triggers the callback
 
     await waitFor(() => {
       expect(loadUserMock).toHaveBeenCalledTimes(1);

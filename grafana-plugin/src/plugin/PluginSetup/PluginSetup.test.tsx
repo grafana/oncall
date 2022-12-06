@@ -61,8 +61,7 @@ describe('PluginSetup', () => {
 
     const mockedSetupPlugin = await createComponentAndMakeAssertions(rootBaseStore);
 
-    const user = userEvent.setup();
-    await user.click(screen.getByText('Retry'));
+    await userEvent.click(screen.getByText('Retry'));
 
     expect(mockedSetupPlugin).toHaveBeenCalledTimes(2);
   });
