@@ -71,7 +71,7 @@ class ButtonPressHandler(UpdateHandler):
         action_name = args[1]
         action = Action(action_name)
 
-        action_data = args[2] if len(args) >= 3 and not args[2].startswith("oncall-uuid") else None
+        action_data = args[2] if len(args) >= 3 and not cls._is_oncall_identifier(args[2]) else None
 
         return ActionContext(alert_group=alert_group, action=action, action_data=action_data)
 
