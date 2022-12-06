@@ -48,6 +48,7 @@ def generate_public_primary_key_for_alert_group():
 class Permalinks(TypedDict):
     slack: Optional[str]
     telegram: Optional[str]
+    web: str
 
 
 class AlertGroupQuerySet(models.QuerySet):
@@ -429,10 +430,11 @@ class AlertGroup(AlertGroupSlackRenderingMixin, EscalationSnapshotMixin, models.
         return {
             "slack": self.slack_permalink,
             "telegram": self.telegram_permalink,
+            "web": self.web_link,
         }
 
     @property
-    def web_link(self):
+    def web_link(self) -> str:
         return urljoin(self.channel.organization.web_link, f"?page=incident&id={self.public_primary_key}")
 
     @property
