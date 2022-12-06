@@ -78,22 +78,18 @@ const MobileAppVerification = observer(({ userPk }: Props) => {
     }
 
     setDisconnectingMobileApp(false);
-    queueRefreshQR();
-    pollUserProfile();
+    clearTimeouts();
+    triggerTimeouts();
   }, [userPk, resetState]);
 
   useEffect(() => {
     if (!isUserConnected()) {
-      queueRefreshQR();
-      pollUserProfile();
+      triggerTimeouts();
     }
 
     // clear on unmount
     return () => {
-      if (userTimeoutId) {
-        clearTimeout(userTimeoutId);
-        clearTimeout(refreshTimeoutId);
-      }
+      clearTimeouts();
     };
   }, []);
 
@@ -153,6 +149,16 @@ const MobileAppVerification = observer(({ userPk }: Props) => {
       </Block>
     </div>
   );
+
+  function clearTimeouts(): void {
+    clearTimeout(userTimeoutId);
+    clearTimeout(refreshTimeoutId);
+  }
+
+  function triggerTimeouts(): void {
+    setTimeout(() => queueRefreshQR(), INTERVAL_QUEUE_QR);
+    setTimeout(() => pollUserProfile(), INTERVAL_POLLING);
+  }
 
   function isUserConnected(user?: User): boolean {
     return !!(user || userStore.currentUser).messaging_backends[BACKEND]?.connected;
