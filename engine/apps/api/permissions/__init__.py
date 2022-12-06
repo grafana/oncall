@@ -140,10 +140,10 @@ class RBACPermission(permissions.BasePermission):
         )
 
         API_KEYS_READ = LegacyAccessControlCompatiblePermission(
-            Resources.API_KEYS, Actions.READ, LegacyAccessControlRole.VIEWER
+            Resources.API_KEYS, Actions.READ, LegacyAccessControlRole.ADMIN
         )
         API_KEYS_WRITE = LegacyAccessControlCompatiblePermission(
-            Resources.API_KEYS, Actions.WRITE, LegacyAccessControlRole.EDITOR
+            Resources.API_KEYS, Actions.WRITE, LegacyAccessControlRole.ADMIN
         )
 
         NOTIFICATIONS_READ = LegacyAccessControlCompatiblePermission(

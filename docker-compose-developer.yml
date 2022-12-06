@@ -181,7 +181,7 @@ services:
     container_name: mysql
     labels: *oncall-labels
     image: mysql:5.7
-    platform: linux/x86_64
+    platform: linux/amd64
     command: --default-authentication-plugin=mysql_native_password --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
     restart: always
     environment:
@@ -208,7 +208,7 @@ services:
     container_name: mysql_to_create_grafana_db
     labels: *oncall-labels
     image: mysql:5.7
-    platform: linux/x86_64
+    platform: linux/amd64
     command: bash -c "mysql -h mysql -uroot -pempty -e 'CREATE DATABASE IF NOT EXISTS grafana CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;'"
     depends_on:
       mysql:

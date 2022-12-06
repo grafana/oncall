@@ -330,17 +330,23 @@ def test_final_schedule_events(make_organization, make_user_for_organization, ma
         )
         on_call_shift.add_rolling_users([[user]])
 
-    # override: 22-23 / E
-    override_data = {
-        "start": start_date + timezone.timedelta(hours=22),
-        "rotation_start": start_date + timezone.timedelta(hours=22),
-        "duration": timezone.timedelta(hours=1),
-        "schedule": schedule,
-    }
-    override = make_on_call_shift(
-        organization=organization, shift_type=CustomOnCallShift.TYPE_OVERRIDE, **override_data
+    overrides = (
+        # user, priority, start time (h), duration (hs)
+        (user_e, 0, 22, 1),  # 22-23 / E
+        (user_a, 1, 22, 0.5),  # 22-22:30 / A
     )
-    override.add_rolling_users([[user_e]])
+    for user, priority, start_h, duration in overrides:
+        data = {
+            "start": start_date + timezone.timedelta(hours=start_h),
+            "rotation_start": start_date + timezone.timedelta(hours=start_h),
+            "duration": timezone.timedelta(hours=duration),
+            "priority_level": priority,
+            "schedule": schedule,
+        }
+        on_call_shift = make_on_call_shift(
+            organization=organization, shift_type=CustomOnCallShift.TYPE_OVERRIDE, **data
+        )
+        on_call_shift.add_rolling_users([[user]])
 
     returned_events = schedule.final_events("UTC", start_date, days=1)
 
@@ -357,7 +363,8 @@ def test_final_schedule_events(make_organization, make_user_for_organization, ma
         (18, 1, "A", 1, False, False),  # 18-19 A
         (19, 1, None, None, True, False),  # 19-20 gap
         (20, 2, "D", 2, False, False),  # 20-22 D
-        (22, 1, "E", None, False, True),  # 22-23 E (override)
+        (22, 0.5, "A", 1, False, True),  # 22-22:30 A (override the override)
+        (22.5, 0.5, "E", None, False, True),  # 22:30-23 E (override)
         (23, 1, "B", 1, False, False),  # 23-00 B
     )
     expected_events = [
