@@ -12,6 +12,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - RBAC permission support
 - Add `time_zone` serializer validation for OnCall shifts and calendar/web schedules. In addition, add database migration
   to update values that may be invalid
+- Add a `permalinks.web` field, which is a permalink to the alert group web app page, to the alert group internal/public
+  API responses
 
 ### Fixed
 
