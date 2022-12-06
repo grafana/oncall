@@ -1,6 +1,18 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`MobileAppVerification if we disconnect the app, it disconnects and fetches a new QR code 1`] = `
+exports[`MobileAppVerification if we disconnect the app, it disconnects and fetches a new QR code 1`] = `<div />`;
+
+exports[`MobileAppVerification if we disconnect the app, it disconnects and fetches a new QR code 2`] = `<div />`;
+
+exports[`MobileAppVerification if we disconnect the app, it disconnects and fetches a new QR code 3`] = `<div />`;
+
+exports[`MobileAppVerification if we disconnect the app, it disconnects and fetches a new QR code 4`] = `<div />`;
+
+exports[`MobileAppVerification if we disconnect the app, it disconnects and fetches a new QR code 5`] = `<div />`;
+
+exports[`MobileAppVerification if we disconnect the app, it disconnects and fetches a new QR code 6`] = `<div />`;
+
+exports[`MobileAppVerification if we disconnect the app, it disconnects and fetches a new QR code 7`] = `
 <div>
   <div
     class="container"
@@ -146,6 +158,30 @@ exports[`MobileAppVerification if we disconnect the app, it disconnects and fetc
 </div>
 `;
 
+exports[`MobileAppVerification if we disconnect the app, it disconnects and fetches a new QR code 8`] = `<div />`;
+
+exports[`MobileAppVerification it polls loadUser after disconnect 1`] = `<div />`;
+
+exports[`MobileAppVerification it polls loadUser after disconnect 2`] = `<div />`;
+
+exports[`MobileAppVerification it polls loadUser after disconnect 3`] = `<div />`;
+
+exports[`MobileAppVerification it polls loadUser after disconnect 4`] = `<div />`;
+
+exports[`MobileAppVerification it polls loadUser after disconnect 5`] = `<div />`;
+
+exports[`MobileAppVerification it polls loadUser after disconnect 6`] = `<div />`;
+
+exports[`MobileAppVerification it polls loadUser after disconnect 7`] = `<div />`;
+
+exports[`MobileAppVerification it polls loadUser on first render if not connected 1`] = `<div />`;
+
+exports[`MobileAppVerification it polls loadUser on first render if not connected 2`] = `<div />`;
+
+exports[`MobileAppVerification it polls loadUser on first render if not connected 3`] = `<div />`;
+
+exports[`MobileAppVerification it polls loadUser on first render if not connected 4`] = `<div />`;
+
 exports[`MobileAppVerification it shows a QR code if the app isn't already connected 1`] = `
 <div>
   <div
@@ -245,7 +281,21 @@ exports[`MobileAppVerification it shows a QR code if the app isn't already conne
 </div>
 `;
 
-exports[`MobileAppVerification it shows a loading message if it is currently disconnecting 1`] = `
+exports[`MobileAppVerification it shows a QR code if the app isn't already connected 2`] = `<div />`;
+
+exports[`MobileAppVerification it shows a QR code if the app isn't already connected 3`] = `<div />`;
+
+exports[`MobileAppVerification it shows a loading message if it is currently disconnecting 1`] = `<div />`;
+
+exports[`MobileAppVerification it shows a loading message if it is currently disconnecting 2`] = `<div />`;
+
+exports[`MobileAppVerification it shows a loading message if it is currently disconnecting 3`] = `<div />`;
+
+exports[`MobileAppVerification it shows a loading message if it is currently disconnecting 4`] = `<div />`;
+
+exports[`MobileAppVerification it shows a loading message if it is currently disconnecting 5`] = `<div />`;
+
+exports[`MobileAppVerification it shows a loading message if it is currently disconnecting 6`] = `
 <div>
   <div
     class="container"
@@ -343,6 +393,10 @@ exports[`MobileAppVerification it shows a loading message if it is currently dis
   </div>
 </div>
 `;
+
+exports[`MobileAppVerification it shows a loading message if it is currently disconnecting 7`] = `<div />`;
+
+exports[`MobileAppVerification it shows a loading message if it is currently disconnecting 8`] = `<div />`;
 
 exports[`MobileAppVerification it shows a loading message if it is currently fetching the QR code 1`] = `
 <div>
@@ -589,7 +643,17 @@ exports[`MobileAppVerification it shows a message when the mobile app is already
 </div>
 `;
 
-exports[`MobileAppVerification it shows an error message if there was an error disconnecting the mobile app 1`] = `
+exports[`MobileAppVerification it shows an error message if there was an error disconnecting the mobile app 1`] = `<div />`;
+
+exports[`MobileAppVerification it shows an error message if there was an error disconnecting the mobile app 2`] = `<div />`;
+
+exports[`MobileAppVerification it shows an error message if there was an error disconnecting the mobile app 3`] = `<div />`;
+
+exports[`MobileAppVerification it shows an error message if there was an error disconnecting the mobile app 4`] = `<div />`;
+
+exports[`MobileAppVerification it shows an error message if there was an error disconnecting the mobile app 5`] = `<div />`;
+
+exports[`MobileAppVerification it shows an error message if there was an error disconnecting the mobile app 6`] = `
 <div>
   <div
     class="container"
@@ -678,6 +742,8 @@ exports[`MobileAppVerification it shows an error message if there was an error d
   </div>
 </div>
 `;
+
+exports[`MobileAppVerification it shows an error message if there was an error disconnecting the mobile app 7`] = `<div />`;
 
 exports[`MobileAppVerification it shows an error message if there was an error fetching the QR code 1`] = `
 <div>
@@ -768,3 +834,5 @@ exports[`MobileAppVerification it shows an error message if there was an error f
   </div>
 </div>
 `;
+
+exports[`MobileAppVerification it shows an error message if there was an error fetching the QR code 2`] = `<div />`;
