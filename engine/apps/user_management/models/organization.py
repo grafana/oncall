@@ -1,5 +1,6 @@
 import logging
 import typing
+import uuid
 from urllib.parse import urljoin
 
 from django.apps import apps
@@ -128,6 +129,9 @@ class Organization(MaintainableObject):
 
     # Slack specific field with general log channel id
     general_log_channel_id = models.CharField(max_length=100, null=True, default=None)
+
+    # uuid used to unuqie identify organization in different clusters
+    uuid = models.UUIDField(default=uuid.uuid4, editable=False)
 
     # Organization Settings configured from slack
     (
@@ -282,9 +286,9 @@ class Organization(MaintainableObject):
         return urljoin(self.grafana_url, "a/grafana-oncall-app/")
 
     @property
-    def web_link_with_id(self):
-        # It's a workaround to pass org id to the oncall gateway while proxying telegram requests
-        return urljoin(self.grafana_url, f"a/grafana-oncall-app/?x-oncall-org-id={self.public_primary_key}")
+    def web_link_with_uuid(self):
+        # It's a workaround to pass some unique identifier to the oncall gateway while proxying telegram requests
+        return urljoin(self.grafana_url, f"a/grafana-oncall-app/?oncall-uuid={self.uuid}")
 
     def __str__(self):
         return f"{self.pk}: {self.org_title}"

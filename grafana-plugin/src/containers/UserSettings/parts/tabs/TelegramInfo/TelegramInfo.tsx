@@ -39,13 +39,13 @@ const TelegramInfo = observer((_props: TelegramInfoProps) => {
     <>
       {telegramConfigured || !store.hasFeature(AppFeature.LiveSettings) ? (
         <VerticalGroup>
-          <Text.Title level={5}>Connect personal Telegram</Text.Title>
+          {/* <Text.Title level={5}>Connect personal Telegram</Text.Title>
           <Block bordered withBackground className={cx('automatic-connect-telegram-block')}>
             <Text type="secondary">Connect Telegram automatically</Text>
             <a href={`${botLink}/?start=${verificationCode}`} target="_blank" rel="noreferrer">
               <Button size="sm">Connect account</Button>
             </a>
-          </Block>
+          </Block> */}
           <Text.Title level={5}>Manual connection</Text.Title>
 
           <Text type="secondary">
