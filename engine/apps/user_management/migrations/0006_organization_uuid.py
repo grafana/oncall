@@ -4,6 +4,15 @@ from django.db import migrations, models
 import uuid
 
 
+def fill_org_uuid(apps, schema_editor):
+    Organization = apps.get_model('user_management', 'Organization')
+    orgs_to_update = []
+    for org in Organization.objects.all():
+        org.uuid = uuid.uuid4()
+        orgs_to_update.append(org)
+    Organization.objects.bulk_update(orgs_to_update, ["uuid"], batch_size=5000)
+
+
 class Migration(migrations.Migration):
 
     dependencies = [
@@ -12,6 +21,12 @@ class Migration(migrations.Migration):
 
     operations = [
         migrations.AddField(
+            model_name='organization',
+            name='uuid',
+            field=models.UUIDField(null=True),
+        ),
+        migrations.RunPython(fill_org_uuid, migrations.RunPython.noop),
+        migrations.AlterField(
             model_name='organization',
             name='uuid',
             field=models.UUIDField(default=uuid.uuid4, editable=False),
