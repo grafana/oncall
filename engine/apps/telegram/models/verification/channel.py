@@ -24,7 +24,7 @@ class TelegramChannelVerificationCode(models.Model):
         return self.datetime + timezone.timedelta(days=1) < timezone.now()
 
     @property
-    def uuid_with_org_id(self) -> str:
+    def uuid_with_org_uuid(self) -> str:
         return f"{self.organization.uuid}_{self.uuid}"
 
     @classmethod
