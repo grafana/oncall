@@ -20,14 +20,14 @@ export const getDateTime = (date: string) => {
 };
 
 export const getUTCByDay = (dayOptions: SelectOption[], by_day: string[], moment: dayjs.Dayjs) => {
-  if (by_day.length > 0 && moment.day() !== moment.utc().day()) {
+  if (by_day.length && moment.day() !== moment.utc().day()) {
     // when converting to UTC, shift starts on a different day,
     // so we need to update the by_day list
     // depending on the UTC side, move one day before or after
+    let offset = moment.utcOffset();
     let UTCDays = [];
     let byDayOptions = [];
-    Object.entries(dayOptions).forEach(([, option]) => byDayOptions.push(option.value));
-    let offset = moment.utcOffset();
+    dayOptions.forEach(({ value }) => byDayOptions.push(value));
     by_day.forEach((element) => {
       let index = byDayOptions.indexOf(element);
       if (offset < 0) {
