@@ -41,7 +41,7 @@ const MobileAppVerification = observer(({ userPk }: Props) => {
   const [isQRBlurry, setIsQRBlurry] = useState<boolean>(false);
 
   const fetchQRCode = useCallback(
-    async (showLoader: boolean = true) => {
+    async (showLoader = true) => {
       if (showLoader) {
         setFetchingQRCode(true);
       }
