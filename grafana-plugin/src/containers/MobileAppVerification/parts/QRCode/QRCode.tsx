@@ -6,13 +6,17 @@ import Block from 'components/GBlock/Block';
 
 type Props = {
   value: string;
-  className: string;
+  className?: string;
 };
 
-const QRCode: FC<Props> = ({ value, className }) => (
-  <Block bordered className={className}>
-    <QRCodeBase value={value} />
-  </Block>
-);
+const QRCode: FC<Props> = (props: Props) => {
+  const { value, className = '' } = props;
+
+  return (
+    <Block bordered className={className}>
+      <QRCodeBase value={value} />
+    </Block>
+  );
+};
 
 export default QRCode;
