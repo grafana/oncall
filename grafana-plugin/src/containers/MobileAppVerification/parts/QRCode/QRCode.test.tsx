@@ -2,7 +2,7 @@ import React from 'react';
 
 import { render } from '@testing-library/react';
 
-import QRCode from './';
+import QRCode from './QRCode';
 
 describe('QRCode', () => {
   test('it renders properly', () => {

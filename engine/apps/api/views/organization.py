@@ -67,7 +67,7 @@ class GetTelegramVerificationCode(APIView):
         bot_username = telegram_client.api_client.username
         bot_link = f"https://t.me/{bot_username}"
         return Response(
-            {"telegram_code": str(new_code.uuid_with_org_id), "bot_link": bot_link}, status=status.HTTP_200_OK
+            {"telegram_code": str(new_code.uuid_with_org_uuid), "bot_link": bot_link}, status=status.HTTP_200_OK
         )
 
 

@@ -12,10 +12,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - RBAC permission support
 - Add `time_zone` serializer validation for OnCall shifts and calendar/web schedules. In addition, add database migration
   to update values that may be invalid
+- Add a `permalinks.web` field, which is a permalink to the alert group web app page, to the alert group internal/public
+  API responses
+- Added the ability to customize job-migrate `ttlSecondsAfterFinished` field in the helm chart
 
 ### Fixed
 
 - Got 500 error when saving Outgoing Webhook ([#890](https://github.com/grafana/oncall/issues/890))
+- v1.0.13 helm chart - update the OnCall backend pods image pull policy to "Always" (and explicitly set tag to `latest`).
+  This should resolve some recent issues experienced where the frontend/backend versions are not aligned.
 
 ### Changed
 

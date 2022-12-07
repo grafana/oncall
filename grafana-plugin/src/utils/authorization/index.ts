@@ -135,8 +135,8 @@ export const UserActions: { [action in Actions]: UserAction } = {
   MaintenanceRead: constructAction(Resource.MAINTENANCE, Action.READ, OrgRole.Viewer),
   MaintenanceWrite: constructAction(Resource.MAINTENANCE, Action.WRITE, OrgRole.Editor),
 
-  APIKeysRead: constructAction(Resource.API_KEYS, Action.READ, OrgRole.Viewer),
-  APIKeysWrite: constructAction(Resource.API_KEYS, Action.WRITE, OrgRole.Editor),
+  APIKeysRead: constructAction(Resource.API_KEYS, Action.READ, OrgRole.Admin),
+  APIKeysWrite: constructAction(Resource.API_KEYS, Action.WRITE, OrgRole.Admin),
 
   NotificationsRead: constructAction(Resource.NOTIFICATIONS, Action.READ, OrgRole.Editor),
 

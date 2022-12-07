@@ -295,14 +295,12 @@ describe('PluginConfigPage', () => {
 
     // test setup
     const component = render(<PluginConfigPage {...generateComponentProps(metaJsonDataOnCallApiUrl)} />);
-    const user = userEvent.setup();
-
     const button = await screen.findByRole('button');
 
     // click the reset button, which opens the modal
-    await user.click(button);
+    await userEvent.click(button);
     // click the confirm button within the modal, which actually triggers the callback
-    await user.click(screen.getByText('Remove'));
+    await userEvent.click(screen.getByText('Remove'));
 
     await screen.findByTestId(successful ? PLUGIN_CONFIGURATION_FORM_DATA_ID : STATUS_MESSAGE_BLOCK_DATA_ID);
 
