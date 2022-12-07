@@ -1,3 +1,5 @@
+from unittest.mock import MagicMock
+
 import pytest
 
 from apps.telegram.renderers.keyboard import Action
@@ -19,7 +21,7 @@ def test_get_action_context(
     )
     alert_group = make_alert_group(alert_receive_channel)
 
-    handler = ButtonPressHandler()
+    handler = ButtonPressHandler(MagicMock())
 
     ack_data_with_action_name = f"{alert_group.id}:acknowledge:oncall-uuid{organization.uuid}"
     ack_data_with_action_code = f"{alert_group.id}:0:oncall-uuid{organization.uuid}"
