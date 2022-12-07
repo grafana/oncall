@@ -16,7 +16,7 @@ export class OutgoingWebhookStore extends BaseStore {
   constructor(rootStore: RootStore) {
     super(rootStore);
 
-    this.path = '/custom_buttons/';
+    this.path = '/webhooks/';
   }
 
   @action

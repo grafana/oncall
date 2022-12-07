@@ -9,13 +9,75 @@ export const form: { name: string; fields: FormItem[] } = {
       validation: { required: true },
     },
     {
-      name: 'webhook',
+      name: 'trigger_type',
+      label: 'Trigger type',
+      type: FormItemType.Select,
+      extra: {
+        options: [
+          {
+            value: 0,
+            label: 'Escalation step',
+          },
+          {
+            value: 1,
+            label: 'User notification',
+          },
+          {
+            value: 2,
+            label: 'Triggered',
+          },
+          {
+            value: 3,
+            label: 'Acknowledged',
+          },
+          {
+            value: 4,
+            label: 'Resolved',
+          },
+          {
+            value: 5,
+            label: 'Silenced',
+          },
+        ],
+      },
+    },
+    {
+      name: 'http_method',
+      label: 'HTTP method',
+      type: FormItemType.Select,
+      extra: {
+        options: [
+          {
+            value: 'GET',
+            label: 'GET',
+          },
+          {
+            value: 'POST',
+            label: 'POST',
+          },
+          {
+            value: 'PUT',
+            label: 'PUT',
+          },
+          {
+            value: 'DELETE',
+            label: 'DELETE',
+          },
+          {
+            value: 'OPTIONS',
+            label: 'OPTIONS',
+          },
+        ],
+      },
+    },
+    {
+      name: 'url',
       label: 'Webhook URL',
       type: FormItemType.Input,
       validation: { required: true },
     },
     {
-      name: 'user',
+      name: 'username',
       type: FormItemType.Input,
     },
     {
@@ -39,7 +101,7 @@ export const form: { name: string; fields: FormItem[] } = {
       },
     },
     {
-      name: 'forward_whole_payload',
+      name: 'forward_all',
       normalize: (value) => Boolean(value),
       type: FormItemType.Switch,
       description: "Forwards whole payload of the alert to the webhook's url as POST data",
