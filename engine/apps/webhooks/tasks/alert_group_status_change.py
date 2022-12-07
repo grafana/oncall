@@ -22,7 +22,19 @@ MAX_RETRIES = 10
     bind=True, autoretry_for=(Exception,), retry_backoff=True, max_retries=1 if settings.DEBUG else MAX_RETRIES
 )
 def alert_group_created(self, alert_group_id):
-    logger.error("CREATED AG ID: %s", alert_group_id)
+    try:
+        alert_group = AlertGroup.unarchived_objects.get(pk=alert_group_id)
+    except AlertGroup.DoesNotExist:
+        return
+
+    trigger_type = Webhook.TRIGGER_NEW
+    event = {
+        "type": "Firing",
+        "time": alert_group.started_at,
+    }
+    data = serialize_event(event, alert_group, None)
+    organization_id = alert_group.channel.organization_id
+    send_webhook_event.apply_async((trigger_type, data), {"org_id": organization_id})
 
 
 @shared_dedicated_queue_retry_task(
