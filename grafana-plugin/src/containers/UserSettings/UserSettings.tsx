@@ -7,7 +7,6 @@ import { useMediaQuery } from 'react-responsive';
 
 import { Tabs, TabsContent } from 'containers/UserSettings/parts';
 import { User as UserType } from 'models/user/user.types';
-import { AppFeature } from 'state/features';
 import { useStore } from 'state/useStore';
 import { BREAKPOINT_TABS } from 'utils/consts';
 
@@ -60,7 +59,7 @@ const UserSettings = observer(({ id, showMobileAppScreen, onHide, tab = UserSett
       !isDesktopOrLaptop,
       isCurrent && teamStore.currentTeam?.slack_team_identity && !storeUser.slack_user_identity,
       isCurrent && !storeUser.telegram_configuration,
-      shouldShowMobileAppVerificationTab(),
+      showMobileAppScreen,
     ];
 
   return (
@@ -86,17 +85,6 @@ const UserSettings = observer(({ id, showMobileAppScreen, onHide, tab = UserSett
       </Modal>
     </>
   );
-
-  function shouldShowMobileAppVerificationTab(): boolean {
-    if (!store.hasFeature(AppFeature.MobileApp)) {
-      return false;
-    }
-    if (!showMobileAppScreen) {
-      return false;
-    }
-
-    return true;
-  }
 });
 
 export default UserSettings;

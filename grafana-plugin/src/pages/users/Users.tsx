@@ -21,6 +21,7 @@ import UserSettings from 'containers/UserSettings/UserSettings';
 import { WithPermissionControl } from 'containers/WithPermissionControl/WithPermissionControl';
 import { User as UserType } from 'models/user/user.types';
 import { pages } from 'pages';
+import { AppFeature } from 'state/features';
 import { PageProps, WithStoreProps } from 'state/types';
 import { withMobXProviderContext } from 'state/withStore';
 import LocationHelper from 'utils/LocationHelper';
@@ -161,7 +162,8 @@ class Users extends React.Component<UsersProps, UsersState> {
       });
 
     const { count, results } = userStore.getSearchResult();
-    const showMobileAppScreen = id && id !== 'me' && id === userStore.currentUserPk;
+    const showMobileAppScreen: boolean =
+      id !== undefined && id !== 'me' && id === userStore.currentUserPk && store.hasFeature(AppFeature.MobileApp);
 
     return (
       <PluginPage pageNav={pages['users'].getPageNav()}>
