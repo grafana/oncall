@@ -209,8 +209,8 @@ class SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSta
   };
 
   handleCreateSchedule = (data: Schedule) => {
-    if (data.type === ScheduleType.API) {
-      LocationHelper.update({ page: 'schedule', id: data.id }, 'replace');
+    if (data.type === ScheduleType.Calendar) {
+      LocationHelper.update({ page: 'schedule', id: data.id }, 'partial');
     }
   };
 

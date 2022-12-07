@@ -14,6 +14,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   to update values that may be invalid
 - Add a `permalinks.web` field, which is a permalink to the alert group web app page, to the alert group internal/public
   API responses
+- Added the ability to customize job-migrate `ttlSecondsAfterFinished` field in the helm chart
 
 ### Fixed
 

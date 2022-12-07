@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 
 import { Icon, LoadingPlaceholder, VerticalGroup } from '@grafana/ui';
 import cn from 'classnames/bind';
@@ -13,7 +13,7 @@ import { useStore } from 'state/useStore';
 import styles from './MobileAppVerification.module.scss';
 import DisconnectButton from './parts/DisconnectButton/DisconnectButton';
 import DownloadIcons from './parts/DownloadIcons';
-import QRCode from './parts/QRCode';
+import QRCode from './parts/QRCode/QRCode';
 
 const cx = cn.bind(styles);
 
@@ -21,12 +21,15 @@ type Props = {
   userPk: User['pk'];
 };
 
-const INTERVAL_MS = 5000;
+const INTERVAL_MIN_THROTTLING = 500;
+const INTERVAL_QUEUE_QR = 50000;
+const INTERVAL_POLLING = 5000;
 const BACKEND = 'MOBILE_APP';
 
 const MobileAppVerification = observer(({ userPk }: Props) => {
   const { userStore } = useStore();
 
+  const isMounted = useRef(false);
   const [mobileAppIsCurrentlyConnected, setMobileAppIsCurrentlyConnected] = useState<boolean>(isUserConnected());
 
   const [fetchingQRCode, setFetchingQRCode] = useState<boolean>(!mobileAppIsCurrentlyConnected);
@@ -36,18 +39,29 @@ const MobileAppVerification = observer(({ userPk }: Props) => {
   const [disconnectingMobileApp, setDisconnectingMobileApp] = useState<boolean>(false);
   const [errorDisconnectingMobileApp, setErrorDisconnectingMobileApp] = useState<string>(null);
   const [userTimeoutId, setUserTimeoutId] = useState<NodeJS.Timeout>(undefined);
+  const [refreshTimeoutId, setRefreshTimeoutId] = useState<NodeJS.Timeout>(undefined);
+  const [isQRBlurry, setIsQRBlurry] = useState<boolean>(false);
 
-  const fetchQRCode = useCallback(async () => {
-    setFetchingQRCode(true);
-    try {
-      // backend verification code that we receive is a JSON object that has been "stringified"
-      const qrCodeContent = await userStore.sendBackendConfirmationCode(userPk, BACKEND);
-      setQRCodeValue(qrCodeContent);
-    } catch (e) {
-      setErrorFetchingQRCode('There was an error fetching your QR code. Please try again.');
-    }
-    setFetchingQRCode(false);
-  }, [userPk]);
+  const fetchQRCode = useCallback(
+    async (showLoader = true) => {
+      if (showLoader) {
+        setFetchingQRCode(true);
+      }
+
+      try {
+        // backend verification code that we receive is a JSON object that has been "stringified"
+        const qrCodeContent = await userStore.sendBackendConfirmationCode(userPk, BACKEND);
+        setQRCodeValue(qrCodeContent);
+      } catch (e) {
+        setErrorFetchingQRCode('There was an error fetching your QR code. Please try again.');
+      }
+
+      if (showLoader) {
+        setFetchingQRCode(false);
+      }
+    },
+    [userPk]
+  );
 
   const resetState = useCallback(() => {
     setErrorDisconnectingMobileApp(null);
@@ -66,19 +80,21 @@ const MobileAppVerification = observer(({ userPk }: Props) => {
     }
 
     setDisconnectingMobileApp(false);
-    pollUserProfile();
+    clearTimeouts();
+    triggerTimeouts();
   }, [userPk, resetState]);
 
   useEffect(() => {
+    isMounted.current = true;
+
     if (!isUserConnected()) {
-      pollUserProfile();
+      triggerTimeouts();
     }
 
     // clear on unmount
     return () => {
-      if (userTimeoutId) {
-        clearTimeout(userTimeoutId);
-      }
+      isMounted.current = false;
+      clearTimeouts();
     };
   }, []);
 
@@ -116,13 +132,10 @@ const MobileAppVerification = observer(({ userPk }: Props) => {
           Sign In
         </Text>
         <Text type="primary">Open Grafana IRM mobile application and scan this code to sync it with your account.</Text>
-        <div className="u-width-100 u-flex u-flex-center">
-          <QRCode value={QRCodeValue} />
+        <div className={cx('u-width-100', 'u-flex', 'u-flex-center', 'u-position-relative')}>
+          <QRCode className={cx({ blurry: isQRBlurry })} value={QRCodeValue} />
+          {isQRBlurry && <QRLoading />}
         </div>
-        <Text type="primary" className="u-break-word">
-          <strong>Note:</strong> the QR code is only valid for one minute. If you have issues connecting your mobile
-          app, try refreshing this page to generate a new code.
-        </Text>
       </VerticalGroup>
     );
   }
@@ -138,21 +151,84 @@ const MobileAppVerification = observer(({ userPk }: Props) => {
     </div>
   );
 
+  function clearTimeouts(): void {
+    clearTimeout(userTimeoutId);
+    clearTimeout(refreshTimeoutId);
+  }
+
+  function triggerTimeouts(): void {
+    setTimeout(queueRefreshQR, INTERVAL_QUEUE_QR);
+    setTimeout(pollUserProfile, INTERVAL_POLLING);
+  }
+
   function isUserConnected(user?: User): boolean {
     return !!(user || userStore.currentUser).messaging_backends[BACKEND]?.connected;
   }
 
+  async function queueRefreshQR(): Promise<void> {
+    if (!isMounted.current) {
+      return;
+    }
+
+    clearTimeout(refreshTimeoutId);
+    setRefreshTimeoutId(undefined);
+
+    const user = await userStore.loadUser(userPk);
+    if (!isUserConnected(user)) {
+      let didCallThrottleWithNoEffect = false;
+      let isRequestDone = false;
+
+      const throttle = () => {
+        if (!isMounted.current) {
+          return;
+        }
+        if (!isRequestDone) {
+          didCallThrottleWithNoEffect = true;
+          return;
+        }
+
+        setIsQRBlurry(false);
+        setTimeout(queueRefreshQR, INTERVAL_QUEUE_QR);
+      };
+
+      setTimeout(throttle, INTERVAL_MIN_THROTTLING);
+      setIsQRBlurry(true);
+
+      await fetchQRCode(false);
+
+      isRequestDone = true;
+      if (didCallThrottleWithNoEffect) {
+        throttle();
+      }
+    }
+  }
+
   async function pollUserProfile(): Promise<void> {
+    if (!isMounted.current) {
+      return;
+    }
+
     clearTimeout(userTimeoutId);
     setUserTimeoutId(undefined);
 
     const user = await userStore.loadUser(userPk);
     if (!isUserConnected(user)) {
-      setUserTimeoutId(setTimeout(() => pollUserProfile(), INTERVAL_MS));
+      setUserTimeoutId(setTimeout(pollUserProfile, INTERVAL_POLLING));
     } else {
       setMobileAppIsCurrentlyConnected(true);
     }
   }
 });
+
+function QRLoading() {
+  return (
+    <div className={cx('qr-loader')}>
+      <Text type="primary" className={cx('qr-loader__text')}>
+        Regenerating QR code...
+      </Text>
+      <LoadingPlaceholder />
+    </div>
+  );
+}
 
 export default MobileAppVerification;
