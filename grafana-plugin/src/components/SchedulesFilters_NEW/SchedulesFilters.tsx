@@ -72,7 +72,7 @@ const SchedulesFilters = (props: SchedulesFiltersProps) => {
               { label: 'All', value: undefined },
               {
                 label: 'Web',
-                value: ScheduleType.API,
+                value: ScheduleType.Calendar,
               },
               {
                 label: 'ICal',
@@ -80,7 +80,7 @@ const SchedulesFilters = (props: SchedulesFiltersProps) => {
               },
               {
                 label: 'API',
-                value: ScheduleType.Calendar,
+                value: ScheduleType.API,
               },
             ]}
             value={value?.type}
