@@ -9,7 +9,14 @@ from mirage import fields as mirage_fields
 from requests.auth import HTTPBasicAuth
 
 from apps.alerts.utils import OUTGOING_WEBHOOK_TIMEOUT
-from apps.webhooks.utils import InvalidWebhookTrigger, InvalidWebhookUrl, apply_jinja_template_for_json, parse_url
+from apps.webhooks.utils import (
+    InvalidWebhookData,
+    InvalidWebhookHeaders,
+    InvalidWebhookTrigger,
+    InvalidWebhookUrl,
+    apply_jinja_template_for_json,
+    parse_url,
+)
 from common.jinja_templater import apply_jinja_template
 from common.jinja_templater.apply_jinja_template import JinjaTemplateError, JinjaTemplateWarning
 from common.public_primary_keys import generate_public_primary_key, increase_public_primary_key_length
@@ -33,15 +40,17 @@ class Webhook(models.Model):
     (
         TRIGGER_ESCALATION_STEP,
         TRIGGER_USER_NOTIFICATION_STEP,
+        TRIGGER_NEW,
         TRIGGER_ACKNOWLEDGE,
         TRIGGER_RESOLVE,
         TRIGGER_SILENCE,
-    ) = range(5)
+    ) = range(6)
 
     # Must be the same order as previous
     TRIGGER_TYPES = (
         (TRIGGER_ESCALATION_STEP, "As escalation step"),
         (TRIGGER_USER_NOTIFICATION_STEP, "As user notification step"),
+        (TRIGGER_NEW, "Alert group new"),
         (TRIGGER_ACKNOWLEDGE, "Alert group acknowledge"),
         (TRIGGER_RESOLVE, "Alert group resolve"),
         (TRIGGER_SILENCE, "Alert group silence"),
@@ -82,12 +91,28 @@ class Webhook(models.Model):
     http_method = models.CharField(max_length=32, default="POST")
     trigger_type = models.IntegerField(choices=TRIGGER_TYPES, default=None, null=True)
 
-    def build_request_kwargs(self, event_data):
+    def build_request_kwargs(self, event_data, raise_data_errors=False):
         request_kwargs = {}
-        if self.user and self.password:
-            request_kwargs["auth"] = HTTPBasicAuth(self.user, self.password)
+        if self.username and self.password:
+            request_kwargs["auth"] = HTTPBasicAuth(self.username, self.password)
 
-        request_kwargs["headers"] = self.headers
+        try:
+            if self.headers_template:
+                rendered_headers = apply_jinja_template_for_json(
+                    self.headers_template,
+                    event_data,
+                )
+                request_kwargs["headers"] = json.loads(rendered_headers)
+
+            elif self.headers:
+                request_kwargs["headers"] = json.loads(self.headers)
+            else:
+                request_kwargs["headers"] = {}
+        except (JinjaTemplateError, JinjaTemplateWarning) as e:
+            raise InvalidWebhookHeaders(e.fallback_message)
+        except JSONDecodeError:
+            raise InvalidWebhookHeaders("Template did not result in json/dict")
+
         if self.authorization_header:
             request_kwargs["headers"]["Authorization"] = self.authorization_header
 
@@ -101,7 +126,10 @@ class Webhook(models.Model):
                         event_data,
                     )
                 except (JinjaTemplateError, JinjaTemplateWarning) as e:
-                    request_kwargs["json"] = {"error": e.fallback_message}
+                    if raise_data_errors:
+                        raise InvalidWebhookData(e.fallback_message)
+                    else:
+                        request_kwargs["json"] = {"error": e.fallback_message}
 
                 try:
                     request_kwargs["json"] = json.loads(rendered_data)
@@ -130,15 +158,13 @@ class Webhook(models.Model):
 
         try:
             result = apply_jinja_template(self.trigger_template, **event_data)
-            return result.lower() in ["true", "1"]
+            return result.lower() in ["true", "1"], result
         except (JinjaTemplateError, JinjaTemplateWarning) as e:
             raise InvalidWebhookTrigger(e.fallback_message)
 
         return True
 
-    def make_request(self, event_data):
-        url = self.build_url(event_data)
-        request_kwargs = self.build_request_kwargs(event_data)
+    def make_request(self, url, request_kwargs):
         if self.http_method == "GET":
             r = requests.get(url, timeout=OUTGOING_WEBHOOK_TIMEOUT, **request_kwargs)
         elif self.http_method == "POST":

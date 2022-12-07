@@ -32,9 +32,15 @@ def execute_webhook(webhook_pk, data):
     Webhooks = apps.get_model("webhooks", "Webhook")
     try:
         webhook = Webhooks.objects.get(pk=webhook_pk)
-        if webhook.check_trigger(data):
-            webhook.make_request(data)
+        triggered, trigger_result = webhook.check_trigger(data)
+        if triggered:
+            url = webhook.build_url(data)
+            request_kwargs = webhook.build_request_kwargs(data)
+            webhook.make_request(url, request_kwargs)
         else:
-            logger.info(f"Webhook {webhook_pk} trigger_template evaluated as false")
+            logger.info(f"Webhook {webhook_pk} trigger_template evaluated to {trigger_result}")
     except Webhooks.DoesNotExist:
         logger.warn(f"Webhook {webhook_pk} does not exist")
+    except Exception as e:
+        logger.error(str(e))
+    # TODO: Log trigger result and response of last attempt for user

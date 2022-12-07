@@ -18,6 +18,16 @@ class InvalidWebhookTrigger(Exception):
         self.message = message
 
 
+class InvalidWebhookHeaders(Exception):
+    def __init__(self, message):
+        self.message = message
+
+
+class InvalidWebhookData(Exception):
+    def __init__(self, message):
+        self.message = message
+
+
 def parse_url(url):
     parsed_url = urlparse(url)
     # ensure the url looks like url
