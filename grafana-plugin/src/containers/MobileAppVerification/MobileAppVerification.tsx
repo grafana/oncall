@@ -179,9 +179,14 @@ const MobileAppVerification = observer(({ userPk }: Props) => {
       let isRequestDone = false;
 
       const throttle = () => {
-        if (!isMounted.current || !isRequestDone) {
+        if (!isMounted.current) {
           return;
         }
+        if (!isRequestDone) {
+          didCallThrottleWithNoEffect = true;
+          return;
+        }
+
         setIsQRBlurry(false);
         setTimeout(queueRefreshQR, INTERVAL_QUEUE_QR);
       };
