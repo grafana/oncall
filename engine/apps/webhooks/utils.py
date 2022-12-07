@@ -110,6 +110,7 @@ class EscapeDoubleQuotesDict(dict):
 
 def serialize_event(event, alert_group, user):
     from apps.public_api.serializers import AlertSerializer, IncidentSerializer, UserSerializer
+
     data = {
         "event": event,
         "user": UserSerializer(user).data if user else None,

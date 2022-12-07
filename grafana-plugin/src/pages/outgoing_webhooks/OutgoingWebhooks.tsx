@@ -94,14 +94,24 @@ class OutgoingWebhooks extends React.Component<OutgoingWebhooksProps, OutgoingWe
 
     const columns = [
       {
-        width: '40%',
+        width: '20%',
         title: 'Name',
         dataIndex: 'name',
       },
       {
+        width: '10%',
+        title: 'Trigger type',
+        dataIndex: 'trigger_type',
+      },
+      {
+        width: '10%',
+        title: 'HTTP method',
+        dataIndex: 'http_method',
+      },
+      {
         width: '40%',
-        title: 'Url',
-        dataIndex: 'webhook',
+        title: 'URL',
+        dataIndex: 'url',
       },
       {
         width: '20%',

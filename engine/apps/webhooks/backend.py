@@ -1,7 +1,8 @@
 from apps.base.messaging import BaseMessagingBackend
+
 from .models import Webhook
-from .utils import serialize_event
 from .tasks import send_webhook_event
+from .utils import serialize_event
 
 
 class WebhookBackend(BaseMessagingBackend):
