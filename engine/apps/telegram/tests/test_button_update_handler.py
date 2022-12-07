@@ -51,6 +51,7 @@ def test_get_action_context(
     }
     action_context = handler._get_action_context(ack_data_with_action_name)
 
-    for action in ACTION_TO_DATA_STR:
-        action_context = handler._get_action_context(ack_data_with_action_name)
-        assert action_context.action.value == action.value
+    for action, data_strings in ACTION_TO_DATA_STR.items():
+        for data_str in data_strings:
+            action_context = handler._get_action_context(data_str)
+            assert action_context.action.value == action.value
