@@ -106,7 +106,7 @@ class TelegramKeyboardRenderer:
         # Add org id with 'oncall' prefix to callback data.
         # It's a workaround to pass oncall-uuid to the oncall-gateway while proxying requests.
         # TODO: check if it's possible switch to json str instead of ':' separated string.
-        # Note, that is't 64bytes limit to callback data
+        # Note, that there is a 64bytes limit to callback data
         callback_data_args.append(f"oncall-uuid{self.alert_group.channel.organization.uuid}")
         button = InlineKeyboardButton(text=text, callback_data=CallbackQueryFactory.encode_data(*callback_data_args))
 
