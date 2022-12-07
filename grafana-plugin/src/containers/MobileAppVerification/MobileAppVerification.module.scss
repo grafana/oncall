@@ -39,25 +39,22 @@
   opacity: 0.2;
 }
 
-.blurry-loader {
+.qr-loader {
   position: absolute;
   z-index: 10;
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
+  text-align: center;
 
-  > div {
-    margin-bottom: 0;
-    font-size: 16px;
+  &__text {
     text-align: center;
+    margin-bottom: 12px;
+    display: block;
   }
 
-  [data-testid='Spinner'] { // No other way to overwrite Grafana's LoadingPlaceholder unfortunately
-    width: 100%;
-    padding-top: 12px;
-  }
-
-  [data-testid='Spinner'] i { // No other way to overwrite Grafana's LoadingPlaceholder unfortunately
+  i { // Overwrite Grafana's loading icon
     font-size: 32px;
   }
+
 }

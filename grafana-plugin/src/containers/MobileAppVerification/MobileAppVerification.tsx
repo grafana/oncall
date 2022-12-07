@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 
 import { Icon, LoadingPlaceholder, VerticalGroup } from '@grafana/ui';
 import cn from 'classnames/bind';
@@ -21,13 +21,15 @@ type Props = {
   userPk: User['pk'];
 };
 
-const INTERVAL_QUEUE_QR = 50000;
+const INTERVAL_MIN_THROTTLING = 500;
+const INTERVAL_QUEUE_QR = 10000;
 const INTERVAL_POLLING = 5000;
 const BACKEND = 'MOBILE_APP';
 
 const MobileAppVerification = observer(({ userPk }: Props) => {
   const { userStore } = useStore();
 
+  const isMounted = useRef(false);
   const [mobileAppIsCurrentlyConnected, setMobileAppIsCurrentlyConnected] = useState<boolean>(isUserConnected());
 
   const [fetchingQRCode, setFetchingQRCode] = useState<boolean>(!mobileAppIsCurrentlyConnected);
@@ -83,12 +85,15 @@ const MobileAppVerification = observer(({ userPk }: Props) => {
   }, [userPk, resetState]);
 
   useEffect(() => {
+    isMounted.current = true;
+
     if (!isUserConnected()) {
       triggerTimeouts();
     }
 
     // clear on unmount
     return () => {
+      isMounted.current = false;
       clearTimeouts();
     };
   }, []);
@@ -129,11 +134,7 @@ const MobileAppVerification = observer(({ userPk }: Props) => {
         <Text type="primary">Open Grafana IRM mobile application and scan this code to sync it with your account.</Text>
         <div className={cx('u-width-100', 'u-flex', 'u-flex-center', 'u-position-relative')}>
           <QRCode className={cx({ blurry: isQRBlurry })} value={QRCodeValue} />
-          {isQRBlurry && (
-            <div className={cx('blurry-loader')}>
-              <LoadingPlaceholder text="Regenerating QR code..." />
-            </div>
-          )}
+          {isQRBlurry && <QRLoading />}
         </div>
       </VerticalGroup>
     );
@@ -170,10 +171,24 @@ const MobileAppVerification = observer(({ userPk }: Props) => {
 
     const user = await userStore.loadUser(userPk);
     if (!isUserConnected(user)) {
+      let didCallThrottleWithNoEffect = false;
+      let isRequestDone = false;
+
+      const throttle = () => {
+        if (!isMounted.current || !isRequestDone) {return;}
+        setIsQRBlurry(false);
+        setTimeout(queueRefreshQR, INTERVAL_QUEUE_QR);
+      };
+
+      setTimeout(throttle, INTERVAL_MIN_THROTTLING);
       setIsQRBlurry(true);
+
       await fetchQRCode(false);
-      setIsQRBlurry(false);
-      setTimeout(queueRefreshQR, INTERVAL_QUEUE_QR);
+
+      isRequestDone = true;
+      if (didCallThrottleWithNoEffect) {
+        throttle();
+      }
     }
   }
 
@@ -189,5 +204,16 @@ const MobileAppVerification = observer(({ userPk }: Props) => {
     }
   }
 });
+
+function QRLoading() {
+  return (
+    <div className={cx('qr-loader')}>
+      <Text type="primary" className={cx('qr-loader__text')}>
+        Regenerating QR code...
+      </Text>
+      <LoadingPlaceholder />
+    </div>
+  );
+}
 
 export default MobileAppVerification;
