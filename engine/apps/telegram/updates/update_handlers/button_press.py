@@ -6,7 +6,7 @@ from apps.alerts.constants import ActionSource
 from apps.alerts.models import AlertGroup
 from apps.api.permissions import RBACPermission, user_is_authorized
 from apps.telegram.models import TelegramToUserConnector
-from apps.telegram.renderers.keyboard import Action
+from apps.telegram.renderers.keyboard import CODE_TO_ACTION_MAP, Action
 from apps.telegram.updates.update_handlers import UpdateHandler
 from apps.telegram.utils import CallbackQueryFactory
 from apps.user_management.models import User
@@ -68,7 +68,14 @@ class ButtonPressHandler(UpdateHandler):
         alert_group_pk = args[0]
         alert_group = AlertGroup.all_objects.get(pk=alert_group_pk)
 
-        action_name = args[1]
+        action_value = args[1]
+        try:
+            # if action encoded as action_code - cast it to the action_string
+            action_value = int(action_value)
+            action_name = CODE_TO_ACTION_MAP[action_value]
+        except ValueError:
+            # support legacy messages with action_name in callback data
+            action_name = action_value
         action = Action(action_name)
 
         action_data = args[2] if len(args) >= 3 and not cls._is_oncall_identifier(args[2]) else None
