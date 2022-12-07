@@ -200,9 +200,12 @@ describe('MobileAppVerification', () => {
 
     render(<MobileAppVerification userPk={USER_PK} />);
 
-    await waitFor(() => {
-      expect(loadUserMock).toHaveBeenCalledTimes(1);
-    });
+    await waitFor(
+      () => {
+        expect(loadUserMock).toHaveBeenCalled();
+      },
+      { timeout: 6000 }
+    );
   });
 
   test('it polls loadUser after disconnect', async () => {
@@ -222,8 +225,11 @@ describe('MobileAppVerification', () => {
     await userEvent.click(button); // click the disconnect button, which opens the modal
     await userEvent.click(screen.getByText('Remove')); // click the confirm button within the modal, which actually triggers the callback
 
-    await waitFor(() => {
-      expect(loadUserMock).toHaveBeenCalledTimes(1);
-    });
+    await waitFor(
+      () => {
+        expect(loadUserMock).toHaveBeenCalled();
+      },
+      { timeout: 6000 }
+    );
   });
 });

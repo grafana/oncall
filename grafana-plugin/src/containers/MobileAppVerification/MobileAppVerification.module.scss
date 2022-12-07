@@ -33,3 +33,28 @@
   filter: blur(6px);
   opacity: 0.6;
 }
+
+.blurry {
+  filter: blur(4px);
+  opacity: 0.2;
+}
+
+.qr-loader {
+  position: absolute;
+  z-index: 10;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  text-align: center;
+
+  &__text {
+    text-align: center;
+    margin-bottom: 12px;
+    display: block;
+  }
+
+  i { // Overwrite Grafana's loading icon
+    font-size: 32px;
+  }
+
+}

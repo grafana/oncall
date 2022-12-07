@@ -49,7 +49,10 @@ const UserSettings = observer(({ id, onHide, tab = UserSettingsTab.UserInfo }: U
   }, []);
 
   const isModalWide =
-    !isDesktopOrLaptop || activeTab === UserSettingsTab.UserInfo || activeTab === UserSettingsTab.PhoneVerification;
+    !isDesktopOrLaptop ||
+    activeTab === UserSettingsTab.UserInfo ||
+    activeTab === UserSettingsTab.PhoneVerification ||
+    activeTab === UserSettingsTab.MobileAppVerification;
 
   const [
     showNotificationSettingsTab,
