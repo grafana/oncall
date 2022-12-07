@@ -1,9 +1,13 @@
 import logging
+from json import JSONDecodeError
 
 from celery.utils.log import get_task_logger
 from django.apps import apps
 from django.conf import settings
+from django.utils import timezone
 
+from apps.webhooks.models.webhooks import WebhookLog
+from apps.webhooks.utils import InvalidWebhookData, InvalidWebhookHeaders, InvalidWebhookTrigger, InvalidWebhookUrl
 from common.custom_celery_tasks import shared_dedicated_queue_retry_task
 
 logger = get_task_logger(__name__)
@@ -30,17 +34,45 @@ def send_webhook_event(trigger_type, data, user_id=None, team_id=None, org_id=No
 )
 def execute_webhook(webhook_pk, data):
     Webhooks = apps.get_model("webhooks", "Webhook")
+
+    status = {
+        "last_run_at": timezone.now(),
+        "input_data": data,
+        "url": None,
+        "trigger": None,
+        "request": None,
+        "response_status": None,
+        "response": None,
+    }
+
     try:
         webhook = Webhooks.objects.get(pk=webhook_pk)
-        triggered, trigger_result = webhook.check_trigger(data)
+        triggered, status["trigger"] = webhook.check_trigger(data)
         if triggered:
-            url = webhook.build_url(data)
+            status["url"] = webhook.build_url(data)
             request_kwargs = webhook.build_request_kwargs(data)
-            webhook.make_request(url, request_kwargs)
-        else:
-            logger.info(f"Webhook {webhook_pk} trigger_template evaluated to {trigger_result}")
+            if webhook.forward_all:
+                status["request"] = "All input_data forwarded as payload"
+            elif "json" in request_kwargs:
+                status["request"] = request_kwargs["json"]
+            else:
+                status["request"] = request_kwargs["data"]
+            response = webhook.make_request(status["url"], request_kwargs)
+            status["response_status"] = response.status_code
+            try:
+                status["response"] = response.json()
+            except JSONDecodeError:
+                status["response"] = response.content.decode("utf-8")
     except Webhooks.DoesNotExist:
         logger.warn(f"Webhook {webhook_pk} does not exist")
+        return
+    except InvalidWebhookUrl as e:
+        status["url"] = e.message
+    except InvalidWebhookTrigger as e:
+        status["trigger"] = e.message
+    except (InvalidWebhookHeaders, InvalidWebhookData) as e:
+        status["request_data"] = e.message
     except Exception as e:
-        logger.error(str(e))
-    # TODO: Log trigger result and response of last attempt for user
+        status["response"] = str(e)
+    finally:
+        WebhookLog.objects.update_or_create(webhook_id=webhook_pk, defaults=status)

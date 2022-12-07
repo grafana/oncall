@@ -4,28 +4,30 @@ import re
 import socket
 from urllib.parse import urlparse
 
+from django.conf import settings
+
 from apps.base.utils import live_settings
 from common.jinja_templater import apply_jinja_template
 
 
 class InvalidWebhookUrl(Exception):
     def __init__(self, message):
-        self.message = message
+        self.message = f"URL - {message}"
 
 
 class InvalidWebhookTrigger(Exception):
     def __init__(self, message):
-        self.message = message
+        self.message = f"Trigger - {message}"
 
 
 class InvalidWebhookHeaders(Exception):
     def __init__(self, message):
-        self.message = message
+        self.message = f"Headers - {message}"
 
 
 class InvalidWebhookData(Exception):
     def __init__(self, message):
-        self.message = message
+        self.message = f"Data - {message}"
 
 
 def parse_url(url):
@@ -33,6 +35,9 @@ def parse_url(url):
     # ensure the url looks like url
     if parsed_url.scheme not in ["http", "https"] or not parsed_url.netloc:
         raise InvalidWebhookUrl("Malformed url")
+
+    if settings.BASE_URL in url:
+        raise InvalidWebhookUrl("Potential self-reference")
 
     if not live_settings.DANGEROUS_WEBHOOKS_ENABLED:
         # Get the ip address of the webhook url and check if it belongs to the private network
@@ -109,12 +114,17 @@ class EscapeDoubleQuotesDict(dict):
 
 
 def serialize_event(event, alert_group, user):
-    from apps.public_api.serializers import AlertSerializer, IncidentSerializer, UserSerializer
+    from apps.public_api.serializers import IncidentSerializer
+
+    alert_payload = alert_group.alerts.first()
+    if alert_payload:
+        alert_payload_raw = alert_payload.raw_request_data
 
     data = {
         "event": event,
-        "user": UserSerializer(user).data if user else None,
+        "user": user.username if user else None,
         "alert_group": IncidentSerializer(alert_group).data,
-        "alert": AlertSerializer(alert_group.alerts.first()).data,
+        "alert_group_id": alert_group.public_primary_key,
+        "alert_payload": alert_payload_raw,
     }
     return data

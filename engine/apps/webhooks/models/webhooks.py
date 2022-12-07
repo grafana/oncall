@@ -44,7 +44,8 @@ class Webhook(models.Model):
         TRIGGER_ACKNOWLEDGE,
         TRIGGER_RESOLVE,
         TRIGGER_SILENCE,
-    ) = range(6)
+        TRIGGER_UNSILENCE,
+    ) = range(7)
 
     # Must be the same order as previous
     TRIGGER_TYPES = (
@@ -54,6 +55,7 @@ class Webhook(models.Model):
         (TRIGGER_ACKNOWLEDGE, "Alert group acknowledge"),
         (TRIGGER_RESOLVE, "Alert group resolve"),
         (TRIGGER_SILENCE, "Alert group silence"),
+        (TRIGGER_UNSILENCE, "Alert group unsilence"),
     )
 
     public_primary_key = models.CharField(
@@ -77,7 +79,7 @@ class Webhook(models.Model):
 
     created_at = models.DateTimeField(auto_now_add=True)
     deleted_at = models.DateTimeField(blank=True, null=True)
-    name = models.CharField(max_length=100)
+    name = models.CharField(max_length=100, null=True, default=None)
     username = models.CharField(max_length=100, null=True, default=None)
     password = mirage_fields.EncryptedCharField(max_length=200, null=True, default=None)
     authorization_header = models.CharField(max_length=1000, null=True, default=None)
@@ -125,16 +127,15 @@ class Webhook(models.Model):
                         self.data,
                         event_data,
                     )
+                    try:
+                        request_kwargs["json"] = json.loads(rendered_data)
+                    except (JSONDecodeError, TypeError):
+                        request_kwargs["data"] = rendered_data
                 except (JinjaTemplateError, JinjaTemplateWarning) as e:
                     if raise_data_errors:
                         raise InvalidWebhookData(e.fallback_message)
                     else:
                         request_kwargs["json"] = {"error": e.fallback_message}
-
-                try:
-                    request_kwargs["json"] = json.loads(rendered_data)
-                except JSONDecodeError:
-                    request_kwargs["data"] = rendered_data
 
         return request_kwargs
 
@@ -154,7 +155,7 @@ class Webhook(models.Model):
 
     def check_trigger(self, event_data):
         if not self.trigger_template:
-            return True, ''
+            return True, ""
 
         try:
             result = apply_jinja_template(self.trigger_template, **event_data)
@@ -162,7 +163,7 @@ class Webhook(models.Model):
         except (JinjaTemplateError, JinjaTemplateWarning) as e:
             raise InvalidWebhookTrigger(e.fallback_message)
 
-        return True, ''
+        return True, ""
 
     def make_request(self, url, request_kwargs):
         if self.http_method == "GET":
@@ -177,5 +178,21 @@ class Webhook(models.Model):
             r = requests.options(url, timeout=OUTGOING_WEBHOOK_TIMEOUT, **request_kwargs)
         else:
             raise Exception(f"Unsupported http method: {self.http_method}")
-        r.raise_for_status()
         return r
+
+
+class WebhookLog(models.Model):
+    last_run_at = models.DateTimeField(blank=True, null=True)
+    input_data = models.JSONField(default=None)
+    url = models.TextField(null=True, default=None)
+    trigger = models.TextField(null=True, default=None)
+    request = models.TextField(null=True, default=None)
+    response_status = models.CharField(max_length=100, null=True, default=None)
+    response = models.TextField(null=True, default=None)
+    webhook = models.ForeignKey(
+        to="webhooks.Webhook",
+        on_delete=models.CASCADE,
+        related_name="webhook",
+        blank=False,
+        null=False,
+    )

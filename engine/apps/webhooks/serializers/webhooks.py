@@ -1,6 +1,7 @@
 from rest_framework import serializers
 
 from apps.webhooks.models import Webhook
+from apps.webhooks.models.webhooks import WebhookLog
 
 
 class WebhookSerializer(serializers.ModelSerializer):
@@ -30,3 +31,17 @@ class WebhookSerializer(serializers.ModelSerializer):
             "password": {"write_only": True},
             "authorization_header": {"write_only": True},
         }
+
+
+class WebhookLogSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = WebhookLog
+        fields = [
+            "last_run_at",
+            "input_data",
+            "url",
+            "trigger",
+            "request",
+            "response_status",
+            "response",
+        ]

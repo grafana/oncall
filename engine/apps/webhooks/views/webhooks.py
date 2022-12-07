@@ -11,11 +11,12 @@ from rest_framework.mixins import (
     UpdateModelMixin,
 )
 from rest_framework.permissions import AllowAny
-from rest_framework.status import HTTP_200_OK
+from rest_framework.status import HTTP_200_OK, HTTP_400_BAD_REQUEST, HTTP_404_NOT_FOUND
 from rest_framework.viewsets import GenericViewSet
 
 from apps.webhooks.models import Webhook
-from apps.webhooks.serializers.webhooks import WebhookSerializer
+from apps.webhooks.models.webhooks import WebhookLog
+from apps.webhooks.serializers.webhooks import WebhookLogSerializer, WebhookSerializer
 from apps.webhooks.utils import InvalidWebhookData, InvalidWebhookHeaders, InvalidWebhookTrigger, InvalidWebhookUrl
 from common.api_helpers.mixins import PublicPrimaryKeyMixin
 
@@ -45,13 +46,26 @@ class WebhooksView(
     def test_webhook(self, request, pk):
         instance = self.get_object()
         body_unicode = request.body.decode("utf-8")
-        body = json.loads(body_unicode)
+        body = {}
+        if len(body_unicode) > 0:
+            body = json.loads(body_unicode)
+
+        if len(body) == 0:
+            log = WebhookLog.objects.filter(webhook__public_primary_key=pk).first()
+            if log:
+                body = log.input_data
+
+        if len(body) == 0:
+            return HttpResponse(
+                json.dumps({"message": "No body in POST to use as event data"}),
+                HTTP_400_BAD_REQUEST,
+            )
 
         try:
             trigger_passed, result = instance.check_trigger(body)
             if not trigger_passed:
                 return HttpResponse(
-                    content=json.dumps(
+                    json.dumps(
                         {
                             "message": "Trigger did not evaluate to true or 1",
                             "trigger_template": instance.trigger_template,
@@ -62,7 +76,7 @@ class WebhooksView(
                 )
         except InvalidWebhookTrigger as e:
             return HttpResponse(
-                content=json.dumps(
+                json.dumps(
                     {
                         "message": f"Trigger template had errors {e.message}",
                         "trigger_template": instance.trigger_template,
@@ -75,7 +89,7 @@ class WebhooksView(
             url = instance.build_url(body)
         except InvalidWebhookUrl as e:
             return HttpResponse(
-                content=json.dumps(
+                json.dumps(
                     {
                         "message": f"Invalid URL: {e.message}",
                         "url": instance.url,
@@ -89,7 +103,7 @@ class WebhooksView(
             request_kwargs = instance.build_request_kwargs(body, raise_data_errors=False)
         except InvalidWebhookHeaders as e:
             return HttpResponse(
-                content=json.dumps(
+                json.dumps(
                     {
                         "message": f"Invalid headers: {e.message}",
                         "headers": instance.headers,
@@ -100,7 +114,7 @@ class WebhooksView(
             )
         except InvalidWebhookData as e:
             return HttpResponse(
-                content=json.dumps(
+                json.dumps(
                     {
                         "message": f"Invalid request data: {e.message}",
                         "data": instance.data,
@@ -115,7 +129,7 @@ class WebhooksView(
         except (JSONDecodeError, TypeError):
             response_content = webhook_response.text
         return HttpResponse(
-            content=json.dumps(
+            json.dumps(
                 {
                     "response": {
                         "content": response_content,
@@ -126,3 +140,17 @@ class WebhooksView(
             ),
             status=HTTP_200_OK,
         )
+
+    @action(
+        detail=True,
+        methods=["get"],
+        url_path=r"status",
+    )
+    def status(self, request, pk):
+        log = WebhookLog.objects.filter(webhook__public_primary_key=pk).first()
+        if log:
+            return HttpResponse(json.dumps(WebhookLogSerializer(log).data), status=HTTP_200_OK)
+        else:
+            return HttpResponse(
+                json.dumps({"message": "No log found (has webhook been run?)"}), status=HTTP_404_NOT_FOUND
+            )
