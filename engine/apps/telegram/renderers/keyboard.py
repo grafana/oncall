@@ -104,7 +104,7 @@ class TelegramKeyboardRenderer:
         if action_data is not None:
             callback_data_args.append(action_data)
         # Add org id with 'oncall' prefix to callback data.
-        # It's a workaroung to pass oncall_-uuid to the oncall-gateway while proxying requests.
+        # It's a workaround to pass oncall-uuid to the oncall-gateway while proxying requests.
         # TODO: check if it's possible switch to json str instead of ':' separated string.
         # Note, that is't 64bytes limit to callback data
         callback_data_args.append(f"oncall-uuid{self.alert_group.channel.organization.uuid}")
