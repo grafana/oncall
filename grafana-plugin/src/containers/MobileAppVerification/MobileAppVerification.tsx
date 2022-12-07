@@ -156,8 +156,8 @@ const MobileAppVerification = observer(({ userPk }: Props) => {
   }
 
   function triggerTimeouts(): void {
-    setTimeout(() => queueRefreshQR(), INTERVAL_QUEUE_QR);
-    setTimeout(() => pollUserProfile(), INTERVAL_POLLING);
+    setTimeout(queueRefreshQR, INTERVAL_QUEUE_QR);
+    setTimeout(pollUserProfile, INTERVAL_POLLING);
   }
 
   function isUserConnected(user?: User): boolean {
@@ -173,7 +173,7 @@ const MobileAppVerification = observer(({ userPk }: Props) => {
       setIsQRBlurry(true);
       await fetchQRCode(false);
       setIsQRBlurry(false);
-      setTimeout(() => queueRefreshQR(), INTERVAL_QUEUE_QR);
+      setTimeout(queueRefreshQR, INTERVAL_QUEUE_QR);
     }
   }
 
@@ -183,7 +183,7 @@ const MobileAppVerification = observer(({ userPk }: Props) => {
 
     const user = await userStore.loadUser(userPk);
     if (!isUserConnected(user)) {
-      setUserTimeoutId(setTimeout(() => pollUserProfile(), INTERVAL_POLLING));
+      setUserTimeoutId(setTimeout(pollUserProfile, INTERVAL_POLLING));
     } else {
       setMobileAppIsCurrentlyConnected(true);
     }
