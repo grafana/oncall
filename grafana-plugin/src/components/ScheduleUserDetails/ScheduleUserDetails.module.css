@@ -36,3 +36,13 @@
 .icon {
   color: #ccccdc;
 }
+
+.timezone-wrapper {
+  display: flex;
+}
+
+.timezone-info {
+  width: 50%;
+  overflow-wrap: anywhere;
+  margin-left: 4px;
+}

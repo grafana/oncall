@@ -29,7 +29,7 @@ const ScheduleUserDetails: FC<ScheduleUserDetailsProps> = (props) => {
   console.log('USER', user);
   return (
     <div className={cx('root')}>
-      <VerticalGroup spacing="sm">
+      <VerticalGroup spacing="md">
         <HorizontalGroup justify="space-between">
           <Avatar src={user.avatar} size="large" />
         </HorizontalGroup>
@@ -46,37 +46,44 @@ const ScheduleUserDetails: FC<ScheduleUserDetailsProps> = (props) => {
               <Icon name="clock-nine" />
             </Text>
 
-            <VerticalGroup>
-              <Text type="secondary">Local time</Text>
-              <Text type="secondary">{currentMoment.tz().format('DD MMM, HH:mm')}</Text>
-              <Text type="secondary">({getTzOffsetString(currentMoment)})</Text>
-            </VerticalGroup>
-            <VerticalGroup>
-              <Text>{user.username}'s time</Text>
-              <Text>{`${userMoment.tz(user.timezone).format('DD MMM, HH:mm')}`}</Text>
-              <Text>({userOffsetHoursStr})</Text>
-            </VerticalGroup>
+            <div className={cx('timezone-wrapper')}>
+              <div className={cx('timezone-info')}>
+                <VerticalGroup>
+                  <Text type="secondary">Local time</Text>
+                  <Text type="secondary">{currentMoment.tz().format('DD MMM, HH:mm')}</Text>
+                  <Text type="secondary">({getTzOffsetString(currentMoment)})</Text>
+                </VerticalGroup>
+              </div>
+
+              <div className={cx('timezone-info')}>
+                <VerticalGroup className={cx('timezone-info')}>
+                  <Text>{user.username}'s time</Text>
+                  <Text>{`${userMoment.tz(user.timezone).format('DD MMM, HH:mm')}`}</Text>
+                  <Text>({userOffsetHoursStr})</Text>
+                </VerticalGroup>
+              </div>
+            </div>
           </HorizontalGroup>
         </VerticalGroup>
 
         <hr className={cx('hr')} />
-        <VerticalGroup>
+        <VerticalGroup spacing="sm">
           <Text>Contacts</Text>
 
           <Text type="secondary">
-            <Icon name="message" />{' '}
+            <Icon name="envelope" />{' '}
             <a href={`mailto:${user.email}`}>
               <Text type="link">{user.email}</Text>
             </a>{' '}
           </Text>
           {user.slack_user_identity && (
             <Text>
-              Slack: <Text type="link">{user.slack_user_identity.slack_login}</Text>
+              <Icon name="slack" /> <Text type="link">{user.slack_user_identity.slack_login}</Text>
             </Text>
           )}
           {user.telegram_configuration && (
             <Text>
-              Telegram:{' '}
+              <Icon name="message" />{' '}
               <a href={`https://t.me/${user.telegram_configuration.telegram_nick_name}`}>
                 <Text type="link">{user.telegram_configuration.telegram_nick_name}</Text>
               </a>{' '}
