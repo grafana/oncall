@@ -20,12 +20,13 @@ const cx = cn.bind(styles);
 interface UserFormProps {
   onHide: () => void;
   id: UserType['pk'] | 'new';
+  showMobileAppScreen: boolean;
   onCreate?: (data: UserType) => void;
   onUpdate?: () => void;
   tab?: UserSettingsTab;
 }
 
-const UserSettings = observer(({ id, onHide, tab = UserSettingsTab.UserInfo }: UserFormProps) => {
+const UserSettings = observer(({ id, showMobileAppScreen, onHide, tab = UserSettingsTab.UserInfo }: UserFormProps) => {
   const store = useStore();
   const { userStore, teamStore } = store;
 
@@ -54,17 +55,13 @@ const UserSettings = observer(({ id, onHide, tab = UserSettingsTab.UserInfo }: U
     activeTab === UserSettingsTab.PhoneVerification ||
     activeTab === UserSettingsTab.MobileAppVerification;
 
-  const [
-    showNotificationSettingsTab,
-    showSlackConnectionTab,
-    showTelegramConnectionTab,
-    _showMobileAppVerificationTab,
-  ] = [
-    !isDesktopOrLaptop,
-    isCurrent && teamStore.currentTeam?.slack_team_identity && !storeUser.slack_user_identity,
-    isCurrent && !storeUser.telegram_configuration,
-    store.hasFeature(AppFeature.MobileApp),
-  ];
+  const [showNotificationSettingsTab, showSlackConnectionTab, showTelegramConnectionTab, showMobileAppVerificationTab] =
+    [
+      !isDesktopOrLaptop,
+      isCurrent && teamStore.currentTeam?.slack_team_identity && !storeUser.slack_user_identity,
+      isCurrent && !storeUser.telegram_configuration,
+      shouldShowMobileAppVerificationTab(),
+    ];
 
   return (
     <>
@@ -82,13 +79,24 @@ const UserSettings = observer(({ id, onHide, tab = UserSettingsTab.UserInfo }: U
             showNotificationSettingsTab={showNotificationSettingsTab}
             showSlackConnectionTab={showSlackConnectionTab}
             showTelegramConnectionTab={showTelegramConnectionTab}
-            showMobileAppVerificationTab={true}
+            showMobileAppVerificationTab={showMobileAppVerificationTab}
           />
           <TabsContent id={id} activeTab={activeTab} onTabChange={onTabChange} isDesktopOrLaptop={isDesktopOrLaptop} />
         </div>
       </Modal>
     </>
   );
+
+  function shouldShowMobileAppVerificationTab(): boolean {
+    if (!store.hasFeature(AppFeature.MobileApp)) {
+      return false;
+    }
+    if (!showMobileAppScreen) {
+      return false;
+    }
+
+    return true;
+  }
 });
 
 export default UserSettings;

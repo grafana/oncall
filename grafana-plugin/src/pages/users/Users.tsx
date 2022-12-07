@@ -116,7 +116,11 @@ class Users extends React.Component<UsersProps, UsersState> {
 
   render() {
     const { usersFilters, userPkToEdit, page, errorData } = this.state;
-    const { store, query } = this.props;
+    const {
+      store,
+      query,
+      query: { id },
+    } = this.props;
     const { userStore } = store;
 
     const columns = [
@@ -157,6 +161,7 @@ class Users extends React.Component<UsersProps, UsersState> {
       });
 
     const { count, results } = userStore.getSearchResult();
+    const showMobileAppScreen = id && id !== 'me' && id === userStore.currentUserPk;
 
     return (
       <PluginPage pageNav={pages['users'].getPageNav()}>
@@ -232,7 +237,13 @@ class Users extends React.Component<UsersProps, UsersState> {
                     />
                   )}
                 </div>
-                {userPkToEdit && <UserSettings id={userPkToEdit} onHide={this.handleHideUserSettings} />}
+                {userPkToEdit && (
+                  <UserSettings
+                    id={userPkToEdit}
+                    onHide={this.handleHideUserSettings}
+                    showMobileAppScreen={showMobileAppScreen}
+                  />
+                )}
               </div>
             </>
           )}
