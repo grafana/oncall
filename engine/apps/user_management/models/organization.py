@@ -46,7 +46,7 @@ class OrganizationQuerySet(models.QuerySet):
     def create(self, **kwargs):
         instance = super().create(**kwargs)
         if settings.FEATURE_MULTIREGION_ENABLED:
-            create_oncall_connector(instance.public_primary_key, settings.ONCALL_BACKEND_REGION)
+            create_oncall_connector(instance.uuid, settings.ONCALL_BACKEND_REGION)
         return instance
 
     def delete(self):
