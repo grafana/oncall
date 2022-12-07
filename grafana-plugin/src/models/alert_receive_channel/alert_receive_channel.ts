@@ -314,6 +314,13 @@ export class AlertReceiveChannelStore extends BaseStore {
     });
   }
 
+  async deleteWebhook(id: ActionDTO['id']) {
+    await makeRequest(`/webhooks/${id}/`, {
+      method: 'DELETE',
+      withCredentials: true,
+    });
+  }
+
   async getAccessLogs(alertReceiveChannelId: AlertReceiveChannel['id']) {
     const { integration_log } = await makeRequest(`/alert_receive_channel_access_log/${alertReceiveChannelId}/`, {});
 

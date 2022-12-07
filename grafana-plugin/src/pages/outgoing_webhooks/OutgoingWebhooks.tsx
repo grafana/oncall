@@ -194,7 +194,7 @@ class OutgoingWebhooks extends React.Component<OutgoingWebhooksProps, OutgoingWe
   getDeleteClickHandler = (id: OutgoingWebhook['id']) => {
     const { store } = this.props;
     return () => {
-      store.alertReceiveChannelStore.deleteCustomButton(id).then(this.update);
+      store.alertReceiveChannelStore.deleteWebhook(id).then(this.update);
     };
   };
 

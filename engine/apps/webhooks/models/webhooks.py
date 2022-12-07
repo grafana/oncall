@@ -154,7 +154,7 @@ class Webhook(models.Model):
 
     def check_trigger(self, event_data):
         if not self.trigger_template:
-            return True
+            return True, ''
 
         try:
             result = apply_jinja_template(self.trigger_template, **event_data)
@@ -162,7 +162,7 @@ class Webhook(models.Model):
         except (JinjaTemplateError, JinjaTemplateWarning) as e:
             raise InvalidWebhookTrigger(e.fallback_message)
 
-        return True
+        return True, ''
 
     def make_request(self, url, request_kwargs):
         if self.http_method == "GET":
