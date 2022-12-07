@@ -22,7 +22,7 @@ type Props = {
 };
 
 const INTERVAL_MIN_THROTTLING = 500;
-const INTERVAL_QUEUE_QR = 10000;
+const INTERVAL_QUEUE_QR = 50000;
 const INTERVAL_POLLING = 5000;
 const BACKEND = 'MOBILE_APP';
 
@@ -166,6 +166,10 @@ const MobileAppVerification = observer(({ userPk }: Props) => {
   }
 
   async function queueRefreshQR(): Promise<void> {
+    if (!isMounted.current) {
+      return;
+    }
+
     clearTimeout(refreshTimeoutId);
     setRefreshTimeoutId(undefined);
 
@@ -175,7 +179,9 @@ const MobileAppVerification = observer(({ userPk }: Props) => {
       let isRequestDone = false;
 
       const throttle = () => {
-        if (!isMounted.current || !isRequestDone) {return;}
+        if (!isMounted.current || !isRequestDone) {
+          return;
+        }
         setIsQRBlurry(false);
         setTimeout(queueRefreshQR, INTERVAL_QUEUE_QR);
       };
@@ -193,6 +199,10 @@ const MobileAppVerification = observer(({ userPk }: Props) => {
   }
 
   async function pollUserProfile(): Promise<void> {
+    if (!isMounted.current) {
+      return;
+    }
+
     clearTimeout(userTimeoutId);
     setUserTimeoutId(undefined);
 
