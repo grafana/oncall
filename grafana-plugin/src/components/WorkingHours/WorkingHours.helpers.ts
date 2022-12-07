@@ -83,7 +83,23 @@ export const getNonWorkingMoments = (startMoment, endMoment, workingHours) => {
   return nonWorkingMoments;
 };
 
-export const isInWorkingHours = (currentMoment, workingHours) => {
-  console.log('current moment', currentMoment);
-  console.log('working hours', workingHours);
+export const isInWorkingHours = (currentMoment: dayjs.Dayjs, workingHours) => {
+  const daysOfTheWeeks = {
+    1: 'monday',
+    2: 'tuesday',
+    3: 'wednesday',
+    4: 'thursday',
+    5: 'friday',
+    6: 'saturday',
+    7: 'sunday',
+  };
+  const currentDayOfTheWeek = daysOfTheWeeks[currentMoment.weekday()];
+  const workingHourStart = workingHours[currentDayOfTheWeek][0].start;
+  const workingHourEnd = workingHours[currentDayOfTheWeek][0].end;
+
+  const startTime = dayjs(workingHourStart, 'HH:mm:ss');
+  const endTime = dayjs(workingHourEnd, 'HH:mm:ss');
+  const currentTime = dayjs(currentMoment, 'HH:mm:ss');
+
+  return currentTime.isBetween(startTime, endTime, 'hour', '[]');
 };

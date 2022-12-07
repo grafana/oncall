@@ -3,6 +3,8 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { locationService } from '@grafana/runtime';
 import classnames from 'classnames';
 import dayjs from 'dayjs';
+import customParseFormat from 'dayjs/plugin/customParseFormat';
+import isBetween from 'dayjs/plugin/isBetween';
 import isSameOrAfter from 'dayjs/plugin/isSameOrAfter';
 import isSameOrBefore from 'dayjs/plugin/isSameOrBefore';
 import isoWeek from 'dayjs/plugin/isoWeek';
@@ -32,6 +34,8 @@ dayjs.extend(localeData);
 dayjs.extend(isSameOrBefore);
 dayjs.extend(isSameOrAfter);
 dayjs.extend(isoWeek);
+dayjs.extend(isBetween);
+dayjs.extend(customParseFormat);
 
 import 'style/vars.css';
 import 'style/global.css';

@@ -24,13 +24,9 @@ const ScheduleUserDetails: FC<ScheduleUserDetailsProps> = (props) => {
   const { user, currentMoment, isOncall } = props;
   const userMoment = currentMoment.tz(user.timezone);
   const userOffsetHoursStr = getTzOffsetString(userMoment);
+  const isInWH = isInWorkingHours(userMoment, user.working_hours);
 
   console.log('USER', user);
-  console.log('1', userMoment.weekday());
-  console.log('2', userMoment.toDate());
-
-  isInWorkingHours(userMoment, user.working_hours);
-  // console.log('NON WORK HOURS', getNonWorkingMoments(u))
   return (
     <div className={cx('root')}>
       <VerticalGroup spacing="sm">
@@ -40,9 +36,16 @@ const ScheduleUserDetails: FC<ScheduleUserDetailsProps> = (props) => {
         <VerticalGroup spacing="sm">
           <Text type="primary">{user.username}</Text>
           {isOncall && <Badge text="OnCall now" color="green" />}
+          {isInWH ? (
+            <Badge text="Inside working hours" color="blue" />
+          ) : (
+            <Badge text="Outside working hours" color="orange" />
+          )}
+          <HorizontalGroup align="flex-start">
+            <Text type="secondary">
+              <Icon name="clock-nine" />
+            </Text>
 
-          <HorizontalGroup>
-            <Icon name="clock-nine" />
             <VerticalGroup>
               <Text type="secondary">Local time</Text>
               <Text type="secondary">{currentMoment.tz().format('DD MMM, HH:mm')}</Text>
@@ -54,11 +57,31 @@ const ScheduleUserDetails: FC<ScheduleUserDetailsProps> = (props) => {
               <Text>({userOffsetHoursStr})</Text>
             </VerticalGroup>
           </HorizontalGroup>
-          <hr className={cx('hr')} />
+        </VerticalGroup>
+
+        <hr className={cx('hr')} />
+        <VerticalGroup>
           <Text>Contacts</Text>
-          <Text>Email: {user.email}</Text>
-          {user.slack_user_identity && <Text>Slack: {user.slack_user_identity.slack_login}</Text>}
-          {user.telegram_configuration && <Text>Telegram: {user.telegram_configuration.telegram_nick_name}</Text>}
+
+          <Text type="secondary">
+            <Icon name="message" />{' '}
+            <a href={`mailto:${user.email}`}>
+              <Text type="link">{user.email}</Text>
+            </a>{' '}
+          </Text>
+          {user.slack_user_identity && (
+            <Text>
+              Slack: <Text type="link">{user.slack_user_identity.slack_login}</Text>
+            </Text>
+          )}
+          {user.telegram_configuration && (
+            <Text>
+              Telegram:{' '}
+              <a href={`https://t.me/${user.telegram_configuration.telegram_nick_name}`}>
+                <Text type="link">{user.telegram_configuration.telegram_nick_name}</Text>
+              </a>{' '}
+            </Text>
+          )}
           {!user.hide_phone_number && user.verified_phone_number && <Text>Phone: {user.verified_phone_number}</Text>}
         </VerticalGroup>
       </VerticalGroup>
