@@ -53,4 +53,4 @@ def test_get_action_context(
 
     for action in ACTION_TO_DATA_STR:
         action_context = handler._get_action_context(ack_data_with_action_name)
-        assert action_context.action == action
+        assert action_context.action.value == action.value
