@@ -74,5 +74,6 @@ def execute_webhook(webhook_pk, data):
         status["request"] = e.message
     except Exception as e:
         status["response"] = str(e)
+        raise e
     finally:
         WebhookLog.objects.update_or_create(webhook_id=webhook_pk, defaults=status)

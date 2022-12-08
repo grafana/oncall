@@ -101,16 +101,17 @@ class Webhook(models.Model):
             request_kwargs["auth"] = HTTPBasicAuth(self.username, self.password)
 
         request_kwargs["headers"] = {}
-        try:
-            rendered_headers = apply_jinja_template_for_json(
-                self.headers,
-                event_data,
-            )
-            request_kwargs["headers"] = json.loads(rendered_headers)
-        except (JinjaTemplateError, JinjaTemplateWarning) as e:
-            raise InvalidWebhookHeaders(e.fallback_message)
-        except JSONDecodeError:
-            raise InvalidWebhookHeaders("Template did not result in json/dict")
+        if self.headers:
+            try:
+                rendered_headers = apply_jinja_template_for_json(
+                    self.headers,
+                    event_data,
+                )
+                request_kwargs["headers"] = json.loads(rendered_headers)
+            except (JinjaTemplateError, JinjaTemplateWarning) as e:
+                raise InvalidWebhookHeaders(e.fallback_message)
+            except JSONDecodeError:
+                raise InvalidWebhookHeaders("Template did not result in json/dict")
 
         if self.authorization_header:
             request_kwargs["headers"]["Authorization"] = self.authorization_header
