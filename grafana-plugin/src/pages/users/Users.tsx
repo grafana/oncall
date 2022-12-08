@@ -21,6 +21,7 @@ import UserSettings from 'containers/UserSettings/UserSettings';
 import { WithPermissionControl } from 'containers/WithPermissionControl/WithPermissionControl';
 import { User as UserType } from 'models/user/user.types';
 import { pages } from 'pages';
+import { AppFeature } from 'state/features';
 import { PageProps, WithStoreProps } from 'state/types';
 import { withMobXProviderContext } from 'state/withStore';
 import LocationHelper from 'utils/LocationHelper';
@@ -116,7 +117,11 @@ class Users extends React.Component<UsersProps, UsersState> {
 
   render() {
     const { usersFilters, userPkToEdit, page, errorData } = this.state;
-    const { store, query } = this.props;
+    const {
+      store,
+      query,
+      query: { id },
+    } = this.props;
     const { userStore } = store;
 
     const columns = [
@@ -157,6 +162,8 @@ class Users extends React.Component<UsersProps, UsersState> {
       });
 
     const { count, results } = userStore.getSearchResult();
+    const showMobileAppScreen: boolean =
+      id !== undefined && id !== 'me' && id === userStore.currentUserPk && store.hasFeature(AppFeature.MobileApp);
 
     return (
       <PluginPage pageNav={pages['users'].getPageNav()}>
@@ -232,7 +239,13 @@ class Users extends React.Component<UsersProps, UsersState> {
                     />
                   )}
                 </div>
-                {userPkToEdit && <UserSettings id={userPkToEdit} onHide={this.handleHideUserSettings} />}
+                {userPkToEdit && (
+                  <UserSettings
+                    id={userPkToEdit}
+                    onHide={this.handleHideUserSettings}
+                    showMobileAppScreen={showMobileAppScreen}
+                  />
+                )}
               </div>
             </>
           )}
