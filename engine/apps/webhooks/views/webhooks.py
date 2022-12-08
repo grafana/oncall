@@ -93,7 +93,6 @@ class WebhooksView(
                     {
                         "message": f"Invalid URL: {e.message}",
                         "url": instance.url,
-                        "url_template": instance.url_template,
                     }
                 ),
                 status=HTTP_200_OK,
@@ -107,7 +106,6 @@ class WebhooksView(
                     {
                         "message": f"Invalid headers: {e.message}",
                         "headers": instance.headers,
-                        "headers_template": instance.headers_template,
                     }
                 ),
                 status=HTTP_200_OK,

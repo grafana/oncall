@@ -89,10 +89,12 @@ export const form: { name: string; fields: FormItem[] } = {
       validation: { required: true },
     },
     {
-      name: 'url_template',
-      label: 'Webhook URL template',
-      type: FormItemType.Input,
-      description: 'Will be preferred if provided',
+      name: 'headers',
+      label: 'Webhook Headers',
+      type: FormItemType.TextArea,
+      extra: {
+        rows: 5,
+      },
     },
     {
       name: 'username',
@@ -104,9 +106,14 @@ export const form: { name: string; fields: FormItem[] } = {
     },
     {
       name: 'authorization_header',
+      type: FormItemType.Input,
+    },
+    {
+      name: 'trigger_template',
       type: FormItemType.TextArea,
+      description: "Trigger template must be empty or evaluate to true or 1 for webhook to be sent",
       extra: {
-        rows: 5,
+        rows: 2,
       },
     },
     {
