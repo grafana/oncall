@@ -15,8 +15,9 @@ class WebhookBackend(BaseMessagingBackend):
         return {"user": user.username}
 
     def notify_user(self, user, alert_group, notification_policy):
-        event = event = {"type": "Escalation"}
+        event = {"type": "Escalation"}
         data = serialize_event(event, alert_group, user)
         send_webhook_event.apply_async(
-            (Webhook.TRIGGER_USER_NOTIFICATION_STEP, data), kwargs={"user_id": user.id, "org_id": user.organization_id}
+            (Webhook.TRIGGER_USER_NOTIFICATION_STEP, data),
+            kwargs={"user_id": user.id, "org_id": alert_group.channel.organization_id},
         )

@@ -114,6 +114,7 @@ class AlertRules extends React.Component<AlertRulesProps, AlertRulesState> {
     const channelFilterIds = store.alertReceiveChannelStore.channelFilterIds[alertReceiveChannelId];
 
     store.alertReceiveChannelStore.updateCustomButtons(alertReceiveChannelId);
+    store.alertReceiveChannelStore.updateCustomWebhooks(alertReceiveChannelId);
 
     const expandedRoutes: Array<ChannelFilter['id']> = [];
     channelFilterIds

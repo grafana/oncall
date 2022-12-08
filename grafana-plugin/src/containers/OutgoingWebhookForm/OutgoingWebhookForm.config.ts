@@ -15,39 +15,39 @@ export const form: { name: string; fields: FormItem[] } = {
       extra: {
         options: [
           {
-            value: 0,
+            value: '0',
             label: 'Escalation step',
           },
           {
-            value: 1,
+            value: '1',
             label: 'User notification',
           },
           {
-            value: 2,
+            value: '2',
             label: 'Triggered',
           },
           {
-            value: 3,
+            value: '3',
             label: 'Acknowledged',
           },
           {
-            value: 4,
+            value: '4',
             label: 'Resolved',
           },
           {
-            value: 5,
+            value: '5',
             label: 'Silenced',
           },
           {
-            value: 6,
+            value: '6',
             label: 'Unsilenced',
           },
           {
-            value: 7,
+            value: '7',
             label: 'Unresolved',
           },
           {
-            value: 8,
+            value: '8',
             label: 'Schedule shift change',
           },
         ],

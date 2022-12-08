@@ -44,7 +44,8 @@ class EscalationPolicy(OrderedModel):
         STEP_NOTIFY_MULTIPLE_USERS,
         STEP_NOTIFY_MULTIPLE_USERS_IMPORTANT,
         STEP_NOTIFY_IF_NUM_ALERTS_IN_TIME_WINDOW,
-    ) = range(16)
+        STEP_TRIGGER_CUSTOM_WEBHOOK,
+    ) = range(17)
 
     # Must be the same order as previous
     STEP_CHOICES = (
@@ -64,6 +65,7 @@ class EscalationPolicy(OrderedModel):
         (STEP_NOTIFY_MULTIPLE_USERS, "Notify multiple Users"),
         (STEP_NOTIFY_MULTIPLE_USERS_IMPORTANT, "Notify multiple Users (Important)"),
         (STEP_NOTIFY_IF_NUM_ALERTS_IN_TIME_WINDOW, "Continue escalation if >X alerts per Y minutes"),
+        (STEP_TRIGGER_CUSTOM_WEBHOOK, "Trigger webhook"),
     )
 
     # Ordered step choices available for internal api.
@@ -79,6 +81,7 @@ class EscalationPolicy(OrderedModel):
         STEP_NOTIFY_GROUP,
         # Other
         STEP_TRIGGER_CUSTOM_BUTTON,
+        STEP_TRIGGER_CUSTOM_WEBHOOK,
         STEP_NOTIFY_USERS_QUEUE,
         STEP_NOTIFY_IF_TIME,
         STEP_NOTIFY_IF_NUM_ALERTS_IN_TIME_WINDOW,
@@ -101,6 +104,7 @@ class EscalationPolicy(OrderedModel):
         STEP_NOTIFY_MULTIPLE_USERS_IMPORTANT,
         STEP_TRIGGER_CUSTOM_BUTTON,
         STEP_REPEAT_ESCALATION_N_TIMES,
+        STEP_TRIGGER_CUSTOM_WEBHOOK,
     ]
 
     # Maps internal api's steps choices to their verbal. First string in tuple is display name for existent step.
@@ -122,6 +126,7 @@ class EscalationPolicy(OrderedModel):
         ),
         # Other
         STEP_TRIGGER_CUSTOM_BUTTON: ("Trigger outgoing webhook {{custom_action}}", "Trigger outgoing webhook"),
+        STEP_TRIGGER_CUSTOM_WEBHOOK: ("Trigger webhook {{custom_webhook}}", "Trigger webhook"),
         STEP_NOTIFY_USERS_QUEUE: ("Round robin notification for {{users}}", "Notify users one by one (round-robin)"),
         STEP_NOTIFY_IF_TIME: (
             "Continue escalation if current time is in {{timerange}} ",
@@ -142,6 +147,7 @@ class EscalationPolicy(OrderedModel):
         STEP_FINAL_NOTIFYALL,
         STEP_FINAL_RESOLVE,
         STEP_TRIGGER_CUSTOM_BUTTON,
+        STEP_TRIGGER_CUSTOM_WEBHOOK,
         STEP_NOTIFY_USERS_QUEUE,
         STEP_NOTIFY_IF_TIME,
         STEP_REPEAT_ESCALATION_N_TIMES,
@@ -189,6 +195,7 @@ class EscalationPolicy(OrderedModel):
         STEP_NOTIFY_IF_TIME,
         STEP_NOTIFY_IF_NUM_ALERTS_IN_TIME_WINDOW,
         STEP_REPEAT_ESCALATION_N_TIMES,
+        STEP_TRIGGER_CUSTOM_WEBHOOK,
     ]
 
     PUBLIC_STEP_CHOICES_MAP = {
@@ -208,6 +215,7 @@ class EscalationPolicy(OrderedModel):
         STEP_NOTIFY_IF_TIME: "notify_if_time_from_to",
         STEP_NOTIFY_IF_NUM_ALERTS_IN_TIME_WINDOW: "notify_if_num_alerts_in_window",
         STEP_REPEAT_ESCALATION_N_TIMES: "repeat_escalation",
+        STEP_TRIGGER_CUSTOM_WEBHOOK: "trigger_webhook",
     }
 
     public_primary_key = models.CharField(
@@ -250,6 +258,14 @@ class EscalationPolicy(OrderedModel):
 
     custom_button_trigger = models.ForeignKey(
         "alerts.CustomButton",
+        on_delete=models.CASCADE,
+        related_name="escalation_policies",
+        default=None,
+        null=True,
+    )
+
+    custom_webhook = models.ForeignKey(
+        "webhooks.Webhook",
         on_delete=models.CASCADE,
         related_name="escalation_policies",
         default=None,
