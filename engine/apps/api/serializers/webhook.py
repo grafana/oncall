@@ -1,4 +1,5 @@
 from collections import defaultdict
+from http.client import responses
 
 from django.core.validators import URLValidator, ValidationError
 from rest_framework import serializers
@@ -6,7 +7,7 @@ from rest_framework.validators import UniqueTogetherValidator
 
 from apps.webhooks.models import Webhook
 from common.api_helpers.custom_fields import TeamPrimaryKeyRelatedField
-from common.api_helpers.utils import CurrentOrganizationDefault, CurrentTeamDefault
+from common.api_helpers.utils import CurrentOrganizationDefault, CurrentTeamDefault, CurrentUserDefault
 from common.jinja_templater import apply_jinja_template
 from common.jinja_templater.apply_jinja_template import JinjaTemplateError, JinjaTemplateWarning
 
@@ -15,6 +16,8 @@ class WebhookSerializer(serializers.ModelSerializer):
     id = serializers.CharField(read_only=True, source="public_primary_key")
     organization = serializers.HiddenField(default=CurrentOrganizationDefault())
     team = TeamPrimaryKeyRelatedField(allow_null=True, default=CurrentTeamDefault())
+    user = serializers.HiddenField(default=CurrentUserDefault())
+    last_run = serializers.SerializerMethodField()
     forward_all = serializers.BooleanField(allow_null=True, required=False)
 
     class Meta:
@@ -38,6 +41,7 @@ class WebhookSerializer(serializers.ModelSerializer):
             "forward_all",
             "http_method",
             "trigger_type",
+            "last_run",
         ]
         extra_kwargs = {
             "authorization_header": {"write_only": True},
@@ -75,3 +79,13 @@ class WebhookSerializer(serializers.ModelSerializer):
         if data is None:
             return False
         return data
+
+    def get_last_run(self, obj):
+        last_run = ""
+        last_log = obj.logs.all().last()
+        if last_log:
+            last_run = last_log.last_run_at.strftime("%Y-%m-%dT%H:%M:%SZ")
+            if last_log.response_status:
+                reason = responses[int(last_log.response_status)]
+                last_run += " ({} {})".format(last_log.response_status, reason)
+        return last_run

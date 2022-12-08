@@ -196,7 +196,7 @@ class WebhookLog(models.Model):
     webhook = models.ForeignKey(
         to="webhooks.Webhook",
         on_delete=models.CASCADE,
-        related_name="webhook",
+        related_name="logs",
         blank=False,
         null=False,
     )

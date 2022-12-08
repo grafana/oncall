@@ -369,9 +369,9 @@ def notify_ical_schedule_shift(schedule_pk):
             trigger_type = Webhook.TRIGGER_SHIFT_CHANGE
             data = serialize_new_shifts_event(schedule, new_shifts)
             from apps.webhooks.tasks import send_webhook_event
+
             send_webhook_event.apply_async(
-                (trigger_type, data),
-                kwargs={"org_id": schedule.organization_id, "team_id": schedule.team_id}
+                (trigger_type, data), kwargs={"org_id": schedule.organization_id, "team_id": schedule.team_id}
             )
 
             if schedule.notify_oncall_shift_freq != OnCallSchedule.NotifyOnCallShiftFreq.NEVER:

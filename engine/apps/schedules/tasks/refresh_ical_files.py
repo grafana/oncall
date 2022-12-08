@@ -41,7 +41,8 @@ def refresh_ical_file(schedule_pk):
 
     slack_notifications_enabled = schedule.channel is not None and schedule.organization.slack_team_identity is not None
     webhook_notifications_enabled = Webhook.objects.filter(
-        organization=schedule.organization, team=schedule.team, trigger_type=Webhook.TRIGGER_SHIFT_CHANGE).exists()
+        organization=schedule.organization, team=schedule.team, trigger_type=Webhook.TRIGGER_SHIFT_CHANGE
+    ).exists()
     # if there are notifications enabled for this schedule, send them if there are shift changes
     if slack_notifications_enabled or webhook_notifications_enabled:
         notify_ical_schedule_shift.apply_async((schedule.pk,))

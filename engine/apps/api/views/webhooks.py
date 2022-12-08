@@ -31,7 +31,7 @@ class WebhooksView(TeamFilteringMixin, PublicPrimaryKeyMixin, ModelViewSet):
         queryset = Webhook.objects.filter(
             organization=self.request.auth.organization,
             team=self.request.user.current_team,
-        )
+        ).prefetch_related("logs")
         return queryset
 
     def get_object(self):
