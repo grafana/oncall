@@ -4,6 +4,7 @@ export interface OutgoingWebhook {
   forward_all: boolean;
   http_method: string;
   id: string;
+  last_run: string;
   name: string;
   password: string;
   team: null;

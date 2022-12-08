@@ -52,7 +52,7 @@ class Migration(migrations.Migration):
                 ('request', models.TextField(default=None, null=True)),
                 ('response_status', models.CharField(default=None, max_length=100, null=True)),
                 ('response', models.TextField(default=None, null=True)),
-                ('webhook', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='webhook', to='webhooks.webhook')),
+                ('webhook', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='logs', to='webhooks.webhook')),
             ],
         ),
     ]

@@ -128,3 +128,19 @@ def serialize_event(event, alert_group, user):
         "alert_payload": alert_payload_raw,
     }
     return data
+
+
+def serialize_new_shifts_event(schedule, new_shifts):
+    from apps.public_api.serializers import PolymorphicScheduleSerializer, UserSerializer
+
+    shifts_data = new_shifts.copy()
+    for s in shifts_data:
+        s["users"] = [UserSerializer(u).data for u in s["users"]]
+    data = {
+        "event": {
+            "type": "Shift changed",
+        },
+        "schedule": PolymorphicScheduleSerializer(schedule).data,
+        "shifts": shifts_data,
+    }
+    return data

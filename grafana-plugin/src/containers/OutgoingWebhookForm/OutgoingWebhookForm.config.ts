@@ -38,6 +38,18 @@ export const form: { name: string; fields: FormItem[] } = {
             value: 5,
             label: 'Silenced',
           },
+          {
+            value: 6,
+            label: 'Unsilenced',
+          },
+          {
+            value: 7,
+            label: 'Unresolved',
+          },
+          {
+            value: 8,
+            label: 'Schedule shift change',
+          },
         ],
       },
     },
@@ -75,6 +87,12 @@ export const form: { name: string; fields: FormItem[] } = {
       label: 'Webhook URL',
       type: FormItemType.Input,
       validation: { required: true },
+    },
+    {
+      name: 'url_template',
+      label: 'Webhook URL template',
+      type: FormItemType.Input,
+      description: 'Will be preferred if provided',
     },
     {
       name: 'username',

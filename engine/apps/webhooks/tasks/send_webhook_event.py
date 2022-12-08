@@ -56,7 +56,7 @@ def execute_webhook(webhook_pk, data):
             elif "json" in request_kwargs:
                 status["request"] = request_kwargs["json"]
             else:
-                status["request"] = request_kwargs["data"]
+                status["request"] = request_kwargs.get("data")
             response = webhook.make_request(status["url"], request_kwargs)
             status["response_status"] = response.status_code
             try:
@@ -71,7 +71,7 @@ def execute_webhook(webhook_pk, data):
     except InvalidWebhookTrigger as e:
         status["trigger"] = e.message
     except (InvalidWebhookHeaders, InvalidWebhookData) as e:
-        status["request_data"] = e.message
+        status["request"] = e.message
     except Exception as e:
         status["response"] = str(e)
     finally:
