@@ -88,10 +88,8 @@ class Webhook(models.Model):
     password = mirage_fields.EncryptedCharField(max_length=200, null=True, default=None)
     authorization_header = models.CharField(max_length=1000, null=True, default=None)
     trigger_template = models.TextField(null=True, default=None)
-    headers = models.JSONField(default=dict)
-    headers_template = models.TextField(null=True, default=None)
-    url = models.CharField(max_length=1000, null=True, default=None)
-    url_template = models.TextField(null=True, default=None)
+    headers = models.TextField(null=True, default=None)
+    url = models.TextField(null=True, default=None)
     data = models.TextField(null=True, default=None)
     forward_all = models.BooleanField(default=True)
     http_method = models.CharField(max_length=32, default="POST")
@@ -102,18 +100,13 @@ class Webhook(models.Model):
         if self.username and self.password:
             request_kwargs["auth"] = HTTPBasicAuth(self.username, self.password)
 
+        request_kwargs["headers"] = {}
         try:
-            if self.headers_template:
-                rendered_headers = apply_jinja_template_for_json(
-                    self.headers_template,
-                    event_data,
-                )
-                request_kwargs["headers"] = json.loads(rendered_headers)
-
-            elif self.headers:
-                request_kwargs["headers"] = json.loads(self.headers)
-            else:
-                request_kwargs["headers"] = {}
+            rendered_headers = apply_jinja_template_for_json(
+                self.headers,
+                event_data,
+            )
+            request_kwargs["headers"] = json.loads(rendered_headers)
         except (JinjaTemplateError, JinjaTemplateWarning) as e:
             raise InvalidWebhookHeaders(e.fallback_message)
         except JSONDecodeError:
@@ -144,15 +137,13 @@ class Webhook(models.Model):
         return request_kwargs
 
     def build_url(self, event_data):
-        url = self.url
-        if self.url_template:
-            try:
-                url = apply_jinja_template(
-                    self.url_template,
-                    **event_data,
-                )
-            except (JinjaTemplateError, JinjaTemplateWarning) as e:
-                raise InvalidWebhookUrl(e.fallback_message)
+        try:
+            url = apply_jinja_template(
+                self.url,
+                **event_data,
+            )
+        except (JinjaTemplateError, JinjaTemplateWarning) as e:
+            raise InvalidWebhookUrl(e.fallback_message)
 
         parse_url(url)
         return url
