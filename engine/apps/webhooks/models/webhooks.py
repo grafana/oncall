@@ -59,7 +59,7 @@ class Webhook(models.Model):
         (TRIGGER_SILENCE, "Alert group silence"),
         (TRIGGER_UNSILENCE, "Alert group unsilence"),
         (TRIGGER_UNRESOLVE, "Alert group unresolve"),
-        (TRIGGER_SHIFT_CHANGE, "Schedule shift change"),
+        (TRIGGER_SHIFT_CHANGE, "Schedule shift changed"),
     )
 
     public_primary_key = models.CharField(

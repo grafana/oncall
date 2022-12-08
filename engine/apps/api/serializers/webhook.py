@@ -18,6 +18,7 @@ class WebhookSerializer(serializers.ModelSerializer):
     team = TeamPrimaryKeyRelatedField(allow_null=True, default=CurrentTeamDefault())
     user = serializers.HiddenField(default=CurrentUserDefault())
     last_run = serializers.SerializerMethodField()
+    trigger_type = serializers.CharField(required=True)
     forward_all = serializers.BooleanField(allow_null=True, required=False)
 
     class Meta:

@@ -91,6 +91,8 @@ export class EscalationPolicy extends React.Component<EscalationPolicyProps, any
         return this._renderNotifySchedule();
       case 'custom_action':
         return this._renderTriggerCustomAction();
+      case 'custom_webhook':
+        return this._renderTriggerCustomWebhook();
       case 'num_alerts_in_window':
         return this.renderNumAlertsInWindow();
       case 'num_minutes_in_window':
@@ -311,6 +313,26 @@ export class EscalationPolicy extends React.Component<EscalationPolicyProps, any
           className={cx('select', 'control')}
           value={custom_button_trigger}
           onChange={this._getOnChangeHandler('custom_button_trigger')}
+          fromOrganization
+        />
+      </WithPermissionControl>
+    );
+  }
+
+  private _renderTriggerCustomWebhook() {
+    const { data } = this.props;
+    const { custom_webhook } = data;
+
+    return (
+      <WithPermissionControl key="custom-webhook" disableByPaywall userAction={UserActions.EscalationChainsWrite}>
+        <GSelect
+          modelName="outgoingWebhookStore"
+          displayField="name"
+          valueField="id"
+          placeholder="Select Webhook"
+          className={cx('select', 'control')}
+          value={custom_webhook}
+          onChange={this._getOnChangeHandler('custom_webhook')}
           fromOrganization
         />
       </WithPermissionControl>

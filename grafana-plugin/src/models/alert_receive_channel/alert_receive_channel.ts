@@ -314,6 +314,21 @@ export class AlertReceiveChannelStore extends BaseStore {
     });
   }
 
+  @action
+  async updateCustomWebhooks(alertReceiveChannelId: AlertReceiveChannel['id']) {
+    const response = await makeRequest(`/webhooks/`, {
+      params: {
+        alert_receive_channel: alertReceiveChannelId,
+      },
+      withCredentials: true,
+    });
+
+    this.actions = {
+      ...this.actions,
+      [alertReceiveChannelId]: response,
+    };
+  }
+
   async deleteWebhook(id: ActionDTO['id']) {
     await makeRequest(`/webhooks/${id}/`, {
       method: 'DELETE',
