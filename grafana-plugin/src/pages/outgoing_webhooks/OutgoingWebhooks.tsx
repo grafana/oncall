@@ -16,6 +16,7 @@ import PluginLink from 'components/PluginLink/PluginLink';
 import Text from 'components/Text/Text';
 import WithConfirm from 'components/WithConfirm/WithConfirm';
 import OutgoingWebhookForm from 'containers/OutgoingWebhookForm/OutgoingWebhookForm';
+import OutgoingWebhookStatus from 'containers/OutgoingWebhookStatus/OutgoingWebhookStatus';
 import { WithPermissionControl } from 'containers/WithPermissionControl/WithPermissionControl';
 import { ActionDTO } from 'models/action';
 import { OutgoingWebhook } from 'models/outgoing_webhook/outgoing_webhook.types';
@@ -33,6 +34,7 @@ interface OutgoingWebhooksProps extends WithStoreProps, PageProps {}
 
 interface OutgoingWebhooksState extends PageBaseState {
   outgoingWebhookIdToEdit?: OutgoingWebhook['id'] | 'new';
+  outgoingWebhookIdToShowStatus?: OutgoingWebhook['id'];
 }
 
 @observer
@@ -88,7 +90,7 @@ class OutgoingWebhooks extends React.Component<OutgoingWebhooksProps, OutgoingWe
 
   render() {
     const { store, query } = this.props;
-    const { outgoingWebhookIdToEdit, errorData } = this.state;
+    const { outgoingWebhookIdToEdit, outgoingWebhookIdToShowStatus, errorData } = this.state;
 
     const webhooks = store.outgoingWebhookStore.getSearchResult();
 
@@ -101,7 +103,7 @@ class OutgoingWebhooks extends React.Component<OutgoingWebhooksProps, OutgoingWe
       {
         width: '5%',
         title: 'Trigger type',
-        dataIndex: 'trigger_type',
+        dataIndex: 'trigger_type_name',
       },
       {
         width: '5%',
@@ -163,9 +165,16 @@ class OutgoingWebhooks extends React.Component<OutgoingWebhooksProps, OutgoingWe
                   data={webhooks}
                 />
               </div>
-              {outgoingWebhookIdToEdit && (
+              {outgoingWebhookIdToEdit && !outgoingWebhookIdToShowStatus && (
                 <OutgoingWebhookForm
                   id={outgoingWebhookIdToEdit}
+                  onUpdate={this.update}
+                  onHide={this.handleOutgoingWebhookFormHide}
+                />
+              )}
+              {outgoingWebhookIdToShowStatus && (
+                <OutgoingWebhookStatus
+                  id={outgoingWebhookIdToShowStatus}
                   onUpdate={this.update}
                   onHide={this.handleOutgoingWebhookFormHide}
                 />
@@ -180,6 +189,11 @@ class OutgoingWebhooks extends React.Component<OutgoingWebhooksProps, OutgoingWe
   renderActionButtons = (record: ActionDTO) => {
     return (
       <HorizontalGroup justify="flex-end">
+        <WithPermissionControl key={'status_action'} userAction={UserActions.OutgoingWebhooksRead}>
+          <Button onClick={this.getStatusClickHandler(record.id)} fill="text">
+            Status
+          </Button>
+        </WithPermissionControl>
         <WithPermissionControl key={'edit_action'} userAction={UserActions.OutgoingWebhooksWrite}>
           <Button onClick={this.getEditClickHandler(record.id)} fill="text">
             Edit
@@ -205,16 +219,24 @@ class OutgoingWebhooks extends React.Component<OutgoingWebhooksProps, OutgoingWe
 
   getEditClickHandler = (id: OutgoingWebhook['id']) => {
     return () => {
-      this.setState({ outgoingWebhookIdToEdit: id });
+      this.setState({ outgoingWebhookIdToEdit: id, outgoingWebhookIdToShowStatus: undefined });
 
       LocationHelper.update({ id }, 'partial');
     };
   };
 
   handleOutgoingWebhookFormHide = () => {
-    this.setState({ outgoingWebhookIdToEdit: undefined });
+    this.setState({ outgoingWebhookIdToEdit: undefined, outgoingWebhookIdToShowStatus: undefined });
 
     LocationHelper.update({ id: undefined }, 'partial');
+  };
+
+  getStatusClickHandler = (id: OutgoingWebhook['id']) => {
+    return () => {
+      this.setState({ outgoingWebhookIdToEdit: undefined, outgoingWebhookIdToShowStatus: id });
+
+      LocationHelper.update({ id }, 'partial');
+    };
   };
 }
 

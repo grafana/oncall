@@ -51,15 +51,15 @@ class Webhook(models.Model):
 
     # Must be the same order as previous
     TRIGGER_TYPES = (
-        (TRIGGER_ESCALATION_STEP, "As escalation step"),
-        (TRIGGER_USER_NOTIFICATION_STEP, "As user notification step"),
-        (TRIGGER_NEW, "Alert group new"),
-        (TRIGGER_ACKNOWLEDGE, "Alert group acknowledge"),
-        (TRIGGER_RESOLVE, "Alert group resolve"),
-        (TRIGGER_SILENCE, "Alert group silence"),
-        (TRIGGER_UNSILENCE, "Alert group unsilence"),
-        (TRIGGER_UNRESOLVE, "Alert group unresolve"),
-        (TRIGGER_SHIFT_CHANGE, "Schedule shift changed"),
+        (TRIGGER_ESCALATION_STEP, "Escalation step"),
+        (TRIGGER_USER_NOTIFICATION_STEP, "User notification"),
+        (TRIGGER_NEW, "Triggered"),
+        (TRIGGER_ACKNOWLEDGE, "Acknowledged"),
+        (TRIGGER_RESOLVE, "Resolved"),
+        (TRIGGER_SILENCE, "Silenced"),
+        (TRIGGER_UNSILENCE, "Unsilenced"),
+        (TRIGGER_UNRESOLVE, "Unresolved"),
+        (TRIGGER_SHIFT_CHANGE, "Schedule shift change"),
     )
 
     public_primary_key = models.CharField(
@@ -182,7 +182,8 @@ class WebhookLog(models.Model):
     input_data = models.JSONField(default=None)
     url = models.TextField(null=True, default=None)
     trigger = models.TextField(null=True, default=None)
-    request = models.TextField(null=True, default=None)
+    headers = models.TextField(null=True, default=None)
+    data = models.TextField(null=True, default=None)
     response_status = models.CharField(max_length=100, null=True, default=None)
     response = models.TextField(null=True, default=None)
     webhook = models.ForeignKey(
