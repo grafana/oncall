@@ -45,7 +45,9 @@ class Webhook(models.Model):
         TRIGGER_RESOLVE,
         TRIGGER_SILENCE,
         TRIGGER_UNSILENCE,
-    ) = range(7)
+        TRIGGER_UNRESOLVE,
+        TRIGGER_SHIFT_CHANGE,
+    ) = range(9)
 
     # Must be the same order as previous
     TRIGGER_TYPES = (
@@ -56,6 +58,8 @@ class Webhook(models.Model):
         (TRIGGER_RESOLVE, "Alert group resolve"),
         (TRIGGER_SILENCE, "Alert group silence"),
         (TRIGGER_UNSILENCE, "Alert group unsilence"),
+        (TRIGGER_UNRESOLVE, "Alert group unresolve"),
+        (TRIGGER_SHIFT_CHANGE, "Schedule shift change"),
     )
 
     public_primary_key = models.CharField(

@@ -18,6 +18,7 @@ from apps.schedules.ical_utils import (
 from apps.slack.scenarios import scenario_step
 from apps.slack.slack_client import SlackClientWithErrorHandling
 from apps.slack.slack_client.exceptions import SlackAPIException, SlackAPITokenException
+from apps.webhooks.utils import serialize_new_shifts_event
 from common.custom_celery_tasks import shared_dedicated_queue_retry_task
 
 from .task_logger import task_logger
@@ -183,10 +184,6 @@ def notify_ical_schedule_shift(schedule_pk):
         )
     except OnCallSchedule.DoesNotExist:
         task_logger.info(f"Trying to notify ical schedule shift for non-existing schedule {schedule_pk}")
-        return
-
-    if schedule.organization.slack_team_identity is None:
-        task_logger.info(f"Trying to notify ical schedule shift with no slack team identity {schedule_pk}")
         return
 
     MIN_DAYS_TO_LOOKUP_FOR_THE_END_OF_EVENT = 3
@@ -366,6 +363,16 @@ def notify_ical_schedule_shift(schedule_pk):
             slack_client = SlackClientWithErrorHandling(schedule.organization.slack_team_identity.bot_access_token)
             step = scenario_step.ScenarioStep.get_step("schedules", "EditScheduleShiftNotifyStep")
             report_blocks = step.get_report_blocks_ical(new_shifts, upcoming_shifts, schedule, empty_oncall)
+
+            # trigger webhook notification tasks, if any
+            Webhook = apps.get_model("webhooks", "Webhook")
+            trigger_type = Webhook.TRIGGER_SHIFT_CHANGE
+            data = serialize_new_shifts_event(schedule, new_shifts)
+            from apps.webhooks.tasks import send_webhook_event
+            send_webhook_event.apply_async(
+                (trigger_type, data),
+                kwargs={"org_id": schedule.organization_id, "team_id": schedule.team_id}
+            )
 
             if schedule.notify_oncall_shift_freq != OnCallSchedule.NotifyOnCallShiftFreq.NEVER:
                 try:

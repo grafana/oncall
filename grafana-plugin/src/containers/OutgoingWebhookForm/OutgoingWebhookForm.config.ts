@@ -38,6 +38,18 @@ export const form: { name: string; fields: FormItem[] } = {
             value: 5,
             label: 'Silenced',
           },
+          {
+            value: 6,
+            label: 'Unsilenced',
+          },
+          {
+            value: 7,
+            label: 'Unresolved',
+          },
+          {
+            value: 8,
+            label: 'Schedule shift change',
+          },
         ],
       },
     },

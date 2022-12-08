@@ -34,7 +34,7 @@ def alert_group_created(self, alert_group_id):
     }
     data = serialize_event(event, alert_group, None)
     organization_id = alert_group.channel.organization_id
-    send_webhook_event.apply_async((trigger_type, data), {"org_id": organization_id})
+    send_webhook_event.apply_async((trigger_type, data), kwargs={"org_id": organization_id})
 
 
 @shared_dedicated_queue_retry_task(
@@ -67,9 +67,19 @@ def alert_group_status_change(self, action_type, alert_group_id, user_id):
             "time": alert_group.silenced_at,
             "until": alert_group.silenced_until,
         }
+    elif action_type == AlertGroupLogRecord.TYPE_UN_SILENCE:
+        trigger_type = Webhook.TRIGGER_UNSILENCE
+        event = {
+            "type": "Unsilence",
+        }
+    elif action_type == AlertGroupLogRecord.TYPE_UN_RESOLVED:
+        trigger_type = Webhook.TRIGGER_UNRESOLVE
+        event = {
+            "type": "Unresolve",
+        }
     else:
         return
 
     data = serialize_event(event, alert_group, user)
     organization_id = alert_group.channel.organization_id
-    send_webhook_event.apply_async((trigger_type, data), {"org_id": organization_id})
+    send_webhook_event.apply_async((trigger_type, data), kwargs={"org_id": organization_id})
