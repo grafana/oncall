@@ -89,6 +89,12 @@ export const form: { name: string; fields: FormItem[] } = {
       validation: { required: true },
     },
     {
+      name: 'url_template',
+      label: 'Webhook URL template',
+      type: FormItemType.Input,
+      description: 'Will be preferred if provided',
+    },
+    {
       name: 'username',
       type: FormItemType.Input,
     },
