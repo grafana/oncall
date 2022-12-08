@@ -40,11 +40,13 @@ def execute_webhook(webhook_pk, data):
         "input_data": data,
         "url": None,
         "trigger": None,
-        "request": None,
+        "headers": None,
+        "data": None,
         "response_status": None,
         "response": None,
     }
 
+    exception = None
     try:
         webhook = Webhooks.objects.get(pk=webhook_pk)
         triggered, status["trigger"] = webhook.check_trigger(data)
@@ -52,11 +54,11 @@ def execute_webhook(webhook_pk, data):
             status["url"] = webhook.build_url(data)
             request_kwargs = webhook.build_request_kwargs(data)
             if webhook.forward_all:
-                status["request"] = "All input_data forwarded as payload"
+                status["data"] = "All input_data forwarded as payload"
             elif "json" in request_kwargs:
-                status["request"] = request_kwargs["json"]
+                status["data"] = request_kwargs["json"]
             else:
-                status["request"] = request_kwargs.get("data")
+                status["data"] = request_kwargs.get("data")
             response = webhook.make_request(status["url"], request_kwargs)
             status["response_status"] = response.status_code
             try:
@@ -70,10 +72,15 @@ def execute_webhook(webhook_pk, data):
         status["url"] = e.message
     except InvalidWebhookTrigger as e:
         status["trigger"] = e.message
-    except (InvalidWebhookHeaders, InvalidWebhookData) as e:
-        status["request"] = e.message
+    except InvalidWebhookHeaders as e:
+        status["headers"] = e.message
+    except InvalidWebhookData as e:
+        status["data"] = e.message
     except Exception as e:
         status["response"] = str(e)
-        raise e
+        exception = e
     finally:
         WebhookLog.objects.update_or_create(webhook_id=webhook_pk, defaults=status)
+
+    if exception:
+        raise exception

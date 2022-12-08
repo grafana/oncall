@@ -39,7 +39,8 @@ class WebhookLogSerializer(serializers.ModelSerializer):
             "input_data",
             "url",
             "trigger",
-            "request",
+            "headers",
+            "data",
             "response_status",
             "response",
         ]

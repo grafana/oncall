@@ -111,7 +111,7 @@ export const form: { name: string; fields: FormItem[] } = {
     {
       name: 'trigger_template',
       type: FormItemType.TextArea,
-      description: "Trigger template must be empty or evaluate to true or 1 for webhook to be sent",
+      description: 'Trigger template must be empty or evaluate to true or 1 for webhook to be sent',
       extra: {
         rows: 2,
       },
