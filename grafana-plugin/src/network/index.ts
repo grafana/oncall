@@ -1,3 +1,5 @@
+import { faro } from '@grafana/faro-react';
+import { SpanStatusCode } from '@opentelemetry/api';
 import axios from 'axios';
 import qs from 'query-string';
 
@@ -35,13 +37,56 @@ export const makeRequest = async <RT = any>(path: string, config: RequestConfig)
 
   const url = `${API_PROXY_PREFIX}${API_PATH_PREFIX}${path}`;
 
-  const response = await instance({
-    method,
-    url,
-    params,
-    data,
-    validateStatus,
-  });
+  const otel = faro.api.getOTEL();
 
-  return response.data as RT;
+  if (otel) {
+    const tracer = otel.trace.getTracer('default');
+    let span = otel.trace.getActiveSpan() ?? tracer.startSpan('http-request');
+
+    return new Promise<RT>((resolve, reject) => {
+      otel.context.with(otel.trace.setSpan(otel.context.active(), span), async () => {
+        faro.api.pushEvent('Sending request', { url });
+
+        try {
+          const response = await instance({
+            method,
+            url,
+            params,
+            data,
+            validateStatus,
+          });
+
+          faro.api.pushEvent('Request completed', { url });
+
+          resolve(response.data as RT);
+        } catch (ex) {
+          faro.api.pushEvent('Request failed', { url });
+          faro.api.pushError(ex);
+
+          span.setStatus({ code: SpanStatusCode.ERROR });
+          reject(ex);
+        } finally {
+          span.end();
+        }
+      });
+    });
+  }
+
+  try {
+    const response = await instance({
+      method,
+      url,
+      params,
+      data,
+      validateStatus,
+    });
+
+    faro.api.pushEvent('Request completed', { url });
+
+    return response.data as RT;
+  } catch (ex) {
+    faro.api.pushEvent('Request failed', { url });
+    faro.api.pushError(ex);
+    throw ex;
+  }
 };

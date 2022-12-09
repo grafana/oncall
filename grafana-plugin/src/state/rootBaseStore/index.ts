@@ -1,3 +1,4 @@
+import { Faro } from '@grafana/faro-core';
 import { action, observable } from 'mobx';
 import moment from 'moment-timezone';
 import qs from 'query-string';
@@ -71,6 +72,9 @@ export class RootBaseStore {
 
   @observable
   onCallApiUrl: string;
+
+  @observable
+  faro: Faro = undefined;
 
   // --------------------------
 
