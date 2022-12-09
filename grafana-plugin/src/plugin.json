@@ -250,6 +250,7 @@
           { "action": "grafana-oncall-app.escalation-chains:read" },
 
           { "action": "grafana-oncall-app.schedules:read" },
+          { "action": "grafana-oncall-app.schedules:write" },
           { "action": "grafana-oncall-app.schedules:export" },
 
           { "action": "grafana-oncall-app.chatops:read" },
