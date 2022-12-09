@@ -182,6 +182,8 @@ externalMysql:
   db_name:
   user:
   password:
+  existingSecret: ""
+  passwordKey: ""
 ```
 
 ### Connect external PostgreSQL
@@ -246,6 +248,8 @@ redis:
 externalRedis:
   host:
   password:
+  existingSecret: ""
+  passwordKey: ""
 ```
 
 ## Update

@@ -186,14 +186,24 @@ http://{{ include "oncall.grafana.fullname" . }}
   valueFrom:
     secretKeyRef:
       name: {{ include "snippet.mysql.password.secret.name" . }}
-      key: mariadb-root-password
+      key: {{ include "snippet.mysql.password.secret.key" . }}
 {{- end }}
 
 {{- define "snippet.mysql.password.secret.name" -}}
 {{- if and (not .Values.mariadb.enabled) .Values.externalMysql.password -}}
 {{ include "oncall.fullname" . }}-mysql-external
+{{- else if and (not .Values.mariadb.enabled) .Values.externalMysql.existingSecret -}}
+{{ .Values.externalMysql.existingSecret }}
 {{- else -}}
 {{ include "oncall.mariadb.fullname" . }}
+{{- end -}}
+{{- end -}}
+
+{{- define "snippet.mysql.password.secret.key" -}}
+{{- if and (not .Values.mariadb.enabled) .Values.externalMysql.passwordKey -}}
+{{ .Values.externalMysql.passwordKey }}
+{{- else -}}
+"mariadb-root-password"
 {{- end -}}
 {{- end -}}
 
@@ -383,6 +393,18 @@ rabbitmq-password
 {{- end -}}
 {{- end -}}
 
+{{- define "snippet.redis.env" -}}
+- name: REDIS_HOST
+  value: {{ include "snippet.redis.host" . }}
+- name: REDIS_PORT
+  value: "6379"
+- name: REDIS_PASSWORD
+  valueFrom:
+    secretKeyRef:
+      name: {{ template "snippet.redis.password.secret.name" . }}
+      key: {{ include "snippet.redis.password.secret.key" . }}
+{{- end }}
+
 {{- define "snippet.redis.host" -}}
 {{- if and (not .Values.redis.enabled) .Values.externalRedis.host -}}
 {{- required "externalRedis.host is required if not redis.enabled" .Values.externalRedis.host | quote }}
@@ -394,22 +416,20 @@ rabbitmq-password
 {{- define "snippet.redis.password.secret.name" -}}
 {{- if and (not .Values.redis.enabled) .Values.externalRedis.password -}}
 {{ include "oncall.fullname" . }}-redis-external
+{{- else if and (not .Values.redis.enabled) .Values.externalRedis.existingSecret -}}
+{{ .Values.externalRedis.existingSecret }}
 {{- else -}}
 {{ include "oncall.redis.fullname" . }}
 {{- end -}}
 {{- end -}}
 
-{{- define "snippet.redis.env" -}}
-- name: REDIS_HOST
-  value: {{ include "snippet.redis.host" . }}
-- name: REDIS_PORT
-  value: "6379"
-- name: REDIS_PASSWORD
-  valueFrom:
-    secretKeyRef:
-      name: {{ template "snippet.redis.password.secret.name" . }}
-      key: redis-password
-{{- end }}
+{{- define "snippet.redis.password.secret.key" -}}
+{{- if and (not .Values.redis.enabled) .Values.externalRedis.passwordKey -}}
+{{ .Values.externalRedis.passwordKey }}
+{{- else -}}
+redis-password
+{{- end -}}
+{{- end -}}
 
 {{- define "snippet.oncall.smtp.env" -}}
 {{- if .Values.oncall.smtp.enabled -}}
