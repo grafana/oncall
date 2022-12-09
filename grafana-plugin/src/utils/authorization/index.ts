@@ -122,7 +122,7 @@ export const UserActions: { [action in Actions]: UserAction } = {
   EscalationChainsWrite: constructAction(Resource.ESCALATION_CHAINS, Action.WRITE, OrgRole.Admin),
 
   SchedulesRead: constructAction(Resource.SCHEDULES, Action.READ, OrgRole.Viewer),
-  SchedulesWrite: constructAction(Resource.SCHEDULES, Action.WRITE, OrgRole.Admin),
+  SchedulesWrite: constructAction(Resource.SCHEDULES, Action.WRITE, OrgRole.Editor),
   SchedulesExport: constructAction(Resource.SCHEDULES, Action.WRITE, OrgRole.Editor),
 
   ChatOpsRead: constructAction(Resource.CHATOPS, Action.READ, OrgRole.Viewer),

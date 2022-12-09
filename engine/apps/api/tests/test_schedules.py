@@ -1204,7 +1204,7 @@ def test_filter_events_invalid_type(
     "role,expected_status",
     [
         (LegacyAccessControlRole.ADMIN, status.HTTP_200_OK),
-        (LegacyAccessControlRole.EDITOR, status.HTTP_403_FORBIDDEN),
+        (LegacyAccessControlRole.EDITOR, status.HTTP_200_OK),
         (LegacyAccessControlRole.VIEWER, status.HTTP_403_FORBIDDEN),
     ],
 )
@@ -1242,7 +1242,7 @@ def test_schedule_create_permissions(
     "role,expected_status",
     [
         (LegacyAccessControlRole.ADMIN, status.HTTP_200_OK),
-        (LegacyAccessControlRole.EDITOR, status.HTTP_403_FORBIDDEN),
+        (LegacyAccessControlRole.EDITOR, status.HTTP_200_OK),
         (LegacyAccessControlRole.VIEWER, status.HTTP_403_FORBIDDEN),
     ],
 )
@@ -1360,7 +1360,7 @@ def test_schedule_retrieve_permissions(
     "role,expected_status",
     [
         (LegacyAccessControlRole.ADMIN, status.HTTP_204_NO_CONTENT),
-        (LegacyAccessControlRole.EDITOR, status.HTTP_403_FORBIDDEN),
+        (LegacyAccessControlRole.EDITOR, status.HTTP_204_NO_CONTENT),
         (LegacyAccessControlRole.VIEWER, status.HTTP_403_FORBIDDEN),
     ],
 )
@@ -1436,7 +1436,7 @@ def test_events_permissions(
     "role,expected_status",
     [
         (LegacyAccessControlRole.ADMIN, status.HTTP_200_OK),
-        (LegacyAccessControlRole.EDITOR, status.HTTP_403_FORBIDDEN),
+        (LegacyAccessControlRole.EDITOR, status.HTTP_200_OK),
         (LegacyAccessControlRole.VIEWER, status.HTTP_403_FORBIDDEN),
     ],
 )
