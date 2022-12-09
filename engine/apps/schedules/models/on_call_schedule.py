@@ -8,6 +8,7 @@ from django.apps import apps
 from django.conf import settings
 from django.core.validators import MinLengthValidator
 from django.db import models
+from django.db.utils import DatabaseError
 from django.utils import timezone
 from django.utils.functional import cached_property
 from icalendar.cal import Calendar
@@ -318,6 +319,7 @@ class OnCallSchedule(PolymorphicModel):
         resolved = []
         pending = events
         current_interval_idx = 0  # current scheduled interval being checked
+        current_type = OnCallSchedule.TYPE_ICAL_OVERRIDES  # current calendar type
         current_priority = None  # current priority level being resolved
 
         while pending:
@@ -327,20 +329,17 @@ class OnCallSchedule(PolymorphicModel):
                 # exclude events without active users
                 continue
 
-            if ev["calendar_type"] == OnCallSchedule.TYPE_ICAL_OVERRIDES:
-                # include overrides from start
-                resolved.append(ev)
-                continue
-
             # api/terraform shifts could be missing a priority; assume None means 0
             priority = ev["priority_level"] or 0
-            if priority != current_priority:
+            if priority != current_priority or current_type != ev["calendar_type"]:
                 # update scheduled intervals on priority change
                 # and start from the beginning for the new priority level
+                # also for calendar event type (overrides first, then apply regular shifts)
                 resolved.sort(key=event_start_cmp_key)
                 intervals = _merge_intervals(resolved)
                 current_interval_idx = 0
                 current_priority = priority
+                current_type = ev["calendar_type"]
 
             if current_interval_idx >= len(intervals):
                 # event outside scheduled intervals, add to resolved
@@ -637,7 +636,11 @@ class OnCallScheduleWeb(OnCallSchedule):
         """Return cached ical file with iCal events from custom on-call shifts."""
         if self.cached_ical_file_primary is None:
             self.cached_ical_file_primary = self._generate_ical_file_primary()
-            self.save(update_fields=["cached_ical_file_primary"])
+            try:
+                self.save(update_fields=["cached_ical_file_primary"])
+            except DatabaseError:
+                # schedule may have been deleted from db
+                return
         return self.cached_ical_file_primary
 
     def _refresh_primary_ical_file(self):
@@ -650,7 +653,11 @@ class OnCallScheduleWeb(OnCallSchedule):
         """Return cached ical file with iCal events from custom on-call overrides shifts."""
         if self.cached_ical_file_overrides is None:
             self.cached_ical_file_overrides = self._generate_ical_file_overrides()
-            self.save(update_fields=["cached_ical_file_overrides"])
+            try:
+                self.save(update_fields=["cached_ical_file_overrides"])
+            except DatabaseError:
+                # schedule may have been deleted from db
+                return
         return self.cached_ical_file_overrides
 
     def _refresh_overrides_ical_file(self):

@@ -42,6 +42,7 @@ def construct_expected_response_from_incidents(incidents):
                 "permalinks": {
                     "slack": None,
                     "telegram": None,
+                    "web": incident.web_link,
                 },
             }
         )

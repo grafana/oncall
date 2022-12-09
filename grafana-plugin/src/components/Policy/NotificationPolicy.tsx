@@ -13,7 +13,7 @@ import { NotificationPolicyType, prepareNotificationPolicy } from 'models/notifi
 import { NotifyBy } from 'models/notify_by';
 import { User } from 'models/user/user.types';
 import { WaitDelay } from 'models/wait_delay';
-import { UserAction } from 'state/userAction';
+import { UserAction } from 'utils/authorization';
 
 import DragHandle from './DragHandle';
 import PolicyNote from './PolicyNote';

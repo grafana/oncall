@@ -13,6 +13,9 @@ x-oncall-volumes: &oncall-volumes
   # https://stackoverflow.com/a/60456034
   - ${ENTERPRISE_ENGINE:-/dev/null}:/etc/app/extensions/engine_enterprise
   - ${SQLITE_DB_FILE:-/dev/null}:/var/lib/oncall/oncall.db
+  # this is mounted for testing purposes. Some of the authorization tests
+  # reference this file
+  - ./grafana-plugin/src/plugin.json:/etc/grafana-plugin/src/plugin.json
 
 x-env-files: &oncall-env-files
   - ./dev/.env.dev
@@ -178,7 +181,7 @@ services:
     container_name: mysql
     labels: *oncall-labels
     image: mysql:5.7
-    platform: linux/x86_64
+    platform: linux/amd64
     command: --default-authentication-plugin=mysql_native_password --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
     restart: always
     environment:
@@ -205,7 +208,7 @@ services:
     container_name: mysql_to_create_grafana_db
     labels: *oncall-labels
     image: mysql:5.7
-    platform: linux/x86_64
+    platform: linux/amd64
     command: bash -c "mysql -h mysql -uroot -pempty -e 'CREATE DATABASE IF NOT EXISTS grafana CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;'"
     depends_on:
       mysql:

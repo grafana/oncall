@@ -1,4 +1,3 @@
-import pytz
 from django.core.exceptions import ObjectDoesNotExist
 from django.db.models import Count, OuterRef, Subquery
 from django.db.utils import IntegrityError
@@ -14,7 +13,7 @@ from rest_framework.views import Response
 from rest_framework.viewsets import ModelViewSet
 
 from apps.alerts.models import EscalationChain, EscalationPolicy
-from apps.api.permissions import MODIFY_ACTIONS, READ_ACTIONS, ActionPermission, AnyRole, IsAdmin, IsAdminOrEditor
+from apps.api.permissions import RBACPermission
 from apps.api.serializers.schedule_base import ScheduleFastSerializer
 from apps.api.serializers.schedule_polymorphic import (
     PolymorphicScheduleCreateSerializer,
@@ -37,6 +36,7 @@ from common.api_helpers.mixins import (
 )
 from common.api_helpers.utils import create_engine_url, get_date_range_from_request
 from common.insight_log import EntityEvent, write_resource_insight_log
+from common.timezones import raise_exception_if_not_valid_timezone
 
 EVENTS_FILTER_BY_ROTATION = "rotation"
 EVENTS_FILTER_BY_OVERRIDE = "override"
@@ -56,24 +56,26 @@ class ScheduleView(
     ModelViewSet,
 ):
     authentication_classes = (PluginAuthentication,)
-    permission_classes = (IsAuthenticated, ActionPermission)
-    action_permissions = {
-        IsAdmin: (
-            *MODIFY_ACTIONS,
-            "reload_ical",
-        ),
-        IsAdminOrEditor: ("export_token",),
-        AnyRole: (
-            *READ_ACTIONS,
-            "events",
-            "filter_events",
-            "next_shifts_per_user",
-            "notify_empty_oncall_options",
-            "notify_oncall_shift_freq_options",
-            "mention_options",
-            "related_escalation_chains",
-        ),
+    permission_classes = (IsAuthenticated, RBACPermission)
+    rbac_permissions = {
+        "metadata": [RBACPermission.Permissions.SCHEDULES_READ],
+        "list": [RBACPermission.Permissions.SCHEDULES_READ],
+        "retrieve": [RBACPermission.Permissions.SCHEDULES_READ],
+        "events": [RBACPermission.Permissions.SCHEDULES_READ],
+        "filter_events": [RBACPermission.Permissions.SCHEDULES_READ],
+        "next_shifts_per_user": [RBACPermission.Permissions.SCHEDULES_READ],
+        "notify_empty_oncall_options": [RBACPermission.Permissions.SCHEDULES_READ],
+        "notify_oncall_shift_freq_options": [RBACPermission.Permissions.SCHEDULES_READ],
+        "mention_options": [RBACPermission.Permissions.SCHEDULES_READ],
+        "related_escalation_chains": [RBACPermission.Permissions.SCHEDULES_READ],
+        "create": [RBACPermission.Permissions.SCHEDULES_WRITE],
+        "update": [RBACPermission.Permissions.SCHEDULES_WRITE],
+        "partial_update": [RBACPermission.Permissions.SCHEDULES_WRITE],
+        "destroy": [RBACPermission.Permissions.SCHEDULES_WRITE],
+        "reload_ical": [RBACPermission.Permissions.SCHEDULES_WRITE],
+        "export_token": [RBACPermission.Permissions.SCHEDULES_EXPORT],
     }
+
     filter_backends = [SearchFilter]
     search_fields = ("name",)
 
@@ -204,10 +206,8 @@ class ScheduleView(
 
     def get_request_timezone(self):
         user_tz = self.request.query_params.get("user_tz", "UTC")
-        try:
-            pytz.timezone(user_tz)
-        except pytz.exceptions.UnknownTimeZoneError:
-            raise BadRequest(detail="Invalid tz format")
+        raise_exception_if_not_valid_timezone(user_tz)
+
         date = timezone.now().date()
         date_param = self.request.query_params.get("date")
         if date_param is not None:

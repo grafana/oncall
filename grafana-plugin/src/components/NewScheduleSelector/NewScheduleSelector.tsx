@@ -8,7 +8,7 @@ import Text from 'components/Text/Text';
 import ScheduleForm from 'containers/ScheduleForm/ScheduleForm';
 import { WithPermissionControl } from 'containers/WithPermissionControl/WithPermissionControl';
 import { Schedule, ScheduleType } from 'models/schedule/schedule.types';
-import { UserAction } from 'state/userAction';
+import { UserActions } from 'utils/authorization';
 
 import styles from './NewScheduleSelector.module.css';
 
@@ -49,8 +49,8 @@ const NewScheduleSelector: FC<NewScheduleSelectorProps> = (props) => {
                     <Text type="secondary">Configure rotations and shifts directly in Grafana On-Call</Text>
                   </VerticalGroup>
                 </HorizontalGroup>
-                <WithPermissionControl userAction={UserAction.UpdateSchedules}>
-                  <Button variant="primary" icon="plus" onClick={getCreateScheduleClickHandler(ScheduleType.API)}>
+                <WithPermissionControl userAction={UserActions.SchedulesWrite}>
+                  <Button variant="primary" icon="plus" onClick={getCreateScheduleClickHandler(ScheduleType.Calendar)}>
                     Create
                   </Button>
                 </WithPermissionControl>

@@ -12,8 +12,8 @@ import WithConfirm from 'components/WithConfirm/WithConfirm';
 import { WithPermissionControl } from 'containers/WithPermissionControl/WithPermissionControl';
 import { GlobalSetting } from 'models/global_setting/global_setting.types';
 import { WithStoreProps } from 'state/types';
-import { UserAction } from 'state/userAction';
 import { withMobXProviderContext } from 'state/withStore';
+import { isUserActionAllowed, UserActions } from 'utils/authorization';
 
 import { PLACEHOLDER } from './LiveSettings.config';
 import { normalizeValue, prepareForUpdate } from './LiveSettings.helpers';
@@ -119,7 +119,7 @@ class LiveSettings extends React.Component<LiveSettingsProps, LiveSettingsState>
                 <Text.Title level={3}>Env Variables</Text.Title>
               </HorizontalGroup>
               <HorizontalGroup justify="flex-end">
-                <WithPermissionControl userAction={UserAction.UpdateGlobalSettings}>
+                <WithPermissionControl userAction={UserActions.OtherSettingsWrite}>
                   <Button
                     variant="primary"
                     icon={hideValues ? 'eye' : 'eye-slash'}
@@ -145,7 +145,6 @@ class LiveSettings extends React.Component<LiveSettingsProps, LiveSettingsState>
   };
 
   renderValue = (item: GlobalSetting) => {
-    const { store } = this.props;
     const { hideValues } = this.state;
 
     if (item.value === true || item.value === false) {
@@ -165,7 +164,7 @@ class LiveSettings extends React.Component<LiveSettingsProps, LiveSettingsState>
         <Text
           copyable={!item.is_secret && Boolean(item.value)}
           onTextChange={this.getEditValueChangeHandler(item)}
-          editable={store.isUserActionAllowed(UserAction.UpdateGlobalSettings)}
+          editable={isUserActionAllowed(UserActions.OtherSettingsWrite)}
           clearBeforeEdit={item.is_secret}
           hidden={hideValues}
         >

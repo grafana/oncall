@@ -120,6 +120,9 @@ shell:
 dbshell:
 	$(call run_engine_docker_command,python manage.py dbshell)
 
+engine-manage:
+	$(call run_engine_docker_command,python manage.py $(CMD))
+
 exec-engine:
 	docker exec -it oncall_engine bash
 

@@ -5,6 +5,7 @@ import { getLayersFromStore, getOverridesFromStore, getShiftsFromStore } from 'm
 import { Event, Layer } from 'models/schedule/schedule.types';
 import { Timezone } from 'models/timezone/timezone.types';
 import { RootStore } from 'state';
+import { SelectOption } from 'state/types';
 
 export const getStartOfWeek = (tz: Timezone) => {
   return dayjs().tz(tz).utcOffset() === 0 ? dayjs().utc().startOf('isoWeek') : dayjs().tz(tz).startOf('isoWeek');
@@ -16,6 +17,30 @@ export const getUTCString = (moment: dayjs.Dayjs) => {
 
 export const getDateTime = (date: string) => {
   return dayjs(date);
+};
+
+export const getUTCByDay = (dayOptions: SelectOption[], by_day: string[], moment: dayjs.Dayjs) => {
+  if (by_day.length && moment.day() !== moment.utc().day()) {
+    // when converting to UTC, shift starts on a different day,
+    // so we need to update the by_day list
+    // depending on the UTC side, move one day before or after
+    let offset = moment.utcOffset();
+    let UTCDays = [];
+    let byDayOptions = [];
+    dayOptions.forEach(({ value }) => byDayOptions.push(value));
+    by_day.forEach((element) => {
+      let index = byDayOptions.indexOf(element);
+      if (offset < 0) {
+        // move one day after
+        UTCDays.push(byDayOptions[(index + 1) % 7]);
+      } else {
+        // move one day before
+        UTCDays.push(byDayOptions[(((index - 1) % 7) + 7) % 7]);
+      }
+    });
+    return UTCDays;
+  }
+  return by_day;
 };
 
 export const getColorSchemeMappingForUsers = (

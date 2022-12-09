@@ -50,6 +50,10 @@ describe('PluginState.generateUnknownErrorMsg', () => {
 });
 
 describe('PluginState.getHumanReadableErrorFromOnCallError', () => {
+  beforeEach(() => {
+    console.warn = () => {};
+  });
+
   test.each([502, 409])('it handles a non-400 AxiosError properly - status code: %s', (status) => {
     expect(
       PluginState.getHumanReadableErrorFromOnCallError(

@@ -17,8 +17,8 @@ import { WithPermissionControl } from 'containers/WithPermissionControl/WithPerm
 import { AlertReceiveChannel } from 'models/alert_receive_channel/alert_receive_channel.types';
 import { Alert } from 'models/alertgroup/alertgroup.types';
 import { makeRequest } from 'network';
-import { UserAction } from 'state/userAction';
 import LocationHelper from 'utils/LocationHelper';
+import { UserActions } from 'utils/authorization';
 
 import styles from './AlertTemplatesForm.module.css';
 
@@ -27,7 +27,6 @@ const cx = cn.bind(styles);
 interface AlertTemplatesFormProps {
   templates: any;
   onUpdateTemplates: (values: any) => void;
-  errors: any;
   alertReceiveChannelId: AlertReceiveChannel['id'];
   alertGroupId?: Alert['pk'];
   demoAlertEnabled: boolean;
@@ -154,7 +153,7 @@ const AlertTemplatesForm = (props: AlertTemplatesFormProps) => {
     <HorizontalGroup>
       <Text type="secondary">There are no alerts from this monitoring yet.</Text>
       {demoAlertEnabled ? (
-        <WithPermissionControl userAction={UserAction.SendDemoAlert}>
+        <WithPermissionControl userAction={UserActions.IntegrationsTest}>
           <Button className={cx('button')} variant="primary" onClick={handleSendDemoAlertClick} size="sm">
             Send demo alert
           </Button>
@@ -241,7 +240,7 @@ const AlertTemplatesForm = (props: AlertTemplatesFormProps) => {
               </div>
             ))}
             <HorizontalGroup spacing="sm">
-              <WithPermissionControl userAction={UserAction.UpdateAlertReceiveChannels}>
+              <WithPermissionControl userAction={UserActions.IntegrationsWrite}>
                 <Button variant="primary" onClick={handleSubmit}>
                   Save Templates
                 </Button>

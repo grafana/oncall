@@ -12,8 +12,8 @@ import { HeartGreenIcon, HeartRedIcon } from 'icons';
 import { AlertReceiveChannel } from 'models/alert_receive_channel/alert_receive_channel.types';
 import { SelectOption } from 'state/types';
 import { useStore } from 'state/useStore';
-import { UserAction } from 'state/userAction';
 import { withMobXProviderContext } from 'state/withStore';
+import { UserActions } from 'utils/authorization';
 
 import styles from './HeartbeatForm.module.css';
 
@@ -90,7 +90,7 @@ const HeartbeatForm = observer(({ alertReceveChannelId, onUpdate }: HeartBeatMod
       </p>
       <p>
         <span>OnCall will issue an incident if no alert is received every</span>
-        <WithPermissionControl userAction={UserAction.UpdateAlertReceiveChannels}>
+        <WithPermissionControl userAction={UserActions.IntegrationsWrite}>
           <Select
             className={cx('select', 'timeout')}
             onChange={handleTimeoutChange}
@@ -125,7 +125,7 @@ const HeartbeatForm = observer(({ alertReceveChannelId, onUpdate }: HeartBeatMod
         </p>
       )}
       <HorizontalGroup className={cx('buttons')}>
-        <WithPermissionControl key="ok" userAction={UserAction.UpdateAlertReceiveChannels}>
+        <WithPermissionControl key="ok" userAction={UserActions.IntegrationsWrite}>
           <Button variant="primary" onClick={handleOkClick}>
             {heartbeat ? 'Save' : 'Create'}
           </Button>

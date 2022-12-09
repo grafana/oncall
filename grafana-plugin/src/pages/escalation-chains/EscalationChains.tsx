@@ -27,9 +27,9 @@ import { WithPermissionControl } from 'containers/WithPermissionControl/WithPerm
 import { EscalationChain } from 'models/escalation_chain/escalation_chain.types';
 import { pages } from 'pages';
 import { PageProps, WithStoreProps } from 'state/types';
-import { UserAction } from 'state/userAction';
 import { withMobXProviderContext } from 'state/withStore';
 import LocationHelper from 'utils/LocationHelper';
+import { UserActions } from 'utils/authorization';
 
 import styles from './EscalationChains.module.css';
 
@@ -151,7 +151,7 @@ class EscalationChainsPage extends React.Component<EscalationChainsPageProps, Es
                 {!searchResult || searchResult.length ? (
                   <div className={cx('escalations')}>
                     <div className={cx('left-column')}>
-                      <WithPermissionControl userAction={UserAction.UpdateAlertReceiveChannels}>
+                      <WithPermissionControl userAction={UserActions.IntegrationsWrite}>
                         <Button
                           onClick={() => {
                             this.setState({ showCreateEscalationChainModal: true });
@@ -186,7 +186,7 @@ class EscalationChainsPage extends React.Component<EscalationChainsPageProps, Es
                     title={
                       <VerticalGroup align="center" spacing="lg">
                         <Text type="secondary">No escalations found, check your filtering and current team.</Text>
-                        <WithPermissionControl userAction={UserAction.UpdateEscalationPolicies}>
+                        <WithPermissionControl userAction={UserActions.EscalationChainsWrite}>
                           <Button
                             icon="plus"
                             variant="primary"
@@ -263,7 +263,7 @@ class EscalationChainsPage extends React.Component<EscalationChainsPageProps, Es
           </Text>
           <div className={cx('buttons')}>
             <HorizontalGroup>
-              <WithPermissionControl userAction={UserAction.UpdateEscalationPolicies}>
+              <WithPermissionControl userAction={UserActions.EscalationChainsWrite}>
                 <IconButton
                   tooltip="Copy"
                   tooltipPlacement="top"
@@ -276,7 +276,7 @@ class EscalationChainsPage extends React.Component<EscalationChainsPageProps, Es
                   }}
                 />
               </WithPermissionControl>
-              <WithPermissionControl userAction={UserAction.UpdateEscalationPolicies}>
+              <WithPermissionControl userAction={UserActions.EscalationChainsWrite}>
                 <WithConfirm title={`Are you sure to remove "${escalationChain.name}"?`} confirmText="Remove">
                   <IconButton
                     disabled={escalationChain.number_of_integrations > 0}

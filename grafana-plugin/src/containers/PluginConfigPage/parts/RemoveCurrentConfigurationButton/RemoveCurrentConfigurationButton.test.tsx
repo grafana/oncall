@@ -19,13 +19,12 @@ describe('RemoveCurrentConfigurationButton', () => {
   test('It calls the onClick handler when clicked', async () => {
     const mockedOnClick = jest.fn();
 
-    const user = userEvent.setup();
     render(<RemoveCurrentConfigurationButton onClick={mockedOnClick} disabled={false} />);
 
     // click the button, which opens the modal
-    await user.click(screen.getByRole('button'));
+    await userEvent.click(screen.getByRole('button'));
     // click the confirm button within the modal, which actually triggers the callback
-    await user.click(screen.getByText('Remove'));
+    await userEvent.click(screen.getByText('Remove'));
 
     expect(mockedOnClick).toHaveBeenCalledWith();
     expect(mockedOnClick).toHaveBeenCalledTimes(1);

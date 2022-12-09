@@ -255,6 +255,7 @@ const CloudPage = observer((_props: CloudPageProps) => {
 
             <div style={{ width: '100%' }}>
               <Text type="secondary">
+                {/* TODO: should probably update this message? */}
                 {
                   'Ask your users to sign up in Grafana Cloud, verify phone number and feel free to set up SMS & phone call notifications in personal settings! Only users with Admin or Editor role will be synced.'
                 }

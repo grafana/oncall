@@ -7,7 +7,6 @@ import { useMediaQuery } from 'react-responsive';
 
 import { Tabs, TabsContent } from 'containers/UserSettings/parts';
 import { User as UserType } from 'models/user/user.types';
-import { AppFeature } from 'state/features';
 import { useStore } from 'state/useStore';
 import { BREAKPOINT_TABS } from 'utils/consts';
 
@@ -20,12 +19,13 @@ const cx = cn.bind(styles);
 interface UserFormProps {
   onHide: () => void;
   id: UserType['pk'] | 'new';
+  showMobileAppScreen: boolean;
   onCreate?: (data: UserType) => void;
   onUpdate?: () => void;
   tab?: UserSettingsTab;
 }
 
-const UserSettings = observer(({ id, onHide, tab = UserSettingsTab.UserInfo }: UserFormProps) => {
+const UserSettings = observer(({ id, showMobileAppScreen, onHide, tab = UserSettingsTab.UserInfo }: UserFormProps) => {
   const store = useStore();
   const { userStore, teamStore } = store;
 
@@ -49,14 +49,17 @@ const UserSettings = observer(({ id, onHide, tab = UserSettingsTab.UserInfo }: U
   }, []);
 
   const isModalWide =
-    !isDesktopOrLaptop || activeTab === UserSettingsTab.UserInfo || activeTab === UserSettingsTab.PhoneVerification;
+    !isDesktopOrLaptop ||
+    activeTab === UserSettingsTab.UserInfo ||
+    activeTab === UserSettingsTab.PhoneVerification ||
+    activeTab === UserSettingsTab.MobileAppVerification;
 
   const [showNotificationSettingsTab, showSlackConnectionTab, showTelegramConnectionTab, showMobileAppVerificationTab] =
     [
       !isDesktopOrLaptop,
       isCurrent && teamStore.currentTeam?.slack_team_identity && !storeUser.slack_user_identity,
       isCurrent && !storeUser.telegram_configuration,
-      store.hasFeature(AppFeature.MobileApp),
+      showMobileAppScreen,
     ];
 
   return (

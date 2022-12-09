@@ -20,7 +20,6 @@ const fillOutFormAndTryToSubmit = async (onCallApiUrl: string, selfHostedInstall
     .mockResolvedValueOnce(selfHostedInstallPluginSuccess ? null : SELF_HOSTED_PLUGIN_API_ERROR_MSG);
 
   // setup
-  const user = userEvent.setup();
   const component = render(
     <ConfigurationForm onSuccessfulSetup={mockOnSuccessfulSetup} defaultOnCallApiUrl="http://potato.com" />
   );
@@ -28,12 +27,12 @@ const fillOutFormAndTryToSubmit = async (onCallApiUrl: string, selfHostedInstall
   // fill out onCallApiUrl input
   const input = screen.getByTestId('onCallApiUrl');
 
-  await user.click(input);
-  await user.clear(input); // clear the input first before typing to wipe out the placeholder text
-  await user.keyboard(onCallApiUrl);
+  await userEvent.click(input);
+  await userEvent.clear(input); // clear the input first before typing to wipe out the placeholder text
+  await userEvent.keyboard(onCallApiUrl);
 
   // submit form
-  await user.click(screen.getByRole('button'));
+  await userEvent.click(screen.getByRole('button'));
 
   return { dom: component.baseElement, mockOnSuccessfulSetup };
 };

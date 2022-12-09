@@ -19,15 +19,15 @@ import Text from 'components/Text/Text';
 import UsersFilters from 'components/UsersFilters/UsersFilters';
 import UserSettings from 'containers/UserSettings/UserSettings';
 import { WithPermissionControl } from 'containers/WithPermissionControl/WithPermissionControl';
-import { getRole } from 'models/user/user.helpers';
-import { User as UserType, UserRole } from 'models/user/user.types';
+import { User as UserType } from 'models/user/user.types';
 import { pages } from 'pages';
+import { AppFeature } from 'state/features';
 import { PageProps, WithStoreProps } from 'state/types';
-import { UserAction } from 'state/userAction';
 import { withMobXProviderContext } from 'state/withStore';
 import LocationHelper from 'utils/LocationHelper';
+import { isUserActionAllowed, UserActions } from 'utils/authorization';
 
-import { getRealFilters, getUserRowClassNameFn } from './Users.helpers';
+import { getUserRowClassNameFn } from './Users.helpers';
 
 import styles from './Users.module.css';
 
@@ -43,7 +43,6 @@ interface UsersState extends PageBaseState {
   userPkToEdit?: UserType['pk'] | 'new';
   usersFilters?: {
     searchTerm: string;
-    roles?: UserRole[];
   };
 }
 
@@ -55,7 +54,6 @@ class Users extends React.Component<UsersProps, UsersState> {
     userPkToEdit: undefined,
     usersFilters: {
       searchTerm: '',
-      roles: [UserRole.ADMIN, UserRole.EDITOR, UserRole.VIEWER],
     },
 
     errorData: initErrorDataState(),
@@ -77,18 +75,16 @@ class Users extends React.Component<UsersProps, UsersState> {
     const { usersFilters, page } = this.state;
     const { userStore } = store;
 
-    if (!store.isUserActionAllowed(UserAction.ViewOtherUsers)) {
+    if (!isUserActionAllowed(UserActions.UserSettingsWrite)) {
       return;
     }
 
     LocationHelper.update({ p: page }, 'partial');
-    return await userStore.updateItems(getRealFilters(usersFilters), page);
+    return await userStore.updateItems(usersFilters, page);
   };
 
   componentDidUpdate(prevProps: UsersProps) {
-    const { store } = this.props;
-
-    if (!this.initialUsersLoaded && store.isUserActionAllowed(UserAction.ViewOtherUsers)) {
+    if (!this.initialUsersLoaded && isUserActionAllowed(UserActions.UserSettingsWrite)) {
       this.updateUsers();
       this.initialUsersLoaded = true;
     }
@@ -121,7 +117,11 @@ class Users extends React.Component<UsersProps, UsersState> {
 
   render() {
     const { usersFilters, userPkToEdit, page, errorData } = this.state;
-    const { store, query } = this.props;
+    const {
+      store,
+      query,
+      query: { id },
+    } = this.props;
     const { userStore } = store;
 
     const columns = [
@@ -130,12 +130,6 @@ class Users extends React.Component<UsersProps, UsersState> {
         key: 'username',
         title: 'User',
         render: this.renderTitle,
-      },
-      {
-        width: '5%',
-        title: 'Role',
-        key: 'role',
-        render: this.renderRole,
       },
       {
         width: '20%',
@@ -163,14 +157,13 @@ class Users extends React.Component<UsersProps, UsersState> {
     ];
 
     const handleClear = () =>
-      this.setState(
-        { usersFilters: { searchTerm: '', roles: [UserRole.ADMIN, UserRole.EDITOR, UserRole.VIEWER] } },
-        () => {
-          this.debouncedUpdateUsers();
-        }
-      );
+      this.setState({ usersFilters: { searchTerm: '' } }, () => {
+        this.debouncedUpdateUsers();
+      });
 
     const { count, results } = userStore.getSearchResult();
+    const showMobileAppScreen: boolean =
+      id !== undefined && id !== 'me' && id === userStore.currentUserPk && store.hasFeature(AppFeature.MobileApp);
 
     return (
       <PluginPage pageNav={pages['users'].getPageNav()}>
@@ -202,7 +195,7 @@ class Users extends React.Component<UsersProps, UsersState> {
                       </Button>
                     </PluginLink>
                   </div>
-                  {store.isUserActionAllowed(UserAction.ViewOtherUsers) ? (
+                  {isUserActionAllowed(UserActions.UserSettingsRead) ? (
                     <>
                       <div className={cx('user-filters-container')}>
                         <UsersFilters
@@ -246,7 +239,13 @@ class Users extends React.Component<UsersProps, UsersState> {
                     />
                   )}
                 </div>
-                {userPkToEdit && <UserSettings id={userPkToEdit} onHide={this.handleHideUserSettings} />}
+                {userPkToEdit && (
+                  <UserSettings
+                    id={userPkToEdit}
+                    onHide={this.handleHideUserSettings}
+                    showMobileAppScreen={showMobileAppScreen}
+                  />
+                )}
               </div>
             </>
           )}
@@ -273,10 +272,6 @@ class Users extends React.Component<UsersProps, UsersState> {
     );
   };
 
-  renderRole = (user: UserType) => {
-    return getRole(user.role);
-  };
-
   renderNotificationsChain = (user: UserType) => {
     return user.notification_chain_verbal.default;
   };
@@ -299,11 +294,11 @@ class Users extends React.Component<UsersProps, UsersState> {
     const { userStore } = store;
 
     const isCurrent = userStore.currentUserPk === user.pk;
-    const action = isCurrent ? UserAction.UpdateOwnSettings : UserAction.UpdateOtherUsersSettings;
+    const action = isCurrent ? UserActions.UserSettingsWrite : UserActions.UserSettingsAdmin;
 
     return (
       <VerticalGroup justify="center">
-        <PluginLink partial query={{ id: user.pk }} disabled={!store.isUserActionAllowed(action)}>
+        <PluginLink partial query={{ id: user.pk }} disabled={!isUserActionAllowed(action)}>
           <WithPermissionControl userAction={action}>
             <Button
               className={cx({

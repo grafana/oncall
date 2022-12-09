@@ -7,7 +7,9 @@ metadata:
     {{- include "oncall.engine.labels" . | nindent 4 }}
 spec:
   backoffLimit: 15
-  ttlSecondsAfterFinished: 20
+  {{- if .Values.migrate.ttlSecondsAfterFinished }}
+  ttlSecondsAfterFinished: {{ .Values.migrate.ttlSecondsAfterFinished }}
+  {{- end }}
   template:
     metadata:
       name: {{ printf "%s-migrate-%s" (include "oncall.engine.fullname" .) (now | date "2006-01-02-15-04-05") }}

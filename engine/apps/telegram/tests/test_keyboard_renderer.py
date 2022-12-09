@@ -49,27 +49,27 @@ def test_actions_keyboard_alerting(make_organization, make_alert_receive_channel
         [
             InlineKeyboardButton(
                 text="Acknowledge",
-                callback_data=f"{alert_group.pk}:acknowledge:x-oncall-org-id{organization.public_primary_key}",
+                callback_data=f"{alert_group.pk}:0:oncall-uuid{organization.uuid}",
             )
         ],
         [
             InlineKeyboardButton(
                 text="Resolve",
-                callback_data=f"{alert_group.pk}:resolve:x-oncall-org-id{organization.public_primary_key}",
+                callback_data=f"{alert_group.pk}:2:oncall-uuid{organization.uuid}",
             )
         ],
         [
             InlineKeyboardButton(
                 text="🔕 forever",
-                callback_data=f"{alert_group.pk}:silence:x-oncall-org-id{organization.public_primary_key}",
+                callback_data=f"{alert_group.pk}:4:oncall-uuid{organization.uuid}",
             ),
             InlineKeyboardButton(
                 text="... for 1h",
-                callback_data=f"{alert_group.pk}:silence:3600:x-oncall-org-id{organization.public_primary_key}",
+                callback_data=f"{alert_group.pk}:4:3600:oncall-uuid{organization.uuid}",
             ),
             InlineKeyboardButton(
                 text="... for 4h",
-                callback_data=f"{alert_group.pk}:silence:14400:x-oncall-org-id{organization.public_primary_key}",
+                callback_data=f"{alert_group.pk}:4:14400:oncall-uuid{organization.uuid}",
             ),
         ],
     ]
@@ -97,13 +97,13 @@ def test_actions_keyboard_acknowledged(
         [
             InlineKeyboardButton(
                 text="Unacknowledge",
-                callback_data=f"{alert_group.pk}:unacknowledge:x-oncall-org-id{organization.public_primary_key}",
+                callback_data=f"{alert_group.pk}:1:oncall-uuid{organization.uuid}",
             )
         ],
         [
             InlineKeyboardButton(
                 text="Resolve",
-                callback_data=f"{alert_group.pk}:resolve:x-oncall-org-id{organization.public_primary_key}",
+                callback_data=f"{alert_group.pk}:2:oncall-uuid{organization.uuid}",
             )
         ],
     ]
@@ -131,7 +131,7 @@ def test_actions_keyboard_resolved(
         [
             InlineKeyboardButton(
                 text="Unresolve",
-                callback_data=f"{alert_group.pk}:unresolve:x-oncall-org-id{organization.public_primary_key}",
+                callback_data=f"{alert_group.pk}:3:oncall-uuid{organization.uuid}",
             )
         ],
     ]
@@ -159,19 +159,19 @@ def test_actions_keyboard_silenced(
         [
             InlineKeyboardButton(
                 text="Acknowledge",
-                callback_data=f"{alert_group.pk}:acknowledge:x-oncall-org-id{organization.public_primary_key}",
+                callback_data=f"{alert_group.pk}:0:oncall-uuid{organization.uuid}",
             )
         ],
         [
             InlineKeyboardButton(
                 text="Resolve",
-                callback_data=f"{alert_group.pk}:resolve:x-oncall-org-id{organization.public_primary_key}",
+                callback_data=f"{alert_group.pk}:2:oncall-uuid{organization.uuid}",
             )
         ],
         [
             InlineKeyboardButton(
                 text="Unsilence",
-                callback_data=f"{alert_group.pk}:unsilence:x-oncall-org-id{organization.public_primary_key}",
+                callback_data=f"{alert_group.pk}:5:oncall-uuid{organization.uuid}",
             )
         ],
     ]
