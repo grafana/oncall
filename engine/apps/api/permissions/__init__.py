@@ -109,7 +109,7 @@ class RBACPermission(permissions.BasePermission):
             Resources.SCHEDULES, Actions.READ, LegacyAccessControlRole.VIEWER
         )
         SCHEDULES_WRITE = LegacyAccessControlCompatiblePermission(
-            Resources.SCHEDULES, Actions.WRITE, LegacyAccessControlRole.ADMIN
+            Resources.SCHEDULES, Actions.WRITE, LegacyAccessControlRole.EDITOR
         )
         SCHEDULES_EXPORT = LegacyAccessControlCompatiblePermission(
             Resources.SCHEDULES, Actions.EXPORT, LegacyAccessControlRole.EDITOR
