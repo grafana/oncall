@@ -143,6 +143,15 @@ class SlackEventApiEndpointView(APIView):
         if isinstance(payload, str):
             payload = json.JSONDecoder().decode(payload)
 
+        logger.info(
+            "team_id: %s channel_id: %s user_id: %s command: %s event: %s",
+            payload.get("team_id"),
+            payload.get("channel_id"),
+            payload.get("user_id"),
+            payload.get("command"),
+            payload.get("event", {}).get("type"),
+        )
+
         # Checking if it's repeated Slack request
         if "HTTP_X_SLACK_RETRY_NUM" in request.META and int(request.META["HTTP_X_SLACK_RETRY_NUM"]) > 1:
             logger.critical(
