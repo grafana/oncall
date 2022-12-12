@@ -50,7 +50,7 @@ const NewScheduleSelector: FC<NewScheduleSelectorProps> = (props) => {
                   </VerticalGroup>
                 </HorizontalGroup>
                 <WithPermissionControl userAction={UserActions.SchedulesWrite}>
-                  <Button variant="primary" icon="plus" onClick={getCreateScheduleClickHandler(ScheduleType.Calendar)}>
+                  <Button variant="primary" icon="plus" onClick={getCreateScheduleClickHandler(ScheduleType.API)}>
                     Create
                   </Button>
                 </WithPermissionControl>
