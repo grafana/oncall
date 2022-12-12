@@ -45,7 +45,7 @@ def sync_organization(organization):
 def _sync_instance_info(organization):
     if organization.gcom_token:
         gcom_client = GcomAPIClient(organization.gcom_token)
-        instance_info, _ = gcom_client.get_instance_info(organization.stack_id)
+        instance_info = gcom_client.get_instance_info(organization.stack_id)
 
         if not instance_info or instance_info["orgId"] != organization.org_id:
             return
