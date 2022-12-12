@@ -191,7 +191,7 @@ class GcomAPIClient(APIClient):
         super().__init__(settings.GRAFANA_COM_API_URL, api_token)
 
     def get_instance_info(self, stack_id: str) -> Optional[GCOMInstanceInfo]:
-        data, _ = self.api_get(f"instances/{stack_id}?config=true")
+        data, _ = self.api_get(f"instances/{stack_id}")
         return data
 
     def get_instances(self, query: str):
