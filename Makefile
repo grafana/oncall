@@ -86,7 +86,7 @@ restart:
 	$(call run_docker_compose_command,restart)
 
 build:
-	$(call run_docker_compose_command,build)
+	$(call run_docker_compose_command,build --no-cache)
 
 cleanup: stop
 	docker system prune --filter label="$(DOCKER_COMPOSE_DEV_LABEL)" --all --volumes

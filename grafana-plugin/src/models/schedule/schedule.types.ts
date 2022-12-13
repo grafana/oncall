@@ -6,9 +6,9 @@ import { User } from 'models/user/user.types';
 import { UserGroup } from 'models/user_group/user_group.types';
 
 export enum ScheduleType {
-  'API',
-  'Ical',
   'Calendar',
+  'Ical',
+  'API',
 }
 
 export interface RotationFormLiveParams {

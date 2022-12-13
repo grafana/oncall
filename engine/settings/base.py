@@ -556,12 +556,6 @@ PUSH_NOTIFICATIONS_SETTINGS = {
     "FCM_POST_URL": os.getenv("FCM_POST_URL", default="https://fcm.googleapis.com/fcm/send"),
     "USER_MODEL": "user_management.User",
     "UPDATE_ON_DUPLICATE_REG_ID": True,
-    # TODO: remove APNS related endpoints after the hackathon app is deprecated
-    "APNS_AUTH_KEY_PATH": os.environ.get("APNS_AUTH_KEY_PATH", None),
-    "APNS_TOPIC": os.environ.get("APNS_TOPIC", None),
-    "APNS_AUTH_KEY_ID": os.environ.get("APNS_AUTH_KEY_ID", None),
-    "APNS_TEAM_ID": os.environ.get("APNS_TEAM_ID", None),
-    "APNS_USE_SANDBOX": getenv_boolean("APNS_USE_SANDBOX", True),
 }
 FCM_RELAY_ENABLED = getenv_boolean("FCM_RELAY_ENABLED", default=False)
 
