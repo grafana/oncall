@@ -76,4 +76,10 @@ def notify_user_async(user_pk, alert_group_pk, notification_policy_pk, critical)
     logger.info(f"Sending push notification with message: {message}; thread-id: {thread_id}; extra: {extra}")
 
     # TODO: rename category to USER_NEW_ALERT_GROUP
-    gcm_devices_to_notify.send_message(message, thread_id=thread_id, category="USER_NEW_INCIDENT", extra=extra)
+    fcm_response = gcm_devices_to_notify.send_message(
+        message, thread_id=thread_id, category="USER_NEW_INCIDENT", extra=extra
+    )
+
+    # NOTE: we may want to further handle the response from FCM, but for now lets simply log it out
+    # https://firebase.google.com/docs/cloud-messaging/http-server-ref#interpret-downstream
+    logger.info(f"FCM response was: {fcm_response}")
