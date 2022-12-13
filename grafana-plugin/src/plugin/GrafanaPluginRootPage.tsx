@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 
-import { initializeFaro, getWebInstrumentations, ReactIntegration, ReactRouterVersion } from '@grafana/faro-react';
+import { initializeFaro, getWebInstrumentations } from '@grafana/faro-react';
 import { TracingInstrumentation } from '@grafana/faro-web-tracing';
 import { locationService } from '@grafana/runtime';
 import classnames from 'classnames';
@@ -10,7 +10,6 @@ import isSameOrBefore from 'dayjs/plugin/isSameOrBefore';
 import isoWeek from 'dayjs/plugin/isoWeek';
 import localeData from 'dayjs/plugin/localeData';
 import timezone from 'dayjs/plugin/timezone';
-import { Route, useHistory } from 'react-router';
 
 import utc from 'dayjs/plugin/utc';
 import weekday from 'dayjs/plugin/weekday';
@@ -64,7 +63,6 @@ export const Root = observer((props: AppRootProps) => {
   const pathWithoutLeadingSlash = path.replace(/^\//, '');
 
   const store = useStore();
-  const history = useHistory();
 
   useEffect(() => {
     updateBasicData();
@@ -78,7 +76,7 @@ export const Root = observer((props: AppRootProps) => {
 
     document.head.appendChild(link);
 
-    initFaro(store, history);
+    initFaro(store);
 
     return () => {
       document.head.removeChild(link);
@@ -129,30 +127,21 @@ export const Root = observer((props: AppRootProps) => {
   );
 });
 
-function initFaro(store: RootBaseStore, history: any) {
+function initFaro(store: RootBaseStore) {
   const faro = initializeFaro({
-    url: `http://localhost:${''}/collect`,
-    apiKey: '',
+    url: `http://localhost:12345/collect`,
+    apiKey: 'secret',
     instrumentations: [
       ...getWebInstrumentations({
         captureConsole: true,
       }),
       new TracingInstrumentation(),
-      new ReactIntegration({
-        router: {
-          version: ReactRouterVersion.V5,
-          dependencies: {
-            history,
-            Route,
-          },
-        },
-      }),
     ],
     session: (window as any).__PRELOADED_STATE__?.faro?.session,
     app: {
-      name: '',
-      version: '',
-      environment: '',
+      name: 'oncall',
+      version: '1.0.0',
+      environment: 'dev',
     },
   });
 
