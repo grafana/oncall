@@ -16,6 +16,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `auth_user` table.. which we don't want)
 - add `--no-cache` flag to the `make build` command
 
+### Fixed
+
+- fix schedule UI types and permissions
+
 ## v1.1.7 (2022-12-09)
 
 ### Fixed
