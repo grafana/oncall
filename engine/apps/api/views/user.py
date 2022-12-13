@@ -28,8 +28,7 @@ from apps.auth_token.constants import SCHEDULE_EXPORT_TOKEN_NAME
 from apps.auth_token.models import UserScheduleExportAuthToken
 from apps.base.messaging import get_messaging_backend_from_id
 from apps.base.utils import live_settings
-from apps.mobile_app.auth import MobileAppAuthTokenAuthentication, MobileAppVerificationTokenAuthentication
-from apps.mobile_app.models import MobileAppAuthToken
+from apps.mobile_app.auth import MobileAppAuthTokenAuthentication
 from apps.telegram.client import TelegramClient
 from apps.telegram.models import TelegramVerificationCode
 from apps.twilioapp.phone_manager import PhoneManager
@@ -128,7 +127,6 @@ class UserView(
         "unlink_backend": [RBACPermission.Permissions.USER_SETTINGS_WRITE],
         "make_test_call": [RBACPermission.Permissions.USER_SETTINGS_WRITE],
         "export_token": [RBACPermission.Permissions.USER_SETTINGS_WRITE],
-        "mobile_app_auth_token": [RBACPermission.Permissions.USER_SETTINGS_WRITE],
     }
 
     rbac_object_permissions = {
@@ -149,7 +147,6 @@ class UserView(
             "unlink_backend",
             "make_test_call",
             "export_token",
-            "mobile_app_auth_token",
         ],
     }
 
@@ -470,65 +467,4 @@ class UserView(
                 token.delete()
             except UserScheduleExportAuthToken.DoesNotExist:
                 raise NotFound
-            return Response(status=status.HTTP_204_NO_CONTENT)
-
-    @action(
-        methods=["get", "post", "delete"],
-        detail=False,
-        authentication_classes=(MobileAppVerificationTokenAuthentication,),
-    )
-    def mobile_app_auth_token(self, request):
-        """
-        TODO: remove after hackathon app is deprecated (see apps.mobile_app.views.MobileAppAuthTokenAPIView)
-        """
-        DynamicSetting = apps.get_model("base", "DynamicSetting")
-
-        if not settings.FEATURE_MOBILE_APP_INTEGRATION_ENABLED:
-            return Response(status=status.HTTP_404_NOT_FOUND)
-
-        mobile_app_settings = DynamicSetting.objects.get_or_create(
-            name="mobile_app_settings",
-            defaults={
-                "json_value": {
-                    "org_ids": [],
-                }
-            },
-        )[0]
-        if self.request.auth.organization.pk not in mobile_app_settings.json_value["org_ids"]:
-            return Response(status=status.HTTP_404_NOT_FOUND)
-
-        if self.request.method == "GET":
-            try:
-                token = MobileAppAuthToken.objects.get(user=self.request.user)
-            except MobileAppAuthToken.DoesNotExist:
-                raise NotFound
-
-            response = {
-                "token_id": token.id,
-                "user_id": token.user_id,
-                "organization_id": token.organization_id,
-                "created_at": token.created_at,
-                "revoked_at": token.revoked_at,
-            }
-            return Response(response, status=status.HTTP_200_OK)
-
-        if self.request.method == "POST":
-            # If token already exists revoke it
-            try:
-                token = MobileAppAuthToken.objects.get(user=self.request.user)
-                token.delete()
-            except MobileAppAuthToken.DoesNotExist:
-                pass
-
-            instance, token = MobileAppAuthToken.create_auth_token(self.request.user, self.request.user.organization)
-            data = {"id": instance.pk, "token": token, "created_at": instance.created_at}
-            return Response(data, status=status.HTTP_201_CREATED)
-
-        if self.request.method == "DELETE":
-            try:
-                token = MobileAppAuthToken.objects.get(user=self.request.user)
-                token.delete()
-            except MobileAppAuthToken.DoesNotExist:
-                raise NotFound
-
             return Response(status=status.HTTP_204_NO_CONTENT)
