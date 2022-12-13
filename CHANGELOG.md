@@ -5,6 +5,17 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## v1.1.8 (TBD)
+
+### Changed
+
+- removed APNS support
+- changed the `django-push-notification` library from the `iskhakov` fork to the [`grafana` fork](https://github.com/grafana/django-push-notifications).
+  This new fork basically patches an issue which affected the database migrations of this django app (previously the
+  library would not respect the `USER_MODEL` setting when creating its tables and would instead reference the
+  `auth_user` table.. which we don't want)
+- add `--no-cache` flag to the `make build` command
+
 ## v1.1.7 (2022-12-09)
 
 ### Fixed
