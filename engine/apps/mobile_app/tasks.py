@@ -65,15 +65,21 @@ def notify_user_async(user_pk, alert_group_pk, notification_policy_pk, critical)
             "sound": "bingbong.aiff",
         }
 
-    gcm_devices_to_notify.send_message(
-        message,
-        thread_id=thread_id,
-        category="USER_NEW_INCIDENT",  # TODO: rename to USER_NEW_ALERT_GROUP
-        extra={
-            "orgId": alert_group.channel.organization.public_primary_key,
-            "orgName": alert_group.channel.organization.stack_slug,
-            "alertGroupId": alert_group.public_primary_key,
-            "status": alert_group.status,
-            "aps": aps,
-        },
+    extra = {
+        "orgId": alert_group.channel.organization.public_primary_key,
+        "orgName": alert_group.channel.organization.stack_slug,
+        "alertGroupId": alert_group.public_primary_key,
+        "status": alert_group.status,
+        "aps": aps,
+    }
+
+    logger.info(f"Sending push notification with message: {message}; thread-id: {thread_id}; extra: {extra}")
+
+    # TODO: rename category to USER_NEW_ALERT_GROUP
+    fcm_response = gcm_devices_to_notify.send_message(
+        message, thread_id=thread_id, category="USER_NEW_INCIDENT", extra=extra
     )
+
+    # NOTE: we may want to further handle the response from FCM, but for now lets simply log it out
+    # https://firebase.google.com/docs/cloud-messaging/http-server-ref#interpret-downstream
+    logger.info(f"FCM response was: {fcm_response}")
