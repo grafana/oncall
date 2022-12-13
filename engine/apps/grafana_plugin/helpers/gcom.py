@@ -44,8 +44,6 @@ def check_gcom_permission(token_string: str, context) -> Optional["GcomToken"]:
     if not instance_info or str(instance_info["orgId"]) != org_id:
         raise InvalidToken
 
-    rbac_is_enabled = client.is_rbac_enabled_for_organization()
-
     if not organization:
         DynamicSetting = apps.get_model("base", "DynamicSetting")
         allow_signup = DynamicSetting.objects.get_or_create(
@@ -62,7 +60,6 @@ def check_gcom_permission(token_string: str, context) -> Optional["GcomToken"]:
                 region_slug=instance_info["regionSlug"],
                 gcom_token=token_string,
                 gcom_token_org_last_time_synced=timezone.now(),
-                is_rbac_permissions_enabled=rbac_is_enabled,
             )
     else:
         organization.stack_slug = instance_info["slug"]
@@ -72,7 +69,6 @@ def check_gcom_permission(token_string: str, context) -> Optional["GcomToken"]:
         organization.grafana_url = instance_info["url"]
         organization.gcom_token = token_string
         organization.gcom_token_org_last_time_synced = timezone.now()
-        organization.is_rbac_permissions_enabled = rbac_is_enabled
         organization.save(
             update_fields=[
                 "stack_slug",
@@ -82,7 +78,6 @@ def check_gcom_permission(token_string: str, context) -> Optional["GcomToken"]:
                 "grafana_url",
                 "gcom_token",
                 "gcom_token_org_last_time_synced",
-                "is_rbac_permissions_enabled",
             ]
         )
     logger.debug(f"Finish authenticate by making request to gcom api for org={org_id}, stack_id={stack_id}")
