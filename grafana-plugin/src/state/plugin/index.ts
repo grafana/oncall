@@ -201,7 +201,6 @@ class PluginState {
   ): Promise<PluginSyncStatusResponse | string> => {
     try {
       const startSyncResponse = await makeRequest(`${this.ONCALL_BASE_URL}/sync`, { method: 'POST' });
-
       if (typeof startSyncResponse === 'string') {
         // an error occured trying to initiate the sync
         return startSyncResponse;

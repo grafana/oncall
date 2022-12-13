@@ -37,6 +37,17 @@ export const makeRequest = async <RT = any>(path: string, config: RequestConfig)
 
   const url = `${API_PROXY_PREFIX}${API_PATH_PREFIX}${path}`;
 
+  const response = await instance({
+    method,
+    url,
+    params,
+    data,
+    validateStatus,
+  });
+
+  // for now just return response.data and figure OTEL later on
+  return response.data as RT;
+
   const otel = faro.api.getOTEL();
 
   if (otel) {
