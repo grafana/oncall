@@ -39,6 +39,5 @@ django-mysql==4.6.0
 PyMySQL==1.0.2
 psycopg2-binary==2.9.3
 emoji==1.7.0
-apns2==0.7.2
 regex==2021.11.2
 psutil==5.9.4

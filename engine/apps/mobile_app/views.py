@@ -1,4 +1,3 @@
-from push_notifications.api.rest_framework import APNSDeviceAuthorizedViewSet as BaseAPNSDeviceAuthorizedViewSet
 from push_notifications.api.rest_framework import GCMDeviceAuthorizedViewSet, GCMDeviceSerializer
 from rest_framework import status
 from rest_framework.exceptions import NotFound
@@ -8,10 +7,6 @@ from rest_framework.views import APIView
 
 from apps.mobile_app.auth import MobileAppAuthTokenAuthentication, MobileAppVerificationTokenAuthentication
 from apps.mobile_app.models import MobileAppAuthToken
-
-
-class APNSDeviceAuthorizedViewSet(BaseAPNSDeviceAuthorizedViewSet):
-    authentication_classes = (MobileAppAuthTokenAuthentication,)
 
 
 class FCMDeviceAuthorizedViewSet(GCMDeviceAuthorizedViewSet):
