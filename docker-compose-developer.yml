@@ -47,6 +47,7 @@ services:
       labels: *oncall-labels
     environment:
       ONCALL_API_URL: http://host.docker.internal:8080
+      MOBILE_APP_QR_INTERVAL_QUEUE: 290000 # 4 minutes and 50 seconds
     volumes:
       - ./grafana-plugin:/etc/app
       - /etc/app/node_modules

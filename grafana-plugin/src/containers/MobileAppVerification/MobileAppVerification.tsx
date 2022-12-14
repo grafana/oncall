@@ -22,7 +22,9 @@ type Props = {
 };
 
 const INTERVAL_MIN_THROTTLING = 500;
-const INTERVAL_QUEUE_QR = 50000;
+const INTERVAL_QUEUE_QR = process.env.MOBILE_APP_QR_INTERVAL_QUEUE
+  ? parseInt(process.env.MOBILE_APP_QR_INTERVAL_QUEUE, 10)
+  : 50000;
 const INTERVAL_POLLING = 5000;
 const BACKEND = 'MOBILE_APP';
 
