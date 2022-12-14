@@ -52,32 +52,60 @@ def notify_user_async(user_pk, alert_group_pk, notification_policy_pk, critical)
 
     message = get_push_notification_message(alert_group)
     thread_id = f"{alert_group.channel.organization.public_primary_key}:{alert_group.public_primary_key}"
-
-    if critical:
-        aps = {
-            "alert": f"Critical page: {message}",
-            "interruption-level": "critical",
-            "sound": "ambulance.aiff",
-        }
-    else:
-        aps = {
-            "alert": message,
-            "sound": "bingbong.aiff",
-        }
+    alert_title = f"Critical page: {message}" if critical else message
+    # TODO: this is what will be shown in the app badge (little red bubble w/ number)
+    # is this the proper thing we want to show? or is there a more valuable metric to use?
+    number_of_alert_groups_firing = alert_group.alerts.count()
 
     extra = {
         "orgId": alert_group.channel.organization.public_primary_key,
         "orgName": alert_group.channel.organization.stack_slug,
         "alertGroupId": alert_group.public_primary_key,
         "status": alert_group.status,
-        "aps": aps,
+        "apns": {
+            # for possible iOS values, see here
+            # https://developer.apple.com/documentation/usernotifications/setting_up_a_remote_notification_server/generating_a_remote_notification#2943365
+            "aps": {
+                "badge": number_of_alert_groups_firing,
+                "sound": {
+                    "critical": 1 if critical else 0,
+                    "name": "ambulance.aiff" if critical else "bingbong.aiff",
+                    "volume": 1,
+                },
+                "interruption-level": "critical" if critical else "time-sensitive",
+                "alert": {
+                    "title": alert_title,
+                    # TODO: do we want these attributes?
+                    # "subtitle": "",
+                    # "body": "",
+                },
+            },
+        },
+        "android": {
+            # for possible Android settings, see here
+            # https://firebase.google.com/docs/reference/fcm/rest/v1/projects.messages#androidconfig
+            "priority": "HIGH",
+            "notification": {
+                "title": alert_title,
+                # TODO: do we want the body attribute?
+                "body": "",
+                "ticker": alert_title,
+                "sound": "ambulance.mp3" if critical else "bingbong.mp3",
+                "click_action": "CRITICAL_NOTIFICATION" if critical else "DEFAULT",
+                "visibility": "PUBLIC",
+                "notification_priority": "PRIORITY_MAX" if critical else "PRIORITY_HIGH",
+                "notification_count": number_of_alert_groups_firing,
+                # NOTE: we'll ignore vibrate_timings for now, but we could use it to make a weird vibration
+                # pattern for critical notifications
+                "vibrate_timings": [],
+            },
+        },
     }
 
     logger.info(f"Sending push notification with message: {message}; thread-id: {thread_id}; extra: {extra}")
 
-    # TODO: rename category to USER_NEW_ALERT_GROUP
     fcm_response = gcm_devices_to_notify.send_message(
-        message, thread_id=thread_id, category="USER_NEW_INCIDENT", extra=extra
+        message, thread_id=thread_id, category="USER_NEW_ALERT_GROUP", extra=extra
     )
 
     # NOTE: we may want to further handle the response from FCM, but for now lets simply log it out
