@@ -91,7 +91,6 @@ def notify_user_async(user_pk, alert_group_pk, notification_policy_pk, critical)
                 tag=thread_id,
                 sound="ambulance.mp3" if critical else "bingbong.mp3",
                 default_sound=False,
-                click_action="CRITICAL_NOTIFICATION" if critical else "DEFAULT",
                 visibility="public",
                 priority="max" if critical else "high",
                 notification_count=number_of_alerts,
