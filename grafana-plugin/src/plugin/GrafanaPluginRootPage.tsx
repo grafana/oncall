@@ -1,7 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
 
-import { initializeFaro, getWebInstrumentations } from '@grafana/faro-web-sdk';
-import { TracingInstrumentation, getDefaultOTELInstrumentations } from '@grafana/faro-web-tracing';
 import { locationService } from '@grafana/runtime';
 import classnames from 'classnames';
 import dayjs from 'dayjs';
@@ -15,8 +13,6 @@ import weekday from 'dayjs/plugin/weekday';
 import { observer, Provider } from 'mobx-react';
 import Header from 'navbar/Header/Header';
 import LegacyNavTabsBar from 'navbar/LegacyNavTabsBar';
-
-import plugin from '../../package.json'; // eslint-disable-line
 import { AppRootProps } from 'types';
 
 import Unauthorized from 'components/Unauthorized';
@@ -27,6 +23,7 @@ import { routes } from 'pages/routes';
 import { rootStore } from 'state';
 import { useStore } from 'state/useStore';
 import { isUserActionAllowed } from 'utils/authorization';
+import FaroHelper from 'utils/faro';
 import { useQueryParams, useQueryPath } from 'utils/hooks';
 
 dayjs.extend(utc);
@@ -73,7 +70,7 @@ export const Root = observer((props: AppRootProps) => {
 
     document.head.appendChild(link);
 
-    initFaro();
+    FaroHelper.initializeFaro();
 
     return () => {
       document.head.removeChild(link);
@@ -121,29 +118,6 @@ export const Root = observer((props: AppRootProps) => {
     </DefaultPageLayout>
   );
 });
-
-function initFaro() {
-  const faro = initializeFaro({
-    url: `http://localhost:12345/collect`,
-    apiKey: 'secret',
-    instrumentations: [
-      ...getWebInstrumentations({
-        captureConsole: true,
-      }),
-      new TracingInstrumentation({
-        instrumentations: [...getDefaultOTELInstrumentations([/^((?!\/{0,1}a\/grafana\-oncall\-app\\).)*$/])],
-      }),
-    ],
-    session: (window as any).__PRELOADED_STATE__?.faro?.session,
-    app: {
-      name: plugin?.name || 'Grafana OnCall',
-      version: plugin?.version || '1.0.0',
-      // environment: 'dev', // TODO: sort this out
-    },
-  });
-
-  faro.api.pushLog(['Faro was initialized for Grafana On Call']);
-}
 
 function getPageMatchingComponent(pageId: string): (props?: any) => JSX.Element {
   let matchingPage = routes[pageId];
