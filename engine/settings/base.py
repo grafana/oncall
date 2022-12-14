@@ -205,6 +205,7 @@ INSTALLED_APPS = [
     "apps.slack",
     "apps.telegram",
     "apps.twilioapp",
+    "apps.mobile_app",
     "apps.api",
     "apps.api_for_grafana_incident",
     "apps.base",
@@ -553,7 +554,6 @@ if FEATURE_MOBILE_APP_INTEGRATION_ENABLED:
 
     INSTALLED_APPS += [
         "fcm_django",
-        "apps.mobile_app",
     ]
 
     FIREBASE_APP = initialize_app()
