@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## v1.1.8 (2022-12-13)
 
+### Added
+
+- Added a `make` command, `enable-mobile-app-feature-flags`, which sets the backend feature flag in `./dev/.env.dev`,
+  and updates a record in the `base_dynamicsetting` database table, which are needed to enable the mobile
+  app backend features.
+
 ### Changed
 
 - removed APNS support
