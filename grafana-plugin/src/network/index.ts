@@ -1,4 +1,4 @@
-import { faro } from '@grafana/faro-react';
+import { faro } from '@grafana/faro-web-sdk';
 import { SpanStatusCode } from '@opentelemetry/api';
 import axios from 'axios';
 import qs from 'query-string';
@@ -37,18 +37,7 @@ export const makeRequest = async <RT = any>(path: string, config: RequestConfig)
 
   const url = `${API_PROXY_PREFIX}${API_PATH_PREFIX}${path}`;
 
-  const response = await instance({
-    method,
-    url,
-    params,
-    data,
-    validateStatus,
-  });
-
-  // for now just return response.data and figure OTEL later on
-  return response.data as RT;
-
-  const otel = faro.api.getOTEL();
+  const otel = faro?.api?.getOTEL();
 
   if (otel) {
     const tracer = otel.trace.getTracer('default');
@@ -92,12 +81,12 @@ export const makeRequest = async <RT = any>(path: string, config: RequestConfig)
       validateStatus,
     });
 
-    faro.api.pushEvent('Request completed', { url });
+    faro?.api?.pushEvent('Request completed', { url });
 
     return response.data as RT;
   } catch (ex) {
-    faro.api.pushEvent('Request failed', { url });
-    faro.api.pushError(ex);
-    throw ex;
+    faro?.api?.pushEvent('Request failed', { url });
+    faro?.api?.pushError(ex);
+    return undefined;
   }
 };

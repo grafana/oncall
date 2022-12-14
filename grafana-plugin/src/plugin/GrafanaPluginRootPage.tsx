@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 
-import { initializeFaro, getWebInstrumentations } from '@grafana/faro-react';
-import { TracingInstrumentation } from '@grafana/faro-web-tracing';
+import { initializeFaro, getWebInstrumentations } from '@grafana/faro-web-sdk';
+import { TracingInstrumentation, getDefaultOTELInstrumentations } from '@grafana/faro-web-tracing';
 import { locationService } from '@grafana/runtime';
 import classnames from 'classnames';
 import dayjs from 'dayjs';
@@ -10,12 +10,13 @@ import isSameOrBefore from 'dayjs/plugin/isSameOrBefore';
 import isoWeek from 'dayjs/plugin/isoWeek';
 import localeData from 'dayjs/plugin/localeData';
 import timezone from 'dayjs/plugin/timezone';
-
 import utc from 'dayjs/plugin/utc';
 import weekday from 'dayjs/plugin/weekday';
 import { observer, Provider } from 'mobx-react';
 import Header from 'navbar/Header/Header';
 import LegacyNavTabsBar from 'navbar/LegacyNavTabsBar';
+
+import plugin from '../../package.json'; // eslint-disable-line
 import { AppRootProps } from 'types';
 
 import Unauthorized from 'components/Unauthorized';
@@ -27,8 +28,6 @@ import { rootStore } from 'state';
 import { useStore } from 'state/useStore';
 import { isUserActionAllowed } from 'utils/authorization';
 import { useQueryParams, useQueryPath } from 'utils/hooks';
-
-import { FaroErrorBoundary } from '@grafana/faro-react';
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
@@ -44,8 +43,6 @@ import 'style/utils.css';
 
 import { getQueryParams, isTopNavbar } from './GrafanaPluginRootPage.helpers';
 import PluginSetup from './PluginSetup';
-
-import { RootBaseStore } from 'state/rootBaseStore';
 
 export const GrafanaPluginRootPage = (props: AppRootProps) => (
   <Provider store={rootStore}>
@@ -76,7 +73,7 @@ export const Root = observer((props: AppRootProps) => {
 
     document.head.appendChild(link);
 
-    initFaro(store);
+    initFaro();
 
     return () => {
       document.head.removeChild(link);
@@ -98,36 +95,34 @@ export const Root = observer((props: AppRootProps) => {
   const userHasAccess = pagePermissionAction ? isUserActionAllowed(pagePermissionAction) : true;
 
   return (
-    <FaroErrorBoundary>
-      <DefaultPageLayout {...props}>
-        {!isTopNavbar() && (
-          <>
-            <Header page={page} backendLicense={store.backendLicense} />
-            <nav className="page-container">
-              <LegacyNavTabsBar currentPage={page} />
-            </nav>
-          </>
-        )}
+    <DefaultPageLayout {...props}>
+      {!isTopNavbar() && (
+        <>
+          <Header page={page} backendLicense={store.backendLicense} />
+          <nav className="page-container">
+            <LegacyNavTabsBar currentPage={page} />
+          </nav>
+        </>
+      )}
 
-        <div
-          className={classnames(
-            { 'page-container': !isTopNavbar() },
-            { 'page-body': !isTopNavbar() },
-            'u-position-relative'
-          )}
-        >
-          {userHasAccess ? (
-            <Page {...props} query={...getQueryParams()} path={pathWithoutLeadingSlash} store={store} />
-          ) : (
-            <Unauthorized requiredUserAction={pagePermissionAction} />
-          )}
-        </div>
-      </DefaultPageLayout>
-    </FaroErrorBoundary>
+      <div
+        className={classnames(
+          { 'page-container': !isTopNavbar() },
+          { 'page-body': !isTopNavbar() },
+          'u-position-relative'
+        )}
+      >
+        {userHasAccess ? (
+          <Page {...props} query={...getQueryParams()} path={pathWithoutLeadingSlash} store={store} />
+        ) : (
+          <Unauthorized requiredUserAction={pagePermissionAction} />
+        )}
+      </div>
+    </DefaultPageLayout>
   );
 });
 
-function initFaro(store: RootBaseStore) {
+function initFaro() {
   const faro = initializeFaro({
     url: `http://localhost:12345/collect`,
     apiKey: 'secret',
@@ -135,19 +130,19 @@ function initFaro(store: RootBaseStore) {
       ...getWebInstrumentations({
         captureConsole: true,
       }),
-      new TracingInstrumentation(),
+      new TracingInstrumentation({
+        instrumentations: [...getDefaultOTELInstrumentations([/^((?!\/{0,1}a\/grafana\-oncall\-app\\).)*$/])],
+      }),
     ],
     session: (window as any).__PRELOADED_STATE__?.faro?.session,
     app: {
-      name: 'oncall',
-      version: '1.0.0',
-      environment: 'dev',
+      name: plugin?.name || 'Grafana OnCall',
+      version: plugin?.version || '1.0.0',
+      // environment: 'dev', // TODO: sort this out
     },
   });
 
   faro.api.pushLog(['Faro was initialized for Grafana On Call']);
-
-  store.faro = faro;
 }
 
 function getPageMatchingComponent(pageId: string): (props?: any) => JSX.Element {
