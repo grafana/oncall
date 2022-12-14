@@ -105,6 +105,21 @@ services:
     profiles:
       - engine
 
+  flower:
+    container_name: flower
+    labels: *oncall-labels
+    image: mher/flower:1.2.0
+    environment:
+      # TODO: make this work properly w/ BROKER_TYPE env var
+      CELERY_BROKER_URL: "redis://redis:6379/0"
+    ports:
+      - "5555:5555"
+    depends_on:
+      oncall_celery:
+        condition: service_started
+    profiles:
+      - engine
+
   oncall_db_migration:
     container_name: oncall_db_migration
     labels: *oncall-labels
