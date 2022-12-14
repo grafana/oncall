@@ -95,6 +95,7 @@ def notify_user_async(user_pk, alert_group_pk, notification_policy_pk, critical)
                 visibility="public",
                 priority="max" if critical else "high",
                 notification_count=number_of_alerts,
+                channel_id="critical" if critical else "default"
                 # NOTE: we'll ignore light_settings and vibrate_timings_millis for now
                 # but we could use it to make a weird vibration/light
                 # patterns for critical notifications
