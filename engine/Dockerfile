@@ -3,9 +3,6 @@ RUN apk add bash python3-dev build-base linux-headers pcre-dev mariadb-connector
 
 WORKDIR /etc/app
 COPY ./requirements.txt ./
-# upgrading pip should speed up grpcio installation
-# see here for more information - https://github.com/grpc/grpc/issues/22815#issuecomment-621984140
-RUN pip install --upgrade pip
 RUN pip install -r requirements.txt
 
 # we intentionally have two COPY commands, this is to have the requirements.txt in a separate build step
