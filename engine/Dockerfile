@@ -3,6 +3,7 @@ RUN apt-get update && apt-get install -y \
     python3-dev \
     gcc \
     libpq-dev \
+    libmariadb-dev \
     netcat
 
 WORKDIR /etc/app
