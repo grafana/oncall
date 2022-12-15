@@ -53,7 +53,9 @@ def create_alertmanager_alerts(alert_receive_channel_pk, alert, is_demo=False, f
         # The idea is to not block the worker with a database lock and retry the task in case of concurrent updates.
         countdown = random.randint(1, 10)
         create_alertmanager_alerts.apply_async((alert_receive_channel_pk, alert), countdown=countdown)
-        logger.warning(f"Retrying the task gracefully in {countdown} seconds due to ConcurrentUpdateError")
+        logger.warning(
+            f"Retrying the task gracefully in {countdown} seconds due to ConcurrentUpdateError. alert_receive_channel_id={alert_receive_channel_pk}"
+        )
         return
 
     if alert_receive_channel.allow_source_based_resolving:
@@ -121,7 +123,9 @@ def create_alert(
             ),
             countdown=countdown,
         )
-        logger.warning(f"Retrying the task gracefully in {countdown} seconds due to ConcurrentUpdateError")
+        logger.warning(
+            f"Retrying the task gracefully in {countdown} seconds due to ConcurrentUpdateError. alert_receive_channel_id={alert_receive_channel_pk}"
+        )
 
 
 @shared_dedicated_queue_retry_task()
