@@ -216,6 +216,7 @@ INSTALLED_APPS = [
     "debug_toolbar",
     "social_django",
     "polymorphic",
+    "fcm_django",
 ]
 
 REST_FRAMEWORK = {
@@ -550,10 +551,6 @@ if FEATURE_MOBILE_APP_INTEGRATION_ENABLED:
     EXTRA_MESSAGING_BACKENDS += [
         ("apps.mobile_app.backend.MobileAppBackend", 5),
         ("apps.mobile_app.backend.MobileAppCriticalBackend", 6),
-    ]
-
-    INSTALLED_APPS += [
-        "fcm_django",
     ]
 
     FIREBASE_APP = initialize_app()
