@@ -70,10 +70,6 @@ def notify_user_async(user_pk, alert_group_pk, notification_policy_pk, critical)
 
     message = Message(
         token=device_to_notify.registration_id,
-        notification=Notification(
-            title=alert_title,
-            body="this is the alert body",
-        ),
         data={
             # from the docs..
             # A dictionary of data fields (optional). All keys and values in the dictionary must be strings
@@ -83,25 +79,10 @@ def notify_user_async(user_pk, alert_group_pk, notification_policy_pk, critical)
             "orgName": alert_group.channel.organization.stack_slug,
             "alertGroupId": alert_group.public_primary_key,
             "status": str(alert_group.status),
+            "type": "oncall.critical_message" if critical else "oncall.message",
+            "title": alert_title,
+            "thread_id": thread_id,
         },
-        android=AndroidConfig(
-            priority="high",
-            notification=AndroidNotification(
-                ticker=alert_title,
-                tag=thread_id,
-                sound="ambulance" if critical else "bingbong",
-                default_sound=False,
-                visibility="public",
-                priority="max" if critical else "high",
-                notification_count=number_of_alerts,
-                channel_id="critical" if critical else "default"
-                # NOTE: we'll ignore light_settings and vibrate_timings_millis for now
-                # but we could use it to make a weird vibration/light
-                # patterns for critical notifications
-                # light_settings=LightSettings(),
-                # vibrate_timings_millis=[],
-            ),
-        ),
         apns=APNSConfig(
             payload=APNSPayload(
                 aps=Aps(
