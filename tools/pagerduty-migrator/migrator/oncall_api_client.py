@@ -21,6 +21,8 @@ def api_call(method: str, path: str, **kwargs) -> requests.Response:
             cooldown_seconds = int(e.response.headers["Retry-After"])
             sleep(cooldown_seconds)
             return api_call(method, path, **kwargs)
+        elif e.response.status_code == 400:
+            pass
         else:
             raise
 
