@@ -1,5 +1,6 @@
 const webpack = require('webpack');
 const path = require('path');
+const dotenv = require('dotenv');
 
 const CircularDependencyPlugin = require('circular-dependency-plugin');
 
@@ -8,6 +9,8 @@ const MONACO_DIR = path.resolve(__dirname, './node_modules/monaco-editor');
 Object.defineProperty(RegExp.prototype, 'toJSON', {
   value: RegExp.prototype.toString,
 });
+
+dotenv.config({ path: path.resolve(__dirname, '.env') });
 
 module.exports.getWebpackConfig = (config, options) => {
   const cssLoader = config.module.rules.find((rule) => rule.test.toString() === '/\\.css$/');
@@ -142,6 +145,9 @@ module.exports.getWebpackConfig = (config, options) => {
        */
       new webpack.EnvironmentPlugin({
         ONCALL_API_URL: null,
+      }),
+      new webpack.DefinePlugin({
+        'process.env': JSON.stringify(dotenv.config().parsed),
       }),
     ],
 

@@ -1614,6 +1614,15 @@
     "@opentelemetry/otlp-transformer" "^0.34.0"
     fast-deep-equal "^3.1.3"
 
+"@grafana/faro-react@^1.0.0-beta3":
+  version "1.0.0-beta3"
+  resolved "https://registry.yarnpkg.com/@grafana/faro-react/-/faro-react-1.0.0-beta3.tgz#f28ba2fba136cd6d0417f6894218f359a5cdc88e"
+  integrity sha512-E8aI8FPqzs9NgOa3ApfeCNtmhakgMgfg1xu0snNz7Gt0KHssoHyIYrOHlI/C45BhkSXRMetIvhJv/YQkE9Ua7Q==
+  dependencies:
+    "@grafana/faro-web-sdk" "^1.0.0-beta3"
+    "@grafana/faro-web-tracing" "^1.0.0-beta3"
+    hoist-non-react-statics "^3.3.2"
+
 "@grafana/faro-web-sdk@1.0.0-beta2":
   version "1.0.0-beta2"
   resolved "https://registry.yarnpkg.com/@grafana/faro-web-sdk/-/faro-web-sdk-1.0.0-beta2.tgz#d096a350d6366a108428a205753c797802eb480d"
@@ -6088,6 +6097,11 @@ dot-case@^3.0.4:
   dependencies:
     no-case "^3.0.4"
     tslib "^2.0.3"
+
+dotenv@^16.0.3:
+  version "16.0.3"
+  resolved "https://registry.yarnpkg.com/dotenv/-/dotenv-16.0.3.tgz#115aec42bac5053db3c456db30cc243a5a836a07"
+  integrity sha512-7GO6HghkA5fYG9TYnNxi14/7K9f5occMlp3zXAuSxn7CKCxt9xbNWG7yF8hTCSUchlfWSe3uLmlPfigevRItzQ==
 
 duplexer@^0.1.2:
   version "0.1.2"
