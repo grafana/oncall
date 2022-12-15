@@ -41,7 +41,7 @@ jobs:
           workloads: "" # all
           namespace: "" # default
           timeout: 300
-          max-restarts: -1 # infinite reloads are okay..
+          max-restarts: 0
 
       - name: Bootstrap organization and integration
         run: |

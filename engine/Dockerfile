@@ -1,5 +1,9 @@
 FROM python:3.9-slim-buster AS base
-RUN apt-get update && apt-get install -y python3-dev gcc netcat
+RUN apt-get update && apt-get install -y \
+    python3-dev \
+    gcc \
+    libpq-dev \
+    netcat
 
 WORKDIR /etc/app
 COPY ./requirements.txt ./
