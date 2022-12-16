@@ -20,7 +20,7 @@ class FaroHelper {
   faro: Faro;
 
   initializeFaro() {
-    const enabled = process.env['FARO_ENABLED'].toLowerCase();
+    const enabled = process.env['FARO_ENABLED']?.toLowerCase();
     const faroConfig: FaroConfig = {
       url: process.env['FARO_URL'],
       apiKey: process.env['FARO_API_KEY'],
