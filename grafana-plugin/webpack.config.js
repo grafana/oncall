@@ -120,6 +120,13 @@ module.exports.getWebpackConfig = (config, options) => {
             'sass-loader',
           ],
         },
+
+        {
+          test: /\.m?js/,
+          resolve: {
+            fullySpecified: false,
+          },
+        },
       ],
     },
 

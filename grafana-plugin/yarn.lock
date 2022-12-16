@@ -1594,6 +1594,15 @@
     eslint-plugin-react-hooks "4.3.0"
     typescript "4.6.4"
 
+"@grafana/faro-core@1.0.0-beta4", "@grafana/faro-core@^1.0.0-beta4":
+  version "1.0.0-beta4"
+  resolved "https://registry.yarnpkg.com/@grafana/faro-core/-/faro-core-1.0.0-beta4.tgz#2f38e18764c0a3c3f1af889d510a2896bcb742ab"
+  integrity sha512-tB7705aYCByw4CNWt3WNoV39+sZCudBMiStmiEKHzM17VRRLBjPcrMQTkVYu4zMkEAdWMuAdYhT3xjzHlQpXIA==
+  dependencies:
+    "@opentelemetry/api" "^1.3.0"
+    "@opentelemetry/api-metrics" "^0.33.0"
+    "@opentelemetry/otlp-transformer" "^0.34.0"
+
 "@grafana/faro-core@^1.0.0-beta2":
   version "1.0.0-beta2"
   resolved "https://registry.yarnpkg.com/@grafana/faro-core/-/faro-core-1.0.0-beta2.tgz#97636677c1d687b0b238642a3978334652f263a5"
@@ -1604,25 +1613,6 @@
     "@opentelemetry/otlp-transformer" "^0.33.0"
     fast-deep-equal "^3.1.3"
 
-"@grafana/faro-core@^1.0.0-beta3":
-  version "1.0.0-beta3"
-  resolved "https://registry.yarnpkg.com/@grafana/faro-core/-/faro-core-1.0.0-beta3.tgz#705f561790b6f1d8b65a0a3507a1955519d393f8"
-  integrity sha512-P+mp2CMIYovmFFLJx7fvds65m+u0NB9l6RI0kKEPQHiMoR7cnHhe/dK049mk8widK0Z5Vmz1QBaNWxn3jO52cg==
-  dependencies:
-    "@opentelemetry/api" "^1.3.0"
-    "@opentelemetry/api-metrics" "^0.33.0"
-    "@opentelemetry/otlp-transformer" "^0.34.0"
-    fast-deep-equal "^3.1.3"
-
-"@grafana/faro-react@^1.0.0-beta3":
-  version "1.0.0-beta3"
-  resolved "https://registry.yarnpkg.com/@grafana/faro-react/-/faro-react-1.0.0-beta3.tgz#f28ba2fba136cd6d0417f6894218f359a5cdc88e"
-  integrity sha512-E8aI8FPqzs9NgOa3ApfeCNtmhakgMgfg1xu0snNz7Gt0KHssoHyIYrOHlI/C45BhkSXRMetIvhJv/YQkE9Ua7Q==
-  dependencies:
-    "@grafana/faro-web-sdk" "^1.0.0-beta3"
-    "@grafana/faro-web-tracing" "^1.0.0-beta3"
-    hoist-non-react-statics "^3.3.2"
-
 "@grafana/faro-web-sdk@1.0.0-beta2":
   version "1.0.0-beta2"
   resolved "https://registry.yarnpkg.com/@grafana/faro-web-sdk/-/faro-web-sdk-1.0.0-beta2.tgz#d096a350d6366a108428a205753c797802eb480d"
@@ -1632,21 +1622,21 @@
     ua-parser-js "^1.0.32"
     web-vitals "^3.0.4"
 
-"@grafana/faro-web-sdk@^1.0.0-beta3":
-  version "1.0.0-beta3"
-  resolved "https://registry.yarnpkg.com/@grafana/faro-web-sdk/-/faro-web-sdk-1.0.0-beta3.tgz#b26e0a3888228d59555a36ae4dcda4d711d4102f"
-  integrity sha512-vtU53oPrDXt655ggkusvogrTpDHHBm5JO0MbYlrYqvJprUpGaTsEgnb6lDRpXht3Vy6nk9h0+q0tBzgryZtY/w==
+"@grafana/faro-web-sdk@1.0.0-beta4", "@grafana/faro-web-sdk@^1.0.0-beta4":
+  version "1.0.0-beta4"
+  resolved "https://registry.yarnpkg.com/@grafana/faro-web-sdk/-/faro-web-sdk-1.0.0-beta4.tgz#de9ec9b1201b4f02e3746f31dc0e7a3f77df47b3"
+  integrity sha512-yEBprcLn+L4zy/qYwrTEoSRpdbiN29EnesHlonYP5rj+K1G9CU+Oa0BL7PyS1oTEYZ2xOOv/gGYjiyi3PX9PEg==
   dependencies:
-    "@grafana/faro-core" "^1.0.0-beta3"
+    "@grafana/faro-core" "^1.0.0-beta4"
     ua-parser-js "^1.0.32"
     web-vitals "^3.1.0"
 
-"@grafana/faro-web-tracing@^1.0.0-beta3":
-  version "1.0.0-beta3"
-  resolved "https://registry.yarnpkg.com/@grafana/faro-web-tracing/-/faro-web-tracing-1.0.0-beta3.tgz#a2b760f0f6beb64417e8e5f54706ae7ac1ae63c7"
-  integrity sha512-PIa3M8NNn6lIwr1zaJ3BIr/TAAZcNGipcPs7TZGEFgNenrCHIKghW7o2v6VW+ttSRTc4zaymphy5zCoXy5Hvug==
+"@grafana/faro-web-tracing@1.0.0-beta4":
+  version "1.0.0-beta4"
+  resolved "https://registry.yarnpkg.com/@grafana/faro-web-tracing/-/faro-web-tracing-1.0.0-beta4.tgz#c65ace7ccf0c00da901e5532ce83bb07e6713627"
+  integrity sha512-a+SM+Wm2uONUCtGVFjxrz1O+tHKaQy10YBcqPZZcPDpanf8YMbo1bdYv9mFICvzg4rrvB/OI7mRO0Unr4+zGMQ==
   dependencies:
-    "@grafana/faro-core" "^1.0.0-beta3"
+    "@grafana/faro-web-sdk" "^1.0.0-beta4"
     "@opentelemetry/api" "^1.3.0"
     "@opentelemetry/context-zone" "^1.8.0"
     "@opentelemetry/core" "^1.8.0"

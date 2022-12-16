@@ -1,8 +1,14 @@
 import { Faro } from '@grafana/faro-core';
 import { initializeFaro, getWebInstrumentations } from '@grafana/faro-web-sdk';
-import { TracingInstrumentation, getDefaultOTELInstrumentations } from '@grafana/faro-web-tracing';
+import { TracingInstrumentation } from '@grafana/faro-web-tracing';
+import { DocumentLoadInstrumentation } from '@opentelemetry/instrumentation-document-load';
+import { FetchInstrumentation } from '@opentelemetry/instrumentation-fetch';
+import { UserInteractionInstrumentation } from '@opentelemetry/instrumentation-user-interaction';
+import { XMLHttpRequestInstrumentation } from '@opentelemetry/instrumentation-xml-http-request';
 
 import plugin from '../../package.json'; // eslint-disable-line
+
+const IGNORE_URLS = [/^((?!\/{0,1}a\/grafana\-oncall\-app\\).)*$/];
 
 class FaroHelper {
   faro: Faro;
@@ -24,7 +30,12 @@ class FaroHelper {
             captureConsole: true,
           }),
           new TracingInstrumentation({
-            instrumentations: [...getDefaultOTELInstrumentations([/^((?!\/{0,1}a\/grafana\-oncall\-app\\).)*$/])],
+            instrumentations: [
+              new DocumentLoadInstrumentation(),
+              new FetchInstrumentation({ ignoreUrls: IGNORE_URLS }),
+              new XMLHttpRequestInstrumentation({}),
+              new UserInteractionInstrumentation(),
+            ],
           }),
         ],
         session: (window as any).__PRELOADED_STATE__?.faro?.session,

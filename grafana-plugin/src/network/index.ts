@@ -1,4 +1,5 @@
 import { SpanStatusCode } from '@opentelemetry/api';
+import { SemanticAttributes } from '@opentelemetry/semantic-conventions';
 import axios from 'axios';
 import qs from 'query-string';
 
@@ -41,7 +42,14 @@ export const makeRequest = async <RT = any>(path: string, config: RequestConfig)
 
   if (FaroHelper.faro && otel) {
     const tracer = otel.trace.getTracer('default');
-    let span = otel.trace.getActiveSpan() ?? tracer.startSpan('http-request');
+    let span = otel.trace.getActiveSpan();
+
+    if (!span) {
+      span = tracer.startSpan('http-request');
+      span.setAttribute('page_url', document.URL.split('//')[1]);
+      span.setAttribute(SemanticAttributes.HTTP_URL, url);
+      span.setAttribute(SemanticAttributes.HTTP_METHOD, method);
+    }
 
     return new Promise<RT>((resolve, reject) => {
       otel.context.with(otel.trace.setSpan(otel.context.active(), span), async () => {
