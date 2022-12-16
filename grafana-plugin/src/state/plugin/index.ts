@@ -3,6 +3,7 @@ import axios from 'axios';
 import { OnCallAppPluginMeta, OnCallPluginMetaJSONData, OnCallPluginMetaSecureJSONData } from 'types';
 
 import { makeRequest } from 'network';
+import FaroHelper from 'utils/faro';
 
 export type UpdateGrafanaPluginSettingsProps = {
   jsonData?: Partial<OnCallPluginMetaJSONData>;
@@ -204,6 +205,10 @@ class PluginState {
       if (typeof startSyncResponse === 'string') {
         // an error occured trying to initiate the sync
         return startSyncResponse;
+      }
+
+      if (!FaroHelper.faro) {
+        FaroHelper.initializeFaro();
       }
 
       return await this.pollOnCallDataSyncStatus(onCallApiUrl, onCallApiUrlIsConfiguredThroughEnvVar);

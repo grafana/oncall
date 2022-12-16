@@ -23,7 +23,6 @@ import { routes } from 'pages/routes';
 import { rootStore } from 'state';
 import { useStore } from 'state/useStore';
 import { isUserActionAllowed } from 'utils/authorization';
-import FaroHelper from 'utils/faro';
 import { useQueryParams, useQueryPath } from 'utils/hooks';
 
 dayjs.extend(utc);
@@ -69,8 +68,6 @@ export const Root = observer((props: AppRootProps) => {
     link.href = '/public/plugins/grafana-oncall-app/img/grafanaGlobalStyles.css';
 
     document.head.appendChild(link);
-
-    FaroHelper.initializeFaro();
 
     return () => {
       document.head.removeChild(link);
