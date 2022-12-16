@@ -92,14 +92,15 @@ def transform_rule(
         if schedule is None:
             continue
 
-        oncall_schedule_id = schedule["oncall_schedule"]["id"]
+        if schedule["oncall_schedule"] is not None:
+            oncall_schedule_id = schedule["oncall_schedule"]["id"]
 
-        escalation_policy = {
-            "escalation_chain_id": escalation_chain_id,
-            "type": "notify_on_call_from_schedule",
-            "notify_on_call_from_schedule": oncall_schedule_id,
-        }
-        escalation_policies.append(escalation_policy)
+            escalation_policy = {
+                "escalation_chain_id": escalation_chain_id,
+                "type": "notify_on_call_from_schedule",
+                "notify_on_call_from_schedule": oncall_schedule_id,
+            }
+            escalation_policies.append(escalation_policy)
 
     if user_targets:
         rule_users = [find_by_id(users, target["id"]) for target in user_targets]
