@@ -13,7 +13,7 @@ const QRCode: FC<Props> = (props: Props) => {
   const { value, className = '' } = props;
 
   return (
-    <Block bordered className={className}>
+    <Block bordered className={className} style={{background: 'white'}}>
       <QRCodeBase value={value} />
     </Block>
   );
