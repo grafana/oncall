@@ -10,13 +10,24 @@ import plugin from '../../package.json'; // eslint-disable-line
 
 const IGNORE_URLS = [/^((?!\/{0,1}a\/grafana\-oncall\-app\\).)*$/];
 
+interface FaroConfig {
+  url: string;
+  apiKey: string;
+  enabled: boolean;
+}
+
 class FaroHelper {
   faro: Faro;
 
   initializeFaro() {
-    const { faro: faroConfig } = plugin as any;
+    const enabled = process.env['FARO_ENABLED'].toLowerCase();
+    const faroConfig: FaroConfig = {
+      url: process.env['FARO_URL'],
+      apiKey: process.env['FARO_API_KEY'],
+      enabled: enabled === 'true',
+    };
 
-    if (!faroConfig.enabled || this.faro) {
+    if (!faroConfig?.enabled || !faroConfig?.url || !faroConfig?.apiKey || this.faro) {
       return;
     }
 

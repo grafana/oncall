@@ -20,11 +20,6 @@
     "plop": "plop",
     "setversion": "setversion"
   },
-  "faro": {
-    "url": "http://localhost:12345/collect",
-    "apiKey": "secret",
-    "enabled": true
-  },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/grafana/oncall.git"
