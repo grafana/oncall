@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Secrets consistency for the chart. Bugfixing [#1016](https://github.com/grafana/oncall/pull/1016)
 - Make it possible to completely delete a rotation oncall [1505](https://github.com/grafana/oncall/issues/1505)
 - Polish rotation modal form oncall [1506](https://github.com/grafana/oncall/issues/1506)
 - Quick actions when editing a schedule oncall [1507](https://github.com/grafana/oncall/issues/1507)
