@@ -4,6 +4,7 @@ exports[`QRCode it renders properly 1`] = `
 <div>
   <div
     class="root root_bordered"
+    style="background: white;"
   >
     <svg
       height="256"
