@@ -70,6 +70,7 @@ The possible profiles values are:
 - `rabbitmq`
 - `postgres`
 - `mysql`
+- `tracing`
 
 The default is `engine,oncall_ui,redis,grafana`. This runs:
 
@@ -172,6 +173,14 @@ export DRONE_TOKEN=<Your DRONE_TOKEN>
 
 drone sign --save grafana/oncall .drone.yml
 ```
+
+## Tracing setup
+
+Run these steps to enable tracing in your local deployment
+
+1. Add `tracing` to COMPOSE_PROFILES variable (more in [`COMPOSE_PROFILES`](#compose_profiles))
+2. Copy content of `.env.tracing.dev` to your env.dev
+3. Start the application and check tracing spans at [Grafana Explore Tab](http://localhost:3000/explore), datasource Tempo
 
 ## Troubleshooting
 

@@ -295,6 +295,7 @@ services:
     volumes:
       - grafanadata_dev:/var/lib/grafana
       - ./grafana-plugin:/var/lib/grafana/plugins/grafana-plugin
+      - ./dev/conf/grafana-datasources.yaml:/etc/grafana/provisioning/datasources/datasources.yaml
     depends_on:
       postgres:
         condition: service_healthy
@@ -302,6 +303,33 @@ services:
         condition: service_healthy
     profiles:
       - grafana
+
+  agent:
+    image: grafana/agent:v0.27.1
+    volumes:
+      - ./dev/conf/agent.yaml:/etc/agent.yaml
+    entrypoint:
+      - /bin/agent
+      - -config.file=/etc/agent.yaml
+    ports:
+      - "4317:4317"
+    profiles:
+      - tracing
+
+  tempo:
+    image: grafana/tempo:latest
+    command: [ "-config.file=/etc/tempo.yaml" ]
+    volumes:
+      - ./dev/conf/tempo-local.yaml:/etc/tempo.yaml
+      - tempodata_dev:/tmp/tempo
+    ports:
+      - "14268"  # jaeger ingest
+      - "3200"   # tempo
+      - "4317"  # otlp grpc
+      - "4318"  # otlp http
+      - "9411"   # zipkin
+    profiles:
+      - tracing
 
 volumes:
   redisdata_dev:
@@ -313,6 +341,8 @@ volumes:
   postgresdata_dev:
     labels: *oncall-labels
   mysqldata_dev:
+    labels: *oncall-labels
+  tempodata_dev:
     labels: *oncall-labels
 
 networks:
