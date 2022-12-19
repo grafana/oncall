@@ -217,6 +217,7 @@ INSTALLED_APPS = [
     "social_django",
     "polymorphic",
     "push_notifications",
+    "django_migration_linter",
 ]
 
 REST_FRAMEWORK = {
@@ -629,3 +630,8 @@ if OSS_INSTALLATION:
         "schedule": crontab(hour="*/12"),  # noqa
         "args": (),
     }  # noqa
+
+MIGRATION_LINTER_OVERRIDE_MAKEMIGRATIONS = True
+MIGRATION_LINTER_OPTIONS = {
+    "git_commit_id": "7bb4fdfe43e554f6fdeaa699efcf6f2389118bed",
+}

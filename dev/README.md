@@ -15,6 +15,7 @@
   - [/bin/sh: line 0: cd: grafana-plugin: No such file or directory](#binsh-line-0-cd-grafana-plugin-no-such-file-or-directory)
 - [IDE Specific Instructions](#ide-specific-instructions)
   - [PyCharm](#pycharm)
+- [How to write database migrations](#how-to-write-database-migrations)
 
 Related: [How to develop integrations](/engine/config_integrations/README.md)
 
@@ -297,3 +298,15 @@ make cleanup
 5. Create a new Django Server run configuration to Run/Debug the engine
    - Use a plugin such as EnvFile to load the .env.dev file
    - Change port from 8000 to 8080
+
+## How to write database migrations
+
+We use [django-migration-linter](https://github.com/3YOURMIND/django-migration-linter) to keep database migrations
+backwards compatible
+
+- we can automatically run migrations and they are zero-downtime, e.g. old code can work with the migrated database
+- we can run and rollback migrations without worrying about data safety
+- OnCall is deployed to the multiple environments core team is not able to control
+
+See [django-migration-linter checklist](https://github.com/3YOURMIND/django-migration-linter/blob/main/docs/incompatibilities.md)
+for the common mistakes and best practices

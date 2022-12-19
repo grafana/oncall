@@ -26,6 +26,11 @@ jobs:
       - name: Lint All
         run: |
           pre-commit run --all-files
+      - name: Lint Migrations
+        run: |
+          cd engine/
+          pip install -r requirements.txt
+          python manage.py lintmigrations
 
   test-frontend:
     runs-on: ubuntu-latest
