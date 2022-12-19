@@ -20,11 +20,11 @@ class FaroHelper {
   faro: Faro;
 
   initializeFaro() {
-    const enabled = process.env['FARO_ENABLED']?.toLowerCase();
+    const faroInput = process.env || {};
     const faroConfig: FaroConfig = {
-      url: process.env['FARO_URL'],
-      apiKey: process.env['FARO_API_KEY'],
-      enabled: enabled === 'true',
+      url: faroInput['FARO_URL'],
+      apiKey: faroInput['FARO_API_KEY'],
+      enabled: faroInput['FARO_ENABLED']?.toLowerCase() === 'true',
     };
 
     if (!faroConfig?.enabled || !faroConfig?.url || !faroConfig?.apiKey || this.faro) {
