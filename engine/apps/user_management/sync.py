@@ -17,18 +17,7 @@ def sync_organization(organization):
     rbac_is_enabled = client.is_rbac_enabled_for_organization()
     organization.is_rbac_permissions_enabled = rbac_is_enabled
 
-    if organization.gcom_token:
-        gcom_client = GcomAPIClient(organization.gcom_token)
-        instance_info = gcom_client.get_instance_info(organization.stack_id)
-        if not instance_info or str(instance_info["orgId"]) != organization.org_id:
-            return
-
-        organization.stack_slug = instance_info["slug"]
-        organization.org_slug = instance_info["orgSlug"]
-        organization.org_title = instance_info["orgName"]
-        organization.region_slug = instance_info["regionSlug"]
-        organization.grafana_url = instance_info["url"]
-        organization.gcom_token_org_last_time_synced = timezone.now()
+    _sync_instance_info(organization)
 
     api_users = client.get_users(rbac_is_enabled)
 
@@ -51,6 +40,22 @@ def sync_organization(organization):
             "is_rbac_permissions_enabled",
         ]
     )
+
+
+def _sync_instance_info(organization):
+    if organization.gcom_token:
+        gcom_client = GcomAPIClient(organization.gcom_token)
+        instance_info = gcom_client.get_instance_info(organization.stack_id)
+
+        if not instance_info or instance_info["orgId"] != organization.org_id:
+            return
+
+        organization.stack_slug = instance_info["slug"]
+        organization.org_slug = instance_info["orgSlug"]
+        organization.org_title = instance_info["orgName"]
+        organization.region_slug = instance_info["regionSlug"]
+        organization.grafana_url = instance_info["url"]
+        organization.gcom_token_org_last_time_synced = timezone.now()
 
 
 def sync_users_and_teams(client, api_users, organization):

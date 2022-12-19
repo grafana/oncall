@@ -86,7 +86,7 @@ restart:
 	$(call run_docker_compose_command,restart)
 
 build:
-	$(call run_docker_compose_command,build)
+	$(call run_docker_compose_command,build --no-cache)
 
 cleanup: stop
 	docker system prune --filter label="$(DOCKER_COMPOSE_DEV_LABEL)" --all --volumes
@@ -125,6 +125,12 @@ engine-manage:
 
 exec-engine:
 	docker exec -it oncall_engine bash
+
+_enable-mobile-app-feature-flags:
+	$(shell ./dev/add_env_var.sh FEATURE_MOBILE_APP_INTEGRATION_ENABLED True $(DEV_ENV_FILE))
+	$(call run_engine_docker_command,python manage.py enable_mobile_app)
+
+enable-mobile-app-feature-flags: _enable-mobile-app-feature-flags stop start
 
 # The below commands are useful for running backend services outside of docker
 define backend_command
