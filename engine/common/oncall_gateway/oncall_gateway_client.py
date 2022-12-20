@@ -71,8 +71,8 @@ class OnCallGatewayAPIClient:
         response = self._post(url=self._slack_connectors_url, json=d)
         response_data = response.json()
         return (
-            OnCallConnector(
-                response_data["oncall_org_id"],
+            SlackConnector(
+                response_data["slack_team_id"],
                 response_data["backend"],
             ),
             response,

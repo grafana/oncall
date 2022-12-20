@@ -7,6 +7,7 @@ import { observer } from 'mobx-react';
 import { AlertReceiveChannel } from 'models/alert_receive_channel/alert_receive_channel.types';
 import { Alert } from 'models/alertgroup/alertgroup.types';
 import { useStore } from 'state/useStore';
+import { openErrorNotification } from 'utils';
 import { useDebouncedCallback } from 'utils/hooks';
 import sanitize from 'utils/sanitize';
 
@@ -35,7 +36,15 @@ const TemplatePreview = observer((props: TemplatePreviewProps) => {
     (alertGroupId
       ? alertGroupStore.renderPreview(alertGroupId, templateName, templateBody)
       : alertReceiveChannelStore.renderPreview(alertReceiveChannelId, templateName, templateBody)
-    ).then(setResult);
+    )
+      .then(setResult)
+      .catch((err) => {
+        if (err.response?.data?.length > 0) {
+          openErrorNotification(err.response.data);
+        } else {
+          openErrorNotification(err.message);
+        }
+      });
   }, 1000);
 
   useEffect(handleTemplateBodyChange, [templateBody]);

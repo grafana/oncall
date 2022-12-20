@@ -39,6 +39,8 @@ MIRAGE_CIPHER_MODE = "CBC"
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = False
 
+DEBUG_CELERY_TASKS_PROFILING = getenv_boolean("DEBUG_CELERY_TASKS_PROFILING", False)
+
 ALLOWED_HOSTS = [item.strip() for item in os.environ.get("ALLOWED_HOSTS", "*").split(",")]
 
 # TODO: update link to up-to-date docs
@@ -214,7 +216,7 @@ INSTALLED_APPS = [
     "debug_toolbar",
     "social_django",
     "polymorphic",
-    "push_notifications",
+    "fcm_django",
 ]
 
 REST_FRAMEWORK = {
@@ -544,21 +546,25 @@ GRAFANA_API_KEY_NAME = "Grafana OnCall"
 
 EXTRA_MESSAGING_BACKENDS = []
 if FEATURE_MOBILE_APP_INTEGRATION_ENABLED:
+    from firebase_admin import initialize_app
+
     EXTRA_MESSAGING_BACKENDS += [
         ("apps.mobile_app.backend.MobileAppBackend", 5),
         ("apps.mobile_app.backend.MobileAppCriticalBackend", 6),
     ]
 
-PUSH_NOTIFICATIONS_SETTINGS = {
-    "FCM_API_KEY": os.environ.get("FCM_API_KEY", None),
-    "GCM_API_KEY": os.environ.get("GCM_API_KEY", None),
-    "APNS_AUTH_KEY_PATH": os.environ.get("APNS_AUTH_KEY_PATH", None),
-    "APNS_TOPIC": os.environ.get("APNS_TOPIC", None),
-    "APNS_AUTH_KEY_ID": os.environ.get("APNS_AUTH_KEY_ID", None),
-    "APNS_TEAM_ID": os.environ.get("APNS_TEAM_ID", None),
-    "APNS_USE_SANDBOX": getenv_boolean("APNS_USE_SANDBOX", True),
-    "USER_MODEL": "user_management.User",
+    FIREBASE_APP = initialize_app()
+
+FCM_RELAY_ENABLED = getenv_boolean("FCM_RELAY_ENABLED", default=False)
+FCM_DJANGO_SETTINGS = {
+    # an instance of firebase_admin.App to be used as default for all fcm-django requests
+    # default: None (the default Firebase app)
+    "DEFAULT_FIREBASE_APP": None,
+    "APP_VERBOSE_NAME": "OnCall",
+    "ONE_DEVICE_PER_USER": True,
+    "DELETE_INACTIVE_DEVICES": False,
     "UPDATE_ON_DUPLICATE_REG_ID": True,
+    "USER_MODEL": "user_management.User",
 }
 
 SELF_HOSTED_SETTINGS = {
@@ -574,6 +580,9 @@ SELF_HOSTED_SETTINGS = {
 GRAFANA_INCIDENT_STATIC_API_KEY = os.environ.get("GRAFANA_INCIDENT_STATIC_API_KEY", None)
 
 DATA_UPLOAD_MAX_MEMORY_SIZE = getenv_integer("DATA_UPLOAD_MAX_MEMORY_SIZE", 1_048_576)  # 1mb by default
+JINJA_TEMPLATE_MAX_LENGTH = 50000
+JINJA_RESULT_TITLE_MAX_LENGTH = 500
+JINJA_RESULT_MAX_LENGTH = 50000
 
 # Log inbound/outbound calls as slow=1 if they exceed threshold
 SLOW_THRESHOLD_SECONDS = 2.0

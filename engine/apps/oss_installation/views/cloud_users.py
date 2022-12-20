@@ -6,7 +6,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from apps.api.permissions import ActionPermission, AnyRole, IsAdmin, IsOwnerOrAdmin
+from apps.api.permissions import IsOwnerOrHasRBACPermissions, RBACPermission
 from apps.auth_token.auth import PluginAuthentication
 from apps.oss_installation.models import CloudConnector, CloudUserIdentity
 from apps.oss_installation.serializers import CloudUserSerializer
@@ -14,17 +14,26 @@ from apps.oss_installation.utils import cloud_user_identity_status
 from apps.user_management.models import User
 from common.api_helpers.mixins import PublicPrimaryKeyMixin
 from common.api_helpers.paginators import HundredPageSizePaginator
-from common.constants.role import Role
+
+PERMISSIONS = [RBACPermission.Permissions.OTHER_SETTINGS_WRITE]
 
 
 class CloudUsersView(HundredPageSizePaginator, APIView):
     authentication_classes = (PluginAuthentication,)
-    permission_classes = (IsAuthenticated, IsAdmin)
+    permission_classes = (IsAuthenticated, RBACPermission)
+
+    rbac_permissions = {
+        "get": PERMISSIONS,
+        "post": PERMISSIONS,
+    }
 
     def get(self, request):
         organization = request.user.organization
 
-        queryset = User.objects.filter(organization=organization, role__in=[Role.ADMIN, Role.EDITOR])
+        queryset = User.objects.filter(
+            organization=organization,
+            **User.build_permissions_query(RBACPermission.Permissions.NOTIFICATIONS_READ, organization),
+        )
 
         if request.user.current_team is not None:
             queryset = queryset.filter(teams=request.user.current_team).distinct()
@@ -81,15 +90,24 @@ class CloudUserView(
     viewsets.GenericViewSet,
 ):
     authentication_classes = (PluginAuthentication,)
-    permission_classes = (IsAuthenticated, ActionPermission)
+    permission_classes = (IsAuthenticated, RBACPermission)
 
-    action_permissions = {
-        AnyRole: ("retrieve",),
-        IsAdmin: ("sync",),
+    rbac_permissions = {
+        "retrieve": PERMISSIONS,
+        "sync": PERMISSIONS,
     }
-    action_object_permissions = {
-        IsOwnerOrAdmin: ("retrieve", "sync"),
+
+    IsOwnerOrHasUserSettingsAdminPermission = IsOwnerOrHasRBACPermissions(
+        [RBACPermission.Permissions.USER_SETTINGS_ADMIN]
+    )
+
+    rbac_object_permissions = {
+        IsOwnerOrHasUserSettingsAdminPermission: [
+            "retrieve",
+            "sync",
+        ],
     }
+
     serializer_class = CloudUserSerializer
 
     def get_queryset(self):

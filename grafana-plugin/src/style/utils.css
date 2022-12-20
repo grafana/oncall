@@ -1,12 +1,3 @@
-.u-flex {
-  display: flex;
-  flex-direction: row;
-}
-
-.u-align-items-center {
-  align-items: center;
-}
-
 .u-position-relative {
   position: relative;
 }
@@ -17,4 +8,26 @@
 
 .u-pull-left {
   margin-right: auto;
+}
+
+.u-break-word {
+  word-break: break-word;
+}
+
+.u-width-100 {
+  width: 100%;
+}
+
+.u-flex {
+  display: flex;
+  flex-direction: row;
+}
+
+.u-flex-center {
+  justify-content: center;
+  align-items: center;
+}
+
+.u-align-items-center {
+  align-items: center;
 }

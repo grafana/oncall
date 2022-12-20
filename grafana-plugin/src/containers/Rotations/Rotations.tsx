@@ -16,8 +16,8 @@ import { getColor, getFromString } from 'models/schedule/schedule.helpers';
 import { Layer, Schedule, ScheduleType, Shift } from 'models/schedule/schedule.types';
 import { Timezone } from 'models/timezone/timezone.types';
 import { WithStoreProps } from 'state/types';
-import { UserAction } from 'state/userAction';
 import { withMobXProviderContext } from 'state/withStore';
+import { UserActions } from 'utils/authorization';
 
 import { DEFAULT_TRANSITION_TIMEOUT } from './Rotations.config';
 import { findColor } from './Rotations.helpers';
@@ -112,7 +112,7 @@ class Rotations extends Component<RotationsProps, RotationsState> {
                     </div>
                   </Tooltip>
                 ) : (
-                  <WithPermissionControl userAction={UserAction.UpdateSchedules}>
+                  <WithPermissionControl userAction={UserActions.SchedulesWrite}>
                     <Button variant="primary" icon="plus" disabled>
                       Add rotation
                     </Button>

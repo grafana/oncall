@@ -4,7 +4,6 @@ import math
 from django.core.exceptions import ObjectDoesNotExist
 from django.db.models import Q
 from django.utils.functional import cached_property
-from jinja2.exceptions import TemplateRuntimeError
 from rest_framework import status
 from rest_framework.decorators import action
 from rest_framework.exceptions import NotFound, Throttled
@@ -23,6 +22,7 @@ from apps.base.messaging import get_messaging_backends
 from apps.user_management.models import Team
 from common.api_helpers.exceptions import BadRequest
 from common.jinja_templater import apply_jinja_template
+from common.jinja_templater.apply_jinja_template import JinjaTemplateError, JinjaTemplateWarning
 
 
 class UpdateSerializerMixin:
@@ -324,13 +324,16 @@ class PreviewTemplateMixin:
             templater.template_manager = PreviewTemplateLoader()
             try:
                 templated_alert = templater.render()
-            except TemplateRuntimeError:
-                raise BadRequest(detail={"template_body": "Invalid template syntax"})
+            except (JinjaTemplateError, JinjaTemplateWarning) as e:
+                return Response({"preview": e.fallback_message}, status.HTTP_200_OK)
 
             templated_attr = getattr(templated_alert, attr_name)
 
         elif attr_name in TEMPLATE_NAMES_WITHOUT_NOTIFICATION_CHANNEL:
-            templated_attr, _ = apply_jinja_template(template_body, payload=alert_to_template.raw_request_data)
+            try:
+                templated_attr = apply_jinja_template(template_body, payload=alert_to_template.raw_request_data)
+            except (JinjaTemplateError, JinjaTemplateWarning) as e:
+                return Response({"preview": e.fallback_message}, status.HTTP_200_OK)
         else:
             templated_attr = None
         response = {"preview": templated_attr}
