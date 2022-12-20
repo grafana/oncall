@@ -1,17 +1,7 @@
 from celery.utils.log import get_task_logger
 from django.conf import settings
 from fcm_django.models import FCMDevice
-from firebase_admin.messaging import (
-    AndroidConfig,
-    AndroidNotification,
-    APNSConfig,
-    APNSPayload,
-    Aps,
-    ApsAlert,
-    CriticalSound,
-    Message,
-    Notification,
-)
+from firebase_admin.messaging import APNSConfig, APNSPayload, Aps, ApsAlert, CriticalSound, Message
 
 from apps.alerts.models import AlertGroup
 from apps.mobile_app.alert_rendering import get_push_notification_message
