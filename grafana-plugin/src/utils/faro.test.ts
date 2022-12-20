@@ -1,8 +1,8 @@
+import 'jest/matchMedia.ts';
+import { describe, test } from '@jest/globals';
+
 import FaroHelper from 'utils/faro';
 
-import 'jest/matchMedia.ts';
-
-import { describe, test } from '@jest/globals';
 import '@testing-library/jest-dom';
 
 jest.mock('@grafana/faro-web-sdk', () => ({
