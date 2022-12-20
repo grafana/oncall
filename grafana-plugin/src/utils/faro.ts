@@ -28,7 +28,7 @@ class FaroHelper {
     };
 
     if (!faroConfig?.enabled || !faroConfig?.url || !faroConfig?.apiKey || this.faro) {
-      return;
+      return undefined;
     }
 
     try {
@@ -58,6 +58,8 @@ class FaroHelper {
 
       this.faro.api.pushLog(['Faro was initialized for Grafana OnCall']);
     } catch (ex) {}
+
+    return this.faro;
   }
 }
 
