@@ -276,7 +276,7 @@ class IncidentPage extends React.Component<IncidentPageProps, IncidentPageState>
               </a>
               {showLinkTo && (
                 <Button variant="primary" size="sm" icon="link" onClick={this.showAttachIncidentForm}>
-                  Attach to another incident
+                  Attach to another alert group
                 </Button>
               )}
               <PluginLink query={{ page: 'integrations', id: incident.alert_receive_channel.id }}>

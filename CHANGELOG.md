@@ -5,7 +5,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## v1.1.8 (TBD)
+## v1.1.8 (2022-12-13)
+
+### Added
+
+- Added a `make` command, `enable-mobile-app-feature-flags`, which sets the backend feature flag in `./dev/.env.dev`,
+  and updates a record in the `base_dynamicsetting` database table, which are needed to enable the mobile
+  app backend features.
 
 ### Changed
 
@@ -16,6 +22,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   library would not respect the `USER_MODEL` setting when creating its tables and would instead reference the
   `auth_user` table.. which we don't want)
 - add `--no-cache` flag to the `make build` command
+
+### Fixed
+
+- fix schedule UI types and permissions
 
 ## v1.1.7 (2022-12-09)
 
