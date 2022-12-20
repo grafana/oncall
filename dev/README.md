@@ -296,7 +296,7 @@ failed to solve: executor failed running [/bin/sh -c apk add bash python3-dev bu
 
 **Solution:**
 
-Replace with `Dockerfile`
+Replace within `Dockerfile`
 ```bash
 RUN apk add bash python3-dev build-base linux-headers pcre-dev mariadb-connector-c-dev openssl-dev libffi-dev git
 ```
