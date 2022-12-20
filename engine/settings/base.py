@@ -216,7 +216,7 @@ INSTALLED_APPS = [
     "debug_toolbar",
     "social_django",
     "polymorphic",
-    "push_notifications",
+    "fcm_django",
 ]
 
 REST_FRAMEWORK = {
@@ -546,18 +546,26 @@ GRAFANA_API_KEY_NAME = "Grafana OnCall"
 
 EXTRA_MESSAGING_BACKENDS = []
 if FEATURE_MOBILE_APP_INTEGRATION_ENABLED:
+    from firebase_admin import initialize_app
+
     EXTRA_MESSAGING_BACKENDS += [
         ("apps.mobile_app.backend.MobileAppBackend", 5),
         ("apps.mobile_app.backend.MobileAppCriticalBackend", 6),
     ]
 
-PUSH_NOTIFICATIONS_SETTINGS = {
-    "FCM_API_KEY": os.getenv("FCM_API_KEY"),
-    "FCM_POST_URL": os.getenv("FCM_POST_URL", default="https://fcm.googleapis.com/fcm/send"),
-    "USER_MODEL": "user_management.User",
-    "UPDATE_ON_DUPLICATE_REG_ID": True,
-}
+    FIREBASE_APP = initialize_app()
+
 FCM_RELAY_ENABLED = getenv_boolean("FCM_RELAY_ENABLED", default=False)
+FCM_DJANGO_SETTINGS = {
+    # an instance of firebase_admin.App to be used as default for all fcm-django requests
+    # default: None (the default Firebase app)
+    "DEFAULT_FIREBASE_APP": None,
+    "APP_VERBOSE_NAME": "OnCall",
+    "ONE_DEVICE_PER_USER": True,
+    "DELETE_INACTIVE_DEVICES": False,
+    "UPDATE_ON_DUPLICATE_REG_ID": True,
+    "USER_MODEL": "user_management.User",
+}
 
 SELF_HOSTED_SETTINGS = {
     "STACK_ID": 5,
