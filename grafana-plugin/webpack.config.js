@@ -142,6 +142,7 @@ module.exports.getWebpackConfig = (config, options) => {
        */
       new webpack.EnvironmentPlugin({
         ONCALL_API_URL: null,
+        MOBILE_APP_QR_INTERVAL_QUEUE: null,
       }),
     ],
 
