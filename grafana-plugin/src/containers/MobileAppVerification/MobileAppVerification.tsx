@@ -135,7 +135,7 @@ const MobileAppVerification = observer(({ userPk }: Props) => {
         </Text>
         <Text type="primary">Open Grafana IRM mobile application and scan this code to sync it with your account.</Text>
         <div className={cx('u-width-100', 'u-flex', 'u-flex-center', 'u-position-relative')}>
-          <QRCode className={cx({ blurry: isQRBlurry })} value={QRCodeValue} />
+          <QRCode className={cx({ 'qr-code': true, blurry: isQRBlurry })} value={QRCodeValue} />
           {isQRBlurry && <QRLoading />}
         </div>
       </VerticalGroup>
