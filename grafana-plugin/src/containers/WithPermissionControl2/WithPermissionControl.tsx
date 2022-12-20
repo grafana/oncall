@@ -3,8 +3,7 @@ import React, { ReactElement, useMemo } from 'react';
 import { Tooltip } from '@grafana/ui';
 import { observer } from 'mobx-react';
 
-import { useStore } from 'state/useStore';
-import { UserAction } from 'state/userAction';
+import { isUserActionAllowed, UserAction } from 'utils/authorization';
 
 interface WithPermissionControlProps {
   userAction: UserAction;
@@ -14,9 +13,7 @@ interface WithPermissionControlProps {
 export const WithPermissionControl = observer((props: WithPermissionControlProps) => {
   const { userAction, children } = props;
 
-  const store = useStore();
-
-  const disabled = !store.isUserActionAllowed(userAction);
+  const disabled = !isUserActionAllowed(userAction);
 
   const element = useMemo(() => children(disabled), [disabled]);
 

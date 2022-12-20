@@ -1,4 +1,6 @@
 import logging
+import typing
+import uuid
 from urllib.parse import urljoin
 
 from django.apps import apps
@@ -32,11 +34,19 @@ def generate_public_primary_key_for_organization():
     return new_public_primary_key
 
 
+class ProvisionedPlugin(typing.TypedDict):
+    error: typing.Union[str, None]
+    stackId: int
+    orgId: int
+    onCallToken: str
+    license: str
+
+
 class OrganizationQuerySet(models.QuerySet):
     def create(self, **kwargs):
         instance = super().create(**kwargs)
         if settings.FEATURE_MULTIREGION_ENABLED:
-            create_oncall_connector(instance.public_primary_key, settings.ONCALL_BACKEND_REGION)
+            create_oncall_connector(instance.uuid, settings.ONCALL_BACKEND_REGION)
         return instance
 
     def delete(self):
@@ -120,6 +130,9 @@ class Organization(MaintainableObject):
     # Slack specific field with general log channel id
     general_log_channel_id = models.CharField(max_length=100, null=True, default=None)
 
+    # uuid used to unuqie identify organization in different clusters
+    uuid = models.UUIDField(default=uuid.uuid4, editable=False)
+
     # Organization Settings configured from slack
     (
         ACKNOWLEDGE_REMIND_NEVER,
@@ -183,22 +196,19 @@ class Organization(MaintainableObject):
     pricing_version = models.PositiveIntegerField(choices=PRICING_CHOICES, default=FREE_PUBLIC_BETA_PRICING)
 
     is_amixr_migration_started = models.BooleanField(default=False)
+    is_rbac_permissions_enabled = models.BooleanField(default=False)
 
     class Meta:
         unique_together = ("stack_id", "org_id")
 
-    def provision_plugin(self) -> dict:
+    def provision_plugin(self) -> ProvisionedPlugin:
         PluginAuthToken = apps.get_model("auth_token", "PluginAuthToken")
         _, token = PluginAuthToken.create_auth_token(organization=self)
         return {
-            "pk": self.public_primary_key,
-            "jsonData": {
-                "stackId": self.stack_id,
-                "orgId": self.org_id,
-                "onCallApiUrl": settings.BASE_URL,
-                "license": settings.LICENSE,
-            },
-            "secureJsonData": {"onCallToken": token},
+            "stackId": self.stack_id,
+            "orgId": self.org_id,
+            "onCallToken": token,
+            "license": settings.LICENSE,
         }
 
     def revoke_plugin(self):
@@ -276,9 +286,9 @@ class Organization(MaintainableObject):
         return urljoin(self.grafana_url, "a/grafana-oncall-app/")
 
     @property
-    def web_link_with_id(self):
-        # It's a workaround to pass org id to the oncall gateway while proxying telegram requests
-        return urljoin(self.grafana_url, f"a/grafana-oncall-app/?x-oncall-org-id={self.public_primary_key}")
+    def web_link_with_uuid(self):
+        # It's a workaround to pass some unique identifier to the oncall gateway while proxying telegram requests
+        return urljoin(self.grafana_url, f"a/grafana-oncall-app/?oncall-uuid={self.uuid}")
 
     def __str__(self):
         return f"{self.pk}: {self.org_title}"

@@ -1,9 +1,9 @@
 from rest_framework import serializers
 
+from apps.api.permissions import LegacyAccessControlRole
 from apps.slack.models import SlackUserIdentity
 from apps.user_management.models import User
 from common.api_helpers.mixins import EagerLoadingMixin
-from common.constants.role import Role
 
 
 class SlackUserIdentitySerializer(serializers.ModelSerializer):
@@ -21,7 +21,7 @@ class SlackUserIdentitySerializer(serializers.ModelSerializer):
 class FastUserSerializer(serializers.ModelSerializer):
     id = serializers.ReadOnlyField(read_only=True, source="public_primary_key")
     email = serializers.EmailField(read_only=True)
-    role = serializers.SerializerMethodField()
+    role = serializers.SerializerMethodField()  # LEGACY, should be removed eventually
     is_phone_number_verified = serializers.SerializerMethodField()
 
     class Meta:
@@ -30,7 +30,10 @@ class FastUserSerializer(serializers.ModelSerializer):
 
     @staticmethod
     def get_role(obj):
-        return Role(obj.role).name.lower()
+        """
+        LEGACY, should be removed eventually
+        """
+        return LegacyAccessControlRole(obj.role).name.lower()
 
     def get_is_phone_number_verified(self, obj):
         return obj.verified_phone_number is not None
@@ -39,8 +42,8 @@ class FastUserSerializer(serializers.ModelSerializer):
 class UserSerializer(serializers.ModelSerializer, EagerLoadingMixin):
     id = serializers.ReadOnlyField(read_only=True, source="public_primary_key")
     email = serializers.EmailField(read_only=True)
-    role = serializers.SerializerMethodField()
     slack = SlackUserIdentitySerializer(read_only=True, source="slack_user_identity")
+    role = serializers.SerializerMethodField()  # LEGACY, should be removed eventually
     is_phone_number_verified = serializers.SerializerMethodField()
 
     SELECT_RELATED = [
@@ -54,7 +57,10 @@ class UserSerializer(serializers.ModelSerializer, EagerLoadingMixin):
 
     @staticmethod
     def get_role(obj):
-        return Role(obj.role).name.lower()
+        """
+        LEGACY, should be removed eventually
+        """
+        return LegacyAccessControlRole(obj.role).name.lower()
 
     def get_is_phone_number_verified(self, obj):
         return obj.verified_phone_number is not None

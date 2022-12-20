@@ -16,8 +16,8 @@ import { PRIVATE_CHANNEL_NAME } from 'models/slack_channel/slack_channel.config'
 import { SlackChannel } from 'models/slack_channel/slack_channel.types';
 import { AppFeature } from 'state/features';
 import { WithStoreProps } from 'state/types';
-import { UserAction } from 'state/userAction';
 import { withMobXProviderContext } from 'state/withStore';
+import { UserActions } from 'utils/authorization';
 
 import styles from './SlackSettings.module.css';
 
@@ -108,7 +108,7 @@ class SlackSettings extends Component<SlackProps, SlackState> {
                 </div>
               </Field>
               <Field label="Default channel for Slack notifications">
-                <WithPermissionControl userAction={UserAction.UpdateGeneralLogChannelId}>
+                <WithPermissionControl userAction={UserActions.ChatOpsUpdateSettings}>
                   <GSelect
                     showSearch
                     className={cx('select', 'control')}
@@ -123,7 +123,7 @@ class SlackSettings extends Component<SlackProps, SlackState> {
                 </WithPermissionControl>
               </Field>
             </HorizontalGroup>
-            <WithPermissionControl userAction={UserAction.UpdateIntegrations}>
+            <WithPermissionControl userAction={UserActions.ChatOpsWrite}>
               <WithConfirm title="Are you sure to delete this Slack Integration?">
                 <Button variant="destructive" size="sm" onClick={() => this.removeSlackIntegration()}>
                   Disconnect
@@ -138,7 +138,7 @@ class SlackSettings extends Component<SlackProps, SlackState> {
           </Text.Title>
           <Field label="Timeout for acknowledged alerts">
             <HorizontalGroup>
-              <WithPermissionControl userAction={UserAction.UpdateGeneralLogChannelId}>
+              <WithPermissionControl userAction={UserActions.ChatOpsWrite}>
                 <RemoteSelect
                   className={cx('select')}
                   showSearch={false}
@@ -147,7 +147,7 @@ class SlackSettings extends Component<SlackProps, SlackState> {
                   onChange={this.getSlackSettingsChangeHandler('acknowledge_remind_timeout')}
                 />
               </WithPermissionControl>
-              <WithPermissionControl userAction={UserAction.UpdateGeneralLogChannelId}>
+              <WithPermissionControl userAction={UserActions.ChatOpsWrite}>
                 <RemoteSelect
                   className={cx('select')}
                   disabled={slackStore.slackSettings?.acknowledge_remind_timeout === 0}
@@ -172,7 +172,7 @@ class SlackSettings extends Component<SlackProps, SlackState> {
   renderSlackChannels = () => {
     const { store } = this.props;
     return (
-      <WithPermissionControl userAction={UserAction.UpdateGeneralLogChannelId}>
+      <WithPermissionControl userAction={UserActions.ChatOpsUpdateSettings}>
         <GSelect
           showSearch
           className={cx('select', 'control')}
@@ -189,7 +189,7 @@ class SlackSettings extends Component<SlackProps, SlackState> {
   };
 
   renderActionButtons = () => {
-    <WithPermissionControl userAction={UserAction.UpdateIntegrations}>
+    <WithPermissionControl userAction={UserActions.ChatOpsUpdateSettings}>
       <WithConfirm title="Are you sure to delete this Slack Integration?">
         <Button variant="destructive" size="sm" onClick={() => this.removeSlackIntegration()}>
           Disconnect

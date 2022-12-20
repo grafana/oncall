@@ -9,7 +9,7 @@
   padding-bottom: 36px;
 }
 
-.scrollbar-view [class*='-page-header'] {
+.scrollbar-view h1:first-child {
   margin-bottom: 0 !important;
 }
 
@@ -21,6 +21,7 @@
   max-width: unset !important;
   flex-grow: unset !important;
   flex-basis: unset !important;
+  overflow-x: auto;
 }
 
 .page-scrollbar-content > div:first-child {
@@ -29,6 +30,7 @@
 
 .page-header__title {
   padding-top: 0 !important;
+  font-size: 2rem !important;
   margin-right: 8px;
 }
 

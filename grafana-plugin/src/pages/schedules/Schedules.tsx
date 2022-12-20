@@ -1,6 +1,5 @@
 import React from 'react';
 
-import { getLocationSrv } from '@grafana/runtime';
 import { Button, HorizontalGroup, IconButton, LoadingPlaceholder, VerticalGroup } from '@grafana/ui';
 import { PluginPage } from 'PluginPage';
 import cn from 'classnames/bind';
@@ -29,8 +28,9 @@ import { Timezone } from 'models/timezone/timezone.types';
 import { pages } from 'pages';
 import { getStartOfWeek } from 'pages/schedule/Schedule.helpers';
 import { WithStoreProps } from 'state/types';
-import { UserAction } from 'state/userAction';
 import { withMobXProviderContext } from 'state/withStore';
+import LocationHelper from 'utils/LocationHelper';
+import { UserActions } from 'utils/authorization';
 
 import styles from './Schedules.module.css';
 
@@ -148,7 +148,7 @@ class SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSta
                     onChange={this.handleTimezoneChange}
                   />
                 )}
-                <WithPermissionControl userAction={UserAction.UpdateSchedules}>
+                <WithPermissionControl userAction={UserActions.SchedulesWrite}>
                   <Button variant="primary" onClick={this.handleCreateScheduleClick}>
                     + New schedule
                   </Button>
@@ -210,7 +210,7 @@ class SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSta
 
   handleCreateSchedule = (data: Schedule) => {
     if (data.type === ScheduleType.API) {
-      getLocationSrv().update({ query: { page: 'schedule', id: data.id } });
+      LocationHelper.update({ page: 'schedule', id: data.id }, 'partial');
     }
   };
 
@@ -259,9 +259,7 @@ class SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSta
   };
 
   getScheduleClickHandler = (scheduleId: Schedule['id']) => {
-    return () => {
-      getLocationSrv().update({ query: { page: 'schedule', id: scheduleId } });
-    };
+    return () => LocationHelper.update({ page: 'schedule', id: scheduleId }, 'replace');
   };
 
   renderType = (value: number) => {
@@ -357,10 +355,10 @@ class SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSta
   renderButtons = (item: Schedule) => {
     return (
       <HorizontalGroup>
-        <WithPermissionControl key="edit" userAction={UserAction.UpdateSchedules}>
+        <WithPermissionControl key="edit" userAction={UserActions.SchedulesWrite}>
           <IconButton tooltip="Settings" name="cog" onClick={this.getEditScheduleClickHandler(item.id)} />
         </WithPermissionControl>
-        <WithPermissionControl key="edit" userAction={UserAction.UpdateSchedules}>
+        <WithPermissionControl key="edit" userAction={UserActions.SchedulesWrite}>
           <WithConfirm>
             <IconButton tooltip="Delete" name="trash-alt" onClick={this.getDeleteScheduleClickHandler(item.id)} />
           </WithConfirm>

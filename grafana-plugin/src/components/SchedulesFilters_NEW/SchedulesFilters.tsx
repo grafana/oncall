@@ -42,7 +42,7 @@ const SchedulesFilters = (props: SchedulesFiltersProps) => {
   return (
     <div className={cx('root')}>
       <HorizontalGroup spacing="lg">
-        <Field label="Search by name, user or object ID">
+        <Field label="Search by name">
           <Input
             autoFocus
             className={cx('search')}

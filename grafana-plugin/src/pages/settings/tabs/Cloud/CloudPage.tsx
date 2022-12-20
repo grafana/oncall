@@ -1,6 +1,5 @@
 import React, { useCallback, useEffect, useState } from 'react';
 
-import { getLocationSrv } from '@grafana/runtime';
 import { Field, Input, Button, HorizontalGroup, Icon, VerticalGroup, LoadingPlaceholder } from '@grafana/ui';
 import cn from 'classnames/bind';
 import { observer } from 'mobx-react';
@@ -15,6 +14,7 @@ import { WithStoreProps } from 'state/types';
 import { useStore } from 'state/useStore';
 import { withMobXProviderContext } from 'state/withStore';
 import { openErrorNotification } from 'utils';
+import LocationHelper from 'utils/LocationHelper';
 
 import styles from './CloudPage.module.css';
 
@@ -116,7 +116,7 @@ const CloudPage = observer((_props: CloudPageProps) => {
             variant="secondary"
             size="sm"
             className={cx('table-button')}
-            onClick={() => getLocationSrv().update({ query: { page: 'users', p: page, id: user.id } })}
+            onClick={() => LocationHelper.update({ page: 'users', p: page, id: user.id }, 'replace')}
           >
             Configure notifications
           </Button>
@@ -255,6 +255,7 @@ const CloudPage = observer((_props: CloudPageProps) => {
 
             <div style={{ width: '100%' }}>
               <Text type="secondary">
+                {/* TODO: should probably update this message? */}
                 {
                   'Ask your users to sign up in Grafana Cloud, verify phone number and feel free to set up SMS & phone call notifications in personal settings! Only users with Admin or Editor role will be synced.'
                 }

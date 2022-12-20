@@ -2,9 +2,14 @@ import React from 'react';
 
 import { IconName } from '@grafana/data';
 import { Tab, TabsBar } from '@grafana/ui';
+import cn from 'classnames/bind';
 
 import { pages } from 'pages';
 import { useStore } from 'state/useStore';
+
+import styles from './LegacyNavTabsBar.module.scss';
+
+const cx = cn.bind(styles);
 
 export default function LegacyNavTabsBar({ currentPage }: { currentPage: string }): JSX.Element {
   const store = useStore();
@@ -14,7 +19,7 @@ export default function LegacyNavTabsBar({ currentPage }: { currentPage: string 
     .filter((page) => (page.hideFromTabsFn ? !page.hideFromTabsFn(store) : !page.hideFromTabs));
 
   return (
-    <TabsBar>
+    <TabsBar className={cx('root')}>
       {navigationPages.map((page, index) => (
         <Tab
           key={index}

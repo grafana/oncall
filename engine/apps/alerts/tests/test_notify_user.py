@@ -3,9 +3,11 @@ from unittest.mock import patch
 import pytest
 
 from apps.alerts.tasks.notify_user import notify_user_task, perform_notification
+from apps.api.permissions import LegacyAccessControlRole
 from apps.base.models.user_notification_policy import UserNotificationPolicy
 from apps.base.models.user_notification_policy_log_record import UserNotificationPolicyLogRecord
-from common.constants.role import Role
+
+NOTIFICATION_UNAUTHORIZED_MSG = "notification is not allowed for user"
 
 
 @pytest.mark.django_db
@@ -131,7 +133,9 @@ def test_notify_user_perform_notification_error_if_viewer(
     make_user_notification_policy_log_record,
 ):
     organization = make_organization()
-    user_1 = make_user(organization=organization, role=Role.VIEWER, _verified_phone_number="1234567890")
+    user_1 = make_user(
+        organization=organization, role=LegacyAccessControlRole.VIEWER, _verified_phone_number="1234567890"
+    )
     user_notification_policy = make_user_notification_policy(
         user=user_1,
         step=UserNotificationPolicy.Step.NOTIFY,
@@ -150,11 +154,8 @@ def test_notify_user_perform_notification_error_if_viewer(
 
     error_log_record = UserNotificationPolicyLogRecord.objects.last()
     assert error_log_record.type == UserNotificationPolicyLogRecord.TYPE_PERSONAL_NOTIFICATION_FAILED
-    assert error_log_record.reason == f"notification is not allowed for user with role {user_1.role}"
-    assert (
-        error_log_record.notification_error_code
-        == UserNotificationPolicyLogRecord.ERROR_NOTIFICATION_NOT_ALLOWED_USER_ROLE
-    )
+    assert error_log_record.reason == NOTIFICATION_UNAUTHORIZED_MSG
+    assert error_log_record.notification_error_code == UserNotificationPolicyLogRecord.ERROR_NOTIFICATION_FORBIDDEN
 
 
 @pytest.mark.django_db
@@ -165,7 +166,9 @@ def test_notify_user_error_if_viewer(
     make_alert_group,
 ):
     organization = make_organization()
-    user_1 = make_user(organization=organization, role=Role.VIEWER, _verified_phone_number="1234567890")
+    user_1 = make_user(
+        organization=organization, role=LegacyAccessControlRole.VIEWER, _verified_phone_number="1234567890"
+    )
     alert_receive_channel = make_alert_receive_channel(organization=organization)
     alert_group = make_alert_group(alert_receive_channel=alert_receive_channel)
 
@@ -173,8 +176,5 @@ def test_notify_user_error_if_viewer(
 
     error_log_record = UserNotificationPolicyLogRecord.objects.last()
     assert error_log_record.type == UserNotificationPolicyLogRecord.TYPE_PERSONAL_NOTIFICATION_FAILED
-    assert error_log_record.reason == f"notification is not allowed for user with role {user_1.role}"
-    assert (
-        error_log_record.notification_error_code
-        == UserNotificationPolicyLogRecord.ERROR_NOTIFICATION_NOT_ALLOWED_USER_ROLE
-    )
+    assert error_log_record.reason == NOTIFICATION_UNAUTHORIZED_MSG
+    assert error_log_record.notification_error_code == UserNotificationPolicyLogRecord.ERROR_NOTIFICATION_FORBIDDEN

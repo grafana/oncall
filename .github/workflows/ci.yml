@@ -27,7 +27,7 @@ jobs:
         run: |
           pre-commit run --all-files
 
-  test:
+  test-frontend:
     runs-on: ubuntu-latest
     container: python:3.9
     steps:
@@ -56,8 +56,12 @@ jobs:
           docker run -v ${PWD}/docs/sources:/hugo/content/docs/oncall/latest -e HUGO_REFLINKSERRORLEVEL=ERROR --rm grafana/docs-base:latest /bin/bash -c 'make hugo'
 
   unit-test-backend-mysql-rabbitmq:
+    name: "Backend Tests: MySQL + RabbitMQ (RBAC enabled: ${{ matrix.rbac_enabled }})"
     runs-on: ubuntu-latest
     container: python:3.9
+    strategy:
+      matrix:
+        rbac_enabled: ["True", "False"]
     env:
       DJANGO_SETTINGS_MODULE: settings.ci-test
       SLACK_CLIENT_OAUTH_ID: 1
@@ -72,7 +76,6 @@ jobs:
         env:
           MYSQL_DATABASE: oncall_local_dev
           MYSQL_ROOT_PASSWORD: local_dev_pwd
-
     steps:
       - uses: actions/checkout@v2
       - name: Unit Test Backend
@@ -80,11 +83,15 @@ jobs:
           apt-get update && apt-get install -y netcat
           cd engine/
           pip install -r requirements.txt
-          ./wait_for_test_mysql_start.sh && pytest --ds=settings.ci-test -x
+          ./wait_for_test_mysql_start.sh && ONCALL_TESTING_RBAC_ENABLED=${{ matrix.rbac_enabled }} pytest -x
 
   unit-test-backend-postgresql-rabbitmq:
+    name: "Backend Tests: PostgreSQL + RabbitMQ (RBAC enabled: ${{ matrix.rbac_enabled }})"
     runs-on: ubuntu-latest
     container: python:3.9
+    strategy:
+      matrix:
+        rbac_enabled: ["True", "False"]
     env:
       DATABASE_TYPE: postgresql
       DJANGO_SETTINGS_MODULE: settings.ci-test
@@ -112,11 +119,15 @@ jobs:
         run: |
           cd engine/
           pip install -r requirements.txt
-          pytest --ds=settings.ci-test -x
+          ONCALL_TESTING_RBAC_ENABLED=${{ matrix.rbac_enabled }} pytest -x
 
   unit-test-backend-sqlite-redis:
+    name: "Backend Tests: SQLite + Redis (RBAC enabled: ${{ matrix.rbac_enabled }})"
     runs-on: ubuntu-latest
     container: python:3.9
+    strategy:
+      matrix:
+        rbac_enabled: ["True", "False"]
     env:
       DATABASE_TYPE: sqlite3
       BROKER_TYPE: redis
@@ -131,7 +142,6 @@ jobs:
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5
-
     steps:
       - uses: actions/checkout@v2
       - name: Unit Test Backend
@@ -139,7 +149,7 @@ jobs:
           apt-get update && apt-get install -y netcat
           cd engine/
           pip install -r requirements.txt
-          pytest --ds=settings.ci-test -x
+          ONCALL_TESTING_RBAC_ENABLED=${{ matrix.rbac_enabled }} pytest -x
 
   docker-build:
     runs-on: ubuntu-latest

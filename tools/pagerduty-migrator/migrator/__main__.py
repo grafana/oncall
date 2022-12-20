@@ -34,6 +34,7 @@ from migrator.resources.users import (
 
 def main() -> None:
     session = APISession(PAGERDUTY_API_TOKEN)
+    session.timeout = 20
 
     print("▶ Fetching users...")
     users = session.list_all("users", params={"include[]": "notification_rules"})

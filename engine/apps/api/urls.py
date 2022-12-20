@@ -1,4 +1,3 @@
-from django.conf import settings
 from django.urls import include, path, re_path
 
 from common.api_helpers.optional_slash_router import OptionalSlashRouter, optional_slash_path
@@ -8,7 +7,6 @@ from .views.alert_group import AlertGroupView
 from .views.alert_receive_channel import AlertReceiveChannelView
 from .views.alert_receive_channel_template import AlertReceiveChannelTemplateView
 from .views.alerts import AlertDetailView
-from .views.apns_device import APNSDeviceAuthorizedViewSet
 from .views.channel_filter import ChannelFilterView
 from .views.custom_button import CustomButtonView
 from .views.escalation_chain import EscalationChainViewSet
@@ -67,9 +65,6 @@ router.register(r"heartbeats", IntegrationHeartBeatView, basename="integration_h
 router.register(r"tokens", PublicApiTokenView, basename="api_token")
 router.register(r"live_settings", LiveSettingViewSet, basename="live_settings")
 router.register(r"oncall_shifts", OnCallShiftView, basename="oncall_shifts")
-
-if settings.MOBILE_APP_PUSH_NOTIFICATIONS_ENABLED:
-    router.register(r"device/apns", APNSDeviceAuthorizedViewSet)
 
 urlpatterns = [
     path("", include(router.urls)),

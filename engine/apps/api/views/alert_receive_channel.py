@@ -9,7 +9,7 @@ from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet
 
 from apps.alerts.models import AlertReceiveChannel
-from apps.api.permissions import MODIFY_ACTIONS, READ_ACTIONS, ActionPermission, AnyRole, IsAdmin, IsAdminOrEditor
+from apps.api.permissions import RBACPermission
 from apps.api.serializers.alert_receive_channel import (
     AlertReceiveChannelSerializer,
     AlertReceiveChannelUpdateSerializer,
@@ -66,19 +66,7 @@ class AlertReceiveChannelView(
     ModelViewSet,
 ):
     authentication_classes = (PluginAuthentication,)
-    permission_classes = (IsAuthenticated, ActionPermission)
-    action_permissions = {
-        IsAdmin: (*MODIFY_ACTIONS, "stop_maintenance", "start_maintenance", "change_team"),
-        IsAdminOrEditor: ("send_demo_alert", "preview_template"),
-        AnyRole: (
-            *READ_ACTIONS,
-            "integration_options",
-            "maintenance_duration_options",
-            "maintenance_mode_options",
-            "counters",
-            "counters_per_integration",
-        ),
-    }
+    permission_classes = (IsAuthenticated, RBACPermission)
 
     model = AlertReceiveChannel
     serializer_class = AlertReceiveChannelSerializer
@@ -89,6 +77,22 @@ class AlertReceiveChannelView(
     search_fields = ("verbal_name",)
 
     filterset_class = AlertReceiveChannelFilter
+
+    rbac_permissions = {
+        "metadata": [RBACPermission.Permissions.INTEGRATIONS_READ],
+        "list": [RBACPermission.Permissions.INTEGRATIONS_READ],
+        "retrieve": [RBACPermission.Permissions.INTEGRATIONS_READ],
+        "integration_options": [RBACPermission.Permissions.INTEGRATIONS_READ],
+        "counters": [RBACPermission.Permissions.INTEGRATIONS_READ],
+        "counters_per_integration": [RBACPermission.Permissions.INTEGRATIONS_READ],
+        "send_demo_alert": [RBACPermission.Permissions.INTEGRATIONS_TEST],
+        "preview_template": [RBACPermission.Permissions.INTEGRATIONS_TEST],
+        "create": [RBACPermission.Permissions.INTEGRATIONS_WRITE],
+        "update": [RBACPermission.Permissions.INTEGRATIONS_WRITE],
+        "partial_update": [RBACPermission.Permissions.INTEGRATIONS_WRITE],
+        "destroy": [RBACPermission.Permissions.INTEGRATIONS_WRITE],
+        "change_team": [RBACPermission.Permissions.INTEGRATIONS_WRITE],
+    }
 
     def create(self, request, *args, **kwargs):
         if request.data["integration"] is not None and (

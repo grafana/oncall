@@ -17,7 +17,7 @@ def test_user_verification_handler_process_update_another_account_already_linked
 
     user_2 = make_user_for_organization(organization)
     code = make_telegram_verification_code(user_2)
-    connector, created = TelegramVerificationCode.verify_user(code.uuid_with_org_id, chat_id, "nickname")
+    connector, created = TelegramVerificationCode.verify_user(code.uuid_with_org_uuid, chat_id, "nickname")
 
     assert created
     assert connector.telegram_chat_id == chat_id
@@ -38,7 +38,7 @@ def test_user_verification_handler_process_update_user_already_linked(
 
     other_chat_id = 321
     code = make_telegram_verification_code(user_1)
-    connector, created = TelegramVerificationCode.verify_user(code.uuid_with_org_id, other_chat_id, "nickname")
+    connector, created = TelegramVerificationCode.verify_user(code.uuid_with_org_uuid, other_chat_id, "nickname")
 
     assert created is False
     assert connector.user == user_1
