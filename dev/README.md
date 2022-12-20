@@ -280,6 +280,55 @@ clear everything in docker by resetting or:
 make cleanup
 ```
 
+### failed to solve: executor failed running [/bin/sh -c apk add bash python3-dev build-base linux-headers pcre-dev mariadb-connector-c-dev
+
+**Problem:**
+
+When running `RUN apk add bash ...`
+
+```bash
+ERROR: unable to select packages
+bash (no such package):
+required by: world[bash]
+[...]
+failed to solve: executor failed running [/bin/sh -c apk add bash python3-dev build-base linux-headers pcre-dev mariadb-connector-c-dev 
+```
+
+**Solution:**
+
+Replace with `Dockerfile`
+```bash
+RUN apk add bash python3-dev build-base linux-headers pcre-dev mariadb-connector-c-dev openssl-dev libffi-dev git
+```
+
+with
+```bash
+RUN apk add --update --no-cache --repository http://dl-cdn.alpinelinux.org/alpine/edge/testing --repository bash python3-dev build-base linux-headers pcre-dev mariadb-connector-c-dev openssl-dev libffi-dev git
+```
+
+### ImportError: Error relocating /usr/local/lib/python3.9/site-packages/cryptography/hazmat/bindings/_openssl.abi3.so: FIPS_mode_set: symbol not found
+
+**Problem:**
+
+If `oncall_db_migration` exited with wrong status code and this shows within the docker container logs
+
+```bash
+ImportError: Error relocating /usr/local/lib/python3.9/site-packages/cryptography/hazmat/bindings/_openssl.abi3.so: FIPS_mode_set: symbol not found
+```
+
+**Solution:**
+
+Replace within `Dockerfile`
+```bash
+RUN apk add sqlite mysql-client postgresql-client
+```
+
+with
+
+```bash
+RUN apk add --update --no-cache --repository http://dl-cdn.alpinelinux.org/alpine/edge/testing sqlite mysql-client postgresql-client
+```
+
 ## IDE Specific Instructions
 
 ### PyCharm
