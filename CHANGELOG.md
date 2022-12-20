@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Added ability to change engine deployment update strategy via values in helm chart.
 - removed APNS support
 - changed the `django-push-notification` library from the `iskhakov` fork to the [`grafana` fork](https://github.com/grafana/django-push-notifications).
   This new fork basically patches an issue which affected the database migrations of this django app (previously the
