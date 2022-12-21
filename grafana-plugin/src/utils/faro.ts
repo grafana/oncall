@@ -14,17 +14,22 @@ interface FaroConfig {
   url: string;
   apiKey: string;
   enabled: boolean;
+  environment: string;
 }
+
+const ONCALL = 'Grafana OnCall';
 
 class FaroHelper {
   faro: Faro;
 
   initializeFaro() {
     const faroInput = process.env || {};
+    const FARO_ENV = faroInput['FARO_ENV'];
     const faroConfig: FaroConfig = {
       url: faroInput['FARO_URL'],
       apiKey: faroInput['FARO_API_KEY'],
       enabled: faroInput['FARO_ENABLED']?.toLowerCase() === 'true',
+      environment: FARO_ENV ? `${ONCALL} ${FARO_ENV}` : ONCALL,
     };
 
     if (!faroConfig?.enabled || !faroConfig?.url || !faroConfig?.apiKey || this.faro) {
@@ -51,12 +56,12 @@ class FaroHelper {
         ],
         session: (window as any).__PRELOADED_STATE__?.faro?.session,
         app: {
-          name: 'Grafana OnCall',
+          name: faroConfig.environment,
           version: plugin?.version,
         },
       });
 
-      this.faro.api.pushLog(['Faro was initialized for Grafana OnCall']);
+      this.faro.api.pushLog([`Faro was initialized for ${faroConfig.environment}`]);
     } catch (ex) {}
 
     return this.faro;
