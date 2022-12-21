@@ -56,6 +56,9 @@ class LiveSetting(models.Model):
         "GRAFANA_CLOUD_ONCALL_HEARTBEAT_ENABLED",
         "GRAFANA_CLOUD_NOTIFICATIONS_ENABLED",
         "DANGEROUS_WEBHOOKS_ENABLED",
+        "USER_WEBHOOK_URL",
+        "USER_WEBHOOK_TOKEN",
+        "USER_WEBHOOK_AUTH_HEADER",
     )
 
     DESCRIPTIONS = {
@@ -137,6 +140,9 @@ class LiveSetting(models.Model):
         "GRAFANA_CLOUD_ONCALL_HEARTBEAT_ENABLED": "Enable heartbeat integration with Grafana Cloud OnCall.",
         "GRAFANA_CLOUD_NOTIFICATIONS_ENABLED": "Enable SMS/call notifications via Grafana Cloud OnCall",
         "DANGEROUS_WEBHOOKS_ENABLED": "Enable outgoing webhooks to private networks",
+        "USER_WEBHOOK_URL": "External webhook url",
+        "USER_WEBHOOK_TOKEN": "External webhook authentication token",
+        "USER_WEBHOOK_AUTH_HEADER": "External webhook authentication header name",
     }
 
     SECRET_SETTING_NAMES = (
@@ -151,6 +157,7 @@ class LiveSetting(models.Model):
         "SLACK_SIGNING_SECRET",
         "TELEGRAM_TOKEN",
         "GRAFANA_CLOUD_ONCALL_TOKEN",
+        "USER_WEBHOOK_TOKEN",
     )
 
     def __str__(self):
