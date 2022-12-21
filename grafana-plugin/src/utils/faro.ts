@@ -17,7 +17,7 @@ interface FaroConfig {
   environment: string;
 }
 
-const ONCALL = 'Grafana OnCall';
+const ONCALL = 'grafana-oncall';
 
 class FaroHelper {
   faro: Faro;
@@ -29,7 +29,7 @@ class FaroHelper {
       url: faroInput['FARO_URL'],
       apiKey: faroInput['FARO_API_KEY'],
       enabled: faroInput['FARO_ENABLED']?.toLowerCase() === 'true',
-      environment: FARO_ENV ? `${ONCALL} ${FARO_ENV}` : ONCALL,
+      environment: FARO_ENV ? `${ONCALL}-${FARO_ENV}` : ONCALL,
     };
 
     if (!faroConfig?.enabled || !faroConfig?.url || this.faro) {
