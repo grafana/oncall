@@ -32,12 +32,12 @@ class FaroHelper {
       environment: FARO_ENV ? `${ONCALL} ${FARO_ENV}` : ONCALL,
     };
 
-    if (!faroConfig?.enabled || !faroConfig?.url || !faroConfig?.apiKey || this.faro) {
+    if (!faroConfig?.enabled || !faroConfig?.url || this.faro) {
       return undefined;
     }
 
     try {
-      this.faro = initializeFaro({
+      const faroOptions = {
         url: faroConfig.url,
         apiKey: faroConfig.apiKey,
         isolate: true,
@@ -59,7 +59,13 @@ class FaroHelper {
           name: faroConfig.environment,
           version: plugin?.version,
         },
-      });
+      };
+
+      if (!faroConfig.apiKey) {
+        delete faroOptions.apiKey; // appo11y has the key in the API instead
+      }
+
+      this.faro = initializeFaro(faroOptions);
 
       this.faro.api.pushLog([`Faro was initialized for ${faroConfig.environment}`]);
     } catch (ex) {}

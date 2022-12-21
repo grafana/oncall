@@ -30,20 +30,23 @@ describe('Faro', () => {
   beforeEach(() => {
     jest.resetModules();
     process.env = { ...OLD_ENV };
+    FaroHelper.faro = undefined;
+    jest.clearAllMocks();
   });
 
-  afterAll(() => {
-    process.env = OLD_ENV;
+  const getDefaultValues = () => ({
+    faroUrl: 'localhost:12345/collect',
+    apiKey: 'secret',
+    enabled: 'true',
   });
 
-  const getProcessEnv = (
-    config: { faroUrl?: string; apiKey?: string; enabled?: string } = {
-      faroUrl: 'localhost:12345/collect',
-      apiKey: 'secret',
-      enabled: 'true',
-    }
-  ) => {
-    const { faroUrl, apiKey, enabled } = config;
+  const getProcessEnv = (config: { faroUrl?: string; apiKey?: string; enabled?: string } = {}) => {
+    const configObject = {
+      ...getDefaultValues(),
+      ...config,
+    };
+
+    const { faroUrl, apiKey, enabled } = configObject;
 
     return {
       FARO_URL: faroUrl,
@@ -51,6 +54,12 @@ describe('Faro', () => {
       FARO_ENABLED: enabled,
     };
   };
+
+  test('It initializes without api key', () => {
+    process.env = getProcessEnv({ apiKey: '' });
+    const faro = FaroHelper.initializeFaro();
+    expect(faro).toBeDefined();
+  });
 
   test('It initializes faro ENABLED === true', () => {
     process.env = getProcessEnv();
@@ -70,10 +79,6 @@ describe('Faro', () => {
     let faro;
 
     process.env = getProcessEnv({ faroUrl: undefined });
-    faro = FaroHelper.initializeFaro();
-    expect(faro).toBeUndefined();
-
-    process.env = getProcessEnv({ apiKey: undefined });
     faro = FaroHelper.initializeFaro();
     expect(faro).toBeUndefined();
 
