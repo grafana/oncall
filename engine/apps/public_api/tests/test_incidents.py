@@ -7,6 +7,7 @@ from rest_framework import status
 from rest_framework.test import APIClient
 
 from apps.alerts.models import AlertGroup, AlertReceiveChannel
+from apps.base.models import UserNotificationPolicyLogRecord
 
 
 def construct_expected_response_from_incidents(incidents):
@@ -80,12 +81,12 @@ def incident_public_api_setup(
     incidents = grafana_incident_default_route, grafana_incident_non_default_route, formatted_webhook_incident
     routes = grafana_default_route, grafana_non_default_route, formatted_webhook_default_route
 
-    return token, incidents, integrations, routes
+    return token, incidents, integrations, routes, user
 
 
 @pytest.mark.django_db
 def test_get_incidents(incident_public_api_setup):
-    token, _, _, _ = incident_public_api_setup
+    token, _, _, _, _ = incident_public_api_setup
     incidents = AlertGroup.unarchived_objects.all().order_by("-started_at")
     client = APIClient()
     expected_response = construct_expected_response_from_incidents(incidents)
@@ -101,7 +102,7 @@ def test_get_incidents(incident_public_api_setup):
 def test_get_incidents_filter_by_integration(
     incident_public_api_setup,
 ):
-    token, incidents, integrations, _ = incident_public_api_setup
+    token, incidents, integrations, _, _ = incident_public_api_setup
     formatted_webhook = integrations[1]
     incidents = AlertGroup.unarchived_objects.filter(channel=formatted_webhook).order_by("-started_at")
     expected_response = construct_expected_response_from_incidents(incidents)
@@ -120,7 +121,7 @@ def test_get_incidents_filter_by_integration(
 def test_get_incidents_filter_by_integration_no_result(
     incident_public_api_setup,
 ):
-    token, _, _, _ = incident_public_api_setup
+    token, _, _, _, _ = incident_public_api_setup
     client = APIClient()
 
     url = reverse("api-public:alert_groups-list")
@@ -134,7 +135,7 @@ def test_get_incidents_filter_by_integration_no_result(
 def test_get_incidents_filter_by_route(
     incident_public_api_setup,
 ):
-    token, incidents, integrations, routes = incident_public_api_setup
+    token, incidents, integrations, routes, _ = incident_public_api_setup
     grafana_non_default_route = routes[1]
     incidents = AlertGroup.unarchived_objects.filter(channel_filter=grafana_non_default_route).order_by("-started_at")
     expected_response = construct_expected_response_from_incidents(incidents)
@@ -153,7 +154,7 @@ def test_get_incidents_filter_by_route(
 def test_get_incidents_filter_by_route_no_result(
     incident_public_api_setup,
 ):
-    token, _, _, _ = incident_public_api_setup
+    token, _, _, _, _ = incident_public_api_setup
     client = APIClient()
 
     url = reverse("api-public:alert_groups-list")
@@ -166,7 +167,7 @@ def test_get_incidents_filter_by_route_no_result(
 @mock.patch("apps.alerts.tasks.delete_alert_group.apply_async", return_value=None)
 @pytest.mark.django_db
 def test_delete_incident_success_response(mocked_task, incident_public_api_setup):
-    token, incidents, _, _ = incident_public_api_setup
+    token, incidents, _, _, _ = incident_public_api_setup
     grafana_first_incident = incidents[0]
     client = APIClient()
 
@@ -179,7 +180,7 @@ def test_delete_incident_success_response(mocked_task, incident_public_api_setup
 
 @pytest.mark.django_db
 def test_delete_incident_invalid_request(incident_public_api_setup):
-    token, incidents, _, _ = incident_public_api_setup
+    token, incidents, _, _, _ = incident_public_api_setup
     grafana_first_incident = incidents[0]
     client = APIClient()
 
@@ -193,7 +194,7 @@ def test_delete_incident_invalid_request(incident_public_api_setup):
 def test_pagination(settings, incident_public_api_setup):
     settings.BASE_URL = "https://test.com/test/prefixed/urls"
 
-    token, incidents, _, _ = incident_public_api_setup
+    token, incidents, _, _, _ = incident_public_api_setup
     client = APIClient()
 
     url = reverse("api-public:alert_groups-list")
@@ -205,6 +206,177 @@ def test_pagination(settings, incident_public_api_setup):
     result = response.json()
 
     assert result["next"].startswith("https://test.com/test/prefixed/urls")
+
+
+@pytest.mark.django_db
+def test_acknowledge_success_response(incident_public_api_setup):
+    token, incidents, _, _, user = incident_public_api_setup
+    client = APIClient()
+    grafana_first_incident = incidents[0]
+    url = reverse("api-public:alert_groups-acknowledge",
+                  kwargs={"pk": grafana_first_incident.public_primary_key})
+    response = client.post(url + f"?user_email={user.email}", format="json", HTTP_AUTHORIZATION=f"{token}")
+    assert response.status_code == status.HTTP_200_OK
+
+
+@pytest.mark.django_db
+def test_acknowledge_unknown_email(incident_public_api_setup):
+    token, incidents, _, _, user = incident_public_api_setup
+    client = APIClient()
+    grafana_first_incident = incidents[0]
+    email = "unknown"
+    expected_response = {"detail": f"user with email {email} not found"}
+    url = reverse("api-public:alert_groups-acknowledge",
+                  kwargs={"pk": grafana_first_incident.public_primary_key})
+    response = client.post(url + f"?user_email={email}", format="json", HTTP_AUTHORIZATION=f"{token}")
+    assert response.status_code == status.HTTP_404_NOT_FOUND
+    assert response.data == expected_response
+
+
+@pytest.mark.django_db
+def test_acknowledge_missing_email(incident_public_api_setup):
+    token, incidents, _, _, _ = incident_public_api_setup
+    client = APIClient()
+    grafana_first_incident = incidents[0]
+    expected_response = {"detail": "missing 'user_email' query param"}
+    url = reverse("api-public:alert_groups-acknowledge",
+                  kwargs={"pk": grafana_first_incident.public_primary_key})
+    response = client.post(url, format="json", HTTP_AUTHORIZATION=f"{token}")
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert response.data == expected_response
+
+@pytest.mark.django_db
+def test_acknowledge_is_acknowledged(incident_public_api_setup):
+    token, incidents, _, _, user = incident_public_api_setup
+    client = APIClient()
+    source = AlertGroup.SOURCE
+    grafana_first_incident = incidents[0]
+    grafana_first_incident.acknowledge_by_user(user, action_source=source)
+    expected_response = {"detail":f"The alert group {grafana_first_incident.public_primary_key} already acknowledged"}
+    url = reverse("api-public:alert_groups-acknowledge",
+                  kwargs={"pk": grafana_first_incident.public_primary_key})
+    response = client.post(url + f"?user_email={user.email}", format="json", HTTP_AUTHORIZATION=f"{token}")
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert response.data == expected_response
+
+
+@pytest.mark.django_db
+def test_unacknowledge_success_response(incident_public_api_setup):
+    token, incidents, _, _, user = incident_public_api_setup
+    client = APIClient()
+    source = AlertGroup.SOURCE
+    grafana_first_incident = incidents[0]
+    grafana_first_incident.acknowledge_by_user(user, action_source=source)
+    url = reverse("api-public:alert_groups-unacknowledge",
+                  kwargs={"pk": grafana_first_incident.public_primary_key})
+    response = client.post(url + f"?user_email={user.email}", format="json", HTTP_AUTHORIZATION=f"{token}")
+    assert response.status_code == status.HTTP_200_OK
+
+
+@pytest.mark.django_db
+def test_unacknowledge_unknown_email(incident_public_api_setup):
+    token, incidents, _, _, user = incident_public_api_setup
+    client = APIClient()
+    grafana_first_incident = incidents[0]
+    email = "unknown"
+    expected_response = {"detail": f"user with email {email} not found"}
+    url = reverse("api-public:alert_groups-unacknowledge",
+                  kwargs={"pk": grafana_first_incident.public_primary_key})
+    response = client.post(url + f"?user_email={email}", format="json", HTTP_AUTHORIZATION=f"{token}")
+    assert response.status_code == status.HTTP_404_NOT_FOUND
+    assert response.data == expected_response
+
+
+@pytest.mark.django_db
+def test_unacknowledge_resolved(incident_public_api_setup):
+    token, incidents, _, _, user = incident_public_api_setup
+    client = APIClient()
+    grafana_first_incident = incidents[0]
+    grafana_first_incident.resolve_by_source()
+    expected_response = {"detail":f"Can't unacknowledge a resolved alert group"
+                                  f" {grafana_first_incident.public_primary_key}"}
+    url = reverse("api-public:alert_groups-unacknowledge",
+                  kwargs={"pk": grafana_first_incident.public_primary_key})
+    response = client.post(url + f"?user_email={user.email}", format="json", HTTP_AUTHORIZATION=f"{token}")
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert response.data == expected_response
+
+@pytest.mark.django_db
+def test_unacknowledge_is_not_acknowledged(incident_public_api_setup):
+    token, incidents, _, _, user = incident_public_api_setup
+    client = APIClient()
+    grafana_first_incident = incidents[0]
+    expected_response = {"detail":f"The alert group {grafana_first_incident.public_primary_key} is not acknowledged"}
+    url = reverse("api-public:alert_groups-unacknowledge",
+                  kwargs={"pk": grafana_first_incident.public_primary_key})
+    response = client.post(url + f"?user_email={user.email}", format="json", HTTP_AUTHORIZATION=f"{token}")
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert response.data == expected_response
+
+
+@pytest.mark.django_db
+def test_log_success_response(incident_public_api_setup):
+    token, incidents, _, _, user = incident_public_api_setup
+    client = APIClient()
+    grafana_first_incident = incidents[0]
+    notification_log_values = list(UserNotificationPolicyLogRecord.TYPE_TO_HANDLERS_MAP.values())
+    notification_log_values.remove("finished")
+    notification_type = notification_log_values[0]
+    url = reverse("api-public:alert_groups-log",
+                  kwargs={"pk": grafana_first_incident.public_primary_key})
+    response = client.post(url + f"?user_notification_type={notification_type}&user_email={user.email}",
+                           HTTP_AUTHORIZATION=f"{token}")
+    assert response.status_code == status.HTTP_201_CREATED
+
+
+@pytest.mark.django_db
+def test_log_missing_user_email(incident_public_api_setup):
+    token, incidents, _, _, user = incident_public_api_setup
+    client = APIClient()
+    grafana_first_incident = incidents[0]
+    notification_log_values = list(UserNotificationPolicyLogRecord.TYPE_TO_HANDLERS_MAP.values())
+    notification_log_values.remove("finished")
+    notification_type = notification_log_values[0]
+    expected_response = {"detail": "missing 'user_email' query param"}
+    url = reverse("api-public:alert_groups-log",
+                  kwargs={"pk": grafana_first_incident.public_primary_key})
+    response = client.post(url + f"?user_notification_type={notification_type}", format="json",
+                           HTTP_AUTHORIZATION=f"{token}")
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert response.data == expected_response
+
+
+@pytest.mark.django_db
+def test_log_missing_user_notification_type(incident_public_api_setup):
+    token, incidents, _, _, user = incident_public_api_setup
+    client = APIClient()
+    grafana_first_incident = incidents[0]
+    expected_response = {"detail": "missing 'user_notification_type' query param"}
+    url = reverse("api-public:alert_groups-log",
+                  kwargs={"pk": grafana_first_incident.public_primary_key})
+    response = client.post(url + f"?user_email={user.email}",
+                           format="json", HTTP_AUTHORIZATION=f"{token}")
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert response.data == expected_response
+
+
+@pytest.mark.django_db
+def test_log_incorrect_user_notification_type(incident_public_api_setup):
+    token, incidents, _, _, user = incident_public_api_setup
+    client = APIClient()
+    grafana_first_incident = incidents[0]
+    notification_type = "incorrect"
+    notification_log_values = list(UserNotificationPolicyLogRecord.TYPE_TO_HANDLERS_MAP.values())
+    notification_log_values.remove("finished")
+
+    expected_response = {"detail": f"incorrect user_notification_type, allowed notification types:"
+                                   f" {notification_log_values}"}
+    url = reverse("api-public:alert_groups-log",
+                  kwargs={"pk": grafana_first_incident.public_primary_key})
+    response = client.post(url + f"?user_email={user.email}&user_notification_type={notification_type}",
+                           format="json", HTTP_AUTHORIZATION=f"{token}")
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert response.data == expected_response
 
 
 # This is test from old django-based tests
