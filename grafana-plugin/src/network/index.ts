@@ -51,47 +51,47 @@ export const makeRequest = async <RT = any>(path: string, config: RequestConfig)
       span.setAttribute(SemanticAttributes.HTTP_METHOD, method);
     }
 
-    try {
-      // OTEL requests
+    return new Promise<RT>((resolve, reject) => {
       otel.context.with(otel.trace.setSpan(otel.context.active(), span), async () => {
         FaroHelper.faro.api.pushEvent('Sending request', { url });
 
-        const response = await instance({
+        instance({
           method,
           url,
           params,
           data,
           validateStatus,
-        });
-
-        FaroHelper.faro.api.pushEvent('Request completed', { url });
-        return response.data as RT;
+        })
+          .then((response) => {
+            FaroHelper.faro.api.pushEvent('Request completed', { url });
+            span.end();
+            resolve(response.data as RT);
+          })
+          .catch((ex) => {
+            FaroHelper.faro.api.pushEvent('Request failed', { url });
+            FaroHelper.faro.api.pushError(ex);
+            span.setStatus({ code: SpanStatusCode.ERROR });
+            span.end();
+            reject(ex);
+          });
       });
-    } catch (ex) {
-      FaroHelper.faro.api.pushEvent('Request failed', { url });
-      FaroHelper.faro.api.pushError(ex);
-      span.setStatus({ code: SpanStatusCode.ERROR });
-      return Promise.reject(ex);
-    } finally {
-      span.end();
-    }
-  }
-
-  try {
-    // non-OTEL requests
-    const response = await instance({
-      method,
-      url,
-      params,
-      data,
-      validateStatus,
     });
-
-    FaroHelper.faro?.api.pushEvent('Request completed', { url });
-    return response.data as RT;
-  } catch (ex) {
-    FaroHelper.faro?.api.pushEvent('Request failed', { url });
-    FaroHelper.faro?.api.pushError(ex);
-    return Promise.reject(ex);
   }
+
+  return instance({
+    method,
+    url,
+    params,
+    data,
+    validateStatus,
+  })
+    .then((response) => {
+      FaroHelper.faro?.api.pushEvent('Request completed', { url });
+      return response.data as RT;
+    })
+    .catch((ex) => {
+      FaroHelper.faro?.api.pushEvent('Request failed', { url });
+      FaroHelper.faro?.api.pushError(ex);
+      return Promise.reject(ex);
+    });
 };
