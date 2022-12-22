@@ -553,7 +553,7 @@ if FEATURE_MOBILE_APP_INTEGRATION_ENABLED:
         ("apps.mobile_app.backend.MobileAppCriticalBackend", 6),
     ]
 
-    FIREBASE_APP = initialize_app()
+    FIREBASE_APP = initialize_app(options={"projectId": os.environ.get("FCM_PROJECT_ID", None)})
 
 FCM_RELAY_ENABLED = getenv_boolean("FCM_RELAY_ENABLED", default=False)
 FCM_DJANGO_SETTINGS = {
