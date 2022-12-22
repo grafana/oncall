@@ -109,7 +109,7 @@ exports[`MobileAppVerification if we disconnect the app, it disconnects and fetc
             class="u-width-100 u-flex u-flex-center u-position-relative"
           >
             <div
-              class="root root_bordered"
+              class="root qr-code root_bordered"
             >
               <svg
                 height="256"

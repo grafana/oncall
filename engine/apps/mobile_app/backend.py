@@ -1,7 +1,7 @@
 import json
 
 from django.conf import settings
-from push_notifications.models import GCMDevice
+from fcm_django.models import FCMDevice
 
 from apps.base.messaging import BaseMessagingBackend
 from apps.mobile_app.tasks import notify_user_async
@@ -35,7 +35,7 @@ class MobileAppBackend(BaseMessagingBackend):
         token.delete()
 
         # delete push notification related info for user
-        GCMDevice.objects.filter(user=user).delete()
+        FCMDevice.objects.filter(user=user).delete()
 
     def serialize_user(self, user):
         from apps.mobile_app.models import MobileAppAuthToken
