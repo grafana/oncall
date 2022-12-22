@@ -1,5 +1,4 @@
-import { Faro } from '@grafana/faro-core';
-import { initializeFaro, getWebInstrumentations } from '@grafana/faro-web-sdk';
+import { Faro, initializeFaro, getWebInstrumentations } from '@grafana/faro-web-sdk';
 import { TracingInstrumentation } from '@grafana/faro-web-tracing';
 import { DocumentLoadInstrumentation } from '@opentelemetry/instrumentation-document-load';
 import { FetchInstrumentation } from '@opentelemetry/instrumentation-fetch';
