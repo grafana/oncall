@@ -51,36 +51,34 @@ export const makeRequest = async <RT = any>(path: string, config: RequestConfig)
       span.setAttribute(SemanticAttributes.HTTP_METHOD, method);
     }
 
-    return new Promise<RT>((resolve, reject) => {
+    try {
+      // OTEL requests
       otel.context.with(otel.trace.setSpan(otel.context.active(), span), async () => {
         FaroHelper.faro.api.pushEvent('Sending request', { url });
 
-        try {
-          const response = await instance({
-            method,
-            url,
-            params,
-            data,
-            validateStatus,
-          });
+        const response = await instance({
+          method,
+          url,
+          params,
+          data,
+          validateStatus,
+        });
 
-          FaroHelper.faro.api.pushEvent('Request completed', { url });
-
-          resolve(response.data as RT);
-        } catch (ex) {
-          FaroHelper.faro.api.pushEvent('Request failed', { url });
-          FaroHelper.faro.api.pushError(ex);
-
-          span.setStatus({ code: SpanStatusCode.ERROR });
-          reject(ex);
-        } finally {
-          span.end();
-        }
+        FaroHelper.faro.api.pushEvent('Request completed', { url });
+        return response.data as RT;
       });
-    });
+    } catch (ex) {
+      FaroHelper.faro.api.pushEvent('Request failed', { url });
+      FaroHelper.faro.api.pushError(ex);
+      span.setStatus({ code: SpanStatusCode.ERROR });
+      return Promise.reject(ex);
+    } finally {
+      span.end();
+    }
   }
 
   try {
+    // non-OTEL requests
     const response = await instance({
       method,
       url,
@@ -90,11 +88,10 @@ export const makeRequest = async <RT = any>(path: string, config: RequestConfig)
     });
 
     FaroHelper.faro?.api.pushEvent('Request completed', { url });
-
     return response.data as RT;
   } catch (ex) {
     FaroHelper.faro?.api.pushEvent('Request failed', { url });
     FaroHelper.faro?.api.pushError(ex);
-    return undefined;
+    return Promise.reject(ex);
   }
 };
