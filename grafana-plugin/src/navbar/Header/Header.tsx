@@ -16,17 +16,16 @@ const cx = cn.bind(styles);
 
 export default function Header({ page, backendLicense }: { page: string; backendLicense: string }) {
   return (
-    <div className="page-container">
-      <div className="page-header">
-        <div className={classnames('page-header__inner', { 'oncall-header': isTopNavbar() })}>
-          <span className="page-header__logo">
-            <img className="page-header__img" src={logo} alt="Grafana OnCall" />
-          </span>
+    <div className={classnames('page-header__inner', { 'oncall-header': isTopNavbar() })}>
+      <div className={cx('navbar-left')}>
+        <span className="page-header__logo">
+          <img className="page-header__img" src={logo} alt="Grafana OnCall" />
+        </span>
 
-          <div className="page-header__info-block">{renderHeading()}</div>
-
-          <GrafanaTeamSelect currentPage={page} />
-        </div>
+        <div className="page-header__info-block">{renderHeading()}</div>
+      </div>
+      <div className={cx('navbar-right')}>
+        <GrafanaTeamSelect currentPage={page} />
       </div>
     </div>
   );

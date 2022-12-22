@@ -81,7 +81,7 @@ const DefaultPageLayout: FC<DefaultPageLayoutProps> = observer((props) => {
         <div className={cx('alerts_horizontal')}>
           {showSlackInstallAlert && (
             <Alert
-              className={styles.alert}
+              className={cx('alert')}
               onRemove={handleCloseInstallSlackAlert}
               severity="warning"
               // @ts-ignore
@@ -96,7 +96,7 @@ const DefaultPageLayout: FC<DefaultPageLayoutProps> = observer((props) => {
           )}
           {currentTeam?.banner.title != null && !getItem(currentTeam?.banner.title) && (
             <Alert
-              className={styles.alert}
+              className={cx('alert')}
               severity="success"
               title={currentTeam.banner.title}
               onRemove={getRemoveAlertHandler(currentTeam?.banner.title)}
@@ -114,7 +114,7 @@ const DefaultPageLayout: FC<DefaultPageLayoutProps> = observer((props) => {
             store.backendVersion !== plugin?.version &&
             !getItem(`version_mismatch_${store.backendVersion}_${plugin?.version}`) && (
               <Alert
-                className={styles.alert}
+                className={cx('alert')}
                 severity="warning"
                 title={'Version mismatch!'}
                 onRemove={getRemoveAlertHandler(`version_mismatch_${store.backendVersion}_${plugin?.version}`)}
@@ -145,7 +145,7 @@ const DefaultPageLayout: FC<DefaultPageLayoutProps> = observer((props) => {
           ) && (
             <Alert
               onRemove={getRemoveAlertHandler(AlertID.CONNECTIVITY_WARNING)}
-              className={styles.alert}
+              className={cx('alert')}
               severity="warning"
               // @ts-ignore
               title="Connectivity Warning"

@@ -49,7 +49,7 @@ const GrafanaTeamSelect = observer((props: GrafanaTeamSelectProps) => {
   };
 
   const content = (
-    <div className={cx('teamSelect', { 'teamSelect--topRight': isTopNavbar() })}>
+    <div className={cx('teamSelect')}>
       <div className={cx('teamSelectLabel')}>
         <Label>
           Select Team{' '}

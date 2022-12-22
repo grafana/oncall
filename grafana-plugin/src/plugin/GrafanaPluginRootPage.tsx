@@ -23,6 +23,7 @@ import { routes } from 'pages/routes';
 import { rootStore } from 'state';
 import { useStore } from 'state/useStore';
 import { isUserActionAllowed } from 'utils/authorization';
+import { DEFAULT_PAGE } from 'utils/consts';
 import { useQueryParams, useQueryPath } from 'utils/hooks';
 
 dayjs.extend(utc);
@@ -39,8 +40,6 @@ import 'style/utils.css';
 
 import { getQueryParams, isTopNavbar } from './GrafanaPluginRootPage.helpers';
 import PluginSetup from './PluginSetup';
-
-import { DEFAULT_PAGE } from 'utils/consts';
 
 export const GrafanaPluginRootPage = (props: AppRootProps) => (
   <Provider store={rootStore}>
