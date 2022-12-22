@@ -40,6 +40,8 @@ import 'style/utils.css';
 import { getQueryParams, isTopNavbar } from './GrafanaPluginRootPage.helpers';
 import PluginSetup from './PluginSetup';
 
+import { DEFAULT_PAGE } from 'utils/consts';
+
 export const GrafanaPluginRootPage = (props: AppRootProps) => (
   <Provider store={rootStore}>
     <PluginSetup InitializedComponent={Root} {...props} />
@@ -49,7 +51,7 @@ export const GrafanaPluginRootPage = (props: AppRootProps) => (
 export const Root = observer((props: AppRootProps) => {
   const [didFinishLoading, setDidFinishLoading] = useState(false);
   const queryParams = useQueryParams();
-  const page = queryParams.get('page');
+  const page = queryParams.get('page') || DEFAULT_PAGE;
   const path = useQueryPath();
 
   // Required to support grafana instances that use a custom `root_url`.
