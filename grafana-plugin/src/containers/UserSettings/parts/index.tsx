@@ -47,8 +47,6 @@ export const Tabs = ({
     [onTabChange]
   );
 
-  console.log({ showMobileAppVerificationTab });
-
   return (
     <TabsBar>
       <Tab
