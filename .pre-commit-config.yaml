@@ -6,7 +6,7 @@ repos:
         files: ^engine
         args: [--settings-file=engine/pyproject.toml, --filter-files]
       - id: isort
-        name: isort - pagerduty-migrator
+        name: isort - pd-migrator
         files: ^tools/pagerduty-migrator
         args: [--settings-file=tools/pagerduty-migrator/.isort.cfg, --filter-files]
 
@@ -17,7 +17,7 @@ repos:
         files: ^engine
         args: [--config=engine/pyproject.toml]
       - id: black
-        name: black - pagerduty-migrator
+        name: black - pd-migrator
         files: ^tools/pagerduty-migrator
 
   - repo: https://github.com/pycqa/flake8
@@ -29,7 +29,7 @@ repos:
         additional_dependencies:
           - flake8-tidy-imports
       - id: flake8
-        name: flake8 - pagerduty-migrator
+        name: flake8 - pd-migrator
         files: ^tools/pagerduty-migrator
         # Make sure config is compatible with black
         # https://black.readthedocs.io/en/stable/the_black_code_style/current_style.html#line-length
