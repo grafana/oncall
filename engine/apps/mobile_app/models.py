@@ -1,5 +1,6 @@
 from typing import Tuple
 
+from django.conf import settings
 from django.db import models
 from django.utils import timezone
 
@@ -7,7 +8,7 @@ from apps.auth_token import constants, crypto
 from apps.auth_token.models import BaseAuthToken
 from apps.user_management.models import Organization, User
 
-MOBILE_APP_AUTH_VERIFICATION_TOKEN_TIMEOUT_SECONDS = 60
+MOBILE_APP_AUTH_VERIFICATION_TOKEN_TIMEOUT_SECONDS = 60 * (5 if settings.DEBUG else 1)
 
 
 def get_expire_date():
