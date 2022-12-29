@@ -55,7 +55,7 @@ def create_integration(
 ) -> None:
 
     DEFAULT_INTEGRATION_TYPE = ["alertmanager", "grafana", "webhook", "kapacitor", "elastalert", "zabbix"]
-    fallback_to_integration_type = os.environ.get('FALLBACK_TO_WEBHOOK_INTEGRATION_TYPE')
+    fallback_to_integration_type = os.environ.get('FALLBACK_INTEGRATION_TYPE')
     
     payload = {
         "name": name,
