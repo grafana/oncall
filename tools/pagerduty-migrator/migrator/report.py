@@ -105,13 +105,13 @@ def escalation_policy_report(policies: list[dict]) -> str:
     for policy in sorted(
         policies, key=lambda p: bool(p["unmatched_users"] or p["flawed_schedules"])
     ):
-        result += f"\n" + TAB + format_escalation_policy(policy)
+        result += "\n" + TAB + format_escalation_policy(policy)
 
         for user in policy["unmatched_users"]:
-            result += f"\n" + TAB * 2 + format_user(user)
+            result += "\n" + TAB * 2 + format_user(user)
 
         for schedule in policy["flawed_schedules"]:
-            result += f"\n" + TAB * 2 + format_schedule(schedule)
+            result += "\n" + TAB * 2 + format_schedule(schedule)
 
         if (
             not policy["unmatched_users"]
@@ -135,7 +135,7 @@ def integration_report(integrations: list[dict]) -> str:
         key=lambda i: bool(i["oncall_type"] and not i["is_escalation_policy_flawed"]),
         reverse=True,
     ):
-        result += f"\n" + TAB + format_integration(integration)
+        result += "\n" + TAB + format_integration(integration)
         if (
             integration["oncall_type"]
             and not integration["is_escalation_policy_flawed"]
