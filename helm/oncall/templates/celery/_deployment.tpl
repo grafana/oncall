@@ -34,6 +34,10 @@ spec:
         {{- if eq .Values.database.type "postgresql" }}
         {{- include "oncall.postgresql.wait-for-db" . | indent 8 }}
         {{- end }}
+      {{- with .Values.celery.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
       containers:
         - name: {{ .Chart.Name }}
           securityContext:
