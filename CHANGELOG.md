@@ -5,13 +5,71 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## v1.1.8 (2022-12-13)
+
+### Added
+
+- Added a `make` command, `enable-mobile-app-feature-flags`, which sets the backend feature flag in `./dev/.env.dev`,
+  and updates a record in the `base_dynamicsetting` database table, which are needed to enable the mobile
+  app backend features.
+
+### Changed
+
+- Added ability to change engine deployment update strategy via values in helm chart.
+- removed APNS support
+- changed the `django-push-notification` library from the `iskhakov` fork to the [`grafana` fork](https://github.com/grafana/django-push-notifications).
+  This new fork basically patches an issue which affected the database migrations of this django app (previously the
+  library would not respect the `USER_MODEL` setting when creating its tables and would instead reference the
+  `auth_user` table.. which we don't want)
+- add `--no-cache` flag to the `make build` command
+
+### Fixed
+
+- fix schedule UI types and permissions
+
+## v1.1.7 (2022-12-09)
+
+### Fixed
+
+- Update fallback role for schedule write RBAC permission
+- Mobile App Verification tab in the user settings modal is now hidden for users that do not have proper
+  permissions to use it
+
+## v1.1.6 (2022-12-09)
+
+### Added
+
+- RBAC permission support
+- Add `time_zone` serializer validation for OnCall shifts and calendar/web schedules. In addition, add database migration
+  to update values that may be invalid
+- Add a `permalinks.web` field, which is a permalink to the alert group web app page, to the alert group internal/public
+  API responses
+- Added the ability to customize job-migrate `ttlSecondsAfterFinished` field in the helm chart
+
+### Fixed
+
+- Got 500 error when saving Outgoing Webhook ([#890](https://github.com/grafana/oncall/issues/890))
+- v1.0.13 helm chart - update the OnCall backend pods image pull policy to "Always" (and explicitly set tag to `latest`).
+  This should resolve some recent issues experienced where the frontend/backend versions are not aligned.
+
+### Changed
+
+- When editing templates for alert group presentation or outgoing webhooks, errors and warnings are now displayed in
+  the UI as notification popups or displayed in the preview.
+- Errors and warnings that occur when rendering templates during notification or webhooks will now render
+  and display the error/warning as the result.
+
 ## v1.1.5 (2022-11-24)
+
+### Added
+
+- Added a QR code in the "Mobile App Verification" tab on the user settings modal to connect the mobile
+  application to your OnCall instance
 
 ### Fixed
 
 - UI bug fixes for Grafana 9.3 ([#860](https://github.com/grafana/oncall/pull/860))
 - Bug fix for saving source link template ([#898](https://github.com/grafana/oncall/pull/898))
-
 
 ## v1.1.4 (2022-11-23)
 
@@ -26,13 +84,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- For OSS installations of OnCall, initial configuration is now simplified. When running for local development, you no longer need to configure the plugin via the UI. This is achieved through passing one environment variable to both the backend & frontend containers, both of which have been preconfigured for you in `docker-compose-developer.yml`.
-  - The Grafana API URL **must be** passed as an environment variable, `GRAFANA_API_URL`, to the OnCall backend (and can be configured by updating this env var in your `./dev/.env.dev` file)
-  - The OnCall API URL can optionally be passed as an environment variable, `ONCALL_API_URL`, to the OnCall UI. If the environment variable is found, the plugin will "auto-configure", otherwise you will be shown a simple configuration form to provide this info.
-- For Helm installations, if you are running Grafana externally (eg. `grafana.enabled` is set to `false` in your `values.yaml`), you will now be required to specify `externalGrafana.url` in `values.yaml`.
-- `make start` will now idempotently check to see if a "127.0.0.1 grafana" record exists in `/etc/hosts` (using a tool called [`hostess`](https://github.com/cbednarski/hostess)). This is to support using `http://grafana:3000` as the `Organization.grafana_url` in two scenarios:
+- For OSS installations of OnCall, initial configuration is now simplified. When running for local development, you no
+  longer need to configure the plugin via the UI. This is achieved through passing one environment variable to both the
+  backend & frontend containers, both of which have been preconfigured for you in `docker-compose-developer.yml`.
+  - The Grafana API URL **must be** passed as an environment variable, `GRAFANA_API_URL`, to the OnCall backend
+    (and can be configured by updating this env var in your `./dev/.env.dev` file)
+  - The OnCall API URL can optionally be passed as an environment variable, `ONCALL_API_URL`, to the OnCall UI.
+    If the environment variable is found, the plugin will "auto-configure", otherwise you will be shown a simple
+    configuration form to provide this info.
+- For Helm installations, if you are running Grafana externally (eg. `grafana.enabled` is set to `false`
+  in your `values.yaml`), you will now be required to specify `externalGrafana.url` in `values.yaml`.
+- `make start` will now idempotently check to see if a "127.0.0.1 grafana" record exists in `/etc/hosts`
+  (using a tool called [`hostess`](https://github.com/cbednarski/hostess)). This is to support using `http://grafana:3000`
+  as the `Organization.grafana_url` in two scenarios:
   - `oncall_engine`/`oncall_celery` -> `grafana` Docker container communication
-  - public URL generation. There are some instances where `Organization.grafana_url` is referenced to generate public URLs to a Grafana plugin page. Without the `/etc/hosts` record, navigating to `http://grafana:3000/some_page` in your browser, you would obviously get an error from your browser.
+  - public URL generation. There are some instances where `Organization.grafana_url` is referenced to generate public
+    URLs to a Grafana plugin page. Without the `/etc/hosts` record, navigating to `http://grafana:3000/some_page` in
+    your browser, you would obviously get an error from your browser.
 
 ## v1.1.2 (2022-11-18)
 
@@ -260,7 +328,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## 1.0.2 (2022-06-17)
 
 - Fix Grafana Alerting integration to handle API changes in Grafana 9
-- Improve public api endpoint for outgoing webhooks (/actions) by adding ability to create, update and delete outgoing webhook instance
+- Improve public api endpoint for outgoing webhooks (/actions) by adding ability to create, update and delete
+  outgoing webhook instance
 
 ## 1.0.0 (2022-06-14)
 

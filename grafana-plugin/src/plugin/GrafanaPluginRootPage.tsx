@@ -15,12 +15,14 @@ import Header from 'navbar/Header/Header';
 import LegacyNavTabsBar from 'navbar/LegacyNavTabsBar';
 import { AppRootProps } from 'types';
 
+import Unauthorized from 'components/Unauthorized';
 import DefaultPageLayout from 'containers/DefaultPageLayout/DefaultPageLayout';
 import 'interceptors';
 import { pages } from 'pages';
 import { routes } from 'pages/routes';
 import { rootStore } from 'state';
 import { useStore } from 'state/useStore';
+import { isUserActionAllowed } from 'utils/authorization';
 import { useQueryParams, useQueryPath } from 'utils/hooks';
 
 dayjs.extend(utc);
@@ -83,6 +85,9 @@ export const Root = observer((props: AppRootProps) => {
     return null;
   }
 
+  const { action: pagePermissionAction } = pages[page];
+  const userHasAccess = pagePermissionAction ? isUserActionAllowed(pagePermissionAction) : true;
+
   return (
     <DefaultPageLayout {...props}>
       {!isTopNavbar() && (
@@ -101,7 +106,11 @@ export const Root = observer((props: AppRootProps) => {
           'u-position-relative'
         )}
       >
-        <Page {...props} query={...getQueryParams()} path={pathWithoutLeadingSlash} store={store} />
+        {userHasAccess ? (
+          <Page {...props} query={...getQueryParams()} path={pathWithoutLeadingSlash} store={store} />
+        ) : (
+          <Unauthorized requiredUserAction={pagePermissionAction} />
+        )}
       </div>
     </DefaultPageLayout>
   );

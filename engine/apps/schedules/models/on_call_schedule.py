@@ -319,6 +319,7 @@ class OnCallSchedule(PolymorphicModel):
         resolved = []
         pending = events
         current_interval_idx = 0  # current scheduled interval being checked
+        current_type = OnCallSchedule.TYPE_ICAL_OVERRIDES  # current calendar type
         current_priority = None  # current priority level being resolved
 
         while pending:
@@ -328,20 +329,17 @@ class OnCallSchedule(PolymorphicModel):
                 # exclude events without active users
                 continue
 
-            if ev["calendar_type"] == OnCallSchedule.TYPE_ICAL_OVERRIDES:
-                # include overrides from start
-                resolved.append(ev)
-                continue
-
             # api/terraform shifts could be missing a priority; assume None means 0
             priority = ev["priority_level"] or 0
-            if priority != current_priority:
+            if priority != current_priority or current_type != ev["calendar_type"]:
                 # update scheduled intervals on priority change
                 # and start from the beginning for the new priority level
+                # also for calendar event type (overrides first, then apply regular shifts)
                 resolved.sort(key=event_start_cmp_key)
                 intervals = _merge_intervals(resolved)
                 current_interval_idx = 0
                 current_priority = priority
+                current_type = ev["calendar_type"]
 
             if current_interval_idx >= len(intervals):
                 # event outside scheduled intervals, add to resolved

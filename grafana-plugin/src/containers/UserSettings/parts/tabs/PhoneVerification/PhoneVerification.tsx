@@ -10,8 +10,8 @@ import { WithPermissionControl } from 'containers/WithPermissionControl/WithPerm
 import { User } from 'models/user/user.types';
 import { AppFeature } from 'state/features';
 import { useStore } from 'state/useStore';
-import { UserAction } from 'state/userAction';
 import { openErrorNotification } from 'utils';
+import { isUserActionAllowed, UserAction, UserActions } from 'utils/authorization';
 
 import styles from './PhoneVerification.module.css';
 
@@ -137,12 +137,12 @@ const PhoneVerification = observer((props: PhoneVerificationProps) => {
   const isPhoneValid = phoneHasMinimumLength && PHONE_REGEX.test(phone);
   const showPhoneInputError = phoneHasMinimumLength && !isPhoneValid && !isPhoneNumberHidden && !isLoading;
 
-  const action = isCurrentUser ? UserAction.UpdateOwnSettings : UserAction.UpdateOtherUsersSettings;
+  const action = isCurrentUser ? UserActions.UserSettingsWrite : UserActions.UserSettingsAdmin;
   const isButtonDisabled =
     phone === user.verified_phone_number || (!isCodeSent && !isPhoneValid) || !isTwilioConfigured;
 
   const isPhoneDisabled = !!user.verified_phone_number;
-  const isCodeFieldDisabled = !isCodeSent || !store.isUserActionAllowed(action);
+  const isCodeFieldDisabled = !isCodeSent || !isUserActionAllowed(action);
   const showToggle = user.verified_phone_number && isCurrentUser;
 
   if (showForgetScreen) {
@@ -264,7 +264,7 @@ function ForgetPhoneScreen({ phone, onCancel, onForget }: ForgetPhoneScreenProps
 }
 
 interface PhoneVerificationButtonsGroupProps {
-  action: UserAction.UpdateOwnSettings | UserAction.UpdateOtherUsersSettings;
+  action: UserAction;
 
   isCodeSent: boolean;
   isButtonDisabled: boolean;

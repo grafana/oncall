@@ -8,6 +8,7 @@ import { makeRequest } from 'network';
 import { Mixpanel } from 'services/mixpanel';
 import { RootStore } from 'state';
 import { move } from 'state/helpers';
+import { isUserActionAllowed, UserActions } from 'utils/authorization';
 
 import { getTimezone, prepareForUpdate } from './user.helpers';
 import { User } from './user.types';
@@ -55,7 +56,7 @@ export class UserStore extends BaseStore {
     const response = await makeRequest('/user/', {});
 
     let timezone;
-    if (!response.timezone) {
+    if (!response.timezone && isUserActionAllowed(UserActions.UserSettingsWrite)) {
       timezone = dayjs.tz.guess();
       this.update(response.pk, { timezone });
     }
@@ -73,18 +74,15 @@ export class UserStore extends BaseStore {
   }
 
   @action
-  async loadUser(userPk: User['pk'], skipErrorHandling = false) {
+  async loadUser(userPk: User['pk'], skipErrorHandling = false): Promise<User> {
     const user = await this.getById(userPk, skipErrorHandling);
 
     this.items = {
       ...this.items,
       [user.pk]: { ...user, timezone: getTimezone(user) },
     };
-  }
 
-  @action
-  getCurrentUser() {
-    return this.items[this.currentUserPk as User['pk']];
+    return user;
   }
 
   @action
@@ -106,11 +104,11 @@ export class UserStore extends BaseStore {
   }
 
   @action
-  async updateItems(f: any = { searchTerm: '', roles: undefined }, page = 1) {
+  async updateItems(f: any = { searchTerm: '' }, page = 1) {
     const filters = typeof f === 'string' ? { searchTerm: f } : f; // for GSelect compatibility
-    const { searchTerm: search, roles } = filters;
+    const { searchTerm: search } = filters;
     const { count, results } = await makeRequest(this.path, {
-      params: { search, roles, page },
+      params: { search, page },
     });
 
     this.items = {
@@ -144,10 +142,6 @@ export class UserStore extends BaseStore {
     return await makeRequest(`/users/${userPk}/get_telegram_verification_code/`, {});
   };
 
-  sendBackendConfirmationCode = async (userPk: User['pk'], backend: string) => {
-    return await makeRequest(`/users/${userPk}/get_backend_verification_code/?backend=${backend}`, {});
-  };
-
   @action
   unlinkSlack = async (userPk: User['pk']) => {
     await makeRequest(`/users/${userPk}/unlink_slack/`, {
@@ -175,6 +169,11 @@ export class UserStore extends BaseStore {
       [user.pk]: user,
     };
   };
+
+  sendBackendConfirmationCode = (userPk: User['pk'], backend: string) =>
+    makeRequest<string>(`/users/${userPk}/get_backend_verification_code?backend=${backend}`, {
+      method: 'GET',
+    });
 
   @action
   unlinkBackend = async (userPk: User['pk'], backend: string) => {

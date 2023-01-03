@@ -11,7 +11,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from apps.api.permissions import IsAdmin, MethodPermission
+from apps.api.permissions import RBACPermission
 from apps.auth_token.auth import PluginAuthentication
 from apps.base.utils import live_settings
 from apps.slack.scenarios.alertgroup_appearance import STEPS_ROUTING as ALERTGROUP_APPEARANCE_ROUTING
@@ -142,6 +142,15 @@ class SlackEventApiEndpointView(APIView):
             payload = request.data
         if isinstance(payload, str):
             payload = json.JSONDecoder().decode(payload)
+
+        logger.info(
+            "team_id: %s channel_id: %s user_id: %s command: %s event: %s",
+            payload.get("team_id"),
+            payload.get("channel_id"),
+            payload.get("user_id"),
+            payload.get("command"),
+            payload.get("event", {}).get("type"),
+        )
 
         # Checking if it's repeated Slack request
         if "HTTP_X_SLACK_RETRY_NUM" in request.META and int(request.META["HTTP_X_SLACK_RETRY_NUM"]) > 1:
@@ -533,10 +542,12 @@ class SlackEventApiEndpointView(APIView):
 
 class ResetSlackView(APIView):
 
-    permission_classes = (IsAuthenticated, MethodPermission)
+    permission_classes = (IsAuthenticated, RBACPermission)
     authentication_classes = [PluginAuthentication]
 
-    method_permissions = {IsAdmin: {"POST"}}
+    rbac_permissions = {
+        "post": [RBACPermission.Permissions.CHATOPS_UPDATE_SETTINGS],
+    }
 
     def post(self, request):
         organization = request.auth.organization

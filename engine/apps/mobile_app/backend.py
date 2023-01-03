@@ -1,4 +1,7 @@
-from push_notifications.models import APNSDevice
+import json
+
+from django.conf import settings
+from fcm_django.models import FCMDevice
 
 from apps.base.messaging import BaseMessagingBackend
 from apps.mobile_app.tasks import notify_user_async
@@ -11,7 +14,6 @@ class MobileAppBackend(BaseMessagingBackend):
     available_for_use = True
     template_fields = ["title"]
 
-    # TODO: add QR code generation (base64 encode?)
     def generate_user_verification_code(self, user):
         from apps.mobile_app.models import MobileAppVerificationToken
 
@@ -19,7 +21,12 @@ class MobileAppBackend(BaseMessagingBackend):
         MobileAppVerificationToken.objects.filter(user=user).delete()
 
         _, token = MobileAppVerificationToken.create_auth_token(user, user.organization)
-        return token
+        return json.dumps(
+            {
+                "token": token,
+                "oncall_api_url": settings.BASE_URL,
+            }
+        )
 
     def unlink_user(self, user):
         from apps.mobile_app.models import MobileAppAuthToken
@@ -27,9 +34,13 @@ class MobileAppBackend(BaseMessagingBackend):
         token = MobileAppAuthToken.objects.get(user=user)
         token.delete()
 
+        # delete push notification related info for user
+        FCMDevice.objects.filter(user=user).delete()
+
     def serialize_user(self, user):
-        # TODO: add Android support using GCMDevice
-        return {"connected": APNSDevice.objects.filter(user_id=user.pk).exists()}
+        from apps.mobile_app.models import MobileAppAuthToken
+
+        return {"connected": MobileAppAuthToken.objects.filter(user=user).exists()}
 
     def notify_user(self, user, alert_group, notification_policy, critical=False):
         notify_user_async.delay(

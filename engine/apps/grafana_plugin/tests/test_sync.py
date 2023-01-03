@@ -26,6 +26,8 @@ class TestGcomAPIClient:
     info = None
     status = None
 
+    STACK_STATUS_ACTIVE = "active"
+
     def reset(self):
         self.called = False
         self.info = None
@@ -39,7 +41,7 @@ class TestGcomAPIClient:
 
     def get_instance_info(self, stack_id: str):
         self.called = True
-        return self.info, self.status
+        return self.info
 
 
 @pytest.mark.django_db

@@ -1553,21 +1553,14 @@ expected_integrations_result = [
 ]
 
 
-def test_matching():
-    match_users_test()
-    match_schedule_test()
-    match_escalation_policies_test()
-    match_integrations_test()
-
-
-def match_users_test():
+def test_match_user():
     for user in pd_users_payload:
         match_user(user, oncall_users_payload)
 
     assert pd_users_payload == expected_users_match_result
 
 
-def match_schedule_test():
+def test_match_schedule():
     for schedule in pd_schedules_payload:
         match_schedule(schedule, oncall_schedules_payload)
         match_users_for_schedule(schedule, pd_users_payload)
@@ -1575,7 +1568,7 @@ def match_schedule_test():
     assert pd_schedules_payload == expected_schedules_result
 
 
-def match_escalation_policies_test():
+def test_match_escalation_policy():
     for policy in pd_escalation_policies_payload:
         match_escalation_policy(policy, oncall_escalation_chains)
         match_users_and_schedules_for_escalation_policy(
@@ -1585,7 +1578,7 @@ def match_escalation_policies_test():
     assert pd_escalation_policies_payload == expected_escalation_policies_result
 
 
-def match_integrations_test():
+def test_match_integration():
     integrations = []
     for service in pd_services_payload:
         service_integrations = service.pop("integrations")

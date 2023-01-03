@@ -1,14 +1,16 @@
-import { OrgRole } from '@grafana/data';
-import { contextSrv as contextSrvOriginal } from 'grafana/app/core/core';
 import { OnCallAppPluginMeta } from 'types';
 
 import PluginState from 'state/plugin';
+import { UserActions, isUserActionAllowed as isUserActionAllowedOriginal } from 'utils/authorization';
 
 import { RootBaseStore } from './';
 
-const contextSrv = contextSrvOriginal as { hasRole: jest.Mock<ReturnType<typeof contextSrvOriginal['hasRole']>> };
-
 jest.mock('state/plugin');
+jest.mock('utils/authorization');
+
+const isUserActionAllowed = isUserActionAllowedOriginal as jest.Mock<ReturnType<typeof isUserActionAllowedOriginal>>;
+
+const PluginInstallAction = UserActions.PluginsInstall;
 
 const generatePluginData = (
   onCallApiUrl: OnCallAppPluginMeta['jsonData']['onCallApiUrl'] = null
@@ -123,7 +125,7 @@ describe('rootBaseStore', () => {
       version: 'asdfasdf',
       license: 'asdfasdf',
     });
-    contextSrv.hasRole.mockReturnValueOnce(false);
+    isUserActionAllowed.mockReturnValueOnce(false);
     PluginState.installPlugin = jest.fn().mockResolvedValueOnce(null);
 
     // test
@@ -133,14 +135,14 @@ describe('rootBaseStore', () => {
     expect(PluginState.checkIfPluginIsConnected).toHaveBeenCalledTimes(1);
     expect(PluginState.checkIfPluginIsConnected).toHaveBeenCalledWith(onCallApiUrl);
 
-    expect(contextSrv.hasRole).toHaveBeenCalledTimes(1);
-    expect(contextSrv.hasRole).toHaveBeenCalledWith(OrgRole.Admin);
+    expect(isUserActionAllowed).toHaveBeenCalledTimes(1);
+    expect(isUserActionAllowed).toHaveBeenCalledWith(PluginInstallAction);
 
     expect(PluginState.installPlugin).toHaveBeenCalledTimes(0);
 
     expect(rootBaseStore.appLoading).toBe(false);
     expect(rootBaseStore.initializationError).toEqual(
-      '🚫 Admin must sign on to setup OnCall before a Viewer can use it'
+      '🚫 An Admin in your organization must sign on and setup OnCall before it can be used'
     );
   });
 
@@ -160,7 +162,7 @@ describe('rootBaseStore', () => {
       version: 'asdfasdf',
       license: 'asdfasdf',
     });
-    contextSrv.hasRole.mockReturnValueOnce(true);
+    isUserActionAllowed.mockReturnValueOnce(true);
     PluginState.installPlugin = jest.fn().mockResolvedValueOnce(null);
     rootBaseStore.userStore.loadCurrentUser = mockedLoadCurrentUser;
 
@@ -171,8 +173,8 @@ describe('rootBaseStore', () => {
     expect(PluginState.checkIfPluginIsConnected).toHaveBeenCalledTimes(1);
     expect(PluginState.checkIfPluginIsConnected).toHaveBeenCalledWith(onCallApiUrl);
 
-    expect(contextSrv.hasRole).toHaveBeenCalledTimes(1);
-    expect(contextSrv.hasRole).toHaveBeenCalledWith(OrgRole.Admin);
+    expect(isUserActionAllowed).toHaveBeenCalledTimes(1);
+    expect(isUserActionAllowed).toHaveBeenCalledWith(PluginInstallAction);
 
     expect(PluginState.installPlugin).toHaveBeenCalledTimes(1);
     expect(PluginState.installPlugin).toHaveBeenCalledWith();
@@ -199,7 +201,7 @@ describe('rootBaseStore', () => {
       version: 'asdfasdf',
       license: 'asdfasdf',
     });
-    contextSrv.hasRole.mockReturnValueOnce(true);
+    isUserActionAllowed.mockReturnValueOnce(true);
     PluginState.installPlugin = jest.fn().mockRejectedValueOnce(installPluginError);
     PluginState.getHumanReadableErrorFromOnCallError = jest.fn().mockReturnValueOnce(humanReadableErrorMsg);
 
@@ -210,8 +212,8 @@ describe('rootBaseStore', () => {
     expect(PluginState.checkIfPluginIsConnected).toHaveBeenCalledTimes(1);
     expect(PluginState.checkIfPluginIsConnected).toHaveBeenCalledWith(onCallApiUrl);
 
-    expect(contextSrv.hasRole).toHaveBeenCalledTimes(1);
-    expect(contextSrv.hasRole).toHaveBeenCalledWith(OrgRole.Admin);
+    expect(isUserActionAllowed).toHaveBeenCalledTimes(1);
+    expect(isUserActionAllowed).toHaveBeenCalledWith(PluginInstallAction);
 
     expect(PluginState.installPlugin).toHaveBeenCalledTimes(1);
     expect(PluginState.installPlugin).toHaveBeenCalledWith();

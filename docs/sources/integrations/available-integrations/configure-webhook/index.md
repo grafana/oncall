@@ -16,14 +16,16 @@ weight: 700
 
 # Webhook integrations for Grafana OnCall
 
-Grafana OnCall directly supports many integrations, those that aren’t currently listed in the Integrations menu can be connected using the webhook integration and configured alert templates.
+Grafana OnCall directly supports many integrations, those that aren’t currently listed in the Integrations menu can be
+connected using the webhook integration and configured alert templates.
 
 With the webhook integration, you can connect to any alert source that isn't listed in the **Create Integration** page.
 
 There are two available formats, **Webhook** and **Formatted Webhook**.
 
 - **Webhook** will pull all of the raw JSON payload and display it in the manner that it's received.
-- **Formatted Webhook** can be used if the alert payload sent by your monitoring service is formatted in a way that OnCall recognizes.
+- **Formatted Webhook** can be used if the alert payload sent by your monitoring service is formatted in a way that
+  OnCall recognizes.
 
   The following fields are recognized, but none are required:
 
@@ -39,7 +41,8 @@ To configure a webhook integration:
 1. In the **Integrations** tab, click **+ New integration for receiving alerts**.
 2. Select either **Webhook** or **Formatted Webhook** integration.
 3. Follow the configuration steps in the **How to connect** section of the integration settings.
-4. Use the unique webhook URL to complete any configuration in your monitoring service to send POST requests. Use any http client, e.g. curl to send POST requests with any payload.
+4. Use the unique webhook URL to complete any configuration in your monitoring service to send POST requests. Use any
+   http client, e.g. curl to send POST requests with any payload.
 
 For example:
 
@@ -57,4 +60,5 @@ For example:
     }'
         ```
 
-To learn how to use custom alert templates for formatted webhooks, see [Configure alerts templates]({{< relref "../../../alert-behavior/alert-templates/" >}}).
+To learn how to use custom alert templates for formatted webhooks, see
+[Configure alerts templates]({{< relref "../../../alert-behavior/alert-templates/" >}}).

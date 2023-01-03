@@ -1,7 +1,6 @@
 import logging
-import typing
 from collections import namedtuple
-from typing import Optional
+from typing import Optional, TypedDict
 from urllib.parse import urljoin
 from uuid import uuid1
 
@@ -46,8 +45,10 @@ def generate_public_primary_key_for_alert_group():
     return new_public_primary_key
 
 
-class Permalinks(typing.TypedDict):
-    slack: str
+class Permalinks(TypedDict):
+    slack: Optional[str]
+    telegram: Optional[str]
+    web: str
 
 
 class AlertGroupQuerySet(models.QuerySet):
@@ -92,7 +93,7 @@ class AlertGroupQuerySet(models.QuerySet):
             )
         except IntegrityError:
             try:
-                return self.get(**search_params, is_open_for_grouping=True), False
+                return self.get(**search_params, is_open_for_grouping__isnull=False), False
             except self.model.DoesNotExist:
                 pass
             raise
@@ -401,12 +402,12 @@ class AlertGroup(AlertGroupSlackRenderingMixin, EscalationSnapshotMixin, models.
         raise NotImplementedError
 
     @property
-    def slack_permalink(self):
+    def slack_permalink(self) -> Optional[str]:
         if self.slack_message is not None:
             return self.slack_message.permalink
 
     @property
-    def telegram_permalink(self) -> typing.Optional[str]:
+    def telegram_permalink(self) -> Optional[str]:
         """
         This property will attempt to access an attribute, `prefetched_telegram_messages`, representing a list of
         prefetched telegram messages. If this attribute does not exist, it falls back to performing a query.
@@ -429,10 +430,11 @@ class AlertGroup(AlertGroupSlackRenderingMixin, EscalationSnapshotMixin, models.
         return {
             "slack": self.slack_permalink,
             "telegram": self.telegram_permalink,
+            "web": self.web_link,
         }
 
     @property
-    def web_link(self):
+    def web_link(self) -> str:
         return urljoin(self.channel.organization.web_link, f"?page=incident&id={self.public_primary_key}")
 
     @property
