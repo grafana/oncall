@@ -1,5 +1,4 @@
 import hashlib
-import json
 import logging
 from uuid import uuid4
 
@@ -88,7 +87,6 @@ class Alert(models.Model):
         AlertGroupLogRecord = apps.get_model("alerts", "AlertGroupLogRecord")
 
         group_data = Alert.render_group_data(alert_receive_channel, raw_request_data, is_demo)
-        logger.info(f"Alert created group_data={str(json.dumps(group_data))}")
         channel_filter = ChannelFilter.select_filter(
             alert_receive_channel, raw_request_data, title, message, force_route_id
         )
