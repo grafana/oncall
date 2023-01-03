@@ -5,8 +5,9 @@ from django.conf import settings
 from django.utils import timezone
 
 from apps.grafana_plugin.helpers import GcomAPIClient
-from apps.grafana_plugin.helpers.gcom import get_active_instance_ids, get_deleted_instance_ids
+from apps.grafana_plugin.helpers.gcom import get_active_instance_ids, get_deleted_instance_ids, get_stack_regions
 from apps.user_management.models import Organization
+from apps.user_management.models.region import sync_regions
 from apps.user_management.sync import cleanup_organization, sync_organization
 from common.custom_celery_tasks import shared_dedicated_queue_retry_task
 
@@ -67,8 +68,8 @@ def run_organization_sync(organization_pk, force_sync):
             return
         if settings.GRAFANA_COM_API_TOKEN and settings.LICENSE == settings.CLOUD_LICENSE_NAME:
             client = GcomAPIClient(settings.GRAFANA_COM_API_TOKEN)
-            instance_info, status = client.get_instance_info(organization.stack_id)
-            if not instance_info or instance_info["status"] != "active":
+            instance_info = client.get_instance_info(organization.stack_id)
+            if not instance_info or instance_info["status"] != client.STACK_STATUS_ACTIVE:
                 logger.debug(f"Canceling sync for Organization {organization_pk}, as it is no longer active.")
                 return
 
@@ -103,3 +104,16 @@ def start_cleanup_deleted_organizations():
 @shared_dedicated_queue_retry_task(autoretry_for=(Exception,), max_retries=1)
 def cleanup_organization_async(organization_pk):
     cleanup_organization(organization_pk)
+
+
+@shared_dedicated_queue_retry_task(autoretry_for=(Exception,), max_retries=1)
+def start_sync_regions():
+    regions, is_cloud_configured = get_stack_regions()
+    if not is_cloud_configured:
+        return
+
+    if not regions:
+        logger.warning("Did not find any stack-regions!")
+        return
+
+    sync_regions(regions)

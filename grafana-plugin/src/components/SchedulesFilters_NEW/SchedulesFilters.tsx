@@ -1,11 +1,10 @@
-import React, { ChangeEvent, useCallback, useMemo, useState } from 'react';
+import React, { ChangeEvent, useCallback } from 'react';
 
-import { DatePickerWithInput, Field, HorizontalGroup, Icon, Input, RadioButtonGroup } from '@grafana/ui';
+import { Field, HorizontalGroup, Icon, Input, RadioButtonGroup } from '@grafana/ui';
 import cn from 'classnames/bind';
 
 import { ScheduleType } from 'models/schedule/schedule.types';
 
-import { dateStringToOption, optionToDateString } from './SchedulesFilters.helpers';
 import { SchedulesFiltersType } from './SchedulesFilters.types';
 
 import styles from './SchedulesFilters.module.css';
@@ -43,7 +42,7 @@ const SchedulesFilters = (props: SchedulesFiltersProps) => {
   return (
     <div className={cx('root')}>
       <HorizontalGroup spacing="lg">
-        <Field label="Search by name, user or object ID">
+        <Field label="Search by name">
           <Input
             autoFocus
             className={cx('search')}
@@ -69,9 +68,8 @@ const SchedulesFilters = (props: SchedulesFiltersProps) => {
         </Field>
         <Field label="Type">
           <RadioButtonGroup
-            disabled
             options={[
-              { label: 'All', value: 'all' },
+              { label: 'All', value: undefined },
               {
                 label: 'Web',
                 value: ScheduleType.API,
@@ -85,7 +83,7 @@ const SchedulesFilters = (props: SchedulesFiltersProps) => {
                 value: ScheduleType.Calendar,
               },
             ]}
-            value={value.type}
+            value={value?.type}
             onChange={handleTypeChange}
           />
         </Field>

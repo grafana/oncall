@@ -21,13 +21,26 @@ class TelegramVerificationCode(models.Model):
     def is_active(self) -> bool:
         return self.datetime + timezone.timedelta(days=1) < timezone.now()
 
+    @property
+    def uuid_with_org_uuid(self) -> str:
+        return f"{self.user.organization.uuid}_{self.uuid}"
+
+    @classmethod
+    def uuid_without_org_id(cls, verification_code: str) -> str:
+        try:
+            return verification_code.split("_")[1]
+        except IndexError:
+            raise ValidationError("Invalid verification code format")
+
     @classmethod
     def verify_user(
-        cls, uuid_code: str, telegram_chat_id: int, telegram_nick_name: str
+        cls, verification_code: str, telegram_chat_id: int, telegram_nick_name: str
     ) -> Tuple[Optional[TelegramToUserConnector], bool]:
         try:
-            verification_code = cls.objects.get(uuid=uuid_code)
-            user = verification_code.user
+            uuid_code = cls.uuid_without_org_id(verification_code)
+            code_instance = cls.objects.get(uuid=uuid_code)
+
+            user = code_instance.user
 
             connector, created = TelegramToUserConnector.objects.get_or_create(
                 user=user, defaults={"telegram_nick_name": telegram_nick_name, "telegram_chat_id": telegram_chat_id}

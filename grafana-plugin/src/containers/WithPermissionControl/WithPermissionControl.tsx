@@ -1,11 +1,10 @@
-import React, { ReactElement, useCallback, useState } from 'react';
+import React, { ReactElement, useCallback } from 'react';
 
 import { Tooltip } from '@grafana/ui';
 import cn from 'classnames/bind';
 import { observer } from 'mobx-react';
 
-import { useStore } from 'state/useStore';
-import { UserAction } from 'state/userAction';
+import { isUserActionAllowed, UserAction } from 'utils/authorization';
 
 import styles from './WithPermissionControl.module.css';
 
@@ -19,11 +18,9 @@ interface WithPermissionControlProps {
 }
 
 export const WithPermissionControl = observer((props: WithPermissionControlProps) => {
-  const { userAction, children, disableByPaywall = false, className } = props;
+  const { userAction, children, className } = props;
 
-  const store = useStore();
-
-  const disabledByPermissions = !store.isUserActionAllowed(userAction);
+  const disabledByPermissions = !isUserActionAllowed(userAction);
 
   const onClickCallback = useCallback(
     (event: any) => {

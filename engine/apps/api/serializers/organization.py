@@ -162,12 +162,3 @@ class FastOrganizationSerializer(serializers.ModelSerializer):
     class Meta:
         model = Organization
         fields = ["pk", "name"]
-
-
-class PluginOrganizationSerializer(serializers.ModelSerializer):
-    pk = serializers.CharField(read_only=True, source="public_primary_key")
-    grafana_token = serializers.CharField(write_only=True, source="api_token")
-
-    class Meta:
-        model = Organization
-        fields = ["pk", "stack_id", "stack_slug", "grafana_url", "org_id", "org_slug", "org_title", "grafana_token"]

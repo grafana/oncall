@@ -1,7 +1,3 @@
-import pytz
-from django.utils import timezone
-from rest_framework import serializers
-
 from apps.public_api.serializers.schedules_base import ScheduleBaseSerializer
 from apps.schedules.models import CustomOnCallShift, OnCallScheduleCalendar
 from apps.schedules.tasks import (
@@ -11,10 +7,11 @@ from apps.schedules.tasks import (
 )
 from common.api_helpers.custom_fields import TeamPrimaryKeyRelatedField, UsersFilteredByOrganizationField
 from common.api_helpers.exceptions import BadRequest
+from common.timezones import TimeZoneField
 
 
 class ScheduleCalendarSerializer(ScheduleBaseSerializer):
-    time_zone = serializers.CharField(required=True)
+    time_zone = TimeZoneField(required=True)
     shifts = UsersFilteredByOrganizationField(
         queryset=CustomOnCallShift.objects,
         required=False,
@@ -37,19 +34,17 @@ class ScheduleCalendarSerializer(ScheduleBaseSerializer):
             "ical_url_overrides": {"required": False, "allow_null": True},
         }
 
-    def validate_time_zone(self, tz):
-        try:
-            timezone.now().astimezone(pytz.timezone(tz))
-        except pytz.exceptions.UnknownTimeZoneError:
-            raise BadRequest(detail="Invalid time zone")
-        return tz
-
     def validate_shifts(self, shifts):
         # Get team_id from instance, if it exists, otherwise get it from initial data.
-        # Terraform sends empty string instead of None. In this case change team_id value to None.
-        team_id = self.instance.team_id if self.instance else (self.initial_data.get("team_id") or None)
+        if self.instance and self.instance.team:
+            team_id = self.instance.team.public_primary_key
+        else:
+            # Terraform sends empty string instead of None. In this case change team_id value to None.
+            team_id = self.initial_data.get("team_id") or None
+
         for shift in shifts:
-            if shift.team_id != team_id:
+            shift_team_id = shift.team.public_primary_key if shift.team else None
+            if shift_team_id != team_id:
                 raise BadRequest(detail="Shifts must be assigned to the same team as the schedule")
             if shift.type == CustomOnCallShift.TYPE_OVERRIDE:
                 raise BadRequest(detail="Shifts of type override are not supported in this schedule")
@@ -64,7 +59,7 @@ class ScheduleCalendarSerializer(ScheduleBaseSerializer):
 
 
 class ScheduleCalendarUpdateSerializer(ScheduleCalendarSerializer):
-    time_zone = serializers.CharField(required=False)
+    time_zone = TimeZoneField(required=False)
     team_id = TeamPrimaryKeyRelatedField(read_only=True, source="team")
 
     class Meta:

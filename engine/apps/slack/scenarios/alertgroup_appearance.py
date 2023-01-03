@@ -5,8 +5,8 @@ from django.db import transaction
 from jinja2 import TemplateSyntaxError
 from rest_framework.response import Response
 
+from apps.api.permissions import RBACPermission
 from apps.slack.scenarios import scenario_step
-from common.constants.role import Role
 from common.insight_log import EntityEvent, write_resource_insight_log
 from common.jinja_templater import jinja_template_env
 
@@ -21,7 +21,7 @@ class OpenAlertAppearanceDialogStep(
         scenario_step.ScenarioStep.TAG_INCIDENT_ROUTINE,
     ]
 
-    ALLOWED_ROLES = [Role.ADMIN]
+    REQUIRED_PERMISSIONS = [RBACPermission.Permissions.CHATOPS_WRITE]
     ACTION_VERBOSE = "open Alert Appearance"
 
     def process_scenario(self, slack_user_identity, slack_team_identity, payload, action=None):
@@ -57,7 +57,7 @@ class OpenAlertAppearanceDialogStep(
 
         # This is a special case for amazon sns notifications in str format CHEKED
         if (
-            AlertReceiveChannel.INTEGRATION_AMAZON_SNS is not None
+            hasattr(AlertReceiveChannel, "INTEGRATION_AMAZON_SNS")
             and alert_group.channel.integration == AlertReceiveChannel.INTEGRATION_AMAZON_SNS
             and raw_request_data == "{}"
         ):
@@ -90,7 +90,7 @@ class OpenAlertAppearanceDialogStep(
             blocks.append(block)
         blocks.append({"type": "divider"})
 
-        for notification_channel in ["slack", "web", "sms", "phone_call", "email", "telegram"]:
+        for notification_channel in ["slack", "web", "sms", "phone_call", "telegram"]:
             blocks.append(
                 {
                     "type": "header",
@@ -236,7 +236,7 @@ class UpdateAppearanceStep(scenario_step.ScenarioStep):
             prev_state = alert_receive_channel.insight_logs_serialized
 
             for templatizable_attr in ["title", "message", "image_url"]:
-                for notification_channel in ["slack", "web", "sms", "phone_call", "email", "telegram"]:
+                for notification_channel in ["slack", "web", "sms", "phone_call", "telegram"]:
                     attr_name = f"{notification_channel}_{templatizable_attr}_template"
                     try:
                         old_value = getattr(alert_receive_channel, attr_name)

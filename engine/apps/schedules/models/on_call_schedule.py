@@ -3,10 +3,12 @@ import functools
 import itertools
 
 import icalendar
+import pytz
 from django.apps import apps
 from django.conf import settings
 from django.core.validators import MinLengthValidator
 from django.db import models
+from django.db.utils import DatabaseError
 from django.utils import timezone
 from django.utils.functional import cached_property
 from icalendar.cal import Calendar
@@ -201,7 +203,16 @@ class OnCallSchedule(PolymorphicModel):
         """Return public primary keys for all users referenced in the schedule."""
         return set()
 
-    def filter_events(self, user_timezone, starting_date, days, with_empty=False, with_gap=False, filter_by=None):
+    def filter_events(
+        self,
+        user_timezone,
+        starting_date,
+        days,
+        with_empty=False,
+        with_gap=False,
+        filter_by=None,
+        all_day_datetime=False,
+    ):
         """Return filtered events from schedule."""
         shifts = (
             list_of_oncall_shifts_from_ical(
@@ -211,13 +222,18 @@ class OnCallSchedule(PolymorphicModel):
         )
         events = []
         for shift in shifts:
-            all_day = type(shift["start"]) == datetime.date
+            start = shift["start"]
+            all_day = type(start) == datetime.date
+            # fix confusing end date for all-day event
+            end = shift["end"] - timezone.timedelta(days=1) if all_day else shift["end"]
+            if all_day and all_day_datetime:
+                start = datetime.datetime.combine(start, datetime.datetime.min.time(), tzinfo=pytz.UTC)
+                end = datetime.datetime.combine(end, datetime.datetime.max.time(), tzinfo=pytz.UTC)
             is_gap = shift.get("is_gap", False)
             shift_json = {
                 "all_day": all_day,
-                "start": shift["start"],
-                # fix confusing end date for all-day event
-                "end": shift["end"] - timezone.timedelta(days=1) if all_day else shift["end"],
+                "start": start,
+                "end": end,
                 "users": [
                     {
                         "display_name": user.username,
@@ -245,7 +261,9 @@ class OnCallSchedule(PolymorphicModel):
 
     def final_events(self, user_tz, starting_date, days):
         """Return schedule final events, after resolving shifts and overrides."""
-        events = self.filter_events(user_tz, starting_date, days=days, with_empty=True, with_gap=True)
+        events = self.filter_events(
+            user_tz, starting_date, days=days, with_empty=True, with_gap=True, all_day_datetime=True
+        )
         events = self._resolve_schedule(events)
         return events
 
@@ -254,12 +272,16 @@ class OnCallSchedule(PolymorphicModel):
         if not events:
             return []
 
+        def event_start_cmp_key(e):
+            return e["start"]
+
         def event_cmp_key(e):
             """Sorting key criteria for events."""
+            start = event_start_cmp_key(e)
             return (
                 -e["calendar_type"] if e["calendar_type"] else 0,  # overrides: 1, shifts: 0, gaps: None
                 -e["priority_level"] if e["priority_level"] else 0,
-                e["start"],
+                start,
             )
 
         def insort_event(eventlist, e):
@@ -297,6 +319,7 @@ class OnCallSchedule(PolymorphicModel):
         resolved = []
         pending = events
         current_interval_idx = 0  # current scheduled interval being checked
+        current_type = OnCallSchedule.TYPE_ICAL_OVERRIDES  # current calendar type
         current_priority = None  # current priority level being resolved
 
         while pending:
@@ -306,18 +329,17 @@ class OnCallSchedule(PolymorphicModel):
                 # exclude events without active users
                 continue
 
-            if ev["calendar_type"] == OnCallSchedule.TYPE_ICAL_OVERRIDES:
-                # include overrides from start
-                resolved.append(ev)
-                continue
-
-            if ev["priority_level"] != current_priority:
+            # api/terraform shifts could be missing a priority; assume None means 0
+            priority = ev["priority_level"] or 0
+            if priority != current_priority or current_type != ev["calendar_type"]:
                 # update scheduled intervals on priority change
                 # and start from the beginning for the new priority level
-                resolved.sort(key=lambda e: e["start"])
+                # also for calendar event type (overrides first, then apply regular shifts)
+                resolved.sort(key=event_start_cmp_key)
                 intervals = _merge_intervals(resolved)
                 current_interval_idx = 0
-                current_priority = ev["priority_level"]
+                current_priority = priority
+                current_type = ev["calendar_type"]
 
             if current_interval_idx >= len(intervals):
                 # event outside scheduled intervals, add to resolved
@@ -367,7 +389,7 @@ class OnCallSchedule(PolymorphicModel):
                 # TODO: switch to bisect insert on python 3.10 (or consider heapq)
                 insort_event(pending, ev)
 
-        resolved.sort(key=lambda e: (e["start"], e["shift"]["pk"]))
+        resolved.sort(key=lambda e: (event_start_cmp_key(e), e["shift"]["pk"] or ""))
         return resolved
 
     def _merge_events(self, events):
@@ -381,8 +403,10 @@ class OnCallSchedule(PolymorphicModel):
                     and current["shift"]["pk"] is not None
                     and current["shift"]["pk"] == next_event["shift"]["pk"]
                 ):
-                    current["users"] += next_event["users"]
-                    current["missing_users"] += next_event["missing_users"]
+                    current["users"] += [u for u in next_event["users"] if u not in current["users"]]
+                    current["missing_users"] += [
+                        u for u in next_event["missing_users"] if u not in current["missing_users"]
+                    ]
                 else:
                     merged.append(next_event)
                     current = next_event
@@ -612,7 +636,11 @@ class OnCallScheduleWeb(OnCallSchedule):
         """Return cached ical file with iCal events from custom on-call shifts."""
         if self.cached_ical_file_primary is None:
             self.cached_ical_file_primary = self._generate_ical_file_primary()
-            self.save(update_fields=["cached_ical_file_primary"])
+            try:
+                self.save(update_fields=["cached_ical_file_primary"])
+            except DatabaseError:
+                # schedule may have been deleted from db
+                return
         return self.cached_ical_file_primary
 
     def _refresh_primary_ical_file(self):
@@ -625,7 +653,11 @@ class OnCallScheduleWeb(OnCallSchedule):
         """Return cached ical file with iCal events from custom on-call overrides shifts."""
         if self.cached_ical_file_overrides is None:
             self.cached_ical_file_overrides = self._generate_ical_file_overrides()
-            self.save(update_fields=["cached_ical_file_overrides"])
+            try:
+                self.save(update_fields=["cached_ical_file_overrides"])
+            except DatabaseError:
+                # schedule may have been deleted from db
+                return
         return self.cached_ical_file_overrides
 
     def _refresh_overrides_ical_file(self):
@@ -645,6 +677,7 @@ class OnCallScheduleWeb(OnCallSchedule):
                 for g in rolling_groups
                 if g is not None
             ),
+            set(),
         )
         return users
 

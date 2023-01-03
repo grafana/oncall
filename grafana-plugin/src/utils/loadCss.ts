@@ -1,5 +1,5 @@
 export default function loadCss(url: string) {
-  return new Promise((resolve, reject) => {
+  return new Promise((resolve, _reject) => {
     let link = document.createElement('link');
     link.type = 'text/css';
     link.rel = 'stylesheet';

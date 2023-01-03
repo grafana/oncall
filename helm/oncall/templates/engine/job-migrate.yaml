@@ -6,7 +6,10 @@ metadata:
   labels:
     {{- include "oncall.engine.labels" . | nindent 4 }}
 spec:
-  ttlSecondsAfterFinished: 20
+  backoffLimit: 15
+  {{- if .Values.migrate.ttlSecondsAfterFinished }}
+  ttlSecondsAfterFinished: {{ .Values.migrate.ttlSecondsAfterFinished }}
+  {{- end }}
   template:
     metadata:
       name: {{ printf "%s-migrate-%s" (include "oncall.engine.fullname" .) (now | date "2006-01-02-15-04-05") }}
@@ -35,15 +38,30 @@ spec:
         command:
           - /bin/sh
           - -c
+          {{- if eq .Values.database.type "mysql" }}
           - |
             until (nc -vz $MYSQL_HOST $MYSQL_PORT);
             do
                 echo "waiting for MySQL"; sleep 1;
             done
             python manage.py migrate
+          {{- else if eq .Values.database.type "postgresql" }}
+          - |
+            until (nc -vz $DATABASE_HOST $DATABASE_PORT);
+            do
+                echo "waiting for PostgreSQL"; sleep 1;
+            done
+            python manage.py migrate
+          {{- end }}
         env:
           {{- include "snippet.oncall.env" . | nindent 12 }}
+          {{- include "snippet.oncall.smtp.env" . | nindent 12 }}
+          {{- if eq .Values.database.type "mysql" }}
           {{- include "snippet.mysql.env" . | nindent 12 }}
+          {{- end }}
+          {{- if eq .Values.database.type "postgresql" }}
+          {{- include "snippet.postgresql.env" . | nindent 12 }}
+          {{- end }}
           {{- include "snippet.rabbitmq.env" . | nindent 12 }}
           {{- include "snippet.redis.env" . | nindent 12 }}
           {{- if .Values.env }}

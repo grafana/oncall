@@ -1,329 +1,246 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { FC, useCallback, useEffect, useState } from 'react';
 
-import { AppPluginMeta, PluginConfigPageProps } from '@grafana/data';
-import { getBackendSrv } from '@grafana/runtime';
-import {
-  Button,
-  Field,
-  HorizontalGroup,
-  VerticalGroup,
-  Input,
-  Label,
-  Legend,
-  LoadingPlaceholder,
-  Icon,
-  Alert,
-  Modal,
-} from '@grafana/ui';
-import cn from 'classnames/bind';
-import CopyToClipboard from 'react-copy-to-clipboard';
-import { OnCallAppSettings } from 'types';
+import { Button, Label, Legend, LoadingPlaceholder } from '@grafana/ui';
+import { useLocation } from 'react-router-dom';
+import { OnCallPluginConfigPageProps } from 'types';
 
-import Block from 'components/GBlock/Block';
-import Text from 'components/Text/Text';
-import WithConfirm from 'components/WithConfirm/WithConfirm';
 import logo from 'img/logo.svg';
-import { makeRequest } from 'network';
-import { createGrafanaToken, getPluginSyncStatus, startPluginSync, updateGrafanaToken } from 'state/plugin';
+import PluginState, { PluginStatusResponseBase } from 'state/plugin';
 import { GRAFANA_LICENSE_OSS } from 'utils/consts';
-import { getItem, setItem } from 'utils/localStorage';
 
-import styles from './PluginConfigPage.module.css';
+import ConfigurationForm from './parts/ConfigurationForm';
+import RemoveCurrentConfigurationButton from './parts/RemoveCurrentConfigurationButton';
+import StatusMessageBlock from './parts/StatusMessageBlock';
 
-const cx = cn.bind(styles);
+const PLUGIN_CONFIGURED_QUERY_PARAM = 'pluginConfigured';
+const PLUGIN_CONFIGURED_QUERY_PARAM_TRUTHY_VALUE = 'true';
 
-interface Props extends PluginConfigPageProps<AppPluginMeta<OnCallAppSettings>> {}
+const PLUGIN_CONFIGURED_LICENSE_QUERY_PARAM = 'pluginConfiguredLicense';
+const PLUGIN_CONFIGURED_VERSION_QUERY_PARAM = 'pluginConfiguredVersion';
 
-export const PluginConfigPage = (props: Props) => {
-  const { plugin } = props;
-  const [onCallApiUrl, setOnCallApiUrl] = useState<string>(getItem('onCallApiUrl'));
-  const [onCallInvitationToken, setOnCallInvitationToken] = useState<string>();
-  const [grafanaUrl, setGrafanaUrl] = useState<string>(getItem('grafanaUrl'));
-  const [pluginConfigLoading, setPluginConfigLoading] = useState<boolean>(true);
-  const [pluginStatusOk, setPluginStatusOk] = useState<boolean>();
-  const [pluginStatusMessage, setPluginStatusMessage] = useState<string>();
-  const [isSelfHostedInstall, setIsSelfHostedInstall] = useState<boolean>(true);
-  const [retrySync, setRetrySync] = useState<boolean>(false);
+/**
+ * When everything is successfully configured, reload the page, and pass along a few query parameters
+ * so that we avoid an infinite configuration-check/data-sync loop
+ *
+ * Don't refresh the page if the plugin is already enabled..
+ */
+export const reloadPageWithPluginConfiguredQueryParams = (
+  { license, version }: PluginStatusResponseBase,
+  pluginEnabled: boolean
+): void => {
+  if (!pluginEnabled) {
+    window.location.href = `${window.location.href}?${PLUGIN_CONFIGURED_QUERY_PARAM}=${PLUGIN_CONFIGURED_QUERY_PARAM_TRUTHY_VALUE}&${PLUGIN_CONFIGURED_LICENSE_QUERY_PARAM}=${license}&${PLUGIN_CONFIGURED_VERSION_QUERY_PARAM}=${version}`;
+  }
+};
 
-  const setupPlugin = useCallback(async () => {
-    setItem('onCallApiUrl', onCallApiUrl);
-    setItem('grafanaUrl', grafanaUrl);
-    await getBackendSrv().post(`/api/plugins/grafana-oncall-app/settings`, {
-      enabled: true,
-      pinned: true,
-      jsonData: {
-        onCallApiUrl: onCallApiUrl,
-        grafanaUrl: grafanaUrl,
-      },
-      secureJsonData: {
-        onCallInvitationToken: onCallInvitationToken,
-      },
-    });
+/**
+ * remove the query params used to track state for a page reload after successful configuration, without triggering
+ * a page reload
+ * https://stackoverflow.com/a/19279428
+ */
+export const removePluginConfiguredQueryParams = (pluginIsEnabled: boolean): void => {
+  if (history.pushState && pluginIsEnabled) {
+    const newurl = `${window.location.protocol}//${window.location.host}${window.location.pathname}`;
+    window.history.pushState({ path: newurl }, '', newurl);
+  }
+};
 
-    const grafanaToken = await createGrafanaToken();
-    await updateGrafanaToken(grafanaToken.key);
+const PluginConfigPage: FC<OnCallPluginConfigPageProps> = ({
+  plugin: {
+    meta: { jsonData, enabled: pluginIsEnabled },
+  },
+}) => {
+  const { search } = useLocation();
+  const queryParams = new URLSearchParams(search);
+  const pluginConfiguredQueryParam = queryParams.get(PLUGIN_CONFIGURED_QUERY_PARAM);
+  const pluginConfiguredLicenseQueryParam = queryParams.get(PLUGIN_CONFIGURED_LICENSE_QUERY_PARAM);
+  const pluginConfiguredVersionQueryParam = queryParams.get(PLUGIN_CONFIGURED_VERSION_QUERY_PARAM);
 
-    let provisioningConfig;
-    try {
-      provisioningConfig = await makeRequest('/plugin/self-hosted/install', { method: 'POST' });
-    } catch (e) {
-      if (e.response.status === 502) {
-        console.warn('Could not connect to OnCall: ' + onCallApiUrl);
-      } else if (e.response.status === 403) {
-        console.warn('Invitation token is invalid or expired.');
-      } else {
-        console.warn('Expected error: ' + e.response.status);
-      }
-    }
+  const pluginConfiguredRedirect = pluginConfiguredQueryParam === PLUGIN_CONFIGURED_QUERY_PARAM_TRUTHY_VALUE;
 
-    if (provisioningConfig) {
-      await getBackendSrv().post(`/api/plugins/grafana-oncall-app/settings`, {
-        enabled: true,
-        pinned: true,
-        jsonData: {
-          stackId: provisioningConfig.jsonData.stackId,
-          orgId: provisioningConfig.jsonData.orgId,
-          onCallApiUrl: onCallApiUrl,
-          grafanaUrl: grafanaUrl,
-          license: provisioningConfig.jsonData.license,
-        },
-        secureJsonData: {
-          grafanaToken: grafanaToken.key,
-          onCallApiToken: provisioningConfig.secureJsonData.onCallToken,
-        },
-      });
-    }
+  const [checkingIfPluginIsConnected, setCheckingIfPluginIsConnected] = useState<boolean>(!pluginConfiguredRedirect);
+  const [pluginConnectionCheckError, setPluginConnectionCheckError] = useState<string>(null);
+  const [pluginIsConnected, setPluginIsConnected] = useState<PluginStatusResponseBase>(
+    pluginConfiguredRedirect
+      ? { version: pluginConfiguredVersionQueryParam, license: pluginConfiguredLicenseQueryParam }
+      : null
+  );
 
-    window.location.reload();
-  }, [onCallApiUrl, onCallInvitationToken, grafanaUrl]);
+  const [syncingPlugin, setSyncingPlugin] = useState<boolean>(false);
+  const [syncError, setSyncError] = useState<string>(null);
 
-  const resetPlugin = useCallback(async () => {
-    await getBackendSrv().post(`/api/plugins/grafana-oncall-app/settings`, {
-      enabled: false,
-      pinned: true,
-      jsonData: {
-        stackId: null,
-        orgId: null,
-        onCallApiUrl: null,
-        grafanaUrl: null,
-      },
-      secureJsonData: {
-        grafanaToken: null,
-        onCallApiToken: null,
-      },
-    });
+  const [resettingPlugin, setResettingPlugin] = useState<boolean>(false);
+  const [pluginResetError, setPluginResetError] = useState<string>(null);
 
-    window.location.reload();
-  }, []);
+  const pluginMetaOnCallApiUrl = jsonData?.onCallApiUrl;
+  const processEnvOnCallApiUrl = process.env.ONCALL_API_URL; // don't destructure this, will break how webpack supplies this
+  const onCallApiUrl = pluginMetaOnCallApiUrl || processEnvOnCallApiUrl;
+  const licenseType = pluginIsConnected?.license;
 
-  const handleApiUrlChange = useCallback((e) => {
-    setOnCallApiUrl(e.target.value);
-  }, []);
+  const resetQueryParams = useCallback(() => removePluginConfiguredQueryParams(pluginIsEnabled), [pluginIsEnabled]);
 
-  const handleInvitationTokenChange = useCallback((e) => {
-    setOnCallInvitationToken(e.target.value);
-  }, []);
+  const triggerDataSyncWithOnCall = useCallback(async () => {
+    setSyncingPlugin(true);
+    setSyncError(null);
 
-  const handleGrafanaUrlChange = useCallback((e) => {
-    setGrafanaUrl(e.target.value);
-  }, []);
+    const syncDataResponse = await PluginState.syncDataWithOnCall(onCallApiUrl);
 
-  const handleSyncException = useCallback((e) => {
-    if (plugin.meta.jsonData?.onCallApiUrl) {
-      let statusMessage = plugin.meta.jsonData.onCallApiUrl + '\n' + e + ', retry or check settings & re-initialize.';
-      if (e.response.status == 404) {
-        statusMessage += '\nIf Grafana OnCall was just installed, restart Grafana for OnCall routes to be available.';
-      }
-      setPluginStatusMessage(statusMessage);
-      setRetrySync(true);
+    if (typeof syncDataResponse === 'string') {
+      setSyncError(syncDataResponse);
     } else {
-      setPluginStatusMessage('OnCall has not been setup, configure & initialize below.');
+      const { token_ok, ...versionLicenseInfo } = syncDataResponse;
+      setPluginIsConnected(versionLicenseInfo);
+      reloadPageWithPluginConfiguredQueryParams(versionLicenseInfo, pluginIsEnabled);
     }
-    setPluginStatusOk(false);
-    setPluginConfigLoading(false);
-  }, []);
 
-  const finishSync = useCallback((get_sync_response) => {
-    if (get_sync_response.token_ok) {
-      const versionInfo =
-        get_sync_response.version && get_sync_response.license
-          ? ` (${get_sync_response.license}, ${get_sync_response.version})`
-          : '';
+    setSyncingPlugin(false);
+  }, [onCallApiUrl, pluginIsEnabled]);
 
-      let pluginStatusMessage = `Connected to OnCall${versionInfo}\n - OnCall URL: ${plugin.meta.jsonData.onCallApiUrl}\n`
-      if (plugin.meta.jsonData.grafanaUrl) {
-        pluginStatusMessage = `${pluginStatusMessage} - Grafana URL: ${plugin.meta.jsonData.grafanaUrl}`
-      }
-
-      setPluginStatusMessage(pluginStatusMessage)
-      setIsSelfHostedInstall(plugin.meta.jsonData?.license === GRAFANA_LICENSE_OSS);
-      setPluginStatusOk(true);
-    } else {
-      setPluginStatusMessage(
-        `OnCall failed to connect to this grafana via: ${plugin.meta.jsonData.grafanaUrl} check URL, network, and API key.`
-      );
-      setRetrySync(true);
-    }
-    setPluginConfigLoading(false);
-  }, []);
-
-  const startSync = useCallback(() => {
-    setRetrySync(false);
-    setPluginConfigLoading(true);
-    startPluginSync()
-      .then(() => {
-        let counter = 0;
-        const interval = setInterval(() => {
-          counter++;
-
-          getPluginSyncStatus()
-            .then((get_sync_response) => {
-              if (get_sync_response.hasOwnProperty('token_ok')) {
-                clearInterval(interval);
-                finishSync(get_sync_response);
-              }
-            })
-            .catch((e) => {
-              clearInterval(interval);
-              handleSyncException(e);
-            });
-
-          if (counter >= 5) {
-            clearInterval(interval);
-            setPluginStatusMessage(
-              `OnCall took too many tries to synchronize. Did you launch Celery workers? Background workers should perform synchronization, not web server.`
-            );
-            setRetrySync(true);
-            setPluginStatusOk(false);
-            setPluginConfigLoading(false);
-          }
-        }, 2000);
-      })
-      .catch(handleSyncException);
-  }, []);
+  useEffect(resetQueryParams, [resetQueryParams]);
 
   useEffect(() => {
-    startSync();
-  }, []);
+    const configurePluginAndSyncData = async () => {
+      /**
+       * If the plugin has never been configured, onCallApiUrl will be undefined in the plugin's jsonData
+       * In that case, check to see if ONCALL_API_URL has been supplied as an env var.
+       * Supplying the env var basically allows to skip the configuration form
+       * (check webpack.config.js to see how this is set)
+       */
+      if (!pluginMetaOnCallApiUrl && processEnvOnCallApiUrl) {
+        /**
+         * onCallApiUrl is not yet saved in the grafana plugin settings, but has been supplied as an env var
+         * lets auto-trigger a self-hosted plugin install w/ the onCallApiUrl passed in as an env var
+         */
+        const errorMsg = await PluginState.selfHostedInstallPlugin(processEnvOnCallApiUrl, true);
+        if (errorMsg) {
+          setPluginConnectionCheckError(errorMsg);
+          setCheckingIfPluginIsConnected(false);
+          return;
+        }
+      }
+
+      /**
+       * If the onCallApiUrl is not set in the plugin settings, and not supplied via an env var
+       * there's no reason to check if the plugin is connected, we know it can't be
+       */
+      if (onCallApiUrl) {
+        const pluginConnectionResponse = await PluginState.checkIfPluginIsConnected(onCallApiUrl);
+
+        if (typeof pluginConnectionResponse === 'string') {
+          setPluginConnectionCheckError(pluginConnectionResponse);
+        } else {
+          triggerDataSyncWithOnCall();
+        }
+      }
+      setCheckingIfPluginIsConnected(false);
+    };
+
+    /**
+     * don't check the plugin status (or trigger a data sync) if the user was just redirected after a successful
+     * plugin setup
+     */
+    if (!pluginConfiguredRedirect) {
+      configurePluginAndSyncData();
+    }
+  }, [pluginMetaOnCallApiUrl, processEnvOnCallApiUrl, onCallApiUrl, pluginConfiguredRedirect]);
+
+  const resetState = useCallback(() => {
+    setPluginResetError(null);
+    setPluginConnectionCheckError(null);
+    setPluginIsConnected(null);
+    setSyncError(null);
+    resetQueryParams();
+  }, [resetQueryParams]);
+
+  /**
+   * NOTE: there is a possible edge case when resetting the plugin, that would lead to an error message being shown
+   * (which could be fixed by just reloading the page)
+   * This would happen if the user removes the plugin configuration, leaves the page, then comes back to the plugin
+   * configuration.
+   *
+   * This is because the props being passed into this component wouldn't reflect the actual plugin
+   * provisioning state. The props would still have onCallApiUrl set in the plugin jsonData, so when we make the API
+   * call to check the plugin state w/ OnCall API the plugin-proxy would return a 502 Bad Gateway because the actual
+   * provisioned plugin doesn't know about the onCallApiUrl.
+   *
+   * This could be fixed by instead of passing in the plugin provisioning information as props always fetching it
+   * when this component renders (via a useEffect). We probably don't need to worry about this because it should happen
+   * very rarely, if ever
+   */
+  const triggerPluginReset = useCallback(async () => {
+    setResettingPlugin(true);
+    resetState();
+
+    try {
+      await PluginState.resetPlugin();
+    } catch (e) {
+      // this should rarely, if ever happen, but we should handle the case nevertheless
+      setPluginResetError('There was an error resetting your plugin, try again.');
+    }
+
+    setResettingPlugin(false);
+  }, [resetState]);
+
+  const RemoveConfigButton = useCallback(
+    () => <RemoveCurrentConfigurationButton disabled={resettingPlugin} onClick={triggerPluginReset} />,
+    [resettingPlugin, triggerPluginReset]
+  );
+
+  let content: React.ReactNode;
+
+  if (checkingIfPluginIsConnected) {
+    content = <LoadingPlaceholder text="Validating your plugin connection..." />;
+  } else if (syncingPlugin) {
+    content = <LoadingPlaceholder text="Syncing data required for your plugin..." />;
+  } else if (pluginConnectionCheckError || pluginResetError) {
+    content = (
+      <>
+        <StatusMessageBlock text={pluginConnectionCheckError || pluginResetError} />
+        <RemoveConfigButton />
+      </>
+    );
+  } else if (syncError) {
+    content = (
+      <>
+        <StatusMessageBlock text={syncError} />
+        <Button variant="primary" onClick={triggerDataSyncWithOnCall} size="md">
+          Retry Sync
+        </Button>
+      </>
+    );
+  } else if (!pluginIsConnected) {
+    content = (
+      <ConfigurationForm onSuccessfulSetup={triggerDataSyncWithOnCall} defaultOnCallApiUrl={processEnvOnCallApiUrl} />
+    );
+  } else {
+    // plugin is fully connected and synced
+    content =
+      licenseType === GRAFANA_LICENSE_OSS ? (
+        <RemoveConfigButton />
+      ) : (
+        <Label>This is a cloud managed configuration.</Label>
+      );
+  }
 
   return (
-    <div>
-      {pluginConfigLoading ? (
-        <LoadingPlaceholder text="Loading..." />
-      ) : pluginStatusOk || retrySync ? (
+    <>
+      <Legend>Configure Grafana OnCall</Legend>
+      {pluginIsConnected ? (
         <>
-          <Legend>Configure Grafana OnCall</Legend>
-          {pluginStatusOk && (
-            <p>
-              Plugin and the backend are connected! Check Grafana OnCall 👈👈👈{' '}
-              <img alt="Grafana OnCall Logo" src={logo} width={18} />
-            </p>
-          )}
-          <p>{'Plugin <-> backend connection status'}</p>
-          <pre>
-            <Text type="link">{pluginStatusMessage}</Text>
-          </pre>
-
-          <HorizontalGroup>
-            {/* <p>{'Plugin <-> backend connection status'}</p>
-              <pre>
-                <Text type="link">{pluginStatusMessage}</Text>
-              </pre> */}
-            {retrySync && (
-              <Button variant="primary" onClick={startSync} size="md">
-                Retry
-              </Button>
-            )}
-            {isSelfHostedInstall ? (
-              <WithConfirm title="Are you sure to delete OnCall plugin configuration?">
-                <Button variant="destructive" onClick={resetPlugin} size="md">
-                  Remove current configuration
-                </Button>
-              </WithConfirm>
-            ) : (
-              <Label>This is a cloud managed configuration.</Label>
-            )}{' '}
-          </HorizontalGroup>
+          <p>
+            Plugin is connected! Continue to Grafana OnCall by clicking the{' '}
+            <img alt="Grafana OnCall Logo" src={logo} width={18} /> icon over there 👈
+          </p>
+          <StatusMessageBlock
+            text={`Connected to OnCall (${pluginIsConnected.version}, ${pluginIsConnected.license})`}
+          />
         </>
       ) : (
-        <React.Fragment>
-          <Legend>Configure Grafana OnCall</Legend>
-          <p>This page will help you to connect OnCall backend and OnCall Grafana plugin 👋</p>
-
-          <p>1. Launch backend</p>
-          <VerticalGroup>
-            <Text type="secondary">
-              Run hobby, dev or production backend:{' '}
-              <a href="https://github.com/grafana/oncall#getting-started" target="_blank" rel="noreferrer">
-                <Text type="link">getting started.</Text>
-              </a>
-            </Text>
-          </VerticalGroup>
-          <Block withBackground className={cx('info-block')}>
-            <Text type="secondary">
-              Need help?
-              <br />- Talk to the OnCall team in the #grafana-oncall channel at{' '}
-              <a href="https://slack.grafana.com/" target="_blank" rel="noreferrer">
-                <Text type="link">Slack</Text>
-              </a>
-              <br />- Ask questions at{' '}
-              <a href="https://github.com/grafana/oncall/discussions/categories/q-a" target="_blank" rel="noreferrer">
-                <Text type="link">GitHub Discussions</Text>
-              </a>{' '}
-              or file bugs at{' '}
-              <a href="https://github.com/grafana/oncall/issues" target="_blank" rel="noreferrer">
-                <Text type="link">GitHub Issues</Text>
-              </a>
-            </Text>
-          </Block>
-
-          <p>2. Conect the backend and the plugin </p>
-          <p>{'Plugin <-> backend connection status:'}</p>
-          <pre>
-            <Text type="link">{pluginStatusMessage}</Text>
-          </pre>
-          <Field
-            label="Invite token"
-            description="Invite token is a 1-time secret used to make sure the backend is talking with the proper frontend. Find it at the end of the backend docker container logs.
-Seek for such a line:  “Your invite token: <<LONG TOKEN>> , use it in the Grafana OnCall plugin.”"
-          >
-            <>
-              <Input id="onCallInvitationToken" onChange={handleInvitationTokenChange} />
-              <a href="https://github.com/grafana/oncall/blob/dev/DEVELOPER.md#frontend-setup" target="_blank" rel="noreferrer">
-                <Text size="small" type="link">
-                  How to re-issue the invite token?
-                </Text>
-              </a>
-            </>
-          </Field>
-
-          <Field
-            label="OnCall backend URL"
-            description={
-              <Text>
-                It should be reachable from Grafana. Possible options: <br />
-                http://host.docker.internal:8080 (if you run backend in the docker locally)
-                <br />
-                http://localhost:8080 <br />
-                ...
-              </Text>
-            }
-          >
-            <Input id="onCallApiUrl" onChange={handleApiUrlChange} defaultValue={onCallApiUrl} />
-          </Field>
-          <Field label="Grafana URL" description="URL of the current Grafana instance. ">
-            <Input id="grafanaUrl" onChange={handleGrafanaUrlChange} defaultValue={grafanaUrl} />
-          </Field>
-          <Button
-            variant="primary"
-            onClick={setupPlugin}
-            disabled={!onCallApiUrl || !onCallInvitationToken || !grafanaUrl}
-            size="md"
-          >
-            Connect
-          </Button>
-        </React.Fragment>
+        <p>This page will help you configure the OnCall plugin 👋</p>
       )}
-    </div>
+      {content}
+    </>
   );
 };
+
+export default PluginConfigPage;

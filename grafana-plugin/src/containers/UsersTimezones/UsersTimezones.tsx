@@ -1,15 +1,18 @@
 import React, { FC, useCallback, useEffect, useMemo, useState } from 'react';
 
-import { HorizontalGroup, InlineSwitch, Tooltip } from '@grafana/ui';
+import { HorizontalGroup, Tooltip } from '@grafana/ui';
 import cn from 'classnames/bind';
 import dayjs from 'dayjs';
 
 import Avatar from 'components/Avatar/Avatar';
+import ScheduleBorderedAvatar from 'components/ScheduleBorderedAvatar/ScheduleBorderedAvatar';
 import ScheduleUserDetails from 'components/ScheduleUserDetails/ScheduleUserDetails';
 import Text from 'components/Text/Text';
 import { IsOncallIcon } from 'icons';
+import { Schedule } from 'models/schedule/schedule.types';
 import { Timezone } from 'models/timezone/timezone.types';
 import { User } from 'models/user/user.types';
+import { getColorSchemeMappingForUsers } from 'pages/schedule/Schedule.helpers';
 import { useStore } from 'state/useStore';
 
 import styles from './UsersTimezones.module.css';
@@ -17,8 +20,11 @@ import styles from './UsersTimezones.module.css';
 interface UsersTimezonesProps {
   userIds: Array<User['pk']>;
   tz: Timezone;
-  onTzChange: (tz: Timezone) => void;
   onCallNow: Array<Partial<User>>;
+  scheduleId: Schedule['id'];
+  startMoment: dayjs.Dayjs;
+
+  onTzChange: (tz: Timezone) => void;
 }
 
 const cx = cn.bind(styles);
@@ -28,12 +34,9 @@ const hoursToSplit = 3;
 const jLimit = 24 / hoursToSplit;
 
 const UsersTimezones: FC<UsersTimezonesProps> = (props) => {
-  const { userIds, tz, onTzChange, onCallNow } = props;
-
   const store = useStore();
 
-  const [count, setCount] = useState<number>(0);
-  const [currentMoment, setCurrentMoment] = useState<dayjs.Dayjs>(dayjs().tz(tz));
+  const { userIds, tz, onTzChange, onCallNow, scheduleId, startMoment } = props;
 
   useEffect(() => {
     userIds.forEach((userId) => {
@@ -48,18 +51,7 @@ const UsersTimezones: FC<UsersTimezonesProps> = (props) => {
     [userIds, store.userStore.items]
   );
 
-  useEffect(() => {
-    setCurrentMoment(currentMoment.tz(tz).startOf('minute'));
-  }, [tz]);
-
-  /*useInterval(
-    () => {
-      setCurrentMoment(currentMoment.add(10, 'minute'));
-      //setCount(count + 1);
-    },
-    // Delay in milliseconds or null to stop it
-    1000,
-  );*/
+  const currentMoment = useMemo(() => dayjs().tz(tz), [tz]);
 
   const currentTimeX = useMemo(() => {
     const midnight = dayjs().tz(tz).startOf('day');
@@ -85,11 +77,11 @@ const UsersTimezones: FC<UsersTimezonesProps> = (props) => {
       <div className={cx('header')}>
         <HorizontalGroup justify="space-between">
           <HorizontalGroup>
-            <div className={cx('title')}>Schedule team and timezones</div>
-            {/* <HorizontalGroup>
-              <InlineSwitch transparent />
-              Current schedule users only
-            </HorizontalGroup>*/}
+            <div className={cx('title')}>
+              <Text.Title level={4} type="primary">
+                Schedule team and timezones
+              </Text.Title>
+            </div>
           </HorizontalGroup>
           <div className={cx('timezone-select')}>
             <Text type="secondary">
@@ -100,7 +92,14 @@ const UsersTimezones: FC<UsersTimezonesProps> = (props) => {
       </div>
       <div className={cx('users')}>
         <div className={cx('current-time')} style={{ left: `${currentTimeX}%` }} />
-        <UserAvatars users={users} onCallNow={onCallNow} onTzChange={onTzChange} currentMoment={currentMoment} />
+        <UserAvatars
+          users={users}
+          onCallNow={onCallNow}
+          onTzChange={onTzChange}
+          currentMoment={currentMoment}
+          startMoment={startMoment}
+          scheduleId={scheduleId}
+        />
       </div>
       <div className={cx('time-stripe')}>
         <div className={cx('current-user-stripe')} />
@@ -112,12 +111,18 @@ const UsersTimezones: FC<UsersTimezonesProps> = (props) => {
                   'time-mark-text__translated': index > 0,
                 })}
               >
-                {mm.format('HH:mm')}
+                <Text type="secondary" size="small">
+                  {mm.format('HH:mm')}
+                </Text>
               </span>
             </div>
           ))}
           <div key={jLimit} className={cx('time-mark')}>
-            <span className={cx('time-mark-text')}>24:00</span>
+            <span className={cx('time-mark-text')}>
+              <Text type="secondary" size="small">
+                24:00
+              </Text>
+            </span>
           </div>
         </div>
       </div>
@@ -128,12 +133,14 @@ const UsersTimezones: FC<UsersTimezonesProps> = (props) => {
 interface UserAvatarsProps {
   users: User[];
   currentMoment: dayjs.Dayjs;
+  startMoment: dayjs.Dayjs;
+  scheduleId: Schedule['id'];
   onTzChange: (timezone: Timezone) => void;
   onCallNow: Array<Partial<User>>;
 }
 
 const UserAvatars = (props: UserAvatarsProps) => {
-  const { users, currentMoment, onTzChange, onCallNow } = props;
+  const { users, currentMoment, onTzChange, onCallNow, scheduleId, startMoment } = props;
   const userGroups = useMemo(() => {
     return users
       .reduce((memo, user) => {
@@ -163,7 +170,7 @@ const UserAvatars = (props: UserAvatarsProps) => {
 
   return (
     <div className={cx('user-avatars')}>
-      {userGroups.map((group) => {
+      {userGroups.map((group, idx) => {
         const userCurrentMoment = dayjs(currentMoment).tz(group.users[0].timezone); // TODO try using group.utcOffset
         const diff = userCurrentMoment.diff(userCurrentMoment.startOf('day'), 'minutes');
 
@@ -171,13 +178,16 @@ const UserAvatars = (props: UserAvatarsProps) => {
 
         return (
           <AvatarGroup
+            key={idx}
             activeUtcOffset={activeUtcOffset}
             utcOffset={group.utcOffset}
             onSetActiveUtcOffset={setActiveUtcOffset}
             onTzChange={onTzChange}
             xPos={xPos}
             users={group.users}
+            startMoment={startMoment}
             currentMoment={currentMoment}
+            scheduleId={scheduleId}
             onCallNow={onCallNow}
           />
         );
@@ -189,8 +199,10 @@ const UserAvatars = (props: UserAvatarsProps) => {
 interface AvatarGroupProps {
   users: User[];
   xPos: number;
+  startMoment: dayjs.Dayjs;
   currentMoment: dayjs.Dayjs;
   utcOffset: number;
+  scheduleId: Schedule['id'];
   onSetActiveUtcOffset: (utcOffset: number | undefined) => void;
   activeUtcOffset: number;
   onTzChange: (timezone: Timezone) => void;
@@ -211,7 +223,11 @@ const AvatarGroup = (props: AvatarGroupProps) => {
     onSetActiveUtcOffset,
     activeUtcOffset,
     onCallNow,
+    scheduleId,
+    startMoment,
   } = props;
+
+  const store = useStore();
 
   const active = !isNaN(activeUtcOffset) && activeUtcOffset === utcOffset;
 
@@ -231,14 +247,18 @@ const AvatarGroup = (props: AvatarGroupProps) => {
 
       return 0;
     });
-  }, [propsUsers]);
+  }, [propsUsers, onCallNow]);
 
-  const getAvatarClickHandler = useCallback((timezone: Timezone) => {
-    return () => {
-      onTzChange(timezone);
-    };
-  }, []);
+  const getAvatarClickHandler = useCallback(
+    (timezone: Timezone) => {
+      return () => {
+        onTzChange(timezone);
+      };
+    },
+    [onTzChange]
+  );
 
+  const colorSchemeMapping = getColorSchemeMappingForUsers(store, scheduleId, startMoment);
   const width = active ? users.length * AVATAR_WIDTH + (users.length - 1) * AVATAR_GAP : AVATAR_WIDTH;
 
   return (
@@ -252,6 +272,7 @@ const AvatarGroup = (props: AvatarGroupProps) => {
     >
       {users.map((user, index, array) => {
         const isOncall = onCallNow.some((onCallUser) => user.pk === onCallUser.pk);
+        const colorSchemeList = colorSchemeMapping[user.pk] ? Array.from(colorSchemeMapping[user.pk]) : [];
 
         return (
           <Tooltip
@@ -267,12 +288,18 @@ const AvatarGroup = (props: AvatarGroupProps) => {
                 opacity: active ? 1 : Math.max(1 - index * 0.25, 0.25),
                 visibility: !active && index >= LIMIT ? 'hidden' : 'visible',
                 zIndex: array.length - index - 1,
-                /* opacity: userHour >= 9 && userHour < 18 ? 1 : 0.5,*/
               }}
               onClick={getAvatarClickHandler(user.timezone)}
             >
-              <Avatar src={user.avatar} size="large" />
-              {isOncall && <IsOncallIcon className={cx('is-oncall-icon')} />}
+              <ScheduleBorderedAvatar
+                colors={colorSchemeList}
+                width={35}
+                height={35}
+                renderAvatar={() => <Avatar src={user.avatar} size="large" />}
+                renderIcon={() =>
+                  isOncall ? <IsOncallIcon className={cx('is-oncall-icon')} width={14} height={13} /> : null
+                }
+              ></ScheduleBorderedAvatar>
             </div>
           </Tooltip>
         );

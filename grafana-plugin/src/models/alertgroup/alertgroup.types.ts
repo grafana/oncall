@@ -1,7 +1,3 @@
-import React from 'react';
-
-import { Icon } from '@grafana/ui';
-
 import { AlertReceiveChannel } from 'models/alert_receive_channel/alert_receive_channel.types';
 import { Channel } from 'models/channel';
 import { User } from 'models/user/user.types';
@@ -55,7 +51,7 @@ export interface Alert {
   acknowledged_by_user: User;
   acknowledged_on_source: boolean;
   channel: Channel;
-  permalink?: string;
+  slack_permalink?: string;
   related_users: User[];
   render_after_resolve_report_json?: TimeLineItem[];
   render_for_slack: { attachments: any[] };

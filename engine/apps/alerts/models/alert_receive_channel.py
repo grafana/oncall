@@ -14,14 +14,12 @@ from django.dispatch import receiver
 from django.utils import timezone
 from django.utils.crypto import get_random_string
 from emoji import emojize
-from jinja2 import Template
 
 from apps.alerts.grafana_alerting_sync_manager.grafana_alerting_sync import GrafanaAlertingSyncManager
 from apps.alerts.integration_options_mixin import IntegrationOptionsMixin
 from apps.alerts.models.maintainable_object import MaintainableObject
 from apps.alerts.tasks import disable_maintenance, sync_grafana_alerting_contact_points
 from apps.base.messaging import get_messaging_backend_from_id
-from apps.base.utils import live_settings
 from apps.integrations.metadata import heartbeat
 from apps.integrations.tasks import create_alert, create_alertmanager_alerts
 from apps.slack.constants import SLACK_RATE_LIMIT_DELAY, SLACK_RATE_LIMIT_TIMEOUT
@@ -30,6 +28,7 @@ from apps.slack.utils import post_message_to_channel
 from common.api_helpers.utils import create_engine_url
 from common.exceptions import TeamCanNotBeChangedError, UnableToSendDemoAlert
 from common.insight_log import EntityEvent, write_resource_insight_log
+from common.jinja_templater import jinja_template_env
 from common.public_primary_keys import generate_public_primary_key, increase_public_primary_key_length
 
 logger = logging.getLogger(__name__)
@@ -162,8 +161,10 @@ class AlertReceiveChannel(IntegrationOptionsMixin, MaintainableObject):
     web_message_template = models.TextField(null=True, default=None)
     web_image_url_template = models.TextField(null=True, default=None)
 
-    email_title_template = models.TextField(null=True, default=None)
-    email_message_template = models.TextField(null=True, default=None)
+    # email related fields are deprecated in favour of messaging backend based templates
+    # these templates are stored in the messaging_backends_templates field
+    email_title_template = models.TextField(null=True, default=None)  # deprecated
+    email_message_template = models.TextField(null=True, default=None)  # deprecated
 
     telegram_title_template = models.TextField(null=True, default=None)
     telegram_message_template = models.TextField(null=True, default=None)
@@ -193,10 +194,6 @@ class AlertReceiveChannel(IntegrationOptionsMixin, MaintainableObject):
         },
         "phone_call": {
             "title": "phone_call_title_template",
-        },
-        "email": {
-            "title": "email_title_template",
-            "message": "email_message_template",
         },
         "telegram": {
             "title": "telegram_title_template",
@@ -363,7 +360,7 @@ class AlertReceiveChannel(IntegrationOptionsMixin, MaintainableObject):
     def description(self):
         if self.integration == AlertReceiveChannel.INTEGRATION_GRAFANA_ALERTING:
             contact_points = self.contact_points.all()
-            rendered_description = Template(self.config.description).render(
+            rendered_description = jinja_template_env.from_string(self.config.description).render(
                 is_finished_alerting_setup=self.is_finished_alerting_setup,
                 grafana_alerting_entities=[
                     {
@@ -388,10 +385,19 @@ class AlertReceiveChannel(IntegrationOptionsMixin, MaintainableObject):
                 organization=kwargs["organization"],
                 integration=kwargs["integration"],
                 team=kwargs["team"],
+                deleted_at=None,
             )
         except cls.DoesNotExist:
             kwargs.update(defaults)
             alert_receive_channel = cls.create(**kwargs)
+        except cls.MultipleObjectsReturned:
+            # general team may inherit integrations from deleted teams
+            alert_receive_channel = cls.objects.filter(
+                organization=kwargs["organization"],
+                integration=kwargs["integration"],
+                team=kwargs["team"],
+                deleted_at=None,
+            ).first()
         return alert_receive_channel
 
     @property
@@ -438,7 +444,8 @@ class AlertReceiveChannel(IntegrationOptionsMixin, MaintainableObject):
 
     @property
     def inbound_email(self):
-        return f"{self.token}@{live_settings.SENDGRID_INBOUND_EMAIL_DOMAIN}"
+        # todo: implement inbound emails
+        pass
 
     @property
     def default_channel_filter(self):
@@ -460,10 +467,6 @@ class AlertReceiveChannel(IntegrationOptionsMixin, MaintainableObject):
                 "title": self.web_title_template,
                 "message": self.web_message_template,
                 "image_url": self.web_image_url_template,
-            },
-            "email": {
-                "title": self.email_title_template,
-                "message": self.email_message_template,
             },
             "sms": {
                 "title": self.sms_title_template,
@@ -620,8 +623,6 @@ class AlertReceiveChannel(IntegrationOptionsMixin, MaintainableObject):
             "web_title": self.web_title_template or "default",
             "web_message": self.web_message_template or "default",
             "web_image_url_template": self.web_image_url_template or "default",
-            "email_title_template": self.email_title_template or "default",
-            "email_message": self.email_message_template or "default",
             "telegram_title": self.telegram_title_template or "default",
             "telegram_message": self.telegram_message_template or "default",
             "telegram_image_url": self.telegram_image_url_template or "default",

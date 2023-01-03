@@ -27,6 +27,22 @@ jobs:
         run: |
           pre-commit run --all-files
 
+  test-frontend:
+    runs-on: ubuntu-latest
+    container: python:3.9
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+        with:
+          node-version: 14.17.0
+      - name: Unit Testing Frontend
+        run: |
+          pip install $(grep "pre-commit" engine/requirements.txt)
+          npm install -g yarn
+          cd grafana-plugin/
+          yarn --network-timeout 500000
+          yarn test
+
   test-technical-documentation:
     runs-on: ubuntu-latest
     steps:
@@ -39,9 +55,13 @@ jobs:
         run: |
           docker run -v ${PWD}/docs/sources:/hugo/content/docs/oncall/latest -e HUGO_REFLINKSERRORLEVEL=ERROR --rm grafana/docs-base:latest /bin/bash -c 'make hugo'
 
-  unit-test-backend:
+  unit-test-backend-mysql-rabbitmq:
+    name: "Backend Tests: MySQL + RabbitMQ (RBAC enabled: ${{ matrix.rbac_enabled }})"
     runs-on: ubuntu-latest
     container: python:3.9
+    strategy:
+      matrix:
+        rbac_enabled: ["True", "False"]
     env:
       DJANGO_SETTINGS_MODULE: settings.ci-test
       SLACK_CLIENT_OAUTH_ID: 1
@@ -56,7 +76,6 @@ jobs:
         env:
           MYSQL_DATABASE: oncall_local_dev
           MYSQL_ROOT_PASSWORD: local_dev_pwd
-
     steps:
       - uses: actions/checkout@v2
       - name: Unit Test Backend
@@ -64,13 +83,17 @@ jobs:
           apt-get update && apt-get install -y netcat
           cd engine/
           pip install -r requirements.txt
-          ./wait_for_test_mysql_start.sh && pytest --ds=settings.ci-test -x
+          ./wait_for_test_mysql_start.sh && ONCALL_TESTING_RBAC_ENABLED=${{ matrix.rbac_enabled }} pytest -x
 
-  unit-test-backend-postgresql:
+  unit-test-backend-postgresql-rabbitmq:
+    name: "Backend Tests: PostgreSQL + RabbitMQ (RBAC enabled: ${{ matrix.rbac_enabled }})"
     runs-on: ubuntu-latest
     container: python:3.9
+    strategy:
+      matrix:
+        rbac_enabled: ["True", "False"]
     env:
-      DB_BACKEND: postgresql
+      DATABASE_TYPE: postgresql
       DJANGO_SETTINGS_MODULE: settings.ci-test
       SLACK_CLIENT_OAUTH_ID: 1
     services:
@@ -96,5 +119,60 @@ jobs:
         run: |
           cd engine/
           pip install -r requirements.txt
-          pytest --ds=settings.ci-test -x
+          ONCALL_TESTING_RBAC_ENABLED=${{ matrix.rbac_enabled }} pytest -x
 
+  unit-test-backend-sqlite-redis:
+    name: "Backend Tests: SQLite + Redis (RBAC enabled: ${{ matrix.rbac_enabled }})"
+    runs-on: ubuntu-latest
+    container: python:3.9
+    strategy:
+      matrix:
+        rbac_enabled: ["True", "False"]
+    env:
+      DATABASE_TYPE: sqlite3
+      BROKER_TYPE: redis
+      REDIS_URI: redis://redis_test:6379
+      DJANGO_SETTINGS_MODULE: settings.ci-test
+      SLACK_CLIENT_OAUTH_ID: 1
+    services:
+      redis_test:
+        image: redis:7.0.5
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    steps:
+      - uses: actions/checkout@v2
+      - name: Unit Test Backend
+        run: |
+          apt-get update && apt-get install -y netcat
+          cd engine/
+          pip install -r requirements.txt
+          ONCALL_TESTING_RBAC_ENABLED=${{ matrix.rbac_enabled }} pytest -x
+
+  unit-test-pd-migrator:
+    runs-on: ubuntu-latest
+    container: python:3.9
+    steps:
+      - uses: actions/checkout@v2
+      - name: Unit Test PD Migrator
+        run: |
+          cd tools/pagerduty-migrator
+          pip install -r requirements.txt
+          pytest -x
+
+  docker-build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Test docker build (no push)
+        id: docker_build
+        uses: docker/build-push-action@v2
+        with:
+          context: ./engine
+          file: ./engine/Dockerfile
+          push: false
+          target: prod
+      - name: Image digest
+        run: echo ${{ steps.docker_build.outputs.digest }}

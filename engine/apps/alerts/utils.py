@@ -57,7 +57,7 @@ def request_outgoing_webhook(webhook_url, http_request_type, post_kwargs={}) -> 
     if not live_settings.DANGEROUS_WEBHOOKS_ENABLED:
         # Get the ip address of the webhook url and check if it belongs to the private network
         try:
-            webhook_url_ip_address = socket.gethostbyname(parsed_url.netloc)
+            webhook_url_ip_address = socket.gethostbyname(parsed_url.hostname)
         except socket.gaierror:
             return False, "Cannot resolve name in url"
         if not live_settings.DANGEROUS_WEBHOOKS_ENABLED:

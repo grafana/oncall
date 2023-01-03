@@ -1,35 +1,31 @@
 import React from 'react';
 
-import { AppRootProps } from '@grafana/data';
-import { Button, HorizontalGroup } from '@grafana/ui';
+import { Button, VerticalGroup } from '@grafana/ui';
+import { PluginPage } from 'PluginPage';
 import cn from 'classnames/bind';
 import { observer } from 'mobx-react';
-import moment from 'moment';
+import moment from 'moment-timezone';
+import LegacyNavHeading from 'navbar/LegacyNavHeading';
 import Emoji from 'react-emoji-render';
 
 import GTable from 'components/GTable/GTable';
-import PluginLink from 'components/PluginLink/PluginLink';
 import Text from 'components/Text/Text';
 import WithConfirm from 'components/WithConfirm/WithConfirm';
-import GSelect from 'containers/GSelect/GSelect';
 import MaintenanceForm from 'containers/MaintenanceForm/MaintenanceForm';
-import OutgoingWebhookForm from 'containers/OutgoingWebhookForm/OutgoingWebhookForm';
 import { WithPermissionControl } from 'containers/WithPermissionControl/WithPermissionControl';
-import { ActionDTO } from 'models/action';
 import { getAlertReceiveChannelDisplayName } from 'models/alert_receive_channel/alert_receive_channel.helpers';
 import { AlertReceiveChannel } from 'models/alert_receive_channel/alert_receive_channel.types';
-import { getMaintenanceProgress } from 'models/maintenance/helpers';
 import { Maintenance, MaintenanceMode, MaintenanceType } from 'models/maintenance/maintenance.types';
-import { PRIVATE_CHANNEL_NAME } from 'models/slack_channel/slack_channel.config';
-import { WithStoreProps } from 'state/types';
-import { UserAction } from 'state/userAction';
+import { pages } from 'pages';
+import { PageProps, WithStoreProps } from 'state/types';
 import { withMobXProviderContext } from 'state/withStore';
+import { UserActions } from 'utils/authorization';
 
 import styles from './Maintenance.module.css';
 
 const cx = cn.bind(styles);
 
-interface MaintenancePageProps extends AppRootProps, WithStoreProps {}
+interface MaintenancePageProps extends PageProps, WithStoreProps {}
 
 interface MaintenancePageState {
   maintenanceData?: {
@@ -121,21 +117,23 @@ class MaintenancePage extends React.Component<MaintenancePageProps, MaintenanceP
     ];
 
     return (
-      <>
+      <PluginPage pageNav={pages['maintenance'].getPageNav()}>
         <div className={cx('root')}>
           <GTable
             emptyText={data ? 'No maintenances found' : 'Loading...'}
             title={() => (
               <div className={cx('header')}>
                 <div style={{ display: 'flex', alignItems: 'baseline' }}>
-                  <HorizontalGroup>
-                    <Text.Title level={3}>Maintenance</Text.Title>
-                    <Text type="secondary">
+                  <VerticalGroup>
+                    <LegacyNavHeading>
+                      <Text.Title level={3}>Maintenance</Text.Title>
+                    </LegacyNavHeading>
+                    <Text type="secondary" className={cx('title')}>
                       Mute noisy sources or use for debugging and avoid bothering your colleagues.
                     </Text>
-                  </HorizontalGroup>
+                  </VerticalGroup>
                 </div>
-                <WithPermissionControl userAction={UserAction.UpdateMaintenances}>
+                <WithPermissionControl userAction={UserActions.MaintenanceWrite}>
                   <Button
                     onClick={() => {
                       this.setState({ maintenanceData: {} });
@@ -162,7 +160,7 @@ class MaintenancePage extends React.Component<MaintenancePageProps, MaintenanceP
             }}
           />
         )}
-      </>
+      </PluginPage>
     );
   }
 
@@ -189,7 +187,7 @@ class MaintenancePage extends React.Component<MaintenancePageProps, MaintenanceP
   renderActionButtons = (maintenance: Maintenance) => {
     return (
       <div className={cx('buttons')}>
-        <WithPermissionControl userAction={UserAction.UpdateMaintenances}>
+        <WithPermissionControl userAction={UserActions.MaintenanceWrite}>
           <WithConfirm title="Are you sure to stop?" confirmText="Stop">
             <Button variant="destructive" fill="text" onClick={this.getStopMaintenanceHandler(maintenance)}>
               Stop
@@ -203,11 +201,7 @@ class MaintenancePage extends React.Component<MaintenancePageProps, MaintenanceP
   renderDuration = (maintenance: Maintenance) => {
     const started = moment(maintenance.started_at_timestamp * 1000);
     const ended = moment(maintenance.maintenance_till_timestamp * 1000);
-
-    const percent = getMaintenanceProgress(maintenance);
-    const title = `${started.format('MMM DD, YYYY hh:mm A')} - ${ended.format('MMM DD, YYYY hh:mm A')}`;
-
-    return title;
+    return `${started.format('MMM DD, YYYY hh:mm A')} - ${ended.format('MMM DD, YYYY hh:mm A')}`;
   };
 
   renderTimer = (maintenance: Maintenance) => {

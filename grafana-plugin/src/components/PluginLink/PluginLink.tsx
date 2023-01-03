@@ -1,25 +1,29 @@
 import React, { useCallback, FC } from 'react';
 
-import { getLocationSrv } from '@grafana/runtime';
-import { LocationUpdate } from '@grafana/runtime/services/LocationSrv';
+import { locationService } from '@grafana/runtime';
 import cn from 'classnames/bind';
 import qs from 'query-string';
 
+import { PLUGIN_URL_PATH } from 'pages';
+
 import styles from './PluginLink.module.css';
 
-interface PluginLinkProps extends LocationUpdate {
+interface PluginLinkProps {
   disabled?: boolean;
   className?: string;
   wrap?: boolean;
-  children: any
+  children: any;
+  partial?: boolean;
+  path?: string;
+  query?: Record<string, any>;
 }
 
 const cx = cn.bind(styles);
 
 const PluginLink: FC<PluginLinkProps> = (props) => {
-  const { children, partial = false, path = '/a/grafana-oncall-app/', query, disabled, className, wrap = true } = props;
+  const { children, partial = false, path = PLUGIN_URL_PATH, query, disabled, className, wrap = true } = props;
 
-  const href = `${path}?${qs.stringify(query)}`;
+  const href = `${path}/?${qs.stringify(query)}`;
 
   const onClickCallback = useCallback(
     (event) => {
@@ -30,7 +34,15 @@ const PluginLink: FC<PluginLinkProps> = (props) => {
         return;
       }
 
-      !disabled && getLocationSrv().update({ partial, path, query });
+      if (disabled) {
+        return;
+      }
+
+      if (partial) {
+        locationService.partial(query);
+      } else {
+        locationService.push(href);
+      }
     },
     [children]
   );

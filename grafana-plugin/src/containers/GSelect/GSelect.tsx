@@ -1,12 +1,10 @@
-import React, { ReactElement, useCallback, useEffect, useState, useMemo } from 'react';
+import React, { ReactElement, useCallback, useEffect } from 'react';
 
 import { SelectableValue } from '@grafana/data';
-import { Select, MultiSelect, AsyncMultiSelect, AsyncSelect, Tooltip } from '@grafana/ui';
+import { AsyncMultiSelect, AsyncSelect } from '@grafana/ui';
 import cn from 'classnames/bind';
 import { get, isNil } from 'lodash-es';
 import { observer } from 'mobx-react';
-import Emoji from 'react-emoji-render';
-import { debounce } from 'throttle-debounce';
 
 import { useStore } from 'state/useStore';
 
@@ -32,6 +30,7 @@ interface GSelectProps {
   showWarningIfEmptyValue?: boolean;
   showError?: boolean;
   nullItemName?: string;
+  fromOrganization?: boolean;
   filterOptions?: (id: any) => boolean;
   dropdownRender?: (menu: ReactElement) => ReactElement;
   getOptionLabel?: <T>(item: SelectableValue<T>) => React.ReactNode;
@@ -59,6 +58,7 @@ const GSelect = observer((props: GSelectProps) => {
     showWarningIfEmptyValue = false,
     getDescription,
     filterOptions,
+    fromOrganization,
   } = props;
 
   const store = useStore();
@@ -123,7 +123,7 @@ const GSelect = observer((props: GSelectProps) => {
 
     (values as string[]).forEach((value: string) => {
       if (!isNil(value) && !model.items[value] && model.updateItem) {
-        model.updateItem(value);
+        model.updateItem(value, fromOrganization);
       }
     });
   }, [value]);

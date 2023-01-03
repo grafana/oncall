@@ -6,31 +6,39 @@
   &--primary {
     color: var(--primary-text-color);
   }
+
   &--secondary {
     color: var(--secondary-text-color);
   }
+
   &--disabled {
     color: var(--disabled-text-color);
   }
+
   &--warning {
     color: var(--warning-text-color);
   }
+
   &--link {
     color: var(--primary-text-link);
-    text-decoration: underline;
   }
+
   &--success {
     color: var(--green-5);
   }
+
   &--strong {
     font-weight: bold;
   }
+
   &--underline {
     text-decoration: underline;
   }
+
   &--small {
     font-size: 12px;
   }
+
   &--large {
     font-size: 20px;
   }
@@ -56,4 +64,9 @@
 
 .icon-button {
   margin-left: 4px;
+  display: none;
+}
+
+.root:hover .icon-button {
+  display: inline-block;
 }

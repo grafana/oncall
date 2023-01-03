@@ -1,0 +1,27 @@
+.root {
+  display: block;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+}
+
+.telegram-infoblock {
+  text-align: center;
+  width: 725px;
+}
+
+.features-list > ul {
+  margin: 20px 30px;
+}
+
+.infoblock-text {
+  margin-left: 48px;
+  margin-right: 48px;
+  margin-top: 24px;
+}
+
+.infoblock-icon {
+  margin-top: 24px;
+}

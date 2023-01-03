@@ -1,92 +1,10 @@
-import React, { useEffect, useRef, useState, useMemo } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 
-import { AppRootProps, NavModelItem } from '@grafana/data';
-
-import NavBarSubtitle from 'components/NavBar/NavBarSubtitle';
-import { PageDefinition } from 'pages';
-
-import { APP_TITLE } from './consts';
-
-type Args = {
-  meta: AppRootProps['meta'];
-  pages: PageDefinition[];
-  path: string;
-  page: string;
-  grafanaUser: {
-    orgRole: 'Viewer' | 'Editor' | 'Admin';
-  };
-  enableLiveSettings: boolean;
-  enableCloudPage: boolean;
-  enableNewSchedulesPage: boolean;
-  backendLicense: string;
-};
+import { useLocation } from 'react-router-dom';
 
 export function useForceUpdate() {
   const [, setValue] = useState(0);
   return () => setValue((value) => value + 1);
-}
-
-export function useNavModel({
-  meta,
-  pages,
-  path,
-  page,
-  grafanaUser,
-  enableLiveSettings,
-  enableCloudPage,
-  enableNewSchedulesPage,
-  backendLicense,
-}: Args) {
-  return useMemo(() => {
-    const tabs: NavModelItem[] = [];
-
-    pages.forEach(({ text, icon, id, role, hideFromTabs }) => {
-      tabs.push({
-        text,
-        icon,
-        id,
-        url: `${path}?page=${id}`,
-        hideFromTabs:
-          hideFromTabs ||
-          (role === 'Admin' && grafanaUser.orgRole !== role) ||
-          (id === 'live-settings' && !enableLiveSettings) ||
-          (id === 'cloud' && !enableCloudPage) ||
-          (id === 'schedules-new' && !enableNewSchedulesPage),
-      });
-
-      if (page === id) {
-        tabs[tabs.length - 1].active = true;
-      }
-    });
-
-    // Fallback if current `tab` doesn't match any page
-    if (!tabs.some(({ active }) => active)) {
-      tabs[0].active = true;
-    }
-
-    const node = {
-      text: APP_TITLE,
-      img: meta.info.logos.large,
-      subTitle: <NavBarSubtitle backendLicense={backendLicense} />,
-      url: path,
-      children: tabs,
-    };
-
-    return {
-      node,
-      main: node,
-    };
-  }, [
-    meta.info.logos.large,
-    pages,
-    path,
-    page,
-    enableLiveSettings,
-    enableCloudPage,
-    backendLicense,
-    enableNewSchedulesPage,
-    grafanaUser.orgRole,
-  ]);
 }
 
 export function usePrevious(value: any) {
@@ -95,6 +13,17 @@ export function usePrevious(value: any) {
     ref.current = value;
   });
   return ref.current;
+}
+
+export function useQueryParams() {
+  const { search } = useLocation();
+
+  return React.useMemo(() => new URLSearchParams(search), [search]);
+}
+
+export function useQueryPath() {
+  const location = useLocation();
+  return React.useMemo(() => location.pathname, [location]);
 }
 
 export function useDebouncedCallback<A extends any[]>(callback: (...args: A) => void, wait: number) {

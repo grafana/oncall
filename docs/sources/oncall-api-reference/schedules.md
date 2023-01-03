@@ -1,9 +1,8 @@
 ---
 aliases:
-  - /docs/grafana-cloud/oncall/oncall-api-reference/schedules/
   - /docs/oncall/latest/oncall-api-reference/schedules/
+canonical: https://grafana.com/docs/oncall/latest/oncall-api-reference/schedules/
 title: Schedule HTTP API
-canonical: "https://grafana.com/docs/oncall/latest/oncall-api-reference/schedules/"
 weight: 1200
 ---
 
@@ -42,6 +41,8 @@ The above command returns JSON structured in the following way:
 }
 ```
 
+<!-- markdownlint-disable MD013 -->
+
 | Parameter            | Unique |     Required     | Description                                                                                                                                                                                                                                         |
 | -------------------- | :----: | :--------------: | :-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `name`               |  Yes   |       Yes        | Schedule name.                                                                                                                                                                                                                                      |
@@ -52,6 +53,8 @@ The above command returns JSON structured in the following way:
 | `ical_url_overrides` |   No   |     Optional     | URL of external iCal calendar for schedule with any type. Events from this calendar override events from primary calendar or from on-call shifts.                                                                                                   |
 | `slack`              |   No   |     Optional     | Dictionary with Slack-specific settings for a schedule. Includes `channel_id` and `user_group_id` fields, that take a channel ID and a user group ID from Slack.                                                                                    |
 | `shifts`             |   No   |     Optional     | List of shifts. Used for manually added on-call shifts in Schedules with type `calendar`.                                                                                                                                                           |
+
+<!-- markdownlint-enable MD013 -->
 
 **HTTP request**
 

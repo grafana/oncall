@@ -1,0 +1,15 @@
+.root {
+  position: relative;
+}
+
+.avatar {
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: -1;
+}
+
+.icon {
+  position: relative;
+  top: -8px;
+}

@@ -1,5 +1,5 @@
+const webpack = require('webpack');
 const path = require('path');
-const fs = require('fs');
 
 const CircularDependencyPlugin = require('circular-dependency-plugin');
 
@@ -133,8 +133,17 @@ module.exports.getWebpackConfig = (config, options) => {
         allowAsyncCycles: false,
         // set the current working directory for displaying module paths
         cwd: process.cwd(),
-      })
-      // new BundleAnalyzerPlugin(),
+      }),
+
+      /**
+       * From docs (https://webpack.js.org/plugins/environment-plugin/):
+       * Default values of null and undefined behave differently.
+       * Use undefined for variables that must be provided during bundling, or null if they are optional.
+       */
+      new webpack.EnvironmentPlugin({
+        ONCALL_API_URL: null,
+        MOBILE_APP_QR_INTERVAL_QUEUE: null,
+      }),
     ],
 
     resolve: {
@@ -143,13 +152,6 @@ module.exports.getWebpackConfig = (config, options) => {
       modules: [path.resolve(__dirname, './frontend_enterprise/src'), ...config.resolve.modules],
     },
   };
-
-  /* fs.writeFile('webpack-conf.json', JSON.stringify(newConfig, null, 2), function (err) {
-    if (err) {
-      return console.log(err);
-    }
-    console.log('config > webpack-conf.json');
-  }); */
 
   return newConfig;
 };

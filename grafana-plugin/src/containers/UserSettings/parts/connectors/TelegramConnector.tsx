@@ -29,7 +29,7 @@ const TelegramConnector = (props: TelegramConnectorProps) => {
 
   const handleConnectButtonClick = useCallback(() => {
     onTabChange(UserSettingsTab.TelegramInfo);
-  }, []);
+  }, [onTabChange]);
 
   const handleUnlinkTelegramAccount = useCallback(() => {
     userStore.unlinkTelegram(userStore.currentUserPk);

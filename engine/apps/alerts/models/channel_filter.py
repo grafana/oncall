@@ -116,7 +116,11 @@ class ChannelFilter(OrderedModel):
         return self.is_default or self.check_filter(json.dumps(raw_request_data)) or self.check_filter(str(title))
 
     def check_filter(self, value):
-        return re.search(self.filtering_term, value)
+        try:
+            return re.search(self.filtering_term, value)
+        except re.error:
+            logger.error(f"channel_filter={self.id} failed to parse regex={self.filtering_term}")
+            return False
 
     @property
     def slack_channel_id_or_general_log_id(self):
@@ -155,9 +159,7 @@ class ChannelFilter(OrderedModel):
             "order": self.order,
             "slack_notification_enabled": self.notify_in_slack,
             "telegram_notification_enabled": self.notify_in_telegram,
-            # TODO: use names instead of pks, it's needed to rework messaging backends for that
         }
-        # TODO: use names instead of pks, it's needed to rework messaging backends for that
         if self.slack_channel_id:
             if self.slack_channel_id:
                 SlackChannel = apps.get_model("slack", "SlackChannel")
@@ -165,7 +167,11 @@ class ChannelFilter(OrderedModel):
                 slack_channel = SlackChannel.objects.filter(
                     slack_team_identity=sti, slack_id=self.slack_channel_id
                 ).first()
-                result["slack_channel"] = slack_channel.name
+                if slack_channel is not None:
+                    # Case when slack channel was deleted, but channel filter still has it's id
+                    result["slack_channel"] = slack_channel.name
+        # TODO: use names instead of pks for telegram and other notifications backends.
+        # It's needed to rework messaging backends for that
         if self.telegram_channel:
             result["telegram_channel"] = self.telegram_channel.public_primary_key
         if self.escalation_chain:

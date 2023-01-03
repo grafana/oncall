@@ -1,0 +1,15 @@
+.not-found {
+  margin: 50px auto;
+  text-align: center;
+  width: 400px;
+}
+
+.error-code {
+  color: var(--warning-text-color);
+}
+
+.change-team-icon {
+  color: white;
+  margin-right: 4px;
+  padding-top: 6px;
+}

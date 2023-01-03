@@ -80,7 +80,8 @@ class AmixrUnfoldableCalendar(UnfoldableCalendar):
                 continue
             repetitions = self.RepeatedEvent(event, span_start)
             for repetition in repetitions:
-                if compare_greater(repetition.start, span_stop):
+                if compare_greater(repetition.start, span_stop) or compare_greater(repetition.start, repetition.stop):
+                    # future repetitions could produce invalid events (because of the until rrule)
                     break
                 if repetition.is_in_span(span_start, span_stop):
                     add_event(repetition.as_vevent())
@@ -106,6 +107,8 @@ class AmixrRecurringIcalEventsAdapter(IcalService):
 
         def filter_extra_days(event):
             event_start, event_end = self.get_start_and_end_with_respect_to_event_type(event)
+            if event_start > event_end:
+                return False
             return time_span_contains_event(start_date, end_date, event_start, event_end)
 
         return list(filter(filter_extra_days, events))

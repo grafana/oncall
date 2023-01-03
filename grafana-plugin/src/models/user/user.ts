@@ -1,15 +1,14 @@
 import dayjs from 'dayjs';
 import { get } from 'lodash-es';
 import { action, computed, observable } from 'mobx';
-import moment from 'moment-timezone';
 
 import BaseStore from 'models/base_store';
 import { NotificationPolicyType } from 'models/notification_policy';
-import { getRandomTimezone } from 'models/timezone/timezone.helpers';
 import { makeRequest } from 'network';
 import { Mixpanel } from 'services/mixpanel';
 import { RootStore } from 'state';
 import { move } from 'state/helpers';
+import { isUserActionAllowed, UserActions } from 'utils/authorization';
 
 import { getTimezone, prepareForUpdate } from './user.helpers';
 import { User } from './user.types';
@@ -20,6 +19,8 @@ export class UserStore extends BaseStore {
 
   @observable.shallow
   items: { [pk: string]: User } = {};
+
+  itemsCurrentlyUpdating = {};
 
   @observable
   notificationPolicies: any = {};
@@ -55,50 +56,59 @@ export class UserStore extends BaseStore {
     const response = await makeRequest('/user/', {});
 
     let timezone;
-    if (!response.timezone) {
+    if (!response.timezone && isUserActionAllowed(UserActions.UserSettingsWrite)) {
       timezone = dayjs.tz.guess();
       this.update(response.pk, { timezone });
     }
 
+    timezone = timezone || getTimezone(response);
+
     this.items = {
       ...this.items,
-      [response.pk]: { ...response, timezone: timezone || getTimezone(response) },
+      [response.pk]: { ...response, timezone },
     };
+
+    this.rootStore.currentTimezone = timezone;
 
     this.currentUserPk = response.pk;
   }
 
   @action
-  async loadUser(userPk: User['pk']) {
+  async loadUser(userPk: User['pk'], skipErrorHandling = false): Promise<User> {
+    const user = await this.getById(userPk, skipErrorHandling);
+
+    this.items = {
+      ...this.items,
+      [user.pk]: { ...user, timezone: getTimezone(user) },
+    };
+
+    return user;
+  }
+
+  @action
+  async updateItem(userPk: User['pk']) {
+    if (this.itemsCurrentlyUpdating[userPk]) {
+      return;
+    }
+
+    this.itemsCurrentlyUpdating[userPk] = true;
+
     const user = await this.getById(userPk);
 
     this.items = {
       ...this.items,
       [user.pk]: { ...user, timezone: getTimezone(user) },
     };
+
+    delete this.itemsCurrentlyUpdating[userPk];
   }
 
   @action
-  getCurrentUser() {
-    return this.items[this.currentUserPk as User['pk']];
-  }
-
-  @action
-  async updateItem(userPk: User['pk']) {
-    const user = await this.getById(userPk);
-
-    this.items = {
-      ...this.items,
-      [user.pk]: user,
-    };
-  }
-
-  @action
-  async updateItems(f: any = { searchTerm: '', roles: undefined }, page = 1) {
+  async updateItems(f: any = { searchTerm: '' }, page = 1) {
     const filters = typeof f === 'string' ? { searchTerm: f } : f; // for GSelect compatibility
-    const { searchTerm: search, roles } = filters;
+    const { searchTerm: search } = filters;
     const { count, results } = await makeRequest(this.path, {
-      params: { search, roles, page },
+      params: { search, page },
     });
 
     this.items = {
@@ -132,10 +142,6 @@ export class UserStore extends BaseStore {
     return await makeRequest(`/users/${userPk}/get_telegram_verification_code/`, {});
   };
 
-  sendBackendConfirmationCode = async (userPk: User['pk'], backend: string) => {
-    return await makeRequest(`/users/${userPk}/get_backend_verification_code/?backend=${backend}`, {});
-  };
-
   @action
   unlinkSlack = async (userPk: User['pk']) => {
     await makeRequest(`/users/${userPk}/unlink_slack/`, {
@@ -163,6 +169,11 @@ export class UserStore extends BaseStore {
       [user.pk]: user,
     };
   };
+
+  sendBackendConfirmationCode = (userPk: User['pk'], backend: string) =>
+    makeRequest<string>(`/users/${userPk}/get_backend_verification_code?backend=${backend}`, {
+      method: 'GET',
+    });
 
   @action
   unlinkBackend = async (userPk: User['pk'], backend: string) => {
@@ -364,18 +375,6 @@ export class UserStore extends BaseStore {
   async deleteiCalLink(userPk: User['pk']) {
     await makeRequest(`/users/${userPk}/export_token/`, {
       method: 'DELETE',
-    });
-  }
-
-  async getMobileAppVerificationToken(userPk: User['pk']) {
-    return await makeRequest(`/users/${userPk}/mobile_app_verification_token/`, {
-      method: 'GET',
-    });
-  }
-
-  async createMobileAppVerificationToken(userPk: User['pk']) {
-    return await makeRequest(`/users/${userPk}/mobile_app_verification_token/`, {
-      method: 'POST',
     });
   }
 }

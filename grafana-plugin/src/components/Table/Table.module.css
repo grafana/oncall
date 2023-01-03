@@ -4,17 +4,18 @@
 
 .root table {
   width: 100%;
-  background: #22252b;
+}
+
+.root table tbody tr.row-even {
+  background: var(--background-secondary);
 }
 
 .root tr {
-  border-bottom: 1px solid #181b1f;
-  height: 60px;
+  min-height: 56px;
 }
 
 .root tr:hover {
   /* background: var(--secondary-background); */
-  background: rgba(63, 62, 62, 0.45);
 }
 
 .root th:first-child {
@@ -23,7 +24,8 @@
 
 .root td {
   min-height: 60px;
-  padding: 10px 0;
+  padding-top: 10px;
+  padding-bottom: 10px;
 }
 
 .pagination {
@@ -33,10 +35,16 @@
 
 .expand-icon {
   padding: 10px;
+  color: var(--primary-text-color);
   pointer-events: none;
   transform: rotate(-90deg);
   transform-origin: center;
   transition: transform 0.2s;
+}
+
+/* to allow expand on expand-button click */
+.root table :global(.rc-table-row-expand-icon-cell) > span {
+  pointer-events: none;
 }
 
 .expand-icon__expanded {

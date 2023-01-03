@@ -7,8 +7,8 @@ from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.test import APIClient
 
+from apps.api.permissions import LegacyAccessControlRole
 from apps.schedules.models import CustomOnCallShift, OnCallSchedule, OnCallScheduleWeb
-from common.constants.role import Role
 
 
 @pytest.fixture()
@@ -26,7 +26,7 @@ def on_call_shift_internal_api_setup(
 
 @pytest.mark.django_db
 def test_create_on_call_shift_rotation(on_call_shift_internal_api_setup, make_user_auth_headers):
-    token, user1, user2, organization, schedule = on_call_shift_internal_api_setup
+    token, user1, user2, _, schedule = on_call_shift_internal_api_setup
     client = APIClient()
     url = reverse("api-internal:oncall_shifts-list")
     start_date = timezone.now().replace(microsecond=0, tzinfo=None)
@@ -58,7 +58,7 @@ def test_create_on_call_shift_rotation(on_call_shift_internal_api_setup, make_us
 
 @pytest.mark.django_db
 def test_create_on_call_shift_override(on_call_shift_internal_api_setup, make_user_auth_headers):
-    token, user1, user2, organization, schedule = on_call_shift_internal_api_setup
+    token, user1, user2, _, schedule = on_call_shift_internal_api_setup
     client = APIClient()
     url = reverse("api-internal:oncall_shifts-list")
     start_date = timezone.now().replace(microsecond=0, tzinfo=None)
@@ -98,7 +98,7 @@ def test_get_on_call_shift(
     make_on_call_shift,
     make_user_auth_headers,
 ):
-    token, user1, user2, organization, schedule = on_call_shift_internal_api_setup
+    token, user1, user2, _, schedule = on_call_shift_internal_api_setup
 
     client = APIClient()
     start_date = timezone.now().replace(microsecond=0)
@@ -144,7 +144,7 @@ def test_list_on_call_shift(
     make_on_call_shift,
     make_user_auth_headers,
 ):
-    token, user1, user2, organization, schedule = on_call_shift_internal_api_setup
+    token, user1, user2, _, schedule = on_call_shift_internal_api_setup
 
     client = APIClient()
     start_date = timezone.now().replace(microsecond=0)
@@ -270,7 +270,7 @@ def test_update_future_on_call_shift(
     make_user_auth_headers,
 ):
     """Test updating the shift that has not started (rotation_start > now)"""
-    token, user1, user2, organization, schedule = on_call_shift_internal_api_setup
+    token, user1, _, _, schedule = on_call_shift_internal_api_setup
 
     client = APIClient()
     start_date = (timezone.now() + timezone.timedelta(days=1)).replace(microsecond=0)
@@ -337,7 +337,7 @@ def test_update_started_on_call_shift(
 ):
     """Test updating the shift that has started (rotation_start < now)"""
 
-    token, user1, user2, organization, schedule = on_call_shift_internal_api_setup
+    token, user1, _, _, schedule = on_call_shift_internal_api_setup
 
     client = APIClient()
     start_date = (timezone.now() - timezone.timedelta(hours=1)).replace(microsecond=0)
@@ -409,11 +409,12 @@ def test_update_old_on_call_shift_with_future_version(
     make_user_auth_headers,
 ):
     """Test updating the shift that has the newer version (updated_shift is not None)"""
-    token, user1, user2, organization, schedule = on_call_shift_internal_api_setup
+    token, user1, _, _, schedule = on_call_shift_internal_api_setup
 
     client = APIClient()
-    start_date = (timezone.now() - timezone.timedelta(days=3)).replace(microsecond=0)
-    next_rotation_start_date = start_date + timezone.timedelta(days=5)
+    now = timezone.now().replace(microsecond=0)
+    start_date = now - timezone.timedelta(days=3)
+    next_rotation_start_date = now + timezone.timedelta(days=1)
     updated_duration = timezone.timedelta(hours=4)
 
     title = "Test Shift Rotation"
@@ -422,10 +423,11 @@ def test_update_old_on_call_shift_with_future_version(
         shift_type=CustomOnCallShift.TYPE_ROLLING_USERS_EVENT,
         schedule=schedule,
         title=title,
-        start=start_date,
+        start=next_rotation_start_date,
         duration=timezone.timedelta(hours=3),
         rotation_start=next_rotation_start_date,
         rolling_users=[{user1.pk: user1.public_primary_key}],
+        frequency=CustomOnCallShift.FREQUENCY_DAILY,
     )
     old_on_call_shift = make_on_call_shift(
         schedule.organization,
@@ -438,6 +440,7 @@ def test_update_old_on_call_shift_with_future_version(
         until=next_rotation_start_date,
         rolling_users=[{user1.pk: user1.public_primary_key}],
         updated_shift=new_on_call_shift,
+        frequency=CustomOnCallShift.FREQUENCY_DAILY,
     )
     # update shift_end and priority_level
     data_to_update = {
@@ -445,9 +448,9 @@ def test_update_old_on_call_shift_with_future_version(
         "priority_level": 2,
         "shift_start": start_date.strftime("%Y-%m-%dT%H:%M:%SZ"),
         "shift_end": (start_date + updated_duration).strftime("%Y-%m-%dT%H:%M:%SZ"),
-        "rotation_start": next_rotation_start_date.strftime("%Y-%m-%dT%H:%M:%SZ"),
+        "rotation_start": start_date.strftime("%Y-%m-%dT%H:%M:%SZ"),
         "until": None,
-        "frequency": None,
+        "frequency": CustomOnCallShift.FREQUENCY_DAILY,
         "interval": None,
         "by_day": None,
         "rolling_users": [[user1.public_primary_key]],
@@ -461,27 +464,28 @@ def test_update_old_on_call_shift_with_future_version(
     url = reverse("api-internal:oncall_shifts-detail", kwargs={"pk": old_on_call_shift.public_primary_key})
 
     response = client.put(url, data=data_to_update, format="json", **make_user_auth_headers(user1, token))
+    response_data = response.json()
 
-    next_shift_start_date = timezone.datetime.combine(next_rotation_start_date.date(), start_date.time()).astimezone(
-        timezone.pytz.UTC
-    )
+    for key in ["shift_start", "shift_end", "rotation_start"]:
+        data_to_update.pop(key)
+        response_data.pop(key)
 
     expected_payload = data_to_update | {
         "id": new_on_call_shift.public_primary_key,
         "type": CustomOnCallShift.TYPE_ROLLING_USERS_EVENT,
         "schedule": schedule.public_primary_key,
         "updated_shift": None,
-        "shift_start": next_shift_start_date.strftime("%Y-%m-%dT%H:%M:%SZ"),
-        "shift_end": (next_shift_start_date + updated_duration).strftime("%Y-%m-%dT%H:%M:%SZ"),
     }
 
     assert response.status_code == status.HTTP_200_OK
     assert response.json() == expected_payload
 
-    new_on_call_shift.refresh_from_db()
-    # check if the newest version of shift was changed
     assert old_on_call_shift.duration != updated_duration
     assert old_on_call_shift.priority_level != data_to_update["priority_level"]
+    new_on_call_shift.refresh_from_db()
+    # check if the newest version of shift was changed
+    assert new_on_call_shift.start - now < timezone.timedelta(minutes=1)
+    assert new_on_call_shift.rotation_start - now < timezone.timedelta(minutes=1)
     assert new_on_call_shift.duration == updated_duration
     assert new_on_call_shift.priority_level == data_to_update["priority_level"]
 
@@ -494,7 +498,7 @@ def test_update_started_on_call_shift_title(
 ):
     """Test updating the title for the shift that has started (rotation_start < now)"""
 
-    token, user1, user2, organization, schedule = on_call_shift_internal_api_setup
+    token, user1, _, _, schedule = on_call_shift_internal_api_setup
 
     client = APIClient()
     start_date = (timezone.now() - timezone.timedelta(hours=1)).replace(microsecond=0)
@@ -556,7 +560,7 @@ def test_delete_started_on_call_shift(
 ):
     """Test deleting the shift that has started (rotation_start < now)"""
 
-    token, user1, user2, organization, schedule = on_call_shift_internal_api_setup
+    token, user1, _, _, schedule = on_call_shift_internal_api_setup
 
     client = APIClient()
     start_date = (timezone.now() - timezone.timedelta(hours=1)).replace(microsecond=0)
@@ -594,7 +598,7 @@ def test_delete_future_on_call_shift(
 ):
     """Test deleting the shift that has not started (rotation_start > now)"""
 
-    token, user1, user2, organization, schedule = on_call_shift_internal_api_setup
+    token, user1, _, _, schedule = on_call_shift_internal_api_setup
 
     client = APIClient()
     start_date = (timezone.now() + timezone.timedelta(days=1)).replace(microsecond=0)
@@ -627,7 +631,7 @@ def test_create_on_call_shift_invalid_data_rotation_start(
     on_call_shift_internal_api_setup,
     make_user_auth_headers,
 ):
-    token, user1, user2, organization, schedule = on_call_shift_internal_api_setup
+    token, user1, _, _, schedule = on_call_shift_internal_api_setup
     client = APIClient()
     url = reverse("api-internal:oncall_shifts-list")
     start_date = timezone.now().replace(microsecond=0, tzinfo=None)
@@ -656,7 +660,7 @@ def test_create_on_call_shift_invalid_data_rotation_start(
 
 @pytest.mark.django_db
 def test_create_on_call_shift_invalid_data_until(on_call_shift_internal_api_setup, make_user_auth_headers):
-    token, user1, user2, organization, schedule = on_call_shift_internal_api_setup
+    token, user1, user2, _, schedule = on_call_shift_internal_api_setup
     client = APIClient()
     url = reverse("api-internal:oncall_shifts-list")
     start_date = timezone.now().replace(microsecond=0, tzinfo=None)
@@ -709,7 +713,7 @@ def test_create_on_call_shift_invalid_data_until(on_call_shift_internal_api_setu
 
 @pytest.mark.django_db
 def test_create_on_call_shift_invalid_data_by_day(on_call_shift_internal_api_setup, make_user_auth_headers):
-    token, user1, user2, organization, schedule = on_call_shift_internal_api_setup
+    token, user1, _, _, schedule = on_call_shift_internal_api_setup
     client = APIClient()
     url = reverse("api-internal:oncall_shifts-list")
     start_date = timezone.now().replace(microsecond=0, tzinfo=None)
@@ -735,7 +739,7 @@ def test_create_on_call_shift_invalid_data_by_day(on_call_shift_internal_api_set
     assert response.status_code == status.HTTP_400_BAD_REQUEST
     assert response.data["by_day"][0] == "Cannot set days value for non-recurrent shifts"
 
-    # by_day with non-weekly frequency
+    # by_day with non-weekly/non-daily frequency
     data = {
         "title": "Test Shift 2",
         "type": CustomOnCallShift.TYPE_ROLLING_USERS_EVENT,
@@ -745,7 +749,7 @@ def test_create_on_call_shift_invalid_data_by_day(on_call_shift_internal_api_set
         "shift_end": (start_date + timezone.timedelta(hours=2)).strftime("%Y-%m-%dT%H:%M:%SZ"),
         "rotation_start": start_date.strftime("%Y-%m-%dT%H:%M:%SZ"),
         "until": None,
-        "frequency": CustomOnCallShift.FREQUENCY_DAILY,
+        "frequency": CustomOnCallShift.FREQUENCY_MONTHLY,
         "interval": None,
         "by_day": [CustomOnCallShift.ICAL_WEEKDAY_MAP[CustomOnCallShift.MONDAY]],
         "rolling_users": [[user1.public_primary_key]],
@@ -759,7 +763,7 @@ def test_create_on_call_shift_invalid_data_by_day(on_call_shift_internal_api_set
 
 @pytest.mark.django_db
 def test_create_on_call_shift_invalid_data_interval(on_call_shift_internal_api_setup, make_user_auth_headers):
-    token, user1, user2, organization, schedule = on_call_shift_internal_api_setup
+    token, user1, _, _, schedule = on_call_shift_internal_api_setup
     client = APIClient()
     url = reverse("api-internal:oncall_shifts-list")
     start_date = timezone.now().replace(microsecond=0, tzinfo=None)
@@ -785,10 +789,31 @@ def test_create_on_call_shift_invalid_data_interval(on_call_shift_internal_api_s
     assert response.status_code == status.HTTP_400_BAD_REQUEST
     assert response.data["interval"][0] == "Cannot set interval for non-recurrent shifts"
 
+    # by_day, daily, interval > len(by_day)
+    data = {
+        "title": "Test Shift 2",
+        "type": CustomOnCallShift.TYPE_ROLLING_USERS_EVENT,
+        "schedule": schedule.public_primary_key,
+        "priority_level": 0,
+        "shift_start": start_date.strftime("%Y-%m-%dT%H:%M:%SZ"),
+        "shift_end": (start_date + timezone.timedelta(hours=2)).strftime("%Y-%m-%dT%H:%M:%SZ"),
+        "rotation_start": start_date.strftime("%Y-%m-%dT%H:%M:%SZ"),
+        "until": None,
+        "frequency": CustomOnCallShift.FREQUENCY_DAILY,
+        "interval": 2,
+        "by_day": [CustomOnCallShift.ICAL_WEEKDAY_MAP[CustomOnCallShift.MONDAY]],
+        "rolling_users": [[user1.public_primary_key]],
+    }
+
+    response = client.post(url, data, format="json", **make_user_auth_headers(user1, token))
+
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert response.data["interval"][0] == "Interval must be less than or equal to the number of selected days"
+
 
 @pytest.mark.django_db
 def test_create_on_call_shift_invalid_data_shift_end(on_call_shift_internal_api_setup, make_user_auth_headers):
-    token, user1, user2, organization, schedule = on_call_shift_internal_api_setup
+    token, user1, _, _, schedule = on_call_shift_internal_api_setup
     client = APIClient()
     url = reverse("api-internal:oncall_shifts-list")
     start_date = timezone.now().replace(microsecond=0, tzinfo=None)
@@ -841,7 +866,7 @@ def test_create_on_call_shift_invalid_data_rolling_users(
     on_call_shift_internal_api_setup,
     make_user_auth_headers,
 ):
-    token, user1, user2, organization, schedule = on_call_shift_internal_api_setup
+    token, user1, user2, _, schedule = on_call_shift_internal_api_setup
     client = APIClient()
     url = reverse("api-internal:oncall_shifts-list")
     start_date = timezone.now().replace(microsecond=0, tzinfo=None)
@@ -869,7 +894,7 @@ def test_create_on_call_shift_invalid_data_rolling_users(
 
 @pytest.mark.django_db
 def test_create_on_call_shift_override_invalid_data(on_call_shift_internal_api_setup, make_user_auth_headers):
-    token, user1, user2, organization, schedule = on_call_shift_internal_api_setup
+    token, user1, _, _, schedule = on_call_shift_internal_api_setup
     client = APIClient()
     url = reverse("api-internal:oncall_shifts-list")
     start_date = timezone.now().replace(microsecond=0, tzinfo=None)
@@ -900,9 +925,9 @@ def test_create_on_call_shift_override_invalid_data(on_call_shift_internal_api_s
 @pytest.mark.parametrize(
     "role,expected_status",
     [
-        (Role.ADMIN, status.HTTP_201_CREATED),
-        (Role.EDITOR, status.HTTP_403_FORBIDDEN),
-        (Role.VIEWER, status.HTTP_403_FORBIDDEN),
+        (LegacyAccessControlRole.ADMIN, status.HTTP_201_CREATED),
+        (LegacyAccessControlRole.EDITOR, status.HTTP_201_CREATED),
+        (LegacyAccessControlRole.VIEWER, status.HTTP_403_FORBIDDEN),
     ],
 )
 def test_on_call_shift_create_permissions(
@@ -911,7 +936,7 @@ def test_on_call_shift_create_permissions(
     role,
     expected_status,
 ):
-    organization, user, token = make_organization_and_user_with_plugin_token(role)
+    _, user, token = make_organization_and_user_with_plugin_token(role)
 
     client = APIClient()
 
@@ -932,9 +957,9 @@ def test_on_call_shift_create_permissions(
 @pytest.mark.parametrize(
     "role,expected_status",
     [
-        (Role.ADMIN, status.HTTP_200_OK),
-        (Role.EDITOR, status.HTTP_403_FORBIDDEN),
-        (Role.VIEWER, status.HTTP_403_FORBIDDEN),
+        (LegacyAccessControlRole.ADMIN, status.HTTP_200_OK),
+        (LegacyAccessControlRole.EDITOR, status.HTTP_200_OK),
+        (LegacyAccessControlRole.VIEWER, status.HTTP_403_FORBIDDEN),
     ],
 )
 def test_on_call_shift_update_permissions(
@@ -980,9 +1005,9 @@ def test_on_call_shift_update_permissions(
 @pytest.mark.parametrize(
     "role,expected_status",
     [
-        (Role.ADMIN, status.HTTP_200_OK),
-        (Role.EDITOR, status.HTTP_200_OK),
-        (Role.VIEWER, status.HTTP_200_OK),
+        (LegacyAccessControlRole.ADMIN, status.HTTP_200_OK),
+        (LegacyAccessControlRole.EDITOR, status.HTTP_200_OK),
+        (LegacyAccessControlRole.VIEWER, status.HTTP_200_OK),
     ],
 )
 def test_on_call_shift_list_permissions(
@@ -991,7 +1016,7 @@ def test_on_call_shift_list_permissions(
     role,
     expected_status,
 ):
-    organization, user, token = make_organization_and_user_with_plugin_token(role)
+    _, user, token = make_organization_and_user_with_plugin_token(role)
     client = APIClient()
 
     url = reverse("api-internal:oncall_shifts-list")
@@ -1011,9 +1036,9 @@ def test_on_call_shift_list_permissions(
 @pytest.mark.parametrize(
     "role,expected_status",
     [
-        (Role.ADMIN, status.HTTP_200_OK),
-        (Role.EDITOR, status.HTTP_200_OK),
-        (Role.VIEWER, status.HTTP_200_OK),
+        (LegacyAccessControlRole.ADMIN, status.HTTP_200_OK),
+        (LegacyAccessControlRole.EDITOR, status.HTTP_200_OK),
+        (LegacyAccessControlRole.VIEWER, status.HTTP_200_OK),
     ],
 )
 def test_on_call_shift_retrieve_permissions(
@@ -1054,9 +1079,9 @@ def test_on_call_shift_retrieve_permissions(
 @pytest.mark.parametrize(
     "role,expected_status",
     [
-        (Role.ADMIN, status.HTTP_204_NO_CONTENT),
-        (Role.EDITOR, status.HTTP_403_FORBIDDEN),
-        (Role.VIEWER, status.HTTP_403_FORBIDDEN),
+        (LegacyAccessControlRole.ADMIN, status.HTTP_204_NO_CONTENT),
+        (LegacyAccessControlRole.EDITOR, status.HTTP_204_NO_CONTENT),
+        (LegacyAccessControlRole.VIEWER, status.HTTP_403_FORBIDDEN),
     ],
 )
 def test_on_call_shift_delete_permissions(
@@ -1097,9 +1122,9 @@ def test_on_call_shift_delete_permissions(
 @pytest.mark.parametrize(
     "role,expected_status",
     [
-        (Role.ADMIN, status.HTTP_200_OK),
-        (Role.EDITOR, status.HTTP_200_OK),
-        (Role.VIEWER, status.HTTP_200_OK),
+        (LegacyAccessControlRole.ADMIN, status.HTTP_200_OK),
+        (LegacyAccessControlRole.EDITOR, status.HTTP_200_OK),
+        (LegacyAccessControlRole.VIEWER, status.HTTP_200_OK),
     ],
 )
 def test_on_call_shift_frequency_options_permissions(
@@ -1128,9 +1153,9 @@ def test_on_call_shift_frequency_options_permissions(
 @pytest.mark.parametrize(
     "role,expected_status",
     [
-        (Role.ADMIN, status.HTTP_200_OK),
-        (Role.EDITOR, status.HTTP_200_OK),
-        (Role.VIEWER, status.HTTP_200_OK),
+        (LegacyAccessControlRole.ADMIN, status.HTTP_200_OK),
+        (LegacyAccessControlRole.EDITOR, status.HTTP_200_OK),
+        (LegacyAccessControlRole.VIEWER, status.HTTP_200_OK),
     ],
 )
 def test_on_call_shift_days_options_permissions(
@@ -1159,9 +1184,9 @@ def test_on_call_shift_days_options_permissions(
 @pytest.mark.parametrize(
     "role,expected_status",
     [
-        (Role.ADMIN, status.HTTP_200_OK),
-        (Role.EDITOR, status.HTTP_403_FORBIDDEN),
-        (Role.VIEWER, status.HTTP_403_FORBIDDEN),
+        (LegacyAccessControlRole.ADMIN, status.HTTP_200_OK),
+        (LegacyAccessControlRole.EDITOR, status.HTTP_200_OK),
+        (LegacyAccessControlRole.VIEWER, status.HTTP_403_FORBIDDEN),
     ],
 )
 def test_on_call_shift_preview_permissions(

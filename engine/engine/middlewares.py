@@ -23,19 +23,26 @@ class RequestTimeLoggingMiddleware(MiddlewareMixin):
             seconds = (dt - request._logging_start_dt).total_seconds()
             status_code = 0 if response is None else response.status_code
             content_length = request.headers.get("content-length", default=0)
-            integration_type = "N/A"
-            integration_token = "N/A"
+            message = (
+                "inbound "
+                f"latency={str(seconds)} status={status_code} method={request.method} path={request.path} "
+                f"content-length={content_length} slow={int(seconds > settings.SLOW_THRESHOLD_SECONDS)} "
+            )
+            if (
+                hasattr(request, "user")
+                and request.user
+                and request.user.id
+                and hasattr(request.user, "organization_id")
+            ):
+                user_id = request.user.id
+                org_id = request.user.organization_id
+                message += f"user_id={user_id} org_id={org_id} "
             if request.path.startswith("/integrations/v1"):
                 split_path = request.path.split("/")
                 integration_type = split_path[3]
                 integration_token = split_path[4]
-            logging.info(
-                "inbound "
-                f"latency={str(seconds)} status={status_code} method={request.method} path={request.path} "
-                f"content-length={content_length} slow={int(seconds > settings.SLOW_THRESHOLD_SECONDS)} "
-                f"integration_type={integration_type} "
-                f"integration_token={integration_token}"
-            )
+                message += f"integration_type={integration_type} integration_token={integration_token} "
+            logging.info(message)
 
     def process_request(self, request):
         self.log_message(request, None, "request")

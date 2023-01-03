@@ -1,12 +1,11 @@
 import React, { ChangeEvent, useCallback, useMemo, useState } from 'react';
 
 import { RawTimeRange } from '@grafana/data';
-import { Button, HorizontalGroup, Input, TimeRangeInput } from '@grafana/ui';
+import { HorizontalGroup, Input, TimeRangeInput } from '@grafana/ui';
 import cn from 'classnames/bind';
 import { observer } from 'mobx-react';
 
 import RemoteSelect from 'containers/RemoteSelect/RemoteSelect';
-import { useStore } from 'state/useStore';
 
 import styles from './OrganizationLogFilters.module.css';
 
@@ -22,8 +21,6 @@ const OrganizationLogFilters = observer((props: OrganizationLogFiltersProps) => 
   const { value, onChange } = props;
 
   const [createAtRaw, setCreateAtRaw] = useState<RawTimeRange>();
-
-  const store = useStore();
 
   const onSearchTermChangeCallback = useCallback(
     (e: ChangeEvent<HTMLInputElement>) => {
@@ -45,10 +42,6 @@ const OrganizationLogFilters = observer((props: OrganizationLogFiltersProps) => 
       });
     };
   };
-
-  const handleClear = useCallback(() => {
-    onChange({});
-  }, [onChange]);
 
   const handleChangeCreatedAt = useCallback(
     (filter) => {

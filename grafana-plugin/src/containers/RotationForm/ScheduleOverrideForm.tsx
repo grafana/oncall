@@ -1,17 +1,6 @@
 import React, { FC, useCallback, useEffect, useMemo, useState } from 'react';
 
-import { dateTime, DateTime } from '@grafana/data';
-import {
-  IconButton,
-  VerticalGroup,
-  HorizontalGroup,
-  Field,
-  Input,
-  Button,
-  DateTimePicker,
-  Select,
-  InlineSwitch,
-} from '@grafana/ui';
+import { IconButton, VerticalGroup, HorizontalGroup, Field, Button } from '@grafana/ui';
 import cn from 'classnames/bind';
 import dayjs from 'dayjs';
 import Draggable from 'react-draggable';
@@ -22,7 +11,7 @@ import UserGroups from 'components/UserGroups/UserGroups';
 import WithConfirm from 'components/WithConfirm/WithConfirm';
 import WorkingHours from 'components/WorkingHours/WorkingHours';
 import { getFromString } from 'models/schedule/schedule.helpers';
-import { Rotation, Schedule, Shift } from 'models/schedule/schedule.types';
+import { Schedule, Shift } from 'models/schedule/schedule.types';
 import { getTzOffsetString } from 'models/timezone/timezone.helpers';
 import { Timezone } from 'models/timezone/timezone.types';
 import { User } from 'models/user/user.types';
@@ -31,7 +20,7 @@ import { useStore } from 'state/useStore';
 import { getCoords, waitForElement } from 'utils/DOM';
 import { useDebouncedCallback } from 'utils/hooks';
 
-import { RotationCreateData } from './RotationForm.types';
+import DateTimePicker from './DateTimePicker';
 
 import styles from './RotationForm.module.css';
 
@@ -66,9 +55,22 @@ const ScheduleOverrideForm: FC<RotationFormProps> = (props) => {
 
   const store = useStore();
 
+  const [shiftStart, setShiftStart] = useState<dayjs.Dayjs>(shiftMoment);
+  const [shiftEnd, setShiftEnd] = useState<dayjs.Dayjs>(shiftMoment.add(24, 'hours'));
+
   const [offsetTop, setOffsetTop] = useState<number>(0);
 
   const [isOpen, setIsOpen] = useState<boolean>(false);
+
+  const updateShiftStart = useCallback(
+    (value) => {
+      const diff = shiftEnd.diff(shiftStart);
+
+      setShiftStart(value);
+      setShiftEnd(value.add(diff));
+    },
+    [shiftStart, shiftEnd]
+  );
 
   useEffect(() => {
     if (isOpen) {
@@ -77,24 +79,17 @@ const ScheduleOverrideForm: FC<RotationFormProps> = (props) => {
 
         const coords = getCoords(elm);
 
-        setOffsetTop(Math.max(coords.top - modal?.offsetHeight - 10, 10));
+        const offsetTop = Math.min(
+          Math.max(coords.top - modal?.offsetHeight - 10, 10),
+          document.body.offsetHeight - modal?.offsetHeight - 10
+        );
+
+        setOffsetTop(offsetTop);
       });
     }
   }, [isOpen]);
 
-  const [shiftStart, setShiftStart] = useState<DateTime>(dateTime(shiftMoment.format('YYYY-MM-DD HH:mm:ss')));
-  const [shiftEnd, setShiftEnd] = useState<DateTime>(
-    dateTime(shiftMoment.add(24, 'hours').format('YYYY-MM-DD HH:mm:ss'))
-  );
-
   const [userGroups, setUserGroups] = useState([[]]);
-
-  const getUser = (pk: User['pk']) => {
-    return {
-      name: store.userStore.items[pk]?.username,
-      desc: store.userStore.items[pk]?.timezone,
-    };
-  };
 
   const renderUser = (userPk: User['pk']) => {
     const name = store.userStore.items[userPk]?.username;
@@ -105,7 +100,7 @@ const ScheduleOverrideForm: FC<RotationFormProps> = (props) => {
     return (
       <>
         <div className={cx('user-title')}>
-          <Text strong>{name}</Text> <Text type="primary">({desc})</Text>
+          <Text strong>{name}</Text> <Text style={{ color: 'var(--always-gray)' }}>({desc})</Text>
         </div>
         <WorkingHours
           timezone={timezone}
@@ -129,9 +124,9 @@ const ScheduleOverrideForm: FC<RotationFormProps> = (props) => {
 
   const params = useMemo(
     () => ({
-      rotation_start: getUTCString(shiftStart, currentTimezone),
-      shift_start: getUTCString(shiftStart, currentTimezone),
-      shift_end: getUTCString(shiftEnd, currentTimezone),
+      rotation_start: getUTCString(shiftStart),
+      shift_start: getUTCString(shiftStart),
+      shift_end: getUTCString(shiftEnd),
       rolling_users: userGroups,
       frequency: null,
     }),
@@ -140,8 +135,8 @@ const ScheduleOverrideForm: FC<RotationFormProps> = (props) => {
 
   useEffect(() => {
     if (shift) {
-      setShiftStart(getDateTime(shift.shift_start, currentTimezone));
-      setShiftEnd(getDateTime(shift.shift_end, currentTimezone));
+      setShiftStart(getDateTime(shift.shift_start));
+      setShiftEnd(getDateTime(shift.shift_end));
 
       setUserGroups(shift.rolling_users);
     }
@@ -183,6 +178,8 @@ const ScheduleOverrideForm: FC<RotationFormProps> = (props) => {
 
   const handleChange = useDebouncedCallback(updatePreview, 200);
 
+  const isFormValid = useMemo(() => userGroups.some((group) => group.length), [userGroups]);
+
   useEffect(handleChange, [params]);
 
   return (
@@ -200,8 +197,6 @@ const ScheduleOverrideForm: FC<RotationFormProps> = (props) => {
         <HorizontalGroup justify="space-between">
           <Text size="medium">{shiftId === 'new' ? 'New Override' : 'Update Override'}</Text>
           <HorizontalGroup>
-            <IconButton disabled variant="secondary" tooltip="Copy" name="copy" />
-            <IconButton disabled variant="secondary" tooltip="Code" name="brackets-curly" />
             {shiftId !== 'new' && (
               <WithConfirm>
                 <IconButton variant="secondary" tooltip="Delete" name="trash-alt" onClick={handleDeleteClick} />
@@ -210,43 +205,46 @@ const ScheduleOverrideForm: FC<RotationFormProps> = (props) => {
             <IconButton variant="secondary" className={cx('drag-handler')} name="draggabledots" />
           </HorizontalGroup>
         </HorizontalGroup>
-        <UserGroups
-          value={userGroups}
-          onChange={setUserGroups}
-          isMultipleGroups={false}
-          getItemData={getUser}
-          renderUser={renderUser}
-          showError={!userGroups.some((group) => group.length)}
-        />
-        {/*<hr />*/}
-        <VerticalGroup>
-          <HorizontalGroup>
-            <Field
-              className={cx('date-time-picker')}
-              label={
-                <Text type="primary" size="small">
-                  Override start
-                </Text>
-              }
-            >
-              <DateTimePicker date={shiftStart} onChange={setShiftStart} />
-            </Field>
-            <Field
-              className={cx('date-time-picker')}
-              label={
-                <Text type="primary" size="small">
-                  Override end
-                </Text>
-              }
-            >
-              <DateTimePicker date={shiftEnd} onChange={setShiftEnd} />
-            </Field>
-          </HorizontalGroup>
-        </VerticalGroup>
+        <div className={cx('content')}>
+          <VerticalGroup>
+            <HorizontalGroup>
+              <Field
+                className={cx('date-time-picker')}
+                label={
+                  <Text type="primary" size="small">
+                    Override start
+                  </Text>
+                }
+              >
+                <DateTimePicker value={shiftStart} onChange={updateShiftStart} timezone={currentTimezone} />
+              </Field>
+              <Field
+                className={cx('date-time-picker')}
+                label={
+                  <Text type="primary" size="small">
+                    Override end
+                  </Text>
+                }
+              >
+                <DateTimePicker value={shiftEnd} onChange={setShiftEnd} timezone={currentTimezone} />
+              </Field>
+            </HorizontalGroup>
+            <UserGroups
+              value={userGroups}
+              onChange={setUserGroups}
+              isMultipleGroups={false}
+              renderUser={renderUser}
+              showError={!isFormValid}
+            />
+          </VerticalGroup>
+        </div>
         <HorizontalGroup justify="space-between">
           <Text type="secondary">Timezone: {getTzOffsetString(dayjs().tz(currentTimezone))}</Text>
           <HorizontalGroup>
-            <Button variant="primary" onClick={handleCreate}>
+            <Button variant="secondary" onClick={onHide}>
+              {shiftId === 'new' ? 'Cancel' : 'Close'}
+            </Button>
+            <Button variant="primary" onClick={handleCreate} disabled={!isFormValid}>
               {shiftId === 'new' ? 'Create' : 'Update'}
             </Button>
           </HorizontalGroup>

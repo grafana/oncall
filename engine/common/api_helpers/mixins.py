@@ -4,14 +4,12 @@ import math
 from django.core.exceptions import ObjectDoesNotExist
 from django.db.models import Q
 from django.utils.functional import cached_property
-from jinja2.exceptions import TemplateRuntimeError
 from rest_framework import status
 from rest_framework.decorators import action
 from rest_framework.exceptions import NotFound, Throttled
 from rest_framework.response import Response
 
 from apps.alerts.incident_appearance.templaters import (
-    AlertEmailTemplater,
     AlertPhoneCallTemplater,
     AlertSlackTemplater,
     AlertSmsTemplater,
@@ -24,6 +22,7 @@ from apps.base.messaging import get_messaging_backends
 from apps.user_management.models import Team
 from common.api_helpers.exceptions import BadRequest
 from common.jinja_templater import apply_jinja_template
+from common.jinja_templater.apply_jinja_template import JinjaTemplateError, JinjaTemplateWarning
 
 
 class UpdateSerializerMixin:
@@ -160,6 +159,18 @@ class OrderedModelSerializerMixin:
             if order > max_order:
                 raise BadRequest(detail="Invalid value for position field")
 
+    def _validate_manual_order(self, order):
+        """
+        For manual ordering validate just that order is valid PositiveIntegrer.
+        User of manual ordering is responsible for correct ordering.
+        However, manual ordering not intended for use somewhere, except terraform provider.
+        """
+
+        # https://docs.djangoproject.com/en/4.1/ref/models/fields/#positiveintegerfield
+        MAX_POSITIVE_INTEGER = 2147483647
+        if order is not None and order < 0 or order > MAX_POSITIVE_INTEGER:
+            raise BadRequest(detail="Invalid value for position field")
+
 
 class PublicPrimaryKeyMixin:
     def get_object(self):
@@ -245,9 +256,8 @@ SLACK = "slack"
 WEB = "web"
 PHONE_CALL = "phone_call"
 SMS = "sms"
-EMAIL = "email"
 TELEGRAM = "telegram"
-NOTIFICATION_CHANNEL_OPTIONS = [SLACK, WEB, PHONE_CALL, SMS, EMAIL, TELEGRAM]
+NOTIFICATION_CHANNEL_OPTIONS = [SLACK, WEB, PHONE_CALL, SMS, TELEGRAM]
 TITLE = "title"
 MESSAGE = "message"
 IMAGE_URL = "image_url"
@@ -261,7 +271,6 @@ NOTIFICATION_CHANNEL_TO_TEMPLATER_MAP = {
     WEB: AlertWebTemplater,
     PHONE_CALL: AlertPhoneCallTemplater,
     SMS: AlertSmsTemplater,
-    EMAIL: AlertEmailTemplater,
     TELEGRAM: AlertTelegramTemplater,
 }
 
@@ -315,13 +324,16 @@ class PreviewTemplateMixin:
             templater.template_manager = PreviewTemplateLoader()
             try:
                 templated_alert = templater.render()
-            except TemplateRuntimeError:
-                raise BadRequest(detail={"template_body": "Invalid template syntax"})
+            except (JinjaTemplateError, JinjaTemplateWarning) as e:
+                return Response({"preview": e.fallback_message}, status.HTTP_200_OK)
 
             templated_attr = getattr(templated_alert, attr_name)
 
         elif attr_name in TEMPLATE_NAMES_WITHOUT_NOTIFICATION_CHANNEL:
-            templated_attr, _ = apply_jinja_template(template_body, payload=alert_to_template.raw_request_data)
+            try:
+                templated_attr = apply_jinja_template(template_body, payload=alert_to_template.raw_request_data)
+            except (JinjaTemplateError, JinjaTemplateWarning) as e:
+                return Response({"preview": e.fallback_message}, status.HTTP_200_OK)
         else:
             templated_attr = None
         response = {"preview": templated_attr}

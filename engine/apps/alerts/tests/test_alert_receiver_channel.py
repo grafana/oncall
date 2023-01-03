@@ -144,3 +144,28 @@ def test_notify_maintenance_with_general_channel(make_organization, make_alert_r
     mock_post_message.assert_called_once_with(
         organization, organization.general_log_channel_id, "maintenance mode enabled"
     )
+
+
+@pytest.mark.django_db
+def test_get_or_create_manual_integration_deleted_team(make_organization, make_team, make_alert_receive_channel):
+    organization = make_organization(general_log_channel_id="CHANNEL-ID")
+    # setup general manual integration
+    general_manual = AlertReceiveChannel.get_or_create_manual_integration(
+        organization=organization, team=None, integration=AlertReceiveChannel.INTEGRATION_MANUAL, defaults={}
+    )
+    # setup another team manual integration
+    team1 = make_team(organization)
+    team1_manual = AlertReceiveChannel.get_or_create_manual_integration(
+        organization=organization, team=team1, integration=AlertReceiveChannel.INTEGRATION_MANUAL, defaults={}
+    )
+
+    # team is deleted
+    team1.delete()
+    team1_manual.refresh_from_db()
+    assert team1_manual.team is None
+
+    # it should still be possible to get a manual integration for general team
+    integration = AlertReceiveChannel.get_or_create_manual_integration(
+        organization=organization, team=None, integration=AlertReceiveChannel.INTEGRATION_MANUAL, defaults={}
+    )
+    assert integration == general_manual

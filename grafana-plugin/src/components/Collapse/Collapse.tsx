@@ -3,11 +3,9 @@ import React, { FC, useCallback, useState } from 'react';
 import { Icon } from '@grafana/ui';
 import cn from 'classnames/bind';
 
-import Block from 'components/GBlock/Block';
-
 import styles from 'components/Collapse/Collapse.module.css';
 
-interface CollapseProps {
+export interface CollapseProps {
   label: React.ReactNode;
   isOpen: boolean;
   onToggle?: (isOpen: boolean) => void;
@@ -15,7 +13,7 @@ interface CollapseProps {
   className?: string;
   contentClassName?: string;
   headerWithBackground?: boolean;
-  children?: any
+  children?: any;
 }
 
 const cx = cn.bind(styles);
@@ -45,11 +43,19 @@ const Collapse: FC<CollapseProps> = (props) => {
 
   return (
     <div className={cx('root', className)}>
-      <div className={cx('header', { 'header_with-background': headerWithBackground })} onClick={onHeaderClickCallback}>
+      <div
+        className={cx('header', { 'header_with-background': headerWithBackground })}
+        onClick={onHeaderClickCallback}
+        data-testid="test__toggle"
+      >
         <Icon name={isOpen ? 'angle-down' : 'angle-right'} size="xl" className={cx('icon')} />
         <div className={cx('label')}> {label}</div>
       </div>
-      {isOpen && <div className={cx('content', contentClassName)}>{children}</div>}
+      {isOpen && (
+        <div className={cx('content', contentClassName)} data-testid="test__children">
+          {children}
+        </div>
+      )}
     </div>
   );
 };

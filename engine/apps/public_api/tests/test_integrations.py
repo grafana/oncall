@@ -54,11 +54,12 @@ def test_get_list_integrations(
                     "phone_call": {
                         "title": None,
                     },
-                    "email": {
+                    "telegram": {
                         "title": None,
                         "message": None,
+                        "image_url": None,
                     },
-                    "telegram": {
+                    TEST_MESSAGING_BACKEND_FIELD: {
                         "title": None,
                         "message": None,
                         "image_url": None,
@@ -117,7 +118,6 @@ def test_create_integrations_with_none_templates(
             "web": None,
             "sms": None,
             "phone_call": None,
-            "email": None,
             "telegram": None,
         },
     }
@@ -184,12 +184,73 @@ def test_update_integration_template(
             "phone_call": {
                 "title": None,
             },
-            "email": {
+            "telegram": {
                 "title": None,
                 "message": None,
+                "image_url": None,
+            },
+            TEST_MESSAGING_BACKEND_FIELD: {
+                "title": None,
+                "message": None,
+                "image_url": None,
+            },
+        },
+        "maintenance_mode": None,
+        "maintenance_started_at": None,
+        "maintenance_end_at": None,
+    }
+    url = reverse("api-public:integrations-detail", args=[integration.public_primary_key])
+    response = client.put(url, data=data_for_update, format="json", HTTP_AUTHORIZATION=f"{token}")
+    assert response.status_code == status.HTTP_200_OK
+    assert response.data == expected_response
+
+
+@pytest.mark.django_db
+def test_update_integration_template_messaging_backend(
+    make_organization_and_user_with_token, make_alert_receive_channel, make_channel_filter, make_integration_heartbeat
+):
+    organization, user, token = make_organization_and_user_with_token()
+    integration = make_alert_receive_channel(organization, verbal_name="grafana")
+    default_channel_filter = make_channel_filter(integration, is_default=True)
+    make_integration_heartbeat(integration)
+
+    client = APIClient()
+    data_for_update = {"templates": {"grouping_key": "ip_addr", TEST_MESSAGING_BACKEND_FIELD: {"title": "Incident"}}}
+    expected_response = {
+        "id": integration.public_primary_key,
+        "team_id": None,
+        "name": "grafana",
+        "link": integration.integration_url,
+        "type": "grafana",
+        "default_route": {
+            "escalation_chain_id": None,
+            "id": default_channel_filter.public_primary_key,
+            "slack": {"channel_id": None, "enabled": True},
+            "telegram": {"id": None, "enabled": False},
+            TEST_MESSAGING_BACKEND_FIELD: {"id": None, "enabled": False},
+        },
+        "heartbeat": {
+            "link": f"{integration.integration_url}heartbeat/",
+        },
+        "templates": {
+            "grouping_key": "ip_addr",
+            "resolve_signal": None,
+            "acknowledge_signal": None,
+            "slack": {"title": None, "message": None, "image_url": None},
+            "web": {"title": None, "message": None, "image_url": None},
+            "sms": {
+                "title": None,
+            },
+            "phone_call": {
+                "title": None,
             },
             "telegram": {
                 "title": None,
+                "message": None,
+                "image_url": None,
+            },
+            TEST_MESSAGING_BACKEND_FIELD: {
+                "title": "Incident",
                 "message": None,
                 "image_url": None,
             },
@@ -259,11 +320,12 @@ def test_update_resolve_signal_template(
             "phone_call": {
                 "title": None,
             },
-            "email": {
+            "telegram": {
                 "title": None,
                 "message": None,
+                "image_url": None,
             },
-            "telegram": {
+            TEST_MESSAGING_BACKEND_FIELD: {
                 "title": None,
                 "message": None,
                 "image_url": None,
@@ -366,11 +428,12 @@ def test_update_sms_template_with_empty_dict(
             "phone_call": {
                 "title": None,
             },
-            "email": {
+            "telegram": {
                 "title": None,
                 "message": None,
+                "image_url": None,
             },
-            "telegram": {
+            TEST_MESSAGING_BACKEND_FIELD: {
                 "title": None,
                 "message": None,
                 "image_url": None,
@@ -425,11 +488,12 @@ def test_update_integration_name(
             "phone_call": {
                 "title": None,
             },
-            "email": {
+            "telegram": {
                 "title": None,
                 "message": None,
+                "image_url": None,
             },
-            "telegram": {
+            TEST_MESSAGING_BACKEND_FIELD: {
                 "title": None,
                 "message": None,
                 "image_url": None,
@@ -487,11 +551,12 @@ def test_set_default_template(
             "phone_call": {
                 "title": None,
             },
-            "email": {
+            "telegram": {
                 "title": None,
                 "message": None,
+                "image_url": None,
             },
-            "telegram": {
+            TEST_MESSAGING_BACKEND_FIELD: {
                 "title": None,
                 "message": None,
                 "image_url": None,

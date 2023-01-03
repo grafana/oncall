@@ -27,6 +27,7 @@ class FeaturesAPIView(APIView):
         return Response(self._get_enabled_features(request))
 
     def _get_enabled_features(self, request):
+        DynamicSetting = apps.get_model("base", "DynamicSetting")
         enabled_features = []
 
         if settings.FEATURE_SLACK_INTEGRATION_ENABLED:
@@ -35,8 +36,7 @@ class FeaturesAPIView(APIView):
         if settings.FEATURE_TELEGRAM_INTEGRATION_ENABLED:
             enabled_features.append(FEATURE_TELEGRAM)
 
-        if settings.MOBILE_APP_PUSH_NOTIFICATIONS_ENABLED:
-            DynamicSetting = apps.get_model("base", "DynamicSetting")
+        if settings.FEATURE_MOBILE_APP_INTEGRATION_ENABLED:
             mobile_app_settings = DynamicSetting.objects.get_or_create(
                 name="mobile_app_settings",
                 defaults={
@@ -59,5 +59,17 @@ class FeaturesAPIView(APIView):
 
         if settings.FEATURE_WEB_SCHEDULES_ENABLED:
             enabled_features.append(FEATURE_WEB_SCHEDULES)
+        else:
+            # allow enabling web schedules per org, independently of global status flag
+            enabled_web_schedules_orgs = DynamicSetting.objects.get_or_create(
+                name="enabled_web_schedules_orgs",
+                defaults={
+                    "json_value": {
+                        "org_ids": [],
+                    }
+                },
+            )[0]
+            if request.auth.organization.pk in enabled_web_schedules_orgs.json_value["org_ids"]:
+                enabled_features.append(FEATURE_WEB_SCHEDULES)
 
         return enabled_features

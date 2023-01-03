@@ -2,7 +2,6 @@ import React, { FC, useMemo } from 'react';
 
 import cn from 'classnames/bind';
 import dayjs from 'dayjs';
-import localeData from 'dayjs/plugin/localeData';
 
 import { Timezone } from 'models/timezone/timezone.types';
 
@@ -10,8 +9,6 @@ import { default_working_hours } from './WorkingHours.config';
 import { getNonWorkingMoments, getWorkingMoments } from './WorkingHours.helpers';
 
 import styles from './WorkingHours.module.css';
-
-import { start } from 'repl';
 
 interface WorkingHoursProps {
   timezone: Timezone;
@@ -25,7 +22,7 @@ interface WorkingHoursProps {
 const cx = cn.bind(styles);
 
 const WorkingHours: FC<WorkingHoursProps> = (props) => {
-  const { timezone, workingHours, startMoment, duration, className, style } = props;
+  const { timezone, workingHours = default_working_hours, startMoment, duration, className, style } = props;
 
   const endMoment = startMoment.add(duration, 'seconds');
 
@@ -34,32 +31,10 @@ const WorkingHours: FC<WorkingHoursProps> = (props) => {
     [startMoment, endMoment, workingHours, timezone]
   );
 
-  /*console.log(
-    workingMoments.map(({ start, end }) => `${start.diff(startMoment, 'hours')} - ${end.diff(startMoment, 'hours')}`)
-  );*/
-
   const nonWorkingMoments = useMemo(
     () => getNonWorkingMoments(startMoment, endMoment, workingMoments),
     [startMoment, endMoment, workingMoments]
   );
-
-  // console.log(startMoment, startMoment.toString());
-
-  /* console.log(
-    workingMoments.map(
-      (range) =>
-        `${range.start.tz(timezone).format('D MMM ddd HH:ss')} - ${range.end.tz(timezone).format('D MMM ddd HH:ss')}`
-    )
-  ); */
-
-  // console.log(workingHours);
-
-  /*console.log(
-    nonWorkingMoments.map(
-      (range) =>
-        `${range.start.tz(timezone).format('D MMM ddd HH:ss')} - ${range.end.tz(timezone).format('D MMM ddd HH:ss')}`
-    )
-  );*/
 
   return (
     <svg

@@ -39,6 +39,8 @@ MIRAGE_CIPHER_MODE = "CBC"
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = False
 
+DEBUG_CELERY_TASKS_PROFILING = getenv_boolean("DEBUG_CELERY_TASKS_PROFILING", False)
+
 ALLOWED_HOSTS = [item.strip() for item in os.environ.get("ALLOWED_HOSTS", "*").split(",")]
 
 # TODO: update link to up-to-date docs
@@ -50,12 +52,16 @@ BASE_URL = os.environ.get("BASE_URL")  # Root URL of OnCall backend
 # Feature toggles
 FEATURE_LIVE_SETTINGS_ENABLED = getenv_boolean("FEATURE_LIVE_SETTINGS_ENABLED", default=True)
 FEATURE_TELEGRAM_INTEGRATION_ENABLED = getenv_boolean("FEATURE_TELEGRAM_INTEGRATION_ENABLED", default=True)
-FEATURE_EMAIL_INTEGRATION_ENABLED = getenv_boolean("FEATURE_EMAIL_INTEGRATION_ENABLED", default=False)
+FEATURE_EMAIL_INTEGRATION_ENABLED = getenv_boolean("FEATURE_EMAIL_INTEGRATION_ENABLED", default=True)
 FEATURE_SLACK_INTEGRATION_ENABLED = getenv_boolean("FEATURE_SLACK_INTEGRATION_ENABLED", default=True)
+FEATURE_MOBILE_APP_INTEGRATION_ENABLED = getenv_boolean("FEATURE_MOBILE_APP_INTEGRATION_ENABLED", default=False)
 FEATURE_WEB_SCHEDULES_ENABLED = getenv_boolean("FEATURE_WEB_SCHEDULES_ENABLED", default=False)
+FEATURE_MULTIREGION_ENABLED = getenv_boolean("FEATURE_MULTIREGION_ENABLED", default=False)
 GRAFANA_CLOUD_ONCALL_HEARTBEAT_ENABLED = getenv_boolean("GRAFANA_CLOUD_ONCALL_HEARTBEAT_ENABLED", default=True)
 GRAFANA_CLOUD_NOTIFICATIONS_ENABLED = getenv_boolean("GRAFANA_CLOUD_NOTIFICATIONS_ENABLED", default=True)
 
+TWILIO_API_KEY_SID = os.environ.get("TWILIO_API_KEY_SID")
+TWILIO_API_KEY_SECRET = os.environ.get("TWILIO_API_KEY_SECRET")
 TWILIO_ACCOUNT_SID = os.environ.get("TWILIO_ACCOUNT_SID")
 TWILIO_AUTH_TOKEN = os.environ.get("TWILIO_AUTH_TOKEN")
 TWILIO_NUMBER = os.environ.get("TWILIO_NUMBER")
@@ -63,17 +69,6 @@ TWILIO_VERIFY_SERVICE_SID = os.environ.get("TWILIO_VERIFY_SERVICE_SID")
 
 TELEGRAM_WEBHOOK_HOST = os.environ.get("TELEGRAM_WEBHOOK_HOST", BASE_URL)
 TELEGRAM_TOKEN = os.environ.get("TELEGRAM_TOKEN")
-
-os.environ.setdefault("MYSQL_PASSWORD", "empty")
-os.environ.setdefault("RABBIT_URI", "empty")
-
-# For Sending email
-SENDGRID_API_KEY = os.environ.get("SENDGRID_API_KEY")
-SENDGRID_FROM_EMAIL = os.environ.get("SENDGRID_FROM_EMAIL")
-
-# For Inbound email
-SENDGRID_SECRET_KEY = os.environ.get("SENDGRID_SECRET_KEY")
-SENDGRID_INBOUND_EMAIL_DOMAIN = os.environ.get("SENDGRID_INBOUND_EMAIL_DOMAIN")
 
 # For Grafana Cloud integration
 GRAFANA_CLOUD_ONCALL_API_URL = os.environ.get(
@@ -84,21 +79,106 @@ GRAFANA_CLOUD_ONCALL_TOKEN = os.environ.get("GRAFANA_CLOUD_ONCALL_TOKEN", None)
 # Outgoing webhook settings
 DANGEROUS_WEBHOOKS_ENABLED = getenv_boolean("DANGEROUS_WEBHOOKS_ENABLED", default=False)
 
-# DB backend defaults
-DB_BACKEND = os.environ.get("DB_BACKEND", "mysql")
-DB_BACKEND_DEFAULT_VALUES = {
-    "mysql": {
+# Multiregion settings
+ONCALL_GATEWAY_URL = os.environ.get("ONCALL_GATEWAY_URL")
+ONCALL_GATEWAY_API_TOKEN = os.environ.get("ONCALL_GATEWAY_API_TOKEN")
+ONCALL_BACKEND_REGION = os.environ.get("ONCALL_BACKEND_REGION")
+
+
+# Database
+class DatabaseTypes:
+    MYSQL = "mysql"
+    POSTGRESQL = "postgresql"
+    SQLITE3 = "sqlite3"
+
+
+DATABASE_DEFAULTS = {
+    DatabaseTypes.MYSQL: {
         "USER": "root",
-        "PORT": "3306",
+        "PORT": 3306,
+    },
+    DatabaseTypes.POSTGRESQL: {
+        "USER": "postgres",
+        "PORT": 5432,
+    },
+}
+
+DATABASE_NAME = os.getenv("DATABASE_NAME") or os.getenv("MYSQL_DB_NAME")
+DATABASE_USER = os.getenv("DATABASE_USER") or os.getenv("MYSQL_USER")
+DATABASE_PASSWORD = os.getenv("DATABASE_PASSWORD") or os.getenv("MYSQL_PASSWORD")
+DATABASE_HOST = os.getenv("DATABASE_HOST") or os.getenv("MYSQL_HOST")
+DATABASE_PORT = os.getenv("DATABASE_PORT") or os.getenv("MYSQL_PORT")
+
+DATABASE_TYPE = os.getenv("DATABASE_TYPE", DatabaseTypes.MYSQL).lower()
+assert DATABASE_TYPE in {DatabaseTypes.MYSQL, DatabaseTypes.POSTGRESQL, DatabaseTypes.SQLITE3}
+
+DATABASE_ENGINE = f"django.db.backends.{DATABASE_TYPE}"
+
+DATABASE_CONFIGS = {
+    DatabaseTypes.SQLITE3: {
+        "ENGINE": DATABASE_ENGINE,
+        "NAME": DATABASE_NAME or "/var/lib/oncall/oncall.db",
+    },
+    DatabaseTypes.MYSQL: {
+        "ENGINE": DATABASE_ENGINE,
+        "NAME": DATABASE_NAME,
+        "USER": DATABASE_USER,
+        "PASSWORD": DATABASE_PASSWORD,
+        "HOST": DATABASE_HOST,
+        "PORT": DATABASE_PORT,
         "OPTIONS": {
             "charset": "utf8mb4",
             "connect_timeout": 1,
         },
     },
-    "postgresql": {
-        "USER": "postgres",
-        "PORT": "5432",
-        "OPTIONS": {},
+    DatabaseTypes.POSTGRESQL: {
+        "ENGINE": DATABASE_ENGINE,
+        "NAME": DATABASE_NAME,
+        "USER": DATABASE_USER,
+        "PASSWORD": DATABASE_PASSWORD,
+        "HOST": DATABASE_HOST,
+        "PORT": DATABASE_PORT,
+    },
+}
+
+DATABASES = {
+    "default": DATABASE_CONFIGS[DATABASE_TYPE],
+}
+if DATABASE_TYPE == DatabaseTypes.MYSQL:
+    # Workaround to use pymysql instead of mysqlclient
+    import pymysql
+
+    pymysql.install_as_MySQLdb()
+
+# Redis
+REDIS_USERNAME = os.getenv("REDIS_USERNAME", "")
+REDIS_PASSWORD = os.getenv("REDIS_PASSWORD")
+REDIS_HOST = os.getenv("REDIS_HOST")
+REDIS_PORT = os.getenv("REDIS_PORT", 6379)
+REDIS_PROTOCOL = os.getenv("REDIS_PROTOCOL", "redis")
+
+REDIS_URI = os.getenv("REDIS_URI")
+if not REDIS_URI:
+    REDIS_URI = f"{REDIS_PROTOCOL}://{REDIS_USERNAME}:{REDIS_PASSWORD}@{REDIS_HOST}:{REDIS_PORT}"
+
+# Cache
+CACHES = {
+    "default": {
+        "BACKEND": "redis_cache.RedisCache",
+        "LOCATION": [
+            REDIS_URI,
+        ],
+        "OPTIONS": {
+            "DB": 1,
+            "PARSER_CLASS": "redis.connection.HiredisParser",
+            "CONNECTION_POOL_CLASS": "redis.BlockingConnectionPool",
+            "CONNECTION_POOL_CLASS_KWARGS": {
+                "max_connections": 50,
+                "timeout": 20,
+            },
+            "MAX_CONNECTIONS": 1000,
+            "PICKLE_VERSION": -1,
+        },
     },
 }
 
@@ -121,23 +201,22 @@ INSTALLED_APPS = [
     "apps.integrations",
     "apps.schedules",
     "apps.heartbeat",
+    "apps.email",
     "apps.slack",
     "apps.telegram",
     "apps.twilioapp",
+    "apps.mobile_app",
     "apps.api",
     "apps.api_for_grafana_incident",
     "apps.base",
-    # "apps.sendgridapp",  TODO: restore email notifications
     "apps.auth_token",
     "apps.public_api",
     "apps.grafana_plugin",
-    "apps.grafana_plugin_management",
-    "apps.migration_tool",
     "corsheaders",
     "debug_toolbar",
     "social_django",
     "polymorphic",
-    "push_notifications",
+    "fcm_django",
 ]
 
 REST_FRAMEWORK = {
@@ -167,6 +246,8 @@ MIDDLEWARE = [
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     "social_django.middleware.SocialAuthExceptionMiddleware",
     "apps.social_auth.middlewares.SocialAuthAuthCanceledExceptionMiddleware",
+    "apps.integrations.middlewares.IntegrationExceptionMiddleware",
+    "apps.user_management.middlewares.OrganizationMovedMiddleware",
 ]
 
 LOG_REQUEST_ID_HEADER = "HTTP_X_CLOUD_TRACE_CONTEXT"
@@ -261,7 +342,34 @@ USE_TZ = True
 STATIC_URL = os.environ.get("STATIC_URL", "/static/")
 STATIC_ROOT = "./static/"
 
-CELERY_BROKER_URL = "amqp://rabbitmq:rabbitmq@localhost:5672"
+# RabbitMQ
+RABBITMQ_USERNAME = os.getenv("RABBITMQ_USERNAME")
+RABBITMQ_PASSWORD = os.getenv("RABBITMQ_PASSWORD")
+RABBITMQ_HOST = os.getenv("RABBITMQ_HOST")
+RABBITMQ_PORT = os.getenv("RABBITMQ_PORT", 5672)
+RABBITMQ_PROTOCOL = os.getenv("RABBITMQ_PROTOCOL", "amqp")
+RABBITMQ_VHOST = os.getenv("RABBITMQ_VHOST", "")
+
+RABBITMQ_URI = os.getenv("RABBITMQ_URI") or os.getenv("RABBIT_URI")
+if not RABBITMQ_URI:
+    RABBITMQ_URI = f"{RABBITMQ_PROTOCOL}://{RABBITMQ_USERNAME}:{RABBITMQ_PASSWORD}@{RABBITMQ_HOST}:{RABBITMQ_PORT}/{RABBITMQ_VHOST}"
+
+
+# Celery
+class BrokerTypes:
+    RABBITMQ = "rabbitmq"
+    REDIS = "redis"
+
+
+BROKER_TYPE = os.getenv("BROKER_TYPE", BrokerTypes.RABBITMQ).lower()
+assert BROKER_TYPE in {BrokerTypes.RABBITMQ, BrokerTypes.REDIS}
+
+if BROKER_TYPE == BrokerTypes.RABBITMQ:
+    CELERY_BROKER_URL = RABBITMQ_URI
+elif BROKER_TYPE == BrokerTypes.REDIS:
+    CELERY_BROKER_URL = REDIS_URI
+else:
+    raise ValueError(f"Invalid BROKER_TYPE env variable: {BROKER_TYPE}")
 
 # By default, apply_async will just hang indefinitely trying to reach to RabbitMQ even if RabbitMQ is down.
 # This makes apply_async retry 3 times trying to reach to RabbitMQ, with some extra info on periods between retries.
@@ -436,16 +544,27 @@ GRAFANA_COM_ADMIN_API_TOKEN = os.environ.get("GRAFANA_COM_ADMIN_API_TOKEN", None
 
 GRAFANA_API_KEY_NAME = "Grafana OnCall"
 
-MOBILE_APP_PUSH_NOTIFICATIONS_ENABLED = getenv_boolean("MOBILE_APP_PUSH_NOTIFICATIONS_ENABLED", default=False)
+EXTRA_MESSAGING_BACKENDS = []
+if FEATURE_MOBILE_APP_INTEGRATION_ENABLED:
+    from firebase_admin import initialize_app
 
-PUSH_NOTIFICATIONS_SETTINGS = {
-    "APNS_AUTH_KEY_PATH": os.environ.get("APNS_AUTH_KEY_PATH", None),
-    "APNS_TOPIC": os.environ.get("APNS_TOPIC", None),
-    "APNS_AUTH_KEY_ID": os.environ.get("APNS_AUTH_KEY_ID", None),
-    "APNS_TEAM_ID": os.environ.get("APNS_TEAM_ID", None),
-    "APNS_USE_SANDBOX": getenv_boolean("APNS_USE_SANDBOX", True),
-    "USER_MODEL": "user_management.User",
+    EXTRA_MESSAGING_BACKENDS += [
+        ("apps.mobile_app.backend.MobileAppBackend", 5),
+        ("apps.mobile_app.backend.MobileAppCriticalBackend", 6),
+    ]
+
+    FIREBASE_APP = initialize_app(options={"projectId": os.environ.get("FCM_PROJECT_ID", None)})
+
+FCM_RELAY_ENABLED = getenv_boolean("FCM_RELAY_ENABLED", default=False)
+FCM_DJANGO_SETTINGS = {
+    # an instance of firebase_admin.App to be used as default for all fcm-django requests
+    # default: None (the default Firebase app)
+    "DEFAULT_FIREBASE_APP": None,
+    "APP_VERBOSE_NAME": "OnCall",
+    "ONE_DEVICE_PER_USER": True,
+    "DELETE_INACTIVE_DEVICES": False,
     "UPDATE_ON_DUPLICATE_REG_ID": True,
+    "USER_MODEL": "user_management.User",
 }
 
 SELF_HOSTED_SETTINGS = {
@@ -454,16 +573,31 @@ SELF_HOSTED_SETTINGS = {
     "ORG_ID": 100,
     "ORG_SLUG": "self_hosted_org",
     "ORG_TITLE": "Self-Hosted Organization",
+    "REGION_SLUG": "self_hosted_region",
+    "GRAFANA_API_URL": os.environ.get("GRAFANA_API_URL", default=None),
 }
 
 GRAFANA_INCIDENT_STATIC_API_KEY = os.environ.get("GRAFANA_INCIDENT_STATIC_API_KEY", None)
 
 DATA_UPLOAD_MAX_MEMORY_SIZE = getenv_integer("DATA_UPLOAD_MAX_MEMORY_SIZE", 1_048_576)  # 1mb by default
+JINJA_TEMPLATE_MAX_LENGTH = 50000
+JINJA_RESULT_TITLE_MAX_LENGTH = 500
+JINJA_RESULT_MAX_LENGTH = 50000
 
 # Log inbound/outbound calls as slow=1 if they exceed threshold
 SLOW_THRESHOLD_SECONDS = 2.0
 
-EXTRA_MESSAGING_BACKENDS = []
+# Email messaging backend
+EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
+EMAIL_HOST = os.getenv("EMAIL_HOST")
+EMAIL_HOST_USER = os.getenv("EMAIL_HOST_USER")
+EMAIL_HOST_PASSWORD = os.getenv("EMAIL_HOST_PASSWORD")
+EMAIL_PORT = getenv_integer("EMAIL_PORT", 587)
+EMAIL_USE_TLS = getenv_boolean("EMAIL_USE_TLS", True)
+EMAIL_FROM_ADDRESS = os.getenv("EMAIL_FROM_ADDRESS")
+
+if FEATURE_EMAIL_INTEGRATION_ENABLED:
+    EXTRA_MESSAGING_BACKENDS += [("apps.email.backend.EmailBackend", 8)]
 
 INSTALLED_ONCALL_INTEGRATIONS = [
     "config_integrations.alertmanager",
@@ -478,6 +612,7 @@ INSTALLED_ONCALL_INTEGRATIONS = [
     "config_integrations.maintenance",
     "config_integrations.manual",
     "config_integrations.slack_channel",
+    "config_integrations.zabbix",
 ]
 
 if OSS_INSTALLATION:

@@ -1,11 +1,9 @@
-
 .root {
   max-width: 1600px;
   margin: 0 auto;
-  margin-top: 24px;
 
-  --rotations-border: var(--border-medium);
-  --rotations-background: var(--primary-background);
+  --rotations-border: var(--border-weak);
+  --rotations-background: var(--background-secondary);
 }
 
 .header {
@@ -19,7 +17,6 @@
 
 .users-timezones {
   width: 100%;
-  margin-bottom: 16px;
 }
 
 .controls {
@@ -29,7 +26,7 @@
 .rotations {
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: 16px;
   position: relative;
   width: 100%;
 }

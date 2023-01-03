@@ -189,12 +189,12 @@ class Alert(models.Model):
         # set web_title_cache to web title to allow alert group searching based on web_title_cache
         web_title_template = template_manager.get_attr_template("title", alert_receive_channel, render_for="web")
         if web_title_template:
-            web_title_cache = apply_jinja_template(web_title_template, raw_request_data)[0] or None
+            web_title_cache = apply_jinja_template(web_title_template, raw_request_data)
         else:
             web_title_cache = None
 
         if grouping_id_template is not None:
-            group_distinction, _ = apply_jinja_template(grouping_id_template, raw_request_data)
+            group_distinction = apply_jinja_template(grouping_id_template, raw_request_data)
 
         # Insert random uuid to prevent grouping of demo alerts or alerts with group_distinction=None
         if is_demo or not group_distinction:
@@ -204,13 +204,13 @@ class Alert(models.Model):
             group_distinction = hashlib.md5(str(group_distinction).encode()).hexdigest()
 
         if resolve_condition_template is not None:
-            is_resolve_signal, _ = apply_jinja_template(resolve_condition_template, payload=raw_request_data)
+            is_resolve_signal = apply_jinja_template(resolve_condition_template, payload=raw_request_data)
             if isinstance(is_resolve_signal, str):
                 is_resolve_signal = is_resolve_signal.strip().lower() in ["1", "true", "ok"]
             else:
                 is_resolve_signal = False
         if acknowledge_condition_template is not None:
-            is_acknowledge_signal, _ = apply_jinja_template(acknowledge_condition_template, payload=raw_request_data)
+            is_acknowledge_signal = apply_jinja_template(acknowledge_condition_template, payload=raw_request_data)
             if isinstance(is_acknowledge_signal, str):
                 is_acknowledge_signal = is_acknowledge_signal.strip().lower() in ["1", "true", "ok"]
             else:
@@ -232,21 +232,13 @@ class Alert(models.Model):
 
         return distinction
 
-    @property
-    def skip_signal(self):
-        try:
-            _ = self.migrator_lock
-            return True
-        except Alert.migrator_lock.RelatedObjectDoesNotExist:
-            return False
-
 
 def listen_for_alert_model_save(sender, instance, created, *args, **kwargs):
     AlertGroup = apps.get_model("alerts", "AlertGroup")
     """
     Here we invoke AlertShootingStep by model saving action.
     """
-    if created and instance.group.maintenance_uuid is None and not instance.skip_signal:
+    if created and instance.group.maintenance_uuid is None:
         # RFCT - why additinal save ?
         instance.save()
 

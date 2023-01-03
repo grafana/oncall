@@ -9,6 +9,7 @@ import { Tabs, TabsContent } from 'containers/UserSettings/parts';
 import { User as UserType } from 'models/user/user.types';
 import { AppFeature } from 'state/features';
 import { useStore } from 'state/useStore';
+import { isUserActionAllowed, UserActions } from 'utils/authorization';
 import { BREAKPOINT_TABS } from 'utils/consts';
 
 import { UserSettingsTab } from './UserSettings.types';
@@ -25,14 +26,11 @@ interface UserFormProps {
   tab?: UserSettingsTab;
 }
 
-const UserSettings = observer((props: UserFormProps) => {
-  const { id, onHide, tab = UserSettingsTab.UserInfo } = props;
-
+const UserSettings = observer(({ id, onHide, tab = UserSettingsTab.UserInfo }: UserFormProps) => {
   const store = useStore();
   const { userStore, teamStore } = store;
 
   const storeUser = userStore.items[id];
-
   const isCurrent = id === store.userStore.currentUserPk;
 
   const [activeTab, setActiveTab] = useState<UserSettingsTab>(tab);
@@ -45,21 +43,24 @@ const UserSettings = observer((props: UserFormProps) => {
     if (isDesktopOrLaptop && activeTab === UserSettingsTab.NotificationSettings) {
       setActiveTab(UserSettingsTab.UserInfo);
     }
-  }, [isDesktopOrLaptop]);
+  }, [isDesktopOrLaptop, activeTab]);
 
   const onTabChange = useCallback((tab: UserSettingsTab) => {
     setActiveTab(tab);
   }, []);
 
   const isModalWide =
-    !isDesktopOrLaptop || activeTab === UserSettingsTab.UserInfo || activeTab === UserSettingsTab.PhoneVerification;
+    !isDesktopOrLaptop ||
+    activeTab === UserSettingsTab.UserInfo ||
+    activeTab === UserSettingsTab.PhoneVerification ||
+    activeTab === UserSettingsTab.MobileAppVerification;
 
   const [showNotificationSettingsTab, showSlackConnectionTab, showTelegramConnectionTab, showMobileAppVerificationTab] =
     [
       !isDesktopOrLaptop,
       isCurrent && teamStore.currentTeam?.slack_team_identity && !storeUser.slack_user_identity,
       isCurrent && !storeUser.telegram_configuration,
-      store.hasFeature(AppFeature.MobileApp),
+      isCurrent && store.hasFeature(AppFeature.MobileApp) && isUserActionAllowed(UserActions.UserSettingsWrite),
     ];
 
   return (

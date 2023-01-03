@@ -1,4 +1,4 @@
-import React, { ReactElement } from 'react';
+import React from 'react';
 
 import { Button, HorizontalGroup, Icon, Tooltip, VerticalGroup } from '@grafana/ui';
 
@@ -8,43 +8,11 @@ import Tag from 'components/Tag/Tag';
 import Text from 'components/Text/Text';
 import { WithPermissionControl } from 'containers/WithPermissionControl/WithPermissionControl';
 import { MaintenanceIntegration } from 'models/alert_receive_channel';
-import { Alert as AlertType, Alert, AlertAction, IncidentStatus } from 'models/alertgroup/alertgroup.types';
+import { Alert as AlertType, Alert, IncidentStatus } from 'models/alertgroup/alertgroup.types';
 import { User } from 'models/user/user.types';
 import SilenceDropdown from 'pages/incidents/parts/SilenceDropdown';
 import { move } from 'state/helpers';
-import { UserAction } from 'state/userAction';
-
-const TAG_COLORS = [
-  '#D32D20',
-  '#1E72B8',
-  '#B240A2',
-  '#705DA0',
-  '#466803',
-  '#497A3C',
-  '#3D71AA',
-  '#B15415',
-  '#890F02',
-  '#6E6E6E',
-  '#0A437C',
-  '#6D1F62',
-  '#584477',
-  '#4C7A3F',
-  '#2F4F4F',
-  '#BF1B00',
-  '#7662B1',
-  '#8A2EB8',
-  '#517A00',
-  '#000000',
-  '#3F6833',
-  '#2F575E',
-  '#99440A',
-  '#AE561A',
-  '#0E4AB4',
-  '#58140C',
-  '#052B51',
-  '#511749',
-  '#3F2B5B',
-];
+import { UserActions } from 'utils/authorization';
 
 export function getIncidentStatusTag(alert: Alert) {
   switch (alert.status) {
@@ -173,7 +141,7 @@ export function getActionButtons(incident: AlertType, cx: any, callbacks: { [key
   const { onResolve, onUnresolve, onAcknowledge, onUnacknowledge, onSilence, onUnsilence } = callbacks;
 
   const resolveButton = (
-    <WithPermissionControl key="resolve" userAction={UserAction.UpdateIncidents}>
+    <WithPermissionControl key="resolve" userAction={UserActions.AlertGroupsWrite}>
       <Button size="sm" disabled={incident.loading} onClick={onResolve} variant="primary">
         Resolve
       </Button>
@@ -181,7 +149,7 @@ export function getActionButtons(incident: AlertType, cx: any, callbacks: { [key
   );
 
   const unacknowledgeButton = (
-    <WithPermissionControl key="unacknowledge" userAction={UserAction.UpdateIncidents}>
+    <WithPermissionControl key="unacknowledge" userAction={UserActions.AlertGroupsWrite}>
       <Button size="sm" disabled={incident.loading} onClick={onUnacknowledge} variant="secondary">
         Unacknowledge
       </Button>
@@ -189,7 +157,7 @@ export function getActionButtons(incident: AlertType, cx: any, callbacks: { [key
   );
 
   const unresolveButton = (
-    <WithPermissionControl key="unacknowledge" userAction={UserAction.UpdateIncidents}>
+    <WithPermissionControl key="unacknowledge" userAction={UserActions.AlertGroupsWrite}>
       <Button size="sm" disabled={incident.loading} onClick={onUnresolve} variant="primary">
         Unresolve
       </Button>
@@ -197,7 +165,7 @@ export function getActionButtons(incident: AlertType, cx: any, callbacks: { [key
   );
 
   const acknowledgeButton = (
-    <WithPermissionControl key="acknowledge" userAction={UserAction.UpdateIncidents}>
+    <WithPermissionControl key="acknowledge" userAction={UserActions.AlertGroupsWrite}>
       <Button size="sm" disabled={incident.loading} onClick={onAcknowledge} variant="secondary">
         Acknowledge
       </Button>
@@ -221,7 +189,7 @@ export function getActionButtons(incident: AlertType, cx: any, callbacks: { [key
 
     if (incident.status === IncidentStatus.Silenced) {
       buttons.push(
-        <WithPermissionControl key="silence" userAction={UserAction.UpdateIncidents}>
+        <WithPermissionControl key="silence" userAction={UserActions.AlertGroupsWrite}>
           <Button size="sm" disabled={incident.loading} variant="secondary" onClick={onUnsilence}>
             Unsilence
           </Button>

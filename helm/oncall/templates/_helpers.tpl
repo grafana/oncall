@@ -66,6 +66,11 @@ Create the name of the service account to use
 {{- printf "%s-%s" .Release.Name "mariadb" | trunc 63 | trimSuffix "-" }}
 {{- end }}
 
+{{/* Generate the fullname of postgresql subchart */}}
+{{- define "oncall.postgresql.fullname" -}}
+{{- printf "%s-%s" .Release.Name "postgresql" | trunc 63 | trimSuffix "-" }}
+{{- end }}
+
 {{- define "oncall.grafana.fullname" -}}
 {{- printf "%s-%s" .Release.Name "grafana" | trunc 63 | trimSuffix "-" }}
 {{- end }}
@@ -88,8 +93,33 @@ Create the name of the service account to use
   securityContext:
   {{ toYaml .Values.init.securityContext| nindent 4}}
   env:
+    {{- include "snippet.oncall.env" . | nindent 4 }}
+    {{- include "snippet.mysql.env" . | nindent 4 }}
+    {{- include "snippet.rabbitmq.env" . | nindent 4 }}
+    {{- include "snippet.redis.env" . | nindent 4 }}
+    {{- if .Values.env }}
+      {{- if (kindIs "map" .Values.env) }}
+        {{- range $key, $value := .Values.env }}
+    - name: {{ $key }}
+      value: {{ $value }}
+        {{- end -}}
+      {{/* support previous schema */}}
+      {{- else }}
+    {{- toYaml .Values.env | nindent 4 }}
+      {{- end }}
+    {{- end }}
+{{- end }}
+
+{{- define "oncall.postgresql.wait-for-db" }}
+- name: wait-for-db
+  image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+  imagePullPolicy: {{ .Values.image.pullPolicy }}
+  command: ['sh', '-c', "until (python manage.py migrate --check); do echo Waiting for database migrations; sleep 2; done"]
+  securityContext:
+  {{ toYaml .Values.init.securityContext| nindent 4}}
+  env:
     {{- include "snippet.oncall.env" . | nindent 12 }}
-    {{- include "snippet.mysql.env" . | nindent 12 }}
+    {{- include "snippet.postgresql.env" . | nindent 12 }}
     {{- include "snippet.rabbitmq.env" . | nindent 12 }}
     {{- include "snippet.redis.env" . | nindent 12 }}
     {{- if .Values.env }}

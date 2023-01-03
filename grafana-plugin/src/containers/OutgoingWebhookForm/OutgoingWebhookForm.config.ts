@@ -1,7 +1,4 @@
-import { ReactElement } from 'react';
-
 import { FormItem, FormItemType } from 'components/GForm/GForm.types';
-import { DEFAULT_USER_ROLES } from 'models/user/user.config';
 
 export const form: { name: string; fields: FormItem[] } = {
   name: 'OutgoingWebhook',
@@ -34,7 +31,7 @@ export const form: { name: string; fields: FormItem[] } = {
     },
     {
       name: 'data',
-      getDisabled: (form_data) => Boolean(form_data.forward_whole_payload),
+      getDisabled: (form_data) => Boolean(form_data?.forward_whole_payload),
       type: FormItemType.TextArea,
       description: 'Available variables: {{ alert_payload }}, {{ alert_group_id }}',
       extra: {

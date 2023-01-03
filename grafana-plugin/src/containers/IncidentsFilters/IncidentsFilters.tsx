@@ -77,9 +77,7 @@ class IncidentsFilters extends Component<IncidentsFiltersProps, IncidentsFilters
       ({ filters, values } = parseFilters(newQuery, filterOptions));
     }
 
-    this.setState({ filterOptions, filters, values }, () => {
-      this.onChange(true);
-    });
+    this.setState({ filterOptions, filters, values }, () => this.onChange(true));
   }
 
   render() {
@@ -92,10 +90,7 @@ class IncidentsFilters extends Component<IncidentsFiltersProps, IncidentsFilters
   }
 
   renderFilters = () => {
-    const { store, value } = this.props;
     const { filterOptions, filters } = this.state;
-
-    const filterNames = filters.map((filter: FilterOption) => filter.name);
 
     if (!filterOptions) {
       return <LoadingPlaceholder text="Loading filters..." />;
@@ -111,7 +106,7 @@ class IncidentsFilters extends Component<IncidentsFiltersProps, IncidentsFilters
     return (
       <div className={cx('filters')}>
         {filters.map((filterOption: FilterOption) => (
-          <div className={cx('filter')}>
+          <div key={filterOption.name} className={cx('filter')}>
             <Text type="secondary">{capitalCase(filterOption.name)}:</Text> {this.renderFilterOption(filterOption)}
             <IconButton size="sm" name="times" onClick={this.getDeleteFilterClickHandler(filterOption.name)} />
           </div>
@@ -135,24 +130,14 @@ class IncidentsFilters extends Component<IncidentsFiltersProps, IncidentsFilters
 
   renderCards() {
     const { store } = this.props;
-    const {
-      teamStore: { currentTeam },
-    } = store;
-
     const { values } = this.state;
 
     const { newIncidents, acknowledgedIncidents, resolvedIncidents, silencedIncidents } = store.alertGroupStore;
 
-    const { count: newIncidentsCount, alert_group_rate_to_previous_same_period: newIncidentsRate } = newIncidents;
-
-    const { count: acknowledgedIncidentsCount, alert_group_rate_to_previous_same_period: acknowledgedIncidentsRate } =
-      acknowledgedIncidents;
-
-    const { count: resolvedIncidentsCount, alert_group_rate_to_previous_same_period: resolvedIncidentsRate } =
-      resolvedIncidents;
-
-    const { count: silencedIncidentsCount, alert_group_rate_to_previous_same_period: silencedIncidentsRate } =
-      silencedIncidents;
+    const { count: newIncidentsCount } = newIncidents;
+    const { count: acknowledgedIncidentsCount } = acknowledgedIncidents;
+    const { count: resolvedIncidentsCount } = resolvedIncidents;
+    const { count: silencedIncidentsCount } = silencedIncidents;
 
     const status = values.status || [];
 
@@ -199,7 +184,7 @@ class IncidentsFilters extends Component<IncidentsFiltersProps, IncidentsFilters
   }
 
   handleSearch = (query: string) => {
-    const { filters, values } = this.state;
+    const { filters } = this.state;
 
     const searchFilter = filters.find((filter: FilterOption) => filter.name === 'search');
 
@@ -222,7 +207,7 @@ class IncidentsFilters extends Component<IncidentsFiltersProps, IncidentsFilters
   };
 
   getDeleteFilterClickHandler = (filterName: FilterOption['name']) => {
-    const { filters, values } = this.state;
+    const { filters } = this.state;
 
     return () => {
       const newFilters = filters.filter((filterOption: FilterOption) => filterOption.name !== filterName);
@@ -234,8 +219,7 @@ class IncidentsFilters extends Component<IncidentsFiltersProps, IncidentsFilters
   };
 
   handleAddFilter = (option: SelectableValue) => {
-    const { value, onChange } = this.props;
-    const { values, filters } = this.state;
+    const { filters } = this.state;
 
     this.setState({
       filters: [...filters, option.data],
@@ -250,7 +234,7 @@ class IncidentsFilters extends Component<IncidentsFiltersProps, IncidentsFilters
   };
 
   renderFilterOption = (filter: FilterOption) => {
-    const { values, filterOptions, hadInteraction } = this.state;
+    const { values, hadInteraction } = this.state;
 
     const autoFocus = Boolean(hadInteraction);
 
@@ -312,11 +296,6 @@ class IncidentsFilters extends Component<IncidentsFiltersProps, IncidentsFilters
         const value = {
           from: dates ? moment(dates[0] + 'Z') : undefined,
           to: dates ? moment(dates[1] + 'Z') : undefined,
-          /* raw: {
-            from: dates ? moment(dates[0]).format('MMM DD, YYYY hh:mm A') : undefined,
-            to: dates ? moment(dates[1]).format('MMM DD, YYYY hh:mm A') : undefined,
-          },*/
-
           raw: {
             from: dates ? dates[0] : '',
             to: dates ? dates[1] : '',
@@ -342,7 +321,6 @@ class IncidentsFilters extends Component<IncidentsFiltersProps, IncidentsFilters
   };
 
   getStatusButtonClickHandler = (status: IncidentStatus) => {
-    const { store } = this.props;
     return (selected: boolean) => {
       const { values } = this.state;
 
@@ -385,7 +363,7 @@ class IncidentsFilters extends Component<IncidentsFiltersProps, IncidentsFilters
   };
 
   getRemoteOptionsChangeHandler = (name: FilterOption['name']) => {
-    return (value: SelectableValue[], items: any[]) => {
+    return (value: SelectableValue[], _items: any[]) => {
       this.onFiltersValueChange(name, value);
     };
   };
@@ -406,7 +384,6 @@ class IncidentsFilters extends Component<IncidentsFiltersProps, IncidentsFilters
   };
 
   onFiltersValueChange = (name: FilterOption['name'], value: any) => {
-    const { onChange } = this.props;
     const { values } = this.state;
 
     const newValues = omitBy({ ...values, [name]: value }, isUndefined);

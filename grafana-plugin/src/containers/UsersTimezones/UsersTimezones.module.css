@@ -1,9 +1,9 @@
 .root {
-  border: var(--border-medium);
+  border: var(--border-weak);
   display: flex;
   flex-direction: column;
-  border-radius: 2px;
-  background: var(--primary-background);
+  background: var(--background-secondary);
+  border-radius: var(--border-radius);
 }
 
 .header {
@@ -11,18 +11,18 @@
 }
 
 .title {
-  font-weight: 500;
+  font-weight: 400;
   font-size: 19px;
   line-height: 24px;
   color: rgba(204, 204, 220, 0.65);
-  margin: 16px 0;
+  margin-top: 16px;
 }
 
 .current-time {
   position: absolute;
   left: 0;
   width: 1px;
-  background: #fff;
+  background: var(--gradient-brandVertical);
   top: 0;
   bottom: 0;
   z-index: 0;
@@ -41,6 +41,7 @@
 .users {
   position: relative;
   height: 76px;
+  overflow: hidden;
 }
 
 .avatar-group {
@@ -70,6 +71,7 @@
   font-size: 12px;
   line-height: 16px;
   background: #454952;
+  color: #ccccdc;
   border-radius: 8px;
   text-align: center;
   transition: opacity 200ms ease, left 200ms ease;
@@ -88,14 +90,7 @@
 
   --color: rgba(61, 113, 217, 0.2);
 
-  background:
-    repeating-linear-gradient(
-      -45deg,
-      var(--color),
-      var(--color) 4px,
-      transparent 4px,
-      transparent 8px
-    );
+  background: repeating-linear-gradient(-45deg, var(--color), var(--color) 4px, transparent 4px, transparent 8px);
 }
 
 .current-user-stripe {
@@ -105,8 +100,8 @@
   height: 4px;
   background: #3d71d9;
   border-radius: 2px;
-  left: calc((3 / 8) * 100%);
-  right: calc((2 / 8) * 100%);
+  left: calc((9 / 24) * 100%);
+  right: calc((7 / 24) * 100%);
 }
 
 .time-marks {
@@ -114,7 +109,6 @@
   top: -24px;
   display: flex;
   font-weight: 400;
-  font-size: 14px;
   line-height: 20px;
   color: rgba(204, 204, 220, 0.65);
   width: 100%;

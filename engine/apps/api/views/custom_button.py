@@ -1,28 +1,28 @@
 from django.core.exceptions import ObjectDoesNotExist
-from rest_framework import status
-from rest_framework.decorators import action
 from rest_framework.exceptions import NotFound
 from rest_framework.permissions import IsAuthenticated
-from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet
 
-from apps.alerts.models import AlertGroup, CustomButton
-from apps.alerts.tasks.custom_button_result import custom_button_result
-from apps.api.permissions import MODIFY_ACTIONS, READ_ACTIONS, ActionPermission, AnyRole, IsAdmin, IsAdminOrEditor
+from apps.alerts.models import CustomButton
+from apps.api.permissions import RBACPermission
 from apps.api.serializers.custom_button import CustomButtonSerializer
 from apps.auth_token.auth import PluginAuthentication
-from common.api_helpers.exceptions import BadRequest
-from common.api_helpers.mixins import PublicPrimaryKeyMixin
+from common.api_helpers.mixins import PublicPrimaryKeyMixin, TeamFilteringMixin
 from common.insight_log import EntityEvent, write_resource_insight_log
 
 
-class CustomButtonView(PublicPrimaryKeyMixin, ModelViewSet):
+class CustomButtonView(TeamFilteringMixin, PublicPrimaryKeyMixin, ModelViewSet):
     authentication_classes = (PluginAuthentication,)
-    permission_classes = (IsAuthenticated, ActionPermission)
-    action_permissions = {
-        IsAdmin: MODIFY_ACTIONS,
-        IsAdminOrEditor: ("action",),
-        AnyRole: READ_ACTIONS,
+    permission_classes = (IsAuthenticated, RBACPermission)
+
+    rbac_permissions = {
+        "metadata": [RBACPermission.Permissions.OUTGOING_WEBHOOKS_READ],
+        "list": [RBACPermission.Permissions.OUTGOING_WEBHOOKS_READ],
+        "retrieve": [RBACPermission.Permissions.OUTGOING_WEBHOOKS_READ],
+        "create": [RBACPermission.Permissions.OUTGOING_WEBHOOKS_WRITE],
+        "update": [RBACPermission.Permissions.OUTGOING_WEBHOOKS_WRITE],
+        "partial_update": [RBACPermission.Permissions.OUTGOING_WEBHOOKS_WRITE],
+        "destroy": [RBACPermission.Permissions.OUTGOING_WEBHOOKS_WRITE],
     }
 
     model = CustomButton
@@ -36,7 +36,15 @@ class CustomButtonView(PublicPrimaryKeyMixin, ModelViewSet):
         return queryset
 
     def get_object(self):
-        # Override this method because we want to get object from organization instead of concrete team.
+        # get the object from the whole organization if there is a flag `get_from_organization=true`
+        # otherwise get the object from the current team
+        get_from_organization = self.request.query_params.get("from_organization", "false") == "true"
+        if get_from_organization:
+            return self.get_object_from_organization()
+        return super().get_object()
+
+    def get_object_from_organization(self):
+        # use this method to get the object from the whole organization instead of the current team
         pk = self.kwargs["pk"]
         organization = self.request.auth.organization
 
@@ -49,9 +57,6 @@ class CustomButtonView(PublicPrimaryKeyMixin, ModelViewSet):
         self.check_object_permissions(self.request, obj)
 
         return obj
-
-    def original_get_object(self):
-        return super().get_object()
 
     def perform_create(self, serializer):
         serializer.save()
@@ -80,19 +85,3 @@ class CustomButtonView(PublicPrimaryKeyMixin, ModelViewSet):
             event=EntityEvent.DELETED,
         )
         instance.delete()
-
-    @action(detail=True, methods=["post"])
-    def action(self, request, pk):
-        alert_group_id = request.query_params.get("alert_group", None)
-        if alert_group_id is not None:
-            custom_button = self.original_get_object()
-            try:
-                alert_group = AlertGroup.unarchived_objects.get(
-                    public_primary_key=alert_group_id, channel=custom_button.alert_receive_channel
-                )
-                custom_button_result.apply_async((custom_button.pk, alert_group.pk, self.request.user.pk))
-            except AlertGroup.DoesNotExist:
-                raise BadRequest(detail="AlertGroup does not exist or archived")
-            return Response(status=status.HTTP_200_OK)
-        else:
-            raise BadRequest(detail="AlertGroup is required")

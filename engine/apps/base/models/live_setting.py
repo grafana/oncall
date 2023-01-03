@@ -33,8 +33,16 @@ class LiveSetting(models.Model):
     error = models.TextField(null=True, default=None)
 
     AVAILABLE_NAMES = (
+        "EMAIL_HOST",
+        "EMAIL_PORT",
+        "EMAIL_HOST_USER",
+        "EMAIL_HOST_PASSWORD",
+        "EMAIL_USE_TLS",
+        "EMAIL_FROM_ADDRESS",
         "TWILIO_ACCOUNT_SID",
         "TWILIO_AUTH_TOKEN",
+        "TWILIO_API_KEY_SID",
+        "TWILIO_API_KEY_SECRET",
         "TWILIO_NUMBER",
         "TWILIO_VERIFY_SERVICE_SID",
         "TELEGRAM_TOKEN",
@@ -51,6 +59,12 @@ class LiveSetting(models.Model):
     )
 
     DESCRIPTIONS = {
+        "EMAIL_HOST": "SMTP server host. This email server will be used to notify users via email.",
+        "EMAIL_PORT": "SMTP server port",
+        "EMAIL_HOST_USER": "SMTP server user",
+        "EMAIL_HOST_PASSWORD": "SMTP server password",
+        "EMAIL_USE_TLS": "SMTP enable/disable TLS",
+        "EMAIL_FROM_ADDRESS": "Email address used to send emails. If not specified, EMAIL_HOST_USER will be used.",
         "SLACK_SIGNING_SECRET": (
             "Check <a href='"
             "https://grafana.com/docs/grafana-cloud/oncall/open-source/#slack-setup"
@@ -80,17 +94,27 @@ class LiveSetting(models.Model):
             "after you update them."
         ),
         "TWILIO_ACCOUNT_SID": (
-            "Twilio username to allow amixr send sms and make phone calls, "
+            "Twilio account SID/username to allow OnCall to send SMSes and make phone calls, see "
             "<a href='https://support.twilio.com/hc/en-us/articles/223136027-Auth-Tokens-and-How-to-Change-Them' target='_blank'>"
-            "more info</a>."
+            "here</a> for more info. Required."
+        ),
+        "TWILIO_API_KEY_SID": (
+            "Twilio API key SID/username to allow OnCall to send SMSes and make phone calls, see "
+            "<a href='https://www.twilio.com/docs/iam/keys/api-key' target='_blank'>"
+            "here</a> for more info. Either (TWILIO_API_KEY_SID + TWILIO_API_KEY_SECRET) or TWILIO_AUTH_TOKEN is required."
+        ),
+        "TWILIO_API_KEY_SECRET": (
+            "Twilio API key secret/password to allow OnCall to send SMSes and make phone calls, see "
+            "<a href='https://www.twilio.com/docs/iam/keys/api-key' target='_blank'>"
+            "here</a> for more info. Either (TWILIO_API_KEY_SID + TWILIO_API_KEY_SECRET) or TWILIO_AUTH_TOKEN is required."
         ),
         "TWILIO_AUTH_TOKEN": (
-            "Twilio password to allow amixr send sms and make calls, "
+            "Twilio password to allow OnCall to send SMSes and make calls, see "
             "<a href='https://support.twilio.com/hc/en-us/articles/223136027-Auth-Tokens-and-How-to-Change-Them' target='_blank'>"
-            "more info</a>."
+            "here</a> for more info. Either (TWILIO_API_KEY_SID + TWILIO_API_KEY_SECRET) or TWILIO_AUTH_TOKEN is required."
         ),
         "TWILIO_NUMBER": (
-            "Number from which you will receive calls and SMS, "
+            "Number from which you will receive calls and SMSes, "
             "<a href='https://www.twilio.com/docs/phone-numbers' target='_blank'>more info</a>."
         ),
         "TWILIO_VERIFY_SERVICE_SID": (
@@ -98,16 +122,6 @@ class LiveSetting(models.Model):
             "You can create a service in Twilio web interface. "
             "twilio.com -> verify -> create new service."
         ),
-        "SENDGRID_API_KEY": (
-            "Sendgrid api key to send emails, "
-            "<a href='https://sendgrid.com/docs/ui/account-and-settings/api-keys/' target='_blank'>more info</a>."
-        ),
-        "SENDGRID_FROM_EMAIL": (
-            "Address to send emails, <a href='https://sendgrid.com/docs/ui/sending-email/senders/' target='_blank'>"
-            "more info</a>."
-        ),
-        "SENDGRID_SECRET_KEY": "It is the secret key to secure receiving inbound emails.",
-        "SENDGRID_INBOUND_EMAIL_DOMAIN": "Domain to receive emails for inbound emails integration.",
         "TELEGRAM_TOKEN": (
             "Secret token for Telegram bot, you can get one via <a href='https://t.me/BotFather' target='_blank'>BotFather</a>."
         ),
@@ -126,11 +140,12 @@ class LiveSetting(models.Model):
     }
 
     SECRET_SETTING_NAMES = (
+        "EMAIL_HOST_PASSWORD",
         "TWILIO_ACCOUNT_SID",
         "TWILIO_AUTH_TOKEN",
+        "TWILIO_API_KEY_SID",
+        "TWILIO_API_KEY_SECRET",
         "TWILIO_VERIFY_SERVICE_SID",
-        "SENDGRID_API_KEY",
-        "SENDGRID_SECRET_KEY",
         "SLACK_CLIENT_OAUTH_ID",
         "SLACK_CLIENT_OAUTH_SECRET",
         "SLACK_SIGNING_SECRET",
@@ -173,9 +188,19 @@ class LiveSetting(models.Model):
     def populate_settings_if_needed(cls):
         settings_in_db = cls.objects.filter(name__in=cls.AVAILABLE_NAMES).values_list("name", flat=True)
         setting_names_to_populate = set(cls.AVAILABLE_NAMES) - set(settings_in_db)
+        if len(setting_names_to_populate) == 0:
+            return
 
         for setting_name in setting_names_to_populate:
             cls.objects.create(name=setting_name, value=cls._get_setting_from_setting_file(setting_name))
+
+        cls.validate_settings()
+
+    @classmethod
+    def validate_settings(cls):
+        settings_to_validate = cls.objects.all()
+        for setting in settings_to_validate:
+            setting.save(update_fields=["error"])
 
     @staticmethod
     def _get_setting_from_setting_file(setting_name):

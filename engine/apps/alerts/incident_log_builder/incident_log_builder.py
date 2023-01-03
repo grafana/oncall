@@ -589,9 +589,6 @@ class IncidentLogBuilder:
                 result += f"call {user_verbal} by phone"
             elif notification_policy.notify_by == UserNotificationPolicy.NotificationChannel.TELEGRAM:
                 result += f"send telegram message to {user_verbal}"
-            # TODO: restore email notifications
-            # elif notification_policy.notify_by == UserNotificationPolicy.NotificationChannel.EMAIL:
-            #     result += f"send email to {user_verbal}"
             else:
                 try:
                     backend_id = UserNotificationPolicy.NotificationChannel(notification_policy.notify_by).name
@@ -599,7 +596,7 @@ class IncidentLogBuilder:
                 except ValueError:
                     pass
                 else:
-                    result += f"send {backend.label.lower()} message to {user_verbal}"
+                    result += f"send {backend.label.lower() if backend else ''} message to {user_verbal}"
         if not result:
             result += f"inviting {user_verbal} but notification channel is unspecified"
         return result

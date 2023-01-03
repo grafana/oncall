@@ -8,7 +8,7 @@ ReactModal.setAppElement('#reactRoot');
 import styles from './Modal.module.css';
 
 export interface ModalProps {
-  title: string | JSX.Element;
+  title?: string | JSX.Element;
   className?: string;
   contentClassName?: string;
   closeOnEscape?: boolean;
@@ -26,6 +26,7 @@ const Modal: FC<PropsWithChildren<ModalProps>> = (props) => {
 
   return (
     <ReactModal
+      shouldCloseOnOverlayClick={false}
       style={{
         overlay: {},
         content: {
@@ -38,7 +39,7 @@ const Modal: FC<PropsWithChildren<ModalProps>> = (props) => {
       contentLabel={title}
       className={cx('root')}
       overlayClassName={cx('overlay')}
-      bodyOpenClassName={cx('body-open')}
+      overlayElement={(_props, contentElement) => contentElement} // render without overlay to allow body scroll
       contentElement={contentElement}
     >
       {children}

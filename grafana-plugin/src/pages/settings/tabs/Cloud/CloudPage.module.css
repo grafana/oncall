@@ -1,0 +1,66 @@
+.info-block {
+  width: 70%;
+  min-width: 1100px;
+  padding: 24px;
+}
+
+.warning-message {
+  color: var(--warning-text-color);
+}
+
+.success-message {
+  color: var(--success-text-color);
+}
+
+.error-message {
+  color: var(--error-text-color);
+}
+
+.user-table {
+  margin-top: 24px;
+  width: 100%;
+}
+
+.user-row {
+  height: 32px;
+}
+
+.heartbit-button {
+  margin-top: 24px;
+}
+
+.cloud-oncall-name {
+  color: #f55f3e;
+}
+
+.block-icon {
+  color: var(--secondary-text-color);
+}
+
+.error-icon {
+  display: inline-block;
+  white-space: break-spaces;
+  line-height: 20px;
+  color: var(--error-text-color);
+}
+
+.error-icon svg {
+  vertical-align: middle;
+}
+
+.heart-icon {
+  color: var(--secondary-text-color);
+  margin-right: 8px;
+}
+
+.block-button {
+  margin-top: 24px;
+}
+
+.table-title {
+  margin-bottom: var(--title-marginBottom);
+}
+
+.table-button {
+  float: right;
+}

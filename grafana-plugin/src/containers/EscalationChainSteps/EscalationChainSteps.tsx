@@ -12,7 +12,7 @@ import { WithPermissionControl } from 'containers/WithPermissionControl/WithPerm
 import { EscalationChain } from 'models/escalation_chain/escalation_chain.types';
 import { EscalationPolicyOption } from 'models/escalation_policy/escalation_policy.types';
 import { useStore } from 'state/useStore';
-import { UserAction } from 'state/userAction';
+import { UserActions } from 'utils/authorization';
 
 import styles from './EscalationChainSteps.module.css';
 
@@ -62,13 +62,10 @@ const EscalationChainSteps = observer((props: EscalationChainStepsProps) => {
       {addonBefore}
       {escalationPolicyIds ? (
         escalationPolicyIds.map((escalationPolicyId, index) => {
-          // const COLOR_RED = '#FF0000';
           const COLOR_RED = '#E60000';
-          // const STEP_COLORS = ['#52C41A', '#A0D911', '#FADB14', '#FAAD14', COLOR_RED];
           const STEP_COLORS = ['#1A7F4B', '#33cc33', '#ffbf00', '#FF8000', COLOR_RED];
 
-          const { alertReceiveChannelStore, escalationPolicyStore } = store;
-
+          const { escalationPolicyStore } = store;
           const escalationPolicy = escalationPolicyStore.items[escalationPolicyId];
 
           if (!escalationPolicy) {
@@ -96,13 +93,12 @@ const EscalationChainSteps = observer((props: EscalationChainStepsProps) => {
         <LoadingPlaceholder text="Loading..." />
       )}
       <Timeline.Item number={(escalationPolicyIds?.length || 0) + offset + 1} color="#464C54">
-        <WithPermissionControl userAction={UserAction.UpdateEscalationPolicies}>
+        <WithPermissionControl userAction={UserActions.EscalationChainsWrite}>
           <Select
             isSearchable
             menuShouldPortal
             placeholder="Add escalation step..."
             onChange={handleCreateEscalationStep}
-            /* isOptionDisabled={(...rest) => console.log(rest)}*/
             options={escalationPolicyStore.webEscalationChoices.map((choice: EscalationPolicyOption) => ({
               value: choice.value,
               label: choice.create_display_name,

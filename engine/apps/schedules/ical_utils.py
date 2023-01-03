@@ -13,6 +13,7 @@ from django.db.models import Q
 from django.utils import timezone
 from icalendar import Calendar
 
+from apps.api.permissions import RBACPermission
 from apps.schedules.constants import (
     ICAL_ATTENDEE,
     ICAL_DATETIME_END,
@@ -25,7 +26,7 @@ from apps.schedules.constants import (
     RE_PRIORITY,
 )
 from apps.schedules.ical_events import ical_events
-from common.constants.role import Role
+from common.timezones import is_valid_timezone
 from common.utils import timed_lru_cache
 
 """
@@ -40,15 +41,20 @@ if TYPE_CHECKING:
 def users_in_ical(usernames_from_ical, organization, include_viewers=False):
     """
     Parse ical file and return list of users found
+    NOTE: only grafana username will be used, consider adding grafana email and id
     """
-    # Only grafana username will be used, consider adding grafana email and id
+    from apps.user_management.models import User
 
     users_found_in_ical = organization.users
     if not include_viewers:
-        users_found_in_ical = users_found_in_ical.filter(role__in=(Role.ADMIN, Role.EDITOR))
+        # TODO: this is a breaking change....
+        users_found_in_ical = users_found_in_ical.filter(
+            **User.build_permissions_query(RBACPermission.Permissions.SCHEDULES_WRITE, organization)
+        )
 
+    user_emails = [v.lower() for v in usernames_from_ical]
     users_found_in_ical = users_found_in_ical.filter(
-        (Q(username__in=usernames_from_ical) | Q(email__in=usernames_from_ical))
+        (Q(username__in=usernames_from_ical) | Q(email__lower__in=user_emails))
     ).distinct()
 
     # Here is the example how we extracted users previously, using slack fields too
@@ -134,7 +140,7 @@ def list_of_oncall_shifts_from_ical(
                 continue
 
             tmp_result_datetime, tmp_result_date = get_shifts_dict(
-                calendar, calendar_type, schedule, datetime_start, datetime_end, date, with_empty_shifts
+                calendar, calendar_type, schedule, datetime_start, datetime_end, with_empty_shifts
             )
             result_datetime.extend(tmp_result_datetime)
             result_date.extend(tmp_result_date)
@@ -161,7 +167,7 @@ def list_of_oncall_shifts_from_ical(
     return result or None
 
 
-def get_shifts_dict(calendar, calendar_type, schedule, datetime_start, datetime_end, date, with_empty_shifts=False):
+def get_shifts_dict(calendar, calendar_type, schedule, datetime_start, datetime_end, with_empty_shifts=False):
     events = ical_events.get_events_from_ical_between(calendar, datetime_start, datetime_end)
     result_datetime = []
     result_date = []
@@ -175,25 +181,10 @@ def get_shifts_dict(calendar, calendar_type, schedule, datetime_start, datetime_
             if type(event[ICAL_DATETIME_START].dt) == datetime.date:
                 start = event[ICAL_DATETIME_START].dt
                 end = event[ICAL_DATETIME_END].dt
-                if start <= date < end:
-                    result_date.append(
-                        {
-                            "start": start,
-                            "end": end,
-                            "users": users,
-                            "missing_users": missing_users,
-                            "priority": priority,
-                            "source": source,
-                            "calendar_type": calendar_type,
-                            "shift_pk": pk,
-                        }
-                    )
-            else:
-                start, end = ical_events.get_start_and_end_with_respect_to_event_type(event)
-                result_datetime.append(
+                result_date.append(
                     {
-                        "start": start.astimezone(pytz.UTC),
-                        "end": end.astimezone(pytz.UTC),
+                        "start": start,
+                        "end": end,
                         "users": users,
                         "missing_users": missing_users,
                         "priority": priority,
@@ -202,6 +193,21 @@ def get_shifts_dict(calendar, calendar_type, schedule, datetime_start, datetime_
                         "shift_pk": pk,
                     }
                 )
+            else:
+                start, end = ical_events.get_start_and_end_with_respect_to_event_type(event)
+                if start < end:
+                    result_datetime.append(
+                        {
+                            "start": start.astimezone(pytz.UTC),
+                            "end": end.astimezone(pytz.UTC),
+                            "users": users,
+                            "missing_users": missing_users,
+                            "priority": priority,
+                            "source": source,
+                            "calendar_type": calendar_type,
+                            "shift_pk": pk,
+                        }
+                    )
     return result_datetime, result_date
 
 
@@ -394,8 +400,8 @@ def get_missing_users_from_ical_event(event, organization):
     all_usernames, _ = get_usernames_from_ical_event(event)
     users = list(get_users_from_ical_event(event, organization))
     found_usernames = [u.username for u in users]
-    found_emails = [u.email for u in users]
-    return [u for u in all_usernames if u != "" and u not in found_usernames and u not in found_emails]
+    found_emails = [u.email.lower() for u in users]
+    return [u for u in all_usernames if u != "" and u not in found_usernames and u.lower() not in found_emails]
 
 
 def get_users_from_ical_event(event, organization):
@@ -487,14 +493,14 @@ def get_icalendar_tz_or_utc(icalendar):
     except (IndexError, KeyError):
         calendar_timezone = "UTC"
 
-    try:
-        return pytz.timezone(calendar_timezone)
-    except pytz.UnknownTimeZoneError:
-        # try to convert the timezone from windows to iana
-        converted_timezone = convert_windows_timezone_to_iana(calendar_timezone)
-        if converted_timezone is None:
-            return "UTC"
-        return pytz.timezone(converted_timezone)
+    if pytz_timezone := is_valid_timezone(calendar_timezone):
+        return pytz_timezone
+
+    # try to convert the timezone from windows to iana
+    if (converted_timezone := convert_windows_timezone_to_iana(calendar_timezone)) is None:
+        return "UTC"
+
+    return pytz.timezone(converted_timezone)
 
 
 def fetch_ical_file_or_get_error(ical_url):
@@ -536,7 +542,8 @@ def get_user_events_from_calendars(ical_obj: Calendar, calendars: tuple, user: U
             for component in calendar.walk():
                 if component.name == "VEVENT":
                     event_user = get_usernames_from_ical_event(component)
-                    if event_user[0][0] in [user.username, user.email]:
+                    event_user_value = event_user[0][0]
+                    if event_user_value == user.username or event_user_value.lower() == user.email.lower():
                         ical_obj.add_component(component)
 
 

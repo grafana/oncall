@@ -7,6 +7,8 @@ from django.core.cache import cache
 from django.core.exceptions import PermissionDenied
 from django.db import OperationalError
 
+from apps.user_management.models.region import OrganizationMovedException
+
 logger = logging.getLogger(__name__)
 
 
@@ -63,6 +65,9 @@ class AlertChannelDefiningMixin(object):
             else:
                 logger.info("Cache is empty!")
                 raise
+
+        if alert_receive_channel.organization.is_moved:
+            raise OrganizationMovedException(alert_receive_channel.organization)
 
         del kwargs["alert_channel_key"]
         kwargs["alert_receive_channel"] = alert_receive_channel

@@ -30,21 +30,22 @@ interface TabsProps {
   showTelegramConnectionTab: boolean;
 }
 
-export const Tabs = (props: TabsProps) => {
-  const {
-    activeTab,
-    onTabChange,
-    showNotificationSettingsTab,
-    showMobileAppVerificationTab,
-    showSlackConnectionTab,
-    showTelegramConnectionTab,
-  } = props;
-
-  const getTabClickHandler = useCallback((tab: UserSettingsTab) => {
-    return () => {
-      onTabChange(tab);
-    };
-  }, []);
+export const Tabs = ({
+  activeTab,
+  onTabChange,
+  showNotificationSettingsTab,
+  showMobileAppVerificationTab,
+  showSlackConnectionTab,
+  showTelegramConnectionTab,
+}: TabsProps) => {
+  const getTabClickHandler = useCallback(
+    (tab: UserSettingsTab) => {
+      return () => {
+        onTabChange(tab);
+      };
+    },
+    [onTabChange]
+  );
 
   return (
     <TabsBar>
@@ -103,16 +104,12 @@ interface TabsContentProps {
   isDesktopOrLaptop: boolean;
 }
 
-export const TabsContent = observer((props: TabsContentProps) => {
-  const { id, activeTab, onTabChange, isDesktopOrLaptop } = props;
+export const TabsContent = observer(({ id, activeTab, onTabChange, isDesktopOrLaptop }: TabsContentProps) => {
+  const store = useStore();
+
   useEffect(() => {
     store.updateFeatures();
   }, []);
-
-  const store = useStore();
-  const { userStore } = store;
-
-  const storeUser = userStore.items[id];
 
   return (
     <TabContent className={cx('content')}>
@@ -136,9 +133,8 @@ export const TabsContent = observer((props: TabsContentProps) => {
         ) : (
           <PhoneVerification userPk={id} />
         ))}
-      {activeTab === UserSettingsTab.MobileAppVerification && (
-        <MobileAppVerification userPk={id} phone={storeUser.unverified_phone_number || '+'} />
-      )}
+      {/* TODO: we should probably hide this tab when a user (ie. Admin) is viewing the user settings for another user. Would it make sense for an Admin to be able to link their mobile app to another user's profile */}
+      {activeTab === UserSettingsTab.MobileAppVerification && <MobileAppVerification userPk={id} />}
       {activeTab === UserSettingsTab.SlackInfo && <SlackTab />}
       {activeTab === UserSettingsTab.TelegramInfo && <TelegramInfo />}
     </TabContent>

@@ -132,7 +132,8 @@ class AlertGroupSerializer(AlertGroupListSerializer):
         fields = AlertGroupListSerializer.Meta.fields + [
             "alerts",
             "render_after_resolve_report_json",
-            "permalink",
+            "slack_permalink",  # TODO: make plugin frontend use "permalinks" field to get Slack link
+            "permalinks",
             "last_alert_at",
         ]
 

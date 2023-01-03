@@ -1,36 +1,16 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 
-import { getLocationSrv, LocationUpdate } from '@grafana/runtime';
-import {
-  Field,
-  Input,
-  Button,
-  Modal,
-  HorizontalGroup,
-  Alert,
-  Icon,
-  VerticalGroup,
-  Table,
-  LoadingPlaceholder,
-} from '@grafana/ui';
-import cn from 'classnames/bind';
+import { Button, HorizontalGroup, VerticalGroup, LoadingPlaceholder } from '@grafana/ui';
 import { observer } from 'mobx-react';
 
-import Block from 'components/GBlock/Block';
-import GTable from 'components/GTable/GTable';
 import PluginLink from 'components/PluginLink/PluginLink';
 import Text from 'components/Text/Text';
-import WithConfirm from 'components/WithConfirm/WithConfirm';
 import { User } from 'models/user/user.types';
 import { AppFeature } from 'state/features';
 import { WithStoreProps } from 'state/types';
 import { useStore } from 'state/useStore';
-import { UserAction } from 'state/userAction';
 import { withMobXProviderContext } from 'state/withStore';
-
-import styles from './CloudPhoneSettings.module.css';
-
-const cx = cn.bind(styles);
+import { isUserActionAllowed, UserActions } from 'utils/authorization';
 
 interface CloudPhoneSettingsProps extends WithStoreProps {
   userPk?: User['pk'];
@@ -139,7 +119,7 @@ const CloudPhoneSettings = observer((props: CloudPhoneSettingsProps) => {
 
   return (
     <>
-      {store.isUserActionAllowed(UserAction.UpdateOtherUsersSettings) ? (
+      {isUserActionAllowed(UserActions.OtherSettingsWrite) ? (
         <VerticalGroup spacing="lg">
           <HorizontalGroup justify="space-between">
             <Text.Title level={3}>OnCall use Grafana Cloud for SMS and phone call notifications</Text.Title>

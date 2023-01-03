@@ -1,3 +1,5 @@
+import dayjs from 'dayjs';
+
 import { GrafanaTeam } from 'models/grafana_team/grafana_team.types';
 import { SlackChannel } from 'models/slack_channel/slack_channel.types';
 import { User } from 'models/user/user.types';
@@ -7,6 +9,13 @@ export enum ScheduleType {
   'Calendar',
   'Ical',
   'API',
+}
+
+export interface RotationFormLiveParams {
+  rotationStart: dayjs.Dayjs;
+  shiftStart: dayjs.Dayjs;
+  shiftEnd: dayjs.Dayjs;
+  focusElementName: string;
 }
 
 export interface Schedule {
@@ -58,8 +67,8 @@ export interface Shift {
   shift_end: string;
   shift_start: string;
   title: string;
-  type: 2;
-  until: null;
+  type: number; // 2 - rotations, 3 - overrides
+  until: string | null;
   updated_shift: null;
 }
 
@@ -94,4 +103,10 @@ export interface Events {
 export interface Layer {
   priority: Shift['priority_level'];
   shifts: Array<{ shiftId: Shift['id']; isPreview?: boolean; events: Event[] }>;
+}
+
+export interface ShiftEvents {
+  shiftId: string;
+  events: Event[];
+  isPreview?: boolean;
 }

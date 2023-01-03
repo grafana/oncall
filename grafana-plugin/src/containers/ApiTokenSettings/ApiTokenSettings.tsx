@@ -3,7 +3,7 @@ import React from 'react';
 import { Button, HorizontalGroup } from '@grafana/ui';
 import cn from 'classnames/bind';
 import { observer } from 'mobx-react';
-import moment from 'moment';
+import moment from 'moment-timezone';
 
 import GTable from 'components/GTable/GTable';
 import Text from 'components/Text/Text';
@@ -11,8 +11,8 @@ import WithConfirm from 'components/WithConfirm/WithConfirm';
 import { WithPermissionControl } from 'containers/WithPermissionControl/WithPermissionControl';
 import { ApiToken } from 'models/api_token/api_token.types';
 import { WithStoreProps } from 'state/types';
-import { UserAction } from 'state/userAction';
 import { withMobXProviderContext } from 'state/withStore';
+import { isUserActionAllowed, UserActions } from 'utils/authorization';
 
 import ApiTokenForm from './ApiTokenForm';
 
@@ -48,8 +48,6 @@ class ApiTokens extends React.Component<ApiTokensProps, any> {
 
     const apiTokens = apiTokenStore.getSearchResult();
 
-    const loading = !apiTokens;
-
     const { showCreateTokenModal } = this.state;
 
     const columns = [
@@ -76,15 +74,8 @@ class ApiTokens extends React.Component<ApiTokensProps, any> {
             <div className={cx('header')}>
               <HorizontalGroup align="flex-end">
                 <Text.Title level={3}>API Tokens</Text.Title>
-                {/*<a target="_blank" href="https://a-03-dev-us-central-0.grafana.net/api-docs/#introduction">
-                  API Docs
-                </a>
-                <Text type="secondary">|</Text>
-                <a target="_blank" href="https://github.com/grafana/amixr/tree/dev/docs/terraform-provider">
-                  Terraform Docs
-                </a>*/}
               </HorizontalGroup>
-              <WithPermissionControl userAction={UserAction.UpdateApiTokens}>
+              <WithPermissionControl userAction={UserActions.APIKeysWrite}>
                 <Button
                   icon="plus"
                   disabled={apiTokens && apiTokens.length >= MAX_TOKENS_PER_USER}
@@ -102,7 +93,7 @@ class ApiTokens extends React.Component<ApiTokensProps, any> {
           showHeader={!isMobile}
           data={apiTokens}
           emptyText={
-            store.isUserActionAllowed(UserAction.UpdateApiTokens)
+            isUserActionAllowed(UserActions.APIKeysWrite)
               ? apiTokens
                 ? 'No tokens found'
                 : 'Loading...'
@@ -125,7 +116,7 @@ class ApiTokens extends React.Component<ApiTokensProps, any> {
 
   renderActionButtons = (record: ApiToken) => {
     const revokeButton = (
-      <WithPermissionControl userAction={UserAction.UpdateApiTokens}>
+      <WithPermissionControl userAction={UserActions.APIKeysWrite}>
         <WithConfirm title={`Are you sure to revoke "${record.name}" API token?`} confirmText="Revoke token">
           <Button fill="text" variant="destructive" onClick={this.getRevokeTokenClickHandler(record.id)}>
             Revoke

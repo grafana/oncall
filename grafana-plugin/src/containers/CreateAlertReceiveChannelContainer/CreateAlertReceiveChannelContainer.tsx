@@ -1,6 +1,6 @@
 import React, { ChangeEvent, useCallback, useState } from 'react';
 
-import { Card, EmptySearchResult, HorizontalGroup, Input, Modal, VerticalGroup, Tag } from '@grafana/ui';
+import { EmptySearchResult, HorizontalGroup, Input, Modal, VerticalGroup, Tag } from '@grafana/ui';
 import cn from 'classnames/bind';
 import { observer } from 'mobx-react';
 
@@ -63,7 +63,7 @@ const CreateAlertReceiveChannelContainer = observer((props: CreateAlertReceiveCh
       </div>
       <div className={cx('cards', { cards_centered: !options.length })}>
         {options.length ? (
-          options.map((alertReceiveChannelChoice, index) => {
+          options.map((alertReceiveChannelChoice) => {
             return (
               <Block
                 bordered
@@ -95,13 +95,6 @@ const CreateAlertReceiveChannelContainer = observer((props: CreateAlertReceiveCh
           <EmptySearchResult>Could not find anything matching your query</EmptySearchResult>
         )}
       </div>
-      {/* Need to add documentation link to Integrations
-      <div className={cx('footer')}>
-        <Text type="secondary"> Find out how integrations work: </Text>
-        <a target="_blank" href="https://grafana.com/docs/">
-          Read documentation
-        </a>
-      </div> */}
     </Modal>
   );
 });

@@ -1,24 +1,25 @@
 import plugin from '../../../package.json'; // eslint-disable-line
 import React, { FC, useEffect, useState, useCallback } from 'react';
 
-import { AppRootProps } from '@grafana/data';
-import { getLocationSrv } from '@grafana/runtime';
 import { Alert } from '@grafana/ui';
 import cn from 'classnames/bind';
 import { observer } from 'mobx-react';
+import { AppRootProps } from 'types';
 
 import PluginLink from 'components/PluginLink/PluginLink';
+import { getIfChatOpsConnected } from 'containers/DefaultPageLayout/helper';
+import { AppFeature } from 'state/features';
 import { useStore } from 'state/useStore';
-import { UserAction } from 'state/userAction';
+import LocationHelper from 'utils/LocationHelper';
+import { isUserActionAllowed, UserActions } from 'utils/authorization';
 import { GRAFANA_LICENSE_OSS } from 'utils/consts';
 import { useForceUpdate } from 'utils/hooks';
 import { getItem, setItem } from 'utils/localStorage';
 import sanitize from 'utils/sanitize';
 
 import { getSlackMessage } from './DefaultPageLayout.helpers';
+import styles from './DefaultPageLayout.module.scss';
 import { SlackError } from './DefaultPageLayout.types';
-
-import styles from './DefaultPageLayout.module.css';
 
 const cx = cn.bind(styles);
 
@@ -45,7 +46,7 @@ const DefaultPageLayout: FC<DefaultPageLayoutProps> = observer((props) => {
     if (query.slack_error) {
       setShowSlackInstallAlert(query.slack_error);
 
-      getLocationSrv().update({ partial: true, query: { slack_error: undefined }, replace: true });
+      LocationHelper.update({ slack_error: undefined }, 'replace');
     }
   }, []);
 
@@ -64,6 +65,9 @@ const DefaultPageLayout: FC<DefaultPageLayoutProps> = observer((props) => {
   const { currentTeam } = teamStore;
   const { currentUser } = userStore;
 
+  const isChatOpsConnected = getIfChatOpsConnected(currentUser);
+  const isPhoneVerified = currentUser?.cloud_connection_status === 3 || currentUser?.verified_phone_number;
+
   return (
     <div className={cx('root')}>
       <div className={styles.alerts_horizontal}>
@@ -75,7 +79,11 @@ const DefaultPageLayout: FC<DefaultPageLayoutProps> = observer((props) => {
             // @ts-ignore
             title="Slack integration warning"
           >
-            {getSlackMessage(showSlackInstallAlert, store.teamStore.currentTeam)}
+            {getSlackMessage(
+              showSlackInstallAlert,
+              store.teamStore.currentTeam,
+              store.hasFeature(AppFeature.LiveSettings)
+            )}
           </Alert>
         )}
         {currentTeam?.banner.title != null && !getItem(currentTeam?.banner.title) && (
@@ -109,7 +117,12 @@ const DefaultPageLayout: FC<DefaultPageLayoutProps> = observer((props) => {
               {`Current plugin version: ${plugin.version}, current engine version: ${store.backendVersion}`}
               <br />
               Please see{' '}
-              <a href={'https://grafana.com/docs/oncall/latest/open-source/#update-grafana-oncall-oss'} target="_blank" rel="noreferrer">
+              <a
+                href={'https://grafana.com/docs/oncall/latest/open-source/#update-grafana-oncall-oss'}
+                target="_blank"
+                rel="noreferrer"
+                className={cx('instructions-link')}
+              >
                 the update instructions
               </a>
               .
@@ -118,10 +131,8 @@ const DefaultPageLayout: FC<DefaultPageLayoutProps> = observer((props) => {
         {Boolean(
           currentTeam &&
             currentUser &&
-            store.isUserActionAllowed(UserAction.UpdateOwnSettings) &&
-            (!currentUser.verified_phone_number ||
-              !currentUser.slack_user_identity ||
-              currentUser.cloud_connection_status !== 3) &&
+            isUserActionAllowed(UserActions.UserSettingsWrite) &&
+            (!isPhoneVerified || !isChatOpsConnected) &&
             !getItem(AlertID.CONNECTIVITY_WARNING)
         ) && (
           <Alert
@@ -133,21 +144,17 @@ const DefaultPageLayout: FC<DefaultPageLayoutProps> = observer((props) => {
           >
             {
               <>
-                {!currentTeam.slack_team_identity && (
+                {!isChatOpsConnected && (
                   <>
-                    Slack Integration is not installed. Please fix it in{' '}
-                    <PluginLink query={{ page: 'chat-ops' }}>Slack Settings</PluginLink>
-                    {'. '}
+                    Communication channels are not connected. Configure at least one channel to receive notifications.
                   </>
                 )}
-                {currentUser.cloud_connection_status !== 3 &&
-                  !currentUser.verified_phone_number &&
-                  'Your phone number is not verified. '}
-                {currentTeam.slack_team_identity &&
-                  !currentUser.slack_user_identity &&
-                  'Your slack account is not connected. '}
-                You can change your configuration in{' '}
-                <PluginLink query={{ page: 'users', id: 'me' }}>User settings</PluginLink>
+                {!isPhoneVerified && (
+                  <>
+                    Your phone number is not verified. You can change your configuration in{' '}
+                    <PluginLink query={{ page: 'users', id: 'me' }}>User settings</PluginLink>
+                  </>
+                )}
               </>
             }
           </Alert>
