@@ -194,6 +194,9 @@ class Alert(models.Model):
                 web_title_cache = apply_jinja_template(web_title_template, raw_request_data)
             except (JinjaTemplateError, JinjaTemplateWarning) as e:
                 web_title_cache = e.fallback_message
+                logger.warning(
+                    f"web_title_cache error on channel={alert_receive_channel.public_primary_key}: {e.fallback_message}"
+                )
         else:
             web_title_cache = None
 
