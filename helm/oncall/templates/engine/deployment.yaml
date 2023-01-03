@@ -10,10 +10,7 @@ spec:
     matchLabels:
       {{- include "oncall.engine.selectorLabels" . | nindent 6 }}
   strategy:
-    rollingUpdate:
-      maxSurge: 25%
-      maxUnavailable: 0
-    type: RollingUpdate
+    {{- toYaml .Values.engine.updateStrategy | nindent 4 }}
   template:
     metadata:
       {{- with .Values.podAnnotations }}

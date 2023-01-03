@@ -74,7 +74,7 @@ class AlertGroupQuerySet(models.QuerySet):
         # Try to return the last open group
         # Note that (channel, channel_filter, distinction, is_open_for_grouping) is in unique_together
         try:
-            return self.get(**search_params, is_open_for_grouping=True), False
+            return self.get(**search_params, is_open_for_grouping__isnull=False), False
         except self.model.DoesNotExist:
             pass
 
@@ -93,7 +93,7 @@ class AlertGroupQuerySet(models.QuerySet):
             )
         except IntegrityError:
             try:
-                return self.get(**search_params, is_open_for_grouping=True), False
+                return self.get(**search_params, is_open_for_grouping__isnull=False), False
             except self.model.DoesNotExist:
                 pass
             raise
