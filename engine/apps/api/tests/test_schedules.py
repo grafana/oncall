@@ -1113,7 +1113,7 @@ def test_merging_same_shift_events(
 
     data = {
         "start": start_date + timezone.timedelta(hours=10),
-        "rotation_start": start_date,
+        "rotation_start": start_date + timezone.timedelta(hours=10),
         "duration": timezone.timedelta(hours=2),
         "priority_level": 1,
         "frequency": CustomOnCallShift.FREQUENCY_DAILY,
