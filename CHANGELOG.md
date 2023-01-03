@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Alert group query optimization
 - Update RBAC scopes
+- Fix error when schedule was not able to load
 - Minor bug fixes
 
 ## v1.1.8 (2022-12-13)
