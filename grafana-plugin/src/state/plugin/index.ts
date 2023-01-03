@@ -208,7 +208,7 @@ class PluginState {
       }
 
       if (!FaroHelper.faro) {
-        FaroHelper.initializeFaro();
+        FaroHelper.initializeFaro(onCallApiUrl);
       }
 
       return await this.pollOnCallDataSyncStatus(onCallApiUrl, onCallApiUrlIsConfiguredThroughEnvVar);
