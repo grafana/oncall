@@ -11,25 +11,34 @@ const IGNORE_URLS = [/^((?!\/{0,1}a\/grafana\-oncall\-app\\).)*$/];
 
 interface FaroConfig {
   url: string;
-  apiKey: string;
   enabled: boolean;
   environment: string;
 }
 
-const ONCALL = 'grafana-oncall';
-
 class FaroHelper {
   faro: Faro;
 
-  initializeFaro() {
-    const faroInput = process.env || {};
-    const FARO_ENV = faroInput['FARO_ENV'];
+  initializeFaro(onCallApiUrl: string) {
     const faroConfig: FaroConfig = {
-      url: faroInput['FARO_URL'],
-      apiKey: faroInput['FARO_API_KEY'],
-      enabled: faroInput['FARO_ENABLED']?.toLowerCase() === 'true',
-      environment: FARO_ENV ? `${ONCALL}-${FARO_ENV}` : ONCALL,
+      url: 'https://faro-collector-prod-us-central-0.grafana.net/collect/f3a038193e7802cf47531ca94cfbada7',
+      enabled: false,
+      environment: undefined,
     };
+
+    if (onCallApiUrl === 'https://oncall-prod-us-central-0.grafana.net/oncall') {
+      faroConfig.enabled = true;
+      faroConfig.environment = 'prod';
+    } else if (onCallApiUrl === 'https://oncall-ops-us-east-0.grafana.net/oncall') {
+      faroConfig.enabled = true;
+      faroConfig.environment = 'ops';
+    } else if (onCallApiUrl === 'https://oncall-dev-us-central-0.grafana.net/oncall') {
+      faroConfig.enabled = true;
+      faroConfig.environment = 'dev';
+    } else {
+      // This opensource, don't send traces
+      /* faroConfig.enabled = true;
+      faroConfig.environment = 'local'; */
+    }
 
     if (!faroConfig?.enabled || !faroConfig?.url || this.faro) {
       return undefined;
@@ -38,7 +47,6 @@ class FaroHelper {
     try {
       const faroOptions = {
         url: faroConfig.url,
-        apiKey: faroConfig.apiKey,
         isolate: true,
         instrumentations: [
           ...getWebInstrumentations({
@@ -55,14 +63,11 @@ class FaroHelper {
         ],
         session: (window as any).__PRELOADED_STATE__?.faro?.session,
         app: {
-          name: faroConfig.environment,
+          name: 'grafana-oncall-test',
           version: plugin?.version,
+          environment: faroConfig.environment,
         },
       };
-
-      if (!faroConfig.apiKey) {
-        delete faroOptions.apiKey; // appo11y has the key in the API instead
-      }
 
       this.faro = initializeFaro(faroOptions);
 
