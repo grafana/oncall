@@ -93,7 +93,7 @@ class AlertGroupQuerySet(models.QuerySet):
             )
         except IntegrityError:
             try:
-                return self.get(**search_params, is_open_for_grouping=True), False
+                return self.get(**search_params, is_open_for_grouping__isnull=False), False
             except self.model.DoesNotExist:
                 pass
             raise
