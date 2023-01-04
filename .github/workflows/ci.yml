@@ -151,6 +151,17 @@ jobs:
           pip install -r requirements.txt
           ONCALL_TESTING_RBAC_ENABLED=${{ matrix.rbac_enabled }} pytest -x
 
+  unit-test-pd-migrator:
+    runs-on: ubuntu-latest
+    container: python:3.9
+    steps:
+      - uses: actions/checkout@v2
+      - name: Unit Test PD Migrator
+        run: |
+          cd tools/pagerduty-migrator
+          pip install -r requirements.txt
+          pytest -x
+
   docker-build:
     runs-on: ubuntu-latest
     steps:
