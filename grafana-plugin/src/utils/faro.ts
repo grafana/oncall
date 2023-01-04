@@ -63,7 +63,7 @@ class FaroHelper {
         ],
         session: (window as any).__PRELOADED_STATE__?.faro?.session,
         app: {
-          name: 'grafana-oncall-test',
+          name: 'grafana-oncall',
           version: plugin?.version,
           environment: faroConfig.environment,
         },
