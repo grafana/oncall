@@ -22,7 +22,9 @@ type Props = {
 };
 
 const INTERVAL_MIN_THROTTLING = 500;
-const INTERVAL_QUEUE_QR = 50000;
+const INTERVAL_QUEUE_QR = process.env.MOBILE_APP_QR_INTERVAL_QUEUE
+  ? parseInt(process.env.MOBILE_APP_QR_INTERVAL_QUEUE, 10)
+  : 50000;
 const INTERVAL_POLLING = 5000;
 const BACKEND = 'MOBILE_APP';
 
@@ -133,7 +135,7 @@ const MobileAppVerification = observer(({ userPk }: Props) => {
         </Text>
         <Text type="primary">Open Grafana IRM mobile application and scan this code to sync it with your account.</Text>
         <div className={cx('u-width-100', 'u-flex', 'u-flex-center', 'u-position-relative')}>
-          <QRCode className={cx({ blurry: isQRBlurry })} value={QRCodeValue} />
+          <QRCode className={cx({ 'qr-code': true, blurry: isQRBlurry })} value={QRCodeValue} />
           {isQRBlurry && <QRLoading />}
         </div>
       </VerticalGroup>

@@ -1,4 +1,5 @@
-from push_notifications.gcm import send_message
+# from firebase_admin.messaging import Message
+# from fcm_django.models import FCMDevice
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -6,6 +7,7 @@ from rest_framework.views import APIView
 REQUIRED_FIELDS = {"registration_ids", "notification", "data"}
 
 
+# TODO: update thie
 class FCMRelayView(APIView):
     def post(self, request):
         """
@@ -17,10 +19,11 @@ class FCMRelayView(APIView):
         if not REQUIRED_FIELDS.issubset(request.data.keys()):
             return Response(status=status.HTTP_400_BAD_REQUEST)
 
-        registration_ids = request.data["registration_ids"]
-        data = {
-            **request.data["data"],
-            **request.data["notification"],
-        }
+        # registration_ids = request.data["registration_ids"]
+        # data = {
+        #     **request.data["data"],
+        #     **request.data["notification"],
+        # }
 
-        return send_message(registration_ids=registration_ids, data=data, cloud_type="FCM")
+        # return FCMDevice.objects.send_message(Message(), False, ["registration_ids"])
+        return "TODO:"

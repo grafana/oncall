@@ -47,6 +47,8 @@ class TelegramMessageRenderer:
 
         message_trimmed_text = MESSAGE_TRIMMED_TEXT.format(link=self.alert_group.web_link)
         max_log_lines_length = max_message_length - len(start_line_text) - len(message_trimmed_text)
+        if max_log_lines_length < 0:
+            return ""
         is_message_trimmed = len("\n".join(log_lines)) > max_log_lines_length
         while len("\n".join(log_lines)) > max_log_lines_length:
             log_lines.pop()
