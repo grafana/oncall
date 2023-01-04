@@ -7,8 +7,6 @@ from django.apps import apps
 from django.conf import settings
 from django.core.validators import MinLengthValidator
 from django.db import models
-from django.db.models.signals import post_delete
-from django.dispatch import receiver
 from django.utils import timezone
 from mirage import fields as mirage_fields
 
@@ -76,8 +74,6 @@ class Organization(MaintainableObject):
     def delete(self):
         self.deleted_at = timezone.now()
         self.save(update_fields=["deleted_at"])
-        id = self.public_primary_key
-        print(f"ID {id}")
         if settings.FEATURE_MULTIREGION_ENABLED:
             delete_oncall_connector_async.apply_async((self.public_primary_key,))
 
@@ -337,9 +333,3 @@ class Organization(MaintainableObject):
     @property
     def is_moved(self):
         return self.migration_destination_id is not None
-
-
-@receiver(post_delete, sender=Organization)
-def test_post_delete(sender, instance, *args, **kwargs):
-    print(instance.public_primary_key)
-    print("org deleted")
