@@ -302,7 +302,6 @@ services:
         condition: service_healthy
     profiles:
       - grafana
-
 volumes:
   redisdata_dev:
     labels: *oncall-labels
