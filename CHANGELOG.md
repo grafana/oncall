@@ -9,14 +9,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
- - Integration with [Grafana Faro](https://grafana.com/docs/grafana-cloud/faro-web-sdk/) for Cloud Instances
+- Integration with [Grafana Faro](https://grafana.com/docs/grafana-cloud/faro-web-sdk/) for Cloud Instances
 
 ## v1.1.12 (2023-01-03)
 
 ### Fixed
 
- - Handle jinja exceptions during alert creation
- - Handle exception for slack rate limit message
+- Handle jinja exceptions during alert creation
+- Handle exception for slack rate limit message
 
 ## v1.1.11 (2023-01-03)
 
