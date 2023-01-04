@@ -36,11 +36,11 @@ def test_organization_soft_delete(
 
     assert response.status_code == 404
 
-    # check if alert receiver view responds with 404
+    # check if alert receiver view responds with 403
     url = reverse("integrations:alertmanager", kwargs={"alert_channel_key": alert_receive_channel.token})
     data = {"a": "b"}
     response = client.post(url, data, format="json")
-    assert response.status_code == 404
+    assert response.status_code == 403
 
 
 @pytest.mark.django_db
