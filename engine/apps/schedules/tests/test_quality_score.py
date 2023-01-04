@@ -52,7 +52,7 @@ def test_get_schedule_score_no_events(get_schedule_quality_response):
     assert response.status_code == status.HTTP_200_OK
 
     assert response.json() == {
-        "total_score": 50,
+        "total_score": 0,
         "comments": ["Schedule has gaps", "Schedule is perfectly balanced"],
         "overloaded_users": [],
     }

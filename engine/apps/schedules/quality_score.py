@@ -17,7 +17,10 @@ def get_schedule_quality_score(events: list[dict], days: int) -> dict:
     # formula for balance score is taken from here: https://github.com/grafana/oncall/issues/118
     balance_score, overloaded_users = get_balance_score(good_events)
 
-    total_score = (good_event_score + balance_score) / 2
+    if events:
+        total_score = (good_event_score + balance_score) / 2
+    else:
+        total_score = 0
 
     gaps_comment = "Schedule has gaps" if good_event_score < 1 else "Schedule has no gaps"
     if balance_score < 0.8:
