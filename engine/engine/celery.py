@@ -61,7 +61,7 @@ if settings.OTEL_TRACING_ENABLED and settings.OTEL_EXPORTER_OTLP_ENDPOINT:
     @celery.signals.worker_process_init.connect(weak=False)
     def init_celery_tracing(*args, **kwargs):
         trace.set_tracer_provider(TracerProvider())
-        span_processor = BatchSpanProcessor(OTLPSpanExporter(endpoint="http://localhost:4317"))
+        span_processor = BatchSpanProcessor(OTLPSpanExporter())
         trace.get_tracer_provider().add_span_processor(span_processor)
         PyMySQLInstrumentor().instrument()
         CeleryInstrumentor().instrument()
