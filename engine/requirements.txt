@@ -45,4 +45,3 @@ opentelemetry-instrumentation-celery==0.36b0
 opentelemetry-instrumentation-pymysql==0.36b0
 opentelemetry-instrumentation-wsgi==0.36b0
 opentelemetry-exporter-otlp-proto-grpc==1.15.0
-uwsgidecorators==1.1.0
