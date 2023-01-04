@@ -3,6 +3,7 @@ from rest_framework import status
 from rest_framework.reverse import reverse
 from rest_framework.test import APIClient
 
+from apps.schedules.ical_utils import memoized_users_in_ical
 from apps.schedules.models import OnCallScheduleICal
 
 
@@ -16,6 +17,9 @@ def get_schedule_quality_response(
     make_user_auth_headers,
 ):
     def _get_schedule_quality_response(date, days):
+        # clear cache
+        memoized_users_in_ical.cache_clear()
+
         calendar = get_ical("quality.ics")
 
         organization = make_organization()
