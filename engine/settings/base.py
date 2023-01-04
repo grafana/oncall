@@ -41,6 +41,9 @@ DEBUG = False
 
 DEBUG_CELERY_TASKS_PROFILING = getenv_boolean("DEBUG_CELERY_TASKS_PROFILING", False)
 
+OTEL_TRACING_ENABLED = getenv_boolean("OTEL_TRACING_ENABLED", False)
+OTEL_EXPORTER_OTLP_ENDPOINT = os.environ.get("OTEL_EXPORTER_OTLP_ENDPOINT")
+
 ALLOWED_HOSTS = [item.strip() for item in os.environ.get("ALLOWED_HOSTS", "*").split(",")]
 
 # TODO: update link to up-to-date docs

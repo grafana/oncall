@@ -20,6 +20,14 @@ const outgoingWebhookStore = () => ({
   }, {}),
 });
 
+jest.mock('@grafana/faro-web-sdk', () => ({
+  initializeFaro: jest.fn(),
+  TracingInstrumentation: undefined,
+}));
+jest.mock('@grafana/faro-web-tracing', () => ({
+  TracingInstrumentation: undefined,
+}));
+
 jest.mock('plugin/GrafanaPluginRootPage.helpers', () => ({
   isTopNavbar: () => false,
 }));
