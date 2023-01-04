@@ -2,7 +2,7 @@ import os
 from migrator import oncall_api_client
 from migrator.config import (
     PAGERDUTY_TO_ONCALL_VENDOR_MAP,
-    FALLBACK_INTEGRATION_TYPE
+    ONCALL_DEFAULT_INTEGRATION_TYPE
 )
 from migrator.utils import find_by_id
 
@@ -30,7 +30,7 @@ def match_integration_type(integration: dict, vendors: list[dict]) -> None:
     vendor_name = vendors_map[vendor_id]["name"]
 
     integration["vendor_name"] = vendor_name
-    integration["oncall_type"] = PAGERDUTY_TO_ONCALL_VENDOR_MAP.get(vendor_name, default=FALLBACK_INTEGRATION_TYPE)
+    integration["oncall_type"] = PAGERDUTY_TO_ONCALL_VENDOR_MAP.get(vendor_name, default=ONCALL_DEFAULT_INTEGRATION_TYPE)
 
 def migrate_integration(integration: dict, escalation_policies: list[dict]) -> None:
     escalation_policy = find_by_id(
@@ -60,7 +60,7 @@ def create_integration(
     
     payload = {
         "name": name,
-        "type": integration_type if integration_type in DEFAULT_INTEGRATION_TYPE else FALLBACK_INTEGRATION_TYPE,
+        "type": integration_type if integration_type in DEFAULT_INTEGRATION_TYPE else ONCALL_DEFAULT_INTEGRATION_TYPE,
         "team_id": None
     } 
 

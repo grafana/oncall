@@ -80,7 +80,7 @@ docker run --rm \
 -e ONCALL_API_URL="<ONCALL_API_URL>" \
 -e ONCALL_API_TOKEN="<ONCALL_API_TOKEN>" \
 -e ONCALL_DEFAULT_CONTACT_METHOD="sms" \
--e FALLBACK_INTEGRATION_TYPE="webhook" \
+-e ONCALL_DEFAULT_INTEGRATION_TYPE="webhook" \
 -e MODE="migrate" \
 pd-oncall-migrator
 ```
@@ -89,7 +89,7 @@ It's possible to specify a default contact method type for user notification rul
 changing the `ONCALL_DEFAULT_CONTACT_METHOD` env variable.
 Options are: `email`, `sms`, `phone_call`, `slack`, `telegram` (default is `email`).
 
-We can also specify the method of integration types if it doesn't exist. Using the FALLBACK_INTEGRATION_TYPE variable. 
+We can also specify the method of integration types if it doesn't exist. Using the ONCALL_DEFAULT_INTEGRATION_TYPE variable. 
 The options are: `datadog`, `pingdom`, `alertmanager`, `prtg`, `stackdriver`, `uptimerobot`, `newrelic`, `zabbix`, `elastalert`, `fabric`, `webhook`
 
 ### After migration
