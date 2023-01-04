@@ -88,7 +88,7 @@ def schedule_report(schedules: list[dict]) -> str:
     for schedule in sorted(schedules, key=lambda s: bool(s["unmatched_users"])):
         result += "\n" + TAB + format_schedule(schedule)
 
-        if not schedule["unmatched_users"]:
+        if not schedule["unmatched_users"] and schedule["oncall_schedule"]:
             result += " (existing schedule with name '{}' will be deleted)".format(
                 schedule["name"]
             )
