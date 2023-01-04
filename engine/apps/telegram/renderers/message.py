@@ -9,7 +9,7 @@ from apps.slack.slack_formatter import SlackFormatter
 from common.utils import is_string_with_visible_characters
 
 MAX_TELEGRAM_MESSAGE_LENGTH = 4096
-MESSAGE_TRIMMED_TEXT = "\n\nMessage is trimmed! See full incident here: {link}"
+MESSAGE_TRIMMED_TEXT = "\n\nMessage is trimmed! See full alert group here: {link}"
 
 
 class TelegramMessageRenderer:
@@ -25,7 +25,7 @@ class TelegramMessageRenderer:
         return text
 
     def render_log_message(self, max_message_length: int = MAX_TELEGRAM_MESSAGE_LENGTH) -> str:
-        start_line_text = "Incident log:\n"
+        start_line_text = "Alert group log:\n"
 
         slack_formatter = SlackFormatter(self.alert_group.channel.organization)
         log_builder = IncidentLogBuilder(alert_group=self.alert_group)
@@ -62,10 +62,10 @@ class TelegramMessageRenderer:
 
     def render_actions_message(self) -> str:
         if self.alert_group.root_alert_group is None:
-            text = "Actions available for this incident"
+            text = "Actions available for this alert group"
         else:
-            # No actions for attached incidents
-            text = "No actions are available for this incident"
+            # No actions for attached alert group
+            text = "No actions are available for this alert group"
 
         return text
 
@@ -79,7 +79,7 @@ class TelegramMessageRenderer:
         return text
 
     def render_link_to_channel_message(self, include_title: bool = True) -> str:
-        text = "👀 You are invited to look at the incident!"
+        text = "👀 You are invited to look at an alert group!"
 
         if include_title:
             first_alert_in_group = self.alert_group.alerts.first()
@@ -91,7 +91,7 @@ class TelegramMessageRenderer:
 
     def render_formatting_error_message(self) -> str:
         return (
-            "You have a new incident, but Telegram can't render its content! "
+            "You have a new alert group, but Telegram can't render its content! "
             f"Please check it out: {self.alert_group.web_link}"
         )
 

@@ -42,7 +42,7 @@ class TelegramKeyboardRenderer:
     # Inline keyboard with controls for alert group message
     def render_actions_keyboard(self) -> Optional[InlineKeyboardMarkup]:
         if self.alert_group.root_alert_group is not None:
-            # No keyboard for attached incident
+            # No keyboard for attached alert group
             return None
 
         rows = []
@@ -65,7 +65,7 @@ class TelegramKeyboardRenderer:
 
     @staticmethod
     def render_link_to_channel_keyboard(link: str) -> InlineKeyboardMarkup:
-        button = InlineKeyboardButton(text="Go to the incident", url=link)
+        button = InlineKeyboardButton(text="Go to the alert group", url=link)
         return InlineKeyboardMarkup([[button]])
 
     @property
