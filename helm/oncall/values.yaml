@@ -92,7 +92,7 @@ oncall:
     # enabled enable the Slack ChatOps integration for the Oncall Engine.
     enabled: false
     # command sets the Slack bot slash-command
-    command: oncall
+    commandName: oncall
     # clientId configures the Slack app OAuth2 client ID.
     # api.slack.com/apps/<yourApp> -> Basic Information -> App Credentials -> Client ID
     clientId: ~
