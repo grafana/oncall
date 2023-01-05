@@ -86,7 +86,8 @@ def notify_user_async(user_pk, alert_group_pk, notification_policy_pk, critical)
             "status": str(alert_group.status),
             "type": "oncall.critical_message" if critical else "oncall.message",
             "title": alert_title,
-            "body": f"{alert_subtitle}\n{alert_body}",
+            "subtitle": alert_subtitle,
+            "body": alert_body,
             "thread_id": thread_id,
         },
         apns=APNSConfig(
