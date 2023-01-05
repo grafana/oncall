@@ -151,6 +151,8 @@ oncall:
 # Whether to run django database migrations automatically
 migrate:
   enabled: true
+  ## Node labels for pod assignment
+  ## ref: https://kubernetes.io/docs/user-guide/node-selection/
   nodeSelector: {}
   # TTL can be unset by setting ttlSecondsAfterFinished: ""
   ttlSecondsAfterFinished: 20
