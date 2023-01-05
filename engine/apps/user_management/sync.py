@@ -85,6 +85,7 @@ def delete_organization_if_needed(organization):
     # Organization has a manually set API token, it will not be found within GCOM
     # and would need to be deleted manually.
     if organization.gcom_token is None:
+        logger.info(f"Organization {organization.pk} has no gcom_token. Probably it's needed to delete org manually.")
         return False
 
     # Use common token as organization.gcom_token could be already revoked
