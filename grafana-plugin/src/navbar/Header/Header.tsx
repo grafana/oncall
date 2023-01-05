@@ -15,7 +15,7 @@ const cx = cn.bind(styles);
 
 export default function Header({ page, backendLicense }: { page: string; backendLicense: string }) {
   return (
-    <div className="page-container">
+    <div className={cx('root')}>
       <div className={cx('page-header__inner', { 'header-topnavbar': isTopNavbar() })}>
         <div className={cx('navbar-left')}>
           <span className="page-header__logo">

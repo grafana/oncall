@@ -206,7 +206,7 @@ class IncidentPage extends React.Component<IncidentPageProps, IncidentPageState>
     const showLinkTo = !incident.dependent_alert_groups.length && !incident.root_alert_group && !incident.resolved;
 
     return (
-      <Block withBackground>
+      <Block withBackground className={cx('block')}>
         <VerticalGroup>
           <HorizontalGroup className={cx('title')}>
             <PluginLink query={{ page: 'incidents', cursor, start, perpage }}>

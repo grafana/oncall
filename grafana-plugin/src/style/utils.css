@@ -2,6 +2,10 @@
   position: relative;
 }
 
+.u-overflow-x-auto {
+  overflow-x: auto;
+}
+
 .u-pull-right {
   margin-left: auto;
 }

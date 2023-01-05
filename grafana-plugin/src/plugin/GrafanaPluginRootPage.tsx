@@ -1,7 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 
 import { locationService } from '@grafana/runtime';
-import classnames from 'classnames';
 import dayjs from 'dayjs';
 import isSameOrAfter from 'dayjs/plugin/isSameOrAfter';
 import isSameOrBefore from 'dayjs/plugin/isSameOrBefore';
@@ -94,19 +93,11 @@ export const Root = observer((props: AppRootProps) => {
       {!isTopNavbar() && (
         <>
           <Header page={page} backendLicense={store.backendLicense} />
-          <nav className="page-container">
-            <LegacyNavTabsBar currentPage={page} />
-          </nav>
+          <LegacyNavTabsBar currentPage={page} />
         </>
       )}
 
-      <div
-        className={classnames(
-          { 'page-container': !isTopNavbar() },
-          { 'page-body': !isTopNavbar() },
-          'u-position-relative'
-        )}
-      >
+      <div className="page-body u-position-relative u-overflow-x-auto">
         {userHasAccess ? (
           <Page {...props} query={...getQueryParams()} path={pathWithoutLeadingSlash} store={store} />
         ) : (
