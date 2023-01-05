@@ -83,6 +83,7 @@ class AlertGroupListSerializer(EagerLoadingMixin, serializers.ModelSerializer):
             "dependent_alert_groups",
             "root_alert_group",
             "status",
+            "declare_incident_link",
         ]
 
     def get_render_for_web(self, obj):

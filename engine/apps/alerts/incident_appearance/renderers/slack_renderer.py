@@ -355,6 +355,15 @@ class AlertGroupSlackRenderer(AlertGroupBaseRenderer):
                 resolution_notes_button["style"] = "primary"
                 resolution_notes_button["text"]["text"] = "Add Resolution notes"
             buttons.append(resolution_notes_button)
+
+            # Incident button
+            incident_button = {
+                "type": "button",
+                "text": {"type": "plain_text", "text": "Declare Incident", "emoji": True},
+                "value": "declare_incident",
+                "url": self.alert_group.declare_incident_link,
+            }
+            buttons.append(incident_button)
         else:
             if not self.alert_group.resolved:
                 buttons.append(
