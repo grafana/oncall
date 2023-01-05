@@ -56,7 +56,20 @@ def notify_user_async(user_pk, alert_group_pk, notification_policy_pk, critical)
 
     alert_title = "New Critical Alert" if critical else "New Alert"
     alert_subtitle = get_push_notification_message(alert_group)
-    alert_body = f"Status: Firing"  # TODO: is there a better spot to calculate this rather than hardcoding?
+
+    status_verbose = "Alerting"
+    if alert_group.resolved:
+        status_verbose = alert_group.get_resolve_text()
+    elif alert_group.acknowledged:
+        status_verbose = alert_group.get_acknowledge_text()
+
+    if number_of_alerts <= 10:
+        alerts_count_str = str(number_of_alerts)
+    else:
+        alert_count_rounded = (number_of_alerts // 10) * 10
+        alerts_count_str = f"{alert_count_rounded}+"
+
+    alert_body = f"Status: {status_verbose}, alerts: {alerts_count_str}"
 
     # TODO: we should update this to check if FCM_RELAY is set and conditionally make a call here..
 
