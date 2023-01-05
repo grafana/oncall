@@ -57,7 +57,7 @@ def notify_user_async(user_pk, alert_group_pk, notification_policy_pk, critical)
     alert_title = "New Critical Alert" if critical else "New Alert"
     alert_subtitle = get_push_notification_message(alert_group)
 
-    status_verbose = "Alerting"
+    status_verbose = "Firing"  # TODO: we should probably de-duplicate this text
     if alert_group.resolved:
         status_verbose = alert_group.get_resolve_text()
     elif alert_group.acknowledged:
