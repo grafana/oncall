@@ -151,6 +151,7 @@ oncall:
 # Whether to run django database migrations automatically
 migrate:
   enabled: true
+  nodeSelector: {}
   # TTL can be unset by setting ttlSecondsAfterFinished: ""
   ttlSecondsAfterFinished: 20
 
