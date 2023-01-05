@@ -51,10 +51,12 @@ def notify_user_async(user_pk, alert_group_pk, notification_policy_pk, critical)
         logger.info(f"Error while sending a mobile push notification: user {user_pk} has no device set up")
         return
 
-    message = get_push_notification_message(alert_group)
     thread_id = f"{alert_group.channel.organization.public_primary_key}:{alert_group.public_primary_key}"
-    alert_title = f"Critical page: {message}" if critical else message
     number_of_alerts = alert_group.alerts.count()
+
+    alert_title = "New Critical Alert" if critical else "New Alert"
+    alert_subtitle = get_push_notification_message(alert_group)
+    alert_body = f"Status: Firing"  # TODO: is there a better spot to calculate this rather than hardcoding?
 
     # TODO: we should update this to check if FCM_RELAY is set and conditionally make a call here..
 
@@ -71,6 +73,7 @@ def notify_user_async(user_pk, alert_group_pk, notification_policy_pk, critical)
             "status": str(alert_group.status),
             "type": "oncall.critical_message" if critical else "oncall.message",
             "title": alert_title,
+            "body": f"{alert_subtitle}\n{alert_body}",
             "thread_id": thread_id,
         },
         apns=APNSConfig(
@@ -78,11 +81,7 @@ def notify_user_async(user_pk, alert_group_pk, notification_policy_pk, critical)
                 aps=Aps(
                     thread_id=thread_id,
                     badge=number_of_alerts,
-                    alert=ApsAlert(
-                        title=alert_title,
-                        subtitle="yooo this is a subtitle",
-                        body="hello this is the body",
-                    ),
+                    alert=ApsAlert(title=alert_title, subtitle=alert_subtitle, body=alert_body),
                     sound=CriticalSound(
                         critical=1 if critical else 0,
                         name="ambulance.aiff" if critical else "bingbong.aiff",

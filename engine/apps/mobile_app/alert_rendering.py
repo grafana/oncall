@@ -10,4 +10,4 @@ class AlertMobileAppTemplater(AlertTemplater):
 def get_push_notification_message(alert_group):
     alert = alert_group.alerts.first()
     templated_alert = AlertMobileAppTemplater(alert).render()
-    return str_or_backup(templated_alert.title, "Alert Group")
+    return str_or_backup(f"#{alert_group.inside_organization_number} {templated_alert.title}", "Alert Group")
