@@ -4,11 +4,6 @@
   max-width: unset !important;
 }
 
-.oncall-header {
-  padding-top: 0;
-  padding-bottom: 36px;
-}
-
 .scrollbar-view h1:first-child {
   margin-bottom: 0 !important;
 }

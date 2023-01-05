@@ -1,7 +1,6 @@
 import React from 'react';
 
 import { Card } from '@grafana/ui';
-import classnames from 'classnames';
 import cn from 'classnames/bind';
 
 import gitHubStarSVG from 'assets/img/github_star.svg';
@@ -16,16 +15,18 @@ const cx = cn.bind(styles);
 
 export default function Header({ page, backendLicense }: { page: string; backendLicense: string }) {
   return (
-    <div className={classnames('page-header__inner', { 'oncall-header': isTopNavbar() })}>
-      <div className={cx('navbar-left')}>
-        <span className="page-header__logo">
-          <img className="page-header__img" src={logo} alt="Grafana OnCall" />
-        </span>
+    <div className="page-container">
+      <div className={cx('page-header__inner', { 'header-topnavbar': isTopNavbar() })}>
+        <div className={cx('navbar-left')}>
+          <span className="page-header__logo">
+            <img className="page-header__img" src={logo} alt="Grafana OnCall" />
+          </span>
 
-        <div className="page-header__info-block">{renderHeading()}</div>
-      </div>
-      <div className={cx('navbar-right')}>
-        <GrafanaTeamSelect currentPage={page} />
+          <div className="page-header__info-block">{renderHeading()}</div>
+        </div>
+        <div className={cx('navbar-right')}>
+          <GrafanaTeamSelect currentPage={page} />
+        </div>
       </div>
     </div>
   );
