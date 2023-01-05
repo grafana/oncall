@@ -147,11 +147,9 @@ class SchedulePage extends React.Component<SchedulePageProps, SchedulePageState>
                         )}
                         <HorizontalGroup>
                           <HorizontalGroup>
-                            {schedule?.type === ScheduleType.Ical && (
-                              <Button variant="secondary" onClick={this.handleExportClick()}>
-                                Export
-                              </Button>
-                            )}
+                            <Button variant="secondary" onClick={this.handleExportClick()}>
+                              Export
+                            </Button>
 
                             {(schedule?.type === ScheduleType.Ical || schedule?.type === ScheduleType.Calendar) && (
                               <Button variant="secondary" onClick={this.handleReloadClick(scheduleId)}>
