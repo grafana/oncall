@@ -67,6 +67,9 @@ celery:
     initialDelaySeconds: 30
     periodSeconds: 300
     timeoutSeconds: 10
+  ## Node labels for pod assignment
+  ## ref: https://kubernetes.io/docs/user-guide/node-selection/
+  nodeSelector: {}
   resources: {}
     # limits:
     #   cpu: 100m
