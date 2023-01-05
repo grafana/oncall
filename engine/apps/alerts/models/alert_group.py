@@ -1,4 +1,5 @@
 import logging
+import urllib
 from collections import namedtuple
 from typing import Optional, TypedDict
 from urllib.parse import urljoin
@@ -436,6 +437,15 @@ class AlertGroup(AlertGroupSlackRenderingMixin, EscalationSnapshotMixin, models.
     @property
     def web_link(self) -> str:
         return urljoin(self.channel.organization.web_link, f"?page=incident&id={self.public_primary_key}")
+
+    @property
+    def declare_incident_link(self) -> str:
+        """Generate a link for AlertGroup to declare Grafana Incident by click"""
+        incident_link = urljoin(self.channel.organization.grafana_url, "a/grafana-incident-app/incidents/declare/")
+        caption = urllib.parse.quote_plus("OnCall Alert Group")
+        title = urllib.parse.quote_plus(self.web_title_cache) if self.web_title_cache else DEFAULT_BACKUP_TITLE
+        link = urllib.parse.quote_plus(self.web_link)
+        return urljoin(incident_link, f"?caption={caption}&url={link}&title={title}")
 
     @property
     def happened_while_maintenance(self):
