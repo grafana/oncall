@@ -5,6 +5,56 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## v1.1.14 (TBD)
+
+### Added
+
+- TBD
+
+### Changed
+
+- Change wording from "incident" to "alert group" for the Telegram integration ([#1052](https://github.com/grafana/oncall/pull/1052))
+- Soft-delete of organizations on stack deletion.
+
+### Fixed
+
+- TBD
+
+## v1.1.13 (2023-01-04)
+
+### Added
+
+- Integration with [Grafana Faro](https://grafana.com/docs/grafana-cloud/faro-web-sdk/) for Cloud Instances
+
+## v1.1.12 (2023-01-03)
+
+### Fixed
+
+- Handle jinja exceptions during alert creation
+- Handle exception for slack rate limit message
+
+## v1.1.11 (2023-01-03)
+
+### Fixed
+
+- Fix error when schedule was not able to load
+- Minor fixes
+
+## v1.1.10 (2023-01-03)
+
+### Fixed
+
+- Minor fixes
+
+## v1.1.9 (2023-01-03)
+
+### Fixed
+
+- Alert group query optimization
+- Update RBAC scopes
+- Fix error when schedule was not able to load
+- Minor bug fixes
+
 ## v1.1.8 (2022-12-13)
 
 ### Added

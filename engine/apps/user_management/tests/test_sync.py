@@ -1,7 +1,6 @@
 from unittest.mock import patch
 
 import pytest
-from django.core.exceptions import ObjectDoesNotExist
 
 from apps.grafana_plugin.helpers.client import GcomAPIClient, GrafanaAPIClient
 from apps.user_management.models import Team, User
@@ -199,5 +198,5 @@ def test_cleanup_organization_deleted(make_organization):
     with patch.object(GcomAPIClient, "get_instance_info", return_value={"status": "deleted"}):
         cleanup_organization(organization.id)
 
-    with pytest.raises(ObjectDoesNotExist):
-        organization.refresh_from_db()
+    organization.refresh_from_db()
+    assert organization.deleted_at is not None
