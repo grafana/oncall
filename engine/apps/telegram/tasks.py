@@ -111,19 +111,6 @@ def send_link_to_channel_message_or_fallback_to_full_alert_group(
         )
 
 
-@shared_dedicated_queue_retry_task(bind=True, autoretry_for=(Exception,), retry_backoff=True, max_retries=None)
-def send_link_to_channel_message_or_fallback_to_full_incident(
-    self, alert_group_pk, notification_policy_pk, user_connector_pk
-):
-    """
-    Deprecated task, use send_link_to_channel_message_or_fallback_to_full_alert_group above instead.
-    TODO: remove this task after releasing the new version of the task
-    """
-    send_link_to_channel_message_or_fallback_to_full_alert_group(
-        self, alert_group_pk, notification_policy_pk, user_connector_pk
-    )
-
-
 @shared_dedicated_queue_retry_task(
     bind=True, autoretry_for=(Exception,), retry_backoff=True, max_retries=1 if settings.DEBUG else None
 )
