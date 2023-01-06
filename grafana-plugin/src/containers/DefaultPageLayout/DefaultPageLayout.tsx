@@ -93,7 +93,7 @@ const DefaultPageLayout: FC<DefaultPageLayoutProps> = observer((props) => {
   function renderLegacyNavbar(): JSX.Element {
     return (
       <PluginPage>
-        <div className="page-container">
+        <div className="page-container u-height-100">
           <div className={cx('root', 'navbar-legacy')}>
             {renderAlertsFn()}
             {children}
