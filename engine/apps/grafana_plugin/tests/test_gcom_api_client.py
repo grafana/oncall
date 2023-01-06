@@ -5,7 +5,7 @@ import pytest
 from apps.grafana_plugin.helpers.client import GcomAPIClient
 
 
-class TestIsRbacEnabledForOrganization:
+class TestIsRbacEnabledForStack:
     @pytest.mark.parametrize(
         "gcom_api_response,expected",
         [
