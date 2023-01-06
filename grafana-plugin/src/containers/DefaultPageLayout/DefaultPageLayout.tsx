@@ -19,7 +19,6 @@ import { useForceUpdate, useQueryParams } from 'utils/hooks';
 
 import plugin from '../../../package.json'; // eslint-disable-line
 
-// import { isUserActionAllowed, UserActions } from 'utils/authorization';
 import { getItem, setItem } from 'utils/localStorage';
 import sanitize from 'utils/sanitize';
 
