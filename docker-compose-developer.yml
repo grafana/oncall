@@ -25,6 +25,7 @@ x-env-vars: &oncall-env-vars
   BROKER_TYPE: ${BROKER_TYPE}
   GRAFANA_API_URL: http://localhost:3000
   GOOGLE_APPLICATION_CREDENTIALS: /etc/app/gcp_service_account.json
+  FCM_PROJECT_ID: oncall-mobile-dev
 
 # basically this is needed because the oncall backend containers have been configured to communicate w/ grafana via
 # http://localhost:3000 (GRAFANA_API_URL). This URL is used in two scenarios:
