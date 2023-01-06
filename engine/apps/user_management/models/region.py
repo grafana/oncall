@@ -3,8 +3,6 @@ import logging
 from django.apps import apps
 from django.db import models
 
-from apps.user_management.models import Organization
-
 logger = logging.getLogger(__name__)
 
 
@@ -39,11 +37,6 @@ def sync_regions(regions: list[dict]):
             regions_to_update.append(region)
 
     Region.objects.bulk_update(regions_to_update, ["name", "oncall_backend_url"], batch_size=5000)
-
-
-class OrganizationMovedException(Exception):
-    def __init__(self, organization: Organization):
-        self.organization = organization
 
 
 class Region(models.Model):
