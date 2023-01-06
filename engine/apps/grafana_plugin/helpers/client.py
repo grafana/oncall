@@ -210,7 +210,7 @@ class GcomAPIClient(APIClient):
         data, _ = self.api_get(url)
         return data
 
-    def is_rbac_enabled_for_organization(self, stack_id: str) -> bool:
+    def is_rbac_enabled_for_stack(self, stack_id: str) -> bool:
         """
         NOTE: must use an "Admin" GCOM token when calling this method
         """

@@ -22,7 +22,7 @@ def sync_organization(organization):
     # HEAD request.
     if settings.LICENSE == settings.CLOUD_LICENSE_NAME:
         gcom_client = GcomAPIClient(settings.GRAFANA_COM_ADMIN_API_TOKEN)
-        rbac_is_enabled = gcom_client.is_rbac_enabled_for_organization()
+        rbac_is_enabled = gcom_client.is_rbac_enabled_for_stack(organization.stack_id)
     else:
         rbac_is_enabled = grafana_api_client.is_rbac_enabled_for_organization()
 
