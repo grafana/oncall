@@ -7,6 +7,7 @@ from django.apps import apps
 from django.conf import settings
 from django.core.validators import MinLengthValidator
 from django.db import models
+from django.utils import timezone
 from mirage import fields as mirage_fields
 
 from apps.alerts.models import MaintainableObject
@@ -50,21 +51,34 @@ class OrganizationQuerySet(models.QuerySet):
         return instance
 
     def delete(self):
-        org_id = self.public_primary_key
-        super().delete(self)
-        if settings.FEATURE_MULTIREGION_ENABLED:
-            delete_oncall_connector_async.apply_async(
-                (org_id),
-            )
+        self.update(deleted_at=timezone.now())
+
+    def hard_delete(self):
+        super().delete()
+
+
+class OrganizationManager(models.Manager):
+    def get_queryset(self):
+        return OrganizationQuerySet(self.model, using=self._db).filter(deleted_at__isnull=True)
 
 
 class Organization(MaintainableObject):
 
-    objects = OrganizationQuerySet.as_manager()
+    objects = OrganizationManager()
+    objects_with_deleted = models.Manager()
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.subscription_strategy = self._get_subscription_strategy()
+
+    def delete(self):
+        self.deleted_at = timezone.now()
+        self.save(update_fields=["deleted_at"])
+        if settings.FEATURE_MULTIREGION_ENABLED:
+            delete_oncall_connector_async.apply_async((self.public_primary_key,))
+
+    def hard_delete(self):
+        super().delete()
 
     def _get_subscription_strategy(self):
         if self.pricing_version == self.FREE_PUBLIC_BETA_PRICING:
@@ -132,6 +146,8 @@ class Organization(MaintainableObject):
 
     # uuid used to unuqie identify organization in different clusters
     uuid = models.UUIDField(default=uuid.uuid4, editable=False)
+
+    deleted_at = models.DateTimeField(null=True)
 
     # Organization Settings configured from slack
     (

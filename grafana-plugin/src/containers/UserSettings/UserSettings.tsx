@@ -9,6 +9,7 @@ import { Tabs, TabsContent } from 'containers/UserSettings/parts';
 import { User as UserType } from 'models/user/user.types';
 import { AppFeature } from 'state/features';
 import { useStore } from 'state/useStore';
+import { isUserActionAllowed, UserActions } from 'utils/authorization';
 import { BREAKPOINT_TABS } from 'utils/consts';
 
 import { UserSettingsTab } from './UserSettings.types';
@@ -54,17 +55,13 @@ const UserSettings = observer(({ id, onHide, tab = UserSettingsTab.UserInfo }: U
     activeTab === UserSettingsTab.PhoneVerification ||
     activeTab === UserSettingsTab.MobileAppVerification;
 
-  const [
-    showNotificationSettingsTab,
-    showSlackConnectionTab,
-    showTelegramConnectionTab,
-    _showMobileAppVerificationTab,
-  ] = [
-    !isDesktopOrLaptop,
-    isCurrent && teamStore.currentTeam?.slack_team_identity && !storeUser.slack_user_identity,
-    isCurrent && !storeUser.telegram_configuration,
-    store.hasFeature(AppFeature.MobileApp),
-  ];
+  const [showNotificationSettingsTab, showSlackConnectionTab, showTelegramConnectionTab, showMobileAppVerificationTab] =
+    [
+      !isDesktopOrLaptop,
+      isCurrent && teamStore.currentTeam?.slack_team_identity && !storeUser.slack_user_identity,
+      isCurrent && !storeUser.telegram_configuration,
+      isCurrent && store.hasFeature(AppFeature.MobileApp) && isUserActionAllowed(UserActions.UserSettingsWrite),
+    ];
 
   return (
     <>
@@ -82,7 +79,7 @@ const UserSettings = observer(({ id, onHide, tab = UserSettingsTab.UserInfo }: U
             showNotificationSettingsTab={showNotificationSettingsTab}
             showSlackConnectionTab={showSlackConnectionTab}
             showTelegramConnectionTab={showTelegramConnectionTab}
-            showMobileAppVerificationTab={true}
+            showMobileAppVerificationTab={showMobileAppVerificationTab}
           />
           <TabsContent id={id} activeTab={activeTab} onTabChange={onTabChange} isDesktopOrLaptop={isDesktopOrLaptop} />
         </div>

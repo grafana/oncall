@@ -1,8 +1,16 @@
-FROM python:3.9-alpine3.16 AS base
-RUN apk add bash python3-dev build-base linux-headers pcre-dev mariadb-connector-c-dev openssl-dev libffi-dev git
+FROM python:3.9-slim-buster AS base
+RUN apt-get update && apt-get install -y \
+    python3-dev \
+    gcc \
+    libmariadb-dev \
+    libpq-dev \
+    netcat \
+    curl \
+    bash
 
 WORKDIR /etc/app
 COPY ./requirements.txt ./
+RUN pip install --upgrade pip
 RUN pip install -r requirements.txt
 
 # we intentionally have two COPY commands, this is to have the requirements.txt in a separate build step
@@ -16,7 +24,7 @@ RUN DJANGO_SETTINGS_MODULE=settings.prod_without_db DATABASE_TYPE=sqlite3 DATABA
 RUN chown -R 1000:2000 /var/lib/oncall
 
 FROM base AS dev
-RUN apk add sqlite mysql-client postgresql-client
+RUN apt-get install -y sqlite3 default-mysql-client postgresql-client
 
 FROM dev AS dev-enterprise
 RUN pip install -r requirements-enterprise-docker.txt

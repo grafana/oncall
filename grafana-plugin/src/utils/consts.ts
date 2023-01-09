@@ -7,3 +7,5 @@ export const GRAFANA_LICENSE_OSS = 'OpenSource';
 
 // Reusable breakpoint sizes
 export const BREAKPOINT_TABS = 1024;
+
+export const DEFAULT_PAGE = 'incidents';

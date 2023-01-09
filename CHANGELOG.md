@@ -5,7 +5,79 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## v1.2.0 (TBD)
+## v1.1.14 (2023-01-05)
+
+### Changed
+
+- Change wording from "incident" to "alert group" for the Telegram integration ([#1052](https://github.com/grafana/oncall/pull/1052))
+- Soft-delete of organizations on stack deletion.
+
+## v1.1.13 (2023-01-04)
+
+### Added
+
+- Integration with [Grafana Faro](https://grafana.com/docs/grafana-cloud/faro-web-sdk/) for Cloud Instances
+
+## v1.1.12 (2023-01-03)
+
+### Fixed
+
+- Handle jinja exceptions during alert creation
+- Handle exception for slack rate limit message
+
+## v1.1.11 (2023-01-03)
+
+### Fixed
+
+- Fix error when schedule was not able to load
+- Minor fixes
+
+## v1.1.10 (2023-01-03)
+
+### Fixed
+
+- Minor fixes
+
+## v1.1.9 (2023-01-03)
+
+### Fixed
+
+- Alert group query optimization
+- Update RBAC scopes
+- Fix error when schedule was not able to load
+- Minor bug fixes
+
+## v1.1.8 (2022-12-13)
+
+### Added
+
+- Added a `make` command, `enable-mobile-app-feature-flags`, which sets the backend feature flag in `./dev/.env.dev`,
+  and updates a record in the `base_dynamicsetting` database table, which are needed to enable the mobile
+  app backend features.
+
+### Changed
+
+- Added ability to change engine deployment update strategy via values in helm chart.
+- removed APNS support
+- changed the `django-push-notification` library from the `iskhakov` fork to the [`grafana` fork](https://github.com/grafana/django-push-notifications).
+  This new fork basically patches an issue which affected the database migrations of this django app (previously the
+  library would not respect the `USER_MODEL` setting when creating its tables and would instead reference the
+  `auth_user` table.. which we don't want)
+- add `--no-cache` flag to the `make build` command
+
+### Fixed
+
+- fix schedule UI types and permissions
+
+## v1.1.7 (2022-12-09)
+
+### Fixed
+
+- Update fallback role for schedule write RBAC permission
+- Mobile App Verification tab in the user settings modal is now hidden for users that do not have proper
+  permissions to use it
+
+## v1.1.6 (2022-12-09)
 
 ### Added
 

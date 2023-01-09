@@ -13,6 +13,7 @@
   - [Could not build wheels for cryptography which use PEP 517 and cannot be installed directly](#could-not-build-wheels-for-cryptography-which-use-pep-517-and-cannot-be-installed-directly)
   - [django.db.utils.OperationalError: (1366, "Incorrect string value")](#djangodbutilsoperationalerror-1366-incorrect-string-value)
   - [/bin/sh: line 0: cd: grafana-plugin: No such file or directory](#binsh-line-0-cd-grafana-plugin-no-such-file-or-directory)
+  - [Encountered error while trying to install package - grpcio](#encountered-error-while-trying-to-install-package---grpcio)
 - [IDE Specific Instructions](#ide-specific-instructions)
   - [PyCharm](#pycharm)
 
@@ -120,6 +121,10 @@ make build # rebuild images (e.g. when changing requirements.txt)
 # run Django's `manage.py` script, inside of a docker container, passing `$CMD` as arguments.
 # e.g. `make engine-manage CMD="makemigrations"` - https://docs.djangoproject.com/en/4.1/ref/django-admin/#django-admin-makemigrations
 make engine-manage CMD="..."
+# sets a feature flag, related to mobile app backend functionality, in your ./dev/.env.dev
+# and sets the necessary database values
+# NOTE: you need to enable, and configure, the plugin before running this command
+make enable-mobile-app-feature-flags
 
 # this will remove all of the images, containers, volumes, and networks
 # associated with your local OnCall developer setup
@@ -274,6 +279,34 @@ clear everything in docker by resetting or:
 
 ```bash
 make cleanup
+```
+
+### Encountered error while trying to install package - grpcio
+
+**Problem:**
+
+We are currently using a library, `fcm-django`, which has a dependency on `grpcio`. Google does not provide `grpcio`
+wheels built for Apple Silicon Macs. The best solution so far has been to use a `conda` virtualenv. There's apparently
+a lot of community work put into making packages play well with M1/arm64 architecture.
+
+```bash
+pip install -r requirements.txt
+...
+   note: This error originates from a subprocess, and is likely not a problem with pip.
+error: legacy-install-failure
+
+× Encountered error while trying to install package.
+╰─> grpcio
+...
+```
+
+**Solution:**
+
+Use a `conda` virtualenv, and then run the following when installing the engine dependencies/
+[See here for more details](https://stackoverflow.com/a/74307636/3902555)
+
+```bash
+GRPC_PYTHON_BUILD_SYSTEM_OPENSSL=1 GRPC_PYTHON_BUILD_SYSTEM_ZLIB=1 pip install -r requirements.txt
 ```
 
 ## IDE Specific Instructions

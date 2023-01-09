@@ -1,6 +1,7 @@
 import json
 
 from django.apps import apps
+from django.utils.text import Truncator
 
 from apps.alerts.incident_appearance.renderers.base_renderer import AlertBaseRenderer, AlertGroupBaseRenderer
 from apps.alerts.incident_appearance.templaters import AlertSlackTemplater
@@ -18,26 +19,31 @@ class AlertSlackRenderer(AlertBaseRenderer):
         return AlertSlackTemplater
 
     def render_alert_blocks(self):
+        BLOCK_SECTION_TEXT_MAX_SIZE = 2800
         blocks = []
 
+        title = Truncator(str_or_backup(self.templated_alert.title, "Alert"))
         blocks.append(
             {
                 "type": "section",
                 "text": {
                     "type": "mrkdwn",
-                    "text": str_or_backup(self.templated_alert.title, "Alert"),
+                    "text": title.chars(BLOCK_SECTION_TEXT_MAX_SIZE),
                 },
             }
         )
         if is_string_with_visible_characters(self.templated_alert.message):
-            message = self.templated_alert.message
-            BLOCK_SECTION_TEXT_MAX_SIZE = 2800
-            if len(message) > BLOCK_SECTION_TEXT_MAX_SIZE:
-                message = (
-                    message[: BLOCK_SECTION_TEXT_MAX_SIZE - 3] + "... Message has been trimmed. "
-                    "Check the whole content in Web"
-                )
-            blocks.append({"type": "section", "text": {"type": "mrkdwn", "text": message}})
+            message = Truncator(self.templated_alert.message)
+            truncate_wording = "... Message has been trimmed. Check the whole content in Web"
+            blocks.append(
+                {
+                    "type": "section",
+                    "text": {
+                        "type": "mrkdwn",
+                        "text": message.chars(BLOCK_SECTION_TEXT_MAX_SIZE, truncate=truncate_wording),
+                    },
+                }
+            )
         return blocks
 
     def render_alert_attachments(self):

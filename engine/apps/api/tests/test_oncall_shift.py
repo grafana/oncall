@@ -926,7 +926,7 @@ def test_create_on_call_shift_override_invalid_data(on_call_shift_internal_api_s
     "role,expected_status",
     [
         (LegacyAccessControlRole.ADMIN, status.HTTP_201_CREATED),
-        (LegacyAccessControlRole.EDITOR, status.HTTP_403_FORBIDDEN),
+        (LegacyAccessControlRole.EDITOR, status.HTTP_201_CREATED),
         (LegacyAccessControlRole.VIEWER, status.HTTP_403_FORBIDDEN),
     ],
 )
@@ -958,7 +958,7 @@ def test_on_call_shift_create_permissions(
     "role,expected_status",
     [
         (LegacyAccessControlRole.ADMIN, status.HTTP_200_OK),
-        (LegacyAccessControlRole.EDITOR, status.HTTP_403_FORBIDDEN),
+        (LegacyAccessControlRole.EDITOR, status.HTTP_200_OK),
         (LegacyAccessControlRole.VIEWER, status.HTTP_403_FORBIDDEN),
     ],
 )
@@ -1080,7 +1080,7 @@ def test_on_call_shift_retrieve_permissions(
     "role,expected_status",
     [
         (LegacyAccessControlRole.ADMIN, status.HTTP_204_NO_CONTENT),
-        (LegacyAccessControlRole.EDITOR, status.HTTP_403_FORBIDDEN),
+        (LegacyAccessControlRole.EDITOR, status.HTTP_204_NO_CONTENT),
         (LegacyAccessControlRole.VIEWER, status.HTTP_403_FORBIDDEN),
     ],
 )
@@ -1185,7 +1185,7 @@ def test_on_call_shift_days_options_permissions(
     "role,expected_status",
     [
         (LegacyAccessControlRole.ADMIN, status.HTTP_200_OK),
-        (LegacyAccessControlRole.EDITOR, status.HTTP_403_FORBIDDEN),
+        (LegacyAccessControlRole.EDITOR, status.HTTP_200_OK),
         (LegacyAccessControlRole.VIEWER, status.HTTP_403_FORBIDDEN),
     ],
 )

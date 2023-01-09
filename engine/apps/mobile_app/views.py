@@ -1,30 +1,15 @@
-from push_notifications.api.rest_framework import APNSDeviceAuthorizedViewSet as BaseAPNSDeviceAuthorizedViewSet
-from push_notifications.api.rest_framework import GCMDeviceAuthorizedViewSet, GCMDeviceSerializer
+from fcm_django.api.rest_framework import FCMDeviceAuthorizedViewSet as BaseFCMDeviceAuthorizedViewSet
 from rest_framework import status
 from rest_framework.exceptions import NotFound
 from rest_framework.response import Response
-from rest_framework.serializers import HiddenField
 from rest_framework.views import APIView
 
 from apps.mobile_app.auth import MobileAppAuthTokenAuthentication, MobileAppVerificationTokenAuthentication
 from apps.mobile_app.models import MobileAppAuthToken
 
 
-class APNSDeviceAuthorizedViewSet(BaseAPNSDeviceAuthorizedViewSet):
+class FCMDeviceAuthorizedViewSet(BaseFCMDeviceAuthorizedViewSet):
     authentication_classes = (MobileAppAuthTokenAuthentication,)
-
-
-class FCMDeviceAuthorizedViewSet(GCMDeviceAuthorizedViewSet):
-    class FCMDeviceSerializer(GCMDeviceSerializer):
-        """
-        GCMDevice has cloud_message_type equal to "GCM" by default, in this serializer cloud_message_type is always set
-        to "FCM" no matter what was provided in the request.
-        """
-
-        cloud_message_type = HiddenField(default="FCM")
-
-    authentication_classes = (MobileAppAuthTokenAuthentication,)
-    serializer_class = FCMDeviceSerializer
 
 
 class MobileAppAuthTokenAPIView(APIView):

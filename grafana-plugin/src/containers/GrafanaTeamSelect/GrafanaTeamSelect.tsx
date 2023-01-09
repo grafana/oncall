@@ -49,13 +49,15 @@ const GrafanaTeamSelect = observer((props: GrafanaTeamSelectProps) => {
   };
 
   const content = (
-    <div className={cx('teamSelect', { 'teamSelect--topRight': isTopNavbar() })}>
+    <div className={cx('teamSelect')}>
       <div className={cx('teamSelectLabel')}>
         <Label>
-          Select Team{' '}
-          <Tooltip content="The objects on this page are filtered by team and you can only view the objects that belong to your team. Note that filtering within Grafana OnCall is meant for usability, not access management.">
-            <Icon name="info-circle" size="md" className={cx('teamSelectInfo')}></Icon>
-          </Tooltip>
+          <span className={cx('teamSelectText')}>
+            Select Team{''}
+            <Tooltip content="The objects on this page are filtered by team and you can only view the objects that belong to your team. Note that filtering within Grafana OnCall is meant for usability, not access management.">
+              <Icon name="info-circle" size="md" className={cx('teamSelectInfo')}></Icon>
+            </Tooltip>
+          </span>
         </Label>
         <WithPermissionControl userAction={UserActions.TeamsWrite}>
           <PluginLink path="/org/teams" className={cx('teamSelectLink')}>

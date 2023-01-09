@@ -41,6 +41,9 @@ DEBUG = False
 
 DEBUG_CELERY_TASKS_PROFILING = getenv_boolean("DEBUG_CELERY_TASKS_PROFILING", False)
 
+OTEL_TRACING_ENABLED = getenv_boolean("OTEL_TRACING_ENABLED", False)
+OTEL_EXPORTER_OTLP_ENDPOINT = os.environ.get("OTEL_EXPORTER_OTLP_ENDPOINT")
+
 ALLOWED_HOSTS = [item.strip() for item in os.environ.get("ALLOWED_HOSTS", "*").split(",")]
 
 # TODO: update link to up-to-date docs
@@ -216,7 +219,7 @@ INSTALLED_APPS = [
     "debug_toolbar",
     "social_django",
     "polymorphic",
-    "push_notifications",
+    "fcm_django",
 ]
 
 REST_FRAMEWORK = {
@@ -248,6 +251,7 @@ MIDDLEWARE = [
     "apps.social_auth.middlewares.SocialAuthAuthCanceledExceptionMiddleware",
     "apps.integrations.middlewares.IntegrationExceptionMiddleware",
     "apps.user_management.middlewares.OrganizationMovedMiddleware",
+    "apps.user_management.middlewares.OrganizationDeletedMiddleware",
 ]
 
 LOG_REQUEST_ID_HEADER = "HTTP_X_CLOUD_TRACE_CONTEXT"
@@ -546,24 +550,26 @@ GRAFANA_API_KEY_NAME = "Grafana OnCall"
 
 EXTRA_MESSAGING_BACKENDS = []
 if FEATURE_MOBILE_APP_INTEGRATION_ENABLED:
+    from firebase_admin import initialize_app
+
     EXTRA_MESSAGING_BACKENDS += [
         ("apps.mobile_app.backend.MobileAppBackend", 5),
         ("apps.mobile_app.backend.MobileAppCriticalBackend", 6),
     ]
 
-PUSH_NOTIFICATIONS_SETTINGS = {
-    "FCM_API_KEY": os.getenv("FCM_API_KEY"),
-    "FCM_POST_URL": os.getenv("FCM_POST_URL", default="https://fcm.googleapis.com/fcm/send"),
-    "USER_MODEL": "user_management.User",
-    "UPDATE_ON_DUPLICATE_REG_ID": True,
-    # TODO: remove APNS related endpoints after the hackathon app is deprecated
-    "APNS_AUTH_KEY_PATH": os.environ.get("APNS_AUTH_KEY_PATH", None),
-    "APNS_TOPIC": os.environ.get("APNS_TOPIC", None),
-    "APNS_AUTH_KEY_ID": os.environ.get("APNS_AUTH_KEY_ID", None),
-    "APNS_TEAM_ID": os.environ.get("APNS_TEAM_ID", None),
-    "APNS_USE_SANDBOX": getenv_boolean("APNS_USE_SANDBOX", True),
-}
+    FIREBASE_APP = initialize_app(options={"projectId": os.environ.get("FCM_PROJECT_ID", None)})
+
 FCM_RELAY_ENABLED = getenv_boolean("FCM_RELAY_ENABLED", default=False)
+FCM_DJANGO_SETTINGS = {
+    # an instance of firebase_admin.App to be used as default for all fcm-django requests
+    # default: None (the default Firebase app)
+    "DEFAULT_FIREBASE_APP": None,
+    "APP_VERBOSE_NAME": "OnCall",
+    "ONE_DEVICE_PER_USER": True,
+    "DELETE_INACTIVE_DEVICES": False,
+    "UPDATE_ON_DUPLICATE_REG_ID": True,
+    "USER_MODEL": "user_management.User",
+}
 
 SELF_HOSTED_SETTINGS = {
     "STACK_ID": 5,
