@@ -237,7 +237,7 @@
     {
       "role": {
         "name": "Editor",
-        "description": "Similar to the Admin role, minus the abilities to: create Integrations, create Escalation Chains, create Schedules, create Outgoing Webhooks, update ChatOps settings, update other user's settings, and update general OnCall setings.",
+        "description": "Similar to the Admin role, minus the abilities to: create Integrations, create Escalation Chains, create Outgoing Webhooks, update ChatOps settings, update other user's settings, and update general OnCall setings.",
         "permissions": [
           { "action": "plugins.app:access", "scope": "plugins.app:id:grafana-oncall-app" },
 
