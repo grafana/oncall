@@ -64,5 +64,6 @@ module.exports = {
      */
     'react-hooks/exhaustive-deps': 'off',
     'rulesdir/no-relative-import-paths': ['error', { allowSameFolder: true }],
+    '@typescript-eslint/explicit-member-accessibility': 'off',
   },
 };

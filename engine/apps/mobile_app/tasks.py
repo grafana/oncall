@@ -1,6 +1,7 @@
 from celery.utils.log import get_task_logger
 from django.conf import settings
-from push_notifications.models import GCMDevice
+from fcm_django.models import FCMDevice
+from firebase_admin.messaging import APNSConfig, APNSPayload, Aps, ApsAlert, CriticalSound, Message
 
 from apps.alerts.models import AlertGroup
 from apps.mobile_app.alert_rendering import get_push_notification_message
@@ -34,10 +35,10 @@ def notify_user_async(user_pk, alert_group_pk, notification_policy_pk, critical)
         logger.warning(f"User notification policy {notification_policy_pk} does not exist")
         return
 
-    gcm_devices_to_notify = GCMDevice.objects.filter(user=user)
+    device_to_notify = FCMDevice.objects.filter(user=user).first()
 
     # create an error log in case user has no devices set up
-    if not gcm_devices_to_notify.exists():
+    if not device_to_notify:
         UserNotificationPolicyLogRecord.objects.create(
             author=user,
             type=UserNotificationPolicyLogRecord.TYPE_PERSONAL_NOTIFICATION_FAILED,
@@ -47,38 +48,70 @@ def notify_user_async(user_pk, alert_group_pk, notification_policy_pk, critical)
             notification_step=notification_policy.step,
             notification_channel=notification_policy.notify_by,
         )
-        logger.info(f"Error while sending a mobile push notification: user {user_pk} has no devices set up")
+        logger.info(f"Error while sending a mobile push notification: user {user_pk} has no device set up")
         return
 
-    message = get_push_notification_message(alert_group)
     thread_id = f"{alert_group.channel.organization.public_primary_key}:{alert_group.public_primary_key}"
+    number_of_alerts = alert_group.alerts.count()
 
-    if critical:
-        aps = {
-            "alert": f"Critical page: {message}",
-            "interruption-level": "critical",
-            "sound": "ambulance.aiff",
-        }
+    alert_title = "New Critical Alert" if critical else "New Alert"
+    alert_subtitle = get_push_notification_message(alert_group)
+
+    status_verbose = "Firing"  # TODO: we should probably de-duplicate this text
+    if alert_group.resolved:
+        status_verbose = alert_group.get_resolve_text()
+    elif alert_group.acknowledged:
+        status_verbose = alert_group.get_acknowledge_text()
+
+    if number_of_alerts <= 10:
+        alerts_count_str = str(number_of_alerts)
     else:
-        aps = {
-            "alert": message,
-            "sound": "bingbong.aiff",
-        }
+        alert_count_rounded = (number_of_alerts // 10) * 10
+        alerts_count_str = f"{alert_count_rounded}+"
 
-    extra = {
-        "orgId": alert_group.channel.organization.public_primary_key,
-        "orgName": alert_group.channel.organization.stack_slug,
-        "alertGroupId": alert_group.public_primary_key,
-        "status": alert_group.status,
-        "aps": aps,
-    }
+    alert_body = f"Status: {status_verbose}, alerts: {alerts_count_str}"
 
-    logger.info(f"Sending push notification with message: {message}; thread-id: {thread_id}; extra: {extra}")
+    # TODO: we should update this to check if FCM_RELAY is set and conditionally make a call here..
 
-    # TODO: rename category to USER_NEW_ALERT_GROUP
-    fcm_response = gcm_devices_to_notify.send_message(
-        message, thread_id=thread_id, category="USER_NEW_INCIDENT", extra=extra
+    message = Message(
+        token=device_to_notify.registration_id,
+        data={
+            # from the docs..
+            # A dictionary of data fields (optional). All keys and values in the dictionary must be strings
+            #
+            # alert_group.status is an int so it must be casted...
+            "orgId": alert_group.channel.organization.public_primary_key,
+            "orgName": alert_group.channel.organization.stack_slug,
+            "alertGroupId": alert_group.public_primary_key,
+            "status": str(alert_group.status),
+            "type": "oncall.critical_message" if critical else "oncall.message",
+            "title": alert_title,
+            "subtitle": alert_subtitle,
+            "body": alert_body,
+            "thread_id": thread_id,
+        },
+        apns=APNSConfig(
+            payload=APNSPayload(
+                aps=Aps(
+                    thread_id=thread_id,
+                    badge=number_of_alerts,
+                    alert=ApsAlert(title=alert_title, subtitle=alert_subtitle, body=alert_body),
+                    sound=CriticalSound(
+                        critical=1 if critical else 0,
+                        name="ambulance.aiff" if critical else "bingbong.aiff",
+                        volume=1,
+                    ),
+                    custom_data={
+                        "interruption-level": "critical" if critical else "time-sensitive",
+                    },
+                ),
+            ),
+        ),
     )
+
+    logger.info(f"Sending push notification with message: {message}; thread-id: {thread_id};")
+
+    fcm_response = device_to_notify.send_message(message)
 
     # NOTE: we may want to further handle the response from FCM, but for now lets simply log it out
     # https://firebase.google.com/docs/cloud-messaging/http-server-ref#interpret-downstream
