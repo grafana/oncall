@@ -17,11 +17,6 @@ import {
 
 const IGNORE_URLS = [/^((?!\/{0,1}a\/grafana\-oncall\-app\\).)*$/];
 
-interface FaroConfig {
-  url: string;
-  enabled: boolean;
-}
-
 export function getAppNameUrlPair(onCallApiUrl: string): { appName: string; url: string } {
   const baseName = 'grafana-oncall';
 

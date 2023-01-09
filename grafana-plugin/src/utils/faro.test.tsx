@@ -37,6 +37,7 @@ describe('Faro', () => {
   test.each([ONCALL_DEV, ONCALL_OPS, ONCALL_PROD])('It initializes faro for environment %s', (onCallApiUrl) => {
     const faro = FaroHelper.initializeFaro(onCallApiUrl);
     expect(faro).toBeDefined();
+    expect(ErrorMock).not.toHaveBeenCalled();
   });
 
   test.each(['https://test.com', 'http://localhost:3000'])(
@@ -53,9 +54,10 @@ describe('Faro', () => {
 
     const result = FaroHelper.initializeFaro(ONCALL_PROD);
     expect(result).toBeUndefined();
+    expect(FaroHelper.faro).toBe(instance);
   });
 
-  test('Initializer throws Error for wrong env value', () => {
+  test('Initializer throws error for wrong env value', () => {
     const faro = FaroHelper.initializeFaro('https://test.com');
     expect(ErrorMock).toHaveBeenCalledWith(`No match found for given onCallApiUrl = https://test.com`);
     expect(faro).toBeUndefined();
