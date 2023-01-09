@@ -2,7 +2,7 @@ import datetime
 
 import pytz
 
-from apps.alerts.models import Alert, AlertReceiveChannel
+from apps.alerts.models import Alert, AlertGroupLogRecord, AlertReceiveChannel
 from apps.alerts.tasks.notify_user import notify_user_task
 from apps.schedules.ical_utils import list_users_to_notify_from_ical
 
@@ -43,7 +43,9 @@ def _trigger_alert(organization, team, message, from_user):
 
 # TODO: title should be param
 # TODO: alert group could be given? (if we enable escalation for any alert group)
-def direct_paging(organization, team, from_user, user=None, schedule=None, message=None, force=False):
+# TODO: priority default/critical?
+# TODO: split preview-check + effective paging
+def direct_paging(organization, team, from_user, user=None, schedule=None, message=None, important=False, force=False):
     # check user/schedule belongs to org -> API level
     if user is not None and schedule is not None:
         raise ValueError("Only one of user or schedule must be provided")
@@ -59,6 +61,7 @@ def direct_paging(organization, team, from_user, user=None, schedule=None, messa
         if not users:
             warning = "No user is on call for the schedule"
             return warning
+        log_entry = f"{from_user.name} paging schedule {schedule.name}"
 
     else:
         if not user.notification_policies.exists():
@@ -89,11 +92,11 @@ def direct_paging(organization, team, from_user, user=None, schedule=None, messa
 
             working_hours = user.working_hours.get(day_name, [])  # this is a list of ranges
             for time_range in working_hours:
-                start = time_range.get('start')
-                end = time_range.get('end')
+                start = time_range.get("start")
+                end = time_range.get("end")
                 if start and end:
-                    start_time = datetime.time(*map(int, start.split(':')), tzinfo=pytz.timezone(user.timezone))
-                    end_time = datetime.time(*map(int, end.split(':')), tzinfo=pytz.timezone(user.timezone))
+                    start_time = datetime.time(*map(int, start.split(":")), tzinfo=pytz.timezone(user.timezone))
+                    end_time = datetime.time(*map(int, end.split(":")), tzinfo=pytz.timezone(user.timezone))
                     if start_time <= now.time() <= end_time:
                         warning = "Use schedules instead"
                         break
@@ -104,10 +107,18 @@ def direct_paging(organization, team, from_user, user=None, schedule=None, messa
 
         users = [user]
         reason = "User direct paging triggered"
+        log_entry = f"{from_user.name} paging user {user.name}"
 
     alert_group = _trigger_alert(organization, team, message, from_user)
+    # TODO: add alert group log record about paging
+    alert_group.log_records.create(
+        type=AlertGroupLogRecord.TYPE_DIRECT_PAGING,
+        author=from_user,
+        reason=log_entry,
+        # use specific_info data?
+    )
     for u in users:
-        notify_user_task.apply_async((u.pk, alert_group.pk), {"reason": reason})
+        notify_user_task.apply_async((u.pk, alert_group.pk), {"reason": reason, "important": important})
 
     return warning
 
@@ -117,3 +128,8 @@ def direct_paging(organization, team, from_user, user=None, schedule=None, messa
 
 # org? get from user? // team: use general? get from schedule?
 #   for web: org/team are defined; for chatops: should be params?
+
+# APIs
+# - check user availability + return suggestions
+# - creation () // should allow multiple users/schedule // diff priority per user/schedule
+# - escalate for an existing alert group (which would also allow to add users/schedule to a previous current escalation)
