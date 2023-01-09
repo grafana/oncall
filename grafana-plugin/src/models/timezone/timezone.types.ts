@@ -593,4 +593,4 @@ const tzs: string[] = [
   'Zulu',
 ];
 
-export type Timezone = typeof tzs[number];
+export type Timezone = (typeof tzs)[number];
