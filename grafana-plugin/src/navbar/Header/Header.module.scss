@@ -2,6 +2,11 @@
   margin-right: 4px;
 }
 
+.header-topnavbar {
+  padding-top: 0;
+  padding-bottom: 36px;
+}
+
 .navbar-heading {
   padding: 4px;
   margin: 0 0 0 8px;
@@ -15,4 +20,9 @@
   display: flex;
   align-items: center;
   padding-top: 6px;
+}
+
+.navbar-left {
+  display: flex;
+  flex-basis: 100%;
 }
