@@ -2,6 +2,10 @@
   position: relative;
 }
 
+.u-overflow-x-auto {
+  overflow-x: auto;
+}
+
 .u-pull-right {
   margin-left: auto;
 }
@@ -18,6 +22,10 @@
   width: 100%;
 }
 
+.u-height-100 {
+  height: 100%;
+}
+
 .u-flex {
   display: flex;
   flex-direction: row;
@@ -26,6 +34,10 @@
 .u-flex-center {
   justify-content: center;
   align-items: center;
+}
+
+.u-flex-grow-1 {
+  flex-grow: 1;
 }
 
 .u-align-items-center {

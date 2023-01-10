@@ -6,6 +6,10 @@
   flex-grow: 1;
 }
 
+.block {
+  padding: 0 0 20px 0;
+}
+
 .payload-subtitle {
   margin-bottom: var(--title-marginBottom);
 }
