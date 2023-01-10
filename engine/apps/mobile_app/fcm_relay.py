@@ -33,6 +33,8 @@ class FCMRelayView(APIView):
         result = FCMDevice(registration_id=token).send_message(message)
         logger.debug(f"FCM response: {result}")
 
+        return Response(status=status.HTTP_200_OK)
+
 
 def get_apns(data):
     """
