@@ -1,13 +1,24 @@
-import datetime
+from typing import Any
 
-import pytz
+from django.db import transaction
+from django.db.models import Q
 
-from apps.alerts.models import Alert, AlertGroupLogRecord, AlertReceiveChannel
+from apps.alerts.models import Alert, AlertGroup, AlertGroupLogRecord, AlertReceiveChannel, UserHasNotification
 from apps.alerts.tasks.notify_user import notify_user_task
 from apps.schedules.ical_utils import list_users_to_notify_from_ical
+from apps.schedules.models import OnCallSchedule
+from apps.user_management.models import Organization, Team, User
+
+USER_HAS_NO_NOTIFICATION_POLICY = "USER_HAS_NO_NOTIFICATION_POLICY"
+USER_IS_NOT_ON_CALL = "USER_IS_NOT_ON_CALL"
+
+# notifications: (User|Schedule, important)
+UserNotifications = list[tuple[User, bool]]
+ScheduleNotifications = list[tuple[OnCallSchedule, bool]]
 
 
-def _trigger_alert(organization, team, message, from_user):
+def _trigger_alert(organization: Organization, team: Team, title: str, message: str, from_user: User) -> AlertGroup:
+    """Trigger manual integration alert from params."""
     alert_receive_channel = AlertReceiveChannel.get_or_create_manual_integration(
         organization=organization,
         team=team,
@@ -20,7 +31,8 @@ def _trigger_alert(organization, team, message, from_user):
     )
 
     permalink = None
-    title = "Message from {}".format(from_user.username)
+    if not title:
+        title = "Message from {}".format(from_user.username)
 
     payload = {}
     # Custom oncall property in payload to simplify rendering
@@ -41,95 +53,112 @@ def _trigger_alert(organization, team, message, from_user):
     return alert.group
 
 
-# TODO: title should be param
-# TODO: alert group could be given? (if we enable escalation for any alert group)
-# TODO: priority default/critical?
-# TODO: split preview-check + effective paging
-def direct_paging(organization, team, from_user, user=None, schedule=None, message=None, important=False, force=False):
-    # check user/schedule belongs to org -> API level
-    if user is not None and schedule is not None:
-        raise ValueError("Only one of user or schedule must be provided")
+def check_user_availability(user: User, team: Team) -> list[dict[str, Any]]:
+    """Check user availability to be paged.
 
-    # TODO: revisit how to return error/warning
-    warning = None
+    Return a warnings list indicating `error` and any additional related `data`.
+    """
+    warnings = []
+    if not user.notification_policies.exists():
+        warnings.append(
+            {
+                "error": USER_HAS_NO_NOTIFICATION_POLICY,
+                "data": {},
+            }
+        )
 
-    # TODO: select escalation chain...? setup new channelfilter on the fly?
-    #       multiple not possible (alertgroup has FK to channelfilter)
-
-    if schedule:
-        users = list_users_to_notify_from_ical(schedule)
-        if not users:
-            warning = "No user is on call for the schedule"
-            return warning
-        log_entry = f"{from_user.name} paging schedule {schedule.name}"
-
-    else:
-        if not user.notification_policies.exists():
-            warning = "User has no notification policy set"
-            return warning
-
-        # on call vs in on call rotations
-        # in rotations + oncall => ok
-        # in rotations + not on call => suggest person on call
-        # not in rotations + working hours => suggest schedule
-        # in rotations + not working hours => complain a lot
-
-        is_on_call = False
-        # check all schedules user belong to? all orgs schedules?
-        # how to limit the schedules to check?
-        schedules = user.organization.oncall_schedules.filter(team=team)
-        for s in schedules:
-            oncall_users = list_users_to_notify_from_ical(s)
-            if user in oncall_users:
-                is_on_call = True
-                break
-
-        if not is_on_call:
-            # user is not on-call
-            # check working hours
-            now = datetime.datetime.now(tz=pytz.timezone(user.timezone))
-            day_name = now.strftime("%A").lower()
-
-            working_hours = user.working_hours.get(day_name, [])  # this is a list of ranges
-            for time_range in working_hours:
-                start = time_range.get("start")
-                end = time_range.get("end")
-                if start and end:
-                    start_time = datetime.time(*map(int, start.split(":")), tzinfo=pytz.timezone(user.timezone))
-                    end_time = datetime.time(*map(int, end.split(":")), tzinfo=pytz.timezone(user.timezone))
-                    if start_time <= now.time() <= end_time:
-                        warning = "Use schedules instead"
-                        break
-            else:
-                warning = "User is outside working hours"
-                if not force:
-                    return warning
-
-        users = [user]
-        reason = "User direct paging triggered"
-        log_entry = f"{from_user.name} paging user {user.name}"
-
-    alert_group = _trigger_alert(organization, team, message, from_user)
-    # TODO: add alert group log record about paging
-    alert_group.log_records.create(
-        type=AlertGroupLogRecord.TYPE_DIRECT_PAGING,
-        author=from_user,
-        reason=log_entry,
-        # use specific_info data?
+    is_on_call = False
+    schedules = OnCallSchedule.objects.filter(
+        Q(cached_ical_file_primary__contains=user.username) | Q(cached_ical_file_primary__contains=user.email),
+        organization=user.organization,
+        team=team,
     )
-    for u in users:
-        notify_user_task.apply_async((u.pk, alert_group.pk), {"reason": reason, "important": important})
+    schedules_data = {}
+    for s in schedules:
+        # keep track of schedules and on call users to suggest if needed
+        oncall_users = list_users_to_notify_from_ical(s)
+        schedules_data[s.name] = set(oncall_users)
+        if user in oncall_users:
+            is_on_call = True
+            break
 
-    return warning
+    if not is_on_call:
+        # user is not on-call
+        # TODO: check working hours
+        warnings.append(
+            {
+                "error": USER_IS_NOT_ON_CALL,
+                "data": {"schedules": schedules_data},
+            }
+        )
+
+    return warnings
 
 
-# QUESTIONS
-# enable for any alert group? => replace invite?
+def direct_paging(
+    organization: Organization,
+    team: Team,
+    from_user: User,
+    title: str = None,
+    message: str = None,
+    users: UserNotifications = None,
+    schedules: ScheduleNotifications = None,
+    alert_group: AlertGroup = None,
+) -> None:
+    """Trigger escalation targeting given users/schedules.
 
-# org? get from user? // team: use general? get from schedule?
-#   for web: org/team are defined; for chatops: should be params?
+    If an alert group is given, update escalation to include the specified users.
+    Otherwise, create a new alert using given title and message.
 
-# APIs
-# - check user availability + return suggestions
-# - creation () // should allow multiple users/schedule // diff priority per user/schedule
-# - escalate for an existing alert group (which would also allow to add users/schedule to a previous current escalation)
+    """
+    if not users and not schedules:
+        return
+
+    if users is None:
+        users = []
+
+    if schedules is None:
+        schedules = []
+
+    # create alert group if needed
+    if alert_group is None:
+        alert_group = _trigger_alert(organization, team, title, message, from_user)
+
+    # get on call users, add log entry for each schedule
+    for (s, important) in schedules:
+        oncall_users = list_users_to_notify_from_ical(s)
+        users += [(u, important) for u in oncall_users]
+        alert_group.log_records.create(
+            type=AlertGroupLogRecord.TYPE_DIRECT_PAGING,
+            author=from_user,
+            reason=f"{from_user.username} paged schedule {s.name}",
+            # use specific_info data?
+        )
+
+    for (u, important) in users:
+        alert_group.log_records.create(
+            type=AlertGroupLogRecord.TYPE_DIRECT_PAGING,
+            author=from_user,
+            reason=f"{from_user.username} paged user {u.username}",
+            # use specific_info data?
+        )
+        notify_user_task.apply_async((u.pk, alert_group.pk), {"important": important})
+
+
+def unpage_user(alert_group: AlertGroup, user: User, from_user: User) -> None:
+    """Remove user from alert group escalation."""
+    try:
+        with transaction.atomic():
+            user_has_notification = UserHasNotification.objects.filter(
+                user=user, alert_group=alert_group
+            ).select_for_update()[0]
+            user_has_notification.active_notification_policy_id = None
+            user_has_notification.save(update_fields=["active_notification_policy_id"])
+            # add log entry
+            alert_group.log_records.create(
+                type=AlertGroupLogRecord.TYPE_DIRECT_PAGING,
+                author=from_user,
+                reason=f"{from_user.username} unpaged user {user.username}",
+            )
+    except IndexError:
+        return
