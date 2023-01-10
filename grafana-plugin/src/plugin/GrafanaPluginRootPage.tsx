@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react';
 
-import { Alert } from '@grafana/ui';
 import classnames from 'classnames';
 import dayjs from 'dayjs';
 import isSameOrAfter from 'dayjs/plugin/isSameOrAfter';
@@ -104,22 +103,18 @@ export const Root = observer((props: AppRootProps) => {
 
   return (
     <DefaultPageLayout {...props}>
-      <Alert severity="warning" title="Connectivity Warning" />
       {!isTopNavbar() && (
         <>
           <Header page={page} backendLicense={store.backendLicense} />
-          <nav className="page-container">
-            <LegacyNavTabsBar currentPage={page} />
-          </nav>
+          <LegacyNavTabsBar currentPage={page} />
         </>
       )}
 
       <div
-        className={classnames(
-          { 'page-container': !isTopNavbar() },
-          { 'page-body': !isTopNavbar() },
-          'u-position-relative'
-        )}
+        className={classnames('u-position-relative', 'u-flex-grow-1', {
+          'u-overflow-x-auto': !isTopNavbar(),
+          'page-body': !isTopNavbar(),
+        })}
       >
         {userHasAccess ? (
           <Switch>

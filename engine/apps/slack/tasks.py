@@ -467,7 +467,13 @@ def post_or_update_log_report_message_task(alert_group_pk, slack_team_identity_p
 )
 def post_slack_rate_limit_message(integration_id):
     AlertReceiveChannel = apps.get_model("alerts", "AlertReceiveChannel")
-    integration = AlertReceiveChannel.objects.get(pk=integration_id)
+
+    try:
+        integration = AlertReceiveChannel.objects.get(pk=integration_id)
+    except AlertReceiveChannel.DoesNotExist:
+        logger.warning(f"AlertReceiveChannel {integration_id} doesn't exist")
+        return
+
     if not compare_escalations(post_slack_rate_limit_message.request.id, integration.rate_limit_message_task_id):
         logger.info(
             f"post_slack_rate_limit_message. integration {integration_id}. ID mismatch. "

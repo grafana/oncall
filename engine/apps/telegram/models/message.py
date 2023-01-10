@@ -20,7 +20,7 @@ class TelegramMessage(models.Model):
         (ACTIONS_MESSAGE, "Actions message"),
         (LOG_MESSAGE, "Log message"),
         (FORMATTING_ERROR, "Alert can not be rendered"),
-        (PERSONAL_MESSAGE, "Alert group message with action buttons and incident log"),
+        (PERSONAL_MESSAGE, "Alert group message with action buttons and alert group log"),
         (LINK_TO_CHANNEL_MESSAGE, "Link to channel message"),
         (LINK_TO_CHANNEL_MESSAGE_WITHOUT_TITLE, "Link to channel message without title"),
     )

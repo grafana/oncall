@@ -3,6 +3,7 @@ import axios from 'axios';
 import { OnCallAppPluginMeta, OnCallPluginMetaJSONData, OnCallPluginMetaSecureJSONData } from 'types';
 
 import { makeRequest } from 'network';
+import FaroHelper from 'utils/faro';
 
 export type UpdateGrafanaPluginSettingsProps = {
   jsonData?: Partial<OnCallPluginMetaJSONData>;
@@ -202,10 +203,13 @@ class PluginState {
     try {
       console.log('SYNC!');
       const startSyncResponse = await makeRequest(`${this.ONCALL_BASE_URL}/sync`, { method: 'POST' });
-
       if (typeof startSyncResponse === 'string') {
         // an error occured trying to initiate the sync
         return startSyncResponse;
+      }
+
+      if (!FaroHelper.faro) {
+        FaroHelper.initializeFaro(onCallApiUrl);
       }
 
       return await this.pollOnCallDataSyncStatus(onCallApiUrl, onCallApiUrlIsConfiguredThroughEnvVar);

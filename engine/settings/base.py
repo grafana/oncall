@@ -41,6 +41,9 @@ DEBUG = False
 
 DEBUG_CELERY_TASKS_PROFILING = getenv_boolean("DEBUG_CELERY_TASKS_PROFILING", False)
 
+OTEL_TRACING_ENABLED = getenv_boolean("OTEL_TRACING_ENABLED", False)
+OTEL_EXPORTER_OTLP_ENDPOINT = os.environ.get("OTEL_EXPORTER_OTLP_ENDPOINT")
+
 ALLOWED_HOSTS = [item.strip() for item in os.environ.get("ALLOWED_HOSTS", "*").split(",")]
 
 # TODO: update link to up-to-date docs
@@ -248,6 +251,7 @@ MIDDLEWARE = [
     "apps.social_auth.middlewares.SocialAuthAuthCanceledExceptionMiddleware",
     "apps.integrations.middlewares.IntegrationExceptionMiddleware",
     "apps.user_management.middlewares.OrganizationMovedMiddleware",
+    "apps.user_management.middlewares.OrganizationDeletedMiddleware",
 ]
 
 LOG_REQUEST_ID_HEADER = "HTTP_X_CLOUD_TRACE_CONTEXT"

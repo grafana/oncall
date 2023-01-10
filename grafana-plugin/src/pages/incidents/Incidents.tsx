@@ -1,7 +1,6 @@
 import React, { ReactElement, SyntheticEvent } from 'react';
 
 import { Button, Icon, Tooltip, VerticalGroup, LoadingPlaceholder, HorizontalGroup } from '@grafana/ui';
-import { PluginPage } from 'PluginPage';
 import cn from 'classnames/bind';
 import { get } from 'lodash-es';
 import { observer } from 'mobx-react';
@@ -20,7 +19,6 @@ import IncidentsFilters from 'containers/IncidentsFilters/IncidentsFilters';
 import { WithPermissionControl } from 'containers/WithPermissionControl/WithPermissionControl';
 import { Alert, Alert as AlertType, AlertAction } from 'models/alertgroup/alertgroup.types';
 import { User } from 'models/user/user.types';
-import { pages } from 'pages';
 import { getActionButtons, getIncidentStatusTag, renderRelatedUsers } from 'pages/incident/Incident.helpers';
 import { move } from 'state/helpers';
 import { PageProps, WithStoreProps } from 'state/types';
@@ -101,12 +99,10 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
 
   render() {
     return (
-      <PluginPage pageNav={pages['incidents'].getPageNav()}>
-        <div className={cx('root')}>
-          {this.renderIncidentFilters()}
-          {this.renderTable()}
-        </div>
-      </PluginPage>
+      <div className={cx('root')}>
+        {this.renderIncidentFilters()}
+        {this.renderTable()}
+      </div>
     );
   }
 
