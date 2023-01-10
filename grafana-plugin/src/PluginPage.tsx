@@ -14,7 +14,7 @@ function RealPlugin(props: PluginPageProps): React.ReactNode {
   const store = useStore();
 
   const queryParams = useQueryParams();
-  const page = queryParams.get('page');
+  const page = queryParams.get('page') || 'incidents';
 
   return (
     <RealPluginPage {...props}>

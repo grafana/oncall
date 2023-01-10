@@ -145,22 +145,31 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
   fetchIncidentData = (filters: IncidentsFiltersType, isOnMount: boolean) => {
     const { store } = this.props;
     store.alertGroupStore.updateIncidentFilters(filters, isOnMount); // this line fetches incidents
-    LocationHelper.update({ page: 'incidents', ...store.alertGroupStore.incidentFilters }, 'partial');
+    LocationHelper.update({ ...store.alertGroupStore.incidentFilters }, 'partial');
   };
 
   onChangeCursor = (cursor: string, direction: 'prev' | 'next') => {
     const { store } = this.props;
 
-    store.alertGroupStore.setIncidentsCursor(cursor);
+    store.alertGroupStore.updateIncidentsCursor(cursor);
 
-    this.setState({
-      selectedIncidentIds: [],
-      pagination: {
-        start:
-          this.state.pagination.start + store.alertGroupStore.incidentsItemsPerPage * (direction === 'prev' ? -1 : 1),
-        end: this.state.pagination.end + store.alertGroupStore.incidentsItemsPerPage * (direction === 'prev' ? -1 : 1),
+    this.setState(
+      {
+        selectedIncidentIds: [],
+        pagination: {
+          start:
+            this.state.pagination.start + store.alertGroupStore.incidentsItemsPerPage * (direction === 'prev' ? -1 : 1),
+          end:
+            this.state.pagination.end + store.alertGroupStore.incidentsItemsPerPage * (direction === 'prev' ? -1 : 1),
+        },
       },
-    });
+      () => {
+        LocationHelper.update(
+          { start: this.state.pagination.start, perpage: store.alertGroupStore.incidentsItemsPerPage },
+          'partial'
+        );
+      }
+    );
   };
 
   handleChangeItemsPerPage = (value: number) => {

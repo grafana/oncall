@@ -6,6 +6,7 @@ import cn from 'classnames/bind';
 import { debounce } from 'lodash-es';
 import { observer } from 'mobx-react';
 import LegacyNavHeading from 'navbar/LegacyNavHeading';
+import { RouteComponentProps, withRouter } from 'react-router-dom';
 
 import Avatar from 'components/Avatar/Avatar';
 import GTable from 'components/GTable/GTable';
@@ -21,6 +22,7 @@ import UserSettings from 'containers/UserSettings/UserSettings';
 import { WithPermissionControl } from 'containers/WithPermissionControl/WithPermissionControl';
 import { User as UserType } from 'models/user/user.types';
 import { pages } from 'pages';
+import { PLUGIN_ROOT } from 'plugin/GrafanaPluginRootPage';
 import { PageProps, WithStoreProps } from 'state/types';
 import { withMobXProviderContext } from 'state/withStore';
 import LocationHelper from 'utils/LocationHelper';
@@ -32,7 +34,7 @@ import styles from './Users.module.css';
 
 const cx = cn.bind(styles);
 
-interface UsersProps extends WithStoreProps, PageProps {}
+interface UsersProps extends WithStoreProps, PageProps, RouteComponentProps<{ id: string }> {}
 
 const ITEMS_PER_PAGE = 100;
 
@@ -88,7 +90,7 @@ class Users extends React.Component<UsersProps, UsersState> {
       this.initialUsersLoaded = true;
     }
 
-    if (prevProps.query.id !== this.props.query.id) {
+    if (prevProps.match.params.id !== this.props.match.params.id) {
       this.parseParams();
     }
   }
@@ -98,7 +100,9 @@ class Users extends React.Component<UsersProps, UsersState> {
 
     const {
       store,
-      query: { id },
+      match: {
+        params: { id },
+      },
     } = this.props;
 
     if (id) {
@@ -116,7 +120,12 @@ class Users extends React.Component<UsersProps, UsersState> {
 
   render() {
     const { usersFilters, userPkToEdit, page, errorData } = this.state;
-    const { store, query } = this.props;
+    const {
+      store,
+      match: {
+        params: { id },
+      },
+    } = this.props;
     const { userStore } = store;
 
     const columns = [
@@ -164,7 +173,7 @@ class Users extends React.Component<UsersProps, UsersState> {
           errorData={errorData}
           objectName="user"
           pageName="users"
-          itemNotFoundMessage={`User with id=${query?.id} is not found. Please select user from the list.`}
+          itemNotFoundMessage={`User with id=${id} is not found. Please select user from the list.`}
         >
           {() => (
             <>
@@ -182,7 +191,7 @@ class Users extends React.Component<UsersProps, UsersState> {
                         </Text>
                       </div>
                     </div>
-                    <PluginLink partial query={{ id: 'me' }}>
+                    <PluginLink query={{ page: 'users', id: 'me' }}>
                       <Button variant="primary" icon="user">
                         View my profile
                       </Button>
@@ -285,7 +294,7 @@ class Users extends React.Component<UsersProps, UsersState> {
 
     return (
       <VerticalGroup justify="center">
-        <PluginLink partial query={{ id: user.pk }} disabled={!isUserActionAllowed(action)}>
+        <PluginLink query={{ page: 'users', id: user.pk }} disabled={!isUserActionAllowed(action)}>
           <WithPermissionControl userAction={action}>
             <Button
               className={cx({
@@ -358,9 +367,10 @@ class Users extends React.Component<UsersProps, UsersState> {
   };
 
   handleHideUserSettings = () => {
+    const { history } = this.props;
     this.setState({ userPkToEdit: undefined });
 
-    LocationHelper.update({ id: undefined }, 'partial');
+    history.push(`${PLUGIN_ROOT}/users`);
   };
 
   handleUserUpdate = () => {
@@ -368,4 +378,4 @@ class Users extends React.Component<UsersProps, UsersState> {
   };
 }
 
-export default withMobXProviderContext(Users);
+export default withRouter(withMobXProviderContext(Users));

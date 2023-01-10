@@ -1,3 +1,7 @@
+import qs, { ParsedQuery } from 'query-string';
+
+import { PLUGIN_ROOT } from 'plugin/GrafanaPluginRootPage';
+
 export function getTeamNameSlugFromUrl(): string | undefined {
   const teamName = window.location.pathname.split('/')[2];
   return teamName === 'admin' || teamName === 'auth' ? undefined : teamName;
@@ -8,4 +12,26 @@ export function getPathnameByTeamNameSlug(teamNameSlug: string): string {
     .split('/')
     .map((part: string, index) => (index === 2 ? teamNameSlug : part))
     .join('/');
+}
+
+export function getPathFromQueryParams(query: ParsedQuery<string>) {
+  const normalizedQuery = { ...query };
+
+  let path = PLUGIN_ROOT;
+  if (normalizedQuery.page) {
+    path += `/${normalizedQuery.page}`;
+    delete normalizedQuery['page'];
+
+    if (normalizedQuery.id) {
+      path += `/${normalizedQuery.id}`;
+      delete normalizedQuery['id'];
+    }
+  }
+
+  if (Object.keys(normalizedQuery).length) {
+    const query = qs.stringify(normalizedQuery);
+    path += `?` + query;
+  }
+
+  return path;
 }

@@ -5,6 +5,7 @@ import { PluginPage } from 'PluginPage';
 import cn from 'classnames/bind';
 import dayjs from 'dayjs';
 import { observer } from 'mobx-react';
+import { RouteComponentProps, withRouter } from 'react-router-dom';
 
 import PageErrorHandlingWrapper from 'components/PageErrorHandlingWrapper/PageErrorHandlingWrapper';
 import PluginLink from 'components/PluginLink/PluginLink';
@@ -32,7 +33,7 @@ import styles from './Schedule.module.css';
 
 const cx = cn.bind(styles);
 
-interface SchedulePageProps extends PageProps, WithStoreProps {}
+interface SchedulePageProps extends PageProps, WithStoreProps, RouteComponentProps<{ id: string }> {}
 
 interface SchedulePageState {
   startMoment: dayjs.Dayjs;
@@ -66,7 +67,9 @@ class SchedulePage extends React.Component<SchedulePageProps, SchedulePageState>
   async componentDidMount() {
     const {
       store,
-      query: { id },
+      match: {
+        params: { id },
+      },
     } = this.props;
 
     store.userStore.updateItems();
@@ -88,7 +91,9 @@ class SchedulePage extends React.Component<SchedulePageProps, SchedulePageState>
   render() {
     const {
       store,
-      query: { id: scheduleId },
+      match: {
+        params: { id: scheduleId },
+      },
     } = this.props;
 
     const {
@@ -311,7 +316,9 @@ class SchedulePage extends React.Component<SchedulePageProps, SchedulePageState>
   updateEvents = () => {
     const {
       store,
-      query: { id: scheduleId },
+      match: {
+        params: { id: scheduleId },
+      },
     } = this.props;
 
     const { startMoment } = this.state;
@@ -445,4 +452,4 @@ class SchedulePage extends React.Component<SchedulePageProps, SchedulePageState>
   };
 }
 
-export default withMobXProviderContext(SchedulePage);
+export default withRouter(withMobXProviderContext(SchedulePage));

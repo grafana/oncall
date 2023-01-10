@@ -200,6 +200,7 @@ class PluginState {
     onCallApiUrlIsConfiguredThroughEnvVar = false
   ): Promise<PluginSyncStatusResponse | string> => {
     try {
+      console.log('SYNC!');
       const startSyncResponse = await makeRequest(`${this.ONCALL_BASE_URL}/sync`, { method: 'POST' });
 
       if (typeof startSyncResponse === 'string') {

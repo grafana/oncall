@@ -1,5 +1,7 @@
 import { NavModelItem } from '@grafana/data';
+import { matchPath } from 'react-router-dom';
 
+import { PLUGIN_ROOT } from 'plugin/GrafanaPluginRootPage';
 import { isTopNavbar } from 'plugin/GrafanaPluginRootPage.helpers';
 import { AppFeature } from 'state/features';
 import { RootBaseStore } from 'state/rootBaseStore';
@@ -38,8 +40,14 @@ export const pages: { [id: string]: PageDefinition } = [
     text: '',
     hideFromTabs: true,
     hideFromBreadcrumbs: true,
-    parentItem: { text: 'Incident' },
-    path: getPath('incident/:id?'),
+    parentItem: {
+      text: 'Incident',
+      parentItem: {
+        text: 'Incidents',
+        url: `${PLUGIN_URL_PATH}/incidents`,
+      },
+    },
+    path: getPath('users'),
     action: UserActions.AlertGroupsRead,
   },
   {
@@ -78,7 +86,13 @@ export const pages: { [id: string]: PageDefinition } = [
     icon: 'calendar-alt',
     id: 'schedule',
     text: '',
-    parentItem: { text: 'Schedule' },
+    parentItem: {
+      text: 'Schedule',
+      parentItem: {
+        text: 'Schedules',
+        url: `${PLUGIN_URL_PATH}/schedules`,
+      },
+    },
     hideFromBreadcrumbs: true,
     hideFromTabs: true,
     path: getPath('schedule/:id?'),
@@ -171,3 +185,34 @@ export const pages: { [id: string]: PageDefinition } = [
 
   return prev;
 }, {});
+
+const ROUTES = {
+  incidents: ['incidents'],
+  incident: ['incident/:id'],
+  users: ['users', 'users/:id'],
+  integrations: ['integrations', 'integrations/:id'],
+  escalations: ['escalations', 'escalations/:id'],
+  schedules: ['schedules'],
+  schedule: ['schedules/:id'],
+  outgoing_webhooks: ['outgoing_webhooks', 'outgoing_webhooks/:id'],
+  maintenance: ['maintenance'],
+  settings: ['settings'],
+  'organization-logs': ['organization-logs'],
+  test: ['test'],
+};
+
+export const getRoutesForPage = (name: string) => {
+  return ROUTES[name].map((route) => `${PLUGIN_ROOT}/${route}`);
+};
+
+export function getMatchedPage(url: string) {
+  return Object.keys(ROUTES).find((key) => {
+    return ROUTES[key].find((route) =>
+      matchPath(url, {
+        path: `${PLUGIN_ROOT}/${route}`,
+        exact: true,
+        strict: false,
+      })
+    );
+  });
+}

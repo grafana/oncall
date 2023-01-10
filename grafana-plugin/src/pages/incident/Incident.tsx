@@ -20,6 +20,7 @@ import { observer } from 'mobx-react';
 import moment from 'moment-timezone';
 import CopyToClipboard from 'react-copy-to-clipboard';
 import Emoji from 'react-emoji-render';
+import { RouteComponentProps, withRouter } from 'react-router-dom';
 import reactStringReplace from 'react-string-replace';
 
 import Collapse from 'components/Collapse/Collapse';
@@ -61,7 +62,7 @@ import styles from './Incident.module.css';
 
 const cx = cn.bind(styles);
 
-interface IncidentPageProps extends WithStoreProps, PageProps {}
+interface IncidentPageProps extends WithStoreProps, PageProps, RouteComponentProps<{ id: string }> {}
 
 interface IncidentPageState extends PageBaseState {
   showIntegrationSettings?: boolean;
@@ -87,7 +88,19 @@ class IncidentPage extends React.Component<IncidentPageProps, IncidentPageState>
   }
 
   componentDidUpdate(prevProps: IncidentPageProps) {
-    if (this.props.query.id !== prevProps.query.id) {
+    const {
+      match: {
+        params: { id },
+      },
+    } = this.props;
+
+    const {
+      match: {
+        params: { id: prevId },
+      },
+    } = prevProps;
+
+    if (id !== prevId) {
       this.update();
     }
   }
@@ -97,7 +110,9 @@ class IncidentPage extends React.Component<IncidentPageProps, IncidentPageState>
 
     const {
       store,
-      query: { id },
+      match: {
+        params: { id },
+      },
     } = this.props;
 
     store.alertGroupStore
@@ -108,7 +123,10 @@ class IncidentPage extends React.Component<IncidentPageProps, IncidentPageState>
   render() {
     const {
       store,
-      query: { id, cursor, start, perpage },
+      query: { cursor, start, perpage },
+      match: {
+        params: { id },
+      },
     } = this.props;
 
     const { errorData, showIntegrationSettings, showAttachIncidentForm } = this.state;
@@ -198,7 +216,10 @@ class IncidentPage extends React.Component<IncidentPageProps, IncidentPageState>
   renderHeader = () => {
     const {
       store,
-      query: { id, cursor, start, perpage },
+      query: { cursor, start, perpage },
+      match: {
+        params: { id },
+      },
     } = this.props;
 
     const { alerts } = store.alertGroupStore;
@@ -319,7 +340,9 @@ class IncidentPage extends React.Component<IncidentPageProps, IncidentPageState>
   renderTimeline = () => {
     const {
       store,
-      query: { id },
+      match: {
+        params: { id },
+      },
     } = this.props;
 
     const incident = store.alertGroupStore.alerts.get(id);
@@ -411,7 +434,9 @@ class IncidentPage extends React.Component<IncidentPageProps, IncidentPageState>
   handleCreateResolutionNote = () => {
     const {
       store,
-      query: { id },
+      match: {
+        params: { id },
+      },
     } = this.props;
 
     const { resolutionNoteText } = this.state;
@@ -658,4 +683,4 @@ function AttachedIncidentsList({
   );
 }
 
-export default withMobXProviderContext(IncidentPage);
+export default withRouter(withMobXProviderContext(IncidentPage));

@@ -6,6 +6,7 @@ import cn from 'classnames/bind';
 import dayjs from 'dayjs';
 import { debounce } from 'lodash-es';
 import { observer } from 'mobx-react';
+import { withRouter } from 'react-router-dom';
 
 import Avatar from 'components/Avatar/Avatar';
 import NewScheduleSelector from 'components/NewScheduleSelector/NewScheduleSelector';
@@ -63,6 +64,8 @@ class SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSta
 
   async componentDidMount() {
     const { store } = this.props;
+
+    console.log(this.props);
 
     store.userStore.updateItems();
     store.scheduleStore.updateItems();
@@ -418,4 +421,4 @@ class SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSta
   };
 }
 
-export default withMobXProviderContext(SchedulesPage);
+export default withRouter(withMobXProviderContext(SchedulesPage));
