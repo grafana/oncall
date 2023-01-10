@@ -40,10 +40,7 @@ export const pages: { [id: string]: PageDefinition } = [
     hideFromBreadcrumbs: true,
     parentItem: {
       text: 'Incident',
-      parentItem: {
-        text: 'Incidents',
-        url: `${PLUGIN_ROOT}/incidents`,
-      },
+      url: `${PLUGIN_ROOT}/incidents`,
     },
     path: getPath('incident'),
     action: UserActions.AlertGroupsRead,
@@ -86,10 +83,7 @@ export const pages: { [id: string]: PageDefinition } = [
     text: '',
     parentItem: {
       text: 'Schedule',
-      parentItem: {
-        text: 'Schedules',
-        url: `${PLUGIN_ROOT}/schedules`,
-      },
+      url: `${PLUGIN_ROOT}/schedules`,
     },
     hideFromBreadcrumbs: true,
     hideFromTabs: true,
@@ -184,14 +178,14 @@ export const pages: { [id: string]: PageDefinition } = [
   return prev;
 }, {});
 
-const ROUTES = {
+export const ROUTES = {
   incidents: ['incidents'],
-  incident: ['incident/:id'],
+  incident: ['incidents/:id'],
   users: ['users', 'users/:id'],
   integrations: ['integrations', 'integrations/:id'],
   escalations: ['escalations', 'escalations/:id'],
   schedules: ['schedules'],
-  schedule: ['schedule/:id'],
+  schedule: ['schedules/:id'],
   outgoing_webhooks: ['outgoing_webhooks', 'outgoing_webhooks/:id'],
   maintenance: ['maintenance'],
   settings: ['settings'],

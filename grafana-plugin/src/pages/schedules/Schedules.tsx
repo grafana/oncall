@@ -5,7 +5,7 @@ import cn from 'classnames/bind';
 import dayjs from 'dayjs';
 import { debounce } from 'lodash-es';
 import { observer } from 'mobx-react';
-import { withRouter } from 'react-router-dom';
+import { RouteComponentProps, withRouter } from 'react-router-dom';
 
 import Avatar from 'components/Avatar/Avatar';
 import NewScheduleSelector from 'components/NewScheduleSelector/NewScheduleSelector';
@@ -30,12 +30,13 @@ import { WithStoreProps } from 'state/types';
 import { withMobXProviderContext } from 'state/withStore';
 import LocationHelper from 'utils/LocationHelper';
 import { UserActions } from 'utils/authorization';
+import { PLUGIN_ROOT } from 'utils/consts';
 
 import styles from './Schedules.module.css';
 
 const cx = cn.bind(styles);
 
-interface SchedulesPageProps extends WithStoreProps {}
+interface SchedulesPageProps extends WithStoreProps, RouteComponentProps {}
 
 interface SchedulesPageState {
   startMoment: dayjs.Dayjs;
@@ -62,8 +63,6 @@ class SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSta
 
   async componentDidMount() {
     const { store } = this.props;
-
-    console.log(this.props);
 
     store.userStore.updateItems();
     store.scheduleStore.updateItems();
@@ -210,8 +209,10 @@ class SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSta
   };
 
   handleCreateSchedule = (data: Schedule) => {
+    const { history } = this.props;
+
     if (data.type === ScheduleType.API) {
-      LocationHelper.update({ page: 'schedule', id: data.id }, 'partial');
+      history.push(`${PLUGIN_ROOT}/schedules/${data.id}`);
     }
   };
 
@@ -322,7 +323,7 @@ class SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSta
   };
 
   renderName = (item: Schedule) => {
-    return <PluginLink query={{ page: 'schedule', id: item.id }}>{item.name}</PluginLink>;
+    return <PluginLink query={{ page: 'schedules', id: item.id }}>{item.name}</PluginLink>;
   };
 
   renderOncallNow = (item: Schedule, _index: number) => {

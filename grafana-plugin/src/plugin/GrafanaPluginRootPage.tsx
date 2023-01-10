@@ -103,7 +103,7 @@ export const Root = observer((props: AppRootProps) => {
   const query = getQueryParams();
 
   return (
-    <DefaultPageLayout {...props}>
+    <DefaultPageLayout {...props} page={page}>
       {!isTopNavbar() && (
         <>
           <Header page={page} backendLicense={store.backendLicense} />

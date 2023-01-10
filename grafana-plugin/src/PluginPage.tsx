@@ -6,8 +6,6 @@ import Header from 'navbar/Header/Header';
 import { pages } from 'pages';
 import { isTopNavbar } from 'plugin/GrafanaPluginRootPage.helpers';
 import { useStore } from 'state/useStore';
-import { DEFAULT_PAGE } from 'utils/consts';
-import { useQueryParams } from 'utils/hooks';
 
 export const PluginPage = (
   isTopNavbar() ? RealPlugin : PluginPageFallback
@@ -15,13 +13,12 @@ export const PluginPage = (
 
 interface ExtendedPluginPageProps extends PluginPageProps {
   renderAlertsFn?: () => React.ReactNode;
+  page: string;
 }
 
 function RealPlugin(props: ExtendedPluginPageProps): React.ReactNode {
+  const { page } = props;
   const store = useStore();
-
-  const queryParams = useQueryParams();
-  const page = queryParams.get('page') || DEFAULT_PAGE;
 
   return (
     <RealPluginPage {...props}>

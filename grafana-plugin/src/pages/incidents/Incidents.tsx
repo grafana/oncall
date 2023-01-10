@@ -399,7 +399,7 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
     return (
       <VerticalGroup spacing="none" justify="center">
         <PluginLink
-          query={{ page: 'incident', id: record.pk, cursor: incidentsCursor, perpage: incidentsItemsPerPage, start }}
+          query={{ page: 'incidents', id: record.pk, cursor: incidentsCursor, perpage: incidentsItemsPerPage, start }}
         >
           {record.render_for_web.title}
         </PluginLink>
