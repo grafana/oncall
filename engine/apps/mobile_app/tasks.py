@@ -1,3 +1,8 @@
+import json
+import logging
+from urllib.parse import urljoin
+
+import requests
 from celery.utils.log import get_task_logger
 from django.conf import settings
 from fcm_django.models import FCMDevice
@@ -10,6 +15,7 @@ from common.custom_celery_tasks import shared_dedicated_queue_retry_task
 
 MAX_RETRIES = 1 if settings.DEBUG else 10
 logger = get_task_logger(__name__)
+logger.setLevel(logging.DEBUG)
 
 
 @shared_dedicated_queue_retry_task(autoretry_for=(Exception,), retry_backoff=True, max_retries=MAX_RETRIES)
@@ -71,8 +77,6 @@ def notify_user_async(user_pk, alert_group_pk, notification_policy_pk, critical)
 
     alert_body = f"Status: {status_verbose}, alerts: {alerts_count_str}"
 
-    # TODO: we should update this to check if FCM_RELAY is set and conditionally make a call here..
-
     message = Message(
         token=device_to_notify.registration_id,
         data={
@@ -109,10 +113,25 @@ def notify_user_async(user_pk, alert_group_pk, notification_policy_pk, critical)
         ),
     )
 
-    logger.info(f"Sending push notification with message: {message}; thread-id: {thread_id};")
+    logger.debug(f"Sending push notification with message: {message}; thread-id: {thread_id};")
 
-    fcm_response = device_to_notify.send_message(message)
+    if settings.LICENSE == settings.OPEN_SOURCE_LICENSE_NAME:
+        response = send_push_notification_to_fcm_relay(message)
+        logger.debug(f"FCM relay response: {response}")
+    else:
+        response = device_to_notify.send_message(message)
+        # NOTE: we may want to further handle the response from FCM, but for now lets simply log it out
+        # https://firebase.google.com/docs/cloud-messaging/http-server-ref#interpret-downstream
+        logger.debug(f"FCM response: {response}")
 
-    # NOTE: we may want to further handle the response from FCM, but for now lets simply log it out
-    # https://firebase.google.com/docs/cloud-messaging/http-server-ref#interpret-downstream
-    logger.info(f"FCM response was: {fcm_response}")
+
+def send_push_notification_to_fcm_relay(message):
+    """
+    Send push notification to FCM relay on cloud instance: apps.mobile_app.fcm_relay.FCMRelayView
+    """
+    url = urljoin(settings.GRAFANA_CLOUD_ONCALL_API_URL, "mobile_app/v1/fcm_relay")
+
+    response = requests.post(url, json=json.loads(str(message)))
+    response.raise_for_status()
+
+    return response
