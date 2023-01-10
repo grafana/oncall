@@ -135,9 +135,7 @@ class ScheduleView(
         organization = self.request.auth.organization
         queryset = OnCallSchedule.objects.filter(organization=organization, team=self.request.user.current_team).defer(
             # avoid requesting large text fields which are not used when listing schedules
-            "cached_ical_file_primary",
             "prev_ical_file_primary",
-            "cached_ical_file_overrides",
             "prev_ical_file_overrides",
         )
         if not is_short_request:
