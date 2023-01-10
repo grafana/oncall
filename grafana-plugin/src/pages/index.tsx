@@ -1,13 +1,11 @@
 import { NavModelItem } from '@grafana/data';
 import { matchPath } from 'react-router-dom';
 
-import { PLUGIN_ROOT } from 'plugin/GrafanaPluginRootPage';
 import { isTopNavbar } from 'plugin/GrafanaPluginRootPage.helpers';
 import { AppFeature } from 'state/features';
 import { RootBaseStore } from 'state/rootBaseStore';
 import { UserActions, UserAction, isUserActionAllowed } from 'utils/authorization';
-
-export const PLUGIN_URL_PATH = '/a/grafana-oncall-app';
+import { PLUGIN_ROOT } from 'utils/consts';
 
 export type PageDefinition = {
   path: string;
@@ -22,7 +20,7 @@ export type PageDefinition = {
 };
 
 function getPath(name = '') {
-  return `${PLUGIN_URL_PATH}/?page=${name}`;
+  return `${PLUGIN_ROOT}/${name}`;
 }
 
 export const pages: { [id: string]: PageDefinition } = [
@@ -44,10 +42,10 @@ export const pages: { [id: string]: PageDefinition } = [
       text: 'Incident',
       parentItem: {
         text: 'Incidents',
-        url: `${PLUGIN_URL_PATH}/incidents`,
+        url: `${PLUGIN_ROOT}/incidents`,
       },
     },
-    path: getPath('users'),
+    path: getPath('incident'),
     action: UserActions.AlertGroupsRead,
   },
   {
@@ -90,7 +88,7 @@ export const pages: { [id: string]: PageDefinition } = [
       text: 'Schedule',
       parentItem: {
         text: 'Schedules',
-        url: `${PLUGIN_URL_PATH}/schedules`,
+        url: `${PLUGIN_ROOT}/schedules`,
       },
     },
     hideFromBreadcrumbs: true,
@@ -193,11 +191,14 @@ const ROUTES = {
   integrations: ['integrations', 'integrations/:id'],
   escalations: ['escalations', 'escalations/:id'],
   schedules: ['schedules'],
-  schedule: ['schedules/:id'],
+  schedule: ['schedule/:id'],
   outgoing_webhooks: ['outgoing_webhooks', 'outgoing_webhooks/:id'],
   maintenance: ['maintenance'],
   settings: ['settings'],
   'organization-logs': ['organization-logs'],
+  'chat-ops': ['chat-ops'],
+  'live-settings': ['live-settings'],
+  cloud: ['cloud'],
   test: ['test'],
 };
 

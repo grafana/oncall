@@ -20,11 +20,11 @@ import UsersFilters from 'components/UsersFilters/UsersFilters';
 import UserSettings from 'containers/UserSettings/UserSettings';
 import { WithPermissionControl } from 'containers/WithPermissionControl/WithPermissionControl';
 import { User as UserType } from 'models/user/user.types';
-import { PLUGIN_ROOT } from 'plugin/GrafanaPluginRootPage';
 import { PageProps, WithStoreProps } from 'state/types';
 import { withMobXProviderContext } from 'state/withStore';
 import LocationHelper from 'utils/LocationHelper';
 import { isUserActionAllowed, UserActions } from 'utils/authorization';
+import { PLUGIN_ROOT } from 'utils/consts';
 
 import { getUserRowClassNameFn } from './Users.helpers';
 

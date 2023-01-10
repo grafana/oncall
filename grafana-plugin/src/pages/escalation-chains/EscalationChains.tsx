@@ -25,10 +25,10 @@ import EscalationChainForm from 'containers/EscalationChainForm/EscalationChainF
 import EscalationChainSteps from 'containers/EscalationChainSteps/EscalationChainSteps';
 import { WithPermissionControl } from 'containers/WithPermissionControl/WithPermissionControl';
 import { EscalationChain } from 'models/escalation_chain/escalation_chain.types';
-import { PLUGIN_ROOT } from 'plugin/GrafanaPluginRootPage';
 import { PageProps, WithStoreProps } from 'state/types';
 import { withMobXProviderContext } from 'state/withStore';
 import { UserActions } from 'utils/authorization';
+import { PLUGIN_ROOT } from 'utils/consts';
 
 import styles from './EscalationChains.module.css';
 
@@ -97,7 +97,9 @@ class EscalationChainsPage extends React.Component<EscalationChainsPageProps, Es
       selectedEscalationChain = searchResult[0]?.id;
     }
 
-    this.setSelectedEscalationChain(selectedEscalationChain);
+    if (selectedEscalationChain) {
+      this.setSelectedEscalationChain(selectedEscalationChain);
+    }
   };
 
   setSelectedEscalationChain = (escalationChain: EscalationChain['id']) => {

@@ -19,10 +19,10 @@ import OutgoingWebhookForm from 'containers/OutgoingWebhookForm/OutgoingWebhookF
 import { WithPermissionControl } from 'containers/WithPermissionControl/WithPermissionControl';
 import { ActionDTO } from 'models/action';
 import { OutgoingWebhook } from 'models/outgoing_webhook/outgoing_webhook.types';
-import { PLUGIN_ROOT } from 'plugin/GrafanaPluginRootPage';
 import { PageProps, WithStoreProps } from 'state/types';
 import { withMobXProviderContext } from 'state/withStore';
 import { isUserActionAllowed, UserActions } from 'utils/authorization';
+import { PLUGIN_ROOT } from 'utils/consts';
 
 import styles from './OutgoingWebhooks.module.css';
 

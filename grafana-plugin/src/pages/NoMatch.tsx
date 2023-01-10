@@ -3,8 +3,7 @@ import React, { useEffect, useMemo } from 'react';
 import qs from 'query-string';
 import { useHistory } from 'react-router-dom';
 
-import { PLUGIN_ROOT } from 'plugin/GrafanaPluginRootPage';
-import { DEFAULT_PAGE } from 'utils/consts';
+import { DEFAULT_PAGE, PLUGIN_ROOT } from 'utils/consts';
 import { getPathFromQueryParams } from 'utils/url';
 
 const NoMatch = () => {

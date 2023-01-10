@@ -1,6 +1,6 @@
 import qs, { ParsedQuery } from 'query-string';
 
-import { PLUGIN_ROOT } from 'plugin/GrafanaPluginRootPage';
+import { PLUGIN_ROOT } from './consts';
 
 export function getTeamNameSlugFromUrl(): string | undefined {
   const teamName = window.location.pathname.split('/')[2];

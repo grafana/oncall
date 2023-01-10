@@ -24,11 +24,11 @@ import { IntegrationSettingsTab } from 'containers/IntegrationSettings/Integrati
 import { WithPermissionControl } from 'containers/WithPermissionControl/WithPermissionControl';
 import { AlertReceiveChannel } from 'models/alert_receive_channel';
 import { AlertReceiveChannelOption } from 'models/alert_receive_channel/alert_receive_channel.types';
-import { PLUGIN_ROOT } from 'plugin/GrafanaPluginRootPage';
 import { PageProps, WithStoreProps } from 'state/types';
 import { withMobXProviderContext } from 'state/withStore';
 import LocationHelper from 'utils/LocationHelper';
 import { UserActions } from 'utils/authorization';
+import { PLUGIN_ROOT } from 'utils/consts';
 
 import styles from './Integrations.module.css';
 
@@ -102,7 +102,9 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
       selectedAlertReceiveChannel = searchResult[0]?.id;
     }
 
-    this.setSelectedAlertReceiveChannel(selectedAlertReceiveChannel);
+    if (selectedAlertReceiveChannel) {
+      this.setSelectedAlertReceiveChannel(selectedAlertReceiveChannel);
+    }
   };
 
   update = () => {

@@ -29,6 +29,9 @@ import OutgoingWebhooks from 'pages/outgoing_webhooks/OutgoingWebhooks';
 import Schedule from 'pages/schedule/Schedule';
 import Schedules from 'pages/schedules/Schedules';
 import SettingsPage from 'pages/settings/SettingsPage';
+import ChatOps from 'pages/settings/tabs/ChatOps/ChatOps';
+import CloudPage from 'pages/settings/tabs/Cloud/CloudPage';
+import LiveSettings from 'pages/settings/tabs/LiveSettings/LiveSettingsPage';
 import Test from 'pages/test/Test';
 import Users from 'pages/users/Users';
 import 'interceptors';
@@ -50,8 +53,6 @@ import 'style/utils.css';
 
 import { getQueryParams, isTopNavbar } from './GrafanaPluginRootPage.helpers';
 import PluginSetup from './PluginSetup';
-
-export const PLUGIN_ROOT = '/a/grafana-oncall-app';
 
 export const GrafanaPluginRootPage = (props: AppRootProps) => {
   return (
@@ -150,6 +151,15 @@ export const Root = observer((props: AppRootProps) => {
             </Route>
             <Route path={getRoutesForPage('organization-logs')} exact>
               <OrganizationLogPage />
+            </Route>
+            <Route path={getRoutesForPage('chat-ops')} exact>
+              <ChatOps />
+            </Route>
+            <Route path={getRoutesForPage('live-settings')} exact>
+              <LiveSettings />
+            </Route>
+            <Route path={getRoutesForPage('cloud')} exact>
+              <CloudPage />
             </Route>
             <Route path={getRoutesForPage('test')} exact>
               <Test />

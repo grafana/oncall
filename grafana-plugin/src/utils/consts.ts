@@ -13,6 +13,8 @@ export const BREAKPOINT_TABS = 1024;
 // Default redirect page
 export const DEFAULT_PAGE = 'incidents';
 
+export const PLUGIN_ROOT = '/a/grafana-oncall-app';
+
 // Environment options list for onCallApiUrl
 export const ONCALL_PROD = 'https://oncall-prod-us-central-0.grafana.net/oncall';
 export const ONCALL_OPS = 'https://oncall-ops-us-east-0.grafana.net/oncall';
