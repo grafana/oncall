@@ -5,6 +5,18 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## v1.1.15 (2023-01-10)
+
+### Changed
+
+- Simplify and speed up slack rendering (#1105)
+- Faro - Point to 3 separate apps instead of just 1 for all environments (#1110)
+- Schedules - (#1114 #1109)
+
+### Fixed
+
+- Bugfix for topnavbar to place alerts inside PageNav (#1040)
+
 ## v1.1.14 (2023-01-05)
 
 ### Changed
