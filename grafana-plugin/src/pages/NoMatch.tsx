@@ -4,6 +4,7 @@ import qs from 'query-string';
 import { useHistory } from 'react-router-dom';
 
 import { PLUGIN_ROOT } from 'plugin/GrafanaPluginRootPage';
+import { DEFAULT_PAGE } from 'utils/consts';
 import { getPathFromQueryParams } from 'utils/url';
 
 const NoMatch = () => {
@@ -16,7 +17,7 @@ const NoMatch = () => {
       const path = getPathFromQueryParams(query);
       history.push(path);
     } else {
-      history.push(`${PLUGIN_ROOT}/incidents`);
+      history.push(`${PLUGIN_ROOT}/${DEFAULT_PAGE}`);
     }
   }, [query]);
 
