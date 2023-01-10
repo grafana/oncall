@@ -1,6 +1,5 @@
 import json
 import logging
-from urllib.parse import urljoin
 
 import requests
 from celery.utils.log import get_task_logger
@@ -11,6 +10,7 @@ from firebase_admin.messaging import APNSConfig, APNSPayload, Aps, ApsAlert, Cri
 from apps.alerts.models import AlertGroup
 from apps.mobile_app.alert_rendering import get_push_notification_message
 from apps.user_management.models import User
+from common.api_helpers.utils import create_engine_url
 from common.custom_celery_tasks import shared_dedicated_queue_retry_task
 
 MAX_RETRIES = 1 if settings.DEBUG else 10
@@ -129,7 +129,7 @@ def send_push_notification_to_fcm_relay(message):
     """
     Send push notification to FCM relay on cloud instance: apps.mobile_app.fcm_relay.FCMRelayView
     """
-    url = urljoin(settings.GRAFANA_CLOUD_ONCALL_API_URL, "mobile_app/v1/fcm_relay")
+    url = create_engine_url("mobile_app/v1/fcm_relay", override_base=settings.GRAFANA_CLOUD_ONCALL_API_URL)
 
     response = requests.post(url, json=json.loads(str(message)))
     response.raise_for_status()
