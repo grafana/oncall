@@ -39,13 +39,6 @@ const TelegramInfo = observer((_props: TelegramInfoProps) => {
     <>
       {telegramConfigured || !store.hasFeature(AppFeature.LiveSettings) ? (
         <VerticalGroup>
-          {/* <Text.Title level={5}>Connect personal Telegram</Text.Title>
-          <Block bordered withBackground className={cx('automatic-connect-telegram-block')}>
-            <Text type="secondary">Connect Telegram automatically</Text>
-            <a href={`${botLink}/?start=${verificationCode}`} target="_blank" rel="noreferrer">
-              <Button size="sm">Connect account</Button>
-            </a>
-          </Block> */}
           <Text.Title level={5}>Manual connection</Text.Title>
 
           <Text type="secondary">
@@ -79,7 +72,7 @@ const TelegramInfo = observer((_props: TelegramInfoProps) => {
       ) : (
         <VerticalGroup spacing="lg">
           <Text.Title level={2}>Connect Telegram workspace</Text.Title>
-          <Block bordered withBackground className={cx('telegram-infoblock')}>
+          <Block bordered withBackground className={cx('telegram-infoblock', 'u-width-100')}>
             <VerticalGroup align="center" spacing="lg">
               <TelegramColorIcon />
               <Text>You can manage alert groups in your team Telegram channel or from personal direct messages. </Text>
