@@ -206,9 +206,9 @@ class IncidentPage extends React.Component<IncidentPageProps, IncidentPageState>
     const incident = alerts.get(id);
 
     const integration = store.alertReceiveChannelStore.getIntegration(incident.alert_receive_channel);
+    const grafanaIncidentIsInstalled = false;
 
     const showLinkTo = !incident.dependent_alert_groups.length && !incident.root_alert_group && !incident.resolved;
-
     return (
       <Block withBackground>
         <VerticalGroup>
@@ -248,7 +248,7 @@ class IncidentPage extends React.Component<IncidentPageProps, IncidentPageState>
             </HorizontalGroup>
           </div>
           <HorizontalGroup justify="space-between" className={cx('buttons-row')}>
-            <div>
+            <HorizontalGroup>
               {getActionButtons(incident, cx, {
                 onResolve: this.getOnActionButtonClick(incident.pk, AlertAction.Resolve),
                 onUnacknowledge: this.getOnActionButtonClick(incident.pk, AlertAction.unAcknowledge),
@@ -257,7 +257,15 @@ class IncidentPage extends React.Component<IncidentPageProps, IncidentPageState>
                 onSilence: this.getSilenceClickHandler(incident),
                 onUnsilence: this.getUnsilenceClickHandler(incident),
               })}
-            </div>
+              {grafanaIncidentIsInstalled && (
+                <a href={incident.declare_incident_link} target="_blank" rel="noreferrer">
+                  <Button variant="primary" size="sm" icon="fire">
+                    Declare incident
+                  </Button>
+                </a>
+              )}
+            </HorizontalGroup>
+
             <HorizontalGroup>
               <CopyToClipboard
                 text={window.location.href}
