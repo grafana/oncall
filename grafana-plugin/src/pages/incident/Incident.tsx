@@ -30,6 +30,7 @@ import {
   getWrongTeamResponseInfo,
   initErrorDataState,
 } from 'components/PageErrorHandlingWrapper/PageErrorHandlingWrapper.helpers';
+import { PluginBridge, SupportedPlugin } from 'components/PluginBridge/PluginBridge';
 import PluginLink from 'components/PluginLink/PluginLink';
 import SourceCode from 'components/SourceCode/SourceCode';
 import Text from 'components/Text/Text';
@@ -206,7 +207,6 @@ class IncidentPage extends React.Component<IncidentPageProps, IncidentPageState>
     const incident = alerts.get(id);
 
     const integration = store.alertReceiveChannelStore.getIntegration(incident.alert_receive_channel);
-    const grafanaIncidentIsInstalled = false;
 
     const showLinkTo = !incident.dependent_alert_groups.length && !incident.root_alert_group && !incident.resolved;
     return (
@@ -257,13 +257,13 @@ class IncidentPage extends React.Component<IncidentPageProps, IncidentPageState>
                 onSilence: this.getSilenceClickHandler(incident),
                 onUnsilence: this.getUnsilenceClickHandler(incident),
               })}
-              {grafanaIncidentIsInstalled && (
+              <PluginBridge plugin={SupportedPlugin.Incident}>
                 <a href={incident.declare_incident_link} target="_blank" rel="noreferrer">
                   <Button variant="primary" size="sm" icon="fire">
                     Declare incident
                   </Button>
                 </a>
-              )}
+              </PluginBridge>
             </HorizontalGroup>
 
             <HorizontalGroup>
