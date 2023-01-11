@@ -61,7 +61,7 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
   setSelectedAlertReceiveChannel = (alertReceiveChannelId: AlertReceiveChannel['id']) => {
     const { store, history } = this.props;
     store.selectedAlertReceiveChannel = alertReceiveChannelId;
-    history.push(`${PLUGIN_ROOT}/integrations/${alertReceiveChannelId}`);
+    history.push(`${PLUGIN_ROOT}/integrations/${alertReceiveChannelId || ''}`);
   };
 
   parseQueryParams = async () => {

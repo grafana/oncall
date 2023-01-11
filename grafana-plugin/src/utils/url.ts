@@ -20,12 +20,17 @@ export function getPathFromQueryParams(query: ParsedQuery<string>) {
   let path = PLUGIN_ROOT;
   if (normalizedQuery.page) {
     path += `/${normalizedQuery.page}`;
-    delete normalizedQuery['page'];
 
     if (normalizedQuery.id) {
+      if (normalizedQuery.page === 'incident' || normalizedQuery.page === 'schedule') {
+        path += 's';
+      }
+
       path += `/${normalizedQuery.id}`;
       delete normalizedQuery['id'];
     }
+
+    delete normalizedQuery['page'];
   }
 
   if (Object.keys(normalizedQuery).length) {

@@ -108,7 +108,7 @@ class EscalationChainsPage extends React.Component<EscalationChainsPageProps, Es
     const { escalationChainStore } = store;
 
     this.setState({ selectedEscalationChain: escalationChain }, () => {
-      history.push(`${PLUGIN_ROOT}/escalations/${escalationChain}`);
+      history.push(`${PLUGIN_ROOT}/escalations/${escalationChain || ''}`);
       if (escalationChain) {
         escalationChainStore.updateEscalationChainDetails(escalationChain);
       }
