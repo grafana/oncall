@@ -26,7 +26,7 @@ class Migration(migrations.Migration):
                 ('name', models.CharField(default=None, max_length=100, null=True)),
                 ('username', models.CharField(default=None, max_length=100, null=True)),
                 ('password', mirage.fields.EncryptedCharField(default=None, max_length=200, null=True)),
-                ('authorization_header', models.CharField(default=None, max_length=1000, null=True)),
+                ('authorization_header', mirage.fields.EncryptedCharField(default=None, max_length=1000, null=True)),
                 ('trigger_template', models.TextField(default=None, null=True)),
                 ('headers', models.TextField(default=None, null=True)),
                 ('url', models.TextField(default=None, null=True)),
