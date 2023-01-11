@@ -25,7 +25,7 @@ export const SlackTab = () => {
         <VerticalGroup align="center" spacing="lg">
           <SlackNewIcon />
           <Text>
-            Personal Slack connection will allow you to manage alert groups in your connected team Internal Slack
+            Personal Slack connection will allow you to manage alert groups in your connected team's Internal Slack
             workspace.
           </Text>
           <Text>To setup personal Slack click the button below, choose workspace and click Allow.</Text>
