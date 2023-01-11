@@ -14,7 +14,7 @@ import { AppFeature } from 'state/features';
 import { useStore } from 'state/useStore';
 import LocationHelper from 'utils/LocationHelper';
 import { isUserActionAllowed, UserActions } from 'utils/authorization';
-import { GRAFANA_LICENSE_OSS } from 'utils/consts';
+import { DEFAULT_PAGE, GRAFANA_LICENSE_OSS } from 'utils/consts';
 import { useForceUpdate } from 'utils/hooks';
 
 import plugin from '../../../package.json'; // eslint-disable-line
@@ -82,7 +82,7 @@ const DefaultPageLayout: FC<DefaultPageLayoutProps> = observer((props) => {
 
   function renderTopNavbar(): JSX.Element {
     return (
-      <PluginPage page={page} pageNav={pages[page].getPageNav()} renderAlertsFn={renderAlertsFn}>
+      <PluginPage page={page} pageNav={pages[page || DEFAULT_PAGE].getPageNav()} renderAlertsFn={renderAlertsFn}>
         <div className={cx('root')}>{children}</div>
       </PluginPage>
     );

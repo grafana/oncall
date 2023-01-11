@@ -25,7 +25,7 @@ function RealPlugin(props: ExtendedPluginPageProps): React.ReactNode {
       {/* Render alerts at the top */}
       {props.renderAlertsFn && props.renderAlertsFn()}
       <Header page={page} backendLicense={store.backendLicense} />
-      {pages[page].text && <h3 className="page-title">{pages[page].text}</h3>}
+      {pages[page]?.text && <h3 className="page-title">{pages[page].text}</h3>}
       {props.children}
     </RealPluginPage>
   );
