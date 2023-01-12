@@ -1527,3 +1527,42 @@ def test_alert_group_preview_body_invalid_template_syntax(
     # Errors now returned preview content
     assert response.status_code == status.HTTP_200_OK
     assert response.data["preview"] == "Template Error: No test named &#x27;None&#x27; found."
+
+
+@pytest.mark.django_db
+def test_alert_group_paged_users(
+    make_user_for_organization,
+    make_user_auth_headers,
+    alert_group_internal_api_setup,
+):
+    client = APIClient()
+
+    user, token, alert_groups = alert_group_internal_api_setup
+    _, _, new_alert_group, _ = alert_groups
+
+    user1 = make_user_for_organization(user.organization)
+    user2 = make_user_for_organization(user.organization)
+
+    # add paging log records
+    new_alert_group.log_records.create(
+        type=AlertGroupLogRecord.TYPE_DIRECT_PAGING,
+        author=user,
+        reason="paged user",
+        step_specific_info={"user": user1.public_primary_key},
+    )
+    new_alert_group.log_records.create(
+        type=AlertGroupLogRecord.TYPE_DIRECT_PAGING,
+        author=user,
+        reason="paged user",
+        step_specific_info={"user": user2.public_primary_key},
+    )
+    new_alert_group.log_records.create(
+        type=AlertGroupLogRecord.TYPE_UNPAGE_USER,
+        author=user,
+        reason="unpaged user",
+        step_specific_info={"user": user1.public_primary_key},
+    )
+
+    url = reverse("api-internal:alertgroup-detail", kwargs={"pk": new_alert_group.public_primary_key})
+    response = client.get(url, format="json", **make_user_auth_headers(user, token))
+    assert response.json()["paged_users"] == [user2.short()]

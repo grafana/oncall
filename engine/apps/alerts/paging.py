@@ -132,7 +132,7 @@ def direct_paging(
             type=AlertGroupLogRecord.TYPE_DIRECT_PAGING,
             author=from_user,
             reason=f"{from_user.username} paged schedule {s.name}",
-            # use specific_info data?
+            step_specific_info={"schedule": s.public_primary_key},
         )
 
     for (u, important) in users:
@@ -140,7 +140,7 @@ def direct_paging(
             type=AlertGroupLogRecord.TYPE_DIRECT_PAGING,
             author=from_user,
             reason=f"{from_user.username} paged user {u.username}",
-            # use specific_info data?
+            step_specific_info={"user": u.public_primary_key},
         )
         notify_user_task.apply_async((u.pk, alert_group.pk), {"important": important})
 
@@ -156,9 +156,10 @@ def unpage_user(alert_group: AlertGroup, user: User, from_user: User) -> None:
             user_has_notification.save(update_fields=["active_notification_policy_id"])
             # add log entry
             alert_group.log_records.create(
-                type=AlertGroupLogRecord.TYPE_DIRECT_PAGING,
+                type=AlertGroupLogRecord.TYPE_UNPAGE_USER,
                 author=from_user,
                 reason=f"{from_user.username} unpaged user {user.username}",
+                step_specific_info={"user": user.public_primary_key},
             )
     except IndexError:
         return

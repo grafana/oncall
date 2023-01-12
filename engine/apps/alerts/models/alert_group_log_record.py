@@ -44,7 +44,8 @@ class AlertGroupLogRecord(models.Model):
         TYPE_REGISTERED,
         TYPE_ROUTE_ASSIGNED,
         TYPE_DIRECT_PAGING,
-    ) = range(24)
+        TYPE_UNPAGE_USER,
+    ) = range(25)
 
     TYPES_FOR_LICENCE_CALCULATION = (
         TYPE_ACK,
@@ -87,6 +88,7 @@ class AlertGroupLogRecord(models.Model):
         (TYPE_REGISTERED, "Incident registered"),
         (TYPE_ROUTE_ASSIGNED, "A route is assigned to the incident"),
         (TYPE_DIRECT_PAGING, "Trigger direct paging escalation"),
+        (TYPE_UNPAGE_USER, "Unpage a user"),
     )
 
     # Handlers should be named like functions.
@@ -113,6 +115,7 @@ class AlertGroupLogRecord(models.Model):
         TYPE_WIPED: "wiped",
         TYPE_DELETED: "deleted",
         TYPE_DIRECT_PAGING: "trigger_page",
+        TYPE_UNPAGE_USER: "unpage_user",
     }
     (
         ERROR_ESCALATION_NOTIFY_USER_NO_RECIPIENT,
@@ -464,6 +467,8 @@ class AlertGroupLogRecord(models.Model):
         elif self.type == AlertGroupLogRecord.TYPE_WIPED:
             result += "wiped"
         elif self.type == AlertGroupLogRecord.TYPE_DIRECT_PAGING:
+            result += self.reason
+        elif self.type == AlertGroupLogRecord.TYPE_UNPAGE_USER:
             result += self.reason
         elif self.type == AlertGroupLogRecord.TYPE_ESCALATION_FAILED:
             if self.escalation_error_code == AlertGroupLogRecord.ERROR_ESCALATION_NOTIFY_USER_NO_RECIPIENT:

@@ -15,10 +15,8 @@ from apps.base.models import UserNotificationPolicy
 from apps.schedules.models import CustomOnCallShift, OnCallScheduleWeb
 
 
-def assert_log_record(alert_group, reason):
-    assert alert_group.log_records.filter(
-        alert_group=alert_group, type=AlertGroupLogRecord.TYPE_DIRECT_PAGING, reason=reason
-    ).exists()
+def assert_log_record(alert_group, reason, log_type=AlertGroupLogRecord.TYPE_DIRECT_PAGING):
+    assert alert_group.log_records.filter(alert_group=alert_group, type=log_type, reason=reason).exists()
 
 
 def setup_always_on_call_schedule(make_schedule, make_on_call_shift, organization, team, user, extra_users=None):
@@ -275,4 +273,6 @@ def test_unpage_user_ok(make_organization, make_user_for_organization, make_aler
 
     user_has_notification.refresh_from_db()
     assert user_has_notification.active_notification_policy_id is None
-    assert_log_record(alert_group, f"{from_user.username} unpaged user {user.username}")
+    assert_log_record(
+        alert_group, f"{from_user.username} unpaged user {user.username}", AlertGroupLogRecord.TYPE_UNPAGE_USER
+    )
