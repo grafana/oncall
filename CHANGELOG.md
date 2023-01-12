@@ -11,9 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Minor bug fix in how the value of `Organization.is_rbac_permissions_enabled` is determined
 
-### Helm Chart
-
-- Default values file and documentation now reflect the correct key to set for the Slack slash command name, `oncall.slack.commandName`.
+- Helm chart: default values file and documentation now reflect the correct key to set for the Slack slash command name, `oncall.slack.commandName`.
 
 ## v1.1.15 (2023-01-10)
 
