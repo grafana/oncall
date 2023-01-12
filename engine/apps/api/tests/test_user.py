@@ -1474,3 +1474,15 @@ def test_invalid_working_hours(
     response = client.put(f"{url}", data, format="json", **make_user_auth_headers(user, token))
 
     assert response.status_code == status.HTTP_400_BAD_REQUEST
+
+
+@pytest.mark.django_db
+def test_check_availability(make_organization_and_user_with_plugin_token, make_user_auth_headers):
+    _, user, token = make_organization_and_user_with_plugin_token(role=LegacyAccessControlRole.EDITOR)
+
+    client = APIClient()
+    url = reverse("api-internal:user-check-availability", kwargs={"pk": user.public_primary_key})
+
+    response = client.get(url, **make_user_auth_headers(user, token))
+
+    assert response.status_code == status.HTTP_200_OK

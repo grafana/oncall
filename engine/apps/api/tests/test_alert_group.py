@@ -1143,6 +1143,21 @@ def test_unsilence(
 
 
 @pytest.mark.django_db
+def test_unpage_user(
+    alert_group_internal_api_setup,
+    make_user_auth_headers,
+):
+    client = APIClient()
+    user, token, alert_groups = alert_group_internal_api_setup
+    _, _, new_alert_group, _ = alert_groups
+
+    url = reverse("api-internal:alertgroup-unpage-user", kwargs={"pk": new_alert_group.public_primary_key})
+    response = client.post(url, data={"user_id": user.public_primary_key}, **make_user_auth_headers(user, token))
+
+    assert response.status_code == status.HTTP_200_OK
+
+
+@pytest.mark.django_db
 def test_invalid_bulk_action(
     make_user_auth_headers,
     alert_group_internal_api_setup,
