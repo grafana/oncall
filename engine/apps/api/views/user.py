@@ -49,6 +49,7 @@ from common.insight_log import (
 
 logger = logging.getLogger(__name__)
 IsOwnerOrHasUserSettingsAdminPermission = IsOwnerOrHasRBACPermissions([RBACPermission.Permissions.USER_SETTINGS_ADMIN])
+IsOwnerOrHasUserSettingsReadPermission = IsOwnerOrHasRBACPermissions([RBACPermission.Permissions.USER_SETTINGS_READ])
 
 
 class CurrentUserView(APIView):
@@ -114,6 +115,7 @@ class UserView(
     rbac_permissions = {
         "retrieve": [RBACPermission.Permissions.USER_SETTINGS_READ],
         "timezone_options": [RBACPermission.Permissions.USER_SETTINGS_READ],
+        "check_availability": [RBACPermission.Permissions.USER_SETTINGS_READ],
         "metadata": [RBACPermission.Permissions.USER_SETTINGS_WRITE],
         "list": [RBACPermission.Permissions.USER_SETTINGS_WRITE],
         "update": [RBACPermission.Permissions.USER_SETTINGS_WRITE],
@@ -128,7 +130,6 @@ class UserView(
         "unlink_backend": [RBACPermission.Permissions.USER_SETTINGS_WRITE],
         "make_test_call": [RBACPermission.Permissions.USER_SETTINGS_WRITE],
         "export_token": [RBACPermission.Permissions.USER_SETTINGS_WRITE],
-        "check_availability": [RBACPermission.Permissions.USER_SETTINGS_READ],
     }
 
     rbac_object_permissions = {
@@ -149,6 +150,8 @@ class UserView(
             "unlink_backend",
             "make_test_call",
             "export_token",
+        ],
+        IsOwnerOrHasUserSettingsReadPermission: [
             "check_availability",
         ],
     }

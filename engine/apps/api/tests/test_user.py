@@ -1486,3 +1486,16 @@ def test_check_availability(make_organization_and_user_with_plugin_token, make_u
     response = client.get(url, **make_user_auth_headers(user, token))
 
     assert response.status_code == status.HTTP_200_OK
+
+
+@pytest.mark.django_db
+def test_check_availability_other_user(make_organization_and_user_with_plugin_token, make_user, make_user_auth_headers):
+    _, user, token = make_organization_and_user_with_plugin_token(role=LegacyAccessControlRole.EDITOR)
+    user_to_check = make_user(organization=user.organization, role=LegacyAccessControlRole.ADMIN)
+
+    client = APIClient()
+    url = reverse("api-internal:user-check-availability", kwargs={"pk": user_to_check.public_primary_key})
+
+    response = client.get(url, **make_user_auth_headers(user, token))
+
+    assert response.status_code == status.HTTP_200_OK
