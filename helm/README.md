@@ -9,12 +9,13 @@
    ```
 
 2. (Optional) Build oncall image locally and load it to kind cluster
-   ```bash
+
+3. ```bash
    docker build ../engine -t oncall/engine:latest --target dev
    kind load docker-image oncall/engine:latest
    ```
 
-3. Install the helm chart
+4. Install the helm chart
 
    ```bash
    helm install helm-testing \
@@ -24,7 +25,7 @@
    --values values-arm64.yml
    ```
 
-4. Get credentials
+5. Get credentials
 
    <!-- markdownlint-disable MD013 -->
 
@@ -35,7 +36,7 @@
 
    <!-- markdownlint-enable MD013 -->
 
-5. Clean up
+6. Clean up
 
    ```bash
    kind delete cluster
