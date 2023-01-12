@@ -15,7 +15,7 @@ from apps.alerts.tasks import disable_maintenance
 from apps.slack.utils import post_message_to_channel
 from apps.user_management.subscription_strategy import FreePublicBetaSubscriptionStrategy
 from common.insight_log import ChatOpsEvent, ChatOpsType, write_chatops_insight_log
-from common.oncall_gateway import create_oncall_connector, delete_oncall_connector_async
+from common.oncall_gateway import create_oncall_connector, delete_oncall_connector_async, delete_slack_connector_async
 from common.public_primary_keys import generate_public_primary_key, increase_public_primary_key_length
 
 logger = logging.getLogger(__name__)
@@ -51,6 +51,7 @@ class OrganizationQuerySet(models.QuerySet):
         return instance
 
     def delete(self):
+        # Be careful with deleting via queryset - it doesn't delete chatops-proxy connectors.
         self.update(deleted_at=timezone.now())
 
     def hard_delete(self):
@@ -72,10 +73,12 @@ class Organization(MaintainableObject):
         self.subscription_strategy = self._get_subscription_strategy()
 
     def delete(self):
-        self.deleted_at = timezone.now()
-        self.save(update_fields=["deleted_at"])
         if settings.FEATURE_MULTIREGION_ENABLED:
             delete_oncall_connector_async.apply_async((self.public_primary_key,))
+            if self.slack_team_identity:
+                delete_slack_connector_async.apply_async((self.slack_team_identity.slack_id,))
+        self.deleted_at = timezone.now()
+        self.save(update_fields=["deleted_at"])
 
     def hard_delete(self):
         super().delete()
