@@ -8,29 +8,34 @@
    kind create cluster --image kindest/node:v1.24.7 --config kind.yml
    ```
 
-2. Install the helm chart
+2. (Optional) Build oncall image locally and load it to kind cluster
+   ```bash
+   docker build ../engine -t oncall/engine:latest --target dev
+   kind load docker-image oncall/engine:latest
+   ```
+
+3. Install the helm chart
 
    ```bash
    helm install helm-testing \
-   ../oncall --wait --timeout 30m \
+   ./oncall --wait --timeout 30m \
    --wait-for-jobs \
-   --values ci/simple.yml \
-   --values ci/values-arm64.yml
+   --values simple.yml \
+   --values values-arm64.yml
    ```
 
-3. Get credentials
+4. Get credentials
 
    <!-- markdownlint-disable MD013 -->
 
    ```bash
    echo "\n\nOpen Grafana on localhost:30002 with credentials - user: admin, password: $(kubectl get secret --namespace default helm-testing-grafana -o jsonpath="{.data.admin-password}" | base64 --decode ; echo)"
-   echo "Open Plugins -> Grafana OnCall -> fill form: backend url: localhost:30001, grafana url: localhost: 30001, token below"
-   export POD_NAME=$(kubectl get pods --namespace default -l "app.kubernetes.io/name=oncall,app.kubernetes.io/instance=helm-testing,app.kubernetes.io/component=engine" -o jsonpath="{.items[0].metadata.name}")
+   echo "Open Plugins -> Grafana OnCall -> fill form: backend url: http://host.docker.internal:30001"
    ```
 
    <!-- markdownlint-enable MD013 -->
 
-4. Clean up
+5. Clean up
 
    ```bash
    kind delete cluster
