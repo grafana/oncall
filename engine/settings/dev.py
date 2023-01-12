@@ -1,5 +1,6 @@
 # flake8: noqa
 import os
+import socket
 import sys
 
 from .base import *
@@ -67,3 +68,13 @@ if TESTING:
     EXTRA_MESSAGING_BACKENDS = [("apps.base.tests.messaging_backend.TestOnlyBackend", 42)]
     TELEGRAM_TOKEN = "0000000000:XXXXXXXXXXXXXXXXXXXXXXXXXXXX-XXXXXX"
     TWILIO_AUTH_TOKEN = "twilio_auth_token"
+
+INTERNAL_IPS = [
+    "127.0.0.1",
+]
+
+# the below two lines make it possible to use django-debug-toolbar inside of docker locally
+# https://knasmueller.net/fix-djangos-debug-toolbar-not-showing-inside-docker
+# https://stackoverflow.com/questions/10517765/django-debug-toolbar-not-showing-up
+hostname, _, ips = socket.gethostbyname_ex(socket.gethostname())
+INTERNAL_IPS += [".".join(ip.split(".")[:-1] + ["1"]) for ip in ips]
