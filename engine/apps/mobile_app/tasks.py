@@ -9,6 +9,7 @@ from firebase_admin.messaging import APNSConfig, APNSPayload, Aps, ApsAlert, Cri
 
 from apps.alerts.models import AlertGroup
 from apps.mobile_app.alert_rendering import get_push_notification_message
+from apps.oss_installation.models import CloudConnector
 from apps.user_management.models import User
 from common.api_helpers.utils import create_engine_url
 from common.custom_celery_tasks import shared_dedicated_queue_retry_task
@@ -116,6 +117,20 @@ def notify_user_async(user_pk, alert_group_pk, notification_policy_pk, critical)
     logger.debug(f"Sending push notification with message: {message}; thread-id: {thread_id};")
 
     if settings.LICENSE == settings.OPEN_SOURCE_LICENSE_NAME:
+        # FCM relay uses cloud connection to send push notifications
+        if not CloudConnector.objects.exists():
+            UserNotificationPolicyLogRecord.objects.create(
+                author=user,
+                type=UserNotificationPolicyLogRecord.TYPE_PERSONAL_NOTIFICATION_FAILED,
+                notification_policy=notification_policy,
+                alert_group=alert_group,
+                reason="Mobile push notification error",
+                notification_step=notification_policy.step,
+                notification_channel=notification_policy.notify_by,
+            )
+            logger.info(f"Error while sending a mobile push notification: not connected to cloud")
+            return
+
         response = send_push_notification_to_fcm_relay(message)
         logger.debug(f"FCM relay response: {response}")
     else:

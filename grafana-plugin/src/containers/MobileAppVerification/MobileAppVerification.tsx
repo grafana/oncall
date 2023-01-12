@@ -1,11 +1,12 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 
-import { Icon, LoadingPlaceholder, VerticalGroup } from '@grafana/ui';
+import { Button, Icon, LoadingPlaceholder, VerticalGroup } from '@grafana/ui';
 import cn from 'classnames/bind';
 import { observer } from 'mobx-react';
 
 import qrCodeImage from 'assets/img/qr-code.png';
 import Block from 'components/GBlock/Block';
+import PluginLink from 'components/PluginLink/PluginLink';
 import Text from 'components/Text/Text';
 import { User } from 'models/user/user.types';
 import { useStore } from 'state/useStore';
@@ -29,7 +30,20 @@ const INTERVAL_POLLING = 5000;
 const BACKEND = 'MOBILE_APP';
 
 const MobileAppVerification = observer(({ userPk }: Props) => {
-  const { userStore } = useStore();
+  const { userStore, cloudStore } = useStore();
+
+  if (!cloudStore.cloudConnectionStatus.cloud_connection_status) {
+    return (
+      <VerticalGroup spacing="lg">
+        <Text>Please connect Cloud OnCall to use the mobile app</Text>
+        <PluginLink query={{ page: 'cloud' }}>
+          <Button variant="secondary" icon="external-link-alt">
+            Connect Cloud OnCall
+          </Button>
+        </PluginLink>
+      </VerticalGroup>
+    );
+  }
 
   const isMounted = useRef(false);
   const [mobileAppIsCurrentlyConnected, setMobileAppIsCurrentlyConnected] = useState<boolean>(isUserConnected());

@@ -100,6 +100,7 @@ export class RootBaseStore {
   async updateBasicData() {
     return Promise.all([
       this.teamStore.loadCurrentTeam(),
+      this.cloudStore.loadCloudConnectionStatus(),
       this.grafanaTeamStore.updateItems(),
       this.updateFeatures(),
       this.userStore.updateNotificationPolicyOptions(),

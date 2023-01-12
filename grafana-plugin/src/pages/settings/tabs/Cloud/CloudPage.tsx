@@ -57,9 +57,10 @@ const CloudPage = observer((_props: CloudPageProps) => {
     setApiKeyError(false);
   }, []);
 
-  const disconnectCloudOncall = () => {
+  const disconnectCloudOncall = async () => {
     setCloudIsConnected(false);
-    store.cloudStore.disconnectToCloud();
+    await store.cloudStore.disconnectToCloud();
+    await store.cloudStore.loadCloudConnectionStatus();
   };
 
   const connectToCloud = async () => {
@@ -78,6 +79,7 @@ const CloudPage = observer((_props: CloudPageProps) => {
           const heartbeatData: { link: string } = await store.cloudStore.getCloudHeartbeat();
           setheartbeatLink(heartbeatData?.link);
         }
+        await store.cloudStore.loadCloudConnectionStatus();
       });
   };
 
@@ -309,6 +311,17 @@ const CloudPage = observer((_props: CloudPageProps) => {
           </VerticalGroup>
         )}
       </Block>
+      <Block bordered withBackground className={cx('info-block')}>
+        <VerticalGroup>
+          <Text.Title level={4}>
+            <Icon name="mobile-android" className={cx('block-icon')} size="lg" /> Mobile app push notifications
+          </Text.Title>
+          <Text type="secondary">
+            Connecting to Cloud OnCall enables sending push notifications on mobile devices using the Grafana OnCall
+            mobile app.
+          </Text>
+        </VerticalGroup>
+      </Block>
     </VerticalGroup>
   );
 
@@ -353,6 +366,17 @@ const CloudPage = observer((_props: CloudPageProps) => {
           </Text.Title>
 
           <Text type="secondary">Users matched between OSS and Cloud OnCall currently unavailable.</Text>
+        </VerticalGroup>
+      </Block>
+      <Block bordered withBackground className={cx('info-block')}>
+        <VerticalGroup>
+          <Text.Title level={4}>
+            <Icon name="mobile-android" className={cx('block-icon')} size="lg" /> Mobile app push notifications
+          </Text.Title>
+          <Text type="secondary">
+            Connecting to Cloud OnCall enables sending push notifications on mobile devices using the Grafana OnCall
+            mobile app.
+          </Text>
         </VerticalGroup>
       </Block>
     </VerticalGroup>
