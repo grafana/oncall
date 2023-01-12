@@ -1,11 +1,12 @@
 from unittest.mock import patch
 
 import pytest
+from django.conf import settings
+from django.test import override_settings
 
 from apps.grafana_plugin.helpers.client import GcomAPIClient, GrafanaAPIClient
 from apps.user_management.models import Team, User
 from apps.user_management.sync import cleanup_organization, sync_organization
-from conftest import IS_RBAC_ENABLED
 
 
 @pytest.mark.django_db
@@ -133,7 +134,7 @@ def test_sync_organization(make_organization, make_team, make_user_for_organizat
         },
     )
 
-    with patch.object(GrafanaAPIClient, "is_rbac_enabled_for_organization", return_value=IS_RBAC_ENABLED):
+    with patch.object(GrafanaAPIClient, "is_rbac_enabled_for_organization", return_value=False):
         with patch.object(GrafanaAPIClient, "get_users", return_value=api_users_response):
             with patch.object(GrafanaAPIClient, "get_teams", return_value=(api_teams_response, None)):
                 with patch.object(GrafanaAPIClient, "get_team_members", return_value=(api_members_response, None)):
@@ -153,8 +154,40 @@ def test_sync_organization(make_organization, make_team, make_user_for_organizat
     assert team.users.count() == 1
     assert team.users.get() == user
 
-    # check that the rbac flag is properly set on the org
-    assert organization.is_rbac_permissions_enabled == IS_RBAC_ENABLED
+
+@pytest.mark.parametrize("grafana_api_response", [False, True])
+@override_settings(LICENSE=settings.OPEN_SOURCE_LICENSE_NAME)
+@pytest.mark.django_db
+def test_sync_organization_is_rbac_permissions_enabled_open_source(make_organization, grafana_api_response):
+    organization = make_organization()
+
+    with patch.object(GrafanaAPIClient, "is_rbac_enabled_for_organization", return_value=grafana_api_response):
+        with patch.object(GrafanaAPIClient, "get_users", return_value=[]):
+            sync_organization(organization)
+
+    organization.refresh_from_db()
+    assert organization.is_rbac_permissions_enabled == grafana_api_response
+
+
+@pytest.mark.parametrize("gcom_api_response", [False, True])
+@patch("apps.user_management.sync.GcomAPIClient")
+@override_settings(LICENSE=settings.CLOUD_LICENSE_NAME)
+@override_settings(GRAFANA_COM_ADMIN_API_TOKEN="mockedToken")
+@pytest.mark.django_db
+def test_sync_organization_is_rbac_permissions_enabled_cloud(mocked_gcom_client, make_organization, gcom_api_response):
+    stack_id = 5
+    organization = make_organization(stack_id=stack_id)
+
+    mocked_gcom_client.return_value.is_rbac_enabled_for_stack.return_value = gcom_api_response
+
+    with patch.object(GrafanaAPIClient, "get_users", return_value=[]):
+        sync_organization(organization)
+
+    organization.refresh_from_db()
+
+    assert mocked_gcom_client.return_value.called_once_with("mockedToken")
+    assert mocked_gcom_client.return_value.is_rbac_enabled_for_stack.called_once_with(stack_id)
+    assert organization.is_rbac_permissions_enabled == gcom_api_response
 
 
 @pytest.mark.django_db
