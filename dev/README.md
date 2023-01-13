@@ -15,6 +15,8 @@
   - [django.db.utils.OperationalError: (1366, "Incorrect string value")](#djangodbutilsoperationalerror-1366-incorrect-string-value)
   - [/bin/sh: line 0: cd: grafana-plugin: No such file or directory](#binsh-line-0-cd-grafana-plugin-no-such-file-or-directory)
   - [Encountered error while trying to install package - grpcio](#encountered-error-while-trying-to-install-package---grpcio)
+  - [distutils.errors.CompileError: command '/usr/bin/clang' failed with exit code 1](#distutilserrorscompileerror-command-usrbinclang-failed-with-exit-code-1)
+  - [symbol not found in flat namespace '\_EVP_DigestSignUpdate'](#symbol-not-found-in-flat-namespace-_evp_digestsignupdate)
 - [IDE Specific Instructions](#ide-specific-instructions)
   - [PyCharm](#pycharm)
 
@@ -321,6 +323,49 @@ Use a `conda` virtualenv, and then run the following when installing the engine 
 
 ```bash
 GRPC_PYTHON_BUILD_SYSTEM_OPENSSL=1 GRPC_PYTHON_BUILD_SYSTEM_ZLIB=1 pip install -r requirements.txt
+```
+
+### distutils.errors.CompileError: command '/usr/bin/clang' failed with exit code 1
+
+See solution for "Encountered error while trying to install package - grpcio" [here](#encountered-error-while-trying-to-install-package---grpcio)
+
+### symbol not found in flat namespace '\_EVP_DigestSignUpdate'
+
+**Problem:**
+
+This problem seems to occur when running the Celery process, outside of `docker-compose`
+(via `make run-backend-celery`), and using a `conda` virtual environment.
+
+<!-- markdownlint-disable MD013 -->
+
+```bash
+conda create --name oncall-dev python=3.9.13
+conda activate oncall-dev
+make backend-bootstrap
+make run-backend-celery
+File "~/oncall/engine/engine/__init__.py", line 5, in <module>
+    from .celery import app as celery_app
+  File "~/oncall/engine/engine/celery.py", line 11, in <module>
+    from opentelemetry.exporter.otlp.proto.grpc.trace_exporter import OTLPSpanExporter
+  File "/opt/homebrew/Caskroom/miniconda/base/envs/oncall-dev/lib/python3.9/site-packages/opentelemetry/exporter/otlp/proto/grpc/trace_exporter/__init__.py", line 20, in <module>
+    from grpc import ChannelCredentials, Compression
+  File "/opt/homebrew/Caskroom/miniconda/base/envs/oncall-dev/lib/python3.9/site-packages/grpc/__init__.py", line 22, in <module>
+    from grpc import _compression
+  File "/opt/homebrew/Caskroom/miniconda/base/envs/oncall-dev/lib/python3.9/site-packages/grpc/_compression.py", line 20, in <module>
+    from grpc._cython import cygrpc
+ImportError: dlopen(/opt/homebrew/Caskroom/miniconda/base/envs/oncall-dev/lib/python3.9/site-packages/grpc/_cython/cygrpc.cpython-39-darwin.so, 0x0002): symbol not found in flat namespace '_EVP_DigestSignUpdate'
+```
+
+<!-- markdownlint-enable MD013 -->
+
+**Solution:**
+
+[This solution](https://github.com/grpc/grpc/issues/15510#issuecomment-392012594) posted in a GitHub issue thread for
+the `grpc/grpc` repository, fixes the issue:
+
+```bash
+conda install grpcio
+make run-backend-celery
 ```
 
 ## IDE Specific Instructions
