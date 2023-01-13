@@ -1,5 +1,6 @@
 import React from 'react';
 
+import * as runtime from '@grafana/runtime';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
@@ -9,12 +10,31 @@ import { useStore as useStoreOriginal } from 'state/useStore';
 import PluginSetup, { PluginSetupProps } from '.';
 
 jest.mock('state/useStore');
+
 jest.mock('@grafana/runtime', () => ({
-  PluginPage: (props: any) => <>{props.children}</>,
+  __esModule: true,
+
+  config: {
+    featureToggles: {
+      topnav: undefined,
+    },
+  },
+
   getBackendSrv: () => ({
     get: jest.fn(),
     post: jest.fn(),
   }),
+
+  PluginPage: (props: any) => <>{props.children}</>,
+}));
+
+jest.mock('grafana/app/core/core', () => ({
+  contextSrv: {
+    user: {
+      orgRole: null,
+    },
+    hasAccess: (_action, _fallback): boolean => null,
+  },
 }));
 
 const createComponentAndMakeAssertions = async (rootBaseStore: RootBaseStore) => {
@@ -77,6 +97,14 @@ describe('PluginSetup', () => {
     const rootBaseStore = new RootBaseStore();
     rootBaseStore.appLoading = false;
     rootBaseStore.initializationError = null;
+    await createComponentAndMakeAssertions(rootBaseStore);
+  });
+
+  test.each([true, false])('app initialized with topnavbar = %s', async (isTopNavBar: boolean) => {
+    runtime.config.featureToggles.topnav = isTopNavBar;
+
+    const rootBaseStore = new RootBaseStore();
+    rootBaseStore.appLoading = true;
     await createComponentAndMakeAssertions(rootBaseStore);
   });
 });
