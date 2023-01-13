@@ -3,6 +3,7 @@
 - [Running the project](#running-the-project)
   - [`COMPOSE_PROFILES`](#compose_profiles)
   - [`GRAFANA_VERSION`](#grafana_version)
+  - [Configuring Grafana](#configuring-grafana)
   - [Running backend services outside Docker](#running-backend-services-outside-docker)
 - [Useful `make` commands](#useful-make-commands)
 - [Setting environment variables](#setting-environment-variables)
@@ -79,6 +80,22 @@ The default is `engine,oncall_ui,redis,grafana`. This runs:
 If you would like to change the version of Grafana being run, simply pass in a `GRAFANA_VERSION` environment variable
 to `make start` (or alternatively set it in your `.env.dev` file). The value of this environment variable should be a
 valid `grafana/grafana` published Docker [image tag](https://hub.docker.com/r/grafana/grafana/tags).
+
+### Configuring Grafana
+
+This section is applicable for when you are running a Grafana container inside of `docker-compose` and you would like
+to modify your Grafana instance's provisioning configuration.
+
+The following commands assume you run them from the root of the project:
+
+```bash
+touch ./dev/grafana.dev.ini
+# make desired changes to ./dev/grafana.dev.ini then run
+touch .env && ./dev/add_env_var.sh GRAFANA_DEV_PROVISIONING ./dev/grafana.dev.ini .env
+```
+
+The next time you start the project via `docker-compose`, the `grafana` container will have `./dev/grafana.dev.ini`
+volume mounted inside the container.
 
 ### Running backend services outside Docker
 
