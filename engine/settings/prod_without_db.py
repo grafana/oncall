@@ -147,6 +147,7 @@ CELERY_TASK_ROUTES = {
     "apps.telegram.tasks.send_log_and_actions_message": {"queue": "telegram"},
     # WEBHOOK
     "apps.alerts.tasks.custom_button_result.custom_button_result": {"queue": "webhook"},
+    "apps.mobile_app.fcm_relay.fcm_relay_async": {"queue": "webhook"},
 }
 
 REST_FRAMEWORK = {
