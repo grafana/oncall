@@ -34,7 +34,8 @@
       "name": "Incidents",
       "path": "/a/grafana-oncall-app/incidents",
       "role": "Viewer",
-      "action": "grafana-oncall-app.incidents:read",
+      "action": "grafana-oncall-app.alert-groups:read",
+      "defaultNav": true,
       "addToNav": true
     },
     {
