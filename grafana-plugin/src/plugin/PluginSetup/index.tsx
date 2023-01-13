@@ -1,5 +1,6 @@
 import React, { FC, PropsWithChildren, useCallback, useEffect } from 'react';
 
+import { PluginPage } from '@grafana/runtime'; // Use the one from @grafana, not our wrapped PluginPage
 import { Button, HorizontalGroup, LinkButton } from '@grafana/ui';
 import { observer } from 'mobx-react';
 import { AppRootProps } from 'types';
@@ -16,11 +17,13 @@ type PluginSetupWrapperProps = PropsWithChildren<{
 }>;
 
 const PluginSetupWrapper: FC<PluginSetupWrapperProps> = ({ text, children }) => (
-  <div className="spin">
-    <img alt="Grafana OnCall Logo" src={logo} />
-    <div className="spin-text">{text}</div>
-    {children}
-  </div>
+  <PluginPage>
+    <div className="spin">
+      <img alt="Grafana OnCall Logo" src={logo} />
+      <div className="spin-text">{text}</div>
+      {children}
+    </div>
+  </PluginPage>
 );
 
 const PluginSetup: FC<PluginSetupProps> = observer(({ InitializedComponent, ...props }) => {
