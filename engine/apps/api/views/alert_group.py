@@ -109,13 +109,13 @@ class AlertGroupFilter(DateRangeFilterMixin, ModelFieldFilterMixin, filters.Filt
         q_objects = Q()
 
         if AlertGroup.NEW in statuses:
-            filters["new"] = Q(silenced=False) & Q(acknowledged=False) & Q(resolved=False)
+            filters["new"] = AlertGroup.get_new_state_filter()
         if AlertGroup.SILENCED in statuses:
-            filters["silenced"] = Q(silenced=True) & Q(acknowledged=False) & Q(resolved=False)
+            filters["silenced"] = AlertGroup.get_silenced_state_filter()
         if AlertGroup.ACKNOWLEDGED in statuses:
-            filters["acknowledged"] = Q(acknowledged=True) & Q(resolved=False)
+            filters["acknowledged"] = AlertGroup.get_acknowledged_state_filter()
         if AlertGroup.RESOLVED in statuses:
-            filters["resolved"] = Q(resolved=True)
+            filters["resolved"] = AlertGroup.get_resolved_state_filter()
 
         for item in filters:
             q_objects |= filters[item]

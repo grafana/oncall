@@ -2,6 +2,7 @@ from unittest import mock
 from unittest.mock import patch
 
 import pytest
+from django.db.models import Q
 from django.urls import reverse
 from rest_framework import status
 from rest_framework.test import APIClient
@@ -110,6 +111,74 @@ def test_get_incidents_filter_by_integration(
     url = reverse("api-public:alert_groups-list")
     response = client.get(
         url + f"?integration_id={formatted_webhook.public_primary_key}", format="json", HTTP_AUTHORIZATION=f"{token}"
+    )
+
+    assert response.status_code == status.HTTP_200_OK
+    assert response.json() == expected_response
+
+@pytest.mark.django_db
+def test_get_incidents_filter_by_state_new(
+        incident_public_api_setup,
+):
+    token, _, _, _ = incident_public_api_setup
+    incidents = AlertGroup.unarchived_objects.filter(AlertGroup.get_new_state_filter()).order_by("-started_at")
+    expected_response = construct_expected_response_from_incidents(incidents)
+    client = APIClient()
+
+    url = reverse("api-public:alert_groups-list")
+    response = client.get(
+        url + f"?state=new", format="json", HTTP_AUTHORIZATION=f"{token}"
+    )
+
+    assert response.status_code == status.HTTP_200_OK
+    assert response.json() == expected_response
+
+@pytest.mark.django_db
+def test_get_incidents_filter_by_state_acknowledged(
+        incident_public_api_setup,
+):
+    token, _, _, _ = incident_public_api_setup
+    incidents = AlertGroup.unarchived_objects.filter(AlertGroup.get_acknowledged_state_filter()).order_by("-started_at")
+    expected_response = construct_expected_response_from_incidents(incidents)
+    client = APIClient()
+
+    url = reverse("api-public:alert_groups-list")
+    response = client.get(
+        url + f"?state=acknowledged", format="json", HTTP_AUTHORIZATION=f"{token}"
+    )
+
+    assert response.status_code == status.HTTP_200_OK
+    assert response.json() == expected_response
+
+@pytest.mark.django_db
+def test_get_incidents_filter_by_state_silenced(
+        incident_public_api_setup,
+):
+    token, _, _, _ = incident_public_api_setup
+    incidents = AlertGroup.unarchived_objects.filter(AlertGroup.get_silenced_state_filter()).order_by("-started_at")
+    expected_response = construct_expected_response_from_incidents(incidents)
+    client = APIClient()
+
+    url = reverse("api-public:alert_groups-list")
+    response = client.get(
+        url + f"?state=silenced", format="json", HTTP_AUTHORIZATION=f"{token}"
+    )
+
+    assert response.status_code == status.HTTP_200_OK
+    assert response.json() == expected_response
+
+@pytest.mark.django_db
+def test_get_incidents_filter_by_state_resolved(
+        incident_public_api_setup,
+):
+    token, _, _, _ = incident_public_api_setup
+    incidents = AlertGroup.unarchived_objects.filter(AlertGroup.get_resolved_state_filter()).order_by("-started_at")
+    expected_response = construct_expected_response_from_incidents(incidents)
+    client = APIClient()
+
+    url = reverse("api-public:alert_groups-list")
+    response = client.get(
+        url + f"?state=resolved", format="json", HTTP_AUTHORIZATION=f"{token}"
     )
 
     assert response.status_code == status.HTTP_200_OK

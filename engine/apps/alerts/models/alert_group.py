@@ -348,6 +348,22 @@ class AlertGroup(AlertGroupSlackRenderingMixin, EscalationSnapshotMixin, models.
     # https://code.djangoproject.com/ticket/28545
     is_open_for_grouping = models.BooleanField(default=None, null=True, blank=True)
 
+    @staticmethod
+    def get_silenced_state_filter():
+        return Q(resolved=True)
+
+    @staticmethod
+    def get_new_state_filter():
+        return Q(silenced=False) & Q(acknowledged=False) & Q(resolved=False)
+
+    @staticmethod
+    def get_acknowledged_state_filter():
+        return Q(acknowledged=True) & Q(resolved=False)
+
+    @staticmethod
+    def get_resolved_state_filter():
+        return Q(resolved=True)
+
     class Meta:
         get_latest_by = "pk"
         unique_together = [
