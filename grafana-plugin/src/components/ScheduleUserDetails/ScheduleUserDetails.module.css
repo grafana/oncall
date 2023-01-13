@@ -24,8 +24,8 @@
 }
 
 .hr {
-  width: 100%;
-  margin: -4px -8px;
+  width: 100vw;
+  margin: -4px -18px -4px -18px;
 }
 
 .times {
@@ -41,8 +41,17 @@
   display: flex;
 }
 
+.timezone-icon {
+  width: 10%;
+}
+
 .timezone-info {
   width: 50%;
   overflow-wrap: anywhere;
   margin-left: 4px;
+}
+
+.contact-details a {
+  text-decoration-line: none;
+  word-break: break-all;
 }

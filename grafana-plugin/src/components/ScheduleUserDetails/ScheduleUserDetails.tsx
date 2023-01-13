@@ -25,7 +25,8 @@ const ScheduleUserDetails: FC<ScheduleUserDetailsProps> = (props) => {
   const { user, currentMoment, isOncall } = props;
   const userMoment = currentMoment.tz(user.timezone);
   const userOffsetHoursStr = getTzOffsetString(userMoment);
-  const isInWH = isInWorkingHours(userMoment, user.working_hours);
+  const isInWH = isInWorkingHours(currentMoment, user.working_hours, user.timezone);
+
   const store = useStore();
 
   const { teamStore } = store;
@@ -46,10 +47,11 @@ const ScheduleUserDetails: FC<ScheduleUserDetailsProps> = (props) => {
             <Badge text="Outside working hours" color="orange" />
           )}
           <HorizontalGroup align="flex-start">
-            <Text type="secondary">
-              <Icon name="clock-nine" />
-            </Text>
-
+            <div className={cx('timezone-icon')}>
+              <Text type="secondary">
+                <Icon name="clock-nine" />
+              </Text>
+            </div>
             <div className={cx('timezone-wrapper')}>
               <div className={cx('timezone-info')}>
                 <VerticalGroup>
@@ -74,31 +76,37 @@ const ScheduleUserDetails: FC<ScheduleUserDetailsProps> = (props) => {
         <VerticalGroup spacing="sm">
           <Text>Contacts</Text>
 
-          <Text type="secondary">
-            <Icon name="envelope" />{' '}
-            <a href={`mailto:${user.email}`}>
-              <Text type="link">{user.email}</Text>
-            </a>{' '}
-          </Text>
-          {user.slack_user_identity && (
+          <div className={cx('contact-details')}>
             <Text type="secondary">
-              <Icon name="slack" />
-              <a href={`https://${slackWorkspaceName}.slack.com/team/${user.slack_user_identity.slack_id}`}>
-                <Text type="link">{user.slack_user_identity.slack_login}</Text>
+              <Icon name="envelope" />{' '}
+              <a href={`mailto:${user.email}`}>
+                <Text type="link">{user.email}</Text>
               </a>{' '}
             </Text>
-          )}
-          {user.telegram_configuration && (
-            <Text type="secondary">
-              <Icon name="message" />{' '}
-              <Text type="link">
-                <a href={`https://t.me/${user.telegram_configuration.telegram_nick_name}`}>
-                  <Text>{user.telegram_configuration.telegram_nick_name}</Text>
+          </div>
+          {user.slack_user_identity && (
+            <div className={cx('contact-details')}>
+              <Text type="secondary">
+                <Icon name="slack" />{' '}
+                <a href={`https://${slackWorkspaceName}.slack.com/team/${user.slack_user_identity.slack_id}`}>
+                  <Text type="link">{user.slack_user_identity.slack_login}</Text>
                 </a>{' '}
               </Text>
-            </Text>
+            </div>
           )}
-          {!user.hide_phone_number && user.verified_phone_number && <Text>Phone: {user.verified_phone_number}</Text>}
+          {user.telegram_configuration && (
+            <div className={cx('contact-details')}>
+              <Text type="secondary">
+                <Icon name="message" />{' '}
+                <a href={`https://t.me/${user.telegram_configuration.telegram_nick_name}`}>
+                  <Text type="link">{user.telegram_configuration.telegram_nick_name}</Text>
+                </a>{' '}
+              </Text>
+            </div>
+          )}
+          {!user.hide_phone_number && user.verified_phone_number && (
+            <Text type="secondary">Phone: {user.verified_phone_number}</Text>
+          )}
         </VerticalGroup>
       </VerticalGroup>
     </div>
