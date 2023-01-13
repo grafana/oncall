@@ -350,7 +350,7 @@ class AlertGroup(AlertGroupSlackRenderingMixin, EscalationSnapshotMixin, models.
 
     @staticmethod
     def get_silenced_state_filter():
-        return Q(resolved=True)
+        return Q(silenced=True) & Q(acknowledged=False) & Q(resolved=False)
 
     @staticmethod
     def get_new_state_filter():

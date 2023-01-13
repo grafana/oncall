@@ -61,13 +61,13 @@ class IncidentView(RateLimitHeadersMixin, mixins.ListModelMixin, mixins.DestroyM
             choice = [i for i in choices if choices[i] == state.lower().capitalize()]
             if len(choice) == 1:
                 status_filter = Q()
-                if choice == AlertGroup.NEW:
+                if choice[0] == AlertGroup.NEW:
                     status_filter = AlertGroup.get_new_state_filter()
-                elif choice == AlertGroup.SILENCED:
+                elif choice[0] == AlertGroup.SILENCED:
                     status_filter = AlertGroup.get_silenced_state_filter()
-                elif choice == AlertGroup.ACKNOWLEDGED:
+                elif choice[0] == AlertGroup.ACKNOWLEDGED:
                     status_filter = AlertGroup.get_acknowledged_state_filter()
-                elif choice == AlertGroup.RESOLVED:
+                elif choice[0] == AlertGroup.RESOLVED:
                     status_filter = AlertGroup.get_resolved_state_filter()
                 queryset = queryset.filter(status_filter)
 
