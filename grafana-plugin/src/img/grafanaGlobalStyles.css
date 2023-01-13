@@ -5,7 +5,7 @@
 }
 
 [class$='-page-header'] {
-  display: none;
+  display: none; /* hide header that comes from Grafana (topnavbar) and instead use ours */
 }
 
 .page-container {
