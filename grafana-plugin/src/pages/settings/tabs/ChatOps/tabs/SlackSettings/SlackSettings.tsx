@@ -246,7 +246,11 @@ class SlackSettings extends Component<SlackProps, SlackState> {
             {isLiveSettingAvailable && (
               <Text type="secondary" className={cx('infoblock-text')}>
                 For bot creating instructions and additional information please read{' '}
-                <a href="https://grafana.com/docs/grafana-cloud/oncall/open-source/#slack-setup">
+                <a
+                  href="https://grafana.com/docs/grafana-cloud/oncall/open-source/#slack-setup"
+                  target="_blank"
+                  rel="noreferrer"
+                >
                   <Text type="link">our documentation</Text>
                 </a>
               </Text>

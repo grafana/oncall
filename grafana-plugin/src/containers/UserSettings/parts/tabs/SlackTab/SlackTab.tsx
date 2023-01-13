@@ -32,7 +32,11 @@ export const SlackTab = () => {
 
           <Text type="secondary">
             More details in{' '}
-            <a href="https://grafana.com/docs/grafana-cloud/oncall/open-source/#slack-setup">
+            <a
+              href="https://grafana.com/docs/grafana-cloud/oncall/open-source/#slack-setup"
+              target="_blank"
+              rel="noreferrer"
+            >
               <Text type="link">our documentation</Text>
             </a>
           </Text>

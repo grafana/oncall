@@ -63,7 +63,11 @@ class TelegramSettings extends Component<TelegramProps, TelegramState> {
               </Text>
               <Text type="secondary" className={cx('infoblock-text')}>
                 More details in{' '}
-                <a href="https://grafana.com/docs/grafana-cloud/oncall/chat-options/configure-telegram/">
+                <a
+                  href="https://grafana.com/docs/grafana-cloud/oncall/chat-options/configure-telegram/"
+                  target="_blank"
+                  rel="noreferrer"
+                >
                   <Text type="link">our documentation</Text>
                 </a>
               </Text>
@@ -94,7 +98,11 @@ class TelegramSettings extends Component<TelegramProps, TelegramState> {
               </Text>
               <Text type="secondary" className={cx('infoblock-text')}>
                 More details in{' '}
-                <a href="https://grafana.com/docs/grafana-cloud/oncall/chat-options/configure-telegram/">
+                <a
+                  href="https://grafana.com/docs/grafana-cloud/oncall/chat-options/configure-telegram/"
+                  target="_blank"
+                  rel="noreferrer"
+                >
                   <Text type="link">our documentation</Text>
                 </a>
               </Text>

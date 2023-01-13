@@ -27,7 +27,11 @@ const SlackInstructions: FC<SlackInstructionsProps> = observer(() => {
             <Text>Before start you need to connect your Slack bot to Grafana OnCall.</Text>
             <Text type="secondary">
               For bot creating instructions and additional information please read{' '}
-              <a href="https://grafana.com/docs/grafana-cloud/oncall/open-source/#slack-setup">
+              <a
+                href="https://grafana.com/docs/grafana-cloud/oncall/open-source/#slack-setup"
+                target="_blank"
+                rel="noreferrer"
+              >
                 <Text type="link">our documentation</Text>
               </a>
             </Text>{' '}
@@ -36,7 +40,11 @@ const SlackInstructions: FC<SlackInstructionsProps> = observer(() => {
         <Text>Setup environment</Text>
         <Text>
           Create OnCall Slack bot using{' '}
-          <a href="https://grafana.com/docs/grafana-cloud/oncall/open-source/#slack-setup">
+          <a
+            href="https://grafana.com/docs/grafana-cloud/oncall/open-source/#slack-setup"
+            target="_blank"
+            rel="noreferrer"
+          >
             <Text type="link">our instructions</Text>
           </a>{' '}
           and fill out app credentials below.

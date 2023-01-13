@@ -89,7 +89,11 @@ const TelegramInfo = observer((_props: TelegramInfoProps) => {
               </Text>
               <Text type="secondary">
                 More details in{' '}
-                <a href="https://grafana.com/docs/grafana-cloud/oncall/chat-options/configure-telegram/">
+                <a
+                  href="https://grafana.com/docs/grafana-cloud/oncall/chat-options/configure-telegram/"
+                  target="_blank"
+                  rel="noreferrer"
+                >
                   <Text type="link">our documentation</Text>
                 </a>
               </Text>
