@@ -1,11 +1,13 @@
 import React, { FC, PropsWithChildren, useCallback, useEffect } from 'react';
 
-import { PluginPage } from '@grafana/runtime'; // Use the one from @grafana, not our wrapped PluginPage
+import { PluginPage as RealPluginPage } from '@grafana/runtime'; // Use the one from @grafana, not our wrapped PluginPage
 import { Button, HorizontalGroup, LinkButton } from '@grafana/ui';
+import { PluginPageFallback } from 'PluginPage';
 import { observer } from 'mobx-react';
 import { AppRootProps } from 'types';
 
 import logo from 'img/logo.svg';
+import { isTopNavbar } from 'plugin/GrafanaPluginRootPage.helpers';
 import { useStore } from 'state/useStore';
 
 export type PluginSetupProps = AppRootProps & {
@@ -16,15 +18,19 @@ type PluginSetupWrapperProps = PropsWithChildren<{
   text: string;
 }>;
 
-const PluginSetupWrapper: FC<PluginSetupWrapperProps> = ({ text, children }) => (
-  <PluginPage>
-    <div className="spin">
-      <img alt="Grafana OnCall Logo" src={logo} />
-      <div className="spin-text">{text}</div>
-      {children}
-    </div>
-  </PluginPage>
-);
+const PluginSetupWrapper: FC<PluginSetupWrapperProps> = ({ text, children }) => {
+  const PluginPage = (isTopNavbar() ? RealPluginPage : PluginPageFallback) as React.ComponentType<any>;
+
+  return (
+    <PluginPage>
+      <div className="spin">
+        <img alt="Grafana OnCall Logo" src={logo} />
+        <div className="spin-text">{text}</div>
+        {children}
+      </div>
+    </PluginPage>
+  );
+};
 
 const PluginSetup: FC<PluginSetupProps> = observer(({ InitializedComponent, ...props }) => {
   const store = useStore();
