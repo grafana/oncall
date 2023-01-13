@@ -9,6 +9,13 @@ import { useStore as useStoreOriginal } from 'state/useStore';
 import PluginSetup, { PluginSetupProps } from '.';
 
 jest.mock('state/useStore');
+jest.mock('@grafana/runtime', () => ({
+  PluginPage: (props: any) => <>{props.children}</>,
+  getBackendSrv: () => ({
+    get: jest.fn(),
+    post: jest.fn(),
+  }),
+}));
 
 const createComponentAndMakeAssertions = async (rootBaseStore: RootBaseStore) => {
   // mocks
