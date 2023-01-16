@@ -77,7 +77,7 @@ def check_user_availability(user: User, team: Team) -> list[dict[str, Any]]:
     for s in schedules:
         # keep track of schedules and on call users to suggest if needed
         oncall_users = list_users_to_notify_from_ical(s)
-        schedules_data[s.name] = set(oncall_users)
+        schedules_data[s.name] = set(u.public_primary_key for u in oncall_users)
         if user in oncall_users:
             is_on_call = True
             break

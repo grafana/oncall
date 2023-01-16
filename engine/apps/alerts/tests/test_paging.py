@@ -94,7 +94,7 @@ def test_check_user_availability_not_on_call(
 
     warnings = check_user_availability(user, None)
     assert warnings == [
-        {"data": {"schedules": {schedule.name: {other_user}}}, "error": USER_IS_NOT_ON_CALL},
+        {"data": {"schedules": {schedule.name: {other_user.public_primary_key}}}, "error": USER_IS_NOT_ON_CALL},
     ]
 
 

@@ -180,7 +180,7 @@ class AlertGroupSerializer(AlertGroupListSerializer):
             if user_id is not None:
                 users_ids.add(
                     user_id
-                ) if log_record.type == AlertGroupLogRecord.TYPE_DIRECT_PAGING else users_ids.remove(user_id)
+                ) if log_record.type == AlertGroupLogRecord.TYPE_DIRECT_PAGING else users_ids.discard(user_id)
 
         users = [u.short() for u in User.objects.filter(public_primary_key__in=users_ids)]
         return users
