@@ -34,6 +34,9 @@ class FCMRelayView(APIView):
     throttle_classes = [FCMRelayThrottler]
 
     def post(self, request):
+        if not settings.FCM_RELAY_ENABLED:
+            return Response(status=status.HTTP_404_NOT_FOUND)
+
         try:
             token = request.data["token"]
             data = request.data["data"]
