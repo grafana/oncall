@@ -7,6 +7,7 @@ import Block from 'components/GBlock/Block';
 import Text from 'components/Text/Text';
 import { SlackNewIcon } from 'icons';
 import { useStore } from 'state/useStore';
+import { DOCS_SLACK_SETUP } from 'utils/consts';
 
 import styles from './SlackTab.module.css';
 
@@ -32,11 +33,7 @@ export const SlackTab = () => {
 
           <Text type="secondary">
             More details in{' '}
-            <a
-              href="https://grafana.com/docs/grafana-cloud/oncall/open-source/#slack-setup"
-              target="_blank"
-              rel="noreferrer"
-            >
+            <a href={DOCS_SLACK_SETUP} target="_blank" rel="noreferrer">
               <Text type="link">our documentation</Text>
             </a>
           </Text>
