@@ -37,7 +37,7 @@ export interface NotificationPolicyProps {
   telegramVerified: boolean;
   phoneStatus: number;
   isMobileAppConnected: boolean;
-  isCloudConnected: boolean;
+  showCloudConnectionWarning: boolean;
   color: string;
   number: number;
   userAction: UserAction;
@@ -135,9 +135,9 @@ export class NotificationPolicy extends React.Component<NotificationPolicyProps,
   }
 
   _renderMobileAppNote() {
-    const { isMobileAppConnected, isCloudConnected } = this.props;
+    const { isMobileAppConnected, showCloudConnectionWarning } = this.props;
 
-    if (!isCloudConnected) {
+    if (showCloudConnectionWarning) {
       return <PolicyNote type="danger">Cloud is not connected</PolicyNote>;
     }
 

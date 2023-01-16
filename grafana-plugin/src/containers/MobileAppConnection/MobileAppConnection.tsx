@@ -10,6 +10,8 @@ import PluginLink from 'components/PluginLink/PluginLink';
 import Text from 'components/Text/Text';
 import { User } from 'models/user/user.types';
 import { useStore } from 'state/useStore';
+import { isUserActionAllowed, UserActions } from 'utils/authorization';
+import { GRAFANA_LICENSE_OSS } from 'utils/consts';
 
 import styles from './MobileAppConnection.module.scss';
 import DisconnectButton from './parts/DisconnectButton/DisconnectButton';
@@ -30,17 +32,25 @@ const INTERVAL_POLLING = 5000;
 const BACKEND = 'MOBILE_APP';
 
 const MobileAppConnection = observer(({ userPk }: Props) => {
-  const { userStore, cloudStore } = useStore();
+  const { userStore, cloudStore, backendLicense } = useStore();
 
-  if (!cloudStore.cloudConnectionStatus.cloud_connection_status) {
+  // Show link to cloud page for OSS instances with no cloud connection
+  if (backendLicense === GRAFANA_LICENSE_OSS && !cloudStore.cloudConnectionStatus.cloud_connection_status) {
     return (
       <VerticalGroup spacing="lg">
         <Text>Please connect Cloud OnCall to use the mobile app</Text>
-        <PluginLink query={{ page: 'cloud' }}>
-          <Button variant="secondary" icon="external-link-alt">
-            Connect Cloud OnCall
-          </Button>
-        </PluginLink>
+        {isUserActionAllowed(UserActions.OtherSettingsWrite) ? (
+          <PluginLink query={{ page: 'cloud' }}>
+            <Button variant="secondary" icon="external-link-alt">
+              Connect Cloud OnCall
+            </Button>
+          </PluginLink>
+        ) : (
+          <Text>
+            You do not have permission to perform this action. Ask an admin to connect Cloud OnCall or upgrade your
+            permissions.
+          </Text>
+        )}
       </VerticalGroup>
     );
   }
