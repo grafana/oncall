@@ -15,6 +15,7 @@ def test_fcm_relay_disabled(
     make_user_auth_headers,
     make_public_api_token,
 ):
+    settings.FEATURE_MOBILE_APP_INTEGRATION_ENABLED = True
     settings.FCM_RELAY_ENABLED = False
 
     organization, user, token = make_organization_and_user_with_plugin_token()
@@ -34,6 +35,7 @@ def test_fcm_relay_post(
     make_user_auth_headers,
     make_public_api_token,
 ):
+    settings.FEATURE_MOBILE_APP_INTEGRATION_ENABLED = True
     settings.FCM_RELAY_ENABLED = True
 
     organization, user, token = make_organization_and_user_with_plugin_token()
@@ -59,6 +61,7 @@ def test_fcm_relay_ratelimit(
     make_user_auth_headers,
     make_public_api_token,
 ):
+    settings.FEATURE_MOBILE_APP_INTEGRATION_ENABLED = True
     settings.FCM_RELAY_ENABLED = True
 
     organization, user, token = make_organization_and_user_with_plugin_token()
