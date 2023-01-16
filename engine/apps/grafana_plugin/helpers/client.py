@@ -180,6 +180,9 @@ class GrafanaAPIClient(APIClient):
     def update_alerting_config(self, recipient, config):
         return self.api_post(f"api/alertmanager/{recipient}/config/api/v1/alerts", config)
 
+    def get_grafana_plugin_settings(self, recipient):
+        return self.api_get(f"api/plugins/{recipient}/settings")
+
 
 class GcomAPIClient(APIClient):
     ACTIVE_INSTANCE_QUERY = "instances?status=active"
