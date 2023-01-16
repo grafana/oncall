@@ -50,9 +50,6 @@ class DirectPagingSerializer(serializers.Serializer):
         if len(attrs["users"]) == 0 and len(attrs["schedules"]) == 0:
             raise serializers.ValidationError("Provide at least one user or schedule")
 
-        if not attrs["alert_group_id"] and not attrs["title"]:
-            raise serializers.ValidationError("Provide either alert_group_id or title")
-
         if attrs["alert_group_id"] and (attrs["title"] or attrs["message"]):
             raise serializers.ValidationError("alert_group_id and (title, message) are mutually exclusive")
 

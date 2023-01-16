@@ -92,3 +92,37 @@ def test_direct_paging_existing_alert_group(
     )
 
     assert response.status_code == status.HTTP_200_OK
+
+
+@pytest.mark.django_db
+def test_direct_paging_no_title(
+    make_organization_and_user_with_plugin_token,
+    make_user,
+    make_schedule,
+    make_alert_group,
+    make_user_auth_headers,
+):
+    organization, user, token = make_organization_and_user_with_plugin_token(role=LegacyAccessControlRole.EDITOR)
+
+    users_to_page = [
+        {
+            "id": make_user(organization=organization, role=LegacyAccessControlRole.ADMIN).public_primary_key,
+            "important": False,
+        },
+    ]
+
+    schedules_to_page = [
+        {"id": make_schedule(organization, schedule_class=OnCallScheduleICal).public_primary_key, "important": False},
+    ]
+
+    client = APIClient()
+    url = reverse("api-internal:direct_paging")
+
+    response = client.post(
+        url,
+        data={"users": users_to_page, "schedules": schedules_to_page},
+        format="json",
+        **make_user_auth_headers(user, token),
+    )
+
+    assert response.status_code == status.HTTP_200_OK
