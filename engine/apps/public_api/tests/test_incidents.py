@@ -181,6 +181,21 @@ def test_get_incidents_filter_by_state_resolved(
 
 
 @pytest.mark.django_db
+def test_get_incidents_filter_by_unknown_state(
+        incident_public_api_setup,
+):
+    token, _, _, _ = incident_public_api_setup
+    incidents = AlertGroup.unarchived_objects.filter(AlertGroup.get_resolved_state_filter()).order_by("-started_at")
+    expected_response = construct_expected_response_from_incidents(incidents)
+    client = APIClient()
+
+    url = reverse("api-public:alert_groups-list")
+    response = client.get(url + f"?state=unknown", format="json", HTTP_AUTHORIZATION=f"{token}")
+
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+
+
+@pytest.mark.django_db
 def test_get_incidents_filter_by_integration_no_result(
     incident_public_api_setup,
 ):
