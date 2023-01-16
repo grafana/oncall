@@ -12,6 +12,7 @@ import { TelegramColorIcon } from 'icons';
 import { AppFeature } from 'state/features';
 import { useStore } from 'state/useStore';
 import { openNotification } from 'utils';
+import { DOCS_TELEGRAM_SETUP } from 'utils/consts';
 
 import styles from './TelegramInfo.module.css';
 
@@ -82,7 +83,7 @@ const TelegramInfo = observer((_props: TelegramInfoProps) => {
               </Text>
               <Text type="secondary">
                 More details in{' '}
-                <a href="https://grafana.com/docs/grafana-cloud/oncall/chat-options/configure-telegram/">
+                <a href={DOCS_TELEGRAM_SETUP} target="_blank" rel="noreferrer">
                   <Text type="link">our documentation</Text>
                 </a>
               </Text>
