@@ -33,12 +33,9 @@ environment variable.
    message broker/cache. See [`COMPOSE_PROFILES`](#compose_profiles) below for more details on how to swap
    out/disable which components are run in Docker.
 3. Open Grafana in a browser [here](http://localhost:3000/plugins/grafana-oncall-app) (login: `oncall`, password: `oncall`).
-4. You should now see the OnCall plugin configuration page. Fill out the configuration options as follows:
-
-   - OnCall backend URL: <http://host.docker.internal:8080> (this is the URL that is running the OnCall API; it should be
-     accessible from Grafana)
-   - Grafana URL: <http://grafana:3000> (this is the URL OnCall will use to talk to the Grafana Instance)
-
+4. You should now see the OnCall plugin configuration page.  You may safely ignore the warning about the invalid
+   plugin signature.  When opening the main plugin page, you may also ignore warnings about version mismatch and lack of
+   communication channels.
 5. Enjoy! Check our [OSS docs](https://grafana.com/docs/grafana-cloud/oncall/open-source/) if you want to set up Slack,
    Telegram, Twilio or SMS/calls through Grafana Cloud.
 6. (Optional) Install `pre-commit` hooks by running `make install-precommit-hook`

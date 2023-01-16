@@ -98,15 +98,19 @@ You can set up Slack connection via following variables:
 oncall:
   slack:
     enabled: true
-    command: ~
+    commandName: oncall
     clientId: ~
     clientSecret: ~
-    apiToken: ~
-    apiTokenCommon: ~
+    signingSecret: ~
+    existingSecret: ""
+    clientIdKey: ""
+    clientSecretKey: ""
+    signingSecretKey: ""
+    redirectHost: ~
 ```
 
-`oncall.slack.command` is used for changing default bot slash command,
-`oncall`. In slack, it could be called via `/<oncall.slack.command>`.
+`oncall.slack.commandName` is used for changing default bot slash command,
+`oncall`. In slack, it could be called via `/<oncall.slack.commandName>`.
 
 To set up Telegram tokem and webhook url use:
 

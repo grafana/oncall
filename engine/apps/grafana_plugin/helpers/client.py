@@ -30,6 +30,14 @@ class GrafanaUserWithPermissions(GrafanaUser):
     permissions: List[GrafanaAPIPermission]
 
 
+class GCOMInstanceInfoConfigFeatureToggles(TypedDict):
+    accessControlOnCall: str
+
+
+class GCOMInstanceInfoConfig(TypedDict):
+    feature_toggles: GCOMInstanceInfoConfigFeatureToggles
+
+
 class GCOMInstanceInfo(TypedDict):
     id: int
     orgId: int
@@ -38,6 +46,7 @@ class GCOMInstanceInfo(TypedDict):
     orgName: str
     url: str
     status: str
+    config: Optional[GCOMInstanceInfoConfig]
 
 
 class APIClient:
@@ -180,6 +189,9 @@ class GrafanaAPIClient(APIClient):
     def update_alerting_config(self, recipient, config):
         return self.api_post(f"api/alertmanager/{recipient}/config/api/v1/alerts", config)
 
+    def get_grafana_plugin_settings(self, recipient):
+        return self.api_get(f"api/plugins/{recipient}/settings")
+
 
 class GcomAPIClient(APIClient):
     ACTIVE_INSTANCE_QUERY = "instances?status=active"
@@ -190,9 +202,25 @@ class GcomAPIClient(APIClient):
     def __init__(self, api_token: str):
         super().__init__(settings.GRAFANA_COM_API_URL, api_token)
 
-    def get_instance_info(self, stack_id: str) -> Optional[GCOMInstanceInfo]:
-        data, _ = self.api_get(f"instances/{stack_id}")
+    def get_instance_info(self, stack_id: str, include_config_query_param: bool = False) -> Optional[GCOMInstanceInfo]:
+        """
+        NOTE: in order to use ?config=true, an "Admin" GCOM token must be used to make the API call
+        """
+        url = f"instances/{stack_id}"
+        if include_config_query_param:
+            url += "?config=true"
+
+        data, _ = self.api_get(url)
         return data
+
+    def is_rbac_enabled_for_stack(self, stack_id: str) -> bool:
+        """
+        NOTE: must use an "Admin" GCOM token when calling this method
+        """
+        instance_info = self.get_instance_info(stack_id, True)
+        if not instance_info:
+            return False
+        return instance_info.get("config", {}).get("feature_toggles", {}).get("accessControlOnCall", "false") == "true"
 
     def get_instances(self, query: str):
         return self.api_get(query)

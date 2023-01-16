@@ -3,6 +3,8 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { locationService } from '@grafana/runtime';
 import classnames from 'classnames';
 import dayjs from 'dayjs';
+import customParseFormat from 'dayjs/plugin/customParseFormat';
+import isBetween from 'dayjs/plugin/isBetween';
 import isSameOrAfter from 'dayjs/plugin/isSameOrAfter';
 import isSameOrBefore from 'dayjs/plugin/isSameOrBefore';
 import isoWeek from 'dayjs/plugin/isoWeek';
@@ -23,6 +25,7 @@ import { routes } from 'pages/routes';
 import { rootStore } from 'state';
 import { useStore } from 'state/useStore';
 import { isUserActionAllowed } from 'utils/authorization';
+import { DEFAULT_PAGE } from 'utils/consts';
 import { useQueryParams, useQueryPath } from 'utils/hooks';
 
 dayjs.extend(utc);
@@ -32,6 +35,8 @@ dayjs.extend(localeData);
 dayjs.extend(isSameOrBefore);
 dayjs.extend(isSameOrAfter);
 dayjs.extend(isoWeek);
+dayjs.extend(isBetween);
+dayjs.extend(customParseFormat);
 
 import 'style/vars.css';
 import 'style/global.css';
@@ -49,7 +54,7 @@ export const GrafanaPluginRootPage = (props: AppRootProps) => (
 export const Root = observer((props: AppRootProps) => {
   const [didFinishLoading, setDidFinishLoading] = useState(false);
   const queryParams = useQueryParams();
-  const page = queryParams.get('page');
+  const page = queryParams.get('page') || DEFAULT_PAGE;
   const path = useQueryPath();
 
   // Required to support grafana instances that use a custom `root_url`.
@@ -93,18 +98,15 @@ export const Root = observer((props: AppRootProps) => {
       {!isTopNavbar() && (
         <>
           <Header page={page} backendLicense={store.backendLicense} />
-          <nav className="page-container">
-            <LegacyNavTabsBar currentPage={page} />
-          </nav>
+          <LegacyNavTabsBar currentPage={page} />
         </>
       )}
 
       <div
-        className={classnames(
-          { 'page-container': !isTopNavbar() },
-          { 'page-body': !isTopNavbar() },
-          'u-position-relative'
-        )}
+        className={classnames('u-position-relative', 'u-flex-grow-1', {
+          'u-overflow-x-auto': !isTopNavbar(),
+          'page-body': !isTopNavbar(),
+        })}
       >
         {userHasAccess ? (
           <Page {...props} query={...getQueryParams()} path={pathWithoutLeadingSlash} store={store} />

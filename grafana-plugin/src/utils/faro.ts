@@ -6,47 +6,45 @@ import { UserInteractionInstrumentation } from '@opentelemetry/instrumentation-u
 import { XMLHttpRequestInstrumentation } from '@opentelemetry/instrumentation-xml-http-request';
 
 import plugin from '../../package.json'; // eslint-disable-line
+import {
+  FARO_ENDPOINT_DEV,
+  FARO_ENDPOINT_OPS,
+  FARO_ENDPOINT_PROD,
+  ONCALL_DEV,
+  ONCALL_OPS,
+  ONCALL_PROD,
+} from './consts';
 
 const IGNORE_URLS = [/^((?!\/{0,1}a\/grafana\-oncall\-app\\).)*$/];
 
-interface FaroConfig {
-  url: string;
-  enabled: boolean;
-  environment: string;
+export function getAppNameUrlPair(onCallApiUrl: string): { appName: string; url: string } {
+  const baseName = 'grafana-oncall';
+
+  switch (onCallApiUrl) {
+    case ONCALL_DEV:
+      return { appName: `${baseName}-dev`, url: FARO_ENDPOINT_DEV };
+    case ONCALL_OPS:
+      return { appName: `${baseName}-ops`, url: FARO_ENDPOINT_OPS };
+    case ONCALL_PROD:
+      return { appName: `${baseName}-prod`, url: FARO_ENDPOINT_PROD };
+    default:
+      throw new Error(`No match found for given onCallApiUrl = ${onCallApiUrl}`);
+  }
 }
 
 class FaroHelper {
   faro: Faro;
 
   initializeFaro(onCallApiUrl: string) {
-    const faroConfig: FaroConfig = {
-      url: 'https://faro-collector-prod-us-central-0.grafana.net/collect/f3a038193e7802cf47531ca94cfbada7',
-      enabled: false,
-      environment: undefined,
-    };
-
-    if (onCallApiUrl === 'https://oncall-prod-us-central-0.grafana.net/oncall') {
-      faroConfig.enabled = true;
-      faroConfig.environment = 'prod';
-    } else if (onCallApiUrl === 'https://oncall-ops-us-east-0.grafana.net/oncall') {
-      faroConfig.enabled = true;
-      faroConfig.environment = 'ops';
-    } else if (onCallApiUrl === 'https://oncall-dev-us-central-0.grafana.net/oncall') {
-      faroConfig.enabled = true;
-      faroConfig.environment = 'dev';
-    } else {
-      // This opensource, don't send traces
-      /* faroConfig.enabled = true;
-      faroConfig.environment = 'local'; */
-    }
-
-    if (!faroConfig?.enabled || !faroConfig?.url || this.faro) {
+    if (this.faro) {
       return undefined;
     }
 
     try {
+      const { appName, url } = getAppNameUrlPair(onCallApiUrl);
+
       const faroOptions = {
-        url: faroConfig.url,
+        url: url,
         isolate: true,
         instrumentations: [
           ...getWebInstrumentations({
@@ -63,15 +61,14 @@ class FaroHelper {
         ],
         session: (window as any).__PRELOADED_STATE__?.faro?.session,
         app: {
-          name: 'grafana-oncall',
+          name: appName,
           version: plugin?.version,
-          environment: faroConfig.environment,
         },
       };
 
       this.faro = initializeFaro(faroOptions);
 
-      this.faro.api.pushLog([`Faro was initialized for ${faroConfig.environment}`]);
+      this.faro.api.pushLog([`Faro was initialized for ${appName}`]);
     } catch (ex) {}
 
     return this.faro;

@@ -10,7 +10,7 @@ import Text from 'components/Text/Text';
 import { User } from 'models/user/user.types';
 import { useStore } from 'state/useStore';
 
-import styles from './MobileAppVerification.module.scss';
+import styles from './MobileAppConnection.module.scss';
 import DisconnectButton from './parts/DisconnectButton/DisconnectButton';
 import DownloadIcons from './parts/DownloadIcons';
 import QRCode from './parts/QRCode/QRCode';
@@ -28,7 +28,7 @@ const INTERVAL_QUEUE_QR = process.env.MOBILE_APP_QR_INTERVAL_QUEUE
 const INTERVAL_POLLING = 5000;
 const BACKEND = 'MOBILE_APP';
 
-const MobileAppVerification = observer(({ userPk }: Props) => {
+const MobileAppConnection = observer(({ userPk }: Props) => {
   const { userStore } = useStore();
 
   const isMounted = useRef(false);
@@ -233,4 +233,4 @@ function QRLoading() {
   );
 }
 
-export default MobileAppVerification;
+export default MobileAppConnection;

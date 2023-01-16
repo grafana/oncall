@@ -19,5 +19,5 @@ jobs:
       - name: Run Commands
         uses: ./actions/commands
         with:          
-          token: ${{secrets.GH_BOT_ACCESS_TOKEN}}
+          token: ${{secrets.GH_ISSUE_COMMANDS}}
           configPath: issue_and_pr_commands
