@@ -3,6 +3,7 @@ import React from 'react';
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
+import { CloudStore } from 'models/cloud/cloud';
 import { UserStore } from 'models/user/user';
 import { User } from 'models/user/user.types';
 import { RootStore } from 'state';
@@ -10,12 +11,33 @@ import { useStore as useStoreOriginal } from 'state/useStore';
 
 import MobileAppConnection from './MobileAppConnection';
 
+jest.mock('plugin/GrafanaPluginRootPage.helpers', () => ({
+  isTopNavbar: () => false,
+}));
+
+jest.mock('@grafana/runtime', () => ({
+  config: {
+    featureToggles: {
+      topNav: false,
+    },
+  },
+}));
+
+jest.mock('utils/authorization', () => ({
+  ...jest.requireActual('utils/authorization'),
+  isUserActionAllowed: jest.fn().mockReturnValue(true),
+}));
+
+jest.mock('@grafana/runtime', () => ({
+  getLocationSrv: jest.fn(),
+}));
+
 jest.mock('state/useStore');
 
 const useStore = useStoreOriginal as jest.Mock<ReturnType<typeof useStoreOriginal>>;
 const loadUserMock = jest.fn().mockReturnValue(undefined);
 
-const mockUseStore = (rest?: any, connected = false) => {
+const mockUseStore = (rest?: any, connected = false, cloud_connected = true) => {
   const store = {
     userStore: {
       loadUser: loadUserMock,
@@ -26,6 +48,10 @@ const mockUseStore = (rest?: any, connected = false) => {
       } as unknown as User,
       ...(rest ? rest : {}),
     } as unknown as UserStore,
+    cloudStore: {
+      getCloudConnectionStatus: jest.fn().mockReturnValue({ cloud_connection_status: cloud_connected }),
+      cloudConnectionStatus: { cloud_connection_status: cloud_connected },
+    } as unknown as CloudStore,
   } as unknown as RootStore;
 
   useStore.mockReturnValue(store);
@@ -231,5 +257,12 @@ describe('MobileAppConnection', () => {
       },
       { timeout: 6000 }
     );
+  });
+
+  test('it shows a warning when cloud is not connected', async () => {
+    mockUseStore({}, true, false);
+
+    const component = render(<MobileAppConnection userPk={USER_PK} />);
+    expect(component.container).toMatchSnapshot();
   });
 });
