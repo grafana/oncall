@@ -58,7 +58,11 @@ class IncidentView(RateLimitHeadersMixin, mixins.ListModelMixin, mixins.DestroyM
             queryset = queryset.filter(channel__public_primary_key=integration_id)
         if state:
             choices = dict(AlertGroup.STATUS_CHOICES)
-            choice = [i for i in choices if choices[i] == state.lower().capitalize()]
+            try:
+                choice = [i for i in choices if choices[i] == state.lower().capitalize()][0]
+            except KeyError:
+                valid_choices_text = ", ".join([status_choice[1].lower() for status_choice in AlertGroup.STATUS_CHOICES])
+                raise BadRequest(detail={"state": f"Must be one of the following: {valid_choices_text}"})
             if len(choice) == 1:
                 status_filter = Q()
                 if choice[0] == AlertGroup.NEW:
