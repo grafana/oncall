@@ -4,6 +4,7 @@
   - [`COMPOSE_PROFILES`](#compose_profiles)
   - [`GRAFANA_VERSION`](#grafana_version)
   - [Configuring Grafana](#configuring-grafana)
+  - [Django Silk Profiling](#django-silk-profiling)
   - [Running backend services outside Docker](#running-backend-services-outside-docker)
 - [Useful `make` commands](#useful-make-commands)
 - [Setting environment variables](#setting-environment-variables)
@@ -98,6 +99,17 @@ touch .env && ./dev/add_env_var.sh GRAFANA_DEV_PROVISIONING ./dev/grafana.dev.in
 
 The next time you start the project via `docker-compose`, the `grafana` container will have `./dev/grafana.dev.ini`
 volume mounted inside the container.
+
+### Django Silk Profiling
+
+In order to setup [`django-silk`](https://github.com/jazzband/django-silk) for local profiling, perform the following
+steps:
+
+1. `make engine-manage CMD="createsuperuser"` - follow CLI prompts to create a Django superuser
+2. Visit <http://localhost:8080/django-admin> and login using the credentials you created in step #2
+
+You should now be able to visit <http://localhost:8080/silk/> and see the Django Silk UI.
+See the `django-silk` documentation [here](https://github.com/jazzband/django-silk) for more information.
 
 ### Running backend services outside Docker
 
