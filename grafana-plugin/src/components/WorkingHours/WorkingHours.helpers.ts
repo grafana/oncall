@@ -84,22 +84,14 @@ export const getNonWorkingMoments = (startMoment, endMoment, workingHours) => {
 };
 
 export const isInWorkingHours = (currentMoment: dayjs.Dayjs, workingHours, timezone) => {
-  const daysOfTheWeeks = {
-    1: 'monday',
-    2: 'tuesday',
-    3: 'wednesday',
-    4: 'thursday',
-    5: 'friday',
-    6: 'saturday',
-    7: 'sunday',
-  };
-  const currentDayOfTheWeek = daysOfTheWeeks[currentMoment.weekday()];
+  const timeFormat = 'HH:mm:ss';
+  const currentDayOfTheWeek = currentMoment.format('dddd').toLowerCase();
   const workingHourStart = workingHours[currentDayOfTheWeek][0].start;
   const workingHourEnd = workingHours[currentDayOfTheWeek][0].end;
 
-  const startTime = dayjs(workingHourStart, 'HH:mm:ss').tz(timezone).format('HH:mm:ss');
-  const endTime = dayjs(workingHourEnd, 'HH:mm:ss').tz(timezone).format('HH:mm:ss');
-  const currentTime = dayjs(currentMoment, 'HH:mm:ss').format('HH:mm:ss');
+  const startTime = dayjs(workingHourStart, timeFormat).tz(timezone).format(timeFormat);
+  const endTime = dayjs(workingHourEnd, timeFormat).tz(timezone).format(timeFormat);
+  const currentTime = dayjs(currentMoment, timeFormat).format(timeFormat);
 
   return currentTime < endTime && currentTime >= startTime;
 };

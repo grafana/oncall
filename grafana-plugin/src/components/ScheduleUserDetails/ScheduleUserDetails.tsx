@@ -72,14 +72,14 @@ const ScheduleUserDetails: FC<ScheduleUserDetailsProps> = (props) => {
           </HorizontalGroup>
         </VerticalGroup>
 
-        <hr className={cx('hr')} />
+        <hr className={cx('line-break')} />
         <VerticalGroup spacing="sm">
           <Text>Contacts</Text>
 
           <div className={cx('contact-details')}>
             <Text type="secondary">
               <Icon name="envelope" />{' '}
-              <a href={`mailto:${user.email}`}>
+              <a href={`mailto:${user.email}`} target="_blank" rel="noreferrer">
                 <Text type="link">{user.email}</Text>
               </a>{' '}
             </Text>
@@ -88,7 +88,11 @@ const ScheduleUserDetails: FC<ScheduleUserDetailsProps> = (props) => {
             <div className={cx('contact-details')}>
               <Text type="secondary">
                 <Icon name="slack" />{' '}
-                <a href={`https://${slackWorkspaceName}.slack.com/team/${user.slack_user_identity.slack_id}`}>
+                <a
+                  href={`https://${slackWorkspaceName}.slack.com/team/${user.slack_user_identity.slack_id}`}
+                  target="_blank"
+                  rel="noreferrer"
+                >
                   <Text type="link">{user.slack_user_identity.slack_login}</Text>
                 </a>{' '}
               </Text>
@@ -98,7 +102,11 @@ const ScheduleUserDetails: FC<ScheduleUserDetailsProps> = (props) => {
             <div className={cx('contact-details')}>
               <Text type="secondary">
                 <Icon name="message" />{' '}
-                <a href={`https://t.me/${user.telegram_configuration.telegram_nick_name}`}>
+                <a
+                  href={`https://t.me/${user.telegram_configuration.telegram_nick_name}`}
+                  target="_blank"
+                  rel="noreferrer"
+                >
                   <Text type="link">{user.telegram_configuration.telegram_nick_name}</Text>
                 </a>{' '}
               </Text>
