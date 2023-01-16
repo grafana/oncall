@@ -6,8 +6,11 @@ from celery.utils.log import get_task_logger
 from django.conf import settings
 from fcm_django.models import FCMDevice
 from firebase_admin.messaging import APNSConfig, APNSPayload, Aps, ApsAlert, CriticalSound, Message
+from requests import HTTPError
+from rest_framework import status
 
 from apps.alerts.models import AlertGroup
+from apps.base.utils import live_settings
 from apps.mobile_app.alert_rendering import get_push_notification_message
 from apps.oss_installation.models import CloudConnector
 from apps.user_management.models import User
@@ -42,10 +45,10 @@ def notify_user_async(user_pk, alert_group_pk, notification_policy_pk, critical)
         logger.warning(f"User notification policy {notification_policy_pk} does not exist")
         return
 
-    device_to_notify = FCMDevice.objects.filter(user=user).first()
-
-    # create an error log in case user has no devices set up
-    if not device_to_notify:
+    def _create_error_log_record():
+        """
+        Utility method to create a UserNotificationPolicyLogRecord with error
+        """
         UserNotificationPolicyLogRecord.objects.create(
             author=user,
             type=UserNotificationPolicyLogRecord.TYPE_PERSONAL_NOTIFICATION_FAILED,
@@ -55,7 +58,13 @@ def notify_user_async(user_pk, alert_group_pk, notification_policy_pk, critical)
             notification_step=notification_policy.step,
             notification_channel=notification_policy.notify_by,
         )
-        logger.info(f"Error while sending a mobile push notification: user {user_pk} has no device set up")
+
+    device_to_notify = FCMDevice.objects.filter(user=user).first()
+
+    # create an error log in case user has no devices set up
+    if not device_to_notify:
+        _create_error_log_record()
+        logger.error(f"Error while sending a mobile push notification: user {user_pk} has no device set up")
         return
 
     thread_id = f"{alert_group.channel.organization.public_primary_key}:{alert_group.public_primary_key}"
@@ -119,20 +128,23 @@ def notify_user_async(user_pk, alert_group_pk, notification_policy_pk, critical)
     if settings.LICENSE == settings.OPEN_SOURCE_LICENSE_NAME:
         # FCM relay uses cloud connection to send push notifications
         if not CloudConnector.objects.exists():
-            UserNotificationPolicyLogRecord.objects.create(
-                author=user,
-                type=UserNotificationPolicyLogRecord.TYPE_PERSONAL_NOTIFICATION_FAILED,
-                notification_policy=notification_policy,
-                alert_group=alert_group,
-                reason="Mobile push notification error",
-                notification_step=notification_policy.step,
-                notification_channel=notification_policy.notify_by,
-            )
-            logger.info(f"Error while sending a mobile push notification: not connected to cloud")
+            _create_error_log_record()
+            logger.error(f"Error while sending a mobile push notification: not connected to cloud")
             return
 
-        response = send_push_notification_to_fcm_relay(message)
-        logger.debug(f"FCM relay response: {response}")
+        try:
+            response = send_push_notification_to_fcm_relay(message)
+            logger.debug(f"FCM relay response: {response}")
+        except HTTPError as e:
+            if status.HTTP_400_BAD_REQUEST <= e.response.status_code < status.HTTP_500_INTERNAL_SERVER_ERROR:
+                # do not retry on HTTP client errors (4xx errors)
+                _create_error_log_record()
+                logger.error(
+                    f"Error while sending a mobile push notification: HTTP client error {e.response.status_code}"
+                )
+                return
+            else:
+                raise
     else:
         response = device_to_notify.send_message(message)
         # NOTE: we may want to further handle the response from FCM, but for now lets simply log it out
@@ -146,7 +158,9 @@ def send_push_notification_to_fcm_relay(message):
     """
     url = create_engine_url("mobile_app/v1/fcm_relay", override_base=settings.GRAFANA_CLOUD_ONCALL_API_URL)
 
-    response = requests.post(url, json=json.loads(str(message)))
+    response = requests.post(
+        url, headers={"Authorization": live_settings.GRAFANA_CLOUD_ONCALL_TOKEN}, json=json.loads(str(message))
+    )
     response.raise_for_status()
 
     return response

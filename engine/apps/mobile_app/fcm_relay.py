@@ -19,7 +19,7 @@ task_logger.setLevel(logging.DEBUG)
 
 class FCMRelayThrottler(UserRateThrottle):
     scope = "fcm_relay"
-    rate = "60/m"
+    rate = "300/m"
 
 
 class FCMRelayView(APIView):
