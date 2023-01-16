@@ -138,7 +138,7 @@ class OnCallShiftSerializer(EagerLoadingMixin, serializers.ModelSerializer):
             for field in fields_to_update_for_overrides:
                 value = None
                 if field == "priority_level":
-                    value = 0
+                    value = 99
                 elif field == "rotation_start":
                     value = validated_data["start"]
                 validated_data[field] = value

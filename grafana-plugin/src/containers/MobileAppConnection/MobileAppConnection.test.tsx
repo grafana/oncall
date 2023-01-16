@@ -8,7 +8,7 @@ import { User } from 'models/user/user.types';
 import { RootStore } from 'state';
 import { useStore as useStoreOriginal } from 'state/useStore';
 
-import MobileAppVerification from './MobileAppVerification';
+import MobileAppConnection from './MobileAppConnection';
 
 jest.mock('state/useStore');
 
@@ -36,7 +36,7 @@ const mockUseStore = (rest?: any, connected = false) => {
 const USER_PK = '8585';
 const BACKEND = 'MOBILE_APP';
 
-describe('MobileAppVerification', () => {
+describe('MobileAppConnection', () => {
   beforeEach(() => {
     loadUserMock.mockClear();
   });
@@ -46,7 +46,7 @@ describe('MobileAppVerification', () => {
       sendBackendConfirmationCode: jest.fn().mockResolvedValueOnce('dfd'),
     });
 
-    const component = render(<MobileAppVerification userPk={USER_PK} />);
+    const component = render(<MobileAppConnection userPk={USER_PK} />);
     expect(component.container).toMatchSnapshot();
 
     await waitFor(() => {
@@ -63,7 +63,7 @@ describe('MobileAppVerification', () => {
       true
     );
 
-    const component = render(<MobileAppVerification userPk={USER_PK} />);
+    const component = render(<MobileAppConnection userPk={USER_PK} />);
     expect(component.container).toMatchSnapshot();
 
     await waitFor(() => {
@@ -76,7 +76,7 @@ describe('MobileAppVerification', () => {
       sendBackendConfirmationCode: jest.fn().mockRejectedValueOnce('dfd'),
     });
 
-    const component = render(<MobileAppVerification userPk={USER_PK} />);
+    const component = render(<MobileAppConnection userPk={USER_PK} />);
     await screen.findByText(/.*error fetching your QR code.*/);
 
     await waitFor(() => {
@@ -92,7 +92,7 @@ describe('MobileAppVerification', () => {
       sendBackendConfirmationCode: jest.fn().mockResolvedValueOnce('dfd'),
     });
 
-    const component = render(<MobileAppVerification userPk={USER_PK} />);
+    const component = render(<MobileAppConnection userPk={USER_PK} />);
     expect(component.container).toMatchSnapshot();
 
     await waitFor(() => {
@@ -110,7 +110,7 @@ describe('MobileAppVerification', () => {
       true
     );
 
-    const component = render(<MobileAppVerification userPk={USER_PK} />);
+    const component = render(<MobileAppConnection userPk={USER_PK} />);
     const button = await screen.findByRole('button');
 
     // click the disconnect button, which opens the modal
@@ -138,7 +138,7 @@ describe('MobileAppVerification', () => {
       true
     );
 
-    const component = render(<MobileAppVerification userPk={USER_PK} />);
+    const component = render(<MobileAppConnection userPk={USER_PK} />);
     const button = await screen.findByRole('button');
 
     // click the disconnect button, which opens the modal
@@ -169,7 +169,7 @@ describe('MobileAppVerification', () => {
       true
     );
 
-    const component = render(<MobileAppVerification userPk={USER_PK} />);
+    const component = render(<MobileAppConnection userPk={USER_PK} />);
     const button = await screen.findByTestId('test__disconnect');
 
     // click the disconnect button, which opens the modal
@@ -198,7 +198,7 @@ describe('MobileAppVerification', () => {
       false
     );
 
-    render(<MobileAppVerification userPk={USER_PK} />);
+    render(<MobileAppConnection userPk={USER_PK} />);
 
     await waitFor(
       () => {
@@ -217,7 +217,7 @@ describe('MobileAppVerification', () => {
       true
     );
 
-    render(<MobileAppVerification userPk={USER_PK} />);
+    render(<MobileAppConnection userPk={USER_PK} />);
     const button = await screen.findByRole('button');
 
     loadUserMock.mockClear();
