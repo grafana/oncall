@@ -112,3 +112,7 @@
 .timeline-filter {
   margin-bottom: 24px;
 }
+
+.title-icon {
+  color: var(--secondary-text-color);
+}
