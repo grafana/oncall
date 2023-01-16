@@ -6,7 +6,7 @@ export enum UserSettingsTab {
   PhoneVerification,
   SlackInfo,
   TelegramInfo,
-  MobileAppVerification,
+  MobileAppConnection,
 }
 
 export interface UserFormData extends Partial<User> {

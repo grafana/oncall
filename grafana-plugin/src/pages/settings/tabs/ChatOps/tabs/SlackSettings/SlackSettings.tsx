@@ -18,6 +18,7 @@ import { AppFeature } from 'state/features';
 import { WithStoreProps } from 'state/types';
 import { withMobXProviderContext } from 'state/withStore';
 import { UserActions } from 'utils/authorization';
+import { DOCS_SLACK_SETUP } from 'utils/consts';
 
 import styles from './SlackSettings.module.css';
 
@@ -246,7 +247,7 @@ class SlackSettings extends Component<SlackProps, SlackState> {
             {isLiveSettingAvailable && (
               <Text type="secondary" className={cx('infoblock-text')}>
                 For bot creating instructions and additional information please read{' '}
-                <a href="https://grafana.com/docs/grafana-cloud/oncall/open-source/#slack-setup">
+                <a href={DOCS_SLACK_SETUP} target="_blank" rel="noreferrer">
                   <Text type="link">our documentation</Text>
                 </a>
               </Text>

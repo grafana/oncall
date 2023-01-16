@@ -34,6 +34,6 @@ function RealPlugin(props: ExtendedPluginPageProps): React.ReactNode {
   );
 }
 
-function PluginPageFallback(props: ExtendedPluginPageProps): React.ReactNode {
+export function PluginPageFallback(props: ExtendedPluginPageProps): React.ReactNode {
   return props.children;
 }
