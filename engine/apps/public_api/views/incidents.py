@@ -71,7 +71,9 @@ class IncidentView(RateLimitHeadersMixin, mixins.ListModelMixin, mixins.DestroyM
                     status_filter = AlertGroup.get_resolved_state_filter()
                 queryset = queryset.filter(status_filter)
             except IndexError:
-                valid_choices_text = ", ".join([status_choice[1].lower() for status_choice in AlertGroup.STATUS_CHOICES])
+                valid_choices_text = ", ".join(
+                    [status_choice[1].lower() for status_choice in AlertGroup.STATUS_CHOICES]
+                )
                 raise BadRequest(detail={"state": f"Must be one of the following: {valid_choices_text}"})
 
         queryset = self.serializer_class.setup_eager_loading(queryset)
