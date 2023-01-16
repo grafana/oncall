@@ -1,7 +1,6 @@
 import React from 'react';
 
 import { Alert, Button, HorizontalGroup, Icon, VerticalGroup } from '@grafana/ui';
-import { PluginPage } from 'PluginPage';
 import cn from 'classnames/bind';
 import { debounce } from 'lodash-es';
 import { observer } from 'mobx-react';
@@ -20,7 +19,6 @@ import UsersFilters from 'components/UsersFilters/UsersFilters';
 import UserSettings from 'containers/UserSettings/UserSettings';
 import { WithPermissionControl } from 'containers/WithPermissionControl/WithPermissionControl';
 import { User as UserType } from 'models/user/user.types';
-import { pages } from 'pages';
 import { PageProps, WithStoreProps } from 'state/types';
 import { withMobXProviderContext } from 'state/withStore';
 import LocationHelper from 'utils/LocationHelper';
@@ -159,85 +157,83 @@ class Users extends React.Component<UsersProps, UsersState> {
     const { count, results } = userStore.getSearchResult();
 
     return (
-      <PluginPage pageNav={pages['users'].getPageNav()}>
-        <PageErrorHandlingWrapper
-          errorData={errorData}
-          objectName="user"
-          pageName="users"
-          itemNotFoundMessage={`User with id=${query?.id} is not found. Please select user from the list.`}
-        >
-          {() => (
-            <>
-              <div className={cx('root')}>
-                <div className={cx('root', 'TEST-users-page')}>
-                  <div className={cx('users-header')}>
-                    <div style={{ display: 'flex', alignItems: 'baseline' }}>
-                      <div>
-                        <LegacyNavHeading>
-                          <Text.Title level={3}>Users</Text.Title>
-                        </LegacyNavHeading>
-                        <Text type="secondary">
-                          To manage permissions or add users, please visit{' '}
-                          <a href="/org/users">Grafana user management</a>
-                        </Text>
-                      </div>
+      <PageErrorHandlingWrapper
+        errorData={errorData}
+        objectName="user"
+        pageName="users"
+        itemNotFoundMessage={`User with id=${query?.id} is not found. Please select user from the list.`}
+      >
+        {() => (
+          <>
+            <div className={cx('root')}>
+              <div className={cx('root', 'TEST-users-page')}>
+                <div className={cx('users-header')}>
+                  <div style={{ display: 'flex', alignItems: 'baseline' }}>
+                    <div>
+                      <LegacyNavHeading>
+                        <Text.Title level={3}>Users</Text.Title>
+                      </LegacyNavHeading>
+                      <Text type="secondary">
+                        To manage permissions or add users, please visit{' '}
+                        <a href="/org/users">Grafana user management</a>
+                      </Text>
                     </div>
-                    <PluginLink partial query={{ id: 'me' }}>
-                      <Button variant="primary" icon="user">
-                        View my profile
-                      </Button>
-                    </PluginLink>
                   </div>
-                  {isUserActionAllowed(UserActions.UserSettingsRead) ? (
-                    <>
-                      <div className={cx('user-filters-container')}>
-                        <UsersFilters
-                          className={cx('users-filters')}
-                          value={usersFilters}
-                          onChange={this.handleUsersFiltersChange}
-                        />
-                        <Button
-                          variant="secondary"
-                          icon="times"
-                          onClick={handleClear}
-                          className={cx('searchIntegrationClear')}
-                        >
-                          Clear filters
-                        </Button>
-                      </div>
-
-                      <GTable
-                        emptyText={results ? 'No users found' : 'Loading...'}
-                        rowKey="pk"
-                        data={results}
-                        columns={columns}
-                        rowClassName={getUserRowClassNameFn(userPkToEdit, userStore.currentUserPk)}
-                        pagination={{
-                          page,
-                          total: Math.ceil((count || 0) / ITEMS_PER_PAGE),
-                          onChange: this.handleChangePage,
-                        }}
-                      />
-                    </>
-                  ) : (
-                    <Alert
-                      /* @ts-ignore */
-                      title={
-                        <>
-                          You don't have enough permissions to view other users because you are not Admin.{' '}
-                          <PluginLink query={{ page: 'users', id: 'me' }}>Click here</PluginLink> to open your profile
-                        </>
-                      }
-                      severity="info"
-                    />
-                  )}
+                  <PluginLink partial query={{ id: 'me' }}>
+                    <Button variant="primary" icon="user">
+                      View my profile
+                    </Button>
+                  </PluginLink>
                 </div>
-                {userPkToEdit && <UserSettings id={userPkToEdit} onHide={this.handleHideUserSettings} />}
+                {isUserActionAllowed(UserActions.UserSettingsRead) ? (
+                  <>
+                    <div className={cx('user-filters-container')}>
+                      <UsersFilters
+                        className={cx('users-filters')}
+                        value={usersFilters}
+                        onChange={this.handleUsersFiltersChange}
+                      />
+                      <Button
+                        variant="secondary"
+                        icon="times"
+                        onClick={handleClear}
+                        className={cx('searchIntegrationClear')}
+                      >
+                        Clear filters
+                      </Button>
+                    </div>
+
+                    <GTable
+                      emptyText={results ? 'No users found' : 'Loading...'}
+                      rowKey="pk"
+                      data={results}
+                      columns={columns}
+                      rowClassName={getUserRowClassNameFn(userPkToEdit, userStore.currentUserPk)}
+                      pagination={{
+                        page,
+                        total: Math.ceil((count || 0) / ITEMS_PER_PAGE),
+                        onChange: this.handleChangePage,
+                      }}
+                    />
+                  </>
+                ) : (
+                  <Alert
+                    /* @ts-ignore */
+                    title={
+                      <>
+                        You don't have enough permissions to view other users because you are not Admin.{' '}
+                        <PluginLink query={{ page: 'users', id: 'me' }}>Click here</PluginLink> to open your profile
+                      </>
+                    }
+                    severity="info"
+                  />
+                )}
               </div>
-            </>
-          )}
-        </PageErrorHandlingWrapper>
-      </PluginPage>
+              {userPkToEdit && <UserSettings id={userPkToEdit} onHide={this.handleHideUserSettings} />}
+            </div>
+          </>
+        )}
+      </PageErrorHandlingWrapper>
     );
   }
 

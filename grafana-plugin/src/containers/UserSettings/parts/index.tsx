@@ -5,7 +5,7 @@ import cn from 'classnames/bind';
 import { observer } from 'mobx-react';
 
 import Block from 'components/GBlock/Block';
-import MobileAppVerification from 'containers/MobileAppVerification/MobileAppVerification';
+import MobileAppConnection from 'containers/MobileAppConnection/MobileAppConnection';
 import { UserSettingsTab } from 'containers/UserSettings/UserSettings.types';
 import { SlackTab } from 'containers/UserSettings/parts/tabs//SlackTab/SlackTab';
 import CloudPhoneSettings from 'containers/UserSettings/parts/tabs/CloudPhoneSettings/CloudPhoneSettings';
@@ -25,7 +25,7 @@ interface TabsProps {
   activeTab: UserSettingsTab;
   onTabChange: (tab: UserSettingsTab) => void;
   showNotificationSettingsTab: boolean;
-  showMobileAppVerificationTab: boolean;
+  showMobileAppConnectionTab: boolean;
   showSlackConnectionTab: boolean;
   showTelegramConnectionTab: boolean;
 }
@@ -34,7 +34,7 @@ export const Tabs = ({
   activeTab,
   onTabChange,
   showNotificationSettingsTab,
-  showMobileAppVerificationTab,
+  showMobileAppConnectionTab,
   showSlackConnectionTab,
   showTelegramConnectionTab,
 }: TabsProps) => {
@@ -69,12 +69,12 @@ export const Tabs = ({
         key={UserSettingsTab.PhoneVerification}
         onChangeTab={getTabClickHandler(UserSettingsTab.PhoneVerification)}
       />
-      {showMobileAppVerificationTab && (
+      {showMobileAppConnectionTab && (
         <Tab
-          active={activeTab === UserSettingsTab.MobileAppVerification}
-          label="Mobile App Verification"
-          key={UserSettingsTab.MobileAppVerification}
-          onChangeTab={getTabClickHandler(UserSettingsTab.MobileAppVerification)}
+          active={activeTab === UserSettingsTab.MobileAppConnection}
+          label="Mobile App Connection"
+          key={UserSettingsTab.MobileAppConnection}
+          onChangeTab={getTabClickHandler(UserSettingsTab.MobileAppConnection)}
         />
       )}
       {showSlackConnectionTab && (
@@ -134,7 +134,7 @@ export const TabsContent = observer(({ id, activeTab, onTabChange, isDesktopOrLa
           <PhoneVerification userPk={id} />
         ))}
       {/* TODO: we should probably hide this tab when a user (ie. Admin) is viewing the user settings for another user. Would it make sense for an Admin to be able to link their mobile app to another user's profile */}
-      {activeTab === UserSettingsTab.MobileAppVerification && <MobileAppVerification userPk={id} />}
+      {activeTab === UserSettingsTab.MobileAppConnection && <MobileAppConnection userPk={id} />}
       {activeTab === UserSettingsTab.SlackInfo && <SlackTab />}
       {activeTab === UserSettingsTab.TelegramInfo && <TelegramInfo />}
     </TabContent>
