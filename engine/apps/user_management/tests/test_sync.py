@@ -6,7 +6,7 @@ from django.test import override_settings
 
 from apps.grafana_plugin.helpers.client import GcomAPIClient, GrafanaAPIClient
 from apps.user_management.models import Team, User
-from apps.user_management.sync import cleanup_organization, sync_organization
+from apps.user_management.sync import check_grafana_incident_is_enabled, cleanup_organization, sync_organization
 
 
 @pytest.mark.django_db
@@ -138,7 +138,10 @@ def test_sync_organization(make_organization, make_team, make_user_for_organizat
         with patch.object(GrafanaAPIClient, "get_users", return_value=api_users_response):
             with patch.object(GrafanaAPIClient, "get_teams", return_value=(api_teams_response, None)):
                 with patch.object(GrafanaAPIClient, "get_team_members", return_value=(api_members_response, None)):
-                    sync_organization(organization)
+                    with patch.object(
+                        GrafanaAPIClient, "get_grafana_plugin_settings", return_value=({"enabled": True}, None)
+                    ):
+                        sync_organization(organization)
 
     # check that users are populated
     assert organization.users.count() == 1
@@ -153,6 +156,9 @@ def test_sync_organization(make_organization, make_team, make_user_for_organizat
     # check that team members are populated
     assert team.users.count() == 1
     assert team.users.get() == user
+
+    # check that is_grafana_incident_enabled flag is set
+    assert organization.is_grafana_incident_enabled is True
 
 
 @pytest.mark.parametrize("grafana_api_response", [False, True])
@@ -233,3 +239,19 @@ def test_cleanup_organization_deleted(make_organization):
 
     organization.refresh_from_db()
     assert organization.deleted_at is not None
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize(
+    "response,expected_result",
+    [
+        (({"enabled": True}, {}), True),
+        (({"enabled": False}, {}), False),
+        ((None, {}), False),
+    ],
+)
+def test_check_grafana_incident_is_enabled(response, expected_result):
+    client = GrafanaAPIClient("", "")
+    with patch.object(GrafanaAPIClient, "get_grafana_plugin_settings", return_value=response):
+        result = check_grafana_incident_is_enabled(client)
+        assert result == expected_result
