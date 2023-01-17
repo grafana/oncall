@@ -617,6 +617,7 @@ INSTALLED_ONCALL_INTEGRATIONS = [
     "config_integrations.manual",
     "config_integrations.slack_channel",
     "config_integrations.zabbix",
+    "config_integrations.direct_paging",
 ]
 
 if OSS_INSTALLATION:

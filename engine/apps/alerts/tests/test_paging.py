@@ -245,6 +245,41 @@ def test_direct_paging_reusing_alert_group(
 
 
 @pytest.mark.django_db
+def test_direct_paging_reusing_alert_group_custom_chain_raises(
+    make_organization, make_user_for_organization, make_alert_receive_channel, make_alert_group, make_escalation_chain
+):
+    organization = make_organization()
+    from_user = make_user_for_organization(organization)
+    alert_receive_channel = make_alert_receive_channel(organization=organization)
+    alert_group = make_alert_group(alert_receive_channel=alert_receive_channel)
+    custom_chain = make_escalation_chain(organization)
+
+    with pytest.raises(ValueError):
+        direct_paging(organization, None, from_user, alert_group=alert_group, escalation_chain=custom_chain)
+
+
+@pytest.mark.django_db
+def test_direct_paging_custom_chain(
+    make_organization, make_user_for_organization, make_alert_receive_channel, make_alert_group, make_escalation_chain
+):
+    organization = make_organization()
+    from_user = make_user_for_organization(organization)
+    custom_chain = make_escalation_chain(organization)
+
+    direct_paging(organization, None, from_user, escalation_chain=custom_chain)
+
+    # alert group created
+    alert_groups = AlertGroup.all_objects.all()
+    assert alert_groups.count() == 1
+    ag = alert_groups.get()
+    channel_filter = ag.channel_filter_with_respect_to_escalation_snapshot
+    assert channel_filter is not None
+    assert not channel_filter.is_default
+    assert not channel_filter.notify_in_slack
+    assert ag.escalation_chain_with_respect_to_escalation_snapshot == custom_chain
+
+
+@pytest.mark.django_db
 def test_unpage_user_not_exists(
     make_organization, make_user_for_organization, make_alert_receive_channel, make_alert_group
 ):

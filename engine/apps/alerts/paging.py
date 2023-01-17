@@ -3,7 +3,15 @@ from typing import Any
 from django.db import transaction
 from django.db.models import Q
 
-from apps.alerts.models import Alert, AlertGroup, AlertGroupLogRecord, AlertReceiveChannel, UserHasNotification
+from apps.alerts.models import (
+    Alert,
+    AlertGroup,
+    AlertGroupLogRecord,
+    AlertReceiveChannel,
+    ChannelFilter,
+    EscalationChain,
+    UserHasNotification,
+)
 from apps.alerts.tasks.notify_user import notify_user_task
 from apps.schedules.ical_utils import list_users_to_notify_from_ical
 from apps.schedules.models import OnCallSchedule
@@ -17,18 +25,43 @@ UserNotifications = list[tuple[User, bool]]
 ScheduleNotifications = list[tuple[OnCallSchedule, bool]]
 
 
-def _trigger_alert(organization: Organization, team: Team, title: str, message: str, from_user: User) -> AlertGroup:
+def _trigger_alert(
+    organization: Organization,
+    team: Team,
+    title: str,
+    message: str,
+    from_user: User,
+    escalation_chain: EscalationChain = None,
+) -> AlertGroup:
     """Trigger manual integration alert from params."""
     alert_receive_channel = AlertReceiveChannel.get_or_create_manual_integration(
         organization=organization,
         team=team,
-        integration=AlertReceiveChannel.INTEGRATION_MANUAL,
+        integration=AlertReceiveChannel.INTEGRATION_DIRECT_PAGING,
         deleted_at=None,
         defaults={
             "author": from_user,
-            "verbal_name": f"Manual alert groups ({team.name if team else 'General'} team)",
+            "verbal_name": f"Direct paging ({team.name if team else 'General'} team)",
         },
     )
+    if alert_receive_channel.default_channel_filter is None:
+        ChannelFilter.objects.create(
+            alert_receive_channel=alert_receive_channel,
+            notify_in_slack=False,
+            is_default=True,
+        )
+
+    channel_filter = None
+    if escalation_chain is not None:
+        channel_filter, _ = ChannelFilter.objects.get_or_create(
+            alert_receive_channel=alert_receive_channel,
+            escalation_chain=escalation_chain,
+            is_default=False,
+            defaults={
+                "filtering_term": f"escalate to {escalation_chain.name}",
+                "notify_in_slack": False,
+            },
+        )
 
     permalink = None
     if not title:
@@ -49,6 +82,7 @@ def _trigger_alert(organization: Organization, team: Team, title: str, message: 
         integration_unique_data={"created_by": from_user.username},
         image_url=None,
         link_to_upstream_details=None,
+        channel_filter=channel_filter,
     )
     return alert.group
 
@@ -103,6 +137,7 @@ def direct_paging(
     message: str = None,
     users: UserNotifications = None,
     schedules: ScheduleNotifications = None,
+    escalation_chain: EscalationChain = None,
     alert_group: AlertGroup = None,
 ) -> None:
     """Trigger escalation targeting given users/schedules.
@@ -111,7 +146,7 @@ def direct_paging(
     Otherwise, create a new alert using given title and message.
 
     """
-    if not users and not schedules:
+    if not users and not schedules and not escalation_chain:
         return
 
     if users is None:
@@ -120,9 +155,12 @@ def direct_paging(
     if schedules is None:
         schedules = []
 
+    if escalation_chain is not None and alert_group is not None:
+        raise ValueError("Cannot change an existing alert group escalation chain")
+
     # create alert group if needed
     if alert_group is None:
-        alert_group = _trigger_alert(organization, team, title, message, from_user)
+        alert_group = _trigger_alert(organization, team, title, message, from_user, escalation_chain=escalation_chain)
 
     # get on call users, add log entry for each schedule
     for (s, important) in schedules:
