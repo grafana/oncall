@@ -50,8 +50,8 @@ import { PageProps, WithStoreProps } from 'state/types';
 import { useStore } from 'state/useStore';
 import { withMobXProviderContext } from 'state/withStore';
 import { openNotification } from 'utils';
-import LocationHelper from 'utils/LocationHelper';
 import { UserActions } from 'utils/authorization';
+import { PLUGIN_ROOT } from 'utils/consts';
 import sanitize from 'utils/sanitize';
 
 import { getActionButtons, getIncidentStatusTag, renderRelatedUsers } from './Incident.helpers';
@@ -336,6 +336,7 @@ class IncidentPage extends React.Component<IncidentPageProps, IncidentPageState>
   renderTimeline = () => {
     const {
       store,
+      history,
       match: {
         params: { id },
       },
@@ -380,7 +381,7 @@ class IncidentPage extends React.Component<IncidentPageProps, IncidentPageState>
                     </Text>
                   )}
                   <Text type="primary">
-                    {reactStringReplace(item.action, /\{\{([^}]+)\}\}/g, this.getPlaceholderReplaceFn(item))}
+                    {reactStringReplace(item.action, /\{\{([^}]+)\}\}/g, this.getPlaceholderReplaceFn(item, history))}
                   </Text>
                   <Text type="secondary" size="small">
                     {moment(item.created_at).format('MMM DD, YYYY hh:mm A')}
@@ -444,20 +445,20 @@ class IncidentPage extends React.Component<IncidentPageProps, IncidentPageState>
       .then(this.update);
   };
 
-  getPlaceholderReplaceFn = (entity: any) => {
+  getPlaceholderReplaceFn = (entity: any, history) => {
     return (match: string) => {
       switch (match) {
         case 'author':
           return (
             <span
-              onClick={() => LocationHelper.update({ id: entity?.author?.pk, page: 'users' }, 'replace')}
+              onClick={() => history.push(`${PLUGIN_ROOT}/users/${entity?.author?.pk}`)}
               style={{ textDecoration: 'underline', cursor: 'pointer' }}
             >
               {entity.author?.username}
             </span>
           );
         default:
-          console.warn('Unknown render_after_resolve_report_json enity placeholder');
+          console.warn('Unknown render_after_resolve_report_json entity placeholder');
           return '';
       }
     };

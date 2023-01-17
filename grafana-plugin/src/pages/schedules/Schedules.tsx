@@ -28,7 +28,6 @@ import { Timezone } from 'models/timezone/timezone.types';
 import { getStartOfWeek } from 'pages/schedule/Schedule.helpers';
 import { WithStoreProps } from 'state/types';
 import { withMobXProviderContext } from 'state/withStore';
-import LocationHelper from 'utils/LocationHelper';
 import { UserActions } from 'utils/authorization';
 import { PLUGIN_ROOT } from 'utils/consts';
 
@@ -261,7 +260,9 @@ class SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSta
   };
 
   getScheduleClickHandler = (scheduleId: Schedule['id']) => {
-    return () => LocationHelper.update({ page: 'schedule', id: scheduleId }, 'replace');
+    const { history } = this.props;
+
+    return () => history.push(`${PLUGIN_ROOT}/schedules/${scheduleId}`);
   };
 
   renderType = (value: number) => {
