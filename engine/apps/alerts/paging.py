@@ -47,7 +47,7 @@ def _trigger_alert(
     if alert_receive_channel.default_channel_filter is None:
         ChannelFilter.objects.create(
             alert_receive_channel=alert_receive_channel,
-            notify_in_slack=False,
+            notify_in_slack=True,
             is_default=True,
         )
 
@@ -59,7 +59,7 @@ def _trigger_alert(
             is_default=False,
             defaults={
                 "filtering_term": f"escalate to {escalation_chain.name}",
-                "notify_in_slack": False,
+                "notify_in_slack": True,
             },
         )
 

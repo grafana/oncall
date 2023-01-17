@@ -275,7 +275,7 @@ def test_direct_paging_custom_chain(
     channel_filter = ag.channel_filter_with_respect_to_escalation_snapshot
     assert channel_filter is not None
     assert not channel_filter.is_default
-    assert not channel_filter.notify_in_slack
+    assert channel_filter.notify_in_slack
     assert ag.escalation_chain_with_respect_to_escalation_snapshot == custom_chain
 
 
