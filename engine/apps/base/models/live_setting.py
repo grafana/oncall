@@ -39,6 +39,13 @@ class LiveSetting(models.Model):
         "EMAIL_HOST_PASSWORD",
         "EMAIL_USE_TLS",
         "EMAIL_FROM_ADDRESS",
+        "PHONE_PROVIDER",
+        "ASTERISK_ARI_ENDPOINT",
+        "ASTERISK_ARI_APIKEY",
+        "ASTERISK_ARI_CALLER_ID",
+        "ASTERISK_ARI_CONTEXT",
+        "ASTERISK_ARI_EXTENSION",
+        "ASTERISK_ARI_TRUNK_NAME",
         "TWILIO_ACCOUNT_SID",
         "TWILIO_AUTH_TOKEN",
         "TWILIO_API_KEY_SID",
@@ -93,6 +100,16 @@ class LiveSetting(models.Model):
             "Slack secrets can't be verified on the backend, please try installing the Slack Bot "
             "after you update them."
         ),
+        "PHONE_PROVIDER": "Switch between Asterisk and Twilio. Default: Twilio",
+        "ASTERISK_ARI_ENDPOINT": (
+            "Asterisk Rest Interface Endpoint. "
+            "Eg. http://asterisk.local:8088/ari"
+        ),
+        "ASTERISK_ARI_APIKEY": "API Key to access ARI (Usually in the form of ari_username:ari_password). ",
+        "ASTERISK_ARI_CALLER_ID": "Caller ID used by Asterisk.",
+        "ASTERISK_ARI_CONTEXT": "Context for Asterisk.",
+        "ASTERISK_ARI_EXTENSION": "Extension used when send alert via Asterisk.",
+        "ASTERISK_ARI_TRUNK_NAME": "Trunk provider name to connect to.",
         "TWILIO_ACCOUNT_SID": (
             "Twilio account SID/username to allow OnCall to send SMSes and make phone calls, see "
             "<a href='https://support.twilio.com/hc/en-us/articles/223136027-Auth-Tokens-and-How-to-Change-Them' target='_blank'>"
@@ -141,6 +158,12 @@ class LiveSetting(models.Model):
 
     SECRET_SETTING_NAMES = (
         "EMAIL_HOST_PASSWORD",
+        "ASTERISK_ARI_ENDPOINT",
+        "ASTERISK_ARI_APIKEY",
+        "ASTERISK_ARI_CALLER_ID",
+        "ASTERISK_ARI_CONTEXT",
+        "ASTERISK_ARI_EXTENSION",
+        "ASTERISK_ARI_TRUNK_NAME",
         "TWILIO_ACCOUNT_SID",
         "TWILIO_AUTH_TOKEN",
         "TWILIO_API_KEY_SID",

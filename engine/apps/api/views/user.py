@@ -34,6 +34,7 @@ from apps.telegram.client import TelegramClient
 from apps.telegram.models import TelegramVerificationCode
 from apps.twilioapp.phone_manager import PhoneManager
 from apps.twilioapp.twilio_client import twilio_client
+from apps.twilioapp.asterisk_client import asterisk_client
 from apps.user_management.models import Team, User
 from common.api_helpers.exceptions import Conflict
 from common.api_helpers.mixins import FilterSerializerMixin, PublicPrimaryKeyMixin
@@ -335,13 +336,19 @@ class UserView(
         if phone_number is None:
             return Response(status=status.HTTP_400_BAD_REQUEST)
 
-        try:
-            twilio_client.make_test_call(to=phone_number)
-        except Exception as e:
-            logger.error(f"Unable to make a test call due to {e}")
-            return Response(
-                data="Something went wrong while making a test call", status=status.HTTP_500_INTERNAL_SERVER_ERROR
-            )
+        if live_settings.PHONE_PROVIDER == "Asterisk":
+            asterisk_client.make_test_call(to=phone_number)
+        elif live_settings.PHONE_PROVIDER == "Twilio":
+            try:
+                twilio_client.make_test_call(to=phone_number)
+            except Exception as e:
+                logger.exception("Unable to make a test call due to", e)
+                return Response(
+                    data="Something went wrong while making a test call", status=status.HTTP_500_INTERNAL_SERVER_ERROR
+                )
+        else: 
+            logger.error("Invalid provider {}", live_settings.PHONE_PROVIDER)
+
 
         return Response(status=status.HTTP_200_OK)
 

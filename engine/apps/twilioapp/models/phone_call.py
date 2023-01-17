@@ -13,6 +13,8 @@ from apps.alerts.signals import user_notification_action_triggered_signal
 from apps.base.utils import live_settings
 from apps.twilioapp.constants import TwilioCallStatuses
 from apps.twilioapp.twilio_client import twilio_client
+from apps.twilioapp.asterisk_client import asterisk_client
+
 from common.api_helpers.utils import create_engine_url
 from common.utils import clean_markup, escape_for_twilio_phone_call
 
@@ -231,33 +233,36 @@ class PhoneCall(models.Model):
 
     @classmethod
     def _make_call(cls, user, message_body, alert_group=None, notification_policy=None, grafana_cloud=False):
-        if not user.verified_phone_number:
-            raise PhoneCall.PhoneNumberNotVerifiedError("User phone number is not verified")
+        if live_settings.PHONE_PROVIDER == "Asterisk":
+            asterisk_client.make_call(message_body, user.verified_phone_number)
+        else:
+            if not user.verified_phone_number:
+                raise PhoneCall.PhoneNumberNotVerifiedError("User phone number is not verified")
 
-        phone_call = PhoneCall(
-            represents_alert_group=alert_group,
-            receiver=user,
-            notification_policy=notification_policy,
-            grafana_cloud_notification=grafana_cloud,
-        )
-        phone_calls_left = user.organization.phone_calls_left(user)
+            phone_call = PhoneCall(
+                represents_alert_group=alert_group,
+                receiver=user,
+                notification_policy=notification_policy,
+                grafana_cloud_notification=grafana_cloud,
+            )
+            phone_calls_left = user.organization.phone_calls_left(user)
 
-        if phone_calls_left <= 0:
-            phone_call.exceeded_limit = True
+            if phone_calls_left <= 0:
+                phone_call.exceeded_limit = True
+                phone_call.save()
+                raise PhoneCall.PhoneCallsLimitExceeded("Organization calls limit exceeded")
+
+            phone_call.exceeded_limit = False
+            if phone_calls_left < 3:
+                message_body += " {} phone calls left. Contact your admin.".format(phone_calls_left)
+
+            twilio_call = twilio_client.make_call(message_body, user.verified_phone_number, grafana_cloud=grafana_cloud)
+            if twilio_call.status and twilio_call.sid:
+                phone_call.status = TwilioCallStatuses.DETERMINANT.get(twilio_call.status, None)
+                phone_call.sid = twilio_call.sid
             phone_call.save()
-            raise PhoneCall.PhoneCallsLimitExceeded("Organization calls limit exceeded")
 
-        phone_call.exceeded_limit = False
-        if phone_calls_left < 3:
-            message_body += " {} phone calls left. Contact your admin.".format(phone_calls_left)
-
-        twilio_call = twilio_client.make_call(message_body, user.verified_phone_number, grafana_cloud=grafana_cloud)
-        if twilio_call.status and twilio_call.sid:
-            phone_call.status = TwilioCallStatuses.DETERMINANT.get(twilio_call.status, None)
-            phone_call.sid = twilio_call.sid
-        phone_call.save()
-
-        return phone_call
+            return phone_call
 
     @staticmethod
     def get_error_code_by_twilio_status(status):

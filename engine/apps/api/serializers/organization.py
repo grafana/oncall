@@ -114,10 +114,14 @@ class CurrentOrganizationSerializer(OrganizationSerializer):
     def get_env_status(self, obj):
         LiveSetting.populate_settings_if_needed()
 
+        phone_provider = LiveSetting.objects.get(name="PHONE_PROVIDER").value
         telegram_configured = not LiveSetting.objects.filter(name__startswith="TELEGRAM", error__isnull=False).exists()
         twilio_configured = not LiveSetting.objects.filter(name__startswith="TWILIO", error__isnull=False).exists()
+        asterisk_configured = not LiveSetting.objects.filter(name__startswith="ASTERISK", error__isnull=False).exists()
 
         return {
+            "asterisk_configured": asterisk_configured,
+            "phone_provider": phone_provider,
             "telegram_configured": telegram_configured,
             "twilio_configured": twilio_configured,
         }

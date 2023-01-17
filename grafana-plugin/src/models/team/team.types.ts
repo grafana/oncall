@@ -64,6 +64,8 @@ export interface Team {
   is_resolution_note_required: boolean;
 
   env_status: {
+    asterisk_configured: boolean;
+    phone_provider: string;
     twilio_configured: boolean;
     telegram_configured: boolean;
   };
