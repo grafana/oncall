@@ -253,8 +253,6 @@ class EscalationSnapshotMixin:
 
         logger.debug(f"Start escalation for alert group with pk: {self.pk}")
 
-        # TODO: allow to start escalation at specific step?
-
         # take raw escalation snapshot from db if escalation is paused
         raw_escalation_snapshot = (
             self.build_raw_escalation_snapshot() if not self.pause_escalation else self.raw_escalation_snapshot

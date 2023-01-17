@@ -26,7 +26,7 @@ def _trigger_alert(organization: Organization, team: Team, title: str, message: 
         deleted_at=None,
         defaults={
             "author": from_user,
-            "verbal_name": f"Manual incidents ({team.name if team else 'General'} team)",
+            "verbal_name": f"Manual alert groups ({team.name if team else 'General'} team)",
         },
     )
 
