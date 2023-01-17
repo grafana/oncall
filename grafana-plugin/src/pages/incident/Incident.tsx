@@ -86,19 +86,7 @@ class IncidentPage extends React.Component<IncidentPageProps, IncidentPageState>
   }
 
   componentDidUpdate(prevProps: IncidentPageProps) {
-    const {
-      match: {
-        params: { id },
-      },
-    } = this.props;
-
-    const {
-      match: {
-        params: { id: prevId },
-      },
-    } = prevProps;
-
-    if (id !== prevId) {
+    if (this.props.match.params.id !== prevProps.match.params.id) {
       this.update();
     }
   }
