@@ -6,7 +6,7 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('user_management', '0006_organization_uuid'),
+        ('user_management', '0007_organization_deleted_at'),
     ]
 
     operations = [
