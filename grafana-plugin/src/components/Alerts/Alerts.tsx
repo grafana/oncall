@@ -1,25 +1,25 @@
-import React from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 
+import { Alert } from '@grafana/ui';
 import cn from 'classnames/bind';
+import { sanitize } from 'dompurify';
+
+import PluginLink from 'components/PluginLink/PluginLink';
+import { getSlackMessage } from 'containers/DefaultPageLayout/DefaultPageLayout.helpers';
+import { SlackError } from 'containers/DefaultPageLayout/DefaultPageLayout.types';
+import { getIfChatOpsConnected } from 'containers/DefaultPageLayout/helper';
+import { isTopNavbar } from 'plugin/GrafanaPluginRootPage.helpers';
+import { AppFeature } from 'state/features';
+import { useStore } from 'state/useStore';
+import LocationHelper from 'utils/LocationHelper';
+import { isUserActionAllowed, UserActions } from 'utils/authorization';
+import { GRAFANA_LICENSE_OSS } from 'utils/consts';
+import { useForceUpdate, useQueryParams } from 'utils/hooks';
+import { getItem, setItem } from 'utils/localStorage';
 
 import styles from './Alerts.module.scss';
-import { useStore } from 'state/useStore';
-import { useCallback, useEffect, useState } from 'react';
-import { SlackError } from 'containers/DefaultPageLayout/DefaultPageLayout.types';
-import { useForceUpdate, useQueryParams } from 'utils/hooks';
-import LocationHelper from 'utils/LocationHelper';
-import { getItem, setItem } from 'utils/localStorage';
-import { getIfChatOpsConnected } from 'containers/DefaultPageLayout/helper';
-import { Alert } from '@grafana/ui';
-import { getSlackMessage } from 'containers/DefaultPageLayout/DefaultPageLayout.helpers';
-import { AppFeature } from 'state/features';
-import { sanitize } from 'dompurify';
-import { GRAFANA_LICENSE_OSS } from 'utils/consts';
 
-import plugin from '../../../package.json';
-import { isUserActionAllowed, UserActions } from 'utils/authorization';
-import PluginLink from 'components/PluginLink/PluginLink';
-import { isTopNavbar } from 'plugin/GrafanaPluginRootPage.helpers';
+import plugin from '../../../package.json'; // eslint-disable-line
 
 const cx = cn.bind(styles);
 
