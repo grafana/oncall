@@ -3,6 +3,7 @@ import React, { useCallback, useEffect, useState } from 'react';
 import { Field, Input, Button, HorizontalGroup, Icon, VerticalGroup, LoadingPlaceholder } from '@grafana/ui';
 import cn from 'classnames/bind';
 import { observer } from 'mobx-react';
+import { RouteComponentProps, withRouter } from 'react-router-dom';
 
 import Block from 'components/GBlock/Block';
 import GTable from 'components/GTable/GTable';
@@ -14,16 +15,16 @@ import { WithStoreProps } from 'state/types';
 import { useStore } from 'state/useStore';
 import { withMobXProviderContext } from 'state/withStore';
 import { openErrorNotification } from 'utils';
-import LocationHelper from 'utils/LocationHelper';
+import { PLUGIN_ROOT } from 'utils/consts';
 
 import styles from './CloudPage.module.css';
 
 const cx = cn.bind(styles);
 
-interface CloudPageProps extends WithStoreProps {}
+interface CloudPageProps extends WithStoreProps, RouteComponentProps {}
 const ITEMS_PER_PAGE = 50;
 
-const CloudPage = observer((_props: CloudPageProps) => {
+const CloudPage = observer((props: CloudPageProps) => {
   const store = useStore();
   const [page, setPage] = useState<number>(1);
   const [cloudApiKey, setCloudApiKey] = useState<string>('');
@@ -34,6 +35,8 @@ const CloudPage = observer((_props: CloudPageProps) => {
   const [heartbeatEnabled, setheartbeatEnabled] = useState<boolean>(false);
   const [_showConfirmationModal, setShowConfirmationModal] = useState<boolean>(false);
   const [syncingUsers, setSyncingUsers] = useState<boolean>(false);
+
+  const { history } = props;
 
   useEffect(() => {
     store.cloudStore.updateItems(page);
@@ -116,7 +119,7 @@ const CloudPage = observer((_props: CloudPageProps) => {
             variant="secondary"
             size="sm"
             className={cx('table-button')}
-            onClick={() => LocationHelper.update({ page: 'users', p: page, id: user.id }, 'replace')}
+            onClick={() => history.push(`${PLUGIN_ROOT}/users/${user.id}`)}
           >
             Configure notifications
           </Button>
@@ -376,4 +379,4 @@ const CloudPage = observer((_props: CloudPageProps) => {
   );
 });
 
-export default withMobXProviderContext(CloudPage);
+export default withRouter(withMobXProviderContext(CloudPage));

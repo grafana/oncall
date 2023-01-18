@@ -5,7 +5,6 @@ import cn from 'classnames/bind';
 import { observer } from 'mobx-react';
 import ReactDOM from 'react-dom';
 
-import PluginLink from 'components/PluginLink/PluginLink';
 import GSelect from 'containers/GSelect/GSelect';
 import { WithPermissionControl } from 'containers/WithPermissionControl/WithPermissionControl';
 import { GrafanaTeam } from 'models/grafana_team/grafana_team.types';
@@ -60,9 +59,9 @@ const GrafanaTeamSelect = observer((props: GrafanaTeamSelectProps) => {
           </span>
         </Label>
         <WithPermissionControl userAction={UserActions.TeamsWrite}>
-          <PluginLink path="/org/teams" className={cx('teamSelectLink')}>
+          <a href="/org/teams" className={cx('teamSelectLink')}>
             Edit teams
-          </PluginLink>
+          </a>
         </WithPermissionControl>
       </div>
       <GSelect

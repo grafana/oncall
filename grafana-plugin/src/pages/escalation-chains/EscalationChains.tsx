@@ -4,6 +4,7 @@ import { Button, HorizontalGroup, Icon, IconButton, LoadingPlaceholder, Tooltip,
 import cn from 'classnames/bind';
 import { debounce } from 'lodash-es';
 import { observer } from 'mobx-react';
+import { RouteComponentProps, withRouter } from 'react-router-dom';
 
 import Collapse from 'components/Collapse/Collapse';
 import EscalationsFilters from 'components/EscalationsFilters/EscalationsFilters';
@@ -26,14 +27,14 @@ import { WithPermissionControl } from 'containers/WithPermissionControl/WithPerm
 import { EscalationChain } from 'models/escalation_chain/escalation_chain.types';
 import { PageProps, WithStoreProps } from 'state/types';
 import { withMobXProviderContext } from 'state/withStore';
-import LocationHelper from 'utils/LocationHelper';
 import { UserActions } from 'utils/authorization';
+import { PLUGIN_ROOT } from 'utils/consts';
 
 import styles from './EscalationChains.module.css';
 
 const cx = cn.bind(styles);
 
-interface EscalationChainsPageProps extends WithStoreProps, PageProps {}
+interface EscalationChainsPageProps extends WithStoreProps, PageProps, RouteComponentProps<{ id: string }> {}
 
 interface EscalationChainsPageState extends PageBaseState {
   escalationChainsFilters: { searchTerm: string };
@@ -63,7 +64,12 @@ class EscalationChainsPage extends React.Component<EscalationChainsPageProps, Es
   parseQueryParams = async () => {
     this.setState({ errorData: initErrorDataState() }); // reset on query parse
 
-    const { store, query } = this.props;
+    const {
+      store,
+      match: {
+        params: { id },
+      },
+    } = this.props;
     const { escalationChainStore } = store;
     const {
       escalationChainsFilters: { searchTerm },
@@ -72,16 +78,16 @@ class EscalationChainsPage extends React.Component<EscalationChainsPageProps, Es
     const searchResult = escalationChainStore.getSearchResult(searchTerm);
 
     let selectedEscalationChain: EscalationChain['id'];
-    if (query.id) {
+    if (id) {
       let escalationChain = await escalationChainStore
-        .loadItem(query.id, true)
+        .loadItem(id, true)
         .catch((error) => this.setState({ errorData: { ...getWrongTeamResponseInfo(error) } }));
 
       if (!escalationChain) {
         return;
       }
 
-      escalationChain = escalationChainStore.items[query.id];
+      escalationChain = escalationChainStore.items[id];
       if (escalationChain) {
         selectedEscalationChain = escalationChain.id;
       }
@@ -91,16 +97,18 @@ class EscalationChainsPage extends React.Component<EscalationChainsPageProps, Es
       selectedEscalationChain = searchResult[0]?.id;
     }
 
-    this.setSelectedEscalationChain(selectedEscalationChain);
+    if (selectedEscalationChain) {
+      this.setSelectedEscalationChain(selectedEscalationChain);
+    }
   };
 
   setSelectedEscalationChain = (escalationChain: EscalationChain['id']) => {
-    const { store } = this.props;
+    const { store, history } = this.props;
 
     const { escalationChainStore } = store;
 
     this.setState({ selectedEscalationChain: escalationChain }, () => {
-      LocationHelper.update({ id: escalationChain }, 'partial');
+      history.push(`${PLUGIN_ROOT}/escalations/${escalationChain || ''}`);
       if (escalationChain) {
         escalationChainStore.updateEscalationChainDetails(escalationChain);
       }
@@ -114,13 +122,18 @@ class EscalationChainsPage extends React.Component<EscalationChainsPageProps, Es
   };
 
   componentDidUpdate(prevProps: EscalationChainsPageProps) {
-    if (this.props.query.id !== prevProps.query.id) {
+    if (this.props.match.params.id !== prevProps.match.params.id) {
       this.parseQueryParams();
     }
   }
 
   render() {
-    const { store, query } = this.props;
+    const {
+      store,
+      match: {
+        params: { id },
+      },
+    } = this.props;
     const {
       showCreateEscalationChainModal,
       escalationChainIdToCopy,
@@ -137,7 +150,7 @@ class EscalationChainsPage extends React.Component<EscalationChainsPageProps, Es
         errorData={errorData}
         objectName="escalation"
         pageName="escalations"
-        itemNotFoundMessage={`Escalation chain with id=${query?.id} is not found. Please select escalation chain from the list.`}
+        itemNotFoundMessage={`Escalation chain with id=${id} is not found. Please select escalation chain from the list.`}
       >
         {() => (
           <>
@@ -371,4 +384,4 @@ class EscalationChainsPage extends React.Component<EscalationChainsPageProps, Es
   handleEscalationChainSelect = () => {};
 }
 
-export default withMobXProviderContext(EscalationChainsPage);
+export default withRouter(withMobXProviderContext(EscalationChainsPage));

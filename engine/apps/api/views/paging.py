@@ -1,0 +1,44 @@
+from rest_framework import status
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
+from rest_framework.views import APIView
+
+from apps.alerts.paging import direct_paging
+from apps.api.permissions import RBACPermission
+from apps.api.serializers.paging import DirectPagingSerializer
+from apps.auth_token.auth import PluginAuthentication
+
+
+class DirectPagingAPIView(APIView):
+    authentication_classes = (PluginAuthentication,)
+    permission_classes = (IsAuthenticated, RBACPermission)
+
+    rbac_permissions = {
+        "post": [RBACPermission.Permissions.ALERT_GROUPS_WRITE],
+    }
+
+    def post(self, request):
+        organization = request.auth.organization
+        from_user = request.user
+        team = from_user.current_team
+
+        serializer = DirectPagingSerializer(data=request.data, context={"organization": organization})
+        serializer.is_valid(raise_exception=True)
+
+        users = [(user["instance"], user["important"]) for user in serializer.validated_data["users"]]
+        schedules = [
+            (schedule["instance"], schedule["important"]) for schedule in serializer.validated_data["schedules"]
+        ]
+
+        direct_paging(
+            organization=organization,
+            team=team,
+            from_user=from_user,
+            title=serializer.validated_data["title"],
+            message=serializer.validated_data["message"],
+            users=users,
+            schedules=schedules,
+            alert_group=serializer.validated_data["alert_group"],
+        )
+
+        return Response(status=status.HTTP_200_OK)

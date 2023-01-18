@@ -15,7 +15,7 @@ import { useStore } from 'state/useStore';
 import LocationHelper from 'utils/LocationHelper';
 import { isUserActionAllowed, UserActions } from 'utils/authorization';
 import { DEFAULT_PAGE, GRAFANA_LICENSE_OSS } from 'utils/consts';
-import { useForceUpdate, useQueryParams } from 'utils/hooks';
+import { useForceUpdate } from 'utils/hooks';
 
 import plugin from '../../../package.json'; // eslint-disable-line
 
@@ -30,6 +30,7 @@ const cx = cn.bind(styles);
 
 interface DefaultPageLayoutProps extends AppRootProps {
   children?: any;
+  page: string;
 }
 
 enum AlertID {
@@ -37,13 +38,11 @@ enum AlertID {
 }
 
 const DefaultPageLayout: FC<DefaultPageLayoutProps> = observer((props) => {
-  const { children, query } = props;
-  const queryParams = useQueryParams();
+  const { children, query, page } = props;
 
   const [showSlackInstallAlert, setShowSlackInstallAlert] = useState<SlackError | undefined>();
 
   const forceUpdate = useForceUpdate();
-  const page = queryParams.get('page') || DEFAULT_PAGE;
 
   const handleCloseInstallSlackAlert = useCallback(() => {
     setShowSlackInstallAlert(undefined);
@@ -83,7 +82,7 @@ const DefaultPageLayout: FC<DefaultPageLayoutProps> = observer((props) => {
 
   function renderTopNavbar(): JSX.Element {
     return (
-      <PluginPage pageNav={pages[page].getPageNav()} renderAlertsFn={renderAlertsFn}>
+      <PluginPage page={page} pageNav={pages[page || DEFAULT_PAGE].getPageNav()} renderAlertsFn={renderAlertsFn}>
         <div className={cx('root')}>{children}</div>
       </PluginPage>
     );
@@ -91,7 +90,7 @@ const DefaultPageLayout: FC<DefaultPageLayoutProps> = observer((props) => {
 
   function renderLegacyNavbar(): JSX.Element {
     return (
-      <PluginPage>
+      <PluginPage page={page}>
         <div className="page-container u-height-100">
           <div className={cx('root', 'navbar-legacy')}>
             {renderAlertsFn()}

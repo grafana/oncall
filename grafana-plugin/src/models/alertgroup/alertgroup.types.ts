@@ -52,6 +52,7 @@ export interface Alert {
   acknowledged_on_source: boolean;
   channel: Channel;
   slack_permalink?: string;
+  declare_incident_link?: string;
   related_users: User[];
   render_after_resolve_report_json?: TimeLineItem[];
   render_for_slack: { attachments: any[] };

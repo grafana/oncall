@@ -5,6 +5,7 @@ import { describe, expect, test } from '@jest/globals';
 import { render, screen, waitFor } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import outgoingWebhooksStub from 'jest/outgoingWebhooksStub';
+import { BrowserRouter, Switch } from 'react-router-dom';
 
 import { OutgoingWebhook } from 'models/outgoing_webhook/outgoing_webhook.types';
 import { OutgoingWebhooks } from 'pages/outgoing_webhooks/OutgoingWebhooks';
@@ -66,7 +67,13 @@ describe('OutgoingWebhooks', () => {
   });
 
   test('It renders all retrieved webhooks', async () => {
-    render(<OutgoingWebhooks {...getProps()} />);
+    render(
+      <BrowserRouter>
+        <Switch>
+          <OutgoingWebhooks {...getProps()} />
+        </Switch>
+      </BrowserRouter>
+    );
 
     await waitFor(() => {
       const gTable = screen.queryByTestId('test__gTable');
@@ -79,7 +86,13 @@ describe('OutgoingWebhooks', () => {
 
   test('It opens Edit View if [id] is supplied', async () => {
     const id = outgoingWebhooks[0].id;
-    render(<OutgoingWebhooks {...getProps(id)} />);
+    render(
+      <BrowserRouter>
+        <Switch>
+          <OutgoingWebhooks {...getProps(id)} />
+        </Switch>
+      </BrowserRouter>
+    );
 
     expect(() => queryEditForm()).toThrow(); // before updates kick in
     await waitFor(() => {
@@ -88,7 +101,7 @@ describe('OutgoingWebhooks', () => {
   });
 
   function getProps(id: OutgoingWebhook['id'] = undefined): any {
-    return { store: storeMock, query: { id } };
+    return { store: storeMock, match: { params: { id } } };
   }
 
   function queryEditForm(): HTMLElement {
