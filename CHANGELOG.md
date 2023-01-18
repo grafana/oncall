@@ -14,17 +14,20 @@ based on whether we are dealing with an open-source, or cloud installation
 - Backend implementation to support direct user/schedule paging
 - Changed documentation links to open in new window
 - Remove helm chart signing
+- Changed the user's profile modal to be wide for all tabs
 
 ### Added
 
 - Added state filter for alert_group public API endpoint.
 - Enrich user tooltip on Schedule page
+- Added redirects for old-style links
 
 ### Fixed
 
 - Updated typo in Helm chart values when specifying a custom Slack command name
 - Fix for web schedules ical export to give overrides the right priority
 - Fix for topnavbar to show initial loading inside PluginPage
+- Minor fixes
 
 ## v1.1.16 (2023-01-12)
 
