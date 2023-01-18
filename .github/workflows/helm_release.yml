@@ -14,5 +14,3 @@ jobs:
       ct_configfile: helm/ct.yaml
     secrets:
       helm_repo_token: ${{ secrets.GH_HELM_RELEASE }}
-      # See https://github.com/grafana/helm-charts/blob/main/INTERNAL.md about this key
-      gpg_key_base64: ${{ secrets.HELM_SIGN_KEY_BASE64 }}

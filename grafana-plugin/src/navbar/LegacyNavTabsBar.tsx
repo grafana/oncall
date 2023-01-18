@@ -27,7 +27,11 @@ export default function LegacyNavTabsBar({ currentPage }: { currentPage: string 
             icon={page.icon as IconName}
             label={page.text}
             href={page.path}
-            active={currentPage === page.id}
+            active={
+              currentPage === page.id ||
+              (currentPage === 'schedule' && page.id === 'schedules') ||
+              (currentPage === 'incident' && page.id === 'incidents')
+            }
           />
         ))}
       </TabsBar>

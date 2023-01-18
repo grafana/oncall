@@ -67,7 +67,7 @@ def test_create_on_call_shift_override(on_call_shift_internal_api_setup, make_us
         "title": "Test Shift Override",
         "type": CustomOnCallShift.TYPE_OVERRIDE,
         "schedule": schedule.public_primary_key,
-        "priority_level": 0,
+        "priority_level": 99,
         "shift_start": start_date.strftime("%Y-%m-%dT%H:%M:%SZ"),
         "shift_end": (start_date + timezone.timedelta(hours=2)).strftime("%Y-%m-%dT%H:%M:%SZ"),
         "rotation_start": start_date.strftime("%Y-%m-%dT%H:%M:%SZ"),
