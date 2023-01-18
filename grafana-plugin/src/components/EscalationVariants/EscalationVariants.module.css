@@ -1,0 +1,18 @@
+.escalation-variants-dropdown {
+  border: var(--border-medium);
+  position: absolute;
+  background: var(--primary-background);
+  width: 340px;
+  z-index: 10;
+}
+
+.assign-responders-picker {
+  padding: 8px 8px;
+  background: var(--primary-background);
+  height: 196px;
+}
+
+.assign-responders-list {
+  overflow: auto;
+  overflow-y: scroll;
+}

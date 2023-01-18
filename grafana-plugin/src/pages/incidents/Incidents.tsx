@@ -10,6 +10,7 @@ import Emoji from 'react-emoji-render';
 import CursorPagination from 'components/CursorPagination/CursorPagination';
 import GTable from 'components/GTable/GTable';
 import IntegrationLogo from 'components/IntegrationLogo/IntegrationLogo';
+import ManualAlertGroup from 'components/ManualAlertGroup/ManualAlertGroup';
 import PluginLink from 'components/PluginLink/PluginLink';
 import Text from 'components/Text/Text';
 import Tutorial from 'components/Tutorial/Tutorial';
@@ -56,6 +57,7 @@ interface IncidentsPageState {
   affectedRows: { [key: string]: boolean };
   filters?: IncidentsFiltersType;
   pagination: Pagination;
+  showAddAlertGroupForm: boolean;
 }
 
 const ITEMS_PER_PAGE = 25;
@@ -81,6 +83,7 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
     this.state = {
       selectedIncidentIds: [],
       affectedRows: {},
+      showAddAlertGroupForm: false,
       pagination: {
         start,
         end: start + itemsPerPage - 1,
@@ -98,10 +101,23 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
   }
 
   render() {
+    const { showAddAlertGroupForm } = this.state;
     return (
       <div className={cx('root')}>
+        <div className={cx('title')}>
+          <Button icon="bell" onClick={this.handleOnClickEscalateTo}>
+            Escalate to
+          </Button>
+        </div>
         {this.renderIncidentFilters()}
         {this.renderTable()}
+        {showAddAlertGroupForm && (
+          <ManualAlertGroup
+            onHide={() => {
+              this.setState({ showAddAlertGroupForm: false });
+            }}
+          />
+        )}
       </div>
     );
   }
@@ -115,6 +131,10 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
       </div>
     );
   }
+
+  handleOnClickEscalateTo = () => {
+    this.setState({ showAddAlertGroupForm: true });
+  };
 
   handleFiltersChange = (filters: IncidentsFiltersType, isOnMount: boolean) => {
     const { store } = this.props;
