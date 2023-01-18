@@ -27,7 +27,6 @@ based on whether we are dealing with an open-source, or cloud installation
 - Updated typo in Helm chart values when specifying a custom Slack command name
 - Fix for web schedules ical export to give overrides the right priority
 - Fix for topnavbar to show initial loading inside PluginPage
-- Minor fixes
 
 ## v1.1.16 (2023-01-12)
 
