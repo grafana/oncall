@@ -11,6 +11,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Allow messaging backends to be enabled/disabled per organization ([#1151](https://github.com/grafana/oncall/pull/1151))
 
+### Changed
+
+- Send a Slack DM when user is not in channel ([#1144](https://github.com/grafana/oncall/pull/1144))
+
 ## v1.1.17 (2023-01-18)
 
 ### Changed
