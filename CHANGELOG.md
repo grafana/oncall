@@ -5,11 +5,26 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## Unreleased
+## v1.1.17 (2023-01-18)
+
+### Changed
+
+- Modified how the `Organization.is_rbac_permissions_enabled` flag is set,
+based on whether we are dealing with an open-source, or cloud installation
+- Backend implementation to support direct user/schedule paging
+- Changed documentation links to open in new window
+- Remove helm chart signing
 
 ### Added
 
 - Added state filter for alert_group public API endpoint.
+- Enrich user tooltip on Schedule page
+
+### Fixed
+
+- Updated typo in Helm chart values when specifying a custom Slack command name
+- Fix for web schedules ical export to give overrides the right priority
+- Fix for topnavbar to show initial loading inside PluginPage
 
 ## v1.1.16 (2023-01-12)
 
@@ -24,13 +39,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- Simplify and speed up slack rendering (#1105)
-- Faro - Point to 3 separate apps instead of just 1 for all environments (#1110)
-- Schedules - (#1114 #1109)
+- Simplify and speed up slack rendering ([#1105](https://github.com/grafana/oncall/pull/1105))
+- Faro - Point to 3 separate apps instead of just 1 for all environments ([#1110](https://github.com/grafana/oncall/pull/1110))
+- Schedules - ([#1114](https://github.com/grafana/oncall/pull/1114), [#1109](https://github.com/grafana/oncall/pull/1109))
 
 ### Fixed
 
-- Bugfix for topnavbar to place alerts inside PageNav (#1040)
+- Bugfix for topnavbar to place alerts inside PageNav ([#1040](https://github.com/grafana/oncall/pull/1040))
 
 ## v1.1.14 (2023-01-05)
 
