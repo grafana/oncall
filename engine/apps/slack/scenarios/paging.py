@@ -28,7 +28,11 @@ DEFAULT_POLICY = "default"
 IMPORTANT_POLICY = "important"
 REMOVE_ACTION = "remove"
 
-USER_ACTIONS = (DEFAULT_POLICY, IMPORTANT_POLICY, REMOVE_ACTION)
+USER_ACTIONS = (
+    (DEFAULT_POLICY, "Set default notification policy"),
+    (IMPORTANT_POLICY, "Set important notification policy"),
+    (REMOVE_ACTION, "Remove from escalation"),
+)
 
 
 # helpers to manage current selected users state
@@ -284,7 +288,7 @@ def _get_form_view(routing_uid, blocks, private_metatada):
         "callback_id": routing_uid,
         "title": {
             "type": "plain_text",
-            "text": "Escalate to",
+            "text": "Create alert group",
         },
         "close": {
             "type": "plain_text",
@@ -430,7 +434,7 @@ def _get_users_select(slack_user_identity, organization, team, value, input_id_p
         {
             "text": {
                 "type": "plain_text",
-                "text": f"{user.username}",
+                "text": f"{user.name or user.username}",
                 "emoji": True,
             },
             "value": f"{user.pk}",
@@ -440,7 +444,7 @@ def _get_users_select(slack_user_identity, organization, team, value, input_id_p
 
     user_select = {
         "type": "section",
-        "text": {"type": "mrkdwn", "text": "Add a user"},
+        "text": {"type": "mrkdwn", "text": "Add responders"},
         "block_id": input_id_prefix + DIRECT_PAGING_USER_SELECT_ID,
         "accessory": {
             "type": "static_select",
@@ -459,12 +463,12 @@ def _get_selected_users_list(input_id_prefix, users):
             {
                 "type": "section",
                 "block_id": input_id_prefix + f"user_{u.pk}",
-                "text": {"type": "mrkdwn", "text": f"*{u.username}* | {p}"},
+                "text": {"type": "mrkdwn", "text": f"*{u.name or u.username}* | {p} notifications\n_({u.timezone})_"},
                 "accessory": {
                     "type": "overflow",
                     "options": [
-                        {"text": {"type": "plain_text", "text": f"{action}"}, "value": f"{action}|{u.pk}"}
-                        for action in USER_ACTIONS
+                        {"text": {"type": "plain_text", "text": f"{label}"}, "value": f"{action}|{u.pk}"}
+                        for (action, label) in USER_ACTIONS
                     ],
                     "action_id": OnUserActionChange.routing_uid(),
                 },
@@ -482,13 +486,18 @@ def _display_availability_warnings(payload, warnings, organization, user):
     messages = []
     for w in warnings:
         if w["error"] == USER_IS_NOT_ON_CALL:
-            messages.append(f"User *{user.username}* is not on-call.\nWe recommend you to select on-call users first.")
-            for schedule, users in w["data"].get("schedules", {}).items():
+            messages.append(
+                f":warning: User *{user.name or user.username}* is not on-call.\nWe recommend you to select on-call users first."
+            )
+            schedules_available = w["data"].get("schedules", {})
+            if schedules_available:
+                messages.append(":information_source: Currently on-call from schedules:")
+            for schedule, users in schedules_available.items():
                 oncall_users = organization.users.filter(public_primary_key__in=users)
-                usernames = ", ".join(u.username for u in oncall_users)
-                messages.append(f"\n - From schedule {schedule}: {usernames}")
+                usernames = ", ".join(f"*{u.name or u.username}*" for u in oncall_users)
+                messages.append(f":spiral_calendar_pad: {schedule}: {usernames}")
         elif w["error"] == USER_HAS_NO_NOTIFICATION_POLICY:
-            messages.append(f"User *{user.username}* has no notification policy setup.")
+            messages.append(f":warning: User *{user.name or user.username}* has no notification policy setup.")
 
     return {
         "type": "modal",
