@@ -675,7 +675,6 @@ def test_get_alert_receive_channels_direct_paging_hidden(
     make_organization_and_user_with_plugin_token, make_alert_receive_channel, make_user_auth_headers
 ):
     organization, user, token = make_organization_and_user_with_plugin_token()
-    non_direct_paging_alert_receive_channel = make_alert_receive_channel(user.organization)
     make_alert_receive_channel(user.organization, integration=AlertReceiveChannel.INTEGRATION_DIRECT_PAGING)
 
     client = APIClient()
@@ -684,6 +683,4 @@ def test_get_alert_receive_channels_direct_paging_hidden(
 
     # Check no direct paging integrations in the response
     assert response.status_code == status.HTTP_200_OK
-    assert non_direct_paging_alert_receive_channel.public_primary_key not in [
-        integration["id"] for integration in response.json()
-    ]
+    assert response.json() == []
