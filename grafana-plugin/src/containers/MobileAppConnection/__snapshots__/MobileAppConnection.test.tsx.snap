@@ -2794,7 +2794,7 @@ exports[`MobileAppConnection it shows a warning when cloud is not connected 1`] 
     >
       <a
         class="root"
-        href="/a/grafana-oncall-app/?page=cloud"
+        href="/a/grafana-oncall-app/cloud"
       >
         <button
           class="css-1a8393j-button"

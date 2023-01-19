@@ -2,6 +2,7 @@ import React from 'react';
 
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import { MemoryRouter } from 'react-router-dom';
 
 import { CloudStore } from 'models/cloud/cloud';
 import { UserStore } from 'models/user/user';
@@ -263,7 +264,12 @@ describe('MobileAppConnection', () => {
   test('it shows a warning when cloud is not connected', async () => {
     mockUseStore({}, true, false);
 
-    const component = render(<MobileAppConnection userPk={USER_PK} />);
+    // Using MemoryRouter to avoid "Invariant failed: You should not use <Link> outside a <Router>"
+    const component = render(
+      <MemoryRouter>
+        <MobileAppConnection userPk={USER_PK} />
+      </MemoryRouter>
+    );
     expect(component.container).toMatchSnapshot();
   });
 });
