@@ -8,7 +8,6 @@ import { UserStore } from 'models/user/user';
 import { User } from 'models/user/user.types';
 import { RootStore } from 'state';
 import { useStore as useStoreOriginal } from 'state/useStore';
-import { GRAFANA_LICENSE_OSS } from 'utils/consts';
 
 import MobileAppConnection from './MobileAppConnection';
 
@@ -53,7 +52,7 @@ const mockUseStore = (rest?: any, connected = false, cloud_connected = true) => 
       getCloudConnectionStatus: jest.fn().mockReturnValue({ cloud_connection_status: cloud_connected }),
       cloudConnectionStatus: { cloud_connection_status: cloud_connected },
     } as unknown as CloudStore,
-    backendLicense: GRAFANA_LICENSE_OSS,
+    hasFeature: jest.fn().mockReturnValue(true),
   } as unknown as RootStore;
 
   useStore.mockReturnValue(store);

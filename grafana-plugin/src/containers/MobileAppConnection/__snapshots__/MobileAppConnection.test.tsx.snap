@@ -2784,7 +2784,7 @@ exports[`MobileAppConnection it shows a warning when cloud is not connected 1`] 
       class="css-ztyofd-layoutChildrenWrapper"
     >
       <span
-        class="root text text--undefined text--medium"
+        class="root text text--secondary text--medium"
       >
         Please connect Cloud OnCall to use the mobile app
       </span>
