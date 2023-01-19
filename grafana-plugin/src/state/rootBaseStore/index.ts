@@ -98,9 +98,8 @@ export class RootBaseStore {
   // stores
 
   async updateBasicData() {
-    return Promise.all([
+    let storeUpdatePromises = [
       this.teamStore.loadCurrentTeam(),
-      this.cloudStore.loadCloudConnectionStatus(),
       this.grafanaTeamStore.updateItems(),
       this.updateFeatures(),
       this.userStore.updateNotificationPolicyOptions(),
@@ -110,7 +109,14 @@ export class RootBaseStore {
       this.escalationPolicyStore.updateWebEscalationPolicyOptions(),
       this.escalationPolicyStore.updateEscalationPolicyOptions(),
       this.escalationPolicyStore.updateNumMinutesInWindowOptions(),
-    ]);
+    ];
+
+    // Only fetch cloud connection status when cloud connection feature is enabled on OSS instance
+    if (this.hasFeature(AppFeature.CloudConnection)) {
+      storeUpdatePromises.push(this.cloudStore.loadCloudConnectionStatus());
+    }
+
+    return Promise.all(storeUpdatePromises);
   }
 
   setupPluginError(errorMsg: string) {

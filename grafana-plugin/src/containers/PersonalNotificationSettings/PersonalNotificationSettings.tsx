@@ -15,7 +15,6 @@ import { User as UserType } from 'models/user/user.types';
 import { AppFeature } from 'state/features';
 import { useStore } from 'state/useStore';
 import { UserActions } from 'utils/authorization';
-import { GRAFANA_LICENSE_OSS } from 'utils/consts';
 
 import { getColor } from './PersonalNotificationSettings.helpers';
 import img from './img/default-step.png';
@@ -117,7 +116,7 @@ const PersonalNotificationSettings = observer((props: PersonalNotificationSettin
   // Mobile app related NotificationPolicy props
   const isMobileAppConnected = user.messaging_backends['MOBILE_APP']?.connected;
   const showCloudConnectionWarning =
-    store.backendLicense === GRAFANA_LICENSE_OSS && !store.cloudStore.cloudConnectionStatus.cloud_connection_status;
+    !store.hasFeature(AppFeature.CloudConnection) || !store.cloudStore.cloudConnectionStatus.cloud_connection_status;
 
   return (
     <div className={cx('root')}>
