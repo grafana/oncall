@@ -9,7 +9,11 @@ from apps.schedules.models import OnCallScheduleCalendar, OnCallScheduleICal
 
 @pytest.mark.django_db
 def test_direct_paging_new_alert_group(
-    make_organization_and_user_with_plugin_token, make_user, make_schedule, make_user_auth_headers
+    make_organization_and_user_with_plugin_token,
+    make_user,
+    make_schedule,
+    make_escalation_chain,
+    make_user_auth_headers,
 ):
     organization, user, token = make_organization_and_user_with_plugin_token(role=LegacyAccessControlRole.EDITOR)
 
@@ -32,6 +36,8 @@ def test_direct_paging_new_alert_group(
         },
     ]
 
+    escalation_chain_to_page = make_escalation_chain(organization)
+
     title = "Test Alert Group"
     message = "Testing direct paging with new alert group"
 
@@ -40,7 +46,13 @@ def test_direct_paging_new_alert_group(
 
     response = client.post(
         url,
-        data={"users": users_to_page, "schedules": schedules_to_page, "title": title, "message": message},
+        data={
+            "users": users_to_page,
+            "schedules": schedules_to_page,
+            "escalation_chain_id": escalation_chain_to_page.public_primary_key,
+            "title": title,
+            "message": message,
+        },
         format="json",
         **make_user_auth_headers(user, token),
     )
@@ -92,6 +104,38 @@ def test_direct_paging_existing_alert_group(
     )
 
     assert response.status_code == status.HTTP_200_OK
+
+
+@pytest.mark.django_db
+def test_direct_paging_existing_alert_group_and_escalation_chain(
+    make_organization_and_user_with_plugin_token,
+    make_user,
+    make_schedule,
+    make_escalation_chain,
+    make_alert_receive_channel,
+    make_alert_group,
+    make_user_auth_headers,
+):
+    organization, user, token = make_organization_and_user_with_plugin_token(role=LegacyAccessControlRole.EDITOR)
+    escalation_chain_to_page = make_escalation_chain(organization)
+
+    alert_receive_channel = make_alert_receive_channel(organization)
+    alert_group = make_alert_group(alert_receive_channel)
+
+    client = APIClient()
+    url = reverse("api-internal:direct_paging")
+
+    response = client.post(
+        url,
+        data={
+            "escalation_chain_id": escalation_chain_to_page.public_primary_key,
+            "alert_group_id": alert_group.public_primary_key,
+        },
+        format="json",
+        **make_user_auth_headers(user, token),
+    )
+
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
 
 
 @pytest.mark.django_db

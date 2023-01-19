@@ -38,6 +38,7 @@ class DirectPagingAPIView(APIView):
             message=serializer.validated_data["message"],
             users=users,
             schedules=schedules,
+            escalation_chain=serializer.validated_data["escalation_chain"],
             alert_group=serializer.validated_data["alert_group"],
         )
 
