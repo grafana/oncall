@@ -38,6 +38,15 @@ spec:
         command:
           - /bin/sh
           - -c
+          {{- if eq .Values.broker.type "rabbitmq" }}
+          - |
+            until timeout 1 bash -c "cat < /dev/null > /dev/tcp/${RABBITMQ_HOST}/5672";
+            do
+              >&2 echo "Rabbit MQ not up yet on ${RABBITMQ_HOST}"
+              sleep 1
+            done
+            echo "RabbitMQ is up"
+          {{- end }}
           {{- if eq .Values.database.type "mysql" }}
           - |
             until (nc -vz $MYSQL_HOST $MYSQL_PORT);
