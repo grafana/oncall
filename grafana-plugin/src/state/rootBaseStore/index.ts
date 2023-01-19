@@ -98,7 +98,7 @@ export class RootBaseStore {
   // stores
 
   async updateBasicData() {
-    let storeUpdatePromises = [
+    const storeUpdatePromises = [
       this.teamStore.loadCurrentTeam(),
       this.grafanaTeamStore.updateItems(),
       this.updateFeatures(),
