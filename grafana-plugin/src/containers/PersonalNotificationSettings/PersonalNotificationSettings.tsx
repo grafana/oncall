@@ -116,7 +116,7 @@ const PersonalNotificationSettings = observer((props: PersonalNotificationSettin
   // Mobile app related NotificationPolicy props
   const isMobileAppConnected = user.messaging_backends['MOBILE_APP']?.connected;
   const showCloudConnectionWarning =
-    !store.hasFeature(AppFeature.CloudConnection) || !store.cloudStore.cloudConnectionStatus.cloud_connection_status;
+    store.hasFeature(AppFeature.CloudConnection) && !store.cloudStore.cloudConnectionStatus.cloud_connection_status;
 
   return (
     <div className={cx('root')}>
