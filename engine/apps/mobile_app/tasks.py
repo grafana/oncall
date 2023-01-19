@@ -12,7 +12,6 @@ from rest_framework import status
 from apps.alerts.models import AlertGroup
 from apps.base.utils import live_settings
 from apps.mobile_app.alert_rendering import get_push_notification_message
-from apps.oss_installation.models import CloudConnector
 from apps.user_management.models import User
 from common.api_helpers.utils import create_engine_url
 from common.custom_celery_tasks import shared_dedicated_queue_retry_task
@@ -127,6 +126,8 @@ def notify_user_async(user_pk, alert_group_pk, notification_policy_pk, critical)
 
     if settings.LICENSE == settings.OPEN_SOURCE_LICENSE_NAME:
         # FCM relay uses cloud connection to send push notifications
+        from apps.oss_installation.models import CloudConnector
+
         if not CloudConnector.objects.exists():
             _create_error_log_record()
             logger.error(f"Error while sending a mobile push notification: not connected to cloud")
