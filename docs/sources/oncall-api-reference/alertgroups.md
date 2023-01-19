@@ -46,6 +46,7 @@ These available filter parameters should be provided as `GET` arguments:
 
 - `route_id`
 - `integration_id`
+- `state`
 
 **HTTP request**
 
