@@ -14,5 +14,6 @@ jobs:
         with:
           fileName: CHANGELOG.md
           noChangelogLabel: no changelog
+          checkNotification: Simple
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
