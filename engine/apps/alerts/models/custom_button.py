@@ -111,13 +111,12 @@ class CustomButton(models.Model):
                     alert_payload=self._escape_alert_payload(alert.raw_request_data),
                     alert_group_id=alert.group.public_primary_key,
                 )
+                try:
+                    post_kwargs["json"] = json.loads(rendered_data)
+                except JSONDecodeError:
+                    post_kwargs["data"] = rendered_data
             except (JinjaTemplateError, JinjaTemplateWarning) as e:
                 post_kwargs["json"] = {"error": e.fallback_message}
-
-            try:
-                post_kwargs["json"] = json.loads(rendered_data)
-            except JSONDecodeError:
-                post_kwargs["data"] = rendered_data
         return post_kwargs
 
     def _escape_alert_payload(self, payload: dict):
