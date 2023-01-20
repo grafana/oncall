@@ -123,7 +123,7 @@
     "react-modal": "^3.15.1",
     "react-qr-code": "^2.0.8",
     "react-responsive": "^8.1.0",
-    "react-router-dom": "^5.2.0",
+    "react-router-dom": "5.3.3",
     "react-sortable-hoc": "^1.11.0",
     "react-string-replace": "^0.4.4",
     "react-transition-group": "^4.4.5",

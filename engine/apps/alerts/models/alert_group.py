@@ -1,4 +1,5 @@
 import logging
+import urllib
 from collections import namedtuple
 from typing import Optional, TypedDict
 from urllib.parse import urljoin
@@ -348,6 +349,22 @@ class AlertGroup(AlertGroupSlackRenderingMixin, EscalationSnapshotMixin, models.
     # https://code.djangoproject.com/ticket/28545
     is_open_for_grouping = models.BooleanField(default=None, null=True, blank=True)
 
+    @staticmethod
+    def get_silenced_state_filter():
+        return Q(silenced=True) & Q(acknowledged=False) & Q(resolved=False)
+
+    @staticmethod
+    def get_new_state_filter():
+        return Q(silenced=False) & Q(acknowledged=False) & Q(resolved=False)
+
+    @staticmethod
+    def get_acknowledged_state_filter():
+        return Q(acknowledged=True) & Q(resolved=False)
+
+    @staticmethod
+    def get_resolved_state_filter():
+        return Q(resolved=True)
+
     class Meta:
         get_latest_by = "pk"
         unique_together = [
@@ -436,6 +453,15 @@ class AlertGroup(AlertGroupSlackRenderingMixin, EscalationSnapshotMixin, models.
     @property
     def web_link(self) -> str:
         return urljoin(self.channel.organization.web_link, f"?page=incident&id={self.public_primary_key}")
+
+    @property
+    def declare_incident_link(self) -> str:
+        """Generate a link for AlertGroup to declare Grafana Incident by click"""
+        incident_link = urljoin(self.channel.organization.grafana_url, "a/grafana-incident-app/incidents/declare/")
+        caption = urllib.parse.quote_plus("OnCall Alert Group")
+        title = urllib.parse.quote_plus(self.web_title_cache) if self.web_title_cache else DEFAULT_BACKUP_TITLE
+        link = urllib.parse.quote_plus(self.web_link)
+        return urljoin(incident_link, f"?caption={caption}&url={link}&title={title}")
 
     @property
     def happened_while_maintenance(self):

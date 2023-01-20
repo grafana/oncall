@@ -23,6 +23,7 @@ from .views.organization import (
     GetTelegramVerificationCode,
     SetGeneralChannel,
 )
+from .views.paging import DirectPagingAPIView
 from .views.preview_template_options import PreviewTemplateOptionsView
 from .views.public_api_tokens import PublicApiTokenView
 from .views.resolution_note import ResolutionNoteView
@@ -105,6 +106,7 @@ urlpatterns = [
     optional_slash_path("route_regex_debugger", RouteRegexDebuggerView.as_view(), name="route_regex_debugger"),
     optional_slash_path("insight_logs_test", TestInsightLogsAPIView.as_view(), name="insight-logs-test"),
     re_path(r"^alerts/(?P<id>\w+)/?$", AlertDetailView.as_view(), name="alerts-detail"),
+    optional_slash_path("direct_paging", DirectPagingAPIView.as_view(), name="direct_paging"),
 ]
 
 urlpatterns += [

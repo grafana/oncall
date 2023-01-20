@@ -12,6 +12,7 @@ from rest_framework.response import Response
 
 from apps.alerts.constants import ActionSource
 from apps.alerts.models import Alert, AlertGroup, AlertReceiveChannel
+from apps.alerts.paging import unpage_user
 from apps.api.permissions import RBACPermission
 from apps.api.serializers.alert_group import AlertGroupListSerializer, AlertGroupSerializer
 from apps.auth_token.auth import PluginAuthentication
@@ -109,13 +110,13 @@ class AlertGroupFilter(DateRangeFilterMixin, ModelFieldFilterMixin, filters.Filt
         q_objects = Q()
 
         if AlertGroup.NEW in statuses:
-            filters["new"] = Q(silenced=False) & Q(acknowledged=False) & Q(resolved=False)
+            filters["new"] = AlertGroup.get_new_state_filter()
         if AlertGroup.SILENCED in statuses:
-            filters["silenced"] = Q(silenced=True) & Q(acknowledged=False) & Q(resolved=False)
+            filters["silenced"] = AlertGroup.get_silenced_state_filter()
         if AlertGroup.ACKNOWLEDGED in statuses:
-            filters["acknowledged"] = Q(acknowledged=True) & Q(resolved=False)
+            filters["acknowledged"] = AlertGroup.get_acknowledged_state_filter()
         if AlertGroup.RESOLVED in statuses:
-            filters["resolved"] = Q(resolved=True)
+            filters["resolved"] = AlertGroup.get_resolved_state_filter()
 
         for item in filters:
             q_objects |= filters[item]
@@ -181,6 +182,7 @@ class AlertGroupView(
         "unattach": [RBACPermission.Permissions.ALERT_GROUPS_WRITE],
         "silence": [RBACPermission.Permissions.ALERT_GROUPS_WRITE],
         "unsilence": [RBACPermission.Permissions.ALERT_GROUPS_WRITE],
+        "unpage_user": [RBACPermission.Permissions.ALERT_GROUPS_WRITE],
         "bulk_action": [RBACPermission.Permissions.ALERT_GROUPS_WRITE],
         "preview_template": [RBACPermission.Permissions.INTEGRATIONS_TEST],
     }
@@ -425,6 +427,25 @@ class AlertGroupView(
         alert_group.un_silence_by_user(request.user, action_source=ActionSource.WEB)
 
         return Response(AlertGroupSerializer(alert_group, context={"request": request}).data)
+
+    @action(methods=["post"], detail=True)
+    def unpage_user(self, request, pk=None):
+        organization = request.auth.organization
+        from_user = request.user
+        alert_group = self.get_object()
+
+        try:
+            user_id = request.data["user_id"]
+        except KeyError:
+            raise BadRequest(detail="Please specify user_id")
+
+        try:
+            user = organization.users.get(public_primary_key=user_id)
+        except User.DoesNotExist:
+            raise BadRequest(detail="User not found")
+
+        unpage_user(alert_group=alert_group, user=user, from_user=from_user)
+        return Response(status=status.HTTP_200_OK)
 
     @action(methods=["get"], detail=False)
     def filters(self, request):

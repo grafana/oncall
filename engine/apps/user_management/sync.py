@@ -35,6 +35,7 @@ def sync_organization(organization):
     if api_users:
         organization.api_token_status = Organization.API_TOKEN_STATUS_OK
         sync_users_and_teams(grafana_api_client, api_users, organization)
+        organization.is_grafana_incident_enabled = check_grafana_incident_is_enabled(grafana_api_client)
     else:
         organization.api_token_status = Organization.API_TOKEN_STATUS_FAILED
 
@@ -49,6 +50,7 @@ def sync_organization(organization):
             "api_token_status",
             "gcom_token_org_last_time_synced",
             "is_rbac_permissions_enabled",
+            "is_grafana_incident_enabled",
         ]
     )
 
@@ -90,6 +92,15 @@ def sync_users_and_teams(client, api_users, organization):
         User.objects.sync_for_team(team=team, api_members=members)
 
     organization.last_time_synced = timezone.now()
+
+
+def check_grafana_incident_is_enabled(client):
+    GRAFANA_INCIDENT_PLUGIN = "grafana-incident-app"
+    grafana_incident_settings, _ = client.get_grafana_plugin_settings(GRAFANA_INCIDENT_PLUGIN)
+    is_grafana_incident_enabled = False
+    if isinstance(grafana_incident_settings, dict) and grafana_incident_settings.get("enabled"):
+        is_grafana_incident_enabled = True
+    return is_grafana_incident_enabled
 
 
 def delete_organization_if_needed(organization):

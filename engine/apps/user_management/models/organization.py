@@ -216,6 +216,7 @@ class Organization(MaintainableObject):
 
     is_amixr_migration_started = models.BooleanField(default=False)
     is_rbac_permissions_enabled = models.BooleanField(default=False)
+    is_grafana_incident_enabled = models.BooleanField(default=False)
 
     class Meta:
         unique_together = ("stack_id", "org_id")

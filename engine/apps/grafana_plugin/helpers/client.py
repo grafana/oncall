@@ -82,7 +82,9 @@ class APIClient:
             if response.status_code == status.HTTP_204_NO_CONTENT:
                 return {}, call_status
 
-            return response.json(), call_status
+            # ex. a HEAD call (self.api_head) would have a response.content of b''
+            # and hence calling response.json() throws a json.JSONDecodeError
+            return response.json() if response.content else None, call_status
         except (
             requests.exceptions.ConnectionError,
             requests.exceptions.HTTPError,
@@ -188,6 +190,9 @@ class GrafanaAPIClient(APIClient):
 
     def update_alerting_config(self, recipient, config):
         return self.api_post(f"api/alertmanager/{recipient}/config/api/v1/alerts", config)
+
+    def get_grafana_plugin_settings(self, recipient):
+        return self.api_get(f"api/plugins/{recipient}/settings")
 
 
 class GcomAPIClient(APIClient):
