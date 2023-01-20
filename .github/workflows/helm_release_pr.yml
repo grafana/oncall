@@ -17,8 +17,8 @@ jobs:
       - name: Define app_version and helm version
         id: tags
         run: |
-          echo "::set-output name=app_version::v0.1.1"
-          echo "::set-output name=helm_version::0.1.1"
+          echo "::set-output name=app_version::v0.1.2"
+          echo "::set-output name=helm_version::0.1.2"
 #          # Strip git ref prefix from version
 #          APP_VERSION=$(echo "${{ github.ref }}" | sed -e 's,.*/\(.*\),\1,')
 #          # Strip "v" prefix from tag name
@@ -41,7 +41,7 @@ jobs:
             into `grafana/helm-charts` helm repository. \n\n
             This PR was created automatically by this 
             [github action](https://github.com/grafana/oncall/blob/dev/.github/workflows/helm_release_pr.yml)."
-          message: 'Update Helm Chart Version to ${{ steps.tags.outputs.helm_version }} and appVersion to ${{ steps.tags.outputs.app_version }}'
+          message: 'Release oncall Helm chart ${{ steps.tags.outputs.helm_version }}'
           changes: |
             {
               "version": "${{ steps.tags.outputs.helm_version }}",
