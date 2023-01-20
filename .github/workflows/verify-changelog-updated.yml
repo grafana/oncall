@@ -1,7 +1,11 @@
 name: Verify CHANGELOG updated
 
 on:
-  - pull_request
+  pull_request:
+    types: [assigned, opened, synchronize, reopened, labeled, unlabeled]
+    branches:
+      - main
+      - dev
 
 jobs:
   verfiy-changelog-updated:
