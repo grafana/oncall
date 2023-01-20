@@ -648,3 +648,16 @@ if OSS_INSTALLATION:
         "schedule": crontab(hour="*/12"),  # noqa
         "args": (),
     }  # noqa
+
+PYROSCOPE_PROFILER_ENABLED = getenv_boolean("PYROSCOPE_PROFILER_ENABLED", default=False)
+if PYROSCOPE_PROFILER_ENABLED:
+    import pyroscope
+
+    pyroscope.configure(
+        application_name=os.getenv("PYROSCOPE_APPLICATION_NAME", "oncall"),
+        server_address=os.getenv("PYROSCOPE_SERVER_ADDRESS", "http://pyroscope:4040"),
+        auth_token=os.getenv("PYROSCOPE_AUTH_TOKEN", ""),
+        tags={
+            "celery_worker": os.getenv("CELERY_WORKER_QUEUE", None),
+        },
+    )
