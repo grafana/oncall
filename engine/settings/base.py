@@ -464,14 +464,20 @@ INTERNAL_IPS = ["127.0.0.1"]
 
 SELF_IP = os.environ.get("SELF_IP")
 
-SILK_PATH = os.environ.get("SILK_PATH", "silk/")
-SILKY_AUTHENTICATION = True
-SILKY_AUTHORISATION = True
-SILKY_META = True
-SILKY_INTERCEPT_PERCENT = 1
-SILKY_MAX_RECORDED_REQUESTS = 10**4
+SILK_PROFILER_ENABLED = getenv_boolean("SILK_PROFILER_ENABLED", default=False)
+if SILK_PROFILER_ENABLED:
+    SILK_PATH = os.environ.get("SILK_PATH", "silk/")
+    SILKY_INTERCEPT_PERCENT = getenv_integer("SILKY_INTERCEPT_PERCENT", 100)
 
-INSTALLED_APPS += ["silk"]
+    INSTALLED_APPS += ["silk"]
+    MIDDLEWARE += ["silk.middleware.SilkyMiddleware"]
+
+    SILKY_AUTHENTICATION = True
+    SILKY_AUTHORISATION = True
+    SILKY_META = True
+    SILKY_MAX_RECORDED_REQUESTS = 10**4
+    SILKY_PYTHON_PROFILER = True
+
 # get ONCALL_DJANGO_ADMIN_PATH from env and add trailing / to it
 ONCALL_DJANGO_ADMIN_PATH = os.environ.get("ONCALL_DJANGO_ADMIN_PATH", "django-admin") + "/"
 
