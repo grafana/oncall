@@ -17,6 +17,8 @@ jobs:
       - name: Define app_version and helm version
         id: tags
         run: |
+          pwd
+          ls -la
           echo "::set-output name=app_version::v0.1.0"
           echo "::set-output name=helm_version::0.1.0"
 #          # Strip git ref prefix from version
@@ -29,7 +31,7 @@ jobs:
       - name: Update Image Version in the related HelmChart values.yaml
         uses: fjogeleit/yaml-update-action@v0.12.3
         with:
-          valueFile: 'helm/oncall/values.yaml'
+          valueFile: 'helm/oncall/Chart.yaml'
           branch: ${{ github.ref }}
           targetBranch: main
           createPR: 'true'
