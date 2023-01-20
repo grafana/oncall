@@ -3,10 +3,8 @@ name: Create PR to release updated oncall Helm chart
 on:
   push:
     tags:
-      # https://semver.org/#is-there-a-suggested-regular-expression-regex-to-check-a-semver-string
-      # with added v in front of semver2 regex
-      - "^v(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-((?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\+([0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?$"
-
+      - "v[0-9]+.[0-9]+.[0-9]+"
+      - "v[0-9]+.[0-9]+.[0-9]+-testci[0-9]+"
 jobs:
   update-helm-chart-versions:
     runs-on: ubuntu-latest
