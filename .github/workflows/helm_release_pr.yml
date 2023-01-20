@@ -14,6 +14,7 @@ jobs:
   update-helm-chart-versions:
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/checkout@v3
       - name: Define app_version and helm version
         id: tags
         run: |
