@@ -33,8 +33,7 @@ jobs:
         uses: fjogeleit/yaml-update-action@v0.12.3
         with:
           valueFile: 'helm/oncall/Chart.yaml'
-#          branch: ${{ github.ref }}
-          branch: dev
+          branch: helm-release/${{ steps.tags.outputs.helm_version }}
           targetBranch: main
           createPR: 'true'
           description: Test GitHub Action
