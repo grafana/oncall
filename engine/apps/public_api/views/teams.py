@@ -21,11 +21,8 @@ class TeamView(PublicPrimaryKeyMixin, RetrieveModelMixin, ListModelMixin, viewse
     throttle_classes = [UserThrottle]
 
     def get_queryset(self):
-        print(1)
         if is_request_from_terraform(self.request):
-            print(2)
             sync_teams_on_tf_request(self.request.auth.organization)
-        print(3)
         name = self.request.query_params.get("name", None)
         queryset = self.request.auth.organization.teams.all()
         if name:
