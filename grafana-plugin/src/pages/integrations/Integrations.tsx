@@ -4,6 +4,7 @@ import { Button, LoadingPlaceholder, VerticalGroup } from '@grafana/ui';
 import cn from 'classnames/bind';
 import { debounce } from 'lodash-es';
 import { observer } from 'mobx-react';
+import { RouteComponentProps, withRouter } from 'react-router-dom';
 
 import GList from 'components/GList/GList';
 import IntegrationsFilters, { Filters } from 'components/IntegrationsFilters/IntegrationsFilters';
@@ -27,6 +28,7 @@ import { PageProps, WithStoreProps } from 'state/types';
 import { withMobXProviderContext } from 'state/withStore';
 import LocationHelper from 'utils/LocationHelper';
 import { UserActions } from 'utils/authorization';
+import { PLUGIN_ROOT } from 'utils/consts';
 
 import styles from './Integrations.module.css';
 
@@ -39,7 +41,7 @@ interface IntegrationsState extends PageBaseState {
   integrationSettingsTab?: IntegrationSettingsTab;
 }
 
-interface IntegrationsProps extends WithStoreProps, PageProps {}
+interface IntegrationsProps extends WithStoreProps, PageProps, RouteComponentProps<{ id: string }> {}
 
 @observer
 class Integrations extends React.Component<IntegrationsProps, IntegrationsState> {
@@ -57,23 +59,29 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
   }
 
   setSelectedAlertReceiveChannel = (alertReceiveChannelId: AlertReceiveChannel['id']) => {
-    const { store } = this.props;
+    const { store, history } = this.props;
     store.selectedAlertReceiveChannel = alertReceiveChannelId;
-    LocationHelper.update({ id: alertReceiveChannelId }, 'partial');
+    history.push(`${PLUGIN_ROOT}/integrations/${alertReceiveChannelId || ''}`);
   };
 
   parseQueryParams = async () => {
     this.setState({ errorData: initErrorDataState() }); // reset wrong team error to false on query parse // reset wrong team error to false
 
-    const { store, query } = this.props;
+    const {
+      store,
+      query,
+      match: {
+        params: { id },
+      },
+    } = this.props;
     const { alertReceiveChannelStore } = store;
 
     const searchResult = alertReceiveChannelStore.getSearchResult();
     let selectedAlertReceiveChannel = store.selectedAlertReceiveChannel;
 
-    if (query.id) {
+    if (id) {
       let alertReceiveChannel = await alertReceiveChannelStore
-        .loadItem(query.id, true)
+        .loadItem(id, true)
         .catch((error) => this.setState({ errorData: { ...getWrongTeamResponseInfo(error) } }));
 
       if (!alertReceiveChannel) {
@@ -86,7 +94,7 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
 
       if (query.tab) {
         this.setState({ integrationSettingsTab: query.tab });
-        this.setState({ alertReceiveChannelToShowSettings: query.id });
+        this.setState({ alertReceiveChannelToShowSettings: id });
       }
     }
 
@@ -94,7 +102,9 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
       selectedAlertReceiveChannel = searchResult[0]?.id;
     }
 
-    this.setSelectedAlertReceiveChannel(selectedAlertReceiveChannel);
+    if (selectedAlertReceiveChannel) {
+      this.setSelectedAlertReceiveChannel(selectedAlertReceiveChannel);
+    }
   };
 
   update = () => {
@@ -103,7 +113,7 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
   };
 
   componentDidUpdate(prevProps: IntegrationsProps) {
-    if (this.props.query.id !== prevProps.query.id) {
+    if (this.props.match.params.id !== prevProps.match.params.id) {
       this.parseQueryParams();
     }
     if (this.props.query.tab !== prevProps.query.tab) {
@@ -116,7 +126,12 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
   }
 
   render() {
-    const { store, query } = this.props;
+    const {
+      store,
+      match: {
+        params: { id },
+      },
+    } = this.props;
     const {
       integrationsFilters,
       alertReceiveChannelToShowSettings,
@@ -133,7 +148,7 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
         errorData={errorData}
         objectName="integration"
         pageName="integrations"
-        itemNotFoundMessage={`Integration with id=${query?.id} is not found. Please select integration from the list.`}
+        itemNotFoundMessage={`Integration with id=${id} is not found. Please select integration from the list.`}
       >
         {() => (
           <>
@@ -334,4 +349,4 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
   };
 }
 
-export default withMobXProviderContext(Integrations);
+export default withRouter(withMobXProviderContext(Integrations));

@@ -79,6 +79,7 @@ class Alert(models.Model):
         raw_request_data,
         enable_autoresolve=True,
         is_demo=False,
+        channel_filter=None,
         force_route_id=None,
     ):
         ChannelFilter = apps.get_model("alerts", "ChannelFilter")
@@ -87,9 +88,10 @@ class Alert(models.Model):
         AlertGroupLogRecord = apps.get_model("alerts", "AlertGroupLogRecord")
 
         group_data = Alert.render_group_data(alert_receive_channel, raw_request_data, is_demo)
-        channel_filter = ChannelFilter.select_filter(
-            alert_receive_channel, raw_request_data, title, message, force_route_id
-        )
+        if channel_filter is None:
+            channel_filter = ChannelFilter.select_filter(
+                alert_receive_channel, raw_request_data, title, message, force_route_id
+            )
 
         group, group_created = AlertGroup.all_objects.get_or_create_grouping(
             channel=alert_receive_channel,

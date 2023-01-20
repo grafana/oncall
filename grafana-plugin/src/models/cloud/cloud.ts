@@ -13,6 +13,9 @@ export class CloudStore extends BaseStore {
   @observable.shallow
   items: { [id: string]: Cloud } = {};
 
+  @observable
+  cloudConnectionStatus: { cloud_connection_status: boolean } = { cloud_connection_status: false };
+
   constructor(rootStore: RootStore) {
     super(rootStore);
 
@@ -65,6 +68,10 @@ export class CloudStore extends BaseStore {
 
   async getCloudUser(id: string) {
     return await makeRequest(`${this.path}${id}`, { method: 'GET' });
+  }
+
+  async loadCloudConnectionStatus() {
+    this.cloudConnectionStatus = await this.getCloudConnectionStatus();
   }
 
   async getCloudConnectionStatus() {

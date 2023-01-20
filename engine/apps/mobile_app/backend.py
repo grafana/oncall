@@ -4,6 +4,7 @@ from django.conf import settings
 from fcm_django.models import FCMDevice
 
 from apps.base.messaging import BaseMessagingBackend
+from apps.base.models import DynamicSetting
 from apps.mobile_app.tasks import notify_user_async
 
 
@@ -49,6 +50,14 @@ class MobileAppBackend(BaseMessagingBackend):
             notification_policy_pk=notification_policy.pk,
             critical=critical,
         )
+
+    @staticmethod
+    def is_enabled_for_organization(organization):
+        mobile_app_settings, _ = DynamicSetting.objects.get_or_create(
+            name="mobile_app_settings", defaults={"json_value": {"org_ids": []}}
+        )
+
+        return organization.pk in mobile_app_settings.json_value["org_ids"]
 
 
 class MobileAppCriticalBackend(MobileAppBackend):
