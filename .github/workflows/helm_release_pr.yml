@@ -1,6 +1,10 @@
+name: Helm release versions PR
+
 on:
-  push:
-    pull_request:
+  - pull_request
+#on:
+#  push:
+#    pull_request:
 #    tags:
 #      # https://semver.org/#is-there-a-suggested-regular-expression-regex-to-check-a-semver-string
 #      # with added v in front of semver2 regex
