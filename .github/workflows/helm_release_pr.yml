@@ -35,7 +35,7 @@ jobs:
           valueFile: 'helm/oncall/Chart.yaml'
           branch: helm-release/${{ steps.tags.outputs.helm_version }}
           targetBranch: main
-          masterBranchName: dev
+          masterBranchName: main
           createPR: 'true'
           description: Test GitHub Action
           message: 'Update Helm Chart Version to ${{ steps.tags.outputs.helm_version }} and appVersion to ${{ steps.tags.outputs.app_version }}'
