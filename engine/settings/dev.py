@@ -26,8 +26,6 @@ MIRAGE_CIPHER_IV = os.environ.get("MIRAGE_CIPHER_IV", "tZZa+60zTZO2NRcS")
 
 TESTING = "pytest" in sys.modules or "unittest" in sys.modules
 
-SILKY_PYTHON_PROFILER = True
-
 # For any requests that come in with that header/value, request.is_secure() will return True.
 SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
 
@@ -53,9 +51,6 @@ if getenv_boolean("DEV_DEBUG_VIEW_SQL_QUERIES", default=False):
             }
         },
     }
-
-SILKY_INTERCEPT_PERCENT = 100
-MIDDLEWARE += ["silk.middleware.SilkyMiddleware"]
 
 SWAGGER_SETTINGS = {
     "SECURITY_DEFINITIONS": {
