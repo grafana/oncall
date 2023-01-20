@@ -54,16 +54,16 @@ class APIClient:
         self.api_url = api_url
         self.api_token = api_token
 
-    def api_head(self, endpoint: str, body: dict = None) -> Tuple[Optional[Response], dict]:
-        return self.call_api(endpoint, requests.head, body)
+    def api_head(self, endpoint: str, body: dict = None, **kwargs) -> Tuple[Optional[Response], dict]:
+        return self.call_api(endpoint, requests.head, body, **kwargs)
 
-    def api_get(self, endpoint: str) -> Tuple[Optional[Response], dict]:
-        return self.call_api(endpoint, requests.get)
+    def api_get(self, endpoint: str, **kwargs) -> Tuple[Optional[Response], dict]:
+        return self.call_api(endpoint, requests.get, **kwargs)
 
-    def api_post(self, endpoint: str, body: dict = None) -> Tuple[Optional[Response], dict]:
-        return self.call_api(endpoint, requests.post, body)
+    def api_post(self, endpoint: str, body: dict = None, **kwargs) -> Tuple[Optional[Response], dict]:
+        return self.call_api(endpoint, requests.post, body, **kwargs)
 
-    def call_api(self, endpoint: str, http_method, body: dict = None) -> Tuple[Optional[Response], dict]:
+    def call_api(self, endpoint: str, http_method, body: dict = None, **kwargs) -> Tuple[Optional[Response], dict]:
         request_start = time.perf_counter()
         call_status = {
             "url": urljoin(self.api_url, endpoint),
@@ -72,7 +72,7 @@ class APIClient:
             "message": "",
         }
         try:
-            response = http_method(call_status["url"], json=body, headers=self.request_headers)
+            response = http_method(call_status["url"], json=body, headers=self.request_headers, **kwargs)
             call_status["status_code"] = response.status_code
             response.raise_for_status()
 
@@ -87,6 +87,7 @@ class APIClient:
             requests.exceptions.ConnectionError,
             requests.exceptions.HTTPError,
             requests.exceptions.TooManyRedirects,
+            requests.exceptions.Timeout,
             json.JSONDecodeError,
         ) as e:
             logger.warning("Error connecting to api instance " + str(e))
@@ -151,8 +152,8 @@ class GrafanaAPIClient(APIClient):
         _, resp_status = self.api_head(self.USER_PERMISSION_ENDPOINT)
         return resp_status["status_code"] == status.HTTP_200_OK
 
-    def get_users(self, rbac_is_enabled_for_org: bool) -> List[GrafanaUserWithPermissions]:
-        users, _ = self.api_get("api/org/users")
+    def get_users(self, rbac_is_enabled_for_org: bool, **kwargs) -> List[GrafanaUserWithPermissions]:
+        users, _ = self.api_get("api/org/users", **kwargs)
 
         if not users:
             return []
@@ -164,8 +165,8 @@ class GrafanaAPIClient(APIClient):
             user["permissions"] = user_permissions.get(str(user["userId"]), [])
         return users
 
-    def get_teams(self):
-        return self.api_get("api/teams/search?perpage=1000000")
+    def get_teams(self, **kwargs):
+        return self.api_get("api/teams/search?perpage=1000000", **kwargs)
 
     def get_team_members(self, team_id):
         return self.api_get(f"api/teams/{team_id}/members")

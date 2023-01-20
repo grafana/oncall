@@ -30,11 +30,10 @@ def sync_organization(organization):
 
     _sync_instance_info(organization)
 
-    api_users = grafana_api_client.get_users(rbac_is_enabled)
-
-    if api_users:
+    _, check_token_call_status = grafana_api_client.check_token()
+    if check_token_call_status["status_code"] == 200:
         organization.api_token_status = Organization.API_TOKEN_STATUS_OK
-        sync_users_and_teams(grafana_api_client, api_users, organization)
+        sync_users_and_teams(grafana_api_client, organization)
         organization.is_grafana_incident_enabled = check_grafana_incident_is_enabled(grafana_api_client)
     else:
         organization.api_token_status = Organization.API_TOKEN_STATUS_FAILED
@@ -71,27 +70,44 @@ def _sync_instance_info(organization):
         organization.gcom_token_org_last_time_synced = timezone.now()
 
 
-def sync_users_and_teams(client, api_users, organization):
+def sync_users_and_teams(client: GrafanaAPIClient, organization):
+    sync_users(client, organization)
+    sync_teams(client, organization)
+    sync_team_members(client, organization)
+
+    organization.last_time_synced = timezone.now()
+
+
+def sync_users(client: GrafanaAPIClient, organization, **kwargs):
+    api_users = client.get_users(organization.is_rbac_permissions_enabled, **kwargs)
     # check if api_users are shaped correctly. e.g. for paused instance, the response is not a list.
     if not api_users or not isinstance(api_users, (tuple, list)):
         return
-
     User.objects.sync_for_organization(organization=organization, api_users=api_users)
 
-    api_teams_result, _ = client.get_teams()
+
+def sync_teams(client: GrafanaAPIClient, organization, **kwargs):
+    api_teams_result, _ = client.get_teams(**kwargs)
     if not api_teams_result:
         return
-
     api_teams = api_teams_result["teams"]
     Team.objects.sync_for_organization(organization=organization, api_teams=api_teams)
 
+
+def sync_team_members(client: GrafanaAPIClient, organization):
     for team in organization.teams.all():
         members, _ = client.get_team_members(team.team_id)
         if not members:
             continue
         User.objects.sync_for_team(team=team, api_members=members)
 
-    organization.last_time_synced = timezone.now()
+
+def sync_users_for_teams(client: GrafanaAPIClient, organization, **kwargs):
+    api_teams_result, _ = client.get_teams(**kwargs)
+    if not api_teams_result:
+        return
+    api_teams = api_teams_result["teams"]
+    Team.objects.sync_for_organization(organization=organization, api_teams=api_teams)
 
 
 def check_grafana_incident_is_enabled(client):
