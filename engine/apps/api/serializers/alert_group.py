@@ -4,7 +4,8 @@ from rest_framework import serializers
 
 from apps.alerts.incident_appearance.renderers.classic_markdown_renderer import AlertGroupClassicMarkdownRenderer
 from apps.alerts.incident_appearance.renderers.web_renderer import AlertGroupWebRenderer
-from apps.alerts.models import AlertGroup
+from apps.alerts.models import AlertGroup, AlertGroupLogRecord
+from apps.user_management.models import User
 from common.api_helpers.mixins import EagerLoadingMixin
 
 from .alert import AlertSerializer
@@ -83,6 +84,7 @@ class AlertGroupListSerializer(EagerLoadingMixin, serializers.ModelSerializer):
             "dependent_alert_groups",
             "root_alert_group",
             "status",
+            "declare_incident_link",
         ]
 
     def get_render_for_web(self, obj):
@@ -127,6 +129,7 @@ class AlertGroupListSerializer(EagerLoadingMixin, serializers.ModelSerializer):
 class AlertGroupSerializer(AlertGroupListSerializer):
     alerts = serializers.SerializerMethodField("get_limited_alerts")
     last_alert_at = serializers.SerializerMethodField()
+    paged_users = serializers.SerializerMethodField()
 
     class Meta(AlertGroupListSerializer.Meta):
         fields = AlertGroupListSerializer.Meta.fields + [
@@ -135,6 +138,7 @@ class AlertGroupSerializer(AlertGroupListSerializer):
             "slack_permalink",  # TODO: make plugin frontend use "permalinks" field to get Slack link
             "permalinks",
             "last_alert_at",
+            "paged_users",
         ]
 
     def get_render_for_web(self, obj):
@@ -165,3 +169,19 @@ class AlertGroupSerializer(AlertGroupListSerializer):
                 alert.title = str(alert.title) + " Only last 100 alerts are shown. Use OnCall API to fetch all of them."
 
         return AlertSerializer(alerts, many=True).data
+
+    def get_paged_users(self, obj):
+        users_ids = set()
+        for log_record in obj.log_records.filter(
+            type__in=(AlertGroupLogRecord.TYPE_DIRECT_PAGING, AlertGroupLogRecord.TYPE_UNPAGE_USER)
+        ):
+            # filter paging events, track still active escalations
+            info = log_record.get_step_specific_info()
+            user_id = info.get("user") if info else None
+            if user_id is not None:
+                users_ids.add(
+                    user_id
+                ) if log_record.type == AlertGroupLogRecord.TYPE_DIRECT_PAGING else users_ids.discard(user_id)
+
+        users = [u.short() for u in User.objects.filter(public_primary_key__in=users_ids)]
+        return users

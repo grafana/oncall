@@ -4,6 +4,7 @@ import { Button, HorizontalGroup, VerticalGroup, IconButton, ToolbarButton, Icon
 import cn from 'classnames/bind';
 import dayjs from 'dayjs';
 import { observer } from 'mobx-react';
+import { RouteComponentProps, withRouter } from 'react-router-dom';
 
 import PageErrorHandlingWrapper from 'components/PageErrorHandlingWrapper/PageErrorHandlingWrapper';
 import PluginLink from 'components/PluginLink/PluginLink';
@@ -21,8 +22,8 @@ import { Schedule, ScheduleType, Shift } from 'models/schedule/schedule.types';
 import { Timezone } from 'models/timezone/timezone.types';
 import { PageProps, WithStoreProps } from 'state/types';
 import { withMobXProviderContext } from 'state/withStore';
-import LocationHelper from 'utils/LocationHelper';
 import { isUserActionAllowed, UserActions } from 'utils/authorization';
+import { PLUGIN_ROOT } from 'utils/consts';
 
 import { getStartOfWeek } from './Schedule.helpers';
 
@@ -30,7 +31,7 @@ import styles from './Schedule.module.css';
 
 const cx = cn.bind(styles);
 
-interface SchedulePageProps extends PageProps, WithStoreProps {}
+interface SchedulePageProps extends PageProps, WithStoreProps, RouteComponentProps<{ id: string }> {}
 
 interface SchedulePageState {
   startMoment: dayjs.Dayjs;
@@ -64,7 +65,9 @@ class SchedulePage extends React.Component<SchedulePageProps, SchedulePageState>
   async componentDidMount() {
     const {
       store,
-      query: { id },
+      match: {
+        params: { id },
+      },
     } = this.props;
 
     store.userStore.updateItems();
@@ -86,7 +89,9 @@ class SchedulePage extends React.Component<SchedulePageProps, SchedulePageState>
   render() {
     const {
       store,
-      query: { id: scheduleId },
+      match: {
+        params: { id: scheduleId },
+      },
     } = this.props;
 
     const {
@@ -262,8 +267,12 @@ class SchedulePage extends React.Component<SchedulePageProps, SchedulePageState>
   }
 
   update = () => {
-    const { store, query } = this.props;
-    const { id: scheduleId } = query;
+    const {
+      store,
+      match: {
+        params: { id: scheduleId },
+      },
+    } = this.props;
     const { scheduleStore } = store;
 
     return scheduleStore.updateItem(scheduleId);
@@ -292,8 +301,12 @@ class SchedulePage extends React.Component<SchedulePageProps, SchedulePageState>
   };
 
   handleNameChange = (value: string) => {
-    const { store, query } = this.props;
-    const { id: scheduleId } = query;
+    const {
+      store,
+      match: {
+        params: { id: scheduleId },
+      },
+    } = this.props;
 
     const schedule = store.scheduleStore.items[scheduleId];
 
@@ -305,7 +318,9 @@ class SchedulePage extends React.Component<SchedulePageProps, SchedulePageState>
   updateEvents = () => {
     const {
       store,
-      query: { id: scheduleId },
+      match: {
+        params: { id: scheduleId },
+      },
     } = this.props;
 
     const { startMoment } = this.state;
@@ -432,11 +447,14 @@ class SchedulePage extends React.Component<SchedulePageProps, SchedulePageState>
   handleDelete = () => {
     const {
       store,
-      query: { id: scheduleId },
+      match: {
+        params: { id },
+      },
+      history,
     } = this.props;
 
-    store.scheduleStore.delete(scheduleId).then(() => LocationHelper.update({ page: 'schedules' }, 'replace'));
+    store.scheduleStore.delete(id).then(() => history.replace(`${PLUGIN_ROOT}/schedules`));
   };
 }
 
-export default withMobXProviderContext(SchedulePage);
+export default withRouter(withMobXProviderContext(SchedulePage));
