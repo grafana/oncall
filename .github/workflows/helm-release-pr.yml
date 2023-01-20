@@ -1,0 +1,38 @@
+on:
+  push:
+    pull_request:
+#    tags:
+#      # https://semver.org/#is-there-a-suggested-regular-expression-regex-to-check-a-semver-string
+#      # with added v in front of semver2 regex
+#      - "^v(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-((?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\+([0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?$"
+
+jobs:
+  update-helm-chart-versions:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Define app_version and helm version
+        id: tags
+        run: |
+          echo "::set-output name=app_version::v0.1.0"
+          echo "::set-output name=helm_version::0.1.0"
+#          # Strip git ref prefix from version
+#          APP_VERSION=$(echo "${{ github.ref }}" | sed -e 's,.*/\(.*\),\1,')
+#          # Strip "v" prefix from tag name
+#          [[ "${{ github.ref }}" == "refs/tags/"* ]] && HELM_VERSION=$(echo $APP_VERSION | sed -e 's/^v//')
+#          echo "::set-output name=app_version::$APP_VERSION"
+#          echo "::set-output name=helm_version::$HELM_VERSION"
+
+      - image: Update Image Version in the related HelmChart values.yaml
+        uses: fjogeleit/yaml-update-action@main
+        with:
+          valueFile: 'helm/oncall/values.yaml'
+          branch: ${{ github.ref }}
+          targetBranch: main
+          createPR: 'true'
+          description: Test GitHub Action
+          message: 'Update Helm Chart Version to ${{ steps.tags.outputs.helm_version }} and appVersion to ${{ steps.tags.outputs.app_version }}'
+          changes: |
+            {
+              "version": "${{ steps.tags.outputs.helm_version }}",
+              "appVersion": "${{ steps.tags.outputs.app_version }}"
+            }
