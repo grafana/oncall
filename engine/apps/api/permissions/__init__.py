@@ -1,6 +1,7 @@
 import enum
 import typing
 
+from django.conf import settings
 from rest_framework import permissions
 from rest_framework.authentication import BasicAuthentication, SessionAuthentication
 from rest_framework.request import Request
@@ -195,6 +196,11 @@ class RBACPermission(permissions.BasePermission):
         return view.action if isinstance(view, ViewSetMixin) else request.method.lower()
 
     def has_permission(self, request: Request, view: ViewSetOrAPIView) -> bool:
+        # the django-debug-toolbar UI makes OPTIONS calls. Without this statement the debug UI can't gather the
+        # necessary info it needs to work properly
+        if settings.DEBUG and request.method == "OPTIONS":
+            return True
+
         action = self._get_view_action(request, view)
 
         rbac_permissions: RBACPermissionsAttribute = getattr(view, RBAC_PERMISSIONS_ATTR, None)
