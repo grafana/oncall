@@ -70,5 +70,7 @@ if settings.DEBUG:
         path("__debug__/", include(debug_toolbar.urls)),
     ] + urlpatterns
 
+if settings.SILK_PROFILER_ENABLED:
+    urlpatterns += [path(settings.SILK_PATH, include("silk.urls", namespace="silk"))]
 
 admin.site.site_header = settings.ADMIN_SITE_HEADER
