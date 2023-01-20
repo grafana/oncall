@@ -1,3 +1,4 @@
+import json
 from collections import defaultdict
 
 from django.core.validators import URLValidator, ValidationError
@@ -11,11 +12,41 @@ from common.jinja_templater import apply_jinja_template
 from common.jinja_templater.apply_jinja_template import JinjaTemplateError, JinjaTemplateWarning
 
 
+class HeadersField(serializers.Field):
+    """
+    The `headers` of a custom button.
+
+    This is a list of objects with `name` and `value` keys and string values.
+    In the database, this is stored as a JSON string.
+    """
+
+    def to_representation(self, value):
+        return json.loads(value)
+
+    def to_internal_value(self, data):
+        if not data:
+            return None
+
+        try:
+            assert isinstance(data, list)
+            for header in data:
+                assert isinstance(header, dict)
+                if not isinstance(header.get("name"), str):
+                    raise serializers.ValidationError("Header names must be strings")
+                if not isinstance(header.get("value"), str):
+                    raise serializers.ValidationError("Header values must be strings")
+        except (json.JSONDecodeError, AssertionError):
+            raise serializers.ValidationError("Headers has incorrect format")
+
+        return json.dumps(data)
+
+
 class CustomButtonSerializer(serializers.ModelSerializer):
     id = serializers.CharField(read_only=True, source="public_primary_key")
     organization = serializers.HiddenField(default=CurrentOrganizationDefault())
     team = TeamPrimaryKeyRelatedField(allow_null=True, default=CurrentTeamDefault())
     forward_whole_payload = serializers.BooleanField(allow_null=True, required=False)
+    headers = HeadersField(allow_null=True, required=False)
 
     class Meta:
         model = CustomButton
@@ -28,6 +59,7 @@ class CustomButtonSerializer(serializers.ModelSerializer):
             "user",
             "password",
             "authorization_header",
+            "headers",
             "organization",
             "forward_whole_payload",
         ]

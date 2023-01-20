@@ -75,6 +75,7 @@ class CustomButton(models.Model):
     password = models.CharField(max_length=100, null=True, default=None)
     deleted_at = models.DateTimeField(blank=True, null=True)
     authorization_header = models.CharField(max_length=1000, null=True, default=None)
+    headers = models.TextField(null=True, default=None)
     forward_whole_payload = models.BooleanField(default=False)
 
     class Meta:
@@ -100,6 +101,13 @@ class CustomButton(models.Model):
         post_kwargs = {}
         if self.user and self.password:
             post_kwargs["auth"] = HTTPBasicAuth(self.user, self.password)
+        if self.headers:
+            try:
+                headers = {h["name"]: h["value"] for h in json.loads(self.headers)}
+                post_kwargs["headers"] = headers
+            except JSONDecodeError:
+                logger.warning(f"Can't parse headers for custom button {self}")
+                pass
         if self.authorization_header:
             post_kwargs["headers"] = {"Authorization": self.authorization_header}
         if self.forward_whole_payload:
@@ -161,6 +169,7 @@ class CustomButton(models.Model):
             "authorization_header": self.authorization_header,
             "data": self.data,
             "forward_whole_payload": self.forward_whole_payload,
+            "headers": self.headers,
         }
 
         if self.team:

@@ -12,11 +12,41 @@ from common.api_helpers.utils import CurrentOrganizationDefault
 from common.jinja_templater import jinja_template_env
 
 
+class HeadersField(serializers.Field):
+    """
+    The `headers` of a custom button.
+
+    This is a list of objects with `name` and `value` keys and string values.
+    In the database, this is stored as a JSON string.
+    """
+
+    def to_representation(self, value):
+        return json.loads(value)
+
+    def to_internal_value(self, data):
+        if not data:
+            return None
+
+        try:
+            assert isinstance(data, list)
+            for header in data:
+                assert isinstance(header, dict)
+                if not isinstance(header.get("name"), str):
+                    raise serializers.ValidationError("Header names must be strings")
+                if not isinstance(header.get("value"), str):
+                    raise serializers.ValidationError("Header values must be strings")
+        except (json.JSONDecodeError, AssertionError):
+            raise serializers.ValidationError("Headers has incorrect format")
+
+        return json.dumps(data)
+
+
 class ActionCreateSerializer(serializers.ModelSerializer):
     id = serializers.CharField(read_only=True, source="public_primary_key")
     organization = serializers.HiddenField(default=CurrentOrganizationDefault())
     team_id = TeamPrimaryKeyRelatedField(required=False, allow_null=True, source="team")
     url = serializers.CharField(required=True, allow_null=False, allow_blank=False, source="webhook")
+    headers = HeadersField(allow_null=True, required=False)
 
     class Meta:
         model = CustomButton
@@ -30,6 +60,7 @@ class ActionCreateSerializer(serializers.ModelSerializer):
             "user",
             "password",
             "authorization_header",
+            "headers",
             "forward_whole_payload",
         ]
         extra_kwargs = {

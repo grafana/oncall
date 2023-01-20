@@ -36,6 +36,7 @@ def test_get_custom_actions(
                 "password": custom_action.password,
                 "authorization_header": custom_action.authorization_header,
                 "forward_whole_payload": custom_action.forward_whole_payload,
+                "headers": custom_action.headers,
             }
         ],
     }
@@ -74,6 +75,7 @@ def test_get_custom_actions_filter_by_name(
                 "password": custom_action.password,
                 "authorization_header": custom_action.authorization_header,
                 "forward_whole_payload": custom_action.forward_whole_payload,
+                "headers": custom_action.headers,
             }
         ],
     }
@@ -128,6 +130,7 @@ def test_get_custom_action(
         "password": custom_action.password,
         "authorization_header": custom_action.authorization_header,
         "forward_whole_payload": custom_action.forward_whole_payload,
+        "headers": custom_action.headers,
     }
 
     assert response.status_code == status.HTTP_200_OK
@@ -161,6 +164,7 @@ def test_create_custom_action(make_organization_and_user_with_token):
         "password": custom_action.password,
         "authorization_header": custom_action.authorization_header,
         "forward_whole_payload": custom_action.forward_whole_payload,
+        "headers": custom_action.headers,
     }
 
     assert response.status_code == status.HTTP_201_CREATED
@@ -199,6 +203,7 @@ def test_create_custom_action_nested_data(make_organization_and_user_with_token)
         "password": custom_action.password,
         "authorization_header": custom_action.authorization_header,
         "forward_whole_payload": custom_action.forward_whole_payload,
+        "headers": custom_action.headers,
     }
 
     assert response.status_code == status.HTTP_201_CREATED
@@ -237,6 +242,7 @@ def test_create_custom_action_valid_after_render(make_organization_and_user_with
         "password": custom_action.password,
         "authorization_header": custom_action.authorization_header,
         "forward_whole_payload": custom_action.forward_whole_payload,
+        "headers": custom_action.headers,
     }
 
     assert response.status_code == status.HTTP_201_CREATED
@@ -275,6 +281,7 @@ def test_create_custom_action_valid_after_render_use_all_data(make_organization_
         "password": custom_action.password,
         "authorization_header": custom_action.authorization_header,
         "forward_whole_payload": custom_action.forward_whole_payload,
+        "headers": custom_action.headers,
     }
 
     assert response.status_code == status.HTTP_201_CREATED
@@ -374,6 +381,7 @@ def test_update_custom_action(
         "password": custom_action.password,
         "authorization_header": custom_action.authorization_header,
         "forward_whole_payload": custom_action.forward_whole_payload,
+        "headers": custom_action.headers,
     }
 
     assert response.status_code == status.HTTP_200_OK

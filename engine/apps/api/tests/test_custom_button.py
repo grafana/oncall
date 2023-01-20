@@ -45,6 +45,7 @@ def test_get_list_custom_button(custom_button_internal_api_setup, make_user_auth
             "password": "qwerty",
             "authorization_header": "auth_token",
             "forward_whole_payload": False,
+            "headers": None,
         }
     ]
 
@@ -69,6 +70,7 @@ def test_get_detail_custom_button(custom_button_internal_api_setup, make_user_au
         "password": "qwerty",
         "authorization_header": "auth_token",
         "forward_whole_payload": False,
+        "headers": None,
     }
 
     response = client.get(url, format="json", **make_user_auth_headers(user, token))
@@ -96,6 +98,7 @@ def test_create_custom_button(custom_button_internal_api_setup, make_user_auth_h
         "data": None,
         "authorization_header": None,
         "forward_whole_payload": False,
+        "headers": None,
     }
     assert response.status_code == status.HTTP_201_CREATED
     assert response.data == expected_response
@@ -123,6 +126,7 @@ def test_create_valid_data_button(custom_button_internal_api_setup, make_user_au
         "password": None,
         "authorization_header": None,
         "forward_whole_payload": False,
+        "headers": None,
     }
     assert response.status_code == status.HTTP_201_CREATED
     assert response.json() == expected_response
@@ -154,6 +158,7 @@ def test_create_valid_nested_data_button(custom_button_internal_api_setup, make_
         "password": None,
         "authorization_header": None,
         "forward_whole_payload": False,
+        "headers": None,
     }
     assert response.status_code == status.HTTP_201_CREATED
     assert response.json() == expected_response
@@ -181,6 +186,7 @@ def test_create_valid_data_after_render_button(custom_button_internal_api_setup,
         "password": None,
         "authorization_header": None,
         "forward_whole_payload": False,
+        "headers": None,
     }
     assert response.status_code == status.HTTP_201_CREATED
     assert response.json() == expected_response
@@ -208,9 +214,37 @@ def test_create_valid_data_after_render_use_all_data_button(custom_button_intern
         "password": None,
         "authorization_header": None,
         "forward_whole_payload": False,
+        "headers": None,
     }
     assert response.status_code == status.HTTP_201_CREATED
     assert response.json() == expected_response
+
+
+@pytest.mark.django_db
+def test_create_custom_button_headers(custom_button_internal_api_setup, make_user_auth_headers):
+    user, token, custom_button = custom_button_internal_api_setup
+    client = APIClient()
+    url = reverse("api-internal:custom_button-list")
+
+    data = {
+        "name": "amixr_button",
+        "webhook": TEST_URL,
+        "team": None,
+        "headers": [{"name": "X-Grafana-API-Key", "value": "abcd1234"}],
+    }
+    response = client.post(url, data, format="json", **make_user_auth_headers(user, token))
+    print(response.data)
+    assert response.status_code == status.HTTP_201_CREATED
+    custom_button = CustomButton.objects.get(public_primary_key=response.data["id"])
+    expected_response = data | {
+        "id": custom_button.public_primary_key,
+        "user": None,
+        "password": None,
+        "data": None,
+        "authorization_header": None,
+        "forward_whole_payload": False,
+    }
+    assert response.data == expected_response
 
 
 @pytest.mark.django_db
