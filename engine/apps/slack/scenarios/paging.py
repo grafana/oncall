@@ -75,7 +75,7 @@ def get_current_users(payload, organization):
 class StartDirectPaging(scenario_step.ScenarioStep):
     """Handle slash command invocation and show initial dialog."""
 
-    command_name = [settings.SLACK_PAGE_SLASH_COMMAND]
+    command_name = [settings.SLACK_DIRECT_PAGING_SLASH_COMMAND]
 
     def process_scenario(self, slack_user_identity, slack_team_identity, payload, action=None):
         input_id_prefix = _generate_input_id_prefix()
