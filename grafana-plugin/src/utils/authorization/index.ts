@@ -3,6 +3,7 @@ import { config } from '@grafana/runtime';
 import { contextSrv } from 'grafana/app/core/core';
 
 const ONCALL_PERMISSION_PREFIX = 'grafana-oncall-app';
+const PLUGIN_RBAC_FEATURE_FLAG_IS_ENABLED = config.featureToggles.accessControlOnCall;
 
 export type UserAction = {
   permission: string;
@@ -90,12 +91,15 @@ export const userHasMinimumRequiredRole = (minimumRoleRequired: OrgRole): boolea
  *
  * As a fallback (second argument), for cases where RBAC is not enabled for a grafana instance, rely on basic roles
  */
-export const isUserActionAllowed = ({ permission, fallbackMinimumRoleRequired }: UserAction): boolean => {
-  if (config.featureToggles.accessControlOnCall) {
-    return !!contextSrv.user.permissions?.[permission];
-  }
-  return userHasMinimumRequiredRole(fallbackMinimumRoleRequired);
-};
+export const isUserActionAllowed = ({ permission, fallbackMinimumRoleRequired }: UserAction): boolean =>
+  PLUGIN_RBAC_FEATURE_FLAG_IS_ENABLED
+    ? !!contextSrv.user.permissions?.[permission]
+    : userHasMinimumRequiredRole(fallbackMinimumRoleRequired);
+
+export const generateMissingPermissionMessage = ({ permission, fallbackMinimumRoleRequired }: UserAction): string =>
+  `You are missing the ${
+    PLUGIN_RBAC_FEATURE_FLAG_IS_ENABLED ? `${permission} permission` : `${fallbackMinimumRoleRequired} role`
+  }`;
 
 export const generatePermissionString = (resource: Resource, action: Action, includePrefix: boolean): string =>
   `${includePrefix ? `${ONCALL_PERMISSION_PREFIX}.` : ''}${resource}:${action}`;
