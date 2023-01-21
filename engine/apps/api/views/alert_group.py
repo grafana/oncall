@@ -155,10 +155,13 @@ class AlertGroupTeamFilteringMixin(TeamFilteringMixin):
         try:
             return super().retrieve(request, *args, **kwargs)
         except NotFound:
+            alert_receive_channels_ids = list(
+                AlertReceiveChannel.objects.filter(
+                    organization_id=self.request.auth.organization.id,
+                ).values_list("id", flat=True)
+            )
             queryset = AlertGroup.unarchived_objects.filter(
-                channel__in=AlertReceiveChannel.objects.filter(
-                    organization=self.request.auth.organization,
-                ),
+                channel__in=alert_receive_channels_ids,
             ).only("public_primary_key")
 
             try:
@@ -237,10 +240,14 @@ class AlertGroupView(
 
     def get_queryset(self):
         # no select_related or prefetch_related is used at this point, it will be done on paginate_queryset.
+        alert_receive_channels_ids = list(
+            AlertReceiveChannel.objects.filter(
+                organization_id=self.request.auth.organization.id,
+                team_id=self.request.user.current_team,
+            ).values_list("id", flat=True)
+        )
         queryset = AlertGroup.unarchived_objects.filter(
-            channel__in=AlertReceiveChannel.objects.filter(
-                organization=self.request.auth.organization, team=self.request.user.current_team
-            ),
+            channel__in=alert_receive_channels_ids,
         ).only("id")
 
         return queryset
