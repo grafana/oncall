@@ -36,4 +36,5 @@ RUN mkdir -p /tmp/prometheus_django_metrics;
 RUN chown -R 1000:2000 /tmp/prometheus_django_metrics
 ENV prometheus_multiproc_dir "/tmp/prometheus_django_metrics"
 
+ENTRYPOINT [ "/etc/app/docker-entrypoint.sh" ]
 CMD [ "uwsgi", "--ini", "uwsgi.ini" ]
