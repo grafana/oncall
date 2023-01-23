@@ -22,6 +22,8 @@ There are two schedule export options available:
 - **On-call schedule export** - Exports all on-call shifts for a particular schedule, including rotations, overrides, and assigned users.
 - **User-specific schedule export** - Exports assigned on-call shifts for a particular user. Use this export option to add your assigned on-call shifts to your calendar. 
 
+> **Note:** Calendar exports include all scheduled shifts, including those which are lower priority or overridden. 
+
 ## Export an on-call schedule
 
 Use this export option to add all on-call shifts associated with a schedule to a calendar. Best for a team or shared calendars. 
@@ -52,7 +54,7 @@ iCal links are displayed upon creation, and users are advised to copy their link
 
 If you need to revoke an iCal link, you can do so anytime. By doing so, any calendar that references the revoked link will lose access to the calendar data.
 
->**Note**: Use caution when revoking an iCal link associated with shared on-call schedules. If you aren't the creator of the existing iCal link, check with your teammates before revoking it. 
+[comment]: <> (>**Note**: Use caution when revoking an iCal link associated with shared on-call schedules. If you aren't the creator of the existing iCal link, check with your teammates before revoking it.)
 
 To revoke an active iCal link:
 

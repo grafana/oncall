@@ -16,7 +16,7 @@ weight: 100
 
 Grafana OnCall allows you to map out recurring on-call coverage and automate the escalation of alert notifications to on-call users. Configure and manage on-call schedules directly in the Grafana OnCall plugin to easily customize rotations with a live schedule preview, reference teammates' time zones, and add overrides. 
 
-To learn more, refer to [Create an on-call schedule](create-schedule/index.md)
+To learn more, refer to [Create an on-call schedule]({{< relref "create-schedule" >}})
 
 
 >**Note**: User permissions determine which components of Grafana OnCall are available to you.
