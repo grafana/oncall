@@ -9,6 +9,7 @@ import styles from 'pages/incidents/parts/IncidentDropdown.module.scss';
 
 import Tag from 'components/Tag/Tag';
 import Text from 'components/Text/Text';
+import SilenceDropdown from './SilenceDropdown';
 
 const cx = cn.bind(styles);
 
@@ -41,11 +42,16 @@ function ListMenu({ alert, openMenu }: { alert: Alert; openMenu: React.MouseEven
 }
 
 export function getIncidentContextMenu(alert: Alert) {
+  const onClickFn = (ev: React.SyntheticEvent<HTMLDivElement>) => {
+    ev.stopPropagation();
+    return false;
+  };
+
   if (alert.status === IncidentStatus.Resolved) {
     return (
       <WithContextMenu
         renderMenuItems={() => (
-          <div className={cx('incident__options')}>
+          <div className={cx('incident__options')} onClick={onClickFn}>
             <div className={cx('incident__option-item', 'incident__option-item--firing')}>Firing</div>
           </div>
         )}
@@ -59,7 +65,7 @@ export function getIncidentContextMenu(alert: Alert) {
     return (
       <WithContextMenu
         renderMenuItems={() => (
-          <div className={cx('incident__options')}>
+          <div className={cx('incident__options')} onClick={onClickFn}>
             <div className={cx('incident__option-item', 'incident__option-item--unacknowledge')}>Unacknowledge</div>
             <div className={cx('incident__option-item', 'incident__option-item--resolve')}>Resolve</div>
           </div>
@@ -74,11 +80,19 @@ export function getIncidentContextMenu(alert: Alert) {
     return (
       <WithContextMenu
         renderMenuItems={() => (
-          <>
-            <div className={cx('incident__option-item')}>Silence</div>
+          <div className={cx('incident__options')} onClick={onClickFn}>
+            <div className={cx('incident__option-item')}>
+              <SilenceDropdown
+                className={cx('silence-button-inline')}
+                key="silence"
+                disabled={alert.loading}
+                onSelect={() => {}}
+                buttonSize="sm"
+              />
+            </div>
             <div className={cx('incident__option-item', 'incident__option-item--acknowledge')}>Acknowledge</div>
             <div className={cx('incident__option-item', 'incident__option-item--resolve')}>Resolve</div>
-          </>
+          </div>
         )}
       >
         {({ openMenu }) => <ListMenu alert={alert} openMenu={openMenu} />}
@@ -90,7 +104,7 @@ export function getIncidentContextMenu(alert: Alert) {
   return (
     <WithContextMenu
       renderMenuItems={() => (
-        <div className={cx('incident_options')}>
+        <div className={cx('incident_options')} onClick={onClickFn}>
           <div className={cx('incident__option-item')}>Unsilence</div>
           <div className={cx('incident__option-item', 'incident__option-item--acknowledge')}>Acknowledge</div>
           <div className={cx('incident__option-item', 'incident__option-item--firing')}>Acknowledge</div>
