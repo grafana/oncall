@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useRef } from 'react';
 
 import { Icon, WithContextMenu } from '@grafana/ui';
 import { Alert, IncidentStatus } from 'models/alertgroup/alertgroup.types';
@@ -12,23 +12,35 @@ import Text from 'components/Text/Text';
 
 const cx = cn.bind(styles);
 
-export function getIncidentContextMenu(alert: Alert) {
-  const getIncidentTagColor = () => {
-    if (alert.status === IncidentStatus.Resolved) return '#299C46';
-    if (alert.status === IncidentStatus.Firing) return '#E02F44';
-    if (alert.status === IncidentStatus.Acknowledged) return '#C69B06';
-    return '#464C54';
-  };
+const getIncidentTagColor = (alert: Alert) => {
+  if (alert.status === IncidentStatus.Resolved) return '#299C46';
+  if (alert.status === IncidentStatus.Firing) return '#E02F44';
+  if (alert.status === IncidentStatus.Acknowledged) return '#C69B06';
+  return '#464C54';
+};
 
-  const openMenuFn = ({ openMenu }) => (
-    <Tag className={cx('incident__tag')} color={getIncidentTagColor()} onClick={openMenu}>
+function ListMenu({ alert, openMenu }: { alert: Alert; openMenu: React.MouseEventHandler<HTMLElement> }) {
+  const forwardedRef = useRef<HTMLSpanElement>();
+
+  return (
+    <Tag
+      forwardedRef={forwardedRef}
+      className={cx('incident__tag')}
+      color={getIncidentTagColor(alert)}
+      onClick={() => {
+        const boundingRect = forwardedRef.current.getBoundingClientRect();
+        openMenu({ pageX: boundingRect.left, pageY: boundingRect.top + boundingRect.height } as any);
+      }}
+    >
       <Text strong size="small">
         {IncidentStatus[alert.status]}
       </Text>
       <Icon className={cx('incident__icon')} name="angle-down" size="sm" />
     </Tag>
   );
+}
 
+export function getIncidentContextMenu(alert: Alert) {
   if (alert.status === IncidentStatus.Resolved) {
     return (
       <WithContextMenu
@@ -38,7 +50,7 @@ export function getIncidentContextMenu(alert: Alert) {
           </div>
         )}
       >
-        {openMenuFn}
+        {({ openMenu }) => <ListMenu alert={alert} openMenu={openMenu} />}
       </WithContextMenu>
     );
   }
@@ -53,7 +65,7 @@ export function getIncidentContextMenu(alert: Alert) {
           </div>
         )}
       >
-        {openMenuFn}
+        {({ openMenu }) => <ListMenu alert={alert} openMenu={openMenu} />}
       </WithContextMenu>
     );
   }
@@ -69,7 +81,7 @@ export function getIncidentContextMenu(alert: Alert) {
           </>
         )}
       >
-        {openMenuFn}
+        {({ openMenu }) => <ListMenu alert={alert} openMenu={openMenu} />}
       </WithContextMenu>
     );
   }
@@ -80,12 +92,12 @@ export function getIncidentContextMenu(alert: Alert) {
       renderMenuItems={() => (
         <div className={cx('incident_options')}>
           <div className={cx('incident__option-item')}>Unsilence</div>
-          <div className={cx('incident__option-item incident__option-item--acknowledge')}>Acknowledge</div>
-          <div className={cx('incident__option-item incident__option-item--firing')}>Acknowledge</div>
+          <div className={cx('incident__option-item', 'incident__option-item--acknowledge')}>Acknowledge</div>
+          <div className={cx('incident__option-item', 'incident__option-item--firing')}>Acknowledge</div>
         </div>
       )}
     >
-      {openMenuFn}
+      {({ openMenu }) => <ListMenu alert={alert} openMenu={openMenu} />}
     </WithContextMenu>
   );
 }
