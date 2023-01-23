@@ -356,7 +356,7 @@ class AlertGroup(AlertGroupSlackRenderingMixin, EscalationSnapshotMixin, models.
         WHERE bool_field=0/1 instead of WHERE bool_field/NOT bool_field
         which works much faster in mysql
         """
-        return Q(silenced=models.Value(1)) & Q(acknowledged=models.Value(0)) & Q(resolved=models.Value(0))
+        return Q(silenced=models.Value("1")) & Q(acknowledged=models.Value("0")) & Q(resolved=models.Value("0"))
 
     @staticmethod
     def get_new_state_filter():
@@ -365,7 +365,7 @@ class AlertGroup(AlertGroupSlackRenderingMixin, EscalationSnapshotMixin, models.
         WHERE bool_field=0/1 instead of WHERE bool_field/NOT bool_field
         which works much faster in mysql
         """
-        return Q(silenced=models.Value(0)) & Q(acknowledged=models.Value(0)) & Q(resolved=models.Value(0))
+        return Q(silenced=models.Value("0")) & Q(acknowledged=models.Value("0")) & Q(resolved=models.Value("0"))
 
     @staticmethod
     def get_acknowledged_state_filter():
@@ -374,7 +374,7 @@ class AlertGroup(AlertGroupSlackRenderingMixin, EscalationSnapshotMixin, models.
         WHERE bool_field=0/1 instead of WHERE bool_field/NOT bool_field
         which works much faster in mysql
         """
-        return Q(acknowledged=models.Value(1)) & Q(resolved=models.Value(0))
+        return Q(acknowledged=models.Value("1")) & Q(resolved=models.Value("0"))
 
     @staticmethod
     def get_resolved_state_filter():
@@ -383,7 +383,7 @@ class AlertGroup(AlertGroupSlackRenderingMixin, EscalationSnapshotMixin, models.
         WHERE bool_field=0/1 instead of WHERE bool_field/NOT bool_field
         which works much faster in mysql
         """
-        return Q(resolved=models.Value(1))
+        return Q(resolved=models.Value("1"))
 
     class Meta:
         get_latest_by = "pk"
