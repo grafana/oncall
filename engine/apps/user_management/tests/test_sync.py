@@ -134,14 +134,19 @@ def test_sync_organization(make_organization, make_team, make_user_for_organizat
         },
     )
 
+    api_check_token_call_status = {"status_code": 200}
+
     with patch.object(GrafanaAPIClient, "is_rbac_enabled_for_organization", return_value=False):
         with patch.object(GrafanaAPIClient, "get_users", return_value=api_users_response):
             with patch.object(GrafanaAPIClient, "get_teams", return_value=(api_teams_response, None)):
                 with patch.object(GrafanaAPIClient, "get_team_members", return_value=(api_members_response, None)):
                     with patch.object(
-                        GrafanaAPIClient, "get_grafana_plugin_settings", return_value=({"enabled": True}, None)
+                        GrafanaAPIClient, "check_token", return_value=(None, api_check_token_call_status)
                     ):
-                        sync_organization(organization)
+                        with patch.object(
+                            GrafanaAPIClient, "get_grafana_plugin_settings", return_value=({"enabled": True}, None)
+                        ):
+                            sync_organization(organization)
 
     # check that users are populated
     assert organization.users.count() == 1
