@@ -44,7 +44,10 @@ logger.setLevel(logging.DEBUG)
 
 
 def users_in_ical(
-    usernames_from_ical: typing.List[str], organization: Organization, include_viewers=False
+    usernames_from_ical: typing.List[str],
+    organization: Organization,
+    include_viewers=False,
+    users_to_filter=None,
 ) -> UserQuerySet:
     """
     This method returns a `UserQuerySet`, filtered by users whose username, or case-insensitive e-mail,
@@ -61,6 +64,14 @@ def users_in_ical(
         Whether or not the list should be further filtered to exclude users based on granted permissions
     """
     from apps.user_management.models import User
+
+    # Filter users without making SQL queries if users_to_filter arg is provided
+    # users_to_filter is passed in apps.schedules.ical_utils.get_oncall_users_for_multiple_schedules
+    if users_to_filter is not None:
+        emails_from_ical = [username.lower() for username in usernames_from_ical]
+        return list(
+            {user for user in users_to_filter if user.username in usernames_from_ical or user.email in emails_from_ical}
+        )
 
     users_found_in_ical = organization.users
     if not include_viewers:
@@ -281,18 +292,28 @@ def list_of_empty_shifts_in_schedule(schedule, start_date, end_date):
     return sorted(empty_shifts, key=lambda dt: dt.start)
 
 
-def list_users_to_notify_from_ical(schedule, events_datetime=None, include_viewers=False) -> UserQuerySet:
+def list_users_to_notify_from_ical(
+    schedule, events_datetime=None, include_viewers=False, users_to_filter=None
+) -> UserQuerySet:
     """
     Retrieve on-call users for the current time
     """
     events_datetime = events_datetime if events_datetime else timezone.datetime.now(timezone.utc)
     return list_users_to_notify_from_ical_for_period(
-        schedule, events_datetime, events_datetime, include_viewers=include_viewers
+        schedule,
+        events_datetime,
+        events_datetime,
+        include_viewers=include_viewers,
+        users_to_filter=users_to_filter,
     )
 
 
 def list_users_to_notify_from_ical_for_period(
-    schedule, start_datetime, end_datetime, include_viewers=False
+    schedule,
+    start_datetime,
+    end_datetime,
+    include_viewers=False,
+    users_to_filter=None,
 ) -> UserQuerySet:
     # get list of iCalendars from current iCal files. If there is more than one calendar, primary calendar will always
     # be the first
@@ -311,13 +332,62 @@ def list_users_to_notify_from_ical_for_period(
             parsed_ical_events.setdefault(current_priority, []).extend(current_usernames)
         # find users by usernames. if users are not found for shift, get users from lower priority
         for _, usernames in sorted(parsed_ical_events.items(), reverse=True):
-            users_found_in_ical = users_in_ical(usernames, schedule.organization, include_viewers=include_viewers)
+            users_found_in_ical = users_in_ical(
+                usernames, schedule.organization, include_viewers=include_viewers, users_to_filter=users_to_filter
+            )
             if users_found_in_ical:
                 break
         if users_found_in_ical:
             # if users are found in the overrides calendar, there is no need to check primary calendar
             break
     return users_found_in_ical
+
+
+def get_oncall_users_for_multiple_schedules(schedules, events_datetime=None):
+    """
+    TODO: add comments
+    """
+    from apps.user_management.models import User
+
+    if events_datetime is None:
+        events_datetime = timezone.datetime.now(timezone.utc)
+
+    # Exit early if there are no schedules
+    if not schedules.exists():
+        return {}
+
+    # Assume all schedules from the queryset belong to the same organization
+    organization = schedules[0].organization
+
+    # Gather usernames from all events from all schedules
+    usernames = set()
+    for schedule in schedules.all():
+        calendars = schedule.get_icalendars()
+        for calendar in calendars:
+            if calendar is None:
+                continue
+            events = ical_events.get_events_from_ical_between(calendar, events_datetime, events_datetime)
+            for event in events:
+                current_usernames, _ = get_usernames_from_ical_event(event)
+                usernames.update(current_usernames)
+
+    # Fetch relevant users from the db
+    emails = [username.lower() for username in usernames]
+    users = organization.users.filter(
+        Q(**User.build_permissions_query(RBACPermission.Permissions.SCHEDULES_WRITE, organization))
+        & (Q(username__in=usernames) | Q(email__lower__in=emails))
+    )
+
+    # Get on-call users
+    oncall_users = {}
+    for schedule in schedules.all():
+        # pass user list to list_users_to_notify_from_ical
+        schedule_oncall_users = list_users_to_notify_from_ical(
+            schedule, events_datetime=events_datetime, users_to_filter=users
+        )
+        oncall_users.update({schedule.pk: schedule_oncall_users})
+
+    return oncall_users
 
 
 def parse_username_from_string(string):

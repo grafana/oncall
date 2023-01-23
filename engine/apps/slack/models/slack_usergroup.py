@@ -69,7 +69,7 @@ class SlackUserGroup(models.Model):
 
     @property
     def oncall_slack_user_identities(self):
-        users = self.oncall_schedules.get_oncall_users()
+        users = set(self.oncall_schedules.get_oncall_users().values())
         slack_user_identities = [user.slack_user_identity for user in users if user.slack_user_identity is not None]
         return slack_user_identities
 
