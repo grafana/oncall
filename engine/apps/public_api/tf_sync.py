@@ -13,9 +13,7 @@ SYNC_PERIOD = 60
 
 
 def is_request_from_terraform(request) -> bool:
-    if "terraform-provider-grafana" in request.META.get("HTTP_USER_AGENT", ""):
-        return True
-    return False
+    return "terraform-provider-grafana" in request.META.get("HTTP_USER_AGENT", "")
 
 
 def sync_users_on_tf_request(organization):

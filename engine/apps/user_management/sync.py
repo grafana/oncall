@@ -34,6 +34,7 @@ def sync_organization(organization):
     if check_token_call_status["status_code"] == 200:
         organization.api_token_status = Organization.API_TOKEN_STATUS_OK
         sync_users_and_teams(grafana_api_client, organization)
+        organization.last_time_synced = timezone.now()
         organization.is_grafana_incident_enabled = check_grafana_incident_is_enabled(grafana_api_client)
     else:
         organization.api_token_status = Organization.API_TOKEN_STATUS_FAILED
@@ -74,8 +75,6 @@ def sync_users_and_teams(client: GrafanaAPIClient, organization):
     sync_users(client, organization)
     sync_teams(client, organization)
     sync_team_members(client, organization)
-
-    organization.last_time_synced = timezone.now()
 
 
 def sync_users(client: GrafanaAPIClient, organization, **kwargs):
