@@ -25,8 +25,8 @@ Use your existing calendar app with iCal format to manage and customize on-call 
 
 There are three key parts to configuring on-call schedules using iCal import:
 1. Create a primary on-call calendar and an optional override calendar in your calendar app.
-2. Import the calendars into Grafana OnCall and configure additional schedule settings.
-3. Link your schedule to corresponding escalation chains for alert notifications to be sent to the proper on-call user.
+1. Import the calendars into Grafana OnCall and configure additional schedule settings.
+1. Link your schedule to corresponding escalation chains for alert notifications to be sent to the proper on-call user.
 
 ### Create your on-call schedule calendar
 
@@ -37,8 +37,8 @@ Create a dedicated calendar to map out your on-call coverage using calendar even
 To create an on-call schedule calendar:
 
 1. Create a new calendar in your calendar app, then review and adjust default settings as needed. 
-2. In your new calendar, create events that represent on-call shifts. You must use Grafana usernames as the event title to associate users with each shift.
-3. Once your on-call calendar is complete, go to your calendar settings to locate the secret iCal URL. For example, in a Google calendar, this URL can be found in **Settings** > **Settings for my calendars** > **Integrate calendar** > **Secret address in iCal format**.
+1. In your new calendar, create events that represent on-call shifts. You must use Grafana usernames as the event title to associate users with each shift.
+1. Once your on-call calendar is complete, go to your calendar settings to locate the secret iCal URL. For example, in a Google calendar, this URL can be found in **Settings** > **Settings for my calendars** > **Integrate calendar** > **Secret address in iCal format**.
 
 To learn more about how to configure your calendar events, refer to Calendar events.
 
@@ -51,10 +51,10 @@ Once you’ve configured on-call schedules in your calendar app, you can import 
 To import an on-call schedule:
 
 1. In Grafana OnCall, navigate to the **Schedules** tab and click **+ New schedule**.
-2. Navigate to **Import schedule from iCal URL** and click **+ Create**.
-3. Copy the secret iCal URL from your calendar and paste it the **Primary schedule iCal URL** field. Repeat this step for the **Override schedule iCal URL** field if you have an override calendar.
-4. Provide a name and review available schedule settings.
-5. When you’re done, click **Create Schedule**.
+1. Navigate to **Import schedule from iCal URL** and click **+ Create**.
+1. Copy the secret iCal URL from your calendar and paste it the **Primary schedule iCal URL** field. Repeat this step for the **Override schedule iCal URL** field if you have an override calendar.
+1. Provide a name and review available schedule settings.
+1. When you’re done, click **Create Schedule**.
 
 
 ### Create an override calendar (Optional)
