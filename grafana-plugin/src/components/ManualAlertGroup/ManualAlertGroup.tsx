@@ -1,4 +1,4 @@
-import React, { FC, useState } from 'react';
+import React, { FC } from 'react';
 
 import { Button, Drawer, HorizontalGroup, VerticalGroup } from '@grafana/ui';
 import cn from 'classnames/bind';
@@ -38,33 +38,14 @@ const handleSubmit = () => {
 
 const ManualAlertGroup: FC<ManualAlertGroupProps> = (props) => {
   const { onHide } = props;
-  const [showEscalationVariants, setShowEscalationVariants] = useState(false);
-
-  const handleOpenEscalationVariants = (status) => {
-    if (status) {
-      setShowEscalationVariants(false);
-    } else {
-      setShowEscalationVariants(true);
-    }
-  };
 
   return (
     <>
       <Drawer scrollableContent title="Create an alert group" onClose={onHide} closeOnMaskClick>
         <div className={cx('content')}>
           <VerticalGroup>
-            <div>
-              <div className={cx('assign-responders-button')}>
-                <Button variant="secondary">Escalate to</Button>
-                <Button
-                  variant="secondary"
-                  onClick={() => handleOpenEscalationVariants(showEscalationVariants)}
-                  icon="angle-down"
-                  style={{ width: '24px' }}
-                ></Button>
-              </div>
-              {showEscalationVariants && <EscalationVariants onHide={() => setShowEscalationVariants(false)} />}
-            </div>
+            <EscalationVariants />
+
             <GForm form={manualAlertFormConfig} data={{}} onSubmit={handleSubmit} />
           </VerticalGroup>
         </div>

@@ -13,6 +13,10 @@
 }
 
 .assign-responders-list {
+  height: 146px;
   overflow: auto;
-  overflow-y: scroll;
+}
+
+.assign-responders-item {
+  overflow: scroll;
 }
