@@ -15,12 +15,13 @@ from apps.slack.slack_client.exceptions import SlackAPIException
 
 DIRECT_PAGING_TEAM_SELECT_ID = "paging_team_select"
 DIRECT_PAGING_ORG_SELECT_ID = "paging_org_select"
-DIRECT_PAGING_ROUTE_SELECT_ID = "paging_route_select"
+DIRECT_PAGING_ESCALATION_SELECT_ID = "paging_escalation_select"
 DIRECT_PAGING_USER_SELECT_ID = "paging_user_select"
 DIRECT_PAGING_SCHEDULE_SELECT_ID = "paging_schedule_select"
 DIRECT_PAGING_TITLE_INPUT_ID = "paging_title_input"
 DIRECT_PAGING_MESSAGE_INPUT_ID = "paging_message_input"
 
+DEFAULT_NO_ESCALATION_VALUE = "default_no_escalation"
 DEFAULT_TEAM_VALUE = "default_team"
 
 
@@ -97,9 +98,8 @@ class StartDirectPaging(scenario_step.ScenarioStep):
             USERS_DATA_KEY: {},
             SCHEDULES_DATA_KEY: {},
         }
-
-        blocks = _get_initial_form_fields(slack_team_identity, slack_user_identity, input_id_prefix, payload)
-        view = _get_form_view(FinishDirectPaging.routing_uid(), blocks, json.dumps(private_metadata))
+        initial_payload = {"view": {"private_metadata": json.dumps(private_metadata)}}
+        view = render_dialog(slack_user_identity, slack_team_identity, initial_payload, initial=True)
         self._slack_client.api_call(
             "views.open",
             trigger_id=payload["trigger_id"],
@@ -118,6 +118,7 @@ class FinishDirectPaging(scenario_step.ScenarioStep):
         input_id_prefix = private_metadata["input_id_prefix"]
         selected_organization = _get_selected_org_from_payload(payload, input_id_prefix)
         selected_team = _get_selected_team_from_payload(payload, input_id_prefix)
+        selected_escalation = _get_selected_escalation_from_payload(payload, input_id_prefix)
         user = slack_user_identity.get_user(selected_organization)
 
         selected_users = [
@@ -129,8 +130,17 @@ class FinishDirectPaging(scenario_step.ScenarioStep):
             for s, p in get_current_items(payload, SCHEDULES_DATA_KEY, selected_organization.oncall_schedules)
         ]
 
-        # trigger direct paging to selected users
-        direct_paging(selected_organization, selected_team, user, title, message, selected_users, selected_schedules)
+        # trigger direct paging to selected users/schedules/escalation
+        direct_paging(
+            selected_organization,
+            selected_team,
+            user,
+            title,
+            message,
+            selected_users,
+            selected_schedules,
+            selected_escalation,
+        )
 
         try:
             self._slack_client.api_call(
@@ -170,6 +180,10 @@ class OnPagingOrgChange(scenario_step.ScenarioStep):
 
 class OnPagingTeamChange(OnPagingOrgChange):
     """Reload form with updated team."""
+
+
+class OnPagingEscalationChange(scenario_step.ScenarioStep):
+    """Set escalation chain."""
 
 
 class OnPagingUserChange(scenario_step.ScenarioStep):
@@ -291,26 +305,44 @@ class OnPagingScheduleChange(scenario_step.ScenarioStep):
 DIVIDER_BLOCK = {"type": "divider"}
 
 
-def render_dialog(slack_user_identity, slack_team_identity, payload):
-    # data/state
+def render_dialog(slack_user_identity, slack_team_identity, payload, initial=False):
     private_metadata = json.loads(payload["view"]["private_metadata"])
     submit_routing_uid = private_metadata.get("submit_routing_uid")
-    old_input_id_prefix, new_input_id_prefix, new_private_metadata = _get_and_change_input_id_prefix_from_metadata(
-        private_metadata
-    )
-    selected_organization = _get_selected_org_from_payload(payload, old_input_id_prefix)
-    selected_team = _get_selected_team_from_payload(payload, old_input_id_prefix)
+    if initial:
+        # setup initial form
+        new_input_id_prefix = _generate_input_id_prefix()
+        new_private_metadata = private_metadata
+        new_private_metadata["input_id_prefix"] = new_input_id_prefix
+        selected_organization = (
+            slack_team_identity.organizations.filter(users__slack_user_identity=slack_user_identity)
+            .order_by("pk")
+            .distinct()
+            .first()
+        )
+        selected_team = None
+        selected_escalation = None
+    else:
+        # setup form using data/state
+        old_input_id_prefix, new_input_id_prefix, new_private_metadata = _get_and_change_input_id_prefix_from_metadata(
+            private_metadata
+        )
+        selected_organization = _get_selected_org_from_payload(payload, old_input_id_prefix)
+        selected_team = _get_selected_team_from_payload(payload, old_input_id_prefix)
+        selected_escalation = _get_selected_escalation_from_payload(payload, old_input_id_prefix)
 
     # widgets
     organization_select = _get_organization_select(
         slack_team_identity, slack_user_identity, selected_organization, new_input_id_prefix
     )
     team_select = _get_team_select(slack_user_identity, selected_organization, selected_team, new_input_id_prefix)
+    escalation_select = _get_escalation_select(
+        selected_organization, selected_team, selected_escalation, new_input_id_prefix
+    )
     users_select = _get_users_select(selected_organization, selected_team, new_input_id_prefix)
     schedules_select = _get_schedules_select(selected_organization, selected_team, new_input_id_prefix)
 
     # blocks
-    blocks = [organization_select, team_select, users_select, schedules_select]
+    blocks = [organization_select, team_select, escalation_select, users_select, schedules_select]
 
     # selected items
     selected_users = get_current_items(payload, USERS_DATA_KEY, selected_organization.users)
@@ -363,31 +395,6 @@ def _get_form_view(routing_uid, blocks, private_metatada):
     return view
 
 
-def _get_initial_form_fields(slack_team_identity, slack_user_identity, input_id_prefix, payload):
-    initial_organization = (
-        slack_team_identity.organizations.filter(users__slack_user_identity=slack_user_identity)
-        .order_by("pk")
-        .distinct()
-        .first()
-    )
-
-    organization_select = _get_organization_select(
-        slack_team_identity, slack_user_identity, initial_organization, input_id_prefix
-    )
-
-    initial_team = None  # means default team
-    team_select = _get_team_select(slack_user_identity, initial_organization, initial_team, input_id_prefix)
-    users_select = _get_users_select(initial_organization, initial_team, input_id_prefix)
-    schedules_select = _get_schedules_select(initial_organization, initial_team, input_id_prefix)
-
-    blocks = [organization_select, team_select, users_select, schedules_select]
-    title_input = _get_title_input(payload)
-    message_input = _get_message_input(payload)
-    blocks.append(title_input)
-    blocks.append(message_input)
-    return blocks
-
-
 def _get_organization_select(slack_team_identity, slack_user_identity, value, input_id_prefix):
     organizations = slack_team_identity.organizations.filter(
         users__slack_user_identity=slack_user_identity,
@@ -435,8 +442,9 @@ def _get_selected_org_from_payload(payload, input_id_prefix):
     selected_org_id = _get_select_field_value(
         payload, input_id_prefix, OnPagingOrgChange.routing_uid(), DIRECT_PAGING_ORG_SELECT_ID
     )
-    org = Organization.objects.filter(pk=selected_org_id).first()
-    return org
+    if selected_org_id is not None:
+        org = Organization.objects.filter(pk=selected_org_id).first()
+        return org
 
 
 def _get_team_select(slack_user_identity, organization, value, input_id_prefix):
@@ -484,6 +492,55 @@ def _get_team_select(slack_user_identity, organization, value, input_id_prefix):
         },
     }
     return team_select
+
+
+def _get_escalation_select(organization, team, value, input_id_prefix):
+    escalations = organization.escalation_chains.filter(team=team)
+    # adding a default no-escalation option
+    initial_option_idx = 0
+    options = [
+        {
+            "text": {
+                "type": "plain_text",
+                "text": f"None",
+                "emoji": True,
+            },
+            "value": DEFAULT_NO_ESCALATION_VALUE,
+        }
+    ]
+    for idx, escalation in enumerate(escalations, start=1):
+        if escalation == value:
+            initial_option_idx = idx
+        options.append(
+            {
+                "text": {
+                    "type": "plain_text",
+                    "text": f"{escalation.name}",
+                    "emoji": True,
+                },
+                "value": f"{escalation.pk}",
+            }
+        )
+
+    if not options:
+        escalations_select = {
+            "type": "context",
+            "elements": [{"type": "mrkdwn", "text": "No escalation chains available"}],
+        }
+    else:
+        escalations_select = {
+            "type": "section",
+            "text": {"type": "mrkdwn", "text": "Set escalation chain"},
+            "block_id": input_id_prefix + DIRECT_PAGING_ESCALATION_SELECT_ID,
+            "accessory": {
+                "type": "static_select",
+                "placeholder": {"type": "plain_text", "text": "Select an escalation", "emoji": True},
+                "options": options,
+                "action_id": OnPagingEscalationChange.routing_uid(),
+                "initial_option": options[initial_option_idx],
+            },
+        }
+    return escalations_select
 
 
 def _get_users_select(organization, team, input_id_prefix):
@@ -635,10 +692,21 @@ def _get_selected_team_from_payload(payload, input_id_prefix):
     selected_team_id = _get_select_field_value(
         payload, input_id_prefix, OnPagingTeamChange.routing_uid(), DIRECT_PAGING_TEAM_SELECT_ID
     )
-    if selected_team_id == DEFAULT_TEAM_VALUE:
+    if selected_team_id is None or selected_team_id == DEFAULT_TEAM_VALUE:
         return None
     team = Team.objects.filter(pk=selected_team_id).first()
     return team
+
+
+def _get_selected_escalation_from_payload(payload, input_id_prefix):
+    EscalationChain = apps.get_model("alerts", "EscalationChain")
+    selected_escalation_id = _get_select_field_value(
+        payload, input_id_prefix, OnPagingEscalationChange.routing_uid(), DIRECT_PAGING_ESCALATION_SELECT_ID
+    )
+    if selected_escalation_id is None or selected_escalation_id == DEFAULT_NO_ESCALATION_VALUE:
+        return None
+    escalation = EscalationChain.objects.filter(pk=selected_escalation_id).first()
+    return escalation
 
 
 def _get_selected_user_from_payload(payload, input_id_prefix):
@@ -745,6 +813,12 @@ STEPS_ROUTING = [
         "block_action_type": scenario_step.BLOCK_ACTION_TYPE_STATIC_SELECT,
         "block_action_id": OnPagingTeamChange.routing_uid(),
         "step": OnPagingTeamChange,
+    },
+    {
+        "payload_type": scenario_step.PAYLOAD_TYPE_BLOCK_ACTIONS,
+        "block_action_type": scenario_step.BLOCK_ACTION_TYPE_STATIC_SELECT,
+        "block_action_id": OnPagingEscalationChange.routing_uid(),
+        "step": OnPagingEscalationChange,
     },
     {
         "payload_type": scenario_step.PAYLOAD_TYPE_BLOCK_ACTIONS,

@@ -8,6 +8,7 @@ from apps.base.models import UserNotificationPolicy
 from apps.schedules.models import CustomOnCallShift, OnCallScheduleWeb
 from apps.slack.scenarios.paging import (
     DEFAULT_POLICY,
+    DIRECT_PAGING_ESCALATION_SELECT_ID,
     DIRECT_PAGING_MESSAGE_INPUT_ID,
     DIRECT_PAGING_ORG_SELECT_ID,
     DIRECT_PAGING_SCHEDULE_SELECT_ID,
@@ -19,6 +20,7 @@ from apps.slack.scenarios.paging import (
     SCHEDULES_DATA_KEY,
     USERS_DATA_KEY,
     FinishDirectPaging,
+    OnPagingEscalationChange,
     OnPagingItemActionChange,
     OnPagingOrgChange,
     OnPagingScheduleChange,
@@ -29,7 +31,7 @@ from apps.slack.scenarios.paging import (
 
 
 def make_slack_payload(
-    organization, user=None, schedule=None, current_users=None, current_schedules=None, actions=None
+    organization, user=None, schedule=None, escalation=None, current_users=None, current_schedules=None, actions=None
 ):
     payload = {
         "channel_id": "123",
@@ -51,6 +53,11 @@ def make_slack_payload(
                         OnPagingOrgChange.routing_uid(): {"selected_option": {"value": organization.pk}}
                     },
                     DIRECT_PAGING_TEAM_SELECT_ID: {OnPagingTeamChange.routing_uid(): {"selected_option": {"value": 0}}},
+                    DIRECT_PAGING_ESCALATION_SELECT_ID: {
+                        OnPagingEscalationChange.routing_uid(): {
+                            "selected_option": {"value": escalation.pk} if escalation else None
+                        }
+                    },
                     DIRECT_PAGING_USER_SELECT_ID: {
                         OnPagingUserChange.routing_uid(): {"selected_option": {"value": user.pk} if user else None}
                     },
@@ -186,11 +193,26 @@ def test_remove_user(make_organization_and_user_with_slack_identities):
 
 
 @pytest.mark.django_db
-def test_trigger_paging(make_organization_and_user_with_slack_identities, make_schedule):
+def test_trigger_paging_no_responders(make_organization_and_user_with_slack_identities):
+    organization, user, slack_team_identity, slack_user_identity = make_organization_and_user_with_slack_identities()
+    payload = make_slack_payload(organization=organization)
+
+    step = FinishDirectPaging(slack_team_identity)
+    with patch("apps.slack.scenarios.paging.direct_paging") as mock_direct_paging:
+        with patch.object(step._slack_client, "api_call"):
+            step.process_scenario(slack_user_identity, slack_team_identity, payload)
+
+    assert mock_direct_paging.called_with(organization, None, user, "The Title", "The Message")
+
+
+@pytest.mark.django_db
+def test_trigger_paging(make_organization_and_user_with_slack_identities, make_escalation_chain, make_schedule):
     organization, user, slack_team_identity, slack_user_identity = make_organization_and_user_with_slack_identities()
     schedule = make_schedule(organization, schedule_class=OnCallScheduleWeb, team=None)
+    escalation = make_escalation_chain(organization)
     payload = make_slack_payload(
         organization=organization,
+        escalation=escalation,
         current_users={str(user.pk): IMPORTANT_POLICY},
         current_schedules={str(schedule.pk): DEFAULT_POLICY},
     )
@@ -201,7 +223,7 @@ def test_trigger_paging(make_organization_and_user_with_slack_identities, make_s
             step.process_scenario(slack_user_identity, slack_team_identity, payload)
 
     assert mock_direct_paging.called_with(
-        organization, None, user, "The Title", "The Message", [(user, True)], [(schedule, False)]
+        organization, None, user, "The Title", "The Message", [(user, True)], [(schedule, False)], escalation
     )
 
 
