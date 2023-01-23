@@ -212,7 +212,10 @@ def test_sync_organization_is_rbac_permissions_enabled_open_source(make_organiza
                     with patch.object(
                         GrafanaAPIClient, "check_token", return_value=(None, api_check_token_call_status)
                     ):
-                        sync_organization(organization)
+                        with patch.object(
+                            GrafanaAPIClient, "get_grafana_plugin_settings", return_value=({"enabled": True}, None)
+                        ):
+                            sync_organization(organization)
 
     organization.refresh_from_db()
     assert organization.is_rbac_permissions_enabled == grafana_api_response
