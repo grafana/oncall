@@ -19,7 +19,7 @@ import IncidentsFilters from 'containers/IncidentsFilters/IncidentsFilters';
 import { WithPermissionControl } from 'containers/WithPermissionControl/WithPermissionControl';
 import { Alert, Alert as AlertType, AlertAction } from 'models/alertgroup/alertgroup.types';
 import { User } from 'models/user/user.types';
-import { getActionButtons, getIncidentStatusTag, renderRelatedUsers } from 'pages/incident/Incident.helpers';
+import { getActionButtons, renderRelatedUsers } from 'pages/incident/Incident.helpers';
 import { move } from 'state/helpers';
 import { PageProps, WithStoreProps } from 'state/types';
 import { withMobXProviderContext } from 'state/withStore';
@@ -29,6 +29,7 @@ import { UserActions } from 'utils/authorization';
 import SilenceDropdown from './parts/SilenceDropdown';
 
 import styles from './Incidents.module.css';
+import { getIncidentContextMenu } from './parts/IncidentDropdown';
 
 const cx = cn.bind(styles);
 
@@ -426,8 +427,8 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
     );
   };
 
-  renderStatus(record: AlertType) {
-    return getIncidentStatusTag(record);
+  renderStatus(incident: AlertType) {
+    return getIncidentContextMenu(incident);
   }
 
   renderStartedAt(alert: AlertType) {
@@ -495,6 +496,8 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
   };
 
   renderActionButtons = (incident: AlertType) => {
+    return null;
+
     return getActionButtons(incident, cx, {
       onResolve: this.getOnActionButtonClick(incident.pk, AlertAction.Resolve),
       onUnacknowledge: this.getOnActionButtonClick(incident.pk, AlertAction.unAcknowledge),

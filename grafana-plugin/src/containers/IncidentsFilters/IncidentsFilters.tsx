@@ -70,7 +70,7 @@ class IncidentsFilters extends Component<IncidentsFiltersProps, IncidentsFilters
         newQuery = { ...store.incidentFilters };
       } else {
         newQuery = {
-          status: [IncidentStatus.New, IncidentStatus.Acknowledged],
+          status: [IncidentStatus.Firing, IncidentStatus.Acknowledged],
         };
       }
 
@@ -148,8 +148,8 @@ class IncidentsFilters extends Component<IncidentsFiltersProps, IncidentsFilters
             icon={<Icon name="bell" size="xxxl" />}
             description="New alert groups"
             title={newIncidentsCount}
-            selected={status.includes(IncidentStatus.New)}
-            onClick={this.getStatusButtonClickHandler(IncidentStatus.New)}
+            selected={status.includes(IncidentStatus.Firing)}
+            onClick={this.getStatusButtonClickHandler(IncidentStatus.Firing)}
           />
         </div>
         <div key="acknowledged" className={cx('col')}>

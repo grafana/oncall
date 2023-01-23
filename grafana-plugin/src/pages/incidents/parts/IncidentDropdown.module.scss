@@ -1,0 +1,41 @@
+.incident__tag {
+  padding: 3px 12px;
+  display: inline-flex;
+  align-items: center;
+  cursor: pointer;
+}
+
+.incident__icon {
+  margin-right: -4px;
+  margin-left: 2px;
+}
+
+.incident__options {
+  display: flex;
+  flex-direction: column;
+}
+.incident__option-item {
+  padding: 8px;
+  display: flex;
+  align-items: center;
+  flex-direction: row;
+  flex-shrink: 0;
+  white-space: nowrap;
+  border-left: 2px solid transparent;
+  cursor: pointer;
+
+  &:hover {
+    background: var(--gray-9);
+  }
+
+  &--acknowledge,
+  &--unacknowledge {
+    color: var(--warning-text-color);
+  }
+  &--firing {
+    color: var(--error-text-color);
+  }
+  &--resolve {
+    color: var(--success-text-color);
+  }
+}

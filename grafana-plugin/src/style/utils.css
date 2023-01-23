@@ -26,6 +26,10 @@
   height: 100%;
 }
 
+.u-display-block {
+  display: block;
+}
+
 .u-flex {
   display: flex;
   flex-direction: row;

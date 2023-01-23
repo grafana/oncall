@@ -16,7 +16,7 @@ import { UserActions } from 'utils/authorization';
 
 export function getIncidentStatusTag(alert: Alert) {
   switch (alert.status) {
-    case IncidentStatus.New:
+    case IncidentStatus.Firing:
       return (
         <Tag color="#E02F44">
           <Text strong size="small">
@@ -175,7 +175,7 @@ export function getActionButtons(incident: AlertType, cx: any, callbacks: { [key
   const buttons = [];
 
   if (incident.alert_receive_channel.integration !== MaintenanceIntegration) {
-    if (incident.status === IncidentStatus.New) {
+    if (incident.status === IncidentStatus.Firing) {
       buttons.push(
         <SilenceDropdown
           className={cx('silence-button-inline')}

@@ -316,7 +316,7 @@ export class AlertGroupStore extends BaseStore {
         ...this.incidentFilters,
         resolved: false,
         acknowledged: false,
-        status: [IncidentStatus.New],
+        status: [IncidentStatus.Firing],
       },
     });
     this.newIncidents = result;
