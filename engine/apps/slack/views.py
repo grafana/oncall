@@ -520,7 +520,7 @@ class SlackEventApiEndpointView(APIView):
             return
 
         text = (
-            "The information in this workspace is read-only. To be able to interact with OnCall alert groups you need to connect a personal account.\n"
+            "The information in this workspace is read-only. To interact with OnCall alert groups you need to connect a personal account.\n"
             "Please go to *Grafana* -> *OnCall* -> *Users*, "
             "choose *your profile* and click the *connect* button.\n"
             ":rocket: :rocket: :rocket:"
