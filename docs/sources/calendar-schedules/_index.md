@@ -14,24 +14,22 @@ weight: 1100
 
 # On-call schedules
 
-Grafana OnCall makes establishing consistent and thoughtful on-call coverage easier while ensuring that alerts don’t go unnoticed.
-
-Use Grafana OnCall to:
+Grafana OnCall makes it easier to establish consistent and thoughtful on-call coverage while ensuring that alerts don’t go unnoticed. Use Grafana OnCall to:
 - Define coverage needs and avoid gaps in coverage
 - Automate alert escalation
 - Configure on-call shift notifications 
 
-This section provides conceptual information about Grafana OnCall schedules.
+This section provides conceptual information about Grafana OnCall schedule options.
 
 ## About on-call schedules
 
-On-call schedules consist of one or more rotations that contain on-call shifts. A schedule must be referenced in the corresponding escalation chain for alert notifications to be sent to an on-call user.
+An on-call schedule consist of one or more rotations that contain on-call shifts. A schedule must be referenced in the corresponding escalation chain for alert notifications to be sent to an on-call user.
 
 A fully configured on-call schedule consists of three main components: 
 
-**Rotations**: A recurring schedule containing a set of on-call shifts that users rotate through.
-**On-call shifts**: The period of time that an individual user is on-call for a particular rotation
-**Escalation Chains**: Automated steps that determine who to notify of an alert group. 
+- **Rotations**: A recurring schedule containing a set of on-call shifts that users rotate through.
+- **On-call shifts**: The period of time that an individual user is on-call for a particular rotation
+- **Escalation Chains**: Automated steps that determine who to notify of an alert group. 
 
 
 ## Types of on-call schedules
@@ -40,7 +38,7 @@ On-call schedules look different for different organizations and even teams. Gra
 ### Web-based schedule
 Configure and manage on-call schedules directly in the Grafana OnCall plugin. Easily configure and preview rotations, see teammates' time zones, and add overrides. 
 
-Learn more about [Web-based schedules](web-based-schedule/index.md)
+Learn more about [Web-based schedules](web-based-schedule/_index.md)
 
 ### iCal import
 Use any calendar service that uses the iCal format to manage and customize on-call schedules - Import rotations and shifts from your calendar app to Grafana OnCall for widely accessible scheduling. iCal imports appear in Grafana OnCall as read-only schedules but can be leveraged similarly to a web-based schedule.
