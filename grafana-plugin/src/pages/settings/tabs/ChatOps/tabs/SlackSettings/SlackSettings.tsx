@@ -136,7 +136,8 @@ class SlackSettings extends Component<SlackProps, SlackState> {
                     <ul style={{ marginLeft: '20px' }}>
                       <li>default organization Slack channel</li>
                       <li>default Slack channels for OnCall Integrations</li>
-                      <li>linked Slack usernames for OnCall users</li>
+                      <li>Slack channels & Slack user groups for OnCall Schedules</li>
+                      <li>linked Slack usernames for OnCall Users</li>
                     </ul>
                     <br />
                     <p>
