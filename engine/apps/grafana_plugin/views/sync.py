@@ -3,7 +3,6 @@ import logging
 from django.apps import apps
 from django.conf import settings
 from rest_framework import status
-from rest_framework.exceptions import AuthenticationFailed
 from rest_framework.request import Request
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -24,14 +23,13 @@ class PluginSyncView(GrafanaHeadersMixin, APIView):
         stack_id = self.instance_context["stack_id"]
         org_id = self.instance_context["org_id"]
         is_installed = False
-
         try:
             organization = Organization.objects.get(stack_id=stack_id, org_id=org_id)
-            try:
-                PluginAuthentication.get_user(request, organization)
+            is_user = PluginAuthentication.is_user_from_request_present_in_organization(request, organization)
+            if is_user:
                 if organization.api_token_status == Organization.API_TOKEN_STATUS_OK:
                     is_installed = True
-            except AuthenticationFailed:
+            else:
                 organization.api_token_status = Organization.API_TOKEN_STATUS_PENDING
                 organization.save(update_fields=["api_token_status"])
             plugin_sync_organization_async.apply_async((organization.pk,))
