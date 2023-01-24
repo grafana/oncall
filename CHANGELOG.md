@@ -22,6 +22,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - Removed duplicate API call, in the UI on plugin initial load, to `GET /api/internal/v1/alert_receive_channels`
+- Fix bugs related to creating contact point for Grafana Alerting integration
 
 ## v1.1.18 (2023-01-18)
 
