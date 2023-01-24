@@ -12,18 +12,30 @@ logger.setLevel(logging.DEBUG)
 
 
 def sync_organization(organization):
-    client = GrafanaAPIClient(api_url=organization.grafana_url, api_token=organization.api_token)
+    grafana_api_client = GrafanaAPIClient(api_url=organization.grafana_url, api_token=organization.api_token)
 
-    rbac_is_enabled = client.is_rbac_enabled_for_organization()
+    # NOTE: checking whether or not RBAC is enabled depends on whether we are dealing with an open-source or cloud
+    # stack. For Cloud we should make a call to the GCOM API, using an admin API token, and get the list of
+    # feature_toggles enabled for the stack. For open-source, simply make a HEAD request to the grafana instance's API
+    # and consider RBAC enabled if the list RBAC permissions endpoint returns 200. We cannot simply rely on the HEAD
+    # call in cloud because if an instance is not active, the grafana gateway will still return 200 for the
+    # HEAD request.
+    if settings.LICENSE == settings.CLOUD_LICENSE_NAME:
+        gcom_client = GcomAPIClient(settings.GRAFANA_COM_ADMIN_API_TOKEN)
+        rbac_is_enabled = gcom_client.is_rbac_enabled_for_stack(organization.stack_id)
+    else:
+        rbac_is_enabled = grafana_api_client.is_rbac_enabled_for_organization()
+
     organization.is_rbac_permissions_enabled = rbac_is_enabled
 
     _sync_instance_info(organization)
 
-    api_users = client.get_users(rbac_is_enabled)
+    api_users = grafana_api_client.get_users(rbac_is_enabled)
 
     if api_users:
         organization.api_token_status = Organization.API_TOKEN_STATUS_OK
-        sync_users_and_teams(client, api_users, organization)
+        sync_users_and_teams(grafana_api_client, api_users, organization)
+        organization.is_grafana_incident_enabled = check_grafana_incident_is_enabled(grafana_api_client)
     else:
         organization.api_token_status = Organization.API_TOKEN_STATUS_FAILED
 
@@ -38,6 +50,7 @@ def sync_organization(organization):
             "api_token_status",
             "gcom_token_org_last_time_synced",
             "is_rbac_permissions_enabled",
+            "is_grafana_incident_enabled",
         ]
     )
 
@@ -81,10 +94,20 @@ def sync_users_and_teams(client, api_users, organization):
     organization.last_time_synced = timezone.now()
 
 
+def check_grafana_incident_is_enabled(client):
+    GRAFANA_INCIDENT_PLUGIN = "grafana-incident-app"
+    grafana_incident_settings, _ = client.get_grafana_plugin_settings(GRAFANA_INCIDENT_PLUGIN)
+    is_grafana_incident_enabled = False
+    if isinstance(grafana_incident_settings, dict) and grafana_incident_settings.get("enabled"):
+        is_grafana_incident_enabled = True
+    return is_grafana_incident_enabled
+
+
 def delete_organization_if_needed(organization):
     # Organization has a manually set API token, it will not be found within GCOM
     # and would need to be deleted manually.
     if organization.gcom_token is None:
+        logger.info(f"Organization {organization.pk} has no gcom_token. Probably it's needed to delete org manually.")
         return False
 
     # Use common token as organization.gcom_token could be already revoked

@@ -2,9 +2,11 @@ FROM python:3.9-slim-buster AS base
 RUN apt-get update && apt-get install -y \
     python3-dev \
     gcc \
-    libpq-dev \
     libmariadb-dev \
-    netcat
+    libpq-dev \
+    netcat \
+    curl \
+    bash
 
 WORKDIR /etc/app
 COPY ./requirements.txt ./

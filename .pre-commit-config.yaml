@@ -5,6 +5,15 @@ repos:
       - id: isort
         files: ^engine
         args: [--settings-file=engine/pyproject.toml, --filter-files]
+      - id: isort
+        name: isort - pd-migrator
+        files: ^tools/pagerduty-migrator
+        args:
+          [--settings-file=tools/pagerduty-migrator/.isort.cfg, --filter-files]
+      - id: isort
+        name: isort - dev/scripts
+        files: ^dev/scripts
+        args: [--settings-file=dev/scripts/.isort.cfg, --filter-files]
 
   - repo: https://github.com/psf/black
     rev: 22.3.0
@@ -12,6 +21,12 @@ repos:
       - id: black
         files: ^engine
         args: [--config=engine/pyproject.toml]
+      - id: black
+        name: black - pd-migrator
+        files: ^tools/pagerduty-migrator
+      - id: black
+        name: black - dev/scripts
+        files: ^dev/scripts
 
   - repo: https://github.com/pycqa/flake8
     rev: 3.9.2
@@ -21,6 +36,28 @@ repos:
         args: [--config=engine/tox.ini]
         additional_dependencies:
           - flake8-tidy-imports
+      - id: flake8
+        name: flake8 - pd-migrator
+        files: ^tools/pagerduty-migrator
+        # Make sure config is compatible with black
+        # https://black.readthedocs.io/en/stable/the_black_code_style/current_style.html#line-length
+        args:
+          [
+            --max-line-length=88,
+            "--select=C,E,F,W,B,B950",
+            "--extend-ignore=E203,E501",
+          ]
+      - id: flake8
+        name: flake8 - dev/scripts
+        files: ^dev/scripts
+        # Make sure config is compatible with black
+        # https://black.readthedocs.io/en/stable/the_black_code_style/current_style.html#line-length
+        args:
+          [
+            --max-line-length=88,
+            "--select=C,E,F,W,B,B950",
+            "--extend-ignore=E203,E501",
+          ]
 
   - repo: https://github.com/pre-commit/mirrors-eslint
     rev: v8.25.0
@@ -43,12 +80,12 @@ repos:
         types_or: [css, javascript, jsx, ts, tsx]
         files: ^grafana-plugin/src
         additional_dependencies:
-          - prettier@^2.7.1
+          - prettier@2.8.2
       - id: prettier
         name: prettier - json
         types_or: [json]
         additional_dependencies:
-          - prettier@^2.7.1
+          - prettier@2.8.2
 
   - repo: https://github.com/thibaudcolas/pre-commit-stylelint
     rev: v13.13.1
@@ -71,4 +108,4 @@ repos:
         entry: markdownlint --ignore grafana-plugin/node_modules --ignore grafana-plugin/dist --ignore docs **/*.md
       - id: markdownlint
         name: markdownlint - docs
-        entry: markdownlint --ignore grafana-plugin/node_modules --ignore grafana-plugin/dist -c ./docs/.markdownlint.json ./docs/**/*.md
+        entry: markdownlint -c ./docs/.markdownlint.json ./docs/**/*.md

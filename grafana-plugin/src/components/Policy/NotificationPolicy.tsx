@@ -36,6 +36,8 @@ export interface NotificationPolicyProps {
   notifyByOptions?: NotifyBy[];
   telegramVerified: boolean;
   phoneStatus: number;
+  isMobileAppConnected: boolean;
+  showCloudConnectionWarning: boolean;
   color: string;
   number: number;
   userAction: UserAction;
@@ -132,6 +134,20 @@ export class NotificationPolicy extends React.Component<NotificationPolicyProps,
     }
   }
 
+  _renderMobileAppNote() {
+    const { isMobileAppConnected, showCloudConnectionWarning } = this.props;
+
+    if (showCloudConnectionWarning) {
+      return <PolicyNote type="danger">Cloud is not connected</PolicyNote>;
+    }
+
+    if (!isMobileAppConnected) {
+      return <PolicyNote type="danger">Mobile app is not connected</PolicyNote>;
+    }
+
+    return <PolicyNote type="success">Mobile app is connected</PolicyNote>;
+  }
+
   _renderTelegramNote() {
     const { telegramVerified } = this.props;
 
@@ -202,6 +218,12 @@ export class NotificationPolicy extends React.Component<NotificationPolicyProps,
 
       case 3:
         return <>{this._renderTelegramNote()}</>;
+
+      case 5:
+        return <>{this._renderMobileAppNote()}</>;
+
+      case 6:
+        return <>{this._renderMobileAppNote()}</>;
 
       default:
         return null;

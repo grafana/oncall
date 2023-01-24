@@ -1,11 +1,11 @@
 import { NavModelItem } from '@grafana/data';
+import { matchPath } from 'react-router-dom';
 
 import { isTopNavbar } from 'plugin/GrafanaPluginRootPage.helpers';
 import { AppFeature } from 'state/features';
 import { RootBaseStore } from 'state/rootBaseStore';
 import { UserActions, UserAction, isUserActionAllowed } from 'utils/authorization';
-
-export const PLUGIN_URL_PATH = '/a/grafana-oncall-app';
+import { PLUGIN_ROOT } from 'utils/consts';
 
 export type PageDefinition = {
   path: string;
@@ -20,7 +20,7 @@ export type PageDefinition = {
 };
 
 function getPath(name = '') {
-  return `${PLUGIN_URL_PATH}/?page=${name}`;
+  return `${PLUGIN_ROOT}/${name}`;
 }
 
 export const pages: { [id: string]: PageDefinition } = [
@@ -38,8 +38,11 @@ export const pages: { [id: string]: PageDefinition } = [
     text: '',
     hideFromTabs: true,
     hideFromBreadcrumbs: true,
-    parentItem: { text: 'Incident' },
-    path: getPath('incident/:id?'),
+    parentItem: {
+      text: 'Incident',
+      url: `${PLUGIN_ROOT}/incidents`,
+    },
+    path: getPath('incident'),
     action: UserActions.AlertGroupsRead,
   },
   {
@@ -78,7 +81,10 @@ export const pages: { [id: string]: PageDefinition } = [
     icon: 'calendar-alt',
     id: 'schedule',
     text: '',
-    parentItem: { text: 'Schedule' },
+    parentItem: {
+      text: 'Schedule',
+      url: `${PLUGIN_ROOT}/schedules`,
+    },
     hideFromBreadcrumbs: true,
     hideFromTabs: true,
     path: getPath('schedule/:id?'),
@@ -171,3 +177,37 @@ export const pages: { [id: string]: PageDefinition } = [
 
   return prev;
 }, {});
+
+export const ROUTES = {
+  incidents: ['incidents'],
+  incident: ['incidents/:id'],
+  users: ['users', 'users/:id'],
+  integrations: ['integrations', 'integrations/:id'],
+  escalations: ['escalations', 'escalations/:id'],
+  schedules: ['schedules'],
+  schedule: ['schedules/:id'],
+  outgoing_webhooks: ['outgoing_webhooks', 'outgoing_webhooks/:id'],
+  maintenance: ['maintenance'],
+  settings: ['settings'],
+  'organization-logs': ['organization-logs'],
+  'chat-ops': ['chat-ops'],
+  'live-settings': ['live-settings'],
+  cloud: ['cloud'],
+  test: ['test'],
+};
+
+export const getRoutesForPage = (name: string) => {
+  return ROUTES[name].map((route) => `${PLUGIN_ROOT}/${route}`);
+};
+
+export function getMatchedPage(url: string) {
+  return Object.keys(ROUTES).find((key) => {
+    return ROUTES[key].find((route) =>
+      matchPath(url, {
+        path: `${PLUGIN_ROOT}/${route}`,
+        exact: true,
+        strict: false,
+      })
+    );
+  });
+}

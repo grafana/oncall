@@ -44,7 +44,7 @@ class AlertGroupTelegramRenderer(AlertGroupBaseRenderer):
         elif self.alert_group.silenced:
             status_emoji = "⚪️"  # white circle
 
-        status_verbose = "Alerting"
+        status_verbose = "Firing"  # TODO: we should probably de-duplicate this text
         if self.alert_group.resolved:
             status_verbose = self.alert_group.get_resolve_text()
         elif self.alert_group.acknowledged:

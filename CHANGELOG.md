@@ -5,6 +5,108 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## Unreleased
+
+### Added
+
+- Add Slack slash command allowing to trigger a direct page via a manually created alert group
+
+## v1.1.18 (2023-01-18)
+
+### Added
+
+- Allow messaging backends to be enabled/disabled per organization ([#1151](https://github.com/grafana/oncall/pull/1151))
+
+### Changed
+
+- Send a Slack DM when user is not in channel ([#1144](https://github.com/grafana/oncall/pull/1144))
+
+## v1.1.17 (2023-01-18)
+
+### Changed
+
+- Modified how the `Organization.is_rbac_permissions_enabled` flag is set,
+based on whether we are dealing with an open-source, or cloud installation
+- Backend implementation to support direct user/schedule paging
+- Changed documentation links to open in new window
+- Remove helm chart signing
+- Changed the user's profile modal to be wide for all tabs
+
+### Added
+
+- Added state filter for alert_group public API endpoint.
+- Enrich user tooltip on Schedule page
+- Added redirects for old-style links
+
+### Fixed
+
+- Updated typo in Helm chart values when specifying a custom Slack command name
+- Fix for web schedules ical export to give overrides the right priority
+- Fix for topnavbar to show initial loading inside PluginPage
+
+## v1.1.16 (2023-01-12)
+
+### Fixed
+
+- Minor bug fix in how the value of `Organization.is_rbac_permissions_enabled` is determined
+
+- Helm chart: default values file and documentation now reflect the correct key to set for the Slack
+  slash command name, `oncall.slack.commandName`.
+
+## v1.1.15 (2023-01-10)
+
+### Changed
+
+- Simplify and speed up slack rendering ([#1105](https://github.com/grafana/oncall/pull/1105))
+- Faro - Point to 3 separate apps instead of just 1 for all environments ([#1110](https://github.com/grafana/oncall/pull/1110))
+- Schedules - ([#1114](https://github.com/grafana/oncall/pull/1114), [#1109](https://github.com/grafana/oncall/pull/1109))
+
+### Fixed
+
+- Bugfix for topnavbar to place alerts inside PageNav ([#1040](https://github.com/grafana/oncall/pull/1040))
+
+## v1.1.14 (2023-01-05)
+
+### Changed
+
+- Change wording from "incident" to "alert group" for the Telegram integration ([#1052](https://github.com/grafana/oncall/pull/1052))
+- Soft-delete of organizations on stack deletion.
+
+## v1.1.13 (2023-01-04)
+
+### Added
+
+- Integration with [Grafana Faro](https://grafana.com/docs/grafana-cloud/faro-web-sdk/) for Cloud Instances
+
+## v1.1.12 (2023-01-03)
+
+### Fixed
+
+- Handle jinja exceptions during alert creation
+- Handle exception for slack rate limit message
+
+## v1.1.11 (2023-01-03)
+
+### Fixed
+
+- Fix error when schedule was not able to load
+- Minor fixes
+
+## v1.1.10 (2023-01-03)
+
+### Fixed
+
+- Minor fixes
+
+## v1.1.9 (2023-01-03)
+
+### Fixed
+
+- Alert group query optimization
+- Update RBAC scopes
+- Fix error when schedule was not able to load
+- Minor bug fixes
+
 ## v1.1.8 (2022-12-13)
 
 ### Added

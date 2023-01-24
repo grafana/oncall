@@ -38,6 +38,10 @@ class BaseMessagingBackend:
         """Remove backend link to user account."""
         return
 
+    @staticmethod
+    def is_enabled_for_organization(organization):
+        return True
+
     def serialize_user(self, user):
         """Return a serialized backend user representation."""
         raise NotImplementedError("serialize_user method missing implementation")
