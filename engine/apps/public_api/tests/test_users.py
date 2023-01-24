@@ -6,6 +6,7 @@ from rest_framework import status
 from rest_framework.test import APIClient
 
 from apps.api.permissions import LegacyAccessControlRole
+from apps.public_api import tf_sync
 
 
 @pytest.fixture()
@@ -99,9 +100,10 @@ def test_get_users_list_trigger_tf_sync_no_provider_header(
     client = APIClient()
 
     url = reverse("api-public:users-list")
-    with patch(
-        "apps.public_api.tf_sync.sync_users_on_tf_request", return_value=None
-    ) as mocked_sync_users_on_tf_request:
+    with patch.object(tf_sync, "sync_users_on_tf_request", return_value=None) as mocked_sync_users_on_tf_request:
+        # with patch(
+        #     "apps.public_api.tf_sync.sync_users_on_tf_request", return_value=None
+        # ) as mocked_sync_users_on_tf_request:
         client.get(url, format="json", HTTP_AUTHORIZATION=token)
 
         assert mocked_sync_users_on_tf_request.call_count == 0
