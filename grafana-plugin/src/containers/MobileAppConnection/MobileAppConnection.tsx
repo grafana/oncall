@@ -12,6 +12,7 @@ import { User } from 'models/user/user.types';
 import { AppFeature } from 'state/features';
 import { useStore } from 'state/useStore';
 import { isUserActionAllowed, UserActions } from 'utils/authorization';
+import { GRAFANA_LICENSE_OSS } from 'utils/consts';
 
 import styles from './MobileAppConnection.module.scss';
 import DisconnectButton from './parts/DisconnectButton/DisconnectButton';
@@ -153,6 +154,8 @@ const MobileAppConnection = observer(({ userPk }: Props) => {
       </VerticalGroup>
     );
   } else if (QRCodeValue) {
+    const QRCodeDataParsed = JSON.parse(QRCodeValue);
+
     content = (
       <VerticalGroup spacing="lg">
         <Text type="primary" strong>
@@ -163,6 +166,15 @@ const MobileAppConnection = observer(({ userPk }: Props) => {
           <QRCode className={cx({ 'qr-code': true, blurry: isQRBlurry })} value={QRCodeValue} />
           {isQRBlurry && <QRLoading />}
         </div>
+        {store.backendLicense === GRAFANA_LICENSE_OSS && (
+          <Text type="secondary">
+            Server URL embedded in this QR:
+            <br />
+            <a href={QRCodeDataParsed.oncall_api_url}>
+              <Text type="link">{QRCodeDataParsed.oncall_api_url}</Text>
+            </a>
+          </Text>
+        )}
       </VerticalGroup>
     );
   }

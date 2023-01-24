@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Add Server URL below QR code for OSS for debugging purposes
 - Add Slack slash command allowing to trigger a direct page via a manually created alert group
 - Remove resolved and acknowledged filters as we switched to status ([#1201](https://github.com/grafana/oncall/pull/1201))
 - Add sync with grafana on /users and /teams api calls from terraform plugin
