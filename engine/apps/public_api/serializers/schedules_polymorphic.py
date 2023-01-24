@@ -10,7 +10,6 @@ from common.api_helpers.mixins import EagerLoadingMixin
 
 class PolymorphicScheduleSerializer(EagerLoadingMixin, PolymorphicSerializer):
     SELECT_RELATED = ["organization"]
-    PREFETCH_RELATED = ["custom_shifts__users", "custom_on_call_shifts"]
 
     resource_type_field_name = "type"
 
