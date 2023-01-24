@@ -115,7 +115,6 @@ export class RootBaseStore {
       this.userStore.updateNotificationPolicyOptions(),
       this.userStore.updateNotifyByOptions(),
       this.alertReceiveChannelStore.updateAlertReceiveChannelOptions(),
-      this.alertReceiveChannelStore.updateAlertReceiveChannelOptions(),
       this.escalationPolicyStore.updateWebEscalationPolicyOptions(),
       this.escalationPolicyStore.updateEscalationPolicyOptions(),
       this.escalationPolicyStore.updateNumMinutesInWindowOptions(),

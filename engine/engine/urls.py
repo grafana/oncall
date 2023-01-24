@@ -60,7 +60,7 @@ if settings.FEATURE_MOBILE_APP_INTEGRATION_ENABLED:
 
 if settings.OSS_INSTALLATION:
     urlpatterns += [
-        path("api/internal/v1/", include("apps.oss_installation.urls")),
+        path("api/internal/v1/", include("apps.oss_installation.urls", namespace="oss_installation")),
     ]
 
 if settings.DEBUG:
