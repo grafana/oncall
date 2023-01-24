@@ -163,7 +163,7 @@ class GrafanaAlertingSyncManager:
 
         contact_point = self._create_contact_point_from_payload(updated_config_from_alerting, datasource)
         logger.info(
-            f"GrafanaAlertingSyncManager: Contact point was created for datasource {datasource.get('type')}"
+            f"GrafanaAlertingSyncManager: Contact point was created for datasource {datasource.get('type')} "
             f"for integration {self.alert_receive_channel.pk}."
         )
         return contact_point, response_info

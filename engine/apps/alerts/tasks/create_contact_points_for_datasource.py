@@ -16,24 +16,27 @@ def get_cache_key_create_contact_points_for_datasource(alert_receive_channel_id)
     return f"{CACHE_KEY_PREFIX}_{alert_receive_channel_id}"
 
 
-@shared_dedicated_queue_retry_task
-def schedule_create_contact_points_for_datasource(alert_receive_channel_id, datasource_list, retry_counter=0):
+def set_cache_key_create_contact_points_for_datasource(alert_receive_channel_id, task_id):
     CACHE_LIFETIME = 600
+    cache_key = get_cache_key_create_contact_points_for_datasource(alert_receive_channel_id)
+    cache.set(cache_key, task_id, timeout=CACHE_LIFETIME)
+
+
+@shared_dedicated_queue_retry_task
+def schedule_create_contact_points_for_datasource(alert_receive_channel_id, datasource_list):
     START_TASK_DELAY = 3
     task = create_contact_points_for_datasource.apply_async(
-        args=[alert_receive_channel_id, datasource_list, retry_counter], countdown=START_TASK_DELAY
+        args=[alert_receive_channel_id, datasource_list], countdown=START_TASK_DELAY
     )
-    cache_key = get_cache_key_create_contact_points_for_datasource(alert_receive_channel_id)
-    cache.set(cache_key, task.id, timeout=CACHE_LIFETIME)
+    set_cache_key_create_contact_points_for_datasource(alert_receive_channel_id, task.id)
 
 
-@shared_dedicated_queue_retry_task(autoretry_for=(Exception,), retry_backoff=True, max_retries=10)
-def create_contact_points_for_datasource(alert_receive_channel_id, datasource_list, retry_counter=0):
+@shared_dedicated_queue_retry_task(autoretry_for=(Exception,), retry_backoff=True, max_retries=20)
+def create_contact_points_for_datasource(alert_receive_channel_id, datasource_list):
     """
     Try to create contact points for other datasource.
     Restart task for datasource, for which contact point was not created.
     """
-    RETRY_LIMIT = 10
     cache_key = get_cache_key_create_contact_points_for_datasource(alert_receive_channel_id)
     cached_task_id = cache.get(cache_key)
     current_task_id = create_contact_points_for_datasource.request.id
@@ -53,7 +56,7 @@ def create_contact_points_for_datasource(alert_receive_channel_id, datasource_li
     grafana_alerting_sync_manager = alert_receive_channel.grafana_alerting_sync_manager
     logger.debug(
         f"Create CP task: Create contact points for integration {alert_receive_channel_id}, "
-        f"retry counter: {retry_counter}, datasource list {len(datasource_list)}"
+        f"retry counter: {create_contact_points_for_datasource.request.retries}, datasource list {len(datasource_list)}"
     )
     # list of datasource for which contact point creation was failed
     datasources_to_create = []
@@ -81,19 +84,25 @@ def create_contact_points_for_datasource(alert_receive_channel_id, datasource_li
             datasources_to_create.append(datasource)
 
     # if some contact points were not created, restart task for them
-    if datasources_to_create and retry_counter < RETRY_LIMIT:
+    if (
+        datasources_to_create
+        and create_contact_points_for_datasource.request.retries < create_contact_points_for_datasource.max_retries
+    ):
         logger.debug(
             f"Create CP task: Retry to create contact points for integration {alert_receive_channel_id}, "
-            f"retry counter: {retry_counter}, datasource list {len(datasource_list)}"
+            f"retry counter: {create_contact_points_for_datasource.request.retries}, "
+            f"datasource list {len(datasources_to_create)}"
         )
-        retry_counter += 1
-        schedule_create_contact_points_for_datasource(alert_receive_channel_id, datasources_to_create, retry_counter)
+        # Save task id in cache and restart the task
+        set_cache_key_create_contact_points_for_datasource(alert_receive_channel_id, current_task_id)
+        create_contact_points_for_datasource.retry(args=(alert_receive_channel_id, datasources_to_create), countdown=3)
     else:
         alert_receive_channel.is_finished_alerting_setup = True
         alert_receive_channel.save(update_fields=["is_finished_alerting_setup"])
         logger.debug(
             f"Create CP task: Alerting setup for integration {alert_receive_channel_id} is finished, "
-            f"retry counter: {retry_counter}, datasource list {len(datasource_list)}"
+            f"retry counter: {create_contact_points_for_datasource.request.retries}, "
+            f"datasource list {len(datasource_list)}"
         )
     logger.debug(
         f"Create CP task: Finished task to create contact points for integration {alert_receive_channel_id}, "
