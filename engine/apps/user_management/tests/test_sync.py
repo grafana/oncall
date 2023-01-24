@@ -134,14 +134,19 @@ def test_sync_organization(make_organization, make_team, make_user_for_organizat
         },
     )
 
+    api_check_token_call_status = {"status_code": 200}
+
     with patch.object(GrafanaAPIClient, "is_rbac_enabled_for_organization", return_value=False):
         with patch.object(GrafanaAPIClient, "get_users", return_value=api_users_response):
             with patch.object(GrafanaAPIClient, "get_teams", return_value=(api_teams_response, None)):
                 with patch.object(GrafanaAPIClient, "get_team_members", return_value=(api_members_response, None)):
                     with patch.object(
-                        GrafanaAPIClient, "get_grafana_plugin_settings", return_value=({"enabled": True}, None)
+                        GrafanaAPIClient, "check_token", return_value=(None, api_check_token_call_status)
                     ):
-                        sync_organization(organization)
+                        with patch.object(
+                            GrafanaAPIClient, "get_grafana_plugin_settings", return_value=({"enabled": True}, None)
+                        ):
+                            sync_organization(organization)
 
     # check that users are populated
     assert organization.users.count() == 1
@@ -167,9 +172,50 @@ def test_sync_organization(make_organization, make_team, make_user_for_organizat
 def test_sync_organization_is_rbac_permissions_enabled_open_source(make_organization, grafana_api_response):
     organization = make_organization()
 
+    api_users_response = (
+        {
+            "userId": 1,
+            "email": "test@test.test",
+            "name": "Test",
+            "login": "test",
+            "role": "admin",
+            "avatarUrl": "test.test/test",
+            "permissions": [],
+        },
+    )
+
+    api_teams_response = {
+        "totalCount": 1,
+        "teams": (
+            {
+                "id": 1,
+                "name": "Test",
+                "email": "test@test.test",
+                "avatarUrl": "test.test/test",
+            },
+        ),
+    }
+
+    api_members_response = (
+        {
+            "orgId": organization.org_id,
+            "teamId": 1,
+            "userId": 1,
+        },
+    )
+    api_check_token_call_status = {"status_code": 200}
+
     with patch.object(GrafanaAPIClient, "is_rbac_enabled_for_organization", return_value=grafana_api_response):
-        with patch.object(GrafanaAPIClient, "get_users", return_value=[]):
-            sync_organization(organization)
+        with patch.object(GrafanaAPIClient, "get_users", return_value=api_users_response):
+            with patch.object(GrafanaAPIClient, "get_teams", return_value=(api_teams_response, None)):
+                with patch.object(GrafanaAPIClient, "get_team_members", return_value=(api_members_response, None)):
+                    with patch.object(
+                        GrafanaAPIClient, "check_token", return_value=(None, api_check_token_call_status)
+                    ):
+                        with patch.object(
+                            GrafanaAPIClient, "get_grafana_plugin_settings", return_value=({"enabled": True}, None)
+                        ):
+                            sync_organization(organization)
 
     organization.refresh_from_db()
     assert organization.is_rbac_permissions_enabled == grafana_api_response
@@ -184,10 +230,50 @@ def test_sync_organization_is_rbac_permissions_enabled_cloud(mocked_gcom_client,
     stack_id = 5
     organization = make_organization(stack_id=stack_id)
 
+    api_check_token_call_status = {"status_code": 200}
+
     mocked_gcom_client.return_value.is_rbac_enabled_for_stack.return_value = gcom_api_response
 
-    with patch.object(GrafanaAPIClient, "get_users", return_value=[]):
-        sync_organization(organization)
+    api_users_response = (
+        {
+            "userId": 1,
+            "email": "test@test.test",
+            "name": "Test",
+            "login": "test",
+            "role": "admin",
+            "avatarUrl": "test.test/test",
+            "permissions": [],
+        },
+    )
+
+    api_teams_response = {
+        "totalCount": 1,
+        "teams": (
+            {
+                "id": 1,
+                "name": "Test",
+                "email": "test@test.test",
+                "avatarUrl": "test.test/test",
+            },
+        ),
+    }
+
+    api_members_response = (
+        {
+            "orgId": organization.org_id,
+            "teamId": 1,
+            "userId": 1,
+        },
+    )
+
+    with patch.object(GrafanaAPIClient, "check_token", return_value=(None, api_check_token_call_status)):
+        with patch.object(GrafanaAPIClient, "get_users", return_value=api_users_response):
+            with patch.object(GrafanaAPIClient, "get_teams", return_value=(api_teams_response, None)):
+                with patch.object(GrafanaAPIClient, "get_team_members", return_value=(api_members_response, None)):
+                    with patch.object(
+                        GrafanaAPIClient, "get_grafana_plugin_settings", return_value=({"enabled": True}, None)
+                    ):
+                        sync_organization(organization)
 
     organization.refresh_from_db()
 

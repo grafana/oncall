@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - Add Slack slash command allowing to trigger a direct page via a manually created alert group
+- Add sync with grafana on /users and /teams api calls from terraform plugin
 
 ### Changed
 
