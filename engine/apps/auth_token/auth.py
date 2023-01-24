@@ -97,9 +97,9 @@ class PluginAuthentication(BaseAuthentication):
             raise exceptions.AuthenticationFailed("Non-existent or anonymous user.")
 
     @staticmethod
-    def is_user_from_request_present_in_organization(cls, request: Request, organization: Organization) -> User:
+    def is_user_from_request_present_in_organization(request: Request, organization: Organization) -> User:
         try:
-            cls._get_user(request, organization)
+            PluginAuthentication._get_user(request, organization)
             return True
         except exceptions.AuthenticationFailed:
             return False
