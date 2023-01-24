@@ -10,8 +10,8 @@ from apps.mobile_app.tasks import notify_user_async
 
 class MobileAppBackend(BaseMessagingBackend):
     backend_id = "MOBILE_APP"
-    label = "Mobile app"
-    short_label = "Mobile app"
+    label = "Mobile push"
+    short_label = "Mobile push"
     available_for_use = True
     template_fields = ["title"]
 
@@ -68,8 +68,8 @@ class MobileAppCriticalBackend(MobileAppBackend):
     """
 
     backend_id = "MOBILE_APP_CRITICAL"
-    label = "Mobile app critical"
-    short_label = "Mobile app critical"
+    label = "Mobile push important"
+    short_label = "Mobile push important"
     template_fields = []
 
     def notify_user(self, user, alert_group, notification_policy, critical=True):
