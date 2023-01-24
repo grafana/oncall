@@ -17,14 +17,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Allow users with `viewer` role to fetch cloud connection status using the internal API ([#1181](https://github.com/grafana/oncall/pull/1181))
 - When removing the Slack ChatOps integration, make it more explicit to the user what the implications of doing so are
+- Improve performance of `GET /api/internal/v1/schedules` endpoint ([#1169](https://github.com/grafana/oncall/pull/1169))
 
 ### Fixed
 
 - Removed duplicate API call, in the UI on plugin initial load, to `GET /api/internal/v1/alert_receive_channels`
-
-### Changed
-
-- Improve performance of `GET /api/internal/v1/schedules` endpoint ([#1169](https://github.com/grafana/oncall/pull/1169))
 
 ## v1.1.18 (2023-01-18)
 
