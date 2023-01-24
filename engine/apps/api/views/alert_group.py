@@ -91,8 +91,6 @@ class AlertGroupFilter(DateRangeFilterMixin, ModelFieldFilterMixin, filters.Filt
         model = AlertGroup
         fields = [
             "id__in",
-            "resolved",
-            "acknowledged",
             "started_at_gte",
             "started_at_lte",
             "resolved_at_lte",
