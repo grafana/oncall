@@ -1,12 +1,9 @@
-from unittest.mock import patch
-
 import pytest
 from django.urls import reverse
 from rest_framework import status
 from rest_framework.test import APIClient
 
 from apps.api.permissions import LegacyAccessControlRole
-from apps.public_api import tf_sync
 
 
 @pytest.fixture()
@@ -89,42 +86,6 @@ def test_get_users_list(
 
     assert response.status_code == status.HTTP_200_OK
     assert response.json() == expected_response
-
-
-@pytest.mark.django_db
-def test_get_users_list_trigger_tf_sync_no_provider_header(
-    user_public_api_setup,
-):
-    _, _, token, _, _ = user_public_api_setup
-
-    client = APIClient()
-
-    url = reverse("api-public:users-list")
-    with patch.object(tf_sync, "sync_users_on_tf_request", return_value=None) as mocked_sync_users_on_tf_request:
-        # with patch(
-        #     "apps.public_api.tf_sync.sync_users_on_tf_request", return_value=None
-        # ) as mocked_sync_users_on_tf_request:
-        client.get(url, format="json", HTTP_AUTHORIZATION=token)
-
-        assert mocked_sync_users_on_tf_request.call_count == 0
-
-
-@pytest.mark.django_db
-def test_get_users_list_trigger_tf_sync_with_provider_header(
-    user_public_api_setup,
-):
-    _, _, token, _, _ = user_public_api_setup
-
-    client = APIClient()
-
-    url = reverse("api-public:users-list")
-    # with patch(
-    #     "apps.public_api.tf_sync.sync_users_on_tf_request", return_value=None
-    # ) as mocked_sync_users_on_tf_request:
-    with patch.object(tf_sync, "sync_users_on_tf_request", return_value=None) as mocked_sync_users_on_tf_request:
-        client.get(url, format="json", HTTP_AUTHORIZATION=token, HTTP_USER_AGENT="terraform-provider-grafana")
-
-        assert mocked_sync_users_on_tf_request.call_count == 1
 
 
 @pytest.mark.django_db
