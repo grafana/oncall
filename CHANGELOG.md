@@ -10,6 +10,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - Add Slack slash command allowing to trigger a direct page via a manually created alert group
+- Remove resolved and acknowledged filters as we switched to status ([#1201](https://github.com/grafana/oncall/pull/1201))
+- Add sync with grafana on /users and /teams api calls from terraform plugin
+
+### Changed
+
+- Allow users with `viewer` role to fetch cloud connection status using the internal API ([#1181](https://github.com/grafana/oncall/pull/1181))
+- When removing the Slack ChatOps integration, make it more explicit to the user what the implications of doing so are
+
+### Fixed
+
+- Removed duplicate API call, in the UI on plugin initial load, to `GET /api/internal/v1/alert_receive_channels`
 
 ## v1.1.18 (2023-01-18)
 
@@ -26,7 +37,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - Modified how the `Organization.is_rbac_permissions_enabled` flag is set,
-based on whether we are dealing with an open-source, or cloud installation
+  based on whether we are dealing with an open-source, or cloud installation
 - Backend implementation to support direct user/schedule paging
 - Changed documentation links to open in new window
 - Remove helm chart signing

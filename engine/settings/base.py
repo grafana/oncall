@@ -658,6 +658,7 @@ if PYROSCOPE_PROFILER_ENABLED:
         application_name=os.getenv("PYROSCOPE_APPLICATION_NAME", "oncall"),
         server_address=os.getenv("PYROSCOPE_SERVER_ADDRESS", "http://pyroscope:4040"),
         auth_token=os.getenv("PYROSCOPE_AUTH_TOKEN", ""),
+        detect_subprocesses=True,
         tags={
             "celery_worker": os.getenv("CELERY_WORKER_QUEUE", None),
         },
