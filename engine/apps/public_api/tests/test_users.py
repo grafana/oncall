@@ -90,7 +90,7 @@ def test_get_users_list(
     assert response.json() == expected_response
 
 
-@mock.patch("apps.public_api.tf_sync.sync_users_on_tf_request", return_value=None)
+@mock.patch("apps.public_api.tf_sync.sync_users_on_tf_request")
 @pytest.mark.django_db
 def test_get_users_list_trigger_tf_sync_no_provider_header(
     mocked_sync_users_on_tf_request,
@@ -106,7 +106,7 @@ def test_get_users_list_trigger_tf_sync_no_provider_header(
     assert mocked_sync_users_on_tf_request.call_count == 0
 
 
-@mock.patch("apps.public_api.tf_sync.sync_users_on_tf_request", return_value=None)
+@mock.patch("apps.public_api.tf_sync.sync_users_on_tf_request")
 @pytest.mark.django_db
 def test_get_users_list_trigger_tf_sync_with_provider_header(
     mocked_sync_users_on_tf_request,
