@@ -99,7 +99,9 @@ def test_get_users_list_trigger_tf_sync_no_provider_header(
     client = APIClient()
 
     url = reverse("api-public:users-list")
-    with patch("apps.public_api.tf_sync.sync_users_on_tf_request") as mocked_sync_users_on_tf_request:
+    with patch(
+        "apps.public_api.tf_sync.sync_users_on_tf_request", return_value=None
+    ) as mocked_sync_users_on_tf_request:
         client.get(url, format="json", HTTP_AUTHORIZATION=token)
 
         assert mocked_sync_users_on_tf_request.call_count == 0
@@ -114,7 +116,9 @@ def test_get_users_list_trigger_tf_sync_with_provider_header(
     client = APIClient()
 
     url = reverse("api-public:users-list")
-    with patch("apps.public_api.tf_sync.sync_users_on_tf_request") as mocked_sync_users_on_tf_request:
+    with patch(
+        "apps.public_api.tf_sync.sync_users_on_tf_request", return_value=None
+    ) as mocked_sync_users_on_tf_request:
         client.get(url, format="json", HTTP_AUTHORIZATION=token, HTTP_USER_AGENT="terraform-provider-grafana")
 
         assert mocked_sync_users_on_tf_request.call_count == 1
