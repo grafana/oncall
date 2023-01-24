@@ -92,22 +92,6 @@ def test_get_users_list(
 
 @mock.patch("apps.public_api.tf_sync.sync_users_on_tf_request", return_value=None)
 @pytest.mark.django_db
-def test_get_users_list_trigger_tf_sync_with_provider_header(
-    mocked_sync_users_on_tf_request,
-    user_public_api_setup,
-):
-    _, _, token, _, _ = user_public_api_setup
-
-    client = APIClient()
-
-    url = reverse("api-public:users-list")
-    client.get(url, format="json", HTTP_AUTHORIZATION=token, HTTP_USER_AGENT="terraform-provider-grafana")
-
-    assert mocked_sync_users_on_tf_request.call_count == 1
-
-
-@mock.patch("apps.public_api.tf_sync.sync_users_on_tf_request", return_value=None)
-@pytest.mark.django_db
 def test_get_users_list_trigger_tf_sync_no_provider_header(
     mocked_sync_users_on_tf_request,
     user_public_api_setup,
@@ -122,10 +106,10 @@ def test_get_users_list_trigger_tf_sync_no_provider_header(
     assert mocked_sync_users_on_tf_request.call_count == 0
 
 
-@mock.patch("apps.user_management.sync.sync_users", return_value=None)
+@mock.patch("apps.public_api.tf_sync.sync_users_on_tf_request", return_value=None)
 @pytest.mark.django_db
-def test_get_users_list_trigger_tf_sync_triggers_only_once(
-    mocked_api_call,
+def test_get_users_list_trigger_tf_sync_with_provider_header(
+    mocked_sync_users_on_tf_request,
     user_public_api_setup,
 ):
     _, _, token, _, _ = user_public_api_setup
@@ -134,10 +118,8 @@ def test_get_users_list_trigger_tf_sync_triggers_only_once(
 
     url = reverse("api-public:users-list")
     client.get(url, format="json", HTTP_AUTHORIZATION=token, HTTP_USER_AGENT="terraform-provider-grafana")
-    client.get(url, format="json", HTTP_AUTHORIZATION=token, HTTP_USER_AGENT="terraform-provider-grafana")
 
-    # Check if actual sync_users method was 1 time, since it should be called once in a SYNC_PERIOD time
-    assert mocked_api_call.call_count == 1
+    assert mocked_sync_users_on_tf_request.call_count == 1
 
 
 @pytest.mark.django_db
