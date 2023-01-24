@@ -1295,7 +1295,7 @@ def test_get_oncall_users_for_empty_schedule(
     schedule = make_schedule(organization, schedule_class=OnCallScheduleCalendar)
     schedules = OnCallSchedule.objects.filter(pk=schedule.pk)
 
-    assert schedules.get_oncall_users() == []
+    assert schedules.get_oncall_users()[schedule.pk] == []
 
 
 @pytest.mark.django_db
