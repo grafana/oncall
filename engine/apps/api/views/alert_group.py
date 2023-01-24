@@ -1,11 +1,13 @@
 from datetime import timedelta
 
+from django.core.exceptions import ObjectDoesNotExist
 from django.db.models import Count, Max, Q
 from django.utils import timezone
 from django_filters import rest_framework as filters
 from django_filters.widgets import RangeWidget
 from rest_framework import mixins, status, viewsets
 from rest_framework.decorators import action
+from rest_framework.exceptions import NotFound
 from rest_framework.filters import SearchFilter
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
@@ -15,9 +17,10 @@ from apps.alerts.models import Alert, AlertGroup, AlertReceiveChannel
 from apps.alerts.paging import unpage_user
 from apps.api.permissions import RBACPermission
 from apps.api.serializers.alert_group import AlertGroupListSerializer, AlertGroupSerializer
+from apps.api.serializers.team import TeamSerializer
 from apps.auth_token.auth import PluginAuthentication
 from apps.mobile_app.auth import MobileAppAuthTokenAuthentication
-from apps.user_management.models import User
+from apps.user_management.models import Team, User
 from common.api_helpers.exceptions import BadRequest
 from common.api_helpers.filters import DateRangeFilterMixin, ModelFieldFilterMixin
 from common.api_helpers.mixins import PreviewTemplateMixin, PublicPrimaryKeyMixin, TeamFilteringMixin
@@ -148,6 +151,37 @@ class AlertGroupFilter(DateRangeFilterMixin, ModelFieldFilterMixin, filters.Filt
 class AlertGroupTeamFilteringMixin(TeamFilteringMixin):
     TEAM_LOOKUP = "channel__team"
 
+    def retrieve(self, request, *args, **kwargs):
+        try:
+            return super().retrieve(request, *args, **kwargs)
+        except NotFound:
+            alert_receive_channels_ids = list(
+                AlertReceiveChannel.objects.filter(
+                    organization_id=self.request.auth.organization.id,
+                ).values_list("id", flat=True)
+            )
+            queryset = AlertGroup.unarchived_objects.filter(
+                channel__in=alert_receive_channels_ids,
+            ).only("public_primary_key")
+
+            try:
+                obj = queryset.get(public_primary_key=self.kwargs["pk"])
+            except ObjectDoesNotExist:
+                raise NotFound
+
+            obj_team = self._getattr_with_related(obj, self.TEAM_LOOKUP)
+
+            if obj_team is None or obj_team in self.request.user.teams.all():
+                if obj_team is None:
+                    obj_team = Team(public_primary_key=None, name="General", email=None, avatar_url=None)
+
+                return Response(
+                    data={"error_code": "wrong_team", "owner_team": TeamSerializer(obj_team).data},
+                    status=status.HTTP_403_FORBIDDEN,
+                )
+
+            return Response(data={"error_code": "wrong_team"}, status=status.HTTP_403_FORBIDDEN)
+
 
 class AlertGroupView(
     PreviewTemplateMixin,
@@ -206,8 +240,14 @@ class AlertGroupView(
 
     def get_queryset(self):
         # no select_related or prefetch_related is used at this point, it will be done on paginate_queryset.
+        alert_receive_channels_ids = list(
+            AlertReceiveChannel.objects.filter(
+                organization_id=self.request.auth.organization.id,
+                team_id=self.request.user.current_team,
+            ).values_list("id", flat=True)
+        )
         queryset = AlertGroup.unarchived_objects.filter(
-            channel__organization=self.request.auth.organization, channel__team=self.request.user.current_team
+            channel__in=alert_receive_channels_ids,
         ).only("id")
 
         return queryset
