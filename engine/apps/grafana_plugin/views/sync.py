@@ -3,10 +3,12 @@ import logging
 from django.apps import apps
 from django.conf import settings
 from rest_framework import status
+from rest_framework.exceptions import AuthenticationFailed
 from rest_framework.request import Request
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
+from apps.auth_token.auth import PluginAuthentication
 from apps.grafana_plugin.permissions import PluginTokenVerified
 from apps.grafana_plugin.tasks.sync import plugin_sync_organization_async
 from apps.user_management.models import Organization
@@ -25,12 +27,13 @@ class PluginSyncView(GrafanaHeadersMixin, APIView):
 
         try:
             organization = Organization.objects.get(stack_id=stack_id, org_id=org_id)
-
-            if organization.api_token_status == Organization.API_TOKEN_STATUS_OK:
-                is_installed = True
-            organization.api_token_status = Organization.API_TOKEN_STATUS_PENDING
-
-            organization.save(update_fields=["api_token_status"])
+            try:
+                PluginAuthentication.get_user(request, organization)
+                if organization.api_token_status == Organization.API_TOKEN_STATUS_OK:
+                    is_installed = True
+            except AuthenticationFailed:
+                organization.api_token_status = Organization.API_TOKEN_STATUS_PENDING
+                organization.save(update_fields=["api_token_status"])
             plugin_sync_organization_async.apply_async((organization.pk,))
         except Organization.DoesNotExist:
             logger.info(f"Organization for stack {stack_id} org {org_id} was not found")
