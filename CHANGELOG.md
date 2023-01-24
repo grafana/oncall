@@ -11,6 +11,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Add Slack slash command allowing to trigger a direct page via a manually created alert group
 
+### Changed
+
+- Improve performance of `GET /api/internal/v1/schedules` endpoint ([#1169](https://github.com/grafana/oncall/pull/1169))
+
 ## v1.1.18 (2023-01-18)
 
 ### Added
@@ -26,7 +30,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - Modified how the `Organization.is_rbac_permissions_enabled` flag is set,
-based on whether we are dealing with an open-source, or cloud installation
+  based on whether we are dealing with an open-source, or cloud installation
 - Backend implementation to support direct user/schedule paging
 - Changed documentation links to open in new window
 - Remove helm chart signing
