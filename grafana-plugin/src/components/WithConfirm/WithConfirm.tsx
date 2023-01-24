@@ -8,12 +8,13 @@ type WithConfirmProps = Partial<ConfirmModalProps> & {
 };
 
 const WithConfirm: React.FC<WithConfirmProps> = ({
-  children,
   title = 'Are you sure to delete?',
   confirmText = 'Delete',
   body,
+  description,
+  confirmationText,
+  children,
   disabled,
-  ...props
 }) => {
   const [showConfirmation, setShowConfirmation] = useState<boolean>(false);
 
@@ -41,10 +42,11 @@ const WithConfirm: React.FC<WithConfirmProps> = ({
           dismissText="Cancel"
           onConfirm={onConfirmCallback}
           body={body}
+          description={description}
+          confirmationText={confirmationText}
           onDismiss={() => {
             setShowConfirmation(false);
           }}
-          {...props}
         />
       )}
       {React.cloneElement(children, {
