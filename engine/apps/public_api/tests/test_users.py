@@ -1,4 +1,4 @@
-from unittest import mock
+from unittest.mock import patch
 
 import pytest
 from django.urls import reverse
@@ -90,10 +90,8 @@ def test_get_users_list(
     assert response.json() == expected_response
 
 
-@mock.patch("apps.public_api.tf_sync.sync_users_on_tf_request")
 @pytest.mark.django_db
 def test_get_users_list_trigger_tf_sync_no_provider_header(
-    mocked_sync_users_on_tf_request,
     user_public_api_setup,
 ):
     _, _, token, _, _ = user_public_api_setup
@@ -101,15 +99,14 @@ def test_get_users_list_trigger_tf_sync_no_provider_header(
     client = APIClient()
 
     url = reverse("api-public:users-list")
-    client.get(url, format="json", HTTP_AUTHORIZATION=token)
+    with patch("apps.public_api.tf_sync.sync_users_on_tf_request") as mocked_sync_users_on_tf_request:
+        client.get(url, format="json", HTTP_AUTHORIZATION=token)
 
-    assert mocked_sync_users_on_tf_request.call_count == 0
+        assert mocked_sync_users_on_tf_request.call_count == 0
 
 
-@mock.patch("apps.public_api.tf_sync.sync_users_on_tf_request")
 @pytest.mark.django_db
 def test_get_users_list_trigger_tf_sync_with_provider_header(
-    mocked_sync_users_on_tf_request,
     user_public_api_setup,
 ):
     _, _, token, _, _ = user_public_api_setup
@@ -117,9 +114,10 @@ def test_get_users_list_trigger_tf_sync_with_provider_header(
     client = APIClient()
 
     url = reverse("api-public:users-list")
-    client.get(url, format="json", HTTP_AUTHORIZATION=token, HTTP_USER_AGENT="terraform-provider-grafana")
+    with patch("apps.public_api.tf_sync.sync_users_on_tf_request") as mocked_sync_users_on_tf_request:
+        client.get(url, format="json", HTTP_AUTHORIZATION=token, HTTP_USER_AGENT="terraform-provider-grafana")
 
-    assert mocked_sync_users_on_tf_request.call_count == 1
+        assert mocked_sync_users_on_tf_request.call_count == 1
 
 
 @pytest.mark.django_db
