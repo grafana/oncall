@@ -4,8 +4,6 @@ import { ConfirmModal, ConfirmModalProps } from '@grafana/ui';
 
 type WithConfirmProps = Partial<ConfirmModalProps> & {
   children: ReactElement;
-  title?: string;
-  confirmText?: string;
   disabled?: boolean;
 };
 
