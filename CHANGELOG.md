@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+### Changed
+
+- Improve logging for creating contact point for Grafana Alerting integration
+
+### Fixed
+
+- Fix bugs related to creating contact point for Grafana Alerting integration
+
+## v1.1.18 (2023-01-25)
+
 ### Added
 
 - Add Slack slash command allowing to trigger a direct page via a manually created alert group
@@ -22,6 +32,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - Removed duplicate API call, in the UI on plugin initial load, to `GET /api/internal/v1/alert_receive_channels`
+- Increased plugin startup speed ([#1200](https://github.com/grafana/oncall/pull/1200))
 
 ## v1.1.18 (2023-01-18)
 

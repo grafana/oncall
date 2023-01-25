@@ -96,6 +96,14 @@ class PluginAuthentication(BaseAuthentication):
             logger.debug(f"Could not get user from grafana request. Context {context}")
             raise exceptions.AuthenticationFailed("Non-existent or anonymous user.")
 
+    @classmethod
+    def is_user_from_request_present_in_organization(cls, request: Request, organization: Organization) -> User:
+        try:
+            cls._get_user(request, organization)
+            return True
+        except exceptions.AuthenticationFailed:
+            return False
+
 
 class GrafanaIncidentUser(AnonymousUser):
     @property
