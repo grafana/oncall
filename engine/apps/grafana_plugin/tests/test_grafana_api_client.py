@@ -15,7 +15,7 @@ class TestGetUsersPermissions:
         permissions = api_client.get_users_permissions(False)
         assert len(permissions.keys()) == 0
 
-    @patch("apps.grafana_plugin.views.self_hosted_install.GrafanaAPIClient.api_get")
+    @patch("apps.grafana_plugin.helpers.client.GrafanaAPIClient.api_get")
     def test_api_call_returns_none(self, mocked_grafana_api_client_api_get):
         mocked_grafana_api_client_api_get.return_value = (None, "dfkjfdkj")
 
@@ -24,7 +24,7 @@ class TestGetUsersPermissions:
         permissions = api_client.get_users_permissions(True)
         assert len(permissions.keys()) == 0
 
-    @patch("apps.grafana_plugin.views.self_hosted_install.GrafanaAPIClient.api_get")
+    @patch("apps.grafana_plugin.helpers.client.GrafanaAPIClient.api_get")
     def test_it_properly_transforms_the_data(self, mocked_grafana_api_client_api_get):
         mocked_grafana_api_client_api_get.return_value = (
             {"1": {"grafana-oncall-app.alert-groups:read": [""], "grafana-oncall-app.alert-groups:write": [""]}},
@@ -50,7 +50,7 @@ class TestIsRbacEnabledForOrganization:
             (status.HTTP_404_NOT_FOUND, False),
         ],
     )
-    @patch("apps.grafana_plugin.views.self_hosted_install.GrafanaAPIClient.api_head")
+    @patch("apps.grafana_plugin.helpers.client.GrafanaAPIClient.api_head")
     def test_it_returns_based_on_status_code_of_head_call(
         self, mocked_grafana_api_client_api_head, grafana_api_status_code, expected
     ):

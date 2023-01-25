@@ -110,8 +110,12 @@ const TelegramModal = (props: TelegramModalProps) => {
           <Text type="primary">Discussion</Text> to find and add your group.{' '}
         </Text>
         <Text type="secondary">
-          4. Go to <Text type="link">{botLink}</Text> to add the OnCall bot to your contacts. Then add the bot to your
-          channel as an <Text type="primary">Admin</Text> and allow it to <Text type="primary">Post Messages</Text>.
+          4. Go to{' '}
+          <a href={botLink} target="_blank" rel="noreferrer">
+            <Text type="link">{botLink}</Text>
+          </a>{' '}
+          to add the OnCall bot to your contacts. Then add the bot to your channel as an{' '}
+          <Text type="primary">Admin</Text> and allow it to <Text type="primary">Post Messages</Text>.
         </Text>
         <Text type="secondary">5. Add the bot to the discussion group.</Text>
         <Text type="secondary">

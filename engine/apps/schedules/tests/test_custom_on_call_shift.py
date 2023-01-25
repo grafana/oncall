@@ -1430,3 +1430,40 @@ def test_rolling_users_shift_convert_to_ical(
 
     assert on_call_shift.event_interval == len(rolling_users) * data["interval"]
     assert expected_rrule in ical_data
+
+
+@pytest.mark.django_db
+def test_rolling_users_event_daily_by_day_start_none_convert_to_ical(
+    make_organization_and_user, make_user_for_organization, make_on_call_shift, make_schedule
+):
+    organization, user_1 = make_organization_and_user()
+
+    schedule = make_schedule(organization, schedule_class=OnCallScheduleWeb)
+    now = timezone.now().replace(hour=0, minute=0, second=0, microsecond=0)
+    today_weekday = now.weekday()
+    delta_days = (0 - today_weekday) % 7 + (7 if today_weekday == 0 else 0)
+    next_week_monday = now + timezone.timedelta(days=delta_days)
+
+    # MO
+    weekdays = [0]
+    by_day = [CustomOnCallShift.ICAL_WEEKDAY_MAP[day] for day in weekdays]
+    data = {
+        "priority_level": 1,
+        "start": now + timezone.timedelta(hours=12),
+        "rotation_start": next_week_monday,
+        "duration": timezone.timedelta(seconds=3600),
+        "frequency": CustomOnCallShift.FREQUENCY_DAILY,
+        "interval": 1,
+        "by_day": by_day,
+        "schedule": schedule,
+        "until": now,
+    }
+    rolling_users = [[user_1]]
+    on_call_shift = make_on_call_shift(
+        organization=organization, shift_type=CustomOnCallShift.TYPE_ROLLING_USERS_EVENT, **data
+    )
+    on_call_shift.add_rolling_users(rolling_users)
+
+    ical_data = on_call_shift.convert_to_ical()
+    # empty result since there is no event in the defined time range
+    assert ical_data == ""

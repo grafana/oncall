@@ -24,6 +24,9 @@ x-env-files: &oncall-env-files
 x-env-vars: &oncall-env-vars
   BROKER_TYPE: ${BROKER_TYPE}
   GRAFANA_API_URL: http://localhost:3000
+  GOOGLE_APPLICATION_CREDENTIALS: /etc/app/gcp_service_account.json
+  FCM_PROJECT_ID: oncall-mobile-dev
+  SILK_PROFILER_ENABLED: True
 
 # basically this is needed because the oncall backend containers have been configured to communicate w/ grafana via
 # http://localhost:3000 (GRAFANA_API_URL). This URL is used in two scenarios:
@@ -47,6 +50,7 @@ services:
       labels: *oncall-labels
     environment:
       ONCALL_API_URL: http://host.docker.internal:8080
+      MOBILE_APP_QR_INTERVAL_QUEUE: 290000 # 4 minutes and 50 seconds
     volumes:
       - ./grafana-plugin:/etc/app
       - /etc/app/node_modules
@@ -102,6 +106,21 @@ services:
     depends_on:
       oncall_db_migration:
         condition: service_completed_successfully
+    profiles:
+      - engine
+
+  flower:
+    container_name: flower
+    labels: *oncall-labels
+    image: mher/flower:1.2.0
+    environment:
+      # TODO: make this work properly w/ BROKER_TYPE env var
+      CELERY_BROKER_URL: "redis://redis:6379/0"
+    ports:
+      - "5555:5555"
+    depends_on:
+      oncall_celery:
+        condition: service_started
     profiles:
       - engine
 
@@ -278,6 +297,7 @@ services:
     volumes:
       - grafanadata_dev:/var/lib/grafana
       - ./grafana-plugin:/var/lib/grafana/plugins/grafana-plugin
+      - ${GRAFANA_DEV_PROVISIONING:-/dev/null}:/etc/grafana/grafana.ini
     depends_on:
       postgres:
         condition: service_healthy
@@ -285,7 +305,6 @@ services:
         condition: service_healthy
     profiles:
       - grafana
-
 volumes:
   redisdata_dev:
     labels: *oncall-labels

@@ -29,6 +29,14 @@ engine:
     #   cpu: 100m
     #   memory: 128Mi
 
+  ## Deployment update strategy
+  ## ref: https://kubernetes.io/docs/concepts/workloads/controllers/deployment/#strategy
+  updateStrategy:
+    rollingUpdate:
+      maxSurge: 25%
+      maxUnavailable: 0
+    type: RollingUpdate
+
   ## Affinity for pod assignment
   ## ref: https://kubernetes.io/docs/concepts/configuration/assign-pod-node/#affinity-and-anti-affinity
   affinity: {}
@@ -83,8 +91,8 @@ oncall:
   slack:
     # enabled enable the Slack ChatOps integration for the Oncall Engine.
     enabled: false
-    # command sets the Slack bot slash-command
-    command: oncall
+    # commandName sets the Slack bot slash-command
+    commandName: oncall
     # clientId configures the Slack app OAuth2 client ID.
     # api.slack.com/apps/<yourApp> -> Basic Information -> App Credentials -> Client ID
     clientId: ~

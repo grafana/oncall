@@ -1,10 +1,10 @@
 import React from 'react';
 
 import { Button, LoadingPlaceholder, VerticalGroup } from '@grafana/ui';
-import { PluginPage } from 'PluginPage';
 import cn from 'classnames/bind';
 import { debounce } from 'lodash-es';
 import { observer } from 'mobx-react';
+import { RouteComponentProps, withRouter } from 'react-router-dom';
 
 import GList from 'components/GList/GList';
 import IntegrationsFilters, { Filters } from 'components/IntegrationsFilters/IntegrationsFilters';
@@ -24,11 +24,11 @@ import { IntegrationSettingsTab } from 'containers/IntegrationSettings/Integrati
 import { WithPermissionControl } from 'containers/WithPermissionControl/WithPermissionControl';
 import { AlertReceiveChannel } from 'models/alert_receive_channel';
 import { AlertReceiveChannelOption } from 'models/alert_receive_channel/alert_receive_channel.types';
-import { pages } from 'pages';
 import { PageProps, WithStoreProps } from 'state/types';
 import { withMobXProviderContext } from 'state/withStore';
 import LocationHelper from 'utils/LocationHelper';
 import { UserActions } from 'utils/authorization';
+import { PLUGIN_ROOT } from 'utils/consts';
 
 import styles from './Integrations.module.css';
 
@@ -41,7 +41,7 @@ interface IntegrationsState extends PageBaseState {
   integrationSettingsTab?: IntegrationSettingsTab;
 }
 
-interface IntegrationsProps extends WithStoreProps, PageProps {}
+interface IntegrationsProps extends WithStoreProps, PageProps, RouteComponentProps<{ id: string }> {}
 
 @observer
 class Integrations extends React.Component<IntegrationsProps, IntegrationsState> {
@@ -59,23 +59,29 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
   }
 
   setSelectedAlertReceiveChannel = (alertReceiveChannelId: AlertReceiveChannel['id']) => {
-    const { store } = this.props;
+    const { store, history } = this.props;
     store.selectedAlertReceiveChannel = alertReceiveChannelId;
-    LocationHelper.update({ id: alertReceiveChannelId }, 'partial');
+    history.push(`${PLUGIN_ROOT}/integrations/${alertReceiveChannelId || ''}`);
   };
 
   parseQueryParams = async () => {
     this.setState({ errorData: initErrorDataState() }); // reset wrong team error to false on query parse // reset wrong team error to false
 
-    const { store, query } = this.props;
+    const {
+      store,
+      query,
+      match: {
+        params: { id },
+      },
+    } = this.props;
     const { alertReceiveChannelStore } = store;
 
     const searchResult = alertReceiveChannelStore.getSearchResult();
     let selectedAlertReceiveChannel = store.selectedAlertReceiveChannel;
 
-    if (query.id) {
+    if (id) {
       let alertReceiveChannel = await alertReceiveChannelStore
-        .loadItem(query.id, true)
+        .loadItem(id, true)
         .catch((error) => this.setState({ errorData: { ...getWrongTeamResponseInfo(error) } }));
 
       if (!alertReceiveChannel) {
@@ -88,7 +94,7 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
 
       if (query.tab) {
         this.setState({ integrationSettingsTab: query.tab });
-        this.setState({ alertReceiveChannelToShowSettings: query.id });
+        this.setState({ alertReceiveChannelToShowSettings: id });
       }
     }
 
@@ -96,7 +102,9 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
       selectedAlertReceiveChannel = searchResult[0]?.id;
     }
 
-    this.setSelectedAlertReceiveChannel(selectedAlertReceiveChannel);
+    if (selectedAlertReceiveChannel) {
+      this.setSelectedAlertReceiveChannel(selectedAlertReceiveChannel);
+    }
   };
 
   update = () => {
@@ -105,7 +113,7 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
   };
 
   componentDidUpdate(prevProps: IntegrationsProps) {
-    if (this.props.query.id !== prevProps.query.id) {
+    if (this.props.match.params.id !== prevProps.match.params.id) {
       this.parseQueryParams();
     }
     if (this.props.query.tab !== prevProps.query.tab) {
@@ -118,7 +126,12 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
   }
 
   render() {
-    const { store, query } = this.props;
+    const {
+      store,
+      match: {
+        params: { id },
+      },
+    } = this.props;
     const {
       integrationsFilters,
       alertReceiveChannelToShowSettings,
@@ -131,121 +144,119 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
     const searchResult = alertReceiveChannelStore.getSearchResult();
 
     return (
-      <PluginPage pageNav={pages['integrations'].getPageNav()}>
-        <PageErrorHandlingWrapper
-          errorData={errorData}
-          objectName="integration"
-          pageName="integrations"
-          itemNotFoundMessage={`Integration with id=${query?.id} is not found. Please select integration from the list.`}
-        >
-          {() => (
-            <>
-              <div className={cx('root')}>
-                <div className={cx('filters')}>
-                  <IntegrationsFilters value={integrationsFilters} onChange={this.handleIntegrationsFiltersChange} />
+      <PageErrorHandlingWrapper
+        errorData={errorData}
+        objectName="integration"
+        pageName="integrations"
+        itemNotFoundMessage={`Integration with id=${id} is not found. Please select integration from the list.`}
+      >
+        {() => (
+          <>
+            <div className={cx('root')}>
+              <div className={cx('filters')}>
+                <IntegrationsFilters value={integrationsFilters} onChange={this.handleIntegrationsFiltersChange} />
+              </div>
+              {searchResult?.length ? (
+                <div className={cx('integrations')}>
+                  <div className={cx('integrationsList')}>
+                    <WithPermissionControl userAction={UserActions.IntegrationsWrite}>
+                      <Button
+                        onClick={() => {
+                          this.setState({ showCreateIntegrationModal: true });
+                        }}
+                        icon="plus"
+                        className={cx('newIntegrationButton')}
+                      >
+                        New integration for receiving alerts
+                      </Button>
+                    </WithPermissionControl>
+                    <div className={cx('alert-receive-channels-list')}>
+                      <GList
+                        autoScroll
+                        selectedId={store.selectedAlertReceiveChannel}
+                        items={searchResult}
+                        itemKey="id"
+                        onSelect={this.handleAlertReceiveChannelSelect}
+                      >
+                        {(item) => (
+                          <AlertReceiveChannelCard
+                            id={item.id}
+                            onShowHeartbeatModal={() => {
+                              this.setState({
+                                alertReceiveChannelToShowSettings: item.id,
+                                integrationSettingsTab: IntegrationSettingsTab.Heartbeat,
+                              });
+                            }}
+                          />
+                        )}
+                      </GList>
+                    </div>
+                  </div>
+                  <div className={cx('alert-rules', 'alertRulesBorder')}>
+                    <AlertRules
+                      alertReceiveChannelId={store.selectedAlertReceiveChannel}
+                      onDelete={this.handleDeleteAlertReceiveChannel}
+                      onShowSettings={(integrationSettingsTab?: IntegrationSettingsTab) => {
+                        this.setState({
+                          alertReceiveChannelToShowSettings: store.selectedAlertReceiveChannel,
+                          integrationSettingsTab,
+                        });
+                      }}
+                    />
+                  </div>
                 </div>
-                {searchResult?.length ? (
-                  <div className={cx('integrations')}>
-                    <div className={cx('integrationsList')}>
+              ) : searchResult ? (
+                <Tutorial
+                  step={TutorialStep.Integrations}
+                  title={
+                    <VerticalGroup align="center" spacing="lg">
+                      <Text type="secondary">No integrations found. Review your filter and team settings.</Text>
                       <WithPermissionControl userAction={UserActions.IntegrationsWrite}>
                         <Button
+                          icon="plus"
+                          variant="primary"
+                          size="lg"
                           onClick={() => {
                             this.setState({ showCreateIntegrationModal: true });
                           }}
-                          icon="plus"
-                          className={cx('newIntegrationButton')}
                         >
                           New integration for receiving alerts
                         </Button>
                       </WithPermissionControl>
-                      <div className={cx('alert-receive-channels-list')}>
-                        <GList
-                          autoScroll
-                          selectedId={store.selectedAlertReceiveChannel}
-                          items={searchResult}
-                          itemKey="id"
-                          onSelect={this.handleAlertReceiveChannelSelect}
-                        >
-                          {(item) => (
-                            <AlertReceiveChannelCard
-                              id={item.id}
-                              onShowHeartbeatModal={() => {
-                                this.setState({
-                                  alertReceiveChannelToShowSettings: item.id,
-                                  integrationSettingsTab: IntegrationSettingsTab.Heartbeat,
-                                });
-                              }}
-                            />
-                          )}
-                        </GList>
-                      </div>
-                    </div>
-                    <div className={cx('alert-rules', 'alertRulesBorder')}>
-                      <AlertRules
-                        alertReceiveChannelId={store.selectedAlertReceiveChannel}
-                        onDelete={this.handleDeleteAlertReceiveChannel}
-                        onShowSettings={(integrationSettingsTab?: IntegrationSettingsTab) => {
-                          this.setState({
-                            alertReceiveChannelToShowSettings: store.selectedAlertReceiveChannel,
-                            integrationSettingsTab,
-                          });
-                        }}
-                      />
-                    </div>
-                  </div>
-                ) : searchResult ? (
-                  <Tutorial
-                    step={TutorialStep.Integrations}
-                    title={
-                      <VerticalGroup align="center" spacing="lg">
-                        <Text type="secondary">No integrations found. Review your filter and team settings.</Text>
-                        <WithPermissionControl userAction={UserActions.IntegrationsWrite}>
-                          <Button
-                            icon="plus"
-                            variant="primary"
-                            size="lg"
-                            onClick={() => {
-                              this.setState({ showCreateIntegrationModal: true });
-                            }}
-                          >
-                            New integration for receiving alerts
-                          </Button>
-                        </WithPermissionControl>
-                      </VerticalGroup>
-                    }
-                  />
-                ) : (
-                  <LoadingPlaceholder text="Loading..." />
-                )}
-              </div>
-              {alertReceiveChannelToShowSettings && (
-                <IntegrationSettings
-                  onUpdate={() => {
-                    alertReceiveChannelStore.updateItem(alertReceiveChannelToShowSettings);
-                  }}
-                  startTab={integrationSettingsTab}
-                  id={alertReceiveChannelToShowSettings}
-                  onHide={() => {
-                    this.setState({
-                      alertReceiveChannelToShowSettings: undefined,
-                      integrationSettingsTab: undefined,
-                    });
-                    LocationHelper.update({ tab: undefined }, 'partial');
-                  }}
+                    </VerticalGroup>
+                  }
                 />
+              ) : (
+                <LoadingPlaceholder text="Loading..." />
               )}
-              {showCreateIntegrationModal && (
-                <CreateAlertReceiveChannelContainer
-                  onHide={() => {
-                    this.setState({ showCreateIntegrationModal: false });
-                  }}
-                  onCreate={this.handleCreateNewAlertReceiveChannel}
-                />
-              )}
-            </>
-          )}
-        </PageErrorHandlingWrapper>
-      </PluginPage>
+            </div>
+            {alertReceiveChannelToShowSettings && (
+              <IntegrationSettings
+                onUpdate={() => {
+                  alertReceiveChannelStore.updateItem(alertReceiveChannelToShowSettings);
+                }}
+                startTab={integrationSettingsTab}
+                id={alertReceiveChannelToShowSettings}
+                onHide={() => {
+                  this.setState({
+                    alertReceiveChannelToShowSettings: undefined,
+                    integrationSettingsTab: undefined,
+                  });
+                  LocationHelper.update({ tab: undefined }, 'partial');
+                }}
+              />
+            )}
+            {showCreateIntegrationModal && (
+              <CreateAlertReceiveChannelContainer
+                onHide={() => {
+                  this.setState({ showCreateIntegrationModal: false });
+                }}
+                onCreate={this.handleCreateNewAlertReceiveChannel}
+              />
+            )}
+          </>
+        )}
+      </PageErrorHandlingWrapper>
     );
   }
 
@@ -338,4 +349,4 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
   };
 }
 
-export default withMobXProviderContext(Integrations);
+export default withRouter(withMobXProviderContext(Integrations));
