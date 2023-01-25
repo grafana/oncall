@@ -44,7 +44,6 @@ from apps.slack.scenarios.scenario_step import (
     PAYLOAD_TYPE_MESSAGE_ACTION,
     PAYLOAD_TYPE_SLASH_COMMAND,
     PAYLOAD_TYPE_VIEW_SUBMISSION,
-    ScenarioStep,
 )
 from apps.slack.scenarios.schedules import STEPS_ROUTING as SCHEDULES_ROUTING
 from apps.slack.scenarios.slack_channel import STEPS_ROUTING as CHANNEL_ROUTING
@@ -74,6 +73,8 @@ SCENARIOS_ROUTES.extend(DIRECT_PAGE_ROUTING)
 SCENARIOS_ROUTES.extend(DECLARE_INCIDENT_ROUTING)
 
 logger = logging.getLogger(__name__)
+
+SELECT_ORGANIZATION_AND_ROUTE_BLOCK_ID = "SELECT_ORGANIZATION_AND_ROUTE"
 
 
 class StopAnalyticsReporting(APIView):
@@ -440,12 +441,10 @@ class SlackEventApiEndpointView(APIView):
             if private_metadata and "organization_id" in private_metadata:
                 organization_id = json.loads(private_metadata).get("organization_id")
             # steps with organization selection in view (e.g. slash commands)
-            elif ScenarioStep.SELECT_ORGANIZATION_AND_ROUTE_BLOCK_ID in payload["view"].get("state", {}).get(
-                "values", {}
-            ):
+            elif SELECT_ORGANIZATION_AND_ROUTE_BLOCK_ID in payload["view"].get("state", {}).get("values", {}):
                 payload_values = payload["view"]["state"]["values"]
-                selected_value = payload_values[ScenarioStep.SELECT_ORGANIZATION_AND_ROUTE_BLOCK_ID][
-                    ScenarioStep.SELECT_ORGANIZATION_AND_ROUTE_BLOCK_ID
+                selected_value = payload_values[SELECT_ORGANIZATION_AND_ROUTE_BLOCK_ID][
+                    SELECT_ORGANIZATION_AND_ROUTE_BLOCK_ID
                 ]["selected_option"]["value"]
                 organization_id = int(selected_value.split("-")[0])
             if organization_id:
@@ -507,9 +506,36 @@ class SlackEventApiEndpointView(APIView):
 
     def _open_warning_window_if_needed(self, payload, slack_team_identity, warning_text) -> None:
         if payload.get("trigger_id") is not None:
-            step = ScenarioStep(slack_team_identity)
+            slack_client = SlackClientWithErrorHandling(slack_team_identity.bot_access_token)
+
+            view = {
+                "type": "modal",
+                "callback_id": "warning",
+                "title": {
+                    "type": "plain_text",
+                    "text": ":warning: Warning",
+                },
+                "close": {
+                    "type": "plain_text",
+                    "text": "Ok",
+                    "emoji": True,
+                },
+                "blocks": [
+                    {
+                        "type": "section",
+                        "text": {
+                            "type": "mrkdwn",
+                            "text": warning_text,
+                        },
+                    },
+                ],
+            }
             try:
-                step.open_warning_window(payload, warning_text)
+                slack_client.api_call(
+                    "views.open",
+                    trigger_id=payload["trigger_id"],
+                    view=view,
+                )
             except SlackAPIException as e:
                 logger.info(
                     f"Failed to open pop-up for unpopulated SlackTeamIdentity {slack_team_identity.pk}\n" f"Error: {e}"

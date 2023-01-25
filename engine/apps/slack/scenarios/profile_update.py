@@ -3,9 +3,6 @@ from apps.slack.scenarios import scenario_step
 
 
 class ProfileUpdateStep(scenario_step.ScenarioStep):
-    tags = [
-        scenario_step.ScenarioStep.TAG_TRIGGERED_BY_SYSTEM,
-    ]
     # Avoid logging this step to prevent collecting sensitive data of our customers
     need_to_be_logged = False
 

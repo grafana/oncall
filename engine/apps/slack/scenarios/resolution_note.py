@@ -153,7 +153,7 @@ class AddToResolutionNoteStep(CheckAlertIsUnarchivedMixin, scenario_step.Scenari
                 except SlackAPIException:
                     pass
 
-                self._update_slack_message(alert_group)
+                self.alert_group_slack_service._update_alert_group_slack_message(alert_group)
         else:
             warning_text = "Unable to add this message to resolution note."
             self.open_warning_window(payload, warning_text)
@@ -329,7 +329,7 @@ class UpdateResolutionNoteStep(scenario_step.ScenarioStep):
 
     def update_alert_group_resolution_note_button(self, alert_group):
         if alert_group.slack_message is not None:
-            self._update_slack_message(alert_group)
+            self.alert_group_slack_service._update_alert_group_slack_message(alert_group)
 
     def add_resolution_note_reaction(self, slack_thread_message):
         try:
@@ -376,11 +376,6 @@ class UpdateResolutionNoteStep(scenario_step.ScenarioStep):
 
 
 class ResolutionNoteModalStep(CheckAlertIsUnarchivedMixin, scenario_step.ScenarioStep):
-
-    tags = [
-        scenario_step.ScenarioStep.TAG_INCIDENT_ROUTINE,
-    ]
-
     RESOLUTION_NOTE_TEXT_BLOCK_ID = "resolution_note_text"
     RESOLUTION_NOTE_MESSAGES_MAX_COUNT = 25
 
@@ -666,11 +661,6 @@ class ReadEditPostmortemStep(ResolutionNoteModalStep):
 
 
 class AddRemoveThreadMessageStep(UpdateResolutionNoteStep, scenario_step.ScenarioStep):
-
-    tags = [
-        scenario_step.ScenarioStep.TAG_INCIDENT_ROUTINE,
-    ]
-
     def process_scenario(self, slack_user_identity, slack_team_identity, payload, action=None):
         AlertGroup = apps.get_model("alerts", "AlertGroup")
         ResolutionNoteSlackMessage = apps.get_model("alerts", "ResolutionNoteSlackMessage")
