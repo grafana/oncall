@@ -47,3 +47,8 @@
 .u-align-items-center {
   align-items: center;
 }
+
+.u-disabled {
+  opacity: var(--opacity);
+  cursor: not-allowed;
+}

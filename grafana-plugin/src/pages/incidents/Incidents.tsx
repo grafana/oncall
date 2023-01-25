@@ -19,17 +19,17 @@ import IncidentsFilters from 'containers/IncidentsFilters/IncidentsFilters';
 import { WithPermissionControl } from 'containers/WithPermissionControl/WithPermissionControl';
 import { Alert, Alert as AlertType, AlertAction } from 'models/alertgroup/alertgroup.types';
 import { User } from 'models/user/user.types';
-import { getActionButtons, renderRelatedUsers } from 'pages/incident/Incident.helpers';
+import { renderRelatedUsers } from 'pages/incident/Incident.helpers';
 import { move } from 'state/helpers';
 import { PageProps, WithStoreProps } from 'state/types';
 import { withMobXProviderContext } from 'state/withStore';
 import LocationHelper from 'utils/LocationHelper';
 import { UserActions } from 'utils/authorization';
 
-import SilenceDropdown from './parts/SilenceDropdown';
+import SilenceCascadingSelect from './parts/SilenceCascadingSelect';
 
 import styles from './Incidents.module.css';
-import { getIncidentContextMenu } from './parts/IncidentDropdown';
+import { IncidentDropdown } from './parts/IncidentDropdown';
 
 const cx = cn.bind(styles);
 
@@ -237,7 +237,7 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
             )}
             {'restart' in store.alertGroupStore.bulkActions && (
               <WithPermissionControl key="silence" userAction={UserActions.AlertGroupsWrite}>
-                <SilenceDropdown
+                <SilenceCascadingSelect
                   disabled={!hasSelected}
                   onSelect={(ev) => this.getBulkActionClickHandler('silence', ev)}
                 />
@@ -312,7 +312,7 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
       },
 
       {
-        width: '20%',
+        width: '35%',
         title: 'Title',
         key: 'title',
         render: withSkeleton(this.renderTitle),
@@ -340,11 +340,6 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
         title: 'Users',
         key: 'users',
         render: withSkeleton(renderRelatedUsers),
-      },
-      {
-        width: '15%',
-        key: 'action',
-        render: withSkeleton(this.renderActionButtons),
       },
     ];
 
@@ -427,9 +422,19 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
     );
   };
 
-  renderStatus(incident: AlertType) {
-    return getIncidentContextMenu(incident);
-  }
+  renderStatus = (alert: AlertType) => {
+    return (
+      <IncidentDropdown
+        alert={alert}
+        onResolve={this.getOnActionButtonClick(alert.pk, AlertAction.Resolve)}
+        onUnacknowledge={this.getOnActionButtonClick(alert.pk, AlertAction.unAcknowledge)}
+        onUnresolve={this.getOnActionButtonClick(alert.pk, AlertAction.unResolve)}
+        onAcknowledge={this.getOnActionButtonClick(alert.pk, AlertAction.Acknowledge)}
+        onSilence={this.getSilenceClickHandler(alert)}
+        onUnsilence={this.getUnsilenceClickHandler(alert)}
+      />
+    );
+  };
 
   renderStartedAt(alert: AlertType) {
     const m = moment(alert.started_at);
@@ -495,46 +500,33 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
     );
   };
 
-  renderActionButtons = (incident: AlertType) => {
-    return null;
-
-    return getActionButtons(incident, cx, {
-      onResolve: this.getOnActionButtonClick(incident.pk, AlertAction.Resolve),
-      onUnacknowledge: this.getOnActionButtonClick(incident.pk, AlertAction.unAcknowledge),
-      onUnresolve: this.getOnActionButtonClick(incident.pk, AlertAction.unResolve),
-      onAcknowledge: this.getOnActionButtonClick(incident.pk, AlertAction.Acknowledge),
-      onSilence: this.getSilenceClickHandler(incident),
-      onUnsilence: this.getUnsilenceClickHandler(incident),
-    });
-  };
-
-  getOnActionButtonClick = (incidentId: string, action: AlertAction) => {
+  getOnActionButtonClick = (incidentId: string, action: AlertAction): ((e: SyntheticEvent) => Promise<void>) => {
     const { store } = this.props;
 
     return (e: SyntheticEvent) => {
       e.stopPropagation();
 
-      store.alertGroupStore.doIncidentAction(incidentId, action, false);
+      return store.alertGroupStore.doIncidentAction(incidentId, action, false);
     };
   };
 
-  getSilenceClickHandler = (alert: AlertType) => {
+  getSilenceClickHandler = (alert: AlertType): ((value: number) => Promise<void>) => {
     const { store } = this.props;
 
     return (value: number) => {
-      store.alertGroupStore.doIncidentAction(alert.pk, AlertAction.Silence, false, {
+      return store.alertGroupStore.doIncidentAction(alert.pk, AlertAction.Silence, false, {
         delay: value,
       });
     };
   };
 
-  getUnsilenceClickHandler = (alert: AlertType) => {
+  getUnsilenceClickHandler = (alert: AlertType): ((event: any) => Promise<void>) => {
     const { store } = this.props;
 
     return (event: any) => {
       event.stopPropagation();
 
-      store.alertGroupStore.doIncidentAction(alert.pk, AlertAction.unSilence, false);
+      return store.alertGroupStore.doIncidentAction(alert.pk, AlertAction.unSilence, false);
     };
   };
 

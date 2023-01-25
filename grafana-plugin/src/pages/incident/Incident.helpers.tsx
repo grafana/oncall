@@ -10,7 +10,7 @@ import { WithPermissionControl } from 'containers/WithPermissionControl/WithPerm
 import { MaintenanceIntegration } from 'models/alert_receive_channel';
 import { Alert as AlertType, Alert, IncidentStatus } from 'models/alertgroup/alertgroup.types';
 import { User } from 'models/user/user.types';
-import SilenceDropdown from 'pages/incidents/parts/SilenceDropdown';
+import SilenceCascadingSelect from 'pages/incidents/parts/SilenceCascadingSelect';
 import { move } from 'state/helpers';
 import { UserActions } from 'utils/authorization';
 
@@ -177,7 +177,7 @@ export function getActionButtons(incident: AlertType, cx: any, callbacks: { [key
   if (incident.alert_receive_channel.integration !== MaintenanceIntegration) {
     if (incident.status === IncidentStatus.Firing) {
       buttons.push(
-        <SilenceDropdown
+        <SilenceCascadingSelect
           className={cx('silence-button-inline')}
           key="silence"
           disabled={incident.loading}
