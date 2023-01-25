@@ -1357,15 +1357,29 @@ def test_get_oncall_users_for_multiple_schedules(
 
     schedules = OnCallSchedule.objects.filter(pk__in=[schedule_1.pk, schedule_2.pk])
 
-    expected = set(schedules.get_oncall_users(events_datetime=now + timezone.timedelta(seconds=1)))
+    def _extract_oncall_users_from_schedules(schedules):
+        return set(user for schedule in schedules.values() for user in schedule)
+
+    expected = _extract_oncall_users_from_schedules(
+        schedules.get_oncall_users(events_datetime=now + timezone.timedelta(seconds=1))
+    )
     assert expected == {user_1, user_2}
 
-    expected = set(schedules.get_oncall_users(events_datetime=now + timezone.timedelta(minutes=10, seconds=1)))
+    expected = _extract_oncall_users_from_schedules(
+        schedules.get_oncall_users(events_datetime=now + timezone.timedelta(minutes=10, seconds=1))
+    )
     assert expected == {user_1, user_2, user_3}
 
-    assert schedules.get_oncall_users(events_datetime=now + timezone.timedelta(minutes=30, seconds=1)) == [user_3]
+    assert _extract_oncall_users_from_schedules(
+        schedules.get_oncall_users(events_datetime=now + timezone.timedelta(minutes=30, seconds=1))
+    ) == {user_3}
 
-    assert schedules.get_oncall_users(events_datetime=now + timezone.timedelta(minutes=40, seconds=1)) == []
+    assert (
+        _extract_oncall_users_from_schedules(
+            schedules.get_oncall_users(events_datetime=now + timezone.timedelta(minutes=40, seconds=1))
+        )
+        == set()
+    )
 
 
 @pytest.mark.django_db
