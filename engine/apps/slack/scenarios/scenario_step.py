@@ -54,10 +54,6 @@ THREAD_MESSAGE_SUBTYPE = "bot_message"
 
 
 class ScenarioStep(object):
-    random_prefix_for_routing = ""
-
-    # Some blocks are sending context via action_id, which is limited by 255 chars
-
     def __init__(self, slack_team_identity, organization=None, user=None):
         self._slack_client = SlackClientWithErrorHandling(slack_team_identity.bot_access_token)
         self.slack_team_identity = slack_team_identity
