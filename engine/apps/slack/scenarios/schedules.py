@@ -10,8 +10,6 @@ from common.insight_log import EntityEvent, write_resource_insight_log
 
 
 class EditScheduleShiftNotifyStep(scenario_step.ScenarioStep):
-    tags = [scenario_step.ScenarioStep.TAG_ON_CALL_SCHEDULES]
-
     notify_empty_oncall_options = {choice[0]: choice[1] for choice in OnCallSchedule.NotifyEmptyOnCall.choices}
     notify_oncall_shift_freq_options = {choice[0]: choice[1] for choice in OnCallSchedule.NotifyOnCallShiftFreq.choices}
     mention_oncall_start_options = {1: "Mention person in slack", 0: "Inform in channel without mention"}

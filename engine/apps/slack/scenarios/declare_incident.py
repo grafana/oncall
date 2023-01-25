@@ -2,10 +2,6 @@ from apps.slack.scenarios import scenario_step
 
 
 class DeclareIncidentStep(scenario_step.ScenarioStep):
-    tags = [
-        scenario_step.ScenarioStep.TAG_INCIDENT_ROUTINE,
-    ]
-
     def process_scenario(self, slack_user_identity, slack_team_identity, payload, action=None):
         """
         Slack sends a POST request to the backend upon clicking a button with a redirect link to Incident.

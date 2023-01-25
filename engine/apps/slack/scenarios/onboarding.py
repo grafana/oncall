@@ -6,11 +6,6 @@ logger = logging.getLogger(__name__)
 
 
 class ImOpenStep(scenario_step.ScenarioStep):
-
-    tags = [
-        scenario_step.ScenarioStep.TAG_TRIGGERED_BY_SYSTEM,
-    ]
-
     """
     Empty step to handle event and avoid 500's. In case we need it in the future.
     """
@@ -20,11 +15,6 @@ class ImOpenStep(scenario_step.ScenarioStep):
 
 
 class AppHomeOpenedStep(scenario_step.ScenarioStep):
-
-    tags = [
-        scenario_step.ScenarioStep.TAG_TRIGGERED_BY_SYSTEM,
-    ]
-
     def process_scenario(self, slack_user_identity, slack_team_identity, payload, action=None):
         pass
 

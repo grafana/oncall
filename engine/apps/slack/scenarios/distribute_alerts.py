@@ -41,11 +41,6 @@ logger.setLevel(logging.DEBUG)
 
 
 class AlertShootingStep(scenario_step.ScenarioStep):
-
-    tags = [
-        scenario_step.ScenarioStep.TAG_TRIGGERED_BY_SYSTEM,
-    ]
-
     def publish_slack_messages(self, slack_team_identity, alert_group, alert, attachments, channel_id, blocks):
         SlackMessage = apps.get_model("slack", "SlackMessage")
         # channel_id can be None if general log channel for slack_team_identity is not set
@@ -280,11 +275,6 @@ class UnSilenceGroupStep(
     IncidentActionsAccessControlMixin,
     scenario_step.ScenarioStep,
 ):
-
-    tags = [
-        scenario_step.ScenarioStep.TAG_INCIDENT_ROUTINE,
-    ]
-
     REQUIRED_PERMISSIONS = [RBACPermission.Permissions.CHATOPS_WRITE]
     ACTION_VERBOSE = "unsilence incident"
 
@@ -304,11 +294,6 @@ class SelectAttachGroupStep(
     IncidentActionsAccessControlMixin,
     scenario_step.ScenarioStep,
 ):
-
-    tags = [
-        scenario_step.ScenarioStep.TAG_INCIDENT_ROUTINE,
-    ]
-
     REQUIRED_PERMISSIONS = [RBACPermission.Permissions.CHATOPS_WRITE]
     ACTION_VERBOSE = "Select Incident for Attaching to"
 
@@ -460,11 +445,6 @@ class AttachGroupStep(
     IncidentActionsAccessControlMixin,
     scenario_step.ScenarioStep,
 ):
-
-    tags = [
-        scenario_step.ScenarioStep.TAG_INCIDENT_ROUTINE,
-    ]
-
     REQUIRED_PERMISSIONS = [RBACPermission.Permissions.CHATOPS_WRITE]
     ACTION_VERBOSE = "Attach incident"
 
@@ -523,11 +503,6 @@ class UnAttachGroupStep(
     IncidentActionsAccessControlMixin,
     scenario_step.ScenarioStep,
 ):
-
-    tags = [
-        scenario_step.ScenarioStep.TAG_INCIDENT_ROUTINE,
-    ]
-
     REQUIRED_PERMISSIONS = [RBACPermission.Permissions.CHATOPS_WRITE]
     ACTION_VERBOSE = "Unattach incident"
 
@@ -542,11 +517,6 @@ class UnAttachGroupStep(
 
 
 class StopInvitationProcess(CheckAlertIsUnarchivedMixin, IncidentActionsAccessControlMixin, scenario_step.ScenarioStep):
-
-    tags = [
-        scenario_step.ScenarioStep.TAG_INCIDENT_ROUTINE,
-    ]
-
     REQUIRED_PERMISSIONS = [RBACPermission.Permissions.CHATOPS_WRITE]
     ACTION_VERBOSE = "stop invitation"
 
@@ -567,11 +537,6 @@ class CustomButtonProcessStep(
     IncidentActionsAccessControlMixin,
     scenario_step.ScenarioStep,
 ):
-
-    tags = [
-        scenario_step.ScenarioStep.TAG_INCIDENT_ROUTINE,
-    ]
-
     # TODO:
     REQUIRED_PERMISSIONS = [RBACPermission.Permissions.CHATOPS_WRITE]
     ACTION_VERBOSE = "click custom button"
@@ -632,11 +597,6 @@ class ResolveGroupStep(
     IncidentActionsAccessControlMixin,
     scenario_step.ScenarioStep,
 ):
-
-    tags = [
-        scenario_step.ScenarioStep.TAG_INCIDENT_ROUTINE,
-    ]
-
     REQUIRED_PERMISSIONS = [RBACPermission.Permissions.CHATOPS_WRITE]
     ACTION_VERBOSE = "resolve incident"
 
@@ -678,11 +638,6 @@ class UnResolveGroupStep(
     IncidentActionsAccessControlMixin,
     scenario_step.ScenarioStep,
 ):
-
-    tags = [
-        scenario_step.ScenarioStep.TAG_INCIDENT_ROUTINE,
-    ]
-
     REQUIRED_PERMISSIONS = [RBACPermission.Permissions.CHATOPS_WRITE]
     ACTION_VERBOSE = "unresolve incident"
 
@@ -701,11 +656,6 @@ class AcknowledgeGroupStep(
     IncidentActionsAccessControlMixin,
     scenario_step.ScenarioStep,
 ):
-
-    tags = [
-        scenario_step.ScenarioStep.TAG_INCIDENT_ROUTINE,
-    ]
-
     REQUIRED_PERMISSIONS = [RBACPermission.Permissions.CHATOPS_WRITE]
     ACTION_VERBOSE = "acknowledge incident"
 
@@ -727,11 +677,6 @@ class UnAcknowledgeGroupStep(
     IncidentActionsAccessControlMixin,
     scenario_step.ScenarioStep,
 ):
-
-    tags = [
-        scenario_step.ScenarioStep.TAG_INCIDENT_ROUTINE,
-    ]
-
     REQUIRED_PERMISSIONS = [RBACPermission.Permissions.CHATOPS_WRITE]
     ACTION_VERBOSE = "unacknowledge incident"
 
@@ -928,11 +873,6 @@ class AcknowledgeConfirmationStep(AcknowledgeGroupStep):
 
 
 class WipeGroupStep(scenario_step.ScenarioStep):
-
-    tags = [
-        scenario_step.ScenarioStep.TAG_INCIDENT_ROUTINE,
-    ]
-
     ACTION_VERBOSE = "wipe incident"
 
     def process_signal(self, log_record):
@@ -944,11 +884,6 @@ class WipeGroupStep(scenario_step.ScenarioStep):
 
 
 class DeleteGroupStep(scenario_step.ScenarioStep):
-
-    tags = [
-        scenario_step.ScenarioStep.TAG_INCIDENT_ROUTINE,
-    ]
-
     ACTION_VERBOSE = "delete incident"
 
     def process_signal(self, log_record):

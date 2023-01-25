@@ -62,21 +62,6 @@ class ScenarioStep(object):
 
     # Some blocks are sending context via action_id, which is limited by 255 chars
 
-    TAG_ONBOARDING = "onboarding"
-    TAG_DASHBOARD = "dashboard"
-    TAG_SUBSCRIPTION = "subscription"
-    TAG_REPORTING = "reporting"
-
-    TAG_TEAM_SETTINGS = "team_settings"
-
-    TAG_TRIGGERED_BY_SYSTEM = "triggered_by_system"
-    TAG_INCIDENT_ROUTINE = "incident_routine"
-    TAG_INCIDENT_MANAGEMENT = "incident_management"
-
-    TAG_ON_CALL_SCHEDULES = "on_call_schedules"
-
-    tags = []
-
     def __init__(self, slack_team_identity, organization=None, user=None):
         self._slack_client = SlackClientWithErrorHandling(slack_team_identity.bot_access_token)
         self.slack_team_identity = slack_team_identity

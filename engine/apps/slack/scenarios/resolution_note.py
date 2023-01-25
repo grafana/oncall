@@ -21,9 +21,6 @@ class AddToResolutionNoteStep(CheckAlertIsUnarchivedMixin, scenario_step.Scenari
         "add_resolution_note_staging",
         "add_resolution_note_develop",
     ]
-    tags = [
-        scenario_step.ScenarioStep.TAG_INCIDENT_ROUTINE,
-    ]
 
     def process_scenario(self, slack_user_identity, slack_team_identity, payload, action=None):
         SlackMessage = apps.get_model("slack", "SlackMessage")

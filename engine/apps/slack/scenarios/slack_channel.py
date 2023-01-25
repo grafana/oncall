@@ -8,10 +8,6 @@ from apps.slack.tasks import clean_slack_channel_leftovers
 
 
 class SlackChannelCreatedOrRenamedEventStep(scenario_step.ScenarioStep):
-    tags = [
-        scenario_step.ScenarioStep.TAG_TRIGGERED_BY_SYSTEM,
-    ]
-
     # Avoid logging this step to prevent collecting sensitive data of our customers
     need_to_be_logged = False
 
@@ -35,10 +31,6 @@ class SlackChannelCreatedOrRenamedEventStep(scenario_step.ScenarioStep):
 
 
 class SlackChannelDeletedEventStep(scenario_step.ScenarioStep):
-    tags = [
-        scenario_step.ScenarioStep.TAG_TRIGGERED_BY_SYSTEM,
-    ]
-
     # Avoid logging this step to prevent collecting sensitive data of our customers
     need_to_be_logged = False
 
@@ -78,10 +70,6 @@ class SlackChannelArchivedEventStep(scenario_step.ScenarioStep):
 
 
 class SlackChannelUnArchivedEventStep(scenario_step.ScenarioStep):
-    tags = [
-        scenario_step.ScenarioStep.TAG_TRIGGERED_BY_SYSTEM,
-    ]
-
     # Avoid logging this step to prevent collecting sensitive data of our customers
     need_to_be_logged = False
 
