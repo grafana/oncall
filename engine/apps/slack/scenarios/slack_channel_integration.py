@@ -14,7 +14,7 @@ class SlackChannelMessageEventStep(scenario_step.ScenarioStep):
     # Avoid logging this step to prevent collecting sensitive data of our customers
     need_to_be_logged = False
 
-    def process_scenario(self, slack_user_identity, slack_team_identity, payload, action=None):
+    def process_scenario(self, slack_user_identity, slack_team_identity, payload):
         """
         Triggered by action: Any new message in channel.
         Dangerous because it's often triggered by internal client's company systems.

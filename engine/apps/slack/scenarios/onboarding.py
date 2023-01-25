@@ -10,12 +10,12 @@ class ImOpenStep(scenario_step.ScenarioStep):
     Empty step to handle event and avoid 500's. In case we need it in the future.
     """
 
-    def process_scenario(self, slack_user_identity, slack_team_identity, payload, action=None):
+    def process_scenario(self, slack_user_identity, slack_team_identity, payload):
         logger.info("InOpenStep, doing nothing.")
 
 
 class AppHomeOpenedStep(scenario_step.ScenarioStep):
-    def process_scenario(self, slack_user_identity, slack_team_identity, payload, action=None):
+    def process_scenario(self, slack_user_identity, slack_team_identity, payload):
         pass
 
 

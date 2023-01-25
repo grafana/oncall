@@ -19,7 +19,7 @@ class OpenAlertAppearanceDialogStep(
     REQUIRED_PERMISSIONS = [RBACPermission.Permissions.CHATOPS_WRITE]
     ACTION_VERBOSE = "open Alert Appearance"
 
-    def process_scenario(self, slack_user_identity, slack_team_identity, payload, action=None):
+    def process_scenario(self, slack_user_identity, slack_team_identity, payload):
         AlertGroup = apps.get_model("alerts", "AlertGroup")
         AlertReceiveChannel = apps.get_model("alerts", "AlertReceiveChannel")
 
@@ -211,7 +211,7 @@ class OpenAlertAppearanceDialogStep(
 
 
 class UpdateAppearanceStep(scenario_step.ScenarioStep):
-    def process_scenario(self, slack_user_identity, slack_team_identity, payload, action=None):
+    def process_scenario(self, slack_user_identity, slack_team_identity, payload):
         AlertGroup = apps.get_model("alerts", "AlertGroup")
         AlertReceiveChannel = apps.get_model("alerts", "AlertReceiveChannel")
 

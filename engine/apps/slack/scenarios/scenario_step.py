@@ -68,7 +68,7 @@ class ScenarioStep(object):
 
         self.alert_group_slack_service = AlertGroupSlackService(slack_team_identity, self._slack_client)
 
-    def process_scenario(self, user, team, payload, action=None):
+    def process_scenario(self, user, team, payload):
         pass
 
     @classmethod

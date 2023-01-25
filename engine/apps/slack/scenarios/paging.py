@@ -77,7 +77,7 @@ class StartDirectPaging(scenario_step.ScenarioStep):
 
     command_name = [settings.SLACK_DIRECT_PAGING_SLASH_COMMAND]
 
-    def process_scenario(self, slack_user_identity, slack_team_identity, payload, action=None):
+    def process_scenario(self, slack_user_identity, slack_team_identity, payload):
         input_id_prefix = _generate_input_id_prefix()
 
         try:
@@ -104,7 +104,7 @@ class StartDirectPaging(scenario_step.ScenarioStep):
 class FinishDirectPaging(scenario_step.ScenarioStep):
     """Handle page command dialog submit."""
 
-    def process_scenario(self, slack_user_identity, slack_team_identity, payload, action=None):
+    def process_scenario(self, slack_user_identity, slack_team_identity, payload):
         title = _get_title_from_payload(payload)
         message = _get_message_from_payload(payload)
         private_metadata = json.loads(payload["view"]["private_metadata"])
@@ -143,7 +143,7 @@ class FinishDirectPaging(scenario_step.ScenarioStep):
 class OnOrgChange(scenario_step.ScenarioStep):
     """Reload form with updated organization."""
 
-    def process_scenario(self, slack_user_identity, slack_team_identity, payload, action=None):
+    def process_scenario(self, slack_user_identity, slack_team_identity, payload):
         updated_payload = reset_users(payload)
         view = render_dialog(slack_user_identity, slack_team_identity, updated_payload)
         self._slack_client.api_call(
@@ -164,7 +164,7 @@ class OnUserChange(scenario_step.ScenarioStep):
     It will perform a user availability check, pushing a new modal for additional confirmation if needed.
     """
 
-    def process_scenario(self, slack_user_identity, slack_team_identity, payload, action=None):
+    def process_scenario(self, slack_user_identity, slack_team_identity, payload):
         private_metadata = json.loads(payload["view"]["private_metadata"])
         selected_organization = _get_selected_org_from_payload(payload, private_metadata["input_id_prefix"])
         selected_team = _get_selected_team_from_payload(payload, private_metadata["input_id_prefix"])
@@ -221,7 +221,7 @@ class OnUserActionChange(scenario_step.ScenarioStep):
 class OnConfirmUserChange(scenario_step.ScenarioStep):
     """Confirm user selection despite not being available."""
 
-    def process_scenario(self, slack_user_identity, slack_team_identity, payload, action=None):
+    def process_scenario(self, slack_user_identity, slack_team_identity, payload):
         metadata = json.loads(payload["view"]["private_metadata"])
 
         # recreate original view state and metadata

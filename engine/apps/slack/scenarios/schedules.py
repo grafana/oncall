@@ -15,7 +15,7 @@ class EditScheduleShiftNotifyStep(scenario_step.ScenarioStep):
     mention_oncall_start_options = {1: "Mention person in slack", 0: "Inform in channel without mention"}
     mention_oncall_next_options = {1: "Mention person in slack", 0: "Inform in channel without mention"}
 
-    def process_scenario(self, slack_user_identity, slack_team_identity, payload, action=None):
+    def process_scenario(self, slack_user_identity, slack_team_identity, payload):
         if payload["actions"][0].get("value", None) and payload["actions"][0]["value"].startswith("edit"):
             self.open_settings_modal(payload)
         elif payload["actions"][0].get("type", None) and payload["actions"][0]["type"] == "static_select":

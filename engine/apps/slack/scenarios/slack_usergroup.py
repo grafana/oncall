@@ -8,7 +8,7 @@ class SlackUserGroupEventStep(scenario_step.ScenarioStep):
     # Avoid logging this step to prevent collecting sensitive data of our customers
     need_to_be_logged = False
 
-    def process_scenario(self, slack_user_identity, slack_team_identity, payload, action=None):
+    def process_scenario(self, slack_user_identity, slack_team_identity, payload):
         """
         Triggered by action: creation user groups or changes in user groups except its members.
         """
@@ -37,7 +37,7 @@ class SlackUserGroupMembersChangedEventStep(scenario_step.ScenarioStep):
     # Avoid logging this step to prevent collecting sensitive data of our customers
     need_to_be_logged = False
 
-    def process_scenario(self, slack_user_identity, slack_team_identity, payload, action=None):
+    def process_scenario(self, slack_user_identity, slack_team_identity, payload):
         """
         Triggered by action: changed members in user group.
         """
