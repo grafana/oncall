@@ -22,9 +22,9 @@ rest of your schedule.
 There are two schedule export options available:
 
 - **On-call schedule export** - Exports all on-call shifts for a particular schedule, including rotations, overrides,
-- and assigned users.
+and assigned users.
 - **User-specific schedule export** - Exports assigned on-call shifts for a particular user. Use this export option to
-- add your assigned on-call shifts to your calendar.
+add your assigned on-call shifts to your calendar.
 
 > **Note:** Calendar exports include all scheduled shifts, including those which are lower priority or overridden.
 
@@ -36,11 +36,11 @@ calendars.
 To export a schedule from Grafana OnCall:
 
 1. In Grafana OnCall, navigate to the **Schedules** tab.
-2. Open the schedule you’d like to export by clicking on the schedule name.
-3. Click **Export** in the upper right corner, then click **+ Create iCal link** to generate a secret iCal URL.
-4. Copy the iCal link and store it somewhere you’ll remember. Once you close the schedule export window, you won't be
-5. able to access the iCal link.
-6. Open your calendar settings to add a calendar from a URL (This step varies based on your calendar app).
+1. Open the schedule you’d like to export by clicking on the schedule name.
+1. Click **Export** in the upper right corner, then click **+ Create iCal link** to generate a secret iCal URL.
+1. Copy the iCal link and store it somewhere you’ll remember. Once you close the schedule export window, you won't be
+able to access the iCal link.
+1. Open your calendar settings to add a calendar from a URL (This step varies based on your calendar app).
 
 ## Export a user on-call schedule
 
@@ -49,12 +49,12 @@ Use this export option to add your assigned on-call shifts to your calendar. Bes
 To export your on-call schedule:
 
 1. In Grafana OnCall, navigate to the **Users** tab.
-2. Click **View my profile** in the upper right corner.
-3. From the **User Info** tab, navigate to the iCal link section.
-4. Click **+ Create iCal link** to generate your secret iCal URL.
-5. Copy the iCal link and store it somewhere you’ll remember. Once you close your user profile, you won't be able to
-6. access the iCal link again.
-7. Open your calendar settings to add a calendar from a URL (This step varies based on your calendar app).
+1. Click **View my profile** in the upper right corner.
+1. From the **User Info** tab, navigate to the iCal link section.
+1. Click **+ Create iCal link** to generate your secret iCal URL.
+1. Copy the iCal link and store it somewhere you’ll remember. Once you close your user profile, you won't be able to
+access the iCal link again.
+1. Open your calendar settings to add a calendar from a URL (This step varies based on your calendar app).
 
 ## Revoke an iCal export link
 

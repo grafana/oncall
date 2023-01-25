@@ -32,12 +32,10 @@ the gear icon next to an existing schedule.
 
 Available schedule settings:
 
-- **Slack channel:** Choose a primary Slack channel to send notifications about on-call shifts, such as unassigned
-- on-call shifts.
+- **Slack channel:** Choose a primary Slack channel to send notifications about on-call shifts, such as unassigned on-call shifts.
 - **Slack user group:** Choose a Slack user group to receive current on-call updates.
 - **Notification frequency:** Specify whether or not to send shift notifications to scheduled team members.
-- **Action for slot when no one is on-call:** Define how your team is notified when an empty shift causes a gap in
-- on-call coverage.
+- **Action for slot when no one is on-call:** Define how your team is notified when an empty shift causes a gap in on-call coverage.
 - **Current shift notification settings:** Select how users are notified when their on-call shift begins.
 - **Next shift notification settings:** Specify how users are notified of upcoming shifts.
 
@@ -51,7 +49,7 @@ Understand your schedule view:
 - **Final schedule:** The final schedule provides a combined view of rotations and overrides
 - **Rotations:** The rotations calendar represents all recurring on-call rotations for a given schedule.
 - **Overrides:** The override calendar represents temporary adjustments to the recurring on-call schedule. Any events
-- on this calendar will take precedence over the rotations calendar.
+on this calendar will take precedence over the rotations calendar.
 
 ## Schedule export
 

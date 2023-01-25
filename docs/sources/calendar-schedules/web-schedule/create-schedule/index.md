@@ -49,11 +49,12 @@ Think of a rotation as a recurring schedule containing on-call shifts that users
 To add a rotation to an on-call schedule:
 
 1. From your newly created schedule, click **+ Add rotation** and select **New Layer**.
-2. Complete the rotation creation form according to your rotation parameters.
-3. Add users to the rotation from the dropdown.
-You can separate users into user groups to rotate through individual users per shift. User groups that contain
-4. multiple users results in all users in the group being included in corresponding shifts.
-5. When you’re satisfied with the rotation preview, click **Create**.
+1. Complete the rotation creation form according to your rotation parameters.
+1. Add users to the rotation from the dropdown.
+You can separate users into user groups to rotate through individual users per shift. 
+User groups that contain
+multiple users results in all users in the group being included in corresponding shifts.
+1. When you’re satisfied with the rotation preview, click **Create**.
 
 ### Add an on-call schedule to escalation chains
 
