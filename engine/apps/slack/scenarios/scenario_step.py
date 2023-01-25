@@ -75,9 +75,6 @@ class ScenarioStep(object):
         if cache.get(cache_tag) is None:
             cache.set(cache_tag, 1, 180)
 
-    def dispatch(self, user, team, payload, action=None):
-        return self.process_scenario(user, team, payload, action)
-
     def process_scenario(self, user, team, payload, action=None):
         pass
 

@@ -314,7 +314,7 @@ class SlackEventApiEndpointView(APIView):
                         Step = route["step"]
                         logger.info("Routing to {}".format(Step))
                         step = Step(slack_team_identity, organization, user)
-                        step.dispatch(slack_user_identity, slack_team_identity, payload)
+                        step.process_scenario(slack_user_identity, slack_team_identity, payload)
                         step_was_found = True
             # We don't do anything on app mention, but we doesn't want to unsubscribe from this event yet.
             if payload["event"]["type"] == EVENT_TYPE_APP_MENTION:
@@ -331,7 +331,7 @@ class SlackEventApiEndpointView(APIView):
                             action_record.step = Step.routing_uid()
                             logger.info("Routing to {}".format(Step))
                             step = Step(slack_team_identity, organization, user)
-                            step.dispatch(slack_user_identity, slack_team_identity, payload)
+                            step.process_scenario(slack_user_identity, slack_team_identity, payload)
                             step_was_found = True
 
                     if "type" in payload and payload["type"] == route["payload_type"]:
@@ -343,7 +343,7 @@ class SlackEventApiEndpointView(APIView):
                                     action_record.step = Step.routing_uid()
                                     logger.info("Routing to {}".format(Step))
                                     step = Step(slack_team_identity, organization, user)
-                                    step.dispatch(slack_user_identity, slack_team_identity, payload)
+                                    step.process_scenario(slack_user_identity, slack_team_identity, payload)
                                     step_was_found = True
 
                         if payload["type"] == PAYLOAD_TYPE_INTERACTIVE_MESSAGE:
@@ -356,7 +356,9 @@ class SlackEventApiEndpointView(APIView):
                                         action_record.step = Step.routing_uid()
                                         logger.info("Routing to {}".format(Step))
                                         step = Step(slack_team_identity, organization, user)
-                                        result = step.dispatch(slack_user_identity, slack_team_identity, payload)
+                                        result = step.process_scenario(
+                                            slack_user_identity, slack_team_identity, payload
+                                        )
                                         if result is not None:
                                             return result
                                         step_was_found = True
@@ -369,7 +371,7 @@ class SlackEventApiEndpointView(APIView):
                                         action_record.step = Step.routing_uid()
                                         logger.info("Routing to {}".format(Step))
                                         step = Step(slack_team_identity, organization, user)
-                                        step.dispatch(slack_user_identity, slack_team_identity, payload)
+                                        step.process_scenario(slack_user_identity, slack_team_identity, payload)
                                         step_was_found = True
 
                         if payload["type"] == PAYLOAD_TYPE_DIALOG_SUBMISSION:
@@ -378,7 +380,7 @@ class SlackEventApiEndpointView(APIView):
                                 action_record.step = Step.routing_uid()
                                 logger.info("Routing to {}".format(Step))
                                 step = Step(slack_team_identity, organization, user)
-                                result = step.dispatch(slack_user_identity, slack_team_identity, payload)
+                                result = step.process_scenario(slack_user_identity, slack_team_identity, payload)
                                 if result is not None:
                                     return result
                                 step_was_found = True
@@ -389,7 +391,7 @@ class SlackEventApiEndpointView(APIView):
                                 action_record.step = Step.routing_uid()
                                 logger.info("Routing to {}".format(Step))
                                 step = Step(slack_team_identity, organization, user)
-                                result = step.dispatch(slack_user_identity, slack_team_identity, payload)
+                                result = step.process_scenario(slack_user_identity, slack_team_identity, payload)
                                 if result is not None:
                                     return result
                                 step_was_found = True
@@ -400,7 +402,7 @@ class SlackEventApiEndpointView(APIView):
                                 action_record.step = Step.routing_uid()
                                 logger.info("Routing to {}".format(Step))
                                 step = Step(slack_team_identity, organization, user)
-                                step.dispatch(slack_user_identity, slack_team_identity, payload)
+                                step.process_scenario(slack_user_identity, slack_team_identity, payload)
                                 step_was_found = True
 
         finally:
