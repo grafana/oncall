@@ -52,10 +52,10 @@ export const IncidentDropdown: FC<{
   onUnsilence: (event: any) => Promise<void>;
 }> = ({ alert, onResolve, onUnacknowledge, onUnresolve, onAcknowledge, onSilence, onUnsilence }) => {
   const [isLoading, setIsLoading] = useState(false);
-  const [isResolvedOpen, setIsResolvedOpen] = useState(alert.status === IncidentStatus.Resolved);
-  const [isAcknowledgedOpen, setIsAcknowledgedOpen] = useState(alert.status === IncidentStatus.Acknowledged);
-  const [isFiringOpen, setIsFiringOpen] = useState(alert.status === IncidentStatus.Firing);
-  const [isSilencedOpen, setIsSilencedOpen] = useState(alert.status === IncidentStatus.Silenced);
+  const [isResolvedOpen, setIsResolvedOpen] = useState(false);
+  const [isAcknowledgedOpen, setIsAcknowledgedOpen] = useState(false);
+  const [isFiringOpen, setIsFiringOpen] = useState(false);
+  const [isSilencedOpen, setIsSilencedOpen] = useState(false);
 
   const onClickFn = (
     ev: React.SyntheticEvent<HTMLDivElement>,
@@ -63,8 +63,21 @@ export const IncidentDropdown: FC<{
     action: (value: SyntheticEvent | number) => Promise<void>
   ) => {
     setIsLoading(true);
+
+    // set them to forcedOpen so that they do not close
+    if (status === AlertAction.Resolve) {
+      setIsResolvedOpen(true);
+    } else if (status === AlertAction.Acknowledge) {
+      setIsAcknowledgedOpen(true);
+    } else if (status === AlertAction.Silence) {
+      setIsSilencedOpen(true);
+    } else if (status === AlertAction.unResolve) {
+      setIsFiringOpen(true);
+    }
+
     action(ev)
       .then(() => {
+        // network request is done and succesful, close them
         if (status === AlertAction.Resolve) {
           setIsResolvedOpen(false);
         } else if (status === AlertAction.Acknowledge) {
@@ -76,6 +89,7 @@ export const IncidentDropdown: FC<{
         }
       })
       .finally(() => {
+        // hide loading/disabled state
         setIsLoading(false);
       });
   };

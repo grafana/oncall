@@ -28,8 +28,7 @@
     background: var(--gray-9);
   }
 
-  &--acknowledge,
-  &--unacknowledge {
+  &--acknowledge {
     color: var(--warning-text-color);
   }
   &--firing {
