@@ -26,10 +26,10 @@ import { withMobXProviderContext } from 'state/withStore';
 import LocationHelper from 'utils/LocationHelper';
 import { UserActions } from 'utils/authorization';
 
+import { IncidentDropdown } from './parts/IncidentDropdown';
 import SilenceCascadingSelect from './parts/SilenceCascadingSelect';
 
 import styles from './Incidents.module.css';
-import { IncidentDropdown } from './parts/IncidentDropdown';
 
 const cx = cn.bind(styles);
 

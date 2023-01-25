@@ -1,23 +1,28 @@
 import React, { FC, SyntheticEvent, useRef, useState } from 'react';
 
 import { Icon } from '@grafana/ui';
-import { Alert, AlertAction, IncidentStatus } from 'models/alertgroup/alertgroup.types';
-
 import cn from 'classnames/bind';
-
-import styles from 'pages/incidents/parts/IncidentDropdown.module.scss';
 
 import Tag from 'components/Tag/Tag';
 import Text from 'components/Text/Text';
-import SilenceCascadingSelect from './SilenceCascadingSelect';
 import { WithContextMenu } from 'components/WithContextMenu/WithContextMenu';
+import { Alert, AlertAction, IncidentStatus } from 'models/alertgroup/alertgroup.types';
+import styles from 'pages/incidents/parts/IncidentDropdown.module.scss';
+
+import SilenceCascadingSelect from './SilenceCascadingSelect';
 
 const cx = cn.bind(styles);
 
 const getIncidentTagColor = (alert: Alert) => {
-  if (alert.status === IncidentStatus.Resolved) return '#299C46';
-  if (alert.status === IncidentStatus.Firing) return '#E02F44';
-  if (alert.status === IncidentStatus.Acknowledged) return '#C69B06';
+  if (alert.status === IncidentStatus.Resolved) {
+    return '#299C46';
+  }
+  if (alert.status === IncidentStatus.Firing) {
+    return '#E02F44';
+  }
+  if (alert.status === IncidentStatus.Acknowledged) {
+    return '#C69B06';
+  }
   return '#464C54';
 };
 
@@ -31,7 +36,8 @@ function ListMenu({ alert, openMenu }: { alert: Alert; openMenu: React.MouseEven
       color={getIncidentTagColor(alert)}
       onClick={() => {
         const boundingRect = forwardedRef.current.getBoundingClientRect();
-        openMenu({ pageX: boundingRect.left, pageY: boundingRect.top + boundingRect.height } as any);
+        const LEFT_MARGIN = 8;
+        openMenu({ pageX: boundingRect.left + LEFT_MARGIN, pageY: boundingRect.top + boundingRect.height } as any);
       }}
     >
       <Text strong size="small">

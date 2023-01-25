@@ -1,5 +1,6 @@
-import { ContextMenu } from '@grafana/ui';
 import React, { useEffect, useState } from 'react';
+
+import { ContextMenu } from '@grafana/ui';
 
 export interface WithContextMenuProps {
   children: (props: { openMenu: React.MouseEventHandler<HTMLElement> }) => JSX.Element;
