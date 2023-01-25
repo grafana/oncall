@@ -15,7 +15,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Fix bugs related to creating contact point for Grafana Alerting integration
 
-## v1.1.18 (2023-01-25)
+## v1.1.19 (2023-01-25)
 
 ### Added
 
