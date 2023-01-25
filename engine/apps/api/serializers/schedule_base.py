@@ -1,8 +1,6 @@
-from django.utils import timezone
 from rest_framework import serializers
 
 from apps.api.serializers.user_group import UserGroupSerializer
-from apps.schedules.ical_utils import list_users_to_notify_from_ical
 from apps.schedules.models import OnCallSchedule
 from apps.schedules.tasks import schedule_notify_about_empty_shifts_in_schedule, schedule_notify_about_gaps_in_schedule
 from common.api_helpers.custom_fields import TeamPrimaryKeyRelatedField
@@ -67,11 +65,9 @@ class ScheduleBaseSerializer(EagerLoadingMixin, serializers.ModelSerializer):
         return warnings
 
     def get_on_call_now(self, obj):
-        users_on_call = list_users_to_notify_from_ical(obj, timezone.datetime.now(timezone.utc))
-        if users_on_call is not None:
-            return [user.short() for user in users_on_call]
-        else:
-            return []
+        # Serializer context is set here: apps.api.views.schedule.ScheduleView.get_serializer_context
+        users = self.context["oncall_users"].get(obj.pk, [])
+        return [user.short() for user in users]
 
     def get_number_of_escalation_chains(self, obj):
         # num_escalation_chains param added in queryset via annotate. Check ScheduleView.get_queryset
