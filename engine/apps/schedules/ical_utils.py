@@ -47,7 +47,7 @@ def users_in_ical(
     usernames_from_ical: typing.List[str],
     organization: Organization,
     include_viewers=False,
-    users_to_filter=None,
+    users_to_filter: typing.Optional[UserQuerySet] = None,
 ) -> UserQuerySet:
     """
     This method returns a `UserQuerySet`, filtered by users whose username, or case-insensitive e-mail,
@@ -62,13 +62,15 @@ def users_in_ical(
         The organization in question
     include_viewers : bool
         Whether or not the list should be further filtered to exclude users based on granted permissions
+    users_to_filter : typing.Optional[UserQuerySet]
+        Filter users without making SQL queries if users_to_filter arg is provided
+        users_to_filter is passed in `apps.schedules.ical_utils.get_oncall_users_for_multiple_schedules`
     """
     from apps.user_management.models import User
 
-    # Filter users without making SQL queries if users_to_filter arg is provided
-    # users_to_filter is passed in apps.schedules.ical_utils.get_oncall_users_for_multiple_schedules
+    emails_from_ical = [username.lower() for username in usernames_from_ical]
+
     if users_to_filter is not None:
-        emails_from_ical = [username.lower() for username in usernames_from_ical]
         return list(
             {user for user in users_to_filter if user.username in usernames_from_ical or user.email in emails_from_ical}
         )
@@ -79,9 +81,8 @@ def users_in_ical(
             **User.build_permissions_query(RBACPermission.Permissions.SCHEDULES_WRITE, organization)
         )
 
-    user_emails = [v.lower() for v in usernames_from_ical]
     users_found_in_ical = users_found_in_ical.filter(
-        (Q(username__in=usernames_from_ical) | Q(email__lower__in=user_emails))
+        (Q(username__in=usernames_from_ical) | Q(email__lower__in=emails_from_ical))
     ).distinct()
 
     return users_found_in_ical
@@ -343,10 +344,9 @@ def list_users_to_notify_from_ical_for_period(
     return users_found_in_ical
 
 
-def get_oncall_users_for_multiple_schedules(schedules, events_datetime=None):
-    """
-    TODO: add comments
-    """
+def get_oncall_users_for_multiple_schedules(
+    schedules, events_datetime=None
+) -> typing.Dict[OnCallSchedule, typing.List[User]]:
     from apps.user_management.models import User
 
     if events_datetime is None:
