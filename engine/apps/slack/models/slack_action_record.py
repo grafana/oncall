@@ -4,6 +4,10 @@ from apps.slack.scenarios.scenario_step import ScenarioStep
 
 
 class SlackActionRecord(models.Model):
+    """
+    Legacy model, should be removed.
+    """
+
     ON_CALL_ROUTINE = [
         ScenarioStep.get_step("distribute_alerts", "CustomButtonProcessStep").routing_uid(),
         ScenarioStep.get_step("distribute_alerts", "StopInvitationProcess").routing_uid(),
