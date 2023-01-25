@@ -3,6 +3,7 @@ from __future__ import annotations
 import datetime
 import logging
 import re
+import typing
 from collections import namedtuple
 from typing import TYPE_CHECKING
 
@@ -35,58 +36,62 @@ This module likely needs to refactored to be part of the OnCallSchedule module.
 """
 if TYPE_CHECKING:
     from apps.schedules.models import OnCallSchedule
-    from apps.user_management.models import User
+    from apps.user_management.models import Organization, User
+    from apps.user_management.models.user import UserQuerySet
+
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.DEBUG)
 
 
-def users_in_ical(usernames_from_ical, organization, include_viewers=False):
+def users_in_ical(
+    usernames_from_ical: typing.List[str],
+    organization: Organization,
+    include_viewers=False,
+    users_to_filter: typing.Optional[UserQuerySet] = None,
+) -> UserQuerySet:
     """
-    Parse ical file and return list of users found
-    NOTE: only grafana username will be used, consider adding grafana email and id
+    This method returns a `UserQuerySet`, filtered by users whose username, or case-insensitive e-mail,
+    is present in `usernames_from_ical`. If `include_viewers` is set to `True`, users are further filtered down
+    based on their granted permissions.
+
+    Parameters
+    ----------
+    usernames_from_ical : typing.List[str]
+        A list of usernames present in the ical feed
+    organization : apps.user_management.models.organization.Organization
+        The organization in question
+    include_viewers : bool
+        Whether or not the list should be further filtered to exclude users based on granted permissions
+    users_to_filter : typing.Optional[UserQuerySet]
+        Filter users without making SQL queries if users_to_filter arg is provided
+        users_to_filter is passed in `apps.schedules.ical_utils.get_oncall_users_for_multiple_schedules`
     """
     from apps.user_management.models import User
+
+    emails_from_ical = [username.lower() for username in usernames_from_ical]
+
+    if users_to_filter is not None:
+        return list(
+            {user for user in users_to_filter if user.username in usernames_from_ical or user.email in emails_from_ical}
+        )
 
     users_found_in_ical = organization.users
     if not include_viewers:
-        # TODO: this is a breaking change....
         users_found_in_ical = users_found_in_ical.filter(
             **User.build_permissions_query(RBACPermission.Permissions.SCHEDULES_WRITE, organization)
         )
 
-    user_emails = [v.lower() for v in usernames_from_ical]
     users_found_in_ical = users_found_in_ical.filter(
-        (Q(username__in=usernames_from_ical) | Q(email__lower__in=user_emails))
+        (Q(username__in=usernames_from_ical) | Q(email__lower__in=emails_from_ical))
     ).distinct()
-
-    # Here is the example how we extracted users previously, using slack fields too
-    # user_roles_found_in_ical = team.org_user_role.filter(role__in=[ROLE_ADMIN, ROLE_USER]).filter(
-    #     Q(
-    #         Q(amixr_user__slack_user_identities__slack_team_identity__amixr_team=team) &
-    #         Q(
-    #             Q(amixr_user__slack_user_identities__profile_display_name__in=usernames_from_ical) |
-    #             Q(amixr_user__slack_user_identities__cached_name__in=usernames_from_ical) |
-    #             Q(amixr_user__slack_user_identities__slack_id__in=[username.split(" ")[0] for username in
-    #                                                                usernames_from_ical]) |
-    #             Q(amixr_user__slack_user_identities__cached_slack_login__in=usernames_from_ical) |
-    #             Q(amixr_user__slack_user_identities__profile_real_name__in=usernames_from_ical)
-    #         )
-    #     )
-    #     |
-    #     Q(username__in=usernames_from_ical)
-    # ).annotate(is_deleted_sui=Subquery(slack_user_identity_subquery.values("deleted")[:1])).filter(
-    #     ~Q(is_deleted_sui=True) | Q(is_deleted_sui__isnull=True)).distinct()
-    # return user_roles_found_in_ical
 
     return users_found_in_ical
 
 
 @timed_lru_cache(timeout=100)
-def memoized_users_in_ical(usernames_from_ical, organization):
+def memoized_users_in_ical(usernames_from_ical: typing.List[str], organization: Organization) -> UserQuerySet:
     # using in-memory cache instead of redis to avoid pickling python objects
     return users_in_ical(usernames_from_ical, organization)
-
-
-logger = logging.getLogger(__name__)
-logger.setLevel(logging.DEBUG)
 
 
 # used for display schedule events on web
@@ -288,17 +293,29 @@ def list_of_empty_shifts_in_schedule(schedule, start_date, end_date):
     return sorted(empty_shifts, key=lambda dt: dt.start)
 
 
-def list_users_to_notify_from_ical(schedule, events_datetime=None, include_viewers=False):
+def list_users_to_notify_from_ical(
+    schedule, events_datetime=None, include_viewers=False, users_to_filter=None
+) -> UserQuerySet:
     """
     Retrieve on-call users for the current time
     """
     events_datetime = events_datetime if events_datetime else timezone.datetime.now(timezone.utc)
     return list_users_to_notify_from_ical_for_period(
-        schedule, events_datetime, events_datetime, include_viewers=include_viewers
+        schedule,
+        events_datetime,
+        events_datetime,
+        include_viewers=include_viewers,
+        users_to_filter=users_to_filter,
     )
 
 
-def list_users_to_notify_from_ical_for_period(schedule, start_datetime, end_datetime, include_viewers=False):
+def list_users_to_notify_from_ical_for_period(
+    schedule,
+    start_datetime,
+    end_datetime,
+    include_viewers=False,
+    users_to_filter=None,
+) -> UserQuerySet:
     # get list of iCalendars from current iCal files. If there is more than one calendar, primary calendar will always
     # be the first
     calendars = schedule.get_icalendars()
@@ -316,13 +333,61 @@ def list_users_to_notify_from_ical_for_period(schedule, start_datetime, end_date
             parsed_ical_events.setdefault(current_priority, []).extend(current_usernames)
         # find users by usernames. if users are not found for shift, get users from lower priority
         for _, usernames in sorted(parsed_ical_events.items(), reverse=True):
-            users_found_in_ical = users_in_ical(usernames, schedule.organization, include_viewers=include_viewers)
+            users_found_in_ical = users_in_ical(
+                usernames, schedule.organization, include_viewers=include_viewers, users_to_filter=users_to_filter
+            )
             if users_found_in_ical:
                 break
         if users_found_in_ical:
             # if users are found in the overrides calendar, there is no need to check primary calendar
             break
     return users_found_in_ical
+
+
+def get_oncall_users_for_multiple_schedules(
+    schedules, events_datetime=None
+) -> typing.Dict[OnCallSchedule, typing.List[User]]:
+    from apps.user_management.models import User
+
+    if events_datetime is None:
+        events_datetime = timezone.datetime.now(timezone.utc)
+
+    # Exit early if there are no schedules
+    if not schedules.exists():
+        return {}
+
+    # Assume all schedules from the queryset belong to the same organization
+    organization = schedules[0].organization
+
+    # Gather usernames from all events from all schedules
+    usernames = set()
+    for schedule in schedules.all():
+        calendars = schedule.get_icalendars()
+        for calendar in calendars:
+            if calendar is None:
+                continue
+            events = ical_events.get_events_from_ical_between(calendar, events_datetime, events_datetime)
+            for event in events:
+                current_usernames, _ = get_usernames_from_ical_event(event)
+                usernames.update(current_usernames)
+
+    # Fetch relevant users from the db
+    emails = [username.lower() for username in usernames]
+    users = organization.users.filter(
+        Q(**User.build_permissions_query(RBACPermission.Permissions.SCHEDULES_WRITE, organization))
+        & (Q(username__in=usernames) | Q(email__lower__in=emails))
+    )
+
+    # Get on-call users
+    oncall_users = {}
+    for schedule in schedules.all():
+        # pass user list to list_users_to_notify_from_ical
+        schedule_oncall_users = list_users_to_notify_from_ical(
+            schedule, events_datetime=events_datetime, users_to_filter=users
+        )
+        oncall_users.update({schedule.pk: schedule_oncall_users})
+
+    return oncall_users
 
 
 def parse_username_from_string(string):
