@@ -122,7 +122,7 @@ const CloudPhoneSettings = observer((props: CloudPhoneSettingsProps) => {
       {isUserActionAllowed(UserActions.OtherSettingsWrite) ? (
         <VerticalGroup spacing="lg">
           <HorizontalGroup justify="space-between">
-            <Text.Title level={3}>OnCall use Grafana Cloud for SMS and phone call notifications</Text.Title>
+            <Text.Title level={3}>OnCall uses Grafana Cloud for SMS and phone call notifications</Text.Title>
             {syncing ? (
               <Button variant="secondary" icon="sync" disabled>
                 Updating...
@@ -137,7 +137,7 @@ const CloudPhoneSettings = observer((props: CloudPhoneSettingsProps) => {
         </VerticalGroup>
       ) : (
         <VerticalGroup spacing="lg">
-          <Text.Title level={3}>OnCall use Grafana Cloud for SMS and phone call notifications</Text.Title>
+          <Text.Title level={3}>OnCall uses Grafana Cloud for SMS and phone call notifications</Text.Title>
           <Text>You do not have permission to perform this action. Ask an admin to upgrade your permissions.</Text>
         </VerticalGroup>
       )}

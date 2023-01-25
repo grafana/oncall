@@ -20,7 +20,7 @@ COPY ./ ./
 
 # Collect static files and create an SQLite database
 RUN mkdir -p /var/lib/oncall
-RUN DJANGO_SETTINGS_MODULE=settings.prod_without_db DATABASE_TYPE=sqlite3 DATABASE_NAME=/var/lib/oncall/oncall.db SECRET_KEY="ThEmUsTSecretKEYforBUILDstage123" python manage.py collectstatic --no-input
+RUN DJANGO_SETTINGS_MODULE=settings.prod_without_db DATABASE_TYPE=sqlite3 DATABASE_NAME=/var/lib/oncall/oncall.db SECRET_KEY="ThEmUsTSecretKEYforBUILDstage123" SILK_PROFILER_ENABLED="True" python manage.py collectstatic --no-input
 RUN chown -R 1000:2000 /var/lib/oncall
 
 FROM base AS dev

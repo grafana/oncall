@@ -53,6 +53,10 @@ class MobileAppBackend(BaseMessagingBackend):
 
     @staticmethod
     def is_enabled_for_organization(organization):
+        # Setting FEATURE_MOBILE_APP_INTEGRATION_ENABLED to True is enough to enable mobile app on OSS instances
+        if settings.LICENSE == settings.OPEN_SOURCE_LICENSE_NAME:
+            return True
+
         mobile_app_settings, _ = DynamicSetting.objects.get_or_create(
             name="mobile_app_settings", defaults={"json_value": {"org_ids": []}}
         )

@@ -98,13 +98,22 @@ export class RootBaseStore {
   // stores
 
   async updateBasicData() {
+    const updateFeatures = async () => {
+      await this.updateFeatures();
+
+      // Only fetch cloud connection status when cloud connection feature is enabled on OSS instance
+      // Note that this.hasFeature can only be called after this.updateFeatures()
+      if (this.hasFeature(AppFeature.CloudConnection)) {
+        await this.cloudStore.loadCloudConnectionStatus();
+      }
+    };
+
     return Promise.all([
       this.teamStore.loadCurrentTeam(),
       this.grafanaTeamStore.updateItems(),
-      this.updateFeatures(),
+      updateFeatures(),
       this.userStore.updateNotificationPolicyOptions(),
       this.userStore.updateNotifyByOptions(),
-      this.alertReceiveChannelStore.updateAlertReceiveChannelOptions(),
       this.alertReceiveChannelStore.updateAlertReceiveChannelOptions(),
       this.escalationPolicyStore.updateWebEscalationPolicyOptions(),
       this.escalationPolicyStore.updateEscalationPolicyOptions(),
