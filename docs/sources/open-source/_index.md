@@ -219,3 +219,9 @@ the following env variables with your SMTP server credentials:
 - `EMAIL_FROM_ADDRESS` (optional) - Email address used to send emails. If not specified, `EMAIL_HOST_USER` will be used.
 
 After enabling the email integration, it will be possible to use the `Notify by email` notification step in user settings.
+
+## Limits
+By default, OnCall limits email, phone notifications (calls, SMS) to 200 per user per day.
+The limit can be changed using Env variables:
+- `PHONE_NOTIFICATIONS_LIMIT` (default is `200`) - phone notifications per user
+- `EMAIL_NOTIFICATIONS_LIMIT` (default is `200`) - Emails per user
