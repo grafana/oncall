@@ -8,9 +8,6 @@ from apps.slack.tasks import clean_slack_channel_leftovers
 
 
 class SlackChannelCreatedOrRenamedEventStep(scenario_step.ScenarioStep):
-    # Avoid logging this step to prevent collecting sensitive data of our customers
-    need_to_be_logged = False
-
     def process_scenario(self, slack_user_identity, slack_team_identity, payload):
         """
         Triggered by action: Create or rename channel
@@ -31,9 +28,6 @@ class SlackChannelCreatedOrRenamedEventStep(scenario_step.ScenarioStep):
 
 
 class SlackChannelDeletedEventStep(scenario_step.ScenarioStep):
-    # Avoid logging this step to prevent collecting sensitive data of our customers
-    need_to_be_logged = False
-
     def process_scenario(self, slack_user_identity, slack_team_identity, payload):
         """
         Triggered by action: Delete channel
@@ -51,9 +45,6 @@ class SlackChannelDeletedEventStep(scenario_step.ScenarioStep):
 
 
 class SlackChannelArchivedEventStep(scenario_step.ScenarioStep):
-    # Avoid logging this step to prevent collecting sensitive data of our customers
-    need_to_be_logged = False
-
     def process_scenario(self, slack_user_identity, slack_team_identity, payload):
         """
         Triggered by action: Archive channel
@@ -70,9 +61,6 @@ class SlackChannelArchivedEventStep(scenario_step.ScenarioStep):
 
 
 class SlackChannelUnArchivedEventStep(scenario_step.ScenarioStep):
-    # Avoid logging this step to prevent collecting sensitive data of our customers
-    need_to_be_logged = False
-
     def process_scenario(self, slack_user_identity, slack_team_identity, payload):
         """
         Triggered by action: UnArchive channel

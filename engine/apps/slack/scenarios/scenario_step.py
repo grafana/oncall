@@ -54,8 +54,6 @@ THREAD_MESSAGE_SUBTYPE = "bot_message"
 
 
 class ScenarioStep(object):
-
-    need_to_be_logged = True
     random_prefix_for_routing = ""
 
     # Some blocks are sending context via action_id, which is limited by 255 chars
