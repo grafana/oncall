@@ -2,16 +2,24 @@ import React, { useState, useCallback, useEffect } from 'react';
 
 import { RadioButtonGroup, Button } from '@grafana/ui';
 import cn from 'classnames/bind';
+import { debounce } from 'lodash-es';
 import { observer } from 'mobx-react';
 
-import GSelect from 'containers/GSelect/GSelect';
+import GTable from 'components/GTable/GTable';
+import SearchInput from 'components/SearchInput/SearchInput';
+import UserWarning from 'components/UserWarningModal/UserWarning';
+import { Schedule } from 'models/schedule/schedule.types';
+import { User } from 'models/user/user.types';
 import { useStore } from 'state/useStore';
 
 import styles from './EscalationVariants.module.css';
 
 const cx = cn.bind(styles);
 
-interface EscalationVariantsProps {}
+interface EscalationVariantsProps {
+  onUpdateEscalationVariants: (data: any) => void;
+  value: { schedulesIds; usersIds };
+}
 
 // interface AssignRespondersPickerProps {
 //   value: any;
@@ -78,16 +86,18 @@ interface EscalationVariantsProps {}
 //   );
 // };
 
-const EscalationVariants = observer(({}: EscalationVariantsProps) => {
+const EscalationVariants = observer(({ onUpdateEscalationVariants, value }: EscalationVariantsProps) => {
   const store = useStore();
   const [activeOption, setActiveOption] = useState('schedules');
   const [showEscalationVariants, setShowEscalationVariants] = useState(false);
+  const [searchFilters, setSearchFilters] = useState('');
   const [responders, setResponders] = useState([]);
-  const [schedulesIds, setSchedulesIds] = useState([]);
-  const [usersIds, setUsersIds] = useState([]);
+  const [showUserWarningModal, setShowUserWarningModal] = useState(false);
+  const [selectedUser, setSelectedUser] = useState(null);
 
   useEffect(() => {
-    store.scheduleStore.updateItems('');
+    store.scheduleStore.updateItems(searchFilters);
+    store.userStore.updateItems(searchFilters);
   }, []);
 
   const handleOpenEscalationVariants = (status) => {
@@ -99,26 +109,76 @@ const EscalationVariants = observer(({}: EscalationVariantsProps) => {
   };
 
   const handleOptionChange = useCallback((option: string) => {
-    console.log('OPTION', option);
     setActiveOption(option);
   }, []);
 
-  const addUserResponders = (value, items) => {
-    console.log('ITEMS', items);
-    usersIds.push(value);
-    setUsersIds(usersIds);
-    responders.push(...items);
-    setResponders(responders);
+  const addUserResponders = (user: User) => {
+    store.userStore.checkUserAvailability(user.pk).then((res) => {
+      console.log('AVAILABILITY', res.warnings);
+      if (res.warnings.length > 0) {
+        console.log('IF', res.warnings.length);
+        setShowUserWarningModal(true);
+        setSelectedUser(user);
+      }
+    });
+
+    setResponders((responders) => [...responders, user]);
+    setShowEscalationVariants(false);
+    onUpdateEscalationVariants({ ...value, usersIds: [...value.usersIds, { id: user.pk, important: false }] });
   };
 
-  const addSchedulesResponders = (value, items) => {
-    console.log('ITEMS', items);
-    schedulesIds.push(value);
-    setSchedulesIds(schedulesIds);
-    responders.push(...items);
-    setResponders(responders);
+  const addSchedulesResponders = (schedule: Schedule) => {
+    setResponders((responders) => [...responders, schedule]);
+    setShowEscalationVariants(false);
+    onUpdateEscalationVariants({
+      ...value,
+      schedulesIds: [...value.schedulesIds, { id: schedule.id, important: false }],
+    });
   };
 
+  const renderScheduleName = (schedule: Schedule) => {
+    return (
+      <div onClick={() => addSchedulesResponders(schedule)} className={cx('responder-item')}>
+        {schedule.name}
+      </div>
+    );
+  };
+
+  const renderUserName = (user: User) => {
+    return (
+      <div onClick={() => addUserResponders(user)} className={cx('responder-item')}>
+        {user.username} ({user.timezone})
+      </div>
+    );
+  };
+
+  const debouncedUpdateUsers = debounce(() => store.userStore.updateItems(searchFilters), 500);
+  const debouncedUpdateSchedule = debounce(() => store.scheduleStore.updateItems(searchFilters), 500);
+
+  const handleSearchFilterChange = (searchFilters: any) => {
+    setSearchFilters(searchFilters);
+    if (activeOption === 'users') {
+      debouncedUpdateUsers();
+    } else {
+      debouncedUpdateSchedule();
+    }
+  };
+
+  const scheduleColumns = [
+    {
+      width: 300,
+      render: renderScheduleName,
+      key: 'Title',
+    },
+  ];
+
+  const userColumns = [
+    {
+      width: 300,
+      render: renderUserName,
+      key: 'username',
+    },
+  ];
   return (
     <>
       <div>
@@ -134,7 +194,6 @@ const EscalationVariants = observer(({}: EscalationVariantsProps) => {
             style={{ width: '24px' }}
           ></Button>
         </div>
-        {/* {showEscalationVariants && <EscalationVariants onHide={() => setShowEscalationVariants(false)} />} */}
         {showEscalationVariants && (
           <div className={cx('escalation-variants-dropdown')}>
             <RadioButtonGroup
@@ -146,36 +205,50 @@ const EscalationVariants = observer(({}: EscalationVariantsProps) => {
               onChange={handleOptionChange}
               fullWidth
             />
-            {/* <AssignRespondersPicker value handleAddResponders={addResponders} respondersOption={activeOption} /> */}
             {activeOption === 'schedules' && (
-              <GSelect
-                isMulti
-                modelName="scheduleStore"
-                displayField="name"
-                valueField="id"
-                placeholder="Select Schedules"
-                className={cx('select', 'control')}
-                value={schedulesIds}
-                onChange={addSchedulesResponders}
-                fromOrganization
-              />
+              <>
+                <SearchInput
+                  className={cx('responders-filters')}
+                  value={searchFilters}
+                  onChange={handleSearchFilterChange}
+                />
+                <GTable
+                  emptyText={store.scheduleStore.getSearchResult() ? 'No schedules found' : 'Loading...'}
+                  rowKey="id"
+                  columns={scheduleColumns}
+                  data={store.scheduleStore.getSearchResult()}
+                  className={cx('schedule-table')}
+                  showHeader={false}
+                />
+              </>
             )}
-
             {activeOption === 'users' && (
-              <GSelect
-                isMulti
-                showSearch
-                allowClear
-                modelName="userStore"
-                displayField="username"
-                valueField="pk"
-                placeholder="Select Users"
-                className={cx('select', 'control', 'multiSelect')}
-                value={usersIds}
-                onChange={addUserResponders}
-              />
+              <>
+                <SearchInput
+                  className={cx('responders-filters')}
+                  value={searchFilters}
+                  onChange={handleSearchFilterChange}
+                />
+                <GTable
+                  emptyText={store.userStore.getSearchResult().results ? 'No users found' : 'Loading...'}
+                  rowKey="id"
+                  columns={userColumns}
+                  data={store.userStore.getSearchResult().results}
+                  className={cx('schedule-table')}
+                  showHeader={false}
+                />
+              </>
             )}
           </div>
+        )}
+        {showUserWarningModal && (
+          <UserWarning
+            user={selectedUser}
+            onHide={() => {
+              setShowUserWarningModal(false);
+              setSelectedUser(null);
+            }}
+          />
         )}
       </div>
     </>

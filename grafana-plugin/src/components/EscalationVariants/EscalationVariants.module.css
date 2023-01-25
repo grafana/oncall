@@ -20,3 +20,16 @@
 .assign-responders-item {
   overflow: scroll;
 }
+
+.schedule-table {
+  height: 120px;
+  overflow: auto;
+}
+
+.responders-filters {
+  margin: 8px;
+}
+
+.responder-item {
+  cursor: pointer;
+}

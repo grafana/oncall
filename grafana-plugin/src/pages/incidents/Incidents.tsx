@@ -105,8 +105,8 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
     return (
       <div className={cx('root')}>
         <div className={cx('title')}>
-          <Button icon="bell" onClick={this.handleOnClickEscalateTo}>
-            Escalate to
+          <Button icon="plus" onClick={this.handleOnClickEscalateTo}>
+            Manual alert group
           </Button>
         </div>
         {this.renderIncidentFilters()}
