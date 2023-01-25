@@ -1,8 +1,6 @@
 import importlib
 import logging
 
-from django.core.cache import cache
-
 from apps.slack.alert_group_slack_service import AlertGroupSlackService
 from apps.slack.slack_client import SlackClientWithErrorHandling
 
@@ -69,11 +67,6 @@ class ScenarioStep(object):
         self.user = user
 
         self.alert_group_slack_service = AlertGroupSlackService(slack_team_identity, self._slack_client)
-
-        cache_tag = "step_tags_populated_{}".format(self.routing_uid())
-
-        if cache.get(cache_tag) is None:
-            cache.set(cache_tag, 1, 180)
 
     def process_scenario(self, user, team, payload, action=None):
         pass
