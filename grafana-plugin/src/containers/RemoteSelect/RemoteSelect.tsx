@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useReducer } from 'react';
+import React, { useCallback, useEffect, useMemo, useReducer, useState } from 'react';
 
 import { SelectableValue } from '@grafana/data';
 import { AsyncMultiSelect, AsyncSelect } from '@grafana/ui';
@@ -6,6 +6,7 @@ import axios from 'axios';
 import { inject, observer } from 'mobx-react';
 
 import { makeRequest } from 'network';
+import { UserAction, generateMissingPermissionMessage } from 'utils/authorization';
 
 interface RemoteSelectProps {
   autoFocus?: boolean;
@@ -25,6 +26,7 @@ interface RemoteSelectProps {
   getOptionLabel?: (item: SelectableValue) => React.ReactNode;
   showError?: boolean;
   maxMenuHeight?: number;
+  requiredUserAction?: UserAction;
 }
 
 const RemoteSelect = inject('store')(
@@ -46,7 +48,10 @@ const RemoteSelect = inject('store')(
       openMenuOnFocus = true,
       showError,
       maxMenuHeight,
+      requiredUserAction,
     } = props;
+
+    const [noOptionsMessage, setNoOptionsMessage] = useState<string>('No options found');
 
     const getOptions = (data: any[]) => {
       return data.map((option: any) => ({
@@ -70,8 +75,8 @@ const RemoteSelect = inject('store')(
           const options = getOptions(data.results || data);
           setOptions(options);
         } catch (e) {
-          if (axios.isAxiosError(e) && e.response.status === 403) {
-            // TODO: disable dropdown/update placeholder
+          if (axios.isAxiosError(e) && e.response.status === 403 && requiredUserAction) {
+            setNoOptionsMessage(generateMissingPermissionMessage(requiredUserAction));
           }
         }
       })();
@@ -125,6 +130,7 @@ const RemoteSelect = inject('store')(
         defaultOptions={options}
         loadOptions={loadOptionsCallback}
         getOptionLabel={getOptionLabel}
+        noOptionsMessage={noOptionsMessage}
         invalid={showError}
       />
     );
