@@ -478,6 +478,9 @@ if SILK_PROFILER_ENABLED:
     SILKY_PYTHON_PROFILER_BINARY = getenv_boolean("SILKY_PYTHON_PROFILER_BINARY", default=False)
     SILKY_MAX_RECORDED_REQUESTS = 10**4
     SILKY_PYTHON_PROFILER = True
+    SILKY_IGNORE_PATHS = ["/health/", "/ready/"]
+    if "SILKY_PYTHON_PROFILER_RESULT_PATH" in os.environ:
+        SILKY_PYTHON_PROFILER_RESULT_PATH = os.environ.get("SILKY_PYTHON_PROFILER_RESULT_PATH")
 
 # get ONCALL_DJANGO_ADMIN_PATH from env and add trailing / to it
 ONCALL_DJANGO_ADMIN_PATH = os.environ.get("ONCALL_DJANGO_ADMIN_PATH", "django-admin") + "/"
