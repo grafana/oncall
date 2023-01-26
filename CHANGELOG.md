@@ -14,6 +14,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - Fix bugs related to creating contact point for Grafana Alerting integration
+- Fix minor UI bug on OnCall users page where it would idefinitely show a "Loading..." message
+- Only show OnCall user's table to users that are authorized
 
 ## v1.1.19 (2023-01-25)
 
@@ -33,11 +35,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Removed duplicate API call, in the UI on plugin initial load, to `GET /api/internal/v1/alert_receive_channels`
 - Increased plugin startup speed ([#1200](https://github.com/grafana/oncall/pull/1200))
-
-### Fixed
-
-- Removed duplicate API call, in the UI on plugin initial load, to `GET /api/internal/v1/alert_receive_channels`
-- Fix minor UI bug on OnCall users page where it would idefinitely show a "Loading..." message
 
 ## v1.1.18 (2023-01-18)
 
