@@ -51,7 +51,7 @@ To add a rotation to an on-call schedule:
 1. From your newly created schedule, click **+ Add rotation** and select **New Layer**.
 1. Complete the rotation creation form according to your rotation parameters.
 1. Add users to the rotation from the dropdown.
-You can separate users into user groups to rotate through individual users per shift. 
+You can separate users into user groups to rotate through individual users per shift.
 User groups that contain
 multiple users results in all users in the group being included in corresponding shifts.
 1. When you’re satisfied with the rotation preview, click **Create**.
