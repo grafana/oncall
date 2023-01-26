@@ -30,6 +30,11 @@ services:
         condition: service_completed_successfully
       redis:
         condition: service_healthy
+    healthcheck:
+      test: ["CMD", "bash", "-c" , 'curl --fail http://127.0.0.1:8080/health/ || exit 1']
+      timeout: 5s
+      retries: 5
+      start_period: 20s
 
   celery:
     image: grafana/oncall
@@ -43,6 +48,13 @@ services:
         condition: service_completed_successfully
       redis:
         condition: service_healthy
+    healthcheck:
+
+      test: ["CMD", "bash", "-c", 'celery -A engine inspect ping -d celery@$$HOSTNAME || exit 1' ]
+      timeout: 10s
+      interval: 5s
+      retries: 10
+      start_period: 20s
 
   oncall_db_migration:
     image: grafana/oncall
@@ -91,6 +103,12 @@ services:
           cpus: "0.5"
     profiles:
       - with_grafana
+    healthcheck:
+      test: ["CMD", "bash", '-c', 'wget --no-verbose --tries=1 --spider http://127.0.0.1:3000/api/health || exit 1']
+      timeout: 5s
+      interval: 5s
+      retries: 10
+      start_period: 20s
 
 volumes:
   grafana_data:

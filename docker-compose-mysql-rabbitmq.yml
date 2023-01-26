@@ -31,6 +31,11 @@ services:
     command: >
       sh -c "uwsgi --ini uwsgi.ini"
     environment: *oncall-environment
+    healthcheck:
+      test: ["CMD", "bash", "-c" , 'curl --fail http://127.0.0.1:8080/health/ || exit 1']
+      timeout: 5s
+      retries: 5
+      start_period: 20s
     depends_on:
       mysql:
         condition: service_healthy
@@ -39,13 +44,20 @@ services:
       rabbitmq:
         condition: service_healthy
       redis:
-        condition: service_started
+        condition: service_healthy
 
   celery:
     image: grafana/oncall
     restart: always
     command: sh -c "./celery_with_exporter.sh"
     environment: *oncall-environment
+    healthcheck:
+
+      test: ["CMD", "bash", "-c", 'celery -A engine inspect ping -d celery@$$HOSTNAME || exit 1' ]
+      timeout: 10s
+      interval: 5s
+      retries: 10
+      start_period: 20s
     depends_on:
       mysql:
         condition: service_healthy
@@ -54,7 +66,7 @@ services:
       rabbitmq:
         condition: service_healthy
       redis:
-        condition: service_started
+        condition: service_healthy
 
   oncall_db_migration:
     image: grafana/oncall
@@ -98,6 +110,12 @@ services:
         limits:
           memory: 100m
           cpus: "0.1"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      timeout: 20s
+      interval: 5s
+      retries: 10
+      start_period: 20s
 
   rabbitmq:
     image: "rabbitmq:3.7.15-management"
@@ -154,6 +172,12 @@ services:
         condition: service_completed_successfully
       mysql:
         condition: service_healthy
+    healthcheck:
+      test: ["CMD", "bash", '-c', 'wget --no-verbose --tries=1 --spider http://127.0.0.1:3000/api/health || exit 1']
+      timeout: 5s
+      interval: 5s
+      retries: 10
+      start_period: 20s
     profiles:
       - with_grafana
 
