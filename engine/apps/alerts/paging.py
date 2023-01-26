@@ -1,4 +1,5 @@
 from typing import Any
+from uuid import uuid4
 
 from django.db import transaction
 from django.db.models import Q
@@ -72,6 +73,8 @@ def _trigger_alert(
     payload["oncall"] = {}
     payload["oncall"]["title"] = title
     payload["oncall"]["message"] = message
+    # avoid grouping
+    payload["oncall"]["uid"] = str(uuid4())
     payload["oncall"]["author_username"] = from_user.username
     payload["oncall"]["permalink"] = permalink
     alert = Alert.create(
