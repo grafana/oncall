@@ -314,8 +314,6 @@ export class AlertGroupStore extends BaseStore {
     const result = await makeRequest(`${this.path}stats/`, {
       params: {
         ...this.incidentFilters,
-        resolved: false,
-        acknowledged: false,
         status: [IncidentStatus.Firing],
       },
     });
@@ -327,8 +325,6 @@ export class AlertGroupStore extends BaseStore {
     const result = await makeRequest(`${this.path}stats/`, {
       params: {
         ...this.incidentFilters,
-        resolved: false,
-        acknowledged: true,
         status: [IncidentStatus.Acknowledged],
       },
     });
@@ -341,7 +337,6 @@ export class AlertGroupStore extends BaseStore {
     const result = await makeRequest(`${this.path}stats/`, {
       params: {
         ...this.incidentFilters,
-        resolved: true,
         status: [IncidentStatus.Resolved],
       },
     });
@@ -354,7 +349,6 @@ export class AlertGroupStore extends BaseStore {
     const result = await makeRequest(`${this.path}stats/`, {
       params: {
         ...this.incidentFilters,
-        silenced: true,
         status: [IncidentStatus.Silenced],
       },
     });
