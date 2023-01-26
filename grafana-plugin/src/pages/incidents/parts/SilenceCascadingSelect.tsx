@@ -1,4 +1,4 @@
-import React, { useCallback } from 'react';
+import React from 'react';
 
 import { ButtonCascader, ComponentSize, Select } from '@grafana/ui';
 import { observer } from 'mobx-react';
@@ -20,13 +20,6 @@ interface SilenceCascadingSelectProps {
 const SilenceCascadingSelect = observer((props: SilenceCascadingSelectProps) => {
   const { onSelect, isCascading = true, className, disabled = false, buttonSize } = props;
 
-  const onSelectCallback = useCallback(
-    ([value]) => {
-      onSelect(Number(value));
-    },
-    [onSelect]
-  );
-
   const store = useStore();
 
   const { alertGroupStore } = store;
@@ -45,7 +38,7 @@ const SilenceCascadingSelect = observer((props: SilenceCascadingSelectProps) => 
         variant="secondary"
         className={className}
         disabled={disabled}
-        onChange={onSelectCallback}
+        onChange={(value) => onSelect(Number(value))}
         options={getOptions()}
         value={undefined}
         buttonProps={{ size: buttonSize as ComponentSize }}
@@ -56,12 +49,13 @@ const SilenceCascadingSelect = observer((props: SilenceCascadingSelectProps) => 
   }
 
   function renderAsSelectDropdown() {
+    console.log('render');
     return (
       <Select
         menuShouldPortal
-        className={''}
         placeholder="Silence for"
-        onChange={onSelectCallback}
+        value={undefined}
+        onChange={({ value }) => onSelect(Number(value))}
         options={getOptions()}
       />
     );

@@ -23,6 +23,7 @@
   white-space: nowrap;
   border-left: 2px solid transparent;
   cursor: pointer;
+  min-width: 84px;
 
   &:hover {
     background: var(--gray-9);

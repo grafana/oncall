@@ -6,8 +6,10 @@ import cn from 'classnames/bind';
 import Tag from 'components/Tag/Tag';
 import Text from 'components/Text/Text';
 import { WithContextMenu } from 'components/WithContextMenu/WithContextMenu';
+import { WithPermissionControl } from 'containers/WithPermissionControl/WithPermissionControl';
 import { Alert, AlertAction, IncidentStatus } from 'models/alertgroup/alertgroup.types';
 import styles from 'pages/incidents/parts/IncidentDropdown.module.scss';
+import { UserActions } from 'utils/authorization';
 
 import SilenceCascadingSelect from './SilenceCascadingSelect';
 
@@ -106,12 +108,14 @@ export const IncidentDropdown: FC<{
         forceIsOpen={isResolvedOpen}
         renderMenuItems={() => (
           <div className={cx('incident__options', { 'u-disabled': isLoading })}>
-            <div
-              className={cx('incident__option-item', 'incident__option-item--firing')}
-              onClick={(e) => onClickFn(e, AlertAction.Resolve, onUnresolve)}
-            >
-              Firing
-            </div>
+            <WithPermissionControl userAction={UserActions.AlertGroupsWrite}>
+              <div
+                className={cx('incident__option-item', 'incident__option-item--firing')}
+                onClick={(e) => onClickFn(e, AlertAction.Resolve, onUnresolve)}
+              >
+                Firing
+              </div>
+            </WithPermissionControl>
           </div>
         )}
       >
@@ -126,18 +130,22 @@ export const IncidentDropdown: FC<{
         forceIsOpen={isAcknowledgedOpen}
         renderMenuItems={() => (
           <div className={cx('incident__options', { 'u-disabled': isLoading })}>
-            <div
-              className={cx('incident__option-item', 'incident__option-item--unacknowledge')}
-              onClick={(e) => onClickFn(e, AlertAction.Acknowledge, onUnacknowledge)}
-            >
-              Unacknowledge
-            </div>
-            <div
-              className={cx('incident__option-item', 'incident__option-item--resolve')}
-              onClick={(e) => onClickFn(e, AlertAction.Acknowledge, onResolve)}
-            >
-              Resolve
-            </div>
+            <WithPermissionControl userAction={UserActions.AlertGroupsWrite}>
+              <div
+                className={cx('incident__option-item', 'incident__option-item--unacknowledge')}
+                onClick={(e) => onClickFn(e, AlertAction.Acknowledge, onUnacknowledge)}
+              >
+                Unacknowledge
+              </div>
+            </WithPermissionControl>
+            <WithPermissionControl userAction={UserActions.AlertGroupsWrite}>
+              <div
+                className={cx('incident__option-item', 'incident__option-item--resolve')}
+                onClick={(e) => onClickFn(e, AlertAction.Acknowledge, onResolve)}
+              >
+                Resolve
+              </div>
+            </WithPermissionControl>
           </div>
         )}
       >
@@ -152,18 +160,23 @@ export const IncidentDropdown: FC<{
         forceIsOpen={isFiringOpen}
         renderMenuItems={() => (
           <div className={cx('incident__options', { 'u-disabled': isLoading })}>
-            <div
-              className={cx('incident__option-item', 'incident__option-item--acknowledge')}
-              onClick={(e) => onClickFn(e, AlertAction.unResolve, onAcknowledge)}
-            >
-              Acknowledge
-            </div>
-            <div
-              className={cx('incident__option-item', 'incident__option-item--resolve')}
-              onClick={(e) => onClickFn(e, AlertAction.unResolve, onResolve)}
-            >
-              Resolve
-            </div>
+            <WithPermissionControl userAction={UserActions.AlertGroupsWrite}>
+              <div
+                className={cx('incident__option-item', 'incident__option-item--acknowledge')}
+                onClick={(e) => onClickFn(e, AlertAction.unResolve, onAcknowledge)}
+              >
+                Acknowledge
+              </div>
+            </WithPermissionControl>
+            <WithPermissionControl userAction={UserActions.AlertGroupsWrite}>
+              <div
+                className={cx('incident__option-item', 'incident__option-item--resolve')}
+                onClick={(e) => onClickFn(e, AlertAction.unResolve, onResolve)}
+              >
+                Resolve
+              </div>
+            </WithPermissionControl>
+
             <div
               className={cx('incident__option-item')}
               onClick={(e) => onClickFn(e, AlertAction.unResolve, onSilence)}
@@ -184,21 +197,30 @@ export const IncidentDropdown: FC<{
       forceIsOpen={isSilencedOpen}
       renderMenuItems={() => (
         <div className={cx('incident_options', { 'u-disabled': isLoading })}>
-          <div className={cx('incident__option-item')} onClick={(e) => onClickFn(e, AlertAction.Silence, onUnsilence)}>
-            Unsilence
-          </div>
-          <div
-            className={cx('incident__option-item', 'incident__option-item--acknowledge')}
-            onClick={(e) => onClickFn(e, AlertAction.Silence, onAcknowledge)}
-          >
-            Acknowledge
-          </div>
-          <div
-            className={cx('incident__option-item', 'incident__option-item--firing')}
-            onClick={(e) => onClickFn(e, AlertAction.Silence, onAcknowledge)}
-          >
-            Acknowledge
-          </div>
+          <WithPermissionControl userAction={UserActions.AlertGroupsWrite}>
+            <div
+              className={cx('incident__option-item')}
+              onClick={(e) => onClickFn(e, AlertAction.Silence, onUnsilence)}
+            >
+              Unsilence
+            </div>
+          </WithPermissionControl>
+          <WithPermissionControl userAction={UserActions.AlertGroupsWrite}>
+            <div
+              className={cx('incident__option-item', 'incident__option-item--acknowledge')}
+              onClick={(e) => onClickFn(e, AlertAction.Silence, onAcknowledge)}
+            >
+              Acknowledge
+            </div>
+          </WithPermissionControl>
+          <WithPermissionControl userAction={UserActions.AlertGroupsWrite}>
+            <div
+              className={cx('incident__option-item', 'incident__option-item--firing')}
+              onClick={(e) => onClickFn(e, AlertAction.Silence, onAcknowledge)}
+            >
+              Firing
+            </div>
+          </WithPermissionControl>
         </div>
       )}
     >
