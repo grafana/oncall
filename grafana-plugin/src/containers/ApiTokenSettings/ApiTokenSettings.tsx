@@ -12,7 +12,7 @@ import { WithPermissionControl } from 'containers/WithPermissionControl/WithPerm
 import { ApiToken } from 'models/api_token/api_token.types';
 import { WithStoreProps } from 'state/types';
 import { withMobXProviderContext } from 'state/withStore';
-import { isUserActionAllowed, UserActions } from 'utils/authorization';
+import { generateMissingPermissionMessage, isUserActionAllowed, UserActions } from 'utils/authorization';
 
 import ApiTokenForm from './ApiTokenForm';
 
@@ -67,6 +67,16 @@ class ApiTokens extends React.Component<ApiTokensProps, any> {
       },
     ];
 
+    const requiredPermissionToView = UserActions.APIKeysWrite;
+    const authorizedToViewAPIKeys = isUserActionAllowed(requiredPermissionToView);
+
+    let emptyText = 'Loading...';
+    if (!authorizedToViewAPIKeys) {
+      emptyText = `${generateMissingPermissionMessage(requiredPermissionToView)} to be able to view API tokens.`;
+    } else if (apiTokens) {
+      emptyText = 'No tokens found';
+    }
+
     return (
       <>
         <GTable
@@ -92,13 +102,7 @@ class ApiTokens extends React.Component<ApiTokensProps, any> {
           className="api-keys"
           showHeader={!isMobile}
           data={apiTokens}
-          emptyText={
-            isUserActionAllowed(UserActions.APIKeysWrite)
-              ? apiTokens
-                ? 'No tokens found'
-                : 'Loading...'
-              : 'API tokens are available only for users with Admin permissions'
-          }
+          emptyText={emptyText}
           columns={columns}
         />
         {showCreateTokenModal && (
