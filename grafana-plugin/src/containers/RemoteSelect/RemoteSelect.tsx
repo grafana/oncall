@@ -53,7 +53,7 @@ const RemoteSelect = inject('store')(
 
     const [noOptionsMessage, setNoOptionsMessage] = useState<string>('No options found');
 
-    const getOptions = (data: any[]) => {
+    const getOptions = (data: any[]): SelectableValue[] => {
       return data.map((option: any) => ({
         value: option[valueField],
         label: option[fieldToShow],
@@ -68,18 +68,19 @@ const RemoteSelect = inject('store')(
 
     const [options, setOptions] = useReducer(mergeOptions, []);
 
-    const loadOptionsCallback = useCallback((query?: string): void => {
-      (async () => {
-        try {
-          const data = await makeRequest(href, { params: { search: query } });
-          const options = getOptions(data.results || data);
-          setOptions(options);
-        } catch (e) {
-          if (axios.isAxiosError(e) && e.response.status === 403 && requiredUserAction) {
-            setNoOptionsMessage(generateMissingPermissionMessage(requiredUserAction));
-          }
+    const loadOptionsCallback = useCallback(async (query?: string): Promise<SelectableValue[]> => {
+      try {
+        const data = await makeRequest(href, { params: { search: query } });
+        const options = getOptions(data.results || data);
+        setOptions(options);
+
+        return options;
+      } catch (e) {
+        if (axios.isAxiosError(e) && e.response.status === 403 && requiredUserAction) {
+          setNoOptionsMessage(generateMissingPermissionMessage(requiredUserAction));
         }
-      })();
+        return [];
+      }
     }, []);
 
     useEffect(() => {
