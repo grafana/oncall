@@ -35,6 +35,7 @@ const cx = cn.bind(styles);
 interface UsersProps extends WithStoreProps, PageProps, RouteComponentProps<{ id: string }> {}
 
 const ITEMS_PER_PAGE = 100;
+const REQUIRED_PERMISSION_TO_VIEW_USERS = UserActions.UserSettingsWrite;
 
 interface UsersState extends PageBaseState {
   page: number;
@@ -60,8 +61,6 @@ class Users extends React.Component<UsersProps, UsersState> {
     initialUsersLoaded: false,
   };
 
-  REQUIRED_PERMISSION_TO_VIEW_USERS = UserActions.UserSettingsWrite;
-
   async componentDidMount() {
     const {
       query: { p },
@@ -76,7 +75,7 @@ class Users extends React.Component<UsersProps, UsersState> {
     const { usersFilters, page } = this.state;
     const { userStore } = store;
 
-    if (!isUserActionAllowed(this.REQUIRED_PERMISSION_TO_VIEW_USERS)) {
+    if (!isUserActionAllowed(REQUIRED_PERMISSION_TO_VIEW_USERS)) {
       this.setState({ initialUsersLoaded: true });
       return;
     }
@@ -169,7 +168,7 @@ class Users extends React.Component<UsersProps, UsersState> {
 
     const { count, results } = userStore.getSearchResult();
 
-    const authorizedToViewUsers = isUserActionAllowed(this.REQUIRED_PERMISSION_TO_VIEW_USERS);
+    const authorizedToViewUsers = isUserActionAllowed(REQUIRED_PERMISSION_TO_VIEW_USERS);
 
     return (
       <PageErrorHandlingWrapper
@@ -238,9 +237,9 @@ class Users extends React.Component<UsersProps, UsersState> {
                     /* @ts-ignore */
                     title={
                       <>
-                        {generateMissingPermissionMessage(this.REQUIRED_PERMISSION_TO_VIEW_USERS)} to be able to view
-                        OnCall users. <PluginLink query={{ page: 'users', id: 'me' }}>Click here</PluginLink> to open
-                        your profile
+                        {generateMissingPermissionMessage(REQUIRED_PERMISSION_TO_VIEW_USERS)} to be able to view OnCall
+                        users. <PluginLink query={{ page: 'users', id: 'me' }}>Click here</PluginLink> to open your
+                        profile
                       </>
                     }
                     severity="info"
