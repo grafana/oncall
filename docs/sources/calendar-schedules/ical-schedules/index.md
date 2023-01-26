@@ -41,11 +41,11 @@ features of your calendar app to configure event recurrence, duplicate events, e
 To create an on-call schedule calendar:
 
 1. Create a new calendar in your calendar app, then review and adjust default settings as needed.
-2. In your new calendar, create events that represent on-call shifts. You must use Grafana usernames as the event title
-3. to associate users with each shift.
-4. Once your on-call calendar is complete, go to your calendar settings to locate the secret iCal URL. For example, in
-5. a Google calendar, this URL can be found in **Settings** > **Settings for my calendars** > **Integrate calendar** >
-6. **Secret address in iCal format**.
+1. In your new calendar, create events that represent on-call shifts. You must use Grafana usernames as the event title
+to associate users with each shift.
+1. Once your on-call calendar is complete, go to your calendar settings to locate the secret iCal URL. For example, in
+a Google calendar, this URL can be found in **Settings** > **Settings for my calendars** > **Integrate calendar** >
+**Secret address in iCal format**.
 
 To learn more about how to configure your calendar events, refer to Calendar events.
 
@@ -60,11 +60,11 @@ instance.
 To import an on-call schedule:
 
 1. In Grafana OnCall, navigate to the **Schedules** tab and click **+ New schedule**.
-2. Navigate to **Import schedule from iCal URL** and click **+ Create**.
-3. Copy the secret iCal URL from your calendar and paste it the **Primary schedule iCal URL** field. Repeat this step
-4. for the **Override schedule iCal URL** field if you have an override calendar.
-5. Provide a name and review available schedule settings.
-6. When you’re done, click **Create Schedule**.
+1. Navigate to **Import schedule from iCal URL** and click **+ Create**.
+1. Copy the secret iCal URL from your calendar and paste it the **Primary schedule iCal URL** field. Repeat this step
+for the **Override schedule iCal URL** field if you have an override calendar.
+1. Provide a name and review available schedule settings.
+1. When you’re done, click **Create Schedule**.
 
 ### Create an override calendar (Optional)
 
@@ -74,7 +74,7 @@ override calendar will always override overlapping events on the primary calenda
 
 1. Create a new calendar using the same calendar service you used to create the primary calendar.
 1. Be sure to set permissions that allow team members to edit the calendar.
-1. In the **Schedules** tab of Grafana OnCall, select the primary calendar you want to override.Click **Edit**.
+1. In the **Schedules** tab of Grafana OnCall, select the primary calendar you want to override. Click **Edit**.
 1. Enter the secret iCal URL in the **Overrides schedule iCal URL** field and click **Update**.
 
 ## Calendar events

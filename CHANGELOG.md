@@ -5,7 +5,17 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## v1.1.18 (2023-01-25)
+## Unreleased
+
+### Changed
+
+- Improve logging for creating contact point for Grafana Alerting integration
+
+### Fixed
+
+- Fix bugs related to creating contact point for Grafana Alerting integration
+
+## v1.1.19 (2023-01-25)
 
 ### Added
 
@@ -17,6 +27,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Allow users with `viewer` role to fetch cloud connection status using the internal API ([#1181](https://github.com/grafana/oncall/pull/1181))
 - When removing the Slack ChatOps integration, make it more explicit to the user what the implications of doing so are
+- Improve performance of `GET /api/internal/v1/schedules` endpoint ([#1169](https://github.com/grafana/oncall/pull/1169))
 
 ### Fixed
 
