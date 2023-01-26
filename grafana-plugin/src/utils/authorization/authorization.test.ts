@@ -63,6 +63,19 @@ describe('isUserActionAllowed', () => {
   });
 });
 
+describe('determineRequiredAuthString', () => {
+  const testPerm = auth.UserActions.UserSettingsRead;
+
+  test.each([
+    [true, `${testPerm.permission} permission`],
+    [false, `${testPerm.fallbackMinimumRoleRequired} role`],
+  ])('RBAC enabled: %s', (rbacEnabled, expected) => {
+    config.featureToggles.accessControlOnCall = rbacEnabled;
+
+    expect(auth.determineRequiredAuthString(testPerm)).toBe(expected);
+  });
+});
+
 describe('generateMissingPermissionMessage', () => {
   const testPerm = auth.UserActions.UserSettingsRead;
 

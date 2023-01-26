@@ -95,10 +95,11 @@ export const isUserActionAllowed = ({ permission, fallbackMinimumRoleRequired }:
     ? !!contextSrv.user.permissions?.[permission]
     : userHasMinimumRequiredRole(fallbackMinimumRoleRequired);
 
-export const generateMissingPermissionMessage = ({ permission, fallbackMinimumRoleRequired }: UserAction): string =>
-  `You are missing the ${
-    config.featureToggles.accessControlOnCall ? `${permission} permission` : `${fallbackMinimumRoleRequired} role`
-  }`;
+export const determineRequiredAuthString = ({ permission, fallbackMinimumRoleRequired }: UserAction): string =>
+  config.featureToggles.accessControlOnCall ? `${permission} permission` : `${fallbackMinimumRoleRequired} role`;
+
+export const generateMissingPermissionMessage = (permission: UserAction): string =>
+  `You are missing the ${determineRequiredAuthString(permission)}`;
 
 export const generatePermissionString = (resource: Resource, action: Action, includePrefix: boolean): string =>
   `${includePrefix ? `${ONCALL_PERMISSION_PREFIX}.` : ''}${resource}:${action}`;
