@@ -63,6 +63,19 @@ describe('isUserActionAllowed', () => {
   });
 });
 
+describe('generateMissingPermissionMessage', () => {
+  const testPerm = auth.UserActions.UserSettingsRead;
+
+  test.each([
+    [true, `You are missing the ${testPerm.permission} permission`],
+    [false, `You are missing the ${testPerm.fallbackMinimumRoleRequired} role`],
+  ])('RBAC enabled: %s', (rbacEnabled, expected) => {
+    config.featureToggles.accessControlOnCall = rbacEnabled;
+
+    expect(auth.generateMissingPermissionMessage(testPerm)).toBe(expected);
+  });
+});
+
 describe('generatePermissionString', () => {
   test('it properly builds permission strings with prefixes', () => {
     expect(auth.generatePermissionString(auth.Resource.API_KEYS, auth.Action.READ, true)).toEqual(
