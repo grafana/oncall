@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useMemo, useReducer } from 'react';
 
 import { SelectableValue } from '@grafana/data';
 import { AsyncMultiSelect, AsyncSelect } from '@grafana/ui';
+import axios from 'axios';
 import { inject, observer } from 'mobx-react';
 
 import { makeRequest } from 'network';
@@ -62,17 +63,22 @@ const RemoteSelect = inject('store')(
 
     const [options, setOptions] = useReducer(mergeOptions, []);
 
-    useEffect(() => {
-      makeRequest(href, {}).then((data) => {
-        setOptions(getOptions(data.results || data));
-      });
+    const loadOptionsCallback = useCallback((query?: string): void => {
+      (async () => {
+        try {
+          const data = await makeRequest(href, { params: { search: query } });
+          const options = getOptions(data.results || data);
+          setOptions(options);
+        } catch (e) {
+          if (axios.isAxiosError(e) && e.response.status === 403) {
+            // TODO: disable dropdown/update placeholder
+          }
+        }
+      })();
     }, []);
 
-    const loadOptionsCallback = useCallback((query: string) => {
-      return makeRequest(href, { params: { search: query } }).then((data) => {
-        setOptions(getOptions(data.results || data));
-        return getOptions(data.results || data);
-      });
+    useEffect(() => {
+      loadOptionsCallback();
     }, []);
 
     const onChangeCallback = useCallback(
