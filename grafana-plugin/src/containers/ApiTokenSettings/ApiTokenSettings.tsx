@@ -21,6 +21,7 @@ import styles from './ApiTokenSettings.module.css';
 const cx = cn.bind(styles);
 
 const MAX_TOKENS_PER_USER = 5;
+const REQUIRED_PERMISSION_TO_VIEW = UserActions.APIKeysWrite;
 
 interface ApiTokensProps extends WithStoreProps {}
 
@@ -67,12 +68,11 @@ class ApiTokens extends React.Component<ApiTokensProps, any> {
       },
     ];
 
-    const requiredPermissionToView = UserActions.APIKeysWrite;
-    const authorizedToViewAPIKeys = isUserActionAllowed(requiredPermissionToView);
+    const authorizedToViewAPIKeys = isUserActionAllowed(REQUIRED_PERMISSION_TO_VIEW);
 
     let emptyText = 'Loading...';
     if (!authorizedToViewAPIKeys) {
-      emptyText = `${generateMissingPermissionMessage(requiredPermissionToView)} to be able to view API tokens.`;
+      emptyText = `${generateMissingPermissionMessage(REQUIRED_PERMISSION_TO_VIEW)} to be able to view API tokens.`;
     } else if (apiTokens) {
       emptyText = 'No tokens found';
     }
