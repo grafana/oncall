@@ -98,9 +98,6 @@ export const isUserActionAllowed = ({ permission, fallbackMinimumRoleRequired }:
 /**
  * Given a `UserAction`, returns the permission or fallback-role, prefixed with "permission" or "role" respectively
  * depending on whether or not RBAC is enabled/disabled
- *
- * @param UserAction
- * @returns string
  */
 export const determineRequiredAuthString = ({ permission, fallbackMinimumRoleRequired }: UserAction): string =>
   config.featureToggles.accessControlOnCall ? `${permission} permission` : `${fallbackMinimumRoleRequired} role`;
@@ -108,9 +105,6 @@ export const determineRequiredAuthString = ({ permission, fallbackMinimumRoleReq
 /**
  * Can be used to generate a user-friendly message about which permission is missing. Method is RBAC-aware
  * and shows user the missing permission/basic-role depending on whether or not RBAC is enabled/disabled
- *
- * @param permission - the missing permission
- * @returns string
  */
 export const generateMissingPermissionMessage = (permission: UserAction): string =>
   `You are missing the ${determineRequiredAuthString(permission)}`;
