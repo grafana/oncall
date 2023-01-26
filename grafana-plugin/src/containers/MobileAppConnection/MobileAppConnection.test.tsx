@@ -2,20 +2,43 @@ import React from 'react';
 
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import { MemoryRouter } from 'react-router-dom';
 
+import { CloudStore } from 'models/cloud/cloud';
 import { UserStore } from 'models/user/user';
 import { User } from 'models/user/user.types';
 import { RootStore } from 'state';
 import { useStore as useStoreOriginal } from 'state/useStore';
 
-import MobileAppVerification from './MobileAppVerification';
+import MobileAppConnection from './MobileAppConnection';
+
+jest.mock('plugin/GrafanaPluginRootPage.helpers', () => ({
+  isTopNavbar: () => false,
+}));
+
+jest.mock('@grafana/runtime', () => ({
+  config: {
+    featureToggles: {
+      topNav: false,
+    },
+  },
+}));
+
+jest.mock('utils/authorization', () => ({
+  ...jest.requireActual('utils/authorization'),
+  isUserActionAllowed: jest.fn().mockReturnValue(true),
+}));
+
+jest.mock('@grafana/runtime', () => ({
+  getLocationSrv: jest.fn(),
+}));
 
 jest.mock('state/useStore');
 
 const useStore = useStoreOriginal as jest.Mock<ReturnType<typeof useStoreOriginal>>;
 const loadUserMock = jest.fn().mockReturnValue(undefined);
 
-const mockUseStore = (rest?: any, connected = false) => {
+const mockUseStore = (rest?: any, connected = false, cloud_connected = true) => {
   const store = {
     userStore: {
       loadUser: loadUserMock,
@@ -26,6 +49,11 @@ const mockUseStore = (rest?: any, connected = false) => {
       } as unknown as User,
       ...(rest ? rest : {}),
     } as unknown as UserStore,
+    cloudStore: {
+      getCloudConnectionStatus: jest.fn().mockReturnValue({ cloud_connection_status: cloud_connected }),
+      cloudConnectionStatus: { cloud_connection_status: cloud_connected },
+    } as unknown as CloudStore,
+    hasFeature: jest.fn().mockReturnValue(true),
   } as unknown as RootStore;
 
   useStore.mockReturnValue(store);
@@ -36,7 +64,7 @@ const mockUseStore = (rest?: any, connected = false) => {
 const USER_PK = '8585';
 const BACKEND = 'MOBILE_APP';
 
-describe('MobileAppVerification', () => {
+describe('MobileAppConnection', () => {
   beforeEach(() => {
     loadUserMock.mockClear();
   });
@@ -46,7 +74,7 @@ describe('MobileAppVerification', () => {
       sendBackendConfirmationCode: jest.fn().mockResolvedValueOnce('dfd'),
     });
 
-    const component = render(<MobileAppVerification userPk={USER_PK} />);
+    const component = render(<MobileAppConnection userPk={USER_PK} />);
     expect(component.container).toMatchSnapshot();
 
     await waitFor(() => {
@@ -63,7 +91,7 @@ describe('MobileAppVerification', () => {
       true
     );
 
-    const component = render(<MobileAppVerification userPk={USER_PK} />);
+    const component = render(<MobileAppConnection userPk={USER_PK} />);
     expect(component.container).toMatchSnapshot();
 
     await waitFor(() => {
@@ -76,7 +104,7 @@ describe('MobileAppVerification', () => {
       sendBackendConfirmationCode: jest.fn().mockRejectedValueOnce('dfd'),
     });
 
-    const component = render(<MobileAppVerification userPk={USER_PK} />);
+    const component = render(<MobileAppConnection userPk={USER_PK} />);
     await screen.findByText(/.*error fetching your QR code.*/);
 
     await waitFor(() => {
@@ -92,7 +120,7 @@ describe('MobileAppVerification', () => {
       sendBackendConfirmationCode: jest.fn().mockResolvedValueOnce('dfd'),
     });
 
-    const component = render(<MobileAppVerification userPk={USER_PK} />);
+    const component = render(<MobileAppConnection userPk={USER_PK} />);
     expect(component.container).toMatchSnapshot();
 
     await waitFor(() => {
@@ -110,7 +138,7 @@ describe('MobileAppVerification', () => {
       true
     );
 
-    const component = render(<MobileAppVerification userPk={USER_PK} />);
+    const component = render(<MobileAppConnection userPk={USER_PK} />);
     const button = await screen.findByRole('button');
 
     // click the disconnect button, which opens the modal
@@ -138,7 +166,7 @@ describe('MobileAppVerification', () => {
       true
     );
 
-    const component = render(<MobileAppVerification userPk={USER_PK} />);
+    const component = render(<MobileAppConnection userPk={USER_PK} />);
     const button = await screen.findByRole('button');
 
     // click the disconnect button, which opens the modal
@@ -169,7 +197,7 @@ describe('MobileAppVerification', () => {
       true
     );
 
-    const component = render(<MobileAppVerification userPk={USER_PK} />);
+    const component = render(<MobileAppConnection userPk={USER_PK} />);
     const button = await screen.findByTestId('test__disconnect');
 
     // click the disconnect button, which opens the modal
@@ -198,7 +226,7 @@ describe('MobileAppVerification', () => {
       false
     );
 
-    render(<MobileAppVerification userPk={USER_PK} />);
+    render(<MobileAppConnection userPk={USER_PK} />);
 
     await waitFor(
       () => {
@@ -217,7 +245,7 @@ describe('MobileAppVerification', () => {
       true
     );
 
-    render(<MobileAppVerification userPk={USER_PK} />);
+    render(<MobileAppConnection userPk={USER_PK} />);
     const button = await screen.findByRole('button');
 
     loadUserMock.mockClear();
@@ -231,5 +259,17 @@ describe('MobileAppVerification', () => {
       },
       { timeout: 6000 }
     );
+  });
+
+  test('it shows a warning when cloud is not connected', async () => {
+    mockUseStore({}, true, false);
+
+    // Using MemoryRouter to avoid "Invariant failed: You should not use <Link> outside a <Router>"
+    const component = render(
+      <MemoryRouter>
+        <MobileAppConnection userPk={USER_PK} />
+      </MemoryRouter>
+    );
+    expect(component.container).toMatchSnapshot();
   });
 });

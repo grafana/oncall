@@ -169,7 +169,8 @@ class FastAlertReceiveChannelSerializer(serializers.ModelSerializer):
         fields = ["id", "integration", "verbal_name", "deleted"]
 
     def get_deleted(self, obj):
-        return obj.deleted_at is not None
+        # Treat direct paging integrations as deleted, so integration settings are disabled on the frontend
+        return obj.deleted_at is not None or obj.integration == AlertReceiveChannel.INTEGRATION_DIRECT_PAGING
 
 
 class FilterAlertReceiveChannelSerializer(serializers.ModelSerializer):

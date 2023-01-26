@@ -4,24 +4,12 @@
   max-width: unset !important;
 }
 
-.oncall-header {
-  padding-top: 0;
-  padding-bottom: 36px;
-}
-
-.scrollbar-view h1:first-child {
-  margin-bottom: 0 !important;
-}
-
-.page-container.page-body {
-  flex-grow: 1 !important;
+[class$='-page-header'] {
+  display: none; /* hide header that comes from Grafana (topnavbar) and instead use ours */
 }
 
 .page-container {
   max-width: unset !important;
-  flex-grow: unset !important;
-  flex-basis: unset !important;
-  overflow-x: auto;
 }
 
 .page-scrollbar-content > div:first-child {
@@ -32,34 +20,6 @@
   padding-top: 0 !important;
   font-size: 2rem !important;
   margin-right: 8px;
-}
-
-/* This is for Grafana 8, remove later */
-@media (max-width: 1540px) {
-  .page-header__tabs > ul > li > a > div {
-    display: none;
-  }
-}
-
-@media (max-width: 1540px) {
-  .page-header__tabs > div > div > a > div {
-    display: none;
-  }
-}
-
-@media (max-width: 1300px) {
-  .sidemenu {
-    position: fixed !important;
-    height: 100%;
-  }
-
-  .main-view {
-    padding-left: 50px;
-  }
-
-  .page-header__tabs li a {
-    white-space: nowrap;
-  }
 }
 
 .page-header__info-block {

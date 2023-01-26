@@ -10,9 +10,9 @@ from rest_framework.request import Request
 
 from apps.api.permissions import RBACPermission, user_is_authorized
 from apps.grafana_plugin.helpers.gcom import check_token
+from apps.user_management.exceptions import OrganizationDeletedException, OrganizationMovedException
 from apps.user_management.models import User
 from apps.user_management.models.organization import Organization
-from apps.user_management.models.region import OrganizationMovedException
 
 from .constants import SCHEDULE_EXPORT_TOKEN_NAME, SLACK_AUTH_TOKEN_NAME
 from .exceptions import InvalidToken
@@ -46,6 +46,8 @@ class ApiTokenAuthentication(BaseAuthentication):
         except InvalidToken:
             raise exceptions.AuthenticationFailed("Invalid token.")
 
+        if auth_token.organization.deleted_at:
+            raise OrganizationDeletedException(auth_token.organization)
         if auth_token.organization.is_moved:
             raise OrganizationMovedException(auth_token.organization)
 
@@ -93,6 +95,14 @@ class PluginAuthentication(BaseAuthentication):
         except User.DoesNotExist:
             logger.debug(f"Could not get user from grafana request. Context {context}")
             raise exceptions.AuthenticationFailed("Non-existent or anonymous user.")
+
+    @classmethod
+    def is_user_from_request_present_in_organization(cls, request: Request, organization: Organization) -> User:
+        try:
+            cls._get_user(request, organization)
+            return True
+        except exceptions.AuthenticationFailed:
+            return False
 
 
 class GrafanaIncidentUser(AnonymousUser):
@@ -170,6 +180,8 @@ class ScheduleExportAuthentication(BaseAuthentication):
         except InvalidToken:
             raise exceptions.AuthenticationFailed("Invalid token.")
 
+        if auth_token.organization.deleted_at:
+            raise OrganizationDeletedException(auth_token.organization)
         if auth_token.organization.is_moved:
             raise OrganizationMovedException(auth_token.organization)
 
@@ -203,6 +215,8 @@ class UserScheduleExportAuthentication(BaseAuthentication):
         except InvalidToken:
             raise exceptions.AuthenticationFailed("Invalid token")
 
+        if auth_token.organization.deleted_at:
+            raise OrganizationDeletedException(auth_token.organization)
         if auth_token.organization.is_moved:
             raise OrganizationMovedException(auth_token.organization)
 

@@ -1,7 +1,6 @@
 import React, { ReactElement, SyntheticEvent } from 'react';
 
 import { Button, Icon, Tooltip, VerticalGroup, LoadingPlaceholder, HorizontalGroup } from '@grafana/ui';
-import { PluginPage } from 'PluginPage';
 import cn from 'classnames/bind';
 import { get } from 'lodash-es';
 import { observer } from 'mobx-react';
@@ -20,7 +19,6 @@ import IncidentsFilters from 'containers/IncidentsFilters/IncidentsFilters';
 import { WithPermissionControl } from 'containers/WithPermissionControl/WithPermissionControl';
 import { Alert, Alert as AlertType, AlertAction } from 'models/alertgroup/alertgroup.types';
 import { User } from 'models/user/user.types';
-import { pages } from 'pages';
 import { getActionButtons, getIncidentStatusTag, renderRelatedUsers } from 'pages/incident/Incident.helpers';
 import { move } from 'state/helpers';
 import { PageProps, WithStoreProps } from 'state/types';
@@ -101,12 +99,10 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
 
   render() {
     return (
-      <PluginPage pageNav={pages['incidents'].getPageNav()}>
-        <div className={cx('root')}>
-          {this.renderIncidentFilters()}
-          {this.renderTable()}
-        </div>
-      </PluginPage>
+      <div className={cx('root')}>
+        {this.renderIncidentFilters()}
+        {this.renderTable()}
+      </div>
     );
   }
 
@@ -145,22 +141,31 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
   fetchIncidentData = (filters: IncidentsFiltersType, isOnMount: boolean) => {
     const { store } = this.props;
     store.alertGroupStore.updateIncidentFilters(filters, isOnMount); // this line fetches incidents
-    LocationHelper.update({ page: 'incidents', ...store.alertGroupStore.incidentFilters }, 'partial');
+    LocationHelper.update({ ...store.alertGroupStore.incidentFilters }, 'partial');
   };
 
   onChangeCursor = (cursor: string, direction: 'prev' | 'next') => {
     const { store } = this.props;
 
-    store.alertGroupStore.setIncidentsCursor(cursor);
+    store.alertGroupStore.updateIncidentsCursor(cursor);
 
-    this.setState({
-      selectedIncidentIds: [],
-      pagination: {
-        start:
-          this.state.pagination.start + store.alertGroupStore.incidentsItemsPerPage * (direction === 'prev' ? -1 : 1),
-        end: this.state.pagination.end + store.alertGroupStore.incidentsItemsPerPage * (direction === 'prev' ? -1 : 1),
+    this.setState(
+      {
+        selectedIncidentIds: [],
+        pagination: {
+          start:
+            this.state.pagination.start + store.alertGroupStore.incidentsItemsPerPage * (direction === 'prev' ? -1 : 1),
+          end:
+            this.state.pagination.end + store.alertGroupStore.incidentsItemsPerPage * (direction === 'prev' ? -1 : 1),
+        },
       },
-    });
+      () => {
+        LocationHelper.update(
+          { start: this.state.pagination.start, perpage: store.alertGroupStore.incidentsItemsPerPage },
+          'partial'
+        );
+      }
+    );
   };
 
   handleChangeItemsPerPage = (value: number) => {
@@ -394,7 +399,7 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
     return (
       <VerticalGroup spacing="none" justify="center">
         <PluginLink
-          query={{ page: 'incident', id: record.pk, cursor: incidentsCursor, perpage: incidentsItemsPerPage, start }}
+          query={{ page: 'incidents', id: record.pk, cursor: incidentsCursor, perpage: incidentsItemsPerPage, start }}
         >
           {record.render_for_web.title}
         </PluginLink>

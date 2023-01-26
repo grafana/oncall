@@ -92,6 +92,49 @@ class SlackUserIdentity(models.Model):
     def __str__(self):
         return self.slack_login
 
+    def send_link_to_slack_message(self, slack_message):
+        blocks = [
+            {
+                "type": "section",
+                "text": {
+                    "type": "plain_text",
+                    "text": "You are invited to look at an alert group!",
+                    "emoji": True,
+                },
+            },
+            {
+                "type": "actions",
+                "elements": [
+                    {
+                        "type": "button",
+                        "text": {"type": "plain_text", "text": "➡️ Go to the alert group"},
+                        "url": slack_message.permalink,
+                        "style": "primary",
+                    }
+                ],
+            },
+            {
+                "type": "context",
+                "elements": [
+                    {
+                        "type": "mrkdwn",
+                        "text": (
+                            f"You received this message because you're not a member of <#{slack_message.channel_id}>.\n"
+                            "Please join the channel to get notified right in the alert group thread."
+                        ),
+                    }
+                ],
+            },
+        ]
+
+        sc = SlackClientWithErrorHandling(self.slack_team_identity.bot_access_token)
+        return sc.api_call(
+            "chat.postMessage",
+            channel=self.im_channel_id,
+            text="You are invited to look at an alert group!",
+            blocks=blocks,
+        )
+
     @property
     def slack_verbal(self):
         return (

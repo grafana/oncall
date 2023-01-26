@@ -113,6 +113,11 @@ const PersonalNotificationSettings = observer((props: PersonalNotificationSettin
     return Number(user.verified_phone_number) + 2;
   };
 
+  // Mobile app related NotificationPolicy props
+  const isMobileAppConnected = user.messaging_backends['MOBILE_APP']?.connected;
+  const showCloudConnectionWarning =
+    store.hasFeature(AppFeature.CloudConnection) && !store.cloudStore.cloudConnectionStatus.cloud_connection_status;
+
   return (
     <div className={cx('root')}>
       {title}
@@ -134,6 +139,8 @@ const PersonalNotificationSettings = observer((props: PersonalNotificationSettin
             number={index + 1}
             telegramVerified={Boolean(user.telegram_configuration)}
             phoneStatus={getPhoneStatus()}
+            isMobileAppConnected={isMobileAppConnected}
+            showCloudConnectionWarning={showCloudConnectionWarning}
             slackTeamIdentity={store.teamStore.currentTeam?.slack_team_identity}
             slackUserIdentity={user.slack_user_identity}
             data={notificationPolicy}
