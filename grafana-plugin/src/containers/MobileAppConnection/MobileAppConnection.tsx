@@ -154,7 +154,7 @@ const MobileAppConnection = observer(({ userPk }: Props) => {
       </VerticalGroup>
     );
   } else if (QRCodeValue) {
-    const QRCodeDataParsed = JSON.parse(QRCodeValue);
+    const QRCodeDataParsed = getParsedQRCodeValue();
 
     content = (
       <VerticalGroup spacing="lg">
@@ -166,7 +166,7 @@ const MobileAppConnection = observer(({ userPk }: Props) => {
           <QRCode className={cx({ 'qr-code': true, blurry: isQRBlurry })} value={QRCodeValue} />
           {isQRBlurry && <QRLoading />}
         </div>
-        {store.backendLicense === GRAFANA_LICENSE_OSS && (
+        {store.backendLicense === GRAFANA_LICENSE_OSS && QRCodeDataParsed && (
           <Text type="secondary">
             Server URL embedded in this QR:
             <br />
@@ -189,6 +189,14 @@ const MobileAppConnection = observer(({ userPk }: Props) => {
       </Block>
     </div>
   );
+
+  function getParsedQRCodeValue() {
+    try {
+      return JSON.parse(QRCodeValue);
+    } catch (ex) {
+      return undefined;
+    }
+  }
 
   function clearTimeouts(): void {
     clearTimeout(userTimeoutId);
