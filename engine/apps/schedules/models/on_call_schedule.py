@@ -18,10 +18,10 @@ from polymorphic.query import PolymorphicQuerySet
 
 from apps.schedules.ical_utils import (
     fetch_ical_file_or_get_error,
+    get_oncall_users_for_multiple_schedules,
     list_of_empty_shifts_in_schedule,
     list_of_gaps_in_schedule,
     list_of_oncall_shifts_from_ical,
-    list_users_to_notify_from_ical,
 )
 from apps.schedules.models import CustomOnCallShift
 from common.public_primary_keys import generate_public_primary_key, increase_public_primary_key_length
@@ -43,19 +43,7 @@ def generate_public_primary_key_for_oncall_schedule_channel():
 
 class OnCallScheduleQuerySet(PolymorphicQuerySet):
     def get_oncall_users(self, events_datetime=None):
-        if events_datetime is None:
-            events_datetime = timezone.datetime.now(timezone.utc)
-
-        users = set()
-
-        for schedule in self.all():
-            schedule_oncall_users = list_users_to_notify_from_ical(schedule, events_datetime=events_datetime)
-            if schedule_oncall_users is None:
-                continue
-
-            users.update(schedule_oncall_users)
-
-        return list(users)
+        return get_oncall_users_for_multiple_schedules(self, events_datetime)
 
 
 class OnCallSchedule(PolymorphicModel):
