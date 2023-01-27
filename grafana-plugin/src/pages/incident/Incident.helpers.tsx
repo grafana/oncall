@@ -1,6 +1,6 @@
 import React from 'react';
 
-import { Button, HorizontalGroup, Icon, Tooltip, VerticalGroup } from '@grafana/ui';
+import { Button, HorizontalGroup, IconButton, Tooltip, VerticalGroup } from '@grafana/ui';
 
 import Avatar from 'components/Avatar/Avatar';
 import PluginLink from 'components/PluginLink/PluginLink';
@@ -13,6 +13,8 @@ import { User } from 'models/user/user.types';
 import SilenceCascadingSelect from 'pages/incidents/parts/SilenceCascadingSelect';
 import { move } from 'state/helpers';
 import { UserActions } from 'utils/authorization';
+import MatchMediaTooltip from 'components/MatchMediaTooltip/MatchMediaTooltip';
+import { INCIDENTS_MATCH_MEDIA_MAX_WIDTH } from 'utils/consts';
 
 export function getIncidentStatusTag(alert: Alert) {
   switch (alert.status) {
@@ -65,15 +67,19 @@ export function renderRelatedUsers(incident: Alert, isFull = false) {
   function renderUser(user: User) {
     let badge = undefined;
     if (incident.resolved_by_user && user.pk === incident.resolved_by_user.pk) {
-      badge = <Icon name="check-circle" style={{ color: '#52c41a' }} />;
+      badge = <IconButton tooltipPlacement="top" tooltip="Resolved" name="check-circle" style={{ color: '#52c41a' }} />;
     } else if (incident.acknowledged_by_user && user.pk === incident.acknowledged_by_user.pk) {
-      badge = <Icon name="eye" style={{ color: '#f2c94c' }} />;
+      badge = <IconButton tooltipPlacement="top" tooltip="Acknowledged" name="eye" style={{ color: '#f2c94c' }} />;
     }
 
     return (
-      <PluginLink key={user.pk} query={{ page: 'users', id: user.pk }} wrap={false}>
+      <PluginLink key={user.pk} query={{ page: 'users', id: user.pk }} wrap={false} className="incident__email-content">
         <Text type="secondary">
-          <Avatar size="small" src={user.avatar} /> {user.username} {badge}
+          <Avatar size="small" src={user.avatar} />{' '}
+          <MatchMediaTooltip placement="top" content={user.username} maxWidth={INCIDENTS_MATCH_MEDIA_MAX_WIDTH}>
+            <span>{user.username}</span>
+          </MatchMediaTooltip>{' '}
+          {badge}
         </Text>
       </PluginLink>
     );
@@ -106,30 +112,32 @@ export function renderRelatedUsers(incident: Alert, isFull = false) {
   }
 
   return (
-    <VerticalGroup spacing="xs">
-      {visibleUsers.map(renderUser)}
-      {Boolean(otherUsers.length) && (
-        <Tooltip
-          placement="top"
-          content={
-            <>
-              {otherUsers.map((user, index) => (
-                <>
-                  {index ? ', ' : ''}
-                  {renderUser(user)}
-                </>
-              ))}
-            </>
-          }
-        >
-          <span>
-            <Text type="secondary" underline size="small">
-              +{otherUsers.length} user{otherUsers.length > 1 ? 's' : ''}
-            </Text>
-          </span>
-        </Tooltip>
-      )}
-    </VerticalGroup>
+    <div className={'incident__email-column'}>
+      <VerticalGroup spacing="xs">
+        {visibleUsers.map(renderUser)}
+        {Boolean(otherUsers.length) && (
+          <Tooltip
+            placement="top"
+            content={
+              <>
+                {otherUsers.map((user, index) => (
+                  <>
+                    {index ? ', ' : ''}
+                    {renderUser(user)}
+                  </>
+                ))}
+              </>
+            }
+          >
+            <span>
+              <Text type="secondary" underline size="small">
+                +{otherUsers.length} user{otherUsers.length > 1 ? 's' : ''}
+              </Text>
+            </span>
+          </Tooltip>
+        )}
+      </VerticalGroup>
+    </div>
   );
 }
 

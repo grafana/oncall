@@ -30,3 +30,5 @@ export const FARO_ENDPOINT_PROD =
 
 export const DOCS_SLACK_SETUP = 'https://grafana.com/docs/grafana-cloud/oncall/open-source/#slack-setup';
 export const DOCS_TELEGRAM_SETUP = 'https://grafana.com/docs/grafana-cloud/oncall/chat-options/configure-telegram/';
+
+export const INCIDENTS_MATCH_MEDIA_MAX_WIDTH = 1400;

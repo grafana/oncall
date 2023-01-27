@@ -1,0 +1,15 @@
+@media screen and (max-width: 1600px) {
+  .incident__email-column {
+    max-width: 175px;
+  }
+
+  .incident__email-content {
+    text-overflow: ellipsis;
+    overflow: hidden;
+  }
+
+  .incident__title-column {
+    overflow-wrap: anywhere;
+    white-space: pre-wrap;
+  }
+}
