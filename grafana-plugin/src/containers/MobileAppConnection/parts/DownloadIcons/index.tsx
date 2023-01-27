@@ -25,12 +25,19 @@ const DownloadIcons: FC = () => (
           iOS
         </Text>
       </Block>
-      <Block hover fullWidth bordered className={cx('icon-block')}>
-        <img src={PlayStoreLogoSVG} alt="Play Store" className={cx('icon')} />
-        <Text type="primary" className={cx('icon-text')}>
-          Android
-        </Text>
-      </Block>
+      <a
+        style={{ width: '100%' }}
+        href="https://play.google.com/store/apps/details?id=com.grafana.oncall.prod"
+        target="_blank"
+        rel="noreferrer"
+      >
+        <Block hover fullWidth bordered className={cx('icon-block')}>
+          <img src={PlayStoreLogoSVG} alt="Play Store" className={cx('icon')} />
+          <Text type="primary" className={cx('icon-text')}>
+            Android
+          </Text>
+        </Block>
+      </a>
     </VerticalGroup>
   </VerticalGroup>
 );
