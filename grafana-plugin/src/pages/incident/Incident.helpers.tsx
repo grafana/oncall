@@ -3,6 +3,7 @@ import React from 'react';
 import { Button, HorizontalGroup, IconButton, Tooltip, VerticalGroup } from '@grafana/ui';
 
 import Avatar from 'components/Avatar/Avatar';
+import { MatchMediaTooltip } from 'components/MatchMediaTooltip/MatchMediaTooltip';
 import PluginLink from 'components/PluginLink/PluginLink';
 import Tag from 'components/Tag/Tag';
 import Text from 'components/Text/Text';
@@ -13,7 +14,6 @@ import { User } from 'models/user/user.types';
 import SilenceCascadingSelect from 'pages/incidents/parts/SilenceCascadingSelect';
 import { move } from 'state/helpers';
 import { UserActions } from 'utils/authorization';
-import { MatchMediaTooltip } from 'components/MatchMediaTooltip/MatchMediaTooltip';
 import { TABLE_COLUMN_MAX_WIDTH } from 'utils/consts';
 
 export function getIncidentStatusTag(alert: Alert) {

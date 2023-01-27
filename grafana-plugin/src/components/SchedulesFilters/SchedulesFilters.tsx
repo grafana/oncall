@@ -5,9 +5,8 @@ import cn from 'classnames/bind';
 
 import { ScheduleType } from 'models/schedule/schedule.types';
 
-import { SchedulesFiltersType } from './SchedulesFilters.types';
-
 import styles from './SchedulesFilters.module.scss';
+import { SchedulesFiltersType } from './SchedulesFilters.types';
 
 const cx = cn.bind(styles);
 

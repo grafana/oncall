@@ -1,5 +1,6 @@
-import { Tooltip } from '@grafana/ui';
 import React, { FC } from 'react';
+
+import { Tooltip } from '@grafana/ui';
 
 interface MediaMatchTooltipProps {
   placement: 'top' | 'bottom' | 'right' | 'left';

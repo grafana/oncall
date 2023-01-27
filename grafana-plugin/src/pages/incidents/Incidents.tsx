@@ -24,10 +24,9 @@ import { withMobXProviderContext } from 'state/withStore';
 import LocationHelper from 'utils/LocationHelper';
 import { UserActions } from 'utils/authorization';
 
+import styles from './Incidents.module.scss';
 import { IncidentDropdown } from './parts/IncidentDropdown';
 import SilenceCascadingSelect from './parts/SilenceCascadingSelect';
-
-import styles from './Incidents.module.scss';
 
 const cx = cn.bind(styles);
 
