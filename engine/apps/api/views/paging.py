@@ -30,7 +30,7 @@ class DirectPagingAPIView(APIView):
             (schedule["instance"], schedule["important"]) for schedule in serializer.validated_data["schedules"]
         ]
 
-        direct_paging(
+        alert_group = direct_paging(
             organization=organization,
             team=team,
             from_user=from_user,
@@ -42,4 +42,4 @@ class DirectPagingAPIView(APIView):
             alert_group=serializer.validated_data["alert_group"],
         )
 
-        return Response(status=status.HTTP_200_OK)
+        return Response(data={"alert_group_id": alert_group.public_primary_key}, status=status.HTTP_200_OK)
