@@ -391,7 +391,7 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
 
     return (
       <VerticalGroup spacing="none" justify="center">
-        <div className={'incident__title-column'}>
+        <div className={'table__wrap-column'}>
           <PluginLink
             query={{ page: 'incidents', id: record.pk, cursor: incidentsCursor, perpage: incidentsItemsPerPage, start }}
           >

@@ -10,7 +10,7 @@ interface MediaMatchTooltipProps {
   minWidth?: number;
 }
 
-const MediaMatchTooltip: FC<MediaMatchTooltipProps> = ({ minWidth, maxWidth, placement, content, children }) => {
+export const MatchMediaTooltip: FC<MediaMatchTooltipProps> = ({ minWidth, maxWidth, placement, content, children }) => {
   let match: MediaQueryList;
 
   if (minWidth && maxWidth) {
@@ -33,5 +33,3 @@ const MediaMatchTooltip: FC<MediaMatchTooltipProps> = ({ minWidth, maxWidth, pla
 
   return <>{children}</>;
 };
-
-export default MediaMatchTooltip;

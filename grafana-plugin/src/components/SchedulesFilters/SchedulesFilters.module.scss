@@ -1,0 +1,11 @@
+.root {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.right {
+  display: flex;
+  gap: 4px;
+}

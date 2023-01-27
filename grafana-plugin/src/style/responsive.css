@@ -1,9 +1,9 @@
 @media screen and (max-width: 1600px) {
-  .incident__email-column {
+  .table__email-column {
     max-width: 175px;
   }
 
-  .incident__email-content {
+  .table__email-content {
     text-overflow: ellipsis;
     overflow: hidden;
   }

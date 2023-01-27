@@ -11,3 +11,19 @@
 .root .buttons {
   padding-right: 10px;
 }
+
+.schedules__filters-container {
+  display: flex;
+  width: 100%;
+}
+
+.schedules__filters-container-left {
+  flex-grow: 1;
+}
+
+.schedules__filters-container-right {
+  display: flex;
+  justify-content: flex-end;
+  gap: 4px;
+  padding-top: 19px;
+}

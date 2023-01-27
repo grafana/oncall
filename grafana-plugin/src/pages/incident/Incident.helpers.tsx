@@ -13,8 +13,8 @@ import { User } from 'models/user/user.types';
 import SilenceCascadingSelect from 'pages/incidents/parts/SilenceCascadingSelect';
 import { move } from 'state/helpers';
 import { UserActions } from 'utils/authorization';
-import MatchMediaTooltip from 'components/MatchMediaTooltip/MatchMediaTooltip';
-import { INCIDENTS_MATCH_MEDIA_MAX_WIDTH } from 'utils/consts';
+import { MatchMediaTooltip } from 'components/MatchMediaTooltip/MatchMediaTooltip';
+import { TABLE_COLUMN_MAX_WIDTH } from 'utils/consts';
 
 export function getIncidentStatusTag(alert: Alert) {
   switch (alert.status) {
@@ -73,10 +73,10 @@ export function renderRelatedUsers(incident: Alert, isFull = false) {
     }
 
     return (
-      <PluginLink key={user.pk} query={{ page: 'users', id: user.pk }} wrap={false} className="incident__email-content">
+      <PluginLink key={user.pk} query={{ page: 'users', id: user.pk }} wrap={false} className="table__email-content">
         <Text type="secondary">
           <Avatar size="small" src={user.avatar} />{' '}
-          <MatchMediaTooltip placement="top" content={user.username} maxWidth={INCIDENTS_MATCH_MEDIA_MAX_WIDTH}>
+          <MatchMediaTooltip placement="top" content={user.username} maxWidth={TABLE_COLUMN_MAX_WIDTH}>
             <span>{user.username}</span>
           </MatchMediaTooltip>{' '}
           {badge}
@@ -112,7 +112,7 @@ export function renderRelatedUsers(incident: Alert, isFull = false) {
   }
 
   return (
-    <div className={'incident__email-column'}>
+    <div className={'table__email-column'}>
       <VerticalGroup spacing="xs">
         {visibleUsers.map(renderUser)}
         {Boolean(otherUsers.length) && (
