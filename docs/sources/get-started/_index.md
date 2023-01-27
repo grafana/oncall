@@ -85,7 +85,7 @@ Possible transitions:
 - Acknowledged -> Resolved
 - Resolved -> Firing
 
-Transactions change trigger Escalation Chain launch with a few-seconds delay to avoid unexpected notifications.
+Transitions change trigger Escalation Chain launch with a few-seconds delay to avoid unexpected notifications.
 
 ### Configure Escalation Chains
 
