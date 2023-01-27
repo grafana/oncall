@@ -23,7 +23,7 @@ const MediaMatchTooltip: FC<MediaMatchTooltipProps> = ({ minWidth, maxWidth, pla
     return <>{children}</>;
   }
 
-  if (match) {
+  if (match.matches) {
     return (
       <Tooltip placement={placement} content={content}>
         {children}
