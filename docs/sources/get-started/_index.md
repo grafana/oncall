@@ -74,6 +74,19 @@ All Alerts in OnCall are grouped to Alert Groups ([read more about Grouping ID](
 - **Silenced:** Similar to "Acknowledged" but designed to be temporary with a timeout. Once time is out, will re-launch Escalation Chain and move Alert Group to the "Firing" state.
 - **Resolved:** Similar to "Acknowledged". 
 
+Possible transitions:
+- Firing -> Acknowledged
+- Firing -> Silenced
+- Firing -> Resolved
+- Silenced -> Firing
+- Silenced -> Acknowledged
+- Silenced -> Resolved
+- Acknowledged -> Firing
+- Acknowledged -> Resolved
+- Resolved -> Firing
+
+Transactions change trigger Escalation Chain launch with a few-seconds delay to avoid unexpected notifications.
+
 ### Configure Escalation Chains
 
 Escalation Chains are customizable automated alert routing steps that enable you to specify who is notified for a certain
