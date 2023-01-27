@@ -1,4 +1,8 @@
-@media screen and (max-width: 1600px) {
+/* 
+   Make sure if you chage max-width here
+   You also change it in consts.ts 
+*/
+@media screen and (max-width: 1500px) {
   .table__email-column {
     max-width: 175px;
   }

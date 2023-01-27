@@ -338,10 +338,14 @@ class SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSta
             {item.on_call_now.map((user, _index) => {
               return (
                 <PluginLink key={user.pk} query={{ page: 'users', id: user.pk }} className="table__email-content">
-                  <Avatar size="big" src={user.avatar} />
-                  <MatchMediaTooltip placement="top" content={user.username} maxWidth={TABLE_COLUMN_MAX_WIDTH}>
-                    <Text type="secondary"> {user.username}</Text>
-                  </MatchMediaTooltip>
+                  <div className={cx('schedules__user-on-call')}>
+                    <div>
+                      <Avatar size="big" src={user.avatar} />
+                    </div>
+                    <MatchMediaTooltip placement="top" content={user.username} maxWidth={TABLE_COLUMN_MAX_WIDTH}>
+                      <span className="table__email-content">{user.username}</span>
+                    </MatchMediaTooltip>
+                  </div>
                 </PluginLink>
               );
             })}

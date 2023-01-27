@@ -27,3 +27,9 @@
   gap: 4px;
   padding-top: 19px;
 }
+
+.schedules__user-on-call {
+  display: flex;
+  flex-wrap: nowrap;
+  gap: 4px;
+}

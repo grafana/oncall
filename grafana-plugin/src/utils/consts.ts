@@ -31,4 +31,5 @@ export const FARO_ENDPOINT_PROD =
 export const DOCS_SLACK_SETUP = 'https://grafana.com/docs/grafana-cloud/oncall/open-source/#slack-setup';
 export const DOCS_TELEGRAM_SETUP = 'https://grafana.com/docs/grafana-cloud/oncall/chat-options/configure-telegram/';
 
-export const TABLE_COLUMN_MAX_WIDTH = 1400;
+// Make sure if you chage max-width here you also change it in responsive.css
+export const TABLE_COLUMN_MAX_WIDTH = 1500;
