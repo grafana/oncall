@@ -7,6 +7,7 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.core.exceptions import ValidationError as DjangoValidationError
 from django.core.validators import URLValidator
 from django.template.loader import render_to_string
+from django.utils import timezone
 from jinja2 import TemplateSyntaxError
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
@@ -379,6 +380,7 @@ class AlertReceiveChannelTemplatesSerializer(EagerLoadingMixin, serializers.Mode
             self.instance.web_title_template = value.strip()
         elif default_template is not None and default_template.strip() == value.strip():
             self.instance.web_title_template = None
+        self.instance.web_templates_modified_at = timezone.now()
 
     def get_web_message_template(self, obj):
         default_template = AlertReceiveChannel.INTEGRATION_TO_DEFAULT_WEB_MESSAGE_TEMPLATE[obj.integration]
@@ -390,6 +392,7 @@ class AlertReceiveChannelTemplatesSerializer(EagerLoadingMixin, serializers.Mode
             self.instance.web_message_template = value.strip()
         elif default_template is not None and default_template.strip() == value.strip():
             self.instance.web_message_template = None
+        self.instance.web_templates_modified_at = timezone.now()
 
     def get_web_image_url_template(self, obj):
         default_template = AlertReceiveChannel.INTEGRATION_TO_DEFAULT_WEB_IMAGE_URL_TEMPLATE[obj.integration]
@@ -401,6 +404,7 @@ class AlertReceiveChannelTemplatesSerializer(EagerLoadingMixin, serializers.Mode
             self.instance.web_image_url_template = value.strip()
         elif default_template is not None and default_template.strip() == value.strip():
             self.instance.web_image_url_template = None
+        self.instance.web_templates_modified_at = timezone.now()
 
     def get_telegram_title_template(self, obj):
         default_template = AlertReceiveChannel.INTEGRATION_TO_DEFAULT_TELEGRAM_TITLE_TEMPLATE[obj.integration]
