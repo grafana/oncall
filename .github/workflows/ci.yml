@@ -75,6 +75,8 @@ jobs:
           MYSQL_ROOT_PASSWORD: local_dev_pwd
     steps:
       - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
       - name: Lint migrations
         run: |
           cd engine/
