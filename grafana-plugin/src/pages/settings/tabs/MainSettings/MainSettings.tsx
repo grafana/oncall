@@ -9,8 +9,8 @@ import Text from 'components/Text/Text';
 import ApiTokenSettings from 'containers/ApiTokenSettings/ApiTokenSettings';
 import { WithPermissionControl } from 'containers/WithPermissionControl/WithPermissionControl';
 import { WithStoreProps } from 'state/types';
-import { UserAction } from 'state/userAction';
 import { withMobXProviderContext } from 'state/withStore';
+import { UserActions } from 'utils/authorization';
 
 import styles from './MainSettings.module.css';
 
@@ -53,7 +53,7 @@ class SettingsPage extends React.Component<SettingsPageProps, SettingsPageState>
             label="Require resolution note when resolve incident"
             description={`Once user clicks "Resolve" for an incident they are require to fill a resolution note about the incident`}
           >
-            <WithPermissionControl userAction={UserAction.UpdateGlobalSettings}>
+            <WithPermissionControl userAction={UserActions.OtherSettingsWrite}>
               <Switch
                 value={teamStore.currentTeam?.is_resolution_note_required}
                 onChange={(event) => {

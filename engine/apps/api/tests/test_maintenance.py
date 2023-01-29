@@ -6,6 +6,8 @@ from rest_framework.test import APIClient
 from apps.alerts.models import AlertReceiveChannel
 from apps.user_management.models import Organization
 
+# TODO: should probably modify these tests to take into account new rbac permissions
+
 
 @pytest.fixture()
 def maintenance_internal_api_setup(
@@ -23,7 +25,7 @@ def maintenance_internal_api_setup(
 def test_start_maintenance_integration(
     maintenance_internal_api_setup, mock_start_disable_maintenance_task, make_user_auth_headers
 ):
-    token, organization, user, alert_receive_channel = maintenance_internal_api_setup
+    token, _, user, alert_receive_channel = maintenance_internal_api_setup
     client = APIClient()
 
     url = reverse("api-internal:start_maintenance")
@@ -50,7 +52,7 @@ def test_stop_maintenance_integration(
     mock_start_disable_maintenance_task,
     make_user_auth_headers,
 ):
-    token, organization, user, alert_receive_channel = maintenance_internal_api_setup
+    token, _, user, alert_receive_channel = maintenance_internal_api_setup
     client = APIClient()
     mode = AlertReceiveChannel.MAINTENANCE
     duration = AlertReceiveChannel.DURATION_ONE_HOUR.seconds
@@ -161,7 +163,7 @@ def test_maintenances_list(
 def test_empty_maintenances_list(
     maintenance_internal_api_setup, mock_start_disable_maintenance_task, make_user_auth_headers
 ):
-    token, organization, user, alert_receive_channel = maintenance_internal_api_setup
+    token, _, user, alert_receive_channel = maintenance_internal_api_setup
     client = APIClient()
     url = reverse("api-internal:maintenance")
     response = client.get(url, format="json", **make_user_auth_headers(user, token))

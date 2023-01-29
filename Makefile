@@ -105,9 +105,6 @@ lint: install-pre-commit
 install-precommit-hook: install-pre-commit
 	pre-commit install
 
-get-invite-token:
-	$(call run_engine_docker_command,python manage.py issue_invite_for_the_frontend --override)
-
 test:
 	$(call run_engine_docker_command,pytest)
 
@@ -123,8 +120,17 @@ shell:
 dbshell:
 	$(call run_engine_docker_command,python manage.py dbshell)
 
+engine-manage:
+	$(call run_engine_docker_command,python manage.py $(CMD))
+
 exec-engine:
 	docker exec -it oncall_engine bash
+
+_enable-mobile-app-feature-flags:
+	$(shell ./dev/add_env_var.sh FEATURE_MOBILE_APP_INTEGRATION_ENABLED True $(DEV_ENV_FILE))
+	$(call run_engine_docker_command,python manage.py enable_mobile_app)
+
+enable-mobile-app-feature-flags: _enable-mobile-app-feature-flags stop start
 
 # The below commands are useful for running backend services outside of docker
 define backend_command
@@ -152,3 +158,6 @@ run-backend-celery:
 
 backend-command:
 	$(call backend_command,$(CMD))
+
+backend-manage-command:
+	$(call backend_command,python manage.py $(CMD))

@@ -1,15 +1,14 @@
-from rest_framework import serializers
-
 from apps.api.serializers.schedule_base import ScheduleBaseSerializer
 from apps.schedules.models import OnCallScheduleCalendar
 from apps.schedules.tasks import schedule_notify_about_empty_shifts_in_schedule, schedule_notify_about_gaps_in_schedule
 from apps.slack.models import SlackChannel, SlackUserGroup
 from common.api_helpers.custom_fields import OrganizationFilteredPrimaryKeyRelatedField
 from common.api_helpers.utils import validate_ical_url
+from common.timezones import TimeZoneField
 
 
 class ScheduleCalendarSerializer(ScheduleBaseSerializer):
-    time_zone = serializers.CharField(required=False)
+    time_zone = TimeZoneField(required=False)
 
     class Meta:
         model = OnCallScheduleCalendar

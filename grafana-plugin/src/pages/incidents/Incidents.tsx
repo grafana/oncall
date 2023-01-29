@@ -1,9 +1,6 @@
 import React, { ReactElement, SyntheticEvent } from 'react';
 
-import { AppRootProps } from '@grafana/data';
-import { getLocationSrv } from '@grafana/runtime';
 import { Button, Icon, Tooltip, VerticalGroup, LoadingPlaceholder, HorizontalGroup } from '@grafana/ui';
-import { PluginPage } from 'PluginPage';
 import cn from 'classnames/bind';
 import { get } from 'lodash-es';
 import { observer } from 'mobx-react';
@@ -13,7 +10,6 @@ import Emoji from 'react-emoji-render';
 import CursorPagination from 'components/CursorPagination/CursorPagination';
 import GTable from 'components/GTable/GTable';
 import IntegrationLogo from 'components/IntegrationLogo/IntegrationLogo';
-import PageErrorHandlingWrapper from 'components/PageErrorHandlingWrapper/PageErrorHandlingWrapper';
 import PluginLink from 'components/PluginLink/PluginLink';
 import Text from 'components/Text/Text';
 import Tutorial from 'components/Tutorial/Tutorial';
@@ -23,13 +19,12 @@ import IncidentsFilters from 'containers/IncidentsFilters/IncidentsFilters';
 import { WithPermissionControl } from 'containers/WithPermissionControl/WithPermissionControl';
 import { Alert, Alert as AlertType, AlertAction } from 'models/alertgroup/alertgroup.types';
 import { User } from 'models/user/user.types';
-import { pages } from 'pages';
 import { getActionButtons, getIncidentStatusTag, renderRelatedUsers } from 'pages/incident/Incident.helpers';
-import { getQueryParams } from 'plugin/GrafanaPluginRootPage.helpers';
 import { move } from 'state/helpers';
-import { WithStoreProps } from 'state/types';
-import { UserAction } from 'state/userAction';
+import { PageProps, WithStoreProps } from 'state/types';
 import { withMobXProviderContext } from 'state/withStore';
+import LocationHelper from 'utils/LocationHelper';
+import { UserActions } from 'utils/authorization';
 
 import SilenceDropdown from './parts/SilenceDropdown';
 
@@ -54,7 +49,7 @@ function withSkeleton(fn: (alert: AlertType) => ReactElement | ReactElement[]) {
   return WithSkeleton;
 }
 
-interface IncidentsPageProps extends WithStoreProps, AppRootProps {}
+interface IncidentsPageProps extends WithStoreProps, PageProps {}
 
 interface IncidentsPageState {
   selectedIncidentIds: Array<Alert['pk']>;
@@ -71,8 +66,10 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
   constructor(props: IncidentsPageProps) {
     super(props);
 
-    const { store } = props;
-    const { cursor: cursorQuery, start: startQuery, perpage: perpageQuery } = getQueryParams();
+    const {
+      store,
+      query: { cursor: cursorQuery, start: startQuery, perpage: perpageQuery },
+    } = props;
 
     const cursor = cursorQuery || undefined;
     const start = !isNaN(startQuery) ? Number(startQuery) : 1;
@@ -102,14 +99,10 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
 
   render() {
     return (
-      <PluginPage pageNav={pages['incidents'].getPageNav()}>
-        <PageErrorHandlingWrapper pageName="incidents">
-          <div className={cx('root')}>
-            {this.renderIncidentFilters()}
-            {this.renderTable()}
-          </div>
-        </PageErrorHandlingWrapper>
-      </PluginPage>
+      <div className={cx('root')}>
+        {this.renderIncidentFilters()}
+        {this.renderTable()}
+      </div>
     );
   }
 
@@ -148,22 +141,31 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
   fetchIncidentData = (filters: IncidentsFiltersType, isOnMount: boolean) => {
     const { store } = this.props;
     store.alertGroupStore.updateIncidentFilters(filters, isOnMount); // this line fetches incidents
-    getLocationSrv().update({ query: { page: 'incidents', ...store.alertGroupStore.incidentFilters } });
+    LocationHelper.update({ ...store.alertGroupStore.incidentFilters }, 'partial');
   };
 
   onChangeCursor = (cursor: string, direction: 'prev' | 'next') => {
     const { store } = this.props;
 
-    store.alertGroupStore.setIncidentsCursor(cursor);
+    store.alertGroupStore.updateIncidentsCursor(cursor);
 
-    this.setState({
-      selectedIncidentIds: [],
-      pagination: {
-        start:
-          this.state.pagination.start + store.alertGroupStore.incidentsItemsPerPage * (direction === 'prev' ? -1 : 1),
-        end: this.state.pagination.end + store.alertGroupStore.incidentsItemsPerPage * (direction === 'prev' ? -1 : 1),
+    this.setState(
+      {
+        selectedIncidentIds: [],
+        pagination: {
+          start:
+            this.state.pagination.start + store.alertGroupStore.incidentsItemsPerPage * (direction === 'prev' ? -1 : 1),
+          end:
+            this.state.pagination.end + store.alertGroupStore.incidentsItemsPerPage * (direction === 'prev' ? -1 : 1),
+        },
       },
-    });
+      () => {
+        LocationHelper.update(
+          { start: this.state.pagination.start, perpage: store.alertGroupStore.incidentsItemsPerPage },
+          'partial'
+        );
+      }
+    );
   };
 
   handleChangeItemsPerPage = (value: number) => {
@@ -200,7 +202,7 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
         <div className={cx('bulk-actions')}>
           <HorizontalGroup>
             {'resolve' in store.alertGroupStore.bulkActions && (
-              <WithPermissionControl key="resolve" userAction={UserAction.UpdateIncidents}>
+              <WithPermissionControl key="resolve" userAction={UserActions.AlertGroupsWrite}>
                 <Button
                   disabled={!hasSelected}
                   variant="primary"
@@ -211,7 +213,7 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
               </WithPermissionControl>
             )}
             {'acknowledge' in store.alertGroupStore.bulkActions && (
-              <WithPermissionControl key="resolve" userAction={UserAction.UpdateIncidents}>
+              <WithPermissionControl key="resolve" userAction={UserActions.AlertGroupsWrite}>
                 <Button
                   disabled={!hasSelected}
                   variant="secondary"
@@ -222,7 +224,7 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
               </WithPermissionControl>
             )}
             {'silence' in store.alertGroupStore.bulkActions && (
-              <WithPermissionControl key="restart" userAction={UserAction.UpdateIncidents}>
+              <WithPermissionControl key="restart" userAction={UserActions.AlertGroupsWrite}>
                 <Button
                   disabled={!hasSelected}
                   variant="secondary"
@@ -233,7 +235,7 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
               </WithPermissionControl>
             )}
             {'restart' in store.alertGroupStore.bulkActions && (
-              <WithPermissionControl key="silence" userAction={UserAction.UpdateIncidents}>
+              <WithPermissionControl key="silence" userAction={UserActions.AlertGroupsWrite}>
                 <SilenceDropdown
                   disabled={!hasSelected}
                   onSelect={(ev) => this.getBulkActionClickHandler('silence', ev)}
@@ -397,7 +399,7 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
     return (
       <VerticalGroup spacing="none" justify="center">
         <PluginLink
-          query={{ page: 'incident', id: record.pk, cursor: incidentsCursor, perpage: incidentsItemsPerPage, start }}
+          query={{ page: 'incidents', id: record.pk, cursor: incidentsCursor, perpage: incidentsItemsPerPage, start }}
         >
           {record.render_for_web.title}
         </PluginLink>
@@ -577,7 +579,9 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
   }
 
   setPollingInterval(filters: IncidentsFiltersType = this.state.filters, isOnMount = false) {
-    this.pollingIntervalId = setInterval(() => this.fetchIncidentData(filters, isOnMount), POLLING_NUM_SECONDS * 1000);
+    this.pollingIntervalId = setInterval(() => {
+      this.fetchIncidentData(filters, isOnMount);
+    }, POLLING_NUM_SECONDS * 1000);
   }
 }
 

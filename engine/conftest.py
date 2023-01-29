@@ -1,5 +1,7 @@
 import json
+import os
 import sys
+import typing
 import uuid
 from importlib import import_module, reload
 
@@ -33,6 +35,13 @@ from apps.alerts.tests.factories import (
     InvitationFactory,
     ResolutionNoteFactory,
     ResolutionNoteSlackMessageFactory,
+)
+from apps.api.permissions import (
+    ACTION_PREFIX,
+    GrafanaAPIPermission,
+    LegacyAccessControlCompatiblePermission,
+    LegacyAccessControlRole,
+    RBACPermission,
 )
 from apps.auth_token.models import ApiAuthToken, PluginAuthToken
 from apps.base.models.user_notification_policy_log_record import (
@@ -71,7 +80,6 @@ from apps.telegram.tests.factories import (
 from apps.twilioapp.tests.factories import PhoneCallFactory, SMSFactory
 from apps.user_management.models.user import User, listen_for_user_model_save
 from apps.user_management.tests.factories import OrganizationFactory, RegionFactory, TeamFactory, UserFactory
-from common.constants.role import Role
 
 register(OrganizationFactory)
 register(UserFactory)
@@ -109,8 +117,9 @@ register(SMSFactory)
 register(EmailMessageFactory)
 
 register(IntegrationHeartBeatFactory)
-
 register(LiveSettingFactory)
+
+IS_RBAC_ENABLED = os.getenv("ONCALL_TESTING_RBAC_ENABLED", "True") == "True"
 
 
 @pytest.fixture(autouse=True)
@@ -142,18 +151,16 @@ def mock_telegram_bot_username(monkeypatch):
 @pytest.fixture
 def make_organization():
     def _make_organization(**kwargs):
-        organization = OrganizationFactory(**kwargs)
-
-        return organization
+        return OrganizationFactory(**kwargs, is_rbac_permissions_enabled=IS_RBAC_ENABLED)
 
     return _make_organization
 
 
 @pytest.fixture
-def make_user_for_organization():
-    def _make_user_for_organization(organization, role=Role.ADMIN, **kwargs):
+def make_user_for_organization(make_user):
+    def _make_user_for_organization(organization, role: typing.Optional[LegacyAccessControlRole] = None, **kwargs):
         post_save.disconnect(listen_for_user_model_save, sender=User)
-        user = UserFactory(organization=organization, role=role, **kwargs)
+        user = make_user(organization=organization, role=role, **kwargs)
         post_save.disconnect(listen_for_user_model_save, sender=User)
         return user
 
@@ -178,31 +185,106 @@ def make_public_api_token():
 
 @pytest.fixture
 def make_user_auth_headers():
-    def _make_user_auth_headers(user, token):
+    def _make_user_auth_headers(
+        user,
+        token,
+        grafana_token: typing.Optional[str] = None,
+        grafana_context_data: typing.Optional[typing.Dict] = None,
+    ):
+        instance_context_headers = {"stack_id": user.organization.stack_id, "org_id": user.organization.org_id}
+        grafana_context_headers = {"UserId": user.user_id}
+        if grafana_token is not None:
+            instance_context_headers["grafana_token"] = grafana_token
+        if grafana_context_data is not None:
+            grafana_context_headers.update(grafana_context_data)
+
         return {
-            "HTTP_X-Instance-Context": json.dumps(
-                {"stack_id": user.organization.stack_id, "org_id": user.organization.org_id}
-            ),
-            "HTTP_X-Grafana-Context": json.dumps({"UserId": user.user_id}),
+            "HTTP_X-Instance-Context": json.dumps(instance_context_headers),
+            "HTTP_X-Grafana-Context": json.dumps(grafana_context_headers),
             "HTTP_AUTHORIZATION": f"{token}",
         }
 
     return _make_user_auth_headers
 
 
+RoleMapping = typing.Dict[LegacyAccessControlRole, typing.List[LegacyAccessControlCompatiblePermission]]
+
+
+def get_user_permission_role_mapping_from_frontend_plugin_json() -> RoleMapping:
+    """
+    This is used to take the RBAC permission -> basic role grants on the frontend
+    and test that the RBAC grants work the same way against the backend in terms of authorization
+    """
+
+    class PluginJSONRoleDefinition(typing.TypedDict):
+        permissions: typing.List[GrafanaAPIPermission]
+
+    class PluginJSONRole(typing.TypedDict):
+        role: PluginJSONRoleDefinition
+        grants: typing.List[str]
+
+    class PluginJSON(typing.TypedDict):
+        roles: typing.List[PluginJSONRole]
+
+    with open("../grafana-plugin/src/plugin.json") as fp:
+        plugin_json: PluginJSON = json.load(fp)
+
+    role_mapping: RoleMapping = {
+        LegacyAccessControlRole.VIEWER: [],
+        LegacyAccessControlRole.EDITOR: [],
+        LegacyAccessControlRole.ADMIN: [],
+    }
+
+    all_permission_classes: typing.Dict[str, LegacyAccessControlCompatiblePermission] = {
+        getattr(RBACPermission.Permissions, attr).value: getattr(RBACPermission.Permissions, attr)
+        for attr in dir(RBACPermission.Permissions)
+        if not attr.startswith("_")
+    }
+
+    # we just care about getting the basic role grants, everything else can be ignored
+    for role in plugin_json["roles"]:
+        if grants := role["grants"]:
+            for permission in role["role"]["permissions"]:
+                # only concerned with grafana-oncall-app specific grants
+                # ignore things like plugins.app:access actions
+                action = permission["action"]
+                permission_class = None
+
+                if action.startswith(ACTION_PREFIX):
+                    permission_class = all_permission_classes[action]
+
+                if permission_class:
+                    for grant in grants:
+                        try:
+                            role = LegacyAccessControlRole[grant.upper()]
+                            if role not in role_mapping[role]:
+                                role_mapping[role].append(permission_class)
+                        except KeyError:
+                            # may come across grants like "Grafana Admin"
+                            # which we can ignore
+                            continue
+
+    return role_mapping
+
+
+ROLE_PERMISSION_MAPPING = get_user_permission_role_mapping_from_frontend_plugin_json()
+
+
 @pytest.fixture
 def make_user():
-    def _make_user(role=Role.ADMIN, **kwargs):
-        user = UserFactory(role=role, **kwargs)
-
-        return user
+    def _make_user(role: typing.Optional[LegacyAccessControlRole] = None, **kwargs):
+        role = LegacyAccessControlRole.ADMIN if role is None else role
+        permissions = ROLE_PERMISSION_MAPPING[role] if IS_RBAC_ENABLED else []
+        return UserFactory(
+            role=role, permissions=[GrafanaAPIPermission(action=perm.value) for perm in permissions], **kwargs
+        )
 
     return _make_user
 
 
 @pytest.fixture
 def make_organization_and_user(make_organization, make_user_for_organization):
-    def _make_organization_and_user(role=Role.ADMIN):
+    def _make_organization_and_user(role: typing.Optional[LegacyAccessControlRole] = None):
         organization = make_organization()
         user = make_user_for_organization(organization=organization, role=role)
         return organization, user
@@ -214,33 +296,31 @@ def make_organization_and_user(make_organization, make_user_for_organization):
 def make_organization_and_user_with_slack_identities(
     make_organization_with_slack_team_identity, make_user_with_slack_user_identity
 ):
-    def _make_organization_and_user_with_slack_identities(role=Role.ADMIN):
+    def _make_organization_and_user_with_slack_identities(role: typing.Optional[LegacyAccessControlRole] = None):
         organization, slack_team_identity = make_organization_with_slack_team_identity()
         user, slack_user_identity = make_user_with_slack_user_identity(slack_team_identity, organization, role=role)
-
         return organization, user, slack_team_identity, slack_user_identity
 
     return _make_organization_and_user_with_slack_identities
 
 
 @pytest.fixture
-def make_user_with_slack_user_identity():
-    def _make_slack_user_identity_with_user(slack_team_identity, organization, role=Role.ADMIN, **kwargs):
-        slack_user_identity = SlackUserIdentityFactory(
-            slack_team_identity=slack_team_identity,
-            **kwargs,
-        )
-        user = UserFactory(slack_user_identity=slack_user_identity, organization=organization, role=role)
+def make_user_with_slack_user_identity(make_user):
+    def _make_slack_user_identity_with_user(
+        slack_team_identity, organization, role: typing.Optional[LegacyAccessControlRole] = None, **kwargs
+    ):
+        slack_user_identity = SlackUserIdentityFactory(slack_team_identity=slack_team_identity, **kwargs)
+        user = make_user(slack_user_identity=slack_user_identity, organization=organization, role=role)
         return user, slack_user_identity
 
     return _make_slack_user_identity_with_user
 
 
 @pytest.fixture
-def make_organization_with_slack_team_identity(make_slack_team_identity):
+def make_organization_with_slack_team_identity(make_slack_team_identity, make_organization):
     def _make_slack_team_identity_with_organization(**kwargs):
         slack_team_identity = make_slack_team_identity(**kwargs)
-        organization = OrganizationFactory(slack_team_identity=slack_team_identity)
+        organization = make_organization(slack_team_identity=slack_team_identity)
         return organization, slack_team_identity
 
     return _make_slack_team_identity_with_organization
@@ -555,10 +635,9 @@ def mock_start_disable_maintenance_task(monkeypatch):
 
 @pytest.fixture()
 def make_organization_and_user_with_plugin_token(make_organization_and_user, make_token_for_organization):
-    def _make_organization_and_user_with_plugin_token(role=Role.ADMIN):
-        organization, user = make_organization_and_user(role=role)
+    def _make_organization_and_user_with_plugin_token(role: typing.Optional[LegacyAccessControlRole] = None):
+        organization, user = make_organization_and_user(role)
         _, token = make_token_for_organization(organization)
-
         return organization, user, token
 
     return _make_organization_and_user_with_plugin_token
@@ -657,15 +736,29 @@ def make_integration_heartbeat():
     return _make_integration_heartbeat
 
 
-@pytest.fixture()
-def load_slack_urls(settings):
+def reload_urls(settings):
+    """
+    Reloads Django URLs, especially useful when testing conditionally registered URLs
+    """
+
     clear_url_caches()
-    settings.FEATURE_SLACK_INTEGRATION_ENABLED = True
     urlconf = settings.ROOT_URLCONF
     if urlconf in sys.modules:
         reload(sys.modules[urlconf])
     else:
         import_module(urlconf)
+
+
+@pytest.fixture()
+def load_slack_urls(settings):
+    settings.FEATURE_SLACK_INTEGRATION_ENABLED = True
+    reload_urls(settings)
+
+
+@pytest.fixture()
+def load_mobile_app_urls(settings):
+    settings.FEATURE_MOBILE_APP_INTEGRATION_ENABLED = True
+    reload_urls(settings)
 
 
 @pytest.fixture
@@ -686,3 +779,13 @@ def make_organization_and_region(make_organization, make_region):
         return organization, region
 
     return _make_organization_and_region
+
+
+@pytest.fixture()
+def make_organization_and_user_with_token(make_organization_and_user, make_public_api_token):
+    def _make_organization_and_user_with_token():
+        organization, user = make_organization_and_user()
+        _, token = make_public_api_token(user, organization)
+        return organization, user, token
+
+    return _make_organization_and_user_with_token

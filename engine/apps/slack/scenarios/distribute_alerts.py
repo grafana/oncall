@@ -14,6 +14,7 @@ from apps.alerts.incident_appearance.renderers.slack_renderer import AlertSlackR
 from apps.alerts.models import AlertGroup, AlertGroupLogRecord, AlertReceiveChannel, Invitation
 from apps.alerts.tasks import custom_button_result
 from apps.alerts.utils import render_curl_command
+from apps.api.permissions import RBACPermission
 from apps.slack.constants import CACHE_UPDATE_INCIDENT_SLACK_MESSAGE_LIFETIME, SLACK_RATE_LIMIT_DELAY
 from apps.slack.scenarios import scenario_step
 from apps.slack.scenarios.slack_renderer import AlertGroupLogSlackRenderer
@@ -31,7 +32,6 @@ from apps.slack.tasks import (
     update_incident_slack_message,
 )
 from apps.slack.utils import get_cache_key_update_incident_slack_message
-from common.constants.role import Role
 from common.utils import clean_markup, is_string_with_visible_characters
 
 from .step_mixins import CheckAlertIsUnarchivedMixin, IncidentActionsAccessControlMixin
@@ -222,7 +222,7 @@ class InviteOtherPersonToIncident(
         scenario_step.ScenarioStep.TAG_INCIDENT_ROUTINE,
     ]
 
-    ALLOWED_ROLES = [Role.ADMIN, Role.EDITOR]
+    REQUIRED_PERMISSIONS = [RBACPermission.Permissions.CHATOPS_WRITE]
     ACTION_VERBOSE = "invite to incident"
 
     def process_scenario(self, slack_user_identity, slack_team_identity, payload, action=None):
@@ -263,7 +263,7 @@ class SilenceGroupStep(
         scenario_step.ScenarioStep.TAG_INCIDENT_ROUTINE,
     ]
 
-    ALLOWED_ROLES = [Role.ADMIN, Role.EDITOR]
+    REQUIRED_PERMISSIONS = [RBACPermission.Permissions.CHATOPS_WRITE]
     ACTION_VERBOSE = "silence incident"
 
     def process_scenario(self, slack_user_identity, slack_team_identity, payload, action=None):
@@ -293,7 +293,7 @@ class UnSilenceGroupStep(
         scenario_step.ScenarioStep.TAG_INCIDENT_ROUTINE,
     ]
 
-    ALLOWED_ROLES = [Role.ADMIN, Role.EDITOR]
+    REQUIRED_PERMISSIONS = [RBACPermission.Permissions.CHATOPS_WRITE]
     ACTION_VERBOSE = "unsilence incident"
 
     def process_scenario(self, slack_user_identity, slack_team_identity, payload, action=None):
@@ -317,7 +317,7 @@ class SelectAttachGroupStep(
         scenario_step.ScenarioStep.TAG_INCIDENT_ROUTINE,
     ]
 
-    ALLOWED_ROLES = [Role.ADMIN, Role.EDITOR]
+    REQUIRED_PERMISSIONS = [RBACPermission.Permissions.CHATOPS_WRITE]
     ACTION_VERBOSE = "Select Incident for Attaching to"
 
     def process_scenario(self, slack_user_identity, slack_team_identity, payload, action=None):
@@ -473,7 +473,7 @@ class AttachGroupStep(
         scenario_step.ScenarioStep.TAG_INCIDENT_ROUTINE,
     ]
 
-    ALLOWED_ROLES = [Role.ADMIN, Role.EDITOR]
+    REQUIRED_PERMISSIONS = [RBACPermission.Permissions.CHATOPS_WRITE]
     ACTION_VERBOSE = "Attach incident"
 
     def process_signal(self, log_record):
@@ -536,7 +536,7 @@ class UnAttachGroupStep(
         scenario_step.ScenarioStep.TAG_INCIDENT_ROUTINE,
     ]
 
-    ALLOWED_ROLES = [Role.ADMIN, Role.EDITOR]
+    REQUIRED_PERMISSIONS = [RBACPermission.Permissions.CHATOPS_WRITE]
     ACTION_VERBOSE = "Unattach incident"
 
     def process_scenario(self, slack_user_identity, slack_team_identity, payload, action=None):
@@ -555,7 +555,7 @@ class StopInvitationProcess(CheckAlertIsUnarchivedMixin, IncidentActionsAccessCo
         scenario_step.ScenarioStep.TAG_INCIDENT_ROUTINE,
     ]
 
-    ALLOWED_ROLES = [Role.ADMIN, Role.EDITOR]
+    REQUIRED_PERMISSIONS = [RBACPermission.Permissions.CHATOPS_WRITE]
     ACTION_VERBOSE = "stop invitation"
 
     def process_scenario(self, slack_user_identity, slack_team_identity, payload, action=None):
@@ -580,7 +580,8 @@ class CustomButtonProcessStep(
         scenario_step.ScenarioStep.TAG_INCIDENT_ROUTINE,
     ]
 
-    ALLOWED_ROLES = [Role.ADMIN, Role.EDITOR]
+    # TODO:
+    REQUIRED_PERMISSIONS = [RBACPermission.Permissions.CHATOPS_WRITE]
     ACTION_VERBOSE = "click custom button"
 
     def process_scenario(self, slack_user_identity, slack_team_identity, payload, action=None):
@@ -642,7 +643,7 @@ class ResolveGroupStep(
         scenario_step.ScenarioStep.TAG_INCIDENT_ROUTINE,
     ]
 
-    ALLOWED_ROLES = [Role.ADMIN, Role.EDITOR]
+    REQUIRED_PERMISSIONS = [RBACPermission.Permissions.CHATOPS_WRITE]
     ACTION_VERBOSE = "resolve incident"
 
     def process_scenario(self, slack_user_identity, slack_team_identity, payload, action=None):
@@ -688,7 +689,7 @@ class UnResolveGroupStep(
         scenario_step.ScenarioStep.TAG_INCIDENT_ROUTINE,
     ]
 
-    ALLOWED_ROLES = [Role.ADMIN, Role.EDITOR]
+    REQUIRED_PERMISSIONS = [RBACPermission.Permissions.CHATOPS_WRITE]
     ACTION_VERBOSE = "unresolve incident"
 
     def process_scenario(self, slack_user_identity, slack_team_identity, payload, action=None):
@@ -711,7 +712,7 @@ class AcknowledgeGroupStep(
         scenario_step.ScenarioStep.TAG_INCIDENT_ROUTINE,
     ]
 
-    ALLOWED_ROLES = [Role.ADMIN, Role.EDITOR]
+    REQUIRED_PERMISSIONS = [RBACPermission.Permissions.CHATOPS_WRITE]
     ACTION_VERBOSE = "acknowledge incident"
 
     def process_scenario(self, slack_user_identity, slack_team_identity, payload, action=None):
@@ -737,7 +738,7 @@ class UnAcknowledgeGroupStep(
         scenario_step.ScenarioStep.TAG_INCIDENT_ROUTINE,
     ]
 
-    ALLOWED_ROLES = [Role.ADMIN, Role.EDITOR]
+    REQUIRED_PERMISSIONS = [RBACPermission.Permissions.CHATOPS_WRITE]
     ACTION_VERBOSE = "unacknowledge incident"
 
     def process_scenario(self, slack_user_identity, slack_team_identity, payload, action=None):

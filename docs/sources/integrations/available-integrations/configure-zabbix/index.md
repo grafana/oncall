@@ -15,7 +15,9 @@ weight: 500
 
 # Zabbix integration for Grafana OnCall
 
-Zabbix is an open-source monitoring software tool for diverse IT components, including networks, servers, virtual machines, and cloud services. Zabbix provides monitoring for metrics such as network utilization, CPU load, and disk space consumption.
+Zabbix is an open-source monitoring software tool for diverse IT components, including networks, servers, virtual
+machines, and cloud services. Zabbix provides monitoring for metrics such as network utilization, CPU load, and disk
+space consumption.
 
 ## Configure Zabbix integration for Grafana OnCall
 
@@ -44,13 +46,15 @@ This integration is available for Grafana Cloud OnCall. You must have an Admin r
    docker exec -it zabbix-appliance bash
    ```
 
-1. Place the [grafana_oncall.sh](#grafana_oncallsh-script) script in the `AlertScriptsPath` directory specified within the Zabbix server configuration file (zabbix_server.conf).
+1. Place the [grafana_oncall.sh](#grafana_oncallsh-script) script in the `AlertScriptsPath` directory specified within
+   the Zabbix server configuration file (zabbix_server.conf).
 
    ```bash
    grep AlertScriptsPath /etc/zabbix/zabbix_server.conf
    ```
 
-   > **Note:** The script must be executable by the user running the zabbix_server binary (usually "zabbix") on the Zabbix server. For example, `chmod +x grafana_oncall.sh`
+   > **Note:** The script must be executable by the user running the zabbix_server binary (usually "zabbix") on the
+   > Zabbix server. For example, `chmod +x grafana_oncall.sh`
 
    ```bash
    ls -lh /usr/lib/zabbix/alertscripts/grafana_oncall.sh
@@ -92,6 +96,7 @@ To send alerts to Grafana OnCall, the {ALERT.SEND_TO} value must be set in the [
 1. Specify **Send to** OnCall using the unique integration URL from the above step in the testing window that opens.  
    Create a test message with a body and optional subject and click **Test**.
    <!--![](../_images/zabbix-4.png)
+
         WHERE DID SLACK COME FROM?! 1. View the Grafana OnCall incident that appears in the Slack channel.
        ![](../_images/zabbix-5.png)-->
 
@@ -103,9 +108,11 @@ Use the following procedure to configure grouping and auto-resolve.
 1. Provide a parameter as an identifier for group differentiation to Grafana OnCall.
 
 1. Append that variable to the subject of the action as `ONCALL_GROUP: ID`, where `ID` is any of the Zabbix [macros](https://www.zabbix.com/documentation/4.2/manual/appendix/macros/supported_by_location).
-   For example, `{EVENT.ID}`. The Grafana OnCall script [grafana_oncall.sh](#grafana_oncallsh-script) extracts this event and passes the `alert_uid` to Grafana OnCall.
+   For example, `{EVENT.ID}`. The Grafana OnCall script [grafana_oncall.sh](#grafana_oncallsh-script) extracts this event
+   and passes the `alert_uid` to Grafana OnCall.
 
-1. To enable auto-resolve within Grafana Oncall, the "Resolved" keyword is required in the **Default subject** field in **Recovered operations**.
+1. To enable auto-resolve within Grafana Oncall, the "Resolved" keyword is required in the **Default subject** field
+   in **Recovered operations**.
 
 <!--![](../_images/zabbix-6.png)-->
 

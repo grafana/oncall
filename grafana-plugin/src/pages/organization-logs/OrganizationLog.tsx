@@ -1,7 +1,6 @@
 import React from 'react';
 
 import { Button, HorizontalGroup, Tag, Tooltip } from '@grafana/ui';
-import { PluginPage } from 'PluginPage';
 import cn from 'classnames/bind';
 import { debounce } from 'lodash-es';
 import { observer } from 'mobx-react';
@@ -96,41 +95,39 @@ class OrganizationLogPage extends React.Component<OrganizationLogProps, Organiza
     const loading = !results;
 
     return (
-      <PluginPage>
-        <div className={cx('root')}>
-          <OrganizationLogFilters value={filters} onChange={this.handleChangeOrganizationLogFilters} />
-          <GTable
-            rowKey="id"
-            title={() => (
-              <div className={cx('header')}>
-                <Text.Title className={cx('users-title')} level={3}>
-                  Organization Logs
-                </Text.Title>
-                <Button onClick={this.refresh} icon={loading ? 'fa fa-spinner' : 'sync'}>
-                  Refresh
-                </Button>
-              </div>
-            )}
-            showHeader={true}
-            data={results}
-            loading={loading}
-            emptyText={results ? 'No logs found' : 'Loading...'}
-            columns={columns}
-            pagination={{
-              page,
-              total: Math.ceil((total || 0) / ITEMS_PER_PAGE),
-              onChange: this.handleChangePage,
-            }}
-            rowClassName={cx('align-top')}
-            expandable={{
-              expandedRowRender: this.renderFullDescription,
-              expandRowByClick: true,
-              expandedRowKeys: expandedLogsKeys,
-              onExpandedRowsChange: this.handleExpandedRowsChange,
-            }}
-          />
-        </div>
-      </PluginPage>
+      <div className={cx('root')}>
+        <OrganizationLogFilters value={filters} onChange={this.handleChangeOrganizationLogFilters} />
+        <GTable
+          rowKey="id"
+          title={() => (
+            <div className={cx('header')}>
+              <Text.Title className={cx('users-title')} level={3}>
+                Organization Logs
+              </Text.Title>
+              <Button onClick={this.refresh} icon={loading ? 'fa fa-spinner' : 'sync'}>
+                Refresh
+              </Button>
+            </div>
+          )}
+          showHeader={true}
+          data={results}
+          loading={loading}
+          emptyText={results ? 'No logs found' : 'Loading...'}
+          columns={columns}
+          pagination={{
+            page,
+            total: Math.ceil((total || 0) / ITEMS_PER_PAGE),
+            onChange: this.handleChangePage,
+          }}
+          rowClassName={cx('align-top')}
+          expandable={{
+            expandedRowRender: this.renderFullDescription,
+            expandRowByClick: true,
+            expandedRowKeys: expandedLogsKeys,
+            onExpandedRowsChange: this.handleExpandedRowsChange,
+          }}
+        />
+      </div>
     );
   }
 

@@ -1,7 +1,6 @@
 import datetime
 from urllib.parse import urljoin
 
-import pytz
 import requests
 from django.conf import settings
 from django.utils import dateparse, timezone
@@ -9,6 +8,7 @@ from icalendar import Calendar
 from rest_framework import serializers
 
 from common.api_helpers.exceptions import BadRequest
+from common.timezones import raise_exception_if_not_valid_timezone
 
 
 class CurrentOrganizationDefault:
@@ -84,10 +84,7 @@ def get_date_range_from_request(request):
     Used mainly for schedules and shifts API.
     """
     user_tz = request.query_params.get("user_tz", "UTC")
-    try:
-        pytz.timezone(user_tz)
-    except pytz.exceptions.UnknownTimeZoneError:
-        raise BadRequest(detail="Invalid tz format")
+    raise_exception_if_not_valid_timezone(user_tz)
 
     date = timezone.now().date()
     date_param = request.query_params.get("date")

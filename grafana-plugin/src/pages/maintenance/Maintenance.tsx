@@ -1,8 +1,6 @@
 import React from 'react';
 
-import { AppRootProps } from '@grafana/data';
 import { Button, VerticalGroup } from '@grafana/ui';
-import { PluginPage } from 'PluginPage';
 import cn from 'classnames/bind';
 import { observer } from 'mobx-react';
 import moment from 'moment-timezone';
@@ -17,16 +15,15 @@ import { WithPermissionControl } from 'containers/WithPermissionControl/WithPerm
 import { getAlertReceiveChannelDisplayName } from 'models/alert_receive_channel/alert_receive_channel.helpers';
 import { AlertReceiveChannel } from 'models/alert_receive_channel/alert_receive_channel.types';
 import { Maintenance, MaintenanceMode, MaintenanceType } from 'models/maintenance/maintenance.types';
-import { pages } from 'pages';
-import { WithStoreProps } from 'state/types';
-import { UserAction } from 'state/userAction';
+import { PageProps, WithStoreProps } from 'state/types';
 import { withMobXProviderContext } from 'state/withStore';
+import { UserActions } from 'utils/authorization';
 
 import styles from './Maintenance.module.css';
 
 const cx = cn.bind(styles);
 
-interface MaintenancePageProps extends AppRootProps, WithStoreProps {}
+interface MaintenancePageProps extends PageProps, WithStoreProps {}
 
 interface MaintenancePageState {
   maintenanceData?: {
@@ -118,7 +115,7 @@ class MaintenancePage extends React.Component<MaintenancePageProps, MaintenanceP
     ];
 
     return (
-      <PluginPage pageNav={pages['maintenance'].getPageNav()}>
+      <>
         <div className={cx('root')}>
           <GTable
             emptyText={data ? 'No maintenances found' : 'Loading...'}
@@ -134,7 +131,7 @@ class MaintenancePage extends React.Component<MaintenancePageProps, MaintenanceP
                     </Text>
                   </VerticalGroup>
                 </div>
-                <WithPermissionControl userAction={UserAction.UpdateMaintenances}>
+                <WithPermissionControl userAction={UserActions.MaintenanceWrite}>
                   <Button
                     onClick={() => {
                       this.setState({ maintenanceData: {} });
@@ -161,7 +158,7 @@ class MaintenancePage extends React.Component<MaintenancePageProps, MaintenanceP
             }}
           />
         )}
-      </PluginPage>
+      </>
     );
   }
 
@@ -188,7 +185,7 @@ class MaintenancePage extends React.Component<MaintenancePageProps, MaintenanceP
   renderActionButtons = (maintenance: Maintenance) => {
     return (
       <div className={cx('buttons')}>
-        <WithPermissionControl userAction={UserAction.UpdateMaintenances}>
+        <WithPermissionControl userAction={UserActions.MaintenanceWrite}>
           <WithConfirm title="Are you sure to stop?" confirmText="Stop">
             <Button variant="destructive" fill="text" onClick={this.getStopMaintenanceHandler(maintenance)}>
               Stop
