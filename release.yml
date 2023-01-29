@@ -1,0 +1,10 @@
+changelog:
+  exclude:
+    labels:
+      - ignore-for-release
+    authors:
+      - github-actions
+  categories:
+    - title: What's Changed
+      labels:
+        - "*"
