@@ -220,6 +220,7 @@ INSTALLED_APPS = [
     "social_django",
     "polymorphic",
     "fcm_django",
+    "django_migration_linter",
 ]
 
 REST_FRAMEWORK = {
@@ -666,3 +667,8 @@ if PYROSCOPE_PROFILER_ENABLED:
             "celery_worker": os.getenv("CELERY_WORKER_QUEUE", None),
         },
     )
+
+MIGRATION_LINTER_OVERRIDE_MAKEMIGRATIONS = True
+MIGRATION_LINTER_OPTIONS = {
+    "git_commit_id": "7bb4fdfe43e554f6fdeaa699efcf6f2389118bed",
+}
