@@ -15,6 +15,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
+from apps.alerts.paging import check_user_availability
 from apps.api.permissions import (
     IsOwnerOrHasRBACPermissions,
     LegacyAccessControlRole,
@@ -48,6 +49,7 @@ from common.insight_log import (
 
 logger = logging.getLogger(__name__)
 IsOwnerOrHasUserSettingsAdminPermission = IsOwnerOrHasRBACPermissions([RBACPermission.Permissions.USER_SETTINGS_ADMIN])
+IsOwnerOrHasUserSettingsReadPermission = IsOwnerOrHasRBACPermissions([RBACPermission.Permissions.USER_SETTINGS_READ])
 
 
 class CurrentUserView(APIView):
@@ -113,6 +115,7 @@ class UserView(
     rbac_permissions = {
         "retrieve": [RBACPermission.Permissions.USER_SETTINGS_READ],
         "timezone_options": [RBACPermission.Permissions.USER_SETTINGS_READ],
+        "check_availability": [RBACPermission.Permissions.USER_SETTINGS_READ],
         "metadata": [RBACPermission.Permissions.USER_SETTINGS_WRITE],
         "list": [RBACPermission.Permissions.USER_SETTINGS_WRITE],
         "update": [RBACPermission.Permissions.USER_SETTINGS_WRITE],
@@ -147,6 +150,9 @@ class UserView(
             "unlink_backend",
             "make_test_call",
             "export_token",
+        ],
+        IsOwnerOrHasUserSettingsReadPermission: [
+            "check_availability",
         ],
     }
 
@@ -468,3 +474,9 @@ class UserView(
             except UserScheduleExportAuthToken.DoesNotExist:
                 raise NotFound
             return Response(status=status.HTTP_204_NO_CONTENT)
+
+    @action(detail=True, methods=["get"])
+    def check_availability(self, request, pk):
+        user = self.get_object()
+        warnings = check_user_availability(user=user, team=request.user.current_team)
+        return Response(data={"warnings": warnings}, status=status.HTTP_200_OK)

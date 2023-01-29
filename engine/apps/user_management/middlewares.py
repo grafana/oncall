@@ -1,12 +1,13 @@
 import logging
 
 import requests
-from django.http import HttpResponse
+from django.http import HttpResponse, JsonResponse
 from django.utils.deprecation import MiddlewareMixin
 from rest_framework import status
 
-from apps.user_management.models.region import OrganizationMovedException
 from common.api_helpers.utils import create_engine_url
+
+from .exceptions import OrganizationDeletedException, OrganizationMovedException
 
 logger = logging.getLogger(__name__)
 
@@ -45,3 +46,10 @@ class OrganizationMovedMiddleware(MiddlewareMixin):
             return requests.delete(url, headers=headers)
         elif method == "OPTIONS":
             return requests.options(url, headers=headers)
+
+
+class OrganizationDeletedMiddleware(MiddlewareMixin):
+    def process_exception(self, request, exception):
+        if isinstance(exception, OrganizationDeletedException):
+            # Return drf-shaped not-found response to keep responses consistent
+            return JsonResponse(status=status.HTTP_404_NOT_FOUND, data={"detail": "Not found."})

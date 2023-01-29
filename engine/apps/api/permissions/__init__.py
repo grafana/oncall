@@ -1,6 +1,7 @@
 import enum
 import typing
 
+from django.conf import settings
 from rest_framework import permissions
 from rest_framework.authentication import BasicAuthentication, SessionAuthentication
 from rest_framework.request import Request
@@ -72,6 +73,17 @@ def get_most_authorized_role(
 
 
 def user_is_authorized(user, required_permissions: typing.List[LegacyAccessControlCompatiblePermission]) -> bool:
+    """
+    This function checks whether `user` has all permissions in `required_permissions`. RBAC permissions are used
+    if RBAC is enabled for the organization, otherwise the fallback basic role is checked.
+
+    Parameters
+    ----------
+    user : apps.user_management.models.user.User
+        The user to check permissions for
+    required_permissions : typing.List[LegacyAccessControlCompatiblePermission]
+        A list of permissions that a user must have to be considered authorized
+    """
     if user.organization.is_rbac_permissions_enabled:
         user_permissions = [u["action"] for u in user.permissions]
         required_permissions = [p.value for p in required_permissions]
@@ -184,6 +196,11 @@ class RBACPermission(permissions.BasePermission):
         return view.action if isinstance(view, ViewSetMixin) else request.method.lower()
 
     def has_permission(self, request: Request, view: ViewSetOrAPIView) -> bool:
+        # the django-debug-toolbar UI makes OPTIONS calls. Without this statement the debug UI can't gather the
+        # necessary info it needs to work properly
+        if settings.DEBUG and request.method == "OPTIONS":
+            return True
+
         action = self._get_view_action(request, view)
 
         rbac_permissions: RBACPermissionsAttribute = getattr(view, RBAC_PERMISSIONS_ATTR, None)

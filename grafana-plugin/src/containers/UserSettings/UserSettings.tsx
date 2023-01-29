@@ -49,25 +49,18 @@ const UserSettings = observer(({ id, onHide, tab = UserSettingsTab.UserInfo }: U
     setActiveTab(tab);
   }, []);
 
-  const isModalWide =
-    !isDesktopOrLaptop ||
-    activeTab === UserSettingsTab.UserInfo ||
-    activeTab === UserSettingsTab.PhoneVerification ||
-    activeTab === UserSettingsTab.MobileAppVerification;
-
-  const [showNotificationSettingsTab, showSlackConnectionTab, showTelegramConnectionTab, showMobileAppVerificationTab] =
-    [
-      !isDesktopOrLaptop,
-      isCurrent && teamStore.currentTeam?.slack_team_identity && !storeUser.slack_user_identity,
-      isCurrent && !storeUser.telegram_configuration,
-      isCurrent && store.hasFeature(AppFeature.MobileApp) && isUserActionAllowed(UserActions.UserSettingsWrite),
-    ];
+  const [showNotificationSettingsTab, showSlackConnectionTab, showTelegramConnectionTab, showMobileAppConnectionTab] = [
+    !isDesktopOrLaptop,
+    isCurrent && teamStore.currentTeam?.slack_team_identity && !storeUser.slack_user_identity,
+    isCurrent && !storeUser.telegram_configuration,
+    isCurrent && store.hasFeature(AppFeature.MobileApp) && isUserActionAllowed(UserActions.UserSettingsWrite),
+  ];
 
   return (
     <>
       <Modal
         title={`${storeUser.username}`}
-        className={cx('modal', { 'modal-wide': isModalWide })}
+        className={cx('modal', 'modal-wide')}
         isOpen
         closeOnEscape={false}
         onDismiss={onHide}
@@ -79,7 +72,7 @@ const UserSettings = observer(({ id, onHide, tab = UserSettingsTab.UserInfo }: U
             showNotificationSettingsTab={showNotificationSettingsTab}
             showSlackConnectionTab={showSlackConnectionTab}
             showTelegramConnectionTab={showTelegramConnectionTab}
-            showMobileAppVerificationTab={showMobileAppVerificationTab}
+            showMobileAppConnectionTab={showMobileAppConnectionTab}
           />
           <TabsContent id={id} activeTab={activeTab} onTabChange={onTabChange} isDesktopOrLaptop={isDesktopOrLaptop} />
         </div>

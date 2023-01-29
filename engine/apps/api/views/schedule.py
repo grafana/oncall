@@ -24,6 +24,7 @@ from apps.auth_token.auth import PluginAuthentication
 from apps.auth_token.constants import SCHEDULE_EXPORT_TOKEN_NAME
 from apps.auth_token.models import ScheduleExportAuthToken
 from apps.schedules.models import OnCallSchedule
+from apps.schedules.quality_score import get_schedule_quality_score
 from apps.slack.models import SlackChannel
 from apps.slack.tasks import update_slack_user_group_for_schedules
 from common.api_helpers.exceptions import BadRequest, Conflict
@@ -64,6 +65,7 @@ class ScheduleView(
         "events": [RBACPermission.Permissions.SCHEDULES_READ],
         "filter_events": [RBACPermission.Permissions.SCHEDULES_READ],
         "next_shifts_per_user": [RBACPermission.Permissions.SCHEDULES_READ],
+        "quality": [RBACPermission.Permissions.SCHEDULES_READ],
         "notify_empty_oncall_options": [RBACPermission.Permissions.SCHEDULES_READ],
         "notify_oncall_shift_freq_options": [RBACPermission.Permissions.SCHEDULES_READ],
         "mention_options": [RBACPermission.Permissions.SCHEDULES_READ],
@@ -102,9 +104,19 @@ class ScheduleView(
 
         return user_group.can_be_updated
 
+    @cached_property
+    def oncall_users(self):
+        """
+        The result of this method is cached and is reused for the whole lifetime of a request,
+        since self.get_serializer_context() is called multiple times for every instance in the queryset.
+        """
+        queryset = self.get_queryset()
+        return queryset.get_oncall_users()
+
     def get_serializer_context(self):
         context = super().get_serializer_context()
         context.update({"can_update_user_groups": self.can_update_user_groups})
+        context.update({"oncall_users": self.oncall_users})
         return context
 
     def _annotate_queryset(self, queryset):
@@ -133,9 +145,7 @@ class ScheduleView(
         organization = self.request.auth.organization
         queryset = OnCallSchedule.objects.filter(organization=organization, team=self.request.user.current_team).defer(
             # avoid requesting large text fields which are not used when listing schedules
-            "cached_ical_file_primary",
             "prev_ical_file_primary",
-            "cached_ical_file_overrides",
             "prev_ical_file_overrides",
         )
         if not is_short_request:
@@ -309,6 +319,17 @@ class ScheduleView(
 
         result = [{"name": e.name, "pk": e.public_primary_key} for e in escalation_chains]
         return Response(result, status=status.HTTP_200_OK)
+
+    @action(detail=True, methods=["get"])
+    def quality(self, request, pk):
+        schedule = self.get_object()
+        user_tz, date = self.get_request_timezone()
+        days = int(self.request.query_params.get("days", 90))  # todo: check if days could be calculated more precisely
+
+        events = schedule.filter_events(user_tz, date, days=days, with_empty=True, with_gap=True)
+
+        schedule_score = get_schedule_quality_score(events, days)
+        return Response(schedule_score)
 
     @action(detail=False, methods=["get"])
     def type_options(self, request):

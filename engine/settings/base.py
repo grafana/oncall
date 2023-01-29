@@ -252,6 +252,7 @@ MIDDLEWARE = [
     "apps.social_auth.middlewares.SocialAuthAuthCanceledExceptionMiddleware",
     "apps.integrations.middlewares.IntegrationExceptionMiddleware",
     "apps.user_management.middlewares.OrganizationMovedMiddleware",
+    "apps.user_management.middlewares.OrganizationDeletedMiddleware",
 ]
 
 LOG_REQUEST_ID_HEADER = "HTTP_X_CLOUD_TRACE_CONTEXT"
@@ -464,14 +465,23 @@ INTERNAL_IPS = ["127.0.0.1"]
 
 SELF_IP = os.environ.get("SELF_IP")
 
-SILK_PATH = os.environ.get("SILK_PATH", "silk/")
-SILKY_AUTHENTICATION = True
-SILKY_AUTHORISATION = True
-SILKY_META = True
-SILKY_INTERCEPT_PERCENT = 1
-SILKY_MAX_RECORDED_REQUESTS = 10**4
+SILK_PROFILER_ENABLED = getenv_boolean("SILK_PROFILER_ENABLED", default=False)
+if SILK_PROFILER_ENABLED:
+    SILK_PATH = os.environ.get("SILK_PATH", "silk/")
+    SILKY_INTERCEPT_PERCENT = getenv_integer("SILKY_INTERCEPT_PERCENT", 100)
 
-INSTALLED_APPS += ["silk"]
+    INSTALLED_APPS += ["silk"]
+    MIDDLEWARE += ["silk.middleware.SilkyMiddleware"]
+
+    SILKY_AUTHENTICATION = True
+    SILKY_AUTHORISATION = True
+    SILKY_PYTHON_PROFILER_BINARY = getenv_boolean("SILKY_PYTHON_PROFILER_BINARY", default=False)
+    SILKY_MAX_RECORDED_REQUESTS = 10**4
+    SILKY_PYTHON_PROFILER = True
+    SILKY_IGNORE_PATHS = ["/health/", "/ready/"]
+    if "SILKY_PYTHON_PROFILER_RESULT_PATH" in os.environ:
+        SILKY_PYTHON_PROFILER_RESULT_PATH = os.environ.get("SILKY_PYTHON_PROFILER_RESULT_PATH")
+
 # get ONCALL_DJANGO_ADMIN_PATH from env and add trailing / to it
 ONCALL_DJANGO_ADMIN_PATH = os.environ.get("ONCALL_DJANGO_ADMIN_PATH", "django-admin") + "/"
 
@@ -495,6 +505,7 @@ SLACK_CLIENT_OAUTH_ID = os.environ.get("SLACK_CLIENT_OAUTH_ID")
 SLACK_CLIENT_OAUTH_SECRET = os.environ.get("SLACK_CLIENT_OAUTH_SECRET")
 
 SLACK_SLASH_COMMAND_NAME = os.environ.get("SLACK_SLASH_COMMAND_NAME", "/oncall")
+SLACK_DIRECT_PAGING_SLASH_COMMAND = os.environ.get("SLACK_DIRECT_PAGING_SLASH_COMMAND", "/escalate")
 
 SOCIAL_AUTH_SLACK_LOGIN_KEY = SLACK_CLIENT_OAUTH_ID
 SOCIAL_AUTH_SLACK_LOGIN_SECRET = SLACK_CLIENT_OAUTH_SECRET
@@ -617,6 +628,7 @@ INSTALLED_ONCALL_INTEGRATIONS = [
     "config_integrations.manual",
     "config_integrations.slack_channel",
     "config_integrations.zabbix",
+    "config_integrations.direct_paging",
 ]
 
 if OSS_INSTALLATION:
@@ -646,3 +658,17 @@ MIGRATION_LINTER_OVERRIDE_MAKEMIGRATIONS = True
 MIGRATION_LINTER_OPTIONS = {
     "git_commit_id": "7bb4fdfe43e554f6fdeaa699efcf6f2389118bed",
 }
+
+PYROSCOPE_PROFILER_ENABLED = getenv_boolean("PYROSCOPE_PROFILER_ENABLED", default=False)
+if PYROSCOPE_PROFILER_ENABLED:
+    import pyroscope
+
+    pyroscope.configure(
+        application_name=os.getenv("PYROSCOPE_APPLICATION_NAME", "oncall"),
+        server_address=os.getenv("PYROSCOPE_SERVER_ADDRESS", "http://pyroscope:4040"),
+        auth_token=os.getenv("PYROSCOPE_AUTH_TOKEN", ""),
+        detect_subprocesses=True,
+        tags={
+            "celery_worker": os.getenv("CELERY_WORKER_QUEUE", None),
+        },
+    )

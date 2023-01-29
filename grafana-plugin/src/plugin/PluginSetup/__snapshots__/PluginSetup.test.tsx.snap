@@ -1,5 +1,41 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
+exports[`PluginSetup app initialized with topnavbar = false 1`] = `
+<div>
+  <div
+    class="spin"
+  >
+    <img
+      alt="Grafana OnCall Logo"
+      src="[object Object]"
+    />
+    <div
+      class="spin-text"
+    >
+      Initializing plugin...
+    </div>
+  </div>
+</div>
+`;
+
+exports[`PluginSetup app initialized with topnavbar = true 1`] = `
+<div>
+  <div
+    class="spin"
+  >
+    <img
+      alt="Grafana OnCall Logo"
+      src="[object Object]"
+    />
+    <div
+      class="spin-text"
+    >
+      Initializing plugin...
+    </div>
+  </div>
+</div>
+`;
+
 exports[`PluginSetup app is loading 1`] = `
 <div>
   <div
