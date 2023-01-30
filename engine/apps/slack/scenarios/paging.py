@@ -559,20 +559,37 @@ def _get_users_select(organization, team, input_id_prefix):
         }
         for user in users
     ]
+
     if not user_options:
-        user_select = {"type": "context", "elements": [{"type": "mrkdwn", "text": "No users available"}]}
+        return {"type": "context", "elements": [{"type": "mrkdwn", "text": "No users available"}]}
+
+    user_select = {
+        "type": "section",
+        "text": {"type": "mrkdwn", "text": "Add responders"},
+        "block_id": input_id_prefix + DIRECT_PAGING_USER_SELECT_ID,
+        "accessory": {
+            "type": "static_select",
+            "placeholder": {"type": "plain_text", "text": "Select a user", "emoji": True},
+            "action_id": OnPagingUserChange.routing_uid(),
+        },
+    }
+
+    if len(user_options) > scenario_step.MAX_STATIC_SELECT_OPTIONS:
+        # paginate user options in groups
+        max_length = scenario_step.MAX_STATIC_SELECT_OPTIONS
+        chunks = [user_options[x : x + max_length] for x in range(0, len(user_options), max_length)]
+        option_groups = [
+            {
+                "label": {"type": "plain_text", "text": f"({(i * max_length)+1}-{(i * max_length)+max_length})"},
+                "options": group,
+            }
+            for i, group in enumerate(chunks)
+        ]
+        user_select["accessory"]["option_groups"] = option_groups
+
     else:
-        user_select = {
-            "type": "section",
-            "text": {"type": "mrkdwn", "text": "Add responders"},
-            "block_id": input_id_prefix + DIRECT_PAGING_USER_SELECT_ID,
-            "accessory": {
-                "type": "static_select",
-                "placeholder": {"type": "plain_text", "text": "Select a user", "emoji": True},
-                "options": user_options,
-                "action_id": OnPagingUserChange.routing_uid(),
-            },
-        }
+        user_select["accessory"]["options"] = user_options
+
     return user_select
 
 
