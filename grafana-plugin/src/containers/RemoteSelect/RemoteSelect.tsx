@@ -1,10 +1,11 @@
-import React, { useCallback, useEffect, useMemo, useReducer } from 'react';
+import React, { useCallback, useEffect, useMemo, useReducer, useState } from 'react';
 
 import { SelectableValue } from '@grafana/data';
 import { AsyncMultiSelect, AsyncSelect } from '@grafana/ui';
 import { inject, observer } from 'mobx-react';
 
-import { makeRequest } from 'network';
+import { makeRequest, isNetworkError } from 'network';
+import { UserAction, generateMissingPermissionMessage } from 'utils/authorization';
 
 interface RemoteSelectProps {
   autoFocus?: boolean;
@@ -24,6 +25,7 @@ interface RemoteSelectProps {
   getOptionLabel?: (item: SelectableValue) => React.ReactNode;
   showError?: boolean;
   maxMenuHeight?: number;
+  requiredUserAction?: UserAction;
 }
 
 const RemoteSelect = inject('store')(
@@ -45,9 +47,12 @@ const RemoteSelect = inject('store')(
       openMenuOnFocus = true,
       showError,
       maxMenuHeight,
+      requiredUserAction,
     } = props;
 
-    const getOptions = (data: any[]) => {
+    const [noOptionsMessage, setNoOptionsMessage] = useState<string>('No options found');
+
+    const getOptions = (data: any[]): SelectableValue[] => {
       return data.map((option: any) => ({
         value: option[valueField],
         label: option[fieldToShow],
@@ -62,17 +67,23 @@ const RemoteSelect = inject('store')(
 
     const [options, setOptions] = useReducer(mergeOptions, []);
 
-    useEffect(() => {
-      makeRequest(href, {}).then((data) => {
-        setOptions(getOptions(data.results || data));
-      });
+    const loadOptionsCallback = useCallback(async (query?: string): Promise<SelectableValue[]> => {
+      try {
+        const data = await makeRequest(href, { params: { search: query } });
+        const options = getOptions(data.results || data);
+        setOptions(options);
+
+        return options;
+      } catch (e) {
+        if (isNetworkError(e) && e.response.status === 403 && requiredUserAction) {
+          setNoOptionsMessage(generateMissingPermissionMessage(requiredUserAction));
+        }
+        return [];
+      }
     }, []);
 
-    const loadOptionsCallback = useCallback((query: string) => {
-      return makeRequest(href, { params: { search: query } }).then((data) => {
-        setOptions(getOptions(data.results || data));
-        return getOptions(data.results || data);
-      });
+    useEffect(() => {
+      loadOptionsCallback();
     }, []);
 
     const onChangeCallback = useCallback(
@@ -119,6 +130,7 @@ const RemoteSelect = inject('store')(
         defaultOptions={options}
         loadOptions={loadOptionsCallback}
         getOptionLabel={getOptionLabel}
+        noOptionsMessage={noOptionsMessage}
         invalid={showError}
       />
     );
