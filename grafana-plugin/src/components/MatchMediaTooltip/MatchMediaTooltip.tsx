@@ -16,9 +16,6 @@ const DEBOUNCE_MS = 200;
 
 export const MatchMediaTooltip: FC<MatchMediaTooltipProps> = ({ minWidth, maxWidth, placement, content, children }) => {
   const [match, setMatch] = useState<MediaQueryList>(getMatch());
-  if (!match) {
-    return <>{children}</>;
-  }
 
   useEffect(() => {
     const debouncedResize = debounce(DEBOUNCE_MS, onWindowResize);
@@ -28,7 +25,7 @@ export const MatchMediaTooltip: FC<MatchMediaTooltipProps> = ({ minWidth, maxWid
     };
   }, []);
 
-  if (match.matches) {
+  if (match?.matches) {
     return (
       <Tooltip placement={placement} content={content}>
         {children}
