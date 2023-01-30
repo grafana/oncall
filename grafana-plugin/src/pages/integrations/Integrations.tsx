@@ -61,7 +61,10 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
   }
 
   setSelectedAlertReceiveChannel = (alertReceiveChannelId: AlertReceiveChannel['id']) => {
-    if (!this.isMounted) return;
+    if (!this.isMounted) {
+      return;
+    }
+
     const { store, history } = this.props;
     store.selectedAlertReceiveChannel = alertReceiveChannelId;
     history.push(`${PLUGIN_ROOT}/integrations/${alertReceiveChannelId || ''}`);
