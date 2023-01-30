@@ -1,8 +1,9 @@
-import React, { FC } from 'react';
+import React, { FC, useEffect, useState } from 'react';
 
 import { Tooltip } from '@grafana/ui';
+import { debounce } from 'throttle-debounce';
 
-interface MediaMatchTooltipProps {
+interface MatchMediaTooltipProps {
   placement: 'top' | 'bottom' | 'right' | 'left';
   content: string;
   children: JSX.Element;
@@ -11,18 +12,21 @@ interface MediaMatchTooltipProps {
   minWidth?: number;
 }
 
-export const MatchMediaTooltip: FC<MediaMatchTooltipProps> = ({ minWidth, maxWidth, placement, content, children }) => {
-  let match: MediaQueryList;
+const DEBOUNCE_MS = 200;
 
-  if (minWidth && maxWidth) {
-    match = window.matchMedia(`(min-width: ${minWidth}px) and (max-width: ${maxWidth}px)`);
-  } else if (minWidth) {
-    match = window.matchMedia(`(min-width: ${minWidth}px)`);
-  } else if (maxWidth) {
-    match = window.matchMedia(`(max-width: ${maxWidth}px)`);
-  } else {
+export const MatchMediaTooltip: FC<MatchMediaTooltipProps> = ({ minWidth, maxWidth, placement, content, children }) => {
+  const [match, setMatch] = useState<MediaQueryList>(getMatch());
+  if (!match) {
     return <>{children}</>;
   }
+
+  useEffect(() => {
+    const debouncedResize = debounce(DEBOUNCE_MS, onWindowResize);
+    window.addEventListener('resize', debouncedResize);
+    return () => {
+      window.removeEventListener('resize', debouncedResize);
+    };
+  }, []);
 
   if (match.matches) {
     return (
@@ -33,4 +37,20 @@ export const MatchMediaTooltip: FC<MediaMatchTooltipProps> = ({ minWidth, maxWid
   }
 
   return <>{children}</>;
+
+  function onWindowResize() {
+    setMatch(getMatch());
+  }
+
+  function getMatch() {
+    if (minWidth && maxWidth) {
+      return window.matchMedia(`(min-width: ${minWidth}px) and (max-width: ${maxWidth}px)`);
+    } else if (minWidth) {
+      return window.matchMedia(`(min-width: ${minWidth}px)`);
+    } else if (maxWidth) {
+      return window.matchMedia(`(max-width: ${maxWidth}px)`);
+    }
+
+    return undefined;
+  }
 };
