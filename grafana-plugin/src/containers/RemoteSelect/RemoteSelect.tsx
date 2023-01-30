@@ -2,10 +2,9 @@ import React, { useCallback, useEffect, useMemo, useReducer, useState } from 're
 
 import { SelectableValue } from '@grafana/data';
 import { AsyncMultiSelect, AsyncSelect } from '@grafana/ui';
-import axios from 'axios';
 import { inject, observer } from 'mobx-react';
 
-import { makeRequest } from 'network';
+import { makeRequest, isNetworkError } from 'network';
 import { UserAction, generateMissingPermissionMessage } from 'utils/authorization';
 
 interface RemoteSelectProps {
@@ -76,7 +75,7 @@ const RemoteSelect = inject('store')(
 
         return options;
       } catch (e) {
-        if (axios.isAxiosError(e) && e.response.status === 403 && requiredUserAction) {
+        if (isNetworkError(e) && e.response.status === 403 && requiredUserAction) {
           setNoOptionsMessage(generateMissingPermissionMessage(requiredUserAction));
         }
         return [];
