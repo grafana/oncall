@@ -8,9 +8,13 @@ import { pages } from 'pages';
 import { isTopNavbar } from 'plugin/GrafanaPluginRootPage.helpers';
 import { useStore } from 'state/useStore';
 
-export const PluginPage = (isTopNavbar() ? RealPlugin : PluginPageFallback) as React.ComponentType<PluginPageProps>;
+interface AppPluginPageProps extends PluginPageProps {
+  page?: string;
+}
 
-function RealPlugin(props: PluginPageProps): React.ReactNode {
+export const PluginPage = (isTopNavbar() ? RealPlugin : PluginPageFallback) as React.ComponentType<AppPluginPageProps>;
+
+function RealPlugin(props: AppPluginPageProps): React.ReactNode {
   const { page } = props;
   const store = useStore();
 
