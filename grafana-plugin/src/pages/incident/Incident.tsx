@@ -297,7 +297,10 @@ class IncidentPage extends React.Component<IncidentPageProps, IncidentPageState>
             </HorizontalGroup>
 
             <HorizontalGroup>
-              <PluginLink query={{ page: 'integrations', id: incident.alert_receive_channel.id }}>
+              <PluginLink
+                disabled={incident.alert_receive_channel.deleted}
+                query={{ page: 'integrations', id: incident.alert_receive_channel.id }}
+              >
                 <Button disabled={incident.alert_receive_channel.deleted} variant="secondary" size="sm" icon="compass">
                   Go to Integration
                 </Button>

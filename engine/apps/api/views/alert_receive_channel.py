@@ -136,6 +136,10 @@ class AlertReceiveChannelView(
             )
             if eager:
                 queryset = self.serializer_class.setup_eager_loading(queryset)
+
+        # Hide direct paging integrations
+        queryset = queryset.exclude(integration=AlertReceiveChannel.INTEGRATION_DIRECT_PAGING)
+
         return queryset
 
     @action(detail=True, methods=["post"], throttle_classes=[DemoAlertThrottler])

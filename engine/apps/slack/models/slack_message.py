@@ -212,29 +212,7 @@ class SlackMessage(models.Model):
 
                 if slack_user_identity.slack_id not in channel_members:
                     time.sleep(5)  # 2 messages in the same moment are ratelimited by Slack. Dirty hack.
-                    result = sc.api_call(
-                        "chat.postMessage",
-                        channel=channel_id,
-                        text=f":warning: Tried to ask {user_verbal} to look at incident. "
-                        f"Unfortunately {user_verbal} is not in this channel. Please, invite.",
-                    )
-                    SlackMessage(
-                        slack_id=result["ts"],
-                        organization=self.organization,
-                        _slack_team_identity=self.slack_team_identity,
-                        channel_id=channel_id,
-                        alert_group=alert_group,
-                    ).save()
-                    UserNotificationPolicyLogRecord(
-                        author=user,
-                        type=UserNotificationPolicyLogRecord.TYPE_PERSONAL_NOTIFICATION_FAILED,
-                        notification_policy=notification_policy,
-                        alert_group=alert_group,
-                        reason="User is not in Slack channel",
-                        notification_step=notification_policy.step,
-                        notification_channel=notification_policy.notify_by,
-                        notification_error_code=UserNotificationPolicyLogRecord.ERROR_NOTIFICATION_IN_SLACK_USER_NOT_IN_CHANNEL,
-                    ).save()
+                    slack_user_identity.send_link_to_slack_message(slack_message)
         except SlackAPITokenException as e:
             print(e)
         except SlackAPIException as e:
