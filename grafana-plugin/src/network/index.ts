@@ -34,6 +34,8 @@ interface RequestConfig {
   validateStatus?: (status: number) => boolean;
 }
 
+export const isNetworkError = axios.isAxiosError;
+
 export const makeRequest = async <RT = any>(path: string, config: RequestConfig) => {
   const { method = 'GET', params, data, validateStatus } = config;
 
