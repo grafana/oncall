@@ -280,6 +280,19 @@ def test_direct_paging_custom_chain(
 
 
 @pytest.mark.django_db
+def test_direct_paging_returns_alert_group(make_organization, make_user_for_organization):
+    organization = make_organization()
+    user = make_user_for_organization(organization)
+    from_user = make_user_for_organization(organization)
+
+    with patch("apps.alerts.paging.notify_user_task"):
+        alert_group = direct_paging(organization, None, from_user, title="Help!", message="Fire", users=[(user, False)])
+
+    # check alert group returned by direct paging is the same as the one created
+    assert alert_group == AlertGroup.all_objects.get()
+
+
+@pytest.mark.django_db
 def test_unpage_user_not_exists(
     make_organization, make_user_for_organization, make_alert_receive_channel, make_alert_group
 ):
