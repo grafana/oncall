@@ -76,7 +76,6 @@ class Users extends React.Component<UsersProps, UsersState> {
     const { userStore } = store;
 
     if (!isUserActionAllowed(REQUIRED_PERMISSION_TO_VIEW_USERS)) {
-      this.setState({ initialUsersLoaded: true });
       return;
     }
 
