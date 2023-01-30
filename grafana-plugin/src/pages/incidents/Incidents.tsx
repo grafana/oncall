@@ -103,14 +103,19 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
   render() {
     const { showAddAlertGroupForm } = this.state;
     return (
-      <div className={cx('root')}>
-        <div className={cx('title')}>
-          <Button icon="plus" onClick={this.handleOnClickEscalateTo}>
-            Manual alert group
-          </Button>
+      <>
+        <div className={cx('root')}>
+          <div className={cx('title')}>
+            <HorizontalGroup justify="space-between">
+              <Text.Title level={3}>Alert Groups</Text.Title>
+              <Button icon="plus" onClick={this.handleOnClickEscalateTo}>
+                Manual alert group
+              </Button>
+            </HorizontalGroup>
+          </div>
+          {this.renderIncidentFilters()}
+          {this.renderTable()}
         </div>
-        {this.renderIncidentFilters()}
-        {this.renderTable()}
         {showAddAlertGroupForm && (
           <ManualAlertGroup
             onHide={() => {
@@ -118,7 +123,7 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
             }}
           />
         )}
-      </div>
+      </>
     );
   }
 
