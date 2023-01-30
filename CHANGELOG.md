@@ -14,6 +14,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - Fix bugs related to creating contact point for Grafana Alerting integration
+- Fix minor UI bug on OnCall users page where it would idefinitely show a "Loading..." message
+- Only show OnCall user's table to users that are authorized
 - Fixed NPE in ScheduleUserDetails component ([#1229](https://github.com/grafana/oncall/issues/1229))
 
 ## v1.1.19 (2023-01-25)
