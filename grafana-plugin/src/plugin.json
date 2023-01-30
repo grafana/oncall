@@ -535,7 +535,7 @@
     {
       "role": {
         "name": "User Settings Reader",
-        "description": "Read-only access to OnCall User Settings",
+        "description": "Read-only access to own OnCall User Settings",
         "permissions": [
           { "action": "plugins.app:access", "scope": "plugins:id:grafana-oncall-app" },
           { "action": "grafana-oncall-app.user-settings:read" }
@@ -546,7 +546,7 @@
     {
       "role": {
         "name": "User Settings Editor",
-        "description": "Read/write access to own OnCall User Settings",
+        "description": "Read/write access to own OnCall User Settings + ability to view basic information about other OnCall users",
         "permissions": [
           { "action": "plugins.app:access", "scope": "plugins:id:grafana-oncall-app" },
           { "action": "grafana-oncall-app.user-settings:read" },
