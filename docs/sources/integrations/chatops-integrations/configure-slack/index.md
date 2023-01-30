@@ -82,12 +82,12 @@ teams of their on-call shifts. Admins can configure shift notification behavior 
    access **Notifications preferences**.
 2. Configure on-call notifications for future shift notifications.
 
-
 ## Slack commands and message shortcuts
 
 The Grafana OnCall Slack app includes helpful message shortcuts and slash commands.
 
 ### Slack commands
+
 Use the `/oncall` Slack command to create a new alert group directly from Slack.
 
 1. Type `/oncall` in the message box of the desired Slack channel then click **Send**.
@@ -95,6 +95,7 @@ Use the `/oncall` Slack command to create a new alert group directly from Slack.
 1. Once the Grafana OnCall app sends a Slack message with the newly created alert, the alert group is open and firing.
 
 ### Message shortcuts
+
 Use message shortcuts to add resolution notes directly from Slack. Message shortcuts are available in the More actions menu from any message.
 
 >**Note:** In order to associate the resolution note to an alert group, this message shortcut can only be applied to messages in the thread of an alert group.
