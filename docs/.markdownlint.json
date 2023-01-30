@@ -1,7 +1,7 @@
 {
   "extends": "../.markdownlint.json",
   "MD013": {
-    "line_length": "140"
+    "line_length": "160"
   },
   "MD025": false,
   "MD036": false
