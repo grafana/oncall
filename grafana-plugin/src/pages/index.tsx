@@ -127,7 +127,6 @@ export const pages: { [id: string]: PageDefinition } = [
     icon: 'table',
     id: 'live-settings',
     text: 'Env Variables',
-    role: 'Admin',
     hideFromTabsFn: (store: RootBaseStore) => {
       const hasLiveSettings = store.hasFeature(AppFeature.LiveSettings);
       return isTopNavbar() || !hasLiveSettings;
@@ -139,7 +138,6 @@ export const pages: { [id: string]: PageDefinition } = [
     icon: 'cloud',
     id: 'cloud',
     text: 'Cloud',
-    role: 'Admin',
     hideFromTabsFn: (store: RootBaseStore) => {
       const hasCloudFeature = store.hasFeature(AppFeature.CloudConnection);
       return isTopNavbar() || !hasCloudFeature;

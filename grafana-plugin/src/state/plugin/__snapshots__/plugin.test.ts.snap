@@ -34,19 +34,19 @@ exports[`PluginState.generateUnknownErrorMsg it returns the proper error message
 Refresh your page and try again, or try removing your plugin configuration and reconfiguring."
 `;
 
-exports[`PluginState.getHumanReadableErrorFromOnCallError it handles a 400 AxiosError properly - has custom error message: false 1`] = `
+exports[`PluginState.getHumanReadableErrorFromOnCallError it handles a 400 network error properly - has custom error message: false 1`] = `
 "An unknown error occured when trying to install the plugin. Are you sure that your OnCall API URL, http://hello.com, is correct (NOTE: your OnCall API URL is currently being taken from process.env of your UI)?
 Refresh your page and try again, or try removing your plugin configuration and reconfiguring."
 `;
 
-exports[`PluginState.getHumanReadableErrorFromOnCallError it handles a 400 AxiosError properly - has custom error message: true 1`] = `"ohhhh nooo an error"`;
+exports[`PluginState.getHumanReadableErrorFromOnCallError it handles a 400 network error properly - has custom error message: true 1`] = `"ohhhh nooo an error"`;
 
-exports[`PluginState.getHumanReadableErrorFromOnCallError it handles a non-400 AxiosError properly - status code: 409 1`] = `
+exports[`PluginState.getHumanReadableErrorFromOnCallError it handles a non-400 network error properly - status code: 409 1`] = `
 "An unknown error occured when trying to install the plugin. Are you sure that your OnCall API URL, http://hello.com, is correct (NOTE: your OnCall API URL is currently being taken from process.env of your UI)?
 Refresh your page and try again, or try removing your plugin configuration and reconfiguring."
 `;
 
-exports[`PluginState.getHumanReadableErrorFromOnCallError it handles a non-400 AxiosError properly - status code: 502 1`] = `
+exports[`PluginState.getHumanReadableErrorFromOnCallError it handles a non-400 network error properly - status code: 502 1`] = `
 "Could not communicate with your OnCall API at http://hello.com (NOTE: your OnCall API URL is currently being taken from process.env of your UI).
 Validate that the URL is correct, your OnCall API is running, and that it is accessible from your Grafana instance."
 `;
