@@ -17,6 +17,7 @@ const cx = cn.bind(styles);
 
 interface DefaultPageLayoutProps extends AppRootProps {
   children?: any;
+  page: string;
 }
 
 const DefaultPageLayout: FC<DefaultPageLayoutProps> = observer((props) => {
@@ -40,7 +41,7 @@ const DefaultPageLayout: FC<DefaultPageLayoutProps> = observer((props) => {
 
   function renderLegacyNavbar(): JSX.Element {
     return (
-      <PluginPage>
+      <PluginPage page={page}>
         <div className="page-container u-height-100">
           <div className={cx('root', 'navbar-legacy')}>
             <Alerts />

@@ -58,20 +58,27 @@ exports[`MobileAppConnection if we disconnect the app, it disconnects and fetche
             <div
               class="css-bxa289-layoutChildrenWrapper"
             >
-              <div
-                class="root icon-block root_bordered root--fullWidth root--hover"
+              <a
+                href="https://play.google.com/store/apps/details?id=com.grafana.oncall.prod"
+                rel="noreferrer"
+                style="width: 100%;"
+                target="_blank"
               >
-                <img
-                  alt="Play Store"
-                  class="icon"
-                  src="[object Object]"
-                />
-                <span
-                  class="root text icon-text text--primary text--medium"
+                <div
+                  class="root icon-block root_bordered root--fullWidth root--hover"
                 >
-                  Android
-                </span>
-              </div>
+                  <img
+                    alt="Play Store"
+                    class="icon"
+                    src="[object Object]"
+                  />
+                  <span
+                    class="root text icon-text text--primary text--medium"
+                  >
+                    Android
+                  </span>
+                </div>
+              </a>
             </div>
           </div>
         </div>
@@ -2389,20 +2396,27 @@ exports[`MobileAppConnection it shows a QR code if the app isn't already connect
             <div
               class="css-bxa289-layoutChildrenWrapper"
             >
-              <div
-                class="root icon-block root_bordered root--fullWidth root--hover"
+              <a
+                href="https://play.google.com/store/apps/details?id=com.grafana.oncall.prod"
+                rel="noreferrer"
+                style="width: 100%;"
+                target="_blank"
               >
-                <img
-                  alt="Play Store"
-                  class="icon"
-                  src="[object Object]"
-                />
-                <span
-                  class="root text icon-text text--primary text--medium"
+                <div
+                  class="root icon-block root_bordered root--fullWidth root--hover"
                 >
-                  Android
-                </span>
-              </div>
+                  <img
+                    alt="Play Store"
+                    class="icon"
+                    src="[object Object]"
+                  />
+                  <span
+                    class="root text icon-text text--primary text--medium"
+                  >
+                    Android
+                  </span>
+                </div>
+              </a>
             </div>
           </div>
         </div>
@@ -2488,20 +2502,27 @@ exports[`MobileAppConnection it shows a loading message if it is currently disco
             <div
               class="css-bxa289-layoutChildrenWrapper"
             >
-              <div
-                class="root icon-block root_bordered root--fullWidth root--hover"
+              <a
+                href="https://play.google.com/store/apps/details?id=com.grafana.oncall.prod"
+                rel="noreferrer"
+                style="width: 100%;"
+                target="_blank"
               >
-                <img
-                  alt="Play Store"
-                  class="icon"
-                  src="[object Object]"
-                />
-                <span
-                  class="root text icon-text text--primary text--medium"
+                <div
+                  class="root icon-block root_bordered root--fullWidth root--hover"
                 >
-                  Android
-                </span>
-              </div>
+                  <img
+                    alt="Play Store"
+                    class="icon"
+                    src="[object Object]"
+                  />
+                  <span
+                    class="root text icon-text text--primary text--medium"
+                  >
+                    Android
+                  </span>
+                </div>
+              </a>
             </div>
           </div>
         </div>
@@ -2587,20 +2608,27 @@ exports[`MobileAppConnection it shows a loading message if it is currently fetch
             <div
               class="css-bxa289-layoutChildrenWrapper"
             >
-              <div
-                class="root icon-block root_bordered root--fullWidth root--hover"
+              <a
+                href="https://play.google.com/store/apps/details?id=com.grafana.oncall.prod"
+                rel="noreferrer"
+                style="width: 100%;"
+                target="_blank"
               >
-                <img
-                  alt="Play Store"
-                  class="icon"
-                  src="[object Object]"
-                />
-                <span
-                  class="root text icon-text text--primary text--medium"
+                <div
+                  class="root icon-block root_bordered root--fullWidth root--hover"
                 >
-                  Android
-                </span>
-              </div>
+                  <img
+                    alt="Play Store"
+                    class="icon"
+                    src="[object Object]"
+                  />
+                  <span
+                    class="root text icon-text text--primary text--medium"
+                  >
+                    Android
+                  </span>
+                </div>
+              </a>
             </div>
           </div>
         </div>
@@ -2686,20 +2714,27 @@ exports[`MobileAppConnection it shows a message when the mobile app is already c
             <div
               class="css-bxa289-layoutChildrenWrapper"
             >
-              <div
-                class="root icon-block root_bordered root--fullWidth root--hover"
+              <a
+                href="https://play.google.com/store/apps/details?id=com.grafana.oncall.prod"
+                rel="noreferrer"
+                style="width: 100%;"
+                target="_blank"
               >
-                <img
-                  alt="Play Store"
-                  class="icon"
-                  src="[object Object]"
-                />
-                <span
-                  class="root text icon-text text--primary text--medium"
+                <div
+                  class="root icon-block root_bordered root--fullWidth root--hover"
                 >
-                  Android
-                </span>
-              </div>
+                  <img
+                    alt="Play Store"
+                    class="icon"
+                    src="[object Object]"
+                  />
+                  <span
+                    class="root text icon-text text--primary text--medium"
+                  >
+                    Android
+                  </span>
+                </div>
+              </a>
             </div>
           </div>
         </div>
@@ -2774,6 +2809,59 @@ exports[`MobileAppConnection it shows a message when the mobile app is already c
 </div>
 `;
 
+exports[`MobileAppConnection it shows a warning when cloud is not connected 1`] = `
+<div>
+  <div
+    class="css-1j7sh2x-vertical-group"
+    style="width: 100%; height: 100%;"
+  >
+    <div
+      class="css-ztyofd-layoutChildrenWrapper"
+    >
+      <span
+        class="root text text--secondary text--medium"
+      >
+        Please connect Cloud OnCall to use the mobile app
+      </span>
+    </div>
+    <div
+      class="css-ztyofd-layoutChildrenWrapper"
+    >
+      <a
+        class="root"
+        href="/a/grafana-oncall-app/cloud"
+      >
+        <button
+          class="css-1a8393j-button"
+          type="button"
+        >
+          <div
+            class="css-wf08df-Icon"
+          >
+            <svg
+              class="css-1gebccs"
+              height="16"
+              viewBox="0 0 24 24"
+              width="16"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M18,10.82a1,1,0,0,0-1,1V19a1,1,0,0,1-1,1H5a1,1,0,0,1-1-1V8A1,1,0,0,1,5,7h7.18a1,1,0,0,0,0-2H5A3,3,0,0,0,2,8V19a3,3,0,0,0,3,3H16a3,3,0,0,0,3-3V11.82A1,1,0,0,0,18,10.82Zm3.92-8.2a1,1,0,0,0-.54-.54A1,1,0,0,0,21,2H15a1,1,0,0,0,0,2h3.59L8.29,14.29a1,1,0,0,0,0,1.42,1,1,0,0,0,1.42,0L20,5.41V9a1,1,0,0,0,2,0V3A1,1,0,0,0,21.92,2.62Z"
+              />
+            </svg>
+          </div>
+          <span
+            class="css-1mhnkuh"
+          >
+            Connect Cloud OnCall
+          </span>
+        </button>
+      </a>
+    </div>
+  </div>
+</div>
+`;
+
 exports[`MobileAppConnection it shows an error message if there was an error disconnecting the mobile app 1`] = `
 <div>
   <div
@@ -2832,20 +2920,27 @@ exports[`MobileAppConnection it shows an error message if there was an error dis
             <div
               class="css-bxa289-layoutChildrenWrapper"
             >
-              <div
-                class="root icon-block root_bordered root--fullWidth root--hover"
+              <a
+                href="https://play.google.com/store/apps/details?id=com.grafana.oncall.prod"
+                rel="noreferrer"
+                style="width: 100%;"
+                target="_blank"
               >
-                <img
-                  alt="Play Store"
-                  class="icon"
-                  src="[object Object]"
-                />
-                <span
-                  class="root text icon-text text--primary text--medium"
+                <div
+                  class="root icon-block root_bordered root--fullWidth root--hover"
                 >
-                  Android
-                </span>
-              </div>
+                  <img
+                    alt="Play Store"
+                    class="icon"
+                    src="[object Object]"
+                  />
+                  <span
+                    class="root text icon-text text--primary text--medium"
+                  >
+                    Android
+                  </span>
+                </div>
+              </a>
             </div>
           </div>
         </div>
@@ -2922,20 +3017,27 @@ exports[`MobileAppConnection it shows an error message if there was an error fet
             <div
               class="css-bxa289-layoutChildrenWrapper"
             >
-              <div
-                class="root icon-block root_bordered root--fullWidth root--hover"
+              <a
+                href="https://play.google.com/store/apps/details?id=com.grafana.oncall.prod"
+                rel="noreferrer"
+                style="width: 100%;"
+                target="_blank"
               >
-                <img
-                  alt="Play Store"
-                  class="icon"
-                  src="[object Object]"
-                />
-                <span
-                  class="root text icon-text text--primary text--medium"
+                <div
+                  class="root icon-block root_bordered root--fullWidth root--hover"
                 >
-                  Android
-                </span>
-              </div>
+                  <img
+                    alt="Play Store"
+                    class="icon"
+                    src="[object Object]"
+                  />
+                  <span
+                    class="root text icon-text text--primary text--medium"
+                  >
+                    Android
+                  </span>
+                </div>
+              </a>
             </div>
           </div>
         </div>

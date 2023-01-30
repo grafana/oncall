@@ -4,6 +4,7 @@ import { Button, HorizontalGroup } from '@grafana/ui';
 import cn from 'classnames/bind';
 import { observer } from 'mobx-react';
 import LegacyNavHeading from 'navbar/LegacyNavHeading';
+import { RouteComponentProps, withRouter } from 'react-router-dom';
 
 import GTable from 'components/GTable/GTable';
 import PageErrorHandlingWrapper, { PageBaseState } from 'components/PageErrorHandlingWrapper/PageErrorHandlingWrapper';
@@ -20,14 +21,14 @@ import { ActionDTO } from 'models/action';
 import { OutgoingWebhook } from 'models/outgoing_webhook/outgoing_webhook.types';
 import { PageProps, WithStoreProps } from 'state/types';
 import { withMobXProviderContext } from 'state/withStore';
-import LocationHelper from 'utils/LocationHelper';
 import { isUserActionAllowed, UserActions } from 'utils/authorization';
+import { PLUGIN_ROOT } from 'utils/consts';
 
 import styles from './OutgoingWebhooks.module.css';
 
 const cx = cn.bind(styles);
 
-interface OutgoingWebhooksProps extends WithStoreProps, PageProps {}
+interface OutgoingWebhooksProps extends WithStoreProps, PageProps, RouteComponentProps<{ id: string }> {}
 
 interface OutgoingWebhooksState extends PageBaseState {
   outgoingWebhookIdToEdit?: OutgoingWebhook['id'] | 'new';
@@ -44,7 +45,7 @@ class OutgoingWebhooks extends React.Component<OutgoingWebhooksProps, OutgoingWe
   }
 
   componentDidUpdate(prevProps: OutgoingWebhooksProps) {
-    if (prevProps.query.id !== this.props.query.id) {
+    if (prevProps.match.params.id !== this.props.match.params.id) {
       this.parseQueryParams();
     }
   }
@@ -57,7 +58,9 @@ class OutgoingWebhooks extends React.Component<OutgoingWebhooksProps, OutgoingWe
 
     const {
       store,
-      query: { id },
+      match: {
+        params: { id },
+      },
     } = this.props;
 
     if (!id) {
@@ -127,8 +130,7 @@ class OutgoingWebhooks extends React.Component<OutgoingWebhooksProps, OutgoingWe
                     </LegacyNavHeading>
                     <div className="u-pull-right">
                       <PluginLink
-                        partial
-                        query={{ id: 'new' }}
+                        query={{ page: 'outgoing_webhooks', id: 'new' }}
                         disabled={!isUserActionAllowed(UserActions.OutgoingWebhooksWrite)}
                       >
                         <WithPermissionControl userAction={UserActions.OutgoingWebhooksWrite}>
@@ -185,20 +187,23 @@ class OutgoingWebhooks extends React.Component<OutgoingWebhooksProps, OutgoingWe
   };
 
   getEditClickHandler = (id: OutgoingWebhook['id']) => {
+    const { history } = this.props;
+
     return () => {
       this.setState({ outgoingWebhookIdToEdit: id });
 
-      LocationHelper.update({ id }, 'partial');
+      history.push(`${PLUGIN_ROOT}/outgoing_webhooks/${id}`);
     };
   };
 
   handleOutgoingWebhookFormHide = () => {
+    const { history } = this.props;
     this.setState({ outgoingWebhookIdToEdit: undefined });
 
-    LocationHelper.update({ id: undefined }, 'partial');
+    history.push(`${PLUGIN_ROOT}/outgoing_webhooks`);
   };
 }
 
 export { OutgoingWebhooks };
 
-export default withMobXProviderContext(OutgoingWebhooks);
+export default withRouter(withMobXProviderContext(OutgoingWebhooks));

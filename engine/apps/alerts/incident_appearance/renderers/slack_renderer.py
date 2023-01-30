@@ -312,13 +312,14 @@ class AlertGroupSlackRenderer(AlertGroupBaseRenderer):
                 resolution_notes_button["text"]["text"] = "Add Resolution notes"
             buttons.append(resolution_notes_button)
 
-            # Incident button
+            # Declare Incident button
             if self.alert_group.channel.organization.is_grafana_incident_enabled:
                 incident_button = {
                     "type": "button",
                     "text": {"type": "plain_text", "text": ":fire: Declare Incident", "emoji": True},
                     "value": "declare_incident",
                     "url": self.alert_group.declare_incident_link,
+                    "action_id": ScenarioStep.get_step("declare_incident", "DeclareIncidentStep").routing_uid(),
                 }
                 buttons.append(incident_button)
         else:

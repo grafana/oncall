@@ -3,6 +3,7 @@ import React, { useCallback, useEffect, useState } from 'react';
 import { Field, Input, Button, HorizontalGroup, Icon, VerticalGroup, LoadingPlaceholder } from '@grafana/ui';
 import cn from 'classnames/bind';
 import { observer } from 'mobx-react';
+import { RouteComponentProps, withRouter } from 'react-router-dom';
 
 import Block from 'components/GBlock/Block';
 import GTable from 'components/GTable/GTable';
@@ -10,20 +11,22 @@ import Text from 'components/Text/Text';
 import WithConfirm from 'components/WithConfirm/WithConfirm';
 import { CrossCircleIcon, HeartIcon } from 'icons';
 import { Cloud } from 'models/cloud/cloud.types';
+import { AppFeature } from 'state/features';
 import { WithStoreProps } from 'state/types';
 import { useStore } from 'state/useStore';
 import { withMobXProviderContext } from 'state/withStore';
 import { openErrorNotification } from 'utils';
-import LocationHelper from 'utils/LocationHelper';
+import { determineRequiredAuthString, UserActions } from 'utils/authorization';
+import { PLUGIN_ROOT } from 'utils/consts';
 
 import styles from './CloudPage.module.css';
 
 const cx = cn.bind(styles);
 
-interface CloudPageProps extends WithStoreProps {}
+interface CloudPageProps extends WithStoreProps, RouteComponentProps {}
 const ITEMS_PER_PAGE = 50;
 
-const CloudPage = observer((_props: CloudPageProps) => {
+const CloudPage = observer((props: CloudPageProps) => {
   const store = useStore();
   const [page, setPage] = useState<number>(1);
   const [cloudApiKey, setCloudApiKey] = useState<string>('');
@@ -34,6 +37,8 @@ const CloudPage = observer((_props: CloudPageProps) => {
   const [heartbeatEnabled, setheartbeatEnabled] = useState<boolean>(false);
   const [_showConfirmationModal, setShowConfirmationModal] = useState<boolean>(false);
   const [syncingUsers, setSyncingUsers] = useState<boolean>(false);
+
+  const { history } = props;
 
   useEffect(() => {
     store.cloudStore.updateItems(page);
@@ -57,9 +62,10 @@ const CloudPage = observer((_props: CloudPageProps) => {
     setApiKeyError(false);
   }, []);
 
-  const disconnectCloudOncall = () => {
+  const disconnectCloudOncall = async () => {
     setCloudIsConnected(false);
-    store.cloudStore.disconnectToCloud();
+    await store.cloudStore.disconnectToCloud();
+    await store.cloudStore.loadCloudConnectionStatus();
   };
 
   const connectToCloud = async () => {
@@ -78,6 +84,7 @@ const CloudPage = observer((_props: CloudPageProps) => {
           const heartbeatData: { link: string } = await store.cloudStore.getCloudHeartbeat();
           setheartbeatLink(heartbeatData?.link);
         }
+        await store.cloudStore.loadCloudConnectionStatus();
       });
   };
 
@@ -116,7 +123,7 @@ const CloudPage = observer((_props: CloudPageProps) => {
             variant="secondary"
             size="sm"
             className={cx('table-button')}
-            onClick={() => LocationHelper.update({ page: 'users', p: page, id: user.id }, 'replace')}
+            onClick={() => history.push(`${PLUGIN_ROOT}/users/${user.id}`)}
           >
             Configure notifications
           </Button>
@@ -255,10 +262,9 @@ const CloudPage = observer((_props: CloudPageProps) => {
 
             <div style={{ width: '100%' }}>
               <Text type="secondary">
-                {/* TODO: should probably update this message? */}
-                {
-                  'Ask your users to sign up in Grafana Cloud, verify phone number and feel free to set up SMS & phone call notifications in personal settings! Only users with Admin or Editor role will be synced.'
-                }
+                {`Ask your users to sign up in Grafana Cloud, verify phone number and feel free to set up SMS & phone call notifications in personal settings! Users must have ${determineRequiredAuthString(
+                  UserActions.NotificationsRead
+                )} in order to be synced.`}
               </Text>
 
               <GTable
@@ -274,15 +280,9 @@ const CloudPage = observer((_props: CloudPageProps) => {
                         {matched_users_count === 1 ? '' : 's'}
                         {` matched between OSS and Cloud OnCall`}
                       </Text>
-                      {syncingUsers ? (
-                        <Button variant="primary" onClick={syncUsers} icon="sync" disabled>
-                          Syncing...
-                        </Button>
-                      ) : (
-                        <Button variant="primary" onClick={syncUsers} icon="sync">
-                          Sync users (Editors and Admins)
-                        </Button>
-                      )}
+                      <Button variant="primary" onClick={syncUsers} icon="sync" disabled={syncingUsers}>
+                        {syncingUsers ? 'Syncing...' : 'Sync users'}
+                      </Button>
                     </HorizontalGroup>
                   </div>
                 )}
@@ -309,6 +309,19 @@ const CloudPage = observer((_props: CloudPageProps) => {
           </VerticalGroup>
         )}
       </Block>
+      {store.hasFeature(AppFeature.MobileApp) && (
+        <Block bordered withBackground className={cx('info-block')}>
+          <VerticalGroup>
+            <Text.Title level={4}>
+              <Icon name="mobile-android" className={cx('block-icon')} size="lg" /> Mobile app push notifications
+            </Text.Title>
+            <Text type="secondary">
+              Connecting to Cloud OnCall enables sending push notifications on mobile devices using the Grafana OnCall
+              mobile app.
+            </Text>
+          </VerticalGroup>
+        </Block>
+      )}
     </VerticalGroup>
   );
 
@@ -355,6 +368,19 @@ const CloudPage = observer((_props: CloudPageProps) => {
           <Text type="secondary">Users matched between OSS and Cloud OnCall currently unavailable.</Text>
         </VerticalGroup>
       </Block>
+      {store.hasFeature(AppFeature.MobileApp) && (
+        <Block bordered withBackground className={cx('info-block')}>
+          <VerticalGroup>
+            <Text.Title level={4}>
+              <Icon name="mobile-android" className={cx('block-icon')} size="lg" /> Mobile app push notifications
+            </Text.Title>
+            <Text type="secondary">
+              Connecting to Cloud OnCall enables sending push notifications on mobile devices using the Grafana OnCall
+              mobile app.
+            </Text>
+          </VerticalGroup>
+        </Block>
+      )}
     </VerticalGroup>
   );
 
@@ -376,4 +402,4 @@ const CloudPage = observer((_props: CloudPageProps) => {
   );
 });
 
-export default withMobXProviderContext(CloudPage);
+export default withRouter(withMobXProviderContext(CloudPage));

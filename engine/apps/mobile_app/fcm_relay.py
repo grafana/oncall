@@ -5,25 +5,37 @@ from django.conf import settings
 from fcm_django.models import FCMDevice
 from firebase_admin.messaging import APNSConfig, APNSPayload, Aps, ApsAlert, CriticalSound, Message
 from rest_framework import status
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
+from rest_framework.throttling import UserRateThrottle
 from rest_framework.views import APIView
 
+from apps.auth_token.auth import ApiTokenAuthentication
 from common.custom_celery_tasks import shared_dedicated_queue_retry_task
 
 task_logger = get_task_logger(__name__)
 task_logger.setLevel(logging.DEBUG)
 
 
+class FCMRelayThrottler(UserRateThrottle):
+    scope = "fcm_relay"
+    rate = "300/m"
+
+
 class FCMRelayView(APIView):
-    # TODO: use public API authentication (then it would be required to connect to a cloud instance to use the app)
-    authentication_classes = []
-    permission_classes = []
+    """
+    This view accepts push notifications from OSS instances and forwards these requests to FCM.
+    Requests to this endpoint come from OSS instances: apps.mobile_app.tasks.send_push_notification_to_fcm_relay.
+    The view uses public API authentication, so an OSS instance must be connected to cloud to use FCM relay.
+    """
+
+    authentication_classes = [ApiTokenAuthentication]
+    permission_classes = [IsAuthenticated]
+    throttle_classes = [FCMRelayThrottler]
 
     def post(self, request):
-        """
-        This view accepts push notifications from OSS instances and forwards these requests to FCM.
-        Requests to this endpoint come from OSS instances: apps.mobile_app.tasks.send_push_notification_to_fcm_relay
-        """
+        if not settings.FCM_RELAY_ENABLED:
+            return Response(status=status.HTTP_404_NOT_FOUND)
 
         try:
             token = request.data["token"]

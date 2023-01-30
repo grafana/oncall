@@ -31,8 +31,8 @@
   "includes": [
     {
       "type": "page",
-      "name": "Alert Groups",
-      "path": "/a/grafana-oncall-app/?page=incidents",
+      "name": "Incidents",
+      "path": "/a/grafana-oncall-app/incidents",
       "role": "Viewer",
       "action": "grafana-oncall-app.alert-groups:read",
       "defaultNav": true,
@@ -41,7 +41,7 @@
     {
       "type": "page",
       "name": "Users",
-      "path": "/a/grafana-oncall-app/?page=users",
+      "path": "/a/grafana-oncall-app/users",
       "role": "Viewer",
       "action": "grafana-oncall-app.user-settings:read",
       "addToNav": true
@@ -49,7 +49,7 @@
     {
       "type": "page",
       "name": "Integrations",
-      "path": "/a/grafana-oncall-app/?page=integrations",
+      "path": "/a/grafana-oncall-app/integrations",
       "role": "Viewer",
       "action": "grafana-oncall-app.integrations:read",
       "addToNav": true
@@ -57,7 +57,7 @@
     {
       "type": "page",
       "name": "Escalation Chains",
-      "path": "/a/grafana-oncall-app/?page=escalations",
+      "path": "/a/grafana-oncall-app/escalations",
       "role": "Viewer",
       "action": "grafana-oncall-app.escalation-chains:read",
       "addToNav": true
@@ -65,15 +65,16 @@
     {
       "type": "page",
       "name": "Schedules",
-      "path": "/a/grafana-oncall-app/?page=schedules",
+      "path": "/a/grafana-oncall-app/schedules",
       "role": "Viewer",
       "action": "grafana-oncall-app.schedules:read",
       "addToNav": true
     },
+
     {
       "type": "page",
       "name": "Outgoing Webhooks",
-      "path": "/a/grafana-oncall-app/?page=outgoing_webhooks",
+      "path": "/a/grafana-oncall-app/outgoing_webhooks",
       "role": "Viewer",
       "action": "grafana-oncall-app.outgoing-webhooks:read",
       "addToNav": true
@@ -81,7 +82,7 @@
     {
       "type": "page",
       "name": "Maintenance",
-      "path": "/a/grafana-oncall-app/?page=maintenance",
+      "path": "/a/grafana-oncall-app/maintenance",
       "role": "Viewer",
       "action": "grafana-oncall-app.maintenance:read",
       "addToNav": true
@@ -89,7 +90,7 @@
     {
       "type": "page",
       "name": "Settings",
-      "path": "/a/grafana-oncall-app/?page=settings",
+      "path": "/a/grafana-oncall-app/settings",
       "role": "Viewer",
       "action": "grafana-oncall-app.other-settings:read",
       "addToNav": true
@@ -534,7 +535,7 @@
     {
       "role": {
         "name": "User Settings Reader",
-        "description": "Read-only access to OnCall User Settings",
+        "description": "Read-only access to own OnCall User Settings",
         "permissions": [
           { "action": "plugins.app:access", "scope": "plugins:id:grafana-oncall-app" },
           { "action": "grafana-oncall-app.user-settings:read" }
@@ -545,7 +546,7 @@
     {
       "role": {
         "name": "User Settings Editor",
-        "description": "Read/write access to own OnCall User Settings",
+        "description": "Read/write access to own OnCall User Settings + ability to view basic information about other OnCall users",
         "permissions": [
           { "action": "plugins.app:access", "scope": "plugins:id:grafana-oncall-app" },
           { "action": "grafana-oncall-app.user-settings:read" },

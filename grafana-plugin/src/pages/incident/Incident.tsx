@@ -19,6 +19,7 @@ import { observer } from 'mobx-react';
 import moment from 'moment-timezone';
 import CopyToClipboard from 'react-copy-to-clipboard';
 import Emoji from 'react-emoji-render';
+import { RouteComponentProps, withRouter } from 'react-router-dom';
 import reactStringReplace from 'react-string-replace';
 
 import Collapse from 'components/Collapse/Collapse';
@@ -50,8 +51,8 @@ import { PageProps, WithStoreProps } from 'state/types';
 import { useStore } from 'state/useStore';
 import { withMobXProviderContext } from 'state/withStore';
 import { openNotification } from 'utils';
-import LocationHelper from 'utils/LocationHelper';
 import { UserActions } from 'utils/authorization';
+import { PLUGIN_ROOT } from 'utils/consts';
 import sanitize from 'utils/sanitize';
 
 import { getActionButtons, getIncidentStatusTag, renderRelatedUsers } from './Incident.helpers';
@@ -60,7 +61,7 @@ import styles from './Incident.module.css';
 
 const cx = cn.bind(styles);
 
-interface IncidentPageProps extends WithStoreProps, PageProps {}
+interface IncidentPageProps extends WithStoreProps, PageProps, RouteComponentProps<{ id: string }> {}
 
 interface IncidentPageState extends PageBaseState {
   showIntegrationSettings?: boolean;
@@ -86,7 +87,7 @@ class IncidentPage extends React.Component<IncidentPageProps, IncidentPageState>
   }
 
   componentDidUpdate(prevProps: IncidentPageProps) {
-    if (this.props.query.id !== prevProps.query.id) {
+    if (this.props.match.params.id !== prevProps.match.params.id) {
       this.update();
     }
   }
@@ -96,7 +97,9 @@ class IncidentPage extends React.Component<IncidentPageProps, IncidentPageState>
 
     const {
       store,
-      query: { id },
+      match: {
+        params: { id },
+      },
     } = this.props;
 
     store.alertGroupStore
@@ -107,7 +110,10 @@ class IncidentPage extends React.Component<IncidentPageProps, IncidentPageState>
   render() {
     const {
       store,
-      query: { id, cursor, start, perpage },
+      query: { cursor, start, perpage },
+      match: {
+        params: { id },
+      },
     } = this.props;
 
     const { errorData, showIntegrationSettings, showAttachIncidentForm } = this.state;
@@ -195,7 +201,10 @@ class IncidentPage extends React.Component<IncidentPageProps, IncidentPageState>
   renderHeader = () => {
     const {
       store,
-      query: { id, cursor, start, perpage },
+      query: { cursor, start, perpage },
+      match: {
+        params: { id },
+      },
     } = this.props;
 
     const { alerts } = store.alertGroupStore;
@@ -288,7 +297,10 @@ class IncidentPage extends React.Component<IncidentPageProps, IncidentPageState>
             </HorizontalGroup>
 
             <HorizontalGroup>
-              <PluginLink query={{ page: 'integrations', id: incident.alert_receive_channel.id }}>
+              <PluginLink
+                disabled={incident.alert_receive_channel.deleted}
+                query={{ page: 'integrations', id: incident.alert_receive_channel.id }}
+              >
                 <Button disabled={incident.alert_receive_channel.deleted} variant="secondary" size="sm" icon="compass">
                   Go to Integration
                 </Button>
@@ -328,7 +340,10 @@ class IncidentPage extends React.Component<IncidentPageProps, IncidentPageState>
   renderTimeline = () => {
     const {
       store,
-      query: { id },
+      history,
+      match: {
+        params: { id },
+      },
     } = this.props;
 
     const incident = store.alertGroupStore.alerts.get(id);
@@ -370,7 +385,7 @@ class IncidentPage extends React.Component<IncidentPageProps, IncidentPageState>
                     </Text>
                   )}
                   <Text type="primary">
-                    {reactStringReplace(item.action, /\{\{([^}]+)\}\}/g, this.getPlaceholderReplaceFn(item))}
+                    {reactStringReplace(item.action, /\{\{([^}]+)\}\}/g, this.getPlaceholderReplaceFn(item, history))}
                   </Text>
                   <Text type="secondary" size="small">
                     {moment(item.created_at).format('MMM DD, YYYY hh:mm A')}
@@ -420,7 +435,9 @@ class IncidentPage extends React.Component<IncidentPageProps, IncidentPageState>
   handleCreateResolutionNote = () => {
     const {
       store,
-      query: { id },
+      match: {
+        params: { id },
+      },
     } = this.props;
 
     const { resolutionNoteText } = this.state;
@@ -432,20 +449,20 @@ class IncidentPage extends React.Component<IncidentPageProps, IncidentPageState>
       .then(this.update);
   };
 
-  getPlaceholderReplaceFn = (entity: any) => {
+  getPlaceholderReplaceFn = (entity: any, history) => {
     return (match: string) => {
       switch (match) {
         case 'author':
           return (
             <span
-              onClick={() => LocationHelper.update({ id: entity?.author?.pk, page: 'users' }, 'replace')}
+              onClick={() => history.push(`${PLUGIN_ROOT}/users/${entity?.author?.pk}`)}
               style={{ textDecoration: 'underline', cursor: 'pointer' }}
             >
               {entity.author?.username}
             </span>
           );
         default:
-          console.warn('Unknown render_after_resolve_report_json enity placeholder');
+          console.warn('Unknown render_after_resolve_report_json entity placeholder');
           return '';
       }
     };
@@ -667,4 +684,4 @@ function AttachedIncidentsList({
   );
 }
 
-export default withMobXProviderContext(IncidentPage);
+export default withRouter(withMobXProviderContext(IncidentPage));

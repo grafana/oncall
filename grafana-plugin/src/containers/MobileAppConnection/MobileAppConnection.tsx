@@ -1,14 +1,18 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 
-import { Icon, LoadingPlaceholder, VerticalGroup } from '@grafana/ui';
+import { Button, Icon, LoadingPlaceholder, VerticalGroup } from '@grafana/ui';
 import cn from 'classnames/bind';
 import { observer } from 'mobx-react';
 
 import qrCodeImage from 'assets/img/qr-code.png';
 import Block from 'components/GBlock/Block';
+import PluginLink from 'components/PluginLink/PluginLink';
 import Text from 'components/Text/Text';
 import { User } from 'models/user/user.types';
+import { AppFeature } from 'state/features';
 import { useStore } from 'state/useStore';
+import { isUserActionAllowed, UserActions } from 'utils/authorization';
+import { GRAFANA_LICENSE_OSS } from 'utils/consts';
 
 import styles from './MobileAppConnection.module.scss';
 import DisconnectButton from './parts/DisconnectButton/DisconnectButton';
@@ -29,7 +33,29 @@ const INTERVAL_POLLING = 5000;
 const BACKEND = 'MOBILE_APP';
 
 const MobileAppConnection = observer(({ userPk }: Props) => {
-  const { userStore } = useStore();
+  const store = useStore();
+  const { userStore, cloudStore } = store;
+
+  // Show link to cloud page for OSS instances with no cloud connection
+  if (store.hasFeature(AppFeature.CloudConnection) && !cloudStore.cloudConnectionStatus.cloud_connection_status) {
+    return (
+      <VerticalGroup spacing="lg">
+        <Text type="secondary">Please connect Cloud OnCall to use the mobile app</Text>
+        {isUserActionAllowed(UserActions.OtherSettingsWrite) ? (
+          <PluginLink query={{ page: 'cloud' }}>
+            <Button variant="secondary" icon="external-link-alt">
+              Connect Cloud OnCall
+            </Button>
+          </PluginLink>
+        ) : (
+          <Text type="secondary">
+            You do not have permission to perform this action. Ask an admin to connect Cloud OnCall or upgrade your
+            permissions.
+          </Text>
+        )}
+      </VerticalGroup>
+    );
+  }
 
   const isMounted = useRef(false);
   const [mobileAppIsCurrentlyConnected, setMobileAppIsCurrentlyConnected] = useState<boolean>(isUserConnected());
@@ -128,6 +154,8 @@ const MobileAppConnection = observer(({ userPk }: Props) => {
       </VerticalGroup>
     );
   } else if (QRCodeValue) {
+    const QRCodeDataParsed = getParsedQRCodeValue();
+
     content = (
       <VerticalGroup spacing="lg">
         <Text type="primary" strong>
@@ -138,6 +166,15 @@ const MobileAppConnection = observer(({ userPk }: Props) => {
           <QRCode className={cx({ 'qr-code': true, blurry: isQRBlurry })} value={QRCodeValue} />
           {isQRBlurry && <QRLoading />}
         </div>
+        {store.backendLicense === GRAFANA_LICENSE_OSS && QRCodeDataParsed && (
+          <Text type="secondary">
+            Server URL embedded in this QR:
+            <br />
+            <a href={QRCodeDataParsed.oncall_api_url}>
+              <Text type="link">{QRCodeDataParsed.oncall_api_url}</Text>
+            </a>
+          </Text>
+        )}
       </VerticalGroup>
     );
   }
@@ -152,6 +189,14 @@ const MobileAppConnection = observer(({ userPk }: Props) => {
       </Block>
     </div>
   );
+
+  function getParsedQRCodeValue() {
+    try {
+      return JSON.parse(QRCodeValue);
+    } catch (ex) {
+      return undefined;
+    }
+  }
 
   function clearTimeouts(): void {
     clearTimeout(userTimeoutId);

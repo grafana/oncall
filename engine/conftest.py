@@ -736,15 +736,29 @@ def make_integration_heartbeat():
     return _make_integration_heartbeat
 
 
-@pytest.fixture()
-def load_slack_urls(settings):
+def reload_urls(settings):
+    """
+    Reloads Django URLs, especially useful when testing conditionally registered URLs
+    """
+
     clear_url_caches()
-    settings.FEATURE_SLACK_INTEGRATION_ENABLED = True
     urlconf = settings.ROOT_URLCONF
     if urlconf in sys.modules:
         reload(sys.modules[urlconf])
     else:
         import_module(urlconf)
+
+
+@pytest.fixture()
+def load_slack_urls(settings):
+    settings.FEATURE_SLACK_INTEGRATION_ENABLED = True
+    reload_urls(settings)
+
+
+@pytest.fixture()
+def load_mobile_app_urls(settings):
+    settings.FEATURE_MOBILE_APP_INTEGRATION_ENABLED = True
+    reload_urls(settings)
 
 
 @pytest.fixture
