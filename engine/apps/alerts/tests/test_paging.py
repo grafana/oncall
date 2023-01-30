@@ -280,6 +280,19 @@ def test_direct_paging_custom_chain(
 
 
 @pytest.mark.django_db
+def test_direct_paging_returns_alert_group(make_organization, make_user_for_organization):
+    organization = make_organization()
+    user = make_user_for_organization(organization)
+    from_user = make_user_for_organization(organization)
+
+    with patch("apps.alerts.paging.notify_user_task"):
+        alert_group = direct_paging(organization, None, from_user, title="Help!", message="Fire", users=[(user, False)])
+
+    # check alert group returned by direct paging is the same as the one created
+    assert alert_group == AlertGroup.all_objects.get()
+
+
+@pytest.mark.django_db
 def test_unpage_user_not_exists(
     make_organization, make_user_for_organization, make_alert_receive_channel, make_alert_group
 ):
@@ -311,3 +324,22 @@ def test_unpage_user_ok(make_organization, make_user_for_organization, make_aler
     assert_log_record(
         alert_group, f"{from_user.username} unpaged user {user.username}", AlertGroupLogRecord.TYPE_UNPAGE_USER
     )
+
+
+@pytest.mark.django_db
+def test_direct_paging_always_create_group(make_organization, make_user_for_organization):
+    organization = make_organization()
+    user = make_user_for_organization(organization)
+    from_user = make_user_for_organization(organization)
+
+    with patch("apps.alerts.paging.notify_user_task") as notify_task:
+        # although calling twice with same params, there should be 2 alert groups
+        direct_paging(organization, None, from_user, title="Help!", users=[(user, False)])
+        direct_paging(organization, None, from_user, title="Help!", users=[(user, False)])
+
+    # alert group created
+    alert_groups = AlertGroup.all_objects.all()
+    assert alert_groups.count() == 2
+    # notifications sent
+    assert notify_task.apply_async.called_with((user.pk, alert_groups[0].pk), {"important": False})
+    assert notify_task.apply_async.called_with((user.pk, alert_groups[1].pk), {"important": False})
