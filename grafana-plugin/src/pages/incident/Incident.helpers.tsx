@@ -11,7 +11,7 @@ import { WithPermissionControl } from 'containers/WithPermissionControl/WithPerm
 import { MaintenanceIntegration } from 'models/alert_receive_channel';
 import { Alert as AlertType, Alert, IncidentStatus } from 'models/alertgroup/alertgroup.types';
 import { User } from 'models/user/user.types';
-import SilenceCascadingSelect from 'pages/incidents/parts/SilenceCascadingSelect';
+import { SilenceCascadingSelect } from 'pages/incidents/parts/SilenceCascadingSelect';
 import { move } from 'state/helpers';
 import { UserActions } from 'utils/authorization';
 import { TABLE_COLUMN_MAX_WIDTH } from 'utils/consts';

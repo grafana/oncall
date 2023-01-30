@@ -26,7 +26,7 @@ import { UserActions } from 'utils/authorization';
 
 import styles from './Incidents.module.scss';
 import { IncidentDropdown } from './parts/IncidentDropdown';
-import SilenceCascadingSelect from './parts/SilenceCascadingSelect';
+import { SilenceCascadingSelect } from './parts/SilenceCascadingSelect';
 
 const cx = cn.bind(styles);
 

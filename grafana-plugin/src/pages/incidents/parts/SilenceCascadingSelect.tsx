@@ -17,7 +17,7 @@ interface SilenceCascadingSelectProps {
   onSelect: (value: number) => void;
 }
 
-const SilenceCascadingSelect = observer((props: SilenceCascadingSelectProps) => {
+export const SilenceCascadingSelect = observer((props: SilenceCascadingSelectProps) => {
   const { onSelect, isCascading = true, className, disabled = false, buttonSize } = props;
 
   const store = useStore();
@@ -49,7 +49,6 @@ const SilenceCascadingSelect = observer((props: SilenceCascadingSelectProps) => 
   }
 
   function renderAsSelectDropdown() {
-    console.log('render');
     return (
       <Select
         menuShouldPortal
@@ -68,5 +67,3 @@ const SilenceCascadingSelect = observer((props: SilenceCascadingSelectProps) => 
     }));
   }
 });
-
-export default SilenceCascadingSelect;

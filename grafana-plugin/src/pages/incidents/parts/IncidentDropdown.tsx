@@ -11,7 +11,7 @@ import { Alert, AlertAction, IncidentStatus } from 'models/alertgroup/alertgroup
 import styles from 'pages/incidents/parts/IncidentDropdown.module.scss';
 import { UserActions } from 'utils/authorization';
 
-import SilenceCascadingSelect from './SilenceCascadingSelect';
+import { SilenceCascadingSelect } from './SilenceCascadingSelect';
 
 const cx = cn.bind(styles);
 
