@@ -133,7 +133,6 @@ export const TabsContent = observer(({ id, activeTab, onTabChange, isDesktopOrLa
         ) : (
           <PhoneVerification userPk={id} />
         ))}
-      {/* TODO: we should probably hide this tab when a user (ie. Admin) is viewing the user settings for another user. Would it make sense for an Admin to be able to link their mobile app to another user's profile */}
       {activeTab === UserSettingsTab.MobileAppConnection && <MobileAppConnection userPk={id} />}
       {activeTab === UserSettingsTab.SlackInfo && <SlackTab />}
       {activeTab === UserSettingsTab.TelegramInfo && <TelegramInfo />}
