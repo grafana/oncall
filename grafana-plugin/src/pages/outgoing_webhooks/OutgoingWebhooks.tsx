@@ -1,10 +1,10 @@
 import React from 'react';
 
-import { AppRootProps } from '@grafana/data';
-import { getLocationSrv } from '@grafana/runtime';
 import { Button, HorizontalGroup } from '@grafana/ui';
 import cn from 'classnames/bind';
 import { observer } from 'mobx-react';
+import LegacyNavHeading from 'navbar/LegacyNavHeading';
+import { RouteComponentProps, withRouter } from 'react-router-dom';
 
 import GTable from 'components/GTable/GTable';
 import PageErrorHandlingWrapper, { PageBaseState } from 'components/PageErrorHandlingWrapper/PageErrorHandlingWrapper';
@@ -19,15 +19,16 @@ import OutgoingWebhookForm from 'containers/OutgoingWebhookForm/OutgoingWebhookF
 import { WithPermissionControl } from 'containers/WithPermissionControl/WithPermissionControl';
 import { ActionDTO } from 'models/action';
 import { OutgoingWebhook } from 'models/outgoing_webhook/outgoing_webhook.types';
-import { WithStoreProps } from 'state/types';
-import { UserAction } from 'state/userAction';
+import { PageProps, WithStoreProps } from 'state/types';
 import { withMobXProviderContext } from 'state/withStore';
+import { isUserActionAllowed, UserActions } from 'utils/authorization';
+import { PLUGIN_ROOT } from 'utils/consts';
 
 import styles from './OutgoingWebhooks.module.css';
 
 const cx = cn.bind(styles);
 
-interface OutgoingWebhooksProps extends WithStoreProps, AppRootProps {}
+interface OutgoingWebhooksProps extends WithStoreProps, PageProps, RouteComponentProps<{ id: string }> {}
 
 interface OutgoingWebhooksState extends PageBaseState {
   outgoingWebhookIdToEdit?: OutgoingWebhook['id'] | 'new';
@@ -44,7 +45,7 @@ class OutgoingWebhooks extends React.Component<OutgoingWebhooksProps, OutgoingWe
   }
 
   componentDidUpdate(prevProps: OutgoingWebhooksProps) {
-    if (this.props.query.id !== prevProps.query.id) {
+    if (prevProps.match.params.id !== this.props.match.params.id) {
       this.parseQueryParams();
     }
   }
@@ -57,7 +58,9 @@ class OutgoingWebhooks extends React.Component<OutgoingWebhooksProps, OutgoingWe
 
     const {
       store,
-      query: { id },
+      match: {
+        params: { id },
+      },
     } = this.props;
 
     if (!id) {
@@ -122,18 +125,21 @@ class OutgoingWebhooks extends React.Component<OutgoingWebhooksProps, OutgoingWe
                 emptyText={webhooks ? 'No outgoing webhooks found' : 'Loading...'}
                 title={() => (
                   <div className={cx('header')}>
-                    <Text.Title level={3}>Outgoing Webhooks</Text.Title>
-                    <PluginLink
-                      partial
-                      query={{ id: 'new' }}
-                      disabled={!store.isUserActionAllowed(UserAction.UpdateCustomActions)}
-                    >
-                      <WithPermissionControl userAction={UserAction.UpdateCustomActions}>
-                        <Button variant="primary" icon="plus">
-                          Create
-                        </Button>
-                      </WithPermissionControl>
-                    </PluginLink>
+                    <LegacyNavHeading>
+                      <Text.Title level={3}>Outgoing Webhooks</Text.Title>
+                    </LegacyNavHeading>
+                    <div className="u-pull-right">
+                      <PluginLink
+                        query={{ page: 'outgoing_webhooks', id: 'new' }}
+                        disabled={!isUserActionAllowed(UserActions.OutgoingWebhooksWrite)}
+                      >
+                        <WithPermissionControl userAction={UserActions.OutgoingWebhooksWrite}>
+                          <Button variant="primary" icon="plus">
+                            Create
+                          </Button>
+                        </WithPermissionControl>
+                      </PluginLink>
+                    </div>
                   </div>
                 )}
                 rowKey="id"
@@ -157,12 +163,12 @@ class OutgoingWebhooks extends React.Component<OutgoingWebhooksProps, OutgoingWe
   renderActionButtons = (record: ActionDTO) => {
     return (
       <HorizontalGroup justify="flex-end">
-        <WithPermissionControl key={'edit_action'} userAction={UserAction.UpdateCustomActions}>
+        <WithPermissionControl key={'edit_action'} userAction={UserActions.OutgoingWebhooksWrite}>
           <Button onClick={this.getEditClickHandler(record.id)} fill="text">
             Edit
           </Button>
         </WithPermissionControl>
-        <WithPermissionControl key={'delete_action'} userAction={UserAction.UpdateCustomActions}>
+        <WithPermissionControl key={'delete_action'} userAction={UserActions.OutgoingWebhooksWrite}>
           <WithConfirm>
             <Button onClick={this.getDeleteClickHandler(record.id)} fill="text" variant="destructive">
               Delete
@@ -181,20 +187,23 @@ class OutgoingWebhooks extends React.Component<OutgoingWebhooksProps, OutgoingWe
   };
 
   getEditClickHandler = (id: OutgoingWebhook['id']) => {
+    const { history } = this.props;
+
     return () => {
       this.setState({ outgoingWebhookIdToEdit: id });
 
-      getLocationSrv().update({ partial: true, query: { id } });
+      history.push(`${PLUGIN_ROOT}/outgoing_webhooks/${id}`);
     };
   };
 
   handleOutgoingWebhookFormHide = () => {
+    const { history } = this.props;
     this.setState({ outgoingWebhookIdToEdit: undefined });
 
-    getLocationSrv().update({ partial: true, query: { id: undefined } });
+    history.push(`${PLUGIN_ROOT}/outgoing_webhooks`);
   };
 }
 
 export { OutgoingWebhooks };
 
-export default withMobXProviderContext(OutgoingWebhooks);
+export default withRouter(withMobXProviderContext(OutgoingWebhooks));

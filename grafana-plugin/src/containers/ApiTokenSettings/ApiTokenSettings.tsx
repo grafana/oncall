@@ -11,8 +11,8 @@ import WithConfirm from 'components/WithConfirm/WithConfirm';
 import { WithPermissionControl } from 'containers/WithPermissionControl/WithPermissionControl';
 import { ApiToken } from 'models/api_token/api_token.types';
 import { WithStoreProps } from 'state/types';
-import { UserAction } from 'state/userAction';
 import { withMobXProviderContext } from 'state/withStore';
+import { generateMissingPermissionMessage, isUserActionAllowed, UserActions } from 'utils/authorization';
 
 import ApiTokenForm from './ApiTokenForm';
 
@@ -21,6 +21,7 @@ import styles from './ApiTokenSettings.module.css';
 const cx = cn.bind(styles);
 
 const MAX_TOKENS_PER_USER = 5;
+const REQUIRED_PERMISSION_TO_VIEW = UserActions.APIKeysWrite;
 
 interface ApiTokensProps extends WithStoreProps {}
 
@@ -67,6 +68,15 @@ class ApiTokens extends React.Component<ApiTokensProps, any> {
       },
     ];
 
+    const authorizedToViewAPIKeys = isUserActionAllowed(REQUIRED_PERMISSION_TO_VIEW);
+
+    let emptyText = 'Loading...';
+    if (!authorizedToViewAPIKeys) {
+      emptyText = `${generateMissingPermissionMessage(REQUIRED_PERMISSION_TO_VIEW)} to be able to view API tokens.`;
+    } else if (apiTokens) {
+      emptyText = 'No tokens found';
+    }
+
     return (
       <>
         <GTable
@@ -75,7 +85,7 @@ class ApiTokens extends React.Component<ApiTokensProps, any> {
               <HorizontalGroup align="flex-end">
                 <Text.Title level={3}>API Tokens</Text.Title>
               </HorizontalGroup>
-              <WithPermissionControl userAction={UserAction.UpdateApiTokens}>
+              <WithPermissionControl userAction={UserActions.APIKeysWrite}>
                 <Button
                   icon="plus"
                   disabled={apiTokens && apiTokens.length >= MAX_TOKENS_PER_USER}
@@ -92,13 +102,7 @@ class ApiTokens extends React.Component<ApiTokensProps, any> {
           className="api-keys"
           showHeader={!isMobile}
           data={apiTokens}
-          emptyText={
-            store.isUserActionAllowed(UserAction.UpdateApiTokens)
-              ? apiTokens
-                ? 'No tokens found'
-                : 'Loading...'
-              : 'API tokens are available only for users with Admin permissions'
-          }
+          emptyText={emptyText}
           columns={columns}
         />
         {showCreateTokenModal && (
@@ -116,7 +120,7 @@ class ApiTokens extends React.Component<ApiTokensProps, any> {
 
   renderActionButtons = (record: ApiToken) => {
     const revokeButton = (
-      <WithPermissionControl userAction={UserAction.UpdateApiTokens}>
+      <WithPermissionControl userAction={UserActions.APIKeysWrite}>
         <WithConfirm title={`Are you sure to revoke "${record.name}" API token?`} confirmText="Revoke token">
           <Button fill="text" variant="destructive" onClick={this.getRevokeTokenClickHandler(record.id)}>
             Revoke

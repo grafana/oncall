@@ -15,27 +15,21 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
+from apps.alerts.paging import check_user_availability
 from apps.api.permissions import (
-    MODIFY_ACTIONS,
-    READ_ACTIONS,
-    ActionPermission,
-    AnyRole,
-    IsAdminOrEditor,
-    IsOwnerOrAdmin,
+    IsOwnerOrHasRBACPermissions,
+    LegacyAccessControlRole,
+    RBACPermission,
+    user_is_authorized,
 )
 from apps.api.serializers.team import TeamSerializer
 from apps.api.serializers.user import FilterUserSerializer, UserHiddenFieldsSerializer, UserSerializer
-from apps.auth_token.auth import (
-    MobileAppAuthTokenAuthentication,
-    MobileAppVerificationTokenAuthentication,
-    PluginAuthentication,
-)
+from apps.auth_token.auth import PluginAuthentication
 from apps.auth_token.constants import SCHEDULE_EXPORT_TOKEN_NAME
 from apps.auth_token.models import UserScheduleExportAuthToken
-from apps.auth_token.models.mobile_app_auth_token import MobileAppAuthToken
-from apps.auth_token.models.mobile_app_verification_token import MobileAppVerificationToken
 from apps.base.messaging import get_messaging_backend_from_id
 from apps.base.utils import live_settings
+from apps.mobile_app.auth import MobileAppAuthTokenAuthentication
 from apps.telegram.client import TelegramClient
 from apps.telegram.models import TelegramVerificationCode
 from apps.twilioapp.phone_manager import PhoneManager
@@ -45,7 +39,6 @@ from common.api_helpers.exceptions import Conflict
 from common.api_helpers.mixins import FilterSerializerMixin, PublicPrimaryKeyMixin
 from common.api_helpers.paginators import HundredPageSizePaginator
 from common.api_helpers.utils import create_engine_url
-from common.constants.role import Role
 from common.insight_log import (
     ChatOpsEvent,
     ChatOpsType,
@@ -55,6 +48,8 @@ from common.insight_log import (
 )
 
 logger = logging.getLogger(__name__)
+IsOwnerOrHasUserSettingsAdminPermission = IsOwnerOrHasRBACPermissions([RBACPermission.Permissions.USER_SETTINGS_ADMIN])
+IsOwnerOrHasUserSettingsReadPermission = IsOwnerOrHasRBACPermissions([RBACPermission.Permissions.USER_SETTINGS_READ])
 
 
 class CurrentUserView(APIView):
@@ -93,7 +88,9 @@ class UserFilter(filters.FilterSet):
     """
 
     email = filters.CharFilter(field_name="email", lookup_expr="icontains")
-    roles = filters.MultipleChoiceFilter(field_name="role", choices=Role.choices())
+    roles = filters.MultipleChoiceFilter(
+        field_name="role", choices=LegacyAccessControlRole.choices()
+    )  # LEGACY.. this should get removed eventually
 
     class Meta:
         model = User
@@ -113,36 +110,36 @@ class UserView(
         PluginAuthentication,
     )
 
-    permission_classes = (IsAuthenticated, ActionPermission)
+    permission_classes = (IsAuthenticated, RBACPermission)
 
-    # Non-admin users are allowed to list and retrieve users
-    # The overridden get_serializer_class will return
-    # another Serializer for non-admin users with sensitive information hidden
-    action_permissions = {
-        IsAdminOrEditor: (
-            *MODIFY_ACTIONS,
-            "list",
-            "metadata",
-            "verify_number",
-            "forget_number",
-            "get_verification_code",
-            "get_backend_verification_code",
-            "get_telegram_verification_code",
-            "unlink_slack",
-            "unlink_telegram",
-            "unlink_backend",
-            "make_test_call",
-            "export_token",
-            "mobile_app_verification_token",
-            "mobile_app_auth_token",
-        ),
-        AnyRole: ("retrieve", "timezone_options"),
+    rbac_permissions = {
+        "retrieve": [RBACPermission.Permissions.USER_SETTINGS_READ],
+        "timezone_options": [RBACPermission.Permissions.USER_SETTINGS_READ],
+        "check_availability": [RBACPermission.Permissions.USER_SETTINGS_READ],
+        "metadata": [RBACPermission.Permissions.USER_SETTINGS_WRITE],
+        "list": [RBACPermission.Permissions.USER_SETTINGS_WRITE],
+        "update": [RBACPermission.Permissions.USER_SETTINGS_WRITE],
+        "partial_update": [RBACPermission.Permissions.USER_SETTINGS_WRITE],
+        "verify_number": [RBACPermission.Permissions.USER_SETTINGS_WRITE],
+        "forget_number": [RBACPermission.Permissions.USER_SETTINGS_WRITE],
+        "get_verification_code": [RBACPermission.Permissions.USER_SETTINGS_WRITE],
+        "get_backend_verification_code": [RBACPermission.Permissions.USER_SETTINGS_WRITE],
+        "get_telegram_verification_code": [RBACPermission.Permissions.USER_SETTINGS_WRITE],
+        "unlink_slack": [RBACPermission.Permissions.USER_SETTINGS_WRITE],
+        "unlink_telegram": [RBACPermission.Permissions.USER_SETTINGS_WRITE],
+        "unlink_backend": [RBACPermission.Permissions.USER_SETTINGS_WRITE],
+        "make_test_call": [RBACPermission.Permissions.USER_SETTINGS_WRITE],
+        "export_token": [RBACPermission.Permissions.USER_SETTINGS_WRITE],
     }
 
-    action_object_permissions = {
-        IsOwnerOrAdmin: (
-            *MODIFY_ACTIONS,
-            *READ_ACTIONS,
+    rbac_object_permissions = {
+        IsOwnerOrHasUserSettingsAdminPermission: [
+            "metadata",
+            "list",
+            "retrieve",
+            "update",
+            "partial_update",
+            "destroy",
             "verify_number",
             "forget_number",
             "get_verification_code",
@@ -153,9 +150,10 @@ class UserView(
             "unlink_backend",
             "make_test_call",
             "export_token",
-            "mobile_app_verification_token",
-            "mobile_app_auth_token",
-        ),
+        ],
+        IsOwnerOrHasUserSettingsReadPermission: [
+            "check_availability",
+        ],
     }
 
     filter_serializer_class = FilterUserSerializer
@@ -178,14 +176,18 @@ class UserView(
     filterset_class = UserFilter
 
     def get_serializer_class(self):
-        is_filters_request = self.request.query_params.get("filters", "false") == "true"
+        request = self.request
+        user = request.user
+        kwargs = self.kwargs
+
+        is_filters_request = request.query_params.get("filters", "false") == "true"
         if self.action in ["list"] and is_filters_request:
             return self.get_filter_serializer_class()
 
-        is_users_own_data = (
-            self.kwargs.get("pk") is not None and self.kwargs.get("pk") == self.request.user.public_primary_key
-        )
-        if is_users_own_data or self.request.user.role == Role.ADMIN:
+        is_users_own_data = kwargs.get("pk") is not None and kwargs.get("pk") == user.public_primary_key
+        has_admin_permission = user_is_authorized(user, [RBACPermission.Permissions.USER_SETTINGS_ADMIN])
+
+        if is_users_own_data or has_admin_permission:
             return UserSerializer
         return UserHiddenFieldsSerializer
 
@@ -375,7 +377,7 @@ class UserView(
         bot_link = f"https://t.me/{bot_username}"
 
         return Response(
-            {"telegram_code": str(new_code.uuid_with_org_id), "bot_link": bot_link}, status=status.HTTP_200_OK
+            {"telegram_code": str(new_code.uuid_with_org_uuid), "bot_link": bot_link}, status=status.HTTP_200_OK
         )
 
     @action(detail=True, methods=["post"])
@@ -473,116 +475,8 @@ class UserView(
                 raise NotFound
             return Response(status=status.HTTP_204_NO_CONTENT)
 
-    @action(detail=True, methods=["get", "post", "delete"])
-    def mobile_app_verification_token(self, request, pk):
-        DynamicSetting = apps.get_model("base", "DynamicSetting")
-
-        if not settings.MOBILE_APP_PUSH_NOTIFICATIONS_ENABLED:
-            return Response(status=status.HTTP_404_NOT_FOUND)
-
-        mobile_app_settings = DynamicSetting.objects.get_or_create(
-            name="mobile_app_settings",
-            defaults={
-                "json_value": {
-                    "org_ids": [],
-                }
-            },
-        )[0]
-        if self.request.auth.organization.pk not in mobile_app_settings.json_value["org_ids"]:
-            return Response(status=status.HTTP_404_NOT_FOUND)
-
+    @action(detail=True, methods=["get"])
+    def check_availability(self, request, pk):
         user = self.get_object()
-
-        if self.request.method == "GET":
-            try:
-                token = MobileAppVerificationToken.objects.get(user=user)
-            except MobileAppVerificationToken.DoesNotExist:
-                raise NotFound
-
-            response = {
-                "token_id": token.id,
-                "user_id": token.user_id,
-                "organization_id": token.organization_id,
-                "created_at": token.created_at,
-                "revoked_at": token.revoked_at,
-            }
-            return Response(response, status=status.HTTP_200_OK)
-
-        if self.request.method == "POST":
-            # If token already exists revoke it
-            try:
-                token = MobileAppVerificationToken.objects.get(user=user)
-                token.delete()
-            except MobileAppVerificationToken.DoesNotExist:
-                pass
-
-            instance, token = MobileAppVerificationToken.create_auth_token(user, user.organization)
-            data = {"id": instance.pk, "token": token, "created_at": instance.created_at}
-            return Response(data, status=status.HTTP_201_CREATED)
-
-        if self.request.method == "DELETE":
-            try:
-                token = MobileAppVerificationToken.objects.get(user=user)
-                token.delete()
-            except MobileAppVerificationToken.DoesNotExist:
-                raise NotFound
-
-            return Response(status=status.HTTP_204_NO_CONTENT)
-
-    @action(
-        methods=["get", "post", "delete"],
-        detail=False,
-        authentication_classes=(MobileAppVerificationTokenAuthentication,),
-    )
-    def mobile_app_auth_token(self, request):
-        DynamicSetting = apps.get_model("base", "DynamicSetting")
-
-        if not settings.MOBILE_APP_PUSH_NOTIFICATIONS_ENABLED:
-            return Response(status=status.HTTP_404_NOT_FOUND)
-
-        mobile_app_settings = DynamicSetting.objects.get_or_create(
-            name="mobile_app_settings",
-            defaults={
-                "json_value": {
-                    "org_ids": [],
-                }
-            },
-        )[0]
-        if self.request.auth.organization.pk not in mobile_app_settings.json_value["org_ids"]:
-            return Response(status=status.HTTP_404_NOT_FOUND)
-
-        if self.request.method == "GET":
-            try:
-                token = MobileAppAuthToken.objects.get(user=self.request.user)
-            except MobileAppAuthToken.DoesNotExist:
-                raise NotFound
-
-            response = {
-                "token_id": token.id,
-                "user_id": token.user_id,
-                "organization_id": token.organization_id,
-                "created_at": token.created_at,
-                "revoked_at": token.revoked_at,
-            }
-            return Response(response, status=status.HTTP_200_OK)
-
-        if self.request.method == "POST":
-            # If token already exists revoke it
-            try:
-                token = MobileAppAuthToken.objects.get(user=self.request.user)
-                token.delete()
-            except MobileAppAuthToken.DoesNotExist:
-                pass
-
-            instance, token = MobileAppAuthToken.create_auth_token(self.request.user, self.request.user.organization)
-            data = {"id": instance.pk, "token": token, "created_at": instance.created_at}
-            return Response(data, status=status.HTTP_201_CREATED)
-
-        if self.request.method == "DELETE":
-            try:
-                token = MobileAppAuthToken.objects.get(user=self.request.user)
-                token.delete()
-            except MobileAppVerificationToken.DoesNotExist:
-                raise NotFound
-
-            return Response(status=status.HTTP_204_NO_CONTENT)
+        warnings = check_user_availability(user=user, team=request.user.current_team)
+        return Response(data={"warnings": warnings}, status=status.HTTP_200_OK)

@@ -5,8 +5,8 @@ import cn from 'classnames/bind';
 import { observer } from 'mobx-react';
 
 import { WithPermissionControl } from 'containers/WithPermissionControl2/WithPermissionControl';
-import { UserAction } from 'state/userAction';
 import { withMobXProviderContext } from 'state/withStore';
+import { UserActions } from 'utils/authorization';
 
 import styles from './Test.module.css';
 
@@ -17,7 +17,7 @@ class Test extends React.Component<any, any> {
   render() {
     return (
       <div className={cx('root')}>
-        <WithPermissionControl userAction={UserAction.UpdateSchedules}>
+        <WithPermissionControl userAction={UserActions.SchedulesWrite}>
           {(disabled) => <Button disabled={disabled}>Click me!</Button>}
         </WithPermissionControl>
       </div>

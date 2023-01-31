@@ -23,9 +23,9 @@
   background: rgba(204, 204, 220, 0.4);
 }
 
-.hr {
-  width: 100%;
-  margin: 0 -11px;
+.line-break {
+  width: 100vw;
+  margin: -4px -18px -4px -18px;
 }
 
 .times {
@@ -35,4 +35,23 @@
 
 .icon {
   color: #ccccdc;
+}
+
+.timezone-wrapper {
+  display: flex;
+}
+
+.timezone-icon {
+  width: 10%;
+}
+
+.timezone-info {
+  width: 50%;
+  overflow-wrap: anywhere;
+  margin-left: 4px;
+}
+
+.contact-details a {
+  text-decoration-line: none;
+  word-break: break-all;
 }

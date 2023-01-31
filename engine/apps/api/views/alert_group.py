@@ -1,21 +1,26 @@
 from datetime import timedelta
 
+from django.core.exceptions import ObjectDoesNotExist
 from django.db.models import Count, Max, Q
 from django.utils import timezone
 from django_filters import rest_framework as filters
 from django_filters.widgets import RangeWidget
 from rest_framework import mixins, status, viewsets
 from rest_framework.decorators import action
+from rest_framework.exceptions import NotFound
 from rest_framework.filters import SearchFilter
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
 from apps.alerts.constants import ActionSource
 from apps.alerts.models import Alert, AlertGroup, AlertReceiveChannel
-from apps.api.permissions import MODIFY_ACTIONS, READ_ACTIONS, ActionPermission, AnyRole, IsAdminOrEditor
+from apps.alerts.paging import unpage_user
+from apps.api.permissions import RBACPermission
 from apps.api.serializers.alert_group import AlertGroupListSerializer, AlertGroupSerializer
-from apps.auth_token.auth import MobileAppAuthTokenAuthentication, PluginAuthentication
-from apps.user_management.models import User
+from apps.api.serializers.team import TeamSerializer
+from apps.auth_token.auth import PluginAuthentication
+from apps.mobile_app.auth import MobileAppAuthTokenAuthentication
+from apps.user_management.models import Team, User
 from common.api_helpers.exceptions import BadRequest
 from common.api_helpers.filters import DateRangeFilterMixin, ModelFieldFilterMixin
 from common.api_helpers.mixins import PreviewTemplateMixin, PublicPrimaryKeyMixin, TeamFilteringMixin
@@ -80,14 +85,16 @@ class AlertGroupFilter(DateRangeFilterMixin, ModelFieldFilterMixin, filters.Filt
     invitees_are = filters.ModelMultipleChoiceFilter(
         queryset=get_user_queryset, to_field_name="public_primary_key", method="filter_invitees_are"
     )
+    involved_users_are = filters.ModelMultipleChoiceFilter(
+        queryset=get_user_queryset, to_field_name="public_primary_key", method="filter_by_involved_users"
+    )
     with_resolution_note = filters.BooleanFilter(method="filter_with_resolution_note")
+    mine = filters.BooleanFilter(method="filter_mine")
 
     class Meta:
         model = AlertGroup
         fields = [
             "id__in",
-            "resolved",
-            "acknowledged",
             "started_at_gte",
             "started_at_lte",
             "resolved_at_lte",
@@ -108,13 +115,13 @@ class AlertGroupFilter(DateRangeFilterMixin, ModelFieldFilterMixin, filters.Filt
         q_objects = Q()
 
         if AlertGroup.NEW in statuses:
-            filters["new"] = Q(silenced=False) & Q(acknowledged=False) & Q(resolved=False)
+            filters["new"] = AlertGroup.get_new_state_filter()
         if AlertGroup.SILENCED in statuses:
-            filters["silenced"] = Q(silenced=True) & Q(acknowledged=False) & Q(resolved=False)
+            filters["silenced"] = AlertGroup.get_silenced_state_filter()
         if AlertGroup.ACKNOWLEDGED in statuses:
-            filters["acknowledged"] = Q(acknowledged=True) & Q(resolved=False)
+            filters["acknowledged"] = AlertGroup.get_acknowledged_state_filter()
         if AlertGroup.RESOLVED in statuses:
-            filters["resolved"] = Q(resolved=True)
+            filters["resolved"] = AlertGroup.get_resolved_state_filter()
 
         for item in filters:
             q_objects |= filters[item]
@@ -129,8 +136,25 @@ class AlertGroupFilter(DateRangeFilterMixin, ModelFieldFilterMixin, filters.Filt
         if not users:
             return queryset
 
-        queryset = queryset.filter(acknowledged=False, resolved=False, log_records__author__in=users).distinct()
+        queryset = queryset.filter(log_records__author__in=users).distinct()
 
+        return queryset
+
+    def filter_by_involved_users(self, queryset, name, value):
+        users = value
+
+        if not users:
+            return queryset
+
+        queryset = queryset.filter(
+            Q(personal_log_records__author__in=users) | Q(log_records__author__in=users)
+        ).distinct()
+
+        return queryset
+
+    def filter_mine(self, queryset, name, value):
+        if value:
+            return self.filter_by_involved_users(queryset, "users", [self.request.user.pk])
         return queryset
 
     def filter_with_resolution_note(self, queryset, name, value):
@@ -146,6 +170,37 @@ class AlertGroupFilter(DateRangeFilterMixin, ModelFieldFilterMixin, filters.Filt
 class AlertGroupTeamFilteringMixin(TeamFilteringMixin):
     TEAM_LOOKUP = "channel__team"
 
+    def retrieve(self, request, *args, **kwargs):
+        try:
+            return super().retrieve(request, *args, **kwargs)
+        except NotFound:
+            alert_receive_channels_ids = list(
+                AlertReceiveChannel.objects.filter(
+                    organization_id=self.request.auth.organization.id,
+                ).values_list("id", flat=True)
+            )
+            queryset = AlertGroup.unarchived_objects.filter(
+                channel__in=alert_receive_channels_ids,
+            ).only("public_primary_key")
+
+            try:
+                obj = queryset.get(public_primary_key=self.kwargs["pk"])
+            except ObjectDoesNotExist:
+                raise NotFound
+
+            obj_team = self._getattr_with_related(obj, self.TEAM_LOOKUP)
+
+            if obj_team is None or obj_team in self.request.user.teams.all():
+                if obj_team is None:
+                    obj_team = Team(public_primary_key=None, name="General", email=None, avatar_url=None)
+
+                return Response(
+                    data={"error_code": "wrong_team", "owner_team": TeamSerializer(obj_team).data},
+                    status=status.HTTP_403_FORBIDDEN,
+                )
+
+            return Response(data={"error_code": "wrong_team"}, status=status.HTTP_403_FORBIDDEN)
+
 
 class AlertGroupView(
     PreviewTemplateMixin,
@@ -159,29 +214,30 @@ class AlertGroupView(
         MobileAppAuthTokenAuthentication,
         PluginAuthentication,
     )
-    permission_classes = (IsAuthenticated, ActionPermission)
+    permission_classes = (IsAuthenticated, RBACPermission)
 
-    action_permissions = {
-        IsAdminOrEditor: (
-            *MODIFY_ACTIONS,
-            "acknowledge",
-            "unacknowledge",
-            "resolve",
-            "unresolve",
-            "attach",
-            "unattach",
-            "silence",
-            "unsilence",
-            "bulk_action",
-            "preview_template",
-        ),
-        AnyRole: (
-            *READ_ACTIONS,
-            "stats",
-            "filters",
-            "silence_options",
-            "bulk_action_options",
-        ),
+    rbac_permissions = {
+        "metadata": [RBACPermission.Permissions.ALERT_GROUPS_READ],
+        "list": [RBACPermission.Permissions.ALERT_GROUPS_READ],
+        "retrieve": [RBACPermission.Permissions.ALERT_GROUPS_READ],
+        "stats": [RBACPermission.Permissions.ALERT_GROUPS_READ],
+        "filters": [RBACPermission.Permissions.ALERT_GROUPS_READ],
+        "silence_options": [RBACPermission.Permissions.ALERT_GROUPS_READ],
+        "bulk_action_options": [RBACPermission.Permissions.ALERT_GROUPS_READ],
+        "create": [RBACPermission.Permissions.ALERT_GROUPS_WRITE],
+        "update": [RBACPermission.Permissions.ALERT_GROUPS_WRITE],
+        "destroy": [RBACPermission.Permissions.ALERT_GROUPS_WRITE],
+        "acknowledge": [RBACPermission.Permissions.ALERT_GROUPS_WRITE],
+        "unacknowledge": [RBACPermission.Permissions.ALERT_GROUPS_WRITE],
+        "resolve": [RBACPermission.Permissions.ALERT_GROUPS_WRITE],
+        "unresolve": [RBACPermission.Permissions.ALERT_GROUPS_WRITE],
+        "attach": [RBACPermission.Permissions.ALERT_GROUPS_WRITE],
+        "unattach": [RBACPermission.Permissions.ALERT_GROUPS_WRITE],
+        "silence": [RBACPermission.Permissions.ALERT_GROUPS_WRITE],
+        "unsilence": [RBACPermission.Permissions.ALERT_GROUPS_WRITE],
+        "unpage_user": [RBACPermission.Permissions.ALERT_GROUPS_WRITE],
+        "bulk_action": [RBACPermission.Permissions.ALERT_GROUPS_WRITE],
+        "preview_template": [RBACPermission.Permissions.INTEGRATIONS_TEST],
     }
 
     http_method_names = ["get", "post"]
@@ -203,8 +259,14 @@ class AlertGroupView(
 
     def get_queryset(self):
         # no select_related or prefetch_related is used at this point, it will be done on paginate_queryset.
+        alert_receive_channels_ids = list(
+            AlertReceiveChannel.objects.filter(
+                organization_id=self.request.auth.organization.id,
+                team_id=self.request.user.current_team,
+            ).values_list("id", flat=True)
+        )
         queryset = AlertGroup.unarchived_objects.filter(
-            channel__organization=self.request.auth.organization, channel__team=self.request.user.current_team
+            channel__in=alert_receive_channels_ids,
         ).only("id")
 
         return queryset
@@ -425,6 +487,25 @@ class AlertGroupView(
 
         return Response(AlertGroupSerializer(alert_group, context={"request": request}).data)
 
+    @action(methods=["post"], detail=True)
+    def unpage_user(self, request, pk=None):
+        organization = request.auth.organization
+        from_user = request.user
+        alert_group = self.get_object()
+
+        try:
+            user_id = request.data["user_id"]
+        except KeyError:
+            raise BadRequest(detail="Please specify user_id")
+
+        try:
+            user = organization.users.get(public_primary_key=user_id)
+        except User.DoesNotExist:
+            raise BadRequest(detail="User not found")
+
+        unpage_user(alert_group=alert_group, user=user, from_user=from_user)
+        return Response(status=status.HTTP_200_OK)
+
     @action(methods=["get"], detail=False)
     def filters(self, request):
         filter_name = request.query_params.get("search", None)
@@ -463,6 +544,12 @@ class AlertGroupView(
                 "href": api_root + "users/?filters=true&roles=0&roles=1&roles=2",
             },
             {
+                "name": "involved_users_are",
+                "type": "options",
+                "href": api_root + "users/?filters=true&roles=0&roles=1&roles=2",
+                "default": {"display_name": self.request.user.username, "value": self.request.user.public_primary_key},
+            },
+            {
                 "name": "status",
                 "type": "options",
                 "options": [
@@ -485,6 +572,11 @@ class AlertGroupView(
             },
             {
                 "name": "with_resolution_note",
+                "type": "boolean",
+                "default": "true",
+            },
+            {
+                "name": "mine",
                 "type": "boolean",
                 "default": "true",
             },

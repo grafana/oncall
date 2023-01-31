@@ -39,6 +39,11 @@ MIRAGE_CIPHER_MODE = "CBC"
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = False
 
+DEBUG_CELERY_TASKS_PROFILING = getenv_boolean("DEBUG_CELERY_TASKS_PROFILING", False)
+
+OTEL_TRACING_ENABLED = getenv_boolean("OTEL_TRACING_ENABLED", False)
+OTEL_EXPORTER_OTLP_ENDPOINT = os.environ.get("OTEL_EXPORTER_OTLP_ENDPOINT")
+
 ALLOWED_HOSTS = [item.strip() for item in os.environ.get("ALLOWED_HOSTS", "*").split(",")]
 
 # TODO: update link to up-to-date docs
@@ -52,6 +57,7 @@ FEATURE_LIVE_SETTINGS_ENABLED = getenv_boolean("FEATURE_LIVE_SETTINGS_ENABLED", 
 FEATURE_TELEGRAM_INTEGRATION_ENABLED = getenv_boolean("FEATURE_TELEGRAM_INTEGRATION_ENABLED", default=True)
 FEATURE_EMAIL_INTEGRATION_ENABLED = getenv_boolean("FEATURE_EMAIL_INTEGRATION_ENABLED", default=True)
 FEATURE_SLACK_INTEGRATION_ENABLED = getenv_boolean("FEATURE_SLACK_INTEGRATION_ENABLED", default=True)
+FEATURE_MOBILE_APP_INTEGRATION_ENABLED = getenv_boolean("FEATURE_MOBILE_APP_INTEGRATION_ENABLED", default=False)
 FEATURE_WEB_SCHEDULES_ENABLED = getenv_boolean("FEATURE_WEB_SCHEDULES_ENABLED", default=False)
 FEATURE_MULTIREGION_ENABLED = getenv_boolean("FEATURE_MULTIREGION_ENABLED", default=False)
 FEATURE_INBOUND_EMAIL_ENABLED = getenv_boolean("FEATURE_INBOUND_EMAIL_ENABLED", default=False)
@@ -203,6 +209,7 @@ INSTALLED_APPS = [
     "apps.slack",
     "apps.telegram",
     "apps.twilioapp",
+    "apps.mobile_app",
     "apps.api",
     "apps.api_for_grafana_incident",
     "apps.base",
@@ -213,7 +220,7 @@ INSTALLED_APPS = [
     "debug_toolbar",
     "social_django",
     "polymorphic",
-    "push_notifications",
+    "fcm_django",
 ]
 
 REST_FRAMEWORK = {
@@ -245,6 +252,7 @@ MIDDLEWARE = [
     "apps.social_auth.middlewares.SocialAuthAuthCanceledExceptionMiddleware",
     "apps.integrations.middlewares.IntegrationExceptionMiddleware",
     "apps.user_management.middlewares.OrganizationMovedMiddleware",
+    "apps.user_management.middlewares.OrganizationDeletedMiddleware",
 ]
 
 LOG_REQUEST_ID_HEADER = "HTTP_X_CLOUD_TRACE_CONTEXT"
@@ -457,14 +465,23 @@ INTERNAL_IPS = ["127.0.0.1"]
 
 SELF_IP = os.environ.get("SELF_IP")
 
-SILK_PATH = os.environ.get("SILK_PATH", "silk/")
-SILKY_AUTHENTICATION = True
-SILKY_AUTHORISATION = True
-SILKY_META = True
-SILKY_INTERCEPT_PERCENT = 1
-SILKY_MAX_RECORDED_REQUESTS = 10**4
+SILK_PROFILER_ENABLED = getenv_boolean("SILK_PROFILER_ENABLED", default=False)
+if SILK_PROFILER_ENABLED:
+    SILK_PATH = os.environ.get("SILK_PATH", "silk/")
+    SILKY_INTERCEPT_PERCENT = getenv_integer("SILKY_INTERCEPT_PERCENT", 100)
 
-INSTALLED_APPS += ["silk"]
+    INSTALLED_APPS += ["silk"]
+    MIDDLEWARE += ["silk.middleware.SilkyMiddleware"]
+
+    SILKY_AUTHENTICATION = True
+    SILKY_AUTHORISATION = True
+    SILKY_PYTHON_PROFILER_BINARY = getenv_boolean("SILKY_PYTHON_PROFILER_BINARY", default=False)
+    SILKY_MAX_RECORDED_REQUESTS = 10**4
+    SILKY_PYTHON_PROFILER = True
+    SILKY_IGNORE_PATHS = ["/health/", "/ready/"]
+    if "SILKY_PYTHON_PROFILER_RESULT_PATH" in os.environ:
+        SILKY_PYTHON_PROFILER_RESULT_PATH = os.environ.get("SILKY_PYTHON_PROFILER_RESULT_PATH")
+
 # get ONCALL_DJANGO_ADMIN_PATH from env and add trailing / to it
 ONCALL_DJANGO_ADMIN_PATH = os.environ.get("ONCALL_DJANGO_ADMIN_PATH", "django-admin") + "/"
 
@@ -488,6 +505,7 @@ SLACK_CLIENT_OAUTH_ID = os.environ.get("SLACK_CLIENT_OAUTH_ID")
 SLACK_CLIENT_OAUTH_SECRET = os.environ.get("SLACK_CLIENT_OAUTH_SECRET")
 
 SLACK_SLASH_COMMAND_NAME = os.environ.get("SLACK_SLASH_COMMAND_NAME", "/oncall")
+SLACK_DIRECT_PAGING_SLASH_COMMAND = os.environ.get("SLACK_DIRECT_PAGING_SLASH_COMMAND", "/escalate")
 
 SOCIAL_AUTH_SLACK_LOGIN_KEY = SLACK_CLIENT_OAUTH_ID
 SOCIAL_AUTH_SLACK_LOGIN_SECRET = SLACK_CLIENT_OAUTH_SECRET
@@ -541,16 +559,27 @@ GRAFANA_COM_ADMIN_API_TOKEN = os.environ.get("GRAFANA_COM_ADMIN_API_TOKEN", None
 
 GRAFANA_API_KEY_NAME = "Grafana OnCall"
 
-MOBILE_APP_PUSH_NOTIFICATIONS_ENABLED = getenv_boolean("MOBILE_APP_PUSH_NOTIFICATIONS_ENABLED", default=False)
+EXTRA_MESSAGING_BACKENDS = []
+if FEATURE_MOBILE_APP_INTEGRATION_ENABLED:
+    from firebase_admin import initialize_app
 
-PUSH_NOTIFICATIONS_SETTINGS = {
-    "APNS_AUTH_KEY_PATH": os.environ.get("APNS_AUTH_KEY_PATH", None),
-    "APNS_TOPIC": os.environ.get("APNS_TOPIC", None),
-    "APNS_AUTH_KEY_ID": os.environ.get("APNS_AUTH_KEY_ID", None),
-    "APNS_TEAM_ID": os.environ.get("APNS_TEAM_ID", None),
-    "APNS_USE_SANDBOX": getenv_boolean("APNS_USE_SANDBOX", True),
-    "USER_MODEL": "user_management.User",
+    EXTRA_MESSAGING_BACKENDS += [
+        ("apps.mobile_app.backend.MobileAppBackend", 5),
+        ("apps.mobile_app.backend.MobileAppCriticalBackend", 6),
+    ]
+
+    FIREBASE_APP = initialize_app(options={"projectId": os.environ.get("FCM_PROJECT_ID", None)})
+
+FCM_RELAY_ENABLED = getenv_boolean("FCM_RELAY_ENABLED", default=False)
+FCM_DJANGO_SETTINGS = {
+    # an instance of firebase_admin.App to be used as default for all fcm-django requests
+    # default: None (the default Firebase app)
+    "DEFAULT_FIREBASE_APP": None,
+    "APP_VERBOSE_NAME": "OnCall",
+    "ONE_DEVICE_PER_USER": True,
+    "DELETE_INACTIVE_DEVICES": False,
     "UPDATE_ON_DUPLICATE_REG_ID": True,
+    "USER_MODEL": "user_management.User",
 }
 
 SELF_HOSTED_SETTINGS = {
@@ -560,16 +589,18 @@ SELF_HOSTED_SETTINGS = {
     "ORG_SLUG": "self_hosted_org",
     "ORG_TITLE": "Self-Hosted Organization",
     "REGION_SLUG": "self_hosted_region",
+    "GRAFANA_API_URL": os.environ.get("GRAFANA_API_URL", default=None),
 }
 
 GRAFANA_INCIDENT_STATIC_API_KEY = os.environ.get("GRAFANA_INCIDENT_STATIC_API_KEY", None)
 
 DATA_UPLOAD_MAX_MEMORY_SIZE = getenv_integer("DATA_UPLOAD_MAX_MEMORY_SIZE", 1_048_576)  # 1mb by default
+JINJA_TEMPLATE_MAX_LENGTH = 50000
+JINJA_RESULT_TITLE_MAX_LENGTH = 500
+JINJA_RESULT_MAX_LENGTH = 50000
 
 # Log inbound/outbound calls as slow=1 if they exceed threshold
 SLOW_THRESHOLD_SECONDS = 2.0
-
-EXTRA_MESSAGING_BACKENDS = []
 
 # Email messaging backend
 EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
@@ -581,7 +612,7 @@ EMAIL_USE_TLS = getenv_boolean("EMAIL_USE_TLS", True)
 EMAIL_FROM_ADDRESS = os.getenv("EMAIL_FROM_ADDRESS")
 
 if FEATURE_EMAIL_INTEGRATION_ENABLED:
-    EXTRA_MESSAGING_BACKENDS = [("apps.email.backend.EmailBackend", 8)]
+    EXTRA_MESSAGING_BACKENDS += [("apps.email.backend.EmailBackend", 8)]
 
 # Inbound email settings
 INBOUND_EMAIL_ESP = os.getenv("INBOUND_EMAIL_ESP")
@@ -602,6 +633,7 @@ INSTALLED_ONCALL_INTEGRATIONS = [
     "config_integrations.manual",
     "config_integrations.slack_channel",
     "config_integrations.zabbix",
+    "config_integrations.direct_paging",
 ]
 
 if OSS_INSTALLATION:
@@ -626,3 +658,17 @@ if OSS_INSTALLATION:
         "schedule": crontab(hour="*/12"),  # noqa
         "args": (),
     }  # noqa
+
+PYROSCOPE_PROFILER_ENABLED = getenv_boolean("PYROSCOPE_PROFILER_ENABLED", default=False)
+if PYROSCOPE_PROFILER_ENABLED:
+    import pyroscope
+
+    pyroscope.configure(
+        application_name=os.getenv("PYROSCOPE_APPLICATION_NAME", "oncall"),
+        server_address=os.getenv("PYROSCOPE_SERVER_ADDRESS", "http://pyroscope:4040"),
+        auth_token=os.getenv("PYROSCOPE_AUTH_TOKEN", ""),
+        detect_subprocesses=True,
+        tags={
+            "celery_worker": os.getenv("CELERY_WORKER_QUEUE", None),
+        },
+    )

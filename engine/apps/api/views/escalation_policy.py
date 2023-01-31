@@ -7,7 +7,7 @@ from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet
 
 from apps.alerts.models import EscalationPolicy
-from apps.api.permissions import MODIFY_ACTIONS, READ_ACTIONS, ActionPermission, AnyRole, IsAdmin
+from apps.api.permissions import RBACPermission
 from apps.api.serializers.escalation_policy import (
     EscalationPolicyCreateSerializer,
     EscalationPolicySerializer,
@@ -21,15 +21,19 @@ from common.insight_log import EntityEvent, write_resource_insight_log
 
 class EscalationPolicyView(PublicPrimaryKeyMixin, CreateSerializerMixin, UpdateSerializerMixin, ModelViewSet):
     authentication_classes = (PluginAuthentication,)
-    permission_classes = (IsAuthenticated, ActionPermission)
-    action_permissions = {
-        IsAdmin: (*MODIFY_ACTIONS, "move_to_position"),
-        AnyRole: (
-            *READ_ACTIONS,
-            "escalation_options",
-            "delay_options",
-            "num_minutes_in_window_options",
-        ),
+    permission_classes = (IsAuthenticated, RBACPermission)
+    rbac_permissions = {
+        "metadata": [RBACPermission.Permissions.ESCALATION_CHAINS_READ],
+        "list": [RBACPermission.Permissions.ESCALATION_CHAINS_READ],
+        "retrieve": [RBACPermission.Permissions.ESCALATION_CHAINS_READ],
+        "escalation_options": [RBACPermission.Permissions.ESCALATION_CHAINS_READ],
+        "delay_options": [RBACPermission.Permissions.ESCALATION_CHAINS_READ],
+        "num_minutes_in_window_options": [RBACPermission.Permissions.ESCALATION_CHAINS_READ],
+        "create": [RBACPermission.Permissions.ESCALATION_CHAINS_WRITE],
+        "update": [RBACPermission.Permissions.ESCALATION_CHAINS_WRITE],
+        "partial_update": [RBACPermission.Permissions.ESCALATION_CHAINS_WRITE],
+        "destroy": [RBACPermission.Permissions.ESCALATION_CHAINS_WRITE],
+        "move_to_position": [RBACPermission.Permissions.ESCALATION_CHAINS_WRITE],
     }
 
     model = EscalationPolicy

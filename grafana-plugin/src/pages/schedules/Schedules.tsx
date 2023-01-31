@@ -1,11 +1,11 @@
 import React from 'react';
 
-import { getLocationSrv } from '@grafana/runtime';
 import { Button, HorizontalGroup, IconButton, LoadingPlaceholder, VerticalGroup } from '@grafana/ui';
 import cn from 'classnames/bind';
 import dayjs from 'dayjs';
 import { debounce } from 'lodash-es';
 import { observer } from 'mobx-react';
+import { RouteComponentProps, withRouter } from 'react-router-dom';
 
 import Avatar from 'components/Avatar/Avatar';
 import NewScheduleSelector from 'components/NewScheduleSelector/NewScheduleSelector';
@@ -27,14 +27,15 @@ import { getSlackChannelName } from 'models/slack_channel/slack_channel.helpers'
 import { Timezone } from 'models/timezone/timezone.types';
 import { getStartOfWeek } from 'pages/schedule/Schedule.helpers';
 import { WithStoreProps } from 'state/types';
-import { UserAction } from 'state/userAction';
 import { withMobXProviderContext } from 'state/withStore';
+import { UserActions } from 'utils/authorization';
+import { PLUGIN_ROOT } from 'utils/consts';
 
 import styles from './Schedules.module.css';
 
 const cx = cn.bind(styles);
 
-interface SchedulesPageProps extends WithStoreProps {}
+interface SchedulesPageProps extends WithStoreProps, RouteComponentProps {}
 
 interface SchedulesPageState {
   startMoment: dayjs.Dayjs;
@@ -146,7 +147,7 @@ class SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSta
                     onChange={this.handleTimezoneChange}
                   />
                 )}
-                <WithPermissionControl userAction={UserAction.UpdateSchedules}>
+                <WithPermissionControl userAction={UserActions.SchedulesWrite}>
                   <Button variant="primary" onClick={this.handleCreateScheduleClick}>
                     + New schedule
                   </Button>
@@ -207,8 +208,10 @@ class SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSta
   };
 
   handleCreateSchedule = (data: Schedule) => {
+    const { history } = this.props;
+
     if (data.type === ScheduleType.API) {
-      getLocationSrv().update({ query: { page: 'schedule', id: data.id } });
+      history.push(`${PLUGIN_ROOT}/schedules/${data.id}`);
     }
   };
 
@@ -257,9 +260,9 @@ class SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSta
   };
 
   getScheduleClickHandler = (scheduleId: Schedule['id']) => {
-    return () => {
-      getLocationSrv().update({ query: { page: 'schedule', id: scheduleId } });
-    };
+    const { history } = this.props;
+
+    return () => history.push(`${PLUGIN_ROOT}/schedules/${scheduleId}`);
   };
 
   renderType = (value: number) => {
@@ -321,7 +324,7 @@ class SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSta
   };
 
   renderName = (item: Schedule) => {
-    return <PluginLink query={{ page: 'schedule', id: item.id }}>{item.name}</PluginLink>;
+    return <PluginLink query={{ page: 'schedules', id: item.id }}>{item.name}</PluginLink>;
   };
 
   renderOncallNow = (item: Schedule, _index: number) => {
@@ -355,10 +358,10 @@ class SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSta
   renderButtons = (item: Schedule) => {
     return (
       <HorizontalGroup>
-        <WithPermissionControl key="edit" userAction={UserAction.UpdateSchedules}>
+        <WithPermissionControl key="edit" userAction={UserActions.SchedulesWrite}>
           <IconButton tooltip="Settings" name="cog" onClick={this.getEditScheduleClickHandler(item.id)} />
         </WithPermissionControl>
-        <WithPermissionControl key="edit" userAction={UserAction.UpdateSchedules}>
+        <WithPermissionControl key="edit" userAction={UserActions.SchedulesWrite}>
           <WithConfirm>
             <IconButton tooltip="Delete" name="trash-alt" onClick={this.getDeleteScheduleClickHandler(item.id)} />
           </WithConfirm>
@@ -418,4 +421,4 @@ class SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSta
   };
 }
 
-export default withMobXProviderContext(SchedulesPage);
+export default withRouter(withMobXProviderContext(SchedulesPage));

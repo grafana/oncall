@@ -1,4 +1,6 @@
+const webpack = require('webpack');
 const path = require('path');
+const dotenv = require('dotenv');
 
 const CircularDependencyPlugin = require('circular-dependency-plugin');
 
@@ -7,6 +9,8 @@ const MONACO_DIR = path.resolve(__dirname, './node_modules/monaco-editor');
 Object.defineProperty(RegExp.prototype, 'toJSON', {
   value: RegExp.prototype.toString,
 });
+
+dotenv.config({ path: path.resolve(__dirname, '.env') });
 
 module.exports.getWebpackConfig = (config, options) => {
   const cssLoader = config.module.rules.find((rule) => rule.test.toString() === '/\\.css$/');
@@ -132,6 +136,19 @@ module.exports.getWebpackConfig = (config, options) => {
         allowAsyncCycles: false,
         // set the current working directory for displaying module paths
         cwd: process.cwd(),
+      }),
+
+      /**
+       * From docs (https://webpack.js.org/plugins/environment-plugin/):
+       * Default values of null and undefined behave differently.
+       * Use undefined for variables that must be provided during bundling, or null if they are optional.
+       */
+      new webpack.EnvironmentPlugin({
+        ONCALL_API_URL: null,
+        MOBILE_APP_QR_INTERVAL_QUEUE: null,
+      }),
+      new webpack.DefinePlugin({
+        'process.env': JSON.stringify(dotenv.config().parsed),
       }),
     ],
 

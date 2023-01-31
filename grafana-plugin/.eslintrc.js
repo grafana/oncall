@@ -6,7 +6,7 @@ module.exports = {
   plugins: ['rulesdir', 'import'],
   settings: {
     'import/internal-regex':
-      '^assets|^components|^containers|^declare|^icons|^img|^interceptors|^models|^network|^pages|^services|^state|^utils',
+      '^assets|^components|^containers|^declare|^icons|^img|^interceptors|^models|^network|^pages|^services|^state|^utils|^plugin',
   },
   rules: {
     eqeqeq: 'warn',
@@ -64,5 +64,6 @@ module.exports = {
      */
     'react-hooks/exhaustive-deps': 'off',
     'rulesdir/no-relative-import-paths': ['error', { allowSameFolder: true }],
+    '@typescript-eslint/explicit-member-accessibility': 'off',
   },
 };

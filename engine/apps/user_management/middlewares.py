@@ -1,13 +1,13 @@
 import logging
-import re
 
 import requests
-from django.http import HttpResponse
+from django.http import HttpResponse, JsonResponse
 from django.utils.deprecation import MiddlewareMixin
 from rest_framework import status
 
-from apps.user_management.models.region import OrganizationMovedException
 from common.api_helpers.utils import create_engine_url
+
+from .exceptions import OrganizationDeletedException, OrganizationMovedException
 
 logger = logging.getLogger(__name__)
 
@@ -22,16 +22,15 @@ class OrganizationMovedMiddleware(MiddlewareMixin):
                 )
 
             url = create_engine_url(request.path, override_base=region.oncall_backend_url)
-            if request.META["QUERY_STRING"]:
-                url = f"{url}?{request.META['QUERY_STRING']}"
+            if (v := request.META.get("QUERY_STRING", None)) is not None:
+                url = f"{url}?{v}"
 
-            regex = re.compile("^HTTP_")
-            headers = dict(
-                (regex.sub("", header), value) for (header, value) in request.META.items() if header.startswith("HTTP_")
-            )
-            headers.pop("HOST", None)
-            if request.META["CONTENT_TYPE"]:
-                headers["CONTENT_TYPE"] = request.META["CONTENT_TYPE"]
+            headers = {}
+            if (v := request.META.get("CONTENT_TYPE", None)) is not None:
+                headers["Content-type"] = v
+
+            if (v := request.META.get("HTTP_AUTHORIZATION", None)) is not None:
+                headers["Authorization"] = v
 
             response = self.make_request(request.method, url, headers, request.body)
             return HttpResponse(response.content, status=response.status_code)
@@ -47,3 +46,10 @@ class OrganizationMovedMiddleware(MiddlewareMixin):
             return requests.delete(url, headers=headers)
         elif method == "OPTIONS":
             return requests.options(url, headers=headers)
+
+
+class OrganizationDeletedMiddleware(MiddlewareMixin):
+    def process_exception(self, request, exception):
+        if isinstance(exception, OrganizationDeletedException):
+            # Return drf-shaped not-found response to keep responses consistent
+            return JsonResponse(status=status.HTTP_404_NOT_FOUND, data={"detail": "Not found."})

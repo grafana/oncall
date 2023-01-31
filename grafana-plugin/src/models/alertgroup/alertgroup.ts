@@ -7,6 +7,7 @@ import { Mixpanel } from 'services/mixpanel';
 import { RootStore } from 'state';
 import { SelectOption } from 'state/types';
 import { showApiError, refreshPageError, openErrorNotification } from 'utils';
+import LocationHelper from 'utils/LocationHelper';
 
 import { Alert, AlertAction, IncidentStatus } from './alertgroup.types';
 
@@ -219,7 +220,7 @@ export class AlertGroupStore extends BaseStore {
   @action
   async updateIncidentFilters(params: any, keepCursor = false) {
     if (!keepCursor) {
-      this.incidentsCursor = undefined;
+      this.setIncidentsCursor(undefined);
     }
 
     this.incidentFilters = params;
@@ -228,15 +229,22 @@ export class AlertGroupStore extends BaseStore {
   }
 
   @action
-  async setIncidentsCursor(cursor: string) {
-    this.incidentsCursor = cursor;
+  async updateIncidentsCursor(cursor: string) {
+    this.setIncidentsCursor(cursor);
 
     this.updateAlertGroups();
   }
 
   @action
+  async setIncidentsCursor(cursor: string) {
+    this.incidentsCursor = cursor;
+
+    LocationHelper.update({ cursor }, 'partial');
+  }
+
+  @action
   async setIncidentsItemsPerPage(value: number) {
-    this.incidentsCursor = undefined;
+    this.setIncidentsCursor(undefined);
     this.incidentsItemsPerPage = value;
 
     this.updateAlertGroups();
@@ -306,8 +314,6 @@ export class AlertGroupStore extends BaseStore {
     const result = await makeRequest(`${this.path}stats/`, {
       params: {
         ...this.incidentFilters,
-        resolved: false,
-        acknowledged: false,
         status: [IncidentStatus.New],
       },
     });
@@ -319,8 +325,6 @@ export class AlertGroupStore extends BaseStore {
     const result = await makeRequest(`${this.path}stats/`, {
       params: {
         ...this.incidentFilters,
-        resolved: false,
-        acknowledged: true,
         status: [IncidentStatus.Acknowledged],
       },
     });
@@ -333,7 +337,6 @@ export class AlertGroupStore extends BaseStore {
     const result = await makeRequest(`${this.path}stats/`, {
       params: {
         ...this.incidentFilters,
-        resolved: true,
         status: [IncidentStatus.Resolved],
       },
     });
@@ -346,7 +349,6 @@ export class AlertGroupStore extends BaseStore {
     const result = await makeRequest(`${this.path}stats/`, {
       params: {
         ...this.incidentFilters,
-        silenced: true,
         status: [IncidentStatus.Silenced],
       },
     });

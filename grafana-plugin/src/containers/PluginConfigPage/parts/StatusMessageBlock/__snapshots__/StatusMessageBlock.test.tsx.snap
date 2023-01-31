@@ -1,0 +1,17 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`StatusMessageBlock It renders properly 1`] = `
+<body>
+  <div>
+    <pre
+      data-testid="status-message-block"
+    >
+      <span
+        class="root text text--undefined text--medium"
+      >
+        helloooo
+      </span>
+    </pre>
+  </div>
+</body>
+`;

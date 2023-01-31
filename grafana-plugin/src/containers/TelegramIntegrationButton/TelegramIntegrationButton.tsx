@@ -9,8 +9,8 @@ import Block from 'components/GBlock/Block';
 import Text from 'components/Text/Text';
 import { WithPermissionControl } from 'containers/WithPermissionControl/WithPermissionControl';
 import { useStore } from 'state/useStore';
-import { UserAction } from 'state/userAction';
 import { openNotification } from 'utils';
+import { UserActions } from 'utils/authorization';
 
 import styles from './TelegramIntegrationButton.module.css';
 
@@ -43,7 +43,7 @@ const TelegramIntegrationButton = observer((props: TelegramIntegrationProps) => 
 
   return (
     <>
-      <WithPermissionControl userAction={UserAction.UpdateIntegrations}>
+      <WithPermissionControl userAction={UserActions.IntegrationsWrite}>
         <Button size={size} variant="primary" icon="plus" disabled={disabled} onClick={onInstallModalCallback}>
           Add Telegram channel
         </Button>
@@ -110,8 +110,12 @@ const TelegramModal = (props: TelegramModalProps) => {
           <Text type="primary">Discussion</Text> to find and add your group.{' '}
         </Text>
         <Text type="secondary">
-          4. Go to <Text type="link">{botLink}</Text> to add the OnCall bot to your contacts. Then add the bot to your
-          channel as an <Text type="primary">Admin</Text> and allow it to <Text type="primary">Post Messages</Text>.
+          4. Go to{' '}
+          <a href={botLink} target="_blank" rel="noreferrer">
+            <Text type="link">{botLink}</Text>
+          </a>{' '}
+          to add the OnCall bot to your contacts. Then add the bot to your channel as an{' '}
+          <Text type="primary">Admin</Text> and allow it to <Text type="primary">Post Messages</Text>.
         </Text>
         <Text type="secondary">5. Add the bot to the discussion group.</Text>
         <Text type="secondary">

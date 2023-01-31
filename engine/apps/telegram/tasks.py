@@ -80,7 +80,7 @@ def edit_message(self, message_pk):
 
 
 @shared_dedicated_queue_retry_task(bind=True, autoretry_for=(Exception,), retry_backoff=True, max_retries=None)
-def send_link_to_channel_message_or_fallback_to_full_incident(
+def send_link_to_channel_message_or_fallback_to_full_alert_group(
     self, alert_group_pk, notification_policy_pk, user_connector_pk
 ):
     TelegramToUserConnector = apps.get_model("telegram", "TelegramToUserConnector")
@@ -96,8 +96,8 @@ def send_link_to_channel_message_or_fallback_to_full_incident(
                 alert_group=alert_group, notification_policy=notification_policy
             )
         else:
-            # seems like the message won't appear in Telegram channel, so send the full incident to user
-            user_connector.send_full_incident(alert_group=alert_group, notification_policy=notification_policy)
+            # seems like the message won't appear in Telegram channel, so send the full alert group to user
+            user_connector.send_full_alert_group(alert_group=alert_group, notification_policy=notification_policy)
     except TelegramToUserConnector.DoesNotExist:
         # Handle cases when user deleted the bot while escalation is active
         logger.warning(

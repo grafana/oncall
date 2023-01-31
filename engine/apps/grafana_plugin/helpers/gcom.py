@@ -40,7 +40,7 @@ def check_gcom_permission(token_string: str, context) -> Optional["GcomToken"]:
 
     logger.debug(f"Start authenticate by making request to gcom api for org={org_id}, stack_id={stack_id}")
     client = GcomAPIClient(token_string)
-    instance_info, status = client.get_instance_info(stack_id)
+    instance_info = client.get_instance_info(stack_id)
     if not instance_info or str(instance_info["orgId"]) != org_id:
         raise InvalidToken
 

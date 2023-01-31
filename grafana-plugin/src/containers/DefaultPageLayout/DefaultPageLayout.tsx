@@ -1,31 +1,36 @@
-import plugin from '../../../package.json'; // eslint-disable-line
 import React, { FC, useEffect, useState, useCallback } from 'react';
 
-import { AppRootProps } from '@grafana/data';
-import { getLocationSrv } from '@grafana/runtime';
 import { Alert } from '@grafana/ui';
+import { PluginPage } from 'PluginPage';
 import cn from 'classnames/bind';
 import { observer } from 'mobx-react';
+import { AppRootProps } from 'types';
 
 import PluginLink from 'components/PluginLink/PluginLink';
 import { getIfChatOpsConnected } from 'containers/DefaultPageLayout/helper';
+import { pages } from 'pages';
+import { isTopNavbar } from 'plugin/GrafanaPluginRootPage.helpers';
 import { AppFeature } from 'state/features';
 import { useStore } from 'state/useStore';
-import { UserAction } from 'state/userAction';
-import { GRAFANA_LICENSE_OSS } from 'utils/consts';
+import LocationHelper from 'utils/LocationHelper';
+import { isUserActionAllowed, UserActions } from 'utils/authorization';
+import { DEFAULT_PAGE, GRAFANA_LICENSE_OSS } from 'utils/consts';
 import { useForceUpdate } from 'utils/hooks';
+
+import plugin from '../../../package.json'; // eslint-disable-line
+
 import { getItem, setItem } from 'utils/localStorage';
 import sanitize from 'utils/sanitize';
 
 import { getSlackMessage } from './DefaultPageLayout.helpers';
+import styles from './DefaultPageLayout.module.scss';
 import { SlackError } from './DefaultPageLayout.types';
-
-import styles from './DefaultPageLayout.module.css';
 
 const cx = cn.bind(styles);
 
 interface DefaultPageLayoutProps extends AppRootProps {
   children?: any;
+  page: string;
 }
 
 enum AlertID {
@@ -33,7 +38,7 @@ enum AlertID {
 }
 
 const DefaultPageLayout: FC<DefaultPageLayoutProps> = observer((props) => {
-  const { children, query } = props;
+  const { children, query, page } = props;
 
   const [showSlackInstallAlert, setShowSlackInstallAlert] = useState<SlackError | undefined>();
 
@@ -47,7 +52,7 @@ const DefaultPageLayout: FC<DefaultPageLayoutProps> = observer((props) => {
     if (query.slack_error) {
       setShowSlackInstallAlert(query.slack_error);
 
-      getLocationSrv().update({ partial: true, query: { slack_error: undefined }, replace: true });
+      LocationHelper.update({ slack_error: undefined }, 'replace');
     }
   }, []);
 
@@ -69,15 +74,41 @@ const DefaultPageLayout: FC<DefaultPageLayoutProps> = observer((props) => {
   const isChatOpsConnected = getIfChatOpsConnected(currentUser);
   const isPhoneVerified = currentUser?.cloud_connection_status === 3 || currentUser?.verified_phone_number;
 
-  return (
-    <div className={cx('root')}>
-      <div className={styles.alerts_horizontal}>
+  if (isTopNavbar()) {
+    return renderTopNavbar();
+  }
+
+  return renderLegacyNavbar();
+
+  function renderTopNavbar(): JSX.Element {
+    return (
+      <PluginPage page={page} pageNav={pages[page || DEFAULT_PAGE].getPageNav()} renderAlertsFn={renderAlertsFn}>
+        <div className={cx('root')}>{children}</div>
+      </PluginPage>
+    );
+  }
+
+  function renderLegacyNavbar(): JSX.Element {
+    return (
+      <PluginPage page={page}>
+        <div className="page-container u-height-100">
+          <div className={cx('root', 'navbar-legacy')}>
+            {renderAlertsFn()}
+            {children}
+          </div>
+        </div>
+      </PluginPage>
+    );
+  }
+
+  function renderAlertsFn(): JSX.Element {
+    return (
+      <div className={cx('alerts-container')}>
         {showSlackInstallAlert && (
           <Alert
-            className={styles.alert}
+            className={cx('alert')}
             onRemove={handleCloseInstallSlackAlert}
             severity="warning"
-            // @ts-ignore
             title="Slack integration warning"
           >
             {getSlackMessage(
@@ -89,7 +120,7 @@ const DefaultPageLayout: FC<DefaultPageLayoutProps> = observer((props) => {
         )}
         {currentTeam?.banner.title != null && !getItem(currentTeam?.banner.title) && (
           <Alert
-            className={styles.alert}
+            className={cx('alert')}
             severity="success"
             title={currentTeam.banner.title}
             onRemove={getRemoveAlertHandler(currentTeam?.banner.title)}
@@ -107,7 +138,7 @@ const DefaultPageLayout: FC<DefaultPageLayoutProps> = observer((props) => {
           store.backendVersion !== plugin?.version &&
           !getItem(`version_mismatch_${store.backendVersion}_${plugin?.version}`) && (
             <Alert
-              className={styles.alert}
+              className={cx('alert')}
               severity="warning"
               title={'Version mismatch!'}
               onRemove={getRemoveAlertHandler(`version_mismatch_${store.backendVersion}_${plugin?.version}`)}
@@ -132,13 +163,13 @@ const DefaultPageLayout: FC<DefaultPageLayoutProps> = observer((props) => {
         {Boolean(
           currentTeam &&
             currentUser &&
-            store.isUserActionAllowed(UserAction.UpdateOwnSettings) &&
+            isUserActionAllowed(UserActions.UserSettingsWrite) &&
             (!isPhoneVerified || !isChatOpsConnected) &&
             !getItem(AlertID.CONNECTIVITY_WARNING)
         ) && (
           <Alert
             onRemove={getRemoveAlertHandler(AlertID.CONNECTIVITY_WARNING)}
-            className={styles.alert}
+            className={cx('alert')}
             severity="warning"
             // @ts-ignore
             title="Connectivity Warning"
@@ -161,9 +192,8 @@ const DefaultPageLayout: FC<DefaultPageLayoutProps> = observer((props) => {
           </Alert>
         )}
       </div>
-      {children}
-    </div>
-  );
+    );
+  }
 });
 
 export default DefaultPageLayout;
