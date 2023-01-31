@@ -48,8 +48,6 @@ class AlertSerializer(AlertFieldsCacheSerializerMixin, serializers.ModelSerializ
         ]
 
     def get_render_for_web(self, obj):
-        if not obj.last_alert:
-            return {}
         return AlertFieldsCacheSerializerMixin.get_or_set_web_template_field(
             obj,
             "render_for_web",
