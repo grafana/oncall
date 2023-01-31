@@ -20,6 +20,9 @@ class AlertFieldsCacheSerializerMixin:
 
         web_templates_modified_at = obj.channel.web_templates_modified_at
 
+        # use cache only if cache exists
+        # and either web templates never modified
+        # or cache was created after templates were modified
         if cached_field is not None and (
             web_templates_modified_at is None or cached_field.get("cache_created_at") > web_templates_modified_at
         ):
