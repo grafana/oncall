@@ -225,10 +225,12 @@ After enabling the email integration, it will be possible to use the `Notify by 
 >**Note**: This application is currently in beta
 
 Grafana OnCall OSS users can use the mobile app to receive push notifications from OnCall.
-Grafana OnCall OSS relies on Grafana Cloud as on relay for push notifications. You must first connect your Grafana OnCall OSS to Grafana Cloud for the mobile app to work.
+Grafana OnCall OSS relies on Grafana Cloud as on relay for push notifications.
+You must first connect your Grafana OnCall OSS to Grafana Cloud for the mobile app to work.
 
-Refer to [Grafana OSS-Cloud Setup]({{< relref "_index.md#grafana-oss-cloud-setup" >}}) in this document before continuing with the mobile app. 
+Refer to [Grafana OSS-Cloud Setup]({{< relref "_index.md#grafana-oss-cloud-setup" >}}) in this document before continuing with the mobile app.
 
-For Grafana OnCall OSS, the mobile app QR code includes an authentication token along with a backend URL. Your Grafana OnCall OSS instance should be reachable from the same network as your mobile device, preferably from the internet.
+For Grafana OnCall OSS, the mobile app QR code includes an authentication token along with a backend URL.
+Your Grafana OnCall OSS instance should be reachable from the same network as your mobile device, preferably from the internet.
 
 For more information, see [Grafana OnCall mobile app]({{< relref "../mobile-app" >}})

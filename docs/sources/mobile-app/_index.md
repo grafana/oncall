@@ -19,6 +19,11 @@ On-call engineers can start exploring the benefits of the Grafana OnCall mobile 
 
 
 ## About Grafana OnCall mobile app
+The current version of the mobile app includes limited functionality and serves primarily as a notification method.
+The mobile app is in development, and some features are not yet available.
+
+Stay tuned, we're working on it!
+
 Grafana OnCall mobile app key features:
 
 - Override Do Not Disturb on your device to ensure delivery of critical alerts
@@ -28,10 +33,9 @@ Grafana OnCall mobile app key features:
 
 The OnCall mobile app allows users to receive push notifications as part of their notification policy.
 Push notifications are one of the many notification options in Grafana OnCall.
-Consider using multiple notification methods, such as mobile app and phone/SMS, to remain available in case of degraded internet or phone network connectivity.
 
-The current version of the mobile app includes limited functionality and serves primarily as a notification method. The mobile app is in development, and some features are not yet available.
-Stay tuned, we're working on it!
+Consider using multiple notification methods, such as mobile app and phone/SMS,
+to remain available in case of degraded internet or phone network connectivity.
 
 ## Before you begin
 
@@ -67,19 +71,25 @@ To access your QR code:
 
 ### Connect to your open source Grafana OnCall account
 
-Grafana OnCall OSS relies on Grafana Cloud as on relay for push notifications. You must first connect your Grafana OnCall OSS to Grafana Cloud for the mobile app to work.
+Grafana OnCall OSS relies on Grafana Cloud as on relay for push notifications.
+You must first connect your Grafana OnCall OSS to Grafana Cloud for the mobile app to work.
+
 To connect to Grafana Cloud, refer to the Cloud page in your OSS Grafana OnCall instance. 
 
-For Grafana OnCall OSS, the QR code includes an authentication token along with a backend URL. Your Grafana OnCall OSS instance should be reachable from the same network as your mobile device, preferably from the internet.
+For Grafana OnCall OSS, the QR code includes an authentication token along with a backend URL.
+Your Grafana OnCall OSS instance should be reachable from the same network as your mobile device, preferably from the internet.
 
 ## Mobile app push notifications
 
 There are two push notification options for the mobile app:
 
-- **Mobile push** - Sends a typical push notification to your mobile device according to your device and app notification settings. Intended for all types of alerts.
-- **Mobile push important** - Sends a privileged push notification that can bypass Do Not Disturb on your device. Intended for critical alerts.Device-specific settings may impact the functionality of these notifications.
+- **Mobile push** - Sends a typical push notification to your mobile device according to your device and app notification settings.
+Intended for all types of alerts.
+- **Mobile push important** - Sends a privileged push notification that can bypass Do Not Disturb on your device.
+Intended for critical alerts.Device-specific settings may impact the functionality of these notifications.
 
->**Note**: Android users may need to review their device settings to ensure the Grafana OnCall mobile app is authorized to bypass Do Not Disturb. In your device settings, allow the Android Critical Message Channel notification channel to Override Do Not Disturb.
+>**Note**: Android users may need to review their device settings to ensure the Grafana OnCall mobile app is authorized to bypass Do Not Disturb.
+> In your device settings, allow the Android Critical Message Channel notification channel to Override Do Not Disturb.
 ### Add mobile app to notification preferences
 To receive push notifications from the Grafana OnCall mobile app, you must add them to your notification policy steps. 
 
