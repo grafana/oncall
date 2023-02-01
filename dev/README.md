@@ -149,10 +149,6 @@ make build # rebuild images (e.g. when changing requirements.txt)
 # run Django's `manage.py` script, inside of a docker container, passing `$CMD` as arguments.
 # e.g. `make engine-manage CMD="makemigrations"` - https://docs.djangoproject.com/en/4.1/ref/django-admin/#django-admin-makemigrations
 make engine-manage CMD="..."
-# sets a feature flag, related to mobile app backend functionality, in your ./dev/.env.dev
-# and sets the necessary database values
-# NOTE: you need to enable, and configure, the plugin before running this command
-make enable-mobile-app-feature-flags
 
 # this will remove all of the images, containers, volumes, and networks
 # associated with your local OnCall developer setup
