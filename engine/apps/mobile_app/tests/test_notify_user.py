@@ -173,7 +173,7 @@ def test_notify_user_async_oss_no_cloud_connection(
 
 
 @pytest.mark.django_db
-def test_notify_user_retries(
+def test_notify_user_retry(
     settings,
     make_organization_and_user,
     make_user_notification_policy,
