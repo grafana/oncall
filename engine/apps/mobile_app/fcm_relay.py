@@ -3,6 +3,7 @@ import logging
 from celery.utils.log import get_task_logger
 from django.conf import settings
 from fcm_django.models import FCMDevice
+from firebase_admin.exceptions import FirebaseError
 from firebase_admin.messaging import APNSConfig, APNSPayload, Aps, ApsAlert, CriticalSound, Message
 from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
@@ -49,14 +50,17 @@ class FCMRelayView(APIView):
 
 
 @shared_dedicated_queue_retry_task(
-    autoretry_for=(Exception,), retry_backoff=True, max_retries=1 if settings.DEBUG else 3
+    autoretry_for=(Exception,), retry_backoff=True, max_retries=1 if settings.DEBUG else 5
 )
 def fcm_relay_async(token, data, apns):
     message = Message(token=token, data=data, apns=deserialize_apns(apns))
 
-    task_logger.debug(f"Sending message to FCM: {message}")
-    result = FCMDevice(registration_id=token).send_message(message)
-    task_logger.debug(f"FCM response: {result.success}")
+    # https://firebase.google.com/docs/cloud-messaging/http-server-ref#interpret-downstream
+    response = FCMDevice(registration_id=token).send_message(message)
+    task_logger.debug(f"FCM response: {response}")
+
+    if isinstance(response, FirebaseError):
+        raise response
 
 
 def deserialize_apns(apns):
