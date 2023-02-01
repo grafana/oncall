@@ -231,6 +231,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Improve alerts and alert group endpoint response time in internal API with caching ([1261](https://github.com/grafana/oncall/pull/1261))
 - Optimize alert and alert group public api endpoints and add filter by id ([1274](https://github.com/grafana/oncall/pull/1274)
 - Added Coming Soon for iOS on Mobile App screen
+- Modified `check_escalation_finished_task` celery task to use read-only databases for its query, if one is defined +
+  make the validation logic stricter + ping a configurable heartbeat on successful completion of this task
 
 ### Fixed
 
