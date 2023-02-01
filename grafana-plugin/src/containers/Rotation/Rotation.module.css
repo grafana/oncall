@@ -30,8 +30,6 @@
   gap: 5px;
   padding-bottom: 4px;
   position: relative;
-  overflow: hidden;
-  max-width: 100%;
 }
 
 .root:last-child .timeline {
@@ -41,7 +39,6 @@
 .slots {
   width: 100%;
   display: flex;
-  flex-wrap: wrap;
   transition: opacity 500ms ease;
   opacity: 1;
 }

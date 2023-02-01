@@ -24,7 +24,7 @@
 .schedules__filters-container-right {
   display: flex;
   justify-content: flex-end;
-  gap: 4px;
+  gap: 8px;
   padding-top: 19px;
 }
 
