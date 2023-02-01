@@ -7,6 +7,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+### Added
+
+- Add [`django-dbconn-retry` library](https://github.com/jdelic/django-dbconn-retry) to `INSTALLED_APPS` to attempt
+  to alleviate occasional `django.db.utils.OperationalError` errors
+
+### Changed
+
+### Fixed
+
+## v1.1.20 (2023-01-30)
+
+### Added
+
+- Add involved users filter to alert groups listing page (+ mine shortcut)
+
 ### Changed
 
 - Improve logging for creating contact point for Grafana Alerting integration

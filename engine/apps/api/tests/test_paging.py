@@ -58,6 +58,7 @@ def test_direct_paging_new_alert_group(
     )
 
     assert response.status_code == status.HTTP_200_OK
+    assert "alert_group_id" in response.json()
 
 
 @pytest.mark.django_db
@@ -104,6 +105,7 @@ def test_direct_paging_existing_alert_group(
     )
 
     assert response.status_code == status.HTTP_200_OK
+    assert response.json()["alert_group_id"] == alert_group.public_primary_key
 
 
 @pytest.mark.django_db

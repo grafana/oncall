@@ -71,6 +71,7 @@ class IncidentsFilters extends Component<IncidentsFiltersProps, IncidentsFilters
       } else {
         newQuery = {
           status: [IncidentStatus.Firing, IncidentStatus.Acknowledged],
+          mine: false,
         };
       }
 
