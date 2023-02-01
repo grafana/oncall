@@ -17,3 +17,7 @@
     white-space: pre-wrap;
   }
 }
+
+.table__wrap-column {
+  word-break: break-word;
+}
