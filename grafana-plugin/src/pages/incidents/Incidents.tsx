@@ -26,7 +26,7 @@ import { UserActions } from 'utils/authorization';
 
 import styles from './Incidents.module.scss';
 import { IncidentDropdown } from './parts/IncidentDropdown';
-import { SilenceCascadingSelect } from './parts/SilenceCascadingSelect';
+import { SilenceButtonCascader } from './parts/SilenceButtonCascader';
 
 const cx = cn.bind(styles);
 
@@ -234,7 +234,7 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
             )}
             {'restart' in store.alertGroupStore.bulkActions && (
               <WithPermissionControl key="silence" userAction={UserActions.AlertGroupsWrite}>
-                <SilenceCascadingSelect
+                <SilenceButtonCascader
                   disabled={!hasSelected}
                   onSelect={(ev) => this.getBulkActionClickHandler('silence', ev)}
                 />

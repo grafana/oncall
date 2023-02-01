@@ -1,6 +1,6 @@
 import React, { FC, SyntheticEvent, useRef, useState } from 'react';
 
-import { Icon } from '@grafana/ui';
+import { Icon, LoadingPlaceholder } from '@grafana/ui';
 import cn from 'classnames/bind';
 
 import Tag from 'components/Tag/Tag';
@@ -11,7 +11,7 @@ import { Alert, AlertAction, IncidentStatus } from 'models/alertgroup/alertgroup
 import styles from 'pages/incidents/parts/IncidentDropdown.module.scss';
 import { UserActions } from 'utils/authorization';
 
-import { SilenceCascadingSelect } from './SilenceCascadingSelect';
+import { SilenceSelect } from './SilenceSelect';
 
 const cx = cn.bind(styles);
 
@@ -60,41 +60,25 @@ export const IncidentDropdown: FC<{
   onUnsilence: (event: any) => Promise<void>;
 }> = ({ alert, onResolve, onUnacknowledge, onUnresolve, onAcknowledge, onSilence, onUnsilence }) => {
   const [isLoading, setIsLoading] = useState(false);
-  const [isResolvedOpen, setIsResolvedOpen] = useState(false);
-  const [isAcknowledgedOpen, setIsAcknowledgedOpen] = useState(false);
-  const [isFiringOpen, setIsFiringOpen] = useState(false);
-  const [isSilencedOpen, setIsSilencedOpen] = useState(false);
+  const [currentLoadingAction, setCurrentActionLoading] = useState<IncidentStatus>(undefined);
+  const [forcedOpenAction, setForcedOpenAction] = useState<string>(undefined);
 
   const onClickFn = (
     ev: React.SyntheticEvent<HTMLDivElement>,
-    status: string,
-    action: (value: SyntheticEvent | number) => Promise<void>
+    actionName: string,
+    action: (value: SyntheticEvent | number) => Promise<void>,
+    status: IncidentStatus
   ) => {
     setIsLoading(true);
+    setCurrentActionLoading(status);
 
     // set them to forcedOpen so that they do not close
-    if (status === AlertAction.Resolve) {
-      setIsResolvedOpen(true);
-    } else if (status === AlertAction.Acknowledge) {
-      setIsAcknowledgedOpen(true);
-    } else if (status === AlertAction.Silence) {
-      setIsSilencedOpen(true);
-    } else if (status === AlertAction.unResolve) {
-      setIsFiringOpen(true);
-    }
+    setForcedOpenAction(actionName);
 
     action(ev)
       .then(() => {
         // network request is done and succesful, close them
-        if (status === AlertAction.Resolve) {
-          setIsResolvedOpen(false);
-        } else if (status === AlertAction.Acknowledge) {
-          setIsAcknowledgedOpen(false);
-        } else if (status === AlertAction.Silence) {
-          setIsSilencedOpen(false);
-        } else if (status === AlertAction.unResolve) {
-          setIsFiringOpen(false);
-        }
+        setForcedOpenAction(undefined);
       })
       .finally(() => {
         // hide loading/disabled state
@@ -105,15 +89,20 @@ export const IncidentDropdown: FC<{
   if (alert.status === IncidentStatus.Resolved) {
     return (
       <WithContextMenu
-        forceIsOpen={isResolvedOpen}
+        forceIsOpen={forcedOpenAction === AlertAction.Resolve}
         renderMenuItems={() => (
           <div className={cx('incident__options', { 'u-disabled': isLoading })}>
             <WithPermissionControl userAction={UserActions.AlertGroupsWrite}>
               <div
                 className={cx('incident__option-item', 'incident__option-item--firing')}
-                onClick={(e) => onClickFn(e, AlertAction.Resolve, onUnresolve)}
+                onClick={(e) => onClickFn(e, AlertAction.Resolve, onUnresolve, IncidentStatus.Firing)}
               >
-                Firing
+                Firing{' '}
+                {currentLoadingAction === IncidentStatus.Firing && isLoading && (
+                  <span className={cx('incident__option-span')}>
+                    <LoadingPlaceholder text="" />
+                  </span>
+                )}
               </div>
             </WithPermissionControl>
           </div>
@@ -127,23 +116,33 @@ export const IncidentDropdown: FC<{
   if (alert.status === IncidentStatus.Acknowledged) {
     return (
       <WithContextMenu
-        forceIsOpen={isAcknowledgedOpen}
+        forceIsOpen={forcedOpenAction === AlertAction.Acknowledge}
         renderMenuItems={() => (
           <div className={cx('incident__options', { 'u-disabled': isLoading })}>
             <WithPermissionControl userAction={UserActions.AlertGroupsWrite}>
               <div
                 className={cx('incident__option-item', 'incident__option-item--unacknowledge')}
-                onClick={(e) => onClickFn(e, AlertAction.Acknowledge, onUnacknowledge)}
+                onClick={(e) => onClickFn(e, AlertAction.Acknowledge, onUnacknowledge, IncidentStatus.Firing)}
               >
-                Unacknowledge
+                Unacknowledge{' '}
+                {currentLoadingAction === IncidentStatus.Firing && isLoading && (
+                  <span className={cx('incident__option-span')}>
+                    <LoadingPlaceholder text="" />
+                  </span>
+                )}
               </div>
             </WithPermissionControl>
             <WithPermissionControl userAction={UserActions.AlertGroupsWrite}>
               <div
                 className={cx('incident__option-item', 'incident__option-item--resolve')}
-                onClick={(e) => onClickFn(e, AlertAction.Acknowledge, onResolve)}
+                onClick={(e) => onClickFn(e, AlertAction.Acknowledge, onResolve, IncidentStatus.Resolved)}
               >
-                Resolve
+                Resolve{' '}
+                {currentLoadingAction === IncidentStatus.Resolved && isLoading && (
+                  <span className={cx('incident__option-span')}>
+                    <LoadingPlaceholder text="" />
+                  </span>
+                )}
               </div>
             </WithPermissionControl>
           </div>
@@ -157,31 +156,50 @@ export const IncidentDropdown: FC<{
   if (alert.status === IncidentStatus.Firing) {
     return (
       <WithContextMenu
-        forceIsOpen={isFiringOpen}
+        forceIsOpen={forcedOpenAction === AlertAction.unResolve}
         renderMenuItems={() => (
           <div className={cx('incident__options', { 'u-disabled': isLoading })}>
             <WithPermissionControl userAction={UserActions.AlertGroupsWrite}>
               <div
                 className={cx('incident__option-item', 'incident__option-item--acknowledge')}
-                onClick={(e) => onClickFn(e, AlertAction.unResolve, onAcknowledge)}
+                onClick={(e) => onClickFn(e, AlertAction.unResolve, onAcknowledge, IncidentStatus.Acknowledged)}
               >
-                Acknowledge
+                Acknowledge{' '}
+                {currentLoadingAction === IncidentStatus.Acknowledged && isLoading && (
+                  <span className={cx('incident__option-span')}>
+                    <LoadingPlaceholder text="" />
+                  </span>
+                )}
               </div>
             </WithPermissionControl>
             <WithPermissionControl userAction={UserActions.AlertGroupsWrite}>
               <div
                 className={cx('incident__option-item', 'incident__option-item--resolve')}
-                onClick={(e) => onClickFn(e, AlertAction.unResolve, onResolve)}
+                onClick={(e) => onClickFn(e, AlertAction.unResolve, onResolve, IncidentStatus.Resolved)}
               >
-                Resolve
+                Resolve{' '}
+                {currentLoadingAction === IncidentStatus.Resolved && isLoading && (
+                  <span className={cx('incident__option-span')}>
+                    <LoadingPlaceholder text="" />
+                  </span>
+                )}
               </div>
             </WithPermissionControl>
 
-            <div
-              className={cx('incident__option-item')}
-              onClick={(e) => onClickFn(e, AlertAction.unResolve, onSilence)}
-            >
-              <SilenceCascadingSelect isCascading={false} onSelect={onSilence} />
+            <div className={cx('incident__option-item')}>
+              <SilenceSelect
+                placeholder={
+                  currentLoadingAction === IncidentStatus.Silenced && isLoading ? 'Loading...' : 'Silence for'
+                }
+                onSelect={(value) => {
+                  setIsLoading(true);
+                  setForcedOpenAction(AlertAction.unResolve);
+                  onSilence(value).finally(() => {
+                    setIsLoading(false);
+                    setForcedOpenAction(undefined);
+                  });
+                }}
+              />
             </div>
           </div>
         )}
@@ -194,31 +212,46 @@ export const IncidentDropdown: FC<{
   // Silenced Alerts
   return (
     <WithContextMenu
-      forceIsOpen={isSilencedOpen}
+      forceIsOpen={forcedOpenAction === AlertAction.Silence}
       renderMenuItems={() => (
         <div className={cx('incident_options', { 'u-disabled': isLoading })}>
           <WithPermissionControl userAction={UserActions.AlertGroupsWrite}>
             <div
               className={cx('incident__option-item')}
-              onClick={(e) => onClickFn(e, AlertAction.Silence, onUnsilence)}
+              onClick={(e) => onClickFn(e, AlertAction.Silence, onUnsilence, IncidentStatus.Firing)}
             >
-              Unsilence
+              Unsilence{' '}
+              {currentLoadingAction === IncidentStatus.Firing && isLoading && (
+                <span className={cx('incident__option-span')}>
+                  <LoadingPlaceholder text="" />
+                </span>
+              )}
             </div>
           </WithPermissionControl>
           <WithPermissionControl userAction={UserActions.AlertGroupsWrite}>
             <div
               className={cx('incident__option-item', 'incident__option-item--acknowledge')}
-              onClick={(e) => onClickFn(e, AlertAction.Silence, onAcknowledge)}
+              onClick={(e) => onClickFn(e, AlertAction.Silence, onAcknowledge, IncidentStatus.Acknowledged)}
             >
-              Acknowledge
+              Acknowledge{' '}
+              {currentLoadingAction === IncidentStatus.Resolved && isLoading && (
+                <span className={cx('incident__option-span')}>
+                  <LoadingPlaceholder text="" />
+                </span>
+              )}
             </div>
           </WithPermissionControl>
           <WithPermissionControl userAction={UserActions.AlertGroupsWrite}>
             <div
               className={cx('incident__option-item', 'incident__option-item--firing')}
-              onClick={(e) => onClickFn(e, AlertAction.Silence, onAcknowledge)}
+              onClick={(e) => onClickFn(e, AlertAction.Silence, onAcknowledge, IncidentStatus.Firing)}
             >
-              Firing
+              Firing{' '}
+              {currentLoadingAction === IncidentStatus.Firing && isLoading && (
+                <span className={cx('incident__option-span')}>
+                  <LoadingPlaceholder text="" />
+                </span>
+              )}
             </div>
           </WithPermissionControl>
         </div>
