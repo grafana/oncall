@@ -1,3 +1,4 @@
+import datetime
 import logging
 from typing import Optional
 
@@ -90,8 +91,7 @@ class EscalationSnapshotMixin:
             'next_step_eta': '2021-10-18T10:28:28.890369Z
         }
         """
-
-        escalation_snapshot = None
+        data = {}
 
         if self.escalation_chain_exists:
             channel_filter = self.channel_filter
@@ -104,8 +104,7 @@ class EscalationSnapshotMixin:
                 "escalation_policies_snapshots": escalation_policies,
                 "slack_channel_id": self.slack_channel_id,
             }
-            escalation_snapshot = EscalationSnapshot.serializer(data).data
-        return escalation_snapshot
+        return EscalationSnapshot.serializer(data).data
 
     def calculate_eta_for_finish_escalation(self, escalation_started=False, start_time=None):
         if not self.escalation_snapshot:
@@ -234,7 +233,7 @@ class EscalationSnapshotMixin:
         return self.raw_escalation_snapshot is not None and self.raw_escalation_snapshot.get("pause_escalation", False)
 
     @property
-    def next_step_eta(self):
+    def next_step_eta(self) -> Optional[datetime.datetime]:
         # get next_step_eta field directly to avoid serialization overhead
         raw_next_step_eta = (
             self.raw_escalation_snapshot.get("next_step_eta") if self.raw_escalation_snapshot is not None else None

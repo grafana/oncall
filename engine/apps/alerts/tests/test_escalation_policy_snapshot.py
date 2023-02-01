@@ -134,7 +134,7 @@ def test_escalation_step_notify_multiple_users(
     escalation_step_test_setup,
     make_escalation_policy,
 ):
-    organization, user, _, channel_filter, alert_group, reason = escalation_step_test_setup
+    _, user, _, channel_filter, alert_group, reason = escalation_step_test_setup
 
     notify_users_step = make_escalation_policy(
         escalation_chain=channel_filter.escalation_chain,
@@ -386,7 +386,7 @@ def test_escalation_step_notify_if_num_alerts_in_window(
     ).exists()
     assert not mocked_execute_tasks.called
 
-    organization, user, _, channel_filter, alert_group, reason = escalation_step_test_setup
+    _, _, _, channel_filter, alert_group, reason = escalation_step_test_setup
 
     make_alert(alert_group=alert_group, raw_request_data={})
 
@@ -568,3 +568,28 @@ def test_escalation_step_with_deleted_user(
 
     deserialized_escalation_snapshot = EscalationPolicySnapshotSerializer().to_internal_value(raw_snapshot)
     assert deserialized_escalation_snapshot["notify_to_users_queue"] == [user]
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize(
+    "log_record_type,expected",
+    [
+        (AlertGroupLogRecord.TYPE_ESCALATION_TRIGGERED, False),
+        (AlertGroupLogRecord.TYPE_ESCALATION_FAILED, False),
+        (AlertGroupLogRecord.TYPE_ESCALATION_FINISHED, True),
+    ],
+)
+def has_finished_log_record(
+    escalation_step_test_setup, make_escalation_policy, make_alert_group_log_record, log_record_type, expected
+):
+    _, user, _, channel_filter, alert_group, _ = escalation_step_test_setup
+    wait_step = make_escalation_policy(
+        escalation_chain=channel_filter.escalation_chain,
+        escalation_policy_step=EscalationPolicy.STEP_WAIT,
+        wait_delay=EscalationPolicy.FIFTEEN_MINUTES,
+    )
+
+    make_alert_group_log_record(alert_group, log_record_type, user, escalation_policy=wait_step)
+
+    escalation_policy_snapshot = get_escalation_policy_snapshot_from_model(wait_step)
+    assert escalation_policy_snapshot.has_finished_log_record() == expected
