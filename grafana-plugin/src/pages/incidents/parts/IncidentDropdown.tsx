@@ -194,9 +194,11 @@ export const IncidentDropdown: FC<{
                 onSelect={(value) => {
                   setIsLoading(true);
                   setForcedOpenAction(AlertAction.unResolve);
+                  setCurrentActionLoading(IncidentStatus.Silenced);
                   onSilence(value).finally(() => {
                     setIsLoading(false);
                     setForcedOpenAction(undefined);
+                    setCurrentActionLoading(undefined);
                   });
                 }}
               />
@@ -234,7 +236,7 @@ export const IncidentDropdown: FC<{
               onClick={(e) => onClickFn(e, AlertAction.Silence, onAcknowledge, IncidentStatus.Acknowledged)}
             >
               Acknowledge{' '}
-              {currentLoadingAction === IncidentStatus.Resolved && isLoading && (
+              {currentLoadingAction === IncidentStatus.Acknowledged && isLoading && (
                 <span className={cx('incident__option-span')}>
                   <LoadingPlaceholder text="" />
                 </span>
@@ -243,11 +245,11 @@ export const IncidentDropdown: FC<{
           </WithPermissionControl>
           <WithPermissionControl userAction={UserActions.AlertGroupsWrite}>
             <div
-              className={cx('incident__option-item', 'incident__option-item--firing')}
-              onClick={(e) => onClickFn(e, AlertAction.Silence, onAcknowledge, IncidentStatus.Firing)}
+              className={cx('incident__option-item', 'incident__option-item--resolve')}
+              onClick={(e) => onClickFn(e, AlertAction.Silence, onAcknowledge, IncidentStatus.Resolved)}
             >
-              Firing{' '}
-              {currentLoadingAction === IncidentStatus.Firing && isLoading && (
+              Resolve{' '}
+              {currentLoadingAction === IncidentStatus.Resolved && isLoading && (
                 <span className={cx('incident__option-span')}>
                   <LoadingPlaceholder text="" />
                 </span>
