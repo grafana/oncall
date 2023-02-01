@@ -30,6 +30,8 @@
   gap: 5px;
   padding-bottom: 4px;
   position: relative;
+  overflow: hidden;
+  max-width: 100%;
 }
 
 .root:last-child .timeline {
