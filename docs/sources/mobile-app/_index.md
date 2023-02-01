@@ -50,10 +50,9 @@ The OnCall mobile app uses a QR code authentication to connect to your Grafana O
 You can associate one Grafana OnCall user with your OnCall mobile app.
 
 To connect your account in the mobile app:
-1. Open the Grafana OnCall mobile app
-2. Click **Sign in** and follow the instructions in the app to locate your QR code
-4. Use the mobile app to scan the QR code in your User profile
-5. Once the scan is successful, your mobile app is connected
+1. Open the Grafana OnCall mobile app and click **Sign in**
+2. Follow the instructions in the app to complete QR code authentication
+3. Once the scan is successful, your mobile app is connected to OnCall
 
 
 ### Where can I find my QR code?
