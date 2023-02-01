@@ -39,6 +39,7 @@
 .slots {
   width: 100%;
   display: flex;
+  flex-wrap: wrap;
   transition: opacity 500ms ease;
   opacity: 1;
 }

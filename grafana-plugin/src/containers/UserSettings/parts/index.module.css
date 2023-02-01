@@ -20,6 +20,7 @@
 .right {
   margin-left: 24px;
   display: flex;
+  flex-wrap: wrap;
   flex-direction: column;
   justify-content: flex-start;
 }
