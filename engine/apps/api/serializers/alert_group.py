@@ -20,7 +20,7 @@ logger.setLevel(logging.DEBUG)
 
 class AlertGroupFieldsCacheSerializerMixin:
     @classmethod
-    def get_or_set_cached_web_template_field(
+    def get_or_set_web_template_field(
         cls,
         obj,
         field_name,
@@ -185,6 +185,14 @@ class AlertGroupSerializer(AlertGroupListSerializer):
             "last_alert_at",
             "paged_users",
         ]
+
+    def get_last_alert_at(self, obj):
+        last_alert = obj.alerts.last()
+
+        if not last_alert:
+            return obj.started_at
+
+        return last_alert.created_at
 
     def get_limited_alerts(self, obj):
         """

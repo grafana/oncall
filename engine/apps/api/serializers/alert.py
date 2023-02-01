@@ -8,7 +8,7 @@ from apps.alerts.models import Alert
 
 class AlertFieldsCacheSerializerMixin:
     @classmethod
-    def get_or_set_cached_web_template_field(
+    def get_or_set_web_template_field(
         cls,
         obj,
         field_name,
@@ -18,7 +18,7 @@ class AlertFieldsCacheSerializerMixin:
         CACHE_KEY = f"{field_name}_alert_{obj.id}"
         cached_field = cache.get(CACHE_KEY, None)
 
-        web_templates_modified_at = obj.channel.web_templates_modified_at
+        web_templates_modified_at = obj.group.channel.web_templates_modified_at
 
         # use cache only if cache exists
         # and either web templates never modified
@@ -28,7 +28,7 @@ class AlertFieldsCacheSerializerMixin:
         ):
             field = cached_field.get(field_name)
         else:
-            field = renderer_class(obj, obj.last_alert).render()
+            field = renderer_class(obj).render()
             cache.set(CACHE_KEY, {"cache_created_at": timezone.now(), field_name: field}, cache_lifetime)
 
         return field
