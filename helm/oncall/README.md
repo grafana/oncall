@@ -205,7 +205,7 @@ database:
   type: postgresql
 
 # Make sure to create the database with the following parameters:
-# CREATE DATABASE oncall CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+# CREATE DATABASE oncall WITH ENCODING UTF8;
 externalPostgresql:
   host:
   port:
