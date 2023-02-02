@@ -1532,7 +1532,7 @@ def test_last_modified_sequence_update(make_organization_and_user, make_schedule
         organization=organization, shift_type=CustomOnCallShift.TYPE_ROLLING_USERS_EVENT, **data
     )
 
-    assert on_call_shift.sequence is None
+    assert on_call_shift.sequence == 0
     assert on_call_shift.last_modified is None
 
     on_call_shift.interval = 2

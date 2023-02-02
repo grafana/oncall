@@ -57,7 +57,7 @@ def test_create_on_call_shift_rotation(on_call_shift_internal_api_setup, make_us
     db_shift = CustomOnCallShift.objects.get(public_primary_key=expected_payload["id"])
     # last_modified and sequence are not set on creation
     assert db_shift.last_modified is None
-    assert db_shift.sequence is None
+    assert db_shift.sequence == 0
 
 
 @pytest.mark.django_db
@@ -407,7 +407,7 @@ def test_update_started_on_call_shift(
     assert on_call_shift.updated_shift.public_primary_key == response.data["id"]
     # last_modified and sequence are not set in the new shift
     assert on_call_shift.updated_shift.last_modified is None
-    assert on_call_shift.updated_shift.sequence is None
+    assert on_call_shift.updated_shift.sequence == 0
     # check if until date was changed
     assert on_call_shift.until is not None
     assert on_call_shift.until == on_call_shift.updated_shift.rotation_start

@@ -213,7 +213,7 @@ class CustomOnCallShift(models.Model):
     )
 
     last_modified = models.DateTimeField(default=None, null=True)
-    sequence = models.IntegerField(default=None, null=True)
+    sequence = models.IntegerField(default=0)
 
     class Meta:
         unique_together = ("name", "organization")
@@ -221,7 +221,7 @@ class CustomOnCallShift(models.Model):
     def save(self, *args, **kwargs):
         if self.pk is not None:
             # automatically update sequence and last_modified on updates
-            self.sequence = self.sequence + 1 if self.sequence else 1
+            self.sequence = self.sequence + 1
             self.last_modified = timezone.now().replace(microsecond=0)
             if "update_fields" in kwargs:
                 kwargs["update_fields"] += ["sequence", "last_modified"]
