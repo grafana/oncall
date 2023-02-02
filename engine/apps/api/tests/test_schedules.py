@@ -1103,7 +1103,7 @@ def test_merging_same_shift_events(
     )
     now = timezone.now().replace(hour=0, minute=0, second=0, microsecond=0)
     start_date = now - timezone.timedelta(days=7)
-    request_date = start_date
+    request_date = start_date + timezone.timedelta(days=1)
 
     user_a = make_user_for_organization(organization)
     user_b = make_user_for_organization(organization)
@@ -1127,10 +1127,10 @@ def test_merging_same_shift_events(
     expected_events = [
         {
             "calendar_type": 0,
-            "end": start_date + timezone.timedelta(hours=12),
+            "end": request_date + timezone.timedelta(hours=12),
             "is_gap": False,
             "priority_level": 1,
-            "start": start_date + timezone.timedelta(hours=10),
+            "start": request_date + timezone.timedelta(hours=10),
             "users": sorted([user_a.username, user_b.username]),
             "missing_users": [user_c.username],
         }
