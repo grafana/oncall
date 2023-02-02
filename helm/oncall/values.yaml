@@ -131,6 +131,7 @@ oncall:
     tls: ~
     fromEmail: ~
   twilio:
+    enabled: false
     # Twilio account SID/username to allow OnCall to send SMSes and make phone calls
     accountSid: ""
     # Twilio password to allow OnCall to send SMSes and make calls
