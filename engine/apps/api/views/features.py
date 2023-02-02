@@ -37,17 +37,7 @@ class FeaturesAPIView(APIView):
             enabled_features.append(FEATURE_TELEGRAM)
 
         if settings.FEATURE_MOBILE_APP_INTEGRATION_ENABLED:
-            mobile_app_settings = DynamicSetting.objects.get_or_create(
-                name="mobile_app_settings",
-                defaults={
-                    "json_value": {
-                        "org_ids": [],
-                    }
-                },
-            )[0]
-
-            if request.auth.organization.pk in mobile_app_settings.json_value["org_ids"]:
-                enabled_features.append(MOBILE_APP_PUSH_NOTIFICATIONS)
+            enabled_features.append(MOBILE_APP_PUSH_NOTIFICATIONS)
 
         if settings.OSS_INSTALLATION:
             # Features below should be enabled only in OSS
