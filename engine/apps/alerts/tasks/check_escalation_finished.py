@@ -126,8 +126,3 @@ def check_escalation_finished_task():
         audit_alert_group_escalation(alert_group)
 
     send_alert_group_escalation_auditor_task_heartbeat()
-
-
-# TODO: deprecate the estimate_escalation_finish_time field
-# don't remove from databse though, just remove references and mark field as deprecated
-# consider using https://github.com/3YOURMIND/django-deprecate-fields/

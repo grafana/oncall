@@ -6,19 +6,16 @@ import pytz
 from celery import uuid as celery_uuid
 from dateutil.parser import parse
 from django.apps import apps
-from django.utils import timezone
 from django.utils.functional import cached_property
 from rest_framework.exceptions import ValidationError
 
-from apps.alerts.constants import NEXT_ESCALATION_DELAY
 from apps.alerts.escalation_snapshot.snapshot_classes import (
     ChannelFilterSnapshot,
     EscalationChainSnapshot,
     EscalationPolicySnapshot,
     EscalationSnapshot,
 )
-from apps.alerts.escalation_snapshot.utils import eta_for_escalation_step_notify_if_time
-from apps.alerts.tasks import calculate_escalation_finish_time, escalate_alert_group
+from apps.alerts.tasks import escalate_alert_group
 
 logger = logging.getLogger(__name__)
 
@@ -105,51 +102,6 @@ class EscalationSnapshotMixin:
                 "slack_channel_id": self.slack_channel_id,
             }
         return EscalationSnapshot.serializer(data).data
-
-    def calculate_eta_for_finish_escalation(self, escalation_started=False, start_time=None):
-        if not self.escalation_snapshot:
-            return
-        EscalationPolicy = apps.get_model("alerts", "EscalationPolicy")
-        TOLERANCE_SECONDS = 1
-        TOLERANCE_TIME = timezone.timedelta(seconds=NEXT_ESCALATION_DELAY + TOLERANCE_SECONDS)
-        start_time = start_time or timezone.now()  # start time may be different for silenced incidents
-        wait_summ = timezone.timedelta()
-        # Get next_active_escalation_policy_order using flag `escalation_started` because this calculation can be
-        # started in parallel with escalation task where next_active_escalation_policy_order can be changed.
-        # That's why we are using `escalation_started` flag here, which means, that we want count eta from the first
-        # step.
-        next_escalation_policy_order = (
-            self.escalation_snapshot.next_active_escalation_policy_order if escalation_started else 0
-        )
-        escalation_policies = self.escalation_snapshot.escalation_policies_snapshots[next_escalation_policy_order:]
-        for escalation_policy in escalation_policies:
-            if escalation_policy.step == EscalationPolicy.STEP_WAIT:
-                if escalation_policy.wait_delay is not None:
-                    wait_summ += escalation_policy.wait_delay
-                else:
-                    wait_summ += EscalationPolicy.DEFAULT_WAIT_DELAY  # Default wait in case it's not selected yet
-            elif escalation_policy.step == EscalationPolicy.STEP_NOTIFY_IF_TIME:
-                if escalation_policy.from_time and escalation_policy.to_time:
-                    estimate_start_time = start_time + wait_summ
-                    STEP_TOLERANCE = timezone.timedelta(minutes=1)
-                    next_step_estimate_start_time = eta_for_escalation_step_notify_if_time(
-                        escalation_policy.from_time,
-                        escalation_policy.to_time,
-                        estimate_start_time + STEP_TOLERANCE,
-                    )
-                    wait_summ += next_step_estimate_start_time - estimate_start_time
-            elif escalation_policy.step == EscalationPolicy.STEP_REPEAT_ESCALATION_N_TIMES:
-                # the part of escalation with repeat step will be passed six times: the first time plus five repeats
-                wait_summ *= EscalationPolicy.MAX_TIMES_REPEAT + 1
-            elif escalation_policy.step == EscalationPolicy.STEP_NOTIFY_IF_NUM_ALERTS_IN_TIME_WINDOW:
-                # In this case we cannot calculate finish time, so we return None
-                return
-            elif escalation_policy.step == EscalationPolicy.STEP_FINAL_RESOLVE:
-                break
-            wait_summ += TOLERANCE_TIME
-
-        escalation_finish_time = start_time + wait_summ
-        return escalation_finish_time
 
     @property
     def channel_filter_with_respect_to_escalation_snapshot(self):
@@ -271,13 +223,10 @@ class EscalationSnapshotMixin:
             is_escalation_finished=False,
             raw_escalation_snapshot=raw_escalation_snapshot,
         )
-        if not self.pause_escalation:
-            calculate_escalation_finish_time.apply_async((self.pk,), immutable=True)
         escalate_alert_group.apply_async((self.pk,), countdown=countdown, immutable=True, eta=eta, task_id=task_id)
 
     def stop_escalation(self):
         self.is_escalation_finished = True
-        self.estimate_escalation_finish_time = None
         # change active_escalation_id to prevent alert escalation
         self.active_escalation_id = "intentionally_stopped"
-        self.save(update_fields=["is_escalation_finished", "estimate_escalation_finish_time", "active_escalation_id"])
+        self.save(update_fields=["is_escalation_finished", "active_escalation_id"])
