@@ -2,6 +2,7 @@ from unittest.mock import patch
 
 import pytest
 from fcm_django.models import FCMDevice
+from firebase_admin.exceptions import FirebaseError
 
 from apps.base.models import UserNotificationPolicy, UserNotificationPolicyLogRecord
 from apps.mobile_app.tasks import notify_user_async
@@ -169,3 +170,40 @@ def test_notify_user_async_oss_no_cloud_connection(
 
     log_record = alert_group.personal_log_records.last()
     assert log_record.type == UserNotificationPolicyLogRecord.TYPE_PERSONAL_NOTIFICATION_FAILED
+
+
+@pytest.mark.django_db
+def test_notify_user_retry(
+    settings,
+    make_organization_and_user,
+    make_user_notification_policy,
+    make_alert_receive_channel,
+    make_channel_filter,
+    make_alert_group,
+    make_alert,
+):
+    organization, user = make_organization_and_user()
+    FCMDevice.objects.create(user=user, registration_id="test_device_id")
+
+    notification_policy = make_user_notification_policy(
+        user,
+        UserNotificationPolicy.Step.NOTIFY,
+        notify_by=MOBILE_APP_BACKEND_ID,
+    )
+    alert_receive_channel = make_alert_receive_channel(organization=organization)
+    channel_filter = make_channel_filter(alert_receive_channel)
+    alert_group = make_alert_group(alert_receive_channel, channel_filter=channel_filter)
+    make_alert(alert_group=alert_group, raw_request_data={})
+
+    settings.LICENSE = CLOUD_LICENSE_NAME
+    # check that FirebaseError is raised when send_message returns it so Celery task can retry
+    with patch.object(
+        FCMDevice, "send_message", return_value=FirebaseError(code="test_error_code", message="test_error_message")
+    ):
+        with pytest.raises(FirebaseError):
+            notify_user_async(
+                user_pk=user.pk,
+                alert_group_pk=alert_group.pk,
+                notification_policy_pk=notification_policy.pk,
+                critical=False,
+            )
