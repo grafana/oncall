@@ -242,12 +242,9 @@ def test_rolling_users_event_with_interval_hourly(
         "frequency": CustomOnCallShift.FREQUENCY_HOURLY,
         "interval": 2,
         "schedule": schedule,
+        "rolling_users": [{user.pk: user.public_primary_key} for user in (user_1, user_2)],
     }
-    rolling_users = [[user_1], [user_2]]
-    on_call_shift = make_on_call_shift(
-        organization=organization, shift_type=CustomOnCallShift.TYPE_ROLLING_USERS_EVENT, **data
-    )
-    on_call_shift.add_rolling_users(rolling_users)
+    make_on_call_shift(organization=organization, shift_type=CustomOnCallShift.TYPE_ROLLING_USERS_EVENT, **data)
 
     date = now + timezone.timedelta(minutes=5)
 
@@ -642,12 +639,9 @@ def test_rolling_users_with_diff_start_and_rotation_start_hourly(
         "frequency": CustomOnCallShift.FREQUENCY_HOURLY,
         "schedule": schedule,
         "until": now + timezone.timedelta(hours=6, minutes=59),
+        "rolling_users": [{user.pk: user.public_primary_key} for user in (user_1, user_2, user_3)],
     }
-    rolling_users = [[user_1], [user_2], [user_3]]
-    on_call_shift = make_on_call_shift(
-        organization=organization, shift_type=CustomOnCallShift.TYPE_ROLLING_USERS_EVENT, **data
-    )
-    on_call_shift.add_rolling_users(rolling_users)
+    make_on_call_shift(organization=organization, shift_type=CustomOnCallShift.TYPE_ROLLING_USERS_EVENT, **data)
 
     date = now + timezone.timedelta(minutes=5)
     # rotation starts from user_3, because user_1 and user_2 started earlier than rotation start date
@@ -1411,6 +1405,41 @@ def test_shift_convert_to_ical(make_organization_and_user, make_on_call_shift):
 
 
 @pytest.mark.django_db
+def test_shift_convert_to_ical_modified_info(make_organization_and_user, make_on_call_shift):
+    organization, user = make_organization_and_user()
+
+    date = timezone.now().replace(tzinfo=None, microsecond=0)
+    until = date + timezone.timedelta(days=30)
+
+    data = {
+        "priority_level": 1,
+        "start": date,
+        "rotation_start": date,
+        "duration": timezone.timedelta(seconds=10800),
+        "frequency": CustomOnCallShift.FREQUENCY_HOURLY,
+        "interval": 1,
+        "until": until,
+        "sequence": 13,
+        "last_modified": date,
+    }
+
+    on_call_shift = make_on_call_shift(
+        organization=organization, shift_type=CustomOnCallShift.TYPE_RECURRENT_EVENT, **data
+    )
+    on_call_shift.users.add(user)
+
+    ical_data = on_call_shift.convert_to_ical()
+    ical_rrule_until = on_call_shift.until.strftime("%Y%m%dT%H%M%S")
+    expected_rrule = f"RRULE:FREQ=HOURLY;UNTIL={ical_rrule_until}Z;INTERVAL=1;WKST=SU"
+    assert expected_rrule in ical_data
+    assert "SEQUENCE:13" in ical_data
+    expected_last_modified = "LAST-MODIFIED;VALUE=DATE-TIME:{}".format(
+        on_call_shift.last_modified.strftime("%Y%m%dT%H%M%S")
+    )
+    assert expected_last_modified in ical_data
+
+
+@pytest.mark.django_db
 def test_rolling_users_shift_convert_to_ical(
     make_organization_and_user,
     make_user_for_organization,
@@ -1448,7 +1477,7 @@ def test_rolling_users_shift_convert_to_ical(
 
 @pytest.mark.django_db
 def test_rolling_users_event_daily_by_day_start_none_convert_to_ical(
-    make_organization_and_user, make_user_for_organization, make_on_call_shift, make_schedule
+    make_organization_and_user, make_on_call_shift, make_schedule
 ):
     organization, user_1 = make_organization_and_user()
 
@@ -1481,3 +1510,34 @@ def test_rolling_users_event_daily_by_day_start_none_convert_to_ical(
     ical_data = on_call_shift.convert_to_ical()
     # empty result since there is no event in the defined time range
     assert ical_data == ""
+
+
+@pytest.mark.django_db
+def test_last_modified_sequence_update(make_organization_and_user, make_schedule, make_on_call_shift):
+    organization, user_1 = make_organization_and_user()
+    schedule = make_schedule(organization, schedule_class=OnCallScheduleWeb)
+    now = timezone.now().replace(hour=0, minute=0, second=0, microsecond=0)
+
+    data = {
+        "priority_level": 1,
+        "start": now + timezone.timedelta(hours=12),
+        "rotation_start": now + timezone.timedelta(hours=12),
+        "duration": timezone.timedelta(seconds=3600),
+        "frequency": CustomOnCallShift.FREQUENCY_DAILY,
+        "interval": 1,
+        "schedule": schedule,
+        "rolling_users": [{user_1.pk: user_1.public_primary_key}],
+    }
+    on_call_shift = make_on_call_shift(
+        organization=organization, shift_type=CustomOnCallShift.TYPE_ROLLING_USERS_EVENT, **data
+    )
+
+    assert on_call_shift.sequence is None
+    assert on_call_shift.last_modified is None
+
+    on_call_shift.interval = 2
+    on_call_shift.save(update_fields=["interval"])
+
+    on_call_shift.refresh_from_db()
+    assert on_call_shift.sequence == 1
+    assert on_call_shift.last_modified is not None

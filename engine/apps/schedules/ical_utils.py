@@ -589,6 +589,8 @@ def create_base_icalendar(name: str) -> Calendar:
     cal.add("x-wr-calname", name)
     cal.add("x-wr-timezone", "UTC")
     cal.add("prodid", "//Grafana Labs//Grafana On-Call//")
+    # suggested minimum interval for polling for changes
+    cal.add("REFRESH-INTERVAL;VALUE=DURATION", "P1H")
 
     return cal
 

@@ -176,6 +176,9 @@ def test_create_on_call_shift(make_organization_and_user_with_token):
 
     assert response.status_code == status.HTTP_201_CREATED
     assert response.data == result
+    # last_modified and sequence are not set on creation
+    assert on_call_shift.last_modified is None
+    assert on_call_shift.sequence is None
 
 
 @pytest.mark.django_db
@@ -213,6 +216,9 @@ def test_create_override_on_call_shift(make_organization_and_user_with_token):
 
     assert response.status_code == status.HTTP_201_CREATED
     assert response.data == result
+    # last_modified and sequence are not set on creation
+    assert on_call_shift.last_modified is None
+    assert on_call_shift.sequence is None
 
 
 @pytest.mark.django_db
@@ -309,6 +315,9 @@ def test_update_on_call_shift(make_organization_and_user_with_token, make_on_cal
     assert on_call_shift.by_day == data_to_update["by_day"]
     assert len(on_call_shift.users.filter(public_primary_key=user.public_primary_key)) == 1
     assert response.data == result
+    # last_modified and sequence are set on update
+    assert on_call_shift.last_modified is not None
+    assert on_call_shift.sequence == 1
 
 
 @pytest.mark.django_db

@@ -212,8 +212,20 @@ class CustomOnCallShift(models.Model):
         related_name="parent_shift",
     )
 
+    last_modified = models.DateTimeField(default=None, null=True)
+    sequence = models.IntegerField(default=None, null=True)
+
     class Meta:
         unique_together = ("name", "organization")
+
+    def save(self, *args, **kwargs):
+        if self.pk is not None:
+            # automatically update sequence and last_modified on updates
+            self.sequence = self.sequence + 1 if self.sequence else 1
+            self.last_modified = timezone.now().replace(microsecond=0)
+            if "update_fields" in kwargs:
+                kwargs["update_fields"] += ["sequence", "last_modified"]
+        super().save(*args, **kwargs)
 
     def delete(self, *args, **kwargs):
         schedules_to_update = list(self.schedules.all())
@@ -417,6 +429,10 @@ class CustomOnCallShift(models.Model):
             dtend = min(dtend, self.until)
         event.add("dtend", self.convert_dt_to_schedule_timezone(dtend, time_zone))
         event.add("dtstamp", self.rotation_start)
+        if self.last_modified:
+            event.add("last-modified", self.last_modified)
+        if self.sequence:
+            event.add("sequence", self.sequence)
         if custom_rrule:
             event.add("rrule", custom_rrule)
         elif self.event_ical_rules:

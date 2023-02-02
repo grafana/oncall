@@ -54,6 +54,10 @@ def test_create_on_call_shift_rotation(on_call_shift_internal_api_setup, make_us
 
     assert response.status_code == status.HTTP_201_CREATED
     assert response.json() == expected_payload
+    db_shift = CustomOnCallShift.objects.get(public_primary_key=expected_payload["id"])
+    # last_modified and sequence are not set on creation
+    assert db_shift.last_modified is None
+    assert db_shift.sequence is None
 
 
 @pytest.mark.django_db
@@ -285,6 +289,7 @@ def test_update_future_on_call_shift(
         duration=timezone.timedelta(hours=1),
         rotation_start=start_date,
         rolling_users=[{user1.pk: user1.public_primary_key}],
+        sequence=3,
     )
     data_to_update = {
         "title": title,
@@ -327,6 +332,9 @@ def test_update_future_on_call_shift(
 
     on_call_shift.refresh_from_db()
     assert on_call_shift.priority_level == data_to_update["priority_level"]
+    # last_modified and sequence set on update
+    assert on_call_shift.last_modified is not None
+    assert on_call_shift.sequence == 4
 
 
 @pytest.mark.django_db
@@ -397,9 +405,15 @@ def test_update_started_on_call_shift(
     on_call_shift.refresh_from_db()
     assert on_call_shift.priority_level != data_to_update["priority_level"]
     assert on_call_shift.updated_shift.public_primary_key == response.data["id"]
+    # last_modified and sequence are not set in the new shift
+    assert on_call_shift.updated_shift.last_modified is None
+    assert on_call_shift.updated_shift.sequence is None
     # check if until date was changed
     assert on_call_shift.until is not None
     assert on_call_shift.until == on_call_shift.updated_shift.rotation_start
+    # last_modified and sequence are updated in the modified shift
+    assert on_call_shift.last_modified is not None
+    assert on_call_shift.sequence == 1
 
 
 @pytest.mark.django_db
@@ -550,6 +564,9 @@ def test_update_started_on_call_shift_title(
 
     on_call_shift.refresh_from_db()
     assert on_call_shift.title == new_title
+    # last_modified and sequence are updated in the modified shift
+    assert on_call_shift.last_modified is not None
+    assert on_call_shift.sequence == 1
 
 
 @pytest.mark.django_db
@@ -588,6 +605,9 @@ def test_delete_started_on_call_shift(
 
     on_call_shift.refresh_from_db()
     assert on_call_shift.until is not None
+    # last_modified and sequence are updated in the modified shift
+    assert on_call_shift.last_modified is not None
+    assert on_call_shift.sequence == 1
 
 
 @pytest.mark.django_db
@@ -1555,11 +1575,11 @@ def test_on_call_shift_preview_update(
         "interval": 4,
         "frequency": CustomOnCallShift.FREQUENCY_HOURLY,
         "schedule": schedule,
+        "rolling_users": [{user.pk: user.public_primary_key}],
     }
     on_call_shift = make_on_call_shift(
         organization=organization, shift_type=CustomOnCallShift.TYPE_ROLLING_USERS_EVENT, **data
     )
-    on_call_shift.add_rolling_users([[user]])
 
     url = "{}?date={}&days={}".format(reverse("api-internal:oncall_shifts-preview"), tomorrow.strftime("%Y-%m-%d"), 1)
     shift_start = (tomorrow + timezone.timedelta(hours=10)).strftime("%Y-%m-%dT%H:%M:%SZ")
