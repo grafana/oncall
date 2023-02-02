@@ -68,12 +68,8 @@ class SlackMessage(models.Model):
                     f"It is strange!"
                 )
                 return None
-            # Re-take object to switch connection from readonly db to master.
             self._slack_team_identity = self.organization.slack_team_identity
-
-            _self = SlackMessage.objects.get(pk=self.pk)
-            _self._slack_team_identity = _self.organization.slack_team_identity
-            _self.save()
+            self.save()
         return self._slack_team_identity
 
     def get_alert_group(self):
