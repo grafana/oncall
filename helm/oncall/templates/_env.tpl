@@ -137,6 +137,12 @@ MIRAGE_SECRET_KEY
 - name: TWILIO_API_KEY_SECRET
   value: {{ .apiKeySecret | quote }}
 {{- end -}}
+{{- if .enabled }}
+- name: GRAFANA_CLOUD_NOTIFICATIONS_ENABLED
+  value: "False"
+- name: GRAFANA_CLOUD_ONCALL_HEARTBEAT_ENABLED
+  value: "False"
+{{- end -}}
 {{- end -}}
 {{- end -}}
 
