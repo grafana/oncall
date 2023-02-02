@@ -40,6 +40,31 @@ exports[`MobileAppConnection if we disconnect the app, it disconnects and fetche
             <div
               class="css-bxa289-layoutChildrenWrapper"
             >
+              <a
+                href="https://play.google.com/store/apps/details?id=com.grafana.oncall.prod"
+                rel="noreferrer"
+                style="width: 100%;"
+                target="_blank"
+              >
+                <div
+                  class="root icon-block root_bordered root--fullWidth root--hover"
+                >
+                  <img
+                    alt="Play Store"
+                    class="icon"
+                    src="[object Object]"
+                  />
+                  <span
+                    class="root text icon-text text--primary text--medium"
+                  >
+                    Android
+                  </span>
+                </div>
+              </a>
+            </div>
+            <div
+              class="css-bxa289-layoutChildrenWrapper"
+            >
               <div
                 class="root icon-block root_bordered root--fullWidth root--withBackground root--hover"
               >
@@ -53,23 +78,11 @@ exports[`MobileAppConnection if we disconnect the app, it disconnects and fetche
                 >
                   iOS
                 </span>
-              </div>
-            </div>
-            <div
-              class="css-bxa289-layoutChildrenWrapper"
-            >
-              <div
-                class="root icon-block root_bordered root--fullWidth root--hover"
-              >
-                <img
-                  alt="Play Store"
-                  class="icon"
-                  src="[object Object]"
-                />
                 <span
-                  class="root text icon-text text--primary text--medium"
+                  class="root icon-tag"
+                  style="background-color: rgb(41, 156, 70);"
                 >
-                  Android
+                  Coming Soon
                 </span>
               </div>
             </div>
@@ -2371,6 +2384,31 @@ exports[`MobileAppConnection it shows a QR code if the app isn't already connect
             <div
               class="css-bxa289-layoutChildrenWrapper"
             >
+              <a
+                href="https://play.google.com/store/apps/details?id=com.grafana.oncall.prod"
+                rel="noreferrer"
+                style="width: 100%;"
+                target="_blank"
+              >
+                <div
+                  class="root icon-block root_bordered root--fullWidth root--hover"
+                >
+                  <img
+                    alt="Play Store"
+                    class="icon"
+                    src="[object Object]"
+                  />
+                  <span
+                    class="root text icon-text text--primary text--medium"
+                  >
+                    Android
+                  </span>
+                </div>
+              </a>
+            </div>
+            <div
+              class="css-bxa289-layoutChildrenWrapper"
+            >
               <div
                 class="root icon-block root_bordered root--fullWidth root--withBackground root--hover"
               >
@@ -2384,23 +2422,11 @@ exports[`MobileAppConnection it shows a QR code if the app isn't already connect
                 >
                   iOS
                 </span>
-              </div>
-            </div>
-            <div
-              class="css-bxa289-layoutChildrenWrapper"
-            >
-              <div
-                class="root icon-block root_bordered root--fullWidth root--hover"
-              >
-                <img
-                  alt="Play Store"
-                  class="icon"
-                  src="[object Object]"
-                />
                 <span
-                  class="root text icon-text text--primary text--medium"
+                  class="root icon-tag"
+                  style="background-color: rgb(41, 156, 70);"
                 >
-                  Android
+                  Coming Soon
                 </span>
               </div>
             </div>
@@ -2470,6 +2496,31 @@ exports[`MobileAppConnection it shows a loading message if it is currently disco
             <div
               class="css-bxa289-layoutChildrenWrapper"
             >
+              <a
+                href="https://play.google.com/store/apps/details?id=com.grafana.oncall.prod"
+                rel="noreferrer"
+                style="width: 100%;"
+                target="_blank"
+              >
+                <div
+                  class="root icon-block root_bordered root--fullWidth root--hover"
+                >
+                  <img
+                    alt="Play Store"
+                    class="icon"
+                    src="[object Object]"
+                  />
+                  <span
+                    class="root text icon-text text--primary text--medium"
+                  >
+                    Android
+                  </span>
+                </div>
+              </a>
+            </div>
+            <div
+              class="css-bxa289-layoutChildrenWrapper"
+            >
               <div
                 class="root icon-block root_bordered root--fullWidth root--withBackground root--hover"
               >
@@ -2483,23 +2534,11 @@ exports[`MobileAppConnection it shows a loading message if it is currently disco
                 >
                   iOS
                 </span>
-              </div>
-            </div>
-            <div
-              class="css-bxa289-layoutChildrenWrapper"
-            >
-              <div
-                class="root icon-block root_bordered root--fullWidth root--hover"
-              >
-                <img
-                  alt="Play Store"
-                  class="icon"
-                  src="[object Object]"
-                />
                 <span
-                  class="root text icon-text text--primary text--medium"
+                  class="root icon-tag"
+                  style="background-color: rgb(41, 156, 70);"
                 >
-                  Android
+                  Coming Soon
                 </span>
               </div>
             </div>
@@ -2569,6 +2608,31 @@ exports[`MobileAppConnection it shows a loading message if it is currently fetch
             <div
               class="css-bxa289-layoutChildrenWrapper"
             >
+              <a
+                href="https://play.google.com/store/apps/details?id=com.grafana.oncall.prod"
+                rel="noreferrer"
+                style="width: 100%;"
+                target="_blank"
+              >
+                <div
+                  class="root icon-block root_bordered root--fullWidth root--hover"
+                >
+                  <img
+                    alt="Play Store"
+                    class="icon"
+                    src="[object Object]"
+                  />
+                  <span
+                    class="root text icon-text text--primary text--medium"
+                  >
+                    Android
+                  </span>
+                </div>
+              </a>
+            </div>
+            <div
+              class="css-bxa289-layoutChildrenWrapper"
+            >
               <div
                 class="root icon-block root_bordered root--fullWidth root--withBackground root--hover"
               >
@@ -2582,23 +2646,11 @@ exports[`MobileAppConnection it shows a loading message if it is currently fetch
                 >
                   iOS
                 </span>
-              </div>
-            </div>
-            <div
-              class="css-bxa289-layoutChildrenWrapper"
-            >
-              <div
-                class="root icon-block root_bordered root--fullWidth root--hover"
-              >
-                <img
-                  alt="Play Store"
-                  class="icon"
-                  src="[object Object]"
-                />
                 <span
-                  class="root text icon-text text--primary text--medium"
+                  class="root icon-tag"
+                  style="background-color: rgb(41, 156, 70);"
                 >
-                  Android
+                  Coming Soon
                 </span>
               </div>
             </div>
@@ -2668,6 +2720,31 @@ exports[`MobileAppConnection it shows a message when the mobile app is already c
             <div
               class="css-bxa289-layoutChildrenWrapper"
             >
+              <a
+                href="https://play.google.com/store/apps/details?id=com.grafana.oncall.prod"
+                rel="noreferrer"
+                style="width: 100%;"
+                target="_blank"
+              >
+                <div
+                  class="root icon-block root_bordered root--fullWidth root--hover"
+                >
+                  <img
+                    alt="Play Store"
+                    class="icon"
+                    src="[object Object]"
+                  />
+                  <span
+                    class="root text icon-text text--primary text--medium"
+                  >
+                    Android
+                  </span>
+                </div>
+              </a>
+            </div>
+            <div
+              class="css-bxa289-layoutChildrenWrapper"
+            >
               <div
                 class="root icon-block root_bordered root--fullWidth root--withBackground root--hover"
               >
@@ -2681,23 +2758,11 @@ exports[`MobileAppConnection it shows a message when the mobile app is already c
                 >
                   iOS
                 </span>
-              </div>
-            </div>
-            <div
-              class="css-bxa289-layoutChildrenWrapper"
-            >
-              <div
-                class="root icon-block root_bordered root--fullWidth root--hover"
-              >
-                <img
-                  alt="Play Store"
-                  class="icon"
-                  src="[object Object]"
-                />
                 <span
-                  class="root text icon-text text--primary text--medium"
+                  class="root icon-tag"
+                  style="background-color: rgb(41, 156, 70);"
                 >
-                  Android
+                  Coming Soon
                 </span>
               </div>
             </div>
@@ -2867,6 +2932,31 @@ exports[`MobileAppConnection it shows an error message if there was an error dis
             <div
               class="css-bxa289-layoutChildrenWrapper"
             >
+              <a
+                href="https://play.google.com/store/apps/details?id=com.grafana.oncall.prod"
+                rel="noreferrer"
+                style="width: 100%;"
+                target="_blank"
+              >
+                <div
+                  class="root icon-block root_bordered root--fullWidth root--hover"
+                >
+                  <img
+                    alt="Play Store"
+                    class="icon"
+                    src="[object Object]"
+                  />
+                  <span
+                    class="root text icon-text text--primary text--medium"
+                  >
+                    Android
+                  </span>
+                </div>
+              </a>
+            </div>
+            <div
+              class="css-bxa289-layoutChildrenWrapper"
+            >
               <div
                 class="root icon-block root_bordered root--fullWidth root--withBackground root--hover"
               >
@@ -2880,23 +2970,11 @@ exports[`MobileAppConnection it shows an error message if there was an error dis
                 >
                   iOS
                 </span>
-              </div>
-            </div>
-            <div
-              class="css-bxa289-layoutChildrenWrapper"
-            >
-              <div
-                class="root icon-block root_bordered root--fullWidth root--hover"
-              >
-                <img
-                  alt="Play Store"
-                  class="icon"
-                  src="[object Object]"
-                />
                 <span
-                  class="root text icon-text text--primary text--medium"
+                  class="root icon-tag"
+                  style="background-color: rgb(41, 156, 70);"
                 >
-                  Android
+                  Coming Soon
                 </span>
               </div>
             </div>
@@ -2957,6 +3035,31 @@ exports[`MobileAppConnection it shows an error message if there was an error fet
             <div
               class="css-bxa289-layoutChildrenWrapper"
             >
+              <a
+                href="https://play.google.com/store/apps/details?id=com.grafana.oncall.prod"
+                rel="noreferrer"
+                style="width: 100%;"
+                target="_blank"
+              >
+                <div
+                  class="root icon-block root_bordered root--fullWidth root--hover"
+                >
+                  <img
+                    alt="Play Store"
+                    class="icon"
+                    src="[object Object]"
+                  />
+                  <span
+                    class="root text icon-text text--primary text--medium"
+                  >
+                    Android
+                  </span>
+                </div>
+              </a>
+            </div>
+            <div
+              class="css-bxa289-layoutChildrenWrapper"
+            >
               <div
                 class="root icon-block root_bordered root--fullWidth root--withBackground root--hover"
               >
@@ -2970,23 +3073,11 @@ exports[`MobileAppConnection it shows an error message if there was an error fet
                 >
                   iOS
                 </span>
-              </div>
-            </div>
-            <div
-              class="css-bxa289-layoutChildrenWrapper"
-            >
-              <div
-                class="root icon-block root_bordered root--fullWidth root--hover"
-              >
-                <img
-                  alt="Play Store"
-                  class="icon"
-                  src="[object Object]"
-                />
                 <span
-                  class="root text icon-text text--primary text--medium"
+                  class="root icon-tag"
+                  style="background-color: rgb(41, 156, 70);"
                 >
-                  Android
+                  Coming Soon
                 </span>
               </div>
             </div>

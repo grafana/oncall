@@ -5,6 +5,59 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## Unreleased
+
+### Added
+
+- Add [`django-dbconn-retry` library](https://github.com/jdelic/django-dbconn-retry) to `INSTALLED_APPS` to attempt
+  to alleviate occasional `django.db.utils.OperationalError` errors
+- Improve alerts and alert group endpoint response time in internal API with caching ([1261](https://github.com/grafana/oncall/pull/1261))
+- Added Coming Soon for iOS on Mobile App screen
+
+### Changed
+
+### Fixed
+
+- Fix issue on Integrations where you were redirected back once escalation chain was loaded ([#1083](https://github.com/grafana/oncall/issues/1083))
+  ([#1257](https://github.com/grafana/oncall/issues/1257))
+
+## v1.1.20 (2023-01-30)
+
+### Added
+
+- Add involved users filter to alert groups listing page (+ mine shortcut)
+
+### Changed
+
+- Improve logging for creating contact point for Grafana Alerting integration
+
+### Fixed
+
+- Fix bugs related to creating contact point for Grafana Alerting integration
+- Fix minor UI bug on OnCall users page where it would idefinitely show a "Loading..." message
+- Only show OnCall user's table to users that are authorized
+- Fixed NPE in ScheduleUserDetails component ([#1229](https://github.com/grafana/oncall/issues/1229))
+
+## v1.1.19 (2023-01-25)
+
+### Added
+
+- Add Server URL below QR code for OSS for debugging purposes
+- Add Slack slash command allowing to trigger a direct page via a manually created alert group
+- Remove resolved and acknowledged filters as we switched to status ([#1201](https://github.com/grafana/oncall/pull/1201))
+- Add sync with grafana on /users and /teams api calls from terraform plugin
+
+### Changed
+
+- Allow users with `viewer` role to fetch cloud connection status using the internal API ([#1181](https://github.com/grafana/oncall/pull/1181))
+- When removing the Slack ChatOps integration, make it more explicit to the user what the implications of doing so are
+- Improve performance of `GET /api/internal/v1/schedules` endpoint ([#1169](https://github.com/grafana/oncall/pull/1169))
+
+### Fixed
+
+- Removed duplicate API call, in the UI on plugin initial load, to `GET /api/internal/v1/alert_receive_channels`
+- Increased plugin startup speed ([#1200](https://github.com/grafana/oncall/pull/1200))
+
 ## v1.1.18 (2023-01-18)
 
 ### Added
@@ -20,7 +73,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - Modified how the `Organization.is_rbac_permissions_enabled` flag is set,
-based on whether we are dealing with an open-source, or cloud installation
+  based on whether we are dealing with an open-source, or cloud installation
 - Backend implementation to support direct user/schedule paging
 - Changed documentation links to open in new window
 - Remove helm chart signing

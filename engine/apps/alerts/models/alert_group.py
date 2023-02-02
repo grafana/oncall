@@ -351,19 +351,39 @@ class AlertGroup(AlertGroupSlackRenderingMixin, EscalationSnapshotMixin, models.
 
     @staticmethod
     def get_silenced_state_filter():
-        return Q(silenced=True) & Q(acknowledged=False) & Q(resolved=False)
+        """
+        models.Value(0/1) is used instead of True/False because django translates that into
+        WHERE bool_field=0/1 instead of WHERE bool_field/NOT bool_field
+        which works much faster in mysql
+        """
+        return Q(silenced=models.Value("1")) & Q(acknowledged=models.Value("0")) & Q(resolved=models.Value("0"))
 
     @staticmethod
     def get_new_state_filter():
-        return Q(silenced=False) & Q(acknowledged=False) & Q(resolved=False)
+        """
+        models.Value(0/1) is used instead of True/False because django translates that into
+        WHERE bool_field=0/1 instead of WHERE bool_field/NOT bool_field
+        which works much faster in mysql
+        """
+        return Q(silenced=models.Value("0")) & Q(acknowledged=models.Value("0")) & Q(resolved=models.Value("0"))
 
     @staticmethod
     def get_acknowledged_state_filter():
-        return Q(acknowledged=True) & Q(resolved=False)
+        """
+        models.Value(0/1) is used instead of True/False because django translates that into
+        WHERE bool_field=0/1 instead of WHERE bool_field/NOT bool_field
+        which works much faster in mysql
+        """
+        return Q(acknowledged=models.Value("1")) & Q(resolved=models.Value("0"))
 
     @staticmethod
     def get_resolved_state_filter():
-        return Q(resolved=True)
+        """
+        models.Value(0/1) is used instead of True/False because django translates that into
+        WHERE bool_field=0/1 instead of WHERE bool_field/NOT bool_field
+        which works much faster in mysql
+        """
+        return Q(resolved=models.Value("1"))
 
     class Meta:
         get_latest_by = "pk"

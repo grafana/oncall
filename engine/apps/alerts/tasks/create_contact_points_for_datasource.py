@@ -5,7 +5,6 @@ from django.apps import apps
 from django.core.cache import cache
 from rest_framework import status
 
-from apps.grafana_plugin.helpers import GrafanaAPIClient
 from common.custom_celery_tasks import shared_dedicated_queue_retry_task
 
 logger = get_task_logger(__name__)
@@ -17,18 +16,22 @@ def get_cache_key_create_contact_points_for_datasource(alert_receive_channel_id)
     return f"{CACHE_KEY_PREFIX}_{alert_receive_channel_id}"
 
 
+def set_cache_key_create_contact_points_for_datasource(alert_receive_channel_id, task_id):
+    CACHE_LIFETIME = 600
+    cache_key = get_cache_key_create_contact_points_for_datasource(alert_receive_channel_id)
+    cache.set(cache_key, task_id, timeout=CACHE_LIFETIME)
+
+
 @shared_dedicated_queue_retry_task
 def schedule_create_contact_points_for_datasource(alert_receive_channel_id, datasource_list):
-    CACHE_LIFETIME = 600
     START_TASK_DELAY = 3
     task = create_contact_points_for_datasource.apply_async(
         args=[alert_receive_channel_id, datasource_list], countdown=START_TASK_DELAY
     )
-    cache_key = get_cache_key_create_contact_points_for_datasource(alert_receive_channel_id)
-    cache.set(cache_key, task.id, timeout=CACHE_LIFETIME)
+    set_cache_key_create_contact_points_for_datasource(alert_receive_channel_id, task.id)
 
 
-@shared_dedicated_queue_retry_task(autoretry_for=(Exception,), retry_backoff=True, max_retries=10)
+@shared_dedicated_queue_retry_task(autoretry_for=(Exception,), retry_backoff=True, max_retries=20)
 def create_contact_points_for_datasource(alert_receive_channel_id, datasource_list):
     """
     Try to create contact points for other datasource.
@@ -45,57 +48,63 @@ def create_contact_points_for_datasource(alert_receive_channel_id, datasource_li
     alert_receive_channel = AlertReceiveChannel.objects.filter(pk=alert_receive_channel_id).first()
     if not alert_receive_channel:
         logger.debug(
-            f"Cannot create contact point for integration {alert_receive_channel_id}: integration does not exist"
+            f"Create CP task: Cannot create contact point for integration {alert_receive_channel_id}: "
+            f"integration does not exist"
         )
         return
 
     grafana_alerting_sync_manager = alert_receive_channel.grafana_alerting_sync_manager
-
-    client = GrafanaAPIClient(
-        api_url=alert_receive_channel.organization.grafana_url,
-        api_token=alert_receive_channel.organization.api_token,
+    logger.debug(
+        f"Create CP task: Create contact points for integration {alert_receive_channel_id}, "
+        f"retry counter: {create_contact_points_for_datasource.request.retries}, datasource list {len(datasource_list)}"
     )
     # list of datasource for which contact point creation was failed
     datasources_to_create = []
     for datasource in datasource_list:
-        contact_point = None
-        is_grafana_datasource = not (datasource.get("id") or datasource.get("uid"))
-        config, response_info = grafana_alerting_sync_manager.alerting_config_with_respect_to_grafana_version(
-            is_grafana_datasource, datasource.get("id"), datasource.get("uid"), client.get_alerting_config
+        datasource_type = datasource.get("type")
+        logger.debug(
+            f"Create CP task: Create contact point for datasource {datasource_type} "
+            f"for integration {alert_receive_channel_id}"
         )
-        if config is None:
-            logger.debug(
-                f"Got config None for is_grafana_datasource {is_grafana_datasource} "
-                f"for integration {alert_receive_channel_id}; response: {response_info}"
-            )
-            if response_info.get("status_code") == status.HTTP_404_NOT_FOUND:
-                grafana_alerting_sync_manager.alerting_config_with_respect_to_grafana_version(
-                    is_grafana_datasource,
-                    datasource.get("id"),
-                    datasource.get("uid"),
-                    client.get_alertmanager_status_with_config,
-                )
-                contact_point = grafana_alerting_sync_manager.create_contact_point(datasource)
-            elif response_info.get("status_code") == status.HTTP_400_BAD_REQUEST:
+        contact_point, response_info = grafana_alerting_sync_manager.create_contact_point(datasource)
+
+        if contact_point is None:
+            if response_info.get("status_code") == status.HTTP_400_BAD_REQUEST:
                 logger.warning(
-                    f"Failed to create contact point for integration {alert_receive_channel_id}, "
-                    f"datasource info: {datasource}; response: {response_info}"
+                    f"Create CP task: Failed to create contact point for integration {alert_receive_channel_id}, "
+                    f"datasource info: {datasource}; response: {response_info}. "
+                    f"Got 400 Bad Request, exclude from retry list."
                 )
                 continue
-        else:
-            contact_point = grafana_alerting_sync_manager.create_contact_point(datasource)
-        if contact_point is None:
             logger.warning(
-                f"Failed to create contact point for integration {alert_receive_channel_id} due to getting wrong "
-                f"config, datasource info: {datasource}; response: {response_info}. Retrying"
+                f"Create CP task: Failed to create contact point for integration {alert_receive_channel_id}, "
+                f"datasource info: {datasource}; response: {response_info}. Retrying"
             )
-            # Failed to create contact point due to getting wrong alerting config.
-            # Add datasource to list and retry to create contact point for it again
+            # Failed to create contact point. Add datasource to list and retry to create contact point for it again
             datasources_to_create.append(datasource)
 
     # if some contact points were not created, restart task for them
-    if datasources_to_create:
-        schedule_create_contact_points_for_datasource(alert_receive_channel_id, datasources_to_create)
+    if (
+        datasources_to_create
+        and create_contact_points_for_datasource.request.retries < create_contact_points_for_datasource.max_retries
+    ):
+        logger.debug(
+            f"Create CP task: Retry to create contact points for integration {alert_receive_channel_id}, "
+            f"retry counter: {create_contact_points_for_datasource.request.retries}, "
+            f"datasource list {len(datasources_to_create)}"
+        )
+        # Save task id in cache and restart the task
+        set_cache_key_create_contact_points_for_datasource(alert_receive_channel_id, current_task_id)
+        create_contact_points_for_datasource.retry(args=(alert_receive_channel_id, datasources_to_create), countdown=3)
     else:
         alert_receive_channel.is_finished_alerting_setup = True
         alert_receive_channel.save(update_fields=["is_finished_alerting_setup"])
+        logger.debug(
+            f"Create CP task: Alerting setup for integration {alert_receive_channel_id} is finished, "
+            f"retry counter: {create_contact_points_for_datasource.request.retries}, "
+            f"datasource list {len(datasource_list)}"
+        )
+    logger.debug(
+        f"Create CP task: Finished task to create contact points for integration {alert_receive_channel_id}, "
+        f"datasource list {len(datasource_list)}"
+    )

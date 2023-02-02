@@ -1,6 +1,6 @@
 repos:
   - repo: https://github.com/pycqa/isort
-    rev: 5.9.3
+    rev: 5.12.0
     hooks:
       - id: isort
         files: ^engine
@@ -105,7 +105,7 @@ repos:
     hooks:
       - id: markdownlint
         name: markdownlint
-        entry: markdownlint --ignore grafana-plugin/node_modules --ignore grafana-plugin/dist --ignore docs **/*.md
+        entry: markdownlint --fix --ignore grafana-plugin/node_modules --ignore grafana-plugin/dist --ignore docs **/*.md
       - id: markdownlint
         name: markdownlint - docs
-        entry: markdownlint -c ./docs/.markdownlint.json ./docs/**/*.md
+        entry: markdownlint --fix -c ./docs/.markdownlint.json ./docs/**/*.md
