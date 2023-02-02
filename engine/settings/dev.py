@@ -5,7 +5,8 @@ import sys
 
 from .base import *
 
-DEBUG = True
+# DEBUG is disabled by default because it can cause slowness when making several consecutive requests
+DEBUG = getenv_boolean("DEBUG", default=False)
 
 if DATABASE_TYPE == DatabaseTypes.SQLITE3:
     DATABASES["default"]["NAME"] = DATABASE_NAME or "oncall_dev.db"
