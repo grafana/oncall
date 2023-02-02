@@ -13,12 +13,13 @@ import { User } from 'models/user/user.types';
 import SilenceDropdown from 'pages/incidents/parts/SilenceDropdown';
 import { move } from 'state/helpers';
 import { UserActions } from 'utils/authorization';
+import { COLOR_DANGER, COLOR_PRIMARY, COLOR_SECONDARY, COLOR_WARNING } from 'utils/consts';
 
 export function getIncidentStatusTag(alert: Alert) {
   switch (alert.status) {
     case IncidentStatus.New:
       return (
-        <Tag color="#E02F44">
+        <Tag color={COLOR_DANGER}>
           <Text strong size="small">
             Firing
           </Text>
@@ -26,7 +27,7 @@ export function getIncidentStatusTag(alert: Alert) {
       );
     case IncidentStatus.Acknowledged:
       return (
-        <Tag color="#C69B06">
+        <Tag color={COLOR_WARNING}>
           <Text strong size="small">
             Acknowledged
           </Text>
@@ -34,7 +35,7 @@ export function getIncidentStatusTag(alert: Alert) {
       );
     case IncidentStatus.Resolved:
       return (
-        <Tag color="#299C46">
+        <Tag color={COLOR_PRIMARY}>
           <Text strong size="small">
             Resolved
           </Text>
@@ -42,7 +43,7 @@ export function getIncidentStatusTag(alert: Alert) {
       );
     case IncidentStatus.Silenced:
       return (
-        <Tag color="#464C54">
+        <Tag color={COLOR_SECONDARY}>
           <Text strong size="small">
             Silenced
           </Text>

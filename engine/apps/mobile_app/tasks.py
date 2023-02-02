@@ -5,6 +5,7 @@ import requests
 from celery.utils.log import get_task_logger
 from django.conf import settings
 from fcm_django.models import FCMDevice
+from firebase_admin.exceptions import FirebaseError
 from firebase_admin.messaging import APNSConfig, APNSPayload, Aps, ApsAlert, CriticalSound, Message
 from requests import HTTPError
 from rest_framework import status
@@ -147,10 +148,12 @@ def notify_user_async(user_pk, alert_group_pk, notification_policy_pk, critical)
             else:
                 raise
     else:
-        response = device_to_notify.send_message(message)
-        # NOTE: we may want to further handle the response from FCM, but for now lets simply log it out
         # https://firebase.google.com/docs/cloud-messaging/http-server-ref#interpret-downstream
+        response = device_to_notify.send_message(message)
         logger.debug(f"FCM response: {response}")
+
+        if isinstance(response, FirebaseError):
+            raise response
 
 
 def send_push_notification_to_fcm_relay(message):

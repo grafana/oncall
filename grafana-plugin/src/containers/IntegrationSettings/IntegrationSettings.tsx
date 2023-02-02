@@ -54,11 +54,6 @@ const IntegrationSettings = observer((props: IntegrationSettingsProps) => {
     alertReceiveChannelStore.updateItem(id);
   }, []);
 
-  useEffect(() => {
-    setActiveTab(startTab || IntegrationSettingsTab.Templates);
-    LocationHelper.update({ tab: startTab || IntegrationSettingsTab.Templates }, 'partial');
-  }, [startTab]);
-
   const integration = alertReceiveChannelStore.getIntegration(alertReceiveChannel);
 
   const [expanded, _setExpanded] = useState(false);
