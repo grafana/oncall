@@ -105,8 +105,9 @@ volume mounted inside the container.
 In order to setup [`django-silk`](https://github.com/jazzband/django-silk) for local profiling, perform the following
 steps:
 
-1. `make engine-manage CMD="createsuperuser"` - follow CLI prompts to create a Django superuser
-2. Visit <http://localhost:8080/django-admin> and login using the credentials you created in step #2
+1. `make backend-debug-enable`
+2. `make engine-manage CMD="createsuperuser"` - follow CLI prompts to create a Django superuser
+3. Visit <http://localhost:8080/django-admin> and login using the credentials you created in step #2
 
 You should now be able to visit <http://localhost:8080/silk/> and see the Django Silk UI.
 See the `django-silk` documentation [here](https://github.com/jazzband/django-silk) for more information.
@@ -149,6 +150,9 @@ make build # rebuild images (e.g. when changing requirements.txt)
 # run Django's `manage.py` script, inside of a docker container, passing `$CMD` as arguments.
 # e.g. `make engine-manage CMD="makemigrations"` - https://docs.djangoproject.com/en/4.1/ref/django-admin/#django-admin-makemigrations
 make engine-manage CMD="..."
+
+make backend-debug-enable # enable Django's debug mode and Silk profiling (this is disabled by default for performance reasons)
+make backend-debug-disable # disable Django's debug mode and Silk profiling
 
 # this will remove all of the images, containers, volumes, and networks
 # associated with your local OnCall developer setup
