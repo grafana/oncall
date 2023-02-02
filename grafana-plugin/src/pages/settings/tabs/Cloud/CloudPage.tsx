@@ -16,6 +16,7 @@ import { WithStoreProps } from 'state/types';
 import { useStore } from 'state/useStore';
 import { withMobXProviderContext } from 'state/withStore';
 import { openErrorNotification } from 'utils';
+import { determineRequiredAuthString, UserActions } from 'utils/authorization';
 import { PLUGIN_ROOT } from 'utils/consts';
 
 import styles from './CloudPage.module.css';
@@ -261,10 +262,9 @@ const CloudPage = observer((props: CloudPageProps) => {
 
             <div style={{ width: '100%' }}>
               <Text type="secondary">
-                {/* TODO: should probably update this message? */}
-                {
-                  'Ask your users to sign up in Grafana Cloud, verify phone number and feel free to set up SMS & phone call notifications in personal settings! Only users with Admin or Editor role will be synced.'
-                }
+                {`Ask your users to sign up in Grafana Cloud, verify phone number and feel free to set up SMS & phone call notifications in personal settings! Users must have ${determineRequiredAuthString(
+                  UserActions.NotificationsRead
+                )} in order to be synced.`}
               </Text>
 
               <GTable
@@ -280,15 +280,9 @@ const CloudPage = observer((props: CloudPageProps) => {
                         {matched_users_count === 1 ? '' : 's'}
                         {` matched between OSS and Cloud OnCall`}
                       </Text>
-                      {syncingUsers ? (
-                        <Button variant="primary" onClick={syncUsers} icon="sync" disabled>
-                          Syncing...
-                        </Button>
-                      ) : (
-                        <Button variant="primary" onClick={syncUsers} icon="sync">
-                          Sync users (Editors and Admins)
-                        </Button>
-                      )}
+                      <Button variant="primary" onClick={syncUsers} icon="sync" disabled={syncingUsers}>
+                        {syncingUsers ? 'Syncing...' : 'Sync users'}
+                      </Button>
                     </HorizontalGroup>
                   </div>
                 )}

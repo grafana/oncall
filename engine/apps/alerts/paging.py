@@ -1,4 +1,4 @@
-from typing import Any
+from typing import Any, Optional
 from uuid import uuid4
 
 from django.db import transaction
@@ -142,7 +142,7 @@ def direct_paging(
     schedules: ScheduleNotifications = None,
     escalation_chain: EscalationChain = None,
     alert_group: AlertGroup = None,
-) -> None:
+) -> Optional[AlertGroup]:
     """Trigger escalation targeting given users/schedules.
 
     If an alert group is given, update escalation to include the specified users.
@@ -184,6 +184,8 @@ def direct_paging(
             step_specific_info={"user": u.public_primary_key},
         )
         notify_user_task.apply_async((u.pk, alert_group.pk), {"important": important})
+
+    return alert_group
 
 
 def unpage_user(alert_group: AlertGroup, user: User, from_user: User) -> None:

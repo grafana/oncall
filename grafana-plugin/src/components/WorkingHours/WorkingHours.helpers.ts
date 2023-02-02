@@ -1,7 +1,20 @@
 import dayjs from 'dayjs';
+import hash from 'object-hash';
+
+const workingMomentsCache = {};
+
+const getKey = (startMoment, endMoment, workingHours, timezone) => {
+  return `${startMoment}-${endMoment}-${hash(workingHours)}-${timezone}`;
+};
 
 export const getWorkingMoments = (startMoment, endMoment, workingHours, timezone) => {
   const weekdays = dayjs.weekdays();
+
+  const key = getKey(startMoment, endMoment, workingHours, timezone);
+
+  if (workingMomentsCache[key]) {
+    return workingMomentsCache[key];
+  }
 
   const momentToStartIteration = dayjs().tz(timezone).utcOffset() === 0 ? startMoment : startMoment.tz(timezone);
 
@@ -64,14 +77,16 @@ export const getWorkingMoments = (startMoment, endMoment, workingHours, timezone
     }
   }
 
+  workingMomentsCache[key] = workingMoments;
+
   return workingMoments;
 };
 
-export const getNonWorkingMoments = (startMoment, endMoment, workingHours) => {
+export const getNonWorkingMoments = (startMoment, endMoment, workingMoments) => {
   const nonWorkingMoments = [{ start: startMoment, end: endMoment }];
 
   let lastNonWorkingRange = nonWorkingMoments[0];
-  for (const [_i, range] of workingHours.entries()) {
+  for (const [_i, range] of workingMoments.entries()) {
     lastNonWorkingRange.end = range.start;
 
     lastNonWorkingRange = { start: range.end, end: undefined };
@@ -86,12 +101,16 @@ export const getNonWorkingMoments = (startMoment, endMoment, workingHours) => {
 export const isInWorkingHours = (currentMoment: dayjs.Dayjs, workingHours, timezone) => {
   const timeFormat = 'HH:mm:ss';
   const currentDayOfTheWeek = currentMoment.format('dddd').toLowerCase();
-  const workingHourStart = workingHours[currentDayOfTheWeek][0].start;
-  const workingHourEnd = workingHours[currentDayOfTheWeek][0].end;
+  const workingHourStart = workingHours[currentDayOfTheWeek][0]?.start;
+  const workingHourEnd = workingHours[currentDayOfTheWeek][0]?.end;
 
-  const startTime = dayjs(workingHourStart, timeFormat).tz(timezone).format(timeFormat);
-  const endTime = dayjs(workingHourEnd, timeFormat).tz(timezone).format(timeFormat);
-  const currentTime = dayjs(currentMoment, timeFormat).format(timeFormat);
+  if (workingHourStart && workingHourEnd) {
+    const startTime = dayjs(workingHourStart, timeFormat).tz(timezone).format(timeFormat);
+    const endTime = dayjs(workingHourEnd, timeFormat).tz(timezone).format(timeFormat);
+    const currentTime = dayjs(currentMoment, timeFormat).format(timeFormat);
 
-  return currentTime < endTime && currentTime >= startTime;
+    return currentTime < endTime && currentTime >= startTime;
+  }
+
+  return false;
 };
