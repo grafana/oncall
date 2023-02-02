@@ -220,6 +220,7 @@ INSTALLED_APPS = [
     "social_django",
     "polymorphic",
     "fcm_django",
+    "django_dbconn_retry",
 ]
 
 REST_FRAMEWORK = {
