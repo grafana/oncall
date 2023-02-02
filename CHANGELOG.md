@@ -5,16 +5,19 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## Unreleased
+## v1.1.21 (2023-02-02)
 
 ### Added
 
 - Add [`django-dbconn-retry` library](https://github.com/jdelic/django-dbconn-retry) to `INSTALLED_APPS` to attempt
   to alleviate occasional `django.db.utils.OperationalError` errors
-
-### Changed
+- Improve alerts and alert group endpoint response time in internal API with caching ([1261](https://github.com/grafana/oncall/pull/1261))
+- Added Coming Soon for iOS on Mobile App screen
 
 ### Fixed
+
+- Fix issue on Integrations where you were redirected back once escalation chain was loaded ([#1083](https://github.com/grafana/oncall/issues/1083))
+  ([#1257](https://github.com/grafana/oncall/issues/1257))
 
 ## v1.1.20 (2023-01-30)
 
