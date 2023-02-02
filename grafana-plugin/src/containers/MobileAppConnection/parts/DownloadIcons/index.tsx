@@ -6,7 +6,9 @@ import cn from 'classnames/bind';
 import AppleLogoSVG from 'assets/img/brand/apple-logo.svg';
 import PlayStoreLogoSVG from 'assets/img/brand/play-store-logo.svg';
 import Block from 'components/GBlock/Block';
+import Tag from 'components/Tag/Tag';
 import Text from 'components/Text/Text';
+import { COLOR_PRIMARY } from 'utils/consts';
 
 import styles from './DownloadIcons.module.scss';
 
@@ -19,12 +21,6 @@ const DownloadIcons: FC = () => (
     </Text>
     <Text type="primary">The Grafana IRM app is available on both the App Store and Google Play Store.</Text>
     <VerticalGroup>
-      <Block hover fullWidth withBackground bordered className={cx('icon-block')}>
-        <img src={AppleLogoSVG} alt="Apple" className={cx('icon')} />
-        <Text type="primary" className={cx('icon-text')}>
-          iOS
-        </Text>
-      </Block>
       <a
         style={{ width: '100%' }}
         href="https://play.google.com/store/apps/details?id=com.grafana.oncall.prod"
@@ -38,6 +34,15 @@ const DownloadIcons: FC = () => (
           </Text>
         </Block>
       </a>
+      <Block hover fullWidth withBackground bordered className={cx('icon-block')}>
+        <img src={AppleLogoSVG} alt="Apple" className={cx('icon')} />
+        <Text type="primary" className={cx('icon-text')}>
+          iOS
+        </Text>
+        <Tag color={COLOR_PRIMARY} className={cx('icon-tag')}>
+          Coming Soon
+        </Tag>
+      </Block>
     </VerticalGroup>
   </VerticalGroup>
 );
