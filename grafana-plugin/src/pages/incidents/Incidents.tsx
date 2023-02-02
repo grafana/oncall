@@ -470,7 +470,7 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
   getUnsilenceClickHandler = (alert: AlertType): ((event: any) => Promise<void>) => {
     const { store } = this.props;
 
-    return (event: any) => {
+    return (event: React.SyntheticEvent) => {
       event.stopPropagation();
 
       return store.alertGroupStore.doIncidentAction(alert.pk, AlertAction.unSilence, false);

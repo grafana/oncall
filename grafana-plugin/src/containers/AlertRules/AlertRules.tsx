@@ -161,7 +161,10 @@ class AlertRules extends React.Component<AlertRulesProps, AlertRulesState> {
                   <div className={cx('integration__heading-text')}>
                     <div className={cx('verbal-name')}>{parseEmojis(alertReceiveChannel?.verbal_name || '')}</div>
                     <Tooltip placement="top" content="Edit name">
-                      <span>aaadsa dasd</span>
+                      <IconButton
+                        name="pen"
+                        onClick={this.getChangeIntegrationNameHandler(parseEmojis(alertReceiveChannel?.verbal_name))}
+                      />
                     </Tooltip>
                   </div>
                 </Text.Title>

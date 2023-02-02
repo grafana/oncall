@@ -57,7 +57,7 @@ export const IncidentDropdown: FC<{
   onUnresolve: (e: SyntheticEvent) => Promise<void>;
   onAcknowledge: (e: SyntheticEvent) => Promise<void>;
   onSilence: (value: number) => Promise<void>;
-  onUnsilence: (event: any) => Promise<void>;
+  onUnsilence: (event: React.SyntheticEvent) => Promise<void>;
 }> = ({ alert, onResolve, onUnacknowledge, onUnresolve, onAcknowledge, onSilence, onUnsilence }) => {
   const [isLoading, setIsLoading] = useState(false);
   const [currentLoadingAction, setCurrentActionLoading] = useState<IncidentStatus>(undefined);

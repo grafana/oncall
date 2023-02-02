@@ -335,7 +335,7 @@ class SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSta
       return (
         <div className="table__email-column">
           <VerticalGroup>
-            {item.on_call_now.map((user, _index) => {
+            {item.on_call_now.map((user) => {
               return (
                 <PluginLink key={user.pk} query={{ page: 'users', id: user.pk }} className="table__email-content">
                   <div className={cx('schedules__user-on-call')}>
