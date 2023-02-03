@@ -395,7 +395,7 @@ class IncidentPage extends React.Component<IncidentPageProps, IncidentPageState>
             </li>
           ))}
         </ul>
-        <Field label="Leave a resolution note" description="Will also show up in the thread of incident in Slack">
+        <Field label="Leave a resolution note" description="Will also show up in the thread of alert group in Slack">
           <TextArea
             value={resolutionNoteText}
             onChange={(e: any) => this.setState({ resolutionNoteText: e.target.value })}
