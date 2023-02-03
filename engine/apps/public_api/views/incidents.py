@@ -29,6 +29,8 @@ class IncidentByTeamFilter(ByTeamModelFieldFilterMixin, filters.FilterSet):
         method=ByTeamModelFieldFilterMixin.filter_model_field_with_single_value.__name__,
     )
 
+    id = filters.CharFilter(field_name="public_primary_key")
+
 
 class IncidentView(RateLimitHeadersMixin, mixins.ListModelMixin, mixins.DestroyModelMixin, GenericViewSet):
     authentication_classes = (ApiTokenAuthentication,)
@@ -75,8 +77,6 @@ class IncidentView(RateLimitHeadersMixin, mixins.ListModelMixin, mixins.DestroyM
                     [status_choice[1].lower() for status_choice in AlertGroup.STATUS_CHOICES]
                 )
                 raise BadRequest(detail={"state": f"Must be one of the following: {valid_choices_text}"})
-
-        queryset = self.serializer_class.setup_eager_loading(queryset)
 
         return queryset
 
