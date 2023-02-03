@@ -14,7 +14,7 @@ import { NotificationPolicyType } from 'models/notification_policy';
 import { User as UserType } from 'models/user/user.types';
 import { AppFeature } from 'state/features';
 import { useStore } from 'state/useStore';
-import { UserAction } from 'state/userAction';
+import { UserActions } from 'utils/authorization';
 
 import { getColor } from './PersonalNotificationSettings.helpers';
 import img from './img/default-step.png';
@@ -105,13 +105,18 @@ const PersonalNotificationSettings = observer((props: PersonalNotificationSettin
 
   const user = userStore.items[userPk];
 
-  const userAction = isCurrent ? UserAction.UpdateOwnSettings : UserAction.UpdateNotificationPolicies;
+  const userAction = isCurrent ? UserActions.UserSettingsWrite : UserActions.NotificationSettingsWrite;
   const getPhoneStatus = () => {
     if (store.hasFeature(AppFeature.CloudNotifications)) {
       return user.cloud_connection_status;
     }
     return Number(user.verified_phone_number) + 2;
   };
+
+  // Mobile app related NotificationPolicy props
+  const isMobileAppConnected = user.messaging_backends['MOBILE_APP']?.connected;
+  const showCloudConnectionWarning =
+    store.hasFeature(AppFeature.CloudConnection) && !store.cloudStore.cloudConnectionStatus.cloud_connection_status;
 
   return (
     <div className={cx('root')}>
@@ -134,6 +139,8 @@ const PersonalNotificationSettings = observer((props: PersonalNotificationSettin
             number={index + 1}
             telegramVerified={Boolean(user.telegram_configuration)}
             phoneStatus={getPhoneStatus()}
+            isMobileAppConnected={isMobileAppConnected}
+            showCloudConnectionWarning={showCloudConnectionWarning}
             slackTeamIdentity={store.teamStore.currentTeam?.slack_team_identity}
             slackUserIdentity={user.slack_user_identity}
             data={notificationPolicy}

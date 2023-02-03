@@ -163,15 +163,16 @@ class ChannelFilterSerializer(BaseChannelFilterSerializer):
     def create(self, validated_data):
         validated_data = self._correct_validated_data(validated_data)
         manual_order = validated_data.pop("manual_order")
-        if not manual_order:
+        if manual_order:
+            self._validate_manual_order(validated_data.get("order", None))
+            instance = super().create(validated_data)
+        else:
             order = validated_data.pop("order", None)
             alert_receive_channel_id = validated_data.get("alert_receive_channel")
             # validate 'order' value before creation
             self._validate_order(order, {"alert_receive_channel_id": alert_receive_channel_id, "is_default": False})
             instance = super().create(validated_data)
             self._change_position(order, instance)
-        else:
-            instance = super().create(validated_data)
 
         return instance
 
@@ -206,10 +207,13 @@ class ChannelFilterUpdateSerializer(ChannelFilterSerializer):
         validated_data = self._correct_validated_data(validated_data)
 
         manual_order = validated_data.pop("manual_order")
-        if not manual_order:
+        if manual_order:
+            self._validate_manual_order(validated_data.get("order", None))
+        else:
             order = validated_data.pop("order", None)
             self._validate_order(
-                order, {"alert_receive_channel_id": instance.alert_receive_channel_id, "is_default": False}
+                order,
+                {"alert_receive_channel_id": instance.alert_receive_channel_id, "is_default": instance.is_default},
             )
             self._change_position(order, instance)
 

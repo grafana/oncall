@@ -44,8 +44,10 @@ The above command returns JSON structured in the following way:
 
 These available filter parameters should be provided as `GET` arguments:
 
+- `id`
 - `route_id`
 - `integration_id`
+- `state`
 
 **HTTP request**
 
@@ -63,11 +65,16 @@ curl "{{API_URL}}/api/v1/alert_groups/I68T24C13IFW1/" \
   }'
 ```
 
+<!-- markdownlint-disable MD013 -->
+
 | Parameter | Required | Description                                                                                                                                                                                                                                                                                                                                      |
 | --------- | :------: | :----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `mode`    |    No    | Default setting is `wipe`. `wipe` will remove the payload of all Grafana OnCall group alerts. This is useful if you sent sensitive data to OnCall. All metadata will remain. `DELETE` will trigger the removal of alert groups, alerts, and all related metadata. It will also remove alert group notifications in Slack and other destinations. |
 
-> **NOTE:** `DELETE` can take a few moments to delete alert groups because Grafana OnCall interacts with 3rd party APIs such as Slack. Please check objects using `GET` to be sure the data is removed.
+<!-- markdownlint-enable MD013 -->
+
+> **NOTE:** `DELETE` can take a few moments to delete alert groups because Grafana OnCall interacts with 3rd party APIs
+> such as Slack. Please check objects using `GET` to be sure the data is removed.
 
 **HTTP request**
 

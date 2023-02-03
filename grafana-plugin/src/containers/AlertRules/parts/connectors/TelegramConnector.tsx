@@ -8,7 +8,7 @@ import { WithPermissionControl } from 'containers/WithPermissionControl/WithPerm
 import { ChannelFilter } from 'models/channel_filter/channel_filter.types';
 import { TelegramChannel } from 'models/telegram_channel/telegram_channel.types';
 import { useStore } from 'state/useStore';
-import { UserAction } from 'state/userAction';
+import { UserActions } from 'utils/authorization';
 
 import styles from './index.module.css';
 
@@ -36,7 +36,7 @@ const TelegramConnector = ({ channelFilterId }: TelegramConnectorProps) => {
     <div className={cx('root')}>
       <HorizontalGroup wrap spacing="sm">
         <div className={cx('slack-channel-switch')}>
-          <WithPermissionControl userAction={UserAction.UpdateAlertReceiveChannels}>
+          <WithPermissionControl userAction={UserActions.IntegrationsWrite}>
             <InlineSwitch
               value={channelFilter.notify_in_telegram}
               onChange={handleChannelFilterNotifyInTelegramChange}
@@ -45,7 +45,7 @@ const TelegramConnector = ({ channelFilterId }: TelegramConnectorProps) => {
           </WithPermissionControl>
         </div>
         Post to telegram channel
-        <WithPermissionControl userAction={UserAction.UpdateAlertReceiveChannels}>
+        <WithPermissionControl userAction={UserActions.IntegrationsWrite}>
           <GSelect
             showSearch
             allowClear

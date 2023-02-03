@@ -14,7 +14,17 @@ import {
   splitToLayers,
   splitToShiftsAndFillGaps,
 } from './schedule.helpers';
-import { Rotation, RotationType, Schedule, ScheduleEvent, Shift, Event, Layer, ShiftEvents } from './schedule.types';
+import {
+  Rotation,
+  RotationType,
+  Schedule,
+  ScheduleEvent,
+  Shift,
+  Event,
+  Layer,
+  ShiftEvents,
+  RotationFormLiveParams,
+} from './schedule.types';
 
 export class ScheduleStore extends BaseStore {
   @observable
@@ -56,6 +66,9 @@ export class ScheduleStore extends BaseStore {
 
   @observable
   overridePreview?: Array<{ shiftId: Shift['id']; isPreview?: boolean; events: Event[] }>;
+
+  @observable
+  rotationFormLiveParams: RotationFormLiveParams = undefined;
 
   @observable
   scheduleToScheduleEvents: {
@@ -188,6 +201,10 @@ export class ScheduleStore extends BaseStore {
     return response;
   }
 
+  setRotationFormLiveParams(params: RotationFormLiveParams) {
+    this.rotationFormLiveParams = params;
+  }
+
   async updateRotationPreview(
     scheduleId: Schedule['id'],
     shiftId: Shift['id'] | 'new',
@@ -228,6 +245,7 @@ export class ScheduleStore extends BaseStore {
     this.finalPreview = undefined;
     this.rotationPreview = undefined;
     this.overridePreview = undefined;
+    this.rotationFormLiveParams = undefined;
   }
 
   async updateRotation(shiftId: Shift['id'], params: Partial<Shift>) {

@@ -1,48 +1,46 @@
-import React, { useCallback, FC } from 'react';
+import React, { FC, useCallback, useMemo } from 'react';
 
-import { getLocationSrv } from '@grafana/runtime';
-import { LocationUpdate } from '@grafana/runtime/services/LocationSrv';
 import cn from 'classnames/bind';
-import qs from 'query-string';
+import { Link } from 'react-router-dom';
+
+import { getPathFromQueryParams } from 'utils/url';
 
 import styles from './PluginLink.module.css';
 
-interface PluginLinkProps extends LocationUpdate {
+interface PluginLinkProps {
   disabled?: boolean;
   className?: string;
   wrap?: boolean;
   children: any;
+  query?: Record<string, any>;
 }
 
 const cx = cn.bind(styles);
 
 const PluginLink: FC<PluginLinkProps> = (props) => {
-  const { children, partial = false, path = '/a/grafana-oncall-app/', query, disabled, className, wrap = true } = props;
+  const { children, query, disabled, className, wrap = true } = props;
 
-  const href = `${path}?${qs.stringify(query)}`;
+  const newPath = useMemo(() => getPathFromQueryParams(query), [query]);
 
-  const onClickCallback = useCallback(
+  const handleClick = useCallback(
     (event) => {
-      event.preventDefault();
+      event.stopPropagation();
 
-      // @ts-ignore
-      if (children.props?.disabled) {
-        return;
+      if (disabled) {
+        event.preventDefault();
       }
-
-      !disabled && getLocationSrv().update({ partial, path, query });
     },
-    [children]
+    [disabled]
   );
 
   return (
-    <a
-      href={href}
-      onClick={onClickCallback}
-      className={cx('root', className, { root_disabled: disabled, 'no-wrap': !wrap })}
+    <Link
+      onClick={handleClick}
+      className={cx('root', className, { 'no-wrap': !wrap, root_disabled: disabled })}
+      to={newPath}
     >
       {children}
-    </a>
+    </Link>
   );
 };
 

@@ -16,6 +16,25 @@ class Action(Enum):
     UNSILENCE = "unsilence"
 
 
+ACTION_TO_CODE_MAP = {
+    Action.ACKNOWLEDGE.value: 0,
+    Action.UNACKNOWLEDGE.value: 1,
+    Action.RESOLVE.value: 2,
+    Action.UNRESOLVE.value: 3,
+    Action.SILENCE.value: 4,
+    Action.UNSILENCE.value: 5,
+}
+
+CODE_TO_ACTION_MAP = {
+    0: Action.ACKNOWLEDGE.value,
+    1: Action.UNACKNOWLEDGE.value,
+    2: Action.RESOLVE.value,
+    3: Action.UNRESOLVE.value,
+    4: Action.SILENCE.value,
+    5: Action.UNSILENCE.value,
+}
+
+
 class TelegramKeyboardRenderer:
     def __init__(self, alert_group: AlertGroup):
         self.alert_group = alert_group
@@ -23,7 +42,7 @@ class TelegramKeyboardRenderer:
     # Inline keyboard with controls for alert group message
     def render_actions_keyboard(self) -> Optional[InlineKeyboardMarkup]:
         if self.alert_group.root_alert_group is not None:
-            # No keyboard for attached incident
+            # No keyboard for attached alert group
             return None
 
         rows = []
@@ -46,7 +65,7 @@ class TelegramKeyboardRenderer:
 
     @staticmethod
     def render_link_to_channel_keyboard(link: str) -> InlineKeyboardMarkup:
-        button = InlineKeyboardButton(text="Go to the incident", url=link)
+        button = InlineKeyboardButton(text="Go to the alert group", url=link)
         return InlineKeyboardMarkup([[button]])
 
     @property
@@ -80,13 +99,15 @@ class TelegramKeyboardRenderer:
         return self._render_button(text=Action.UNSILENCE.value.capitalize(), action=Action.UNSILENCE)
 
     def _render_button(self, text: str, action: Action, action_data: Optional[Union[int, str]] = None):
-        callback_data_args = [self.alert_group.pk, action.value]
+        action_code = ACTION_TO_CODE_MAP[action.value]
+        callback_data_args = [self.alert_group.pk, action_code]
         if action_data is not None:
             callback_data_args.append(action_data)
-        # Add org id with 'x-oncall-org-id' prefix to callback data.
-        # It's a workaroung to pass org_id to the oncall-gateway while proxying requests.
-        # TODO: switch to json str instead of ':' separated string.
-        callback_data_args.append(f"x-oncall-org-id{self.alert_group.channel.organization.public_primary_key}")
+        # Add org id with 'oncall' prefix to callback data.
+        # It's a workaround to pass oncall-uuid to the oncall-gateway while proxying requests.
+        # TODO: check if it's possible switch to json str instead of ':' separated string.
+        # Note, that there is a 64bytes limit to callback data
+        callback_data_args.append(f"oncall-uuid{self.alert_group.channel.organization.uuid}")
         button = InlineKeyboardButton(text=text, callback_data=CallbackQueryFactory.encode_data(*callback_data_args))
 
         return button

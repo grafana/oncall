@@ -3,7 +3,7 @@ import { action } from 'mobx';
 
 import { makeRequest } from 'network';
 import { RootStore } from 'state';
-import { openErrorNotification } from 'utils';
+import { openWarningNotification } from 'utils';
 
 export default class BaseStore {
   protected rootStore: RootStore;
@@ -26,7 +26,7 @@ export default class BaseStore {
           : Object.keys(payload)
               .map((key) => `${sentenceCase(key)}: ${payload[key]}`)
               .join('\n');
-      openErrorNotification(text);
+      openWarningNotification(text);
     }
 
     throw error;

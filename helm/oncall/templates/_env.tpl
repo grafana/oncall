@@ -4,15 +4,15 @@
 - name: SECRET_KEY
   valueFrom:
     secretKeyRef:
-      name: {{ template "oncall.fullname" . }}
-      key: SECRET_KEY
+      name: {{ template "snippet.oncall.secret.name" . }}
+      key: {{ template "snippet.oncall.secret.secretKey" . }}
 - name: MIRAGE_SECRET_KEY
   valueFrom:
     secretKeyRef:
-      name: {{ template "oncall.fullname" . }}
-      key: MIRAGE_SECRET_KEY
+      name: {{ template "snippet.oncall.secret.name" . }}
+      key: {{ template "snippet.oncall.secret.mirageSecretKey" . }}
 - name: MIRAGE_CIPHER_IV
-  value: "1234567890abcdef"
+  value: "{{ .Values.oncall.mirageCipherIV | default "1234567890abcdef" }}"
 - name: DJANGO_SETTINGS_MODULE
   value: "settings.helm"
 - name: AMIXR_DJANGO_ADMIN_PATH
@@ -23,6 +23,32 @@
   value: "1024"
 - name: BROKER_TYPE
   value: {{ .Values.broker.type | default "rabbitmq" }}
+- name: GRAFANA_API_URL
+  value: {{ include "snippet.grafana.url" . }}
+{{- end -}}
+
+{{- define "snippet.oncall.secret.name" -}}
+{{- if .Values.oncall.secrets.existingSecret -}}
+{{ .Values.oncall.secrets.existingSecret }}
+{{- else -}}
+{{ template "oncall.fullname" . }}
+{{- end -}}
+{{- end -}}
+
+{{- define "snippet.oncall.secret.secretKey" -}}
+{{- if .Values.oncall.secrets.existingSecret -}}
+{{ required "oncall.secrets.secretKey is required if oncall.secret.existingSecret is not empty" .Values.oncall.secrets.secretKey }}
+{{- else -}}
+SECRET_KEY
+{{- end -}}
+{{- end -}}
+
+{{- define "snippet.oncall.secret.mirageSecretKey" -}}
+{{- if .Values.oncall.secrets.existingSecret -}}
+{{ required "oncall.secrets.mirageSecretKey is required if oncall.secret.existingSecret is not empty" .Values.oncall.secrets.mirageSecretKey }}
+{{- else -}}
+MIRAGE_SECRET_KEY
+{{- end -}}
 {{- end -}}
 
 {{- define "snippet.oncall.slack.env" -}}
@@ -31,12 +57,30 @@
   value: {{ .Values.oncall.slack.enabled | toString | title | quote }}
 - name: SLACK_SLASH_COMMAND_NAME
   value: "/{{ .Values.oncall.slack.commandName | default "oncall" }}"
+{{- if .Values.oncall.slack.existingSecret }}
+- name: SLACK_CLIENT_OAUTH_ID
+  valueFrom:
+    secretKeyRef:
+      name: {{ .Values.oncall.slack.existingSecret }}
+      key: {{ required "oncall.slack.clientIdKey is required if oncall.slack.existingSecret is not empty" .Values.oncall.slack.clientIdKey }}
+- name: SLACK_CLIENT_OAUTH_SECRET
+  valueFrom:
+    secretKeyRef:
+      name: {{ .Values.oncall.slack.existingSecret }}
+      key: {{ required "oncall.slack.clientSecretKey is required if oncall.slack.existingSecret is not empty" .Values.oncall.slack.clientSecretKey }}
+- name: SLACK_SIGNING_SECRET
+  valueFrom:
+    secretKeyRef:
+      name: {{ .Values.oncall.slack.existingSecret }}
+      key: {{ required "oncall.slack.signingSecretKey is required if oncall.slack.existingSecret is not empty" .Values.oncall.slack.signingSecretKey }}
+{{- else }}
 - name: SLACK_CLIENT_OAUTH_ID
   value: {{ .Values.oncall.slack.clientId | default "" | quote }}
 - name: SLACK_CLIENT_OAUTH_SECRET
   value: {{ .Values.oncall.slack.clientSecret | default "" | quote }}
 - name: SLACK_SIGNING_SECRET
   value: {{ .Values.oncall.slack.signingSecret | default "" | quote }}
+{{- end }}
 - name: SLACK_INSTALL_RETURN_REDIRECT_HOST
   value: {{ .Values.oncall.slack.redirectHost | default (printf "https://%s" .Values.base_url) | quote }}
 {{- else -}}
@@ -51,8 +95,16 @@
   value: {{ .Values.oncall.telegram.enabled | toString | title | quote }}
 - name: TELEGRAM_WEBHOOK_HOST
   value: {{ .Values.oncall.telegram.webhookUrl | default "" | quote }}
+{{- if .Values.oncall.telegram.existingSecret }}
+- name: TELEGRAM_TOKEN
+  valueFrom:
+    secretKeyRef:
+      name: {{ .Values.oncall.telegram.existingSecret }}
+      key: {{ required "oncall.telegram.tokenKey is required if oncall.telegram.existingSecret is not empty" .Values.oncall.telegram.tokenKey }}
+{{- else }}
 - name: TELEGRAM_TOKEN
   value: {{ .Values.oncall.telegram.token | default "" | quote }}
+{{- end }}
 {{- else -}}
 - name: FEATURE_TELEGRAM_INTEGRATION_ENABLED
   value: {{ .Values.oncall.telegram.enabled | toString | title | quote }}
@@ -108,6 +160,16 @@
 {{- if .Values.celery.worker_shutdown_interval }}
 - name: CELERY_WORKER_SHUTDOWN_INTERVAL
   value: {{ .Values.celery.worker_shutdown_interval }}
+{{- end -}}
+{{- end -}}
+
+{{- define "snippet.grafana.url" -}}
+{{- if .Values.externalGrafana.url -}}
+{{- .Values.externalGrafana.url | quote }}
+{{- else if .Values.grafana.enabled -}}
+http://{{ include "oncall.grafana.fullname" . }}
+{{- else -}}
+{{- required "externalGrafana.url is required when not grafana.enabled" .Values.externalGrafana.url | quote }}
 {{- end -}}
 {{- end -}}
 
@@ -364,8 +426,9 @@ rabbitmq-password
     secretKeyRef:
       name: {{ include "oncall.fullname" . }}-smtp
       key: smtp-password
+      optional: true
 - name: EMAIL_USE_TLS
-  value: {{ .Values.oncall.smtp.tls | toString | title | quote }}
+  value: {{ .Values.oncall.smtp.tls | default true | toString | title | quote }}
 - name: EMAIL_FROM_ADDRESS
   value: {{ .Values.oncall.smtp.fromEmail | quote }}
 {{- else -}}

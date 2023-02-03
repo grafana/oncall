@@ -45,6 +45,10 @@ invalid_field_data_9 = {
     "interval": 5,
 }
 
+invalid_field_data_10 = {
+    "time_zone": "asdfasdfasdf",
+}
+
 
 @pytest.mark.django_db
 def test_get_on_call_shift(make_organization_and_user_with_token, make_on_call_shift, make_schedule):
@@ -124,8 +128,7 @@ def test_get_override_on_call_shift(make_organization_and_user_with_token, make_
 
 @pytest.mark.django_db
 def test_create_on_call_shift(make_organization_and_user_with_token):
-
-    organization, user, token = make_organization_and_user_with_token()
+    _, user, token = make_organization_and_user_with_token()
     client = APIClient()
 
     url = reverse("api-public:on_call_shifts-list")
@@ -177,8 +180,7 @@ def test_create_on_call_shift(make_organization_and_user_with_token):
 
 @pytest.mark.django_db
 def test_create_override_on_call_shift(make_organization_and_user_with_token):
-
-    organization, user, token = make_organization_and_user_with_token()
+    _, user, token = make_organization_and_user_with_token()
     client = APIClient()
 
     url = reverse("api-public:on_call_shifts-list")
@@ -211,6 +213,38 @@ def test_create_override_on_call_shift(make_organization_and_user_with_token):
 
     assert response.status_code == status.HTTP_201_CREATED
     assert response.data == result
+
+
+@pytest.mark.django_db
+def test_create_on_call_shift_invalid_time_zone(make_organization_and_user_with_token):
+    _, user, token = make_organization_and_user_with_token()
+    client = APIClient()
+
+    url = reverse("api-public:on_call_shifts-list")
+
+    start = datetime.datetime.now()
+    until = start + datetime.timedelta(days=30)
+    data = {
+        "team_id": None,
+        "name": "test name",
+        "type": "recurrent_event",
+        "level": 1,
+        "start": start.strftime("%Y-%m-%dT%H:%M:%S"),
+        "rotation_start": start.strftime("%Y-%m-%dT%H:%M:%S"),
+        "duration": 10800,
+        "users": [user.public_primary_key],
+        "week_start": "MO",
+        "frequency": "weekly",
+        "interval": 2,
+        "until": until.strftime("%Y-%m-%dT%H:%M:%S"),
+        "by_day": ["MO", "WE", "FR"],
+        "time_zone": "asdfasdfasdf",
+    }
+
+    response = client.post(url, data=data, format="json", HTTP_AUTHORIZATION=f"{token}")
+
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert response.json() == {"time_zone": ["Invalid timezone"]}
 
 
 @pytest.mark.django_db
@@ -290,10 +324,11 @@ def test_update_on_call_shift(make_organization_and_user_with_token, make_on_cal
         invalid_field_data_7,
         invalid_field_data_8,
         invalid_field_data_9,
+        invalid_field_data_10,
     ],
 )
 def test_update_on_call_shift_invalid_field(make_organization_and_user_with_token, make_on_call_shift, data_to_update):
-    organization, user, token = make_organization_and_user_with_token()
+    organization, _, token = make_organization_and_user_with_token()
     client = APIClient()
 
     start_date = timezone.datetime.now().replace(microsecond=0)
@@ -319,8 +354,7 @@ def test_update_on_call_shift_invalid_field(make_organization_and_user_with_toke
 
 @pytest.mark.django_db
 def test_delete_on_call_shift(make_organization_and_user_with_token, make_on_call_shift):
-
-    organization, user, token = make_organization_and_user_with_token()
+    organization, _, token = make_organization_and_user_with_token()
     client = APIClient()
 
     start_date = timezone.datetime.now().replace(microsecond=0)

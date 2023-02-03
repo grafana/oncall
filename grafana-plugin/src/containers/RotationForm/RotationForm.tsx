@@ -17,7 +17,7 @@ import { Schedule, Shift } from 'models/schedule/schedule.types';
 import { getTzOffsetString } from 'models/timezone/timezone.helpers';
 import { Timezone } from 'models/timezone/timezone.types';
 import { User } from 'models/user/user.types';
-import { getDateTime, getUTCString } from 'pages/schedule/Schedule.helpers';
+import { getDateTime, getStartOfWeek, getUTCByDay, getUTCString } from 'pages/schedule/Schedule.helpers';
 import { SelectOption } from 'state/types';
 import { useStore } from 'state/useStore';
 import { getCoords, waitForElement } from 'utils/DOM';
@@ -58,7 +58,7 @@ const RotationForm: FC<RotationFormProps> = observer((props) => {
     onDelete,
     layerPriority,
     shiftId,
-    shiftMoment = dayjs().startOf('isoWeek'),
+    shiftMoment = getStartOfWeek(currentTimezone),
     shiftColor = '#3D71D9',
   } = props;
 
@@ -154,7 +154,10 @@ const RotationForm: FC<RotationFormProps> = observer((props) => {
       rolling_users: userGroups,
       interval: repeatEveryValue,
       frequency: repeatEveryPeriod,
-      by_day: repeatEveryPeriod === 1 || repeatEveryPeriod === 0 ? selectedDays : null,
+      by_day:
+        repeatEveryPeriod === 0 || repeatEveryPeriod === 1
+          ? getUTCByDay(store.scheduleStore.byDayOptions, selectedDays, shiftStart)
+          : null,
       priority_level: shiftId === 'new' ? layerPriority : shift?.priority_level,
     }),
     [
@@ -195,7 +198,7 @@ const RotationForm: FC<RotationFormProps> = observer((props) => {
   const updatePreview = () => {
     store.scheduleStore
       .updateRotationPreview(scheduleId, shiftId, getFromString(startMoment), false, params)
-      .then(() => {
+      .finally(() => {
         setIsOpen(true);
       });
   };
@@ -232,6 +235,27 @@ const RotationForm: FC<RotationFormProps> = observer((props) => {
   }, []);
 
   const isFormValid = useMemo(() => userGroups.some((group) => group.length), [userGroups]);
+
+  const [focusElementName, setFocusElementName] = useState<undefined | string>(undefined);
+
+  const getFocusHandler = (elementName: string) => {
+    return () => {
+      setFocusElementName(elementName);
+    };
+  };
+
+  const handleBlur = useCallback(() => {
+    setFocusElementName(undefined);
+  }, []);
+
+  useEffect(() => {
+    store.scheduleStore.setRotationFormLiveParams({
+      rotationStart,
+      shiftStart,
+      shiftEnd,
+      focusElementName,
+    });
+  }, [params, focusElementName]);
 
   return (
     <Modal
@@ -276,6 +300,8 @@ const RotationForm: FC<RotationFormProps> = observer((props) => {
                   value={rotationStart}
                   onChange={setRotationStart}
                   timezone={currentTimezone}
+                  onFocus={getFocusHandler('rotationStart')}
+                  onBlur={handleBlur}
                 />
               </Field>
               <Field
@@ -320,7 +346,7 @@ const RotationForm: FC<RotationFormProps> = observer((props) => {
                 />
               </Field>
             </HorizontalGroup>
-            {(repeatEveryPeriod === 1 || repeatEveryPeriod === 0) && (
+            {(repeatEveryPeriod === 0 || repeatEveryPeriod === 1) && (
               <Field label="Select days to repeat">
                 <DaysSelector
                   options={store.scheduleStore.byDayOptions}
@@ -338,7 +364,13 @@ const RotationForm: FC<RotationFormProps> = observer((props) => {
                   </Text>
                 }
               >
-                <DateTimePicker value={shiftStart} onChange={updateShiftStart} timezone={currentTimezone} />
+                <DateTimePicker
+                  value={shiftStart}
+                  onChange={updateShiftStart}
+                  timezone={currentTimezone}
+                  onFocus={getFocusHandler('shiftStart')}
+                  onBlur={handleBlur}
+                />
               </Field>
               <Field
                 className={cx('date-time-picker')}
@@ -348,7 +380,13 @@ const RotationForm: FC<RotationFormProps> = observer((props) => {
                   </Text>
                 }
               >
-                <DateTimePicker value={shiftEnd} onChange={setShiftEnd} timezone={currentTimezone} />
+                <DateTimePicker
+                  value={shiftEnd}
+                  onChange={setShiftEnd}
+                  timezone={currentTimezone}
+                  onFocus={getFocusHandler('shiftEnd')}
+                  onBlur={handleBlur}
+                />
               </Field>
             </div>
             <UserGroups

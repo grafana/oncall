@@ -80,7 +80,8 @@ class AmixrUnfoldableCalendar(UnfoldableCalendar):
                 continue
             repetitions = self.RepeatedEvent(event, span_start)
             for repetition in repetitions:
-                if compare_greater(repetition.start, span_stop):
+                if compare_greater(repetition.start, span_stop) or compare_greater(repetition.start, repetition.stop):
+                    # future repetitions could produce invalid events (because of the until rrule)
                     break
                 if repetition.is_in_span(span_start, span_stop):
                     add_event(repetition.as_vevent())

@@ -381,3 +381,33 @@ def test_update_route_with_messaging_backend(
     assert new_channel_filter.notify_in_slack == data_to_update["slack"]["enabled"]
     assert new_channel_filter.notify_in_telegram == data_to_update["telegram"]["enabled"]
     assert new_channel_filter.notification_backends == {TestOnlyBackend.backend_id: {"channel": None, "enabled": True}}
+
+
+@pytest.mark.django_db
+def test_update_route_with_manual_ordering(
+    make_organization_and_user_with_token,
+    make_alert_receive_channel,
+    make_channel_filter,
+):
+    organization, _, token = make_organization_and_user_with_token()
+    alert_receive_channel = make_alert_receive_channel(organization)
+    channel_filter = make_channel_filter(
+        alert_receive_channel,
+        is_default=False,
+    )
+
+    client = APIClient()
+
+    url = reverse("api-public:routes-detail", kwargs={"pk": channel_filter.public_primary_key})
+
+    # Test negative value. Note, that for "manual_order"=False, -1 is valud option (It will move route to the bottom)
+    data_to_update = {"position": -1, "manual_order": True}
+
+    response = client.put(url, format="json", HTTP_AUTHORIZATION=token, data=data_to_update)
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+
+    # Test value bigger then PositiveIntegerField can hold
+    data_to_update = {"position": 9223372036854775807, "manual_order": True}
+
+    response = client.put(url, format="json", HTTP_AUTHORIZATION=token, data=data_to_update)
+    assert response.status_code == status.HTTP_400_BAD_REQUEST

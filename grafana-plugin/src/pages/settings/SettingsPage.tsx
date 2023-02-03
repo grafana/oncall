@@ -1,77 +1,150 @@
 import React from 'react';
 
-import { Field, Input, Switch } from '@grafana/ui';
+import { Tab, TabsBar } from '@grafana/ui';
 import cn from 'classnames/bind';
 import { observer } from 'mobx-react';
 
-import Text from 'components/Text/Text';
-import ApiTokenSettings from 'containers/ApiTokenSettings/ApiTokenSettings';
-import { WithPermissionControl } from 'containers/WithPermissionControl/WithPermissionControl';
-import { WithStoreProps } from 'state/types';
-import { UserAction } from 'state/userAction';
+import ChatOpsPage from 'pages/settings/tabs/ChatOps/ChatOps';
+import MainSettings from 'pages/settings/tabs/MainSettings/MainSettings';
+import { isTopNavbar } from 'plugin/GrafanaPluginRootPage.helpers';
+import { AppFeature } from 'state/features';
+import { RootBaseStore } from 'state/rootBaseStore';
 import { withMobXProviderContext } from 'state/withStore';
+import { isUserActionAllowed, UserActions } from 'utils/authorization';
+
+import { SettingsPageTab } from './SettingsPage.types';
+import CloudPage from './tabs/Cloud/CloudPage';
+import LiveSettingsPage from './tabs/LiveSettings/LiveSettingsPage';
 
 import styles from './SettingsPage.module.css';
 
 const cx = cn.bind(styles);
 
-interface SettingsPageProps extends WithStoreProps {}
-
+interface SettingsPageProps {
+  store: RootBaseStore;
+}
 interface SettingsPageState {
-  apiUrl?: string;
+  activeTab: string;
 }
 
 @observer
 class SettingsPage extends React.Component<SettingsPageProps, SettingsPageState> {
   state: SettingsPageState = {
-    apiUrl: '',
+    activeTab: SettingsPageTab.MainSettings.key, // should read from route instead
   };
-  async componentDidMount() {
-    const { store } = this.props;
-    const url = await store.getApiUrlForSettings();
-    this.setState({ apiUrl: url });
-  }
 
   render() {
-    const { store } = this.props;
-    const { teamStore } = store;
-    const { apiUrl } = this.state;
+    return <div className={cx('root')}>{this.renderContent()}</div>;
+  }
 
-    return (
-      <div className={cx('root')}>
-        <Text.Title level={3} className={cx('title')}>
-          Organization settings
-        </Text.Title>
-        <div className={cx('settings')}>
-          <Field
-            loading={!teamStore.currentTeam}
-            label="Require resolution note when resolve incident"
-            description="Once user clicks “Resolve” for an incident they are require to fill a resolution note about the incident"
-          >
-            <WithPermissionControl userAction={UserAction.UpdateGlobalSettings}>
-              <Switch
-                value={teamStore.currentTeam?.is_resolution_note_required}
-                onChange={(event) => {
-                  teamStore.saveCurrentTeam({
-                    is_resolution_note_required: event.currentTarget.checked,
-                  });
-                }}
+  renderContent() {
+    const { activeTab } = this.state;
+    const { store } = this.props;
+
+    const onTabChange = (tab: string) => {
+      this.setState({ activeTab: tab });
+    };
+
+    const hasLiveSettings = store.hasFeature(AppFeature.LiveSettings);
+    const hasCloudPage = store.hasFeature(AppFeature.CloudConnection);
+    const showCloudPage = hasCloudPage && isUserActionAllowed(UserActions.OtherSettingsWrite);
+    const showLiveSettings = hasLiveSettings && isUserActionAllowed(UserActions.OtherSettingsRead);
+
+    if (isTopNavbar()) {
+      return (
+        <>
+          <TabsBar>
+            <Tab
+              key={SettingsPageTab.MainSettings.key}
+              onChangeTab={() => onTabChange(SettingsPageTab.MainSettings.key)}
+              active={activeTab === SettingsPageTab.MainSettings.key}
+              label={SettingsPageTab.MainSettings.value}
+            />
+            <Tab
+              key={SettingsPageTab.ChatOps.key}
+              onChangeTab={() => onTabChange(SettingsPageTab.ChatOps.key)}
+              active={activeTab === SettingsPageTab.ChatOps.key}
+              label={SettingsPageTab.ChatOps.value}
+            />
+            {showLiveSettings && (
+              <Tab
+                key={SettingsPageTab.EnvVariables.key}
+                onChangeTab={() => onTabChange(SettingsPageTab.EnvVariables.key)}
+                active={activeTab === SettingsPageTab.EnvVariables.key}
+                label={SettingsPageTab.EnvVariables.value}
               />
-            </WithPermissionControl>
-          </Field>
-        </div>
-        <Text.Title level={3} className={cx('title')}>
-          API URL
-        </Text.Title>
-        <div>
-          <Field>
-            <Input value={apiUrl} disabled />
-          </Field>
-        </div>
-        <ApiTokenSettings />
-      </div>
-    );
+            )}
+            {showCloudPage && (
+              <Tab
+                key={SettingsPageTab.Cloud.key}
+                onChangeTab={() => onTabChange(SettingsPageTab.Cloud.key)}
+                active={activeTab === SettingsPageTab.Cloud.key}
+                label={SettingsPageTab.Cloud.value}
+              />
+            )}
+          </TabsBar>
+
+          <TabsContent activeTab={activeTab} />
+        </>
+      );
+    }
+
+    return <MainSettings />;
+  }
+
+  getMatchingPageNav() {
+    return {
+      parentItem: {
+        text: getTabText(this.state.activeTab),
+      },
+      text: '',
+      hideFromBreadcrumbs: true,
+    };
+
+    function getTabText(activeTab: string) {
+      let result: string;
+      Object.keys(SettingsPageTab).forEach((tab) => {
+        if (activeTab === SettingsPageTab[tab].key) {
+          result = SettingsPageTab[tab].value;
+        }
+      });
+
+      return result;
+    }
   }
 }
+
+interface TabsContentProps {
+  activeTab: string;
+}
+
+const TabsContent = (props: TabsContentProps) => {
+  const { activeTab } = props;
+
+  return (
+    <div className={cx('tabs__content')}>
+      {activeTab === SettingsPageTab.MainSettings.key && (
+        <div className={cx('tab__page')}>
+          <MainSettings />
+        </div>
+      )}
+      {activeTab === SettingsPageTab.ChatOps.key && (
+        <div className={cx('tab__page')}>
+          <ChatOpsPage />
+        </div>
+      )}
+      {activeTab === SettingsPageTab.EnvVariables.key && (
+        <div className={cx('tab__page')}>
+          <LiveSettingsPage />
+        </div>
+      )}
+      {activeTab === SettingsPageTab.Cloud.key && (
+        <div className={cx('tab__page')}>
+          <CloudPage />
+        </div>
+      )}
+    </div>
+  );
+};
 
 export default withMobXProviderContext(SettingsPage);

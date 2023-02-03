@@ -13,7 +13,6 @@ from apps.slack.slack_client.exceptions import (
     SlackAPIRateLimitException,
     SlackAPITokenException,
 )
-from common.constants.role import Role
 
 logger = logging.getLogger(__name__)
 
@@ -161,15 +160,6 @@ class ScenarioStep(object):
         """
         step = step_class(slack_team_identity)
         step.process_scenario(slack_user_identity, slack_team_identity, payload, action=action, **kwargs)
-
-    def get_permission_denied_prompt(self):
-        current_role = self.user.get_role_display()
-        admins_queryset = self.organization.users.filter(role=Role.ADMIN).select_related("slack_user_identity")
-        admins_verbal = "No admins"
-        if admins_queryset.count() > 0:
-            admins_verbal = ", ".join(["<@{}>".format(admin.slack_user_identity.slack_id) for admin in admins_queryset])
-
-        return current_role, admins_verbal
 
     def open_warning_window(self, payload, warning_text, title=None):
         if title is None:

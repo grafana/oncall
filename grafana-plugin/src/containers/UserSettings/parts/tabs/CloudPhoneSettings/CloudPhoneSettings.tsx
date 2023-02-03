@@ -9,8 +9,8 @@ import { User } from 'models/user/user.types';
 import { AppFeature } from 'state/features';
 import { WithStoreProps } from 'state/types';
 import { useStore } from 'state/useStore';
-import { UserAction } from 'state/userAction';
 import { withMobXProviderContext } from 'state/withStore';
+import { isUserActionAllowed, UserActions } from 'utils/authorization';
 
 interface CloudPhoneSettingsProps extends WithStoreProps {
   userPk?: User['pk'];
@@ -119,10 +119,10 @@ const CloudPhoneSettings = observer((props: CloudPhoneSettingsProps) => {
 
   return (
     <>
-      {store.isUserActionAllowed(UserAction.UpdateOtherUsersSettings) ? (
+      {isUserActionAllowed(UserActions.OtherSettingsWrite) ? (
         <VerticalGroup spacing="lg">
           <HorizontalGroup justify="space-between">
-            <Text.Title level={3}>OnCall use Grafana Cloud for SMS and phone call notifications</Text.Title>
+            <Text.Title level={3}>OnCall uses Grafana Cloud for SMS and phone call notifications</Text.Title>
             {syncing ? (
               <Button variant="secondary" icon="sync" disabled>
                 Updating...
@@ -137,7 +137,7 @@ const CloudPhoneSettings = observer((props: CloudPhoneSettingsProps) => {
         </VerticalGroup>
       ) : (
         <VerticalGroup spacing="lg">
-          <Text.Title level={3}>OnCall use Grafana Cloud for SMS and phone call notifications</Text.Title>
+          <Text.Title level={3}>OnCall uses Grafana Cloud for SMS and phone call notifications</Text.Title>
           <Text>You do not have permission to perform this action. Ask an admin to upgrade your permissions.</Text>
         </VerticalGroup>
       )}

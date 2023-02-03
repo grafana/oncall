@@ -1,6 +1,5 @@
 import React, { useCallback, useEffect, useState } from 'react';
 
-import { getLocationSrv } from '@grafana/runtime';
 import { Drawer, Tab, TabContent, TabsBar, Button, VerticalGroup, Input } from '@grafana/ui';
 import cn from 'classnames/bind';
 import { observer } from 'mobx-react';
@@ -15,6 +14,7 @@ import { AlertReceiveChannel } from 'models/alert_receive_channel/alert_receive_
 import { Alert } from 'models/alertgroup/alertgroup.types';
 import { useStore } from 'state/useStore';
 import { openNotification } from 'utils';
+import LocationHelper from 'utils/LocationHelper';
 
 import { IntegrationSettingsTab } from './IntegrationSettings.types';
 import Autoresolve from './parts/Autoresolve';
@@ -46,18 +46,13 @@ const IntegrationSettings = observer((props: IntegrationSettingsProps) => {
   const getTabClickHandler = useCallback((tab: IntegrationSettingsTab) => {
     return () => {
       setActiveTab(tab);
-      getLocationSrv().update({ partial: true, query: { tab: tab } });
+      LocationHelper.update({ tab }, 'partial');
     };
   }, []);
 
   useEffect(() => {
     alertReceiveChannelStore.updateItem(id);
   }, []);
-
-  useEffect(() => {
-    setActiveTab(startTab || IntegrationSettingsTab.Templates);
-    getLocationSrv().update({ partial: true, query: { tab: startTab || IntegrationSettingsTab.Templates } });
-  }, [startTab]);
 
   const integration = alertReceiveChannelStore.getIntegration(alertReceiveChannel);
 

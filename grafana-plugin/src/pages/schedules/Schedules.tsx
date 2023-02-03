@@ -1,129 +1,79 @@
-import React, { SyntheticEvent } from 'react';
+import React from 'react';
 
-import { AppRootProps } from '@grafana/data';
-import { getLocationSrv } from '@grafana/runtime';
-import {
-  Button,
-  ConfirmModal,
-  HorizontalGroup,
-  Icon,
-  LoadingPlaceholder,
-  Modal,
-  PENDING_COLOR,
-  Tooltip,
-  VerticalGroup,
-} from '@grafana/ui';
+import { Button, HorizontalGroup, IconButton, LoadingPlaceholder, VerticalGroup } from '@grafana/ui';
 import cn from 'classnames/bind';
-import { omit } from 'lodash-es';
+import dayjs from 'dayjs';
+import { debounce } from 'lodash-es';
 import { observer } from 'mobx-react';
-import moment from 'moment-timezone';
+import { RouteComponentProps, withRouter } from 'react-router-dom';
 
-import instructionsImage from 'assets/img/events_instructions.png';
 import Avatar from 'components/Avatar/Avatar';
-import GTable from 'components/GTable/GTable';
-import PageErrorHandlingWrapper, { PageBaseState } from 'components/PageErrorHandlingWrapper/PageErrorHandlingWrapper';
-import {
-  getWrongTeamResponseInfo,
-  initErrorDataState,
-} from 'components/PageErrorHandlingWrapper/PageErrorHandlingWrapper.helpers';
+import NewScheduleSelector from 'components/NewScheduleSelector/NewScheduleSelector';
 import PluginLink from 'components/PluginLink/PluginLink';
-import SchedulesFilters from 'components/SchedulesFilters/SchedulesFilters';
-import { SchedulesFiltersType } from 'components/SchedulesFilters/SchedulesFilters.types';
+import ScheduleCounter from 'components/ScheduleCounter/ScheduleCounter';
+import ScheduleWarning from 'components/ScheduleWarning/ScheduleWarning';
+import SchedulesFilters from 'components/SchedulesFilters_NEW/SchedulesFilters';
+import { SchedulesFiltersType } from 'components/SchedulesFilters_NEW/SchedulesFilters.types';
+import Table from 'components/Table/Table';
 import Text from 'components/Text/Text';
-import Tutorial from 'components/Tutorial/Tutorial';
-import { TutorialStep } from 'components/Tutorial/Tutorial.types';
+import TimelineMarks from 'components/TimelineMarks/TimelineMarks';
+import UserTimezoneSelect from 'components/UserTimezoneSelect/UserTimezoneSelect';
+import WithConfirm from 'components/WithConfirm/WithConfirm';
+import ScheduleFinal from 'containers/Rotations/ScheduleFinal';
 import ScheduleForm from 'containers/ScheduleForm/ScheduleForm';
-import ScheduleICalSettings from 'containers/ScheduleIcalLink/ScheduleIcalLink';
 import { WithPermissionControl } from 'containers/WithPermissionControl/WithPermissionControl';
-import { Schedule, ScheduleEvent, ScheduleType } from 'models/schedule/schedule.types';
+import { Schedule, ScheduleType } from 'models/schedule/schedule.types';
 import { getSlackChannelName } from 'models/slack_channel/slack_channel.helpers';
+import { Timezone } from 'models/timezone/timezone.types';
+import { getStartOfWeek } from 'pages/schedule/Schedule.helpers';
 import { WithStoreProps } from 'state/types';
-import { UserAction } from 'state/userAction';
 import { withMobXProviderContext } from 'state/withStore';
-import { openErrorNotification } from 'utils';
-
-import { getDatesString } from './Schedules.helpers';
+import { UserActions } from 'utils/authorization';
+import { PLUGIN_ROOT } from 'utils/consts';
 
 import styles from './Schedules.module.css';
 
 const cx = cn.bind(styles);
 
-interface SchedulesPageProps extends WithStoreProps, AppRootProps {}
-interface SchedulesPageState extends PageBaseState {
-  scheduleIdToEdit?: Schedule['id'];
-  scheduleIdToDelete?: Schedule['id'];
-  scheduleIdToExport?: Schedule['id'];
+interface SchedulesPageProps extends WithStoreProps, RouteComponentProps {}
+
+interface SchedulesPageState {
+  startMoment: dayjs.Dayjs;
   filters: SchedulesFiltersType;
-  expandedSchedulesKeys: Array<Schedule['id']>;
+  showNewScheduleSelector: boolean;
+  expandedRowKeys: Array<Schedule['id']>;
+  scheduleIdToEdit?: Schedule['id'];
 }
 
 @observer
 class SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageState> {
-  state: SchedulesPageState = {
-    filters: {
-      selectedDate: moment().startOf('day').format('YYYY-MM-DD'),
-    },
-    expandedSchedulesKeys: [],
-    errorData: initErrorDataState(),
-  };
+  constructor(props: SchedulesPageProps) {
+    super(props);
 
-  componentDidMount() {
-    this.update().then(this.parseQueryParams);
-  }
-
-  componentDidUpdate(prevProps: SchedulesPageProps) {
-    if (this.props.query.id !== prevProps.query.id) {
-      this.parseQueryParams();
-    }
-  }
-
-  parseQueryParams = async () => {
-    this.setState({ errorData: initErrorDataState() }); // reset wrong team error to false on query parse
-
-    const {
-      store,
-      query: { id },
-    } = this.props;
-
-    if (!id) {
-      return;
-    }
-
-    let scheduleId: string = undefined;
-    const isNewSchedule = id === 'new';
-
-    if (!isNewSchedule) {
-      // load schedule only for valid id
-      const schedule = await store.scheduleStore
-        .loadItem(id, true)
-        .catch((error) => this.setState({ errorData: { ...getWrongTeamResponseInfo(error) } }));
-      if (!schedule) {
-        return;
-      }
-
-      scheduleId = schedule.id;
-    }
-
-    if (scheduleId || isNewSchedule) {
-      this.setState({ scheduleIdToEdit: id });
-    } else {
-      openErrorNotification(`Schedule with id=${id} is not found. Please select schedule from the list.`);
-    }
-  };
-
-  update = () => {
     const { store } = this.props;
-    const { scheduleStore } = store;
+    this.state = {
+      startMoment: getStartOfWeek(store.currentTimezone),
+      filters: { searchTerm: '', status: 'all', type: undefined },
+      showNewScheduleSelector: false,
+      expandedRowKeys: [],
+      scheduleIdToEdit: undefined,
+    };
+  }
 
-    return scheduleStore.updateItems();
-  };
+  async componentDidMount() {
+    const { store } = this.props;
+
+    store.userStore.updateItems();
+    store.scheduleStore.updateItems();
+  }
 
   render() {
-    const { store, query } = this.props;
-    const { expandedSchedulesKeys, scheduleIdToDelete, scheduleIdToEdit, scheduleIdToExport } = this.state;
-    const { filters, errorData } = this.state;
+    const { store } = this.props;
+    const { filters, showNewScheduleSelector, expandedRowKeys, scheduleIdToEdit } = this.state;
+
     const { scheduleStore } = store;
 
+    const schedules = scheduleStore.getSearchResult();
     const columns = [
       {
         width: '10%',
@@ -132,13 +82,21 @@ class SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSta
         render: this.renderType,
       },
       {
-        width: '20%',
-        title: 'Name',
-        dataIndex: 'name',
+        width: '5%',
+        title: 'Status',
+        key: 'name',
+        render: (item: Schedule) => this.renderStatus(item),
       },
       {
-        width: '20%',
-        title: 'OnCall now',
+        width: '30%',
+        title: 'Name',
+        key: 'name',
+        render: this.renderName,
+      },
+      {
+        width: '30%',
+        title: 'Oncall',
+        key: 'users',
         render: this.renderOncallNow,
       },
       {
@@ -152,227 +110,159 @@ class SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSta
         render: this.renderUserGroup,
       },
       {
-        width: '10%',
+        width: '5%',
         key: 'warning',
         render: this.renderWarning,
       },
       {
-        width: '20%',
-        key: 'action',
-        render: this.renderActionButtons,
+        width: '50px',
+        key: 'buttons',
+        render: this.renderButtons,
+        className: cx('buttons'),
       },
     ];
 
-    const schedules = scheduleStore.getSearchResult();
+    const users = store.userStore.getSearchResult().results;
 
-    const timezoneStr = moment.tz.guess();
-    const offset = moment().tz(timezoneStr).format('Z');
+    const data = schedules
+      ? schedules.filter(
+          (schedule) =>
+            filters.status === 'all' ||
+            (filters.status === 'used' && schedule.number_of_escalation_chains) ||
+            (filters.status === 'unused' && !schedule.number_of_escalation_chains)
+        )
+      : undefined;
 
     return (
-      <PageErrorHandlingWrapper
-        errorData={errorData}
-        objectName="schedule"
-        pageName="schedules"
-        itemNotFoundMessage={`Schedule with id=${query?.id} is not found. Please select schedule from the list.`}
-      >
-        {() => (
-          <>
-            <div className={cx('root')}>
-              <div className={cx('title')}>
-                <HorizontalGroup align="flex-end">
-                  <Text.Title level={3}>On-call Schedules</Text.Title>
-                  <Text type="secondary">
-                    Use this to distribute notifications among team members you specified in the "Notify Users from
-                    on-call schedule" step in{' '}
-                    <PluginLink query={{ page: 'integrations' }}>escalation chains</PluginLink>.
-                  </Text>
-                </HorizontalGroup>
-              </div>
-
-              {!schedules || schedules.length ? (
-                <GTable
-                  emptyText={schedules ? 'No schedules found' : 'Loading...'}
-                  title={() => (
-                    <div className={cx('header')}>
-                      <HorizontalGroup className={cx('filters')} spacing="md">
-                        <SchedulesFilters value={filters} onChange={this.handleChangeFilters} />
-                        <Text type="secondary">
-                          <Icon name="info-circle" /> Your timezone is {timezoneStr} UTC{offset}
-                        </Text>
-                      </HorizontalGroup>
-                      <PluginLink
-                        partial
-                        query={{ id: 'new' }}
-                        disabled={!store.isUserActionAllowed(UserAction.UpdateSchedules)}
-                      >
-                        <WithPermissionControl userAction={UserAction.UpdateSchedules}>
-                          <Button variant="primary" icon="plus">
-                            New schedule
-                          </Button>
-                        </WithPermissionControl>
-                      </PluginLink>
-                    </div>
-                  )}
-                  rowKey="id"
-                  columns={columns}
-                  data={schedules}
-                  expandable={{
-                    expandedRowRender: this.renderEvents,
-                    expandRowByClick: true,
-                    onExpand: this.onRowExpand,
-                    expandedRowKeys: expandedSchedulesKeys,
-                    onExpandedRowsChange: this.handleExpandedRowsChange,
-                  }}
-                />
-              ) : (
-                <Tutorial
-                  step={TutorialStep.Schedules}
-                  title={
-                    <VerticalGroup align="center" spacing="lg">
-                      <Text type="secondary">You haven’t added a schedule yet.</Text>
-                      <PluginLink partial query={{ id: 'new' }}>
-                        <Button icon="plus" variant="primary" size="lg">
-                          Add team schedule for on-call rotation
-                        </Button>
-                      </PluginLink>
-                    </VerticalGroup>
-                  }
-                />
-              )}
-            </div>
-
-            {scheduleIdToEdit && (
-              <ScheduleForm
-                id={scheduleIdToEdit}
-                type={ScheduleType.Ical}
-                onUpdate={this.update}
-                onHide={() => {
-                  this.setState({ scheduleIdToEdit: undefined });
-                  getLocationSrv().update({ partial: true, query: { id: undefined } });
-                }}
-              />
-            )}
-
-            {scheduleIdToDelete && (
-              <ConfirmModal
-                isOpen
-                title="Are you sure to delete?"
-                confirmText="Delete"
-                dismissText="Cancel"
-                onConfirm={this.handleDelete}
-                body={null}
-                onDismiss={() => {
-                  this.setState({ scheduleIdToDelete: undefined });
-                }}
-              />
-            )}
-
-            {scheduleIdToExport && (
-              <Modal
-                isOpen
-                title="Schedule export"
-                closeOnEscape
-                onDismiss={() => this.setState({ scheduleIdToExport: undefined })}
-              >
-                <ScheduleICalSettings id={scheduleIdToExport} />
-              </Modal>
-            )}
-          </>
+      <>
+        <div className={cx('root')}>
+          <VerticalGroup>
+            <HorizontalGroup justify="space-between">
+              <SchedulesFilters value={filters} onChange={this.handleSchedulesFiltersChange} />
+              <HorizontalGroup spacing="lg">
+                {users && (
+                  <UserTimezoneSelect
+                    value={store.currentTimezone}
+                    users={users}
+                    onChange={this.handleTimezoneChange}
+                  />
+                )}
+                <WithPermissionControl userAction={UserActions.SchedulesWrite}>
+                  <Button variant="primary" onClick={this.handleCreateScheduleClick}>
+                    + New schedule
+                  </Button>
+                </WithPermissionControl>
+              </HorizontalGroup>
+            </HorizontalGroup>
+            <Table
+              columns={columns}
+              data={data}
+              pagination={{ page: 1, total: 1, onChange: this.handlePageChange }}
+              rowKey="id"
+              expandable={{
+                expandedRowKeys: expandedRowKeys,
+                onExpand: this.handleExpandRow,
+                expandedRowRender: this.renderSchedule,
+                expandRowByClick: true,
+              }}
+              emptyText={
+                <div className={cx('loader')}>
+                  {data ? <Text type="secondary">Not found</Text> : <Text type="secondary">Loading schedules...</Text>}
+                </div>
+              }
+            />
+          </VerticalGroup>
+        </div>
+        {showNewScheduleSelector && (
+          <NewScheduleSelector
+            onCreate={this.handleCreateSchedule}
+            onUpdate={this.update}
+            onHide={() => {
+              this.setState({ showNewScheduleSelector: false });
+            }}
+          />
         )}
-      </PageErrorHandlingWrapper>
+        {scheduleIdToEdit && (
+          <ScheduleForm
+            id={scheduleIdToEdit}
+            onUpdate={this.update}
+            onHide={() => {
+              this.setState({ scheduleIdToEdit: undefined });
+            }}
+          />
+        )}
+      </>
     );
   }
 
-  onRowExpand = (expanded: boolean, schedule: Schedule) => {
-    if (expanded) {
-      this.updateEventsFor(schedule.id);
+  handleTimezoneChange = (value: Timezone) => {
+    const { store } = this.props;
+
+    store.currentTimezone = value;
+
+    this.setState({ startMoment: getStartOfWeek(value) }, this.updateEvents);
+  };
+
+  handleCreateScheduleClick = () => {
+    this.setState({ showNewScheduleSelector: true });
+  };
+
+  handleCreateSchedule = (data: Schedule) => {
+    const { history } = this.props;
+
+    if (data.type === ScheduleType.API) {
+      history.push(`${PLUGIN_ROOT}/schedules/${data.id}`);
     }
   };
 
-  handleExpandedRowsChange = (expandedRows: string[]) => {
-    this.setState({ expandedSchedulesKeys: expandedRows });
+  handleExpandRow = (expanded: boolean, data: Schedule) => {
+    const { expandedRowKeys } = this.state;
+
+    if (expanded && !expandedRowKeys.includes(data.id)) {
+      this.setState({ expandedRowKeys: [...this.state.expandedRowKeys, data.id] }, this.updateEvents);
+    } else if (!expanded && expandedRowKeys.includes(data.id)) {
+      const index = expandedRowKeys.indexOf(data.id);
+      const newExpandedRowKeys = [...expandedRowKeys];
+      newExpandedRowKeys.splice(index, 1);
+      this.setState({ expandedRowKeys: newExpandedRowKeys }, this.updateEvents);
+    }
   };
 
-  renderEvents = (schedule: Schedule) => {
+  updateEvents = () => {
     const { store } = this.props;
-    const { scheduleStore } = store;
-    const { scheduleToScheduleEvents } = scheduleStore;
+    const { expandedRowKeys, startMoment } = this.state;
 
-    const events = scheduleToScheduleEvents[schedule.id];
-
-    return events ? (
-      events.length ? (
-        <div className={cx('events')}>
-          <Text.Title type="secondary" level={3}>
-            Events
-          </Text.Title>
-          <ul className={cx('events-list')}>
-            {(events || []).map((event, idx) => (
-              <li key={idx} className={cx('events-list-item')}>
-                <Event event={event} />
-              </li>
-            ))}
-          </ul>
-        </div>
-      ) : (
-        this.renderInstruction()
-      )
-    ) : (
-      <LoadingPlaceholder text="Loading events..." />
-    );
+    expandedRowKeys.forEach((scheduleId) => {
+      store.scheduleStore.updateEvents(scheduleId, startMoment, 'rotation');
+      store.scheduleStore.updateEvents(scheduleId, startMoment, 'override');
+      store.scheduleStore.updateEvents(scheduleId, startMoment, 'final');
+    });
   };
 
-  renderInstruction = () => {
+  renderSchedule = (data: Schedule) => {
+    const { startMoment } = this.state;
     const { store } = this.props;
-    const { userStore } = store;
 
     return (
-      <div className={cx('instructions')}>
-        <Text type="secondary">
-          There are no active slots here. To add an event, enter a username, for example “
-          {userStore.currentUser?.username}“, and click the “Reload” button. OnCall will download this calendar and set
-          up an on-call schedule based on event names. OnCall will refresh the calendar every 10 minutes after the
-          intial setup.
-        </Text>
-        <img style={{ width: '400px' }} src={instructionsImage} />
+      <div className={cx('schedule')}>
+        <TimelineMarks startMoment={startMoment} />
+        <div className={cx('rotations')}>
+          <ScheduleFinal
+            hideHeader
+            scheduleId={data.id}
+            currentTimezone={store.currentTimezone}
+            startMoment={startMoment}
+            onClick={this.getScheduleClickHandler(data.id)}
+          />
+        </div>
       </div>
     );
   };
 
-  handleChangeFilters = (filters: SchedulesFiltersType) => {
-    this.setState({ filters }, () => {
-      const { filters, expandedSchedulesKeys } = this.state;
+  getScheduleClickHandler = (scheduleId: Schedule['id']) => {
+    const { history } = this.props;
 
-      if (!filters.selectedDate) {
-        return;
-      }
-
-      expandedSchedulesKeys.forEach((id) => this.updateEventsFor(id));
-    });
-  };
-
-  renderChannelName = (value: Schedule) => {
-    return getSlackChannelName(value.slack_channel) || '-';
-  };
-
-  renderUserGroup = (value: Schedule) => {
-    return value.user_group?.handle || '-';
-  };
-
-  renderOncallNow = (item: Schedule, _index: number) => {
-    if (item.on_call_now?.length > 0) {
-      return item.on_call_now.map((user, _index) => {
-        return (
-          <PluginLink key={user.pk} query={{ page: 'users', id: user.pk }}>
-            <div>
-              <Avatar size="small" src={user.avatar} />
-              <Text type="secondary"> {user.username}</Text>
-            </div>
-          </PluginLink>
-        );
-      });
-    }
-    return null;
+    return () => history.push(`${PLUGIN_ROOT}/schedules/${scheduleId}`);
   };
 
   renderType = (value: number) => {
@@ -384,172 +274,151 @@ class SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSta
   };
 
   renderWarning = (item: Schedule) => {
-    if (item.warnings.length > 0) {
-      const tooltipContent = (
-        <div>
-          {item.warnings.map((warning: string) => (
-            <p key={warning}>{warning}</p>
-          ))}
-        </div>
-      );
+    return <ScheduleWarning item={item} />;
+  };
+
+  renderStatus = (item: Schedule) => {
+    const {
+      store: { scheduleStore },
+    } = this.props;
+
+    const relatedEscalationChains = scheduleStore.relatedEscalationChains[item.id];
+    return (
+      <HorizontalGroup>
+        {item.number_of_escalation_chains > 0 && (
+          <ScheduleCounter
+            type="link"
+            count={item.number_of_escalation_chains}
+            tooltipTitle="Used in escalations"
+            tooltipContent={
+              <VerticalGroup spacing="sm">
+                {relatedEscalationChains ? (
+                  relatedEscalationChains.length ? (
+                    relatedEscalationChains.map((escalationChain) => (
+                      <div key={escalationChain.pk}>
+                        <PluginLink query={{ page: 'escalations', id: escalationChain.pk }}>
+                          {escalationChain.name}
+                        </PluginLink>
+                      </div>
+                    ))
+                  ) : (
+                    'Not used yet'
+                  )
+                ) : (
+                  <LoadingPlaceholder>Loading related escalation chains....</LoadingPlaceholder>
+                )}
+              </VerticalGroup>
+            }
+            onHover={this.getUpdateRelatedEscalationChainsHandler(item.id)}
+          />
+        )}
+
+        {/* <ScheduleCounter
+          type="warning"
+          count={warningsCount}
+          tooltipTitle="Warnings"
+          tooltipContent="Schedule has unassigned time periods during next 7 days"
+        />*/}
+      </HorizontalGroup>
+    );
+  };
+
+  renderName = (item: Schedule) => {
+    return <PluginLink query={{ page: 'schedules', id: item.id }}>{item.name}</PluginLink>;
+  };
+
+  renderOncallNow = (item: Schedule, _index: number) => {
+    if (item.on_call_now?.length > 0) {
       return (
-        <Tooltip placement="top" content={tooltipContent}>
-          <Icon style={{ color: PENDING_COLOR }} name="exclamation-triangle" />
-        </Tooltip>
+        <VerticalGroup>
+          {item.on_call_now.map((user, _index) => {
+            return (
+              <PluginLink key={user.pk} query={{ page: 'users', id: user.pk }}>
+                <div>
+                  <Avatar size="big" src={user.avatar} />
+                  <Text type="secondary"> {user.username}</Text>
+                </div>
+              </PluginLink>
+            );
+          })}
+        </VerticalGroup>
       );
     }
-
     return null;
   };
 
-  renderActionButtons = (record: Schedule) => {
+  renderChannelName = (value: Schedule) => {
+    return getSlackChannelName(value.slack_channel) || '-';
+  };
+
+  renderUserGroup = (value: Schedule) => {
+    return value.user_group?.handle || '-';
+  };
+
+  renderButtons = (item: Schedule) => {
     return (
-      <HorizontalGroup justify="flex-end">
-        <WithPermissionControl key="edit" userAction={UserAction.UpdateSchedules}>
-          <Button
-            onClick={(event) => {
-              event.stopPropagation();
-
-              this.setState({ scheduleIdToEdit: record.id });
-
-              getLocationSrv().update({ partial: true, query: { id: record.id } });
-            }}
-            fill="text"
-          >
-            Edit
-          </Button>
+      <HorizontalGroup>
+        <WithPermissionControl key="edit" userAction={UserActions.SchedulesWrite}>
+          <IconButton tooltip="Settings" name="cog" onClick={this.getEditScheduleClickHandler(item.id)} />
         </WithPermissionControl>
-        <WithPermissionControl key="reload" userAction={UserAction.UpdateSchedules}>
-          <Button onClick={this.getReloadScheduleClickHandler(record.id)} fill="text">
-            Reload
-          </Button>
-        </WithPermissionControl>
-        <WithPermissionControl key="export" userAction={UserAction.UpdateSchedules}>
-          <Button onClick={this.getExportScheduleClickHandler(record.id)} fill="text">
-            Export
-          </Button>
-        </WithPermissionControl>
-        <WithPermissionControl key="delete" userAction={UserAction.UpdateSchedules}>
-          <Button onClick={this.getDeleteScheduleClickHandler(record.id)} fill="text" variant="destructive">
-            Delete
-          </Button>
+        <WithPermissionControl key="edit" userAction={UserActions.SchedulesWrite}>
+          <WithConfirm>
+            <IconButton tooltip="Delete" name="trash-alt" onClick={this.getDeleteScheduleClickHandler(item.id)} />
+          </WithConfirm>
         </WithPermissionControl>
       </HorizontalGroup>
     );
   };
 
-  updateEventsFor = async (scheduleId: Schedule['id'], withEmpty = true, with_gap = true) => {
-    const { store } = this.props;
-
-    const { scheduleStore } = store;
-    const {
-      filters: { selectedDate },
-    } = this.state;
-
-    store.scheduleStore.scheduleToScheduleEvents = omit(store.scheduleStore.scheduleToScheduleEvents, [scheduleId]);
-
-    this.forceUpdate();
-
-    await scheduleStore.updateScheduleEvents(scheduleId, withEmpty, with_gap, selectedDate, moment.tz.guess());
-
-    this.forceUpdate();
-  };
-
-  getReloadScheduleClickHandler = (scheduleId: Schedule['id']) => {
-    const { store } = this.props;
-
-    const { scheduleStore } = store;
-
-    return async (event: SyntheticEvent) => {
+  getEditScheduleClickHandler = (id: Schedule['id']) => {
+    return (event) => {
       event.stopPropagation();
 
-      await scheduleStore.reloadIcal(scheduleId);
-
-      scheduleStore.updateItem(scheduleId);
-      this.updateEventsFor(scheduleId);
+      this.setState({ scheduleIdToEdit: id });
     };
   };
 
-  getDeleteScheduleClickHandler = (scheduleId: Schedule['id']) => {
-    return (event: SyntheticEvent) => {
-      event.stopPropagation();
-      this.setState({ scheduleIdToDelete: scheduleId });
-    };
-  };
-
-  getExportScheduleClickHandler = (scheduleId: Schedule['id']) => {
-    return (event: SyntheticEvent) => {
-      event.stopPropagation();
-      this.setState({ scheduleIdToExport: scheduleId });
-    };
-  };
-
-  handleDelete = async () => {
-    const { scheduleIdToDelete } = this.state;
+  getDeleteScheduleClickHandler = (id: Schedule['id']) => {
     const { store } = this.props;
-
-    this.setState({ scheduleIdToDelete: undefined });
-
     const { scheduleStore } = store;
 
-    await scheduleStore.delete(scheduleIdToDelete);
+    return () => {
+      scheduleStore.delete(id).then(this.update);
+    };
+  };
 
-    this.update();
+  handleSchedulesFiltersChange = (filters: SchedulesFiltersType) => {
+    this.setState({ filters }, this.debouncedUpdateSchedules);
+  };
+
+  applyFilters = () => {
+    const { filters } = this.state;
+    const { store } = this.props;
+    const { scheduleStore } = store;
+    scheduleStore.updateItems(filters);
+  };
+
+  debouncedUpdateSchedules = debounce(this.applyFilters, 1000);
+
+  handlePageChange = (_page: number) => {};
+
+  update = () => {
+    const { store } = this.props;
+    const { scheduleStore } = store;
+
+    return scheduleStore.updateItems();
+  };
+
+  getUpdateRelatedEscalationChainsHandler = (scheduleId: Schedule['id']) => {
+    const { store } = this.props;
+    const { scheduleStore } = store;
+
+    return () => {
+      scheduleStore.updateRelatedEscalationChains(scheduleId).then(() => {
+        this.forceUpdate();
+      });
+    };
   };
 }
 
-interface EventProps {
-  event: ScheduleEvent;
-}
-
-const Event = ({ event }: EventProps) => {
-  const dates = getDatesString(event.start, event.end, event.all_day);
-
-  return (
-    <>
-      {!event.is_gap ? (
-        <HorizontalGroup align="flex-start" spacing="sm">
-          <div className={cx('priority-icon')}>
-            <Text wrap type="secondary">{`L${event.priority_level || '0'}`}</Text>
-          </div>
-          <VerticalGroup>
-            <div>
-              {!event.is_empty ? (
-                event.users.map((user: any, index: number) => (
-                  <span key={user.pk}>
-                    {index ? ', ' : ''}
-                    <PluginLink query={{ page: 'users', id: user.pk }}>{user.display_name}</PluginLink>
-                  </span>
-                ))
-              ) : (
-                <HorizontalGroup spacing="sm">
-                  <Icon style={{ color: PENDING_COLOR }} name="exclamation-triangle" />
-                  <Text type="secondary">Empty shift</Text>
-                  {event.missing_users[0] && (
-                    <Text type="secondary">
-                      (check if {event.missing_users[0].includes(',') ? 'some of these users -' : 'user -'}{' '}
-                      <Text type="secondary">"{event.missing_users[0]}"</Text>{' '}
-                      {event.missing_users[0].includes(',') ? 'are' : 'is'} existing in OnCall or{' '}
-                      {event.missing_users[0].includes(',') ? 'have' : 'has'} Viewer role)
-                    </Text>
-                  )}
-                </HorizontalGroup>
-              )}
-              {event.source && <span> — source: {event.source}</span>}
-            </div>
-            <div>
-              <Text type="secondary"> {dates}</Text>
-            </div>
-          </VerticalGroup>
-        </HorizontalGroup>
-      ) : (
-        <div className={cx('gap-between-shifts')}>
-          <Icon name="exclamation-triangle" className={cx('gap-between-shifts-icon')} />
-          <Text> Gap! Nobody On-Call...</Text>
-        </div>
-      )}
-    </>
-  );
-};
-
-export default withMobXProviderContext(SchedulesPage);
+export default withRouter(withMobXProviderContext(SchedulesPage));

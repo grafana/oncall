@@ -10,8 +10,8 @@ import { WithPermissionControl } from 'containers/WithPermissionControl/WithPerm
 import { AlertReceiveChannel } from 'models/alert_receive_channel/alert_receive_channel.types';
 import { MaintenanceType } from 'models/maintenance/maintenance.types';
 import { useStore } from 'state/useStore';
-import { UserAction } from 'state/userAction';
 import { showApiError } from 'utils';
+import { UserActions } from 'utils/authorization';
 
 import { form } from './MaintenanceForm.config';
 
@@ -65,7 +65,7 @@ const MaintenanceForm = observer((props: MaintenanceFormProps) => {
       <div className={cx('content')}>
         <VerticalGroup>
           <GForm form={form} data={initialData} onSubmit={handleSubmit} />
-          <WithPermissionControl userAction={UserAction.UpdateMaintenances}>
+          <WithPermissionControl userAction={UserActions.MaintenanceWrite}>
             <Button form={form.name} type="submit">
               Start
             </Button>

@@ -1,7 +1,6 @@
-version: "3.8"
+version: "3.9"
 
-x-environment:
-  &oncall-environment
+x-environment: &oncall-environment
   BASE_URL: $DOMAIN
   SECRET_KEY: $SECRET_KEY
   RABBITMQ_USERNAME: "rabbitmq"
@@ -21,6 +20,7 @@ x-environment:
   CELERY_WORKER_MAX_TASKS_PER_CHILD: "100"
   CELERY_WORKER_SHUTDOWN_INTERVAL: "65m"
   CELERY_WORKER_BEAT_ENABLED: "True"
+  GRAFANA_API_URL: http://grafana:3000
 
 services:
   engine:
@@ -82,14 +82,14 @@ services:
       resources:
         limits:
           memory: 500m
-          cpus: '0.5'
+          cpus: "0.5"
     healthcheck:
       test: "mysql -uroot -p$MYSQL_PASSWORD oncall_hobby -e 'select 1'"
       timeout: 20s
       retries: 10
 
   redis:
-    image: redis
+    image: redis:7.0.5
     restart: always
     expose:
       - 6379
@@ -97,7 +97,7 @@ services:
       resources:
         limits:
           memory: 100m
-          cpus: '0.1'
+          cpus: "0.1"
 
   rabbitmq:
     image: "rabbitmq:3.7.15-management"
@@ -113,7 +113,7 @@ services:
       resources:
         limits:
           memory: 1000m
-          cpus: '0.5'
+          cpus: "0.5"
     healthcheck:
       test: rabbitmq-diagnostics -q ping
       interval: 30s
@@ -131,7 +131,7 @@ services:
       - with_grafana
 
   grafana:
-    image: "grafana/grafana:9.0.0-beta3"
+    image: "grafana/grafana:${GRAFANA_VERSION:-latest}"
     restart: always
     ports:
       - "3000:3000"
@@ -148,7 +148,7 @@ services:
       resources:
         limits:
           memory: 500m
-          cpus: '0.5'
+          cpus: "0.5"
     depends_on:
       mysql_to_create_grafana_db:
         condition: service_completed_successfully

@@ -6,21 +6,20 @@ from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.test import APIClient
 
-from common.constants.role import Role
+from apps.api.permissions import LegacyAccessControlRole
 
 
 @pytest.mark.django_db
 @pytest.mark.parametrize(
     "role,expected_status",
     [
-        (Role.ADMIN, status.HTTP_200_OK),
-        (Role.EDITOR, status.HTTP_403_FORBIDDEN),
-        (Role.VIEWER, status.HTTP_403_FORBIDDEN),
+        (LegacyAccessControlRole.ADMIN, status.HTTP_200_OK),
+        (LegacyAccessControlRole.EDITOR, status.HTTP_403_FORBIDDEN),
+        (LegacyAccessControlRole.VIEWER, status.HTTP_403_FORBIDDEN),
     ],
 )
 def test_channel_filter_create_permissions(
     make_organization_and_user_with_plugin_token,
-    make_alert_receive_channel,
     make_user_auth_headers,
     role,
     expected_status,
@@ -45,9 +44,9 @@ def test_channel_filter_create_permissions(
 @pytest.mark.parametrize(
     "role,expected_status",
     [
-        (Role.ADMIN, status.HTTP_200_OK),
-        (Role.EDITOR, status.HTTP_403_FORBIDDEN),
-        (Role.VIEWER, status.HTTP_403_FORBIDDEN),
+        (LegacyAccessControlRole.ADMIN, status.HTTP_200_OK),
+        (LegacyAccessControlRole.EDITOR, status.HTTP_403_FORBIDDEN),
+        (LegacyAccessControlRole.VIEWER, status.HTTP_403_FORBIDDEN),
     ],
 )
 def test_channel_filter_update_permissions(
@@ -83,7 +82,11 @@ def test_channel_filter_update_permissions(
 @pytest.mark.django_db
 @pytest.mark.parametrize(
     "role,expected_status",
-    [(Role.ADMIN, status.HTTP_200_OK), (Role.EDITOR, status.HTTP_200_OK), (Role.VIEWER, status.HTTP_200_OK)],
+    [
+        (LegacyAccessControlRole.ADMIN, status.HTTP_200_OK),
+        (LegacyAccessControlRole.EDITOR, status.HTTP_200_OK),
+        (LegacyAccessControlRole.VIEWER, status.HTTP_200_OK),
+    ],
 )
 def test_channel_filter_list_permissions(
     make_organization_and_user_with_plugin_token,
@@ -114,7 +117,11 @@ def test_channel_filter_list_permissions(
 @pytest.mark.django_db
 @pytest.mark.parametrize(
     "role,expected_status",
-    [(Role.ADMIN, status.HTTP_200_OK), (Role.EDITOR, status.HTTP_200_OK), (Role.VIEWER, status.HTTP_200_OK)],
+    [
+        (LegacyAccessControlRole.ADMIN, status.HTTP_200_OK),
+        (LegacyAccessControlRole.EDITOR, status.HTTP_200_OK),
+        (LegacyAccessControlRole.VIEWER, status.HTTP_200_OK),
+    ],
 )
 def test_channel_filter_retrieve_permissions(
     make_organization_and_user_with_plugin_token,
@@ -146,9 +153,9 @@ def test_channel_filter_retrieve_permissions(
 @pytest.mark.parametrize(
     "role,expected_status",
     [
-        (Role.ADMIN, status.HTTP_204_NO_CONTENT),
-        (Role.EDITOR, status.HTTP_403_FORBIDDEN),
-        (Role.VIEWER, status.HTTP_403_FORBIDDEN),
+        (LegacyAccessControlRole.ADMIN, status.HTTP_204_NO_CONTENT),
+        (LegacyAccessControlRole.EDITOR, status.HTTP_403_FORBIDDEN),
+        (LegacyAccessControlRole.VIEWER, status.HTTP_403_FORBIDDEN),
     ],
 )
 def test_channel_filter_delete_permissions(
@@ -181,9 +188,9 @@ def test_channel_filter_delete_permissions(
 @pytest.mark.parametrize(
     "role,expected_status",
     [
-        (Role.ADMIN, status.HTTP_200_OK),
-        (Role.EDITOR, status.HTTP_403_FORBIDDEN),
-        (Role.VIEWER, status.HTTP_403_FORBIDDEN),
+        (LegacyAccessControlRole.ADMIN, status.HTTP_200_OK),
+        (LegacyAccessControlRole.EDITOR, status.HTTP_403_FORBIDDEN),
+        (LegacyAccessControlRole.VIEWER, status.HTTP_403_FORBIDDEN),
     ],
 )
 def test_channel_filter_move_to_position_permissions(
@@ -216,9 +223,9 @@ def test_channel_filter_move_to_position_permissions(
 @pytest.mark.parametrize(
     "role,expected_status",
     [
-        (Role.ADMIN, status.HTTP_200_OK),
-        (Role.EDITOR, status.HTTP_200_OK),
-        (Role.VIEWER, status.HTTP_403_FORBIDDEN),
+        (LegacyAccessControlRole.ADMIN, status.HTTP_200_OK),
+        (LegacyAccessControlRole.EDITOR, status.HTTP_200_OK),
+        (LegacyAccessControlRole.VIEWER, status.HTTP_403_FORBIDDEN),
     ],
 )
 def test_alert_receive_channel_send_demo_alert_permissions(

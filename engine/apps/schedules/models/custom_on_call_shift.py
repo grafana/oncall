@@ -121,6 +121,7 @@ class CustomOnCallShift(models.Model):
         SATURDAY: "SA",
         SUNDAY: "SU",
     }
+    ICAL_WEEKDAY_REVERSE_MAP = {v: k for k, v in ICAL_WEEKDAY_MAP.items()}
 
     WEB_WEEKDAY_MAP = {
         "MO": "Monday",
@@ -321,8 +322,10 @@ class CustomOnCallShift(models.Model):
             if all_rotations_checked:
                 break
 
-        # number of weeks used to cover all combinations
-        week_interval = ((last_start - orig_start).days // 7) or 1
+        week_interval = 1
+        if orig_start and last_start:
+            # number of weeks used to cover all combinations
+            week_interval = ((last_start - orig_start).days // 7) or 1
         counter = 1
         for ((user_group_id, day, _), start) in zip(combinations, starting_dates):
             users = users_queue[user_group_id]
@@ -365,6 +368,14 @@ class CustomOnCallShift(models.Model):
             else:
                 start = self.get_rotation_date(event_ical)
 
+            # Make sure we respect the selected days if any when defining start date
+            if self.frequency is not None and self.by_day and start is not None:
+                start_day = CustomOnCallShift.ICAL_WEEKDAY_MAP[start.weekday()]
+                if start_day not in self.by_day:
+                    expected_start_day = min(CustomOnCallShift.ICAL_WEEKDAY_REVERSE_MAP[d] for d in self.by_day)
+                    delta = (expected_start_day - start.weekday()) % 7
+                    start = start + timezone.timedelta(days=delta)
+
             if self.frequency == CustomOnCallShift.FREQUENCY_DAILY and self.by_day:
                 result = self._daily_by_day_to_ical(time_zone, start, users_queue)
                 all_rotation_checked = True
@@ -401,7 +412,10 @@ class CustomOnCallShift(models.Model):
         if user:
             event.add("summary", self.get_summary_with_user_for_ical(user))
         event.add("dtstart", self.convert_dt_to_schedule_timezone(start, time_zone))
-        event.add("dtend", self.convert_dt_to_schedule_timezone(start + self.duration, time_zone))
+        dtend = start + self.duration
+        if self.until:
+            dtend = min(dtend, self.until)
+        event.add("dtend", self.convert_dt_to_schedule_timezone(dtend, time_zone))
         event.add("dtstamp", self.rotation_start)
         if custom_rrule:
             event.add("rrule", custom_rrule)

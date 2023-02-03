@@ -104,6 +104,7 @@ The above command returns JSON structured in the following way:
 
 The following available filter parameters should be provided as `GET` arguments:
 
+- `id`
 - `alert_group_id`
 - `search`—string-based inclusion search by alert payload
 
