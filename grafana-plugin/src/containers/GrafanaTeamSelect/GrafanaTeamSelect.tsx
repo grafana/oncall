@@ -5,7 +5,6 @@ import cn from 'classnames/bind';
 import { observer } from 'mobx-react';
 import ReactDOM from 'react-dom';
 
-import PluginLink from 'components/PluginLink/PluginLink';
 import GSelect from 'containers/GSelect/GSelect';
 import { WithPermissionControl } from 'containers/WithPermissionControl/WithPermissionControl';
 import { GrafanaTeam } from 'models/grafana_team/grafana_team.types';
@@ -17,14 +16,9 @@ import styles from './GrafanaTeamSelect.module.scss';
 
 const cx = cn.bind(styles);
 
-interface GrafanaTeamSelectProps {
-  currentPage: string;
-}
-
-const GrafanaTeamSelect = observer((props: GrafanaTeamSelectProps) => {
+const GrafanaTeamSelect = observer(() => {
   const store = useStore();
 
-  const { currentPage } = props;
   const { userStore, grafanaTeamStore } = store;
   const grafanaTeams = grafanaTeamStore.getSearchResult();
   const user = userStore.currentUser;
@@ -36,31 +30,24 @@ const GrafanaTeamSelect = observer((props: GrafanaTeamSelectProps) => {
   const onTeamChange = async (teamId: GrafanaTeam['id']) => {
     await userStore.updateCurrentUser({ current_team: teamId });
 
-    const queryParams = new URLSearchParams();
-    queryParams.set('page', mapCurrentPage());
-    window.location.search = queryParams.toString();
-
-    function mapCurrentPage() {
-      if (currentPage === 'incident') {
-        return 'incidents';
-      }
-      return currentPage;
-    }
+    window.location.reload();
   };
 
   const content = (
-    <div className={cx('teamSelect', { 'teamSelect--topRight': isTopNavbar() })}>
+    <div className={cx('teamSelect')}>
       <div className={cx('teamSelectLabel')}>
         <Label>
-          Select Team{' '}
-          <Tooltip content="The objects on this page are filtered by team and you can only view the objects that belong to your team. Note that filtering within Grafana OnCall is meant for usability, not access management.">
-            <Icon name="info-circle" size="md" className={cx('teamSelectInfo')}></Icon>
-          </Tooltip>
+          <span className={cx('teamSelectText')}>
+            Select Team{''}
+            <Tooltip content="The objects on this page are filtered by team and you can only view the objects that belong to your team. Note that filtering within Grafana OnCall is meant for usability, not access management.">
+              <Icon name="info-circle" size="md" className={cx('teamSelectInfo')}></Icon>
+            </Tooltip>
+          </span>
         </Label>
         <WithPermissionControl userAction={UserActions.TeamsWrite}>
-          <PluginLink path="/org/teams" className={cx('teamSelectLink')}>
+          <a href="/org/teams" className={cx('teamSelectLink')}>
             Edit teams
-          </PluginLink>
+          </a>
         </WithPermissionControl>
       </div>
       <GSelect

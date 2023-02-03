@@ -21,7 +21,7 @@ const SlackConnector = (props: SlackConnectorProps) => {
   const store = useStore();
 
   const handleClickConfirmMobileAppButton = useCallback(() => {
-    onTabChange(UserSettingsTab.MobileAppVerification);
+    onTabChange(UserSettingsTab.MobileAppConnection);
   }, [onTabChange]);
 
   if (!store.hasFeature(AppFeature.MobileApp)) {

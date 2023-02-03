@@ -182,6 +182,6 @@ def test_actions_keyboard_silenced(
 @pytest.mark.django_db
 def test_link_to_channel_keyboard():
     keyboard = TelegramKeyboardRenderer.render_link_to_channel_keyboard(link="http://test.com")
-    expected_keyboard = [[InlineKeyboardButton(text="Go to the incident", url="http://test.com")]]
+    expected_keyboard = [[InlineKeyboardButton(text="Go to the alert group", url="http://test.com")]]
 
     assert are_keyboards_equal(keyboard.inline_keyboard, expected_keyboard) is True

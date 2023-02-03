@@ -1,8 +1,8 @@
 import { getBackendSrv } from '@grafana/runtime';
-import axios from 'axios';
 import { OnCallAppPluginMeta, OnCallPluginMetaJSONData, OnCallPluginMetaSecureJSONData } from 'types';
 
-import { makeRequest } from 'network';
+import { makeRequest, isNetworkError } from 'network';
+import FaroHelper from 'utils/faro';
 
 export type UpdateGrafanaPluginSettingsProps = {
   jsonData?: Partial<OnCallPluginMetaJSONData>;
@@ -75,7 +75,7 @@ class PluginState {
     );
     const consoleMsg = `occured while trying to ${installationVerb} the plugin w/ the OnCall backend`;
 
-    if (axios.isAxiosError(e)) {
+    if (isNetworkError(e)) {
       const { status: statusCode } = e.response;
 
       console.warn(`An HTTP related error ${consoleMsg}`, e.response);
@@ -99,7 +99,7 @@ class PluginState {
         errorMsg = unknownErrorMsg;
       }
     } else {
-      // a non-axios related error occured.. this scenario shouldn't occur...
+      // a non-network related error occured.. this scenario shouldn't occur...
       console.warn(`An unknown error ${consoleMsg}`, e);
       errorMsg = unknownErrorMsg;
     }
@@ -114,12 +114,12 @@ class PluginState {
   ): string => {
     let errorMsg: string;
 
-    if (axios.isAxiosError(e)) {
+    if (isNetworkError(e)) {
       // The user likely put in a bogus URL for the OnCall API URL
       console.warn('An HTTP related error occured while trying to provision the plugin w/ Grafana', e.response);
       errorMsg = this.generateInvalidOnCallApiURLErrorMsg(onCallApiUrl, onCallApiUrlIsConfiguredThroughEnvVar);
     } else {
-      // a non-axios related error occured.. this scenario shouldn't occur...
+      // a non-network related error occured.. this scenario shouldn't occur...
       console.warn('An unknown error occured while trying to provision the plugin w/ Grafana', e);
       errorMsg = this.generateUnknownErrorMsg(onCallApiUrl, installationVerb, onCallApiUrlIsConfiguredThroughEnvVar);
     }
@@ -201,10 +201,13 @@ class PluginState {
   ): Promise<PluginSyncStatusResponse | string> => {
     try {
       const startSyncResponse = await makeRequest(`${this.ONCALL_BASE_URL}/sync`, { method: 'POST' });
-
       if (typeof startSyncResponse === 'string') {
         // an error occured trying to initiate the sync
         return startSyncResponse;
+      }
+
+      if (!FaroHelper.faro) {
+        FaroHelper.initializeFaro(onCallApiUrl);
       }
 
       return await this.pollOnCallDataSyncStatus(onCallApiUrl, onCallApiUrlIsConfiguredThroughEnvVar);

@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 
-import { Field, HorizontalGroup, LoadingPlaceholder, VerticalGroup, Icon, Button } from '@grafana/ui';
+import { Alert, Field, HorizontalGroup, LoadingPlaceholder, VerticalGroup, Icon, Button } from '@grafana/ui';
 import cn from 'classnames/bind';
 import { observer } from 'mobx-react';
 
@@ -18,6 +18,7 @@ import { AppFeature } from 'state/features';
 import { WithStoreProps } from 'state/types';
 import { withMobXProviderContext } from 'state/withStore';
 import { UserActions } from 'utils/authorization';
+import { DOCS_SLACK_SETUP } from 'utils/consts';
 
 import styles from './SlackSettings.module.css';
 
@@ -123,8 +124,30 @@ class SlackSettings extends Component<SlackProps, SlackState> {
                 </WithPermissionControl>
               </Field>
             </HorizontalGroup>
-            <WithPermissionControl userAction={UserActions.ChatOpsWrite}>
-              <WithConfirm title="Are you sure to delete this Slack Integration?">
+            <WithPermissionControl userAction={UserActions.ChatOpsUpdateSettings}>
+              <WithConfirm
+                title="Remove Slack Integration for all of OnCall"
+                description={
+                  <Alert severity="error" title="WARNING">
+                    <p>Are you sure to delete this Slack Integration?</p>
+                    <p>
+                      Removing the integration will also irreverisbly remove the following data for your OnCall plugin:
+                    </p>
+                    <ul style={{ marginLeft: '20px' }}>
+                      <li>default organization Slack channel</li>
+                      <li>default Slack channels for OnCall Integrations</li>
+                      <li>Slack channels & Slack user groups for OnCall Schedules</li>
+                      <li>linked Slack usernames for OnCall Users</li>
+                    </ul>
+                    <br />
+                    <p>
+                      If you would like to instead remove your linked Slack username, please head{' '}
+                      <PluginLink query={{ page: 'users/me' }}>here</PluginLink>.
+                    </p>
+                  </Alert>
+                }
+                confirmationText="DELETE"
+              >
                 <Button variant="destructive" size="sm" onClick={() => this.removeSlackIntegration()}>
                   Disconnect
                 </Button>
@@ -188,16 +211,6 @@ class SlackSettings extends Component<SlackProps, SlackState> {
     );
   };
 
-  renderActionButtons = () => {
-    <WithPermissionControl userAction={UserActions.ChatOpsUpdateSettings}>
-      <WithConfirm title="Are you sure to delete this Slack Integration?">
-        <Button variant="destructive" size="sm" onClick={() => this.removeSlackIntegration()}>
-          Disconnect
-        </Button>
-      </WithConfirm>
-    </WithPermissionControl>;
-  };
-
   removeSlackIntegration = () => {
     const { store } = this.props;
     store.slackStore.removeSlackIntegration().then(() => {
@@ -246,7 +259,7 @@ class SlackSettings extends Component<SlackProps, SlackState> {
             {isLiveSettingAvailable && (
               <Text type="secondary" className={cx('infoblock-text')}>
                 For bot creating instructions and additional information please read{' '}
-                <a href="https://grafana.com/docs/grafana-cloud/oncall/open-source/#slack-setup">
+                <a href={DOCS_SLACK_SETUP} target="_blank" rel="noreferrer">
                   <Text type="link">our documentation</Text>
                 </a>
               </Text>

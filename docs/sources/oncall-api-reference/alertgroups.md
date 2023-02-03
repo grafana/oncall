@@ -44,8 +44,10 @@ The above command returns JSON structured in the following way:
 
 These available filter parameters should be provided as `GET` arguments:
 
+- `id`
 - `route_id`
 - `integration_id`
+- `state`
 
 **HTTP request**
 

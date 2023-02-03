@@ -30,6 +30,14 @@ class GrafanaUserWithPermissions(GrafanaUser):
     permissions: List[GrafanaAPIPermission]
 
 
+class GCOMInstanceInfoConfigFeatureToggles(TypedDict):
+    accessControlOnCall: str
+
+
+class GCOMInstanceInfoConfig(TypedDict):
+    feature_toggles: GCOMInstanceInfoConfigFeatureToggles
+
+
 class GCOMInstanceInfo(TypedDict):
     id: int
     orgId: int
@@ -38,6 +46,7 @@ class GCOMInstanceInfo(TypedDict):
     orgName: str
     url: str
     status: str
+    config: Optional[GCOMInstanceInfoConfig]
 
 
 class APIClient:
@@ -45,16 +54,16 @@ class APIClient:
         self.api_url = api_url
         self.api_token = api_token
 
-    def api_head(self, endpoint: str, body: dict = None) -> Tuple[Optional[Response], dict]:
-        return self.call_api(endpoint, requests.head, body)
+    def api_head(self, endpoint: str, body: dict = None, **kwargs) -> Tuple[Optional[Response], dict]:
+        return self.call_api(endpoint, requests.head, body, **kwargs)
 
-    def api_get(self, endpoint: str) -> Tuple[Optional[Response], dict]:
-        return self.call_api(endpoint, requests.get)
+    def api_get(self, endpoint: str, **kwargs) -> Tuple[Optional[Response], dict]:
+        return self.call_api(endpoint, requests.get, **kwargs)
 
-    def api_post(self, endpoint: str, body: dict = None) -> Tuple[Optional[Response], dict]:
-        return self.call_api(endpoint, requests.post, body)
+    def api_post(self, endpoint: str, body: dict = None, **kwargs) -> Tuple[Optional[Response], dict]:
+        return self.call_api(endpoint, requests.post, body, **kwargs)
 
-    def call_api(self, endpoint: str, http_method, body: dict = None) -> Tuple[Optional[Response], dict]:
+    def call_api(self, endpoint: str, http_method, body: dict = None, **kwargs) -> Tuple[Optional[Response], dict]:
         request_start = time.perf_counter()
         call_status = {
             "url": urljoin(self.api_url, endpoint),
@@ -63,7 +72,7 @@ class APIClient:
             "message": "",
         }
         try:
-            response = http_method(call_status["url"], json=body, headers=self.request_headers)
+            response = http_method(call_status["url"], json=body, headers=self.request_headers, **kwargs)
             call_status["status_code"] = response.status_code
             response.raise_for_status()
 
@@ -73,11 +82,14 @@ class APIClient:
             if response.status_code == status.HTTP_204_NO_CONTENT:
                 return {}, call_status
 
-            return response.json(), call_status
+            # ex. a HEAD call (self.api_head) would have a response.content of b''
+            # and hence calling response.json() throws a json.JSONDecodeError
+            return response.json() if response.content else None, call_status
         except (
             requests.exceptions.ConnectionError,
             requests.exceptions.HTTPError,
             requests.exceptions.TooManyRedirects,
+            requests.exceptions.Timeout,
             json.JSONDecodeError,
         ) as e:
             logger.warning("Error connecting to api instance " + str(e))
@@ -142,8 +154,8 @@ class GrafanaAPIClient(APIClient):
         _, resp_status = self.api_head(self.USER_PERMISSION_ENDPOINT)
         return resp_status["status_code"] == status.HTTP_200_OK
 
-    def get_users(self, rbac_is_enabled_for_org: bool) -> List[GrafanaUserWithPermissions]:
-        users, _ = self.api_get("api/org/users")
+    def get_users(self, rbac_is_enabled_for_org: bool, **kwargs) -> List[GrafanaUserWithPermissions]:
+        users, _ = self.api_get("api/org/users", **kwargs)
 
         if not users:
             return []
@@ -155,8 +167,8 @@ class GrafanaAPIClient(APIClient):
             user["permissions"] = user_permissions.get(str(user["userId"]), [])
         return users
 
-    def get_teams(self):
-        return self.api_get("api/teams/search?perpage=1000000")
+    def get_teams(self, **kwargs):
+        return self.api_get("api/teams/search?perpage=1000000", **kwargs)
 
     def get_team_members(self, team_id):
         return self.api_get(f"api/teams/{team_id}/members")
@@ -180,6 +192,9 @@ class GrafanaAPIClient(APIClient):
     def update_alerting_config(self, recipient, config):
         return self.api_post(f"api/alertmanager/{recipient}/config/api/v1/alerts", config)
 
+    def get_grafana_plugin_settings(self, recipient):
+        return self.api_get(f"api/plugins/{recipient}/settings")
+
 
 class GcomAPIClient(APIClient):
     ACTIVE_INSTANCE_QUERY = "instances?status=active"
@@ -190,9 +205,25 @@ class GcomAPIClient(APIClient):
     def __init__(self, api_token: str):
         super().__init__(settings.GRAFANA_COM_API_URL, api_token)
 
-    def get_instance_info(self, stack_id: str) -> Optional[GCOMInstanceInfo]:
-        data, _ = self.api_get(f"instances/{stack_id}")
+    def get_instance_info(self, stack_id: str, include_config_query_param: bool = False) -> Optional[GCOMInstanceInfo]:
+        """
+        NOTE: in order to use ?config=true, an "Admin" GCOM token must be used to make the API call
+        """
+        url = f"instances/{stack_id}"
+        if include_config_query_param:
+            url += "?config=true"
+
+        data, _ = self.api_get(url)
         return data
+
+    def is_rbac_enabled_for_stack(self, stack_id: str) -> bool:
+        """
+        NOTE: must use an "Admin" GCOM token when calling this method
+        """
+        instance_info = self.get_instance_info(stack_id, True)
+        if not instance_info:
+            return False
+        return instance_info.get("config", {}).get("feature_toggles", {}).get("accessControlOnCall", "false") == "true"
 
     def get_instances(self, query: str):
         return self.api_get(query)
