@@ -1,6 +1,5 @@
 import React, { FC } from 'react';
 
-import { Button, VerticalGroup } from '@grafana/ui';
 import cn from 'classnames/bind';
 
 import Block from 'components/GBlock/Block';
@@ -13,7 +12,6 @@ import scheduleIcon from './icons/calendar-icon.svg';
 import chatIcon from './icons/chat-icon.svg';
 import escalationIcon from './icons/escalation-icon.svg';
 import integrationsIcon from './icons/integration-icon.svg';
-import arrowIcon from './icons/long-arrow.svg';
 
 import styles from './Tutorial.module.css';
 

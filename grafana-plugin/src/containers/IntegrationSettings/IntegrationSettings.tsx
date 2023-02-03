@@ -1,17 +1,6 @@
 import React, { useCallback, useEffect, useState } from 'react';
 
-import { getLocationSrv, setLocationSrv } from '@grafana/runtime';
-import {
-  Drawer,
-  Tab,
-  TabContent,
-  TabsBar,
-  IconButton,
-  Button,
-  HorizontalGroup,
-  VerticalGroup,
-  Input,
-} from '@grafana/ui';
+import { Drawer, Tab, TabContent, TabsBar, Button, VerticalGroup, Input } from '@grafana/ui';
 import cn from 'classnames/bind';
 import { observer } from 'mobx-react';
 import CopyToClipboard from 'react-copy-to-clipboard';
@@ -21,16 +10,14 @@ import IntegrationLogo from 'components/IntegrationLogo/IntegrationLogo';
 import Text from 'components/Text/Text';
 import AlertTemplatesFormContainer from 'containers/AlertTemplatesFormContainer/AlertTemplatesFormContainer';
 import HeartbeatForm from 'containers/HeartbeatModal/HeartbeatForm';
-import { UserSettingsTab } from 'containers/UserSettings/UserSettings.types';
 import { AlertReceiveChannel } from 'models/alert_receive_channel/alert_receive_channel.types';
 import { Alert } from 'models/alertgroup/alertgroup.types';
-import { SelectOption } from 'state/types';
 import { useStore } from 'state/useStore';
 import { openNotification } from 'utils';
+import LocationHelper from 'utils/LocationHelper';
 
 import { IntegrationSettingsTab } from './IntegrationSettings.types';
 import Autoresolve from './parts/Autoresolve';
-import LiveLogs from './parts/LiveLogs';
 
 import styles from 'containers/IntegrationSettings/IntegrationSettings.module.css';
 
@@ -59,7 +46,7 @@ const IntegrationSettings = observer((props: IntegrationSettingsProps) => {
   const getTabClickHandler = useCallback((tab: IntegrationSettingsTab) => {
     return () => {
       setActiveTab(tab);
-      getLocationSrv().update({ partial: true, query: { tab: tab } });
+      LocationHelper.update({ tab }, 'partial');
     };
   }, []);
 
@@ -67,14 +54,9 @@ const IntegrationSettings = observer((props: IntegrationSettingsProps) => {
     alertReceiveChannelStore.updateItem(id);
   }, []);
 
-  useEffect(() => {
-    setActiveTab(startTab || IntegrationSettingsTab.Templates);
-    getLocationSrv().update({ partial: true, query: { tab: startTab || IntegrationSettingsTab.Templates } });
-  }, [startTab]);
-
   const integration = alertReceiveChannelStore.getIntegration(alertReceiveChannel);
 
-  const [expanded, setExpanded] = useState(false);
+  const [expanded, _setExpanded] = useState(false);
 
   const handleSwitchToTemplate = (templateName: string) => {
     setSelectedTemplate(templateName);
@@ -85,34 +67,17 @@ const IntegrationSettings = observer((props: IntegrationSettingsProps) => {
       scrollableContent
       expandable
       title={
-        <>
-          {/*<div className={cx('settings-header-buttons')}>
-            <IconButton // OMG it blocks 'how to' instructions text selection to copy
-              name={expanded ? 'angle-right' : 'angle-left'}
-              size="xl"
-              surface="header"
-              onClick={() => {
-                if (expanded) {
-                  setExpanded(false);
-                } else {
-                  setExpanded(true);
-                }
-              }}
-            />
-            <IconButton name="times" size="xl" surface="header" onClick={onHide} />
-          </div>*/}
-          <div className={cx('title')}>
-            {integration && <IntegrationLogo integration={integration} scale={0.2} />}
-            <div className={cx('title-column')}>
-              {alertReceiveChannel && (
-                <Text.Title level={4}>
-                  <Emoji text={alertReceiveChannel.verbal_name} /> settings
-                </Text.Title>
-              )}
-              {integration && <Text type="secondary">Type: {integration.display_name}</Text>}
-            </div>
+        <div className={cx('title')}>
+          {integration && <IntegrationLogo integration={integration} scale={0.2} />}
+          <div className={cx('title-column')}>
+            {alertReceiveChannel && (
+              <Text.Title level={4}>
+                <Emoji text={alertReceiveChannel.verbal_name} /> settings
+              </Text.Title>
+            )}
+            {integration && <Text type="secondary">Type: {integration.display_name}</Text>}
           </div>
-        </>
+        </div>
       }
       width={expanded ? '100%' : '70%'}
       onClose={onHide}
@@ -144,14 +109,6 @@ const IntegrationSettings = observer((props: IntegrationSettingsProps) => {
           key={IntegrationSettingsTab.Autoresolve}
           onChangeTab={getTabClickHandler(IntegrationSettingsTab.Autoresolve)}
         />
-
-        {/* Removed untill backend is ready 
-        <Tab
-          active={activeTab === IntegrationSettingsTab.LiveLogs}
-          label="Live Logs"
-          key={IntegrationSettingsTab.LiveLogs}
-          onChangeTab={getTabClickHandler(IntegrationSettingsTab.LiveLogs)}
-        /> */}
       </TabsBar>
       <TabContent className={cx('content')}>
         {activeTab === IntegrationSettingsTab.Templates && (
@@ -176,7 +133,6 @@ const IntegrationSettings = observer((props: IntegrationSettingsProps) => {
             alertGroupId={alertGroupId}
           />
         )}
-        {/*{activeTab === IntegrationSettingsTab.LiveLogs && <LiveLogs alertReceiveChannelId={id} />}*/}
         {activeTab === IntegrationSettingsTab.HowToConnect && (
           <div className="container">
             <VerticalGroup>

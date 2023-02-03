@@ -1,4 +1,4 @@
-import React, { FC, useState, useCallback, useMemo, ChangeEvent } from 'react';
+import React, { FC, useCallback, useMemo, ChangeEvent } from 'react';
 
 import { Pagination, Checkbox, Icon } from '@grafana/ui';
 import cn from 'classnames/bind';
@@ -96,7 +96,7 @@ const GTable: FC<Props> = (props) => {
 
   const handleMasterCheckboxChange = useCallback(
     (event: ChangeEvent<HTMLInputElement>) => {
-      const { selectedRowKeys, onChange } = rowSelection;
+      const { onChange } = rowSelection;
       if (event.target.checked) {
         const newRowSelection = data.map((item: any) => item[rowKey as string]);
         onChange(newRowSelection);

@@ -101,9 +101,11 @@ CELERY_TASK_ROUTES = {
     "apps.alerts.tasks.unsilence.unsilence_task": {"queue": "critical"},
     "apps.base.tasks.process_failed_to_invoke_celery_tasks": {"queue": "critical"},
     "apps.base.tasks.process_failed_to_invoke_celery_tasks_batch": {"queue": "critical"},
+    "apps.email.tasks.notify_user_async": {"queue": "critical"},
     "apps.integrations.tasks.create_alert": {"queue": "critical"},
     "apps.integrations.tasks.create_alertmanager_alerts": {"queue": "critical"},
     "apps.integrations.tasks.start_notify_about_integration_ratelimit": {"queue": "critical"},
+    "apps.mobile_app.tasks.notify_user_async": {"queue": "critical"},
     "apps.schedules.tasks.drop_cached_ical.drop_cached_ical_for_custom_events_for_organization": {"queue": "critical"},
     "apps.schedules.tasks.drop_cached_ical.drop_cached_ical_task": {"queue": "critical"},
     # LONG
@@ -141,10 +143,11 @@ CELERY_TASK_ROUTES = {
     "apps.telegram.tasks.edit_message": {"queue": "telegram"},
     "apps.telegram.tasks.on_create_alert_telegram_representative_async": {"queue": "telegram"},
     "apps.telegram.tasks.register_telegram_webhook": {"queue": "telegram"},
-    "apps.telegram.tasks.send_link_to_channel_message_or_fallback_to_full_incident": {"queue": "telegram"},
+    "apps.telegram.tasks.send_link_to_channel_message_or_fallback_to_full_alert_group": {"queue": "telegram"},
     "apps.telegram.tasks.send_log_and_actions_message": {"queue": "telegram"},
     # WEBHOOK
     "apps.alerts.tasks.custom_button_result.custom_button_result": {"queue": "webhook"},
+    "apps.mobile_app.fcm_relay.fcm_relay_async": {"queue": "webhook"},
 }
 
 REST_FRAMEWORK = {

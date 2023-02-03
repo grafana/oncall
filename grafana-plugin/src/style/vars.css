@@ -14,6 +14,7 @@
   --gradient-brandHorizontal: linear-gradient(90deg, #f83 0%, #f53e4c 100%);
   --gradient-brandVertical: linear-gradient(0.01deg, #f53e4c -31.2%, #f83 113.07%);
   --always-gray: #ccccdc;
+  --title-marginBottom: 16px;
 }
 
 .theme-light {
@@ -33,6 +34,7 @@
   --timeline-icon-background: rgba(70, 76, 84, 0);
   --timeline-icon-background-resolution-note: rgba(50, 116, 217, 0);
   --oncall-icon-stroke-color: #fff;
+  --hover-selected: #f4f5f5;
   --background-canvas: #f4f5f5;
   --background-primary: #fff;
   --background-secondary: #f4f5f5;
@@ -63,7 +65,6 @@
   --focused-box-shadow: rgb(17 18 23) 0 0 0 2px, rgb(61 113 217) 0 0 0 4px;
   --hover-selected: rgba(204, 204, 220, 0.12);
   --hover-selected-hardcoded: #34363d;
-  --secondary-background-shade: rgba(204, 204, 220, 0.2);
   --oncall-icon-stroke-color: #181b1f;
   --background-canvas: #111217;
   --background-primary: #181b1f;

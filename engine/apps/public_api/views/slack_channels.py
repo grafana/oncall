@@ -23,7 +23,8 @@ class SlackChannelView(RateLimitHeadersMixin, mixins.ListModelMixin, GenericView
         channel_name = self.request.query_params.get("channel_name", None)
 
         queryset = SlackChannel.objects.filter(
-            slack_team_identity__organizations=self.request.auth.organization
+            slack_team_identity__organizations=self.request.auth.organization,
+            is_archived=False,
         ).distinct()
 
         if channel_name:

@@ -1,6 +1,6 @@
-import React, { useCallback, useEffect, useMemo } from 'react';
+import React, { useCallback, useMemo } from 'react';
 
-import { VerticalGroup, HorizontalGroup, IconButton, Field, Input } from '@grafana/ui';
+import { VerticalGroup, HorizontalGroup, IconButton } from '@grafana/ui';
 import { arrayMoveImmutable } from 'array-move';
 import cn from 'classnames/bind';
 import { SortableContainer, SortableElement, SortableHandle } from 'react-sortable-hoc';
@@ -8,6 +8,7 @@ import { SortableContainer, SortableElement, SortableHandle } from 'react-sortab
 import Text from 'components/Text/Text';
 import RemoteSelect from 'containers/RemoteSelect/RemoteSelect';
 import { User } from 'models/user/user.types';
+import { UserActions } from 'utils/authorization';
 
 import { fromPlainArray, toPlainArray } from './UserGroups.helpers';
 import { Item } from './UserGroups.types';
@@ -45,7 +46,7 @@ const UserGroups = (props: UserGroupsProps) => {
         k++;
 
         if (k === index) {
-          newGroups[i] = newGroups[i].filter((item, itemIndex) => itemIndex !== j);
+          newGroups[i] = newGroups[i].filter((_item, itemIndex) => itemIndex !== j);
           onChange(newGroups.filter((group) => group.length));
           return;
         }
@@ -109,11 +110,12 @@ const UserGroups = (props: UserGroupsProps) => {
           key={items.length}
           showSearch
           placeholder="Add user"
-          href="/users/?filters=true&roles=0&roles=1"
+          href="/users/?filters=true"
           value={null}
           onChange={handleUserAdd}
           showError={showError}
           maxMenuHeight={150}
+          requiredUserAction={UserActions.UserSettingsWrite}
         />
         <SortableList
           renderItem={renderItem}

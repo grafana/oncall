@@ -11,16 +11,18 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from apps.api.permissions import IsAdmin, MethodPermission
+from apps.api.permissions import RBACPermission
 from apps.auth_token.auth import PluginAuthentication
 from apps.base.utils import live_settings
 from apps.slack.scenarios.alertgroup_appearance import STEPS_ROUTING as ALERTGROUP_APPEARANCE_ROUTING
+
+# Importing routes from scenarios
+from apps.slack.scenarios.declare_incident import STEPS_ROUTING as DECLARE_INCIDENT_ROUTING
 from apps.slack.scenarios.distribute_alerts import STEPS_ROUTING as DISTRIBUTION_STEPS_ROUTING
 from apps.slack.scenarios.invited_to_channel import STEPS_ROUTING as INVITED_TO_CHANNEL_ROUTING
 from apps.slack.scenarios.manual_incident import STEPS_ROUTING as MANUAL_INCIDENT_ROUTING
-
-# Importing routes from scenarios
 from apps.slack.scenarios.onboarding import STEPS_ROUTING as ONBOARDING_STEPS_ROUTING
+from apps.slack.scenarios.paging import STEPS_ROUTING as DIRECT_PAGE_ROUTING
 from apps.slack.scenarios.profile_update import STEPS_ROUTING as PROFILE_UPDATE_ROUTING
 from apps.slack.scenarios.resolution_note import STEPS_ROUTING as RESOLUTION_NOTE_ROUTING
 from apps.slack.scenarios.scenario_step import (
@@ -52,6 +54,7 @@ from apps.slack.slack_client import SlackClientWithErrorHandling
 from apps.slack.slack_client.exceptions import SlackAPIException, SlackAPITokenException
 from apps.slack.tasks import clean_slack_integration_leftovers, unpopulate_slack_user_identities
 from common.insight_log import ChatOpsEvent, ChatOpsType, write_chatops_insight_log
+from common.oncall_gateway import delete_slack_connector_async
 
 from .models import SlackActionRecord, SlackMessage, SlackTeamIdentity, SlackUserIdentity
 
@@ -67,6 +70,8 @@ SCENARIOS_ROUTES.extend(SLACK_USERGROUP_UPDATE_ROUTING)
 SCENARIOS_ROUTES.extend(CHANNEL_ROUTING)
 SCENARIOS_ROUTES.extend(PROFILE_UPDATE_ROUTING)
 SCENARIOS_ROUTES.extend(MANUAL_INCIDENT_ROUTING)
+SCENARIOS_ROUTES.extend(DIRECT_PAGE_ROUTING)
+SCENARIOS_ROUTES.extend(DECLARE_INCIDENT_ROUTING)
 
 logger = logging.getLogger(__name__)
 
@@ -141,6 +146,15 @@ class SlackEventApiEndpointView(APIView):
             payload = request.data
         if isinstance(payload, str):
             payload = json.JSONDecoder().decode(payload)
+
+        logger.info(
+            "team_id: %s channel_id: %s user_id: %s command: %s event: %s",
+            payload.get("team_id"),
+            payload.get("channel_id"),
+            payload.get("user_id"),
+            payload.get("command"),
+            payload.get("event", {}).get("type"),
+        )
 
         # Checking if it's repeated Slack request
         if "HTTP_X_SLACK_RETRY_NUM" in request.META and int(request.META["HTTP_X_SLACK_RETRY_NUM"]) > 1:
@@ -269,6 +283,11 @@ class SlackEventApiEndpointView(APIView):
                 # Open pop-up to inform user why OnCall bot doesn't work if any action was triggered
                 self._open_warning_window_if_needed(payload, slack_team_identity, warning_text)
                 return Response(status=200)
+        elif not slack_user_identity.users.exists():
+            # Means that slack_user_identity doesn't have any connected user
+            # Open pop-up to inform user why OnCall bot doesn't work if any action was triggered
+            self._open_warning_for_unconnected_user(sc, payload)
+            return Response(status=200)
 
         action_record = SlackActionRecord(user=user, organization=organization, payload=payload)
 
@@ -501,8 +520,8 @@ class SlackEventApiEndpointView(APIView):
             return
 
         text = (
-            "Your Grafana account is not connected to your Slack account. :flushed:\n"
-            "That's very easy to fix. Please go to the *Grafana* -> *OnCall* -> *Users*, "
+            "The information in this workspace is read-only. To interact with OnCall alert groups you need to connect a personal account.\n"
+            "Please go to *Grafana* -> *OnCall* -> *Users*, "
             "choose *your profile* and click the *connect* button.\n"
             ":rocket: :rocket: :rocket:"
         )
@@ -527,16 +546,20 @@ class SlackEventApiEndpointView(APIView):
 
 class ResetSlackView(APIView):
 
-    permission_classes = (IsAuthenticated, MethodPermission)
+    permission_classes = (IsAuthenticated, RBACPermission)
     authentication_classes = [PluginAuthentication]
 
-    method_permissions = {IsAdmin: {"POST"}}
+    rbac_permissions = {
+        "post": [RBACPermission.Permissions.CHATOPS_UPDATE_SETTINGS],
+    }
 
     def post(self, request):
         organization = request.auth.organization
         slack_team_identity = organization.slack_team_identity
         if slack_team_identity is not None:
             clean_slack_integration_leftovers.apply_async((organization.pk,))
+            if settings.FEATURE_MULTIREGION_ENABLED:
+                delete_slack_connector_async.apply_async((slack_team_identity.slack_id,))
             write_chatops_insight_log(
                 author=request.user,
                 event_name=ChatOpsEvent.WORKSPACE_DISCONNECTED,

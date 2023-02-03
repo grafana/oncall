@@ -14,7 +14,6 @@ from django.dispatch import receiver
 from django.utils import timezone
 from django.utils.crypto import get_random_string
 from emoji import emojize
-from jinja2 import Template
 
 from apps.alerts.grafana_alerting_sync_manager.grafana_alerting_sync import GrafanaAlertingSyncManager
 from apps.alerts.integration_options_mixin import IntegrationOptionsMixin
@@ -29,6 +28,7 @@ from apps.slack.utils import post_message_to_channel
 from common.api_helpers.utils import create_engine_url
 from common.exceptions import TeamCanNotBeChangedError, UnableToSendDemoAlert
 from common.insight_log import EntityEvent, write_resource_insight_log
+from common.jinja_templater import jinja_template_env
 from common.public_primary_keys import generate_public_primary_key, increase_public_primary_key_length
 
 logger = logging.getLogger(__name__)
@@ -160,6 +160,7 @@ class AlertReceiveChannel(IntegrationOptionsMixin, MaintainableObject):
     web_title_template = models.TextField(null=True, default=None)
     web_message_template = models.TextField(null=True, default=None)
     web_image_url_template = models.TextField(null=True, default=None)
+    web_templates_modified_at = models.DateTimeField(blank=True, null=True)
 
     # email related fields are deprecated in favour of messaging backend based templates
     # these templates are stored in the messaging_backends_templates field
@@ -360,7 +361,7 @@ class AlertReceiveChannel(IntegrationOptionsMixin, MaintainableObject):
     def description(self):
         if self.integration == AlertReceiveChannel.INTEGRATION_GRAFANA_ALERTING:
             contact_points = self.contact_points.all()
-            rendered_description = Template(self.config.description).render(
+            rendered_description = jinja_template_env.from_string(self.config.description).render(
                 is_finished_alerting_setup=self.is_finished_alerting_setup,
                 grafana_alerting_entities=[
                     {

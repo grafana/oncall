@@ -46,12 +46,31 @@ def test_actions_keyboard_alerting(make_organization, make_alert_receive_channel
     keyboard = renderer.render_actions_keyboard()
 
     expected_keyboard = [
-        [InlineKeyboardButton(text="Acknowledge", callback_data=f"{alert_group.pk}:acknowledge")],
-        [InlineKeyboardButton(text="Resolve", callback_data=f"{alert_group.pk}:resolve")],
         [
-            InlineKeyboardButton(text="🔕 forever", callback_data=f"{alert_group.pk}:silence"),
-            InlineKeyboardButton(text="... for 1h", callback_data=f"{alert_group.pk}:silence:3600"),
-            InlineKeyboardButton(text="... for 4h", callback_data=f"{alert_group.pk}:silence:14400"),
+            InlineKeyboardButton(
+                text="Acknowledge",
+                callback_data=f"{alert_group.pk}:0:oncall-uuid{organization.uuid}",
+            )
+        ],
+        [
+            InlineKeyboardButton(
+                text="Resolve",
+                callback_data=f"{alert_group.pk}:2:oncall-uuid{organization.uuid}",
+            )
+        ],
+        [
+            InlineKeyboardButton(
+                text="🔕 forever",
+                callback_data=f"{alert_group.pk}:4:oncall-uuid{organization.uuid}",
+            ),
+            InlineKeyboardButton(
+                text="... for 1h",
+                callback_data=f"{alert_group.pk}:4:3600:oncall-uuid{organization.uuid}",
+            ),
+            InlineKeyboardButton(
+                text="... for 4h",
+                callback_data=f"{alert_group.pk}:4:14400:oncall-uuid{organization.uuid}",
+            ),
         ],
     ]
 
@@ -75,8 +94,18 @@ def test_actions_keyboard_acknowledged(
     keyboard = renderer.render_actions_keyboard()
 
     expected_keyboard = [
-        [InlineKeyboardButton(text="Unacknowledge", callback_data=f"{alert_group.pk}:unacknowledge")],
-        [InlineKeyboardButton(text="Resolve", callback_data=f"{alert_group.pk}:resolve")],
+        [
+            InlineKeyboardButton(
+                text="Unacknowledge",
+                callback_data=f"{alert_group.pk}:1:oncall-uuid{organization.uuid}",
+            )
+        ],
+        [
+            InlineKeyboardButton(
+                text="Resolve",
+                callback_data=f"{alert_group.pk}:2:oncall-uuid{organization.uuid}",
+            )
+        ],
     ]
 
     assert are_keyboards_equal(keyboard.inline_keyboard, expected_keyboard) is True
@@ -99,7 +128,12 @@ def test_actions_keyboard_resolved(
     keyboard = renderer.render_actions_keyboard()
 
     expected_keyboard = [
-        [InlineKeyboardButton(text="Unresolve", callback_data=f"{alert_group.pk}:unresolve")],
+        [
+            InlineKeyboardButton(
+                text="Unresolve",
+                callback_data=f"{alert_group.pk}:3:oncall-uuid{organization.uuid}",
+            )
+        ],
     ]
 
     assert are_keyboards_equal(keyboard.inline_keyboard, expected_keyboard) is True
@@ -122,9 +156,24 @@ def test_actions_keyboard_silenced(
     keyboard = renderer.render_actions_keyboard()
 
     expected_keyboard = [
-        [InlineKeyboardButton(text="Acknowledge", callback_data=f"{alert_group.pk}:acknowledge")],
-        [InlineKeyboardButton(text="Resolve", callback_data=f"{alert_group.pk}:resolve")],
-        [InlineKeyboardButton(text="Unsilence", callback_data=f"{alert_group.pk}:unsilence")],
+        [
+            InlineKeyboardButton(
+                text="Acknowledge",
+                callback_data=f"{alert_group.pk}:0:oncall-uuid{organization.uuid}",
+            )
+        ],
+        [
+            InlineKeyboardButton(
+                text="Resolve",
+                callback_data=f"{alert_group.pk}:2:oncall-uuid{organization.uuid}",
+            )
+        ],
+        [
+            InlineKeyboardButton(
+                text="Unsilence",
+                callback_data=f"{alert_group.pk}:5:oncall-uuid{organization.uuid}",
+            )
+        ],
     ]
 
     assert are_keyboards_equal(keyboard.inline_keyboard, expected_keyboard) is True
@@ -133,6 +182,6 @@ def test_actions_keyboard_silenced(
 @pytest.mark.django_db
 def test_link_to_channel_keyboard():
     keyboard = TelegramKeyboardRenderer.render_link_to_channel_keyboard(link="http://test.com")
-    expected_keyboard = [[InlineKeyboardButton(text="Go to the incident", url="http://test.com")]]
+    expected_keyboard = [[InlineKeyboardButton(text="Go to the alert group", url="http://test.com")]]
 
     assert are_keyboards_equal(keyboard.inline_keyboard, expected_keyboard) is True

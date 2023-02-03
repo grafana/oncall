@@ -1,20 +1,17 @@
 import 'jest/matchMedia.ts';
 import React from 'react';
 
-import { describe, expect, test } from '@jest/globals';
 import { render, fireEvent, screen } from '@testing-library/react';
 
 import Collapse, { CollapseProps } from 'components/Collapse/Collapse';
-
-import '@testing-library/jest-dom';
 
 describe('Collapse', () => {
   function getProps(isOpen: boolean, onClick: jest.Mock = jest.fn()) {
     return {
       label: 'Toggle',
       isOpen: isOpen,
-      onClick: onClick
-    } as CollapseProps
+      onClick: onClick,
+    } as CollapseProps;
   }
 
   test('Content becomes visible on click', () => {
@@ -34,7 +31,7 @@ describe('Collapse', () => {
 
     const content = getChildrenEl();
     expect(content).toBeNull();
-  })
+  });
 
   test('Content is not collapsed for [isOpen=true]', () => {
     render(<Collapse {...getProps(true)} />);

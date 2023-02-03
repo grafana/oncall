@@ -41,7 +41,7 @@ export const fillGaps = (events: Event[]) => {
 export const splitToShiftsAndFillGaps = (events: Event[]) => {
   const shifts: Array<{ shiftId: Shift['id']; priority: Shift['priority_level']; events: Event[] }> = [];
 
-  for (const [i, event] of events.entries()) {
+  for (const [_i, event] of events.entries()) {
     if (event.shift?.pk) {
       let shift = shifts.find((shift) => shift.shiftId === event.shift?.pk);
       if (!shift) {
@@ -62,7 +62,7 @@ export const splitToShiftsAndFillGaps = (events: Event[]) => {
 export const getShiftsFromStore = (
   store: RootStore,
   scheduleId: Schedule['id'],
-  startMoment: dayjs.Dayjs,
+  startMoment: dayjs.Dayjs
 ): ShiftEvents[] => {
   return store.scheduleStore.finalPreview
     ? store.scheduleStore.finalPreview
@@ -78,11 +78,8 @@ export const getLayersFromStore = (store: RootStore, scheduleId: Schedule['id'],
 export const getOverridesFromStore = (
   store: RootStore,
   scheduleId: Schedule['id'],
-  startMoment: dayjs.Dayjs,
-):
-  | Layer[]
-  | ShiftEvents[] => {
-
+  startMoment: dayjs.Dayjs
+): Layer[] | ShiftEvents[] => {
   return store.scheduleStore.overridePreview
     ? store.scheduleStore.overridePreview
     : (store.scheduleStore.events[scheduleId]?.['override']?.[getFromString(startMoment)] as Layer[]);

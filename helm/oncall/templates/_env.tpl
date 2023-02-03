@@ -4,15 +4,15 @@
 - name: SECRET_KEY
   valueFrom:
     secretKeyRef:
-      name: {{ template "oncall.fullname" . }}
-      key: SECRET_KEY
+      name: {{ template "snippet.oncall.secret.name" . }}
+      key: {{ template "snippet.oncall.secret.secretKey" . }}
 - name: MIRAGE_SECRET_KEY
   valueFrom:
     secretKeyRef:
-      name: {{ template "oncall.fullname" . }}
-      key: MIRAGE_SECRET_KEY
+      name: {{ template "snippet.oncall.secret.name" . }}
+      key: {{ template "snippet.oncall.secret.mirageSecretKey" . }}
 - name: MIRAGE_CIPHER_IV
-  value: "1234567890abcdef"
+  value: "{{ .Values.oncall.mirageCipherIV | default "1234567890abcdef" }}"
 - name: DJANGO_SETTINGS_MODULE
   value: "settings.helm"
 - name: AMIXR_DJANGO_ADMIN_PATH
@@ -21,7 +21,35 @@
   value: "True"
 - name: UWSGI_LISTEN
   value: "1024"
-{{- end }}
+- name: BROKER_TYPE
+  value: {{ .Values.broker.type | default "rabbitmq" }}
+- name: GRAFANA_API_URL
+  value: {{ include "snippet.grafana.url" . }}
+{{- end -}}
+
+{{- define "snippet.oncall.secret.name" -}}
+{{- if .Values.oncall.secrets.existingSecret -}}
+{{ .Values.oncall.secrets.existingSecret }}
+{{- else -}}
+{{ template "oncall.fullname" . }}
+{{- end -}}
+{{- end -}}
+
+{{- define "snippet.oncall.secret.secretKey" -}}
+{{- if .Values.oncall.secrets.existingSecret -}}
+{{ required "oncall.secrets.secretKey is required if oncall.secret.existingSecret is not empty" .Values.oncall.secrets.secretKey }}
+{{- else -}}
+SECRET_KEY
+{{- end -}}
+{{- end -}}
+
+{{- define "snippet.oncall.secret.mirageSecretKey" -}}
+{{- if .Values.oncall.secrets.existingSecret -}}
+{{ required "oncall.secrets.mirageSecretKey is required if oncall.secret.existingSecret is not empty" .Values.oncall.secrets.mirageSecretKey }}
+{{- else -}}
+MIRAGE_SECRET_KEY
+{{- end -}}
+{{- end -}}
 
 {{- define "snippet.oncall.slack.env" -}}
 {{- if .Values.oncall.slack.enabled -}}
@@ -29,19 +57,37 @@
   value: {{ .Values.oncall.slack.enabled | toString | title | quote }}
 - name: SLACK_SLASH_COMMAND_NAME
   value: "/{{ .Values.oncall.slack.commandName | default "oncall" }}"
+{{- if .Values.oncall.slack.existingSecret }}
+- name: SLACK_CLIENT_OAUTH_ID
+  valueFrom:
+    secretKeyRef:
+      name: {{ .Values.oncall.slack.existingSecret }}
+      key: {{ required "oncall.slack.clientIdKey is required if oncall.slack.existingSecret is not empty" .Values.oncall.slack.clientIdKey }}
+- name: SLACK_CLIENT_OAUTH_SECRET
+  valueFrom:
+    secretKeyRef:
+      name: {{ .Values.oncall.slack.existingSecret }}
+      key: {{ required "oncall.slack.clientSecretKey is required if oncall.slack.existingSecret is not empty" .Values.oncall.slack.clientSecretKey }}
+- name: SLACK_SIGNING_SECRET
+  valueFrom:
+    secretKeyRef:
+      name: {{ .Values.oncall.slack.existingSecret }}
+      key: {{ required "oncall.slack.signingSecretKey is required if oncall.slack.existingSecret is not empty" .Values.oncall.slack.signingSecretKey }}
+{{- else }}
 - name: SLACK_CLIENT_OAUTH_ID
   value: {{ .Values.oncall.slack.clientId | default "" | quote }}
 - name: SLACK_CLIENT_OAUTH_SECRET
   value: {{ .Values.oncall.slack.clientSecret | default "" | quote }}
 - name: SLACK_SIGNING_SECRET
   value: {{ .Values.oncall.slack.signingSecret | default "" | quote }}
+{{- end }}
 - name: SLACK_INSTALL_RETURN_REDIRECT_HOST
-  value: "https://{{ .Values.base_url }}"
+  value: {{ .Values.oncall.slack.redirectHost | default (printf "https://%s" .Values.base_url) | quote }}
 {{- else -}}
 - name: FEATURE_SLACK_INTEGRATION_ENABLED
   value: {{ .Values.oncall.slack.enabled | toString | title | quote }}
 {{- end -}}
-{{- end }}
+{{- end -}}
 
 {{- define "snippet.oncall.telegram.env" -}}
 {{- if .Values.oncall.telegram.enabled -}}
@@ -49,13 +95,50 @@
   value: {{ .Values.oncall.telegram.enabled | toString | title | quote }}
 - name: TELEGRAM_WEBHOOK_HOST
   value: {{ .Values.oncall.telegram.webhookUrl | default "" | quote }}
+{{- if .Values.oncall.telegram.existingSecret }}
+- name: TELEGRAM_TOKEN
+  valueFrom:
+    secretKeyRef:
+      name: {{ .Values.oncall.telegram.existingSecret }}
+      key: {{ required "oncall.telegram.tokenKey is required if oncall.telegram.existingSecret is not empty" .Values.oncall.telegram.tokenKey }}
+{{- else }}
 - name: TELEGRAM_TOKEN
   value: {{ .Values.oncall.telegram.token | default "" | quote }}
+{{- end }}
 {{- else -}}
 - name: FEATURE_TELEGRAM_INTEGRATION_ENABLED
   value: {{ .Values.oncall.telegram.enabled | toString | title | quote }}
 {{- end -}}
-{{- end }}
+{{- end -}}
+
+{{- define "snippet.oncall.twilio.env" -}}
+{{- with .Values.oncall.twilio -}}
+{{- if .accountSid }}
+- name: TWILIO_ACCOUNT_SID
+  value: {{ .accountSid | quote }}
+{{- end -}}
+{{- if .authToken }}
+- name: TWILIO_AUTH_TOKEN
+  value: {{ .authToken | quote }}
+{{- end -}}
+{{- if .phoneNumber }}
+- name: TWILIO_NUMBER
+  value: {{ .phoneNumber | quote }}
+{{- end -}}
+{{- if .verifySid }}
+- name: TWILIO_VERIFY_SERVICE_SID
+  value: {{ .verifySid | quote }}
+{{- end -}}
+{{- if .apiKeySid }}
+- name: TWILIO_API_KEY_SID
+  value: {{ .apiKeySid | quote }}
+{{- end -}}
+{{- if .apiKeySecret }}
+- name: TWILIO_API_KEY_SECRET
+  value: {{ .apiKeySecret | quote }}
+{{- end -}}
+{{- end -}}
+{{- end -}}
 
 {{- define "snippet.celery.env" -}}
 {{- if .Values.celery.worker_queue }}
@@ -78,7 +161,17 @@
 - name: CELERY_WORKER_SHUTDOWN_INTERVAL
   value: {{ .Values.celery.worker_shutdown_interval }}
 {{- end -}}
-{{- end }}
+{{- end -}}
+
+{{- define "snippet.grafana.url" -}}
+{{- if .Values.externalGrafana.url -}}
+{{- .Values.externalGrafana.url | quote }}
+{{- else if .Values.grafana.enabled -}}
+http://{{ include "oncall.grafana.fullname" . }}
+{{- else -}}
+{{- required "externalGrafana.url is required when not grafana.enabled" .Values.externalGrafana.url | quote }}
+{{- end -}}
+{{- end -}}
 
 {{- define "snippet.mysql.env" -}}
 - name: MYSQL_HOST
@@ -121,8 +214,8 @@
 {{- end -}}
 
 {{- define "snippet.mysql.db" -}}
-{{- if and (not .Values.mariadb.enabled) .Values.externalMysql.db -}}
-{{- required "externalMysql.db is required if not mariadb.enabled" .Values.externalMysql.db | quote}}
+{{- if and (not .Values.mariadb.enabled) .Values.externalMysql.db_name -}}
+{{- required "externalMysql.db is required if not mariadb.enabled" .Values.externalMysql.db_name | quote}}
 {{- else -}}
 "oncall"
 {{- end -}}
@@ -130,20 +223,97 @@
 
 {{- define "snippet.mysql.user" -}}
 {{- if and (not .Values.mariadb.enabled) .Values.externalMysql.user -}}
-{{- .Values.externalMysql.user | quote}}
+{{- .Values.externalMysql.user | quote }}
 {{- else -}}
 "root"
 {{- end -}}
 {{- end -}}
 
+{{- define "snippet.postgresql.env" -}}
+- name: DATABASE_TYPE
+  value: {{ .Values.database.type }}
+- name: DATABASE_HOST
+  value: {{ include "snippet.postgresql.host" . }}
+- name: DATABASE_PORT
+  value: {{ include "snippet.postgresql.port" . }}
+- name: DATABASE_NAME
+  value: {{ include "snippet.postgresql.db" . }}
+- name: DATABASE_USER
+  value: {{ include "snippet.postgresql.user" . }}
+- name: DATABASE_PASSWORD
+  valueFrom:
+    secretKeyRef:
+      name: {{ include "snippet.postgresql.password.secret.name" . }}
+      key: {{ include "snippet.postgresql.password.secret.key" . }}
+{{- end }}
+
+{{- define "snippet.postgresql.password.secret.name" -}}
+{{- if and (not .Values.postgresql.enabled) .Values.externalPostgresql.password -}}
+{{ include "oncall.fullname" . }}-postgresql-external
+{{- else if and (not .Values.postgresql.enabled) .Values.externalPostgresql.existingSecret -}}
+{{ .Values.externalPostgresql.existingSecret }}
+{{- else -}}
+{{ include "oncall.postgresql.fullname" . }}
+{{- end -}}
+{{- end -}}
+
+{{- define "snippet.postgresql.password.secret.key" -}}
+{{- if and (not .Values.postgresql.enabled) .Values.externalPostgresql.passwordKey -}}
+{{ .Values.externalPostgresql.passwordKey }}
+{{- else -}}
+"postgres-password"
+{{- end -}}
+{{- end -}}
+
+{{- define "snippet.postgresql.host" -}}
+{{- if and (not .Values.postgresql.enabled) .Values.externalPostgresql.host -}}
+{{- required "externalPostgresql.host is required if not postgresql.enabled" .Values.externalPostgresql.host | quote }}
+{{- else -}}
+{{ include "oncall.postgresql.fullname" . }}
+{{- end -}}
+{{- end -}}
+
+{{- define "snippet.postgresql.port" -}}
+{{- if and (not .Values.mariadb.enabled) .Values.externalPostgresql.port -}}
+{{- required "externalPostgresql.port is required if not postgresql.enabled"  .Values.externalPostgresql.port | quote }}
+{{- else -}}
+"5432"
+{{- end -}}
+{{- end -}}
+
+{{- define "snippet.postgresql.db" -}}
+{{- if and (not .Values.postgresql.enabled) .Values.externalPostgresql.db -}}
+{{- required "externalPostgresql.db is required if not postgresql.enabled" .Values.externalPostgresql.db | quote}}
+{{- else -}}
+"oncall"
+{{- end -}}
+{{- end -}}
+
+{{- define "snippet.postgresql.user" -}}
+{{- if and (not .Values.postgresql.enabled) .Values.externalPostgresql.user -}}
+{{- .Values.externalPostgresql.user | quote}}
+{{- else -}}
+"postgres"
+{{- end -}}
+{{- end -}}
+
 {{- define "snippet.rabbitmq.env" -}}
+{{- if eq .Values.broker.type "rabbitmq" -}}
+{{- if and (not .Values.rabbitmq.enabled) .Values.externalRabbitmq.existingSecret .Values.externalRabbitmq.usernameKey (not .Values.externalRabbitmq.user) }}
+- name: RABBITMQ_USERNAME
+  valueFrom:
+    secretKeyRef:
+      name: {{ include "snippet.rabbitmq.password.secret.name" . }}
+      key: {{ .Values.externalRabbitmq.usernameKey }}
+{{- else }}
 - name: RABBITMQ_USERNAME
   value: {{ include "snippet.rabbitmq.user" . }}
+{{- end }}
 - name: RABBITMQ_PASSWORD
   valueFrom:
     secretKeyRef:
       name: {{ include "snippet.rabbitmq.password.secret.name" . }}
-      key: rabbitmq-password
+      key: {{ include "snippet.rabbitmq.password.secret.key" . }}
 - name: RABBITMQ_HOST
   value: {{ include "snippet.rabbitmq.host" . }}
 - name: RABBITMQ_PORT
@@ -153,6 +323,7 @@
 - name: RABBITMQ_VHOST
   value: {{ include "snippet.rabbitmq.vhost" . }}
 {{- end }}
+{{- end -}}
 
 {{- define "snippet.rabbitmq.user" -}}
 {{- if and (not .Values.rabbitmq.enabled) .Values.externalRabbitmq.user -}}
@@ -197,8 +368,18 @@
 {{- define "snippet.rabbitmq.password.secret.name" -}}
 {{- if and (not .Values.rabbitmq.enabled) .Values.externalRabbitmq.password -}}
 {{ include "oncall.fullname" . }}-rabbitmq-external
+{{- else if and (not .Values.rabbitmq.enabled) .Values.externalRabbitmq.existingSecret -}}
+{{ .Values.externalRabbitmq.existingSecret }}
 {{- else -}}
 {{ include "oncall.rabbitmq.fullname" . }}
+{{- end -}}
+{{- end -}}
+
+{{- define "snippet.rabbitmq.password.secret.key" -}}
+{{- if and (not .Values.rabbitmq.enabled) .Values.externalRabbitmq.passwordKey -}}
+{{ .Values.externalRabbitmq.passwordKey }}
+{{- else -}}
+rabbitmq-password
 {{- end -}}
 {{- end -}}
 
@@ -245,9 +426,10 @@
     secretKeyRef:
       name: {{ include "oncall.fullname" . }}-smtp
       key: smtp-password
+      optional: true
 - name: EMAIL_USE_TLS
-  value: {{ .Values.oncall.smtp.tls | toString | title | quote }}
-- name: DEFAULT_FROM_EMAIL
+  value: {{ .Values.oncall.smtp.tls | default true | toString | title | quote }}
+- name: EMAIL_FROM_ADDRESS
   value: {{ .Values.oncall.smtp.fromEmail | quote }}
 {{- else -}}
 - name: FEATURE_EMAIL_INTEGRATION_ENABLED

@@ -2,11 +2,8 @@ import React, { FC, useCallback, useEffect, useState } from 'react';
 
 import { SelectableValue } from '@grafana/data';
 import { Button, HorizontalGroup, Icon, Select } from '@grafana/ui';
-import cn from 'classnames/bind';
 
 import Text from 'components/Text/Text';
-
-import styles from './CursorPagination.module.css';
 
 interface CursorPaginationProps {
   current: string;
@@ -17,8 +14,6 @@ interface CursorPaginationProps {
   prev: string;
   next: string;
 }
-
-const cx = cn.bind(styles);
 
 const CursorPagination: FC<CursorPaginationProps> = (props) => {
   const { current, onChange, prev, next, itemsPerPage, itemsPerPageOptions, onChangeItemsPerPage } = props;

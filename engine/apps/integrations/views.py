@@ -217,8 +217,8 @@ class GrafanaAPIView(AlertManagerAPIView):
                     "integration_unique_data": json.dumps(
                         {
                             "evalMatches": [
-                                {"metric": value["title"], "value": str(value["value"])}
-                                for value in attachment["fields"]
+                                {"metric": value.get("title"), "value": str(value.get("value"))}
+                                for value in attachment.get("fields", [])
                             ]
                         }
                     ),

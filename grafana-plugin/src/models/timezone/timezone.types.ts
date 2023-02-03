@@ -1,6 +1,4 @@
-import { concat } from 'lodash-es';
-
-const tzs = [
+const tzs: string[] = [
   'Africa/Abidjan',
   'Africa/Accra',
   'Africa/Addis_Ababa',
@@ -593,6 +591,6 @@ const tzs = [
   'W-SU',
   'WET',
   'Zulu',
-] as const;
+];
 
-export type Timezone = typeof tzs[number];
+export type Timezone = (typeof tzs)[number];

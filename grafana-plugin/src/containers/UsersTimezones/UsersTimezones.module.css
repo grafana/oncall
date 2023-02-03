@@ -41,6 +41,7 @@
 .users {
   position: relative;
   height: 76px;
+  overflow: hidden;
 }
 
 .avatar-group {
@@ -89,14 +90,7 @@
 
   --color: rgba(61, 113, 217, 0.2);
 
-  background:
-    repeating-linear-gradient(
-      -45deg,
-      var(--color),
-      var(--color) 4px,
-      transparent 4px,
-      transparent 8px
-    );
+  background: repeating-linear-gradient(-45deg, var(--color), var(--color) 4px, transparent 4px, transparent 8px);
 }
 
 .current-user-stripe {

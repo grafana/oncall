@@ -1,3 +1,5 @@
+# Grafana OnCall
+
 <img width="400px" src="docs/img/logo.png">
 
 [![Latest Release](https://img.shields.io/github/v/release/grafana/oncall?display_name=tag&sort=semver)](https://github.com/grafana/oncall/releases)
@@ -18,47 +20,42 @@ Developer-friendly incident response with brilliant Slack integration.
 
 ## Getting Started
 
-We prepared multiple environments: [production](https://grafana.com/docs/grafana-cloud/oncall/open-source/#production-environment), [developer](DEVELOPER.md) and hobby:
+We prepared multiple environments:
 
-1. Download docker-compose.yaml:
+- [production](https://grafana.com/docs/grafana-cloud/oncall/open-source/#production-environment)
+- [developer](./dev/README.md)
+- hobby (described in the following steps)
 
-```bash
-curl -fsSL https://raw.githubusercontent.com/grafana/oncall/dev/docker-compose.yml -o docker-compose.yml
-```
+1. Download [`docker-compose.yml`](docker-compose.yml):
+
+   ```bash
+   curl -fsSL https://raw.githubusercontent.com/grafana/oncall/dev/docker-compose.yml -o docker-compose.yml
+   ```
 
 2. Set variables:
 
-```bash
-echo "DOMAIN=http://localhost:8080
-COMPOSE_PROFILES=with_grafana  # Remove this line if you want to use existing grafana
-SECRET_KEY=my_random_secret_must_be_more_than_32_characters_long
-RABBITMQ_PASSWORD=rabbitmq_secret_pw
-MYSQL_PASSWORD=mysql_secret_pw" > .env
-```
+   ```bash
+   echo "DOMAIN=http://localhost:8080
+   COMPOSE_PROFILES=with_grafana  # Remove this line if you want to use existing grafana
+   SECRET_KEY=my_random_secret_must_be_more_than_32_characters_long" > .env
+   ```
 
 3. Launch services:
 
-```bash
-docker-compose up -d
-```
+   ```bash
+   docker-compose pull && docker-compose up -d
+   ```
 
-4. Issue one-time invite token:
+4. Go to [OnCall Plugin Configuration](http://localhost:3000/plugins/grafana-oncall-app), using log in credentials
+   as defined above: `admin`/`admin` (or find OnCall plugin in configuration->plugins) and connect OnCall _plugin_
+   with OnCall _backend_:
 
-```bash
-docker-compose run engine python manage.py issue_invite_for_the_frontend --override
-```
+   ```text
+   OnCall backend URL: http://engine:8080
+   ```
 
-**Note**: if you remove the plugin configuration and reconfigure it, you will need to generate a new one-time invite token for your new configuration.
-
-5. Go to [OnCall Plugin Configuration](http://localhost:3000/plugins/grafana-oncall-app), using log in credentials as defined above: `admin`/`admin` (or find OnCall plugin in configuration->plugins) and connect OnCall _plugin_ with OnCall _backend_:
-
-```
-Invite token: ^^^ from the previous step.
-OnCall backend URL: http://engine:8080
-Grafana Url: http://grafana:3000
-```
-
-6. Enjoy! Check our [OSS docs](https://grafana.com/docs/grafana-cloud/oncall/open-source/) if you want to set up Slack, Telegram, Twilio or SMS/calls through Grafana Cloud.
+5. Enjoy! Check our [OSS docs](https://grafana.com/docs/grafana-cloud/oncall/open-source/) if you want to set up
+   Slack, Telegram, Twilio or SMS/calls through Grafana Cloud.
 
 ## Update version
 
@@ -73,13 +70,14 @@ docker-compose up -d
 ```
 
 After updating the engine, you'll also need to click the "Update" button on the [plugin version page](http://localhost:3000/plugins/grafana-oncall-app?page=version-history).
-See [Grafana docs](https://grafana.com/docs/grafana/latest/administration/plugin-management/#update-a-plugin) for more info on updating Grafana plugins.
+See [Grafana docs](https://grafana.com/docs/grafana/latest/administration/plugin-management/#update-a-plugin) for more
+info on updating Grafana plugins.
 
 ## Join community
 
-<a href="https://github.com/grafana/oncall/discussions/categories/community-calls"><img width="200px" src="docs/img/community_call.png"></a>
-<a href="https://github.com/grafana/oncall/discussions"><img width="200px" src="docs/img/GH_discussions.png"></a>
-<a href="https://slack.grafana.com/"><img width="200px" src="docs/img/slack.png"></a>
+[<img width="200px" src="docs/img/community_call.png">](https://github.com/grafana/oncall/discussions/categories/community-calls)
+[<img width="200px" src="docs/img/GH_discussions.png">](https://github.com/grafana/oncall/discussions)
+[<img width="200px" src="docs/img/slack.png">](https://slack.grafana.com/)
 
 ## Stargazers over time
 
@@ -87,7 +85,9 @@ See [Grafana docs](https://grafana.com/docs/grafana/latest/administration/plugin
 
 ## Further Reading
 
-- _Migration from the PagerDuty_ - [Migrator](https://github.com/grafana/oncall/tree/dev/tools/pagerduty-migrator)
+- _Migration from PagerDuty_ - [Migrator](https://github.com/grafana/oncall/tree/dev/tools/pagerduty-migrator)
 - _Documentation_ - [Grafana OnCall](https://grafana.com/docs/grafana-cloud/oncall/)
+- _Overview Webinar_ - [YouTube](https://www.youtube.com/watch?v=7uSe1pulgs8)
+- _How To Add Integration_ - [How to Add Integration](https://github.com/grafana/oncall/tree/dev/engine/config_integrations/README.md)
 - _Blog Post_ - [Announcing Grafana OnCall, the easiest way to do on-call management](https://grafana.com/blog/2021/11/09/announcing-grafana-oncall/)
 - _Presentation_ - [Deep dive into the Grafana, Prometheus, and Alertmanager stack for alerting and on-call management](https://grafana.com/go/observabilitycon/2021/alerting/?pg=blog)

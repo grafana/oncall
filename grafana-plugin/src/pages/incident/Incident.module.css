@@ -1,7 +1,3 @@
-.root {
-  margin-top: 24px;
-}
-
 .incident-row {
   display: flex;
 }
@@ -10,8 +6,12 @@
   flex-grow: 1;
 }
 
+.block {
+  padding: 0 0 20px 0;
+}
+
 .payload-subtitle {
-  margin-bottom: 16px;
+  margin-bottom: var(--title-marginBottom);
 }
 
 .info-row {
@@ -115,4 +115,8 @@
 
 .timeline-filter {
   margin-bottom: 24px;
+}
+
+.title-icon {
+  color: var(--secondary-text-color);
 }

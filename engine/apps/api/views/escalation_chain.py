@@ -7,7 +7,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
 from apps.alerts.models import EscalationChain
-from apps.api.permissions import MODIFY_ACTIONS, READ_ACTIONS, ActionPermission, AnyRole, IsAdmin
+from apps.api.permissions import RBACPermission
 from apps.api.serializers.escalation_chain import EscalationChainListSerializer, EscalationChainSerializer
 from apps.auth_token.auth import PluginAuthentication
 from common.api_helpers.exceptions import BadRequest
@@ -17,11 +17,17 @@ from common.insight_log import EntityEvent, write_resource_insight_log
 
 class EscalationChainViewSet(TeamFilteringMixin, PublicPrimaryKeyMixin, ListSerializerMixin, viewsets.ModelViewSet):
     authentication_classes = (PluginAuthentication,)
-    permission_classes = (IsAuthenticated, ActionPermission)
+    permission_classes = (IsAuthenticated, RBACPermission)
 
-    action_permissions = {
-        IsAdmin: (*MODIFY_ACTIONS, "copy"),
-        AnyRole: (*READ_ACTIONS, "details"),
+    rbac_permissions = {
+        "metadata": [RBACPermission.Permissions.ESCALATION_CHAINS_READ],
+        "list": [RBACPermission.Permissions.ESCALATION_CHAINS_READ],
+        "retrieve": [RBACPermission.Permissions.ESCALATION_CHAINS_READ],
+        "details": [RBACPermission.Permissions.ESCALATION_CHAINS_READ],
+        "create": [RBACPermission.Permissions.ESCALATION_CHAINS_WRITE],
+        "update": [RBACPermission.Permissions.ESCALATION_CHAINS_WRITE],
+        "destroy": [RBACPermission.Permissions.ESCALATION_CHAINS_WRITE],
+        "copy": [RBACPermission.Permissions.ESCALATION_CHAINS_WRITE],
     }
 
     filter_backends = [SearchFilter]

@@ -56,7 +56,7 @@ def test_log_message(
     renderer = TelegramMessageRenderer(alert_group=alert_group)
     text = renderer.render_log_message()
 
-    assert text == f"Incident log:\n<b>0s:</b> acknowledged by {user_name}"
+    assert text == f"Alert group log:\n<b>0s:</b> acknowledged by {user_name}"
 
 
 @pytest.mark.django_db
@@ -71,10 +71,9 @@ def test_alert_group_message(make_organization, make_alert_receive_channel, make
 
     renderer = TelegramMessageRenderer(alert_group=alert_group)
     text = renderer.render_alert_group_message()
-
     assert text == (
-        f"🔴 #{alert_group.inside_organization_number}, {alert_receive_channel.config.tests['telegram']['title']}\n"
-        "Alerting, alerts: 1\n"
+        f"<a href='{organization.web_link_with_uuid}'>&#8205;</a>🔴 #{alert_group.inside_organization_number}, {alert_receive_channel.config.tests['telegram']['title']}\n"
+        "Firing, alerts: 1\n"
         "Source: Test integration - Grafana\n"
         f"{alert_group.web_link}\n\n"
         f"{alert_receive_channel.config.tests['telegram']['message']}"
@@ -127,7 +126,7 @@ def test_actions_message(
     renderer = TelegramMessageRenderer(alert_group=alert_group)
     text = renderer.render_actions_message()
 
-    assert text == "Actions available for this incident"
+    assert text == "Actions available for this alert group"
 
 
 @pytest.mark.django_db
@@ -157,12 +156,12 @@ def test_personal_message(
     text = renderer.render_personal_message()
 
     assert text == (
-        f"🟠 #{alert_group.inside_organization_number}, {alert_receive_channel.config.tests['telegram']['title']}\n"
+        f"<a href='{organization.web_link_with_uuid}'>&#8205;</a>🟠 #{alert_group.inside_organization_number}, {alert_receive_channel.config.tests['telegram']['title']}\n"
         f"Acknowledged by {user_name}, alerts: 1\n"
         "Source: Test integration - Grafana\n"
         f"{alert_group.web_link}\n\n"
         f"{alert_receive_channel.config.tests['telegram']['message']}\n\n\n"
-        "Incident log:\n"
+        "Alert group log:\n"
         f"<b>0s:</b> acknowledged by {user_name}"
     )
 
@@ -181,7 +180,7 @@ def test_link_to_channel_message(make_organization, make_alert_receive_channel, 
     text = renderer.render_link_to_channel_message()
 
     assert text == (
-        f"👀 You are invited to look at the incident!\n"
+        f"👀 You are invited to look at an alert group!\n"
         f"<b>#{alert_group.inside_organization_number}, {alert_receive_channel.config.tests['telegram']['title']}</b>"
     )
 
@@ -203,6 +202,6 @@ def test_formatting_error_message(
     text = renderer.render_formatting_error_message()
 
     assert text == (
-        "You have a new incident, but Telegram can't render its content! "
+        "You have a new alert group, but Telegram can't render its content! "
         f"Please check it out: {alert_group.web_link}"
     )

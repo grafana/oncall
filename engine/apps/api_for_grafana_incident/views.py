@@ -1,4 +1,4 @@
-from rest_framework.viewsets import ReadOnlyModelViewSet
+from rest_framework import mixins, viewsets
 
 from apps.alerts.models import AlertGroup
 from apps.auth_token.auth import GrafanaIncidentStaticKeyAuth
@@ -6,7 +6,13 @@ from apps.auth_token.auth import GrafanaIncidentStaticKeyAuth
 from .serializers import AlertGroupSerializer
 
 
-class AlertGroupsView(ReadOnlyModelViewSet):
+class RetrieveViewSet(mixins.RetrieveModelMixin, viewsets.GenericViewSet):
+    """
+    A viewset that provides only `retrieve` actions.
+    """
+
+
+class AlertGroupsView(RetrieveViewSet):
     authentication_classes = (GrafanaIncidentStaticKeyAuth,)
     queryset = AlertGroup.unarchived_objects.all()
     serializer_class = AlertGroupSerializer

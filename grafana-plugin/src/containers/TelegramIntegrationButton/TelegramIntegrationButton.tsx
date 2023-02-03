@@ -1,16 +1,16 @@
 import React, { useCallback, useState, useEffect } from 'react';
 
-import { Button, Modal, Icon, HorizontalGroup } from '@grafana/ui';
+import { Button, Modal, Icon, HorizontalGroup, VerticalGroup, Field, Input } from '@grafana/ui';
 import cn from 'classnames/bind';
 import { observer } from 'mobx-react';
 import CopyToClipboard from 'react-copy-to-clipboard';
 
+import Block from 'components/GBlock/Block';
 import Text from 'components/Text/Text';
-import WithConfirm from 'components/WithConfirm/WithConfirm';
 import { WithPermissionControl } from 'containers/WithPermissionControl/WithPermissionControl';
 import { useStore } from 'state/useStore';
-import { UserAction } from 'state/userAction';
 import { openNotification } from 'utils';
+import { UserActions } from 'utils/authorization';
 
 import styles from './TelegramIntegrationButton.module.css';
 
@@ -26,8 +26,6 @@ const TelegramIntegrationButton = observer((props: TelegramIntegrationProps) => 
   const { disabled, size = 'md', onUpdate } = props;
 
   const [showModal, setShowModal] = useState<boolean>(false);
-
-  const store = useStore();
 
   const onInstallModalHideCallback = useCallback(() => {
     setShowModal(false);
@@ -45,9 +43,9 @@ const TelegramIntegrationButton = observer((props: TelegramIntegrationProps) => 
 
   return (
     <>
-      <WithPermissionControl userAction={UserAction.UpdateIntegrations}>
+      <WithPermissionControl userAction={UserActions.IntegrationsWrite}>
         <Button size={size} variant="primary" icon="plus" disabled={disabled} onClick={onInstallModalCallback}>
-          Connect Telegram channel
+          Add Telegram channel
         </Button>
       </WithPermissionControl>
       {showModal && <TelegramModal onHide={onInstallModalHideCallback} onUpdate={onModalUpdateCallback} />}
@@ -63,7 +61,7 @@ interface TelegramModalProps {
 const TelegramModal = (props: TelegramModalProps) => {
   const { onHide, onUpdate } = props;
   const store = useStore();
-  const { telegramChannelStore, userStore } = store;
+  const { telegramChannelStore } = store;
 
   const [verificationCode, setVerificationCode] = useState<string>();
   const [botLink, setBotLink] = useState<string>();
@@ -76,101 +74,70 @@ const TelegramModal = (props: TelegramModalProps) => {
   }, []);
 
   return (
-    <Modal title="Connect Telegram Channel" closeOnEscape isOpen onDismiss={onUpdate}>
-      <div className={cx('telegram-instruction-container')}>
-        <Text.Title level={5}>Follow these steps to create and connect to a dedicated OnCall channel.</Text.Title>
-      </div>
-
-      <div className={cx('telegram-instruction-container')}>
-        <Text>
-          If you already have a dedicated channel to use with OnCall, you can use the following activation code:{' '}
-          <Text className={cx('verification-code')}>{verificationCode}</Text>
-          <span className={cx('copy-icon')}>
-            <CopyToClipboard
-              text={verificationCode}
-              onCopy={() => {
-                openNotification('Verification code copied');
-              }}
-            >
-              <Icon name="copy" />
-            </CopyToClipboard>
-          </span>
+    <Modal title="Adding Telegram Channel" closeOnEscape isOpen onDismiss={onUpdate}>
+      <VerticalGroup spacing="md">
+        <Block withBackground bordered className={cx('telegram-block')}>
+          <Text type="secondary">
+            If you already have a private channel to work with OnCall, use the following activation code:
+          </Text>
+          <Field className={cx('field-command')}>
+            <Input
+              id="telegramVerificationCode"
+              value={verificationCode}
+              suffix={
+                <CopyToClipboard
+                  text={verificationCode}
+                  onCopy={() => {
+                    openNotification('Code is copied');
+                  }}
+                >
+                  <Icon name="copy" />
+                </CopyToClipboard>
+              }
+            />
+          </Field>
+        </Block>
+        <Text.Title level={5}>Setup new channel</Text.Title>
+        <Text type="secondary">
+          1. Open Telegram, create a new <Text type="primary">Private Channel</Text> and enable{' '}
+          <Text type="primary">Sign Messages</Text> in settings.
         </Text>
-      </div>
-
-      <div className={cx('telegram-instruction-container')}>
-        <Text>1. Create a New Channel, and set it to Private.</Text>
-      </div>
-
-      <div className={cx('telegram-instruction-container')}>
-        <Text>
-          2. In <b>Manage Channel</b>, make sure <b>Sign messages</b> is enabled.
+        <Text type="secondary">
+          2. Create a new <Text type="primary">Discussion group</Text>. This group handles alert actions and comments.{' '}
         </Text>
-      </div>
-
-      <div className={cx('telegram-instruction-container')}>
-        <Text>3. Create a new discussion group. This group handles alert actions and comments.</Text>
-      </div>
-
-      <div className={cx('telegram-instruction-container')}>
-        <Text>
-          4. Add the discussion group to the channel. In <b>Manage Channel</b>, click <b>Discussion</b> to find and add
-          the new group.
+        <Text type="secondary">
+          3. Connect the discussion group with the channel. In <Text type="primary">Manage Channel</Text>, click{' '}
+          <Text type="primary">Discussion</Text> to find and add your group.{' '}
         </Text>
-      </div>
-
-      <div className={cx('telegram-instruction-container')}>
-        <Text>
-          5. Click{' '}
-          <a className={cx('telegram-bot')} href={botLink} target="_blank" rel="noreferrer">
-            {botLink}
+        <Text type="secondary">
+          4. Go to{' '}
+          <a href={botLink} target="_blank" rel="noreferrer">
+            <Text type="link">{botLink}</Text>
           </a>{' '}
-          to add the OnCall bot to your contacts. Add the bot to your channel as an Admin. Allow it to{' '}
-          <b>Post Messages</b>.
+          to add the OnCall bot to your contacts. Then add the bot to your channel as an{' '}
+          <Text type="primary">Admin</Text> and allow it to <Text type="primary">Post Messages</Text>.
         </Text>
-      </div>
-
-      <div className={cx('telegram-instruction-container')}>
-        <Text>6. Add the bot to the discussion group.</Text>
-      </div>
-
-      <div className={cx('telegram-instruction-container')}>
-        <Text>
-          7. Send the verification code, <Text className={cx('verification-code')}>{verificationCode}</Text>
-          <span className={cx('copy-icon')}>
-            <CopyToClipboard
-              text={verificationCode}
-              onCopy={() => {
-                openNotification('Verification code copied');
-              }}
-            >
-              <Icon name="copy" />
-            </CopyToClipboard>
-          </span>{' '}
-          , to the channel and wait for the confirmation message.
+        <Text type="secondary">5. Add the bot to the discussion group.</Text>
+        <Text type="secondary">
+          6. Send this verification code to the channel and wait for the confirmation message:
+          <Field className={cx('field-command')}>
+            <Input
+              id="telegramVerificationCode"
+              value={verificationCode}
+              suffix={
+                <CopyToClipboard
+                  text={verificationCode}
+                  onCopy={() => {
+                    openNotification('Code is copied');
+                  }}
+                >
+                  <Icon name="copy" />
+                </CopyToClipboard>
+              }
+            />
+          </Field>
         </Text>
-      </div>
-
-      <div className={cx('telegram-instruction-container')}>
-        <Text>8. Make sure users connect their Telegram accounts in their OnCall user profile.</Text>
-      </div>
-
-      <div className={cx('telegram-instruction-container')}>
-        <Text>9. Done! Now you can manage alerts in your Telegram workspace.</Text>
-      </div>
-
-      <div className={cx('telegram-instruction-container')}>
-        <Text>
-          Each alert group notification is assigned a dedicated discussion. Users can perform notification actions
-          (acknowledge, resolve, silence) and discuss alerts in the comments section of the discussions.
-        </Text>
-        <img
-          style={{ height: '350px', display: 'block', margin: '20px auto' }}
-          src="public/plugins/grafana-oncall-app/img/telegram_discussion.png"
-        />
-      </div>
-
-      <div className={cx('telegram-instruction-cancel')}>
+        <Text type="secondary">7. Start to manage alerts in your team Telegram workspace.</Text>
         <HorizontalGroup justify="flex-end">
           <Button variant="secondary" onClick={onHide}>
             Cancel
@@ -179,7 +146,7 @@ const TelegramModal = (props: TelegramModalProps) => {
             Done
           </Button>
         </HorizontalGroup>
-      </div>
+      </VerticalGroup>
     </Modal>
   );
 };

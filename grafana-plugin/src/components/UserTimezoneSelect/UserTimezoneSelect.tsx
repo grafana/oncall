@@ -3,7 +3,6 @@ import React, { FC, useCallback, useMemo } from 'react';
 import { Select } from '@grafana/ui';
 import cn from 'classnames/bind';
 import dayjs from 'dayjs';
-import { get } from 'lodash-es';
 
 import { getTzOffsetString } from 'models/timezone/timezone.helpers';
 import { Timezone } from 'models/timezone/timezone.types';
@@ -90,7 +89,7 @@ const UserTimezoneSelect: FC<UserTimezoneSelectProps> = (props) => {
 
   return (
     <div className={cx('root')}>
-      <Select value={value} onChange={handleChange} width={100} placeholder={propValue} options={options} />
+      <Select value={value} onChange={handleChange} width={30} placeholder={propValue} options={options} />
     </div>
   );
 };

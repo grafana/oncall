@@ -5,14 +5,14 @@ import pytest
 import pytz
 from django.utils import timezone
 
+from apps.api.permissions import LegacyAccessControlRole
 from apps.schedules.ical_utils import (
     list_of_oncall_shifts_from_ical,
     list_users_to_notify_from_ical,
     parse_event_uid,
     users_in_ical,
 )
-from apps.schedules.models import CustomOnCallShift, OnCallScheduleCalendar
-from common.constants.role import Role
+from apps.schedules.models import CustomOnCallShift, OnCallScheduleCalendar, OnCallScheduleWeb
 
 
 @pytest.mark.django_db
@@ -26,13 +26,10 @@ def test_users_in_ical_email_case_insensitive(make_organization_and_user, make_u
 
 
 @pytest.mark.django_db
-@pytest.mark.parametrize(
-    "include_viewers",
-    [True, False],
-)
+@pytest.mark.parametrize("include_viewers", [True, False])
 def test_users_in_ical_viewers_inclusion(make_organization_and_user, make_user_for_organization, include_viewers):
     organization, user = make_organization_and_user()
-    viewer = make_user_for_organization(organization, Role.VIEWER)
+    viewer = make_user_for_organization(organization, role=LegacyAccessControlRole.VIEWER)
 
     usernames = [user.username, viewer.username]
     result = users_in_ical(usernames, organization, include_viewers=include_viewers)
@@ -43,15 +40,12 @@ def test_users_in_ical_viewers_inclusion(make_organization_and_user, make_user_f
 
 
 @pytest.mark.django_db
-@pytest.mark.parametrize(
-    "include_viewers",
-    [True, False],
-)
+@pytest.mark.parametrize("include_viewers", [True, False])
 def test_list_users_to_notify_from_ical_viewers_inclusion(
     make_organization_and_user, make_user_for_organization, make_schedule, make_on_call_shift, include_viewers
 ):
     organization, user = make_organization_and_user()
-    viewer = make_user_for_organization(organization, Role.VIEWER)
+    viewer = make_user_for_organization(organization, role=LegacyAccessControlRole.VIEWER)
 
     schedule = make_schedule(organization, schedule_class=OnCallScheduleCalendar)
     date = timezone.now().replace(tzinfo=None, microsecond=0)
@@ -81,6 +75,39 @@ def test_list_users_to_notify_from_ical_viewers_inclusion(
 
 
 @pytest.mark.django_db
+def test_list_users_to_notify_from_ical_until_terminated_event(
+    make_organization_and_user, make_user_for_organization, make_schedule, make_on_call_shift
+):
+    organization, user = make_organization_and_user()
+    other_user = make_user_for_organization(organization)
+
+    schedule = make_schedule(organization, schedule_class=OnCallScheduleWeb)
+    date = timezone.now().replace(tzinfo=None, microsecond=0)
+
+    data = {
+        "start": date,
+        "duration": timezone.timedelta(hours=4),
+        "rotation_start": date + timezone.timedelta(days=3),
+        "priority_level": 1,
+        "frequency": CustomOnCallShift.FREQUENCY_DAILY,
+        "by_day": ["SU"],
+        "interval": 1,
+        "until": date + timezone.timedelta(hours=8),
+        "schedule": schedule,
+    }
+    on_call_shift = make_on_call_shift(
+        organization=organization, shift_type=CustomOnCallShift.TYPE_ROLLING_USERS_EVENT, **data
+    )
+    on_call_shift.add_rolling_users([[user], [other_user]])
+
+    # get users on-call
+    date = date + timezone.timedelta(minutes=5)
+    # this should not raise despite the shift configuration (until < rotation start)
+    users_on_call = list_users_to_notify_from_ical(schedule, date)
+    assert users_on_call == []
+
+
+@pytest.mark.django_db
 def test_shifts_dict_all_day_middle_event(make_organization, make_schedule, get_ical):
     calendar = get_ical("calendar_with_all_day_event.ics")
     organization = make_organization()
@@ -91,7 +118,7 @@ def test_shifts_dict_all_day_middle_event(make_organization, make_schedule, get_
     parsed_iso_day_to_check = datetime.datetime.fromisoformat(day_to_check_iso).replace(tzinfo=pytz.UTC)
     requested_date = (parsed_iso_day_to_check - timezone.timedelta(days=1)).date()
     shifts = list_of_oncall_shifts_from_ical(schedule, requested_date, days=3, with_empty_shifts=True)
-    assert len(shifts) == 4
+    assert len(shifts) == 5
     for s in shifts:
         start = s["start"].date() if isinstance(s["start"], datetime.datetime) else s["start"]
         end = s["end"].date() if isinstance(s["end"], datetime.datetime) else s["end"]

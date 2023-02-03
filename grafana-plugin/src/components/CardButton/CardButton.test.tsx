@@ -1,11 +1,8 @@
 import 'jest/matchMedia.ts';
 import React from 'react';
 
-import { describe, expect, test } from '@jest/globals';
 import { fireEvent, render, screen } from '@testing-library/react';
 
-
-import '@testing-library/jest-dom';
 import CardButton from 'components/CardButton/CardButton';
 
 describe('CardButton', () => {
@@ -23,11 +20,11 @@ describe('CardButton', () => {
     const onClickMock = jest.fn();
     render(<CardButton {...getProps(onClickMock)} />);
 
-    const rootEl = getRootBlockEl()
+    const rootEl = getRootBlockEl();
 
     fireEvent.click(rootEl);
 
-    expect(rootEl.classList).toContain("root_selected")
+    expect(rootEl.classList).toContain('root_selected');
     expect(onClickMock).toHaveBeenCalled();
   });
 

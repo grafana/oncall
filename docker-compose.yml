@@ -1,19 +1,10 @@
-version: "3.8"
+version: "3.9"
 
-x-environment:
-  &oncall-environment
+x-environment: &oncall-environment
+  DATABASE_TYPE: sqlite3
+  BROKER_TYPE: redis
   BASE_URL: $DOMAIN
   SECRET_KEY: $SECRET_KEY
-  RABBITMQ_USERNAME: "rabbitmq"
-  RABBITMQ_PASSWORD: $RABBITMQ_PASSWORD
-  RABBITMQ_HOST: "rabbitmq"
-  RABBITMQ_PORT: "5672"
-  RABBITMQ_DEFAULT_VHOST: "/"
-  MYSQL_PASSWORD: $MYSQL_PASSWORD
-  MYSQL_DB_NAME: oncall_hobby
-  MYSQL_USER: ${MYSQL_USER:-root}
-  MYSQL_HOST: ${MYSQL_HOST:-mysql}
-  MYSQL_PORT: 3306
   REDIS_URI: redis://redis:6379/0
   DJANGO_SETTINGS_MODULE: settings.hobby
   CELERY_WORKER_QUEUE: "default,critical,long,slack,telegram,webhook,retry,celery"
@@ -21,6 +12,7 @@ x-environment:
   CELERY_WORKER_MAX_TASKS_PER_CHILD: "100"
   CELERY_WORKER_SHUTDOWN_INTERVAL: "65m"
   CELERY_WORKER_BEAT_ENABLED: "True"
+  GRAFANA_API_URL: http://grafana:3000
 
 services:
   engine:
@@ -31,132 +23,76 @@ services:
     command: >
       sh -c "uwsgi --ini uwsgi.ini"
     environment: *oncall-environment
+    volumes:
+      - oncall_data:/var/lib/oncall
     depends_on:
-      mysql:
-        condition: service_healthy
       oncall_db_migration:
         condition: service_completed_successfully
-      rabbitmq:
-        condition: service_healthy
       redis:
-        condition: service_started
+        condition: service_healthy
 
   celery:
     image: grafana/oncall
     restart: always
     command: sh -c "./celery_with_exporter.sh"
     environment: *oncall-environment
+    volumes:
+      - oncall_data:/var/lib/oncall
     depends_on:
-      mysql:
-        condition: service_healthy
       oncall_db_migration:
         condition: service_completed_successfully
-      rabbitmq:
-        condition: service_healthy
       redis:
-        condition: service_started
+        condition: service_healthy
 
   oncall_db_migration:
     image: grafana/oncall
     command: python manage.py migrate --noinput
     environment: *oncall-environment
+    volumes:
+      - oncall_data:/var/lib/oncall
     depends_on:
-      mysql:
-        condition: service_healthy
-      rabbitmq:
+      redis:
         condition: service_healthy
 
-  mysql:
-    image: mysql:5.7
-    platform: linux/x86_64
-    command: --default-authentication-plugin=mysql_native_password --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
+  redis:
+    image: redis:7.0.5
     restart: always
     expose:
-      - 3306
+      - 6379
     volumes:
-      - dbdata:/var/lib/mysql
-    environment:
-      MYSQL_ROOT_PASSWORD: $MYSQL_PASSWORD
-      MYSQL_DATABASE: oncall_hobby
+      - redis_data:/data
     deploy:
       resources:
         limits:
           memory: 500m
-          cpus: '0.5'
+          cpus: "0.5"
     healthcheck:
-      test: "mysql -uroot -p$MYSQL_PASSWORD oncall_hobby -e 'select 1'"
-      timeout: 20s
+      test: ["CMD", "redis-cli", "ping"]
+      timeout: 5s
+      interval: 5s
       retries: 10
 
-  redis:
-    image: redis
-    restart: always
-    expose:
-      - 6379
-    deploy:
-      resources:
-        limits:
-          memory: 100m
-          cpus: '0.1'
-
-  rabbitmq:
-    image: "rabbitmq:3.7.15-management"
-    restart: always
-    hostname: rabbitmq
-    volumes:
-      - rabbitmqdata:/var/lib/rabbitmq
-    environment:
-      RABBITMQ_DEFAULT_USER: "rabbitmq"
-      RABBITMQ_DEFAULT_PASS: $RABBITMQ_PASSWORD
-      RABBITMQ_DEFAULT_VHOST: "/"
-    deploy:
-      resources:
-        limits:
-          memory: 1000m
-          cpus: '0.5'
-    healthcheck:
-      test: rabbitmq-diagnostics -q ping
-      interval: 30s
-      timeout: 30s
-      retries: 3
-
-  mysql_to_create_grafana_db:
-    image: mysql:5.7
-    platform: linux/x86_64
-    command: bash -c "mysql -h ${MYSQL_HOST:-mysql} -uroot -p${MYSQL_PASSWORD:?err} -e 'CREATE DATABASE IF NOT EXISTS grafana CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;'"
-    depends_on:
-      mysql:
-        condition: service_healthy
-    profiles:
-      - with_grafana
-
   grafana:
-    image: "grafana/grafana:9.0.0-beta3"
+    image: "grafana/grafana:${GRAFANA_VERSION:-latest}"
     restart: always
     ports:
       - "3000:3000"
     environment:
-      GF_DATABASE_TYPE: mysql
-      GF_DATABASE_HOST: ${MYSQL_HOST:-mysql}
-      GF_DATABASE_USER: ${MYSQL_USER:-root}
-      GF_DATABASE_PASSWORD: ${MYSQL_PASSWORD:?err}
       GF_SECURITY_ADMIN_USER: ${GRAFANA_USER:-admin}
       GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_PASSWORD:-admin}
       GF_PLUGINS_ALLOW_LOADING_UNSIGNED_PLUGINS: grafana-oncall-app
       GF_INSTALL_PLUGINS: grafana-oncall-app
+    volumes:
+      - grafana_data:/var/lib/grafana
     deploy:
       resources:
         limits:
           memory: 500m
-          cpus: '0.5'
-    depends_on:
-      mysql_to_create_grafana_db:
-        condition: service_completed_successfully
-      mysql:
-        condition: service_healthy
+          cpus: "0.5"
     profiles:
       - with_grafana
 
 volumes:
-  dbdata:
-  rabbitmqdata:
+  grafana_data:
+  oncall_data:
+  redis_data:

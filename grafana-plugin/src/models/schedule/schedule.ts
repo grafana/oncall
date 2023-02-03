@@ -1,14 +1,8 @@
-import { SelectOptions } from '@grafana/ui';
 import dayjs from 'dayjs';
-import { omit, reject } from 'lodash-es';
-import { action, observable, toJS } from 'mobx';
-import ReactCSSTransitionGroup from 'react-transition-group'; // ES6
+import { action, observable } from 'mobx';
 
 import BaseStore from 'models/base_store';
 import { EscalationChain } from 'models/escalation_chain/escalation_chain.types';
-import { SlackChannel } from 'models/slack_channel/slack_channel.types';
-import { Timezone } from 'models/timezone/timezone.types';
-import { User } from 'models/user/user.types';
 import { makeRequest } from 'network';
 import { RootStore } from 'state';
 import { SelectOption } from 'state/types';
@@ -16,20 +10,25 @@ import { SelectOption } from 'state/types';
 import {
   enrichLayers,
   enrichOverrides,
-  fillGaps,
   getFromString,
   splitToLayers,
   splitToShiftsAndFillGaps,
 } from './schedule.helpers';
-import { Events, Rotation, RotationType, Schedule, ScheduleEvent, Shift, Event, Layer, ShiftEvents } from './schedule.types';
-
-const DEFAULT_FORMAT = 'YYYY-MM-DDTHH:mm:ss';
-
-let I = 0;
+import {
+  Rotation,
+  RotationType,
+  Schedule,
+  ScheduleEvent,
+  Shift,
+  Event,
+  Layer,
+  ShiftEvents,
+  RotationFormLiveParams,
+} from './schedule.types';
 
 export class ScheduleStore extends BaseStore {
   @observable
-  searchResult: { [key: string]: Array<Schedule['id']> } = {};
+  searchResult: { results?: Array<Schedule['id']> } = {};
 
   @observable.shallow
   items: { [id: string]: Schedule } = {};
@@ -67,6 +66,9 @@ export class ScheduleStore extends BaseStore {
 
   @observable
   overridePreview?: Array<{ shiftId: Shift['id']; isPreview?: boolean; events: Event[] }>;
+
+  @observable
+  rotationFormLiveParams: RotationFormLiveParams = undefined;
 
   @observable
   scheduleToScheduleEvents: {
@@ -116,8 +118,11 @@ export class ScheduleStore extends BaseStore {
   }
 
   @action
-  async updateItems(query = '') {
-    const result = await makeRequest(this.path, { method: 'GET', params: { search: query } });
+  async updateItems(f: any = { searchTerm: '', type: undefined }) {
+    // async updateItems(query = '') {
+    const filters = typeof f === 'string' ? { searchTerm: f } : f;
+    const { searchTerm: search, type } = filters;
+    const result = await makeRequest(this.path, { method: 'GET', params: { search: search, type } });
 
     this.items = {
       ...this.items,
@@ -129,10 +134,9 @@ export class ScheduleStore extends BaseStore {
         {}
       ),
     };
-
     this.searchResult = {
       ...this.searchResult,
-      [query]: result.map((item: Schedule) => item.id),
+      results: result.map((item: Schedule) => item.id),
     };
   }
 
@@ -147,12 +151,11 @@ export class ScheduleStore extends BaseStore {
     }
   }
 
-  getSearchResult(query = '') {
-    if (!this.searchResult[query]) {
+  getSearchResult() {
+    if (!this.searchResult.results) {
       return undefined;
     }
-
-    return this.searchResult[query].map((scheduleId: Schedule['id']) => this.items[scheduleId]);
+    return this.searchResult?.results?.map((scheduleId: Schedule['id']) => this.items[scheduleId]);
   }
 
   @action
@@ -198,6 +201,10 @@ export class ScheduleStore extends BaseStore {
     return response;
   }
 
+  setRotationFormLiveParams(params: RotationFormLiveParams) {
+    this.rotationFormLiveParams = params;
+  }
+
   async updateRotationPreview(
     scheduleId: Schedule['id'],
     shiftId: Shift['id'] | 'new',
@@ -230,7 +237,7 @@ export class ScheduleStore extends BaseStore {
       this.rotationPreview = layers;
     }
 
-    this.finalPreview = splitToShiftsAndFillGaps(response.final); /*.filter((shift) => shift.shiftId !== shiftId);*/
+    this.finalPreview = splitToShiftsAndFillGaps(response.final);
   }
 
   @action
@@ -238,6 +245,7 @@ export class ScheduleStore extends BaseStore {
     this.finalPreview = undefined;
     this.rotationPreview = undefined;
     this.overridePreview = undefined;
+    this.rotationFormLiveParams = undefined;
   }
 
   async updateRotation(shiftId: Shift['id'], params: Partial<Shift>) {
@@ -331,25 +339,7 @@ export class ScheduleStore extends BaseStore {
     });
 
     const fromString = getFromString(startMoment);
-
     const shifts = splitToShiftsAndFillGaps(response.events);
-
-    // merge users on frontend side, we don't need it now
-    /*shifts.forEach((shift) => {
-      for (let i = 0; i < shift.events.length; i++) {
-        const iEvent = shift.events[i];
-
-        for (let j = i + 1; j < shift.events.length; j++) {
-          const jEvent = shift.events[j];
-          if (iEvent.start === jEvent.start && iEvent.end === jEvent.end) {
-            iEvent.users.push(...jEvent.users);
-            jEvent.merged = true;
-          }
-        }
-        shift.events = shift.events.filter((event) => !event.merged);
-      }
-    });*/
-
     const layers = type === 'rotation' ? splitToLayers(shifts) : undefined;
 
     this.events = {
@@ -362,8 +352,6 @@ export class ScheduleStore extends BaseStore {
         },
       },
     };
-
-    // console.log(toJS(this.events));
   }
 
   async updateFrequencyOptions() {

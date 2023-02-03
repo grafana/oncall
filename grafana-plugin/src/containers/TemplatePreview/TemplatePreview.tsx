@@ -1,13 +1,13 @@
 import React, { useEffect, useState } from 'react';
 
 import { LoadingPlaceholder } from '@grafana/ui';
-import { capitalCase } from 'change-case';
 import cn from 'classnames/bind';
 import { observer } from 'mobx-react';
 
 import { AlertReceiveChannel } from 'models/alert_receive_channel/alert_receive_channel.types';
 import { Alert } from 'models/alertgroup/alertgroup.types';
 import { useStore } from 'state/useStore';
+import { openErrorNotification } from 'utils';
 import { useDebouncedCallback } from 'utils/hooks';
 import sanitize from 'utils/sanitize';
 
@@ -24,10 +24,8 @@ interface TemplatePreviewProps {
   active?: boolean;
 }
 
-// web_title_template, web_message_template, web_image_url_template
-
 const TemplatePreview = observer((props: TemplatePreviewProps) => {
-  const { templateName, templateBody, alertReceiveChannelId, alertGroupId, onEditClick, active } = props;
+  const { templateName, templateBody, alertReceiveChannelId, alertGroupId } = props;
 
   const [result, setResult] = useState<{ preview: string | null } | undefined>(undefined);
 
@@ -38,7 +36,15 @@ const TemplatePreview = observer((props: TemplatePreviewProps) => {
     (alertGroupId
       ? alertGroupStore.renderPreview(alertGroupId, templateName, templateBody)
       : alertReceiveChannelStore.renderPreview(alertReceiveChannelId, templateName, templateBody)
-    ).then(setResult);
+    )
+      .then(setResult)
+      .catch((err) => {
+        if (err.response?.data?.length > 0) {
+          openErrorNotification(err.response.data);
+        } else {
+          openErrorNotification(err.message);
+        }
+      });
   }, 1000);
 
   useEffect(handleTemplateBodyChange, [templateBody]);

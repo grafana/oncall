@@ -1,0 +1,41 @@
+.title {
+  margin-bottom: 20px;
+}
+
+.stub {
+  width: 100%;
+  padding: 50px 0;
+}
+
+.root .select {
+  width: 400px;
+}
+
+.slack-settings {
+  margin-bottom: 20px;
+  border-bottom: 1px solid rgba(204, 204, 220, 0.25);
+}
+
+.slack-infoblock {
+  text-align: center;
+  width: 725px;
+}
+
+.external-link-style {
+  margin-right: 4px;
+  align-self: baseline;
+}
+
+.team_workspace {
+  height: 30px;
+}
+
+.infoblock-text {
+  margin-left: 48px;
+  margin-right: 48px;
+  margin-top: 24px;
+}
+
+.infoblock-icon {
+  margin-top: 24px;
+}

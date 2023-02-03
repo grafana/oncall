@@ -1,6 +1,5 @@
 import React, { FC, useCallback, useState } from 'react';
 
-import { getLocationSrv } from '@grafana/runtime';
 import { Button, Drawer, HorizontalGroup, Icon, VerticalGroup } from '@grafana/ui';
 import cn from 'classnames/bind';
 
@@ -9,7 +8,7 @@ import Text from 'components/Text/Text';
 import ScheduleForm from 'containers/ScheduleForm/ScheduleForm';
 import { WithPermissionControl } from 'containers/WithPermissionControl/WithPermissionControl';
 import { Schedule, ScheduleType } from 'models/schedule/schedule.types';
-import { UserAction } from 'state/userAction';
+import { UserActions } from 'utils/authorization';
 
 import styles from './NewScheduleSelector.module.css';
 
@@ -39,10 +38,6 @@ const NewScheduleSelector: FC<NewScheduleSelectorProps> = (props) => {
       <Drawer scrollableContent title="Create new schedule" onClose={onHide} closeOnMaskClick>
         <div className={cx('content')}>
           <VerticalGroup spacing="lg">
-            {/*<Text type="secondary">
-            Manage on-call schedules using your favourite calendar app, such as Google Calendar or Microsoft Outlook. To
-            schedule on-call shifts create a new calendar and use events with the teammates usernames
-          </Text>*/}
             <Block bordered withBackground className={cx('block')}>
               <HorizontalGroup justify="space-between">
                 <HorizontalGroup spacing="md">
@@ -54,7 +49,7 @@ const NewScheduleSelector: FC<NewScheduleSelectorProps> = (props) => {
                     <Text type="secondary">Configure rotations and shifts directly in Grafana On-Call</Text>
                   </VerticalGroup>
                 </HorizontalGroup>
-                <WithPermissionControl userAction={UserAction.UpdateSchedules}>
+                <WithPermissionControl userAction={UserActions.SchedulesWrite}>
                   <Button variant="primary" icon="plus" onClick={getCreateScheduleClickHandler(ScheduleType.API)}>
                     Create
                   </Button>
@@ -85,12 +80,16 @@ const NewScheduleSelector: FC<NewScheduleSelectorProps> = (props) => {
                     <Text type="primary" size="large">
                       Create schedule by API
                     </Text>
-                    <Text type="secondary">Configure rotations and upload calendar by Terraform file</Text>
+                    <Text type="secondary">Use API or Terraform to manage rotations</Text>
                   </VerticalGroup>
                 </HorizontalGroup>
-                <Button variant="secondary" icon="plus" onClick={getCreateScheduleClickHandler(ScheduleType.Calendar)}>
-                  Create
-                </Button>
+                <a
+                  target="_blank"
+                  href="https://grafana.com/blog/2022/08/29/get-started-with-grafana-oncall-and-terraform/"
+                  rel="noreferrer"
+                >
+                  <Button variant="secondary">Read more</Button>
+                </a>
               </HorizontalGroup>
             </Block>
           </VerticalGroup>

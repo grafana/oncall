@@ -5,7 +5,7 @@ import { Team } from 'models/team/team.types';
 
 import { SlackError } from './DefaultPageLayout.types';
 
-export function getSlackMessage(slackError: SlackError, team: Team) {
+export function getSlackMessage(slackError: SlackError, team: Team, hasLiveSettingsFeature: boolean) {
   if (slackError === SlackError.WRONG_WORKSPACE) {
     return (
       <>
@@ -22,7 +22,7 @@ export function getSlackMessage(slackError: SlackError, team: Team) {
 
   if (slackError === SlackError.USER_ALREADY_CONNECTED) {
     return (
-      <>Couldn’t connect to Slack. This Slack account has already been connected to another user in this organization</>
+      <>Couldn't connect to Slack. This Slack account has already been connected to another user in this organization</>
     );
   }
 
@@ -30,8 +30,12 @@ export function getSlackMessage(slackError: SlackError, team: Team) {
     return (
       <>
         An error has occurred with Slack authentication.{' '}
-        <PluginLink query={{ page: 'live-settings' }}>Check ENV variables</PluginLink> related to Slack and try again
-        please.
+        {hasLiveSettingsFeature && (
+          <>
+            <PluginLink query={{ page: 'live-settings' }}>Check ENV variables</PluginLink> related to Slack and try
+            again please.
+          </>
+        )}
       </>
     );
   }

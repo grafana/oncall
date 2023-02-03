@@ -2,7 +2,6 @@ import React, { useEffect } from 'react';
 
 import { Button, VerticalGroup } from '@grafana/ui';
 import cn from 'classnames/bind';
-import { PropTypes } from 'mobx-react';
 
 import PluginLink from 'components/PluginLink/PluginLink';
 import Text from 'components/Text/Text';
@@ -33,23 +32,26 @@ export default function PageErrorHandlingWrapper({
   itemNotFoundMessage,
   children,
 }: {
-  errorData: PageErrorData;
-  objectName: string;
+  errorData?: PageErrorData;
+  objectName?: string;
   pageName: string;
   itemNotFoundMessage?: string;
-  children: () => JSX.Element;
-}) {
+  children: () => React.ReactNode;
+}): JSX.Element {
   useEffect(() => {
+    if (!errorData) {
+      return;
+    }
     const { isWrongTeamError, isNotFoundError } = errorData;
     if (!isWrongTeamError && isNotFoundError && itemNotFoundMessage) {
       openWarningNotification(itemNotFoundMessage);
     }
-  }, [errorData.isNotFoundError]);
+  }, [errorData?.isNotFoundError]);
 
   const store = useStore();
 
-  if (!errorData.isWrongTeamError) {
-    return children();
+  if (!errorData || !errorData.isWrongTeamError) {
+    return <>{children()}</>;
   }
 
   const currentTeamId = store.userStore.currentUser?.current_team;

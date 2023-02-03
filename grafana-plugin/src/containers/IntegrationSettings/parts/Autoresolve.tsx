@@ -1,12 +1,10 @@
 import React, { useCallback, useState, useEffect } from 'react';
 
-import { getLocationSrv } from '@grafana/runtime';
 import { Alert, Button, Icon, Label, Modal, Select } from '@grafana/ui';
 import cn from 'classnames/bind';
 import { get } from 'lodash-es';
 
 import Block from 'components/GBlock/Block';
-import PluginLink from 'components/PluginLink/PluginLink';
 import Text from 'components/Text/Text';
 import GSelect from 'containers/GSelect/GSelect';
 import { WithPermissionControl } from 'containers/WithPermissionControl/WithPermissionControl';
@@ -14,8 +12,9 @@ import { AlertReceiveChannel } from 'models/alert_receive_channel/alert_receive_
 import { Alert as AlertType } from 'models/alertgroup/alertgroup.types';
 import { Team } from 'models/team/team.types';
 import { useStore } from 'state/useStore';
-import { UserAction } from 'state/userAction';
 import { openErrorNotification, openNotification } from 'utils';
+import LocationHelper from 'utils/LocationHelper';
+import { UserActions } from 'utils/authorization';
 
 import styles from 'containers/IntegrationSettings/parts/Autoresolve.module.css';
 
@@ -55,8 +54,7 @@ const Autoresolve = ({ alertReceiveChannelId, onSwitchToTemplate, alertGroupId }
       store.alertReceiveChannelStore.templates[alertReceiveChannelId],
       'resolve_condition_template'
     );
-    // @ts-ignore
-    if (autoresolveCondition == ['invalid template']) {
+    if (autoresolveCondition === 'invalid template') {
       setAutoresolveConditionInvalid(true);
     }
   }, [store.alertReceiveChannelStore.templates[alertReceiveChannelId]]);
@@ -116,7 +114,7 @@ const Autoresolve = ({ alertReceiveChannelId, onSwitchToTemplate, alertGroupId }
   };
 
   const handleGoToTemplateSettingsCllick = () => {
-    getLocationSrv().update({ partial: true, query: { tab: 'Templates' } });
+    LocationHelper.update({ tab: 'Templates' }, 'partial');
     onSwitchToTemplate('resolve_condition_template');
   };
 
@@ -151,7 +149,7 @@ const Autoresolve = ({ alertReceiveChannelId, onSwitchToTemplate, alertGroupId }
             </div>
           </Label>
           <div className={cx('team-select')}>
-            <WithPermissionControl userAction={UserAction.UpdateAlertReceiveChannels}>
+            <WithPermissionControl userAction={UserActions.IntegrationsWrite}>
               <Select
                 className={cx('team-select')}
                 //@ts-ignore
