@@ -32,8 +32,10 @@ const DefaultPageLayout: FC<DefaultPageLayoutProps> = observer((props) => {
   return renderLegacyNavbar();
 
   function renderTopNavbar(): JSX.Element {
+    const matchingPageNav = pages[page]?.getPageNav() || pages[DEFAULT_PAGE].getPageNav();
+
     return (
-      <PluginPage pageNav={pages[page].getPageNav()}>
+      <PluginPage page={page} pageNav={matchingPageNav}>
         <div className={cx('root')}>{children}</div>
       </PluginPage>
     );
