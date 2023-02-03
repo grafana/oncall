@@ -30,3 +30,8 @@ export const FARO_ENDPOINT_PROD =
 
 export const DOCS_SLACK_SETUP = 'https://grafana.com/docs/grafana-cloud/oncall/open-source/#slack-setup';
 export const DOCS_TELEGRAM_SETUP = 'https://grafana.com/docs/grafana-cloud/oncall/chat-options/configure-telegram/';
+
+export const COLOR_DANGER = '#E02F44';
+export const COLOR_WARNING = '#C69B06';
+export const COLOR_PRIMARY = '#299C46';
+export const COLOR_SECONDARY = '#464C54';

@@ -22,6 +22,7 @@ from apps.slack.scenarios.distribute_alerts import STEPS_ROUTING as DISTRIBUTION
 from apps.slack.scenarios.invited_to_channel import STEPS_ROUTING as INVITED_TO_CHANNEL_ROUTING
 from apps.slack.scenarios.manual_incident import STEPS_ROUTING as MANUAL_INCIDENT_ROUTING
 from apps.slack.scenarios.onboarding import STEPS_ROUTING as ONBOARDING_STEPS_ROUTING
+from apps.slack.scenarios.paging import STEPS_ROUTING as DIRECT_PAGE_ROUTING
 from apps.slack.scenarios.profile_update import STEPS_ROUTING as PROFILE_UPDATE_ROUTING
 from apps.slack.scenarios.resolution_note import STEPS_ROUTING as RESOLUTION_NOTE_ROUTING
 from apps.slack.scenarios.scenario_step import (
@@ -69,6 +70,7 @@ SCENARIOS_ROUTES.extend(SLACK_USERGROUP_UPDATE_ROUTING)
 SCENARIOS_ROUTES.extend(CHANNEL_ROUTING)
 SCENARIOS_ROUTES.extend(PROFILE_UPDATE_ROUTING)
 SCENARIOS_ROUTES.extend(MANUAL_INCIDENT_ROUTING)
+SCENARIOS_ROUTES.extend(DIRECT_PAGE_ROUTING)
 SCENARIOS_ROUTES.extend(DECLARE_INCIDENT_ROUTING)
 
 logger = logging.getLogger(__name__)
@@ -518,8 +520,8 @@ class SlackEventApiEndpointView(APIView):
             return
 
         text = (
-            "The information in workspace is read-only. To be able to intercat with OnCall alert groups you need to connect a personal account.\n"
-            "Please go to the *Grafana* -> *OnCall* -> *Users*, "
+            "The information in this workspace is read-only. To interact with OnCall alert groups you need to connect a personal account.\n"
+            "Please go to *Grafana* -> *OnCall* -> *Users*, "
             "choose *your profile* and click the *connect* button.\n"
             ":rocket: :rocket: :rocket:"
         )

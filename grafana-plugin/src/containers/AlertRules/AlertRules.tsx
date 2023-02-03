@@ -255,7 +255,7 @@ class AlertRules extends React.Component<AlertRulesProps, AlertRulesState> {
                     tooltip="Settings"
                     tooltipPlacement="top"
                     onClick={() => {
-                      onShowSettings();
+                      onShowSettings(IntegrationSettingsTab.Templates);
                     }}
                   />
                   <WithPermissionControl userAction={UserActions.EscalationChainsWrite}>
