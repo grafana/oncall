@@ -23,6 +23,7 @@ class AlertGroupFieldsCacheSerializerMixin:
     def get_or_set_web_template_field(
         cls,
         obj,
+        last_alert,
         field_name,
         renderer_class,
         cache_lifetime=60 * 60 * 24,
@@ -31,7 +32,7 @@ class AlertGroupFieldsCacheSerializerMixin:
         cached_field = cache.get(CACHE_KEY, None)
 
         web_templates_modified_at = obj.channel.web_templates_modified_at
-        last_alert_created_at = obj.last_alert.created_at
+        last_alert_created_at = last_alert.created_at
 
         # use cache only if cache exists
         # and cache was created after the last alert created
@@ -44,7 +45,7 @@ class AlertGroupFieldsCacheSerializerMixin:
         ):
             field = cached_field.get(field_name)
         else:
-            field = renderer_class(obj, obj.last_alert).render()
+            field = renderer_class(obj, last_alert).render()
             cache.set(CACHE_KEY, {"cache_created_at": timezone.now(), field_name: field}, cache_lifetime)
 
         return field
@@ -60,10 +61,12 @@ class ShortAlertGroupSerializer(AlertGroupFieldsCacheSerializerMixin, serializer
         fields = ["pk", "render_for_web", "alert_receive_channel", "inside_organization_number"]
 
     def get_render_for_web(self, obj):
-        if not obj.last_alert:
+        last_alert = obj.alerts.last()
+        if last_alert is None:
             return {}
         return AlertGroupFieldsCacheSerializerMixin.get_or_set_web_template_field(
             obj,
+            last_alert,
             "render_for_web",
             AlertGroupWebRenderer,
         )
@@ -133,6 +136,7 @@ class AlertGroupListSerializer(EagerLoadingMixin, AlertGroupFieldsCacheSerialize
             return {}
         return AlertGroupFieldsCacheSerializerMixin.get_or_set_web_template_field(
             obj,
+            obj.last_alert,
             "render_for_web",
             AlertGroupWebRenderer,
         )
@@ -142,6 +146,7 @@ class AlertGroupListSerializer(EagerLoadingMixin, AlertGroupFieldsCacheSerialize
             return {}
         return AlertGroupFieldsCacheSerializerMixin.get_or_set_web_template_field(
             obj,
+            obj.last_alert,
             "render_for_classic_markdown",
             AlertGroupClassicMarkdownRenderer,
         )

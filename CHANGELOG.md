@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Fix bug with root/dependant alert groups list api endpoint([1284](https://github.com/grafana/oncall/pull/1284))
 - Fixed NPE on teams switch
 
 ### Added
