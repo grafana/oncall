@@ -4,14 +4,13 @@ from django.conf import settings
 from fcm_django.models import FCMDevice
 
 from apps.base.messaging import BaseMessagingBackend
-from apps.base.models import DynamicSetting
 from apps.mobile_app.tasks import notify_user_async
 
 
 class MobileAppBackend(BaseMessagingBackend):
     backend_id = "MOBILE_APP"
-    label = "Mobile app"
-    short_label = "Mobile app"
+    label = "Mobile push"
+    short_label = "Mobile push"
     available_for_use = True
     template_fields = ["title"]
 
@@ -51,18 +50,6 @@ class MobileAppBackend(BaseMessagingBackend):
             critical=critical,
         )
 
-    @staticmethod
-    def is_enabled_for_organization(organization):
-        # Setting FEATURE_MOBILE_APP_INTEGRATION_ENABLED to True is enough to enable mobile app on OSS instances
-        if settings.LICENSE == settings.OPEN_SOURCE_LICENSE_NAME:
-            return True
-
-        mobile_app_settings, _ = DynamicSetting.objects.get_or_create(
-            name="mobile_app_settings", defaults={"json_value": {"org_ids": []}}
-        )
-
-        return organization.pk in mobile_app_settings.json_value["org_ids"]
-
 
 class MobileAppCriticalBackend(MobileAppBackend):
     """
@@ -72,8 +59,8 @@ class MobileAppCriticalBackend(MobileAppBackend):
     """
 
     backend_id = "MOBILE_APP_CRITICAL"
-    label = "Mobile app critical"
-    short_label = "Mobile app critical"
+    label = "Mobile push important"
+    short_label = "Mobile push important"
     template_fields = []
 
     def notify_user(self, user, alert_group, notification_policy, critical=True):
