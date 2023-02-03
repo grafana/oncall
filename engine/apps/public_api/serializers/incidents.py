@@ -41,6 +41,7 @@ class IncidentSerializer(EagerLoadingMixin, serializers.ModelSerializer):
         ]
 
     def get_alerts_count(self, obj):
+        # alerts_count is an annotated field added in get_queryset
         return obj.alerts_count
 
     def get_state(self, obj):
