@@ -111,7 +111,7 @@ export const Root = observer((props: AppRootProps) => {
     <DefaultPageLayout {...props} page={page}>
       {!isTopNavbar() && (
         <>
-          <Header page={page} backendLicense={store.backendLicense} />
+          <Header backendLicense={store.backendLicense} />
           <LegacyNavTabsBar currentPage={page} />
         </>
       )}

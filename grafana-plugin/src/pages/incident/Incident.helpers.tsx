@@ -14,13 +14,13 @@ import { User } from 'models/user/user.types';
 import { SilenceButtonCascader } from 'pages/incidents/parts/SilenceButtonCascader';
 import { move } from 'state/helpers';
 import { UserActions } from 'utils/authorization';
-import { TABLE_COLUMN_MAX_WIDTH } from 'utils/consts';
+import { COLOR_DANGER, COLOR_PRIMARY, COLOR_SECONDARY, COLOR_WARNING } from 'utils/consts';
 
 export function getIncidentStatusTag(alert: Alert) {
   switch (alert.status) {
     case IncidentStatus.Firing:
       return (
-        <Tag color="#E02F44">
+        <Tag color={COLOR_DANGER}>
           <Text strong size="small">
             Firing
           </Text>
@@ -28,7 +28,7 @@ export function getIncidentStatusTag(alert: Alert) {
       );
     case IncidentStatus.Acknowledged:
       return (
-        <Tag color="#C69B06">
+        <Tag color={COLOR_WARNING}>
           <Text strong size="small">
             Acknowledged
           </Text>
@@ -36,7 +36,7 @@ export function getIncidentStatusTag(alert: Alert) {
       );
     case IncidentStatus.Resolved:
       return (
-        <Tag color="#299C46">
+        <Tag color={COLOR_PRIMARY}>
           <Text strong size="small">
             Resolved
           </Text>
@@ -44,7 +44,7 @@ export function getIncidentStatusTag(alert: Alert) {
       );
     case IncidentStatus.Silenced:
       return (
-        <Tag color="#464C54">
+        <Tag color={COLOR_SECONDARY}>
           <Text strong size="small">
             Silenced
           </Text>
