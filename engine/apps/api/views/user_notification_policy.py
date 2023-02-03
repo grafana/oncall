@@ -176,7 +176,9 @@ class UserNotificationPolicyView(UpdateSerializerMixin, ModelViewSet):
             built_in_backend_names = {b[0] for b in BUILT_IN_BACKENDS}
             if notification_channel.name not in built_in_backend_names:
                 extra_messaging_backend = get_messaging_backend_from_id(notification_channel.name)
-                if extra_messaging_backend is None:
+                if extra_messaging_backend is None or not extra_messaging_backend.is_enabled_for_organization(
+                    request.auth.organization
+                ):
                     continue
 
             choices.append(

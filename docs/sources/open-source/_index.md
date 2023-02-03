@@ -78,7 +78,7 @@ display_information:
   name: <YOUR_BOT_NAME>
 features:
   app_home:
-    home_tab_enabled: true
+    home_tab_enabled: false
     messages_tab_enabled: true
     messages_tab_read_only_enabled: false
   bot_user:
@@ -219,3 +219,18 @@ the following env variables with your SMTP server credentials:
 - `EMAIL_FROM_ADDRESS` (optional) - Email address used to send emails. If not specified, `EMAIL_HOST_USER` will be used.
 
 After enabling the email integration, it will be possible to use the `Notify by email` notification step in user settings.
+
+## Mobile application set up
+
+>**Note**: This application is currently in beta
+
+Grafana OnCall OSS users can use the mobile app to receive push notifications from OnCall.
+Grafana OnCall OSS relies on Grafana Cloud as on relay for push notifications.
+You must first connect your Grafana OnCall OSS to Grafana Cloud for the mobile app to work.
+
+Refer to [Grafana OSS-Cloud Setup]({{< relref "_index.md#grafana-oss-cloud-setup" >}}) in this document before continuing with the mobile app.
+
+For Grafana OnCall OSS, the mobile app QR code includes an authentication token along with a backend URL.
+Your Grafana OnCall OSS instance should be reachable from the same network as your mobile device, preferably from the internet.
+
+For more information, see [Grafana OnCall mobile app]({{< relref "../mobile-app" >}})

@@ -1,7 +1,6 @@
 import React from 'react';
 
 import { Tab, TabsBar } from '@grafana/ui';
-import { PluginPage } from 'PluginPage';
 import cn from 'classnames/bind';
 import { observer } from 'mobx-react';
 
@@ -35,11 +34,7 @@ class SettingsPage extends React.Component<SettingsPageProps, SettingsPageState>
   };
 
   render() {
-    return (
-      <PluginPage pageNav={this.getMatchingPageNav()}>
-        <div className={cx('root')}>{this.renderContent()}</div>
-      </PluginPage>
-    );
+    return <div className={cx('root')}>{this.renderContent()}</div>;
   }
 
   renderContent() {

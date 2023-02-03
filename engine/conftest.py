@@ -736,15 +736,29 @@ def make_integration_heartbeat():
     return _make_integration_heartbeat
 
 
-@pytest.fixture()
-def load_slack_urls(settings):
+def reload_urls(settings):
+    """
+    Reloads Django URLs, especially useful when testing conditionally registered URLs
+    """
+
     clear_url_caches()
-    settings.FEATURE_SLACK_INTEGRATION_ENABLED = True
     urlconf = settings.ROOT_URLCONF
     if urlconf in sys.modules:
         reload(sys.modules[urlconf])
     else:
         import_module(urlconf)
+
+
+@pytest.fixture()
+def load_slack_urls(settings):
+    settings.FEATURE_SLACK_INTEGRATION_ENABLED = True
+    reload_urls(settings)
+
+
+@pytest.fixture()
+def load_mobile_app_urls(settings):
+    settings.FEATURE_MOBILE_APP_INTEGRATION_ENABLED = True
+    reload_urls(settings)
 
 
 @pytest.fixture
@@ -765,3 +779,13 @@ def make_organization_and_region(make_organization, make_region):
         return organization, region
 
     return _make_organization_and_region
+
+
+@pytest.fixture()
+def make_organization_and_user_with_token(make_organization_and_user, make_public_api_token):
+    def _make_organization_and_user_with_token():
+        organization, user = make_organization_and_user()
+        _, token = make_public_api_token(user, organization)
+        return organization, user, token
+
+    return _make_organization_and_user_with_token

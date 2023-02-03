@@ -90,12 +90,24 @@ export const userHasMinimumRequiredRole = (minimumRoleRequired: OrgRole): boolea
  *
  * As a fallback (second argument), for cases where RBAC is not enabled for a grafana instance, rely on basic roles
  */
-export const isUserActionAllowed = ({ permission, fallbackMinimumRoleRequired }: UserAction): boolean => {
-  if (config.featureToggles.accessControlOnCall) {
-    return !!contextSrv.user.permissions?.[permission];
-  }
-  return userHasMinimumRequiredRole(fallbackMinimumRoleRequired);
-};
+export const isUserActionAllowed = ({ permission, fallbackMinimumRoleRequired }: UserAction): boolean =>
+  config.featureToggles.accessControlOnCall
+    ? !!contextSrv.user.permissions?.[permission]
+    : userHasMinimumRequiredRole(fallbackMinimumRoleRequired);
+
+/**
+ * Given a `UserAction`, returns the permission or fallback-role, prefixed with "permission" or "role" respectively
+ * depending on whether or not RBAC is enabled/disabled
+ */
+export const determineRequiredAuthString = ({ permission, fallbackMinimumRoleRequired }: UserAction): string =>
+  config.featureToggles.accessControlOnCall ? `${permission} permission` : `${fallbackMinimumRoleRequired} role`;
+
+/**
+ * Can be used to generate a user-friendly message about which permission is missing. Method is RBAC-aware
+ * and shows user the missing permission/basic-role depending on whether or not RBAC is enabled/disabled
+ */
+export const generateMissingPermissionMessage = (permission: UserAction): string =>
+  `You are missing the ${determineRequiredAuthString(permission)}`;
 
 export const generatePermissionString = (resource: Resource, action: Action, includePrefix: boolean): string =>
   `${includePrefix ? `${ONCALL_PERMISSION_PREFIX}.` : ''}${resource}:${action}`;
