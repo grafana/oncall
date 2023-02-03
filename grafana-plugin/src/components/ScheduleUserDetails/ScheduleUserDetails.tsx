@@ -39,7 +39,7 @@ const ScheduleUserDetails: FC<ScheduleUserDetailsProps> = (props) => {
   const { teamStore } = store;
   let slackWorkspaceNameOrigin = teamStore.currentTeam.slack_team_identity.cached_name;
   const slackWorkspaceName = slackWorkspaceNameOrigin.replace(/[^0-9a-z]/gi, '');
-  console.log('USER', user);
+
   return (
     <div className={cx('root')}>
       <VerticalGroup spacing="xs">
