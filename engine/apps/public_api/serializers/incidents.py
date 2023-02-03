@@ -18,6 +18,7 @@ class IncidentSerializer(EagerLoadingMixin, serializers.ModelSerializer):
 
     SELECT_RELATED = ["channel", "channel_filter", "slack_message", "channel__organization"]
     PREFETCH_RELATED = [
+        "alerts",
         Prefetch(
             "telegram_messages",
             TelegramMessage.objects.filter(chat_id__startswith="-", message_type=TelegramMessage.ALERT_GROUP_MESSAGE),
@@ -41,8 +42,7 @@ class IncidentSerializer(EagerLoadingMixin, serializers.ModelSerializer):
         ]
 
     def get_alerts_count(self, obj):
-        # alerts_count is an annotated field added in get_queryset
-        return obj.alerts_count
+        return len(obj.alerts.all())
 
     def get_state(self, obj):
         return obj.state
