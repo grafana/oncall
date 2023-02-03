@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+### Fixed
+
+- Fixed NPE on teams switch
+
 ### Added
 
 - Optimize alert and alert group public api endpoints and add filter by id ([1274](https://github.com/grafana/oncall/pull/1274)
