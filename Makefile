@@ -54,7 +54,7 @@ ifeq ($(DB),$(SQLITE_PROFILE))
 endif
 
 define run_docker_compose_command
-	$(DOCKER_COMPOSE_ENV_VARS) docker compose -f $(DOCKER_COMPOSE_FILE) $(1)
+	$(DOCKER_COMPOSE_ENV_VARS) docker-compose -f $(DOCKER_COMPOSE_FILE) $(1)
 endef
 
 define run_engine_docker_command
