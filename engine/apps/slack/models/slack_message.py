@@ -222,8 +222,8 @@ class SlackMessage(models.Model):
             else:
                 raise e
 
-    @staticmethod
-    def get_alert_group_from_slack_message_payload(slack_team_identity, payload):
+    @classmethod
+    def get_alert_group_from_slack_message_payload(cls, slack_team_identity, payload):
         SlackMessage = apps.get_model("slack", "SlackMessage")
 
         message_ts = payload.get("message_ts") or payload["container"]["message_ts"]  # interactive message or block

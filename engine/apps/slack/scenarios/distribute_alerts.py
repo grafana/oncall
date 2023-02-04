@@ -260,7 +260,7 @@ class SilenceGroupStep(
         except KeyError:
             silence_delay = int(payload["actions"][0]["selected_option"]["value"])
 
-        alert_group = SlackMessage.get_alert_group_from_slack_message_from_slack_payload(slack_team_identity, payload)
+        alert_group = SlackMessage.get_alert_group_from_slack_message_payload(slack_team_identity, payload)
 
         if self.check_alert_is_unarchived(slack_team_identity, payload, alert_group):
             alert_group.silence_by_user(self.user, silence_delay, action_source=ActionSource.SLACK)
@@ -280,7 +280,7 @@ class UnSilenceGroupStep(
 
     def process_scenario(self, slack_user_identity, slack_team_identity, payload):
 
-        alert_group = SlackMessage.get_alert_group_from_slack_message_from_slack_payload(slack_team_identity, payload)
+        alert_group = SlackMessage.get_alert_group_from_slack_message_payload(slack_team_identity, payload)
         if self.check_alert_is_unarchived(slack_team_identity, payload, alert_group):
             alert_group.un_silence_by_user(self.user, action_source=ActionSource.SLACK)
 
@@ -488,9 +488,7 @@ class AttachGroupStep(
                 root_alert_group_pk = int(payload["actions"][0]["selected_option"]["value"])
 
             root_alert_group = AlertGroup.all_objects.get(pk=root_alert_group_pk)
-            alert_group = SlackMessage.get_alert_group_from_slack_message_from_slack_payload(
-                slack_team_identity, payload
-            )
+            alert_group = SlackMessage.get_alert_group_from_slack_message_payload(slack_team_identity, payload)
 
         if self.check_alert_is_unarchived(slack_team_identity, payload, alert_group) and self.check_alert_is_unarchived(
             slack_team_identity, payload, root_alert_group
@@ -509,7 +507,7 @@ class UnAttachGroupStep(
     ACTION_VERBOSE = "Unattach incident"
 
     def process_scenario(self, slack_user_identity, slack_team_identity, payload):
-        alert_group = SlackMessage.get_alert_group_from_slack_message_from_slack_payload(slack_team_identity, payload)
+        alert_group = SlackMessage.get_alert_group_from_slack_message_payload(slack_team_identity, payload)
         if self.check_alert_is_unarchived(slack_team_identity, payload, alert_group):
             alert_group.un_attach_by_user(self.user, action_source=ActionSource.SLACK)
 
@@ -523,7 +521,7 @@ class StopInvitationProcess(CheckAlertIsUnarchivedMixin, IncidentActionsAccessCo
     ACTION_VERBOSE = "stop invitation"
 
     def process_scenario(self, slack_user_identity, slack_team_identity, payload):
-        alert_group = SlackMessage.get_alert_group_from_slack_message_from_slack_payload(slack_team_identity, payload)
+        alert_group = SlackMessage.get_alert_group_from_slack_message_payload(slack_team_identity, payload)
         if not self.check_alert_is_unarchived(slack_team_identity, payload, alert_group):
             return
 
@@ -545,7 +543,7 @@ class CustomButtonProcessStep(
 
     def process_scenario(self, slack_user_identity, slack_team_identity, payload):
         CustomButtom = apps.get_model("alerts", "CustomButton")
-        alert_group = SlackMessage.get_alert_group_from_slack_message_from_slack_payload(slack_team_identity, payload)
+        alert_group = SlackMessage.get_alert_group_from_slack_message_payload(slack_team_identity, payload)
         if self.check_alert_is_unarchived(slack_team_identity, payload, alert_group):
             custom_button_pk = payload["actions"][0]["name"].split("_")[1]
             alert_group_pk = payload["actions"][0]["name"].split("_")[2]
@@ -605,7 +603,7 @@ class ResolveGroupStep(
     def process_scenario(self, slack_user_identity, slack_team_identity, payload):
         ResolutionNoteModalStep = scenario_step.ScenarioStep.get_step("resolution_note", "ResolutionNoteModalStep")
 
-        alert_group = SlackMessage.get_alert_group_from_slack_message_from_slack_payload(slack_team_identity, payload)
+        alert_group = SlackMessage.get_alert_group_from_slack_message_payload(slack_team_identity, payload)
 
         if not self.check_alert_is_unarchived(slack_team_identity, payload, alert_group):
             return
@@ -644,7 +642,7 @@ class UnResolveGroupStep(
     ACTION_VERBOSE = "unresolve incident"
 
     def process_scenario(self, slack_user_identity, slack_team_identity, payload):
-        alert_group = SlackMessage.get_alert_group_from_slack_message_from_slack_payload(slack_team_identity, payload)
+        alert_group = SlackMessage.get_alert_group_from_slack_message_payload(slack_team_identity, payload)
         if self.check_alert_is_unarchived(slack_team_identity, payload, alert_group):
             alert_group.un_resolve_by_user(self.user, action_source=ActionSource.SLACK)
 
@@ -662,7 +660,7 @@ class AcknowledgeGroupStep(
     ACTION_VERBOSE = "acknowledge incident"
 
     def process_scenario(self, slack_user_identity, slack_team_identity, payload):
-        alert_group = SlackMessage.get_alert_group_from_slack_message_from_slack_payload(slack_team_identity, payload)
+        alert_group = SlackMessage.get_alert_group_from_slack_message_payload(slack_team_identity, payload)
         logger.debug(f"process_scenario in AcknowledgeGroupStep for alert_group {alert_group.pk}")
         if self.check_alert_is_unarchived(slack_team_identity, payload, alert_group):
             alert_group.acknowledge_by_user(self.user, action_source=ActionSource.SLACK)
@@ -683,7 +681,7 @@ class UnAcknowledgeGroupStep(
     ACTION_VERBOSE = "unacknowledge incident"
 
     def process_scenario(self, slack_user_identity, slack_team_identity, payload):
-        alert_group = SlackMessage.get_alert_group_from_slack_message_from_slack_payload(slack_team_identity, payload)
+        alert_group = SlackMessage.get_alert_group_from_slack_message_payload(slack_team_identity, payload)
         logger.debug(f"process_scenario in UnAcknowledgeGroupStep for alert_group {alert_group.pk}")
         if self.check_alert_is_unarchived(slack_team_identity, payload, alert_group):
             alert_group.un_acknowledge_by_user(self.user, action_source=ActionSource.SLACK)
