@@ -237,11 +237,11 @@ class InviteOtherPersonToIncident(
         if selected_user is not None:
             Invitation.invite_user(selected_user, alert_group, self.user)
         else:
-            self.alert_group_slack_service._update_alert_group_slack_message(alert_group)
+            self.alert_group_slack_service.update_alert_group_slack_message(alert_group)
 
     def process_signal(self, log_record):
         alert_group = log_record.alert_group
-        self.alert_group_slack_service._update_alert_group_slack_message(alert_group)
+        self.alert_group_slack_service.update_alert_group_slack_message(alert_group)
 
 
 class SilenceGroupStep(
@@ -267,7 +267,7 @@ class SilenceGroupStep(
 
     def process_signal(self, log_record):
         alert_group = log_record.alert_group
-        self.alert_group_slack_service._update_alert_group_slack_message(alert_group)
+        self.alert_group_slack_service.update_alert_group_slack_message(alert_group)
 
 
 class UnSilenceGroupStep(
@@ -286,7 +286,7 @@ class UnSilenceGroupStep(
 
     def process_signal(self, log_record):
         alert_group = log_record.alert_group
-        self.alert_group_slack_service._update_alert_group_slack_message(alert_group)
+        self.alert_group_slack_service.update_alert_group_slack_message(alert_group)
 
 
 class SelectAttachGroupStep(
@@ -468,7 +468,7 @@ class AttachGroupStep(
                     unfurl_links=True,
                 )
 
-        self.alert_group_slack_service._update_alert_group_slack_message(alert_group)
+        self.alert_group_slack_service.update_alert_group_slack_message(alert_group)
 
     def process_scenario(self, slack_user_identity, slack_team_identity, payload):
 
@@ -497,7 +497,7 @@ class AttachGroupStep(
         ):
             alert_group.attach_by_user(self.user, root_alert_group, action_source=ActionSource.SLACK)
         else:
-            self.alert_group_slack_service._update_alert_group_slack_message(alert_group)
+            self.alert_group_slack_service.update_alert_group_slack_message(alert_group)
 
 
 class UnAttachGroupStep(
@@ -515,7 +515,7 @@ class UnAttachGroupStep(
 
     def process_signal(self, log_record):
         alert_group = log_record.alert_group
-        self.alert_group_slack_service._update_alert_group_slack_message(alert_group)
+        self.alert_group_slack_service.update_alert_group_slack_message(alert_group)
 
 
 class StopInvitationProcess(CheckAlertIsUnarchivedMixin, IncidentActionsAccessControlMixin, scenario_step.ScenarioStep):
@@ -531,7 +531,7 @@ class StopInvitationProcess(CheckAlertIsUnarchivedMixin, IncidentActionsAccessCo
         Invitation.stop_invitation(invitation_pk, self.user)
 
     def process_signal(self, log_record):
-        self.alert_group_slack_service._update_alert_group_slack_message(log_record.invitation.alert_group)
+        self.alert_group_slack_service.update_alert_group_slack_message(log_record.invitation.alert_group)
 
 
 class CustomButtonProcessStep(
@@ -554,7 +554,7 @@ class CustomButtonProcessStep(
             except CustomButtom.DoesNotExist:
                 warning_text = "Oops! This button was deleted"
                 self.open_warning_window(payload, warning_text=warning_text)
-                self.alert_group_slack_service._update_alert_group_slack_message(alert_group)
+                self.alert_group_slack_service.update_alert_group_slack_message(alert_group)
             else:
                 custom_button_result.apply_async(
                     args=(
@@ -632,7 +632,7 @@ class ResolveGroupStep(
         alert_group = log_record.alert_group
 
         if not alert_group.happened_while_maintenance:
-            self.alert_group_slack_service._update_alert_group_slack_message(alert_group)
+            self.alert_group_slack_service.update_alert_group_slack_message(alert_group)
 
 
 class UnResolveGroupStep(
@@ -650,7 +650,7 @@ class UnResolveGroupStep(
 
     def process_signal(self, log_record):
         alert_group = log_record.alert_group
-        self.alert_group_slack_service._update_alert_group_slack_message(alert_group)
+        self.alert_group_slack_service.update_alert_group_slack_message(alert_group)
 
 
 class AcknowledgeGroupStep(
@@ -670,7 +670,7 @@ class AcknowledgeGroupStep(
     def process_signal(self, log_record):
         alert_group = log_record.alert_group
         logger.debug(f"Started process_signal in AcknowledgeGroupStep for alert_group {alert_group.pk}")
-        self.alert_group_slack_service._update_alert_group_slack_message(alert_group)
+        self.alert_group_slack_service.update_alert_group_slack_message(alert_group)
         logger.debug(f"Finished process_signal in AcknowledgeGroupStep for alert_group {alert_group.pk}")
 
 
@@ -736,7 +736,7 @@ class UnAcknowledgeGroupStep(
                 self.alert_group_slack_service.publish_message_to_alert_group_thread(
                     alert_group, attachments=message_attachments, text=text
                 )
-        self.alert_group_slack_service._update_alert_group_slack_message(alert_group)
+        self.alert_group_slack_service.update_alert_group_slack_message(alert_group)
         logger.debug(f"Finished process_signal in UnAcknowledgeGroupStep for alert_group {alert_group.pk}")
 
 
@@ -882,7 +882,7 @@ class WipeGroupStep(scenario_step.ScenarioStep):
         user_verbal = log_record.author.get_user_verbal_for_team_for_slack()
         text = f"Wiped by {user_verbal}"
         self.alert_group_slack_service.publish_message_to_alert_group_thread(alert_group, text=text)
-        self.alert_group_slack_service._update_alert_group_slack_message(alert_group)
+        self.alert_group_slack_service.update_alert_group_slack_message(alert_group)
 
 
 class DeleteGroupStep(scenario_step.ScenarioStep):

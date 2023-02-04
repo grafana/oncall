@@ -150,7 +150,7 @@ class AddToResolutionNoteStep(CheckAlertIsUnarchivedMixin, scenario_step.Scenari
                 except SlackAPIException:
                     pass
 
-                self.alert_group_slack_service._update_alert_group_slack_message(alert_group)
+                self.alert_group_slack_service.update_alert_group_slack_message(alert_group)
         else:
             warning_text = "Unable to add this message to resolution note."
             self.open_warning_window(payload, warning_text)
@@ -326,7 +326,7 @@ class UpdateResolutionNoteStep(scenario_step.ScenarioStep):
 
     def update_alert_group_resolution_note_button(self, alert_group):
         if alert_group.slack_message is not None:
-            self.alert_group_slack_service._update_alert_group_slack_message(alert_group)
+            self.alert_group_slack_service.update_alert_group_slack_message(alert_group)
 
     def add_resolution_note_reaction(self, slack_thread_message):
         try:

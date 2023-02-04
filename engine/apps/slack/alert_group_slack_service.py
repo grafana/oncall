@@ -18,11 +18,11 @@ class AlertGroupSlackService:
     def __init__(self, slack_team_identity, slack_client=None) -> None:
         self.slack_team_identity = slack_team_identity
         if slack_client is not None:
-            self.slack_client = slack_client
+            self._slack_client = slack_client
         else:
             self._slack_client = SlackClientWithErrorHandling(slack_team_identity.bot_access_token)
 
-    def _update_alert_group_slack_message(self, alert_group):
+    def update_alert_group_slack_message(self, alert_group):
         logger.info(f"Started _update_slack_message for alert_group {alert_group.pk}")
         SlackMessage = apps.get_model("slack", "SlackMessage")
         AlertReceiveChannel = apps.get_model("alerts", "AlertReceiveChannel")

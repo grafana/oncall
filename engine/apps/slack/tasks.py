@@ -55,7 +55,7 @@ def update_incident_slack_message(slack_team_identity_pk, alert_group_pk):
         return "Skip message update in Slack due to rate limit"
     if alert_group.slack_message is None:
         return "Skip message update in Slack due to absence of slack message"
-    AlertGroupSlackService(slack_team_identity)._update_alert_group_slack_message(alert_group)
+    AlertGroupSlackService(slack_team_identity).update_alert_group_slack_message(alert_group)
 
 
 @shared_dedicated_queue_retry_task(autoretry_for=(Exception,), retry_backoff=True)
