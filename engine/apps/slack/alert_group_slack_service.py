@@ -15,7 +15,7 @@ logger = logging.getLogger(__name__)
 
 
 class AlertGroupSlackService:
-    def __init__(self, slack_team_identity, slack_client=None) -> None:
+    def __init__(self, slack_team_identity, slack_client=None):
         self.slack_team_identity = slack_team_identity
         if slack_client is not None:
             self._slack_client = slack_client
