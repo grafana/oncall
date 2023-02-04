@@ -5,6 +5,8 @@ from random import randint
 from django.apps import apps
 from apps.base.utils import live_settings
 from apps.twilioapp.constants import TEST_CALL_TEXT
+from apps.twilioapp.phone_client import PhoneClient
+
 logger = logging.getLogger(__name__)
 
 NUM_TO_WORD_DICT = [
@@ -20,7 +22,7 @@ NUM_TO_WORD_DICT = [
     "nine"
 ]
 
-class AsteriskClient:
+class AsteriskClient(PhoneClient):
     @property
     def asterisk_caller_id():
         return live_settings.ASTERISK_ARI_CALLER_ID
@@ -81,4 +83,32 @@ class AsteriskClient:
 
         return otp, hearable_otp
             
+    def notify_about_changed_verified_phone_number(self, text, phone_number):
+        self.make_call(text, phone_number)            
+
+    def send_otp(self, user):
+        otp, hearable_otp = self.generate_otp()
+        user.asterisk_otp = otp
+        user.save()
+
+        try:
+            self.make_call(f"Your OTP code is {hearable_otp}. " * 2, user.unverified_phone_number)
+        except Exception as e:
+            logger.error(f"Can't make a call: {e}")
+            return False
+        return True
+
+    def verify_otp(self, user, code):
+        if user.unverified_phone_number == user.verified_phone_number:
+            verified = False
+            error = "This Phone Number has already been verified"
+        elif user.asterisk_otp == code:
+            user.save_verified_phone_number(user.unverified_phone_number)
+            verified = True
+            error = None
+        else:
+            verified = False
+            error = "Verification code is not correct"
+        return verified, error
+
 asterisk_client = AsteriskClient()

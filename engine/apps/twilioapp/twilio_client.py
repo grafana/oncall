@@ -9,12 +9,13 @@ from twilio.rest import Client
 from apps.base.utils import live_settings
 from apps.twilioapp.constants import TEST_CALL_TEXT, TwilioLogRecordStatus, TwilioLogRecordType
 from apps.twilioapp.utils import get_calling_code, get_gather_message, get_gather_url, parse_phone_number
+from apps.twilioapp.phone_client import PhoneClient
 from common.api_helpers.utils import create_engine_url
 
 logger = logging.getLogger(__name__)
 
 
-class TwilioClient:
+class TwilioClient(PhoneClient):
     @property
     def twilio_api_client(self):
         if live_settings.TWILIO_API_KEY_SID and live_settings.TWILIO_API_KEY_SECRET:
@@ -202,5 +203,50 @@ class TwilioClient:
 
         return normalized_phone_number, country_code
 
+    def notify_about_changed_verified_phone_number(self, text, phone_number):
+        self.send_message(text, phone_number)
 
+
+    def send_otp(self, user):
+        res = self.verification_start_via_twilio(
+            user=user, phone_number=user.unverified_phone_number, via="sms"
+        )
+
+        if res and res.status != "denied":
+            return True
+        else:
+            logger.error(f"Failed to send verification code to User {user.pk}: \n{res}")
+            return False
+    
+
+    def verify_otp(self, user, code):
+        normalized_phone_number, _ = twilio_client.normalize_phone_number_via_twilio(user.unverified_phone_number)
+        if normalized_phone_number:
+            if normalized_phone_number == user.verified_phone_number:
+                verified = False
+                error = "This Phone Number has already been verified"
+            elif self.verification_check_via_twilio(
+                user=user,
+                phone_number=normalized_phone_number,
+                code=code
+            ):
+                old_verified_phone_number = user.verified_phone_number
+                user.save_verified_phone_number(normalized_phone_number)
+                # send sms to the new number and to the old one
+                if old_verified_phone_number:
+                    self.notify_about_changed_verified_phone_number(old_verified_phone_number)
+                self.notify_about_changed_verified_phone_number(normalized_phone_number)
+
+                verified = True
+                error = None
+            else:
+                verified = False
+                error = "Verification code is not correct."
+        else:
+            verified = False
+            error = "Phone Number is incorrect"
+            
+        return verified, error
+
+        
 twilio_client = TwilioClient()

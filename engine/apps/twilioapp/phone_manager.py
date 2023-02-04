@@ -4,6 +4,7 @@ from twilio.base.exceptions import TwilioRestException
 
 from apps.twilioapp.twilio_client import twilio_client
 from apps.twilioapp.asterisk_client import asterisk_client
+from apps.twilioapp.phone_client import PhoneClient
 
 from apps.base.utils import live_settings
 
@@ -13,66 +14,27 @@ logger = logging.getLogger(__name__)
 class PhoneManager:
     def __init__(self, user):
         self.user = user
+        self.phone_client = self.init_phone_client()
+
+    def init_phone_client(self) -> PhoneClient:
+        if live_settings.PHONE_PROVIDER == "Asterisk":
+            return asterisk_client
+        elif live_settings.PHONE_PROVIDER == "Twilio":
+            return twilio_client
+        else:
+            logger.exception(f"Invalid phone provider {live_settings.PHONE_PROVIDER}")
 
     def send_verification_code(self):
-        if live_settings.PHONE_PROVIDER == "Asterisk":
-            otp, hearable_otp = asterisk_client.generate_otp()
-            self.user.asterisk_otp = otp
-            self.user.save()
-
-            asterisk_client.make_call(f"Your OTP code is {hearable_otp}. " * 2, self.user.unverified_phone_number)
-            return True
-        else:
-            if self.user.unverified_phone_number != self.user.verified_phone_number:
-                res = twilio_client.verification_start_via_twilio(
-                    user=self.user, phone_number=self.user.unverified_phone_number, via="sms"
-                )
-                if res and res.status != "denied":
-                    return True
-                else:
-                    logger.error(f"Failed to send verification code to User {self.user.pk}:\n{res}")
+        if self.user.unverified_phone_number == self.user.verified_phone_number:
             return False
+        else:
+            if self.phone_client.send_otp(self.user):
+                return True
+            else:
+                logger.error(f"Failed to send verification code to User {self.user.pk}")
 
     def verify_phone_number(self, code):
-        if live_settings.PHONE_PROVIDER == "Asterisk":
-            if self.user.unverified_phone_number == self.user.verified_phone_number:
-                verified = False
-                error = "This Phone Number has already been verified"
-            elif self.user.asterisk_otp == code:
-                self.user.save_verified_phone_number(self.user.unverified_phone_number)
-                verified = True
-                error = None
-            else:
-                verified = False
-                error = "Verification code is not correct"
-        else:
-            normalized_phone_number, _ = twilio_client.normalize_phone_number_via_twilio(self.user.unverified_phone_number)
-            if normalized_phone_number:
-                if normalized_phone_number == self.user.verified_phone_number:
-                    verified = False
-                    error = "This Phone Number has already been verified."
-                elif twilio_client.verification_check_via_twilio(
-                    user=self.user,
-                    phone_number=normalized_phone_number,
-                    code=code,
-                ):
-                    old_verified_phone_number = self.user.verified_phone_number
-                    self.user.save_verified_phone_number(normalized_phone_number)
-                    # send sms to the new number and to the old one
-                    if old_verified_phone_number:
-                        # notify about disconnect
-                        self.notify_about_changed_verified_phone_number(old_verified_phone_number)
-                    # notify about new connection
-                    self.notify_about_changed_verified_phone_number(normalized_phone_number, True)
-
-                    verified = True
-                    error = None
-                else:
-                    verified = False
-                    error = "Verification code is not correct."
-            else:
-                verified = False
-                error = "Phone Number is incorrect."
+        verified, error = self.phone_client.verify_otp(self.user, code)
         return verified, error
 
     def forget_phone_number(self):
@@ -90,8 +52,8 @@ class PhoneManager:
             f'"{self.user.organization.stack_slug}"\nYour Grafana OnCall <3'
         )
         try:
-            twilio_client.send_message(text, phone_number)
-        except TwilioRestException as e:
+            self.phone_client.send_message(text, phone_number)
+        except Exception as e:
             logger.error(
                 f"Failed to notify user {self.user.pk} about phone number "
                 f"{'connection' if connected else 'disconnection'}:\n{e}"
