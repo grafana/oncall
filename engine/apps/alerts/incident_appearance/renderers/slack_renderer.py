@@ -365,10 +365,10 @@ class AlertGroupSlackRenderer(AlertGroupBaseRenderer):
         MAX_STATIC_SELECT_OPTIONS = 100
 
         if not text:
-            text = f"Select User{'' if not multi_select else 's'}"
+            text = f"Select User{'s' if multi_select else ''}"
         element = {
             "action_id": action_id,
-            "type": "static_select" if not multi_select else "multi_static_select",
+            "type": "multi_static_select" if multi_select else "static_select",
             "placeholder": {
                 "type": "plain_text",
                 "text": text,
