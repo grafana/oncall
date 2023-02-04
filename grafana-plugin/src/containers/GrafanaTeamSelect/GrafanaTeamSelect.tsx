@@ -16,14 +16,9 @@ import styles from './GrafanaTeamSelect.module.scss';
 
 const cx = cn.bind(styles);
 
-interface GrafanaTeamSelectProps {
-  currentPage: string;
-}
-
-const GrafanaTeamSelect = observer((props: GrafanaTeamSelectProps) => {
+const GrafanaTeamSelect = observer(() => {
   const store = useStore();
 
-  const { currentPage } = props;
   const { userStore, grafanaTeamStore } = store;
   const grafanaTeams = grafanaTeamStore.getSearchResult();
   const user = userStore.currentUser;
@@ -35,16 +30,7 @@ const GrafanaTeamSelect = observer((props: GrafanaTeamSelectProps) => {
   const onTeamChange = async (teamId: GrafanaTeam['id']) => {
     await userStore.updateCurrentUser({ current_team: teamId });
 
-    const queryParams = new URLSearchParams();
-    queryParams.set('page', mapCurrentPage());
-    window.location.search = queryParams.toString();
-
-    function mapCurrentPage() {
-      if (currentPage === 'incident') {
-        return 'incidents';
-      }
-      return currentPage;
-    }
+    window.location.reload();
   };
 
   const content = (

@@ -149,7 +149,6 @@ class SlackUserIdentity(models.Model):
     @property
     def slack_login(self):
         if self.cached_slack_login is None or self.cached_slack_login == "slack_token_revoked_unable_to_cache_login":
-            _self = SlackUserIdentity.objects.get(pk=self.pk)  # Re-take in case we are in the readonly db context.
             sc = SlackClientWithErrorHandling(self.slack_team_identity.bot_access_token)
             try:
                 result = sc.api_call(
@@ -158,20 +157,17 @@ class SlackUserIdentity(models.Model):
                     team=self.slack_team_identity,
                 )
                 self.cached_slack_login = result["user"]["name"]
-                _self.cached_slack_login = result["user"]["name"]
-                _self.save()
+                self.save()
             except SlackAPITokenException as e:
                 logger.warning("Unable to get slack login: token revoked\n" + str(e))
                 self.cached_slack_login = "slack_token_revoked_unable_to_cache_login"
-                _self.cached_slack_login = "slack_token_revoked_unable_to_cache_login"
-                _self.save()
+                self.save()
                 return "slack_token_revoked_unable_to_cache_login"
             except SlackAPIException as e:
                 if e.response["error"] == "user_not_found":
                     logger.warning("user_not_found " + str(e))
                     self.cached_slack_login = "user_not_found"
-                    _self.cached_slack_login = "user_not_found"
-                    _self.save()
+                    self.save()
                 elif e.response["error"] == "invalid_auth":
                     return "no_enough_permissions_to_retrieve"
                 else:
@@ -182,7 +178,6 @@ class SlackUserIdentity(models.Model):
     @property
     def timezone(self):
         if self.cached_timezone is None or self.cached_timezone == "None":
-            _self = SlackUserIdentity.objects.get(pk=self.pk)  # Re-take in case we are in the readonly db context.
             sc = SlackClientWithErrorHandling(self.slack_team_identity.bot_access_token)
             try:
                 result = sc.api_call(
@@ -194,8 +189,7 @@ class SlackUserIdentity(models.Model):
                 if tz_from_slack == "None" or tz_from_slack is None:
                     tz_from_slack = "UTC"
                 self.cached_timezone = tz_from_slack
-                _self.cached_timezone = tz_from_slack
-                _self.save(update_fields=["cached_timezone"])
+                self.save(update_fields=["cached_timezone"])
             except SlackAPITokenException as e:
                 print("Token revoked: " + str(e))
             except requests.exceptions.Timeout:
@@ -207,13 +201,11 @@ class SlackUserIdentity(models.Model):
     @property
     def im_channel_id(self):
         if self.cached_im_channel_id is None:
-            _self = SlackUserIdentity.objects.get(pk=self.pk)  # Re-take in case we are in the readonly db context.
             sc = SlackClientWithErrorHandling(self.slack_team_identity.bot_access_token)
             try:
                 result = sc.api_call("conversations.open", users=self.slack_id, return_im=True)
                 self.cached_im_channel_id = result["channel"]["id"]
-                _self.cached_im_channel_id = result["channel"]["id"]
-                _self.save()
+                self.save()
             except SlackAPIException as e:
                 if e.response["error"] == "cannot_dm_bot":
                     logger.warning("Trying to DM bot " + str(e))
