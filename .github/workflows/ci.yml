@@ -25,6 +25,7 @@ jobs:
           yarn build
       - name: Lint All
         run: |
+          git status
           pre-commit run --all-files
 
   test-frontend:
