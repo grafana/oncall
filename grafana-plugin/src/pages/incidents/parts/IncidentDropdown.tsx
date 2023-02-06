@@ -17,15 +17,15 @@ const cx = cn.bind(styles);
 
 const getIncidentTagColor = (alert: Alert) => {
   if (alert.status === IncidentStatus.Resolved) {
-    return '#299C46';
+    return getComputedStyle(document.documentElement).getPropertyValue('--tag-primary');
   }
   if (alert.status === IncidentStatus.Firing) {
-    return '#E02F44';
+    return getComputedStyle(document.documentElement).getPropertyValue('--tag-danger');
   }
   if (alert.status === IncidentStatus.Acknowledged) {
-    return '#C69B06';
+    return getComputedStyle(document.documentElement).getPropertyValue('--tag-warning');
   }
-  return '#464C54';
+  return getComputedStyle(document.documentElement).getPropertyValue('--tag-secondary');
 };
 
 function ListMenu({ alert, openMenu }: { alert: Alert; openMenu: React.MouseEventHandler<HTMLElement> }) {

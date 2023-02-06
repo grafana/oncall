@@ -14,13 +14,13 @@ import { User } from 'models/user/user.types';
 import { SilenceButtonCascader } from 'pages/incidents/parts/SilenceButtonCascader';
 import { move } from 'state/helpers';
 import { UserActions } from 'utils/authorization';
-import { COLOR_DANGER, COLOR_PRIMARY, COLOR_SECONDARY, COLOR_WARNING } from 'utils/consts';
+import { TABLE_COLUMN_MAX_WIDTH } from 'utils/consts';
 
 export function getIncidentStatusTag(alert: Alert) {
   switch (alert.status) {
     case IncidentStatus.Firing:
       return (
-        <Tag color={COLOR_DANGER}>
+        <Tag color={getComputedStyle(document.documentElement).getPropertyValue('--tag-danger')}>
           <Text strong size="small">
             Firing
           </Text>
@@ -28,7 +28,7 @@ export function getIncidentStatusTag(alert: Alert) {
       );
     case IncidentStatus.Acknowledged:
       return (
-        <Tag color={COLOR_WARNING}>
+        <Tag color={getComputedStyle(document.documentElement).getPropertyValue('--tag-warning')}>
           <Text strong size="small">
             Acknowledged
           </Text>
@@ -36,7 +36,7 @@ export function getIncidentStatusTag(alert: Alert) {
       );
     case IncidentStatus.Resolved:
       return (
-        <Tag color={COLOR_PRIMARY}>
+        <Tag color={getComputedStyle(document.documentElement).getPropertyValue('--tag-primary')}>
           <Text strong size="small">
             Resolved
           </Text>
@@ -44,7 +44,7 @@ export function getIncidentStatusTag(alert: Alert) {
       );
     case IncidentStatus.Silenced:
       return (
-        <Tag color={COLOR_SECONDARY}>
+        <Tag color={getComputedStyle(document.documentElement).getPropertyValue('--tag-secondary')}>
           <Text strong size="small">
             Silenced
           </Text>

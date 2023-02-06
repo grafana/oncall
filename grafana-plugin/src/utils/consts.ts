@@ -33,8 +33,3 @@ export const DOCS_TELEGRAM_SETUP = 'https://grafana.com/docs/grafana-cloud/oncal
 
 // Make sure if you chage max-width here you also change it in responsive.css
 export const TABLE_COLUMN_MAX_WIDTH = 1500;
-
-export const COLOR_DANGER = '#E02F44';
-export const COLOR_WARNING = '#C69B06';
-export const COLOR_PRIMARY = '#299C46';
-export const COLOR_SECONDARY = '#464C54';
