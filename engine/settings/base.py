@@ -219,6 +219,7 @@ INSTALLED_APPS = [
     "debug_toolbar",
     "social_django",
     "polymorphic",
+    "django_migration_linter",
     "fcm_django",
     "django_dbconn_retry",
 ]
@@ -653,6 +654,10 @@ if OSS_INSTALLATION:
         "schedule": crontab(hour="*/12"),  # noqa
         "args": (),
     }  # noqa
+
+MIGRATION_LINTER_OPTIONS = {"exclude_apps": ["social_django", "silk", "fcm_django"]}
+# Run migrations linter on each `python manage.py makemigrations`
+MIGRATION_LINTER_OVERRIDE_MAKEMIGRATIONS = True
 
 PYROSCOPE_PROFILER_ENABLED = getenv_boolean("PYROSCOPE_PROFILER_ENABLED", default=False)
 if PYROSCOPE_PROFILER_ENABLED:
