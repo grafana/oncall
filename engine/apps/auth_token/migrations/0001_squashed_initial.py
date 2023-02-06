@@ -3,6 +3,7 @@ from django.utils import timezone
 
 import apps.auth_token.models.slack_auth_token
 from django.db import migrations, models
+import django_migration_linter as linter
 
 
 class Migration(migrations.Migration):
@@ -13,6 +14,7 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
+        linter.IgnoreMigration(),
         migrations.CreateModel(
             name='ApiAuthToken',
             fields=[

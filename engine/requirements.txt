@@ -41,6 +41,7 @@ psycopg2==2.9.3
 emoji==1.7.0
 regex==2021.11.2
 psutil==5.9.4
+django-migration-linter==4.1.0
 opentelemetry-instrumentation-celery==0.36b0
 opentelemetry-instrumentation-pymysql==0.36b0
 opentelemetry-instrumentation-wsgi==0.36b0
