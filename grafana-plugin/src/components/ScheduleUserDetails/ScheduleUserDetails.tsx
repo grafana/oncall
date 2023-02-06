@@ -34,7 +34,7 @@ const ScheduleUserDetails: FC<ScheduleUserDetailsProps> = (props) => {
 
   const store = useStore();
   const colorSchemeMapping = getColorSchemeMappingForUsers(store, scheduleId, startMoment);
-  const colorSchemeList = colorSchemeMapping[user.pk] ? Array.from(colorSchemeMapping[user.pk]) : [];
+  const colorSchemeList = Array.from(colorSchemeMapping[user.pk] || []);
 
   const { teamStore } = store;
 

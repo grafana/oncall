@@ -43,11 +43,10 @@
 
 .timezone-wrapper {
   display: flex;
-  width: 92%;
+  flex-grow: 1;
 }
 
 .timezone-icon {
-  width: 8%;
   margin-right: 8px;
 }
 
