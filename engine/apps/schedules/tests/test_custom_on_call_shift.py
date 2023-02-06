@@ -1383,6 +1383,37 @@ def test_get_oncall_users_for_multiple_schedules(
 
 
 @pytest.mark.django_db
+def test_get_oncall_users_for_multiple_schedules_emails_case_insensitive(
+    get_ical,
+    make_organization,
+    make_user_for_organization,
+    make_on_call_shift,
+    make_schedule,
+):
+    """
+    Test that emails are case insensitive when matching users to on-call shifts.
+    https://github.com/grafana/oncall/issues/1296
+    """
+    organization = make_organization()
+
+    # user's email case is the opposite of the one in the ICal file below (Test@TEST.test)
+    user = make_user_for_organization(organization, email="tEST@test.TEST")
+    schedule = make_schedule(organization, schedule_class=OnCallScheduleCalendar)
+
+    # Load ICal file with an event for user with email Test@TEST.test for 6 February 2023, 11:00 UTC - 12:00 UTC
+    calendar = get_ical("override_email_case_sensitivity.ics")
+    schedule.cached_ical_file_overrides = calendar.to_ical().decode()
+    schedule.save(update_fields=["cached_ical_file_overrides"])
+
+    # Get on-call users for 6 February 2023 11:30 UTC
+    events_datetime = timezone.datetime(2023, 2, 6, 11, 30, tzinfo=timezone.utc)
+    schedules = OnCallSchedule.objects.filter(pk=schedule.pk)
+    oncall_users = schedules.get_oncall_users(events_datetime=events_datetime)
+
+    assert oncall_users == {schedule.pk: [user]}
+
+
+@pytest.mark.django_db
 def test_shift_convert_to_ical(make_organization_and_user, make_on_call_shift):
     organization, user = make_organization_and_user()
 

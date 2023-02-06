@@ -96,7 +96,11 @@ features:
   slash_commands:
     - command: /oncall
       url: <ONCALL_ENGINE_PUBLIC_URL>/slack/interactive_api_endpoint/
-      description: oncall
+      description: Create a manual alert group
+      should_escape: false
+    - command: /escalate
+      url: <ONCALL_ENGINE_PUBLIC_URL>/slack/interactive_api_endpoint/
+      description: Direct page user(s) or schedule(s)
       should_escape: false
 oauth_config:
   redirect_urls:

@@ -5,6 +5,7 @@ import django.core.validators
 from django.db import migrations, models
 import django.db.models.deletion
 import uuid
+import django_migration_linter as linter
 
 
 class Migration(migrations.Migration):
@@ -17,6 +18,7 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
+        linter.IgnoreMigration(),
         migrations.CreateModel(
             name='TelegramVerificationCode',
             fields=[
