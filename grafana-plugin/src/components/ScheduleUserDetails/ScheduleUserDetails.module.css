@@ -1,6 +1,6 @@
 .root {
-  width: 220px;
-  padding: 10px;
+  width: 210px;
+  padding: 8px 4px;
 }
 
 .oncall-badge {
@@ -25,7 +25,7 @@
 
 .line-break {
   width: 100vw;
-  margin: -4px -18px -4px -18px;
+  margin: 8px -14px 8px -14px;
 }
 
 .times {
@@ -37,21 +37,40 @@
   color: #ccccdc;
 }
 
+.username {
+  word-break: break-all;
+}
+
 .timezone-wrapper {
   display: flex;
+  flex-grow: 1;
 }
 
 .timezone-icon {
-  width: 10%;
+  margin-right: 8px;
+}
+
+.contact-icon {
+  margin-right: 8px;
 }
 
 .timezone-info {
   width: 50%;
   overflow-wrap: anywhere;
-  margin-left: 4px;
+  margin-right: 8px;
+}
+
+.contact-details {
+  display: flex;
 }
 
 .contact-details a {
   text-decoration-line: none;
   word-break: break-all;
+}
+
+.user-timezones {
+  margin-top: 4px;
+  display: flex;
+  width: 100%;
 }
