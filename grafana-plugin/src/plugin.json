@@ -31,7 +31,7 @@
   "includes": [
     {
       "type": "page",
-      "name": "Alert groups",
+      "name": "Alert Groups",
       "path": "/a/grafana-oncall-app/incidents",
       "role": "Viewer",
       "action": "grafana-oncall-app.alert-groups:read",

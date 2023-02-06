@@ -126,7 +126,7 @@ class IncidentPage extends React.Component<IncidentPageProps, IncidentPageState>
     if (!incident && !isNotFoundError && !isWrongTeamError) {
       return (
         <div className={cx('root')}>
-          <LoadingPlaceholder text="Loading alert group..." />
+          <LoadingPlaceholder text="Loading Alert Group..." />
         </div>
       );
     }
@@ -142,7 +142,7 @@ class IncidentPage extends React.Component<IncidentPageProps, IncidentPageState>
                   <Text.Title level={4}>Alert group not found</Text.Title>
                   <PluginLink query={{ page: 'incidents', cursor, start, perpage }}>
                     <Button variant="secondary" icon="arrow-left" size="md">
-                      Go to Alert groups page
+                      Go to Alert Groups page
                     </Button>
                   </PluginLink>
                 </VerticalGroup>
@@ -261,7 +261,7 @@ class IncidentPage extends React.Component<IncidentPageProps, IncidentPageState>
                   <IconButton
                     name="share-alt"
                     onClick={this.showAttachIncidentForm}
-                    tooltip="Attach to another alert group"
+                    tooltip="Attach to another Alert Group"
                     className={cx('title-icon')}
                   />
                 )}
@@ -395,7 +395,10 @@ class IncidentPage extends React.Component<IncidentPageProps, IncidentPageState>
             </li>
           ))}
         </ul>
-        <Field label="Leave a resolution note" description="Will also show up in the thread of alert group in Slack">
+        <Field
+          label="Leave a resolution note"
+          description="Will also show up in the thread of the Alert Group in Slack"
+        >
           <TextArea
             value={resolutionNoteText}
             onChange={(e: any) => this.setState({ resolutionNoteText: e.target.value })}

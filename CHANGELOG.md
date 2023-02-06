@@ -5,6 +5,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## v1.1.25 (2023-02-06)
+
+### Fixed
+
+- Cleaning of the name "Incident" ([704](https://github.com/grafana/oncall/pull/704))
+- Alert Group/Alert Groups naming polishing. All the names should be with capital letters
+
 ## v1.1.23 (2023-02-06)
 
 ### Fixed

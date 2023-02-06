@@ -50,8 +50,8 @@ class SettingsPage extends React.Component<SettingsPageProps, SettingsPageState>
         <div className={cx('settings')}>
           <Field
             loading={!teamStore.currentTeam}
-            label="Require resolution note when resolve alert group"
-            description={`Once user clicks "Resolve" for an alert group they are require to fill a resolution note about the alert group`}
+            label="Require a resolution note when resolving Alert Groups"
+            description={`Once user clicks "Resolve" for an Alert Group, they will be required to fill in a resolution note about the Alert Group`}
           >
             <WithPermissionControl userAction={UserActions.OtherSettingsWrite}>
               <Switch
