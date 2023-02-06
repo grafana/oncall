@@ -72,7 +72,11 @@ def users_in_ical(
 
     if users_to_filter is not None:
         return list(
-            {user for user in users_to_filter if user.username in usernames_from_ical or user.email in emails_from_ical}
+            {
+                user
+                for user in users_to_filter
+                if user.username in usernames_from_ical or user.email.lower() in emails_from_ical
+            }
         )
 
     users_found_in_ical = organization.users
