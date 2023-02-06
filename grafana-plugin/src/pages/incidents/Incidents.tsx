@@ -6,6 +6,7 @@ import { get } from 'lodash-es';
 import { observer } from 'mobx-react';
 import moment from 'moment-timezone';
 import Emoji from 'react-emoji-render';
+import { RouteComponentProps, withRouter } from 'react-router-dom';
 
 import CursorPagination from 'components/CursorPagination/CursorPagination';
 import GTable from 'components/GTable/GTable';
@@ -26,6 +27,7 @@ import { PageProps, WithStoreProps } from 'state/types';
 import { withMobXProviderContext } from 'state/withStore';
 import LocationHelper from 'utils/LocationHelper';
 import { UserActions } from 'utils/authorization';
+import { PLUGIN_ROOT } from 'utils/consts';
 
 import SilenceDropdown from './parts/SilenceDropdown';
 
@@ -50,7 +52,7 @@ function withSkeleton(fn: (alert: AlertType) => ReactElement | ReactElement[]) {
   return WithSkeleton;
 }
 
-interface IncidentsPageProps extends WithStoreProps, PageProps {}
+interface IncidentsPageProps extends WithStoreProps, PageProps, RouteComponentProps {}
 
 interface IncidentsPageState {
   selectedIncidentIds: Array<Alert['pk']>;
@@ -101,6 +103,7 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
   }
 
   render() {
+    const { history } = this.props;
     const { showAddAlertGroupForm } = this.state;
     return (
       <>
@@ -108,9 +111,11 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
           <div className={cx('title')}>
             <HorizontalGroup justify="space-between">
               <Text.Title level={3}>Alert Groups</Text.Title>
-              <Button icon="plus" onClick={this.handleOnClickEscalateTo}>
-                Manual alert group
-              </Button>
+              <WithPermissionControl userAction={UserActions.AlertGroupsWrite}>
+                <Button icon="plus" onClick={this.handleOnClickEscalateTo}>
+                  Manual alert group
+                </Button>
+              </WithPermissionControl>
             </HorizontalGroup>
           </div>
           {this.renderIncidentFilters()}
@@ -120,6 +125,9 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
           <ManualAlertGroup
             onHide={() => {
               this.setState({ showAddAlertGroupForm: false });
+            }}
+            onCreate={(id: Alert['pk']) => {
+              history.push(`${PLUGIN_ROOT}/incidents/${id}`);
             }}
           />
         )}
@@ -604,10 +612,12 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
   }
 
   setPollingInterval(filters: IncidentsFiltersType = this.state.filters, isOnMount = false) {
+    return;
+
     this.pollingIntervalId = setInterval(() => {
       this.fetchIncidentData(filters, isOnMount);
     }, POLLING_NUM_SECONDS * 1000);
   }
 }
 
-export default withMobXProviderContext(Incidents);
+export default withRouter(withMobXProviderContext(Incidents));

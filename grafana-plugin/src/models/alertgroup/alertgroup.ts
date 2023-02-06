@@ -2,6 +2,7 @@ import { action, observable } from 'mobx';
 import qs from 'query-string';
 
 import BaseStore from 'models/base_store';
+import { User } from 'models/user/user.types';
 import { makeRequest } from 'network';
 import { Mixpanel } from 'services/mixpanel';
 import { RootStore } from 'state';
@@ -430,5 +431,12 @@ export class AlertGroupStore extends BaseStore {
   @action
   toggleLiveUpdate(value: boolean) {
     this.liveUpdatesEnabled = value;
+  }
+
+  async unpageUser(alertId: Alert['pk'], userId: User['pk']) {
+    return await makeRequest(`${this.path}${alertId}/unpage_user`, {
+      method: 'POST',
+      data: { user_id: userId },
+    });
   }
 }
