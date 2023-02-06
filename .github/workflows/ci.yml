@@ -23,9 +23,11 @@ jobs:
           cd grafana-plugin/
           yarn --network-timeout 500000
           yarn build
+      # pre-commit uses git, which is not working in the action without this workaround
+      # see https://github.com/actions/runner-images/issues/6775
+      - run: git config --global --add safe.directory "$GITHUB_WORKSPACE"
       - name: Lint All
         run: |
-          git status
           pre-commit run --all-files
 
   test-frontend:
