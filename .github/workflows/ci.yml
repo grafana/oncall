@@ -81,8 +81,6 @@ jobs:
         run: |
           cd engine/
           pip install -r requirements.txt
-          git status
-          git show 7bb4fdfe43e554f6fdeaa699efcf6f2389118bed
           python manage.py lintmigrations
 
   unit-test-backend-mysql-rabbitmq:
