@@ -39,7 +39,7 @@ const SchedulesFilters = (props: SchedulesFiltersProps) => {
   );
 
   return (
-    <div className={cx('root')}>
+    <>
       <div className={cx('left')}>
         <Field label="Search by name">
           <Input
@@ -89,7 +89,7 @@ const SchedulesFilters = (props: SchedulesFiltersProps) => {
           />
         </Field>
       </div>
-    </div>
+    </>
   );
 };
 

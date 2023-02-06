@@ -139,10 +139,8 @@ class SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSta
         <div className={cx('root')}>
           <VerticalGroup>
             <div className={cx('schedules__filters-container')}>
-              <div className={cx('schedules__filters-container-left')}>
-                <SchedulesFilters value={filters} onChange={this.handleSchedulesFiltersChange} />
-              </div>
-              <div className={cx('schedules__filters-container-right')}>
+              <SchedulesFilters value={filters} onChange={this.handleSchedulesFiltersChange} />
+              <div className={cx('schedules__actions')}>
                 {users && (
                   <UserTimezoneSelect
                     value={store.currentTimezone}
