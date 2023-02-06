@@ -1,4 +1,4 @@
-from django.db.models import Count, Q
+from django.db.models import Q
 from django_filters import rest_framework as filters
 from rest_framework import mixins, status
 from rest_framework.exceptions import NotFound
@@ -78,8 +78,6 @@ class IncidentView(RateLimitHeadersMixin, mixins.ListModelMixin, mixins.DestroyM
                 )
                 raise BadRequest(detail={"state": f"Must be one of the following: {valid_choices_text}"})
 
-        queryset = self.serializer_class.setup_eager_loading(queryset)
-        queryset = queryset.annotate(alerts_count=Count("alerts"))
         return queryset
 
     def get_object(self):

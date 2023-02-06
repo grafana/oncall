@@ -88,10 +88,17 @@ The Grafana OnCall Slack app includes helpful message shortcuts and slash comman
 
 ### Slack commands
 
-Use the `/oncall` Slack command to create a new alert group directly from Slack.
+Use the `/oncall` Slack command to create a new alert group directly from Slack targetting a team and/or route.
 
 1. Type `/oncall` in the message box of the desired Slack channel then click **Send**.
 1. Fill out the **Start New Escalation** creation form then click **Submit**.
+1. Once the Grafana OnCall app sends a Slack message with the newly created alert, the alert group is open and firing.
+
+Use the `/escalate` Slack command to create a new alert group directly from Slack and specifically paging a user or
+a schedule.
+
+1. Type `/escalate` in the message box of any Slack channel then click **Send**.
+1. Fill out the **Create alert group** form then click **Submit**.
 1. Once the Grafana OnCall app sends a Slack message with the newly created alert, the alert group is open and firing.
 
 ### Message shortcuts
