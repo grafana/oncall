@@ -126,11 +126,16 @@ engine-manage:
 exec-engine:
 	docker exec -it oncall_engine bash
 
-_enable-mobile-app-feature-flags:
-	$(shell ./dev/add_env_var.sh FEATURE_MOBILE_APP_INTEGRATION_ENABLED True $(DEV_ENV_FILE))
-	$(call run_engine_docker_command,python manage.py enable_mobile_app)
+_backend-debug-enable:
+	$(shell ./dev/add_env_var.sh DEBUG True $(DEV_ENV_FILE))
+	$(shell ./dev/add_env_var.sh SILK_PROFILER_ENABLED True $(DEV_ENV_FILE))
 
-enable-mobile-app-feature-flags: _enable-mobile-app-feature-flags stop start
+_backend-debug-disable:
+	$(shell ./dev/add_env_var.sh DEBUG False $(DEV_ENV_FILE))
+	$(shell ./dev/add_env_var.sh SILK_PROFILER_ENABLED False $(DEV_ENV_FILE))
+
+backend-debug-enable: _backend-debug-enable stop start
+backend-debug-disable: _backend-debug-disable stop start
 
 # The below commands are useful for running backend services outside of docker
 define backend_command

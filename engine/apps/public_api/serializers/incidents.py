@@ -13,10 +13,10 @@ class IncidentSerializer(EagerLoadingMixin, serializers.ModelSerializer):
     route_id = serializers.SerializerMethodField()
     created_at = serializers.DateTimeField(source="started_at")
     alerts_count = serializers.SerializerMethodField()
-    title = serializers.SerializerMethodField()
+    title = serializers.CharField(source="web_title_cache")
     state = serializers.SerializerMethodField()
 
-    SELECT_RELATED = ["channel", "channel_filter", "slack_message"]
+    SELECT_RELATED = ["channel", "channel_filter", "slack_message", "channel__organization"]
     PREFETCH_RELATED = [
         "alerts",
         Prefetch(
@@ -43,9 +43,6 @@ class IncidentSerializer(EagerLoadingMixin, serializers.ModelSerializer):
 
     def get_alerts_count(self, obj):
         return len(obj.alerts.all())
-
-    def get_title(self, obj):
-        return obj.alerts.all()[0].title
 
     def get_state(self, obj):
         return obj.state

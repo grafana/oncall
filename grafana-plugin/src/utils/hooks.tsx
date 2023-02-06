@@ -15,13 +15,13 @@ export function usePrevious(value: any) {
   return ref.current;
 }
 
-export function useQueryParams() {
+export function useQueryParams(): URLSearchParams {
   const { search } = useLocation();
 
   return React.useMemo(() => new URLSearchParams(search), [search]);
 }
 
-export function useQueryPath() {
+export function useQueryPath(): string {
   const location = useLocation();
   return React.useMemo(() => location.pathname, [location]);
 }
