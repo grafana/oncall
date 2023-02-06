@@ -12,6 +12,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Cleaning of the name "Incident" ([704](https://github.com/grafana/oncall/pull/704))
 - Alert Group/Alert Groups naming polishing. All the names should be with capital letters
 
+## v1.1.24 (2023-02-06)
+
+### Fixed
+
+- Design polishing ([1290](https://github.com/grafana/oncall/pull/1290))
+- Not showing contact details in User tooltip if User does not have edit/admin access
+
 ## v1.1.23 (2023-02-06)
 
 ### Fixed
