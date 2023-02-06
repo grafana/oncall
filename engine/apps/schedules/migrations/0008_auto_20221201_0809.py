@@ -5,6 +5,7 @@ from django.db import migrations
 from django.db.models import Q
 
 from common.timezones import is_valid_timezone
+import django_migration_linter as linter
 
 
 def fix_bad_timezone_values(model):
@@ -34,6 +35,7 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
+        linter.IgnoreMigration(),
         migrations.RunPython(fix_bad_timezone_values('CustomOnCallShift')),
         migrations.RunPython(fix_bad_timezone_values('OnCallScheduleCalendar')),
         migrations.RunPython(fix_bad_timezone_values('OnCallScheduleWeb')),

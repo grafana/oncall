@@ -5,12 +5,18 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## v1.1.23 (2023-02-06)
+## v1.1.24 (2023-02-06)
 
 ### Fixed
 
 - Design polishing ([1290](https://github.com/grafana/oncall/pull/1290))
 - Not showing contact details in User tooltip if User does not have edit/admin access
+
+## v1.1.23 (2023-02-06)
+
+### Fixed
+
+- Fix bug with email case sensitivity for ICal on-call schedules ([1297](https://github.com/grafana/oncall/pull/1297))
 
 ## v1.1.22 (2023-02-03)
 
