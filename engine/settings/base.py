@@ -655,10 +655,9 @@ if OSS_INSTALLATION:
         "args": (),
     }  # noqa
 
+MIGRATION_LINTER_OPTIONS = {"exclude_apps": ["social_django", "silk", "fcm_django"]}
+# Run migrations linter on each `python manage.py makemigrations`
 MIGRATION_LINTER_OVERRIDE_MAKEMIGRATIONS = True
-MIGRATION_LINTER_OPTIONS = {
-    "git_commit_id": "7bb4fdfe43e554f6fdeaa699efcf6f2389118bed",
-}
 
 PYROSCOPE_PROFILER_ENABLED = getenv_boolean("PYROSCOPE_PROFILER_ENABLED", default=False)
 if PYROSCOPE_PROFILER_ENABLED:
