@@ -246,17 +246,6 @@ class IncidentPage extends React.Component<IncidentPageProps, IncidentPageState>
             </HorizontalGroup>
             <HorizontalGroup align="center">
               <Text>
-                <CopyToClipboard
-                  text={window.location.href}
-                  onCopy={() => {
-                    openNotification('Link copied');
-                  }}
-                >
-                  <IconButton name="code-branch" tooltip="Copy link" className={cx('title-icon')} />
-                </CopyToClipboard>
-                <a href={incident.slack_permalink} target="_blank" rel="noreferrer">
-                  <IconButton name="slack" tooltip="View in Slack" className={cx('title-icon')} />
-                </a>
                 {showLinkTo && (
                   <IconButton
                     name="share-alt"
@@ -265,6 +254,17 @@ class IncidentPage extends React.Component<IncidentPageProps, IncidentPageState>
                     className={cx('title-icon')}
                   />
                 )}
+                <a href={incident.slack_permalink} target="_blank" rel="noreferrer">
+                  <IconButton name="slack" tooltip="View in Slack" className={cx('title-icon')} />
+                </a>
+                <CopyToClipboard
+                  text={window.location.href}
+                  onCopy={() => {
+                    openNotification('Link copied');
+                  }}
+                >
+                  <IconButton name="copy" tooltip="Copy link" className={cx('title-icon')} />
+                </CopyToClipboard>
               </Text>
             </HorizontalGroup>
           </HorizontalGroup>
