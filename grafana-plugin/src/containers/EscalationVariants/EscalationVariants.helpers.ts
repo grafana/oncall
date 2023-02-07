@@ -37,7 +37,7 @@ export function prepareForUpdate(userResponders, scheduleResponders, data?) {
 
 export function prepareForEdit(userResponders) {
   return {
-    userResponders: userResponders.map(({ pk }: { pk: User['pk'] }) => ({
+    userResponders: (userResponders || []).map(({ pk }: { pk: User['pk'] }) => ({
       type: ResponderType.User,
       data: { pk },
       important: false,

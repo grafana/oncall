@@ -2,7 +2,6 @@ import React, { useState, useCallback, useEffect, useRef } from 'react';
 
 import { Icon, RadioButtonGroup } from '@grafana/ui';
 import cn from 'classnames/bind';
-import { debounce } from 'lodash-es';
 import { observer } from 'mobx-react';
 
 import GTable from 'components/GTable/GTable';
@@ -14,7 +13,7 @@ import { ResponderType, UserAvailability } from 'containers/EscalationVariants/E
 import { Schedule } from 'models/schedule/schedule.types';
 import { User } from 'models/user/user.types';
 import { useStore } from 'state/useStore';
-import { useOnClickOutside } from 'utils/hooks';
+import { useDebouncedCallback, useOnClickOutside } from 'utils/hooks';
 
 interface EscalationVariantsPopupProps extends EscalationVariantsProps {
   setShowEscalationVariants: (value: boolean) => void;
@@ -38,12 +37,8 @@ const EscalationVariantsPopup = observer((props: EscalationVariantsPopupProps) =
   const store = useStore();
 
   const [activeOption, setActiveOption] = useState('schedules');
-  const [searchFilters, setSearchFilters] = useState('');
-
-  useEffect(() => {
-    store.scheduleStore.updateItems(searchFilters);
-    store.userStore.updateItems(searchFilters);
-  }, []);
+  const [usersSearchTerm, setUsersSearchTerm] = useState('');
+  const [schedulesSearchTerm, setSchedulesSearchTerm] = useState('');
 
   const handleOptionChange = useCallback((option: string) => {
     setActiveOption(option);
@@ -70,17 +65,17 @@ const EscalationVariantsPopup = observer((props: EscalationVariantsPopupProps) =
     });
   };
 
-  const debouncedUpdateUsers = debounce(() => store.userStore.updateItems(searchFilters), 500);
-  const debouncedUpdateSchedule = debounce(() => store.scheduleStore.updateItems(searchFilters), 500);
+  const handleUsersSearchTermChange = useDebouncedCallback(() => {
+    store.userStore.updateItems(usersSearchTerm);
+  }, 500);
 
-  const handleSearchFilterChange = (searchFilters: any) => {
-    setSearchFilters(searchFilters);
-    if (activeOption === 'users') {
-      debouncedUpdateUsers();
-    } else {
-      debouncedUpdateSchedule();
-    }
-  };
+  useEffect(handleUsersSearchTermChange, [usersSearchTerm]);
+
+  const handleSchedulesSearchTermChange = useDebouncedCallback(() => {
+    store.scheduleStore.updateItems(schedulesSearchTerm);
+  }, 500);
+
+  useEffect(handleSchedulesSearchTermChange, [schedulesSearchTerm]);
 
   const scheduleColumns = [
     {
@@ -156,8 +151,8 @@ const EscalationVariantsPopup = observer((props: EscalationVariantsPopupProps) =
           <SearchInput
             key="schedules search"
             className={cx('responders-filters')}
-            value={searchFilters}
-            onChange={handleSearchFilterChange}
+            value={schedulesSearchTerm}
+            onChange={setSchedulesSearchTerm}
           />
           <GTable
             emptyText={store.scheduleStore.getSearchResult() ? 'No schedules found' : 'Loading...'}
@@ -174,8 +169,8 @@ const EscalationVariantsPopup = observer((props: EscalationVariantsPopupProps) =
           <SearchInput
             key="users search"
             className={cx('responders-filters')}
-            value={searchFilters}
-            onChange={handleSearchFilterChange}
+            value={usersSearchTerm}
+            onChange={setUsersSearchTerm}
           />
           <GTable
             emptyText={store.userStore.getSearchResult().results ? 'No users found' : 'Loading...'}

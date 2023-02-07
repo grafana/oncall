@@ -3,7 +3,7 @@ import React, { ChangeEvent, useCallback } from 'react';
 import { Icon, Input } from '@grafana/ui';
 import cn from 'classnames/bind';
 
-import styles from './SearchInput.module.css';
+import styles from './SearchInput.module.scss';
 
 const cx = cn.bind(styles);
 

@@ -432,6 +432,6 @@ export class AlertGroupStore extends BaseStore {
     return await makeRequest(`${this.path}${alertId}/unpage_user`, {
       method: 'POST',
       data: { user_id: userId },
-    });
+    }).catch(this.onApiError);
   }
 }

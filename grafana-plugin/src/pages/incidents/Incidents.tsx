@@ -554,8 +554,6 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
   }
 
   setPollingInterval(filters: IncidentsFiltersType = this.state.filters, isOnMount = false) {
-    return;
-
     this.pollingIntervalId = setInterval(() => {
       this.fetchIncidentData(filters, isOnMount);
     }, POLLING_NUM_SECONDS * 1000);
