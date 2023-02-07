@@ -3,7 +3,7 @@ import { Channel } from 'models/channel';
 import { User } from 'models/user/user.types';
 
 export enum IncidentStatus {
-  'New',
+  'Firing',
   'Acknowledged',
   'Resolved',
   'Silenced',

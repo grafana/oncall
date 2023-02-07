@@ -5,12 +5,17 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## v1.1.24 (2023-02-06)
+## Unreleased
 
 ### Fixed
 
 - Design polishing ([1290](https://github.com/grafana/oncall/pull/1290))
 - Not showing contact details in User tooltip if User does not have edit/admin access
+
+### Changes
+
+- Incidents - Removed buttons column and replaced status with toggler ([#1237](https://github.com/grafana/oncall/issues/1237))
+- Responsiveness changes across multiple pages (Incidents, Integrations, Schedules) ([#1237](https://github.com/grafana/oncall/issues/1237))
 
 ## v1.1.23 (2023-02-06)
 

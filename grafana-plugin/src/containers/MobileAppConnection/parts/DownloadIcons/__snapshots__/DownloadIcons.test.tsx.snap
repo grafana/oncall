@@ -74,7 +74,6 @@ exports[`DownloadIcons it renders properly 1`] = `
             </span>
             <span
               class="root icon-tag"
-              style="background-color: rgb(41, 156, 70);"
             >
               Coming Soon
             </span>

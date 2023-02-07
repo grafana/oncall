@@ -315,7 +315,7 @@ export class AlertGroupStore extends BaseStore {
     const result = await makeRequest(`${this.path}stats/`, {
       params: {
         ...this.incidentFilters,
-        status: [IncidentStatus.New],
+        status: [IncidentStatus.Firing],
       },
     });
     this.newIncidents = result;
@@ -366,9 +366,6 @@ export class AlertGroupStore extends BaseStore {
   async doIncidentAction(alertId: Alert['pk'], action: AlertAction, isUndo = false, data?: any) {
     this.updateAlert(alertId, { loading: true });
 
-    console.log('action', action);
-    console.log('isUndo', isUndo);
-
     let undoAction = undefined;
     if (!isUndo) {
       switch (action) {
@@ -412,8 +409,6 @@ export class AlertGroupStore extends BaseStore {
         loading: false,
         undoAction,
       });
-
-      console.log('undoAction', undoAction);
     } catch (e) {
       this.updateAlert(alertId, { loading: false });
       openErrorNotification(e.response.data?.detail || e.response.data);
