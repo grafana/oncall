@@ -9,6 +9,8 @@ export interface WithContextMenuProps {
   focusOnOpen?: boolean;
 }
 
+const query = '[class$="-page-container"] .scrollbar-view';
+
 export const WithContextMenu: React.FC<WithContextMenuProps> = ({
   children,
   renderMenuItems,
@@ -21,6 +23,15 @@ export const WithContextMenu: React.FC<WithContextMenuProps> = ({
   useEffect(() => {
     setIsMenuOpen(forceIsOpen);
   }, [forceIsOpen]);
+
+  useEffect(() => {
+    const onScrollFn = () => setIsMenuOpen(false);
+    document.querySelector(query)?.addEventListener('scroll', onScrollFn);
+
+    return () => {
+      document.querySelector(query)?.removeEventListener('scroll', onScrollFn);
+    };
+  }, []);
 
   return (
     <>
