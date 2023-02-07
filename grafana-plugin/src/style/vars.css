@@ -15,6 +15,13 @@
   --gradient-brandVertical: linear-gradient(0.01deg, #f53e4c -31.2%, #f83 113.07%);
   --always-gray: #ccccdc;
   --title-marginBottom: 16px;
+  --opacity: 0.5;
+
+  /* These seem to slightly differ from warning/success/error colors from below */
+  --tag-danger: #e02f44;
+  --tag-warning: #c69b06;
+  --tag-primary: #299c46;
+  --tag-secondary: #464c54;
 }
 
 .theme-light {

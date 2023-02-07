@@ -16,12 +16,6 @@
   margin-bottom: 10px;
 }
 
-.header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
 .verbal-name {
   font-weight: 500;
 }
@@ -55,6 +49,8 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
 }
 
 .channel-filter-header-title {
@@ -115,4 +111,28 @@
 
 .description-style a {
   color: var(--primary-text-link);
+}
+
+.integration__heading-text {
+  display: flex;
+  gap: 8px;
+}
+
+.integration__heading-container {
+  display: flex;
+  flex-wrap: wrap;
+}
+
+.integration__heading-container-left {
+  margin-bottom: 12px;
+}
+
+.integration__heading-container-left,
+.integration__heading-container-right {
+  flex-grow: 1;
+}
+
+.integration__heading-container-right {
+  display: flex;
+  justify-content: flex-end;
 }

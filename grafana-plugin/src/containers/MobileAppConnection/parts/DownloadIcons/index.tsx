@@ -8,7 +8,6 @@ import PlayStoreLogoSVG from 'assets/img/brand/play-store-logo.svg';
 import Block from 'components/GBlock/Block';
 import Tag from 'components/Tag/Tag';
 import Text from 'components/Text/Text';
-import { COLOR_PRIMARY } from 'utils/consts';
 
 import styles from './DownloadIcons.module.scss';
 
@@ -39,7 +38,10 @@ const DownloadIcons: FC = () => (
         <Text type="primary" className={cx('icon-text')}>
           iOS
         </Text>
-        <Tag color={COLOR_PRIMARY} className={cx('icon-tag')}>
+        <Tag
+          color={getComputedStyle(document.documentElement).getPropertyValue('--tag-primary')}
+          className={cx('icon-tag')}
+        >
           Coming Soon
         </Tag>
       </Block>
