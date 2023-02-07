@@ -15,6 +15,7 @@ export type PageDefinition = {
   hideFromTabsFn?: (store: RootBaseStore) => boolean;
   hideFromTabs?: boolean;
   action?: UserAction;
+  hideTitle: boolean; // dont't automatically render title above page
 
   getPageNav(): { text: string; description: string };
 };
@@ -29,6 +30,7 @@ export const pages: { [id: string]: PageDefinition } = [
     id: 'incidents',
     hideFromBreadcrumbs: true,
     text: 'Alert Groups',
+    hideTitle: true,
     path: getPath('incidents'),
     action: UserActions.AlertGroupsRead,
   },
