@@ -18,8 +18,6 @@ function RealPlugin(props: AppPluginPageProps): React.ReactNode {
   const { page } = props;
   const store = useStore();
 
-  console.log(page);
-
   return (
     <RealPluginPage {...props}>
       {/* Render alerts at the top */}

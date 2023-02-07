@@ -15,7 +15,7 @@ export type PageDefinition = {
   hideFromTabsFn?: (store: RootBaseStore) => boolean;
   hideFromTabs?: boolean;
   action?: UserAction;
-  hideTitle: boolean; // dont't automatically render title above page
+  hideTitle: boolean; // dont't automatically render title above page content
 
   getPageNav(): { text: string; description: string };
 };
