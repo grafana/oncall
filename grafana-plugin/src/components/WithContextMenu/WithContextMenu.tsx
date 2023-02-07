@@ -25,11 +25,13 @@ export const WithContextMenu: React.FC<WithContextMenuProps> = ({
   }, [forceIsOpen]);
 
   useEffect(() => {
-    const onScrollFn = () => setIsMenuOpen(false);
-    document.querySelector(query)?.addEventListener('scroll', onScrollFn);
+    const onScrollOrResizeFn = () => setIsMenuOpen(false);
+    document.querySelector(query)?.addEventListener('scroll', onScrollOrResizeFn);
+    window.addEventListener('resize', onScrollOrResizeFn);
 
     return () => {
-      document.querySelector(query)?.removeEventListener('scroll', onScrollFn);
+      document.querySelector(query)?.removeEventListener('scroll', onScrollOrResizeFn);
+      window.removeEventListener('resize', onScrollOrResizeFn);
     };
   }, []);
 
