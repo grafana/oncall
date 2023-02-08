@@ -26,6 +26,10 @@
   height: 100%;
 }
 
+.u-display-block {
+  display: block;
+}
+
 .u-flex {
   display: flex;
   flex-direction: row;
@@ -42,4 +46,10 @@
 
 .u-align-items-center {
   align-items: center;
+}
+
+.u-disabled {
+  opacity: var(--opacity);
+  cursor: not-allowed !important;
+  pointer-events: none;
 }
