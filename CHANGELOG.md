@@ -75,6 +75,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Link to source was added
 - Header of Incident page was reworked: clickable labels instead of just names, users section was deleted
 - "Go to Integration" button was deleted, because the functionality was moved to clickable labels
+- Add pagination to schedule listing
 
 ## v1.1.23 (2023-02-06)
 
