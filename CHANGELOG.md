@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Design polishing ([1290](https://github.com/grafana/oncall/pull/1290))
 - Not showing contact details in User tooltip if User does not have edit/admin access
+- Updated slack link account to redirect back to user profile instead of chatops
 
 ### Changes
 

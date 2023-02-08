@@ -4,6 +4,7 @@ import { Button, Label } from '@grafana/ui';
 import cn from 'classnames/bind';
 
 import Text from 'components/Text/Text';
+import WithConfirm from 'components/WithConfirm/WithConfirm';
 import { UserSettingsTab } from 'containers/UserSettings/UserSettings.types';
 import { User } from 'models/user/user.types';
 import { useStore } from 'state/useStore';
@@ -39,12 +40,18 @@ const TelegramConnector = (props: TelegramConnectorProps) => {
     <div className={cx('user-item')}>
       <Label>Telegram username:</Label>
       <span className={cx('user-value')}>{storeUser.telegram_configuration?.telegram_nick_name || '—'}</span>
-      {storeUser.telegram_configuration ? (
+      {storeUser.telegram_configuration && storeUser.pk === userStore.currentUserPk ? (
         <div>
           <Text type="secondary"> Telegram account is connected</Text>
-          <Button size="sm" fill="text" variant="destructive" onClick={handleUnlinkTelegramAccount}>
-            Unlink Telegram account
-          </Button>
+          {storeUser.pk === userStore.currentUserPk ? (
+            <WithConfirm title="Are you sure to disconnect your Telegram account?" confirmText="Disconnect">
+              <Button size="sm" fill="text" variant="destructive" onClick={handleUnlinkTelegramAccount}>
+                Unlink Telegram account
+              </Button>
+            </WithConfirm>
+          ) : (
+            ''
+          )}
         </div>
       ) : (
         <div>
