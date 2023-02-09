@@ -106,7 +106,7 @@ const EscalationVariants = observer(
               <ul className={cx('responders-list')}>
                 {value.userResponders.map((responder, index) => (
                   <UserResponder
-                    key={responder.data.pk}
+                    key={responder.data?.pk}
                     onImportantChange={getUserResponderImportChangeHandler(index)}
                     handleDelete={getUserResponderDeleteHandler(index)}
                     {...responder}
@@ -186,10 +186,10 @@ const UserResponder = ({ important, data, onImportantChange, handleDelete }) => 
       <HorizontalGroup justify="space-between">
         <HorizontalGroup>
           <div className={cx('timeline-icon-background', { 'timeline-icon-background--green': true })}>
-            <Avatar size="big" src={data.avatar} />
+            <Avatar size="big" src={data?.avatar} />
           </div>
           <Text>
-            {data.username} ({getTzOffsetString(dayjs().tz(data.timezone))})
+            {data?.username} ({getTzOffsetString(dayjs().tz(data?.timezone))})
           </Text>
           <Select
             isSearchable={false}

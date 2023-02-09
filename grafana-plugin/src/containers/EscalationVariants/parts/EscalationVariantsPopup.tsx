@@ -110,7 +110,7 @@ const EscalationVariantsPopup = observer((props: EscalationVariantsPopupProps) =
     {
       width: 300,
       render: (user: User) => {
-        const disabled = value.userResponders.some((userResponder) => userResponder.data.pk === user.pk);
+        const disabled = value.userResponders.some((userResponder) => userResponder.data?.pk === user.pk);
         return (
           <div onClick={() => (disabled ? undefined : addUserResponders(user))} className={cx('responder-item')}>
             <Text type={disabled ? 'disabled' : undefined}>
@@ -124,7 +124,7 @@ const EscalationVariantsPopup = observer((props: EscalationVariantsPopupProps) =
     {
       width: 40,
       render: (item: User) =>
-        value.userResponders.some((userResponder) => userResponder.data.pk === item.pk) ? <Icon name="check" /> : null,
+        value.userResponders.some((userResponder) => userResponder.data?.pk === item.pk) ? <Icon name="check" /> : null,
       key: 'Checked',
     },
   ];

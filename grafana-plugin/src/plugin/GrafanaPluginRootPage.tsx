@@ -14,7 +14,7 @@ import weekday from 'dayjs/plugin/weekday';
 import { observer, Provider } from 'mobx-react';
 import Header from 'navbar/Header/Header';
 import LegacyNavTabsBar from 'navbar/LegacyNavTabsBar';
-import { Redirect, Route, Switch, useLocation } from 'react-router-dom';
+import { Route, Switch, useLocation } from 'react-router-dom';
 import { AppRootProps } from 'types';
 
 import Unauthorized from 'components/Unauthorized';
@@ -40,7 +40,6 @@ import 'interceptors';
 import { rootStore } from 'state';
 import { useStore } from 'state/useStore';
 import { isUserActionAllowed } from 'utils/authorization';
-import { DEFAULT_PAGE, PLUGIN_ROOT } from 'utils/consts';
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
@@ -125,7 +124,6 @@ export const Root = observer((props: AppRootProps) => {
       >
         {userHasAccess ? (
           <Switch>
-            <Redirect from="/" to={`${PLUGIN_ROOT}/${DEFAULT_PAGE}`} exact />
             <Route path={getRoutesForPage('incidents')} exact>
               <Incidents query={query} />
             </Route>

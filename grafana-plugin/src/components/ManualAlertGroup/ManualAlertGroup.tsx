@@ -31,7 +31,7 @@ const manualAlertFormConfig: { name: string; fields: FormItem[] } = {
       validation: { required: true },
     },
     {
-      name: 'description',
+      name: 'message',
       type: FormItemType.TextArea,
       label: 'Describe what is going on',
     },
@@ -87,7 +87,11 @@ const ManualAlertGroup: FC<ManualAlertGroupProps> = (props) => {
             <Button variant="secondary" onClick={onHide}>
               Cancel
             </Button>
-            <Button type="submit" form={manualAlertFormConfig.name}>
+            <Button
+              type="submit"
+              form={manualAlertFormConfig.name}
+              disabled={!userResponders.length && !scheduleResponders.length}
+            >
               Create
             </Button>
           </HorizontalGroup>
