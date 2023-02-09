@@ -275,8 +275,8 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
             )}
             <Text type="secondary">
               {hasSelected
-                ? `${selectedIncidentIds.length} alert group${selectedIncidentIds.length > 1 ? 's' : ''} selected`
-                : 'No alert groups selected'}
+                ? `${selectedIncidentIds.length} Alert Group${selectedIncidentIds.length > 1 ? 's' : ''} selected`
+                : 'No Alert Groups selected'}
             </Text>
           </HorizontalGroup>
         </div>
