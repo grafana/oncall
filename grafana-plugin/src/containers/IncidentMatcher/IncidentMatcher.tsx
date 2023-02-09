@@ -7,6 +7,7 @@ import { observer } from 'mobx-react';
 import Block from 'components/GBlock/Block';
 import SourceCode from 'components/SourceCode/SourceCode';
 import Text from 'components/Text/Text';
+import { AlertReceiveChannel } from 'models/alert_receive_channel/alert_receive_channel.types';
 import { Alert } from 'models/alertgroup/alertgroup.types';
 import { makeRequest } from 'network';
 import { useStore } from 'state/useStore';
@@ -18,6 +19,7 @@ const cx = cn.bind(styles);
 
 interface IncidentMatcherProps {
   regexp: string;
+  alert_receive_channel_id: AlertReceiveChannel['id'];
   className?: string;
   onError: (message: string) => void;
 }
@@ -30,7 +32,7 @@ interface AlertItem {
 }
 
 const IncidentMatcher = observer((props: IncidentMatcherProps) => {
-  const { regexp, className, onError } = props;
+  const { regexp, alert_receive_channel_id, className, onError } = props;
 
   const store = useStore();
 
@@ -42,7 +44,9 @@ const IncidentMatcher = observer((props: IncidentMatcherProps) => {
 
   const handleRegexpChange = useDebouncedCallback(() => {
     setLoading(true);
-    makeRequest('/route_regex_debugger/', { params: { regex: regexp } })
+    makeRequest('/route_regex_debugger/', {
+      params: { regex: regexp, alert_receive_channel_id: alert_receive_channel_id },
+    })
       .then(setSearchResult)
       .catch((data) => {
         onError(data.response?.data?.detail);

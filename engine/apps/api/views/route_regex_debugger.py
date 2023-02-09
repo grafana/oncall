@@ -7,7 +7,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from apps.alerts.incident_appearance.renderers.web_renderer import AlertWebRenderer
-from apps.alerts.models import Alert, AlertGroup
+from apps.alerts.models import Alert, AlertGroup, AlertReceiveChannel
 from apps.auth_token.auth import PluginAuthentication
 from common.api_helpers.exceptions import BadRequest
 
@@ -21,6 +21,7 @@ class RouteRegexDebuggerView(APIView):
         team = self.request.user.current_team
 
         regex = request.query_params.get("regex", None)
+        alert_receive_channel_id = request.query_params.get("alert_receive_channel_id", None)
 
         if regex is None:
             raise BadRequest(detail={"regex": ["This field is required."]})
@@ -31,12 +32,28 @@ class RouteRegexDebuggerView(APIView):
         except re.error:
             raise BadRequest(detail={"regex": ["Invalid regex."]})
 
+        # Previous version did not specify alert_receive_channel and used all of them to search for alerts
+        # Keep this case for backwards compatibility for non-updated plugins
+        if alert_receive_channel_id is None:
+            alert_receive_channels_ids = list(
+                AlertReceiveChannel.objects.filter(
+                    organization_id=organization,
+                    team_id=team,
+                ).values_list("id", flat=True)
+            )
+        else:
+            alert_receive_channels_ids = list(
+                AlertReceiveChannel.objects.get(public_primary_key=alert_receive_channel_id).values_list(
+                    "id", flat=True
+                )
+            )
+
         incidents_matching_regex = []
         MAX_INCIDENTS_TO_SHOW = 5
         INCIDENTS_TO_LOOKUP = 100
         for ag in (
             AlertGroup.unarchived_objects.prefetch_related(Prefetch("alerts", queryset=Alert.objects.order_by("pk")))
-            .filter(channel__organization=organization, channel__team=team)
+            .filter(channel_id__in=alert_receive_channels_ids)
             .order_by("-started_at")[:INCIDENTS_TO_LOOKUP]
         ):
 
