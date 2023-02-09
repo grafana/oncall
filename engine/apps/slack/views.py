@@ -44,6 +44,7 @@ from apps.slack.scenarios.scenario_step import (
     PAYLOAD_TYPE_MESSAGE_ACTION,
     PAYLOAD_TYPE_SLASH_COMMAND,
     PAYLOAD_TYPE_VIEW_SUBMISSION,
+    ScenarioStep,
 )
 from apps.slack.scenarios.schedules import STEPS_ROUTING as SCHEDULES_ROUTING
 from apps.slack.scenarios.slack_channel import STEPS_ROUTING as CHANNEL_ROUTING
@@ -492,36 +493,9 @@ class SlackEventApiEndpointView(APIView):
 
     def _open_warning_window_if_needed(self, payload, slack_team_identity, warning_text) -> None:
         if payload.get("trigger_id") is not None:
-            slack_client = SlackClientWithErrorHandling(slack_team_identity.bot_access_token)
-
-            view = {
-                "type": "modal",
-                "callback_id": "warning",
-                "title": {
-                    "type": "plain_text",
-                    "text": ":warning: Warning",
-                },
-                "close": {
-                    "type": "plain_text",
-                    "text": "Ok",
-                    "emoji": True,
-                },
-                "blocks": [
-                    {
-                        "type": "section",
-                        "text": {
-                            "type": "mrkdwn",
-                            "text": warning_text,
-                        },
-                    },
-                ],
-            }
+            step = ScenarioStep(slack_team_identity)
             try:
-                slack_client.api_call(
-                    "views.open",
-                    trigger_id=payload["trigger_id"],
-                    view=view,
-                )
+                step.open_warning_window(payload, warning_text)
             except SlackAPIException as e:
                 logger.info(
                     f"Failed to open pop-up for unpopulated SlackTeamIdentity {slack_team_identity.pk}\n" f"Error: {e}"
