@@ -239,7 +239,9 @@ class CustomOnCallShiftSerializer(EagerLoadingMixin, serializers.ModelSerializer
         if data.get("rolling_users", []) is None:  # terraform case
             data["rolling_users"] = []
         if data.get("source") != CustomOnCallShift.SOURCE_TERRAFORM:
-            data["source"] = CustomOnCallShift.SOURCE_API
+            # TODO: this is added because rotation start / rotation end work incorrectly when using source "API"
+            # TODO: check if this is a bug. If this is expected, allow setting source to web to mimic web UI.
+            data["source"] = CustomOnCallShift.SOURCE_WEB
         if data.get("start") is not None:
             self._validate_start(data["start"])
         if data.get("rotation_start") is not None:

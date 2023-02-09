@@ -49,7 +49,7 @@ def main() -> None:
         ]
 
     print("▶ Fetching schedules...")
-    schedules = session.list_all("schedules")
+    schedules = session.list_all("schedules", params={"include[]": "schedule_layers"})
     oncall_schedules = oncall_api_client.list_all("schedules")
 
     print("▶ Fetching escalation policies...")
@@ -106,7 +106,7 @@ def main() -> None:
     print("▶ Migrating schedules...")
     for schedule in schedules:
         if not schedule["unmatched_users"]:
-            migrate_schedule(schedule)
+            migrate_schedule(schedule, users)
             print(TAB + format_schedule(schedule))
 
     print("▶ Migrating escalation policies...")
