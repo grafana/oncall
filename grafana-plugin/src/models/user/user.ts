@@ -377,4 +377,10 @@ export class UserStore extends BaseStore {
       method: 'DELETE',
     });
   }
+
+  async checkUserAvailability(userPk: User['pk']) {
+    return await makeRequest(`/users/${userPk}/check_availability/`, {
+      method: 'GET',
+    });
+  }
 }
