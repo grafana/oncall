@@ -9,7 +9,7 @@ import Block from 'components/GBlock/Block';
 import Text from 'components/Text/Text';
 import IncidentMatcher from 'containers/IncidentMatcher/IncidentMatcher';
 import { AlertReceiveChannel } from 'models/alert_receive_channel';
-import { ChannelFilter } from 'models/channel_filter/channel_filter.types';
+import { ChannelFilter, FilteringTermType } from 'models/channel_filter/channel_filter.types';
 import { useStore } from 'state/useStore';
 import { openErrorNotification } from 'utils';
 
@@ -33,7 +33,7 @@ const ChannelFilterForm = observer((props: ChannelFilterFormProps) => {
   const [filteringTermJinja2, setFilteringTermJinja2] = useState<string>(
     data ? data.filtering_term_jinja2 : '{payload.foo == "bar"}'
   );
-  const [filteringTermType, setFilteringTermType] = useState<number>(data ? data.filtering_term_type : 1);
+  const [filteringTermType, setFilteringTermType] = useState<FilteringTermType>(data ? data.filtering_term_type : 1);
   const [errors, setErrors] = useState<{ filtering_term?: string }>({});
 
   const store = useStore();
