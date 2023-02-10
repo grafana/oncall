@@ -41,6 +41,7 @@ import { isUserActionAllowed, UserActions } from 'utils/authorization';
 import sanitize from 'utils/sanitize';
 
 import styles from './AlertRules.module.css';
+
 const cx = cn.bind(styles);
 
 interface AlertRulesProps extends WithStoreProps {
@@ -699,14 +700,25 @@ class AlertRules extends React.Component<AlertRulesProps, AlertRulesState> {
             <Text type="success">{channelFilterIds.length > 1 ? 'ELSE ' : ''}</Text>
           ) : (
             <>
-              <Text type="success">{index === 0 ? 'IF ' : 'ELSE IF '}</Text>alert payload matches regex
-              <Text
-                keyboard
-                //@ts-ignore
-                onClick={this.getEditChannelFilterClickHandler(channelFilter)}
-              >
-                {channelFilter.filtering_term}
-              </Text>
+              <Text type="success">{index === 0 ? 'IF ' : 'ELSE IF '}</Text>
+              {channelFilter.filtering_term_type === 0 ? (
+                <Text
+                  keyboard
+                  //@ts-ignore
+                  onClick={this.getEditChannelFilterClickHandler(channelFilter)}
+                >
+                  payload=~"{channelFilter.filtering_term}"
+                </Text>
+              ) : (
+                <Text
+                  keyboard
+                  //@ts-ignore
+                  onClick={this.getEditChannelFilterClickHandler(channelFilter)}
+                >
+                  {channelFilter.filtering_term_jinja2}
+                </Text>
+              )}
+              is TRUE{' '}
             </>
           )}
           escalate to{' '}

@@ -262,6 +262,7 @@ class AlertGroupLogRecord(models.Model):
             escalation_chain = self.alert_group.escalation_chain_with_respect_to_escalation_snapshot
 
             if channel_filter is not None:
+                print(f"$$$$$$$$$$$$$$$$$$$$$$$$$ 1232 {channel_filter.str_for_clients}")
                 result += f'alert group assigned to route "{channel_filter.str_for_clients}"'
 
                 if escalation_chain is not None:

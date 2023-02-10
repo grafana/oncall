@@ -18,6 +18,7 @@ const cx = cn.bind(styles);
 
 interface IncidentMatcherProps {
   regexp: string;
+  filteringTermJinja2: string;
   className?: string;
   onError: (message: string) => void;
 }

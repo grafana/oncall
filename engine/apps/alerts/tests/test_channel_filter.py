@@ -17,18 +17,18 @@ def test_channel_filter_select_filter(make_organization, make_alert_receive_chan
 
     # alert with data which includes custom route filtering term, satisfied filter is custom channel filter
     raw_request_data = {"title": filtering_term}
-    satisfied_filter = ChannelFilter.select_filter(alert_receive_channel, raw_request_data, title)
+    satisfied_filter = ChannelFilter.select_filter(alert_receive_channel, raw_request_data)
     assert satisfied_filter == channel_filter
 
     # alert with data which does not include custom route filtering term, satisfied filter is default channel filter
     raw_request_data = {"title": title}
-    satisfied_filter = ChannelFilter.select_filter(alert_receive_channel, raw_request_data, title)
+    satisfied_filter = ChannelFilter.select_filter(alert_receive_channel, raw_request_data)
     assert satisfied_filter == default_channel_filter
 
     # demo alert for custom route
     raw_request_data = {"title": "i'm not matching this route"}
     satisfied_filter = ChannelFilter.select_filter(
-        alert_receive_channel, raw_request_data, title, force_route_id=channel_filter.pk
+        alert_receive_channel, raw_request_data, force_route_id=channel_filter.pk
     )
     assert satisfied_filter == channel_filter
 

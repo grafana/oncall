@@ -1,6 +1,6 @@
 import React, { useCallback, useState, ChangeEvent } from 'react';
 
-import { Button, Field, HorizontalGroup, Input } from '@grafana/ui';
+import { Button, Field, HorizontalGroup, Input, RadioButtonGroup } from '@grafana/ui';
 import cn from 'classnames/bind';
 import { get } from 'lodash-es';
 import { observer } from 'mobx-react';
@@ -30,6 +30,10 @@ const ChannelFilterForm = observer((props: ChannelFilterFormProps) => {
   const { id, alertReceiveChannelId, onHide, onUpdate, data, className } = props;
 
   const [filteringTerm, setFilteringTerm] = useState<string>(data ? data.filtering_term : '.*');
+  const [filteringTermJinja2, setFilteringTermJinja2] = useState<string>(
+    data ? data.filtering_term_jinja2 : '{payload.foo == "bar"}'
+  );
+  const [filteringTermType, setFilteringTermType] = useState<number>(data ? data.filtering_term_type : 1);
   const [errors, setErrors] = useState<{ filtering_term?: string }>({});
 
   const store = useStore();
@@ -41,14 +45,25 @@ const ChannelFilterForm = observer((props: ChannelFilterFormProps) => {
     setFilteringTerm(event.target.value);
   }, []);
 
+  const handleFilteringTermJinja2Change = useCallback((event: ChangeEvent<HTMLInputElement>) => {
+    setErrors({});
+    setFilteringTermJinja2(event.target.value);
+  }, []);
+
   const onUpdateClickCallback = useCallback(() => {
     (id === 'new'
       ? alertReceiveChannelStore.createChannelFilter({
           order: 0,
           alert_receive_channel: alertReceiveChannelId,
           filtering_term: filteringTerm,
+          filtering_term_jinja2: filteringTermJinja2,
+          filtering_term_type: filteringTermType,
         })
-      : alertReceiveChannelStore.saveChannelFilter(id, { filtering_term: filteringTerm })
+      : alertReceiveChannelStore.saveChannelFilter(id, {
+          filtering_term: filteringTerm,
+          filtering_term_jinja2: filteringTermJinja2,
+          filtering_term_type: filteringTermType,
+        })
     )
       .then((channelFilter: ChannelFilter) => {
         onUpdate(channelFilter.id);
@@ -61,7 +76,7 @@ const ChannelFilterForm = observer((props: ChannelFilterFormProps) => {
           openErrorNotification(errors.non_field_errors);
         }
       });
-  }, [filteringTerm]);
+  }, [filteringTerm, filteringTermJinja2, filteringTermType]);
 
   return (
     <Block bordered className={cx('root', className)}>
@@ -73,34 +88,73 @@ const ChannelFilterForm = observer((props: ChannelFilterFormProps) => {
         alert content, using regular expressions.
       </Text>
       <div className={styles.form}>
-        <Field
-          invalid={Boolean(errors['filtering_term'])}
-          disabled={data?.is_default}
-          error={errors['filtering_term']}
-          label="Regex to route incidents"
-          description={
-            <>
-              Use{' '}
-              <a href="https://regex101.com/" target="_blank" rel="noreferrer">
-                python style
-              </a>{' '}
-              regex to filter incidents based on a expression
-            </>
-          }
-        >
-          <Input
-            placeholder={
-              data?.is_default ? "Default routes can't have a filtering term" : 'Insert your regular expression here'
+        <RadioButtonGroup
+          options={[
+            { label: 'Jinja2 (recommended)', value: 1 },
+            { label: 'Regular Expression', value: 0 },
+          ]}
+          value={filteringTermType}
+          onChange={(value) => {
+            setFilteringTermType(value);
+          }}
+        />
+
+        {filteringTermType === 0 ? (
+          <Field
+            invalid={Boolean(errors['filtering_term'])}
+            disabled={data?.is_default}
+            error={errors['filtering_term']}
+            label="Regex to route incidents"
+            description={
+              <>
+                Use{' '}
+                <a href="https://regex101.com/" target="_blank" rel="noreferrer">
+                  python style
+                </a>{' '}
+                regex to filter incidents based on a expression
+              </>
             }
-            autoFocus
-            value={filteringTerm}
-            onChange={handleFilteringTermChange}
-          />
-        </Field>
+          >
+            <Input
+              placeholder={
+                data?.is_default ? "Default routes can't have a filtering term" : 'Insert your regular expression here'
+              }
+              autoFocus
+              value={filteringTerm}
+              onChange={handleFilteringTermChange}
+            />
+          </Field>
+        ) : (
+          <Field
+            invalid={Boolean(errors['filtering_term_jinja2'])}
+            disabled={data?.is_default}
+            error={errors['filtering_term_jinja2']}
+            label="OR use Jinja2 template to route incidents"
+            description={
+              <>
+                Use{' '}
+                <a href="https://jinja2.com/" target="_blank" rel="noreferrer">
+                  Jinja2
+                </a>{' '}
+                template to filter alert groups based on a expression
+              </>
+            }
+          >
+            <Input
+              placeholder={
+                data?.is_default ? "Default routes can't have a filtering term" : 'Insert your regular expression here'
+              }
+              autoFocus
+              value={filteringTermJinja2}
+              onChange={handleFilteringTermJinja2Change}
+            />
+          </Field>
+        )}
       </div>
       {!data?.is_default && (
         <IncidentMatcher
           regexp={filteringTerm}
+          filteringTermJinja2={filteringTermJinja2}
           className={cx('incident-matcher')}
           onError={(message: string) => {
             setErrors({ filtering_term: message });
