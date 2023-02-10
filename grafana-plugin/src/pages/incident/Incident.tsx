@@ -34,6 +34,8 @@ import PluginLink from 'components/PluginLink/PluginLink';
 import SourceCode from 'components/SourceCode/SourceCode';
 import Text from 'components/Text/Text';
 import AttachIncidentForm from 'containers/AttachIncidentForm/AttachIncidentForm';
+import EscalationVariants from 'containers/EscalationVariants/EscalationVariants';
+import { prepareForEdit, prepareForUpdate } from 'containers/EscalationVariants/EscalationVariants.helpers';
 import IntegrationSettings from 'containers/IntegrationSettings/IntegrationSettings';
 import { IntegrationSettingsTab } from 'containers/IntegrationSettings/IntegrationSettings.types';
 import { WithPermissionControl } from 'containers/WithPermissionControl/WithPermissionControl';
@@ -46,6 +48,7 @@ import {
   GroupedAlert,
 } from 'models/alertgroup/alertgroup.types';
 import { ResolutionNoteSourceTypesToDisplayName } from 'models/resolution_note/resolution_note.types';
+import { User } from 'models/user/user.types';
 import { PageProps, WithStoreProps } from 'state/types';
 import { useStore } from 'state/useStore';
 import { withMobXProviderContext } from 'state/withStore';
@@ -55,8 +58,8 @@ import { PLUGIN_ROOT } from 'utils/consts';
 import sanitize from 'utils/sanitize';
 
 import { getActionButtons, getIncidentStatusTag } from './Incident.helpers';
-
-import styles from './Incident.module.css';
+import styles from './Incident.module.scss';
+import PagedUsers from './parts/PagedUsers';
 
 const cx = cn.bind(styles);
 
@@ -158,7 +161,12 @@ class IncidentPage extends React.Component<IncidentPageProps, IncidentPageState>
                     />
                     <AttachedIncidentsList id={incident.pk} getUnattachClickHandler={this.getUnattachClickHandler} />
                   </div>
-                  <div className={cx('column')}>{this.renderTimeline()}</div>
+                  <div className={cx('column')}>
+                    <VerticalGroup>
+                      <PagedUsers pagedUsers={incident.paged_users} onRemove={this.handlePagedUserRemove} />
+                      {this.renderTimeline()}
+                    </VerticalGroup>
+                  </div>
                 </div>
                 {showIntegrationSettings && (
                   <IntegrationSettings
@@ -196,6 +204,19 @@ class IncidentPage extends React.Component<IncidentPageProps, IncidentPageState>
       </PageErrorHandlingWrapper>
     );
   }
+
+  handlePagedUserRemove = async (userId: User['pk']) => {
+    const {
+      store,
+      match: {
+        params: { id: alertId },
+      },
+    } = this.props;
+
+    await store.alertGroupStore.unpageUser(alertId, userId);
+
+    this.update();
+  };
 
   renderHeader = () => {
     const {
@@ -352,20 +373,42 @@ class IncidentPage extends React.Component<IncidentPageProps, IncidentPageState>
             </HorizontalGroup>
 
             <HorizontalGroup>
+              <EscalationVariants
+                variant="default"
+                hideSelected
+                value={prepareForEdit(incident.paged_users)}
+                onUpdateEscalationVariants={this.handleAddResponders}
+              />
+
               <Button
                 disabled={incident.alert_receive_channel.deleted}
                 variant="secondary"
-                size="sm"
                 icon="edit"
                 onClick={this.showIntegrationSettings}
               >
-                Edit rendering, grouping and other templates
+                Edit templates
               </Button>
             </HorizontalGroup>
           </HorizontalGroup>
         </VerticalGroup>
       </Block>
     );
+  };
+
+  handleAddResponders = async (data) => {
+    const {
+      store,
+      match: {
+        params: { id: alertId },
+      },
+    } = this.props;
+
+    await store.directPagingStore.updateAlertGroup(
+      alertId,
+      prepareForUpdate(data.userResponders, data.scheduleResponders)
+    );
+
+    this.update();
   };
 
   showIntegrationSettings = () => {
@@ -403,7 +446,7 @@ class IncidentPage extends React.Component<IncidentPageProps, IncidentPageState>
     const { timelineFilter, resolutionNoteText } = this.state;
     const isResolutionNoteTextEmpty = resolutionNoteText === '';
     return (
-      <>
+      <div>
         <Text.Title type="primary" level={4} className={cx('timeline-title')}>
           Timeline
         </Text.Title>
@@ -459,7 +502,7 @@ class IncidentPage extends React.Component<IncidentPageProps, IncidentPageState>
         >
           Add resolution note
         </ToolbarButton>
-      </>
+      </div>
     );
   };
 

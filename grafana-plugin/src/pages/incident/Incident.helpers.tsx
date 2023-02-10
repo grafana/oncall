@@ -167,7 +167,7 @@ export function getActionButtons(incident: AlertType, cx: any, callbacks: { [key
 
   const resolveButton = (
     <WithPermissionControl key="resolve" userAction={UserActions.AlertGroupsWrite}>
-      <Button size="sm" disabled={incident.loading} onClick={onResolve} variant="primary">
+      <Button disabled={incident.loading} onClick={onResolve} variant="primary">
         Resolve
       </Button>
     </WithPermissionControl>
@@ -175,7 +175,7 @@ export function getActionButtons(incident: AlertType, cx: any, callbacks: { [key
 
   const unacknowledgeButton = (
     <WithPermissionControl key="unacknowledge" userAction={UserActions.AlertGroupsWrite}>
-      <Button size="sm" disabled={incident.loading} onClick={onUnacknowledge} variant="secondary">
+      <Button disabled={incident.loading} onClick={onUnacknowledge} variant="secondary">
         Unacknowledge
       </Button>
     </WithPermissionControl>
@@ -183,7 +183,7 @@ export function getActionButtons(incident: AlertType, cx: any, callbacks: { [key
 
   const unresolveButton = (
     <WithPermissionControl key="unacknowledge" userAction={UserActions.AlertGroupsWrite}>
-      <Button size="sm" disabled={incident.loading} onClick={onUnresolve} variant="primary">
+      <Button disabled={incident.loading} onClick={onUnresolve} variant="primary">
         Unresolve
       </Button>
     </WithPermissionControl>
@@ -191,7 +191,7 @@ export function getActionButtons(incident: AlertType, cx: any, callbacks: { [key
 
   const acknowledgeButton = (
     <WithPermissionControl key="acknowledge" userAction={UserActions.AlertGroupsWrite}>
-      <Button size="sm" disabled={incident.loading} onClick={onAcknowledge} variant="secondary">
+      <Button disabled={incident.loading} onClick={onAcknowledge} variant="secondary">
         Acknowledge
       </Button>
     </WithPermissionControl>
@@ -207,7 +207,6 @@ export function getActionButtons(incident: AlertType, cx: any, callbacks: { [key
           key="silence"
           disabled={incident.loading}
           onSelect={onSilence}
-          buttonSize="sm"
         />
       );
     }
@@ -215,7 +214,7 @@ export function getActionButtons(incident: AlertType, cx: any, callbacks: { [key
     if (incident.status === IncidentStatus.Silenced) {
       buttons.push(
         <WithPermissionControl key="silence" userAction={UserActions.AlertGroupsWrite}>
-          <Button size="sm" disabled={incident.loading} variant="secondary" onClick={onUnsilence}>
+          <Button disabled={incident.loading} variant="secondary" onClick={onUnsilence}>
             Unsilence
           </Button>
         </WithPermissionControl>

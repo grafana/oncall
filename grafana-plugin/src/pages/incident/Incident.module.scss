@@ -83,7 +83,7 @@
 
 .timeline {
   list-style-type: none;
-  margin: 0 0 24px;
+  margin: 0 0 24px 12px;
 }
 
 .timeline-item {
@@ -160,4 +160,29 @@
   height: 24px;
   padding: 0 8px;
   border-radius: 2px;
+.paged-users {
+  width: 100%;
+}
+
+.paged-users-list {
+  list-style-type: none;
+  margin-bottom: 20px;
+  width: 100%;
+
+  & > li .trash-button {
+    display: none;
+  }
+
+  & > li:hover .trash-button {
+    display: block;
+  }
+
+  & > li {
+    padding: 8px 12px;
+    width: 100%;
+  }
+
+  & > li:hover {
+    background: var(--background-secondary);
+  }
 }
