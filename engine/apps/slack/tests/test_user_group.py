@@ -39,8 +39,8 @@ def test_oncall_slack_user_identities(
     )
     user_3 = make_user_for_organization(organization)
 
-    with patch.object(OnCallScheduleQuerySet, "get_oncall_users", return_value=[user_1, user_2, user_3]):
-        assert user_group.oncall_slack_user_identities == [slack_user_identity_1, slack_user_identity_2]
+    with patch.object(OnCallScheduleQuerySet, "get_oncall_users", return_value={"schedule1": [user_1, user_2, user_3]}):
+        assert set(user_group.oncall_slack_user_identities) == {slack_user_identity_1, slack_user_identity_2}
 
 
 @pytest.mark.django_db

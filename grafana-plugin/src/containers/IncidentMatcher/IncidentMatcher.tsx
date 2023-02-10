@@ -63,7 +63,7 @@ const IncidentMatcher = observer((props: IncidentMatcherProps) => {
       <div className={cx('columns')}>
         <div className={cx('incident-list')}>
           <Text.Title className={cx('title')} level={5}>
-            Matching Incidents
+            Matching Alert Groups
           </Text.Title>
           {isLoading ? (
             <LoadingPlaceholder text="Loading..." />

@@ -8,6 +8,10 @@
   display: none; /* hide header that comes from Grafana (topnavbar) and instead use ours */
 }
 
+[class$='-page-container'] {
+  min-width: 0; /* top navbar container overflows for a few screens */
+}
+
 .page-container {
   max-width: unset !important;
 }

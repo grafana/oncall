@@ -54,6 +54,7 @@ dayjs.extend(customParseFormat);
 import 'style/vars.css';
 import 'style/global.css';
 import 'style/utils.css';
+import 'style/responsive.css';
 
 import { getQueryParams, isTopNavbar } from './GrafanaPluginRootPage.helpers';
 import PluginSetup from './PluginSetup';
@@ -110,7 +111,7 @@ export const Root = observer((props: AppRootProps) => {
     <DefaultPageLayout {...props} page={page}>
       {!isTopNavbar() && (
         <>
-          <Header page={page} backendLicense={store.backendLicense} />
+          <Header backendLicense={store.backendLicense} />
           <LegacyNavTabsBar currentPage={page} />
         </>
       )}

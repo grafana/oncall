@@ -12,7 +12,7 @@ import { WithPermissionControl } from 'containers/WithPermissionControl/WithPerm
 import { ApiToken } from 'models/api_token/api_token.types';
 import { WithStoreProps } from 'state/types';
 import { withMobXProviderContext } from 'state/withStore';
-import { isUserActionAllowed, UserActions } from 'utils/authorization';
+import { generateMissingPermissionMessage, isUserActionAllowed, UserActions } from 'utils/authorization';
 
 import ApiTokenForm from './ApiTokenForm';
 
@@ -21,6 +21,7 @@ import styles from './ApiTokenSettings.module.css';
 const cx = cn.bind(styles);
 
 const MAX_TOKENS_PER_USER = 5;
+const REQUIRED_PERMISSION_TO_VIEW = UserActions.APIKeysWrite;
 
 interface ApiTokensProps extends WithStoreProps {}
 
@@ -67,6 +68,15 @@ class ApiTokens extends React.Component<ApiTokensProps, any> {
       },
     ];
 
+    const authorizedToViewAPIKeys = isUserActionAllowed(REQUIRED_PERMISSION_TO_VIEW);
+
+    let emptyText = 'Loading...';
+    if (!authorizedToViewAPIKeys) {
+      emptyText = `${generateMissingPermissionMessage(REQUIRED_PERMISSION_TO_VIEW)} to be able to view API tokens.`;
+    } else if (apiTokens) {
+      emptyText = 'No tokens found';
+    }
+
     return (
       <>
         <GTable
@@ -92,13 +102,7 @@ class ApiTokens extends React.Component<ApiTokensProps, any> {
           className="api-keys"
           showHeader={!isMobile}
           data={apiTokens}
-          emptyText={
-            isUserActionAllowed(UserActions.APIKeysWrite)
-              ? apiTokens
-                ? 'No tokens found'
-                : 'Loading...'
-              : 'API tokens are available only for users with Admin permissions'
-          }
+          emptyText={emptyText}
           columns={columns}
         />
         {showCreateTokenModal && (
