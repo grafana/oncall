@@ -62,6 +62,7 @@ import styles from './Incident.module.scss';
 import PagedUsers from './parts/PagedUsers';
 
 const cx = cn.bind(styles);
+const INTEGRATION_NAME_LENGTH_LIMIT = 30;
 
 interface IncidentPageProps extends WithStoreProps, PageProps, RouteComponentProps<{ id: string }> {}
 
@@ -314,7 +315,9 @@ class IncidentPage extends React.Component<IncidentPageProps, IncidentPageState>
                   <Tooltip
                     placement="top"
                     content={
-                      integrationNameWithoutEmojies.length > 30 ? integrationNameWithoutEmojies : 'Go to Integration'
+                      integrationNameWithoutEmojies.length > INTEGRATION_NAME_LENGTH_LIMIT
+                        ? integrationNameWithoutEmojies
+                        : 'Go to Integration'
                     }
                   >
                     <div className={cx('label-button-text')}>{integrationNameWithoutEmojies}</div>
@@ -344,7 +347,7 @@ class IncidentPage extends React.Component<IncidentPageProps, IncidentPageState>
                           <div className={cx('integration-logo')}>
                             <IntegrationLogo integration={integration} scale={0.08} />
                           </div>
-                          {integration?.display_name}
+                          {integration.display_name}
                         </div>
                       </Button>
                     </a>
