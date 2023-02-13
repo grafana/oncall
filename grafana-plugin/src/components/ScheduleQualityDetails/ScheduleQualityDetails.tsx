@@ -24,8 +24,6 @@ export const ScheduleQualityDetails: FC<ScheduleQualityDetailsProps> = ({ qualit
     setExpanded((expanded) => !expanded);
   }, []);
 
-  console.log(getScheduleQualityMatchingColor(score));
-
   return (
     <div className={cx('details')}>
       <VerticalGroup>
@@ -33,23 +31,17 @@ export const ScheduleQualityDetails: FC<ScheduleQualityDetailsProps> = ({ qualit
           Schedule quality:{' '}
           <Text type={getScheduleQualityMatchingColor(score)}>{getScheduleQualityFromNumber(score)}</Text>
         </Text>
-        <div className={cx('progress')}>
-          <div
-            style={{ width: `${score}%` }}
-            className={cx('progress-filler', {
-              [`progress-filler__type_${'success'}`]: true,
-            })}
-          >
-            <div
-              className={cx('quality-text', {
-                [`quality-text__type_${'success'}`]: true,
-              })}
-            >
-              {score}%
-            </div>{' '}
-          </div>
-        </div>
         <ScheduleQualityProgressBar completed={quality.total_score} numTotalSteps={5} />
+        <VerticalGroup>
+          <HorizontalGroup spacing="sm">
+            <Icon name="calendar-alt" />
+            <Text type="secondary">Rotation structure issues</Text>
+          </HorizontalGroup>
+          <HorizontalGroup spacing="sm">
+            <Icon name="users-alt" />
+            <Text type="secondary">Overloaded users</Text>
+          </HorizontalGroup>
+        </VerticalGroup>
         <VerticalGroup>
           <HorizontalGroup justify="space-between">
             <HorizontalGroup spacing="sm">

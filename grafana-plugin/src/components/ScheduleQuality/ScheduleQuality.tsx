@@ -32,8 +32,12 @@ const ScheduleQuality: FC<ScheduleQualityProps> = ({ scheduleId }) => {
       <Tooltip placement="bottom-end" interactive content={<ScheduleQualityDetails quality={qualityResponse} />}>
         <div className={cx('root')}>
           <HorizontalGroup spacing="sm">
-            <Text type="secondary">Quality:</Text>
-            <Text type="primary">{qualityResponse.total_score}%</Text>
+            <Text type="secondary" className="u-cursor-default">
+              Quality:
+            </Text>
+            <Text type="primary" className="u-cursor-default">
+              {qualityResponse.total_score}%
+            </Text>
           </HorizontalGroup>
         </div>
       </Tooltip>
