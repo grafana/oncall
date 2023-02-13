@@ -28,6 +28,7 @@ import { PLUGIN_ROOT } from 'utils/consts';
 import { getStartOfWeek } from './Schedule.helpers';
 
 import styles from './Schedule.module.css';
+import ScheduleQuality from 'components/ScheduleQuality/ScheduleQuality';
 
 const cx = cn.bind(styles);
 
@@ -114,6 +115,8 @@ class SchedulePage extends React.Component<SchedulePageProps, SchedulePageState>
       shiftIdToShowRotationForm ||
       shiftIdToShowOverridesForm;
 
+    console.log({ schedule });
+
     return (
       <PageErrorHandlingWrapper pageName="schedules">
         {() => (
@@ -134,6 +137,7 @@ class SchedulePage extends React.Component<SchedulePageProps, SchedulePageState>
                       >
                         {schedule?.name}
                       </Text.Title>
+                      <ScheduleQuality scheduleId={schedule?.id} />
                       {schedule && <ScheduleWarning item={schedule} />}
                     </HorizontalGroup>
                     <HorizontalGroup spacing="lg">

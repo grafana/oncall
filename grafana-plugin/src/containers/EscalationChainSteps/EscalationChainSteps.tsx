@@ -15,6 +15,7 @@ import { useStore } from 'state/useStore';
 import { UserActions } from 'utils/authorization';
 
 import styles from './EscalationChainSteps.module.css';
+import { getVar } from 'utils/DOM';
 
 const cx = cn.bind(styles);
 
@@ -92,10 +93,7 @@ const EscalationChainSteps = observer((props: EscalationChainStepsProps) => {
       ) : (
         <LoadingPlaceholder text="Loading..." />
       )}
-      <Timeline.Item
-        number={(escalationPolicyIds?.length || 0) + offset + 1}
-        color={getComputedStyle(document.documentElement).getPropertyValue('--tag-secondary')}
-      >
+      <Timeline.Item number={(escalationPolicyIds?.length || 0) + offset + 1} color={getVar('--tag-secondary')}>
         <WithPermissionControl userAction={UserActions.EscalationChainsWrite}>
           <Select
             isSearchable

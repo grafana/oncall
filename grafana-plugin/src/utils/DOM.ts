@@ -18,6 +18,10 @@ export const waitForElement = (selector: string) => {
   });
 };
 
+export const getVar = (cssVar: string) => {
+  return getComputedStyle(document.documentElement).getPropertyValue(cssVar);
+};
+
 export const getCoords = (elem) => {
   // crossbrowser version
   const box = elem.getBoundingClientRect();

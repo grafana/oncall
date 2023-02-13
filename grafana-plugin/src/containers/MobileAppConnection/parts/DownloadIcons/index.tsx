@@ -10,6 +10,7 @@ import Tag from 'components/Tag/Tag';
 import Text from 'components/Text/Text';
 
 import styles from './DownloadIcons.module.scss';
+import { getVar } from 'utils/DOM';
 
 const cx = cn.bind(styles);
 
@@ -38,10 +39,7 @@ const DownloadIcons: FC = () => (
         <Text type="primary" className={cx('icon-text')}>
           iOS
         </Text>
-        <Tag
-          color={getComputedStyle(document.documentElement).getPropertyValue('--tag-primary')}
-          className={cx('icon-tag')}
-        >
+        <Tag color={getVar('--tag-primary')} className={cx('icon-tag')}>
           Coming Soon
         </Tag>
       </Block>

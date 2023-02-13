@@ -12,20 +12,21 @@ import styles from 'pages/incidents/parts/IncidentDropdown.module.scss';
 import { UserActions } from 'utils/authorization';
 
 import { SilenceSelect } from './SilenceSelect';
+import { getVar } from 'utils/DOM';
 
 const cx = cn.bind(styles);
 
 const getIncidentTagColor = (alert: Alert) => {
   if (alert.status === IncidentStatus.Resolved) {
-    return getComputedStyle(document.documentElement).getPropertyValue('--tag-primary');
+    return getVar('--tag-primary');
   }
   if (alert.status === IncidentStatus.Firing) {
-    return getComputedStyle(document.documentElement).getPropertyValue('--tag-danger');
+    return getVar('--tag-danger');
   }
   if (alert.status === IncidentStatus.Acknowledged) {
-    return getComputedStyle(document.documentElement).getPropertyValue('--tag-warning');
+    return getVar('--tag-warning');
   }
-  return getComputedStyle(document.documentElement).getPropertyValue('--tag-secondary');
+  return getVar('--tag-secondary');
 };
 
 function ListMenu({ alert, openMenu }: { alert: Alert; openMenu: React.MouseEventHandler<HTMLElement> }) {
