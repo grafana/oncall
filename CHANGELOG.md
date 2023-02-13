@@ -7,8 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+Add direct user paging ([823](https://github.com/grafana/oncall/issues/823))
+
 ### Fixed
 
+- Cleaning of the name "Incident" ([704](https://github.com/grafana/oncall/pull/704))
+- Alert Group/Alert Groups naming polishing. All the names should be with capital letters
 - Design polishing ([1290](https://github.com/grafana/oncall/pull/1290))
 - Not showing contact details in User tooltip if User does not have edit/admin access
 - Updated slack link account to redirect back to user profile instead of chatops
