@@ -6,10 +6,12 @@ import { get } from 'lodash-es';
 import { observer } from 'mobx-react';
 import moment from 'moment-timezone';
 import Emoji from 'react-emoji-render';
+import { RouteComponentProps, withRouter } from 'react-router-dom';
 
 import CursorPagination from 'components/CursorPagination/CursorPagination';
 import GTable from 'components/GTable/GTable';
 import IntegrationLogo from 'components/IntegrationLogo/IntegrationLogo';
+import ManualAlertGroup from 'components/ManualAlertGroup/ManualAlertGroup';
 import PluginLink from 'components/PluginLink/PluginLink';
 import Text from 'components/Text/Text';
 import Tutorial from 'components/Tutorial/Tutorial';
@@ -23,6 +25,7 @@ import { PageProps, WithStoreProps } from 'state/types';
 import { withMobXProviderContext } from 'state/withStore';
 import LocationHelper from 'utils/LocationHelper';
 import { UserActions } from 'utils/authorization';
+import { PLUGIN_ROOT } from 'utils/consts';
 
 import styles from './Incidents.module.scss';
 import { IncidentDropdown } from './parts/IncidentDropdown';
@@ -47,13 +50,14 @@ function withSkeleton(fn: (alert: AlertType) => ReactElement | ReactElement[]) {
   return WithSkeleton;
 }
 
-interface IncidentsPageProps extends WithStoreProps, PageProps {}
+interface IncidentsPageProps extends WithStoreProps, PageProps, RouteComponentProps {}
 
 interface IncidentsPageState {
   selectedIncidentIds: Array<Alert['pk']>;
   affectedRows: { [key: string]: boolean };
   filters?: IncidentsFiltersType;
   pagination: Pagination;
+  showAddAlertGroupForm: boolean;
 }
 
 const ITEMS_PER_PAGE = 25;
@@ -79,6 +83,7 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
     this.state = {
       selectedIncidentIds: [],
       affectedRows: {},
+      showAddAlertGroupForm: false,
       pagination: {
         start,
         end: start + itemsPerPage - 1,
@@ -96,11 +101,35 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
   }
 
   render() {
+    const { history } = this.props;
+    const { showAddAlertGroupForm } = this.state;
     return (
-      <div className={cx('root')}>
-        {this.renderIncidentFilters()}
-        {this.renderTable()}
-      </div>
+      <>
+        <div className={cx('root')}>
+          <div className={cx('title')}>
+            <HorizontalGroup justify="space-between">
+              <Text.Title level={3}>Alert Groups</Text.Title>
+              <WithPermissionControl userAction={UserActions.AlertGroupsWrite}>
+                <Button icon="plus" onClick={this.handleOnClickEscalateTo}>
+                  Manual alert group
+                </Button>
+              </WithPermissionControl>
+            </HorizontalGroup>
+          </div>
+          {this.renderIncidentFilters()}
+          {this.renderTable()}
+        </div>
+        {showAddAlertGroupForm && (
+          <ManualAlertGroup
+            onHide={() => {
+              this.setState({ showAddAlertGroupForm: false });
+            }}
+            onCreate={(id: Alert['pk']) => {
+              history.push(`${PLUGIN_ROOT}/incidents/${id}`);
+            }}
+          />
+        )}
+      </>
     );
   }
 
@@ -113,6 +142,10 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
       </div>
     );
   }
+
+  handleOnClickEscalateTo = () => {
+    this.setState({ showAddAlertGroupForm: true });
+  };
 
   handleFiltersChange = (filters: IncidentsFiltersType, isOnMount: boolean) => {
     const { store } = this.props;
@@ -527,4 +560,4 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
   }
 }
 
-export default withMobXProviderContext(Incidents);
+export default withRouter(withMobXProviderContext(Incidents));

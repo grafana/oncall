@@ -31,11 +31,19 @@
   "includes": [
     {
       "type": "page",
+      "name": "Home",
+      "path": "/a/grafana-oncall-app",
+      "role": "Viewer",
+      "action": "grafana-oncall-app.alert-groups:read",
+      "defaultNav": true,
+      "addToNav": true
+    },
+    {
+      "type": "page",
       "name": "Alert Groups",
       "path": "/a/grafana-oncall-app/incidents",
       "role": "Viewer",
       "action": "grafana-oncall-app.alert-groups:read",
-      "defaultNav": true,
       "addToNav": true
     },
     {
