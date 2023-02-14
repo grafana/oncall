@@ -17,7 +17,6 @@
   --title-marginBottom: 16px;
   --opacity: 0.5;
 
-  /* These seem to slightly differ from warning/success/error colors from below */
   --tag-danger: #e02f44;
   --tag-warning: #c69b06;
   --tag-primary: #299c46;
@@ -34,9 +33,9 @@
   --primary-text-color: rgb(36, 41, 46);
   --secondary-text-color: rgba(36, 41, 46, 0.75);
   --disabled-text-color: rgba(36, 41, 46, 0.5);
-  --warning-text-color: rgb(255, 120, 10);
-  --success-text-color: rgb(10, 118, 78);
-  --error-text-color: rgb(207, 14, 91);
+  --warning-text-color: #f5b73d;
+  --success-text-color: #1a7f4b;
+  --error-text-color: #d10e5c;
   --primary-text-link: #1f62e0;
   --timeline-icon-background: rgba(70, 76, 84, 0);
   --timeline-icon-background-resolution-note: rgba(50, 116, 217, 0);
@@ -63,9 +62,9 @@
   --primary-text-color: rgb(204, 204, 220);
   --secondary-text-color: rgba(204, 204, 220, 0.65);
   --disabled-text-color: rgba(204, 204, 220, 0.4);
-  --warning-text-color: rgb(255, 120, 10);
-  --success-text-color: rgb(108, 207, 142);
-  --error-text-color: rgb(255, 82, 134);
+  --warning-text-color: #f5b73d;
+  --success-text-color: #1a7f4b;
+  --error-text-color: #d10e5c;
   --primary-text-link: #6e9fff;
   --timeline-icon-background: rgba(70, 76, 84, 1);
   --timeline-icon-background-resolution-note: rgba(50, 116, 217, 1);

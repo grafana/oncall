@@ -18,7 +18,7 @@ export const waitForElement = (selector: string) => {
   });
 };
 
-export const getVar = (cssVar: string) => {
+export const getVar = (cssVar: string): string => {
   return getComputedStyle(document.documentElement).getPropertyValue(cssVar);
 };
 

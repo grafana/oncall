@@ -15,8 +15,6 @@ const cx = cn.bind(styles);
 export const ScheduleQualityProgressBar: React.FC<iProgressBarProps> = ({ className, completed, numTotalSteps }) => {
   const classList = ['c-progressBar__bar', className || ''];
 
-  console.log({ completed, numTotalSteps });
-
   return (
     <div className={cx('c-progressBar__wrapper')}>
       {!numTotalSteps && <div className={classList.join(' ')} style={{ width: `${completed}%` }} />}

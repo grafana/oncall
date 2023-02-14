@@ -1,0 +1,29 @@
+$padding: 24px;
+$width: 300px;
+
+.root {
+  width: $width;
+}
+
+.row {
+  display: flex;
+  flex-direction: column;
+}
+
+.indent-left {
+  display: flex;
+  flex-direction: column;
+  padding-left: $padding;
+}
+
+.text {
+  word-wrap: break-word;
+  padding-left: $padding;
+}
+
+.email {
+  max-width: calc($width - $padding);
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  overflow: hidden;
+}

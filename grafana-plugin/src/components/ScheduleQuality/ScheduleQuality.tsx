@@ -28,8 +28,7 @@ const ScheduleQuality: FC<ScheduleQualityProps> = ({ scheduleId }) => {
 
   return (
     <>
-      <ScheduleQualityDetails quality={qualityResponse} />
-      <Tooltip placement="bottom-end" interactive content={<ScheduleQualityDetails quality={qualityResponse} />}>
+      <Tooltip placement="bottom-start" interactive content={<ScheduleQualityDetails quality={qualityResponse} />}>
         <div className={cx('root')}>
           <HorizontalGroup spacing="sm">
             <Text type="secondary" className="u-cursor-default">

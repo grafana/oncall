@@ -115,8 +115,6 @@ class SchedulePage extends React.Component<SchedulePageProps, SchedulePageState>
       shiftIdToShowRotationForm ||
       shiftIdToShowOverridesForm;
 
-    console.log({ schedule });
-
     return (
       <PageErrorHandlingWrapper pageName="schedules">
         {() => (
