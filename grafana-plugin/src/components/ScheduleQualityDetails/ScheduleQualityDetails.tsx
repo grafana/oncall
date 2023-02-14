@@ -96,7 +96,10 @@ export const ScheduleQualityDetails: FC<ScheduleQualityDetailsProps> = ({ qualit
   );
 
   async function fetchUsers() {
-    if (!overloaded_users?.length) return;
+    if (!overloaded_users?.length) {
+      setIsLoading(false);
+      return;
+    }
 
     const apiResponse = await userStore.getAll();
     const allUsersList: User[] = apiResponse.results;

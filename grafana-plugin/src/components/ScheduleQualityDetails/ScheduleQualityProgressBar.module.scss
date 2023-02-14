@@ -1,4 +1,4 @@
-$border-radius: 2px;
+$border-radius: 5px;
 
 @mixin progressBar($color) {
   background-color: $color;
@@ -11,7 +11,6 @@ $border-radius: 2px;
   height: 8px;
   display: flex;
   gap: 1px;
-  border-radius: $border-radius;
 }
 
 .c-progressBar__bar {
@@ -30,14 +29,13 @@ $border-radius: 2px;
 
 .c-progressBar__row {
   background-color: var(--gray-8);
+}
 
-  &--progress:first-child {
-    border-top-left-radius: $border-radius;
-    border-bottom-left-radius: $border-radius;
-  }
-
-  &--progress:last-child {
-    border-top-right-radius: $border-radius;
-    border-bottom-right-radius: $border-radius;
-  }
+.c-progressBar__row:first-child > .c-progressBar__bar {
+  border-top-left-radius: $border-radius;
+  border-bottom-left-radius: $border-radius;
+}
+.c-progressBar__row:last-child > .c-progressBar__bar {
+  border-top-right-radius: $border-radius;
+  border-bottom-right-radius: $border-radius;
 }
