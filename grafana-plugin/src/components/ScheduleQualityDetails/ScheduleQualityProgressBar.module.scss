@@ -1,4 +1,4 @@
-$border-radius: 5px;
+$border-radius: 3px;
 
 @mixin progressBar($color) {
   background-color: $color;
@@ -31,10 +31,12 @@ $border-radius: 5px;
   background-color: var(--gray-8);
 }
 
+.c-progressBar__row:first-child,
 .c-progressBar__row:first-child > .c-progressBar__bar {
   border-top-left-radius: $border-radius;
   border-bottom-left-radius: $border-radius;
 }
+.c-progressBar__row:last-child,
 .c-progressBar__row:last-child > .c-progressBar__bar {
   border-top-right-radius: $border-radius;
   border-bottom-right-radius: $border-radius;
