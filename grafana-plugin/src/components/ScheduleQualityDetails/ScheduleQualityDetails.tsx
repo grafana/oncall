@@ -2,15 +2,16 @@ import React, { FC, useCallback, useEffect, useState } from 'react';
 
 import { HorizontalGroup, VerticalGroup, Icon, IconButton } from '@grafana/ui';
 import cn from 'classnames/bind';
-
-import { ScheduleScoreQualityResponse, ScheduleScoreQualityResult } from 'models/schedule/schedule.types';
+import dayjs from 'dayjs';
 
 import Text, { TextType } from 'components/Text/Text';
+import { ScheduleScoreQualityResponse, ScheduleScoreQualityResult } from 'models/schedule/schedule.types';
+import { getTzOffsetString } from 'models/timezone/timezone.helpers';
+import { User } from 'models/user/user.types';
+import { useStore } from 'state/useStore';
 
 import styles from './ScheduleQualityDetails.module.scss';
 import { ScheduleQualityProgressBar } from './ScheduleQualityProgressBar';
-import { User } from 'models/user/user.types';
-import { useStore } from 'state/useStore';
 
 const cx = cn.bind(styles);
 
@@ -69,7 +70,7 @@ export const ScheduleQualityDetails: FC<ScheduleQualityDetailsProps> = ({ qualit
               <div className={cx('indent-left')}>
                 {overloadedUsers.map((overloadedUser) => (
                   <Text type="primary" className={cx('email')}>
-                    {overloadedUser.email}
+                    {overloadedUser.email} ({getTzOffsetString(dayjs().tz(overloadedUser.timezone))})
                   </Text>
                 ))}
               </div>
@@ -86,8 +87,7 @@ export const ScheduleQualityDetails: FC<ScheduleQualityDetailsProps> = ({ qualit
           </HorizontalGroup>
           {expanded && (
             <Text type="primary" className={cx('text')}>
-              Lorem ipsum dolor sit amet, consectetur adipiscing elit. Integer elementum purus egestas porta ultricies.
-              Sed quis maximus sem. Phasellus semper pulvinar sapien ac euismod.
+              The latest 90 days are taken into consideration when calculating the overall schedule quality.
             </Text>
           )}
         </VerticalGroup>
@@ -101,8 +101,7 @@ export const ScheduleQualityDetails: FC<ScheduleQualityDetailsProps> = ({ qualit
       return;
     }
 
-    const apiResponse = await userStore.getAll();
-    const allUsersList: User[] = apiResponse.results;
+    const allUsersList: User[] = userStore.getSearchResult().results;
     const overloadedUsers = [];
 
     allUsersList.forEach((user) => {
@@ -116,16 +115,28 @@ export const ScheduleQualityDetails: FC<ScheduleQualityDetailsProps> = ({ qualit
   }
 
   function getScheduleQualityFromNumber(score: number): ScheduleScoreQualityResult {
-    if (score < 20) return ScheduleScoreQualityResult.Bad;
-    if (score < 40) return ScheduleScoreQualityResult.Low;
-    if (score < 60) return ScheduleScoreQualityResult.Medium;
-    if (score < 80) return ScheduleScoreQualityResult.Good;
+    if (score < 20) {
+      return ScheduleScoreQualityResult.Bad;
+    }
+    if (score < 40) {
+      return ScheduleScoreQualityResult.Low;
+    }
+    if (score < 60) {
+      return ScheduleScoreQualityResult.Medium;
+    }
+    if (score < 80) {
+      return ScheduleScoreQualityResult.Good;
+    }
     return ScheduleScoreQualityResult.Great;
   }
 
   function getScheduleQualityMatchingColor(score: number): TextType {
-    if (score < 20) return 'danger';
-    if (score < 60) return 'warning';
+    if (score < 20) {
+      return 'danger';
+    }
+    if (score < 60) {
+      return 'warning';
+    }
     return 'success';
   }
 };

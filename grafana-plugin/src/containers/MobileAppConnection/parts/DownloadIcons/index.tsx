@@ -8,9 +8,9 @@ import PlayStoreLogoSVG from 'assets/img/brand/play-store-logo.svg';
 import Block from 'components/GBlock/Block';
 import Tag from 'components/Tag/Tag';
 import Text from 'components/Text/Text';
+import { getVar } from 'utils/DOM';
 
 import styles from './DownloadIcons.module.scss';
-import { getVar } from 'utils/DOM';
 
 const cx = cn.bind(styles);
 

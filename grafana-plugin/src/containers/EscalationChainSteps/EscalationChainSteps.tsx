@@ -12,10 +12,10 @@ import { WithPermissionControl } from 'containers/WithPermissionControl/WithPerm
 import { EscalationChain } from 'models/escalation_chain/escalation_chain.types';
 import { EscalationPolicyOption } from 'models/escalation_policy/escalation_policy.types';
 import { useStore } from 'state/useStore';
+import { getVar } from 'utils/DOM';
 import { UserActions } from 'utils/authorization';
 
 import styles from './EscalationChainSteps.module.css';
-import { getVar } from 'utils/DOM';
 
 const cx = cn.bind(styles);
 

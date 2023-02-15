@@ -23,7 +23,9 @@ export const ScheduleQualityProgressBar: React.FC<iProgressBarProps> = ({ classN
   );
 
   function renderSteps(numTotalSteps: number, completed: number) {
-    if (!numTotalSteps) return null;
+    if (!numTotalSteps) {
+      return null;
+    }
 
     const maxFillPerRow = 100 / numTotalSteps;
     const rowFill = calculateRowFill(numTotalSteps, completed);
@@ -47,8 +49,12 @@ export const ScheduleQualityProgressBar: React.FC<iProgressBarProps> = ({ classN
   }
 
   function getClassForCompletionLevel() {
-    if (completed < 20) return 'c-progressBar__bar--danger';
-    if (completed < 60) return 'c-progressBar__bar--warning';
+    if (completed < 20) {
+      return 'c-progressBar__bar--danger';
+    }
+    if (completed < 60) {
+      return 'c-progressBar__bar--warning';
+    }
     return 'c-progressBar__bar--primary';
   }
 
@@ -67,7 +73,9 @@ export const ScheduleQualityProgressBar: React.FC<iProgressBarProps> = ({ classN
       let percentWidth = Math.max(0, (currentFill * 100) / maxFillPerRow);
       const shouldSetMinValueInitially = completed > 0 && Math.floor(percentWidth) === 0 && !index;
 
-      if (shouldSetMinValueInitially) percentWidth = 1;
+      if (shouldSetMinValueInitially) {
+        percentWidth = 1;
+      }
 
       fillPerRows.push(percentWidth);
     });

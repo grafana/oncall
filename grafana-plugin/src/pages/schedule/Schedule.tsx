@@ -8,6 +8,7 @@ import { RouteComponentProps, withRouter } from 'react-router-dom';
 
 import PageErrorHandlingWrapper from 'components/PageErrorHandlingWrapper/PageErrorHandlingWrapper';
 import PluginLink from 'components/PluginLink/PluginLink';
+import ScheduleQuality from 'components/ScheduleQuality/ScheduleQuality';
 import ScheduleWarning from 'components/ScheduleWarning/ScheduleWarning';
 import Text from 'components/Text/Text';
 import UserTimezoneSelect from 'components/UserTimezoneSelect/UserTimezoneSelect';
@@ -28,7 +29,6 @@ import { PLUGIN_ROOT } from 'utils/consts';
 import { getStartOfWeek } from './Schedule.helpers';
 
 import styles from './Schedule.module.css';
-import ScheduleQuality from 'components/ScheduleQuality/ScheduleQuality';
 
 const cx = cn.bind(styles);
 
@@ -43,6 +43,7 @@ interface SchedulePageState {
   isLoading: boolean;
   showEditForm: boolean;
   showScheduleICalSettings: boolean;
+  lastUpdated: number;
 }
 
 @observer
@@ -60,6 +61,7 @@ class SchedulePage extends React.Component<SchedulePageProps, SchedulePageState>
       isLoading: true,
       showEditForm: false,
       showScheduleICalSettings: false,
+      lastUpdated: 0,
     };
   }
 
@@ -136,7 +138,7 @@ class SchedulePage extends React.Component<SchedulePageProps, SchedulePageState>
                         {schedule?.name}
                       </Text.Title>
                       {schedule && <ScheduleWarning item={schedule} />}
-                      <ScheduleQuality scheduleId={schedule?.id} />
+                      <ScheduleQuality scheduleId={schedule?.id} lastUpdated={this.state.lastUpdated} />
                     </HorizontalGroup>
                     <HorizontalGroup spacing="lg">
                       {users && (
@@ -326,6 +328,11 @@ class SchedulePage extends React.Component<SchedulePageProps, SchedulePageState>
     } = this.props;
 
     const { startMoment } = this.state;
+
+    this.setState((prevState) => ({
+      // this will update schedule score
+      lastUpdated: prevState.lastUpdated + 1,
+    }));
 
     store.scheduleStore.updateItem(scheduleId); // to refresh current oncall users
     store.scheduleStore.updateRelatedUsers(scheduleId); // to refresh related users

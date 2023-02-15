@@ -9,10 +9,10 @@ import { WithContextMenu } from 'components/WithContextMenu/WithContextMenu';
 import { WithPermissionControl } from 'containers/WithPermissionControl/WithPermissionControl';
 import { Alert, AlertAction, IncidentStatus } from 'models/alertgroup/alertgroup.types';
 import styles from 'pages/incidents/parts/IncidentDropdown.module.scss';
+import { getVar } from 'utils/DOM';
 import { UserActions } from 'utils/authorization';
 
 import { SilenceSelect } from './SilenceSelect';
-import { getVar } from 'utils/DOM';
 
 const cx = cn.bind(styles);
 

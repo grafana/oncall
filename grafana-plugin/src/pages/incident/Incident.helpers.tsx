@@ -13,9 +13,9 @@ import { Alert as AlertType, Alert, IncidentStatus } from 'models/alertgroup/ale
 import { User } from 'models/user/user.types';
 import { SilenceButtonCascader } from 'pages/incidents/parts/SilenceButtonCascader';
 import { move } from 'state/helpers';
+import { getVar } from 'utils/DOM';
 import { UserActions } from 'utils/authorization';
 import { TABLE_COLUMN_MAX_WIDTH } from 'utils/consts';
-import { getVar } from 'utils/DOM';
 
 export function getIncidentStatusTag(alert: Alert) {
   switch (alert.status) {

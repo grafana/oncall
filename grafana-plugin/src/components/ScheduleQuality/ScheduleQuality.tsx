@@ -1,20 +1,23 @@
 import React, { FC, useEffect, useState } from 'react';
 
+import { HorizontalGroup, Tooltip } from '@grafana/ui';
 import cn from 'classnames/bind';
-import styles from './ScheduleQuality.module.css';
-import { useStore } from 'state/useStore';
-import { Schedule, ScheduleScoreQualityResponse } from 'models/schedule/schedule.types';
+
 import { ScheduleQualityDetails } from 'components/ScheduleQualityDetails/ScheduleQualityDetails';
 import Text from 'components/Text/Text';
-import { HorizontalGroup, Tooltip } from '@grafana/ui';
+import { Schedule, ScheduleScoreQualityResponse } from 'models/schedule/schedule.types';
+import { useStore } from 'state/useStore';
+
+import styles from './ScheduleQuality.module.css';
 
 const cx = cn.bind(styles);
 
 interface ScheduleQualityProps {
   scheduleId: Schedule['id'];
+  lastUpdated: number;
 }
 
-const ScheduleQuality: FC<ScheduleQualityProps> = ({ scheduleId }) => {
+const ScheduleQuality: FC<ScheduleQualityProps> = ({ scheduleId, lastUpdated }) => {
   const { scheduleStore } = useStore();
   const [qualityResponse, setQualityResponse] = useState<ScheduleScoreQualityResponse>(undefined);
 
@@ -22,9 +25,11 @@ const ScheduleQuality: FC<ScheduleQualityProps> = ({ scheduleId }) => {
     if (scheduleId) {
       fetchScoreQuality();
     }
-  }, [scheduleId]);
+  }, [scheduleId, lastUpdated]);
 
-  if (!qualityResponse) return null;
+  if (!qualityResponse) {
+    return null;
+  }
 
   return (
     <>
