@@ -37,10 +37,12 @@ export const ScheduleQualityProgressBar: React.FC<ProgressBarProps> = ({ classNa
         <div
           key={index}
           className={cx('c-progressBar__row', 'c-progressBar__row--progress')}
+          data-testid="progressBar__row"
           style={{ width: `${maxFillPerRow}%` }}
         >
           <div
             className={cx('c-progressBar__bar', getClassForCompletionLevel())}
+            data-testid="progressBar__bar"
             style={{ width: `${percentWidth}%` }}
           />
         </div>
