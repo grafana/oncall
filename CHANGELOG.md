@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## Unreleased
 
 Add direct user paging ([823](https://github.com/grafana/oncall/issues/823))
+Added Schedule Score quality within the schedule view ([118](https://github.com/grafana/oncall/issues/118))
 
 ### Fixed
 
