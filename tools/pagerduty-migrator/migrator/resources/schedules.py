@@ -4,7 +4,7 @@ from migrator import oncall_api_client
 def match_schedule(schedule: dict, oncall_schedules: list[dict]) -> None:
     oncall_schedule = None
     for candidate in oncall_schedules:
-        if schedule["name"].lower() == candidate["name"].lower():
+        if schedule["name"].lower().strip() == candidate["name"].lower().strip():
             oncall_schedule = candidate
 
     schedule["oncall_schedule"] = oncall_schedule
