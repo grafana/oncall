@@ -54,8 +54,10 @@ export const ScheduleQualityDetails: FC<ScheduleQualityDetailsProps> = ({ qualit
                 <Text type="secondary">Rotation structure issues</Text>
               </HorizontalGroup>
               <div className={cx('indent-left')}>
-                {comments.map((comment) => (
-                  <Text type="primary">{comment}</Text>
+                {comments.map((comment, index) => (
+                  <Text type="primary" key={index}>
+                    {comment}
+                  </Text>
                 ))}
               </div>
             </div>
@@ -68,8 +70,8 @@ export const ScheduleQualityDetails: FC<ScheduleQualityDetailsProps> = ({ qualit
                 <Text type="secondary">Overloaded users</Text>
               </HorizontalGroup>
               <div className={cx('indent-left')}>
-                {overloadedUsers.map((overloadedUser) => (
-                  <Text type="primary" className={cx('email')}>
+                {overloadedUsers.map((overloadedUser, index) => (
+                  <Text type="primary" className={cx('email')} key={index}>
                     {overloadedUser.email} ({getTzOffsetString(dayjs().tz(overloadedUser.timezone))})
                   </Text>
                 ))}

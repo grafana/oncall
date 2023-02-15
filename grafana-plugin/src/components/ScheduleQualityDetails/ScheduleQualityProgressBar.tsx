@@ -4,7 +4,7 @@ import cn from 'classnames/bind';
 
 import styles from './ScheduleQualityProgressBar.module.scss';
 
-interface iProgressBarProps {
+interface ProgressBarProps {
   completed: number;
   className?: string;
   numTotalSteps?: number;
@@ -12,7 +12,7 @@ interface iProgressBarProps {
 
 const cx = cn.bind(styles);
 
-export const ScheduleQualityProgressBar: React.FC<iProgressBarProps> = ({ className, completed, numTotalSteps }) => {
+export const ScheduleQualityProgressBar: React.FC<ProgressBarProps> = ({ className, completed, numTotalSteps }) => {
   const classList = ['c-progressBar__bar', className || ''];
 
   return (
