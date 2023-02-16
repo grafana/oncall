@@ -3,14 +3,15 @@ import React, { FC, useEffect, useState } from 'react';
 import { Tooltip, VerticalGroup } from '@grafana/ui';
 import cn from 'classnames/bind';
 
+import PluginLink from 'components/PluginLink/PluginLink';
+import ScheduleCounter from 'components/ScheduleCounter/ScheduleCounter';
 import { ScheduleQualityDetails } from 'components/ScheduleQualityDetails/ScheduleQualityDetails';
+import Tag from 'components/Tag/Tag';
+import Text from 'components/Text/Text';
 import { Schedule, ScheduleScoreQualityResponse, ScheduleScoreQualityResult } from 'models/schedule/schedule.types';
 import { useStore } from 'state/useStore';
 
 import styles from './ScheduleQuality.module.scss';
-import Tag from 'components/Tag/Tag';
-import ScheduleCounter from 'components/ScheduleCounter/ScheduleCounter';
-import PluginLink from 'components/PluginLink/PluginLink';
 
 const cx = cn.bind(styles);
 
@@ -52,6 +53,24 @@ const ScheduleQuality: FC<ScheduleQualityProps> = ({ schedule, lastUpdated }) =>
                       {escalationChain.name}
                     </PluginLink>
                   </div>
+                ))}
+              </VerticalGroup>
+            }
+          />
+        )}
+
+        {qualityResponse.comments?.length > 0 && (
+          <ScheduleCounter
+            type="warning"
+            addPadding
+            count={qualityResponse.comments.length}
+            tooltipTitle="Warnings"
+            tooltipContent={
+              <VerticalGroup spacing="none">
+                {qualityResponse.comments.map((comment, index) => (
+                  <Text type="primary" key={index}>
+                    {comment}
+                  </Text>
                 ))}
               </VerticalGroup>
             }
