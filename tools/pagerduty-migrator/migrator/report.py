@@ -47,7 +47,7 @@ def format_escalation_policy(policy: dict) -> str:
 
 
 def format_integration(integration: dict) -> str:
-    result = integration["service"]["name"] + " - " + integration["name"]
+    result = "{} - {}".format(integration["service"]["name"], integration["name"])
 
     if not integration["oncall_type"]:
         result = (

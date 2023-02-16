@@ -1,3 +1,4 @@
+from contextlib import suppress
 from time import sleep
 from urllib.parse import urljoin
 
@@ -21,6 +22,23 @@ def api_call(method: str, path: str, **kwargs) -> requests.Response:
             cooldown_seconds = int(e.response.headers["Retry-After"])
             sleep(cooldown_seconds)
             return api_call(method, path, **kwargs)
+        elif e.response.status_code == 400:
+            resp_json = None
+            with suppress(requests.exceptions.JSONDecodeError):
+                resp_json = response.json()
+
+            # if no JSON payload is available, just raise the original exception
+            if not resp_json:
+                raise
+
+            # this is mostly taken from requests.models.Response.raise_for_status, but with additional JSON payload
+            http_error_msg = (
+                "%s Client Error: %s for url: %s, response payload JSON: %s"
+                % (response.status_code, e.response.reason, response.url, resp_json)
+            )
+            raise requests.exceptions.HTTPError(
+                http_error_msg, response=e.response
+            ) from e
         else:
             raise
 
