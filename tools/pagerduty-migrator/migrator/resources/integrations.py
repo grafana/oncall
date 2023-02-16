@@ -6,10 +6,12 @@ from migrator.utils import find_by_id
 def match_integration(integration: dict, oncall_integrations: list[dict]) -> None:
     oncall_integration = None
     for candidate in oncall_integrations:
-        name = "{} - {}".format(
-            integration["service"]["name"], integration["name"]
-        ).lower()
-        if candidate["name"].lower() == name:
+        name = (
+            "{} - {}".format(integration["service"]["name"], integration["name"])
+            .lower()
+            .strip()
+        )
+        if candidate["name"].lower().strip() == name:
             oncall_integration = candidate
 
     integration["oncall_integration"] = oncall_integration
