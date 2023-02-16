@@ -17,9 +17,10 @@ const cx = cn.bind(styles);
 
 interface ScheduleQualityDetailsProps {
   quality: ScheduleScoreQualityResponse;
+  getScheduleQualityString: (score: number) => ScheduleScoreQualityResult;
 }
 
-export const ScheduleQualityDetails: FC<ScheduleQualityDetailsProps> = ({ quality }) => {
+export const ScheduleQualityDetails: FC<ScheduleQualityDetailsProps> = ({ quality, getScheduleQualityString }) => {
   const { userStore } = useStore();
   const { total_score: score, comments, overloaded_users } = quality;
   const [expanded, setExpanded] = useState<boolean>(false);
@@ -42,8 +43,7 @@ export const ScheduleQualityDetails: FC<ScheduleQualityDetailsProps> = ({ qualit
     <div className={cx('root')}>
       <VerticalGroup>
         <Text type="secondary">
-          Schedule quality:{' '}
-          <Text type={getScheduleQualityMatchingColor(score)}>{getScheduleQualityFromNumber(score)}</Text>
+          Schedule quality: <Text type={getScheduleQualityMatchingColor(score)}>{getScheduleQualityString(score)}</Text>
         </Text>
         <ScheduleQualityProgressBar completed={quality.total_score} numTotalSteps={5} />
         <VerticalGroup>
@@ -114,22 +114,6 @@ export const ScheduleQualityDetails: FC<ScheduleQualityDetailsProps> = ({ qualit
 
     setIsLoading(false);
     setOverloadedUsers(overloadedUsers);
-  }
-
-  function getScheduleQualityFromNumber(score: number): ScheduleScoreQualityResult {
-    if (score < 20) {
-      return ScheduleScoreQualityResult.Bad;
-    }
-    if (score < 40) {
-      return ScheduleScoreQualityResult.Low;
-    }
-    if (score < 60) {
-      return ScheduleScoreQualityResult.Medium;
-    }
-    if (score < 80) {
-      return ScheduleScoreQualityResult.Good;
-    }
-    return ScheduleScoreQualityResult.Great;
   }
 
   function getScheduleQualityMatchingColor(score: number): TextType {

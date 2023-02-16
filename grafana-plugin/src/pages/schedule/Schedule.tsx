@@ -138,7 +138,7 @@ class SchedulePage extends React.Component<SchedulePageProps, SchedulePageState>
                         {schedule?.name}
                       </Text.Title>
                       {schedule && <ScheduleWarning item={schedule} />}
-                      <ScheduleQuality scheduleId={schedule?.id} lastUpdated={this.state.lastUpdated} />
+                      {schedule && <ScheduleQuality schedule={schedule} lastUpdated={this.state.lastUpdated} />}
                     </HorizontalGroup>
                     <HorizontalGroup spacing="lg">
                       {users && (

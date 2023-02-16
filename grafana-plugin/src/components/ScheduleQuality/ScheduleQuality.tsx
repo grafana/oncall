@@ -1,56 +1,109 @@
 import React, { FC, useEffect, useState } from 'react';
 
-import { HorizontalGroup, Tooltip } from '@grafana/ui';
+import { Tooltip, VerticalGroup } from '@grafana/ui';
 import cn from 'classnames/bind';
 
 import { ScheduleQualityDetails } from 'components/ScheduleQualityDetails/ScheduleQualityDetails';
-import Text from 'components/Text/Text';
-import { Schedule, ScheduleScoreQualityResponse } from 'models/schedule/schedule.types';
+import { Schedule, ScheduleScoreQualityResponse, ScheduleScoreQualityResult } from 'models/schedule/schedule.types';
 import { useStore } from 'state/useStore';
 
-import styles from './ScheduleQuality.module.css';
+import styles from './ScheduleQuality.module.scss';
+import Tag from 'components/Tag/Tag';
+import ScheduleCounter from 'components/ScheduleCounter/ScheduleCounter';
+import PluginLink from 'components/PluginLink/PluginLink';
 
 const cx = cn.bind(styles);
 
 interface ScheduleQualityProps {
-  scheduleId: Schedule['id'];
+  schedule: Schedule;
   lastUpdated: number;
 }
 
-const ScheduleQuality: FC<ScheduleQualityProps> = ({ scheduleId, lastUpdated }) => {
+const ScheduleQuality: FC<ScheduleQualityProps> = ({ schedule, lastUpdated }) => {
   const { scheduleStore } = useStore();
   const [qualityResponse, setQualityResponse] = useState<ScheduleScoreQualityResponse>(undefined);
 
   useEffect(() => {
-    if (scheduleId) {
+    if (schedule.id) {
       fetchScoreQuality();
     }
-  }, [scheduleId, lastUpdated]);
+  }, [schedule.id, lastUpdated]);
 
   if (!qualityResponse) {
     return null;
   }
 
+  const relatedEscalationChains = scheduleStore.relatedEscalationChains[schedule.id];
+
   return (
     <>
-      <Tooltip placement="bottom-start" interactive content={<ScheduleQualityDetails quality={qualityResponse} />}>
-        <div className={cx('root')}>
-          <HorizontalGroup spacing="sm">
-            <Text type="secondary" className="u-cursor-default">
-              Quality:
-            </Text>
-            <Text type="primary" className="u-cursor-default">
-              {qualityResponse.total_score}%
-            </Text>
-          </HorizontalGroup>
-        </div>
-      </Tooltip>
+      <div className={cx('root')}>
+        {relatedEscalationChains?.length > 0 && schedule?.number_of_escalation_chains > 0 && (
+          <ScheduleCounter
+            type="link"
+            addPadding
+            count={schedule.number_of_escalation_chains}
+            tooltipTitle="Used in escalations"
+            tooltipContent={
+              <VerticalGroup spacing="sm">
+                {relatedEscalationChains.map((escalationChain) => (
+                  <div key={escalationChain.pk}>
+                    <PluginLink query={{ page: 'escalations', id: escalationChain.pk }}>
+                      {escalationChain.name}
+                    </PluginLink>
+                  </div>
+                ))}
+              </VerticalGroup>
+            }
+          />
+        )}
+
+        <Tag className={cx('tag', getTagClass())}>
+          <Tooltip
+            placement="bottom-start"
+            interactive
+            content={
+              <ScheduleQualityDetails quality={qualityResponse} getScheduleQualityString={getScheduleQualityString} />
+            }
+          >
+            <span className="u-cursor-default">
+              Quality: <strong>{getScheduleQualityString(qualityResponse.total_score)}</strong>
+            </span>
+          </Tooltip>
+        </Tag>
+      </div>
     </>
   );
 
+  function getScheduleQualityString(score: number): ScheduleScoreQualityResult {
+    if (score < 20) {
+      return ScheduleScoreQualityResult.Bad;
+    }
+    if (score < 40) {
+      return ScheduleScoreQualityResult.Low;
+    }
+    if (score < 60) {
+      return ScheduleScoreQualityResult.Medium;
+    }
+    if (score < 80) {
+      return ScheduleScoreQualityResult.Good;
+    }
+    return ScheduleScoreQualityResult.Great;
+  }
+
   async function fetchScoreQuality() {
-    const qualityResponse = await scheduleStore.getScoreQuality(scheduleId);
+    const qualityResponse = await scheduleStore.getScoreQuality(schedule.id);
     setQualityResponse(qualityResponse);
+  }
+
+  function getTagClass() {
+    if (qualityResponse?.total_score < 20) {
+      return 'tag--danger';
+    }
+    if (qualityResponse?.total_score < 60) {
+      return 'tag--warning';
+    }
+    return 'tag--primary';
   }
 };
 

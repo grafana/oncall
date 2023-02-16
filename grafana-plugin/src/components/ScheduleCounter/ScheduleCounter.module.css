@@ -3,6 +3,10 @@
   line-height: 16px;
 }
 
+.root.padding {
+  padding: 4px 10px;
+}
+
 .root__type_link {
   padding: 2px 4px;
   background: rgba(27, 133, 94, 0.15);

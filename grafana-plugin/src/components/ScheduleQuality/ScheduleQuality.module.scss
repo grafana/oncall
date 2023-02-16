@@ -1,0 +1,31 @@
+$score-primary: rgba(27, 133, 94, 0.15);
+$score-warning: rgba(245, 183, 61, 0.18);
+$score-danger: rgba(209, 14, 92, 0.15);
+
+.root {
+  display: flex;
+  flex-direction: row;
+  gap: 5px;
+}
+
+.tag {
+  padding: 4px 10px;
+  gap: 10px;
+  border-radius: 2px;
+
+  &--danger {
+    background-color: $score-danger;
+    color: var(--danger-1);
+    border: 1px solid var(--error-text-color);
+  }
+  &--warning {
+    background-color: $score-warning;
+    color: var(--warning-1);
+    border: 1px solid var(--warning-text-color);
+  }
+  &--primary {
+    background-color: $score-primary;
+    color: var(--green-5);
+    border: 1px solid var(--success-text-color);
+  }
+}

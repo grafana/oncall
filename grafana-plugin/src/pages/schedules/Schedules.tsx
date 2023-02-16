@@ -313,13 +313,6 @@ class SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSta
             onHover={this.getUpdateRelatedEscalationChainsHandler(item.id)}
           />
         )}
-
-        {/* <ScheduleCounter
-          type="warning"
-          count={warningsCount}
-          tooltipTitle="Warnings"
-          tooltipContent="Schedule has unassigned time periods during next 7 days"
-        />*/}
       </HorizontalGroup>
     );
   };
