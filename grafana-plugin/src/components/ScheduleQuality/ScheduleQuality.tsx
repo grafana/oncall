@@ -92,8 +92,10 @@ const ScheduleQuality: FC<ScheduleQualityProps> = ({ schedule, lastUpdated }) =>
   }
 
   async function fetchScoreQuality() {
-    const qualityResponse = await scheduleStore.getScoreQuality(schedule.id);
-    setQualityResponse(qualityResponse);
+    await Promise.all([
+      scheduleStore.getScoreQuality(schedule.id).then((qualityResponse) => setQualityResponse(qualityResponse)),
+      scheduleStore.updateRelatedEscalationChains(schedule.id),
+    ]);
   }
 
   function getTagClass() {
