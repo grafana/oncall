@@ -36,7 +36,7 @@ export default function Header({ backendLicense }: { backendLicense: string }) {
       return (
         <div className={cx('heading')}>
           <h1 className={cx('page-header__title')}>Grafana OnCall</h1>
-          <div className="u-flex u-align-items-center">
+          <div className={cx('navbar-heading-container')}>
             <div className={cx('page-header__sub-title')}>{APP_SUBTITLE}</div>
             <Card heading={undefined} className={cx('navbar-heading')}>
               <a

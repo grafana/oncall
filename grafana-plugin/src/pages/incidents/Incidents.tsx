@@ -1,15 +1,17 @@
 import React, { ReactElement, SyntheticEvent } from 'react';
 
-import { Button, Icon, Tooltip, VerticalGroup, LoadingPlaceholder, HorizontalGroup } from '@grafana/ui';
+import { Button, VerticalGroup, LoadingPlaceholder, HorizontalGroup, Tooltip } from '@grafana/ui';
 import cn from 'classnames/bind';
 import { get } from 'lodash-es';
 import { observer } from 'mobx-react';
 import moment from 'moment-timezone';
 import Emoji from 'react-emoji-render';
+import { RouteComponentProps, withRouter } from 'react-router-dom';
 
 import CursorPagination from 'components/CursorPagination/CursorPagination';
 import GTable from 'components/GTable/GTable';
 import IntegrationLogo from 'components/IntegrationLogo/IntegrationLogo';
+import ManualAlertGroup from 'components/ManualAlertGroup/ManualAlertGroup';
 import PluginLink from 'components/PluginLink/PluginLink';
 import Text from 'components/Text/Text';
 import Tutorial from 'components/Tutorial/Tutorial';
@@ -18,17 +20,16 @@ import { IncidentsFiltersType } from 'containers/IncidentsFilters/IncidentFilter
 import IncidentsFilters from 'containers/IncidentsFilters/IncidentsFilters';
 import { WithPermissionControl } from 'containers/WithPermissionControl/WithPermissionControl';
 import { Alert, Alert as AlertType, AlertAction } from 'models/alertgroup/alertgroup.types';
-import { User } from 'models/user/user.types';
-import { getActionButtons, getIncidentStatusTag, renderRelatedUsers } from 'pages/incident/Incident.helpers';
-import { move } from 'state/helpers';
+import { renderRelatedUsers } from 'pages/incident/Incident.helpers';
 import { PageProps, WithStoreProps } from 'state/types';
 import { withMobXProviderContext } from 'state/withStore';
 import LocationHelper from 'utils/LocationHelper';
 import { UserActions } from 'utils/authorization';
+import { PLUGIN_ROOT } from 'utils/consts';
 
-import SilenceDropdown from './parts/SilenceDropdown';
-
-import styles from './Incidents.module.css';
+import styles from './Incidents.module.scss';
+import { IncidentDropdown } from './parts/IncidentDropdown';
+import { SilenceButtonCascader } from './parts/SilenceButtonCascader';
 
 const cx = cn.bind(styles);
 
@@ -49,13 +50,14 @@ function withSkeleton(fn: (alert: AlertType) => ReactElement | ReactElement[]) {
   return WithSkeleton;
 }
 
-interface IncidentsPageProps extends WithStoreProps, PageProps {}
+interface IncidentsPageProps extends WithStoreProps, PageProps, RouteComponentProps {}
 
 interface IncidentsPageState {
   selectedIncidentIds: Array<Alert['pk']>;
   affectedRows: { [key: string]: boolean };
   filters?: IncidentsFiltersType;
   pagination: Pagination;
+  showAddAlertGroupForm: boolean;
 }
 
 const ITEMS_PER_PAGE = 25;
@@ -81,6 +83,7 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
     this.state = {
       selectedIncidentIds: [],
       affectedRows: {},
+      showAddAlertGroupForm: false,
       pagination: {
         start,
         end: start + itemsPerPage - 1,
@@ -98,11 +101,35 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
   }
 
   render() {
+    const { history } = this.props;
+    const { showAddAlertGroupForm } = this.state;
     return (
-      <div className={cx('root')}>
-        {this.renderIncidentFilters()}
-        {this.renderTable()}
-      </div>
+      <>
+        <div className={cx('root')}>
+          <div className={cx('title')}>
+            <HorizontalGroup justify="space-between">
+              <Text.Title level={3}>Alert Groups</Text.Title>
+              <WithPermissionControl userAction={UserActions.AlertGroupsWrite}>
+                <Button icon="plus" onClick={this.handleOnClickEscalateTo}>
+                  Manual alert group
+                </Button>
+              </WithPermissionControl>
+            </HorizontalGroup>
+          </div>
+          {this.renderIncidentFilters()}
+          {this.renderTable()}
+        </div>
+        {showAddAlertGroupForm && (
+          <ManualAlertGroup
+            onHide={() => {
+              this.setState({ showAddAlertGroupForm: false });
+            }}
+            onCreate={(id: Alert['pk']) => {
+              history.push(`${PLUGIN_ROOT}/incidents/${id}`);
+            }}
+          />
+        )}
+      </>
     );
   }
 
@@ -115,6 +142,10 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
       </div>
     );
   }
+
+  handleOnClickEscalateTo = () => {
+    this.setState({ showAddAlertGroupForm: true });
+  };
 
   handleFiltersChange = (filters: IncidentsFiltersType, isOnMount: boolean) => {
     const { store } = this.props;
@@ -236,7 +267,7 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
             )}
             {'restart' in store.alertGroupStore.bulkActions && (
               <WithPermissionControl key="silence" userAction={UserActions.AlertGroupsWrite}>
-                <SilenceDropdown
+                <SilenceButtonCascader
                   disabled={!hasSelected}
                   onSelect={(ev) => this.getBulkActionClickHandler('silence', ev)}
                 />
@@ -244,8 +275,8 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
             )}
             <Text type="secondary">
               {hasSelected
-                ? `${selectedIncidentIds.length} alert group${selectedIncidentIds.length > 1 ? 's' : ''} selected`
-                : 'No alert groups selected'}
+                ? `${selectedIncidentIds.length} Alert Group${selectedIncidentIds.length > 1 ? 's' : ''} selected`
+                : 'No Alert Groups selected'}
             </Text>
           </HorizontalGroup>
         </div>
@@ -309,9 +340,8 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
         key: 'id',
         render: withSkeleton(this.renderId),
       },
-
       {
-        width: '20%',
+        width: '35%',
         title: 'Title',
         key: 'title',
         render: withSkeleton(this.renderTitle),
@@ -339,11 +369,6 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
         title: 'Users',
         key: 'users',
         render: withSkeleton(renderRelatedUsers),
-      },
-      {
-        width: '15%',
-        key: 'action',
-        render: withSkeleton(this.renderActionButtons),
       },
     ];
 
@@ -398,12 +423,16 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
 
     return (
       <VerticalGroup spacing="none" justify="center">
-        <PluginLink
-          query={{ page: 'incidents', id: record.pk, cursor: incidentsCursor, perpage: incidentsItemsPerPage, start }}
-        >
-          {record.render_for_web.title}
-        </PluginLink>
-        {Boolean(record.dependent_alert_groups.length) && `+ ${record.dependent_alert_groups.length} attached`}
+        <div className={'table__wrap-column'}>
+          <PluginLink
+            query={{ page: 'incidents', id: record.pk, cursor: incidentsCursor, perpage: incidentsItemsPerPage, start }}
+          >
+            <Tooltip placement="top" content={record.render_for_web.title}>
+              <span>{record.render_for_web.title}</span>
+            </Tooltip>
+          </PluginLink>
+          {Boolean(record.dependent_alert_groups.length) && `+ ${record.dependent_alert_groups.length} attached`}
+        </div>
       </VerticalGroup>
     );
   };
@@ -426,9 +455,19 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
     );
   };
 
-  renderStatus(record: AlertType) {
-    return getIncidentStatusTag(record);
-  }
+  renderStatus = (alert: AlertType) => {
+    return (
+      <IncidentDropdown
+        alert={alert}
+        onResolve={this.getOnActionButtonClick(alert.pk, AlertAction.Resolve)}
+        onUnacknowledge={this.getOnActionButtonClick(alert.pk, AlertAction.unAcknowledge)}
+        onUnresolve={this.getOnActionButtonClick(alert.pk, AlertAction.unResolve)}
+        onAcknowledge={this.getOnActionButtonClick(alert.pk, AlertAction.Acknowledge)}
+        onSilence={this.getSilenceClickHandler(alert)}
+        onUnsilence={this.getUnsilenceClickHandler(alert)}
+      />
+    );
+  };
 
   renderStartedAt(alert: AlertType) {
     const m = moment(alert.started_at);
@@ -441,97 +480,33 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
     );
   }
 
-  renderRelatedUsers = (record: AlertType) => {
-    const { related_users } = record;
-    let users = [...related_users];
-
-    function renderUser(user: User, index: number) {
-      let badge = undefined;
-      if (record.resolved_by_user && user.pk === record.resolved_by_user.pk) {
-        badge = <Icon name="check-circle" style={{ color: '#52c41a' }} />;
-      } else if (record.acknowledged_by_user && user.pk === record.acknowledged_by_user.pk) {
-        badge = <Icon name="eye" style={{ color: '#f2c94c' }} />;
-      }
-
-      return (
-        <PluginLink query={{ page: 'users', id: user.pk }}>
-          <Text type="secondary">
-            {index ? ', ' : ''}
-            {user.username} {badge}
-          </Text>
-        </PluginLink>
-      );
-    }
-
-    if (record.resolved_by_user) {
-      const index = users.findIndex((user) => user.pk === record.resolved_by_user.pk);
-      if (index > -1) {
-        users = move(users, index, 0);
-      }
-    }
-
-    if (record.acknowledged_by_user) {
-      const index = users.findIndex((user) => user.pk === record.acknowledged_by_user.pk);
-      if (index > -1) {
-        users = move(users, index, 0);
-      }
-    }
-
-    const visibleUsers = users.slice(0, 2);
-    const otherUsers = users.slice(2);
-
-    return (
-      <>
-        {visibleUsers.map(renderUser)}
-        {Boolean(otherUsers.length) && (
-          <Tooltip placement="top" content={<>{otherUsers.map(renderUser)}</>}>
-            <span className={cx('other-users')}>
-              , <span style={{ textDecoration: 'underline' }}>+{otherUsers.length} users</span>{' '}
-            </span>
-          </Tooltip>
-        )}
-      </>
-    );
-  };
-
-  renderActionButtons = (incident: AlertType) => {
-    return getActionButtons(incident, cx, {
-      onResolve: this.getOnActionButtonClick(incident.pk, AlertAction.Resolve),
-      onUnacknowledge: this.getOnActionButtonClick(incident.pk, AlertAction.unAcknowledge),
-      onUnresolve: this.getOnActionButtonClick(incident.pk, AlertAction.unResolve),
-      onAcknowledge: this.getOnActionButtonClick(incident.pk, AlertAction.Acknowledge),
-      onSilence: this.getSilenceClickHandler(incident),
-      onUnsilence: this.getUnsilenceClickHandler(incident),
-    });
-  };
-
-  getOnActionButtonClick = (incidentId: string, action: AlertAction) => {
+  getOnActionButtonClick = (incidentId: string, action: AlertAction): ((e: SyntheticEvent) => Promise<void>) => {
     const { store } = this.props;
 
     return (e: SyntheticEvent) => {
       e.stopPropagation();
 
-      store.alertGroupStore.doIncidentAction(incidentId, action, false);
+      return store.alertGroupStore.doIncidentAction(incidentId, action, false);
     };
   };
 
-  getSilenceClickHandler = (alert: AlertType) => {
+  getSilenceClickHandler = (alert: AlertType): ((value: number) => Promise<void>) => {
     const { store } = this.props;
 
     return (value: number) => {
-      store.alertGroupStore.doIncidentAction(alert.pk, AlertAction.Silence, false, {
+      return store.alertGroupStore.doIncidentAction(alert.pk, AlertAction.Silence, false, {
         delay: value,
       });
     };
   };
 
-  getUnsilenceClickHandler = (alert: AlertType) => {
+  getUnsilenceClickHandler = (alert: AlertType): ((event: any) => Promise<void>) => {
     const { store } = this.props;
 
-    return (event: any) => {
+    return (event: React.SyntheticEvent) => {
       event.stopPropagation();
 
-      store.alertGroupStore.doIncidentAction(alert.pk, AlertAction.unSilence, false);
+      return store.alertGroupStore.doIncidentAction(alert.pk, AlertAction.unSilence, false);
     };
   };
 
@@ -585,4 +560,4 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
   }
 }
 
-export default withMobXProviderContext(Incidents);
+export default withRouter(withMobXProviderContext(Incidents));
