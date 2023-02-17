@@ -101,7 +101,7 @@ const ChannelFilterForm = observer((props: ChannelFilterFormProps) => {
       {!data?.is_default && (
         <IncidentMatcher
           regexp={filteringTerm}
-          alert_receive_channel_id={alertReceiveChannelId}
+          alertReceiveChannelId={alertReceiveChannelId}
           className={cx('incident-matcher')}
           onError={(message: string) => {
             setErrors({ filtering_term: message });

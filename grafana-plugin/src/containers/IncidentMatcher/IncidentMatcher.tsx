@@ -19,7 +19,7 @@ const cx = cn.bind(styles);
 
 interface IncidentMatcherProps {
   regexp: string;
-  alert_receive_channel_id: AlertReceiveChannel['id'];
+  alertReceiveChannelId: AlertReceiveChannel['id'];
   className?: string;
   onError: (message: string) => void;
 }
@@ -32,7 +32,7 @@ interface AlertItem {
 }
 
 const IncidentMatcher = observer((props: IncidentMatcherProps) => {
-  const { regexp, alert_receive_channel_id, className, onError } = props;
+  const { regexp, alertReceiveChannelId, className, onError } = props;
 
   const store = useStore();
 
@@ -45,7 +45,7 @@ const IncidentMatcher = observer((props: IncidentMatcherProps) => {
   const handleRegexpChange = useDebouncedCallback(() => {
     setLoading(true);
     makeRequest('/route_regex_debugger/', {
-      params: { regex: regexp, alert_receive_channel_id: alert_receive_channel_id },
+      params: { regex: regexp, alert_receive_channel_id: alertReceiveChannelId },
     })
       .then(setSearchResult)
       .catch((data) => {
