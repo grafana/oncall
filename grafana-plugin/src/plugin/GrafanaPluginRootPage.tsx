@@ -19,6 +19,7 @@ import { AppRootProps } from 'types';
 
 import Unauthorized from 'components/Unauthorized';
 import DefaultPageLayout from 'containers/DefaultPageLayout/DefaultPageLayout';
+import grafanGlobalStylePath from 'img/grafanaGlobalStyles.css';
 import { getMatchedPage, getRoutesForPage, pages } from 'pages';
 import NoMatch from 'pages/NoMatch';
 import EscalationChains from 'pages/escalation-chains/EscalationChains';
@@ -80,7 +81,7 @@ export const Root = observer((props: AppRootProps) => {
     let link = document.createElement('link');
     link.type = 'text/css';
     link.rel = 'stylesheet';
-    link.href = '/public/plugins/grafana-oncall-app/img/grafanaGlobalStyles.css';
+    link.href = grafanGlobalStylePath;
 
     document.head.appendChild(link);
 
