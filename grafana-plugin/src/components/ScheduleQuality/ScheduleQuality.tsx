@@ -59,17 +59,17 @@ const ScheduleQuality: FC<ScheduleQualityProps> = ({ schedule, lastUpdated }) =>
           />
         )}
 
-        {qualityResponse.comments?.length > 0 && (
+        {schedule.warnings?.length > 0 && (
           <ScheduleCounter
             type="warning"
             addPadding
-            count={qualityResponse.comments.length}
+            count={schedule.warnings.length}
             tooltipTitle="Warnings"
             tooltipContent={
               <VerticalGroup spacing="none">
-                {qualityResponse.comments.map((comment, index) => (
+                {schedule.warnings.map((warning, index) => (
                   <Text type="primary" key={index}>
-                    {comment}
+                    {warning}
                   </Text>
                 ))}
               </VerticalGroup>
