@@ -1,7 +1,7 @@
 ---
-name: Issue template
+name: General Issue
 about: General requirements to all issues.
-title: Button x does not work in schedules
+title: Specific issue name
 labels: ''
 assignees: ''
 
@@ -11,6 +11,7 @@ Hi, thank you for opening an issue!
 
 Here is a quick checklist:
 - [ ] Is it about Cloud or Open Source OnCall?
-- [ ] Mention backend and frontend version please.
+- [ ] Add OnCall backend & frontend versions.
 - [ ] Include labels starting with "part:". Like `part:alertflow` or `part:schedules`.
 - [ ] Include labels like `bug` or `feature request`.
+- [ ] If it's a bug, include logs.
