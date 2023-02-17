@@ -32,24 +32,24 @@ describe('SourceCode', () => {
     expect(component.container).toMatchSnapshot();
   });
 
-  test('It renders as danger at <20% completion', () => {
-    render(<ScheduleQualityProgressBar completed={15} numTotalSteps={NUM_STEPS} />);
+  test.each([0, 10, 19])('It renders as danger at <20% completion', (completed) => {
+    render(<ScheduleQualityProgressBar completed={completed} numTotalSteps={NUM_STEPS} />);
 
     screen
       .queryAllByTestId<HTMLElement>('progress__bar')
       .forEach((elem) => expect(Array.from(elem.classList).includes(DANGER_CLASS)));
   });
 
-  test('It renders as warning at <60% completion', () => {
-    render(<ScheduleQualityProgressBar completed={40} numTotalSteps={NUM_STEPS} />);
+  test.each([20, 31, 41, 61])('It renders as warning at <60% completion', (completed) => {
+    render(<ScheduleQualityProgressBar completed={completed} numTotalSteps={NUM_STEPS} />);
 
     screen
       .queryAllByTestId<HTMLElement>('progress__bar')
       .forEach((elem) => expect(Array.from(elem.classList).includes(WARNING_CLASS)));
   });
 
-  test('It renders as success at >=60% completion', () => {
-    render(<ScheduleQualityProgressBar completed={60} numTotalSteps={NUM_STEPS} />);
+  test.each([60, 61, 79, 99, 100])('It renders as success at >=60% completion', (completed) => {
+    render(<ScheduleQualityProgressBar completed={completed} numTotalSteps={NUM_STEPS} />);
 
     screen
       .queryAllByTestId<HTMLElement>('progress__bar')

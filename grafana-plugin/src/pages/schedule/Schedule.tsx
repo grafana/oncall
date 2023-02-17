@@ -9,7 +9,6 @@ import { RouteComponentProps, withRouter } from 'react-router-dom';
 import PageErrorHandlingWrapper from 'components/PageErrorHandlingWrapper/PageErrorHandlingWrapper';
 import PluginLink from 'components/PluginLink/PluginLink';
 import ScheduleQuality from 'components/ScheduleQuality/ScheduleQuality';
-import ScheduleWarning from 'components/ScheduleWarning/ScheduleWarning';
 import Text from 'components/Text/Text';
 import UserTimezoneSelect from 'components/UserTimezoneSelect/UserTimezoneSelect';
 import WithConfirm from 'components/WithConfirm/WithConfirm';
@@ -137,7 +136,6 @@ class SchedulePage extends React.Component<SchedulePageProps, SchedulePageState>
                       >
                         {schedule?.name}
                       </Text.Title>
-                      {schedule && <ScheduleWarning item={schedule} />}
                       {schedule && <ScheduleQuality schedule={schedule} lastUpdated={this.state.lastUpdated} />}
                     </HorizontalGroup>
                     <HorizontalGroup spacing="lg">
