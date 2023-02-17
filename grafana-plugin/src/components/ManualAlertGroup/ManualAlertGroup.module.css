@@ -1,0 +1,8 @@
+.assign-responders-button {
+  display: flex;
+}
+
+.info-block {
+  background: var(--secondary-background);
+  width: 100%;
+}

@@ -9,7 +9,6 @@ import Alerts from 'containers/Alerts/Alerts';
 import { pages } from 'pages';
 import { isTopNavbar } from 'plugin/GrafanaPluginRootPage.helpers';
 import { DEFAULT_PAGE } from 'utils/consts';
-import { useQueryParams } from 'utils/hooks';
 
 import styles from './DefaultPageLayout.module.scss';
 
@@ -21,9 +20,7 @@ interface DefaultPageLayoutProps extends AppRootProps {
 }
 
 const DefaultPageLayout: FC<DefaultPageLayoutProps> = observer((props) => {
-  const { children } = props;
-  const queryParams = useQueryParams();
-  const page = queryParams.get('page') || DEFAULT_PAGE;
+  const { children, page } = props;
 
   if (isTopNavbar()) {
     return renderTopNavbar();
