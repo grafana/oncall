@@ -9,6 +9,7 @@ from apps.api.permissions import LegacyAccessControlRole
 from apps.auth_token.auth import ApiTokenAuthentication, UserScheduleExportAuthentication
 from apps.public_api.custom_renderers import CalendarRenderer
 from apps.public_api.serializers import FastUserSerializer, UserSerializer
+from apps.public_api.tf_sync import is_request_from_terraform, sync_users_on_tf_request
 from apps.public_api.throttlers.user_throttle import UserThrottle
 from apps.schedules.ical_utils import user_ical_export
 from apps.schedules.models import OnCallSchedule
@@ -48,6 +49,8 @@ class UserView(RateLimitHeadersMixin, ShortSerializerMixin, ReadOnlyModelViewSet
     throttle_classes = [UserThrottle]
 
     def get_queryset(self):
+        if is_request_from_terraform(self.request):
+            sync_users_on_tf_request(self.request.auth.organization)
         is_short_request = self.request.query_params.get("short", "false") == "true"
         queryset = self.request.auth.organization.users.all()
         if not is_short_request:

@@ -74,41 +74,14 @@ class AlertGroupSlackRenderer(AlertGroupBaseRenderer):
         return AlertSlackRenderer
 
     def render_alert_group_blocks(self):
-        non_resolve_alerts_queryset = self.alert_group.alerts.filter(is_resolve_signal=False)
-        if not self.alert_group.channel.organization.slack_team_identity.installed_via_granular_permissions:
-            blocks = [
-                {
-                    "type": "section",
-                    "text": {
-                        "type": "mrkdwn",
-                        "text": ":warning: *Action required - reinstall  app*\n"
-                        "Slack is deprecating current permission model. We will support it till DATE\n"  # TODO: deprecation date
-                        "Don't worry - we migrate OnCall to new one, but it required to reinstall app."
-                        'Press "Upgrade" button to see more detailed instruction and upgrade.',
-                    },
-                },
-                {"type": "divider"},
-                {
-                    "type": "actions",
-                    "elements": [
-                        {
-                            "type": "button",
-                            "text": {
-                                "type": "plain_text",
-                                "text": "Upgrade",
-                            },
-                            "value": "click_me_123",
-                            "url": self.alert_group.channel.organization.web_slack_page_link,
-                        },
-                    ],
-                },
-            ]
-        else:
-            blocks = []
-        if non_resolve_alerts_queryset.count() <= 1:
-            blocks.extend(self.alert_renderer.render_alert_blocks())
-        else:
-            blocks.extend(self._get_alert_group_base_blocks_if_grouped())
+        blocks = self.alert_renderer.render_alert_blocks()
+        alerts_count = self.alert_group.alerts.count()
+        if alerts_count > 1:
+            text = (
+                f":package: Showing the last alert only out of {alerts_count} total. "
+                f"Visit <{self.alert_group.web_link}|the plugin page> to see them all."
+            )
+            blocks.append({"type": "context", "elements": [{"type": "mrkdwn", "text": text}]})
         return blocks
 
     def render_alert_group_attachments(self):
@@ -188,23 +161,6 @@ class AlertGroupSlackRenderer(AlertGroupBaseRenderer):
         for attachment in attachments:
             attachment["color"] = color
         return attachments
-
-    def _get_text_alert_grouped(self):
-        alert_count = self.alert_group.alerts.count()
-        link = self.alert_group.web_link
-
-        text = (
-            f":package: Showing the last alert only out of {alert_count} total. "
-            f"Visit <{link}|the plugin page> to see them all."
-        )
-
-        return text
-
-    def _get_alert_group_base_blocks_if_grouped(self):
-        text = self._get_text_alert_grouped()
-        blocks = self.alert_renderer.render_alert_blocks()
-        blocks.append({"type": "context", "elements": [{"type": "mrkdwn", "text": text}]})
-        return blocks
 
     def _get_buttons_attachments(self):
         attachment = {"blocks": self._get_buttons_blocks()}
@@ -355,6 +311,17 @@ class AlertGroupSlackRenderer(AlertGroupBaseRenderer):
                 resolution_notes_button["style"] = "primary"
                 resolution_notes_button["text"]["text"] = "Add Resolution notes"
             buttons.append(resolution_notes_button)
+
+            # Declare Incident button
+            if self.alert_group.channel.organization.is_grafana_incident_enabled:
+                incident_button = {
+                    "type": "button",
+                    "text": {"type": "plain_text", "text": ":fire: Declare Incident", "emoji": True},
+                    "value": "declare_incident",
+                    "url": self.alert_group.declare_incident_link,
+                    "action_id": ScenarioStep.get_step("declare_incident", "DeclareIncidentStep").routing_uid(),
+                }
+                buttons.append(incident_button)
         else:
             if not self.alert_group.resolved:
                 buttons.append(

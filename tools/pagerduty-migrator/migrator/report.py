@@ -47,7 +47,7 @@ def format_escalation_policy(policy: dict) -> str:
 
 
 def format_integration(integration: dict) -> str:
-    result = integration["service"]["name"] + " - " + integration["name"]
+    result = "{} - {}".format(integration["service"]["name"], integration["name"])
 
     if not integration["oncall_type"]:
         result = (
@@ -90,7 +90,7 @@ def schedule_report(schedules: list[dict]) -> str:
 
         if not schedule["unmatched_users"] and schedule["oncall_schedule"]:
             result += " (existing schedule with name '{}' will be deleted)".format(
-                schedule["name"]
+                schedule["oncall_schedule"]["name"]
             )
 
         for user in schedule["unmatched_users"]:
@@ -120,7 +120,7 @@ def escalation_policy_report(policies: list[dict]) -> str:
         ):
             result += (
                 " (existing escalation chain with name '{}' will be deleted)".format(
-                    policy["name"]
+                    policy["oncall_escalation_chain"]["name"]
                 )
             )
 
@@ -141,10 +141,8 @@ def integration_report(integrations: list[dict]) -> str:
             and not integration["is_escalation_policy_flawed"]
             and integration["oncall_integration"]
         ):
-            result += (
-                " (existing integration with name '{} - {}' will be deleted)".format(
-                    integration["service"]["name"], integration["name"]
-                )
+            result += " (existing integration with name '{}' will be deleted)".format(
+                integration["oncall_integration"]["name"]
             )
 
     return result

@@ -1,7 +1,4 @@
 .root {
-  max-width: 1600px;
-  margin: 0 auto;
-
   --rotations-border: var(--border-weak);
   --rotations-background: var(--background-secondary);
 }

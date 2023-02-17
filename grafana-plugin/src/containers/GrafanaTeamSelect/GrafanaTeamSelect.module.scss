@@ -1,26 +1,20 @@
 .teamSelect {
   width: 200px;
-  right: 0;
-  position: absolute;
-  padding: 16px 0;
-  margin-right: 24px;
-
-  &--topRight {
-    right: 14px;
-    top: 12px;
-  }
-  &--topRightIncident {
-    right: 32px;
-    top: 36px;
-  }
 }
 
 .teamSelectLabel {
   display: flex;
 }
 
+.teamSelectText,
+.teamSelectLink {
+  line-height: 1.25;
+  margin-bottom: 4px;
+}
+
 .teamSelectLink {
   margin-left: auto;
+  color: var(--primary-text-link);
 }
 
 .teamSelectInfo {

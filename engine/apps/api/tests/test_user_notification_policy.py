@@ -1,4 +1,5 @@
 import json
+from unittest.mock import patch
 
 import pytest
 from django.urls import reverse
@@ -8,6 +9,7 @@ from rest_framework.test import APIClient
 
 from apps.api.permissions import LegacyAccessControlRole
 from apps.base.models import UserNotificationPolicy
+from apps.base.tests.messaging_backend import TestOnlyBackend
 
 DEFAULT_NOTIFICATION_CHANNEL = UserNotificationPolicy.NotificationChannel.SLACK
 
@@ -463,3 +465,22 @@ def test_notification_policy_backends_enabled(
     assert response.status_code == status.HTTP_200_OK
     options = [opt["display_name"] for opt in response.json()]
     assert "Test Only Backend" in options
+
+
+@pytest.mark.django_db
+def test_notification_policy_backends_disabled_for_organization(
+    user_notification_policy_internal_api_setup, settings, make_user_auth_headers
+):
+    token, _, users = user_notification_policy_internal_api_setup
+    admin, _ = users
+
+    client = APIClient()
+    url = reverse("api-internal:notification_policy-notify-by-options")
+
+    with patch.object(TestOnlyBackend, "is_enabled_for_organization", return_value=False):
+        response = client.get(url, **make_user_auth_headers(admin, token))
+
+    assert response.status_code == status.HTTP_200_OK
+
+    options = [opt["display_name"] for opt in response.json()]
+    assert "Test Only Backend" not in options

@@ -3,28 +3,32 @@ import React from 'react';
 import { PluginPageProps, PluginPage as RealPluginPage } from '@grafana/runtime';
 import Header from 'navbar/Header/Header';
 
+import Alerts from 'containers/Alerts/Alerts';
 import { pages } from 'pages';
 import { isTopNavbar } from 'plugin/GrafanaPluginRootPage.helpers';
 import { useStore } from 'state/useStore';
-import { useQueryParams } from 'utils/hooks';
 
-export const PluginPage = (isTopNavbar() ? RealPlugin : PluginPageFallback) as React.ComponentType<PluginPageProps>;
+interface AppPluginPageProps extends PluginPageProps {
+  page?: string;
+}
 
-function RealPlugin(props: PluginPageProps): React.ReactNode {
+export const PluginPage = (isTopNavbar() ? RealPlugin : PluginPageFallback) as React.ComponentType<AppPluginPageProps>;
+
+function RealPlugin(props: AppPluginPageProps): React.ReactNode {
+  const { page } = props;
   const store = useStore();
-
-  const queryParams = useQueryParams();
-  const page = queryParams.get('page');
 
   return (
     <RealPluginPage {...props}>
-      <Header page={page} backendLicense={store.backendLicense} />
-      <h3 className="page-title">{pages[page].text}</h3>
+      {/* Render alerts at the top */}
+      <Alerts />
+      <Header backendLicense={store.backendLicense} />
+      {pages[page]?.text && !pages[page]?.hideTitle && <h3 className="page-title">{pages[page].text}</h3>}
       {props.children}
     </RealPluginPage>
   );
 }
 
-function PluginPageFallback(props: PluginPageProps): React.ReactNode {
+export function PluginPageFallback(props: PluginPageProps): React.ReactNode {
   return props.children;
 }

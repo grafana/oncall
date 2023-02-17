@@ -9,6 +9,7 @@ import { AlertReceiveChannelFiltersStore } from 'models/alert_receive_channel_fi
 import { AlertGroupStore } from 'models/alertgroup/alertgroup';
 import { ApiTokenStore } from 'models/api_token/api_token';
 import { CloudStore } from 'models/cloud/cloud';
+import { DirectPagingStore } from 'models/direct_paging/direct_paging';
 import { EscalationChainStore } from 'models/escalation_chain/escalation_chain';
 import { EscalationPolicyStore } from 'models/escalation_policy/escalation_policy';
 import { GlobalSettingStore } from 'models/global_setting/global_setting';
@@ -76,6 +77,7 @@ export class RootBaseStore {
 
   userStore: UserStore = new UserStore(this);
   cloudStore: CloudStore = new CloudStore(this);
+  directPagingStore: DirectPagingStore = new DirectPagingStore(this);
   grafanaTeamStore: GrafanaTeamStore = new GrafanaTeamStore(this);
   alertReceiveChannelStore: AlertReceiveChannelStore = new AlertReceiveChannelStore(this);
   outgoingWebhookStore: OutgoingWebhookStore = new OutgoingWebhookStore(this);
@@ -98,13 +100,22 @@ export class RootBaseStore {
   // stores
 
   async updateBasicData() {
+    const updateFeatures = async () => {
+      await this.updateFeatures();
+
+      // Only fetch cloud connection status when cloud connection feature is enabled on OSS instance
+      // Note that this.hasFeature can only be called after this.updateFeatures()
+      if (this.hasFeature(AppFeature.CloudConnection)) {
+        await this.cloudStore.loadCloudConnectionStatus();
+      }
+    };
+
     return Promise.all([
       this.teamStore.loadCurrentTeam(),
       this.grafanaTeamStore.updateItems(),
-      this.updateFeatures(),
+      updateFeatures(),
       this.userStore.updateNotificationPolicyOptions(),
       this.userStore.updateNotifyByOptions(),
-      this.alertReceiveChannelStore.updateAlertReceiveChannelOptions(),
       this.alertReceiveChannelStore.updateAlertReceiveChannelOptions(),
       this.escalationPolicyStore.updateWebEscalationPolicyOptions(),
       this.escalationPolicyStore.updateEscalationPolicyOptions(),

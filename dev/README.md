@@ -3,6 +3,8 @@
 - [Running the project](#running-the-project)
   - [`COMPOSE_PROFILES`](#compose_profiles)
   - [`GRAFANA_VERSION`](#grafana_version)
+  - [Configuring Grafana](#configuring-grafana)
+  - [Django Silk Profiling](#django-silk-profiling)
   - [Running backend services outside Docker](#running-backend-services-outside-docker)
 - [Useful `make` commands](#useful-make-commands)
 - [Setting environment variables](#setting-environment-variables)
@@ -14,8 +16,11 @@
   - [django.db.utils.OperationalError: (1366, "Incorrect string value")](#djangodbutilsoperationalerror-1366-incorrect-string-value)
   - [/bin/sh: line 0: cd: grafana-plugin: No such file or directory](#binsh-line-0-cd-grafana-plugin-no-such-file-or-directory)
   - [Encountered error while trying to install package - grpcio](#encountered-error-while-trying-to-install-package---grpcio)
+  - [distutils.errors.CompileError: command '/usr/bin/clang' failed with exit code 1](#distutilserrorscompileerror-command-usrbinclang-failed-with-exit-code-1)
+  - [symbol not found in flat namespace '\_EVP_DigestSignUpdate'](#symbol-not-found-in-flat-namespace-_evp_digestsignupdate)
 - [IDE Specific Instructions](#ide-specific-instructions)
   - [PyCharm](#pycharm)
+- [How to write database migrations](#how-to-write-database-migrations)
 
 Related: [How to develop integrations](/engine/config_integrations/README.md)
 
@@ -33,12 +38,9 @@ environment variable.
    message broker/cache. See [`COMPOSE_PROFILES`](#compose_profiles) below for more details on how to swap
    out/disable which components are run in Docker.
 3. Open Grafana in a browser [here](http://localhost:3000/plugins/grafana-oncall-app) (login: `oncall`, password: `oncall`).
-4. You should now see the OnCall plugin configuration page. Fill out the configuration options as follows:
-
-   - OnCall backend URL: <http://host.docker.internal:8080> (this is the URL that is running the OnCall API; it should be
-     accessible from Grafana)
-   - Grafana URL: <http://grafana:3000> (this is the URL OnCall will use to talk to the Grafana Instance)
-
+4. You should now see the OnCall plugin configuration page.  You may safely ignore the warning about the invalid
+   plugin signature.  When opening the main plugin page, you may also ignore warnings about version mismatch and lack of
+   communication channels.
 5. Enjoy! Check our [OSS docs](https://grafana.com/docs/grafana-cloud/oncall/open-source/) if you want to set up Slack,
    Telegram, Twilio or SMS/calls through Grafana Cloud.
 6. (Optional) Install `pre-commit` hooks by running `make install-precommit-hook`
@@ -83,6 +85,34 @@ If you would like to change the version of Grafana being run, simply pass in a `
 to `make start` (or alternatively set it in your `.env.dev` file). The value of this environment variable should be a
 valid `grafana/grafana` published Docker [image tag](https://hub.docker.com/r/grafana/grafana/tags).
 
+### Configuring Grafana
+
+This section is applicable for when you are running a Grafana container inside of `docker-compose` and you would like
+to modify your Grafana instance's provisioning configuration.
+
+The following commands assume you run them from the root of the project:
+
+```bash
+touch ./dev/grafana.dev.ini
+# make desired changes to ./dev/grafana.dev.ini then run
+touch .env && ./dev/add_env_var.sh GRAFANA_DEV_PROVISIONING ./dev/grafana.dev.ini .env
+```
+
+The next time you start the project via `docker-compose`, the `grafana` container will have `./dev/grafana.dev.ini`
+volume mounted inside the container.
+
+### Django Silk Profiling
+
+In order to setup [`django-silk`](https://github.com/jazzband/django-silk) for local profiling, perform the following
+steps:
+
+1. `make backend-debug-enable`
+2. `make engine-manage CMD="createsuperuser"` - follow CLI prompts to create a Django superuser
+3. Visit <http://localhost:8080/django-admin> and login using the credentials you created in step #2
+
+You should now be able to visit <http://localhost:8080/silk/> and see the Django Silk UI.
+See the `django-silk` documentation [here](https://github.com/jazzband/django-silk) for more information.
+
 ### Running backend services outside Docker
 
 By default everything runs inside Docker. If you would like to run the backend services outside of Docker
@@ -121,10 +151,9 @@ make build # rebuild images (e.g. when changing requirements.txt)
 # run Django's `manage.py` script, inside of a docker container, passing `$CMD` as arguments.
 # e.g. `make engine-manage CMD="makemigrations"` - https://docs.djangoproject.com/en/4.1/ref/django-admin/#django-admin-makemigrations
 make engine-manage CMD="..."
-# sets a feature flag, related to mobile app backend functionality, in your ./dev/.env.dev
-# and sets the necessary database values
-# NOTE: you need to enable, and configure, the plugin before running this command
-make enable-mobile-app-feature-flags
+
+make backend-debug-enable # enable Django's debug mode and Silk profiling (this is disabled by default for performance reasons)
+make backend-debug-disable # disable Django's debug mode and Silk profiling
 
 # this will remove all of the images, containers, volumes, and networks
 # associated with your local OnCall developer setup
@@ -309,6 +338,49 @@ Use a `conda` virtualenv, and then run the following when installing the engine 
 GRPC_PYTHON_BUILD_SYSTEM_OPENSSL=1 GRPC_PYTHON_BUILD_SYSTEM_ZLIB=1 pip install -r requirements.txt
 ```
 
+### distutils.errors.CompileError: command '/usr/bin/clang' failed with exit code 1
+
+See solution for "Encountered error while trying to install package - grpcio" [here](#encountered-error-while-trying-to-install-package---grpcio)
+
+### symbol not found in flat namespace '\_EVP_DigestSignUpdate'
+
+**Problem:**
+
+This problem seems to occur when running the Celery process, outside of `docker-compose`
+(via `make run-backend-celery`), and using a `conda` virtual environment.
+
+<!-- markdownlint-disable MD013 -->
+
+```bash
+conda create --name oncall-dev python=3.9.13
+conda activate oncall-dev
+make backend-bootstrap
+make run-backend-celery
+File "~/oncall/engine/engine/__init__.py", line 5, in <module>
+    from .celery import app as celery_app
+  File "~/oncall/engine/engine/celery.py", line 11, in <module>
+    from opentelemetry.exporter.otlp.proto.grpc.trace_exporter import OTLPSpanExporter
+  File "/opt/homebrew/Caskroom/miniconda/base/envs/oncall-dev/lib/python3.9/site-packages/opentelemetry/exporter/otlp/proto/grpc/trace_exporter/__init__.py", line 20, in <module>
+    from grpc import ChannelCredentials, Compression
+  File "/opt/homebrew/Caskroom/miniconda/base/envs/oncall-dev/lib/python3.9/site-packages/grpc/__init__.py", line 22, in <module>
+    from grpc import _compression
+  File "/opt/homebrew/Caskroom/miniconda/base/envs/oncall-dev/lib/python3.9/site-packages/grpc/_compression.py", line 20, in <module>
+    from grpc._cython import cygrpc
+ImportError: dlopen(/opt/homebrew/Caskroom/miniconda/base/envs/oncall-dev/lib/python3.9/site-packages/grpc/_cython/cygrpc.cpython-39-darwin.so, 0x0002): symbol not found in flat namespace '_EVP_DigestSignUpdate'
+```
+
+<!-- markdownlint-enable MD013 -->
+
+**Solution:**
+
+[This solution](https://github.com/grpc/grpc/issues/15510#issuecomment-392012594) posted in a GitHub issue thread for
+the `grpc/grpc` repository, fixes the issue:
+
+```bash
+conda install grpcio
+make run-backend-celery
+```
+
 ## IDE Specific Instructions
 
 ### PyCharm
@@ -326,3 +398,15 @@ GRPC_PYTHON_BUILD_SYSTEM_OPENSSL=1 GRPC_PYTHON_BUILD_SYSTEM_ZLIB=1 pip install -
 5. Create a new Django Server run configuration to Run/Debug the engine
    - Use a plugin such as EnvFile to load the .env.dev file
    - Change port from 8000 to 8080
+
+## How to write database migrations
+
+We use [django-migration-linter](https://github.com/3YOURMIND/django-migration-linter) to keep database migrations
+backwards compatible
+
+- we can automatically run migrations and they are zero-downtime, e.g. old code can work with the migrated database
+- we can run and rollback migrations without worrying about data safety
+- OnCall is deployed to the multiple environments core team is not able to control
+
+See [django-migration-linter checklist](https://github.com/3YOURMIND/django-migration-linter/blob/main/docs/incompatibilities.md)
+for the common mistakes and best practices

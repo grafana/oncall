@@ -1,19 +1,20 @@
 import React from 'react';
 
 import { Button, HorizontalGroup, IconButton, LoadingPlaceholder, VerticalGroup } from '@grafana/ui';
-import { PluginPage } from 'PluginPage';
 import cn from 'classnames/bind';
 import dayjs from 'dayjs';
 import { debounce } from 'lodash-es';
 import { observer } from 'mobx-react';
+import { RouteComponentProps, withRouter } from 'react-router-dom';
 
 import Avatar from 'components/Avatar/Avatar';
+import { MatchMediaTooltip } from 'components/MatchMediaTooltip/MatchMediaTooltip';
 import NewScheduleSelector from 'components/NewScheduleSelector/NewScheduleSelector';
 import PluginLink from 'components/PluginLink/PluginLink';
 import ScheduleCounter from 'components/ScheduleCounter/ScheduleCounter';
 import ScheduleWarning from 'components/ScheduleWarning/ScheduleWarning';
-import SchedulesFilters from 'components/SchedulesFilters_NEW/SchedulesFilters';
-import { SchedulesFiltersType } from 'components/SchedulesFilters_NEW/SchedulesFilters.types';
+import SchedulesFilters from 'components/SchedulesFilters/SchedulesFilters';
+import { SchedulesFiltersType } from 'components/SchedulesFilters/SchedulesFilters.types';
 import Table from 'components/Table/Table';
 import Text from 'components/Text/Text';
 import TimelineMarks from 'components/TimelineMarks/TimelineMarks';
@@ -25,18 +26,17 @@ import { WithPermissionControl } from 'containers/WithPermissionControl/WithPerm
 import { Schedule, ScheduleType } from 'models/schedule/schedule.types';
 import { getSlackChannelName } from 'models/slack_channel/slack_channel.helpers';
 import { Timezone } from 'models/timezone/timezone.types';
-import { pages } from 'pages';
 import { getStartOfWeek } from 'pages/schedule/Schedule.helpers';
 import { WithStoreProps } from 'state/types';
 import { withMobXProviderContext } from 'state/withStore';
-import LocationHelper from 'utils/LocationHelper';
 import { UserActions } from 'utils/authorization';
+import { PLUGIN_ROOT, TABLE_COLUMN_MAX_WIDTH } from 'utils/consts';
 
 import styles from './Schedules.module.css';
 
 const cx = cn.bind(styles);
 
-interface SchedulesPageProps extends WithStoreProps {}
+interface SchedulesPageProps extends WithStoreProps, RouteComponentProps {}
 
 interface SchedulesPageState {
   startMoment: dayjs.Dayjs;
@@ -135,12 +135,12 @@ class SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSta
       : undefined;
 
     return (
-      <PluginPage pageNav={pages['schedules'].getPageNav()}>
+      <>
         <div className={cx('root')}>
           <VerticalGroup>
-            <HorizontalGroup justify="space-between">
+            <div className={cx('schedules__filters-container')}>
               <SchedulesFilters value={filters} onChange={this.handleSchedulesFiltersChange} />
-              <HorizontalGroup spacing="lg">
+              <div className={cx('schedules__actions')}>
                 {users && (
                   <UserTimezoneSelect
                     value={store.currentTimezone}
@@ -153,8 +153,8 @@ class SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSta
                     + New schedule
                   </Button>
                 </WithPermissionControl>
-              </HorizontalGroup>
-            </HorizontalGroup>
+              </div>
+            </div>
             <Table
               columns={columns}
               data={data}
@@ -192,7 +192,7 @@ class SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSta
             }}
           />
         )}
-      </PluginPage>
+      </>
     );
   }
 
@@ -209,8 +209,10 @@ class SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSta
   };
 
   handleCreateSchedule = (data: Schedule) => {
+    const { history } = this.props;
+
     if (data.type === ScheduleType.API) {
-      LocationHelper.update({ page: 'schedule', id: data.id }, 'partial');
+      history.push(`${PLUGIN_ROOT}/schedules/${data.id}`);
     }
   };
 
@@ -259,7 +261,9 @@ class SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSta
   };
 
   getScheduleClickHandler = (scheduleId: Schedule['id']) => {
-    return () => LocationHelper.update({ page: 'schedule', id: scheduleId }, 'replace');
+    const { history } = this.props;
+
+    return () => history.push(`${PLUGIN_ROOT}/schedules/${scheduleId}`);
   };
 
   renderType = (value: number) => {
@@ -321,24 +325,30 @@ class SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSta
   };
 
   renderName = (item: Schedule) => {
-    return <PluginLink query={{ page: 'schedule', id: item.id }}>{item.name}</PluginLink>;
+    return <PluginLink query={{ page: 'schedules', id: item.id }}>{item.name}</PluginLink>;
   };
 
   renderOncallNow = (item: Schedule, _index: number) => {
     if (item.on_call_now?.length > 0) {
       return (
-        <VerticalGroup>
-          {item.on_call_now.map((user, _index) => {
-            return (
-              <PluginLink key={user.pk} query={{ page: 'users', id: user.pk }}>
-                <div>
-                  <Avatar size="big" src={user.avatar} />
-                  <Text type="secondary"> {user.username}</Text>
-                </div>
-              </PluginLink>
-            );
-          })}
-        </VerticalGroup>
+        <div className="table__email-column">
+          <VerticalGroup>
+            {item.on_call_now.map((user) => {
+              return (
+                <PluginLink key={user.pk} query={{ page: 'users', id: user.pk }} className="table__email-content">
+                  <div className={cx('schedules__user-on-call')}>
+                    <div>
+                      <Avatar size="big" src={user.avatar} />
+                    </div>
+                    <MatchMediaTooltip placement="top" content={user.username} maxWidth={TABLE_COLUMN_MAX_WIDTH}>
+                      <span className="table__email-content">{user.username}</span>
+                    </MatchMediaTooltip>
+                  </div>
+                </PluginLink>
+              );
+            })}
+          </VerticalGroup>
+        </div>
       );
     }
     return null;
@@ -418,4 +428,4 @@ class SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSta
   };
 }
 
-export default withMobXProviderContext(SchedulesPage);
+export default withRouter(withMobXProviderContext(SchedulesPage));

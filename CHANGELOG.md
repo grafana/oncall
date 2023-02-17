@@ -5,26 +5,162 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## v1.1.15 (2023-01-05)
+## v1.1.25 (2023-01-05)
 
 ### Added
 
 - Added nodeSelector for celery deployment and migrate job.
 
-## v1.1.14 (TBD)
+## v1.1.24 (2023-02-16)
 
 ### Added
 
-- TBD
+- Add direct user paging ([823](https://github.com/grafana/oncall/issues/823))
+- Add App Store link to web UI ([1328](https://github.com/grafana/oncall/pull/1328))
+
+### Fixed
+
+- Cleaning of the name "Incident" ([704](https://github.com/grafana/oncall/pull/704))
+- Alert Group/Alert Groups naming polishing. All the names should be with capital letters
+- Design polishing ([1290](https://github.com/grafana/oncall/pull/1290))
+- Not showing contact details in User tooltip if User does not have edit/admin access
+- Updated slack link account to redirect back to user profile instead of chatops
+
+### Changed
+
+- Incidents - Removed buttons column and replaced status with toggler ([#1237](https://github.com/grafana/oncall/issues/1237))
+- Responsiveness changes across multiple pages (Incidents, Integrations, Schedules) ([#1237](https://github.com/grafana/oncall/issues/1237))
+
+## v1.1.23 (2023-02-06)
+
+### Fixed
+
+- Fix bug with email case sensitivity for ICal on-call schedules ([1297](https://github.com/grafana/oncall/pull/1297))
+
+## v1.1.22 (2023-02-03)
+
+### Fixed
+
+- Fix bug with root/dependant alert groups list api endpoint ([1284](https://github.com/grafana/oncall/pull/1284))
+- Fixed NPE on teams switch
+
+### Added
+
+- Optimize alert and alert group public api endpoints and add filter by id ([1274](https://github.com/grafana/oncall/pull/1274))
+- Enable mobile app backend by default on OSS
+
+## v1.1.21 (2023-02-02)
+
+### Added
+
+- Add [`django-dbconn-retry` library](https://github.com/jdelic/django-dbconn-retry) to `INSTALLED_APPS` to attempt
+  to alleviate occasional `django.db.utils.OperationalError` errors
+- Improve alerts and alert group endpoint response time in internal API with caching ([1261](https://github.com/grafana/oncall/pull/1261))
+- Optimize alert and alert group public api endpoints and add filter by id ([1274](https://github.com/grafana/oncall/pull/1274)
+- Added Coming Soon for iOS on Mobile App screen
+
+### Fixed
+
+- Fix issue on Integrations where you were redirected back once escalation chain was loaded ([#1083](https://github.com/grafana/oncall/issues/1083))
+  ([#1257](https://github.com/grafana/oncall/issues/1257))
+
+## v1.1.20 (2023-01-30)
+
+### Added
+
+- Add involved users filter to alert groups listing page (+ mine shortcut)
+
+### Changed
+
+- Improve logging for creating contact point for Grafana Alerting integration
+
+### Fixed
+
+- Fix bugs related to creating contact point for Grafana Alerting integration
+- Fix minor UI bug on OnCall users page where it would idefinitely show a "Loading..." message
+- Only show OnCall user's table to users that are authorized
+- Fixed NPE in ScheduleUserDetails component ([#1229](https://github.com/grafana/oncall/issues/1229))
+
+## v1.1.19 (2023-01-25)
+
+### Added
+
+- Add Server URL below QR code for OSS for debugging purposes
+- Add Slack slash command allowing to trigger a direct page via a manually created alert group
+- Remove resolved and acknowledged filters as we switched to status ([#1201](https://github.com/grafana/oncall/pull/1201))
+- Add sync with grafana on /users and /teams api calls from terraform plugin
+
+### Changed
+
+- Allow users with `viewer` role to fetch cloud connection status using the internal API ([#1181](https://github.com/grafana/oncall/pull/1181))
+- When removing the Slack ChatOps integration, make it more explicit to the user what the implications of doing so are
+- Improve performance of `GET /api/internal/v1/schedules` endpoint ([#1169](https://github.com/grafana/oncall/pull/1169))
+
+### Fixed
+
+- Removed duplicate API call, in the UI on plugin initial load, to `GET /api/internal/v1/alert_receive_channels`
+- Increased plugin startup speed ([#1200](https://github.com/grafana/oncall/pull/1200))
+
+## v1.1.18 (2023-01-18)
+
+### Added
+
+- Allow messaging backends to be enabled/disabled per organization ([#1151](https://github.com/grafana/oncall/pull/1151))
+
+### Changed
+
+- Send a Slack DM when user is not in channel ([#1144](https://github.com/grafana/oncall/pull/1144))
+
+## v1.1.17 (2023-01-18)
+
+### Changed
+
+- Modified how the `Organization.is_rbac_permissions_enabled` flag is set,
+  based on whether we are dealing with an open-source, or cloud installation
+- Backend implementation to support direct user/schedule paging
+- Changed documentation links to open in new window
+- Remove helm chart signing
+- Changed the user's profile modal to be wide for all tabs
+
+### Added
+
+- Added state filter for alert_group public API endpoint.
+- Enrich user tooltip on Schedule page
+- Added redirects for old-style links
+
+### Fixed
+
+- Updated typo in Helm chart values when specifying a custom Slack command name
+- Fix for web schedules ical export to give overrides the right priority
+- Fix for topnavbar to show initial loading inside PluginPage
+
+## v1.1.16 (2023-01-12)
+
+### Fixed
+
+- Minor bug fix in how the value of `Organization.is_rbac_permissions_enabled` is determined
+
+- Helm chart: default values file and documentation now reflect the correct key to set for the Slack
+  slash command name, `oncall.slack.commandName`.
+
+## v1.1.15 (2023-01-10)
+
+### Changed
+
+- Simplify and speed up slack rendering ([#1105](https://github.com/grafana/oncall/pull/1105))
+- Faro - Point to 3 separate apps instead of just 1 for all environments ([#1110](https://github.com/grafana/oncall/pull/1110))
+- Schedules - ([#1114](https://github.com/grafana/oncall/pull/1114), [#1109](https://github.com/grafana/oncall/pull/1109))
+
+### Fixed
+
+- Bugfix for topnavbar to place alerts inside PageNav ([#1040](https://github.com/grafana/oncall/pull/1040))
+
+## v1.1.14 (2023-01-05)
 
 ### Changed
 
 - Change wording from "incident" to "alert group" for the Telegram integration ([#1052](https://github.com/grafana/oncall/pull/1052))
 - Soft-delete of organizations on stack deletion.
-
-### Fixed
-
-- TBD
 
 ## v1.1.13 (2023-01-04)
 
