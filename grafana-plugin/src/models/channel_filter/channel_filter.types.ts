@@ -3,9 +3,9 @@ import { EscalationChain } from 'models/escalation_chain/escalation_chain.types'
 import { SlackChannel } from 'models/slack_channel/slack_channel.types';
 import { TelegramChannel } from 'models/telegram_channel/telegram_channel.types';
 
-export const enum FilteringTermType {
-  regex = 0,
-  jinja2 = 1,
+export enum FilteringTermType {
+  'regex' = 0,
+  'jinja2' = 1,
 }
 
 export interface ChannelFilter {

@@ -427,6 +427,8 @@ class IncidentPage extends React.Component<IncidentPageProps, IncidentPageState>
                     </Text>
                   )}
                   <Text type="primary">
+                    {item.action}
+                    <br />
                     {reactStringReplace(item.action, /\{\{([^}]+)\}\}/g, this.getPlaceholderReplaceFn(item, history))}
                   </Text>
                   <Text type="secondary" size="small">

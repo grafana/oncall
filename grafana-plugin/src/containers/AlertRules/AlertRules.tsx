@@ -2,12 +2,14 @@ import React, { SyntheticEvent } from 'react';
 
 import {
   Alert,
+  Badge,
   Button,
   ConfirmModal,
   Field,
   HorizontalGroup,
   IconButton,
   Input,
+  Link,
   LoadingPlaceholder,
   Modal,
   Tooltip,
@@ -695,49 +697,56 @@ class AlertRules extends React.Component<AlertRulesProps, AlertRulesState> {
     const index = channelFilterIds.indexOf(channelFilterId);
     return (
       <div className={cx('channel-filter-header')}>
-        <div className={cx('channel-filter-header-title')}>
-          {channelFilter.is_default ? (
-            <Text type="success">{channelFilterIds.length > 1 ? 'ELSE ' : ''}</Text>
-          ) : (
-            <>
-              <Text type="success">{index === 0 ? 'IF ' : 'ELSE IF '}</Text>
-              {channelFilter.filtering_term_type === 0 ? (
-                <Text
-                  keyboard
-                  //@ts-ignore
-                  onClick={this.getEditChannelFilterClickHandler(channelFilter)}
-                >
-                  payload=~"{channelFilter.filtering_term}"
-                </Text>
-              ) : (
-                <Text
-                  keyboard
-                  //@ts-ignore
-                  onClick={this.getEditChannelFilterClickHandler(channelFilter)}
-                >
-                  {channelFilter.filtering_term_jinja2}
-                </Text>
-              )}
-              is TRUE{' '}
-            </>
-          )}
-          escalate to{' '}
-          <WithPermissionControl userAction={UserActions.IntegrationsWrite}>
-            <div onClick={(e) => e.stopPropagation()}>
-              <GSelect
-                showSearch
-                modelName="escalationChainStore"
-                displayField="name"
-                placeholder="Select Escalation Chain"
-                className={cx('select', 'control', 'no-trigger-collapse-please')}
-                value={channelFilter.escalation_chain}
-                onChange={this.getEscalationChainChangeHandler(channelFilterId)}
-                showWarningIfEmptyValue={true}
-              />
-            </div>
-          </WithPermissionControl>
+        <div className={cx('channel-filter-header-left')}>
+          <div className={cx('channel-filter-header-title')}>
+            {channelFilter.is_default ? (
+              <Text type="success">{channelFilterIds.length > 1 ? 'ELSE ' : ''}</Text>
+            ) : (
+              <>
+                <Text type="success">{index === 0 ? 'IF ' : 'ELSE IF '}</Text>
+                {channelFilter.filtering_term_type === 0 ? (
+                  <Link onClick={this.getEditChannelFilterClickHandler(channelFilter)}>
+                    <Badge
+                      text={'payload=~' + channelFilter.filtering_term + ' is True'}
+                      // color={"red"}
+                      color={'orange'}
+                      icon={'exclamation-circle'}
+                      tooltip={`🚀Pro Tip: Click here to switch route to new label based template instead of regular expression`}
+                    />
+                  </Link>
+                ) : (
+                  <Text
+                    keyboard
+                    //@ts-ignore
+                    onClick={this.getEditChannelFilterClickHandler(channelFilter)}
+                  >
+                    {channelFilter.filtering_term_jinja2} is TRUE
+                  </Text>
+                )}
+              </>
+            )}
+            escalate to{' '}
+            <WithPermissionControl userAction={UserActions.IntegrationsWrite}>
+              <div onClick={(e) => e.stopPropagation()}>
+                <GSelect
+                  showSearch
+                  modelName="escalationChainStore"
+                  displayField="name"
+                  placeholder="Select Escalation Chain"
+                  className={cx('select', 'control', 'no-trigger-collapse-please')}
+                  value={channelFilter.escalation_chain}
+                  onChange={this.getEscalationChainChangeHandler(channelFilterId)}
+                  showWarningIfEmptyValue={true}
+                  width={'auto'}
+                  icon={'list-ul'}
+                />
+              </div>
+            </WithPermissionControl>
+          </div>
         </div>
-        <div onClick={(e) => e.stopPropagation()}>{this.renderChannelFilterButtons(channelFilterId, index)}</div>
+        <div className={cx('channel-filter-header-right')}>
+          <div onClick={(e) => e.stopPropagation()}>{this.renderChannelFilterButtons(channelFilterId, index)}</div>
+        </div>
       </div>
     );
   };

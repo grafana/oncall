@@ -19,7 +19,7 @@
 }
 
 .left-column {
-  width: 400px;
+  width: 350px;
   flex-shrink: 0;
   border-right: var(--border);
 }

@@ -57,22 +57,6 @@ class ChannelFilterSerializer(OrderedModelSerializerMixin, EagerLoadingMixin, se
             "id": obj.slack_channel_pk,
         }
 
-    def validate(self, attrs):
-        alert_receive_channel = attrs.get("alert_receive_channel") or self.instance.alert_receive_channel
-        filtering_term = attrs.get("filtering_term")
-        if filtering_term is None:
-            return attrs
-        try:
-            obj = ChannelFilter.objects.get(alert_receive_channel=alert_receive_channel, filtering_term=filtering_term)
-        except ChannelFilter.DoesNotExist:
-            return attrs
-        if self.instance and obj.id == self.instance.id:
-            return attrs
-        else:
-            raise serializers.ValidationError(
-                {"filtering_term": ["Channel filter with this filtering term already exists"]}
-            )
-
     def validate_slack_channel(self, slack_channel_id):
         SlackChannel = apps.get_model("slack", "SlackChannel")
 
@@ -146,7 +130,6 @@ class ChannelFilterCreateSerializer(ChannelFilterSerializer):
             "notification_backends",
         ]
         read_only_fields = ["created_at", "is_default"]
-        extra_kwargs = {"filtering_term": {"required": True, "allow_null": False}}
 
     def to_representation(self, obj):
         """add correct slack channel data to result after instance creation/update"""

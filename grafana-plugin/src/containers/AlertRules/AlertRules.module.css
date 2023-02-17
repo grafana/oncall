@@ -47,10 +47,27 @@
 
 .channel-filter-header {
   display: flex;
-  justify-content: space-between;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 8px;
+
+  /* justify-content: space-between; */
+
+  /* align-items: center; */
+  flex-wrap: wrap-reverse;
+
+  /* gap: 8px; */
+}
+
+.channel-filter-header-left {
+  margin-bottom: 12px;
+}
+
+.channel-filter-header-left,
+.channel-filter-header-right {
+  flex-grow: 1;
+}
+
+.channel-filter-header-right {
+  display: flex;
+  justify-content: flex-end;
 }
 
 .channel-filter-header-title {
@@ -120,7 +137,7 @@
 
 .integration__heading-container {
   display: flex;
-  flex-wrap: wrap;
+  flex-wrap: wrap-reverse;
 }
 
 .integration__heading-container-left {

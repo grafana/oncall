@@ -1,4 +1,4 @@
-import React, { useCallback, useState, ChangeEvent } from 'react';
+import React, { ChangeEvent, useCallback, useState } from 'react';
 
 import { Button, Field, HorizontalGroup, Input, RadioButtonGroup } from '@grafana/ui';
 import cn from 'classnames/bind';
@@ -31,7 +31,7 @@ const ChannelFilterForm = observer((props: ChannelFilterFormProps) => {
 
   const [filteringTerm, setFilteringTerm] = useState<string>(data ? data.filtering_term : '.*');
   const [filteringTermJinja2, setFilteringTermJinja2] = useState<string>(
-    data ? data.filtering_term_jinja2 : '{payload.foo == "bar"}'
+    data ? data.filtering_term_jinja2 : '{{ payload.foo == "bar" }}'
   );
   const [filteringTermType, setFilteringTermType] = useState<FilteringTermType>(data ? data.filtering_term_type : 1);
   const [errors, setErrors] = useState<{ filtering_term?: string }>({});

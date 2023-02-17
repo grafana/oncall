@@ -129,15 +129,17 @@ class ChannelFilter(OrderedModel):
 
     def check_filter(self, value):
         if (
-            self.filtering_term_jinja2 is not None
-        ):  # TODO: And self.filtering_term_jinja2 is valid jinja2 that returns bool
+            self.filtering_term_type == ChannelFilter.FILTERING_TERM_TYPE_JINJA2
+            and self.filtering_term_jinja2 is not None  # TODO: add validation
+        ):
+            pass
             try:
                 is_matching = apply_jinja_template(self.filtering_term_jinja2, payload=value)
                 return is_matching.strip().lower() in ["1", "true", "ok"]
             except (JinjaTemplateError, JinjaTemplateWarning):
                 logger.error(f"channel_filter={self.id} failed to parse jinja2={self.filtering_term}")
                 return False
-        if self.filtering_term is not None:
+        if self.filtering_term is not None and self.filtering_term_type == ChannelFilter.FILTERING_TERM_TYPE_REGEX:
             try:
                 return re.search(self.filtering_term, json.dumps(value))
             except re.error:
@@ -158,13 +160,20 @@ class ChannelFilter(OrderedModel):
 
     @property
     def str_for_clients(self):
-        if self.filtering_term_jinja2 is not None:  # TODO: check validation
-            print("#############################")
+        print(f"+++++++++++{self.filtering_term_jinja2}")
+        if self.is_default:
+            return "default"
+        if (
+            self.filtering_term_type == ChannelFilter.FILTERING_TERM_TYPE_JINJA2
+            and self.filtering_term_jinja2 is not None
+        ):  # TODO: check validation
             print(str(self.filtering_term_jinja2))
             return str(self.filtering_term_jinja2)
-        if self.filtering_term is not None:
+        elif (
+            self.filtering_term_type == ChannelFilter.FILTERING_TERM_TYPE_REGEX or self.filtering_term is not None
+        ):  # Old channel filters can have filtering_term_type=Null
             return str(self.filtering_term).replace("`", "")
-        return "default"
+        return "NA"
 
     def send_demo_alert(self):
         integration = self.alert_receive_channel
