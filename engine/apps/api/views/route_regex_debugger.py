@@ -32,21 +32,16 @@ class RouteRegexDebuggerView(APIView):
         except re.error:
             raise BadRequest(detail={"regex": ["Invalid regex."]})
 
-        # Previous version did not specify alert_receive_channel and used all of them to search for alerts
-        # Keep this case for backwards compatibility for non-updated plugins
-        if alert_receive_channel_id is None:
-            alert_receive_channels_ids = list(
-                AlertReceiveChannel.objects.filter(
-                    organization_id=organization,
-                    team_id=team,
-                ).values_list("id", flat=True)
-            )
-        else:
-            alert_receive_channels_ids = list(
-                AlertReceiveChannel.objects.get(public_primary_key=alert_receive_channel_id).values_list(
-                    "id", flat=True
-                )
-            )
+        qs = AlertReceiveChannel.objects.filter(
+            organization_id=organization,
+            team_id=team,
+        )
+
+        # if alert_receive_channel_id is not set return result for all the alert receive channels
+        if alert_receive_channel_id is not None:
+            qs.get(public_primary_key=alert_receive_channel_id)
+
+        alert_receive_channels_ids = list(qs.values_list("id", flat=True))
 
         incidents_matching_regex = []
         MAX_INCIDENTS_TO_SHOW = 5
