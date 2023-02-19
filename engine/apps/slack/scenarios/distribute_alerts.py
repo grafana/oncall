@@ -81,7 +81,7 @@ class AlertShootingStep(scenario_step.ScenarioStep):
             else:
                 # check if alert group was posted to slack before posting message to thread
                 if not alert.group.skip_escalation_in_slack:
-                    # self._send_log_report_message(alert.group, channel_id)
+                    self._send_log_report_message(alert.group, channel_id)
                     self._send_message_to_thread_if_bot_not_in_channel(alert.group, channel_id)
         else:
             # check if alert group was posted to slack before updating its message
@@ -1166,7 +1166,6 @@ class UpdateLogReportMessageStep(scenario_step.ScenarioStep):
         # check how much time has passed since slack message was created
         # to prevent eternal loop of restarting update log message task
         elif timezone.now() <= slack_message.created_at + timezone.timedelta(minutes=5):
-            return
             logger.debug(
                 f"Update log message failed for alert_group {alert_group.pk}: "
                 f"log message does not exist yet. Restarting post_or_update_log_report_message_task..."
