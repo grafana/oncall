@@ -47,15 +47,6 @@ class AlertShootingStep(scenario_step.ScenarioStep):
     ]
 
     def process_signal(self, alert):
-        is_on_maintenace_mode = (
-            alert.group.channel.maintenance_mode == AlertReceiveChannel.MAINTENANCE
-            or alert.group.channel.organization.maintenance_mode == AlertReceiveChannel.MAINTENANCE
-        )
-        if is_on_maintenace_mode:
-            # if integrarion/organization on maintenace mode - no need to post alert_groups to channels
-            # TODO: centralize check of necessity to post message/log_message to chatops integrations
-            return
-
         # do not try to post alert group message to slack if its channel is rate limited
         if alert.group.channel.is_rate_limited_in_slack:
             logger.info("Skip posting or updating alert_group in Slack due to rate limit")
@@ -90,7 +81,7 @@ class AlertShootingStep(scenario_step.ScenarioStep):
             else:
                 # check if alert group was posted to slack before posting message to thread
                 if not alert.group.skip_escalation_in_slack:
-                    self._send_log_report_message(alert.group, channel_id)
+                    # self._send_log_report_message(alert.group, channel_id)
                     self._send_message_to_thread_if_bot_not_in_channel(alert.group, channel_id)
         else:
             # check if alert group was posted to slack before updating its message
@@ -669,8 +660,9 @@ class ResolveGroupStep(
         if not self.check_alert_is_unarchived(slack_team_identity, payload, alert_group):
             return
 
-        if alert_group.maintenance_uuid is None:
-
+        if alert_group.is_maintenance_incident:
+            alert_group.stop_maintenance(self.user)
+        else:
             if self.organization.is_resolution_note_required and not alert_group.has_resolution_notes:
 
                 resolution_note_data = {
@@ -684,8 +676,6 @@ class ResolveGroupStep(
                 return
 
             alert_group.resolve_by_user(self.user, action_source=ActionSource.SLACK)
-        else:
-            alert_group.stop_maintenance(self.user)
 
     def process_signal(self, log_record):
         alert_group = log_record.alert_group
@@ -1176,6 +1166,7 @@ class UpdateLogReportMessageStep(scenario_step.ScenarioStep):
         # check how much time has passed since slack message was created
         # to prevent eternal loop of restarting update log message task
         elif timezone.now() <= slack_message.created_at + timezone.timedelta(minutes=5):
+            return
             logger.debug(
                 f"Update log message failed for alert_group {alert_group.pk}: "
                 f"log message does not exist yet. Restarting post_or_update_log_report_message_task..."

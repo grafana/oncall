@@ -169,7 +169,7 @@ class AlertGroupSlackRenderer(AlertGroupBaseRenderer):
     def _get_buttons_blocks(self):
         AlertGroup = apps.get_model("alerts", "AlertGroup")
         buttons = []
-        if self.alert_group.maintenance_uuid is None:
+        if not self.alert_group.is_maintenance_incident:
             if not self.alert_group.resolved:
                 if not self.alert_group.acknowledged:
                     buttons.append(

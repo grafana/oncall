@@ -264,9 +264,8 @@ def listen_for_alert_model_save(sender, instance, created, *args, **kwargs):
     """
     Here we invoke AlertShootingStep by model saving action.
     """
-    if created:
+    if created:  # and instance.group.maintenance_uuid is None:
         # REMADE
-        # if instance.group.maintenance_uuid is None:
         # RFCT - why additinal save ?
         instance.save()
 
