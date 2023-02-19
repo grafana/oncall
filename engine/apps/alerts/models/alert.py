@@ -264,8 +264,7 @@ def listen_for_alert_model_save(sender, instance, created, *args, **kwargs):
     """
     Here we invoke AlertShootingStep by model saving action.
     """
-    if created:  # and instance.group.maintenance_uuid is None:
-        # REMADE
+    if created:
         # RFCT - why additinal save ?
         instance.save()
 
@@ -275,11 +274,10 @@ def listen_for_alert_model_save(sender, instance, created, *args, **kwargs):
             group.resolved_by_alert = instance
             group.save(update_fields=["resolved_by_alert"])
 
-        distribute_alert.apply_async((instance.pk,), countdown=TASK_DELAY_SECONDS)
-        # if settings.DEBUG:
-        #     distribute_alert(instance.pk)
-        # else:
-        #     distribute_alert.apply_async((instance.pk,), countdown=TASK_DELAY_SECONDS)
+        if settings.DEBUG:
+            distribute_alert(instance.pk)
+        else:
+            distribute_alert.apply_async((instance.pk,), countdown=TASK_DELAY_SECONDS)
 
 
 # Connect signal to  base Alert class
