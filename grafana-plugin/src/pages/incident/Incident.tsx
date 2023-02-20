@@ -18,6 +18,7 @@ import cn from 'classnames/bind';
 import { observer } from 'mobx-react';
 import moment from 'moment-timezone';
 import CopyToClipboard from 'react-copy-to-clipboard';
+import Emoji from 'react-emoji-render';
 import { RouteComponentProps, withRouter } from 'react-router-dom';
 import reactStringReplace from 'react-string-replace';
 
@@ -236,13 +237,8 @@ class IncidentPage extends React.Component<IncidentPageProps, IncidentPageState>
 
     const showLinkTo = !incident.dependent_alert_groups.length && !incident.root_alert_group && !incident.resolved;
 
-    const integrationNameWithoutEmojies =
-      incident.alert_receive_channel.verbal_name.indexOf(':') >= 0
-        ? incident.alert_receive_channel.verbal_name.substring(
-            0,
-            incident.alert_receive_channel.verbal_name.indexOf(':')
-          )
-        : incident.alert_receive_channel.verbal_name.replace(/\p{Emoji}/gu, '');
+    const integrationNameWithEmojies = <Emoji text={incident.alert_receive_channel.verbal_name} />;
+
     return (
       <Block withBackground className={cx('block')}>
         <VerticalGroup>
@@ -277,7 +273,7 @@ class IncidentPage extends React.Component<IncidentPageProps, IncidentPageState>
               <Text>
                 {showLinkTo && (
                   <IconButton
-                    name="share-alt"
+                    name="code-branch"
                     onClick={this.showAttachIncidentForm}
                     tooltip="Attach to another Alert Group"
                     className={cx('title-icon')}
@@ -315,12 +311,12 @@ class IncidentPage extends React.Component<IncidentPageProps, IncidentPageState>
                   <Tooltip
                     placement="top"
                     content={
-                      integrationNameWithoutEmojies.length > INTEGRATION_NAME_LENGTH_LIMIT
-                        ? integrationNameWithoutEmojies
+                      incident.alert_receive_channel.verbal_name.length > INTEGRATION_NAME_LENGTH_LIMIT
+                        ? integrationNameWithEmojies
                         : 'Go to Integration'
                     }
                   >
-                    <div className={cx('label-button-text')}>{integrationNameWithoutEmojies}</div>
+                    <div className={cx('label-button-text')}>{integrationNameWithEmojies}</div>
                   </Tooltip>
                 </Button>
               </PluginLink>
@@ -368,7 +364,7 @@ class IncidentPage extends React.Component<IncidentPageProps, IncidentPageState>
               })}
               <PluginBridge plugin={SupportedPlugin.Incident}>
                 <a href={incident.declare_incident_link} target="_blank" rel="noreferrer">
-                  <Button variant="primary" size="sm" icon="fire">
+                  <Button variant="secondary" size="md" icon="fire">
                     Declare incident
                   </Button>
                 </a>
