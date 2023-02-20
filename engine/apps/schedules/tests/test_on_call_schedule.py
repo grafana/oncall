@@ -965,3 +965,35 @@ def test_filter_events_none_cache_unchanged(
     events = schedule.filter_events("UTC", start_date, days=5, filter_by=OnCallSchedule.TYPE_ICAL_PRIMARY)
     expected = []
     assert events == expected
+
+
+@pytest.mark.django_db
+def test_schedules_ical_shift_cache(make_organization, make_schedule):
+    organization = make_organization()
+    schedule = make_schedule(organization, schedule_class=OnCallScheduleWeb)
+
+    # initial values are None
+    assert schedule.cached_ical_file_primary is None
+    assert schedule.cached_ical_file_overrides is None
+
+    # accessing the properties will trigger a refresh of the ical files (both empty)
+    assert schedule._ical_file_primary == ""
+    assert schedule._ical_file_overrides == ""
+
+    # after the refresh, cached values are updated
+    # (not None means no need to refresh cached value)
+    assert schedule.cached_ical_file_primary == ""
+    assert schedule.cached_ical_file_overrides == ""
+
+    # same for Terraform/API schedules
+    schedule = make_schedule(organization, schedule_class=OnCallScheduleCalendar)
+
+    # initial values is None
+    assert schedule.cached_ical_file_primary is None
+
+    # accessing the property will trigger a refresh of the ical file (empty)
+    assert schedule._ical_file_primary == ""
+
+    # after the refresh, cached value is updated
+    # (not None means no need to refresh cached value)
+    assert schedule.cached_ical_file_primary == ""
