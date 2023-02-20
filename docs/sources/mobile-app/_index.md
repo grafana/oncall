@@ -48,7 +48,7 @@ Grafana OnCall is available for Grafana Cloud and Grafana open source users.
 Mobile app download:
 
 - [Google Play Store](https://play.google.com/store/apps/details?id=com.grafana.oncall.prod)
-- Apple App Store - Coming soon
+- [Apple App Store](https://apps.apple.com/us/app/grafana-oncall-preview/id1669759048)
 
 ## Connect your Grafana OnCall account
 

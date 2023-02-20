@@ -5,14 +5,28 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## Unreleased
+## v1.1.25 (2023-02-20)
 
 ### Fixed
 
+- Fixed too long declare incident link in Slack
+
+## v1.1.24 (2023-02-16)
+
+### Added
+
+- Add direct user paging ([823](https://github.com/grafana/oncall/issues/823))
+- Add App Store link to web UI ([1328](https://github.com/grafana/oncall/pull/1328))
+
+### Fixed
+
+- Cleaning of the name "Incident" ([704](https://github.com/grafana/oncall/pull/704))
+- Alert Group/Alert Groups naming polishing. All the names should be with capital letters
 - Design polishing ([1290](https://github.com/grafana/oncall/pull/1290))
 - Not showing contact details in User tooltip if User does not have edit/admin access
+- Updated slack link account to redirect back to user profile instead of chatops
 
-### Changes
+### Changed
 
 - Incidents - Removed buttons column and replaced status with toggler ([#1237](https://github.com/grafana/oncall/issues/1237))
 - Responsiveness changes across multiple pages (Incidents, Integrations, Schedules) ([#1237](https://github.com/grafana/oncall/issues/1237))

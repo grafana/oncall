@@ -5,7 +5,7 @@ from migrator.utils import find_by_id, transform_wait_delay
 def match_escalation_policy(policy: dict, oncall_escalation_chains: list[dict]) -> None:
     oncall_escalation_chain = None
     for candidate in oncall_escalation_chains:
-        if candidate["name"] == policy["name"]:
+        if candidate["name"].lower().strip() == policy["name"].lower().strip():
             oncall_escalation_chain = candidate
 
     policy["oncall_escalation_chain"] = oncall_escalation_chain
