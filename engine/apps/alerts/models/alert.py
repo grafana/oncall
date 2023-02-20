@@ -127,29 +127,30 @@ class Alert(models.Model):
 
         alert.save()
 
-        maintenance_uuid = None
-        if alert_receive_channel.organization.maintenance_mode == AlertReceiveChannel.MAINTENANCE:
-            maintenance_uuid = alert_receive_channel.organization.maintenance_uuid
+        if group_created:
+            maintenance_uuid = None
+            if alert_receive_channel.organization.maintenance_mode == AlertReceiveChannel.MAINTENANCE:
+                maintenance_uuid = alert_receive_channel.organization.maintenance_uuid
 
-        elif alert_receive_channel.maintenance_mode == AlertReceiveChannel.MAINTENANCE:
-            maintenance_uuid = alert_receive_channel.maintenance_uuid
+            elif alert_receive_channel.maintenance_mode == AlertReceiveChannel.MAINTENANCE:
+                maintenance_uuid = alert_receive_channel.maintenance_uuid
 
-        if maintenance_uuid is not None:
-            try:
-                maintenance_incident = AlertGroup.all_objects.get(maintenance_uuid=maintenance_uuid)
-                group.root_alert_group = maintenance_incident
-                group.save(update_fields=["root_alert_group"])
-                log_record_for_root_incident = maintenance_incident.log_records.create(
-                    type=AlertGroupLogRecord.TYPE_ATTACHED, dependent_alert_group=group, reason="Attach dropdown"
-                )
-                logger.debug(
-                    f"call send_alert_group_signal for alert_group {maintenance_incident.pk} (maintenance), "
-                    f"log record {log_record_for_root_incident.pk} with type "
-                    f"'{log_record_for_root_incident.get_type_display()}'"
-                )
-                send_alert_group_signal.apply_async((log_record_for_root_incident.pk,))
-            except AlertGroup.DoesNotExist:
-                pass
+            if maintenance_uuid is not None:
+                try:
+                    maintenance_incident = AlertGroup.all_objects.get(maintenance_uuid=maintenance_uuid)
+                    group.root_alert_group = maintenance_incident
+                    group.save(update_fields=["root_alert_group"])
+                    log_record_for_root_incident = maintenance_incident.log_records.create(
+                        type=AlertGroupLogRecord.TYPE_ATTACHED, dependent_alert_group=group, reason="Attach dropdown"
+                    )
+                    logger.debug(
+                        f"call send_alert_group_signal for alert_group {maintenance_incident.pk} (maintenance), "
+                        f"log record {log_record_for_root_incident.pk} with type "
+                        f"'{log_record_for_root_incident.get_type_display()}'"
+                    )
+                    send_alert_group_signal.apply_async((log_record_for_root_incident.pk,))
+                except AlertGroup.DoesNotExist:
+                    pass
 
         return alert
 
