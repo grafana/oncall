@@ -78,11 +78,11 @@ class AlertShootingStep(scenario_step.ScenarioStep):
             elif alert.group.is_maintenance_incident:
                 # not sending log report message for maintenance incident
                 pass
-            else:
-                # check if alert group was posted to slack before posting message to thread
-                if not alert.group.skip_escalation_in_slack:
-                    self._send_log_report_message(alert.group, channel_id)
-                    self._send_message_to_thread_if_bot_not_in_channel(alert.group, channel_id)
+
+            # check if alert group was posted to slack before posting message to thread
+            if not alert.group.skip_escalation_in_slack:
+                self._send_log_report_message(alert.group, channel_id)
+                self._send_message_to_thread_if_bot_not_in_channel(alert.group, channel_id)
         else:
             # check if alert group was posted to slack before updating its message
             if not alert.group.skip_escalation_in_slack:
