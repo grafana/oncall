@@ -75,14 +75,15 @@ class AlertShootingStep(scenario_step.ScenarioStep):
 
             if is_on_debug_mode:
                 self._send_debug_mode_notice(alert.group, channel_id)
-            elif alert.group.is_maintenance_incident:
+
+            if alert.group.is_maintenance_incident:
                 # not sending log report message for maintenance incident
                 pass
-
-            # check if alert group was posted to slack before posting message to thread
-            if not alert.group.skip_escalation_in_slack:
-                self._send_log_report_message(alert.group, channel_id)
-                self._send_message_to_thread_if_bot_not_in_channel(alert.group, channel_id)
+            else:
+                # check if alert group was posted to slack before posting message to thread
+                if not alert.group.skip_escalation_in_slack:
+                    self._send_log_report_message(alert.group, channel_id)
+                    self._send_message_to_thread_if_bot_not_in_channel(alert.group, channel_id)
         else:
             # check if alert group was posted to slack before updating its message
             if not alert.group.skip_escalation_in_slack:
@@ -663,6 +664,7 @@ class ResolveGroupStep(
         if alert_group.is_maintenance_incident:
             alert_group.stop_maintenance(self.user)
         else:
+            # TODO: refactor that check, it should be in alert core, not in slack.
             if self.organization.is_resolution_note_required and not alert_group.has_resolution_notes:
 
                 resolution_note_data = {
