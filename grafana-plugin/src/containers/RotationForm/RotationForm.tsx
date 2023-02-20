@@ -1,6 +1,15 @@
 import React, { FC, useCallback, useEffect, useMemo, useState } from 'react';
 
-import { IconButton, VerticalGroup, HorizontalGroup, Field, Button, Select, InlineSwitch } from '@grafana/ui';
+import {
+  IconButton,
+  VerticalGroup,
+  HorizontalGroup,
+  Field,
+  Button,
+  Select,
+  InlineSwitch,
+  Modal as GrafanaModal,
+} from '@grafana/ui';
 import cn from 'classnames/bind';
 import dayjs from 'dayjs';
 import { observer } from 'mobx-react';
@@ -9,7 +18,6 @@ import Draggable from 'react-draggable';
 import Modal from 'components/Modal/Modal';
 import Text from 'components/Text/Text';
 import UserGroups from 'components/UserGroups/UserGroups';
-import WithConfirm from 'components/WithConfirm/WithConfirm';
 import WorkingHours from 'components/WorkingHours/WorkingHours';
 import RemoteSelect from 'containers/RemoteSelect/RemoteSelect';
 import { getFromString } from 'models/schedule/schedule.helpers';
@@ -72,6 +80,7 @@ const RotationForm: FC<RotationFormProps> = observer((props) => {
   const [rotationStart, setRotationStart] = useState<dayjs.Dayjs>(shiftMoment);
   const [endLess, setEndless] = useState<boolean>(true);
   const [rotationEnd, setRotationEnd] = useState<dayjs.Dayjs>(shiftMoment.add(1, 'month'));
+  const [showDeleteRotationConfirmation, setShowDeleteRotationConfirmation] = useState<boolean>(false);
 
   const store = useStore();
   const shift = store.scheduleStore.shifts[shiftId];
@@ -278,9 +287,12 @@ const RotationForm: FC<RotationFormProps> = observer((props) => {
           </Text>
           <HorizontalGroup>
             {shiftId !== 'new' && (
-              <WithConfirm>
-                <IconButton variant="secondary" tooltip="Delete" name="trash-alt" onClick={handleDeleteClick} />
-              </WithConfirm>
+              <IconButton
+                variant="secondary"
+                tooltip="Delete"
+                name="trash-alt"
+                onClick={() => setShowDeleteRotationConfirmation(true)}
+              />
             )}
             <IconButton variant="secondary" className={cx('drag-handler')} name="draggabledots" />
           </HorizontalGroup>
@@ -410,6 +422,33 @@ const RotationForm: FC<RotationFormProps> = observer((props) => {
           </HorizontalGroup>
         </HorizontalGroup>
       </VerticalGroup>
+      {showDeleteRotationConfirmation && (
+        <GrafanaModal
+          isOpen
+          onDismiss={() => setShowDeleteRotationConfirmation(false)}
+          title="Delete rotation"
+          className={cx('confirmation-modal')}
+        >
+          <VerticalGroup spacing="lg">
+            <Text type="secondary">
+              This action will delete all shifts in the rotation which are greater than current timestamp.
+            </Text>
+            <Text type="secondary">
+              All past shifts will remain in the schedule for history reasons because there were events during this
+              period.
+            </Text>
+
+            <HorizontalGroup justify="flex-end">
+              <Button variant="secondary" onClick={() => setShowDeleteRotationConfirmation(false)}>
+                Cancel
+              </Button>
+              <Button variant="destructive" onClick={handleDeleteClick}>
+                Delete
+              </Button>
+            </HorizontalGroup>
+          </VerticalGroup>
+        </GrafanaModal>
+      )}
     </Modal>
   );
 });
