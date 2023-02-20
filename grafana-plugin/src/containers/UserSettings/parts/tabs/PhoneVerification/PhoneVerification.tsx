@@ -116,7 +116,7 @@ const PhoneVerification = observer((props: PhoneVerificationProps) => {
         })
         .catch(() => {
           openErrorNotification(
-            "Can't send SMS code. Please try other phone number formats. Don't forget the country code!"
+            "We are unable to verify your phone number due to the incorrect number or service is temporary unavailable"
           );
         });
     }
