@@ -244,21 +244,12 @@ class EscalationSnapshotMixin:
         :type self:AlertGroup
         """
         AlertGroup = apps.get_model("alerts", "AlertGroup")
-        AlertReceiveChannel = apps.get_model("alerts", "AlertReceiveChannel")
 
-        is_on_maintenace_mode = (
-            self.channel.maintenance_mode == AlertReceiveChannel.MAINTENANCE
-            or self.channel.organization.maintenance_mode == AlertReceiveChannel.MAINTENANCE
+        is_on_maintenace_or_debug_mode = (
+            self.channel.maintenance_mode is not None or self.channel.organization.maintenance_mode is not None
         )
-        if is_on_maintenace_mode:
+        if is_on_maintenace_or_debug_mode:
             return
-        is_on_debug_mode = (
-            self.channel.maintenance_mode == AlertReceiveChannel.DEBUG_MAINTENANCE
-            or self.channel.organization.maintenance_mode == AlertReceiveChannel.DEBUG_MAINTENANCE
-        )
-        if is_on_debug_mode:
-            return
-
         if self.pause_escalation:
             return
 

@@ -12,33 +12,25 @@ from .task_logger import task_logger
 )
 def send_update_log_report_signal(log_record_pk=None, alert_group_pk=None):
     AlertGroup = apps.get_model("alerts", "AlertGroup")
-    AlertReceiveChannel = apps.get_model("alerts", "AlertReceiveChannel")
 
     if alert_group_pk is not None:
         alert_group = AlertGroup.all_objects.get(id=alert_group_pk)
         if alert_group.is_maintenance_incident:
             task_logger.debug(
-                f'send_update_log_report_signal: alert_group={alert_group_pk} msg="skip alert_group_update_log_report_signal alert group is maintenance incident "'
+                f'send_update_log_report_signal: alert_group={alert_group_pk} msg="skip alert_group_update_log_report_signal, alert group is maintenance incident "'
             )
             return
-        is_on_maintenace_mode = (
-            alert_group.channel.maintenance_mode == AlertReceiveChannel.MAINTENANCE
-            or alert_group.channel.organization.maintenance_mode == AlertReceiveChannel.MAINTENANCE
+
+        is_on_maintenace_or_debug_mode = (
+            alert_group.channel.maintenance_mode is not None
+            or alert_group.channel.organization.maintenance_mode is not None
         )
-        if is_on_maintenace_mode:
+        if is_on_maintenace_or_debug_mode:
             task_logger.debug(
                 f'send_update_log_report_signal: alert_group={alert_group_pk} msg="skip alert_group_update_log_report_signal due to maintenace"'
             )
             return
-        is_on_debug_mode = (
-            alert_group.channel.maintenance_mode == AlertReceiveChannel.DEBUG_MAINTENANCE
-            or alert_group.channel.organization.maintenance_mode == AlertReceiveChannel.DEBUG_MAINTENANCE
-        )
-        if is_on_debug_mode:
-            task_logger.debug(
-                f'send_update_log_report_signal: alert_group={alert_group_pk} msg="skip alert_group_update_log_report_signal due to debug"'
-            )
-            return
+
         alert_group_update_log_report_signal.send(
             sender=send_update_log_report_signal,
             alert_group=alert_group_pk,

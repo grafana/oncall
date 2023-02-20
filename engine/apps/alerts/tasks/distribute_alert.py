@@ -22,9 +22,9 @@ def distribute_alert(alert_id):
     task_logger.debug(f"Start distribute_alert for alert {alert_id} from alert_group {alert.group_id}")
 
     send_alert_create_signal.apply_async((alert_id,))
+    # If it's the first alert, let's launch the escalation!
     if alert.is_the_first_alert_in_group:
         alert_group = AlertGroup.all_objects.filter(pk=alert.group_id).get()
-        # If it's the first alert, let's launch the escalation!
         alert_group.start_escalation_if_needed(countdown=TASK_DELAY_SECONDS)
 
     updated_rows = Alert.objects.filter(pk=alert_id, delivered=True).update(delivered=True)
@@ -37,7 +37,7 @@ def distribute_alert(alert_id):
 
 
 @shared_dedicated_queue_retry_task(
-    autoretry_for=(Exception,), retry_backoff=True, max_retries=5 if settings.DEBUG else None
+    autoretry_for=(Exception,), retry_backoff=True, max_retries=1 if settings.DEBUG else None
 )
 def send_alert_create_signal(alert_id):
     Alert = apps.get_model("alerts", "Alert")
