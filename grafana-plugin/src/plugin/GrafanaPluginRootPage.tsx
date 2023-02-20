@@ -19,7 +19,6 @@ import { AppRootProps } from 'types';
 
 import Unauthorized from 'components/Unauthorized';
 import DefaultPageLayout from 'containers/DefaultPageLayout/DefaultPageLayout';
-import grafanaGlobalStyle from '!raw-loader!img/grafanaGlobalStyles.css';
 import { getMatchedPage, getRoutesForPage, pages } from 'pages';
 import NoMatch from 'pages/NoMatch';
 import EscalationChains from 'pages/escalation-chains/EscalationChains';
@@ -59,6 +58,8 @@ import 'style/responsive.css';
 
 import { getQueryParams, isTopNavbar } from './GrafanaPluginRootPage.helpers';
 import PluginSetup from './PluginSetup';
+
+import grafanaGlobalStyle from '!raw-loader!img/grafanaGlobalStyles.css';
 
 export const GrafanaPluginRootPage = (props: AppRootProps) => {
   return (
