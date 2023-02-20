@@ -116,7 +116,7 @@ const PhoneVerification = observer((props: PhoneVerificationProps) => {
         })
         .catch(() => {
           openErrorNotification(
-            "Can't send SMS code. Please try other phone number formats. Don't forget the country code!"
+            'Grafana OnCall is unable to verify your phone number due to incorrect number or verification service being unavailable.'
           );
         });
     }
