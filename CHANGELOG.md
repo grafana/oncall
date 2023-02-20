@@ -24,9 +24,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Incidents - Removed buttons column and replaced status with toggler ([#1237](https://github.com/grafana/oncall/issues/1237))
 - Responsiveness changes across multiple pages (Incidents, Integrations, Schedules) ([#1237](https://github.com/grafana/oncall/issues/1237))
-- Link to source was added ([1305](https://github.com/grafana/oncall-private/issues/1305))
+- Link to source was added
 - Header of Incident page was reworked: clickable labels instead of just names, users section was deleted
-- Go to Integration button was deleted, because the functionality moved to clickable labels
+- "Go to Integration" button was deleted, because the functionality was moved to clickable labels
 
 ## v1.1.23 (2023-02-06)
 
