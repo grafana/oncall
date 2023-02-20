@@ -17,37 +17,15 @@ def distribute_alert(alert_id):
     """
     Alert = apps.get_model("alerts", "Alert")
     AlertGroup = apps.get_model("alerts", "AlertGroup")
-    AlertReceiveChannel = apps.get_model("alerts", "AlertReceiveChannel")
 
     alert = Alert.objects.get(pk=alert_id)
-    alert_group = AlertGroup.all_objects.filter(pk=alert.group_id).get()
     task_logger.debug(f"Start distribute_alert for alert {alert_id} from alert_group {alert.group_id}")
 
-    is_on_maintenace_mode = (
-        alert_group.channel.maintenance_mode == AlertReceiveChannel.MAINTENANCE
-        or alert_group.channel.organization.maintenance_mode == AlertReceiveChannel.MAINTENANCE
-    )
-    is_on_debug_mode = (
-        alert_group.channel.maintenance_mode == AlertReceiveChannel.DEBUG_MAINTENANCE
-        or alert_group.channel.organization.maintenance_mode == AlertReceiveChannel.DEBUG_MAINTENANCE
-    )
-    if is_on_maintenace_mode:
-        task_logger.debug(
-            f'distribute_alert: alert_id={alert_id} alert_group={alert.group_id} msg="skip create_alert_signal due to maintenace mode"'
-        )
-        task_logger.debug(
-            f'distribute_alert: alert_id={alert_id} alert_group={alert.group_id} msg="skip escalation due to maintenace mode"'
-        )
-    elif is_on_debug_mode:
-        task_logger.debug(
-            f'distribute_alert: alert_id={alert_id} alert_group={alert.group_id} msg="skip escalation due to debug mode"'
-        )
-        send_alert_create_signal.apply_async((alert_id,))
-    else:
-        send_alert_create_signal.apply_async((alert_id,))
-        if alert.is_the_first_alert_in_group:
-            # If it's the first alert, let's launch the escalation!
-            alert_group.start_escalation_if_needed(countdown=TASK_DELAY_SECONDS)
+    send_alert_create_signal.apply_async((alert_id,))
+    if alert.is_the_first_alert_in_group:
+        alert_group = AlertGroup.all_objects.filter(pk=alert.group_id).get()
+        # If it's the first alert, let's launch the escalation!
+        alert_group.start_escalation_if_needed(countdown=TASK_DELAY_SECONDS)
 
     updated_rows = Alert.objects.filter(pk=alert_id, delivered=True).update(delivered=True)
     if updated_rows != 1:
@@ -62,9 +40,18 @@ def distribute_alert(alert_id):
     autoretry_for=(Exception,), retry_backoff=True, max_retries=5 if settings.DEBUG else None
 )
 def send_alert_create_signal(alert_id):
+    Alert = apps.get_model("alerts", "Alert")
+    AlertReceiveChannel = apps.get_model("alerts", "AlertReceiveChannel")
+
     task_logger.debug(f"Started send_alert_create_signal task  for alert {alert_id}")
-    alert_create_signal.send(
-        sender=send_alert_create_signal,
-        alert=alert_id,
+    alert = Alert.objects.get(pk=alert_id)
+    is_on_maintenace_mode = (
+        alert.alert_group.channel.maintenance_mode == AlertReceiveChannel.MAINTENANCE
+        or alert.alert_group.channel.organization.maintenance_mode == AlertReceiveChannel.MAINTENANCE
     )
+    if not is_on_maintenace_mode:
+        alert_create_signal.send(
+            sender=send_alert_create_signal,
+            alert=alert_id,
+        )
     task_logger.debug(f"Finished send_alert_create_signal task for alert {alert_id} ")
