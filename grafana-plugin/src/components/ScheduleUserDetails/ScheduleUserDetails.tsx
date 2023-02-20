@@ -37,8 +37,8 @@ const ScheduleUserDetails: FC<ScheduleUserDetailsProps> = (props) => {
   const colorSchemeList = Array.from(colorSchemeMapping[user.pk] || []);
 
   const { teamStore } = store;
-
   const slackWorkspaceName = teamStore.currentTeam.slack_team_identity?.cached_name?.replace(/[^0-9a-z]/gi, '') || '';
+
   return (
     <div className={cx('root')}>
       <VerticalGroup spacing="xs">

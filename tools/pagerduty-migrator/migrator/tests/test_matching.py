@@ -1560,6 +1560,14 @@ def test_match_user():
     assert pd_users_payload == expected_users_match_result
 
 
+def test_match_user_not_found():
+    pd_user = {"email": "test@test.com"}
+    oncall_users = [{"email": "test1@test.com"}]
+
+    match_user(pd_user, oncall_users)
+    assert pd_user["oncall_user"] is None
+
+
 def test_match_schedule():
     for schedule in pd_schedules_payload:
         match_schedule(schedule, oncall_schedules_payload)
