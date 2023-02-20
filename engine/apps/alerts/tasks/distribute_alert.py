@@ -31,20 +31,24 @@ def distribute_alert(alert_id):
         alert_group.channel.maintenance_mode == AlertReceiveChannel.DEBUG_MAINTENANCE
         or alert_group.channel.organization.maintenance_mode == AlertReceiveChannel.DEBUG_MAINTENANCE
     )
-    if not is_on_maintenace_mode:
-        send_alert_create_signal.apply_async((alert_id,))
-    else:
+    if is_on_maintenace_mode:
         task_logger.debug(
-            f'distribute_alert: alert_id={alert_id} alert_group={alert.group_id} msg="skip create_alert_singnal due to maintenace mode"'
+            f'distribute_alert: alert_id={alert_id} alert_group={alert.group_id} msg="skip create_alert_signal due to maintenace mode"'
         )
-    if not is_on_debug_mode:
-        if alert.is_the_first_alert_in_group:
-            # If it's the first alert, let's launch the escalation!
-            alert_group.start_escalation_if_needed(countdown=TASK_DELAY_SECONDS)
-    else:
+        task_logger.debug(
+            f'distribute_alert: alert_id={alert_id} alert_group={alert.group_id} msg="skip escalation due to maintenace mode"'
+        )
+    elif is_on_debug_mode:
         task_logger.debug(
             f'distribute_alert: alert_id={alert_id} alert_group={alert.group_id} msg="skip escalation due to debug mode"'
         )
+        send_alert_create_signal.apply_async((alert_id,))
+    else:
+        send_alert_create_signal.apply_async((alert_id,))
+        if alert.is_the_first_alert_in_group:
+            # If it's the first alert, let's launch the escalation!
+            alert_group.start_escalation_if_needed(countdown=TASK_DELAY_SECONDS)
+
     updated_rows = Alert.objects.filter(pk=alert_id, delivered=True).update(delivered=True)
     if updated_rows != 1:
         task_logger.critical(
@@ -55,7 +59,7 @@ def distribute_alert(alert_id):
 
 
 @shared_dedicated_queue_retry_task(
-    autoretry_for=(Exception,), retry_backoff=True, max_retries=0 if settings.DEBUG else None
+    autoretry_for=(Exception,), retry_backoff=True, max_retries=5 if settings.DEBUG else None
 )
 def send_alert_create_signal(alert_id):
     task_logger.debug(f"Started send_alert_create_signal task  for alert {alert_id}")
