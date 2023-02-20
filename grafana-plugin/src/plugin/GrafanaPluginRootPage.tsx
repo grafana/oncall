@@ -146,7 +146,7 @@ export const Root = observer((props: AppRootProps) => {
               <EscalationChains />
             </Route>
             <Route path={getRoutesForPage('schedules')} exact>
-              <Schedules />
+              <Schedules query={query} />
             </Route>
             <Route path={getRoutesForPage('schedule')} exact>
               <Schedule />
