@@ -116,7 +116,7 @@ const PhoneVerification = observer((props: PhoneVerificationProps) => {
         })
         .catch(() => {
           openErrorNotification(
-            "We are unable to verify your phone number due to the incorrect number or service is temporary unavailable"
+            'Grafana OnCall is unable to verify your phone number due to incorrect number or verification service being unavailable.'
           );
         });
     }
