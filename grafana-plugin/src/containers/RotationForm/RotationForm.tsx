@@ -430,8 +430,10 @@ const RotationForm: FC<RotationFormProps> = observer((props) => {
           className={cx('confirmation-modal')}
         >
           <VerticalGroup spacing="lg">
-            <Text>This action will delete all shifts in the rotation which are greater than current timestamp.</Text>
-            <Text>
+            <Text type="secondary">
+              This action will delete all shifts in the rotation which are greater than current timestamp.
+            </Text>
+            <Text type="secondary">
               All past shifts will remain in the schedule for history reasons because there were events during this
               period.
             </Text>
