@@ -52,14 +52,7 @@ class OnCallGatewayAPIClient:
     def delete_oncall_connector(self, oncall_org_id: str) -> requests.models.Response:
         url = urljoin(f"{self._oncall_connectors_url}/", oncall_org_id)
         response = self._delete(url=url)
-        response_data = response.json()
-        return (
-            OnCallConnector(
-                response_data["oncall_org_id"],
-                response_data["backend"],
-            ),
-            response,
-        )
+        return response
 
     # Slack Connector
     @property
