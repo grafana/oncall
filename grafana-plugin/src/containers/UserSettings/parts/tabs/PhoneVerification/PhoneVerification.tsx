@@ -12,6 +12,7 @@ import { AppFeature } from 'state/features';
 import { useStore } from 'state/useStore';
 import { openErrorNotification } from 'utils';
 import { isUserActionAllowed, UserAction, UserActions } from 'utils/authorization';
+import { reCAPTCHA_site_key } from 'utils/consts';
 
 import styles from './PhoneVerification.module.css';
 
@@ -99,26 +100,30 @@ const PhoneVerification = observer((props: PhoneVerificationProps) => {
           openErrorNotification(error.response.data);
         });
     } else {
-      await userStore.updateUser({
-        pk: userPk,
-        email: user.email,
-        unverified_phone_number: phone,
-      });
+      window.grecaptcha.ready(function () {
+        window.grecaptcha.execute(reCAPTCHA_site_key, { action: 'fetchVerificationCode' }).then(async function (token) {
+          await userStore.updateUser({
+            pk: userPk,
+            email: user.email,
+            unverified_phone_number: phone,
+          });
 
-      userStore
-        .fetchVerificationCode(userPk)
-        .then(() => {
-          setState({ isCodeSent: true });
+          userStore
+            .fetchVerificationCode(userPk, token)
+            .then(() => {
+              setState({ isCodeSent: true });
 
-          if (codeInputRef.current) {
-            codeInputRef.current.focus();
-          }
-        })
-        .catch(() => {
-          openErrorNotification(
-            'Grafana OnCall is unable to verify your phone number due to incorrect number or verification service being unavailable.'
-          );
+              if (codeInputRef.current) {
+                codeInputRef.current.focus();
+              }
+            })
+            .catch(() => {
+              openErrorNotification(
+                'Grafana OnCall is unable to verify your phone number due to incorrect number or verification service being unavailable.'
+              );
+            });
         });
+      });
     }
   }, [
     code,
@@ -200,7 +205,6 @@ const PhoneVerification = observer((props: PhoneVerificationProps) => {
             />
           </WithPermissionControl>
         </Field>
-
         {!user.verified_phone_number && (
           <Input
             ref={codeInputRef}
@@ -211,7 +215,20 @@ const PhoneVerification = observer((props: PhoneVerificationProps) => {
             className={cx('phone__field')}
           />
         )}
-
+        <HorizontalGroup spacing="xs">
+          <Icon name="info-circle" />
+          <Text type="secondary">
+            This site is protected by reCAPTCHA and the Google{' '}
+            <a href="https://policies.google.com/privacy">
+              <Text type="link">Privacy Policy</Text>
+            </a>{' '}
+            and{' '}
+            <a href="https://policies.google.com/terms">
+              <Text type="link">Terms of Service </Text>
+            </a>{' '}
+            apply.
+          </Text>
+        </HorizontalGroup>
         {showToggle && (
           <div className={cx('switch')}>
             <div className={cx('switch__icon')}>

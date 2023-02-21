@@ -233,9 +233,10 @@ export class UserStore extends BaseStore {
   }
 
   @action
-  async fetchVerificationCode(userPk: User['pk']) {
+  async fetchVerificationCode(userPk: User['pk'], recaptchaToken: string) {
     await makeRequest(`/users/${userPk}/get_verification_code/`, {
       method: 'GET',
+      headers: { 'X-OnCall-Recaptcha': recaptchaToken },
     });
   }
 
