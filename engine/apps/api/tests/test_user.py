@@ -14,6 +14,12 @@ from apps.base.models import UserNotificationPolicy
 from apps.user_management.models.user import default_working_hours
 
 
+@pytest.fixture(autouse=True)
+def clear_cache():
+    # Ratelimit keys are stored in cache, clean to prevent ratelimits
+    cache.clear()
+
+
 @pytest.mark.django_db
 def test_update_user(
     make_organization,
@@ -654,7 +660,6 @@ def test_admin_can_verify_own_phone(
     make_user_auth_headers,
 ):
     _, user, token = make_organization_and_user_with_plugin_token(role=LegacyAccessControlRole.ADMIN)
-
     client = APIClient()
     url = reverse("api-internal:user-verify-number", kwargs={"pk": user.public_primary_key})
 
@@ -1519,7 +1524,6 @@ def test_phone_number_verification_flow_ratelimit_per_user(
     make_user_auth_headers,
 ):
     _, user, token = make_organization_and_user_with_plugin_token()
-    cache.clear()
 
     client = APIClient()
     url = reverse("api-internal:user-get-verification-code", kwargs={"pk": user.public_primary_key})
@@ -1568,7 +1572,6 @@ def test_phone_number_verification_flow_ratelimit_per_org(
     """
     _, user, token = make_organization_and_user_with_plugin_token()
     second_user = make_user_for_organization(make_user_for_organization)
-    cache.clear()
 
     client = APIClient()
 
