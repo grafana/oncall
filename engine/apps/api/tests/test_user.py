@@ -1510,10 +1510,10 @@ def test_check_availability_other_user(make_organization_and_user_with_plugin_to
 @patch("apps.twilioapp.phone_manager.PhoneManager.send_verification_code", return_value=Mock())
 @patch("apps.twilioapp.phone_manager.PhoneManager.verify_phone_number", return_value=(True, None))
 @patch(
-    "apps.api.throttlers.GetPhoneVerificationCodeThrottlerPerUser.get_throttle_limits ",
+    "apps.api.throttlers.GetPhoneVerificationCodeThrottlerPerUser.get_throttle_limits",
     return_value=(1, 10 * 60),
 )
-@patch("apps.api.throttlers.VerifyPhoneNumberThrottlerPerUser.get_throttle_limits ", return_value=(1, 10 * 60))
+@patch("apps.api.throttlers.VerifyPhoneNumberThrottlerPerUser.get_throttle_limits", return_value=(1, 10 * 60))
 @pytest.mark.django_db
 def test_phone_number_verification_flow_ratelimit_per_user(
     moch_get_phone_verify_phone_number_limits,
@@ -1552,10 +1552,10 @@ def test_phone_number_verification_flow_ratelimit_per_user(
 @patch("apps.twilioapp.phone_manager.PhoneManager.send_verification_code", return_value=Mock())
 @patch("apps.twilioapp.phone_manager.PhoneManager.verify_phone_number", return_value=(True, None))
 @patch(
-    "apps.api.throttlers.GetPhoneVerificationCodeThrottlerPerOrg.get_throttle_limits ",
+    "apps.api.throttlers.GetPhoneVerificationCodeThrottlerPerOrg.get_throttle_limits",
     return_value=(1, 10 * 60),
 )
-@patch("apps.api.throttlers.VerifyPhoneNumberThrottlerPerOrg.get_throttle_limits ", return_value=(1, 10 * 60))
+@patch("apps.api.throttlers.VerifyPhoneNumberThrottlerPerOrg.get_throttle_limits", return_value=(1, 10 * 60))
 @pytest.mark.django_db
 def test_phone_number_verification_flow_ratelimit_per_org(
     moch_get_phone_verify_phone_number_limits,
