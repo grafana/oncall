@@ -1516,10 +1516,10 @@ def test_check_availability_other_user(make_organization_and_user_with_plugin_to
 @patch("apps.api.throttlers.VerifyPhoneNumberThrottlerPerUser.get_throttle_limits", return_value=(1, 10 * 60))
 @pytest.mark.django_db
 def test_phone_number_verification_flow_ratelimit_per_user(
-    moch_get_phone_verify_phone_number_limits,
-    moch_get_phone_verification_code_get_throttle_limits,
-    mocked_verification_check,
     mock_verification_start,
+    mocked_verification_check,
+    mocked_get_phone_verification_code_get_throttle_limits,
+    mocked_get_phone_verify_phone_number_limits,
     make_organization_and_user_with_plugin_token,
     make_user_auth_headers,
 ):
@@ -1558,10 +1558,10 @@ def test_phone_number_verification_flow_ratelimit_per_user(
 @patch("apps.api.throttlers.VerifyPhoneNumberThrottlerPerOrg.get_throttle_limits", return_value=(1, 10 * 60))
 @pytest.mark.django_db
 def test_phone_number_verification_flow_ratelimit_per_org(
-    moch_get_phone_verify_phone_number_limits,
-    moch_get_phone_verification_code_get_throttle_limits,
-    mocked_verification_check,
     mock_verification_start,
+    mocked_verification_check,
+    mocked_get_phone_verification_code_get_throttle_limits,
+    mocked_get_phone_verify_phone_number_limits,
     make_organization_and_user_with_plugin_token,
     make_user_auth_headers,
     make_user_for_organization,
