@@ -1515,7 +1515,6 @@ def test_check_availability_other_user(make_organization_and_user_with_plugin_to
     return_value=(1, 10 * 60),
 )
 @patch("apps.api.throttlers.VerifyPhoneNumberThrottlerPerUser.get_throttle_limits", return_value=(1, 10 * 60))
-@override_settings(DRF_RECAPTCHA_TESTING_PASS=True)
 @pytest.mark.django_db
 def test_phone_number_verification_flow_ratelimit_per_user(
     mock_verification_start,
@@ -1558,7 +1557,6 @@ def test_phone_number_verification_flow_ratelimit_per_user(
     return_value=(1, 10 * 60),
 )
 @patch("apps.api.throttlers.VerifyPhoneNumberThrottlerPerOrg.get_throttle_limits", return_value=(1, 10 * 60))
-@override_settings(DRF_RECAPTCHA_TESTING_PASS=True)
 @pytest.mark.django_db
 def test_phone_number_verification_flow_ratelimit_per_org(
     mock_verification_start,
