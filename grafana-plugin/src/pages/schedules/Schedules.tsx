@@ -252,7 +252,7 @@ class SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSta
         store.scheduleStore.updateEvents(scheduleId, startMoment, 'final'),
       ]).then(() => {
         if (setMaxWithAfterUpdate) {
-          this.debouncedResize();
+          this.onResize();
         }
       });
     });
