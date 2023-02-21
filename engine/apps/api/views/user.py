@@ -298,6 +298,8 @@ class UserView(
     )
     def get_verification_code(self, request, pk):
         if not settings.OSS_INSTALLATION:
+            logger.info("Validating reCAPTCHA code")
+
             serializer = MobileVerificationCodeRecaptchaSerializer(
                 data={"recaptcha": request.headers["X-OnCall-Recaptcha"]},
                 context={"request": request},
@@ -306,6 +308,7 @@ class UserView(
             if not serializer.is_valid():
                 logger.warning(f"Invalid reCAPTCHA validation: {serializer.fields['recaptcha']}")
                 return Response(status=status.HTTP_400_BAD_REQUEST)
+            logger.info("reCAPTCHA code is valid")
 
         user = self.get_object()
         phone_manager = PhoneManager(user)
