@@ -1504,10 +1504,13 @@ def test_check_availability_other_user(make_organization_and_user_with_plugin_to
 
 @patch("apps.twilioapp.phone_manager.PhoneManager.send_verification_code", return_value=Mock())
 @patch("apps.twilioapp.phone_manager.PhoneManager.verify_phone_number", return_value=(True, None))
-@patch("apps.api.apps.api.throttlers.GetPhoneVerificationCodeThrottler.get_throttle_limits ", return_value=(1, 10 * 60))
-@patch("apps.api.apps.api.throttlers.VerifyPhoneNumberThrottler.get_throttle_limits ", return_value=(1, 10 * 60))
+@patch(
+    "apps.api.apps.api.throttlers.GetPhoneVerificationCodeThrottlerPerUser.get_throttle_limits ",
+    return_value=(1, 10 * 60),
+)
+@patch("apps.api.apps.api.throttlers.VerifyPhoneNumberThrottlerPerUser.get_throttle_limits ", return_value=(1, 10 * 60))
 @pytest.mark.django_db
-def test_phone_number_verification_flow_ratelimit(
+def test_phone_number_verification_flow_ratelimit_per_user(
     moch_get_phone_verify_phone_number_limits,
     moch_get_phone_verification_code_get_throttle_limits,
     mocked_verification_check,
@@ -1539,4 +1542,48 @@ def test_phone_number_verification_flow_ratelimit(
 
     # second verify_number request is succesfull, because it ratelimited
     response = client.put(f"{url}?token=12345", format="json", **make_user_auth_headers(user, token))
+    assert response.status_code == status.HTTP_429_TOO_MANY_REQUESTS
+
+
+@patch("apps.twilioapp.phone_manager.PhoneManager.send_verification_code", return_value=Mock())
+@patch("apps.twilioapp.phone_manager.PhoneManager.verify_phone_number", return_value=(True, None))
+@patch(
+    "apps.api.apps.api.throttlers.GetPhoneVerificationCodeThrottlerPerOrg.get_throttle_limits ",
+    return_value=(1, 10 * 60),
+)
+@patch("apps.api.apps.api.throttlers.VerifyPhoneNumberThrottlerPerOrg.get_throttle_limits ", return_value=(1, 10 * 60))
+@pytest.mark.django_db
+def test_phone_number_verification_flow_ratelimit_per_org(
+    moch_get_phone_verify_phone_number_limits,
+    moch_get_phone_verification_code_get_throttle_limits,
+    mocked_verification_check,
+    mock_verification_start,
+    make_organization_and_user_with_plugin_token,
+    make_user_auth_headers,
+    make_user_for_organization,
+):
+    """
+    This test is checks per-org ratelimits for phone verification flow.
+    It makes two get_verification_code and two verify_number requests from different users and expect that second call will be ratelimited.
+    """
+    _, user, token = make_organization_and_user_with_plugin_token()
+    second_user = make_user_for_organization(make_user_for_organization)
+    cache.clear()
+
+    client = APIClient()
+
+    url = reverse("api-internal:user-get-verification-code", kwargs={"pk": user.public_primary_key})
+    response = client.get(url, format="json", **make_user_auth_headers(user, token))
+    assert response.status_code == status.HTTP_200_OK
+
+    url = reverse("api-internal:user-get-verification-code", kwargs={"pk": second_user.public_primary_key})
+    response = client.get(url, format="json", **make_user_auth_headers(second_user, token))
+    assert response.status_code == status.HTTP_429_TOO_MANY_REQUESTS
+
+    url = reverse("api-internal:user-verify-number", kwargs={"pk": user.public_primary_key})
+    response = client.put(f"{url}?token=12345", format="json", **make_user_auth_headers(user, token))
+    assert response.status_code == status.HTTP_200_OK
+
+    url = reverse("api-internal:user-verify-number", kwargs={"pk": second_user.public_primary_key})
+    response = client.put(f"{url}?token=12345", format="json", **make_user_auth_headers(second_user, token))
     assert response.status_code == status.HTTP_429_TOO_MANY_REQUESTS
