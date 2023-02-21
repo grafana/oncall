@@ -1596,12 +1596,20 @@ def test_phone_number_verification_flow_ratelimit_per_org(
 
 
 @patch("apps.twilioapp.phone_manager.PhoneManager.send_verification_code", return_value=True)
-@override_settings(DRF_RECAPTCHA_TESTING_PASS=True)
+@pytest.mark.parametrize(
+    "recaptcha_testing_pass,expected_status",
+    [
+        (True, status.HTTP_200_OK),
+        (False, status.HTTP_400_BAD_REQUEST),
+    ],
+)
 @pytest.mark.django_db
-def test_phone_number_verification_recaptcha_success(
+def test_phone_number_verification_recaptcha(
     mock_verification_start,
     make_organization_and_user_with_plugin_token,
     make_user_auth_headers,
+    recaptcha_testing_pass,
+    expected_status,
 ):
     _, user, token = make_organization_and_user_with_plugin_token()
 
@@ -1611,29 +1619,12 @@ def test_phone_number_verification_recaptcha_success(
 
     url = reverse("api-internal:user-get-verification-code", kwargs={"pk": user.public_primary_key})
 
-    response = client.get(url, format="json", **request_headers)
-    assert response.status_code == status.HTTP_200_OK
+    with override_settings(DRF_RECAPTCHA_TESTING_PASS=recaptcha_testing_pass):
+        response = client.get(url, format="json", **request_headers)
 
-    mock_verification_start.assert_called_once_with()
+    assert response.status_code == expected_status
 
-
-@patch("apps.twilioapp.phone_manager.PhoneManager.send_verification_code", return_value=True)
-@override_settings(DRF_RECAPTCHA_TESTING_PASS=False)
-@pytest.mark.django_db
-def test_phone_number_verification_recaptcha_failure(
-    mock_verification_start,
-    make_organization_and_user_with_plugin_token,
-    make_user_auth_headers,
-):
-    _, user, token = make_organization_and_user_with_plugin_token()
-
-    recaptcha_token = "asdasdfasdf"
-    client = APIClient()
-    request_headers = {"HTTP_X-OnCall-Recaptcha": recaptcha_token, **make_user_auth_headers(user, token)}
-
-    url = reverse("api-internal:user-get-verification-code", kwargs={"pk": user.public_primary_key})
-
-    response = client.get(url, format="json", **request_headers)
-    assert response.status_code == status.HTTP_400_BAD_REQUEST
-
-    mock_verification_start.assert_not_called()
+    if expected_status == status.HTTP_200_OK:
+        mock_verification_start.assert_called_once_with()
+    else:
+        mock_verification_start.assert_not_called()
