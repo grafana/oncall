@@ -219,11 +219,11 @@ const PhoneVerification = observer((props: PhoneVerificationProps) => {
           <Icon name="info-circle" />
           <Text type="secondary">
             This site is protected by reCAPTCHA and the Google{' '}
-            <a href="https://policies.google.com/privacy">
+            <a target="_blank" rel="noreferrer" href="https://policies.google.com/privacy">
               <Text type="link">Privacy Policy</Text>
             </a>{' '}
             and{' '}
-            <a href="https://policies.google.com/terms">
+            <a target="_blank" rel="noreferrer" href="https://policies.google.com/terms">
               <Text type="link">Terms of Service </Text>
             </a>{' '}
             apply.
