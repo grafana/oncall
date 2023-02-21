@@ -332,25 +332,25 @@ function PhoneVerificationButtonsGroup({
       )}
 
       {user.verified_phone_number && (
-        <WithPermissionControl userAction={action}>
-          <Button
-            disabled={!user?.verified_phone_number || !isTwilioConfigured || isTestCallInProgress}
-            onClick={handleMakeTestCallClick}
-          >
-            {isTestCallInProgress ? 'Making Test Call...' : 'Make Test Call'}
-          </Button>
-        </WithPermissionControl>
+        <>
+          <WithPermissionControl userAction={action}>
+            <Button
+              disabled={!user?.verified_phone_number || !isTwilioConfigured || isTestCallInProgress}
+              onClick={handleMakeTestCallClick}
+            >
+              {isTestCallInProgress ? 'Making Test Call...' : 'Make Test Call'}
+            </Button>
+          </WithPermissionControl>
+          <Tooltip content={'Click "Make Test Call" to save a phone number and add it to DnD exceptions.'}>
+            <Icon
+              name="info-circle"
+              style={{
+                marginLeft: '10px',
+              }}
+            />
+          </Tooltip>
+        </>
       )}
-
-      <Tooltip content={'Click "Make Test Call" to save a phone number and add it to DnD exceptions.'}>
-        <Icon
-          name="info-circle"
-          style={{
-            marginLeft: '10px',
-            color: '#1890ff',
-          }}
-        />
-      </Tooltip>
     </HorizontalGroup>
   );
 }
