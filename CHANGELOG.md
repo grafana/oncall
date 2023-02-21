@@ -11,6 +11,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Add ratelimits for phone verification
 
+### Fixed
+
+- Fix issue when viewing Expanded Schedule on narrow screens ([1293](https://github.com/grafana/oncall/issues/1293))
+
 ## v1.1.26 (2023-02-20)
 
 ### Fixed
