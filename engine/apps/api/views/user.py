@@ -297,18 +297,22 @@ class UserView(
         throttle_classes=[GetPhoneVerificationCodeThrottlerPerUser, GetPhoneVerificationCodeThrottlerPerOrg],
     )
     def get_verification_code(self, request, pk):
-        if not settings.DRF_RECAPTCHA_TESTING:
-            logger.info("Validating reCAPTCHA code")
+        """
+        See `DRF_RECAPTCHA_TESTING` in `settings/base.py`
+        and [here](https://github.com/llybin/drf-recaptcha#testing) to better understand
+        when the recaptcha checks are actually made
+        """
+        logger.info("Validating reCAPTCHA code")
 
-            serializer = MobileVerificationCodeRecaptchaSerializer(
-                data={"recaptcha": request.headers["X-OnCall-Recaptcha"]},
-                context={"request": request},
-            )
+        serializer = MobileVerificationCodeRecaptchaSerializer(
+            data={"recaptcha": request.headers.get("X-OnCall-Recaptcha", "some-non-null-value")},
+            context={"request": request},
+        )
 
-            if not serializer.is_valid():
-                logger.warning(f"Invalid reCAPTCHA validation: {serializer.fields['recaptcha']}")
-                return Response(status=status.HTTP_400_BAD_REQUEST)
-            logger.info("reCAPTCHA code is valid")
+        if not serializer.is_valid():
+            logger.warning(f"Invalid reCAPTCHA validation: {serializer._errors}")
+            return Response(status=status.HTTP_400_BAD_REQUEST)
+        logger.info("reCAPTCHA code is valid")
 
         user = self.get_object()
         phone_manager = PhoneManager(user)

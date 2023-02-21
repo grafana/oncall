@@ -3,6 +3,7 @@ from unittest.mock import Mock, patch
 import pytest
 from django.core.cache import cache
 from django.core.exceptions import ObjectDoesNotExist
+from django.test import override_settings
 from django.urls import reverse
 from django.utils import timezone
 from rest_framework import status
@@ -1514,6 +1515,7 @@ def test_check_availability_other_user(make_organization_and_user_with_plugin_to
     return_value=(1, 10 * 60),
 )
 @patch("apps.api.throttlers.VerifyPhoneNumberThrottlerPerUser.get_throttle_limits", return_value=(1, 10 * 60))
+@override_settings(DRF_RECAPTCHA_TESTING_PASS=True)
 @pytest.mark.django_db
 def test_phone_number_verification_flow_ratelimit_per_user(
     mock_verification_start,
@@ -1556,6 +1558,7 @@ def test_phone_number_verification_flow_ratelimit_per_user(
     return_value=(1, 10 * 60),
 )
 @patch("apps.api.throttlers.VerifyPhoneNumberThrottlerPerOrg.get_throttle_limits", return_value=(1, 10 * 60))
+@override_settings(DRF_RECAPTCHA_TESTING_PASS=True)
 @pytest.mark.django_db
 def test_phone_number_verification_flow_ratelimit_per_org(
     mock_verification_start,
@@ -1590,3 +1593,47 @@ def test_phone_number_verification_flow_ratelimit_per_org(
     url = reverse("api-internal:user-verify-number", kwargs={"pk": second_user.public_primary_key})
     response = client.put(f"{url}?token=12345", format="json", **make_user_auth_headers(second_user, token))
     assert response.status_code == status.HTTP_429_TOO_MANY_REQUESTS
+
+
+@patch("apps.twilioapp.phone_manager.PhoneManager.send_verification_code", return_value=True)
+@override_settings(DRF_RECAPTCHA_TESTING_PASS=True)
+@pytest.mark.django_db
+def test_phone_number_verification_recaptcha_success(
+    mock_verification_start,
+    make_organization_and_user_with_plugin_token,
+    make_user_auth_headers,
+):
+    _, user, token = make_organization_and_user_with_plugin_token()
+
+    recaptcha_token = "asdasdfasdf"
+    client = APIClient()
+    request_headers = {"HTTP_X-OnCall-Recaptcha": recaptcha_token, **make_user_auth_headers(user, token)}
+
+    url = reverse("api-internal:user-get-verification-code", kwargs={"pk": user.public_primary_key})
+
+    response = client.get(url, format="json", **request_headers)
+    assert response.status_code == status.HTTP_200_OK
+
+    mock_verification_start.assert_called_once_with()
+
+
+@patch("apps.twilioapp.phone_manager.PhoneManager.send_verification_code", return_value=True)
+@override_settings(DRF_RECAPTCHA_TESTING_PASS=False)
+@pytest.mark.django_db
+def test_phone_number_verification_recaptcha_failure(
+    mock_verification_start,
+    make_organization_and_user_with_plugin_token,
+    make_user_auth_headers,
+):
+    _, user, token = make_organization_and_user_with_plugin_token()
+
+    recaptcha_token = "asdasdfasdf"
+    client = APIClient()
+    request_headers = {"HTTP_X-OnCall-Recaptcha": recaptcha_token, **make_user_auth_headers(user, token)}
+
+    url = reverse("api-internal:user-get-verification-code", kwargs={"pk": user.public_primary_key})
+
+    response = client.get(url, format="json", **request_headers)
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+
+    mock_verification_start.assert_not_called()
