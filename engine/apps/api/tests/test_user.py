@@ -1507,7 +1507,7 @@ def test_check_availability_other_user(make_organization_and_user_with_plugin_to
 @patch("apps.api.apps.api.throttlers.GetPhoneVerificationCodeThrottler.get_throttle_limits ", return_value=(1, 10 * 60))
 @patch("apps.api.apps.api.throttlers.VerifyPhoneNumberThrottler.get_throttle_limits ", return_value=(1, 10 * 60))
 @pytest.mark.django_db
-def test_phone_number_verification_flow_rateliomit(
+def test_phone_number_verification_flow_ratelimit(
     mocked_verification_check,
     mock_verification_start,
     make_organization_and_user_with_plugin_token,
