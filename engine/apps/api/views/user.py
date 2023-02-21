@@ -27,6 +27,7 @@ from apps.api.serializers.user import FilterUserSerializer, UserHiddenFieldsSeri
 from apps.api.throttlers import (
     GetPhoneVerificationCodeThrottlerPerOrg,
     GetPhoneVerificationCodeThrottlerPerUser,
+    TestCallThrottler,
     VerifyPhoneNumberThrottlerPerOrg,
     VerifyPhoneNumberThrottlerPerUser,
 )
@@ -344,7 +345,7 @@ class UserView(
             )
         return Response(status=status.HTTP_200_OK)
 
-    @action(detail=True, methods=["post"])
+    @action(detail=True, methods=["post"], throttle_classes=[TestCallThrottler])
     def make_test_call(self, request, pk):
         user = self.get_object()
         phone_number = user.verified_phone_number

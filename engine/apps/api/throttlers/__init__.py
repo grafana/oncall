@@ -5,3 +5,4 @@ from .phone_verification_throttler import (  # noqa: F401
     VerifyPhoneNumberThrottlerPerOrg,
     VerifyPhoneNumberThrottlerPerUser,
 )
+from .test_call_throttler import TestCallThrottler  # noqa: F401
