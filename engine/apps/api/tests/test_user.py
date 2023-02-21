@@ -1570,8 +1570,8 @@ def test_phone_number_verification_flow_ratelimit_per_org(
     This test is checks per-org ratelimits for phone verification flow.
     It makes two get_verification_code and two verify_number requests from different users and expect that second call will be ratelimited.
     """
-    _, user, token = make_organization_and_user_with_plugin_token()
-    second_user = make_user_for_organization(make_user_for_organization)
+    org, user, token = make_organization_and_user_with_plugin_token()
+    second_user = make_user_for_organization(org)
 
     client = APIClient()
 
