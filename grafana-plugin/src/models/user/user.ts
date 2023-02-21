@@ -8,6 +8,7 @@ import { makeRequest } from 'network';
 import { Mixpanel } from 'services/mixpanel';
 import { RootStore } from 'state';
 import { move } from 'state/helpers';
+import { trottlingError } from 'utils';
 import { isUserActionAllowed, UserActions } from 'utils/authorization';
 
 import { getTimezone, prepareForUpdate } from './user.helpers';
@@ -236,14 +237,14 @@ export class UserStore extends BaseStore {
   async fetchVerificationCode(userPk: User['pk']) {
     await makeRequest(`/users/${userPk}/get_verification_code/`, {
       method: 'GET',
-    });
+    }).catch(trottlingError);
   }
 
   @action
   async verifyPhone(userPk: User['pk'], token: string) {
     return await makeRequest(`/users/${userPk}/verify_number/?token=${token}`, {
       method: 'PUT',
-    });
+    }).catch(trottlingError);
   }
 
   @action
