@@ -72,3 +72,7 @@
 .content {
   margin: 8px 0 16px 0;
 }
+
+.confirmation-modal {
+  width: 500px;
+}

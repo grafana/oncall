@@ -8,15 +8,22 @@ interface TagProps {
   color: string;
   className?: string;
   children?: any;
+  onClick?: (ev) => void;
+  forwardedRef?: React.MutableRefObject<HTMLSpanElement>;
 }
 
 const cx = cn.bind(styles);
 
 const Tag: FC<TagProps> = (props) => {
-  const { children, color, className } = props;
+  const { children, color, className, onClick } = props;
 
   return (
-    <span style={{ backgroundColor: color }} className={cx('root', className)}>
+    <span
+      style={{ backgroundColor: color }}
+      className={cx('root', className)}
+      onClick={onClick}
+      ref={props.forwardedRef}
+    >
       {children}
     </span>
   );

@@ -5,11 +5,14 @@ import cn from 'classnames/bind';
 import dayjs from 'dayjs';
 
 import Avatar from 'components/Avatar/Avatar';
+import ScheduleBorderedAvatar from 'components/ScheduleBorderedAvatar/ScheduleBorderedAvatar';
 import Text from 'components/Text/Text';
 import { isInWorkingHours } from 'components/WorkingHours/WorkingHours.helpers';
 import { getTzOffsetString } from 'models/timezone/timezone.helpers';
 import { User } from 'models/user/user.types';
+import { getColorSchemeMappingForUsers } from 'pages/schedule/Schedule.helpers';
 import { useStore } from 'state/useStore';
+import { isUserActionAllowed, UserActions } from 'utils/authorization';
 
 import styles from './ScheduleUserDetails.module.css';
 
@@ -17,36 +20,49 @@ interface ScheduleUserDetailsProps {
   currentMoment: dayjs.Dayjs;
   user: User;
   isOncall: boolean;
+  scheduleId: string;
+  startMoment: dayjs.Dayjs;
 }
 
 const cx = cn.bind(styles);
 
 const ScheduleUserDetails: FC<ScheduleUserDetailsProps> = (props) => {
-  const { user, currentMoment, isOncall } = props;
+  const { user, currentMoment, isOncall, scheduleId, startMoment } = props;
   const userMoment = currentMoment.tz(user.timezone);
   const userOffsetHoursStr = getTzOffsetString(userMoment);
   const isInWH = isInWorkingHours(currentMoment, user.working_hours, user.timezone);
 
   const store = useStore();
+  const colorSchemeMapping = getColorSchemeMappingForUsers(store, scheduleId, startMoment);
+  const colorSchemeList = Array.from(colorSchemeMapping[user.pk] || []);
 
   const { teamStore } = store;
-
   const slackWorkspaceName = teamStore.currentTeam.slack_team_identity?.cached_name?.replace(/[^0-9a-z]/gi, '') || '';
+
   return (
     <div className={cx('root')}>
-      <VerticalGroup spacing="md">
-        <HorizontalGroup justify="space-between">
-          <Avatar src={user.avatar} size="large" />
-        </HorizontalGroup>
-        <VerticalGroup spacing="sm">
-          <Text type="primary">{user.username}</Text>
-          {isOncall && <Badge text="OnCall now" color="green" />}
-          {isInWH ? (
-            <Badge text="Inside working hours" color="blue" />
-          ) : (
-            <Badge text="Outside working hours" color="orange" />
-          )}
-          <HorizontalGroup align="flex-start">
+      <VerticalGroup spacing="xs">
+        <ScheduleBorderedAvatar
+          colors={colorSchemeList}
+          width={35}
+          height={35}
+          renderAvatar={() => <Avatar src={user.avatar} size="large" />}
+          renderIcon={() => null}
+        ></ScheduleBorderedAvatar>
+
+        <VerticalGroup spacing="xs" width="100%">
+          <div className={cx('username')}>
+            <Text type="primary">{user.username}</Text>
+          </div>
+          <HorizontalGroup spacing="xs">
+            {isOncall && <Badge text="OnCall" color="green" />}
+            {isInWH ? (
+              <Badge text="Inside working hours" color="blue" />
+            ) : (
+              <Badge text="Outside working hours" color="orange" />
+            )}
+          </HorizontalGroup>
+          <div className={cx('user-timezones')}>
             <div className={cx('timezone-icon')}>
               <Text type="secondary">
                 <Icon name="clock-nine" />
@@ -54,7 +70,7 @@ const ScheduleUserDetails: FC<ScheduleUserDetailsProps> = (props) => {
             </div>
             <div className={cx('timezone-wrapper')}>
               <div className={cx('timezone-info')}>
-                <VerticalGroup>
+                <VerticalGroup spacing="none">
                   <Text type="secondary">Local time</Text>
                   <Text type="secondary">{currentMoment.tz().format('DD MMM, HH:mm')}</Text>
                   <Text type="secondary">({getTzOffsetString(currentMoment)})</Text>
@@ -62,60 +78,69 @@ const ScheduleUserDetails: FC<ScheduleUserDetailsProps> = (props) => {
               </div>
 
               <div className={cx('timezone-info')}>
-                <VerticalGroup className={cx('timezone-info')}>
-                  <Text>{user.username}'s time</Text>
+                <VerticalGroup className={cx('timezone-info')} spacing="none">
+                  <Text>User's time</Text>
                   <Text>{`${userMoment.tz(user.timezone).format('DD MMM, HH:mm')}`}</Text>
                   <Text>({userOffsetHoursStr})</Text>
                 </VerticalGroup>
               </div>
             </div>
-          </HorizontalGroup>
-        </VerticalGroup>
-
-        <hr className={cx('line-break')} />
-        <VerticalGroup spacing="sm">
-          <Text>Contacts</Text>
-
-          <div className={cx('contact-details')}>
-            <Text type="secondary">
-              <Icon name="envelope" />{' '}
-              <a href={`mailto:${user.email}`} target="_blank" rel="noreferrer">
-                <Text type="link">{user.email}</Text>
-              </a>{' '}
-            </Text>
           </div>
-          {user.slack_user_identity && (
-            <div className={cx('contact-details')}>
-              <Text type="secondary">
-                <Icon name="slack" />{' '}
-                <a
-                  href={`https://${slackWorkspaceName}.slack.com/team/${user.slack_user_identity.slack_id}`}
-                  target="_blank"
-                  rel="noreferrer"
-                >
-                  <Text type="link">{user.slack_user_identity.slack_login}</Text>
-                </a>{' '}
-              </Text>
-            </div>
-          )}
-          {user.telegram_configuration && (
-            <div className={cx('contact-details')}>
-              <Text type="secondary">
-                <Icon name="message" />{' '}
-                <a
-                  href={`https://t.me/${user.telegram_configuration.telegram_nick_name}`}
-                  target="_blank"
-                  rel="noreferrer"
-                >
-                  <Text type="link">{user.telegram_configuration.telegram_nick_name}</Text>
-                </a>{' '}
-              </Text>
-            </div>
-          )}
-          {!user.hide_phone_number && user.verified_phone_number && (
-            <Text type="secondary">Phone: {user.verified_phone_number}</Text>
-          )}
         </VerticalGroup>
+
+        {isUserActionAllowed(UserActions.UserSettingsAdmin) && (
+          <VerticalGroup spacing="xs">
+            <hr className={cx('line-break')} />
+            <VerticalGroup spacing="xs">
+              <Text>Contacts</Text>
+
+              <div className={cx('contact-details')}>
+                <Text type="secondary">
+                  <Icon name="envelope" className={cx('contact-icon')} />
+                </Text>
+                <a href={`mailto:${user.email}`} target="_blank" rel="noreferrer">
+                  <Text type="link">{user.email}</Text>
+                </a>
+              </div>
+              {user.slack_user_identity && (
+                <div className={cx('contact-details')}>
+                  <Text type="secondary">
+                    <Icon name="slack" className={cx('contact-icon')} />
+                  </Text>
+                  <a
+                    href={`https://${slackWorkspaceName}.slack.com/team/${user.slack_user_identity.slack_id}`}
+                    target="_blank"
+                    rel="noreferrer"
+                  >
+                    <Text type="link">{user.slack_user_identity.slack_login}</Text>
+                  </a>
+                </div>
+              )}
+              {user.telegram_configuration && (
+                <div className={cx('contact-details')}>
+                  <Text type="secondary">
+                    <Icon name="message" className={cx('contact-icon')} />
+                  </Text>
+                  <a
+                    href={`https://t.me/${user.telegram_configuration.telegram_nick_name}`}
+                    target="_blank"
+                    rel="noreferrer"
+                  >
+                    <Text type="link">{user.telegram_configuration.telegram_nick_name}</Text>
+                  </a>
+                </div>
+              )}
+              {!user.hide_phone_number && user.verified_phone_number && (
+                <div className={cx('contact-details')}>
+                  <Text type="secondary">
+                    <Icon name="document-info" className={cx('contact-icon')} />
+                  </Text>
+                  <Text type="secondary">{user.verified_phone_number}</Text>
+                </div>
+              )}
+            </VerticalGroup>
+          </VerticalGroup>
+        )}
       </VerticalGroup>
     </div>
   );
