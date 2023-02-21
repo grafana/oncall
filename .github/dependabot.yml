@@ -3,7 +3,7 @@ updates:
   - package-ecosystem: "npm"
     directory: "/grafana-plugin"
     schedule:
-      interval: "daily"
+      interval: "monthly"
     labels:
       - "pr:dependencies"
       - "pr:no changelog"
@@ -12,7 +12,7 @@ updates:
   - package-ecosystem: "pip"
     directory: "/"
     schedule:
-      interval: "daily"
+      interval: "monthly"
     labels:
       - "pr:dependencies"
       - "pr:no changelog"
@@ -23,7 +23,7 @@ updates:
     # default location of `.github/workflows`
     directory: "/"
     schedule:
-      interval: "daily"
+      interval: "monthly"
     labels:
       - "pr:dependencies"
       - "pr:no changelog"
@@ -32,7 +32,7 @@ updates:
   - package-ecosystem: "docker"
     directory: "/"
     schedule:
-      interval: "daily"
+      interval: "monthly"
     labels:
       - "pr:dependencies"
       - "pr:no changelog"
