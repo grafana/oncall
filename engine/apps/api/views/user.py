@@ -282,10 +282,7 @@ class UserView(
         serializer = UserSerializer(self.get_queryset().get(pk=self.request.user.pk))
         return Response(serializer.data)
 
-    @action(
-        detail=False,
-        methods=["get"],
-    )
+    @action(detail=False, methods=["get"])
     def timezone_options(self, request):
         return Response(pytz.common_timezones)
 
