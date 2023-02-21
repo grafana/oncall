@@ -12,4 +12,4 @@ jobs:
       - name: "Checkout code"
         uses: "actions/checkout@v3"
       - name: "Run doc-validator tool"
-        run: "doc-validator --skip-image-validation ./docs/sources /docs/oncall/latest"
+        run: "doc-validator --skip-image-validation docs/sources /docs/oncall/latest"
