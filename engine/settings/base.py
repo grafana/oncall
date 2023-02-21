@@ -655,6 +655,9 @@ if OSS_INSTALLATION:
         "args": (),
     }  # noqa
 
+DRF_RECAPTCHA_SECRET_KEY = os.environ.get("DRF_RECAPTCHA_SECRET_KEY", default=None)
+DRF_RECAPTCHA_DEFAULT_V3_SCORE = 0.5
+
 MIGRATION_LINTER_OPTIONS = {"exclude_apps": ["social_django", "silk", "fcm_django"]}
 # Run migrations linter on each `python manage.py makemigrations`
 MIGRATION_LINTER_OVERRIDE_MAKEMIGRATIONS = True

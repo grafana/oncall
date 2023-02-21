@@ -23,7 +23,12 @@ from apps.api.permissions import (
     user_is_authorized,
 )
 from apps.api.serializers.team import TeamSerializer
-from apps.api.serializers.user import FilterUserSerializer, UserHiddenFieldsSerializer, UserSerializer
+from apps.api.serializers.user import (
+    FilterUserSerializer,
+    MobileVerificationCodeRecaptchaSerializer,
+    UserHiddenFieldsSerializer,
+    UserSerializer,
+)
 from apps.api.throttlers import (
     GetPhoneVerificationCodeThrottlerPerOrg,
     GetPhoneVerificationCodeThrottlerPerUser,
@@ -292,11 +297,22 @@ class UserView(
         throttle_classes=[GetPhoneVerificationCodeThrottlerPerUser, GetPhoneVerificationCodeThrottlerPerOrg],
     )
     def get_verification_code(self, request, pk):
+        if not settings.OSS_INSTALLATION:
+            serializer = MobileVerificationCodeRecaptchaSerializer(
+                data={"recaptcha": request.headers["X-OnCall-Recaptcha"]},
+                context={"request": request},
+            )
+
+            if not serializer.is_valid():
+                logger.warning(f"Invalid reCAPTCHA validation: {serializer.fields['recaptcha']}")
+                return Response(status=status.HTTP_400_BAD_REQUEST)
+
         user = self.get_object()
         phone_manager = PhoneManager(user)
         code_sent = phone_manager.send_verification_code()
 
         if not code_sent:
+            logger.warning(f"Mobile app verification code was not successfully sent")
             return Response(status=status.HTTP_400_BAD_REQUEST)
         return Response(status=status.HTTP_200_OK)
 
