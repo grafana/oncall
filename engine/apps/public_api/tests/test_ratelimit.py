@@ -8,8 +8,10 @@ from rest_framework.test import APIClient
 
 
 @pytest.mark.django_db
-def test_throttling(mocked_throttle_limits, make_organization_and_user_with_token):
-    with patch('"apps.public_api.throttlers.user_throttle.UserThrottle.rate', new_callable=PropertyMock) as mocked_rate:
+def test_throttling(make_organization_and_user_with_token):
+    with patch(
+        "apps.public_api.throttlers.user_throttle.PublicAPIThrottle.rate", new_callable=PropertyMock
+    ) as mocked_rate:
         mocked_rate.return_value = "1/m"
 
         _, _, token = make_organization_and_user_with_token()
