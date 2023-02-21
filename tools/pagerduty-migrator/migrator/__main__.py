@@ -72,8 +72,10 @@ def main() -> None:
     for user in users:
         match_user(user, oncall_users)
 
+    user_id_map = {u["id"]: u["oncall_user"]["id"] for u in users}
+
     for schedule in schedules:
-        match_schedule(schedule, oncall_schedules)
+        match_schedule(schedule, oncall_schedules, user_id_map)
         match_users_for_schedule(schedule, users)
 
     for policy in escalation_policies:
@@ -105,8 +107,8 @@ def main() -> None:
 
     print("▶ Migrating schedules...")
     for schedule in schedules:
-        if not schedule["unmatched_users"]:
-            migrate_schedule(schedule, users)
+        if not schedule["unmatched_users"] and not schedule["migration_errors"]:
+            migrate_schedule(schedule, user_id_map)
             print(TAB + format_schedule(schedule))
 
     print("▶ Migrating escalation policies...")

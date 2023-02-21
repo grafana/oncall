@@ -21,6 +21,10 @@ def format_schedule(schedule: dict) -> str:
         result = "{} {} — schedule references unmatched users".format(
             ERROR_SIGN, schedule["name"]
         )
+    elif schedule["migration_errors"]:
+        result = "{} {} — schedule migration errors".format(
+            ERROR_SIGN, schedule["name"]
+        )
     else:
         result = "{} {}".format(SUCCESS_SIGN, schedule["name"])
 
@@ -85,16 +89,25 @@ def user_report(users: list[dict]) -> str:
 def schedule_report(schedules: list[dict]) -> str:
     result = "Schedule report:"
 
-    for schedule in sorted(schedules, key=lambda s: bool(s["unmatched_users"])):
+    for schedule in sorted(
+        schedules, key=lambda s: bool(s["unmatched_users"] or s["migration_errors"])
+    ):
         result += "\n" + TAB + format_schedule(schedule)
 
-        if not schedule["unmatched_users"] and schedule["oncall_schedule"]:
+        if (
+            not schedule["unmatched_users"]
+            and schedule["oncall_schedule"]
+            and not schedule["migration_errors"]
+        ):
             result += " (existing schedule with name '{}' will be deleted)".format(
                 schedule["oncall_schedule"]["name"]
             )
 
         for user in schedule["unmatched_users"]:
             result += "\n" + TAB * 2 + format_user(user)
+
+        for error in schedule["migration_errors"]:
+            result += "\n" + TAB * 2 + "{} {}".format(ERROR_SIGN, error)
 
     return result
 
