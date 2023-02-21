@@ -297,7 +297,7 @@ class UserView(
         throttle_classes=[GetPhoneVerificationCodeThrottlerPerUser, GetPhoneVerificationCodeThrottlerPerOrg],
     )
     def get_verification_code(self, request, pk):
-        if not settings.OSS_INSTALLATION:
+        if not settings.DRF_RECAPTCHA_TESTING:
             logger.info("Validating reCAPTCHA code")
 
             serializer = MobileVerificationCodeRecaptchaSerializer(

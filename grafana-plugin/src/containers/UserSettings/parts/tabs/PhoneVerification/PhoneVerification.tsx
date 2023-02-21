@@ -101,28 +101,30 @@ const PhoneVerification = observer((props: PhoneVerificationProps) => {
         });
     } else {
       window.grecaptcha.ready(function () {
-        window.grecaptcha.execute(reCAPTCHA_site_key, { action: 'fetchVerificationCode' }).then(async function (token) {
-          await userStore.updateUser({
-            pk: userPk,
-            email: user.email,
-            unverified_phone_number: phone,
-          });
-
-          userStore
-            .fetchVerificationCode(userPk, token)
-            .then(() => {
-              setState({ isCodeSent: true });
-
-              if (codeInputRef.current) {
-                codeInputRef.current.focus();
-              }
-            })
-            .catch(() => {
-              openErrorNotification(
-                'Grafana OnCall is unable to verify your phone number due to incorrect number or verification service being unavailable.'
-              );
+        window.grecaptcha
+          .execute(reCAPTCHA_site_key, { action: 'mobile_verification_code' })
+          .then(async function (token) {
+            await userStore.updateUser({
+              pk: userPk,
+              email: user.email,
+              unverified_phone_number: phone,
             });
-        });
+
+            userStore
+              .fetchVerificationCode(userPk, token)
+              .then(() => {
+                setState({ isCodeSent: true });
+
+                if (codeInputRef.current) {
+                  codeInputRef.current.focus();
+                }
+              })
+              .catch(() => {
+                openErrorNotification(
+                  'Grafana OnCall is unable to verify your phone number due to incorrect number or verification service being unavailable.'
+                );
+              });
+          });
       });
     }
   }, [
