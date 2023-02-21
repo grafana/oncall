@@ -14,7 +14,7 @@ title: Grafana OnCall
 weight: 1000
 ---
 
-# Grafana OnCall documentation
+# Grafana OnCall
 
 <img src="/static/img/docs/oncall/oncall-logo.png" class="no-shadow" width="700px">
 
