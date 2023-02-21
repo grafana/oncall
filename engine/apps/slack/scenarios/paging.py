@@ -579,10 +579,10 @@ def _get_users_select(organization, team, input_id_prefix):
             "action_id": OnPagingUserChange.routing_uid(),
         },
     }
-
-    if len(user_options) > scenario_step.MAX_STATIC_SELECT_OPTIONS:
+    MAX_STATIC_SELECT_OPTIONS = 100
+    if len(user_options) > MAX_STATIC_SELECT_OPTIONS:
         # paginate user options in groups
-        max_length = scenario_step.MAX_STATIC_SELECT_OPTIONS
+        max_length = MAX_STATIC_SELECT_OPTIONS
         chunks = [user_options[x : x + max_length] for x in range(0, len(user_options), max_length)]
         option_groups = [
             {
