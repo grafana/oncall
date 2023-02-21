@@ -24,6 +24,7 @@ from apps.api.permissions import (
 )
 from apps.api.serializers.team import TeamSerializer
 from apps.api.serializers.user import FilterUserSerializer, UserHiddenFieldsSerializer, UserSerializer
+from apps.api.throttlers import GetPhoneVerificationCodeThrottler, VerifyPhoneNumberThrottler
 from apps.auth_token.auth import PluginAuthentication
 from apps.auth_token.constants import SCHEDULE_EXPORT_TOKEN_NAME
 from apps.auth_token.models import UserScheduleExportAuthToken
@@ -275,11 +276,14 @@ class UserView(
         serializer = UserSerializer(self.get_queryset().get(pk=self.request.user.pk))
         return Response(serializer.data)
 
-    @action(detail=False, methods=["get"])
+    @action(
+        detail=False,
+        methods=["get"],
+    )
     def timezone_options(self, request):
         return Response(pytz.common_timezones)
 
-    @action(detail=True, methods=["get"])
+    @action(detail=True, methods=["get"], throttle_classes=[GetPhoneVerificationCodeThrottler])
     def get_verification_code(self, request, pk):
         user = self.get_object()
         phone_manager = PhoneManager(user)
@@ -289,7 +293,7 @@ class UserView(
             return Response(status=status.HTTP_400_BAD_REQUEST)
         return Response(status=status.HTTP_200_OK)
 
-    @action(detail=True, methods=["put"])
+    @action(detail=True, methods=["put"], throttle_classes=[VerifyPhoneNumberThrottler])
     def verify_number(self, request, pk):
         target_user = self.get_object()
         code = request.query_params.get("token", None)

@@ -1499,3 +1499,41 @@ def test_check_availability_other_user(make_organization_and_user_with_plugin_to
     response = client.get(url, **make_user_auth_headers(user, token))
 
     assert response.status_code == status.HTTP_200_OK
+
+
+@patch("apps.twilioapp.phone_manager.PhoneManager.send_verification_code", return_value=Mock())
+@patch("apps.twilioapp.phone_manager.PhoneManager.verify_phone_number", return_value=(True, None))
+@patch("apps.api.apps.api.throttlers.GetPhoneVerificationCodeThrottler.get_throttle_limits ", return_value=(1, 10 * 60))
+@patch("apps.api.apps.api.throttlers.VerifyPhoneNumberThrottler.get_throttle_limits ", return_value=(1, 10 * 60))
+@pytest.mark.django_db
+def test_phone_number_verification_ratelimit_code(
+    mocked_verification_check,
+    mock_verification_start,
+    make_organization_and_user_with_plugin_token,
+    make_user_for_organization,
+    make_user_auth_headers,
+):
+    organization, user, token = make_organization_and_user_with_plugin_token()
+
+    client = APIClient()
+    url = reverse("api-internal:user-get-verification-code", kwargs={"pk": user.public_primary_key})
+
+    # first get_verification_code request is succesfull
+    response = client.get(url, format="json", **make_user_auth_headers(user, token))
+    assert response.status_code == status.HTTP_200_OK
+
+    # second get_verification_code request is ratelimited
+    response = client.get(url, format="json", **make_user_auth_headers(user, token))
+    assert response.status_code == status.HTTP_429_TOO_MANY_REQUESTS
+
+    url = reverse("api-internal:user-verify-number", kwargs={"pk": user.public_primary_key})
+
+    # first verify_number request is succesfull, because it uses different ratelimit scope
+    response = client.put(f"{url}?token=12345", format="json", **make_user_auth_headers(user, token))
+    assert response.status_code == status.HTTP_200_OK
+
+    url = reverse("api-internal:user-verify-number", kwargs={"pk": user.public_primary_key})
+
+    # second verify_number request is succesfull, because it ratelimited
+    response = client.put(f"{url}?token=12345", format="json", **make_user_auth_headers(user, token))
+    assert response.status_code == status.HTTP_429_TOO_MANY_REQUESTS
