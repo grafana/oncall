@@ -44,6 +44,7 @@ interface SchedulesPageState {
   showNewScheduleSelector: boolean;
   expandedRowKeys: Array<Schedule['id']>;
   scheduleIdToEdit?: Schedule['id'];
+  scheduleMaxWidth?: number;
 }
 
 @observer
@@ -52,12 +53,14 @@ class SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSta
     super(props);
 
     const { store } = this.props;
+
     this.state = {
       startMoment: getStartOfWeek(store.currentTimezone),
       filters: { searchTerm: '', status: 'all', type: undefined },
       showNewScheduleSelector: false,
       expandedRowKeys: [],
       scheduleIdToEdit: undefined,
+      scheduleMaxWidth: undefined,
     };
   }
 
@@ -66,6 +69,13 @@ class SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSta
 
     store.userStore.updateItems();
     store.scheduleStore.updateItems();
+
+    // don't use debounced, it won't do the trick
+    window.addEventListener('resize', this.onResize);
+  }
+
+  componentWillUnmount(): void {
+    window.removeEventListener('resize', this.onResize);
   }
 
   render() {
@@ -220,7 +230,9 @@ class SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSta
     const { expandedRowKeys } = this.state;
 
     if (expanded && !expandedRowKeys.includes(data.id)) {
-      this.setState({ expandedRowKeys: [...this.state.expandedRowKeys, data.id] }, this.updateEvents);
+      this.setState({ expandedRowKeys: [...this.state.expandedRowKeys, data.id] }, () => {
+        this.updateEvents(true);
+      });
     } else if (!expanded && expandedRowKeys.includes(data.id)) {
       const index = expandedRowKeys.indexOf(data.id);
       const newExpandedRowKeys = [...expandedRowKeys];
@@ -229,23 +241,37 @@ class SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSta
     }
   };
 
-  updateEvents = () => {
+  updateEvents = (setMaxWithAfterUpdate = false) => {
     const { store } = this.props;
     const { expandedRowKeys, startMoment } = this.state;
 
     expandedRowKeys.forEach((scheduleId) => {
-      store.scheduleStore.updateEvents(scheduleId, startMoment, 'rotation');
-      store.scheduleStore.updateEvents(scheduleId, startMoment, 'override');
-      store.scheduleStore.updateEvents(scheduleId, startMoment, 'final');
+      Promise.all([
+        store.scheduleStore.updateEvents(scheduleId, startMoment, 'rotation'),
+        store.scheduleStore.updateEvents(scheduleId, startMoment, 'override'),
+        store.scheduleStore.updateEvents(scheduleId, startMoment, 'final'),
+      ]).then(() => {
+        if (setMaxWithAfterUpdate) {
+          this.debouncedResize();
+        }
+      });
     });
   };
 
+  onResize = () => {
+    const el = document.getElementById('default-page-layout');
+    if (!el) {
+      return;
+    }
+    this.setState({ scheduleMaxWidth: el.offsetWidth });
+  };
+
   renderSchedule = (data: Schedule) => {
-    const { startMoment } = this.state;
+    const { startMoment, scheduleMaxWidth } = this.state;
     const { store } = this.props;
 
     return (
-      <div className={cx('schedule')}>
+      <div className={cx('schedule')} style={{ maxWidth: scheduleMaxWidth }}>
         <TimelineMarks startMoment={startMoment} />
         <div className={cx('rotations')}>
           <ScheduleFinal
@@ -313,13 +339,6 @@ class SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSta
             onHover={this.getUpdateRelatedEscalationChainsHandler(item.id)}
           />
         )}
-
-        {/* <ScheduleCounter
-          type="warning"
-          count={warningsCount}
-          tooltipTitle="Warnings"
-          tooltipContent="Schedule has unassigned time periods during next 7 days"
-        />*/}
       </HorizontalGroup>
     );
   };

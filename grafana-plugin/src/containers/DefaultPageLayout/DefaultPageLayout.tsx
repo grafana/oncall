@@ -33,7 +33,9 @@ const DefaultPageLayout: FC<DefaultPageLayoutProps> = observer((props) => {
 
     return (
       <PluginPage page={page} pageNav={matchingPageNav}>
-        <div className={cx('root')}>{children}</div>
+        <div className={cx('root')} id="default-page-layout">
+          {children}
+        </div>
       </PluginPage>
     );
   }
@@ -41,7 +43,7 @@ const DefaultPageLayout: FC<DefaultPageLayoutProps> = observer((props) => {
   function renderLegacyNavbar(): JSX.Element {
     return (
       <PluginPage page={page}>
-        <div className="page-container u-height-100">
+        <div className="page-container u-height-100" id="default-page-layout">
           <div className={cx('root', 'navbar-legacy')}>
             <Alerts />
             {children}
