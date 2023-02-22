@@ -233,9 +233,10 @@ export class UserStore extends BaseStore {
   }
 
   @action
-  async fetchVerificationCode(userPk: User['pk']) {
+  async fetchVerificationCode(userPk: User['pk'], recaptchaToken: string) {
     await makeRequest(`/users/${userPk}/get_verification_code/`, {
       method: 'GET',
+      headers: { 'X-OnCall-Recaptcha': recaptchaToken },
     });
   }
 
@@ -375,6 +376,12 @@ export class UserStore extends BaseStore {
   async deleteiCalLink(userPk: User['pk']) {
     await makeRequest(`/users/${userPk}/export_token/`, {
       method: 'DELETE',
+    });
+  }
+
+  async checkUserAvailability(userPk: User['pk']) {
+    return await makeRequest(`/users/${userPk}/check_availability/`, {
+      method: 'GET',
     });
   }
 }

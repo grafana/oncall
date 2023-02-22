@@ -20,6 +20,7 @@
   - [symbol not found in flat namespace '\_EVP_DigestSignUpdate'](#symbol-not-found-in-flat-namespace-_evp_digestsignupdate)
 - [IDE Specific Instructions](#ide-specific-instructions)
   - [PyCharm](#pycharm)
+- [How to write database migrations](#how-to-write-database-migrations)
 
 Related: [How to develop integrations](/engine/config_integrations/README.md)
 
@@ -105,8 +106,9 @@ volume mounted inside the container.
 In order to setup [`django-silk`](https://github.com/jazzband/django-silk) for local profiling, perform the following
 steps:
 
-1. `make engine-manage CMD="createsuperuser"` - follow CLI prompts to create a Django superuser
-2. Visit <http://localhost:8080/django-admin> and login using the credentials you created in step #2
+1. `make backend-debug-enable`
+2. `make engine-manage CMD="createsuperuser"` - follow CLI prompts to create a Django superuser
+3. Visit <http://localhost:8080/django-admin> and login using the credentials you created in step #2
 
 You should now be able to visit <http://localhost:8080/silk/> and see the Django Silk UI.
 See the `django-silk` documentation [here](https://github.com/jazzband/django-silk) for more information.
@@ -149,10 +151,9 @@ make build # rebuild images (e.g. when changing requirements.txt)
 # run Django's `manage.py` script, inside of a docker container, passing `$CMD` as arguments.
 # e.g. `make engine-manage CMD="makemigrations"` - https://docs.djangoproject.com/en/4.1/ref/django-admin/#django-admin-makemigrations
 make engine-manage CMD="..."
-# sets a feature flag, related to mobile app backend functionality, in your ./dev/.env.dev
-# and sets the necessary database values
-# NOTE: you need to enable, and configure, the plugin before running this command
-make enable-mobile-app-feature-flags
+
+make backend-debug-enable # enable Django's debug mode and Silk profiling (this is disabled by default for performance reasons)
+make backend-debug-disable # disable Django's debug mode and Silk profiling
 
 # this will remove all of the images, containers, volumes, and networks
 # associated with your local OnCall developer setup
@@ -397,3 +398,15 @@ make run-backend-celery
 5. Create a new Django Server run configuration to Run/Debug the engine
    - Use a plugin such as EnvFile to load the .env.dev file
    - Change port from 8000 to 8080
+
+## How to write database migrations
+
+We use [django-migration-linter](https://github.com/3YOURMIND/django-migration-linter) to keep database migrations
+backwards compatible
+
+- we can automatically run migrations and they are zero-downtime, e.g. old code can work with the migrated database
+- we can run and rollback migrations without worrying about data safety
+- OnCall is deployed to the multiple environments core team is not able to control
+
+See [django-migration-linter checklist](https://github.com/3YOURMIND/django-migration-linter/blob/main/docs/incompatibilities.md)
+for the common mistakes and best practices

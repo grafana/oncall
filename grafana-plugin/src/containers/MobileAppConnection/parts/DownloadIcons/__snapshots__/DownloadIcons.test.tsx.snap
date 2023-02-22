@@ -34,38 +34,52 @@ exports[`DownloadIcons it renders properly 1`] = `
         <div
           class="css-bxa289-layoutChildrenWrapper"
         >
-          <div
-            class="root icon-block root_bordered root--fullWidth root--withBackground root--hover"
+          <a
+            href="https://apps.apple.com/us/app/grafana-oncall-preview/id1669759048"
+            rel="noreferrer"
+            style="width: 100%;"
+            target="_blank"
           >
-            <img
-              alt="Apple"
-              class="icon"
-              src="[object Object]"
-            />
-            <span
-              class="root text icon-text text--primary text--medium"
+            <div
+              class="root icon-block root_bordered root--fullWidth root--withBackground root--hover"
             >
-              iOS
-            </span>
-          </div>
+              <img
+                alt="Apple"
+                class="icon"
+                src="[object Object]"
+              />
+              <span
+                class="root text icon-text text--primary text--medium"
+              >
+                iOS
+              </span>
+            </div>
+          </a>
         </div>
         <div
           class="css-bxa289-layoutChildrenWrapper"
         >
-          <div
-            class="root icon-block root_bordered root--fullWidth root--hover"
+          <a
+            href="https://play.google.com/store/apps/details?id=com.grafana.oncall.prod"
+            rel="noreferrer"
+            style="width: 100%;"
+            target="_blank"
           >
-            <img
-              alt="Play Store"
-              class="icon"
-              src="[object Object]"
-            />
-            <span
-              class="root text icon-text text--primary text--medium"
+            <div
+              class="root icon-block root_bordered root--fullWidth root--hover"
             >
-              Android
-            </span>
-          </div>
+              <img
+                alt="Play Store"
+                class="icon"
+                src="[object Object]"
+              />
+              <span
+                class="root text icon-text text--primary text--medium"
+              >
+                Android
+              </span>
+            </div>
+          </a>
         </div>
       </div>
     </div>

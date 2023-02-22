@@ -83,7 +83,7 @@
 
 .timeline {
   list-style-type: none;
-  margin: 0 0 24px;
+  margin: 0 0 24px 12px;
 }
 
 .timeline-item {
@@ -119,4 +119,71 @@
 
 .title-icon {
   color: var(--secondary-text-color);
+  margin-left: 4px;
+}
+
+.integration-logo {
+  margin-right: 8px;
+}
+
+.label-button {
+  padding: 0 8px;
+  font-weight: 400;
+}
+
+.label-button:disabled {
+  border: var(--border-strong);
+}
+
+.label-button-text {
+  max-width: 160px;
+  overflow: hidden;
+  position: relative;
+  display: inline-block;
+  text-align: center;
+  text-decoration: none;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.source-name {
+  display: flex;
+  align-items: center;
+}
+
+.status-tag-container {
+  margin-right: 8px;
+  display: inherit;
+}
+
+.status-tag {
+  height: 24px;
+  padding: 0 8px;
+  border-radius: 2px;
+}
+.paged-users {
+  width: 100%;
+}
+
+.paged-users-list {
+  list-style-type: none;
+  margin-bottom: 20px;
+  width: 100%;
+
+  & > li .trash-button {
+    display: none;
+  }
+
+  & > li:hover .trash-button {
+    display: block;
+  }
+
+  & > li {
+    padding: 8px 12px;
+    width: 100%;
+  }
+
+  & > li:hover {
+    background: var(--background-secondary);
+  }
 }

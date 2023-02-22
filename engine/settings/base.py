@@ -57,7 +57,7 @@ FEATURE_LIVE_SETTINGS_ENABLED = getenv_boolean("FEATURE_LIVE_SETTINGS_ENABLED", 
 FEATURE_TELEGRAM_INTEGRATION_ENABLED = getenv_boolean("FEATURE_TELEGRAM_INTEGRATION_ENABLED", default=True)
 FEATURE_EMAIL_INTEGRATION_ENABLED = getenv_boolean("FEATURE_EMAIL_INTEGRATION_ENABLED", default=True)
 FEATURE_SLACK_INTEGRATION_ENABLED = getenv_boolean("FEATURE_SLACK_INTEGRATION_ENABLED", default=True)
-FEATURE_MOBILE_APP_INTEGRATION_ENABLED = getenv_boolean("FEATURE_MOBILE_APP_INTEGRATION_ENABLED", default=False)
+FEATURE_MOBILE_APP_INTEGRATION_ENABLED = getenv_boolean("FEATURE_MOBILE_APP_INTEGRATION_ENABLED", default=True)
 FEATURE_WEB_SCHEDULES_ENABLED = getenv_boolean("FEATURE_WEB_SCHEDULES_ENABLED", default=False)
 FEATURE_MULTIREGION_ENABLED = getenv_boolean("FEATURE_MULTIREGION_ENABLED", default=False)
 GRAFANA_CLOUD_ONCALL_HEARTBEAT_ENABLED = getenv_boolean("GRAFANA_CLOUD_ONCALL_HEARTBEAT_ENABLED", default=True)
@@ -219,7 +219,10 @@ INSTALLED_APPS = [
     "debug_toolbar",
     "social_django",
     "polymorphic",
+    "django_migration_linter",
     "fcm_django",
+    "django_dbconn_retry",
+    "drf_recaptcha",
 ]
 
 REST_FRAMEWORK = {
@@ -474,9 +477,12 @@ if SILK_PROFILER_ENABLED:
 
     SILKY_AUTHENTICATION = True
     SILKY_AUTHORISATION = True
-    SILKY_META = True
+    SILKY_PYTHON_PROFILER_BINARY = getenv_boolean("SILKY_PYTHON_PROFILER_BINARY", default=False)
     SILKY_MAX_RECORDED_REQUESTS = 10**4
     SILKY_PYTHON_PROFILER = True
+    SILKY_IGNORE_PATHS = ["/health/", "/ready/"]
+    if "SILKY_PYTHON_PROFILER_RESULT_PATH" in os.environ:
+        SILKY_PYTHON_PROFILER_RESULT_PATH = os.environ.get("SILKY_PYTHON_PROFILER_RESULT_PATH")
 
 # get ONCALL_DJANGO_ADMIN_PATH from env and add trailing / to it
 ONCALL_DJANGO_ADMIN_PATH = os.environ.get("ONCALL_DJANGO_ADMIN_PATH", "django-admin") + "/"
@@ -649,6 +655,22 @@ if OSS_INSTALLATION:
         "schedule": crontab(hour="*/12"),  # noqa
         "args": (),
     }  # noqa
+
+# google recaptcha is disabled by default
+#
+# without setting DRF_RECAPTCHA_TESTING, drf_recaptcha complains with
+# AttributeError: 'Settings' object has no attribute 'DRF_RECAPTCHA_SECRET_KEY'
+#
+# Set DRF_RECAPTCHA_TESTING=True in settings, no request to Google, no warnings
+# DRF_RECAPTCHA_SECRET_KEY is not required, set returning verification result in setting below.
+DRF_RECAPTCHA_SECRET_KEY = os.environ.get("DRF_RECAPTCHA_SECRET_KEY", default=None)
+DRF_RECAPTCHA_DEFAULT_V3_SCORE = 0.5
+DRF_RECAPTCHA_TESTING = True
+DRF_RECAPTCHA_TESTING_PASS = True
+
+MIGRATION_LINTER_OPTIONS = {"exclude_apps": ["social_django", "silk", "fcm_django"]}
+# Run migrations linter on each `python manage.py makemigrations`
+MIGRATION_LINTER_OVERRIDE_MAKEMIGRATIONS = True
 
 PYROSCOPE_PROFILER_ENABLED = getenv_boolean("PYROSCOPE_PROFILER_ENABLED", default=False)
 if PYROSCOPE_PROFILER_ENABLED:

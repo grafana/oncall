@@ -1295,7 +1295,7 @@ def test_get_oncall_users_for_empty_schedule(
     schedule = make_schedule(organization, schedule_class=OnCallScheduleCalendar)
     schedules = OnCallSchedule.objects.filter(pk=schedule.pk)
 
-    assert schedules.get_oncall_users() == []
+    assert schedules.get_oncall_users()[schedule.pk] == []
 
 
 @pytest.mark.django_db
@@ -1357,15 +1357,60 @@ def test_get_oncall_users_for_multiple_schedules(
 
     schedules = OnCallSchedule.objects.filter(pk__in=[schedule_1.pk, schedule_2.pk])
 
-    expected = set(schedules.get_oncall_users(events_datetime=now + timezone.timedelta(seconds=1)))
+    def _extract_oncall_users_from_schedules(schedules):
+        return set(user for schedule in schedules.values() for user in schedule)
+
+    expected = _extract_oncall_users_from_schedules(
+        schedules.get_oncall_users(events_datetime=now + timezone.timedelta(seconds=1))
+    )
     assert expected == {user_1, user_2}
 
-    expected = set(schedules.get_oncall_users(events_datetime=now + timezone.timedelta(minutes=10, seconds=1)))
+    expected = _extract_oncall_users_from_schedules(
+        schedules.get_oncall_users(events_datetime=now + timezone.timedelta(minutes=10, seconds=1))
+    )
     assert expected == {user_1, user_2, user_3}
 
-    assert schedules.get_oncall_users(events_datetime=now + timezone.timedelta(minutes=30, seconds=1)) == [user_3]
+    assert _extract_oncall_users_from_schedules(
+        schedules.get_oncall_users(events_datetime=now + timezone.timedelta(minutes=30, seconds=1))
+    ) == {user_3}
 
-    assert schedules.get_oncall_users(events_datetime=now + timezone.timedelta(minutes=40, seconds=1)) == []
+    assert (
+        _extract_oncall_users_from_schedules(
+            schedules.get_oncall_users(events_datetime=now + timezone.timedelta(minutes=40, seconds=1))
+        )
+        == set()
+    )
+
+
+@pytest.mark.django_db
+def test_get_oncall_users_for_multiple_schedules_emails_case_insensitive(
+    get_ical,
+    make_organization,
+    make_user_for_organization,
+    make_on_call_shift,
+    make_schedule,
+):
+    """
+    Test that emails are case insensitive when matching users to on-call shifts.
+    https://github.com/grafana/oncall/issues/1296
+    """
+    organization = make_organization()
+
+    # user's email case is the opposite of the one in the ICal file below (Test@TEST.test)
+    user = make_user_for_organization(organization, email="tEST@test.TEST")
+    schedule = make_schedule(organization, schedule_class=OnCallScheduleCalendar)
+
+    # Load ICal file with an event for user with email Test@TEST.test for 6 February 2023, 11:00 UTC - 12:00 UTC
+    calendar = get_ical("override_email_case_sensitivity.ics")
+    schedule.cached_ical_file_overrides = calendar.to_ical().decode()
+    schedule.save(update_fields=["cached_ical_file_overrides"])
+
+    # Get on-call users for 6 February 2023 11:30 UTC
+    events_datetime = timezone.datetime(2023, 2, 6, 11, 30, tzinfo=timezone.utc)
+    schedules = OnCallSchedule.objects.filter(pk=schedule.pk)
+    oncall_users = schedules.get_oncall_users(events_datetime=events_datetime)
+
+    assert oncall_users == {schedule.pk: [user]}
 
 
 @pytest.mark.django_db

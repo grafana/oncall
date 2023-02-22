@@ -15,6 +15,9 @@ export const DEFAULT_PAGE = 'incidents';
 
 export const PLUGIN_ROOT = '/a/grafana-oncall-app';
 
+// https://developers.google.com/recaptcha/docs/v3
+export const reCAPTCHA_site_key = '6LeIPJ8kAAAAAJdUfjO3uUtQtVxsYf93y46mTec1';
+
 // Environment options list for onCallApiUrl
 export const ONCALL_PROD = 'https://oncall-prod-us-central-0.grafana.net/oncall';
 export const ONCALL_OPS = 'https://oncall-ops-us-east-0.grafana.net/oncall';
@@ -30,3 +33,6 @@ export const FARO_ENDPOINT_PROD =
 
 export const DOCS_SLACK_SETUP = 'https://grafana.com/docs/grafana-cloud/oncall/open-source/#slack-setup';
 export const DOCS_TELEGRAM_SETUP = 'https://grafana.com/docs/grafana-cloud/oncall/chat-options/configure-telegram/';
+
+// Make sure if you chage max-width here you also change it in responsive.css
+export const TABLE_COLUMN_MAX_WIDTH = 1500;

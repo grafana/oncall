@@ -15,6 +15,7 @@ export type PageDefinition = {
   hideFromTabsFn?: (store: RootBaseStore) => boolean;
   hideFromTabs?: boolean;
   action?: UserAction;
+  hideTitle: boolean; // dont't automatically render title above page content
 
   getPageNav(): { text: string; description: string };
 };
@@ -29,6 +30,7 @@ export const pages: { [id: string]: PageDefinition } = [
     id: 'incidents',
     hideFromBreadcrumbs: true,
     text: 'Alert Groups',
+    hideTitle: true,
     path: getPath('incidents'),
     action: UserActions.AlertGroupsRead,
   },
@@ -127,7 +129,6 @@ export const pages: { [id: string]: PageDefinition } = [
     icon: 'table',
     id: 'live-settings',
     text: 'Env Variables',
-    role: 'Admin',
     hideFromTabsFn: (store: RootBaseStore) => {
       const hasLiveSettings = store.hasFeature(AppFeature.LiveSettings);
       return isTopNavbar() || !hasLiveSettings;
@@ -139,7 +140,6 @@ export const pages: { [id: string]: PageDefinition } = [
     icon: 'cloud',
     id: 'cloud',
     text: 'Cloud',
-    role: 'Admin',
     hideFromTabsFn: (store: RootBaseStore) => {
       const hasCloudFeature = store.hasFeature(AppFeature.CloudConnection);
       return isTopNavbar() || !hasCloudFeature;

@@ -18,9 +18,12 @@ from apps.alerts.escalation_snapshot.snapshot_classes import (
 )
 from apps.alerts.escalation_snapshot.utils import eta_for_escalation_step_notify_if_time
 from apps.alerts.tasks import calculate_escalation_finish_time, escalate_alert_group
-from apps.slack.scenarios.scenario_step import ScenarioStep
 
 logger = logging.getLogger(__name__)
+
+# Is a delay to prevent intermediate activity by system in case user is doing some multi-step action.
+# For example if user wants to unack and ack we don't need to launch escalation right after unack.
+START_ESCALATION_DELAY = 10
 
 
 class EscalationSnapshotMixin:
@@ -239,7 +242,7 @@ class EscalationSnapshotMixin:
         if raw_next_step_eta:
             return parse(raw_next_step_eta).replace(tzinfo=pytz.UTC)
 
-    def start_escalation_if_needed(self, countdown=ScenarioStep.CROSS_ACTION_DELAY, eta=None):
+    def start_escalation_if_needed(self, countdown=START_ESCALATION_DELAY, eta=None):
         """
         :type self:AlertGroup
         """

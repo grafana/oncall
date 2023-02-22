@@ -92,7 +92,10 @@ const EscalationChainSteps = observer((props: EscalationChainStepsProps) => {
       ) : (
         <LoadingPlaceholder text="Loading..." />
       )}
-      <Timeline.Item number={(escalationPolicyIds?.length || 0) + offset + 1} color="#464C54">
+      <Timeline.Item
+        number={(escalationPolicyIds?.length || 0) + offset + 1}
+        color={getComputedStyle(document.documentElement).getPropertyValue('--tag-secondary')}
+      >
         <WithPermissionControl userAction={UserActions.EscalationChainsWrite}>
           <Select
             isSearchable

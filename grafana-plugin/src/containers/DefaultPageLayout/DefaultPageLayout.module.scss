@@ -5,39 +5,10 @@
   flex-direction: column;
 }
 
-.alerts-container {
-  display: flex;
-  flex-direction: column;
-  margin-bottom: 24px;
-  gap: 10px;
-
-  &:empty {
-    display: none;
-  }
-}
-
-.navbar-legacy .alerts-container {
-  padding-top: 10px;
-}
-
-.alert {
-  margin: 0;
-}
-
-@media (max-width: 768px) {
-  .navbar-legacy {
-    padding-top: 50px;
-  }
-}
-
 /* --- GRAFANA UI TUNINGS --- */
 
 .root :global(.filter-table) td {
   white-space: break-spaces;
   line-height: 20px;
   height: auto;
-}
-
-.instructions-link {
-  color: var(--primary-text-link);
 }

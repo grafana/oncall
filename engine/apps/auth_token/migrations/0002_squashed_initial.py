@@ -2,6 +2,7 @@
 
 from django.db import migrations, models
 import django.db.models.deletion
+import django_migration_linter as linter
 
 
 class Migration(migrations.Migration):
@@ -15,6 +16,7 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
+        linter.IgnoreMigration(),
         migrations.AddField(
             model_name='userscheduleexportauthtoken',
             name='organization',

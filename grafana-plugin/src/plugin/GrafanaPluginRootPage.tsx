@@ -40,6 +40,8 @@ import 'interceptors';
 import { rootStore } from 'state';
 import { useStore } from 'state/useStore';
 import { isUserActionAllowed } from 'utils/authorization';
+import { reCAPTCHA_site_key } from 'utils/consts';
+import loadJs from 'utils/loadJs';
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
@@ -54,6 +56,7 @@ dayjs.extend(customParseFormat);
 import 'style/vars.css';
 import 'style/global.css';
 import 'style/utils.css';
+import 'style/responsive.css';
 
 import { getQueryParams, isTopNavbar } from './GrafanaPluginRootPage.helpers';
 import PluginSetup from './PluginSetup';
@@ -88,6 +91,10 @@ export const Root = observer((props: AppRootProps) => {
     };
   }, []);
 
+  useEffect(() => {
+    loadJs(`https://www.google.com/recaptcha/api.js?render=${reCAPTCHA_site_key}`);
+  }, []);
+
   const updateBasicData = async () => {
     await store.updateBasicData();
     setDidFinishLoading(true);
@@ -110,7 +117,7 @@ export const Root = observer((props: AppRootProps) => {
     <DefaultPageLayout {...props} page={page}>
       {!isTopNavbar() && (
         <>
-          <Header page={page} backendLicense={store.backendLicense} />
+          <Header backendLicense={store.backendLicense} />
           <LegacyNavTabsBar currentPage={page} />
         </>
       )}

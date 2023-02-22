@@ -104,9 +104,19 @@ class ScheduleView(
 
         return user_group.can_be_updated
 
+    @cached_property
+    def oncall_users(self):
+        """
+        The result of this method is cached and is reused for the whole lifetime of a request,
+        since self.get_serializer_context() is called multiple times for every instance in the queryset.
+        """
+        queryset = self.get_queryset()
+        return queryset.get_oncall_users()
+
     def get_serializer_context(self):
         context = super().get_serializer_context()
         context.update({"can_update_user_groups": self.can_update_user_groups})
+        context.update({"oncall_users": self.oncall_users})
         return context
 
     def _annotate_queryset(self, queryset):
