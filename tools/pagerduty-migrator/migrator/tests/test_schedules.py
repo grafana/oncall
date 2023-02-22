@@ -249,6 +249,7 @@ def test_no_restrictions():
                 "start_rotation_from_user_index": 0,
                 "week_start": "MO",
                 "time_zone": "UTC",
+                "source": 0,
             },
             {
                 "level": 1,
@@ -263,6 +264,7 @@ def test_no_restrictions():
                 "start_rotation_from_user_index": 0,
                 "week_start": "MO",
                 "time_zone": "UTC",
+                "source": 0,
             },
             {
                 "level": 2,
@@ -277,6 +279,7 @@ def test_no_restrictions():
                 "start_rotation_from_user_index": 0,
                 "week_start": "MO",
                 "time_zone": "UTC",
+                "source": 0,
             },
             {
                 "level": 3,
@@ -291,6 +294,7 @@ def test_no_restrictions():
                 "start_rotation_from_user_index": 0,
                 "week_start": "MO",
                 "time_zone": "UTC",
+                "source": 0,
             },
             {
                 "level": 4,
@@ -305,6 +309,7 @@ def test_no_restrictions():
                 "start_rotation_from_user_index": 0,
                 "week_start": "MO",
                 "time_zone": "UTC",
+                "source": 0,
             },
         ],
     }
@@ -554,6 +559,7 @@ def test_daily_with_daily_restrictions():
                 "start_rotation_from_user_index": 0,
                 "week_start": "MO",
                 "time_zone": "UTC",
+                "source": 0,
             },
             {
                 "level": 1,
@@ -569,6 +575,7 @@ def test_daily_with_daily_restrictions():
                 "start_rotation_from_user_index": 0,
                 "week_start": "MO",
                 "time_zone": "UTC",
+                "source": 0,
             },
             {
                 "level": 2,
@@ -584,6 +591,7 @@ def test_daily_with_daily_restrictions():
                 "start_rotation_from_user_index": 0,
                 "week_start": "MO",
                 "time_zone": "UTC",
+                "source": 0,
             },
             {
                 "level": 3,
@@ -599,6 +607,7 @@ def test_daily_with_daily_restrictions():
                 "start_rotation_from_user_index": 0,
                 "week_start": "MO",
                 "time_zone": "UTC",
+                "source": 0,
             },
             {
                 "level": 3,
@@ -614,6 +623,7 @@ def test_daily_with_daily_restrictions():
                 "start_rotation_from_user_index": 0,
                 "week_start": "MO",
                 "time_zone": "UTC",
+                "source": 0,
             },
             {
                 "level": 4,
@@ -629,6 +639,7 @@ def test_daily_with_daily_restrictions():
                 "start_rotation_from_user_index": 0,
                 "week_start": "MO",
                 "time_zone": "UTC",
+                "source": 0,
             },
             {
                 "level": 4,
@@ -644,6 +655,7 @@ def test_daily_with_daily_restrictions():
                 "start_rotation_from_user_index": 0,
                 "week_start": "MO",
                 "time_zone": "UTC",
+                "source": 0,
             },
             {
                 "level": 4,
@@ -659,6 +671,7 @@ def test_daily_with_daily_restrictions():
                 "start_rotation_from_user_index": 0,
                 "week_start": "MO",
                 "time_zone": "UTC",
+                "source": 0,
             },
             {
                 "level": 4,
@@ -674,6 +687,7 @@ def test_daily_with_daily_restrictions():
                 "start_rotation_from_user_index": 0,
                 "week_start": "MO",
                 "time_zone": "UTC",
+                "source": 0,
             },
             {
                 "level": 5,
@@ -689,6 +703,7 @@ def test_daily_with_daily_restrictions():
                 "start_rotation_from_user_index": 0,
                 "week_start": "MO",
                 "time_zone": "UTC",
+                "source": 0,
             },
             {
                 "level": 5,
@@ -704,6 +719,7 @@ def test_daily_with_daily_restrictions():
                 "start_rotation_from_user_index": 0,
                 "week_start": "MO",
                 "time_zone": "UTC",
+                "source": 0,
             },
             {
                 "level": 5,
@@ -719,6 +735,7 @@ def test_daily_with_daily_restrictions():
                 "start_rotation_from_user_index": 0,
                 "week_start": "MO",
                 "time_zone": "UTC",
+                "source": 0,
             },
             {
                 "level": 6,
@@ -734,6 +751,7 @@ def test_daily_with_daily_restrictions():
                 "start_rotation_from_user_index": 0,
                 "week_start": "MO",
                 "time_zone": "UTC",
+                "source": 0,
             },
             {
                 "level": 6,
@@ -749,6 +767,7 @@ def test_daily_with_daily_restrictions():
                 "start_rotation_from_user_index": 0,
                 "week_start": "MO",
                 "time_zone": "UTC",
+                "source": 0,
             },
             {
                 "level": 7,
@@ -764,6 +783,7 @@ def test_daily_with_daily_restrictions():
                 "start_rotation_from_user_index": 0,
                 "week_start": "MO",
                 "time_zone": "UTC",
+                "source": 0,
             },
             {
                 "level": 7,
@@ -779,6 +799,7 @@ def test_daily_with_daily_restrictions():
                 "start_rotation_from_user_index": 0,
                 "week_start": "MO",
                 "time_zone": "UTC",
+                "source": 0,
             },
             {
                 "level": 8,
@@ -794,6 +815,7 @@ def test_daily_with_daily_restrictions():
                 "start_rotation_from_user_index": 0,
                 "week_start": "MO",
                 "time_zone": "UTC",
+                "source": 0,
             },
             {
                 "level": 8,
@@ -809,6 +831,7 @@ def test_daily_with_daily_restrictions():
                 "start_rotation_from_user_index": 0,
                 "week_start": "MO",
                 "time_zone": "UTC",
+                "source": 0,
             },
             {
                 "by_day": None,
@@ -824,6 +847,7 @@ def test_daily_with_daily_restrictions():
                 "type": "rolling_users",
                 "until": None,
                 "week_start": "MO",
+                "source": 0,
             },
             {
                 "by_day": None,
@@ -839,6 +863,7 @@ def test_daily_with_daily_restrictions():
                 "type": "rolling_users",
                 "until": None,
                 "week_start": "MO",
+                "source": 0,
             },
             {
                 "by_day": None,
@@ -854,6 +879,7 @@ def test_daily_with_daily_restrictions():
                 "type": "rolling_users",
                 "until": None,
                 "week_start": "MO",
+                "source": 0,
             },
             {
                 "by_day": None,
@@ -869,6 +895,7 @@ def test_daily_with_daily_restrictions():
                 "type": "rolling_users",
                 "until": None,
                 "week_start": "MO",
+                "source": 0,
             },
         ],
     }
@@ -1038,6 +1065,7 @@ def test_weekly_with_daily_restrictions():
                 "start_rotation_from_user_index": 0,
                 "week_start": "MO",
                 "time_zone": "UTC",
+                "source": 0,
             },
             {
                 "level": 1,
@@ -1053,6 +1081,7 @@ def test_weekly_with_daily_restrictions():
                 "start_rotation_from_user_index": 0,
                 "week_start": "TU",
                 "time_zone": "UTC",
+                "source": 0,
             },
             {
                 "duration": 72000,
@@ -1068,6 +1097,7 @@ def test_weekly_with_daily_restrictions():
                 "type": "rolling_users",
                 "until": None,
                 "week_start": "WE",
+                "source": 0,
             },
             {
                 "duration": 3600,
@@ -1083,6 +1113,7 @@ def test_weekly_with_daily_restrictions():
                 "type": "rolling_users",
                 "until": None,
                 "week_start": "TH",
+                "source": 0,
             },
             {
                 "duration": 28800,
@@ -1098,6 +1129,7 @@ def test_weekly_with_daily_restrictions():
                 "type": "rolling_users",
                 "until": None,
                 "week_start": "TU",
+                "source": 0,
             },
             {
                 "duration": 28800,
@@ -1113,6 +1145,7 @@ def test_weekly_with_daily_restrictions():
                 "type": "rolling_users",
                 "until": None,
                 "week_start": "TU",
+                "source": 0,
             },
             {
                 "duration": 28800,
@@ -1128,6 +1161,7 @@ def test_weekly_with_daily_restrictions():
                 "type": "rolling_users",
                 "until": None,
                 "week_start": "TU",
+                "source": 0,
             },
             {
                 "duration": 28800,
@@ -1143,6 +1177,7 @@ def test_weekly_with_daily_restrictions():
                 "type": "rolling_users",
                 "until": None,
                 "week_start": "TU",
+                "source": 0,
             },
             {
                 "duration": 28800,
@@ -1158,6 +1193,7 @@ def test_weekly_with_daily_restrictions():
                 "type": "rolling_users",
                 "until": None,
                 "week_start": "TU",
+                "source": 0,
             },
             {
                 "duration": 28800,
@@ -1173,6 +1209,7 @@ def test_weekly_with_daily_restrictions():
                 "type": "rolling_users",
                 "until": None,
                 "week_start": "TU",
+                "source": 0,
             },
             {
                 "duration": 28800,
@@ -1188,6 +1225,7 @@ def test_weekly_with_daily_restrictions():
                 "type": "rolling_users",
                 "until": None,
                 "week_start": "TU",
+                "source": 0,
             },
             {
                 "duration": 28800,
@@ -1203,6 +1241,7 @@ def test_weekly_with_daily_restrictions():
                 "type": "rolling_users",
                 "until": None,
                 "week_start": "WE",
+                "source": 0,
             },
         ],
     }
@@ -1344,6 +1383,7 @@ def test_daily_with_weekly_restrictions():
                 "type": "rolling_users",
                 "until": None,
                 "week_start": "MO",
+                "source": 0,
             },
             {
                 "duration": 86400,
@@ -1359,6 +1399,7 @@ def test_daily_with_weekly_restrictions():
                 "type": "rolling_users",
                 "until": None,
                 "week_start": "MO",
+                "source": 0,
             },
             {
                 "duration": 86400,
@@ -1374,6 +1415,7 @@ def test_daily_with_weekly_restrictions():
                 "type": "rolling_users",
                 "until": None,
                 "week_start": "MO",
+                "source": 0,
             },
             {
                 "duration": 86400,
@@ -1389,6 +1431,7 @@ def test_daily_with_weekly_restrictions():
                 "type": "rolling_users",
                 "until": None,
                 "week_start": "MO",
+                "source": 0,
             },
         ],
     }
@@ -1551,6 +1594,7 @@ def test_weekly_with_weekly_restrictions():
                 "type": "rolling_users",
                 "until": None,
                 "week_start": "MO",
+                "source": 0,
             },
             {
                 "by_day": None,
@@ -1566,6 +1610,7 @@ def test_weekly_with_weekly_restrictions():
                 "type": "rolling_users",
                 "until": None,
                 "week_start": "MO",
+                "source": 0,
             },
             {
                 "by_day": None,
@@ -1581,6 +1626,7 @@ def test_weekly_with_weekly_restrictions():
                 "type": "rolling_users",
                 "until": None,
                 "week_start": "MO",
+                "source": 0,
             },
             {
                 "by_day": None,
@@ -1596,6 +1642,7 @@ def test_weekly_with_weekly_restrictions():
                 "type": "rolling_users",
                 "until": None,
                 "week_start": "MO",
+                "source": 0,
             },
             {
                 "by_day": None,
@@ -1611,6 +1658,7 @@ def test_weekly_with_weekly_restrictions():
                 "type": "rolling_users",
                 "until": None,
                 "week_start": "MO",
+                "source": 0,
             },
             {
                 "by_day": None,
@@ -1626,6 +1674,7 @@ def test_weekly_with_weekly_restrictions():
                 "type": "rolling_users",
                 "until": None,
                 "week_start": "MO",
+                "source": 0,
             },
             {
                 "by_day": None,
@@ -1641,6 +1690,7 @@ def test_weekly_with_weekly_restrictions():
                 "type": "rolling_users",
                 "until": None,
                 "week_start": "MO",
+                "source": 0,
             },
             {
                 "by_day": None,
@@ -1656,6 +1706,7 @@ def test_weekly_with_weekly_restrictions():
                 "type": "rolling_users",
                 "until": None,
                 "week_start": "MO",
+                "source": 0,
             },
             {
                 "by_day": None,
@@ -1671,6 +1722,7 @@ def test_weekly_with_weekly_restrictions():
                 "type": "rolling_users",
                 "until": None,
                 "week_start": "MO",
+                "source": 0,
             },
             {
                 "by_day": None,
@@ -1686,6 +1738,7 @@ def test_weekly_with_weekly_restrictions():
                 "type": "rolling_users",
                 "until": None,
                 "week_start": "MO",
+                "source": 0,
             },
             {
                 "by_day": None,
@@ -1701,6 +1754,7 @@ def test_weekly_with_weekly_restrictions():
                 "type": "rolling_users",
                 "until": None,
                 "week_start": "MO",
+                "source": 0,
             },
             {
                 "by_day": None,
@@ -1716,6 +1770,7 @@ def test_weekly_with_weekly_restrictions():
                 "type": "rolling_users",
                 "until": None,
                 "week_start": "MO",
+                "source": 0,
             },
             {
                 "by_day": None,
@@ -1731,6 +1786,7 @@ def test_weekly_with_weekly_restrictions():
                 "type": "rolling_users",
                 "until": None,
                 "week_start": "MO",
+                "source": 0,
             },
         ],
         "team_id": None,
@@ -2010,6 +2066,7 @@ def test_time_zone():
                 "type": "rolling_users",
                 "until": None,
                 "week_start": "MO",
+                "source": 0,
             },
         ],
         "team_id": None,
