@@ -40,6 +40,8 @@ import 'interceptors';
 import { rootStore } from 'state';
 import { useStore } from 'state/useStore';
 import { isUserActionAllowed } from 'utils/authorization';
+import { reCAPTCHA_site_key } from 'utils/consts';
+import loadJs from 'utils/loadJs';
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
@@ -87,6 +89,10 @@ export const Root = observer((props: AppRootProps) => {
     return () => {
       document.head.removeChild(link);
     };
+  }, []);
+
+  useEffect(() => {
+    loadJs(`https://www.google.com/recaptcha/api.js?render=${reCAPTCHA_site_key}`);
   }, []);
 
   const updateBasicData = async () => {

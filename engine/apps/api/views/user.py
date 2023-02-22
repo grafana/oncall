@@ -23,7 +23,12 @@ from apps.api.permissions import (
     user_is_authorized,
 )
 from apps.api.serializers.team import TeamSerializer
-from apps.api.serializers.user import FilterUserSerializer, UserHiddenFieldsSerializer, UserSerializer
+from apps.api.serializers.user import (
+    FilterUserSerializer,
+    MobileVerificationCodeRecaptchaSerializer,
+    UserHiddenFieldsSerializer,
+    UserSerializer,
+)
 from apps.api.throttlers import (
     GetPhoneVerificationCodeThrottlerPerOrg,
     GetPhoneVerificationCodeThrottlerPerUser,
@@ -292,11 +297,29 @@ class UserView(
         throttle_classes=[GetPhoneVerificationCodeThrottlerPerUser, GetPhoneVerificationCodeThrottlerPerOrg],
     )
     def get_verification_code(self, request, pk):
+        """
+        See `DRF_RECAPTCHA_TESTING` in `settings/base.py`
+        and [here](https://github.com/llybin/drf-recaptcha#testing) to better understand
+        when the recaptcha checks are actually made
+        """
+        logger.info("Validating reCAPTCHA code")
+
+        serializer = MobileVerificationCodeRecaptchaSerializer(
+            data={"recaptcha": request.headers.get("X-OnCall-Recaptcha", "some-non-null-value")},
+            context={"request": request},
+        )
+
+        if not serializer.is_valid():
+            logger.warning(f"Invalid reCAPTCHA validation: {serializer._errors}")
+            return Response(status=status.HTTP_400_BAD_REQUEST)
+        logger.info("reCAPTCHA code is valid")
+
         user = self.get_object()
         phone_manager = PhoneManager(user)
         code_sent = phone_manager.send_verification_code()
 
         if not code_sent:
+            logger.warning(f"Mobile app verification code was not successfully sent")
             return Response(status=status.HTTP_400_BAD_REQUEST)
         return Response(status=status.HTTP_200_OK)
 

@@ -7,6 +7,7 @@ from django.utils import dateparse, timezone
 from icalendar import Calendar
 from rest_framework import serializers
 
+from apps.schedules.ical_utils import fetch_ical_file
 from common.api_helpers.exceptions import BadRequest
 from common.timezones import raise_exception_if_not_valid_timezone
 
@@ -49,7 +50,7 @@ def validate_ical_url(url):
         if settings.BASE_URL in url:
             raise serializers.ValidationError("Potential self-reference")
         try:
-            ical_file = requests.get(url).text
+            ical_file = fetch_ical_file(url)
             Calendar.from_ical(ical_file)
         except requests.exceptions.RequestException:
             raise serializers.ValidationError("Ical download failed")
