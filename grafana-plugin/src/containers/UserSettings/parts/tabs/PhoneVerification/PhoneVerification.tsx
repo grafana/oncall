@@ -10,7 +10,6 @@ import { WithPermissionControl } from 'containers/WithPermissionControl/WithPerm
 import { User } from 'models/user/user.types';
 import { AppFeature } from 'state/features';
 import { useStore } from 'state/useStore';
-import { openErrorNotification } from 'utils';
 import { isUserActionAllowed, UserAction, UserActions } from 'utils/authorization';
 import { reCAPTCHA_site_key } from 'utils/consts';
 
@@ -91,14 +90,9 @@ const PhoneVerification = observer((props: PhoneVerificationProps) => {
 
   const onSubmitCallback = useCallback(async () => {
     if (isCodeSent) {
-      userStore
-        .verifyPhone(userPk, code)
-        .then(() => {
-          userStore.loadUser(userPk);
-        })
-        .catch((error) => {
-          openErrorNotification(error.response.data);
-        });
+      userStore.verifyPhone(userPk, code).then(() => {
+        userStore.loadUser(userPk);
+      });
     } else {
       window.grecaptcha.ready(function () {
         window.grecaptcha
@@ -110,20 +104,13 @@ const PhoneVerification = observer((props: PhoneVerificationProps) => {
               unverified_phone_number: phone,
             });
 
-            userStore
-              .fetchVerificationCode(userPk, token)
-              .then(() => {
-                setState({ isCodeSent: true });
+            userStore.fetchVerificationCode(userPk, token).then(() => {
+              setState({ isCodeSent: true });
 
-                if (codeInputRef.current) {
-                  codeInputRef.current.focus();
-                }
-              })
-              .catch(() => {
-                openErrorNotification(
-                  'Grafana OnCall is unable to verify your phone number due to incorrect number or verification service being unavailable.'
-                );
-              });
+              if (codeInputRef.current) {
+                codeInputRef.current.focus();
+              }
+            });
           });
       });
     }
