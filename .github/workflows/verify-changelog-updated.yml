@@ -6,6 +6,10 @@ on:
     branches:
       - main
       - dev
+  # You can use the merge_group event to trigger your GitHub Actions workflow when
+  # a pull request is added to a merge queue
+  # https://docs.github.com/en/repositories/configuring-branches-and-merges-in-your-repository/configuring-pull-request-merges/managing-a-merge-queue#triggering-merge-group-checks-with-github-actions
+  merge_group:
 
 jobs:
   verfiy-changelog-updated:
