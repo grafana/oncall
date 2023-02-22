@@ -35,7 +35,11 @@ def notify_group_task(alert_group_pk, escalation_policy_snapshot_order=None):
     step = EscalationDeliveryStep(slack_team_identity, organization)
 
     escalation_snapshot = alert_group.escalation_snapshot
-    escalation_policy_snapshot = escalation_snapshot.escalation_policies_snapshots.get(escalation_policy_snapshot_order)
+    try:
+        escalation_policy_snapshot = escalation_snapshot.escalation_policies_snapshots[escalation_policy_snapshot_order]
+    except IndexError:
+        escalation_policy_snapshot = None
+
     if not escalation_policy_snapshot:
         # The step has an incorrect order. Probably the order was changed manually with terraform.
         # It is a quick fix, tasks notify_all_task and notify_group_task should be refactored to avoid getting snapshot
