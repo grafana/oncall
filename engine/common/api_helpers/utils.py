@@ -7,6 +7,7 @@ from django.utils import dateparse, timezone
 from icalendar import Calendar
 from rest_framework import serializers
 
+from apps.schedules.ical_utils import fetch_ical_file
 from common.api_helpers.exceptions import BadRequest
 from common.timezones import raise_exception_if_not_valid_timezone
 
@@ -49,7 +50,10 @@ def validate_ical_url(url):
         if settings.BASE_URL in url:
             raise serializers.ValidationError("Potential self-reference")
         try:
-            ical_file = requests.get(url).text
+            ical_file = fetch_ical_file(url)
+            # without user-agent header google calendar sometimes returns text/html instead of text/icalendar
+            headers = {"User-Agent": "Grafana OnCall"}
+            ical_file = requests.get(url, headers=headers, timeout=10).text
             Calendar.from_ical(ical_file)
         except requests.exceptions.RequestException:
             raise serializers.ValidationError("Ical download failed")

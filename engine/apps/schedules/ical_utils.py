@@ -576,7 +576,7 @@ def fetch_ical_file_or_get_error(ical_url):
     cached_ical_file = None
     ical_file_error = None
     try:
-        new_ical_file = requests.get(ical_url, timeout=10).text
+        new_ical_file = fetch_ical_file(ical_url)
         Calendar.from_ical(new_ical_file)
         cached_ical_file = new_ical_file
     except requests.exceptions.RequestException:
@@ -585,6 +585,13 @@ def fetch_ical_file_or_get_error(ical_url):
         ical_file_error = "wrong iCal"
     # TODO: catch icalendar exceptions
     return cached_ical_file, ical_file_error
+
+
+def fetch_ical_file(ical_url):
+    # without user-agent header google calendar sometimes returns text/html instead of text/icalendar
+    headers = {"User-Agent": "Grafana OnCall"}
+    ical_file = requests.get(ical_url, headers=headers, timeout=10).text
+    return ical_file
 
 
 def create_base_icalendar(name: str) -> Calendar:
