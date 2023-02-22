@@ -106,16 +106,14 @@ class Schedule:
 
         layers = []
         # PagerDuty API returns layers in reverse order (e.g. Layer 3, Layer 2, Layer 1)
-        for level, layer in enumerate(reversed(schedule["schedule_layers"])):
-            rotation_end = _pd_datetime_to_dt(layer["end"]) if layer["end"] else None
+        for level, layer_dict in enumerate(reversed(schedule["schedule_layers"])):
+            layer = Layer.from_dict(layer_dict, level)
 
             # skip any layers that have already ended
-            if rotation_end and rotation_end < datetime.datetime.now(
-                datetime.timezone.utc
-            ):
+            if layer.end and layer.end < datetime.datetime.now(datetime.timezone.utc):
                 continue
 
-            layers.append(Layer.from_dict(layer, level))
+            layers.append(layer)
 
         return cls(
             name=schedule["name"],

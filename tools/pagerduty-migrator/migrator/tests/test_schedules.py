@@ -2026,3 +2026,43 @@ def test_time_zone():
     for shift in oncall_schedule["shifts"]:
         shift.pop("name")
     assert oncall_schedule == expected
+
+
+def test_removed_layers():
+    pd_schedule = {
+        "name": "Removed layer",
+        "time_zone": "Europe/Paris",
+        "schedule_layers": [
+            {
+                "name": "Layer 1",
+                "start": "2023-02-21T17:39:43+00:00",
+                "end": "2023-02-21T17:39:43+00:00",
+                "rotation_virtual_start": "2023-02-18T00:00:00+00:00",
+                "rotation_turn_length_seconds": 86400,
+                "restrictions": [],
+                "users": [
+                    {"user": {"id": "USER_ID_1"}},
+                    {"user": {"id": "USER_ID_2"}},
+                    {"user": {"id": "USER_ID_3"}},
+                ],
+            }
+        ],
+    }
+
+    expected = {
+        "name": "Removed layer",
+        "shifts": [],
+        "team_id": None,
+        "time_zone": "Europe/Paris",
+        "type": "web",
+    }
+
+    oncall_schedule, errors = Schedule.from_dict(pd_schedule).to_oncall_schedule(
+        user_id_map
+    )
+
+    assert errors == []
+
+    for shift in oncall_schedule["shifts"]:
+        shift.pop("name")
+    assert oncall_schedule == expected
