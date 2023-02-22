@@ -47,7 +47,7 @@ def format_escalation_policy(policy: dict) -> str:
 
 
 def format_integration(integration: dict) -> str:
-    result = integration["service"]["name"] + " - " + integration["name"]
+    result = "{} - {}".format(integration["service"]["name"], integration["name"])
 
     if not integration["oncall_type"]:
         result = (
@@ -88,9 +88,9 @@ def schedule_report(schedules: list[dict]) -> str:
     for schedule in sorted(schedules, key=lambda s: bool(s["unmatched_users"])):
         result += "\n" + TAB + format_schedule(schedule)
 
-        if not schedule["unmatched_users"]:
+        if not schedule["unmatched_users"] and schedule["oncall_schedule"]:
             result += " (existing schedule with name '{}' will be deleted)".format(
-                schedule["name"]
+                schedule["oncall_schedule"]["name"]
             )
 
         for user in schedule["unmatched_users"]:
@@ -105,13 +105,13 @@ def escalation_policy_report(policies: list[dict]) -> str:
     for policy in sorted(
         policies, key=lambda p: bool(p["unmatched_users"] or p["flawed_schedules"])
     ):
-        result += f"\n" + TAB + format_escalation_policy(policy)
+        result += "\n" + TAB + format_escalation_policy(policy)
 
         for user in policy["unmatched_users"]:
-            result += f"\n" + TAB * 2 + format_user(user)
+            result += "\n" + TAB * 2 + format_user(user)
 
         for schedule in policy["flawed_schedules"]:
-            result += f"\n" + TAB * 2 + format_schedule(schedule)
+            result += "\n" + TAB * 2 + format_schedule(schedule)
 
         if (
             not policy["unmatched_users"]
@@ -120,7 +120,7 @@ def escalation_policy_report(policies: list[dict]) -> str:
         ):
             result += (
                 " (existing escalation chain with name '{}' will be deleted)".format(
-                    policy["name"]
+                    policy["oncall_escalation_chain"]["name"]
                 )
             )
 
@@ -135,16 +135,14 @@ def integration_report(integrations: list[dict]) -> str:
         key=lambda i: bool(i["oncall_type"] and not i["is_escalation_policy_flawed"]),
         reverse=True,
     ):
-        result += f"\n" + TAB + format_integration(integration)
+        result += "\n" + TAB + format_integration(integration)
         if (
             integration["oncall_type"]
             and not integration["is_escalation_policy_flawed"]
             and integration["oncall_integration"]
         ):
-            result += (
-                " (existing integration with name '{} - {}' will be deleted)".format(
-                    integration["service"]["name"], integration["name"]
-                )
+            result += " (existing integration with name '{}' will be deleted)".format(
+                integration["oncall_integration"]["name"]
             )
 
     return result

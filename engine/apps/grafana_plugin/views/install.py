@@ -16,9 +16,11 @@ class InstallView(GrafanaHeadersMixin, APIView):
         stack_id = self.instance_context["stack_id"]
         org_id = self.instance_context["org_id"]
 
-        organization = Organization.objects.filter(stack_id=stack_id, org_id=org_id).first()
+        organization = Organization.objects_with_deleted.filter(stack_id=stack_id, org_id=org_id).first()
+        # If we receive install request to the deleted org - just restore it.
+        organization.deleted_at = None
         organization.api_token = self.instance_context["grafana_token"]
-        organization.save(update_fields=["api_token"])
+        organization.save(update_fields=["api_token", "deleted_at"])
 
         sync_organization(organization)
         return Response(status=status.HTTP_204_NO_CONTENT)

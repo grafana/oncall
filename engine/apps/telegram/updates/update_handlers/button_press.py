@@ -4,12 +4,12 @@ from typing import Callable, Optional, Tuple
 
 from apps.alerts.constants import ActionSource
 from apps.alerts.models import AlertGroup
+from apps.api.permissions import RBACPermission, user_is_authorized
 from apps.telegram.models import TelegramToUserConnector
-from apps.telegram.renderers.keyboard import Action
+from apps.telegram.renderers.keyboard import CODE_TO_ACTION_MAP, Action
 from apps.telegram.updates.update_handlers import UpdateHandler
 from apps.telegram.utils import CallbackQueryFactory
 from apps.user_management.models import User
-from common.constants.role import Role
 
 logger = logging.getLogger(__name__)
 
@@ -58,21 +58,35 @@ class ButtonPressHandler(UpdateHandler):
         if not user:
             return False
 
-        return user.organization == alert_group.channel.organization and user.role in [Role.ADMIN, Role.EDITOR]
+        has_permission = user_is_authorized(user, [RBACPermission.Permissions.CHATOPS_WRITE])
+        return user.organization == alert_group.channel.organization and has_permission
 
-    @staticmethod
-    def _get_action_context(data: str) -> ActionContext:
+    @classmethod
+    def _get_action_context(cls, data: str) -> ActionContext:
         args = CallbackQueryFactory.decode_data(data)
 
         alert_group_pk = args[0]
         alert_group = AlertGroup.all_objects.get(pk=alert_group_pk)
 
-        action_name = args[1]
+        action_value = args[1]
+        try:
+            # if action encoded as action_code - cast it to the action_string
+            action_value = int(action_value)
+            action_name = CODE_TO_ACTION_MAP[action_value]
+        except ValueError:
+            # support legacy messages with action_name in callback data
+            action_name = action_value
         action = Action(action_name)
 
-        action_data = args[2] if len(args) >= 3 and not args[2].startswith("x-oncall-org-id") else None
+        action_data = args[2] if len(args) >= 3 and not cls._is_oncall_identifier(args[2]) else None
 
         return ActionContext(alert_group=alert_group, action=action, action_data=action_data)
+
+    @staticmethod
+    def _is_oncall_identifier(string: str) -> bool:
+        # determines if piece of data passed via callback_data is oncall_identifier
+        # x-oncall-org-id is kept here for backward compatibility.
+        return string.startswith("x-oncall-org-id") or string.startswith("oncall-uuid")
 
     @staticmethod
     def _map_action_context_to_fn(action_context: ActionContext) -> Tuple[Callable, dict]:

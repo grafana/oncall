@@ -76,7 +76,7 @@ def update_web_title_cache(alert_receive_channel_pk, alert_group_pks):
         if web_title_template:
             if alert_group.pk in first_alert_map:
                 raw_request_data = first_alert_map[alert_group.pk]["raw_request_data"]
-                web_title_cache = apply_jinja_template(web_title_template, raw_request_data)[0] or None
+                web_title_cache = apply_jinja_template(web_title_template, raw_request_data)
             else:
                 web_title_cache = None
         else:

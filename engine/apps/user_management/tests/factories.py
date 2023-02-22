@@ -1,6 +1,6 @@
 import factory
 
-from apps.user_management.models import Organization, Team, User
+from apps.user_management.models import Organization, Region, Team, User
 from common.utils import UniqueFaker
 
 
@@ -31,3 +31,12 @@ class TeamFactory(factory.DjangoModelFactory):
 
     class Meta:
         model = Team
+
+
+class RegionFactory(factory.DjangoModelFactory):
+    name = factory.Faker("country")
+    slug = factory.Faker("slug")
+    oncall_backend_url = factory.Faker("url")
+
+    class Meta:
+        model = Region

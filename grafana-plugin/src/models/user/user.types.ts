@@ -1,11 +1,8 @@
 import { Team } from 'models/team/team.types';
 import { Timezone } from 'models/timezone/timezone.types';
-import { UserAction } from 'state/userAction';
 
-export enum UserRole {
-  ADMIN,
-  EDITOR,
-  VIEWER,
+export interface MessagingBackends {
+  [key: string]: any;
 }
 
 export interface User {
@@ -21,14 +18,11 @@ export interface User {
   username: string;
   slack_id: string;
   phone_verified: boolean;
-  role: UserRole;
   telegram_configuration: {
     telegram_nick_name: string;
     telegram_chat_id: number; // TODO check if string
   };
-  messaging_backends: {
-    [key: string]: any;
-  };
+  messaging_backends: MessagingBackends;
   notification_chain_verbal: {
     default: string;
     important: string;
@@ -49,7 +43,6 @@ export interface User {
     inviter_name: string | null;
     video_conference_link: string | null;
   };
-  permissions: UserAction[];
   trigger_video_call?: boolean;
   export_url?: string;
   status?: number;

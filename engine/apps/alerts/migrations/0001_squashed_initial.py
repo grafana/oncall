@@ -15,6 +15,7 @@ import django.core.validators
 from django.db import migrations, models
 import django.db.models.deletion
 import django.db.models.manager
+import django_migration_linter as linter
 
 from apps.alerts.integration_options_mixin import IntegrationOptionsMixin
 
@@ -27,6 +28,7 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
+        linter.IgnoreMigration(),
         migrations.CreateModel(
             name='Alert',
             fields=[

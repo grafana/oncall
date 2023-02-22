@@ -50,14 +50,27 @@ const ScheduleOverrideForm: FC<RotationFormProps> = (props) => {
     shiftId,
     startMoment,
     shiftMoment = dayjs().startOf('day').add(1, 'day'),
-    shiftColor = '#C69B06',
+    shiftColor = getComputedStyle(document.documentElement).getPropertyValue('--tag-warning'),
   } = props;
 
   const store = useStore();
 
+  const [shiftStart, setShiftStart] = useState<dayjs.Dayjs>(shiftMoment);
+  const [shiftEnd, setShiftEnd] = useState<dayjs.Dayjs>(shiftMoment.add(24, 'hours'));
+
   const [offsetTop, setOffsetTop] = useState<number>(0);
 
   const [isOpen, setIsOpen] = useState<boolean>(false);
+
+  const updateShiftStart = useCallback(
+    (value) => {
+      const diff = shiftEnd.diff(shiftStart);
+
+      setShiftStart(value);
+      setShiftEnd(value.add(diff));
+    },
+    [shiftStart, shiftEnd]
+  );
 
   useEffect(() => {
     if (isOpen) {
@@ -75,9 +88,6 @@ const ScheduleOverrideForm: FC<RotationFormProps> = (props) => {
       });
     }
   }, [isOpen]);
-
-  const [shiftStart, setShiftStart] = useState<dayjs.Dayjs>(shiftMoment);
-  const [shiftEnd, setShiftEnd] = useState<dayjs.Dayjs>(shiftMoment.add(24, 'hours'));
 
   const [userGroups, setUserGroups] = useState([[]]);
 
@@ -206,7 +216,7 @@ const ScheduleOverrideForm: FC<RotationFormProps> = (props) => {
                   </Text>
                 }
               >
-                <DateTimePicker value={shiftStart} onChange={setShiftStart} timezone={currentTimezone} />
+                <DateTimePicker value={shiftStart} onChange={updateShiftStart} timezone={currentTimezone} />
               </Field>
               <Field
                 className={cx('date-time-picker')}

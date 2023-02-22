@@ -10,8 +10,9 @@ import { WithPermissionControl } from 'containers/WithPermissionControl/WithPerm
 import { User } from 'models/user/user.types';
 import { AppFeature } from 'state/features';
 import { useStore } from 'state/useStore';
-import { UserAction } from 'state/userAction';
 import { openErrorNotification } from 'utils';
+import { isUserActionAllowed, UserAction, UserActions } from 'utils/authorization';
+import { reCAPTCHA_site_key } from 'utils/consts';
 
 import styles from './PhoneVerification.module.css';
 
@@ -99,26 +100,32 @@ const PhoneVerification = observer((props: PhoneVerificationProps) => {
           openErrorNotification(error.response.data);
         });
     } else {
-      await userStore.updateUser({
-        pk: userPk,
-        email: user.email,
-        unverified_phone_number: phone,
+      window.grecaptcha.ready(function () {
+        window.grecaptcha
+          .execute(reCAPTCHA_site_key, { action: 'mobile_verification_code' })
+          .then(async function (token) {
+            await userStore.updateUser({
+              pk: userPk,
+              email: user.email,
+              unverified_phone_number: phone,
+            });
+
+            userStore
+              .fetchVerificationCode(userPk, token)
+              .then(() => {
+                setState({ isCodeSent: true });
+
+                if (codeInputRef.current) {
+                  codeInputRef.current.focus();
+                }
+              })
+              .catch(() => {
+                openErrorNotification(
+                  'Grafana OnCall is unable to verify your phone number due to incorrect number or verification service being unavailable.'
+                );
+              });
+          });
       });
-
-      userStore
-        .fetchVerificationCode(userPk)
-        .then(() => {
-          setState({ isCodeSent: true });
-
-          if (codeInputRef.current) {
-            codeInputRef.current.focus();
-          }
-        })
-        .catch(() => {
-          openErrorNotification(
-            "Can't send SMS code. Please try other phone number formats. Don't forget the country code!"
-          );
-        });
     }
   }, [
     code,
@@ -137,12 +144,12 @@ const PhoneVerification = observer((props: PhoneVerificationProps) => {
   const isPhoneValid = phoneHasMinimumLength && PHONE_REGEX.test(phone);
   const showPhoneInputError = phoneHasMinimumLength && !isPhoneValid && !isPhoneNumberHidden && !isLoading;
 
-  const action = isCurrentUser ? UserAction.UpdateOwnSettings : UserAction.UpdateOtherUsersSettings;
+  const action = isCurrentUser ? UserActions.UserSettingsWrite : UserActions.UserSettingsAdmin;
   const isButtonDisabled =
     phone === user.verified_phone_number || (!isCodeSent && !isPhoneValid) || !isTwilioConfigured;
 
   const isPhoneDisabled = !!user.verified_phone_number;
-  const isCodeFieldDisabled = !isCodeSent || !store.isUserActionAllowed(action);
+  const isCodeFieldDisabled = !isCodeSent || !isUserActionAllowed(action);
   const showToggle = user.verified_phone_number && isCurrentUser;
 
   if (showForgetScreen) {
@@ -200,7 +207,6 @@ const PhoneVerification = observer((props: PhoneVerificationProps) => {
             />
           </WithPermissionControl>
         </Field>
-
         {!user.verified_phone_number && (
           <Input
             ref={codeInputRef}
@@ -211,7 +217,20 @@ const PhoneVerification = observer((props: PhoneVerificationProps) => {
             className={cx('phone__field')}
           />
         )}
-
+        <HorizontalGroup spacing="xs">
+          <Icon name="info-circle" />
+          <Text type="secondary">
+            This site is protected by reCAPTCHA and the Google{' '}
+            <a target="_blank" rel="noreferrer" href="https://policies.google.com/privacy">
+              <Text type="link">Privacy Policy</Text>
+            </a>{' '}
+            and{' '}
+            <a target="_blank" rel="noreferrer" href="https://policies.google.com/terms">
+              <Text type="link">Terms of Service </Text>
+            </a>{' '}
+            apply.
+          </Text>
+        </HorizontalGroup>
         {showToggle && (
           <div className={cx('switch')}>
             <div className={cx('switch__icon')}>
@@ -264,7 +283,7 @@ function ForgetPhoneScreen({ phone, onCancel, onForget }: ForgetPhoneScreenProps
 }
 
 interface PhoneVerificationButtonsGroupProps {
-  action: UserAction.UpdateOwnSettings | UserAction.UpdateOtherUsersSettings;
+  action: UserAction;
 
   isCodeSent: boolean;
   isButtonDisabled: boolean;
@@ -315,25 +334,25 @@ function PhoneVerificationButtonsGroup({
       )}
 
       {user.verified_phone_number && (
-        <WithPermissionControl userAction={action}>
-          <Button
-            disabled={!user?.verified_phone_number || !isTwilioConfigured || isTestCallInProgress}
-            onClick={handleMakeTestCallClick}
-          >
-            {isTestCallInProgress ? 'Making Test Call...' : 'Make Test Call'}
-          </Button>
-        </WithPermissionControl>
+        <>
+          <WithPermissionControl userAction={action}>
+            <Button
+              disabled={!user?.verified_phone_number || !isTwilioConfigured || isTestCallInProgress}
+              onClick={handleMakeTestCallClick}
+            >
+              {isTestCallInProgress ? 'Making Test Call...' : 'Make Test Call'}
+            </Button>
+          </WithPermissionControl>
+          <Tooltip content={'Click "Make Test Call" to save a phone number and add it to DnD exceptions.'}>
+            <Icon
+              name="info-circle"
+              style={{
+                marginLeft: '10px',
+              }}
+            />
+          </Tooltip>
+        </>
       )}
-
-      <Tooltip content={'Click "Make Test Call" to save a phone number and add it to DnD exceptions.'}>
-        <Icon
-          name="info-circle"
-          style={{
-            marginLeft: '10px',
-            color: '#1890ff',
-          }}
-        />
-      </Tooltip>
     </HorizontalGroup>
   );
 }

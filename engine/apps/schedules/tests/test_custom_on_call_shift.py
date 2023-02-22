@@ -60,6 +60,38 @@ def test_get_on_call_users_from_web_schedule_override(make_organization_and_user
 
 
 @pytest.mark.django_db
+def test_get_on_call_users_from_web_schedule_override_until(
+    make_organization_and_user, make_on_call_shift, make_schedule
+):
+    organization, user = make_organization_and_user()
+
+    schedule = make_schedule(organization, schedule_class=OnCallScheduleWeb)
+    date = timezone.now().replace(microsecond=0)
+
+    data = {
+        "start": date,
+        "rotation_start": date,
+        "duration": timezone.timedelta(seconds=10800),
+        "schedule": schedule,
+        "until": date + timezone.timedelta(seconds=3600),
+    }
+
+    on_call_shift = make_on_call_shift(organization=organization, shift_type=CustomOnCallShift.TYPE_OVERRIDE, **data)
+    on_call_shift.add_rolling_users([[user]])
+
+    # user is on-call
+    date = date + timezone.timedelta(minutes=5)
+    users_on_call = list_users_to_notify_from_ical(schedule, date)
+    assert len(users_on_call) == 1
+    assert user in users_on_call
+
+    # and the until is enforced
+    date = date + timezone.timedelta(hours=2)
+    users_on_call = list_users_to_notify_from_ical(schedule, date)
+    assert len(users_on_call) == 0
+
+
+@pytest.mark.django_db
 def test_get_on_call_users_from_recurrent_event(make_organization_and_user, make_on_call_shift, make_schedule):
     organization, user = make_organization_and_user()
 
@@ -348,6 +380,55 @@ def test_rolling_users_event_daily_by_day(
         users_on_call = list_users_to_notify_from_ical(schedule, dt)
         assert len(users_on_call) == 1
         assert user_2 in users_on_call
+
+    for dt in nobody_on_call_dates:
+        users_on_call = list_users_to_notify_from_ical(schedule, dt)
+        assert len(users_on_call) == 0
+
+
+@pytest.mark.django_db
+def test_rolling_users_event_daily_by_day_off_start(make_organization_and_user, make_on_call_shift, make_schedule):
+    organization, user_1 = make_organization_and_user()
+
+    schedule = make_schedule(organization, schedule_class=OnCallScheduleWeb)
+    now = timezone.now().replace(hour=0, minute=0, second=0, microsecond=0)
+    current_week_monday = now - timezone.timedelta(days=now.weekday())
+
+    # WE, FR
+    weekdays = [2, 4]
+    by_day = [CustomOnCallShift.ICAL_WEEKDAY_MAP[day] for day in weekdays]
+    data = {
+        "priority_level": 1,
+        "start": current_week_monday,
+        "rotation_start": current_week_monday,
+        "duration": timezone.timedelta(seconds=10800),
+        "frequency": CustomOnCallShift.FREQUENCY_DAILY,
+        "interval": 1,
+        "by_day": by_day,
+        "schedule": schedule,
+    }
+    rolling_users = [[user_1]]
+    on_call_shift = make_on_call_shift(
+        organization=organization, shift_type=CustomOnCallShift.TYPE_ROLLING_USERS_EVENT, **data
+    )
+    on_call_shift.add_rolling_users(rolling_users)
+
+    date = current_week_monday + timezone.timedelta(minutes=5)
+
+    user_1_on_call_dates = [date + timezone.timedelta(days=2), date + timezone.timedelta(days=4)]
+    nobody_on_call_dates = [
+        date,  # MO
+        date + timezone.timedelta(days=1),  # TU
+        date + timezone.timedelta(days=3),  # TH
+        date + timezone.timedelta(days=5),  # SA
+        date + timezone.timedelta(days=6),  # SU
+        date + timezone.timedelta(days=7),  # MO
+    ]
+
+    for dt in user_1_on_call_dates:
+        users_on_call = list_users_to_notify_from_ical(schedule, dt)
+        assert len(users_on_call) == 1
+        assert user_1 in users_on_call
 
     for dt in nobody_on_call_dates:
         users_on_call = list_users_to_notify_from_ical(schedule, dt)
@@ -1214,7 +1295,7 @@ def test_get_oncall_users_for_empty_schedule(
     schedule = make_schedule(organization, schedule_class=OnCallScheduleCalendar)
     schedules = OnCallSchedule.objects.filter(pk=schedule.pk)
 
-    assert schedules.get_oncall_users() == []
+    assert schedules.get_oncall_users()[schedule.pk] == []
 
 
 @pytest.mark.django_db
@@ -1276,15 +1357,60 @@ def test_get_oncall_users_for_multiple_schedules(
 
     schedules = OnCallSchedule.objects.filter(pk__in=[schedule_1.pk, schedule_2.pk])
 
-    expected = set(schedules.get_oncall_users(events_datetime=now + timezone.timedelta(seconds=1)))
+    def _extract_oncall_users_from_schedules(schedules):
+        return set(user for schedule in schedules.values() for user in schedule)
+
+    expected = _extract_oncall_users_from_schedules(
+        schedules.get_oncall_users(events_datetime=now + timezone.timedelta(seconds=1))
+    )
     assert expected == {user_1, user_2}
 
-    expected = set(schedules.get_oncall_users(events_datetime=now + timezone.timedelta(minutes=10, seconds=1)))
+    expected = _extract_oncall_users_from_schedules(
+        schedules.get_oncall_users(events_datetime=now + timezone.timedelta(minutes=10, seconds=1))
+    )
     assert expected == {user_1, user_2, user_3}
 
-    assert schedules.get_oncall_users(events_datetime=now + timezone.timedelta(minutes=30, seconds=1)) == [user_3]
+    assert _extract_oncall_users_from_schedules(
+        schedules.get_oncall_users(events_datetime=now + timezone.timedelta(minutes=30, seconds=1))
+    ) == {user_3}
 
-    assert schedules.get_oncall_users(events_datetime=now + timezone.timedelta(minutes=40, seconds=1)) == []
+    assert (
+        _extract_oncall_users_from_schedules(
+            schedules.get_oncall_users(events_datetime=now + timezone.timedelta(minutes=40, seconds=1))
+        )
+        == set()
+    )
+
+
+@pytest.mark.django_db
+def test_get_oncall_users_for_multiple_schedules_emails_case_insensitive(
+    get_ical,
+    make_organization,
+    make_user_for_organization,
+    make_on_call_shift,
+    make_schedule,
+):
+    """
+    Test that emails are case insensitive when matching users to on-call shifts.
+    https://github.com/grafana/oncall/issues/1296
+    """
+    organization = make_organization()
+
+    # user's email case is the opposite of the one in the ICal file below (Test@TEST.test)
+    user = make_user_for_organization(organization, email="tEST@test.TEST")
+    schedule = make_schedule(organization, schedule_class=OnCallScheduleCalendar)
+
+    # Load ICal file with an event for user with email Test@TEST.test for 6 February 2023, 11:00 UTC - 12:00 UTC
+    calendar = get_ical("override_email_case_sensitivity.ics")
+    schedule.cached_ical_file_overrides = calendar.to_ical().decode()
+    schedule.save(update_fields=["cached_ical_file_overrides"])
+
+    # Get on-call users for 6 February 2023 11:30 UTC
+    events_datetime = timezone.datetime(2023, 2, 6, 11, 30, tzinfo=timezone.utc)
+    schedules = OnCallSchedule.objects.filter(pk=schedule.pk)
+    oncall_users = schedules.get_oncall_users(events_datetime=events_datetime)
+
+    assert oncall_users == {schedule.pk: [user]}
 
 
 @pytest.mark.django_db
@@ -1349,3 +1475,40 @@ def test_rolling_users_shift_convert_to_ical(
 
     assert on_call_shift.event_interval == len(rolling_users) * data["interval"]
     assert expected_rrule in ical_data
+
+
+@pytest.mark.django_db
+def test_rolling_users_event_daily_by_day_start_none_convert_to_ical(
+    make_organization_and_user, make_user_for_organization, make_on_call_shift, make_schedule
+):
+    organization, user_1 = make_organization_and_user()
+
+    schedule = make_schedule(organization, schedule_class=OnCallScheduleWeb)
+    now = timezone.now().replace(hour=0, minute=0, second=0, microsecond=0)
+    today_weekday = now.weekday()
+    delta_days = (0 - today_weekday) % 7 + (7 if today_weekday == 0 else 0)
+    next_week_monday = now + timezone.timedelta(days=delta_days)
+
+    # MO
+    weekdays = [0]
+    by_day = [CustomOnCallShift.ICAL_WEEKDAY_MAP[day] for day in weekdays]
+    data = {
+        "priority_level": 1,
+        "start": now + timezone.timedelta(hours=12),
+        "rotation_start": next_week_monday,
+        "duration": timezone.timedelta(seconds=3600),
+        "frequency": CustomOnCallShift.FREQUENCY_DAILY,
+        "interval": 1,
+        "by_day": by_day,
+        "schedule": schedule,
+        "until": now,
+    }
+    rolling_users = [[user_1]]
+    on_call_shift = make_on_call_shift(
+        organization=organization, shift_type=CustomOnCallShift.TYPE_ROLLING_USERS_EVENT, **data
+    )
+    on_call_shift.add_rolling_users(rolling_users)
+
+    ical_data = on_call_shift.convert_to_ical()
+    # empty result since there is no event in the defined time range
+    assert ical_data == ""

@@ -68,12 +68,8 @@ class SlackMessage(models.Model):
                     f"It is strange!"
                 )
                 return None
-            # Re-take object to switch connection from readonly db to master.
             self._slack_team_identity = self.organization.slack_team_identity
-
-            _self = SlackMessage.objects.get(pk=self.pk)
-            _self._slack_team_identity = _self.organization.slack_team_identity
-            _self.save()
+            self.save()
         return self._slack_team_identity
 
     def get_alert_group(self):
@@ -212,29 +208,7 @@ class SlackMessage(models.Model):
 
                 if slack_user_identity.slack_id not in channel_members:
                     time.sleep(5)  # 2 messages in the same moment are ratelimited by Slack. Dirty hack.
-                    result = sc.api_call(
-                        "chat.postMessage",
-                        channel=channel_id,
-                        text=f":warning: Tried to ask {user_verbal} to look at incident. "
-                        f"Unfortunately {user_verbal} is not in this channel. Please, invite.",
-                    )
-                    SlackMessage(
-                        slack_id=result["ts"],
-                        organization=self.organization,
-                        _slack_team_identity=self.slack_team_identity,
-                        channel_id=channel_id,
-                        alert_group=alert_group,
-                    ).save()
-                    UserNotificationPolicyLogRecord(
-                        author=user,
-                        type=UserNotificationPolicyLogRecord.TYPE_PERSONAL_NOTIFICATION_FAILED,
-                        notification_policy=notification_policy,
-                        alert_group=alert_group,
-                        reason="User is not in Slack channel",
-                        notification_step=notification_policy.step,
-                        notification_channel=notification_policy.notify_by,
-                        notification_error_code=UserNotificationPolicyLogRecord.ERROR_NOTIFICATION_IN_SLACK_USER_NOT_IN_CHANNEL,
-                    ).save()
+                    slack_user_identity.send_link_to_slack_message(slack_message)
         except SlackAPITokenException as e:
             print(e)
         except SlackAPIException as e:
@@ -243,3 +217,32 @@ class SlackMessage(models.Model):
                 pass
             else:
                 raise e
+
+    @classmethod
+    def get_alert_group_from_slack_message_payload(cls, slack_team_identity, payload):
+
+        message_ts = payload.get("message_ts") or payload["container"]["message_ts"]  # interactive message or block
+        channel_id = payload["channel"]["id"]
+
+        try:
+            slack_message = cls.objects.get(
+                slack_id=message_ts,
+                _slack_team_identity=slack_team_identity,
+                channel_id=channel_id,
+            )
+            alert_group = slack_message.get_alert_group()
+        except cls.DoesNotExist as e:
+            logger.error(
+                f"Tried to get SlackMessage from message_ts:"
+                f"slack_team_identity_id={slack_team_identity.pk},"
+                f"message_ts={message_ts}"
+            )
+            raise e
+        except cls.alert.RelatedObjectDoesNotExist as e:
+            logger.error(
+                f"Tried to get AlertGroup from SlackMessage:"
+                f"slack_team_identity_id={slack_team_identity.pk},"
+                f"message_ts={message_ts}"
+            )
+            raise e
+        return alert_group

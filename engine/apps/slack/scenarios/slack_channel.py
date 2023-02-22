@@ -4,17 +4,11 @@ from django.apps import apps
 from django.utils import timezone
 
 from apps.slack.scenarios import scenario_step
+from apps.slack.tasks import clean_slack_channel_leftovers
 
 
 class SlackChannelCreatedOrRenamedEventStep(scenario_step.ScenarioStep):
-    tags = [
-        scenario_step.ScenarioStep.TAG_TRIGGERED_BY_SYSTEM,
-    ]
-
-    # Avoid logging this step to prevent collecting sensitive data of our customers
-    need_to_be_logged = False
-
-    def process_scenario(self, slack_user_identity, slack_team_identity, payload, action=None):
+    def process_scenario(self, slack_user_identity, slack_team_identity, payload):
         """
         Triggered by action: Create or rename channel
         """
@@ -34,14 +28,7 @@ class SlackChannelCreatedOrRenamedEventStep(scenario_step.ScenarioStep):
 
 
 class SlackChannelDeletedEventStep(scenario_step.ScenarioStep):
-    tags = [
-        scenario_step.ScenarioStep.TAG_TRIGGERED_BY_SYSTEM,
-    ]
-
-    # Avoid logging this step to prevent collecting sensitive data of our customers
-    need_to_be_logged = False
-
-    def process_scenario(self, slack_user_identity, slack_team_identity, payload, action=None):
+    def process_scenario(self, slack_user_identity, slack_team_identity, payload):
         """
         Triggered by action: Delete channel
         """
@@ -53,17 +40,12 @@ class SlackChannelDeletedEventStep(scenario_step.ScenarioStep):
                 slack_id=slack_id,
                 slack_team_identity=slack_team_identity,
             ).delete()
+        # even if channel is deteletd run the task to clean possible leftowers
+        clean_slack_channel_leftovers.apply_async((slack_team_identity.id, slack_id))
 
 
 class SlackChannelArchivedEventStep(scenario_step.ScenarioStep):
-    tags = [
-        scenario_step.ScenarioStep.TAG_TRIGGERED_BY_SYSTEM,
-    ]
-
-    # Avoid logging this step to prevent collecting sensitive data of our customers
-    need_to_be_logged = False
-
-    def process_scenario(self, slack_user_identity, slack_team_identity, payload, action=None):
+    def process_scenario(self, slack_user_identity, slack_team_identity, payload):
         """
         Triggered by action: Archive channel
         """
@@ -75,17 +57,11 @@ class SlackChannelArchivedEventStep(scenario_step.ScenarioStep):
             slack_id=slack_id,
             slack_team_identity=slack_team_identity,
         ).update(is_archived=True)
+        clean_slack_channel_leftovers.apply_async((slack_team_identity.id, slack_id))
 
 
 class SlackChannelUnArchivedEventStep(scenario_step.ScenarioStep):
-    tags = [
-        scenario_step.ScenarioStep.TAG_TRIGGERED_BY_SYSTEM,
-    ]
-
-    # Avoid logging this step to prevent collecting sensitive data of our customers
-    need_to_be_logged = False
-
-    def process_scenario(self, slack_user_identity, slack_team_identity, payload, action=None):
+    def process_scenario(self, slack_user_identity, slack_team_identity, payload):
         """
         Triggered by action: UnArchive channel
         """

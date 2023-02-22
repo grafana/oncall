@@ -1,68 +1,36 @@
-.root {
-  margin-top: 24px;
+.schedule {
+  position: relative;
+  margin: 20px 0;
+  max-width: calc(100vw - 104px);
 }
 
 .title {
-  margin-bottom: 20px;
+  margin-bottom: var(--title-marginBottom);
 }
 
-.header {
+.root .buttons {
+  padding-right: 10px;
+}
+
+.schedules__filters-container {
   display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.buttons {
+  flex-direction: row;
+  flex-wrap: wrap;
+  row-gap: 4px;
+  column-gap: 8px;
   width: 100%;
-  justify-content: flex-end;
 }
 
-.filters {
-  margin-bottom: 20px;
-}
-
-.instructions {
+.schedules__actions {
   display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 20px;
-  width: 50%;
-  margin: 20px auto;
-  white-space: break-spaces;
-  text-align: center;
+  justify-content: flex-end;
+  flex-grow: 1;
+  gap: 8px;
+  padding-top: 19px;
 }
 
-.events {
-  margin: 16px 32px;
-}
-
-.events-list {
-  margin: 0;
-  list-style-type: none;
-}
-
-.events-list-item {
-  margin-top: 12px;
-}
-
-.priority-icon {
-  width: 32px;
-  border-radius: 50%;
-  background: var(--secondary-background);
-  line-height: 32px;
-  text-align: center;
-  font-size: 14px;
-  font-weight: 500;
-  flex-shrink: 0;
-}
-
-.gap-between-shifts {
-  width: 520px;
-  padding: 5px 5px 5px 24px;
-  background-color: rgba(209, 14, 92, 0.15);
-  border: 1px solid rgba(209, 14, 92, 0.15);
-  border-radius: 50px;
-  color: #ff5286;
-  font-weight: 400;
-  align-items: baseline;
+.schedules__user-on-call {
+  display: flex;
+  flex-wrap: nowrap;
+  gap: 4px;
 }

@@ -22,6 +22,9 @@
   padding: 6px 10px;
   z-index: 1;
   color: #fff;
+  width: 330px;
+  overflow: hidden;
+  white-space: nowrap;
 }
 
 .working-hours {
@@ -45,7 +48,7 @@
 .day {
   width: 28px;
   height: 28px;
-  background: var(--secondary-background-shade);
+  background: var(--secondary-background);
   border-radius: 2px;
   line-height: 28px;
   text-align: center;
@@ -68,4 +71,8 @@
 
 .content {
   margin: 8px 0 16px 0;
+}
+
+.confirmation-modal {
+  width: 500px;
 }

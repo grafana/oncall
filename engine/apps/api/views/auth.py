@@ -12,6 +12,7 @@ from social_django.utils import psa
 from social_django.views import _do_login
 
 from apps.auth_token.auth import PluginAuthentication, SlackTokenAuthentication
+from apps.social_auth.backends import LoginSlackOAuth2V2
 
 logger = logging.getLogger(__name__)
 
@@ -36,6 +37,12 @@ def overridden_login_slack_auth(request, backend):
 @psa("social:complete")
 def overridden_complete_slack_auth(request, backend, *args, **kwargs):
     """Authentication complete view"""
+    # InstallSlackOAuth2V2 backend
+    redirect_to = "/a/grafana-oncall-app/chat-ops"
+    if isinstance(request.backend, LoginSlackOAuth2V2):
+        # if this was a user login/linking account, redirect to profile
+        redirect_to = "/a/grafana-oncall-app/users/me"
+
     do_complete(
         request.backend,
         _do_login,
@@ -45,6 +52,7 @@ def overridden_complete_slack_auth(request, backend, *args, **kwargs):
         *args,
         **kwargs,
     )
+
     # We build the frontend url using org url since multiple stacks could be connected to one backend.
-    return_to = urljoin(request.user.organization.grafana_url, "/a/grafana-oncall-app/?page=chat-ops")
+    return_to = urljoin(request.user.organization.grafana_url, redirect_to)
     return HttpResponseRedirect(return_to)

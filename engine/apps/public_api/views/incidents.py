@@ -1,3 +1,4 @@
+from django.db.models import Q
 from django_filters import rest_framework as filters
 from rest_framework import mixins, status
 from rest_framework.exceptions import NotFound
@@ -28,6 +29,8 @@ class IncidentByTeamFilter(ByTeamModelFieldFilterMixin, filters.FilterSet):
         method=ByTeamModelFieldFilterMixin.filter_model_field_with_single_value.__name__,
     )
 
+    id = filters.CharFilter(field_name="public_primary_key")
+
 
 class IncidentView(RateLimitHeadersMixin, mixins.ListModelMixin, mixins.DestroyModelMixin, GenericViewSet):
     authentication_classes = (ApiTokenAuthentication,)
@@ -45,6 +48,7 @@ class IncidentView(RateLimitHeadersMixin, mixins.ListModelMixin, mixins.DestroyM
     def get_queryset(self):
         route_id = self.request.query_params.get("route_id", None)
         integration_id = self.request.query_params.get("integration_id", None)
+        state = self.request.query_params.get("state", None)
 
         queryset = AlertGroup.unarchived_objects.filter(
             channel__organization=self.request.auth.organization,
@@ -54,8 +58,25 @@ class IncidentView(RateLimitHeadersMixin, mixins.ListModelMixin, mixins.DestroyM
             queryset = queryset.filter(channel_filter__public_primary_key=route_id)
         if integration_id:
             queryset = queryset.filter(channel__public_primary_key=integration_id)
-
-        queryset = self.serializer_class.setup_eager_loading(queryset)
+        if state:
+            choices = dict(AlertGroup.STATUS_CHOICES)
+            try:
+                choice = [i for i in choices if choices[i] == state.lower().capitalize()][0]
+                status_filter = Q()
+                if choice == AlertGroup.NEW:
+                    status_filter = AlertGroup.get_new_state_filter()
+                elif choice == AlertGroup.SILENCED:
+                    status_filter = AlertGroup.get_silenced_state_filter()
+                elif choice == AlertGroup.ACKNOWLEDGED:
+                    status_filter = AlertGroup.get_acknowledged_state_filter()
+                elif choice == AlertGroup.RESOLVED:
+                    status_filter = AlertGroup.get_resolved_state_filter()
+                queryset = queryset.filter(status_filter)
+            except IndexError:
+                valid_choices_text = ", ".join(
+                    [status_choice[1].lower() for status_choice in AlertGroup.STATUS_CHOICES]
+                )
+                raise BadRequest(detail={"state": f"Must be one of the following: {valid_choices_text}"})
 
         return queryset
 
