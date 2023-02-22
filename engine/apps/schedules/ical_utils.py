@@ -588,9 +588,11 @@ def fetch_ical_file_or_get_error(ical_url):
 
 
 def fetch_ical_file(ical_url):
-    # without user-agent header google calendar sometimes returns text/html instead of text/icalendar
+    # without user-agent header google calendar sometimes returns text/html instead of text/calendar
     headers = {"User-Agent": "Grafana OnCall"}
-    ical_file = requests.get(ical_url, headers=headers, timeout=10).text
+    r = requests.get(ical_url, headers=headers, timeout=10)
+    logger.info(f"fetch_ical_file: content-type={r.headers.get('Content-Type')}")
+    ical_file = r.text
     return ical_file
 
 
