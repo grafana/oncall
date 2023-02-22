@@ -244,6 +244,7 @@ class Layer:
                     "start_rotation_from_user_index": 0,
                     "week_start": "MO",
                     "time_zone": self.rotation_virtual_start.tzname(),
+                    "source": 0,  # 0 is alias for "web"
                 }
             ], None
 
@@ -363,6 +364,7 @@ class Layer:
                 "start_rotation_from_user_index": 0,
                 "week_start": shift[2],
                 "time_zone": self.rotation_virtual_start.tzname(),
+                "source": 0,  # 0 is alias for "web"
             }
             payloads.append(payload)
         return payloads, None
