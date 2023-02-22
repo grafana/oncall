@@ -117,10 +117,19 @@ class Schedule:
         errors = []
         for layer in self.layers:
             # A single PagerDuty layer can result in multiple OnCall shifts
-            try:
-                shifts += layer.to_oncall_shifts(user_id_map)
-            except ValueError as e:
-                errors.append(f"{layer.name}: {e}")
+            layer_shifts, error = layer.to_oncall_shifts(user_id_map)
+
+            if layer_shifts:
+                shifts += layer_shifts
+
+            if error:
+                error_text = f"{layer.name}: {error}"
+
+                # If a layer has a single user, it's likely can be easily tweaked in PD to make it possible to migrate
+                if len(set(layer.user_ids)) == 1:
+                    error_text += " Layer has a single user, consider simplifying the rotation in PD."
+
+                errors.append(error_text)
 
         if errors:
             return None, errors
@@ -192,7 +201,9 @@ class Layer:
             restrictions=[Restriction.from_dict(r) for r in layer["restrictions"]],
         )
 
-    def to_oncall_shifts(self, user_id_map: dict[str, str]) -> list[dict]:
+    def to_oncall_shifts(
+        self, user_id_map: dict[str, str]
+    ) -> tuple[Optional[list[dict]], Optional[str]]:
         frequency, interval = duration_to_frequency_and_interval(
             self.rotation_turn_length
         )
@@ -218,7 +229,7 @@ class Layer:
                     "week_start": "MO",
                     "time_zone": self.rotation_virtual_start.tzname(),
                 }
-            ]
+            ], None
 
         restrictions_type = self.restrictions[0].type
 
@@ -234,8 +245,9 @@ class Layer:
             shifts, is_split = self._generate_shifts(unique=True)
 
             if is_split:
-                raise ValueError(
-                    f"Cannot migrate {interval}-weekly rotation with daily restrictions that split shifts."
+                return (
+                    None,
+                    f"Cannot migrate {interval}-weekly rotation with daily restrictions that split shifts.",
                 )
 
             # repeat ["MO", "TU", "WE", "TH", "FR", "SA", "SU"] shift for the number of weeks in the rotation
@@ -272,14 +284,16 @@ class Layer:
                     not restriction.start_time_of_day
                     == self.rotation_virtual_start.time()
                 ):
-                    raise ValueError(
-                        f"Cannot migrate {interval}-daily rotation with weekly restrictions that start at a different time than the shift start."
+                    return (
+                        None,
+                        f"Cannot migrate {interval}-daily rotation with weekly restrictions that start at a different time than the shift start.",
                     )
                 if not restriction.duration % datetime.timedelta(
                     days=1
                 ) == datetime.timedelta(0):
-                    raise ValueError(
-                        f"Cannot migrate {interval}-daily rotation with weekly restrictions that have durations that are not a multiple of a 24 hours."
+                    return (
+                        None,
+                        f"Cannot migrate {interval}-daily rotation with weekly restrictions that have durations that are not a multiple of a 24 hours.",
                     )
 
             # get the first restriction and use its start time as the start of the shift
@@ -311,8 +325,9 @@ class Layer:
             restrictions_type_verbal = (
                 "daily" if restrictions_type == Restriction.Type.DAILY else "weekly"
             )
-            raise ValueError(
-                f"Cannot migrate {interval}-{frequency} rotation with {restrictions_type_verbal} restrictions that split shifts."
+            return (
+                None,
+                f"Cannot migrate {interval}-{frequency} rotation with {restrictions_type_verbal} restrictions that split shifts.",
             )
 
         payloads = []
@@ -334,7 +349,7 @@ class Layer:
                 "time_zone": self.rotation_virtual_start.tzname(),
             }
             payloads.append(payload)
-        return payloads
+        return payloads, None
 
     def _generate_shifts(
         self, unique: bool = True
