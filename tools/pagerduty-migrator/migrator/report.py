@@ -17,12 +17,16 @@ def format_user(user: dict) -> str:
 
 
 def format_schedule(schedule: dict) -> str:
-    if schedule["unmatched_users"]:
+    if schedule["unmatched_users"] and schedule["migration_errors"]:
+        result = "{} {} — schedule references unmatched users and some layers cannot be migrated".format(
+            ERROR_SIGN, schedule["name"]
+        )
+    elif schedule["unmatched_users"]:
         result = "{} {} — schedule references unmatched users".format(
             ERROR_SIGN, schedule["name"]
         )
     elif schedule["migration_errors"]:
-        result = "{} {} — schedule migration errors".format(
+        result = "{} {} — some layers cannot be migrated".format(
             ERROR_SIGN, schedule["name"]
         )
     else:
@@ -33,7 +37,7 @@ def format_schedule(schedule: dict) -> str:
 
 def format_escalation_policy(policy: dict) -> str:
     if policy["unmatched_users"] and policy["flawed_schedules"]:
-        result = "{} {} — policy references unmatched users and schedules with unmatched users".format(
+        result = "{} {} — policy references unmatched users and schedules that cannot be migrated".format(
             ERROR_SIGN, policy["name"]
         )
     elif policy["unmatched_users"]:
@@ -41,7 +45,7 @@ def format_escalation_policy(policy: dict) -> str:
             ERROR_SIGN, policy["name"]
         )
     elif policy["flawed_schedules"]:
-        result = "{} {} — policy references schedules with unmatched users".format(
+        result = "{} {} — policy references schedules that cannot be migrated".format(
             ERROR_SIGN, policy["name"]
         )
     else:
@@ -65,7 +69,7 @@ def format_integration(integration: dict) -> str:
 
     elif integration["is_escalation_policy_flawed"]:
         policy_name = integration["service"]["escalation_policy"]["summary"]
-        result = "{} {} — escalation policy '{}' references unmatched users or schedules with unmatched users".format(
+        result = "{} {} — escalation policy '{}' references unmatched users or schedules that cannot be migrated".format(
             ERROR_SIGN, result, policy_name
         )
     else:

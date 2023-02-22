@@ -72,7 +72,9 @@ def main() -> None:
     for user in users:
         match_user(user, oncall_users)
 
-    user_id_map = {u["id"]: u["oncall_user"]["id"] for u in users}
+    user_id_map = {
+        u["id"]: u["oncall_user"]["id"] if u["oncall_user"] else None for u in users
+    }
 
     for schedule in schedules:
         match_schedule(schedule, oncall_schedules, user_id_map)
