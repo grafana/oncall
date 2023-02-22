@@ -64,7 +64,6 @@ export function trottlingError(error: AxiosError) {
       openErrorNotification(error.response?.data);
     }
   }
-  throw error;
 }
 
 export function openNotification(message: React.ReactNode) {
