@@ -87,4 +87,5 @@ interface RenderForWeb {
   message: any;
   title: any;
   image_url: string;
+  source_link: string;
 }

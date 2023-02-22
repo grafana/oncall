@@ -58,11 +58,12 @@ import { UserActions } from 'utils/authorization';
 import { PLUGIN_ROOT } from 'utils/consts';
 import sanitize from 'utils/sanitize';
 
-import { getActionButtons, getIncidentStatusTag, renderRelatedUsers } from './Incident.helpers';
+import { getActionButtons, getIncidentStatusTag } from './Incident.helpers';
 import styles from './Incident.module.scss';
 import PagedUsers from './parts/PagedUsers';
 
 const cx = cn.bind(styles);
+const INTEGRATION_NAME_LENGTH_LIMIT = 30;
 
 interface IncidentPageProps extends WithStoreProps, PageProps, RouteComponentProps<{ id: string }> {}
 
@@ -235,6 +236,9 @@ class IncidentPage extends React.Component<IncidentPageProps, IncidentPageState>
     const integration = store.alertReceiveChannelStore.getIntegration(incident.alert_receive_channel);
 
     const showLinkTo = !incident.dependent_alert_groups.length && !incident.root_alert_group && !incident.resolved;
+
+    const integrationNameWithEmojies = <Emoji text={incident.alert_receive_channel.verbal_name} />;
+
     return (
       <Block withBackground className={cx('block')}>
         <VerticalGroup>
@@ -269,7 +273,7 @@ class IncidentPage extends React.Component<IncidentPageProps, IncidentPageState>
               <Text>
                 {showLinkTo && (
                   <IconButton
-                    name="share-alt"
+                    name="code-branch"
                     onClick={this.showAttachIncidentForm}
                     tooltip="Attach to another Alert Group"
                     className={cx('title-icon')}
@@ -291,11 +295,61 @@ class IncidentPage extends React.Component<IncidentPageProps, IncidentPageState>
           </HorizontalGroup>
           <div className={cx('info-row')}>
             <HorizontalGroup>
-              {getIncidentStatusTag(incident)} | <Emoji text={incident.alert_receive_channel.verbal_name} />|
-              <IntegrationLogo integration={integration} scale={0.1} />
-              {integration && <Text type="secondary"> {integration?.display_name}</Text>}
-              {integration && '|'}
-              <Text type="secondary">{renderRelatedUsers(incident, true)}</Text>
+              <div className={cx('status-tag-container')}>{getIncidentStatusTag(incident)}</div>
+              <PluginLink
+                disabled={incident.alert_receive_channel.deleted}
+                query={{ page: 'integrations', id: incident.alert_receive_channel.id }}
+              >
+                <Button
+                  disabled={incident.alert_receive_channel.deleted}
+                  variant="secondary"
+                  fill="outline"
+                  size="sm"
+                  className={cx('label-button')}
+                  icon="plug"
+                >
+                  <Tooltip
+                    placement="top"
+                    content={
+                      incident.alert_receive_channel.verbal_name.length > INTEGRATION_NAME_LENGTH_LIMIT
+                        ? integrationNameWithEmojies
+                        : 'Go to Integration'
+                    }
+                  >
+                    <div className={cx('label-button-text')}>{integrationNameWithEmojies}</div>
+                  </Tooltip>
+                </Button>
+              </PluginLink>
+
+              {integration && (
+                <>
+                  <Tooltip
+                    placement="top"
+                    content={
+                      incident.render_for_web.source_link === null
+                        ? `The integration doesn't have direct link to the source.`
+                        : 'Go to source'
+                    }
+                  >
+                    <a href={incident.render_for_web.source_link} target="_blank" rel="noreferrer">
+                      <Button
+                        variant="secondary"
+                        fill="outline"
+                        size="sm"
+                        disabled={incident.render_for_web.source_link === null}
+                        className={cx('label-button')}
+                      >
+                        <div className={cx('label-button-text', 'source-name')}>
+                          <div className={cx('integration-logo')}>
+                            <IntegrationLogo integration={integration} scale={0.08} />
+                          </div>
+                          {integration.display_name}
+                        </div>
+                      </Button>
+                    </a>
+                  </Tooltip>
+                </>
+              )}
             </HorizontalGroup>
           </div>
           <HorizontalGroup justify="space-between" className={cx('buttons-row')}>
@@ -310,7 +364,7 @@ class IncidentPage extends React.Component<IncidentPageProps, IncidentPageState>
               })}
               <PluginBridge plugin={SupportedPlugin.Incident}>
                 <a href={incident.declare_incident_link} target="_blank" rel="noreferrer">
-                  <Button variant="primary" size="sm" icon="fire">
+                  <Button variant="secondary" size="md" icon="fire">
                     Declare incident
                   </Button>
                 </a>
@@ -324,14 +378,7 @@ class IncidentPage extends React.Component<IncidentPageProps, IncidentPageState>
                 value={prepareForEdit(incident.paged_users)}
                 onUpdateEscalationVariants={this.handleAddResponders}
               />
-              <PluginLink
-                disabled={incident.alert_receive_channel.deleted}
-                query={{ page: 'integrations', id: incident.alert_receive_channel.id }}
-              >
-                <Button disabled={incident.alert_receive_channel.deleted} variant="secondary" icon="compass">
-                  Go to Integration
-                </Button>
-              </PluginLink>
+
               <Button
                 disabled={incident.alert_receive_channel.deleted}
                 variant="secondary"

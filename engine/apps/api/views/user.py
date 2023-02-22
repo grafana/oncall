@@ -23,7 +23,19 @@ from apps.api.permissions import (
     user_is_authorized,
 )
 from apps.api.serializers.team import TeamSerializer
-from apps.api.serializers.user import FilterUserSerializer, UserHiddenFieldsSerializer, UserSerializer
+from apps.api.serializers.user import (
+    FilterUserSerializer,
+    MobileVerificationCodeRecaptchaSerializer,
+    UserHiddenFieldsSerializer,
+    UserSerializer,
+)
+from apps.api.throttlers import (
+    GetPhoneVerificationCodeThrottlerPerOrg,
+    GetPhoneVerificationCodeThrottlerPerUser,
+    TestCallThrottler,
+    VerifyPhoneNumberThrottlerPerOrg,
+    VerifyPhoneNumberThrottlerPerUser,
+)
 from apps.auth_token.auth import PluginAuthentication
 from apps.auth_token.constants import SCHEDULE_EXPORT_TOKEN_NAME
 from apps.auth_token.models import UserScheduleExportAuthToken
@@ -279,17 +291,43 @@ class UserView(
     def timezone_options(self, request):
         return Response(pytz.common_timezones)
 
-    @action(detail=True, methods=["get"])
+    @action(
+        detail=True,
+        methods=["get"],
+        throttle_classes=[GetPhoneVerificationCodeThrottlerPerUser, GetPhoneVerificationCodeThrottlerPerOrg],
+    )
     def get_verification_code(self, request, pk):
+        """
+        See `DRF_RECAPTCHA_TESTING` in `settings/base.py`
+        and [here](https://github.com/llybin/drf-recaptcha#testing) to better understand
+        when the recaptcha checks are actually made
+        """
+        logger.info("Validating reCAPTCHA code")
+
+        serializer = MobileVerificationCodeRecaptchaSerializer(
+            data={"recaptcha": request.headers.get("X-OnCall-Recaptcha", "some-non-null-value")},
+            context={"request": request},
+        )
+
+        if not serializer.is_valid():
+            logger.warning(f"Invalid reCAPTCHA validation: {serializer._errors}")
+            return Response(status=status.HTTP_400_BAD_REQUEST)
+        logger.info("reCAPTCHA code is valid")
+
         user = self.get_object()
         phone_manager = PhoneManager(user)
         code_sent = phone_manager.send_verification_code()
 
         if not code_sent:
+            logger.warning(f"Mobile app verification code was not successfully sent")
             return Response(status=status.HTTP_400_BAD_REQUEST)
         return Response(status=status.HTTP_200_OK)
 
-    @action(detail=True, methods=["put"])
+    @action(
+        detail=True,
+        methods=["put"],
+        throttle_classes=[VerifyPhoneNumberThrottlerPerUser, VerifyPhoneNumberThrottlerPerOrg],
+    )
     def verify_number(self, request, pk):
         target_user = self.get_object()
         code = request.query_params.get("token", None)
@@ -327,7 +365,7 @@ class UserView(
             )
         return Response(status=status.HTTP_200_OK)
 
-    @action(detail=True, methods=["post"])
+    @action(detail=True, methods=["post"], throttle_classes=[TestCallThrottler])
     def make_test_call(self, request, pk):
         user = self.get_object()
         phone_number = user.verified_phone_number
