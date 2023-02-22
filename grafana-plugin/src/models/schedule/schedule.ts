@@ -148,6 +148,8 @@ export class ScheduleStore extends BaseStore {
         ...this.items,
         [item.id]: item,
       };
+
+      return item;
     }
   }
 
