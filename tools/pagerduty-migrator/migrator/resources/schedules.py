@@ -5,7 +5,11 @@ from typing import Optional
 from uuid import uuid4
 
 from migrator import oncall_api_client
-from migrator.config import SCHEDULE_MIGRATION_MODE, SCHEDULE_MIGRATION_MODE_WEB
+from migrator.config import (
+    SCHEDULE_MIGRATION_MODE,
+    SCHEDULE_MIGRATION_MODE_ICAL,
+    SCHEDULE_MIGRATION_MODE_WEB,
+)
 
 
 def match_schedule(
@@ -30,7 +34,21 @@ def migrate_schedule(schedule: dict, user_id_map: dict[str, str]) -> None:
             "schedules/{}".format(schedule["oncall_schedule"]["id"])
         )
 
-    oncall_schedule = Schedule.from_dict(schedule).migrate(user_id_map)
+    if SCHEDULE_MIGRATION_MODE == SCHEDULE_MIGRATION_MODE_WEB:
+        # Migrate shifts
+        oncall_schedule = Schedule.from_dict(schedule).migrate(user_id_map)
+    elif SCHEDULE_MIGRATION_MODE == SCHEDULE_MIGRATION_MODE_ICAL:
+        # Migrate using ICal URL
+        payload = {
+            "name": schedule["name"],
+            "type": "ical",
+            "ical_url_primary": schedule["http_cal_url"],
+            "team_id": None,
+        }
+        oncall_schedule = oncall_api_client.create("schedules", payload)
+    else:
+        raise ValueError("Invalid schedule migration mode")
+
     schedule["oncall_schedule"] = oncall_schedule
 
 
