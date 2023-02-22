@@ -3,6 +3,7 @@ import time
 import typing
 
 from django.conf import settings
+from drf_recaptcha.fields import ReCaptchaV3Field
 from rest_framework import serializers
 
 from apps.api.permissions import DONT_USE_LEGACY_PERMISSION_MAPPING
@@ -212,3 +213,7 @@ class FilterUserSerializer(EagerLoadingMixin, serializers.ModelSerializer):
             "pk",
             "username",
         ]
+
+
+class MobileVerificationCodeRecaptchaSerializer(serializers.Serializer):
+    recaptcha = ReCaptchaV3Field(action="mobile_verification_code")

@@ -1,7 +1,9 @@
 from unittest.mock import Mock, patch
 
 import pytest
+from django.core.cache import cache
 from django.core.exceptions import ObjectDoesNotExist
+from django.test import override_settings
 from django.urls import reverse
 from django.utils import timezone
 from rest_framework import status
@@ -11,6 +13,12 @@ from rest_framework.test import APIClient
 from apps.api.permissions import DONT_USE_LEGACY_PERMISSION_MAPPING, LegacyAccessControlRole
 from apps.base.models import UserNotificationPolicy
 from apps.user_management.models.user import default_working_hours
+
+
+@pytest.fixture(autouse=True)
+def clear_cache():
+    # Ratelimit keys are stored in cache, clean to prevent ratelimits
+    cache.clear()
 
 
 @pytest.mark.django_db
@@ -653,7 +661,6 @@ def test_admin_can_verify_own_phone(
     make_user_auth_headers,
 ):
     _, user, token = make_organization_and_user_with_plugin_token(role=LegacyAccessControlRole.ADMIN)
-
     client = APIClient()
     url = reverse("api-internal:user-verify-number", kwargs={"pk": user.public_primary_key})
 
@@ -1499,3 +1506,123 @@ def test_check_availability_other_user(make_organization_and_user_with_plugin_to
     response = client.get(url, **make_user_auth_headers(user, token))
 
     assert response.status_code == status.HTTP_200_OK
+
+
+@patch("apps.twilioapp.phone_manager.PhoneManager.send_verification_code", return_value=Mock())
+@patch("apps.twilioapp.phone_manager.PhoneManager.verify_phone_number", return_value=(True, None))
+@patch(
+    "apps.api.throttlers.GetPhoneVerificationCodeThrottlerPerUser.get_throttle_limits",
+    return_value=(1, 10 * 60),
+)
+@patch("apps.api.throttlers.VerifyPhoneNumberThrottlerPerUser.get_throttle_limits", return_value=(1, 10 * 60))
+@pytest.mark.django_db
+def test_phone_number_verification_flow_ratelimit_per_user(
+    mock_verification_start,
+    mocked_verification_check,
+    mocked_get_phone_verification_code_get_throttle_limits,
+    mocked_get_phone_verify_phone_number_limits,
+    make_organization_and_user_with_plugin_token,
+    make_user_auth_headers,
+):
+    _, user, token = make_organization_and_user_with_plugin_token()
+
+    client = APIClient()
+    url = reverse("api-internal:user-get-verification-code", kwargs={"pk": user.public_primary_key})
+
+    # first get_verification_code request is succesfull
+    response = client.get(url, format="json", **make_user_auth_headers(user, token))
+    assert response.status_code == status.HTTP_200_OK
+
+    # second get_verification_code request is ratelimited
+    response = client.get(url, format="json", **make_user_auth_headers(user, token))
+    assert response.status_code == status.HTTP_429_TOO_MANY_REQUESTS
+
+    url = reverse("api-internal:user-verify-number", kwargs={"pk": user.public_primary_key})
+
+    # first verify_number request is succesfull, because it uses different ratelimit scope
+    response = client.put(f"{url}?token=12345", format="json", **make_user_auth_headers(user, token))
+    assert response.status_code == status.HTTP_200_OK
+
+    url = reverse("api-internal:user-verify-number", kwargs={"pk": user.public_primary_key})
+
+    # second verify_number request is succesfull, because it ratelimited
+    response = client.put(f"{url}?token=12345", format="json", **make_user_auth_headers(user, token))
+    assert response.status_code == status.HTTP_429_TOO_MANY_REQUESTS
+
+
+@patch("apps.twilioapp.phone_manager.PhoneManager.send_verification_code", return_value=Mock())
+@patch("apps.twilioapp.phone_manager.PhoneManager.verify_phone_number", return_value=(True, None))
+@patch(
+    "apps.api.throttlers.GetPhoneVerificationCodeThrottlerPerOrg.get_throttle_limits",
+    return_value=(1, 10 * 60),
+)
+@patch("apps.api.throttlers.VerifyPhoneNumberThrottlerPerOrg.get_throttle_limits", return_value=(1, 10 * 60))
+@pytest.mark.django_db
+def test_phone_number_verification_flow_ratelimit_per_org(
+    mock_verification_start,
+    mocked_verification_check,
+    mocked_get_phone_verification_code_get_throttle_limits,
+    mocked_get_phone_verify_phone_number_limits,
+    make_organization_and_user_with_plugin_token,
+    make_user_auth_headers,
+    make_user_for_organization,
+):
+    """
+    This test is checks per-org ratelimits for phone verification flow.
+    It makes two get_verification_code and two verify_number requests from different users and expect that second call will be ratelimited.
+    """
+    org, user, token = make_organization_and_user_with_plugin_token()
+    second_user = make_user_for_organization(org)
+
+    client = APIClient()
+
+    url = reverse("api-internal:user-get-verification-code", kwargs={"pk": user.public_primary_key})
+    response = client.get(url, format="json", **make_user_auth_headers(user, token))
+    assert response.status_code == status.HTTP_200_OK
+
+    url = reverse("api-internal:user-get-verification-code", kwargs={"pk": second_user.public_primary_key})
+    response = client.get(url, format="json", **make_user_auth_headers(second_user, token))
+    assert response.status_code == status.HTTP_429_TOO_MANY_REQUESTS
+
+    url = reverse("api-internal:user-verify-number", kwargs={"pk": user.public_primary_key})
+    response = client.put(f"{url}?token=12345", format="json", **make_user_auth_headers(user, token))
+    assert response.status_code == status.HTTP_200_OK
+
+    url = reverse("api-internal:user-verify-number", kwargs={"pk": second_user.public_primary_key})
+    response = client.put(f"{url}?token=12345", format="json", **make_user_auth_headers(second_user, token))
+    assert response.status_code == status.HTTP_429_TOO_MANY_REQUESTS
+
+
+@patch("apps.twilioapp.phone_manager.PhoneManager.send_verification_code", return_value=True)
+@pytest.mark.parametrize(
+    "recaptcha_testing_pass,expected_status",
+    [
+        (True, status.HTTP_200_OK),
+        (False, status.HTTP_400_BAD_REQUEST),
+    ],
+)
+@pytest.mark.django_db
+def test_phone_number_verification_recaptcha(
+    mock_verification_start,
+    make_organization_and_user_with_plugin_token,
+    make_user_auth_headers,
+    recaptcha_testing_pass,
+    expected_status,
+):
+    _, user, token = make_organization_and_user_with_plugin_token()
+
+    recaptcha_token = "asdasdfasdf"
+    client = APIClient()
+    request_headers = {"HTTP_X-OnCall-Recaptcha": recaptcha_token, **make_user_auth_headers(user, token)}
+
+    url = reverse("api-internal:user-get-verification-code", kwargs={"pk": user.public_primary_key})
+
+    with override_settings(DRF_RECAPTCHA_TESTING_PASS=recaptcha_testing_pass):
+        response = client.get(url, format="json", **request_headers)
+
+    assert response.status_code == expected_status
+
+    if expected_status == status.HTTP_200_OK:
+        mock_verification_start.assert_called_once_with()
+    else:
+        mock_verification_start.assert_not_called()
