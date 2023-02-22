@@ -128,9 +128,11 @@ class OnCallSchedule(PolymorphicModel):
         """Returns list of calendars. Primary calendar should always be the first"""
         calendar_primary = None
         calendar_overrides = None
-        if self._ical_file_primary is not None:
+        # if self._ical_file_(primary|overrides) is None -> no cache, will trigger a refresh
+        # if self._ical_file_(primary|overrides) == "" -> cached value for an empty schedule
+        if self._ical_file_primary:
             calendar_primary = icalendar.Calendar.from_ical(self._ical_file_primary)
-        if self._ical_file_overrides is not None:
+        if self._ical_file_overrides:
             calendar_overrides = icalendar.Calendar.from_ical(self._ical_file_overrides)
         return calendar_primary, calendar_overrides
 
@@ -563,7 +565,8 @@ class OnCallScheduleCalendar(OnCallSchedule):
         """
         Generate iCal events file from custom on-call shifts (created via API)
         """
-        ical = None
+        # default to empty string since it is not possible to have a no-events ical file
+        ical = ""
         if self.custom_on_call_shifts.exists():
             end_line = "END:VCALENDAR"
             calendar = Calendar()
@@ -594,7 +597,8 @@ class OnCallScheduleWeb(OnCallSchedule):
 
     def _generate_ical_file_from_shifts(self, qs, extra_shifts=None, allow_empty_users=False):
         """Generate iCal events file from custom on-call shifts."""
-        ical = None
+        # default to empty string since it is not possible to have a no-events ical file
+        ical = ""
         if qs.exists() or extra_shifts is not None:
             if extra_shifts is None:
                 extra_shifts = []
