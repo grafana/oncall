@@ -1958,15 +1958,15 @@ def test_errors():
     )
 
     assert errors == [
-        "Layer 1: Cannot migrate 1-weekly rotation with daily restrictions that split shifts.",
-        "Layer 2: Cannot migrate 1-weekly rotation with daily restrictions that split shifts.",
+        "Layer 1: Cannot migrate 1-weekly rotation with daily restrictions that are split by handoff.",
+        "Layer 2: Cannot migrate 1-weekly rotation with daily restrictions that are split by handoff.",
         "Layer 3: Cannot migrate 1-daily rotation with weekly restrictions that start at a different time than the shift start.",
-        "Layer 4: Cannot migrate 7-hourly rotation with daily restrictions that split shifts.",
-        "Layer 5: Cannot migrate 7-hourly rotation with weekly restrictions that split shifts.",
-        "Layer 6: Cannot migrate 1-weekly rotation with daily restrictions that split shifts. Layer has a single user, consider simplifying the rotation in PD.",
+        "Layer 4: Cannot migrate 7-hourly rotation with daily restrictions.",
+        "Layer 5: Cannot migrate 7-hourly rotation with weekly restrictions.",
+        "Layer 6: Cannot migrate 1-weekly rotation with daily restrictions that are split by handoff. Layer has a single user, consider simplifying the rotation in PD.",
         "Layer 7: Cannot migrate 1-daily rotation with weekly restrictions that start at a different time than the shift start. Layer has a single user, consider simplifying the rotation in PD.",
-        "Layer 8: Cannot migrate 7-hourly rotation with weekly restrictions that split shifts. Layer has a single user, consider simplifying the rotation in PD.",
-        "Layer 9: Cannot migrate 7-hourly rotation with daily restrictions that split shifts. Layer has a single user, consider simplifying the rotation in PD.",
+        "Layer 8: Cannot migrate 7-hourly rotation with weekly restrictions. Layer has a single user, consider simplifying the rotation in PD.",
+        "Layer 9: Cannot migrate 7-hourly rotation with daily restrictions. Layer has a single user, consider simplifying the rotation in PD.",
         "Layer 10: Cannot migrate 1-daily rotation with weekly restrictions that start at a different time than the shift start.",
         "Layer 11: Cannot migrate 1-daily rotation with weekly restrictions that have durations that are not a multiple of a 24 hours.",
     ]
