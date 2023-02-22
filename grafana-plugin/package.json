@@ -121,7 +121,7 @@
     "rc-table": "^7.17.1",
     "react-copy-to-clipboard": "^5.0.2",
     "react-draggable": "^4.4.5",
-    "react-emoji-render": "^1.2.4",
+    "react-emoji-render": "^2.0.1",
     "react-modal": "^3.15.1",
     "react-qr-code": "^2.0.8",
     "react-responsive": "^8.1.0",
