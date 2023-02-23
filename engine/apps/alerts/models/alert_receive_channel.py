@@ -180,6 +180,7 @@ class AlertReceiveChannel(IntegrationOptionsMixin, MaintainableObject):
         "grouping_key": "grouping_id_template",
         "resolve_signal": "resolve_condition_template",
         "acknowledge_signal": "acknowledge_condition_template",
+        "source_link_template": "source_link_template",
         "slack": {
             "title": "slack_title_template",
             "message": "slack_message_template",
