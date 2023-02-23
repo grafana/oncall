@@ -635,7 +635,8 @@ class ResolveGroupStep(
 
     def process_signal(self, log_record):
         alert_group = log_record.alert_group
-
+        # Do not rerender alert_groups which happened while maintenance.
+        # They have no slack messages, since they just attached to the maintenance incident.
         if not alert_group.happened_while_maintenance:
             self.alert_group_slack_service.update_alert_group_slack_message(alert_group)
 

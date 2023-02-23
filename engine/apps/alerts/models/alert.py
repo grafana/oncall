@@ -128,6 +128,7 @@ class Alert(models.Model):
         alert.save()
 
         if group_created:
+            # all code below related to maintenance mode
             maintenance_uuid = None
             if alert_receive_channel.organization.maintenance_mode == AlertReceiveChannel.MAINTENANCE:
                 maintenance_uuid = alert_receive_channel.organization.maintenance_uuid
