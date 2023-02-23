@@ -2,6 +2,9 @@ import datetime
 from urllib.parse import urljoin
 
 import requests
+import re
+from django.core.validators import URLValidator
+from django.utils.regex_helper import _lazy_re_compile
 from django.conf import settings
 from django.utils import dateparse, timezone
 from icalendar import Calendar
@@ -43,6 +46,41 @@ class CurrentTeamDefault:
 
     def __repr__(self):
         return "%s()" % self.__class__.__name__
+
+
+class CustomURLValidator(URLValidator):
+    """
+    Overrides Django URLValidator Regex. It removes the tld part because
+    most of the time, containers don't have any TLD in their urls and such outgoing webhooks
+    can't be registered. 
+    """
+    ul = "\u00a1-\uffff"  # Unicode letters range (must not be a raw string).
+
+    # IP patterns
+    ipv4_re = (
+        r"(?:0|25[0-5]|2[0-4][0-9]|1[0-9]?[0-9]?|[1-9][0-9]?)"
+        r"(?:\.(?:0|25[0-5]|2[0-4][0-9]|1[0-9]?[0-9]?|[1-9][0-9]?)){3}"
+    )
+    ipv6_re = r"\[[0-9a-f:.]+\]"  # (simple regex, validated later)
+
+    # Host patterns
+    hostname_re = (
+        r"[a-z" + ul + r"0-9](?:[a-z" + ul + r"0-9-]{0,61}[a-z" + ul + r"0-9])?"
+    )
+    # Max length for domain name labels is 63 characters per RFC 1034 sec. 3.1
+    domain_re = r"(?:\.(?!-)[a-z" + ul + r"0-9-]{1,63}(?<!-))*"
+    # The tld_re has been removed from the default Djando URLValidator.
+    host_re = "(" + hostname_re + domain_re + "|localhost)"
+
+    regex = _lazy_re_compile(
+        r"^(?:[a-z0-9.+-]*)://"  # scheme is validated separately
+        r"(?:[^\s:@/]+(?::[^\s:@/]*)?@)?"  # user:pass authentication
+        r"(?:" + ipv4_re + "|" + ipv6_re + "|" + host_re + ")"
+        r"(?::[0-9]{1,5})?"  # port
+        r"(?:[/?#][^\s]*)?"  # resource path
+        r"\Z",
+        re.IGNORECASE,
+    )
 
 
 def validate_ical_url(url):
