@@ -59,13 +59,12 @@ const config: PlaywrightTestConfig = {
       },
     },
 
-    // TODO: uncomment this out once we figure out why these don't work as well
-    // {
-    //   name: 'webkit',
-    //   use: {
-    //     ...devices['Desktop Safari'],
-    //   },
-    // },
+    {
+      name: 'webkit',
+      use: {
+        ...devices['Desktop Safari'],
+      },
+    },
 
     /* Test against mobile viewports. */
     // {
