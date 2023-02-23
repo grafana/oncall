@@ -215,8 +215,19 @@ def test_get_list_schedules_pagination(
     schedule_list_url = reverse("api-internal:schedule-list")
     absolute_url = create_engine_url(schedule_list_url, override_base="http://testserver")
     for p, schedule in enumerate(available_schedules, start=1):
+        # patch oncall_users to check a paginated queryset is used
+        def mock_oncall_now(qs, events_datetime):
+            # only one schedule is passed here
+            assert qs.count() == 1
+            return {}
+
         url = "{}?page={}&perpage=1".format(schedule_list_url, p)
-        response = client.get(url, format="json", **make_user_auth_headers(user, token))
+        with patch(
+            "apps.schedules.models.on_call_schedule.get_oncall_users_for_multiple_schedules",
+            side_effect=mock_oncall_now,
+        ):
+            response = client.get(url, format="json", **make_user_auth_headers(user, token))
+
         assert response.status_code == status.HTTP_200_OK
         previous_url = None
         next_url = "{}?page={}&perpage=1".format(absolute_url, p + 1)
