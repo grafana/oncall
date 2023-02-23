@@ -1,12 +1,14 @@
+HELM_PREFIX='helm-testing'
 
 # Build dependancies for OnCall
-local_resource('yarn-install', 'yarn install')
-local_resource("Build Oncall Frontend", 
+local_resource('yarn-install', 'yarn install', labels=['OnCallDeps'])
+local_resource("build-oncall-frontend", 
         cmd='yarn build:dev',
         # serve_cmd='yarn dev',
         deps = ["grafana-plugin/src"],
         dir='grafana-plugin',
-        resource_deps=['yarn-install'])
+        resource_deps=['yarn-install'],
+        labels=['OnCallDeps'])
 
 docker_build("oncall/engine:latest", "./engine", target = 'dev')
 
@@ -23,7 +25,7 @@ def extra_helm_values():
 yaml = helm(
   'helm/oncall',
   # The release name, equivalent to helm --name
-  name='helm-testing',
+  name=HELM_PREFIX,
   set=extra_helm_values(),
   # The values file to substitute into the chart.
   values=['./helm/simple.yml',
@@ -32,4 +34,22 @@ yaml = helm(
           './helm/values-grafana-anonymous.yml'])
 k8s_yaml(yaml)
 
-k8s_resource(workload='helm-testing-grafana', port_forwards=3000)
+k8s_resource(workload='grafana', port_forwards=3000, resource_deps=['oncall-engine'], labels=['Grafana'])
+k8s_resource(workload='oncall-celery', resource_deps=['postgresql', 'rabbitmq', 'redis-master', 'redis-replicas'], labels=['OnCallBackend'])
+k8s_resource(workload='oncall-engine', resource_deps=['postgresql', 'rabbitmq', 'redis-master', 'redis-replicas'], labels=['OnCallBackend'])
+k8s_resource(workload='redis-master', labels=['OnCallDeps'])
+k8s_resource(workload='postgresql', labels=['OnCallDeps'])
+k8s_resource(workload='redis-replicas', labels=['OnCallDeps'])
+k8s_resource(workload='rabbitmq', labels=['OnCallDeps'])
+
+# k8s_resource(workload='', labels=['OnCall'])
+
+# k8s_resource(workload='', labels=['OnCall'])
+# k8s_resource(workload='', labels=['OnCall'])
+# k8s_resource(workload='', labels=['OnCall'])
+
+# name all tilt resources after the k8s object namespace + name
+def resource_name(id):
+  return id.name.replace(HELM_PREFIX + '-', '')
+
+workload_to_resource_function(resource_name)
