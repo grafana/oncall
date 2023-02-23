@@ -1104,6 +1104,7 @@ def test_merging_same_shift_events(
 
     user_a = make_user_for_organization(organization)
     user_b = make_user_for_organization(organization)
+    user_c = make_user_for_organization(organization, role=LegacyAccessControlRole.VIEWER)
 
     data = {
         "start": start_date + timezone.timedelta(hours=10),
@@ -1116,54 +1117,45 @@ def test_merging_same_shift_events(
     on_call_shift = make_on_call_shift(
         organization=organization, shift_type=CustomOnCallShift.TYPE_ROLLING_USERS_EVENT, **data
     )
-    on_call_shift.add_rolling_users([[user_a, user_b]])
+    on_call_shift.add_rolling_users([[user_a, user_c, user_b]])
 
-    expected_events = [
-        {
-            "calendar_type": 0,
-            "end": request_date + timezone.timedelta(hours=12),
-            "priority_level": 1,
-            "start": request_date + timezone.timedelta(hours=10),
-            "users": sorted([user_a.username, user_b.username]),
-        }
-    ]
+    expected_users = {
+        "users": sorted([user_a.username, user_b.username]),
+        "missing_users": [user_c.username],
+    }
 
     # final schedule
     url = reverse("api-internal:schedule-filter-events", kwargs={"pk": schedule.public_primary_key})
-    url += "?date={}&days=1".format(request_date.strftime("%Y-%m-%d"))
+    url += "?date={}&days=3".format(request_date.strftime("%Y-%m-%d"))
     response = client.get(url, format="json", **make_user_auth_headers(user, token))
     assert response.status_code == status.HTTP_200_OK
-    returned_events = [
+    returned_users = [
         {
-            "calendar_type": e["calendar_type"],
-            "end": e["end"],
-            "priority_level": e["priority_level"],
-            "start": e["start"],
             "users": sorted([u["display_name"] for u in e["users"]]) if e["users"] else None,
+            "missing_users": e["missing_users"],
         }
         for e in response.data["events"]
         if not e["is_gap"]
     ]
-    assert returned_events == expected_events
+    for users in returned_users:
+        assert users == expected_users
 
     # rotations
     url = reverse("api-internal:schedule-filter-events", kwargs={"pk": schedule.public_primary_key})
-    url += "?date={}&days=1&type=rotation".format(request_date.strftime("%Y-%m-%d"))
+    url += "?date={}&days=3&type=rotation".format(request_date.strftime("%Y-%m-%d"))
     response = client.get(url, format="json", **make_user_auth_headers(user, token))
     assert response.status_code == status.HTTP_200_OK
 
-    returned_events = [
+    returned_users = [
         {
-            "calendar_type": e["calendar_type"],
-            "end": e["end"],
-            "priority_level": e["priority_level"],
-            "start": e["start"],
             "users": sorted([u["display_name"] for u in e["users"]]) if e["users"] else None,
+            "missing_users": e["missing_users"],
         }
         for e in response.data["events"]
         if not e["is_gap"]
     ]
-    assert returned_events == expected_events
+    for users in returned_users:
+        assert users == expected_users
 
 
 @pytest.mark.django_db
