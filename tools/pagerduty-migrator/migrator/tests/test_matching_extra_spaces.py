@@ -7,7 +7,7 @@ def test_match_schedule_name_extra_spaces():
     pd_schedule = {"name": " test "}
     oncall_schedules = [{"name": "test"}]
 
-    match_schedule(pd_schedule, oncall_schedules)
+    match_schedule(pd_schedule, oncall_schedules, user_id_map={})
     assert pd_schedule["oncall_schedule"] == oncall_schedules[0]
 
 
