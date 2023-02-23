@@ -20,14 +20,12 @@ export enum ChatOpsTab {
   Telegram = 'Telegram',
 }
 
-interface ChatOpsPageProps extends AppRootProps {}
-
 interface ChatOpsState {
   activeTab: ChatOpsTab;
 }
 
 @observer
-class ChatOpsPage extends React.Component<ChatOpsPageProps, ChatOpsState> {
+class ChatOpsPage extends React.Component<AppRootProps, ChatOpsState> {
   state: ChatOpsState = {
     activeTab: ChatOpsTab.Slack,
   };
@@ -35,13 +33,7 @@ class ChatOpsPage extends React.Component<ChatOpsPageProps, ChatOpsState> {
   componentDidMount() {
     const { query } = this.props;
 
-    if (query.tab) {
-      this.setState({ activeTab: query.tab });
-      LocationHelper.update({ tab: query.tab }, 'partial');
-    } else {
-      this.setState({ activeTab: ChatOpsTab.Slack });
-      LocationHelper.update({ tab: ChatOpsTab.Slack }, 'partial');
-    }
+    this.handleChatopsTabChange(query.tab || ChatOpsTab.Slack);
   }
 
   render() {
