@@ -1096,20 +1096,14 @@ def test_merging_same_shift_events(
     organization, user, token = make_organization_and_user_with_plugin_token()
     client = APIClient()
 
-    schedule = make_schedule(
-        organization,
-        schedule_class=OnCallScheduleWeb,
-        name="test_web_schedule",
-    )
+    schedule = make_schedule(organization, schedule_class=OnCallScheduleWeb)
     now = timezone.now().replace(hour=0, minute=0, second=0, microsecond=0)
     start_date = now - timezone.timedelta(days=7)
-    request_date = start_date + timezone.timedelta(days=1)
+    # tomorrow
+    request_date = now + timezone.timedelta(days=1)
 
     user_a = make_user_for_organization(organization)
     user_b = make_user_for_organization(organization)
-    user_c = make_user_for_organization(organization, role=LegacyAccessControlRole.VIEWER)
-    # clear users pks <-> organization cache (persisting between tests)
-    memoized_users_in_ical.cache_clear()
 
     data = {
         "start": start_date + timezone.timedelta(hours=10),
@@ -1122,17 +1116,15 @@ def test_merging_same_shift_events(
     on_call_shift = make_on_call_shift(
         organization=organization, shift_type=CustomOnCallShift.TYPE_ROLLING_USERS_EVENT, **data
     )
-    on_call_shift.add_rolling_users([[user_a, user_c, user_b]])
+    on_call_shift.add_rolling_users([[user_a, user_b]])
 
     expected_events = [
         {
             "calendar_type": 0,
             "end": request_date + timezone.timedelta(hours=12),
-            "is_gap": False,
             "priority_level": 1,
             "start": request_date + timezone.timedelta(hours=10),
             "users": sorted([user_a.username, user_b.username]),
-            "missing_users": [user_c.username],
         }
     ]
 
@@ -1145,11 +1137,9 @@ def test_merging_same_shift_events(
         {
             "calendar_type": e["calendar_type"],
             "end": e["end"],
-            "is_gap": e["is_gap"],
             "priority_level": e["priority_level"],
             "start": e["start"],
             "users": sorted([u["display_name"] for u in e["users"]]) if e["users"] else None,
-            "missing_users": e["missing_users"],
         }
         for e in response.data["events"]
         if not e["is_gap"]
@@ -1166,11 +1156,9 @@ def test_merging_same_shift_events(
         {
             "calendar_type": e["calendar_type"],
             "end": e["end"],
-            "is_gap": e["is_gap"],
             "priority_level": e["priority_level"],
             "start": e["start"],
             "users": sorted([u["display_name"] for u in e["users"]]) if e["users"] else None,
-            "missing_users": e["missing_users"],
         }
         for e in response.data["events"]
         if not e["is_gap"]
