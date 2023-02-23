@@ -11,6 +11,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Allow creating schedules with type "web" using public API
 
+### Fixed
+
+- Fixed minor issue during the sync process where an HTTP 302 (redirect) status code from the Grafana
+  instance would cause the sync to not properly finish
+
 ## v1.1.28 (2023-02-23)
 
 ### Fixed
