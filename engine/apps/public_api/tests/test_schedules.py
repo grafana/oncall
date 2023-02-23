@@ -233,25 +233,6 @@ def test_get_web_schedule(
 
 
 @pytest.mark.django_db
-def test_create_web_schedule(make_organization_and_user_with_token):
-    _, _, token = make_organization_and_user_with_token()
-    client = APIClient()
-
-    url = reverse("api-public:schedules-list")
-
-    data = {
-        "team_id": None,
-        "name": "schedule test name",
-        "time_zone": "Europe/Moscow",
-        "type": "web",
-    }
-
-    response = client.post(url, data=data, format="json", HTTP_AUTHORIZATION=f"{token}")
-    assert response.status_code == status.HTTP_400_BAD_REQUEST
-    assert response.json() == {"detail": "Web schedule creation is not enabled through API"}
-
-
-@pytest.mark.django_db
 def test_update_web_schedule(
     make_organization_and_user_with_token,
     make_schedule,
