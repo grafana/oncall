@@ -557,10 +557,9 @@ class AlertGroupLogRecord(models.Model):
 @receiver(post_save, sender=AlertGroupLogRecord)
 def listen_for_alertgrouplogrecord(sender, instance, created, *args, **kwargs):
     if instance.type != AlertGroupLogRecord.TYPE_DELETED:
-        if not instance.alert_group.is_maintenance_incident:
-            alert_group_pk = instance.alert_group.pk
-            logger.debug(
-                f"send_update_log_report_signal for alert_group {alert_group_pk}, "
-                f"alert group event: {instance.get_type_display()}"
-            )
-            send_update_log_report_signal.apply_async(kwargs={"alert_group_pk": alert_group_pk}, countdown=8)
+        alert_group_pk = instance.alert_group.pk
+        logger.debug(
+            f"send_update_log_report_signal for alert_group {alert_group_pk}, "
+            f"alert group event: {instance.get_type_display()}"
+        )
+        send_update_log_report_signal.apply_async(kwargs={"alert_group_pk": alert_group_pk}, countdown=8)
