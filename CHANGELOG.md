@@ -9,7 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
-- Fixed importing of global grafana styles [(672)(<https://github.com/grafana/oncall/issues/672>2>2>2>2>2>)]
+- Fixed importing of global grafana styles [(672)(<https://github.com/grafana/oncall/issues/672)]
 
 ## v1.1.25 (2023-02-20)
 
