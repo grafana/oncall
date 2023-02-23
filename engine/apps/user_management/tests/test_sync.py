@@ -203,7 +203,7 @@ def test_sync_organization_is_rbac_permissions_enabled_open_source(make_organiza
             "userId": 1,
         },
     )
-    api_check_token_call_status = {"connected": 200}
+    api_check_token_call_status = {"connected": True}
 
     with patch.object(GrafanaAPIClient, "is_rbac_enabled_for_organization", return_value=grafana_api_response):
         with patch.object(GrafanaAPIClient, "get_users", return_value=api_users_response):
