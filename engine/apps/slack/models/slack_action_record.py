@@ -1,17 +1,21 @@
 from django.db import models
 
-from apps.slack.scenarios.scenario_step import ScenarioStep
+# from apps.slack.scenarios.scenario_step import ScenarioStep
 
 
 class SlackActionRecord(models.Model):
+    """
+    Legacy model, should be removed.
+    """
+
     ON_CALL_ROUTINE = [
-        ScenarioStep.get_step("distribute_alerts", "CustomButtonProcessStep").routing_uid(),
-        ScenarioStep.get_step("distribute_alerts", "StopInvitationProcess").routing_uid(),
-        ScenarioStep.get_step("distribute_alerts", "InviteOtherPersonToIncident").routing_uid(),
-        ScenarioStep.get_step("distribute_alerts", "AcknowledgeGroupStep").routing_uid(),
-        ScenarioStep.get_step("distribute_alerts", "UnAcknowledgeGroupStep").routing_uid(),
-        ScenarioStep.get_step("distribute_alerts", "ResolveGroupStep").routing_uid(),
-        ScenarioStep.get_step("distribute_alerts", "SilenceGroupStep").routing_uid(),
+        # ScenarioStep.get_step("distribute_alerts", "CustomButtonProcessStep").routing_uid(),
+        # ScenarioStep.get_step("distribute_alerts", "StopInvitationProcess").routing_uid(),
+        # ScenarioStep.get_step("distribute_alerts", "InviteOtherPersonToIncident").routing_uid(),
+        # ScenarioStep.get_step("distribute_alerts", "AcknowledgeGroupStep").routing_uid(),
+        # ScenarioStep.get_step("distribute_alerts", "UnAcknowledgeGroupStep").routing_uid(),
+        # ScenarioStep.get_step("distribute_alerts", "ResolveGroupStep").routing_uid(),
+        # ScenarioStep.get_step("distribute_alerts", "SilenceGroupStep").routing_uid(),
     ]
 
     organization = models.ForeignKey("user_management.Organization", on_delete=models.CASCADE, related_name="actions")

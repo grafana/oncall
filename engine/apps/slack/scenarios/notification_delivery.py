@@ -21,7 +21,7 @@ class NotificationDeliveryStep(scenario_step.ScenarioStep):
                     log_record.notification_error_code
                     == UserNotificationPolicyLogRecord.ERROR_NOTIFICATION_SMS_LIMIT_EXCEEDED
                 ):
-                    self.post_message_to_channel(
+                    self._post_message_to_channel(
                         f"Attempt to send an SMS to {user_verbal_with_mention} has been failed due to a plan limit",
                         alert_group.slack_message.channel_id,
                     )
@@ -29,7 +29,7 @@ class NotificationDeliveryStep(scenario_step.ScenarioStep):
                     log_record.notification_error_code
                     == UserNotificationPolicyLogRecord.ERROR_NOTIFICATION_PHONE_CALLS_LIMIT_EXCEEDED
                 ):
-                    self.post_message_to_channel(
+                    self._post_message_to_channel(
                         f"Attempt to call to {user_verbal_with_mention} has been failed due to a plan limit",
                         alert_group.slack_message.channel_id,
                     )
@@ -37,7 +37,7 @@ class NotificationDeliveryStep(scenario_step.ScenarioStep):
                     log_record.notification_error_code
                     == UserNotificationPolicyLogRecord.ERROR_NOTIFICATION_MAIL_LIMIT_EXCEEDED
                 ):
-                    self.post_message_to_channel(
+                    self._post_message_to_channel(
                         f"Failed to send email to {user_verbal_with_mention}. Exceeded limit for mails",
                         alert_group.slack_message.channel_id,
                     )
@@ -46,17 +46,17 @@ class NotificationDeliveryStep(scenario_step.ScenarioStep):
                     == UserNotificationPolicyLogRecord.ERROR_NOTIFICATION_PHONE_NUMBER_IS_NOT_VERIFIED
                 ):
                     if log_record.notification_channel == UserNotificationPolicy.NotificationChannel.SMS:
-                        self.post_message_to_channel(
+                        self._post_message_to_channel(
                             f"Failed to send an SMS to {user_verbal_with_mention}. Phone number is not verified",
                             alert_group.slack_message.channel_id,
                         )
                     elif log_record.notification_channel == UserNotificationPolicy.NotificationChannel.PHONE_CALL:
-                        self.post_message_to_channel(
+                        self._post_message_to_channel(
                             f"Failed to call to {user_verbal_with_mention}. Phone number is not verified",
                             alert_group.slack_message.channel_id,
                         )
 
-    def post_message_to_channel(self, text, channel):
+    def _post_message_to_channel(self, text, channel):
         blocks = [
             {
                 "type": "section",

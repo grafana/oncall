@@ -16,15 +16,10 @@ from .step_mixins import CheckAlertIsUnarchivedMixin, IncidentActionsAccessContr
 class OpenAlertAppearanceDialogStep(
     CheckAlertIsUnarchivedMixin, IncidentActionsAccessControlMixin, scenario_step.ScenarioStep
 ):
-
-    tags = [
-        scenario_step.ScenarioStep.TAG_INCIDENT_ROUTINE,
-    ]
-
     REQUIRED_PERMISSIONS = [RBACPermission.Permissions.CHATOPS_WRITE]
     ACTION_VERBOSE = "open Alert Appearance"
 
-    def process_scenario(self, slack_user_identity, slack_team_identity, payload, action=None):
+    def process_scenario(self, slack_user_identity, slack_team_identity, payload):
         AlertGroup = apps.get_model("alerts", "AlertGroup")
         AlertReceiveChannel = apps.get_model("alerts", "AlertReceiveChannel")
 
@@ -216,12 +211,7 @@ class OpenAlertAppearanceDialogStep(
 
 
 class UpdateAppearanceStep(scenario_step.ScenarioStep):
-
-    tags = [
-        scenario_step.ScenarioStep.TAG_INCIDENT_ROUTINE,
-    ]
-
-    def process_scenario(self, slack_user_identity, slack_team_identity, payload, action=None):
+    def process_scenario(self, slack_user_identity, slack_team_identity, payload):
         AlertGroup = apps.get_model("alerts", "AlertGroup")
         AlertReceiveChannel = apps.get_model("alerts", "AlertReceiveChannel")
 
