@@ -1,6 +1,7 @@
 import React from 'react';
 
 import { Button, HorizontalGroup, IconButton, Tooltip, VerticalGroup } from '@grafana/ui';
+import cn from 'classnames/bind';
 
 import Avatar from 'components/Avatar/Avatar';
 import { MatchMediaTooltip } from 'components/MatchMediaTooltip/MatchMediaTooltip';
@@ -16,11 +17,15 @@ import { move } from 'state/helpers';
 import { UserActions } from 'utils/authorization';
 import { TABLE_COLUMN_MAX_WIDTH } from 'utils/consts';
 
+import styles from './Incident.module.scss';
+
+const cx = cn.bind(styles);
+
 export function getIncidentStatusTag(alert: Alert) {
   switch (alert.status) {
     case IncidentStatus.Firing:
       return (
-        <Tag color={getComputedStyle(document.documentElement).getPropertyValue('--tag-danger')}>
+        <Tag color="var(--tag-danger)" className={cx('status-tag')}>
           <Text strong size="small">
             Firing
           </Text>
@@ -28,7 +33,7 @@ export function getIncidentStatusTag(alert: Alert) {
       );
     case IncidentStatus.Acknowledged:
       return (
-        <Tag color={getComputedStyle(document.documentElement).getPropertyValue('--tag-warning')}>
+        <Tag color="var(--tag-warning)" className={cx('status-tag')}>
           <Text strong size="small">
             Acknowledged
           </Text>
@@ -36,7 +41,7 @@ export function getIncidentStatusTag(alert: Alert) {
       );
     case IncidentStatus.Resolved:
       return (
-        <Tag color={getComputedStyle(document.documentElement).getPropertyValue('--tag-primary')}>
+        <Tag color="var(--tag-primary)" className={cx('status-tag')}>
           <Text strong size="small">
             Resolved
           </Text>
@@ -44,7 +49,7 @@ export function getIncidentStatusTag(alert: Alert) {
       );
     case IncidentStatus.Silenced:
       return (
-        <Tag color={getComputedStyle(document.documentElement).getPropertyValue('--tag-secondary')}>
+        <Tag color="var(--tag-secondary)" className={cx('status-tag')}>
           <Text strong size="small">
             Silenced
           </Text>

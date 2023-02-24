@@ -11,6 +11,48 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Fixed importing of global grafana styles [(672)(<https://github.com/grafana/oncall/issues/672)]
 
+## v1.1.29 (2023-02-23)
+
+### Changed
+
+- Allow creating schedules with type "web" using public API
+
+### Fixed
+
+- Fixed minor issue during the sync process where an HTTP 302 (redirect) status code from the Grafana
+  instance would cause the sync to not properly finish
+
+## v1.1.28 (2023-02-23)
+
+### Fixed
+
+- Fixed maintenance mode for Telegram and MSTeams
+
+## v1.1.27 (2023-02-22)
+
+### Added
+
+- Added reCAPTCHA validation for requesting a mobile verification code
+
+### Changed
+
+- Added ratelimits for phone verification
+
+### Fixed
+
+- Fixed HTTP request to Google where when fetching an iCal, the response would sometimes contain HTML instead
+  of the expected iCal data
+
+## v1.1.26 (2023-02-20)
+
+### Fixed
+
+- Make alert group filters persistent ([482](https://github.com/grafana/oncall/issues/482))
+
+### Changed
+
+- Update phone verification error message
+
 ## v1.1.25 (2023-02-20)
 
 ### Fixed
@@ -36,6 +78,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Incidents - Removed buttons column and replaced status with toggler ([#1237](https://github.com/grafana/oncall/issues/1237))
 - Responsiveness changes across multiple pages (Incidents, Integrations, Schedules) ([#1237](https://github.com/grafana/oncall/issues/1237))
+- Link to source was added
+- Header of Incident page was reworked: clickable labels instead of just names, users section was deleted
+- "Go to Integration" button was deleted, because the functionality was moved to clickable labels
 
 ## v1.1.23 (2023-02-06)
 
