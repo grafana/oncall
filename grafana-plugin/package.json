@@ -118,6 +118,7 @@
     "mobx-react": "6.1.1",
     "object-hash": "^3.0.0",
     "prettier": "^2.8.2",
+    "raw-loader": "^4.0.2",
     "rc-table": "^7.17.1",
     "react-copy-to-clipboard": "^5.0.2",
     "react-draggable": "^4.4.5",
