@@ -40,6 +40,7 @@ const FILTERS_DEBOUNCE_MS = 500;
 interface SchedulesPageProps extends WithStoreProps, RouteComponentProps {}
 
 interface SchedulesPageState {
+  schedules: Schedule[];
   startMoment: dayjs.Dayjs;
   filters: SchedulesFiltersType;
   showNewScheduleSelector: boolean;
@@ -54,7 +55,9 @@ class SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSta
     super(props);
 
     const { store } = this.props;
+
     this.state = {
+      schedules: undefined,
       startMoment: getStartOfWeek(store.currentTimezone),
       filters: { searchTerm: '', status: 'all', type: undefined },
       showNewScheduleSelector: false,
@@ -73,18 +76,18 @@ class SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSta
     await store.scheduleStore.updateItems().finally(() => {
       if (filters === this.state.filters) {
         // check for any change in filters in the meanwhile
-        this.setState({ isLoading: false });
+        this.setState({
+          schedules: this.getFilteredSchedules(),
+          isLoading: false,
+        });
       }
     });
   }
 
   render() {
     const { store } = this.props;
-    const { filters, showNewScheduleSelector, expandedRowKeys, scheduleIdToEdit, isLoading } = this.state;
+    const { schedules, filters, showNewScheduleSelector, expandedRowKeys, scheduleIdToEdit, isLoading } = this.state;
 
-    const { scheduleStore } = store;
-
-    const schedules = scheduleStore.getSearchResult();
     const columns = [
       {
         width: '10%',
@@ -135,15 +138,6 @@ class SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSta
 
     const users = store.userStore.getSearchResult().results;
 
-    const data = schedules
-      ? schedules.filter(
-          (schedule) =>
-            filters.status === 'all' ||
-            (filters.status === 'used' && schedule.number_of_escalation_chains) ||
-            (filters.status === 'unused' && !schedule.number_of_escalation_chains)
-        )
-      : undefined;
-
     return (
       <>
         <div className={cx('root')}>
@@ -165,23 +159,20 @@ class SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSta
                 </WithPermissionControl>
               </div>
             </div>
-            {isLoading ? (
-              this.renderLoading()
-            ) : (
-              <Table
-                columns={columns}
-                data={data}
-                pagination={{ page: 1, total: 1, onChange: this.handlePageChange }}
-                rowKey="id"
-                expandable={{
-                  expandedRowKeys: expandedRowKeys,
-                  onExpand: this.handleExpandRow,
-                  expandedRowRender: this.renderSchedule,
-                  expandRowByClick: true,
-                }}
-                emptyText={this.renderNotFound()}
-              />
-            )}
+            <Table
+              columns={columns}
+              data={schedules}
+              loading={isLoading}
+              pagination={{ page: 1, total: 1, onChange: this.handlePageChange }}
+              rowKey="id"
+              expandable={{
+                expandedRowKeys: expandedRowKeys,
+                onExpand: this.handleExpandRow,
+                expandedRowRender: this.renderSchedule,
+                expandRowByClick: true,
+              }}
+              emptyText={this.renderNotFound()}
+            />
           </VerticalGroup>
         </div>
         {showNewScheduleSelector && (
@@ -413,17 +404,32 @@ class SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSta
     };
   };
 
+  getFilteredSchedules = () => {
+    const { scheduleStore } = this.props.store;
+    const { filters } = this.state;
+
+    return scheduleStore
+      .getSearchResult()
+      .filter(
+        (schedule) =>
+          filters.status === 'all' ||
+          (filters.status === 'used' && schedule.number_of_escalation_chains) ||
+          (filters.status === 'unused' && !schedule.number_of_escalation_chains)
+      );
+  };
+
   handleSchedulesFiltersChange = (filters: SchedulesFiltersType) => {
-    this.setState({ filters, isLoading: true }, () => this.debouncedUpdateSchedules(filters));
+    this.setState({ filters }, () => this.debouncedUpdateSchedules(filters));
   };
 
   applyFilters = (filters: SchedulesFiltersType) => {
     const { scheduleStore } = this.props.store;
 
     scheduleStore.updateItems(filters).finally(() => {
-      // check for any change in filters in the meanwhile
-      if (filters === this.state.filters) {
-        this.setState({ isLoading: false });
+      if (this.state.filters === filters) {
+        this.setState({
+          schedules: this.getFilteredSchedules(),
+        });
       }
     });
   };
