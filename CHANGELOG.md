@@ -14,6 +14,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Moved reCAPTCHA to backend environment variable for more flexible configuration between different environments.
 - Add pagination to schedule listing
 
 ## v1.1.29 (2023-02-23)
