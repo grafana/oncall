@@ -425,6 +425,7 @@ class SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSta
 
   handlePageChange = (page: number) => {
     this.setState({ page }, this.updateSchedules);
+    this.setState({ expandedRowKeys: [] });
   };
 
   update = () => {
