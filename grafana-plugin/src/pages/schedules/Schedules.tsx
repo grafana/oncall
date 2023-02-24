@@ -66,10 +66,14 @@ class SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSta
 
   async componentDidMount() {
     const { store } = this.props;
+    const { filters } = this.state;
 
-    await Promise.all([store.userStore.updateItems(), store.scheduleStore.updateItems()]).finally(() =>
-      this.setState({ isLoading: false })
-    );
+    await Promise.all([store.userStore.updateItems(), store.scheduleStore.updateItems()]).finally(() => {
+      if (filters === this.state.filters) {
+        // check for any change in filters in the meanwhile
+        this.setState({ isLoading: false });
+      }
+    });
   }
 
   render() {
@@ -415,6 +419,7 @@ class SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSta
     const { scheduleStore } = this.props.store;
 
     scheduleStore.updateItems(filters).finally(() => {
+      // check for any change in filters in the meanwhile
       if (filters === this.state.filters) {
         this.setState({ isLoading: false });
       }
