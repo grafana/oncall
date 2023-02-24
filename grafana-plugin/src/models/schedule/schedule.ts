@@ -119,25 +119,29 @@ export class ScheduleStore extends BaseStore {
 
   @action
   async updateItems(f: any = { searchTerm: '', type: undefined }) {
-    // async updateItems(query = '') {
-    const filters = typeof f === 'string' ? { searchTerm: f } : f;
-    const { searchTerm: search, type } = filters;
-    const result = await makeRequest(this.path, { method: 'GET', params: { search: search, type } });
+    return new Promise<void>(async (resolve) => {
+      const filters = typeof f === 'string' ? { searchTerm: f } : f;
+      const { searchTerm: search, type } = filters;
+      const result = await makeRequest(this.path, { method: 'GET', params: { search: search, type } });
 
-    this.items = {
-      ...this.items,
-      ...result.reduce(
-        (acc: { [key: number]: Schedule }, item: Schedule) => ({
-          ...acc,
-          [item.id]: item,
-        }),
-        {}
-      ),
-    };
-    this.searchResult = {
-      ...this.searchResult,
-      results: result.map((item: Schedule) => item.id),
-    };
+      this.items = {
+        ...this.items,
+        ...result.reduce(
+          (acc: { [key: number]: Schedule }, item: Schedule) => ({
+            ...acc,
+            [item.id]: item,
+          }),
+          {}
+        ),
+      };
+
+      this.searchResult = {
+        ...this.searchResult,
+        results: result.map((item: Schedule) => item.id),
+      };
+
+      resolve();
+    });
   }
 
   async updateItem(id: Schedule['id'], fromOrganization = false) {

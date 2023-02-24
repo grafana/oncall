@@ -35,6 +35,7 @@ import { PLUGIN_ROOT, TABLE_COLUMN_MAX_WIDTH } from 'utils/consts';
 import styles from './Schedules.module.css';
 
 const cx = cn.bind(styles);
+const FILTERS_DEBOUNCE_MS = 500;
 
 interface SchedulesPageProps extends WithStoreProps, RouteComponentProps {}
 
@@ -44,6 +45,7 @@ interface SchedulesPageState {
   showNewScheduleSelector: boolean;
   expandedRowKeys: Array<Schedule['id']>;
   scheduleIdToEdit?: Schedule['id'];
+  isLoading?: boolean;
 }
 
 @observer
@@ -58,19 +60,21 @@ class SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSta
       showNewScheduleSelector: false,
       expandedRowKeys: [],
       scheduleIdToEdit: undefined,
+      isLoading: true,
     };
   }
 
   async componentDidMount() {
     const { store } = this.props;
 
-    store.userStore.updateItems();
-    store.scheduleStore.updateItems();
+    await Promise.all([store.userStore.updateItems(), store.scheduleStore.updateItems()]).finally(() =>
+      this.setState({ isLoading: false })
+    );
   }
 
   render() {
     const { store } = this.props;
-    const { filters, showNewScheduleSelector, expandedRowKeys, scheduleIdToEdit } = this.state;
+    const { filters, showNewScheduleSelector, expandedRowKeys, scheduleIdToEdit, isLoading } = this.state;
 
     const { scheduleStore } = store;
 
@@ -155,23 +159,23 @@ class SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSta
                 </WithPermissionControl>
               </div>
             </div>
-            <Table
-              columns={columns}
-              data={data}
-              pagination={{ page: 1, total: 1, onChange: this.handlePageChange }}
-              rowKey="id"
-              expandable={{
-                expandedRowKeys: expandedRowKeys,
-                onExpand: this.handleExpandRow,
-                expandedRowRender: this.renderSchedule,
-                expandRowByClick: true,
-              }}
-              emptyText={
-                <div className={cx('loader')}>
-                  {data ? <Text type="secondary">Not found</Text> : <Text type="secondary">Loading schedules...</Text>}
-                </div>
-              }
-            />
+            {isLoading ? (
+              this.renderLoading()
+            ) : (
+              <Table
+                columns={columns}
+                data={data}
+                pagination={{ page: 1, total: 1, onChange: this.handlePageChange }}
+                rowKey="id"
+                expandable={{
+                  expandedRowKeys: expandedRowKeys,
+                  onExpand: this.handleExpandRow,
+                  expandedRowRender: this.renderSchedule,
+                  expandRowByClick: true,
+                }}
+                emptyText={this.renderNotFound()}
+              />
+            )}
           </VerticalGroup>
         </div>
         {showNewScheduleSelector && (
@@ -193,6 +197,22 @@ class SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSta
           />
         )}
       </>
+    );
+  }
+
+  renderLoading() {
+    return (
+      <div className={cx('loader')}>
+        <LoadingPlaceholder text="Loading schedules..."></LoadingPlaceholder>
+      </div>
+    );
+  }
+
+  renderNotFound() {
+    return (
+      <div className={cx('loader')}>
+        <Text type="secondary">Not found</Text>
+      </div>
     );
   }
 
@@ -313,13 +333,6 @@ class SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSta
             onHover={this.getUpdateRelatedEscalationChainsHandler(item.id)}
           />
         )}
-
-        {/* <ScheduleCounter
-          type="warning"
-          count={warningsCount}
-          tooltipTitle="Warnings"
-          tooltipContent="Schedule has unassigned time periods during next 7 days"
-        />*/}
       </HorizontalGroup>
     );
   };
@@ -395,17 +408,18 @@ class SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSta
   };
 
   handleSchedulesFiltersChange = (filters: SchedulesFiltersType) => {
-    this.setState({ filters }, this.debouncedUpdateSchedules);
+    this.setState({ filters, isLoading: true }, this.debouncedUpdateSchedules);
   };
 
   applyFilters = () => {
     const { filters } = this.state;
     const { store } = this.props;
     const { scheduleStore } = store;
-    scheduleStore.updateItems(filters);
+
+    scheduleStore.updateItems(filters).finally(() => this.setState({ isLoading: false }));
   };
 
-  debouncedUpdateSchedules = debounce(this.applyFilters, 1000);
+  debouncedUpdateSchedules = debounce(this.applyFilters, FILTERS_DEBOUNCE_MS);
 
   handlePageChange = (_page: number) => {};
 
