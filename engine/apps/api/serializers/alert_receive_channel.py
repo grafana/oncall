@@ -5,7 +5,6 @@ from django.apps import apps
 from django.conf import settings
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.exceptions import ValidationError as DjangoValidationError
-from django.core.validators import URLValidator
 from django.template.loader import render_to_string
 from django.utils import timezone
 from jinja2 import TemplateSyntaxError
@@ -19,7 +18,7 @@ from apps.alerts.models import AlertReceiveChannel
 from apps.base.messaging import get_messaging_backends
 from common.api_helpers.custom_fields import TeamPrimaryKeyRelatedField, WritableSerializerMethodField
 from common.api_helpers.exceptions import BadRequest
-from common.api_helpers.mixins import IMAGE_URL, TEMPLATE_NAMES_ONLY_WITH_NOTIFICATION_CHANNEL, EagerLoadingMixin
+from common.api_helpers.mixins import TEMPLATE_NAMES_ONLY_WITH_NOTIFICATION_CHANNEL, EagerLoadingMixin
 from common.api_helpers.utils import CurrentTeamDefault
 from common.jinja_templater import apply_jinja_template, jinja_template_env
 from common.jinja_templater.apply_jinja_template import JinjaTemplateWarning
@@ -562,17 +561,15 @@ class AlertReceiveChannelTemplatesSerializer(EagerLoadingMixin, serializers.Mode
             for field in TEMPLATE_NAMES_ONLY_WITH_NOTIFICATION_CHANNEL:
                 field_name = f"{backend_id.lower()}_{field}_template"
                 value = data.get(field_name)
-                validator = jinja_template_env.from_string if field != IMAGE_URL else URLValidator()
-                if value is not None:
-                    try:
-                        if value:
-                            validator(value)
-                    except TemplateSyntaxError:
-                        errors[field_name] = "invalid template"
-                    except DjangoValidationError:
-                        errors[field_name] = "invalid URL"
-                    else:
-                        backend_updates[field] = value
+                if value == "":
+                    value = None
+                try:
+                    if value:
+                        jinja_template_env.from_string(value)
+                except TemplateSyntaxError:
+                    errors[field_name] = "invalid template"
+                else:
+                    backend_updates[field] = value
             # update backend templates
             backend_templates.update(backend_updates)
             set_value(ret, ["messaging_backends_templates", backend_id], backend_templates)
