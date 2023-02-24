@@ -101,7 +101,6 @@ class EscalationSnapshot:
         representing the result of the time comparision
         """
         if self.next_step_eta is None:
-            # TODO: this is a valid case I assume?
             return None
         return self.next_step_eta > (timezone.now() - timezone.timedelta(minutes=5))
 

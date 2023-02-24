@@ -72,7 +72,6 @@ def audit_alert_group_escalation(alert_group: "AlertGroup") -> None:
     for executed_escalation_policy_snapshot in executed_escalation_policy_snapshots:
         escalation_policy_id = executed_escalation_policy_snapshot.id
 
-        # TODO: is it valid to only check for the finished log record type here?
         if not executed_escalation_policy_snapshot.has_finished_log_record(alert_group_id):
             raise AlertGroupEscalationPolicyExecutionAuditException(
                 f"{base_msg}'s escalation policy snapshot {escalation_policy_id} does not have a finished alert group log record associated with it"

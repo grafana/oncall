@@ -117,38 +117,46 @@ class EscalationSnapshotMixin:
 
     @cached_property
     def channel_filter_snapshot(self) -> Optional[ChannelFilterSnapshot]:
-        # in some cases we need only channel filter and don't want to serialize whole escalation
-        channel_filter_snapshot_object = None
+        """
+        in some cases we need only channel filter and don't want to serialize whole escalation
+        """
         escalation_snapshot = self.raw_escalation_snapshot
-        if escalation_snapshot is not None:
-            channel_filter_snapshot = ChannelFilterSnapshot.serializer().to_internal_value(
-                escalation_snapshot["channel_filter_snapshot"]
-            )
-            channel_filter_snapshot_object = ChannelFilterSnapshot(**channel_filter_snapshot)
-        return channel_filter_snapshot_object
+        if not escalation_snapshot:
+            return None
+
+        channel_filter_snapshot = escalation_snapshot["channel_filter_snapshot"]
+        if not channel_filter_snapshot:
+            return None
+
+        channel_filter_snapshot = ChannelFilterSnapshot.serializer().to_internal_value(channel_filter_snapshot)
+        return ChannelFilterSnapshot(**channel_filter_snapshot)
 
     @cached_property
     def escalation_chain_snapshot(self) -> Optional[EscalationChainSnapshot]:
-        # in some cases we need only escalation chain and don't want to serialize whole escalation
+        """
+        in some cases we need only escalation chain and don't want to serialize whole escalation
         escalation_chain_snapshot_object = None
+        """
         escalation_snapshot = self.raw_escalation_snapshot
-        if escalation_snapshot is not None:
-            escalation_chain_snapshot = EscalationChainSnapshot.serializer().to_internal_value(
-                escalation_snapshot["escalation_chain_snapshot"]
-            )
-            escalation_chain_snapshot_object = EscalationChainSnapshot(**escalation_chain_snapshot)
-        return escalation_chain_snapshot_object
+        if not escalation_snapshot:
+            return None
+
+        escalation_chain_snapshot = escalation_snapshot["escalation_chain_snapshot"]
+        if not escalation_chain_snapshot:
+            return None
+
+        escalation_chain_snapshot = EscalationChainSnapshot.serializer().to_internal_value(escalation_chain_snapshot)
+        return EscalationChainSnapshot(**escalation_chain_snapshot)
 
     @cached_property
     def escalation_snapshot(self) -> Optional[EscalationSnapshot]:
-        escalation_snapshot_object = None
         raw_escalation_snapshot = self.raw_escalation_snapshot
-        if raw_escalation_snapshot is not None:
+        if raw_escalation_snapshot:
             try:
-                escalation_snapshot_object = self._deserialize_escalation_snapshot(raw_escalation_snapshot)
+                return self._deserialize_escalation_snapshot(raw_escalation_snapshot)
             except ValidationError as e:
                 logger.error(f"Error trying to deserialize raw escalation snapshot: {e}")
-        return escalation_snapshot_object
+        return None
 
     def _deserialize_escalation_snapshot(self, raw_escalation_snapshot) -> EscalationSnapshot:
         """
@@ -176,20 +184,34 @@ class EscalationSnapshotMixin:
         return escalation_snapshot_object
 
     @property
-    def escalation_chain_exists(self):
-        return not self.pause_escalation and self.channel_filter and self.channel_filter.escalation_chain
+    def escalation_chain_exists(self) -> bool:
+        if self.pause_escalation:
+            return False
+        elif not self.channel_filter:
+            return False
+        return self.channel_filter.escalation_chain is not None
 
     @property
-    def pause_escalation(self):
-        # get pause_escalation field directly to avoid serialization overhead
-        return self.raw_escalation_snapshot is not None and self.raw_escalation_snapshot.get("pause_escalation", False)
+    def pause_escalation(self) -> bool:
+        """
+        get pause_escalation field directly to avoid serialization overhead
+        """
+        if not self.raw_escalation_snapshot:
+            return False
+        return self.raw_escalation_snapshot.get("pause_escalation", False)
 
     @property
     def next_step_eta(self) -> Optional[datetime.datetime]:
-        # get next_step_eta field directly to avoid serialization overhead
-        raw_next_step_eta = (
-            self.raw_escalation_snapshot.get("next_step_eta") if self.raw_escalation_snapshot is not None else None
-        )
+        """
+        get next_step_eta field directly to avoid serialization overhead
+        """
+        if not self.raw_escalation_snapshot:
+            return None
+
+        raw_next_step_eta = self.raw_escalation_snapshot.get("next_step_eta")
+        if not raw_next_step_eta:
+            return None
+
         if raw_next_step_eta:
             return parse(raw_next_step_eta).replace(tzinfo=pytz.UTC)
 
