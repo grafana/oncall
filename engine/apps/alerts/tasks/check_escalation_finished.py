@@ -100,7 +100,7 @@ def get_auditable_alert_groups_started_at_range() -> typing.Tuple[datetime.datet
     alert groups, whose integration did not have an escalation chain at the time the alert group was created
     we would raise errors
     """
-    return (datetime.datetime(2023, 2, 5), timezone.now() - timezone.timedelta(days=2))
+    return (datetime.datetime(2023, 3, 5), timezone.now() - timezone.timedelta(days=2))
 
 
 # don't retry this task as the AlertGroup DB query is rather expensive
@@ -122,7 +122,17 @@ def check_escalation_finished_task():
     if not alert_groups.exists():
         task_logger.info("There are no alert groups to audit, everything is good :)")
 
+    alert_group_ids_that_failed_audit: typing.List[str] = []
+
     for alert_group in alert_groups:
-        audit_alert_group_escalation(alert_group)
+        try:
+            audit_alert_group_escalation(alert_group)
+        except AlertGroupEscalationPolicyExecutionAuditException:
+            alert_group_ids_that_failed_audit.append(str(alert_group.id))
+
+    if alert_group_ids_that_failed_audit:
+        raise AlertGroupEscalationPolicyExecutionAuditException(
+            f"The following alert group id(s) failed auditing: {', '.join(alert_group_ids_that_failed_audit)}"
+        )
 
     send_alert_group_escalation_auditor_task_heartbeat()

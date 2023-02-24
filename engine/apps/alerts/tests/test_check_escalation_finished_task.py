@@ -266,3 +266,59 @@ def test_check_escalation_finished_task_simply_calls_heartbeat_when_no_alert_gro
             check_escalation_finished_task()
             mocked_audit_alert_group_escalation.assert_not_called()
             mocked_send_alert_group_escalation_auditor_task_heartbeat.assert_called_once_with()
+
+
+@pytest.mark.django_db
+def test_check_escalation_finished_task_calls_audit_alert_group_escalation_for_every_alert_group_even_if_one_fails(
+    make_organization_and_user,
+    make_alert_receive_channel,
+    make_alert_group,
+):
+    organization, _ = make_organization_and_user()
+    alert_receive_channel = make_alert_receive_channel(organization)
+
+    now = timezone.now()
+    two_days_ago = now - timezone.timedelta(days=2)
+    two_days_in_future = now + timezone.timedelta(days=2)
+
+    # we can't simply pass started_at to the fixture because started_at is being "auto-set" on the Model
+    alert_group1 = make_alert_group(alert_receive_channel)
+    alert_group1.started_at = now
+
+    alert_group2 = make_alert_group(alert_receive_channel)
+    alert_group2.started_at = now
+
+    alert_group3 = make_alert_group(alert_receive_channel)
+    alert_group3.started_at = now
+
+    AlertGroup.all_objects.bulk_update([alert_group1, alert_group2, alert_group3], ["started_at"])
+
+    def _mocked_audit_alert_group_escalation(alert_group):
+        if not alert_group.id == alert_group3.id:
+            raise AlertGroupEscalationPolicyExecutionAuditException("asdfasdf")
+
+    with patch(
+        "apps.alerts.tasks.check_escalation_finished.get_auditable_alert_groups_started_at_range"
+    ) as mocked_get_auditable_alert_groups_started_at_range:
+        with patch(
+            "apps.alerts.tasks.check_escalation_finished.audit_alert_group_escalation"
+        ) as mocked_audit_alert_group_escalation:
+            with patch(
+                "apps.alerts.tasks.check_escalation_finished.send_alert_group_escalation_auditor_task_heartbeat"
+            ) as mocked_send_alert_group_escalation_auditor_task_heartbeat:
+                mocked_get_auditable_alert_groups_started_at_range.return_value = (two_days_ago, two_days_in_future)
+                mocked_audit_alert_group_escalation.side_effect = _mocked_audit_alert_group_escalation
+
+                with pytest.raises(AlertGroupEscalationPolicyExecutionAuditException) as exc:
+                    check_escalation_finished_task()
+
+                assert (
+                    str(exc.value)
+                    == f"The following alert group id(s) failed auditing: {alert_group1.id}, {alert_group2.id}"
+                )
+
+                mocked_audit_alert_group_escalation.assert_any_call(alert_group1)
+                mocked_audit_alert_group_escalation.assert_any_call(alert_group2)
+                mocked_audit_alert_group_escalation.assert_any_call(alert_group3)
+
+                mocked_send_alert_group_escalation_auditor_task_heartbeat.assert_not_called()
