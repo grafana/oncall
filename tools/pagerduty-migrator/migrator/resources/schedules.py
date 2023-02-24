@@ -132,6 +132,16 @@ class Schedule:
         shifts = []
         errors = []
         for layer in self.layers:
+            # Check if all users in the layer exist in PD
+            deactivated_user_ids = [
+                user_id for user_id in layer.user_ids if user_id not in user_id_map
+            ]
+            if deactivated_user_ids:
+                errors.append(
+                    f"{layer.name}: User IDs {deactivated_user_ids} not found. The users probably have been deactivated in PagerDuty."
+                )
+                continue
+
             # A single PagerDuty layer can result in multiple OnCall shifts
             layer_shifts, error = layer.to_oncall_shifts(user_id_map)
 
