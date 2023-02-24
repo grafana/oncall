@@ -41,9 +41,9 @@ def refresh_ical_file(schedule_pk):
         notify_ical_schedule_shift.apply_async((schedule.pk,))
 
     run_task_primary = False
-    if bool(schedule.cached_ical_file_primary):
+    if schedule.cached_ical_file_primary:
         # ie. primary schedule is not empty (None -> no ical, "" -> empty cached value)
-        if not bool(schedule.prev_ical_file_primary):
+        if not schedule.prev_ical_file_primary:
             # prev value is empty
             run_task_primary = True
             task_logger.info(f"run_task_primary {schedule_pk} {run_task_primary} prev_ical_file_primary is None")
@@ -56,9 +56,9 @@ def refresh_ical_file(schedule_pk):
             task_logger.info(f"run_task_primary {schedule_pk} {run_task_primary} icals not equal")
 
     run_task_overrides = False
-    if bool(schedule.cached_ical_file_overrides):
+    if schedule.cached_ical_file_overrides:
         # ie. overrides schedule is not empty (None -> no ical, "" -> empty cached value)
-        if not bool(schedule.prev_ical_file_overrides):
+        if not schedule.prev_ical_file_overrides:
             # prev value is empty
             run_task_overrides = True
             task_logger.info(f"run_task_overrides {schedule_pk} {run_task_primary} prev_ical_file_overrides is None")
