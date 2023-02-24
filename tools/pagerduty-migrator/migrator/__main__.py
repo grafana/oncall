@@ -49,7 +49,9 @@ def main() -> None:
         ]
 
     print("▶ Fetching schedules...")
-    schedules = session.list_all("schedules", params={"include[]": "schedule_layers"})
+    schedules = session.list_all(
+        "schedules", params={"include[]": "schedule_layers", "time_zone": "UTC"}
+    )
     oncall_schedules = oncall_api_client.list_all("schedules")
 
     print("▶ Fetching escalation policies...")

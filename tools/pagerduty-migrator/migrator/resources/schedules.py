@@ -77,7 +77,8 @@ def _pd_datetime_to_dt(text: str) -> datetime.datetime:
     """
     Convert a PagerDuty datetime string to a datetime object.
     """
-    return datetime.datetime.fromisoformat(text)
+    dt = datetime.datetime.strptime(text, "%Y-%m-%dT%H:%M:%SZ")
+    return dt.replace(tzinfo=datetime.timezone.utc)
 
 
 def _dt_to_oncall_datetime(dt: datetime.datetime) -> str:
@@ -253,7 +254,7 @@ class Layer:
                     "rolling_users": rolling_users,
                     "start_rotation_from_user_index": 0,
                     "week_start": "MO",
-                    "time_zone": self.rotation_virtual_start.tzname(),
+                    "time_zone": "UTC",
                     "source": 0,  # 0 is alias for "web"
                 }
             ], None
@@ -373,7 +374,7 @@ class Layer:
                 "rolling_users": rolling_users,
                 "start_rotation_from_user_index": 0,
                 "week_start": shift[2],
-                "time_zone": self.rotation_virtual_start.tzname(),
+                "time_zone": "UTC",
                 "source": 0,  # 0 is alias for "web"
             }
             payloads.append(payload)
