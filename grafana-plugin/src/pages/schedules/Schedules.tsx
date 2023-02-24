@@ -408,15 +408,17 @@ class SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSta
   };
 
   handleSchedulesFiltersChange = (filters: SchedulesFiltersType) => {
-    this.setState({ filters, isLoading: true }, this.debouncedUpdateSchedules);
+    this.setState({ filters, isLoading: true }, () => this.debouncedUpdateSchedules(filters));
   };
 
-  applyFilters = () => {
-    const { filters } = this.state;
-    const { store } = this.props;
-    const { scheduleStore } = store;
+  applyFilters = (filters: SchedulesFiltersType) => {
+    const { scheduleStore } = this.props.store;
 
-    scheduleStore.updateItems(filters).finally(() => this.setState({ isLoading: false }));
+    scheduleStore.updateItems(filters).finally(() => {
+      if (filters === this.state.filters) {
+        this.setState({ isLoading: false });
+      }
+    });
   };
 
   debouncedUpdateSchedules = debounce(this.applyFilters, FILTERS_DEBOUNCE_MS);
