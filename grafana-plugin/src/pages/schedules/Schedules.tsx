@@ -68,7 +68,9 @@ class SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSta
     const { store } = this.props;
     const { filters } = this.state;
 
-    await Promise.all([store.userStore.updateItems(), store.scheduleStore.updateItems()]).finally(() => {
+    store.userStore.updateItems();
+
+    await store.scheduleStore.updateItems().finally(() => {
       if (filters === this.state.filters) {
         // check for any change in filters in the meanwhile
         this.setState({ isLoading: false });
