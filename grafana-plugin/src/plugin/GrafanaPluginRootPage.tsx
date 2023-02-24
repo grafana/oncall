@@ -164,7 +164,7 @@ export const Root = observer((props: AppRootProps) => {
               <OrganizationLogPage />
             </Route>
             <Route path={getRoutesForPage('chat-ops')} exact>
-              <ChatOps />
+              <ChatOps query={query} />
             </Route>
             <Route path={getRoutesForPage('live-settings')} exact>
               <LiveSettings />
