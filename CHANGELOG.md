@@ -11,6 +11,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Fixed importing of global grafana styles ([672](https://github.com/grafana/oncall/issues/672))
 
+### Changed
+
+- Add pagination to schedule listing
+
 ## v1.1.29 (2023-02-23)
 
 ### Changed
@@ -78,6 +82,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Incidents - Removed buttons column and replaced status with toggler ([#1237](https://github.com/grafana/oncall/issues/1237))
 - Responsiveness changes across multiple pages (Incidents, Integrations, Schedules) ([#1237](https://github.com/grafana/oncall/issues/1237))
+- Add pagination to schedule listing
 - Link to source was added
 - Header of Incident page was reworked: clickable labels instead of just names, users section was deleted
 - "Go to Integration" button was deleted, because the functionality was moved to clickable labels
