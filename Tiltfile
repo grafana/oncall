@@ -10,9 +10,7 @@ local_resource("build-oncall-frontend",
         resource_deps=['yarn-install'],
         labels=['OnCallDeps'])
 
-docker_build("oncall/engine:latest", "./engine", 
-              target = 'dev', 
-              entrypoint = 'uwsgi --disable-logging --py-autoreload 3 --ini uwsgi.ini')
+docker_build("oncall/engine:latest", "./engine", target = 'dev')
 
 def extra_helm_values():
   extra_values = ['externalGrafana.url=http://grafana:3000']

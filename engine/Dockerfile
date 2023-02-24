@@ -27,9 +27,10 @@ RUN chown -R 1000:2000 /var/lib/oncall
 RUN mkdir -p /tmp/silk_profiles;
 RUN chown -R 1000:2000 /tmp/silk_profiles
 
+CMD [ "uwsgi", "--ini", "uwsgi.ini" ]
+
 FROM base AS dev
 RUN apt-get install -y sqlite3 postgresql-client
-CMD [ "uwsgi", "--ini", "uwsgi.ini" ]
 
 FROM dev AS dev-enterprise
 RUN pip install -r requirements-enterprise-docker.txt
@@ -40,5 +41,3 @@ FROM base AS prod
 RUN mkdir -p /tmp/prometheus_django_metrics;
 RUN chown -R 1000:2000 /tmp/prometheus_django_metrics
 ENV prometheus_multiproc_dir "/tmp/prometheus_django_metrics"
-
-CMD [ "uwsgi", "--ini", "uwsgi.ini" ]
