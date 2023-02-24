@@ -588,6 +588,9 @@ class CustomOnCallShift(models.Model):
 
     def convert_dt_to_schedule_timezone(self, dt, time_zone):
         start_naive = dt.replace(tzinfo=None)
+        if time_zone and time_zone.lower() == "etc/utc":
+            # dateutil rrule breaks if Etc/UTC is given
+            time_zone = "UTC"
         return pytz.timezone(time_zone).localize(start_naive, is_dst=None)
 
     def get_rolling_users(self):

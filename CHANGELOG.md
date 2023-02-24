@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Fixed importing of global grafana styles ([672](https://github.com/grafana/oncall/issues/672))
 - Fixed UI permission related bug where Editors could not export their user iCal link
+- Fixed error when a shift is created using Etc/UTC as timezone
 
 ### Changed
 
