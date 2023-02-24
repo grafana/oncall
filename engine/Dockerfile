@@ -28,7 +28,7 @@ RUN mkdir -p /tmp/silk_profiles;
 RUN chown -R 1000:2000 /tmp/silk_profiles
 
 FROM base AS dev
-RUN apt-get install -y sqlite3 default-mysql-client postgresql-client
+RUN apt-get install -y sqlite3 postgresql-client
 CMD [ "uwsgi", "--ini", "uwsgi.ini" ]
 
 FROM dev AS dev-enterprise
