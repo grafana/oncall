@@ -14,7 +14,7 @@ from apps.schedules.models import (
     OnCallScheduleWeb,
 )
 
-ICAL_URL = "https://calendar.google.com/calendar/ical/amixr.io_37gttuakhrtr75ano72p69rt78%40group.calendar.google.com/private-1d00a680ba5be7426c3eb3ef1616e26d/basic.ics"
+ICAL_URL = "https://some.calendar.url"
 
 
 @pytest.mark.django_db
