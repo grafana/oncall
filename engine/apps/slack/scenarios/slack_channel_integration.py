@@ -11,14 +11,7 @@ logger.setLevel(logging.DEBUG)
 
 
 class SlackChannelMessageEventStep(scenario_step.ScenarioStep):
-    tags = [
-        scenario_step.ScenarioStep.TAG_TRIGGERED_BY_SYSTEM,
-    ]
-
-    # Avoid logging this step to prevent collecting sensitive data of our customers
-    need_to_be_logged = False
-
-    def process_scenario(self, slack_user_identity, slack_team_identity, payload, action=None):
+    def process_scenario(self, slack_user_identity, slack_team_identity, payload):
         """
         Triggered by action: Any new message in channel.
         Dangerous because it's often triggered by internal client's company systems.
@@ -149,7 +142,7 @@ class SlackChannelMessageEventStep(scenario_step.ScenarioStep):
         else:
             alert_group = slack_thread_message.alert_group
             slack_thread_message.delete()
-            self._update_slack_message(alert_group)
+            self.alert_group_slack_service.update_alert_group_slack_message(alert_group)
 
     def create_alert_for_slack_channel_integration_if_needed(self, payload):
         if "subtype" in payload["event"] and payload["event"]["subtype"] != scenario_step.EVENT_SUBTYPE_FILE_SHARE:

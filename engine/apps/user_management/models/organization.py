@@ -263,6 +263,8 @@ class Organization(MaintainableObject):
         return self.org_title
 
     def notify_about_maintenance_action(self, text, send_to_general_log_channel=True):
+        # TODO: this method should be refactored.
+        # It's binded to slack and sending maintenance notification only there.
         if send_to_general_log_channel:
             post_message_to_channel(self, self.general_log_channel_id, text)
 
