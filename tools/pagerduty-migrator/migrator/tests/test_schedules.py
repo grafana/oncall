@@ -182,9 +182,9 @@ def test_deactivated_users():
         "schedule_layers": [
             {
                 "name": "Layer 1",
-                "start": "2023-02-19T19:25:55+00:00",
+                "start": "2023-02-19T19:25:55Z",
                 "end": None,
-                "rotation_virtual_start": "2023-02-07T19:00:00+00:00",
+                "rotation_virtual_start": "2023-02-07T19:00:00Z",
                 "rotation_turn_length_seconds": 1209600,
                 "restrictions": [],
                 "users": [
@@ -210,45 +210,45 @@ def test_no_restrictions():
         "schedule_layers": [
             {
                 "name": "Layer 5",
-                "start": "2023-02-19T19:25:55+00:00",
+                "start": "2023-02-19T19:25:55Z",
                 "end": None,
-                "rotation_virtual_start": "2023-02-07T19:00:00+00:00",
+                "rotation_virtual_start": "2023-02-07T19:00:00Z",
                 "rotation_turn_length_seconds": 1209600,
                 "restrictions": [],
                 "users": [{"user": {"id": "USER_ID_1"}}, {"user": {"id": "USER_ID_2"}}],
             },
             {
                 "name": "Layer 4",
-                "start": "2023-02-21T14:00:00+00:00",
+                "start": "2023-02-21T14:00:00Z",
                 "end": None,
-                "rotation_virtual_start": "2023-02-19T14:00:00+00:00",
+                "rotation_virtual_start": "2023-02-19T14:00:00Z",
                 "rotation_turn_length_seconds": 172800,
                 "restrictions": [],
                 "users": [{"user": {"id": "USER_ID_1"}}, {"user": {"id": "USER_ID_2"}}],
             },
             {
                 "name": "Layer 3",
-                "start": "2023-02-21T19:00:00+00:00",
+                "start": "2023-02-21T19:00:00Z",
                 "end": None,
-                "rotation_virtual_start": "2023-02-19T18:00:00+00:00",
+                "rotation_virtual_start": "2023-02-19T18:00:00Z",
                 "rotation_turn_length_seconds": 25200,
                 "restrictions": [],
                 "users": [{"user": {"id": "USER_ID_1"}}, {"user": {"id": "USER_ID_2"}}],
             },
             {
                 "name": "Layer 2",
-                "start": "2023-02-19T18:08:11+00:00",
+                "start": "2023-02-19T18:08:11Z",
                 "end": None,
-                "rotation_virtual_start": "2023-02-15T18:00:00+00:00",
+                "rotation_virtual_start": "2023-02-15T18:00:00Z",
                 "rotation_turn_length_seconds": 604800,
                 "restrictions": [],
                 "users": [{"user": {"id": "USER_ID_1"}}, {"user": {"id": "USER_ID_2"}}],
             },
             {
                 "name": "Layer 1",
-                "start": "2023-02-20T17:00:00+00:00",
+                "start": "2023-02-20T17:00:00Z",
                 "end": None,
-                "rotation_virtual_start": "2023-02-20T17:00:00+00:00",
+                "rotation_virtual_start": "2023-02-20T17:00:00Z",
                 "rotation_turn_length_seconds": 86400,
                 "restrictions": [],
                 "users": [{"user": {"id": "USER_ID_1"}}, {"user": {"id": "USER_ID_2"}}],
@@ -358,9 +358,9 @@ def test_daily_with_daily_restrictions():
         "schedule_layers": [
             {
                 "name": "Layer 10",
-                "start": "2023-02-21T20:00:09+00:00",
+                "start": "2023-02-21T20:00:09Z",
                 "end": None,
-                "rotation_virtual_start": "2023-02-21T20:00:00+00:00",
+                "rotation_virtual_start": "2023-02-21T20:00:00Z",
                 "rotation_turn_length_seconds": 259200,
                 "restrictions": [
                     {
@@ -378,9 +378,9 @@ def test_daily_with_daily_restrictions():
             },
             {
                 "name": "Layer 9",
-                "start": "2023-02-21T17:00:00+00:00",
+                "start": "2023-02-21T17:00:00Z",
                 "end": None,
-                "rotation_virtual_start": "2023-02-21T17:00:00+00:00",
+                "rotation_virtual_start": "2023-02-21T17:00:00Z",
                 "rotation_turn_length_seconds": 86400,
                 "restrictions": [
                     {
@@ -394,9 +394,9 @@ def test_daily_with_daily_restrictions():
             },
             {
                 "name": "Layer 8",
-                "start": "2023-02-21T00:00:00+00:00",
+                "start": "2023-02-21T00:00:00Z",
                 "end": None,
-                "rotation_virtual_start": "2023-02-21T00:00:00+00:00",
+                "rotation_virtual_start": "2023-02-21T00:00:00Z",
                 "rotation_turn_length_seconds": 86400,
                 "restrictions": [
                     {
@@ -422,9 +422,9 @@ def test_daily_with_daily_restrictions():
             },
             {
                 "name": "Layer 7",
-                "start": "2023-02-19T18:49:46+00:00",
+                "start": "2023-02-19T18:49:46Z",
                 "end": None,
-                "rotation_virtual_start": "2023-02-19T03:00:00+00:00",
+                "rotation_virtual_start": "2023-02-19T03:00:00Z",
                 "rotation_turn_length_seconds": 86400,
                 "restrictions": [
                     {
@@ -438,9 +438,9 @@ def test_daily_with_daily_restrictions():
             },
             {
                 "name": "Layer 6",
-                "start": "2023-02-19T18:49:46+00:00",
+                "start": "2023-02-19T18:49:46Z",
                 "end": None,
-                "rotation_virtual_start": "2023-02-19T18:00:00+00:00",
+                "rotation_virtual_start": "2023-02-19T18:00:00Z",
                 "rotation_turn_length_seconds": 86400,
                 "restrictions": [
                     {
@@ -472,9 +472,9 @@ def test_daily_with_daily_restrictions():
             },
             {
                 "name": "Layer 5",
-                "start": "2023-02-21T14:00:00+00:00",
+                "start": "2023-02-21T14:00:00Z",
                 "end": None,
-                "rotation_virtual_start": "2023-02-19T14:00:00+00:00",
+                "rotation_virtual_start": "2023-02-19T14:00:00Z",
                 "rotation_turn_length_seconds": 86400,
                 "restrictions": [
                     {
@@ -500,9 +500,9 @@ def test_daily_with_daily_restrictions():
             },
             {
                 "name": "Layer 4",
-                "start": "2023-02-21T16:00:00+00:00",
+                "start": "2023-02-21T16:00:00Z",
                 "end": None,
-                "rotation_virtual_start": "2023-02-19T16:00:00+00:00",
+                "rotation_virtual_start": "2023-02-19T16:00:00Z",
                 "rotation_turn_length_seconds": 86400,
                 "restrictions": [
                     {
@@ -516,9 +516,9 @@ def test_daily_with_daily_restrictions():
             },
             {
                 "name": "Layer 3",
-                "start": "2023-02-21T20:00:00+00:00",
+                "start": "2023-02-21T20:00:00Z",
                 "end": None,
-                "rotation_virtual_start": "2023-02-18T20:00:00+00:00",
+                "rotation_virtual_start": "2023-02-18T20:00:00Z",
                 "rotation_turn_length_seconds": 86400,
                 "restrictions": [
                     {
@@ -532,9 +532,9 @@ def test_daily_with_daily_restrictions():
             },
             {
                 "name": "Layer 2",
-                "start": "2023-02-21T05:00:00+00:00",
+                "start": "2023-02-21T05:00:00Z",
                 "end": None,
-                "rotation_virtual_start": "2023-02-19T05:00:00+00:00",
+                "rotation_virtual_start": "2023-02-19T05:00:00Z",
                 "rotation_turn_length_seconds": 86400,
                 "restrictions": [
                     {
@@ -548,9 +548,9 @@ def test_daily_with_daily_restrictions():
             },
             {
                 "name": "Layer 1",
-                "start": "2023-02-21T09:00:00+00:00",
+                "start": "2023-02-21T09:00:00Z",
                 "end": None,
-                "rotation_virtual_start": "2023-02-19T09:00:00+00:00",
+                "rotation_virtual_start": "2023-02-19T09:00:00Z",
                 "rotation_turn_length_seconds": 86400,
                 "restrictions": [
                     {
@@ -944,9 +944,9 @@ def test_weekly_with_daily_restrictions():
         "schedule_layers": [
             {
                 "name": "Layer 6",
-                "start": "2023-02-21T14:04:37+00:00",
+                "start": "2023-02-21T14:04:37Z",
                 "end": None,
-                "rotation_virtual_start": "2023-02-21T17:00:00+00:00",
+                "rotation_virtual_start": "2023-02-21T17:00:00Z",
                 "rotation_turn_length_seconds": 604800,
                 "restrictions": [
                     {
@@ -964,9 +964,9 @@ def test_weekly_with_daily_restrictions():
             },
             {
                 "name": "Layer 5",
-                "start": "2023-02-21T14:04:37+00:00",
+                "start": "2023-02-21T14:04:37Z",
                 "end": None,
-                "rotation_virtual_start": "2023-02-21T08:00:00+00:00",
+                "rotation_virtual_start": "2023-02-21T08:00:00Z",
                 "rotation_turn_length_seconds": 604800,
                 "restrictions": [
                     {
@@ -984,9 +984,9 @@ def test_weekly_with_daily_restrictions():
             },
             {
                 "name": "Layer 4",
-                "start": "2023-02-21T14:04:37+00:00",
+                "start": "2023-02-21T14:04:37Z",
                 "end": None,
-                "rotation_virtual_start": "2023-02-21T09:00:00+00:00",
+                "rotation_virtual_start": "2023-02-21T09:00:00Z",
                 "rotation_turn_length_seconds": 1814400,
                 "restrictions": [
                     {
@@ -1010,9 +1010,9 @@ def test_weekly_with_daily_restrictions():
             },
             {
                 "name": "Layer 3",
-                "start": "2023-02-20T15:23:15+00:00",
+                "start": "2023-02-20T15:23:15Z",
                 "end": None,
-                "rotation_virtual_start": "2023-02-15T08:00:00+00:00",
+                "rotation_virtual_start": "2023-02-15T08:00:00Z",
                 "rotation_turn_length_seconds": 604800,
                 "restrictions": [
                     {
@@ -1038,9 +1038,9 @@ def test_weekly_with_daily_restrictions():
             },
             {
                 "name": "Layer 2",
-                "start": "2023-02-20T12:50:08+00:00",
+                "start": "2023-02-20T12:50:08Z",
                 "end": None,
-                "rotation_virtual_start": "2023-02-14T09:00:00+00:00",
+                "rotation_virtual_start": "2023-02-14T09:00:00Z",
                 "rotation_turn_length_seconds": 604800,
                 "restrictions": [
                     {
@@ -1054,9 +1054,9 @@ def test_weekly_with_daily_restrictions():
             },
             {
                 "name": "Layer 1",
-                "start": "2023-02-20T12:50:08+00:00",
+                "start": "2023-02-20T12:50:08Z",
                 "end": None,
-                "rotation_virtual_start": "2023-02-20T09:00:00+00:00",
+                "rotation_virtual_start": "2023-02-20T09:00:00Z",
                 "rotation_turn_length_seconds": 604800,
                 "restrictions": [
                     {
@@ -1290,9 +1290,9 @@ def test_daily_with_weekly_restrictions():
         "schedule_layers": [
             {
                 "name": "Layer 4",
-                "start": "2023-02-21T19:42:57+00:00",
+                "start": "2023-02-21T19:42:57Z",
                 "end": None,
-                "rotation_virtual_start": "2023-02-20T05:00:00+00:00",
+                "rotation_virtual_start": "2023-02-20T05:00:00Z",
                 "rotation_turn_length_seconds": 86400,
                 "restrictions": [
                     {
@@ -1316,9 +1316,9 @@ def test_daily_with_weekly_restrictions():
             },
             {
                 "name": "Layer 3",
-                "start": "2023-02-20T17:48:08+00:00",
+                "start": "2023-02-20T17:48:08Z",
                 "end": None,
-                "rotation_virtual_start": "2023-02-13T00:00:00+00:00",
+                "rotation_virtual_start": "2023-02-13T00:00:00Z",
                 "rotation_turn_length_seconds": 86400,
                 "restrictions": [
                     {
@@ -1336,9 +1336,9 @@ def test_daily_with_weekly_restrictions():
             },
             {
                 "name": "Layer 2",
-                "start": "2023-02-21T16:00:00+00:00",
+                "start": "2023-02-21T16:00:00Z",
                 "end": None,
-                "rotation_virtual_start": "2023-02-20T16:00:00+00:00",
+                "rotation_virtual_start": "2023-02-20T16:00:00Z",
                 "rotation_turn_length_seconds": 86400,
                 "restrictions": [
                     {
@@ -1362,9 +1362,9 @@ def test_daily_with_weekly_restrictions():
             },
             {
                 "name": "Layer 1",
-                "start": "2023-02-21T17:00:00+00:00",
+                "start": "2023-02-21T17:00:00Z",
                 "end": None,
-                "rotation_virtual_start": "2023-02-20T17:00:00+00:00",
+                "rotation_virtual_start": "2023-02-20T17:00:00Z",
                 "rotation_turn_length_seconds": 86400,
                 "restrictions": [
                     {
@@ -1480,9 +1480,9 @@ def test_weekly_with_weekly_restrictions():
         "schedule_layers": [
             {
                 "name": "Layer 6",
-                "start": "2023-02-21T13:32:17+00:00",
+                "start": "2023-02-21T13:32:17Z",
                 "end": None,
-                "rotation_virtual_start": "2023-02-24T13:00:00+00:00",
+                "rotation_virtual_start": "2023-02-24T13:00:00Z",
                 "rotation_turn_length_seconds": 1814400,
                 "restrictions": [
                     {
@@ -1500,9 +1500,9 @@ def test_weekly_with_weekly_restrictions():
             },
             {
                 "name": "Layer 5",
-                "start": "2023-02-21T13:26:21+00:00",
+                "start": "2023-02-21T13:26:21Z",
                 "end": None,
-                "rotation_virtual_start": "2023-02-25T13:00:00+00:00",
+                "rotation_virtual_start": "2023-02-25T13:00:00Z",
                 "rotation_turn_length_seconds": 1814400,
                 "restrictions": [
                     {
@@ -1520,9 +1520,9 @@ def test_weekly_with_weekly_restrictions():
             },
             {
                 "name": "Layer 4",
-                "start": "2023-02-21T11:14:44+00:00",
+                "start": "2023-02-21T11:14:44Z",
                 "end": None,
-                "rotation_virtual_start": "2023-02-20T03:00:00+00:00",
+                "rotation_virtual_start": "2023-02-20T03:00:00Z",
                 "rotation_turn_length_seconds": 604800,
                 "restrictions": [
                     {
@@ -1540,9 +1540,9 @@ def test_weekly_with_weekly_restrictions():
             },
             {
                 "name": "Layer 3",
-                "start": "2023-02-20T18:10:46+00:00",
+                "start": "2023-02-20T18:10:46Z",
                 "end": None,
-                "rotation_virtual_start": "2023-02-14T05:00:00+00:00",
+                "rotation_virtual_start": "2023-02-14T05:00:00Z",
                 "rotation_turn_length_seconds": 604800,
                 "restrictions": [
                     {
@@ -1562,9 +1562,9 @@ def test_weekly_with_weekly_restrictions():
             },
             {
                 "name": "Layer 2",
-                "start": "2023-02-20T18:10:46+00:00",
+                "start": "2023-02-20T18:10:46Z",
                 "end": None,
-                "rotation_virtual_start": "2023-02-16T17:00:00+00:00",
+                "rotation_virtual_start": "2023-02-16T17:00:00Z",
                 "rotation_turn_length_seconds": 604800,
                 "restrictions": [
                     {
@@ -1582,9 +1582,9 @@ def test_weekly_with_weekly_restrictions():
             },
             {
                 "name": "Layer 1",
-                "start": "2023-02-20T18:10:46+00:00",
+                "start": "2023-02-20T18:10:46Z",
                 "end": None,
-                "rotation_virtual_start": "2023-02-20T00:00:00+00:00",
+                "rotation_virtual_start": "2023-02-20T00:00:00Z",
                 "rotation_turn_length_seconds": 604800,
                 "restrictions": [
                     {
@@ -1838,9 +1838,9 @@ def test_errors():
         "schedule_layers": [
             {
                 "name": "Layer 11",
-                "start": "2023-02-21T17:39:43+00:00",
+                "start": "2023-02-21T17:39:43Z",
                 "end": None,
-                "rotation_virtual_start": "2023-02-18T00:00:00+00:00",
+                "rotation_virtual_start": "2023-02-18T00:00:00Z",
                 "rotation_turn_length_seconds": 86400,
                 "restrictions": [
                     {
@@ -1858,9 +1858,9 @@ def test_errors():
             },
             {
                 "name": "Layer 10",
-                "start": "2023-02-21T17:39:43+00:00",
+                "start": "2023-02-21T17:39:43Z",
                 "end": None,
-                "rotation_virtual_start": "2023-02-18T16:00:00+00:00",
+                "rotation_virtual_start": "2023-02-18T16:00:00Z",
                 "rotation_turn_length_seconds": 86400,
                 "restrictions": [
                     {
@@ -1878,9 +1878,9 @@ def test_errors():
             },
             {
                 "name": "Layer 9",
-                "start": "2023-02-21T11:06:04+00:00",
+                "start": "2023-02-21T11:06:04Z",
                 "end": None,
-                "rotation_virtual_start": "2023-02-21T11:00:00+00:00",
+                "rotation_virtual_start": "2023-02-21T11:00:00Z",
                 "rotation_turn_length_seconds": 25200,
                 "restrictions": [
                     {
@@ -1894,9 +1894,9 @@ def test_errors():
             },
             {
                 "name": "Layer 8",
-                "start": "2023-02-21T11:06:04+00:00",
+                "start": "2023-02-21T11:06:04Z",
                 "end": None,
-                "rotation_virtual_start": "2023-02-21T11:00:00+00:00",
+                "rotation_virtual_start": "2023-02-21T11:00:00Z",
                 "rotation_turn_length_seconds": 25200,
                 "restrictions": [
                     {
@@ -1910,9 +1910,9 @@ def test_errors():
             },
             {
                 "name": "Layer 7",
-                "start": "2023-02-21T11:06:04+00:00",
+                "start": "2023-02-21T11:06:04Z",
                 "end": None,
-                "rotation_virtual_start": "2023-02-21T11:00:00+00:00",
+                "rotation_virtual_start": "2023-02-21T11:00:00Z",
                 "rotation_turn_length_seconds": 86400,
                 "restrictions": [
                     {
@@ -1926,9 +1926,9 @@ def test_errors():
             },
             {
                 "name": "Layer 6",
-                "start": "2023-02-21T11:06:04+00:00",
+                "start": "2023-02-21T11:06:04Z",
                 "end": None,
-                "rotation_virtual_start": "2023-02-21T11:00:00+00:00",
+                "rotation_virtual_start": "2023-02-21T11:00:00Z",
                 "rotation_turn_length_seconds": 604800,
                 "restrictions": [
                     {
@@ -1942,9 +1942,9 @@ def test_errors():
             },
             {
                 "name": "Layer 5",
-                "start": "2023-02-21T11:06:04+00:00",
+                "start": "2023-02-21T11:06:04Z",
                 "end": None,
-                "rotation_virtual_start": "2023-02-21T11:00:00+00:00",
+                "rotation_virtual_start": "2023-02-21T11:00:00Z",
                 "rotation_turn_length_seconds": 25200,
                 "restrictions": [
                     {
@@ -1962,9 +1962,9 @@ def test_errors():
             },
             {
                 "name": "Layer 4",
-                "start": "2023-02-21T11:06:04+00:00",
+                "start": "2023-02-21T11:06:04Z",
                 "end": None,
-                "rotation_virtual_start": "2023-02-21T10:00:00+00:00",
+                "rotation_virtual_start": "2023-02-21T10:00:00Z",
                 "rotation_turn_length_seconds": 25200,
                 "restrictions": [
                     {
@@ -1982,9 +1982,9 @@ def test_errors():
             },
             {
                 "name": "Layer 3",
-                "start": "2023-02-21T13:00:00+00:00",
+                "start": "2023-02-21T13:00:00Z",
                 "end": None,
-                "rotation_virtual_start": "2023-02-21T13:00:00+00:00",
+                "rotation_virtual_start": "2023-02-21T13:00:00Z",
                 "rotation_turn_length_seconds": 86400,
                 "restrictions": [
                     {
@@ -2002,9 +2002,9 @@ def test_errors():
             },
             {
                 "name": "Layer 2",
-                "start": "2023-02-21T11:06:04+00:00",
+                "start": "2023-02-21T11:06:04Z",
                 "end": None,
-                "rotation_virtual_start": "2023-02-20T10:00:00+00:00",
+                "rotation_virtual_start": "2023-02-20T10:00:00Z",
                 "rotation_turn_length_seconds": 604800,
                 "restrictions": [
                     {
@@ -2018,9 +2018,9 @@ def test_errors():
             },
             {
                 "name": "Layer 1",
-                "start": "2023-02-21T12:00:00+00:00",
+                "start": "2023-02-21T12:00:00Z",
                 "end": None,
-                "rotation_virtual_start": "2023-02-15T12:00:00+00:00",
+                "rotation_virtual_start": "2023-02-15T12:00:00Z",
                 "rotation_turn_length_seconds": 604800,
                 "restrictions": [
                     {
@@ -2062,9 +2062,9 @@ def test_time_zone():
         "schedule_layers": [
             {
                 "name": "Layer 1",
-                "start": "2023-02-21T17:39:43+00:00",
+                "start": "2023-02-21T17:39:43Z",
                 "end": None,
-                "rotation_virtual_start": "2023-02-18T00:00:00+00:00",
+                "rotation_virtual_start": "2023-02-18T00:00:00Z",
                 "rotation_turn_length_seconds": 86400,
                 "restrictions": [],
                 "users": [
@@ -2118,9 +2118,9 @@ def test_removed_layers():
         "schedule_layers": [
             {
                 "name": "Layer 1",
-                "start": "2023-02-21T17:39:43+00:00",
-                "end": "2023-02-21T17:39:43+00:00",
-                "rotation_virtual_start": "2023-02-18T00:00:00+00:00",
+                "start": "2023-02-21T17:39:43Z",
+                "end": "2023-02-21T17:39:43Z",
+                "rotation_virtual_start": "2023-02-18T00:00:00Z",
                 "rotation_turn_length_seconds": 86400,
                 "restrictions": [],
                 "users": [
