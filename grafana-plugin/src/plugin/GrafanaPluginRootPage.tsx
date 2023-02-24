@@ -61,6 +61,8 @@ import 'style/responsive.css';
 import { getQueryParams, isTopNavbar } from './GrafanaPluginRootPage.helpers';
 import PluginSetup from './PluginSetup';
 
+import grafanaGlobalStyle from '!raw-loader!img/grafanaGlobalStyles.css';
+
 export const GrafanaPluginRootPage = (props: AppRootProps) => {
   return (
     <Provider store={rootStore}>
@@ -82,12 +84,19 @@ export const Root = observer((props: AppRootProps) => {
     let link = document.createElement('link');
     link.type = 'text/css';
     link.rel = 'stylesheet';
-    link.href = '/public/plugins/grafana-oncall-app/img/grafanaGlobalStyles.css';
+
+    // create a style element
+    const styleEl = document.createElement('style');
+    const head = document.head || document.getElementsByTagName('head')[0];
+    styleEl.appendChild(document.createTextNode(grafanaGlobalStyle));
+
+    // append grafana overriding styles to head
+    head.appendChild(styleEl);
 
     document.head.appendChild(link);
 
     return () => {
-      document.head.removeChild(link);
+      head.removeChild(styleEl); // remove on unmount
     };
   }, []);
 
