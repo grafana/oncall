@@ -120,7 +120,9 @@ class ScheduleView(
         The result of this method is cached and is reused for the whole lifetime of a request,
         since self.get_serializer_context() is called multiple times for every instance in the queryset.
         """
-        queryset = self.get_queryset()
+        current_page_schedules = self.paginate_queryset(self.get_queryset())
+        pks = [schedule.pk for schedule in current_page_schedules]
+        queryset = OnCallSchedule.objects.filter(pk__in=pks)
         return queryset.get_oncall_users()
 
     def get_serializer_context(self):
