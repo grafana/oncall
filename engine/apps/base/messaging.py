@@ -54,6 +54,10 @@ class BaseMessagingBackend:
         """
         raise NotImplementedError("notify_user method missing implementation")
 
+    @property
+    def backend_slug(self):
+        return self.backend_id.lower()
+
 
 def load_backend(path, *args, **kwargs):
     return import_string(path)(*args, **kwargs)

@@ -8,13 +8,46 @@ from apps.alerts.models import AlertReceiveChannel
 from apps.base.messaging import get_messaging_backends
 from common.api_helpers.custom_fields import TeamPrimaryKeyRelatedField
 from common.api_helpers.exceptions import BadRequest
-from common.api_helpers.mixins import NOTIFICATION_CHANNEL_OPTIONS, EagerLoadingMixin
+from common.api_helpers.mixins import (
+    LEGACY_NOTIFICATION_CHANNEL_OPTIONS,
+    NOTIFICATION_CHANNEL_OPTIONS,
+    EagerLoadingMixin,
+)
 from common.jinja_templater import jinja_template_env
 from common.utils import timed_lru_cache
 
 from .integtration_heartbeat import IntegrationHeartBeatSerializer
 from .maintenance import MaintainableObjectSerializerMixin
 from .routes import DefaultChannelFilterSerializer
+
+# PUBLIC_TEMPLATES_FIELDS is map from template name in public api to its db field.
+PUBLIC_TEMPLATES_FIELDS = {
+    "grouping_key": "grouping_id_template",
+    "resolve_signal": "resolve_condition_template",
+    "acknowledge_signal": "acknowledge_condition_template",
+    "source_link_template": "source_link_template",
+    "slack": {
+        "title": "slack_title_template",
+        "message": "slack_message_template",
+        "image_url": "slack_image_url_template",
+    },
+    "web": {
+        "title": "web_title_template",
+        "message": "web_message_template",
+        "image_url": "web_image_url_template",
+    },
+    "sms": {
+        "title": "sms_title_template",
+    },
+    "phone_call": {
+        "title": "phone_call_title_template",
+    },
+    "telegram": {
+        "title": "telegram_title_template",
+        "message": "telegram_message_template",
+        "image_url": "telegram_image_url_template",
+    },
+}
 
 
 class IntegrationTypeField(fields.CharField):
@@ -105,39 +138,9 @@ class IntegrationSerializer(EagerLoadingMixin, serializers.ModelSerializer, Main
         else:
             raise BadRequest(detail="Integration with this name already exists")
 
-    def _correct_validated_data(self, validated_data):
-        validated_data = self._correct_validated_data_for_messaging_backends(validated_data)
-
-        templates = validated_data.pop("templates", {})
-        for template_name, templates_for_notification_channel in templates.items():
-            if type(templates_for_notification_channel) is dict:
-                for attr, template in templates_for_notification_channel.items():
-                    try:
-                        validated_data[AlertReceiveChannel.PUBLIC_TEMPLATES_FIELDS[template_name][attr]] = template
-                    except KeyError:
-                        raise BadRequest(detail="Invalid template data")
-            elif type(templates_for_notification_channel) is str:
-                try:
-                    validated_data[
-                        AlertReceiveChannel.PUBLIC_TEMPLATES_FIELDS[template_name]
-                    ] = templates_for_notification_channel
-                except KeyError:
-                    raise BadRequest(detail="Invalid template data")
-            elif templates_for_notification_channel is None:
-                try:
-                    template_to_set_to_default = AlertReceiveChannel.PUBLIC_TEMPLATES_FIELDS[template_name]
-                    if type(template_to_set_to_default) is str:
-                        validated_data[AlertReceiveChannel.PUBLIC_TEMPLATES_FIELDS[template_name]] = None
-                    elif type(template_to_set_to_default) is dict:
-                        for key in template_to_set_to_default.keys():
-                            validated_data[AlertReceiveChannel.PUBLIC_TEMPLATES_FIELDS[template_name][key]] = None
-                except KeyError:
-                    raise BadRequest(detail="Invalid template data")
-
-        return validated_data
-
     def validate_templates(self, templates):
         if not isinstance(templates, dict):
+            print(1)
             raise BadRequest(detail="Invalid template data")
 
         for notification_channel in NOTIFICATION_CHANNEL_OPTIONS:
@@ -154,7 +157,7 @@ class IntegrationSerializer(EagerLoadingMixin, serializers.ModelSerializer, Main
                 except TemplateSyntaxError:
                     raise BadRequest(detail=f"invalid {notification_channel} {attr} template")
 
-        for common_template in ["resolve_signal", "grouping_key"]:
+        for common_template in ["resolve_signal", "grouping_key", "acknowledge_signal", "source_link"]:
             template_data = templates.get(common_template, "")
             if template_data is None:
                 continue
@@ -166,30 +169,155 @@ class IntegrationSerializer(EagerLoadingMixin, serializers.ModelSerializer, Main
                 raise BadRequest(detail=f"Invalid {common_template} template data")
         return templates
 
-    def _correct_validated_data_for_messaging_backends(self, validated_data):
-        templates = validated_data.get("templates", {})
+    def _correct_validated_data(self, validated_data):
+        """
+        Process input templates data.
+        1. Reshapes it.
+          1.1 We are receiving templates in dict format
+            {
+              resolve_signal: "resolve me!"
+              slack: {
+                title: "title",
+                message: "message",
+                image_url: "image_url",
+              },
+              ...
+            }
+          but store them in separate fields: slack_title_template, slack_message_template.
+          See _correct_validated_data_for_legacy_template method
 
-        messaging_backends_templates = self.instance.messaging_backends_templates if self.instance else None
+          1.2 We are storing templates from messaging backends in separate messaging_backends_templates field.
+          So, we need to shape input data related to messaging_backends_templates also.
+        2. Handle None templates.
+         Public API set template to default value in two cases: (This behaviour is required by terraform plugin).
+         2.1 None for the whole template:
+         {
+           slack: None,
+           ...
+         }
+         In that case all slack templates will be set to default.
+
+         2.2 One particular field is None:
+         {
+           slack: {
+             title: "My custom title:
+             message: None,
+           },
+           ...
+         }
+         In that case slack message template will be set to default.
+
+        TODO: System described above is too complicated, should be simplified.
+        It can be simplified via unification all chatops integrations and messaging_backends
+        and/or by introducing unified templates
+        """
+
+        validated_data = self._correct_validated_data_for_messaging_backends_templates(validated_data)
+
+        # backend_slug_to_backend = {}
+        # for backend_id, backend in get_messaging_backends():
+        #     backend_slug_to_backend[backend.backend_slug] = backend
+
+        templates_data_from_request = validated_data.get("templates", {})
+        for template_backend_name, templates_data_from_request in templates_data_from_request.items():
+            # correct_validated_data for templates with its own db fields.
+            # (Legacy ones, used before messaging backend system)
+            if template_backend_name in LEGACY_NOTIFICATION_CHANNEL_OPTIONS:
+                validated_data = self._correct_validated_data_for_legacy_template(
+                    template_backend_name, templates_data_from_request, validated_data
+                )
+
+        validated_data.pop("templates", {})
+        return validated_data
+
+    def _correct_validated_data_for_legacy_template(self, template_backend_name, template_from_request, validated_data):
+        """
+        _correct_validated_data_for_legacy_template reshapes validated data to store them.
+        It converts data from "templates" dict to db fields, which were used before messaging backends.
+        Example:
+            {
+              "slack": {
+                "title": Hello
+              }
+            }
+            Will be converted to
+
+            slack_title_template=Hello
+        """
+        if type(template_from_request) is str:  # if it's plain template: {"resolve_signal": "resolve me"}
+            try:
+                validated_data[PUBLIC_TEMPLATES_FIELDS[template_backend_name]] = template_from_request
+            except KeyError:
+                print(3)
+                raise BadRequest(detail="Invalid template data")
+        elif type(template_from_request) is dict:  # if it's nested template: {slack: {"title": "some title"}}
+            for attr, template in template_from_request.items():
+                try:
+                    validated_data[PUBLIC_TEMPLATES_FIELDS[template_backend_name][attr]] = template
+                except KeyError:
+                    print(2)
+                    raise BadRequest(detail="Invalid template data")
+        elif template_from_request is None:
+            # if it's we receive None, it's needed to set template to default value
+            try:
+                template_to_set_to_default = PUBLIC_TEMPLATES_FIELDS[template_backend_name]
+                if type(template_to_set_to_default) is str:
+                    # if we receive None for plain template just set it to None
+                    validated_data[PUBLIC_TEMPLATES_FIELDS[template_backend_name]] = None
+                elif type(template_to_set_to_default) is dict:
+                    # if we receive None for nested template set all it's fields to None
+                    for key in template_to_set_to_default.keys():
+                        validated_data[PUBLIC_TEMPLATES_FIELDS[template_backend_name][key]] = None
+            except KeyError:
+                print(4)
+                raise BadRequest(detail="Invalid template data")
+        return validated_data
+
+    def _correct_validated_data_for_messaging_backends_templates(self, validated_data):
+        """
+        _correct_validated_data_for_messaging_backends_templates reshapes validated data to store them.
+        It converts data from "templates" dict to messaging_backends_templates field format.
+        Example:
+            {
+              "msteams": {
+                "title": Hello
+              }
+            }
+            Will be converted to
+
+            messaging_backends={"MSTEAMS": {"title": "Hello"},
+        """
+        templates_data_from_request = validated_data.get("templates", {})
+
+        messaging_backends_templates = self.instance.messaging_backends_templates if self.instance else {}
 
         for backend_id, backend in get_messaging_backends():
-            backend_templates = {}
-            if messaging_backends_templates is not None:
-                backend_templates = messaging_backends_templates.get(backend_id, {})
+            backend_template = {}
+            if backend_id.lower() in templates_data_from_request:  # check to modify only templates from request data
+                template_from_request = templates_data_from_request[backend_id.lower()]
+            else:
+                continue
+            if template_from_request is None:
+                # If we receive None backend template, like {"msteams": None }, set all template fields to none.
+                for field in backend.template_fields:
+                    backend_template[field] = None
+            elif type(template_from_request) is dict:
+                # go through existing backend_template and update with values from request
+                backend_template = messaging_backends_templates.get(backend_id, {})
+                for field in backend.template_fields:
+                    try:
+                        updated_field_template = template_from_request[field]
+                    except KeyError:
+                        continue
 
-            for field in backend.template_fields:
-                try:
-                    template = templates[backend_id.lower()][field]
-                except KeyError:
-                    continue
-
-                backend_templates[field] = template
+                    backend_template[field] = updated_field_template
 
             # remove backend-specific template from payload
-            templates.pop(backend_id.lower(), None)
+            templates_data_from_request.pop(backend_id.lower(), None)
 
-            if backend_templates:
-                validated_data["messaging_backends_templates"] = messaging_backends_templates or {} | {
-                    backend_id: backend_templates
+            if backend_template:
+                validated_data["messaging_backends_templates"] = messaging_backends_templates | {
+                    backend_id: backend_template
                 }
 
         return validated_data
