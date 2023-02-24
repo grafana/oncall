@@ -561,15 +561,17 @@ class AlertReceiveChannelTemplatesSerializer(EagerLoadingMixin, serializers.Mode
             for field in TEMPLATE_NAMES_ONLY_WITH_NOTIFICATION_CHANNEL:
                 field_name = f"{backend_id.lower()}_{field}_template"
                 value = data.get(field_name)
-                if value == "":
-                    value = None
-                try:
-                    if value:
-                        jinja_template_env.from_string(value)
-                except TemplateSyntaxError:
-                    errors[field_name] = "invalid template"
-                else:
-                    backend_updates[field] = value
+                validator = jinja_template_env.from_string
+                if value is not None:
+                    try:
+                        if value:
+                            validator(value)
+                    except TemplateSyntaxError:
+                        errors[field_name] = "invalid template"
+                    except DjangoValidationError:
+                        errors[field_name] = "invalid URL"
+                    else:
+                        backend_updates[field] = value
             # update backend templates
             backend_templates.update(backend_updates)
             set_value(ret, ["messaging_backends_templates", backend_id], backend_templates)
@@ -617,7 +619,7 @@ class AlertReceiveChannelTemplatesSerializer(EagerLoadingMixin, serializers.Mode
                 value = None
                 if obj.messaging_backends_templates:
                     value = obj.messaging_backends_templates.get(backend_id, {}).get(field)
-                if value is None:
+                if not value:
                     value = obj.get_default_template_attribute(backend_id, field)
                 field_name = f"{backend_id.lower()}_{field}_template"
                 templates[field_name] = value
