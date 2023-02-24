@@ -114,7 +114,7 @@
     "circular-dependency-plugin": "^5.2.2",
     "dayjs": "^1.11.5",
     "eslint-plugin-import": "^2.25.4",
-    "mobx": "5.13.0",
+    "mobx": "5.15.7",
     "mobx-react": "6.1.1",
     "object-hash": "^3.0.0",
     "prettier": "^2.8.2",
