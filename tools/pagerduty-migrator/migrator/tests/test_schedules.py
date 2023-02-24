@@ -2,13 +2,11 @@ import datetime
 
 from migrator.resources.schedules import Restriction, Schedule
 
-
-class IdentityMap(dict):
-    def __missing__(self, key):
-        return key
-
-
-user_id_map = IdentityMap()
+user_id_map = {
+    "USER_ID_1": "USER_ID_1",
+    "USER_ID_2": "USER_ID_2",
+    "USER_ID_3": "USER_ID_3",
+}
 
 
 def test_merge_restrictions():
@@ -175,6 +173,34 @@ def test_current_or_next_restriction():
         restrictions[0],
         datetime.datetime(2023, 2, 22, 10, 0, tzinfo=datetime.timezone.utc),
     )
+
+
+def test_deactivated_users():
+    pd_schedule = {
+        "name": "No restrictions",
+        "time_zone": "Europe/London",
+        "schedule_layers": [
+            {
+                "name": "Layer 1",
+                "start": "2023-02-19T19:25:55+00:00",
+                "end": None,
+                "rotation_virtual_start": "2023-02-07T19:00:00+00:00",
+                "rotation_turn_length_seconds": 1209600,
+                "restrictions": [],
+                "users": [
+                    {"user": {"id": "USER_ID_1"}},
+                    {"user": {"id": "USER_ID_DEACTIVATED"}},
+                ],
+            },
+        ],
+    }
+
+    oncall_schedule, errors = Schedule.from_dict(pd_schedule).to_oncall_schedule(
+        user_id_map
+    )
+    assert errors == [
+        "Layer 1: User IDs ['USER_ID_DEACTIVATED'] not found. The users probably have been deactivated in PagerDuty."
+    ]
 
 
 def test_no_restrictions():
