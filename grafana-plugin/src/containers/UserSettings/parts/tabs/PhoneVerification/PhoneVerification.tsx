@@ -8,9 +8,9 @@ import PluginLink from 'components/PluginLink/PluginLink';
 import Text from 'components/Text/Text';
 import { WithPermissionControl } from 'containers/WithPermissionControl/WithPermissionControl';
 import { User } from 'models/user/user.types';
+import { rootStore } from 'state';
 import { AppFeature } from 'state/features';
 import { useStore } from 'state/useStore';
-import { openErrorNotification } from 'utils';
 import { isUserActionAllowed, UserAction, UserActions } from 'utils/authorization';
 
 import styles from './PhoneVerification.module.css';
@@ -90,35 +90,29 @@ const PhoneVerification = observer((props: PhoneVerificationProps) => {
 
   const onSubmitCallback = useCallback(async () => {
     if (isCodeSent) {
-      userStore
-        .verifyPhone(userPk, code)
-        .then(() => {
-          userStore.loadUser(userPk);
-        })
-        .catch((error) => {
-          openErrorNotification(error.response.data);
-        });
-    } else {
-      await userStore.updateUser({
-        pk: userPk,
-        email: user.email,
-        unverified_phone_number: phone,
+      userStore.verifyPhone(userPk, code).then(() => {
+        userStore.loadUser(userPk);
       });
+    } else {
+      window.grecaptcha.ready(function () {
+        window.grecaptcha
+          .execute(rootStore.recaptchaSiteKey, { action: 'mobile_verification_code' })
+          .then(async function (token) {
+            await userStore.updateUser({
+              pk: userPk,
+              email: user.email,
+              unverified_phone_number: phone,
+            });
 
-      userStore
-        .fetchVerificationCode(userPk)
-        .then(() => {
-          setState({ isCodeSent: true });
+            userStore.fetchVerificationCode(userPk, token).then(() => {
+              setState({ isCodeSent: true });
 
-          if (codeInputRef.current) {
-            codeInputRef.current.focus();
-          }
-        })
-        .catch(() => {
-          openErrorNotification(
-            "Can't send SMS code. Please try other phone number formats. Don't forget the country code!"
-          );
-        });
+              if (codeInputRef.current) {
+                codeInputRef.current.focus();
+              }
+            });
+          });
+      });
     }
   }, [
     code,
@@ -200,7 +194,6 @@ const PhoneVerification = observer((props: PhoneVerificationProps) => {
             />
           </WithPermissionControl>
         </Field>
-
         {!user.verified_phone_number && (
           <Input
             ref={codeInputRef}
@@ -211,7 +204,20 @@ const PhoneVerification = observer((props: PhoneVerificationProps) => {
             className={cx('phone__field')}
           />
         )}
-
+        <HorizontalGroup spacing="xs">
+          <Icon name="info-circle" />
+          <Text type="secondary">
+            This site is protected by reCAPTCHA and the Google{' '}
+            <a target="_blank" rel="noreferrer" href="https://policies.google.com/privacy">
+              <Text type="link">Privacy Policy</Text>
+            </a>{' '}
+            and{' '}
+            <a target="_blank" rel="noreferrer" href="https://policies.google.com/terms">
+              <Text type="link">Terms of Service </Text>
+            </a>{' '}
+            apply.
+          </Text>
+        </HorizontalGroup>
         {showToggle && (
           <div className={cx('switch')}>
             <div className={cx('switch__icon')}>
@@ -315,25 +321,25 @@ function PhoneVerificationButtonsGroup({
       )}
 
       {user.verified_phone_number && (
-        <WithPermissionControl userAction={action}>
-          <Button
-            disabled={!user?.verified_phone_number || !isTwilioConfigured || isTestCallInProgress}
-            onClick={handleMakeTestCallClick}
-          >
-            {isTestCallInProgress ? 'Making Test Call...' : 'Make Test Call'}
-          </Button>
-        </WithPermissionControl>
+        <>
+          <WithPermissionControl userAction={action}>
+            <Button
+              disabled={!user?.verified_phone_number || !isTwilioConfigured || isTestCallInProgress}
+              onClick={handleMakeTestCallClick}
+            >
+              {isTestCallInProgress ? 'Making Test Call...' : 'Make Test Call'}
+            </Button>
+          </WithPermissionControl>
+          <Tooltip content={'Click "Make Test Call" to save a phone number and add it to DnD exceptions.'}>
+            <Icon
+              name="info-circle"
+              style={{
+                marginLeft: '10px',
+              }}
+            />
+          </Tooltip>
+        </>
       )}
-
-      <Tooltip content={'Click "Make Test Call" to save a phone number and add it to DnD exceptions.'}>
-        <Icon
-          name="info-circle"
-          style={{
-            marginLeft: '10px',
-            color: '#1890ff',
-          }}
-        />
-      </Tooltip>
     </HorizontalGroup>
   );
 }

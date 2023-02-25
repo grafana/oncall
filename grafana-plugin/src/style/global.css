@@ -48,3 +48,7 @@
   padding-left: 4px;
   padding-right: 4px;
 }
+
+.grecaptcha-badge {
+  visibility: hidden;
+}

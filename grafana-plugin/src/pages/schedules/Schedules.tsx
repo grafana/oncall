@@ -27,16 +27,18 @@ import { Schedule, ScheduleType } from 'models/schedule/schedule.types';
 import { getSlackChannelName } from 'models/slack_channel/slack_channel.helpers';
 import { Timezone } from 'models/timezone/timezone.types';
 import { getStartOfWeek } from 'pages/schedule/Schedule.helpers';
-import { WithStoreProps } from 'state/types';
+import { WithStoreProps, PageProps } from 'state/types';
 import { withMobXProviderContext } from 'state/withStore';
+import LocationHelper from 'utils/LocationHelper';
 import { UserActions } from 'utils/authorization';
 import { PLUGIN_ROOT, TABLE_COLUMN_MAX_WIDTH } from 'utils/consts';
 
 import styles from './Schedules.module.css';
 
 const cx = cn.bind(styles);
+const ITEMS_PER_PAGE = 10;
 
-interface SchedulesPageProps extends WithStoreProps, RouteComponentProps {}
+interface SchedulesPageProps extends WithStoreProps, RouteComponentProps, PageProps {}
 
 interface SchedulesPageState {
   startMoment: dayjs.Dayjs;
@@ -44,6 +46,7 @@ interface SchedulesPageState {
   showNewScheduleSelector: boolean;
   expandedRowKeys: Array<Schedule['id']>;
   scheduleIdToEdit?: Schedule['id'];
+  page: number;
 }
 
 @observer
@@ -58,23 +61,36 @@ class SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSta
       showNewScheduleSelector: false,
       expandedRowKeys: [],
       scheduleIdToEdit: undefined,
+      page: 1,
     };
   }
 
   async componentDidMount() {
-    const { store } = this.props;
+    const {
+      store,
+      query: { p },
+    } = this.props;
 
     store.userStore.updateItems();
-    store.scheduleStore.updateItems();
+    this.setState({ page: p ? Number(p) : 1 }, this.updateSchedules);
   }
+
+  updateSchedules = async () => {
+    const { store } = this.props;
+    const { filters, page } = this.state;
+
+    LocationHelper.update({ p: page }, 'partial');
+    await store.scheduleStore.updateItems(filters, page);
+  };
 
   render() {
     const { store } = this.props;
-    const { filters, showNewScheduleSelector, expandedRowKeys, scheduleIdToEdit } = this.state;
+    const { filters, showNewScheduleSelector, expandedRowKeys, scheduleIdToEdit, page } = this.state;
 
     const { scheduleStore } = store;
 
-    const schedules = scheduleStore.getSearchResult();
+    const { count, results } = scheduleStore.getSearchResult();
+
     const columns = [
       {
         width: '10%',
@@ -125,8 +141,8 @@ class SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSta
 
     const users = store.userStore.getSearchResult().results;
 
-    const data = schedules
-      ? schedules.filter(
+    const data = results
+      ? results.filter(
           (schedule) =>
             filters.status === 'all' ||
             (filters.status === 'used' && schedule.number_of_escalation_chains) ||
@@ -158,7 +174,7 @@ class SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSta
             <Table
               columns={columns}
               data={data}
-              pagination={{ page: 1, total: 1, onChange: this.handlePageChange }}
+              pagination={{ page, total: Math.ceil((count || 0) / ITEMS_PER_PAGE), onChange: this.handlePageChange }}
               rowKey="id"
               expandable={{
                 expandedRowKeys: expandedRowKeys,
@@ -407,7 +423,10 @@ class SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSta
 
   debouncedUpdateSchedules = debounce(this.applyFilters, 1000);
 
-  handlePageChange = (_page: number) => {};
+  handlePageChange = (page: number) => {
+    this.setState({ page }, this.updateSchedules);
+    this.setState({ expandedRowKeys: [] });
+  };
 
   update = () => {
     const { store } = this.props;

@@ -4,10 +4,11 @@ from django.db.utils import IntegrityError
 from django.urls import reverse
 from django.utils import dateparse, timezone
 from django.utils.functional import cached_property
-from rest_framework import status
+from rest_framework import mixins, status
 from rest_framework.decorators import action
 from rest_framework.exceptions import NotFound
 from rest_framework.filters import SearchFilter
+from rest_framework.pagination import PageNumberPagination
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.views import Response
 from rest_framework.viewsets import ModelViewSet
@@ -48,6 +49,13 @@ SCHEDULE_TYPE_TO_CLASS = {
 }
 
 
+class SchedulePagination(PageNumberPagination):
+    page_size = 10
+    page_query_param = "page"
+    page_size_query_param = "perpage"
+    max_page_size = 50
+
+
 class ScheduleView(
     TeamFilteringMixin,
     PublicPrimaryKeyMixin,
@@ -55,6 +63,7 @@ class ScheduleView(
     CreateSerializerMixin,
     UpdateSerializerMixin,
     ModelViewSet,
+    mixins.ListModelMixin,
 ):
     authentication_classes = (PluginAuthentication,)
     permission_classes = (IsAuthenticated, RBACPermission)
@@ -86,6 +95,7 @@ class ScheduleView(
     create_serializer_class = PolymorphicScheduleCreateSerializer
     update_serializer_class = PolymorphicScheduleUpdateSerializer
     short_serializer_class = ScheduleFastSerializer
+    pagination_class = SchedulePagination
 
     @cached_property
     def can_update_user_groups(self):
@@ -110,7 +120,9 @@ class ScheduleView(
         The result of this method is cached and is reused for the whole lifetime of a request,
         since self.get_serializer_context() is called multiple times for every instance in the queryset.
         """
-        queryset = self.get_queryset()
+        current_page_schedules = self.paginate_queryset(self.get_queryset())
+        pks = [schedule.pk for schedule in current_page_schedules]
+        queryset = OnCallSchedule.objects.filter(pk__in=pks)
         return queryset.get_oncall_users()
 
     def get_serializer_context(self):

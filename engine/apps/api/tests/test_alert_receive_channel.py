@@ -126,7 +126,7 @@ def test_integration_filter_by_maintenance(
     alert_receive_channel_internal_api_setup,
     make_user_auth_headers,
     mock_start_disable_maintenance_task,
-    mock_alert_shooting_step_publish_slack_messages,
+    mock_alert_shooting_step_post_alert_group_to_slack,
 ):
     user, token, alert_receive_channel = alert_receive_channel_internal_api_setup
     client = APIClient()
@@ -149,7 +149,7 @@ def test_integration_filter_by_debug(
     alert_receive_channel_internal_api_setup,
     make_user_auth_headers,
     mock_start_disable_maintenance_task,
-    mock_alert_shooting_step_publish_slack_messages,
+    mock_alert_shooting_step_post_alert_group_to_slack,
 ):
     user, token, alert_receive_channel = alert_receive_channel_internal_api_setup
     client = APIClient()

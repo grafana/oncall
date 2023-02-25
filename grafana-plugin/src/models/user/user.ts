@@ -8,6 +8,7 @@ import { makeRequest } from 'network';
 import { Mixpanel } from 'services/mixpanel';
 import { RootStore } from 'state';
 import { move } from 'state/helpers';
+import { throttlingError } from 'utils';
 import { isUserActionAllowed, UserActions } from 'utils/authorization';
 
 import { getTimezone, prepareForUpdate } from './user.helpers';
@@ -233,17 +234,18 @@ export class UserStore extends BaseStore {
   }
 
   @action
-  async fetchVerificationCode(userPk: User['pk']) {
+  async fetchVerificationCode(userPk: User['pk'], recaptchaToken: string) {
     await makeRequest(`/users/${userPk}/get_verification_code/`, {
       method: 'GET',
-    });
+      headers: { 'X-OnCall-Recaptcha': recaptchaToken },
+    }).catch(throttlingError);
   }
 
   @action
   async verifyPhone(userPk: User['pk'], token: string) {
     return await makeRequest(`/users/${userPk}/verify_number/?token=${token}`, {
       method: 'PUT',
-    });
+    }).catch(throttlingError);
   }
 
   @action

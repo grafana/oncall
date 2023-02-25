@@ -238,7 +238,7 @@ class CustomOnCallShiftSerializer(EagerLoadingMixin, serializers.ModelSerializer
             data["users"] = []
         if data.get("rolling_users", []) is None:  # terraform case
             data["rolling_users"] = []
-        if data.get("source") != CustomOnCallShift.SOURCE_TERRAFORM:
+        if data.get("source") not in (CustomOnCallShift.SOURCE_TERRAFORM, CustomOnCallShift.SOURCE_WEB):
             data["source"] = CustomOnCallShift.SOURCE_API
         if data.get("start") is not None:
             self._validate_start(data["start"])
