@@ -27,8 +27,9 @@ import { Schedule, ScheduleType } from 'models/schedule/schedule.types';
 import { getSlackChannelName } from 'models/slack_channel/slack_channel.helpers';
 import { Timezone } from 'models/timezone/timezone.types';
 import { getStartOfWeek } from 'pages/schedule/Schedule.helpers';
-import { WithStoreProps } from 'state/types';
+import { WithStoreProps, PageProps } from 'state/types';
 import { withMobXProviderContext } from 'state/withStore';
+import LocationHelper from 'utils/LocationHelper';
 import { UserActions } from 'utils/authorization';
 import { PLUGIN_ROOT, TABLE_COLUMN_MAX_WIDTH } from 'utils/consts';
 
@@ -36,8 +37,9 @@ import styles from './Schedules.module.css';
 
 const cx = cn.bind(styles);
 const FILTERS_DEBOUNCE_MS = 500;
+const ITEMS_PER_PAGE = 10;
 
-interface SchedulesPageProps extends WithStoreProps, RouteComponentProps {}
+interface SchedulesPageProps extends WithStoreProps, RouteComponentProps, PageProps {}
 
 interface SchedulesPageState {
   schedules: Schedule[];
@@ -46,6 +48,7 @@ interface SchedulesPageState {
   showNewScheduleSelector: boolean;
   expandedRowKeys: Array<Schedule['id']>;
   scheduleIdToEdit?: Schedule['id'];
+  page: number;
   isLoading?: boolean;
 }
 
@@ -63,11 +66,16 @@ class SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSta
       showNewScheduleSelector: false,
       expandedRowKeys: [],
       scheduleIdToEdit: undefined,
+      page: 1,
       isLoading: true,
     };
   }
 
   async componentDidMount() {
+    const {
+      store,
+      query: { p },
+    } = this.props;
     const { store } = this.props;
     const { filters } = this.state;
 
@@ -82,11 +90,24 @@ class SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSta
         });
       }
     });
+    this.setState({ page: p ? Number(p) : 1 }, this.updateSchedules);
   }
+
+  updateSchedules = async () => {
+    const { store } = this.props;
+    const { filters, page } = this.state;
+
+    LocationHelper.update({ p: page }, 'partial');
+    await store.scheduleStore.updateItems(filters, page);
+  };
 
   render() {
     const { store } = this.props;
-    const { schedules, filters, showNewScheduleSelector, expandedRowKeys, scheduleIdToEdit, isLoading } = this.state;
+    const { filters, showNewScheduleSelector, expandedRowKeys, scheduleIdToEdit, page } = this.state;
+
+    const { scheduleStore } = store;
+
+    const { count, results } = scheduleStore.getSearchResult();
 
     const columns = [
       {
@@ -163,7 +184,7 @@ class SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSta
               columns={columns}
               data={schedules}
               loading={isLoading}
-              pagination={{ page: 1, total: 1, onChange: this.handlePageChange }}
+              pagination={{ page, total: Math.ceil((count || 0) / ITEMS_PER_PAGE), onChange: this.handlePageChange }}
               rowKey="id"
               expandable={{
                 expandedRowKeys: expandedRowKeys,
@@ -436,7 +457,10 @@ class SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSta
 
   debouncedUpdateSchedules = debounce(this.applyFilters, FILTERS_DEBOUNCE_MS);
 
-  handlePageChange = (_page: number) => {};
+  handlePageChange = (page: number) => {
+    this.setState({ page }, this.updateSchedules);
+    this.setState({ expandedRowKeys: [] });
+  };
 
   update = () => {
     const { store } = this.props;

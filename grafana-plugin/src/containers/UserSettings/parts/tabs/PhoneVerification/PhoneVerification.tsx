@@ -8,10 +8,10 @@ import PluginLink from 'components/PluginLink/PluginLink';
 import Text from 'components/Text/Text';
 import { WithPermissionControl } from 'containers/WithPermissionControl/WithPermissionControl';
 import { User } from 'models/user/user.types';
+import { rootStore } from 'state';
 import { AppFeature } from 'state/features';
 import { useStore } from 'state/useStore';
 import { isUserActionAllowed, UserAction, UserActions } from 'utils/authorization';
-import { reCAPTCHA_site_key } from 'utils/consts';
 
 import styles from './PhoneVerification.module.css';
 
@@ -96,7 +96,7 @@ const PhoneVerification = observer((props: PhoneVerificationProps) => {
     } else {
       window.grecaptcha.ready(function () {
         window.grecaptcha
-          .execute(reCAPTCHA_site_key, { action: 'mobile_verification_code' })
+          .execute(rootStore.recaptchaSiteKey, { action: 'mobile_verification_code' })
           .then(async function (token) {
             await userStore.updateUser({
               pk: userPk,

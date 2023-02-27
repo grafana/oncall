@@ -15,9 +15,6 @@ export const DEFAULT_PAGE = 'incidents';
 
 export const PLUGIN_ROOT = '/a/grafana-oncall-app';
 
-// https://developers.google.com/recaptcha/docs/v3
-export const reCAPTCHA_site_key = '6LeIPJ8kAAAAAJdUfjO3uUtQtVxsYf93y46mTec1';
-
 // Environment options list for onCallApiUrl
 export const ONCALL_PROD = 'https://oncall-prod-us-central-0.grafana.net/oncall';
 export const ONCALL_OPS = 'https://oncall-ops-us-east-0.grafana.net/oncall';

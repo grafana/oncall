@@ -10,7 +10,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - Fixed importing of global grafana styles ([672](https://github.com/grafana/oncall/issues/672))
+- Fixed UI permission related bug where Editors could not export their user iCal link
+- Fixed error when a shift is created using Etc/UTC as timezone
+- Fixed issue with refresh ical file task not considering empty string values
 - Schedule filters improvements ([941](https://github.com/grafana/oncall/issues/941))
+
+### Changed
+
+- Moved reCAPTCHA to backend environment variable for more flexible configuration between different environments.
+- Add pagination to schedule listing
 
 ## v1.1.29 (2023-02-23)
 
@@ -79,6 +87,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Incidents - Removed buttons column and replaced status with toggler ([#1237](https://github.com/grafana/oncall/issues/1237))
 - Responsiveness changes across multiple pages (Incidents, Integrations, Schedules) ([#1237](https://github.com/grafana/oncall/issues/1237))
+- Add pagination to schedule listing
 - Link to source was added
 - Header of Incident page was reworked: clickable labels instead of just names, users section was deleted
 - "Go to Integration" button was deleted, because the functionality was moved to clickable labels
