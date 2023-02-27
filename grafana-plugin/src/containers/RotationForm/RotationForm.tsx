@@ -277,151 +277,155 @@ const RotationForm: FC<RotationFormProps> = observer((props) => {
         </Draggable>
       )}
     >
-      <VerticalGroup>
-        <HorizontalGroup justify="space-between">
-          <Text size="medium">
-            <HorizontalGroup spacing="sm">
-              <span>[L{shiftId === 'new' ? layerPriority : shift?.priority_level}]</span>
-              {shiftId === 'new' ? 'New Rotation' : 'Update Rotation'}
-            </HorizontalGroup>
-          </Text>
-          <HorizontalGroup>
-            {shiftId !== 'new' && (
-              <IconButton
-                variant="secondary"
-                tooltip="Delete"
-                name="trash-alt"
-                onClick={() => setShowDeleteRotationConfirmation(true)}
-              />
-            )}
-            <IconButton variant="secondary" className={cx('drag-handler')} name="draggabledots" />
-          </HorizontalGroup>
-        </HorizontalGroup>
-        <div className={cx('content')}>
-          <VerticalGroup>
-            <div className={cx('two-fields')}>
-              <Field
-                label={
-                  <Text type="primary" size="small">
-                    Rotation start
-                  </Text>
-                }
-              >
-                <DateTimePicker
-                  minMoment={shiftStart}
-                  value={rotationStart}
-                  onChange={setRotationStart}
-                  timezone={currentTimezone}
-                  onFocus={getFocusHandler('rotationStart')}
-                  onBlur={handleBlur}
-                />
-              </Field>
-              <Field
-                label={
-                  <HorizontalGroup spacing="xs">
-                    <Text type="primary" size="small">
-                      Rotation end
-                    </Text>
-                    <InlineSwitch
-                      className={cx('inline-switch')}
-                      transparent
-                      value={!endLess}
-                      onChange={handleChangeEndless}
-                    />
-                  </HorizontalGroup>
-                }
-              >
-                {endLess ? (
-                  <div style={{ lineHeight: '32px' }}>
-                    <Text type="secondary">Endless</Text>
-                  </div>
-                ) : (
-                  <DateTimePicker value={rotationEnd} onChange={setRotationEnd} timezone={currentTimezone} />
-                )}
-              </Field>
-            </div>
+      <>
+        <div className={cx('title')}>
+          <HorizontalGroup justify="space-between">
+            <Text size="medium">
+              <HorizontalGroup spacing="sm">
+                <span>[L{shiftId === 'new' ? layerPriority : shift?.priority_level}]</span>
+                {shiftId === 'new' ? 'New Rotation' : 'Update Rotation'}
+              </HorizontalGroup>
+            </Text>
             <HorizontalGroup>
-              <Field className={cx('control')} label="Repeat shifts every">
-                <Select
-                  maxMenuHeight={120}
-                  value={repeatEveryValue}
-                  options={repeatShiftsEveryOptions}
-                  onChange={handleRepeatEveryValueChange}
-                  allowCustomValue
+              {shiftId !== 'new' && (
+                <IconButton
+                  variant="secondary"
+                  tooltip="Delete"
+                  name="trash-alt"
+                  onClick={() => setShowDeleteRotationConfirmation(true)}
                 />
-              </Field>
-              <Field className={cx('control')} label="">
-                <RemoteSelect
-                  href="/oncall_shifts/frequency_options/"
-                  value={repeatEveryPeriod}
-                  onChange={setRepeatEveryPeriod}
-                />
-              </Field>
+              )}
+              <IconButton variant="secondary" className={cx('drag-handler')} name="draggabledots" />
             </HorizontalGroup>
-            {(repeatEveryPeriod === 0 || repeatEveryPeriod === 1) && (
-              <Field label="Select days to repeat">
-                <DaysSelector
-                  options={store.scheduleStore.byDayOptions}
-                  value={selectedDays}
-                  onChange={(value) => setSelectedDays(value)}
-                />
-              </Field>
-            )}
-            <div className={cx('two-fields')}>
-              <Field
-                className={cx('date-time-picker')}
-                label={
-                  <Text type="primary" size="small">
-                    Parent shift start
-                  </Text>
-                }
-              >
-                <DateTimePicker
-                  value={shiftStart}
-                  onChange={updateShiftStart}
-                  timezone={currentTimezone}
-                  onFocus={getFocusHandler('shiftStart')}
-                  onBlur={handleBlur}
-                />
-              </Field>
-              <Field
-                className={cx('date-time-picker')}
-                label={
-                  <Text type="primary" size="small">
-                    Parent shift end
-                  </Text>
-                }
-              >
-                <DateTimePicker
-                  value={shiftEnd}
-                  onChange={setShiftEnd}
-                  timezone={currentTimezone}
-                  onFocus={getFocusHandler('shiftEnd')}
-                  onBlur={handleBlur}
-                />
-              </Field>
-            </div>
-            <UserGroups
-              value={userGroups}
-              onChange={setUserGroups}
-              isMultipleGroups={true}
-              renderUser={renderUser}
-              showError={!isFormValid}
-            />
-          </VerticalGroup>
-        </div>
-        <HorizontalGroup justify="space-between">
-          <Text type="secondary">Timezone: {getTzOffsetString(dayjs().tz(currentTimezone))}</Text>
-          <HorizontalGroup>
-            <Button variant="secondary" onClick={onHide}>
-              {shiftId === 'new' ? 'Cancel' : 'Close'}
-            </Button>
-            <Button variant="primary" onClick={handleCreate} disabled={!isFormValid}>
-              {shiftId === 'new' ? 'Create' : 'Update'}
-            </Button>
           </HorizontalGroup>
-        </HorizontalGroup>
-      </VerticalGroup>
+        </div>
+        <VerticalGroup>
+          <div className={cx('content')}>
+            <VerticalGroup>
+              <div className={cx('two-fields')}>
+                <Field
+                  label={
+                    <Text type="primary" size="small">
+                      Rotation start
+                    </Text>
+                  }
+                >
+                  <DateTimePicker
+                    minMoment={shiftStart}
+                    value={rotationStart}
+                    onChange={setRotationStart}
+                    timezone={currentTimezone}
+                    onFocus={getFocusHandler('rotationStart')}
+                    onBlur={handleBlur}
+                  />
+                </Field>
+                <Field
+                  label={
+                    <HorizontalGroup spacing="xs">
+                      <Text type="primary" size="small">
+                        Rotation end
+                      </Text>
+                      <InlineSwitch
+                        className={cx('inline-switch')}
+                        transparent
+                        value={!endLess}
+                        onChange={handleChangeEndless}
+                      />
+                    </HorizontalGroup>
+                  }
+                >
+                  {endLess ? (
+                    <div style={{ lineHeight: '32px' }}>
+                      <Text type="secondary">Endless</Text>
+                    </div>
+                  ) : (
+                    <DateTimePicker value={rotationEnd} onChange={setRotationEnd} timezone={currentTimezone} />
+                  )}
+                </Field>
+              </div>
+              <HorizontalGroup>
+                <Field className={cx('control')} label="Repeat shifts every">
+                  <Select
+                    maxMenuHeight={120}
+                    value={repeatEveryValue}
+                    options={repeatShiftsEveryOptions}
+                    onChange={handleRepeatEveryValueChange}
+                    allowCustomValue
+                  />
+                </Field>
+                <Field className={cx('control')} label="">
+                  <RemoteSelect
+                    href="/oncall_shifts/frequency_options/"
+                    value={repeatEveryPeriod}
+                    onChange={setRepeatEveryPeriod}
+                  />
+                </Field>
+              </HorizontalGroup>
+              {(repeatEveryPeriod === 0 || repeatEveryPeriod === 1) && (
+                <Field label="Select days to repeat">
+                  <DaysSelector
+                    options={store.scheduleStore.byDayOptions}
+                    value={selectedDays}
+                    onChange={(value) => setSelectedDays(value)}
+                  />
+                </Field>
+              )}
+              <div className={cx('two-fields')}>
+                <Field
+                  className={cx('date-time-picker')}
+                  label={
+                    <Text type="primary" size="small">
+                      Parent shift start
+                    </Text>
+                  }
+                >
+                  <DateTimePicker
+                    value={shiftStart}
+                    onChange={updateShiftStart}
+                    timezone={currentTimezone}
+                    onFocus={getFocusHandler('shiftStart')}
+                    onBlur={handleBlur}
+                  />
+                </Field>
+                <Field
+                  className={cx('date-time-picker')}
+                  label={
+                    <Text type="primary" size="small">
+                      Parent shift end
+                    </Text>
+                  }
+                >
+                  <DateTimePicker
+                    value={shiftEnd}
+                    onChange={setShiftEnd}
+                    timezone={currentTimezone}
+                    onFocus={getFocusHandler('shiftEnd')}
+                    onBlur={handleBlur}
+                  />
+                </Field>
+              </div>
+              <UserGroups
+                value={userGroups}
+                onChange={setUserGroups}
+                isMultipleGroups={true}
+                renderUser={renderUser}
+                showError={!isFormValid}
+              />
+            </VerticalGroup>
+          </div>
+          <HorizontalGroup justify="space-between">
+            <Text type="secondary">Timezone: {getTzOffsetString(dayjs().tz(currentTimezone))}</Text>
+            <HorizontalGroup>
+              <Button variant="secondary" onClick={onHide}>
+                {shiftId === 'new' ? 'Cancel' : 'Close'}
+              </Button>
+              <Button variant="primary" onClick={handleCreate} disabled={!isFormValid}>
+                {shiftId === 'new' ? 'Create' : 'Update'}
+              </Button>
+            </HorizontalGroup>
+          </HorizontalGroup>
+        </VerticalGroup>
+      </>
       {showDeleteRotationConfirmation && (
         <GrafanaModal
           isOpen
