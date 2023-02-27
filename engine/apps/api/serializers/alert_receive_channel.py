@@ -18,7 +18,7 @@ from apps.alerts.models import AlertReceiveChannel
 from apps.base.messaging import get_messaging_backends
 from common.api_helpers.custom_fields import TeamPrimaryKeyRelatedField, WritableSerializerMethodField
 from common.api_helpers.exceptions import BadRequest
-from common.api_helpers.mixins import TEMPLATE_NAMES_ONLY_WITH_NOTIFICATION_CHANNEL, EagerLoadingMixin
+from common.api_helpers.mixins import APPEARANCE_TEMPLATE_NAMES, EagerLoadingMixin
 from common.api_helpers.utils import CurrentTeamDefault
 from common.jinja_templater import apply_jinja_template, jinja_template_env
 from common.jinja_templater.apply_jinja_template import JinjaTemplateWarning
@@ -558,7 +558,7 @@ class AlertReceiveChannelTemplatesSerializer(EagerLoadingMixin, serializers.Mode
                 backend_templates = self.instance.messaging_backends_templates.get(backend_id, {})
             # validate updated templates if any
             backend_updates = {}
-            for field in TEMPLATE_NAMES_ONLY_WITH_NOTIFICATION_CHANNEL:
+            for field in APPEARANCE_TEMPLATE_NAMES:
                 field_name = f"{backend_id.lower()}_{field}_template"
                 value = data.get(field_name)
                 validator = jinja_template_env.from_string

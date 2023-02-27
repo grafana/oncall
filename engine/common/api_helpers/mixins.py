@@ -267,7 +267,7 @@ RESOLVE_CONDITION = "resolve_condition"
 ACKNOWLEDGE_CONDITION = "acknowledge_condition"
 GROUPING_ID = "grouping_id"
 SOURCE_LINK = "source_link"
-TEMPLATE_NAME_OPTIONS = [TITLE, MESSAGE, IMAGE_URL, RESOLVE_CONDITION, ACKNOWLEDGE_CONDITION, GROUPING_ID, SOURCE_LINK]
+
 NOTIFICATION_CHANNEL_TO_TEMPLATER_MAP = {
     SLACK: AlertSlackTemplater,
     WEB: AlertWebTemplater,
@@ -283,8 +283,9 @@ for backend_id, backend in get_messaging_backends():
         NOTIFICATION_CHANNEL_OPTIONS.append(backend.backend_slug)
         NOTIFICATION_CHANNEL_TO_TEMPLATER_MAP[backend.backend_slug] = backend.get_templater_class()
 
-TEMPLATE_NAMES_ONLY_WITH_NOTIFICATION_CHANNEL = [TITLE, MESSAGE, IMAGE_URL]
-TEMPLATE_NAMES_WITHOUT_NOTIFICATION_CHANNEL = [RESOLVE_CONDITION, ACKNOWLEDGE_CONDITION, GROUPING_ID, SOURCE_LINK]
+APPEARANCE_TEMPLATE_NAMES = [TITLE, MESSAGE, IMAGE_URL]
+BEHAVIOUR_TEMPLATE_NAMES = [RESOLVE_CONDITION, ACKNOWLEDGE_CONDITION, GROUPING_ID, SOURCE_LINK]
+ALL_TEMPLATE_NAMES = APPEARANCE_TEMPLATE_NAMES + BEHAVIOUR_TEMPLATE_NAMES
 
 
 class PreviewTemplateMixin:
@@ -300,9 +301,9 @@ class PreviewTemplateMixin:
         notification_channel, attr_name = self.parse_name_and_notification_channel(template_name)
         if attr_name is None:
             raise BadRequest(detail={"template_name": "Attr name is required"})
-        if attr_name not in TEMPLATE_NAME_OPTIONS:
+        if attr_name not in ALL_TEMPLATE_NAMES:
             raise BadRequest(detail={"template_name": "Unknown attr name"})
-        if attr_name in TEMPLATE_NAMES_ONLY_WITH_NOTIFICATION_CHANNEL:
+        if attr_name in APPEARANCE_TEMPLATE_NAMES:
             if notification_channel is None:
                 raise BadRequest(detail={"notification_channel": "notification_channel is required"})
             if notification_channel not in NOTIFICATION_CHANNEL_OPTIONS:
@@ -312,7 +313,7 @@ class PreviewTemplateMixin:
         if alert_to_template is None:
             raise BadRequest(detail="Alert to preview does not exist")
 
-        if attr_name in TEMPLATE_NAMES_ONLY_WITH_NOTIFICATION_CHANNEL:
+        if attr_name in APPEARANCE_TEMPLATE_NAMES:
 
             class PreviewTemplateLoader(TemplateLoader):
                 def get_attr_template(self, attr, alert_receive_channel, render_for=None):
@@ -331,7 +332,7 @@ class PreviewTemplateMixin:
 
             templated_attr = getattr(templated_alert, attr_name)
 
-        elif attr_name in TEMPLATE_NAMES_WITHOUT_NOTIFICATION_CHANNEL:
+        elif attr_name in BEHAVIOUR_TEMPLATE_NAMES:
             try:
                 templated_attr = apply_jinja_template(template_body, payload=alert_to_template.raw_request_data)
             except (JinjaTemplateError, JinjaTemplateWarning) as e:
@@ -349,7 +350,7 @@ class PreviewTemplateMixin:
         template_param = template_param.replace("_template", "")
         attr_name = None
         destination = None
-        if template_param.startswith(tuple(TEMPLATE_NAMES_WITHOUT_NOTIFICATION_CHANNEL)):
+        if template_param.startswith(tuple(BEHAVIOUR_TEMPLATE_NAMES)):
             attr_name = template_param
         elif template_param.startswith(tuple(NOTIFICATION_CHANNEL_OPTIONS)):
             for notification_channel in NOTIFICATION_CHANNEL_OPTIONS:

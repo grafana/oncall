@@ -11,7 +11,6 @@ from common.api_helpers.exceptions import BadRequest
 from common.api_helpers.mixins import (
     LEGACY_NOTIFICATION_CHANNEL_OPTIONS,
     NOTIFICATION_CHANNEL_OPTIONS,
-    TEMPLATE_NAMES_WITHOUT_NOTIFICATION_CHANNEL,
     EagerLoadingMixin,
 )
 from common.jinja_templater import jinja_template_env
@@ -21,12 +20,15 @@ from .integtration_heartbeat import IntegrationHeartBeatSerializer
 from .maintenance import MaintainableObjectSerializerMixin
 from .routes import DefaultChannelFilterSerializer
 
+# Behaviour templates are named differently in public api
+PUBLIC_BEHAVIOUR_TEMPLATES_FIELDS = ["resolve_signal", "grouping_key", "acknowledge_signal", "source_link"]
+
 # PUBLIC_TEMPLATES_FIELDS is map from template name in public api to its db field.
 PUBLIC_TEMPLATES_FIELDS = {
     "grouping_key": "grouping_id_template",
     "resolve_signal": "resolve_condition_template",
     "acknowledge_signal": "acknowledge_condition_template",
-    "source_link_template": "source_link_template",
+    "source_link": "source_link_template",
     "slack": {
         "title": "slack_title_template",
         "message": "slack_message_template",
@@ -50,7 +52,7 @@ PUBLIC_TEMPLATES_FIELDS = {
     },
 }
 
-TEMPLATES_WITH_SEPARATE_DB_FIELD = LEGACY_NOTIFICATION_CHANNEL_OPTIONS + TEMPLATE_NAMES_WITHOUT_NOTIFICATION_CHANNEL
+TEMPLATES_WITH_SEPARATE_DB_FIELD = LEGACY_NOTIFICATION_CHANNEL_OPTIONS + PUBLIC_BEHAVIOUR_TEMPLATES_FIELDS
 
 
 class IntegrationTypeField(fields.CharField):
@@ -143,7 +145,6 @@ class IntegrationSerializer(EagerLoadingMixin, serializers.ModelSerializer, Main
 
     def validate_templates(self, templates):
         if not isinstance(templates, dict):
-            print(1)
             raise BadRequest(detail="Invalid template data")
 
         for notification_channel in NOTIFICATION_CHANNEL_OPTIONS:
@@ -160,16 +161,16 @@ class IntegrationSerializer(EagerLoadingMixin, serializers.ModelSerializer, Main
                 except TemplateSyntaxError:
                     raise BadRequest(detail=f"invalid {notification_channel} {attr} template")
 
-        for common_template in ["resolve_signal", "grouping_key", "acknowledge_signal", "source_link"]:
-            template_data = templates.get(common_template, "")
+        for template_name in PUBLIC_BEHAVIOUR_TEMPLATES_FIELDS:
+            template_data = templates.get(template_name, "")
             if template_data is None:
                 continue
             if not isinstance(template_data, str):
-                raise BadRequest(detail=f"Invalid {common_template} template data")
+                raise BadRequest(detail=f"Invalid {template_name} template data")
             try:
                 jinja_template_env.from_string(template_data)
             except TemplateSyntaxError:
-                raise BadRequest(detail=f"Invalid {common_template} template data")
+                raise BadRequest(detail=f"Invalid {template_name} template data")
         return templates
 
     def _correct_validated_data(self, validated_data):
@@ -250,14 +251,12 @@ class IntegrationSerializer(EagerLoadingMixin, serializers.ModelSerializer, Main
             try:
                 validated_data[PUBLIC_TEMPLATES_FIELDS[template_backend_name]] = template_from_request
             except KeyError:
-                print(3)
                 raise BadRequest(detail="Invalid template data")
         elif type(template_from_request) is dict:  # if it's nested template: {slack: {"title": "some title"}}
             for attr, template in template_from_request.items():
                 try:
                     validated_data[PUBLIC_TEMPLATES_FIELDS[template_backend_name][attr]] = template
                 except KeyError:
-                    print(2)
                     raise BadRequest(detail="Invalid template data")
         elif template_from_request is None:
             # if it's we receive None, it's needed to set template to default value
@@ -271,7 +270,6 @@ class IntegrationSerializer(EagerLoadingMixin, serializers.ModelSerializer, Main
                     for key in template_to_set_to_default.keys():
                         validated_data[PUBLIC_TEMPLATES_FIELDS[template_backend_name][key]] = None
             except KeyError:
-                print(4)
                 raise BadRequest(detail="Invalid template data")
         return validated_data
 
