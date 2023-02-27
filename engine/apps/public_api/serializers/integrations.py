@@ -219,22 +219,12 @@ class IntegrationSerializer(EagerLoadingMixin, serializers.ModelSerializer, Main
 
         validated_data = self._correct_validated_data_for_messaging_backends_templates(validated_data)
 
-        # backend_slug_to_backend = {}
-        # for backend_id, backend in get_messaging_backends():
-        #     backend_slug_to_backend[backend.backend_slug] = backend
-
-        templates_data_from_request = validated_data.get("templates", {})
-        for template_backend_name, templates_data_from_request in templates_data_from_request.items():
-            # correct_validated_data for templates with its own db fields.
-            if template_backend_name in TEMPLATES_WITH_SEPARATE_DB_FIELD:
-                validated_data = self._correct_validated_data_for_legacy_template(
-                    template_backend_name, templates_data_from_request, validated_data
-                )
+        validated_data = self._correct_validated_data_for_legacy_templates(validated_data)
 
         validated_data.pop("templates", {})
         return validated_data
 
-    def _correct_validated_data_for_legacy_template(self, template_backend_name, template_from_request, validated_data):
+    def _correct_validated_data_for_legacy_templates(self, validated_data):
         """
         _correct_validated_data_for_legacy_template reshapes validated data to store them.
         It converts data from "templates" dict to db fields, which were used before messaging backends.
@@ -248,30 +238,37 @@ class IntegrationSerializer(EagerLoadingMixin, serializers.ModelSerializer, Main
 
             slack_title_template=Hello
         """
-        if type(template_from_request) is str:  # if it's plain template: {"resolve_signal": "resolve me"}
-            try:
-                validated_data[TEMPLATE_PUBLIC_API_NAME_TO_DB_FIELD[template_backend_name]] = template_from_request
-            except KeyError:
-                raise BadRequest(detail="Invalid template data")
-        elif type(template_from_request) is dict:  # if it's nested template: {slack: {"title": "some title"}}
-            for attr, template in template_from_request.items():
-                try:
-                    validated_data[TEMPLATE_PUBLIC_API_NAME_TO_DB_FIELD[template_backend_name][attr]] = template
-                except KeyError:
-                    raise BadRequest(detail="Invalid template data")
-        elif template_from_request is None:
-            # if it's we receive None, it's needed to set template to default value
-            try:
-                template_to_set_to_default = TEMPLATE_PUBLIC_API_NAME_TO_DB_FIELD[template_backend_name]
-                if type(template_to_set_to_default) is str:
-                    # if we receive None for plain template just set it to None
-                    validated_data[TEMPLATE_PUBLIC_API_NAME_TO_DB_FIELD[template_backend_name]] = None
-                elif type(template_to_set_to_default) is dict:
-                    # if we receive None for nested template set all it's fields to None
-                    for key in template_to_set_to_default.keys():
-                        validated_data[TEMPLATE_PUBLIC_API_NAME_TO_DB_FIELD[template_backend_name][key]] = None
-            except KeyError:
-                raise BadRequest(detail="Invalid template data")
+        templates_data_from_request = validated_data.get("templates", {})
+        for template_backend_name, template_from_request in templates_data_from_request.items():
+            # correct_validated_data for templates with its own db fields.
+            if template_backend_name in TEMPLATES_WITH_SEPARATE_DB_FIELD:
+                if type(template_from_request) is str:  # if it's plain template: {"resolve_signal": "resolve me"}
+                    try:
+                        validated_data[
+                            TEMPLATE_PUBLIC_API_NAME_TO_DB_FIELD[template_backend_name]
+                        ] = template_from_request
+                    except KeyError:
+                        raise BadRequest(detail="Invalid template data")
+                elif type(template_from_request) is dict:  # if it's nested template: {slack: {"title": "some title"}}
+                    for attr, template in template_from_request.items():
+                        try:
+                            validated_data[TEMPLATE_PUBLIC_API_NAME_TO_DB_FIELD[template_backend_name][attr]] = template
+                        except KeyError:
+                            raise BadRequest(detail="Invalid template data")
+                elif template_from_request is None:
+                    # if it's we receive None, it's needed to set template to default value
+                    try:
+                        template_to_set_to_default = TEMPLATE_PUBLIC_API_NAME_TO_DB_FIELD[template_backend_name]
+                        if type(template_to_set_to_default) is str:
+                            # if we receive None for plain template just set it to None
+                            validated_data[TEMPLATE_PUBLIC_API_NAME_TO_DB_FIELD[template_backend_name]] = None
+                        elif type(template_to_set_to_default) is dict:
+                            # if we receive None for nested template set all it's fields to None
+                            for key in template_to_set_to_default.keys():
+                                validated_data[TEMPLATE_PUBLIC_API_NAME_TO_DB_FIELD[template_backend_name][key]] = None
+                    except KeyError:
+                        raise BadRequest(detail="Invalid template data")
+
         return validated_data
 
     def _correct_validated_data_for_messaging_backends_templates(self, validated_data):
