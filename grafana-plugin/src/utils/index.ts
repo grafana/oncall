@@ -47,7 +47,7 @@ export function refreshPageError(error: AxiosError) {
   throw error;
 }
 
-export function trottlingError(error: AxiosError) {
+export function throttlingError(error: AxiosError) {
   if (error.response?.status === 429) {
     const seconds = Number(error.response?.headers['retry-after']);
     const minutes = Math.floor(seconds / 60);

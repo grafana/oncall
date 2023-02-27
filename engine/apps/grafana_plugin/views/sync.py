@@ -75,5 +75,6 @@ class PluginSyncView(GrafanaHeadersMixin, APIView):
                 "token_ok": token_ok,
                 "license": settings.LICENSE,
                 "version": settings.VERSION,
+                "recaptcha_site_key": settings.RECAPTCHA_SITE_KEY,
             },
         )
