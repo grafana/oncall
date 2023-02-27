@@ -195,8 +195,6 @@ def test_update_alert_receive_channel_backend_template_set_default_template(
     )
 
     assert response.status_code == status.HTTP_200_OK
-    alert_receive_channel.refresh_from_db()
-
     # WEB_TEMPLATE is default for templates from messaging backends
     default_title = alert_receive_channel.INTEGRATION_TO_DEFAULT_WEB_TITLE_TEMPLATE[alert_receive_channel.integration]
     default_message = alert_receive_channel.INTEGRATION_TO_DEFAULT_WEB_MESSAGE_TEMPLATE[
@@ -206,9 +204,9 @@ def test_update_alert_receive_channel_backend_template_set_default_template(
         alert_receive_channel.integration
     ]
 
-    assert response["testonly_title_template"] == default_title
-    assert response["testonly_message_template"] == default_message
-    assert response["testonly_image_url_template"] == default_image_url
+    assert response.json()["testonly_title_template"] == default_title
+    assert response.json()["testonly_message_template"] == default_message
+    assert response.json()["testonly_image_url_template"] == default_image_url
 
 
 @pytest.mark.django_db
@@ -262,9 +260,9 @@ def test_update_alert_receive_channel_legacy_template_set_default_template(
         alert_receive_channel.integration
     ]
 
-    assert response["slack_title_template"] == default_title
-    assert response["slack_message_template"] == default_message
-    assert response["slack_image_url_template"] == default_image_url
+    assert response.json()["slack_title_template"] == default_title
+    assert response.json()["slack_message_template"] == default_message
+    assert response.json()["slack_image_url_template"] == default_image_url
 
 
 @pytest.mark.django_db
@@ -342,7 +340,7 @@ def test_update_alert_receive_channel_templates(
     make_alert_receive_channel,
 ):
     def template_update_func(template):
-        return template + "updated"
+        return f"{template}_updated"
 
     organization, user, token = make_organization_and_user_with_plugin_token()
     alert_receive_channel = make_alert_receive_channel(
