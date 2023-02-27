@@ -257,8 +257,9 @@ WEB = "web"
 PHONE_CALL = "phone_call"
 SMS = "sms"
 TELEGRAM = "telegram"
+# templates with its own field in db, this concept replaced by messaging_backend_templates field
 LEGACY_NOTIFICATION_CHANNEL_OPTIONS = [SLACK, WEB, PHONE_CALL, SMS, TELEGRAM]
-NOTIFICATION_CHANNEL_OPTIONS = LEGACY_NOTIFICATION_CHANNEL_OPTIONS
+
 TITLE = "title"
 MESSAGE = "message"
 IMAGE_URL = "image_url"
@@ -276,6 +277,7 @@ NOTIFICATION_CHANNEL_TO_TEMPLATER_MAP = {
 }
 
 # add additionally supported messaging backends
+NOTIFICATION_CHANNEL_OPTIONS = LEGACY_NOTIFICATION_CHANNEL_OPTIONS
 for backend_id, backend in get_messaging_backends():
     if backend.templater is not None:
         NOTIFICATION_CHANNEL_OPTIONS.append(backend.backend_slug)

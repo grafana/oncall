@@ -11,6 +11,7 @@ from common.api_helpers.exceptions import BadRequest
 from common.api_helpers.mixins import (
     LEGACY_NOTIFICATION_CHANNEL_OPTIONS,
     NOTIFICATION_CHANNEL_OPTIONS,
+    TEMPLATE_NAMES_WITHOUT_NOTIFICATION_CHANNEL,
     EagerLoadingMixin,
 )
 from common.jinja_templater import jinja_template_env
@@ -48,6 +49,8 @@ PUBLIC_TEMPLATES_FIELDS = {
         "image_url": "telegram_image_url_template",
     },
 }
+
+TEMPLATES_WITH_SEPARATE_DB_FIELD = LEGACY_NOTIFICATION_CHANNEL_OPTIONS + TEMPLATE_NAMES_WITHOUT_NOTIFICATION_CHANNEL
 
 
 class IntegrationTypeField(fields.CharField):
@@ -221,8 +224,7 @@ class IntegrationSerializer(EagerLoadingMixin, serializers.ModelSerializer, Main
         templates_data_from_request = validated_data.get("templates", {})
         for template_backend_name, templates_data_from_request in templates_data_from_request.items():
             # correct_validated_data for templates with its own db fields.
-            # (Legacy ones, used before messaging backend system)
-            if template_backend_name in LEGACY_NOTIFICATION_CHANNEL_OPTIONS:
+            if template_backend_name in TEMPLATES_WITH_SEPARATE_DB_FIELD:
                 validated_data = self._correct_validated_data_for_legacy_template(
                     template_backend_name, templates_data_from_request, validated_data
                 )
