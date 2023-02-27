@@ -290,6 +290,8 @@ class IntegrationSerializer(EagerLoadingMixin, serializers.ModelSerializer, Main
         templates_data_from_request = validated_data.get("templates", {})
 
         messaging_backends_templates = self.instance.messaging_backends_templates if self.instance else {}
+        if messaging_backends_templates is None:
+            messaging_backends_templates = {}
 
         for backend_id, backend in get_messaging_backends():
             backend_template = {}
