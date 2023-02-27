@@ -265,9 +265,9 @@ class SchedulePage extends React.Component<SchedulePageProps, SchedulePageState>
                 </VerticalGroup>
               )}
             </div>
-            {showEditForm && (
+            {showEditForm && schedule && (
               <ScheduleForm
-                id={schedule.id}
+                id={scheduleId}
                 onUpdate={this.update}
                 onHide={() => {
                   this.setState({ showEditForm: false });

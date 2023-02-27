@@ -88,7 +88,7 @@ const ICalConnector = (props: ICalConnectorProps) => {
                     <Text type="secondary">
                       In case you lost your iCal link you can revoke it and generate a new one.
                     </Text>
-                    <WithPermissionControl userAction={UserActions.OtherSettingsWrite}>
+                    <WithPermissionControl userAction={UserActions.UserSettingsWrite}>
                       <Button
                         icon="trash-alt"
                         onClick={handleRevokeiCalLink}
@@ -103,7 +103,7 @@ const ICalConnector = (props: ICalConnectorProps) => {
                 )}
               </>
             ) : (
-              <WithPermissionControl userAction={UserActions.OtherSettingsWrite}>
+              <WithPermissionControl userAction={UserActions.UserSettingsWrite}>
                 <Button icon="plus" onClick={handleCreateiCalLink} className={cx('iCal-button')} variant="secondary">
                   Create iCal link
                 </Button>

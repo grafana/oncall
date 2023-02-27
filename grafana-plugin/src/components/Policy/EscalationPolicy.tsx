@@ -265,6 +265,8 @@ export class EscalationPolicy extends React.Component<EscalationPolicyProps, any
     return (
       <WithPermissionControl key="notify_schedule" disableByPaywall userAction={UserActions.EscalationChainsWrite}>
         <GSelect
+          showSearch
+          allowClear
           modelName="scheduleStore"
           displayField="name"
           valueField="id"

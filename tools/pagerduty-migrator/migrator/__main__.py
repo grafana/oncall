@@ -49,7 +49,9 @@ def main() -> None:
         ]
 
     print("▶ Fetching schedules...")
-    schedules = session.list_all("schedules")
+    schedules = session.list_all(
+        "schedules", params={"include[]": "schedule_layers", "time_zone": "UTC"}
+    )
     oncall_schedules = oncall_api_client.list_all("schedules")
 
     print("▶ Fetching escalation policies...")
@@ -72,8 +74,12 @@ def main() -> None:
     for user in users:
         match_user(user, oncall_users)
 
+    user_id_map = {
+        u["id"]: u["oncall_user"]["id"] if u["oncall_user"] else None for u in users
+    }
+
     for schedule in schedules:
-        match_schedule(schedule, oncall_schedules)
+        match_schedule(schedule, oncall_schedules, user_id_map)
         match_users_for_schedule(schedule, users)
 
     for policy in escalation_policies:
@@ -105,8 +111,8 @@ def main() -> None:
 
     print("▶ Migrating schedules...")
     for schedule in schedules:
-        if not schedule["unmatched_users"]:
-            migrate_schedule(schedule)
+        if not schedule["unmatched_users"] and not schedule["migration_errors"]:
+            migrate_schedule(schedule, user_id_map)
             print(TAB + format_schedule(schedule))
 
     print("▶ Migrating escalation policies...")

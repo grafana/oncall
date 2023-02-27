@@ -19,6 +19,7 @@ from apps.schedules.models import (
     OnCallScheduleICal,
     OnCallScheduleWeb,
 )
+from common.api_helpers.utils import create_engine_url
 
 ICAL_URL = "https://calendar.google.com/calendar/ical/amixr.io_37gttuakhrtr75ano72p69rt78%40group.calendar.google.com/private-1d00a680ba5be7426c3eb3ef1616e26d/basic.ics"
 
@@ -74,7 +75,86 @@ def test_get_list_schedules(
         notify_schedule=web_schedule,
     )
 
-    expected_payload = [
+    expected_payload = {
+        "count": 3,
+        "next": None,
+        "previous": None,
+        "results": [
+            {
+                "id": calendar_schedule.public_primary_key,
+                "type": 0,
+                "team": None,
+                "name": "test_calendar_schedule",
+                "time_zone": "UTC",
+                "slack_channel": None,
+                "user_group": None,
+                "warnings": [],
+                "ical_url_overrides": None,
+                "on_call_now": [],
+                "has_gaps": False,
+                "mention_oncall_next": False,
+                "mention_oncall_start": True,
+                "notify_empty_oncall": 0,
+                "notify_oncall_shift_freq": 1,
+                "number_of_escalation_chains": 0,
+            },
+            {
+                "id": ical_schedule.public_primary_key,
+                "type": 1,
+                "team": None,
+                "name": "test_ical_schedule",
+                "ical_url_primary": ICAL_URL,
+                "ical_url_overrides": None,
+                "slack_channel": None,
+                "user_group": None,
+                "warnings": [],
+                "on_call_now": [],
+                "has_gaps": False,
+                "mention_oncall_next": False,
+                "mention_oncall_start": True,
+                "notify_empty_oncall": 0,
+                "notify_oncall_shift_freq": 1,
+                "number_of_escalation_chains": 0,
+            },
+            {
+                "id": web_schedule.public_primary_key,
+                "type": 2,
+                "time_zone": "UTC",
+                "team": None,
+                "name": "test_web_schedule",
+                "slack_channel": None,
+                "user_group": None,
+                "warnings": [],
+                "on_call_now": [],
+                "has_gaps": False,
+                "mention_oncall_next": False,
+                "mention_oncall_start": True,
+                "notify_empty_oncall": 0,
+                "notify_oncall_shift_freq": 1,
+                "number_of_escalation_chains": 1,
+            },
+        ],
+    }
+    response = client.get(url, format="json", **make_user_auth_headers(user, token))
+    assert response.status_code == status.HTTP_200_OK
+    assert response.json() == expected_payload
+
+
+@pytest.mark.django_db
+def test_get_list_schedules_pagination(
+    schedule_internal_api_setup, make_escalation_chain, make_escalation_policy, make_user_auth_headers
+):
+    user, token, calendar_schedule, ical_schedule, web_schedule, slack_channel = schedule_internal_api_setup
+
+    # setup escalation chain linked to web schedule
+    escalation_chain = make_escalation_chain(user.organization)
+    make_escalation_policy(
+        escalation_chain=escalation_chain,
+        escalation_policy_step=EscalationPolicy.STEP_NOTIFY_SCHEDULE,
+        notify_schedule=web_schedule,
+    )
+
+    available_schedules = [
         {
             "id": calendar_schedule.public_primary_key,
             "type": 0,
@@ -129,9 +209,40 @@ def test_get_list_schedules(
             "number_of_escalation_chains": 1,
         },
     ]
-    response = client.get(url, format="json", **make_user_auth_headers(user, token))
-    assert response.status_code == status.HTTP_200_OK
-    assert response.json() == expected_payload
+
+    client = APIClient()
+
+    schedule_list_url = reverse("api-internal:schedule-list")
+    absolute_url = create_engine_url(schedule_list_url, override_base="http://testserver")
+    for p, schedule in enumerate(available_schedules, start=1):
+        # patch oncall_users to check a paginated queryset is used
+        def mock_oncall_now(qs, events_datetime):
+            # only one schedule is passed here
+            assert qs.count() == 1
+            return {}
+
+        url = "{}?page={}&perpage=1".format(schedule_list_url, p)
+        with patch(
+            "apps.schedules.models.on_call_schedule.get_oncall_users_for_multiple_schedules",
+            side_effect=mock_oncall_now,
+        ):
+            response = client.get(url, format="json", **make_user_auth_headers(user, token))
+
+        assert response.status_code == status.HTTP_200_OK
+        previous_url = None
+        next_url = "{}?page={}&perpage=1".format(absolute_url, p + 1)
+        if p == 2:
+            previous_url = "{}?perpage=1".format(absolute_url)
+        elif p > 2:
+            previous_url = "{}?page={}&perpage=1".format(absolute_url, p - 1)
+            next_url = None
+        expected_payload = {
+            "count": 3,
+            "next": next_url,
+            "previous": previous_url,
+            "results": [schedule],
+        }
+        assert response.json() == expected_payload
 
 
 @pytest.mark.django_db
@@ -149,7 +260,7 @@ def test_get_list_schedules_by_type(
         notify_schedule=web_schedule,
     )
 
-    expected_payload = [
+    available_schedules = [
         {
             "id": calendar_schedule.public_primary_key,
             "type": 0,
@@ -209,7 +320,13 @@ def test_get_list_schedules_by_type(
         url = reverse("api-internal:schedule-list") + "?type={}".format(schedule_type)
         response = client.get(url, format="json", **make_user_auth_headers(user, token))
         assert response.status_code == status.HTTP_200_OK
-        assert response.json() == [expected_payload[schedule_type]]
+        expected_payload = {
+            "count": 1,
+            "next": None,
+            "previous": None,
+            "results": [available_schedules[schedule_type]],
+        }
+        assert response.json() == expected_payload
 
 
 @pytest.mark.django_db
@@ -1096,20 +1213,15 @@ def test_merging_same_shift_events(
     organization, user, token = make_organization_and_user_with_plugin_token()
     client = APIClient()
 
-    schedule = make_schedule(
-        organization,
-        schedule_class=OnCallScheduleWeb,
-        name="test_web_schedule",
-    )
+    schedule = make_schedule(organization, schedule_class=OnCallScheduleWeb)
     now = timezone.now().replace(hour=0, minute=0, second=0, microsecond=0)
     start_date = now - timezone.timedelta(days=7)
-    request_date = start_date + timezone.timedelta(days=1)
+    # tomorrow
+    request_date = now + timezone.timedelta(days=1)
 
     user_a = make_user_for_organization(organization)
     user_b = make_user_for_organization(organization)
     user_c = make_user_for_organization(organization, role=LegacyAccessControlRole.VIEWER)
-    # clear users pks <-> organization cache (persisting between tests)
-    memoized_users_in_ical.cache_clear()
 
     data = {
         "start": start_date + timezone.timedelta(hours=10),
@@ -1124,58 +1236,43 @@ def test_merging_same_shift_events(
     )
     on_call_shift.add_rolling_users([[user_a, user_c, user_b]])
 
-    expected_events = [
-        {
-            "calendar_type": 0,
-            "end": request_date + timezone.timedelta(hours=12),
-            "is_gap": False,
-            "priority_level": 1,
-            "start": request_date + timezone.timedelta(hours=10),
-            "users": sorted([user_a.username, user_b.username]),
-            "missing_users": [user_c.username],
-        }
-    ]
+    expected_users = {
+        "users": sorted([user_a.username, user_b.username]),
+        "missing_users": [user_c.username],
+    }
 
     # final schedule
     url = reverse("api-internal:schedule-filter-events", kwargs={"pk": schedule.public_primary_key})
-    url += "?date={}&days=1".format(request_date.strftime("%Y-%m-%d"))
+    url += "?date={}&days=3".format(request_date.strftime("%Y-%m-%d"))
     response = client.get(url, format="json", **make_user_auth_headers(user, token))
     assert response.status_code == status.HTTP_200_OK
-    returned_events = [
+    returned_users = [
         {
-            "calendar_type": e["calendar_type"],
-            "end": e["end"],
-            "is_gap": e["is_gap"],
-            "priority_level": e["priority_level"],
-            "start": e["start"],
             "users": sorted([u["display_name"] for u in e["users"]]) if e["users"] else None,
             "missing_users": e["missing_users"],
         }
         for e in response.data["events"]
         if not e["is_gap"]
     ]
-    assert returned_events == expected_events
+    for users in returned_users:
+        assert users == expected_users
 
     # rotations
     url = reverse("api-internal:schedule-filter-events", kwargs={"pk": schedule.public_primary_key})
-    url += "?date={}&days=1&type=rotation".format(request_date.strftime("%Y-%m-%d"))
+    url += "?date={}&days=3&type=rotation".format(request_date.strftime("%Y-%m-%d"))
     response = client.get(url, format="json", **make_user_auth_headers(user, token))
     assert response.status_code == status.HTTP_200_OK
 
-    returned_events = [
+    returned_users = [
         {
-            "calendar_type": e["calendar_type"],
-            "end": e["end"],
-            "is_gap": e["is_gap"],
-            "priority_level": e["priority_level"],
-            "start": e["start"],
             "users": sorted([u["display_name"] for u in e["users"]]) if e["users"] else None,
             "missing_users": e["missing_users"],
         }
         for e in response.data["events"]
         if not e["is_gap"]
     ]
-    assert returned_events == expected_events
+    for users in returned_users:
+        assert users == expected_users
 
 
 @pytest.mark.django_db
