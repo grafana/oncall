@@ -155,51 +155,116 @@ def test_update_alert_receive_channel_backend_template_invalid_template(
 
 
 @pytest.mark.django_db
-def test_update_alert_receive_channel_backend_template_invalid_url(
+def test_update_alert_receive_channel_backend_template_set_default_template(
     make_organization_and_user_with_plugin_token,
     make_user_auth_headers,
     make_alert_receive_channel,
 ):
     organization, user, token = make_organization_and_user_with_plugin_token()
-    alert_receive_channel = make_alert_receive_channel(organization, messaging_backends_templates=None)
+    # create alert_receive_channel with non-default values for TESTONLY messaging backend templates
+    testonly_templates = {"TESTONLY": {"title": "non-default", "message": "non-default", "image_url": "non-default"}}
+    alert_receive_channel = make_alert_receive_channel(organization, messaging_backends_templates=testonly_templates)
+
     client = APIClient()
 
     url = reverse(
         "api-internal:alert_receive_channel_template-detail", kwargs={"pk": alert_receive_channel.public_primary_key}
     )
 
-    response = client.put(
-        url, format="json", data={"testonly_image_url_template": "not-url"}, **make_user_auth_headers(user, token)
-    )
-
-    assert response.status_code == status.HTTP_400_BAD_REQUEST
-    assert response.json() == {"testonly_image_url_template": "invalid URL"}
-
-
-@pytest.mark.django_db
-def test_update_alert_receive_channel_backend_template_empty_values_allowed(
-    make_organization_and_user_with_plugin_token,
-    make_user_auth_headers,
-    make_alert_receive_channel,
-):
-    organization, user, token = make_organization_and_user_with_plugin_token()
-    alert_receive_channel = make_alert_receive_channel(organization, messaging_backends_templates=None)
-    client = APIClient()
-
-    url = reverse(
-        "api-internal:alert_receive_channel_template-detail", kwargs={"pk": alert_receive_channel.public_primary_key}
-    )
-
+    # update templates with empty string, which mean templates are default
     response = client.put(
         url,
         format="json",
-        data={"testonly_title_template": "", "testonly_image_url_template": ""},
+        data={"testonly_title_template": "", "testonly_message_template": "", "testonly_image_url_template": ""},
         **make_user_auth_headers(user, token),
     )
 
     assert response.status_code == status.HTTP_200_OK
     alert_receive_channel.refresh_from_db()
-    assert alert_receive_channel.messaging_backends_templates["TESTONLY"] == {"title": "", "image_url": ""}
+    assert alert_receive_channel.messaging_backends_templates["TESTONLY"] == {
+        "title": "",
+        "message": "",
+        "image_url": "",
+    }
+
+    # check if internal api returns default values
+    response = client.get(
+        url,
+        format="json",
+        **make_user_auth_headers(user, token),
+    )
+
+    assert response.status_code == status.HTTP_200_OK
+    alert_receive_channel.refresh_from_db()
+
+    # WEB_TEMPLATE is default for templates from messaging backends
+    default_title = alert_receive_channel.INTEGRATION_TO_DEFAULT_WEB_TITLE_TEMPLATE[alert_receive_channel.integration]
+    default_message = alert_receive_channel.INTEGRATION_TO_DEFAULT_WEB_MESSAGE_TEMPLATE[
+        alert_receive_channel.integration
+    ]
+    default_image_url = alert_receive_channel.INTEGRATION_TO_DEFAULT_WEB_IMAGE_URL_TEMPLATE[
+        alert_receive_channel.integration
+    ]
+
+    assert response["testonly_title_template"] == default_title
+    assert response["testonly_message_template"] == default_message
+    assert response["testonly_image_url_template"] == default_image_url
+
+
+@pytest.mark.django_db
+def test_update_alert_receive_channel_legacy_template_set_default_template(
+    make_organization_and_user_with_plugin_token,
+    make_user_auth_headers,
+    make_alert_receive_channel,
+):
+    organization, user, token = make_organization_and_user_with_plugin_token()
+    alert_receive_channel = make_alert_receive_channel(organization, messaging_backends_templates=None)
+    client = APIClient()
+
+    url = reverse(
+        "api-internal:alert_receive_channel_template-detail", kwargs={"pk": alert_receive_channel.public_primary_key}
+    )
+
+    # set non-default templates
+    alert_receive_channel.slack_title_template = "non-default-template"
+    alert_receive_channel.slack_message_template = "non-default-template"
+    alert_receive_channel.slack_image_url_template = "non-default-template"
+    alert_receive_channel.save()
+
+    # update templates with empty string, which mean templates are default
+    response = client.put(
+        url,
+        format="json",
+        data={"slack_title_template": "", "slack_message_template": "", "slack_image_url_template": ""},
+        **make_user_auth_headers(user, token),
+    )
+
+    assert response.status_code == status.HTTP_200_OK
+    alert_receive_channel.refresh_from_db()
+    assert alert_receive_channel.slack_title_template == ""
+    assert alert_receive_channel.slack_message_template == ""
+    assert alert_receive_channel.slack_image_url_template == ""
+
+    # check if internal api returns default values
+    response = client.get(
+        url,
+        format="json",
+        **make_user_auth_headers(user, token),
+    )
+
+    assert response.status_code == status.HTTP_200_OK
+
+    default_title = alert_receive_channel.INTEGRATION_TO_DEFAULT_SLACK_TITLE_TEMPLATE[alert_receive_channel.integration]
+    default_message = alert_receive_channel.INTEGRATION_TO_DEFAULT_SLACK_MESSAGE_TEMPLATE[
+        alert_receive_channel.integration
+    ]
+    default_image_url = alert_receive_channel.INTEGRATION_TO_DEFAULT_SLACK_IMAGE_URL_TEMPLATE[
+        alert_receive_channel.integration
+    ]
+
+    assert response["slack_title_template"] == default_title
+    assert response["slack_message_template"] == default_message
+    assert response["slack_image_url_template"] == default_image_url
 
 
 @pytest.mark.django_db
@@ -277,8 +342,7 @@ def test_update_alert_receive_channel_templates(
     make_alert_receive_channel,
 ):
     def template_update_func(template):
-        # set url here to pass *_url templates validation
-        return "https://grafana.com"
+        return template + "updated"
 
     organization, user, token = make_organization_and_user_with_plugin_token()
     alert_receive_channel = make_alert_receive_channel(
@@ -290,23 +354,27 @@ def test_update_alert_receive_channel_templates(
     url = reverse(
         "api-internal:alert_receive_channel_template-detail", kwargs={"pk": alert_receive_channel.public_primary_key}
     )
-
+    # Get response from templates endpoint to get initial templates data
     response = client.get(url, format="json", **make_user_auth_headers(user, token))
 
     assert response.status_code == status.HTTP_200_OK
     existing_templates_data = response.json()
+
+    # build data for PUT request from data we received
 
     # leave only templates-related fields
     del existing_templates_data["id"]
     del existing_templates_data["verbal_name"]
     del existing_templates_data["payload_example"]
 
+    # update each template
     new_templates_data = {}
     for template_name, template_value in existing_templates_data.items():
         new_templates_data[template_name] = template_update_func(template_value)
 
     response = client.put(url, format="json", data=new_templates_data, **make_user_auth_headers(user, token))
 
+    # check if updated templates are applied
     updated_templates_data = response.json()
     for template_name, prev_template_value in existing_templates_data.items():
         assert updated_templates_data[template_name] == template_update_func(prev_template_value)

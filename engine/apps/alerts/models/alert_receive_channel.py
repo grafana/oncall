@@ -149,6 +149,8 @@ class AlertReceiveChannel(IntegrationOptionsMixin, MaintainableObject):
 
     is_finished_alerting_setup = models.BooleanField(default=False)
 
+    # *_*_template fields are legacy way of storing templates
+    # messaging_backends_templates for new integrations' templates
     slack_title_template = models.TextField(null=True, default=None)
     slack_message_template = models.TextField(null=True, default=None)
     slack_image_url_template = models.TextField(null=True, default=None)
