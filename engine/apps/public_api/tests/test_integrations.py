@@ -47,6 +47,7 @@ def test_get_list_integrations(
                     "grouping_key": None,
                     "resolve_signal": None,
                     "acknowledge_signal": None,
+                    "source_link": None,
                     "slack": {"title": None, "message": None, "image_url": None},
                     "web": {"title": None, "message": None, "image_url": None},
                     "sms": {
@@ -238,6 +239,7 @@ def test_update_integration_template_messaging_backend(
             "grouping_key": "ip_addr",
             "resolve_signal": None,
             "acknowledge_signal": None,
+            "source_link": None,
             "slack": {"title": None, "message": None, "image_url": None},
             "web": {"title": None, "message": None, "image_url": None},
             "sms": {
@@ -314,6 +316,7 @@ def test_update_resolve_signal_template(
             "grouping_key": None,
             "resolve_signal": "resig",
             "acknowledge_signal": None,
+            "source_link": None,
             "slack": {"title": None, "message": None, "image_url": None},
             "web": {"title": None, "message": None, "image_url": None},
             "sms": {
@@ -422,6 +425,7 @@ def test_update_sms_template_with_empty_dict(
             "grouping_key": None,
             "resolve_signal": None,
             "acknowledge_signal": None,
+            "source_link": None,
             "slack": {"title": None, "message": None, "image_url": None},
             "web": {"title": None, "message": None, "image_url": None},
             "sms": {
@@ -482,6 +486,7 @@ def test_update_integration_name(
             "grouping_key": None,
             "resolve_signal": None,
             "acknowledge_signal": None,
+            "source_link": None,
             "slack": {"title": None, "message": None, "image_url": None},
             "web": {"title": None, "message": None, "image_url": None},
             "sms": {
@@ -545,6 +550,7 @@ def test_set_default_template(
             "grouping_key": None,
             "resolve_signal": None,
             "acknowledge_signal": None,
+            "source_link": None,
             "slack": {"title": None, "message": None, "image_url": None},
             "web": {"title": None, "message": None, "image_url": None},
             "sms": {
