@@ -42,7 +42,7 @@ const ITEMS_PER_PAGE = 10;
 interface SchedulesPageProps extends WithStoreProps, RouteComponentProps, PageProps {}
 
 interface SchedulesPageState {
-  schedules: Schedule[];
+  filteredSchedules: Schedule[];
   startMoment: dayjs.Dayjs;
   filters: SchedulesFiltersType;
   showNewScheduleSelector: boolean;
@@ -60,7 +60,7 @@ class SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSta
     const { store } = this.props;
 
     this.state = {
-      schedules: undefined,
+      filteredSchedules: undefined,
       startMoment: getStartOfWeek(store.currentTimezone),
       filters: { searchTerm: '', status: 'all', type: undefined },
       showNewScheduleSelector: false,
@@ -76,7 +76,7 @@ class SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSta
       store,
       query: { p },
     } = this.props;
-    const { store } = this.props;
+
     const { filters } = this.state;
 
     store.userStore.updateItems();
@@ -85,11 +85,12 @@ class SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSta
       if (filters === this.state.filters) {
         // check for any change in filters in the meanwhile
         this.setState({
-          schedules: this.getFilteredSchedules(),
+          filteredSchedules: this.getFilteredSchedules(),
           isLoading: false,
         });
       }
     });
+
     this.setState({ page: p ? Number(p) : 1 }, this.updateSchedules);
   }
 
@@ -98,16 +99,21 @@ class SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSta
     const { filters, page } = this.state;
 
     LocationHelper.update({ p: page }, 'partial');
-    await store.scheduleStore.updateItems(filters, page);
+
+    await store.scheduleStore.updateItems(filters, page).then(() => {
+      this.setState({
+        filteredSchedules: this.getFilteredSchedules(),
+        isLoading: false,
+      });
+    });
   };
 
   render() {
     const { store } = this.props;
-    const { filters, showNewScheduleSelector, expandedRowKeys, scheduleIdToEdit, page } = this.state;
+    const { filteredSchedules, isLoading, filters, showNewScheduleSelector, expandedRowKeys, scheduleIdToEdit, page } =
+      this.state;
 
-    const { scheduleStore } = store;
-
-    const { count, results } = scheduleStore.getSearchResult();
+    const { count } = store.scheduleStore.getSearchResult();
 
     const columns = [
       {
@@ -182,7 +188,7 @@ class SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSta
             </div>
             <Table
               columns={columns}
-              data={schedules}
+              data={filteredSchedules}
               loading={isLoading}
               pagination={{ page, total: Math.ceil((count || 0) / ITEMS_PER_PAGE), onChange: this.handlePageChange }}
               rowKey="id"
@@ -215,14 +221,6 @@ class SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSta
           />
         )}
       </>
-    );
-  }
-
-  renderLoading() {
-    return (
-      <div className={cx('loader')}>
-        <LoadingPlaceholder text="Loading schedules..."></LoadingPlaceholder>
-      </div>
     );
   }
 
@@ -431,7 +429,7 @@ class SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSta
 
     return scheduleStore
       .getSearchResult()
-      .filter(
+      ?.results?.filter(
         (schedule) =>
           filters.status === 'all' ||
           (filters.status === 'used' && schedule.number_of_escalation_chains) ||
@@ -449,7 +447,7 @@ class SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSta
     scheduleStore.updateItems(filters).finally(() => {
       if (this.state.filters === filters) {
         this.setState({
-          schedules: this.getFilteredSchedules(),
+          filteredSchedules: this.getFilteredSchedules(),
         });
       }
     });
