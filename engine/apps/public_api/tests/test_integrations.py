@@ -596,7 +596,7 @@ def test_set_default_messaging_backend_template(
     make_integration_heartbeat(integration)
 
     client = APIClient()
-    data_for_update = {"templates": {"TESTONLY": {"title": None}}}
+    data_for_update = {"templates": {"testonly": {"title": None}}}
     expected_response = {
         "id": integration.public_primary_key,
         "team_id": None,
