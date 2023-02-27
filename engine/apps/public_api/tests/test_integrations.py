@@ -581,6 +581,73 @@ def test_set_default_template(
 
 
 @pytest.mark.django_db
+def test_set_default_messaging_backend_template(
+    make_organization_and_user_with_token, make_alert_receive_channel, make_channel_filter, make_integration_heartbeat
+):
+    organization, user, token = make_organization_and_user_with_token()
+    integration = make_alert_receive_channel(
+        organization,
+        verbal_name="grafana",
+        messaging_backends_templates={
+            "TESTONLY": {"title": "the-title", "message": "the-message", "image_url": "the-image-url"}
+        },
+    )
+    default_channel_filter = make_channel_filter(integration, is_default=True)
+    make_integration_heartbeat(integration)
+
+    client = APIClient()
+    data_for_update = {"templates": {"TESTONLY": {"title": None}}}
+    expected_response = {
+        "id": integration.public_primary_key,
+        "team_id": None,
+        "name": "grafana",
+        "link": integration.integration_url,
+        "type": "grafana",
+        "default_route": {
+            "escalation_chain_id": None,
+            "id": default_channel_filter.public_primary_key,
+            "slack": {"channel_id": None, "enabled": True},
+            "telegram": {"id": None, "enabled": False},
+            TEST_MESSAGING_BACKEND_FIELD: {"id": None, "enabled": False},
+        },
+        "heartbeat": {
+            "link": f"{integration.integration_url}heartbeat/",
+        },
+        "templates": {
+            "grouping_key": None,
+            "resolve_signal": None,
+            "acknowledge_signal": None,
+            "source_link": None,
+            "slack": {"title": None, "message": None, "image_url": None},
+            "web": {"title": None, "message": None, "image_url": None},
+            "sms": {
+                "title": None,
+            },
+            "phone_call": {
+                "title": None,
+            },
+            "telegram": {
+                "title": None,
+                "message": None,
+                "image_url": None,
+            },
+            TEST_MESSAGING_BACKEND_FIELD: {
+                "title": None,
+                "message": "the-message",
+                "image_url": "the-image-url",
+            },
+        },
+        "maintenance_mode": None,
+        "maintenance_started_at": None,
+        "maintenance_end_at": None,
+    }
+    url = reverse("api-public:integrations-detail", args=[integration.public_primary_key])
+    response = client.put(url, data=data_for_update, format="json", HTTP_AUTHORIZATION=f"{token}")
+    assert response.status_code == status.HTTP_200_OK
+    assert response.data == expected_response
+
+
+@pytest.mark.django_db
 def test_get_list_integrations_direct_paging_hidden(
     make_organization_and_user_with_token,
     make_alert_receive_channel,
