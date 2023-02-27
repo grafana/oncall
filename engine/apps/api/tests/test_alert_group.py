@@ -1549,6 +1549,43 @@ def test_alert_group_preview_body_invalid_template_syntax(
 
 
 @pytest.mark.django_db
+def test_grouped_alerts(
+    make_organization_and_user_with_plugin_token,
+    make_alert_receive_channel,
+    make_alert_group,
+    make_alert,
+    make_user_auth_headers,
+):
+    organization, user, token = make_organization_and_user_with_plugin_token()
+    alert_receive_channel = make_alert_receive_channel(organization)
+    alert_group = make_alert_group(alert_receive_channel)
+
+    # create 101 alerts and check that only 100 are returned
+    for i in range(101):
+        make_alert(
+            alert_group=alert_group,
+            created_at=timezone.datetime.min + timezone.timedelta(minutes=i),
+            raw_request_data=alert_receive_channel.config.example_payload,
+        )
+
+    client = APIClient()
+    url = reverse("api-internal:alertgroup-detail", kwargs={"pk": alert_group.public_primary_key})
+
+    response = client.get(url, **make_user_auth_headers(user, token))
+
+    assert response.status_code == status.HTTP_200_OK
+    assert len(response.json()["alerts"]) == 100
+
+    first_alert_created_at = response.json()["alerts"][0]["created_at"]
+    last_alert_created_at = response.json()["alerts"][-1]["created_at"]
+
+    first_alert_created_at = timezone.datetime.strptime(first_alert_created_at, "%Y-%m-%dT%H:%M:%S.%fZ")
+    last_alert_created_at = timezone.datetime.strptime(last_alert_created_at, "%Y-%m-%dT%H:%M:%S.%fZ")
+
+    assert first_alert_created_at > last_alert_created_at
+
+
+@pytest.mark.django_db
 def test_alert_group_paged_users(
     make_user_for_organization,
     make_user_auth_headers,
