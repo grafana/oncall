@@ -50,6 +50,10 @@ class MobileAppBackend(BaseMessagingBackend):
             critical=critical,
         )
 
+    @property
+    def customizable_templates(self):
+        return False
+
 
 class MobileAppCriticalBackend(MobileAppBackend):
     """

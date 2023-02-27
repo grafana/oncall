@@ -8,11 +8,7 @@ from apps.alerts.models import AlertReceiveChannel
 from apps.base.messaging import get_messaging_backends
 from common.api_helpers.custom_fields import TeamPrimaryKeyRelatedField
 from common.api_helpers.exceptions import BadRequest
-from common.api_helpers.mixins import (
-    LEGACY_NOTIFICATION_CHANNEL_OPTIONS,
-    NOTIFICATION_CHANNEL_OPTIONS,
-    EagerLoadingMixin,
-)
+from common.api_helpers.mixins import PHONE_CALL, SLACK, SMS, TELEGRAM, WEB, EagerLoadingMixin
 from common.jinja_templater import jinja_template_env
 from common.utils import timed_lru_cache
 
@@ -23,8 +19,8 @@ from .routes import DefaultChannelFilterSerializer
 # Behaviour templates are named differently in public api
 PUBLIC_BEHAVIOUR_TEMPLATES_FIELDS = ["resolve_signal", "grouping_key", "acknowledge_signal", "source_link"]
 
-# PUBLIC_TEMPLATES_FIELDS is map from template name in public api to its db field.
-PUBLIC_TEMPLATES_FIELDS = {
+# TEMPLATE_PUBLIC_API_NAME_TO_DB_FIELD is map from template name in public api to its db field.
+TEMPLATE_PUBLIC_API_NAME_TO_DB_FIELD = {
     "grouping_key": "grouping_id_template",
     "resolve_signal": "resolve_condition_template",
     "acknowledge_signal": "acknowledge_condition_template",
@@ -52,7 +48,12 @@ PUBLIC_TEMPLATES_FIELDS = {
     },
 }
 
-TEMPLATES_WITH_SEPARATE_DB_FIELD = LEGACY_NOTIFICATION_CHANNEL_OPTIONS + PUBLIC_BEHAVIOUR_TEMPLATES_FIELDS
+TEMPLATES_WITH_SEPARATE_DB_FIELD = [SLACK, WEB, PHONE_CALL, SMS, TELEGRAM] + PUBLIC_BEHAVIOUR_TEMPLATES_FIELDS
+
+PUBLIC_API_CUSTOMIZABLE_NOTIFICATION_CHANNEL_TEMPLATES = [SLACK, WEB, PHONE_CALL, SMS, TELEGRAM]
+for backend_id, backend in get_messaging_backends():
+    if backend.customizable_templates:
+        PUBLIC_API_CUSTOMIZABLE_NOTIFICATION_CHANNEL_TEMPLATES.append(backend.slug)
 
 
 class IntegrationTypeField(fields.CharField):
@@ -147,7 +148,7 @@ class IntegrationSerializer(EagerLoadingMixin, serializers.ModelSerializer, Main
         if not isinstance(templates, dict):
             raise BadRequest(detail="Invalid template data")
 
-        for notification_channel in NOTIFICATION_CHANNEL_OPTIONS:
+        for notification_channel in PUBLIC_API_CUSTOMIZABLE_NOTIFICATION_CHANNEL_TEMPLATES:
             template_data = templates.get(notification_channel, {})
             if template_data is None:
                 continue
@@ -249,26 +250,26 @@ class IntegrationSerializer(EagerLoadingMixin, serializers.ModelSerializer, Main
         """
         if type(template_from_request) is str:  # if it's plain template: {"resolve_signal": "resolve me"}
             try:
-                validated_data[PUBLIC_TEMPLATES_FIELDS[template_backend_name]] = template_from_request
+                validated_data[TEMPLATE_PUBLIC_API_NAME_TO_DB_FIELD[template_backend_name]] = template_from_request
             except KeyError:
                 raise BadRequest(detail="Invalid template data")
         elif type(template_from_request) is dict:  # if it's nested template: {slack: {"title": "some title"}}
             for attr, template in template_from_request.items():
                 try:
-                    validated_data[PUBLIC_TEMPLATES_FIELDS[template_backend_name][attr]] = template
+                    validated_data[TEMPLATE_PUBLIC_API_NAME_TO_DB_FIELD[template_backend_name][attr]] = template
                 except KeyError:
                     raise BadRequest(detail="Invalid template data")
         elif template_from_request is None:
             # if it's we receive None, it's needed to set template to default value
             try:
-                template_to_set_to_default = PUBLIC_TEMPLATES_FIELDS[template_backend_name]
+                template_to_set_to_default = TEMPLATE_PUBLIC_API_NAME_TO_DB_FIELD[template_backend_name]
                 if type(template_to_set_to_default) is str:
                     # if we receive None for plain template just set it to None
-                    validated_data[PUBLIC_TEMPLATES_FIELDS[template_backend_name]] = None
+                    validated_data[TEMPLATE_PUBLIC_API_NAME_TO_DB_FIELD[template_backend_name]] = None
                 elif type(template_to_set_to_default) is dict:
                     # if we receive None for nested template set all it's fields to None
                     for key in template_to_set_to_default.keys():
-                        validated_data[PUBLIC_TEMPLATES_FIELDS[template_backend_name][key]] = None
+                        validated_data[TEMPLATE_PUBLIC_API_NAME_TO_DB_FIELD[template_backend_name][key]] = None
             except KeyError:
                 raise BadRequest(detail="Invalid template data")
         return validated_data
@@ -294,9 +295,11 @@ class IntegrationSerializer(EagerLoadingMixin, serializers.ModelSerializer, Main
             messaging_backends_templates = {}
 
         for backend_id, backend in get_messaging_backends():
+            if not backend.customizable_templates:
+                continue
             backend_template = {}
-            if backend_id.lower() in templates_data_from_request:  # check to modify only templates from request data
-                template_from_request = templates_data_from_request[backend_id.lower()]
+            if backend.slug in templates_data_from_request:  # check to modify only templates from request data
+                template_from_request = templates_data_from_request[backend.slug]
             else:
                 continue
             if template_from_request is None:
@@ -315,7 +318,7 @@ class IntegrationSerializer(EagerLoadingMixin, serializers.ModelSerializer, Main
                     backend_template[field] = updated_field_template
 
             # remove backend-specific template from payload
-            templates_data_from_request.pop(backend_id.lower(), None)
+            templates_data_from_request.pop(backend.slug, None)
 
             if backend_template:
                 validated_data["messaging_backends_templates"] = messaging_backends_templates | {
@@ -330,10 +333,11 @@ class IntegrationSerializer(EagerLoadingMixin, serializers.ModelSerializer, Main
         messaging_backends_templates = instance.messaging_backends_templates or {}
 
         for backend_id, backend in get_messaging_backends():
+            if not backend.customizable_templates:
+                continue
             if not backend.template_fields:
                 continue
-
-            result[backend_id.lower()] = {
+            result[backend.slug] = {
                 field: messaging_backends_templates.get(backend_id, {}).get(field) for field in backend.template_fields
             }
 
