@@ -559,7 +559,7 @@ class AlertReceiveChannelTemplatesSerializer(EagerLoadingMixin, serializers.Mode
             # validate updated templates if any
             backend_updates = {}
             for field in APPEARANCE_TEMPLATE_NAMES:
-                field_name = f"{backend_id.lower()}_{field}_template"
+                field_name = f"{backend_id.slug}_{field}_template"
                 value = data.get(field_name)
                 validator = jinja_template_env.from_string
                 if value is not None:
@@ -621,6 +621,6 @@ class AlertReceiveChannelTemplatesSerializer(EagerLoadingMixin, serializers.Mode
                     value = obj.messaging_backends_templates.get(backend_id, {}).get(field)
                 if not value:
                     value = obj.get_default_template_attribute(backend_id, field)
-                field_name = f"{backend_id.lower()}_{field}_template"
+                field_name = f"{backend.slug}_{field}_template"
                 templates[field_name] = value
         return templates
