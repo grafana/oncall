@@ -551,7 +551,7 @@ class AlertReceiveChannelTemplatesSerializer(EagerLoadingMixin, serializers.Mode
     def _handle_messaging_backend_updates(self, data, ret):
         """Update additional messaging backend templates if needed."""
         errors = {}
-        for backend_id, _ in get_messaging_backends():
+        for backend_id, backend in get_messaging_backends():
             # fetch existing templates if any
             backend_templates = {}
             if self.instance.messaging_backends_templates is not None:
@@ -559,7 +559,7 @@ class AlertReceiveChannelTemplatesSerializer(EagerLoadingMixin, serializers.Mode
             # validate updated templates if any
             backend_updates = {}
             for field in APPEARANCE_TEMPLATE_NAMES:
-                field_name = f"{backend_id.slug}_{field}_template"
+                field_name = f"{backend.slug}_{field}_template"
                 value = data.get(field_name)
                 validator = jinja_template_env.from_string
                 if value is not None:
