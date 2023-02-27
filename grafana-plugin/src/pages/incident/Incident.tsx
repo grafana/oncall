@@ -755,7 +755,7 @@ function AttachedIncidentsList({
       headerWithBackground
       className={cx('collapse')}
       isOpen
-      label={<HorizontalGroup wrap>{incident.dependent_alert_groups.length} Attached Incidents</HorizontalGroup>}
+      label={<HorizontalGroup wrap>{incident.dependent_alert_groups.length} Attached Alert Groups</HorizontalGroup>}
       contentClassName={cx('incidents-content')}
     >
       {alerts.map((incident) => {
