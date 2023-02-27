@@ -177,6 +177,7 @@ def test_update_integration_template(
             "grouping_key": "ip_addr",
             "resolve_signal": None,
             "acknowledge_signal": None,
+            "source_link": None,
             "slack": {"title": "Incident", "message": None, "image_url": None},
             "web": {"title": None, "message": None, "image_url": None},
             "sms": {
