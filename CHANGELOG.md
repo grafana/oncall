@@ -18,7 +18,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Moved reCAPTCHA to backend environment variable for more flexible configuration between different environments.
 - Add pagination to schedule listing
-- Show latest 100 alert on alert group page ([1417](https://github.com/grafana/oncall/pull/1417))
+- Show 100 latest alerts on alert group page ([1417](https://github.com/grafana/oncall/pull/1417))
 
 ## v1.1.29 (2023-02-23)
 
