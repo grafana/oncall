@@ -638,7 +638,7 @@ function GroupedIncidentsList({
     return null;
   }
 
-  const latestAlert = alerts[alerts.length - 1];
+  const latestAlert = alerts[0];
   const latestAlertMoment = moment(latestAlert.created_at);
 
   return (
