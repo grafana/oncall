@@ -39,7 +39,7 @@ import EscalationVariants from 'containers/EscalationVariants/EscalationVariants
 import { prepareForEdit, prepareForUpdate } from 'containers/EscalationVariants/EscalationVariants.helpers';
 import IntegrationSettings from 'containers/IntegrationSettings/IntegrationSettings';
 import { IntegrationSettingsTab } from 'containers/IntegrationSettings/IntegrationSettings.types';
-import { WithPermissionControl } from 'containers/WithPermissionControl/WithPermissionControl';
+import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
 import {
   Alert as AlertType,
   Alert,
@@ -260,11 +260,11 @@ class IncidentPage extends React.Component<IncidentPageProps, IncidentPageState>
                       #{incident.root_alert_group.inside_organization_number}{' '}
                       {incident.root_alert_group.render_for_web.title}
                     </PluginLink>{' '}
-                    <WithPermissionControl userAction={UserActions.AlertGroupsWrite}>
+                    <WithPermissionControlTooltip userAction={UserActions.AlertGroupsWrite}>
                       <Button variant="secondary" onClick={this.getUnattachClickHandler(incident.pk)} size="sm">
                         Unattach
                       </Button>
-                    </WithPermissionControl>
+                    </WithPermissionControlTooltip>
                   </Text>
                 )}
               </HorizontalGroup>
@@ -764,11 +764,11 @@ function AttachedIncidentsList({
             <PluginLink query={{ page: 'incident', id: incident.pk }}>
               #{incident.inside_organization_number} {incident.render_for_web.title}
             </PluginLink>
-            <WithPermissionControl userAction={UserActions.AlertGroupsWrite}>
+            <WithPermissionControlTooltip userAction={UserActions.AlertGroupsWrite}>
               <Button size="sm" onClick={() => getUnattachClickHandler(incident.pk)} variant="secondary">
                 Unattach
               </Button>
-            </WithPermissionControl>
+            </WithPermissionControlTooltip>
           </HorizontalGroup>
         );
       })}

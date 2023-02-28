@@ -8,7 +8,7 @@ import { MatchMediaTooltip } from 'components/MatchMediaTooltip/MatchMediaToolti
 import PluginLink from 'components/PluginLink/PluginLink';
 import Tag from 'components/Tag/Tag';
 import Text from 'components/Text/Text';
-import { WithPermissionControl } from 'containers/WithPermissionControl/WithPermissionControl';
+import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
 import { MaintenanceIntegration } from 'models/alert_receive_channel';
 import { Alert as AlertType, Alert, IncidentStatus } from 'models/alertgroup/alertgroup.types';
 import { User } from 'models/user/user.types';
@@ -154,35 +154,35 @@ export function getActionButtons(incident: AlertType, cx: any, callbacks: { [key
   const { onResolve, onUnresolve, onAcknowledge, onUnacknowledge, onSilence, onUnsilence } = callbacks;
 
   const resolveButton = (
-    <WithPermissionControl key="resolve" userAction={UserActions.AlertGroupsWrite}>
+    <WithPermissionControlTooltip key="resolve" userAction={UserActions.AlertGroupsWrite}>
       <Button disabled={incident.loading} onClick={onResolve} variant="primary">
         Resolve
       </Button>
-    </WithPermissionControl>
+    </WithPermissionControlTooltip>
   );
 
   const unacknowledgeButton = (
-    <WithPermissionControl key="unacknowledge" userAction={UserActions.AlertGroupsWrite}>
+    <WithPermissionControlTooltip key="unacknowledge" userAction={UserActions.AlertGroupsWrite}>
       <Button disabled={incident.loading} onClick={onUnacknowledge} variant="secondary">
         Unacknowledge
       </Button>
-    </WithPermissionControl>
+    </WithPermissionControlTooltip>
   );
 
   const unresolveButton = (
-    <WithPermissionControl key="unacknowledge" userAction={UserActions.AlertGroupsWrite}>
+    <WithPermissionControlTooltip key="unacknowledge" userAction={UserActions.AlertGroupsWrite}>
       <Button disabled={incident.loading} onClick={onUnresolve} variant="primary">
         Unresolve
       </Button>
-    </WithPermissionControl>
+    </WithPermissionControlTooltip>
   );
 
   const acknowledgeButton = (
-    <WithPermissionControl key="acknowledge" userAction={UserActions.AlertGroupsWrite}>
+    <WithPermissionControlTooltip key="acknowledge" userAction={UserActions.AlertGroupsWrite}>
       <Button disabled={incident.loading} onClick={onAcknowledge} variant="secondary">
         Acknowledge
       </Button>
-    </WithPermissionControl>
+    </WithPermissionControlTooltip>
   );
 
   const buttons = [];
@@ -201,11 +201,11 @@ export function getActionButtons(incident: AlertType, cx: any, callbacks: { [key
 
     if (incident.status === IncidentStatus.Silenced) {
       buttons.push(
-        <WithPermissionControl key="silence" userAction={UserActions.AlertGroupsWrite}>
+        <WithPermissionControlTooltip key="silence" userAction={UserActions.AlertGroupsWrite}>
           <Button disabled={incident.loading} variant="secondary" onClick={onUnsilence}>
             Unsilence
           </Button>
-        </WithPermissionControl>
+        </WithPermissionControlTooltip>
       );
     }
 
