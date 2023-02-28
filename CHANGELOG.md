@@ -18,6 +18,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Team change in the Integration page always causes 403 ([1292](https://github.com/grafana/oncall/issues/1292))
 - Schedules: Permalink doesn't work with multi-teams ([940](https://github.com/grafana/oncall/issues/940))
 - Schedules list -> expanded schedule blows page width ([1293](https://github.com/grafana/oncall/issues/1293))
+- Show permission error for accessing Telegram as Viewer ([1273](https://github.com/grafana/oncall/issues/1273))
 
 ### Changed
 
