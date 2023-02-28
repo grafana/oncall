@@ -12,7 +12,7 @@ import { isUserActionAllowed, UserActions } from 'utils/authorization';
 import { BREAKPOINT_TABS } from 'utils/consts';
 
 import { UserSettingsTab } from './UserSettings.types';
-
+import { AppFeature } from 'state/features';
 import styles from './UserSettings.module.css';
 
 const cx = cn.bind(styles);
@@ -51,7 +51,7 @@ const UserSettings = observer(({ id, onHide, tab = UserSettingsTab.UserInfo }: U
   const [showNotificationSettingsTab, showSlackConnectionTab, showTelegramConnectionTab, showMobileAppConnectionTab] = [
     !isDesktopOrLaptop,
     isCurrent && teamStore.currentTeam?.slack_team_identity && !storeUser.slack_user_identity,
-    isCurrent && !storeUser.telegram_configuration,
+    isCurrent && store.hasFeature(AppFeature.Telegram) && !storeUser.telegram_configuration,
     isCurrent && isUserActionAllowed(UserActions.UserSettingsWrite),
   ];
 

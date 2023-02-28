@@ -42,7 +42,7 @@ export const UserInfoTab = (props: UserInfoTabProps) => {
         <Label>Email:</Label>
         <span className={cx('user-value')}>{storeUser.email || '—'}</span>
       </div>
-      <Connectors {...props} />
+      <Connectors {...props} store={store} />
     </>
   );
 };
