@@ -58,6 +58,14 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
     this.update().then(() => this.parseQueryParams(true));
   }
 
+  componentDidUpdate(prevProps: Readonly<IntegrationsProps>): void {
+    if (prevProps.match.params.id && !this.props.match.params.id) {
+      this.setState({ errorData: initErrorDataState() }, () => {
+        this.parseQueryParams();
+      });
+    }
+  }
+
   setSelectedAlertReceiveChannel = (alertReceiveChannelId: AlertReceiveChannel['id'], shouldRedirect = false) => {
     const { store, history } = this.props;
     store.selectedAlertReceiveChannel = alertReceiveChannelId;
