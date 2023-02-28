@@ -333,13 +333,13 @@ def test_get_list_schedules_by_type(
 @pytest.mark.parametrize(
     "query_param, expected_schedule_names",
     [
-        ("?used_in_escalations=true", ["test_web_schedule"]),
-        ("?used_in_escalations=false", ["test_calendar_schedule", "test_ical_schedule"]),
-        ("?used_in_escalations=null", ["test_calendar_schedule", "test_ical_schedule", "test_web_schedule"]),
+        ("?used=true", ["test_web_schedule"]),
+        ("?used=false", ["test_calendar_schedule", "test_ical_schedule"]),
+        ("?used=null", ["test_calendar_schedule", "test_ical_schedule", "test_web_schedule"]),
         ("", ["test_calendar_schedule", "test_ical_schedule", "test_web_schedule"]),
     ],
 )
-def test_get_list_schedules_by_used_in_escalations(
+def test_get_list_schedules_by_used(
     schedule_internal_api_setup,
     make_escalation_chain,
     make_escalation_policy,

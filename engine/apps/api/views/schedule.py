@@ -155,9 +155,7 @@ class ScheduleView(
     def get_queryset(self):
         is_short_request = self.request.query_params.get("short", "false") == "true"
         filter_by_type = self.request.query_params.get("type")
-        used_in_escalations = BooleanField(allow_null=True).to_internal_value(
-            data=self.request.query_params.get("used_in_escalations")
-        )
+        used = BooleanField(allow_null=True).to_internal_value(data=self.request.query_params.get("used"))
         organization = self.request.auth.organization
         queryset = OnCallSchedule.objects.filter(organization=organization, team=self.request.user.current_team).defer(
             # avoid requesting large text fields which are not used when listing schedules
@@ -169,8 +167,8 @@ class ScheduleView(
             queryset = self.serializer_class.setup_eager_loading(queryset)
         if filter_by_type is not None and filter_by_type in SCHEDULE_TYPE_TO_CLASS:
             queryset = queryset.filter().instance_of(SCHEDULE_TYPE_TO_CLASS[filter_by_type])
-        if used_in_escalations is not None:
-            queryset = queryset.filter(escalation_policies__isnull=not used_in_escalations).distinct()
+        if used is not None:
+            queryset = queryset.filter(escalation_policies__isnull=not used).distinct()
         return queryset
 
     def perform_create(self, serializer):
