@@ -318,10 +318,9 @@ class IntegrationSerializer(EagerLoadingMixin, serializers.ModelSerializer, Main
             templates_data_from_request.pop(backend.slug, None)
 
             if backend_template:
-                validated_data["messaging_backends_templates"] = messaging_backends_templates | {
-                    backend_id: backend_template
-                }
+                messaging_backends_templates[backend_id] = backend_template
 
+        validated_data["messaging_backends_templates"] = messaging_backends_templates
         return validated_data
 
     @staticmethod
