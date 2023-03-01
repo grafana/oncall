@@ -25,8 +25,8 @@ const SchedulesFilters = (props: SchedulesFiltersProps) => {
     [value]
   );
   const handleStatusChange = useCallback(
-    (status) => {
-      onChange({ ...value, status });
+    (used) => {
+      onChange({ ...value, used });
     },
     [value]
   );
@@ -56,14 +56,14 @@ const SchedulesFilters = (props: SchedulesFiltersProps) => {
         <Field label="Status">
           <RadioButtonGroup
             options={[
-              { label: 'All', value: 'all' },
+              { label: 'All', value: undefined },
               {
                 label: 'Used in escalations',
-                value: 'used',
+                value: true,
               },
-              { label: 'Unused', value: 'unused' },
+              { label: 'Unused', value: false },
             ]}
-            value={value.status}
+            value={value.used}
             onChange={handleStatusChange}
           />
         </Field>

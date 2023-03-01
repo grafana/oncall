@@ -431,7 +431,7 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
               <span>{record.render_for_web.title}</span>
             </Tooltip>
           </PluginLink>
-          {Boolean(record.dependent_alert_groups.length) && `+ ${record.dependent_alert_groups.length} attached`}
+          {Boolean(record.dependent_alert_groups.length) && ` + ${record.dependent_alert_groups.length} attached`}
         </div>
       </VerticalGroup>
     );
