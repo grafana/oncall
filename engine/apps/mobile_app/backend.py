@@ -52,6 +52,9 @@ class MobileAppBackend(BaseMessagingBackend):
 
     @property
     def customizable_templates(self):
+        """
+        Disable customization if templates for mobile app
+        """
         return False
 
 

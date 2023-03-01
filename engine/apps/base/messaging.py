@@ -60,6 +60,9 @@ class BaseMessagingBackend:
 
     @property
     def customizable_templates(self):
+        """
+        customizable_templates indicates if templates for messaging backend can be changes by user
+        """
         return True
 
 

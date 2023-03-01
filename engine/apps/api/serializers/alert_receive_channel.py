@@ -552,6 +552,8 @@ class AlertReceiveChannelTemplatesSerializer(EagerLoadingMixin, serializers.Mode
         """Update additional messaging backend templates if needed."""
         errors = {}
         for backend_id, backend in get_messaging_backends():
+            if not backend.customizable_templates:
+                continue
             # fetch existing templates if any
             backend_templates = {}
             if self.instance.messaging_backends_templates is not None:
@@ -615,6 +617,8 @@ class AlertReceiveChannelTemplatesSerializer(EagerLoadingMixin, serializers.Mode
         """Return additional messaging backend templates if any."""
         templates = {}
         for backend_id, backend in get_messaging_backends():
+            if not backend.customizable_templates:
+                continue
             for field in backend.template_fields:
                 value = None
                 if obj.messaging_backends_templates:
