@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { SyntheticEvent } from 'react';
 
 import { Button, HorizontalGroup, IconButton, LoadingPlaceholder, VerticalGroup } from '@grafana/ui';
 import cn from 'classnames/bind';
@@ -73,11 +73,9 @@ class SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSta
       query: { p },
     } = this.props;
 
-    const { filters } = this.state;
+    const { filters, page } = this.state;
 
-    store.userStore.updateItems();
-
-    await store.scheduleStore.updateItems(undefined, undefined, () => filters === this.state.filters);
+    await store.scheduleStore.updateItems(filters, page, () => filters === this.state.filters);
 
     this.setState({ page: p ? Number(p) : 1 }, this.updateSchedules);
   }
@@ -375,23 +373,24 @@ class SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSta
 
   renderButtons = (item: Schedule) => {
     return (
-      <HorizontalGroup>
-        <WithPermissionControl key="edit" userAction={UserActions.SchedulesWrite}>
-          <IconButton tooltip="Settings" name="cog" onClick={this.getEditScheduleClickHandler(item.id)} />
-        </WithPermissionControl>
-        <WithPermissionControl key="edit" userAction={UserActions.SchedulesWrite}>
-          <WithConfirm>
-            <IconButton tooltip="Delete" name="trash-alt" onClick={this.getDeleteScheduleClickHandler(item.id)} />
-          </WithConfirm>
-        </WithPermissionControl>
-      </HorizontalGroup>
+      /* Wrapper div for onClick event to prevent expanding schedule view on delete/edit click */
+      <div onClick={(event: SyntheticEvent) => event.stopPropagation()}>
+        <HorizontalGroup>
+          <WithPermissionControl key="edit" userAction={UserActions.SchedulesWrite}>
+            <IconButton tooltip="Settings" name="cog" onClick={this.getEditScheduleClickHandler(item.id)} />
+          </WithPermissionControl>
+          <WithPermissionControl key="edit" userAction={UserActions.SchedulesWrite}>
+            <WithConfirm>
+              <IconButton tooltip="Delete" name="trash-alt" onClick={this.getDeleteScheduleClickHandler(item.id)} />
+            </WithConfirm>
+          </WithPermissionControl>
+        </HorizontalGroup>
+      </div>
     );
   };
 
   getEditScheduleClickHandler = (id: Schedule['id']) => {
-    return (event) => {
-      event.stopPropagation();
-
+    return () => {
       this.setState({ scheduleIdToEdit: id });
     };
   };
@@ -411,7 +410,12 @@ class SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSta
 
   applyFilters = (filters: SchedulesFiltersType) => {
     const { scheduleStore } = this.props.store;
-    scheduleStore.updateItems(filters, undefined, () => this.state.filters === filters);
+    const shouldUpdateFn = () => this.state.filters === filters;
+    scheduleStore.updateItems(filters, 1, shouldUpdateFn).then(() => {
+      if (shouldUpdateFn) {
+        this.setState({ page: 1 });
+      }
+    });
   };
 
   debouncedUpdateSchedules = debounce(this.applyFilters, FILTERS_DEBOUNCE_MS);
@@ -423,9 +427,14 @@ class SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSta
 
   update = () => {
     const { store } = this.props;
+    const { filters, page } = this.state;
     const { scheduleStore } = store;
 
-    return scheduleStore.updateItems();
+    // need to check if count is 1, which means we should change the page to the previous one
+    const { results } = store.scheduleStore.getSearchResult();
+    const newPage = results.length === 1 ? Math.max(page - 1, 1) : page;
+
+    return scheduleStore.updateItems(filters, newPage);
   };
 
   getUpdateRelatedEscalationChainsHandler = (scheduleId: Schedule['id']) => {
