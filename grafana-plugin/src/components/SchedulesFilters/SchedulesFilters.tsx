@@ -25,8 +25,8 @@ const SchedulesFilters = (props: SchedulesFiltersProps) => {
     [value]
   );
   const handleStatusChange = useCallback(
-    (status) => {
-      onChange({ ...value, status });
+    (used) => {
+      onChange({ ...value, used });
     },
     [value]
   );
@@ -63,7 +63,7 @@ const SchedulesFilters = (props: SchedulesFiltersProps) => {
               },
               { label: 'Unused', value: false },
             ]}
-            value={value.status}
+            value={value.used}
             onChange={handleStatusChange}
           />
         </Field>
