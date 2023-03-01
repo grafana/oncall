@@ -118,12 +118,21 @@ export class ScheduleStore extends BaseStore {
   }
 
   @action
-  async updateItems(f: any = { searchTerm: '', type: undefined }, page = 1, shouldUpdateFn: () => boolean = undefined) {
+  async updateItems(
+    f: any = { searchTerm: '', type: undefined, used: undefined },
+    page = 1,
+    shouldUpdateFn: () => boolean = undefined
+  ) {
     const filters = typeof f === 'string' ? { searchTerm: f } : f;
-    const { searchTerm: search, type } = filters;
-    const { count, results } = await makeRequest(this.path, { method: 'GET', params: { search: search, type, page } });
+    const { searchTerm: search, type, used } = filters;
+    const { count, results } = await makeRequest(this.path, {
+      method: 'GET',
+      params: { search: search, type, used, page },
+    });
 
-    if (shouldUpdateFn && !shouldUpdateFn()) return;
+    if (shouldUpdateFn && !shouldUpdateFn()) {
+      return;
+    }
 
     this.items = {
       ...this.items,

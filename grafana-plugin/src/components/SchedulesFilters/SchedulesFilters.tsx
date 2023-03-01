@@ -56,12 +56,12 @@ const SchedulesFilters = (props: SchedulesFiltersProps) => {
         <Field label="Status">
           <RadioButtonGroup
             options={[
-              { label: 'All', value: 'all' },
+              { label: 'All', value: undefined },
               {
                 label: 'Used in escalations',
-                value: 'used',
+                value: true,
               },
-              { label: 'Unused', value: 'unused' },
+              { label: 'Unused', value: false },
             ]}
             value={value.status}
             onChange={handleStatusChange}
