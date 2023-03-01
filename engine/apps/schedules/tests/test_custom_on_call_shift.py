@@ -1512,3 +1512,40 @@ def test_rolling_users_event_daily_by_day_start_none_convert_to_ical(
     ical_data = on_call_shift.convert_to_ical()
     # empty result since there is no event in the defined time range
     assert ical_data == ""
+
+
+@pytest.mark.django_db
+def test_etc_utc_timezone_convert_to_ical(
+    make_organization_and_user,
+    make_user_for_organization,
+    make_on_call_shift,
+):
+    organization, user_1 = make_organization_and_user()
+    user_2 = make_user_for_organization(organization)
+
+    date = timezone.now().replace(microsecond=0)
+    until = date + timezone.timedelta(days=30)
+
+    data = {
+        "priority_level": 1,
+        "start": date,
+        "rotation_start": date,
+        "duration": timezone.timedelta(seconds=10800),
+        "frequency": CustomOnCallShift.FREQUENCY_HOURLY,
+        "interval": 2,
+        "until": until,
+        "time_zone": "Etc/UTC",
+    }
+
+    on_call_shift = make_on_call_shift(
+        organization=organization, shift_type=CustomOnCallShift.TYPE_ROLLING_USERS_EVENT, **data
+    )
+    rolling_users = [[user_1], [user_2]]
+    on_call_shift.add_rolling_users(rolling_users)
+
+    ical_data = on_call_shift.convert_to_ical()
+    ical_rrule_until = on_call_shift.until.strftime("%Y%m%dT%H%M%S")
+    expected_rrule = f"RRULE:FREQ=HOURLY;UNTIL={ical_rrule_until}Z;INTERVAL=4;WKST=SU"
+
+    assert on_call_shift.event_interval == len(rolling_users) * data["interval"]
+    assert expected_rrule in ical_data

@@ -27,3 +27,8 @@
   position: relative;
   width: 100%;
 }
+
+.not-found {
+  margin: 50px auto;
+  text-align: center;
+}

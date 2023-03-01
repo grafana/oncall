@@ -28,7 +28,7 @@ import {
 
 export class ScheduleStore extends BaseStore {
   @observable
-  searchResult: { results?: Array<Schedule['id']> } = {};
+  searchResult: { count?: number; results?: Array<Schedule['id']> } = {};
 
   @observable.shallow
   items: { [id: string]: Schedule } = {};
@@ -118,15 +118,14 @@ export class ScheduleStore extends BaseStore {
   }
 
   @action
-  async updateItems(f: any = { searchTerm: '', type: undefined }) {
-    // async updateItems(query = '') {
+  async updateItems(f: any = { searchTerm: '', type: undefined }, page = 1) {
     const filters = typeof f === 'string' ? { searchTerm: f } : f;
     const { searchTerm: search, type } = filters;
-    const result = await makeRequest(this.path, { method: 'GET', params: { search: search, type } });
+    const { count, results } = await makeRequest(this.path, { method: 'GET', params: { search: search, type, page } });
 
     this.items = {
       ...this.items,
-      ...result.reduce(
+      ...results.reduce(
         (acc: { [key: number]: Schedule }, item: Schedule) => ({
           ...acc,
           [item.id]: item,
@@ -135,8 +134,8 @@ export class ScheduleStore extends BaseStore {
       ),
     };
     this.searchResult = {
-      ...this.searchResult,
-      results: result.map((item: Schedule) => item.id),
+      count,
+      results: results.map((item: Schedule) => item.id),
     };
   }
 
@@ -148,14 +147,19 @@ export class ScheduleStore extends BaseStore {
         ...this.items,
         [item.id]: item,
       };
+
+      return item;
     }
   }
 
   getSearchResult() {
-    if (!this.searchResult.results) {
+    if (!this.searchResult) {
       return undefined;
     }
-    return this.searchResult?.results?.map((scheduleId: Schedule['id']) => this.items[scheduleId]);
+    return {
+      count: this.searchResult.count,
+      results: this.searchResult.results?.map((scheduleId: Schedule['id']) => this.items[scheduleId]),
+    };
   }
 
   @action
