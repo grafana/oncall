@@ -20,6 +20,7 @@ from .routes import DefaultChannelFilterSerializer
 PUBLIC_BEHAVIOUR_TEMPLATES_FIELDS = ["resolve_signal", "grouping_key", "acknowledge_signal", "source_link"]
 
 # TEMPLATE_PUBLIC_API_NAME_TO_DB_FIELD is map from template name in public api to its db field.
+# It's applied only for legacy messengers, which are not using messaging backend system
 TEMPLATE_PUBLIC_API_NAME_TO_DB_FIELD = {
     "grouping_key": "grouping_id_template",
     "resolve_signal": "resolve_condition_template",
