@@ -13,11 +13,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fixed UI permission related bug where Editors could not export their user iCal link
 - Fixed error when a shift is created using Etc/UTC as timezone
 - Fixed issue with refresh ical file task not considering empty string values
+- Schedules: Long popup does not fit screen & buttons unreachable & objects outside of the popup ([1002](https://github.com/grafana/oncall/issues/1002))
+- Can't scroll on integration settings page ([415](https://github.com/grafana/oncall/issues/415))
+- Team change in the Integration page always causes 403 ([1292](https://github.com/grafana/oncall/issues/1292))
+- Schedules: Permalink doesn't work with multi-teams ([940](https://github.com/grafana/oncall/issues/940))
+- Schedules list -> expanded schedule blows page width ([1293](https://github.com/grafana/oncall/issues/1293))
 
 ### Changed
 
 - Moved reCAPTCHA to backend environment variable for more flexible configuration between different environments.
 - Add pagination to schedule listing
+- Show 100 latest alerts on alert group page ([1417](https://github.com/grafana/oncall/pull/1417))
 
 ### Added
 
