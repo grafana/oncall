@@ -5,7 +5,7 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## Unreleased
+## v1.1.30 (2023-03-01)
 
 ### Fixed
 
@@ -24,6 +24,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Moved reCAPTCHA to backend environment variable for more flexible configuration between different environments.
 - Add pagination to schedule listing
+- Show 100 latest alerts on alert group page ([1417](https://github.com/grafana/oncall/pull/1417))
 
 ## v1.1.29 (2023-02-23)
 
