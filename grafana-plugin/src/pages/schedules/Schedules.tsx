@@ -425,7 +425,7 @@ class SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSta
     this.setState({ expandedRowKeys: [] });
   };
 
-  update = (isRemoval: boolean = false) => {
+  update = (isRemoval = false) => {
     const { store } = this.props;
     const { filters, page } = this.state;
     const { scheduleStore } = store;
