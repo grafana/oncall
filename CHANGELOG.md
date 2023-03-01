@@ -25,6 +25,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Add pagination to schedule listing
 - Show 100 latest alerts on alert group page ([1417](https://github.com/grafana/oncall/pull/1417))
 
+### Added
+
+- Add acknowledge_signal and source link to public api
+
 ## v1.1.29 (2023-02-23)
 
 ### Changed
