@@ -400,7 +400,7 @@ class SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSta
     const { scheduleStore } = store;
 
     return () => {
-      scheduleStore.delete(id).then(this.update);
+      scheduleStore.delete(id).then(() => this.update(true));
     };
   };
 
@@ -425,16 +425,17 @@ class SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSta
     this.setState({ expandedRowKeys: [] });
   };
 
-  update = () => {
+  update = (isRemoval: boolean = false) => {
     const { store } = this.props;
     const { filters, page } = this.state;
     const { scheduleStore } = store;
 
-    // need to check if count is 1, which means we should change the page to the previous one
+    // For removal we need to check if count is 1
+    // which means we should change the page to the previous one
     const { results } = store.scheduleStore.getSearchResult();
     const newPage = results.length === 1 ? Math.max(page - 1, 1) : page;
 
-    return scheduleStore.updateItems(filters, newPage);
+    return scheduleStore.updateItems(filters, isRemoval ? newPage : page);
   };
 
   getUpdateRelatedEscalationChainsHandler = (scheduleId: Schedule['id']) => {
