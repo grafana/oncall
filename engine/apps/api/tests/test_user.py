@@ -439,6 +439,33 @@ def test_user_get_other_verification_code(
 
 
 @pytest.mark.django_db
+def test_validation_of_verification_code(
+    make_organization_and_user_with_plugin_token,
+    make_user_auth_headers,
+):
+    organization, user, token = make_organization_and_user_with_plugin_token()
+    client = APIClient()
+    url = reverse("api-internal:user-verify-number", kwargs={"pk": user.public_primary_key})
+    with patch(
+        "apps.twilioapp.phone_manager.PhoneManager.verify_phone_number", return_value=(True, None)
+    ) as verify_phone_number:
+        url_with_token = f"{url}?token=some_token"
+        r = client.put(url_with_token, format="json", **make_user_auth_headers(user, token))
+        assert r.status_code == 200
+        assert verify_phone_number.call_count == 1
+
+        url_without_token = f"{url}"
+        r = client.put(url_without_token, format="json", **make_user_auth_headers(user, token))
+        assert r.status_code == 400
+        assert verify_phone_number.call_count == 1
+
+        url_with_empty_token = f"{url}?token="
+        r = client.put(url_with_empty_token, format="json", **make_user_auth_headers(user, token))
+        assert r.status_code == 400
+        assert verify_phone_number.call_count == 1
+
+
+@pytest.mark.django_db
 @pytest.mark.parametrize(
     "role,expected_status",
     [
