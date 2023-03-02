@@ -5,6 +5,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## Unreleased
+
+### Fixed
+
+- Show permission error for accessing Telegram as Viewer ([1273](https://github.com/grafana/oncall/issues/1273))
+
 ## v1.1.32 (2023-03-01)
 
 ### Fixed
@@ -31,7 +37,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Team change in the Integration page always causes 403 ([1292](https://github.com/grafana/oncall/issues/1292))
 - Schedules: Permalink doesn't work with multi-teams ([940](https://github.com/grafana/oncall/issues/940))
 - Schedules list -> expanded schedule blows page width ([1293](https://github.com/grafana/oncall/issues/1293))
-- Show permission error for accessing Telegram as Viewer ([1273](https://github.com/grafana/oncall/issues/1273))
 
 ### Changed
 
