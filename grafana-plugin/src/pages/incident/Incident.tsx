@@ -493,14 +493,16 @@ class IncidentPage extends React.Component<IncidentPageProps, IncidentPageState>
             onChange={(e: any) => this.setState({ resolutionNoteText: e.target.value })}
           />
         </Field>
-        <ToolbarButton
-          icon="plus"
-          variant="primary"
-          onClick={this.handleCreateResolutionNote}
-          disabled={isResolutionNoteTextEmpty}
-        >
-          Add resolution note
-        </ToolbarButton>
+        <WithPermissionControlTooltip userAction={UserActions.AlertGroupsWrite}>
+          <ToolbarButton
+            icon="plus"
+            variant="primary"
+            onClick={this.handleCreateResolutionNote}
+            disabled={isResolutionNoteTextEmpty}
+          >
+            Add resolution note
+          </ToolbarButton>
+        </WithPermissionControlTooltip>
       </div>
     );
   };

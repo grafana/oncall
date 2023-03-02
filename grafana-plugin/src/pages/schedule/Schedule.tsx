@@ -32,6 +32,7 @@ import { PLUGIN_ROOT } from 'utils/consts';
 import { getStartOfWeek } from './Schedule.helpers';
 
 import styles from './Schedule.module.css';
+import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
 
 const cx = cn.bind(styles);
 
@@ -177,9 +178,11 @@ class SchedulePage extends React.Component<SchedulePageProps, SchedulePageState>
                             </HorizontalGroup>
 
                             {(schedule?.type === ScheduleType.Ical || schedule?.type === ScheduleType.Calendar) && (
-                              <Button variant="secondary" onClick={this.handleReloadClick(scheduleId)}>
-                                Reload
-                              </Button>
+                              <WithPermissionControlTooltip userAction={UserActions.SchedulesWrite}>
+                                <Button variant="secondary" onClick={this.handleReloadClick(scheduleId)}>
+                                  Reload
+                                </Button>
+                              </WithPermissionControlTooltip>
                             )}
                           </HorizontalGroup>
                           <ToolbarButton
