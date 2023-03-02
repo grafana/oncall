@@ -1,7 +1,6 @@
 import React, { ReactElement } from 'react';
 
 import { VerticalGroup } from '@grafana/ui';
-import { observer } from 'mobx-react';
 
 import Text from 'components/Text/Text';
 import { isUserActionAllowed, UserAction } from 'utils/authorization';
@@ -13,7 +12,7 @@ interface WithPermissionControlDisplayProps {
   title?: string;
 }
 
-export const WithPermissionControlDisplay = observer((props: WithPermissionControlDisplayProps) => {
+export const WithPermissionControlDisplay: React.FC<WithPermissionControlDisplayProps> = (props) => {
   const { userAction, children, title, message } = props;
 
   const hasPermission = isUserActionAllowed(userAction);
@@ -26,4 +25,4 @@ export const WithPermissionControlDisplay = observer((props: WithPermissionContr
       <Text>{message}</Text>
     </VerticalGroup>
   );
-});
+};
