@@ -1,4 +1,5 @@
 import logging
+from urllib.parse import urlparse
 
 import pytz
 from django.apps import apps
@@ -7,6 +8,7 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.db.utils import IntegrityError
 from django.urls import reverse
 from django_filters import rest_framework as filters
+from ipware import get_client_ip
 from rest_framework import mixins, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.exceptions import NotFound
@@ -23,12 +25,7 @@ from apps.api.permissions import (
     user_is_authorized,
 )
 from apps.api.serializers.team import TeamSerializer
-from apps.api.serializers.user import (
-    FilterUserSerializer,
-    MobileVerificationCodeRecaptchaSerializer,
-    UserHiddenFieldsSerializer,
-    UserSerializer,
-)
+from apps.api.serializers.user import FilterUserSerializer, UserHiddenFieldsSerializer, UserSerializer
 from apps.api.throttlers import (
     GetPhoneVerificationCodeThrottlerPerOrg,
     GetPhoneVerificationCodeThrottlerPerUser,
@@ -47,7 +44,7 @@ from apps.telegram.models import TelegramVerificationCode
 from apps.twilioapp.phone_manager import PhoneManager
 from apps.twilioapp.twilio_client import twilio_client
 from apps.user_management.models import Team, User
-from common.api_helpers.exceptions import BadRequest, Conflict
+from common.api_helpers.exceptions import Conflict
 from common.api_helpers.mixins import FilterSerializerMixin, PublicPrimaryKeyMixin
 from common.api_helpers.paginators import HundredPageSizePaginator
 from common.api_helpers.utils import create_engine_url
@@ -58,6 +55,7 @@ from common.insight_log import (
     write_chatops_insight_log,
     write_resource_insight_log,
 )
+from common.recaptcha import check_recaptcha_v3
 
 logger = logging.getLogger(__name__)
 IsOwnerOrHasUserSettingsAdminPermission = IsOwnerOrHasRBACPermissions([RBACPermission.Permissions.USER_SETTINGS_ADMIN])
@@ -303,16 +301,16 @@ class UserView(
         when the recaptcha checks are actually made
         """
         logger.info("Validating reCAPTCHA code")
+        client_ip, _ = get_client_ip(request)
+        recaptcha_value = request.headers.get("X-OnCall-Recaptcha", "some-non-null-value")
+        action = "mobile_verification_code"
+        required_score = 0.5
+        org_hostname = urlparse(request.auth.organization.grafana_url).hostname
+        valid = check_recaptcha_v3(recaptcha_value, action, required_score, client_ip, org_hostname)
 
-        serializer = MobileVerificationCodeRecaptchaSerializer(
-            data={"recaptcha": request.headers.get("X-OnCall-Recaptcha", "some-non-null-value")},
-            context={"request": request},
-        )
-
-        if not serializer.is_valid():
-            logger.warning(f"Invalid reCAPTCHA validation: {serializer._errors}")
-            return Response(status=status.HTTP_400_BAD_REQUEST)
-        logger.info("reCAPTCHA code is valid")
+        if not valid:
+            logger.warning(f"get_verification_code: msg=Invalid reCAPTCHA validation")
+            return Response("failed reCAPTCHA check", status=status.HTTP_400_BAD_REQUEST)
 
         user = self.get_object()
         phone_manager = PhoneManager(user)
@@ -332,7 +330,7 @@ class UserView(
         target_user = self.get_object()
         code = request.query_params.get("token", None)
         if not code:
-            raise BadRequest(detail="Invalid verification code")
+            return Response("Invalid verification code", status=status.HTTP_400_BAD_REQUEST)
         prev_state = target_user.insight_logs_serialized
         phone_manager = PhoneManager(target_user)
         verified, error = phone_manager.verify_phone_number(code)
