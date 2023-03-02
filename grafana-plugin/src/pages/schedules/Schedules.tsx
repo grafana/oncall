@@ -22,7 +22,7 @@ import UserTimezoneSelect from 'components/UserTimezoneSelect/UserTimezoneSelect
 import WithConfirm from 'components/WithConfirm/WithConfirm';
 import ScheduleFinal from 'containers/Rotations/ScheduleFinal';
 import ScheduleForm from 'containers/ScheduleForm/ScheduleForm';
-import { WithPermissionControl } from 'containers/WithPermissionControl/WithPermissionControl';
+import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
 import { Schedule, ScheduleType } from 'models/schedule/schedule.types';
 import { getSlackChannelName } from 'models/slack_channel/slack_channel.helpers';
 import { Timezone } from 'models/timezone/timezone.types';
@@ -159,11 +159,11 @@ class SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSta
                     onChange={this.handleTimezoneChange}
                   />
                 )}
-                <WithPermissionControl userAction={UserActions.SchedulesWrite}>
+                <WithPermissionControlTooltip userAction={UserActions.SchedulesWrite}>
                   <Button variant="primary" onClick={this.handleCreateScheduleClick}>
                     + New schedule
                   </Button>
-                </WithPermissionControl>
+                </WithPermissionControlTooltip>
               </div>
             </div>
             <Table
@@ -376,14 +376,14 @@ class SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSta
       /* Wrapper div for onClick event to prevent expanding schedule view on delete/edit click */
       <div onClick={(event: SyntheticEvent) => event.stopPropagation()}>
         <HorizontalGroup>
-          <WithPermissionControl key="edit" userAction={UserActions.SchedulesWrite}>
+          <WithPermissionControlTooltip key="edit" userAction={UserActions.SchedulesWrite}>
             <IconButton tooltip="Settings" name="cog" onClick={this.getEditScheduleClickHandler(item.id)} />
-          </WithPermissionControl>
-          <WithPermissionControl key="edit" userAction={UserActions.SchedulesWrite}>
+          </WithPermissionControlTooltip>
+          <WithPermissionControlTooltip key="edit" userAction={UserActions.SchedulesWrite}>
             <WithConfirm>
               <IconButton tooltip="Delete" name="trash-alt" onClick={this.getDeleteScheduleClickHandler(item.id)} />
             </WithConfirm>
-          </WithPermissionControl>
+          </WithPermissionControlTooltip>
         </HorizontalGroup>
       </div>
     );

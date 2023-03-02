@@ -8,7 +8,7 @@ import { observer } from 'mobx-react';
 import EscalationPolicy from 'components/Policy/EscalationPolicy';
 import SortableList from 'components/SortableList/SortableList';
 import Timeline from 'components/Timeline/Timeline';
-import { WithPermissionControl } from 'containers/WithPermissionControl/WithPermissionControl';
+import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
 import { EscalationChain } from 'models/escalation_chain/escalation_chain.types';
 import { EscalationPolicyOption } from 'models/escalation_policy/escalation_policy.types';
 import { useStore } from 'state/useStore';
@@ -96,7 +96,7 @@ const EscalationChainSteps = observer((props: EscalationChainStepsProps) => {
         number={(escalationPolicyIds?.length || 0) + offset + 1}
         color={getComputedStyle(document.documentElement).getPropertyValue('--tag-secondary')}
       >
-        <WithPermissionControl userAction={UserActions.EscalationChainsWrite}>
+        <WithPermissionControlTooltip userAction={UserActions.EscalationChainsWrite}>
           <Select
             isSearchable
             menuShouldPortal
@@ -108,7 +108,7 @@ const EscalationChainSteps = observer((props: EscalationChainStepsProps) => {
             }))}
             value={null}
           />
-        </WithPermissionControl>
+        </WithPermissionControlTooltip>
       </Timeline.Item>
     </SortableList>
   );

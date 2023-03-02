@@ -9,7 +9,7 @@ import { observer } from 'mobx-react';
 import Avatar from 'components/Avatar/Avatar';
 import Text from 'components/Text/Text';
 import UserWarning from 'containers/UserWarningModal/UserWarning';
-import { WithPermissionControl } from 'containers/WithPermissionControl/WithPermissionControl';
+import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
 import { getTzOffsetString } from 'models/timezone/timezone.helpers';
 import { User } from 'models/user/user.types';
 import { UserActions } from 'utils/authorization';
@@ -125,7 +125,7 @@ const EscalationVariants = observer(
           )}
           <div className={cx('assign-responders-button')}>
             <ButtonGroup>
-              <WithPermissionControl userAction={UserActions.AlertGroupsWrite}>
+              <WithPermissionControlTooltip userAction={UserActions.AlertGroupsWrite}>
                 <ToolbarButton
                   icon="users-alt"
                   variant={variant}
@@ -135,8 +135,8 @@ const EscalationVariants = observer(
                 >
                   Add responders
                 </ToolbarButton>
-              </WithPermissionControl>
-              <WithPermissionControl userAction={UserActions.AlertGroupsWrite}>
+              </WithPermissionControlTooltip>
+              <WithPermissionControlTooltip userAction={UserActions.AlertGroupsWrite}>
                 <ToolbarButton
                   isOpen={false}
                   narrow
@@ -145,7 +145,7 @@ const EscalationVariants = observer(
                     setShowEscalationVariants(true);
                   }}
                 />
-              </WithPermissionControl>
+              </WithPermissionControlTooltip>
             </ButtonGroup>
           </div>
           {showEscalationVariants && (
