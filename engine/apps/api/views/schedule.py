@@ -7,6 +7,7 @@ from django.utils.functional import cached_property
 from rest_framework import mixins, status
 from rest_framework.decorators import action
 from rest_framework.exceptions import NotFound
+from rest_framework.fields import BooleanField
 from rest_framework.filters import SearchFilter
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.permissions import IsAuthenticated
@@ -120,7 +121,7 @@ class ScheduleView(
         The result of this method is cached and is reused for the whole lifetime of a request,
         since self.get_serializer_context() is called multiple times for every instance in the queryset.
         """
-        current_page_schedules = self.paginate_queryset(self.get_queryset())
+        current_page_schedules = self.paginate_queryset(self.filter_queryset(self.get_queryset()))
         pks = [schedule.pk for schedule in current_page_schedules]
         queryset = OnCallSchedule.objects.filter(pk__in=pks)
         return queryset.get_oncall_users()
@@ -154,6 +155,7 @@ class ScheduleView(
     def get_queryset(self):
         is_short_request = self.request.query_params.get("short", "false") == "true"
         filter_by_type = self.request.query_params.get("type")
+        used = BooleanField(allow_null=True).to_internal_value(data=self.request.query_params.get("used"))
         organization = self.request.auth.organization
         queryset = OnCallSchedule.objects.filter(organization=organization, team=self.request.user.current_team).defer(
             # avoid requesting large text fields which are not used when listing schedules
@@ -165,6 +167,10 @@ class ScheduleView(
             queryset = self.serializer_class.setup_eager_loading(queryset)
         if filter_by_type is not None and filter_by_type in SCHEDULE_TYPE_TO_CLASS:
             queryset = queryset.filter().instance_of(SCHEDULE_TYPE_TO_CLASS[filter_by_type])
+        if used is not None:
+            queryset = queryset.filter(escalation_policies__isnull=not used).distinct()
+
+        queryset = queryset.order_by("pk")
         return queryset
 
     def perform_create(self, serializer):
