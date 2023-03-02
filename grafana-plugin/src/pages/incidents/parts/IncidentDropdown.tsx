@@ -6,7 +6,7 @@ import cn from 'classnames/bind';
 import Tag from 'components/Tag/Tag';
 import Text from 'components/Text/Text';
 import { WithContextMenu } from 'components/WithContextMenu/WithContextMenu';
-import { WithPermissionControl } from 'containers/WithPermissionControl/WithPermissionControl';
+import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
 import { Alert, AlertAction, IncidentStatus } from 'models/alertgroup/alertgroup.types';
 import styles from 'pages/incidents/parts/IncidentDropdown.module.scss';
 import { UserActions } from 'utils/authorization';
@@ -92,7 +92,7 @@ export const IncidentDropdown: FC<{
         forceIsOpen={forcedOpenAction === AlertAction.Resolve}
         renderMenuItems={() => (
           <div className={cx('incident__options', { 'u-disabled': isLoading })}>
-            <WithPermissionControl userAction={UserActions.AlertGroupsWrite}>
+            <WithPermissionControlTooltip userAction={UserActions.AlertGroupsWrite}>
               <div
                 className={cx('incident__option-item', 'incident__option-item--firing')}
                 onClick={(e) => onClickFn(e, AlertAction.Resolve, onUnresolve, IncidentStatus.Firing)}
@@ -104,7 +104,7 @@ export const IncidentDropdown: FC<{
                   </span>
                 )}
               </div>
-            </WithPermissionControl>
+            </WithPermissionControlTooltip>
           </div>
         )}
       >
@@ -119,7 +119,7 @@ export const IncidentDropdown: FC<{
         forceIsOpen={forcedOpenAction === AlertAction.Acknowledge}
         renderMenuItems={() => (
           <div className={cx('incident__options', { 'u-disabled': isLoading })}>
-            <WithPermissionControl userAction={UserActions.AlertGroupsWrite}>
+            <WithPermissionControlTooltip userAction={UserActions.AlertGroupsWrite}>
               <div
                 className={cx('incident__option-item', 'incident__option-item--unacknowledge')}
                 onClick={(e) => onClickFn(e, AlertAction.Acknowledge, onUnacknowledge, IncidentStatus.Firing)}
@@ -131,8 +131,8 @@ export const IncidentDropdown: FC<{
                   </span>
                 )}
               </div>
-            </WithPermissionControl>
-            <WithPermissionControl userAction={UserActions.AlertGroupsWrite}>
+            </WithPermissionControlTooltip>
+            <WithPermissionControlTooltip userAction={UserActions.AlertGroupsWrite}>
               <div
                 className={cx('incident__option-item', 'incident__option-item--resolve')}
                 onClick={(e) => onClickFn(e, AlertAction.Acknowledge, onResolve, IncidentStatus.Resolved)}
@@ -144,7 +144,7 @@ export const IncidentDropdown: FC<{
                   </span>
                 )}
               </div>
-            </WithPermissionControl>
+            </WithPermissionControlTooltip>
           </div>
         )}
       >
@@ -159,7 +159,7 @@ export const IncidentDropdown: FC<{
         forceIsOpen={forcedOpenAction === AlertAction.unResolve}
         renderMenuItems={() => (
           <div className={cx('incident__options', { 'u-disabled': isLoading })}>
-            <WithPermissionControl userAction={UserActions.AlertGroupsWrite}>
+            <WithPermissionControlTooltip userAction={UserActions.AlertGroupsWrite}>
               <div
                 className={cx('incident__option-item', 'incident__option-item--acknowledge')}
                 onClick={(e) => onClickFn(e, AlertAction.unResolve, onAcknowledge, IncidentStatus.Acknowledged)}
@@ -171,8 +171,8 @@ export const IncidentDropdown: FC<{
                   </span>
                 )}
               </div>
-            </WithPermissionControl>
-            <WithPermissionControl userAction={UserActions.AlertGroupsWrite}>
+            </WithPermissionControlTooltip>
+            <WithPermissionControlTooltip userAction={UserActions.AlertGroupsWrite}>
               <div
                 className={cx('incident__option-item', 'incident__option-item--resolve')}
                 onClick={(e) => onClickFn(e, AlertAction.unResolve, onResolve, IncidentStatus.Resolved)}
@@ -184,7 +184,7 @@ export const IncidentDropdown: FC<{
                   </span>
                 )}
               </div>
-            </WithPermissionControl>
+            </WithPermissionControlTooltip>
 
             <div className={cx('incident__option-item')}>
               <SilenceSelect
@@ -217,7 +217,7 @@ export const IncidentDropdown: FC<{
       forceIsOpen={forcedOpenAction === AlertAction.Silence}
       renderMenuItems={() => (
         <div className={cx('incident_options', { 'u-disabled': isLoading })}>
-          <WithPermissionControl userAction={UserActions.AlertGroupsWrite}>
+          <WithPermissionControlTooltip userAction={UserActions.AlertGroupsWrite}>
             <div
               className={cx('incident__option-item')}
               onClick={(e) => onClickFn(e, AlertAction.Silence, onUnsilence, IncidentStatus.Firing)}
@@ -229,8 +229,8 @@ export const IncidentDropdown: FC<{
                 </span>
               )}
             </div>
-          </WithPermissionControl>
-          <WithPermissionControl userAction={UserActions.AlertGroupsWrite}>
+          </WithPermissionControlTooltip>
+          <WithPermissionControlTooltip userAction={UserActions.AlertGroupsWrite}>
             <div
               className={cx('incident__option-item', 'incident__option-item--acknowledge')}
               onClick={(e) => onClickFn(e, AlertAction.Silence, onAcknowledge, IncidentStatus.Acknowledged)}
@@ -242,8 +242,8 @@ export const IncidentDropdown: FC<{
                 </span>
               )}
             </div>
-          </WithPermissionControl>
-          <WithPermissionControl userAction={UserActions.AlertGroupsWrite}>
+          </WithPermissionControlTooltip>
+          <WithPermissionControlTooltip userAction={UserActions.AlertGroupsWrite}>
             <div
               className={cx('incident__option-item', 'incident__option-item--resolve')}
               onClick={(e) => onClickFn(e, AlertAction.Silence, onAcknowledge, IncidentStatus.Resolved)}
@@ -255,7 +255,7 @@ export const IncidentDropdown: FC<{
                 </span>
               )}
             </div>
-          </WithPermissionControl>
+          </WithPermissionControlTooltip>
         </div>
       )}
     >

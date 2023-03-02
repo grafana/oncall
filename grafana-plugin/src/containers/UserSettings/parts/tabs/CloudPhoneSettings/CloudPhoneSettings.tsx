@@ -5,12 +5,13 @@ import { observer } from 'mobx-react';
 
 import PluginLink from 'components/PluginLink/PluginLink';
 import Text from 'components/Text/Text';
+import { WithPermissionControlDisplay } from 'containers/WithPermissionControl/WithPermissionControlDisplay';
 import { User } from 'models/user/user.types';
 import { AppFeature } from 'state/features';
 import { WithStoreProps } from 'state/types';
 import { useStore } from 'state/useStore';
 import { withMobXProviderContext } from 'state/withStore';
-import { isUserActionAllowed, UserActions } from 'utils/authorization';
+import { UserActions } from 'utils/authorization';
 
 interface CloudPhoneSettingsProps extends WithStoreProps {
   userPk?: User['pk'];
@@ -119,7 +120,11 @@ const CloudPhoneSettings = observer((props: CloudPhoneSettingsProps) => {
 
   return (
     <>
-      {isUserActionAllowed(UserActions.OtherSettingsWrite) ? (
+      <WithPermissionControlDisplay
+        userAction={UserActions.OtherSettingsWrite}
+        title="OnCall uses Grafana Cloud for SMS and phone call notifications"
+        message="You do not have permission to perform this action. Ask an admin to upgrade your permissions."
+      >
         <VerticalGroup spacing="lg">
           <HorizontalGroup justify="space-between">
             <Text.Title level={3}>OnCall uses Grafana Cloud for SMS and phone call notifications</Text.Title>
@@ -135,12 +140,7 @@ const CloudPhoneSettings = observer((props: CloudPhoneSettingsProps) => {
           </HorizontalGroup>
           {!syncing ? <UserCloudStatus /> : <LoadingPlaceholder text="Loading..." />}
         </VerticalGroup>
-      ) : (
-        <VerticalGroup spacing="lg">
-          <Text.Title level={3}>OnCall uses Grafana Cloud for SMS and phone call notifications</Text.Title>
-          <Text>You do not have permission to perform this action. Ask an admin to upgrade your permissions.</Text>
-        </VerticalGroup>
-      )}
+      </WithPermissionControlDisplay>
     </>
   );
 });

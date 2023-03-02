@@ -6,18 +6,18 @@ import { observer } from 'mobx-react';
 
 import { isUserActionAllowed, UserAction } from 'utils/authorization';
 
-import styles from './WithPermissionControl.module.css';
+import styles from './WithPermissionControlTooltip.module.css';
 
 const cx = cn.bind(styles);
 
-interface WithPermissionControlProps {
+interface WithPermissionControlTooltipProps {
   userAction: UserAction;
   children: ReactElement;
   disableByPaywall?: boolean;
   className?: string;
 }
 
-export const WithPermissionControl = observer((props: WithPermissionControlProps) => {
+export const WithPermissionControlTooltip = observer((props: WithPermissionControlTooltipProps) => {
   const { userAction, children, className } = props;
 
   const disabledByPermissions = !isUserActionAllowed(userAction);

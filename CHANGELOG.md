@@ -5,6 +5,45 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## Unreleased
+
+### Fixed
+
+- Show permission error for accessing Telegram as Viewer ([1273](https://github.com/grafana/oncall/issues/1273))
+
+## v1.1.32 (2023-03-01)
+
+### Fixed
+
+- Schedule filters improvements ([941](https://github.com/grafana/oncall/issues/941))
+- Fix pagination issue on schedules page ([1437](https://github.com/grafana/oncall/pull/1437))
+
+## v1.1.31 (2023-03-01)
+
+### Added
+
+- Add acknowledge_signal and source link to public api
+
+## v1.1.30 (2023-03-01)
+
+### Fixed
+
+- Fixed importing of global grafana styles ([672](https://github.com/grafana/oncall/issues/672))
+- Fixed UI permission related bug where Editors could not export their user iCal link
+- Fixed error when a shift is created using Etc/UTC as timezone
+- Fixed issue with refresh ical file task not considering empty string values
+- Schedules: Long popup does not fit screen & buttons unreachable & objects outside of the popup ([1002](https://github.com/grafana/oncall/issues/1002))
+- Can't scroll on integration settings page ([415](https://github.com/grafana/oncall/issues/415))
+- Team change in the Integration page always causes 403 ([1292](https://github.com/grafana/oncall/issues/1292))
+- Schedules: Permalink doesn't work with multi-teams ([940](https://github.com/grafana/oncall/issues/940))
+- Schedules list -> expanded schedule blows page width ([1293](https://github.com/grafana/oncall/issues/1293))
+
+### Changed
+
+- Moved reCAPTCHA to backend environment variable for more flexible configuration between different environments.
+- Add pagination to schedule listing
+- Show 100 latest alerts on alert group page ([1417](https://github.com/grafana/oncall/pull/1417))
+
 ## v1.1.29 (2023-02-23)
 
 ### Changed
@@ -72,6 +111,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Incidents - Removed buttons column and replaced status with toggler ([#1237](https://github.com/grafana/oncall/issues/1237))
 - Responsiveness changes across multiple pages (Incidents, Integrations, Schedules) ([#1237](https://github.com/grafana/oncall/issues/1237))
+- Add pagination to schedule listing
 - Link to source was added
 - Header of Incident page was reworked: clickable labels instead of just names, users section was deleted
 - "Go to Integration" button was deleted, because the functionality was moved to clickable labels
