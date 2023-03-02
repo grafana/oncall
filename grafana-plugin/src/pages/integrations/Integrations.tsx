@@ -21,7 +21,7 @@ import AlertRules from 'containers/AlertRules/AlertRules';
 import CreateAlertReceiveChannelContainer from 'containers/CreateAlertReceiveChannelContainer/CreateAlertReceiveChannelContainer';
 import IntegrationSettings from 'containers/IntegrationSettings/IntegrationSettings';
 import { IntegrationSettingsTab } from 'containers/IntegrationSettings/IntegrationSettings.types';
-import { WithPermissionControl } from 'containers/WithPermissionControl/WithPermissionControl';
+import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
 import { AlertReceiveChannel } from 'models/alert_receive_channel';
 import { AlertReceiveChannelOption } from 'models/alert_receive_channel/alert_receive_channel.types';
 import { PageProps, WithStoreProps } from 'state/types';
@@ -161,7 +161,7 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
               {searchResult?.length ? (
                 <div className={cx('integrations')}>
                   <div className={cx('integrationsList')}>
-                    <WithPermissionControl userAction={UserActions.IntegrationsWrite}>
+                    <WithPermissionControlTooltip userAction={UserActions.IntegrationsWrite}>
                       <Button
                         onClick={() => {
                           this.setState({ showCreateIntegrationModal: true });
@@ -171,7 +171,7 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
                       >
                         New integration for receiving alerts
                       </Button>
-                    </WithPermissionControl>
+                    </WithPermissionControlTooltip>
                     <div className={cx('alert-receive-channels-list')}>
                       <GList
                         autoScroll
@@ -215,7 +215,7 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
                   title={
                     <VerticalGroup align="center" spacing="lg">
                       <Text type="secondary">No integrations found. Review your filter and team settings.</Text>
-                      <WithPermissionControl userAction={UserActions.IntegrationsWrite}>
+                      <WithPermissionControlTooltip userAction={UserActions.IntegrationsWrite}>
                         <Button
                           icon="plus"
                           variant="primary"
@@ -226,7 +226,7 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
                         >
                           New integration for receiving alerts
                         </Button>
-                      </WithPermissionControl>
+                      </WithPermissionControlTooltip>
                     </VerticalGroup>
                   }
                 />
