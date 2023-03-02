@@ -1,6 +1,6 @@
 from collections import defaultdict
 
-from django.core.validators import ValidationError
+from django.core.validators import ValidationError, URLValidator
 from rest_framework import serializers
 from rest_framework.validators import UniqueTogetherValidator
 
@@ -9,7 +9,9 @@ from common.api_helpers.custom_fields import TeamPrimaryKeyRelatedField
 from common.api_helpers.utils import CurrentOrganizationDefault, CurrentTeamDefault
 from common.jinja_templater import apply_jinja_template
 from common.jinja_templater.apply_jinja_template import JinjaTemplateError, JinjaTemplateWarning
-from common.api_helpers.utils import CustomURLValidator
+from common.api_helpers.utils import URLValidatorWithoutTLD
+from apps.base.utils import live_settings
+
 
 class CustomButtonSerializer(serializers.ModelSerializer):
     id = serializers.CharField(read_only=True, source="public_primary_key")
@@ -41,7 +43,10 @@ class CustomButtonSerializer(serializers.ModelSerializer):
     def validate_webhook(self, webhook):
         if webhook:
             try:
-                CustomURLValidator()(webhook)
+                if live_settings.DANGEROUS_WEBHOOKS_ENABLED:
+                    URLValidatorWithoutTLD()(webhook)
+                else:
+                    URLValidator()(webhook)
             except ValidationError:
                 raise serializers.ValidationError("Webhook is incorrect")
             return webhook

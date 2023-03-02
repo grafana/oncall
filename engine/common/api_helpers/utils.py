@@ -48,7 +48,7 @@ class CurrentTeamDefault:
         return "%s()" % self.__class__.__name__
 
 
-class CustomURLValidator(URLValidator):
+class URLValidatorWithoutTLD(URLValidator):
     """
     Overrides Django URLValidator Regex. It removes the tld part because
     most of the time, containers don't have any TLD in their urls and such outgoing webhooks
