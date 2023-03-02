@@ -47,7 +47,7 @@ from apps.telegram.models import TelegramVerificationCode
 from apps.twilioapp.phone_manager import PhoneManager
 from apps.twilioapp.twilio_client import twilio_client
 from apps.user_management.models import Team, User
-from common.api_helpers.exceptions import Conflict
+from common.api_helpers.exceptions import BadRequest, Conflict
 from common.api_helpers.mixins import FilterSerializerMixin, PublicPrimaryKeyMixin
 from common.api_helpers.paginators import HundredPageSizePaginator
 from common.api_helpers.utils import create_engine_url
@@ -331,6 +331,8 @@ class UserView(
     def verify_number(self, request, pk):
         target_user = self.get_object()
         code = request.query_params.get("token", None)
+        if not code:
+            raise BadRequest(detail="Invalid verification code")
         prev_state = target_user.insight_logs_serialized
         phone_manager = PhoneManager(target_user)
         verified, error = phone_manager.verify_phone_number(code)
