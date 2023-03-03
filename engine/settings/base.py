@@ -222,7 +222,6 @@ INSTALLED_APPS = [
     "django_migration_linter",
     "fcm_django",
     "django_dbconn_retry",
-    "drf_recaptcha",
 ]
 
 REST_FRAMEWORK = {
@@ -656,7 +655,7 @@ if OSS_INSTALLATION:
 # RECAPTCHA_V3 settings
 RECAPTCHA_V3_SITE_KEY = os.environ.get("RECAPTCHA_SITE_KEY", default="6LeIPJ8kAAAAAJdUfjO3uUtQtVxsYf93y46mTec1")
 RECAPTCHA_V3_SECRET_KEY = os.environ.get("RECAPTCHA_SECRET_KEY", default=None)
-RECAPTCHA_V3_ENABLED = True
+RECAPTCHA_V3_ENABLED = False
 RECAPTCHA_V3_HOSTNAME_VALIDATION = os.environ.get("RECAPTCHA_HOSTNAME_VALIDATION", default=False)
 
 MIGRATION_LINTER_OPTIONS = {"exclude_apps": ["social_django", "silk", "fcm_django"]}

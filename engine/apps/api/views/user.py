@@ -295,19 +295,14 @@ class UserView(
         throttle_classes=[GetPhoneVerificationCodeThrottlerPerUser, GetPhoneVerificationCodeThrottlerPerOrg],
     )
     def get_verification_code(self, request, pk):
-        """
-        See `DRF_RECAPTCHA_TESTING` in `settings/base.py`
-        and [here](https://github.com/llybin/drf-recaptcha#testing) to better understand
-        when the recaptcha checks are actually made
-        """
-        logger.info("Validating reCAPTCHA code")
+
+        logger.info("get_verification_code: msg=Validating reCAPTCHA code")
         client_ip, _ = get_client_ip(request)
         recaptcha_value = request.headers.get("X-OnCall-Recaptcha", "some-non-null-value")
         action = "mobile_verification_code"
         required_score = 0.5
         org_hostname = urlparse(request.auth.organization.grafana_url).hostname
         valid = check_recaptcha_v3(recaptcha_value, action, required_score, client_ip, org_hostname)
-
         if not valid:
             logger.warning(f"get_verification_code: msg=Invalid reCAPTCHA validation")
             return Response("failed reCAPTCHA check", status=status.HTTP_400_BAD_REQUEST)
