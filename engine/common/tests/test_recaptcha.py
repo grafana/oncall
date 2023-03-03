@@ -66,7 +66,7 @@ def test_captcha_v3_fails_invalid_hostname():
             "challenge_ts": "2023-03-02T14:44:18Z",
             "hostname": "not_the_hostname_you_are_looking_for",
             "score": 0.8,
-            "action": "not_the_action_you_are_looking_for",
+            "action": action,
         },
     ):
         valid = check_recaptcha_v3(value, action, score, client_ip, hostname)
