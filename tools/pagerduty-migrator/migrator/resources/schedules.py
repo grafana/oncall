@@ -107,7 +107,9 @@ class Schedule:
 
         layers = []
         # PagerDuty API returns layers in reverse order (e.g. Layer 3, Layer 2, Layer 1)
-        for level, layer_dict in enumerate(reversed(schedule["schedule_layers"])):
+        for level, layer_dict in enumerate(
+            reversed(schedule["schedule_layers"]), start=1
+        ):
             layer = Layer.from_dict(layer_dict, level)
 
             # skip any layers that have already ended
