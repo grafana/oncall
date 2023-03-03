@@ -1642,10 +1642,10 @@ def test_phone_number_verification_recaptcha(
     recaptcha_token = "asdasdfasdf"
     client = APIClient()
     request_headers = {"HTTP_X-OnCall-Recaptcha": recaptcha_token, **make_user_auth_headers(user, token)}
-
     url = reverse("api-internal:user-get-verification-code", kwargs={"pk": user.public_primary_key})
-    with patch("apps.api.recaptcha.check_recaptcha_internal_api", return_value=True):
+    with patch("apps.api.views.user.check_recaptcha_internal_api", return_value=recaptcha_testing_pass) as mock_captcha:
         response = client.get(url, format="json", **request_headers)
+        print(f"YOLO {mock_captcha.call_count}")
         assert response.status_code == expected_status
         if expected_status == status.HTTP_200_OK:
             mock_verification_start.assert_called_once_with()

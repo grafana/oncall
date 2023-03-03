@@ -22,7 +22,6 @@ from apps.api.permissions import (
     RBACPermission,
     user_is_authorized,
 )
-from apps.api.recaptcha import check_recaptcha_internal_api
 from apps.api.serializers.team import TeamSerializer
 from apps.api.serializers.user import FilterUserSerializer, UserHiddenFieldsSerializer, UserSerializer
 from apps.api.throttlers import (
@@ -54,6 +53,7 @@ from common.insight_log import (
     write_chatops_insight_log,
     write_resource_insight_log,
 )
+from common.recaptcha import check_recaptcha_internal_api
 
 logger = logging.getLogger(__name__)
 IsOwnerOrHasUserSettingsAdminPermission = IsOwnerOrHasRBACPermissions([RBACPermission.Permissions.USER_SETTINGS_ADMIN])
@@ -295,6 +295,7 @@ class UserView(
     def get_verification_code(self, request, pk):
 
         logger.info("get_verification_code: msg=Validating reCAPTCHA code")
+        # valid = recaptcha.check_recaptcha_internal_api(request, "mobile_verification_code")
         valid = check_recaptcha_internal_api(request, "mobile_verification_code")
         if not valid:
             logger.warning(f'get_verification_code: msg="Invalid reCAPTCHA validation"')
