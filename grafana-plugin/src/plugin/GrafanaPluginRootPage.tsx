@@ -34,7 +34,6 @@ import SettingsPage from 'pages/settings/SettingsPage';
 import ChatOps from 'pages/settings/tabs/ChatOps/ChatOps';
 import CloudPage from 'pages/settings/tabs/Cloud/CloudPage';
 import LiveSettings from 'pages/settings/tabs/LiveSettings/LiveSettingsPage';
-import Test from 'pages/test/Test';
 import Users from 'pages/users/Users';
 import 'interceptors';
 import { rootStore } from 'state';
@@ -179,9 +178,6 @@ export const Root = observer((props: AppRootProps) => {
             </Route>
             <Route path={getRoutesForPage('cloud')} exact>
               <CloudPage />
-            </Route>
-            <Route path={getRoutesForPage('test')} exact>
-              <Test />
             </Route>
             <Route path="*">
               <NoMatch />

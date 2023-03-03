@@ -6,7 +6,7 @@ import { observer } from 'mobx-react';
 
 import GForm from 'components/GForm/GForm';
 import Text from 'components/Text/Text';
-import { WithPermissionControl } from 'containers/WithPermissionControl/WithPermissionControl';
+import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
 import { Schedule, ScheduleType } from 'models/schedule/schedule.types';
 import { useStore } from 'state/useStore';
 import { UserActions } from 'utils/authorization';
@@ -77,11 +77,11 @@ const ScheduleForm = observer((props: ScheduleFormProps) => {
       <div className={cx('content')}>
         <VerticalGroup>
           <GForm form={formConfig} data={data} onSubmit={handleSubmit} />
-          <WithPermissionControl userAction={UserActions.SchedulesWrite}>
+          <WithPermissionControlTooltip userAction={UserActions.SchedulesWrite}>
             <Button form={formConfig.name} type="submit">
               {id === 'new' ? 'Create' : 'Update'} Schedule
             </Button>
-          </WithPermissionControl>
+          </WithPermissionControlTooltip>
         </VerticalGroup>
       </div>
     </Drawer>

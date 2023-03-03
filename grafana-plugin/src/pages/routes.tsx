@@ -11,7 +11,6 @@ import SettingsPage from 'pages/settings/SettingsPage';
 import ChatOpsPage from 'pages/settings/tabs/ChatOps/ChatOps';
 import CloudPage from 'pages/settings/tabs/Cloud/CloudPage';
 import LiveSettingsPage from 'pages/settings/tabs/LiveSettings/LiveSettingsPage';
-import Test from 'pages/test/Test';
 import UsersPage from 'pages/users/Users';
 
 export interface NavRoute {
@@ -75,10 +74,6 @@ export const routes: { [id: string]: NavRoute } = [
   {
     component: CloudPage,
     id: 'cloud',
-  },
-  {
-    component: Test,
-    id: 'test',
   },
 ].reduce((prev, current) => {
   prev[current.id] = {
