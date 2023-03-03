@@ -14,7 +14,7 @@ def check_recaptcha_v3(value: str, action: str, score: float, client_ip: str, ho
     if settings.RECAPTCHA_ENABLED:
         try:
             recaptcha_response = _submit_recaptcha_v3(value, client_ip)
-        except requests.HTTPError as exc:  # Catch timeouts, etc
+        except requests.HTTPError as exc:
             logger.info(f"check_recaptcha_v3: HTTPError {exc}")
             return False
 
@@ -53,9 +53,11 @@ def _submit_recaptcha_v3(value: str, client_ip: str) -> dict:
         "Content-type": "application/x-www-form-urlencoded",
         "User-agent": "Grafana OnCall",
     }
-    return requests.post(
+    r = requests.post(
         url="https://www.google.com/recaptcha/api/siteverify",
         data={"secret": settings.RECAPTCHA_SECRET_KEY, "response": value, "remoteip": client_ip},
         headers=headers,
         timeout=10,
-    ).json()
+    )
+    r.raise_for_status()
+    return r.json()
