@@ -1,5 +1,4 @@
 import logging
-from urllib.parse import urlparse
 
 import pytz
 from django.apps import apps
@@ -8,7 +7,6 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.db.utils import IntegrityError
 from django.urls import reverse
 from django_filters import rest_framework as filters
-from ipware import get_client_ip
 from rest_framework import mixins, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.exceptions import NotFound
@@ -24,6 +22,7 @@ from apps.api.permissions import (
     RBACPermission,
     user_is_authorized,
 )
+from apps.api.recaptcha import check_recaptcha_internal_api
 from apps.api.serializers.team import TeamSerializer
 from apps.api.serializers.user import FilterUserSerializer, UserHiddenFieldsSerializer, UserSerializer
 from apps.api.throttlers import (
@@ -55,7 +54,6 @@ from common.insight_log import (
     write_chatops_insight_log,
     write_resource_insight_log,
 )
-from common.recaptcha import check_recaptcha_v3
 
 logger = logging.getLogger(__name__)
 IsOwnerOrHasUserSettingsAdminPermission = IsOwnerOrHasRBACPermissions([RBACPermission.Permissions.USER_SETTINGS_ADMIN])
@@ -297,15 +295,11 @@ class UserView(
     def get_verification_code(self, request, pk):
 
         logger.info("get_verification_code: msg=Validating reCAPTCHA code")
-        client_ip, _ = get_client_ip(request)
-        recaptcha_value = request.headers.get("X-OnCall-Recaptcha", "some-non-null-value")
-        action = "mobile_verification_code"
-        required_score = 0.5
-        org_hostname = urlparse(request.auth.organization.grafana_url).hostname
-        valid = check_recaptcha_v3(recaptcha_value, action, required_score, client_ip, org_hostname)
+        valid = check_recaptcha_internal_api(request, "mobile_verification_code")
         if not valid:
-            logger.warning(f"get_verification_code: msg=Invalid reCAPTCHA validation")
+            logger.warning(f'get_verification_code: msg="Invalid reCAPTCHA validation"')
             return Response("failed reCAPTCHA check", status=status.HTTP_400_BAD_REQUEST)
+        logger.info('get_verification_code: msg="Pass reCAPTCHA validation"')
 
         user = self.get_object()
         phone_manager = PhoneManager(user)

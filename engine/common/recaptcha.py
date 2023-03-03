@@ -6,12 +6,12 @@ from django.conf import settings
 logger = logging.getLogger(__name__)
 
 
-def check_recaptcha_v3(value: str, action: str, score: float, client_ip: str, hostname=None):
+def check_recaptcha_v3(value: str, action: str, score: float, client_ip: str, hostname=None) -> bool:
     """
     check_recaptcha_v3 performs validation of google recaptcha_v3
     https://developers.google.com/recaptcha/docs/v3?hl=en
     """
-    if settings.RECAPTCHA_ENABLED:
+    if settings.RECAPTCHA_V3_ENABLED:
         try:
             recaptcha_response = _submit_recaptcha_v3(value, client_ip)
         except requests.HTTPError as exc:
@@ -35,7 +35,7 @@ def check_recaptcha_v3(value: str, action: str, score: float, client_ip: str, ho
                 f' failed: received score {recaptcha_response["score"]} lower then required {score}'
             )
             return False
-        if settings.RECAPTCHA_HOSTNAME_VALIDATION:
+        if settings.RECAPTCHA_V3_HOSTNAME_VALIDATION:
             # https://developers.google.com/recaptcha/docs/domain_validation?hl=en
             if recaptcha_response["hostname"] != hostname:
                 logger.info(
@@ -55,7 +55,7 @@ def _submit_recaptcha_v3(value: str, client_ip: str) -> dict:
     }
     r = requests.post(
         url="https://www.google.com/recaptcha/api/siteverify",
-        data={"secret": settings.RECAPTCHA_SECRET_KEY, "response": value, "remoteip": client_ip},
+        data={"secret": settings.RECAPTCHA_V3_SECRET_KEY, "response": value, "remoteip": client_ip},
         headers=headers,
         timeout=10,
     )

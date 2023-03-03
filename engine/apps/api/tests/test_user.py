@@ -1629,6 +1629,7 @@ def test_phone_number_verification_flow_ratelimit_per_org(
     ],
 )
 @pytest.mark.django_db
+@override_settings(RECAPTCHA_V3_ENABLED=True)
 def test_phone_number_verification_recaptcha(
     mock_verification_start,
     make_organization_and_user_with_plugin_token,
@@ -1643,13 +1644,10 @@ def test_phone_number_verification_recaptcha(
     request_headers = {"HTTP_X-OnCall-Recaptcha": recaptcha_token, **make_user_auth_headers(user, token)}
 
     url = reverse("api-internal:user-get-verification-code", kwargs={"pk": user.public_primary_key})
-
-    with override_settings(DRF_RECAPTCHA_TESTING_PASS=recaptcha_testing_pass):
+    with patch("apps.api.recaptcha.check_recaptcha_internal_api", return_value=True):
         response = client.get(url, format="json", **request_headers)
-
-    assert response.status_code == expected_status
-
-    if expected_status == status.HTTP_200_OK:
-        mock_verification_start.assert_called_once_with()
-    else:
-        mock_verification_start.assert_not_called()
+        assert response.status_code == expected_status
+        if expected_status == status.HTTP_200_OK:
+            mock_verification_start.assert_called_once_with()
+        else:
+            mock_verification_start.assert_not_called()
