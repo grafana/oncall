@@ -365,7 +365,9 @@ const CloudPage = observer((props: CloudPageProps) => {
             <Icon name="bell" className={cx('block-icon')} size="lg" /> SMS and phone call notifications
           </Text.Title>
 
-          <Text type="secondary">Users matched between OSS and Cloud OnCall currently unavailable.</Text>
+          <Text type="secondary">
+            Connecting to Cloud OnCall enables sending SMS and phone call notifications using the cloud Grafana OnCall.
+          </Text>
         </VerticalGroup>
       </Block>
       {store.hasFeature(AppFeature.MobileApp) && (
