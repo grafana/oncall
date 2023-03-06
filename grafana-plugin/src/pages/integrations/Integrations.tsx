@@ -161,7 +161,7 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
                         icon="plus"
                         className={cx('newIntegrationButton')}
                       >
-                        New integration for receiving alerts
+                        New integration to receive alerts
                       </Button>
                     </WithPermissionControl>
                     <div className={cx('alert-receive-channels-list')}>
@@ -216,7 +216,7 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
                             this.setState({ showCreateIntegrationModal: true });
                           }}
                         >
-                          New integration for receiving alerts
+                          New integration
                         </Button>
                       </WithPermissionControl>
                     </VerticalGroup>

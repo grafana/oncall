@@ -47,22 +47,13 @@
 
 .channel-filter-header {
   display: flex;
-
-  /* justify-content: space-between; */
-
-  /* align-items: center; */
   flex-wrap: wrap-reverse;
-
-  /* gap: 8px; */
-}
-
-.channel-filter-header-left {
-  margin-bottom: 12px;
 }
 
 .channel-filter-header-left,
 .channel-filter-header-right {
   flex-grow: 1;
+  margin-bottom: 16px;
 }
 
 .channel-filter-header-right {
@@ -140,13 +131,10 @@
   flex-wrap: wrap-reverse;
 }
 
-.integration__heading-container-left {
-  margin-bottom: 12px;
-}
-
 .integration__heading-container-left,
 .integration__heading-container-right {
   flex-grow: 1;
+  margin-bottom: 12px;
 }
 
 .integration__heading-container-right {

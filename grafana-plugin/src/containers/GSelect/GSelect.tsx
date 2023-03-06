@@ -36,7 +36,7 @@ interface GSelectProps {
   getOptionLabel?: <T>(item: SelectableValue<T>) => React.ReactNode;
   getDescription?: (item: any) => React.ReactNode;
   openMenuOnFocus?: boolean;
-  width?: string;
+  width?: number | 'auto';
   icon?: string;
 }
 

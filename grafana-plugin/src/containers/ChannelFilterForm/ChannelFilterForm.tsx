@@ -6,6 +6,7 @@ import { get } from 'lodash-es';
 import { observer } from 'mobx-react';
 
 import Block from 'components/GBlock/Block';
+import MonacoJinja2Editor from 'components/MonacoJinja2Editor/MonacoJinja2Editor';
 import Text from 'components/Text/Text';
 import IncidentMatcher from 'containers/IncidentMatcher/IncidentMatcher';
 import { AlertReceiveChannel } from 'models/alert_receive_channel';
@@ -31,7 +32,7 @@ const ChannelFilterForm = observer((props: ChannelFilterFormProps) => {
 
   const [filteringTerm, setFilteringTerm] = useState<string>(data ? data.filtering_term : '.*');
   const [filteringTermJinja2, setFilteringTermJinja2] = useState<string>(
-    data ? data.filtering_term_jinja2 : '{{ payload.foo == "bar" }}'
+    data ? data.filtering_term_jinja2 : '{{ (payload.foo == "bar" and "qux" in payload.baz) or True }}'
   );
   const [filteringTermType, setFilteringTermType] = useState<FilteringTermType>(data ? data.filtering_term_type : 1);
   const [errors, setErrors] = useState<{ filtering_term?: string }>({});
@@ -45,9 +46,9 @@ const ChannelFilterForm = observer((props: ChannelFilterFormProps) => {
     setFilteringTerm(event.target.value);
   }, []);
 
-  const handleFilteringTermJinja2Change = useCallback((event: ChangeEvent<HTMLInputElement>) => {
+  const handleFilteringTermJinja2Change = useCallback((value: string) => {
     setErrors({});
-    setFilteringTermJinja2(event.target.value);
+    setFilteringTermJinja2(value);
   }, []);
 
   const onUpdateClickCallback = useCallback(() => {
@@ -88,48 +89,64 @@ const ChannelFilterForm = observer((props: ChannelFilterFormProps) => {
         alert content, using regular expressions.
       </Text>
       <div className={styles.form}>
-        <RadioButtonGroup
-          options={[
-            { label: 'Jinja2 (recommended)', value: 1 },
-            { label: 'Regular Expression', value: 0 },
-          ]}
-          value={filteringTermType}
-          onChange={(value) => {
-            setFilteringTermType(value);
-          }}
-        />
+        <Field>
+          <RadioButtonGroup
+            options={[
+              { label: 'Jinja2 (recommended)', value: 1 },
+              { label: 'Regular Expression', value: 0 },
+            ]}
+            value={filteringTermType}
+            onChange={(value) => {
+              setFilteringTermType(value);
+            }}
+          />
+        </Field>
 
         {filteringTermType === 0 ? (
-          <Field
-            invalid={Boolean(errors['filtering_term'])}
-            disabled={data?.is_default}
-            error={errors['filtering_term']}
-            label="Regex to route incidents"
-            description={
-              <>
-                Use{' '}
-                <a href="https://regex101.com/" target="_blank" rel="noreferrer">
-                  python style
-                </a>{' '}
-                regex to filter incidents based on a expression
-              </>
-            }
-          >
-            <Input
-              placeholder={
-                data?.is_default ? "Default routes can't have a filtering term" : 'Insert your regular expression here'
+          <>
+            <Field
+              invalid={Boolean(errors['filtering_term'])}
+              disabled={data?.is_default}
+              error={errors['filtering_term']}
+              label="Regex to route alert groups"
+              description={
+                <>
+                  Use{' '}
+                  <a href="https://regex101.com/" target="_blank" rel="noreferrer">
+                    python style
+                  </a>{' '}
+                  regex to filter incidents based on a expression
+                </>
               }
-              autoFocus
-              value={filteringTerm}
-              onChange={handleFilteringTermChange}
-            />
-          </Field>
+            >
+              <Input
+                placeholder={
+                  data?.is_default
+                    ? "Default routes can't have a filtering term"
+                    : 'Insert your regular expression here'
+                }
+                autoFocus
+                value={filteringTerm}
+                onChange={handleFilteringTermChange}
+              />
+            </Field>
+            {!data?.is_default && (
+              <IncidentMatcher
+                regexp={filteringTerm}
+                filteringTermJinja2={filteringTermJinja2}
+                className={cx('incident-matcher')}
+                onError={(message: string) => {
+                  setErrors({ filtering_term: message });
+                }}
+              />
+            )}
+          </>
         ) : (
           <Field
             invalid={Boolean(errors['filtering_term_jinja2'])}
             disabled={data?.is_default}
             error={errors['filtering_term_jinja2']}
-            label="OR use Jinja2 template to route incidents"
+            label="Use Jinja2 template to route incidents"
             description={
               <>
                 Use{' '}
@@ -140,27 +157,16 @@ const ChannelFilterForm = observer((props: ChannelFilterFormProps) => {
               </>
             }
           >
-            <Input
-              placeholder={
-                data?.is_default ? "Default routes can't have a filtering term" : 'Insert your regular expression here'
-              }
-              autoFocus
+            <MonacoJinja2Editor
               value={filteringTermJinja2}
+              disabled={false}
               onChange={handleFilteringTermJinja2Change}
+              data={{}}
+              loading={null}
             />
           </Field>
         )}
       </div>
-      {!data?.is_default && (
-        <IncidentMatcher
-          regexp={filteringTerm}
-          filteringTermJinja2={filteringTermJinja2}
-          className={cx('incident-matcher')}
-          onError={(message: string) => {
-            setErrors({ filtering_term: message });
-          }}
-        />
-      )}
       <HorizontalGroup>
         <Button variant="primary" onClick={onUpdateClickCallback}>
           {id === 'new' ? 'Create' : 'Update'} route
