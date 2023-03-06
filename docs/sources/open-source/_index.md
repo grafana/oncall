@@ -96,7 +96,11 @@ features:
   slash_commands:
     - command: /oncall
       url: <ONCALL_ENGINE_PUBLIC_URL>/slack/interactive_api_endpoint/
-      description: oncall
+      description: Create a manual alert group
+      should_escape: false
+    - command: /escalate
+      url: <ONCALL_ENGINE_PUBLIC_URL>/slack/interactive_api_endpoint/
+      description: Direct page user(s) or schedule(s)
       should_escape: false
 oauth_config:
   redirect_urls:
@@ -221,7 +225,24 @@ the following env variables with your SMTP server credentials:
 After enabling the email integration, it will be possible to use the `Notify by email` notification step in user settings.
 
 ## Limits
+
 By default, OnCall limits email, phone notifications (calls, SMS) to 200 per user per day.
 The limit can be changed using Env variables:
+
 - `PHONE_NOTIFICATIONS_LIMIT` (default is `200`) - phone notifications per user
-- `EMAIL_NOTIFICATIONS_LIMIT` (default is `200`) - Emails per user
+- `EMAIL_NOTIFICATIONS_LIMIT` (default is `200`) - emails per user
+
+## Mobile application set up
+
+>**Note**: This application is currently in beta
+
+Grafana OnCall OSS users can use the mobile app to receive push notifications from OnCall.
+Grafana OnCall OSS relies on Grafana Cloud as on relay for push notifications.
+You must first connect your Grafana OnCall OSS to Grafana Cloud for the mobile app to work.
+
+Refer to [Grafana OSS-Cloud Setup]({{< relref "_index.md#grafana-oss-cloud-setup" >}}) in this document before continuing with the mobile app.
+
+For Grafana OnCall OSS, the mobile app QR code includes an authentication token along with a backend URL.
+Your Grafana OnCall OSS instance should be reachable from the same network as your mobile device, preferably from the internet.
+
+For more information, see [Grafana OnCall mobile app]({{< relref "../mobile-app" >}})

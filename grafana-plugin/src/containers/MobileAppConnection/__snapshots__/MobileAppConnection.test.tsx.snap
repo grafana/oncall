@@ -40,38 +40,52 @@ exports[`MobileAppConnection if we disconnect the app, it disconnects and fetche
             <div
               class="css-bxa289-layoutChildrenWrapper"
             >
-              <div
-                class="root icon-block root_bordered root--fullWidth root--withBackground root--hover"
+              <a
+                href="https://apps.apple.com/us/app/grafana-oncall-preview/id1669759048"
+                rel="noreferrer"
+                style="width: 100%;"
+                target="_blank"
               >
-                <img
-                  alt="Apple"
-                  class="icon"
-                  src="[object Object]"
-                />
-                <span
-                  class="root text icon-text text--primary text--medium"
+                <div
+                  class="root icon-block root_bordered root--fullWidth root--withBackground root--hover"
                 >
-                  iOS
-                </span>
-              </div>
+                  <img
+                    alt="Apple"
+                    class="icon"
+                    src="[object Object]"
+                  />
+                  <span
+                    class="root text icon-text text--primary text--medium"
+                  >
+                    iOS
+                  </span>
+                </div>
+              </a>
             </div>
             <div
               class="css-bxa289-layoutChildrenWrapper"
             >
-              <div
-                class="root icon-block root_bordered root--fullWidth root--hover"
+              <a
+                href="https://play.google.com/store/apps/details?id=com.grafana.oncall.prod"
+                rel="noreferrer"
+                style="width: 100%;"
+                target="_blank"
               >
-                <img
-                  alt="Play Store"
-                  class="icon"
-                  src="[object Object]"
-                />
-                <span
-                  class="root text icon-text text--primary text--medium"
+                <div
+                  class="root icon-block root_bordered root--fullWidth root--hover"
                 >
-                  Android
-                </span>
-              </div>
+                  <img
+                    alt="Play Store"
+                    class="icon"
+                    src="[object Object]"
+                  />
+                  <span
+                    class="root text icon-text text--primary text--medium"
+                  >
+                    Android
+                  </span>
+                </div>
+              </a>
             </div>
           </div>
         </div>
@@ -2371,38 +2385,52 @@ exports[`MobileAppConnection it shows a QR code if the app isn't already connect
             <div
               class="css-bxa289-layoutChildrenWrapper"
             >
-              <div
-                class="root icon-block root_bordered root--fullWidth root--withBackground root--hover"
+              <a
+                href="https://apps.apple.com/us/app/grafana-oncall-preview/id1669759048"
+                rel="noreferrer"
+                style="width: 100%;"
+                target="_blank"
               >
-                <img
-                  alt="Apple"
-                  class="icon"
-                  src="[object Object]"
-                />
-                <span
-                  class="root text icon-text text--primary text--medium"
+                <div
+                  class="root icon-block root_bordered root--fullWidth root--withBackground root--hover"
                 >
-                  iOS
-                </span>
-              </div>
+                  <img
+                    alt="Apple"
+                    class="icon"
+                    src="[object Object]"
+                  />
+                  <span
+                    class="root text icon-text text--primary text--medium"
+                  >
+                    iOS
+                  </span>
+                </div>
+              </a>
             </div>
             <div
               class="css-bxa289-layoutChildrenWrapper"
             >
-              <div
-                class="root icon-block root_bordered root--fullWidth root--hover"
+              <a
+                href="https://play.google.com/store/apps/details?id=com.grafana.oncall.prod"
+                rel="noreferrer"
+                style="width: 100%;"
+                target="_blank"
               >
-                <img
-                  alt="Play Store"
-                  class="icon"
-                  src="[object Object]"
-                />
-                <span
-                  class="root text icon-text text--primary text--medium"
+                <div
+                  class="root icon-block root_bordered root--fullWidth root--hover"
                 >
-                  Android
-                </span>
-              </div>
+                  <img
+                    alt="Play Store"
+                    class="icon"
+                    src="[object Object]"
+                  />
+                  <span
+                    class="root text icon-text text--primary text--medium"
+                  >
+                    Android
+                  </span>
+                </div>
+              </a>
             </div>
           </div>
         </div>
@@ -2470,38 +2498,52 @@ exports[`MobileAppConnection it shows a loading message if it is currently disco
             <div
               class="css-bxa289-layoutChildrenWrapper"
             >
-              <div
-                class="root icon-block root_bordered root--fullWidth root--withBackground root--hover"
+              <a
+                href="https://apps.apple.com/us/app/grafana-oncall-preview/id1669759048"
+                rel="noreferrer"
+                style="width: 100%;"
+                target="_blank"
               >
-                <img
-                  alt="Apple"
-                  class="icon"
-                  src="[object Object]"
-                />
-                <span
-                  class="root text icon-text text--primary text--medium"
+                <div
+                  class="root icon-block root_bordered root--fullWidth root--withBackground root--hover"
                 >
-                  iOS
-                </span>
-              </div>
+                  <img
+                    alt="Apple"
+                    class="icon"
+                    src="[object Object]"
+                  />
+                  <span
+                    class="root text icon-text text--primary text--medium"
+                  >
+                    iOS
+                  </span>
+                </div>
+              </a>
             </div>
             <div
               class="css-bxa289-layoutChildrenWrapper"
             >
-              <div
-                class="root icon-block root_bordered root--fullWidth root--hover"
+              <a
+                href="https://play.google.com/store/apps/details?id=com.grafana.oncall.prod"
+                rel="noreferrer"
+                style="width: 100%;"
+                target="_blank"
               >
-                <img
-                  alt="Play Store"
-                  class="icon"
-                  src="[object Object]"
-                />
-                <span
-                  class="root text icon-text text--primary text--medium"
+                <div
+                  class="root icon-block root_bordered root--fullWidth root--hover"
                 >
-                  Android
-                </span>
-              </div>
+                  <img
+                    alt="Play Store"
+                    class="icon"
+                    src="[object Object]"
+                  />
+                  <span
+                    class="root text icon-text text--primary text--medium"
+                  >
+                    Android
+                  </span>
+                </div>
+              </a>
             </div>
           </div>
         </div>
@@ -2569,38 +2611,52 @@ exports[`MobileAppConnection it shows a loading message if it is currently fetch
             <div
               class="css-bxa289-layoutChildrenWrapper"
             >
-              <div
-                class="root icon-block root_bordered root--fullWidth root--withBackground root--hover"
+              <a
+                href="https://apps.apple.com/us/app/grafana-oncall-preview/id1669759048"
+                rel="noreferrer"
+                style="width: 100%;"
+                target="_blank"
               >
-                <img
-                  alt="Apple"
-                  class="icon"
-                  src="[object Object]"
-                />
-                <span
-                  class="root text icon-text text--primary text--medium"
+                <div
+                  class="root icon-block root_bordered root--fullWidth root--withBackground root--hover"
                 >
-                  iOS
-                </span>
-              </div>
+                  <img
+                    alt="Apple"
+                    class="icon"
+                    src="[object Object]"
+                  />
+                  <span
+                    class="root text icon-text text--primary text--medium"
+                  >
+                    iOS
+                  </span>
+                </div>
+              </a>
             </div>
             <div
               class="css-bxa289-layoutChildrenWrapper"
             >
-              <div
-                class="root icon-block root_bordered root--fullWidth root--hover"
+              <a
+                href="https://play.google.com/store/apps/details?id=com.grafana.oncall.prod"
+                rel="noreferrer"
+                style="width: 100%;"
+                target="_blank"
               >
-                <img
-                  alt="Play Store"
-                  class="icon"
-                  src="[object Object]"
-                />
-                <span
-                  class="root text icon-text text--primary text--medium"
+                <div
+                  class="root icon-block root_bordered root--fullWidth root--hover"
                 >
-                  Android
-                </span>
-              </div>
+                  <img
+                    alt="Play Store"
+                    class="icon"
+                    src="[object Object]"
+                  />
+                  <span
+                    class="root text icon-text text--primary text--medium"
+                  >
+                    Android
+                  </span>
+                </div>
+              </a>
             </div>
           </div>
         </div>
@@ -2668,38 +2724,52 @@ exports[`MobileAppConnection it shows a message when the mobile app is already c
             <div
               class="css-bxa289-layoutChildrenWrapper"
             >
-              <div
-                class="root icon-block root_bordered root--fullWidth root--withBackground root--hover"
+              <a
+                href="https://apps.apple.com/us/app/grafana-oncall-preview/id1669759048"
+                rel="noreferrer"
+                style="width: 100%;"
+                target="_blank"
               >
-                <img
-                  alt="Apple"
-                  class="icon"
-                  src="[object Object]"
-                />
-                <span
-                  class="root text icon-text text--primary text--medium"
+                <div
+                  class="root icon-block root_bordered root--fullWidth root--withBackground root--hover"
                 >
-                  iOS
-                </span>
-              </div>
+                  <img
+                    alt="Apple"
+                    class="icon"
+                    src="[object Object]"
+                  />
+                  <span
+                    class="root text icon-text text--primary text--medium"
+                  >
+                    iOS
+                  </span>
+                </div>
+              </a>
             </div>
             <div
               class="css-bxa289-layoutChildrenWrapper"
             >
-              <div
-                class="root icon-block root_bordered root--fullWidth root--hover"
+              <a
+                href="https://play.google.com/store/apps/details?id=com.grafana.oncall.prod"
+                rel="noreferrer"
+                style="width: 100%;"
+                target="_blank"
               >
-                <img
-                  alt="Play Store"
-                  class="icon"
-                  src="[object Object]"
-                />
-                <span
-                  class="root text icon-text text--primary text--medium"
+                <div
+                  class="root icon-block root_bordered root--fullWidth root--hover"
                 >
-                  Android
-                </span>
-              </div>
+                  <img
+                    alt="Play Store"
+                    class="icon"
+                    src="[object Object]"
+                  />
+                  <span
+                    class="root text icon-text text--primary text--medium"
+                  >
+                    Android
+                  </span>
+                </div>
+              </a>
             </div>
           </div>
         </div>
@@ -2867,38 +2937,52 @@ exports[`MobileAppConnection it shows an error message if there was an error dis
             <div
               class="css-bxa289-layoutChildrenWrapper"
             >
-              <div
-                class="root icon-block root_bordered root--fullWidth root--withBackground root--hover"
+              <a
+                href="https://apps.apple.com/us/app/grafana-oncall-preview/id1669759048"
+                rel="noreferrer"
+                style="width: 100%;"
+                target="_blank"
               >
-                <img
-                  alt="Apple"
-                  class="icon"
-                  src="[object Object]"
-                />
-                <span
-                  class="root text icon-text text--primary text--medium"
+                <div
+                  class="root icon-block root_bordered root--fullWidth root--withBackground root--hover"
                 >
-                  iOS
-                </span>
-              </div>
+                  <img
+                    alt="Apple"
+                    class="icon"
+                    src="[object Object]"
+                  />
+                  <span
+                    class="root text icon-text text--primary text--medium"
+                  >
+                    iOS
+                  </span>
+                </div>
+              </a>
             </div>
             <div
               class="css-bxa289-layoutChildrenWrapper"
             >
-              <div
-                class="root icon-block root_bordered root--fullWidth root--hover"
+              <a
+                href="https://play.google.com/store/apps/details?id=com.grafana.oncall.prod"
+                rel="noreferrer"
+                style="width: 100%;"
+                target="_blank"
               >
-                <img
-                  alt="Play Store"
-                  class="icon"
-                  src="[object Object]"
-                />
-                <span
-                  class="root text icon-text text--primary text--medium"
+                <div
+                  class="root icon-block root_bordered root--fullWidth root--hover"
                 >
-                  Android
-                </span>
-              </div>
+                  <img
+                    alt="Play Store"
+                    class="icon"
+                    src="[object Object]"
+                  />
+                  <span
+                    class="root text icon-text text--primary text--medium"
+                  >
+                    Android
+                  </span>
+                </div>
+              </a>
             </div>
           </div>
         </div>
@@ -2957,38 +3041,52 @@ exports[`MobileAppConnection it shows an error message if there was an error fet
             <div
               class="css-bxa289-layoutChildrenWrapper"
             >
-              <div
-                class="root icon-block root_bordered root--fullWidth root--withBackground root--hover"
+              <a
+                href="https://apps.apple.com/us/app/grafana-oncall-preview/id1669759048"
+                rel="noreferrer"
+                style="width: 100%;"
+                target="_blank"
               >
-                <img
-                  alt="Apple"
-                  class="icon"
-                  src="[object Object]"
-                />
-                <span
-                  class="root text icon-text text--primary text--medium"
+                <div
+                  class="root icon-block root_bordered root--fullWidth root--withBackground root--hover"
                 >
-                  iOS
-                </span>
-              </div>
+                  <img
+                    alt="Apple"
+                    class="icon"
+                    src="[object Object]"
+                  />
+                  <span
+                    class="root text icon-text text--primary text--medium"
+                  >
+                    iOS
+                  </span>
+                </div>
+              </a>
             </div>
             <div
               class="css-bxa289-layoutChildrenWrapper"
             >
-              <div
-                class="root icon-block root_bordered root--fullWidth root--hover"
+              <a
+                href="https://play.google.com/store/apps/details?id=com.grafana.oncall.prod"
+                rel="noreferrer"
+                style="width: 100%;"
+                target="_blank"
               >
-                <img
-                  alt="Play Store"
-                  class="icon"
-                  src="[object Object]"
-                />
-                <span
-                  class="root text icon-text text--primary text--medium"
+                <div
+                  class="root icon-block root_bordered root--fullWidth root--hover"
                 >
-                  Android
-                </span>
-              </div>
+                  <img
+                    alt="Play Store"
+                    class="icon"
+                    src="[object Object]"
+                  />
+                  <span
+                    class="root text icon-text text--primary text--medium"
+                  >
+                    Android
+                  </span>
+                </div>
+              </a>
             </div>
           </div>
         </div>

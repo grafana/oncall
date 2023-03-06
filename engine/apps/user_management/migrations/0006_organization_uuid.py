@@ -2,6 +2,7 @@
 
 from django.db import migrations, models
 import uuid
+import django_migration_linter as linter
 
 
 def fill_org_uuid(apps, schema_editor):
@@ -20,6 +21,7 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
+        linter.IgnoreMigration(),
         migrations.AddField(
             model_name='organization',
             name='uuid',

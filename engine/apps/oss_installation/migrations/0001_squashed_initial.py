@@ -2,6 +2,7 @@
 
 from django.db import migrations, models
 import uuid
+import django_migration_linter as linter
 
 
 class Migration(migrations.Migration):
@@ -12,6 +13,7 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
+        linter.IgnoreMigration(),
         migrations.CreateModel(
             name='CloudHeartbeat',
             fields=[

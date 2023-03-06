@@ -1,7 +1,4 @@
 .root {
-  max-width: 1600px;
-  margin: 0 auto;
-
   --rotations-border: var(--border-weak);
   --rotations-background: var(--background-secondary);
 }
@@ -29,4 +26,9 @@
   gap: 16px;
   position: relative;
   width: 100%;
+}
+
+.not-found {
+  margin: 50px auto;
+  text-align: center;
 }

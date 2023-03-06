@@ -785,6 +785,7 @@ expected_schedules_result = [
             "on_call_now": [],
             "slack": None,
         },
+        "migration_errors": [],
         "unmatched_users": [
             {
                 "id": "TESTUSER2",
@@ -842,6 +843,7 @@ expected_schedules_result = [
         "teams": [],
         "oncall_schedule": None,
         "unmatched_users": [],
+        "migration_errors": [],
     },
     {
         "id": "TESTSCH3",
@@ -866,6 +868,7 @@ expected_schedules_result = [
         "escalation_policies": [],
         "teams": [],
         "oncall_schedule": None,
+        "migration_errors": [],
         "unmatched_users": [
             {
                 "id": "TESTUSER2",
@@ -924,6 +927,7 @@ expected_schedules_result = [
         "teams": [],
         "oncall_schedule": None,
         "unmatched_users": [],
+        "migration_errors": [],
     },
 ]
 expected_escalation_policies_result = [
@@ -1028,6 +1032,7 @@ expected_escalation_policies_result = [
                     "on_call_now": [],
                     "slack": None,
                 },
+                "migration_errors": [],
                 "unmatched_users": [
                     {
                         "id": "TESTUSER2",
@@ -1560,9 +1565,17 @@ def test_match_user():
     assert pd_users_payload == expected_users_match_result
 
 
+def test_match_user_not_found():
+    pd_user = {"email": "test@test.com"}
+    oncall_users = [{"email": "test1@test.com"}]
+
+    match_user(pd_user, oncall_users)
+    assert pd_user["oncall_user"] is None
+
+
 def test_match_schedule():
     for schedule in pd_schedules_payload:
-        match_schedule(schedule, oncall_schedules_payload)
+        match_schedule(schedule, oncall_schedules_payload, user_id_map={})
         match_users_for_schedule(schedule, pd_users_payload)
 
     assert pd_schedules_payload == expected_schedules_result

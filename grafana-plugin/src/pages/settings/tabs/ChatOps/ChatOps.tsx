@@ -1,5 +1,6 @@
 import React from 'react';
 
+import { AppRootProps } from '@grafana/data';
 import { HorizontalGroup, Icon } from '@grafana/ui';
 import cn from 'classnames/bind';
 import { observer } from 'mobx-react';
@@ -8,6 +9,7 @@ import VerticalTabsBar, { VerticalTab } from 'components/VerticalTabsBar/Vertica
 import SlackSettings from 'pages/settings/tabs/ChatOps/tabs/SlackSettings/SlackSettings';
 import TelegramSettings from 'pages/settings/tabs/ChatOps/tabs/TelegramSettings/TelegramSettings';
 import { withMobXProviderContext } from 'state/withStore';
+import LocationHelper from 'utils/LocationHelper';
 
 import styles from './ChatOps.module.css';
 
@@ -23,10 +25,16 @@ interface ChatOpsState {
 }
 
 @observer
-class ChatOpsPage extends React.Component<{}, ChatOpsState> {
+class ChatOpsPage extends React.Component<AppRootProps, ChatOpsState> {
   state: ChatOpsState = {
     activeTab: ChatOpsTab.Slack,
   };
+
+  componentDidMount() {
+    const { query } = this.props;
+
+    this.handleChatopsTabChange(query.tab || ChatOpsTab.Slack);
+  }
 
   render() {
     const { activeTab } = this.state;
@@ -34,18 +42,18 @@ class ChatOpsPage extends React.Component<{}, ChatOpsState> {
     return (
       <div className={cx('root')}>
         <div className={cx('tabs')}>
-          <Tabs
-            activeTab={activeTab}
-            onTabChange={(tab: ChatOpsTab) => {
-              this.setState({ activeTab: tab });
-            }}
-          />
+          <Tabs activeTab={activeTab} onTabChange={(tab: ChatOpsTab) => this.handleChatopsTabChange(tab)} />
         </div>
         <div className={cx('content')}>
           <TabsContent activeTab={activeTab} />
         </div>
       </div>
     );
+  }
+
+  handleChatopsTabChange(tab: ChatOpsTab) {
+    this.setState({ activeTab: tab });
+    LocationHelper.update({ tab: tab }, 'partial');
   }
 }
 

@@ -1,8 +1,9 @@
-import { makeRequest as makeRequestOriginal } from 'network';
+import { makeRequest as makeRequestOriginal, isNetworkError as isNetworkErrorOriginal } from 'network';
 
 import PluginState, { InstallationVerb, PluginSyncStatusResponse, UpdateGrafanaPluginSettingsProps } from './';
 
 const makeRequest = makeRequestOriginal as jest.Mock<ReturnType<typeof makeRequestOriginal>>;
+const isNetworkError = isNetworkErrorOriginal as unknown as jest.Mock<ReturnType<typeof isNetworkErrorOriginal>>;
 
 jest.mock('network');
 
@@ -13,7 +14,7 @@ afterEach(() => {
 const ONCALL_BASE_URL = '/plugin';
 const GRAFANA_PLUGIN_SETTINGS_URL = '/api/plugins/grafana-oncall-app/settings';
 
-const generateMockAxiosError = (status: number, data = {}) => ({ isAxiosError: true, response: { status, ...data } });
+const generateMockNetworkError = (status: number, data = {}) => ({ response: { status, ...data } });
 
 describe('PluginState.generateOnCallApiUrlConfiguredThroughEnvVarMsg', () => {
   test.each([true, false])(
@@ -54,10 +55,12 @@ describe('PluginState.getHumanReadableErrorFromOnCallError', () => {
     console.warn = () => {};
   });
 
-  test.each([502, 409])('it handles a non-400 AxiosError properly - status code: %s', (status) => {
+  test.each([502, 409])('it handles a non-400 network error properly - status code: %s', (status) => {
+    isNetworkError.mockReturnValueOnce(true);
+
     expect(
       PluginState.getHumanReadableErrorFromOnCallError(
-        generateMockAxiosError(status),
+        generateMockNetworkError(status),
         'http://hello.com',
         'install',
         true
@@ -66,19 +69,23 @@ describe('PluginState.getHumanReadableErrorFromOnCallError', () => {
   });
 
   test.each([true, false])(
-    'it handles a 400 AxiosError properly - has custom error message: %s',
+    'it handles a 400 network error properly - has custom error message: %s',
     (hasCustomErrorMessage) => {
-      const axiosError = generateMockAxiosError(400) as any;
+      isNetworkError.mockReturnValueOnce(true);
+
+      const networkError = generateMockNetworkError(400) as any;
       if (hasCustomErrorMessage) {
-        axiosError.response.data = { error: 'ohhhh nooo an error' };
+        networkError.response.data = { error: 'ohhhh nooo an error' };
       }
       expect(
-        PluginState.getHumanReadableErrorFromOnCallError(axiosError, 'http://hello.com', 'install', true)
+        PluginState.getHumanReadableErrorFromOnCallError(networkError, 'http://hello.com', 'install', true)
       ).toMatchSnapshot();
     }
   );
 
   test('it handles an unknown error properly', () => {
+    isNetworkError.mockReturnValueOnce(false);
+
     expect(
       PluginState.getHumanReadableErrorFromOnCallError(new Error('asdfasdf'), 'http://hello.com', 'install', true)
     ).toMatchSnapshot();
@@ -86,23 +93,27 @@ describe('PluginState.getHumanReadableErrorFromOnCallError', () => {
 });
 
 describe('PluginState.getHumanReadableErrorFromGrafanaProvisioningError', () => {
-  test.each([true, false])('it handles an error properly', (isAxiosError) => {
+  beforeEach(() => {
+    console.warn = () => {};
+  });
+
+  test.each([true, false])('it handles an error properly - network error: %s', (networkError) => {
     const onCallApiUrl = 'http://hello.com';
     const installationVerb = 'install';
     const onCallApiUrlIsConfiguredThroughEnvVar = true;
-    const axiosError = generateMockAxiosError(400);
-    const nonAxiosError = new Error('oh noooo');
-    const error = isAxiosError ? axiosError : nonAxiosError;
+    const error = networkError ? generateMockNetworkError(400) : new Error('oh noooo');
 
     const mockGenerateInvalidOnCallApiURLErrorMsgResult = 'asdadslkjfkjlsd';
     const mockGenerateUnknownErrorMsgResult = 'asdadslkjfkjlsd';
+
+    isNetworkError.mockReturnValueOnce(networkError);
 
     PluginState.generateInvalidOnCallApiURLErrorMsg = jest
       .fn()
       .mockReturnValueOnce(mockGenerateInvalidOnCallApiURLErrorMsgResult);
     PluginState.generateUnknownErrorMsg = jest.fn().mockReturnValueOnce(mockGenerateUnknownErrorMsgResult);
 
-    const expectedErrorMsg = isAxiosError
+    const expectedErrorMsg = networkError
       ? mockGenerateInvalidOnCallApiURLErrorMsgResult
       : mockGenerateUnknownErrorMsgResult;
 
@@ -115,7 +126,7 @@ describe('PluginState.getHumanReadableErrorFromGrafanaProvisioningError', () => 
       )
     ).toEqual(expectedErrorMsg);
 
-    if (isAxiosError) {
+    if (networkError) {
       expect(PluginState.generateInvalidOnCallApiURLErrorMsg).toHaveBeenCalledTimes(1);
       expect(PluginState.generateInvalidOnCallApiURLErrorMsg).toHaveBeenCalledWith(
         onCallApiUrl,
@@ -209,6 +220,7 @@ describe('PluginState.getPluginSyncStatus', () => {
       license: 'asdasdf',
       version: 'asdasf',
       token_ok: true,
+      recaptcha_site_key: 'asdasdf',
     };
     makeRequest.mockResolvedValueOnce(mockedResp);
 

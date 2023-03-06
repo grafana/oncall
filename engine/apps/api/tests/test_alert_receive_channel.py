@@ -126,7 +126,7 @@ def test_integration_filter_by_maintenance(
     alert_receive_channel_internal_api_setup,
     make_user_auth_headers,
     mock_start_disable_maintenance_task,
-    mock_alert_shooting_step_publish_slack_messages,
+    mock_alert_shooting_step_post_alert_group_to_slack,
 ):
     user, token, alert_receive_channel = alert_receive_channel_internal_api_setup
     client = APIClient()
@@ -149,7 +149,7 @@ def test_integration_filter_by_debug(
     alert_receive_channel_internal_api_setup,
     make_user_auth_headers,
     mock_start_disable_maintenance_task,
-    mock_alert_shooting_step_publish_slack_messages,
+    mock_alert_shooting_step_post_alert_group_to_slack,
 ):
     user, token, alert_receive_channel = alert_receive_channel_internal_api_setup
     client = APIClient()
@@ -671,7 +671,7 @@ def test_alert_receive_channel_counters_per_integration_permissions(
 
 
 @pytest.mark.django_db
-def test_get_alert_receive_channels_direct_paging_hidden(
+def test_get_alert_receive_channels_direct_paging_hidden_from_list(
     make_organization_and_user_with_plugin_token, make_alert_receive_channel, make_user_auth_headers
 ):
     organization, user, token = make_organization_and_user_with_plugin_token()
@@ -684,3 +684,21 @@ def test_get_alert_receive_channels_direct_paging_hidden(
     # Check no direct paging integrations in the response
     assert response.status_code == status.HTTP_200_OK
     assert response.json() == []
+
+
+@pytest.mark.django_db
+def test_get_alert_receive_channels_direct_paging_present_for_filters(
+    make_organization_and_user_with_plugin_token, make_alert_receive_channel, make_user_auth_headers
+):
+    organization, user, token = make_organization_and_user_with_plugin_token()
+    alert_receive_channel = make_alert_receive_channel(
+        user.organization, integration=AlertReceiveChannel.INTEGRATION_DIRECT_PAGING
+    )
+
+    client = APIClient()
+    url = reverse("api-internal:alert_receive_channel-list")
+    response = client.get(url + "?filters=true", format="json", **make_user_auth_headers(user, token))
+
+    # Check direct paging integration is in the response
+    assert response.status_code == status.HTTP_200_OK
+    assert response.json()[0]["value"] == alert_receive_channel.public_primary_key
