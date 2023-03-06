@@ -179,6 +179,7 @@ def test_deactivated_users():
     pd_schedule = {
         "name": "No restrictions",
         "time_zone": "Europe/London",
+        "overrides": [],
         "schedule_layers": [
             {
                 "name": "Layer 1",
@@ -199,7 +200,7 @@ def test_deactivated_users():
         user_id_map
     )
     assert errors == [
-        "Layer 1: User IDs ['USER_ID_DEACTIVATED'] not found. The users probably have been deactivated in PagerDuty."
+        "Layer 1: Users with IDs ['USER_ID_DEACTIVATED'] not found. The users probably have been deactivated in PagerDuty."
     ]
 
 
@@ -207,6 +208,7 @@ def test_no_restrictions():
     pd_schedule = {
         "name": "No restrictions",
         "time_zone": "Europe/London",
+        "overrides": [],
         "schedule_layers": [
             {
                 "name": "Layer 5",
@@ -355,6 +357,7 @@ def test_daily_with_daily_restrictions():
     pd_schedule = {
         "name": "Daily with daily restrictions",
         "time_zone": "Europe/London",
+        "overrides": [],
         "schedule_layers": [
             {
                 "name": "Layer 10",
@@ -941,6 +944,7 @@ def test_weekly_with_daily_restrictions():
     pd_schedule = {
         "name": "Weekly with daily restrictions",
         "time_zone": "Europe/London",
+        "overrides": [],
         "schedule_layers": [
             {
                 "name": "Layer 6",
@@ -1287,6 +1291,7 @@ def test_daily_with_weekly_restrictions():
     pd_schedule = {
         "name": "Daily with weekly restrictions",
         "time_zone": "Europe/London",
+        "overrides": [],
         "schedule_layers": [
             {
                 "name": "Layer 4",
@@ -1477,6 +1482,7 @@ def test_weekly_with_weekly_restrictions():
     pd_schedule = {
         "name": "Weekly (weekly)",
         "time_zone": "Europe/London",
+        "overrides": [],
         "schedule_layers": [
             {
                 "name": "Layer 6",
@@ -1835,6 +1841,7 @@ def test_errors():
     pd_schedule = {
         "name": "Errors",
         "time_zone": "Europe/London",
+        "overrides": [],
         "schedule_layers": [
             {
                 "name": "Layer 11",
@@ -2059,6 +2066,7 @@ def test_time_zone():
     pd_schedule = {
         "name": "Time zone",
         "time_zone": "Europe/Paris",
+        "overrides": [],
         "schedule_layers": [
             {
                 "name": "Layer 1",
@@ -2115,6 +2123,7 @@ def test_removed_layers():
     pd_schedule = {
         "name": "Removed layer",
         "time_zone": "Europe/Paris",
+        "overrides": [],
         "schedule_layers": [
             {
                 "name": "Layer 1",
@@ -2149,3 +2158,87 @@ def test_removed_layers():
     for shift in oncall_schedule["shifts"]:
         shift.pop("name")
     assert oncall_schedule == expected
+
+
+def test_overrides():
+    pd_schedule = {
+        "name": "Overrides",
+        "time_zone": "Europe/London",
+        "overrides": [
+            {
+                "start": "2023-03-02T11:00:00",
+                "end": "2023-03-02T12:00:00",
+                "user": {"id": "USER_ID_1"},
+            },
+            {
+                "start": "2023-03-02T11:00:00+00:00",
+                "end": "2023-03-02T12:00:00+00:00",
+                "user": {"id": "USER_ID_1"},
+            },
+            {
+                "start": "2023-03-02T12:00:00+01:00",
+                "end": "2023-03-02T13:00:00+01:00",
+                "user": {"id": "USER_ID_1"},
+            },
+            {
+                "start": "2023-03-02T10:00:00-01:00",
+                "end": "2023-03-02T11:00:00-01:00",
+                "user": {"id": "USER_ID_1"},
+            },
+        ],
+        "schedule_layers": [],
+    }
+
+    expected = {
+        "name": "Overrides",
+        "shifts": [
+            {
+                "team_id": None,
+                "duration": 3600,
+                "users": ["USER_ID_1"],
+                "rotation_start": "2023-03-02T11:00:00",
+                "start": "2023-03-02T11:00:00",
+                "time_zone": "UTC",
+                "type": "override",
+                "source": 0,
+            },
+        ]
+        * 4,  # all shifts are the same
+        "team_id": None,
+        "time_zone": "Europe/London",
+        "type": "web",
+    }
+
+    oncall_schedule, errors = Schedule.from_dict(pd_schedule).to_oncall_schedule(
+        user_id_map
+    )
+
+    assert errors == []
+
+    for shift in oncall_schedule["shifts"]:
+        shift.pop("name")
+    assert oncall_schedule == expected
+
+
+def test_override_deactivated_user():
+    pd_schedule = {
+        "name": "Overrides",
+        "time_zone": "Europe/London",
+        "overrides": [
+            {
+                "start": "2023-03-02T11:00:00",
+                "end": "2023-03-02T12:00:00",
+                "user": {"id": "USER_ID_4"},
+            },
+        ],
+        "schedule_layers": [],
+    }
+
+    oncall_schedule, errors = Schedule.from_dict(pd_schedule).to_oncall_schedule(
+        user_id_map
+    )
+
+    assert errors == [
+        "Override: User with ID 'USER_ID_4' not found. The user probably has been deactivated in PagerDuty."
+    ]
+    assert oncall_schedule is None
