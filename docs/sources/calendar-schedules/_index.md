@@ -60,5 +60,4 @@ Use the Grafana OnCall Terraform provider to manage schedules within your “as-
 via Terraform are automatically added to your schedules in Grafana OnCall. Similar to the iCal import, these schedules
 read-only and cannot be edited from the UI.
 
-To learn more, read our [Get started with Grafana OnCall and Terraform](
-<https://grafana.com/blog/2022/08/29/get-started-with-grafana-oncall-and-terraform/>) blog post.
+To learn more, read our [Get started with Grafana OnCall and Terraform](https://grafana.com/blog/2022/08/29/get-started-with-grafana-oncall-and-terraform/) blog post.

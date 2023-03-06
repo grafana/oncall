@@ -41,7 +41,7 @@ which Grafana OnCall is being managed.
    OnCall as well as the required contact point in Alerting.
 
    > **Note:** You must connect the contact point with a notification policy. For more information, see
-   > [Contact points in Grafana Alerting](https://grafana.com/docs/grafana/latest/alerting/unified-alerting/contact-points/)
+   > [Contact points in Grafana Alerting](/docs/grafana/latest/alerting/unified-alerting/contact-points/)
 
 1. Determine the escalation chain for the new integration by either selecting an existing one or by creating a new
    escalation chain.
@@ -65,6 +65,6 @@ OnCall is being managed:
 7. Choose the contact point type `webhook`, then paste the URL generated in step 3 into the URL field.
 
    > **Note:** You must connect the contact point with a notification policy. For more information,
-   > see [Contact points in Grafana Alerting](https://grafana.com/docs/grafana/latest/alerting/unified-alerting/contact-points/).
+   > see [Contact points in Grafana Alerting](/docs/grafana/latest/alerting/unified-alerting/contact-points/).
 
 8. Click the **Edit** (pencil) icon, then click **Test**. This will send a test alert to Grafana OnCall.
