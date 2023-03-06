@@ -23,12 +23,7 @@ from apps.api.permissions import (
     user_is_authorized,
 )
 from apps.api.serializers.team import TeamSerializer
-from apps.api.serializers.user import (
-    FilterUserSerializer,
-    MobileVerificationCodeRecaptchaSerializer,
-    UserHiddenFieldsSerializer,
-    UserSerializer,
-)
+from apps.api.serializers.user import FilterUserSerializer, UserHiddenFieldsSerializer, UserSerializer
 from apps.api.throttlers import (
     GetPhoneVerificationCodeThrottlerPerOrg,
     GetPhoneVerificationCodeThrottlerPerUser,
@@ -58,6 +53,7 @@ from common.insight_log import (
     write_chatops_insight_log,
     write_resource_insight_log,
 )
+from common.recaptcha import check_recaptcha_internal_api
 
 logger = logging.getLogger(__name__)
 IsOwnerOrHasUserSettingsAdminPermission = IsOwnerOrHasRBACPermissions([RBACPermission.Permissions.USER_SETTINGS_ADMIN])
@@ -297,22 +293,14 @@ class UserView(
         throttle_classes=[GetPhoneVerificationCodeThrottlerPerUser, GetPhoneVerificationCodeThrottlerPerOrg],
     )
     def get_verification_code(self, request, pk):
-        """
-        See `DRF_RECAPTCHA_TESTING` in `settings/base.py`
-        and [here](https://github.com/llybin/drf-recaptcha#testing) to better understand
-        when the recaptcha checks are actually made
-        """
-        logger.info("Validating reCAPTCHA code")
 
-        serializer = MobileVerificationCodeRecaptchaSerializer(
-            data={"recaptcha": request.headers.get("X-OnCall-Recaptcha", "some-non-null-value")},
-            context={"request": request},
-        )
-
-        if not serializer.is_valid():
-            logger.warning(f"Invalid reCAPTCHA validation: {serializer._errors}")
-            return Response(status=status.HTTP_400_BAD_REQUEST)
-        logger.info("reCAPTCHA code is valid")
+        logger.info("get_verification_code: validating reCAPTCHA code")
+        # valid = recaptcha.check_recaptcha_internal_api(request, "mobile_verification_code")
+        valid = check_recaptcha_internal_api(request, "mobile_verification_code")
+        if not valid:
+            logger.warning(f"get_verification_code: invalid reCAPTCHA validation")
+            return Response("failed reCAPTCHA check", status=status.HTTP_400_BAD_REQUEST)
+        logger.info('get_verification_code: pass reCAPTCHA validation"')
 
         user = self.get_object()
         phone_manager = PhoneManager(user)
@@ -331,6 +319,8 @@ class UserView(
     def verify_number(self, request, pk):
         target_user = self.get_object()
         code = request.query_params.get("token", None)
+        if not code:
+            return Response("Invalid verification code", status=status.HTTP_400_BAD_REQUEST)
         prev_state = target_user.insight_logs_serialized
         phone_manager = PhoneManager(target_user)
         verified, error = phone_manager.verify_phone_number(code)
