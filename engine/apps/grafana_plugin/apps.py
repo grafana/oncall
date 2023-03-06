@@ -24,7 +24,7 @@ class GrafanaPluginConfig(AppConfig):
         """
         # TODO: this logic should probably be moved out to a common utility
         is_not_migration_script = any(startup_command in sys.argv for startup_command in STARTUP_COMMANDS)
-        if is_not_migration_script and settings.LICENSE == settings.OPEN_SOURCE_LICENSE_NAME:
+        if is_not_migration_script and settings.IS_OPEN_SOURCE:
             Organization = apps.get_model("user_management", "Organization")
             has_existing_org = Organization.objects.first() is not None
 

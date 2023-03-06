@@ -39,7 +39,7 @@ class FeaturesAPIView(APIView):
         if settings.FEATURE_MOBILE_APP_INTEGRATION_ENABLED:
             enabled_features.append(FEATURE_MOBILE_APP)
 
-        if settings.LICENSE == settings.OPEN_SOURCE_LICENSE_NAME:
+        if settings.IS_OPEN_SOURCE:
             # Features below should be enabled only in OSS
             enabled_features.append(FEATURE_GRAFANA_CLOUD_CONNECTION)
             if settings.FEATURE_LIVE_SETTINGS_ENABLED:

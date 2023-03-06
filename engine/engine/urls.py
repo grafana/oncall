@@ -57,7 +57,7 @@ if settings.FEATURE_MOBILE_APP_INTEGRATION_ENABLED:
     ]
 
 
-if settings.LICENSE == settings.OPEN_SOURCE_LICENSE_NAME:
+if settings.IS_OPEN_SOURCE:
     urlpatterns += [
         path("api/internal/v1/", include("apps.oss_installation.urls", namespace="oss_installation")),
     ]
