@@ -38,22 +38,26 @@ def check_recaptcha_v3(value: str, action: str, score: float, client_ip: str, ho
             return False
         if recaptcha_response["action"] != action:
             logger.info(
-                f"check_recaptcha_v3: "
-                f"failed: received action {recaptcha_response['action']} doesn't match defined {action}"
+                f"check_recaptcha_v3: failed:"
+                f" received action {recaptcha_response['action']} doesn't match defined {action}"
             )
             return False
         if recaptcha_response["score"] <= float(score):
             logger.info(
-                f"check_recaptcha_v3:"
-                f' failed: received score {recaptcha_response["score"]} lower then required {score}'
+                f"check_recaptcha_v3: failed:"
+                f' received score {recaptcha_response["score"]} lower then required {score}'
             )
             return False
         if settings.RECAPTCHA_V3_HOSTNAME_VALIDATION:
+            logger.info(
+                f"check_recaptcha_v3: start hostname validation "
+                f"recaptcha_hostname={recaptcha_response['hostname']} provided_hostname={hostname}"
+            )
             # https://developers.google.com/recaptcha/docs/domain_validation?hl=en
             if recaptcha_response["hostname"] != hostname:
                 logger.info(
                     f"check_recaptcha_v3:"
-                    f' failed: received response from hostname {recaptcha_response["score"]},'
+                    f' failed: received response from hostname {recaptcha_response["hostname"]},'
                     f" started from {hostname}"
                 )
                 return False
