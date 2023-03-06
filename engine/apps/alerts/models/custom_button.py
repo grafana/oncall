@@ -102,6 +102,8 @@ class CustomButton(models.Model):
             post_kwargs["auth"] = HTTPBasicAuth(self.user, self.password)
         if self.authorization_header:
             post_kwargs["headers"] = {"Authorization": self.authorization_header}
+        if self.proxy:
+            post_kwargs["proxies"] = {"http": <http url> , "https": <https url>} 
         if self.forward_whole_payload:
             post_kwargs["json"] = alert.raw_request_data
         elif self.data:
