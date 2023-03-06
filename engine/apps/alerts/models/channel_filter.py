@@ -157,14 +157,11 @@ class ChannelFilter(OrderedModel):
     def str_for_clients(self):
         if self.is_default:
             return "default"
-        if self.filtering_term_type == ChannelFilter.FILTERING_TERM_TYPE_JINJA2:  # TODO: check validation
-            print(str(self.filtering_term))
+        if self.filtering_term_type == ChannelFilter.FILTERING_TERM_TYPE_JINJA2:
             return str(self.filtering_term)
-        elif (
-            self.filtering_term_type == ChannelFilter.FILTERING_TERM_TYPE_REGEX or self.filtering_term is not None
-        ):  # Old channel filters can have filtering_term_type=Null
+        elif self.filtering_term_type == ChannelFilter.FILTERING_TERM_TYPE_REGEX or self.filtering_term_type is None:
             return str(self.filtering_term).replace("`", "")
-        return "NA"
+        raise Exception("Unknown filtering term")
 
     def send_demo_alert(self):
         integration = self.alert_receive_channel
