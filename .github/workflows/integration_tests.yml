@@ -58,7 +58,7 @@ jobs:
           path: /tmp
 
       - name: Create k8s Kind Cluster
-        uses: helm/kind-action@v1.3.0
+        uses: helm/kind-action@v1.5.0
         with:
           config: ./helm/kind.yml
 
@@ -151,7 +151,7 @@ jobs:
           path: /tmp
 
       - name: Create k8s Kind Cluster
-        uses: helm/kind-action@v1.3.0
+        uses: helm/kind-action@v1.5.0
         with:
           config: ./helm/kind.yml
 
