@@ -25,7 +25,7 @@ Grafana Alerting for Grafana OnCall can be set up using two methods:
 
 You must have an Admin role to create integrations in Grafana OnCall.
 
-1. In the **Integrations** tab, click **+ New integration for receiving alerts**.
+1. In the **Integrations** tab, click **+ New integration to receive alerts**.
 2. Select **Grafana Alerting** by clicking the **Quick connect** button or select **Grafana (Other Grafana)** from
    the integrations list.
 3. Follow the configuration steps that display in the **How to connect** window to retrieve your unique integration URL

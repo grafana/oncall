@@ -216,7 +216,7 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
                             this.setState({ showCreateIntegrationModal: true });
                           }}
                         >
-                          New integration
+                          New integration to receive alerts
                         </Button>
                       </WithPermissionControl>
                     </VerticalGroup>
