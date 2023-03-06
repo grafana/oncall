@@ -222,7 +222,6 @@ INSTALLED_APPS = [
     "django_migration_linter",
     "fcm_django",
     "django_dbconn_retry",
-    "drf_recaptcha",
 ]
 
 REST_FRAMEWORK = {
@@ -653,18 +652,11 @@ if OSS_INSTALLATION:
         "args": (),
     }  # noqa
 
-# google recaptcha is disabled by default
-#
-# without setting DRF_RECAPTCHA_TESTING, drf_recaptcha complains with
-# AttributeError: 'Settings' object has no attribute 'DRF_RECAPTCHA_SECRET_KEY'
-#
-# Set DRF_RECAPTCHA_TESTING=True in settings, no request to Google, no warnings
-# DRF_RECAPTCHA_SECRET_KEY is not required, set returning verification result in setting below.
-DRF_RECAPTCHA_SECRET_KEY = os.environ.get("DRF_RECAPTCHA_SECRET_KEY", default=None)
-DRF_RECAPTCHA_DEFAULT_V3_SCORE = 0.5
-DRF_RECAPTCHA_TESTING = True
-DRF_RECAPTCHA_TESTING_PASS = True
-RECAPTCHA_SITE_KEY = os.environ.get("RECAPTCHA_SITE_KEY", default="6LeIPJ8kAAAAAJdUfjO3uUtQtVxsYf93y46mTec1")
+# RECAPTCHA_V3 settings
+RECAPTCHA_V3_SITE_KEY = os.environ.get("RECAPTCHA_SITE_KEY", default="6LeIPJ8kAAAAAJdUfjO3uUtQtVxsYf93y46mTec1")
+RECAPTCHA_V3_SECRET_KEY = os.environ.get("RECAPTCHA_SECRET_KEY", default=None)
+RECAPTCHA_V3_ENABLED = os.environ.get("RECAPTCHA_ENABLED", default=False)
+RECAPTCHA_V3_HOSTNAME_VALIDATION = os.environ.get("RECAPTCHA_HOSTNAME_VALIDATION", default=False)
 
 MIGRATION_LINTER_OPTIONS = {"exclude_apps": ["social_django", "silk", "fcm_django"]}
 # Run migrations linter on each `python manage.py makemigrations`
