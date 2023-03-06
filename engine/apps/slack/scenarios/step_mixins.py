@@ -1,21 +1,23 @@
 import logging
 from abc import ABC, abstractmethod
 
+from apps.api.permissions import user_is_authorized
+
 logger = logging.getLogger(__name__)
 
 
 class AccessControl(ABC):
-    ALLOWED_ROLES = []
+    REQUIRED_PERMISSIONS = []
     ACTION_VERBOSE = ""
 
-    def dispatch(self, slack_user_identity, slack_team_identity, payload, action=None):
+    def process_scenario(self, slack_user_identity, slack_team_identity, payload):
         if self.check_membership():
-            return super().dispatch(slack_user_identity, slack_team_identity, payload, action=None)
+            return super().process_scenario(slack_user_identity, slack_team_identity, payload)
         else:
             self.send_denied_message(payload)
 
     def check_membership(self):
-        return self.user.role in self.ALLOWED_ROLES
+        return user_is_authorized(self.user, self.REQUIRED_PERMISSIONS)
 
     @abstractmethod
     def send_denied_message(self, payload):
@@ -62,9 +64,7 @@ class IncidentActionsAccessControlMixin(AccessControl):
 
 
 class CheckAlertIsUnarchivedMixin(object):
-
-    ALLOWED_ROLES = []
-
+    REQUIRED_PERMISSIONS = []
     ACTION_VERBOSE = ""
 
     def check_alert_is_unarchived(self, slack_team_identity, payload, alert_group, warning=True):

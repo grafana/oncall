@@ -1,6 +1,7 @@
 import json
 
 from django.apps import apps
+from django.utils.text import Truncator
 
 from apps.alerts.incident_appearance.renderers.base_renderer import AlertBaseRenderer, AlertGroupBaseRenderer
 from apps.alerts.incident_appearance.templaters import AlertSlackTemplater
@@ -18,26 +19,31 @@ class AlertSlackRenderer(AlertBaseRenderer):
         return AlertSlackTemplater
 
     def render_alert_blocks(self):
+        BLOCK_SECTION_TEXT_MAX_SIZE = 2800
         blocks = []
 
+        title = Truncator(str_or_backup(self.templated_alert.title, "Alert"))
         blocks.append(
             {
                 "type": "section",
                 "text": {
                     "type": "mrkdwn",
-                    "text": str_or_backup(self.templated_alert.title, "Alert"),
+                    "text": title.chars(BLOCK_SECTION_TEXT_MAX_SIZE),
                 },
             }
         )
         if is_string_with_visible_characters(self.templated_alert.message):
-            message = self.templated_alert.message
-            BLOCK_SECTION_TEXT_MAX_SIZE = 2800
-            if len(message) > BLOCK_SECTION_TEXT_MAX_SIZE:
-                message = (
-                    message[: BLOCK_SECTION_TEXT_MAX_SIZE - 3] + "... Message has been trimmed. "
-                    "Check the whole content in Web"
-                )
-            blocks.append({"type": "section", "text": {"type": "mrkdwn", "text": message}})
+            message = Truncator(self.templated_alert.message)
+            truncate_wording = "... Message has been trimmed. Check the whole content in Web"
+            blocks.append(
+                {
+                    "type": "section",
+                    "text": {
+                        "type": "mrkdwn",
+                        "text": message.chars(BLOCK_SECTION_TEXT_MAX_SIZE, truncate=truncate_wording),
+                    },
+                }
+            )
         return blocks
 
     def render_alert_attachments(self):
@@ -68,41 +74,14 @@ class AlertGroupSlackRenderer(AlertGroupBaseRenderer):
         return AlertSlackRenderer
 
     def render_alert_group_blocks(self):
-        non_resolve_alerts_queryset = self.alert_group.alerts.filter(is_resolve_signal=False)
-        if not self.alert_group.channel.organization.slack_team_identity.installed_via_granular_permissions:
-            blocks = [
-                {
-                    "type": "section",
-                    "text": {
-                        "type": "mrkdwn",
-                        "text": ":warning: *Action required - reinstall  app*\n"
-                        "Slack is deprecating current permission model. We will support it till DATE\n"  # TODO: deprecation date
-                        "Don't worry - we migrate OnCall to new one, but it required to reinstall app."
-                        'Press "Upgrade" button to see more detailed instruction and upgrade.',
-                    },
-                },
-                {"type": "divider"},
-                {
-                    "type": "actions",
-                    "elements": [
-                        {
-                            "type": "button",
-                            "text": {
-                                "type": "plain_text",
-                                "text": "Upgrade",
-                            },
-                            "value": "click_me_123",
-                            "url": self.alert_group.channel.organization.web_slack_page_link,
-                        },
-                    ],
-                },
-            ]
-        else:
-            blocks = []
-        if non_resolve_alerts_queryset.count() <= 1:
-            blocks.extend(self.alert_renderer.render_alert_blocks())
-        else:
-            blocks.extend(self._get_alert_group_base_blocks_if_grouped())
+        blocks = self.alert_renderer.render_alert_blocks()
+        alerts_count = self.alert_group.alerts.count()
+        if alerts_count > 1:
+            text = (
+                f":package: Showing the last alert only out of {alerts_count} total. "
+                f"Visit <{self.alert_group.web_link}|the plugin page> to see them all."
+            )
+            blocks.append({"type": "context", "elements": [{"type": "mrkdwn", "text": text}]})
         return blocks
 
     def render_alert_group_attachments(self):
@@ -183,23 +162,6 @@ class AlertGroupSlackRenderer(AlertGroupBaseRenderer):
             attachment["color"] = color
         return attachments
 
-    def _get_text_alert_grouped(self):
-        alert_count = self.alert_group.alerts.count()
-        link = self.alert_group.web_link
-
-        text = (
-            f":package: Showing the last alert only out of {alert_count} total. "
-            f"Visit <{link}|the plugin page> to see them all."
-        )
-
-        return text
-
-    def _get_alert_group_base_blocks_if_grouped(self):
-        text = self._get_text_alert_grouped()
-        blocks = self.alert_renderer.render_alert_blocks()
-        blocks.append({"type": "context", "elements": [{"type": "mrkdwn", "text": text}]})
-        return blocks
-
     def _get_buttons_attachments(self):
         attachment = {"blocks": self._get_buttons_blocks()}
         return attachment
@@ -207,7 +169,7 @@ class AlertGroupSlackRenderer(AlertGroupBaseRenderer):
     def _get_buttons_blocks(self):
         AlertGroup = apps.get_model("alerts", "AlertGroup")
         buttons = []
-        if self.alert_group.maintenance_uuid is None:
+        if not self.alert_group.is_maintenance_incident:
             if not self.alert_group.resolved:
                 if not self.alert_group.acknowledged:
                     buttons.append(
@@ -252,13 +214,9 @@ class AlertGroupSlackRenderer(AlertGroupBaseRenderer):
                 )
 
                 if self.alert_group.invitations.filter(is_active=True).count() < 5:
-                    slack_team_identity = self.alert_group.channel.organization.slack_team_identity
                     action_id = ScenarioStep.get_step("distribute_alerts", "InviteOtherPersonToIncident").routing_uid()
                     text = "Invite..."
-                    invitation_element = ScenarioStep(
-                        slack_team_identity,
-                        self.alert_group.channel.organization,
-                    ).get_select_user_element(action_id, text=text)
+                    invitation_element = self._get_select_user_element(action_id, text=text)
                     buttons.append(invitation_element)
                 if not self.alert_group.acknowledged:
                     if not self.alert_group.silenced:
@@ -349,6 +307,17 @@ class AlertGroupSlackRenderer(AlertGroupBaseRenderer):
                 resolution_notes_button["style"] = "primary"
                 resolution_notes_button["text"]["text"] = "Add Resolution notes"
             buttons.append(resolution_notes_button)
+
+            # Declare Incident button
+            if self.alert_group.channel.organization.is_grafana_incident_enabled:
+                incident_button = {
+                    "type": "button",
+                    "text": {"type": "plain_text", "text": ":fire: Declare Incident", "emoji": True},
+                    "value": "declare_incident",
+                    "url": self.alert_group.declare_incident_link,
+                    "action_id": ScenarioStep.get_step("declare_incident", "DeclareIncidentStep").routing_uid(),
+                }
+                buttons.append(incident_button)
         else:
             if not self.alert_group.resolved:
                 buttons.append(
@@ -389,3 +358,74 @@ class AlertGroupSlackRenderer(AlertGroupBaseRenderer):
                 "actions": buttons,
             }
         ]
+
+    def _get_select_user_element(
+        self, action_id, multi_select=False, initial_user=None, initial_users_list=None, text=None
+    ):
+        MAX_STATIC_SELECT_OPTIONS = 100
+
+        if not text:
+            text = f"Select User{'s' if multi_select else ''}"
+        element = {
+            "action_id": action_id,
+            "type": "multi_static_select" if multi_select else "static_select",
+            "placeholder": {
+                "type": "plain_text",
+                "text": text,
+                "emoji": True,
+            },
+        }
+
+        users = self.alert_group.channel.organization.users.all().select_related("slack_user_identity")
+
+        users_count = users.count()
+        options = []
+
+        for user in users:
+            user_verbal = f"{user.get_user_verbal_for_team_for_slack()}"
+            if len(user_verbal) > 75:
+                user_verbal = user_verbal[:72] + "..."
+            option = {"text": {"type": "plain_text", "text": user_verbal}, "value": json.dumps({"user_id": user.pk})}
+            options.append(option)
+
+        if users_count > MAX_STATIC_SELECT_OPTIONS:
+            option_groups = []
+            option_groups_chunks = [
+                options[x : x + MAX_STATIC_SELECT_OPTIONS] for x in range(0, len(options), MAX_STATIC_SELECT_OPTIONS)
+            ]
+            for option_group in option_groups_chunks:
+                option_group = {"label": {"type": "plain_text", "text": " "}, "options": option_group}
+                option_groups.append(option_group)
+            element["option_groups"] = option_groups
+        elif users_count == 0:  # strange case when there are no users to select
+            option = {
+                "text": {"type": "plain_text", "text": "No users to select"},
+                "value": json.dumps({"user_id": None}),
+            }
+            options.append(option)
+            element["options"] = options
+            return element
+        else:
+            element["options"] = options
+
+        # add initial option
+        if multi_select and initial_users_list:
+            if users_count <= MAX_STATIC_SELECT_OPTIONS:
+                initial_options = []
+                for user in users:
+                    user_verbal = f"{user.get_user_verbal_for_team_for_slack()}"
+                    option = {
+                        "text": {"type": "plain_text", "text": user_verbal},
+                        "value": json.dumps({"user_id": user.pk}),
+                    }
+                    initial_options.append(option)
+                element["initial_options"] = initial_options
+        elif not multi_select and initial_user:
+            user_verbal = f"{initial_user.get_user_verbal_for_team_for_slack()}"
+            initial_option = {
+                "text": {"type": "plain_text", "text": user_verbal},
+                "value": json.dumps({"user_id": initial_user.pk}),
+            }
+            element["initial_option"] = initial_option
+
+        return element

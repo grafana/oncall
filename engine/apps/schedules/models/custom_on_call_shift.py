@@ -322,8 +322,10 @@ class CustomOnCallShift(models.Model):
             if all_rotations_checked:
                 break
 
-        # number of weeks used to cover all combinations
-        week_interval = ((last_start - orig_start).days // 7) or 1
+        week_interval = 1
+        if orig_start and last_start:
+            # number of weeks used to cover all combinations
+            week_interval = ((last_start - orig_start).days // 7) or 1
         counter = 1
         for ((user_group_id, day, _), start) in zip(combinations, starting_dates):
             users = users_queue[user_group_id]
@@ -367,7 +369,7 @@ class CustomOnCallShift(models.Model):
                 start = self.get_rotation_date(event_ical)
 
             # Make sure we respect the selected days if any when defining start date
-            if self.frequency is not None and self.by_day:
+            if self.frequency is not None and self.by_day and start is not None:
                 start_day = CustomOnCallShift.ICAL_WEEKDAY_MAP[start.weekday()]
                 if start_day not in self.by_day:
                     expected_start_day = min(CustomOnCallShift.ICAL_WEEKDAY_REVERSE_MAP[d] for d in self.by_day)
@@ -586,6 +588,9 @@ class CustomOnCallShift(models.Model):
 
     def convert_dt_to_schedule_timezone(self, dt, time_zone):
         start_naive = dt.replace(tzinfo=None)
+        if time_zone and time_zone.lower() == "etc/utc":
+            # dateutil rrule breaks if Etc/UTC is given
+            time_zone = "UTC"
         return pytz.timezone(time_zone).localize(start_naive, is_dst=None)
 
     def get_rolling_users(self):

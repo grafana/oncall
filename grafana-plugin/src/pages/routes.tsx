@@ -1,6 +1,3 @@
-import { AppRootProps } from '@grafana/data';
-
-import { PageDefinition } from 'pages';
 import EscalationsChainsPage from 'pages/escalation-chains/EscalationChains';
 import IncidentPage from 'pages/incident/Incident';
 import IncidentsPage from 'pages/incidents/Incidents';
@@ -14,23 +11,7 @@ import SettingsPage from 'pages/settings/SettingsPage';
 import ChatOpsPage from 'pages/settings/tabs/ChatOps/ChatOps';
 import CloudPage from 'pages/settings/tabs/Cloud/CloudPage';
 import LiveSettingsPage from 'pages/settings/tabs/LiveSettings/LiveSettingsPage';
-import Test from 'pages/test/Test';
 import UsersPage from 'pages/users/Users';
-
-export interface NavMenuItem {
-  meta: AppRootProps['meta'];
-  pages: { [id: string]: PageDefinition };
-  path: string;
-  page: string;
-  grafanaUser: {
-    orgRole: 'Viewer' | 'Editor' | 'Admin';
-  };
-  enableLiveSettings: boolean;
-  enableCloudPage: boolean;
-  enableNewSchedulesPage: boolean;
-  backendLicense: string;
-  onNavChanged: any;
-}
 
 export interface NavRoute {
   id: string;
@@ -93,10 +74,6 @@ export const routes: { [id: string]: NavRoute } = [
   {
     component: CloudPage,
     id: 'cloud',
-  },
-  {
-    component: Test,
-    id: 'test',
   },
 ].reduce((prev, current) => {
   prev[current.id] = {

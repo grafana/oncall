@@ -4,11 +4,11 @@ import { HorizontalGroup, InlineSwitch } from '@grafana/ui';
 import cn from 'classnames/bind';
 
 import GSelect from 'containers/GSelect/GSelect';
-import { WithPermissionControl } from 'containers/WithPermissionControl/WithPermissionControl';
+import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
 import { ChannelFilter } from 'models/channel_filter/channel_filter.types';
 import { TelegramChannel } from 'models/telegram_channel/telegram_channel.types';
 import { useStore } from 'state/useStore';
-import { UserAction } from 'state/userAction';
+import { UserActions } from 'utils/authorization';
 
 import styles from './index.module.css';
 
@@ -36,16 +36,16 @@ const TelegramConnector = ({ channelFilterId }: TelegramConnectorProps) => {
     <div className={cx('root')}>
       <HorizontalGroup wrap spacing="sm">
         <div className={cx('slack-channel-switch')}>
-          <WithPermissionControl userAction={UserAction.UpdateAlertReceiveChannels}>
+          <WithPermissionControlTooltip userAction={UserActions.IntegrationsWrite}>
             <InlineSwitch
               value={channelFilter.notify_in_telegram}
               onChange={handleChannelFilterNotifyInTelegramChange}
               transparent
             />
-          </WithPermissionControl>
+          </WithPermissionControlTooltip>
         </div>
         Post to telegram channel
-        <WithPermissionControl userAction={UserAction.UpdateAlertReceiveChannels}>
+        <WithPermissionControlTooltip userAction={UserActions.IntegrationsWrite}>
           <GSelect
             showSearch
             allowClear
@@ -57,7 +57,7 @@ const TelegramConnector = ({ channelFilterId }: TelegramConnectorProps) => {
             value={channelFilter.telegram_channel}
             onChange={handleTelegramChannelChange}
           />
-        </WithPermissionControl>
+        </WithPermissionControlTooltip>
       </HorizontalGroup>
     </div>
   );

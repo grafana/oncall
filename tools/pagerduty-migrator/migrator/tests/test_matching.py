@@ -785,6 +785,7 @@ expected_schedules_result = [
             "on_call_now": [],
             "slack": None,
         },
+        "migration_errors": [],
         "unmatched_users": [
             {
                 "id": "TESTUSER2",
@@ -842,6 +843,7 @@ expected_schedules_result = [
         "teams": [],
         "oncall_schedule": None,
         "unmatched_users": [],
+        "migration_errors": [],
     },
     {
         "id": "TESTSCH3",
@@ -866,6 +868,7 @@ expected_schedules_result = [
         "escalation_policies": [],
         "teams": [],
         "oncall_schedule": None,
+        "migration_errors": [],
         "unmatched_users": [
             {
                 "id": "TESTUSER2",
@@ -924,6 +927,7 @@ expected_schedules_result = [
         "teams": [],
         "oncall_schedule": None,
         "unmatched_users": [],
+        "migration_errors": [],
     },
 ]
 expected_escalation_policies_result = [
@@ -1028,6 +1032,7 @@ expected_escalation_policies_result = [
                     "on_call_now": [],
                     "slack": None,
                 },
+                "migration_errors": [],
                 "unmatched_users": [
                     {
                         "id": "TESTUSER2",
@@ -1553,29 +1558,30 @@ expected_integrations_result = [
 ]
 
 
-def test_matching():
-    match_users_test()
-    match_schedule_test()
-    match_escalation_policies_test()
-    match_integrations_test()
-
-
-def match_users_test():
+def test_match_user():
     for user in pd_users_payload:
         match_user(user, oncall_users_payload)
 
     assert pd_users_payload == expected_users_match_result
 
 
-def match_schedule_test():
+def test_match_user_not_found():
+    pd_user = {"email": "test@test.com"}
+    oncall_users = [{"email": "test1@test.com"}]
+
+    match_user(pd_user, oncall_users)
+    assert pd_user["oncall_user"] is None
+
+
+def test_match_schedule():
     for schedule in pd_schedules_payload:
-        match_schedule(schedule, oncall_schedules_payload)
+        match_schedule(schedule, oncall_schedules_payload, user_id_map={})
         match_users_for_schedule(schedule, pd_users_payload)
 
     assert pd_schedules_payload == expected_schedules_result
 
 
-def match_escalation_policies_test():
+def test_match_escalation_policy():
     for policy in pd_escalation_policies_payload:
         match_escalation_policy(policy, oncall_escalation_chains)
         match_users_and_schedules_for_escalation_policy(
@@ -1585,7 +1591,7 @@ def match_escalation_policies_test():
     assert pd_escalation_policies_payload == expected_escalation_policies_result
 
 
-def match_integrations_test():
+def test_match_integration():
     integrations = []
     for service in pd_services_payload:
         service_integrations = service.pop("integrations")

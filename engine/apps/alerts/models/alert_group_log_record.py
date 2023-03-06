@@ -43,7 +43,9 @@ class AlertGroupLogRecord(models.Model):
         TYPE_DELETED,
         TYPE_REGISTERED,
         TYPE_ROUTE_ASSIGNED,
-    ) = range(23)
+        TYPE_DIRECT_PAGING,
+        TYPE_UNPAGE_USER,
+    ) = range(25)
 
     TYPES_FOR_LICENCE_CALCULATION = (
         TYPE_ACK,
@@ -85,6 +87,8 @@ class AlertGroupLogRecord(models.Model):
         (TYPE_DELETED, "Deleted"),
         (TYPE_REGISTERED, "Incident registered"),
         (TYPE_ROUTE_ASSIGNED, "A route is assigned to the incident"),
+        (TYPE_DIRECT_PAGING, "Trigger direct paging escalation"),
+        (TYPE_UNPAGE_USER, "Unpage a user"),
     )
 
     # Handlers should be named like functions.
@@ -110,6 +114,8 @@ class AlertGroupLogRecord(models.Model):
         TYPE_ACK_REMINDER_TRIGGERED: "ack_reminder_triggered",
         TYPE_WIPED: "wiped",
         TYPE_DELETED: "deleted",
+        TYPE_DIRECT_PAGING: "trigger_page",
+        TYPE_UNPAGE_USER: "unpage_user",
     }
     (
         ERROR_ESCALATION_NOTIFY_USER_NO_RECIPIENT,
@@ -460,6 +466,10 @@ class AlertGroupLogRecord(models.Model):
             result += f"unresolved by {author_name}"
         elif self.type == AlertGroupLogRecord.TYPE_WIPED:
             result += "wiped"
+        elif self.type == AlertGroupLogRecord.TYPE_DIRECT_PAGING:
+            result += self.reason
+        elif self.type == AlertGroupLogRecord.TYPE_UNPAGE_USER:
+            result += self.reason
         elif self.type == AlertGroupLogRecord.TYPE_ESCALATION_FAILED:
             if self.escalation_error_code == AlertGroupLogRecord.ERROR_ESCALATION_NOTIFY_USER_NO_RECIPIENT:
                 result += 'skipped escalation step "Notify User" because no users are set'
@@ -547,10 +557,9 @@ class AlertGroupLogRecord(models.Model):
 @receiver(post_save, sender=AlertGroupLogRecord)
 def listen_for_alertgrouplogrecord(sender, instance, created, *args, **kwargs):
     if instance.type != AlertGroupLogRecord.TYPE_DELETED:
-        if not instance.alert_group.is_maintenance_incident:
-            alert_group_pk = instance.alert_group.pk
-            logger.debug(
-                f"send_update_log_report_signal for alert_group {alert_group_pk}, "
-                f"alert group event: {instance.get_type_display()}"
-            )
-            send_update_log_report_signal.apply_async(kwargs={"alert_group_pk": alert_group_pk}, countdown=8)
+        alert_group_pk = instance.alert_group.pk
+        logger.debug(
+            f"send_update_log_report_signal for alert_group {alert_group_pk}, "
+            f"alert group event: {instance.get_type_display()}"
+        )
+        send_update_log_report_signal.apply_async(kwargs={"alert_group_pk": alert_group_pk}, countdown=8)

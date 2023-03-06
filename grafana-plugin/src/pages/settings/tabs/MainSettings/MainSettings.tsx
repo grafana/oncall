@@ -7,10 +7,10 @@ import LegacyNavHeading from 'navbar/LegacyNavHeading';
 
 import Text from 'components/Text/Text';
 import ApiTokenSettings from 'containers/ApiTokenSettings/ApiTokenSettings';
-import { WithPermissionControl } from 'containers/WithPermissionControl/WithPermissionControl';
+import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
 import { WithStoreProps } from 'state/types';
-import { UserAction } from 'state/userAction';
 import { withMobXProviderContext } from 'state/withStore';
+import { UserActions } from 'utils/authorization';
 
 import styles from './MainSettings.module.css';
 
@@ -50,10 +50,10 @@ class SettingsPage extends React.Component<SettingsPageProps, SettingsPageState>
         <div className={cx('settings')}>
           <Field
             loading={!teamStore.currentTeam}
-            label="Require resolution note when resolve incident"
-            description={`Once user clicks "Resolve" for an incident they are require to fill a resolution note about the incident`}
+            label="Require a resolution note when resolving Alert Groups"
+            description={`Once user clicks "Resolve" for an Alert Group, they will be required to fill in a resolution note about the Alert Group`}
           >
-            <WithPermissionControl userAction={UserAction.UpdateGlobalSettings}>
+            <WithPermissionControlTooltip userAction={UserActions.OtherSettingsWrite}>
               <Switch
                 value={teamStore.currentTeam?.is_resolution_note_required}
                 onChange={(event) => {
@@ -62,7 +62,7 @@ class SettingsPage extends React.Component<SettingsPageProps, SettingsPageState>
                   });
                 }}
               />
-            </WithPermissionControl>
+            </WithPermissionControlTooltip>
           </Field>
         </div>
         <Text.Title level={3} className={cx('title')}>

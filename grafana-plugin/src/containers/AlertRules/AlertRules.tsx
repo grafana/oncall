@@ -28,16 +28,16 @@ import EscalationChainForm from 'containers/EscalationChainForm/EscalationChainF
 import EscalationChainSteps from 'containers/EscalationChainSteps/EscalationChainSteps';
 import GSelect from 'containers/GSelect/GSelect';
 import { IntegrationSettingsTab } from 'containers/IntegrationSettings/IntegrationSettings.types';
-import { WithPermissionControl } from 'containers/WithPermissionControl/WithPermissionControl';
+import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
 import { AlertReceiveChannel, MaintenanceMode } from 'models/alert_receive_channel/alert_receive_channel.types';
 import { ChannelFilter } from 'models/channel_filter/channel_filter.types';
 import { EscalationChain } from 'models/escalation_chain/escalation_chain.types';
 import { EscalationPolicyOption } from 'models/escalation_policy/escalation_policy.types';
 import { MaintenanceType } from 'models/maintenance/maintenance.types';
 import { WithStoreProps } from 'state/types';
-import { UserAction } from 'state/userAction';
 import { withMobXProviderContext } from 'state/withStore';
 import { openNotification } from 'utils';
+import { isUserActionAllowed, UserActions } from 'utils/authorization';
 import sanitize from 'utils/sanitize';
 
 import styles from './AlertRules.module.css';
@@ -155,20 +155,103 @@ class AlertRules extends React.Component<AlertRulesProps, AlertRulesState> {
       <>
         <div className={cx('root')}>
           <Block className={cx('headerBlock')}>
-            <div className={cx('header')}>
-              <Text.Title level={4}>
-                <HorizontalGroup>
-                  Escalate
-                  <div className={cx('verbal-name')}>{parseEmojis(alertReceiveChannel?.verbal_name || '')}</div>
-                  <Tooltip placement="top" content="Edit name">
+            <div className={cx('integration__heading-container')}>
+              <div className={cx('integration__heading-container-left')}>
+                <Text.Title level={4}>
+                  <div className={cx('integration__heading-text')}>
+                    <div className={cx('verbal-name')}>{parseEmojis(alertReceiveChannel?.verbal_name || '')}</div>
+                    <Tooltip placement="top" content="Edit name">
+                      <IconButton
+                        name="pen"
+                        onClick={this.getChangeIntegrationNameHandler(parseEmojis(alertReceiveChannel?.verbal_name))}
+                      />
+                    </Tooltip>
+                  </div>
+                </Text.Title>
+              </div>
+
+              <div className={cx('integration__heading-container-right')}>
+                <div className={cx('buttons')}>
+                  <Button
+                    variant="secondary"
+                    size="sm"
+                    onClick={() => {
+                      onShowSettings(IntegrationSettingsTab.HowToConnect);
+                    }}
+                  >
+                    How to connect
+                  </Button>
+                  <WithPermissionControlTooltip userAction={UserActions.IntegrationsTest}>
+                    <Button
+                      variant="secondary"
+                      size="sm"
+                      onClick={this.getSendDemoAlertClickHandler(alertReceiveChannel.id)}
+                    >
+                      Send demo alert
+                    </Button>
+                  </WithPermissionControlTooltip>
+                  <div className={cx('icons-container')}>
+                    {maintenanceMode === MaintenanceMode.Debug || maintenanceMode === MaintenanceMode.Maintenance ? (
+                      <Tooltip placement="top" content="Stop maintenance mode">
+                        <Button
+                          className="grey-button"
+                          disabled={!isUserActionAllowed(UserActions.MaintenanceWrite)}
+                          fill="text"
+                          icon="square-shape"
+                          onClick={this.handleStopMaintenance}
+                        />
+                      </Tooltip>
+                    ) : (
+                      <PluginLink
+                        query={{
+                          page: 'maintenance',
+                          maintenance_type: MaintenanceType.alert_receive_channel,
+                          alert_receive_channel: alertReceiveChannel.id,
+                        }}
+                        disabled={!isUserActionAllowed(UserActions.MaintenanceWrite)}
+                      >
+                        <WithPermissionControlTooltip userAction={UserActions.MaintenanceWrite}>
+                          <IconButton
+                            name="pause"
+                            size="sm"
+                            tooltip="Setup maintenance mode"
+                            tooltipPlacement="top"
+                            disabled={!isUserActionAllowed(UserActions.MaintenanceWrite)}
+                          />
+                        </WithPermissionControlTooltip>
+                      </PluginLink>
+                    )}
                     <IconButton
-                      name="pen"
-                      onClick={this.getChangeIntegrationNameHandler(parseEmojis(alertReceiveChannel?.verbal_name))}
+                      name="cog"
+                      size="sm"
+                      tooltip="Settings"
+                      tooltipPlacement="top"
+                      onClick={() => {
+                        onShowSettings();
+                      }}
                     />
-                  </Tooltip>
-                  alerts
-                </HorizontalGroup>
-              </Text.Title>
+                    <WithPermissionControlTooltip userAction={UserActions.EscalationChainsWrite}>
+                      <WithConfirm
+                        title="Delete integration?"
+                        body={
+                          <>
+                            Are you sure you want to delete <Emoji text={alertReceiveChannel.verbal_name} />{' '}
+                            integration?
+                          </>
+                        }
+                      >
+                        <IconButton
+                          size="sm"
+                          tooltip="Delete"
+                          tooltipPlacement="top"
+                          onClick={this.handleDeleteAlertReceiveChannel}
+                          name="trash-alt"
+                        />
+                      </WithConfirm>
+                    </WithPermissionControlTooltip>
+                  </div>
+                </div>
+              </div>
 
               {editIntegrationName !== undefined && (
                 <Modal
@@ -199,85 +282,6 @@ class AlertRules extends React.Component<AlertRulesProps, AlertRulesState> {
                   </div>
                 </Modal>
               )}
-              <div className={cx('buttons')}>
-                <Button
-                  variant="secondary"
-                  size="sm"
-                  onClick={() => {
-                    onShowSettings(IntegrationSettingsTab.HowToConnect);
-                  }}
-                >
-                  How to connect
-                </Button>
-                <WithPermissionControl userAction={UserAction.SendDemoAlert}>
-                  <Button
-                    variant="secondary"
-                    size="sm"
-                    onClick={this.getSendDemoAlertClickHandler(alertReceiveChannel.id)}
-                  >
-                    Send demo alert
-                  </Button>
-                </WithPermissionControl>
-                <div className={cx('icons-container')}>
-                  {maintenanceMode === MaintenanceMode.Debug || maintenanceMode === MaintenanceMode.Maintenance ? (
-                    <Tooltip placement="top" content="Stop maintenance mode">
-                      <Button
-                        className="grey-button"
-                        disabled={!store.isUserActionAllowed(UserAction.UpdateMaintenances)}
-                        fill="text"
-                        icon="square-shape"
-                        onClick={this.handleStopMaintenance}
-                      />
-                    </Tooltip>
-                  ) : (
-                    <PluginLink
-                      query={{
-                        page: 'maintenance',
-                        maintenance_type: MaintenanceType.alert_receive_channel,
-                        alert_receive_channel: alertReceiveChannel.id,
-                      }}
-                      disabled={!store.isUserActionAllowed(UserAction.UpdateMaintenances)}
-                    >
-                      <WithPermissionControl userAction={UserAction.UpdateMaintenances}>
-                        <IconButton
-                          name="pause"
-                          size="sm"
-                          tooltip="Setup maintenance mode"
-                          tooltipPlacement="top"
-                          disabled={!store.isUserActionAllowed(UserAction.UpdateMaintenances)}
-                        />
-                      </WithPermissionControl>
-                    </PluginLink>
-                  )}
-                  <IconButton
-                    name="cog"
-                    size="sm"
-                    tooltip="Settings"
-                    tooltipPlacement="top"
-                    onClick={() => {
-                      onShowSettings();
-                    }}
-                  />
-                  <WithPermissionControl userAction={UserAction.UpdateEscalationPolicies}>
-                    <WithConfirm
-                      title="Delete integration?"
-                      body={
-                        <>
-                          Are you sure you want to delete <Emoji text={alertReceiveChannel.verbal_name} /> integration?
-                        </>
-                      }
-                    >
-                      <IconButton
-                        size="sm"
-                        tooltip="Delete"
-                        tooltipPlacement="top"
-                        onClick={this.handleDeleteAlertReceiveChannel}
-                        name="trash-alt"
-                      />
-                    </WithConfirm>
-                  </WithPermissionControl>
-                </div>
-              </div>
             </div>
           </Block>
           {alertReceiveChannel.description && (
@@ -301,7 +305,7 @@ class AlertRules extends React.Component<AlertRulesProps, AlertRulesState> {
                 Change alert template and grouping
               </Button>
               {!alertReceiveChannelIdToCreateChannelFilter && (
-                <WithPermissionControl userAction={UserAction.UpdateAlertReceiveChannels}>
+                <WithPermissionControlTooltip userAction={UserActions.IntegrationsWrite}>
                   <Button
                     icon="plus"
                     className={cx('add-new-chain-button', 'TEST-add-new-chain-button')}
@@ -310,7 +314,7 @@ class AlertRules extends React.Component<AlertRulesProps, AlertRulesState> {
                   >
                     Add Route
                   </Button>
-                </WithPermissionControl>
+                </WithPermissionControlTooltip>
               )}
             </div>
             {alertReceiveChannelIdToCreateChannelFilter && (
@@ -534,7 +538,7 @@ class AlertRules extends React.Component<AlertRulesProps, AlertRulesState> {
                       <Text size="small" type="secondary">
                         {warningAboutModifyingEscalationChain}
                         You can{' '}
-                        <WithPermissionControl userAction={UserAction.UpdateEscalationPolicies}>
+                        <WithPermissionControlTooltip userAction={UserActions.EscalationChainsWrite}>
                           <Button
                             fill="text"
                             size="sm"
@@ -547,9 +551,9 @@ class AlertRules extends React.Component<AlertRulesProps, AlertRulesState> {
                           >
                             Make a copy
                           </Button>
-                        </WithPermissionControl>{' '}
+                        </WithPermissionControlTooltip>{' '}
                         of the current chain or{' '}
-                        <WithPermissionControl userAction={UserAction.UpdateEscalationPolicies}>
+                        <WithPermissionControlTooltip userAction={UserActions.EscalationChainsWrite}>
                           <Button
                             fill="text"
                             size="sm"
@@ -561,7 +565,7 @@ class AlertRules extends React.Component<AlertRulesProps, AlertRulesState> {
                           >
                             Create a new chain
                           </Button>
-                        </WithPermissionControl>
+                        </WithPermissionControlTooltip>
                       </Text>
                     </div>
                     {this._renderEscalationPolicies(channelFilter.id)}
@@ -617,7 +621,7 @@ class AlertRules extends React.Component<AlertRulesProps, AlertRulesState> {
     return (
       <HorizontalGroup spacing="xs">
         {Boolean(index > 0 && !channelFilter.is_default) && (
-          <WithPermissionControl userAction={UserAction.UpdateAlertReceiveChannels}>
+          <WithPermissionControlTooltip userAction={UserActions.IntegrationsWrite}>
             <IconButton
               size="sm"
               name="arrow-up"
@@ -628,11 +632,11 @@ class AlertRules extends React.Component<AlertRulesProps, AlertRulesState> {
               tooltip="Move up"
               tooltipPlacement="top"
             />
-          </WithPermissionControl>
+          </WithPermissionControlTooltip>
         )}
 
         {Boolean(index < channelFilterIds.length - 2 && !channelFilter.is_default) && (
-          <WithPermissionControl userAction={UserAction.UpdateAlertReceiveChannels}>
+          <WithPermissionControlTooltip userAction={UserActions.IntegrationsWrite}>
             <IconButton
               size="sm"
               name="arrow-down"
@@ -643,10 +647,10 @@ class AlertRules extends React.Component<AlertRulesProps, AlertRulesState> {
               tooltip="Move down"
               tooltipPlacement="top"
             />
-          </WithPermissionControl>
+          </WithPermissionControlTooltip>
         )}
         {!channelFilter.is_default && (
-          <WithPermissionControl userAction={UserAction.UpdateAlertReceiveChannels}>
+          <WithPermissionControlTooltip userAction={UserActions.IntegrationsWrite}>
             <IconButton
               size="md"
               name="trash-alt"
@@ -654,9 +658,9 @@ class AlertRules extends React.Component<AlertRulesProps, AlertRulesState> {
               tooltip="Delete"
               tooltipPlacement="top"
             />
-          </WithPermissionControl>
+          </WithPermissionControlTooltip>
         )}
-        <WithPermissionControl userAction={UserAction.UpdateAlertReceiveChannels}>
+        <WithPermissionControlTooltip userAction={UserActions.IntegrationsWrite}>
           <IconButton
             size="md"
             name="pen"
@@ -669,12 +673,12 @@ class AlertRules extends React.Component<AlertRulesProps, AlertRulesState> {
             tooltip="Edit"
             tooltipPlacement="top"
           />
-        </WithPermissionControl>
-        <WithPermissionControl userAction={UserAction.SendDemoAlert}>
+        </WithPermissionControlTooltip>
+        <WithPermissionControlTooltip userAction={UserActions.IntegrationsTest}>
           <Button variant="secondary" size="sm" onClick={this.getSendDemoAlertToParticularRoute(channelFilterId)}>
             Send demo alert
           </Button>
-        </WithPermissionControl>
+        </WithPermissionControlTooltip>
       </HorizontalGroup>
     );
   };
@@ -706,7 +710,7 @@ class AlertRules extends React.Component<AlertRulesProps, AlertRulesState> {
             </>
           )}
           escalate to{' '}
-          <WithPermissionControl userAction={UserAction.UpdateAlertReceiveChannels}>
+          <WithPermissionControlTooltip userAction={UserActions.IntegrationsWrite}>
             <div onClick={(e) => e.stopPropagation()}>
               <GSelect
                 showSearch
@@ -719,7 +723,7 @@ class AlertRules extends React.Component<AlertRulesProps, AlertRulesState> {
                 showWarningIfEmptyValue={true}
               />
             </div>
-          </WithPermissionControl>
+          </WithPermissionControlTooltip>
         </div>
         <div onClick={(e) => e.stopPropagation()}>{this.renderChannelFilterButtons(channelFilterId, index)}</div>
       </div>

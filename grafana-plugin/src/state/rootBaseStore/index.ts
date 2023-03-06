@@ -1,5 +1,3 @@
-import { OrgRole } from '@grafana/data';
-import { contextSrv } from 'grafana/app/core/core';
 import { action, observable } from 'mobx';
 import moment from 'moment-timezone';
 import qs from 'query-string';
@@ -11,6 +9,7 @@ import { AlertReceiveChannelFiltersStore } from 'models/alert_receive_channel_fi
 import { AlertGroupStore } from 'models/alertgroup/alertgroup';
 import { ApiTokenStore } from 'models/api_token/api_token';
 import { CloudStore } from 'models/cloud/cloud';
+import { DirectPagingStore } from 'models/direct_paging/direct_paging';
 import { EscalationChainStore } from 'models/escalation_chain/escalation_chain';
 import { EscalationPolicyStore } from 'models/escalation_policy/escalation_policy';
 import { GlobalSettingStore } from 'models/global_setting/global_setting';
@@ -29,10 +28,9 @@ import { Timezone } from 'models/timezone/timezone.types';
 import { UserStore } from 'models/user/user';
 import { UserGroupStore } from 'models/user_group/user_group';
 import { makeRequest } from 'network';
-import { NavMenuItem } from 'pages/routes';
 import { AppFeature } from 'state/features';
 import PluginState from 'state/plugin';
-import { UserAction } from 'state/userAction';
+import { isUserActionAllowed, UserActions } from 'utils/authorization';
 
 // ------ Dashboard ------ //
 
@@ -48,6 +46,9 @@ export class RootBaseStore {
 
   @observable
   backendLicense = '';
+
+  @observable
+  recaptchaSiteKey = '';
 
   @observable
   initializationError = null;
@@ -75,13 +76,11 @@ export class RootBaseStore {
   @observable
   onCallApiUrl: string;
 
-  @observable
-  navMenuItem: NavMenuItem;
-
   // --------------------------
 
   userStore: UserStore = new UserStore(this);
   cloudStore: CloudStore = new CloudStore(this);
+  directPagingStore: DirectPagingStore = new DirectPagingStore(this);
   grafanaTeamStore: GrafanaTeamStore = new GrafanaTeamStore(this);
   alertReceiveChannelStore: AlertReceiveChannelStore = new AlertReceiveChannelStore(this);
   outgoingWebhookStore: OutgoingWebhookStore = new OutgoingWebhookStore(this);
@@ -104,13 +103,22 @@ export class RootBaseStore {
   // stores
 
   async updateBasicData() {
+    const updateFeatures = async () => {
+      await this.updateFeatures();
+
+      // Only fetch cloud connection status when cloud connection feature is enabled on OSS instance
+      // Note that this.hasFeature can only be called after this.updateFeatures()
+      if (this.hasFeature(AppFeature.CloudConnection)) {
+        await this.cloudStore.loadCloudConnectionStatus();
+      }
+    };
+
     return Promise.all([
       this.teamStore.loadCurrentTeam(),
       this.grafanaTeamStore.updateItems(),
-      this.updateFeatures(),
+      updateFeatures(),
       this.userStore.updateNotificationPolicyOptions(),
       this.userStore.updateNotifyByOptions(),
-      this.alertReceiveChannelStore.updateAlertReceiveChannelOptions(),
       this.alertReceiveChannelStore.updateAlertReceiveChannelOptions(),
       this.escalationPolicyStore.updateWebEscalationPolicyOptions(),
       this.escalationPolicyStore.updateEscalationPolicyOptions(),
@@ -129,6 +137,9 @@ export class RootBaseStore {
    *
    * Otherwise, get the plugin connection status from the OnCall API and check a few pre-conditions:
    * - plugin must be considered installed by the OnCall API
+   * - token_ok must be true
+   *   - This represents the status of the Grafana API token. It can be false in the event that either the token
+   *   hasn't been created, or if the API token was revoked in Grafana.
    * - user must be not "anonymous" (this is determined by the plugin-proxy)
    * - the OnCall API must be currently allowing signup
    * - the user must have an Admin role
@@ -151,18 +162,20 @@ export class RootBaseStore {
       return this.setupPluginError(pluginConnectionStatus);
     }
 
-    const { allow_signup, is_installed, is_user_anonymous } = pluginConnectionStatus;
+    const { allow_signup, is_installed, is_user_anonymous, token_ok } = pluginConnectionStatus;
     if (is_user_anonymous) {
       return this.setupPluginError(
         '😞 Unfortunately Grafana OnCall is available for authorized users only, please sign in to proceed.'
       );
-    } else if (!is_installed) {
+    } else if (!is_installed || !token_ok) {
       if (!allow_signup) {
         return this.setupPluginError('🚫 OnCall has temporarily disabled signup of new users. Please try again later.');
       }
 
-      if (!contextSrv.hasRole(OrgRole.Admin)) {
-        return this.setupPluginError('🚫 Admin must sign on to setup OnCall before a Viewer can use it');
+      if (!isUserActionAllowed(UserActions.PluginsInstall)) {
+        return this.setupPluginError(
+          '🚫 An Admin in your organization must sign on and setup OnCall before it can be used'
+        );
       }
 
       try {
@@ -185,6 +198,7 @@ export class RootBaseStore {
       // everything is all synced successfully at this point..
       this.backendVersion = syncDataResponse.version;
       this.backendLicense = syncDataResponse.license;
+      this.recaptchaSiteKey = syncDataResponse.recaptcha_site_key;
     }
 
     try {
@@ -194,10 +208,6 @@ export class RootBaseStore {
     }
 
     this.appLoading = false;
-  }
-
-  isUserActionAllowed(action: UserAction) {
-    return this.userStore.currentUser && this.userStore.currentUser.permissions.includes(action);
   }
 
   hasFeature(feature: string | AppFeature) {

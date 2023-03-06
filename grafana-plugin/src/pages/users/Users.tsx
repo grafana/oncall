@@ -1,13 +1,11 @@
 import React from 'react';
 
-import { getLocationSrv } from '@grafana/runtime';
 import { Alert, Button, HorizontalGroup, Icon, VerticalGroup } from '@grafana/ui';
-import { PluginPage } from 'PluginPage';
 import cn from 'classnames/bind';
 import { debounce } from 'lodash-es';
 import { observer } from 'mobx-react';
 import LegacyNavHeading from 'navbar/LegacyNavHeading';
-import { AppRootProps } from 'types';
+import { RouteComponentProps, withRouter } from 'react-router-dom';
 
 import Avatar from 'components/Avatar/Avatar';
 import GTable from 'components/GTable/GTable';
@@ -20,24 +18,24 @@ import PluginLink from 'components/PluginLink/PluginLink';
 import Text from 'components/Text/Text';
 import UsersFilters from 'components/UsersFilters/UsersFilters';
 import UserSettings from 'containers/UserSettings/UserSettings';
-import { WithPermissionControl } from 'containers/WithPermissionControl/WithPermissionControl';
-import { getRole } from 'models/user/user.helpers';
-import { User as UserType, UserRole } from 'models/user/user.types';
-import { pages } from 'pages';
-import { getQueryParams } from 'plugin/GrafanaPluginRootPage.helpers';
-import { WithStoreProps } from 'state/types';
-import { UserAction } from 'state/userAction';
+import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
+import { User as UserType } from 'models/user/user.types';
+import { PageProps, WithStoreProps } from 'state/types';
 import { withMobXProviderContext } from 'state/withStore';
+import LocationHelper from 'utils/LocationHelper';
+import { generateMissingPermissionMessage, isUserActionAllowed, UserActions } from 'utils/authorization';
+import { PLUGIN_ROOT } from 'utils/consts';
 
-import { getRealFilters, getUserRowClassNameFn } from './Users.helpers';
+import { getUserRowClassNameFn } from './Users.helpers';
 
 import styles from './Users.module.css';
 
 const cx = cn.bind(styles);
 
-interface UsersProps extends WithStoreProps, AppRootProps {}
+interface UsersProps extends WithStoreProps, PageProps, RouteComponentProps<{ id: string }> {}
 
 const ITEMS_PER_PAGE = 100;
+const REQUIRED_PERMISSION_TO_VIEW_USERS = UserActions.UserSettingsWrite;
 
 interface UsersState extends PageBaseState {
   page: number;
@@ -45,8 +43,8 @@ interface UsersState extends PageBaseState {
   userPkToEdit?: UserType['pk'] | 'new';
   usersFilters?: {
     searchTerm: string;
-    roles?: UserRole[];
   };
+  initialUsersLoaded: boolean;
 }
 
 @observer
@@ -57,18 +55,16 @@ class Users extends React.Component<UsersProps, UsersState> {
     userPkToEdit: undefined,
     usersFilters: {
       searchTerm: '',
-      roles: [UserRole.ADMIN, UserRole.EDITOR, UserRole.VIEWER],
     },
 
     errorData: initErrorDataState(),
+    initialUsersLoaded: false,
   };
 
-  initialUsersLoaded = false;
-
-  private userId: string;
-
   async componentDidMount() {
-    const { p } = getQueryParams();
+    const {
+      query: { p },
+    } = this.props;
     this.setState({ page: p ? Number(p) : 1 }, this.updateUsers);
 
     this.parseParams();
@@ -79,23 +75,22 @@ class Users extends React.Component<UsersProps, UsersState> {
     const { usersFilters, page } = this.state;
     const { userStore } = store;
 
-    if (!store.isUserActionAllowed(UserAction.ViewOtherUsers)) {
+    if (!isUserActionAllowed(REQUIRED_PERMISSION_TO_VIEW_USERS)) {
       return;
     }
 
-    getLocationSrv().update({ query: { p: page }, partial: true });
-    return await userStore.updateItems(getRealFilters(usersFilters), page);
+    LocationHelper.update({ p: page }, 'partial');
+    await userStore.updateItems(usersFilters, page);
+
+    this.setState({ initialUsersLoaded: true });
   };
 
-  componentDidUpdate() {
-    const { store } = this.props;
-
-    if (!this.initialUsersLoaded && store.isUserActionAllowed(UserAction.ViewOtherUsers)) {
+  componentDidUpdate(prevProps: UsersProps) {
+    if (!this.state.initialUsersLoaded) {
       this.updateUsers();
-      this.initialUsersLoaded = true;
     }
 
-    if (this.userId !== getQueryParams()['id']) {
+    if (prevProps.match.params.id !== this.props.match.params.id) {
       this.parseParams();
     }
   }
@@ -103,10 +98,12 @@ class Users extends React.Component<UsersProps, UsersState> {
   parseParams = async () => {
     this.setState({ errorData: initErrorDataState() }); // reset wrong team error to false on query parse
 
-    const { store } = this.props;
-    const { id } = getQueryParams();
-
-    this.userId = id;
+    const {
+      store,
+      match: {
+        params: { id },
+      },
+    } = this.props;
 
     if (id) {
       await (id === 'me' ? store.userStore.loadCurrentUser() : store.userStore.loadUser(String(id), true)).catch(
@@ -122,8 +119,13 @@ class Users extends React.Component<UsersProps, UsersState> {
   };
 
   render() {
-    const { usersFilters, userPkToEdit, page, errorData } = this.state;
-    const { store, query } = this.props;
+    const { usersFilters, userPkToEdit, page, errorData, initialUsersLoaded } = this.state;
+    const {
+      store,
+      match: {
+        params: { id },
+      },
+    } = this.props;
     const { userStore } = store;
 
     const columns = [
@@ -132,12 +134,6 @@ class Users extends React.Component<UsersProps, UsersState> {
         key: 'username',
         title: 'User',
         render: this.renderTitle,
-      },
-      {
-        width: '5%',
-        title: 'Role',
-        key: 'role',
-        render: this.renderRole,
       },
       {
         width: '20%',
@@ -165,23 +161,22 @@ class Users extends React.Component<UsersProps, UsersState> {
     ];
 
     const handleClear = () =>
-      this.setState(
-        { usersFilters: { searchTerm: '', roles: [UserRole.ADMIN, UserRole.EDITOR, UserRole.VIEWER] } },
-        () => {
-          this.debouncedUpdateUsers();
-        }
-      );
+      this.setState({ usersFilters: { searchTerm: '' } }, () => {
+        this.debouncedUpdateUsers();
+      });
 
     const { count, results } = userStore.getSearchResult();
 
+    const authorizedToViewUsers = isUserActionAllowed(REQUIRED_PERMISSION_TO_VIEW_USERS);
+
     return (
-      <PluginPage pageNav={pages['users'].getPageNav()}>
-        <PageErrorHandlingWrapper
-          errorData={errorData}
-          objectName="user"
-          pageName="users"
-          itemNotFoundMessage={`User with id=${query?.id} is not found. Please select user from the list.`}
-        >
+      <PageErrorHandlingWrapper
+        errorData={errorData}
+        objectName="user"
+        pageName="users"
+        itemNotFoundMessage={`User with id=${id} is not found. Please select user from the list.`}
+      >
+        {() => (
           <>
             <div className={cx('root')}>
               <div className={cx('root', 'TEST-users-page')}>
@@ -191,19 +186,21 @@ class Users extends React.Component<UsersProps, UsersState> {
                       <LegacyNavHeading>
                         <Text.Title level={3}>Users</Text.Title>
                       </LegacyNavHeading>
-                      <Text type="secondary">
-                        To manage permissions or add users, please visit{' '}
-                        <a href="/org/users">Grafana user management</a>
-                      </Text>
+                      {authorizedToViewUsers && (
+                        <Text type="secondary">
+                          To manage permissions or add users, please visit{' '}
+                          <a href="/org/users">Grafana user management</a>
+                        </Text>
+                      )}
                     </div>
                   </div>
-                  <PluginLink partial query={{ id: 'me' }}>
+                  <PluginLink query={{ page: 'users', id: 'me' }}>
                     <Button variant="primary" icon="user">
                       View my profile
                     </Button>
                   </PluginLink>
                 </div>
-                {store.isUserActionAllowed(UserAction.ViewOtherUsers) ? (
+                {authorizedToViewUsers ? (
                   <>
                     <div className={cx('user-filters-container')}>
                       <UsersFilters
@@ -222,7 +219,7 @@ class Users extends React.Component<UsersProps, UsersState> {
                     </div>
 
                     <GTable
-                      emptyText={results ? 'No users found' : 'Loading...'}
+                      emptyText={initialUsersLoaded ? 'No users found' : 'Loading...'}
                       rowKey="pk"
                       data={results}
                       columns={columns}
@@ -239,8 +236,9 @@ class Users extends React.Component<UsersProps, UsersState> {
                     /* @ts-ignore */
                     title={
                       <>
-                        You don't have enough permissions to view other users because you are not Admin.{' '}
-                        <PluginLink query={{ page: 'users', id: 'me' }}>Click here</PluginLink> to open your profile
+                        {generateMissingPermissionMessage(REQUIRED_PERMISSION_TO_VIEW_USERS)} to be able to view OnCall
+                        users. <PluginLink query={{ page: 'users', id: 'me' }}>Click here</PluginLink> to open your
+                        profile
                       </>
                     }
                     severity="info"
@@ -250,8 +248,8 @@ class Users extends React.Component<UsersProps, UsersState> {
               {userPkToEdit && <UserSettings id={userPkToEdit} onHide={this.handleHideUserSettings} />}
             </div>
           </>
-        </PageErrorHandlingWrapper>
-      </PluginPage>
+        )}
+      </PageErrorHandlingWrapper>
     );
   }
 
@@ -271,10 +269,6 @@ class Users extends React.Component<UsersProps, UsersState> {
         </div>
       </HorizontalGroup>
     );
-  };
-
-  renderRole = (user: UserType) => {
-    return getRole(user.role);
   };
 
   renderNotificationsChain = (user: UserType) => {
@@ -299,12 +293,12 @@ class Users extends React.Component<UsersProps, UsersState> {
     const { userStore } = store;
 
     const isCurrent = userStore.currentUserPk === user.pk;
-    const action = isCurrent ? UserAction.UpdateOwnSettings : UserAction.UpdateOtherUsersSettings;
+    const action = isCurrent ? UserActions.UserSettingsWrite : UserActions.UserSettingsAdmin;
 
     return (
       <VerticalGroup justify="center">
-        <PluginLink partial query={{ id: user.pk }} disabled={!store.isUserActionAllowed(action)}>
-          <WithPermissionControl userAction={action}>
+        <PluginLink query={{ page: 'users', id: user.pk }} disabled={!isUserActionAllowed(action)}>
+          <WithPermissionControlTooltip userAction={action}>
             <Button
               className={cx({
                 'TEST-edit-my-own-settings-button': isCurrent,
@@ -313,7 +307,7 @@ class Users extends React.Component<UsersProps, UsersState> {
             >
               Edit
             </Button>
-          </WithPermissionControl>
+          </WithPermissionControlTooltip>
         </PluginLink>
       </VerticalGroup>
     );
@@ -376,9 +370,10 @@ class Users extends React.Component<UsersProps, UsersState> {
   };
 
   handleHideUserSettings = () => {
+    const { history } = this.props;
     this.setState({ userPkToEdit: undefined });
 
-    getLocationSrv().update({ partial: true, query: { id: undefined } });
+    history.push(`${PLUGIN_ROOT}/users`);
   };
 
   handleUserUpdate = () => {
@@ -386,4 +381,4 @@ class Users extends React.Component<UsersProps, UsersState> {
   };
 }
 
-export default withMobXProviderContext(Users);
+export default withRouter(withMobXProviderContext(Users));

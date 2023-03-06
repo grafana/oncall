@@ -8,7 +8,7 @@ from rest_framework.response import Response
 from rest_framework.test import APIClient
 
 from apps.alerts.models import AlertReceiveChannel, EscalationPolicy
-from common.constants.role import Role
+from apps.api.permissions import LegacyAccessControlRole
 
 
 @pytest.fixture()
@@ -126,7 +126,7 @@ def test_integration_filter_by_maintenance(
     alert_receive_channel_internal_api_setup,
     make_user_auth_headers,
     mock_start_disable_maintenance_task,
-    mock_alert_shooting_step_publish_slack_messages,
+    mock_alert_shooting_step_post_alert_group_to_slack,
 ):
     user, token, alert_receive_channel = alert_receive_channel_internal_api_setup
     client = APIClient()
@@ -149,7 +149,7 @@ def test_integration_filter_by_debug(
     alert_receive_channel_internal_api_setup,
     make_user_auth_headers,
     mock_start_disable_maintenance_task,
-    mock_alert_shooting_step_publish_slack_messages,
+    mock_alert_shooting_step_post_alert_group_to_slack,
 ):
     user, token, alert_receive_channel = alert_receive_channel_internal_api_setup
     client = APIClient()
@@ -205,9 +205,9 @@ def test_integration_search(
 @pytest.mark.parametrize(
     "role,expected_status",
     [
-        (Role.ADMIN, status.HTTP_200_OK),
-        (Role.EDITOR, status.HTTP_403_FORBIDDEN),
-        (Role.VIEWER, status.HTTP_403_FORBIDDEN),
+        (LegacyAccessControlRole.ADMIN, status.HTTP_200_OK),
+        (LegacyAccessControlRole.EDITOR, status.HTTP_403_FORBIDDEN),
+        (LegacyAccessControlRole.VIEWER, status.HTTP_403_FORBIDDEN),
     ],
 )
 def test_alert_receive_channel_create_permissions(
@@ -235,9 +235,9 @@ def test_alert_receive_channel_create_permissions(
 @pytest.mark.parametrize(
     "role,expected_status",
     [
-        (Role.ADMIN, status.HTTP_200_OK),
-        (Role.EDITOR, status.HTTP_403_FORBIDDEN),
-        (Role.VIEWER, status.HTTP_403_FORBIDDEN),
+        (LegacyAccessControlRole.ADMIN, status.HTTP_200_OK),
+        (LegacyAccessControlRole.EDITOR, status.HTTP_403_FORBIDDEN),
+        (LegacyAccessControlRole.VIEWER, status.HTTP_403_FORBIDDEN),
     ],
 )
 def test_alert_receive_channel_update_permissions(
@@ -272,9 +272,9 @@ def test_alert_receive_channel_update_permissions(
 @pytest.mark.parametrize(
     "role,expected_status",
     [
-        (Role.ADMIN, status.HTTP_204_NO_CONTENT),
-        (Role.EDITOR, status.HTTP_403_FORBIDDEN),
-        (Role.VIEWER, status.HTTP_403_FORBIDDEN),
+        (LegacyAccessControlRole.ADMIN, status.HTTP_204_NO_CONTENT),
+        (LegacyAccessControlRole.EDITOR, status.HTTP_403_FORBIDDEN),
+        (LegacyAccessControlRole.VIEWER, status.HTTP_403_FORBIDDEN),
     ],
 )
 def test_alert_receive_channel_delete_permissions(
@@ -303,7 +303,11 @@ def test_alert_receive_channel_delete_permissions(
 @pytest.mark.django_db
 @pytest.mark.parametrize(
     "role,expected_status",
-    [(Role.ADMIN, status.HTTP_200_OK), (Role.EDITOR, status.HTTP_200_OK), (Role.VIEWER, status.HTTP_200_OK)],
+    [
+        (LegacyAccessControlRole.ADMIN, status.HTTP_200_OK),
+        (LegacyAccessControlRole.EDITOR, status.HTTP_200_OK),
+        (LegacyAccessControlRole.VIEWER, status.HTTP_200_OK),
+    ],
 )
 def test_alert_receive_channel_list_permissions(
     make_organization_and_user_with_plugin_token,
@@ -311,7 +315,7 @@ def test_alert_receive_channel_list_permissions(
     role,
     expected_status,
 ):
-    organization, user, token = make_organization_and_user_with_plugin_token(role)
+    _, user, token = make_organization_and_user_with_plugin_token(role)
     client = APIClient()
 
     url = reverse("api-internal:alert_receive_channel-list")
@@ -330,7 +334,11 @@ def test_alert_receive_channel_list_permissions(
 @pytest.mark.django_db
 @pytest.mark.parametrize(
     "role,expected_status",
-    [(Role.ADMIN, status.HTTP_200_OK), (Role.EDITOR, status.HTTP_200_OK), (Role.VIEWER, status.HTTP_200_OK)],
+    [
+        (LegacyAccessControlRole.ADMIN, status.HTTP_200_OK),
+        (LegacyAccessControlRole.EDITOR, status.HTTP_200_OK),
+        (LegacyAccessControlRole.VIEWER, status.HTTP_200_OK),
+    ],
 )
 def test_alert_receive_channel_detail_permissions(
     make_organization_and_user_with_plugin_token,
@@ -360,9 +368,9 @@ def test_alert_receive_channel_detail_permissions(
 @pytest.mark.parametrize(
     "role,expected_status",
     [
-        (Role.ADMIN, status.HTTP_200_OK),
-        (Role.EDITOR, status.HTTP_200_OK),
-        (Role.VIEWER, status.HTTP_403_FORBIDDEN),
+        (LegacyAccessControlRole.ADMIN, status.HTTP_200_OK),
+        (LegacyAccessControlRole.EDITOR, status.HTTP_200_OK),
+        (LegacyAccessControlRole.VIEWER, status.HTTP_403_FORBIDDEN),
     ],
 )
 def test_alert_receive_channel_send_demo_alert_permissions(
@@ -395,9 +403,9 @@ def test_alert_receive_channel_send_demo_alert_permissions(
 @pytest.mark.parametrize(
     "role,expected_status",
     [
-        (Role.ADMIN, status.HTTP_200_OK),
-        (Role.EDITOR, status.HTTP_200_OK),
-        (Role.VIEWER, status.HTTP_200_OK),
+        (LegacyAccessControlRole.ADMIN, status.HTTP_200_OK),
+        (LegacyAccessControlRole.EDITOR, status.HTTP_200_OK),
+        (LegacyAccessControlRole.VIEWER, status.HTTP_200_OK),
     ],
 )
 def test_alert_receive_channel_integration_options_permissions(
@@ -426,9 +434,9 @@ def test_alert_receive_channel_integration_options_permissions(
 @pytest.mark.parametrize(
     "role,expected_status",
     [
-        (Role.ADMIN, status.HTTP_200_OK),
-        (Role.EDITOR, status.HTTP_200_OK),
-        (Role.VIEWER, status.HTTP_403_FORBIDDEN),
+        (LegacyAccessControlRole.ADMIN, status.HTTP_200_OK),
+        (LegacyAccessControlRole.EDITOR, status.HTTP_200_OK),
+        (LegacyAccessControlRole.VIEWER, status.HTTP_403_FORBIDDEN),
     ],
 )
 def test_alert_receive_channel_preview_template_permissions(
@@ -501,9 +509,9 @@ def test_alert_receive_channel_preview_template_require_notification_channel(
 @pytest.mark.parametrize(
     "role,expected_status",
     [
-        (Role.ADMIN, status.HTTP_200_OK),
-        (Role.EDITOR, status.HTTP_403_FORBIDDEN),
-        (Role.VIEWER, status.HTTP_403_FORBIDDEN),
+        (LegacyAccessControlRole.ADMIN, status.HTTP_200_OK),
+        (LegacyAccessControlRole.EDITOR, status.HTTP_403_FORBIDDEN),
+        (LegacyAccessControlRole.VIEWER, status.HTTP_403_FORBIDDEN),
     ],
 )
 def test_alert_receive_channel_change_team_permissions(
@@ -597,9 +605,9 @@ def test_alert_receive_channel_change_team(
 @pytest.mark.parametrize(
     "role,expected_status",
     [
-        (Role.ADMIN, status.HTTP_200_OK),
-        (Role.EDITOR, status.HTTP_200_OK),
-        (Role.VIEWER, status.HTTP_200_OK),
+        (LegacyAccessControlRole.ADMIN, status.HTTP_200_OK),
+        (LegacyAccessControlRole.EDITOR, status.HTTP_200_OK),
+        (LegacyAccessControlRole.VIEWER, status.HTTP_200_OK),
     ],
 )
 def test_alert_receive_channel_counters_permissions(
@@ -608,7 +616,7 @@ def test_alert_receive_channel_counters_permissions(
     role,
     expected_status,
 ):
-    organization, user, token = make_organization_and_user_with_plugin_token(role)
+    _, user, token = make_organization_and_user_with_plugin_token(role)
     client = APIClient()
 
     url = reverse(
@@ -630,9 +638,9 @@ def test_alert_receive_channel_counters_permissions(
 @pytest.mark.parametrize(
     "role,expected_status",
     [
-        (Role.ADMIN, status.HTTP_200_OK),
-        (Role.EDITOR, status.HTTP_200_OK),
-        (Role.VIEWER, status.HTTP_200_OK),
+        (LegacyAccessControlRole.ADMIN, status.HTTP_200_OK),
+        (LegacyAccessControlRole.EDITOR, status.HTTP_200_OK),
+        (LegacyAccessControlRole.VIEWER, status.HTTP_200_OK),
     ],
 )
 def test_alert_receive_channel_counters_per_integration_permissions(
@@ -660,3 +668,37 @@ def test_alert_receive_channel_counters_per_integration_permissions(
         response = client.get(url, format="json", **make_user_auth_headers(user, token))
 
         assert response.status_code == expected_status
+
+
+@pytest.mark.django_db
+def test_get_alert_receive_channels_direct_paging_hidden_from_list(
+    make_organization_and_user_with_plugin_token, make_alert_receive_channel, make_user_auth_headers
+):
+    organization, user, token = make_organization_and_user_with_plugin_token()
+    make_alert_receive_channel(user.organization, integration=AlertReceiveChannel.INTEGRATION_DIRECT_PAGING)
+
+    client = APIClient()
+    url = reverse("api-internal:alert_receive_channel-list")
+    response = client.get(url, format="json", **make_user_auth_headers(user, token))
+
+    # Check no direct paging integrations in the response
+    assert response.status_code == status.HTTP_200_OK
+    assert response.json() == []
+
+
+@pytest.mark.django_db
+def test_get_alert_receive_channels_direct_paging_present_for_filters(
+    make_organization_and_user_with_plugin_token, make_alert_receive_channel, make_user_auth_headers
+):
+    organization, user, token = make_organization_and_user_with_plugin_token()
+    alert_receive_channel = make_alert_receive_channel(
+        user.organization, integration=AlertReceiveChannel.INTEGRATION_DIRECT_PAGING
+    )
+
+    client = APIClient()
+    url = reverse("api-internal:alert_receive_channel-list")
+    response = client.get(url + "?filters=true", format="json", **make_user_auth_headers(user, token))
+
+    # Check direct paging integration is in the response
+    assert response.status_code == status.HTTP_200_OK
+    assert response.json()[0]["value"] == alert_receive_channel.public_primary_key

@@ -1,8 +1,9 @@
-**What this PR does**:
+# What this PR does
 
-**Which issue(s) this PR fixes**:
+## Which issue(s) this PR fixes
 
-**Checklist**
+## Checklist
+
 - [ ] Tests updated
 - [ ] Documentation added
 - [ ] `CHANGELOG.md` updated

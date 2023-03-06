@@ -7,6 +7,7 @@ from apps.api.views.features import (
     FEATURE_GRAFANA_CLOUD_CONNECTION,
     FEATURE_GRAFANA_CLOUD_NOTIFICATIONS,
     FEATURE_LIVE_SETTINGS,
+    FEATURE_MOBILE_APP,
     FEATURE_SLACK,
     FEATURE_TELEGRAM,
     FEATURE_WEB_SCHEDULES,
@@ -38,9 +39,10 @@ def test_features_view(
         ("FEATURE_TELEGRAM_INTEGRATION_ENABLED", FEATURE_TELEGRAM),
         ("FEATURE_LIVE_SETTINGS_ENABLED", FEATURE_LIVE_SETTINGS),
         ("FEATURE_WEB_SCHEDULES_ENABLED", FEATURE_WEB_SCHEDULES),
+        ("FEATURE_MOBILE_APP_INTEGRATION_ENABLED", FEATURE_MOBILE_APP),
     ],
 )
-def test_common_features_switch(
+def test_core_features_switch(
     settings,
     make_organization_and_user_with_plugin_token,
     make_user_auth_headers,
@@ -66,12 +68,10 @@ def test_common_features_switch(
 
 @pytest.mark.django_db
 def test_oss_features_enabled_in_oss_installation_by_default(
-    settings,
     make_organization_and_user_with_plugin_token,
     make_user_auth_headers,
 ):
     _, user, token = make_organization_and_user_with_plugin_token()
-    settings.LICENSE == settings.OPEN_SOURCE_LICENSE_NAME
     client = APIClient()
     url = reverse("api-internal:features")
     response = client.get(url, format="json", **make_user_auth_headers(user, token))
@@ -96,7 +96,6 @@ def test_oss_features_switch(
     expected_feature,
 ):
     _, user, token = make_organization_and_user_with_plugin_token()
-    settings.LICENSE == settings.OPEN_SOURCE_LICENSE_NAME
     setattr(settings, feature_attr, True)
 
     client = APIClient()

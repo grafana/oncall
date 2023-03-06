@@ -8,6 +8,8 @@ import { makeRequest } from 'network';
 import { Mixpanel } from 'services/mixpanel';
 import { RootStore } from 'state';
 import { move } from 'state/helpers';
+import { throttlingError } from 'utils';
+import { isUserActionAllowed, UserActions } from 'utils/authorization';
 
 import { getTimezone, prepareForUpdate } from './user.helpers';
 import { User } from './user.types';
@@ -55,7 +57,7 @@ export class UserStore extends BaseStore {
     const response = await makeRequest('/user/', {});
 
     let timezone;
-    if (!response.timezone) {
+    if (!response.timezone && isUserActionAllowed(UserActions.UserSettingsWrite)) {
       timezone = dayjs.tz.guess();
       this.update(response.pk, { timezone });
     }
@@ -73,18 +75,15 @@ export class UserStore extends BaseStore {
   }
 
   @action
-  async loadUser(userPk: User['pk'], skipErrorHandling = false) {
+  async loadUser(userPk: User['pk'], skipErrorHandling = false): Promise<User> {
     const user = await this.getById(userPk, skipErrorHandling);
 
     this.items = {
       ...this.items,
       [user.pk]: { ...user, timezone: getTimezone(user) },
     };
-  }
 
-  @action
-  getCurrentUser() {
-    return this.items[this.currentUserPk as User['pk']];
+    return user;
   }
 
   @action
@@ -106,31 +105,35 @@ export class UserStore extends BaseStore {
   }
 
   @action
-  async updateItems(f: any = { searchTerm: '', roles: undefined }, page = 1) {
-    const filters = typeof f === 'string' ? { searchTerm: f } : f; // for GSelect compatibility
-    const { searchTerm: search, roles } = filters;
-    const { count, results } = await makeRequest(this.path, {
-      params: { search, roles, page },
+  async updateItems(f: any = { searchTerm: '' }, page = 1) {
+    return new Promise<void>(async (resolve) => {
+      const filters = typeof f === 'string' ? { searchTerm: f } : f; // for GSelect compatibility
+      const { searchTerm: search } = filters;
+      const { count, results } = await makeRequest(this.path, {
+        params: { search, page },
+      });
+
+      this.items = {
+        ...this.items,
+        ...results.reduce(
+          (acc: { [key: number]: User }, item: User) => ({
+            ...acc,
+            [item.pk]: {
+              ...item,
+              timezone: getTimezone(item),
+            },
+          }),
+          {}
+        ),
+      };
+
+      this.searchResult = {
+        count,
+        results: results.map((item: User) => item.pk),
+      };
+
+      resolve();
     });
-
-    this.items = {
-      ...this.items,
-      ...results.reduce(
-        (acc: { [key: number]: User }, item: User) => ({
-          ...acc,
-          [item.pk]: {
-            ...item,
-            timezone: getTimezone(item),
-          },
-        }),
-        {}
-      ),
-    };
-
-    this.searchResult = {
-      count,
-      results: results.map((item: User) => item.pk),
-    };
   }
 
   getSearchResult() {
@@ -142,10 +145,6 @@ export class UserStore extends BaseStore {
 
   sendTelegramConfirmationCode = async (userPk: User['pk']) => {
     return await makeRequest(`/users/${userPk}/get_telegram_verification_code/`, {});
-  };
-
-  sendBackendConfirmationCode = async (userPk: User['pk'], backend: string) => {
-    return await makeRequest(`/users/${userPk}/get_backend_verification_code/?backend=${backend}`, {});
   };
 
   @action
@@ -175,6 +174,11 @@ export class UserStore extends BaseStore {
       [user.pk]: user,
     };
   };
+
+  sendBackendConfirmationCode = (userPk: User['pk'], backend: string) =>
+    makeRequest<string>(`/users/${userPk}/get_backend_verification_code?backend=${backend}`, {
+      method: 'GET',
+    });
 
   @action
   unlinkBackend = async (userPk: User['pk'], backend: string) => {
@@ -234,17 +238,18 @@ export class UserStore extends BaseStore {
   }
 
   @action
-  async fetchVerificationCode(userPk: User['pk']) {
+  async fetchVerificationCode(userPk: User['pk'], recaptchaToken: string) {
     await makeRequest(`/users/${userPk}/get_verification_code/`, {
       method: 'GET',
-    });
+      headers: { 'X-OnCall-Recaptcha': recaptchaToken },
+    }).catch(throttlingError);
   }
 
   @action
   async verifyPhone(userPk: User['pk'], token: string) {
     return await makeRequest(`/users/${userPk}/verify_number/?token=${token}`, {
       method: 'PUT',
-    });
+    }).catch(throttlingError);
   }
 
   @action
@@ -379,15 +384,9 @@ export class UserStore extends BaseStore {
     });
   }
 
-  async getMobileAppVerificationToken(userPk: User['pk']) {
-    return await makeRequest(`/users/${userPk}/mobile_app_verification_token/`, {
+  async checkUserAvailability(userPk: User['pk']) {
+    return await makeRequest(`/users/${userPk}/check_availability/`, {
       method: 'GET',
-    });
-  }
-
-  async createMobileAppVerificationToken(userPk: User['pk']) {
-    return await makeRequest(`/users/${userPk}/mobile_app_verification_token/`, {
-      method: 'POST',
     });
   }
 }

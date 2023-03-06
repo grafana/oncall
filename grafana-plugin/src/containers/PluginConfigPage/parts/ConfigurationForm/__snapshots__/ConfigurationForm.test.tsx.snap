@@ -209,7 +209,7 @@ exports[`ConfigurationForm It shows an error message if the self hosted plugin A
         </span>
       </pre>
       <div
-        class="root info-block root_with-background"
+        class="root info-block root--withBackground"
       >
         <span
           class="root text text--secondary text--medium"

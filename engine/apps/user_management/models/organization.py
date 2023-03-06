@@ -1,11 +1,13 @@
 import logging
 import typing
+import uuid
 from urllib.parse import urljoin
 
 from django.apps import apps
 from django.conf import settings
 from django.core.validators import MinLengthValidator
 from django.db import models
+from django.utils import timezone
 from mirage import fields as mirage_fields
 
 from apps.alerts.models import MaintainableObject
@@ -13,7 +15,7 @@ from apps.alerts.tasks import disable_maintenance
 from apps.slack.utils import post_message_to_channel
 from apps.user_management.subscription_strategy import FreePublicBetaSubscriptionStrategy
 from common.insight_log import ChatOpsEvent, ChatOpsType, write_chatops_insight_log
-from common.oncall_gateway import create_oncall_connector, delete_oncall_connector_async
+from common.oncall_gateway import create_oncall_connector, delete_oncall_connector_async, delete_slack_connector_async
 from common.public_primary_keys import generate_public_primary_key, increase_public_primary_key_length
 
 logger = logging.getLogger(__name__)
@@ -45,25 +47,41 @@ class OrganizationQuerySet(models.QuerySet):
     def create(self, **kwargs):
         instance = super().create(**kwargs)
         if settings.FEATURE_MULTIREGION_ENABLED:
-            create_oncall_connector(instance.public_primary_key, settings.ONCALL_BACKEND_REGION)
+            create_oncall_connector(instance.uuid, settings.ONCALL_BACKEND_REGION)
         return instance
 
     def delete(self):
-        org_id = self.public_primary_key
-        super().delete(self)
-        if settings.FEATURE_MULTIREGION_ENABLED:
-            delete_oncall_connector_async.apply_async(
-                (org_id),
-            )
+        # Be careful with deleting via queryset - it doesn't delete chatops-proxy connectors.
+        self.update(deleted_at=timezone.now())
+
+    def hard_delete(self):
+        super().delete()
+
+
+class OrganizationManager(models.Manager):
+    def get_queryset(self):
+        return OrganizationQuerySet(self.model, using=self._db).filter(deleted_at__isnull=True)
 
 
 class Organization(MaintainableObject):
 
-    objects = OrganizationQuerySet.as_manager()
+    objects = OrganizationManager()
+    objects_with_deleted = models.Manager()
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.subscription_strategy = self._get_subscription_strategy()
+
+    def delete(self):
+        if settings.FEATURE_MULTIREGION_ENABLED:
+            delete_oncall_connector_async.apply_async((self.public_primary_key,))
+            if self.slack_team_identity:
+                delete_slack_connector_async.apply_async((self.slack_team_identity.slack_id,))
+        self.deleted_at = timezone.now()
+        self.save(update_fields=["deleted_at"])
+
+    def hard_delete(self):
+        super().delete()
 
     def _get_subscription_strategy(self):
         if self.pricing_version == self.FREE_PUBLIC_BETA_PRICING:
@@ -129,6 +147,11 @@ class Organization(MaintainableObject):
     # Slack specific field with general log channel id
     general_log_channel_id = models.CharField(max_length=100, null=True, default=None)
 
+    # uuid used to unuqie identify organization in different clusters
+    uuid = models.UUIDField(default=uuid.uuid4, editable=False)
+
+    deleted_at = models.DateTimeField(null=True)
+
     # Organization Settings configured from slack
     (
         ACKNOWLEDGE_REMIND_NEVER,
@@ -192,6 +215,8 @@ class Organization(MaintainableObject):
     pricing_version = models.PositiveIntegerField(choices=PRICING_CHOICES, default=FREE_PUBLIC_BETA_PRICING)
 
     is_amixr_migration_started = models.BooleanField(default=False)
+    is_rbac_permissions_enabled = models.BooleanField(default=False)
+    is_grafana_incident_enabled = models.BooleanField(default=False)
 
     class Meta:
         unique_together = ("stack_id", "org_id")
@@ -238,6 +263,8 @@ class Organization(MaintainableObject):
         return self.org_title
 
     def notify_about_maintenance_action(self, text, send_to_general_log_channel=True):
+        # TODO: this method should be refactored.
+        # It's binded to slack and sending maintenance notification only there.
         if send_to_general_log_channel:
             post_message_to_channel(self, self.general_log_channel_id, text)
 
@@ -281,9 +308,9 @@ class Organization(MaintainableObject):
         return urljoin(self.grafana_url, "a/grafana-oncall-app/")
 
     @property
-    def web_link_with_id(self):
-        # It's a workaround to pass org id to the oncall gateway while proxying telegram requests
-        return urljoin(self.grafana_url, f"a/grafana-oncall-app/?x-oncall-org-id={self.public_primary_key}")
+    def web_link_with_uuid(self):
+        # It's a workaround to pass some unique identifier to the oncall gateway while proxying telegram requests
+        return urljoin(self.grafana_url, f"a/grafana-oncall-app/?oncall-uuid={self.uuid}")
 
     def __str__(self):
         return f"{self.pk}: {self.org_title}"
