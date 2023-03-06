@@ -1,9 +1,15 @@
 import datetime
+import enum
 import itertools
 from collections import defaultdict
 from typing import Iterable, Union
 
 import pytz
+
+
+class CommentType(str, enum.Enum):
+    INFO = "info"
+    WARNING = "warning"
 
 
 # TODO: add "inside working hours score" and "balance outside working hours score" when working hours editor is implemented
@@ -22,23 +28,18 @@ def get_schedule_quality_score(events: list[dict], days: int) -> dict:
     else:
         total_score = 0
 
-    info_comments = []
-    warning_comments = []
-
+    comments = []
     if good_event_score < 1:
-        warning_comments.append("Schedule has gaps")
+        comments.append({"type": CommentType.WARNING, "text": "Schedule has gaps"})
     else:
-        info_comments.append("Schedule has no gaps")
+        comments.append({"type": CommentType.INFO, "text": "Schedule has no gaps"})
 
     if balance_score < 0.8:
-        warning_comments.append("Schedule has balance issues")
+        comments.append({"type": CommentType.WARNING, "text": "Schedule has balance issues"})
     elif 0.8 <= balance_score < 1:
-        info_comments.append("Schedule is well-balanced, but still can be improved")
+        comments.append({"type": CommentType.INFO, "text": "Schedule is well-balanced, but still can be improved"})
     else:
-        info_comments.append("Schedule is perfectly balanced")
-
-    comments = [{"type": "warning", "text": comment} for comment in warning_comments]
-    comments += [{"type": "info", "text": comment} for comment in info_comments]
+        comments.append({"type": CommentType.INFO, "text": "Schedule is perfectly balanced"})
 
     return {
         "total_score": score_to_percent(total_score),
