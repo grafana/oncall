@@ -6,7 +6,7 @@ import { observer } from 'mobx-react';
 import ReactDOM from 'react-dom';
 
 import GSelect from 'containers/GSelect/GSelect';
-import { WithPermissionControl } from 'containers/WithPermissionControl/WithPermissionControl';
+import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
 import { GrafanaTeam } from 'models/grafana_team/grafana_team.types';
 import { isTopNavbar } from 'plugin/GrafanaPluginRootPage.helpers';
 import { useStore } from 'state/useStore';
@@ -44,11 +44,11 @@ const GrafanaTeamSelect = observer(() => {
             </Tooltip>
           </span>
         </Label>
-        <WithPermissionControl userAction={UserActions.TeamsWrite}>
+        <WithPermissionControlTooltip userAction={UserActions.TeamsWrite}>
           <a href="/org/teams" className={cx('teamSelectLink')}>
             Edit teams
           </a>
-        </WithPermissionControl>
+        </WithPermissionControlTooltip>
       </div>
       <GSelect
         modelName="grafanaTeamStore"

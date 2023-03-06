@@ -1,5 +1,9 @@
 /* Navigation/Layout */
 
+.drawer-content {
+  overflow: auto !important; /* fix https://github.com/grafana/oncall/issues/415 */
+}
+
 .page-body {
   max-width: unset !important;
 }

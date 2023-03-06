@@ -204,12 +204,7 @@ class AlertGroupSerializer(AlertGroupListSerializer):
         Overriding default alerts because there are alert_groups with thousands of them.
         It's just too slow, we need to cut here.
         """
-        alerts = obj.alerts.all()[:100]
-
-        if len(alerts) > 90:
-            for alert in alerts:
-                alert.title = str(alert.title) + " Only last 100 alerts are shown. Use OnCall API to fetch all of them."
-
+        alerts = obj.alerts.order_by("-pk")[:100]
         return AlertSerializer(alerts, many=True).data
 
     def get_paged_users(self, obj):

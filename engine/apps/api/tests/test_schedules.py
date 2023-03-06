@@ -330,6 +330,63 @@ def test_get_list_schedules_by_type(
 
 
 @pytest.mark.django_db
+@pytest.mark.parametrize(
+    "query_param, expected_schedule_names",
+    [
+        ("?used=true", ["test_web_schedule"]),
+        ("?used=false", ["test_calendar_schedule", "test_ical_schedule"]),
+        ("?used=null", ["test_calendar_schedule", "test_ical_schedule", "test_web_schedule"]),
+        ("", ["test_calendar_schedule", "test_ical_schedule", "test_web_schedule"]),
+    ],
+)
+def test_get_list_schedules_by_used(
+    schedule_internal_api_setup,
+    make_escalation_chain,
+    make_escalation_policy,
+    make_user_auth_headers,
+    query_param,
+    expected_schedule_names,
+):
+    user, token, calendar_schedule, ical_schedule, web_schedule, slack_channel = schedule_internal_api_setup
+    client = APIClient()
+
+    # setup escalation chain linked to web schedule
+    escalation_chain = make_escalation_chain(user.organization)
+    make_escalation_policy(
+        escalation_chain=escalation_chain,
+        escalation_policy_step=EscalationPolicy.STEP_NOTIFY_SCHEDULE,
+        notify_schedule=web_schedule,
+    )
+
+    url = reverse("api-internal:schedule-list") + query_param
+    response = client.get(url, format="json", **make_user_auth_headers(user, token))
+
+    assert response.status_code == status.HTTP_200_OK
+    assert response.json()["count"] == len(expected_schedule_names)
+
+    schedule_names = [schedule["name"] for schedule in response.json()["results"]]
+    assert set(schedule_names) == set(expected_schedule_names)
+
+
+@pytest.mark.django_db
+def test_get_list_schedules_pagination_respects_search(
+    schedule_internal_api_setup,
+    make_escalation_chain,
+    make_escalation_policy,
+    make_user_auth_headers,
+):
+    user, token, _, _, _, _ = schedule_internal_api_setup
+    client = APIClient()
+
+    url = reverse("api-internal:schedule-list") + "?search=ical"
+    response = client.get(url, format="json", **make_user_auth_headers(user, token))
+
+    assert response.status_code == status.HTTP_200_OK
+    assert response.json()["count"] == 1
+    assert len(response.json()["results"]) == 1
+
+
+@pytest.mark.django_db
 def test_get_detail_calendar_schedule(schedule_internal_api_setup, make_user_auth_headers):
     user, token, calendar_schedule, _, _, _ = schedule_internal_api_setup
     client = APIClient()

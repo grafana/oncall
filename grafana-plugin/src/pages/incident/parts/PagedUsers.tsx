@@ -6,7 +6,7 @@ import cn from 'classnames/bind';
 import Avatar from 'components/Avatar/Avatar';
 import Text from 'components/Text/Text';
 import WithConfirm from 'components/WithConfirm/WithConfirm';
-import { WithPermissionControl } from 'containers/WithPermissionControl/WithPermissionControl';
+import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
 import { Alert } from 'models/alertgroup/alertgroup.types';
 import { User } from 'models/user/user.types';
 import { UserActions } from 'utils/authorization';
@@ -46,7 +46,7 @@ const PagedUsers = (props: PagedUsersProps) => {
                 <Avatar size="big" src={pagedUser.avatar} />
                 <Text strong>{pagedUser.username}</Text>
               </HorizontalGroup>
-              <WithPermissionControl userAction={UserActions.AlertGroupsWrite}>
+              <WithPermissionControlTooltip userAction={UserActions.AlertGroupsWrite}>
                 <WithConfirm
                   title={`Are you sure to remove "${pagedUser.username}" from responders?`}
                   confirmText="Remove"
@@ -57,7 +57,7 @@ const PagedUsers = (props: PagedUsersProps) => {
                     name="trash-alt"
                   />
                 </WithConfirm>
-              </WithPermissionControl>
+              </WithPermissionControlTooltip>
             </HorizontalGroup>
           </li>
         ))}

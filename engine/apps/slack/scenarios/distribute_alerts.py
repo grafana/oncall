@@ -816,7 +816,7 @@ class AcknowledgeConfirmationStep(AcknowledgeGroupStep):
                     "text": text,
                     "callback_id": "alert",
                     "attachment_type": "default",
-                    "footer": "This is a reminder that the incident is still acknowledged"
+                    "footer": "This is a reminder that the Alert Group is still acknowledged"
                     " and not resolved. It will be unacknowledged automatically and escalation will"
                     " start again soon.",
                     "actions": [
@@ -876,7 +876,7 @@ class AcknowledgeConfirmationStep(AcknowledgeGroupStep):
                 alert_group.slack_message.ack_reminder_message_ts = response["ts"]
                 alert_group.slack_message.save(update_fields=["ack_reminder_message_ts"])
         else:
-            text = f"This is a reminder that the incident is still acknowledged by {user_verbal}"
+            text = f"This is a reminder that the Alert Group is still acknowledged by {user_verbal}"
             self.alert_group_slack_service.publish_message_to_alert_group_thread(alert_group, text=text)
 
 
