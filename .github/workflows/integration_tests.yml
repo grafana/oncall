@@ -74,7 +74,7 @@ jobs:
         working-directory: helm
 
       - name: Await k8s pods and other resources up
-        uses: jupyterhub/action-k8s-await-workloads@v1
+        uses: jupyterhub/action-k8s-await-workloads@v2
         with:
           workloads: "" # all
           namespace: "" # default
@@ -253,7 +253,7 @@ jobs:
       #   working-directory: ./grafana-plugin
 
       - name: Await k8s pods and other resources up
-        uses: jupyterhub/action-k8s-await-workloads@v1
+        uses: jupyterhub/action-k8s-await-workloads@v2
         with:
           workloads: "" # all
           namespace: "" # default
