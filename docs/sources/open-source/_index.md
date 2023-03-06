@@ -226,8 +226,8 @@ After enabling the email integration, it will be possible to use the `Notify by 
 
 ## Limits
 
-By default, OnCall limits email, phone notifications (calls, SMS) to 200 per user per day.
-The limit can be changed using Env variables:
+By default, Grafana OnCall limits email and phone notifications (calls, SMS) to 200 per user per day.
+The limit can be changed using env variables:
 
 - `PHONE_NOTIFICATIONS_LIMIT` (default is `200`) - phone notifications per user
 - `EMAIL_NOTIFICATIONS_LIMIT` (default is `200`) - emails per user
