@@ -93,8 +93,8 @@ const ChannelFilterForm = observer((props: ChannelFilterFormProps) => {
         {id === 'new' ? 'New' : 'Update'} Route
       </Text.Title>
       <Text type="secondary">
-        Sends alert to a different escalation chain (slack channel, different users, different urgency) based on the
-        alert content, using regular expressions.
+        Route sends alert group to a different escalation chain (slack channel, different users, different urgency)
+        based on the alert group content.
       </Text>
       <div className={styles.form}>
         <Field>
@@ -147,21 +147,15 @@ const ChannelFilterForm = observer((props: ChannelFilterFormProps) => {
             )}
           </>
         ) : (
-          <Field
-            invalid={Boolean(errors['filtering_term'])}
-            disabled={data?.is_default}
-            error={errors['filtering_term']}
-            label="Use Jinja2 template to route alert groups"
-            description={
-              <>
-                Use{' '}
-                <a href="https://jinja2.com/" target="_blank" rel="noreferrer">
-                  Jinja2
-                </a>{' '}
-                template to filter alert groups based on a expression
-              </>
-            }
-          >
+          <>
+            <Text type="secondary">
+              If the result of the{' '}
+              <a href="https://jinja.palletsprojects.com/en/3.0.x/" target="_blank" rel="noreferrer">
+                Jinja2-based template
+              </a>{' '}
+              is <Text keyboard>True</Text>
+              alert group will be matched with this route
+            </Text>
             <MonacoJinja2Editor
               value={filteringTerm}
               disabled={false}
@@ -169,7 +163,7 @@ const ChannelFilterForm = observer((props: ChannelFilterFormProps) => {
               data={{}}
               loading={null}
             />
-          </Field>
+          </>
         )}
       </div>
       <HorizontalGroup>

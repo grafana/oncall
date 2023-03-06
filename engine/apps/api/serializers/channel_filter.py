@@ -45,6 +45,7 @@ class ChannelFilterSerializer(OrderedModelSerializerMixin, EagerLoadingMixin, se
             "notification_backends",
         ]
         read_only_fields = ["created_at", "is_default"]
+        extra_kwargs = {"filtering_term": {"required": True, "allow_null": False}}
 
     def get_slack_channel(self, obj):
         if obj.slack_channel_id is None:
@@ -92,7 +93,7 @@ class ChannelFilterSerializer(OrderedModelSerializerMixin, EagerLoadingMixin, se
                 # update existing backend data
                 updated[backend_id] = updated.get(backend_id, {}) | updated_data
             notification_backends = updated
-        return
+        return notification_backends
 
     def to_representation(self, obj):
         result = super().to_representation(obj)
@@ -124,6 +125,7 @@ class ChannelFilterCreateSerializer(ChannelFilterSerializer):
             "notification_backends",
         ]
         read_only_fields = ["created_at", "is_default"]
+        extra_kwargs = {"filtering_term": {"required": True, "allow_null": False}}
 
     def to_representation(self, obj):
         """add correct slack channel data to result after instance creation/update"""
