@@ -627,7 +627,7 @@ INSTALLED_ONCALL_INTEGRATIONS = [
     "config_integrations.direct_paging",
 ]
 
-if LICENSE == OPEN_SOURCE_LICENSE_NAME:
+if IS_OPEN_SOURCE:
     INSTALLED_APPS += ["apps.oss_installation"]  # noqa
 
     CELERY_BEAT_SCHEDULE["send_usage_stats"] = {  # noqa
