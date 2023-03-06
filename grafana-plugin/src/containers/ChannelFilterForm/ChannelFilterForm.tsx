@@ -30,24 +30,25 @@ interface ChannelFilterFormProps {
 const ChannelFilterForm = observer((props: ChannelFilterFormProps) => {
   const { id, alertReceiveChannelId, onHide, onUpdate, data, className } = props;
 
+  // TODO: use FilteringTermType.jinja2 instead of 1
   const [filteringTermType, setFilteringTermType] = useState<FilteringTermType>(data ? data.filtering_term_type : 1);
 
-  function renderFilteringTermDefaultValue(type) {
+  function renderFilteringTermValue(type) {
     if (data && type === data?.filtering_term_type) {
       return data.filtering_term;
     }
     switch (type) {
+      // TODO: use FilteringTermType.regex and jinja2 instead of 0 and 1
       case 0:
-        console.log('renderFilteringTermDefaultValue: case 0');
         return '.*';
       case 1:
-        console.log('renderFilteringTermDefaultValue: case 1');
-        return '{{ (payload.foo == "bar" and "qux" in payload.baz) or True }}';
+        return '{{ (payload.severity == "foo" and "bar" in payload.region) or True }}';
       default:
         return null;
     }
   }
-  const [filteringTerm, setFilteringTerm] = useState<string>(renderFilteringTermDefaultValue(filteringTermType));
+
+  const [filteringTerm, setFilteringTerm] = useState<string>(renderFilteringTermValue(filteringTermType));
 
   const [errors, setErrors] = useState<{ filtering_term?: string }>({});
 
@@ -105,7 +106,7 @@ const ChannelFilterForm = observer((props: ChannelFilterFormProps) => {
             value={filteringTermType}
             onChange={(value) => {
               setFilteringTermType(value);
-              setFilteringTerm(renderFilteringTermDefaultValue(value));
+              setFilteringTerm(renderFilteringTermValue(value));
             }}
           />
         </Field>
