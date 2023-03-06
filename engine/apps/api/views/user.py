@@ -294,13 +294,13 @@ class UserView(
     )
     def get_verification_code(self, request, pk):
 
-        logger.info("get_verification_code: msg=Validating reCAPTCHA code")
+        logger.info("get_verification_code: validating reCAPTCHA code")
         # valid = recaptcha.check_recaptcha_internal_api(request, "mobile_verification_code")
         valid = check_recaptcha_internal_api(request, "mobile_verification_code")
         if not valid:
-            logger.warning(f'get_verification_code: msg="Invalid reCAPTCHA validation"')
+            logger.warning(f"get_verification_code: invalid reCAPTCHA validation")
             return Response("failed reCAPTCHA check", status=status.HTTP_400_BAD_REQUEST)
-        logger.info('get_verification_code: msg="Pass reCAPTCHA validation"')
+        logger.info('get_verification_code: pass reCAPTCHA validation"')
 
         user = self.get_object()
         phone_manager = PhoneManager(user)
