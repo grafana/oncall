@@ -7,7 +7,6 @@ import PluginLink from 'components/PluginLink/PluginLink';
 import Text from 'components/Text/Text';
 import { WithPermissionControlDisplay } from 'containers/WithPermissionControl/WithPermissionControlDisplay';
 import { User } from 'models/user/user.types';
-import { AppFeature } from 'state/features';
 import { WithStoreProps } from 'state/types';
 import { useStore } from 'state/useStore';
 import { withMobXProviderContext } from 'state/withStore';
@@ -50,21 +49,14 @@ const CloudPhoneSettings = observer((props: CloudPhoneSettingsProps) => {
   const UserCloudStatus = () => {
     switch (userStatus) {
       case 0:
-        if (store.hasFeature(AppFeature.CloudNotifications)) {
-          return (
-            <VerticalGroup spacing="lg">
-              <Text>Your account successfully matched, but Cloud is not connected. </Text>
-              <PluginLink query={{ page: 'cloud' }}>
-                <Button variant="secondary" icon="external-link-alt">
-                  Open Grafana Cloud page
-                </Button>
-              </PluginLink>
-            </VerticalGroup>
-          );
-        }
         return (
           <VerticalGroup spacing="lg">
-            <Text>Grafana Cloud is not synced</Text>
+            <Text>Cloud notifications enabled, but Grafana Cloud instance is not connected.</Text>
+            <PluginLink query={{ page: 'cloud' }}>
+              <Button variant="secondary" icon="external-link-alt">
+                Open Grafana Cloud page
+              </Button>
+            </PluginLink>
           </VerticalGroup>
         );
       case 1:
