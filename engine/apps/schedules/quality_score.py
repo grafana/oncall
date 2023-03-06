@@ -22,17 +22,27 @@ def get_schedule_quality_score(events: list[dict], days: int) -> dict:
     else:
         total_score = 0
 
-    gaps_comment = "Schedule has gaps" if good_event_score < 1 else "Schedule has no gaps"
-    if balance_score < 0.8:
-        balance_comment = "Schedule has balance issues"
-    elif 0.8 <= balance_score < 1:
-        balance_comment = "Schedule is well-balanced, but still can be improved"
+    info_comments = []
+    warning_comments = []
+
+    if good_event_score < 1:
+        warning_comments.append("Schedule has gaps")
     else:
-        balance_comment = "Schedule is perfectly balanced"
+        info_comments.append("Schedule has no gaps")
+
+    if balance_score < 0.8:
+        warning_comments.append("Schedule has balance issues")
+    elif 0.8 <= balance_score < 1:
+        info_comments.append("Schedule is well-balanced, but still can be improved")
+    else:
+        info_comments.append("Schedule is perfectly balanced")
+
+    comments = [{"type": "warning", "text": comment} for comment in warning_comments]
+    comments += [{"type": "info", "text": comment} for comment in info_comments]
 
     return {
         "total_score": score_to_percent(total_score),
-        "comments": [gaps_comment, balance_comment],
+        "comments": comments,
         "overloaded_users": overloaded_users,
     }
 
