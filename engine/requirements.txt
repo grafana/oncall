@@ -27,7 +27,7 @@ cryptography==38.0.4 # version 39.0.0 introduced an issue - https://stackoverflo
 pytest==5.4.3
 pytest-django==3.9.0
 pytest_factoryboy==2.0.3
-factory-boy<3.0
+factory-boy<4.0
 python-json-logger==2.0.1
 django-log-request-id==1.6.0
 django-polymorphic==3.0.0
