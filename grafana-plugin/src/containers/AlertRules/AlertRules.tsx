@@ -763,7 +763,7 @@ class AlertRules extends React.Component<AlertRulesProps, AlertRulesState> {
                       {'payload =~ "' + channelFilter.filtering_term + '"'}
                     </SourceCode>
                   ) : (
-                    <SourceCode showCopyToClipboard={false}>{channelFilter.filtering_term_jinja2}</SourceCode>
+                    <SourceCode showCopyToClipboard={false}>{channelFilter.filtering_term}</SourceCode>
                   )}
                 </>
               )}

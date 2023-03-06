@@ -1,6 +1,6 @@
-import React, { ChangeEvent, useCallback, useState } from 'react';
+import React, { useCallback, useState } from 'react';
 
-import { Button, Field, HorizontalGroup, Input, RadioButtonGroup } from '@grafana/ui';
+import { Button, Field, HorizontalGroup, RadioButtonGroup } from '@grafana/ui';
 import cn from 'classnames/bind';
 import { get } from 'lodash-es';
 import { observer } from 'mobx-react';
@@ -30,25 +30,34 @@ interface ChannelFilterFormProps {
 const ChannelFilterForm = observer((props: ChannelFilterFormProps) => {
   const { id, alertReceiveChannelId, onHide, onUpdate, data, className } = props;
 
-  const [filteringTerm, setFilteringTerm] = useState<string>(data ? data.filtering_term : '.*');
-  const [filteringTermJinja2, setFilteringTermJinja2] = useState<string>(
-    data ? data.filtering_term_jinja2 : '{{ (payload.foo == "bar" and "qux" in payload.baz) or True }}'
-  );
   const [filteringTermType, setFilteringTermType] = useState<FilteringTermType>(data ? data.filtering_term_type : 1);
+
+  function renderFilteringTermDefaultValue(type) {
+    if (data && type === data?.filtering_term_type) {
+      return data.filtering_term;
+    }
+    switch (type) {
+      case 0:
+        console.log('renderFilteringTermDefaultValue: case 0');
+        return '.*';
+      case 1:
+        console.log('renderFilteringTermDefaultValue: case 1');
+        return '{{ (payload.foo == "bar" and "qux" in payload.baz) or True }}';
+      default:
+        return null;
+    }
+  }
+  const [filteringTerm, setFilteringTerm] = useState<string>(renderFilteringTermDefaultValue(filteringTermType));
+
   const [errors, setErrors] = useState<{ filtering_term?: string }>({});
 
   const store = useStore();
 
   const { alertReceiveChannelStore } = store;
 
-  const handleFilteringTermChange = useCallback((event: ChangeEvent<HTMLInputElement>) => {
+  const handleFilteringTermChange = useCallback((value: string) => {
     setErrors({});
-    setFilteringTerm(event.target.value);
-  }, []);
-
-  const handleFilteringTermJinja2Change = useCallback((value: string) => {
-    setErrors({});
-    setFilteringTermJinja2(value);
+    setFilteringTerm(value);
   }, []);
 
   const onUpdateClickCallback = useCallback(() => {
@@ -57,12 +66,10 @@ const ChannelFilterForm = observer((props: ChannelFilterFormProps) => {
           order: 0,
           alert_receive_channel: alertReceiveChannelId,
           filtering_term: filteringTerm,
-          filtering_term_jinja2: filteringTermJinja2,
           filtering_term_type: filteringTermType,
         })
       : alertReceiveChannelStore.saveChannelFilter(id, {
           filtering_term: filteringTerm,
-          filtering_term_jinja2: filteringTermJinja2,
           filtering_term_type: filteringTermType,
         })
     )
@@ -77,7 +84,7 @@ const ChannelFilterForm = observer((props: ChannelFilterFormProps) => {
           openErrorNotification(errors.non_field_errors);
         }
       });
-  }, [filteringTerm, filteringTermJinja2, filteringTermType]);
+  }, [filteringTerm, filteringTermType]);
 
   return (
     <Block bordered className={cx('root', className)}>
@@ -98,6 +105,7 @@ const ChannelFilterForm = observer((props: ChannelFilterFormProps) => {
             value={filteringTermType}
             onChange={(value) => {
               setFilteringTermType(value);
+              setFilteringTerm(renderFilteringTermDefaultValue(value));
             }}
           />
         </Field>
@@ -119,21 +127,17 @@ const ChannelFilterForm = observer((props: ChannelFilterFormProps) => {
                 </>
               }
             >
-              <Input
-                placeholder={
-                  data?.is_default
-                    ? "Default routes can't have a filtering term"
-                    : 'Insert your regular expression here'
-                }
-                autoFocus
+              <MonacoJinja2Editor
                 value={filteringTerm}
+                disabled={false}
                 onChange={handleFilteringTermChange}
+                data={{}}
+                loading={null}
               />
             </Field>
             {!data?.is_default && (
               <IncidentMatcher
                 regexp={filteringTerm}
-                filteringTermJinja2={filteringTermJinja2}
                 className={cx('incident-matcher')}
                 onError={(message: string) => {
                   setErrors({ filtering_term: message });
@@ -143,10 +147,10 @@ const ChannelFilterForm = observer((props: ChannelFilterFormProps) => {
           </>
         ) : (
           <Field
-            invalid={Boolean(errors['filtering_term_jinja2'])}
+            invalid={Boolean(errors['filtering_term'])}
             disabled={data?.is_default}
-            error={errors['filtering_term_jinja2']}
-            label="Use Jinja2 template to route incidents"
+            error={errors['filtering_term']}
+            label="Use Jinja2 template to route alert groups"
             description={
               <>
                 Use{' '}
@@ -158,9 +162,9 @@ const ChannelFilterForm = observer((props: ChannelFilterFormProps) => {
             }
           >
             <MonacoJinja2Editor
-              value={filteringTermJinja2}
+              value={filteringTerm}
               disabled={false}
-              onChange={handleFilteringTermJinja2Change}
+              onChange={handleFilteringTermChange}
               data={{}}
               loading={null}
             />

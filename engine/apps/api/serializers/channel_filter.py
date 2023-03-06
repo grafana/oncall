@@ -37,7 +37,6 @@ class ChannelFilterSerializer(OrderedModelSerializerMixin, EagerLoadingMixin, se
             "slack_channel",
             "created_at",
             "filtering_term",
-            "filtering_term_jinja2",
             "filtering_term_type",
             "telegram_channel",
             "is_default",
@@ -75,10 +74,6 @@ class ChannelFilterSerializer(OrderedModelSerializerMixin, EagerLoadingMixin, se
                 raise serializers.ValidationError(["Filtering term is incorrect"])
         return filtering_term
 
-    def validate_filtering_term_jinja2(self, filtering_term_jinja2):
-        # TODO: check if valid
-        return filtering_term_jinja2
-
     def validate_notification_backends(self, notification_backends):
         # NOTE: updates the whole field, handling dict updates per backend
         if notification_backends is not None:
@@ -100,8 +95,8 @@ class ChannelFilterSerializer(OrderedModelSerializerMixin, EagerLoadingMixin, se
         return
 
     def to_representation(self, obj):
-        """add correct slack channel data to result after instance creation/update"""
         result = super().to_representation(obj)
+        # If filtering_term_type is not set, assume it is regex
         if obj.filtering_term_type is None:
             result["filtering_term_type"] = ChannelFilter.FILTERING_TERM_TYPE_REGEX
         return result
@@ -121,7 +116,6 @@ class ChannelFilterCreateSerializer(ChannelFilterSerializer):
             "slack_channel",
             "created_at",
             "filtering_term",
-            "filtering_term_jinja2",
             "filtering_term_type",
             "telegram_channel",
             "is_default",
