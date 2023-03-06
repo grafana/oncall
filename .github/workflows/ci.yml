@@ -110,7 +110,7 @@ jobs:
           MYSQL_DATABASE: oncall_local_dev
           MYSQL_ROOT_PASSWORD: local_dev_pwd
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - name: Unit Test Backend
         run: |
           apt-get update && apt-get install -y netcat
@@ -147,7 +147,7 @@ jobs:
           --health-timeout 5s
           --health-retries 5
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - name: Unit Test Backend
         run: |
           cd engine/
@@ -176,7 +176,7 @@ jobs:
           --health-timeout 5s
           --health-retries 5
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - name: Unit Test Backend
         run: |
           apt-get update && apt-get install -y netcat
@@ -188,7 +188,7 @@ jobs:
     runs-on: ubuntu-latest
     container: python:3.9
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - name: Unit Test PD Migrator
         run: |
           cd tools/pagerduty-migrator
@@ -198,7 +198,7 @@ jobs:
   docker-build:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - name: Test docker build (no push)
         id: docker_build
         uses: docker/build-push-action@v2
