@@ -11,6 +11,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Show permission error for accessing Telegram as Viewer ([1273](https://github.com/grafana/oncall/issues/1273))
 
+### Changed
+
+- Remove OSS_INSTALLATION env var in favour of LICENSE
+
 ## v1.1.32 (2023-03-01)
 
 ### Fixed
