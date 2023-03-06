@@ -14,7 +14,7 @@ title: Configure and manage routes
 weight: 300
 ---
 
-# Configure and manage Routes
+# Configure and manage routes
 
 Set up escalation chains and routes to configure escalation behavior for alert group notifications.
 

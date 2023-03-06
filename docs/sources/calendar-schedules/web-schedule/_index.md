@@ -12,7 +12,7 @@ keywords:
 weight: 100
 ---
 
-# About web-based schedules
+# Web-based schedules
 
 Grafana OnCall allows you to map out recurring on-call coverage and automate the escalation of alert notifications to
 on-call users. Configure and manage on-call schedules directly in the Grafana OnCall plugin to easily customize
@@ -23,7 +23,7 @@ This topic provides an overview of key components and features.
 For information on how to create a schedule in Grafana OnCall, refer to
 [Create an on-call schedule]({{< relref "create-schedule" >}})
 
->**Note**: User permissions determine which components of Grafana OnCall are available to you.
+> **Note**: User permissions determine which components of Grafana OnCall are available to you.
 
 ## Schedule settings
 
@@ -54,6 +54,6 @@ on this calendar will take precedence over the rotations calendar.
 ## Schedule export
 
 Export on-call schedules from Grafana OnCall to your preferred calendar app with a one-time secret iCal URL. The
-schedule export allows you to view on-call shifts alongside the rest of your schedule.  
+schedule export allows you to view on-call shifts alongside the rest of your schedule.
 
 For more information, refer to [Export on-call schedules]({{< relref "calendar-export" >}})

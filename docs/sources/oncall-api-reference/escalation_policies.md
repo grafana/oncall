@@ -2,11 +2,13 @@
 aliases:
   - /docs/oncall/latest/oncall-api-reference/escalation_policies/
 canonical: https://grafana.com/docs/oncall/latest/oncall-api-reference/escalation_policies/
-title: Escalation Policies HTTP API
+title: Escalation policies HTTP API
 weight: 300
 ---
 
-# Create an escalation policy
+# Escalation policies HTTP API
+
+## Create an escalation policy
 
 ```shell
 curl "{{API_URL}}/api/v1/escalation_policies/" \
@@ -55,7 +57,7 @@ The above command returns JSON structured in the following way:
 
 `POST {{API_URL}}/api/v1/escalation_policies/`
 
-# Get an escalation policy
+## Get an escalation policy
 
 ```shell
 curl "{{API_URL}}/api/v1/escalation_policies/E3GA6SJETWWJS/" \
@@ -80,7 +82,7 @@ The above command returns JSON structured in the following way:
 
 `GET {{API_URL}}/api/v1/escalation_policies/<ESCALATION_POLICY_ID>/`
 
-# List escalation policies
+## List escalation policies
 
 ```shell
 curl "{{API_URL}}/api/v1/escalation_policies/" \
@@ -123,7 +125,7 @@ The following available filter parameter should be provided as a `GET` argument:
 
 `GET {{API_URL}}/api/v1/escalation_policies/`
 
-# Delete an escalation policy
+## Delete an escalation policy
 
 ```shell
 curl "{{API_URL}}/api/v1/escalation_policies/E3GA6SJETWWJS/" \

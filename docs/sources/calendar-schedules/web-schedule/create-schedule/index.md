@@ -13,7 +13,7 @@ keywords:
 weight: 300
 ---
 
-# Create on-call schedules in Grafana OnCall
+# Create on-call schedules
 
 Schedules allow you to map out recurring on-call coverage and automate the escalation of alert notifications to
 currently on-call users. With Grafana OnCall, you can customize rotations with a live schedule preview to visualize
@@ -39,7 +39,7 @@ To create a new on-call schedule:
 1. Provide a name and review available schedule settings
 1. When you’re done, click **Create Schedule**
 
->**Note:** You can edit your schedule settings at any time.
+> **Note:** You can edit your schedule settings at any time.
 
 ### Add a rotation to your on-call schedule
 
@@ -51,9 +51,9 @@ To add a rotation to an on-call schedule:
 1. From your newly created schedule, click **+ Add rotation** and select **New Layer**.
 1. Complete the rotation creation form according to your rotation parameters.
 1. Add users to the rotation from the dropdown.
-You can separate users into user groups to rotate through individual users per shift.
-User groups that contain
-multiple users results in all users in the group being included in corresponding shifts.
+   You can separate users into user groups to rotate through individual users per shift.
+   User groups that contain
+   multiple users results in all users in the group being included in corresponding shifts.
 1. When you’re satisfied with the rotation preview, click **Create**.
 
 ### Add an on-call schedule to escalation chains

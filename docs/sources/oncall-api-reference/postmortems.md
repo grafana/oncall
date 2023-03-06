@@ -7,7 +7,9 @@ title: Postmortem HTTP API
 weight: 1000
 ---
 
-# Create a postmortem
+# Postmortem HTTP API
+
+## Create a postmortem
 
 ```shell
 curl "{{API_URL}}/api/v1/postmortems/" \
@@ -35,7 +37,7 @@ The above command returns JSON structured in the following way:
 
 `POST {{API_URL}}/api/v1/postmortems/`
 
-# Get a postmortem
+## Get a postmortem
 
 ```shell
 curl "{{API_URL}}/api/v1/postmortems/P658FE5K87EWZ/" \
@@ -69,7 +71,7 @@ The above command returns JSON structured in the following way:
 
 `GET {{API_URL}}/api/v1/postmortems/<POSTMORTEM_ID>/`
 
-# List postmortems
+## List postmortems
 
 ```shell
 curl "{{API_URL}}/api/v1/postmortems/" \
@@ -114,7 +116,7 @@ The following available filter parameter should be provided with a `GET` argumen
 
 `GET {{API_URL}}/api/v1/postmortems/`
 
-# Update a postmortem
+## Update a postmortem
 
 ```shell
 curl "{{API_URL}}/api/v1/postmortems/P658FE5K87EWZ/" \
@@ -141,7 +143,7 @@ The above command returns JSON structured in the following way:
 
 `PUT {{API_URL}}/api/v1/postmortems/<POSTMORTEM_ID>/`
 
-# Delete a postmortem
+## Delete a postmortem
 
 ```shell
 curl "{{API_URL}}/api/v1/postmortems/P658FE5K87EWZ/" \

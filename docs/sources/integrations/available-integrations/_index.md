@@ -9,7 +9,7 @@ keywords:
   - on-call
   - Alertmanager
   - Prometheus
-title: Currently available integrations for Grafana OnCall
+title: Available integrations
 weight: 100
 ---
 

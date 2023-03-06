@@ -6,7 +6,7 @@ title: Outgoing webhooks HTTP API
 weight: 700
 ---
 
-# Outgoing webhooks (actions)
+# Outgoing webhooks HTTP API
 
 Used in escalation policies with type `trigger_action`.
 

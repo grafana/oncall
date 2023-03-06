@@ -3,11 +3,11 @@ aliases:
   - /docs/oncall/latest/open-source/
 keywords:
   - Open Source
-title: Open Source
+title: Open source guide
 weight: 300
 ---
 
-# Grafana OnCall open source guide
+# Open source guide
 
 Grafana OnCall is a developer-friendly incident response tool that's available to Grafana open source and Grafana Cloud
 users. The OSS version of Grafana OnCall provides the same reliable on-call management solution along with the

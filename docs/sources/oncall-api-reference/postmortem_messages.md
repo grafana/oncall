@@ -3,11 +3,13 @@ aliases:
   - /docs/oncall/latest/oncall-api-reference/postmortem_messages/
 canonical: https://grafana.com/docs/oncall/latest/oncall-api-reference/postmortem_messages/
 draft: true
-title: Postmortem Messages HTTP API
+title: Postmortem messages HTTP API
 weight: 900
 ---
 
-# Create a postmortem message
+# Postmortem messages HTTP API
+
+## Create a postmortem message
 
 ```shell
 curl "{{API_URL}}/api/v1/postmortem_messages/" \
@@ -37,7 +39,7 @@ The above command returns JSON structured in the following way:
 
 `POST {{API_URL}}/api/v1/postmortem_messages/`
 
-# Get a postmortem message
+## Get a postmortem message
 
 ```shell
 curl "{{API_URL}}/api/v1/postmortem_messages/M4BTQUS3PRHYQ/" \
@@ -63,7 +65,7 @@ The above command returns JSON structured in the following way:
 
 `GET {{API_URL}}/api/v1/postmortem_messages/<POSTMORTEM_MESSAGE_ID>/`
 
-# List postmortem messages
+## List postmortem messages
 
 ```shell
 curl "{{API_URL}}/api/v1/postmortem_messages/" \
@@ -100,7 +102,7 @@ The following available filter parameter should be provided as a `GET` argument:
 
 `GET {{API_URL}}/api/v1/postmortem_messages/`
 
-# Update a postmortem message
+## Update a postmortem message
 
 ```shell
 curl "{{API_URL}}/api/v1/postmortem_messages/M4BTQUS3PRHYQ/" \
@@ -129,7 +131,7 @@ The above command returns JSON structured in the following way:
 
 `PUT {{API_URL}}/api/v1/postmortem_messages/<POSTMORTEM_MESSAGE_ID>/`
 
-# Delete a postmortem message
+## Delete a postmortem message
 
 ```shell
 curl "{{API_URL}}/api/v1/postmortem_messages/M4BTQUS3PRHYQ/" \

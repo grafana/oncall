@@ -6,7 +6,9 @@ title: Alert groups HTTP API
 weight: 400
 ---
 
-# List alert groups
+# Alert groups HTTP API
+
+## List alert groups
 
 ```shell
 curl "{{API_URL}}/api/v1/alert_groups/" \
@@ -53,7 +55,7 @@ These available filter parameters should be provided as `GET` arguments:
 
 `GET {{API_URL}}/api/v1/alert_groups/`
 
-# Delete alert groups
+## Delete alert groups
 
 ```shell
 curl "{{API_URL}}/api/v1/alert_groups/I68T24C13IFW1/" \

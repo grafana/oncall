@@ -10,11 +10,11 @@ keywords:
   - on-call
   - Alertmanager
   - Prometheus
-title: Webhook integration for Grafana OnCall
+title: Webhook integrations
 weight: 700
 ---
 
-# Webhook integrations for Grafana OnCall
+# Webhook integrations
 
 Grafana OnCall directly supports many integrations, those that aren’t currently listed in the Integrations menu can be
 connected using the webhook integration and configured alert templates.

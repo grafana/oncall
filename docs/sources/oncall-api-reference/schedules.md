@@ -6,7 +6,9 @@ title: Schedule HTTP API
 weight: 1200
 ---
 
-# Create a schedule
+# Schedule HTTP API
+
+## Create a schedule
 
 ```shell
 curl "{{API_URL}}/api/v1/schedules/" \
@@ -60,7 +62,7 @@ The above command returns JSON structured in the following way:
 
 `POST {{API_URL}}/api/v1/schedules/`
 
-# Get a schedule
+## Get a schedule
 
 ```shell
 curl "{{API_URL}}/api/v1/schedules/SBM7DV7BKFUYU/" \
@@ -91,7 +93,7 @@ The above command returns JSON structured in the following way:
 
 `GET {{API_URL}}/api/v1/schedules/<SCHEDULE_ID>/`
 
-# List schedules
+## List schedules
 
 ```shell
 curl "{{API_URL}}/api/v1/schedules/" \
@@ -147,7 +149,7 @@ The following available filter parameter should be provided as a `GET` argument:
 
 `GET {{API_URL}}/api/v1/schedules/`
 
-# Update a schedule
+## Update a schedule
 
 ```shell
 curl "{{API_URL}}/api/v1/schedules/SBM7DV7BKFUYU/" \
@@ -185,7 +187,7 @@ The above command returns JSON structured in the following way:
 
 `PUT {{API_URL}}/api/v1/schedules/<SCHEDULE_ID>/`
 
-# Delete a schedule
+## Delete a schedule
 
 ```shell
 curl "{{API_URL}}/api/v1/schedules/SBM7DV7BKFUYU/" \

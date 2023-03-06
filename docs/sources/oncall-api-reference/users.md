@@ -2,11 +2,13 @@
 aliases:
   - /docs/oncall/latest/oncall-api-reference/users/
 canonical: https://grafana.com/docs/oncall/latest/oncall-api-reference/users/
-title: Grafana OnCall Users HTTP API
+title: Users HTTP API
 weight: 1500
 ---
 
-# Get a user
+# Users HTTP API
+
+## Get a user
 
 This endpoint retrieves the user object.
 
@@ -49,7 +51,7 @@ Use `{{API_URL}}/api/v1/users/current` to retrieve the current user.
 | `username` | Yes/org | User username                                                      |
 | `role`     |   No    | One of: `user`, `observer`, `admin`.                               |
 
-# List Users
+## List Users
 
 ```shell
 curl "{{API_URL}}/api/v1/users/" \
