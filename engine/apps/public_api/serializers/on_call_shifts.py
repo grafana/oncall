@@ -337,6 +337,19 @@ class CustomOnCallShiftSerializer(EagerLoadingMixin, serializers.ModelSerializer
                 validated_data[field] = None
         if validated_data.get("start") is not None:
             validated_data["start"] = validated_data["start"].replace(tzinfo=None)
+
+        # Populate "rolling_users" field using "users" field for web overrides
+        # This emulates the behavior of the web UI, which creates overrides populating the rolling_users field
+        # Also set the "priority_level" to 99 and "rotation_start" to "start" so it's consistent with the web UI
+        # See apps.api.serializers.on_call_shifts.OnCallShiftSerializer for more info
+        if (
+            event_type == CustomOnCallShift.TYPE_OVERRIDE
+            and validated_data.get("source") == CustomOnCallShift.SOURCE_WEB
+        ):
+            validated_data["rolling_users"] = [{str(u.pk): u.public_primary_key} for u in validated_data["users"]]
+            validated_data["priority_level"] = 99
+            validated_data["rotation_start"] = validated_data["start"]
+
         return validated_data
 
 

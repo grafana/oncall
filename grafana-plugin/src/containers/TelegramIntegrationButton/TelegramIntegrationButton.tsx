@@ -7,7 +7,7 @@ import CopyToClipboard from 'react-copy-to-clipboard';
 
 import Block from 'components/GBlock/Block';
 import Text from 'components/Text/Text';
-import { WithPermissionControl } from 'containers/WithPermissionControl/WithPermissionControl';
+import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
 import { useStore } from 'state/useStore';
 import { openNotification } from 'utils';
 import { UserActions } from 'utils/authorization';
@@ -43,11 +43,11 @@ const TelegramIntegrationButton = observer((props: TelegramIntegrationProps) => 
 
   return (
     <>
-      <WithPermissionControl userAction={UserActions.IntegrationsWrite}>
+      <WithPermissionControlTooltip userAction={UserActions.IntegrationsWrite}>
         <Button size={size} variant="primary" icon="plus" disabled={disabled} onClick={onInstallModalCallback}>
           Add Telegram channel
         </Button>
-      </WithPermissionControl>
+      </WithPermissionControlTooltip>
       {showModal && <TelegramModal onHide={onInstallModalHideCallback} onUpdate={onModalUpdateCallback} />}
     </>
   );

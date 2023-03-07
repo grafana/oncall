@@ -6,6 +6,7 @@
   - [Configuring Grafana](#configuring-grafana)
   - [Django Silk Profiling](#django-silk-profiling)
   - [Running backend services outside Docker](#running-backend-services-outside-docker)
+- [UI Integration Tests](#ui-integration-tests)
 - [Useful `make` commands](#useful-make-commands)
 - [Setting environment variables](#setting-environment-variables)
 - [Slack application setup](#slack-application-setup)
@@ -38,8 +39,8 @@ environment variable.
    message broker/cache. See [`COMPOSE_PROFILES`](#compose_profiles) below for more details on how to swap
    out/disable which components are run in Docker.
 3. Open Grafana in a browser [here](http://localhost:3000/plugins/grafana-oncall-app) (login: `oncall`, password: `oncall`).
-4. You should now see the OnCall plugin configuration page.  You may safely ignore the warning about the invalid
-   plugin signature.  When opening the main plugin page, you may also ignore warnings about version mismatch and lack of
+4. You should now see the OnCall plugin configuration page. You may safely ignore the warning about the invalid
+   plugin signature. When opening the main plugin page, you may also ignore warnings about version mismatch and lack of
    communication channels.
 5. Enjoy! Check our [OSS docs](https://grafana.com/docs/grafana-cloud/oncall/open-source/) if you want to set up Slack,
    Telegram, Twilio or SMS/calls through Grafana Cloud.
@@ -137,6 +138,19 @@ By default everything runs inside Docker. If you would like to run the backend s
 
 - `make run-backend-server` - runs the HTTP server
 - `make run-backend-celery` - runs Celery workers
+
+## UI Integration Tests
+
+We've developed a suite of "end-to-end" integration tests using [Playwright](https://playwright.dev/). These tests
+are run on pull request CI builds. New features should ideally include a new/modified integration test.
+
+To run these tests locally simply do the following:
+
+```bash
+cp ./grafana-plugin/.env.example cp ./grafana-plugin/.env
+# you may need to tweak the values in ./grafana-plugin/.env according to your local setup
+yarn test:integration
+```
 
 ## Useful `make` commands
 
