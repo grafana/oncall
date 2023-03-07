@@ -46,6 +46,7 @@ class GCOMInstanceInfo(TypedDict):
     orgName: str
     url: str
     status: str
+    clusterSlug: str
     config: Optional[GCOMInstanceInfoConfig]
 
 
@@ -205,7 +206,9 @@ class GcomAPIClient(APIClient):
     def __init__(self, api_token: str):
         super().__init__(settings.GRAFANA_COM_API_URL, api_token)
 
-    def get_instance_info(self, stack_id: str, include_config_query_param: bool = False) -> Optional[GCOMInstanceInfo]:
+    def get_instance_info(
+        self, stack_id: str, include_config_query_param: bool = False, **kwargs
+    ) -> Optional[GCOMInstanceInfo]:
         """
         NOTE: in order to use ?config=true, an "Admin" GCOM token must be used to make the API call
         """
@@ -213,7 +216,7 @@ class GcomAPIClient(APIClient):
         if include_config_query_param:
             url += "?config=true"
 
-        data, _ = self.api_get(url)
+        data, _ = self.api_get(url, **kwargs)
         return data
 
     def is_rbac_enabled_for_stack(self, stack_id: str) -> bool:
@@ -237,3 +240,9 @@ class GcomAPIClient(APIClient):
 
     def get_stack_regions(self):
         return self.api_get("stack-regions")
+
+    def get_cluster_slug(self, stack_id, **kwargs):
+        instance_info = self.get_instance_info(stack_id, **kwargs)
+        if not instance_info:
+            return False
+        return instance_info.get("clusterSlug", None)
