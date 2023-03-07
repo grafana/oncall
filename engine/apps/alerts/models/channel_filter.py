@@ -77,7 +77,7 @@ class ChannelFilter(OrderedModel):
         (FILTERING_TERM_TYPE_REGEX, "regex"),
         (FILTERING_TERM_TYPE_JINJA2, "jinja2"),
     ]
-    filtering_term_type = models.IntegerField(choices=FILTERING_TERM_TYPE_CHOICES, null=True, default=None)
+    filtering_term_type = models.IntegerField(choices=FILTERING_TERM_TYPE_CHOICES, default=FILTERING_TERM_TYPE_REGEX)
 
     is_default = models.BooleanField(default=False)
 
