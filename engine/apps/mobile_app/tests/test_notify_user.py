@@ -40,6 +40,7 @@ def test_notify_user_async_cloud(
 
     # check FCM is contacted directly when using the cloud license
     settings.LICENSE = CLOUD_LICENSE_NAME
+    settings.IS_OPEN_SOURCE = False
     with patch.object(FCMDevice, "send_message", return_value="ok") as mock:
         notify_user_async(
             user_pk=user.pk,
