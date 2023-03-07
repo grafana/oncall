@@ -147,9 +147,14 @@ class AlertGroupFilter(DateRangeFilterMixin, ModelFieldFilterMixin, filters.Filt
             return queryset
 
         queryset = queryset.filter(
-            Q(personal_log_records__author__in=users) | Q(log_records__author__in=users)
+            # user was notified
+            Q(personal_log_records__author__in=users)
+            |
+            # or interacted with the alert group
+            Q(acknowledged_by_user__pk__in=users)
+            | Q(resolved_by_user__pk__in=users)
+            | Q(silenced_by_user__pk__in=users)
         ).distinct()
-
         return queryset
 
     def filter_mine(self, queryset, name, value):
