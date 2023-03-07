@@ -78,7 +78,7 @@ class MaintainableObject(models.Model):
             organization = _self.get_organization()
             team = _self.get_team()
             verbal = _self.get_verbal()
-            user_verbal = user.get_user_verbal_for_team_for_slack()
+            user_verbal = user.get_username_with_slack_verbal()
             duration_verbal = humanize.naturaldelta(maintenance_duration)
             # NOTE: there could be multiple maintenance integrations in case of a race condition
             # (no constraints at the db level, it shouldn't be an issue functionality-wise)

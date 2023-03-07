@@ -18,7 +18,7 @@ import PluginLink from 'components/PluginLink/PluginLink';
 import Text from 'components/Text/Text';
 import UsersFilters from 'components/UsersFilters/UsersFilters';
 import UserSettings from 'containers/UserSettings/UserSettings';
-import { WithPermissionControl } from 'containers/WithPermissionControl/WithPermissionControl';
+import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
 import { User as UserType } from 'models/user/user.types';
 import { PageProps, WithStoreProps } from 'state/types';
 import { withMobXProviderContext } from 'state/withStore';
@@ -298,7 +298,7 @@ class Users extends React.Component<UsersProps, UsersState> {
     return (
       <VerticalGroup justify="center">
         <PluginLink query={{ page: 'users', id: user.pk }} disabled={!isUserActionAllowed(action)}>
-          <WithPermissionControl userAction={action}>
+          <WithPermissionControlTooltip userAction={action}>
             <Button
               className={cx({
                 'TEST-edit-my-own-settings-button': isCurrent,
@@ -307,7 +307,7 @@ class Users extends React.Component<UsersProps, UsersState> {
             >
               Edit
             </Button>
-          </WithPermissionControl>
+          </WithPermissionControlTooltip>
         </PluginLink>
       </VerticalGroup>
     );

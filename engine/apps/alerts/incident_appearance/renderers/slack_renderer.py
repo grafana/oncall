@@ -339,7 +339,7 @@ class AlertGroupSlackRenderer(AlertGroupBaseRenderer):
             return []
         buttons = []
         for invitation in invitations:
-            invitee_name = invitation.invitee.get_user_verbal_for_team_for_slack()
+            invitee_name = invitation.invitee.get_username_with_slack_verbal()
             buttons.append(
                 {
                     "name": "{}_{}".format(
@@ -382,7 +382,7 @@ class AlertGroupSlackRenderer(AlertGroupBaseRenderer):
         options = []
 
         for user in users:
-            user_verbal = f"{user.get_user_verbal_for_team_for_slack()}"
+            user_verbal = f"{user.get_username_with_slack_verbal()}"
             if len(user_verbal) > 75:
                 user_verbal = user_verbal[:72] + "..."
             option = {"text": {"type": "plain_text", "text": user_verbal}, "value": json.dumps({"user_id": user.pk})}
@@ -413,7 +413,7 @@ class AlertGroupSlackRenderer(AlertGroupBaseRenderer):
             if users_count <= MAX_STATIC_SELECT_OPTIONS:
                 initial_options = []
                 for user in users:
-                    user_verbal = f"{user.get_user_verbal_for_team_for_slack()}"
+                    user_verbal = f"{user.get_username_with_slack_verbal()}"
                     option = {
                         "text": {"type": "plain_text", "text": user_verbal},
                         "value": json.dumps({"user_id": user.pk}),
@@ -421,7 +421,7 @@ class AlertGroupSlackRenderer(AlertGroupBaseRenderer):
                     initial_options.append(option)
                 element["initial_options"] = initial_options
         elif not multi_select and initial_user:
-            user_verbal = f"{initial_user.get_user_verbal_for_team_for_slack()}"
+            user_verbal = f"{initial_user.get_username_with_slack_verbal()}"
             initial_option = {
                 "text": {"type": "plain_text", "text": user_verbal},
                 "value": json.dumps({"user_id": initial_user.pk}),

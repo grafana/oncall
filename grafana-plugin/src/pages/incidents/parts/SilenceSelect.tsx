@@ -3,7 +3,7 @@ import React from 'react';
 import { Select } from '@grafana/ui';
 import { observer } from 'mobx-react';
 
-import { WithPermissionControl } from 'containers/WithPermissionControl/WithPermissionControl';
+import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
 import { SelectOption } from 'state/types';
 import { useStore } from 'state/useStore';
 import { UserActions } from 'utils/authorization';
@@ -24,7 +24,7 @@ export const SilenceSelect = observer((props: SilenceSelectProps) => {
   const silenceOptions = alertGroupStore.silenceOptions || [];
 
   return (
-    <WithPermissionControl key="silence" userAction={UserActions.AlertGroupsWrite}>
+    <WithPermissionControlTooltip key="silence" userAction={UserActions.AlertGroupsWrite}>
       <Select
         menuShouldPortal
         placeholder={placeholder}
@@ -32,7 +32,7 @@ export const SilenceSelect = observer((props: SilenceSelectProps) => {
         onChange={({ value }) => onSelect(Number(value))}
         options={getOptions()}
       />
-    </WithPermissionControl>
+    </WithPermissionControlTooltip>
   );
 
   function getOptions() {

@@ -13,7 +13,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Show permission error for accessing Telegram as Viewer ([1273](https://github.com/grafana/oncall/issues/1273))
+
+### Changed
+
+- Pass email and phone limits as environment variables ([1219](https://github.com/grafana/oncall/pull/1219))
+
+## v1.1.32 (2023-03-01)
+
+### Fixed
+
 - Schedule filters improvements ([941](https://github.com/grafana/oncall/issues/941))
+- Fix pagination issue on schedules page ([1437](https://github.com/grafana/oncall/pull/1437))
 
 ## v1.1.31 (2023-03-01)
 
