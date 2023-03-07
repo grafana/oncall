@@ -38,6 +38,7 @@ def test_it_crashes_the_app_if_the_env_var_is_not_present_for_oss_installations_
 @patch.object(sys, "argv", ["runserver"])
 @patch.object(sys, "exit")
 @override_settings(LICENSE=settings.OPEN_SOURCE_LICENSE_NAME)
+@override_settings(IS_OPEN_SOURCE=True)
 @override_settings(SELF_HOSTED_SETTINGS={"GRAFANA_API_URL": None})
 @pytest.mark.django_db
 def test_it_doesnt_crash_the_app_if_the_env_var_is_not_present_for_oss_installations_and_an_org_does_exist(
@@ -52,6 +53,9 @@ def test_it_doesnt_crash_the_app_if_the_env_var_is_not_present_for_oss_installat
 @patch.object(sys, "argv", ["runserver"])
 @patch.object(sys, "exit")
 @override_settings(LICENSE=settings.CLOUD_LICENSE_NAME)
+@override_settings(IS_OPEN_SOURCE=False)
 def test_it_ignores_non_oss_installations(mocked_sys_exit) -> None:
+    # settings.LICENSE = CLOUD_LICENSE_NAME
+    # settings.IS_OPEN_SOURCE = True
     apps.get_app_config(app_name).ready()
     mocked_sys_exit.assert_not_called()
