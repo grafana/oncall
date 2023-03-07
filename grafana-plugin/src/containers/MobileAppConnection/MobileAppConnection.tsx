@@ -8,10 +8,11 @@ import qrCodeImage from 'assets/img/qr-code.png';
 import Block from 'components/GBlock/Block';
 import PluginLink from 'components/PluginLink/PluginLink';
 import Text from 'components/Text/Text';
+import { WithPermissionControlDisplay } from 'containers/WithPermissionControl/WithPermissionControlDisplay';
 import { User } from 'models/user/user.types';
 import { AppFeature } from 'state/features';
 import { useStore } from 'state/useStore';
-import { isUserActionAllowed, UserActions } from 'utils/authorization';
+import { UserActions } from 'utils/authorization';
 import { GRAFANA_LICENSE_OSS } from 'utils/consts';
 
 import styles from './MobileAppConnection.module.scss';
@@ -41,18 +42,17 @@ const MobileAppConnection = observer(({ userPk }: Props) => {
     return (
       <VerticalGroup spacing="lg">
         <Text type="secondary">Please connect Cloud OnCall to use the mobile app</Text>
-        {isUserActionAllowed(UserActions.OtherSettingsWrite) ? (
+        <WithPermissionControlDisplay
+          userAction={UserActions.OtherSettingsWrite}
+          message="You do not have permission to perform this action. Ask an admin to connect Cloud OnCall or upgrade your
+            permissions."
+        >
           <PluginLink query={{ page: 'cloud' }}>
             <Button variant="secondary" icon="external-link-alt">
               Connect Cloud OnCall
             </Button>
           </PluginLink>
-        ) : (
-          <Text type="secondary">
-            You do not have permission to perform this action. Ask an admin to connect Cloud OnCall or upgrade your
-            permissions.
-          </Text>
-        )}
+        </WithPermissionControlDisplay>
       </VerticalGroup>
     );
   }

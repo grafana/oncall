@@ -32,7 +32,6 @@ urlpatterns = [
     path("api/internal/v1/", include("apps.api.urls", namespace="api-internal")),
     path("api/internal/v1/", include("social_django.urls", namespace="social")),
     path("api/internal/v1/plugin/", include("apps.grafana_plugin.urls", namespace="grafana-plugin")),
-    path("api/internal/v1/", include("apps.social_auth.urls", namespace="social_auth")),
     path("integrations/v1/", include("apps.integrations.urls", namespace="integrations")),
     path("twilioapp/", include("apps.twilioapp.urls")),
     path("api/v1/", include("apps.public_api.urls", namespace="api-public")),
@@ -58,7 +57,7 @@ if settings.FEATURE_MOBILE_APP_INTEGRATION_ENABLED:
     ]
 
 
-if settings.OSS_INSTALLATION:
+if settings.IS_OPEN_SOURCE:
     urlpatterns += [
         path("api/internal/v1/", include("apps.oss_installation.urls", namespace="oss_installation")),
     ]

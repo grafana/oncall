@@ -77,7 +77,7 @@ const AlertReceiveChannelCard = observer((props: AlertReceiveChannelCardProps) =
               >
                 <b>{alertReceiveChannelCounter?.alerts_count}</b> alert
                 {alertReceiveChannelCounter?.alerts_count === 1 ? '' : 's'} in{' '}
-                <b>{alertReceiveChannelCounter?.alert_groups_count}</b> alert group
+                <b>{alertReceiveChannelCounter?.alert_groups_count}</b> Alert Group
                 {alertReceiveChannelCounter?.alert_groups_count === 1 ? '' : 's'}
               </PluginLink>
             )}

@@ -13,7 +13,7 @@ import MonacoJinja2Editor from 'components/MonacoJinja2Editor/MonacoJinja2Editor
 import SourceCode from 'components/SourceCode/SourceCode';
 import Text from 'components/Text/Text';
 import TemplatePreview from 'containers/TemplatePreview/TemplatePreview';
-import { WithPermissionControl } from 'containers/WithPermissionControl/WithPermissionControl';
+import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
 import { AlertReceiveChannel } from 'models/alert_receive_channel/alert_receive_channel.types';
 import { Alert } from 'models/alertgroup/alertgroup.types';
 import { makeRequest } from 'network';
@@ -153,11 +153,11 @@ const AlertTemplatesForm = (props: AlertTemplatesFormProps) => {
     <HorizontalGroup>
       <Text type="secondary">There are no alerts from this monitoring yet.</Text>
       {demoAlertEnabled ? (
-        <WithPermissionControl userAction={UserActions.IntegrationsTest}>
+        <WithPermissionControlTooltip userAction={UserActions.IntegrationsTest}>
           <Button className={cx('button')} variant="primary" onClick={handleSendDemoAlertClick} size="sm">
             Send demo alert
           </Button>
-        </WithPermissionControl>
+        </WithPermissionControlTooltip>
       ) : null}
     </HorizontalGroup>
   );
@@ -231,7 +231,7 @@ const AlertTemplatesForm = (props: AlertTemplatesFormProps) => {
                     <div className={cx('web-title-message')}>
                       <Text type="secondary" size="small">
                         Please note that after changing the web title template new alert groups will be searchable by
-                        new title. Alert groups created before the template was changed will be still searchable by old
+                        new title. Alert Groups created before the template was changed will be still searchable by old
                         title only.
                       </Text>
                     </div>
@@ -240,11 +240,11 @@ const AlertTemplatesForm = (props: AlertTemplatesFormProps) => {
               </div>
             ))}
             <HorizontalGroup spacing="sm">
-              <WithPermissionControl userAction={UserActions.IntegrationsWrite}>
+              <WithPermissionControlTooltip userAction={UserActions.IntegrationsWrite}>
                 <Button variant="primary" onClick={handleSubmit}>
                   Save Templates
                 </Button>
-              </WithPermissionControl>
+              </WithPermissionControlTooltip>
               <Button variant="destructive" onClick={handleReset}>
                 Reset Template
               </Button>

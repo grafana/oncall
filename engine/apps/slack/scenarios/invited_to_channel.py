@@ -10,11 +10,7 @@ logger.setLevel(logging.DEBUG)
 
 
 class InvitedToChannelStep(scenario_step.ScenarioStep):
-    tags = [
-        scenario_step.ScenarioStep.TAG_TRIGGERED_BY_SYSTEM,
-    ]
-
-    def process_scenario(self, slack_user_identity, slack_team_identity, payload, action=None):
+    def process_scenario(self, slack_user_identity, slack_team_identity, payload):
         if payload["event"]["user"] == slack_team_identity.bot_user_id:
             channel_id = payload["event"]["channel"]
             slack_client = SlackClientWithErrorHandling(slack_team_identity.bot_access_token)

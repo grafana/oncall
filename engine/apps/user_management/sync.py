@@ -31,7 +31,7 @@ def sync_organization(organization):
     _sync_instance_info(organization)
 
     _, check_token_call_status = grafana_api_client.check_token()
-    if check_token_call_status["status_code"] == 200:
+    if check_token_call_status["connected"]:
         organization.api_token_status = Organization.API_TOKEN_STATUS_OK
         sync_users_and_teams(grafana_api_client, organization)
         organization.last_time_synced = timezone.now()

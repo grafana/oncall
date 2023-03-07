@@ -248,7 +248,7 @@ class NotificationChannelPublicAPIOptions(NotificationChannelAPIOptions):
     }
     LABELS.update(
         {
-            getattr(UserNotificationPolicy.NotificationChannel, backend_id): "notify_by_{}".format(b.backend_id.lower())
+            getattr(UserNotificationPolicy.NotificationChannel, backend_id): "notify_by_{}".format(b.slug)
             for backend_id, b in get_messaging_backends()
         }
     )

@@ -47,6 +47,25 @@ export function refreshPageError(error: AxiosError) {
   throw error;
 }
 
+export function throttlingError(error: AxiosError) {
+  if (error.response?.status === 429) {
+    const seconds = Number(error.response?.headers['retry-after']);
+    const minutes = Math.floor(seconds / 60);
+    const text =
+      'Too many requests, please try again in ' +
+      (minutes > 0 ? `${Math.floor(seconds / 60)} minutes.` : `${seconds} seconds.`);
+    openErrorNotification(text);
+  } else {
+    if (error.response?.data === '') {
+      openErrorNotification(
+        'Grafana OnCall is unable to verify your phone number due to incorrect number or verification service being unavailable.'
+      );
+    } else {
+      openErrorNotification(error.response?.data);
+    }
+  }
+}
+
 export function openNotification(message: React.ReactNode) {
   appEvents.emit(AppEvents.alertSuccess, [message]);
 }

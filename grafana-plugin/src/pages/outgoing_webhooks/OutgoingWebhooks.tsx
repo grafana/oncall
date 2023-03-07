@@ -16,7 +16,7 @@ import PluginLink from 'components/PluginLink/PluginLink';
 import Text from 'components/Text/Text';
 import WithConfirm from 'components/WithConfirm/WithConfirm';
 import OutgoingWebhookForm from 'containers/OutgoingWebhookForm/OutgoingWebhookForm';
-import { WithPermissionControl } from 'containers/WithPermissionControl/WithPermissionControl';
+import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
 import { ActionDTO } from 'models/action';
 import { OutgoingWebhook } from 'models/outgoing_webhook/outgoing_webhook.types';
 import { PageProps, WithStoreProps } from 'state/types';
@@ -133,11 +133,11 @@ class OutgoingWebhooks extends React.Component<OutgoingWebhooksProps, OutgoingWe
                         query={{ page: 'outgoing_webhooks', id: 'new' }}
                         disabled={!isUserActionAllowed(UserActions.OutgoingWebhooksWrite)}
                       >
-                        <WithPermissionControl userAction={UserActions.OutgoingWebhooksWrite}>
+                        <WithPermissionControlTooltip userAction={UserActions.OutgoingWebhooksWrite}>
                           <Button variant="primary" icon="plus">
                             Create
                           </Button>
-                        </WithPermissionControl>
+                        </WithPermissionControlTooltip>
                       </PluginLink>
                     </div>
                   </div>
@@ -163,18 +163,18 @@ class OutgoingWebhooks extends React.Component<OutgoingWebhooksProps, OutgoingWe
   renderActionButtons = (record: ActionDTO) => {
     return (
       <HorizontalGroup justify="flex-end">
-        <WithPermissionControl key={'edit_action'} userAction={UserActions.OutgoingWebhooksWrite}>
+        <WithPermissionControlTooltip key={'edit_action'} userAction={UserActions.OutgoingWebhooksWrite}>
           <Button onClick={this.getEditClickHandler(record.id)} fill="text">
             Edit
           </Button>
-        </WithPermissionControl>
-        <WithPermissionControl key={'delete_action'} userAction={UserActions.OutgoingWebhooksWrite}>
+        </WithPermissionControlTooltip>
+        <WithPermissionControlTooltip key={'delete_action'} userAction={UserActions.OutgoingWebhooksWrite}>
           <WithConfirm>
             <Button onClick={this.getDeleteClickHandler(record.id)} fill="text" variant="destructive">
               Delete
             </Button>
           </WithConfirm>
-        </WithPermissionControl>
+        </WithPermissionControlTooltip>
       </HorizontalGroup>
     );
   };

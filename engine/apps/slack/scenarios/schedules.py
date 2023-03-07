@@ -10,14 +10,12 @@ from common.insight_log import EntityEvent, write_resource_insight_log
 
 
 class EditScheduleShiftNotifyStep(scenario_step.ScenarioStep):
-    tags = [scenario_step.ScenarioStep.TAG_ON_CALL_SCHEDULES]
-
     notify_empty_oncall_options = {choice[0]: choice[1] for choice in OnCallSchedule.NotifyEmptyOnCall.choices}
     notify_oncall_shift_freq_options = {choice[0]: choice[1] for choice in OnCallSchedule.NotifyOnCallShiftFreq.choices}
     mention_oncall_start_options = {1: "Mention person in slack", 0: "Inform in channel without mention"}
     mention_oncall_next_options = {1: "Mention person in slack", 0: "Inform in channel without mention"}
 
-    def process_scenario(self, slack_user_identity, slack_team_identity, payload, action=None):
+    def process_scenario(self, slack_user_identity, slack_team_identity, payload):
         if payload["actions"][0].get("value", None) and payload["actions"][0]["value"].startswith("edit"):
             self.open_settings_modal(payload)
         elif payload["actions"][0].get("type", None) and payload["actions"][0]["type"] == "static_select":
@@ -159,7 +157,7 @@ class EditScheduleShiftNotifyStep(scenario_step.ScenarioStep):
                     user_ids.extend(item.get("users", []))
                 prev_users = organization.users.filter(id__in=user_ids)
                 users_verbal = "  ".join(
-                    [f"{user.get_user_verbal_for_team_for_slack(mention=True)}" for user in prev_users]
+                    [f"{user.get_username_with_slack_verbal(mention=True)}" for user in prev_users]
                 )
                 now_text = f"No one on-call now! Inviting prev shift: {users_verbal}\n"
             else:
@@ -230,12 +228,12 @@ class EditScheduleShiftNotifyStep(scenario_step.ScenarioStep):
 
         now_text = "_*Now*_:\n"
         if schedule.mention_oncall_start:
-            user_mention = current_user.get_user_verbal_for_team_for_slack(
+            user_mention = current_user.get_username_with_slack_verbal(
                 mention=True,
             )
 
         else:
-            user_mention = current_user.get_user_verbal_for_team_for_slack(
+            user_mention = current_user.get_username_with_slack_verbal(
                 mention=False,
             )
         now_text += f"*{user_mention}*"
@@ -246,11 +244,11 @@ class EditScheduleShiftNotifyStep(scenario_step.ScenarioStep):
         next_piece, next_user = next_shift
         next_text = "\n_*Next*_:\n"
         if schedule.mention_oncall_next:
-            user_mention = next_user.get_user_verbal_for_team_for_slack(
+            user_mention = next_user.get_username_with_slack_verbal(
                 mention=True,
             )
         else:
-            user_mention = next_user.get_user_verbal_for_team_for_slack(
+            user_mention = next_user.get_username_with_slack_verbal(
                 mention=False,
             )
         next_text += f"*{user_mention}*"
@@ -288,8 +286,8 @@ class EditScheduleShiftNotifyStep(scenario_step.ScenarioStep):
     def get_ical_shift_notification_text(cls, shift, mention, users):
 
         if shift["all_day"]:
-            notification = " ".join([f"{user.get_user_verbal_for_team_for_slack(mention=mention)}" for user in users])
-            user_verbal = shift["users"][0].get_user_verbal_for_team_for_slack(
+            notification = " ".join([f"{user.get_username_with_slack_verbal(mention=mention)}" for user in users])
+            user_verbal = shift["users"][0].get_username_with_slack_verbal(
                 mention=False,
             )
             if shift["start"].day == shift["end"].day:
@@ -304,7 +302,7 @@ class EditScheduleShiftNotifyStep(scenario_step.ScenarioStep):
             shift_end_timestamp = int(shift["end"].astimezone(pytz.UTC).timestamp())
 
             notification = (
-                " ".join([f"{user.get_user_verbal_for_team_for_slack(mention=mention)}" for user in users])
+                " ".join([f"{user.get_username_with_slack_verbal(mention=mention)}" for user in users])
                 + f" from {format_datetime_to_slack(shift_start_timestamp)}"
                 f" to {format_datetime_to_slack(shift_end_timestamp)}\n"
             )

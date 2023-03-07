@@ -13,7 +13,7 @@ import styles from './Header.module.scss';
 
 const cx = cn.bind(styles);
 
-export default function Header({ page, backendLicense }: { page: string; backendLicense: string }) {
+export default function Header({ backendLicense }: { backendLicense: string }) {
   return (
     <div className={cx('root')}>
       <div className={cx('page-header__inner', { 'header-topnavbar': isTopNavbar() })}>
@@ -25,7 +25,7 @@ export default function Header({ page, backendLicense }: { page: string; backend
           <div className="page-header__info-block">{renderHeading()}</div>
         </div>
         <div className={cx('navbar-right')}>
-          <GrafanaTeamSelect currentPage={page} />
+          <GrafanaTeamSelect />
         </div>
       </div>
     </div>
@@ -36,7 +36,7 @@ export default function Header({ page, backendLicense }: { page: string; backend
       return (
         <div className={cx('heading')}>
           <h1 className={cx('page-header__title')}>Grafana OnCall</h1>
-          <div className="u-flex u-align-items-center">
+          <div className={cx('navbar-heading-container')}>
             <div className={cx('page-header__sub-title')}>{APP_SUBTITLE}</div>
             <Card heading={undefined} className={cx('navbar-heading')}>
               <a
