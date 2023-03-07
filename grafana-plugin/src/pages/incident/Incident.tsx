@@ -39,7 +39,7 @@ import EscalationVariants from 'containers/EscalationVariants/EscalationVariants
 import { prepareForEdit, prepareForUpdate } from 'containers/EscalationVariants/EscalationVariants.helpers';
 import IntegrationSettings from 'containers/IntegrationSettings/IntegrationSettings';
 import { IntegrationSettingsTab } from 'containers/IntegrationSettings/IntegrationSettings.types';
-import { WithPermissionControl } from 'containers/WithPermissionControl/WithPermissionControl';
+import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
 import {
   Alert as AlertType,
   Alert,
@@ -260,11 +260,11 @@ class IncidentPage extends React.Component<IncidentPageProps, IncidentPageState>
                       #{incident.root_alert_group.inside_organization_number}{' '}
                       {incident.root_alert_group.render_for_web.title}
                     </PluginLink>{' '}
-                    <WithPermissionControl userAction={UserActions.AlertGroupsWrite}>
+                    <WithPermissionControlTooltip userAction={UserActions.AlertGroupsWrite}>
                       <Button variant="secondary" onClick={this.getUnattachClickHandler(incident.pk)} size="sm">
                         Unattach
                       </Button>
-                    </WithPermissionControl>
+                    </WithPermissionControlTooltip>
                   </Text>
                 )}
               </HorizontalGroup>
@@ -296,33 +296,37 @@ class IncidentPage extends React.Component<IncidentPageProps, IncidentPageState>
           <div className={cx('info-row')}>
             <HorizontalGroup>
               <div className={cx('status-tag-container')}>{getIncidentStatusTag(incident)}</div>
-              <PluginLink
-                disabled={incident.alert_receive_channel.deleted}
-                query={{ page: 'integrations', id: incident.alert_receive_channel.id }}
-              >
-                <Button
-                  disabled={incident.alert_receive_channel.deleted}
-                  variant="secondary"
-                  fill="outline"
-                  size="sm"
-                  className={cx('label-button')}
-                  icon="plug"
-                >
-                  <Tooltip
-                    placement="top"
-                    content={
-                      incident.alert_receive_channel.verbal_name.length > INTEGRATION_NAME_LENGTH_LIMIT
-                        ? integrationNameWithEmojies
-                        : 'Go to Integration'
-                    }
-                  >
-                    <div className={cx('label-button-text')}>{integrationNameWithEmojies}</div>
-                  </Tooltip>
-                </Button>
-              </PluginLink>
-
               {integration && (
                 <>
+                  <PluginLink
+                    disabled={incident.alert_receive_channel.deleted}
+                    query={{ page: 'integrations', id: incident.alert_receive_channel.id }}
+                  >
+                    <Button
+                      disabled={incident.alert_receive_channel.deleted}
+                      variant="secondary"
+                      fill="outline"
+                      size="sm"
+                      className={cx('label-button')}
+                    >
+                      <Tooltip
+                        placement="top"
+                        content={
+                          incident.alert_receive_channel.verbal_name.length > INTEGRATION_NAME_LENGTH_LIMIT
+                            ? integrationNameWithEmojies
+                            : 'Go to Integration'
+                        }
+                      >
+                        <div className={cx('label-button-text', 'source-name')}>
+                          <div className={cx('integration-logo')}>
+                            <IntegrationLogo integration={integration} scale={0.08} />
+                          </div>
+                          <div className={cx('label-button-text')}>{integrationNameWithEmojies}</div>
+                        </div>
+                      </Tooltip>
+                    </Button>
+                  </PluginLink>
+
                   <Tooltip
                     placement="top"
                     content={
@@ -338,13 +342,9 @@ class IncidentPage extends React.Component<IncidentPageProps, IncidentPageState>
                         size="sm"
                         disabled={incident.render_for_web.source_link === null}
                         className={cx('label-button')}
+                        icon="external-link-alt"
                       >
-                        <div className={cx('label-button-text', 'source-name')}>
-                          <div className={cx('integration-logo')}>
-                            <IntegrationLogo integration={integration} scale={0.08} />
-                          </div>
-                          {integration.display_name}
-                        </div>
+                        Source
                       </Button>
                     </a>
                   </Tooltip>
@@ -460,7 +460,7 @@ class IncidentPage extends React.Component<IncidentPageProps, IncidentPageState>
             this.setState({ timelineFilter: value });
           }}
         />
-        <ul className={cx('timeline')}>
+        <ul className={cx('timeline')} data-testid="incident-timeline-list">
           {timeline.map((item: TimeLineItem, idx: number) => (
             <li key={idx} className={cx('timeline-item')}>
               <HorizontalGroup align="flex-start">
@@ -638,7 +638,7 @@ function GroupedIncidentsList({
     return null;
   }
 
-  const latestAlert = alerts[alerts.length - 1];
+  const latestAlert = alerts[0];
   const latestAlertMoment = moment(latestAlert.created_at);
 
   return (
@@ -755,7 +755,7 @@ function AttachedIncidentsList({
       headerWithBackground
       className={cx('collapse')}
       isOpen
-      label={<HorizontalGroup wrap>{incident.dependent_alert_groups.length} Attached Incidents</HorizontalGroup>}
+      label={<HorizontalGroup wrap>{incident.dependent_alert_groups.length} Attached Alert Groups</HorizontalGroup>}
       contentClassName={cx('incidents-content')}
     >
       {alerts.map((incident) => {
@@ -764,11 +764,11 @@ function AttachedIncidentsList({
             <PluginLink query={{ page: 'incident', id: incident.pk }}>
               #{incident.inside_organization_number} {incident.render_for_web.title}
             </PluginLink>
-            <WithPermissionControl userAction={UserActions.AlertGroupsWrite}>
+            <WithPermissionControlTooltip userAction={UserActions.AlertGroupsWrite}>
               <Button size="sm" onClick={() => getUnattachClickHandler(incident.pk)} variant="secondary">
                 Unattach
               </Button>
-            </WithPermissionControl>
+            </WithPermissionControlTooltip>
           </HorizontalGroup>
         );
       })}

@@ -18,7 +18,7 @@ import Tutorial from 'components/Tutorial/Tutorial';
 import { TutorialStep } from 'components/Tutorial/Tutorial.types';
 import { IncidentsFiltersType } from 'containers/IncidentsFilters/IncidentFilters.types';
 import IncidentsFilters from 'containers/IncidentsFilters/IncidentsFilters';
-import { WithPermissionControl } from 'containers/WithPermissionControl/WithPermissionControl';
+import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
 import { Alert, Alert as AlertType, AlertAction } from 'models/alertgroup/alertgroup.types';
 import { renderRelatedUsers } from 'pages/incident/Incident.helpers';
 import { PageProps, WithStoreProps } from 'state/types';
@@ -109,11 +109,11 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
           <div className={cx('title')}>
             <HorizontalGroup justify="space-between">
               <Text.Title level={3}>Alert Groups</Text.Title>
-              <WithPermissionControl userAction={UserActions.AlertGroupsWrite}>
+              <WithPermissionControlTooltip userAction={UserActions.AlertGroupsWrite}>
                 <Button icon="plus" onClick={this.handleOnClickEscalateTo}>
                   Manual alert group
                 </Button>
-              </WithPermissionControl>
+              </WithPermissionControlTooltip>
             </HorizontalGroup>
           </div>
           {this.renderIncidentFilters()}
@@ -233,7 +233,7 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
         <div className={cx('bulk-actions')}>
           <HorizontalGroup>
             {'resolve' in store.alertGroupStore.bulkActions && (
-              <WithPermissionControl key="resolve" userAction={UserActions.AlertGroupsWrite}>
+              <WithPermissionControlTooltip key="resolve" userAction={UserActions.AlertGroupsWrite}>
                 <Button
                   disabled={!hasSelected}
                   variant="primary"
@@ -241,10 +241,10 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
                 >
                   Resolve
                 </Button>
-              </WithPermissionControl>
+              </WithPermissionControlTooltip>
             )}
             {'acknowledge' in store.alertGroupStore.bulkActions && (
-              <WithPermissionControl key="resolve" userAction={UserActions.AlertGroupsWrite}>
+              <WithPermissionControlTooltip key="resolve" userAction={UserActions.AlertGroupsWrite}>
                 <Button
                   disabled={!hasSelected}
                   variant="secondary"
@@ -252,10 +252,10 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
                 >
                   Acknowledge
                 </Button>
-              </WithPermissionControl>
+              </WithPermissionControlTooltip>
             )}
             {'silence' in store.alertGroupStore.bulkActions && (
-              <WithPermissionControl key="restart" userAction={UserActions.AlertGroupsWrite}>
+              <WithPermissionControlTooltip key="restart" userAction={UserActions.AlertGroupsWrite}>
                 <Button
                   disabled={!hasSelected}
                   variant="secondary"
@@ -263,15 +263,15 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
                 >
                   Restart
                 </Button>
-              </WithPermissionControl>
+              </WithPermissionControlTooltip>
             )}
             {'restart' in store.alertGroupStore.bulkActions && (
-              <WithPermissionControl key="silence" userAction={UserActions.AlertGroupsWrite}>
+              <WithPermissionControlTooltip key="silence" userAction={UserActions.AlertGroupsWrite}>
                 <SilenceButtonCascader
                   disabled={!hasSelected}
                   onSelect={(ev) => this.getBulkActionClickHandler('silence', ev)}
                 />
-              </WithPermissionControl>
+              </WithPermissionControlTooltip>
             )}
             <Text type="secondary">
               {hasSelected
@@ -431,7 +431,7 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
               <span>{record.render_for_web.title}</span>
             </Tooltip>
           </PluginLink>
-          {Boolean(record.dependent_alert_groups.length) && `+ ${record.dependent_alert_groups.length} attached`}
+          {Boolean(record.dependent_alert_groups.length) && ` + ${record.dependent_alert_groups.length} attached`}
         </div>
       </VerticalGroup>
     );

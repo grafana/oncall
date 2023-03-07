@@ -9,7 +9,7 @@ import Avatar from 'components/Avatar/Avatar';
 import PluginLink from 'components/PluginLink/PluginLink';
 import Text from 'components/Text/Text';
 import UserWarning from 'containers/UserWarningModal/UserWarning';
-import { WithPermissionControl } from 'containers/WithPermissionControl/WithPermissionControl';
+import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
 import { User } from 'models/user/user.types';
 import { UserActions } from 'utils/authorization';
 
@@ -123,7 +123,7 @@ const EscalationVariants = observer(
             </>
           )}
           <div className={cx('assign-responders-button')}>
-            <WithPermissionControl userAction={UserActions.AlertGroupsWrite}>
+            <WithPermissionControlTooltip userAction={UserActions.AlertGroupsWrite}>
               <Button
                 icon="users-alt"
                 variant={variant}
@@ -133,7 +133,7 @@ const EscalationVariants = observer(
               >
                 Add responders
               </Button>
-            </WithPermissionControl>
+            </WithPermissionControlTooltip>
           </div>
           {showEscalationVariants && (
             <EscalationVariantsPopup

@@ -1,6 +1,7 @@
 import dayjs from 'dayjs';
 import { action, observable } from 'mobx';
 
+import { SchedulesFiltersType } from 'components/SchedulesFilters/SchedulesFilters.types';
 import BaseStore from 'models/base_store';
 import { EscalationChain } from 'models/escalation_chain/escalation_chain.types';
 import { makeRequest } from 'network';
@@ -118,10 +119,21 @@ export class ScheduleStore extends BaseStore {
   }
 
   @action
-  async updateItems(f: any = { searchTerm: '', type: undefined }, page = 1) {
-    const filters = typeof f === 'string' ? { searchTerm: f } : f;
-    const { searchTerm: search, type } = filters;
-    const { count, results } = await makeRequest(this.path, { method: 'GET', params: { search: search, type, page } });
+  async updateItems(
+    f: SchedulesFiltersType | string = { searchTerm: '', type: undefined, used: undefined },
+    page = 1,
+    shouldUpdateFn: () => boolean = undefined
+  ) {
+    const filters: Partial<SchedulesFiltersType> = typeof f === 'string' ? { searchTerm: f } : f;
+    const { searchTerm: search, type, used } = filters;
+    const { count, results } = await makeRequest(this.path, {
+      method: 'GET',
+      params: { search: search, type, used, page },
+    });
+
+    if (shouldUpdateFn && !shouldUpdateFn()) {
+      return;
+    }
 
     this.items = {
       ...this.items,

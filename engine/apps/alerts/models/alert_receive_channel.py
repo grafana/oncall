@@ -149,6 +149,8 @@ class AlertReceiveChannel(IntegrationOptionsMixin, MaintainableObject):
 
     is_finished_alerting_setup = models.BooleanField(default=False)
 
+    # *_*_template fields are legacy way of storing templates
+    # messaging_backends_templates for new integrations' templates
     slack_title_template = models.TextField(null=True, default=None)
     slack_message_template = models.TextField(null=True, default=None)
     slack_image_url_template = models.TextField(null=True, default=None)
@@ -175,33 +177,6 @@ class AlertReceiveChannel(IntegrationOptionsMixin, MaintainableObject):
     grouping_id_template = models.TextField(null=True, default=None)
     resolve_condition_template = models.TextField(null=True, default=None)
     acknowledge_condition_template = models.TextField(null=True, default=None)
-
-    PUBLIC_TEMPLATES_FIELDS = {
-        "grouping_key": "grouping_id_template",
-        "resolve_signal": "resolve_condition_template",
-        "acknowledge_signal": "acknowledge_condition_template",
-        "slack": {
-            "title": "slack_title_template",
-            "message": "slack_message_template",
-            "image_url": "slack_image_url_template",
-        },
-        "web": {
-            "title": "web_title_template",
-            "message": "web_message_template",
-            "image_url": "web_image_url_template",
-        },
-        "sms": {
-            "title": "sms_title_template",
-        },
-        "phone_call": {
-            "title": "phone_call_title_template",
-        },
-        "telegram": {
-            "title": "telegram_title_template",
-            "message": "telegram_message_template",
-            "image_url": "telegram_image_url_template",
-        },
-    }
 
     # additional messaging backends templates
     # e.g. {'<BACKEND-ID>': {'title': 'title template', 'message': 'message template', 'image_url': 'url template'}}
@@ -459,6 +434,7 @@ class AlertReceiveChannel(IntegrationOptionsMixin, MaintainableObject):
             "grouping_key": self.grouping_id_template,
             "resolve_signal": self.resolve_condition_template,
             "acknowledge_signal": self.acknowledge_condition_template,
+            "source_link": self.source_link_template,
             "slack": {
                 "title": self.slack_title_template,
                 "message": self.slack_message_template,
