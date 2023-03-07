@@ -1574,7 +1574,7 @@ class AlertGroup(AlertGroupSlackRenderingMixin, EscalationSnapshotMixin, models.
             return "Resolved by stop maintenance"
         else:
             if self.resolved_by_user is not None:
-                user_text = self.resolved_by_user.get_user_verbal_for_team_for_slack(mention=mention_user)
+                user_text = self.resolved_by_user.get_username_with_slack_verbal(mention=mention_user)
                 return f"Resolved by {user_text}"
             else:
                 return "Resolved"
@@ -1583,7 +1583,7 @@ class AlertGroup(AlertGroupSlackRenderingMixin, EscalationSnapshotMixin, models.
         if self.acknowledged_by == AlertGroup.SOURCE:
             return "Acknowledged by alert source"
         elif self.acknowledged_by == AlertGroup.USER and self.acknowledged_by_user is not None:
-            user_text = self.acknowledged_by_user.get_user_verbal_for_team_for_slack(mention=mention_user)
+            user_text = self.acknowledged_by_user.get_username_with_slack_verbal(mention=mention_user)
             return f"Acknowledged by {user_text}"
         else:
             return "Acknowledged"
