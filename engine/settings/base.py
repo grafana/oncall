@@ -6,15 +6,13 @@ from celery.schedules import crontab
 from common.utils import getenv_boolean, getenv_integer
 
 VERSION = "dev-oss"
-# Indicates if instance is OSS installation.
-# It is needed to plug-in oss application and urls.
-OSS_INSTALLATION = getenv_boolean("GRAFANA_ONCALL_OSS_INSTALLATION", True)
 SEND_ANONYMOUS_USAGE_STATS = getenv_boolean("SEND_ANONYMOUS_USAGE_STATS", default=True)
 
 # License is OpenSource or Cloud
 OPEN_SOURCE_LICENSE_NAME = "OpenSource"
 CLOUD_LICENSE_NAME = "Cloud"
 LICENSE = os.environ.get("ONCALL_LICENSE", default=OPEN_SOURCE_LICENSE_NAME)
+IS_OPEN_SOURCE = LICENSE == OPEN_SOURCE_LICENSE_NAME
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
@@ -631,7 +629,7 @@ INSTALLED_ONCALL_INTEGRATIONS = [
     "config_integrations.direct_paging",
 ]
 
-if OSS_INSTALLATION:
+if IS_OPEN_SOURCE:
     INSTALLED_APPS += ["apps.oss_installation"]  # noqa
 
     CELERY_BEAT_SCHEDULE["send_usage_stats"] = {  # noqa
