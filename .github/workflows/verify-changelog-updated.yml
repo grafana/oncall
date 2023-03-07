@@ -1,0 +1,23 @@
+name: Verify CHANGELOG updated
+
+on:
+  pull_request:
+    types: [assigned, opened, synchronize, reopened, labeled, unlabeled]
+    branches:
+      - main
+      - dev
+
+jobs:
+  verfiy-changelog-updated:
+    name: Verify CHANGELOG updated
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v1
+      - name: Changelog check
+        uses: Zomzog/changelog-checker@v1.3.0
+        with:
+          fileName: CHANGELOG.md
+          noChangelogLabel: pr:no changelog
+          checkNotification: Simple
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

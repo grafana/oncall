@@ -27,6 +27,7 @@ steps:
       - apt-get install zip
       - cd grafana-plugin
       - yarn sign
+      - if [ ! -f dist/MANIFEST.txt ]; then echo "Sign failed, MANIFEST.txt not created, aborting." && exit 1; fi
       - yarn ci-build:finish
       - yarn ci-package
       - cd ci/dist
@@ -100,10 +101,15 @@ steps:
 
   - name: Build and Push Engine Docker Image Backend to GCR
     image: plugins/docker
+    environment:
+      # force docker to use buildkit feature, this will skip build stages that aren't required in the final image (ie. dev & dev-enterprise)
+      # https://github.com/docker/cli/issues/1134#issuecomment-406449342
+      DOCKER_BUILDKIT: 1
     settings:
       repo: us.gcr.io/kubernetes-dev/oncall
       dockerfile: engine/Dockerfile
       context: engine/
+      target: prod
       config:
         from_secret: gcr_admin
     depends_on:
@@ -113,10 +119,15 @@ steps:
 
   - name: Build and Push Engine Docker Image Backend to Dockerhub
     image: plugins/docker
+    environment:
+      # force docker to use buildkit feature, this will skip build stages that aren't required in the final image (ie. dev & dev-enterprise)
+      # https://github.com/docker/cli/issues/1134#issuecomment-406449342
+      DOCKER_BUILDKIT: 1
     settings:
       repo: grafana/oncall
       dockerfile: engine/Dockerfile
       context: engine/
+      target: prod
       password:
         from_secret: docker_password
       username:
@@ -146,9 +157,9 @@ services:
 trigger:
   event:
     include:
-    - tag
-    - push
-    - pull_request
+      - tag
+      - push
+      - pull_request
   ref:
     include:
       - refs/heads/main
@@ -184,6 +195,7 @@ steps:
       - apt-get install zip
       - cd grafana-plugin
       - yarn sign
+      - if [ ! -f dist/MANIFEST.txt ]; then echo "Sign failed, MANIFEST.txt not created, aborting." && exit 1; fi
       - yarn ci-build:finish
       - yarn ci-package
       - cd ci/dist
@@ -196,7 +208,7 @@ steps:
       GRAFANA_API_KEY:
         from_secret: gcom_plugin_publisher_api_key
     commands:
-      - "curl -f -s -H \"Authorization: Bearer $${GRAFANA_API_KEY}\" -d \"download[any][url]=https://storage.googleapis.com/grafana-oncall-app/releases/grafana-oncall-app-${DRONE_TAG}.zip\" -d \"download[any][md5]=$$(curl -sL https://storage.googleapis.com/grafana-oncall-app/releases/grafana-oncall-app-${DRONE_TAG}.zip | md5sum | cut -d' ' -f1)\" -d url=https://github.com/grafana/oncall/grafana-plugin https://grafana.com/api/plugins"
+      - 'curl -f -s -H "Authorization: Bearer $${GRAFANA_API_KEY}" -d "download[any][url]=https://storage.googleapis.com/grafana-oncall-app/releases/grafana-oncall-app-${DRONE_TAG}.zip" -d "download[any][md5]=$$(curl -sL https://storage.googleapis.com/grafana-oncall-app/releases/grafana-oncall-app-${DRONE_TAG}.zip | md5sum | cut -d'' '' -f1)" -d url=https://github.com/grafana/oncall/grafana-plugin https://grafana.com/api/plugins'
     depends_on:
       - sign and package plugin
 
@@ -225,10 +237,15 @@ steps:
 
   - name: build and push docker image
     image: plugins/docker
+    environment:
+      # force docker to use buildkit feature, this will skip build stages that aren't required in the final image (ie. dev & dev-enterprise)
+      # https://github.com/docker/cli/issues/1134#issuecomment-406449342
+      DOCKER_BUILDKIT: 1
     settings:
       repo: grafana/oncall
       tags: ${DRONE_TAG}-amd64-linux
       dockerfile: engine/Dockerfile
+      target: prod
       context: engine/
       password:
         from_secret: docker_password
@@ -262,10 +279,15 @@ steps:
 
   - name: build and push docker image
     image: plugins/docker
+    environment:
+      # force docker to use buildkit feature, this will skip build stages that aren't required in the final image (ie. dev & dev-enterprise)
+      # https://github.com/docker/cli/issues/1134#issuecomment-406449342
+      DOCKER_BUILDKIT: 1
     settings:
       repo: grafana/oncall
       tags: ${DRONE_TAG}-arm64-linux
       dockerfile: engine/Dockerfile
+      target: prod
       context: engine/
       password:
         from_secret: docker_password
@@ -352,7 +374,7 @@ name: gh_token
 # Slack webhook
 get:
   name: slack-plugin
-  path: secret/data/common/oncall/drone
+  path: infra/data/ci/oncall/drone
 kind: secret
 name: slack_webhook
 
@@ -360,15 +382,15 @@ name: slack_webhook
 # GCOM plugin publisher
 get:
   name: gcom-plugin-publisher
-  path: secret/data/common/oncall/drone
+  path: infra/data/ci/oncall/drone
 kind: secret
 name: gcom_plugin_publisher_api_key
 
 ---
 # GCS bucket
 get:
-  name: credentials.json
-  path: secret/data/common/oncall/gcs-oncall-drone-publisher
+  name: gcs-oncall-drone-publisher
+  path: infra/data/ci/oncall/drone
 kind: secret
 name: gcs_oncall_publisher_key
 
@@ -395,6 +417,6 @@ kind: secret
 name: drone_token
 ---
 kind: signature
-hmac: 8a060649c132677ba1b5693b5ac6c846c02f9a5bb645fe990b26a7ea42a0fb66
+hmac: 5c81e5876fecd6c48a184aff583c98db5d1055a07cad1dc2aaac8a6722921c63
 
 ...

@@ -66,11 +66,12 @@ class IncidentsFilters extends Component<IncidentsFiltersProps, IncidentsFilters
     if (isEmpty(values)) {
       // TODO fill filters if no filters in query
       let newQuery;
-      if (store.incidentFilters) {
-        newQuery = { ...store.incidentFilters };
+      if (store.alertGroupStore.incidentFilters) {
+        newQuery = { ...store.alertGroupStore.incidentFilters };
       } else {
         newQuery = {
-          status: [IncidentStatus.New, IncidentStatus.Acknowledged],
+          status: [IncidentStatus.Firing, IncidentStatus.Acknowledged],
+          mine: false,
         };
       }
 
@@ -148,8 +149,8 @@ class IncidentsFilters extends Component<IncidentsFiltersProps, IncidentsFilters
             icon={<Icon name="bell" size="xxxl" />}
             description="New alert groups"
             title={newIncidentsCount}
-            selected={status.includes(IncidentStatus.New)}
-            onClick={this.getStatusButtonClickHandler(IncidentStatus.New)}
+            selected={status.includes(IncidentStatus.Firing)}
+            onClick={this.getStatusButtonClickHandler(IncidentStatus.Firing)}
           />
         </div>
         <div key="acknowledged" className={cx('col')}>

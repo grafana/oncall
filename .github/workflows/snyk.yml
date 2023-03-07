@@ -1,0 +1,34 @@
+name: snyk
+
+on:
+  push:
+    branches: [main, dev]
+  pull_request:
+    branches: [main, dev]
+  # You can use the merge_group event to trigger your GitHub Actions workflow when
+  # a pull request is added to a merge queue
+  # https://docs.github.com/en/repositories/configuring-branches-and-merges-in-your-repository/configuring-pull-request-merges/managing-a-merge-queue#triggering-merge-group-checks-with-github-actions
+  merge_group:
+
+jobs:
+  security-scan:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-python@v4
+        with:
+          python-version: "3.9"
+      - uses: actions/setup-node@v3
+        with:
+          node-version: 14.17.0
+      - uses: snyk/actions/setup@master
+      - name: Install Dependencies
+        run: |
+          pip install -r engine/requirements.txt
+          cd grafana-plugin/
+          yarn --network-timeout 500000
+      - name: Run Snyk
+        continue-on-error: true
+        run: snyk test --all-projects --severity-threshold=high
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}

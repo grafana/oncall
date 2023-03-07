@@ -9,8 +9,8 @@ from django.core.cache import cache
 from django.utils import timezone
 
 from apps.alerts.tasks.compare_escalations import compare_escalations
+from apps.slack.alert_group_slack_service import AlertGroupSlackService
 from apps.slack.constants import CACHE_UPDATE_INCIDENT_SLACK_MESSAGE_LIFETIME, SLACK_BOT_ID
-from apps.slack.scenarios.escalation_delivery import EscalationDeliveryStep
 from apps.slack.scenarios.scenario_step import ScenarioStep
 from apps.slack.slack_client import SlackClientWithErrorHandling
 from apps.slack.slack_client.exceptions import SlackAPIException, SlackAPITokenException
@@ -55,7 +55,7 @@ def update_incident_slack_message(slack_team_identity_pk, alert_group_pk):
         return "Skip message update in Slack due to rate limit"
     if alert_group.slack_message is None:
         return "Skip message update in Slack due to absence of slack message"
-    ScenarioStep(slack_team_identity, alert_group.channel.organization)._update_slack_message(alert_group)
+    AlertGroupSlackService(slack_team_identity).update_alert_group_slack_message(alert_group)
 
 
 @shared_dedicated_queue_retry_task(autoretry_for=(Exception,), retry_backoff=True)
@@ -98,9 +98,7 @@ def check_slack_message_exists_before_post_message_to_thread(
     slack_message = alert_group.get_slack_message()
 
     if slack_message is not None:
-        EscalationDeliveryStep(slack_team_identity, alert_group.channel.organization).publish_message_to_thread(
-            alert_group, text=text
-        )
+        AlertGroupSlackService(slack_team_identity).publish_message_to_alert_group_thread(alert_group, text=text)
 
     # check how much time has passed since alert group was created
     # to prevent eternal loop of restarting check_slack_message_before_post_message_to_thread
@@ -240,7 +238,7 @@ def send_message_to_thread_if_bot_not_in_channel(alert_group_pk, slack_team_iden
     members = slack_team_identity.get_conversation_members(sc, channel_id)
     if bot_user_id not in members:
         text = f"Please invite <@{bot_user_id}> to this channel to make all features " f"available :wink:"
-        ScenarioStep(slack_team_identity).publish_message_to_thread(alert_group, text=text)
+        AlertGroupSlackService(slack_team_identity, sc).publish_message_to_alert_group_thread(alert_group, text=text)
 
 
 @shared_dedicated_queue_retry_task(autoretry_for=(Exception,), retry_backoff=True, max_retries=1)
@@ -467,7 +465,13 @@ def post_or_update_log_report_message_task(alert_group_pk, slack_team_identity_p
 )
 def post_slack_rate_limit_message(integration_id):
     AlertReceiveChannel = apps.get_model("alerts", "AlertReceiveChannel")
-    integration = AlertReceiveChannel.objects.get(pk=integration_id)
+
+    try:
+        integration = AlertReceiveChannel.objects.get(pk=integration_id)
+    except AlertReceiveChannel.DoesNotExist:
+        logger.warning(f"AlertReceiveChannel {integration_id} doesn't exist")
+        return
+
     if not compare_escalations(post_slack_rate_limit_message.request.id, integration.rate_limit_message_task_id):
         logger.info(
             f"post_slack_rate_limit_message. integration {integration_id}. ID mismatch. "
@@ -771,3 +775,35 @@ def clean_slack_integration_leftovers(organization_id, *args, **kwargs):
     OnCallSchedule.objects.filter(organization_id=organization_id).update(channel=None)
     logger.info(f"Cleaned OnCallSchedule slack_channel_id for organization {organization_id}")
     logger.info(f"Finish clean slack leftovers for organization {organization_id}")
+
+
+@shared_dedicated_queue_retry_task(autoretry_for=(Exception,), retry_backoff=True, max_retries=10)
+def clean_slack_channel_leftovers(slack_team_identity_id, slack_channel_id):
+    """
+    This task removes binding to slack channel after channel arcived or deleted in slack.
+    """
+    SlackTeamIdentity = apps.get_model("slack", "SlackTeamIdentity")
+    ChannelFilter = apps.get_model("alerts", "ChannelFilter")
+    Organization = apps.get_model("user_management", "Organization")
+
+    try:
+        sti = SlackTeamIdentity.objects.get(id=slack_team_identity_id)
+    except SlackTeamIdentity.DoesNotExist:
+        logger.info(
+            f"Failed to clean_slack_channel_leftovers slack_channel_id={slack_channel_id} slack_team_identity_id={slack_team_identity_id} : Invalid slack_team_identity_id"
+        )
+        return
+
+    orgs_to_clean_general_log_channel_id = []
+    for org in sti.organizations.all():
+        if org.general_log_channel_id == slack_channel_id:
+            logger.info(
+                f"Set general_log_channel_id to None for org_id={org.id}  slack_channel_id={slack_channel_id} since slack_channel is arcived or deleted"
+            )
+            org.general_log_channel_id = None
+            orgs_to_clean_general_log_channel_id.append(org)
+        ChannelFilter.objects.filter(alert_receive_channel__organization=org, slack_channel_id=slack_channel_id).update(
+            slack_channel_id=None
+        )
+
+    Organization.objects.bulk_update(orgs_to_clean_general_log_channel_id, ["general_log_channel_id"], batch_size=5000)

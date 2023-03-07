@@ -8,7 +8,7 @@ image:
   # Grafana OnCall docker image repository
   repository: grafana/oncall
   tag:
-  pullPolicy: IfNotPresent
+  pullPolicy: Always
 
 # Whether to create additional service for external connections
 # ClusterIP service is always created
@@ -28,6 +28,14 @@ engine:
     # requests:
     #   cpu: 100m
     #   memory: 128Mi
+
+  ## Deployment update strategy
+  ## ref: https://kubernetes.io/docs/concepts/workloads/controllers/deployment/#strategy
+  updateStrategy:
+    rollingUpdate:
+      maxSurge: 25%
+      maxUnavailable: 0
+    type: RollingUpdate
 
   ## Affinity for pod assignment
   ## ref: https://kubernetes.io/docs/concepts/configuration/assign-pod-node/#affinity-and-anti-affinity
@@ -68,12 +76,23 @@ celery:
     #   memory: 128Mi
 
 oncall:
+  # Override default MIRAGE_CIPHER_IV (must be 16 bytes long)
+  # For existing installation, this should not be changed.
+  # mirageCipherIV: 1234567890abcdef
+  # oncall secrets
+  secrets:
+    # Use existing secret. (secretKey and mirageSecretKey is required)
+    existingSecret: ""
+    # the key in the secret containing secret key
+    secretKey: ""
+    # the key in the secret containing mirage secret key
+    mirageSecretKey: ""
   # slack configures the Grafana Oncall Slack ChatOps integration.
   slack:
     # enabled enable the Slack ChatOps integration for the Oncall Engine.
     enabled: false
-    # command sets the Slack bot slash-command
-    command: oncall
+    # commandName sets the Slack bot slash-command
+    commandName: oncall
     # clientId configures the Slack app OAuth2 client ID.
     # api.slack.com/apps/<yourApp> -> Basic Information -> App Credentials -> Client ID
     clientId: ~
@@ -84,12 +103,25 @@ oncall:
     # requests comming from Slack.
     # api.slack.com/apps/<yourApp> -> Basic Information -> App Credentials -> Signing Secret
     signingSecret: ~
+    # Use existing secret for clientId, clientSecret and signingSecret.
+    # clientIdKey, clientSecretKey and signingSecretKey are required
+    existingSecret: ""
+    # the key in the secret containing OAuth2 client ID
+    clientIdKey: ""
+    # the key in the secret containing OAuth2 client secret
+    clientSecretKey: ""
+    # the key in the secret containing the Slack app signature secret
+    signingSecretKey: ""
     # OnCall external URL
     redirectHost: ~
   telegram:
     enabled: false
     token: ~
     webhookUrl: ~
+    # Use exsting secret. (tokenKey is required)
+    existingSecret: ""
+    # the key in the secret containing Telegram token
+    tokenKey: ""
   smtp:
     enabled: false
     host: ~
@@ -116,6 +148,8 @@ oncall:
 # Whether to run django database migrations automatically
 migrate:
   enabled: true
+  # TTL can be unset by setting ttlSecondsAfterFinished: ""
+  ttlSecondsAfterFinished: 20
 
 # Additional env variables to add to deployments
 env: {}
@@ -123,7 +157,7 @@ env: {}
 # Enable ingress object for external access to the resources
 ingress:
   enabled: true
-#  className: ""
+  #  className: ""
   annotations:
     kubernetes.io/ingress.class: "nginx"
     cert-manager.io/issuer: "letsencrypt-prod"
@@ -131,8 +165,8 @@ ingress:
     - hosts:
         - "{{ .Values.base_url }}"
       secretName: certificate-tls
-  # Extra paths to prepend to the host configuration. If using something 
-  # like an ALB ingress controller, you may want to configure SSL redirects 
+  # Extra paths to prepend to the host configuration. If using something
+  # like an ALB ingress controller, you may want to configure SSL redirects
   extraPaths: []
   # - path: /*
   #   backend:
@@ -182,16 +216,16 @@ mariadb:
     database: oncall
   primary:
     extraEnvVars:
-    - name: MARIADB_COLLATE
-      value: utf8mb4_unicode_ci
-    - name: MARIADB_CHARACTER_SET
-      value: utf8mb4
+      - name: MARIADB_COLLATE
+        value: utf8mb4_unicode_ci
+      - name: MARIADB_CHARACTER_SET
+        value: utf8mb4
   secondary:
     extraEnvVars:
-    - name: MARIADB_COLLATE
-      value: utf8mb4_unicode_ci
-    - name: MARIADB_CHARACTER_SET
-      value: utf8mb4
+      - name: MARIADB_COLLATE
+        value: utf8mb4_unicode_ci
+      - name: MARIADB_CHARACTER_SET
+        value: utf8mb4
 
 # Make sure to create the database with the following parameters:
 # CREATE DATABASE oncall CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
@@ -268,6 +302,9 @@ grafana:
     enabled: true
   plugins:
     - grafana-oncall-app
+
+externalGrafana:
+  url:
 
 nameOverride: ""
 fullnameOverride: ""

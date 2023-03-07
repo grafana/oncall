@@ -8,8 +8,8 @@ from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.test import APIClient
 
+from apps.api.permissions import LegacyAccessControlRole
 from apps.heartbeat.models import IntegrationHeartBeat
-from common.constants.role import Role
 
 MOCK_LAST_HEARTBEAT_TIME_VERBAL = "a moment"
 
@@ -151,7 +151,7 @@ def test_create_empty_alert_receive_channel_integration_heartbeat(
     integration_heartbeat_internal_api_setup,
     make_user_auth_headers,
 ):
-    user, token, alert_receive_channel, integration_heartbeat = integration_heartbeat_internal_api_setup
+    user, token, _, _ = integration_heartbeat_internal_api_setup
     client = APIClient()
     url = reverse("api-internal:integration_heartbeat-list")
 
@@ -185,9 +185,39 @@ def test_update_integration_heartbeat(
 @pytest.mark.parametrize(
     "role,expected_status",
     [
-        (Role.ADMIN, status.HTTP_200_OK),
-        (Role.EDITOR, status.HTTP_403_FORBIDDEN),
-        (Role.VIEWER, status.HTTP_403_FORBIDDEN),
+        (LegacyAccessControlRole.ADMIN, status.HTTP_200_OK),
+        (LegacyAccessControlRole.EDITOR, status.HTTP_403_FORBIDDEN),
+        (LegacyAccessControlRole.VIEWER, status.HTTP_403_FORBIDDEN),
+    ],
+)
+def test_integration_heartbeat_create_permissions(
+    make_organization_and_user_with_plugin_token,
+    make_user_auth_headers,
+    role,
+    expected_status,
+):
+    _, user, token = make_organization_and_user_with_plugin_token(role)
+    client = APIClient()
+
+    url = reverse("api-internal:integration_heartbeat-list")
+
+    with patch(
+        "apps.api.views.integration_heartbeat.IntegrationHeartBeatView.create",
+        return_value=Response(
+            status=status.HTTP_200_OK,
+        ),
+    ):
+        response = client.post(url, format="json", **make_user_auth_headers(user, token))
+        assert response.status_code == expected_status
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize(
+    "role,expected_status",
+    [
+        (LegacyAccessControlRole.ADMIN, status.HTTP_200_OK),
+        (LegacyAccessControlRole.EDITOR, status.HTTP_403_FORBIDDEN),
+        (LegacyAccessControlRole.VIEWER, status.HTTP_403_FORBIDDEN),
     ],
 )
 def test_integration_heartbeat_update_permissions(
@@ -223,7 +253,11 @@ def test_integration_heartbeat_update_permissions(
 @pytest.mark.django_db
 @pytest.mark.parametrize(
     "role,expected_status",
-    [(Role.ADMIN, status.HTTP_200_OK), (Role.EDITOR, status.HTTP_200_OK), (Role.VIEWER, status.HTTP_200_OK)],
+    [
+        (LegacyAccessControlRole.ADMIN, status.HTTP_200_OK),
+        (LegacyAccessControlRole.EDITOR, status.HTTP_200_OK),
+        (LegacyAccessControlRole.VIEWER, status.HTTP_200_OK),
+    ],
 )
 def test_integration_heartbeat_list_permissions(
     make_organization_and_user_with_plugin_token,
@@ -255,9 +289,40 @@ def test_integration_heartbeat_list_permissions(
 @pytest.mark.parametrize(
     "role,expected_status",
     [
-        (Role.ADMIN, status.HTTP_200_OK),
-        (Role.EDITOR, status.HTTP_200_OK),
-        (Role.VIEWER, status.HTTP_200_OK),
+        (LegacyAccessControlRole.ADMIN, status.HTTP_200_OK),
+        (LegacyAccessControlRole.EDITOR, status.HTTP_200_OK),
+        (LegacyAccessControlRole.VIEWER, status.HTTP_200_OK),
+    ],
+)
+def test_integration_heartbeat_timeout_options_permissions(
+    make_organization_and_user_with_plugin_token,
+    make_user_auth_headers,
+    role,
+    expected_status,
+):
+    _, user, token = make_organization_and_user_with_plugin_token(role)
+    client = APIClient()
+
+    url = reverse("api-internal:integration_heartbeat-timeout-options")
+
+    with patch(
+        "apps.api.views.integration_heartbeat.IntegrationHeartBeatView.timeout_options",
+        return_value=Response(
+            status=status.HTTP_200_OK,
+        ),
+    ):
+        response = client.get(url, format="json", **make_user_auth_headers(user, token))
+
+    assert response.status_code == expected_status
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize(
+    "role,expected_status",
+    [
+        (LegacyAccessControlRole.ADMIN, status.HTTP_200_OK),
+        (LegacyAccessControlRole.EDITOR, status.HTTP_200_OK),
+        (LegacyAccessControlRole.VIEWER, status.HTTP_200_OK),
     ],
 )
 def test_integration_heartbeat_retrieve_permissions(

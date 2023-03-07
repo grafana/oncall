@@ -1,0 +1,7 @@
+* @grafana/grafana-oncall-backend
+
+# don't tag @grafana/grafana-oncall-backend on changes to CHANGELOG.md
+CHANGELOG.md
+
+/grafana-plugin @grafana/grafana-oncall-frontend
+/docs @grafana/docs-oncall

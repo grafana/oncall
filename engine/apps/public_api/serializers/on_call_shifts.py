@@ -12,6 +12,7 @@ from common.api_helpers.custom_fields import (
 from common.api_helpers.exceptions import BadRequest
 from common.api_helpers.mixins import EagerLoadingMixin
 from common.api_helpers.utils import CurrentOrganizationDefault
+from common.timezones import TimeZoneField
 
 
 class CustomOnCallShiftTypeField(fields.CharField):
@@ -70,7 +71,7 @@ class CustomOnCallShiftSerializer(EagerLoadingMixin, serializers.ModelSerializer
     organization = serializers.HiddenField(default=CurrentOrganizationDefault())
     team_id = TeamPrimaryKeyRelatedField(required=False, allow_null=True, source="team")
     type = CustomOnCallShiftTypeField()
-    time_zone = serializers.CharField(required=False, allow_null=True)
+    time_zone = TimeZoneField(required=False, allow_null=True)
     users = UsersFilteredByOrganizationField(queryset=User.objects, required=False)
     frequency = CustomOnCallShiftFrequencyField(required=False, allow_null=True)
     week_start = CustomOnCallShiftWeekStartField(required=False)
@@ -237,7 +238,7 @@ class CustomOnCallShiftSerializer(EagerLoadingMixin, serializers.ModelSerializer
             data["users"] = []
         if data.get("rolling_users", []) is None:  # terraform case
             data["rolling_users"] = []
-        if data.get("source") != CustomOnCallShift.SOURCE_TERRAFORM:
+        if data.get("source") not in (CustomOnCallShift.SOURCE_TERRAFORM, CustomOnCallShift.SOURCE_WEB):
             data["source"] = CustomOnCallShift.SOURCE_API
         if data.get("start") is not None:
             self._validate_start(data["start"])
@@ -336,6 +337,19 @@ class CustomOnCallShiftSerializer(EagerLoadingMixin, serializers.ModelSerializer
                 validated_data[field] = None
         if validated_data.get("start") is not None:
             validated_data["start"] = validated_data["start"].replace(tzinfo=None)
+
+        # Populate "rolling_users" field using "users" field for web overrides
+        # This emulates the behavior of the web UI, which creates overrides populating the rolling_users field
+        # Also set the "priority_level" to 99 and "rotation_start" to "start" so it's consistent with the web UI
+        # See apps.api.serializers.on_call_shifts.OnCallShiftSerializer for more info
+        if (
+            event_type == CustomOnCallShift.TYPE_OVERRIDE
+            and validated_data.get("source") == CustomOnCallShift.SOURCE_WEB
+        ):
+            validated_data["rolling_users"] = [{str(u.pk): u.public_primary_key} for u in validated_data["users"]]
+            validated_data["priority_level"] = 99
+            validated_data["rotation_start"] = validated_data["start"]
+
         return validated_data
 
 

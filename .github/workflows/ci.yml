@@ -6,6 +6,10 @@ on:
       - main
       - dev
   pull_request:
+  # You can use the merge_group event to trigger your GitHub Actions workflow when
+  # a pull request is added to a merge queue
+  # https://docs.github.com/en/repositories/configuring-branches-and-merges-in-your-repository/configuring-pull-request-merges/managing-a-merge-queue#triggering-merge-group-checks-with-github-actions
+  merge_group:
 
 jobs:
   lint:
@@ -23,11 +27,14 @@ jobs:
           cd grafana-plugin/
           yarn --network-timeout 500000
           yarn build
+      # pre-commit uses git, which is not working in the action without this workaround
+      # see https://github.com/actions/runner-images/issues/6775
+      - run: git config --global --add safe.directory "$GITHUB_WORKSPACE"
       - name: Lint All
         run: |
           pre-commit run --all-files
 
-  test:
+  test-frontend:
     runs-on: ubuntu-latest
     container: python:3.9
     steps:
@@ -55,7 +62,8 @@ jobs:
         run: |
           docker run -v ${PWD}/docs/sources:/hugo/content/docs/oncall/latest -e HUGO_REFLINKSERRORLEVEL=ERROR --rm grafana/docs-base:latest /bin/bash -c 'make hugo'
 
-  unit-test-backend-mysql-rabbitmq:
+  lint-migrations-backend-mysql-rabbitmq:
+    name: "Lint migrations"
     runs-on: ubuntu-latest
     container: python:3.9
     env:
@@ -72,7 +80,35 @@ jobs:
         env:
           MYSQL_DATABASE: oncall_local_dev
           MYSQL_ROOT_PASSWORD: local_dev_pwd
+    steps:
+      - uses: actions/checkout@v3
+      - name: Lint migrations
+        run: |
+          cd engine/
+          pip install -r requirements.txt
+          python manage.py lintmigrations
 
+  unit-test-backend-mysql-rabbitmq:
+    name: "Backend Tests: MySQL + RabbitMQ (RBAC enabled: ${{ matrix.rbac_enabled }})"
+    runs-on: ubuntu-latest
+    container: python:3.9
+    strategy:
+      matrix:
+        rbac_enabled: ["True", "False"]
+    env:
+      DJANGO_SETTINGS_MODULE: settings.ci-test
+      SLACK_CLIENT_OAUTH_ID: 1
+    services:
+      rabbit_test:
+        image: rabbitmq:3.7.19
+        env:
+          RABBITMQ_DEFAULT_USER: rabbitmq
+          RABBITMQ_DEFAULT_PASS: rabbitmq
+      mysql_test:
+        image: mysql:5.7.25
+        env:
+          MYSQL_DATABASE: oncall_local_dev
+          MYSQL_ROOT_PASSWORD: local_dev_pwd
     steps:
       - uses: actions/checkout@v2
       - name: Unit Test Backend
@@ -80,11 +116,15 @@ jobs:
           apt-get update && apt-get install -y netcat
           cd engine/
           pip install -r requirements.txt
-          ./wait_for_test_mysql_start.sh && pytest --ds=settings.ci-test -x
+          ./wait_for_test_mysql_start.sh && ONCALL_TESTING_RBAC_ENABLED=${{ matrix.rbac_enabled }} pytest -x
 
   unit-test-backend-postgresql-rabbitmq:
+    name: "Backend Tests: PostgreSQL + RabbitMQ (RBAC enabled: ${{ matrix.rbac_enabled }})"
     runs-on: ubuntu-latest
     container: python:3.9
+    strategy:
+      matrix:
+        rbac_enabled: ["True", "False"]
     env:
       DATABASE_TYPE: postgresql
       DJANGO_SETTINGS_MODULE: settings.ci-test
@@ -112,11 +152,15 @@ jobs:
         run: |
           cd engine/
           pip install -r requirements.txt
-          pytest --ds=settings.ci-test -x
+          ONCALL_TESTING_RBAC_ENABLED=${{ matrix.rbac_enabled }} pytest -x
 
   unit-test-backend-sqlite-redis:
+    name: "Backend Tests: SQLite + Redis (RBAC enabled: ${{ matrix.rbac_enabled }})"
     runs-on: ubuntu-latest
     container: python:3.9
+    strategy:
+      matrix:
+        rbac_enabled: ["True", "False"]
     env:
       DATABASE_TYPE: sqlite3
       BROKER_TYPE: redis
@@ -131,7 +175,6 @@ jobs:
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5
-
     steps:
       - uses: actions/checkout@v2
       - name: Unit Test Backend
@@ -139,7 +182,18 @@ jobs:
           apt-get update && apt-get install -y netcat
           cd engine/
           pip install -r requirements.txt
-          pytest --ds=settings.ci-test -x
+          ONCALL_TESTING_RBAC_ENABLED=${{ matrix.rbac_enabled }} pytest -x
+
+  unit-test-pd-migrator:
+    runs-on: ubuntu-latest
+    container: python:3.9
+    steps:
+      - uses: actions/checkout@v2
+      - name: Unit Test PD Migrator
+        run: |
+          cd tools/pagerduty-migrator
+          pip install -r requirements.txt
+          pytest -x
 
   docker-build:
     runs-on: ubuntu-latest
@@ -152,5 +206,6 @@ jobs:
           context: ./engine
           file: ./engine/Dockerfile
           push: false
+          target: prod
       - name: Image digest
         run: echo ${{ steps.docker_build.outputs.digest }}

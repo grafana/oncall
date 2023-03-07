@@ -52,14 +52,7 @@ class OnCallGatewayAPIClient:
     def delete_oncall_connector(self, oncall_org_id: str) -> requests.models.Response:
         url = urljoin(f"{self._oncall_connectors_url}/", oncall_org_id)
         response = self._delete(url=url)
-        response_data = response.json()
-        return (
-            OnCallConnector(
-                response_data["oncall_org_id"],
-                response_data["backend"],
-            ),
-            response,
-        )
+        return response
 
     # Slack Connector
     @property
@@ -71,8 +64,8 @@ class OnCallGatewayAPIClient:
         response = self._post(url=self._slack_connectors_url, json=d)
         response_data = response.json()
         return (
-            OnCallConnector(
-                response_data["oncall_org_id"],
+            SlackConnector(
+                response_data["slack_team_id"],
                 response_data["backend"],
             ),
             response,
@@ -129,11 +122,8 @@ class OnCallGatewayAPIClient:
         if response.status_code not in [200, 201, 202, 204]:
             err_msg = cls._get_error_msg_from_response(response)
             if 400 <= response.status_code < 500:
-                print(1)
                 err_msg = "%s Client Error: %s for url: %s" % (response.status_code, err_msg, response.url)
-
             elif 500 <= response.status_code < 600:
-                print(2)
                 err_msg = "%s Server Error: %s for url: %s" % (response.status_code, err_msg, response.url)
             print(err_msg)
             raise requests.exceptions.HTTPError(err_msg, response=response)

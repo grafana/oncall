@@ -9,7 +9,7 @@ from apps.base.utils import live_settings
 FEATURE_SLACK = "slack"
 FEATURE_TELEGRAM = "telegram"
 FEATURE_LIVE_SETTINGS = "live_settings"
-MOBILE_APP_PUSH_NOTIFICATIONS = "mobile_app"
+FEATURE_MOBILE_APP = "mobile_app"
 FEATURE_GRAFANA_CLOUD_NOTIFICATIONS = "grafana_cloud_notifications"
 FEATURE_GRAFANA_CLOUD_CONNECTION = "grafana_cloud_connection"
 FEATURE_WEB_SCHEDULES = "web_schedules"
@@ -36,18 +36,8 @@ class FeaturesAPIView(APIView):
         if settings.FEATURE_TELEGRAM_INTEGRATION_ENABLED:
             enabled_features.append(FEATURE_TELEGRAM)
 
-        if settings.MOBILE_APP_PUSH_NOTIFICATIONS_ENABLED:
-            mobile_app_settings = DynamicSetting.objects.get_or_create(
-                name="mobile_app_settings",
-                defaults={
-                    "json_value": {
-                        "org_ids": [],
-                    }
-                },
-            )[0]
-
-            if request.auth.organization.pk in mobile_app_settings.json_value["org_ids"]:
-                enabled_features.append(MOBILE_APP_PUSH_NOTIFICATIONS)
+        if settings.FEATURE_MOBILE_APP_INTEGRATION_ENABLED:
+            enabled_features.append(FEATURE_MOBILE_APP)
 
         if settings.OSS_INSTALLATION:
             # Features below should be enabled only in OSS

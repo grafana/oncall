@@ -20,6 +20,10 @@ def notify_group_task(alert_group_pk, escalation_policy_snapshot_order=None):
     EscalationDeliveryStep = scenario_step.ScenarioStep.get_step("escalation_delivery", "EscalationDeliveryStep")
 
     alert_group = AlertGroup.all_objects.get(pk=alert_group_pk)
+    # check alert group state before notifying all users in the group
+    if alert_group.resolved or alert_group.acknowledged or alert_group.silenced:
+        task_logger.info(f"alert_group {alert_group.pk} was resolved, acked or silenced. No need to notify group")
+        return
 
     organization = alert_group.channel.organization
     slack_team_identity = organization.slack_team_identity
@@ -31,7 +35,21 @@ def notify_group_task(alert_group_pk, escalation_policy_snapshot_order=None):
     step = EscalationDeliveryStep(slack_team_identity, organization)
 
     escalation_snapshot = alert_group.escalation_snapshot
-    escalation_policy_snapshot = escalation_snapshot.escalation_policies_snapshots[escalation_policy_snapshot_order]
+    try:
+        escalation_policy_snapshot = escalation_snapshot.escalation_policies_snapshots[escalation_policy_snapshot_order]
+    except IndexError:
+        escalation_policy_snapshot = None
+
+    if not escalation_policy_snapshot:
+        # The step has an incorrect order. Probably the order was changed manually with terraform.
+        # It is a quick fix, tasks notify_all_task and notify_group_task should be refactored to avoid getting snapshot
+        # by order
+        task_logger.warning(
+            f"escalation_policy_snapshot for alert_group {alert_group.pk} with order "
+            f"{escalation_policy_snapshot_order} is not found. Skip step"
+        )
+        return
+
     escalation_policy_pk = escalation_policy_snapshot.id
     escalation_policy = EscalationPolicy.objects.filter(pk=escalation_policy_pk).first()
     escalation_policy_step = escalation_policy_snapshot.step

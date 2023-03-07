@@ -2,11 +2,13 @@ import { action, observable } from 'mobx';
 import qs from 'query-string';
 
 import BaseStore from 'models/base_store';
+import { User } from 'models/user/user.types';
 import { makeRequest } from 'network';
 import { Mixpanel } from 'services/mixpanel';
 import { RootStore } from 'state';
 import { SelectOption } from 'state/types';
 import { showApiError, refreshPageError, openErrorNotification } from 'utils';
+import LocationHelper from 'utils/LocationHelper';
 
 import { Alert, AlertAction, IncidentStatus } from './alertgroup.types';
 
@@ -219,7 +221,7 @@ export class AlertGroupStore extends BaseStore {
   @action
   async updateIncidentFilters(params: any, keepCursor = false) {
     if (!keepCursor) {
-      this.incidentsCursor = undefined;
+      this.setIncidentsCursor(undefined);
     }
 
     this.incidentFilters = params;
@@ -228,15 +230,22 @@ export class AlertGroupStore extends BaseStore {
   }
 
   @action
-  async setIncidentsCursor(cursor: string) {
-    this.incidentsCursor = cursor;
+  async updateIncidentsCursor(cursor: string) {
+    this.setIncidentsCursor(cursor);
 
     this.updateAlertGroups();
   }
 
   @action
+  async setIncidentsCursor(cursor: string) {
+    this.incidentsCursor = cursor;
+
+    LocationHelper.update({ cursor }, 'partial');
+  }
+
+  @action
   async setIncidentsItemsPerPage(value: number) {
-    this.incidentsCursor = undefined;
+    this.setIncidentsCursor(undefined);
     this.incidentsItemsPerPage = value;
 
     this.updateAlertGroups();
@@ -306,9 +315,7 @@ export class AlertGroupStore extends BaseStore {
     const result = await makeRequest(`${this.path}stats/`, {
       params: {
         ...this.incidentFilters,
-        resolved: false,
-        acknowledged: false,
-        status: [IncidentStatus.New],
+        status: [IncidentStatus.Firing],
       },
     });
     this.newIncidents = result;
@@ -319,8 +326,6 @@ export class AlertGroupStore extends BaseStore {
     const result = await makeRequest(`${this.path}stats/`, {
       params: {
         ...this.incidentFilters,
-        resolved: false,
-        acknowledged: true,
         status: [IncidentStatus.Acknowledged],
       },
     });
@@ -333,7 +338,6 @@ export class AlertGroupStore extends BaseStore {
     const result = await makeRequest(`${this.path}stats/`, {
       params: {
         ...this.incidentFilters,
-        resolved: true,
         status: [IncidentStatus.Resolved],
       },
     });
@@ -346,7 +350,6 @@ export class AlertGroupStore extends BaseStore {
     const result = await makeRequest(`${this.path}stats/`, {
       params: {
         ...this.incidentFilters,
-        silenced: true,
         status: [IncidentStatus.Silenced],
       },
     });
@@ -362,9 +365,6 @@ export class AlertGroupStore extends BaseStore {
   @action
   async doIncidentAction(alertId: Alert['pk'], action: AlertAction, isUndo = false, data?: any) {
     this.updateAlert(alertId, { loading: true });
-
-    console.log('action', action);
-    console.log('isUndo', isUndo);
 
     let undoAction = undefined;
     if (!isUndo) {
@@ -409,8 +409,6 @@ export class AlertGroupStore extends BaseStore {
         loading: false,
         undoAction,
       });
-
-      console.log('undoAction', undoAction);
     } catch (e) {
       this.updateAlert(alertId, { loading: false });
       openErrorNotification(e.response.data?.detail || e.response.data);
@@ -428,5 +426,12 @@ export class AlertGroupStore extends BaseStore {
   @action
   toggleLiveUpdate(value: boolean) {
     this.liveUpdatesEnabled = value;
+  }
+
+  async unpageUser(alertId: Alert['pk'], userId: User['pk']) {
+    return await makeRequest(`${this.path}${alertId}/unpage_user`, {
+      method: 'POST',
+      data: { user_id: userId },
+    }).catch(this.onApiError);
   }
 }

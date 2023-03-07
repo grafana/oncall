@@ -34,9 +34,11 @@ The above command returns JSON structured in the following way:
       "channel_id": "CH23212D"
     }
   },
-  "templates": {
+    "templates": {
     "grouping_key": null,
     "resolve_signal": null,
+    "acknowledge_signal": null,
+    "source_link": null,
     "slack": {
       "title": null,
       "message": null,
@@ -46,10 +48,6 @@ The above command returns JSON structured in the following way:
       "title": null,
       "message": null,
       "image_url": null
-    },
-    "email": {
-      "title": null,
-      "message": null
     },
     "sms": {
       "title": null
@@ -61,13 +59,23 @@ The above command returns JSON structured in the following way:
       "title": null,
       "message": null,
       "image_url": null
+    },
+    "email": {
+      "title": null,
+      "message": null
+    },
+    "msteams": {
+      "title": null,
+      "message": null,
+      "image_url": null
     }
   }
 }
 ```
 
 Integrations are sources of alerts and alert groups for Grafana OnCall.
-For example, to learn how to integrate Grafana OnCall with Alertmanager see [Alertmanager]({{< relref "../integrations/available-integrations/configure-alertmanager/" >}}).
+For example, to learn how to integrate Grafana OnCall with Alertmanager see
+[Alertmanager]({{< relref "../integrations/available-integrations/configure-alertmanager/" >}}).
 
 **HTTP request**
 
@@ -101,6 +109,8 @@ The above command returns JSON structured in the following way:
   "templates": {
     "grouping_key": null,
     "resolve_signal": null,
+    "acknowledge_signal": null,
+    "source_link": null,
     "slack": {
       "title": null,
       "message": null,
@@ -111,10 +121,6 @@ The above command returns JSON structured in the following way:
       "message": null,
       "image_url": null
     },
-    "email": {
-      "title": null,
-      "message": null
-    },
     "sms": {
       "title": null
     },
@@ -122,6 +128,15 @@ The above command returns JSON structured in the following way:
       "title": null
     },
     "telegram": {
+      "title": null,
+      "message": null,
+      "image_url": null
+    },
+    "email": {
+      "title": null,
+      "message": null
+    },
+    "msteams": {
       "title": null,
       "message": null,
       "image_url": null
@@ -169,6 +184,8 @@ The above command returns JSON structured in the following way:
       "templates": {
         "grouping_key": null,
         "resolve_signal": null,
+        "acknowledge_signal": null,
+        "source_link": null,
         "slack": {
           "title": null,
           "message": null,
@@ -179,10 +196,6 @@ The above command returns JSON structured in the following way:
           "message": null,
           "image_url": null
         },
-        "email": {
-          "title": null,
-          "message": null
-        },
         "sms": {
           "title": null
         },
@@ -190,6 +203,15 @@ The above command returns JSON structured in the following way:
           "title": null
         },
         "telegram": {
+          "title": null,
+          "message": null,
+          "image_url": null
+        },
+        "email": {
+          "title": null,
+          "message": null
+        },
+        "msteams": {
           "title": null,
           "message": null,
           "image_url": null
@@ -278,7 +300,8 @@ The above command returns JSON structured in the following way:
 
 # Delete integration
 
-Deleted integrations will stop recording new alerts from monitoring. Integration removal won't trigger removal of related alert groups or alerts.
+Deleted integrations will stop recording new alerts from monitoring. Integration removal won't trigger removal of
+related alert groups or alerts.
 
 ```shell
 curl "{{API_URL}}/api/v1/integrations/CFRPV98RPR1U8/" \

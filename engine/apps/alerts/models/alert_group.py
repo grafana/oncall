@@ -1,7 +1,7 @@
 import logging
-import typing
+import urllib
 from collections import namedtuple
-from typing import Optional
+from typing import Optional, TypedDict
 from urllib.parse import urljoin
 from uuid import uuid1
 
@@ -46,8 +46,10 @@ def generate_public_primary_key_for_alert_group():
     return new_public_primary_key
 
 
-class Permalinks(typing.TypedDict):
-    slack: str
+class Permalinks(TypedDict):
+    slack: Optional[str]
+    telegram: Optional[str]
+    web: str
 
 
 class AlertGroupQuerySet(models.QuerySet):
@@ -73,7 +75,7 @@ class AlertGroupQuerySet(models.QuerySet):
         # Try to return the last open group
         # Note that (channel, channel_filter, distinction, is_open_for_grouping) is in unique_together
         try:
-            return self.get(**search_params, is_open_for_grouping=True), False
+            return self.get(**search_params, is_open_for_grouping__isnull=False), False
         except self.model.DoesNotExist:
             pass
 
@@ -92,7 +94,7 @@ class AlertGroupQuerySet(models.QuerySet):
             )
         except IntegrityError:
             try:
-                return self.get(**search_params, is_open_for_grouping=True), False
+                return self.get(**search_params, is_open_for_grouping__isnull=False), False
             except self.model.DoesNotExist:
                 pass
             raise
@@ -347,6 +349,42 @@ class AlertGroup(AlertGroupSlackRenderingMixin, EscalationSnapshotMixin, models.
     # https://code.djangoproject.com/ticket/28545
     is_open_for_grouping = models.BooleanField(default=None, null=True, blank=True)
 
+    @staticmethod
+    def get_silenced_state_filter():
+        """
+        models.Value(0/1) is used instead of True/False because django translates that into
+        WHERE bool_field=0/1 instead of WHERE bool_field/NOT bool_field
+        which works much faster in mysql
+        """
+        return Q(silenced=models.Value("1")) & Q(acknowledged=models.Value("0")) & Q(resolved=models.Value("0"))
+
+    @staticmethod
+    def get_new_state_filter():
+        """
+        models.Value(0/1) is used instead of True/False because django translates that into
+        WHERE bool_field=0/1 instead of WHERE bool_field/NOT bool_field
+        which works much faster in mysql
+        """
+        return Q(silenced=models.Value("0")) & Q(acknowledged=models.Value("0")) & Q(resolved=models.Value("0"))
+
+    @staticmethod
+    def get_acknowledged_state_filter():
+        """
+        models.Value(0/1) is used instead of True/False because django translates that into
+        WHERE bool_field=0/1 instead of WHERE bool_field/NOT bool_field
+        which works much faster in mysql
+        """
+        return Q(acknowledged=models.Value("1")) & Q(resolved=models.Value("0"))
+
+    @staticmethod
+    def get_resolved_state_filter():
+        """
+        models.Value(0/1) is used instead of True/False because django translates that into
+        WHERE bool_field=0/1 instead of WHERE bool_field/NOT bool_field
+        which works much faster in mysql
+        """
+        return Q(resolved=models.Value("1"))
+
     class Meta:
         get_latest_by = "pk"
         unique_together = [
@@ -401,12 +439,12 @@ class AlertGroup(AlertGroupSlackRenderingMixin, EscalationSnapshotMixin, models.
         raise NotImplementedError
 
     @property
-    def slack_permalink(self):
+    def slack_permalink(self) -> Optional[str]:
         if self.slack_message is not None:
             return self.slack_message.permalink
 
     @property
-    def telegram_permalink(self) -> typing.Optional[str]:
+    def telegram_permalink(self) -> Optional[str]:
         """
         This property will attempt to access an attribute, `prefetched_telegram_messages`, representing a list of
         prefetched telegram messages. If this attribute does not exist, it falls back to performing a query.
@@ -429,11 +467,22 @@ class AlertGroup(AlertGroupSlackRenderingMixin, EscalationSnapshotMixin, models.
         return {
             "slack": self.slack_permalink,
             "telegram": self.telegram_permalink,
+            "web": self.web_link,
         }
 
     @property
-    def web_link(self):
+    def web_link(self) -> str:
         return urljoin(self.channel.organization.web_link, f"?page=incident&id={self.public_primary_key}")
+
+    @property
+    def declare_incident_link(self) -> str:
+        """Generate a link for AlertGroup to declare Grafana Incident by click"""
+        incident_link = urljoin(self.channel.organization.grafana_url, "a/grafana-incident-app/incidents/declare/")
+        caption = urllib.parse.quote_plus("OnCall Alert Group")
+        title = urllib.parse.quote_plus(self.web_title_cache) if self.web_title_cache else DEFAULT_BACKUP_TITLE
+        title = title[:2000]  # set max title length to avoid exceptions with too long declare incident link
+        link = urllib.parse.quote_plus(self.web_link)
+        return urljoin(incident_link, f"?caption={caption}&url={link}&title={title}")
 
     @property
     def happened_while_maintenance(self):

@@ -38,6 +38,10 @@ class BaseMessagingBackend:
         """Remove backend link to user account."""
         return
 
+    @staticmethod
+    def is_enabled_for_organization(organization):
+        return True
+
     def serialize_user(self, user):
         """Return a serialized backend user representation."""
         raise NotImplementedError("serialize_user method missing implementation")
@@ -49,6 +53,17 @@ class BaseMessagingBackend:
 
         """
         raise NotImplementedError("notify_user method missing implementation")
+
+    @property
+    def slug(self):
+        return self.backend_id.lower()
+
+    @property
+    def customizable_templates(self):
+        """
+        customizable_templates indicates if templates for messaging backend can be changes by user
+        """
+        return True
 
 
 def load_backend(path, *args, **kwargs):

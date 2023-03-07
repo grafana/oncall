@@ -16,6 +16,8 @@ DEV_ENV_FILE = $(DEV_ENV_DIR)/.env.dev
 DEV_ENV_EXAMPLE_FILE = $(DEV_ENV_FILE).example
 
 ENGINE_DIR = ./engine
+REQUIREMENTS_TXT = $(ENGINE_DIR)/requirements.txt
+REQUIREMENTS_ENTERPRISE_TXT = $(ENGINE_DIR)/requirements-enterprise.txt
 SQLITE_DB_FILE = $(ENGINE_DIR)/oncall.db
 
 # -n flag only copies DEV_ENV_EXAMPLE_FILE-> DEV_ENV_FILE if it doesn't already exist
@@ -45,12 +47,18 @@ else
 	BROKER_TYPE=$(REDIS_PROFILE)
 endif
 
-define run_engine_docker_command
-    DB=$(DB) BROKER_TYPE=$(BROKER_TYPE) docker-compose -f $(DOCKER_COMPOSE_FILE) run --rm oncall_engine_commands $(1)
-endef
+# SQLITE_DB_FiLE is set to properly mount the sqlite db file
+DOCKER_COMPOSE_ENV_VARS := COMPOSE_PROFILES=$(COMPOSE_PROFILES) DB=$(DB) BROKER_TYPE=$(BROKER_TYPE)
+ifeq ($(DB),$(SQLITE_PROFILE))
+	DOCKER_COMPOSE_ENV_VARS += SQLITE_DB_FILE=$(SQLITE_DB_FILE)
+endif
 
 define run_docker_compose_command
-	COMPOSE_PROFILES=$(COMPOSE_PROFILES) DB=$(DB) BROKER_TYPE=$(BROKER_TYPE) docker-compose -f $(DOCKER_COMPOSE_FILE) $(1)
+	$(DOCKER_COMPOSE_ENV_VARS) docker compose -f $(DOCKER_COMPOSE_FILE) $(1)
+endef
+
+define run_engine_docker_command
+	$(call run_docker_compose_command,run --rm oncall_engine_commands $(1))
 endef
 
 # touch SQLITE_DB_FILE if it does not exist and DB is eqaul to SQLITE_PROFILE
@@ -61,6 +69,9 @@ ifeq ($(DB),$(SQLITE_PROFILE))
 	fi
 endif
 
+	$(call run_docker_compose_command,up --remove-orphans -d)
+
+init:
 # if the oncall UI is to be run in docker we should do an initial build of the frontend code
 # this makes sure that it will be available when the grafana container starts up without the need to
 # restart the grafana container initially
@@ -68,13 +79,14 @@ ifeq ($(findstring $(UI_PROFILE),$(COMPOSE_PROFILES)),$(UI_PROFILE))
 	cd grafana-plugin && yarn install && yarn build:dev
 endif
 
-	$(call run_docker_compose_command,up --remove-orphans -d)
-
 stop:
 	$(call run_docker_compose_command,down)
 
 restart:
 	$(call run_docker_compose_command,restart)
+
+build:
+	$(call run_docker_compose_command,build)
 
 cleanup: stop
 	docker system prune --filter label="$(DOCKER_COMPOSE_DEV_LABEL)" --all --volumes
@@ -93,9 +105,6 @@ lint: install-pre-commit
 install-precommit-hook: install-pre-commit
 	pre-commit install
 
-get-invite-token:
-	$(call run_engine_docker_command,python manage.py issue_invite_for_the_frontend --override)
-
 test:
 	$(call run_engine_docker_command,pytest)
 
@@ -111,6 +120,23 @@ shell:
 dbshell:
 	$(call run_engine_docker_command,python manage.py dbshell)
 
+engine-manage:
+	$(call run_engine_docker_command,python manage.py $(CMD))
+
+exec-engine:
+	docker exec -it oncall_engine bash
+
+_backend-debug-enable:
+	$(shell ./dev/add_env_var.sh DEBUG True $(DEV_ENV_FILE))
+	$(shell ./dev/add_env_var.sh SILK_PROFILER_ENABLED True $(DEV_ENV_FILE))
+
+_backend-debug-disable:
+	$(shell ./dev/add_env_var.sh DEBUG False $(DEV_ENV_FILE))
+	$(shell ./dev/add_env_var.sh SILK_PROFILER_ENABLED False $(DEV_ENV_FILE))
+
+backend-debug-enable: _backend-debug-enable stop start
+backend-debug-disable: _backend-debug-disable stop start
+
 # The below commands are useful for running backend services outside of docker
 define backend_command
 	export `grep -v '^#' $(DEV_ENV_FILE) | xargs -0` && \
@@ -121,16 +147,22 @@ endef
 
 backend-bootstrap:
 	pip install -U pip wheel
-	cd engine && pip install -r requirements.txt
+	pip install -r $(REQUIREMENTS_TXT)
+	@if [ -f $(REQUIREMENTS_ENTERPRISE_TXT) ]; then \
+		pip install -r $(REQUIREMENTS_ENTERPRISE_TXT); \
+	fi
 
 backend-migrate:
 	$(call backend_command,python manage.py migrate)
 
 run-backend-server:
-	$(call backend_command,python manage.py runserver)
+	$(call backend_command,python manage.py runserver 0.0.0.0:8080)
 
 run-backend-celery:
 	$(call backend_command,python manage.py start_celery)
 
 backend-command:
 	$(call backend_command,$(CMD))
+
+backend-manage-command:
+	$(call backend_command,python manage.py $(CMD))

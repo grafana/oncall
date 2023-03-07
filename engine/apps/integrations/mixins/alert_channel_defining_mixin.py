@@ -7,7 +7,7 @@ from django.core.cache import cache
 from django.core.exceptions import PermissionDenied
 from django.db import OperationalError
 
-from apps.user_management.models.region import OrganizationMovedException
+from apps.user_management.exceptions import OrganizationMovedException
 
 logger = logging.getLogger(__name__)
 
@@ -68,6 +68,10 @@ class AlertChannelDefiningMixin(object):
 
         if alert_receive_channel.organization.is_moved:
             raise OrganizationMovedException(alert_receive_channel.organization)
+        if alert_receive_channel.organization.deleted_at:
+            # It's better to raise OrganizarionDeletedException, but in legacy code PermissionDenied is returned when integration key not found.
+            # So, keep it consistent.
+            raise PermissionDenied("Integration key was not found. Permission denied.")
 
         del kwargs["alert_channel_key"]
         kwargs["alert_receive_channel"] = alert_receive_channel

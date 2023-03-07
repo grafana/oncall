@@ -5,8 +5,8 @@ from django.apps import apps
 from django.conf import settings
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.exceptions import ValidationError as DjangoValidationError
-from django.core.validators import URLValidator
 from django.template.loader import render_to_string
+from django.utils import timezone
 from jinja2 import TemplateSyntaxError
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
@@ -18,9 +18,10 @@ from apps.alerts.models import AlertReceiveChannel
 from apps.base.messaging import get_messaging_backends
 from common.api_helpers.custom_fields import TeamPrimaryKeyRelatedField, WritableSerializerMethodField
 from common.api_helpers.exceptions import BadRequest
-from common.api_helpers.mixins import IMAGE_URL, TEMPLATE_NAMES_ONLY_WITH_NOTIFICATION_CHANNEL, EagerLoadingMixin
+from common.api_helpers.mixins import APPEARANCE_TEMPLATE_NAMES, EagerLoadingMixin
 from common.api_helpers.utils import CurrentTeamDefault
-from common.jinja_templater import jinja_template_env
+from common.jinja_templater import apply_jinja_template, jinja_template_env
+from common.jinja_templater.apply_jinja_template import JinjaTemplateWarning
 
 from .integration_heartbeat import IntegrationHeartBeatSerializer
 
@@ -28,9 +29,10 @@ from .integration_heartbeat import IntegrationHeartBeatSerializer
 def valid_jinja_template_for_serializer_method_field(template):
     for _, val in template.items():
         try:
-            jinja_template_env.from_string(val)
-        except TemplateSyntaxError:
-            raise serializers.ValidationError("invalid template")
+            apply_jinja_template(val, payload={})
+        except JinjaTemplateWarning:
+            # Suppress warnings, template may be valid with payload
+            pass
 
 
 class AlertReceiveChannelSerializer(EagerLoadingMixin, serializers.ModelSerializer):
@@ -167,7 +169,8 @@ class FastAlertReceiveChannelSerializer(serializers.ModelSerializer):
         fields = ["id", "integration", "verbal_name", "deleted"]
 
     def get_deleted(self, obj):
-        return obj.deleted_at is not None
+        # Treat direct paging integrations as deleted, so integration settings are disabled on the frontend
+        return obj.deleted_at is not None or obj.integration == AlertReceiveChannel.INTEGRATION_DIRECT_PAGING
 
 
 class FilterAlertReceiveChannelSerializer(serializers.ModelSerializer):
@@ -376,6 +379,7 @@ class AlertReceiveChannelTemplatesSerializer(EagerLoadingMixin, serializers.Mode
             self.instance.web_title_template = value.strip()
         elif default_template is not None and default_template.strip() == value.strip():
             self.instance.web_title_template = None
+        self.instance.web_templates_modified_at = timezone.now()
 
     def get_web_message_template(self, obj):
         default_template = AlertReceiveChannel.INTEGRATION_TO_DEFAULT_WEB_MESSAGE_TEMPLATE[obj.integration]
@@ -387,6 +391,7 @@ class AlertReceiveChannelTemplatesSerializer(EagerLoadingMixin, serializers.Mode
             self.instance.web_message_template = value.strip()
         elif default_template is not None and default_template.strip() == value.strip():
             self.instance.web_message_template = None
+        self.instance.web_templates_modified_at = timezone.now()
 
     def get_web_image_url_template(self, obj):
         default_template = AlertReceiveChannel.INTEGRATION_TO_DEFAULT_WEB_IMAGE_URL_TEMPLATE[obj.integration]
@@ -398,6 +403,7 @@ class AlertReceiveChannelTemplatesSerializer(EagerLoadingMixin, serializers.Mode
             self.instance.web_image_url_template = value.strip()
         elif default_template is not None and default_template.strip() == value.strip():
             self.instance.web_image_url_template = None
+        self.instance.web_templates_modified_at = timezone.now()
 
     def get_telegram_title_template(self, obj):
         default_template = AlertReceiveChannel.INTEGRATION_TO_DEFAULT_TELEGRAM_TITLE_TEMPLATE[obj.integration]
@@ -443,9 +449,9 @@ class AlertReceiveChannelTemplatesSerializer(EagerLoadingMixin, serializers.Mode
     def set_source_link_template(self, value):
         default_template = AlertReceiveChannel.INTEGRATION_TO_DEFAULT_SOURCE_LINK_TEMPLATE[self.instance.integration]
         if default_template is None or default_template.strip() != value.strip():
-            self.instance.source_link = value.strip()
+            self.instance.source_link_template = value.strip()
         elif default_template is not None and default_template.strip() == value.strip():
-            self.instance.source_link = None
+            self.instance.source_link_template = None
 
     def get_grouping_id_template(self, obj):
         default_template = AlertReceiveChannel.INTEGRATION_TO_DEFAULT_GROUPING_ID_TEMPLATE[obj.integration]
@@ -545,17 +551,19 @@ class AlertReceiveChannelTemplatesSerializer(EagerLoadingMixin, serializers.Mode
     def _handle_messaging_backend_updates(self, data, ret):
         """Update additional messaging backend templates if needed."""
         errors = {}
-        for backend_id, _ in get_messaging_backends():
+        for backend_id, backend in get_messaging_backends():
+            if not backend.customizable_templates:
+                continue
             # fetch existing templates if any
             backend_templates = {}
             if self.instance.messaging_backends_templates is not None:
                 backend_templates = self.instance.messaging_backends_templates.get(backend_id, {})
             # validate updated templates if any
             backend_updates = {}
-            for field in TEMPLATE_NAMES_ONLY_WITH_NOTIFICATION_CHANNEL:
-                field_name = f"{backend_id.lower()}_{field}_template"
+            for field in APPEARANCE_TEMPLATE_NAMES:
+                field_name = f"{backend.slug}_{field}_template"
                 value = data.get(field_name)
-                validator = jinja_template_env.from_string if field != IMAGE_URL else URLValidator()
+                validator = jinja_template_env.from_string
                 if value is not None:
                     try:
                         if value:
@@ -609,12 +617,14 @@ class AlertReceiveChannelTemplatesSerializer(EagerLoadingMixin, serializers.Mode
         """Return additional messaging backend templates if any."""
         templates = {}
         for backend_id, backend in get_messaging_backends():
+            if not backend.customizable_templates:
+                continue
             for field in backend.template_fields:
                 value = None
                 if obj.messaging_backends_templates:
                     value = obj.messaging_backends_templates.get(backend_id, {}).get(field)
-                if value is None:
+                if not value:
                     value = obj.get_default_template_attribute(backend_id, field)
-                field_name = f"{backend_id.lower()}_{field}_template"
+                field_name = f"{backend.slug}_{field}_template"
                 templates[field_name] = value
         return templates

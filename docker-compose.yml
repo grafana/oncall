@@ -1,4 +1,4 @@
-version: "3.8"
+version: "3.9"
 
 x-environment: &oncall-environment
   DATABASE_TYPE: sqlite3
@@ -12,6 +12,7 @@ x-environment: &oncall-environment
   CELERY_WORKER_MAX_TASKS_PER_CHILD: "100"
   CELERY_WORKER_SHUTDOWN_INTERVAL: "65m"
   CELERY_WORKER_BEAT_ENABLED: "True"
+  GRAFANA_API_URL: http://grafana:3000
 
 services:
   engine:
@@ -72,7 +73,7 @@ services:
       retries: 10
 
   grafana:
-    image: "grafana/grafana:9.0.0-beta3"
+    image: "grafana/grafana:${GRAFANA_VERSION:-latest}"
     restart: always
     ports:
       - "3000:3000"

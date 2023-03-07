@@ -1,7 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 
 import { SelectableValue } from '@grafana/data';
-import { getLocationSrv } from '@grafana/runtime';
 import { Label, Button, HorizontalGroup, VerticalGroup, Select, LoadingPlaceholder } from '@grafana/ui';
 import { capitalCase } from 'change-case';
 import cn from 'classnames/bind';
@@ -14,11 +13,12 @@ import MonacoJinja2Editor from 'components/MonacoJinja2Editor/MonacoJinja2Editor
 import SourceCode from 'components/SourceCode/SourceCode';
 import Text from 'components/Text/Text';
 import TemplatePreview from 'containers/TemplatePreview/TemplatePreview';
-import { WithPermissionControl } from 'containers/WithPermissionControl/WithPermissionControl';
+import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
 import { AlertReceiveChannel } from 'models/alert_receive_channel/alert_receive_channel.types';
 import { Alert } from 'models/alertgroup/alertgroup.types';
 import { makeRequest } from 'network';
-import { UserAction } from 'state/userAction';
+import LocationHelper from 'utils/LocationHelper';
+import { UserActions } from 'utils/authorization';
 
 import styles from './AlertTemplatesForm.module.css';
 
@@ -27,7 +27,6 @@ const cx = cn.bind(styles);
 interface AlertTemplatesFormProps {
   templates: any;
   onUpdateTemplates: (values: any) => void;
-  errors: any;
   alertReceiveChannelId: AlertReceiveChannel['id'];
   alertGroupId?: Alert['pk'];
   demoAlertEnabled: boolean;
@@ -154,17 +153,15 @@ const AlertTemplatesForm = (props: AlertTemplatesFormProps) => {
     <HorizontalGroup>
       <Text type="secondary">There are no alerts from this monitoring yet.</Text>
       {demoAlertEnabled ? (
-        <WithPermissionControl userAction={UserAction.SendDemoAlert}>
+        <WithPermissionControlTooltip userAction={UserActions.IntegrationsTest}>
           <Button className={cx('button')} variant="primary" onClick={handleSendDemoAlertClick} size="sm">
             Send demo alert
           </Button>
-        </WithPermissionControl>
+        </WithPermissionControlTooltip>
       ) : null}
     </HorizontalGroup>
   );
-  const handleGoToTemplateSettingsCllick = () => {
-    getLocationSrv().update({ partial: true, query: { tab: 'Autoresolve' } });
-  };
+  const handleGoToTemplateSettingsCllick = () => LocationHelper.update({ tab: 'Autoresolve' }, 'partial');
 
   return (
     <div className={cx('root')}>
@@ -234,7 +231,7 @@ const AlertTemplatesForm = (props: AlertTemplatesFormProps) => {
                     <div className={cx('web-title-message')}>
                       <Text type="secondary" size="small">
                         Please note that after changing the web title template new alert groups will be searchable by
-                        new title. Alert groups created before the template was changed will be still searchable by old
+                        new title. Alert Groups created before the template was changed will be still searchable by old
                         title only.
                       </Text>
                     </div>
@@ -243,11 +240,11 @@ const AlertTemplatesForm = (props: AlertTemplatesFormProps) => {
               </div>
             ))}
             <HorizontalGroup spacing="sm">
-              <WithPermissionControl userAction={UserAction.UpdateAlertReceiveChannels}>
+              <WithPermissionControlTooltip userAction={UserActions.IntegrationsWrite}>
                 <Button variant="primary" onClick={handleSubmit}>
                   Save Templates
                 </Button>
-              </WithPermissionControl>
+              </WithPermissionControlTooltip>
               <Button variant="destructive" onClick={handleReset}>
                 Reset Template
               </Button>

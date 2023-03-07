@@ -1,14 +1,15 @@
 import datetime
 from urllib.parse import urljoin
 
-import pytz
 import requests
 from django.conf import settings
 from django.utils import dateparse, timezone
 from icalendar import Calendar
 from rest_framework import serializers
 
+from apps.schedules.ical_utils import fetch_ical_file
 from common.api_helpers.exceptions import BadRequest
+from common.timezones import raise_exception_if_not_valid_timezone
 
 
 class CurrentOrganizationDefault:
@@ -49,7 +50,7 @@ def validate_ical_url(url):
         if settings.BASE_URL in url:
             raise serializers.ValidationError("Potential self-reference")
         try:
-            ical_file = requests.get(url).text
+            ical_file = fetch_ical_file(url)
             Calendar.from_ical(ical_file)
         except requests.exceptions.RequestException:
             raise serializers.ValidationError("Ical download failed")
@@ -84,10 +85,7 @@ def get_date_range_from_request(request):
     Used mainly for schedules and shifts API.
     """
     user_tz = request.query_params.get("user_tz", "UTC")
-    try:
-        pytz.timezone(user_tz)
-    except pytz.exceptions.UnknownTimeZoneError:
-        raise BadRequest(detail="Invalid tz format")
+    raise_exception_if_not_valid_timezone(user_tz)
 
     date = timezone.now().date()
     date_param = request.query_params.get("date")

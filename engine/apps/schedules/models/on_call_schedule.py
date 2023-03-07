@@ -8,6 +8,7 @@ from django.apps import apps
 from django.conf import settings
 from django.core.validators import MinLengthValidator
 from django.db import models
+from django.db.utils import DatabaseError
 from django.utils import timezone
 from django.utils.functional import cached_property
 from icalendar.cal import Calendar
@@ -17,10 +18,10 @@ from polymorphic.query import PolymorphicQuerySet
 
 from apps.schedules.ical_utils import (
     fetch_ical_file_or_get_error,
+    get_oncall_users_for_multiple_schedules,
     list_of_empty_shifts_in_schedule,
     list_of_gaps_in_schedule,
     list_of_oncall_shifts_from_ical,
-    list_users_to_notify_from_ical,
 )
 from apps.schedules.models import CustomOnCallShift
 from common.public_primary_keys import generate_public_primary_key, increase_public_primary_key_length
@@ -42,19 +43,7 @@ def generate_public_primary_key_for_oncall_schedule_channel():
 
 class OnCallScheduleQuerySet(PolymorphicQuerySet):
     def get_oncall_users(self, events_datetime=None):
-        if events_datetime is None:
-            events_datetime = timezone.datetime.now(timezone.utc)
-
-        users = set()
-
-        for schedule in self.all():
-            schedule_oncall_users = list_users_to_notify_from_ical(schedule, events_datetime=events_datetime)
-            if schedule_oncall_users is None:
-                continue
-
-            users.update(schedule_oncall_users)
-
-        return list(users)
+        return get_oncall_users_for_multiple_schedules(self, events_datetime)
 
 
 class OnCallSchedule(PolymorphicModel):
@@ -139,9 +128,11 @@ class OnCallSchedule(PolymorphicModel):
         """Returns list of calendars. Primary calendar should always be the first"""
         calendar_primary = None
         calendar_overrides = None
-        if self._ical_file_primary is not None:
+        # if self._ical_file_(primary|overrides) is None -> no cache, will trigger a refresh
+        # if self._ical_file_(primary|overrides) == "" -> cached value for an empty schedule
+        if self._ical_file_primary:
             calendar_primary = icalendar.Calendar.from_ical(self._ical_file_primary)
-        if self._ical_file_overrides is not None:
+        if self._ical_file_overrides:
             calendar_overrides = icalendar.Calendar.from_ical(self._ical_file_overrides)
         return calendar_primary, calendar_overrides
 
@@ -318,6 +309,7 @@ class OnCallSchedule(PolymorphicModel):
         resolved = []
         pending = events
         current_interval_idx = 0  # current scheduled interval being checked
+        current_type = OnCallSchedule.TYPE_ICAL_OVERRIDES  # current calendar type
         current_priority = None  # current priority level being resolved
 
         while pending:
@@ -327,20 +319,17 @@ class OnCallSchedule(PolymorphicModel):
                 # exclude events without active users
                 continue
 
-            if ev["calendar_type"] == OnCallSchedule.TYPE_ICAL_OVERRIDES:
-                # include overrides from start
-                resolved.append(ev)
-                continue
-
             # api/terraform shifts could be missing a priority; assume None means 0
             priority = ev["priority_level"] or 0
-            if priority != current_priority:
+            if priority != current_priority or current_type != ev["calendar_type"]:
                 # update scheduled intervals on priority change
                 # and start from the beginning for the new priority level
+                # also for calendar event type (overrides first, then apply regular shifts)
                 resolved.sort(key=event_start_cmp_key)
                 intervals = _merge_intervals(resolved)
                 current_interval_idx = 0
                 current_priority = priority
+                current_type = ev["calendar_type"]
 
             if current_interval_idx >= len(intervals):
                 # event outside scheduled intervals, add to resolved
@@ -576,7 +565,8 @@ class OnCallScheduleCalendar(OnCallSchedule):
         """
         Generate iCal events file from custom on-call shifts (created via API)
         """
-        ical = None
+        # default to empty string since it is not possible to have a no-events ical file
+        ical = ""
         if self.custom_on_call_shifts.exists():
             end_line = "END:VCALENDAR"
             calendar = Calendar()
@@ -607,7 +597,8 @@ class OnCallScheduleWeb(OnCallSchedule):
 
     def _generate_ical_file_from_shifts(self, qs, extra_shifts=None, allow_empty_users=False):
         """Generate iCal events file from custom on-call shifts."""
-        ical = None
+        # default to empty string since it is not possible to have a no-events ical file
+        ical = ""
         if qs.exists() or extra_shifts is not None:
             if extra_shifts is None:
                 extra_shifts = []
@@ -637,7 +628,11 @@ class OnCallScheduleWeb(OnCallSchedule):
         """Return cached ical file with iCal events from custom on-call shifts."""
         if self.cached_ical_file_primary is None:
             self.cached_ical_file_primary = self._generate_ical_file_primary()
-            self.save(update_fields=["cached_ical_file_primary"])
+            try:
+                self.save(update_fields=["cached_ical_file_primary"])
+            except DatabaseError:
+                # schedule may have been deleted from db
+                return
         return self.cached_ical_file_primary
 
     def _refresh_primary_ical_file(self):
@@ -650,7 +645,11 @@ class OnCallScheduleWeb(OnCallSchedule):
         """Return cached ical file with iCal events from custom on-call overrides shifts."""
         if self.cached_ical_file_overrides is None:
             self.cached_ical_file_overrides = self._generate_ical_file_overrides()
-            self.save(update_fields=["cached_ical_file_overrides"])
+            try:
+                self.save(update_fields=["cached_ical_file_overrides"])
+            except DatabaseError:
+                # schedule may have been deleted from db
+                return
         return self.cached_ical_file_overrides
 
     def _refresh_overrides_ical_file(self):

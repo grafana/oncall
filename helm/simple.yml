@@ -1,0 +1,23 @@
+base_url: localhost:30001
+ingress:
+  enabled: false
+ingress-nginx:
+  enabled: false
+cert-manager:
+  enabled: false
+service:
+  enabled: true
+  type: NodePort
+  port: 8080
+  nodePort: 30001
+grafana:
+  service:
+    type: NodePort
+    nodePort: 30002
+database:
+  # can be either mysql or postgresql
+  type: postgresql
+mariadb:
+  enabled: false
+postgresql:
+  enabled: true

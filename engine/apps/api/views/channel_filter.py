@@ -6,7 +6,7 @@ from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet
 
 from apps.alerts.models import ChannelFilter
-from apps.api.permissions import MODIFY_ACTIONS, READ_ACTIONS, ActionPermission, AnyRole, IsAdmin, IsAdminOrEditor
+from apps.api.permissions import RBACPermission
 from apps.api.serializers.channel_filter import (
     ChannelFilterCreateSerializer,
     ChannelFilterSerializer,
@@ -23,11 +23,17 @@ from common.insight_log import EntityEvent, write_resource_insight_log
 
 class ChannelFilterView(PublicPrimaryKeyMixin, CreateSerializerMixin, UpdateSerializerMixin, ModelViewSet):
     authentication_classes = (PluginAuthentication,)
-    permission_classes = (IsAuthenticated, ActionPermission)
-    action_permissions = {
-        IsAdmin: (*MODIFY_ACTIONS, "move_to_position"),
-        IsAdminOrEditor: ("send_demo_alert",),
-        AnyRole: READ_ACTIONS,
+    permission_classes = (IsAuthenticated, RBACPermission)
+    rbac_permissions = {
+        "metadata": [RBACPermission.Permissions.INTEGRATIONS_READ],
+        "list": [RBACPermission.Permissions.INTEGRATIONS_READ],
+        "retrieve": [RBACPermission.Permissions.INTEGRATIONS_READ],
+        "create": [RBACPermission.Permissions.INTEGRATIONS_WRITE],
+        "update": [RBACPermission.Permissions.INTEGRATIONS_WRITE],
+        "partial_update": [RBACPermission.Permissions.INTEGRATIONS_WRITE],
+        "destroy": [RBACPermission.Permissions.INTEGRATIONS_WRITE],
+        "move_to_position": [RBACPermission.Permissions.INTEGRATIONS_WRITE],
+        "send_demo_alert": [RBACPermission.Permissions.INTEGRATIONS_TEST],
     }
 
     model = ChannelFilter

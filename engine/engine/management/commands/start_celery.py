@@ -11,7 +11,7 @@ def restart_celery(*args, **kwargs):
     global WORKER_ID
     kill_worker_cmd = "celery -A engine control shutdown"
     subprocess.call(shlex.split(kill_worker_cmd))
-    start_worker_cmd = "celery -A engine worker -l info --concurrency=20 -Q celery,retry -n {}".format(WORKER_ID)
+    start_worker_cmd = "celery -A engine worker -l info --concurrency=3 -Q celery,retry -n {}".format(WORKER_ID)
     subprocess.call(shlex.split(start_worker_cmd))
     WORKER_ID = 1 + WORKER_ID
 

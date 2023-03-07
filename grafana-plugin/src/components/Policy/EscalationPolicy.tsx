@@ -12,7 +12,7 @@ import TimeRange from 'components/TimeRange/TimeRange';
 import Timeline from 'components/Timeline/Timeline';
 import GSelect from 'containers/GSelect/GSelect';
 import UserTooltip from 'containers/UserTooltip/UserTooltip';
-import { WithPermissionControl } from 'containers/WithPermissionControl/WithPermissionControl';
+import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
 import { prepareEscalationPolicy } from 'models/escalation_policy/escalation_policy.helpers';
 import {
   EscalationPolicy as EscalationPolicyType,
@@ -20,7 +20,7 @@ import {
 } from 'models/escalation_policy/escalation_policy.types';
 import { WaitDelay } from 'models/wait_delay';
 import { SelectOption } from 'state/types';
-import { UserAction } from 'state/userAction';
+import { UserActions } from 'utils/authorization';
 
 import DragHandle from './DragHandle';
 import PolicyNote from './PolicyNote';
@@ -53,14 +53,14 @@ export class EscalationPolicy extends React.Component<EscalationPolicyProps, any
 
     return (
       <Timeline.Item key={id} contentClassName={cx('root')} number={number} color={color}>
-        <WithPermissionControl disableByPaywall userAction={UserAction.UpdateEscalationPolicies}>
+        <WithPermissionControlTooltip disableByPaywall userAction={UserActions.EscalationChainsWrite}>
           <DragHandle />
-        </WithPermissionControl>
+        </WithPermissionControlTooltip>
         {escalationOption &&
           reactStringReplace(escalationOption.display_name, /\{\{([^}]+)\}\}/g, this.replacePlaceholder)}
         {this._renderNote()}
         {is_final ? null : (
-          <WithPermissionControl className={cx('delete')} userAction={UserAction.UpdateEscalationPolicies}>
+          <WithPermissionControlTooltip className={cx('delete')} userAction={UserActions.EscalationChainsWrite}>
             <IconButton
               name="trash-alt"
               className={cx('delete', 'control')}
@@ -69,7 +69,7 @@ export class EscalationPolicy extends React.Component<EscalationPolicyProps, any
               tooltip="Delete"
               tooltipPlacement="top"
             />
-          </WithPermissionControl>
+          </WithPermissionControlTooltip>
         )}
       </Timeline.Item>
     );
@@ -134,7 +134,11 @@ export class EscalationPolicy extends React.Component<EscalationPolicyProps, any
     const { notify_to_users_queue } = data;
 
     return (
-      <WithPermissionControl key="users-multiple" disableByPaywall userAction={UserAction.UpdateEscalationPolicies}>
+      <WithPermissionControlTooltip
+        key="users-multiple"
+        disableByPaywall
+        userAction={UserActions.EscalationChainsWrite}
+      >
         <GSelect
           isMulti
           showSearch
@@ -148,7 +152,7 @@ export class EscalationPolicy extends React.Component<EscalationPolicyProps, any
           onChange={this._getOnChangeHandler('notify_to_users_queue')}
           getOptionLabel={({ value }: SelectableValue) => <UserTooltip id={value} />}
         />
-      </WithPermissionControl>
+      </WithPermissionControlTooltip>
     );
   }
 
@@ -157,7 +161,7 @@ export class EscalationPolicy extends React.Component<EscalationPolicyProps, any
     const { important } = data;
 
     return (
-      <WithPermissionControl key="importance" disableByPaywall userAction={UserAction.UpdateEscalationPolicies}>
+      <WithPermissionControlTooltip key="importance" disableByPaywall userAction={UserActions.EscalationChainsWrite}>
         <Select
           menuShouldPortal
           className={cx('select', 'control')}
@@ -169,7 +173,7 @@ export class EscalationPolicy extends React.Component<EscalationPolicyProps, any
             { value: 1, label: 'Important', description: 'Manage "Important notifications" in personal settings' },
           ]}
         />
-      </WithPermissionControl>
+      </WithPermissionControlTooltip>
     );
   }
 
@@ -177,14 +181,14 @@ export class EscalationPolicy extends React.Component<EscalationPolicyProps, any
     const { data } = this.props;
 
     return (
-      <WithPermissionControl key="time-range" disableByPaywall userAction={UserAction.UpdateEscalationPolicies}>
+      <WithPermissionControlTooltip key="time-range" disableByPaywall userAction={UserActions.EscalationChainsWrite}>
         <TimeRange
           from={data.from_time}
           to={data.to_time}
           onChange={this._getOnTimeRangeChangeHandler()}
           className={cx('select', 'control')}
         />
-      </WithPermissionControl>
+      </WithPermissionControlTooltip>
     );
   }
 
@@ -193,7 +197,7 @@ export class EscalationPolicy extends React.Component<EscalationPolicyProps, any
     const { wait_delay } = data;
 
     return (
-      <WithPermissionControl key="wait-delay" disableByPaywall userAction={UserAction.UpdateEscalationPolicies}>
+      <WithPermissionControlTooltip key="wait-delay" disableByPaywall userAction={UserActions.EscalationChainsWrite}>
         <Select
           menuShouldPortal
           placeholder="Select Wait Delay"
@@ -206,7 +210,7 @@ export class EscalationPolicy extends React.Component<EscalationPolicyProps, any
             label: waitDelay.display_name,
           }))}
         />
-      </WithPermissionControl>
+      </WithPermissionControlTooltip>
     );
   }
 
@@ -215,10 +219,10 @@ export class EscalationPolicy extends React.Component<EscalationPolicyProps, any
     const { num_alerts_in_window } = data;
 
     return (
-      <WithPermissionControl
+      <WithPermissionControlTooltip
         key="num_alerts_in_window"
         disableByPaywall
-        userAction={UserAction.UpdateEscalationPolicies}
+        userAction={UserActions.EscalationChainsWrite}
       >
         <Input
           placeholder="Count"
@@ -232,7 +236,7 @@ export class EscalationPolicy extends React.Component<EscalationPolicyProps, any
             }
           }}
         />
-      </WithPermissionControl>
+      </WithPermissionControlTooltip>
     );
   }
 
@@ -241,10 +245,10 @@ export class EscalationPolicy extends React.Component<EscalationPolicyProps, any
     const { num_minutes_in_window } = data;
 
     return (
-      <WithPermissionControl
+      <WithPermissionControlTooltip
         key="num_minutes_in_window"
         disableByPaywall
-        userAction={UserAction.UpdateEscalationPolicies}
+        userAction={UserActions.EscalationChainsWrite}
       >
         <Select
           menuShouldPortal
@@ -258,7 +262,7 @@ export class EscalationPolicy extends React.Component<EscalationPolicyProps, any
             label: waitDelay.display_name,
           }))}
         />
-      </WithPermissionControl>
+      </WithPermissionControlTooltip>
     );
   }
 
@@ -267,8 +271,14 @@ export class EscalationPolicy extends React.Component<EscalationPolicyProps, any
     const { notify_schedule } = data;
 
     return (
-      <WithPermissionControl key="notify_schedule" disableByPaywall userAction={UserAction.UpdateEscalationPolicies}>
+      <WithPermissionControlTooltip
+        key="notify_schedule"
+        disableByPaywall
+        userAction={UserActions.EscalationChainsWrite}
+      >
         <GSelect
+          showSearch
+          allowClear
           modelName="scheduleStore"
           displayField="name"
           valueField="id"
@@ -278,7 +288,7 @@ export class EscalationPolicy extends React.Component<EscalationPolicyProps, any
           onChange={this._getOnChangeHandler('notify_schedule')}
           fromOrganization
         />
-      </WithPermissionControl>
+      </WithPermissionControlTooltip>
     );
   }
 
@@ -287,7 +297,11 @@ export class EscalationPolicy extends React.Component<EscalationPolicyProps, any
     const { notify_to_group } = data;
 
     return (
-      <WithPermissionControl key="notify_to_group" disableByPaywall userAction={UserAction.UpdateEscalationPolicies}>
+      <WithPermissionControlTooltip
+        key="notify_to_group"
+        disableByPaywall
+        userAction={UserActions.EscalationChainsWrite}
+      >
         <GSelect
           modelName="userGroupStore"
           displayField="name"
@@ -297,7 +311,7 @@ export class EscalationPolicy extends React.Component<EscalationPolicyProps, any
           value={notify_to_group}
           onChange={this._getOnChangeHandler('notify_to_group')}
         />
-      </WithPermissionControl>
+      </WithPermissionControlTooltip>
     );
   }
 
@@ -306,7 +320,7 @@ export class EscalationPolicy extends React.Component<EscalationPolicyProps, any
     const { custom_button_trigger } = data;
 
     return (
-      <WithPermissionControl key="custom-button" disableByPaywall userAction={UserAction.UpdateEscalationPolicies}>
+      <WithPermissionControlTooltip key="custom-button" disableByPaywall userAction={UserActions.EscalationChainsWrite}>
         <GSelect
           modelName="outgoingWebhookStore"
           displayField="name"
@@ -317,7 +331,7 @@ export class EscalationPolicy extends React.Component<EscalationPolicyProps, any
           onChange={this._getOnChangeHandler('custom_button_trigger')}
           fromOrganization
         />
-      </WithPermissionControl>
+      </WithPermissionControlTooltip>
     );
   }
 

@@ -5,10 +5,8 @@ from django.conf import settings
 from django.db import transaction
 from django.utils import timezone
 from kombu import uuid as celery_uuid
-from push_notifications.models import APNSDevice
 
 from apps.alerts.constants import NEXT_ESCALATION_DELAY
-from apps.alerts.incident_appearance.renderers.web_renderer import AlertGroupWebRenderer
 from apps.alerts.signals import user_notification_action_triggered_signal
 from apps.base.messaging import get_messaging_backend_from_id
 from apps.base.utils import live_settings
@@ -55,13 +53,13 @@ def notify_user_task(
         organization = alert_group.channel.organization
 
         if not user.is_notification_allowed:
-            task_logger.info(f"notify_user_task: user {user.pk} notification is not allowed for role {user.role}")
+            task_logger.info(f"notify_user_task: user {user.pk} notification is not allowed")
             UserNotificationPolicyLogRecord(
                 author=user,
                 type=UserNotificationPolicyLogRecord.TYPE_PERSONAL_NOTIFICATION_FAILED,
-                reason=f"notification is not allowed for user with role {user.role}",
+                reason=f"notification is not allowed for user",
                 alert_group=alert_group,
-                notification_error_code=UserNotificationPolicyLogRecord.ERROR_NOTIFICATION_NOT_ALLOWED_USER_ROLE,
+                notification_error_code=UserNotificationPolicyLogRecord.ERROR_NOTIFICATION_FORBIDDEN,
             ).save()
             return
 
@@ -254,9 +252,9 @@ def perform_notification(log_record_pk):
         UserNotificationPolicyLogRecord(
             author=user,
             type=UserNotificationPolicyLogRecord.TYPE_PERSONAL_NOTIFICATION_FAILED,
-            reason=f"notification is not allowed for user with role {user.role}",
+            reason=f"notification is not allowed for user",
             alert_group=alert_group,
-            notification_error_code=UserNotificationPolicyLogRecord.ERROR_NOTIFICATION_NOT_ALLOWED_USER_ROLE,
+            notification_error_code=UserNotificationPolicyLogRecord.ERROR_NOTIFICATION_FORBIDDEN,
         ).save()
         return
 
@@ -348,47 +346,6 @@ def perform_notification(log_record_pk):
                     notification_channel=notification_channel,
                     notification_error_code=UserNotificationPolicyLogRecord.ERROR_NOTIFICATION_IN_SLACK,
                 ).save()
-
-    elif notification_channel == UserNotificationPolicy.NotificationChannel.MOBILE_PUSH_GENERAL:
-        message = f"{AlertGroupWebRenderer(alert_group).render().get('title', 'Incident')}"
-        thread_id = f"{alert_group.channel.organization.public_primary_key}:{alert_group.public_primary_key}"
-        devices_to_notify = APNSDevice.objects.filter(user_id=user.pk)
-        devices_to_notify.send_message(
-            message,
-            thread_id=thread_id,
-            category="USER_NEW_INCIDENT",
-            extra={
-                "orgId": f"{alert_group.channel.organization.public_primary_key}",
-                "orgName": f"{alert_group.channel.organization.stack_slug}",
-                "incidentId": f"{alert_group.public_primary_key}",
-                "status": f"{alert_group.status}",
-                "aps": {
-                    "alert": f"{message}",
-                    "sound": "bingbong.aiff",
-                },
-            },
-        )
-
-    elif notification_channel == UserNotificationPolicy.NotificationChannel.MOBILE_PUSH_CRITICAL:
-        message = f"{AlertGroupWebRenderer(alert_group).render().get('title', 'Incident')}"
-        thread_id = f"{alert_group.channel.organization.public_primary_key}:{alert_group.public_primary_key}"
-        devices_to_notify = APNSDevice.objects.filter(user_id=user.pk)
-        devices_to_notify.send_message(
-            message,
-            thread_id=thread_id,
-            category="USER_NEW_INCIDENT",
-            extra={
-                "orgId": f"{alert_group.channel.organization.public_primary_key}",
-                "orgName": f"{alert_group.channel.organization.stack_slug}",
-                "incidentId": f"{alert_group.public_primary_key}",
-                "status": f"{alert_group.status}",
-                "aps": {
-                    "alert": f"Critical page: {message}",
-                    "interruption-level": "critical",
-                    "sound": "ambulance.aiff",
-                },
-            },
-        )
     else:
         try:
             backend_id = UserNotificationPolicy.NotificationChannel(notification_policy.notify_by).name

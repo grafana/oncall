@@ -1,10 +1,8 @@
 import 'jest/matchMedia.ts';
 import React from 'react';
 
-import { describe, expect, test } from '@jest/globals';
 import { render, screen } from '@testing-library/react';
 
-import '@testing-library/jest-dom';
 import SourceCode from './SourceCode';
 
 describe('SourceCode', () => {
