@@ -153,9 +153,9 @@ class AlertRules extends React.Component<AlertRulesProps, AlertRulesState> {
     const maintenanceMode = alertReceiveChannel.maintenance_mode;
     return (
       <>
-        <div className={cx('root')}>
+        <div className={cx('root')} data-testid="integration-settings">
           <Block className={cx('headerBlock')}>
-            <div className={cx('integration__heading-container')}>
+            <div className={cx('integration__heading-container')} data-testid="integration-header">
               <div className={cx('integration__heading-container-left')}>
                 <Text.Title level={4}>
                   <div className={cx('integration__heading-text')}>
@@ -186,6 +186,7 @@ class AlertRules extends React.Component<AlertRulesProps, AlertRulesState> {
                       variant="secondary"
                       size="sm"
                       onClick={this.getSendDemoAlertClickHandler(alertReceiveChannel.id)}
+                      data-testid="send-demo-alert"
                     >
                       Send demo alert
                     </Button>
@@ -259,7 +260,7 @@ class AlertRules extends React.Component<AlertRulesProps, AlertRulesState> {
                   title="Edit integration name"
                   onDismiss={() => this.setState({ editIntegrationName: undefined })}
                 >
-                  <div className={cx('root')}>
+                  <div className={cx('root')} data-testid="edit-integration-name-modal">
                     <Field invalid={isIntegrationNameempty} label="Integration name">
                       <Input
                         autoFocus

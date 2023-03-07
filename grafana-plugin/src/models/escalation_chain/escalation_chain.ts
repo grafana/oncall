@@ -16,6 +16,9 @@ export class EscalationChainStore extends BaseStore {
   @observable.shallow
   searchResult: { [key: string]: Array<EscalationChain['id']> } = {};
 
+  @observable
+  loading = false;
+
   constructor(rootStore: RootStore) {
     super(rootStore);
 
@@ -66,6 +69,8 @@ export class EscalationChainStore extends BaseStore {
 
   @action
   async updateItems(query = '') {
+    this.loading = true;
+
     const results = await makeRequest(`${this.path}`, {
       params: { search: query },
     });
@@ -85,6 +90,8 @@ export class EscalationChainStore extends BaseStore {
       ...this.searchResult,
       [query]: results.map((item: EscalationChain) => item.id),
     };
+
+    this.loading = false;
   }
 
   getSearchResult(query = '') {

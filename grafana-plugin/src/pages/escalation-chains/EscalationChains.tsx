@@ -143,6 +143,7 @@ class EscalationChainsPage extends React.Component<EscalationChainsPageProps, Es
     } = this.state;
 
     const { escalationChainStore } = store;
+    const { loading } = escalationChainStore;
     const searchResult = escalationChainStore.getSearchResult(escalationChainsFilters.searchTerm);
 
     return (
@@ -161,17 +162,19 @@ class EscalationChainsPage extends React.Component<EscalationChainsPageProps, Es
               {!searchResult || searchResult.length ? (
                 <div className={cx('escalations')}>
                   <div className={cx('left-column')}>
-                    <WithPermissionControlTooltip userAction={UserActions.IntegrationsWrite}>
-                      <Button
-                        onClick={() => {
-                          this.setState({ showCreateEscalationChainModal: true });
-                        }}
-                        icon="plus"
-                        className={cx('new-escalation-chain')}
-                      >
-                        New Escalation Chain
-                      </Button>
-                    </WithPermissionControlTooltip>
+                    {!loading && (
+                      <WithPermissionControlTooltip userAction={UserActions.IntegrationsWrite}>
+                        <Button
+                          onClick={() => {
+                            this.setState({ showCreateEscalationChainModal: true });
+                          }}
+                          icon="plus"
+                          className={cx('new-escalation-chain')}
+                        >
+                          New Escalation Chain
+                        </Button>
+                      </WithPermissionControlTooltip>
+                    )}
                     <div className={cx('escalations-list')}>
                       {searchResult ? (
                         <GList
