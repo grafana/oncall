@@ -373,7 +373,7 @@ class IncidentPage extends React.Component<IncidentPageProps, IncidentPageState>
 
             <HorizontalGroup>
               <EscalationVariants
-                variant="default"
+                variant="secondary"
                 hideSelected
                 value={prepareForEdit(incident.paged_users)}
                 onUpdateEscalationVariants={this.handleAddResponders}

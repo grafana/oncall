@@ -86,11 +86,11 @@ const UserWarning: FC<UserWarningProps> = (props) => {
   );
 
   return (
-    <Modal isOpen title="Add responder" onDismiss={onHide}>
+    <Modal isOpen title="Add responder" onDismiss={onHide} className={cx('modal')}>
       <VerticalGroup className={cx('user-warning')}>
         {showUserHasNoNotificationPolicyWarning && (
           <HorizontalGroup>
-            <Icon name="exclamation-triangle" style={{ color: 'orange' }} />
+            <Icon name="exclamation-triangle" style={{ color: 'var(--error-text-color)' }} />
             <Text>
               <Text strong>{user.username}</Text> has no notification policy
             </Text>
@@ -129,7 +129,12 @@ const UserWarning: FC<UserWarningProps> = (props) => {
           </ul>
         )}
         <Text>
-          Are you sure you want to select <Text strong>{user.username}</Text>?
+          <HorizontalGroup>
+            <Icon name="question-circle" />
+            <Text>
+              Are you sure you want to select <Text strong>{user.username}</Text>?
+            </Text>
+          </HorizontalGroup>
         </Text>
         <HorizontalGroup justify="flex-end">
           <Button variant="secondary" onClick={onHide}>

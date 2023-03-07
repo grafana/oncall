@@ -4,6 +4,7 @@ import { HorizontalGroup, IconButton } from '@grafana/ui';
 import cn from 'classnames/bind';
 
 import Avatar from 'components/Avatar/Avatar';
+import PluginLink from 'components/PluginLink/PluginLink';
 import Text from 'components/Text/Text';
 import WithConfirm from 'components/WithConfirm/WithConfirm';
 import { WithPermissionControl } from 'containers/WithPermissionControl/WithPermissionControl';
@@ -46,18 +47,28 @@ const PagedUsers = (props: PagedUsersProps) => {
                 <Avatar size="big" src={pagedUser.avatar} />
                 <Text strong>{pagedUser.username}</Text>
               </HorizontalGroup>
-              <WithPermissionControl userAction={UserActions.AlertGroupsWrite}>
-                <WithConfirm
-                  title={`Are you sure to remove "${pagedUser.username}" from responders?`}
-                  confirmText="Remove"
-                >
+              <HorizontalGroup>
+                <PluginLink className={cx('hover-button')} target="_blank" query={{ page: 'users', id: pagedUser.pk }}>
                   <IconButton
-                    onClick={getPagedUserRemoveHandler(pagedUser.pk)}
-                    tooltip="Remove from responders"
-                    name="trash-alt"
+                    tooltip="Open user profile in new tab"
+                    style={{ color: 'var(--always-gray)' }}
+                    name="external-link-alt"
                   />
-                </WithConfirm>
-              </WithPermissionControl>
+                </PluginLink>
+                <WithPermissionControl userAction={UserActions.AlertGroupsWrite}>
+                  <WithConfirm
+                    title={`Are you sure to remove "${pagedUser.username}" from responders?`}
+                    confirmText="Remove"
+                  >
+                    <IconButton
+                      className={cx('hover-button')}
+                      onClick={getPagedUserRemoveHandler(pagedUser.pk)}
+                      tooltip="Remove from responders"
+                      name="trash-alt"
+                    />
+                  </WithConfirm>
+                </WithPermissionControl>
+              </HorizontalGroup>
             </HorizontalGroup>
           </li>
         ))}
