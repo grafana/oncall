@@ -11,6 +11,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Show permission error for accessing Telegram as Viewer ([1273](https://github.com/grafana/oncall/issues/1273))
 
+### Changed
+
+- Pass email and phone limits as environment variables ([1219](https://github.com/grafana/oncall/pull/1219))
+
 ## v1.1.32 (2023-03-01)
 
 ### Fixed
