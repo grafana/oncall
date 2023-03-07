@@ -210,6 +210,20 @@ const UserResponder = ({ important, data, onImportantChange, handleDelete }) => 
                   (value === 0 && !data.notification_chain_verbal.default) ||
                   (value === 1 && !data.notification_chain_verbal.important)
                 }
+                getOptionLabel={({ value, label }) => {
+                  return (
+                    <Text
+                      type={
+                        (value === 0 && !data.notification_chain_verbal.default) ||
+                        (value === 1 && !data.notification_chain_verbal.important)
+                          ? 'disabled'
+                          : 'primary'
+                      }
+                    >
+                      {label}
+                    </Text>
+                  );
+                }}
                 onChange={onImportantChange}
               />
               <Text type="secondary">notification chain</Text>
