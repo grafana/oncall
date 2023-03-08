@@ -55,6 +55,7 @@ from apps.base.tests.factories import (
 )
 from apps.email.tests.factories import EmailMessageFactory
 from apps.heartbeat.tests.factories import IntegrationHeartBeatFactory
+from apps.mobile_app.models import MobileAppVerificationToken
 from apps.schedules.tests.factories import (
     CustomOnCallShiftFactory,
     OnCallScheduleCalendarFactory,
@@ -173,6 +174,14 @@ def make_token_for_organization():
         return PluginAuthToken.create_auth_token(organization)
 
     return _make_token_for_organization
+
+
+@pytest.fixture
+def make_mobile_app_verification_token_for_user():
+    def _make_mobile_app_verification_token_for_user(user, organization):
+        return MobileAppVerificationToken.create_auth_token(user, organization)
+
+    return _make_mobile_app_verification_token_for_user
 
 
 @pytest.fixture
@@ -641,6 +650,20 @@ def make_organization_and_user_with_plugin_token(make_organization_and_user, mak
         return organization, user, token
 
     return _make_organization_and_user_with_plugin_token
+
+
+@pytest.fixture()
+def make_organization_and_user_with_mobile_app_verification_token(
+    make_organization_and_user, make_mobile_app_verification_token_for_user
+):
+    def _make_organization_and_user_with_mobile_app_verification_token(
+        role: typing.Optional[LegacyAccessControlRole] = None,
+    ):
+        organization, user = make_organization_and_user(role)
+        _, token = make_mobile_app_verification_token_for_user(user, organization)
+        return organization, user, token
+
+    return _make_organization_and_user_with_mobile_app_verification_token
 
 
 @pytest.fixture()

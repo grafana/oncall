@@ -51,9 +51,7 @@ class MobileAppVerificationToken(BaseAuthToken):
 
 
 class MobileAppAuthToken(BaseAuthToken):
-    user = models.ForeignKey(
-        to=User, null=False, blank=False, related_name="mobile_app_auth_tokens", on_delete=models.CASCADE
-    )
+    user = models.OneToOneField(to=User, null=False, blank=False, on_delete=models.CASCADE)
     organization = models.ForeignKey(
         to=Organization, null=False, blank=False, related_name="mobile_app_auth_tokens", on_delete=models.CASCADE
     )
