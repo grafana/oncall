@@ -6,11 +6,13 @@ import {
   ConfirmModal,
   Field,
   HorizontalGroup,
+  Icon,
   IconButton,
   Input,
   LoadingPlaceholder,
   Modal,
   Tooltip,
+  VerticalGroup,
 } from '@grafana/ui';
 import cn from 'classnames/bind';
 import { observer } from 'mobx-react';
@@ -19,6 +21,7 @@ import Emoji from 'react-emoji-render';
 import Collapse from 'components/Collapse/Collapse';
 import Block from 'components/GBlock/Block';
 import PluginLink from 'components/PluginLink/PluginLink';
+import SourceCode from 'components/SourceCode/SourceCode';
 import Text from 'components/Text/Text';
 import WithConfirm from 'components/WithConfirm/WithConfirm';
 import { parseEmojis } from 'containers/AlertRules/AlertRules.helpers';
@@ -261,7 +264,7 @@ class AlertRules extends React.Component<AlertRulesProps, AlertRulesState> {
                   onDismiss={() => this.setState({ editIntegrationName: undefined })}
                 >
                   <div className={cx('root')} data-testid="edit-integration-name-modal">
-                    <Field invalid={isIntegrationNameempty} label="Integration name">
+                    <Field invalid={isIntegrationNameempty}>
                       <Input
                         autoFocus
                         value={editIntegrationName}
@@ -694,40 +697,99 @@ class AlertRules extends React.Component<AlertRulesProps, AlertRulesState> {
 
     const index = channelFilterIds.indexOf(channelFilterId);
     return (
-      <div className={cx('channel-filter-header')}>
-        <div className={cx('channel-filter-header-title')}>
-          {channelFilter.is_default ? (
-            <Text type="success">{channelFilterIds.length > 1 ? 'ELSE ' : ''}</Text>
-          ) : (
-            <>
-              <Text type="success">{index === 0 ? 'IF ' : 'ELSE IF '}</Text>alert payload matches regex
-              <Text
-                keyboard
-                //@ts-ignore
-                onClick={this.getEditChannelFilterClickHandler(channelFilter)}
-              >
-                {channelFilter.filtering_term}
-              </Text>
-            </>
-          )}
-          escalate to{' '}
-          <WithPermissionControlTooltip userAction={UserActions.IntegrationsWrite}>
-            <div onClick={(e) => e.stopPropagation()}>
-              <GSelect
-                showSearch
-                modelName="escalationChainStore"
-                displayField="name"
-                placeholder="Select Escalation Chain"
-                className={cx('select', 'control', 'no-trigger-collapse-please')}
-                value={channelFilter.escalation_chain}
-                onChange={this.getEscalationChainChangeHandler(channelFilterId)}
-                showWarningIfEmptyValue={true}
-              />
+      <>
+        <div className={cx('channel-filter-header')}>
+          <div className={cx('channel-filter-header-left')}>
+            <div className={cx('channel-filter-header-title')}>
+              {channelFilter.is_default ? (
+                <>
+                  {channelFilterIds.length > 1 && <Text keyboard>ELSE</Text>}
+                  <Text>route to escalation chain:</Text>
+                  <WithPermissionControlTooltip userAction={UserActions.IntegrationsWrite}>
+                    <div onClick={(e) => e.stopPropagation()}>
+                      <GSelect
+                        showSearch
+                        modelName="escalationChainStore"
+                        displayField="name"
+                        placeholder="Select Escalation Chain"
+                        className={cx('select', 'control', 'no-trigger-collapse-please')}
+                        value={channelFilter.escalation_chain}
+                        onChange={this.getEscalationChainChangeHandler(channelFilterId)}
+                        showWarningIfEmptyValue={true}
+                        width={'auto'}
+                        icon={'list-ul'}
+                      />
+                    </div>
+                  </WithPermissionControlTooltip>
+                </>
+              ) : (
+                <>
+                  <Text keyboard>{index === 0 ? 'IF' : 'ELSE IF'}</Text>
+                  {channelFilter.filtering_term_type === 0 ? (
+                    <>
+                      <Tooltip content={'Recommend you to switch from regular expressions to jinja2 templates'}>
+                        <Text>regular expression</Text>
+                      </Tooltip>
+                      <Tooltip content={'We recommend to switch to jinja2 based routes'}>
+                        <Icon
+                          name="exclamation-circle"
+                          style={{
+                            color: '#FF5286',
+                          }}
+                        />
+                      </Tooltip>
+                    </>
+                  ) : (
+                    <Text>jinja2 expression</Text>
+                  )}
+                  <Text>is</Text>
+                  <Text keyboard>{'True'}</Text>
+                  <Text>{'for new Alert Group:'}</Text>
+                </>
+              )}
             </div>
-          </WithPermissionControlTooltip>
+          </div>
+          <div className={cx('channel-filter-header-right')}>
+            <div onClick={(e) => e.stopPropagation()}>{this.renderChannelFilterButtons(channelFilterId, index)}</div>
+          </div>
         </div>
-        <div onClick={(e) => e.stopPropagation()}>{this.renderChannelFilterButtons(channelFilterId, index)}</div>
-      </div>
+        {!channelFilter.is_default && (
+          <VerticalGroup>
+            <HorizontalGroup>
+              {!channelFilter.is_default && (
+                <>
+                  {channelFilter.filtering_term_type === 0 ? (
+                    <SourceCode showCopyToClipboard={false}>
+                      {'payload =~ "' + channelFilter.filtering_term + '"'}
+                    </SourceCode>
+                  ) : (
+                    <SourceCode showCopyToClipboard={false}>{channelFilter.filtering_term}</SourceCode>
+                  )}
+                </>
+              )}
+            </HorizontalGroup>
+            <HorizontalGroup>
+              <Text>{'route to escalation chain: '}</Text>
+              <WithPermissionControlTooltip userAction={UserActions.IntegrationsWrite}>
+                <div onClick={(e) => e.stopPropagation()}>
+                  <GSelect
+                    showSearch
+                    modelName="escalationChainStore"
+                    displayField="name"
+                    placeholder="Select Escalation Chain"
+                    className={cx('select', 'control', 'no-trigger-collapse-please')}
+                    value={channelFilter.escalation_chain}
+                    onChange={this.getEscalationChainChangeHandler(channelFilterId)}
+                    showWarningIfEmptyValue={true}
+                    width={'auto'}
+                    icon={'list-ul'}
+                  />
+                </div>
+              </WithPermissionControlTooltip>
+            </HorizontalGroup>
+          </VerticalGroup>
+        )}
+      </>
     );
   };
 
