@@ -16,8 +16,8 @@ class Migration(migrations.Migration):
             name='filtering_term_type',
             field=models.IntegerField(choices=[(0, 'regex'), (1, 'jinja2')], default=0),
         ),
-        # Adding same default value on the database level
-        # for database backwards-compatibility with older versions of code
+        # migrations.AddField enforces the default value on the app level, which leads to the issues during release
+        # adding same default value on the database level
         AddDefaultValue(
             model_name='channelfilter',
             name='filtering_term_type',
