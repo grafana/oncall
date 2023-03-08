@@ -170,6 +170,7 @@ MIRAGE_SECRET_KEY
 {{- end -}}
 {{- end -}}
 {{- end -}}
+{{- end -}}
 
 {{- define "snippet.celery.env" -}}
 {{- if .Values.celery.worker_queue }}
