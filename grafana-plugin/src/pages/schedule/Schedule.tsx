@@ -157,7 +157,7 @@ class SchedulePage extends React.Component<SchedulePageProps, SchedulePageState>
                         >
                           {schedule?.name}
                         </Text.Title>
-                        {schedule && <ScheduleWarning item={schedule} />}
+                        {schedule && <ScheduleQuality schedule={schedule} lastUpdated={this.state.lastUpdated} />}
                       </HorizontalGroup>
                       <HorizontalGroup spacing="lg">
                         {users && (
@@ -351,14 +351,14 @@ class SchedulePage extends React.Component<SchedulePageProps, SchedulePageState>
 
     const { startMoment } = this.state;
 
-    store.scheduleStore
-      .updateItem(scheduleId) // to refresh current oncall users
-      .catch((error) => this.setState({ errorData: { ...getWrongTeamResponseInfo(error) } }));
-    
     this.setState((prevState) => ({
       // this will update schedule score
       lastUpdated: prevState.lastUpdated + 1,
     }));
+
+    store.scheduleStore
+      .updateItem(scheduleId) // to refresh current oncall users
+      .catch((error) => this.setState({ errorData: { ...getWrongTeamResponseInfo(error) } }));
     store.scheduleStore.updateRelatedUsers(scheduleId); // to refresh related users
 
     return Promise.all([
