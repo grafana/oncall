@@ -48,6 +48,9 @@ export class RootBaseStore {
   backendLicense = '';
 
   @observable
+  recaptchaSiteKey = '';
+
+  @observable
   initializationError = null;
 
   @observable
@@ -195,6 +198,7 @@ export class RootBaseStore {
       // everything is all synced successfully at this point..
       this.backendVersion = syncDataResponse.version;
       this.backendLicense = syncDataResponse.license;
+      this.recaptchaSiteKey = syncDataResponse.recaptcha_site_key;
     }
 
     try {

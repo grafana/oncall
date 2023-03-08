@@ -40,6 +40,7 @@ def test_notify_user_async_cloud(
 
     # check FCM is contacted directly when using the cloud license
     settings.LICENSE = CLOUD_LICENSE_NAME
+    settings.IS_OPEN_SOURCE = False
     with patch.object(FCMDevice, "send_message", return_value="ok") as mock:
         notify_user_async(
             user_pk=user.pk,
@@ -196,6 +197,7 @@ def test_notify_user_retry(
     make_alert(alert_group=alert_group, raw_request_data={})
 
     settings.LICENSE = CLOUD_LICENSE_NAME
+    settings.IS_OPEN_SOURCE = False
     # check that FirebaseError is raised when send_message returns it so Celery task can retry
     with patch.object(
         FCMDevice, "send_message", return_value=FirebaseError(code="test_error_code", message="test_error_message")

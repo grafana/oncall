@@ -7,7 +7,7 @@ import LegacyNavHeading from 'navbar/LegacyNavHeading';
 
 import Text from 'components/Text/Text';
 import ApiTokenSettings from 'containers/ApiTokenSettings/ApiTokenSettings';
-import { WithPermissionControl } from 'containers/WithPermissionControl/WithPermissionControl';
+import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
 import { WithStoreProps } from 'state/types';
 import { withMobXProviderContext } from 'state/withStore';
 import { UserActions } from 'utils/authorization';
@@ -53,7 +53,7 @@ class SettingsPage extends React.Component<SettingsPageProps, SettingsPageState>
             label="Require a resolution note when resolving Alert Groups"
             description={`Once user clicks "Resolve" for an Alert Group, they will be required to fill in a resolution note about the Alert Group`}
           >
-            <WithPermissionControl userAction={UserActions.OtherSettingsWrite}>
+            <WithPermissionControlTooltip userAction={UserActions.OtherSettingsWrite}>
               <Switch
                 value={teamStore.currentTeam?.is_resolution_note_required}
                 onChange={(event) => {
@@ -62,7 +62,7 @@ class SettingsPage extends React.Component<SettingsPageProps, SettingsPageState>
                   });
                 }}
               />
-            </WithPermissionControl>
+            </WithPermissionControlTooltip>
           </Field>
         </div>
         <Text.Title level={3} className={cx('title')}>

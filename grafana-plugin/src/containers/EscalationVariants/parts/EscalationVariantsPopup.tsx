@@ -155,10 +155,10 @@ const EscalationVariantsPopup = observer((props: EscalationVariantsPopupProps) =
             onChange={setSchedulesSearchTerm}
           />
           <GTable
-            emptyText={store.scheduleStore.getSearchResult() ? 'No schedules found' : 'Loading...'}
+            emptyText={store.scheduleStore.getSearchResult()?.results ? 'No schedules found' : 'Loading...'}
             rowKey="id"
             columns={scheduleColumns}
-            data={store.scheduleStore.getSearchResult()}
+            data={store.scheduleStore.getSearchResult()?.results}
             className={cx('schedule-table')}
             showHeader={false}
           />
@@ -173,10 +173,10 @@ const EscalationVariantsPopup = observer((props: EscalationVariantsPopupProps) =
             onChange={setUsersSearchTerm}
           />
           <GTable
-            emptyText={store.userStore.getSearchResult().results ? 'No users found' : 'Loading...'}
+            emptyText={store.userStore.getSearchResult()?.results ? 'No users found' : 'Loading...'}
             rowKey="id"
             columns={userColumns}
-            data={store.userStore.getSearchResult().results}
+            data={store.userStore.getSearchResult()?.results}
             className={cx('schedule-table')}
             showHeader={false}
           />

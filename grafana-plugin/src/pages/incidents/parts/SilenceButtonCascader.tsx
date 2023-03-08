@@ -3,7 +3,7 @@ import React from 'react';
 import { ButtonCascader, ComponentSize } from '@grafana/ui';
 import { observer } from 'mobx-react';
 
-import { WithPermissionControl } from 'containers/WithPermissionControl/WithPermissionControl';
+import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
 import { SelectOption } from 'state/types';
 import { useStore } from 'state/useStore';
 import { UserActions } from 'utils/authorization';
@@ -23,7 +23,7 @@ export const SilenceButtonCascader = observer((props: SilenceButtonCascaderProps
   const silenceOptions = alertGroupStore.silenceOptions || [];
 
   return (
-    <WithPermissionControl key="silence" userAction={UserActions.AlertGroupsWrite}>
+    <WithPermissionControlTooltip key="silence" userAction={UserActions.AlertGroupsWrite}>
       <ButtonCascader
         variant="secondary"
         className={className}
@@ -35,7 +35,7 @@ export const SilenceButtonCascader = observer((props: SilenceButtonCascaderProps
       >
         Silence
       </ButtonCascader>
-    </WithPermissionControl>
+    </WithPermissionControlTooltip>
   );
 
   function getOptions() {

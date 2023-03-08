@@ -1,13 +1,14 @@
 import React from 'react';
 
 import { Button, HorizontalGroup, IconButton, Tooltip, VerticalGroup } from '@grafana/ui';
+import cn from 'classnames/bind';
 
 import Avatar from 'components/Avatar/Avatar';
 import { MatchMediaTooltip } from 'components/MatchMediaTooltip/MatchMediaTooltip';
 import PluginLink from 'components/PluginLink/PluginLink';
 import Tag from 'components/Tag/Tag';
 import Text from 'components/Text/Text';
-import { WithPermissionControl } from 'containers/WithPermissionControl/WithPermissionControl';
+import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
 import { MaintenanceIntegration } from 'models/alert_receive_channel';
 import { Alert as AlertType, Alert, IncidentStatus } from 'models/alertgroup/alertgroup.types';
 import { User } from 'models/user/user.types';
@@ -17,11 +18,15 @@ import { getVar } from 'utils/DOM';
 import { UserActions } from 'utils/authorization';
 import { TABLE_COLUMN_MAX_WIDTH } from 'utils/consts';
 
+import styles from './Incident.module.scss';
+
+const cx = cn.bind(styles);
+
 export function getIncidentStatusTag(alert: Alert) {
   switch (alert.status) {
     case IncidentStatus.Firing:
       return (
-        <Tag color={getVar('--tag-danger')}>
+        <Tag color={getVar('--tag-danger')} className={cx('status-tag')}>
           <Text strong size="small">
             Firing
           </Text>
@@ -29,7 +34,7 @@ export function getIncidentStatusTag(alert: Alert) {
       );
     case IncidentStatus.Acknowledged:
       return (
-        <Tag color={getVar('--tag-warning')}>
+        <Tag color={getVar('--tag-warning')} className={cx('status-tag')}>
           <Text strong size="small">
             Acknowledged
           </Text>
@@ -37,7 +42,7 @@ export function getIncidentStatusTag(alert: Alert) {
       );
     case IncidentStatus.Resolved:
       return (
-        <Tag color={getVar('--tag-primary')}>
+        <Tag color={getVar('--tag-primary')} className={cx('status-tag')}>
           <Text strong size="small">
             Resolved
           </Text>
@@ -45,7 +50,7 @@ export function getIncidentStatusTag(alert: Alert) {
       );
     case IncidentStatus.Silenced:
       return (
-        <Tag color={getVar('--tag-secondary')}>
+        <Tag color={getVar('--tag-secondary')} className={cx('status-tag')}>
           <Text strong size="small">
             Silenced
           </Text>
@@ -150,35 +155,35 @@ export function getActionButtons(incident: AlertType, cx: any, callbacks: { [key
   const { onResolve, onUnresolve, onAcknowledge, onUnacknowledge, onSilence, onUnsilence } = callbacks;
 
   const resolveButton = (
-    <WithPermissionControl key="resolve" userAction={UserActions.AlertGroupsWrite}>
+    <WithPermissionControlTooltip key="resolve" userAction={UserActions.AlertGroupsWrite}>
       <Button disabled={incident.loading} onClick={onResolve} variant="primary">
         Resolve
       </Button>
-    </WithPermissionControl>
+    </WithPermissionControlTooltip>
   );
 
   const unacknowledgeButton = (
-    <WithPermissionControl key="unacknowledge" userAction={UserActions.AlertGroupsWrite}>
+    <WithPermissionControlTooltip key="unacknowledge" userAction={UserActions.AlertGroupsWrite}>
       <Button disabled={incident.loading} onClick={onUnacknowledge} variant="secondary">
         Unacknowledge
       </Button>
-    </WithPermissionControl>
+    </WithPermissionControlTooltip>
   );
 
   const unresolveButton = (
-    <WithPermissionControl key="unacknowledge" userAction={UserActions.AlertGroupsWrite}>
+    <WithPermissionControlTooltip key="unacknowledge" userAction={UserActions.AlertGroupsWrite}>
       <Button disabled={incident.loading} onClick={onUnresolve} variant="primary">
         Unresolve
       </Button>
-    </WithPermissionControl>
+    </WithPermissionControlTooltip>
   );
 
   const acknowledgeButton = (
-    <WithPermissionControl key="acknowledge" userAction={UserActions.AlertGroupsWrite}>
+    <WithPermissionControlTooltip key="acknowledge" userAction={UserActions.AlertGroupsWrite}>
       <Button disabled={incident.loading} onClick={onAcknowledge} variant="secondary">
         Acknowledge
       </Button>
-    </WithPermissionControl>
+    </WithPermissionControlTooltip>
   );
 
   const buttons = [];
@@ -197,11 +202,11 @@ export function getActionButtons(incident: AlertType, cx: any, callbacks: { [key
 
     if (incident.status === IncidentStatus.Silenced) {
       buttons.push(
-        <WithPermissionControl key="silence" userAction={UserActions.AlertGroupsWrite}>
+        <WithPermissionControlTooltip key="silence" userAction={UserActions.AlertGroupsWrite}>
           <Button disabled={incident.loading} variant="secondary" onClick={onUnsilence}>
             Unsilence
           </Button>
-        </WithPermissionControl>
+        </WithPermissionControlTooltip>
       );
     }
 
