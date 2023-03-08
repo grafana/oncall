@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+### Added
+
+- Jinja2 based routes ([1319](https://github.com/grafana/oncall/pull/1319))
+
 ### Fixed
 
 - Prohibit creating & updating past overrides ([1474](https://github.com/grafana/oncall/pull/1474))
