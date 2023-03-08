@@ -11,7 +11,7 @@ export const createIntegrationAndSendDemoAlert = async (
   await goToOnCallPageByClickingOnTab(page, 'Integrations');
 
   // open the create integration modal
-  (await page.waitForSelector('text=New integration for receiving alerts')).click();
+  (await page.waitForSelector('text=New integration to receive alerts')).click();
 
   // create a webhook integration
   (await page.waitForSelector('div[data-testid="create-integration-modal"] >> text=Webhook')).click();

@@ -4,29 +4,21 @@ import { Button, Label } from '@grafana/ui';
 import cn from 'classnames/bind';
 
 import { UserSettingsTab } from 'containers/UserSettings/UserSettings.types';
-import { AppFeature } from 'state/features';
-import { useStore } from 'state/useStore';
 
 import styles from './index.module.css';
 
 const cx = cn.bind(styles);
 
-interface SlackConnectorProps {
+interface MobileAppConnectorProps {
   onTabChange: (tab: UserSettingsTab) => void;
 }
 
-const SlackConnector = (props: SlackConnectorProps) => {
+const MobileAppConnector = (props: MobileAppConnectorProps) => {
   const { onTabChange } = props;
-
-  const store = useStore();
 
   const handleClickConfirmMobileAppButton = useCallback(() => {
     onTabChange(UserSettingsTab.MobileAppConnection);
   }, [onTabChange]);
-
-  if (!store.hasFeature(AppFeature.MobileApp)) {
-    return null;
-  }
 
   return (
     <div className={cx('user-item')}>
@@ -40,4 +32,4 @@ const SlackConnector = (props: SlackConnectorProps) => {
   );
 };
 
-export default SlackConnector;
+export default MobileAppConnector;
