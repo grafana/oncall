@@ -554,8 +554,7 @@ class IncidentPage extends React.Component<IncidentPageProps, IncidentPageState>
             </span>
           );
         default:
-          console.warn('Unknown render_after_resolve_report_json entity placeholder');
-          return '';
+          return '{{' + match + '}}';
       }
     };
   };

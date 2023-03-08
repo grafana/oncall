@@ -922,6 +922,30 @@ def test_create_on_call_shift_override_invalid_data(on_call_shift_internal_api_s
 
 
 @pytest.mark.django_db
+def test_create_on_call_shift_override_in_past(on_call_shift_internal_api_setup, make_user_auth_headers):
+    token, user1, _, _, schedule = on_call_shift_internal_api_setup
+    client = APIClient()
+    url = reverse("api-internal:oncall_shifts-list")
+    start_date = timezone.now().replace(microsecond=0, tzinfo=None) - timezone.timedelta(hours=2)
+
+    data = {
+        "title": "Test Shift Override",
+        "type": CustomOnCallShift.TYPE_OVERRIDE,
+        "schedule": schedule.public_primary_key,
+        "priority_level": 0,
+        "shift_start": start_date.strftime("%Y-%m-%dT%H:%M:%SZ"),
+        "shift_end": (start_date + timezone.timedelta(hours=1)).strftime("%Y-%m-%dT%H:%M:%SZ"),
+        "rotation_start": start_date.strftime("%Y-%m-%dT%H:%M:%SZ"),
+        "rolling_users": [[user1.public_primary_key]],
+    }
+
+    response = client.post(url, data, format="json", **make_user_auth_headers(user1, token))
+
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert response.data["shift_end"][0] == "Cannot create or update an override in the past"
+
+
+@pytest.mark.django_db
 @pytest.mark.parametrize(
     "role,expected_status",
     [

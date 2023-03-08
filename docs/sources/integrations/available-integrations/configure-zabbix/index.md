@@ -23,7 +23,7 @@ space consumption.
 
 This integration is available for Grafana Cloud OnCall. You must have an Admin role to create integrations in Grafana OnCall.
 
-1. In the **Integrations** tab, click **+ New integration for receiving alerts**.
+1. In the **Integrations** tab, click **+ New integration to receive alerts**.
 2. Select **Zabbix** from the list of available integrations
 3. Follow the instructions in the **How to connect** window to get your unique integration URL and review next steps.
 
