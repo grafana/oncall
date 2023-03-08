@@ -18,7 +18,7 @@ class BaseChannelFilterSerializer(OrderedModelSerializerMixin, serializers.Model
         for backend_id, backend in get_messaging_backends():
             if backend is None:
                 continue
-            field = backend_id.lower()
+            field = backend.slug
             self._declared_fields[field] = serializers.DictField(required=False)
             self.Meta.fields.append(field)
 
@@ -33,7 +33,7 @@ class BaseChannelFilterSerializer(OrderedModelSerializerMixin, serializers.Model
         for backend_id, backend in get_messaging_backends():
             if backend is None:
                 continue
-            field = backend_id.lower()
+            field = backend.slug
             channel_id = None
             notification_enabled = False
             if instance.notification_backends and instance.notification_backends.get(backend_id):
@@ -63,7 +63,7 @@ class BaseChannelFilterSerializer(OrderedModelSerializerMixin, serializers.Model
         for backend_id, backend in get_messaging_backends():
             if backend is None:
                 continue
-            field = backend_id.lower()
+            field = backend.slug
             backend_field = validated_data.pop(field, {})
             if backend_field:
                 notification_backend = {}

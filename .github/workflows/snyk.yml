@@ -2,9 +2,13 @@ name: snyk
 
 on:
   push:
-    branches: [ main,dev ]
+    branches: [main, dev]
   pull_request:
-    branches: [ main,dev ]
+    branches: [main, dev]
+  # You can use the merge_group event to trigger your GitHub Actions workflow when
+  # a pull request is added to a merge queue
+  # https://docs.github.com/en/repositories/configuring-branches-and-merges-in-your-repository/configuring-pull-request-merges/managing-a-merge-queue#triggering-merge-group-checks-with-github-actions
+  merge_group:
 
 jobs:
   security-scan:
@@ -13,7 +17,7 @@ jobs:
       - uses: actions/checkout@v3
       - uses: actions/setup-python@v4
         with:
-          python-version: '3.9'
+          python-version: "3.9"
       - uses: actions/setup-node@v3
         with:
           node-version: 14.17.0

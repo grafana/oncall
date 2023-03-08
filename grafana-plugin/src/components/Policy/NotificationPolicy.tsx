@@ -7,7 +7,7 @@ import { SortableElement } from 'react-sortable-hoc';
 
 import PluginLink from 'components/PluginLink/PluginLink';
 import Timeline from 'components/Timeline/Timeline';
-import { WithPermissionControl } from 'containers/WithPermissionControl/WithPermissionControl';
+import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
 import { Channel } from 'models/channel';
 import { NotificationPolicyType, prepareNotificationPolicy } from 'models/notification_policy';
 import { NotifyBy } from 'models/notify_by';
@@ -51,26 +51,26 @@ export class NotificationPolicy extends React.Component<NotificationPolicyProps,
     return (
       <Timeline.Item className={cx('root')} number={number} color={color}>
         <div className={cx('step')}>
-          <WithPermissionControl disableByPaywall userAction={userAction}>
+          <WithPermissionControlTooltip disableByPaywall userAction={userAction}>
             <DragHandle />
-          </WithPermissionControl>
-          <WithPermissionControl disableByPaywall userAction={userAction}>
+          </WithPermissionControlTooltip>
+          <WithPermissionControlTooltip disableByPaywall userAction={userAction}>
             <Select
               className={cx('select', 'control')}
               onChange={this._getOnChangeHandler('step')}
               value={step}
               options={notificationChoices.map((option: any) => ({ label: option.display_name, value: option.value }))}
             />
-          </WithPermissionControl>
+          </WithPermissionControlTooltip>
           {this._renderControls()}
-          <WithPermissionControl userAction={userAction}>
+          <WithPermissionControlTooltip userAction={userAction}>
             <IconButton
               className={cx('control')}
               name="trash-alt"
               onClick={this._getDeleteClickHandler(id)}
               variant="secondary"
             />
-          </WithPermissionControl>
+          </WithPermissionControlTooltip>
           {this._renderNote()}
         </div>
       </Timeline.Item>
@@ -163,7 +163,7 @@ export class NotificationPolicy extends React.Component<NotificationPolicyProps,
     const { wait_delay } = data;
 
     return (
-      <WithPermissionControl userAction={userAction} disableByPaywall>
+      <WithPermissionControlTooltip userAction={userAction} disableByPaywall>
         <Select
           key="wait-delay"
           placeholder="Wait Delay"
@@ -176,7 +176,7 @@ export class NotificationPolicy extends React.Component<NotificationPolicyProps,
             value: waitDelay.value,
           }))}
         />
-      </WithPermissionControl>
+      </WithPermissionControlTooltip>
     );
   }
 
@@ -185,7 +185,7 @@ export class NotificationPolicy extends React.Component<NotificationPolicyProps,
     const { notify_by } = data;
 
     return (
-      <WithPermissionControl userAction={userAction} disableByPaywall>
+      <WithPermissionControlTooltip userAction={userAction} disableByPaywall>
         <Select
           key="notify_by"
           placeholder="Notify by"
@@ -198,7 +198,7 @@ export class NotificationPolicy extends React.Component<NotificationPolicyProps,
             value: notifyByOption.value,
           }))}
         />
-      </WithPermissionControl>
+      </WithPermissionControlTooltip>
     );
   }
 

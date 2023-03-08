@@ -66,8 +66,8 @@ class IncidentsFilters extends Component<IncidentsFiltersProps, IncidentsFilters
     if (isEmpty(values)) {
       // TODO fill filters if no filters in query
       let newQuery;
-      if (store.incidentFilters) {
-        newQuery = { ...store.incidentFilters };
+      if (store.alertGroupStore.incidentFilters) {
+        newQuery = { ...store.alertGroupStore.incidentFilters };
       } else {
         newQuery = {
           status: [IncidentStatus.Firing, IncidentStatus.Acknowledged],

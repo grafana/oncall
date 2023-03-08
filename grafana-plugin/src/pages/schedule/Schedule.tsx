@@ -6,7 +6,11 @@ import dayjs from 'dayjs';
 import { observer } from 'mobx-react';
 import { RouteComponentProps, withRouter } from 'react-router-dom';
 
-import PageErrorHandlingWrapper from 'components/PageErrorHandlingWrapper/PageErrorHandlingWrapper';
+import PageErrorHandlingWrapper, { PageBaseState } from 'components/PageErrorHandlingWrapper/PageErrorHandlingWrapper';
+import {
+  getWrongTeamResponseInfo,
+  initErrorDataState,
+} from 'components/PageErrorHandlingWrapper/PageErrorHandlingWrapper.helpers';
 import PluginLink from 'components/PluginLink/PluginLink';
 import ScheduleWarning from 'components/ScheduleWarning/ScheduleWarning';
 import Text from 'components/Text/Text';
@@ -33,7 +37,7 @@ const cx = cn.bind(styles);
 
 interface SchedulePageProps extends PageProps, WithStoreProps, RouteComponentProps<{ id: string }> {}
 
-interface SchedulePageState {
+interface SchedulePageState extends PageBaseState {
   startMoment: dayjs.Dayjs;
   schedulePeriodType: string;
   renderType: string;
@@ -59,6 +63,7 @@ class SchedulePage extends React.Component<SchedulePageProps, SchedulePageState>
       isLoading: true,
       showEditForm: false,
       showScheduleICalSettings: false,
+      errorData: initErrorDataState(),
     };
   }
 
@@ -101,7 +106,10 @@ class SchedulePage extends React.Component<SchedulePageProps, SchedulePageState>
       shiftIdToShowOverridesForm,
       showEditForm,
       showScheduleICalSettings,
+      errorData,
     } = this.state;
+
+    const { isNotFoundError } = errorData;
 
     const { scheduleStore, currentTimezone } = store;
 
@@ -115,135 +123,151 @@ class SchedulePage extends React.Component<SchedulePageProps, SchedulePageState>
       shiftIdToShowOverridesForm;
 
     return (
-      <PageErrorHandlingWrapper pageName="schedules">
+      <PageErrorHandlingWrapper errorData={errorData} objectName="schedule" pageName="schedules">
         {() => (
           <>
             <div className={cx('root')}>
-              <VerticalGroup spacing="lg">
-                <div className={cx('header')}>
-                  <HorizontalGroup justify="space-between">
-                    <HorizontalGroup>
-                      <PluginLink query={{ page: 'schedules' }}>
-                        <IconButton style={{ marginTop: '5px' }} name="arrow-left" size="xl" />
-                      </PluginLink>
-                      <Text.Title
-                        editable
-                        editModalTitle="Schedule name"
-                        level={2}
-                        onTextChange={this.handleNameChange}
-                      >
-                        {schedule?.name}
-                      </Text.Title>
-                      {schedule && <ScheduleWarning item={schedule} />}
-                    </HorizontalGroup>
-                    <HorizontalGroup spacing="lg">
-                      {users && (
-                        <HorizontalGroup>
-                          <Text type="secondary">Current timezone:</Text>
-                          <UserTimezoneSelect
-                            value={currentTimezone}
-                            users={users}
-                            onChange={this.handleTimezoneChange}
-                          />
-                        </HorizontalGroup>
-                      )}
-                      <HorizontalGroup>
-                        <HorizontalGroup>
-                          <HorizontalGroup>
-                            <Button variant="secondary" onClick={this.handleExportClick()}>
-                              Export
-                            </Button>
-                          </HorizontalGroup>
-
-                          {(schedule?.type === ScheduleType.Ical || schedule?.type === ScheduleType.Calendar) && (
-                            <Button variant="secondary" onClick={this.handleReloadClick(scheduleId)}>
-                              Reload
-                            </Button>
-                          )}
-                        </HorizontalGroup>
-                        <ToolbarButton
-                          icon="cog"
-                          tooltip="Settings"
-                          onClick={() => {
-                            this.setState({ showEditForm: true });
-                          }}
-                        />
-                        <WithConfirm>
-                          <ToolbarButton icon="trash-alt" tooltip="Delete" onClick={this.handleDelete} />
-                        </WithConfirm>
-                      </HorizontalGroup>
-                    </HorizontalGroup>
-                  </HorizontalGroup>
+              {isNotFoundError ? (
+                <div className={cx('not-found')}>
+                  <VerticalGroup spacing="lg" align="center">
+                    <Text.Title level={1}>404</Text.Title>
+                    <Text.Title level={4}>Schedule not found</Text.Title>
+                    <PluginLink query={{ page: 'schedules' }}>
+                      <Button variant="secondary" icon="arrow-left" size="md">
+                        Go to Schedules page
+                      </Button>
+                    </PluginLink>
+                  </VerticalGroup>
                 </div>
-                <div className={cx('users-timezones')}>
-                  <UsersTimezones
-                    scheduleId={scheduleId}
-                    startMoment={startMoment}
-                    onCallNow={schedule?.on_call_now || []}
-                    userIds={
-                      scheduleStore.relatedUsers[scheduleId] ? Object.keys(scheduleStore.relatedUsers[scheduleId]) : []
-                    }
-                    tz={currentTimezone}
-                    onTzChange={this.handleTimezoneChange}
-                  />
-                </div>
-
-                <div className={cx('rotations')}>
-                  <div className={cx('controls')}>
+              ) : (
+                <VerticalGroup spacing="lg">
+                  <div className={cx('header')}>
                     <HorizontalGroup justify="space-between">
                       <HorizontalGroup>
-                        <Button variant="secondary" onClick={this.handleTodayClick}>
-                          Today
-                        </Button>
-                        <HorizontalGroup spacing="xs">
-                          <Button variant="secondary" onClick={this.handleLeftClick}>
-                            <Icon name="angle-left" />
-                          </Button>
-                          <Button variant="secondary" onClick={this.handleRightClick}>
-                            <Icon name="angle-right" />
-                          </Button>
-                        </HorizontalGroup>
-                        <Text.Title style={{ marginLeft: '8px' }} level={4} type="primary">
-                          {startMoment.format('DD MMM')} - {startMoment.add(6, 'day').format('DD MMM')}
+                        <PluginLink query={{ page: 'schedules' }}>
+                          <IconButton style={{ marginTop: '5px' }} name="arrow-left" size="xl" />
+                        </PluginLink>
+                        <Text.Title
+                          editable
+                          editModalTitle="Schedule name"
+                          level={2}
+                          onTextChange={this.handleNameChange}
+                        >
+                          {schedule?.name}
                         </Text.Title>
+                        {schedule && <ScheduleWarning item={schedule} />}
+                      </HorizontalGroup>
+                      <HorizontalGroup spacing="lg">
+                        {users && (
+                          <HorizontalGroup>
+                            <Text type="secondary">Current timezone:</Text>
+                            <UserTimezoneSelect
+                              value={currentTimezone}
+                              users={users}
+                              onChange={this.handleTimezoneChange}
+                            />
+                          </HorizontalGroup>
+                        )}
+                        <HorizontalGroup>
+                          <HorizontalGroup>
+                            <HorizontalGroup>
+                              <Button variant="secondary" onClick={this.handleExportClick()}>
+                                Export
+                              </Button>
+                            </HorizontalGroup>
+
+                            {(schedule?.type === ScheduleType.Ical || schedule?.type === ScheduleType.Calendar) && (
+                              <Button variant="secondary" onClick={this.handleReloadClick(scheduleId)}>
+                                Reload
+                              </Button>
+                            )}
+                          </HorizontalGroup>
+                          <ToolbarButton
+                            icon="cog"
+                            tooltip="Settings"
+                            onClick={() => {
+                              this.setState({ showEditForm: true });
+                            }}
+                          />
+                          <WithConfirm>
+                            <ToolbarButton icon="trash-alt" tooltip="Delete" onClick={this.handleDelete} />
+                          </WithConfirm>
+                        </HorizontalGroup>
                       </HorizontalGroup>
                     </HorizontalGroup>
                   </div>
-                  <ScheduleFinal
-                    scheduleId={scheduleId}
-                    currentTimezone={currentTimezone}
-                    startMoment={startMoment}
-                    onClick={this.handleShowForm}
-                    disabled={disabled}
-                  />
-                  <Rotations
-                    scheduleId={scheduleId}
-                    currentTimezone={currentTimezone}
-                    startMoment={startMoment}
-                    onCreate={this.handleCreateRotation}
-                    onUpdate={this.handleUpdateRotation}
-                    onDelete={this.handleDeleteRotation}
-                    shiftIdToShowRotationForm={shiftIdToShowRotationForm}
-                    onShowRotationForm={this.handleShowRotationForm}
-                    disabled={disabled}
-                  />
-                  <ScheduleOverrides
-                    scheduleId={scheduleId}
-                    currentTimezone={currentTimezone}
-                    startMoment={startMoment}
-                    onCreate={this.handleCreateOverride}
-                    onUpdate={this.handleUpdateOverride}
-                    onDelete={this.handleDeleteOverride}
-                    shiftIdToShowRotationForm={shiftIdToShowOverridesForm}
-                    onShowRotationForm={this.handleShowOverridesForm}
-                    disabled={disabled}
-                  />
-                </div>
-              </VerticalGroup>
+                  <div className={cx('users-timezones')}>
+                    <UsersTimezones
+                      scheduleId={scheduleId}
+                      startMoment={startMoment}
+                      onCallNow={schedule?.on_call_now || []}
+                      userIds={
+                        scheduleStore.relatedUsers[scheduleId]
+                          ? Object.keys(scheduleStore.relatedUsers[scheduleId])
+                          : []
+                      }
+                      tz={currentTimezone}
+                      onTzChange={this.handleTimezoneChange}
+                    />
+                  </div>
+
+                  <div className={cx('rotations')}>
+                    <div className={cx('controls')}>
+                      <HorizontalGroup justify="space-between">
+                        <HorizontalGroup>
+                          <Button variant="secondary" onClick={this.handleTodayClick}>
+                            Today
+                          </Button>
+                          <HorizontalGroup spacing="xs">
+                            <Button variant="secondary" onClick={this.handleLeftClick}>
+                              <Icon name="angle-left" />
+                            </Button>
+                            <Button variant="secondary" onClick={this.handleRightClick}>
+                              <Icon name="angle-right" />
+                            </Button>
+                          </HorizontalGroup>
+                          <Text.Title style={{ marginLeft: '8px' }} level={4} type="primary">
+                            {startMoment.format('DD MMM')} - {startMoment.add(6, 'day').format('DD MMM')}
+                          </Text.Title>
+                        </HorizontalGroup>
+                      </HorizontalGroup>
+                    </div>
+                    <ScheduleFinal
+                      scheduleId={scheduleId}
+                      currentTimezone={currentTimezone}
+                      startMoment={startMoment}
+                      onClick={this.handleShowForm}
+                      disabled={disabled}
+                    />
+                    <Rotations
+                      scheduleId={scheduleId}
+                      currentTimezone={currentTimezone}
+                      startMoment={startMoment}
+                      onCreate={this.handleCreateRotation}
+                      onUpdate={this.handleUpdateRotation}
+                      onDelete={this.handleDeleteRotation}
+                      shiftIdToShowRotationForm={shiftIdToShowRotationForm}
+                      onShowRotationForm={this.handleShowRotationForm}
+                      disabled={disabled}
+                    />
+                    <ScheduleOverrides
+                      scheduleId={scheduleId}
+                      currentTimezone={currentTimezone}
+                      startMoment={startMoment}
+                      onCreate={this.handleCreateOverride}
+                      onUpdate={this.handleUpdateOverride}
+                      onDelete={this.handleDeleteOverride}
+                      shiftIdToShowRotationForm={shiftIdToShowOverridesForm}
+                      onShowRotationForm={this.handleShowOverridesForm}
+                      disabled={disabled}
+                    />
+                  </div>
+                </VerticalGroup>
+              )}
             </div>
-            {showEditForm && (
+            {showEditForm && schedule && (
               <ScheduleForm
-                id={schedule.id}
+                id={scheduleId}
                 onUpdate={this.update}
                 onHide={() => {
                   this.setState({ showEditForm: false });
@@ -325,7 +349,9 @@ class SchedulePage extends React.Component<SchedulePageProps, SchedulePageState>
 
     const { startMoment } = this.state;
 
-    store.scheduleStore.updateItem(scheduleId); // to refresh current oncall users
+    store.scheduleStore
+      .updateItem(scheduleId) // to refresh current oncall users
+      .catch((error) => this.setState({ errorData: { ...getWrongTeamResponseInfo(error) } }));
     store.scheduleStore.updateRelatedUsers(scheduleId); // to refresh related users
 
     return Promise.all([
