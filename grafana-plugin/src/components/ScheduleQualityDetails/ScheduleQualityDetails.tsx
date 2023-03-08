@@ -46,7 +46,10 @@ export const ScheduleQualityDetails: FC<ScheduleQualityDetailsProps> = ({ qualit
     <div className={cx('root')}>
       <VerticalGroup>
         <Text type="secondary">
-          Schedule quality: <Text type={getScheduleQualityMatchingColor(score)}>{getScheduleQualityString(score)}</Text>
+          Schedule quality:{' '}
+          <Text type={getScheduleQualityMatchingColor(score)} className={cx('semi-bold')}>
+            {getScheduleQualityString(score)}
+          </Text>
         </Text>
         <ScheduleQualityProgressBar completed={quality.total_score} numTotalSteps={5} />
         <VerticalGroup>
