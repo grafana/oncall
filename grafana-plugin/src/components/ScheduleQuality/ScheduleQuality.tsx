@@ -77,19 +77,19 @@ const ScheduleQuality: FC<ScheduleQualityProps> = ({ schedule, lastUpdated }) =>
           />
         )}
 
-        <Tag className={cx('tag', getTagClass())}>
-          <Tooltip
-            placement="bottom-start"
-            interactive
-            content={
-              <ScheduleQualityDetails quality={qualityResponse} getScheduleQualityString={getScheduleQualityString} />
-            }
-          >
-            <span className="u-cursor-default">
+        <Tooltip
+          placement="bottom-start"
+          interactive
+          content={
+            <ScheduleQualityDetails quality={qualityResponse} getScheduleQualityString={getScheduleQualityString} />
+          }
+        >
+          <span className="u-cursor-default">
+            <Tag className={cx('tag', getTagClass())}>
               Quality: <strong>{getScheduleQualityString(qualityResponse.total_score)}</strong>
-            </span>
-          </Tooltip>
-        </Tag>
+            </Tag>
+          </span>
+        </Tooltip>
       </div>
     </>
   );

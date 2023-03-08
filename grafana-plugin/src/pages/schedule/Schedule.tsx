@@ -150,7 +150,7 @@ class SchedulePage extends React.Component<SchedulePageProps, SchedulePageState>
                           <IconButton style={{ marginTop: '5px' }} name="arrow-left" size="xl" />
                         </PluginLink>
                         <Text.Title
-                          editable
+                          editable={false}
                           editModalTitle="Schedule name"
                           level={2}
                           onTextChange={this.handleNameChange}

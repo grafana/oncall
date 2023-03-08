@@ -1,4 +1,4 @@
-$border-radius: 3px;
+$border-radius: 2px;
 
 @mixin progressBar($color) {
   background-color: $color;
@@ -18,13 +18,13 @@ $border-radius: 3px;
 }
 
 .c-progressBar__bar--warning {
-  background-color: var(--tag-warning);
+  background-color: var(--warning-text-color);
 }
 .c-progressBar__bar--error {
-  background-color: var(--tag-danger);
+  background-color: var(--error-text-color);
 }
 .c-progressBar__bar--primary {
-  background-color: var(--tag-primary);
+  background-color: var(--success-text-color);
 }
 
 .c-progressBar__row {

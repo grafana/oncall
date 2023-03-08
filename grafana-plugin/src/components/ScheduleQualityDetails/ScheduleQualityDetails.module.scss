@@ -27,3 +27,9 @@ $width: 325px;
   text-overflow: ellipsis;
   overflow: hidden;
 }
+
+.line-break {
+  width: 100%;
+  border-top: 1px solid var(--always-gray);
+  opacity: 15%;
+}

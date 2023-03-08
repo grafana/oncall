@@ -113,7 +113,7 @@ export interface ShiftEvents {
 
 export interface ScheduleScoreQualityResponse {
   total_score: number;
-  comments: { type: 'warning' | 'info'; text: string }[];
+  comments: Array<{ type: 'warning' | 'info'; text: string }>;
   overloaded_users: string[];
 }
 

@@ -104,13 +104,16 @@ export const ScheduleQualityDetails: FC<ScheduleQualityDetailsProps> = ({ qualit
             </div>
           )}
         </VerticalGroup>
-        <VerticalGroup>
+
+        <div className={cx('line-break')} />
+
+        <VerticalGroup spacing="xs">
           <HorizontalGroup justify="space-between">
             <HorizontalGroup spacing="sm">
               <Icon name="calculator-alt" />
               <Text type="secondary">Calculation methodology</Text>
             </HorizontalGroup>
-            <IconButton name="angle-down" onClick={handleExpandClick} />
+            <IconButton name={expanded ? 'arrow-down' : 'arrow-right'} onClick={handleExpandClick} />
           </HorizontalGroup>
           {expanded && (
             <Text type="primary" className={cx('text')}>
