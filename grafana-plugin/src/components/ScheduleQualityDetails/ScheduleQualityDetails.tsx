@@ -39,6 +39,9 @@ export const ScheduleQualityDetails: FC<ScheduleQualityDetailsProps> = ({ qualit
     return null;
   }
 
+  const infoComments = comments.filter((c) => c.type === 'info');
+  const warningComments = comments.filter((c) => c.type === 'warning');
+
   return (
     <div className={cx('root')}>
       <VerticalGroup>
@@ -48,19 +51,41 @@ export const ScheduleQualityDetails: FC<ScheduleQualityDetailsProps> = ({ qualit
         <ScheduleQualityProgressBar completed={quality.total_score} numTotalSteps={5} />
         <VerticalGroup>
           {comments?.length > 0 && (
-            <div className={cx('row')}>
-              <HorizontalGroup spacing="sm">
-                <Icon name="calendar-alt" />
-                <Text type="secondary">Rotation structure issues</Text>
-              </HorizontalGroup>
-              <div className={cx('indent-left')}>
-                {comments.map((comment, index) => (
-                  <Text type="primary" key={index}>
-                    {comment}
-                  </Text>
-                ))}
-              </div>
-            </div>
+            <VerticalGroup spacing="sm" className={cx('row')}>
+              {/* Show Info comments */}
+              {infoComments?.length > 0 && (
+                <div className={cx('row')}>
+                  <HorizontalGroup spacing="sm" align="flex-start">
+                    <Icon name="info-circle" />
+                    <VerticalGroup spacing="none" className={cx('indent-left')}>
+                      {infoComments.map((comment, index) => (
+                        <Text type="primary" key={index}>
+                          {comment.text}
+                        </Text>
+                      ))}
+                    </VerticalGroup>
+                  </HorizontalGroup>
+                </div>
+              )}
+
+              {/* Show Warning comments afterwards */}
+              {warningComments?.length > 0 && (
+                <div className={cx('row')}>
+                  <HorizontalGroup spacing="sm">
+                    <Icon name="calendar-alt" />
+                    <Text type="secondary">Rotation structure issues</Text>
+                  </HorizontalGroup>
+
+                  <div className={cx('indent-left')}>
+                    {warningComments.map((comment, index) => (
+                      <Text type="primary" key={index}>
+                        {comment.text}
+                      </Text>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </VerticalGroup>
           )}
 
           {overloadedUsers?.length > 0 && (
@@ -82,7 +107,7 @@ export const ScheduleQualityDetails: FC<ScheduleQualityDetailsProps> = ({ qualit
         <VerticalGroup>
           <HorizontalGroup justify="space-between">
             <HorizontalGroup spacing="sm">
-              <Icon name="info-circle" />
+              <Icon name="calculator-alt" />
               <Text type="secondary">Calculation methodology</Text>
             </HorizontalGroup>
             <IconButton name="angle-down" onClick={handleExpandClick} />
