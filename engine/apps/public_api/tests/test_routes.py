@@ -44,6 +44,7 @@ def test_get_route(
         "id": channel_filter.public_primary_key,
         "integration_id": alert_receive_channel.public_primary_key,
         "escalation_chain_id": escalation_chain.public_primary_key,
+        "routing_type": "regex",
         "routing_regex": channel_filter.filtering_term,
         "position": channel_filter.order,
         "is_the_last_route": channel_filter.is_default,
