@@ -10,7 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - Fixed issue with Alert group involved users filter
-- Fixed email sending failure due to newline in title ([81244](https://grafana.com/orgs/allianz1/tickets/81244))
+- Fixed email sending failure due to newline in title
 
 ## v1.1.34 (2023-03-08)
 
