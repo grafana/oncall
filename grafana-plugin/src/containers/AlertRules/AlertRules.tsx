@@ -664,20 +664,22 @@ class AlertRules extends React.Component<AlertRulesProps, AlertRulesState> {
             />
           </WithPermissionControlTooltip>
         )}
-        <WithPermissionControlTooltip userAction={UserActions.IntegrationsWrite}>
-          <IconButton
-            size="md"
-            name="pen"
-            onClick={(event) => {
-              event.stopPropagation();
-              this.setState({
-                channelFilterToEdit: channelFilter,
-              });
-            }}
-            tooltip="Edit"
-            tooltipPlacement="top"
-          />
-        </WithPermissionControlTooltip>
+        {!channelFilter.is_default && (
+          <WithPermissionControlTooltip userAction={UserActions.IntegrationsWrite}>
+            <IconButton
+              size="md"
+              name="pen"
+              onClick={(event) => {
+                event.stopPropagation();
+                this.setState({
+                  channelFilterToEdit: channelFilter,
+                });
+              }}
+              tooltip="Edit"
+              tooltipPlacement="top"
+            />
+          </WithPermissionControlTooltip>
+        )}
         <WithPermissionControlTooltip userAction={UserActions.IntegrationsTest}>
           <Button variant="secondary" size="sm" onClick={this.getSendDemoAlertToParticularRoute(channelFilterId)}>
             Send demo alert
