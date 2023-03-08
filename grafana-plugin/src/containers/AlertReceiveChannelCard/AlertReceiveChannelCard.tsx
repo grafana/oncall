@@ -1,6 +1,6 @@
 import React from 'react';
 
-import { Tooltip, HorizontalGroup, VerticalGroup } from '@grafana/ui';
+import { Tooltip, HorizontalGroup, VerticalGroup, Badge } from '@grafana/ui';
 import cn from 'classnames/bind';
 import { observer } from 'mobx-react';
 import Emoji from 'react-emoji-render';
@@ -58,29 +58,36 @@ const AlertReceiveChannelCard = observer((props: AlertReceiveChannelCardProps) =
           )}
         </div>
         <VerticalGroup spacing="xs">
-          <Text type="primary" size="medium">
-            <Emoji className={cx('title')} text={alertReceiveChannel.verbal_name} />
-          </Text>
-
           <HorizontalGroup>
-            <IntegrationLogo scale={0.08} integration={integration} />
-            <Text type="secondary" size="small">
-              {integration?.display_name}
-            </Text>
-            <Text type="secondary" size="small">
-              |
+            <Text type="primary" size="medium">
+              <Emoji className={cx('title')} text={alertReceiveChannel.verbal_name} />
             </Text>
             {alertReceiveChannelCounter && (
               <PluginLink
                 query={{ page: 'incidents', integration: alertReceiveChannel.id }}
                 className={cx('alertsInfoText')}
               >
-                <b>{alertReceiveChannelCounter?.alerts_count}</b> alert
-                {alertReceiveChannelCounter?.alerts_count === 1 ? '' : 's'} in{' '}
-                <b>{alertReceiveChannelCounter?.alert_groups_count}</b> Alert Group
-                {alertReceiveChannelCounter?.alert_groups_count === 1 ? '' : 's'}
+                <Badge
+                  text={alertReceiveChannelCounter?.alerts_count + '/' + alertReceiveChannelCounter?.alert_groups_count}
+                  color={'blue'}
+                  tooltip={
+                    alertReceiveChannelCounter?.alerts_count +
+                    ' alert' +
+                    (alertReceiveChannelCounter?.alerts_count === 1 ? '' : 's') +
+                    ' in ' +
+                    alertReceiveChannelCounter?.alert_groups_count +
+                    ' alert group' +
+                    (alertReceiveChannelCounter?.alert_groups_count === 1 ? '' : 's')
+                  }
+                />
               </PluginLink>
             )}
+          </HorizontalGroup>
+          <HorizontalGroup>
+            <IntegrationLogo scale={0.08} integration={integration} />
+            <Text type="secondary" size="small">
+              {integration?.display_name}
+            </Text>
           </HorizontalGroup>
         </VerticalGroup>
       </HorizontalGroup>
