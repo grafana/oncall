@@ -2,11 +2,13 @@ from django.apps import apps
 from rest_framework import serializers
 
 from apps.alerts.models import AlertReceiveChannel, ChannelFilter, EscalationChain
+from apps.api.serializers.alert_receive_channel import valid_jinja_template_for_serializer_method_field
 from apps.base.messaging import get_messaging_backend_from_id
 from apps.telegram.models import TelegramToOrganizationConnector
 from common.api_helpers.custom_fields import OrganizationFilteredPrimaryKeyRelatedField
 from common.api_helpers.exceptions import BadRequest
 from common.api_helpers.mixins import EagerLoadingMixin, OrderedModelSerializerMixin
+from common.jinja_templater.apply_jinja_template import JinjaTemplateError
 from common.utils import is_regex_valid
 
 
@@ -47,6 +49,22 @@ class ChannelFilterSerializer(OrderedModelSerializerMixin, EagerLoadingMixin, se
         read_only_fields = ["created_at", "is_default"]
         extra_kwargs = {"filtering_term": {"required": True, "allow_null": False}}
 
+    def validate(self, data):
+        filtering_term = data.get("filtering_term")
+        filtering_term_type = data.get("filtering_term_type")
+        if filtering_term_type == ChannelFilter.FILTERING_TERM_TYPE_JINJA2:
+            try:
+                valid_jinja_template_for_serializer_method_field({"route_template": filtering_term})
+            except JinjaTemplateError:
+                raise serializers.ValidationError([f"Jinja template is incorrect"])
+        elif filtering_term_type == ChannelFilter.FILTERING_TERM_TYPE_REGEX or filtering_term_type is None:
+            if filtering_term is not None:
+                if not is_regex_valid(filtering_term):
+                    raise serializers.ValidationError(["Regular expression is incorrect"])
+        else:
+            raise serializers.ValidationError([f"Expression type is incorrect"])
+        return data
+
     def get_slack_channel(self, obj):
         if obj.slack_channel_id is None:
             return None
@@ -69,12 +87,6 @@ class ChannelFilterSerializer(OrderedModelSerializerMixin, EagerLoadingMixin, se
                 raise serializers.ValidationError(["Slack channel does not exist"])
         return slack_channel_id
 
-    def validate_filtering_term(self, filtering_term):
-        if filtering_term is not None:
-            if not is_regex_valid(filtering_term):
-                raise serializers.ValidationError(["Filtering term is incorrect"])
-        return filtering_term
-
     def validate_notification_backends(self, notification_backends):
         # NOTE: updates the whole field, handling dict updates per backend
         if notification_backends is not None:
@@ -94,13 +106,6 @@ class ChannelFilterSerializer(OrderedModelSerializerMixin, EagerLoadingMixin, se
                 updated[backend_id] = updated.get(backend_id, {}) | updated_data
             notification_backends = updated
         return notification_backends
-
-    def to_representation(self, obj):
-        result = super().to_representation(obj)
-        # If filtering_term_type is not set, assume it is regex
-        if obj.filtering_term_type is None:
-            result["filtering_term_type"] = ChannelFilter.FILTERING_TERM_TYPE_REGEX
-        return result
 
 
 class ChannelFilterCreateSerializer(ChannelFilterSerializer):

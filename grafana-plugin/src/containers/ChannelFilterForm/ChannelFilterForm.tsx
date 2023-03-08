@@ -105,6 +105,7 @@ const ChannelFilterForm = observer((props: ChannelFilterFormProps) => {
             ]}
             value={filteringTermType}
             onChange={(value) => {
+              setErrors({});
               setFilteringTermType(value);
               setFilteringTerm(renderFilteringTermValue(value));
             }}
@@ -156,13 +157,19 @@ const ChannelFilterForm = observer((props: ChannelFilterFormProps) => {
               is <Text keyboard>True</Text>
               alert group will be matched with this route
             </Text>
-            <MonacoJinja2Editor
-              value={filteringTerm}
-              disabled={false}
-              onChange={handleFilteringTermChange}
-              data={{}}
-              loading={null}
-            />
+            <Field
+              invalid={Boolean(errors['filtering_term'])}
+              disabled={data?.is_default}
+              error={errors['filtering_term']}
+            >
+              <MonacoJinja2Editor
+                value={filteringTerm}
+                disabled={false}
+                onChange={handleFilteringTermChange}
+                data={{}}
+                loading={null}
+              />
+            </Field>
           </>
         )}
       </div>
