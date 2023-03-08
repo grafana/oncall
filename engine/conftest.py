@@ -755,12 +755,6 @@ def load_slack_urls(settings):
     reload_urls(settings)
 
 
-@pytest.fixture()
-def load_mobile_app_urls(settings):
-    settings.FEATURE_MOBILE_APP_INTEGRATION_ENABLED = True
-    reload_urls(settings)
-
-
 @pytest.fixture
 def make_region():
     def _make_region(**kwargs):

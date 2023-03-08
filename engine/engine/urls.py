@@ -35,6 +35,8 @@ urlpatterns = [
     path("integrations/v1/", include("apps.integrations.urls", namespace="integrations")),
     path("twilioapp/", include("apps.twilioapp.urls")),
     path("api/v1/", include("apps.public_api.urls", namespace="api-public")),
+    path("mobile_app/v1/", include("apps.mobile_app.urls", namespace="mobile_app")),
+    path("api/internal/v1/mobile_app/", include("apps.mobile_app.urls", namespace="mobile_app_tmp")),
 ] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
 
 if settings.FEATURE_SLACK_INTEGRATION_ENABLED:
@@ -49,13 +51,6 @@ if settings.FEATURE_SLACK_INTEGRATION_ENABLED:
     urlpatterns += [
         path("slack/", include("apps.slack.urls")),
     ]
-
-if settings.FEATURE_MOBILE_APP_INTEGRATION_ENABLED:
-    urlpatterns += [
-        path("mobile_app/v1/", include("apps.mobile_app.urls", namespace="mobile_app")),
-        path("api/internal/v1/mobile_app/", include("apps.mobile_app.urls", namespace="mobile_app_tmp")),
-    ]
-
 
 if settings.IS_OPEN_SOURCE:
     urlpatterns += [
