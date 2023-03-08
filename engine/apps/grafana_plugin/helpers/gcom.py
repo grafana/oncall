@@ -58,6 +58,7 @@ def check_gcom_permission(token_string: str, context) -> Optional["GcomToken"]:
                 org_slug=instance_info["orgSlug"],
                 org_title=instance_info["orgName"],
                 region_slug=instance_info["regionSlug"],
+                cluster_slug=instance_info["clusterSlug"],
                 gcom_token=token_string,
                 gcom_token_org_last_time_synced=timezone.now(),
             )
