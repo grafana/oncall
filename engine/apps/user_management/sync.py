@@ -41,7 +41,8 @@ def sync_organization(organization):
 
     organization.save(
         update_fields=[
-            "cluster_slug" "stack_slug",
+            "cluster_slug",
+            "stack_slug",
             "org_slug",
             "org_title",
             "region_slug",
