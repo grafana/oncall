@@ -151,15 +151,15 @@ class AlertGroupFilter(DateRangeFilterMixin, ModelFieldFilterMixin, filters.Filt
             Q(personal_log_records__author__in=users)
             |
             # or interacted with the alert group
-            Q(acknowledged_by_user__pk__in=users)
-            | Q(resolved_by_user__pk__in=users)
-            | Q(silenced_by_user__pk__in=users)
+            Q(acknowledged_by_user__in=users)
+            | Q(resolved_by_user__in=users)
+            | Q(silenced_by_user__in=users)
         ).distinct()
         return queryset
 
     def filter_mine(self, queryset, name, value):
         if value:
-            return self.filter_by_involved_users(queryset, "users", [self.request.user.pk])
+            return self.filter_by_involved_users(queryset, "users", [self.request.user])
         return queryset
 
     def filter_with_resolution_note(self, queryset, name, value):
