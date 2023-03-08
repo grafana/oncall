@@ -44,7 +44,7 @@ export const ScheduleQualityDetails: FC<ScheduleQualityDetailsProps> = ({ qualit
 
   return (
     <div className={cx('root')}>
-      <VerticalGroup>
+      <div className={cx('container')}>
         <Text type="secondary">
           Schedule quality:{' '}
           <Text type={getScheduleQualityMatchingColor(score)} className={cx('semi-bold')}>
@@ -57,34 +57,33 @@ export const ScheduleQualityDetails: FC<ScheduleQualityDetailsProps> = ({ qualit
             <VerticalGroup spacing="sm" className={cx('row')}>
               {/* Show Info comments */}
               {infoComments?.length > 0 && (
-                <div className={cx('row')}>
-                  <HorizontalGroup spacing="sm" align="flex-start">
+                <div className={cx('container')}>
+                  <div className={cx('row')}>
                     <Icon name="info-circle" />
-                    <VerticalGroup spacing="none" className={cx('indent-left')}>
+                    <div className={cx('container')}>
                       {infoComments.map((comment, index) => (
                         <Text type="primary" key={index}>
                           {comment.text}
                         </Text>
                       ))}
-                    </VerticalGroup>
-                  </HorizontalGroup>
+                    </div>
+                  </div>
                 </div>
               )}
 
               {/* Show Warning comments afterwards */}
               {warningComments?.length > 0 && (
-                <div className={cx('row')}>
-                  <HorizontalGroup spacing="sm">
+                <div className={cx('container')}>
+                  <div className={cx('row')}>
                     <Icon name="calendar-alt" />
-                    <Text type="secondary">Rotation structure issues</Text>
-                  </HorizontalGroup>
-
-                  <div className={cx('indent-left')}>
-                    {warningComments.map((comment, index) => (
-                      <Text type="primary" key={index}>
-                        {comment.text}
-                      </Text>
-                    ))}
+                    <div className={cx('container')}>
+                      <Text type="secondary">Rotation structure issues</Text>
+                      {warningComments.map((comment, index) => (
+                        <Text type="primary" key={index}>
+                          {comment.text}
+                        </Text>
+                      ))}
+                    </div>
                   </div>
                 </div>
               )}
@@ -92,17 +91,17 @@ export const ScheduleQualityDetails: FC<ScheduleQualityDetailsProps> = ({ qualit
           )}
 
           {overloadedUsers?.length > 0 && (
-            <div className={cx('row')}>
-              <HorizontalGroup spacing="sm">
+            <div className={cx('container')}>
+              <div className={cx('row')}>
                 <Icon name="users-alt" />
-                <Text type="secondary">Overloaded users</Text>
-              </HorizontalGroup>
-              <div className={cx('indent-left')}>
-                {overloadedUsers.map((overloadedUser, index) => (
-                  <Text type="primary" className={cx('email')} key={index}>
-                    {overloadedUser.email} ({getTzOffsetString(dayjs().tz(overloadedUser.timezone))})
-                  </Text>
-                ))}
+                <div className={cx('container')}>
+                  <Text type="secondary">Overloaded users</Text>
+                  {overloadedUsers.map((overloadedUser, index) => (
+                    <Text type="primary" className={cx('email')} key={index}>
+                      {overloadedUser.email} ({getTzOffsetString(dayjs().tz(overloadedUser.timezone))})
+                    </Text>
+                  ))}
+                </div>
               </div>
             </div>
           )}
@@ -110,11 +109,18 @@ export const ScheduleQualityDetails: FC<ScheduleQualityDetailsProps> = ({ qualit
 
         <div className={cx('line-break')} />
 
-        <VerticalGroup spacing="xs">
+        <VerticalGroup spacing="sm">
           <HorizontalGroup justify="space-between">
             <HorizontalGroup spacing="sm">
               <Icon name="calculator-alt" />
-              <Text type="secondary">Calculation methodology</Text>
+              <Text type="secondary" className={cx('metholodogy')}>
+                Calculation methodology
+              </Text>
+              {expanded && (
+                <Text type="primary" className={cx('text')}>
+                  The latest 90 days are taken into consideration when calculating the overall schedule quality.
+                </Text>
+              )}
             </HorizontalGroup>
             <IconButton name={expanded ? 'arrow-down' : 'arrow-right'} onClick={handleExpandClick} />
           </HorizontalGroup>
@@ -124,7 +130,7 @@ export const ScheduleQualityDetails: FC<ScheduleQualityDetailsProps> = ({ qualit
             </Text>
           )}
         </VerticalGroup>
-      </VerticalGroup>
+      </div>
     </div>
   );
 

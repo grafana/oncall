@@ -1,19 +1,40 @@
-$padding: 24px;
-$width: 325px;
+$padding: 12px;
+$width: 300px;
 
 .root {
   width: $width;
 }
 
+.container {
+  display: flex;
+  flex-wrap: wrap;
+  flex-direction: column;
+}
+
 .row {
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
+  column-gap: 8px;
 }
 
 .indent-left {
   display: flex;
   flex-direction: column;
   padding-left: $padding;
+}
+
+.line-break {
+  width: 100%;
+  border-top: 1px solid var(--always-gray);
+  opacity: 15%;
+}
+
+.semi-bold {
+  font-weight: 500;
+}
+
+.metholodogy {
+  padding: 4px 0px;
 }
 
 .text {
@@ -26,14 +47,4 @@ $width: 325px;
   white-space: nowrap;
   text-overflow: ellipsis;
   overflow: hidden;
-}
-
-.line-break {
-  width: 100%;
-  border-top: 1px solid var(--always-gray);
-  opacity: 15%;
-}
-
-.semi-bold {
-  font-weight: 500;
 }
