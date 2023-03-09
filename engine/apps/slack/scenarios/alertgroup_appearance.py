@@ -194,7 +194,7 @@ class OpenAlertAppearanceDialogStep(
             "type": "modal",
             "title": {
                 "type": "plain_text",
-                "text": "Incident template",
+                "text": "Alert group template",
             },
             "submit": {
                 "type": "plain_text",
