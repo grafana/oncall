@@ -240,9 +240,3 @@ class GcomAPIClient(APIClient):
 
     def get_stack_regions(self):
         return self.api_get("stack-regions")
-
-    def get_cluster_slug(self, stack_id, **kwargs):
-        instance_info = self.get_instance_info(stack_id, **kwargs)
-        if not instance_info:
-            return False
-        return instance_info.get("clusterSlug", None)
