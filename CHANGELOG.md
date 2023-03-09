@@ -9,7 +9,34 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Fixed issue with Alert group involved users filter
+- Fixed email sending failure due to newline in title
+
+## v1.1.34 (2023-03-08)
+
+### Added
+
+- Jinja2 based routes ([1319](https://github.com/grafana/oncall/pull/1319))
+
+### Changed
+
+- Remove mobile app feature flag ([1484](https://github.com/grafana/oncall/pull/1484))
+
+### Fixed
+
+- Prohibit creating & updating past overrides ([1474](https://github.com/grafana/oncall/pull/1474))
+- Add unique index on `user_id` column in `mobile_app_mobileappauthtoken` table to avoid allowing a user
+  to have more than one mobile app auth token at a time ([1482](https://github.com/grafana/oncall/pull/1482))
+
+## v1.1.33 (2023-03-07)
+
+### Fixed
+
 - Show permission error for accessing Telegram as Viewer ([1273](https://github.com/grafana/oncall/issues/1273))
+
+### Changed
+
+- Pass email and phone limits as environment variables ([1219](https://github.com/grafana/oncall/pull/1219))
 
 ## v1.1.32 (2023-03-01)
 
