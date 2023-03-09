@@ -1,9 +1,8 @@
-import React, { FC, useMemo } from 'react';
+import React, { FC, useCallback, useMemo } from 'react';
 
 import cn from 'classnames/bind';
 import { Link } from 'react-router-dom';
 
-import Text from 'components/Text/Text';
 import { getPathFromQueryParams } from 'utils/url';
 
 import styles from './PluginLink.module.css';
@@ -23,12 +22,23 @@ const PluginLink: FC<PluginLinkProps> = (props) => {
 
   const newPath = useMemo(() => getPathFromQueryParams(query), [query]);
 
-  return disabled ? (
-    <Text className={cx('root', className, { 'no-wrap': !wrap })} type="disabled">
-      {children}
-    </Text>
-  ) : (
-    <Link className={cx('root', className, { 'no-wrap': !wrap })} to={newPath}>
+  const handleClick = useCallback(
+    (event) => {
+      event.stopPropagation();
+
+      if (disabled) {
+        event.preventDefault();
+      }
+    },
+    [disabled]
+  );
+
+  return (
+    <Link
+      onClick={handleClick}
+      className={cx('root', className, { 'no-wrap': !wrap, root_disabled: disabled })}
+      to={newPath}
+    >
       {children}
     </Link>
   );

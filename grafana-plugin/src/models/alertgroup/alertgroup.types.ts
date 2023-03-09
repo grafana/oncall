@@ -3,7 +3,7 @@ import { Channel } from 'models/channel';
 import { User } from 'models/user/user.types';
 
 export enum IncidentStatus {
-  'New',
+  'Firing',
   'Acknowledged',
   'Resolved',
   'Silenced',
@@ -74,6 +74,7 @@ export interface Alert {
   short?: boolean;
   root_alert_group?: Alert;
   alert_receive_channel: Partial<AlertReceiveChannel>;
+  paged_users: Array<Pick<User, 'pk' | 'username' | 'avatar'>>;
 
   // set by client
   loading?: boolean;
@@ -86,4 +87,5 @@ interface RenderForWeb {
   message: any;
   title: any;
   image_url: string;
+  source_link: string;
 }

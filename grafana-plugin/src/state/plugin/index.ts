@@ -1,8 +1,7 @@
 import { getBackendSrv } from '@grafana/runtime';
-import axios from 'axios';
 import { OnCallAppPluginMeta, OnCallPluginMetaJSONData, OnCallPluginMetaSecureJSONData } from 'types';
 
-import { makeRequest } from 'network';
+import { makeRequest, isNetworkError } from 'network';
 import FaroHelper from 'utils/faro';
 
 export type UpdateGrafanaPluginSettingsProps = {
@@ -16,6 +15,7 @@ export type PluginStatusResponseBase = Pick<OnCallPluginMetaJSONData, 'license'>
 
 export type PluginSyncStatusResponse = PluginStatusResponseBase & {
   token_ok: boolean;
+  recaptcha_site_key: string;
 };
 
 type PluginConnectedStatusResponse = PluginStatusResponseBase & {
@@ -76,7 +76,7 @@ class PluginState {
     );
     const consoleMsg = `occured while trying to ${installationVerb} the plugin w/ the OnCall backend`;
 
-    if (axios.isAxiosError(e)) {
+    if (isNetworkError(e)) {
       const { status: statusCode } = e.response;
 
       console.warn(`An HTTP related error ${consoleMsg}`, e.response);
@@ -100,7 +100,7 @@ class PluginState {
         errorMsg = unknownErrorMsg;
       }
     } else {
-      // a non-axios related error occured.. this scenario shouldn't occur...
+      // a non-network related error occured.. this scenario shouldn't occur...
       console.warn(`An unknown error ${consoleMsg}`, e);
       errorMsg = unknownErrorMsg;
     }
@@ -115,12 +115,12 @@ class PluginState {
   ): string => {
     let errorMsg: string;
 
-    if (axios.isAxiosError(e)) {
+    if (isNetworkError(e)) {
       // The user likely put in a bogus URL for the OnCall API URL
       console.warn('An HTTP related error occured while trying to provision the plugin w/ Grafana', e.response);
       errorMsg = this.generateInvalidOnCallApiURLErrorMsg(onCallApiUrl, onCallApiUrlIsConfiguredThroughEnvVar);
     } else {
-      // a non-axios related error occured.. this scenario shouldn't occur...
+      // a non-network related error occured.. this scenario shouldn't occur...
       console.warn('An unknown error occured while trying to provision the plugin w/ Grafana', e);
       errorMsg = this.generateUnknownErrorMsg(onCallApiUrl, installationVerb, onCallApiUrlIsConfiguredThroughEnvVar);
     }

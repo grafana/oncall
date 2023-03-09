@@ -6,6 +6,10 @@ on:
       - main
       - dev
   pull_request:
+  # You can use the merge_group event to trigger your GitHub Actions workflow when
+  # a pull request is added to a merge queue
+  # https://docs.github.com/en/repositories/configuring-branches-and-merges-in-your-repository/configuring-pull-request-merges/managing-a-merge-queue#triggering-merge-group-checks-with-github-actions
+  merge_group:
 
 jobs:
   lint:
@@ -23,6 +27,9 @@ jobs:
           cd grafana-plugin/
           yarn --network-timeout 500000
           yarn build
+      # pre-commit uses git, which is not working in the action without this workaround
+      # see https://github.com/actions/runner-images/issues/6775
+      - run: git config --global --add safe.directory "$GITHUB_WORKSPACE"
       - name: Lint All
         run: |
           pre-commit run --all-files
@@ -54,6 +61,32 @@ jobs:
         # docs-base image.
         run: |
           docker run -v ${PWD}/docs/sources:/hugo/content/docs/oncall/latest -e HUGO_REFLINKSERRORLEVEL=ERROR --rm grafana/docs-base:latest /bin/bash -c 'make hugo'
+
+  lint-migrations-backend-mysql-rabbitmq:
+    name: "Lint migrations"
+    runs-on: ubuntu-latest
+    container: python:3.9
+    env:
+      DJANGO_SETTINGS_MODULE: settings.ci-test
+      SLACK_CLIENT_OAUTH_ID: 1
+    services:
+      rabbit_test:
+        image: rabbitmq:3.7.19
+        env:
+          RABBITMQ_DEFAULT_USER: rabbitmq
+          RABBITMQ_DEFAULT_PASS: rabbitmq
+      mysql_test:
+        image: mysql:5.7.25
+        env:
+          MYSQL_DATABASE: oncall_local_dev
+          MYSQL_ROOT_PASSWORD: local_dev_pwd
+    steps:
+      - uses: actions/checkout@v3
+      - name: Lint migrations
+        run: |
+          cd engine/
+          pip install -r requirements.txt
+          python manage.py lintmigrations
 
   unit-test-backend-mysql-rabbitmq:
     name: "Backend Tests: MySQL + RabbitMQ (RBAC enabled: ${{ matrix.rbac_enabled }})"

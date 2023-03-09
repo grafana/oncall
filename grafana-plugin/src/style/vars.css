@@ -15,6 +15,13 @@
   --gradient-brandVertical: linear-gradient(0.01deg, #f53e4c -31.2%, #f83 113.07%);
   --always-gray: #ccccdc;
   --title-marginBottom: 16px;
+  --opacity: 0.5;
+
+  /* These seem to slightly differ from warning/success/error colors from below */
+  --tag-danger: #e02f44;
+  --tag-warning: #c69b06;
+  --tag-primary: #299c46;
+  --tag-secondary: #464c54;
 }
 
 .theme-light {
@@ -27,7 +34,7 @@
   --primary-text-color: rgb(36, 41, 46);
   --secondary-text-color: rgba(36, 41, 46, 0.75);
   --disabled-text-color: rgba(36, 41, 46, 0.5);
-  --warning-text-color: #8a6c00;
+  --warning-text-color: rgb(255, 120, 10);
   --success-text-color: rgb(10, 118, 78);
   --error-text-color: rgb(207, 14, 91);
   --primary-text-link: #1f62e0;
@@ -56,7 +63,7 @@
   --primary-text-color: rgb(204, 204, 220);
   --secondary-text-color: rgba(204, 204, 220, 0.65);
   --disabled-text-color: rgba(204, 204, 220, 0.4);
-  --warning-text-color: #f8d06b;
+  --warning-text-color: rgb(255, 120, 10);
   --success-text-color: rgb(108, 207, 142);
   --error-text-color: rgb(255, 82, 134);
   --primary-text-link: #6e9fff;

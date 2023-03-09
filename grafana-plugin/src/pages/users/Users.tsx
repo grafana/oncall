@@ -18,12 +18,12 @@ import PluginLink from 'components/PluginLink/PluginLink';
 import Text from 'components/Text/Text';
 import UsersFilters from 'components/UsersFilters/UsersFilters';
 import UserSettings from 'containers/UserSettings/UserSettings';
-import { WithPermissionControl } from 'containers/WithPermissionControl/WithPermissionControl';
+import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
 import { User as UserType } from 'models/user/user.types';
 import { PageProps, WithStoreProps } from 'state/types';
 import { withMobXProviderContext } from 'state/withStore';
 import LocationHelper from 'utils/LocationHelper';
-import { isUserActionAllowed, UserActions } from 'utils/authorization';
+import { generateMissingPermissionMessage, isUserActionAllowed, UserActions } from 'utils/authorization';
 import { PLUGIN_ROOT } from 'utils/consts';
 
 import { getUserRowClassNameFn } from './Users.helpers';
@@ -35,6 +35,7 @@ const cx = cn.bind(styles);
 interface UsersProps extends WithStoreProps, PageProps, RouteComponentProps<{ id: string }> {}
 
 const ITEMS_PER_PAGE = 100;
+const REQUIRED_PERMISSION_TO_VIEW_USERS = UserActions.UserSettingsWrite;
 
 interface UsersState extends PageBaseState {
   page: number;
@@ -43,6 +44,7 @@ interface UsersState extends PageBaseState {
   usersFilters?: {
     searchTerm: string;
   };
+  initialUsersLoaded: boolean;
 }
 
 @observer
@@ -56,9 +58,8 @@ class Users extends React.Component<UsersProps, UsersState> {
     },
 
     errorData: initErrorDataState(),
+    initialUsersLoaded: false,
   };
-
-  initialUsersLoaded = false;
 
   async componentDidMount() {
     const {
@@ -74,18 +75,19 @@ class Users extends React.Component<UsersProps, UsersState> {
     const { usersFilters, page } = this.state;
     const { userStore } = store;
 
-    if (!isUserActionAllowed(UserActions.UserSettingsWrite)) {
+    if (!isUserActionAllowed(REQUIRED_PERMISSION_TO_VIEW_USERS)) {
       return;
     }
 
     LocationHelper.update({ p: page }, 'partial');
-    return await userStore.updateItems(usersFilters, page);
+    await userStore.updateItems(usersFilters, page);
+
+    this.setState({ initialUsersLoaded: true });
   };
 
   componentDidUpdate(prevProps: UsersProps) {
-    if (!this.initialUsersLoaded && isUserActionAllowed(UserActions.UserSettingsWrite)) {
+    if (!this.state.initialUsersLoaded) {
       this.updateUsers();
-      this.initialUsersLoaded = true;
     }
 
     if (prevProps.match.params.id !== this.props.match.params.id) {
@@ -117,7 +119,7 @@ class Users extends React.Component<UsersProps, UsersState> {
   };
 
   render() {
-    const { usersFilters, userPkToEdit, page, errorData } = this.state;
+    const { usersFilters, userPkToEdit, page, errorData, initialUsersLoaded } = this.state;
     const {
       store,
       match: {
@@ -165,6 +167,8 @@ class Users extends React.Component<UsersProps, UsersState> {
 
     const { count, results } = userStore.getSearchResult();
 
+    const authorizedToViewUsers = isUserActionAllowed(REQUIRED_PERMISSION_TO_VIEW_USERS);
+
     return (
       <PageErrorHandlingWrapper
         errorData={errorData}
@@ -182,10 +186,12 @@ class Users extends React.Component<UsersProps, UsersState> {
                       <LegacyNavHeading>
                         <Text.Title level={3}>Users</Text.Title>
                       </LegacyNavHeading>
-                      <Text type="secondary">
-                        To manage permissions or add users, please visit{' '}
-                        <a href="/org/users">Grafana user management</a>
-                      </Text>
+                      {authorizedToViewUsers && (
+                        <Text type="secondary">
+                          To manage permissions or add users, please visit{' '}
+                          <a href="/org/users">Grafana user management</a>
+                        </Text>
+                      )}
                     </div>
                   </div>
                   <PluginLink query={{ page: 'users', id: 'me' }}>
@@ -194,7 +200,7 @@ class Users extends React.Component<UsersProps, UsersState> {
                     </Button>
                   </PluginLink>
                 </div>
-                {isUserActionAllowed(UserActions.UserSettingsRead) ? (
+                {authorizedToViewUsers ? (
                   <>
                     <div className={cx('user-filters-container')}>
                       <UsersFilters
@@ -213,7 +219,7 @@ class Users extends React.Component<UsersProps, UsersState> {
                     </div>
 
                     <GTable
-                      emptyText={results ? 'No users found' : 'Loading...'}
+                      emptyText={initialUsersLoaded ? 'No users found' : 'Loading...'}
                       rowKey="pk"
                       data={results}
                       columns={columns}
@@ -230,8 +236,9 @@ class Users extends React.Component<UsersProps, UsersState> {
                     /* @ts-ignore */
                     title={
                       <>
-                        You don't have enough permissions to view other users because you are not Admin.{' '}
-                        <PluginLink query={{ page: 'users', id: 'me' }}>Click here</PluginLink> to open your profile
+                        {generateMissingPermissionMessage(REQUIRED_PERMISSION_TO_VIEW_USERS)} to be able to view OnCall
+                        users. <PluginLink query={{ page: 'users', id: 'me' }}>Click here</PluginLink> to open your
+                        profile
                       </>
                     }
                     severity="info"
@@ -291,7 +298,7 @@ class Users extends React.Component<UsersProps, UsersState> {
     return (
       <VerticalGroup justify="center">
         <PluginLink query={{ page: 'users', id: user.pk }} disabled={!isUserActionAllowed(action)}>
-          <WithPermissionControl userAction={action}>
+          <WithPermissionControlTooltip userAction={action}>
             <Button
               className={cx({
                 'TEST-edit-my-own-settings-button': isCurrent,
@@ -300,7 +307,7 @@ class Users extends React.Component<UsersProps, UsersState> {
             >
               Edit
             </Button>
-          </WithPermissionControl>
+          </WithPermissionControlTooltip>
         </PluginLink>
       </VerticalGroup>
     );

@@ -73,7 +73,7 @@ services:
       retries: 10
 
   grafana:
-    image: "grafana/grafana:9.0.0-beta3"
+    image: "grafana/grafana:${GRAFANA_VERSION:-latest}"
     restart: always
     ports:
       - "3000:3000"

@@ -11,11 +11,11 @@ import Text from 'components/Text/Text';
 import WithConfirm from 'components/WithConfirm/WithConfirm';
 import { CrossCircleIcon, HeartIcon } from 'icons';
 import { Cloud } from 'models/cloud/cloud.types';
-import { AppFeature } from 'state/features';
 import { WithStoreProps } from 'state/types';
 import { useStore } from 'state/useStore';
 import { withMobXProviderContext } from 'state/withStore';
 import { openErrorNotification } from 'utils';
+import { determineRequiredAuthString, UserActions } from 'utils/authorization';
 import { PLUGIN_ROOT } from 'utils/consts';
 
 import styles from './CloudPage.module.css';
@@ -261,10 +261,9 @@ const CloudPage = observer((props: CloudPageProps) => {
 
             <div style={{ width: '100%' }}>
               <Text type="secondary">
-                {/* TODO: should probably update this message? */}
-                {
-                  'Ask your users to sign up in Grafana Cloud, verify phone number and feel free to set up SMS & phone call notifications in personal settings! Only users with Admin or Editor role will be synced.'
-                }
+                {`Ask your users to sign up in Grafana Cloud, verify phone number and feel free to set up SMS & phone call notifications in personal settings! Users must have ${determineRequiredAuthString(
+                  UserActions.NotificationsRead
+                )} in order to be synced.`}
               </Text>
 
               <GTable
@@ -280,15 +279,9 @@ const CloudPage = observer((props: CloudPageProps) => {
                         {matched_users_count === 1 ? '' : 's'}
                         {` matched between OSS and Cloud OnCall`}
                       </Text>
-                      {syncingUsers ? (
-                        <Button variant="primary" onClick={syncUsers} icon="sync" disabled>
-                          Syncing...
-                        </Button>
-                      ) : (
-                        <Button variant="primary" onClick={syncUsers} icon="sync">
-                          Sync users (Editors and Admins)
-                        </Button>
-                      )}
+                      <Button variant="primary" onClick={syncUsers} icon="sync" disabled={syncingUsers}>
+                        {syncingUsers ? 'Syncing...' : 'Sync users'}
+                      </Button>
                     </HorizontalGroup>
                   </div>
                 )}
@@ -315,19 +308,17 @@ const CloudPage = observer((props: CloudPageProps) => {
           </VerticalGroup>
         )}
       </Block>
-      {store.hasFeature(AppFeature.MobileApp) && (
-        <Block bordered withBackground className={cx('info-block')}>
-          <VerticalGroup>
-            <Text.Title level={4}>
-              <Icon name="mobile-android" className={cx('block-icon')} size="lg" /> Mobile app push notifications
-            </Text.Title>
-            <Text type="secondary">
-              Connecting to Cloud OnCall enables sending push notifications on mobile devices using the Grafana OnCall
-              mobile app.
-            </Text>
-          </VerticalGroup>
-        </Block>
-      )}
+      <Block bordered withBackground className={cx('info-block')}>
+        <VerticalGroup>
+          <Text.Title level={4}>
+            <Icon name="mobile-android" className={cx('block-icon')} size="lg" /> Mobile app push notifications
+          </Text.Title>
+          <Text type="secondary">
+            Connecting to Cloud OnCall enables sending push notifications on mobile devices using the Grafana OnCall
+            mobile app.
+          </Text>
+        </VerticalGroup>
+      </Block>
     </VerticalGroup>
   );
 
@@ -371,22 +362,22 @@ const CloudPage = observer((props: CloudPageProps) => {
             <Icon name="bell" className={cx('block-icon')} size="lg" /> SMS and phone call notifications
           </Text.Title>
 
-          <Text type="secondary">Users matched between OSS and Cloud OnCall currently unavailable.</Text>
+          <Text type="secondary">
+            Connecting to Cloud OnCall enables sending SMS and phone call notifications using the cloud Grafana OnCall.
+          </Text>
         </VerticalGroup>
       </Block>
-      {store.hasFeature(AppFeature.MobileApp) && (
-        <Block bordered withBackground className={cx('info-block')}>
-          <VerticalGroup>
-            <Text.Title level={4}>
-              <Icon name="mobile-android" className={cx('block-icon')} size="lg" /> Mobile app push notifications
-            </Text.Title>
-            <Text type="secondary">
-              Connecting to Cloud OnCall enables sending push notifications on mobile devices using the Grafana OnCall
-              mobile app.
-            </Text>
-          </VerticalGroup>
-        </Block>
-      )}
+      <Block bordered withBackground className={cx('info-block')}>
+        <VerticalGroup>
+          <Text.Title level={4}>
+            <Icon name="mobile-android" className={cx('block-icon')} size="lg" /> Mobile app push notifications
+          </Text.Title>
+          <Text type="secondary">
+            Connecting to Cloud OnCall enables sending push notifications on mobile devices using the Grafana OnCall
+            mobile app.
+          </Text>
+        </VerticalGroup>
+      </Block>
     </VerticalGroup>
   );
 

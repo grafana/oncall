@@ -1,3 +1,5 @@
+import datetime
+
 from pdpyras import APISession
 
 from migrator import oncall_api_client
@@ -49,7 +51,24 @@ def main() -> None:
         ]
 
     print("▶ Fetching schedules...")
-    schedules = session.list_all("schedules")
+    # Fetch schedules from PagerDuty
+    schedules = session.list_all(
+        "schedules", params={"include[]": "schedule_layers", "time_zone": "UTC"}
+    )
+
+    # Fetch overrides from PagerDuty
+    since = datetime.datetime.now(datetime.timezone.utc)
+    until = since + datetime.timedelta(
+        days=365
+    )  # fetch overrides up to 1 year from now
+    for schedule in schedules:
+        response = session.jget(
+            f"schedules/{schedule['id']}/overrides",
+            params={"since": since.isoformat(), "until": until.isoformat()},
+        )
+        schedule["overrides"] = response["overrides"]
+
+    # Fetch schedules from OnCall
     oncall_schedules = oncall_api_client.list_all("schedules")
 
     print("▶ Fetching escalation policies...")
@@ -72,8 +91,12 @@ def main() -> None:
     for user in users:
         match_user(user, oncall_users)
 
+    user_id_map = {
+        u["id"]: u["oncall_user"]["id"] if u["oncall_user"] else None for u in users
+    }
+
     for schedule in schedules:
-        match_schedule(schedule, oncall_schedules)
+        match_schedule(schedule, oncall_schedules, user_id_map)
         match_users_for_schedule(schedule, users)
 
     for policy in escalation_policies:
@@ -105,8 +128,8 @@ def main() -> None:
 
     print("▶ Migrating schedules...")
     for schedule in schedules:
-        if not schedule["unmatched_users"]:
-            migrate_schedule(schedule)
+        if not schedule["unmatched_users"] and not schedule["migration_errors"]:
+            migrate_schedule(schedule, user_id_map)
             print(TAB + format_schedule(schedule))
 
     print("▶ Migrating escalation policies...")

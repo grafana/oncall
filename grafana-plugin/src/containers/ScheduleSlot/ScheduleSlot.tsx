@@ -123,12 +123,14 @@ const ScheduleSlot: FC<ScheduleSlotProps> = observer((props) => {
                     duration={duration}
                   />
                 )}
-                {userIndex === 0 && label && (
-                  <div className={cx('label')} style={{ color }}>
-                    {label}
-                  </div>
-                )}
-                <div className={cx('title')}>{title}</div>
+                <div className={cx('title')}>
+                  {userIndex === 0 && label && (
+                    <div className={cx('label')} style={{ color }}>
+                      {label}
+                    </div>
+                  )}
+                  {title}
+                </div>
               </div>
             </Tooltip>
           );

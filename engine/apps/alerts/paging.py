@@ -1,4 +1,4 @@
-from typing import Any
+from typing import Any, Optional
 from uuid import uuid4
 
 from django.db import transaction
@@ -142,7 +142,7 @@ def direct_paging(
     schedules: ScheduleNotifications = None,
     escalation_chain: EscalationChain = None,
     alert_group: AlertGroup = None,
-) -> None:
+) -> Optional[AlertGroup]:
     """Trigger escalation targeting given users/schedules.
 
     If an alert group is given, update escalation to include the specified users.
@@ -165,10 +165,13 @@ def direct_paging(
     if alert_group is None:
         alert_group = _trigger_alert(organization, team, title, message, from_user, escalation_chain=escalation_chain)
 
+    # initialize direct paged users (without a schedule)
+    users = [(u, important, None) for u, important in users]
+
     # get on call users, add log entry for each schedule
     for (s, important) in schedules:
         oncall_users = list_users_to_notify_from_ical(s)
-        users += [(u, important) for u in oncall_users]
+        users += [(u, important, s) for u in oncall_users]
         alert_group.log_records.create(
             type=AlertGroupLogRecord.TYPE_DIRECT_PAGING,
             author=from_user,
@@ -176,14 +179,23 @@ def direct_paging(
             step_specific_info={"schedule": s.public_primary_key},
         )
 
-    for (u, important) in users:
+    for (u, important, schedule) in users:
+        reason = f"{from_user.username} paged user {u.username}"
+        if schedule:
+            reason += f" (from schedule {schedule.name})"
         alert_group.log_records.create(
             type=AlertGroupLogRecord.TYPE_DIRECT_PAGING,
             author=from_user,
-            reason=f"{from_user.username} paged user {u.username}",
-            step_specific_info={"user": u.public_primary_key},
+            reason=reason,
+            step_specific_info={
+                "user": u.public_primary_key,
+                "schedule": schedule.public_primary_key if schedule else None,
+                "important": important,
+            },
         )
         notify_user_task.apply_async((u.pk, alert_group.pk), {"important": important})
+
+    return alert_group
 
 
 def unpage_user(alert_group: AlertGroup, user: User, from_user: User) -> None:

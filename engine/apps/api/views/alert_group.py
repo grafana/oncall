@@ -85,7 +85,11 @@ class AlertGroupFilter(DateRangeFilterMixin, ModelFieldFilterMixin, filters.Filt
     invitees_are = filters.ModelMultipleChoiceFilter(
         queryset=get_user_queryset, to_field_name="public_primary_key", method="filter_invitees_are"
     )
+    involved_users_are = filters.ModelMultipleChoiceFilter(
+        queryset=get_user_queryset, to_field_name="public_primary_key", method="filter_by_involved_users"
+    )
     with_resolution_note = filters.BooleanFilter(method="filter_with_resolution_note")
+    mine = filters.BooleanFilter(method="filter_mine")
 
     class Meta:
         model = AlertGroup
@@ -132,8 +136,30 @@ class AlertGroupFilter(DateRangeFilterMixin, ModelFieldFilterMixin, filters.Filt
         if not users:
             return queryset
 
-        queryset = queryset.filter(acknowledged=False, resolved=False, log_records__author__in=users).distinct()
+        queryset = queryset.filter(log_records__author__in=users).distinct()
 
+        return queryset
+
+    def filter_by_involved_users(self, queryset, name, value):
+        users = value
+
+        if not users:
+            return queryset
+
+        queryset = queryset.filter(
+            # user was notified
+            Q(personal_log_records__author__in=users)
+            |
+            # or interacted with the alert group
+            Q(acknowledged_by_user__in=users)
+            | Q(resolved_by_user__in=users)
+            | Q(silenced_by_user__in=users)
+        ).distinct()
+        return queryset
+
+    def filter_mine(self, queryset, name, value):
+        if value:
+            return self.filter_by_involved_users(queryset, "users", [self.request.user])
         return queryset
 
     def filter_with_resolution_note(self, queryset, name, value):
@@ -523,6 +549,12 @@ class AlertGroupView(
                 "href": api_root + "users/?filters=true&roles=0&roles=1&roles=2",
             },
             {
+                "name": "involved_users_are",
+                "type": "options",
+                "href": api_root + "users/?filters=true&roles=0&roles=1&roles=2",
+                "default": {"display_name": self.request.user.username, "value": self.request.user.public_primary_key},
+            },
+            {
                 "name": "status",
                 "type": "options",
                 "options": [
@@ -545,6 +577,11 @@ class AlertGroupView(
             },
             {
                 "name": "with_resolution_note",
+                "type": "boolean",
+                "default": "true",
+            },
+            {
+                "name": "mine",
                 "type": "boolean",
                 "default": "true",
             },

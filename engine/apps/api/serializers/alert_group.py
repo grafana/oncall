@@ -1,5 +1,7 @@
 import logging
 
+from django.core.cache import cache
+from django.utils import timezone
 from rest_framework import serializers
 
 from apps.alerts.incident_appearance.renderers.classic_markdown_renderer import AlertGroupClassicMarkdownRenderer
@@ -13,9 +15,43 @@ from .alert_receive_channel import FastAlertReceiveChannelSerializer
 from .user import FastUserSerializer
 
 logger = logging.getLogger(__name__)
+logger.setLevel(logging.DEBUG)
 
 
-class ShortAlertGroupSerializer(serializers.ModelSerializer):
+class AlertGroupFieldsCacheSerializerMixin:
+    @classmethod
+    def get_or_set_web_template_field(
+        cls,
+        obj,
+        last_alert,
+        field_name,
+        renderer_class,
+        cache_lifetime=60 * 60 * 24,
+    ):
+        CACHE_KEY = f"{field_name}_alert_group_{obj.id}"
+        cached_field = cache.get(CACHE_KEY, None)
+
+        web_templates_modified_at = obj.channel.web_templates_modified_at
+        last_alert_created_at = last_alert.created_at
+
+        # use cache only if cache exists
+        # and cache was created after the last alert created
+        # and either web templates never modified
+        # or cache was created after templates were modified
+        if (
+            cached_field is not None
+            and cached_field.get("cache_created_at") > last_alert_created_at
+            and (web_templates_modified_at is None or cached_field.get("cache_created_at") > web_templates_modified_at)
+        ):
+            field = cached_field.get(field_name)
+        else:
+            field = renderer_class(obj, last_alert).render()
+            cache.set(CACHE_KEY, {"cache_created_at": timezone.now(), field_name: field}, cache_lifetime)
+
+        return field
+
+
+class ShortAlertGroupSerializer(AlertGroupFieldsCacheSerializerMixin, serializers.ModelSerializer):
     pk = serializers.CharField(read_only=True, source="public_primary_key")
     alert_receive_channel = FastAlertReceiveChannelSerializer(source="channel")
     render_for_web = serializers.SerializerMethodField()
@@ -25,10 +61,18 @@ class ShortAlertGroupSerializer(serializers.ModelSerializer):
         fields = ["pk", "render_for_web", "alert_receive_channel", "inside_organization_number"]
 
     def get_render_for_web(self, obj):
-        return AlertGroupWebRenderer(obj).render()
+        last_alert = obj.alerts.last()
+        if last_alert is None:
+            return {}
+        return AlertGroupFieldsCacheSerializerMixin.get_or_set_web_template_field(
+            obj,
+            last_alert,
+            "render_for_web",
+            AlertGroupWebRenderer,
+        )
 
 
-class AlertGroupListSerializer(EagerLoadingMixin, serializers.ModelSerializer):
+class AlertGroupListSerializer(EagerLoadingMixin, AlertGroupFieldsCacheSerializerMixin, serializers.ModelSerializer):
     pk = serializers.CharField(read_only=True, source="public_primary_key")
     alert_receive_channel = FastAlertReceiveChannelSerializer(source="channel")
     status = serializers.ReadOnlyField()
@@ -88,18 +132,24 @@ class AlertGroupListSerializer(EagerLoadingMixin, serializers.ModelSerializer):
         ]
 
     def get_render_for_web(self, obj):
-        # alert group has no alerts
         if not obj.last_alert:
             return {}
-
-        return AlertGroupWebRenderer(obj, obj.last_alert).render()
+        return AlertGroupFieldsCacheSerializerMixin.get_or_set_web_template_field(
+            obj,
+            obj.last_alert,
+            "render_for_web",
+            AlertGroupWebRenderer,
+        )
 
     def get_render_for_classic_markdown(self, obj):
-        # alert group has no alerts
         if not obj.last_alert:
             return {}
-
-        return AlertGroupClassicMarkdownRenderer(obj, obj.last_alert).render()
+        return AlertGroupFieldsCacheSerializerMixin.get_or_set_web_template_field(
+            obj,
+            obj.last_alert,
+            "render_for_classic_markdown",
+            AlertGroupClassicMarkdownRenderer,
+        )
 
     def get_related_users(self, obj):
         users_ids = set()
@@ -141,14 +191,6 @@ class AlertGroupSerializer(AlertGroupListSerializer):
             "paged_users",
         ]
 
-    def get_render_for_web(self, obj):
-        # alert group has no alerts
-        alert = obj.alerts.last()
-        if not alert:
-            return {}
-
-        return AlertGroupWebRenderer(obj).render()
-
     def get_last_alert_at(self, obj):
         last_alert = obj.alerts.last()
 
@@ -162,12 +204,7 @@ class AlertGroupSerializer(AlertGroupListSerializer):
         Overriding default alerts because there are alert_groups with thousands of them.
         It's just too slow, we need to cut here.
         """
-        alerts = obj.alerts.all()[:100]
-
-        if len(alerts) > 90:
-            for alert in alerts:
-                alert.title = str(alert.title) + " Only last 100 alerts are shown. Use OnCall API to fetch all of them."
-
+        alerts = obj.alerts.order_by("-pk")[:100]
         return AlertSerializer(alerts, many=True).data
 
     def get_paged_users(self, obj):

@@ -137,8 +137,9 @@ class AlertReceiveChannelView(
             if eager:
                 queryset = self.serializer_class.setup_eager_loading(queryset)
 
-        # Hide direct paging integrations
-        queryset = queryset.exclude(integration=AlertReceiveChannel.INTEGRATION_DIRECT_PAGING)
+        # Hide direct paging integrations from the list view, but not from the filters
+        if not is_filters_request:
+            queryset = queryset.exclude(integration=AlertReceiveChannel.INTEGRATION_DIRECT_PAGING)
 
         return queryset
 
