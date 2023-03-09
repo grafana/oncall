@@ -19,12 +19,19 @@ const DownloadIcons: FC = () => (
     </Text>
     <Text type="primary">The Grafana IRM app is available on both the App Store and Google Play Store.</Text>
     <VerticalGroup>
-      <Block hover fullWidth withBackground bordered className={cx('icon-block')}>
-        <img src={AppleLogoSVG} alt="Apple" className={cx('icon')} />
-        <Text type="primary" className={cx('icon-text')}>
-          iOS
-        </Text>
-      </Block>
+      <a
+        style={{ width: '100%' }}
+        href="https://apps.apple.com/us/app/grafana-oncall-preview/id1669759048"
+        target="_blank"
+        rel="noreferrer"
+      >
+        <Block hover fullWidth withBackground bordered className={cx('icon-block')}>
+          <img src={AppleLogoSVG} alt="Apple" className={cx('icon')} />
+          <Text type="primary" className={cx('icon-text')}>
+            iOS
+          </Text>
+        </Block>
+      </a>
       <a
         style={{ width: '100%' }}
         href="https://play.google.com/store/apps/details?id=com.grafana.oncall.prod"

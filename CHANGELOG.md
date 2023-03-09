@@ -5,6 +5,177 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## Unreleased
+
+### Fixed
+
+- Fixed issue with Alert group involved users filter
+- Fixed email sending failure due to newline in title
+
+## v1.1.34 (2023-03-08)
+
+### Added
+
+- Jinja2 based routes ([1319](https://github.com/grafana/oncall/pull/1319))
+
+### Changed
+
+- Remove mobile app feature flag ([1484](https://github.com/grafana/oncall/pull/1484))
+
+### Fixed
+
+- Prohibit creating & updating past overrides ([1474](https://github.com/grafana/oncall/pull/1474))
+- Add unique index on `user_id` column in `mobile_app_mobileappauthtoken` table to avoid allowing a user
+  to have more than one mobile app auth token at a time ([1482](https://github.com/grafana/oncall/pull/1482))
+
+## v1.1.33 (2023-03-07)
+
+### Fixed
+
+- Show permission error for accessing Telegram as Viewer ([1273](https://github.com/grafana/oncall/issues/1273))
+
+### Changed
+
+- Pass email and phone limits as environment variables ([1219](https://github.com/grafana/oncall/pull/1219))
+
+## v1.1.32 (2023-03-01)
+
+### Fixed
+
+- Schedule filters improvements ([941](https://github.com/grafana/oncall/issues/941))
+- Fix pagination issue on schedules page ([1437](https://github.com/grafana/oncall/pull/1437))
+
+## v1.1.31 (2023-03-01)
+
+### Added
+
+- Add acknowledge_signal and source link to public api
+
+## v1.1.30 (2023-03-01)
+
+### Fixed
+
+- Fixed importing of global grafana styles ([672](https://github.com/grafana/oncall/issues/672))
+- Fixed UI permission related bug where Editors could not export their user iCal link
+- Fixed error when a shift is created using Etc/UTC as timezone
+- Fixed issue with refresh ical file task not considering empty string values
+- Schedules: Long popup does not fit screen & buttons unreachable & objects outside of the popup ([1002](https://github.com/grafana/oncall/issues/1002))
+- Can't scroll on integration settings page ([415](https://github.com/grafana/oncall/issues/415))
+- Team change in the Integration page always causes 403 ([1292](https://github.com/grafana/oncall/issues/1292))
+- Schedules: Permalink doesn't work with multi-teams ([940](https://github.com/grafana/oncall/issues/940))
+- Schedules list -> expanded schedule blows page width ([1293](https://github.com/grafana/oncall/issues/1293))
+
+### Changed
+
+- Moved reCAPTCHA to backend environment variable for more flexible configuration between different environments.
+- Add pagination to schedule listing
+- Show 100 latest alerts on alert group page ([1417](https://github.com/grafana/oncall/pull/1417))
+
+## v1.1.29 (2023-02-23)
+
+### Changed
+
+- Allow creating schedules with type "web" using public API
+
+### Fixed
+
+- Fixed minor issue during the sync process where an HTTP 302 (redirect) status code from the Grafana
+  instance would cause the sync to not properly finish
+
+## v1.1.28 (2023-02-23)
+
+### Fixed
+
+- Fixed maintenance mode for Telegram and MSTeams
+
+## v1.1.27 (2023-02-22)
+
+### Added
+
+- Added reCAPTCHA validation for requesting a mobile verification code
+
+### Changed
+
+- Added ratelimits for phone verification
+
+### Fixed
+
+- Fixed HTTP request to Google where when fetching an iCal, the response would sometimes contain HTML instead
+  of the expected iCal data
+
+## v1.1.26 (2023-02-20)
+
+### Fixed
+
+- Make alert group filters persistent ([482](https://github.com/grafana/oncall/issues/482))
+
+### Changed
+
+- Update phone verification error message
+
+## v1.1.25 (2023-02-20)
+
+### Fixed
+
+- Fixed too long declare incident link in Slack
+
+## v1.1.24 (2023-02-16)
+
+### Added
+
+- Add direct user paging ([823](https://github.com/grafana/oncall/issues/823))
+- Add App Store link to web UI ([1328](https://github.com/grafana/oncall/pull/1328))
+
+### Fixed
+
+- Cleaning of the name "Incident" ([704](https://github.com/grafana/oncall/pull/704))
+- Alert Group/Alert Groups naming polishing. All the names should be with capital letters
+- Design polishing ([1290](https://github.com/grafana/oncall/pull/1290))
+- Not showing contact details in User tooltip if User does not have edit/admin access
+- Updated slack link account to redirect back to user profile instead of chatops
+
+### Changed
+
+- Incidents - Removed buttons column and replaced status with toggler ([#1237](https://github.com/grafana/oncall/issues/1237))
+- Responsiveness changes across multiple pages (Incidents, Integrations, Schedules) ([#1237](https://github.com/grafana/oncall/issues/1237))
+- Add pagination to schedule listing
+- Link to source was added
+- Header of Incident page was reworked: clickable labels instead of just names, users section was deleted
+- "Go to Integration" button was deleted, because the functionality was moved to clickable labels
+
+## v1.1.23 (2023-02-06)
+
+### Fixed
+
+- Fix bug with email case sensitivity for ICal on-call schedules ([1297](https://github.com/grafana/oncall/pull/1297))
+
+## v1.1.22 (2023-02-03)
+
+### Fixed
+
+- Fix bug with root/dependant alert groups list api endpoint ([1284](https://github.com/grafana/oncall/pull/1284))
+- Fixed NPE on teams switch
+
+### Added
+
+- Optimize alert and alert group public api endpoints and add filter by id ([1274](https://github.com/grafana/oncall/pull/1274))
+- Enable mobile app backend by default on OSS
+
+## v1.1.21 (2023-02-02)
+
+### Added
+
+- Add [`django-dbconn-retry` library](https://github.com/jdelic/django-dbconn-retry) to `INSTALLED_APPS` to attempt
+  to alleviate occasional `django.db.utils.OperationalError` errors
+- Improve alerts and alert group endpoint response time in internal API with caching ([1261](https://github.com/grafana/oncall/pull/1261))
+- Optimize alert and alert group public api endpoints and add filter by id ([1274](https://github.com/grafana/oncall/pull/1274)
+- Added Coming Soon for iOS on Mobile App screen
+
+### Fixed
+
+- Fix issue on Integrations where you were redirected back once escalation chain was loaded ([#1083](https://github.com/grafana/oncall/issues/1083))
+  ([#1257](https://github.com/grafana/oncall/issues/1257))
+
 ## v1.1.20 (2023-01-30)
 
 ### Added

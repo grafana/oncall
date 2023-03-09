@@ -25,12 +25,6 @@
   text-align: center;
 }
 
-@media (min-width: 1540px) {
-  .step {
-    width: 170px;
-  }
-}
-
 .icon {
   width: 60px;
   height: 60px;
@@ -54,4 +48,10 @@
 
 :global(.theme-dark) .arrow svg {
   fill-opacity: 0.15;
+}
+
+@media (min-width: 1540px) {
+  .step {
+    width: 170px;
+  }
 }

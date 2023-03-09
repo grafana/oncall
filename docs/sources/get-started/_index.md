@@ -52,7 +52,7 @@ send a demo alert.
 
 #### Configure your first integration
 
-1. In Grafana OnCall, navigate to the **Integrations** tab and click **+ New integration for receiving alerts**.
+1. In Grafana OnCall, navigate to the **Integrations** tab and click **+ New integration to receive alerts**.
 2. Select an integration from the provided options, if the integration you’re looking for isn’t listed, then select Webhook.
 3. Follow the configuration steps on the integration settings page.
 4. Complete any necessary configurations in your monitoring system to send alerts to Grafana OnCall.

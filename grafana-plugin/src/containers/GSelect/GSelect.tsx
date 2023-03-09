@@ -35,6 +35,9 @@ interface GSelectProps {
   dropdownRender?: (menu: ReactElement) => ReactElement;
   getOptionLabel?: <T>(item: SelectableValue<T>) => React.ReactNode;
   getDescription?: (item: any) => React.ReactNode;
+  openMenuOnFocus?: boolean;
+  width?: number | 'auto';
+  icon?: string;
 }
 
 const GSelect = observer((props: GSelectProps) => {
@@ -59,6 +62,8 @@ const GSelect = observer((props: GSelectProps) => {
     getDescription,
     filterOptions,
     fromOrganization,
+    width = null,
+    icon = null,
   } = props;
 
   const store = useStore();
@@ -151,6 +156,8 @@ const GSelect = observer((props: GSelectProps) => {
         noOptionsMessage={`Not found`}
         getOptionLabel={getOptionLabel}
         invalid={showError || (showWarningIfEmptyValue && !value)}
+        width={width}
+        icon={icon}
       />
     </div>
   );

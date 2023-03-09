@@ -6,7 +6,7 @@ import { observer } from 'mobx-react';
 import ReactDOM from 'react-dom';
 
 import GSelect from 'containers/GSelect/GSelect';
-import { WithPermissionControl } from 'containers/WithPermissionControl/WithPermissionControl';
+import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
 import { GrafanaTeam } from 'models/grafana_team/grafana_team.types';
 import { isTopNavbar } from 'plugin/GrafanaPluginRootPage.helpers';
 import { useStore } from 'state/useStore';
@@ -16,14 +16,9 @@ import styles from './GrafanaTeamSelect.module.scss';
 
 const cx = cn.bind(styles);
 
-interface GrafanaTeamSelectProps {
-  currentPage: string;
-}
-
-const GrafanaTeamSelect = observer((props: GrafanaTeamSelectProps) => {
+const GrafanaTeamSelect = observer(() => {
   const store = useStore();
 
-  const { currentPage } = props;
   const { userStore, grafanaTeamStore } = store;
   const grafanaTeams = grafanaTeamStore.getSearchResult();
   const user = userStore.currentUser;
@@ -35,16 +30,7 @@ const GrafanaTeamSelect = observer((props: GrafanaTeamSelectProps) => {
   const onTeamChange = async (teamId: GrafanaTeam['id']) => {
     await userStore.updateCurrentUser({ current_team: teamId });
 
-    const queryParams = new URLSearchParams();
-    queryParams.set('page', mapCurrentPage());
-    window.location.search = queryParams.toString();
-
-    function mapCurrentPage() {
-      if (currentPage === 'incident') {
-        return 'incidents';
-      }
-      return currentPage;
-    }
+    window.location.reload();
   };
 
   const content = (
@@ -58,11 +44,11 @@ const GrafanaTeamSelect = observer((props: GrafanaTeamSelectProps) => {
             </Tooltip>
           </span>
         </Label>
-        <WithPermissionControl userAction={UserActions.TeamsWrite}>
+        <WithPermissionControlTooltip userAction={UserActions.TeamsWrite}>
           <a href="/org/teams" className={cx('teamSelectLink')}>
             Edit teams
           </a>
-        </WithPermissionControl>
+        </WithPermissionControlTooltip>
       </div>
       <GSelect
         modelName="grafanaTeamStore"

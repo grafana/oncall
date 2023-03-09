@@ -50,7 +50,7 @@ const ScheduleOverrideForm: FC<RotationFormProps> = (props) => {
     shiftId,
     startMoment,
     shiftMoment = dayjs().startOf('day').add(1, 'day'),
-    shiftColor = '#C69B06',
+    shiftColor = getComputedStyle(document.documentElement).getPropertyValue('--tag-warning'),
   } = props;
 
   const store = useStore();

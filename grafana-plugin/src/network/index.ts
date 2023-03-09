@@ -32,12 +32,15 @@ interface RequestConfig {
   data?: any;
   withCredentials?: boolean;
   validateStatus?: (status: number) => boolean;
+  headers?: {
+    [key: string]: string | number;
+  };
 }
 
 export const isNetworkError = axios.isAxiosError;
 
 export const makeRequest = async <RT = any>(path: string, config: RequestConfig) => {
-  const { method = 'GET', params, data, validateStatus } = config;
+  const { method = 'GET', params, data, validateStatus, headers } = config;
 
   const url = `${API_PROXY_PREFIX}${API_PATH_PREFIX}${path}`;
   const otel = FaroHelper.faro?.api?.getOTEL();
@@ -63,6 +66,7 @@ export const makeRequest = async <RT = any>(path: string, config: RequestConfig)
           params,
           data,
           validateStatus,
+          headers,
         })
           .then((response) => {
             FaroHelper.faro.api.pushEvent('Request completed', { url });
@@ -86,6 +90,7 @@ export const makeRequest = async <RT = any>(path: string, config: RequestConfig)
     params,
     data,
     validateStatus,
+    headers,
   })
     .then((response) => {
       FaroHelper.faro?.api.pushEvent('Request completed', { url });

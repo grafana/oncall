@@ -579,7 +579,7 @@ class IncidentLogBuilder:
         """
         UserNotificationPolicy = apps.get_model("base", "UserNotificationPolicy")
         result = ""
-        user_verbal = user_to_notify.get_user_verbal_for_team_for_slack() if for_slack else user_to_notify.username
+        user_verbal = user_to_notify.get_username_with_slack_verbal() if for_slack else user_to_notify.username
         if notification_policy.step == UserNotificationPolicy.Step.NOTIFY:
             if notification_policy.notify_by == UserNotificationPolicy.NotificationChannel.SLACK:
                 result += f"invite {user_verbal} in Slack"

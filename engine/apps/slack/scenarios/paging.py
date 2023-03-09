@@ -10,6 +10,7 @@ from apps.alerts.paging import (
     check_user_availability,
     direct_paging,
 )
+from apps.slack.models import SlackChannel
 from apps.slack.scenarios import scenario_step
 from apps.slack.slack_client.exceptions import SlackAPIException
 
@@ -83,7 +84,7 @@ class StartDirectPaging(scenario_step.ScenarioStep):
 
     command_name = [settings.SLACK_DIRECT_PAGING_SLASH_COMMAND]
 
-    def process_scenario(self, slack_user_identity, slack_team_identity, payload, action=None):
+    def process_scenario(self, slack_user_identity, slack_team_identity, payload):
         input_id_prefix = _generate_input_id_prefix()
 
         try:
@@ -110,7 +111,7 @@ class StartDirectPaging(scenario_step.ScenarioStep):
 class FinishDirectPaging(scenario_step.ScenarioStep):
     """Handle page command dialog submit."""
 
-    def process_scenario(self, slack_user_identity, slack_team_identity, payload, action=None):
+    def process_scenario(self, slack_user_identity, slack_team_identity, payload):
         title = _get_title_from_payload(payload)
         message = _get_message_from_payload(payload)
         private_metadata = json.loads(payload["view"]["private_metadata"])
@@ -167,7 +168,7 @@ class FinishDirectPaging(scenario_step.ScenarioStep):
 class OnPagingOrgChange(scenario_step.ScenarioStep):
     """Reload form with updated organization."""
 
-    def process_scenario(self, slack_user_identity, slack_team_identity, payload, action=None):
+    def process_scenario(self, slack_user_identity, slack_team_identity, payload):
         updated_payload = reset_items(payload)
         view = render_dialog(slack_user_identity, slack_team_identity, updated_payload)
         self._slack_client.api_call(
@@ -192,7 +193,7 @@ class OnPagingUserChange(scenario_step.ScenarioStep):
     It will perform a user availability check, pushing a new modal for additional confirmation if needed.
     """
 
-    def process_scenario(self, slack_user_identity, slack_team_identity, payload, action=None):
+    def process_scenario(self, slack_user_identity, slack_team_identity, payload):
         private_metadata = json.loads(payload["view"]["private_metadata"])
         selected_organization = _get_selected_org_from_payload(payload, private_metadata["input_id_prefix"])
         selected_team = _get_selected_team_from_payload(payload, private_metadata["input_id_prefix"])
@@ -249,7 +250,7 @@ class OnPagingItemActionChange(scenario_step.ScenarioStep):
 class OnPagingConfirmUserChange(scenario_step.ScenarioStep):
     """Confirm user selection despite not being available."""
 
-    def process_scenario(self, slack_user_identity, slack_team_identity, payload, action=None):
+    def process_scenario(self, slack_user_identity, slack_team_identity, payload):
         metadata = json.loads(payload["view"]["private_metadata"])
 
         # recreate original view state and metadata
@@ -356,20 +357,25 @@ def render_dialog(slack_user_identity, slack_team_identity, payload, initial=Fal
 
     blocks.extend([_get_title_input(payload), _get_message_input(payload)])
 
-    view = _get_form_view(submit_routing_uid, blocks, json.dumps(new_private_metadata))
+    view = _get_form_view(submit_routing_uid, blocks, json.dumps(new_private_metadata), selected_organization)
     return view
 
 
-def _get_form_view(routing_uid, blocks, private_metatada):
+def _get_form_view(routing_uid, blocks, private_metatada, organization):
+    try:
+        channel = organization.slack_team_identity.get_cached_channels().get(
+            slack_id=organization.general_log_channel_id
+        )
+        additional_info = f":information_source: The alert group will be posted to the #{channel.name} Slack channel"
+    except SlackChannel.DoesNotExist:
+        additional_info = (
+            ":information_source: The alert group will be posted to the default Slack channel if there is one setup"
+        )
+
     blocks += [
         {
             "type": "context",
-            "elements": [
-                {
-                    "type": "mrkdwn",
-                    "text": ":information_source: The alert group will be posted to the default Slack channel if there is one setup",
-                }
-            ],
+            "elements": [{"type": "mrkdwn", "text": additional_info}],
         }
     ]
     view = {
@@ -573,10 +579,10 @@ def _get_users_select(organization, team, input_id_prefix):
             "action_id": OnPagingUserChange.routing_uid(),
         },
     }
-
-    if len(user_options) > scenario_step.MAX_STATIC_SELECT_OPTIONS:
+    MAX_STATIC_SELECT_OPTIONS = 100
+    if len(user_options) > MAX_STATIC_SELECT_OPTIONS:
         # paginate user options in groups
-        max_length = scenario_step.MAX_STATIC_SELECT_OPTIONS
+        max_length = MAX_STATIC_SELECT_OPTIONS
         chunks = [user_options[x : x + max_length] for x in range(0, len(user_options), max_length)]
         option_groups = [
             {
