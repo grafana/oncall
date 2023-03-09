@@ -29,8 +29,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - Prohibit creating & updating past overrides ([1474](https://github.com/grafana/oncall/pull/1474))
-- Add unique index on `user_id` column in `mobile_app_mobileappauthtoken` table to avoid allowing a user
-  to have more than one mobile app auth token at a time ([1482](https://github.com/grafana/oncall/pull/1482))
 
 ## v1.1.33 (2023-03-07)
 
