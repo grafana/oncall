@@ -179,6 +179,7 @@ class ChannelFilter(OrderedModel):
     @property
     def insight_logs_serialized(self):
         result = {
+            "filtering_term_type": self.get_filtering_term_type_display(),
             "filtering_term": self.str_for_clients,
             "order": self.order,
             "slack_notification_enabled": self.notify_in_slack,
