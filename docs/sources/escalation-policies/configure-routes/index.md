@@ -55,12 +55,16 @@ You can set up a single route and specify notification escalation steps, or you 
 its own configuration.
 
 Each route added to an escalation policy follows an `IF`, `ELSE IF`, or `ELSE` path and depends on the type of alert you
-specify using a regular expression that matches content in the payload body of the alert. You can also specify where
-to send the notification for each route.
+specify using a Jinja template that matches content in the payload body of the first alert in alert group. You can also
+specify where to send the notification for each route.
 
-For example, you can send notifications for alerts with `\"severity\": \"critical\"` in the payload to an escalation
-chain called `Bob_OnCall`. You can create a different route for alerts with the payload
-`\"namespace\" *: *\"synthetic-monitoring-dev-.*\"` and select a escalation chain called `NotifySecurity`.
+For example, you can send notifications for alerts with `{{ payload.severity == "critical" and payload.service ==
+"database" }}` in the payload to an escalation chain called `Bob_OnCall`. You can create a different route for alerts
+with the payload `{{ "synthetic-monitoring-dev-" in payload.namespace }}` and select a escalation chain called
+`NotifySecurity`.
+
+Alternatively you can use regular expressions, e.g. `\"severity\": \"critical\"` or `\"namespace\" *:
+*\"synthetic-monitoring-dev-.*\"`
 
 You can set up escalation steps for each route in a chain.
 

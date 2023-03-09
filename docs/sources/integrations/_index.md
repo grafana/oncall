@@ -33,7 +33,7 @@ describe how to configure and customize your integrations to ensure alerts are t
 
 To configure an integration for Grafana OnCall:
 
-1. In Grafana OnCall, navigate to the **Integrations** tab and click **+ New integration for receiving alerts**.
+1. In Grafana OnCall, navigate to the **Integrations** tab and click **+ New integration to receive alerts**.
 2. Select an integration from the provided options, if the integration you want isn’t listed, then select **Webhook**.
 3. Follow the configuration steps on the integration settings page.
 4. Complete any necessary configurations in your tool to send alerts to Grafana OnCall.
