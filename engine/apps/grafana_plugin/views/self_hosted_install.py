@@ -59,6 +59,7 @@ class SelfHostedInstallView(GrafanaHeadersMixin, APIView):
                 org_slug=settings.SELF_HOSTED_SETTINGS["ORG_SLUG"],
                 org_title=settings.SELF_HOSTED_SETTINGS["ORG_TITLE"],
                 region_slug=settings.SELF_HOSTED_SETTINGS["REGION_SLUG"],
+                cluster_slug=settings.SELF_HOSTED_SETTINGS["CLUSTER_SLUG"],
                 grafana_url=grafana_url,
                 api_token=grafana_api_token,
                 is_rbac_permissions_enabled=rbac_is_enabled,

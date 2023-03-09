@@ -14,6 +14,7 @@ import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/W
 import { getOverrideColor, getOverridesFromStore } from 'models/schedule/schedule.helpers';
 import { Schedule, ScheduleType, Shift, ShiftEvents } from 'models/schedule/schedule.types';
 import { Timezone } from 'models/timezone/timezone.types';
+import { getStartOfDay } from 'pages/schedule/Schedule.helpers';
 import { WithStoreProps } from 'state/types';
 import { withMobXProviderContext } from 'state/withStore';
 import { UserActions } from 'utils/authorization';
@@ -186,11 +187,14 @@ class ScheduleOverrides extends Component<ScheduleOverridesProps, ScheduleOverri
   };
 
   handleAddOverride = () => {
-    const { startMoment, disabled } = this.props;
+    const { store, disabled } = this.props;
 
     if (disabled) {
       return;
     }
+
+    // use start of current day as default start time for override
+    const startMoment = getStartOfDay(store.currentTimezone);
 
     this.setState({ shiftMomentToShowOverrideForm: startMoment }, () => {
       this.onShowRotationForm('new');

@@ -5,6 +5,23 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## v1.1.36 (2023-03-09)
+
+### Fixed
+
+- Fix bug with override creation ([1515](https://github.com/grafana/oncall/pull/1515))
+
+## v1.1.35 (2023-03-09)
+
+### Added
+
+- Insight logs
+
+### Fixed
+
+- Fixed issue with Alert group involved users filter
+- Fixed email sending failure due to newline in title
+
 ## v1.1.34 (2023-03-08)
 
 ### Added
@@ -18,8 +35,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - Prohibit creating & updating past overrides ([1474](https://github.com/grafana/oncall/pull/1474))
-- Add unique index on `user_id` column in `mobile_app_mobileappauthtoken` table to avoid allowing a user
-  to have more than one mobile app auth token at a time ([1482](https://github.com/grafana/oncall/pull/1482))
 
 ## v1.1.33 (2023-03-07)
 

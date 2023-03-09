@@ -41,6 +41,7 @@ def sync_organization(organization):
 
     organization.save(
         update_fields=[
+            "cluster_slug",
             "stack_slug",
             "org_slug",
             "org_title",
@@ -68,6 +69,7 @@ def _sync_instance_info(organization):
         organization.org_title = instance_info["orgName"]
         organization.region_slug = instance_info["regionSlug"]
         organization.grafana_url = instance_info["url"]
+        organization.cluster_slug = instance_info["clusterSlug"]
         organization.gcom_token_org_last_time_synced = timezone.now()
 
 
