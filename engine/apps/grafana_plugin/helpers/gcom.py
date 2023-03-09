@@ -68,6 +68,7 @@ def check_gcom_permission(token_string: str, context) -> Optional["GcomToken"]:
         organization.org_title = instance_info["orgName"]
         organization.region_slug = instance_info["regionSlug"]
         organization.grafana_url = instance_info["url"]
+        organization.cluster_slug = instance_info["clusterSlug"]
         organization.gcom_token = token_string
         organization.gcom_token_org_last_time_synced = timezone.now()
         organization.save(
@@ -79,6 +80,7 @@ def check_gcom_permission(token_string: str, context) -> Optional["GcomToken"]:
                 "grafana_url",
                 "gcom_token",
                 "gcom_token_org_last_time_synced",
+                "cluster_slug",
             ]
         )
     logger.debug(f"Finish authenticate by making request to gcom api for org={org_id}, stack_id={stack_id}")
