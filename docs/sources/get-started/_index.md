@@ -68,13 +68,17 @@ For more information on Grafana OnCall integrations and further configuration gu
 
 ### Learn Alert Flow
 
-All Alerts in OnCall are grouped to Alert Groups ([read more about Grouping ID]({{< relref "../alert-behavior/alert-templates" >}})). Alert Group could have mutually exclusive states:
+All Alerts in OnCall are grouped to Alert Groups ([read more about Grouping ID]({{< relref "../alert-behavior/alert-templates" >}})). Alert Group could have mutually
+exclusive states:
+
 - **Firing:** Once Alert Group is registered, Escalation Policy associated with it is getting started. Escalation policy will work while Alert Group is in this status.
 - **Acknowledged:** Ongoing Escalation Chain will be interrupted. Unacknowledge will move Alert Group to the "Firing" state and will re-launch Escalation Chain.
-- **Silenced:** Similar to "Acknowledged" but designed to be temporary with a timeout. Once time is out, will re-launch Escalation Chain and move Alert Group to the "Firing" state.
-- **Resolved:** Similar to "Acknowledged". 
+- **Silenced:** Similar to "Acknowledged" but designed to be temporary with a timeout. Once time is out, will re-launch Escalation Chain and move Alert Group
+to the "Firing" state.
+- **Resolved:** Similar to "Acknowledged".
 
 Possible transitions:
+
 - Firing -> Acknowledged
 - Firing -> Silenced
 - Firing -> Resolved
