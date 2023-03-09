@@ -206,9 +206,7 @@ class GcomAPIClient(APIClient):
     def __init__(self, api_token: str):
         super().__init__(settings.GRAFANA_COM_API_URL, api_token)
 
-    def get_instance_info(
-        self, stack_id: str, include_config_query_param: bool = False, **kwargs
-    ) -> Optional[GCOMInstanceInfo]:
+    def get_instance_info(self, stack_id: str, include_config_query_param: bool = False) -> Optional[GCOMInstanceInfo]:
         """
         NOTE: in order to use ?config=true, an "Admin" GCOM token must be used to make the API call
         """
@@ -216,7 +214,7 @@ class GcomAPIClient(APIClient):
         if include_config_query_param:
             url += "?config=true"
 
-        data, _ = self.api_get(url, **kwargs)
+        data, _ = self.api_get(url)
         return data
 
     def is_rbac_enabled_for_stack(self, stack_id: str) -> bool:
