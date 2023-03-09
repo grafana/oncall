@@ -110,6 +110,7 @@ class Organization(MaintainableObject):
         default=None,
         null=True,
     )
+    cluster_slug = models.CharField(max_length=300, null=True, default=None)
 
     grafana_url = models.URLField()
 
