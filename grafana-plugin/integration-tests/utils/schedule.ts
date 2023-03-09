@@ -2,6 +2,7 @@ import { Page } from '@playwright/test';
 import { GRAFANA_USERNAME } from './constants';
 import { clickButton, fillInInput, selectDropdownValue, selectValuePickerValue } from './forms';
 import { goToOnCallPageByClickingOnTab } from './navigation';
+import dayjs from "dayjs";
 
 export const createOnCallSchedule = async (page: Page, scheduleName: string): Promise<void> => {
   // go to the escalation chains page
@@ -28,4 +29,30 @@ export const createOnCallSchedule = async (page: Page, scheduleName: string): Pr
   });
 
   await clickButton({ page, buttonText: 'Create' });
+};
+
+export interface OverrideFormDateInputs {
+  start: dayjs.Dayjs;
+  end: dayjs.Dayjs;
+}
+
+export const getOverrideFormDateInputs = async (page: Page): Promise<OverrideFormDateInputs> => {
+  const getInputValue = async (inputNumber: number): Promise<string> => {
+    const element = await page.waitForSelector(`div[data-testid=\"override-inputs\"] >> input >> nth=${inputNumber}`)
+    return await element.inputValue();
+  }
+
+  const startDate = await getInputValue(0);
+  const startTime = await getInputValue(1);
+
+  const endDate = await getInputValue(2);
+  const endTime = await getInputValue(3);
+
+  const startDateTime = dayjs(`${startDate} ${startTime}`, 'MM/DD/YYYY HH:mm');
+  const endDateTime = dayjs(`${endDate} ${endTime}`, 'MM/DD/YYYY HH:mm');
+
+  return {
+    start: startDateTime,
+    end: endDateTime,
+  };
 };
