@@ -57,27 +57,23 @@ class Webhook(models.Model):
 
     (
         TRIGGER_ESCALATION_STEP,
-        TRIGGER_USER_NOTIFICATION_STEP,
         TRIGGER_NEW,
         TRIGGER_ACKNOWLEDGE,
         TRIGGER_RESOLVE,
         TRIGGER_SILENCE,
         TRIGGER_UNSILENCE,
         TRIGGER_UNRESOLVE,
-        TRIGGER_SHIFT_CHANGE,
-    ) = range(9)
+    ) = range(7)
 
     # Must be the same order as previous
     TRIGGER_TYPES = (
         (TRIGGER_ESCALATION_STEP, "Escalation step"),
-        (TRIGGER_USER_NOTIFICATION_STEP, "User notification"),
         (TRIGGER_NEW, "Triggered"),
         (TRIGGER_ACKNOWLEDGE, "Acknowledged"),
         (TRIGGER_RESOLVE, "Resolved"),
         (TRIGGER_SILENCE, "Silenced"),
         (TRIGGER_UNSILENCE, "Unsilenced"),
         (TRIGGER_UNRESOLVE, "Unresolved"),
-        (TRIGGER_SHIFT_CHANGE, "Schedule shift change"),
     )
 
     public_primary_key = models.CharField(
@@ -120,11 +116,12 @@ class Webhook(models.Model):
         return str(self.name)
 
     def delete(self):
-        # TODO: self.escalation_policies.all().delete()
+        # TODO: delete related escalation policies on delete, once implemented
+        # self.escalation_policies.all().delete()
         self.deleted_at = timezone.now()
         # 100 - 22 = 78. 100 is max len of name field, and 22 is len of suffix _deleted_<public_primary_key>
-        # So for case when user created button with maximum length name it is needed to trim it to 78 chars to be
-        # able to add suffix.
+        # So for case when user created an entry with maximum length name it is needed to trim it to 78 chars
+        # to be able to add suffix.
         self.name = f"{self.name[:78]}_deleted_{self.public_primary_key}"
         self.save()
 
