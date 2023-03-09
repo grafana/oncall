@@ -297,7 +297,7 @@ class IncidentPage extends React.Component<IncidentPageProps, IncidentPageState>
             <HorizontalGroup>
               <div className={cx('status-tag-container')}>{getIncidentStatusTag(incident)}</div>
               {integration && (
-                <>
+                <HorizontalGroup>
                   <PluginLink
                     disabled={incident.alert_receive_channel.deleted}
                     query={{ page: 'integrations', id: incident.alert_receive_channel.id }}
@@ -331,7 +331,7 @@ class IncidentPage extends React.Component<IncidentPageProps, IncidentPageState>
                     placement="top"
                     content={
                       incident.render_for_web.source_link === null
-                        ? `The integration doesn't have direct link to the source.`
+                        ? `The integration template Source Link is empty`
                         : 'Go to source'
                     }
                   >
@@ -348,7 +348,7 @@ class IncidentPage extends React.Component<IncidentPageProps, IncidentPageState>
                       </Button>
                     </a>
                   </Tooltip>
-                </>
+                </HorizontalGroup>
               )}
             </HorizontalGroup>
           </div>
