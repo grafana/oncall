@@ -19,8 +19,7 @@ $score-danger: rgba(209, 14, 92, 0.15);
 
 .tag {
   font-size: 12px;
-  padding: 5px 10px 4px 10px;
-  border-radius: 2px;
+  padding: 4px 10px 3px 10px;
 
   &--danger {
     background-color: $score-danger;
