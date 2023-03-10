@@ -86,7 +86,7 @@ class ScheduleOverrides extends Component<ScheduleOverridesProps, ScheduleOverri
                 </Text.Title>
               </div>
               {isTypeReadOnly ? (
-                <Tooltip content="Overrides are read-only" placement="top">
+                <Tooltip content="You can set an override using the override calendar" placement="top">
                   <div>
                     <Button variant="primary" icon="plus" disabled>
                       Add override
