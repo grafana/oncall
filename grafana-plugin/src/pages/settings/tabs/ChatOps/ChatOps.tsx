@@ -33,7 +33,11 @@ class ChatOpsPage extends React.Component<AppRootProps, ChatOpsState> {
   componentDidMount() {
     const { query } = this.props;
 
-    this.handleChatopsTabChange(query.tab || ChatOpsTab.Slack);
+    this.handleChatopsTabChange(query?.tab || ChatOpsTab.Slack);
+  }
+
+  componentWillUnmount() {
+    this.handleChatopsTabChange(undefined);
   }
 
   render() {

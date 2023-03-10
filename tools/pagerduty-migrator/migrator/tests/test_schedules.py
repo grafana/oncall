@@ -179,6 +179,7 @@ def test_deactivated_users():
     pd_schedule = {
         "name": "No restrictions",
         "time_zone": "Europe/London",
+        "overrides": [],
         "schedule_layers": [
             {
                 "name": "Layer 1",
@@ -199,7 +200,7 @@ def test_deactivated_users():
         user_id_map
     )
     assert errors == [
-        "Layer 1: User IDs ['USER_ID_DEACTIVATED'] not found. The users probably have been deactivated in PagerDuty."
+        "Layer 1: Users with IDs ['USER_ID_DEACTIVATED'] not found. The users probably have been deactivated in PagerDuty."
     ]
 
 
@@ -207,6 +208,7 @@ def test_no_restrictions():
     pd_schedule = {
         "name": "No restrictions",
         "time_zone": "Europe/London",
+        "overrides": [],
         "schedule_layers": [
             {
                 "name": "Layer 5",
@@ -263,7 +265,7 @@ def test_no_restrictions():
         "type": "web",
         "shifts": [
             {
-                "level": 0,
+                "level": 1,
                 "type": "rolling_users",
                 "rotation_start": "2023-02-20T17:00:00",
                 "until": None,
@@ -278,7 +280,7 @@ def test_no_restrictions():
                 "source": 0,
             },
             {
-                "level": 1,
+                "level": 2,
                 "type": "rolling_users",
                 "rotation_start": "2023-02-19T18:08:11",
                 "until": None,
@@ -293,7 +295,7 @@ def test_no_restrictions():
                 "source": 0,
             },
             {
-                "level": 2,
+                "level": 3,
                 "type": "rolling_users",
                 "rotation_start": "2023-02-21T19:00:00",
                 "until": None,
@@ -308,7 +310,7 @@ def test_no_restrictions():
                 "source": 0,
             },
             {
-                "level": 3,
+                "level": 4,
                 "type": "rolling_users",
                 "rotation_start": "2023-02-21T14:00:00",
                 "until": None,
@@ -323,7 +325,7 @@ def test_no_restrictions():
                 "source": 0,
             },
             {
-                "level": 4,
+                "level": 5,
                 "type": "rolling_users",
                 "rotation_start": "2023-02-19T19:25:55",
                 "until": None,
@@ -355,6 +357,7 @@ def test_daily_with_daily_restrictions():
     pd_schedule = {
         "name": "Daily with daily restrictions",
         "time_zone": "Europe/London",
+        "overrides": [],
         "schedule_layers": [
             {
                 "name": "Layer 10",
@@ -572,7 +575,7 @@ def test_daily_with_daily_restrictions():
         "type": "web",
         "shifts": [
             {
-                "level": 0,
+                "level": 1,
                 "type": "rolling_users",
                 "rotation_start": "2023-02-21T09:00:00",
                 "until": None,
@@ -588,7 +591,7 @@ def test_daily_with_daily_restrictions():
                 "source": 0,
             },
             {
-                "level": 1,
+                "level": 2,
                 "type": "rolling_users",
                 "rotation_start": "2023-02-21T05:00:00",
                 "until": None,
@@ -604,7 +607,7 @@ def test_daily_with_daily_restrictions():
                 "source": 0,
             },
             {
-                "level": 2,
+                "level": 3,
                 "type": "rolling_users",
                 "rotation_start": "2023-02-21T20:00:00",
                 "until": None,
@@ -620,7 +623,7 @@ def test_daily_with_daily_restrictions():
                 "source": 0,
             },
             {
-                "level": 3,
+                "level": 4,
                 "type": "rolling_users",
                 "rotation_start": "2023-02-21T16:00:00",
                 "until": None,
@@ -636,7 +639,7 @@ def test_daily_with_daily_restrictions():
                 "source": 0,
             },
             {
-                "level": 3,
+                "level": 4,
                 "type": "rolling_users",
                 "rotation_start": "2023-02-21T16:00:00",
                 "until": None,
@@ -652,7 +655,7 @@ def test_daily_with_daily_restrictions():
                 "source": 0,
             },
             {
-                "level": 4,
+                "level": 5,
                 "type": "rolling_users",
                 "rotation_start": "2023-02-21T14:00:00",
                 "until": None,
@@ -668,7 +671,7 @@ def test_daily_with_daily_restrictions():
                 "source": 0,
             },
             {
-                "level": 4,
+                "level": 5,
                 "type": "rolling_users",
                 "rotation_start": "2023-02-21T14:00:00",
                 "until": None,
@@ -684,7 +687,7 @@ def test_daily_with_daily_restrictions():
                 "source": 0,
             },
             {
-                "level": 4,
+                "level": 5,
                 "type": "rolling_users",
                 "rotation_start": "2023-02-21T14:00:00",
                 "until": None,
@@ -700,7 +703,7 @@ def test_daily_with_daily_restrictions():
                 "source": 0,
             },
             {
-                "level": 4,
+                "level": 5,
                 "type": "rolling_users",
                 "rotation_start": "2023-02-21T14:00:00",
                 "until": None,
@@ -716,7 +719,7 @@ def test_daily_with_daily_restrictions():
                 "source": 0,
             },
             {
-                "level": 5,
+                "level": 6,
                 "type": "rolling_users",
                 "rotation_start": "2023-02-19T18:49:46",
                 "until": None,
@@ -732,7 +735,7 @@ def test_daily_with_daily_restrictions():
                 "source": 0,
             },
             {
-                "level": 5,
+                "level": 6,
                 "type": "rolling_users",
                 "rotation_start": "2023-02-19T18:49:46",
                 "until": None,
@@ -748,7 +751,7 @@ def test_daily_with_daily_restrictions():
                 "source": 0,
             },
             {
-                "level": 5,
+                "level": 6,
                 "type": "rolling_users",
                 "rotation_start": "2023-02-19T18:49:46",
                 "until": None,
@@ -764,7 +767,7 @@ def test_daily_with_daily_restrictions():
                 "source": 0,
             },
             {
-                "level": 6,
+                "level": 7,
                 "type": "rolling_users",
                 "rotation_start": "2023-02-19T18:49:46",
                 "until": None,
@@ -780,7 +783,7 @@ def test_daily_with_daily_restrictions():
                 "source": 0,
             },
             {
-                "level": 6,
+                "level": 7,
                 "type": "rolling_users",
                 "rotation_start": "2023-02-19T18:49:46",
                 "until": None,
@@ -796,7 +799,7 @@ def test_daily_with_daily_restrictions():
                 "source": 0,
             },
             {
-                "level": 7,
+                "level": 8,
                 "type": "rolling_users",
                 "rotation_start": "2023-02-21T00:00:00",
                 "until": None,
@@ -812,7 +815,7 @@ def test_daily_with_daily_restrictions():
                 "source": 0,
             },
             {
-                "level": 7,
+                "level": 8,
                 "type": "rolling_users",
                 "rotation_start": "2023-02-21T00:00:00",
                 "until": None,
@@ -828,7 +831,7 @@ def test_daily_with_daily_restrictions():
                 "source": 0,
             },
             {
-                "level": 8,
+                "level": 9,
                 "type": "rolling_users",
                 "rotation_start": "2023-02-21T17:00:00",
                 "until": None,
@@ -844,7 +847,7 @@ def test_daily_with_daily_restrictions():
                 "source": 0,
             },
             {
-                "level": 8,
+                "level": 9,
                 "type": "rolling_users",
                 "rotation_start": "2023-02-21T17:00:00",
                 "until": None,
@@ -864,7 +867,7 @@ def test_daily_with_daily_restrictions():
                 "duration": 46800,
                 "frequency": "daily",
                 "interval": 3,
-                "level": 9,
+                "level": 10,
                 "rolling_users": [["USER_ID_1"], ["USER_ID_2"], ["USER_ID_3"]],
                 "rotation_start": "2023-02-21T20:00:09",
                 "start": "2023-02-21T20:00:00",
@@ -880,7 +883,7 @@ def test_daily_with_daily_restrictions():
                 "duration": 57600,
                 "frequency": "daily",
                 "interval": 3,
-                "level": 9,
+                "level": 10,
                 "rolling_users": [["USER_ID_1"], ["USER_ID_2"], ["USER_ID_3"]],
                 "rotation_start": "2023-02-21T20:00:09",
                 "start": "2023-02-22T17:00:00",
@@ -896,7 +899,7 @@ def test_daily_with_daily_restrictions():
                 "duration": 57600,
                 "frequency": "daily",
                 "interval": 3,
-                "level": 9,
+                "level": 10,
                 "rolling_users": [["USER_ID_1"], ["USER_ID_2"], ["USER_ID_3"]],
                 "rotation_start": "2023-02-21T20:00:09",
                 "start": "2023-02-23T17:00:00",
@@ -912,7 +915,7 @@ def test_daily_with_daily_restrictions():
                 "duration": 10800,
                 "frequency": "daily",
                 "interval": 3,
-                "level": 9,
+                "level": 10,
                 "rolling_users": [["USER_ID_1"], ["USER_ID_2"], ["USER_ID_3"]],
                 "rotation_start": "2023-02-21T20:00:09",
                 "start": "2023-02-24T17:00:00",
@@ -941,6 +944,7 @@ def test_weekly_with_daily_restrictions():
     pd_schedule = {
         "name": "Weekly with daily restrictions",
         "time_zone": "Europe/London",
+        "overrides": [],
         "schedule_layers": [
             {
                 "name": "Layer 6",
@@ -1078,7 +1082,7 @@ def test_weekly_with_daily_restrictions():
         "type": "web",
         "shifts": [
             {
-                "level": 0,
+                "level": 1,
                 "type": "rolling_users",
                 "rotation_start": "2023-02-20T12:50:08",
                 "until": None,
@@ -1094,7 +1098,7 @@ def test_weekly_with_daily_restrictions():
                 "source": 0,
             },
             {
-                "level": 1,
+                "level": 2,
                 "type": "rolling_users",
                 "rotation_start": "2023-02-20T12:50:08",
                 "until": None,
@@ -1114,7 +1118,7 @@ def test_weekly_with_daily_restrictions():
                 "frequency": "weekly",
                 "interval": 1,
                 "by_day": ["MO", "TU", "WE", "TH", "FR", "SA", "SU"],
-                "level": 2,
+                "level": 3,
                 "rolling_users": [["USER_ID_1"], ["USER_ID_2"]],
                 "rotation_start": "2023-02-20T15:23:15",
                 "start": "2023-02-15T09:00:00",
@@ -1130,7 +1134,7 @@ def test_weekly_with_daily_restrictions():
                 "frequency": "weekly",
                 "interval": 1,
                 "by_day": ["MO", "TU", "WE", "TH", "FR", "SA", "SU"],
-                "level": 2,
+                "level": 3,
                 "rolling_users": [["USER_ID_1"], ["USER_ID_2"]],
                 "rotation_start": "2023-02-20T15:23:15",
                 "start": "2023-02-16T06:00:00",
@@ -1146,7 +1150,7 @@ def test_weekly_with_daily_restrictions():
                 "frequency": "weekly",
                 "interval": 3,
                 "by_day": ["MO", "TU", "WE", "TH", "FR", "SA", "SU"],
-                "level": 3,
+                "level": 4,
                 "rolling_users": [["USER_ID_1"], ["USER_ID_2"], ["USER_ID_3"]],
                 "rotation_start": "2023-02-21T14:04:37",
                 "start": "2023-02-21T09:00:00",
@@ -1162,7 +1166,7 @@ def test_weekly_with_daily_restrictions():
                 "frequency": "weekly",
                 "interval": 3,
                 "by_day": ["MO", "TU", "WE", "TH", "FR", "SA", "SU"],
-                "level": 3,
+                "level": 4,
                 "rolling_users": [["USER_ID_1"], ["USER_ID_2"], ["USER_ID_3"]],
                 "rotation_start": "2023-02-21T14:04:37",
                 "start": "2023-02-28T09:00:00",
@@ -1178,7 +1182,7 @@ def test_weekly_with_daily_restrictions():
                 "frequency": "weekly",
                 "interval": 3,
                 "by_day": ["MO", "TU", "WE", "TH", "FR", "SA", "SU"],
-                "level": 3,
+                "level": 4,
                 "rolling_users": [["USER_ID_1"], ["USER_ID_2"], ["USER_ID_3"]],
                 "rotation_start": "2023-02-21T14:04:37",
                 "start": "2023-03-07T09:00:00",
@@ -1194,7 +1198,7 @@ def test_weekly_with_daily_restrictions():
                 "frequency": "weekly",
                 "interval": 3,
                 "by_day": ["MO", "TU", "WE", "TH", "FR", "SA", "SU"],
-                "level": 3,
+                "level": 4,
                 "rolling_users": [["USER_ID_1"], ["USER_ID_2"], ["USER_ID_3"]],
                 "rotation_start": "2023-02-21T14:04:37",
                 "start": "2023-02-21T22:00:00",
@@ -1210,7 +1214,7 @@ def test_weekly_with_daily_restrictions():
                 "frequency": "weekly",
                 "interval": 3,
                 "by_day": ["MO", "TU", "WE", "TH", "FR", "SA", "SU"],
-                "level": 3,
+                "level": 4,
                 "rolling_users": [["USER_ID_1"], ["USER_ID_2"], ["USER_ID_3"]],
                 "rotation_start": "2023-02-21T14:04:37",
                 "start": "2023-02-28T22:00:00",
@@ -1226,7 +1230,7 @@ def test_weekly_with_daily_restrictions():
                 "frequency": "weekly",
                 "interval": 3,
                 "by_day": ["MO", "TU", "WE", "TH", "FR", "SA", "SU"],
-                "level": 3,
+                "level": 4,
                 "rolling_users": [["USER_ID_1"], ["USER_ID_2"], ["USER_ID_3"]],
                 "rotation_start": "2023-02-21T14:04:37",
                 "start": "2023-03-07T22:00:00",
@@ -1242,7 +1246,7 @@ def test_weekly_with_daily_restrictions():
                 "frequency": "weekly",
                 "interval": 1,
                 "by_day": ["MO", "TU", "WE", "TH", "FR", "SA", "SU"],
-                "level": 4,
+                "level": 5,
                 "rolling_users": [["USER_ID_1"], ["USER_ID_2"], ["USER_ID_3"]],
                 "rotation_start": "2023-02-21T14:04:37",
                 "start": "2023-02-21T09:00:00",
@@ -1258,7 +1262,7 @@ def test_weekly_with_daily_restrictions():
                 "frequency": "weekly",
                 "interval": 1,
                 "by_day": ["MO", "TU", "WE", "TH", "FR", "SA", "SU"],
-                "level": 5,
+                "level": 6,
                 "rolling_users": [["USER_ID_1"], ["USER_ID_2"], ["USER_ID_3"]],
                 "rotation_start": "2023-02-21T14:04:37",
                 "start": "2023-02-22T09:00:00",
@@ -1287,6 +1291,7 @@ def test_daily_with_weekly_restrictions():
     pd_schedule = {
         "name": "Daily with weekly restrictions",
         "time_zone": "Europe/London",
+        "overrides": [],
         "schedule_layers": [
             {
                 "name": "Layer 4",
@@ -1400,7 +1405,7 @@ def test_daily_with_weekly_restrictions():
                 "frequency": "daily",
                 "interval": 1,
                 "by_day": ["MO", "WE", "TH", "FR"],
-                "level": 0,
+                "level": 1,
                 "rolling_users": [["USER_ID_1"], ["USER_ID_2"], ["USER_ID_3"]],
                 "rotation_start": "2023-02-21T17:00:00",
                 "start": "2023-02-20T17:00:00",
@@ -1416,7 +1421,7 @@ def test_daily_with_weekly_restrictions():
                 "frequency": "daily",
                 "interval": 1,
                 "by_day": ["MO", "WE", "TH"],
-                "level": 1,
+                "level": 2,
                 "rolling_users": [["USER_ID_1"], ["USER_ID_2"], ["USER_ID_3"]],
                 "rotation_start": "2023-02-21T16:00:00",
                 "start": "2023-02-20T16:00:00",
@@ -1432,7 +1437,7 @@ def test_daily_with_weekly_restrictions():
                 "frequency": "daily",
                 "interval": 1,
                 "by_day": ["MO", "TU", "WE", "TH", "FR"],
-                "level": 2,
+                "level": 3,
                 "rolling_users": [["USER_ID_1"], ["USER_ID_2"], ["USER_ID_3"]],
                 "rotation_start": "2023-02-20T17:48:08",
                 "start": "2023-02-13T00:00:00",
@@ -1448,7 +1453,7 @@ def test_daily_with_weekly_restrictions():
                 "frequency": "daily",
                 "interval": 1,
                 "by_day": ["TU", "WE", "SA", "SU"],
-                "level": 3,
+                "level": 4,
                 "rolling_users": [["USER_ID_1"], ["USER_ID_2"], ["USER_ID_3"]],
                 "rotation_start": "2023-02-21T19:42:57",
                 "start": "2023-02-21T05:00:00",
@@ -1477,6 +1482,7 @@ def test_weekly_with_weekly_restrictions():
     pd_schedule = {
         "name": "Weekly (weekly)",
         "time_zone": "Europe/London",
+        "overrides": [],
         "schedule_layers": [
             {
                 "name": "Layer 6",
@@ -1611,7 +1617,7 @@ def test_weekly_with_weekly_restrictions():
                 "duration": 432000,
                 "frequency": "weekly",
                 "interval": 1,
-                "level": 0,
+                "level": 1,
                 "rolling_users": [["USER_ID_1"], ["USER_ID_2"], ["USER_ID_3"]],
                 "rotation_start": "2023-02-20T18:10:46",
                 "start": "2023-02-20T00:00:00",
@@ -1627,7 +1633,7 @@ def test_weekly_with_weekly_restrictions():
                 "duration": 345600,
                 "frequency": "weekly",
                 "interval": 1,
-                "level": 1,
+                "level": 2,
                 "rolling_users": [["USER_ID_1"], ["USER_ID_2"], ["USER_ID_3"]],
                 "rotation_start": "2023-02-20T18:10:46",
                 "start": "2023-02-18T17:00:00",
@@ -1643,7 +1649,7 @@ def test_weekly_with_weekly_restrictions():
                 "duration": 86400,
                 "frequency": "weekly",
                 "interval": 1,
-                "level": 2,
+                "level": 3,
                 "rolling_users": [["USER_ID_1"], ["USER_ID_2"]],
                 "rotation_start": "2023-02-20T18:10:46",
                 "start": "2023-02-15T00:00:00",
@@ -1659,7 +1665,7 @@ def test_weekly_with_weekly_restrictions():
                 "duration": 298800,
                 "frequency": "weekly",
                 "interval": 1,
-                "level": 2,
+                "level": 3,
                 "rolling_users": [["USER_ID_1"], ["USER_ID_2"]],
                 "rotation_start": "2023-02-20T18:10:46",
                 "start": "2023-02-17T00:00:00",
@@ -1675,7 +1681,7 @@ def test_weekly_with_weekly_restrictions():
                 "duration": 7200,
                 "frequency": "weekly",
                 "interval": 1,
-                "level": 3,
+                "level": 4,
                 "rolling_users": [["USER_ID_1"], ["USER_ID_2"], ["USER_ID_3"]],
                 "rotation_start": "2023-02-21T11:14:44",
                 "start": "2023-02-20T03:00:00",
@@ -1691,7 +1697,7 @@ def test_weekly_with_weekly_restrictions():
                 "duration": 147600,
                 "frequency": "weekly",
                 "interval": 1,
-                "level": 3,
+                "level": 4,
                 "rolling_users": [["USER_ID_1"], ["USER_ID_2"], ["USER_ID_3"]],
                 "rotation_start": "2023-02-21T11:14:44",
                 "start": "2023-02-25T10:00:00",
@@ -1707,7 +1713,7 @@ def test_weekly_with_weekly_restrictions():
                 "duration": 266400,
                 "frequency": "weekly",
                 "interval": 3,
-                "level": 4,
+                "level": 5,
                 "rolling_users": [["USER_ID_1"], ["USER_ID_2"], ["USER_ID_3"]],
                 "rotation_start": "2023-02-21T13:26:21",
                 "start": "2023-02-25T13:00:00",
@@ -1723,7 +1729,7 @@ def test_weekly_with_weekly_restrictions():
                 "duration": 313200,
                 "frequency": "weekly",
                 "interval": 3,
-                "level": 4,
+                "level": 5,
                 "rolling_users": [["USER_ID_1"], ["USER_ID_2"], ["USER_ID_3"]],
                 "rotation_start": "2023-02-21T13:26:21",
                 "start": "2023-03-04T00:00:00",
@@ -1739,7 +1745,7 @@ def test_weekly_with_weekly_restrictions():
                 "duration": 313200,
                 "frequency": "weekly",
                 "interval": 3,
-                "level": 4,
+                "level": 5,
                 "rolling_users": [["USER_ID_1"], ["USER_ID_2"], ["USER_ID_3"]],
                 "rotation_start": "2023-02-21T13:26:21",
                 "start": "2023-03-11T00:00:00",
@@ -1755,7 +1761,7 @@ def test_weekly_with_weekly_restrictions():
                 "duration": 46800,
                 "frequency": "weekly",
                 "interval": 3,
-                "level": 4,
+                "level": 5,
                 "rolling_users": [["USER_ID_1"], ["USER_ID_2"], ["USER_ID_3"]],
                 "rotation_start": "2023-02-21T13:26:21",
                 "start": "2023-03-18T00:00:00",
@@ -1771,7 +1777,7 @@ def test_weekly_with_weekly_restrictions():
                 "duration": 349200,
                 "frequency": "weekly",
                 "interval": 3,
-                "level": 5,
+                "level": 6,
                 "rolling_users": [["USER_ID_1"], ["USER_ID_2"], ["USER_ID_3"]],
                 "rotation_start": "2023-02-21T13:32:17",
                 "start": "2023-02-27T00:00:00",
@@ -1787,7 +1793,7 @@ def test_weekly_with_weekly_restrictions():
                 "duration": 349200,
                 "frequency": "weekly",
                 "interval": 3,
-                "level": 5,
+                "level": 6,
                 "rolling_users": [["USER_ID_1"], ["USER_ID_2"], ["USER_ID_3"]],
                 "rotation_start": "2023-02-21T13:32:17",
                 "start": "2023-03-06T00:00:00",
@@ -1803,7 +1809,7 @@ def test_weekly_with_weekly_restrictions():
                 "duration": 349200,
                 "frequency": "weekly",
                 "interval": 3,
-                "level": 5,
+                "level": 6,
                 "rolling_users": [["USER_ID_1"], ["USER_ID_2"], ["USER_ID_3"]],
                 "rotation_start": "2023-02-21T13:32:17",
                 "start": "2023-03-13T00:00:00",
@@ -1835,6 +1841,7 @@ def test_errors():
     pd_schedule = {
         "name": "Errors",
         "time_zone": "Europe/London",
+        "overrides": [],
         "schedule_layers": [
             {
                 "name": "Layer 11",
@@ -2059,6 +2066,7 @@ def test_time_zone():
     pd_schedule = {
         "name": "Time zone",
         "time_zone": "Europe/Paris",
+        "overrides": [],
         "schedule_layers": [
             {
                 "name": "Layer 1",
@@ -2083,7 +2091,7 @@ def test_time_zone():
                 "duration": 86400,
                 "frequency": "daily",
                 "interval": 1,
-                "level": 0,
+                "level": 1,
                 "rolling_users": [["USER_ID_1"], ["USER_ID_2"], ["USER_ID_3"]],
                 "rotation_start": "2023-02-21T17:39:43",
                 "start": "2023-02-18T00:00:00",
@@ -2115,6 +2123,7 @@ def test_removed_layers():
     pd_schedule = {
         "name": "Removed layer",
         "time_zone": "Europe/Paris",
+        "overrides": [],
         "schedule_layers": [
             {
                 "name": "Layer 1",
@@ -2149,3 +2158,87 @@ def test_removed_layers():
     for shift in oncall_schedule["shifts"]:
         shift.pop("name")
     assert oncall_schedule == expected
+
+
+def test_overrides():
+    pd_schedule = {
+        "name": "Overrides",
+        "time_zone": "Europe/London",
+        "overrides": [
+            {
+                "start": "2023-03-02T11:00:00",
+                "end": "2023-03-02T12:00:00",
+                "user": {"id": "USER_ID_1"},
+            },
+            {
+                "start": "2023-03-02T11:00:00+00:00",
+                "end": "2023-03-02T12:00:00+00:00",
+                "user": {"id": "USER_ID_1"},
+            },
+            {
+                "start": "2023-03-02T12:00:00+01:00",
+                "end": "2023-03-02T13:00:00+01:00",
+                "user": {"id": "USER_ID_1"},
+            },
+            {
+                "start": "2023-03-02T10:00:00-01:00",
+                "end": "2023-03-02T11:00:00-01:00",
+                "user": {"id": "USER_ID_1"},
+            },
+        ],
+        "schedule_layers": [],
+    }
+
+    expected = {
+        "name": "Overrides",
+        "shifts": [
+            {
+                "team_id": None,
+                "duration": 3600,
+                "users": ["USER_ID_1"],
+                "rotation_start": "2023-03-02T11:00:00",
+                "start": "2023-03-02T11:00:00",
+                "time_zone": "UTC",
+                "type": "override",
+                "source": 0,
+            },
+        ]
+        * 4,  # all shifts are the same
+        "team_id": None,
+        "time_zone": "Europe/London",
+        "type": "web",
+    }
+
+    oncall_schedule, errors = Schedule.from_dict(pd_schedule).to_oncall_schedule(
+        user_id_map
+    )
+
+    assert errors == []
+
+    for shift in oncall_schedule["shifts"]:
+        shift.pop("name")
+    assert oncall_schedule == expected
+
+
+def test_override_deactivated_user():
+    pd_schedule = {
+        "name": "Overrides",
+        "time_zone": "Europe/London",
+        "overrides": [
+            {
+                "start": "2023-03-02T11:00:00",
+                "end": "2023-03-02T12:00:00",
+                "user": {"id": "USER_ID_4"},
+            },
+        ],
+        "schedule_layers": [],
+    }
+
+    oncall_schedule, errors = Schedule.from_dict(pd_schedule).to_oncall_schedule(
+        user_id_map
+    )
+
+    assert errors == [
+        "Override: User with ID 'USER_ID_4' not found. The user probably has been deactivated in PagerDuty."
+    ]
+    assert oncall_schedule is None

@@ -31,7 +31,7 @@ def invite_user_to_join_incident(invitation_pk):
 
         delay = Invitation.get_delay_by_attempt(invitation.attempt)
 
-        user_verbal = invitation.author.get_user_verbal_for_team_for_slack(mention=True)
+        user_verbal = invitation.author.get_username_with_slack_verbal(mention=True)
         reason = "Invitation activated by {}. Will try again in {} (attempt {}/{})".format(
             user_verbal,
             humanize.naturaldelta(delay),

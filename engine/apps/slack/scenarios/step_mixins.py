@@ -41,7 +41,7 @@ class IncidentActionsAccessControlMixin(AccessControl):
 
         text = "Attempted to {} by {}, but failed due to a lack of permissions.".format(
             self.ACTION_VERBOSE,
-            self.user.get_user_verbal_for_team_for_slack(),
+            self.user.get_username_with_slack_verbal(),
         )
 
         self._slack_client.api_call(

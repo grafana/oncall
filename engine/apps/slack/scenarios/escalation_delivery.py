@@ -13,8 +13,8 @@ class EscalationDeliveryStep(scenario_step.ScenarioStep):
         UserNotificationPolicy = apps.get_model("base", "UserNotificationPolicy")
         notification_channel = notification_policy.notify_by
         notification_step = notification_policy.step
-        user_verbal = user.get_user_verbal_for_team_for_slack()
-        user_verbal_with_mention = user.get_user_verbal_for_team_for_slack(mention=True)
+        user_verbal = user.get_username_with_slack_verbal()
+        user_verbal_with_mention = user.get_username_with_slack_verbal(mention=True)
 
         if (
             notification_channel == UserNotificationPolicy.NotificationChannel.SLACK

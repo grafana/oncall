@@ -98,6 +98,7 @@ class Schedule:
     name: str
     time_zone: str
     layers: list["Layer"]
+    overrides: list["Override"]
 
     @classmethod
     def from_dict(cls, schedule: dict) -> "Schedule":
@@ -107,7 +108,9 @@ class Schedule:
 
         layers = []
         # PagerDuty API returns layers in reverse order (e.g. Layer 3, Layer 2, Layer 1)
-        for level, layer_dict in enumerate(reversed(schedule["schedule_layers"])):
+        for level, layer_dict in enumerate(
+            reversed(schedule["schedule_layers"]), start=1
+        ):
             layer = Layer.from_dict(layer_dict, level)
 
             # skip any layers that have already ended
@@ -116,10 +119,15 @@ class Schedule:
 
             layers.append(layer)
 
+        overrides = []
+        for override in schedule["overrides"]:
+            overrides.append(Override.from_dict(override))
+
         return cls(
             name=schedule["name"],
             time_zone=schedule["time_zone"],
             layers=layers,
+            overrides=overrides,
         )
 
     def to_oncall_schedule(
@@ -139,7 +147,7 @@ class Schedule:
             ]
             if deactivated_user_ids:
                 errors.append(
-                    f"{layer.name}: User IDs {deactivated_user_ids} not found. The users probably have been deactivated in PagerDuty."
+                    f"{layer.name}: Users with IDs {deactivated_user_ids} not found. The users probably have been deactivated in PagerDuty."
                 )
                 continue
 
@@ -157,6 +165,15 @@ class Schedule:
                     error_text += " Layer has a single user, consider simplifying the rotation in PD."
 
                 errors.append(error_text)
+
+        for override in self.overrides:
+            if override.user_id not in user_id_map:
+                errors.append(
+                    f"Override: User with ID '{override.user_id}' not found. The user probably has been deactivated in PagerDuty."
+                )
+                continue
+
+            shifts.append(override.to_oncall_shift(user_id_map))
 
         if errors:
             return None, errors
@@ -572,3 +589,39 @@ class Restriction:
 
         # there should always be a restriction
         raise ValueError("No restriction found for given datetime")
+
+
+@dataclass
+class Override:
+    start: datetime.datetime
+    end: datetime.datetime
+    user_id: str
+
+    @classmethod
+    def from_dict(cls, override: dict) -> "Override":
+        # convert start and end to datetime objects in UTC
+        start = datetime.datetime.fromisoformat(override["start"]).astimezone(
+            datetime.timezone.utc
+        )
+        end = datetime.datetime.fromisoformat(override["end"]).astimezone(
+            datetime.timezone.utc
+        )
+
+        return cls(start=start, end=end, user_id=override["user"]["id"])
+
+    def to_oncall_shift(self, user_id_map: dict[str, str]) -> dict:
+        start = _dt_to_oncall_datetime(self.start)
+        duration = int((self.end - self.start).total_seconds())
+        user_id = user_id_map[self.user_id]
+
+        return {
+            "name": uuid4().hex,
+            "team_id": None,
+            "type": "override",
+            "time_zone": "UTC",
+            "start": start,
+            "duration": duration,
+            "rotation_start": start,
+            "users": [user_id],
+            "source": 0,  # 0 is alias for "web"
+        }

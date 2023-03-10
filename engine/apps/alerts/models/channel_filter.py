@@ -8,6 +8,8 @@ from django.core.validators import MinLengthValidator
 from django.db import models
 from ordered_model.models import OrderedModel
 
+from common.jinja_templater import apply_jinja_template
+from common.jinja_templater.apply_jinja_template import JinjaTemplateError, JinjaTemplateWarning
 from common.public_primary_keys import generate_public_primary_key, increase_public_primary_key_length
 
 logger = logging.getLogger(__name__)
@@ -68,6 +70,15 @@ class ChannelFilter(OrderedModel):
 
     created_at = models.DateTimeField(auto_now_add=True)
     filtering_term = models.CharField(max_length=1024, null=True, default=None)
+
+    FILTERING_TERM_TYPE_REGEX = 0
+    FILTERING_TERM_TYPE_JINJA2 = 1
+    FILTERING_TERM_TYPE_CHOICES = [
+        (FILTERING_TERM_TYPE_REGEX, "regex"),
+        (FILTERING_TERM_TYPE_JINJA2, "jinja2"),
+    ]
+    filtering_term_type = models.IntegerField(choices=FILTERING_TERM_TYPE_CHOICES, default=FILTERING_TERM_TYPE_REGEX)
+
     is_default = models.BooleanField(default=False)
 
     class Meta:
@@ -81,7 +92,7 @@ class ChannelFilter(OrderedModel):
         return f"{self.pk}: {self.filtering_term or 'default'}"
 
     @classmethod
-    def select_filter(cls, alert_receive_channel, raw_request_data, title, message=None, force_route_id=None):
+    def select_filter(cls, alert_receive_channel, raw_request_data, force_route_id=None):
         # Try to find force route first if force_route_id is given
         if force_route_id is not None:
             logger.info(
@@ -107,20 +118,29 @@ class ChannelFilter(OrderedModel):
 
         satisfied_filter = None
         for _filter in filters:
-            if satisfied_filter is None and _filter.is_satisfying(raw_request_data, title, message):
+            if satisfied_filter is None and _filter.is_satisfying(raw_request_data):
                 satisfied_filter = _filter
 
         return satisfied_filter
 
-    def is_satisfying(self, raw_request_data, title, message=None):
-        return self.is_default or self.check_filter(json.dumps(raw_request_data)) or self.check_filter(str(title))
+    def is_satisfying(self, raw_request_data):
+        return self.is_default or self.check_filter(raw_request_data)
 
     def check_filter(self, value):
-        try:
-            return re.search(self.filtering_term, value)
-        except re.error:
-            logger.error(f"channel_filter={self.id} failed to parse regex={self.filtering_term}")
-            return False
+        if self.filtering_term_type == ChannelFilter.FILTERING_TERM_TYPE_JINJA2:
+            try:
+                is_matching = apply_jinja_template(self.filtering_term, payload=value)
+                return is_matching.strip().lower() in ["1", "true", "ok"]
+            except (JinjaTemplateError, JinjaTemplateWarning):
+                logger.error(f"channel_filter={self.id} failed to parse jinja2={self.filtering_term}")
+                return False
+        if self.filtering_term is not None and self.filtering_term_type == ChannelFilter.FILTERING_TERM_TYPE_REGEX:
+            try:
+                return re.search(self.filtering_term, json.dumps(value))
+            except re.error:
+                logger.error(f"channel_filter={self.id} failed to parse regex={self.filtering_term}")
+                return False
+        return False
 
     @property
     def slack_channel_id_or_general_log_id(self):
@@ -135,9 +155,13 @@ class ChannelFilter(OrderedModel):
 
     @property
     def str_for_clients(self):
-        if self.filtering_term is None:
+        if self.is_default:
             return "default"
-        return str(self.filtering_term).replace("`", "")
+        if self.filtering_term_type == ChannelFilter.FILTERING_TERM_TYPE_JINJA2:
+            return str(self.filtering_term)
+        elif self.filtering_term_type == ChannelFilter.FILTERING_TERM_TYPE_REGEX or self.filtering_term_type is None:
+            return str(self.filtering_term).replace("`", "")
+        raise Exception("Unknown filtering term")
 
     def send_demo_alert(self):
         integration = self.alert_receive_channel
@@ -155,6 +179,7 @@ class ChannelFilter(OrderedModel):
     @property
     def insight_logs_serialized(self):
         result = {
+            "filtering_term_type": self.get_filtering_term_type_display(),
             "filtering_term": self.str_for_clients,
             "order": self.order,
             "slack_notification_enabled": self.notify_in_slack,
