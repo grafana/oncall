@@ -45,9 +45,9 @@ export const ScheduleQualityDetails: FC<ScheduleQualityDetailsProps> = ({ qualit
   return (
     <div className={cx('root')}>
       <div className={cx('container')}>
-        <Text type="secondary">
+        <Text type={cx('secondary', 'header')}>
           Schedule quality:{' '}
-          <Text type={getScheduleQualityMatchingColor(score)} className={cx('semi-bold')}>
+          <Text type={getScheduleQualityMatchingColor(score)} className={cx('header__subText')}>
             {getScheduleQualityString(score)}
           </Text>
         </Text>

@@ -15,6 +15,13 @@ $width: 300px;
   }
 }
 
+.header {
+  padding-bottom: calc($padding / 2);
+}
+.header__subText {
+  font-weight: 500;
+}
+
 .row {
   display: flex;
   flex-direction: row;
@@ -26,10 +33,6 @@ $width: 300px;
   border-top: 1px solid var(--always-gray);
   margin-top: 8px;
   opacity: 15%;
-}
-
-.semi-bold {
-  font-weight: 500;
 }
 
 .metholodogy {
