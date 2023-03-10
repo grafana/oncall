@@ -52,7 +52,7 @@ export const ScheduleQualityDetails: FC<ScheduleQualityDetailsProps> = ({ qualit
           </Text>
         </Text>
         <ScheduleQualityProgressBar completed={quality.total_score} numTotalSteps={5} />
-        <VerticalGroup>
+        <div className={cx('container', 'container--withPadding')}>
           {comments?.length > 0 && (
             <VerticalGroup spacing="sm" className={cx('row')}>
               {/* Show Info comments */}
@@ -105,22 +105,17 @@ export const ScheduleQualityDetails: FC<ScheduleQualityDetailsProps> = ({ qualit
               </div>
             </div>
           )}
-        </VerticalGroup>
+        </div>
 
         <div className={cx('line-break')} />
 
-        <VerticalGroup spacing="sm">
+        <div className={cx('container', 'container--withPadding')}>
           <HorizontalGroup justify="space-between">
             <HorizontalGroup spacing="sm">
               <Icon name="calculator-alt" />
               <Text type="secondary" className={cx('metholodogy')}>
                 Calculation methodology
               </Text>
-              {expanded && (
-                <Text type="primary" className={cx('text')}>
-                  The latest 90 days are taken into consideration when calculating the overall schedule quality.
-                </Text>
-              )}
             </HorizontalGroup>
             <IconButton name={expanded ? 'arrow-down' : 'arrow-right'} onClick={handleExpandClick} />
           </HorizontalGroup>
@@ -129,7 +124,7 @@ export const ScheduleQualityDetails: FC<ScheduleQualityDetailsProps> = ({ qualit
               The latest 90 days are taken into consideration when calculating the overall schedule quality.
             </Text>
           )}
-        </VerticalGroup>
+        </div>
       </div>
     </div>
   );

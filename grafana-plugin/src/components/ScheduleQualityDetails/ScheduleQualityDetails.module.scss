@@ -1,4 +1,4 @@
-$padding: 12px;
+$padding: 8px;
 $width: 300px;
 
 .root {
@@ -9,6 +9,10 @@ $width: 300px;
   display: flex;
   flex-wrap: wrap;
   flex-direction: column;
+
+  &--withPadding {
+    padding-top: $padding;
+  }
 }
 
 .row {
@@ -17,15 +21,10 @@ $width: 300px;
   column-gap: 8px;
 }
 
-.indent-left {
-  display: flex;
-  flex-direction: column;
-  padding-left: $padding;
-}
-
 .line-break {
   width: 100%;
   border-top: 1px solid var(--always-gray);
+  margin-top: 8px;
   opacity: 15%;
 }
 
@@ -39,7 +38,7 @@ $width: 300px;
 
 .text {
   word-wrap: break-word;
-  padding-left: $padding;
+  padding-left: 24px;
 }
 
 .email {
