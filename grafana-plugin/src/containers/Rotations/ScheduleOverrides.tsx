@@ -73,7 +73,7 @@ class ScheduleOverrides extends Component<ScheduleOverridesProps, ScheduleOverri
 
     const schedule = store.scheduleStore.items[scheduleId];
 
-    const isTypeReadOnly = schedule && !schedule?.enable_web_overrides;
+    const isTypeReadOnly = !schedule?.enable_web_overrides;
 
     return (
       <>

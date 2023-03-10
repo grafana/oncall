@@ -119,10 +119,12 @@ class SchedulePage extends React.Component<SchedulePageProps, SchedulePageState>
     const disabledRotationForm =
       !isUserActionAllowed(UserActions.SchedulesWrite) ||
       schedule?.type !== ScheduleType.API ||
-      shiftIdToShowRotationForm;
+      !!shiftIdToShowRotationForm;
 
     const disabledOverrideForm =
-      !isUserActionAllowed(UserActions.SchedulesWrite) || !schedule?.enable_web_overrides || shiftIdToShowOverridesForm;
+      !isUserActionAllowed(UserActions.SchedulesWrite) ||
+      !schedule?.enable_web_overrides ||
+      !!shiftIdToShowOverridesForm;
 
     return (
       <PageErrorHandlingWrapper errorData={errorData} objectName="schedule" pageName="schedules">
