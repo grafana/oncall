@@ -4,6 +4,11 @@ from django.utils.functional import cached_property
 
 
 class AlertBaseRenderer(ABC):
+
+    # TODO: update this wording
+    IS_RESTRICTED_TITLE = "RESTRICTED TITLE TODO TODO"
+    IS_RESTRICTED_MESSAGE = "RESTRICTED MESSAGE TODO TODO"
+
     def __init__(self, alert):
         self.alert = alert
 

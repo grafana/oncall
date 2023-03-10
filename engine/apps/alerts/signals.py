@@ -14,6 +14,12 @@ alert_create_signal = django.dispatch.Signal(
     ]
 )
 
+alert_group_created_signal = django.dispatch.Signal(
+    providing_args=[
+        "alert_group",
+    ]
+)
+
 # Signal to rerender alert group in all connected integrations (Slack, Telegram) when its state is changed
 alert_group_action_triggered_signal = django.dispatch.Signal(
     providing_args=[

@@ -6,6 +6,7 @@ from django.utils import timezone
 
 from apps.grafana_plugin.helpers.client import GcomAPIClient, GrafanaAPIClient
 from apps.user_management.models import Organization, Team, User
+from apps.user_management.signals import org_sync_signal
 
 logger = get_task_logger(__name__)
 logger.setLevel(logging.DEBUG)
@@ -54,6 +55,8 @@ def sync_organization(organization):
             "is_grafana_incident_enabled",
         ]
     )
+
+    org_sync_signal.send(sender=None, organization=organization)
 
 
 def _sync_instance_info(organization):

@@ -99,10 +99,11 @@ def test_sync_users_for_team(make_organization, make_user_for_organization, make
 
 
 @pytest.mark.django_db
-def test_sync_organization(make_organization, make_team, make_user_for_organization):
-    organization = make_organization()
-
-    api_users_response = (
+@patch.object(GrafanaAPIClient, "is_rbac_enabled_for_organization", return_value=False)
+@patch.object(
+    GrafanaAPIClient,
+    "get_users",
+    return_value=[
         {
             "userId": 1,
             "email": "test@test.test",
@@ -111,42 +112,54 @@ def test_sync_organization(make_organization, make_team, make_user_for_organizat
             "role": "admin",
             "avatarUrl": "test.test/test",
             "permissions": [],
+        }
+    ],
+)
+@patch.object(
+    GrafanaAPIClient,
+    "get_teams",
+    return_value=(
+        {
+            "totalCount": 1,
+            "teams": (
+                {
+                    "id": 1,
+                    "name": "Test",
+                    "email": "test@test.test",
+                    "avatarUrl": "test.test/test",
+                },
+            ),
         },
-    )
-
-    api_teams_response = {
-        "totalCount": 1,
-        "teams": (
-            {
-                "id": 1,
-                "name": "Test",
-                "email": "test@test.test",
-                "avatarUrl": "test.test/test",
-            },
-        ),
-    }
+        None,
+    ),
+)
+@patch.object(GrafanaAPIClient, "check_token", return_value=(None, {"connected": True}))
+@patch.object(GrafanaAPIClient, "get_grafana_plugin_settings", return_value=({"enabled": True}, None))
+@patch("apps.user_management.sync.org_sync_signal")
+def test_sync_organization(
+    mocked_org_sync_signal,
+    _mock_get_grafana_plugin_settings,
+    _mock_check_token,
+    _mock_get_teams,
+    _mock_get_users,
+    _mock_is_rbac_enabled_for_organization,
+    make_organization,
+):
+    organization = make_organization()
 
     api_members_response = (
-        {
-            "orgId": organization.org_id,
-            "teamId": 1,
-            "userId": 1,
-        },
+        [
+            {
+                "orgId": organization.org_id,
+                "teamId": 1,
+                "userId": 1,
+            }
+        ],
+        None,
     )
 
-    api_check_token_call_status = {"connected": True}
-
-    with patch.object(GrafanaAPIClient, "is_rbac_enabled_for_organization", return_value=False):
-        with patch.object(GrafanaAPIClient, "get_users", return_value=api_users_response):
-            with patch.object(GrafanaAPIClient, "get_teams", return_value=(api_teams_response, None)):
-                with patch.object(GrafanaAPIClient, "get_team_members", return_value=(api_members_response, None)):
-                    with patch.object(
-                        GrafanaAPIClient, "check_token", return_value=(None, api_check_token_call_status)
-                    ):
-                        with patch.object(
-                            GrafanaAPIClient, "get_grafana_plugin_settings", return_value=({"enabled": True}, None)
-                        ):
-                            sync_organization(organization)
+    with patch.object(GrafanaAPIClient, "get_team_members", return_value=api_members_response):
+        sync_organization(organization)
 
     # check that users are populated
     assert organization.users.count() == 1
@@ -164,6 +177,8 @@ def test_sync_organization(make_organization, make_team, make_user_for_organizat
 
     # check that is_grafana_incident_enabled flag is set
     assert organization.is_grafana_incident_enabled is True
+
+    mocked_org_sync_signal.send.assert_called_once_with(sender=None, organization=organization)
 
 
 @pytest.mark.parametrize("grafana_api_response", [False, True])

@@ -230,12 +230,20 @@ class EscalationSnapshotMixin:
         is_on_maintenace_or_debug_mode = (
             self.channel.maintenance_mode is not None or self.channel.organization.maintenance_mode is not None
         )
-        if is_on_maintenace_or_debug_mode:
-            return
-        if self.pause_escalation:
-            return
 
-        if not self.escalation_chain_exists:
+        if (
+            self.is_restricted
+            or is_on_maintenace_or_debug_mode
+            or self.pause_escalation
+            or not self.escalation_chain_exists
+        ):
+            logger.debug(
+                f"Not escalating alert group w/ pk: {self.pk}\n"
+                f"is_restricted: {self.is_restricted}\n"
+                f"is_on_maintenace_or_debug_mode: {is_on_maintenace_or_debug_mode}\n"
+                f"pause_escalation: {self.pause_escalation}\n"
+                f"escalation_chain_exists: {self.escalation_chain_exists}"
+            )
             return
 
         logger.debug(f"Start escalation for alert group with pk: {self.pk}")
