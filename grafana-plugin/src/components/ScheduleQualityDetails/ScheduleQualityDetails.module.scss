@@ -9,6 +9,7 @@ $width: 300px;
   display: flex;
   flex-wrap: wrap;
   flex-direction: column;
+  width: 100%;
 
   &--withPadding {
     padding-top: $padding;
@@ -26,6 +27,7 @@ $width: 300px;
   display: flex;
   flex-direction: row;
   column-gap: 8px;
+  margin-bottom: 4px;
 }
 
 .line-break {

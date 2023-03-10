@@ -1,10 +1,10 @@
 import React, { FC, useCallback, useEffect, useState } from 'react';
 
-import { HorizontalGroup, VerticalGroup, Icon, IconButton } from '@grafana/ui';
+import { HorizontalGroup, Icon, IconButton } from '@grafana/ui';
 import cn from 'classnames/bind';
 import dayjs from 'dayjs';
 
-import Text, { TextType } from 'components/Text/Text';
+import Text from 'components/Text/Text';
 import { ScheduleScoreQualityResponse, ScheduleScoreQualityResult } from 'models/schedule/schedule.types';
 import { getTzOffsetString } from 'models/timezone/timezone.helpers';
 import { User } from 'models/user/user.types';
@@ -12,6 +12,7 @@ import { useStore } from 'state/useStore';
 
 import styles from './ScheduleQualityDetails.module.scss';
 import { ScheduleQualityProgressBar } from './ScheduleQualityProgressBar';
+import { getVar } from 'utils/DOM';
 
 const cx = cn.bind(styles);
 
@@ -47,14 +48,14 @@ export const ScheduleQualityDetails: FC<ScheduleQualityDetailsProps> = ({ qualit
       <div className={cx('container')}>
         <Text type={cx('secondary', 'header')}>
           Schedule quality:{' '}
-          <Text type={getScheduleQualityMatchingColor(score)} className={cx('header__subText')}>
+          <Text style={{ color: getScheduleQualityMatchingColor(score) }} className={cx('header__subText')}>
             {getScheduleQualityString(score)}
           </Text>
         </Text>
         <ScheduleQualityProgressBar completed={quality.total_score} numTotalSteps={5} />
         <div className={cx('container', 'container--withPadding')}>
           {comments?.length > 0 && (
-            <VerticalGroup spacing="sm" className={cx('row')}>
+            <>
               {/* Show Info comments */}
               {infoComments?.length > 0 && (
                 <div className={cx('container')}>
@@ -87,7 +88,7 @@ export const ScheduleQualityDetails: FC<ScheduleQualityDetailsProps> = ({ qualit
                   </div>
                 </div>
               )}
-            </VerticalGroup>
+            </>
           )}
 
           {overloadedUsers?.length > 0 && (
@@ -148,13 +149,13 @@ export const ScheduleQualityDetails: FC<ScheduleQualityDetailsProps> = ({ qualit
     setOverloadedUsers(overloadedUsers);
   }
 
-  function getScheduleQualityMatchingColor(score: number): TextType {
+  function getScheduleQualityMatchingColor(score: number): string {
     if (score < 20) {
-      return 'danger';
+      return getVar('--tag-text-danger');
     }
     if (score < 60) {
-      return 'warning';
+      return getVar('--tag-text-warning');
     }
-    return 'success';
+    return getVar('--tag-text-success');
   }
 };

@@ -5,27 +5,36 @@ $score-danger: rgba(209, 14, 92, 0.15);
 .root {
   display: flex;
   flex-direction: row;
+  align-items: center;
   gap: 5px;
 }
 
+.quality {
+  line-height: 16px;
+}
+
+.link {
+  text-decoration: none !important;
+}
+
 .tag {
-  padding: 4px 10px;
-  gap: 10px;
+  font-size: 12px;
+  padding: 5px 10px 4px 10px;
   border-radius: 2px;
 
   &--danger {
     background-color: $score-danger;
-    color: var(--danger-1);
-    border: 1px solid var(--error-text-color);
+    color: var(--tag-text-danger);
+    border: 1px solid var(--tag-border-danger);
   }
   &--warning {
     background-color: $score-warning;
-    color: var(--warning-1);
-    border: 1px solid var(--warning-text-color);
+    color: var(--tag-text-warning);
+    border: 1px solid var(--tag-border-warning);
   }
   &--primary {
     background-color: $score-primary;
-    color: var(--green-5);
-    border: 1px solid var(--success-text-color);
+    color: var(--tag-text-success);
+    border: 1px solid var(--tag-border-success);
   }
 }

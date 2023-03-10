@@ -24,6 +24,7 @@ const typeToIcon = {
 const typeToColor = {
   link: 'success',
   warning: 'warning',
+  secondary: 'secondary',
 };
 
 const cx = cn.bind(styles);
@@ -38,7 +39,7 @@ const ScheduleCounter: FC<ScheduleCounterProps> = (props) => {
       content={
         <div className={cx('tooltip', { [`tooltip__type_${type}`]: true })}>
           <VerticalGroup>
-            <Text type={typeToColor[type]}>{tooltipTitle}</Text>
+            <Text type="secondary">{tooltipTitle}</Text>
             <Text type="secondary">{tooltipContent}</Text>
           </VerticalGroup>
         </div>

@@ -49,8 +49,8 @@ const ScheduleQuality: FC<ScheduleQualityProps> = ({ schedule, lastUpdated }) =>
               <VerticalGroup spacing="sm">
                 {relatedEscalationChains.map((escalationChain) => (
                   <div key={escalationChain.pk}>
-                    <PluginLink query={{ page: 'escalations', id: escalationChain.pk }}>
-                      {escalationChain.name}
+                    <PluginLink query={{ page: 'escalations', id: escalationChain.pk }} className={cx('link')}>
+                      <Text type="link">{escalationChain.name}</Text>
                     </PluginLink>
                   </div>
                 ))}
@@ -84,11 +84,11 @@ const ScheduleQuality: FC<ScheduleQualityProps> = ({ schedule, lastUpdated }) =>
             <ScheduleQualityDetails quality={qualityResponse} getScheduleQualityString={getScheduleQualityString} />
           }
         >
-          <span className="u-cursor-default">
+          <div className={cx('u-cursor-default')}>
             <Tag className={cx('tag', getTagClass())}>
               Quality: <strong>{getScheduleQualityString(qualityResponse.total_score)}</strong>
             </Tag>
-          </span>
+          </div>
         </Tooltip>
       </div>
     </>
