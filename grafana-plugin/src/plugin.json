@@ -78,7 +78,6 @@
       "action": "grafana-oncall-app.schedules:read",
       "addToNav": true
     },
-
     {
       "type": "page",
       "name": "Outgoing Webhooks",
@@ -86,6 +85,14 @@
       "role": "Viewer",
       "action": "grafana-oncall-app.outgoing-webhooks:read",
       "addToNav": true
+    },
+    {
+      "type": "page",
+      "name": "Outgoing Webhooks 2",
+      "path": "/a/grafana-oncall-app/outgoing_webhooks_2",
+      "role": "Viewer",
+      "action": "grafana-oncall-app.outgoing-webhooks:read",
+      "addToNav": false
     },
     {
       "type": "page",
