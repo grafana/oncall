@@ -1,6 +1,6 @@
 import React from 'react';
 
-import { Button, HorizontalGroup } from '@grafana/ui';
+import { Button, HorizontalGroup, VerticalGroup } from '@grafana/ui';
 import cn from 'classnames/bind';
 import { observer } from 'mobx-react';
 import LegacyNavHeading from 'navbar/LegacyNavHeading';
@@ -144,7 +144,13 @@ class OutgoingWebhooks2 extends React.Component<OutgoingWebhooks2Props, Outgoing
                 title={() => (
                   <div className={cx('header')}>
                     <LegacyNavHeading>
-                      <Text.Title level={3}>Outgoing Webhooks</Text.Title>
+                      <VerticalGroup>
+                        <Text.Title level={3}>Outgoing Webhooks 2</Text.Title>
+                        <Text type="secondary">
+                          ⚠️ Preview Functionality! Things will change and things will break! Do not use for critical
+                          production processes!
+                        </Text>
+                      </VerticalGroup>
                     </LegacyNavHeading>
                     <div className="u-pull-right">
                       <PluginLink

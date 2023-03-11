@@ -20,35 +20,27 @@ export const form: { name: string; fields: FormItem[] } = {
           },
           {
             value: '1',
-            label: 'User notification',
-          },
-          {
-            value: '2',
             label: 'Triggered',
           },
           {
-            value: '3',
+            value: '2',
             label: 'Acknowledged',
           },
           {
-            value: '4',
+            value: '3',
             label: 'Resolved',
           },
           {
-            value: '5',
+            value: '4',
             label: 'Silenced',
           },
           {
-            value: '6',
+            value: '5',
             label: 'Unsilenced',
           },
           {
-            value: '7',
+            value: '6',
             label: 'Unresolved',
-          },
-          {
-            value: '8',
-            label: 'Schedule shift change',
           },
         ],
       },
