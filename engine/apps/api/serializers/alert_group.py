@@ -12,6 +12,7 @@ from common.api_helpers.mixins import EagerLoadingMixin
 
 from .alert import AlertSerializer
 from .alert_receive_channel import FastAlertReceiveChannelSerializer
+from .team import TeamSerializer
 from .user import FastUserSerializer
 
 logger = logging.getLogger(__name__)
@@ -82,6 +83,7 @@ class AlertGroupListSerializer(EagerLoadingMixin, AlertGroupFieldsCacheSerialize
     related_users = serializers.SerializerMethodField()
     dependent_alert_groups = ShortAlertGroupSerializer(many=True)
     root_alert_group = ShortAlertGroupSerializer()
+    team = TeamSerializer(source="channel.team")
 
     alerts_count = serializers.IntegerField(read_only=True)
     render_for_web = serializers.SerializerMethodField()
@@ -129,6 +131,7 @@ class AlertGroupListSerializer(EagerLoadingMixin, AlertGroupFieldsCacheSerialize
             "root_alert_group",
             "status",
             "declare_incident_link",
+            "team",
         ]
 
     def get_render_for_web(self, obj):

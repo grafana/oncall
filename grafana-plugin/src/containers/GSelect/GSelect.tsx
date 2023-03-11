@@ -94,6 +94,8 @@ const GSelect = observer((props: GSelectProps) => {
       const searchResult = model.getSearchResult(query);
       let items = Array.isArray(searchResult.results) ? searchResult.results : searchResult;
 
+      console.log(items);
+
       if (filterOptions) {
         items = items.filter((opt: any) => filterOptions(opt[valueField]));
       }
@@ -107,6 +109,7 @@ const GSelect = observer((props: GSelectProps) => {
     });
   };
 
+  console.log(value);
   const values = isMulti
     ? (value as string[])
         .filter((id) => id in model.items)

@@ -347,7 +347,7 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
         render: withSkeleton(this.renderTitle),
       },
       {
-        width: '10%',
+        width: '5%',
         title: 'Alerts',
         key: 'alerts',
         render: withSkeleton(this.renderAlertsCounter),
@@ -363,6 +363,12 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
         title: 'Created',
         key: 'created',
         render: withSkeleton(this.renderStartedAt),
+      },
+      {
+        width: '5%',
+        title: 'Team',
+        key: 'team',
+        render: withSkeleton(this.renderTeam),
       },
       {
         width: '15%',
@@ -478,6 +484,10 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
         <Text type="secondary">{m.format('hh:mm A')}</Text>
       </VerticalGroup>
     );
+  }
+
+  renderTeam(record: AlertType) {
+    return <Text type="secondary">{record.team && (record.team.name ? record.team.name : '')}</Text>;
   }
 
   getOnActionButtonClick = (incidentId: string, action: AlertAction): ((e: SyntheticEvent) => Promise<void>) => {

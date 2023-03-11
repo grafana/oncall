@@ -34,6 +34,15 @@ def get_integration_queryset(request):
     return AlertReceiveChannel.objects_with_maintenance.filter(organization=request.user.organization)
 
 
+def get_team_queryset(request):
+    if request is None:
+        return Team.objects.none()
+
+    teams = request.user.teams.all()
+
+    return teams
+
+
 def get_user_queryset(request):
     if request is None:
         return User.objects.none()
@@ -90,6 +99,13 @@ class AlertGroupFilter(DateRangeFilterMixin, ModelFieldFilterMixin, filters.Filt
     )
     with_resolution_note = filters.BooleanFilter(method="filter_with_resolution_note")
     mine = filters.BooleanFilter(method="filter_mine")
+    owning_team = filters.ModelMultipleChoiceFilter(
+        field_name="channel__team",
+        queryset=get_team_queryset,
+        to_field_name="public_primary_key",
+        # method=ModelFieldFilterMixin.filter_model_field.__name__,
+        method="filter_by_team",
+    )
 
     class Meta:
         model = AlertGroup
@@ -138,6 +154,19 @@ class AlertGroupFilter(DateRangeFilterMixin, ModelFieldFilterMixin, filters.Filt
 
         queryset = queryset.filter(log_records__author__in=users).distinct()
 
+        return queryset
+
+    def filter_by_team(self, queryset, name, value):
+        if not value:
+            return queryset
+        print(value)
+        for i in value:
+            if i == "not_assigned_to_any_team":
+                queryset = queryset.filter(channel__team__is_null=True)
+                value.remove(i)
+        lookup_kwargs = {f"{name}__in": value}
+        queryset = queryset.filter(**lookup_kwargs)
+        print(queryset)
         return queryset
 
     def filter_by_involved_users(self, queryset, name, value):
@@ -267,7 +296,7 @@ class AlertGroupView(
         alert_receive_channels_ids = list(
             AlertReceiveChannel.objects.filter(
                 organization_id=self.request.auth.organization.id,
-                team_id=self.request.user.current_team,
+                # team_id=self.request.user.current_team,
             ).values_list("id", flat=True)
         )
         queryset = AlertGroup.unarchived_objects.filter(
@@ -558,7 +587,7 @@ class AlertGroupView(
                 "name": "status",
                 "type": "options",
                 "options": [
-                    {"display_name": "new", "value": AlertGroup.NEW},
+                    {"display_name": "firing", "value": AlertGroup.NEW},
                     {"display_name": "acknowledged", "value": AlertGroup.ACKNOWLEDGED},
                     {"display_name": "resolved", "value": AlertGroup.RESOLVED},
                     {"display_name": "silenced", "value": AlertGroup.SILENCED},
@@ -584,6 +613,11 @@ class AlertGroupView(
                 "name": "mine",
                 "type": "boolean",
                 "default": "true",
+            },
+            {
+                "name": "assigned_team",
+                "type": "team_select",
+                "href": api_root + "teams/",
             },
         ]
 

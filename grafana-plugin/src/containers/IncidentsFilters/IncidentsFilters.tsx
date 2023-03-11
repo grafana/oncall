@@ -147,7 +147,7 @@ class IncidentsFilters extends Component<IncidentsFiltersProps, IncidentsFilters
         <div key="new" className={cx('col')}>
           <CardButton
             icon={<Icon name="bell" size="xxxl" />}
-            description="New alert groups"
+            description="Firing alert groups"
             title={newIncidentsCount}
             selected={status.includes(IncidentStatus.Firing)}
             onClick={this.getStatusButtonClickHandler(IncidentStatus.Firing)}
@@ -238,7 +238,6 @@ class IncidentsFilters extends Component<IncidentsFiltersProps, IncidentsFilters
     const { values, hadInteraction } = this.state;
 
     const autoFocus = Boolean(hadInteraction);
-
     switch (filter.type) {
       case 'options':
         if (filter.options) {
@@ -288,6 +287,21 @@ class IncidentsFilters extends Component<IncidentsFiltersProps, IncidentsFilters
             autoFocus={autoFocus}
             value={values[filter.name]}
             onChange={this.getSearchFilterChangeHandler(filter.name)}
+          />
+        );
+
+      case 'team_select':
+        return (
+          <RemoteSelect
+            autoFocus={autoFocus}
+            className={cx('filter-select')}
+            isMulti
+            fieldToShow="name"
+            valueField="id"
+            href={filter.href.replace('/api/internal/v1', '')}
+            value={values[filter.name]}
+            onChange={this.getRemoteOptionsChangeHandler(filter.name)}
+            getOptionLabel={(item: SelectableValue) => <Emoji text={item.label || ''} />}
           />
         );
 
@@ -395,6 +409,13 @@ class IncidentsFilters extends Component<IncidentsFiltersProps, IncidentsFilters
   getSearchFilterChangeHandler = (name: FilterOption['name']) => {
     return (event: React.ChangeEvent<HTMLInputElement>) => {
       const text = event.target.value;
+      this.onFiltersValueChange(name, text);
+    };
+  };
+
+  getTeamSelectFilterChangeHandler = (name: FilterOption['name']) => {
+    return (value: any) => {
+      const text = value;
       this.onFiltersValueChange(name, text);
     };
   };
