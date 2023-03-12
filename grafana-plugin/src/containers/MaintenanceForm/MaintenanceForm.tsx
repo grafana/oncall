@@ -6,7 +6,7 @@ import { observer } from 'mobx-react';
 
 import GForm from 'components/GForm/GForm';
 import Text from 'components/Text/Text';
-import { WithPermissionControl } from 'containers/WithPermissionControl/WithPermissionControl';
+import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
 import { AlertReceiveChannel } from 'models/alert_receive_channel/alert_receive_channel.types';
 import { MaintenanceType } from 'models/maintenance/maintenance.types';
 import { useStore } from 'state/useStore';
@@ -65,11 +65,11 @@ const MaintenanceForm = observer((props: MaintenanceFormProps) => {
       <div className={cx('content')}>
         <VerticalGroup>
           <GForm form={form} data={initialData} onSubmit={handleSubmit} />
-          <WithPermissionControl userAction={UserActions.MaintenanceWrite}>
+          <WithPermissionControlTooltip userAction={UserActions.MaintenanceWrite}>
             <Button form={form.name} type="submit">
               Start
             </Button>
-          </WithPermissionControl>
+          </WithPermissionControlTooltip>
         </VerticalGroup>
       </div>
     </Drawer>

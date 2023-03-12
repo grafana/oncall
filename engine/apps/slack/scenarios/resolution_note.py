@@ -492,7 +492,7 @@ class ResolutionNoteModalStep(CheckAlertIsUnarchivedMixin, scenario_step.Scenari
             )
 
         for message in resolution_note_slack_messages[: self.RESOLUTION_NOTE_MESSAGES_MAX_COUNT]:
-            user_verbal = message.user.get_user_verbal_for_team_for_slack(mention=True)
+            user_verbal = message.user.get_username_with_slack_verbal(mention=True)
             blocks.append(
                 {
                     "type": "divider",

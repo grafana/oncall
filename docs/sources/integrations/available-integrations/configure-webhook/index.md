@@ -38,7 +38,7 @@ There are two available formats, **Webhook** and **Formatted Webhook**.
 
 To configure a webhook integration:
 
-1. In the **Integrations** tab, click **+ New integration for receiving alerts**.
+1. In the **Integrations** tab, click **+ New integration to receive alerts**.
 2. Select either **Webhook** or **Formatted Webhook** integration.
 3. Follow the configuration steps in the **How to connect** section of the integration settings.
 4. Use the unique webhook URL to complete any configuration in your monitoring service to send POST requests. Use any

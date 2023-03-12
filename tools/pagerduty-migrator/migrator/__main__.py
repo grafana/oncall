@@ -1,3 +1,5 @@
+import datetime
+
 from pdpyras import APISession
 
 from migrator import oncall_api_client
@@ -49,9 +51,24 @@ def main() -> None:
         ]
 
     print("▶ Fetching schedules...")
+    # Fetch schedules from PagerDuty
     schedules = session.list_all(
         "schedules", params={"include[]": "schedule_layers", "time_zone": "UTC"}
     )
+
+    # Fetch overrides from PagerDuty
+    since = datetime.datetime.now(datetime.timezone.utc)
+    until = since + datetime.timedelta(
+        days=365
+    )  # fetch overrides up to 1 year from now
+    for schedule in schedules:
+        response = session.jget(
+            f"schedules/{schedule['id']}/overrides",
+            params={"since": since.isoformat(), "until": until.isoformat()},
+        )
+        schedule["overrides"] = response["overrides"]
+
+    # Fetch schedules from OnCall
     oncall_schedules = oncall_api_client.list_all("schedules")
 
     print("▶ Fetching escalation policies...")

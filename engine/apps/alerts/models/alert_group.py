@@ -5,7 +5,6 @@ from typing import Optional, TypedDict
 from urllib.parse import urljoin
 from uuid import uuid1
 
-import pytz
 from celery import uuid as celery_uuid
 from django.apps import apps
 from django.conf import settings
@@ -1575,7 +1574,7 @@ class AlertGroup(AlertGroupSlackRenderingMixin, EscalationSnapshotMixin, models.
             return "Resolved by stop maintenance"
         else:
             if self.resolved_by_user is not None:
-                user_text = self.resolved_by_user.get_user_verbal_for_team_for_slack(mention=mention_user)
+                user_text = self.resolved_by_user.get_username_with_slack_verbal(mention=mention_user)
                 return f"Resolved by {user_text}"
             else:
                 return "Resolved"
@@ -1584,7 +1583,7 @@ class AlertGroup(AlertGroupSlackRenderingMixin, EscalationSnapshotMixin, models.
         if self.acknowledged_by == AlertGroup.SOURCE:
             return "Acknowledged by alert source"
         elif self.acknowledged_by == AlertGroup.USER and self.acknowledged_by_user is not None:
-            user_text = self.acknowledged_by_user.get_user_verbal_for_team_for_slack(mention=mention_user)
+            user_text = self.acknowledged_by_user.get_username_with_slack_verbal(mention=mention_user)
             return f"Acknowledged by {user_text}"
         else:
             return "Acknowledged"
@@ -1610,24 +1609,6 @@ class AlertGroup(AlertGroupSlackRenderingMixin, EscalationSnapshotMixin, models.
     @property
     def has_resolution_notes(self):
         return self.resolution_notes.exists()
-
-    def render_resolution_notes_for_csv_report(self):
-        result = ""
-
-        resolution_notes = self.resolution_notes.all().prefetch_related("resolution_note_slack_message")
-        if len(resolution_notes) > 0:
-            result += "Notes: "
-            result += " ".join(
-                [
-                    "{} ({} by {}), ".format(
-                        resolution_note.text,
-                        resolution_note.created_at.astimezone(pytz.utc),
-                        resolution_note.author_verbal(mention=True),
-                    )
-                    for resolution_note in resolution_notes
-                ]
-            )
-        return result
 
     @property
     def state(self):

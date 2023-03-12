@@ -482,10 +482,10 @@ def post_slack_rate_limit_message(integration_id):
     slack_channel = default_route.slack_channel_id_or_general_log_id
     if slack_channel:
         text = (
-            f"Delivering and updating incidents of integration {integration.verbal_name} in Slack is "
-            f"temporarily stopped due to rate limit. You could find new incidents at "
+            f"Delivering and updating alert groups of integration {integration.verbal_name} in Slack is "
+            f"temporarily stopped due to rate limit. You could find new alert groups at "
             f"<{integration.new_incidents_web_link}|web page "
-            '"Incidents">'
+            '"Alert Groups">'
         )
         post_message_to_channel(integration.organization, slack_channel, text)
 

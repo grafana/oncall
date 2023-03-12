@@ -125,7 +125,7 @@ def notify_user_async(user_pk, alert_group_pk, notification_policy_pk, critical)
 
     logger.debug(f"Sending push notification with message: {message}; thread-id: {thread_id};")
 
-    if settings.LICENSE == settings.OPEN_SOURCE_LICENSE_NAME:
+    if settings.IS_OPEN_SOURCE:
         # FCM relay uses cloud connection to send push notifications
         from apps.oss_installation.models import CloudConnector
 
