@@ -16,10 +16,12 @@
   border-radius: 2px;
 }
 
+.text__type_link,
 .icon__type_link {
   color: var(--tag-text-success);
 }
 
+.text__type_warning,
 .icon__type_warning {
   color: var(--tag-text-warning);
 }

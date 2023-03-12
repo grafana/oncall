@@ -145,7 +145,7 @@ class SchedulePage extends React.Component<SchedulePageProps, SchedulePageState>
                 <VerticalGroup spacing="lg">
                   <div className={cx('header')}>
                     <HorizontalGroup justify="space-between">
-                      <HorizontalGroup>
+                      <div className={cx('title')}>
                         <PluginLink query={{ page: 'schedules' }}>
                           <IconButton style={{ marginTop: '5px' }} name="arrow-left" size="xl" />
                         </PluginLink>
@@ -158,7 +158,7 @@ class SchedulePage extends React.Component<SchedulePageProps, SchedulePageState>
                           {schedule?.name}
                         </Text.Title>
                         {schedule && <ScheduleQuality schedule={schedule} lastUpdated={this.state.lastUpdated} />}
-                      </HorizontalGroup>
+                      </div>
                       <HorizontalGroup spacing="lg">
                         {users && (
                           <HorizontalGroup>

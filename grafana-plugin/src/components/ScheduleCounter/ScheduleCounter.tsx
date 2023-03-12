@@ -21,12 +21,6 @@ const typeToIcon = {
   warning: 'exclamation-triangle',
 };
 
-const typeToColor = {
-  link: 'success',
-  warning: 'warning',
-  secondary: 'secondary',
-};
-
 const cx = cn.bind(styles);
 
 const ScheduleCounter: FC<ScheduleCounterProps> = (props) => {
@@ -48,7 +42,7 @@ const ScheduleCounter: FC<ScheduleCounterProps> = (props) => {
       <div className={cx('root', { [`root__type_${type}`]: true }, { padding: addPadding })} onMouseEnter={onHover}>
         <HorizontalGroup spacing="xs">
           <Icon className={cx('icon', { [`icon__type_${type}`]: true })} name={typeToIcon[type] as IconName} />
-          <Text type={typeToColor[type] as TextType}>{count}</Text>
+          <Text className={cx('text', { [`text__type_${type}`]: true })}>{count}</Text>
         </HorizontalGroup>
       </div>
     </Tooltip>

@@ -46,14 +46,17 @@ export const ScheduleQualityDetails: FC<ScheduleQualityDetailsProps> = ({ qualit
   return (
     <div className={cx('root')}>
       <div className={cx('container')}>
-        <Text type={cx('secondary', 'header')}>
-          Schedule quality:{' '}
-          <Text style={{ color: getScheduleQualityMatchingColor(score) }} className={cx('header__subText')}>
-            {getScheduleQualityString(score)}
+        <div className={cx('container', 'container--withLateralPadding')}>
+          <Text type={cx('secondary', 'header')}>
+            Schedule quality:{' '}
+            <Text style={{ color: getScheduleQualityMatchingColor(score) }} className={cx('header__subText')}>
+              {getScheduleQualityString(score)}
+            </Text>
           </Text>
-        </Text>
-        <ScheduleQualityProgressBar completed={quality.total_score} numTotalSteps={5} />
-        <div className={cx('container', 'container--withPadding')}>
+          <ScheduleQualityProgressBar completed={quality.total_score} numTotalSteps={5} />
+        </div>
+
+        <div className={cx('container', 'container--withTopPadding', 'container--withLateralPadding')}>
           {comments?.length > 0 && (
             <>
               {/* Show Info comments */}
@@ -110,7 +113,7 @@ export const ScheduleQualityDetails: FC<ScheduleQualityDetailsProps> = ({ qualit
 
         <div className={cx('line-break')} />
 
-        <div className={cx('container', 'container--withPadding')}>
+        <div className={cx('container', 'container--withTopPadding', 'container--withLateralPadding')}>
           <HorizontalGroup justify="space-between">
             <HorizontalGroup spacing="sm">
               <Icon name="calculator-alt" />

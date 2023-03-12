@@ -3,6 +3,8 @@ $width: 280px;
 
 .root {
   width: $width;
+  margin-left: -8px;
+  margin-right: -8px;
 }
 
 .container {
@@ -11,8 +13,13 @@ $width: 280px;
   flex-direction: column;
   width: 100%;
 
-  &--withPadding {
+  &--withTopPadding {
     padding-top: $padding;
+  }
+
+  &--withLateralPadding {
+    padding-left: $padding;
+    padding-right: $padding;
   }
 }
 
