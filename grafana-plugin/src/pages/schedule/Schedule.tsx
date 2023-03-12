@@ -118,11 +118,15 @@ class SchedulePage extends React.Component<SchedulePageProps, SchedulePageState>
     const users = store.userStore.getSearchResult().results;
     const schedule = scheduleStore.items[scheduleId];
 
-    const disabled =
+    const disabledRotationForm =
       !isUserActionAllowed(UserActions.SchedulesWrite) ||
       schedule?.type !== ScheduleType.API ||
-      shiftIdToShowRotationForm ||
-      shiftIdToShowOverridesForm;
+      !!shiftIdToShowRotationForm;
+
+    const disabledOverrideForm =
+      !isUserActionAllowed(UserActions.SchedulesWrite) ||
+      !schedule?.enable_web_overrides ||
+      !!shiftIdToShowOverridesForm;
 
     return (
       <PageErrorHandlingWrapper errorData={errorData} objectName="schedule" pageName="schedules">
@@ -239,7 +243,7 @@ class SchedulePage extends React.Component<SchedulePageProps, SchedulePageState>
                       currentTimezone={currentTimezone}
                       startMoment={startMoment}
                       onClick={this.handleShowForm}
-                      disabled={disabled}
+                      disabled={disabledRotationForm}
                     />
                     <Rotations
                       scheduleId={scheduleId}
@@ -250,7 +254,7 @@ class SchedulePage extends React.Component<SchedulePageProps, SchedulePageState>
                       onDelete={this.handleDeleteRotation}
                       shiftIdToShowRotationForm={shiftIdToShowRotationForm}
                       onShowRotationForm={this.handleShowRotationForm}
-                      disabled={disabled}
+                      disabled={disabledRotationForm}
                     />
                     <ScheduleOverrides
                       scheduleId={scheduleId}
@@ -261,7 +265,7 @@ class SchedulePage extends React.Component<SchedulePageProps, SchedulePageState>
                       onDelete={this.handleDeleteOverride}
                       shiftIdToShowRotationForm={shiftIdToShowOverridesForm}
                       onShowRotationForm={this.handleShowOverridesForm}
-                      disabled={disabled}
+                      disabled={disabledOverrideForm}
                     />
                   </div>
                 </VerticalGroup>
