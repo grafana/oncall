@@ -5,7 +5,26 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## Unreleased
+## v1.1.35 (2023-03-09)
+
+### Added
+
+- Insight logs
+
+### Fixed
+
+- Fixed issue with Alert group involved users filter
+- Fixed email sending failure due to newline in title
+
+## v1.1.34 (2023-03-08)
+
+### Added
+
+- Jinja2 based routes ([1319](https://github.com/grafana/oncall/pull/1319))
+
+### Changed
+
+- Remove mobile app feature flag ([1484](https://github.com/grafana/oncall/pull/1484))
 
 ### Fixed
 
