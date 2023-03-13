@@ -111,3 +111,17 @@ export interface ShiftEvents {
   events: Event[];
   isPreview?: boolean;
 }
+
+export interface ScheduleScoreQualityResponse {
+  total_score: number;
+  comments: Array<{ type: 'warning' | 'info'; text: string }>;
+  overloaded_users: string[];
+}
+
+export enum ScheduleScoreQualityResult {
+  Bad = 'Bad',
+  Low = 'Low',
+  Medium = 'Medium',
+  Good = 'Good',
+  Great = 'Great',
+}

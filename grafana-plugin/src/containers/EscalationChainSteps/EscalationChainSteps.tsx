@@ -12,6 +12,7 @@ import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/W
 import { EscalationChain } from 'models/escalation_chain/escalation_chain.types';
 import { EscalationPolicyOption } from 'models/escalation_policy/escalation_policy.types';
 import { useStore } from 'state/useStore';
+import { getVar } from 'utils/DOM';
 import { UserActions } from 'utils/authorization';
 
 import styles from './EscalationChainSteps.module.css';
@@ -92,10 +93,7 @@ const EscalationChainSteps = observer((props: EscalationChainStepsProps) => {
       ) : (
         <LoadingPlaceholder text="Loading..." />
       )}
-      <Timeline.Item
-        number={(escalationPolicyIds?.length || 0) + offset + 1}
-        color={getComputedStyle(document.documentElement).getPropertyValue('--tag-secondary')}
-      >
+      <Timeline.Item number={(escalationPolicyIds?.length || 0) + offset + 1} color={getVar('--tag-secondary')}>
         <WithPermissionControlTooltip userAction={UserActions.EscalationChainsWrite}>
           <Select
             isSearchable

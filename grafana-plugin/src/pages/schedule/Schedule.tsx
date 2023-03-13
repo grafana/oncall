@@ -12,7 +12,7 @@ import {
   initErrorDataState,
 } from 'components/PageErrorHandlingWrapper/PageErrorHandlingWrapper.helpers';
 import PluginLink from 'components/PluginLink/PluginLink';
-import ScheduleWarning from 'components/ScheduleWarning/ScheduleWarning';
+import ScheduleQuality from 'components/ScheduleQuality/ScheduleQuality';
 import Text from 'components/Text/Text';
 import UserTimezoneSelect from 'components/UserTimezoneSelect/UserTimezoneSelect';
 import WithConfirm from 'components/WithConfirm/WithConfirm';
@@ -46,6 +46,7 @@ interface SchedulePageState extends PageBaseState {
   isLoading: boolean;
   showEditForm: boolean;
   showScheduleICalSettings: boolean;
+  lastUpdated: number;
 }
 
 @observer
@@ -64,6 +65,7 @@ class SchedulePage extends React.Component<SchedulePageProps, SchedulePageState>
       showEditForm: false,
       showScheduleICalSettings: false,
       errorData: initErrorDataState(),
+      lastUpdated: 0,
     };
   }
 
@@ -147,20 +149,20 @@ class SchedulePage extends React.Component<SchedulePageProps, SchedulePageState>
                 <VerticalGroup spacing="lg">
                   <div className={cx('header')}>
                     <HorizontalGroup justify="space-between">
-                      <HorizontalGroup>
+                      <div className={cx('title')}>
                         <PluginLink query={{ page: 'schedules' }}>
                           <IconButton style={{ marginTop: '5px' }} name="arrow-left" size="xl" />
                         </PluginLink>
                         <Text.Title
-                          editable
+                          editable={false}
                           editModalTitle="Schedule name"
                           level={2}
                           onTextChange={this.handleNameChange}
                         >
                           {schedule?.name}
                         </Text.Title>
-                        {schedule && <ScheduleWarning item={schedule} />}
-                      </HorizontalGroup>
+                        {schedule && <ScheduleQuality schedule={schedule} lastUpdated={this.state.lastUpdated} />}
+                      </div>
                       <HorizontalGroup spacing="lg">
                         {users && (
                           <HorizontalGroup>
@@ -352,6 +354,11 @@ class SchedulePage extends React.Component<SchedulePageProps, SchedulePageState>
     } = this.props;
 
     const { startMoment } = this.state;
+
+    this.setState((prevState) => ({
+      // this will update schedule score
+      lastUpdated: prevState.lastUpdated + 1,
+    }));
 
     store.scheduleStore
       .updateItem(scheduleId) // to refresh current oncall users
