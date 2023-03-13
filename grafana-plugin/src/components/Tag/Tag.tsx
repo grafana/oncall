@@ -5,7 +5,7 @@ import cn from 'classnames/bind';
 import styles from 'components/Tag/Tag.module.css';
 
 interface TagProps {
-  color: string;
+  color?: string;
   className?: string;
   children?: any;
   onClick?: (ev) => void;
@@ -16,14 +16,14 @@ const cx = cn.bind(styles);
 
 const Tag: FC<TagProps> = (props) => {
   const { children, color, className, onClick } = props;
+  const style: React.CSSProperties = {};
+
+  if (color) {
+    style.backgroundColor = color;
+  }
 
   return (
-    <span
-      style={{ backgroundColor: color }}
-      className={cx('root', className)}
-      onClick={onClick}
-      ref={props.forwardedRef}
-    >
+    <span style={style} className={cx('root', className)} onClick={onClick} ref={props.forwardedRef}>
       {children}
     </span>
   );

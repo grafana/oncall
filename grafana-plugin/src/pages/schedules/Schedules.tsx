@@ -12,7 +12,6 @@ import { MatchMediaTooltip } from 'components/MatchMediaTooltip/MatchMediaToolti
 import NewScheduleSelector from 'components/NewScheduleSelector/NewScheduleSelector';
 import PluginLink from 'components/PluginLink/PluginLink';
 import ScheduleCounter from 'components/ScheduleCounter/ScheduleCounter';
-import ScheduleWarning from 'components/ScheduleWarning/ScheduleWarning';
 import SchedulesFilters from 'components/SchedulesFilters/SchedulesFilters';
 import { SchedulesFiltersType } from 'components/SchedulesFilters/SchedulesFilters.types';
 import Table from 'components/Table/Table';
@@ -103,7 +102,7 @@ class SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSta
         render: this.renderType,
       },
       {
-        width: '5%',
+        width: '10%',
         title: 'Status',
         key: 'name',
         render: (item: Schedule) => this.renderStatus(item),
@@ -129,11 +128,6 @@ class SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSta
         width: '10%',
         title: 'Slack user group',
         render: this.renderUserGroup,
-      },
-      {
-        width: '5%',
-        key: 'warning',
-        render: this.renderWarning,
       },
       {
         width: '50px',
@@ -290,10 +284,6 @@ class SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSta
     return typeToVerbal[value];
   };
 
-  renderWarning = (item: Schedule) => {
-    return <ScheduleWarning item={item} />;
-  };
-
   renderStatus = (item: Schedule) => {
     const {
       store: { scheduleStore },
@@ -327,6 +317,24 @@ class SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSta
               </VerticalGroup>
             }
             onHover={this.getUpdateRelatedEscalationChainsHandler(item.id)}
+          />
+        )}
+
+        {item.warnings?.length > 0 && (
+          <ScheduleCounter
+            type="warning"
+            addPadding
+            count={item.warnings.length}
+            tooltipTitle="Warnings"
+            tooltipContent={
+              <VerticalGroup spacing="none">
+                {item.warnings.map((warning, index) => (
+                  <Text type="primary" key={index}>
+                    {warning}
+                  </Text>
+                ))}
+              </VerticalGroup>
+            }
           />
         )}
       </HorizontalGroup>

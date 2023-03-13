@@ -16,6 +16,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - Fix bug with override creation ([1515](https://github.com/grafana/oncall/pull/1515))
+- Fixed redirection issue on integrations screen
 
 ## v1.1.35 (2023-03-09)
 
@@ -139,6 +140,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Add direct user paging ([823](https://github.com/grafana/oncall/issues/823))
 - Add App Store link to web UI ([1328](https://github.com/grafana/oncall/pull/1328))
+- Added Schedule Score quality within the schedule view ([118](https://github.com/grafana/oncall/issues/118))
 
 ### Fixed
 
