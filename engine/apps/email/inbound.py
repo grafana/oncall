@@ -4,7 +4,6 @@ from anymail.exceptions import AnymailWebhookValidationFailure
 from anymail.inbound import AnymailInboundMessage
 from anymail.signals import AnymailInboundEvent
 from anymail.webhooks import amazon_ses, mailgun, mailjet, mandrill, postal, postmark, sendgrid, sparkpost
-from django.core.exceptions import PermissionDenied
 from django.http import HttpResponse, HttpResponseNotAllowed
 from rest_framework import status
 from rest_framework.request import Request
@@ -31,6 +30,64 @@ INBOUND_EMAIL_ESP_OPTIONS = {
 }
 
 
+class InboundEmailWebhookView(AlertChannelDefiningMixin, APIView):
+    def dispatch(self, request):
+        # http_method_names can't be used due to how AlertChannelDefiningMixin is implemented
+        # todo: refactor AlertChannelDefiningMixin
+        if not request.method.lower() in ["head", "post"]:
+            return HttpResponseNotAllowed(permitted_methods=["head", "post"])
+
+        self._check_inbound_email_settings_set()
+
+        # Some ESPs verify the webhook with a HEAD request at configuration time
+        if request.method.lower() == "head":
+            return HttpResponse(status=status.HTTP_200_OK)
+
+        messages = get_messages_from_esp_request(request)
+        if not messages:
+            return HttpResponse(status=status.HTTP_400_BAD_REQUEST)
+
+        message = messages[0]
+        integration_token = message.to[0].address.split("@")[0]
+        return super().dispatch(request, alert_channel_key=integration_token)
+
+    def _check_inbound_email_settings_set(self):
+        """
+        Checks if INBOUND_EMAIL settings set.
+        Returns BadRequest if not.
+        """
+        # TODO: These settings should be checked before app start.
+        if not live_settings.INBOUND_EMAIL_ESP:
+            logger.error(f"InboundEmailWebhookView: INBOUND_EMAIL_ESP env variable must be set.")
+            return HttpResponse(
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        if not live_settings.INBOUND_EMAIL_DOMAIN:
+            logger.error("InboundEmailWebhookView: INBOUND_EMAIL_DOMAIN env variable must be set.")
+            return HttpResponse(status=status.HTTP_400_BAD_REQUEST)
+
+    def post(self, request, alert_receive_channel):
+        for email in get_messages_from_esp_request(request):
+            title = email.subject
+            message = email.text.strip()
+            sender = email.from_email.addr_spec
+
+            payload = {"title": title, "message": message, "sender": sender}
+
+            create_alert.delay(
+                title=title,
+                message=message,
+                alert_receive_channel_pk=alert_receive_channel.pk,
+                image_url=None,
+                link_to_upstream_details=None,
+                integration_unique_data=request.data,
+                raw_request_data=payload,
+            )
+
+        return Response("OK", status=status.HTTP_200_OK)
+
+
 def get_messages_from_esp_request(request: Request) -> list[AnymailInboundMessage]:
     view_class, secret_name = INBOUND_EMAIL_ESP_OPTIONS[live_settings.INBOUND_EMAIL_ESP]
 
@@ -46,70 +103,5 @@ def get_messages_from_esp_request(request: Request) -> list[AnymailInboundMessag
     return [event.message for event in events if isinstance(event, AnymailInboundEvent)]
 
 
-class InboundEmailWebhookView(AlertChannelDefiningMixin, APIView):
-    def dispatch(self, request):
-        # http_method_names can't be used due to how AlertChannelDefiningMixin is implemented
-        # todo: refactor AlertChannelDefiningMixin
-        if not request.method.lower() in ["head", "post"]:
-            return HttpResponseNotAllowed(permitted_methods=["head", "post"])
-
-        if not live_settings.INBOUND_EMAIL_ESP:
-            return HttpResponse(
-                f"INBOUND_EMAIL_ESP env variable must be set. Options: {INBOUND_EMAIL_ESP_OPTIONS.keys()}",
-                status=status.HTTP_400_BAD_REQUEST,
-            )
-
-        if not live_settings.INBOUND_EMAIL_DOMAIN:
-            return HttpResponse("INBOUND_EMAIL_DOMAIN env variable must be set", status=status.HTTP_400_BAD_REQUEST)
-
-        # Some ESPs verify the webhook with a HEAD request at configuration time
-        if request.method.lower() == "head":
-            return HttpResponse(status=status.HTTP_200_OK)
-
-        messages = get_messages_from_esp_request(request)
-        if not messages:
-            return HttpResponse(status=status.HTTP_400_BAD_REQUEST)
-
-        message = messages[0]
-        token_to = message.to[0].address.split("@")[0]
-
-        result = self.try_dispatch_with_token(request, token_to)
-        if result:
-            return result
-
-        token_recipient = message.envelope_recipient.split("@")[0] if message.envelope_recipient else None
-        if token_recipient:
-            result = self.try_dispatch_with_token(request, token_recipient)
-            if result:
-                return result
-
-        raise PermissionDenied("Integration key was not found. Permission denied.")
-
-    def try_dispatch_with_token(self, request, token):
-        try:
-            return super().dispatch(request, alert_channel_key=token)
-        except PermissionDenied:
-            logger.info(f"Permission denied for token: {token}")
-            return None
-
-    def post(self, request, alert_receive_channel):
-        messages = get_messages_from_esp_request(request)
-
-        for email_msg in messages:
-            title = email_msg.subject
-            message = email_msg.text.strip()
-            sender = email_msg.envelope_sender
-
-            payload = {"title": title, "message": email_msg, "sender": sender}
-
-            create_alert.delay(
-                title=title,
-                message=message,
-                alert_receive_channel_pk=alert_receive_channel.pk,
-                image_url=None,
-                link_to_upstream_details=payload.get("link_to_upstream_details"),
-                integration_unique_data=request.data,
-                raw_request_data=payload,
-            )
-
-        return Response("OK", status=status.HTTP_200_OK)
+def get_integration_token_from_email_message(message: AnymailInboundMessage):
+    return message.to[0].address.split("@")[0]
