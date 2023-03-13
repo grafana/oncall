@@ -4,6 +4,7 @@ from django.db.utils import IntegrityError
 from django.urls import reverse
 from django.utils import dateparse, timezone
 from django.utils.functional import cached_property
+from django_filters import rest_framework as filters
 from rest_framework import mixins, status
 from rest_framework.decorators import action
 from rest_framework.exceptions import NotFound
@@ -22,6 +23,7 @@ from apps.api.serializers.schedule_polymorphic import (
     PolymorphicScheduleSerializer,
     PolymorphicScheduleUpdateSerializer,
 )
+from apps.api.views.alert_group import TeamFilterSetMixin
 from apps.auth_token.auth import PluginAuthentication
 from apps.auth_token.constants import SCHEDULE_EXPORT_TOKEN_NAME
 from apps.auth_token.models import ScheduleExportAuthToken
@@ -30,6 +32,7 @@ from apps.schedules.quality_score import get_schedule_quality_score
 from apps.slack.models import SlackChannel
 from apps.slack.tasks import update_slack_user_group_for_schedules
 from common.api_helpers.exceptions import BadRequest, Conflict
+from common.api_helpers.filters import ModelFieldFilterMixin
 from common.api_helpers.mixins import (
     CreateSerializerMixin,
     PublicPrimaryKeyMixin,
@@ -55,6 +58,15 @@ class SchedulePagination(PageNumberPagination):
     page_query_param = "page"
     page_size_query_param = "perpage"
     max_page_size = 50
+
+
+class ScheduleFilter(TeamFilterSetMixin, ModelFieldFilterMixin, filters.FilterSet):
+    team = filters.ModelMultipleChoiceFilter(
+        field_name="team",
+        queryset=TeamFilterSetMixin.get_team_queryset,
+        to_field_name="public_primary_key",
+        method="filter_by_team",
+    )
 
 
 class ScheduleView(
@@ -86,10 +98,12 @@ class ScheduleView(
         "destroy": [RBACPermission.Permissions.SCHEDULES_WRITE],
         "reload_ical": [RBACPermission.Permissions.SCHEDULES_WRITE],
         "export_token": [RBACPermission.Permissions.SCHEDULES_EXPORT],
+        "filters": [RBACPermission.Permissions.SCHEDULES_READ],
     }
 
-    filter_backends = [SearchFilter]
+    filter_backends = [SearchFilter, filters.DjangoFilterBackend]
     search_fields = ("name",)
+    filterset_class = ScheduleFilter
 
     queryset = OnCallSchedule.objects.all()
     serializer_class = PolymorphicScheduleSerializer
@@ -456,3 +470,22 @@ class ScheduleView(
             },
         ]
         return Response(options)
+
+    @action(methods=["get"], detail=False)
+    def filters(self, request):
+        filter_name = request.query_params.get("search", None)
+        api_root = "/api/internal/v1/"
+
+        filter_options = [
+            # {"name": "search", "type": "search"},
+            {
+                "name": "team",
+                "type": "team_select",
+                "href": api_root + "teams/",
+            },
+        ]
+
+        if filter_name is not None:
+            filter_options = list(filter(lambda f: filter_name in f["name"], filter_options))
+
+        return Response(filter_options)
