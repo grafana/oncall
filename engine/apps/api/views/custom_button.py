@@ -1,14 +1,30 @@
 from django.core.exceptions import ObjectDoesNotExist
+from django_filters import rest_framework as filters
+from rest_framework.decorators import action
 from rest_framework.exceptions import NotFound
+from rest_framework.filters import SearchFilter
 from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet
 
 from apps.alerts.models import CustomButton
 from apps.api.permissions import RBACPermission
 from apps.api.serializers.custom_button import CustomButtonSerializer
+from apps.api.views.alert_group import OwningTeamFilterMixin
 from apps.auth_token.auth import PluginAuthentication
+from common.api_helpers.filters import ModelFieldFilterMixin
 from common.api_helpers.mixins import PublicPrimaryKeyMixin, TeamFilteringMixin
 from common.insight_log import EntityEvent, write_resource_insight_log
+
+
+class CustomButtonFilter(OwningTeamFilterMixin, ModelFieldFilterMixin, filters.FilterSet):
+    owning_team = filters.ModelMultipleChoiceFilter(
+        field_name="team",
+        queryset=OwningTeamFilterMixin.get_team_queryset,
+        to_field_name="public_primary_key",
+        # method=ModelFieldFilterMixin.filter_model_field.__name__,
+        method="filter_by_team",
+    )
 
 
 class CustomButtonView(TeamFilteringMixin, PublicPrimaryKeyMixin, ModelViewSet):
@@ -17,6 +33,7 @@ class CustomButtonView(TeamFilteringMixin, PublicPrimaryKeyMixin, ModelViewSet):
 
     rbac_permissions = {
         "metadata": [RBACPermission.Permissions.OUTGOING_WEBHOOKS_READ],
+        "filters": [RBACPermission.Permissions.OUTGOING_WEBHOOKS_READ],
         "list": [RBACPermission.Permissions.OUTGOING_WEBHOOKS_READ],
         "retrieve": [RBACPermission.Permissions.OUTGOING_WEBHOOKS_READ],
         "create": [RBACPermission.Permissions.OUTGOING_WEBHOOKS_WRITE],
@@ -27,6 +44,10 @@ class CustomButtonView(TeamFilteringMixin, PublicPrimaryKeyMixin, ModelViewSet):
 
     model = CustomButton
     serializer_class = CustomButtonSerializer
+
+    filter_backends = [SearchFilter, filters.DjangoFilterBackend]
+    search_fields = ["public_primary_key", "name"]
+    filterset_class = CustomButtonFilter
 
     def get_queryset(self):
         queryset = CustomButton.objects.filter(
@@ -85,3 +106,22 @@ class CustomButtonView(TeamFilteringMixin, PublicPrimaryKeyMixin, ModelViewSet):
             event=EntityEvent.DELETED,
         )
         instance.delete()
+
+    @action(methods=["get"], detail=False)
+    def filters(self, request):
+        filter_name = request.query_params.get("search", None)
+        api_root = "/api/internal/v1/"
+
+        filter_options = [
+            # {"name": "search", "type": "search"},
+            {
+                "name": "owning_team",
+                "type": "team_select",
+                "href": api_root + "teams/",
+            },
+        ]
+
+        if filter_name is not None:
+            filter_options = list(filter(lambda f: filter_name in f["name"], filter_options))
+
+        return Response(filter_options)

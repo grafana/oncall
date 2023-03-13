@@ -7,7 +7,6 @@ import { observer } from 'mobx-react';
 import { RouteComponentProps, withRouter } from 'react-router-dom';
 
 import Collapse from 'components/Collapse/Collapse';
-import EscalationsFilters from 'components/EscalationsFilters/EscalationsFilters';
 import Block from 'components/GBlock/Block';
 import GList from 'components/GList/GList';
 import PageErrorHandlingWrapper, { PageBaseState } from 'components/PageErrorHandlingWrapper/PageErrorHandlingWrapper';
@@ -23,10 +22,13 @@ import WithConfirm from 'components/WithConfirm/WithConfirm';
 import EscalationChainCard from 'containers/EscalationChainCard/EscalationChainCard';
 import EscalationChainForm from 'containers/EscalationChainForm/EscalationChainForm';
 import EscalationChainSteps from 'containers/EscalationChainSteps/EscalationChainSteps';
+import { IncidentsFiltersType } from 'containers/IncidentsFilters/IncidentFilters.types';
+import IncidentsFilters from 'containers/IncidentsFilters/IncidentsFilters';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
 import { EscalationChain } from 'models/escalation_chain/escalation_chain.types';
 import { PageProps, WithStoreProps } from 'state/types';
 import { withMobXProviderContext } from 'state/withStore';
+import LocationHelper from 'utils/LocationHelper';
 import { UserActions } from 'utils/authorization';
 import { PLUGIN_ROOT } from 'utils/consts';
 
@@ -156,9 +158,7 @@ class EscalationChainsPage extends React.Component<EscalationChainsPageProps, Es
         {() => (
           <>
             <div className={cx('root')}>
-              <div className={cx('filters')}>
-                <EscalationsFilters value={escalationChainsFilters} onChange={this.handleEscalationsFiltersChange} />
-              </div>
+              {this.renderFilters(store.escalationChainStore)}
               {!searchResult || searchResult.length ? (
                 <div className={cx('escalations')}>
                   <div className={cx('left-column')}>
@@ -234,6 +234,29 @@ class EscalationChainsPage extends React.Component<EscalationChainsPageProps, Es
     );
   }
 
+  renderFilters() {
+    // TODO: add type
+    const { store } = this.props;
+    return (
+      <div className={cx('filters')}>
+        <IncidentsFilters query={{}} objectStore={store.escalationChainStore} onChange={this.handleFiltersChange} />
+      </div>
+    );
+  }
+
+  handleFiltersChange = (filters: IncidentsFiltersType) => {
+    this.setState({
+      filters,
+    });
+    this.fetchData(filters);
+  };
+
+  fetchData = (filters: IncidentsFiltersType) => {
+    const { store } = this.props;
+    store.escalationChainStore.updateFilters(filters); // this line fetches incidents
+    LocationHelper.update({ ...store.escalationChainStore.incidentFilters }, 'partial');
+  };
+
   applyFilters = () => {
     const { store } = this.props;
     const { escalationChainStore } = store;
@@ -249,10 +272,6 @@ class EscalationChainsPage extends React.Component<EscalationChainsPageProps, Es
   };
 
   debouncedUpdateEscalations = debounce(this.applyFilters, 1000);
-
-  handleEscalationsFiltersChange = (filters: Filters) => {
-    this.setState({ escalationChainsFilters: filters }, this.debouncedUpdateEscalations);
-  };
 
   renderEscalation = () => {
     const { store } = this.props;

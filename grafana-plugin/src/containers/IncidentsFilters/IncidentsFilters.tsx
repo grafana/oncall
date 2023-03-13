@@ -37,6 +37,7 @@ interface IncidentsFiltersProps extends WithStoreProps {
   value: IncidentsFiltersType;
   onChange: (filters: { [key: string]: any }, isOnMount: boolean) => void;
   query: { [key: string]: any };
+  objectStore: any;
 }
 interface IncidentsFiltersState {
   filterOptions?: FilterOption[];
@@ -57,21 +58,22 @@ class IncidentsFilters extends Component<IncidentsFiltersProps, IncidentsFilters
   searchRef = React.createRef<HTMLInputElement>();
 
   async componentDidMount() {
-    const { query, store } = this.props;
+    const { query, objectStore } = this.props;
 
-    const filterOptions = await makeRequest('/alertgroups/filters/', {});
+    const filterOptions = await makeRequest(objectStore.path + 'filters/', {});
 
     let { filters, values } = parseFilters(query, filterOptions);
 
     if (isEmpty(values)) {
       // TODO fill filters if no filters in query
       let newQuery;
-      if (store.alertGroupStore.incidentFilters) {
-        newQuery = { ...store.alertGroupStore.incidentFilters };
+      if (objectStore.incidentFilters) {
+        newQuery = { ...objectStore.incidentFilters };
       } else {
         newQuery = {
-          status: [IncidentStatus.Firing, IncidentStatus.Acknowledged],
-          mine: false,
+          owning_team: [],
+          // status: [IncidentStatus.Firing, IncidentStatus.Acknowledged],
+          // mine: false,
         };
       }
 
@@ -85,7 +87,7 @@ class IncidentsFilters extends Component<IncidentsFiltersProps, IncidentsFilters
     return (
       <div className={cx('root')}>
         {this.renderFilters()}
-        {this.renderCards()}
+        {/*{this.renderCards()}*/}
       </div>
     );
   }

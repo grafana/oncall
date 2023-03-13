@@ -109,7 +109,6 @@ const GSelect = observer((props: GSelectProps) => {
     });
   };
 
-  console.log(value);
   const values = isMulti
     ? (value as string[])
         .filter((id) => id in model.items)

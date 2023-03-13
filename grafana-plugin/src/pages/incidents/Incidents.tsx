@@ -21,6 +21,7 @@ import IncidentsFilters from 'containers/IncidentsFilters/IncidentsFilters';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
 import { Alert, Alert as AlertType, AlertAction } from 'models/alertgroup/alertgroup.types';
 import { renderRelatedUsers } from 'pages/incident/Incident.helpers';
+import { RootStore } from 'state';
 import { PageProps, WithStoreProps } from 'state/types';
 import { withMobXProviderContext } from 'state/withStore';
 import LocationHelper from 'utils/LocationHelper';
@@ -101,7 +102,7 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
   }
 
   render() {
-    const { history } = this.props;
+    const { history, store } = this.props;
     const { showAddAlertGroupForm } = this.state;
     return (
       <>
@@ -111,12 +112,12 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
               <Text.Title level={3}>Alert Groups</Text.Title>
               <WithPermissionControlTooltip userAction={UserActions.AlertGroupsWrite}>
                 <Button icon="plus" onClick={this.handleOnClickEscalateTo}>
-                  Manual alert group
+                  New alert group
                 </Button>
               </WithPermissionControlTooltip>
             </HorizontalGroup>
           </div>
-          {this.renderIncidentFilters()}
+          {this.renderIncidentFilters(store)}
           {this.renderTable()}
         </div>
         {showAddAlertGroupForm && (
@@ -133,12 +134,11 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
     );
   }
 
-  renderIncidentFilters() {
+  renderIncidentFilters(store: RootStore) {
     const { query } = this.props;
-
     return (
       <div className={cx('filters')}>
-        <IncidentsFilters query={query} onChange={this.handleFiltersChange} />
+        <IncidentsFilters query={query} objectStore={store.alertGroupStore} onChange={this.handleFiltersChange} />
       </div>
     );
   }
@@ -487,8 +487,6 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
   }
 
   renderTeam(record: AlertType, teams: any) {
-    console.log('heyheyhey');
-    console.log(record);
     return <Text type="secondary">{teams[record.team]?.name}</Text>;
   }
 

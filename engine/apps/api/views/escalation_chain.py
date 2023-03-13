@@ -28,6 +28,7 @@ class EscalationChainViewSet(TeamFilteringMixin, PublicPrimaryKeyMixin, ListSeri
         "update": [RBACPermission.Permissions.ESCALATION_CHAINS_WRITE],
         "destroy": [RBACPermission.Permissions.ESCALATION_CHAINS_WRITE],
         "copy": [RBACPermission.Permissions.ESCALATION_CHAINS_WRITE],
+        "filters": [RBACPermission.Permissions.ESCALATION_CHAINS_READ],
     }
 
     filter_backends = [SearchFilter]
@@ -129,3 +130,22 @@ class EscalationChainViewSet(TeamFilteringMixin, PublicPrimaryKeyMixin, ListSeri
                 },
             )["channel_filters"].append(channel_filter_data)
         return Response(data.values())
+
+    @action(methods=["get"], detail=False)
+    def filters(self, request):
+        filter_name = request.query_params.get("search", None)
+        api_root = "/api/internal/v1/"
+
+        filter_options = [
+            # {"name": "search", "type": "search"},
+            {
+                "name": "owning_team",
+                "type": "team_select",
+                "href": api_root + "teams/",
+            },
+        ]
+
+        if filter_name is not None:
+            filter_options = list(filter(lambda f: filter_name in f["name"], filter_options))
+
+        return Response(filter_options)

@@ -19,6 +19,9 @@ export class EscalationChainStore extends BaseStore {
   @observable
   loading = false;
 
+  @observable
+  incidentFilters: any;
+
   constructor(rootStore: RootStore) {
     super(rootStore);
 
@@ -72,7 +75,9 @@ export class EscalationChainStore extends BaseStore {
     this.loading = true;
 
     const results = await makeRequest(`${this.path}`, {
-      params: { search: query },
+      params: {
+        ...this.incidentFilters,
+      },
     });
 
     this.items = {
@@ -100,6 +105,13 @@ export class EscalationChainStore extends BaseStore {
     }
 
     return this.searchResult[query].map((escalationChainId: EscalationChain['id']) => this.items[escalationChainId]);
+  }
+
+  @action
+  async updateFilters(params: any) {
+    this.incidentFilters = params;
+
+    this.updateItems();
   }
 
   async clone(escalationChainId: EscalationChain['id'], data: Partial<EscalationChain>) {

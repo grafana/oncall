@@ -34,15 +34,6 @@ def get_integration_queryset(request):
     return AlertReceiveChannel.objects_with_maintenance.filter(organization=request.user.organization)
 
 
-def get_team_queryset(request):
-    if request is None:
-        return Team.objects.none()
-
-    teams = request.user.teams.all()
-
-    return teams
-
-
 def get_user_queryset(request):
     if request is None:
         return User.objects.none()
@@ -50,7 +41,30 @@ def get_user_queryset(request):
     return User.objects.filter(organization=request.user.organization).distinct()
 
 
-class AlertGroupFilter(DateRangeFilterMixin, ModelFieldFilterMixin, filters.FilterSet):
+class OwningTeamFilterMixin:
+    def filter_by_team(self, queryset, name, value):
+        if not value:
+            return queryset
+        lookup_kwargs = {}
+        for i in value:
+            if i == "":
+                print("empty line empty line empty line")
+                lookup_kwargs[f"{name}__is_null"] = True
+                value.remove(i)
+        lookup_kwargs[f"{name}__in"] = value
+        queryset = queryset.filter(**lookup_kwargs)
+        return queryset
+
+    def get_team_queryset(request):
+        if request is None:
+            return Team.objects.none()
+
+        teams = request.user.teams.all()
+
+        return teams
+
+
+class AlertGroupFilter(DateRangeFilterMixin, OwningTeamFilterMixin, ModelFieldFilterMixin, filters.FilterSet):
     """
     Examples of possible date formats here https://docs.djangoproject.com/en/1.9/ref/settings/#datetime-input-formats
     """
@@ -101,7 +115,7 @@ class AlertGroupFilter(DateRangeFilterMixin, ModelFieldFilterMixin, filters.Filt
     mine = filters.BooleanFilter(method="filter_mine")
     owning_team = filters.ModelMultipleChoiceFilter(
         field_name="channel__team",
-        queryset=get_team_queryset,
+        queryset=OwningTeamFilterMixin.get_team_queryset,
         to_field_name="public_primary_key",
         # method=ModelFieldFilterMixin.filter_model_field.__name__,
         method="filter_by_team",
@@ -154,20 +168,6 @@ class AlertGroupFilter(DateRangeFilterMixin, ModelFieldFilterMixin, filters.Filt
 
         queryset = queryset.filter(log_records__author__in=users).distinct()
 
-        return queryset
-
-    def filter_by_team(self, queryset, name, value):
-        if not value:
-            return queryset
-        print(value)
-        for i in value:
-            if i == "":
-                print("empty line empty line empty line")
-                queryset = queryset.filter(channel__team__is_null=True)
-                value.remove(i)
-        lookup_kwargs = {f"{name}__in": value}
-        queryset = queryset.filter(**lookup_kwargs)
-        print(queryset)
         return queryset
 
     def filter_by_involved_users(self, queryset, name, value):

@@ -13,6 +13,9 @@ export class OutgoingWebhookStore extends BaseStore {
   @observable.shallow
   searchResult: { [key: string]: Array<OutgoingWebhook['id']> } = {};
 
+  @observable
+  incidentFilters: any;
+
   constructor(rootStore: RootStore) {
     super(rootStore);
 
@@ -54,7 +57,9 @@ export class OutgoingWebhookStore extends BaseStore {
   @action
   async updateItems(query = '') {
     const results = await makeRequest(`${this.path}`, {
-      params: { search: query },
+      params: {
+        ...this.incidentFilters,
+      },
     });
 
     this.items = {
@@ -72,6 +77,13 @@ export class OutgoingWebhookStore extends BaseStore {
       ...this.searchResult,
       [query]: results.map((item: OutgoingWebhook) => item.id),
     };
+  }
+
+  @action
+  async updateOutgoingWebhooksFilters(params: any) {
+    this.incidentFilters = params;
+
+    this.updateItems();
   }
 
   getSearchResult(query = '') {
