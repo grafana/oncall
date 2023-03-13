@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - Enable web overrides for Terraform-based schedules
+- Direct user paging improvements ([1358](https://github.com/grafana/oncall/issues/1358))
 
 ## v1.1.36 (2023-03-09)
 
