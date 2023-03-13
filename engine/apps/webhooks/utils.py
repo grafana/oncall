@@ -111,3 +111,21 @@ class EscapeDoubleQuotesDict(dict):
         if '"' in original_str:
             return re.sub('(?<!\\\\)"', '\\\\"', original_str)
         return original_str
+
+
+def serialize_event(event, alert_group, user):
+    from apps.public_api.serializers import IncidentSerializer
+
+    alert_payload = alert_group.alerts.first()
+    alert_payload_raw = ""
+    if alert_payload:
+        alert_payload_raw = alert_payload.raw_request_data
+
+    data = {
+        "event": event,
+        "user": user.username if user else None,
+        "alert_group": IncidentSerializer(alert_group).data,
+        "alert_group_id": alert_group.public_primary_key,
+        "alert_payload": alert_payload_raw,
+    }
+    return data
