@@ -16,6 +16,7 @@ from apps.api.serializers.alert_receive_channel import (
     FilterAlertReceiveChannelSerializer,
 )
 from apps.api.throttlers import DemoAlertThrottler
+from apps.api.views.alert_group import TeamFilterSetMixin
 from apps.auth_token.auth import PluginAuthentication
 from common.api_helpers.exceptions import BadRequest
 from common.api_helpers.mixins import (
@@ -29,11 +30,17 @@ from common.exceptions import TeamCanNotBeChangedError, UnableToSendDemoAlert
 from common.insight_log import EntityEvent, write_resource_insight_log
 
 
-class AlertReceiveChannelFilter(filters.FilterSet):
+class AlertReceiveChannelFilter(TeamFilterSetMixin, filters.FilterSet):
     maintenance_mode = filters.MultipleChoiceFilter(
         choices=AlertReceiveChannel.MAINTENANCE_MODE_CHOICES, method="filter_maintenance_mode"
     )
     integration = filters.ChoiceFilter(choices=AlertReceiveChannel.INTEGRATION_CHOICES)
+    team = filters.ModelMultipleChoiceFilter(
+        field_name="team",
+        queryset=TeamFilterSetMixin.get_team_queryset,
+        to_field_name="public_primary_key",
+        method="filter_by_team",
+    )
 
     class Meta:
         model = AlertReceiveChannel
@@ -92,6 +99,7 @@ class AlertReceiveChannelView(
         "partial_update": [RBACPermission.Permissions.INTEGRATIONS_WRITE],
         "destroy": [RBACPermission.Permissions.INTEGRATIONS_WRITE],
         "change_team": [RBACPermission.Permissions.INTEGRATIONS_WRITE],
+        "filters": [RBACPermission.Permissions.INTEGRATIONS_READ],
     }
 
     def create(self, request, *args, **kwargs):
@@ -216,3 +224,22 @@ class AlertReceiveChannelView(
             return self.get_object().alert_groups.last().alerts.first()
         except AttributeError:
             return None
+
+    @action(methods=["get"], detail=False)
+    def filters(self, request):
+        filter_name = request.query_params.get("search", None)
+        api_root = "/api/internal/v1/"
+
+        filter_options = [
+            # {"name": "search", "type": "search"},
+            {
+                "name": "team",
+                "type": "team_select",
+                "href": api_root + "teams/",
+            },
+        ]
+
+        if filter_name is not None:
+            filter_options = list(filter(lambda f: filter_name in f["name"], filter_options))
+
+        return Response(filter_options)
