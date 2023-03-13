@@ -151,6 +151,7 @@ export class EscalationPolicy extends React.Component<EscalationPolicyProps, any
           value={notify_to_users_queue}
           onChange={this._getOnChangeHandler('notify_to_users_queue')}
           getOptionLabel={({ value }: SelectableValue) => <UserTooltip id={value} />}
+          width={'auto'}
         />
       </WithPermissionControlTooltip>
     );
@@ -172,6 +173,7 @@ export class EscalationPolicy extends React.Component<EscalationPolicyProps, any
             { value: 0, label: 'Default', description: 'Manage "Default notifications" in personal settings' },
             { value: 1, label: 'Important', description: 'Manage "Important notifications" in personal settings' },
           ]}
+          width={'auto'}
         />
       </WithPermissionControlTooltip>
     );
@@ -209,6 +211,7 @@ export class EscalationPolicy extends React.Component<EscalationPolicyProps, any
             value: waitDelay.value,
             label: waitDelay.display_name,
           }))}
+          width={'auto'}
         />
       </WithPermissionControlTooltip>
     );
@@ -287,6 +290,8 @@ export class EscalationPolicy extends React.Component<EscalationPolicyProps, any
           value={notify_schedule}
           onChange={this._getOnChangeHandler('notify_schedule')}
           fromOrganization
+          isTeamNameIncluded={true}
+          width={'auto'}
         />
       </WithPermissionControlTooltip>
     );
@@ -310,6 +315,7 @@ export class EscalationPolicy extends React.Component<EscalationPolicyProps, any
           className={cx('select', 'control')}
           value={notify_to_group}
           onChange={this._getOnChangeHandler('notify_to_group')}
+          width={'auto'}
         />
       </WithPermissionControlTooltip>
     );
@@ -330,6 +336,8 @@ export class EscalationPolicy extends React.Component<EscalationPolicyProps, any
           value={custom_button_trigger}
           onChange={this._getOnChangeHandler('custom_button_trigger')}
           fromOrganization
+          isTeamNameIncluded={true}
+          width={'auto'}
         />
       </WithPermissionControlTooltip>
     );

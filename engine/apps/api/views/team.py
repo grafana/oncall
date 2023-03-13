@@ -20,7 +20,7 @@ class TeamViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):
         teams = list(self.request.user.teams.all())
 
         # option for resources without team
-        general_team = Team(public_primary_key=None, name="without team", email=None, avatar_url=None)
+        general_team = Team(public_primary_key=None, name="w/o team", email=None, avatar_url=None)
         # all_teams = Team(public_primary_key="visible_across_all_teams", name="shared across all teams", email=None, avatar_url=None)
 
         return [general_team] + teams

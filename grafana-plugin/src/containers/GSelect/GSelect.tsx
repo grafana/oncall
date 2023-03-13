@@ -38,6 +38,7 @@ interface GSelectProps {
   openMenuOnFocus?: boolean;
   width?: number | 'auto';
   icon?: string;
+  isTeamNameIncluded?: boolean;
 }
 
 const GSelect = observer((props: GSelectProps) => {
@@ -64,6 +65,7 @@ const GSelect = observer((props: GSelectProps) => {
     fromOrganization,
     width = null,
     icon = null,
+    isTeamNameIncluded = false,
   } = props;
 
   const store = useStore();
@@ -93,16 +95,14 @@ const GSelect = observer((props: GSelectProps) => {
     return model.updateItems(query).then(() => {
       const searchResult = model.getSearchResult(query);
       let items = Array.isArray(searchResult.results) ? searchResult.results : searchResult;
-
-      console.log(items);
-
       if (filterOptions) {
         items = items.filter((opt: any) => filterOptions(opt[valueField]));
       }
 
       return items.map((item: any) => ({
         value: item[valueField],
-        label: get(item, displayField),
+        label:
+          (isTeamNameIncluded ? store.grafanaTeamStore.items[item.team]?.name + ':' : '') + get(item, displayField),
         imgUrl: item.avatar_url,
         description: getDescription && getDescription(item),
       }));
@@ -114,7 +114,9 @@ const GSelect = observer((props: GSelectProps) => {
         .filter((id) => id in model.items)
         .map((id: string) => ({
           value: id,
-          label: get(model.items[id], displayField),
+          label:
+            (isTeamNameIncluded ? store.grafanaTeamStore.items[model.items[id].team]?.name + ':' : '') +
+            get(model.items[id], displayField),
           description: getDescription && getDescription(model.items[id]),
         }))
     : model.items[value as string]

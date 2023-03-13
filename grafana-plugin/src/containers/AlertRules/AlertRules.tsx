@@ -720,6 +720,7 @@ class AlertRules extends React.Component<AlertRulesProps, AlertRulesState> {
                         showWarningIfEmptyValue={true}
                         width={'auto'}
                         icon={'list-ul'}
+                        isTeamNameIncluded={true}
                       />
                     </div>
                   </WithPermissionControlTooltip>
@@ -785,6 +786,7 @@ class AlertRules extends React.Component<AlertRulesProps, AlertRulesState> {
                     showWarningIfEmptyValue={true}
                     width={'auto'}
                     icon={'list-ul'}
+                    isTeamNameIncluded={true}
                   />
                 </div>
               </WithPermissionControlTooltip>
