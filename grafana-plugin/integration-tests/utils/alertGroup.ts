@@ -1,6 +1,6 @@
 import { Page, expect } from '@playwright/test';
 import { selectDropdownValue, selectValuePickerValue } from './forms';
-import { goToOnCallPageByClickingOnTab } from './navigation';
+import { goToOnCallPage } from './navigation';
 
 const MAX_RETRIES = 5;
 
@@ -27,7 +27,7 @@ export const verifyThatAlertGroupIsTriggered = async (
   integrationName: string,
   triggeredStepText: string
 ): Promise<void> => {
-  await goToOnCallPageByClickingOnTab(page, 'Alert Groups');
+  await goToOnCallPage(page, 'incidents');
 
   // filter by integration
   await selectDropdownValue({

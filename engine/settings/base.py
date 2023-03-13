@@ -2,6 +2,7 @@ import os
 from random import randrange
 
 from celery.schedules import crontab
+from firebase_admin import initialize_app
 
 from common.utils import getenv_boolean, getenv_integer
 
@@ -55,7 +56,6 @@ FEATURE_LIVE_SETTINGS_ENABLED = getenv_boolean("FEATURE_LIVE_SETTINGS_ENABLED", 
 FEATURE_TELEGRAM_INTEGRATION_ENABLED = getenv_boolean("FEATURE_TELEGRAM_INTEGRATION_ENABLED", default=True)
 FEATURE_EMAIL_INTEGRATION_ENABLED = getenv_boolean("FEATURE_EMAIL_INTEGRATION_ENABLED", default=True)
 FEATURE_SLACK_INTEGRATION_ENABLED = getenv_boolean("FEATURE_SLACK_INTEGRATION_ENABLED", default=True)
-FEATURE_MOBILE_APP_INTEGRATION_ENABLED = getenv_boolean("FEATURE_MOBILE_APP_INTEGRATION_ENABLED", default=True)
 FEATURE_WEB_SCHEDULES_ENABLED = getenv_boolean("FEATURE_WEB_SCHEDULES_ENABLED", default=False)
 FEATURE_MULTIREGION_ENABLED = getenv_boolean("FEATURE_MULTIREGION_ENABLED", default=False)
 GRAFANA_CLOUD_ONCALL_HEARTBEAT_ENABLED = getenv_boolean("GRAFANA_CLOUD_ONCALL_HEARTBEAT_ENABLED", default=True)
@@ -214,6 +214,7 @@ INSTALLED_APPS = [
     "apps.auth_token",
     "apps.public_api",
     "apps.grafana_plugin",
+    "apps.webhooks",
     "corsheaders",
     "debug_toolbar",
     "social_django",
@@ -556,16 +557,12 @@ GRAFANA_COM_ADMIN_API_TOKEN = os.environ.get("GRAFANA_COM_ADMIN_API_TOKEN", None
 
 GRAFANA_API_KEY_NAME = "Grafana OnCall"
 
-EXTRA_MESSAGING_BACKENDS = []
-if FEATURE_MOBILE_APP_INTEGRATION_ENABLED:
-    from firebase_admin import initialize_app
+EXTRA_MESSAGING_BACKENDS = [
+    ("apps.mobile_app.backend.MobileAppBackend", 5),
+    ("apps.mobile_app.backend.MobileAppCriticalBackend", 6),
+]
 
-    EXTRA_MESSAGING_BACKENDS += [
-        ("apps.mobile_app.backend.MobileAppBackend", 5),
-        ("apps.mobile_app.backend.MobileAppCriticalBackend", 6),
-    ]
-
-    FIREBASE_APP = initialize_app(options={"projectId": os.environ.get("FCM_PROJECT_ID", None)})
+FIREBASE_APP = initialize_app(options={"projectId": os.environ.get("FCM_PROJECT_ID", None)})
 
 FCM_RELAY_ENABLED = getenv_boolean("FCM_RELAY_ENABLED", default=False)
 FCM_DJANGO_SETTINGS = {
@@ -587,6 +584,7 @@ SELF_HOSTED_SETTINGS = {
     "ORG_TITLE": "Self-Hosted Organization",
     "REGION_SLUG": "self_hosted_region",
     "GRAFANA_API_URL": os.environ.get("GRAFANA_API_URL", default=None),
+    "CLUSTER_SLUG": "self_hosted_cluster",
 }
 
 GRAFANA_INCIDENT_STATIC_API_KEY = os.environ.get("GRAFANA_INCIDENT_STATIC_API_KEY", None)
