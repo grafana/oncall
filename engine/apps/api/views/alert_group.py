@@ -161,7 +161,8 @@ class AlertGroupFilter(DateRangeFilterMixin, ModelFieldFilterMixin, filters.Filt
             return queryset
         print(value)
         for i in value:
-            if i == "not_assigned_to_any_team":
+            if i == "":
+                print("empty line empty line empty line")
                 queryset = queryset.filter(channel__team__is_null=True)
                 value.remove(i)
         lookup_kwargs = {f"{name}__in": value}
@@ -615,7 +616,7 @@ class AlertGroupView(
                 "default": "true",
             },
             {
-                "name": "assigned_team",
+                "name": "owning_team",
                 "type": "team_select",
                 "href": api_root + "teams/",
             },

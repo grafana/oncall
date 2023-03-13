@@ -29,8 +29,6 @@ const GrafanaTeamSelect = observer(() => {
 
   const onTeamChange = async (teamId: GrafanaTeam['id']) => {
     await userStore.updateCurrentUser({ current_team: teamId });
-
-    window.location.reload();
   };
 
   const content = (
@@ -38,8 +36,8 @@ const GrafanaTeamSelect = observer(() => {
       <div className={cx('teamSelectLabel')}>
         <Label>
           <span className={cx('teamSelectText')}>
-            Select Team{''}
-            <Tooltip content="The objects on this page are filtered by team and you can only view the objects that belong to your team. Note that filtering within Grafana OnCall is meant for usability, not access management.">
+            Select default Team{''}
+            <Tooltip content="All objects created by you will be owned by your default team">
               <Icon name="info-circle" size="md" className={cx('teamSelectInfo')}></Icon>
             </Tooltip>
           </span>

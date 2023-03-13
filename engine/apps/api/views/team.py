@@ -19,10 +19,8 @@ class TeamViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):
     def get_queryset(self):
         teams = list(self.request.user.teams.all())
 
-        # dirty hack to render "General" team in team select on the frontend
-        general_team = Team(
-            public_primary_key="not_owned_by_any_team", name="not assigned to any team", email=None, avatar_url=None
-        )
+        # option for resources without team
+        general_team = Team(public_primary_key=None, name="without team", email=None, avatar_url=None)
         # all_teams = Team(public_primary_key="visible_across_all_teams", name="shared across all teams", email=None, avatar_url=None)
 
         return [general_team] + teams

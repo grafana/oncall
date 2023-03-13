@@ -21,7 +21,7 @@ const EscalationChainCard = observer((props: AlertReceiveChannelCardProps) => {
 
   const store = useStore();
 
-  const { escalationChainStore } = store;
+  const { escalationChainStore, grafanaTeamStore } = store;
 
   const escalationChain = escalationChainStore.items[id];
 
@@ -33,6 +33,7 @@ const EscalationChainCard = observer((props: AlertReceiveChannelCardProps) => {
             <Text type="primary" size="medium">
               {escalationChain.name}
             </Text>
+            <Text>{grafanaTeamStore.items[escalationChain.team]?.name}</Text>
             {(escalationChain.number_of_integrations > 0 || escalationChain.number_of_routes > 0) && (
               <Tooltip
                 placement="top"

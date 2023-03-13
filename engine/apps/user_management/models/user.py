@@ -180,6 +180,11 @@ class User(models.Model):
     is_active = models.BooleanField(null=True, default=True)
     permissions = models.JSONField(null=False, default=list)
 
+    def available_teams(self):
+        if self.role == self.LegacyAccessControlRole.ADMIN:
+            return self.organization.teams
+        return self.teams
+
     def __str__(self):
         return f"{self.pk}: {self.username}"
 

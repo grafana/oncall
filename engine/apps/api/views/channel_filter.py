@@ -55,7 +55,7 @@ class ChannelFilterView(PublicPrimaryKeyMixin, CreateSerializerMixin, UpdateSeri
         queryset = ChannelFilter.objects.filter(
             **lookup_kwargs,
             alert_receive_channel__organization=self.request.auth.organization,
-            alert_receive_channel__team=self.request.user.current_team,
+            # alert_receive_channel__team=self.request.user.current_team,
             alert_receive_channel__deleted_at=None,
         ).annotate(
             slack_channel_name=Subquery(slack_channels_subq.values("name")[:1]),

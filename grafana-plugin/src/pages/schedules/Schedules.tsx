@@ -91,6 +91,8 @@ class SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSta
 
   render() {
     const { store } = this.props;
+
+    const { grafanaTeamStore } = store;
     const { filters, showNewScheduleSelector, expandedRowKeys, scheduleIdToEdit, page } = this.state;
 
     const { results, count } = store.scheduleStore.getSearchResult();
@@ -129,6 +131,11 @@ class SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSta
         width: '10%',
         title: 'Slack user group',
         render: this.renderUserGroup,
+      },
+      {
+        width: '10%',
+        title: 'Team',
+        render: (item: Schedule) => this.renderTeam(item, grafanaTeamStore.items),
       },
       {
         width: '5%',
@@ -370,6 +377,10 @@ class SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSta
   renderUserGroup = (value: Schedule) => {
     return value.user_group?.handle || '-';
   };
+
+  renderTeam(record: Schedule, teams: any) {
+    return <Text type="secondary">{teams[record.team]?.name}</Text>;
+  }
 
   renderButtons = (item: Schedule) => {
     return (

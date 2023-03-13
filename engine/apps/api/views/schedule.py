@@ -157,7 +157,11 @@ class ScheduleView(
         filter_by_type = self.request.query_params.get("type")
         used = BooleanField(allow_null=True).to_internal_value(data=self.request.query_params.get("used"))
         organization = self.request.auth.organization
-        queryset = OnCallSchedule.objects.filter(organization=organization, team=self.request.user.current_team).defer(
+        queryset = OnCallSchedule.objects.filter(
+            organization=organization,
+            # team__isnull=True,
+            # team__in=self.request.user.teams.all()
+        ).defer(
             # avoid requesting large text fields which are not used when listing schedules
             "prev_ical_file_primary",
             "prev_ical_file_overrides",

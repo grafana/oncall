@@ -95,17 +95,22 @@ class OutgoingWebhooks extends React.Component<OutgoingWebhooksProps, OutgoingWe
 
     const columns = [
       {
-        width: '40%',
+        width: '35%',
         title: 'Name',
         dataIndex: 'name',
       },
       {
-        width: '40%',
+        width: '35%',
         title: 'Url',
         dataIndex: 'webhook',
       },
       {
-        width: '20%',
+        width: '15%',
+        title: 'Team',
+        render: (item: OutgoingWebhook) => this.renderTeam(item, store.grafanaTeamStore.items),
+      },
+      {
+        width: '15%',
         key: 'action',
         render: this.renderActionButtons,
       },
@@ -158,6 +163,10 @@ class OutgoingWebhooks extends React.Component<OutgoingWebhooksProps, OutgoingWe
         )}
       </PageErrorHandlingWrapper>
     );
+  }
+
+  renderTeam(record: OutgoingWebhook, teams: any) {
+    return <Text type="secondary">{teams[record.team]?.name}</Text>;
   }
 
   renderActionButtons = (record: ActionDTO) => {

@@ -31,7 +31,7 @@ class CustomButtonView(TeamFilteringMixin, PublicPrimaryKeyMixin, ModelViewSet):
     def get_queryset(self):
         queryset = CustomButton.objects.filter(
             organization=self.request.auth.organization,
-            team=self.request.user.current_team,
+            # team=self.request.user.current_team,
         )
         return queryset
 

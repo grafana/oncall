@@ -40,7 +40,7 @@ class EscalationChainViewSet(TeamFilteringMixin, PublicPrimaryKeyMixin, ListSeri
         queryset = (
             EscalationChain.objects.filter(
                 organization=self.request.auth.organization,
-                team=self.request.user.current_team,
+                # team=self.request.user.current_team,
             )
             .annotate(
                 num_integrations=Count(

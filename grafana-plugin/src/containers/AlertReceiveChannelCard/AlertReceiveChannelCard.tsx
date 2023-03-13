@@ -26,7 +26,7 @@ const AlertReceiveChannelCard = observer((props: AlertReceiveChannelCardProps) =
 
   const store = useStore();
 
-  const { alertReceiveChannelStore, heartbeatStore } = store;
+  const { alertReceiveChannelStore, heartbeatStore, grafanaTeamStore } = store;
 
   const alertReceiveChannel = alertReceiveChannelStore.items[id];
   const alertReceiveChannelCounter = alertReceiveChannelStore.counters[id];
@@ -88,6 +88,7 @@ const AlertReceiveChannelCard = observer((props: AlertReceiveChannelCardProps) =
             <Text type="secondary" size="small">
               {integration?.display_name}
             </Text>
+            <Text>{grafanaTeamStore.items[alertReceiveChannel.team]?.name}</Text>
           </HorizontalGroup>
         </VerticalGroup>
       </HorizontalGroup>

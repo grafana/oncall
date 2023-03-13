@@ -60,7 +60,7 @@ class EscalationPolicyView(PublicPrimaryKeyMixin, CreateSerializerMixin, UpdateS
         queryset = EscalationPolicy.objects.filter(
             Q(**lookup_kwargs),
             Q(escalation_chain__organization=self.request.auth.organization),
-            Q(escalation_chain__team=self.request.user.current_team),
+            # Q(escalation_chain__team=self.request.user.current_team),
             Q(escalation_chain__channel_filters__alert_receive_channel__deleted_at=None),
             Q(step__in=EscalationPolicy.INTERNAL_DB_STEPS) | Q(step__isnull=True),
         ).distinct()

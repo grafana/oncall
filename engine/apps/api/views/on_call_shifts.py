@@ -53,7 +53,7 @@ class OnCallShiftView(PublicPrimaryKeyMixin, UpdateSerializerMixin, ModelViewSet
         queryset = CustomOnCallShift.objects.filter(
             lookup_kwargs,
             organization=self.request.auth.organization,
-            team=self.request.user.current_team,
+            # team=self.request.user.current_team,
         )
 
         queryset = self.serializer_class.setup_eager_loading(queryset)

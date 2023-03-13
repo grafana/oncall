@@ -127,12 +127,12 @@ class AlertReceiveChannelView(
         if is_filters_request:
             queryset = AlertReceiveChannel.objects_with_maintenance.filter(
                 organization=organization,
-                team=self.request.user.current_team,
+                # team=self.request.user.current_team,
             )
         else:
             queryset = AlertReceiveChannel.objects.filter(
                 organization=organization,
-                team=self.request.user.current_team,
+                # team=self.request.user.current_team,
             )
             if eager:
                 queryset = self.serializer_class.setup_eager_loading(queryset)

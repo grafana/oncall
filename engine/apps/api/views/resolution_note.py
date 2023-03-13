@@ -35,7 +35,7 @@ class ResolutionNoteView(PublicPrimaryKeyMixin, UpdateSerializerMixin, ModelView
         queryset = ResolutionNote.objects.filter(
             **lookup_kwargs,
             alert_group__channel__organization=self.request.auth.organization,
-            alert_group__channel__team=self.request.user.current_team,
+            # alert_group__channel__team=self.request.user.current_team,
         )
         queryset = self.serializer_class.setup_eager_loading(queryset)
         return queryset

@@ -14,4 +14,5 @@ export interface EscalationChainDetails {
     id: string;
     display_name: string;
   }>;
+  team: string;
 }

@@ -365,10 +365,10 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
         render: withSkeleton(this.renderStartedAt),
       },
       {
-        width: '5%',
+        width: '10%',
         title: 'Team',
         key: 'team',
-        render: withSkeleton(this.renderTeam),
+        render: withSkeleton((item: AlertType) => this.renderTeam(item, store.grafanaTeamStore.items)),
       },
       {
         width: '15%',
@@ -486,8 +486,10 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
     );
   }
 
-  renderTeam(record: AlertType) {
-    return <Text type="secondary">{record.team && (record.team.name ? record.team.name : '')}</Text>;
+  renderTeam(record: AlertType, teams: any) {
+    console.log('heyheyhey');
+    console.log(record);
+    return <Text type="secondary">{teams[record.team]?.name}</Text>;
   }
 
   getOnActionButtonClick = (incidentId: string, action: AlertAction): ((e: SyntheticEvent) => Promise<void>) => {
