@@ -95,11 +95,12 @@ class InboundEmailWebhookView(AlertChannelDefiningMixin, APIView):
     def post(self, request, alert_receive_channel):
         messages = get_messages_from_esp_request(request)
 
-        for message in messages:
-            title = message.subject
-            message = message.text.strip()
+        for email_msg in messages:
+            title = email_msg.subject
+            message = email_msg.text.strip()
+            sender = email_msg.envelope_sender
 
-            payload = {"title": title, "message": message}
+            payload = {"title": title, "message": email_msg, "sender": sender}
 
             create_alert.delay(
                 title=title,
@@ -107,8 +108,8 @@ class InboundEmailWebhookView(AlertChannelDefiningMixin, APIView):
                 alert_receive_channel_pk=alert_receive_channel.pk,
                 image_url=None,
                 link_to_upstream_details=payload.get("link_to_upstream_details"),
-                integration_unique_data=payload,
-                raw_request_data=request.data,
+                integration_unique_data=request.data,
+                raw_request_data=payload,
             )
 
         return Response("OK", status=status.HTTP_200_OK)
