@@ -3,7 +3,6 @@ import time
 import typing
 
 from django.conf import settings
-from drf_recaptcha.fields import ReCaptchaV3Field
 from rest_framework import serializers
 
 from apps.api.permissions import DONT_USE_LEGACY_PERMISSION_MAPPING
@@ -137,7 +136,7 @@ class UserSerializer(DynamicFieldsModelSerializer, EagerLoadingMixin):
         return {"default": " - ".join(default), "important": " - ".join(important)}
 
     def get_cloud_connection_status(self, obj):
-        if settings.OSS_INSTALLATION and live_settings.GRAFANA_CLOUD_NOTIFICATIONS_ENABLED:
+        if settings.IS_OPEN_SOURCE and live_settings.GRAFANA_CLOUD_NOTIFICATIONS_ENABLED:
             connector = self.context.get("connector", None)
             identities = self.context.get("cloud_identities", {})
             identity = identities.get(obj.email, None)
@@ -213,7 +212,3 @@ class FilterUserSerializer(EagerLoadingMixin, serializers.ModelSerializer):
             "pk",
             "username",
         ]
-
-
-class MobileVerificationCodeRecaptchaSerializer(serializers.Serializer):
-    recaptcha = ReCaptchaV3Field(action="mobile_verification_code")

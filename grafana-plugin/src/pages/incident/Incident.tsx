@@ -460,7 +460,7 @@ class IncidentPage extends React.Component<IncidentPageProps, IncidentPageState>
             this.setState({ timelineFilter: value });
           }}
         />
-        <ul className={cx('timeline')}>
+        <ul className={cx('timeline')} data-testid="incident-timeline-list">
           {timeline.map((item: TimeLineItem, idx: number) => (
             <li key={idx} className={cx('timeline-item')}>
               <HorizontalGroup align="flex-start">
@@ -556,8 +556,7 @@ class IncidentPage extends React.Component<IncidentPageProps, IncidentPageState>
             </span>
           );
         default:
-          console.warn('Unknown render_after_resolve_report_json entity placeholder');
-          return '';
+          return '{{' + match + '}}';
       }
     };
   };

@@ -591,6 +591,45 @@ def test_delete_started_on_call_shift(
 
 
 @pytest.mark.django_db
+def test_force_delete_started_on_call_shift(
+    on_call_shift_internal_api_setup,
+    make_on_call_shift,
+    make_user_auth_headers,
+):
+    """Test deleting the shift that has started (rotation_start < now)"""
+
+    token, user1, _, _, schedule = on_call_shift_internal_api_setup
+
+    client = APIClient()
+    start_date = (timezone.now() - timezone.timedelta(hours=1)).replace(microsecond=0)
+
+    title = "Test Shift Rotation"
+
+    on_call_shift = make_on_call_shift(
+        schedule.organization,
+        shift_type=CustomOnCallShift.TYPE_ROLLING_USERS_EVENT,
+        schedule=schedule,
+        title=title,
+        start=start_date,
+        duration=timezone.timedelta(hours=1),
+        rotation_start=start_date,
+        rolling_users=[{user1.pk: user1.public_primary_key}],
+    )
+
+    # set force=true to hard delete the shift
+    url = "{}?force=true".format(
+        reverse("api-internal:oncall_shifts-detail", kwargs={"pk": on_call_shift.public_primary_key})
+    )
+
+    response = client.delete(url, **make_user_auth_headers(user1, token))
+
+    assert response.status_code == status.HTTP_204_NO_CONTENT
+
+    with pytest.raises(CustomOnCallShift.DoesNotExist):
+        on_call_shift.refresh_from_db()
+
+
+@pytest.mark.django_db
 def test_delete_future_on_call_shift(
     on_call_shift_internal_api_setup,
     make_on_call_shift,
@@ -919,6 +958,30 @@ def test_create_on_call_shift_override_invalid_data(on_call_shift_internal_api_s
 
     assert response.status_code == status.HTTP_400_BAD_REQUEST
     assert response.data["frequency"][0] == "Cannot set 'frequency' for shifts with type 'override'"
+
+
+@pytest.mark.django_db
+def test_create_on_call_shift_override_in_past(on_call_shift_internal_api_setup, make_user_auth_headers):
+    token, user1, _, _, schedule = on_call_shift_internal_api_setup
+    client = APIClient()
+    url = reverse("api-internal:oncall_shifts-list")
+    start_date = timezone.now().replace(microsecond=0, tzinfo=None) - timezone.timedelta(hours=2)
+
+    data = {
+        "title": "Test Shift Override",
+        "type": CustomOnCallShift.TYPE_OVERRIDE,
+        "schedule": schedule.public_primary_key,
+        "priority_level": 0,
+        "shift_start": start_date.strftime("%Y-%m-%dT%H:%M:%SZ"),
+        "shift_end": (start_date + timezone.timedelta(hours=1)).strftime("%Y-%m-%dT%H:%M:%SZ"),
+        "rotation_start": start_date.strftime("%Y-%m-%dT%H:%M:%SZ"),
+        "rolling_users": [[user1.public_primary_key]],
+    }
+
+    response = client.post(url, data, format="json", **make_user_auth_headers(user1, token))
+
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert response.data["shift_end"][0] == "Cannot create or update an override in the past"
 
 
 @pytest.mark.django_db
