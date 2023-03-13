@@ -17,6 +17,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Fix bug with override creation ([1515](https://github.com/grafana/oncall/pull/1515))
 - Fixed redirection issue on integrations screen
+- Fixed a few permission issues ([1448](https://github.com/grafana/oncall/issues/1448))
 
 ## v1.1.35 (2023-03-09)
 

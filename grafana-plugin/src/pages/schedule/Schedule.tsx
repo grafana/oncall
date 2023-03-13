@@ -22,6 +22,7 @@ import ScheduleOverrides from 'containers/Rotations/ScheduleOverrides';
 import ScheduleForm from 'containers/ScheduleForm/ScheduleForm';
 import ScheduleICalSettings from 'containers/ScheduleIcalLink/ScheduleIcalLink';
 import UsersTimezones from 'containers/UsersTimezones/UsersTimezones';
+import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
 import { Schedule, ScheduleType, Shift } from 'models/schedule/schedule.types';
 import { Timezone } from 'models/timezone/timezone.types';
 import { PageProps, WithStoreProps } from 'state/types';
@@ -32,7 +33,6 @@ import { PLUGIN_ROOT } from 'utils/consts';
 import { getStartOfWeek } from './Schedule.helpers';
 
 import styles from './Schedule.module.css';
-import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
 
 const cx = cn.bind(styles);
 
