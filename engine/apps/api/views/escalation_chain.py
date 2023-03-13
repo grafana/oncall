@@ -139,7 +139,7 @@ class EscalationChainViewSet(TeamFilteringMixin, PublicPrimaryKeyMixin, ListSeri
         filter_options = [
             # {"name": "search", "type": "search"},
             {
-                "name": "owning_team",
+                "name": "team",
                 "type": "team_select",
                 "href": api_root + "teams/",
             },

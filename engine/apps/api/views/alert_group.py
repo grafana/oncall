@@ -41,7 +41,7 @@ def get_user_queryset(request):
     return User.objects.filter(organization=request.user.organization).distinct()
 
 
-class OwningTeamFilterMixin:
+class TeamFilterSetMixin:
     def filter_by_team(self, queryset, name, value):
         if not value:
             return queryset
@@ -64,7 +64,7 @@ class OwningTeamFilterMixin:
         return teams
 
 
-class AlertGroupFilter(DateRangeFilterMixin, OwningTeamFilterMixin, ModelFieldFilterMixin, filters.FilterSet):
+class AlertGroupFilter(DateRangeFilterMixin, TeamFilterSetMixin, ModelFieldFilterMixin, filters.FilterSet):
     """
     Examples of possible date formats here https://docs.djangoproject.com/en/1.9/ref/settings/#datetime-input-formats
     """
@@ -113,9 +113,9 @@ class AlertGroupFilter(DateRangeFilterMixin, OwningTeamFilterMixin, ModelFieldFi
     )
     with_resolution_note = filters.BooleanFilter(method="filter_with_resolution_note")
     mine = filters.BooleanFilter(method="filter_mine")
-    owning_team = filters.ModelMultipleChoiceFilter(
+    team = filters.ModelMultipleChoiceFilter(
         field_name="channel__team",
-        queryset=OwningTeamFilterMixin.get_team_queryset,
+        queryset=TeamFilterSetMixin.get_team_queryset,
         to_field_name="public_primary_key",
         # method=ModelFieldFilterMixin.filter_model_field.__name__,
         method="filter_by_team",
@@ -616,7 +616,7 @@ class AlertGroupView(
                 "default": "true",
             },
             {
-                "name": "owning_team",
+                "name": "team",
                 "type": "team_select",
                 "href": api_root + "teams/",
             },

@@ -71,7 +71,7 @@ class IncidentsFilters extends Component<IncidentsFiltersProps, IncidentsFilters
         newQuery = { ...objectStore.incidentFilters };
       } else {
         newQuery = {
-          owning_team: [],
+          team: [],
           // status: [IncidentStatus.Firing, IncidentStatus.Acknowledged],
           // mine: false,
         };

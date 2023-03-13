@@ -10,19 +10,18 @@ from rest_framework.viewsets import ModelViewSet
 from apps.alerts.models import CustomButton
 from apps.api.permissions import RBACPermission
 from apps.api.serializers.custom_button import CustomButtonSerializer
-from apps.api.views.alert_group import OwningTeamFilterMixin
+from apps.api.views.alert_group import TeamFilterSetMixin
 from apps.auth_token.auth import PluginAuthentication
 from common.api_helpers.filters import ModelFieldFilterMixin
 from common.api_helpers.mixins import PublicPrimaryKeyMixin, TeamFilteringMixin
 from common.insight_log import EntityEvent, write_resource_insight_log
 
 
-class CustomButtonFilter(OwningTeamFilterMixin, ModelFieldFilterMixin, filters.FilterSet):
-    owning_team = filters.ModelMultipleChoiceFilter(
+class CustomButtonFilter(TeamFilterSetMixin, ModelFieldFilterMixin, filters.FilterSet):
+    team = filters.ModelMultipleChoiceFilter(
         field_name="team",
-        queryset=OwningTeamFilterMixin.get_team_queryset,
+        queryset=TeamFilterSetMixin.get_team_queryset,
         to_field_name="public_primary_key",
-        # method=ModelFieldFilterMixin.filter_model_field.__name__,
         method="filter_by_team",
     )
 
@@ -115,7 +114,7 @@ class CustomButtonView(TeamFilteringMixin, PublicPrimaryKeyMixin, ModelViewSet):
         filter_options = [
             # {"name": "search", "type": "search"},
             {
-                "name": "owning_team",
+                "name": "team",
                 "type": "team_select",
                 "href": api_root + "teams/",
             },
