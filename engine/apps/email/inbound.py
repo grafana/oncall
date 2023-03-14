@@ -79,7 +79,10 @@ class InboundEmailWebhookView(AlertChannelDefiningMixin, APIView):
         messages = self._get_messages_from_esp_request(request)
         if not messages:
             return None
-        return messages[0].to[0].address.split("@")[0]
+        for to in messages[0].to:
+            if to.domain == live_settings.INBOUND_EMAIL_DOMAIN:
+                return to.address.split("@")[0]
+        return None
 
     def _get_messages_from_esp_request(self, request: Request) -> list[AnymailInboundMessage]:
         view_class, secret_name = INBOUND_EMAIL_ESP_OPTIONS[live_settings.INBOUND_EMAIL_ESP]
