@@ -187,6 +187,7 @@ export const ROUTES = {
   schedules: ['schedules'],
   schedule: ['schedules/:id'],
   outgoing_webhooks: ['outgoing_webhooks', 'outgoing_webhooks/:id'],
+  outgoing_webhooks_2: ['outgoing_webhooks_2', 'outgoing_webhooks_2/:id'],
   maintenance: ['maintenance'],
   settings: ['settings'],
   'organization-logs': ['organization-logs'],

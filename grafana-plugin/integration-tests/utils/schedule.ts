@@ -1,12 +1,12 @@
 import { Page } from '@playwright/test';
 import { GRAFANA_USERNAME } from './constants';
 import { clickButton, fillInInput, selectDropdownValue, selectValuePickerValue } from './forms';
-import { goToOnCallPageByClickingOnTab } from './navigation';
-import dayjs from "dayjs";
+import { goToOnCallPage } from './navigation';
+import dayjs from 'dayjs';
 
 export const createOnCallSchedule = async (page: Page, scheduleName: string): Promise<void> => {
-  // go to the escalation chains page
-  await goToOnCallPageByClickingOnTab(page, 'Schedules');
+  // go to the schedules page
+  await goToOnCallPage(page, 'schedules');
 
   // create an oncall-rotation schedule
   await clickButton({ page, buttonText: 'New Schedule' });
@@ -38,9 +38,9 @@ export interface OverrideFormDateInputs {
 
 export const getOverrideFormDateInputs = async (page: Page): Promise<OverrideFormDateInputs> => {
   const getInputValue = async (inputNumber: number): Promise<string> => {
-    const element = await page.waitForSelector(`div[data-testid=\"override-inputs\"] >> input >> nth=${inputNumber}`)
+    const element = await page.waitForSelector(`div[data-testid=\"override-inputs\"] >> input >> nth=${inputNumber}`);
     return await element.inputValue();
-  }
+  };
 
   const startDate = await getInputValue(0);
   const startTime = await getInputValue(1);

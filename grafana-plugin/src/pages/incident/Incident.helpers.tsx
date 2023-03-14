@@ -14,6 +14,7 @@ import { Alert as AlertType, Alert, IncidentStatus } from 'models/alertgroup/ale
 import { User } from 'models/user/user.types';
 import { SilenceButtonCascader } from 'pages/incidents/parts/SilenceButtonCascader';
 import { move } from 'state/helpers';
+import { getVar } from 'utils/DOM';
 import { UserActions } from 'utils/authorization';
 import { TABLE_COLUMN_MAX_WIDTH } from 'utils/consts';
 
@@ -25,7 +26,7 @@ export function getIncidentStatusTag(alert: Alert) {
   switch (alert.status) {
     case IncidentStatus.Firing:
       return (
-        <Tag color="var(--tag-danger)" className={cx('status-tag')}>
+        <Tag color={getVar('--tag-danger')} className={cx('status-tag')}>
           <Text strong size="small">
             Firing
           </Text>
@@ -33,7 +34,7 @@ export function getIncidentStatusTag(alert: Alert) {
       );
     case IncidentStatus.Acknowledged:
       return (
-        <Tag color="var(--tag-warning)" className={cx('status-tag')}>
+        <Tag color={getVar('--tag-warning')} className={cx('status-tag')}>
           <Text strong size="small">
             Acknowledged
           </Text>
@@ -41,7 +42,7 @@ export function getIncidentStatusTag(alert: Alert) {
       );
     case IncidentStatus.Resolved:
       return (
-        <Tag color="var(--tag-primary)" className={cx('status-tag')}>
+        <Tag color={getVar('--tag-primary')} className={cx('status-tag')}>
           <Text strong size="small">
             Resolved
           </Text>
@@ -49,7 +50,7 @@ export function getIncidentStatusTag(alert: Alert) {
       );
     case IncidentStatus.Silenced:
       return (
-        <Tag color="var(--tag-secondary)" className={cx('status-tag')}>
+        <Tag color={getVar('--tag-secondary')} className={cx('status-tag')}>
           <Text strong size="small">
             Silenced
           </Text>

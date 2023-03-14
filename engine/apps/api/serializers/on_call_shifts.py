@@ -1,7 +1,7 @@
 from django.utils import timezone
 from rest_framework import serializers
 
-from apps.schedules.models import CustomOnCallShift, OnCallScheduleWeb
+from apps.schedules.models import CustomOnCallShift, OnCallSchedule
 from apps.user_management.models import User
 from common.api_helpers.custom_fields import (
     OrganizationFilteredPrimaryKeyRelatedField,
@@ -19,7 +19,7 @@ class OnCallShiftSerializer(EagerLoadingMixin, serializers.ModelSerializer):
         required=True,
         choices=CustomOnCallShift.WEB_TYPES,
     )
-    schedule = OrganizationFilteredPrimaryKeyRelatedField(queryset=OnCallScheduleWeb.objects)
+    schedule = OrganizationFilteredPrimaryKeyRelatedField(queryset=OnCallSchedule.objects)
     frequency = serializers.ChoiceField(required=False, choices=CustomOnCallShift.FREQUENCY_CHOICES, allow_null=True)
     shift_start = serializers.DateTimeField(source="start")
     shift_end = serializers.SerializerMethodField()

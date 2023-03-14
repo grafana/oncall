@@ -25,6 +25,7 @@ import {
   Layer,
   ShiftEvents,
   RotationFormLiveParams,
+  ScheduleScoreQualityResponse,
 } from './schedule.types';
 
 export class ScheduleStore extends BaseStore {
@@ -172,6 +173,11 @@ export class ScheduleStore extends BaseStore {
       count: this.searchResult.count,
       results: this.searchResult.results?.map((scheduleId: Schedule['id']) => this.items[scheduleId]),
     };
+  }
+
+  async getScoreQuality(scheduleId: Schedule['id']): Promise<ScheduleScoreQualityResponse> {
+    const tomorrow = getFromString(dayjs().add(1, 'day'));
+    return await makeRequest(`/schedules/${scheduleId}/quality?date=${tomorrow}`, { method: 'GET' });
   }
 
   @action

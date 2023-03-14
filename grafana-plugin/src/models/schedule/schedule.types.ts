@@ -35,6 +35,7 @@ export interface Schedule {
   mention_oncall_start: boolean;
   notify_empty_oncall: number;
   number_of_escalation_chains: number;
+  enable_web_overrides: boolean;
 }
 
 export interface ScheduleEvent {
@@ -109,4 +110,18 @@ export interface ShiftEvents {
   shiftId: string;
   events: Event[];
   isPreview?: boolean;
+}
+
+export interface ScheduleScoreQualityResponse {
+  total_score: number;
+  comments: Array<{ type: 'warning' | 'info'; text: string }>;
+  overloaded_users: string[];
+}
+
+export enum ScheduleScoreQualityResult {
+  Bad = 'Bad',
+  Low = 'Low',
+  Medium = 'Medium',
+  Good = 'Good',
+  Great = 'Great',
 }

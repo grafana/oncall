@@ -97,6 +97,7 @@ def test_get_list_schedules(
                 "notify_empty_oncall": 0,
                 "notify_oncall_shift_freq": 1,
                 "number_of_escalation_chains": 0,
+                "enable_web_overrides": False,
             },
             {
                 "id": ical_schedule.public_primary_key,
@@ -115,6 +116,7 @@ def test_get_list_schedules(
                 "notify_empty_oncall": 0,
                 "notify_oncall_shift_freq": 1,
                 "number_of_escalation_chains": 0,
+                "enable_web_overrides": False,
             },
             {
                 "id": web_schedule.public_primary_key,
@@ -132,6 +134,7 @@ def test_get_list_schedules(
                 "notify_empty_oncall": 0,
                 "notify_oncall_shift_freq": 1,
                 "number_of_escalation_chains": 1,
+                "enable_web_overrides": True,
             },
         ],
     }
@@ -172,6 +175,7 @@ def test_get_list_schedules_pagination(
             "notify_empty_oncall": 0,
             "notify_oncall_shift_freq": 1,
             "number_of_escalation_chains": 0,
+            "enable_web_overrides": False,
         },
         {
             "id": ical_schedule.public_primary_key,
@@ -190,6 +194,7 @@ def test_get_list_schedules_pagination(
             "notify_empty_oncall": 0,
             "notify_oncall_shift_freq": 1,
             "number_of_escalation_chains": 0,
+            "enable_web_overrides": False,
         },
         {
             "id": web_schedule.public_primary_key,
@@ -207,6 +212,7 @@ def test_get_list_schedules_pagination(
             "notify_empty_oncall": 0,
             "notify_oncall_shift_freq": 1,
             "number_of_escalation_chains": 1,
+            "enable_web_overrides": True,
         },
     ]
 
@@ -278,6 +284,7 @@ def test_get_list_schedules_by_type(
             "notify_empty_oncall": 0,
             "notify_oncall_shift_freq": 1,
             "number_of_escalation_chains": 0,
+            "enable_web_overrides": False,
         },
         {
             "id": ical_schedule.public_primary_key,
@@ -296,6 +303,7 @@ def test_get_list_schedules_by_type(
             "notify_empty_oncall": 0,
             "notify_oncall_shift_freq": 1,
             "number_of_escalation_chains": 0,
+            "enable_web_overrides": False,
         },
         {
             "id": web_schedule.public_primary_key,
@@ -313,6 +321,7 @@ def test_get_list_schedules_by_type(
             "notify_empty_oncall": 0,
             "notify_oncall_shift_freq": 1,
             "number_of_escalation_chains": 1,
+            "enable_web_overrides": True,
         },
     ]
 
@@ -409,6 +418,7 @@ def test_get_detail_calendar_schedule(schedule_internal_api_setup, make_user_aut
         "notify_empty_oncall": 0,
         "notify_oncall_shift_freq": 1,
         "number_of_escalation_chains": 0,
+        "enable_web_overrides": False,
     }
 
     response = client.get(url, format="json", **make_user_auth_headers(user, token))
@@ -439,6 +449,7 @@ def test_get_detail_ical_schedule(schedule_internal_api_setup, make_user_auth_he
         "notify_empty_oncall": 0,
         "notify_oncall_shift_freq": 1,
         "number_of_escalation_chains": 0,
+        "enable_web_overrides": False,
     }
 
     response = client.get(url, format="json", **make_user_auth_headers(user, token))
@@ -478,6 +489,7 @@ def test_get_detail_web_schedule(
         "notify_empty_oncall": 0,
         "notify_oncall_shift_freq": 1,
         "number_of_escalation_chains": 1,
+        "enable_web_overrides": True,
     }
 
     response = client.get(url, format="json", **make_user_auth_headers(user, token))
@@ -505,6 +517,7 @@ def test_create_calendar_schedule(schedule_internal_api_setup, make_user_auth_he
         "mention_oncall_start": True,
         "notify_empty_oncall": 0,
         "notify_oncall_shift_freq": 1,
+        "enable_web_overrides": True,
     }
     response = client.post(url, data, format="json", **make_user_auth_headers(user, token))
     # modify initial data by adding id and None for optional fields
@@ -544,6 +557,7 @@ def test_create_ical_schedule(schedule_internal_api_setup, make_user_auth_header
         schedule = OnCallSchedule.objects.get(public_primary_key=response.data["id"])
         data["id"] = schedule.public_primary_key
         data["number_of_escalation_chains"] = 0
+        data["enable_web_overrides"] = False
         assert response.status_code == status.HTTP_201_CREATED
         assert response.data == data
 
@@ -573,6 +587,7 @@ def test_create_web_schedule(schedule_internal_api_setup, make_user_auth_headers
     schedule = OnCallSchedule.objects.get(public_primary_key=response.data["id"])
     data["id"] = schedule.public_primary_key
     data["number_of_escalation_chains"] = 0
+    data["enable_web_overrides"] = True
     assert response.status_code == status.HTTP_201_CREATED
     assert response.data == data
 
