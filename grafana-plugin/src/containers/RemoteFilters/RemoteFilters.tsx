@@ -27,6 +27,7 @@ interface RemoteFiltersProps extends WithStoreProps {
   onChange: (filters: { [key: string]: any }, isOnMount: boolean) => void;
   query: { [key: string]: any };
   page: string;
+  extraFilters?: (state, setState, onFiltersValueChange) => React.ReactNode;
 }
 interface RemoteFiltersState {
   filterOptions?: FilterOption[];
@@ -75,7 +76,20 @@ class RemoteFilters extends Component<RemoteFiltersProps, RemoteFiltersState> {
   }
 
   render() {
-    return <div className={cx('root')}>{this.renderFilters()}</div>;
+    const { extraFilters } = this.props;
+
+    console.log(this.state);
+
+    return (
+      <div className={cx('root')}>
+        {this.renderFilters()}
+        {extraFilters && (
+          <div className={cx('extra-filters')}>
+            {extraFilters(this.state, this.setState.bind(this), this.onFiltersValueChange.bind(this))}
+          </div>
+        )}
+      </div>
+    );
   }
 
   renderFilters = () => {

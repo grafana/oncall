@@ -1,6 +1,6 @@
 import React, { ReactElement, SyntheticEvent } from 'react';
 
-import { Button, VerticalGroup, LoadingPlaceholder, HorizontalGroup, Tooltip } from '@grafana/ui';
+import { Button, VerticalGroup, LoadingPlaceholder, HorizontalGroup, Tooltip, Icon } from '@grafana/ui';
 import cn from 'classnames/bind';
 import { get } from 'lodash-es';
 import { observer } from 'mobx-react';
@@ -8,6 +8,7 @@ import moment from 'moment-timezone';
 import Emoji from 'react-emoji-render';
 import { RouteComponentProps, withRouter } from 'react-router-dom';
 
+import CardButton from 'components/CardButton/CardButton';
 import CursorPagination from 'components/CursorPagination/CursorPagination';
 import GTable from 'components/GTable/GTable';
 import IntegrationLogo from 'components/IntegrationLogo/IntegrationLogo';
@@ -17,11 +18,10 @@ import Text from 'components/Text/Text';
 import Tutorial from 'components/Tutorial/Tutorial';
 import { TutorialStep } from 'components/Tutorial/Tutorial.types';
 import { IncidentsFiltersType } from 'containers/IncidentsFilters/IncidentFilters.types';
-import IncidentsFilters from 'containers/IncidentsFilters/IncidentsFilters';
+import RemoteFilters from 'containers/RemoteFilters/RemoteFilters';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
-import { Alert, Alert as AlertType, AlertAction } from 'models/alertgroup/alertgroup.types';
+import { Alert, Alert as AlertType, AlertAction, IncidentStatus } from 'models/alertgroup/alertgroup.types';
 import { renderRelatedUsers } from 'pages/incident/Incident.helpers';
-import { RootStore } from 'state';
 import { PageProps, WithStoreProps } from 'state/types';
 import { withMobXProviderContext } from 'state/withStore';
 import LocationHelper from 'utils/LocationHelper';
@@ -102,7 +102,7 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
   }
 
   render() {
-    const { history, store } = this.props;
+    const { history } = this.props;
     const { showAddAlertGroupForm } = this.state;
     return (
       <>
@@ -117,7 +117,7 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
               </WithPermissionControlTooltip>
             </HorizontalGroup>
           </div>
-          {this.renderIncidentFilters(store)}
+          {this.renderIncidentFilters()}
           {this.renderTable()}
         </div>
         {showAddAlertGroupForm && (
@@ -134,11 +134,130 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
     );
   }
 
-  renderIncidentFilters(store: RootStore) {
+  renderCards(filtersState, setFiltersState, filtersOnFiltersValueChange) {
+    const { store } = this.props;
+
+    const { values } = filtersState;
+
+    const { newIncidents, acknowledgedIncidents, resolvedIncidents, silencedIncidents } = store.alertGroupStore;
+
+    const { count: newIncidentsCount } = newIncidents;
+    const { count: acknowledgedIncidentsCount } = acknowledgedIncidents;
+    const { count: resolvedIncidentsCount } = resolvedIncidents;
+    const { count: silencedIncidentsCount } = silencedIncidents;
+
+    const status = values.status || [];
+
+    return (
+      <div className={cx('cards', 'row')}>
+        <div key="new" className={cx('col')}>
+          <CardButton
+            icon={<Icon name="bell" size="xxxl" />}
+            description="Firing alert groups"
+            title={newIncidentsCount}
+            selected={status.includes(IncidentStatus.Firing)}
+            onClick={this.getStatusButtonClickHandler(
+              IncidentStatus.Firing,
+              filtersState,
+              setFiltersState,
+              filtersOnFiltersValueChange
+            )}
+          />
+        </div>
+        <div key="acknowledged" className={cx('col')}>
+          <CardButton
+            icon={<Icon name="eye" size="xxxl" />}
+            description="Acknowledged alert groups"
+            title={acknowledgedIncidentsCount}
+            selected={status.includes(IncidentStatus.Acknowledged)}
+            onClick={this.getStatusButtonClickHandler(
+              IncidentStatus.Acknowledged,
+              filtersState,
+              setFiltersState,
+              filtersOnFiltersValueChange
+            )}
+          />
+        </div>
+        <div key="resolved" className={cx('col')}>
+          <CardButton
+            icon={<Icon name="check" size="xxxl" />}
+            description="Resolved alert groups"
+            title={resolvedIncidentsCount}
+            selected={status.includes(IncidentStatus.Resolved)}
+            onClick={this.getStatusButtonClickHandler(
+              IncidentStatus.Resolved,
+              filtersState,
+              setFiltersState,
+              filtersOnFiltersValueChange
+            )}
+          />
+        </div>
+        <div key="silenced" className={cx('col')}>
+          <CardButton
+            icon={<Icon name="bell-slash" size="xxxl" />}
+            description="Silenced alert groups"
+            title={silencedIncidentsCount}
+            selected={status.includes(IncidentStatus.Silenced)}
+            onClick={this.getStatusButtonClickHandler(
+              IncidentStatus.Silenced,
+              filtersState,
+              setFiltersState,
+              filtersOnFiltersValueChange
+            )}
+          />
+        </div>
+      </div>
+    );
+  }
+
+  getStatusButtonClickHandler = (
+    status: IncidentStatus,
+    filtersState,
+    filtersSetState,
+    filtersOnFiltersValueChange
+  ) => {
+    return (selected: boolean) => {
+      const { values } = filtersState;
+
+      const { status: statusFilter = [] } = values;
+
+      let newStatuses = [...statusFilter];
+
+      if (selected) {
+        newStatuses.push(status);
+      } else {
+        newStatuses = newStatuses.filter((s: IncidentStatus) => s !== Number(status));
+      }
+
+      const statusFilterOption = filtersState.filterOptions.find((filterOption) => filterOption.name === 'status');
+      const statusFilterExist = filtersState.filters.some((statusFilter) => statusFilter.name === 'status');
+
+      if (statusFilterExist) {
+        filtersOnFiltersValueChange('status', newStatuses);
+      } else {
+        filtersSetState(
+          {
+            hadInteraction: false,
+            filters: [...filtersState.filters, statusFilterOption],
+          },
+          () => {
+            filtersOnFiltersValueChange('status', newStatuses);
+          }
+        );
+      }
+    };
+  };
+
+  renderIncidentFilters() {
     const { query } = this.props;
     return (
       <div className={cx('filters')}>
-        <IncidentsFilters query={query} objectStore={store.alertGroupStore} onChange={this.handleFiltersChange} />
+        <RemoteFilters
+          query={query}
+          page="incidents"
+          onChange={this.handleFiltersChange}
+          extraFilters={this.renderCards.bind(this)}
+        />
       </div>
     );
   }
