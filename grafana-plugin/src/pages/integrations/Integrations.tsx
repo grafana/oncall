@@ -56,7 +56,7 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
   private alertReceiveChannelTimerId: ReturnType<typeof setTimeout>;
 
   async componentDidMount() {
-    this.isMounted = false;
+    this.isMounted = true;
     this.update().then(() => this.parseQueryParams(true));
   }
 
