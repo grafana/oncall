@@ -147,7 +147,8 @@ are run on pull request CI builds. New features should ideally include a new/mod
 To run these tests locally simply do the following:
 
 ```bash
-cp ./grafana-plugin/.env.example cp ./grafana-plugin/.env
+npx playwright install  # install playwright dependencies
+cp ./grafana-plugin/.env.example ./grafana-plugin/.env
 # you may need to tweak the values in ./grafana-plugin/.env according to your local setup
 yarn test:integration
 ```
