@@ -1,0 +1,17 @@
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  name: grafana-oncall
+  title: Grafana OnCall OSS
+  description: |
+    Grafana OnCall OSS
+  links:
+    - title: GitHub Repo
+      url: https://github.com/grafana/oncall
+    - title: Slack Channel
+      url: https://grafana.slack.com/archives/C02LSUUSE2G
+spec:
+  type: service
+  owner: "group:grafana-oncall"
+  system: oncall
+  lifecycle: production
