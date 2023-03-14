@@ -11,6 +11,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Add filtering by escalation chain to alert groups page ([1535](https://github.com/grafana/oncall/pull/1535))
 
+### Fixed
+
+- Improve tasks checking/triggering webhooks in new backend
+
 ## v1.1.37 (2023-03-14)
 
 ### Fixed
