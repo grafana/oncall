@@ -5,20 +5,29 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## Unreleased
+
+### Added
+
+- Add filtering by escalation chain to alert groups page ([1535](https://github.com/grafana/oncall/pull/1535))
+
 ## v1.1.37 (2023-03-14)
+
+### Fixed
+
+- Fixed redirection issue on integrations screen
 
 ### Added
 
 - Enable web overrides for Terraform-based schedules
 - Direct user paging improvements ([1358](https://github.com/grafana/oncall/issues/1358))
-- Add filtering by escalation chain to alert groups page ([1535](https://github.com/grafana/oncall/pull/1535))
+- Added Schedule Score quality within the schedule view ([118](https://github.com/grafana/oncall/issues/118))
 
 ## v1.1.36 (2023-03-09)
 
 ### Fixed
 
 - Fix bug with override creation ([1515](https://github.com/grafana/oncall/pull/1515))
-- Fixed redirection issue on integrations screen
 
 ## v1.1.35 (2023-03-09)
 
@@ -114,6 +123,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - Added ratelimits for phone verification
+- Link to source was added
+- Header of Incident page was reworked: clickable labels instead of just names, users section was deleted
+- "Go to Integration" button was deleted, because the functionality was moved to clickable labels
 
 ### Fixed
 
@@ -142,7 +154,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Add direct user paging ([823](https://github.com/grafana/oncall/issues/823))
 - Add App Store link to web UI ([1328](https://github.com/grafana/oncall/pull/1328))
-- Added Schedule Score quality within the schedule view ([118](https://github.com/grafana/oncall/issues/118))
 
 ### Fixed
 
@@ -157,9 +168,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Incidents - Removed buttons column and replaced status with toggler ([#1237](https://github.com/grafana/oncall/issues/1237))
 - Responsiveness changes across multiple pages (Incidents, Integrations, Schedules) ([#1237](https://github.com/grafana/oncall/issues/1237))
 - Add pagination to schedule listing
-- Link to source was added
-- Header of Incident page was reworked: clickable labels instead of just names, users section was deleted
-- "Go to Integration" button was deleted, because the functionality was moved to clickable labels
 
 ## v1.1.23 (2023-02-06)
 
