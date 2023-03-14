@@ -591,45 +591,6 @@ def test_delete_started_on_call_shift(
 
 
 @pytest.mark.django_db
-def test_force_delete_started_on_call_shift(
-    on_call_shift_internal_api_setup,
-    make_on_call_shift,
-    make_user_auth_headers,
-):
-    """Test deleting the shift that has started (rotation_start < now)"""
-
-    token, user1, _, _, schedule = on_call_shift_internal_api_setup
-
-    client = APIClient()
-    start_date = (timezone.now() - timezone.timedelta(hours=1)).replace(microsecond=0)
-
-    title = "Test Shift Rotation"
-
-    on_call_shift = make_on_call_shift(
-        schedule.organization,
-        shift_type=CustomOnCallShift.TYPE_ROLLING_USERS_EVENT,
-        schedule=schedule,
-        title=title,
-        start=start_date,
-        duration=timezone.timedelta(hours=1),
-        rotation_start=start_date,
-        rolling_users=[{user1.pk: user1.public_primary_key}],
-    )
-
-    # set force=true to hard delete the shift
-    url = "{}?force=true".format(
-        reverse("api-internal:oncall_shifts-detail", kwargs={"pk": on_call_shift.public_primary_key})
-    )
-
-    response = client.delete(url, **make_user_auth_headers(user1, token))
-
-    assert response.status_code == status.HTTP_204_NO_CONTENT
-
-    with pytest.raises(CustomOnCallShift.DoesNotExist):
-        on_call_shift.refresh_from_db()
-
-
-@pytest.mark.django_db
 def test_delete_future_on_call_shift(
     on_call_shift_internal_api_setup,
     make_on_call_shift,

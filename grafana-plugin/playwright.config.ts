@@ -12,7 +12,6 @@ require('dotenv').config();
  */
 const config: PlaywrightTestConfig = {
   testDir: './integration-tests',
-  globalSetup: './integration-tests/globalSetup.ts',
   /* Maximum time one test can run for. */
   timeout: 60 * 1000,
   expect: {
@@ -34,8 +33,6 @@ const config: PlaywrightTestConfig = {
   reporter: 'html',
   /* Shared settings for all the projects below. See https://playwright.dev/docs/api/class-testoptions. */
   use: {
-    storageState: './storageState.json',
-
     /* Maximum time each action such as `click()` can take. Defaults to 0 (no limit). */
     actionTimeout: 0,
     /* Base URL to use in actions like `await page.goto('/')`. */

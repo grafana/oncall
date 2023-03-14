@@ -8,7 +8,7 @@ import { openNotification } from 'utils';
 
 import styles from './Text.module.scss';
 
-export type TextType = 'primary' | 'secondary' | 'disabled' | 'link' | 'success' | 'warning' | 'danger';
+export type TextType = 'primary' | 'secondary' | 'disabled' | 'link' | 'success' | 'warning';
 
 interface TextProps extends HTMLAttributes<HTMLElement> {
   type?: TextType;

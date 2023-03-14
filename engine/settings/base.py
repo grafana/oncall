@@ -214,7 +214,6 @@ INSTALLED_APPS = [
     "apps.auth_token",
     "apps.public_api",
     "apps.grafana_plugin",
-    "apps.webhooks",
     "corsheaders",
     "debug_toolbar",
     "social_django",

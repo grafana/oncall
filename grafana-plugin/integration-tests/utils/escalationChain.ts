@@ -1,7 +1,7 @@
 import { Page } from '@playwright/test';
 
 import { clickButton, fillInInput, selectDropdownValue } from './forms';
-import { goToOnCallPage } from './navigation';
+import { goToOnCallPageByClickingOnTab } from './navigation';
 
 export enum EscalationStep {
   NotifyUsers = 'Notify users',
@@ -20,7 +20,7 @@ export const createEscalationChain = async (
   escalationStepValue: string
 ): Promise<void> => {
   // go to the escalation chains page
-  await goToOnCallPage(page, 'escalations');
+  await goToOnCallPageByClickingOnTab(page, 'Escalation Chains');
 
   // open the create escalation chain modal
   (await page.waitForSelector('text=New Escalation Chain')).click();

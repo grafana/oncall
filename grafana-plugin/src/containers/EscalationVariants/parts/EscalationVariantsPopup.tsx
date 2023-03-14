@@ -1,10 +1,11 @@
 import React, { useState, useCallback, useEffect, useRef } from 'react';
 
-import { Icon, Input, RadioButtonGroup } from '@grafana/ui';
+import { Icon, RadioButtonGroup } from '@grafana/ui';
 import cn from 'classnames/bind';
 import { observer } from 'mobx-react';
 
 import GTable from 'components/GTable/GTable';
+import SearchInput from 'components/SearchInput/SearchInput';
 import Text from 'components/Text/Text';
 import { EscalationVariantsProps } from 'containers/EscalationVariants/EscalationVariants';
 import styles from 'containers/EscalationVariants/EscalationVariants.module.scss';
@@ -38,14 +39,6 @@ const EscalationVariantsPopup = observer((props: EscalationVariantsPopupProps) =
   const [activeOption, setActiveOption] = useState('schedules');
   const [usersSearchTerm, setUsersSearchTerm] = useState('');
   const [schedulesSearchTerm, setSchedulesSearchTerm] = useState('');
-
-  const handleSetSchedulesSearchTerm = useCallback((e) => {
-    setSchedulesSearchTerm(e.target.value);
-  }, []);
-
-  const handleSetUsersSearchTerm = useCallback((e) => {
-    setUsersSearchTerm(e.target.value);
-  }, []);
 
   const handleOptionChange = useCallback((option: string) => {
     setActiveOption(option);
@@ -149,51 +142,42 @@ const EscalationVariantsPopup = observer((props: EscalationVariantsPopupProps) =
           { value: 'schedules', label: 'Schedules' },
           { value: 'users', label: 'Users' },
         ]}
-        className={cx('radio-buttons')}
         value={activeOption}
         onChange={handleOptionChange}
         fullWidth
       />
       {activeOption === 'schedules' && (
         <>
-          <Input
-            prefix={<Icon name="search" />}
+          <SearchInput
             key="schedules search"
             className={cx('responders-filters')}
             value={schedulesSearchTerm}
-            placeholder="Search schedules..."
-            // @ts-ignore
-            width={'unset'}
-            onChange={handleSetSchedulesSearchTerm}
+            onChange={setSchedulesSearchTerm}
           />
           <GTable
             emptyText={store.scheduleStore.getSearchResult()?.results ? 'No schedules found' : 'Loading...'}
             rowKey="id"
             columns={scheduleColumns}
             data={store.scheduleStore.getSearchResult()?.results}
-            className={cx('table')}
+            className={cx('schedule-table')}
             showHeader={false}
           />
         </>
       )}
       {activeOption === 'users' && (
         <>
-          <Input
-            prefix={<Icon name="search" />}
+          <SearchInput
             key="users search"
-            // @ts-ignore
-            width={'unset'}
             className={cx('responders-filters')}
-            placeholder="Search users..."
             value={usersSearchTerm}
-            onChange={handleSetUsersSearchTerm}
+            onChange={setUsersSearchTerm}
           />
           <GTable
             emptyText={store.userStore.getSearchResult()?.results ? 'No users found' : 'Loading...'}
             rowKey="id"
             columns={userColumns}
             data={store.userStore.getSearchResult()?.results}
-            className={cx('table')}
+            className={cx('schedule-table')}
             showHeader={false}
           />
         </>

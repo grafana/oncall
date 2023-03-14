@@ -53,7 +53,3 @@
   cursor: not-allowed !important;
   pointer-events: none;
 }
-
-.u-cursor-default {
-  cursor: default;
-}

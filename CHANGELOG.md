@@ -5,18 +5,6 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## v1.1.37 (2023-03-14)
-
-### Fixed
-
-- Fixed redirection issue on integrations screen
-
-### Added
-
-- Enable web overrides for Terraform-based schedules
-- Direct user paging improvements ([1358](https://github.com/grafana/oncall/issues/1358))
-- Added Schedule Score quality within the schedule view ([118](https://github.com/grafana/oncall/issues/118))
-
 ## v1.1.36 (2023-03-09)
 
 ### Fixed
@@ -117,9 +105,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - Added ratelimits for phone verification
-- Link to source was added
-- Header of Incident page was reworked: clickable labels instead of just names, users section was deleted
-- "Go to Integration" button was deleted, because the functionality was moved to clickable labels
 
 ### Fixed
 
@@ -162,6 +147,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Incidents - Removed buttons column and replaced status with toggler ([#1237](https://github.com/grafana/oncall/issues/1237))
 - Responsiveness changes across multiple pages (Incidents, Integrations, Schedules) ([#1237](https://github.com/grafana/oncall/issues/1237))
 - Add pagination to schedule listing
+- Link to source was added
+- Header of Incident page was reworked: clickable labels instead of just names, users section was deleted
+- "Go to Integration" button was deleted, because the functionality was moved to clickable labels
 
 ## v1.1.23 (2023-02-06)
 

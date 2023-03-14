@@ -1,29 +1,28 @@
 .root {
   font-size: 12px;
   line-height: 16px;
-  padding: 3px 4px;
 }
 
 .root__type_link {
+  padding: 2px 4px;
   background: rgba(27, 133, 94, 0.15);
-  border: 1px solid var(--tag-border-success);
+  border: 1px solid var(--success-text-color);
   border-radius: 2px;
 }
 
 .root__type_warning {
+  padding: 2px 4px;
   background: rgba(245, 183, 61, 0.18);
-  border: 1px solid var(--tag-border-warning);
+  border: 1px solid var(--warning-text-color);
   border-radius: 2px;
 }
 
-.text__type_link,
 .icon__type_link {
-  color: var(--tag-text-success);
+  color: var(--success-text-color);
 }
 
-.text__type_warning,
 .icon__type_warning {
-  color: var(--tag-text-warning);
+  color: var(--warning-text-color);
 }
 
 .tooltip {

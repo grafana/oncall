@@ -28,7 +28,6 @@ import Integrations from 'pages/integrations/Integrations';
 import Maintenance from 'pages/maintenance/Maintenance';
 import OrganizationLogPage from 'pages/organization-logs/OrganizationLog';
 import OutgoingWebhooks from 'pages/outgoing_webhooks/OutgoingWebhooks';
-import OutgoingWebhooks2 from 'pages/outgoing_webhooks_2/OutgoingWebhooks2';
 import Schedule from 'pages/schedule/Schedule';
 import Schedules from 'pages/schedules/Schedules';
 import SettingsPage from 'pages/settings/SettingsPage';
@@ -161,9 +160,6 @@ export const Root = observer((props: AppRootProps) => {
             </Route>
             <Route path={getRoutesForPage('outgoing_webhooks')} exact>
               <OutgoingWebhooks />
-            </Route>
-            <Route path={getRoutesForPage('outgoing_webhooks_2')} exact>
-              <OutgoingWebhooks2 />
             </Route>
             <Route path={getRoutesForPage('maintenance')} exact>
               <Maintenance query={query} />

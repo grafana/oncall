@@ -12,7 +12,7 @@ import {
   initErrorDataState,
 } from 'components/PageErrorHandlingWrapper/PageErrorHandlingWrapper.helpers';
 import PluginLink from 'components/PluginLink/PluginLink';
-import ScheduleQuality from 'components/ScheduleQuality/ScheduleQuality';
+import ScheduleWarning from 'components/ScheduleWarning/ScheduleWarning';
 import Text from 'components/Text/Text';
 import UserTimezoneSelect from 'components/UserTimezoneSelect/UserTimezoneSelect';
 import WithConfirm from 'components/WithConfirm/WithConfirm';
@@ -46,7 +46,6 @@ interface SchedulePageState extends PageBaseState {
   isLoading: boolean;
   showEditForm: boolean;
   showScheduleICalSettings: boolean;
-  lastUpdated: number;
 }
 
 @observer
@@ -65,7 +64,6 @@ class SchedulePage extends React.Component<SchedulePageProps, SchedulePageState>
       showEditForm: false,
       showScheduleICalSettings: false,
       errorData: initErrorDataState(),
-      lastUpdated: 0,
     };
   }
 
@@ -118,15 +116,11 @@ class SchedulePage extends React.Component<SchedulePageProps, SchedulePageState>
     const users = store.userStore.getSearchResult().results;
     const schedule = scheduleStore.items[scheduleId];
 
-    const disabledRotationForm =
+    const disabled =
       !isUserActionAllowed(UserActions.SchedulesWrite) ||
       schedule?.type !== ScheduleType.API ||
-      !!shiftIdToShowRotationForm;
-
-    const disabledOverrideForm =
-      !isUserActionAllowed(UserActions.SchedulesWrite) ||
-      !schedule?.enable_web_overrides ||
-      !!shiftIdToShowOverridesForm;
+      shiftIdToShowRotationForm ||
+      shiftIdToShowOverridesForm;
 
     return (
       <PageErrorHandlingWrapper errorData={errorData} objectName="schedule" pageName="schedules">
@@ -149,20 +143,20 @@ class SchedulePage extends React.Component<SchedulePageProps, SchedulePageState>
                 <VerticalGroup spacing="lg">
                   <div className={cx('header')}>
                     <HorizontalGroup justify="space-between">
-                      <div className={cx('title')}>
+                      <HorizontalGroup>
                         <PluginLink query={{ page: 'schedules' }}>
                           <IconButton style={{ marginTop: '5px' }} name="arrow-left" size="xl" />
                         </PluginLink>
                         <Text.Title
-                          editable={false}
+                          editable
                           editModalTitle="Schedule name"
                           level={2}
                           onTextChange={this.handleNameChange}
                         >
                           {schedule?.name}
                         </Text.Title>
-                        {schedule && <ScheduleQuality schedule={schedule} lastUpdated={this.state.lastUpdated} />}
-                      </div>
+                        {schedule && <ScheduleWarning item={schedule} />}
+                      </HorizontalGroup>
                       <HorizontalGroup spacing="lg">
                         {users && (
                           <HorizontalGroup>
@@ -243,7 +237,7 @@ class SchedulePage extends React.Component<SchedulePageProps, SchedulePageState>
                       currentTimezone={currentTimezone}
                       startMoment={startMoment}
                       onClick={this.handleShowForm}
-                      disabled={disabledRotationForm}
+                      disabled={disabled}
                     />
                     <Rotations
                       scheduleId={scheduleId}
@@ -254,7 +248,7 @@ class SchedulePage extends React.Component<SchedulePageProps, SchedulePageState>
                       onDelete={this.handleDeleteRotation}
                       shiftIdToShowRotationForm={shiftIdToShowRotationForm}
                       onShowRotationForm={this.handleShowRotationForm}
-                      disabled={disabledRotationForm}
+                      disabled={disabled}
                     />
                     <ScheduleOverrides
                       scheduleId={scheduleId}
@@ -265,7 +259,7 @@ class SchedulePage extends React.Component<SchedulePageProps, SchedulePageState>
                       onDelete={this.handleDeleteOverride}
                       shiftIdToShowRotationForm={shiftIdToShowOverridesForm}
                       onShowRotationForm={this.handleShowOverridesForm}
-                      disabled={disabledOverrideForm}
+                      disabled={disabled}
                     />
                   </div>
                 </VerticalGroup>
@@ -354,11 +348,6 @@ class SchedulePage extends React.Component<SchedulePageProps, SchedulePageState>
     } = this.props;
 
     const { startMoment } = this.state;
-
-    this.setState((prevState) => ({
-      // this will update schedule score
-      lastUpdated: prevState.lastUpdated + 1,
-    }));
 
     store.scheduleStore
       .updateItem(scheduleId) // to refresh current oncall users

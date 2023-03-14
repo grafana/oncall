@@ -3,15 +3,6 @@
   --rotations-background: var(--background-secondary);
 }
 
-.title {
-  display: flex;
-  flex-wrap: wrap;
-  flex-direction: row;
-  column-gap: 8px;
-  row-gap: 8px;
-  min-width: 250px;
-}
-
 .header {
   position: sticky; /* TODO check */
   width: 100%;

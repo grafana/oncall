@@ -51,23 +51,18 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
     errorData: initErrorDataState(),
   };
 
-  private isMounted: boolean;
   private alertReceiveChanneltoPoll: { [key: string]: number } = {};
   private alertReceiveChannelTimerId: ReturnType<typeof setTimeout>;
 
   async componentDidMount() {
-    this.isMounted = true;
     this.update().then(() => this.parseQueryParams(true));
-  }
-
-  componentWillUnmount() {
-    this.isMounted = false;
-    clearInterval(this.alertReceiveChannelTimerId);
   }
 
   componentDidUpdate(prevProps: Readonly<IntegrationsProps>): void {
     if (prevProps.match.params.id && !this.props.match.params.id) {
-      this.parseQueryParams();
+      this.setState({ errorData: initErrorDataState() }, () => {
+        this.parseQueryParams();
+      });
     }
   }
 
@@ -75,7 +70,7 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
     const { store, history } = this.props;
     store.selectedAlertReceiveChannel = alertReceiveChannelId;
 
-    if (shouldRedirect && this.isMounted) {
+    if (shouldRedirect) {
       history.push(`${PLUGIN_ROOT}/integrations/${alertReceiveChannelId || ''}`);
     }
   };
@@ -127,6 +122,10 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
     const { store } = this.props;
     return store.alertReceiveChannelStore.updateItems();
   };
+
+  componentWillUnmount() {
+    clearInterval(this.alertReceiveChannelTimerId);
+  }
 
   render() {
     const {

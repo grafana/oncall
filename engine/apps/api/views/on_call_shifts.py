@@ -85,8 +85,7 @@ class OnCallShiftView(PublicPrimaryKeyMixin, UpdateSerializerMixin, ModelViewSet
             author=self.request.user,
             event=EntityEvent.DELETED,
         )
-        force = self.request.query_params.get("force", "") == "true"
-        instance.delete(force=force)
+        instance.delete()
 
     @action(detail=False, methods=["post"])
     def preview(self, request):

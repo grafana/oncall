@@ -1,11 +1,11 @@
 import { test, expect } from '@playwright/test';
-import { configureOnCallPlugin } from '../utils/configurePlugin';
+import { openOnCallPlugin } from '../utils';
 import { clickButton, generateRandomValue } from '../utils/forms';
 import { createOnCallSchedule, getOverrideFormDateInputs } from '../utils/schedule';
-import dayjs from 'dayjs';
+import dayjs from "dayjs";
 
 test.beforeEach(async ({ page }) => {
-  await configureOnCallPlugin(page);
+  await openOnCallPlugin(page);
 });
 
 test('default dates in override creation modal are correct', async ({ page }) => {
@@ -16,8 +16,8 @@ test('default dates in override creation modal are correct', async ({ page }) =>
 
   const overrideFormDateInputs = await getOverrideFormDateInputs(page);
 
-  const expectedStart = dayjs().startOf('day'); // start of today
-  const expectedEnd = expectedStart.add(1, 'day'); // end of today
+  const expectedStart = dayjs().startOf('day');  // start of today
+  const expectedEnd = expectedStart.add(1, 'day');  // end of today
 
   expect(overrideFormDateInputs.start.isSame(expectedStart)).toBe(true);
   expect(overrideFormDateInputs.end.isSame(expectedEnd)).toBe(true);

@@ -13,13 +13,12 @@ interface PluginLinkProps {
   wrap?: boolean;
   children: any;
   query?: Record<string, any>;
-  target?: string;
 }
 
 const cx = cn.bind(styles);
 
 const PluginLink: FC<PluginLinkProps> = (props) => {
-  const { children, query, disabled, className, wrap = true, target } = props;
+  const { children, query, disabled, className, wrap = true } = props;
 
   const newPath = useMemo(() => getPathFromQueryParams(query), [query]);
 
@@ -36,7 +35,6 @@ const PluginLink: FC<PluginLinkProps> = (props) => {
 
   return (
     <Link
-      target={target}
       onClick={handleClick}
       className={cx('root', className, { 'no-wrap': !wrap, root_disabled: disabled })}
       to={newPath}

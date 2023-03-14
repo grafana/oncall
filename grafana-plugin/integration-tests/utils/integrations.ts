@@ -1,6 +1,6 @@
 import { Page } from '@playwright/test';
 import { clickButton, fillInInput, selectDropdownValue } from './forms';
-import { goToOnCallPage } from './navigation';
+import { goToOnCallPageByClickingOnTab } from './navigation';
 
 export const createIntegrationAndSendDemoAlert = async (
   page: Page,
@@ -8,7 +8,7 @@ export const createIntegrationAndSendDemoAlert = async (
   escalationChainName: string
 ): Promise<void> => {
   // go to the integrations page
-  await goToOnCallPage(page, 'integrations');
+  await goToOnCallPageByClickingOnTab(page, 'Integrations');
 
   // open the create integration modal
   (await page.waitForSelector('text=New integration to receive alerts')).click();

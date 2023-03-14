@@ -1,5 +1,5 @@
 import { test } from '@playwright/test';
-import { configureOnCallPlugin } from '../utils/configurePlugin';
+import { openOnCallPlugin } from '../utils';
 import { verifyThatAlertGroupIsTriggered } from '../utils/alertGroup';
 import { createEscalationChain, EscalationStep } from '../utils/escalationChain';
 import { generateRandomValue } from '../utils/forms';
@@ -7,7 +7,7 @@ import { createIntegrationAndSendDemoAlert } from '../utils/integrations';
 import { createOnCallSchedule } from '../utils/schedule';
 
 test.beforeEach(async ({ page }) => {
-  await configureOnCallPlugin(page);
+  await openOnCallPlugin(page);
 });
 
 test('we can create an oncall schedule + receive an alert', async ({ page }) => {

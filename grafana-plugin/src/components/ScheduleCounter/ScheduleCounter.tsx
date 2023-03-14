@@ -12,8 +12,7 @@ interface ScheduleCounterProps {
   count: number;
   tooltipTitle: string;
   tooltipContent: React.ReactNode;
-  addPadding?: boolean;
-  onHover?: () => void;
+  onHover: () => void;
 }
 
 const typeToIcon = {
@@ -21,10 +20,15 @@ const typeToIcon = {
   warning: 'exclamation-triangle',
 };
 
+const typeToColor = {
+  link: 'success',
+  warning: 'warning',
+};
+
 const cx = cn.bind(styles);
 
 const ScheduleCounter: FC<ScheduleCounterProps> = (props) => {
-  const { type, count, tooltipTitle, tooltipContent, onHover, addPadding } = props;
+  const { type, count, tooltipTitle, tooltipContent, onHover } = props;
 
   return (
     <Tooltip
@@ -33,16 +37,16 @@ const ScheduleCounter: FC<ScheduleCounterProps> = (props) => {
       content={
         <div className={cx('tooltip', { [`tooltip__type_${type}`]: true })}>
           <VerticalGroup>
-            <Text type="secondary">{tooltipTitle}</Text>
+            <Text type={typeToColor[type]}>{tooltipTitle}</Text>
             <Text type="secondary">{tooltipContent}</Text>
           </VerticalGroup>
         </div>
       }
     >
-      <div className={cx('root', { [`root__type_${type}`]: true }, { padding: addPadding })} onMouseEnter={onHover}>
+      <div className={cx('root', { [`root__type_${type}`]: true })} onMouseEnter={onHover}>
         <HorizontalGroup spacing="xs">
           <Icon className={cx('icon', { [`icon__type_${type}`]: true })} name={typeToIcon[type] as IconName} />
-          <Text className={cx('text', { [`text__type_${type}`]: true })}>{count}</Text>
+          <Text type={typeToColor[type] as TextType}>{count}</Text>
         </HorizontalGroup>
       </div>
     </Tooltip>

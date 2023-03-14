@@ -81,7 +81,6 @@ from apps.telegram.tests.factories import (
 from apps.twilioapp.tests.factories import PhoneCallFactory, SMSFactory
 from apps.user_management.models.user import User, listen_for_user_model_save
 from apps.user_management.tests.factories import OrganizationFactory, RegionFactory, TeamFactory, UserFactory
-from apps.webhooks.tests.factories import CustomWebhookFactory
 
 register(OrganizationFactory)
 register(UserFactory)
@@ -615,15 +614,6 @@ def make_custom_action():
         return custom_action
 
     return _make_custom_action
-
-
-@pytest.fixture
-def make_custom_webhook():
-    def _make_custom_webhook(organization, **kwargs):
-        custom_webhook = CustomWebhookFactory(organization=organization, **kwargs)
-        return custom_webhook
-
-    return _make_custom_webhook
 
 
 @pytest.fixture

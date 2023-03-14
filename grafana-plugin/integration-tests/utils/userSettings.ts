@@ -2,13 +2,13 @@ import { Locator, Page } from '@playwright/test';
 
 import { clickButton, fillInInputByPlaceholderValue, selectDropdownValue } from './forms';
 import { closeModal } from './modals';
-import { goToOnCallPage } from './navigation';
+import { goToOnCallPageByClickingOnTab } from './navigation';
 import { getPhoneNumber, getVerificationCodeFromSms, waitForSms } from './phone';
 
 type NotifyBy = 'SMS' | 'Phone call';
 
 const openUserSettingsModal = async (page: Page): Promise<void> => {
-  await goToOnCallPage(page, 'users');
+  await goToOnCallPageByClickingOnTab(page, 'Users');
   await clickButton({ page, buttonText: 'View my profile' });
   await page.locator('text=To edit user details such as Username, email, and role').waitFor({ state: 'visible' });
 };
