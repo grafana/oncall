@@ -1,4 +1,5 @@
-from django.core.exceptions import ObjectDoesNotExist
+from django.apps import apps
+from django.core.exceptions import ObjectDoesNotExist, PermissionDenied
 from rest_framework.exceptions import NotFound
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.viewsets import ModelViewSet
@@ -56,3 +57,28 @@ class WebhooksView(TeamFilteringMixin, PublicPrimaryKeyMixin, ModelViewSet):
         self.check_object_permissions(self.request, obj)
 
         return obj
+
+    def perform_create(self, serializer):
+        self.check_webhooks_2_enabled()
+        serializer.save()
+
+    def perform_update(self, serializer):
+        self.check_webhooks_2_enabled()
+        serializer.save()
+
+    def perform_destroy(self, instance):
+        self.check_webhooks_2_enabled()
+        instance.delete()
+
+    def check_webhooks_2_enabled(self):
+        DynamicSetting = apps.get_model("base", "DynamicSetting")
+        enabled_webhooks_2_orgs = DynamicSetting.objects.get_or_create(
+            name="enabled_webhooks_2_orgs",
+            defaults={
+                "json_value": {
+                    "org_ids": [],
+                }
+            },
+        )[0]
+        if self.request.auth.organization.pk not in enabled_webhooks_2_orgs.json_value["org_ids"]:
+            raise PermissionDenied("Webhooks 2 not enabled for organization. Permission denied.")
