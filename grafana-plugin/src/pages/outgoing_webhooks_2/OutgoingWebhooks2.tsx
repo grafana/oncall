@@ -20,13 +20,13 @@ import OutgoingWebhook2Status from 'containers/OutgoingWebhook2Status/OutgoingWe
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
 import { ActionDTO } from 'models/action';
 import { OutgoingWebhook2 } from 'models/outgoing_webhook_2/outgoing_webhook_2.types';
-import { makeRequest } from 'network';
 import { PageProps, WithStoreProps } from 'state/types';
 import { withMobXProviderContext } from 'state/withStore';
 import { isUserActionAllowed, UserActions } from 'utils/authorization';
 import { PLUGIN_ROOT } from 'utils/consts';
 
 import styles from './OutgoingWebhooks2.module.css';
+import moment from 'moment-timezone';
 
 const cx = cn.bind(styles);
 
@@ -121,6 +121,7 @@ class OutgoingWebhooks2 extends React.Component<OutgoingWebhooks2Props, Outgoing
         width: '10%',
         title: 'Last run',
         dataIndex: 'last_run',
+        render: this.renderLastRun,
       },
       {
         width: '20%',
@@ -215,12 +216,22 @@ class OutgoingWebhooks2 extends React.Component<OutgoingWebhooks2Props, Outgoing
     );
   };
 
+  renderLastRun(lastRun: string) {
+    const lastRunMoment = moment(lastRun);
+
+    return (
+      <VerticalGroup spacing="none">
+        <Text type="secondary">{lastRunMoment.format('MMM DD, YYYY')}</Text>
+        <Text type="secondary">{lastRunMoment.format('hh:mm A')}</Text>
+      </VerticalGroup>
+    );
+  }
+
   getDeleteClickHandler = (id: OutgoingWebhook2['id']) => {
+    const { store } = this.props;
+
     return () => {
-      makeRequest(`/webhooks/${id}/`, {
-        method: 'DELETE',
-        withCredentials: true,
-      });
+      store.outgoingWebhook2Store.delete(id).then(this.update);
     };
   };
 
