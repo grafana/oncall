@@ -41,7 +41,7 @@ telegram_image_url = slack_image_url
 
 source_link = None
 
-grouping_id = '{{ payload.get("subject", "")}}'
+grouping_id = '{{ payload.get("subject", "").upper() }}'
 
 resolve_condition = '{{ payload.get("message", "").upper() == "OK" }}'
 
