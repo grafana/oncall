@@ -79,9 +79,19 @@ class InboundEmailWebhookView(AlertChannelDefiningMixin, APIView):
         messages = self._get_messages_from_esp_request(request)
         if not messages:
             return None
-        for to in messages[0].to:
+        message = messages[0]
+        # First try envelope_recipient field.
+        # According to AnymailInboundMessage it's provided not by all ESPs.
+        if message.envelope_recipient:
+            token, domain = message.envelope_recipient.split("@")
+            if domain == live_settings.INBOUND_EMAIL_DOMAIN:
+                return token
+        for to in message.to:
             if to.domain == live_settings.INBOUND_EMAIL_DOMAIN:
                 return to.address.split("@")[0]
+        for cc in message.cc:
+            if cc.domain == live_settings.INBOUND_EMAIL_DOMAIN:
+                return cc.address.split("@")[0]
         return None
 
     def _get_messages_from_esp_request(self, request: Request) -> list[AnymailInboundMessage]:
