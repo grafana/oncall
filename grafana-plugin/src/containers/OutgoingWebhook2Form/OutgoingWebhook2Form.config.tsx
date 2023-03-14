@@ -1,4 +1,8 @@
+import React from 'react';
+
+import { SelectableValue } from '@grafana/data';
 import { FormItem, FormItemType } from 'components/GForm/GForm.types';
+import Emoji from 'react-emoji-render';
 
 export const form: { name: string; fields: FormItem[] } = {
   name: 'OutgoingWebhook2',
@@ -73,6 +77,19 @@ export const form: { name: string; fields: FormItem[] } = {
           },
         ],
       },
+    },
+    {
+      name: 'alert_receive_channel_id',
+      label: 'Integrations',
+      type: FormItemType.MultiSelect,
+      extra: {
+        modelName: 'alertReceiveChannelStore',
+        displayField: 'verbal_name',
+        valueField: 'id',
+        showSearch: true,
+        getOptionLabel: (item: SelectableValue) => <Emoji text={item?.label || ''} />,
+      },
+      validation: { required: true },
     },
     {
       name: 'url',

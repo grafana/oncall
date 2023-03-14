@@ -1,6 +1,7 @@
 export enum FormItemType {
   'Input' = 'input',
   'TextArea' = 'textarea',
+  'MultiSelect' = 'multiselect',
   'Select' = 'select',
   'GSelect' = 'gselect',
   'Switch' = 'switch',

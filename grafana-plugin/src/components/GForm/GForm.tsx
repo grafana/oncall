@@ -25,6 +25,17 @@ function renderFormControl(formItem: FormItem, register: any, control: any) {
     case FormItemType.TextArea:
       return <TextArea rows={formItem.extra?.rows || 4} {...register(formItem.name, formItem.validation)} />;
 
+    case FormItemType.MultiSelect:
+      return (
+        <InputControl
+          render={({ field }) => {
+            return <GSelect isMulti={true} {...field} {...formItem.extra} />;
+          }}
+          control={control}
+          name={formItem.name}
+        />
+      );
+
     case FormItemType.Select:
       return (
         <InputControl
@@ -32,7 +43,6 @@ function renderFormControl(formItem: FormItem, register: any, control: any) {
             return <Select {...field} {...formItem.extra} onChange={(value) => onChange(value.value)} />;
           }}
           control={control}
-          // @ts-ignore
           name={formItem.name}
         />
       );
@@ -44,7 +54,6 @@ function renderFormControl(formItem: FormItem, register: any, control: any) {
             return <GSelect {...field} {...formItem.extra} />;
           }}
           control={control}
-          // @ts-ignore
           name={formItem.name}
         />
       );
@@ -59,7 +68,6 @@ function renderFormControl(formItem: FormItem, register: any, control: any) {
             return <RemoteSelect {...field} {...formItem.extra} />;
           }}
           control={control}
-          // @ts-ignore
           name={formItem.name}
         />
       );
