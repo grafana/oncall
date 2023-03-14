@@ -34,6 +34,6 @@ jobs:
         run: yarn install --frozen-lockfile --prefer-offline --network-timeout 500000
       - name: Run Snyk
         continue-on-error: true
-        run: snyk test --all-projects --severity-threshold=high
+        run: snyk monitor --all-projects --severity-threshold=high
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
