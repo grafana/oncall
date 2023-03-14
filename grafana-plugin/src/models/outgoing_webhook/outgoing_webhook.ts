@@ -56,10 +56,10 @@ export class OutgoingWebhookStore extends BaseStore {
 
   @action
   async updateItems(query = '') {
+    const params = typeof query === 'string' ? { search: query } : query;
+
     const results = await makeRequest(`${this.path}`, {
-      params: {
-        ...this.incidentFilters,
-      },
+      params,
     });
 
     this.items = {
@@ -75,7 +75,7 @@ export class OutgoingWebhookStore extends BaseStore {
 
     this.searchResult = {
       ...this.searchResult,
-      [query]: results.map((item: OutgoingWebhook) => item.id),
+      ['']: results.map((item: OutgoingWebhook) => item.id),
     };
   }
 

@@ -15,16 +15,14 @@ import {
 import PluginLink from 'components/PluginLink/PluginLink';
 import Text from 'components/Text/Text';
 import WithConfirm from 'components/WithConfirm/WithConfirm';
-import { IncidentsFiltersType } from 'containers/IncidentsFilters/IncidentFilters.types';
-import IncidentsFilters from 'containers/IncidentsFilters/IncidentsFilters';
 import OutgoingWebhookForm from 'containers/OutgoingWebhookForm/OutgoingWebhookForm';
+import RemoteFilters from 'containers/RemoteFilters/RemoteFilters';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
 import { ActionDTO } from 'models/action';
+import { FiltersValues } from 'models/filters/filters.types';
 import { OutgoingWebhook } from 'models/outgoing_webhook/outgoing_webhook.types';
-import { RootStore } from 'state';
 import { PageProps, WithStoreProps } from 'state/types';
 import { withMobXProviderContext } from 'state/withStore';
-import LocationHelper from 'utils/LocationHelper';
 import { isUserActionAllowed, UserActions } from 'utils/authorization';
 import { PLUGIN_ROOT } from 'utils/consts';
 
@@ -170,26 +168,21 @@ class OutgoingWebhooks extends React.Component<OutgoingWebhooksProps, OutgoingWe
     );
   }
 
-  renderOutgoingWebhooksFilters(store: RootStore) {
-    // const { query } = this.props;
+  renderOutgoingWebhooksFilters() {
+    const { query } = this.props;
     return (
       <div className={cx('filters')}>
-        <IncidentsFilters query={{}} objectStore={store.outgoingWebhookStore} onChange={this.handleFiltersChange} />
+        <RemoteFilters query={query} page="outgoing_webhooks" onChange={this.handleFiltersChange} />
       </div>
     );
   }
 
-  handleFiltersChange = (filters: IncidentsFiltersType, isOnMount: boolean) => {
-    this.setState({
-      filters,
-    });
-    this.fetchOutgoingWebhooksData(filters, isOnMount);
-  };
-
-  fetchOutgoingWebhooksData = (filters: IncidentsFiltersType, isOnMount: boolean) => {
+  handleFiltersChange = (filters: FiltersValues) => {
     const { store } = this.props;
-    store.outgoingWebhookStore.updateOutgoingWebhooksFilters(filters, isOnMount); // this line fetches incidents
-    LocationHelper.update({ ...store.outgoingWebhookStore.incidentFilters }, 'partial');
+
+    const { outgoingWebhookStore } = store;
+
+    outgoingWebhookStore.updateItems(filters);
   };
 
   renderTeam(record: OutgoingWebhook, teams: any) {
