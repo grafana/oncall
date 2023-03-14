@@ -7,7 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
-- Inbound email integration
+- Inbound email integration ([837](https://github.com/grafana/oncall/pull/837))
 
 ## v1.1.35 (2023-03-09)
 

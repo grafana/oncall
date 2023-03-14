@@ -27,8 +27,8 @@ You must have an Admin role to create integrations in Grafana OnCall.
 
 ## Grouping and auto-resolve
 
-Alert groups will be grouped by email subject and auto-resolved if email message text equals "OK".
-This behaviour can be modified via custom templates.
+Alert groups will be grouped by email subject and auto-resolved if the email message text equals "OK".
+ This behaviour can be modified via custom templates.
 
 Alerts from Inbound Email integration have followng payload:
 
