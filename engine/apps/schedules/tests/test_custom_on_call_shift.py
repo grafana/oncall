@@ -1549,3 +1549,39 @@ def test_etc_utc_timezone_convert_to_ical(
 
     assert on_call_shift.event_interval == len(rolling_users) * data["interval"]
     assert expected_rrule in ical_data
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize(
+    "starting_day,force,deleted",
+    [
+        (-1, False, False),
+        (-1, True, True),
+        (1, False, True),
+    ],
+)
+def test_delete_shift(make_organization_and_user, make_schedule, make_on_call_shift, starting_day, force, deleted):
+    organization, user_1 = make_organization_and_user()
+    schedule = make_schedule(organization, schedule_class=OnCallScheduleWeb)
+    start_date = (timezone.now() + timezone.timedelta(days=starting_day)).replace(microsecond=0)
+
+    data = {
+        "priority_level": 1,
+        "start": start_date,
+        "rotation_start": start_date,
+        "duration": timezone.timedelta(seconds=10800),
+        "frequency": CustomOnCallShift.FREQUENCY_DAILY,
+        "schedule": schedule,
+    }
+    on_call_shift = make_on_call_shift(
+        organization=organization, shift_type=CustomOnCallShift.TYPE_ROLLING_USERS_EVENT, **data
+    )
+
+    on_call_shift.delete(force=force)
+
+    if deleted:
+        with pytest.raises(CustomOnCallShift.DoesNotExist):
+            on_call_shift.refresh_from_db()
+    else:
+        on_call_shift.refresh_from_db()
+        assert on_call_shift.until is not None
