@@ -216,8 +216,8 @@ class OutgoingWebhooks2 extends React.Component<OutgoingWebhooks2Props, Outgoing
     );
   };
 
-  renderLastRun(lastRun: string) {
-    const lastRunMoment = moment(lastRun);
+  renderLastRun(_lastRun: string, webhook: OutgoingWebhook2) {
+    const lastRunMoment = moment(webhook.last_status_log?.last_run_at);
 
     return (
       <VerticalGroup spacing="none">
