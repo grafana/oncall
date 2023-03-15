@@ -107,7 +107,6 @@ class EscalationPolicySnapshot:
 
     def has_finished_log_record(self, alert_group_id: int) -> bool:
         return AlertGroupLogRecord.objects.filter(
-            escalation_policy_id=self.id,
             alert_group_id=alert_group_id,
             type=AlertGroupLogRecord.TYPE_ESCALATION_FINISHED,
         ).exists()
