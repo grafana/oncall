@@ -220,8 +220,9 @@ class CustomOnCallShift(models.Model):
         if self.schedule:
             schedules_to_update.append(self.schedule)
 
+        force = kwargs.pop("force", False)
         # do soft delete for started shifts that were created for web schedule
-        if self.schedule and self.event_is_started:
+        if self.schedule and self.event_is_started and not force:
             self.until = timezone.now().replace(microsecond=0)
             self.save(update_fields=["until"])
         else:
@@ -588,6 +589,9 @@ class CustomOnCallShift(models.Model):
 
     def convert_dt_to_schedule_timezone(self, dt, time_zone):
         start_naive = dt.replace(tzinfo=None)
+        if time_zone and time_zone.lower() == "etc/utc":
+            # dateutil rrule breaks if Etc/UTC is given
+            time_zone = "UTC"
         return pytz.timezone(time_zone).localize(start_naive, is_dst=None)
 
     def get_rolling_users(self):

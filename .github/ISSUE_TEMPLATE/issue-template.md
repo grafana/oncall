@@ -10,6 +10,7 @@ assignees: ''
 Hi, thank you for opening an issue!
 
 Here is a quick checklist:
+
 - [ ] Is it about Cloud or Open Source OnCall?
 - [ ] Add OnCall backend & frontend versions.
 - [ ] Include labels starting with "part:". Like `part:alertflow` or `part:schedules`.

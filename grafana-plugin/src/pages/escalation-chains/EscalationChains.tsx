@@ -23,7 +23,7 @@ import WithConfirm from 'components/WithConfirm/WithConfirm';
 import EscalationChainCard from 'containers/EscalationChainCard/EscalationChainCard';
 import EscalationChainForm from 'containers/EscalationChainForm/EscalationChainForm';
 import EscalationChainSteps from 'containers/EscalationChainSteps/EscalationChainSteps';
-import { WithPermissionControl } from 'containers/WithPermissionControl/WithPermissionControl';
+import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
 import { EscalationChain } from 'models/escalation_chain/escalation_chain.types';
 import { PageProps, WithStoreProps } from 'state/types';
 import { withMobXProviderContext } from 'state/withStore';
@@ -143,6 +143,7 @@ class EscalationChainsPage extends React.Component<EscalationChainsPageProps, Es
     } = this.state;
 
     const { escalationChainStore } = store;
+    const { loading } = escalationChainStore;
     const searchResult = escalationChainStore.getSearchResult(escalationChainsFilters.searchTerm);
 
     return (
@@ -161,17 +162,19 @@ class EscalationChainsPage extends React.Component<EscalationChainsPageProps, Es
               {!searchResult || searchResult.length ? (
                 <div className={cx('escalations')}>
                   <div className={cx('left-column')}>
-                    <WithPermissionControl userAction={UserActions.IntegrationsWrite}>
-                      <Button
-                        onClick={() => {
-                          this.setState({ showCreateEscalationChainModal: true });
-                        }}
-                        icon="plus"
-                        className={cx('new-escalation-chain')}
-                      >
-                        New Escalation Chain
-                      </Button>
-                    </WithPermissionControl>
+                    {!loading && (
+                      <WithPermissionControlTooltip userAction={UserActions.IntegrationsWrite}>
+                        <Button
+                          onClick={() => {
+                            this.setState({ showCreateEscalationChainModal: true });
+                          }}
+                          icon="plus"
+                          className={cx('new-escalation-chain')}
+                        >
+                          New escalation chain
+                        </Button>
+                      </WithPermissionControlTooltip>
+                    )}
                     <div className={cx('escalations-list')}>
                       {searchResult ? (
                         <GList
@@ -196,7 +199,7 @@ class EscalationChainsPage extends React.Component<EscalationChainsPageProps, Es
                   title={
                     <VerticalGroup align="center" spacing="lg">
                       <Text type="secondary">No escalations found, check your filtering and current team.</Text>
-                      <WithPermissionControl userAction={UserActions.EscalationChainsWrite}>
+                      <WithPermissionControlTooltip userAction={UserActions.EscalationChainsWrite}>
                         <Button
                           icon="plus"
                           variant="primary"
@@ -207,7 +210,7 @@ class EscalationChainsPage extends React.Component<EscalationChainsPageProps, Es
                         >
                           New Escalation Chain
                         </Button>
-                      </WithPermissionControl>
+                      </WithPermissionControlTooltip>
                     </VerticalGroup>
                   }
                 />
@@ -272,7 +275,7 @@ class EscalationChainsPage extends React.Component<EscalationChainsPageProps, Es
           </Text>
           <div className={cx('buttons')}>
             <HorizontalGroup>
-              <WithPermissionControl userAction={UserActions.EscalationChainsWrite}>
+              <WithPermissionControlTooltip userAction={UserActions.EscalationChainsWrite}>
                 <IconButton
                   tooltip="Copy"
                   tooltipPlacement="top"
@@ -284,8 +287,8 @@ class EscalationChainsPage extends React.Component<EscalationChainsPageProps, Es
                     });
                   }}
                 />
-              </WithPermissionControl>
-              <WithPermissionControl userAction={UserActions.EscalationChainsWrite}>
+              </WithPermissionControlTooltip>
+              <WithPermissionControlTooltip userAction={UserActions.EscalationChainsWrite}>
                 <WithConfirm title={`Are you sure to remove "${escalationChain.name}"?`} confirmText="Remove">
                   <IconButton
                     disabled={escalationChain.number_of_integrations > 0}
@@ -295,7 +298,7 @@ class EscalationChainsPage extends React.Component<EscalationChainsPageProps, Es
                     name="trash-alt"
                   />
                 </WithConfirm>
-              </WithPermissionControl>
+              </WithPermissionControlTooltip>
               {escalationChain.number_of_integrations > 0 && (
                 <Tooltip content="Escalation chains linked to multiple integrations cannot be removed">
                   <Icon name="info-circle" />

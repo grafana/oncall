@@ -53,7 +53,10 @@ def test_get_schedule_score_no_events(get_schedule_quality_response):
 
     assert response.json() == {
         "total_score": 0,
-        "comments": ["Schedule has gaps", "Schedule is perfectly balanced"],
+        "comments": [
+            {"type": "warning", "text": "Schedule has gaps"},
+            {"type": "info", "text": "Schedule is perfectly balanced"},
+        ],
         "overloaded_users": [],
     }
 
@@ -65,7 +68,10 @@ def test_get_schedule_score_09_05(get_schedule_quality_response):
 
     assert response.json() == {
         "total_score": 27,
-        "comments": ["Schedule has gaps", "Schedule has balance issues"],
+        "comments": [
+            {"type": "warning", "text": "Schedule has gaps"},
+            {"type": "warning", "text": "Schedule has balance issues"},
+        ],
         "overloaded_users": [user1.public_primary_key],
     }
 
@@ -77,7 +83,10 @@ def test_get_schedule_score_09_09(get_schedule_quality_response):
 
     assert response.json() == {
         "total_score": 51,
-        "comments": ["Schedule has gaps", "Schedule is well-balanced, but still can be improved"],
+        "comments": [
+            {"type": "warning", "text": "Schedule has gaps"},
+            {"type": "info", "text": "Schedule is well-balanced, but still can be improved"},
+        ],
         "overloaded_users": [user2.public_primary_key],
     }
 
@@ -89,7 +98,10 @@ def test_get_schedule_score_09_12(get_schedule_quality_response):
 
     assert response.json() == {
         "total_score": 100,
-        "comments": ["Schedule has no gaps", "Schedule is perfectly balanced"],
+        "comments": [
+            {"type": "info", "text": "Schedule has no gaps"},
+            {"type": "info", "text": "Schedule is perfectly balanced"},
+        ],
         "overloaded_users": [],
     }
 
@@ -100,6 +112,9 @@ def test_get_schedule_score_09_19(get_schedule_quality_response):
 
     assert response.json() == {
         "total_score": 70,
-        "comments": ["Schedule has gaps", "Schedule is perfectly balanced"],
+        "comments": [
+            {"type": "warning", "text": "Schedule has gaps"},
+            {"type": "info", "text": "Schedule is perfectly balanced"},
+        ],
         "overloaded_users": [],
     }

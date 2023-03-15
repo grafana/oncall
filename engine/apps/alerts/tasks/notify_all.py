@@ -18,8 +18,27 @@ def notify_all_task(alert_group_pk, escalation_policy_snapshot_order=None):
 
     alert_group = AlertGroup.all_objects.get(pk=alert_group_pk)
 
+    # check alert group state before notifying all users in the channel
+    if alert_group.resolved or alert_group.acknowledged or alert_group.silenced:
+        task_logger.info(f"alert_group {alert_group.pk} was resolved, acked or silenced forever. No need to notify all")
+        return
+
     escalation_snapshot = alert_group.escalation_snapshot
-    escalation_policy_snapshot = escalation_snapshot.escalation_policies_snapshots[escalation_policy_snapshot_order]
+    try:
+        escalation_policy_snapshot = escalation_snapshot.escalation_policies_snapshots[escalation_policy_snapshot_order]
+    except IndexError:
+        escalation_policy_snapshot = None
+
+    if not escalation_policy_snapshot:
+        # The step has an incorrect order. Probably the order was changed manually with terraform.
+        # It is a quick fix, tasks notify_all_task and notify_group_task should be refactored to avoid getting snapshot
+        # by order
+        task_logger.warning(
+            f"escalation_policy_snapshot for alert_group {alert_group.pk} with order "
+            f"{escalation_policy_snapshot_order} is not found. Skip step"
+        )
+        return
+
     escalation_policy_pk = escalation_policy_snapshot.id
     escalation_policy = EscalationPolicy.objects.filter(pk=escalation_policy_pk).first()
     escalation_policy_step = escalation_policy_snapshot.step
