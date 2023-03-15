@@ -30,6 +30,8 @@ def send_alert_group_escalation_auditor_task_heartbeat() -> None:
 
 
 def audit_alert_group_escalation(alert_group: "AlertGroup") -> None:
+    AlertGroupLogRecord = apps.get_model("alerts", "AlertGroupLogRecord")
+
     escalation_snapshot = alert_group.escalation_snapshot
     alert_group_id = alert_group.id
     base_msg = f"Alert group {alert_group_id}"
@@ -69,17 +71,28 @@ def audit_alert_group_escalation(alert_group: "AlertGroup") -> None:
         f"{base_msg}'s escalation snapshot has {num_of_executed_escalation_policy_snapshots} executed escalation policies"
     )
 
-    for executed_escalation_policy_snapshot in executed_escalation_policy_snapshots:
-        escalation_policy_id = executed_escalation_policy_snapshot.id
+    # compare number of triggered/failed alert group log records to the number of executed
+    # escalation policy snapshot steps
+    num_of_relevant_log_records = AlertGroupLogRecord.objects.filter(
+        alert_group_id=alert_group_id,
+        type__in=[AlertGroupLogRecord.TYPE_ESCALATION_TRIGGERED, AlertGroupLogRecord.TYPE_ESCALATION_FAILED],
+    ).count()
 
-        if not executed_escalation_policy_snapshot.has_triggered_log_record(alert_group_id):
-            raise AlertGroupEscalationPolicyExecutionAuditException(
-                f"{base_msg}'s escalation policy snapshot {escalation_policy_id} does not have a triggered alert group log record associated with it"
-            )
-
-        task_logger.info(
-            f"{base_msg}'s escalation policy snapshot {escalation_policy_id} has a triggered alert group log record associated with it"
+    if num_of_relevant_log_records < num_of_executed_escalation_policy_snapshots:
+        raise AlertGroupEscalationPolicyExecutionAuditException(
+            f"{base_msg}'s number of triggered/failed alert group log records ({num_of_relevant_log_records}) is less "
+            f"than the number of executed escalation policy snapshot steps ({num_of_executed_escalation_policy_snapshots})"
         )
+
+    task_logger.info(
+        f"{base_msg}'s number of triggered/failed alert group log records ({num_of_relevant_log_records}) is greater "
+        f"than or equal to the number of executed escalation policy snapshot steps ({num_of_executed_escalation_policy_snapshots})"
+    )
+
+    # TODO: check following steps:
+    # STEP_NOTIFY_IF_NUM_ALERTS_IN_TIME_WINDOW
+    # STEP_REPEAT_ESCALATION_N_TIMES
+    # not sure what to do here?
 
     task_logger.info(f"{base_msg} passed the audit checks")
 
@@ -99,7 +112,7 @@ def get_auditable_alert_groups_started_at_range() -> typing.Tuple[datetime.datet
     alert groups, whose integration did not have an escalation chain at the time the alert group was created
     we would raise errors
     """
-    return (datetime.datetime(2023, 3, 5), timezone.now() - timezone.timedelta(days=2))
+    return (datetime.datetime(2023, 3, 25), timezone.now() - timezone.timedelta(days=2))
 
 
 # don't retry this task as the AlertGroup DB query is rather expensive

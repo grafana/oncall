@@ -105,13 +105,6 @@ class EscalationPolicySnapshot:
         next_user = users_queue[(last_user_index + 1) % len(users_queue)]
         return next_user
 
-    def has_triggered_log_record(self, alert_group_id: int) -> bool:
-        return AlertGroupLogRecord.objects.filter(
-            escalation_policy_id=self.id,
-            alert_group_id=alert_group_id,
-            type=AlertGroupLogRecord.TYPE_ESCALATION_TRIGGERED,
-        ).exists()
-
     def execute(self, alert_group, reason) -> StepExecutionResultData:
         action_map = {
             EscalationPolicy.STEP_WAIT: self._escalation_step_wait,

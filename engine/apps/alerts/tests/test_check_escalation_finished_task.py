@@ -1,3 +1,4 @@
+import random
 from unittest.mock import Mock, PropertyMock, patch
 
 import pytest
@@ -14,6 +15,10 @@ from apps.alerts.tasks.check_escalation_finished import (
 )
 
 MOCKED_HEARTBEAT_URL = "https://hello.com/lsdjjkf"
+
+
+def _get_relevant_log_record_type() -> int:
+    return random.choice([AlertGroupLogRecord.TYPE_ESCALATION_TRIGGERED, AlertGroupLogRecord.TYPE_ESCALATION_FAILED])
 
 
 def test_send_alert_group_escalation_auditor_task_heartbeat_does_not_call_the_heartbeat_url_if_one_is_not_configured():
@@ -127,9 +132,9 @@ def test_audit_alert_group_escalation_all_executed_escalation_policy_snapshots_h
 
     for escalation_policy_snapshot in escalation_policies_snapshots:
         escalation_policy = EscalationPolicy.objects.get(id=escalation_policy_snapshot.id)
-        make_alert_group_log_record(
-            alert_group, AlertGroupLogRecord.TYPE_ESCALATION_TRIGGERED, user, escalation_policy=escalation_policy
-        )
+        log_record_type = _get_relevant_log_record_type()
+
+        make_alert_group_log_record(alert_group, log_record_type, user, escalation_policy=escalation_policy)
 
     with patch(
         "apps.alerts.escalation_snapshot.snapshot_classes.escalation_snapshot.EscalationSnapshot.executed_escalation_policy_snapshots",
@@ -150,12 +155,12 @@ def test_audit_alert_group_escalation_one_executed_escalation_policy_snapshot_do
     alert_group, _, _, _ = escalation_snapshot_test_setup
     escalation_policies_snapshots = alert_group.escalation_snapshot.escalation_policies_snapshots
 
-    # let's skip creating a TRIGGERED alert group log record for the first executed escalation policy
+    # let's skip creating a relevant alert group log record for the first executed escalation policy
     for idx, escalation_policy_snapshot in enumerate(escalation_policies_snapshots):
         if idx != 0:
             escalation_policy = EscalationPolicy.objects.get(id=escalation_policy_snapshot.id)
             make_alert_group_log_record(
-                alert_group, AlertGroupLogRecord.TYPE_ESCALATION_TRIGGERED, user, escalation_policy=escalation_policy
+                alert_group, _get_relevant_log_record_type(), user, escalation_policy=escalation_policy
             )
 
     with patch(
