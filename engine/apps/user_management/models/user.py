@@ -181,9 +181,9 @@ class User(models.Model):
     permissions = models.JSONField(null=False, default=list)
 
     def available_teams(self):
-        if self.role == self.LegacyAccessControlRole.ADMIN:
-            return self.organization.teams
-        return self.teams
+        if self.role == LegacyAccessControlRole.ADMIN:
+            return self.organization.teams.all()
+        return self.teams.all()
 
     def __str__(self):
         return f"{self.pk}: {self.username}"

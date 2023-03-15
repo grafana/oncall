@@ -22,7 +22,12 @@ from apps.auth_token.auth import PluginAuthentication
 from apps.mobile_app.auth import MobileAppAuthTokenAuthentication
 from apps.user_management.models import Team, User
 from common.api_helpers.exceptions import BadRequest
-from common.api_helpers.filters import DateRangeFilterMixin, ModelFieldFilterMixin
+from common.api_helpers.filters import (
+    ByTeamModelFieldFilterMixin,
+    DateRangeFilterMixin,
+    ModelFieldFilterMixin,
+    get_team_queryset,
+)
 from common.api_helpers.mixins import PreviewTemplateMixin, PublicPrimaryKeyMixin, TeamFilteringMixin
 from common.api_helpers.paginators import TwentyFiveCursorPaginator
 
@@ -41,30 +46,7 @@ def get_user_queryset(request):
     return User.objects.filter(organization=request.user.organization).distinct()
 
 
-class TeamFilterSetMixin:
-    def filter_by_team(self, queryset, name, value):
-        if not value:
-            return queryset
-        lookup_kwargs = {}
-        for i in value:
-            if i == "":
-                print("empty line empty line empty line")
-                lookup_kwargs[f"{name}__is_null"] = True
-                value.remove(i)
-        lookup_kwargs[f"{name}__in"] = value
-        queryset = queryset.filter(**lookup_kwargs)
-        return queryset
-
-    def get_team_queryset(request):
-        if request is None:
-            return Team.objects.none()
-
-        teams = request.user.teams.all()
-
-        return teams
-
-
-class AlertGroupFilter(DateRangeFilterMixin, TeamFilterSetMixin, ModelFieldFilterMixin, filters.FilterSet):
+class AlertGroupFilter(DateRangeFilterMixin, ByTeamModelFieldFilterMixin, ModelFieldFilterMixin, filters.FilterSet):
     """
     Examples of possible date formats here https://docs.djangoproject.com/en/1.9/ref/settings/#datetime-input-formats
     """
@@ -115,10 +97,11 @@ class AlertGroupFilter(DateRangeFilterMixin, TeamFilterSetMixin, ModelFieldFilte
     mine = filters.BooleanFilter(method="filter_mine")
     team = filters.ModelMultipleChoiceFilter(
         field_name="channel__team",
-        queryset=TeamFilterSetMixin.get_team_queryset,
+        queryset=get_team_queryset,
         to_field_name="public_primary_key",
-        # method=ModelFieldFilterMixin.filter_model_field.__name__,
-        method="filter_by_team",
+        null_label="noteam",
+        null_value="null",
+        method=ByTeamModelFieldFilterMixin.filter_model_field_with_multiple_values.__name__,
     )
 
     class Meta:
@@ -297,11 +280,13 @@ class AlertGroupView(
         alert_receive_channels_ids = list(
             AlertReceiveChannel.objects.filter(
                 organization_id=self.request.auth.organization.id,
-                # team_id=self.request.user.current_team,
             ).values_list("id", flat=True)
         )
+        team_filtering_lookup_args = self.get_team_filtering_lookup_args()
+
         queryset = AlertGroup.unarchived_objects.filter(
             channel__in=alert_receive_channels_ids,
+            *team_filtering_lookup_args,
         ).only("id")
 
         return queryset

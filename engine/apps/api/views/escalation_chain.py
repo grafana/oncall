@@ -10,20 +10,21 @@ from rest_framework.response import Response
 from apps.alerts.models import EscalationChain
 from apps.api.permissions import RBACPermission
 from apps.api.serializers.escalation_chain import EscalationChainListSerializer, EscalationChainSerializer
-from apps.api.views.alert_group import TeamFilterSetMixin
 from apps.auth_token.auth import PluginAuthentication
 from common.api_helpers.exceptions import BadRequest
-from common.api_helpers.filters import ModelFieldFilterMixin
+from common.api_helpers.filters import ByTeamModelFieldFilterMixin, ModelFieldFilterMixin, get_team_queryset
 from common.api_helpers.mixins import ListSerializerMixin, PublicPrimaryKeyMixin, TeamFilteringMixin
 from common.insight_log import EntityEvent, write_resource_insight_log
 
 
-class EscalationChainFilter(TeamFilterSetMixin, ModelFieldFilterMixin, filters.FilterSet):
+class EscalationChainFilter(ByTeamModelFieldFilterMixin, ModelFieldFilterMixin, filters.FilterSet):
     team = filters.ModelMultipleChoiceFilter(
         field_name="team",
-        queryset=TeamFilterSetMixin.get_team_queryset,
+        queryset=get_team_queryset,
         to_field_name="public_primary_key",
-        method="filter_by_team",
+        null_label="noteam",
+        null_value="null",
+        method=ByTeamModelFieldFilterMixin.filter_model_field_with_multiple_values.__name__,
     )
 
 
@@ -51,10 +52,11 @@ class EscalationChainViewSet(TeamFilteringMixin, PublicPrimaryKeyMixin, ListSeri
     list_serializer_class = EscalationChainListSerializer
 
     def get_queryset(self):
+        team_filtering_lookup_args = self.get_team_filtering_lookup_args()
         queryset = (
             EscalationChain.objects.filter(
                 organization=self.request.auth.organization,
-                # team=self.request.user.current_team,
+                *team_filtering_lookup_args,
             )
             .annotate(
                 num_integrations=Count(

@@ -1,5 +1,6 @@
 from datetime import datetime
 
+from django.db.models import Q
 from django_filters import rest_framework as filters
 from django_filters.utils import handle_timezone
 
@@ -67,6 +68,22 @@ class ByTeamModelFieldFilterMixin:
         else:
             lookup_kwargs = {f"{name}": value}
         queryset = queryset.filter(**lookup_kwargs)
+        return queryset
+
+    def filter_model_field_with_multiple_values(self, queryset, name, values):
+        if not values:
+            return queryset
+        filter = self.filters[ByTeamModelFieldFilterMixin.FILTER_FIELD_NAME]
+        null_team_lookup = None
+        for value in values:
+            if filter.null_value == value:
+                null_team_lookup = Q(**{f"{name}__isnull": True})
+                values.remove(value)
+        teams_lookup = Q(**{f"{name}__in": values})
+        if null_team_lookup is not None:
+            teams_lookup = teams_lookup | null_team_lookup
+
+        queryset = queryset.filter(teams_lookup)
         return queryset
 
 

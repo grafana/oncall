@@ -16,9 +16,9 @@ from apps.api.serializers.alert_receive_channel import (
     FilterAlertReceiveChannelSerializer,
 )
 from apps.api.throttlers import DemoAlertThrottler
-from apps.api.views.alert_group import TeamFilterSetMixin
 from apps.auth_token.auth import PluginAuthentication
 from common.api_helpers.exceptions import BadRequest
+from common.api_helpers.filters import ByTeamModelFieldFilterMixin, get_team_queryset
 from common.api_helpers.mixins import (
     FilterSerializerMixin,
     PreviewTemplateMixin,
@@ -30,16 +30,18 @@ from common.exceptions import TeamCanNotBeChangedError, UnableToSendDemoAlert
 from common.insight_log import EntityEvent, write_resource_insight_log
 
 
-class AlertReceiveChannelFilter(TeamFilterSetMixin, filters.FilterSet):
+class AlertReceiveChannelFilter(ByTeamModelFieldFilterMixin, filters.FilterSet):
     maintenance_mode = filters.MultipleChoiceFilter(
         choices=AlertReceiveChannel.MAINTENANCE_MODE_CHOICES, method="filter_maintenance_mode"
     )
     integration = filters.ChoiceFilter(choices=AlertReceiveChannel.INTEGRATION_CHOICES)
     team = filters.ModelMultipleChoiceFilter(
         field_name="team",
-        queryset=TeamFilterSetMixin.get_team_queryset,
+        queryset=get_team_queryset,
         to_field_name="public_primary_key",
-        method="filter_by_team",
+        null_label="noteam",
+        null_value="null",
+        method=ByTeamModelFieldFilterMixin.filter_model_field_with_multiple_values.__name__,
     )
 
     class Meta:
@@ -131,16 +133,19 @@ class AlertReceiveChannelView(
 
     def get_queryset(self, eager=True):
         is_filters_request = self.request.query_params.get("filters", "false") == "true"
+        team_filtering_lookup_args = self.get_team_filtering_lookup_args()
         organization = self.request.auth.organization
         if is_filters_request:
             queryset = AlertReceiveChannel.objects_with_maintenance.filter(
                 organization=organization,
+                *team_filtering_lookup_args,
                 # team=self.request.user.current_team,
             )
         else:
             queryset = AlertReceiveChannel.objects.filter(
                 organization=organization,
-                # team=self.request.user.current_team,
+                *team_filtering_lookup_args,
+                *team_filtering_lookup_args,
             )
             if eager:
                 queryset = self.serializer_class.setup_eager_loading(queryset)
