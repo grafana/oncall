@@ -13,13 +13,13 @@ import NewScheduleSelector from 'components/NewScheduleSelector/NewScheduleSelec
 import PluginLink from 'components/PluginLink/PluginLink';
 import ScheduleCounter from 'components/ScheduleCounter/ScheduleCounter';
 import ScheduleWarning from 'components/ScheduleWarning/ScheduleWarning';
-import SchedulesFilters from 'components/SchedulesFilters/SchedulesFilters';
 import { SchedulesFiltersType } from 'components/SchedulesFilters/SchedulesFilters.types';
 import Table from 'components/Table/Table';
 import Text from 'components/Text/Text';
 import TimelineMarks from 'components/TimelineMarks/TimelineMarks';
 import UserTimezoneSelect from 'components/UserTimezoneSelect/UserTimezoneSelect';
 import WithConfirm from 'components/WithConfirm/WithConfirm';
+import RemoteFilters from 'containers/RemoteFilters/RemoteFilters';
 import ScheduleFinal from 'containers/Rotations/ScheduleFinal';
 import ScheduleForm from 'containers/ScheduleForm/ScheduleForm';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
@@ -90,10 +90,10 @@ class SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSta
   };
 
   render() {
-    const { store } = this.props;
+    const { store, query } = this.props;
 
     const { grafanaTeamStore } = store;
-    const { filters, showNewScheduleSelector, expandedRowKeys, scheduleIdToEdit, page } = this.state;
+    const { showNewScheduleSelector, expandedRowKeys, scheduleIdToEdit, page } = this.state;
 
     const { results, count } = store.scheduleStore.getSearchResult();
 
@@ -157,7 +157,8 @@ class SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSta
         <div className={cx('root')}>
           <VerticalGroup>
             <div className={cx('schedules__filters-container')}>
-              <SchedulesFilters value={filters} onChange={this.handleSchedulesFiltersChange} />
+              <RemoteFilters query={query} page="schedules" onChange={this.handleSchedulesFiltersChange} />
+              {/*  <SchedulesFilters value={filters} onChange={this.handleSchedulesFiltersChange} />  */}
               <div className={cx('schedules__actions')}>
                 {users && (
                   <UserTimezoneSelect

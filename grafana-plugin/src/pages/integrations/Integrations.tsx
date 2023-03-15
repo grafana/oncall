@@ -7,7 +7,7 @@ import { observer } from 'mobx-react';
 import { RouteComponentProps, withRouter } from 'react-router-dom';
 
 import GList from 'components/GList/GList';
-import IntegrationsFilters, { Filters } from 'components/IntegrationsFilters/IntegrationsFilters';
+import { Filters } from 'components/IntegrationsFilters/IntegrationsFilters';
 import PageErrorHandlingWrapper, { PageBaseState } from 'components/PageErrorHandlingWrapper/PageErrorHandlingWrapper';
 import {
   getWrongTeamResponseInfo,
@@ -21,6 +21,7 @@ import AlertRules from 'containers/AlertRules/AlertRules';
 import CreateAlertReceiveChannelContainer from 'containers/CreateAlertReceiveChannelContainer/CreateAlertReceiveChannelContainer';
 import IntegrationSettings from 'containers/IntegrationSettings/IntegrationSettings';
 import { IntegrationSettingsTab } from 'containers/IntegrationSettings/IntegrationSettings.types';
+import RemoteFilters from 'containers/RemoteFilters/RemoteFilters';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
 import { AlertReceiveChannel } from 'models/alert_receive_channel';
 import { AlertReceiveChannelOption } from 'models/alert_receive_channel/alert_receive_channel.types';
@@ -133,14 +134,10 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
       match: {
         params: { id },
       },
+      query,
     } = this.props;
-    const {
-      integrationsFilters,
-      alertReceiveChannelToShowSettings,
-      integrationSettingsTab,
-      showCreateIntegrationModal,
-      errorData,
-    } = this.state;
+    const { alertReceiveChannelToShowSettings, integrationSettingsTab, showCreateIntegrationModal, errorData } =
+      this.state;
 
     const { alertReceiveChannelStore } = store;
     const searchResult = alertReceiveChannelStore.getSearchResult();
@@ -156,7 +153,7 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
           <>
             <div className={cx('root')}>
               <div className={cx('filters')}>
-                <IntegrationsFilters value={integrationsFilters} onChange={this.handleIntegrationsFiltersChange} />
+                <RemoteFilters query={query} page="integrations" onChange={this.handleIntegrationsFiltersChange} />
               </div>
               {searchResult?.length ? (
                 <div className={cx('integrations')}>
@@ -329,7 +326,7 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
     const { alertReceiveChannelStore } = store;
     const { integrationsFilters } = this.state;
 
-    alertReceiveChannelStore.updateItems(integrationsFilters.searchTerm).then(() => {
+    alertReceiveChannelStore.updateItems(integrationsFilters).then(() => {
       const searchResult = alertReceiveChannelStore.getSearchResult();
 
       if (

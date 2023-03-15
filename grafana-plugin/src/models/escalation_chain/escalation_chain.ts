@@ -71,13 +71,13 @@ export class EscalationChainStore extends BaseStore {
   }
 
   @action
-  async updateItems(query = '') {
+  async updateItems(query) {
+    const params = typeof query === 'string' ? { search: query } : query;
+
     this.loading = true;
 
     const results = await makeRequest(`${this.path}`, {
-      params: {
-        ...this.incidentFilters,
-      },
+      params,
     });
 
     this.items = {
@@ -93,7 +93,7 @@ export class EscalationChainStore extends BaseStore {
 
     this.searchResult = {
       ...this.searchResult,
-      [query]: results.map((item: EscalationChain) => item.id),
+      ['']: results.map((item: EscalationChain) => item.id),
     };
 
     this.loading = false;
@@ -105,13 +105,6 @@ export class EscalationChainStore extends BaseStore {
     }
 
     return this.searchResult[query].map((escalationChainId: EscalationChain['id']) => this.items[escalationChainId]);
-  }
-
-  @action
-  async updateFilters(params: any) {
-    this.incidentFilters = params;
-
-    this.updateItems();
   }
 
   async clone(escalationChainId: EscalationChain['id'], data: Partial<EscalationChain>) {

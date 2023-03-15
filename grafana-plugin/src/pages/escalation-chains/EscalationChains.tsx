@@ -22,13 +22,12 @@ import WithConfirm from 'components/WithConfirm/WithConfirm';
 import EscalationChainCard from 'containers/EscalationChainCard/EscalationChainCard';
 import EscalationChainForm from 'containers/EscalationChainForm/EscalationChainForm';
 import EscalationChainSteps from 'containers/EscalationChainSteps/EscalationChainSteps';
-import { IncidentsFiltersType } from 'containers/IncidentsFilters/IncidentFilters.types';
-import IncidentsFilters from 'containers/IncidentsFilters/IncidentsFilters';
+import RemoteFilters from 'containers/RemoteFilters/RemoteFilters';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
 import { EscalationChain } from 'models/escalation_chain/escalation_chain.types';
+import { FiltersValues } from 'models/filters/filters.types';
 import { PageProps, WithStoreProps } from 'state/types';
 import { withMobXProviderContext } from 'state/withStore';
-import LocationHelper from 'utils/LocationHelper';
 import { UserActions } from 'utils/authorization';
 import { PLUGIN_ROOT } from 'utils/consts';
 
@@ -39,10 +38,10 @@ const cx = cn.bind(styles);
 interface EscalationChainsPageProps extends WithStoreProps, PageProps, RouteComponentProps<{ id: string }> {}
 
 interface EscalationChainsPageState extends PageBaseState {
-  escalationChainsFilters: { searchTerm: string };
   showCreateEscalationChainModal: boolean;
   escalationChainIdToCopy: EscalationChain['id'];
   selectedEscalationChain: EscalationChain['id'];
+  escalationChainsFilters?: FiltersValues;
 }
 
 export interface Filters {
@@ -52,7 +51,6 @@ export interface Filters {
 @observer
 class EscalationChainsPage extends React.Component<EscalationChainsPageProps, EscalationChainsPageState> {
   state: EscalationChainsPageState = {
-    escalationChainsFilters: { searchTerm: '' },
     showCreateEscalationChainModal: false,
     escalationChainIdToCopy: undefined,
     selectedEscalationChain: undefined,
@@ -73,11 +71,8 @@ class EscalationChainsPage extends React.Component<EscalationChainsPageProps, Es
       },
     } = this.props;
     const { escalationChainStore } = store;
-    const {
-      escalationChainsFilters: { searchTerm },
-    } = this.state;
 
-    const searchResult = escalationChainStore.getSearchResult(searchTerm);
+    const searchResult = escalationChainStore.getSearchResult();
 
     let selectedEscalationChain: EscalationChain['id'];
     if (id) {
@@ -136,17 +131,11 @@ class EscalationChainsPage extends React.Component<EscalationChainsPageProps, Es
         params: { id },
       },
     } = this.props;
-    const {
-      showCreateEscalationChainModal,
-      escalationChainIdToCopy,
-      escalationChainsFilters,
-      selectedEscalationChain,
-      errorData,
-    } = this.state;
+    const { showCreateEscalationChainModal, escalationChainIdToCopy, selectedEscalationChain, errorData } = this.state;
 
     const { escalationChainStore } = store;
     const { loading } = escalationChainStore;
-    const searchResult = escalationChainStore.getSearchResult(escalationChainsFilters.searchTerm);
+    const searchResult = escalationChainStore.getSearchResult();
 
     return (
       <PageErrorHandlingWrapper
@@ -158,7 +147,7 @@ class EscalationChainsPage extends React.Component<EscalationChainsPageProps, Es
         {() => (
           <>
             <div className={cx('root')}>
-              {this.renderFilters(store.escalationChainStore)}
+              {this.renderFilters()}
               {!searchResult || searchResult.length ? (
                 <div className={cx('escalations')}>
                   <div className={cx('left-column')}>
@@ -235,26 +224,16 @@ class EscalationChainsPage extends React.Component<EscalationChainsPageProps, Es
   }
 
   renderFilters() {
-    // TODO: add type
-    const { store } = this.props;
+    const { query } = this.props;
     return (
       <div className={cx('filters')}>
-        <IncidentsFilters query={{}} objectStore={store.escalationChainStore} onChange={this.handleFiltersChange} />
+        <RemoteFilters query={query} page="escalation_chains" onChange={this.handleFiltersChange} />
       </div>
     );
   }
 
-  handleFiltersChange = (filters: IncidentsFiltersType) => {
-    this.setState({
-      filters,
-    });
-    this.fetchData(filters);
-  };
-
-  fetchData = (filters: IncidentsFiltersType) => {
-    const { store } = this.props;
-    store.escalationChainStore.updateFilters(filters); // this line fetches incidents
-    LocationHelper.update({ ...store.escalationChainStore.incidentFilters }, 'partial');
+  handleFiltersChange = (filters: FiltersValues) => {
+    this.setState({ escalationChainsFilters: filters }, this.debouncedUpdateEscalations);
   };
 
   applyFilters = () => {
@@ -262,8 +241,8 @@ class EscalationChainsPage extends React.Component<EscalationChainsPageProps, Es
     const { escalationChainStore } = store;
     const { escalationChainsFilters, selectedEscalationChain } = this.state;
 
-    escalationChainStore.updateItems(escalationChainsFilters.searchTerm).then(() => {
-      const searchResult = escalationChainStore.getSearchResult(escalationChainsFilters.searchTerm);
+    escalationChainStore.updateItems(escalationChainsFilters).then(() => {
+      const searchResult = escalationChainStore.getSearchResult();
 
       if (!searchResult.find((escalationChain: EscalationChain) => escalationChain.id === selectedEscalationChain)) {
         this.setSelectedEscalationChain(searchResult[0].id);
@@ -376,17 +355,17 @@ class EscalationChainsPage extends React.Component<EscalationChainsPageProps, Es
   handleDeleteEscalationChain = () => {
     const { store } = this.props;
     const { escalationChainStore } = store;
-    const { selectedEscalationChain, escalationChainsFilters } = this.state;
+    const { selectedEscalationChain } = this.state;
 
     const index = escalationChainStore
-      .getSearchResult(escalationChainsFilters.searchTerm)
+      .getSearchResult()
       .findIndex((escalationChain: EscalationChain) => escalationChain.id === selectedEscalationChain);
 
     escalationChainStore
       .delete(selectedEscalationChain)
       .then(this.update)
       .then(() => {
-        const escalationChains = escalationChainStore.getSearchResult(escalationChainsFilters.searchTerm);
+        const escalationChains = escalationChainStore.getSearchResult();
 
         const newSelected = escalationChains[index - 1] || escalationChains[0];
 

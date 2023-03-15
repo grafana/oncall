@@ -11,6 +11,7 @@ import Emoji from 'react-emoji-render';
 
 import Text from 'components/Text/Text';
 import RemoteSelect from 'containers/RemoteSelect/RemoteSelect';
+import { FiltersValues } from 'models/filters/filters.types';
 import { SelectOption, WithStoreProps } from 'state/types';
 import { withMobXProviderContext } from 'state/withStore';
 import LocationHelper from 'utils/LocationHelper';
@@ -27,6 +28,7 @@ interface RemoteFiltersProps extends WithStoreProps {
   onChange: (filters: { [key: string]: any }, isOnMount: boolean) => void;
   query: { [key: string]: any };
   page: string;
+  defaultFilters?: FiltersValues;
   extraFilters?: (state, setState, onFiltersValueChange) => React.ReactNode;
 }
 interface RemoteFiltersState {
@@ -48,7 +50,7 @@ class RemoteFilters extends Component<RemoteFiltersProps, RemoteFiltersState> {
   searchRef = React.createRef<HTMLInputElement>();
 
   async componentDidMount() {
-    const { query, page, store } = this.props;
+    const { query, page, store, defaultFilters } = this.props;
 
     const { filtersStore } = store;
 
@@ -57,16 +59,11 @@ class RemoteFilters extends Component<RemoteFiltersProps, RemoteFiltersState> {
     let { filters, values } = parseFilters(query, filterOptions);
 
     if (isEmpty(values)) {
-      // TODO fill filters if no filters in query
       let newQuery;
       if (filtersStore.values[page]) {
         newQuery = { ...filtersStore.values[page] };
       } else {
-        newQuery = {
-          team: [],
-          // status: [Remotetatus.Firing, Remotetatus.Acknowledged],
-          // mine: false,
-        };
+        newQuery = defaultFilters || { team: [store.userStore.currentUser.current_team] };
       }
 
       ({ filters, values } = parseFilters(newQuery, filterOptions));

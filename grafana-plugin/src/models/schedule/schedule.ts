@@ -125,10 +125,9 @@ export class ScheduleStore extends BaseStore {
     shouldUpdateFn: () => boolean = undefined
   ) {
     const filters: Partial<SchedulesFiltersType> = typeof f === 'string' ? { searchTerm: f } : f;
-    const { searchTerm: search, type, used } = filters;
     const { count, results } = await makeRequest(this.path, {
       method: 'GET',
-      params: { search: search, type, used, page },
+      params: { ...filters, page },
     });
 
     if (shouldUpdateFn && !shouldUpdateFn()) {

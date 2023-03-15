@@ -257,6 +257,10 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
           page="incidents"
           onChange={this.handleFiltersChange}
           extraFilters={this.renderCards.bind(this)}
+          defaultFilters={{
+            status: [IncidentStatus.Firing, IncidentStatus.Acknowledged],
+            mine: false,
+          }}
         />
       </div>
     );
