@@ -1,6 +1,17 @@
-import React from 'react';
+import React, { useState } from 'react';
 
-import { Badge, Button, Tooltip } from '@grafana/ui';
+import {
+  Badge,
+  Button,
+  Checkbox,
+  Field,
+  HorizontalGroup,
+  Icon,
+  Modal,
+  RadioButtonGroup,
+  Tooltip,
+  VerticalGroup,
+} from '@grafana/ui';
 import { observer } from 'mobx-react';
 
 import Avatar from 'components/Avatar/Avatar';
@@ -13,6 +24,7 @@ import { UserActions } from 'utils/authorization';
 
 const TeamsList = observer(() => {
   const store = useStore();
+  const [showEditTeamModal, setShowEditTeamModal] = useState(false);
 
   const renderTeam = (record: GrafanaTeam) => {
     return (
@@ -30,7 +42,9 @@ const TeamsList = observer(() => {
               'This team will be selected by default when creating new resources (Integrations, Escalation Chains, Schedules, Outgoing Webhooks)'
             }
           >
-            <Text type="secondary">(default)</Text>
+            <Tooltip content={'This team will be selected by default when you create new resources'}>
+              <Text type="secondary">(default)</Text>
+            </Tooltip>
           </Tooltip>
         )}
       </>
@@ -44,7 +58,7 @@ const TeamsList = observer(() => {
           fill="text"
           variant="primary"
           onClick={() => {
-            // this.setState({ showEditTeamModal: true });
+            setShowEditTeamModal(true);
           }}
         >
           Edit
@@ -53,15 +67,6 @@ const TeamsList = observer(() => {
     );
     return editButton;
   };
-
-  // const renderShowUsersButtons = () => {
-  //   const showUsersButton = (
-  //     <WithPermissionControlTooltip userAction={UserActions.APIKeysWrite}>
-  //       <Icon name="external-link-alt" />
-  //     </WithPermissionControlTooltip>
-  //   );
-  //   return showUsersButton;
-  // };
 
   const renderPermissions = (record: GrafanaTeam) => {
     return (
@@ -75,9 +80,6 @@ const TeamsList = observer(() => {
     );
   };
 
-  // const { userStore } = store;
-
-  // const user = userStore.items[id];
   const columns = [
     {
       width: '20%',
@@ -91,18 +93,30 @@ const TeamsList = observer(() => {
       key: 'permissions',
       render: (item: GrafanaTeam) => renderPermissions(item),
     },
-    // {
-    //   width: '30%',
-    //   title: 'Users',
-    //   key: 'action',
-    //   render: renderShowUsersButtons,
-    // },
     {
       width: '15%',
       key: 'action',
       render: renderActionButtons,
     },
   ];
+
+  //   const onUpdateClickCallback = useCallback(() => {
+  //   (store.grafanaTeamStore.saveTeam(id, {
+  //
+  //       })
+  //   )
+  //     .then((channelFilter: ChannelFilter) => {
+  //       onUpdate(channelFilter.id);
+  //       onHide();
+  //     })
+  //     .catch((err) => {
+  //       const errors = get(err, 'response.data');
+  //       setErrors(errors);
+  //       if (errors?.non_field_errors) {
+  //         openErrorNotification(errors.non_field_errors);
+  //       }
+  //     });
+  // }, [filteringTerm, filteringTermType]);
 
   return (
     <>
@@ -113,15 +127,54 @@ const TeamsList = observer(() => {
         columns={columns}
       />
 
-      {/* {showEditTeamModal && (*/}
-      {/*  <EditTeamForm*/}
-      {/*    visible={showEditTeamModal}*/}
-      {/*    onUpdate={this.handleCreateToken}*/}
-      {/*    onHide={() => {*/}
-      {/*      this.setState({ showEditTeamModal: false });*/}
-      {/*    }}*/}
-      {/*  />*/}
-      {/*)}*/}
+      {showEditTeamModal && (
+        <Modal
+          isOpen
+          title={
+            <HorizontalGroup>
+              <Icon size="lg" name="link" />
+              <Text.Title level={4}>Team settings</Text.Title>
+            </HorizontalGroup>
+          }
+          onDismiss={() => {}}
+        >
+          <WithPermissionControlTooltip userAction={UserActions.AlertGroupsWrite}>
+            <VerticalGroup>
+              <Field label="Who can see the team name and access the team resources">
+                <RadioButtonGroup
+                  options={[
+                    { label: 'All Users', value: '123' },
+                    { label: 'Team members and admins', value: '456' },
+                  ]}
+                  value={'123'}
+                  onChange={() => {
+                    // setErrors({});
+                    // setFilteringTermType(value);
+                    // setFilteringTerm(renderFilteringTermValue(value));
+                  }}
+                />
+              </Field>
+              <Field>
+                <Checkbox
+                  value={false}
+                  onChange={() => {}}
+                  label={'Mark as default team'}
+                  description={'This team will be selected by default when you create new resources'}
+                />
+              </Field>
+            </VerticalGroup>
+          </WithPermissionControlTooltip>
+
+          <HorizontalGroup>
+            <Button onClick={() => {}} variant="secondary">
+              Cancel
+            </Button>
+            <Button onClick={() => {}} variant="primary">
+              Submit
+            </Button>
+          </HorizontalGroup>
+        </Modal>
+      )}
     </>
   );
 });
