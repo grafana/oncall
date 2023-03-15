@@ -3,10 +3,12 @@ import React from 'react';
 import { Button, HorizontalGroup, VerticalGroup } from '@grafana/ui';
 import cn from 'classnames/bind';
 import { observer } from 'mobx-react';
+import moment from 'moment-timezone';
 import LegacyNavHeading from 'navbar/LegacyNavHeading';
 import { RouteComponentProps, withRouter } from 'react-router-dom';
 
 import GTable from 'components/GTable/GTable';
+import { MatchMediaTooltip } from 'components/MatchMediaTooltip/MatchMediaTooltip';
 import PageErrorHandlingWrapper, { PageBaseState } from 'components/PageErrorHandlingWrapper/PageErrorHandlingWrapper';
 import {
   getWrongTeamResponseInfo,
@@ -26,8 +28,6 @@ import { isUserActionAllowed, UserActions } from 'utils/authorization';
 import { PLUGIN_ROOT } from 'utils/consts';
 
 import styles from './OutgoingWebhooks2.module.css';
-import moment from 'moment-timezone';
-import { MatchMediaTooltip } from 'components/MatchMediaTooltip/MatchMediaTooltip';
 
 const cx = cn.bind(styles);
 

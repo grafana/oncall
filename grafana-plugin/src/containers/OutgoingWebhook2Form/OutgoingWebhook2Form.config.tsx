@@ -1,8 +1,9 @@
 import React from 'react';
 
 import { SelectableValue } from '@grafana/data';
-import { FormItem, FormItemType } from 'components/GForm/GForm.types';
 import Emoji from 'react-emoji-render';
+
+import { FormItem, FormItemType } from 'components/GForm/GForm.types';
 import { KeyValuePair } from 'utils';
 
 export const WebhookTriggerType = {
