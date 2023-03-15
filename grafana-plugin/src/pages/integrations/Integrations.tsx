@@ -25,6 +25,7 @@ import RemoteFilters from 'containers/RemoteFilters/RemoteFilters';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
 import { AlertReceiveChannel } from 'models/alert_receive_channel';
 import { AlertReceiveChannelOption } from 'models/alert_receive_channel/alert_receive_channel.types';
+import { GrafanaTeam } from 'models/grafana_team/grafana_team.types';
 import { PageProps, WithStoreProps } from 'state/types';
 import { withMobXProviderContext } from 'state/withStore';
 import LocationHelper from 'utils/LocationHelper';
@@ -261,11 +262,11 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
     );
   }
 
-  handleCreateNewAlertReceiveChannel = (option: AlertReceiveChannelOption) => {
+  handleCreateNewAlertReceiveChannel = (option: AlertReceiveChannelOption, team: GrafanaTeam['id']) => {
     const { store } = this.props;
 
     store.alertReceiveChannelStore
-      .create({ integration: option.value })
+      .create({ integration: option.value, team })
       .then(async (alertReceiveChannel: AlertReceiveChannel) => {
         await store.alertReceiveChannelStore.updateItems();
 

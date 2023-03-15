@@ -3,7 +3,9 @@ import React, { ChangeEvent, FC, useCallback, useState } from 'react';
 import { Button, Field, HorizontalGroup, Input, Modal } from '@grafana/ui';
 import cn from 'classnames/bind';
 
+import GrafanaTeamSelect from 'containers/GrafanaTeamSelect/GrafanaTeamSelect';
 import { EscalationChain } from 'models/escalation_chain/escalation_chain.types';
+import { GrafanaTeam } from 'models/grafana_team/grafana_team.types';
 import { useStore } from 'state/useStore';
 
 import styles from 'containers/EscalationChainForm/EscalationChainForm.module.css';
@@ -20,17 +22,20 @@ const EscalationChainForm: FC<EscalationChainFormProps> = (props) => {
   const { escalationChainId, onHide, onUpdate } = props;
 
   const store = useStore();
-  const { escalationChainStore } = store;
+  const { escalationChainStore, userStore } = store;
+
+  const user = userStore.currentUser;
 
   const escalationChain = escalationChainId ? escalationChainStore.items[escalationChainId] : undefined;
 
   const [name, setName] = useState<string | undefined>(escalationChain?.name);
+  const [selectedTeam, setSelectedTeam] = useState<GrafanaTeam['id']>(user.current_team);
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
 
   const onCreateClickCallback = useCallback(() => {
     (escalationChainId
-      ? escalationChainStore.clone(escalationChainId, { name })
-      : escalationChainStore.create({ name })
+      ? escalationChainStore.clone(escalationChainId, { name, team: selectedTeam })
+      : escalationChainStore.create({ name, team: selectedTeam })
     )
       .then((escalationChain: EscalationChain) => {
         onUpdate(escalationChain.id);
@@ -42,7 +47,7 @@ const EscalationChainForm: FC<EscalationChainFormProps> = (props) => {
           name: data.response.data.name || data.response.data.detail || data.response.data.non_field_errors,
         });
       });
-  }, [name]);
+  }, [name, selectedTeam]);
 
   const handleNameChange = useCallback((event: ChangeEvent<HTMLInputElement>) => {
     setName(event.target.value);
@@ -55,6 +60,9 @@ const EscalationChainForm: FC<EscalationChainFormProps> = (props) => {
       onDismiss={onHide}
     >
       <div className={cx('root')}>
+        <Field label="Team">
+          <GrafanaTeamSelect withoutModal onSelect={setSelectedTeam} />
+        </Field>
         <Field invalid={Boolean(errors['name'])} error={errors['name']} label="Escalation Chain name">
           <Input autoFocus value={name} onChange={handleNameChange} />
         </Field>

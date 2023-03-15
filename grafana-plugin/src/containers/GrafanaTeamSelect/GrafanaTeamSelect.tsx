@@ -1,14 +1,12 @@
-import React from 'react';
+import React, { useCallback, useState } from 'react';
 
-import { Icon, Label, Tooltip } from '@grafana/ui';
+import { Button, HorizontalGroup, Icon, Label, Modal, Tooltip, VerticalGroup } from '@grafana/ui';
 import cn from 'classnames/bind';
 import { observer } from 'mobx-react';
-import ReactDOM from 'react-dom';
 
 import GSelect from 'containers/GSelect/GSelect';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
 import { GrafanaTeam } from 'models/grafana_team/grafana_team.types';
-import { isTopNavbar } from 'plugin/GrafanaPluginRootPage.helpers';
 import { useStore } from 'state/useStore';
 import { UserActions } from 'utils/authorization';
 
@@ -16,55 +14,86 @@ import styles from './GrafanaTeamSelect.module.scss';
 
 const cx = cn.bind(styles);
 
-const GrafanaTeamSelect = observer(() => {
+interface GrafanaTeamSelectProps {
+  onSelect: (id: GrafanaTeam['id']) => void;
+  onHide?: () => void;
+  withoutModal?: boolean;
+}
+
+const GrafanaTeamSelect = observer(({ onSelect, onHide, withoutModal }: GrafanaTeamSelectProps) => {
   const store = useStore();
 
   const { userStore, grafanaTeamStore } = store;
-  const grafanaTeams = grafanaTeamStore.getSearchResult();
   const user = userStore.currentUser;
+
+  const [selectedTeam, setSelectedTeam] = useState<GrafanaTeam['id']>(user.current_team);
+
+  const grafanaTeams = grafanaTeamStore.getSearchResult();
 
   if (!grafanaTeams || !user) {
     return null;
   }
 
-  const onTeamChange = async (teamId: GrafanaTeam['id']) => {
-    await userStore.updateCurrentUser({ current_team: teamId });
-  };
+  const handleTeamSelect = useCallback(
+    (value) => {
+      setSelectedTeam(value);
 
-  const content = (
-    <div className={cx('teamSelect')}>
-      <div className={cx('teamSelectLabel')}>
+      if (withoutModal) {
+        userStore.updateCurrentUser({ current_team: value });
+
+        onSelect(value);
+      }
+    },
+    [onSelect, withoutModal]
+  );
+
+  const handleConfirm = useCallback(() => {
+    userStore.updateCurrentUser({ current_team: selectedTeam });
+
+    onSelect(selectedTeam);
+  }, [onSelect, selectedTeam]);
+
+  const select = (
+    <GSelect
+      modelName="grafanaTeamStore"
+      displayField="name"
+      valueField="id"
+      placeholder="Select Team"
+      className={cx('select', 'control')}
+      value={selectedTeam}
+      onChange={handleTeamSelect}
+    />
+  );
+
+  if (withoutModal) {
+    return select;
+  }
+
+  return (
+    <Modal onDismiss={onHide} closeOnEscape isOpen title="Select team" className={cx('root')}>
+      <VerticalGroup>
         <Label>
           <span className={cx('teamSelectText')}>
-            Select default Team{''}
-            <Tooltip content="All objects created by you will be owned by your default team">
+            Select team{''}
+            <Tooltip content="It will also update your default team">
               <Icon name="info-circle" size="md" className={cx('teamSelectInfo')}></Icon>
             </Tooltip>
           </span>
         </Label>
+        <div className={cx('teamSelect')}>{select}</div>
         <WithPermissionControlTooltip userAction={UserActions.TeamsWrite}>
           <a href="/org/teams" className={cx('teamSelectLink')}>
             Edit teams
           </a>
         </WithPermissionControlTooltip>
-      </div>
-      <GSelect
-        modelName="grafanaTeamStore"
-        displayField="name"
-        valueField="id"
-        placeholder="Select Team"
-        className={cx('select', 'control')}
-        value={user.current_team}
-        onChange={onTeamChange}
-      />
-    </div>
+        <HorizontalGroup justify="flex-end">
+          <Button variant="primary" onClick={handleConfirm}>
+            Ok
+          </Button>
+        </HorizontalGroup>
+      </VerticalGroup>
+    </Modal>
   );
-
-  return document.getElementsByClassName('page-header__inner')[0]
-    ? ReactDOM.createPortal(content, document.getElementsByClassName('page-header__inner')[0])
-    : isTopNavbar()
-    ? content
-    : null;
 });
 
 export default GrafanaTeamSelect;

@@ -4,6 +4,18 @@ export const form: { name: string; fields: FormItem[] } = {
   name: 'OutgoingWebhook',
   fields: [
     {
+      name: 'team',
+      label: 'Assign to team',
+      type: FormItemType.GSelect,
+      extra: {
+        modelName: 'grafanaTeamStore',
+        displayField: 'name',
+        valueField: 'id',
+        showSearch: true,
+        allowClear: true,
+      },
+    },
+    {
       name: 'name',
       type: FormItemType.Input,
       validation: { required: true },
