@@ -158,6 +158,12 @@ class EscalationSnapshotMixin:
                 logger.error(f"Error trying to deserialize raw escalation snapshot: {e}")
         return None
 
+    @cached_property
+    def has_escalation_policies_snapshots(self) -> bool:
+        if not self.raw_escalation_snapshot:
+            return False
+        return len(self.raw_escalation_snapshot["escalation_policies_snapshots"]) > 0
+
     def _deserialize_escalation_snapshot(self, raw_escalation_snapshot) -> EscalationSnapshot:
         """
         Deserializes raw escalation snapshot to EscalationSnapshot object with channel_filter_snapshot as

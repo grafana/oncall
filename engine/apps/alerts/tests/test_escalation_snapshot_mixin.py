@@ -186,16 +186,24 @@ def test_escalation_chain_with_respect_to_escalation_snapshot_no_escalation_chai
     make_organization_and_user,
     make_alert_receive_channel,
     make_channel_filter,
+    make_escalation_chain,
     make_alert_group,
 ):
     mock_escalation_chain_snapshot.return_value = None
 
     organization, _ = make_organization_and_user()
     alert_receive_channel = make_alert_receive_channel(organization)
-    channel_filter = make_channel_filter(alert_receive_channel)
+    escalation_chain = make_escalation_chain(organization=organization)
+    channel_filter = make_channel_filter(alert_receive_channel, escalation_chain=escalation_chain)
+
     alert_group = make_alert_group(alert_receive_channel, channel_filter=channel_filter)
 
-    assert alert_group.escalation_chain_with_respect_to_escalation_snapshot == channel_filter
+    assert alert_group.escalation_chain_with_respect_to_escalation_snapshot == escalation_chain
+
+    alert_group = make_alert_group(alert_receive_channel)
+
+    assert alert_group.channel_filter is None
+    assert alert_group.escalation_chain_with_respect_to_escalation_snapshot is None
 
 
 @patch(
@@ -388,6 +396,65 @@ def test_escalation_snapshot_no_alert_group_raw_escalation_snapshot(
     alert_group = make_alert_group(alert_receive_channel, channel_filter=channel_filter)
 
     assert alert_group.escalation_snapshot is None
+
+
+@pytest.mark.django_db
+def test_escalation_snapshot_empty_escalation_policies_snapshot(
+    make_organization_and_user,
+    make_alert_receive_channel,
+    make_channel_filter,
+    make_alert_group,
+):
+    organization, _ = make_organization_and_user()
+    alert_receive_channel = make_alert_receive_channel(organization)
+    channel_filter = make_channel_filter(alert_receive_channel)
+    alert_group = make_alert_group(alert_receive_channel, channel_filter=channel_filter)
+    alert_group.raw_escalation_snapshot = alert_group.build_raw_escalation_snapshot()
+
+    assert alert_group.raw_escalation_snapshot is not None
+    assert alert_group.has_escalation_policies_snapshots is False
+
+
+@pytest.mark.django_db
+def test_escalation_snapshot_nonempty_escalation_policies_snapshot(
+    make_organization_and_user,
+    make_alert_receive_channel,
+    make_channel_filter,
+    make_escalation_chain,
+    make_escalation_policy,
+    make_alert_group,
+):
+    organization, _ = make_organization_and_user()
+    alert_receive_channel = make_alert_receive_channel(organization)
+    escalation_chain = make_escalation_chain(organization=organization)
+    channel_filter = make_channel_filter(alert_receive_channel, escalation_chain=escalation_chain)
+    make_escalation_policy(
+        escalation_chain=channel_filter.escalation_chain,
+        escalation_policy_step=EscalationPolicy.STEP_WAIT,
+        wait_delay=EscalationPolicy.FIFTEEN_MINUTES,
+    )
+
+    alert_group = make_alert_group(alert_receive_channel, channel_filter=channel_filter)
+    alert_group.raw_escalation_snapshot = alert_group.build_raw_escalation_snapshot()
+
+    assert alert_group.raw_escalation_snapshot is not None
+    assert alert_group.has_escalation_policies_snapshots is True
+
+
+@pytest.mark.django_db
+def test_has_escalation_policies_snapshots_no_alert_group_raw_escalation_snapshot(
+    make_organization_and_user,
+    make_alert_receive_channel,
+    make_channel_filter,
+    make_alert_group,
+):
+    organization, _ = make_organization_and_user()
+    alert_receive_channel = make_alert_receive_channel(organization)
+    channel_filter = make_channel_filter(alert_receive_channel)
+    alert_group = make_alert_group(alert_receive_channel, channel_filter=channel_filter)
+
+    assert alert_group.raw_escalation_snapshot is None
+    assert alert_group.has_escalation_policies_snapshots is False
 
 
 @patch("apps.alerts.models.alert_group.AlertGroup.slack_channel_id", new_callable=PropertyMock)
