@@ -23,7 +23,6 @@ from apps.api.serializers.schedule_polymorphic import (
     PolymorphicScheduleSerializer,
     PolymorphicScheduleUpdateSerializer,
 )
-from apps.api.views.alert_group import TeamFilterSetMixin
 from apps.auth_token.auth import PluginAuthentication
 from apps.auth_token.constants import SCHEDULE_EXPORT_TOKEN_NAME
 from apps.auth_token.models import ScheduleExportAuthToken
@@ -32,7 +31,7 @@ from apps.schedules.quality_score import get_schedule_quality_score
 from apps.slack.models import SlackChannel
 from apps.slack.tasks import update_slack_user_group_for_schedules
 from common.api_helpers.exceptions import BadRequest, Conflict
-from common.api_helpers.filters import ModelFieldFilterMixin
+from common.api_helpers.filters import ByTeamModelFieldFilterMixin, ModelFieldFilterMixin, get_team_queryset
 from common.api_helpers.mixins import (
     CreateSerializerMixin,
     PublicPrimaryKeyMixin,
@@ -60,12 +59,14 @@ class SchedulePagination(PageNumberPagination):
     max_page_size = 50
 
 
-class ScheduleFilter(TeamFilterSetMixin, ModelFieldFilterMixin, filters.FilterSet):
+class ScheduleFilter(ByTeamModelFieldFilterMixin, ModelFieldFilterMixin, filters.FilterSet):
     team = filters.ModelMultipleChoiceFilter(
         field_name="team",
-        queryset=TeamFilterSetMixin.get_team_queryset,
+        queryset=get_team_queryset,
         to_field_name="public_primary_key",
-        method="filter_by_team",
+        null_label="noteam",
+        null_value="null",
+        method=ByTeamModelFieldFilterMixin.filter_model_field_with_multiple_values.__name__,
     )
 
 
@@ -171,11 +172,8 @@ class ScheduleView(
         filter_by_type = self.request.query_params.get("type")
         used = BooleanField(allow_null=True).to_internal_value(data=self.request.query_params.get("used"))
         organization = self.request.auth.organization
-        queryset = OnCallSchedule.objects.filter(
-            organization=organization,
-            # team__isnull=True,
-            # team__in=self.request.user.teams.all()
-        ).defer(
+        team_filtering_lookup_args = self.get_team_filtering_lookup_args()
+        queryset = OnCallSchedule.objects.filter(organization=organization, *team_filtering_lookup_args,).defer(
             # avoid requesting large text fields which are not used when listing schedules
             "prev_ical_file_primary",
             "prev_ical_file_overrides",

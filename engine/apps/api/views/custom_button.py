@@ -10,19 +10,20 @@ from rest_framework.viewsets import ModelViewSet
 from apps.alerts.models import CustomButton
 from apps.api.permissions import RBACPermission
 from apps.api.serializers.custom_button import CustomButtonSerializer
-from apps.api.views.alert_group import TeamFilterSetMixin
 from apps.auth_token.auth import PluginAuthentication
-from common.api_helpers.filters import ModelFieldFilterMixin
+from common.api_helpers.filters import ByTeamModelFieldFilterMixin, ModelFieldFilterMixin, get_team_queryset
 from common.api_helpers.mixins import PublicPrimaryKeyMixin, TeamFilteringMixin
 from common.insight_log import EntityEvent, write_resource_insight_log
 
 
-class CustomButtonFilter(TeamFilterSetMixin, ModelFieldFilterMixin, filters.FilterSet):
+class CustomButtonFilter(ByTeamModelFieldFilterMixin, ModelFieldFilterMixin, filters.FilterSet):
     team = filters.ModelMultipleChoiceFilter(
         field_name="team",
-        queryset=TeamFilterSetMixin.get_team_queryset,
+        queryset=get_team_queryset,
         to_field_name="public_primary_key",
-        method="filter_by_team",
+        null_label="noteam",
+        null_value="null",
+        method=ByTeamModelFieldFilterMixin.filter_model_field_with_multiple_values.__name__,
     )
 
 
@@ -49,10 +50,13 @@ class CustomButtonView(TeamFilteringMixin, PublicPrimaryKeyMixin, ModelViewSet):
     filterset_class = CustomButtonFilter
 
     def get_queryset(self):
+        team_filtering_lookup_args = self.get_team_filtering_lookup_args()
+
         queryset = CustomButton.objects.filter(
             organization=self.request.auth.organization,
-            # team=self.request.user.current_team,
+            *team_filtering_lookup_args,
         )
+
         return queryset
 
     def get_object(self):
