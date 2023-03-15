@@ -5,7 +5,39 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## Unreleased
+## v1.1.38 (2023-03-14)
+
+### Added
+
+- Add filtering by escalation chain to alert groups page ([1535](https://github.com/grafana/oncall/pull/1535))
+
+### Fixed
+
+- Improve tasks checking/triggering webhooks in new backend
+
+## v1.1.37 (2023-03-14)
+
+### Fixed
+
+- Fixed redirection issue on integrations screen
+
+### Added
+
+- Enable web overrides for Terraform-based schedules
+- Direct user paging improvements ([1358](https://github.com/grafana/oncall/issues/1358))
+- Added Schedule Score quality within the schedule view ([118](https://github.com/grafana/oncall/issues/118))
+
+## v1.1.36 (2023-03-09)
+
+### Fixed
+
+- Fix bug with override creation ([1515](https://github.com/grafana/oncall/pull/1515))
+
+## v1.1.35 (2023-03-09)
+
+### Added
+
+- Insight logs
 
 ### Added
 
@@ -14,6 +46,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - Fixed issue with Alert group involved users filter
+- Fixed email sending failure due to newline in title
 
 ## v1.1.34 (2023-03-08)
 
@@ -28,8 +61,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - Prohibit creating & updating past overrides ([1474](https://github.com/grafana/oncall/pull/1474))
-- Add unique index on `user_id` column in `mobile_app_mobileappauthtoken` table to avoid allowing a user
-  to have more than one mobile app auth token at a time ([1482](https://github.com/grafana/oncall/pull/1482))
 
 ## v1.1.33 (2023-03-07)
 
@@ -100,6 +131,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - Added ratelimits for phone verification
+- Link to source was added
+- Header of Incident page was reworked: clickable labels instead of just names, users section was deleted
+- "Go to Integration" button was deleted, because the functionality was moved to clickable labels
 
 ### Fixed
 
@@ -142,9 +176,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Incidents - Removed buttons column and replaced status with toggler ([#1237](https://github.com/grafana/oncall/issues/1237))
 - Responsiveness changes across multiple pages (Incidents, Integrations, Schedules) ([#1237](https://github.com/grafana/oncall/issues/1237))
 - Add pagination to schedule listing
-- Link to source was added
-- Header of Incident page was reworked: clickable labels instead of just names, users section was deleted
-- "Go to Integration" button was deleted, because the functionality was moved to clickable labels
 
 ## v1.1.23 (2023-02-06)
 

@@ -181,9 +181,17 @@
   & > li {
     padding: 8px 12px;
     width: 100%;
+
+    & .hover-button {
+      display: none;
+    }
   }
 
   & > li:hover {
     background: var(--background-secondary);
+
+    & .hover-button {
+      display: inline-flex;
+    }
   }
 }

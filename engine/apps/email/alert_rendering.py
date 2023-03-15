@@ -50,6 +50,6 @@ def build_subject_and_message(alert_group, emails_left):
     )
 
     title = str_or_backup(templated_alert.title, title_fallback)
-    subject = f"[{title}] You are invited to check an alert group"
+    subject = f"[{title}] You are invited to check an alert group".replace("\n", "")
 
     return subject, content
