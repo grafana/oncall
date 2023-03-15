@@ -493,7 +493,7 @@ class ScheduleView(
                 "type": "options",
                 "options": [
                     {"display_name": "API", "value": 0},
-                    {"display_name": "ICal", "value": 1},
+                    {"display_name": "Ical", "value": 1},
                     {"display_name": "Web", "value": 2},
                 ],
             },
