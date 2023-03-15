@@ -116,7 +116,7 @@ def test_audit_alert_group_escalation_no_executed_escalation_policy_snapshots(es
 
 
 @pytest.mark.django_db
-def test_audit_alert_group_escalation_all_executed_escalation_policy_snapshots_have_finished_log_records(
+def test_audit_alert_group_escalation_all_executed_escalation_policy_snapshots_have_triggered_log_records(
     escalation_snapshot_test_setup,
     make_organization_and_user,
     make_alert_group_log_record,
@@ -128,7 +128,7 @@ def test_audit_alert_group_escalation_all_executed_escalation_policy_snapshots_h
     for escalation_policy_snapshot in escalation_policies_snapshots:
         escalation_policy = EscalationPolicy.objects.get(id=escalation_policy_snapshot.id)
         make_alert_group_log_record(
-            alert_group, AlertGroupLogRecord.TYPE_ESCALATION_FINISHED, user, escalation_policy=escalation_policy
+            alert_group, AlertGroupLogRecord.TYPE_ESCALATION_TRIGGERED, user, escalation_policy=escalation_policy
         )
 
     with patch(
@@ -141,7 +141,7 @@ def test_audit_alert_group_escalation_all_executed_escalation_policy_snapshots_h
 
 
 @pytest.mark.django_db
-def test_audit_alert_group_escalation_one_executed_escalation_policy_snapshot_does_not_have_a_finished_log_record(
+def test_audit_alert_group_escalation_one_executed_escalation_policy_snapshot_does_not_have_a_triggered_log_record(
     escalation_snapshot_test_setup,
     make_organization_and_user,
     make_alert_group_log_record,
@@ -150,12 +150,12 @@ def test_audit_alert_group_escalation_one_executed_escalation_policy_snapshot_do
     alert_group, _, _, _ = escalation_snapshot_test_setup
     escalation_policies_snapshots = alert_group.escalation_snapshot.escalation_policies_snapshots
 
-    # let's skip creating a FINISHED alert group log record for the first executed escalation policy
+    # let's skip creating a TRIGGERED alert group log record for the first executed escalation policy
     for idx, escalation_policy_snapshot in enumerate(escalation_policies_snapshots):
         if idx != 0:
             escalation_policy = EscalationPolicy.objects.get(id=escalation_policy_snapshot.id)
             make_alert_group_log_record(
-                alert_group, AlertGroupLogRecord.TYPE_ESCALATION_FINISHED, user, escalation_policy=escalation_policy
+                alert_group, AlertGroupLogRecord.TYPE_ESCALATION_TRIGGERED, user, escalation_policy=escalation_policy
             )
 
     with patch(

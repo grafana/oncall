@@ -574,12 +574,12 @@ def test_escalation_step_with_deleted_user(
 @pytest.mark.parametrize(
     "log_record_type,expected",
     [
-        (AlertGroupLogRecord.TYPE_ESCALATION_TRIGGERED, False),
+        (AlertGroupLogRecord.TYPE_ESCALATION_TRIGGERED, True),
         (AlertGroupLogRecord.TYPE_ESCALATION_FAILED, False),
-        (AlertGroupLogRecord.TYPE_ESCALATION_FINISHED, True),
+        (AlertGroupLogRecord.TYPE_ESCALATION_FINISHED, False),
     ],
 )
-def has_finished_log_record(
+def has_triggered_log_record(
     escalation_step_test_setup, make_escalation_policy, make_alert_group_log_record, log_record_type, expected
 ):
     _, user, _, channel_filter, alert_group, _ = escalation_step_test_setup
@@ -592,4 +592,4 @@ def has_finished_log_record(
     make_alert_group_log_record(alert_group, log_record_type, user, escalation_policy=wait_step)
 
     escalation_policy_snapshot = get_escalation_policy_snapshot_from_model(wait_step)
-    assert escalation_policy_snapshot.has_finished_log_record() == expected
+    assert escalation_policy_snapshot.has_triggered_log_record() == expected
