@@ -483,6 +483,23 @@ class ScheduleView(
                 "type": "team_select",
                 "href": api_root + "teams/",
             },
+            {
+                "name": "status",
+                "type": "options",
+                "options": [
+                    {"display_name": "Used In Escalations", "value": True},
+                    {"display_name": "Unused", "value": False},
+                ],
+            },
+            {
+                "name": "type",
+                "type": "options",
+                "options": [
+                    {"display_name": "Web", "value": 0},
+                    {"display_name": "ICal", "value": 1},
+                    {"display_name": "API", "value": 2},
+                ],
+            },
         ]
 
         if filter_name is not None:
