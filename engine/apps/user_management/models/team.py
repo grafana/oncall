@@ -79,3 +79,5 @@ class Team(models.Model):
     name = models.CharField(max_length=300)
     email = models.CharField(max_length=300, null=True, blank=True, default=None)
     avatar_url = models.URLField()
+
+    is_sharing_resources_to_all = models.BooleanField(default=False)

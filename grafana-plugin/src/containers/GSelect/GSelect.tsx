@@ -122,7 +122,9 @@ const GSelect = observer((props: GSelectProps) => {
     : model.items[value as string]
     ? {
         value,
-        label: get(model.items[value as string], displayField),
+        label: get(model.items[value as string], displayField)
+          ? get(model.items[value as string], displayField)
+          : 'hidden',
         description: getDescription && getDescription(model.items[value as string]),
       }
     : value;
