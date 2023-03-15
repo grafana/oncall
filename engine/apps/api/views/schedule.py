@@ -233,8 +233,10 @@ class ScheduleView(
         # use this method to get the object from the whole organization instead of the current team
         pk = self.kwargs["pk"]
         organization = self.request.auth.organization
+        team_filtering_lookup_args = self.get_team_filtering_lookup_args()
         queryset = organization.oncall_schedules.filter(
             public_primary_key=pk,
+            *team_filtering_lookup_args,
         )
         queryset = self._annotate_queryset(queryset)
 
