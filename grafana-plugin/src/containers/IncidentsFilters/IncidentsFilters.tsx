@@ -149,7 +149,7 @@ class IncidentsFilters extends Component<IncidentsFiltersProps, IncidentsFilters
         <div key="new" className={cx('col')}>
           <CardButton
             icon={<Icon name="bell" size="xxxl" />}
-            description="Firing alert groups"
+            description="Firing"
             title={newIncidentsCount}
             selected={status.includes(IncidentStatus.Firing)}
             onClick={this.getStatusButtonClickHandler(IncidentStatus.Firing)}
@@ -158,7 +158,7 @@ class IncidentsFilters extends Component<IncidentsFiltersProps, IncidentsFilters
         <div key="acknowledged" className={cx('col')}>
           <CardButton
             icon={<Icon name="eye" size="xxxl" />}
-            description="Acknowledged alert groups"
+            description="Acknowledged"
             title={acknowledgedIncidentsCount}
             selected={status.includes(IncidentStatus.Acknowledged)}
             onClick={this.getStatusButtonClickHandler(IncidentStatus.Acknowledged)}
@@ -167,7 +167,7 @@ class IncidentsFilters extends Component<IncidentsFiltersProps, IncidentsFilters
         <div key="resolved" className={cx('col')}>
           <CardButton
             icon={<Icon name="check" size="xxxl" />}
-            description="Resolved alert groups"
+            description="Resolved"
             title={resolvedIncidentsCount}
             selected={status.includes(IncidentStatus.Resolved)}
             onClick={this.getStatusButtonClickHandler(IncidentStatus.Resolved)}
@@ -176,7 +176,7 @@ class IncidentsFilters extends Component<IncidentsFiltersProps, IncidentsFilters
         <div key="silenced" className={cx('col')}>
           <CardButton
             icon={<Icon name="bell-slash" size="xxxl" />}
-            description="Silenced alert groups"
+            description="Silenced"
             title={silencedIncidentsCount}
             selected={status.includes(IncidentStatus.Silenced)}
             onClick={this.getStatusButtonClickHandler(IncidentStatus.Silenced)}
