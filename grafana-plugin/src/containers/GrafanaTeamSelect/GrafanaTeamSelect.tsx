@@ -30,17 +30,11 @@ const GrafanaTeamSelect = observer(({ onSelect, onHide, withoutModal }: GrafanaT
 
   const grafanaTeams = grafanaTeamStore.getSearchResult();
 
-  if (!grafanaTeams || !user) {
-    return null;
-  }
-
   const handleTeamSelect = useCallback(
     (value) => {
       setSelectedTeam(value);
 
       if (withoutModal) {
-        userStore.updateCurrentUser({ current_team: value });
-
         onSelect(value);
       }
     },
@@ -48,10 +42,12 @@ const GrafanaTeamSelect = observer(({ onSelect, onHide, withoutModal }: GrafanaT
   );
 
   const handleConfirm = useCallback(() => {
-    userStore.updateCurrentUser({ current_team: selectedTeam });
-
     onSelect(selectedTeam);
   }, [onSelect, selectedTeam]);
+
+  if (!grafanaTeams || !user) {
+    return null;
+  }
 
   const select = (
     <GSelect

@@ -197,7 +197,7 @@ class RemoteFilters extends Component<RemoteFiltersProps, RemoteFiltersState> {
               openMenuOnFocus
               className={cx('filter-select')}
               options={filter.options.map((option: SelectOption) => ({
-                label: capitalCase(option.display_name),
+                label: option.display_name,
                 value: option.value,
               }))}
               value={values[filter.name]}

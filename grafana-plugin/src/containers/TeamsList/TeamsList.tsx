@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { ChangeEvent, useCallback, useState } from 'react';
 
 import {
   Badge,
@@ -6,7 +6,6 @@ import {
   Checkbox,
   Field,
   HorizontalGroup,
-  Icon,
   Modal,
   RadioButtonGroup,
   Tooltip,
@@ -24,7 +23,7 @@ import { UserActions } from 'utils/authorization';
 
 const TeamsList = observer(() => {
   const store = useStore();
-  const [showEditTeamModal, setShowEditTeamModal] = useState(false);
+  const [teamIdToShowModal, setTeamIdToShowModal] = useState<GrafanaTeam['id']>();
 
   const renderTeam = (record: GrafanaTeam) => {
     return (
@@ -51,14 +50,14 @@ const TeamsList = observer(() => {
     );
   };
 
-  const renderActionButtons = () => {
+  const renderActionButtons = (item: GrafanaTeam) => {
     const editButton = (
       <WithPermissionControlTooltip userAction={UserActions.APIKeysWrite}>
         <Button
           fill="text"
           variant="primary"
           onClick={() => {
-            setShowEditTeamModal(true);
+            setTeamIdToShowModal(item.id);
           }}
         >
           Edit
@@ -127,56 +126,84 @@ const TeamsList = observer(() => {
         columns={columns}
       />
 
-      {showEditTeamModal && (
-        <Modal
-          isOpen
-          title={
-            <HorizontalGroup>
-              <Icon size="lg" name="link" />
-              <Text.Title level={4}>Team settings</Text.Title>
-            </HorizontalGroup>
-          }
-          onDismiss={() => {}}
-        >
-          <WithPermissionControlTooltip userAction={UserActions.AlertGroupsWrite}>
-            <VerticalGroup>
-              <Field label="Who can see the team name and access the team resources">
-                <RadioButtonGroup
-                  options={[
-                    { label: 'All Users', value: '123' },
-                    { label: 'Team members and admins', value: '456' },
-                  ]}
-                  value={'123'}
-                  onChange={() => {
-                    // setErrors({});
-                    // setFilteringTermType(value);
-                    // setFilteringTerm(renderFilteringTermValue(value));
-                  }}
-                />
-              </Field>
-              <Field>
-                <Checkbox
-                  value={false}
-                  onChange={() => {}}
-                  label={'Mark as default team'}
-                  description={'This team will be selected by default when you create new resources'}
-                />
-              </Field>
-            </VerticalGroup>
-          </WithPermissionControlTooltip>
-
-          <HorizontalGroup>
-            <Button onClick={() => {}} variant="secondary">
-              Cancel
-            </Button>
-            <Button onClick={() => {}} variant="primary">
-              Submit
-            </Button>
-          </HorizontalGroup>
-        </Modal>
+      {teamIdToShowModal && (
+        <TeamModal
+          teamId={teamIdToShowModal}
+          onHide={() => {
+            setTeamIdToShowModal(undefined);
+          }}
+        />
       )}
     </>
   );
 });
+
+interface TeamModalProps {
+  teamId: GrafanaTeam['id'];
+  onHide: () => void;
+}
+
+const TeamModal = ({ teamId, onHide }: TeamModalProps) => {
+  const store = useStore();
+  const { grafanaTeamStore, userStore } = store;
+  const team = grafanaTeamStore.items[teamId];
+  const user = userStore.currentUser;
+
+  const [shareResourceToAll, setShareResourceToAll] = useState<boolean>(team.is_sharing_resources_to_all);
+  const [isDefault, setIsDefault] = useState<boolean>(user.current_team === team.id);
+
+  const handleSubmit = useCallback(() => {
+    Promise.all([
+      grafanaTeamStore.updateTeam(teamId, { is_sharing_resources_to_all: shareResourceToAll }),
+      userStore.updateCurrentUser({ current_team: teamId }),
+    ]).then(onHide);
+  }, [isDefault, shareResourceToAll]);
+
+  return (
+    <Modal
+      isOpen
+      title={
+        <HorizontalGroup>
+          <Text.Title level={4}>{team.name} settings</Text.Title>
+        </HorizontalGroup>
+      }
+      onDismiss={onHide}
+    >
+      <WithPermissionControlTooltip userAction={UserActions.AlertGroupsWrite}>
+        <VerticalGroup>
+          <Field label="Who can see the team name and access the team resources">
+            <RadioButtonGroup
+              options={[
+                { label: 'All Users', value: true },
+                { label: 'Team members and admins', value: false },
+              ]}
+              value={shareResourceToAll}
+              onChange={setShareResourceToAll}
+            />
+          </Field>
+          <Field>
+            <Checkbox
+              value={isDefault}
+              onChange={(event: ChangeEvent<HTMLInputElement>) => {
+                setIsDefault(event.target.checked);
+              }}
+              label="Mark as default team"
+              description="This team will be selected by default when you create new resources"
+            />
+          </Field>
+        </VerticalGroup>
+      </WithPermissionControlTooltip>
+
+      <HorizontalGroup>
+        <Button onClick={onHide} variant="secondary">
+          Cancel
+        </Button>
+        <Button onClick={handleSubmit} variant="primary">
+          Submit
+        </Button>
+      </HorizontalGroup>
+    </Modal>
+  );
+};
 
 export default TeamsList;

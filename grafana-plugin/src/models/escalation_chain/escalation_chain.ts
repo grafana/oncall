@@ -71,6 +71,29 @@ export class EscalationChainStore extends BaseStore {
   }
 
   @action
+  async updateItem(id: EscalationChain['id'], skipErrorHandling = false): Promise<EscalationChain> {
+    let escalationChain;
+    try {
+      escalationChain = await this.getById(id, skipErrorHandling);
+    } catch (error) {
+      if (error.response.data.error_code === 'wrong_team') {
+        escalationChain = {
+          id,
+          name: '🔒 Private escalation chain',
+          private: true,
+        };
+      }
+    }
+
+    this.items = {
+      ...this.items,
+      [id]: escalationChain,
+    };
+
+    return escalationChain;
+  }
+
+  @action
   async updateItems(query) {
     const params = typeof query === 'string' ? { search: query } : query;
 

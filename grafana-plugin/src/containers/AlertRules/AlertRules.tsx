@@ -708,21 +708,19 @@ class AlertRules extends React.Component<AlertRulesProps, AlertRulesState> {
                   {channelFilterIds.length > 1 && <Text keyboard>ELSE</Text>}
                   <Text>route to escalation chain:</Text>
                   <WithPermissionControlTooltip userAction={UserActions.IntegrationsWrite}>
-                    <div onClick={(e) => e.stopPropagation()}>
-                      <GSelect
-                        showSearch
-                        modelName="escalationChainStore"
-                        displayField="name"
-                        placeholder="Select Escalation Chain"
-                        className={cx('select', 'control', 'no-trigger-collapse-please')}
-                        value={channelFilter.escalation_chain}
-                        onChange={this.getEscalationChainChangeHandler(channelFilterId)}
-                        showWarningIfEmptyValue={true}
-                        width={'auto'}
-                        icon={'list-ul'}
-                        isTeamNameIncluded={true}
-                      />
-                    </div>
+                    <GSelect
+                      showSearch
+                      modelName="escalationChainStore"
+                      displayField="name"
+                      placeholder="Select Escalation Chain"
+                      className={cx('select', 'control', 'no-trigger-collapse-please')}
+                      value={channelFilter.escalation_chain}
+                      onChange={this.getEscalationChainChangeHandler(channelFilterId)}
+                      showWarningIfEmptyValue={true}
+                      width={'auto'}
+                      icon={'list-ul'}
+                      isTeamNameIncluded={true}
+                    />
                   </WithPermissionControlTooltip>
                 </>
               ) : (
