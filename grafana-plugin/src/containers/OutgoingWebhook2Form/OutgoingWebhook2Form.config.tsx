@@ -3,6 +3,17 @@ import React from 'react';
 import { SelectableValue } from '@grafana/data';
 import { FormItem, FormItemType } from 'components/GForm/GForm.types';
 import Emoji from 'react-emoji-render';
+import { KeyValuePair } from 'utils';
+
+export const WebhookTriggerType = {
+  EscalationStep: new KeyValuePair(0, 'Escalation Step'),
+  Triggered: new KeyValuePair(1, 'Triggered'),
+  Acknowledged: new KeyValuePair(2, 'Acknowledged'),
+  Resolved: new KeyValuePair(3, 'Resolved'),
+  Silenced: new KeyValuePair(4, 'Silenced'),
+  Unsilenced: new KeyValuePair(5, 'Unsilenced'),
+  Unresolved: new KeyValuePair(6, 'Unresolved'),
+};
 
 export const form: { name: string; fields: FormItem[] } = {
   name: 'OutgoingWebhook2',
@@ -19,32 +30,32 @@ export const form: { name: string; fields: FormItem[] } = {
       extra: {
         options: [
           {
-            value: '0',
-            label: 'Escalation step',
+            value: WebhookTriggerType.EscalationStep.key,
+            label: WebhookTriggerType.EscalationStep.value,
           },
           {
-            value: '1',
-            label: 'Triggered',
+            value: WebhookTriggerType.Triggered.key,
+            label: WebhookTriggerType.Triggered.value,
           },
           {
-            value: '2',
-            label: 'Acknowledged',
+            value: WebhookTriggerType.Acknowledged.key,
+            label: WebhookTriggerType.Acknowledged.value,
           },
           {
-            value: '3',
-            label: 'Resolved',
+            value: WebhookTriggerType.Resolved.key,
+            label: WebhookTriggerType.Resolved.value,
           },
           {
-            value: '4',
-            label: 'Silenced',
+            value: WebhookTriggerType.Silenced.key,
+            label: WebhookTriggerType.Silenced.value,
           },
           {
-            value: '5',
-            label: 'Unsilenced',
+            value: WebhookTriggerType.Unsilenced.key,
+            label: WebhookTriggerType.Unsilenced.value,
           },
           {
-            value: '6',
-            label: 'Unresolved',
+            value: WebhookTriggerType.Unresolved.key,
+            label: WebhookTriggerType.Unresolved.value,
           },
         ],
       },
@@ -82,6 +93,9 @@ export const form: { name: string; fields: FormItem[] } = {
       name: 'alert_receive_channel_id',
       label: 'Integrations',
       type: FormItemType.MultiSelect,
+      shouldShow: (data) => {
+        return data.trigger_type !== WebhookTriggerType.EscalationStep.key;
+      },
       extra: {
         modelName: 'alertReceiveChannelStore',
         displayField: 'verbal_name',

@@ -27,6 +27,7 @@ import { PLUGIN_ROOT } from 'utils/consts';
 
 import styles from './OutgoingWebhooks2.module.css';
 import moment from 'moment-timezone';
+import { MatchMediaTooltip } from 'components/MatchMediaTooltip/MatchMediaTooltip';
 
 const cx = cn.bind(styles);
 
@@ -116,6 +117,7 @@ class OutgoingWebhooks2 extends React.Component<OutgoingWebhooks2Props, Outgoing
         width: '35%',
         title: 'URL',
         dataIndex: 'url',
+        render: this.renderUrl,
       },
       {
         width: '10%',
@@ -215,6 +217,19 @@ class OutgoingWebhooks2 extends React.Component<OutgoingWebhooks2Props, Outgoing
       </HorizontalGroup>
     );
   };
+
+  renderUrl(url: string) {
+    console.log('url');
+    return (
+      <div className="table__email-content">
+        <Text type="secondary">
+          <MatchMediaTooltip placement="top" content={url} maxWidth={300}>
+            <span>{url}</span>
+          </MatchMediaTooltip>
+        </Text>
+      </div>
+    );
+  }
 
   renderLastRun(_lastRun: string, webhook: OutgoingWebhook2) {
     const lastRunMoment = moment(webhook.last_status_log?.last_run_at);

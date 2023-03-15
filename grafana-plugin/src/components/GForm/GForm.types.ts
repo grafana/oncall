@@ -14,6 +14,7 @@ export interface FormItem {
   type: FormItemType;
   description?: string;
   normalize?: (value: any) => any;
+  shouldShow?: (data: any) => any;
   getDisabled?: (value: any) => any;
   validation?: {
     required?: boolean;
