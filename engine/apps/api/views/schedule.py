@@ -484,20 +484,17 @@ class ScheduleView(
                 "href": api_root + "teams/",
             },
             {
-                "name": "status",
-                "type": "options",
-                "options": [
-                    {"display_name": "Used In Escalations", "value": True},
-                    {"display_name": "Unused", "value": False},
-                ],
+                "name": "used",
+                "type": "boolean",
+                "default": "false",
             },
             {
                 "name": "type",
                 "type": "options",
                 "options": [
-                    {"display_name": "Web", "value": 0},
+                    {"display_name": "API", "value": 0},
                     {"display_name": "ICal", "value": 1},
-                    {"display_name": "API", "value": 2},
+                    {"display_name": "Web", "value": 2},
                 ],
             },
         ]
