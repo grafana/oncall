@@ -11,6 +11,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Add `regex_match` Jinja filter ([1556](https://github.com/grafana/oncall/pull/1556))
 
+### Changed
+
+- Allow passing `null` as a value for `escalation_chain` when creating routes via the public API ([1557](https://github.com/grafana/oncall/pull/1557))
+
+## v1.1.39 (2023-03-16)
+
+### Added
+
+- Inbound email integration ([837](https://github.com/grafana/oncall/pull/837))
+
 ## v1.1.38 (2023-03-14)
 
 ### Added
