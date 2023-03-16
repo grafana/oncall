@@ -543,6 +543,7 @@ class AlertGroupView(
                 "name": "team",
                 "type": "team_select",
                 "href": api_root + "teams/",
+                "global": True,
             },
             {"name": "search", "type": "search"},
             {"name": "integration", "type": "options", "href": api_root + "alert_receive_channels/?filters=true"},

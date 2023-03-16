@@ -91,6 +91,7 @@ class MaintenanceAPIView(APIView):
                 "name": "team",
                 "type": "team_select",
                 "href": api_root + "teams/",
+                "global": True,
             },
         ]
 

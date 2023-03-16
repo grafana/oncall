@@ -156,6 +156,7 @@ class EscalationChainViewSet(TeamFilteringMixin, PublicPrimaryKeyMixin, ListSeri
                 "name": "team",
                 "type": "team_select",
                 "href": api_root + "teams/",
+                "global": True,
             },
         ]
 
