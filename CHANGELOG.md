@@ -5,13 +5,22 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## Unreleased
+
+### Changed
+
+- Updated wording in some Slack messages to use 'Alert Group' instead of 'Incident' ([1565](https://github.com/grafana/oncall/pull/1565))
+
+### Fixed
+
+- Fix resolution note rendering in Slack message threads where the Slack username was not
+  being properly rendered ([1561](https://github.com/grafana/oncall/pull/1561))
+
 ## v1.1.40 (2023-03-16)
 
 ### Fixed
 
 - Check for duplicated positions in terraform escalation policies create/update
-- Fix resolution note rendering in Slack message threads where the Slack username was not
-  being properly rendered ([1561](https://github.com/grafana/oncall/pull/1561))
 
 ### Added
 
