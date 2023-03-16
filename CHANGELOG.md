@@ -5,6 +5,10 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## Unreleased
+
+- Inbound email integration ([837](https://github.com/grafana/oncall/pull/837))
+
 ## v1.1.38 (2023-03-14)
 
 ### Added
@@ -26,6 +30,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Enable web overrides for Terraform-based schedules
 - Direct user paging improvements ([1358](https://github.com/grafana/oncall/issues/1358))
 - Added Schedule Score quality within the schedule view ([118](https://github.com/grafana/oncall/issues/118))
+
 
 ## v1.1.36 (2023-03-09)
 
