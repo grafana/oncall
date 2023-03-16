@@ -1,5 +1,5 @@
 import type { Page } from '@playwright/test';
-import { ONCALL_API_URL } from './constants';
+import { ONCALL_API_URL, IS_OPEN_SOURCE } from './constants';
 import { clickButton, getInputByName } from './forms';
 import { goToGrafanaPage } from './navigation';
 
@@ -7,6 +7,11 @@ import { goToGrafanaPage } from './navigation';
  * go to config page and wait for plugin icon to be available on left-hand navigation
  */
 export const configureOnCallPlugin = async (page: Page): Promise<void> => {
+  // plugin configuration can safely be skipped for non open-source environments
+  if (!IS_OPEN_SOURCE) {
+    return;
+  }
+
   /**
    * go to the oncall plugin configuration page and wait for the page to be loaded
    */
