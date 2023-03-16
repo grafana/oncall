@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+### Added
+
+- Add `regex_match` Jinja filter ([1556](https://github.com/grafana/oncall/pull/1556))
+
 ### Changed
 
 - Allow passing `null` as a value for `escalation_chain` when creating routes via the public API ([1557](https://github.com/grafana/oncall/pull/1557))
