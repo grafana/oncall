@@ -4,6 +4,11 @@ export const form: { name: string; fields: FormItem[] } = {
   name: 'OutgoingWebhook',
   fields: [
     {
+      name: 'name',
+      type: FormItemType.Input,
+      validation: { required: true },
+    },
+    {
       name: 'team',
       label: 'Assign to team',
       type: FormItemType.GSelect,
@@ -14,11 +19,6 @@ export const form: { name: string; fields: FormItem[] } = {
         showSearch: true,
         allowClear: true,
       },
-    },
-    {
-      name: 'name',
-      type: FormItemType.Input,
-      validation: { required: true },
     },
     {
       name: 'webhook',

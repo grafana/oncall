@@ -60,7 +60,7 @@ const EscalationChainForm: FC<EscalationChainFormProps> = (props) => {
       onDismiss={onHide}
     >
       <div className={cx('root')}>
-        <Field label="Team">
+        <Field label="Assign to team">
           <GrafanaTeamSelect withoutModal onSelect={setSelectedTeam} />
         </Field>
         <Field invalid={Boolean(errors['name'])} error={errors['name']} label="Escalation Chain name">

@@ -8,7 +8,7 @@ from django.apps import apps
 from django.conf import settings
 from django.core.validators import MinLengthValidator
 from django.db import models, transaction
-from django.db.models import Count, Q
+from django.db.models import Q
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 from django.utils import timezone
@@ -235,55 +235,16 @@ class AlertReceiveChannel(IntegrationOptionsMixin, MaintainableObject):
         super(AlertReceiveChannel, self).delete()
 
     def change_team(self, team_id, user):
-        EscalationPolicy = apps.get_model("alerts", "EscalationPolicy")
 
         if team_id == self.team_id:
             raise TeamCanNotBeChangedError("Integration is already in this team")
 
         if team_id is not None:
-            new_team = user.teams.filter(public_primary_key=team_id).first()
+            new_team = user.available_teams().filter(public_primary_key=team_id).first()
             if not new_team:
                 raise TeamCanNotBeChangedError("User is not a member of the selected team")
         else:
             new_team = None  # means General team
-
-        escalation_chains_pks = self.channel_filters.all().values_list("escalation_chain", flat=True)
-        escalation_chains = self.organization.escalation_chains.filter(pk__in=escalation_chains_pks).annotate(
-            num_integrations=Count(
-                "channel_filters__alert_receive_channel",
-                distinct=True,
-                filter=Q(channel_filters__alert_receive_channel__deleted_at__isnull=True),
-            ),
-        )
-        if escalation_chains:
-            # check if escalation chains are connected to routes of other integrations
-            shared_escalation_chains = []
-            for escalation_chain in escalation_chains:
-                if escalation_chain.num_integrations > 1:
-                    shared_escalation_chains.append(escalation_chain)
-            if shared_escalation_chains:
-                shared_escalation_chains_verbal = ", ".join([ec.name for ec in shared_escalation_chains])
-                raise TeamCanNotBeChangedError(
-                    f"Team cannot be changed because one or more escalation chain of integration routes "
-                    f"is connected to other integration: {shared_escalation_chains_verbal}"
-                )
-
-            escalation_policies = EscalationPolicy.objects.filter(escalation_chain__in=escalation_chains)
-
-            users_in_escalation = self.organization.users.filter(escalationpolicy__in=escalation_policies)
-            if new_team:
-                team_members = new_team.users.filter(pk__in=[user.pk for user in users_in_escalation])
-            else:
-                team_members = self.organization.users.filter(pk__in=[user.pk for user in users_in_escalation])
-            not_team_members = set(users_in_escalation) - set(team_members)
-            if not_team_members:
-                not_team_members_verbal = ", ".join([user.username for user in not_team_members])
-                raise TeamCanNotBeChangedError(
-                    f"Team cannot be changed because one or more user from escalation chain(s) is not a member "
-                    f"of the selected team: {not_team_members_verbal}"
-                )
-
-            escalation_chains.update(team=new_team)
         self.team = new_team
         self.save(update_fields=["team"])
 

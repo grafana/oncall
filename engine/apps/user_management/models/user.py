@@ -183,7 +183,7 @@ class User(models.Model):
     def available_teams(self):
         if self.role == LegacyAccessControlRole.ADMIN:
             return self.organization.teams.all()
-        return self.teams.all()
+        return self.teams.all() | self.organization.teams.filter(is_sharing_resources_to_all=True)
 
     def __str__(self):
         return f"{self.pk}: {self.username}"
