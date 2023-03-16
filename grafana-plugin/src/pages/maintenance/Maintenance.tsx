@@ -11,7 +11,6 @@ import GTable from 'components/GTable/GTable';
 import Text from 'components/Text/Text';
 import WithConfirm from 'components/WithConfirm/WithConfirm';
 import MaintenanceForm from 'containers/MaintenanceForm/MaintenanceForm';
-import RemoteFilters from 'containers/RemoteFilters/RemoteFilters';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
 import { getAlertReceiveChannelDisplayName } from 'models/alert_receive_channel/alert_receive_channel.helpers';
 import { AlertReceiveChannel } from 'models/alert_receive_channel/alert_receive_channel.types';
@@ -79,7 +78,7 @@ class MaintenancePage extends React.Component<MaintenancePageProps, MaintenanceP
   };
 
   render() {
-    const { store, query } = this.props;
+    const { store } = this.props;
     const { maintenanceStore } = store;
     const { maintenanceData } = this.state;
 
@@ -118,9 +117,6 @@ class MaintenancePage extends React.Component<MaintenancePageProps, MaintenanceP
     return (
       <>
         <div className={cx('root')}>
-          <div className={cx('filters')}>
-            <RemoteFilters query={query} page="maintenance" onChange={this.handleFiltersChange} />
-          </div>
           <GTable
             emptyText={data ? 'No maintenances found' : 'Loading...'}
             title={() => (

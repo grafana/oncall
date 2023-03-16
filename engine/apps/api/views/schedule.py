@@ -486,6 +486,7 @@ class ScheduleView(
             {
                 "name": "used",
                 "type": "boolean",
+                "display_name": "Used in escalations",
                 "default": "false",
             },
             {

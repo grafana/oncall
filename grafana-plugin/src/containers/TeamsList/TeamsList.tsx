@@ -1,16 +1,6 @@
-import React, { ChangeEvent, useCallback, useState } from 'react';
+import React, { useCallback, useState } from 'react';
 
-import {
-  Badge,
-  Button,
-  Checkbox,
-  Field,
-  HorizontalGroup,
-  Modal,
-  RadioButtonGroup,
-  Tooltip,
-  VerticalGroup,
-} from '@grafana/ui';
+import { Badge, Button, Field, HorizontalGroup, Modal, RadioButtonGroup, Tooltip, VerticalGroup } from '@grafana/ui';
 import { observer } from 'mobx-react';
 
 import Avatar from 'components/Avatar/Avatar';
@@ -24,6 +14,14 @@ import { UserActions } from 'utils/authorization';
 const TeamsList = observer(() => {
   const store = useStore();
   const [teamIdToShowModal, setTeamIdToShowModal] = useState<GrafanaTeam['id']>();
+  const { userStore } = store;
+
+  const isTeamDefault = (record: GrafanaTeam) => {
+    return (
+      (record.id === 'null' && store.userStore.currentUser?.current_team === null) ||
+      record.id === store.userStore.currentUser?.current_team
+    );
+  };
 
   const renderTeam = (record: GrafanaTeam) => {
     return (
@@ -35,33 +33,48 @@ const TeamsList = observer(() => {
             <Avatar size="small" src={record.avatar_url} /> {record.name}{' '}
           </Text>
         )}
-        {record.id === store.userStore.currentUser?.current_team && (
-          <Tooltip
-            content={
-              'This team will be selected by default when creating new resources (Integrations, Escalation Chains, Schedules, Outgoing Webhooks)'
-            }
-          >
-            <Tooltip content={'This team will be selected by default when you create new resources'}>
-              <Text type="secondary">(default)</Text>
+        {isTeamDefault(record) && (
+          <>
+            {' '}
+            <Tooltip
+              content={
+                (record.id === 'null' ? 'No team' : 'This team') +
+                ` will be selected by default when creating new resources (Integrations, Escalation Chains, Schedules, Outgoing Webhooks)`
+              }
+            >
+              <Badge text="default" color="green" />
             </Tooltip>
-          </Tooltip>
+          </>
         )}
       </>
     );
   };
 
-  const renderActionButtons = (item: GrafanaTeam) => {
+  const renderActionButtons = (record: GrafanaTeam) => {
     const editButton = (
       <WithPermissionControlTooltip userAction={UserActions.APIKeysWrite}>
-        <Button
-          fill="text"
-          variant="primary"
-          onClick={() => {
-            setTeamIdToShowModal(item.id);
-          }}
-        >
-          Edit
-        </Button>
+        <HorizontalGroup justify="flex-end">
+          <Button
+            onClick={async () => {
+              await userStore.updateCurrentUser({ current_team: record.id });
+              store.grafanaTeamStore.updateItems();
+            }}
+            disabled={isTeamDefault(record)}
+            fill="text"
+          >
+            Make default
+          </Button>
+          <Button
+            fill="text"
+            disabled={record.id === 'null'}
+            variant="primary"
+            onClick={() => {
+              setTeamIdToShowModal(record.id);
+            }}
+          >
+            Edit
+          </Button>
+        </HorizontalGroup>
       </WithPermissionControlTooltip>
     );
     return editButton;
@@ -71,7 +84,7 @@ const TeamsList = observer(() => {
     return (
       <>
         {record.id === 'null' ? (
-          <Text>All users, because no team is assigned</Text>
+          <Text>All users, as no team is assigned to resources</Text>
         ) : (
           <Text>{record.is_sharing_resources_to_all ? 'All users' : 'Only team members and admins'}</Text>
         )}
@@ -81,13 +94,13 @@ const TeamsList = observer(() => {
 
   const columns = [
     {
-      width: '20%',
+      width: '30%',
       key: 'teamname',
       title: 'Team',
       render: (item: GrafanaTeam) => renderTeam(item),
     },
     {
-      width: '75%',
+      width: '65%',
       title: 'Who can see the team name and access the team resources',
       key: 'permissions',
       render: (item: GrafanaTeam) => renderPermissions(item),
@@ -98,24 +111,6 @@ const TeamsList = observer(() => {
       render: renderActionButtons,
     },
   ];
-
-  //   const onUpdateClickCallback = useCallback(() => {
-  //   (store.grafanaTeamStore.saveTeam(id, {
-  //
-  //       })
-  //   )
-  //     .then((channelFilter: ChannelFilter) => {
-  //       onUpdate(channelFilter.id);
-  //       onHide();
-  //     })
-  //     .catch((err) => {
-  //       const errors = get(err, 'response.data');
-  //       setErrors(errors);
-  //       if (errors?.non_field_errors) {
-  //         openErrorNotification(errors.non_field_errors);
-  //       }
-  //     });
-  // }, [filteringTerm, filteringTermType]);
 
   return (
     <>
@@ -145,19 +140,16 @@ interface TeamModalProps {
 
 const TeamModal = ({ teamId, onHide }: TeamModalProps) => {
   const store = useStore();
-  const { grafanaTeamStore, userStore } = store;
+  const { grafanaTeamStore } = store;
   const team = grafanaTeamStore.items[teamId];
-  const user = userStore.currentUser;
 
   const [shareResourceToAll, setShareResourceToAll] = useState<boolean>(team.is_sharing_resources_to_all);
-  const [isDefault, setIsDefault] = useState<boolean>(user.current_team === team.id);
 
   const handleSubmit = useCallback(() => {
-    Promise.all([
-      grafanaTeamStore.updateTeam(teamId, { is_sharing_resources_to_all: shareResourceToAll }),
-      userStore.updateCurrentUser({ current_team: teamId }),
-    ]).then(onHide);
-  }, [isDefault, shareResourceToAll]);
+    Promise.all([grafanaTeamStore.updateTeam(teamId, { is_sharing_resources_to_all: shareResourceToAll })]).then(
+      onHide
+    );
+  }, [shareResourceToAll]);
 
   return (
     <Modal
@@ -179,16 +171,6 @@ const TeamModal = ({ teamId, onHide }: TeamModalProps) => {
               ]}
               value={shareResourceToAll}
               onChange={setShareResourceToAll}
-            />
-          </Field>
-          <Field>
-            <Checkbox
-              value={isDefault}
-              onChange={(event: ChangeEvent<HTMLInputElement>) => {
-                setIsDefault(event.target.checked);
-              }}
-              label="Mark as default team"
-              description="This team will be selected by default when you create new resources"
             />
           </Field>
         </VerticalGroup>
