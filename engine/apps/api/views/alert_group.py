@@ -282,11 +282,10 @@ class AlertGroupView(
                 organization_id=self.request.auth.organization.id,
             ).values_list("id", flat=True)
         )
-        team_filtering_lookup_args = self.get_team_filtering_lookup_args()
 
         queryset = AlertGroup.unarchived_objects.filter(
             channel__in=alert_receive_channels_ids,
-            *team_filtering_lookup_args,
+            *self.available_teams_lookup_args,
         ).only("id")
 
         return queryset

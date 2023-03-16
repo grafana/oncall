@@ -52,11 +52,10 @@ class EscalationChainViewSet(TeamFilteringMixin, PublicPrimaryKeyMixin, ListSeri
     list_serializer_class = EscalationChainListSerializer
 
     def get_queryset(self):
-        team_filtering_lookup_args = self.get_team_filtering_lookup_args()
         queryset = (
             EscalationChain.objects.filter(
                 organization=self.request.auth.organization,
-                *team_filtering_lookup_args,
+                *self.available_teams_lookup_args,
             )
             .annotate(
                 num_integrations=Count(

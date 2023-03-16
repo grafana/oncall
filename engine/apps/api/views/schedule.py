@@ -172,8 +172,7 @@ class ScheduleView(
         filter_by_type = self.request.query_params.get("type")
         used = BooleanField(allow_null=True).to_internal_value(data=self.request.query_params.get("used"))
         organization = self.request.auth.organization
-        team_filtering_lookup_args = self.get_team_filtering_lookup_args()
-        queryset = OnCallSchedule.objects.filter(organization=organization, *team_filtering_lookup_args,).defer(
+        queryset = OnCallSchedule.objects.filter(organization=organization, *self.available_teams_lookup_args,).defer(
             # avoid requesting large text fields which are not used when listing schedules
             "prev_ical_file_primary",
             "prev_ical_file_overrides",
@@ -233,10 +232,9 @@ class ScheduleView(
         # use this method to get the object from the whole organization instead of the current team
         pk = self.kwargs["pk"]
         organization = self.request.auth.organization
-        team_filtering_lookup_args = self.get_team_filtering_lookup_args()
         queryset = organization.oncall_schedules.filter(
             public_primary_key=pk,
-            *team_filtering_lookup_args,
+            *self.available_teams_lookup_args,
         )
         queryset = self._annotate_queryset(queryset)
 

@@ -240,7 +240,7 @@ class AlertReceiveChannel(IntegrationOptionsMixin, MaintainableObject):
             raise TeamCanNotBeChangedError("Integration is already in this team")
 
         if team_id is not None:
-            new_team = user.available_teams().filter(public_primary_key=team_id).first()
+            new_team = user.available_teams.filter(public_primary_key=team_id).first()
             if not new_team:
                 raise TeamCanNotBeChangedError("User is not a member of the selected team")
         else:

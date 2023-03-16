@@ -50,11 +50,9 @@ class CustomButtonView(TeamFilteringMixin, PublicPrimaryKeyMixin, ModelViewSet):
     filterset_class = CustomButtonFilter
 
     def get_queryset(self):
-        team_filtering_lookup_args = self.get_team_filtering_lookup_args()
-
         queryset = CustomButton.objects.filter(
             organization=self.request.auth.organization,
-            *team_filtering_lookup_args,
+            *self.available_teams_lookup_args,
         )
 
         return queryset
@@ -71,9 +69,8 @@ class CustomButtonView(TeamFilteringMixin, PublicPrimaryKeyMixin, ModelViewSet):
         # use this method to get the object from the whole organization instead of the current team
         pk = self.kwargs["pk"]
         organization = self.request.auth.organization
-        team_filtering_lookup_args = self.get_team_filtering_lookup_args()
         try:
-            obj = organization.custom_buttons.filter(*team_filtering_lookup_args).get(public_primary_key=pk)
+            obj = organization.custom_buttons.filter(*self.available_teams_lookup_args).get(public_primary_key=pk)
         except ObjectDoesNotExist:
             raise NotFound
 

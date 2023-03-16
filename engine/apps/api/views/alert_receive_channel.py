@@ -133,19 +133,16 @@ class AlertReceiveChannelView(
 
     def get_queryset(self, eager=True):
         is_filters_request = self.request.query_params.get("filters", "false") == "true"
-        team_filtering_lookup_args = self.get_team_filtering_lookup_args()
         organization = self.request.auth.organization
         if is_filters_request:
             queryset = AlertReceiveChannel.objects_with_maintenance.filter(
                 organization=organization,
-                *team_filtering_lookup_args,
-                # team=self.request.user.current_team,
+                *self.available_teams_lookup_args,
             )
         else:
             queryset = AlertReceiveChannel.objects.filter(
                 organization=organization,
-                *team_filtering_lookup_args,
-                *team_filtering_lookup_args,
+                *self.available_teams_lookup_args,
             )
             if eager:
                 queryset = self.serializer_class.setup_eager_loading(queryset)

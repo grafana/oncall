@@ -19,7 +19,7 @@ class TeamViewSet(PublicPrimaryKeyMixin, mixins.ListModelMixin, mixins.UpdateMod
     serializer_class = TeamSerializer
 
     def get_queryset(self):
-        return self.request.user.available_teams()
+        return self.request.user.available_teams
 
     def list(self, request, *args, **kwargs):
         queryset = self.filter_queryset(self.get_queryset())

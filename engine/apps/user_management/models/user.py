@@ -180,13 +180,14 @@ class User(models.Model):
     is_active = models.BooleanField(null=True, default=True)
     permissions = models.JSONField(null=False, default=list)
 
+    def __str__(self):
+        return f"{self.pk}: {self.username}"
+
+    @property
     def available_teams(self):
         if self.role == LegacyAccessControlRole.ADMIN:
             return self.organization.teams.all()
         return self.teams.all() | self.organization.teams.filter(is_sharing_resources_to_all=True)
-
-    def __str__(self):
-        return f"{self.pk}: {self.username}"
 
     @property
     def is_authenticated(self):

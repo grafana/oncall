@@ -207,9 +207,6 @@ class UserView(
 
         queryset = User.objects.filter(organization=self.request.user.organization)
 
-        if self.request.user.current_team is not None:
-            queryset = queryset.filter(teams=self.request.user.current_team).distinct()
-
         queryset = self.get_serializer_class().setup_eager_loading(queryset)
 
         if slack_identity:
