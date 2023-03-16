@@ -16,8 +16,8 @@ const escalationStepValuePlaceholder: Record<EscalationStep, string> = {
 export const createEscalationChain = async (
   page: Page,
   escalationChainName: string,
-  escalationStep: EscalationStep,
-  escalationStepValue: string
+  escalationStep: EscalationStep | null,
+  escalationStepValue: string | null
 ): Promise<void> => {
   // go to the escalation chains page
   await goToOnCallPage(page, 'escalations');
@@ -31,6 +31,10 @@ export const createEscalationChain = async (
   // submit the form and wait for it to be created
   await clickButton({ page, buttonText: 'Create' });
   await page.waitForSelector(`text=${escalationChainName}`);
+
+  if (!escalationStep) {
+    return;
+  }
 
   // add an escalation step
   await selectDropdownValue({
