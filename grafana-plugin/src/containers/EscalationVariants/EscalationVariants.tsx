@@ -199,6 +199,7 @@ const UserResponder = ({ important, data, onImportantChange, handleDelete }) => 
               { value: 0, label: 'Default' },
             ]}
             onChange={onImportantChange}
+            width="auto"
           />
         </HorizontalGroup>
         <IconButton className={cx('trash-button')} name="trash-alt" onClick={handleDelete} />
@@ -224,6 +225,7 @@ const ScheduleResponder = ({ important, data, onImportantChange, handleDelete })
               { value: 0, label: 'Default' },
             ]}
             onChange={onImportantChange}
+            width="auto"
           />
         </HorizontalGroup>
         <IconButton className={cx('trash-button')} name="trash-alt" onClick={handleDelete} />

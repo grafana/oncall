@@ -15,7 +15,7 @@
 
 .root .select {
   flex-shrink: 0;
-  min-width: 180px;
+  min-width: 100px;
 }
 
 .root .multiSelect {

@@ -10,13 +10,13 @@ from apps.api.permissions import RBACPermission
 from apps.api.serializers.on_call_shifts import OnCallShiftSerializer, OnCallShiftUpdateSerializer
 from apps.auth_token.auth import PluginAuthentication
 from apps.schedules.models import CustomOnCallShift
-from common.api_helpers.mixins import PublicPrimaryKeyMixin, UpdateSerializerMixin
+from common.api_helpers.mixins import PublicPrimaryKeyMixin, TeamFilteringMixin, UpdateSerializerMixin
 from common.api_helpers.paginators import FiftyPageSizePaginator
 from common.api_helpers.utils import get_date_range_from_request
 from common.insight_log import EntityEvent, write_resource_insight_log
 
 
-class OnCallShiftView(PublicPrimaryKeyMixin, UpdateSerializerMixin, ModelViewSet):
+class OnCallShiftView(TeamFilteringMixin, PublicPrimaryKeyMixin, UpdateSerializerMixin, ModelViewSet):
     authentication_classes = (PluginAuthentication,)
     permission_classes = (IsAuthenticated, RBACPermission)
 
@@ -53,7 +53,7 @@ class OnCallShiftView(PublicPrimaryKeyMixin, UpdateSerializerMixin, ModelViewSet
         queryset = CustomOnCallShift.objects.filter(
             lookup_kwargs,
             organization=self.request.auth.organization,
-            # team=self.request.user.current_team,
+            *self.available_teams_lookup_args,
         )
 
         queryset = self.serializer_class.setup_eager_loading(queryset)
