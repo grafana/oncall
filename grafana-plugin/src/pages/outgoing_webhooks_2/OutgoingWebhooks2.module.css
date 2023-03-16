@@ -3,3 +3,7 @@
   align-items: center;
   width: 100%;
 }
+
+.header__desc {
+  margin-bottom: 12px;
+}

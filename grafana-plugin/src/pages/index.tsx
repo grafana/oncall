@@ -112,7 +112,7 @@ export const pages: { [id: string]: PageDefinition } = [
   {
     icon: 'link',
     id: 'outgoing_webhooks_2',
-    text: 'Outgoing Webhooks 2 (Test)',
+    text: 'Outgoing Webhooks 2',
     path: getPath('outgoing_webhooks_2'),
     hideFromBreadcrumbs: true,
     action: UserActions.OutgoingWebhooksRead,

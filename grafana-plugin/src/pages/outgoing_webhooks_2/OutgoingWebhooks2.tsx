@@ -1,6 +1,6 @@
 import React from 'react';
 
-import { Button, HorizontalGroup, VerticalGroup } from '@grafana/ui';
+import { Button, HorizontalGroup, Icon, VerticalGroup } from '@grafana/ui';
 import cn from 'classnames/bind';
 import { observer } from 'mobx-react';
 import moment from 'moment-timezone';
@@ -146,15 +146,18 @@ class OutgoingWebhooks2 extends React.Component<OutgoingWebhooks2Props, Outgoing
                 emptyText={webhooks ? 'No outgoing webhooks found' : 'Loading...'}
                 title={() => (
                   <div className={cx('header')}>
-                    <LegacyNavHeading>
-                      <VerticalGroup>
-                        <Text.Title level={3}>Outgoing Webhooks 2</Text.Title>
-                        <Text type="secondary">
-                          ⚠️ Preview Functionality! Things will change and things will break! Do not use for critical
-                          production processes!
+                    <div style={{ display: 'flex', alignItems: 'baseline' }}>
+                      <VerticalGroup spacing="sm">
+                        <LegacyNavHeading>
+                          <Text.Title level={3}>Outgoing Webhooks 2</Text.Title>
+                        </LegacyNavHeading>
+                        <Text type="secondary" className={cx('header__desc')}>
+                          <Icon name="exclamation-triangle"></Icon> Preview Functionality! Things will change and things
+                          will break! Do not use for critical production processes!
                         </Text>
                       </VerticalGroup>
-                    </LegacyNavHeading>
+                    </div>
+
                     <div className="u-pull-right">
                       <PluginLink
                         query={{ page: 'outgoing_webhooks_2', id: 'new' }}
