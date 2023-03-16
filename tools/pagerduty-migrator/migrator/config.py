@@ -41,3 +41,8 @@ SCHEDULE_MIGRATION_MODE_WEB = "web"
 SCHEDULE_MIGRATION_MODE = os.getenv(
     "SCHEDULE_MIGRATION_MODE", SCHEDULE_MIGRATION_MODE_ICAL
 )
+
+# Experimental feature to migrate PD rulesets to OnCall integrations
+EXPERIMENTAL_MIGRATE_EVENT_RULES = (
+    os.getenv("EXPERIMENTAL_MIGRATE_EVENT_RULES", "false").lower() == "true"
+)
