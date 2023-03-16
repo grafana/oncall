@@ -85,10 +85,12 @@ export class EscalationChainStore extends BaseStore {
       }
     }
 
-    this.items = {
-      ...this.items,
-      [id]: escalationChain,
-    };
+    if (escalationChain) {
+      this.items = {
+        ...this.items,
+        [id]: escalationChain,
+      };
+    }
 
     return escalationChain;
   }

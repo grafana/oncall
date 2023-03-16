@@ -152,14 +152,27 @@ export class ScheduleStore extends BaseStore {
 
   async updateItem(id: Schedule['id'], fromOrganization = false) {
     if (id) {
-      const item = await this.getById(id, true, fromOrganization);
+      let schedule;
+      try {
+        schedule = await this.getById(id, true, fromOrganization);
+      } catch (error) {
+        if (error.response.data.error_code === 'wrong_team') {
+          schedule = {
+            id,
+            name: '🔒 Private schedule',
+            private: true,
+          };
+        }
+      }
 
-      this.items = {
-        ...this.items,
-        [item.id]: item,
-      };
+      if (schedule) {
+        this.items = {
+          ...this.items,
+          [id]: schedule,
+        };
+      }
 
-      return item;
+      return schedule;
     }
   }
 

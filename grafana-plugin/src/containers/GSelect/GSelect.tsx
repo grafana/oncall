@@ -62,7 +62,7 @@ const GSelect = observer((props: GSelectProps) => {
     showWarningIfEmptyValue = false,
     getDescription,
     filterOptions,
-    fromOrganization,
+    // fromOrganization,
     width = null,
     icon = null,
     isTeamNameIncluded = false,
@@ -134,7 +134,7 @@ const GSelect = observer((props: GSelectProps) => {
 
     (values as string[]).forEach((value: string) => {
       if (!isNil(value) && !model.items[value] && model.updateItem) {
-        model.updateItem(value, fromOrganization);
+        model.updateItem(value, true);
       }
     });
   }, [value]);
