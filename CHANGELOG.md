@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+### Fixed
+
+- Check for duplicated positions in terraform escalation policies create/update
+
 ### Added
 
 - Add `regex_match` Jinja filter ([1556](https://github.com/grafana/oncall/pull/1556))
