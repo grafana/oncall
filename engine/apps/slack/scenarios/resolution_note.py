@@ -362,9 +362,8 @@ class UpdateResolutionNoteStep(scenario_step.ScenarioStep):
             "type": "context",
             "elements": [
                 {
-                    "type": "plain_text",
+                    "type": "mrkdwn",
                     "text": f"{author_verbal} resolution note from {resolution_note.get_source_display()}.",
-                    "emoji": True,
                 }
             ],
         }
