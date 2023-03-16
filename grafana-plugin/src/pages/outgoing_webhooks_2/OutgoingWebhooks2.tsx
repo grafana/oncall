@@ -198,12 +198,12 @@ class OutgoingWebhooks2 extends React.Component<OutgoingWebhooks2Props, Outgoing
     return (
       <HorizontalGroup justify="flex-end">
         <WithPermissionControlTooltip key={'status_action'} userAction={UserActions.OutgoingWebhooksRead}>
-          <Button onClick={this.getStatusClickHandler(record.id)} fill="text">
+          <Button onClick={() => this.onStatusClick(record.id)} fill="text">
             Status
           </Button>
         </WithPermissionControlTooltip>
         <WithPermissionControlTooltip key={'edit_action'} userAction={UserActions.OutgoingWebhooksWrite}>
-          <Button onClick={this.getEditClickHandler(record.id)} fill="text">
+          <Button onClick={() => this.onEditClick(record.id)} fill="text">
             Edit
           </Button>
         </WithPermissionControlTooltip>
@@ -249,30 +249,28 @@ class OutgoingWebhooks2 extends React.Component<OutgoingWebhooks2Props, Outgoing
     };
   };
 
-  getEditClickHandler = (id: OutgoingWebhook2['id']) => {
+  onEditClick = (id: OutgoingWebhook2['id']) => {
     const { history } = this.props;
 
-    return () => {
-      this.setState({ outgoingWebhook2IdToEdit: id, outgoingWebhook2IdToShowStatus: undefined });
+    this.setState({ outgoingWebhook2IdToEdit: id, outgoingWebhook2IdToShowStatus: undefined });
 
-      history.push(`${PLUGIN_ROOT}/outgoing_webhooks_2/${id}`);
-    };
+    history.push(`${PLUGIN_ROOT}/outgoing_webhooks_2/edit/${id}`);
+  };
+
+  onStatusClick = (id: OutgoingWebhook2['id']) => {
+    const { history } = this.props;
+
+    this.setState({ outgoingWebhook2IdToEdit: undefined, outgoingWebhook2IdToShowStatus: id });
+
+    history.push(`${PLUGIN_ROOT}/outgoing_webhooks_2/status/${id}`);
   };
 
   handleOutgoingWebhookFormHide = () => {
     const { history } = this.props;
+
     this.setState({ outgoingWebhook2IdToEdit: undefined, outgoingWebhook2IdToShowStatus: undefined });
 
     history.push(`${PLUGIN_ROOT}/outgoing_webhooks_2`);
-  };
-
-  getStatusClickHandler = (id: OutgoingWebhook2['id']) => {
-    return () => {
-      const { history } = this.props;
-      this.setState({ outgoingWebhook2IdToEdit: undefined, outgoingWebhook2IdToShowStatus: id });
-
-      history.push(`${PLUGIN_ROOT}/outgoing_webhooks_2/${id}`);
-    };
   };
 }
 
