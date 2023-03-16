@@ -17,6 +17,7 @@ import Text from 'components/Text/Text';
 import WithConfirm from 'components/WithConfirm/WithConfirm';
 import OutgoingWebhookForm from 'containers/OutgoingWebhookForm/OutgoingWebhookForm';
 import RemoteFilters from 'containers/RemoteFilters/RemoteFilters';
+import TeamName from 'containers/TeamName/TeamName';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
 import { ActionDTO } from 'models/action';
 import { FiltersValues } from 'models/filters/filters.types';
@@ -186,7 +187,7 @@ class OutgoingWebhooks extends React.Component<OutgoingWebhooksProps, OutgoingWe
   };
 
   renderTeam(record: OutgoingWebhook, teams: any) {
-    return <Text type="secondary">{teams[record.team]?.name}</Text>;
+    return <TeamName team={teams[record.team]} />;
   }
 
   renderActionButtons = (record: ActionDTO) => {

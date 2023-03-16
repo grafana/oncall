@@ -50,10 +50,6 @@ class SettingsPage extends React.Component<SettingsPageProps, SettingsPageState>
 
         <div className={cx('settings')}>
           <Text.Title level={3} className={cx('title')}>
-            Team Settings
-          </Text.Title>
-          <TeamsSettings />
-          <Text.Title level={3} className={cx('title')}>
             Resolution Note
           </Text.Title>
           <Field
@@ -73,6 +69,10 @@ class SettingsPage extends React.Component<SettingsPageProps, SettingsPageState>
             </WithPermissionControlTooltip>
           </Field>
         </div>
+        <Text.Title level={3} className={cx('title')}>
+          Teams and Access Settings
+        </Text.Title>
+        <TeamsSettings />
         <Text.Title level={3} className={cx('title')}>
           API URL
         </Text.Title>

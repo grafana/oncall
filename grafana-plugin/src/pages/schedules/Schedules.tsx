@@ -22,6 +22,7 @@ import WithConfirm from 'components/WithConfirm/WithConfirm';
 import RemoteFilters from 'containers/RemoteFilters/RemoteFilters';
 import ScheduleFinal from 'containers/Rotations/ScheduleFinal';
 import ScheduleForm from 'containers/ScheduleForm/ScheduleForm';
+import TeamName from 'containers/TeamName/TeamName';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
 import { Schedule, ScheduleType } from 'models/schedule/schedule.types';
 import { getSlackChannelName } from 'models/slack_channel/slack_channel.helpers';
@@ -111,13 +112,13 @@ class SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSta
         render: (item: Schedule) => this.renderStatus(item),
       },
       {
-        width: '30%',
+        width: '25%',
         title: 'Name',
         key: 'name',
         render: this.renderName,
       },
       {
-        width: '30%',
+        width: '25%',
         title: 'Oncall',
         key: 'users',
         render: this.renderOncallNow,
@@ -133,7 +134,7 @@ class SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSta
         render: this.renderUserGroup,
       },
       {
-        width: '10%',
+        width: '20%',
         title: 'Team',
         render: (item: Schedule) => this.renderTeam(item, grafanaTeamStore.items),
       },
@@ -380,7 +381,7 @@ class SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSta
   };
 
   renderTeam(record: Schedule, teams: any) {
-    return <Text type="secondary">{teams[record.team]?.name}</Text>;
+    return <TeamName team={teams[record.team]} />;
   }
 
   renderButtons = (item: Schedule) => {

@@ -65,7 +65,7 @@ class RemoteFilters extends Component<RemoteFiltersProps, RemoteFiltersState> {
       if (filtersStore.values[page]) {
         newQuery = { ...filtersStore.values[page] };
       } else {
-        newQuery = defaultFilters || { team: [store.userStore.currentUser.current_team] };
+        newQuery = defaultFilters || { team: [] };
       }
 
       ({ filters, values } = parseFilters(newQuery, filterOptions));
@@ -103,7 +103,11 @@ class RemoteFilters extends Component<RemoteFiltersProps, RemoteFiltersState> {
         (item: FilterOption) =>
           item.type !== 'search' && !filters.some((filter: FilterOption) => filter.name === item.name)
       )
-      .map((item: FilterOption) => ({ label: capitalCase(item.name), value: item.name, data: item }));
+      .map((item: FilterOption) => ({
+        label: item.display_name || capitalCase(item.name),
+        value: item.name,
+        data: item,
+      }));
 
     const allowFreeSearch = filterOptions.some((filter: FilterOption) => filter.name === 'search');
 
@@ -111,7 +115,8 @@ class RemoteFilters extends Component<RemoteFiltersProps, RemoteFiltersState> {
       <div className={cx('filters')}>
         {filters.map((filterOption: FilterOption) => (
           <div key={filterOption.name} className={cx('filter')}>
-            <Text type="secondary">{capitalCase(filterOption.name)}:</Text> {this.renderFilterOption(filterOption)}
+            <Text type="secondary">{filterOption.display_name || capitalCase(filterOption.name)}:</Text>{' '}
+            {this.renderFilterOption(filterOption)}
             <IconButton size="sm" name="times" onClick={this.getDeleteFilterClickHandler(filterOption.name)} />
           </div>
         ))}

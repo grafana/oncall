@@ -8,6 +8,7 @@ import Emoji from 'react-emoji-render';
 import IntegrationLogo from 'components/IntegrationLogo/IntegrationLogo';
 import PluginLink from 'components/PluginLink/PluginLink';
 import Text from 'components/Text/Text';
+import TeamName from 'containers/TeamName/TeamName';
 import { HeartGreenIcon, HeartRedIcon } from 'icons';
 import { AlertReceiveChannel } from 'models/alert_receive_channel/alert_receive_channel.types';
 import { useStore } from 'state/useStore';
@@ -88,8 +89,8 @@ const AlertReceiveChannelCard = observer((props: AlertReceiveChannelCardProps) =
             <Text type="secondary" size="small">
               {integration?.display_name}
             </Text>
-            <Text>{grafanaTeamStore.items[alertReceiveChannel.team]?.name}</Text>
           </HorizontalGroup>
+          <TeamName team={grafanaTeamStore.items[alertReceiveChannel.team]} />
         </VerticalGroup>
       </HorizontalGroup>
     </div>

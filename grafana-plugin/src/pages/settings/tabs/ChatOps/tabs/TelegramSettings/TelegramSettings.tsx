@@ -167,7 +167,7 @@ class TelegramSettings extends Component<TelegramProps, TelegramState> {
   renderChannelName = (record: TelegramChannel) => {
     return (
       <>
-        {record.channel_name} {record.is_default_channel && <Badge text="Default" color="green" />}
+        {record.channel_name} {record.is_default_channel && <Badge text="default" color="green" />}
       </>
     );
   };

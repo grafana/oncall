@@ -1,6 +1,6 @@
 import React, { ReactElement, SyntheticEvent } from 'react';
 
-import { Button, VerticalGroup, LoadingPlaceholder, HorizontalGroup, Tooltip, Icon, Badge } from '@grafana/ui';
+import { Button, VerticalGroup, LoadingPlaceholder, HorizontalGroup, Tooltip, Icon } from '@grafana/ui';
 import cn from 'classnames/bind';
 import { get } from 'lodash-es';
 import { observer } from 'mobx-react';
@@ -8,19 +8,18 @@ import moment from 'moment-timezone';
 import Emoji from 'react-emoji-render';
 import { RouteComponentProps, withRouter } from 'react-router-dom';
 
-import Avatar from 'components/Avatar/Avatar';
 import CardButton from 'components/CardButton/CardButton';
 import CursorPagination from 'components/CursorPagination/CursorPagination';
 import GTable from 'components/GTable/GTable';
 import IntegrationLogo from 'components/IntegrationLogo/IntegrationLogo';
 import ManualAlertGroup from 'components/ManualAlertGroup/ManualAlertGroup';
-import { MatchMediaTooltip } from 'components/MatchMediaTooltip/MatchMediaTooltip';
 import PluginLink from 'components/PluginLink/PluginLink';
 import Text from 'components/Text/Text';
 import Tutorial from 'components/Tutorial/Tutorial';
 import { TutorialStep } from 'components/Tutorial/Tutorial.types';
 import { IncidentsFiltersType } from 'containers/IncidentsFilters/IncidentFilters.types';
 import RemoteFilters from 'containers/RemoteFilters/RemoteFilters';
+import TeamName from 'containers/TeamName/TeamName';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
 import { Alert, Alert as AlertType, AlertAction, IncidentStatus } from 'models/alertgroup/alertgroup.types';
 import { renderRelatedUsers } from 'pages/incident/Incident.helpers';
@@ -28,7 +27,7 @@ import { PageProps, WithStoreProps } from 'state/types';
 import { withMobXProviderContext } from 'state/withStore';
 import LocationHelper from 'utils/LocationHelper';
 import { UserActions } from 'utils/authorization';
-import { PLUGIN_ROOT, TABLE_COLUMN_MAX_WIDTH } from 'utils/consts';
+import { PLUGIN_ROOT } from 'utils/consts';
 
 import styles from './Incidents.module.scss';
 import { IncidentDropdown } from './parts/IncidentDropdown';
@@ -260,6 +259,7 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
           onChange={this.handleFiltersChange}
           extraFilters={this.renderCards.bind(this)}
           defaultFilters={{
+            team: [],
             status: [IncidentStatus.Firing, IncidentStatus.Acknowledged],
             mine: false,
           }}
@@ -612,28 +612,7 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
   }
 
   renderTeam(record: AlertType, teams: any) {
-    return (
-      <>
-        {teams[record.team]?.id === 'null' ? (
-          <Badge
-            text={teams[record.team]?.name}
-            color={'blue'}
-            tooltip={'Resource is not assigned to any team (ex General team)'}
-          />
-        ) : (
-          <Text type="secondary">
-            <Avatar size="small" src={teams[record.team]?.avatar_url} />{' '}
-            <MatchMediaTooltip
-              placement="top"
-              content={'Resource is assigned to ' + teams[record.team]?.name}
-              maxWidth={TABLE_COLUMN_MAX_WIDTH}
-            >
-              <span>{teams[record.team]?.name}</span>
-            </MatchMediaTooltip>{' '}
-          </Text>
-        )}
-      </>
-    );
+    return <TeamName team={teams[record.team]} />;
   }
 
   getOnActionButtonClick = (incidentId: string, action: AlertAction): ((e: SyntheticEvent) => Promise<void>) => {

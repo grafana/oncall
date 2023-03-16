@@ -540,6 +540,11 @@ class AlertGroupView(
         )
 
         filter_options = [
+            {
+                "name": "team",
+                "type": "team_select",
+                "href": api_root + "teams/",
+            },
             {"name": "search", "type": "search"},
             {"name": "integration", "type": "options", "href": api_root + "alert_receive_channels/?filters=true"},
             {
@@ -599,11 +604,6 @@ class AlertGroupView(
                 "name": "mine",
                 "type": "boolean",
                 "default": "true",
-            },
-            {
-                "name": "team",
-                "type": "team_select",
-                "href": api_root + "teams/",
             },
         ]
 
