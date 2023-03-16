@@ -14,7 +14,6 @@ export class FiltersStore extends BaseStore {
   @observable.shallow
   public values: { [page: string]: FiltersValues } = {};
 
-  @observable.shallow
   public globalValues: FiltersValues = {};
 
   constructor(rootStore: RootStore) {
@@ -44,10 +43,5 @@ export class FiltersStore extends BaseStore {
       ...this.values,
       [page]: value,
     };
-  }
-
-  @action
-  updateGlobalValues(value: FiltersValues) {
-    this.globalValues = value;
   }
 }

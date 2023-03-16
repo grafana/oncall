@@ -59,12 +59,12 @@ class RemoteFilters extends Component<RemoteFiltersProps, RemoteFiltersState> {
     let { filters, values } = parseFilters({ ...query, ...filtersStore.globalValues }, filterOptions);
 
     if (isEmpty(values)) {
-      let newQuery;
-      if (filtersStore.values[page]) {
+      let newQuery = defaultFilters || { team: [] };
+      /*  if (filtersStore.values[page]) {
         newQuery = { ...filtersStore.values[page] };
       } else {
         newQuery = defaultFilters || { team: [] };
-      }
+      } */
 
       ({ filters, values } = parseFilters(newQuery, filterOptions));
     }
@@ -74,8 +74,6 @@ class RemoteFilters extends Component<RemoteFiltersProps, RemoteFiltersState> {
 
   render() {
     const { extraFilters } = this.props;
-
-    console.log(this.state);
 
     return (
       <div className={cx('root')}>
@@ -346,11 +344,17 @@ class RemoteFilters extends Component<RemoteFiltersProps, RemoteFiltersState> {
 
     store.filtersStore.updateValuesForPage(page, values);
 
-    const globalValues = pickBy(values, (_, key) =>
+    Object.keys({ ...store.filtersStore.globalValues }).forEach((key) => {
+      if (!(key in values)) {
+        delete store.filtersStore.globalValues[key];
+      }
+    });
+
+    const newGlobalValues = pickBy(values, (_, key) =>
       filterOptions.some((option) => option.name === key && option.global)
     );
 
-    store.filtersStore.updateGlobalValues(globalValues);
+    store.filtersStore.globalValues = newGlobalValues;
 
     LocationHelper.update({ ...values }, 'partial');
     onChange(values, isOnMount);

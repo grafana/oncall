@@ -34,7 +34,7 @@ const Autoresolve = ({ alertReceiveChannelId, onSwitchToTemplate, alertGroupId }
 
   const alertReceiveChannel = alertReceiveChannelStore.items[alertReceiveChannelId];
 
-  const [teamId, setTeamId] = useState<Team['pk']>(currentTeam);
+  const [teamId, setTeamId] = useState<Team['pk']>(alertReceiveChannel.team);
   const [showSaveConfirmationModal, setShowSaveConfirmationModal] = useState<boolean>(false);
   const [autoresolveChanged, setAutoresolveChanged] = useState<boolean>(false);
   const [autoresolveValue, setAutoresolveValue] = useState<boolean>(alertReceiveChannel?.allow_source_based_resolving);
