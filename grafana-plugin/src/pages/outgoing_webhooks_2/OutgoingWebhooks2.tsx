@@ -219,7 +219,6 @@ class OutgoingWebhooks2 extends React.Component<OutgoingWebhooks2Props, Outgoing
   };
 
   renderUrl(url: string) {
-    console.log('url');
     return (
       <div className="table__email-content">
         <Text type="secondary">
@@ -231,13 +230,13 @@ class OutgoingWebhooks2 extends React.Component<OutgoingWebhooks2Props, Outgoing
     );
   }
 
-  renderLastRun(_lastRun: string, webhook: OutgoingWebhook2) {
-    const lastRunMoment = moment(webhook.last_status_log?.last_run_at);
+  renderLastRun(lastRun: string) {
+    const lastRunMoment = moment(lastRun);
 
     return (
       <VerticalGroup spacing="none">
-        <Text type="secondary">{lastRunMoment.format('MMM DD, YYYY')}</Text>
-        <Text type="secondary">{lastRunMoment.format('hh:mm A')}</Text>
+        <Text type="secondary">{lastRunMoment.isValid() ? lastRunMoment.format('MMM DD, YYYY') : '-'}</Text>
+        <Text type="secondary">{lastRunMoment.isValid() ? lastRunMoment.format('hh:mm A') : ''}</Text>
       </VerticalGroup>
     );
   }

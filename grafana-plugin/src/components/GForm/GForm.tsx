@@ -108,9 +108,10 @@ class GForm extends React.Component<GFormProps, {}> {
 
     return (
       <Form maxWidth="none" id={form.name} defaultValues={data} onSubmit={this.handleSubmit}>
-        {({ register, errors, control, getValues }) => {
+        {({ register, errors, control, getValues, setValue }) => {
           return form.fields.map((formItem: FormItem, formIndex: number) => {
             if (formItem.shouldShow && !formItem.shouldShow(getValues())) {
+              setValue(formItem.name, undefined); // clear input value on hide
               return null;
             }
 
