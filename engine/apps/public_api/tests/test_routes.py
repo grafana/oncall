@@ -44,6 +44,7 @@ def test_get_route(
         "id": channel_filter.public_primary_key,
         "integration_id": alert_receive_channel.public_primary_key,
         "escalation_chain_id": escalation_chain.public_primary_key,
+        "routing_type": "regex",
         "routing_regex": channel_filter.filtering_term,
         "position": channel_filter.order,
         "is_the_last_route": channel_filter.is_default,
@@ -76,6 +77,7 @@ def test_get_routes_list(
                 "id": channel_filter.public_primary_key,
                 "integration_id": alert_receive_channel.public_primary_key,
                 "escalation_chain_id": escalation_chain.public_primary_key,
+                "routing_type": "regex",
                 "routing_regex": channel_filter.filtering_term,
                 "position": channel_filter.order,
                 "is_the_last_route": channel_filter.is_default,
@@ -112,6 +114,7 @@ def test_get_routes_filter_by_integration_id(
                 "id": channel_filter.public_primary_key,
                 "integration_id": alert_receive_channel.public_primary_key,
                 "escalation_chain_id": escalation_chain.public_primary_key,
+                "routing_type": "regex",
                 "routing_regex": channel_filter.filtering_term,
                 "position": channel_filter.order,
                 "is_the_last_route": channel_filter.is_default,
@@ -146,7 +149,39 @@ def test_create_route(
         "id": response.data["id"],
         "integration_id": alert_receive_channel.public_primary_key,
         "escalation_chain_id": escalation_chain.public_primary_key,
+        "routing_type": "regex",
         "routing_regex": data_for_create["routing_regex"],
+        "position": 0,
+        "is_the_last_route": False,
+        "slack": {"channel_id": None, "enabled": True},
+        "telegram": {"id": None, "enabled": False},
+        TEST_MESSAGING_BACKEND_FIELD: {"id": None, "enabled": False},
+    }
+
+    assert response.status_code == status.HTTP_201_CREATED
+    assert response.json() == expected_response
+
+
+@pytest.mark.django_db
+def test_create_route_without_escalation_chain(route_public_api_setup):
+    _, _, token, alert_receive_channel, escalation_chain, _ = route_public_api_setup
+
+    client = APIClient()
+    url = reverse("api-public:routes-list")
+
+    data = {
+        "integration_id": alert_receive_channel.public_primary_key,
+        "routing_regex": "testreg",
+        "escalation_chain_id": None,
+    }
+    response = client.post(url, format="json", HTTP_AUTHORIZATION=token, data=data)
+
+    expected_response = {
+        "id": response.data["id"],
+        "integration_id": alert_receive_channel.public_primary_key,
+        "escalation_chain_id": None,
+        "routing_type": "regex",
+        "routing_regex": data["routing_regex"],
         "position": 0,
         "is_the_last_route": False,
         "slack": {"channel_id": None, "enabled": True},
@@ -206,6 +241,7 @@ def test_update_route(
         "id": new_channel_filter.public_primary_key,
         "integration_id": alert_receive_channel.public_primary_key,
         "escalation_chain_id": escalation_chain.public_primary_key,
+        "routing_type": "regex",
         "routing_regex": data_to_update["routing_regex"],
         "position": new_channel_filter.order,
         "is_the_last_route": new_channel_filter.is_default,
@@ -273,6 +309,7 @@ def test_create_route_with_messaging_backend(
         "id": response.data["id"],
         "integration_id": alert_receive_channel.public_primary_key,
         "escalation_chain_id": escalation_chain.public_primary_key,
+        "routing_type": "regex",
         "routing_regex": data_for_create["routing_regex"],
         "position": 0,
         "is_the_last_route": False,
@@ -330,6 +367,7 @@ def test_update_route_with_messaging_backend(
         "id": response.data["id"],
         "integration_id": alert_receive_channel.public_primary_key,
         "escalation_chain_id": escalation_chain.public_primary_key,
+        "routing_type": "regex",
         "routing_regex": new_channel_filter.filtering_term,
         "position": 0,
         "is_the_last_route": False,
@@ -363,6 +401,7 @@ def test_update_route_with_messaging_backend(
         "id": response.data["id"],
         "integration_id": alert_receive_channel.public_primary_key,
         "escalation_chain_id": escalation_chain.public_primary_key,
+        "routing_type": "regex",
         "routing_regex": new_channel_filter.filtering_term,
         "position": 0,
         "is_the_last_route": False,

@@ -14,3 +14,9 @@ yarn-error.log*
 # This file is generated
 grafana-plugin.yml
 frontend_enterprise
+
+# playwright
+/test-results/
+/playwright-report/
+/playwright/.cache/
+storageState.json

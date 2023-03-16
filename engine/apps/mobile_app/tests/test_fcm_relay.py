@@ -13,7 +13,6 @@ from apps.mobile_app.fcm_relay import FCMRelayThrottler, fcm_relay_async
 @pytest.mark.django_db
 def test_fcm_relay_disabled(
     settings,
-    load_mobile_app_urls,
     make_organization_and_user_with_plugin_token,
     make_user_auth_headers,
     make_public_api_token,
@@ -33,7 +32,6 @@ def test_fcm_relay_disabled(
 @pytest.mark.django_db
 def test_fcm_relay_post(
     settings,
-    load_mobile_app_urls,
     make_organization_and_user_with_plugin_token,
     make_user_auth_headers,
     make_public_api_token,
@@ -59,7 +57,6 @@ def test_fcm_relay_post(
 @pytest.mark.django_db
 def test_fcm_relay_ratelimit(
     settings,
-    load_mobile_app_urls,
     make_organization_and_user_with_plugin_token,
     make_user_auth_headers,
     make_public_api_token,

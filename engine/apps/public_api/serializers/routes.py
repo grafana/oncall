@@ -1,11 +1,14 @@
 from django.apps import apps
-from rest_framework import serializers
+from rest_framework import fields, serializers
 
 from apps.alerts.models import AlertReceiveChannel, ChannelFilter, EscalationChain
+from apps.api.serializers.alert_receive_channel import valid_jinja_template_for_serializer_method_field
 from apps.base.messaging import get_messaging_backend_from_id, get_messaging_backends
 from common.api_helpers.custom_fields import OrganizationFilteredPrimaryKeyRelatedField
 from common.api_helpers.exceptions import BadRequest
 from common.api_helpers.mixins import OrderedModelSerializerMixin
+from common.jinja_templater.apply_jinja_template import JinjaTemplateError
+from common.utils import is_regex_valid
 
 
 class BaseChannelFilterSerializer(OrderedModelSerializerMixin, serializers.ModelSerializer):
@@ -18,7 +21,7 @@ class BaseChannelFilterSerializer(OrderedModelSerializerMixin, serializers.Model
         for backend_id, backend in get_messaging_backends():
             if backend is None:
                 continue
-            field = backend_id.lower()
+            field = backend.slug
             self._declared_fields[field] = serializers.DictField(required=False)
             self.Meta.fields.append(field)
 
@@ -33,7 +36,7 @@ class BaseChannelFilterSerializer(OrderedModelSerializerMixin, serializers.Model
         for backend_id, backend in get_messaging_backends():
             if backend is None:
                 continue
-            field = backend_id.lower()
+            field = backend.slug
             channel_id = None
             notification_enabled = False
             if instance.notification_backends and instance.notification_backends.get(backend_id):
@@ -63,7 +66,7 @@ class BaseChannelFilterSerializer(OrderedModelSerializerMixin, serializers.Model
         for backend_id, backend in get_messaging_backends():
             if backend is None:
                 continue
-            field = backend_id.lower()
+            field = backend.slug
             backend_field = validated_data.pop(field, {})
             if backend_field:
                 notification_backend = {}
@@ -128,10 +131,22 @@ class BaseChannelFilterSerializer(OrderedModelSerializerMixin, serializers.Model
         return escalation_chain
 
 
+class RoutingTypeField(fields.CharField):
+    def to_representation(self, value):
+        return ChannelFilter.FILTERING_TERM_TYPE_CHOICES[value][1]
+
+    def to_internal_value(self, data):
+        for filtering_term_type_choices in ChannelFilter.FILTERING_TERM_TYPE_CHOICES:
+            if filtering_term_type_choices[1] == data:
+                return filtering_term_type_choices[0]
+        raise BadRequest(detail="Invalid route type")
+
+
 class ChannelFilterSerializer(BaseChannelFilterSerializer):
     id = serializers.CharField(read_only=True, source="public_primary_key")
     slack = serializers.DictField(required=False)
     telegram = serializers.DictField(required=False)
+    routing_type = RoutingTypeField(allow_null=False, required=False, source="filtering_term_type")
     routing_regex = serializers.CharField(allow_null=False, required=True, source="filtering_term")
     position = serializers.IntegerField(required=False, source="order")
     integration_id = OrganizationFilteredPrimaryKeyRelatedField(
@@ -140,6 +155,7 @@ class ChannelFilterSerializer(BaseChannelFilterSerializer):
     escalation_chain_id = OrganizationFilteredPrimaryKeyRelatedField(
         queryset=EscalationChain.objects,
         source="escalation_chain",
+        allow_null=True,
     )
 
     is_the_last_route = serializers.BooleanField(read_only=True, source="is_default")
@@ -151,6 +167,7 @@ class ChannelFilterSerializer(BaseChannelFilterSerializer):
             "id",
             "integration_id",
             "escalation_chain_id",
+            "routing_type",
             "routing_regex",
             "position",
             "is_the_last_route",
@@ -176,19 +193,21 @@ class ChannelFilterSerializer(BaseChannelFilterSerializer):
 
         return instance
 
-    def validate(self, attrs):
-        alert_receive_channel = attrs.get("alert_receive_channel") or self.instance.alert_receive_channel
-        filtering_term = attrs.get("filtering_term")
-        if filtering_term is None:
-            return attrs
-        try:
-            obj = ChannelFilter.objects.get(alert_receive_channel=alert_receive_channel, filtering_term=filtering_term)
-        except ChannelFilter.DoesNotExist:
-            return attrs
-        if self.instance and obj.id == self.instance.id:
-            return attrs
+    def validate(self, data):
+        filtering_term = data.get("routing_regex")
+        filtering_term_type = data.get("routing_type")
+        if filtering_term_type == ChannelFilter.FILTERING_TERM_TYPE_JINJA2:
+            try:
+                valid_jinja_template_for_serializer_method_field({"route_template": filtering_term})
+            except JinjaTemplateError:
+                raise serializers.ValidationError([f"Jinja template is incorrect"])
+        elif filtering_term_type == ChannelFilter.FILTERING_TERM_TYPE_REGEX or filtering_term_type is None:
+            if filtering_term is not None:
+                if not is_regex_valid(filtering_term):
+                    raise serializers.ValidationError(["Regular expression is incorrect"])
         else:
-            raise BadRequest(detail="Route with this regex already exists")
+            raise serializers.ValidationError([f"Expression type is incorrect"])
+        return data
 
 
 class ChannelFilterUpdateSerializer(ChannelFilterSerializer):

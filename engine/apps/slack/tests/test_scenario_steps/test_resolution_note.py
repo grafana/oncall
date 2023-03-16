@@ -72,7 +72,7 @@ def test_get_resolution_notes_blocks_non_empty(
             "text": {
                 "type": "mrkdwn",
                 "text": "{} <!date^{:.0f}^{{date_num}} {{time_secs}}|message_created_at>\n{}".format(
-                    resolution_note.user.get_user_verbal_for_team_for_slack(mention=True),
+                    resolution_note.user.get_username_with_slack_verbal(mention=True),
                     float(resolution_note.ts),
                     resolution_note.text,
                 ),
@@ -149,7 +149,7 @@ def test_get_resolution_notes_blocks_latest_limit(
                 "text": {
                     "type": "mrkdwn",
                     "text": "{} <!date^{:.0f}^{{date_num}} {{time_secs}}|message_created_at>\n{}".format(
-                        m.user.get_user_verbal_for_team_for_slack(mention=True),
+                        m.user.get_username_with_slack_verbal(mention=True),
                         float(m.ts),
                         m.text,
                     ),

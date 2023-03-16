@@ -224,6 +224,23 @@ the following env variables with your SMTP server credentials:
 
 After enabling the email integration, it will be possible to use the `Notify by email` notification step in user settings.
 
+Grafana OnCall is also capable of creating alert groups from
+[Inbound Email integration]({{< relref "../integrations/available-integrations/configure-inbound-email" >}}).
+
+To configure Inbound Email integration for Grafana OnCall OSS populate env variables with your Email Service Provider data:
+
+- `INBOUND_EMAIL_ESP` - Inbound email ESP name. Available options: amazon_ses, mailgun, mailjet, mandrill, postal, postmark, sendgrid, sparkpost
+- `INBOUND_EMAIL_DOMAIN` - Inbound email domain
+- `INBOUND_EMAIL_WEBHOOK_SECRET` - Inbound email webhook secret
+
+## Limits
+
+By default, Grafana OnCall limits email and phone notifications (calls, SMS) to 200 per user per day.
+The limit can be changed using env variables:
+
+- `PHONE_NOTIFICATIONS_LIMIT` (default is `200`) - phone notifications per user
+- `EMAIL_NOTIFICATIONS_LIMIT` (default is `200`) - emails per user
+
 ## Mobile application set up
 
 >**Note**: This application is currently in beta

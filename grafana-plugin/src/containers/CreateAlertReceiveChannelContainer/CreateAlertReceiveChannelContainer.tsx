@@ -61,7 +61,7 @@ const CreateAlertReceiveChannelContainer = observer((props: CreateAlertReceiveCh
       <div className={cx('search-integration')}>
         <Input autoFocus value={filterValue} placeholder="Search integrations ..." onChange={handleChangeFilter} />
       </div>
-      <div className={cx('cards', { cards_centered: !options.length })}>
+      <div className={cx('cards', { cards_centered: !options.length })} data-testid="create-integration-modal">
         {options.length ? (
           options.map((alertReceiveChannelChoice) => {
             return (

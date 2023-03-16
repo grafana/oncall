@@ -15,6 +15,7 @@ export type PluginStatusResponseBase = Pick<OnCallPluginMetaJSONData, 'license'>
 
 export type PluginSyncStatusResponse = PluginStatusResponseBase & {
   token_ok: boolean;
+  recaptcha_site_key: string;
 };
 
 type PluginConnectedStatusResponse = PluginStatusResponseBase & {

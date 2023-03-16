@@ -21,7 +21,7 @@ import AlertRules from 'containers/AlertRules/AlertRules';
 import CreateAlertReceiveChannelContainer from 'containers/CreateAlertReceiveChannelContainer/CreateAlertReceiveChannelContainer';
 import IntegrationSettings from 'containers/IntegrationSettings/IntegrationSettings';
 import { IntegrationSettingsTab } from 'containers/IntegrationSettings/IntegrationSettings.types';
-import { WithPermissionControl } from 'containers/WithPermissionControl/WithPermissionControl';
+import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
 import { AlertReceiveChannel } from 'models/alert_receive_channel';
 import { AlertReceiveChannelOption } from 'models/alert_receive_channel/alert_receive_channel.types';
 import { PageProps, WithStoreProps } from 'state/types';
@@ -51,18 +51,31 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
     errorData: initErrorDataState(),
   };
 
+  private isMounted: boolean;
   private alertReceiveChanneltoPoll: { [key: string]: number } = {};
   private alertReceiveChannelTimerId: ReturnType<typeof setTimeout>;
 
   async componentDidMount() {
+    this.isMounted = true;
     this.update().then(() => this.parseQueryParams(true));
+  }
+
+  componentWillUnmount() {
+    this.isMounted = false;
+    clearInterval(this.alertReceiveChannelTimerId);
+  }
+
+  componentDidUpdate(prevProps: Readonly<IntegrationsProps>): void {
+    if (prevProps.match.params.id && !this.props.match.params.id) {
+      this.parseQueryParams();
+    }
   }
 
   setSelectedAlertReceiveChannel = (alertReceiveChannelId: AlertReceiveChannel['id'], shouldRedirect = false) => {
     const { store, history } = this.props;
     store.selectedAlertReceiveChannel = alertReceiveChannelId;
 
-    if (shouldRedirect) {
+    if (shouldRedirect && this.isMounted) {
       history.push(`${PLUGIN_ROOT}/integrations/${alertReceiveChannelId || ''}`);
     }
   };
@@ -115,10 +128,6 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
     return store.alertReceiveChannelStore.updateItems();
   };
 
-  componentWillUnmount() {
-    clearInterval(this.alertReceiveChannelTimerId);
-  }
-
   render() {
     const {
       store,
@@ -153,7 +162,7 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
               {searchResult?.length ? (
                 <div className={cx('integrations')}>
                   <div className={cx('integrationsList')}>
-                    <WithPermissionControl userAction={UserActions.IntegrationsWrite}>
+                    <WithPermissionControlTooltip userAction={UserActions.IntegrationsWrite}>
                       <Button
                         onClick={() => {
                           this.setState({ showCreateIntegrationModal: true });
@@ -161,9 +170,9 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
                         icon="plus"
                         className={cx('newIntegrationButton')}
                       >
-                        New integration for receiving alerts
+                        New integration to receive alerts
                       </Button>
-                    </WithPermissionControl>
+                    </WithPermissionControlTooltip>
                     <div className={cx('alert-receive-channels-list')}>
                       <GList
                         autoScroll
@@ -207,7 +216,7 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
                   title={
                     <VerticalGroup align="center" spacing="lg">
                       <Text type="secondary">No integrations found. Review your filter and team settings.</Text>
-                      <WithPermissionControl userAction={UserActions.IntegrationsWrite}>
+                      <WithPermissionControlTooltip userAction={UserActions.IntegrationsWrite}>
                         <Button
                           icon="plus"
                           variant="primary"
@@ -216,9 +225,9 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
                             this.setState({ showCreateIntegrationModal: true });
                           }}
                         >
-                          New integration for receiving alerts
+                          New integration to receive alerts
                         </Button>
-                      </WithPermissionControl>
+                      </WithPermissionControlTooltip>
                     </VerticalGroup>
                   }
                 />

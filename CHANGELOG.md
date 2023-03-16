@@ -5,6 +5,131 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## Unreleased
+
+### Changed
+
+- Allow passing `null` as a value for `escalation_chain` when creating routes via the public API ([1557](https://github.com/grafana/oncall/pull/1557))
+
+## v1.1.39 (2023-03-16)
+
+### Added
+
+- Inbound email integration ([837](https://github.com/grafana/oncall/pull/837))
+
+## v1.1.38 (2023-03-14)
+
+### Added
+
+- Add filtering by escalation chain to alert groups page ([1535](https://github.com/grafana/oncall/pull/1535))
+
+### Fixed
+
+- Improve tasks checking/triggering webhooks in new backend
+
+## v1.1.37 (2023-03-14)
+
+### Fixed
+
+- Fixed redirection issue on integrations screen
+
+### Added
+
+- Enable web overrides for Terraform-based schedules
+- Direct user paging improvements ([1358](https://github.com/grafana/oncall/issues/1358))
+- Added Schedule Score quality within the schedule view ([118](https://github.com/grafana/oncall/issues/118))
+
+## v1.1.36 (2023-03-09)
+
+### Fixed
+
+- Fix bug with override creation ([1515](https://github.com/grafana/oncall/pull/1515))
+
+## v1.1.35 (2023-03-09)
+
+### Added
+
+- Insight logs
+
+### Fixed
+
+- Fixed issue with Alert group involved users filter
+- Fixed email sending failure due to newline in title
+
+## v1.1.34 (2023-03-08)
+
+### Added
+
+- Jinja2 based routes ([1319](https://github.com/grafana/oncall/pull/1319))
+
+### Changed
+
+- Remove mobile app feature flag ([1484](https://github.com/grafana/oncall/pull/1484))
+
+### Fixed
+
+- Prohibit creating & updating past overrides ([1474](https://github.com/grafana/oncall/pull/1474))
+
+## v1.1.33 (2023-03-07)
+
+### Fixed
+
+- Show permission error for accessing Telegram as Viewer ([1273](https://github.com/grafana/oncall/issues/1273))
+
+### Changed
+
+- Pass email and phone limits as environment variables ([1219](https://github.com/grafana/oncall/pull/1219))
+
+## v1.1.32 (2023-03-01)
+
+### Fixed
+
+- Schedule filters improvements ([941](https://github.com/grafana/oncall/issues/941))
+- Fix pagination issue on schedules page ([1437](https://github.com/grafana/oncall/pull/1437))
+
+## v1.1.31 (2023-03-01)
+
+### Added
+
+- Add acknowledge_signal and source link to public api
+
+## v1.1.30 (2023-03-01)
+
+### Fixed
+
+- Fixed importing of global grafana styles ([672](https://github.com/grafana/oncall/issues/672))
+- Fixed UI permission related bug where Editors could not export their user iCal link
+- Fixed error when a shift is created using Etc/UTC as timezone
+- Fixed issue with refresh ical file task not considering empty string values
+- Schedules: Long popup does not fit screen & buttons unreachable & objects outside of the popup ([1002](https://github.com/grafana/oncall/issues/1002))
+- Can't scroll on integration settings page ([415](https://github.com/grafana/oncall/issues/415))
+- Team change in the Integration page always causes 403 ([1292](https://github.com/grafana/oncall/issues/1292))
+- Schedules: Permalink doesn't work with multi-teams ([940](https://github.com/grafana/oncall/issues/940))
+- Schedules list -> expanded schedule blows page width ([1293](https://github.com/grafana/oncall/issues/1293))
+
+### Changed
+
+- Moved reCAPTCHA to backend environment variable for more flexible configuration between different environments.
+- Add pagination to schedule listing
+- Show 100 latest alerts on alert group page ([1417](https://github.com/grafana/oncall/pull/1417))
+
+## v1.1.29 (2023-02-23)
+
+### Changed
+
+- Allow creating schedules with type "web" using public API
+
+### Fixed
+
+- Fixed minor issue during the sync process where an HTTP 302 (redirect) status code from the Grafana
+  instance would cause the sync to not properly finish
+
+## v1.1.28 (2023-02-23)
+
+### Fixed
+
+- Fixed maintenance mode for Telegram and MSTeams
+
 ## v1.1.27 (2023-02-22)
 
 ### Added
@@ -14,6 +139,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - Added ratelimits for phone verification
+- Link to source was added
+- Header of Incident page was reworked: clickable labels instead of just names, users section was deleted
+- "Go to Integration" button was deleted, because the functionality was moved to clickable labels
 
 ### Fixed
 
@@ -55,9 +183,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Incidents - Removed buttons column and replaced status with toggler ([#1237](https://github.com/grafana/oncall/issues/1237))
 - Responsiveness changes across multiple pages (Incidents, Integrations, Schedules) ([#1237](https://github.com/grafana/oncall/issues/1237))
-- Link to source was added
-- Header of Incident page was reworked: clickable labels instead of just names, users section was deleted
-- "Go to Integration" button was deleted, because the functionality was moved to clickable labels
+- Add pagination to schedule listing
 
 ## v1.1.23 (2023-02-06)
 

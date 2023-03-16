@@ -13,7 +13,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
 from apps.alerts.constants import ActionSource
-from apps.alerts.models import Alert, AlertGroup, AlertReceiveChannel
+from apps.alerts.models import Alert, AlertGroup, AlertReceiveChannel, EscalationChain
 from apps.alerts.paging import unpage_user
 from apps.api.permissions import RBACPermission
 from apps.api.serializers.alert_group import AlertGroupListSerializer, AlertGroupSerializer
@@ -32,6 +32,13 @@ def get_integration_queryset(request):
         return AlertReceiveChannel.objects.none()
 
     return AlertReceiveChannel.objects_with_maintenance.filter(organization=request.user.organization)
+
+
+def get_escalation_chain_queryset(request):
+    if request is None:
+        return EscalationChain.objects.none()
+
+    return EscalationChain.objects.filter(organization=request.user.organization)
 
 
 def get_user_queryset(request):
@@ -64,6 +71,12 @@ class AlertGroupFilter(DateRangeFilterMixin, ModelFieldFilterMixin, filters.Filt
     integration = filters.ModelMultipleChoiceFilter(
         field_name="channel_filter__alert_receive_channel",
         queryset=get_integration_queryset,
+        to_field_name="public_primary_key",
+        method=ModelFieldFilterMixin.filter_model_field.__name__,
+    )
+    escalation_chain = filters.ModelMultipleChoiceFilter(
+        field_name="channel_filter__escalation_chain",
+        queryset=get_escalation_chain_queryset,
         to_field_name="public_primary_key",
         method=ModelFieldFilterMixin.filter_model_field.__name__,
     )
@@ -147,14 +160,19 @@ class AlertGroupFilter(DateRangeFilterMixin, ModelFieldFilterMixin, filters.Filt
             return queryset
 
         queryset = queryset.filter(
-            Q(personal_log_records__author__in=users) | Q(log_records__author__in=users)
+            # user was notified
+            Q(personal_log_records__author__in=users)
+            |
+            # or interacted with the alert group
+            Q(acknowledged_by_user__in=users)
+            | Q(resolved_by_user__in=users)
+            | Q(silenced_by_user__in=users)
         ).distinct()
-
         return queryset
 
     def filter_mine(self, queryset, name, value):
         if value:
-            return self.filter_by_involved_users(queryset, "users", [self.request.user.pk])
+            return self.filter_by_involved_users(queryset, "users", [self.request.user])
         return queryset
 
     def filter_with_resolution_note(self, queryset, name, value):
@@ -522,6 +540,7 @@ class AlertGroupView(
         filter_options = [
             {"name": "search", "type": "search"},
             {"name": "integration", "type": "options", "href": api_root + "alert_receive_channels/?filters=true"},
+            {"name": "escalation_chain", "type": "options", "href": api_root + "escalation_chains/?filters=true"},
             {
                 "name": "acknowledged_by",
                 "type": "options",

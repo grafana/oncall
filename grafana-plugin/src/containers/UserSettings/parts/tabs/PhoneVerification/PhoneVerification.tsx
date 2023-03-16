@@ -6,13 +6,12 @@ import { observer } from 'mobx-react';
 
 import PluginLink from 'components/PluginLink/PluginLink';
 import Text from 'components/Text/Text';
-import { WithPermissionControl } from 'containers/WithPermissionControl/WithPermissionControl';
+import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
 import { User } from 'models/user/user.types';
+import { rootStore } from 'state';
 import { AppFeature } from 'state/features';
 import { useStore } from 'state/useStore';
-import { openErrorNotification } from 'utils';
 import { isUserActionAllowed, UserAction, UserActions } from 'utils/authorization';
-import { reCAPTCHA_site_key } from 'utils/consts';
 
 import styles from './PhoneVerification.module.css';
 
@@ -91,18 +90,13 @@ const PhoneVerification = observer((props: PhoneVerificationProps) => {
 
   const onSubmitCallback = useCallback(async () => {
     if (isCodeSent) {
-      userStore
-        .verifyPhone(userPk, code)
-        .then(() => {
-          userStore.loadUser(userPk);
-        })
-        .catch((error) => {
-          openErrorNotification(error.response.data);
-        });
+      userStore.verifyPhone(userPk, code).then(() => {
+        userStore.loadUser(userPk);
+      });
     } else {
       window.grecaptcha.ready(function () {
         window.grecaptcha
-          .execute(reCAPTCHA_site_key, { action: 'mobile_verification_code' })
+          .execute(rootStore.recaptchaSiteKey, { action: 'mobile_verification_code' })
           .then(async function (token) {
             await userStore.updateUser({
               pk: userPk,
@@ -110,20 +104,13 @@ const PhoneVerification = observer((props: PhoneVerificationProps) => {
               unverified_phone_number: phone,
             });
 
-            userStore
-              .fetchVerificationCode(userPk, token)
-              .then(() => {
-                setState({ isCodeSent: true });
+            userStore.fetchVerificationCode(userPk, token).then(() => {
+              setState({ isCodeSent: true });
 
-                if (codeInputRef.current) {
-                  codeInputRef.current.focus();
-                }
-              })
-              .catch(() => {
-                openErrorNotification(
-                  'Grafana OnCall is unable to verify your phone number due to incorrect number or verification service being unavailable.'
-                );
-              });
+              if (codeInputRef.current) {
+                codeInputRef.current.focus();
+              }
+            });
           });
       });
     }
@@ -193,7 +180,7 @@ const PhoneVerification = observer((props: PhoneVerificationProps) => {
           invalid={showPhoneInputError}
           error={showPhoneInputError ? 'Enter a valid phone number' : null}
         >
-          <WithPermissionControl userAction={action}>
+          <WithPermissionControlTooltip userAction={action}>
             <Input
               autoFocus
               id="phone"
@@ -205,7 +192,7 @@ const PhoneVerification = observer((props: PhoneVerificationProps) => {
               value={phone}
               onChange={onChangePhoneCallback}
             />
-          </WithPermissionControl>
+          </WithPermissionControlTooltip>
         </Field>
         {!user.verified_phone_number && (
           <Input
@@ -314,15 +301,15 @@ function PhoneVerificationButtonsGroup({
   return (
     <HorizontalGroup>
       {showVerifyOrSendCodeButton && (
-        <WithPermissionControl userAction={action}>
+        <WithPermissionControlTooltip userAction={action}>
           <Button variant="primary" onClick={onSubmitCallback} disabled={isButtonDisabled}>
             {isCodeSent ? 'Verify' : 'Send Code'}
           </Button>
-        </WithPermissionControl>
+        </WithPermissionControlTooltip>
       )}
 
       {showForgetNumber && (
-        <WithPermissionControl userAction={action}>
+        <WithPermissionControlTooltip userAction={action}>
           <Button
             disabled={(!user.verified_phone_number && !user.unverified_phone_number) || isTestCallInProgress}
             onClick={onShowForgetScreen}
@@ -330,19 +317,19 @@ function PhoneVerificationButtonsGroup({
           >
             {'Forget Phone Number'}
           </Button>
-        </WithPermissionControl>
+        </WithPermissionControlTooltip>
       )}
 
       {user.verified_phone_number && (
         <>
-          <WithPermissionControl userAction={action}>
+          <WithPermissionControlTooltip userAction={action}>
             <Button
               disabled={!user?.verified_phone_number || !isTwilioConfigured || isTestCallInProgress}
               onClick={handleMakeTestCallClick}
             >
               {isTestCallInProgress ? 'Making Test Call...' : 'Make Test Call'}
             </Button>
-          </WithPermissionControl>
+          </WithPermissionControlTooltip>
           <Tooltip content={'Click "Make Test Call" to save a phone number and add it to DnD exceptions.'}>
             <Icon
               name="info-circle"
