@@ -10,6 +10,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - Check for duplicated positions in terraform escalation policies create/update
+- Fix resolution note rendering in Slack message threads where the Slack username was not
+  being properly rendered ([1561](https://github.com/grafana/oncall/pull/1561))
 
 ### Added
 
