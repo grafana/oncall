@@ -155,6 +155,7 @@ class ChannelFilterSerializer(BaseChannelFilterSerializer):
     escalation_chain_id = OrganizationFilteredPrimaryKeyRelatedField(
         queryset=EscalationChain.objects,
         source="escalation_chain",
+        allow_null=True,
     )
 
     is_the_last_route = serializers.BooleanField(read_only=True, source="is_default")
