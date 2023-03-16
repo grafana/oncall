@@ -67,7 +67,7 @@ class TeamPrimaryKeyRelatedField(RelatedField):
         request = self.context.get("request", None)
         if not request:
             return None
-        return request.user.teams.all()
+        return request.user.available_teams().all()
 
     def display_value(self, instance):
         return self.display_func(instance)
