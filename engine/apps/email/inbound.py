@@ -49,20 +49,21 @@ class InboundEmailWebhookView(AlertChannelDefiningMixin, APIView):
         if not request.method.lower() in ["head", "post"]:
             return HttpResponseNotAllowed(permitted_methods=["head", "post"])
 
-        self._check_inbound_email_settings_set()
+        self.check_inbound_email_settings_set()
 
         # Some ESPs verify the webhook with a HEAD request at configuration time
         if request.method.lower() == "head":
             return HttpResponse(status=status.HTTP_200_OK)
 
-        integration_token = self._get_integration_token_from_request(request)
+        integration_token = self.get_integration_token_from_request(request)
         if integration_token is None:
-            return HttpResponse(status=status.HTTP_400_BAD_REQUEST)
+            # Return 200 to handle verify requests from ESPs
+            return HttpResponse(status=status.HTTP_200_OK)
         return super().dispatch(request, alert_channel_key=integration_token)
 
     def post(self, request, alert_receive_channel):
-        for message in self._get_messages_from_esp_request(request):
-            payload = self._get_alert_payload_from_email_message(message)
+        for message in self.get_messages_from_esp_request(request):
+            payload = self.get_alert_payload_from_email_message(message)
             create_alert.delay(
                 title=payload["subject"],
                 message=payload["message"],
@@ -75,8 +76,8 @@ class InboundEmailWebhookView(AlertChannelDefiningMixin, APIView):
 
         return Response("OK", status=status.HTTP_200_OK)
 
-    def _get_integration_token_from_request(self, request) -> Optional[str]:
-        messages = self._get_messages_from_esp_request(request)
+    def get_integration_token_from_request(self, request) -> Optional[str]:
+        messages = self.get_messages_from_esp_request(request)
         if not messages:
             return None
         message = messages[0]
@@ -86,15 +87,22 @@ class InboundEmailWebhookView(AlertChannelDefiningMixin, APIView):
             token, domain = message.envelope_recipient.split("@")
             if domain == live_settings.INBOUND_EMAIL_DOMAIN:
                 return token
-        for to in message.to:
-            if to.domain == live_settings.INBOUND_EMAIL_DOMAIN:
-                return to.address.split("@")[0]
-        for cc in message.cc:
-            if cc.domain == live_settings.INBOUND_EMAIL_DOMAIN:
-                return cc.address.split("@")[0]
+        else:
+            logger.info(f"get_integration_token_from_request: message.envelope_recipient is not present")
+        """
+        TODO: handle case when envelope_recipient is not provided.
+        Now we can't just compare to/cc domains one by one with INBOUND_EMAIL_DOMAIN
+        because this check will not work in case of OrganizationMovedException
+        """
+        # for to in message.to:
+        #     if to.domain == live_settings.INBOUND_EMAIL_DOMAIN:
+        #         return to.address.split("@")[0]
+        # for cc in message.cc:
+        #     if cc.domain == live_settings.INBOUND_EMAIL_DOMAIN:
+        #         return cc.address.split("@")[0]
         return None
 
-    def _get_messages_from_esp_request(self, request: Request) -> list[AnymailInboundMessage]:
+    def get_messages_from_esp_request(self, request: Request) -> list[AnymailInboundMessage]:
         view_class, secret_name = INBOUND_EMAIL_ESP_OPTIONS[live_settings.INBOUND_EMAIL_ESP]
 
         kwargs = {secret_name: live_settings.INBOUND_EMAIL_WEBHOOK_SECRET} if secret_name else {}
@@ -103,12 +111,13 @@ class InboundEmailWebhookView(AlertChannelDefiningMixin, APIView):
         try:
             view.run_validators(request)
             events = view.parse_events(request)
-        except AnymailWebhookValidationFailure:
+        except AnymailWebhookValidationFailure as e:
+            logger.info(f"get_messages_from_esp_request: inbound email webhook validation failed: {e}")
             return []
 
         return [event.message for event in events if isinstance(event, AnymailInboundEvent)]
 
-    def _check_inbound_email_settings_set(self):
+    def check_inbound_email_settings_set(self):
         """
         Guard method to checks if INBOUND_EMAIL settings present.
         Returns InternalServerError if not.
@@ -124,7 +133,7 @@ class InboundEmailWebhookView(AlertChannelDefiningMixin, APIView):
             logger.error("InboundEmailWebhookView: INBOUND_EMAIL_DOMAIN env variable must be set.")
             return HttpResponse(status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
-    def _get_alert_payload_from_email_message(self, email: AnymailInboundMessage) -> EmailAlertPayload:
+    def get_alert_payload_from_email_message(self, email: AnymailInboundMessage) -> EmailAlertPayload:
         subject = email.subject or ""
         subject = subject.strip()
         message = email.text or ""
