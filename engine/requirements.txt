@@ -51,3 +51,4 @@ pyroscope-io==0.8.1
 django-dbconn-retry==0.1.7
 django-ipware==4.0.2
 django-anymail==8.6
+drf-spectacular==0.26.0

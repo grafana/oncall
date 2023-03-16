@@ -223,15 +223,24 @@ INSTALLED_APPS = [
     "django_migration_linter",
     "fcm_django",
     "django_dbconn_retry",
+    "drf_spectacular",
 ]
 
 REST_FRAMEWORK = {
+    "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
     "DEFAULT_PARSER_CLASSES": (
         "engine.parsers.JSONParser",
         "engine.parsers.FormParser",
         "rest_framework.parsers.MultiPartParser",
     ),
     "DEFAULT_AUTHENTICATION_CLASSES": [],
+}
+
+SPECTACULAR_SETTINGS = {
+    "TITLE": "Grafana OnCall API",
+    "DESCRIPTION": "Your project description",
+    "VERSION": VERSION,
+    "SERVE_INCLUDE_SCHEMA": False,
 }
 
 MIDDLEWARE = [

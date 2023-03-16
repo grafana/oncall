@@ -17,6 +17,7 @@ from django.conf import settings
 from django.conf.urls.static import static
 from django.contrib import admin
 from django.urls import include, path
+from drf_spectacular.views import SpectacularAPIView, SpectacularRedocView, SpectacularSwaggerView
 
 from .views import HealthCheckView, ReadinessCheckView, StartupProbeView
 
@@ -37,6 +38,11 @@ urlpatterns = [
     path("api/v1/", include("apps.public_api.urls", namespace="api-public")),
     path("mobile_app/v1/", include("apps.mobile_app.urls", namespace="mobile_app")),
     path("api/internal/v1/mobile_app/", include("apps.mobile_app.urls", namespace="mobile_app_tmp")),
+    # openapi spec schema
+    path("api/schema/", SpectacularAPIView.as_view(), name="schema"),
+    # openapi spec UIs
+    path("api/schema/swagger-ui/", SpectacularSwaggerView.as_view(url_name="schema"), name="swagger-ui"),
+    path("api/schema/redoc/", SpectacularRedocView.as_view(url_name="schema"), name="redoc"),
 ] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
 
 if settings.FEATURE_SLACK_INTEGRATION_ENABLED:
