@@ -233,7 +233,6 @@ class AlertReceiveChannelView(
         api_root = "/api/internal/v1/"
 
         filter_options = [
-            # {"name": "search", "type": "search"},
             {
                 "name": "team",
                 "type": "team_select",
