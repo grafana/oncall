@@ -9,7 +9,7 @@ weight: 600
 # Create an OnCall shift
 
 ```shell
-curl "{{API_URL}}/api/v1/on_call_shifts/" \
+curl "{{API_URL}}/api/v1/oncall_shifts/" \
   --request POST \
   --header "Authorization: meowmeowmeow" \
   --header "Content-Type: application/json" \
@@ -71,12 +71,12 @@ Please see [RFC 5545](https://tools.ietf.org/html/rfc5545#section-3.3.10) for mo
 
 **HTTP request**
 
-`POST {{API_URL}}/api/v1/on_call_shifts/`
+`POST {{API_URL}}/api/v1/oncall_shifts/`
 
 # Get OnCall shifts
 
 ```shell
-curl "{{API_URL}}/api/v1/on_call_shifts/OH3V5FYQEYJ6M/" \
+curl "{{API_URL}}/api/v1/oncall_shifts/OH3V5FYQEYJ6M/" \
   --request GET \
   --header "Authorization: meowmeowmeow" \
   --header "Content-Type: application/json" \
@@ -100,12 +100,12 @@ The above command returns JSON structured in the following way:
 
 **HTTP request**
 
-`GET {{API_URL}}/api/v1/on_call_shifts/<ON_CALL_SHIFT_ID>/`
+`GET {{API_URL}}/api/v1/oncall_shifts/<ON_CALL_SHIFT_ID>/`
 
 # List OnCall shifts
 
 ```shell
-curl "{{API_URL}}/api/v1/on_call_shifts/" \
+curl "{{API_URL}}/api/v1/oncall_shifts/" \
   --request GET \
   --header "Authorization: meowmeowmeow" \
   --header "Content-Type: application/json"
@@ -158,12 +158,12 @@ The following available filter parameters should be provided as `GET` arguments:
 
 **HTTP request**
 
-`GET {{API_URL}}/api/v1/on_call_shifts/`
+`GET {{API_URL}}/api/v1/oncall_shifts/`
 
 # Update OnCall shift
 
 ```shell
-curl "{{API_URL}}/api/v1/on_call_shifts/OH3V5FYQEYJ6M/" \
+curl "{{API_URL}}/api/v1/oncall_shifts/OH3V5FYQEYJ6M/" \
   --request PUT \
   --header "Authorization: meowmeowmeow" \
   --header "Content-Type: application/json" \
@@ -197,12 +197,12 @@ The above command returns JSON structured in the following way:
 
 **HTTP request**
 
-`PUT {{API_URL}}/api/v1/on_call_shifts/<ON_CALL_SHIFT_ID>/`
+`PUT {{API_URL}}/api/v1/oncall_shifts/<ON_CALL_SHIFT_ID>/`
 
 # Delete OnCall shift
 
 ```shell
-curl "{{API_URL}}/api/v1/on_call_shifts/OH3V5FYQEYJ6M/" \
+curl "{{API_URL}}/api/v1/oncall_shifts/OH3V5FYQEYJ6M/" \
   --request DELETE \
   --header "Authorization: meowmeowmeow" \
   --header "Content-Type: application/json"
@@ -210,4 +210,4 @@ curl "{{API_URL}}/api/v1/on_call_shifts/OH3V5FYQEYJ6M/" \
 
 **HTTP request**
 
-`DELETE {{API_URL}}/api/v1/on_call_shifts/<ON_CALL_SHIFT_ID>/`
+`DELETE {{API_URL}}/api/v1/oncall_shifts/<ON_CALL_SHIFT_ID>/`
