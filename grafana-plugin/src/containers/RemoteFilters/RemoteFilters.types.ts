@@ -9,4 +9,5 @@ export interface FilterOption {
   href?: string;
   options?: SelectOption[];
   default?: { value: string };
+  global?: boolean;
 }

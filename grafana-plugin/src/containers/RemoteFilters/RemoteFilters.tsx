@@ -4,7 +4,7 @@ import { SelectableValue, TimeRange } from '@grafana/data';
 import { IconButton, InlineSwitch, MultiSelect, TimeRangeInput, Select, LoadingPlaceholder, Input } from '@grafana/ui';
 import { capitalCase } from 'change-case';
 import cn from 'classnames/bind';
-import { debounce, isEmpty, isUndefined, omitBy } from 'lodash-es';
+import { debounce, isEmpty, isUndefined, omitBy, pickBy } from 'lodash-es';
 import { observer } from 'mobx-react';
 import moment from 'moment-timezone';
 import Emoji from 'react-emoji-render';
@@ -56,11 +56,9 @@ class RemoteFilters extends Component<RemoteFiltersProps, RemoteFiltersState> {
 
     const filterOptions = await filtersStore.updateOptionsForPage(page);
 
-    let { filters, values } = parseFilters(query, filterOptions);
+    let { filters, values } = parseFilters({ ...query, ...filtersStore.globalValues }, filterOptions);
 
-    const isFiltersEmpty = isEmpty(values);
-
-    if (isFiltersEmpty) {
+    if (isEmpty(values)) {
       let newQuery;
       if (filtersStore.values[page]) {
         newQuery = { ...filtersStore.values[page] };
@@ -71,7 +69,7 @@ class RemoteFilters extends Component<RemoteFiltersProps, RemoteFiltersState> {
       ({ filters, values } = parseFilters(newQuery, filterOptions));
     }
 
-    this.setState({ filterOptions, filters, values }, () => this.onChange(true, isFiltersEmpty));
+    this.setState({ filterOptions, filters, values }, () => this.onChange(true));
   }
 
   render() {
@@ -344,9 +342,16 @@ class RemoteFilters extends Component<RemoteFiltersProps, RemoteFiltersState> {
 
   onChange = (isOnMount = false) => {
     const { store, page, onChange } = this.props;
-    const { values } = this.state;
+    const { values, filterOptions } = this.state;
 
     store.filtersStore.updateValuesForPage(page, values);
+
+    const globalValues = pickBy(values, (_, key) =>
+      filterOptions.some((option) => option.name === key && option.global)
+    );
+
+    store.filtersStore.updateGlobalValues(globalValues);
+
     LocationHelper.update({ ...values }, 'partial');
     onChange(values, isOnMount);
   };

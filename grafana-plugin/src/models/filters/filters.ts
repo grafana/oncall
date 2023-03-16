@@ -5,14 +5,17 @@ import { makeRequest } from 'network';
 import { RootStore } from 'state';
 
 import { getApiPathByPage } from './filters.helpers';
-import { FilterOption } from './filters.types';
+import { FilterOption, FiltersValues } from './filters.types';
 
 export class FiltersStore extends BaseStore {
   @observable.shallow
   public options: { [page: string]: FilterOption[] } = {};
 
   @observable.shallow
-  public values: { [page: string]: Array<{ [key: string]: any }> } = {};
+  public values: { [page: string]: FiltersValues } = {};
+
+  @observable.shallow
+  public globalValues: FiltersValues = {};
 
   constructor(rootStore: RootStore) {
     super(rootStore);
@@ -36,10 +39,15 @@ export class FiltersStore extends BaseStore {
   }
 
   @action
-  updateValuesForPage(page: string, value: any) {
+  updateValuesForPage(page: string, value: FiltersValues) {
     this.values = {
       ...this.values,
       [page]: value,
     };
+  }
+
+  @action
+  updateGlobalValues(value: FiltersValues) {
+    this.globalValues = value;
   }
 }
