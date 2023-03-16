@@ -28,7 +28,7 @@ export interface Schedule {
   warnings: string[];
   user_group: UserGroup;
   send_empty_shifts_report: boolean;
-  team: GrafanaTeam | null;
+  team: GrafanaTeam['id'];
   on_call_now: User[];
   notify_oncall_shift_freq: number;
   mention_oncall_next: boolean;

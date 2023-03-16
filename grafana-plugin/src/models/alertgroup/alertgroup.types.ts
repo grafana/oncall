@@ -76,7 +76,7 @@ export interface Alert {
   root_alert_group?: Alert;
   alert_receive_channel: Partial<AlertReceiveChannel>;
   paged_users: Array<Pick<User, 'pk' | 'username' | 'avatar'>>;
-  team: GrafanaTeam;
+  team: GrafanaTeam['id'];
 
   // set by client
   loading?: boolean;

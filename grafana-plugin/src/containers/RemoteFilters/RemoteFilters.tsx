@@ -71,7 +71,7 @@ class RemoteFilters extends Component<RemoteFiltersProps, RemoteFiltersState> {
       ({ filters, values } = parseFilters(newQuery, filterOptions));
     }
 
-    this.setState({ filterOptions, filters, values }, () => this.onChange(!isFiltersEmpty));
+    this.setState({ filterOptions, filters, values }, () => this.onChange(true, isFiltersEmpty));
   }
 
   render() {
@@ -347,10 +347,7 @@ class RemoteFilters extends Component<RemoteFiltersProps, RemoteFiltersState> {
     const { values } = this.state;
 
     store.filtersStore.updateValuesForPage(page, values);
-    if (!isOnMount) {
-      LocationHelper.update({ ...values }, 'partial');
-    }
-
+    LocationHelper.update({ ...values }, 'partial');
     onChange(values, isOnMount);
   };
 

@@ -328,6 +328,7 @@ export class EscalationPolicy extends React.Component<EscalationPolicyProps, any
     return (
       <WithPermissionControlTooltip key="custom-button" disableByPaywall userAction={UserActions.EscalationChainsWrite}>
         <GSelect
+          showSearch
           modelName="outgoingWebhookStore"
           displayField="name"
           valueField="id"

@@ -43,10 +43,6 @@ class OutgoingWebhooks extends React.Component<OutgoingWebhooksProps, OutgoingWe
     errorData: initErrorDataState(),
   };
 
-  async componentDidMount() {
-    this.update().then(this.parseQueryParams);
-  }
-
   componentDidUpdate(prevProps: OutgoingWebhooksProps) {
     if (prevProps.match.params.id !== this.props.match.params.id) {
       this.parseQueryParams();
@@ -178,12 +174,16 @@ class OutgoingWebhooks extends React.Component<OutgoingWebhooksProps, OutgoingWe
     );
   }
 
-  handleFiltersChange = (filters: FiltersValues) => {
+  handleFiltersChange = (filters: FiltersValues, isOnMount) => {
     const { store } = this.props;
 
     const { outgoingWebhookStore } = store;
 
-    outgoingWebhookStore.updateItems(filters);
+    outgoingWebhookStore.updateItems(filters).then(() => {
+      if (isOnMount) {
+        this.parseQueryParams();
+      }
+    });
   };
 
   renderTeam(record: OutgoingWebhook, teams: any) {

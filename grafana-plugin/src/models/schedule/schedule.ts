@@ -124,7 +124,7 @@ export class ScheduleStore extends BaseStore {
     page = 1,
     shouldUpdateFn: () => boolean = undefined
   ) {
-    const filters: Partial<SchedulesFiltersType> = typeof f === 'string' ? { searchTerm: f } : f;
+    const filters = typeof f === 'string' ? { search: f } : f;
     const { count, results } = await makeRequest(this.path, {
       method: 'GET',
       params: { ...filters, page },
