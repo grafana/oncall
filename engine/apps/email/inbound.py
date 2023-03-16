@@ -57,8 +57,7 @@ class InboundEmailWebhookView(AlertChannelDefiningMixin, APIView):
 
         integration_token = self.get_integration_token_from_request(request)
         if integration_token is None:
-            # Return 200 to handle verify requests from ESPs
-            return HttpResponse(status=status.HTTP_200_OK)
+            return HttpResponse(status=status.HTTP_400_BAD_REQUEST)
         return super().dispatch(request, alert_channel_key=integration_token)
 
     def post(self, request, alert_receive_channel):
