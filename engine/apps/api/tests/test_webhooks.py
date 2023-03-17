@@ -1,4 +1,5 @@
 import json
+from unittest import mock
 from unittest.mock import patch
 
 import pytest
@@ -105,8 +106,9 @@ def test_get_detail_webhook(webhook_internal_api_setup, make_user_auth_headers):
     assert response.json() == expected_payload
 
 
+@mock.patch("apps.api.views.webhooks.WebhooksView.check_webhooks_2_enabled")
 @pytest.mark.django_db
-def test_create_webhook(webhook_internal_api_setup, make_user_auth_headers):
+def test_create_webhook(mocked_check_webhooks_2_enabled, webhook_internal_api_setup, make_user_auth_headers):
     user, token, webhook = webhook_internal_api_setup
     client = APIClient()
     url = reverse("api-internal:webhooks-list")
@@ -146,6 +148,7 @@ def test_create_webhook(webhook_internal_api_setup, make_user_auth_headers):
     assert webhook.user == user
 
 
+@mock.patch("apps.api.views.webhooks.WebhooksView.check_webhooks_2_enabled")
 @pytest.mark.django_db
 @pytest.mark.parametrize(
     "field_name,value",
@@ -156,7 +159,9 @@ def test_create_webhook(webhook_internal_api_setup, make_user_auth_headers):
         ("url", "https://myserver/{{ alert_payload.id }}/triggered"),
     ],
 )
-def test_create_valid_templated_field(webhook_internal_api_setup, make_user_auth_headers, field_name, value):
+def test_create_valid_templated_field(
+    mocked_check_webhooks_2_enabled, webhook_internal_api_setup, make_user_auth_headers, field_name, value
+):
     user, token, webhook = webhook_internal_api_setup
     client = APIClient()
     url = reverse("api-internal:webhooks-list")
@@ -199,6 +204,7 @@ def test_create_valid_templated_field(webhook_internal_api_setup, make_user_auth
     assert response.json() == expected_response
 
 
+@mock.patch("apps.api.views.webhooks.WebhooksView.check_webhooks_2_enabled")
 @pytest.mark.django_db
 @pytest.mark.parametrize(
     "field_name,value",
@@ -209,7 +215,9 @@ def test_create_valid_templated_field(webhook_internal_api_setup, make_user_auth
         ("url", "invalid-url/{{}}/triggered"),
     ],
 )
-def test_create_invalid_templated_field(webhook_internal_api_setup, make_user_auth_headers, field_name, value):
+def test_create_invalid_templated_field(
+    mocked_check_webhooks_2_enabled, webhook_internal_api_setup, make_user_auth_headers, field_name, value
+):
     user, token, webhook = webhook_internal_api_setup
     client = APIClient()
     url = reverse("api-internal:webhooks-list")
@@ -226,8 +234,9 @@ def test_create_invalid_templated_field(webhook_internal_api_setup, make_user_au
     assert response.status_code == status.HTTP_400_BAD_REQUEST
 
 
+@mock.patch("apps.api.views.webhooks.WebhooksView.check_webhooks_2_enabled")
 @pytest.mark.django_db
-def test_update_webhook(webhook_internal_api_setup, make_user_auth_headers):
+def test_update_webhook(mocked_check_webhooks_2_enabled, webhook_internal_api_setup, make_user_auth_headers):
     user, token, webhook = webhook_internal_api_setup
     client = APIClient()
     url = reverse("api-internal:webhooks-detail", kwargs={"pk": webhook.public_primary_key})
@@ -246,8 +255,9 @@ def test_update_webhook(webhook_internal_api_setup, make_user_auth_headers):
     assert updated_instance.name == "github_button_updated"
 
 
+@mock.patch("apps.api.views.webhooks.WebhooksView.check_webhooks_2_enabled")
 @pytest.mark.django_db
-def test_delete_webhook(webhook_internal_api_setup, make_user_auth_headers):
+def test_delete_webhook(mocked_check_webhooks_2_enabled, webhook_internal_api_setup, make_user_auth_headers):
     user, token, webhook = webhook_internal_api_setup
     client = APIClient()
     url = reverse("api-internal:webhooks-detail", kwargs={"pk": webhook.public_primary_key})

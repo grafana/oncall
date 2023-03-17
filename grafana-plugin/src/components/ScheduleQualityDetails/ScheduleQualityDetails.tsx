@@ -125,7 +125,7 @@ export const ScheduleQualityDetails: FC<ScheduleQualityDetailsProps> = ({ qualit
           </HorizontalGroup>
           {expanded && (
             <Text type="primary" className={cx('text')}>
-              The latest 90 days are taken into consideration when calculating the overall schedule quality.
+              The next 90 days are taken into consideration when calculating the overall schedule quality.
             </Text>
           )}
         </div>

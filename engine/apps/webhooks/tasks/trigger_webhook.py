@@ -7,8 +7,16 @@ from django.apps import apps
 from django.conf import settings
 from django.utils import timezone
 
-from apps.webhooks.models import WebhookLog
-from apps.webhooks.utils import InvalidWebhookData, InvalidWebhookHeaders, InvalidWebhookTrigger, InvalidWebhookUrl
+from apps.alerts.models import AlertGroup
+from apps.user_management.models import User
+from apps.webhooks.models import Webhook, WebhookLog
+from apps.webhooks.utils import (
+    InvalidWebhookData,
+    InvalidWebhookHeaders,
+    InvalidWebhookTrigger,
+    InvalidWebhookUrl,
+    serialize_event,
+)
 from common.custom_celery_tasks import shared_dedicated_queue_retry_task
 
 logger = get_task_logger(__name__)
@@ -18,20 +26,72 @@ logger.setLevel(logging.DEBUG)
 @shared_dedicated_queue_retry_task(
     autoretry_for=(Exception,), retry_backoff=True, max_retries=1 if settings.DEBUG else None
 )
-def send_webhook_event(trigger_type, data, team_id=None, organization_id=None):
+def send_webhook_event(trigger_type, alert_group_id, team_id=None, organization_id=None, user_id=None):
     Webhooks = apps.get_model("webhooks", "Webhook")
     webhooks_qs = Webhooks.objects.filter(trigger_type=trigger_type, organization_id=organization_id, team_id=team_id)
 
     for webhook in webhooks_qs:
-        execute_webhook.apply_async((webhook.pk, data))
+        execute_webhook.apply_async((webhook.pk, alert_group_id, user_id))
+
+
+def _isoformat_date(date_value):
+    return date_value.isoformat() if date_value else None
+
+
+def _build_payload(trigger_type, alert_group_id, user_id):
+    user = None
+    try:
+        alert_group = AlertGroup.unarchived_objects.get(pk=alert_group_id)
+        if user_id is not None:
+            user = User.objects.filter(pk=user_id).first()
+    except AlertGroup.DoesNotExist:
+        return
+
+    if trigger_type == Webhook.TRIGGER_NEW:
+        event = {
+            "type": "Firing",
+            "time": _isoformat_date(alert_group.started_at),
+        }
+    elif trigger_type == Webhook.TRIGGER_ACKNOWLEDGE:
+        event = {
+            "type": "Acknowledge",
+            "time": _isoformat_date(alert_group.acknowledged_at),
+        }
+    elif trigger_type == Webhook.TRIGGER_RESOLVE:
+        event = {
+            "type": "Resolve",
+            "time": _isoformat_date(alert_group.resolved_at),
+        }
+    elif trigger_type == Webhook.TRIGGER_SILENCE:
+        event = {
+            "type": "Silence",
+            "time": _isoformat_date(alert_group.silenced_at),
+            "until": _isoformat_date(alert_group.silenced_until),
+        }
+    elif trigger_type == Webhook.TRIGGER_UNSILENCE:
+        event = {
+            "type": "Unsilence",
+        }
+    elif trigger_type == Webhook.TRIGGER_UNRESOLVE:
+        event = {
+            "type": "Unresolve",
+        }
+    data = serialize_event(event, alert_group, user)
+    return data
 
 
 @shared_dedicated_queue_retry_task(
     autoretry_for=(Exception,), retry_backoff=True, max_retries=1 if settings.DEBUG else None
 )
-def execute_webhook(webhook_pk, data):
+def execute_webhook(webhook_pk, alert_group_id, user_id):
     Webhooks = apps.get_model("webhooks", "Webhook")
+    try:
+        webhook = Webhooks.objects.get(pk=webhook_pk)
+    except Webhooks.DoesNotExist:
+        logger.warn(f"Webhook {webhook_pk} does not exist")
+        return
 
+    data = _build_payload(webhook.trigger_type, alert_group_id, user_id)
     status = {
         "last_run_at": timezone.now(),
         "input_data": data,
@@ -45,7 +105,6 @@ def execute_webhook(webhook_pk, data):
 
     exception = None
     try:
-        webhook = Webhooks.objects.get(pk=webhook_pk)
         triggered, status["trigger"] = webhook.check_trigger(data)
         if triggered:
             status["url"] = webhook.build_url(data)
@@ -66,9 +125,6 @@ def execute_webhook(webhook_pk, data):
         else:
             # do not add a log entry if the webhook is not triggered
             return
-    except Webhooks.DoesNotExist:
-        logger.warn(f"Webhook {webhook_pk} does not exist")
-        return
     except InvalidWebhookUrl as e:
         status["url"] = e.message
     except InvalidWebhookTrigger as e:
