@@ -22,10 +22,12 @@ def match_ruleset(
         for r in ruleset["rules"]
         if not r["disabled"] and r["actions"]["route"]
     ]
-    escalation_policy_ids = [
-        find_by_id(services, service_id)["escalation_policy"]["id"]
-        for service_id in service_ids
-    ]
+    escalation_policy_ids = []
+    for service_id in service_ids:
+        service = find_by_id(services, service_id)
+        # Sometimes service cannot be found, e.g. when it is deleted but still referenced in ruleset
+        if service:
+            escalation_policy_ids.append(service["escalation_policy"]["id"])
 
     flawed_escalation_policies = []
     for escalation_policy_id in escalation_policy_ids:
@@ -153,6 +155,10 @@ def _pd_service_id_to_oncall_escalation_chain_id(
         return None
 
     service = find_by_id(services, service_id)
+    if service is None:
+        # Service cannot be found, e.g. when it is deleted but still referenced in ruleset
+        return None
+
     escalation_policy_id = service["escalation_policy"]["id"]
     escalation_policy = find_by_id(escalation_policies, escalation_policy_id)
     escalation_chain_id = escalation_policy["oncall_escalation_chain"]["id"]
