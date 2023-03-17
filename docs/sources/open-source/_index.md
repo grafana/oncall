@@ -262,6 +262,12 @@ Grafana OnCall has a periodic background task, which runs to check that all aler
 properly. This feature, if configured, can also ping an OnCall Webhook Integration's heartbeat URL, so that you can be
 alerted, in the event that something goes wrong.
 
+Logs originating from the celery worker, for the `apps.alerts.tasks.check_escalation_finished.check_escalation_finished_task`
+task, that reference a `AlertGroupEscalationPolicyExecutionAuditException` exception
+indicate that the auditor periodic task is failing check(s) on one or more alert groups. Logs for this task which
+mention `.. passed the audit checks` indicate that there were no issues with with the escalation on the audited
+alert groups.
+
 To configure this feature as such:
 
 1. Create a Webhook, or Formatted Webhook, Integration type.
