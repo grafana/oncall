@@ -60,7 +60,7 @@ def migrate_ruleset(
 
     # Migrate rules that are not disabled and not catch-all
     rules = [r for r in ruleset["rules"] if not r["disabled"] and not r["catch_all"]]
-    for rule in rules:
+    for rule in sorted(rules, key=lambda r: r["position"]):
         service_id = (
             rule["actions"]["route"]["value"] if rule["actions"]["route"] else None
         )
@@ -72,7 +72,6 @@ def migrate_ruleset(
         route_payload = {
             "routing_type": "jinja2",
             "routing_regex": filtering_term,
-            "position": rule["position"],
             "integration_id": integration["id"],
             "escalation_chain_id": escalation_chain_id,
         }
