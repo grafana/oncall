@@ -1,6 +1,7 @@
 from typing import Tuple
 
 from django.conf import settings
+from django.core import validators
 from django.db import models
 from django.utils import timezone
 
@@ -68,3 +69,30 @@ class MobileAppAuthToken(BaseAuthToken):
             organization=organization,
         )
         return instance, token_string
+
+
+class MobileAppUserSettings(models.Model):
+    class VolumeType(models.TextChoices):
+        CONSTANT = "constant"
+        INTENSIFYING = "intensifying"
+
+    user = models.OneToOneField(to=User, null=False, on_delete=models.CASCADE)
+
+    # Push notification settings for default notifications
+    default_notification_sound_name = models.CharField(max_length=100, default="default")
+    default_notification_volume_type = models.CharField(
+        max_length=50, choices=VolumeType.choices, default=VolumeType.CONSTANT
+    )
+    default_notification_volume = models.FloatField(
+        validators=[validators.MinValueValidator(0.0), validators.MaxValueValidator(1.0)], default=0.6
+    )
+    default_notification_volume_override = models.BooleanField(default=False)
+
+    # Push notification settings for critical notifications
+    critical_notification_sound_name = models.CharField(max_length=100, default="default")
+    critical_notification_volume_type = models.CharField(
+        max_length=50, choices=VolumeType.choices, default=VolumeType.CONSTANT
+    )
+    critical_notification_volume = models.FloatField(
+        validators=[validators.MinValueValidator(0.0), validators.MaxValueValidator(1.0)], default=0.6
+    )
