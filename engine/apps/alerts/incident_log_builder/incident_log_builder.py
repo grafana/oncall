@@ -134,7 +134,7 @@ class IncidentLogBuilder:
         # check if escalation snapshot wasn't saved and channel filter was deleted.
         # We cannot generate escalation plan in this case
         escalation_snapshot = self.alert_group.escalation_snapshot
-        if escalation_snapshot is None:
+        if not self.alert_group.has_escalation_policies_snapshots:
             return escalation_plan_dict
 
         if self.alert_group.silenced_until:
