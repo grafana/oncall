@@ -1,4 +1,3 @@
-import random
 from unittest.mock import Mock, PropertyMock, patch
 
 import pytest
@@ -6,7 +5,7 @@ import requests
 from django.test import override_settings
 from django.utils import timezone
 
-from apps.alerts.models import AlertGroup, AlertGroupLogRecord, EscalationPolicy
+from apps.alerts.models import AlertGroup
 from apps.alerts.tasks.check_escalation_finished import (
     AlertGroupEscalationPolicyExecutionAuditException,
     audit_alert_group_escalation,
@@ -17,8 +16,8 @@ from apps.alerts.tasks.check_escalation_finished import (
 MOCKED_HEARTBEAT_URL = "https://hello.com/lsdjjkf"
 
 
-def _get_relevant_log_record_type() -> int:
-    return random.choice([AlertGroupLogRecord.TYPE_ESCALATION_TRIGGERED, AlertGroupLogRecord.TYPE_ESCALATION_FAILED])
+# def _get_relevant_log_record_type() -> int:
+#     return random.choice([AlertGroupLogRecord.TYPE_ESCALATION_TRIGGERED, AlertGroupLogRecord.TYPE_ESCALATION_FAILED])
 
 
 def test_send_alert_group_escalation_auditor_task_heartbeat_does_not_call_the_heartbeat_url_if_one_is_not_configured():
@@ -120,58 +119,59 @@ def test_audit_alert_group_escalation_no_executed_escalation_policy_snapshots(es
         mock_executed_escalation_policy_snapshots.assert_called_once_with()
 
 
-@pytest.mark.django_db
-def test_audit_alert_group_escalation_all_executed_escalation_policy_snapshots_have_triggered_log_records(
-    escalation_snapshot_test_setup,
-    make_organization_and_user,
-    make_alert_group_log_record,
-):
-    _, user = make_organization_and_user()
-    alert_group, _, _, _ = escalation_snapshot_test_setup
-    escalation_policies_snapshots = alert_group.escalation_snapshot.escalation_policies_snapshots
+# # see TODO: comment in engine/apps/alerts/tasks/check_escalation_finished.py
+# @pytest.mark.django_db
+# def test_audit_alert_group_escalation_all_executed_escalation_policy_snapshots_have_triggered_log_records(
+#     escalation_snapshot_test_setup,
+#     make_organization_and_user,
+#     make_alert_group_log_record,
+# ):
+#     _, user = make_organization_and_user()
+#     alert_group, _, _, _ = escalation_snapshot_test_setup
+#     escalation_policies_snapshots = alert_group.escalation_snapshot.escalation_policies_snapshots
 
-    for escalation_policy_snapshot in escalation_policies_snapshots:
-        escalation_policy = EscalationPolicy.objects.get(id=escalation_policy_snapshot.id)
-        log_record_type = _get_relevant_log_record_type()
+#     for escalation_policy_snapshot in escalation_policies_snapshots:
+#         escalation_policy = EscalationPolicy.objects.get(id=escalation_policy_snapshot.id)
+#         log_record_type = _get_relevant_log_record_type()
 
-        make_alert_group_log_record(alert_group, log_record_type, user, escalation_policy=escalation_policy)
+#         make_alert_group_log_record(alert_group, log_record_type, user, escalation_policy=escalation_policy)
 
-    with patch(
-        "apps.alerts.escalation_snapshot.snapshot_classes.escalation_snapshot.EscalationSnapshot.executed_escalation_policy_snapshots",
-        new_callable=PropertyMock,
-    ) as mock_executed_escalation_policy_snapshots:
-        mock_executed_escalation_policy_snapshots.return_value = escalation_policies_snapshots
-        audit_alert_group_escalation(alert_group)
-        mock_executed_escalation_policy_snapshots.assert_called_once_with()
+#     with patch(
+#         "apps.alerts.escalation_snapshot.snapshot_classes.escalation_snapshot.EscalationSnapshot.executed_escalation_policy_snapshots",
+#         new_callable=PropertyMock,
+#     ) as mock_executed_escalation_policy_snapshots:
+#         mock_executed_escalation_policy_snapshots.return_value = escalation_policies_snapshots
+#         audit_alert_group_escalation(alert_group)
+#         mock_executed_escalation_policy_snapshots.assert_called_once_with()
 
+# see TODO: comment in engine/apps/alerts/tasks/check_escalation_finished.py
+# @pytest.mark.django_db
+# def test_audit_alert_group_escalation_one_executed_escalation_policy_snapshot_does_not_have_a_triggered_log_record(
+#     escalation_snapshot_test_setup,
+#     make_organization_and_user,
+#     make_alert_group_log_record,
+# ):
+#     _, user = make_organization_and_user()
+#     alert_group, _, _, _ = escalation_snapshot_test_setup
+#     escalation_policies_snapshots = alert_group.escalation_snapshot.escalation_policies_snapshots
 
-@pytest.mark.django_db
-def test_audit_alert_group_escalation_one_executed_escalation_policy_snapshot_does_not_have_a_triggered_log_record(
-    escalation_snapshot_test_setup,
-    make_organization_and_user,
-    make_alert_group_log_record,
-):
-    _, user = make_organization_and_user()
-    alert_group, _, _, _ = escalation_snapshot_test_setup
-    escalation_policies_snapshots = alert_group.escalation_snapshot.escalation_policies_snapshots
+#     # let's skip creating a relevant alert group log record for the first executed escalation policy
+#     for idx, escalation_policy_snapshot in enumerate(escalation_policies_snapshots):
+#         if idx != 0:
+#             escalation_policy = EscalationPolicy.objects.get(id=escalation_policy_snapshot.id)
+#             make_alert_group_log_record(
+#                 alert_group, _get_relevant_log_record_type(), user, escalation_policy=escalation_policy
+#             )
 
-    # let's skip creating a relevant alert group log record for the first executed escalation policy
-    for idx, escalation_policy_snapshot in enumerate(escalation_policies_snapshots):
-        if idx != 0:
-            escalation_policy = EscalationPolicy.objects.get(id=escalation_policy_snapshot.id)
-            make_alert_group_log_record(
-                alert_group, _get_relevant_log_record_type(), user, escalation_policy=escalation_policy
-            )
+#     with patch(
+#         "apps.alerts.escalation_snapshot.snapshot_classes.escalation_snapshot.EscalationSnapshot.executed_escalation_policy_snapshots",
+#         new_callable=PropertyMock,
+#     ) as mock_executed_escalation_policy_snapshots:
+#         mock_executed_escalation_policy_snapshots.return_value = escalation_policies_snapshots
 
-    with patch(
-        "apps.alerts.escalation_snapshot.snapshot_classes.escalation_snapshot.EscalationSnapshot.executed_escalation_policy_snapshots",
-        new_callable=PropertyMock,
-    ) as mock_executed_escalation_policy_snapshots:
-        mock_executed_escalation_policy_snapshots.return_value = escalation_policies_snapshots
-
-        with pytest.raises(AlertGroupEscalationPolicyExecutionAuditException):
-            audit_alert_group_escalation(alert_group)
-            mock_executed_escalation_policy_snapshots.assert_called_once_with()
+#         with pytest.raises(AlertGroupEscalationPolicyExecutionAuditException):
+#             audit_alert_group_escalation(alert_group)
+#             mock_executed_escalation_policy_snapshots.assert_called_once_with()
 
 
 @pytest.mark.django_db

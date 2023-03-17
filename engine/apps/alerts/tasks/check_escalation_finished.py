@@ -30,8 +30,6 @@ def send_alert_group_escalation_auditor_task_heartbeat() -> None:
 
 
 def audit_alert_group_escalation(alert_group: "AlertGroup") -> None:
-    AlertGroupLogRecord = apps.get_model("alerts", "AlertGroupLogRecord")
-
     escalation_snapshot = alert_group.escalation_snapshot
     alert_group_id = alert_group.id
     base_msg = f"Alert group {alert_group_id}"
@@ -66,33 +64,33 @@ def audit_alert_group_escalation(alert_group: "AlertGroup") -> None:
         task_logger.info(
             f"{base_msg}'s escalation snapshot does not have any executed escalation policies, skipping further validation"
         )
-        return
-    task_logger.info(
-        f"{base_msg}'s escalation snapshot has {num_of_executed_escalation_policy_snapshots} executed escalation policies"
-    )
-
-    # compare number of triggered/failed alert group log records to the number of executed
-    # escalation policy snapshot steps
-    num_of_relevant_log_records = AlertGroupLogRecord.objects.filter(
-        alert_group_id=alert_group_id,
-        type__in=[AlertGroupLogRecord.TYPE_ESCALATION_TRIGGERED, AlertGroupLogRecord.TYPE_ESCALATION_FAILED],
-    ).count()
-
-    if num_of_relevant_log_records < num_of_executed_escalation_policy_snapshots:
-        raise AlertGroupEscalationPolicyExecutionAuditException(
-            f"{base_msg}'s number of triggered/failed alert group log records ({num_of_relevant_log_records}) is less "
-            f"than the number of executed escalation policy snapshot steps ({num_of_executed_escalation_policy_snapshots})"
+    else:
+        task_logger.info(
+            f"{base_msg}'s escalation snapshot has {num_of_executed_escalation_policy_snapshots} executed escalation policies"
         )
 
-    task_logger.info(
-        f"{base_msg}'s number of triggered/failed alert group log records ({num_of_relevant_log_records}) is greater "
-        f"than or equal to the number of executed escalation policy snapshot steps ({num_of_executed_escalation_policy_snapshots})"
-    )
+    # TODO: consider adding the below checks later on. This is it a bit trickier to properly audit as the
+    # number of log records can vary if there are any STEP_NOTIFY_IF_NUM_ALERTS_IN_TIME_WINDOW or
+    # STEP_REPEAT_ESCALATION_N_TIMES escalation policy steps in the escalation chain
+    # see conversations in the original PR (https://github.com/grafana/oncall/pull/1266) for more context on this
+    #
+    # compare number of triggered/failed alert group log records to the number of executed
+    # escalation policy snapshot steps
+    # num_of_relevant_log_records = AlertGroupLogRecord.objects.filter(
+    #     alert_group_id=alert_group_id,
+    #     type__in=[AlertGroupLogRecord.TYPE_ESCALATION_TRIGGERED, AlertGroupLogRecord.TYPE_ESCALATION_FAILED],
+    # ).count()
 
-    # TODO: check following steps:
-    # STEP_NOTIFY_IF_NUM_ALERTS_IN_TIME_WINDOW
-    # STEP_REPEAT_ESCALATION_N_TIMES
-    # not sure what to do here?
+    # if num_of_relevant_log_records < num_of_executed_escalation_policy_snapshots:
+    #     raise AlertGroupEscalationPolicyExecutionAuditException(
+    #         f"{base_msg}'s number of triggered/failed alert group log records ({num_of_relevant_log_records}) is less "
+    #         f"than the number of executed escalation policy snapshot steps ({num_of_executed_escalation_policy_snapshots})"
+    #     )
+
+    # task_logger.info(
+    #     f"{base_msg}'s number of triggered/failed alert group log records ({num_of_relevant_log_records}) is greater "
+    #     f"than or equal to the number of executed escalation policy snapshot steps ({num_of_executed_escalation_policy_snapshots})"
+    # )
 
     task_logger.info(f"{base_msg} passed the audit checks")
 
