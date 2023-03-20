@@ -7,12 +7,13 @@ import { useMediaQuery } from 'react-responsive';
 
 import { Tabs, TabsContent } from 'containers/UserSettings/parts';
 import { User as UserType } from 'models/user/user.types';
+import { AppFeature } from 'state/features';
 import { useStore } from 'state/useStore';
 import { isUserActionAllowed, UserActions } from 'utils/authorization';
 import { BREAKPOINT_TABS } from 'utils/consts';
 
 import { UserSettingsTab } from './UserSettings.types';
-import { AppFeature } from 'state/features';
+
 import styles from './UserSettings.module.css';
 
 const cx = cn.bind(styles);
