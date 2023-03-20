@@ -7,6 +7,7 @@ from django.apps import apps
 from django.conf import settings
 from django.core.validators import MinLengthValidator
 from django.db import models
+from django.db.models import Q
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 from emoji import demojize
@@ -187,7 +188,7 @@ class User(models.Model):
     def available_teams(self):
         if self.role == LegacyAccessControlRole.ADMIN:
             return self.organization.teams.all()
-        return self.teams.all() | self.organization.teams.filter(is_sharing_resources_to_all=True)
+        return self.organization.teams.filter(Q(is_sharing_resources_to_all=True) | Q(users=self))
 
     @property
     def is_authenticated(self):

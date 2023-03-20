@@ -159,7 +159,6 @@ class SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSta
           <VerticalGroup>
             <div className={cx('schedules__filters-container')}>
               <RemoteFilters query={query} page="schedules" onChange={this.handleSchedulesFiltersChange} />
-              {/*  <SchedulesFilters value={filters} onChange={this.handleSchedulesFiltersChange} />  */}
               <div className={cx('schedules__actions')}>
                 {users && (
                   <UserTimezoneSelect

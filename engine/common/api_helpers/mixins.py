@@ -198,8 +198,11 @@ class TeamFilteringMixin:
 
     @property
     def available_teams_lookup_args(self):
-        team_ids = list(self.request.user.available_teams.values_list("id", flat=True))
-        return [Q(**{f"{self.TEAM_LOOKUP}__in": team_ids}) | Q(**{f"{self.TEAM_LOOKUP}__isnull": True})]
+        return [
+            Q(**{f"{self.TEAM_LOOKUP}__users": self.request.user})
+            | Q(**{f"{self.TEAM_LOOKUP}__is_sharing_resources_to_all": True})
+            | Q(**{f"{self.TEAM_LOOKUP}__isnull": True})
+        ]
 
     def retrieve(self, request, *args, **kwargs):
         try:
