@@ -46,6 +46,7 @@ class GCOMInstanceInfo(TypedDict):
     orgName: str
     url: str
     status: str
+    clusterSlug: str
     config: Optional[GCOMInstanceInfoConfig]
 
 

@@ -25,6 +25,7 @@ class ChatOpsType(enum.Enum):
     SLACK = "SLACK"
     MSTEAMS = "MSTEAMS"
     TELEGRAM = "TELEGRAM"
+    MOBILE_APP = "MOBILE_APP"
 
 
 def write_chatops_insight_log(author, event_name: ChatOpsEvent, chatops_type: ChatOpsType, **kwargs):

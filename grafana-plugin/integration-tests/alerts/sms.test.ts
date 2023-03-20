@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { openOnCallPlugin } from '../utils';
+import { configureOnCallPlugin } from '../utils/configurePlugin';
 import { GRAFANA_USERNAME } from '../utils/constants';
 import { createEscalationChain, EscalationStep } from '../utils/escalationChain';
 import { generateRandomValue } from '../utils/forms';
@@ -8,7 +8,7 @@ import { waitForSms } from '../utils/phone';
 import { configureUserNotificationSettings, verifyUserPhoneNumber } from '../utils/userSettings';
 
 test.beforeEach(async ({ page }) => {
-  await openOnCallPlugin(page);
+  await configureOnCallPlugin(page);
 });
 
 // TODO: enable once we've signed up for a MailSlurp account to receieve SMSes

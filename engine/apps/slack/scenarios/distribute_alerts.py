@@ -302,7 +302,7 @@ class SelectAttachGroupStep(
     scenario_step.ScenarioStep,
 ):
     REQUIRED_PERMISSIONS = [RBACPermission.Permissions.CHATOPS_WRITE]
-    ACTION_VERBOSE = "Select Incident for Attaching to"
+    ACTION_VERBOSE = "Select Alert Group for Attaching to"
 
     def process_scenario(self, slack_user_identity, slack_team_identity, payload):
         AlertGroup = apps.get_model("alerts", "AlertGroup")
@@ -319,7 +319,7 @@ class SelectAttachGroupStep(
             "type": "modal",
             "title": {
                 "type": "plain_text",
-                "text": "Attach to Incident",
+                "text": "Attach to Alert Group",
             },
             "private_metadata": json.dumps(
                 {
@@ -581,7 +581,7 @@ class CustomButtonProcessStep(
                 debug_message = f"```{curl_request}```"
 
         if log_record.author is not None:
-            user_verbal = log_record.author.get_user_verbal_for_team_for_slack(mention=True)
+            user_verbal = log_record.author.get_username_with_slack_verbal(mention=True)
             text = (
                 f"{user_verbal} sent a request from an outgoing webhook `{log_record.custom_button.name}` "
                 f"with the result `{result_message}`"
@@ -702,7 +702,7 @@ class UnAcknowledgeGroupStep(
         if log_record.type == AlertGroupLogRecord.TYPE_AUTO_UN_ACK:
             channel_id = alert_group.slack_message.channel_id
             if log_record.author is not None:
-                user_verbal = log_record.author.get_user_verbal_for_team_for_slack(mention=True)
+                user_verbal = log_record.author.get_username_with_slack_verbal(mention=True)
             else:
                 user_verbal = "No one"
 
@@ -715,7 +715,7 @@ class UnAcknowledgeGroupStep(
             ]
             text = (
                 f"{user_verbal} hasn't responded to an acknowledge timeout reminder."
-                f" Incident is unacknowledged automatically"
+                f" Alert Group is unacknowledged automatically"
             )
             if alert_group.slack_message.ack_reminder_message_ts:
                 try:
@@ -759,7 +759,7 @@ class AcknowledgeConfirmationStep(AcknowledgeGroupStep):
         if alert_group.acknowledged:
             if alert_group.acknowledged_by == AlertGroup.USER:
                 if self.user == alert_group.acknowledged_by_user:
-                    user_verbal = alert_group.acknowledged_by_user.get_user_verbal_for_team_for_slack()
+                    user_verbal = alert_group.acknowledged_by_user.get_username_with_slack_verbal()
                     text = f"{user_verbal} confirmed that the incident is still acknowledged"
                     self._slack_client.api_call(
                         "chat.update",
@@ -777,7 +777,7 @@ class AcknowledgeConfirmationStep(AcknowledgeGroupStep):
                         text="This alert is acknowledged by another user. Acknowledge it yourself first.",
                     )
             elif alert_group.acknowledged_by == AlertGroup.SOURCE:
-                user_verbal = self.user.get_user_verbal_for_team_for_slack()
+                user_verbal = self.user.get_username_with_slack_verbal()
                 text = f"{user_verbal} confirmed that the incident is still acknowledged"
                 self._slack_client.api_call(
                     "chat.update",
@@ -806,7 +806,7 @@ class AcknowledgeConfirmationStep(AcknowledgeGroupStep):
 
         alert_group = log_record.alert_group
         channel_id = alert_group.slack_message.channel_id
-        user_verbal = log_record.author.get_user_verbal_for_team_for_slack(mention=True)
+        user_verbal = log_record.author.get_username_with_slack_verbal(mention=True)
         text = f"{user_verbal}, please confirm that you're still working on this incident."
 
         if alert_group.channel.organization.unacknowledge_timeout != Organization.UNACKNOWLEDGE_TIMEOUT_NEVER:
@@ -885,7 +885,7 @@ class WipeGroupStep(scenario_step.ScenarioStep):
 
     def process_signal(self, log_record):
         alert_group = log_record.alert_group
-        user_verbal = log_record.author.get_user_verbal_for_team_for_slack()
+        user_verbal = log_record.author.get_username_with_slack_verbal()
         text = f"Wiped by {user_verbal}"
         self.alert_group_slack_service.publish_message_to_alert_group_thread(alert_group, text=text)
         self.alert_group_slack_service.update_alert_group_slack_message(alert_group)

@@ -1,5 +1,5 @@
 import type { Page } from '@playwright/test';
-import { ONCALL_API_URL, ONCALL_LEFT_HAND_NAV_ICON_SELECTOR } from './constants';
+import { ONCALL_API_URL, IS_OPEN_SOURCE } from './constants';
 import { clickButton, getInputByName } from './forms';
 import { goToGrafanaPage } from './navigation';
 
@@ -7,7 +7,16 @@ import { goToGrafanaPage } from './navigation';
  * go to config page and wait for plugin icon to be available on left-hand navigation
  */
 export const configureOnCallPlugin = async (page: Page): Promise<void> => {
+  // plugin configuration can safely be skipped for non open-source environments
+  if (!IS_OPEN_SOURCE) {
+    return;
+  }
+
+  /**
+   * go to the oncall plugin configuration page and wait for the page to be loaded
+   */
   await goToGrafanaPage(page, '/plugins/grafana-oncall-app');
+  await page.waitForSelector('text=Configure Grafana OnCall');
 
   /**
    * we may need to fill in the OnCall API URL if it is not set in the process.env
@@ -25,5 +34,5 @@ export const configureOnCallPlugin = async (page: Page): Promise<void> => {
    * wait for the page to be refreshed and the icon to show up, this means the plugin
    * has been successfully configured
    */
-  await page.waitForSelector(ONCALL_LEFT_HAND_NAV_ICON_SELECTOR);
+  await page.waitForSelector('div.scrollbar-view img[src*="grafana-oncall-app/img/logo.svg"]');
 };

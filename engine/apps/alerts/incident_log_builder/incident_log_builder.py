@@ -134,7 +134,7 @@ class IncidentLogBuilder:
         # check if escalation snapshot wasn't saved and channel filter was deleted.
         # We cannot generate escalation plan in this case
         escalation_snapshot = self.alert_group.escalation_snapshot
-        if escalation_snapshot is None:
+        if not self.alert_group.has_escalation_policies_snapshots:
             return escalation_plan_dict
 
         if self.alert_group.silenced_until:
@@ -579,7 +579,7 @@ class IncidentLogBuilder:
         """
         UserNotificationPolicy = apps.get_model("base", "UserNotificationPolicy")
         result = ""
-        user_verbal = user_to_notify.get_user_verbal_for_team_for_slack() if for_slack else user_to_notify.username
+        user_verbal = user_to_notify.get_username_with_slack_verbal() if for_slack else user_to_notify.username
         if notification_policy.step == UserNotificationPolicy.Step.NOTIFY:
             if notification_policy.notify_by == UserNotificationPolicy.NotificationChannel.SLACK:
                 result += f"invite {user_verbal} in Slack"
