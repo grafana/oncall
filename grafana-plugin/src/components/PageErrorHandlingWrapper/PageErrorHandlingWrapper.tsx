@@ -59,7 +59,7 @@ export default function PageErrorHandlingWrapper({
         </Text.Title>
         {wrongTeamNoPermissions && (
           <Text.Title level={4}>
-            This {objectName} belongs to a team you are not a part of or this team haven't shared the access with you.
+            This {objectName} belongs to a team you are not a part of, or this team hasn't shared access with you.
             Please contact your organization administrator to request access to the team.
           </Text.Title>
         )}
