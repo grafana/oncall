@@ -5,7 +5,7 @@ import cn from 'classnames/bind';
 
 import Text, { TextType } from 'components/Text/Text';
 
-import styles from './ScheduleCounter.module.css';
+import styles from './ScheduleCounter.module.scss';
 
 interface ScheduleCounterProps {
   type: Partial<TextType>;
@@ -31,7 +31,7 @@ const ScheduleCounter: FC<ScheduleCounterProps> = (props) => {
       placement="bottom-start"
       interactive
       content={
-        <div className={cx('tooltip', { [`tooltip__type_${type}`]: true })}>
+        <div className={cx('tooltip')}>
           <VerticalGroup>
             <Text type="secondary">{tooltipTitle}</Text>
             <Text type="secondary">{tooltipContent}</Text>
@@ -39,10 +39,16 @@ const ScheduleCounter: FC<ScheduleCounterProps> = (props) => {
         </div>
       }
     >
-      <div className={cx('root', { [`root__type_${type}`]: true }, { padding: addPadding })} onMouseEnter={onHover}>
+      <div
+        className={cx('root', 'element', { [`element--${type}`]: true }, { 'element--padding': addPadding })}
+        onMouseEnter={onHover}
+      >
         <HorizontalGroup spacing="xs">
-          <Icon className={cx('icon', { [`icon__type_${type}`]: true })} name={typeToIcon[type] as IconName} />
-          <Text className={cx('text', { [`text__type_${type}`]: true })}>{count}</Text>
+          <Icon
+            className={cx('element__icon', { [`element__icon--${type}`]: true })}
+            name={typeToIcon[type] as IconName}
+          />
+          <Text className={cx('element__text', { [`element__text--${type}`]: true })}>{count}</Text>
         </HorizontalGroup>
       </div>
     </Tooltip>
