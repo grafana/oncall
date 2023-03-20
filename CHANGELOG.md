@@ -14,7 +14,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- Updated wording in some Slack messages to use 'Alert Group' instead of 'Incident' ([1565](https://github.com/grafana/oncall/pull/1565))
+- Updated wording throughout plugin to use 'Alert Group' instead of 'Incident' ([1565](https://github.com/grafana/oncall/pull/1565),
+  [1576](https://github.com/grafana/oncall/pull/1576))
 
 ### Fixed
 
