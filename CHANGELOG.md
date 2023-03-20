@@ -15,7 +15,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - Updated wording in some Slack messages to use 'Alert Group' instead of 'Incident' ([1565](https://github.com/grafana/oncall/pull/1565))
-- Check for enabled Telegram feature was added to ChatOps and to User pages ([1424](https://github.com/grafana/oncall/pull/1424))
+- Check for enabled Telegram feature was added to ChatOps and to User pages ([319](https://github.com/grafana/oncall/issues/319))
 
 ### Fixed
 
