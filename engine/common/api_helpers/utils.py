@@ -83,6 +83,21 @@ class URLValidatorWithoutTLD(URLValidator):
     )
 
 
+class CurrentUserDefault:
+    """
+    Utility class to get the current user right from the serializer field.
+    """
+
+    def set_context(self, serializer_field):
+        self.user = serializer_field.context["request"].user
+
+    def __call__(self):
+        return self.user
+
+    def __repr__(self):
+        return "%s()" % self.__class__.__name__
+
+
 def validate_ical_url(url):
     if url:
         if settings.BASE_URL in url:

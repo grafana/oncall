@@ -246,12 +246,12 @@ class AlertGroupLogRecord(models.Model):
             if substitute_author_with_tag:
                 author_name = "{{author}}"
             elif for_slack:
-                author_name = self.author.get_user_verbal_for_team_for_slack()
+                author_name = self.author.get_username_with_slack_verbal()
             else:
                 author_name = self.author.username
         if self.invitation is not None:
             if for_slack:
-                invitee_name = self.invitation.invitee.get_user_verbal_for_team_for_slack()
+                invitee_name = self.invitation.invitee.get_username_with_slack_verbal()
             else:
                 invitee_name = self.invitation.invitee.username
 

@@ -136,7 +136,7 @@ class UserSerializer(DynamicFieldsModelSerializer, EagerLoadingMixin):
         return {"default": " - ".join(default), "important": " - ".join(important)}
 
     def get_cloud_connection_status(self, obj):
-        if settings.OSS_INSTALLATION and live_settings.GRAFANA_CLOUD_NOTIFICATIONS_ENABLED:
+        if settings.IS_OPEN_SOURCE and live_settings.GRAFANA_CLOUD_NOTIFICATIONS_ENABLED:
             connector = self.context.get("connector", None)
             identities = self.context.get("cloud_identities", {})
             identity = identities.get(obj.email, None)

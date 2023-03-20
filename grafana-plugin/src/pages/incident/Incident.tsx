@@ -373,7 +373,7 @@ class IncidentPage extends React.Component<IncidentPageProps, IncidentPageState>
 
             <HorizontalGroup>
               <EscalationVariants
-                variant="default"
+                variant="secondary"
                 hideSelected
                 value={prepareForEdit(incident.paged_users)}
                 onUpdateEscalationVariants={this.handleAddResponders}
@@ -460,7 +460,7 @@ class IncidentPage extends React.Component<IncidentPageProps, IncidentPageState>
             this.setState({ timelineFilter: value });
           }}
         />
-        <ul className={cx('timeline')}>
+        <ul className={cx('timeline')} data-testid="incident-timeline-list">
           {timeline.map((item: TimeLineItem, idx: number) => (
             <li key={idx} className={cx('timeline-item')}>
               <HorizontalGroup align="flex-start">
@@ -493,14 +493,16 @@ class IncidentPage extends React.Component<IncidentPageProps, IncidentPageState>
             onChange={(e: any) => this.setState({ resolutionNoteText: e.target.value })}
           />
         </Field>
-        <ToolbarButton
-          icon="plus"
-          variant="primary"
-          onClick={this.handleCreateResolutionNote}
-          disabled={isResolutionNoteTextEmpty}
-        >
-          Add resolution note
-        </ToolbarButton>
+        <WithPermissionControlTooltip userAction={UserActions.AlertGroupsWrite}>
+          <ToolbarButton
+            icon="plus"
+            variant="primary"
+            onClick={this.handleCreateResolutionNote}
+            disabled={isResolutionNoteTextEmpty}
+          >
+            Add resolution note
+          </ToolbarButton>
+        </WithPermissionControlTooltip>
       </div>
     );
   };
@@ -554,8 +556,7 @@ class IncidentPage extends React.Component<IncidentPageProps, IncidentPageState>
             </span>
           );
         default:
-          console.warn('Unknown render_after_resolve_report_json entity placeholder');
-          return '';
+          return '{{' + match + '}}';
       }
     };
   };
