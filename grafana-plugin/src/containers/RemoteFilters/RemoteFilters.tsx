@@ -179,7 +179,13 @@ class RemoteFilters extends Component<RemoteFiltersProps, RemoteFiltersState> {
     });
 
     if (option.data.default) {
-      const defaultValue = option.data.type === 'options' ? [option.data.default.value] : option.data.default;
+      let defaultValue = option.data.default;
+      if (option.data.type === 'options') {
+        defaultValue = [defaultValue];
+      }
+      if (option.data.type === 'boolean') {
+        defaultValue = defaultValue === 'false' ? false : Boolean(defaultValue);
+      }
 
       this.onFiltersValueChange(option.value, defaultValue);
     }

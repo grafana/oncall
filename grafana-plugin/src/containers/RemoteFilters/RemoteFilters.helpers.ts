@@ -2,6 +2,14 @@ import { convertRelativeToAbsoluteDate } from 'utils/datetime';
 
 import { FilterOption } from './RemoteFilters.types';
 
+const normalize = (value: any) => {
+  if (!isNaN(Number(value))) {
+    return Number(value);
+  }
+
+  return value;
+};
+
 export function parseFilters(query: { [key: string]: any }, filterOptions: FilterOption[]) {
   const filters = filterOptions.filter((filterOption: FilterOption) => filterOption.name in query);
 
@@ -12,7 +20,7 @@ export function parseFilters(query: { [key: string]: any }, filterOptions: Filte
       if (!Array.isArray(rawValue)) {
         value = [rawValue];
       }
-      value = value.map((item: string) => (!isNaN(Number(item)) ? Number(item) : item));
+      value = value.map(normalize);
     } else if (filterOption.type === 'daterange') {
       value = convertRelativeToAbsoluteDate(value);
     } else if (rawValue === 'true') {
