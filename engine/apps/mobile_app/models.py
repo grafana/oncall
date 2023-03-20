@@ -79,7 +79,7 @@ class MobileAppUserSettings(models.Model):
     user = models.OneToOneField(to=User, null=False, on_delete=models.CASCADE)
 
     # Push notification settings for default notifications
-    default_notification_sound_name = models.CharField(max_length=100, default="default")
+    default_notification_sound_name = models.CharField(max_length=100, default="default")  # TODO: check sound name
     default_notification_volume_type = models.CharField(
         max_length=50, choices=VolumeType.choices, default=VolumeType.CONSTANT
     )
@@ -92,7 +92,7 @@ class MobileAppUserSettings(models.Model):
     default_notification_volume_override = models.BooleanField(default=False)
 
     # Push notification settings for critical notifications
-    critical_notification_sound_name = models.CharField(max_length=100, default="default")
+    critical_notification_sound_name = models.CharField(max_length=100, default="default")  # TODO: check sound name
     critical_notification_volume_type = models.CharField(
         max_length=50, choices=VolumeType.choices, default=VolumeType.CONSTANT
     )
