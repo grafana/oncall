@@ -395,6 +395,10 @@ CELERY_MAX_TASKS_PER_CHILD = 1
 CELERY_WORKER_SEND_TASK_EVENTS = True
 CELERY_TASK_SEND_SENT_EVENT = True
 
+ALERT_GROUP_ESCALATION_AUDITOR_CELERY_TASK_HEARTBEAT_URL = os.getenv(
+    "ALERT_GROUP_ESCALATION_AUDITOR_CELERY_TASK_HEARTBEAT_URL", None
+)
+
 CELERY_BEAT_SCHEDULE = {
     "restore_heartbeat_tasks": {
         "task": "apps.heartbeat.tasks.restore_heartbeat_tasks",
@@ -403,7 +407,11 @@ CELERY_BEAT_SCHEDULE = {
     },
     "check_escalations": {
         "task": "apps.alerts.tasks.check_escalation_finished.check_escalation_finished_task",
-        "schedule": 10 * 60,
+        # the task should be executed a minute or two less than the integration's configured interval
+        #
+        # ex. if the integration is configured to expect a heartbeat every 15 minutes then this value should be set
+        # to something like 13 * 60 (every 13 minutes)
+        "schedule": getenv_integer("ALERT_GROUP_ESCALATION_AUDITOR_CELERY_TASK_HEARTBEAT_INTERVAL", 13 * 60),
         "args": (),
     },
     "start_refresh_ical_files": {

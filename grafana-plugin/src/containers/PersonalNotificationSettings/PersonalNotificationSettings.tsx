@@ -150,6 +150,7 @@ const PersonalNotificationSettings = observer((props: PersonalNotificationSettin
             waitDelays={get(userStore.notificationChoices, 'wait_delay.choices', [])}
             notifyByOptions={userStore.notifyByOptions}
             color={getColor(index)}
+            store={store}
           />
         ))}
         <Timeline.Item number={notificationPolicies.length + 1} color={getColor(notificationPolicies.length)}>

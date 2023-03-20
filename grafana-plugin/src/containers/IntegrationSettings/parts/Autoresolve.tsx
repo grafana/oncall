@@ -128,18 +128,20 @@ const Autoresolve = ({ alertReceiveChannelId, onSwitchToTemplate, alertGroupId }
               <Text type="secondary">Which team should this integration belong to?</Text>
             </div>
           </Label>
-          <GSelect
-            modelName="grafanaTeamStore"
-            displayField="name"
-            valueField="id"
-            showSearch
-            allowClear
-            placeholder="Select a team"
-            className={cx('team-select')}
-            onChange={handleChangeTeam}
-            value={teamId}
-            showError={showErrorOnTeamSelect}
-          />
+          <WithPermissionControlTooltip userAction={UserActions.IntegrationsWrite}>
+            <GSelect
+              modelName="grafanaTeamStore"
+              displayField="name"
+              valueField="id"
+              showSearch
+              allowClear
+              placeholder="Select a team"
+              className={cx('team-select')}
+              onChange={handleChangeTeam}
+              value={teamId}
+              showError={showErrorOnTeamSelect}
+            />
+          </WithPermissionControlTooltip>
         </div>
         <div className={cx('border-container')}>
           <Label>
@@ -193,9 +195,11 @@ const Autoresolve = ({ alertReceiveChannelId, onSwitchToTemplate, alertGroupId }
           )}
         </div>
         <div className={cx('team-select-actionbuttons')}>
-          <Button variant="primary" onClick={handleSaveClick}>
-            Save changes
-          </Button>
+          <WithPermissionControlTooltip userAction={UserActions.IntegrationsWrite}>
+            <Button variant="primary" onClick={handleSaveClick}>
+              Save changes
+            </Button>
+          </WithPermissionControlTooltip>
         </div>
       </Block>
       {showSaveConfirmationModal && (
