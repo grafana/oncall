@@ -15,7 +15,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - Updated wording in some Slack messages to use 'Alert Group' instead of 'Incident' ([1565](https://github.com/grafana/oncall/pull/1565))
-- Filtering for Editors/Admins was added to rotation form. It is not allowed to assign Viewer to rotation ([1124]<https://github.com/grafana/oncall/issues/1124>)
+- Filtering for Editors/Admins was added to rotation form. It is not allowed to assign Viewer to rotation ([1124](https://github.com/grafana/oncall/issues/1124))
 
 ### Fixed
 
