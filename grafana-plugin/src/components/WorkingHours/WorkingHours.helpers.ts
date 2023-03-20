@@ -99,17 +99,30 @@ export const getNonWorkingMoments = (startMoment, endMoment, workingMoments) => 
 };
 
 export const isInWorkingHours = (currentMoment: dayjs.Dayjs, workingHours, timezone) => {
-  const timeFormat = 'HH:mm:ss';
+  const momentToStart = dayjs().tz(timezone).utcOffset() === 0 ? currentMoment : currentMoment.tz(timezone);
   const currentDayOfTheWeek = currentMoment.format('dddd').toLowerCase();
   const workingHourStart = workingHours[currentDayOfTheWeek][0]?.start;
   const workingHourEnd = workingHours[currentDayOfTheWeek][0]?.end;
 
   if (workingHourStart && workingHourEnd) {
-    const startTime = dayjs(workingHourStart, timeFormat).tz(timezone).format(timeFormat);
-    const endTime = dayjs(workingHourEnd, timeFormat).tz(timezone).format(timeFormat);
-    const currentTime = dayjs(currentMoment, timeFormat).format(timeFormat);
+    const currentTime = dayjs(momentToStart);
 
-    return currentTime < endTime && currentTime >= startTime;
+    const [start_HH, start_mm, start_ss] = workingHourStart.split(':');
+    const [end_HH, end_mm, end_ss] = workingHourEnd.split(':');
+
+    const startTime = dayjs(momentToStart)
+      .set('date', currentMoment.date())
+      .set('hour', Number(start_HH))
+      .set('minute', Number(start_mm))
+      .set('second', Number(start_ss));
+
+    const endTime = dayjs(momentToStart)
+      .set('date', currentMoment.date())
+      .set('hour', Number(end_HH))
+      .set('minute', Number(end_mm))
+      .set('second', Number(end_ss));
+
+    return currentTime.isBetween(startTime, endTime, null, '[)');
   }
 
   return false;
