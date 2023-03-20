@@ -245,7 +245,12 @@ class Webhook(models.Model):
 
 
 class WebhookResponse(models.Model):
-    alert_group = models.ForeignKey("alerts.AlertGroup", on_delete=models.CASCADE, null=True)
+    alert_group = models.ForeignKey(
+        "alerts.AlertGroup",
+        on_delete=models.CASCADE,
+        null=True,
+        related_name="webhook_responses",
+    )
     webhook = models.ForeignKey(
         "webhooks.Webhook",
         on_delete=models.SET_NULL,
@@ -260,9 +265,6 @@ class WebhookResponse(models.Model):
     url = models.TextField(null=True, default=None)
     status_code = models.IntegerField(default=None, null=True)
     content = models.TextField(null=True, default=None)
-
-    class Meta:
-        unique_together = ("alert_group", "trigger_type")
 
     def json(self):
         return json.loads(self.content)

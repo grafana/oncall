@@ -23,6 +23,16 @@ logger = get_task_logger(__name__)
 logger.setLevel(logging.DEBUG)
 
 
+TRIGGER_TYPE_TO_LABEL = {
+    Webhook.TRIGGER_NEW: "firing",
+    Webhook.TRIGGER_ACKNOWLEDGE: "acknowledge",
+    Webhook.TRIGGER_RESOLVE: "resolve",
+    Webhook.TRIGGER_SILENCE: "silence",
+    Webhook.TRIGGER_UNSILENCE: "unsilence",
+    Webhook.TRIGGER_UNRESOLVE: "unresolve",
+}
+
+
 @shared_dedicated_queue_retry_task(
     autoretry_for=(Exception,), retry_backoff=True, max_retries=1 if settings.DEBUG else None
 )
@@ -43,36 +53,31 @@ def _build_payload(trigger_type, alert_group, user_id):
     if user_id is not None:
         user = User.objects.filter(pk=user_id).first()
 
+    event = {
+        "type": TRIGGER_TYPE_TO_LABEL[trigger_type],
+    }
     if trigger_type == Webhook.TRIGGER_NEW:
-        event = {
-            "type": "Firing",
-            "time": _isoformat_date(alert_group.started_at),
-        }
+        event["time"] = _isoformat_date(alert_group.started_at)
     elif trigger_type == Webhook.TRIGGER_ACKNOWLEDGE:
-        event = {
-            "type": "Acknowledge",
-            "time": _isoformat_date(alert_group.acknowledged_at),
-        }
+        event["time"] = _isoformat_date(alert_group.acknowledged_at)
     elif trigger_type == Webhook.TRIGGER_RESOLVE:
-        event = {
-            "type": "Resolve",
-            "time": _isoformat_date(alert_group.resolved_at),
-        }
+        event["time"] = _isoformat_date(alert_group.resolved_at)
     elif trigger_type == Webhook.TRIGGER_SILENCE:
-        event = {
-            "type": "Silence",
-            "time": _isoformat_date(alert_group.silenced_at),
-            "until": _isoformat_date(alert_group.silenced_until),
-        }
-    elif trigger_type == Webhook.TRIGGER_UNSILENCE:
-        event = {
-            "type": "Unsilence",
-        }
-    elif trigger_type == Webhook.TRIGGER_UNRESOLVE:
-        event = {
-            "type": "Unresolve",
-        }
-    data = serialize_event(event, alert_group, user)
+        event["time"] = _isoformat_date(alert_group.silenced_at)
+        event["until"] = _isoformat_date(alert_group.silenced_until)
+
+    # include latest response data per trigger in the event input data
+    responses_data = {}
+    responses = alert_group.webhook_responses.all().order_by("timestamp")
+    for r in responses:
+        try:
+            response_data = r.json()
+        except JSONDecodeError:
+            response_data = r.content
+        responses_data[TRIGGER_TYPE_TO_LABEL[r.trigger_type]] = response_data
+
+    data = serialize_event(event, alert_group, user, responses_data)
+
     return data
 
 
@@ -136,9 +141,11 @@ def execute_webhook(webhook_pk, alert_group_id, user_id):
         status["content"] = str(e)
         exception = e
 
-    # create/update response entry
-    WebhookResponse.objects.update_or_create(
-        alert_group=alert_group, trigger_type=webhook.trigger_type, defaults=status
+    # create response entry
+    WebhookResponse.objects.create(
+        alert_group=alert_group,
+        trigger_type=webhook.trigger_type,
+        **status,
     )
 
     if exception:

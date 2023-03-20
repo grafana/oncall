@@ -136,7 +136,7 @@ def test_execute_webhook_ok_forward_all(
     assert mock_requests.post.called
     expected_data = {
         "event": {
-            "type": "Acknowledge",
+            "type": "acknowledge",
             "time": alert_group.acknowledged_at.isoformat(),
         },
         "user": user.username,
@@ -157,6 +157,63 @@ def test_execute_webhook_ok_forward_all(
     assert log.content == json.dumps(mock_response.json())
     assert json.loads(log.request_data) == expected_data
     assert log.url == "https://something/{}/".format(alert_group.public_primary_key)
+
+
+@pytest.mark.django_db
+def test_execute_webhook_using_responses_data(
+    make_organization,
+    make_user_for_organization,
+    make_alert_receive_channel,
+    make_alert_group,
+    make_custom_webhook,
+    make_webhook_response,
+):
+    organization = make_organization()
+    user = make_user_for_organization(organization)
+    alert_receive_channel = make_alert_receive_channel(organization)
+    alert_group = make_alert_group(
+        alert_receive_channel, acknowledged_at=timezone.now(), acknowledged=True, acknowledged_by=user.pk
+    )
+    webhook = make_custom_webhook(
+        organization=organization,
+        url="https://something/{{ responses.firing.id }}/",
+        http_method="POST",
+        trigger_type=Webhook.TRIGGER_RESOLVE,
+        data='{"value": "{{ responses.acknowledge.status }}"}',
+        forward_all=False,
+    )
+    # add previous webhook responses for the related alert group
+    make_webhook_response(
+        alert_group=alert_group, trigger_type=Webhook.TRIGGER_NEW, content=json.dumps({"id": "third-party-id"})
+    )
+    make_webhook_response(
+        alert_group=alert_group,
+        trigger_type=Webhook.TRIGGER_ACKNOWLEDGE,
+        content=json.dumps({"id": "third-party-id", "status": "updated"}),
+    )
+
+    mock_response = MockResponse()
+    with patch("apps.webhooks.utils.socket.gethostbyname") as mock_gethostbyname:
+        mock_gethostbyname.return_value = "8.8.8.8"
+        with patch("apps.webhooks.models.webhook.requests") as mock_requests:
+            mock_requests.post.return_value = mock_response
+            execute_webhook(webhook.pk, alert_group.pk, user.pk)
+
+    assert mock_requests.post.called
+    expected_data = {"value": "updated"}
+    expected_call = call(
+        "https://something/third-party-id/",
+        timeout=10,
+        headers={},
+        json=expected_data,
+    )
+    assert mock_requests.post.call_args == expected_call
+    # check logs
+    log = webhook.responses.all()[0]
+    assert log.status_code == 200
+    assert log.content == json.dumps(mock_response.json())
+    assert json.loads(log.request_data) == expected_data
+    assert log.url == "https://something/third-party-id/"
 
 
 @pytest.mark.django_db
