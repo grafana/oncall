@@ -83,6 +83,9 @@ class MobileAppUserSettings(models.Model):
     default_notification_volume_type = models.CharField(
         max_length=50, choices=VolumeType.choices, default=VolumeType.CONSTANT
     )
+
+    # APNS only allows to specify volume for critical notifications,
+    # so "default_notification_volume" and "default_notification_volume_override" are only used on Android
     default_notification_volume = models.FloatField(
         validators=[validators.MinValueValidator(0.0), validators.MaxValueValidator(1.0)], default=0.6
     )
