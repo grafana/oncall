@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Modified `check_escalation_finished_task` celery task to use read-only databases for its query, if one is defined +
   make the validation logic stricter + ping a configurable heartbeat on successful completion of this task ([1266](https://github.com/grafana/oncall/pull/1266))
 
+- Add `URLValidatorWithoutTLD` for domains without TLDs like container hostnames. This will let them to be added as outgoing webhooks if `DANGEROUS_WEBHOOKS_ENABLED` is set to true ([1398](https://github.com/grafana/oncall/pull/1398)).  
 ### Changed
 
 - Updated wording throughout plugin to use 'Alert Group' instead of 'Incident' ([1565](https://github.com/grafana/oncall/pull/1565),
