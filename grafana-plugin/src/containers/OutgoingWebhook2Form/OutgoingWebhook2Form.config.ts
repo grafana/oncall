@@ -15,10 +15,6 @@ export const form: { name: string; fields: FormItem[] } = {
       extra: {
         options: [
           {
-            value: '0',
-            label: 'Escalation step',
-          },
-          {
             value: '1',
             label: 'Triggered',
           },

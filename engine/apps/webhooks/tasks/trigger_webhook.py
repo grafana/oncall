@@ -9,7 +9,7 @@ from django.utils import timezone
 
 from apps.alerts.models import AlertGroup
 from apps.user_management.models import User
-from apps.webhooks.models import Webhook, WebhookLog
+from apps.webhooks.models import Webhook, WebhookResponse
 from apps.webhooks.utils import (
     InvalidWebhookData,
     InvalidWebhookHeaders,
@@ -38,14 +38,10 @@ def _isoformat_date(date_value):
     return date_value.isoformat() if date_value else None
 
 
-def _build_payload(trigger_type, alert_group_id, user_id):
+def _build_payload(trigger_type, alert_group, user_id):
     user = None
-    try:
-        alert_group = AlertGroup.unarchived_objects.get(pk=alert_group_id)
-        if user_id is not None:
-            user = User.objects.filter(pk=user_id).first()
-    except AlertGroup.DoesNotExist:
-        return
+    if user_id is not None:
+        user = User.objects.filter(pk=user_id).first()
 
     if trigger_type == Webhook.TRIGGER_NEW:
         event = {
@@ -91,54 +87,59 @@ def execute_webhook(webhook_pk, alert_group_id, user_id):
         logger.warn(f"Webhook {webhook_pk} does not exist")
         return
 
-    data = _build_payload(webhook.trigger_type, alert_group_id, user_id)
+    try:
+        alert_group = AlertGroup.unarchived_objects.get(pk=alert_group_id)
+    except AlertGroup.DoesNotExist:
+        return
+
+    data = _build_payload(webhook.trigger_type, alert_group, user_id)
     status = {
-        "last_run_at": timezone.now(),
-        "input_data": data,
+        "timestamp": timezone.now(),
         "url": None,
-        "trigger": None,
-        "headers": None,
-        "data": None,
-        "response_status": None,
-        "response": None,
+        "request_trigger": None,
+        "request_headers": None,
+        "request_data": data,
+        "status_code": None,
+        "content": None,
+        "webhook": webhook,
     }
 
     exception = None
     try:
-        triggered, status["trigger"] = webhook.check_trigger(data)
+        triggered, status["request_trigger"] = webhook.check_trigger(data)
         if triggered:
             status["url"] = webhook.build_url(data)
             request_kwargs = webhook.build_request_kwargs(data, raise_data_errors=True)
-            status["headers"] = json.dumps(request_kwargs.get("headers", {}))
-            if webhook.forward_all:
-                status["data"] = "All input_data forwarded as payload"
-            elif "json" in request_kwargs:
-                status["data"] = json.dumps(request_kwargs["json"])
+            status["request_headers"] = json.dumps(request_kwargs.get("headers", {}))
+            if "json" in request_kwargs:
+                status["request_data"] = json.dumps(request_kwargs["json"])
             else:
-                status["data"] = request_kwargs.get("data")
+                status["request_data"] = request_kwargs.get("data")
             response = webhook.make_request(status["url"], request_kwargs)
-            status["response_status"] = response.status_code
+            status["status_code"] = response.status_code
             try:
-                status["response"] = json.dumps(response.json())
+                status["content"] = json.dumps(response.json())
             except JSONDecodeError:
-                status["response"] = response.content.decode("utf-8")
+                status["content"] = response.content.decode("utf-8")
         else:
             # do not add a log entry if the webhook is not triggered
             return
     except InvalidWebhookUrl as e:
         status["url"] = e.message
     except InvalidWebhookTrigger as e:
-        status["trigger"] = e.message
+        status["request_trigger"] = e.message
     except InvalidWebhookHeaders as e:
-        status["headers"] = e.message
+        status["request_headers"] = e.message
     except InvalidWebhookData as e:
-        status["data"] = e.message
+        status["request_data"] = e.message
     except Exception as e:
-        status["response"] = str(e)
+        status["content"] = str(e)
         exception = e
 
-    # create/update log entry
-    WebhookLog.objects.update_or_create(webhook_id=webhook_pk, defaults=status)
+    # create/update response entry
+    WebhookResponse.objects.update_or_create(
+        alert_group=alert_group, trigger_type=webhook.trigger_type, defaults=status
+    )
 
     if exception:
         raise exception
