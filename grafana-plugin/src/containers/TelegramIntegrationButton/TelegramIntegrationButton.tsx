@@ -108,7 +108,7 @@ const TelegramModal = (props: TelegramModalProps) => {
         </Text>
         <Text type="secondary">
           3. Connect the discussion group with the channel. In <Text type="primary">Manage Channel</Text>, click{' '}
-          <Text type="primary">Discussion</Text> to find and add freshly created group.{' '}
+          <Text type="primary">Discussion</Text> to find and add the freshly created group.{' '}
         </Text>
         <Text type="secondary">
           4. Go to{' '}

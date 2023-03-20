@@ -9,7 +9,7 @@ import VerticalTabsBar, { VerticalTab } from 'components/VerticalTabsBar/Vertica
 import SlackSettings from 'pages/settings/tabs/ChatOps/tabs/SlackSettings/SlackSettings';
 import TelegramSettings from 'pages/settings/tabs/ChatOps/tabs/TelegramSettings/TelegramSettings';
 import { AppFeature } from 'state/features';
-import { WithStoreProps } from 'state/types';
+import { useStore } from 'state/useStore';
 import { withMobXProviderContext } from 'state/withStore';
 import LocationHelper from 'utils/LocationHelper';
 
@@ -21,7 +21,7 @@ export enum ChatOpsTab {
   Slack = 'Slack',
   Telegram = 'Telegram',
 }
-interface ChatOpsProps extends AppRootProps, WithStoreProps {}
+interface ChatOpsProps extends AppRootProps {}
 interface ChatOpsState {
   activeTab: ChatOpsTab;
 }
@@ -44,19 +44,14 @@ class ChatOpsPage extends React.Component<ChatOpsProps, ChatOpsState> {
 
   render() {
     const { activeTab } = this.state;
-    const { store } = this.props;
 
     return (
       <div className={cx('root')}>
         <div className={cx('tabs')}>
-          <Tabs
-            activeTab={activeTab}
-            onTabChange={(tab: ChatOpsTab) => this.handleChatopsTabChange(tab)}
-            store={store}
-          />
+          <Tabs activeTab={activeTab} onTabChange={(tab: ChatOpsTab) => this.handleChatopsTabChange(tab)} />
         </div>
         <div className={cx('content')}>
-          <TabsContent activeTab={activeTab} store={store} />
+          <TabsContent activeTab={activeTab} />
         </div>
       </div>
     );
@@ -70,14 +65,14 @@ class ChatOpsPage extends React.Component<ChatOpsProps, ChatOpsState> {
 
 export default withMobXProviderContext(ChatOpsPage);
 
-interface TabsProps extends WithStoreProps {
+interface TabsProps {
   activeTab: string;
   onTabChange: (tab: string) => void;
 }
 
 const Tabs = (props: TabsProps) => {
   const { activeTab, onTabChange } = props;
-  const { store } = props;
+  const store = useStore();
 
   return (
     <VerticalTabsBar activeTab={activeTab} onChange={onTabChange}>
@@ -102,12 +97,13 @@ const Tabs = (props: TabsProps) => {
   );
 };
 
-interface TabsContentProps extends WithStoreProps {
+interface TabsContentProps {
   activeTab: string;
 }
 
 const TabsContent = (props: TabsContentProps) => {
-  const { activeTab, store } = props;
+  const { activeTab } = props;
+  const store = useStore();
 
   return (
     <>

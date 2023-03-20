@@ -21,9 +21,8 @@ export const ChatOpsConnectors = (props: ChatOpsConnectorsProps) => {
   const { telegramChannelStore } = store;
 
   const isSlackInstalled = Boolean(store.teamStore.currentTeam?.slack_team_identity);
-  const isTelegramInstalled = Boolean(
-    store.hasFeature(AppFeature.Telegram) && telegramChannelStore.currentTeamToTelegramChannel?.length > 0
-  );
+  const isTelegramInstalled =
+    store.hasFeature(AppFeature.Telegram) && telegramChannelStore.currentTeamToTelegramChannel?.length > 0;
 
   if (!isSlackInstalled && !isTelegramInstalled) {
     return null;

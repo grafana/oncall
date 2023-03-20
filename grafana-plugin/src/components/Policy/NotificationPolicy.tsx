@@ -154,13 +154,15 @@ export class NotificationPolicy extends React.Component<NotificationPolicyProps,
   _renderTelegramNote() {
     const { telegramVerified, store } = this.props;
 
-    return store.hasFeature(AppFeature.Telegram) ? (
-      telegramVerified ? (
-        <PolicyNote type="success">Telegram is connected</PolicyNote>
-      ) : (
-        <PolicyNote type="danger">Telegram is not connected</PolicyNote>
-      )
-    ) : null;
+    if (!store.hasFeature(AppFeature.Telegram)) {
+      return null;
+    }
+
+    return telegramVerified ? (
+      <PolicyNote type="success">Telegram is connected</PolicyNote>
+    ) : (
+      <PolicyNote type="danger">Telegram is not connected</PolicyNote>
+    );
   }
 
   private _renderWaitDelays() {
