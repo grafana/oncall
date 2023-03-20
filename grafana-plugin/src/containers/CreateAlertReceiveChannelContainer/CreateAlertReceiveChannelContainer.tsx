@@ -79,7 +79,9 @@ const CreateAlertReceiveChannelContainer = observer((props: CreateAlertReceiveCh
                 </div>
                 <div className={cx('title')}>
                   <VerticalGroup spacing="none">
-                    <Text strong>{alertReceiveChannelChoice.display_name}</Text>
+                    <div data-testid="integration-display-name">
+                      <Text strong>{alertReceiveChannelChoice.display_name}</Text>
+                    </div>
                     <Text type="secondary" size="small">
                       {alertReceiveChannelChoice.short_description}
                     </Text>
