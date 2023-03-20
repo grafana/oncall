@@ -52,30 +52,23 @@ class URLValidatorWithoutTLD(URLValidator):
     """
     Overrides Django URLValidator Regex. It removes the tld part because
     most of the time, containers don't have any TLD in their urls and such outgoing webhooks
-    can't be registered. 
+    can't be registered.
     """
-    ul = "\u00a1-\uffff"  # Unicode letters range (must not be a raw string).
 
-    # IP patterns
-    ipv4_re = (
-        r"(?:0|25[0-5]|2[0-4][0-9]|1[0-9]?[0-9]?|[1-9][0-9]?)"
-        r"(?:\.(?:0|25[0-5]|2[0-4][0-9]|1[0-9]?[0-9]?|[1-9][0-9]?)){3}"
+    host_re = (
+        "("
+        + URLValidator.hostname_re
+        + URLValidator.domain_re
+        + URLValidator.tld_re
+        + "|"
+        + URLValidator.hostname_re
+        + "|localhost)"
     )
-    ipv6_re = r"\[[0-9a-f:.]+\]"  # (simple regex, validated later)
-
-    # Host patterns
-    hostname_re = (
-        r"[a-z" + ul + r"0-9](?:[a-z" + ul + r"0-9-]{0,61}[a-z" + ul + r"0-9])?"
-    )
-    # Max length for domain name labels is 63 characters per RFC 1034 sec. 3.1
-    domain_re = r"(?:\.(?!-)[a-z" + ul + r"0-9-]{1,63}(?<!-))*"
-    # The tld_re has been removed from the default Djando URLValidator.
-    host_re = "(" + hostname_re + domain_re + "|localhost)"
 
     regex = _lazy_re_compile(
         r"^(?:[a-z0-9.+-]*)://"  # scheme is validated separately
         r"(?:[^\s:@/]+(?::[^\s:@/]*)?@)?"  # user:pass authentication
-        r"(?:" + ipv4_re + "|" + ipv6_re + "|" + host_re + ")"
+        r"(?:" + URLValidator.ipv4_re + "|" + URLValidator.ipv6_re + "|" + host_re + ")"
         r"(?::[0-9]{1,5})?"  # port
         r"(?:[/?#][^\s]*)?"  # resource path
         r"\Z",
