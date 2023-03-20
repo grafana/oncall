@@ -18,6 +18,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Fixed a few permission issues on the UI ([1448](https://github.com/grafana/oncall/pull/1448))
 - Fix resolution note rendering in Slack message threads where the Slack username was not
   being properly rendered ([1561](https://github.com/grafana/oncall/pull/1561))
 
@@ -68,8 +69,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - Fix bug with override creation ([1515](https://github.com/grafana/oncall/pull/1515))
-- Fixed redirection issue on integrations screen
-- Fixed a few permission issues ([1448](https://github.com/grafana/oncall/issues/1448))
 
 ## v1.1.35 (2023-03-09)
 
