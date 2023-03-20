@@ -9,8 +9,59 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Modified `check_escalation_finished_task` celery task to use read-only databases for its query, if one is defined +
+  make the validation logic stricter + ping a configurable heartbeat on successful completion of this task ([1266](https://github.com/grafana/oncall/pull/1266))
+
+### Changed
+
+- Updated wording in some Slack messages to use 'Alert Group' instead of 'Incident' ([1565](https://github.com/grafana/oncall/pull/1565))
+
+### Fixed
+
+- Fix resolution note rendering in Slack message threads where the Slack username was not
+  being properly rendered ([1561](https://github.com/grafana/oncall/pull/1561))
+
+## v1.1.40 (2023-03-16)
+
+### Fixed
+
+- Check for duplicated positions in terraform escalation policies create/update
+
+### Added
+
+- Add `regex_match` Jinja filter ([1556](https://github.com/grafana/oncall/pull/1556))
+
+### Changed
+
+- Allow passing `null` as a value for `escalation_chain` when creating routes via the public API ([1557](https://github.com/grafana/oncall/pull/1557))
+
+## v1.1.39 (2023-03-16)
+
+### Added
+
+- Inbound email integration ([837](https://github.com/grafana/oncall/pull/837))
+
+## v1.1.38 (2023-03-14)
+
+### Added
+
+- Add filtering by escalation chain to alert groups page ([1535](https://github.com/grafana/oncall/pull/1535))
+
+### Fixed
+
+- Improve tasks checking/triggering webhooks in new backend
+
+## v1.1.37 (2023-03-14)
+
+### Fixed
+
+- Fixed redirection issue on integrations screen
+
+### Added
+
 - Enable web overrides for Terraform-based schedules
 - Direct user paging improvements ([1358](https://github.com/grafana/oncall/issues/1358))
+- Added Schedule Score quality within the schedule view ([118](https://github.com/grafana/oncall/issues/118))
 
 ## v1.1.36 (2023-03-09)
 
@@ -114,6 +165,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - Added ratelimits for phone verification
+- Link to source was added
+- Header of Incident page was reworked: clickable labels instead of just names, users section was deleted
+- "Go to Integration" button was deleted, because the functionality was moved to clickable labels
 
 ### Fixed
 
@@ -142,7 +196,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Add direct user paging ([823](https://github.com/grafana/oncall/issues/823))
 - Add App Store link to web UI ([1328](https://github.com/grafana/oncall/pull/1328))
-- Added Schedule Score quality within the schedule view ([118](https://github.com/grafana/oncall/issues/118))
 
 ### Fixed
 
@@ -157,9 +210,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Incidents - Removed buttons column and replaced status with toggler ([#1237](https://github.com/grafana/oncall/issues/1237))
 - Responsiveness changes across multiple pages (Incidents, Integrations, Schedules) ([#1237](https://github.com/grafana/oncall/issues/1237))
 - Add pagination to schedule listing
-- Link to source was added
-- Header of Incident page was reworked: clickable labels instead of just names, users section was deleted
-- "Go to Integration" button was deleted, because the functionality was moved to clickable labels
 
 ## v1.1.23 (2023-02-06)
 
