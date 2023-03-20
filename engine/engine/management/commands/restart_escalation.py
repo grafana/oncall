@@ -49,9 +49,6 @@ class Command(BaseCommand):
                 alert_group.unsilence_task_uuid = task_id
 
                 escalation_start_time = max(now, alert_group.silenced_until)
-                alert_group.estimate_escalation_finish_time = alert_group.calculate_eta_for_finish_escalation(
-                    start_time=escalation_start_time,
-                )
                 alert_groups_to_update.append(alert_group)
 
                 tasks.append(
@@ -65,9 +62,6 @@ class Command(BaseCommand):
             # otherwise start escalate_alert_group task
             else:
                 if alert_group.escalation_snapshot:
-                    alert_group.estimate_escalation_finish_time = alert_group.calculate_eta_for_finish_escalation(
-                        escalation_started=True,
-                    )
                     alert_group.active_escalation_id = task_id
                     alert_groups_to_update.append(alert_group)
 
@@ -82,7 +76,7 @@ class Command(BaseCommand):
 
         AlertGroup.all_objects.bulk_update(
             alert_groups_to_update,
-            ["estimate_escalation_finish_time", "active_escalation_id", "unsilence_task_uuid"],
+            ["active_escalation_id", "unsilence_task_uuid"],
             batch_size=5000,
         )
 

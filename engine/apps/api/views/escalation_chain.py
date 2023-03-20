@@ -46,7 +46,7 @@ class EscalationChainViewSet(
     }
 
     filter_backends = [SearchFilter]
-    search_fields = ("^name",)
+    search_fields = ("name",)
 
     serializer_class = EscalationChainSerializer
     list_serializer_class = EscalationChainListSerializer
