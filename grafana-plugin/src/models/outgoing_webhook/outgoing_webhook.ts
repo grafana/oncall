@@ -46,13 +46,13 @@ export class OutgoingWebhookStore extends BaseStore {
 
   @action
   async updateItem(id: OutgoingWebhook['id'], fromOrganization = false) {
-    let outgoungWebhook;
+    let outgoingWebhook;
 
     try {
-      outgoungWebhook = await this.getById(id, true, fromOrganization);
+      outgoingWebhook = await this.getById(id, true, fromOrganization);
     } catch (error) {
       if (error.response.data.error_code === 'wrong_team') {
-        outgoungWebhook = {
+        outgoingWebhook = {
           id,
           name: '🔒 Private outgoing webhook',
           private: true,
@@ -60,10 +60,10 @@ export class OutgoingWebhookStore extends BaseStore {
       }
     }
 
-    if (outgoungWebhook) {
+    if (outgoingWebhook) {
       this.items = {
         ...this.items,
-        [id]: outgoungWebhook,
+        [id]: outgoingWebhook,
       };
     }
   }

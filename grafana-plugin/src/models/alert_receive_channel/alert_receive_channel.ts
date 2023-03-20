@@ -84,9 +84,7 @@ export class AlertReceiveChannelStore extends BaseStore {
   async updateItems(query: any = '') {
     const params = typeof query === 'string' ? { search: query } : query;
 
-    const result = await makeRequest(`${this.path}`, {
-      params,
-    });
+    const result = await makeRequest(this.path, { params });
 
     this.items = {
       ...this.items,

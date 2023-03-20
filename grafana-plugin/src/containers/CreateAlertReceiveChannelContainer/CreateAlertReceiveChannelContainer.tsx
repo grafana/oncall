@@ -66,7 +66,7 @@ const CreateAlertReceiveChannelContainer = observer((props: CreateAlertReceiveCh
       <div className={cx('select-team')}>
         <Field
           label="Assign to team"
-          description="When integration is assigned to the team, all the produced alerts will belong to this team"
+          description="When an integration is assigned to a team, all the produced alerts will belong to this team"
         >
           <GrafanaTeamSelect withoutModal onSelect={setSelectedTeam} />
         </Field>
