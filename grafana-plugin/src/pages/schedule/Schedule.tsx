@@ -22,6 +22,7 @@ import ScheduleOverrides from 'containers/Rotations/ScheduleOverrides';
 import ScheduleForm from 'containers/ScheduleForm/ScheduleForm';
 import ScheduleICalSettings from 'containers/ScheduleIcalLink/ScheduleIcalLink';
 import UsersTimezones from 'containers/UsersTimezones/UsersTimezones';
+import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
 import { Schedule, ScheduleType, Shift } from 'models/schedule/schedule.types';
 import { Timezone } from 'models/timezone/timezone.types';
 import { PageProps, WithStoreProps } from 'state/types';
@@ -183,9 +184,11 @@ class SchedulePage extends React.Component<SchedulePageProps, SchedulePageState>
                             </HorizontalGroup>
 
                             {(schedule?.type === ScheduleType.Ical || schedule?.type === ScheduleType.Calendar) && (
-                              <Button variant="secondary" onClick={this.handleReloadClick(scheduleId)}>
-                                Reload
-                              </Button>
+                              <WithPermissionControlTooltip userAction={UserActions.SchedulesWrite}>
+                                <Button variant="secondary" onClick={this.handleReloadClick(scheduleId)}>
+                                  Reload
+                                </Button>
+                              </WithPermissionControlTooltip>
                             )}
                           </HorizontalGroup>
                           <ToolbarButton
