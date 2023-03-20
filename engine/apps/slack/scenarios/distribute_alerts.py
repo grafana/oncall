@@ -302,7 +302,7 @@ class SelectAttachGroupStep(
     scenario_step.ScenarioStep,
 ):
     REQUIRED_PERMISSIONS = [RBACPermission.Permissions.CHATOPS_WRITE]
-    ACTION_VERBOSE = "Select Incident for Attaching to"
+    ACTION_VERBOSE = "Select Alert Group for Attaching to"
 
     def process_scenario(self, slack_user_identity, slack_team_identity, payload):
         AlertGroup = apps.get_model("alerts", "AlertGroup")
@@ -319,7 +319,7 @@ class SelectAttachGroupStep(
             "type": "modal",
             "title": {
                 "type": "plain_text",
-                "text": "Attach to Incident",
+                "text": "Attach to Alert Group",
             },
             "private_metadata": json.dumps(
                 {
@@ -715,7 +715,7 @@ class UnAcknowledgeGroupStep(
             ]
             text = (
                 f"{user_verbal} hasn't responded to an acknowledge timeout reminder."
-                f" Incident is unacknowledged automatically"
+                f" Alert Group is unacknowledged automatically"
             )
             if alert_group.slack_message.ack_reminder_message_ts:
                 try:

@@ -17,7 +17,7 @@ import { Timezone } from 'models/timezone/timezone.types';
 import { User } from 'models/user/user.types';
 import { getDateTime, getUTCString } from 'pages/schedule/Schedule.helpers';
 import { useStore } from 'state/useStore';
-import { getCoords, waitForElement } from 'utils/DOM';
+import { getCoords, getVar, waitForElement } from 'utils/DOM';
 import { useDebouncedCallback } from 'utils/hooks';
 
 import DateTimePicker from './DateTimePicker';
@@ -50,7 +50,7 @@ const ScheduleOverrideForm: FC<RotationFormProps> = (props) => {
     shiftId,
     startMoment,
     shiftMoment = dayjs().startOf('day').add(1, 'day'),
-    shiftColor = getComputedStyle(document.documentElement).getPropertyValue('--tag-warning'),
+    shiftColor = getVar('--tag-warning'),
   } = props;
 
   const store = useStore();
@@ -205,7 +205,7 @@ const ScheduleOverrideForm: FC<RotationFormProps> = (props) => {
             <IconButton variant="secondary" className={cx('drag-handler')} name="draggabledots" />
           </HorizontalGroup>
         </HorizontalGroup>
-        <div className={cx('content')}>
+        <div className={cx('content')} data-testid="override-inputs">
           <VerticalGroup>
             <HorizontalGroup>
               <Field

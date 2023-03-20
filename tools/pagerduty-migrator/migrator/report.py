@@ -163,3 +163,36 @@ def integration_report(integrations: list[dict]) -> str:
             )
 
     return result
+
+
+def format_ruleset(ruleset: dict) -> str:
+    if ruleset["flawed_escalation_policies"]:
+        escalation_policy_names = [
+            p["name"] for p in ruleset["flawed_escalation_policies"]
+        ]
+        result = "{} {} — escalation policies '{}' reference unmatched users or schedules that cannot be migrated".format(
+            ERROR_SIGN, ruleset["name"], ", ".join(escalation_policy_names)
+        )
+    else:
+        result = "{} {}".format(SUCCESS_SIGN, ruleset["name"])
+
+    return result
+
+
+def ruleset_report(rulesets: list[dict]) -> str:
+    result = "Event rules (rulesets) report:"
+
+    for ruleset in sorted(
+        rulesets,
+        key=lambda r: bool(r["flawed_escalation_policies"]),
+        reverse=True,
+    ):
+        result += "\n" + TAB + format_ruleset(ruleset)
+        if not ruleset["flawed_escalation_policies"] and ruleset["oncall_integration"]:
+            result += (
+                " (existing integration with name '{} Ruleset' will be deleted)".format(
+                    ruleset["name"]
+                )
+            )
+
+    return result

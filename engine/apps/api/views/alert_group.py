@@ -13,7 +13,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
 from apps.alerts.constants import ActionSource
-from apps.alerts.models import Alert, AlertGroup, AlertReceiveChannel
+from apps.alerts.models import Alert, AlertGroup, AlertReceiveChannel, EscalationChain
 from apps.alerts.paging import unpage_user
 from apps.api.permissions import RBACPermission
 from apps.api.serializers.alert_group import AlertGroupListSerializer, AlertGroupSerializer
@@ -37,6 +37,13 @@ def get_integration_queryset(request):
         return AlertReceiveChannel.objects.none()
 
     return AlertReceiveChannel.objects_with_maintenance.filter(organization=request.user.organization)
+
+
+def get_escalation_chain_queryset(request):
+    if request is None:
+        return EscalationChain.objects.none()
+
+    return EscalationChain.objects.filter(organization=request.user.organization)
 
 
 def get_user_queryset(request):
@@ -69,6 +76,12 @@ class AlertGroupFilter(DateRangeFilterMixin, ByTeamModelFieldFilterMixin, ModelF
     integration = filters.ModelMultipleChoiceFilter(
         field_name="channel_filter__alert_receive_channel",
         queryset=get_integration_queryset,
+        to_field_name="public_primary_key",
+        method=ModelFieldFilterMixin.filter_model_field.__name__,
+    )
+    escalation_chain = filters.ModelMultipleChoiceFilter(
+        field_name="channel_filter__escalation_chain",
+        queryset=get_escalation_chain_queryset,
         to_field_name="public_primary_key",
         method=ModelFieldFilterMixin.filter_model_field.__name__,
     )
@@ -547,6 +560,7 @@ class AlertGroupView(
             },
             {"name": "search", "type": "search"},
             {"name": "integration", "type": "options", "href": api_root + "alert_receive_channels/?filters=true"},
+            {"name": "escalation_chain", "type": "options", "href": api_root + "escalation_chains/?filters=true"},
             {
                 "name": "acknowledged_by",
                 "type": "options",

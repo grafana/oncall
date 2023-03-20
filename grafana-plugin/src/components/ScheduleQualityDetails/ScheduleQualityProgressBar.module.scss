@@ -1,0 +1,43 @@
+$border-radius: 2px;
+
+@mixin progressBar($color) {
+  background-color: $color;
+  border-radius: $border-radius;
+  height: 8px;
+}
+
+.c-progressBar__wrapper {
+  width: 100%;
+  height: 8px;
+  display: flex;
+  gap: 2px;
+}
+
+.c-progressBar__bar {
+  height: 8px;
+}
+
+.c-progressBar__bar--warning {
+  background-color: var(--warning-text-color);
+}
+.c-progressBar__bar--error {
+  background-color: var(--error-text-color);
+}
+.c-progressBar__bar--primary {
+  background-color: var(--success-text-color);
+}
+
+.c-progressBar__row {
+  background-color: var(--gray-8);
+}
+
+.c-progressBar__row:first-child,
+.c-progressBar__row:first-child > .c-progressBar__bar {
+  border-top-left-radius: $border-radius;
+  border-bottom-left-radius: $border-radius;
+}
+.c-progressBar__row:last-child,
+.c-progressBar__row:last-child > .c-progressBar__bar {
+  border-top-right-radius: $border-radius;
+  border-bottom-right-radius: $border-radius;
+}

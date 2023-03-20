@@ -9,11 +9,20 @@ from rest_framework.response import Response
 
 from apps.alerts.models import EscalationChain
 from apps.api.permissions import RBACPermission
-from apps.api.serializers.escalation_chain import EscalationChainListSerializer, EscalationChainSerializer
+from apps.api.serializers.escalation_chain import (
+    EscalationChainListSerializer,
+    EscalationChainSerializer,
+    FilterEscalationChainSerializer,
+)
 from apps.auth_token.auth import PluginAuthentication
 from common.api_helpers.exceptions import BadRequest
 from common.api_helpers.filters import ByTeamModelFieldFilterMixin, ModelFieldFilterMixin, get_team_queryset
-from common.api_helpers.mixins import ListSerializerMixin, PublicPrimaryKeyMixin, TeamFilteringMixin
+from common.api_helpers.mixins import (
+    FilterSerializerMixin,
+    ListSerializerMixin,
+    PublicPrimaryKeyMixin,
+    TeamFilteringMixin,
+)
 from common.insight_log import EntityEvent, write_resource_insight_log
 
 
@@ -28,7 +37,13 @@ class EscalationChainFilter(ByTeamModelFieldFilterMixin, ModelFieldFilterMixin, 
     )
 
 
-class EscalationChainViewSet(TeamFilteringMixin, PublicPrimaryKeyMixin, ListSerializerMixin, viewsets.ModelViewSet):
+class EscalationChainViewSet(
+    TeamFilteringMixin,
+    PublicPrimaryKeyMixin,
+    FilterSerializerMixin,
+    ListSerializerMixin,
+    viewsets.ModelViewSet,
+):
     authentication_classes = (PluginAuthentication,)
     permission_classes = (IsAuthenticated, RBACPermission)
 
@@ -51,25 +66,32 @@ class EscalationChainViewSet(TeamFilteringMixin, PublicPrimaryKeyMixin, ListSeri
     serializer_class = EscalationChainSerializer
     list_serializer_class = EscalationChainListSerializer
 
+    filter_serializer_class = FilterEscalationChainSerializer
+
     def get_queryset(self):
-        queryset = (
-            EscalationChain.objects.filter(
-                organization=self.request.auth.organization,
-                *self.available_teams_lookup_args,
+        is_filters_request = self.request.query_params.get("filters", "false") == "true"
+
+        queryset = EscalationChain.objects.filter(
+            organization=self.request.auth.organization,
+            *self.available_teams_lookup_args,
+        )
+
+        if is_filters_request:
+            # Do not annotate num_integrations and num_routes for filters request,
+            # only fetch public_primary_key and name fields needed by FilterEscalationChainSerializer
+            return queryset.only("public_primary_key", "name")
+
+        queryset = queryset.annotate(
+            num_integrations=Count(
+                "channel_filters__alert_receive_channel",
+                distinct=True,
+                filter=Q(channel_filters__alert_receive_channel__deleted_at__isnull=True),
             )
-            .annotate(
-                num_integrations=Count(
-                    "channel_filters__alert_receive_channel",
-                    distinct=True,
-                    filter=Q(channel_filters__alert_receive_channel__deleted_at__isnull=True),
-                )
-            )
-            .annotate(
-                num_routes=Count(
-                    "channel_filters",
-                    distinct=True,
-                    filter=Q(channel_filters__alert_receive_channel__deleted_at__isnull=True),
-                )
+        ).annotate(
+            num_routes=Count(
+                "channel_filters",
+                distinct=True,
+                filter=Q(channel_filters__alert_receive_channel__deleted_at__isnull=True),
             )
         )
 

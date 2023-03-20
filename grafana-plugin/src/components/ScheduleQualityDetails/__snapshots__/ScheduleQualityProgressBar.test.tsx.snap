@@ -1,0 +1,449 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`SourceCode It renders at 0% 1`] = `
+<div>
+  <div
+    class="c-progressBar__wrapper"
+  >
+    <div
+      class="c-progressBar__row c-progressBar__row--progress"
+      data-testid="progressBar__row"
+      style="width: 20%;"
+    >
+      <div
+        class="c-progressBar__bar c-progressBar__bar--danger"
+        data-testid="progressBar__bar"
+        style="width: 0%;"
+      />
+    </div>
+    <div
+      class="c-progressBar__row c-progressBar__row--progress"
+      data-testid="progressBar__row"
+      style="width: 20%;"
+    >
+      <div
+        class="c-progressBar__bar c-progressBar__bar--danger"
+        data-testid="progressBar__bar"
+        style="width: 0%;"
+      />
+    </div>
+    <div
+      class="c-progressBar__row c-progressBar__row--progress"
+      data-testid="progressBar__row"
+      style="width: 20%;"
+    >
+      <div
+        class="c-progressBar__bar c-progressBar__bar--danger"
+        data-testid="progressBar__bar"
+        style="width: 0%;"
+      />
+    </div>
+    <div
+      class="c-progressBar__row c-progressBar__row--progress"
+      data-testid="progressBar__row"
+      style="width: 20%;"
+    >
+      <div
+        class="c-progressBar__bar c-progressBar__bar--danger"
+        data-testid="progressBar__bar"
+        style="width: 0%;"
+      />
+    </div>
+    <div
+      class="c-progressBar__row c-progressBar__row--progress"
+      data-testid="progressBar__row"
+      style="width: 20%;"
+    >
+      <div
+        class="c-progressBar__bar c-progressBar__bar--danger"
+        data-testid="progressBar__bar"
+        style="width: 0%;"
+      />
+    </div>
+  </div>
+</div>
+`;
+
+exports[`SourceCode It renders at 25% 1`] = `
+<div>
+  <div
+    class="c-progressBar__wrapper"
+  >
+    <div
+      class="c-progressBar__row c-progressBar__row--progress"
+      data-testid="progressBar__row"
+      style="width: 20%;"
+    >
+      <div
+        class="c-progressBar__bar c-progressBar__bar--warning"
+        data-testid="progressBar__bar"
+        style="width: 100%;"
+      />
+    </div>
+    <div
+      class="c-progressBar__row c-progressBar__row--progress"
+      data-testid="progressBar__row"
+      style="width: 20%;"
+    >
+      <div
+        class="c-progressBar__bar c-progressBar__bar--warning"
+        data-testid="progressBar__bar"
+        style="width: 25%;"
+      />
+    </div>
+    <div
+      class="c-progressBar__row c-progressBar__row--progress"
+      data-testid="progressBar__row"
+      style="width: 20%;"
+    >
+      <div
+        class="c-progressBar__bar c-progressBar__bar--warning"
+        data-testid="progressBar__bar"
+        style="width: 0%;"
+      />
+    </div>
+    <div
+      class="c-progressBar__row c-progressBar__row--progress"
+      data-testid="progressBar__row"
+      style="width: 20%;"
+    >
+      <div
+        class="c-progressBar__bar c-progressBar__bar--warning"
+        data-testid="progressBar__bar"
+        style="width: 0%;"
+      />
+    </div>
+    <div
+      class="c-progressBar__row c-progressBar__row--progress"
+      data-testid="progressBar__row"
+      style="width: 20%;"
+    >
+      <div
+        class="c-progressBar__bar c-progressBar__bar--warning"
+        data-testid="progressBar__bar"
+        style="width: 0%;"
+      />
+    </div>
+  </div>
+</div>
+`;
+
+exports[`SourceCode It renders at 30% 1`] = `
+<div>
+  <div
+    class="c-progressBar__wrapper"
+  >
+    <div
+      class="c-progressBar__row c-progressBar__row--progress"
+      data-testid="progressBar__row"
+      style="width: 20%;"
+    >
+      <div
+        class="c-progressBar__bar c-progressBar__bar--warning"
+        data-testid="progressBar__bar"
+        style="width: 100%;"
+      />
+    </div>
+    <div
+      class="c-progressBar__row c-progressBar__row--progress"
+      data-testid="progressBar__row"
+      style="width: 20%;"
+    >
+      <div
+        class="c-progressBar__bar c-progressBar__bar--warning"
+        data-testid="progressBar__bar"
+        style="width: 50%;"
+      />
+    </div>
+    <div
+      class="c-progressBar__row c-progressBar__row--progress"
+      data-testid="progressBar__row"
+      style="width: 20%;"
+    >
+      <div
+        class="c-progressBar__bar c-progressBar__bar--warning"
+        data-testid="progressBar__bar"
+        style="width: 0%;"
+      />
+    </div>
+    <div
+      class="c-progressBar__row c-progressBar__row--progress"
+      data-testid="progressBar__row"
+      style="width: 20%;"
+    >
+      <div
+        class="c-progressBar__bar c-progressBar__bar--warning"
+        data-testid="progressBar__bar"
+        style="width: 0%;"
+      />
+    </div>
+    <div
+      class="c-progressBar__row c-progressBar__row--progress"
+      data-testid="progressBar__row"
+      style="width: 20%;"
+    >
+      <div
+        class="c-progressBar__bar c-progressBar__bar--warning"
+        data-testid="progressBar__bar"
+        style="width: 0%;"
+      />
+    </div>
+  </div>
+</div>
+`;
+
+exports[`SourceCode It renders at 50% 1`] = `
+<div>
+  <div
+    class="c-progressBar__wrapper"
+  >
+    <div
+      class="c-progressBar__row c-progressBar__row--progress"
+      data-testid="progressBar__row"
+      style="width: 20%;"
+    >
+      <div
+        class="c-progressBar__bar c-progressBar__bar--warning"
+        data-testid="progressBar__bar"
+        style="width: 100%;"
+      />
+    </div>
+    <div
+      class="c-progressBar__row c-progressBar__row--progress"
+      data-testid="progressBar__row"
+      style="width: 20%;"
+    >
+      <div
+        class="c-progressBar__bar c-progressBar__bar--warning"
+        data-testid="progressBar__bar"
+        style="width: 100%;"
+      />
+    </div>
+    <div
+      class="c-progressBar__row c-progressBar__row--progress"
+      data-testid="progressBar__row"
+      style="width: 20%;"
+    >
+      <div
+        class="c-progressBar__bar c-progressBar__bar--warning"
+        data-testid="progressBar__bar"
+        style="width: 50%;"
+      />
+    </div>
+    <div
+      class="c-progressBar__row c-progressBar__row--progress"
+      data-testid="progressBar__row"
+      style="width: 20%;"
+    >
+      <div
+        class="c-progressBar__bar c-progressBar__bar--warning"
+        data-testid="progressBar__bar"
+        style="width: 0%;"
+      />
+    </div>
+    <div
+      class="c-progressBar__row c-progressBar__row--progress"
+      data-testid="progressBar__row"
+      style="width: 20%;"
+    >
+      <div
+        class="c-progressBar__bar c-progressBar__bar--warning"
+        data-testid="progressBar__bar"
+        style="width: 0%;"
+      />
+    </div>
+  </div>
+</div>
+`;
+
+exports[`SourceCode It renders at 65% 1`] = `
+<div>
+  <div
+    class="c-progressBar__wrapper"
+  >
+    <div
+      class="c-progressBar__row c-progressBar__row--progress"
+      data-testid="progressBar__row"
+      style="width: 20%;"
+    >
+      <div
+        class="c-progressBar__bar c-progressBar__bar--primary"
+        data-testid="progressBar__bar"
+        style="width: 100%;"
+      />
+    </div>
+    <div
+      class="c-progressBar__row c-progressBar__row--progress"
+      data-testid="progressBar__row"
+      style="width: 20%;"
+    >
+      <div
+        class="c-progressBar__bar c-progressBar__bar--primary"
+        data-testid="progressBar__bar"
+        style="width: 100%;"
+      />
+    </div>
+    <div
+      class="c-progressBar__row c-progressBar__row--progress"
+      data-testid="progressBar__row"
+      style="width: 20%;"
+    >
+      <div
+        class="c-progressBar__bar c-progressBar__bar--primary"
+        data-testid="progressBar__bar"
+        style="width: 100%;"
+      />
+    </div>
+    <div
+      class="c-progressBar__row c-progressBar__row--progress"
+      data-testid="progressBar__row"
+      style="width: 20%;"
+    >
+      <div
+        class="c-progressBar__bar c-progressBar__bar--primary"
+        data-testid="progressBar__bar"
+        style="width: 25%;"
+      />
+    </div>
+    <div
+      class="c-progressBar__row c-progressBar__row--progress"
+      data-testid="progressBar__row"
+      style="width: 20%;"
+    >
+      <div
+        class="c-progressBar__bar c-progressBar__bar--primary"
+        data-testid="progressBar__bar"
+        style="width: 0%;"
+      />
+    </div>
+  </div>
+</div>
+`;
+
+exports[`SourceCode It renders at 70% 1`] = `
+<div>
+  <div
+    class="c-progressBar__wrapper"
+  >
+    <div
+      class="c-progressBar__row c-progressBar__row--progress"
+      data-testid="progressBar__row"
+      style="width: 20%;"
+    >
+      <div
+        class="c-progressBar__bar c-progressBar__bar--primary"
+        data-testid="progressBar__bar"
+        style="width: 100%;"
+      />
+    </div>
+    <div
+      class="c-progressBar__row c-progressBar__row--progress"
+      data-testid="progressBar__row"
+      style="width: 20%;"
+    >
+      <div
+        class="c-progressBar__bar c-progressBar__bar--primary"
+        data-testid="progressBar__bar"
+        style="width: 100%;"
+      />
+    </div>
+    <div
+      class="c-progressBar__row c-progressBar__row--progress"
+      data-testid="progressBar__row"
+      style="width: 20%;"
+    >
+      <div
+        class="c-progressBar__bar c-progressBar__bar--primary"
+        data-testid="progressBar__bar"
+        style="width: 100%;"
+      />
+    </div>
+    <div
+      class="c-progressBar__row c-progressBar__row--progress"
+      data-testid="progressBar__row"
+      style="width: 20%;"
+    >
+      <div
+        class="c-progressBar__bar c-progressBar__bar--primary"
+        data-testid="progressBar__bar"
+        style="width: 50%;"
+      />
+    </div>
+    <div
+      class="c-progressBar__row c-progressBar__row--progress"
+      data-testid="progressBar__row"
+      style="width: 20%;"
+    >
+      <div
+        class="c-progressBar__bar c-progressBar__bar--primary"
+        data-testid="progressBar__bar"
+        style="width: 0%;"
+      />
+    </div>
+  </div>
+</div>
+`;
+
+exports[`SourceCode It renders at 100% 1`] = `
+<div>
+  <div
+    class="c-progressBar__wrapper"
+  >
+    <div
+      class="c-progressBar__row c-progressBar__row--progress"
+      data-testid="progressBar__row"
+      style="width: 20%;"
+    >
+      <div
+        class="c-progressBar__bar c-progressBar__bar--primary"
+        data-testid="progressBar__bar"
+        style="width: 100%;"
+      />
+    </div>
+    <div
+      class="c-progressBar__row c-progressBar__row--progress"
+      data-testid="progressBar__row"
+      style="width: 20%;"
+    >
+      <div
+        class="c-progressBar__bar c-progressBar__bar--primary"
+        data-testid="progressBar__bar"
+        style="width: 100%;"
+      />
+    </div>
+    <div
+      class="c-progressBar__row c-progressBar__row--progress"
+      data-testid="progressBar__row"
+      style="width: 20%;"
+    >
+      <div
+        class="c-progressBar__bar c-progressBar__bar--primary"
+        data-testid="progressBar__bar"
+        style="width: 100%;"
+      />
+    </div>
+    <div
+      class="c-progressBar__row c-progressBar__row--progress"
+      data-testid="progressBar__row"
+      style="width: 20%;"
+    >
+      <div
+        class="c-progressBar__bar c-progressBar__bar--primary"
+        data-testid="progressBar__bar"
+        style="width: 100%;"
+      />
+    </div>
+    <div
+      class="c-progressBar__row c-progressBar__row--progress"
+      data-testid="progressBar__row"
+      style="width: 20%;"
+    >
+      <div
+        class="c-progressBar__bar c-progressBar__bar--primary"
+        data-testid="progressBar__bar"
+        style="width: 100%;"
+      />
+    </div>
+  </div>
+</div>
+`;

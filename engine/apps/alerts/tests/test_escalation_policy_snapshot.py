@@ -134,7 +134,7 @@ def test_escalation_step_notify_multiple_users(
     escalation_step_test_setup,
     make_escalation_policy,
 ):
-    organization, user, _, channel_filter, alert_group, reason = escalation_step_test_setup
+    _, user, _, channel_filter, alert_group, reason = escalation_step_test_setup
 
     notify_users_step = make_escalation_policy(
         escalation_chain=channel_filter.escalation_chain,
@@ -386,7 +386,7 @@ def test_escalation_step_notify_if_num_alerts_in_window(
     ).exists()
     assert not mocked_execute_tasks.called
 
-    organization, user, _, channel_filter, alert_group, reason = escalation_step_test_setup
+    _, _, _, channel_filter, alert_group, reason = escalation_step_test_setup
 
     make_alert(alert_group=alert_group, raw_request_data={})
 
