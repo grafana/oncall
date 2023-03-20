@@ -26,7 +26,7 @@ from common.api_helpers.filters import (
     ByTeamModelFieldFilterMixin,
     DateRangeFilterMixin,
     ModelFieldFilterMixin,
-    get_team_queryset,
+    TeamModelMultipleChoiceFilter,
 )
 from common.api_helpers.mixins import PreviewTemplateMixin, PublicPrimaryKeyMixin, TeamFilteringMixin
 from common.api_helpers.paginators import TwentyFiveCursorPaginator
@@ -108,14 +108,7 @@ class AlertGroupFilter(DateRangeFilterMixin, ByTeamModelFieldFilterMixin, ModelF
     )
     with_resolution_note = filters.BooleanFilter(method="filter_with_resolution_note")
     mine = filters.BooleanFilter(method="filter_mine")
-    team = filters.ModelMultipleChoiceFilter(
-        field_name="channel__team",
-        queryset=get_team_queryset,
-        to_field_name="public_primary_key",
-        null_label="noteam",
-        null_value="null",
-        method=ByTeamModelFieldFilterMixin.filter_model_field_with_multiple_values.__name__,
-    )
+    team = TeamModelMultipleChoiceFilter(field_name="channel__team")
 
     class Meta:
         model = AlertGroup

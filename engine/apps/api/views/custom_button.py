@@ -11,20 +11,13 @@ from apps.alerts.models import CustomButton
 from apps.api.permissions import RBACPermission
 from apps.api.serializers.custom_button import CustomButtonSerializer
 from apps.auth_token.auth import PluginAuthentication
-from common.api_helpers.filters import ByTeamModelFieldFilterMixin, ModelFieldFilterMixin, get_team_queryset
+from common.api_helpers.filters import ByTeamModelFieldFilterMixin, ModelFieldFilterMixin, TeamModelMultipleChoiceFilter
 from common.api_helpers.mixins import PublicPrimaryKeyMixin, TeamFilteringMixin
 from common.insight_log import EntityEvent, write_resource_insight_log
 
 
 class CustomButtonFilter(ByTeamModelFieldFilterMixin, ModelFieldFilterMixin, filters.FilterSet):
-    team = filters.ModelMultipleChoiceFilter(
-        field_name="team",
-        queryset=get_team_queryset,
-        to_field_name="public_primary_key",
-        null_label="noteam",
-        null_value="null",
-        method=ByTeamModelFieldFilterMixin.filter_model_field_with_multiple_values.__name__,
-    )
+    team = TeamModelMultipleChoiceFilter()
 
 
 class CustomButtonView(TeamFilteringMixin, PublicPrimaryKeyMixin, ModelViewSet):

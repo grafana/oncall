@@ -16,7 +16,7 @@ from apps.api.serializers.escalation_chain import (
 )
 from apps.auth_token.auth import PluginAuthentication
 from common.api_helpers.exceptions import BadRequest
-from common.api_helpers.filters import ByTeamModelFieldFilterMixin, ModelFieldFilterMixin, get_team_queryset
+from common.api_helpers.filters import ByTeamModelFieldFilterMixin, ModelFieldFilterMixin, TeamModelMultipleChoiceFilter
 from common.api_helpers.mixins import (
     FilterSerializerMixin,
     ListSerializerMixin,
@@ -27,14 +27,7 @@ from common.insight_log import EntityEvent, write_resource_insight_log
 
 
 class EscalationChainFilter(ByTeamModelFieldFilterMixin, ModelFieldFilterMixin, filters.FilterSet):
-    team = filters.ModelMultipleChoiceFilter(
-        field_name="team",
-        queryset=get_team_queryset,
-        to_field_name="public_primary_key",
-        null_label="noteam",
-        null_value="null",
-        method=ByTeamModelFieldFilterMixin.filter_model_field_with_multiple_values.__name__,
-    )
+    team = TeamModelMultipleChoiceFilter()
 
 
 class EscalationChainViewSet(

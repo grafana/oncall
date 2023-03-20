@@ -103,3 +103,23 @@ class ByTeamFilter(ByTeamModelFieldFilterMixin, filters.FilterSet):
         null_value="null",
         method=ByTeamModelFieldFilterMixin.filter_model_field_with_single_value.__name__,
     )
+
+
+class TeamModelMultipleChoiceFilter(filters.ModelMultipleChoiceFilter):
+    def __init__(
+        self,
+        field_name="team",
+        queryset=get_team_queryset,
+        to_field_name="public_primary_key",
+        null_label="noteam",
+        null_value="null",
+        method=ByTeamModelFieldFilterMixin.filter_model_field_with_multiple_values.__name__,
+    ):
+        super().__init__(
+            field_name=field_name,
+            queryset=queryset,
+            to_field_name=to_field_name,
+            null_label=null_label,
+            null_value=null_value,
+            method=method,
+        )

@@ -18,7 +18,7 @@ from apps.api.serializers.alert_receive_channel import (
 from apps.api.throttlers import DemoAlertThrottler
 from apps.auth_token.auth import PluginAuthentication
 from common.api_helpers.exceptions import BadRequest
-from common.api_helpers.filters import ByTeamModelFieldFilterMixin, get_team_queryset
+from common.api_helpers.filters import ByTeamModelFieldFilterMixin, TeamModelMultipleChoiceFilter
 from common.api_helpers.mixins import (
     FilterSerializerMixin,
     PreviewTemplateMixin,
@@ -35,14 +35,7 @@ class AlertReceiveChannelFilter(ByTeamModelFieldFilterMixin, filters.FilterSet):
         choices=AlertReceiveChannel.MAINTENANCE_MODE_CHOICES, method="filter_maintenance_mode"
     )
     integration = filters.ChoiceFilter(choices=AlertReceiveChannel.INTEGRATION_CHOICES)
-    team = filters.ModelMultipleChoiceFilter(
-        field_name="team",
-        queryset=get_team_queryset,
-        to_field_name="public_primary_key",
-        null_label="noteam",
-        null_value="null",
-        method=ByTeamModelFieldFilterMixin.filter_model_field_with_multiple_values.__name__,
-    )
+    team = TeamModelMultipleChoiceFilter()
 
     class Meta:
         model = AlertReceiveChannel

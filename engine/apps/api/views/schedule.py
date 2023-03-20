@@ -31,7 +31,7 @@ from apps.schedules.quality_score import get_schedule_quality_score
 from apps.slack.models import SlackChannel
 from apps.slack.tasks import update_slack_user_group_for_schedules
 from common.api_helpers.exceptions import BadRequest, Conflict
-from common.api_helpers.filters import ByTeamModelFieldFilterMixin, ModelFieldFilterMixin, get_team_queryset
+from common.api_helpers.filters import ByTeamModelFieldFilterMixin, ModelFieldFilterMixin, TeamModelMultipleChoiceFilter
 from common.api_helpers.mixins import (
     CreateSerializerMixin,
     PublicPrimaryKeyMixin,
@@ -60,14 +60,7 @@ class SchedulePagination(PageNumberPagination):
 
 
 class ScheduleFilter(ByTeamModelFieldFilterMixin, ModelFieldFilterMixin, filters.FilterSet):
-    team = filters.ModelMultipleChoiceFilter(
-        field_name="team",
-        queryset=get_team_queryset,
-        to_field_name="public_primary_key",
-        null_label="noteam",
-        null_value="null",
-        method=ByTeamModelFieldFilterMixin.filter_model_field_with_multiple_values.__name__,
-    )
+    team = TeamModelMultipleChoiceFilter()
 
 
 class ScheduleView(
