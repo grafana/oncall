@@ -114,12 +114,7 @@ const TeamsList = observer(() => {
 
   return (
     <>
-      <GTable
-        // emptyText={initialUsersLoaded ? 'No users found' : 'Loading...'}
-        rowKey="id"
-        data={store.grafanaTeamStore.getSearchResult()}
-        columns={columns}
-      />
+      <GTable rowKey="id" data={store.grafanaTeamStore.getSearchResult()} columns={columns} />
 
       {teamIdToShowModal && (
         <TeamModal

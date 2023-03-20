@@ -18,10 +18,6 @@ class TeamsSettings extends React.Component<AppRootProps, TeamsSettingsPageState
     showEditTeamsModal: false,
     errorData: initErrorDataState(),
   };
-  // componentDidMount() {
-  //   const { query } = this.props;
-  //
-  // }
 
   render() {
     return <TeamsList />;

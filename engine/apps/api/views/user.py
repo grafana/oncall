@@ -85,8 +85,6 @@ class CurrentUserView(APIView):
 
     def put(self, request):
         data = self.request.data
-        if data.get("current_team") == "null":
-            data["current_team"] = None
         serializer = UserSerializer(request.user, data=data, context={"request": self.request})
         serializer.is_valid(raise_exception=True)
         serializer.save()

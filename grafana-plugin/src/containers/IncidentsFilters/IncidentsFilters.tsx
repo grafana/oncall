@@ -72,8 +72,8 @@ class IncidentsFilters extends Component<IncidentsFiltersProps, IncidentsFilters
       } else {
         newQuery = {
           team: [],
-          // status: [IncidentStatus.Firing, IncidentStatus.Acknowledged],
-          // mine: false,
+          status: [IncidentStatus.Firing, IncidentStatus.Acknowledged],
+          mine: false,
         };
       }
 
@@ -84,12 +84,7 @@ class IncidentsFilters extends Component<IncidentsFiltersProps, IncidentsFilters
   }
 
   render() {
-    return (
-      <div className={cx('root')}>
-        {this.renderFilters()}
-        {/*{this.renderCards()}*/}
-      </div>
-    );
+    return <div className={cx('root')}>{this.renderFilters()}</div>;
   }
 
   renderFilters = () => {

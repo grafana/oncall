@@ -23,7 +23,7 @@ class TeamViewSet(PublicPrimaryKeyMixin, mixins.ListModelMixin, mixins.UpdateMod
 
     def list(self, request, *args, **kwargs):
         queryset = self.filter_queryset(self.get_queryset())
-        general_team = Team(public_primary_key="null", name="no team", email=None, avatar_url=None)
+        general_team = Team(public_primary_key="null", name="No team", email=None, avatar_url=None)
 
         page = self.paginate_queryset(queryset)
         if page is not None:

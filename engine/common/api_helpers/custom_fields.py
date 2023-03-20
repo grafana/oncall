@@ -72,6 +72,15 @@ class TeamPrimaryKeyRelatedField(RelatedField):
     def display_value(self, instance):
         return self.display_func(instance)
 
+    def get_attribute(self, instance):
+        print(f"get_attribute={instance}")
+        return super().get_attribute(instance)
+
+    def validate_empty_values(self, data):
+        if data == "null":
+            data = None
+        return super().validate_empty_values(data)
+
 
 class UsersFilteredByOrganizationField(serializers.Field):
     """
