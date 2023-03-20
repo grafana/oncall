@@ -42,7 +42,7 @@ const TeamsList = observer(() => {
                 ` will be selected by default when creating new resources (Integrations, Escalation Chains, Schedules, Outgoing Webhooks)`
               }
             >
-              <Badge text="default" color="green" />
+              <Badge text="Default" color="green" />
             </Tooltip>
           </>
         )}
