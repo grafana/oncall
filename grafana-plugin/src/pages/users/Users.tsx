@@ -189,7 +189,9 @@ class Users extends React.Component<UsersProps, UsersState> {
                       {authorizedToViewUsers && (
                         <Text type="secondary">
                           To manage permissions or add users, please visit{' '}
-                          <a href="/org/users">Grafana user management</a>
+                          <a href="/org/users" target="_blank">
+                            Grafana user management
+                          </a>
                         </Text>
                       )}
                     </div>

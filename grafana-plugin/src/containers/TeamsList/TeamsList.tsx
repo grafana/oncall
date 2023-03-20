@@ -36,14 +36,14 @@ const TeamsList = observer(() => {
         {isTeamDefault(record) && (
           <>
             {' '}
-            <Tooltip
-              content={
+            <Badge
+              text="Default"
+              color="green"
+              tooltip={
                 (record.id === 'null' ? 'No team' : 'This team') +
-                ` will be selected by default when creating new resources (Integrations, Escalation Chains, Schedules, Outgoing Webhooks)`
+                ` will be selected by default when creating new resources`
               }
-            >
-              <Badge text="Default" color="green" />
-            </Tooltip>
+            />
           </>
         )}
       </>
@@ -54,16 +54,18 @@ const TeamsList = observer(() => {
     const editButton = (
       <WithPermissionControlTooltip userAction={UserActions.APIKeysWrite}>
         <HorizontalGroup justify="flex-end">
-          <Button
-            onClick={async () => {
-              await userStore.updateCurrentUser({ current_team: record.id });
-              store.grafanaTeamStore.updateItems();
-            }}
-            disabled={isTeamDefault(record)}
-            fill="text"
-          >
-            Make default
-          </Button>
+          <Tooltip content="Default team will be selected when creating new resources">
+            <Button
+              onClick={async () => {
+                await userStore.updateCurrentUser({ current_team: record.id });
+                store.grafanaTeamStore.updateItems();
+              }}
+              disabled={isTeamDefault(record)}
+              fill="text"
+            >
+              Make default
+            </Button>
+          </Tooltip>
           <Button
             fill="text"
             disabled={record.id === 'null'}
@@ -114,6 +116,12 @@ const TeamsList = observer(() => {
 
   return (
     <>
+      <Text type="secondary">
+        To manage teams or add users, please visit{' '}
+        <a href="/org/teams" target="_blank">
+          Grafana teams management
+        </a>
+      </Text>
       <GTable rowKey="id" data={store.grafanaTeamStore.getSearchResult()} columns={columns} />
 
       {teamIdToShowModal && (
