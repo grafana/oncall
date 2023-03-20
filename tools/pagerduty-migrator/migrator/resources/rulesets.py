@@ -22,10 +22,12 @@ def match_ruleset(
         for r in ruleset["rules"]
         if not r["disabled"] and r["actions"]["route"]
     ]
-    escalation_policy_ids = [
-        find_by_id(services, service_id)["escalation_policy"]["id"]
-        for service_id in service_ids
-    ]
+    escalation_policy_ids = []
+    for service_id in service_ids:
+        service = find_by_id(services, service_id)
+        # Sometimes service cannot be found, e.g. when it is deleted but still referenced in ruleset
+        if service:
+            escalation_policy_ids.append(service["escalation_policy"]["id"])
 
     flawed_escalation_policies = []
     for escalation_policy_id in escalation_policy_ids:
@@ -58,7 +60,7 @@ def migrate_ruleset(
 
     # Migrate rules that are not disabled and not catch-all
     rules = [r for r in ruleset["rules"] if not r["disabled"] and not r["catch_all"]]
-    for rule in rules:
+    for rule in sorted(rules, key=lambda r: r["position"]):
         service_id = (
             rule["actions"]["route"]["value"] if rule["actions"]["route"] else None
         )
@@ -70,7 +72,6 @@ def migrate_ruleset(
         route_payload = {
             "routing_type": "jinja2",
             "routing_regex": filtering_term,
-            "position": rule["position"],
             "integration_id": integration["id"],
             "escalation_chain_id": escalation_chain_id,
         }
@@ -153,6 +154,10 @@ def _pd_service_id_to_oncall_escalation_chain_id(
         return None
 
     service = find_by_id(services, service_id)
+    if service is None:
+        # Service cannot be found, e.g. when it is deleted but still referenced in ruleset
+        return None
+
     escalation_policy_id = service["escalation_policy"]["id"]
     escalation_policy = find_by_id(escalation_policies, escalation_policy_id)
     escalation_chain_id = escalation_policy["oncall_escalation_chain"]["id"]
