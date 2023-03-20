@@ -5,6 +5,7 @@ from fcm_django.models import FCMDevice
 from firebase_admin.exceptions import FirebaseError
 
 from apps.base.models import UserNotificationPolicy, UserNotificationPolicyLogRecord
+from apps.mobile_app.models import MobileAppUserSettings
 from apps.mobile_app.tasks import _get_fcm_message, notify_user_async
 from apps.oss_installation.models import CloudConnector
 
@@ -232,6 +233,7 @@ def test_fcm_message_user_settings(
     assert message.data["critical_notification_sound_name"] == "default"
     assert message.data["critical_notification_volume_type"] == "constant"
     assert message.data["critical_notification_volume"] == "0.6"
+    assert message.data["critical_notification_override_dnd"] == "true"
 
     # Check APNS notification sound is set correctly
     apns_sound = message.apns.payload.aps.sound
@@ -261,9 +263,33 @@ def test_fcm_message_user_settings_critical(
     assert message.data["critical_notification_sound_name"] == "default"
     assert message.data["critical_notification_volume_type"] == "constant"
     assert message.data["critical_notification_volume"] == "0.6"
+    assert message.data["critical_notification_override_dnd"] == "true"
 
     # Check APNS notification sound is set correctly
     apns_sound = message.apns.payload.aps.sound
     assert apns_sound.critical is True
     assert apns_sound.name == "default"
     assert apns_sound.volume == 0.6
+
+
+@pytest.mark.django_db
+def test_fcm_message_user_settings_critical_override_dnd_disabled(
+    make_organization_and_user, make_alert_receive_channel, make_alert_group, make_alert
+):
+    organization, user = make_organization_and_user()
+    device = FCMDevice.objects.create(user=user, registration_id="test_device_id")
+
+    alert_receive_channel = make_alert_receive_channel(organization=organization)
+    alert_group = make_alert_group(alert_receive_channel)
+    make_alert(alert_group=alert_group, raw_request_data={})
+
+    # Disable critical notification override DND
+    MobileAppUserSettings.objects.create(user=user, critical_notification_override_dnd=False)
+    message = _get_fcm_message(alert_group, user, device.registration_id, critical=True)
+
+    # Check user settings are passed to FCM message
+    assert message.data["critical_notification_override_dnd"] == "false"
+
+    # Check APNS notification sound is set correctly
+    apns_sound = message.apns.payload.aps.sound
+    assert apns_sound.critical is False

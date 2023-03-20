@@ -99,3 +99,7 @@ class MobileAppUserSettings(models.Model):
     critical_notification_volume = models.FloatField(
         validators=[validators.MinValueValidator(0.0), validators.MaxValueValidator(1.0)], default=0.6
     )
+
+    # For the "Mobile push critical" step it's possible to make notifications non-critical
+    # if "override DND" setting is disabled in the app
+    critical_notification_override_dnd = models.BooleanField(default=True)

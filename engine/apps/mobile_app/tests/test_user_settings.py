@@ -23,6 +23,7 @@ def test_user_settings_get(make_organization_and_user_with_mobile_app_auth_token
         "critical_notification_sound_name": "default",
         "critical_notification_volume_type": "constant",
         "critical_notification_volume": 0.6,
+        "critical_notification_override_dnd": True,
     }
 
 
@@ -40,6 +41,7 @@ def test_user_settings_put(make_organization_and_user_with_mobile_app_auth_token
         "critical_notification_sound_name": "test_critical",
         "critical_notification_volume_type": "intensifying",
         "critical_notification_volume": 1,
+        "critical_notification_override_dnd": False,
     }
 
     response = client.put(url, data=data, format="json", HTTP_AUTHORIZATION=auth_token)

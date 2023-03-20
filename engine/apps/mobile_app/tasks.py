@@ -175,6 +175,9 @@ def _get_fcm_message(alert_group, user, registration_id, critical):
             "critical_notification_sound_name": mobile_app_user_settings.critical_notification_sound_name,
             "critical_notification_volume_type": mobile_app_user_settings.critical_notification_volume_type,
             "critical_notification_volume": str(mobile_app_user_settings.critical_notification_volume),
+            "critical_notification_override_dnd": json.dumps(
+                mobile_app_user_settings.critical_notification_override_dnd
+            ),
         },
         apns=APNSConfig(
             payload=APNSPayload(
@@ -183,7 +186,8 @@ def _get_fcm_message(alert_group, user, registration_id, critical):
                     badge=number_of_alerts,
                     alert=ApsAlert(title=alert_title, subtitle=alert_subtitle, body=alert_body),
                     sound=CriticalSound(
-                        critical=critical,
+                        # The notification shouldn't be critical if the user has disabled "override DND" setting
+                        critical=(critical and mobile_app_user_settings.critical_notification_override_dnd),
                         name=apns_sound_name,
                         volume=apns_volume,
                     ),

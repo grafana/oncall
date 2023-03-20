@@ -14,4 +14,5 @@ class MobileAppUserSettingsSerializer(serializers.ModelSerializer):
             "critical_notification_sound_name",
             "critical_notification_volume_type",
             "critical_notification_volume",
+            "critical_notification_override_dnd",
         )
