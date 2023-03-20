@@ -24,7 +24,7 @@ export const createIntegrationAndSendDemoAlert = async (
   await fillInInput(page, 'div[data-testid="edit-integration-name-modal"] >> input', integrationName);
   await clickButton({ page, buttonText: 'Update' });
 
-  const integrationSettingsElement = page.locator('div[data-testid="integration-settings"]');
+  const integrationSettingsElement = page.getByTestId('integration-settings');
 
   // assign the escalation chain to the integration
   await selectDropdownValue({
