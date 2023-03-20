@@ -12,8 +12,9 @@ import Rotation from 'containers/Rotation/Rotation';
 import ScheduleOverrideForm from 'containers/RotationForm/ScheduleOverrideForm';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
 import { getOverrideColor, getOverridesFromStore } from 'models/schedule/schedule.helpers';
-import { Schedule, ScheduleType, Shift, ShiftEvents } from 'models/schedule/schedule.types';
+import { Schedule, Shift, ShiftEvents } from 'models/schedule/schedule.types';
 import { Timezone } from 'models/timezone/timezone.types';
+import { getStartOfDay } from 'pages/schedule/Schedule.helpers';
 import { WithStoreProps } from 'state/types';
 import { withMobXProviderContext } from 'state/withStore';
 import { UserActions } from 'utils/authorization';
@@ -72,8 +73,7 @@ class ScheduleOverrides extends Component<ScheduleOverridesProps, ScheduleOverri
 
     const schedule = store.scheduleStore.items[scheduleId];
 
-    const isTypeReadOnly =
-      schedule && (schedule?.type === ScheduleType.Ical || schedule?.type === ScheduleType.Calendar);
+    const isTypeReadOnly = !schedule?.enable_web_overrides;
 
     return (
       <>
@@ -86,7 +86,7 @@ class ScheduleOverrides extends Component<ScheduleOverridesProps, ScheduleOverri
                 </Text.Title>
               </div>
               {isTypeReadOnly ? (
-                <Tooltip content="Ical and API/Terraform schedules are read-only" placement="top">
+                <Tooltip content="You can set an override using the override calendar" placement="top">
                   <div>
                     <Button variant="primary" icon="plus" disabled>
                       Add override
@@ -186,11 +186,14 @@ class ScheduleOverrides extends Component<ScheduleOverridesProps, ScheduleOverri
   };
 
   handleAddOverride = () => {
-    const { startMoment, disabled } = this.props;
+    const { store, disabled } = this.props;
 
     if (disabled) {
       return;
     }
+
+    // use start of current day as default start time for override
+    const startMoment = getStartOfDay(store.currentTimezone);
 
     this.setState({ shiftMomentToShowOverrideForm: startMoment }, () => {
       this.onShowRotationForm('new');

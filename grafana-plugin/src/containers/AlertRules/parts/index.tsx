@@ -8,6 +8,7 @@ import TelegramConnector from 'containers/AlertRules/parts/connectors/TelegramCo
 import { ChannelFilter } from 'models/channel_filter';
 import { AppFeature } from 'state/features';
 import { useStore } from 'state/useStore';
+import { getVar } from 'utils/DOM';
 
 interface ChatOpsConnectorsProps {
   channelFilterId: ChannelFilter['id'];
@@ -29,7 +30,7 @@ export const ChatOpsConnectors = (props: ChatOpsConnectorsProps) => {
   }
 
   return (
-    <Timeline.Item number={0} color={getComputedStyle(document.documentElement).getPropertyValue('--tag-secondary')}>
+    <Timeline.Item number={0} color={getVar('--tag-secondary')}>
       <VerticalGroup>
         {isSlackInstalled && <SlackConnector channelFilterId={channelFilterId} />}
         {isTelegramInstalled && <TelegramConnector channelFilterId={channelFilterId} />}

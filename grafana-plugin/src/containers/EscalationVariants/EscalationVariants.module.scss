@@ -21,9 +21,17 @@
   overflow: scroll;
 }
 
-.schedule-table {
+.table {
   height: 120px;
   overflow: auto;
+
+  & tr:hover {
+    background: var(--background-secondary) !important;
+  }
+
+  & tbody tr:nth-child(odd) {
+    background: unset;
+  }
 }
 
 .responders-filters {
@@ -32,6 +40,8 @@
 
 .responder-item {
   cursor: pointer;
+  width: 280px;
+  overflow: hidden;
 }
 
 .body {
@@ -43,12 +53,12 @@
   margin-bottom: 20px;
   width: 100%;
 
-  & > li .trash-button {
+  & > li .hover-button {
     display: none;
   }
 
-  & > li:hover .trash-button {
-    display: block;
+  & > li:hover .hover-button {
+    display: inline-flex;
   }
 
   & > li {
@@ -78,4 +88,18 @@
   &--green {
     background: #299c46;
   }
+}
+
+.radio-buttons {
+  margin: 8px;
+}
+
+.select {
+  width: 150px !important;
+}
+
+.responder-name {
+  max-width: 250px;
+  overflow: hidden;
+  white-space: nowrap;
 }
