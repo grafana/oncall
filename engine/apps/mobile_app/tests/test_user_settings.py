@@ -16,13 +16,13 @@ def test_user_settings_get(make_organization_and_user_with_mobile_app_auth_token
 
     # Check the default values are correct
     assert response.json() == {
-        "default_notification_sound_name": "default",
+        "default_notification_sound_name": "default_sound",
         "default_notification_volume_type": "constant",
-        "default_notification_volume": 0.6,
+        "default_notification_volume": 0.8,
         "default_notification_volume_override": False,
-        "critical_notification_sound_name": "default",
+        "critical_notification_sound_name": "default_sound",
         "critical_notification_volume_type": "constant",
-        "critical_notification_volume": 0.6,
+        "critical_notification_volume": 0.8,
         "critical_notification_override_dnd": True,
     }
 
