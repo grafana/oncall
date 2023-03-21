@@ -30,7 +30,15 @@ import styles from './OutgoingWebhooks2.module.css';
 
 const cx = cn.bind(styles);
 
-interface OutgoingWebhooks2Props extends WithStoreProps, PageProps, RouteComponentProps<{ id: string }> {}
+const Action = {
+  STATUS: 'status',
+  EDIT: 'edit',
+};
+
+interface OutgoingWebhooks2Props
+  extends WithStoreProps,
+    PageProps,
+    RouteComponentProps<{ id: string; action: string }> {}
 
 interface OutgoingWebhooks2State extends PageBaseState {
   outgoingWebhook2IdToEdit?: OutgoingWebhook2['id'] | 'new';
@@ -62,7 +70,7 @@ class OutgoingWebhooks2 extends React.Component<OutgoingWebhooks2Props, Outgoing
     const {
       store,
       match: {
-        params: { id },
+        params: { id, action },
       },
     } = this.props;
 
@@ -79,8 +87,10 @@ class OutgoingWebhooks2 extends React.Component<OutgoingWebhooks2Props, Outgoing
         .catch((error) => this.setState({ errorData: { ...getWrongTeamResponseInfo(error) } }));
     }
 
-    if (outgoingWebhook2 || isNewWebhook) {
+    if (isNewWebhook || (action === Action.EDIT && outgoingWebhook2)) {
       this.setState({ outgoingWebhook2IdToEdit: id });
+    } else if (action === Action.STATUS && outgoingWebhook2) {
+      this.setState({ outgoingWebhook2IdToShowStatus: id });
     }
   };
 

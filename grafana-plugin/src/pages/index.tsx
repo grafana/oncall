@@ -115,6 +115,7 @@ export const pages: { [id: string]: PageDefinition } = [
     text: 'Outgoing Webhooks 2',
     path: getPath('outgoing_webhooks_2'),
     hideFromBreadcrumbs: true,
+    hideFromTabs: true,
     action: UserActions.OutgoingWebhooksRead,
   },
   {
@@ -195,12 +196,7 @@ export const ROUTES = {
   schedules: ['schedules'],
   schedule: ['schedules/:id'],
   outgoing_webhooks: ['outgoing_webhooks', 'outgoing_webhooks/:id'],
-  outgoing_webhooks_2: [
-    'outgoing_webhooks_2',
-    'outgoing_webhooks_2/:id',
-    'outgoing_webhooks_2/status/:id',
-    'outgoing_webhooks_2/edit/:id',
-  ],
+  outgoing_webhooks_2: ['outgoing_webhooks_2', 'outgoing_webhooks_2/:id', 'outgoing_webhooks_2/:action/:id'],
   maintenance: ['maintenance'],
   settings: ['settings'],
   'organization-logs': ['organization-logs'],
