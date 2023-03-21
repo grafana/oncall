@@ -15,7 +15,7 @@ const incidentTimelineContainsStep = async (page: Page, triggeredStepText: strin
     return Promise.resolve(false);
   }
 
-  if (!page.locator('div[data-testid="incident-timeline-list"]').getByText(triggeredStepText)) {
+  if (!page.getByTestId('incident-timeline-list').getByText(triggeredStepText)) {
     await page.reload({ waitUntil: 'networkidle' });
     return incidentTimelineContainsStep(page, triggeredStepText, (retryNum += 1));
   }
