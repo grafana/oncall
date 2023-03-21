@@ -95,15 +95,15 @@ class MobileAppUserSettings(models.Model):
     )
     default_notification_volume_override = models.BooleanField(default=False)
 
-    # Push notification settings for critical notifications
-    critical_notification_sound_name = models.CharField(max_length=100, default="default_sound_important")
-    critical_notification_volume_type = models.CharField(
+    # Push notification settings for important notifications
+    important_notification_sound_name = models.CharField(max_length=100, default="default_sound_important")
+    important_notification_volume_type = models.CharField(
         max_length=50, choices=VolumeType.choices, default=VolumeType.CONSTANT
     )
-    critical_notification_volume = models.FloatField(
+    important_notification_volume = models.FloatField(
         validators=[validators.MinValueValidator(0.0), validators.MaxValueValidator(1.0)], default=0.8
     )
 
-    # For the "Mobile push critical" step it's possible to make notifications non-critical
+    # For the "Mobile push important" step it's possible to make notifications non-critical
     # if "override DND" setting is disabled in the app
-    critical_notification_override_dnd = models.BooleanField(default=True)
+    important_notification_override_dnd = models.BooleanField(default=True)

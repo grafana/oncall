@@ -230,10 +230,10 @@ def test_fcm_message_user_settings(
     assert message.data["default_notification_volume_type"] == "constant"
     assert message.data["default_notification_volume_override"] == "false"
     assert message.data["default_notification_volume"] == "0.8"
-    assert message.data["critical_notification_sound_name"] == "default_sound_important.mp3"
-    assert message.data["critical_notification_volume_type"] == "constant"
-    assert message.data["critical_notification_volume"] == "0.8"
-    assert message.data["critical_notification_override_dnd"] == "true"
+    assert message.data["important_notification_sound_name"] == "default_sound_important.mp3"
+    assert message.data["important_notification_volume_type"] == "constant"
+    assert message.data["important_notification_volume"] == "0.8"
+    assert message.data["important_notification_override_dnd"] == "true"
 
     # Check APNS notification sound is set correctly
     apns_sound = message.apns.payload.aps.sound
@@ -260,10 +260,10 @@ def test_fcm_message_user_settings_critical(
     assert message.data["default_notification_volume_type"] == "constant"
     assert message.data["default_notification_volume_override"] == "false"
     assert message.data["default_notification_volume"] == "0.8"
-    assert message.data["critical_notification_sound_name"] == "default_sound_important.mp3"
-    assert message.data["critical_notification_volume_type"] == "constant"
-    assert message.data["critical_notification_volume"] == "0.8"
-    assert message.data["critical_notification_override_dnd"] == "true"
+    assert message.data["important_notification_sound_name"] == "default_sound_important.mp3"
+    assert message.data["important_notification_volume_type"] == "constant"
+    assert message.data["important_notification_volume"] == "0.8"
+    assert message.data["important_notification_override_dnd"] == "true"
 
     # Check APNS notification sound is set correctly
     apns_sound = message.apns.payload.aps.sound
@@ -283,12 +283,12 @@ def test_fcm_message_user_settings_critical_override_dnd_disabled(
     alert_group = make_alert_group(alert_receive_channel)
     make_alert(alert_group=alert_group, raw_request_data={})
 
-    # Disable critical notification override DND
-    MobileAppUserSettings.objects.create(user=user, critical_notification_override_dnd=False)
+    # Disable important notification override DND
+    MobileAppUserSettings.objects.create(user=user, important_notification_override_dnd=False)
     message = _get_fcm_message(alert_group, user, device.registration_id, critical=True)
 
     # Check user settings are passed to FCM message
-    assert message.data["critical_notification_override_dnd"] == "false"
+    assert message.data["important_notification_override_dnd"] == "false"
 
     # Check APNS notification sound is set correctly
     apns_sound = message.apns.payload.aps.sound

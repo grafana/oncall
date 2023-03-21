@@ -20,10 +20,10 @@ def test_user_settings_get(make_organization_and_user_with_mobile_app_auth_token
         "default_notification_volume_type": "constant",
         "default_notification_volume": 0.8,
         "default_notification_volume_override": False,
-        "critical_notification_sound_name": "default_sound_important",
-        "critical_notification_volume_type": "constant",
-        "critical_notification_volume": 0.8,
-        "critical_notification_override_dnd": True,
+        "important_notification_sound_name": "default_sound_important",
+        "important_notification_volume_type": "constant",
+        "important_notification_volume": 0.8,
+        "important_notification_override_dnd": True,
     }
 
 
@@ -38,10 +38,10 @@ def test_user_settings_put(make_organization_and_user_with_mobile_app_auth_token
         "default_notification_volume_type": "intensifying",
         "default_notification_volume": 1,
         "default_notification_volume_override": True,
-        "critical_notification_sound_name": "test_critical",
-        "critical_notification_volume_type": "intensifying",
-        "critical_notification_volume": 1,
-        "critical_notification_override_dnd": False,
+        "important_notification_sound_name": "test_important",
+        "important_notification_volume_type": "intensifying",
+        "important_notification_volume": 1,
+        "important_notification_override_dnd": False,
     }
 
     response = client.put(url, data=data, format="json", HTTP_AUTHORIZATION=auth_token)

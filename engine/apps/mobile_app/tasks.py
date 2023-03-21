@@ -142,9 +142,9 @@ def _get_fcm_message(alert_group, user, registration_id, critical):
     mobile_app_user_settings, _ = MobileAppUserSettings.objects.get_or_create(user=user)
 
     # APNS only allows to specify volume for critical notifications
-    apns_volume = mobile_app_user_settings.critical_notification_volume if critical else None
+    apns_volume = mobile_app_user_settings.important_notification_volume if critical else None
     apns_sound_name = (
-        mobile_app_user_settings.critical_notification_sound_name
+        mobile_app_user_settings.important_notification_sound_name
         if critical
         else mobile_app_user_settings.default_notification_sound_name
     ) + MobileAppUserSettings.IOS_SOUND_NAME_EXTENSION  # iOS app expects the filename to have an extension
@@ -175,14 +175,14 @@ def _get_fcm_message(alert_group, user, registration_id, critical):
             "default_notification_volume_override": json.dumps(
                 mobile_app_user_settings.default_notification_volume_override
             ),
-            "critical_notification_sound_name": (
-                mobile_app_user_settings.critical_notification_sound_name
+            "important_notification_sound_name": (
+                mobile_app_user_settings.important_notification_sound_name
                 + MobileAppUserSettings.ANDROID_SOUND_NAME_EXTENSION
             ),
-            "critical_notification_volume_type": mobile_app_user_settings.critical_notification_volume_type,
-            "critical_notification_volume": str(mobile_app_user_settings.critical_notification_volume),
-            "critical_notification_override_dnd": json.dumps(
-                mobile_app_user_settings.critical_notification_override_dnd
+            "important_notification_volume_type": mobile_app_user_settings.important_notification_volume_type,
+            "important_notification_volume": str(mobile_app_user_settings.important_notification_volume),
+            "important_notification_override_dnd": json.dumps(
+                mobile_app_user_settings.important_notification_override_dnd
             ),
         },
         apns=APNSConfig(
@@ -193,7 +193,7 @@ def _get_fcm_message(alert_group, user, registration_id, critical):
                     alert=ApsAlert(title=alert_title, subtitle=alert_subtitle, body=alert_body),
                     sound=CriticalSound(
                         # The notification shouldn't be critical if the user has disabled "override DND" setting
-                        critical=(critical and mobile_app_user_settings.critical_notification_override_dnd),
+                        critical=(critical and mobile_app_user_settings.important_notification_override_dnd),
                         name=apns_sound_name,
                         volume=apns_volume,
                     ),
