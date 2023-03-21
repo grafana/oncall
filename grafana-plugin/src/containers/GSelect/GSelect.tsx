@@ -38,7 +38,6 @@ interface GSelectProps {
   openMenuOnFocus?: boolean;
   width?: number | 'auto';
   icon?: string;
-  isTeamNameIncluded?: boolean;
 }
 
 const GSelect = observer((props: GSelectProps) => {
@@ -65,7 +64,6 @@ const GSelect = observer((props: GSelectProps) => {
     // fromOrganization,
     width = null,
     icon = null,
-    isTeamNameIncluded = false,
   } = props;
 
   const store = useStore();
@@ -101,8 +99,7 @@ const GSelect = observer((props: GSelectProps) => {
 
       return items.map((item: any) => ({
         value: item[valueField],
-        label:
-          (isTeamNameIncluded ? store.grafanaTeamStore.items[item.team]?.name + ':' : '') + get(item, displayField),
+        label: get(item, displayField),
         imgUrl: item.avatar_url,
         description: getDescription && getDescription(item),
       }));
@@ -114,9 +111,7 @@ const GSelect = observer((props: GSelectProps) => {
         .filter((id) => id in model.items)
         .map((id: string) => ({
           value: id,
-          label:
-            (isTeamNameIncluded ? store.grafanaTeamStore.items[model.items[id].team]?.name + ':' : '') +
-            get(model.items[id], displayField),
+          label: get(model.items[id], displayField),
           description: getDescription && getDescription(model.items[id]),
         }))
     : model.items[value as string]

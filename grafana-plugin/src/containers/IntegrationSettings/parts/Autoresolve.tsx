@@ -209,15 +209,10 @@ const Autoresolve = ({ alertReceiveChannelId, onSwitchToTemplate, alertGroupId }
           onDismiss={() => setShowSaveConfirmationModal(false)}
         >
           <div className={cx('root')}>
-            <Alert title="When changing the onCall team" severity="info">
+            <Alert title="When changing assigned team for the integration" severity="info">
               <ul>
-                <li>
-                  If this integration is linked to multiple escalation chains belonging to its current team, you cannot
-                  move it.
-                </li>
-                <li>If this integration is linked to users belonging to its current team, you cannot move it.</li>
-                <li>The selected schedule will remain the same, even if it’s from another team.</li>
-                <li>Any outgoing webhooks will remain the same, even if it’s from another team.</li>
+                <li>Alert Groups will move to the new team</li>
+                <li>Escalation Chains will remain assigned to their teams</li>
               </ul>
             </Alert>
             <div className={cx('confirmation-buttons')}>

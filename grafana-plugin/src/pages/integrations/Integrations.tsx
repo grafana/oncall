@@ -155,7 +155,12 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
           <>
             <div className={cx('root')}>
               <div className={cx('filters')}>
-                <RemoteFilters query={query} page="integrations" onChange={this.handleIntegrationsFiltersChange} />
+                <RemoteFilters
+                  query={query}
+                  page="integrations"
+                  grafanaTeamStore={store.grafanaTeamStore}
+                  onChange={this.handleIntegrationsFiltersChange}
+                />
               </div>
               {searchResult?.length ? (
                 <div className={cx('integrations')}>
