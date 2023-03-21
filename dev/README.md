@@ -156,39 +156,7 @@ yarn test:integration
 ## Useful `make` commands
 
 See [`COMPOSE_PROFILES`](#compose_profiles) for more information on what this option is and how to configure it.
-
-```bash
-make init # build the frontend plugin code then run make start
-make start # start all of the docker containers
-make stop # stop all of the docker containers
-make restart # restart all docker containers
-make build # rebuild images (e.g. when changing requirements.txt)
-# run Django's `manage.py` script, inside of a docker container, passing `$CMD` as arguments.
-# e.g. `make engine-manage CMD="makemigrations"` - https://docs.djangoproject.com/en/4.1/ref/django-admin/#django-admin-makemigrations
-make engine-manage CMD="..."
-
-make backend-debug-enable # enable Django's debug mode and Silk profiling (this is disabled by default for performance reasons)
-make backend-debug-disable # disable Django's debug mode and Silk profiling
-
-# this will remove all of the images, containers, volumes, and networks
-# associated with your local OnCall developer setup
-make cleanup
-
-make start-celery-beat # start celery beat
-make purge-queues # purge celery queues
-make shell # starts an OnCall engine Django shell
-make dbshell # opens a DB shell
-make exec-engine # exec into engine container's bash
-make test # run backend tests
-
-# run Django's `manage.py` script, passing `$CMD` as arguments.
-# e.g. `make backend-manage-command CMD="makemigrations"` - https://docs.djangoproject.com/en/4.1/ref/django-admin/#django-admin-makemigrations
-make backend-manage-command CMD="..."
-
-# run both frontend and backend linters
-# may need to run `yarn install` from within `grafana-plugin` to install several `pre-commit` dependencies
-make lint
-```
+> 🚶‍This part was moved to `make help` command. Run it to see all the available commands and their descriptions
 
 ## Setting environment variables
 
