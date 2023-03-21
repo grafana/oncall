@@ -150,6 +150,7 @@ To run these tests locally simply do the following:
 npx playwright install  # install playwright dependencies
 cp ./grafana-plugin/.env.example ./grafana-plugin/.env
 # you may need to tweak the values in ./grafana-plugin/.env according to your local setup
+cd grafana-plugin
 yarn test:integration
 ```
 
