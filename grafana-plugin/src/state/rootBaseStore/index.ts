@@ -12,6 +12,7 @@ import { CloudStore } from 'models/cloud/cloud';
 import { DirectPagingStore } from 'models/direct_paging/direct_paging';
 import { EscalationChainStore } from 'models/escalation_chain/escalation_chain';
 import { EscalationPolicyStore } from 'models/escalation_policy/escalation_policy';
+import { FiltersStore } from 'models/filters/filters';
 import { GlobalSettingStore } from 'models/global_setting/global_setting';
 import { GrafanaTeamStore } from 'models/grafana_team/grafana_team';
 import { HeartbeatStore } from 'models/heartbeat/heartbeat';
@@ -103,6 +104,7 @@ export class RootBaseStore {
   apiTokenStore: ApiTokenStore = new ApiTokenStore(this);
   OrganizationLogStore: OrganizationLogStore = new OrganizationLogStore(this);
   globalSettingStore: GlobalSettingStore = new GlobalSettingStore(this);
+  filtersStore: FiltersStore = new FiltersStore(this);
   // stores
 
   async updateBasicData() {
