@@ -541,7 +541,10 @@ class ResetSlackView(APIView):
 
     def post(self, request):
         if settings.SLACK_INTEGRATION_MAINTENANCE_ENABLED:
-            response = Response("Temporary maintenance is being performed on Slack integration management", status=400)
+            response = Response(
+                "Grafana OnCall is temporary unable to connect your slack account or install OnCall to your slack workspace",
+                status=400,
+            )
         else:
             organization = request.auth.organization
             slack_team_identity = organization.slack_team_identity

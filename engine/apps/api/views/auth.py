@@ -27,7 +27,10 @@ def overridden_login_slack_auth(request, backend):
     # So frontend can't follow our redirect.
     # So wrapping and returning URL to redirect as a string.
     if settings.SLACK_INTEGRATION_MAINTENANCE_ENABLED:
-        return Response("Temporary maintenance is being performed on Slack integration management", status=400)
+        return Response(
+            "Grafana OnCall is temporary unable to connect your slack account or install OnCall to your slack workspace",
+            status=400,
+        )
     url_to_redirect_to = do_auth(request.backend, redirect_name=REDIRECT_FIELD_NAME).url
 
     return Response(url_to_redirect_to, 200)
