@@ -540,20 +540,22 @@ class ResetSlackView(APIView):
     }
 
     def post(self, request):
-        organization = request.auth.organization
-        slack_team_identity = organization.slack_team_identity
-        if slack_team_identity is not None:
-            clean_slack_integration_leftovers.apply_async((organization.pk,))
-            if settings.FEATURE_MULTIREGION_ENABLED:
-                delete_slack_connector_async.apply_async((slack_team_identity.slack_id,))
-            write_chatops_insight_log(
-                author=request.user,
-                event_name=ChatOpsEvent.WORKSPACE_DISCONNECTED,
-                chatops_type=ChatOpsType.SLACK,
-            )
-            unpopulate_slack_user_identities(organization.pk, True)
-            response = Response(status=200)
+        if settings.SLACK_INTEGRATION_MAINTENANCE:
+            response = Response("Temporary maintenance is being performed on Slack integration management", status=400)
         else:
-            response = Response(status=400)
-
+            organization = request.auth.organization
+            slack_team_identity = organization.slack_team_identity
+            if slack_team_identity is not None:
+                clean_slack_integration_leftovers.apply_async((organization.pk,))
+                if settings.FEATURE_MULTIREGION_ENABLED:
+                    delete_slack_connector_async.apply_async((slack_team_identity.slack_id,))
+                write_chatops_insight_log(
+                    author=request.user,
+                    event_name=ChatOpsEvent.WORKSPACE_DISCONNECTED,
+                    chatops_type=ChatOpsType.SLACK,
+                )
+                unpopulate_slack_user_identities(organization.pk, True)
+                response = Response(status=200)
+            else:
+                response = Response(status=400)
         return response
