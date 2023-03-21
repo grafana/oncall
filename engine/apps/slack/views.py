@@ -540,7 +540,7 @@ class ResetSlackView(APIView):
     }
 
     def post(self, request):
-        if settings.SLACK_INTEGRATION_MAINTENANCE:
+        if settings.SLACK_INTEGRATION_MAINTENANCE_ENABLED:
             response = Response("Temporary maintenance is being performed on Slack integration management", status=400)
         else:
             organization = request.auth.organization
