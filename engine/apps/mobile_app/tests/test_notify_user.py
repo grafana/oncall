@@ -226,11 +226,11 @@ def test_fcm_message_user_settings(
     message = _get_fcm_message(alert_group, user, device.registration_id, critical=False)
 
     # Check user settings are passed to FCM message
-    assert message.data["default_notification_sound_name"] == "default_sound"
+    assert message.data["default_notification_sound_name"] == "default_sound.mp3"
     assert message.data["default_notification_volume_type"] == "constant"
     assert message.data["default_notification_volume_override"] == "false"
     assert message.data["default_notification_volume"] == "0.8"
-    assert message.data["critical_notification_sound_name"] == "default_sound"
+    assert message.data["critical_notification_sound_name"] == "default_sound_important.mp3"
     assert message.data["critical_notification_volume_type"] == "constant"
     assert message.data["critical_notification_volume"] == "0.8"
     assert message.data["critical_notification_override_dnd"] == "true"
@@ -256,11 +256,11 @@ def test_fcm_message_user_settings_critical(
     message = _get_fcm_message(alert_group, user, device.registration_id, critical=True)
 
     # Check user settings are passed to FCM message
-    assert message.data["default_notification_sound_name"] == "default_sound"
+    assert message.data["default_notification_sound_name"] == "default_sound.mp3"
     assert message.data["default_notification_volume_type"] == "constant"
     assert message.data["default_notification_volume_override"] == "false"
     assert message.data["default_notification_volume"] == "0.8"
-    assert message.data["critical_notification_sound_name"] == "default_sound"
+    assert message.data["critical_notification_sound_name"] == "default_sound_important.mp3"
     assert message.data["critical_notification_volume_type"] == "constant"
     assert message.data["critical_notification_volume"] == "0.8"
     assert message.data["critical_notification_override_dnd"] == "true"
@@ -268,7 +268,7 @@ def test_fcm_message_user_settings_critical(
     # Check APNS notification sound is set correctly
     apns_sound = message.apns.payload.aps.sound
     assert apns_sound.critical is True
-    assert apns_sound.name == "default_sound.aiff"
+    assert apns_sound.name == "default_sound_important.aiff"
     assert apns_sound.volume == 0.8
 
 

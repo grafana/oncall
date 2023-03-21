@@ -72,6 +72,10 @@ class MobileAppAuthToken(BaseAuthToken):
 
 
 class MobileAppUserSettings(models.Model):
+    # Sound names are stored without extension, extension is added when sending push notifications
+    IOS_SOUND_NAME_EXTENSION = ".aiff"
+    ANDROID_SOUND_NAME_EXTENSION = ".mp3"
+
     class VolumeType(models.TextChoices):
         CONSTANT = "constant"
         INTENSIFYING = "intensifying"
@@ -92,7 +96,7 @@ class MobileAppUserSettings(models.Model):
     default_notification_volume_override = models.BooleanField(default=False)
 
     # Push notification settings for critical notifications
-    critical_notification_sound_name = models.CharField(max_length=100, default="default_sound")
+    critical_notification_sound_name = models.CharField(max_length=100, default="default_sound_important")
     critical_notification_volume_type = models.CharField(
         max_length=50, choices=VolumeType.choices, default=VolumeType.CONSTANT
     )

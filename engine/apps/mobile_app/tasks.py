@@ -147,7 +147,7 @@ def _get_fcm_message(alert_group, user, registration_id, critical):
         mobile_app_user_settings.critical_notification_sound_name
         if critical
         else mobile_app_user_settings.default_notification_sound_name
-    ) + ".aiff"  # iOS app expects the filename to have .aiff extension
+    ) + MobileAppUserSettings.IOS_SOUND_NAME_EXTENSION  # iOS app expects the filename to have an extension
 
     return Message(
         token=registration_id,
@@ -166,13 +166,19 @@ def _get_fcm_message(alert_group, user, registration_id, critical):
             "body": alert_body,
             "thread_id": thread_id,
             # Pass user settings, so the Android app can use them to play the correct sound and volume
-            "default_notification_sound_name": mobile_app_user_settings.default_notification_sound_name,
+            "default_notification_sound_name": (
+                mobile_app_user_settings.default_notification_sound_name
+                + MobileAppUserSettings.ANDROID_SOUND_NAME_EXTENSION
+            ),
             "default_notification_volume_type": mobile_app_user_settings.default_notification_volume_type,
             "default_notification_volume": str(mobile_app_user_settings.default_notification_volume),
             "default_notification_volume_override": json.dumps(
                 mobile_app_user_settings.default_notification_volume_override
             ),
-            "critical_notification_sound_name": mobile_app_user_settings.critical_notification_sound_name,
+            "critical_notification_sound_name": (
+                mobile_app_user_settings.critical_notification_sound_name
+                + MobileAppUserSettings.ANDROID_SOUND_NAME_EXTENSION
+            ),
             "critical_notification_volume_type": mobile_app_user_settings.critical_notification_volume_type,
             "critical_notification_volume": str(mobile_app_user_settings.critical_notification_volume),
             "critical_notification_override_dnd": json.dumps(
