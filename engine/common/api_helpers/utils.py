@@ -1,12 +1,12 @@
 import datetime
+import re
 from urllib.parse import urljoin
 
 import requests
-import re
-from django.core.validators import URLValidator
-from django.utils.regex_helper import _lazy_re_compile
 from django.conf import settings
+from django.core.validators import URLValidator
 from django.utils import dateparse, timezone
+from django.utils.regex_helper import _lazy_re_compile
 from icalendar import Calendar
 from rest_framework import serializers
 

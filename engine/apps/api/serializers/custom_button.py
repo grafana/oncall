@@ -1,16 +1,15 @@
 from collections import defaultdict
 
-from django.core.validators import ValidationError, URLValidator
+from django.core.validators import URLValidator, ValidationError
 from rest_framework import serializers
 from rest_framework.validators import UniqueTogetherValidator
 
 from apps.alerts.models import CustomButton
+from apps.base.utils import live_settings
 from common.api_helpers.custom_fields import TeamPrimaryKeyRelatedField
-from common.api_helpers.utils import CurrentOrganizationDefault, CurrentTeamDefault
+from common.api_helpers.utils import CurrentOrganizationDefault, CurrentTeamDefault, URLValidatorWithoutTLD
 from common.jinja_templater import apply_jinja_template
 from common.jinja_templater.apply_jinja_template import JinjaTemplateError, JinjaTemplateWarning
-from common.api_helpers.utils import URLValidatorWithoutTLD
-from apps.base.utils import live_settings
 
 
 class CustomButtonSerializer(serializers.ModelSerializer):

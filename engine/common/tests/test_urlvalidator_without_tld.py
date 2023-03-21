@@ -1,6 +1,7 @@
-from common.api_helpers.utils import URLValidatorWithoutTLD
 import pytest
 from django.core.validators import ValidationError
+
+from common.api_helpers.utils import URLValidatorWithoutTLD
 
 valid_urls = ["https://www.google.com", "https://www.google", "http://conatainer1"]
 invalid_urls = ["https:/www.google.com", "htt://www.google.com/"]
