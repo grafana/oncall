@@ -110,7 +110,7 @@ const UserGroups = (props: UserGroupsProps) => {
           key={items.length}
           showSearch
           placeholder="Add user"
-          href="/users/?filters=true"
+          href="/users/?roles=0&roles=1&filters=true"
           value={null}
           onChange={handleUserAdd}
           showError={showError}
