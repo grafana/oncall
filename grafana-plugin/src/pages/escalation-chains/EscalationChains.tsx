@@ -128,7 +128,6 @@ class EscalationChainsPage extends React.Component<EscalationChainsPageProps, Es
     const { showCreateEscalationChainModal, escalationChainIdToCopy, selectedEscalationChain, errorData } = this.state;
 
     const { escalationChainStore } = store;
-    const { loading } = escalationChainStore;
     const searchResult = escalationChainStore.getSearchResult();
 
     let data = searchResult;
@@ -150,19 +149,17 @@ class EscalationChainsPage extends React.Component<EscalationChainsPageProps, Es
               {!data || data.length ? (
                 <div className={cx('escalations')}>
                   <div className={cx('left-column')}>
-                    {!loading && (
-                      <WithPermissionControlTooltip userAction={UserActions.IntegrationsWrite}>
-                        <Button
-                          onClick={() => {
-                            this.setState({ showCreateEscalationChainModal: true });
-                          }}
-                          icon="plus"
-                          className={cx('new-escalation-chain')}
-                        >
-                          New escalation chain
-                        </Button>
-                      </WithPermissionControlTooltip>
-                    )}
+                    <WithPermissionControlTooltip userAction={UserActions.IntegrationsWrite}>
+                      <Button
+                        onClick={() => {
+                          this.setState({ showCreateEscalationChainModal: true });
+                        }}
+                        icon="plus"
+                        className={cx('new-escalation-chain')}
+                      >
+                        New escalation chain
+                      </Button>
+                    </WithPermissionControlTooltip>
                     <div className={cx('escalations-list')}>
                       {data ? (
                         <GList
@@ -364,6 +361,8 @@ class EscalationChainsPage extends React.Component<EscalationChainsPageProps, Es
     const { extraEscalationChains } = this.state;
     const { escalationChainStore } = store;
 
+    await this.applyFilters();
+
     const searchResult = escalationChainStore.getSearchResult();
     if (
       !searchResult.some((escalationChain) => escalationChain.id === id) &&
@@ -387,7 +386,7 @@ class EscalationChainsPage extends React.Component<EscalationChainsPageProps, Es
   handleDeleteEscalationChain = () => {
     const { store } = this.props;
     const { escalationChainStore } = store;
-    const { selectedEscalationChain } = this.state;
+    const { selectedEscalationChain, extraEscalationChains } = this.state;
 
     const index = escalationChainStore
       .getSearchResult()
@@ -397,6 +396,14 @@ class EscalationChainsPage extends React.Component<EscalationChainsPageProps, Es
       .delete(selectedEscalationChain)
       .then(this.applyFilters)
       .then(() => {
+        if (extraEscalationChains) {
+          const newExtraEscalationChains = extraEscalationChains.filter(
+            (scalationChain) => scalationChain.id !== selectedEscalationChain
+          );
+
+          this.setState({ extraEscalationChains: newExtraEscalationChains });
+        }
+
         const escalationChains = escalationChainStore.getSearchResult();
 
         const newSelected = escalationChains[index - 1] || escalationChains[0];

@@ -126,6 +126,8 @@ export class AlertReceiveChannelStore extends BaseStore {
     };
 
     this.updateCounters();
+
+    return result;
   }
 
   @action
