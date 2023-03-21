@@ -12,7 +12,7 @@ task_logger = get_task_logger(__name__)
 @shared_dedicated_queue_retry_task(
     autoretry_for=(Exception,),
     retry_backoff=True,
-    max_retries=1000,
+    max_retries=100,
 )
 def create_oncall_connector_async(oncall_org_id, backend):
     client = OnCallGatewayAPIClient(settings.ONCALL_GATEWAY_URL, settings.ONCALL_GATEWAY_API_TOKEN)

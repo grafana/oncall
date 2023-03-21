@@ -61,7 +61,7 @@ class OnCallGatewayAPIClient:
         return urljoin(self.api_base_url, "slack_team_connectors")
 
     def post_slack_connector(
-        self, oncall_org_id, slack_id: str, backend: str
+        self, oncall_org_id: str, slack_id: str, backend: str
     ) -> tuple[SlackConnector, requests.models.Response]:
         d = {"oncall_org_id": oncall_org_id, "slack_team_id": slack_id, "backend": backend}
         response = self._post(url=self._slack_connectors_url, json=d)
