@@ -76,15 +76,7 @@ function renderFormControl(formItem: FormItem, register: any, control: any, onCh
       return (
         <InputControl
           render={({ field: { ...field } }) => {
-            return (
-              <GSelect
-                {...field}
-                {...formItem.extra}
-                onChange={() => {
-                  onChangeFn();
-                }}
-              />
-            );
+            return <GSelect {...field} {...formItem.extra} onChange={onChangeFn} />;
           }}
           control={control}
           name={formItem.name}
