@@ -35,7 +35,7 @@ def create_oncall_connector_async(oncall_org_id, backend):
 @shared_dedicated_queue_retry_task(
     autoretry_for=(Exception,),
     retry_backoff=True,
-    max_retries=1000,
+    max_retries=100,
 )
 def delete_oncall_connector_async(oncall_org_id):
     client = OnCallGatewayAPIClient(settings.ONCALL_GATEWAY_URL, settings.ONCALL_GATEWAY_API_TOKEN)
@@ -76,7 +76,7 @@ def delete_slack_connector_async(slack_id):
 @shared_dedicated_queue_retry_task(
     autoretry_for=(Exception,),
     retry_backoff=True,
-    max_retries=1000,
+    max_retries=100,
 )
 def create_slack_connector_async_v2(**kwargs):
     oncall_org_id = kwargs.get("oncall_org_id")
@@ -102,7 +102,7 @@ def create_slack_connector_async_v2(**kwargs):
 @shared_dedicated_queue_retry_task(
     autoretry_for=(Exception,),
     retry_backoff=True,
-    max_retries=1000,
+    max_retries=100,
 )
 def delete_slack_connector_async_v2(**kwargs):
     oncall_org_id = kwargs.get("oncall_org_id")
