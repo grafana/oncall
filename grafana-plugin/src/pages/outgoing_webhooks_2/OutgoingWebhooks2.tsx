@@ -8,7 +8,6 @@ import LegacyNavHeading from 'navbar/LegacyNavHeading';
 import { RouteComponentProps, withRouter } from 'react-router-dom';
 
 import GTable from 'components/GTable/GTable';
-import { MatchMediaTooltip } from 'components/MatchMediaTooltip/MatchMediaTooltip';
 import PageErrorHandlingWrapper, { PageBaseState } from 'components/PageErrorHandlingWrapper/PageErrorHandlingWrapper';
 import {
   getWrongTeamResponseInfo,
@@ -223,18 +222,15 @@ class OutgoingWebhooks2 extends React.Component<OutgoingWebhooks2Props, Outgoing
 
   renderUrl(url: string) {
     return (
-      <div className="table__email-content">
-        <Text type="secondary">
-          <MatchMediaTooltip placement="top" content={url} maxWidth={300}>
-            <span>{url}</span>
-          </MatchMediaTooltip>
-        </Text>
+      <div className="u-break-word">
+        <span>{url}</span>
       </div>
     );
   }
 
   renderLastRun(lastRun: string) {
-    const lastRunMoment = moment(lastRun);
+    // TODO: remove replace when backend will update lastRun to a correct timestamp
+    const lastRunMoment = moment(lastRun.replace(' (200 OK)', ''));
 
     return (
       <VerticalGroup spacing="none">

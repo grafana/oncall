@@ -1,8 +1,3 @@
-import React from 'react';
-
-import { SelectableValue } from '@grafana/data';
-import Emoji from 'react-emoji-render';
-
 import { FormItem, FormItemType } from 'components/GForm/GForm.types';
 import { KeyValuePair } from 'utils';
 
@@ -90,6 +85,8 @@ export const form: { name: string; fields: FormItem[] } = {
         ],
       },
     },
+    /*
+     * TODO: Uncomment once backend implements it too
     {
       name: 'alert_receive_channel_id',
       label: 'Integrations',
@@ -106,6 +103,7 @@ export const form: { name: string; fields: FormItem[] } = {
       },
       validation: { required: true },
     },
+    */
     {
       name: 'url',
       label: 'Webhook URL',
