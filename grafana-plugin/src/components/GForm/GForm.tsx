@@ -17,7 +17,7 @@ const nullNormalizer = (value: string) => {
   return value || null;
 };
 
-function renderFormControl(formItem: FormItem, register: any, control: any, onChangeFn: any) {
+function renderFormControl(formItem: FormItem, register: any, control: any, onChangeFn: () => void) {
   switch (formItem.type) {
     case FormItemType.Input:
       return <Input {...register(formItem.name, formItem.validation)} onChange={onChangeFn} />;
@@ -76,7 +76,15 @@ function renderFormControl(formItem: FormItem, register: any, control: any, onCh
       return (
         <InputControl
           render={({ field: { ...field } }) => {
-            return <GSelect {...field} {...formItem.extra} onChange={onChangeFn()} />;
+            return (
+              <GSelect
+                {...field}
+                {...formItem.extra}
+                onChange={() => {
+                  onChangeFn();
+                }}
+              />
+            );
           }}
           control={control}
           name={formItem.name}
@@ -124,9 +132,7 @@ class GForm extends React.Component<GFormProps, {}> {
                 error={`${capitalCase(formItem.name)} is required`}
                 description={formItem.description}
               >
-                {renderFormControl(formItem, register, control, () => {
-                  this.forceUpdate();
-                })}
+                {renderFormControl(formItem, register, control, () => this.forceUpdate())}
               </Field>
             );
           });
