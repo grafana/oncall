@@ -147,9 +147,9 @@ def _get_fcm_message(alert_group, user, registration_id, critical):
         mobile_app_user_settings.critical_notification_sound_name
         if critical
         else mobile_app_user_settings.default_notification_sound_name
-    )
+    ) + ".aiff"  # iOS app expects the filename to have .aiff extension
 
-    message = Message(
+    return Message(
         token=registration_id,
         data={
             # from the docs..
@@ -198,5 +198,3 @@ def _get_fcm_message(alert_group, user, registration_id, critical):
             ),
         ),
     )
-
-    return message

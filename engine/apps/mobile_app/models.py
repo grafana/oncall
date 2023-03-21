@@ -79,7 +79,7 @@ class MobileAppUserSettings(models.Model):
     user = models.OneToOneField(to=User, null=False, on_delete=models.CASCADE)
 
     # Push notification settings for default notifications
-    default_notification_sound_name = models.CharField(max_length=100, default="default")  # TODO: check sound name
+    default_notification_sound_name = models.CharField(max_length=100, default="default_sound")
     default_notification_volume_type = models.CharField(
         max_length=50, choices=VolumeType.choices, default=VolumeType.CONSTANT
     )
@@ -87,17 +87,17 @@ class MobileAppUserSettings(models.Model):
     # APNS only allows to specify volume for critical notifications,
     # so "default_notification_volume" and "default_notification_volume_override" are only used on Android
     default_notification_volume = models.FloatField(
-        validators=[validators.MinValueValidator(0.0), validators.MaxValueValidator(1.0)], default=0.6
+        validators=[validators.MinValueValidator(0.0), validators.MaxValueValidator(1.0)], default=0.8
     )
     default_notification_volume_override = models.BooleanField(default=False)
 
     # Push notification settings for critical notifications
-    critical_notification_sound_name = models.CharField(max_length=100, default="default")  # TODO: check sound name
+    critical_notification_sound_name = models.CharField(max_length=100, default="default_sound")
     critical_notification_volume_type = models.CharField(
         max_length=50, choices=VolumeType.choices, default=VolumeType.CONSTANT
     )
     critical_notification_volume = models.FloatField(
-        validators=[validators.MinValueValidator(0.0), validators.MaxValueValidator(1.0)], default=0.6
+        validators=[validators.MinValueValidator(0.0), validators.MaxValueValidator(1.0)], default=0.8
     )
 
     # For the "Mobile push critical" step it's possible to make notifications non-critical
