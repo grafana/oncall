@@ -5,7 +5,6 @@ from json import JSONDecodeError
 from celery.utils.log import get_task_logger
 from django.apps import apps
 from django.conf import settings
-from django.utils import timezone
 
 from apps.alerts.models import AlertGroup
 from apps.user_management.models import User
@@ -99,7 +98,6 @@ def execute_webhook(webhook_pk, alert_group_id, user_id):
 
     data = _build_payload(webhook.trigger_type, alert_group, user_id)
     status = {
-        "timestamp": timezone.now(),
         "url": None,
         "request_trigger": None,
         "request_headers": None,

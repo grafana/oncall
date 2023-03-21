@@ -104,8 +104,7 @@ class WebhookSerializer(serializers.ModelSerializer):
 
     def get_last_run(self, obj):
         last_run = ""
-        last_log = obj.responses.all().last()
-        if last_log:
+        if last_log := obj.responses.all().last():
             last_run = last_log.timestamp.strftime("%Y-%m-%dT%H:%M:%SZ")
         return last_run
 

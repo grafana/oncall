@@ -13,7 +13,8 @@ def on_alert_created(**kwargs):
     alert_pk = kwargs["alert"]
     alert = Alert.objects.get(pk=alert_pk)
 
-    alert_group_created.apply_async((alert.group_id,))
+    if alert.is_the_first_alert_in_group:
+        alert_group_created.apply_async((alert.group_id,))
 
 
 def on_action_triggered(**kwargs):

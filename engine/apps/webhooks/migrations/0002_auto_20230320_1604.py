@@ -2,6 +2,7 @@
 
 from django.db import migrations, models
 import django.db.models.deletion
+import django.utils.timezone
 
 import django_migration_linter as linter
 
@@ -20,7 +21,7 @@ class Migration(migrations.Migration):
             fields=[
                 ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
                 ('trigger_type', models.IntegerField(choices=[(0, 'Escalation step'), (1, 'Triggered'), (2, 'Acknowledged'), (3, 'Resolved'), (4, 'Silenced'), (5, 'Unsilenced'), (6, 'Unresolved')])),
-                ('timestamp', models.DateTimeField()),
+                ('timestamp', models.DateTimeField(default=django.utils.timezone.now)),
                 ('request_trigger', models.TextField(default=None, null=True)),
                 ('request_headers', models.TextField(default=None, null=True)),
                 ('request_data', models.TextField(default=None, null=True)),
