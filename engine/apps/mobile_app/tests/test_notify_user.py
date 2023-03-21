@@ -238,7 +238,7 @@ def test_fcm_message_user_settings(
     # Check APNS notification sound is set correctly
     apns_sound = message.apns.payload.aps.sound
     assert apns_sound.critical is False
-    assert apns_sound.name == "default"
+    assert apns_sound.name == "default_sound.aiff"
     assert apns_sound.volume is None  # APNS doesn't allow to specify volume for non-critical notifications
 
 
@@ -268,8 +268,8 @@ def test_fcm_message_user_settings_critical(
     # Check APNS notification sound is set correctly
     apns_sound = message.apns.payload.aps.sound
     assert apns_sound.critical is True
-    assert apns_sound.name == "default"
-    assert apns_sound.volume == 0.6
+    assert apns_sound.name == "default_sound.aiff"
+    assert apns_sound.volume == 0.8
 
 
 @pytest.mark.django_db
