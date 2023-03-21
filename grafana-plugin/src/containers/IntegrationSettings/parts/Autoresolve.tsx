@@ -125,7 +125,10 @@ const Autoresolve = ({ alertReceiveChannelId, onSwitchToTemplate, alertGroupId }
           <Label>
             <div className={cx('settings-label')}>
               OnCall team
-              <Text type="secondary">Which team should this integration belong to?</Text>
+              <Text type="secondary">
+                {'Assigning to the teams allows you to filter Integrations and configure their visibility.'}
+                {'Go to OnCall -> Settings -> Team and Access Settings for more details'}
+              </Text>
             </div>
           </Label>
           <WithPermissionControlTooltip userAction={UserActions.IntegrationsWrite}>

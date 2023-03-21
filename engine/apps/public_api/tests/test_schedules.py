@@ -724,7 +724,6 @@ def test_create_schedule_invalid_timezone(make_organization_and_user_with_token,
 
     url = reverse("api-public:schedules-list")
 
-    print(schedule_type)
     data = {
         "team_id": None,
         "name": "schedule test name",

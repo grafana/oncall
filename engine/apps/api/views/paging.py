@@ -31,8 +31,6 @@ class DirectPagingAPIView(APIView):
             (schedule["instance"], schedule["important"]) for schedule in serializer.validated_data["schedules"]
         ]
 
-        print(serializer.validated_data["team"])
-
         alert_group = direct_paging(
             organization=organization,
             team=serializer.validated_data["team"],
