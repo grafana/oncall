@@ -2,19 +2,28 @@ import { Page } from '@playwright/test';
 import { clickButton, fillInInput, selectDropdownValue } from './forms';
 import { goToOnCallPage } from './navigation';
 
-export const createIntegrationAndSendDemoAlert = async (
-  page: Page,
-  integrationName: string,
-  escalationChainName: string
-): Promise<void> => {
+const CREATE_INTEGRATION_MODAL_TEST_ID_SELECTOR = 'div[data-testid="create-integration-modal"]';
+
+export const openCreateIntegrationModal = async (page: Page): Promise<void> => {
   // go to the integrations page
   await goToOnCallPage(page, 'integrations');
 
   // open the create integration modal
   (await page.waitForSelector('text=New integration to receive alerts')).click();
 
+  // wait for it to pop up
+  await page.waitForSelector(CREATE_INTEGRATION_MODAL_TEST_ID_SELECTOR);
+};
+
+export const createIntegrationAndSendDemoAlert = async (
+  page: Page,
+  integrationName: string,
+  escalationChainName: string
+): Promise<void> => {
+  await openCreateIntegrationModal(page);
+
   // create a webhook integration
-  (await page.waitForSelector('div[data-testid="create-integration-modal"] >> text=Webhook')).click();
+  (await page.waitForSelector(`${CREATE_INTEGRATION_MODAL_TEST_ID_SELECTOR} >> text=Webhook`)).click();
 
   // wait for the integrations settings modal to open up... and then close it
   await clickButton({ page, buttonText: 'Open Escalations Settings' });
@@ -24,7 +33,7 @@ export const createIntegrationAndSendDemoAlert = async (
   await fillInInput(page, 'div[data-testid="edit-integration-name-modal"] >> input', integrationName);
   await clickButton({ page, buttonText: 'Update' });
 
-  const integrationSettingsElement = page.locator('div[data-testid="integration-settings"]');
+  const integrationSettingsElement = page.getByTestId('integration-settings');
 
   // assign the escalation chain to the integration
   await selectDropdownValue({

@@ -5,6 +5,27 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## v1.1.41 (2023-03-21)
+
+### Added
+
+- Modified `check_escalation_finished_task` celery task to use read-only databases for its query, if one is defined +
+  make the validation logic stricter + ping a configurable heartbeat on successful completion of this task ([1266](https://github.com/grafana/oncall/pull/1266))
+
+### Changed
+
+- Updated wording throughout plugin to use 'Alert Group' instead of 'Incident' ([1565](https://github.com/grafana/oncall/pull/1565),
+  [1576](https://github.com/grafana/oncall/pull/1576))
+- Check for enabled Telegram feature was added to ChatOps and to User pages ([319](https://github.com/grafana/oncall/issues/319))
+- Filtering for Editors/Admins was added to rotation form. It is not allowed to assign Viewer to rotation ([1124](https://github.com/grafana/oncall/issues/1124))
+- Modified search behaviour on the Escalation Chains page to allow for "partial searching" ([1578](https://github.com/grafana/oncall/pull/1578))
+
+### Fixed
+
+- Fixed a few permission issues on the UI ([1448](https://github.com/grafana/oncall/pull/1448))
+- Fix resolution note rendering in Slack message threads where the Slack username was not
+  being properly rendered ([1561](https://github.com/grafana/oncall/pull/1561))
+
 ## v1.1.40 (2023-03-16)
 
 ### Fixed

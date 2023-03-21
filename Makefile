@@ -1,3 +1,10 @@
+help:
+	@sed \
+		-e '/^[a-zA-Z0-9_\-]*:.*##/!d' \
+		-e 's/:.*##\s*/:/' \
+		-e 's/^\(.\+\):\(.*\)/$(shell tput setaf 6)\1$(shell tput sgr0):\2/' \
+		$(MAKEFILE_LIST) | column -c2 -t -s :
+
 DOCKER_COMPOSE_FILE = docker-compose-developer.yml
 DOCKER_COMPOSE_DEV_LABEL = com.grafana.oncall.env=dev
 
@@ -62,7 +69,7 @@ define run_engine_docker_command
 endef
 
 # touch SQLITE_DB_FILE if it does not exist and DB is eqaul to SQLITE_PROFILE
-start:
+start:  ## start all of the docker containers
 ifeq ($(DB),$(SQLITE_PROFILE))
 	@if [ ! -f $(SQLITE_DB_FILE) ]; then \
 		touch $(SQLITE_DB_FILE); \
@@ -71,7 +78,7 @@ endif
 
 	$(call run_docker_compose_command,up --remove-orphans -d)
 
-init:
+init:  ## build the frontend plugin code then run make start
 # if the oncall UI is to be run in docker we should do an initial build of the frontend code
 # this makes sure that it will be available when the grafana container starts up without the need to
 # restart the grafana container initially
@@ -79,16 +86,17 @@ ifeq ($(findstring $(UI_PROFILE),$(COMPOSE_PROFILES)),$(UI_PROFILE))
 	cd grafana-plugin && yarn install && yarn build:dev
 endif
 
-stop:
+stop:  # stop all of the docker containers
 	$(call run_docker_compose_command,down)
 
-restart:
+restart:  ## restart all docker containers
 	$(call run_docker_compose_command,restart)
 
-build:
+build:  ## rebuild images (e.g. when changing requirements.txt)
 	$(call run_docker_compose_command,build)
 
-cleanup: stop
+cleanup: stop  ## this will remove all of the images, containers, volumes, and networks
+               ## associated with your local OnCall developer setup
 	docker system prune --filter label="$(DOCKER_COMPOSE_DEV_LABEL)" --all --volumes
 
 install-pre-commit:
@@ -99,38 +107,43 @@ install-pre-commit:
 		echo "pre-commit already installed"; \
 	fi
 
-lint: install-pre-commit
+lint: install-pre-commit  ## run both frontend and backend linters
+                          ## may need to run `yarn install` from within `grafana-plugin`
+                          ## to install several `pre-commit` dependencies
+
 	pre-commit run --all-files
 
 install-precommit-hook: install-pre-commit
 	pre-commit install
 
-test:
+test:  ## run backend tests
 	$(call run_engine_docker_command,pytest)
 
-start-celery-beat:
+start-celery-beat:  ## start celery beat
 	$(call run_engine_docker_command,celery -A engine beat -l info)
 
-purge-queues:
+purge-queues: ## purge celery queues
 	$(call run_engine_docker_command,celery -A engine purge -f)
 
-shell:
+shell:  ## starts an OnCall engine Django shell
 	$(call run_engine_docker_command,python manage.py shell)
 
-dbshell:
+dbshell:  ## opens a DB shell
 	$(call run_engine_docker_command,python manage.py dbshell)
 
-engine-manage:
+engine-manage:  ## run Django's `manage.py` script, inside of a docker container, passing `$CMD` as arguments.
+                ## e.g. `make engine-manage CMD="makemigrations"`
+                ## https://docs.djangoproject.com/en/4.1/ref/django-admin/#django-admin-makemigrations
 	$(call run_engine_docker_command,python manage.py $(CMD))
 
-exec-engine:
+exec-engine:  ## exec into engine container's bash
 	docker exec -it oncall_engine bash
 
-_backend-debug-enable:
+_backend-debug-enable:  ## enable Django's debug mode and Silk profiling (this is disabled by default for performance reasons)
 	$(shell ./dev/add_env_var.sh DEBUG True $(DEV_ENV_FILE))
 	$(shell ./dev/add_env_var.sh SILK_PROFILER_ENABLED True $(DEV_ENV_FILE))
 
-_backend-debug-disable:
+_backend-debug-disable:  ## disable Django's debug mode and Silk profiling
 	$(shell ./dev/add_env_var.sh DEBUG False $(DEV_ENV_FILE))
 	$(shell ./dev/add_env_var.sh SILK_PROFILER_ENABLED False $(DEV_ENV_FILE))
 
@@ -164,5 +177,8 @@ run-backend-celery:
 backend-command:
 	$(call backend_command,$(CMD))
 
-backend-manage-command:
+backend-manage-command:  ## run Django's `manage.py` script, passing `$CMD` as arguments.
+                         ## e.g. `make backend-manage-command CMD="makemigrations"`
+                         ## https://docs.djangoproject.com/en/4.1/ref/django-admin/#django-admin-makemigrations
+                         ## alternatively you can open docker container with engine and run commands from there
 	$(call backend_command,python manage.py $(CMD))
