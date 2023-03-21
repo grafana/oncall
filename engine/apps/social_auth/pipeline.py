@@ -92,7 +92,7 @@ def populate_slack_identities(response, backend, user, organization, **kwargs):
         return
 
     if organization.slack_team_identity is not None:
-        # means that organization already have Slack integration
+        # means that organization already has Slack integration
         return HttpResponse(status=status.HTTP_400_BAD_REQUEST)
 
     slack_team_id = response["team"]["id"]
