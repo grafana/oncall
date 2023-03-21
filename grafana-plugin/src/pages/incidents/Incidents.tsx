@@ -250,7 +250,7 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
   };
 
   renderIncidentFilters() {
-    const { query } = this.props;
+    const { query, store } = this.props;
     return (
       <div className={cx('filters')}>
         <RemoteFilters
@@ -258,6 +258,7 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
           page="incidents"
           onChange={this.handleFiltersChange}
           extraFilters={this.renderCards.bind(this)}
+          grafanaTeamStore={store.grafanaTeamStore}
           defaultFilters={{
             team: [],
             status: [IncidentStatus.Firing, IncidentStatus.Acknowledged],

@@ -16,8 +16,8 @@ const escalationStepValuePlaceholder: Record<EscalationStep, string> = {
 export const createEscalationChain = async (
   page: Page,
   escalationChainName: string,
-  escalationStep: EscalationStep | null,
-  escalationStepValue: string | null
+  escalationStep?: EscalationStep,
+  escalationStepValue?: string
 ): Promise<void> => {
   // go to the escalation chains page
   await goToOnCallPage(page, 'escalations');
@@ -32,7 +32,7 @@ export const createEscalationChain = async (
   await clickButton({ page, buttonText: 'Create' });
   await page.waitForSelector(`text=${escalationChainName}`);
 
-  if (!escalationStep) {
+  if (!escalationStep || !escalationStepValue) {
     return;
   }
 

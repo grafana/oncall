@@ -8,9 +8,11 @@ import { SortableElement } from 'react-sortable-hoc';
 import reactStringReplace from 'react-string-replace';
 
 import PluginLink from 'components/PluginLink/PluginLink';
+import Text from 'components/Text/Text';
 import TimeRange from 'components/TimeRange/TimeRange';
 import Timeline from 'components/Timeline/Timeline';
 import GSelect from 'containers/GSelect/GSelect';
+import TeamName from 'containers/TeamName/TeamName';
 import UserTooltip from 'containers/UserTooltip/UserTooltip';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
 import { prepareEscalationPolicy } from 'models/escalation_policy/escalation_policy.helpers';
@@ -18,6 +20,9 @@ import {
   EscalationPolicy as EscalationPolicyType,
   EscalationPolicyOption,
 } from 'models/escalation_policy/escalation_policy.types';
+import { GrafanaTeamStore } from 'models/grafana_team/grafana_team';
+import { OutgoingWebhookStore } from 'models/outgoing_webhook/outgoing_webhook';
+import { ScheduleStore } from 'models/schedule/schedule';
 import { WaitDelay } from 'models/wait_delay';
 import { SelectOption } from 'state/types';
 import { UserActions } from 'utils/authorization';
@@ -40,6 +45,9 @@ export interface EscalationPolicyProps {
   number: number;
   color: string;
   isSlackInstalled: boolean;
+  teamStore: GrafanaTeamStore;
+  outgoingWebhookStore: OutgoingWebhookStore;
+  scheduleStore: ScheduleStore;
 }
 
 export class EscalationPolicy extends React.Component<EscalationPolicyProps, any> {
@@ -270,7 +278,7 @@ export class EscalationPolicy extends React.Component<EscalationPolicyProps, any
   }
 
   private _renderNotifySchedule() {
-    const { data } = this.props;
+    const { data, teamStore, scheduleStore } = this.props;
     const { notify_schedule } = data;
 
     return (
@@ -290,8 +298,15 @@ export class EscalationPolicy extends React.Component<EscalationPolicyProps, any
           value={notify_schedule}
           onChange={this._getOnChangeHandler('notify_schedule')}
           fromOrganization
-          isTeamNameIncluded={true}
-          width={'auto'}
+          getOptionLabel={(item: SelectableValue) => {
+            const team = teamStore.items[scheduleStore.items[item.value].team];
+            return (
+              <>
+                <Text>{item.label} </Text>
+                <TeamName team={team} size="small" />
+              </>
+            );
+          }}
         />
       </WithPermissionControlTooltip>
     );
@@ -322,7 +337,7 @@ export class EscalationPolicy extends React.Component<EscalationPolicyProps, any
   }
 
   private _renderTriggerCustomAction() {
-    const { data } = this.props;
+    const { data, teamStore, outgoingWebhookStore } = this.props;
     const { custom_button_trigger } = data;
 
     return (
@@ -337,7 +352,15 @@ export class EscalationPolicy extends React.Component<EscalationPolicyProps, any
           value={custom_button_trigger}
           onChange={this._getOnChangeHandler('custom_button_trigger')}
           fromOrganization
-          isTeamNameIncluded={true}
+          getOptionLabel={(item: SelectableValue) => {
+            const team = teamStore.items[outgoingWebhookStore.items[item.value].team];
+            return (
+              <>
+                <Text>{item.label} </Text>
+                <TeamName team={team} size="small" />
+              </>
+            );
+          }}
           width={'auto'}
         />
       </WithPermissionControlTooltip>

@@ -48,14 +48,13 @@ def test_get_list_webhooks(webhook_internal_api_setup, make_user_auth_headers):
             "headers": None,
             "http_method": "POST",
             "last_run": "",
-            "last_status_log": {
-                "data": "",
-                "headers": "",
-                "input_data": None,
-                "last_run_at": None,
-                "response": "",
-                "response_status": "",
-                "trigger": "",
+            "last_response_log": {
+                "request_data": "",
+                "request_headers": "",
+                "timestamp": None,
+                "content": "",
+                "status_code": None,
+                "request_trigger": "",
                 "url": "",
             },
             "trigger_template": None,
@@ -86,14 +85,13 @@ def test_get_detail_webhook(webhook_internal_api_setup, make_user_auth_headers):
         "headers": None,
         "http_method": "POST",
         "last_run": "",
-        "last_status_log": {
-            "data": "",
-            "headers": "",
-            "input_data": None,
-            "last_run_at": None,
-            "response": "",
-            "response_status": "",
-            "trigger": "",
+        "last_response_log": {
+            "request_data": "",
+            "request_headers": "",
+            "timestamp": None,
+            "content": "",
+            "status_code": None,
+            "request_trigger": "",
             "url": "",
         },
         "trigger_template": None,
@@ -129,14 +127,13 @@ def test_create_webhook(mocked_check_webhooks_2_enabled, webhook_internal_api_se
         "headers": None,
         "http_method": "POST",
         "last_run": "",
-        "last_status_log": {
-            "data": "",
-            "headers": "",
-            "input_data": None,
-            "last_run_at": None,
-            "response": "",
-            "response_status": "",
-            "trigger": "",
+        "last_response_log": {
+            "request_data": "",
+            "request_headers": "",
+            "timestamp": None,
+            "content": "",
+            "status_code": None,
+            "request_trigger": "",
             "url": "",
         },
         "trigger_template": None,
@@ -185,14 +182,13 @@ def test_create_valid_templated_field(
         "data": None,
         "http_method": "POST",
         "last_run": "",
-        "last_status_log": {
-            "data": "",
-            "headers": "",
-            "input_data": None,
-            "last_run_at": None,
-            "response": "",
-            "response_status": "",
-            "trigger": "",
+        "last_response_log": {
+            "request_data": "",
+            "request_headers": "",
+            "timestamp": None,
+            "content": "",
+            "status_code": None,
+            "request_trigger": "",
             "url": "",
         },
         "trigger_template": None,
@@ -471,4 +467,4 @@ def test_webhook_from_other_team_without_flag(
     url = reverse("api-internal:webhooks-detail", kwargs={"pk": webhook.public_primary_key})
 
     response = client.get(url, format="json", **make_user_auth_headers(user, token))
-    assert response.status_code == status.HTTP_403_FORBIDDEN
+    assert response.status_code == status.HTTP_200_OK

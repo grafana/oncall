@@ -39,16 +39,17 @@ class IntegrationHeartBeatView(
 
     TEAM_LOOKUP = "alert_receive_channel__team"
 
-    def get_queryset(self):
+    def get_queryset(self, ignore_filtering_by_available_teams=False):
         alert_receive_channel_id = self.request.query_params.get("alert_receive_channel", None)
         lookup_kwargs = {}
         if alert_receive_channel_id:
             lookup_kwargs = {"alert_receive_channel__public_primary_key": alert_receive_channel_id}
         queryset = IntegrationHeartBeat.objects.filter(
             alert_receive_channel__organization=self.request.auth.organization,
-            *self.available_teams_lookup_args,  # TODO: check
             **lookup_kwargs,
         )
+        if not ignore_filtering_by_available_teams:
+            queryset = queryset.filter(*self.available_teams_lookup_args)
         queryset = self.serializer_class.setup_eager_loading(queryset)
         return queryset
 

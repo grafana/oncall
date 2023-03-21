@@ -281,7 +281,7 @@ class AlertGroupView(
 
         return super().get_serializer_class()
 
-    def get_queryset(self):
+    def get_queryset(self, ignore_filtering_by_available_teams=False):
         # no select_related or prefetch_related is used at this point, it will be done on paginate_queryset.
         alert_receive_channels_ids = list(
             AlertReceiveChannel.objects.filter(
@@ -291,8 +291,12 @@ class AlertGroupView(
 
         queryset = AlertGroup.unarchived_objects.filter(
             channel__in=alert_receive_channels_ids,
-            *self.available_teams_lookup_args,
-        ).only("id")
+        )
+
+        if not ignore_filtering_by_available_teams:
+            queryset = queryset.filter(*self.available_teams_lookup_args)
+
+        queryset = queryset.only("id")
 
         return queryset
 

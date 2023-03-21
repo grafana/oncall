@@ -29,16 +29,19 @@ class ResolutionNoteView(TeamFilteringMixin, PublicPrimaryKeyMixin, UpdateSerial
 
     TEAM_LOOKUP = "alert_group__channel__team"
 
-    def get_queryset(self):
+    def get_queryset(self, ignore_filtering_by_available_teams=False):
         alert_group_id = self.request.query_params.get("alert_group", None)
         lookup_kwargs = {}
         if alert_group_id:
             lookup_kwargs = {"alert_group__public_primary_key": alert_group_id}
         queryset = ResolutionNote.objects.filter(
             alert_group__channel__organization=self.request.auth.organization,
-            *self.available_teams_lookup_args,
             **lookup_kwargs,
         )
+
+        if not ignore_filtering_by_available_teams:
+            queryset = queryset.filter(*self.available_teams_lookup_args)
+
         queryset = self.serializer_class.setup_eager_loading(queryset)
         return queryset
 

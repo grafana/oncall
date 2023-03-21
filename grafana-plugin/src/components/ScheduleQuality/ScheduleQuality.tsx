@@ -49,7 +49,7 @@ const ScheduleQuality: FC<ScheduleQualityProps> = ({ schedule, lastUpdated }) =>
               <VerticalGroup spacing="sm">
                 {relatedEscalationChains.map((escalationChain) => (
                   <div key={escalationChain.pk}>
-                    <PluginLink query={{ page: 'escalations', id: escalationChain.pk }} className={cx('link')}>
+                    <PluginLink query={{ page: 'escalations', id: escalationChain.pk }} className="link">
                       <Text type="link">{escalationChain.name}</Text>
                     </PluginLink>
                   </div>

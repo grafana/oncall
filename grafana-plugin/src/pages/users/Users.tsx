@@ -20,6 +20,7 @@ import UsersFilters from 'components/UsersFilters/UsersFilters';
 import UserSettings from 'containers/UserSettings/UserSettings';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
 import { User as UserType } from 'models/user/user.types';
+import { AppFeature } from 'state/features';
 import { PageProps, WithStoreProps } from 'state/types';
 import { withMobXProviderContext } from 'state/withStore';
 import LocationHelper from 'utils/LocationHelper';
@@ -188,7 +189,8 @@ class Users extends React.Component<UsersProps, UsersState> {
                       </LegacyNavHeading>
                       {authorizedToViewUsers && (
                         <Text type="secondary">
-                          To manage permissions or add users, please visit{' '}
+                          All Grafana users listed below to set notification preferences. To manage permissions or add
+                          new users, please visit{' '}
                           <a href="/org/users" target="_blank">
                             Grafana user management
                           </a>
@@ -282,10 +284,13 @@ class Users extends React.Component<UsersProps, UsersState> {
   };
 
   renderContacts = (user: UserType) => {
+    const { store } = this.props;
     return (
       <div className={cx('contacts')}>
         <div className={cx('contact')}>Slack: {user.slack_user_identity?.name || '-'}</div>
-        <div className={cx('contact')}>Telegram: {user.telegram_configuration?.telegram_nick_name || '-'}</div>
+        {store.hasFeature(AppFeature.Telegram) && (
+          <div className={cx('contact')}>Telegram: {user.telegram_configuration?.telegram_nick_name || '-'}</div>
+        )}
       </div>
     );
   };
@@ -316,6 +321,7 @@ class Users extends React.Component<UsersProps, UsersState> {
   };
 
   renderNote = (user: UserType) => {
+    const { store } = this.props;
     if (user.hidden_fields === true) {
       return null;
     }
@@ -348,7 +354,7 @@ class Users extends React.Component<UsersProps, UsersState> {
       if (!user.slack_user_identity) {
         texts.push('Slack not verified');
       }
-      if (!user.telegram_configuration) {
+      if (store.hasFeature(AppFeature.Telegram) && !user.telegram_configuration) {
         texts.push('Telegram not verified');
       }
 

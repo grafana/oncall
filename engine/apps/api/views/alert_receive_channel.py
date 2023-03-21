@@ -124,21 +124,22 @@ class AlertReceiveChannelView(
         )
         instance.delete()
 
-    def get_queryset(self, eager=True):
+    def get_queryset(self, eager=True, ignore_filtering_by_available_teams=False):
         is_filters_request = self.request.query_params.get("filters", "false") == "true"
         organization = self.request.auth.organization
         if is_filters_request:
             queryset = AlertReceiveChannel.objects_with_maintenance.filter(
                 organization=organization,
-                *self.available_teams_lookup_args,
             )
         else:
             queryset = AlertReceiveChannel.objects.filter(
                 organization=organization,
-                *self.available_teams_lookup_args,
             )
             if eager:
                 queryset = self.serializer_class.setup_eager_loading(queryset)
+
+        if not ignore_filtering_by_available_teams:
+            queryset = queryset.filter(*self.available_teams_lookup_args)
 
         # Hide direct paging integrations from the list view, but not from the filters
         if not is_filters_request:

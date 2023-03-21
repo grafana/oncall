@@ -166,10 +166,15 @@ class OutgoingWebhooks extends React.Component<OutgoingWebhooksProps, OutgoingWe
   }
 
   renderOutgoingWebhooksFilters() {
-    const { query } = this.props;
+    const { query, store } = this.props;
     return (
       <div className={cx('filters')}>
-        <RemoteFilters query={query} page="outgoing_webhooks" onChange={this.handleFiltersChange} />
+        <RemoteFilters
+          query={query}
+          page="outgoing_webhooks"
+          grafanaTeamStore={store.grafanaTeamStore}
+          onChange={this.handleFiltersChange}
+        />
       </div>
     );
   }

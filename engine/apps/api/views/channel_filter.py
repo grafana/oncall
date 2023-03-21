@@ -50,7 +50,7 @@ class ChannelFilterView(
 
     TEAM_LOOKUP = "alert_receive_channel__team"
 
-    def get_queryset(self):
+    def get_queryset(self, ignore_filtering_by_available_teams=False):
         alert_receive_channel_id = self.request.query_params.get("alert_receive_channel", None)
         lookup_kwargs = {}
         if alert_receive_channel_id:
@@ -64,12 +64,13 @@ class ChannelFilterView(
         queryset = ChannelFilter.objects.filter(
             alert_receive_channel__organization=self.request.auth.organization,
             alert_receive_channel__deleted_at=None,
-            *self.available_teams_lookup_args,  # TODO: double check this
             **lookup_kwargs,
         ).annotate(
             slack_channel_name=Subquery(slack_channels_subq.values("name")[:1]),
             slack_channel_pk=Subquery(slack_channels_subq.values("public_primary_key")[:1]),
         )
+        if not ignore_filtering_by_available_teams:
+            queryset = queryset.filter(*self.available_teams_lookup_args)
         queryset = self.serializer_class.setup_eager_loading(queryset)
         return queryset
 

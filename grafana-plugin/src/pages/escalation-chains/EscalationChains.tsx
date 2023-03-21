@@ -160,7 +160,7 @@ class EscalationChainsPage extends React.Component<EscalationChainsPageProps, Es
                         New escalation chain
                       </Button>
                     </WithPermissionControlTooltip>
-                    <div className={cx('escalations-list')}>
+                    <div className={cx('escalations-list')} data-testid="escalation-chains-list">
                       {data ? (
                         <GList
                           autoScroll
@@ -220,10 +220,15 @@ class EscalationChainsPage extends React.Component<EscalationChainsPageProps, Es
   }
 
   renderFilters() {
-    const { query } = this.props;
+    const { query, store } = this.props;
     return (
       <div className={cx('filters')}>
-        <RemoteFilters query={query} page="escalation_chains" onChange={this.handleFiltersChange} />
+        <RemoteFilters
+          query={query}
+          page="escalation_chains"
+          grafanaTeamStore={store.grafanaTeamStore}
+          onChange={this.handleFiltersChange}
+        />
       </div>
     );
   }

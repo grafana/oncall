@@ -50,7 +50,7 @@ class EscalationPolicyView(
 
     TEAM_LOOKUP = "escalation_chain__team"
 
-    def get_queryset(self):
+    def get_queryset(self, ignore_filtering_by_available_teams=False):
         escalation_chain_id = self.request.query_params.get("escalation_chain")
         user_id = self.request.query_params.get("user")
         slack_channel_id = self.request.query_params.get("slack_channel")
@@ -71,8 +71,10 @@ class EscalationPolicyView(
             Q(escalation_chain__organization=self.request.auth.organization),
             Q(escalation_chain__channel_filters__alert_receive_channel__deleted_at=None),
             Q(step__in=EscalationPolicy.INTERNAL_DB_STEPS) | Q(step__isnull=True),
-            *self.available_teams_lookup_args,  # TODO: Check if works correct
         ).distinct()
+
+        if not ignore_filtering_by_available_teams:
+            queryset = queryset.filter(*self.available_teams_lookup_args)
 
         queryset = self.serializer_class.setup_eager_loading(queryset)
         return queryset

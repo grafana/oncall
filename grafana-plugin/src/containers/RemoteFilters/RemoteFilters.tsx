@@ -11,7 +11,9 @@ import Emoji from 'react-emoji-render';
 
 import Text from 'components/Text/Text';
 import RemoteSelect from 'containers/RemoteSelect/RemoteSelect';
+import TeamName from 'containers/TeamName/TeamName';
 import { FiltersValues } from 'models/filters/filters.types';
+import { GrafanaTeamStore } from 'models/grafana_team/grafana_team';
 import { SelectOption, WithStoreProps } from 'state/types';
 import { withMobXProviderContext } from 'state/withStore';
 import LocationHelper from 'utils/LocationHelper';
@@ -30,6 +32,7 @@ interface RemoteFiltersProps extends WithStoreProps {
   page: string;
   defaultFilters?: FiltersValues;
   extraFilters?: (state, setState, onFiltersValueChange) => React.ReactNode;
+  grafanaTeamStore: GrafanaTeamStore;
 }
 interface RemoteFiltersState {
   filterOptions?: FilterOption[];
@@ -193,6 +196,7 @@ class RemoteFilters extends Component<RemoteFiltersProps, RemoteFiltersState> {
 
   renderFilterOption = (filter: FilterOption) => {
     const { values, hadInteraction } = this.state;
+    const { grafanaTeamStore } = this.props;
 
     const autoFocus = Boolean(hadInteraction);
     switch (filter.type) {
@@ -258,7 +262,7 @@ class RemoteFilters extends Component<RemoteFiltersProps, RemoteFiltersState> {
             href={filter.href.replace('/api/internal/v1', '')}
             value={values[filter.name]}
             onChange={this.getRemoteOptionsChangeHandler(filter.name)}
-            getOptionLabel={(item: SelectableValue) => <Emoji text={item.label || ''} />}
+            getOptionLabel={(item: SelectableValue) => <TeamName team={grafanaTeamStore.items[item.value]} />}
           />
         );
 
