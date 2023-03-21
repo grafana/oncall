@@ -163,7 +163,7 @@ class EscalationChainsPage extends React.Component<EscalationChainsPageProps, Es
                         </Button>
                       </WithPermissionControlTooltip>
                     )}
-                    <div className={cx('escalations-list')}>
+                    <div className={cx('escalations-list')} data-testid="escalation-chains-list">
                       {data ? (
                         <GList
                           autoScroll

@@ -311,8 +311,8 @@ class SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSta
                   relatedEscalationChains.length ? (
                     relatedEscalationChains.map((escalationChain) => (
                       <div key={escalationChain.pk}>
-                        <PluginLink query={{ page: 'escalations', id: escalationChain.pk }}>
-                          {escalationChain.name}
+                        <PluginLink query={{ page: 'escalations', id: escalationChain.pk }} className="link">
+                          <Text type="link">{escalationChain.name}</Text>
                         </PluginLink>
                       </div>
                     ))
@@ -331,7 +331,6 @@ class SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSta
         {item.warnings?.length > 0 && (
           <ScheduleCounter
             type="warning"
-            addPadding
             count={item.warnings.length}
             tooltipTitle="Warnings"
             tooltipContent={

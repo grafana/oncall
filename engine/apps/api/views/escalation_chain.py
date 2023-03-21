@@ -53,7 +53,7 @@ class EscalationChainViewSet(
     }
 
     filter_backends = [SearchFilter, filters.DjangoFilterBackend]
-    search_fields = ("^name",)
+    search_fields = ("name",)
     filterset_class = EscalationChainFilter
 
     serializer_class = EscalationChainSerializer
