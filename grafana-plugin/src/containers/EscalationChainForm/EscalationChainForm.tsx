@@ -63,7 +63,12 @@ const EscalationChainForm: FC<EscalationChainFormProps> = (props) => {
         <Field label="Assign to team">
           <GrafanaTeamSelect withoutModal onSelect={setSelectedTeam} />
         </Field>
-        <Field invalid={Boolean(errors['name'])} error={errors['name']} label="Escalation Chain name">
+        <Field
+          invalid={Boolean(errors['name'])}
+          error={errors['name']}
+          label="Escalation Chain name"
+          data-testid="create-escalation-chain-name-input-modal"
+        >
           <Input autoFocus value={name} onChange={handleNameChange} />
         </Field>
         <HorizontalGroup justify="flex-end">
