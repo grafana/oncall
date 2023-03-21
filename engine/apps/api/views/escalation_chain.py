@@ -61,13 +61,15 @@ class EscalationChainViewSet(
 
     filter_serializer_class = FilterEscalationChainSerializer
 
-    def get_queryset(self):
+    def get_queryset(self, ignore_filtering_by_available_teams=False):
         is_filters_request = self.request.query_params.get("filters", "false") == "true"
 
         queryset = EscalationChain.objects.filter(
             organization=self.request.auth.organization,
-            *self.available_teams_lookup_args,
         )
+
+        if not ignore_filtering_by_available_teams:
+            queryset = queryset.filter(*self.available_teams_lookup_args)
 
         if is_filters_request:
             # Do not annotate num_integrations and num_routes for filters request,

@@ -42,7 +42,7 @@ class OnCallShiftView(TeamFilteringMixin, PublicPrimaryKeyMixin, UpdateSerialize
 
     filter_backends = [DjangoFilterBackend]
 
-    def get_queryset(self):
+    def get_queryset(self, ignore_filtering_by_available_teams=False):
         schedule_id = self.request.query_params.get("schedule_id", None)
         lookup_kwargs = Q()
         if schedule_id:
@@ -53,8 +53,10 @@ class OnCallShiftView(TeamFilteringMixin, PublicPrimaryKeyMixin, UpdateSerialize
         queryset = CustomOnCallShift.objects.filter(
             lookup_kwargs,
             organization=self.request.auth.organization,
-            *self.available_teams_lookup_args,
         )
+
+        if not ignore_filtering_by_available_teams:
+            queryset = queryset.filter(*self.available_teams_lookup_args)
 
         queryset = self.serializer_class.setup_eager_loading(queryset)
         return queryset.order_by("schedules")

@@ -160,16 +160,18 @@ class ScheduleView(
         )
         return queryset
 
-    def get_queryset(self):
+    def get_queryset(self, ignore_filtering_by_available_teams=False):
         is_short_request = self.request.query_params.get("short", "false") == "true"
         filter_by_type = self.request.query_params.get("type")
         used = BooleanField(allow_null=True).to_internal_value(data=self.request.query_params.get("used"))
         organization = self.request.auth.organization
-        queryset = OnCallSchedule.objects.filter(organization=organization, *self.available_teams_lookup_args,).defer(
+        queryset = OnCallSchedule.objects.filter(organization=organization).defer(
             # avoid requesting large text fields which are not used when listing schedules
             "prev_ical_file_primary",
             "prev_ical_file_overrides",
         )
+        if not ignore_filtering_by_available_teams:
+            queryset = queryset.filter(*self.available_teams_lookup_args)
         if not is_short_request:
             queryset = self._annotate_queryset(queryset)
             queryset = self.serializer_class.setup_eager_loading(queryset)
@@ -221,14 +223,15 @@ class ScheduleView(
             return self.get_object_from_organization()
         return super().get_object()
 
-    def get_object_from_organization(self):
+    def get_object_from_organization(self, ignore_filtering_by_available_teams=False):
         # use this method to get the object from the whole organization instead of the current team
         pk = self.kwargs["pk"]
         organization = self.request.auth.organization
         queryset = organization.oncall_schedules.filter(
             public_primary_key=pk,
-            *self.available_teams_lookup_args,
         )
+        if not ignore_filtering_by_available_teams:
+            queryset = queryset.filter(*self.available_teams_lookup_args)
         queryset = self._annotate_queryset(queryset)
 
         try:

@@ -42,11 +42,12 @@ class CustomButtonView(TeamFilteringMixin, PublicPrimaryKeyMixin, ModelViewSet):
     search_fields = ["public_primary_key", "name"]
     filterset_class = CustomButtonFilter
 
-    def get_queryset(self):
+    def get_queryset(self, ignore_filtering_by_available_teams=False):
         queryset = CustomButton.objects.filter(
             organization=self.request.auth.organization,
-            *self.available_teams_lookup_args,
         )
+        if not ignore_filtering_by_available_teams:
+            queryset = queryset.filter(*self.available_teams_lookup_args)
 
         return queryset
 

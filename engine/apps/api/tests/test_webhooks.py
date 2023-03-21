@@ -471,4 +471,4 @@ def test_webhook_from_other_team_without_flag(
     url = reverse("api-internal:webhooks-detail", kwargs={"pk": webhook.public_primary_key})
 
     response = client.get(url, format="json", **make_user_auth_headers(user, token))
-    assert response.status_code == status.HTTP_403_FORBIDDEN
+    assert response.status_code == status.HTTP_200_OK
