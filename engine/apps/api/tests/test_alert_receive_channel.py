@@ -559,40 +559,7 @@ def test_alert_receive_channel_change_team(
 
     assert integration.team != team
 
-    # return 400 on change team for integration if user is not a member of chosen team
-    response = client.put(
-        f"{url}?team_id={team.public_primary_key}", format="json", **make_user_auth_headers(user, token)
-    )
-    assert response.status_code == status.HTTP_400_BAD_REQUEST
-    integration.refresh_from_db()
-    assert integration.team != team
-
-    team.users.add(user)
-    # return 400 on change team for integration if escalation_chain is connected to another integration
-    another_integration = make_alert_receive_channel(organization)
-    another_channel_filter = make_channel_filter(another_integration, escalation_chain=escalation_chain)
-    response = client.put(
-        f"{url}?team_id={team.public_primary_key}", format="json", **make_user_auth_headers(user, token)
-    )
-    assert response.status_code == status.HTTP_400_BAD_REQUEST
-    integration.refresh_from_db()
-    assert integration.team != team
-
-    another_channel_filter.escalation_chain = None
-    another_channel_filter.save()
-
-    # return 400 on change team for integration if user from escalation policy is not a member of team
-    another_user = make_user_for_organization(organization)
-    escalation_policy.notify_to_users_queue.add(another_user)
-    response = client.put(
-        f"{url}?team_id={team.public_primary_key}", format="json", **make_user_auth_headers(user, token)
-    )
-    assert response.status_code == status.HTTP_400_BAD_REQUEST
-    integration.refresh_from_db()
-    assert integration.team != team
-
-    team.users.add(another_user)
-    # otherwise change team
+    # return 200 on change team for integration as user is Admin
     response = client.put(
         f"{url}?team_id={team.public_primary_key}", format="json", **make_user_auth_headers(user, token)
     )

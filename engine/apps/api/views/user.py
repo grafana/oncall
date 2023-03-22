@@ -84,7 +84,8 @@ class CurrentUserView(APIView):
         return Response(serializer.data)
 
     def put(self, request):
-        serializer = UserSerializer(request.user, data=self.request.data, context={"request": self.request})
+        data = self.request.data
+        serializer = UserSerializer(request.user, data=data, context={"request": self.request})
         serializer.is_valid(raise_exception=True)
         serializer.save()
         return Response(serializer.data)
@@ -203,9 +204,6 @@ class UserView(
         slack_identity = self.request.query_params.get("slack_identity", None) == "true"
 
         queryset = User.objects.filter(organization=self.request.user.organization)
-
-        if self.request.user.current_team is not None:
-            queryset = queryset.filter(teams=self.request.user.current_team).distinct()
 
         queryset = self.get_serializer_class().setup_eager_loading(queryset)
 

@@ -28,11 +28,12 @@ class WebhooksView(TeamFilteringMixin, PublicPrimaryKeyMixin, ModelViewSet):
     model = Webhook
     serializer_class = WebhookSerializer
 
-    def get_queryset(self):
+    def get_queryset(self, ignore_filtering_by_available_teams=False):
         queryset = Webhook.objects.filter(
             organization=self.request.auth.organization,
-            team=self.request.user.current_team,
         ).prefetch_related("responses")
+        if not ignore_filtering_by_available_teams:
+            queryset = queryset.filter(*self.available_teams_lookup_args).distinct()
         return queryset
 
     def get_object(self):

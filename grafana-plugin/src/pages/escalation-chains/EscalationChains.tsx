@@ -2,12 +2,10 @@ import React from 'react';
 
 import { Button, HorizontalGroup, Icon, IconButton, LoadingPlaceholder, Tooltip, VerticalGroup } from '@grafana/ui';
 import cn from 'classnames/bind';
-import { debounce } from 'lodash-es';
 import { observer } from 'mobx-react';
 import { RouteComponentProps, withRouter } from 'react-router-dom';
 
 import Collapse from 'components/Collapse/Collapse';
-import EscalationsFilters from 'components/EscalationsFilters/EscalationsFilters';
 import Block from 'components/GBlock/Block';
 import GList from 'components/GList/GList';
 import PageErrorHandlingWrapper, { PageBaseState } from 'components/PageErrorHandlingWrapper/PageErrorHandlingWrapper';
@@ -23,8 +21,10 @@ import WithConfirm from 'components/WithConfirm/WithConfirm';
 import EscalationChainCard from 'containers/EscalationChainCard/EscalationChainCard';
 import EscalationChainForm from 'containers/EscalationChainForm/EscalationChainForm';
 import EscalationChainSteps from 'containers/EscalationChainSteps/EscalationChainSteps';
+import RemoteFilters from 'containers/RemoteFilters/RemoteFilters';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
 import { EscalationChain } from 'models/escalation_chain/escalation_chain.types';
+import { FiltersValues } from 'models/filters/filters.types';
 import { PageProps, WithStoreProps } from 'state/types';
 import { withMobXProviderContext } from 'state/withStore';
 import { UserActions } from 'utils/authorization';
@@ -37,10 +37,11 @@ const cx = cn.bind(styles);
 interface EscalationChainsPageProps extends WithStoreProps, PageProps, RouteComponentProps<{ id: string }> {}
 
 interface EscalationChainsPageState extends PageBaseState {
-  escalationChainsFilters: { searchTerm: string };
   showCreateEscalationChainModal: boolean;
   escalationChainIdToCopy: EscalationChain['id'];
   selectedEscalationChain: EscalationChain['id'];
+  escalationChainsFilters?: FiltersValues;
+  extraEscalationChains?: EscalationChain[]; // to render Escalation chain that is not present in searchResult dur to filters
 }
 
 export interface Filters {
@@ -50,16 +51,11 @@ export interface Filters {
 @observer
 class EscalationChainsPage extends React.Component<EscalationChainsPageProps, EscalationChainsPageState> {
   state: EscalationChainsPageState = {
-    escalationChainsFilters: { searchTerm: '' },
     showCreateEscalationChainModal: false,
     escalationChainIdToCopy: undefined,
     selectedEscalationChain: undefined,
     errorData: initErrorDataState(),
   };
-
-  async componentDidMount() {
-    this.update().then(this.parseQueryParams);
-  }
 
   parseQueryParams = async () => {
     this.setState({ errorData: initErrorDataState() }); // reset on query parse
@@ -70,12 +66,10 @@ class EscalationChainsPage extends React.Component<EscalationChainsPageProps, Es
         params: { id },
       },
     } = this.props;
-    const { escalationChainStore } = store;
-    const {
-      escalationChainsFilters: { searchTerm },
-    } = this.state;
 
-    const searchResult = escalationChainStore.getSearchResult(searchTerm);
+    const { escalationChainStore } = store;
+
+    const searchResult = escalationChainStore.getSearchResult();
 
     let selectedEscalationChain: EscalationChain['id'];
     if (id) {
@@ -98,27 +92,21 @@ class EscalationChainsPage extends React.Component<EscalationChainsPageProps, Es
     }
 
     if (selectedEscalationChain) {
-      this.setSelectedEscalationChain(selectedEscalationChain);
+      this.enrichExtraEscalationChainsAndSelect(selectedEscalationChain);
     }
   };
 
-  setSelectedEscalationChain = (escalationChain: EscalationChain['id']) => {
+  setSelectedEscalationChain = async (escalationChainId: EscalationChain['id']) => {
     const { store, history } = this.props;
 
     const { escalationChainStore } = store;
 
-    this.setState({ selectedEscalationChain: escalationChain }, () => {
-      history.push(`${PLUGIN_ROOT}/escalations/${escalationChain || ''}`);
-      if (escalationChain) {
-        escalationChainStore.updateEscalationChainDetails(escalationChain);
+    this.setState({ selectedEscalationChain: escalationChainId }, () => {
+      history.push(`${PLUGIN_ROOT}/escalations/${escalationChainId || ''}${window.location.search}`);
+      if (escalationChainId) {
+        escalationChainStore.updateEscalationChainDetails(escalationChainId);
       }
     });
-  };
-
-  update = () => {
-    const { store } = this.props;
-
-    return store.escalationChainStore.updateItems('');
   };
 
   componentDidUpdate(prevProps: EscalationChainsPageProps) {
@@ -134,17 +122,18 @@ class EscalationChainsPage extends React.Component<EscalationChainsPageProps, Es
         params: { id },
       },
     } = this.props;
-    const {
-      showCreateEscalationChainModal,
-      escalationChainIdToCopy,
-      escalationChainsFilters,
-      selectedEscalationChain,
-      errorData,
-    } = this.state;
+
+    const { extraEscalationChains } = this.state;
+
+    const { showCreateEscalationChainModal, escalationChainIdToCopy, selectedEscalationChain, errorData } = this.state;
 
     const { escalationChainStore } = store;
-    const { loading } = escalationChainStore;
-    const searchResult = escalationChainStore.getSearchResult(escalationChainsFilters.searchTerm);
+    const searchResult = escalationChainStore.getSearchResult();
+
+    let data = searchResult;
+    if (extraEscalationChains && extraEscalationChains.length) {
+      data = [...extraEscalationChains, ...searchResult];
+    }
 
     return (
       <PageErrorHandlingWrapper
@@ -156,31 +145,27 @@ class EscalationChainsPage extends React.Component<EscalationChainsPageProps, Es
         {() => (
           <>
             <div className={cx('root')}>
-              <div className={cx('filters')}>
-                <EscalationsFilters value={escalationChainsFilters} onChange={this.handleEscalationsFiltersChange} />
-              </div>
-              {!searchResult || searchResult.length ? (
+              {this.renderFilters()}
+              {!data || data.length ? (
                 <div className={cx('escalations')}>
                   <div className={cx('left-column')}>
-                    {!loading && (
-                      <WithPermissionControlTooltip userAction={UserActions.IntegrationsWrite}>
-                        <Button
-                          onClick={() => {
-                            this.setState({ showCreateEscalationChainModal: true });
-                          }}
-                          icon="plus"
-                          className={cx('new-escalation-chain')}
-                        >
-                          New escalation chain
-                        </Button>
-                      </WithPermissionControlTooltip>
-                    )}
+                    <WithPermissionControlTooltip userAction={UserActions.IntegrationsWrite}>
+                      <Button
+                        onClick={() => {
+                          this.setState({ showCreateEscalationChainModal: true });
+                        }}
+                        icon="plus"
+                        className={cx('new-escalation-chain')}
+                      >
+                        New escalation chain
+                      </Button>
+                    </WithPermissionControlTooltip>
                     <div className={cx('escalations-list')} data-testid="escalation-chains-list">
-                      {searchResult ? (
+                      {data ? (
                         <GList
                           autoScroll
                           selectedId={selectedEscalationChain}
-                          items={searchResult}
+                          items={data}
                           itemKey="id"
                           onSelect={this.setSelectedEscalationChain}
                         >
@@ -234,24 +219,48 @@ class EscalationChainsPage extends React.Component<EscalationChainsPageProps, Es
     );
   }
 
-  applyFilters = () => {
-    const { store } = this.props;
-    const { escalationChainStore } = store;
-    const { escalationChainsFilters, selectedEscalationChain } = this.state;
+  renderFilters() {
+    const { query, store } = this.props;
+    return (
+      <div className={cx('filters')}>
+        <RemoteFilters
+          query={query}
+          page="escalation_chains"
+          grafanaTeamStore={store.grafanaTeamStore}
+          onChange={this.handleFiltersChange}
+        />
+      </div>
+    );
+  }
 
-    escalationChainStore.updateItems(escalationChainsFilters.searchTerm).then(() => {
-      const searchResult = escalationChainStore.getSearchResult(escalationChainsFilters.searchTerm);
-
-      if (!searchResult.find((escalationChain: EscalationChain) => escalationChain.id === selectedEscalationChain)) {
-        this.setSelectedEscalationChain(searchResult[0].id);
+  handleFiltersChange = (filters: FiltersValues, isOnMount = false) => {
+    this.setState({ escalationChainsFilters: filters, extraEscalationChains: undefined }, () => {
+      if (isOnMount) {
+        this.applyFilters().then(this.parseQueryParams);
+      } else {
+        this.applyFilters().then(this.autoSelectEscalationChain);
       }
     });
   };
 
-  debouncedUpdateEscalations = debounce(this.applyFilters, 1000);
+  autoSelectEscalationChain = () => {
+    const { store } = this.props;
+    const { selectedEscalationChain } = this.state;
+    const { escalationChainStore } = store;
 
-  handleEscalationsFiltersChange = (filters: Filters) => {
-    this.setState({ escalationChainsFilters: filters }, this.debouncedUpdateEscalations);
+    const searchResult = escalationChainStore.getSearchResult();
+
+    if (!searchResult.find((escalationChain: EscalationChain) => escalationChain.id === selectedEscalationChain)) {
+      this.setSelectedEscalationChain(searchResult[0]?.id);
+    }
+  };
+
+  applyFilters = () => {
+    const { store } = this.props;
+    const { escalationChainStore } = store;
+    const { escalationChainsFilters } = this.state;
+
+    return escalationChainStore.updateItems(escalationChainsFilters);
   };
 
   renderEscalation = () => {
@@ -348,26 +357,59 @@ class EscalationChainsPage extends React.Component<EscalationChainsPageProps, Es
     );
   };
 
-  handleEscalationChainCreate = (id: EscalationChain['id']) => {
-    this.update().then(() => {
+  handleEscalationChainCreate = async (id: EscalationChain['id']) => {
+    this.enrichExtraEscalationChainsAndSelect(id);
+  };
+
+  enrichExtraEscalationChainsAndSelect = async (id: EscalationChain['id']) => {
+    const { store } = this.props;
+    const { extraEscalationChains } = this.state;
+    const { escalationChainStore } = store;
+
+    await this.applyFilters();
+
+    const searchResult = escalationChainStore.getSearchResult();
+    if (
+      !searchResult.some((escalationChain) => escalationChain.id === id) &&
+      (!extraEscalationChains ||
+        (extraEscalationChains && !extraEscalationChains.some((escalationChain) => escalationChain.id === id)))
+    ) {
+      let escalationChain = await escalationChainStore
+        .loadItem(id, true)
+        .catch((error) => this.setState({ errorData: { ...getWrongTeamResponseInfo(error) } }));
+
+      if (escalationChain) {
+        this.setState({ extraEscalationChains: [...(this.state.extraEscalationChains || []), escalationChain] }, () => {
+          this.setSelectedEscalationChain(id);
+        });
+      }
+    } else {
       this.setSelectedEscalationChain(id);
-    });
+    }
   };
 
   handleDeleteEscalationChain = () => {
     const { store } = this.props;
     const { escalationChainStore } = store;
-    const { selectedEscalationChain, escalationChainsFilters } = this.state;
+    const { selectedEscalationChain, extraEscalationChains } = this.state;
 
     const index = escalationChainStore
-      .getSearchResult(escalationChainsFilters.searchTerm)
+      .getSearchResult()
       .findIndex((escalationChain: EscalationChain) => escalationChain.id === selectedEscalationChain);
 
     escalationChainStore
       .delete(selectedEscalationChain)
-      .then(this.update)
+      .then(this.applyFilters)
       .then(() => {
-        const escalationChains = escalationChainStore.getSearchResult(escalationChainsFilters.searchTerm);
+        if (extraEscalationChains) {
+          const newExtraEscalationChains = extraEscalationChains.filter(
+            (scalationChain) => scalationChain.id !== selectedEscalationChain
+          );
+
+          this.setState({ extraEscalationChains: newExtraEscalationChains });
+        }
+
+        const escalationChains = escalationChainStore.getSearchResult();
 
         const newSelected = escalationChains[index - 1] || escalationChains[0];
 
@@ -383,8 +425,6 @@ class EscalationChainsPage extends React.Component<EscalationChainsPageProps, Es
 
     escalationChainStore.save(selectedEscalationChain, { name: value });
   };
-
-  handleEscalationChainSelect = () => {};
 }
 
 export default withRouter(withMobXProviderContext(EscalationChainsPage));

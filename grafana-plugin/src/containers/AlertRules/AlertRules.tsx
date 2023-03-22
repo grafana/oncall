@@ -1,5 +1,6 @@
 import React, { SyntheticEvent } from 'react';
 
+import { SelectableValue } from '@grafana/data';
 import {
   Alert,
   Button,
@@ -31,6 +32,7 @@ import EscalationChainForm from 'containers/EscalationChainForm/EscalationChainF
 import EscalationChainSteps from 'containers/EscalationChainSteps/EscalationChainSteps';
 import GSelect from 'containers/GSelect/GSelect';
 import { IntegrationSettingsTab } from 'containers/IntegrationSettings/IntegrationSettings.types';
+import TeamName from 'containers/TeamName/TeamName';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
 import { AlertReceiveChannel, MaintenanceMode } from 'models/alert_receive_channel/alert_receive_channel.types';
 import { ChannelFilter } from 'models/channel_filter/channel_filter.types';
@@ -708,20 +710,29 @@ class AlertRules extends React.Component<AlertRulesProps, AlertRulesState> {
                   {channelFilterIds.length > 1 && <Text keyboard>ELSE</Text>}
                   <Text>route to escalation chain:</Text>
                   <WithPermissionControlTooltip userAction={UserActions.IntegrationsWrite}>
-                    <div onClick={(e) => e.stopPropagation()}>
-                      <GSelect
-                        showSearch
-                        modelName="escalationChainStore"
-                        displayField="name"
-                        placeholder="Select Escalation Chain"
-                        className={cx('select', 'control', 'no-trigger-collapse-please')}
-                        value={channelFilter.escalation_chain}
-                        onChange={this.getEscalationChainChangeHandler(channelFilterId)}
-                        showWarningIfEmptyValue={true}
-                        width={'auto'}
-                        icon={'list-ul'}
-                      />
-                    </div>
+                    <GSelect
+                      showSearch
+                      modelName="escalationChainStore"
+                      displayField="name"
+                      placeholder="Select Escalation Chain"
+                      className={cx('select', 'control', 'no-trigger-collapse-please')}
+                      value={channelFilter.escalation_chain}
+                      onChange={this.getEscalationChainChangeHandler(channelFilterId)}
+                      showWarningIfEmptyValue={true}
+                      width={'auto'}
+                      icon={'list-ul'}
+                      getOptionLabel={(item: SelectableValue) => {
+                        return (
+                          <>
+                            <Text>{item.label} </Text>
+                            <TeamName
+                              team={store.grafanaTeamStore.items[store.escalationChainStore.items[item.value].team]}
+                              size="small"
+                            />
+                          </>
+                        );
+                      }}
+                    />
                   </WithPermissionControlTooltip>
                 </>
               ) : (
@@ -785,6 +796,17 @@ class AlertRules extends React.Component<AlertRulesProps, AlertRulesState> {
                     showWarningIfEmptyValue={true}
                     width={'auto'}
                     icon={'list-ul'}
+                    getOptionLabel={(item: SelectableValue) => {
+                      return (
+                        <>
+                          <Text>{item.label} </Text>
+                          <TeamName
+                            team={store.grafanaTeamStore.items[store.escalationChainStore.items[item.value].team]}
+                            size="small"
+                          />
+                        </>
+                      );
+                    }}
                   />
                 </div>
               </WithPermissionControlTooltip>

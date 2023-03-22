@@ -7,11 +7,12 @@ from apps.api.permissions import RBACPermission
 from apps.api.serializers.integration_heartbeat import IntegrationHeartBeatSerializer
 from apps.auth_token.auth import PluginAuthentication
 from apps.heartbeat.models import IntegrationHeartBeat
-from common.api_helpers.mixins import PublicPrimaryKeyMixin
+from common.api_helpers.mixins import PublicPrimaryKeyMixin, TeamFilteringMixin
 from common.insight_log import EntityEvent, write_resource_insight_log
 
 
 class IntegrationHeartBeatView(
+    TeamFilteringMixin,
     PublicPrimaryKeyMixin,
     mixins.RetrieveModelMixin,
     mixins.ListModelMixin,
@@ -36,16 +37,19 @@ class IntegrationHeartBeatView(
     model = IntegrationHeartBeat
     serializer_class = IntegrationHeartBeatSerializer
 
-    def get_queryset(self):
+    TEAM_LOOKUP = "alert_receive_channel__team"
+
+    def get_queryset(self, ignore_filtering_by_available_teams=False):
         alert_receive_channel_id = self.request.query_params.get("alert_receive_channel", None)
         lookup_kwargs = {}
         if alert_receive_channel_id:
             lookup_kwargs = {"alert_receive_channel__public_primary_key": alert_receive_channel_id}
         queryset = IntegrationHeartBeat.objects.filter(
-            **lookup_kwargs,
             alert_receive_channel__organization=self.request.auth.organization,
-            alert_receive_channel__team=self.request.user.current_team,
+            **lookup_kwargs,
         )
+        if not ignore_filtering_by_available_teams:
+            queryset = queryset.filter(*self.available_teams_lookup_args).distinct()
         queryset = self.serializer_class.setup_eager_loading(queryset)
         return queryset
 

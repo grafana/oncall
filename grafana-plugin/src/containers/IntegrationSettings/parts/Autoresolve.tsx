@@ -34,7 +34,7 @@ const Autoresolve = ({ alertReceiveChannelId, onSwitchToTemplate, alertGroupId }
 
   const alertReceiveChannel = alertReceiveChannelStore.items[alertReceiveChannelId];
 
-  const [teamId, setTeamId] = useState<Team['pk']>(currentTeam);
+  const [teamId, setTeamId] = useState<Team['pk']>(alertReceiveChannel.team);
   const [showSaveConfirmationModal, setShowSaveConfirmationModal] = useState<boolean>(false);
   const [autoresolveChanged, setAutoresolveChanged] = useState<boolean>(false);
   const [autoresolveValue, setAutoresolveValue] = useState<boolean>(alertReceiveChannel?.allow_source_based_resolving);
@@ -125,7 +125,10 @@ const Autoresolve = ({ alertReceiveChannelId, onSwitchToTemplate, alertGroupId }
           <Label>
             <div className={cx('settings-label')}>
               OnCall team
-              <Text type="secondary">Which team should this integration belong to?</Text>
+              <Text type="secondary">
+                {'Assigning to the teams allows you to filter Integrations and configure their visibility.'}
+                {'Go to OnCall -> Settings -> Team and Access Settings for more details'}
+              </Text>
             </div>
           </Label>
           <WithPermissionControlTooltip userAction={UserActions.IntegrationsWrite}>
@@ -209,15 +212,10 @@ const Autoresolve = ({ alertReceiveChannelId, onSwitchToTemplate, alertGroupId }
           onDismiss={() => setShowSaveConfirmationModal(false)}
         >
           <div className={cx('root')}>
-            <Alert title="When changing the onCall team" severity="info">
+            <Alert title="When changing assigned team for the integration" severity="info">
               <ul>
-                <li>
-                  If this integration is linked to multiple escalation chains belonging to its current team, you cannot
-                  move it.
-                </li>
-                <li>If this integration is linked to users belonging to its current team, you cannot move it.</li>
-                <li>The selected schedule will remain the same, even if it’s from another team.</li>
-                <li>Any outgoing webhooks will remain the same, even if it’s from another team.</li>
+                <li>Alert Groups will move to the new team</li>
+                <li>Escalation Chains will remain assigned to their teams</li>
               </ul>
             </Alert>
             <div className={cx('confirmation-buttons')}>
