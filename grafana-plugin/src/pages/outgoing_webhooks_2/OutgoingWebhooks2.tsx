@@ -17,8 +17,12 @@ import Text from 'components/Text/Text';
 import WithConfirm from 'components/WithConfirm/WithConfirm';
 import OutgoingWebhook2Form from 'containers/OutgoingWebhook2Form/OutgoingWebhook2Form';
 import OutgoingWebhook2Status from 'containers/OutgoingWebhook2Status/OutgoingWebhook2Status';
+import RemoteFilters from 'containers/RemoteFilters/RemoteFilters';
+import TeamName from 'containers/TeamName/TeamName';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
 import { ActionDTO } from 'models/action';
+import { FiltersValues } from 'models/filters/filters.types';
+import { OutgoingWebhook } from 'models/outgoing_webhook/outgoing_webhook.types';
 import { OutgoingWebhook2 } from 'models/outgoing_webhook_2/outgoing_webhook_2.types';
 import { makeRequest } from 'network';
 import { PageProps, WithStoreProps } from 'state/types';
@@ -123,6 +127,11 @@ class OutgoingWebhooks2 extends React.Component<OutgoingWebhooks2Props, Outgoing
         dataIndex: 'last_run',
       },
       {
+        width: '15%',
+        title: 'Team',
+        render: (item: OutgoingWebhook) => this.renderTeam(item, store.grafanaTeamStore.items),
+      },
+      {
         width: '20%',
         key: 'action',
         render: this.renderActionButtons,
@@ -139,6 +148,7 @@ class OutgoingWebhooks2 extends React.Component<OutgoingWebhooks2Props, Outgoing
         {() => (
           <>
             <div className={cx('root')}>
+              {this.renderOutgoingWebhooksFilters()}
               <GTable
                 emptyText={webhooks ? 'No outgoing webhooks found' : 'Loading...'}
                 title={() => (
@@ -189,6 +199,36 @@ class OutgoingWebhooks2 extends React.Component<OutgoingWebhooks2Props, Outgoing
         )}
       </PageErrorHandlingWrapper>
     );
+  }
+
+  renderOutgoingWebhooksFilters() {
+    const { query, store } = this.props;
+    return (
+      <div className={cx('filters')}>
+        <RemoteFilters
+          query={query}
+          page="webhooks"
+          grafanaTeamStore={store.grafanaTeamStore}
+          onChange={this.handleFiltersChange}
+        />
+      </div>
+    );
+  }
+
+  handleFiltersChange = (filters: FiltersValues, isOnMount) => {
+    const { store } = this.props;
+
+    const { outgoingWebhook2Store } = store;
+
+    outgoingWebhook2Store.updateItems(filters).then(() => {
+      if (isOnMount) {
+        this.parseQueryParams();
+      }
+    });
+  };
+
+  renderTeam(record: OutgoingWebhook, teams: any) {
+    return <TeamName team={teams[record.team]} />;
   }
 
   renderActionButtons = (record: ActionDTO) => {
