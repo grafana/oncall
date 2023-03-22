@@ -69,7 +69,7 @@ class EscalationChainViewSet(
         )
 
         if not ignore_filtering_by_available_teams:
-            queryset = queryset.filter(*self.available_teams_lookup_args)
+            queryset = queryset.filter(*self.available_teams_lookup_args).distinct()
 
         if is_filters_request:
             # Do not annotate num_integrations and num_routes for filters request,

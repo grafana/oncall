@@ -171,7 +171,7 @@ class ScheduleView(
             "prev_ical_file_overrides",
         )
         if not ignore_filtering_by_available_teams:
-            queryset = queryset.filter(*self.available_teams_lookup_args)
+            queryset = queryset.filter(*self.available_teams_lookup_args).distinct()
         if not is_short_request:
             queryset = self._annotate_queryset(queryset)
             queryset = self.serializer_class.setup_eager_loading(queryset)
@@ -231,7 +231,7 @@ class ScheduleView(
             public_primary_key=pk,
         )
         if not ignore_filtering_by_available_teams:
-            queryset = queryset.filter(*self.available_teams_lookup_args)
+            queryset = queryset.filter(*self.available_teams_lookup_args).distinct()
         queryset = self._annotate_queryset(queryset)
 
         try:

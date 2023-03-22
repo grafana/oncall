@@ -37,7 +37,7 @@ class AlertReceiveChannelTemplateView(
             organization=self.request.auth.organization,
         )
         if not ignore_filtering_by_available_teams:
-            queryset = queryset.filter(*self.available_teams_lookup_args)
+            queryset = queryset.filter(*self.available_teams_lookup_args).distinct()
 
         return queryset
 
