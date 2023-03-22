@@ -2,7 +2,7 @@ import plugin from '../../package.json'; // eslint-disable-line
 
 // Navbar
 export const APP_TITLE = 'Grafana OnCall';
-export const APP_SUBTITLE = `Developer-friendly incident response (${plugin?.version})`;
+export const APP_SUBTITLE = `Developer-friendly alert groups response (${plugin?.version})`;
 
 // License
 export const GRAFANA_LICENSE_OSS = 'OpenSource';
@@ -11,7 +11,7 @@ export const GRAFANA_LICENSE_OSS = 'OpenSource';
 export const BREAKPOINT_TABS = 1024;
 
 // Default redirect page
-export const DEFAULT_PAGE = 'incidents';
+export const DEFAULT_PAGE = 'alert-groups';
 
 export const PLUGIN_ROOT = '/a/grafana-oncall-app';
 

@@ -179,8 +179,8 @@ export const pages: { [id: string]: PageDefinition } = [
 }, {});
 
 export const ROUTES = {
-  incidents: ['incidents'],
-  incident: ['incidents/:id'],
+  incidents: ['alert-groups'],
+  incident: ['alert-groups/:id'],
   users: ['users', 'users/:id'],
   integrations: ['integrations', 'integrations/:id'],
   escalations: ['escalations', 'escalations/:id'],

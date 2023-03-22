@@ -425,7 +425,13 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
       <VerticalGroup spacing="none" justify="center">
         <div className={'table__wrap-column'}>
           <PluginLink
-            query={{ page: 'incidents', id: record.pk, cursor: incidentsCursor, perpage: incidentsItemsPerPage, start }}
+            query={{
+              page: 'alert-groups',
+              id: record.pk,
+              cursor: incidentsCursor,
+              perpage: incidentsItemsPerPage,
+              start,
+            }}
           >
             <Tooltip placement="top" content={record.render_for_web.title}>
               <span>{record.render_for_web.title}</span>
