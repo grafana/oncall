@@ -189,8 +189,11 @@ class Users extends React.Component<UsersProps, UsersState> {
                       </LegacyNavHeading>
                       {authorizedToViewUsers && (
                         <Text type="secondary">
-                          To manage permissions or add users, please visit{' '}
-                          <a href="/org/users">Grafana user management</a>
+                          All Grafana users listed below to set notification preferences. To manage permissions or add
+                          new users, please visit{' '}
+                          <a href="/org/users" target="_blank">
+                            Grafana user management
+                          </a>
                         </Text>
                       )}
                     </div>

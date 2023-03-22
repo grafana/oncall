@@ -6,10 +6,10 @@ from apps.alerts.tasks import send_update_resolution_note_signal
 from apps.api.permissions import RBACPermission
 from apps.api.serializers.resolution_note import ResolutionNoteSerializer, ResolutionNoteUpdateSerializer
 from apps.auth_token.auth import PluginAuthentication
-from common.api_helpers.mixins import PublicPrimaryKeyMixin, UpdateSerializerMixin
+from common.api_helpers.mixins import PublicPrimaryKeyMixin, TeamFilteringMixin, UpdateSerializerMixin
 
 
-class ResolutionNoteView(PublicPrimaryKeyMixin, UpdateSerializerMixin, ModelViewSet):
+class ResolutionNoteView(TeamFilteringMixin, PublicPrimaryKeyMixin, UpdateSerializerMixin, ModelViewSet):
     authentication_classes = (PluginAuthentication,)
     permission_classes = (IsAuthenticated, RBACPermission)
 
@@ -27,16 +27,21 @@ class ResolutionNoteView(PublicPrimaryKeyMixin, UpdateSerializerMixin, ModelView
     serializer_class = ResolutionNoteSerializer
     update_serializer_class = ResolutionNoteUpdateSerializer
 
-    def get_queryset(self):
+    TEAM_LOOKUP = "alert_group__channel__team"
+
+    def get_queryset(self, ignore_filtering_by_available_teams=False):
         alert_group_id = self.request.query_params.get("alert_group", None)
         lookup_kwargs = {}
         if alert_group_id:
             lookup_kwargs = {"alert_group__public_primary_key": alert_group_id}
         queryset = ResolutionNote.objects.filter(
-            **lookup_kwargs,
             alert_group__channel__organization=self.request.auth.organization,
-            alert_group__channel__team=self.request.user.current_team,
+            **lookup_kwargs,
         )
+
+        if not ignore_filtering_by_available_teams:
+            queryset = queryset.filter(*self.available_teams_lookup_args).distinct()
+
         queryset = self.serializer_class.setup_eager_loading(queryset)
         return queryset
 

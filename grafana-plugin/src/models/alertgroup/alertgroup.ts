@@ -204,7 +204,7 @@ export class AlertGroupStore extends BaseStore {
     });
   }
 
-  // methods were moved from rrotBaseStore.
+  // methods were moved from rootBaseStore.
   // TODO check if methods are dublicating existing ones
   @action
   async updateIncidents() {

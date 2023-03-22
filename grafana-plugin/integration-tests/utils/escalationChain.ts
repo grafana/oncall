@@ -26,7 +26,7 @@ export const createEscalationChain = async (
   (await page.waitForSelector('text=New Escalation Chain')).click();
 
   // fill in the name input
-  await fillInInput(page, 'div[class*="EscalationChainForm"] input', escalationChainName);
+  await fillInInput(page, 'div[data-testid="create-escalation-chain-name-input-modal"] >> input', escalationChainName);
 
   // submit the form and wait for it to be created
   await clickButton({ page, buttonText: 'Create' });

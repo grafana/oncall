@@ -28,9 +28,10 @@ const OutgoingWebhookForm = observer((props: OutgoingWebhookFormProps) => {
 
   const store = useStore();
 
-  const { outgoingWebhookStore } = store;
+  const { outgoingWebhookStore, userStore } = store;
+  const user = userStore.currentUser;
 
-  const data = id === 'new' ? {} : outgoingWebhookStore.items[id];
+  const data = id === 'new' ? { team: user.current_team } : outgoingWebhookStore.items[id];
 
   const handleSubmit = useCallback(
     (data: Partial<OutgoingWebhook>) => {
