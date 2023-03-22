@@ -171,7 +171,7 @@ const ScheduleOverrideForm: FC<RotationFormProps> = (props) => {
   const updatePreview = () => {
     store.scheduleStore
       .updateRotationPreview(scheduleId, shiftId, getFromString(startMoment), true, params)
-      .then(() => {
+      .finally(() => {
         setIsOpen(true);
       });
   };
