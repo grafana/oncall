@@ -13,7 +13,13 @@ class CommentType(str, enum.Enum):
 
 
 # TODO: add "inside working hours score" and "balance outside working hours score" when working hours editor is implemented
-def get_schedule_quality_score(events: list[dict], days: int) -> dict:
+def get_schedule_quality_score(schedule) -> dict:
+    # get events to consider for calculation
+    today = datetime.datetime.now(tz=datetime.timezone.utc)
+    date = today - datetime.timedelta(days=7 - today.weekday())  # start of next week in UTC
+    days = 52 * 7  # consider next 52 weeks (~1 year)
+    events = schedule.final_events(user_tz="UTC", starting_date=date, days=days)
+
     # an event is “good” if it's not a gap and not empty
     good_events = [event for event in events if not event["is_gap"] and not event["is_empty"]]
     if not good_events:
@@ -53,13 +59,14 @@ def get_schedule_quality_score(events: list[dict], days: int) -> dict:
     if good_event_score == 1:
         comments.append({"type": CommentType.INFO, "text": "Schedule has no gaps"})
     else:
-        comments.append({"type": CommentType.WARNING, "text": "Schedule has gaps"})
+        not_covered = 100 - score_to_percent(good_event_score)
+        comments.append({"type": CommentType.WARNING, "text": f"Schedule has gaps ({not_covered}% not covered)"})
 
     # generate comments regarding balance
     if balance_score == 1:
         comments.append({"type": CommentType.INFO, "text": "Schedule is perfectly balanced"})
     else:
-        comments.append({"type": CommentType.WARNING, "text": "Schedule has balance issues"})
+        comments.append({"type": CommentType.WARNING, "text": "Schedule has balance issues (see overloaded users)"})
 
     total_score = (good_event_score + balance_score) / 2
     return {

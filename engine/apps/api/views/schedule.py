@@ -353,11 +353,7 @@ class ScheduleView(
     @action(detail=True, methods=["get"])
     def quality(self, request, pk):
         schedule = self.get_object()
-        user_tz, date = self.get_request_timezone()
-        days = int(self.request.query_params.get("days", 90))  # todo: check if days could be calculated more precisely
-
-        events = schedule.final_events(user_tz, date, days=days)
-        schedule_score = get_schedule_quality_score(events, days)
+        schedule_score = get_schedule_quality_score(schedule)
         return Response(schedule_score)
 
     @action(detail=False, methods=["get"])
