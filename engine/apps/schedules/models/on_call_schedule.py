@@ -1,6 +1,9 @@
 import datetime
 import functools
 import itertools
+from collections import defaultdict
+from enum import Enum
+from typing import Iterable, TypedDict
 
 import icalendar
 import pytz
@@ -23,7 +26,31 @@ from apps.schedules.ical_utils import (
     list_of_oncall_shifts_from_ical,
 )
 from apps.schedules.models import CustomOnCallShift
+from apps.user_management.models import User
 from common.public_primary_keys import generate_public_primary_key, increase_public_primary_key_length
+
+
+# Utility classes for schedule quality report
+class QualityReportCommentType(str, Enum):
+    INFO = "info"
+    WARNING = "warning"
+
+
+class QualityReportComment(TypedDict):
+    type: QualityReportCommentType
+    text: str
+
+
+class QualityReportOverloadedUser(TypedDict):
+    id: str
+    username: str
+    score: int
+
+
+class QualityReport(TypedDict):
+    total_score: int
+    comments: list[QualityReportComment]
+    overloaded_users: list[QualityReportOverloadedUser]
 
 
 def generate_public_primary_key_for_oncall_schedule_channel():
@@ -255,6 +282,120 @@ class OnCallSchedule(PolymorphicModel):
         )
         events = self._resolve_schedule(events)
         return events
+
+    @cached_property
+    def quality_report(self) -> QualityReport:
+        """
+        Return schedule quality report to be used by the web UI.
+        TODO: Add scores on "inside working hours" and "balance outside working hours" when
+        TODO: working hours editor is implemented in the web UI.
+        """
+        # get events to consider for calculation
+        today = datetime.datetime.now(tz=datetime.timezone.utc)
+        date = today - datetime.timedelta(days=7 - today.weekday())  # start of next week in UTC
+        days = 52 * 7  # consider next 52 weeks (~1 year)
+        events = self.final_events(user_tz="UTC", starting_date=date, days=days)
+
+        # an event is “good” if it's not a gap and not empty
+        good_events = [event for event in events if not event["is_gap"] and not event["is_empty"]]
+        if not good_events:
+            return {
+                "total_score": 0,
+                "comments": [{"type": QualityReportCommentType.WARNING, "text": "Schedule is empty"}],
+                "overloaded_users": [],
+            }
+
+        def event_duration(ev: dict) -> datetime.timedelta:
+            return ev["end"] - ev["start"]
+
+        def timedelta_sum(deltas: Iterable[datetime.timedelta]) -> datetime.timedelta:
+            return sum(deltas, start=datetime.timedelta())
+
+        def score_to_percent(value: float) -> int:
+            return round(value * 100)
+
+        def get_duration_map(evs: list[dict]) -> dict[str, datetime.timedelta]:
+            """Return a map of user PKs to total duration of events they are in."""
+            result = defaultdict(datetime.timedelta)
+            for ev in evs:
+                for user in ev["users"]:
+                    user_pk = user["pk"]
+                    result[user_pk] += event_duration(ev)
+
+            return result
+
+        def get_balance_score_by_duration_map(dur_map: dict[str, datetime.timedelta]) -> float:
+            """
+            Return a score between 0 and 1, based on how balanced the durations are in the duration map.
+            The formula is taken from https://github.com/grafana/oncall/issues/118#issuecomment-1161787854.
+            """
+            if len(dur_map) <= 1:
+                return 1
+
+            result = 0
+            for key_1, key_2 in itertools.combinations(dur_map, 2):
+                duration_1 = dur_map[key_1]
+                duration_2 = dur_map[key_2]
+
+                result += min(duration_1, duration_2) / max(duration_1, duration_2)
+
+            number_of_pairs = len(dur_map) * (len(dur_map) - 1) // 2
+            return result / number_of_pairs
+
+        # calculate good event score
+        good_events_duration = timedelta_sum(event_duration(event) for event in good_events)
+        good_event_score = min(good_events_duration / datetime.timedelta(days=days), 1)
+
+        # calculate balance score
+        duration_map = get_duration_map(good_events)
+        balance_score = get_balance_score_by_duration_map(duration_map)
+
+        # calculate overloaded users
+        if balance_score >= 0.95:  # tolerate minor imbalance
+            balance_score = 1
+            overloaded_users = []
+        else:
+            average_duration = timedelta_sum(duration_map.values()) / len(duration_map)
+            overloaded_user_pks = [user_pk for user_pk, duration in duration_map.items() if duration > average_duration]
+            user_map = {
+                user.public_primary_key: user
+                for user in User.objects.filter(public_primary_key__in=overloaded_user_pks)
+            }
+            overloaded_users = []
+            for user_pk in overloaded_user_pks:
+                user = user_map[user_pk]
+                score = score_to_percent(duration_map[user_pk] / average_duration) - 100
+                overloaded_users.append({"id": user_pk, "username": user.username, "score": score})
+
+            # show most overloaded users first
+            overloaded_users.sort(key=lambda user: user["score"], reverse=True)
+
+        # generate comments regarding gaps
+        comments = []
+        if good_event_score == 1:
+            comments.append({"type": QualityReportCommentType.INFO, "text": "Schedule has no gaps"})
+        else:
+            not_covered = 100 - score_to_percent(good_event_score)
+            comments.append(
+                {"type": QualityReportCommentType.WARNING, "text": f"Schedule has gaps ({not_covered}% not covered)"}
+            )
+
+        # generate comments regarding balance
+        if balance_score == 1:
+            comments.append({"type": QualityReportCommentType.INFO, "text": "Schedule is perfectly balanced"})
+        else:
+            comments.append(
+                {"type": QualityReportCommentType.WARNING, "text": "Schedule has balance issues (see overloaded users)"}
+            )
+
+        # calculate total score (weighted sum of good event score and balance score)
+        total_score = (good_event_score + balance_score) / 2
+
+        return {
+            "total_score": score_to_percent(total_score),
+            "comments": comments,
+            "overloaded_users": overloaded_users,
+        }
 
     def _resolve_schedule(self, events):
         """Calculate final schedule shifts considering rotations and overrides."""
