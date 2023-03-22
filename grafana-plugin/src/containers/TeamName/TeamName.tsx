@@ -15,7 +15,7 @@ interface TeamNameProps {
 const TeamName = observer((props: TeamNameProps) => {
   const { team, size } = props;
   if (!team) {
-    return '';
+    return <></>;
   }
   if (team.id === 'null') {
     return <Badge text={team.name} color={'blue'} tooltip={'Resource is not assigned to any team (ex General team)'} />;
