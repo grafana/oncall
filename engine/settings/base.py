@@ -220,6 +220,7 @@ INSTALLED_APPS = [
     "apps.public_api",
     "apps.grafana_plugin",
     "apps.webhooks",
+    "apps.metrics_exporter",
     "corsheaders",
     "debug_toolbar",
     "social_django",
