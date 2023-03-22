@@ -356,8 +356,7 @@ class ScheduleView(
         user_tz, date = self.get_request_timezone()
         days = int(self.request.query_params.get("days", 90))  # todo: check if days could be calculated more precisely
 
-        events = schedule.filter_events(user_tz, date, days=days, with_empty=True, with_gap=True)
-
+        events = schedule.final_events(user_tz, date, days=days)
         schedule_score = get_schedule_quality_score(events, days)
         return Response(schedule_score)
 
