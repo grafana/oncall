@@ -2,6 +2,8 @@ from django.conf import settings
 from django.core.validators import MinLengthValidator
 from django.db import models
 
+from apps.metrics_exporter.helpers import metrics_bulk_update_team_label_cache
+from apps.metrics_exporter.metrics_exporter_manager import MetricsExporterManager
 from common.public_primary_keys import generate_public_primary_key, increase_public_primary_key_length
 
 
@@ -43,6 +45,13 @@ class TeamManager(models.Manager):
         team_ids_to_delete = existing_team_ids - grafana_teams.keys()
         organization.teams.filter(team_id__in=team_ids_to_delete).delete()
 
+        # todo:metrics: comment
+        metrics_teams_to_update = {}
+        for team_id in team_ids_to_delete:
+            metrics_teams_to_update = MetricsExporterManager.update_team_diff(
+                metrics_teams_to_update, team_id, deleted=True
+            )
+
         # update existing teams if any fields have changed
         teams_to_update = []
         for team in organization.teams.filter(team_id__in=existing_team_ids):
@@ -52,11 +61,17 @@ class TeamManager(models.Manager):
                 or team.email != grafana_team["email"]
                 or team.avatar_url != grafana_team["avatarUrl"]
             ):
+                if team.name != grafana_team["name"]:
+                    metrics_teams_to_update = MetricsExporterManager.update_team_diff(
+                        metrics_teams_to_update, team.id, new_name=grafana_team["name"]
+                    )
                 team.name = grafana_team["name"]
                 team.email = grafana_team["email"]
                 team.avatar_url = grafana_team["avatarUrl"]
                 teams_to_update.append(team)
         organization.teams.bulk_update(teams_to_update, ["name", "email", "avatar_url"], batch_size=5000)
+
+        metrics_bulk_update_team_label_cache(metrics_teams_to_update)
 
 
 class Team(models.Model):
