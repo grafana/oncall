@@ -84,13 +84,13 @@ const AlertReceiveChannelCard = observer((props: AlertReceiveChannelCardProps) =
               </PluginLink>
             )}
           </HorizontalGroup>
-          <HorizontalGroup>
+          <HorizontalGroup spacing="xs">
             <IntegrationLogo scale={0.08} integration={integration} />
             <Text type="secondary" size="small">
               {integration?.display_name}
             </Text>
           </HorizontalGroup>
-          <TeamName team={grafanaTeamStore.items[alertReceiveChannel.team]} />
+          <TeamName team={grafanaTeamStore.items[alertReceiveChannel.team]} size="small" />
         </VerticalGroup>
       </HorizontalGroup>
     </div>
