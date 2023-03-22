@@ -52,20 +52,20 @@ const TeamsList = observer(() => {
 
   const renderActionButtons = (record: GrafanaTeam) => {
     const editButton = (
-      <WithPermissionControlTooltip userAction={UserActions.APIKeysWrite}>
-        <HorizontalGroup justify="flex-end">
-          <Tooltip content="Default team will be selected when creating new resources">
-            <Button
-              onClick={async () => {
-                await userStore.updateCurrentUser({ current_team: record.id });
-                store.grafanaTeamStore.updateItems();
-              }}
-              disabled={isTeamDefault(record)}
-              fill="text"
-            >
-              Make default
-            </Button>
-          </Tooltip>
+      <HorizontalGroup justify="flex-end">
+        <Tooltip content="Default team will be selected when creating new resources">
+          <Button
+            onClick={async () => {
+              await userStore.updateCurrentUser({ current_team: record.id });
+              store.grafanaTeamStore.updateItems();
+            }}
+            disabled={isTeamDefault(record)}
+            fill="text"
+          >
+            Make default
+          </Button>
+        </Tooltip>
+        <WithPermissionControlTooltip userAction={UserActions.TeamsWrite}>
           <Button
             fill="text"
             disabled={record.id === 'null'}
@@ -76,8 +76,8 @@ const TeamsList = observer(() => {
           >
             Edit
           </Button>
-        </HorizontalGroup>
-      </WithPermissionControlTooltip>
+        </WithPermissionControlTooltip>
+      </HorizontalGroup>
     );
     return editButton;
   };
