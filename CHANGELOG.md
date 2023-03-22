@@ -5,6 +5,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## Unreleased
+
+### Changed
+
+- Updated wording when creating an integration ([1572](https://github.com/grafana/oncall/pull/1572))
+
 ## v1.2.1 (2023-03-23)
 
 ### Changed
@@ -33,6 +39,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Check for enabled Telegram feature was added to ChatOps and to User pages ([319](https://github.com/grafana/oncall/issues/319))
 - Filtering for Editors/Admins was added to rotation form. It is not allowed to assign Viewer to rotation ([1124](https://github.com/grafana/oncall/issues/1124))
 - Modified search behaviour on the Escalation Chains page to allow for "partial searching" ([1578](https://github.com/grafana/oncall/pull/1578))
+- Updated wording in some Slack messages to use 'Alert Group' instead of 'Incident' ([1565](https://github.com/grafana/oncall/pull/1565))
 
 ### Fixed
 
