@@ -69,8 +69,6 @@ class EscalationChainsPage extends React.Component<EscalationChainsPageProps, Es
 
     const { escalationChainStore } = store;
 
-    const searchResult = escalationChainStore.getSearchResult();
-
     let selectedEscalationChain: EscalationChain['id'];
     if (id) {
       let escalationChain = await escalationChainStore
@@ -87,22 +85,25 @@ class EscalationChainsPage extends React.Component<EscalationChainsPageProps, Es
       }
     }
 
-    if (!selectedEscalationChain) {
-      selectedEscalationChain = searchResult[0]?.id;
-    }
-
     if (selectedEscalationChain) {
       this.enrichExtraEscalationChainsAndSelect(selectedEscalationChain);
+    } else {
+      this.setState({ selectedEscalationChain: undefined });
     }
   };
 
+  handleEsclalationSelect = (id: EscalationChain['id']) => {
+    const { history } = this.props;
+
+    history.push(`${PLUGIN_ROOT}/escalations/${id}${window.location.search}`);
+  };
+
   setSelectedEscalationChain = async (escalationChainId: EscalationChain['id']) => {
-    const { store, history } = this.props;
+    const { store } = this.props;
 
     const { escalationChainStore } = store;
 
     this.setState({ selectedEscalationChain: escalationChainId }, () => {
-      history.push(`${PLUGIN_ROOT}/escalations/${escalationChainId || ''}${window.location.search}`);
       if (escalationChainId) {
         escalationChainStore.updateEscalationChainDetails(escalationChainId);
       }
@@ -167,7 +168,7 @@ class EscalationChainsPage extends React.Component<EscalationChainsPageProps, Es
                           selectedId={selectedEscalationChain}
                           items={data}
                           itemKey="id"
-                          onSelect={this.setSelectedEscalationChain}
+                          onSelect={this.handleEsclalationSelect}
                         >
                           {(item) => <EscalationChainCard id={item.id} />}
                         </GList>
@@ -234,8 +235,14 @@ class EscalationChainsPage extends React.Component<EscalationChainsPageProps, Es
   }
 
   handleFiltersChange = (filters: FiltersValues, isOnMount = false) => {
+    const {
+      match: {
+        params: { id },
+      },
+    } = this.props;
+
     this.setState({ escalationChainsFilters: filters, extraEscalationChains: undefined }, () => {
-      if (isOnMount) {
+      if (isOnMount && id) {
         this.applyFilters().then(this.parseQueryParams);
       } else {
         this.applyFilters().then(this.autoSelectEscalationChain);
@@ -244,14 +251,15 @@ class EscalationChainsPage extends React.Component<EscalationChainsPageProps, Es
   };
 
   autoSelectEscalationChain = () => {
-    const { store } = this.props;
+    const { store, history } = this.props;
     const { selectedEscalationChain } = this.state;
     const { escalationChainStore } = store;
 
     const searchResult = escalationChainStore.getSearchResult();
 
     if (!searchResult.find((escalationChain: EscalationChain) => escalationChain.id === selectedEscalationChain)) {
-      this.setSelectedEscalationChain(searchResult[0]?.id);
+      const id = searchResult[0]?.id;
+      history.push(`${PLUGIN_ROOT}/escalations/${id || ''}${window.location.search}`);
     }
   };
 
@@ -358,7 +366,11 @@ class EscalationChainsPage extends React.Component<EscalationChainsPageProps, Es
   };
 
   handleEscalationChainCreate = async (id: EscalationChain['id']) => {
-    this.enrichExtraEscalationChainsAndSelect(id);
+    const { history } = this.props;
+
+    await this.applyFilters();
+
+    history.push(`${PLUGIN_ROOT}/escalations/${id}${window.location.search}`);
   };
 
   enrichExtraEscalationChainsAndSelect = async (id: EscalationChain['id']) => {
@@ -389,7 +401,7 @@ class EscalationChainsPage extends React.Component<EscalationChainsPageProps, Es
   };
 
   handleDeleteEscalationChain = () => {
-    const { store } = this.props;
+    const { store, history } = this.props;
     const { escalationChainStore } = store;
     const { selectedEscalationChain, extraEscalationChains } = this.state;
 
@@ -413,7 +425,7 @@ class EscalationChainsPage extends React.Component<EscalationChainsPageProps, Es
 
         const newSelected = escalationChains[index - 1] || escalationChains[0];
 
-        this.setSelectedEscalationChain(newSelected?.id);
+        history.push(`${PLUGIN_ROOT}/escalations/${newSelected?.id || ''}${window.location.search}`);
       });
   };
 

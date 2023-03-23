@@ -1585,3 +1585,43 @@ def test_delete_shift(make_organization_and_user, make_schedule, make_on_call_sh
     else:
         on_call_shift.refresh_from_db()
         assert on_call_shift.until is not None
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize(
+    "starting_day,duration,deleted",
+    [
+        (-1, 2, False),
+        (-2, 1, False),
+        (1, 1, True),
+    ],
+)
+def test_delete_override(
+    make_organization_and_user, make_schedule, make_on_call_shift, starting_day, duration, deleted
+):
+    organization, _ = make_organization_and_user()
+    schedule = make_schedule(organization, schedule_class=OnCallScheduleWeb)
+    start_date = (timezone.now() + timezone.timedelta(days=starting_day)).replace(microsecond=0)
+
+    data = {
+        "start": start_date,
+        "rotation_start": start_date,
+        "duration": timezone.timedelta(days=duration),
+        "schedule": schedule,
+    }
+    on_call_shift = make_on_call_shift(organization=organization, shift_type=CustomOnCallShift.TYPE_OVERRIDE, **data)
+    original_duration = on_call_shift.duration
+
+    on_call_shift.delete()
+
+    if deleted:
+        with pytest.raises(CustomOnCallShift.DoesNotExist):
+            on_call_shift.refresh_from_db()
+    else:
+        on_call_shift.refresh_from_db()
+        assert on_call_shift.until is not None
+        assert (
+            on_call_shift.duration == original_duration
+            if (starting_day + duration) < 0
+            else on_call_shift.duration < original_duration
+        )

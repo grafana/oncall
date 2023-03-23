@@ -6,7 +6,7 @@ from celery.utils.log import get_task_logger
 from django.conf import settings
 from fcm_django.models import FCMDevice
 from firebase_admin.exceptions import FirebaseError
-from firebase_admin.messaging import APNSConfig, APNSPayload, Aps, ApsAlert, CriticalSound, Message
+from firebase_admin.messaging import AndroidConfig, APNSConfig, APNSPayload, Aps, ApsAlert, CriticalSound, Message
 from requests import HTTPError
 from rest_framework import status
 
@@ -185,6 +185,21 @@ def _get_fcm_message(alert_group, user, registration_id, critical):
                 mobile_app_user_settings.important_notification_override_dnd
             ),
         },
+        android=AndroidConfig(
+            # from the docs
+            # https://firebase.google.com/docs/cloud-messaging/concept-options#setting-the-priority-of-a-message
+            #
+            # Normal priority.
+            # Normal priority messages are delivered immediately when the app is in the foreground.
+            # For backgrounded apps, delivery may be delayed. For less time-sensitive messages, such as notifications
+            # of new email, keeping your UI in sync, or syncing app data in the background, choose normal delivery
+            # priority.
+            #
+            # High priority.
+            # FCM attempts to deliver high priority messages immediately even if the device is in Doze mode.
+            # High priority messages are for time-sensitive, user visible content.
+            priority="high",
+        ),
         apns=APNSConfig(
             payload=APNSPayload(
                 aps=Aps(
@@ -202,5 +217,10 @@ def _get_fcm_message(alert_group, user, registration_id, critical):
                     },
                 ),
             ),
+            headers={
+                # From the docs
+                # https://firebase.google.com/docs/cloud-messaging/concept-options#setting-the-priority-of-a-message
+                "apns-priority": "10",
+            },
         ),
     )

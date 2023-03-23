@@ -1,9 +1,12 @@
 import datetime
+import re
 from urllib.parse import urljoin
 
 import requests
 from django.conf import settings
+from django.core.validators import URLValidator
 from django.utils import dateparse, timezone
+from django.utils.regex_helper import _lazy_re_compile
 from icalendar import Calendar
 from rest_framework import serializers
 
@@ -43,6 +46,34 @@ class CurrentTeamDefault:
 
     def __repr__(self):
         return "%s()" % self.__class__.__name__
+
+
+class URLValidatorWithoutTLD(URLValidator):
+    """
+    Overrides Django URLValidator Regex. It removes the tld part because
+    most of the time, containers don't have any TLD in their urls and such outgoing webhooks
+    can't be registered.
+    """
+
+    host_re = (
+        "("
+        + URLValidator.hostname_re
+        + URLValidator.domain_re
+        + URLValidator.tld_re
+        + "|"
+        + URLValidator.hostname_re
+        + "|localhost)"
+    )
+
+    regex = _lazy_re_compile(
+        r"^(?:[a-z0-9.+-]*)://"  # scheme is validated separately
+        r"(?:[^\s:@/]+(?::[^\s:@/]*)?@)?"  # user:pass authentication
+        r"(?:" + URLValidator.ipv4_re + "|" + URLValidator.ipv6_re + "|" + host_re + ")"
+        r"(?::[0-9]{1,5})?"  # port
+        r"(?:[/?#][^\s]*)?"  # resource path
+        r"\Z",
+        re.IGNORECASE,
+    )
 
 
 class CurrentUserDefault:
