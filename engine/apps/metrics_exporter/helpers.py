@@ -60,7 +60,7 @@ def metrics_remove_deleted_integration_from_cache(integration):  # todo:metrics 
 def metrics_add_integration_to_cache(integration):  # todo:metrics org_id
     # todo:metrics: description
     metrics_cache_timeout = get_metrics_cache_timeout()
-    alert_groups_total_metrics = cache.get(ALERT_GROUPS_TOTAL)
+    alert_groups_total_metrics = cache.get(ALERT_GROUPS_TOTAL, {})
     alert_groups_total_metrics.setdefault(
         integration.id,
         {
@@ -90,6 +90,8 @@ def metrics_add_integration_to_cache(integration):  # todo:metrics org_id
 
 def metrics_bulk_update_team_label_cache(teams_updated_data):  # todo:metrics org_id
     # todo:metrics: description
+    if not teams_updated_data:
+        return
     metrics_cache_timeout = get_metrics_cache_timeout()
     alert_groups_total_metrics = cache.get(ALERT_GROUPS_TOTAL, {})
     response_time_metrics = cache.get(ALERT_GROUPS_RESPONSE_TIME, {})
@@ -114,6 +116,8 @@ def metrics_bulk_update_team_label_cache(teams_updated_data):  # todo:metrics or
 
 def metrics_update_alert_groups_state_cache(states_diff):  # todo:metrics org_id
     # todo:metrics: description
+    if not states_diff:
+        return
     metrics_cache_timeout = get_metrics_cache_timeout()
     alert_groups_total_metrics = cache.get(ALERT_GROUPS_TOTAL, {})
     for integration_id, integration_states_diff in states_diff.items():
@@ -132,8 +136,10 @@ def metrics_update_alert_groups_state_cache(states_diff):  # todo:metrics org_id
 
 def metrics_update_alert_groups_response_time_cache(integrations_response_time):  # todo:metrics org_id
     # todo:metrics: description
+    if not integrations_response_time:
+        return
     metrics_cache_timeout = get_metrics_cache_timeout()
-    alert_groups_response_time_metrics = cache.get(ALERT_GROUPS_RESPONSE_TIME)
+    alert_groups_response_time_metrics = cache.get(ALERT_GROUPS_RESPONSE_TIME, {})
     for integration_id, integration_response_time in integrations_response_time.items():
         integration_response_time_metrics = alert_groups_response_time_metrics.get(integration_id)
         if not integration_response_time_metrics:
