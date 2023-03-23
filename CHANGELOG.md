@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - When the `DANGEROUS_WEBHOOKS_ENABLED` environment variable is set to true, it's possible now to create Outgoing Webhooks
   using URLs without a top-level domain ([1266](https://github.com/grafana/oncall/pull/1266))
+- Updated wording when creating an integration ([1572](https://github.com/grafana/oncall/pull/1572))
 
 ## v1.2.1 (2023-03-23)
 
