@@ -271,6 +271,81 @@ def test_get_schedule_score_all_week(
 
 
 @pytest.mark.django_db
+def test_get_schedule_score_all_week_shifted(
+    make_organization,
+    make_user_for_organization,
+    make_token_for_organization,
+    make_schedule,
+    make_on_call_shift,
+    make_user_auth_headers,
+):
+    organization = make_organization()
+    _, token = make_token_for_organization(organization)
+
+    schedule = make_schedule(
+        organization,
+        schedule_class=OnCallScheduleWeb,
+        name="test_quality",
+    )
+
+    users = [make_user_for_organization(organization, username=f"user-{idx}") for idx in range(8)]
+
+    make_on_call_shift(
+        schedule.organization,
+        shift_type=CustomOnCallShift.TYPE_ROLLING_USERS_EVENT,
+        schedule=schedule,
+        start=datetime.datetime(2022, 3, 20, 0, 0, 0, tzinfo=datetime.timezone.min),
+        duration=datetime.timedelta(hours=12),
+        rotation_start=datetime.datetime(2022, 3, 20, 0, 0, 0, tzinfo=datetime.timezone.min),
+        until=None,
+        rolling_users=[{user.pk: user.public_primary_key for user in users[:4]}],
+        frequency=CustomOnCallShift.FREQUENCY_WEEKLY,
+        by_day=["MO", "TU", "WE", "TH", "FR"],
+    )
+
+    make_on_call_shift(
+        schedule.organization,
+        shift_type=CustomOnCallShift.TYPE_ROLLING_USERS_EVENT,
+        schedule=schedule,
+        start=datetime.datetime(2022, 3, 20, 12, 0, 0, tzinfo=datetime.timezone.min),
+        duration=datetime.timedelta(hours=12),
+        rotation_start=datetime.datetime(2022, 3, 20, 12, 0, 0, tzinfo=datetime.timezone.min),
+        until=None,
+        rolling_users=[{user.pk: user.public_primary_key for user in users[4:]}],
+        frequency=CustomOnCallShift.FREQUENCY_WEEKLY,
+        by_day=["MO", "TU", "WE", "TH", "FR"],
+    )
+
+    make_on_call_shift(
+        schedule.organization,
+        shift_type=CustomOnCallShift.TYPE_ROLLING_USERS_EVENT,
+        schedule=schedule,
+        start=datetime.datetime(2022, 3, 20, 12, 0, 0, tzinfo=datetime.timezone.min),
+        duration=datetime.timedelta(hours=24),
+        rotation_start=datetime.datetime(2022, 3, 20, 12, 0, 0, tzinfo=datetime.timezone.min),
+        until=None,
+        rolling_users=[{user.pk: user.public_primary_key for user in users}],
+        frequency=CustomOnCallShift.FREQUENCY_WEEKLY,
+        by_day=["SA", "SU"],
+    )
+
+    client = APIClient()
+
+    url = reverse("api-internal:schedule-quality", kwargs={"pk": schedule.public_primary_key})
+    response = client.get(url, **make_user_auth_headers(users[0], token))
+
+    assert response.status_code == status.HTTP_200_OK
+    assert response.json() == {
+        "total_score": 100,
+        "comments": [
+            {"type": "info", "text": "Schedule has no gaps"},
+            {"type": "info", "text": "Schedule is perfectly balanced"},
+        ],
+        "overloaded_users": [],
+    }
+
+
+@pytest.mark.django_db
 def test_get_schedule_score_all_week_imbalanced_weekends(
     make_organization,
     make_user_for_organization,
