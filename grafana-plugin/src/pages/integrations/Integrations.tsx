@@ -86,7 +86,7 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
     } = this.props;
     const { alertReceiveChannelStore } = store;
 
-    let selectedAlertReceiveChannel = store.selectedAlertReceiveChannel;
+    let selectedAlertReceiveChannel = undefined;
 
     if (id) {
       let alertReceiveChannel = await alertReceiveChannelStore
@@ -110,6 +110,8 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
 
     if (selectedAlertReceiveChannel) {
       this.enrichAlertReceiveChannelsAndSelect(selectedAlertReceiveChannel);
+    } else {
+      store.selectedAlertReceiveChannel = undefined;
     }
   };
 
@@ -309,28 +311,29 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
       delete alertReceiveChanneltoPoll[alertReceiveChannelId];
     }
 
-    alertReceiveChannelStore.deleteAlertReceiveChannel(alertReceiveChannelId).then(async () => {
-      await this.applyFilters();
+    alertReceiveChannelStore
+      .deleteAlertReceiveChannel(alertReceiveChannelId)
+      .then(this.applyFilters)
+      .then(() => {
+        if (alertReceiveChannelId === store.selectedAlertReceiveChannel) {
+          if (extraAlertReceiveChannels) {
+            const newExtraAlertReceiveChannels = extraAlertReceiveChannels.filter(
+              (alertReceiveChannel) => alertReceiveChannel.id !== alertReceiveChannelId
+            );
 
-      if (alertReceiveChannelId === store.selectedAlertReceiveChannel) {
-        if (extraAlertReceiveChannels) {
-          const newExtraAlertReceiveChannels = extraAlertReceiveChannels.filter(
-            (alertReceiveChannel) => alertReceiveChannel.id !== alertReceiveChannelId
+            this.setState({ extraAlertReceiveChannels: newExtraAlertReceiveChannels });
+          }
+
+          const searchResult = alertReceiveChannelStore.getSearchResult();
+
+          const index = searchResult.findIndex(
+            (alertReceiveChannel: AlertReceiveChannel) => alertReceiveChannel.id === store.selectedAlertReceiveChannel
           );
+          const newSelected = searchResult[index - 1] || searchResult[0];
 
-          this.setState({ extraAlertReceiveChannels: newExtraAlertReceiveChannels });
+          history.push(`${PLUGIN_ROOT}/integrations/${newSelected?.id || ''}${window.location.search}`);
         }
-
-        const searchResult = alertReceiveChannelStore.getSearchResult();
-
-        const index = searchResult.findIndex(
-          (alertReceiveChannel: AlertReceiveChannel) => alertReceiveChannel.id === store.selectedAlertReceiveChannel
-        );
-        const newSelected = searchResult[index - 1] || searchResult[0];
-
-        history.push(`${PLUGIN_ROOT}/integrations/${newSelected?.id || ''}${window.location.search}`);
-      }
-    });
+      });
   };
 
   applyFilters = () => {
@@ -363,7 +366,7 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
       },
     } = this.props;
 
-    this.setState({ integrationsFilters }, () => {
+    this.setState({ integrationsFilters, extraAlertReceiveChannels: undefined }, () => {
       this.applyFilters().then(() => {
         if (isOnMount && id) {
           this.parseQueryParams();
