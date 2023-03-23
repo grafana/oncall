@@ -1,6 +1,7 @@
 import random
 
 from django.core.cache import cache
+from django.utils import timezone
 
 from apps.alerts.constants import STATE_ACKNOWLEDGED, STATE_NEW, STATE_RESOLVED, STATE_SILENCED
 from apps.metrics_exporter.constants import (
@@ -11,16 +12,11 @@ from apps.metrics_exporter.constants import (
     METRICS_RECALCULATE_CACHE_TIMEOUT,
     METRICS_RECALCULATE_CACHE_TIMEOUT_DISPERSE,
 )
-from apps.metrics_exporter.metrics_exporter_manager import MetricsExporterManager
 
 
-def metrics_update_state_cache_for_alert_group(channel_id, old_state=None, new_state=None):
-    # todo:metrics: add comment
-    if old_state != new_state:
-        metrics_state_diff = MetricsExporterManager.update_integration_states_diff(
-            {}, channel_id, previous_state=old_state, new_state=new_state
-        )
-        metrics_update_alert_groups_state_cache(metrics_state_diff)
+def get_response_time_period(now):
+    response_time_period = now - timezone.timedelta(days=7)
+    return response_time_period
 
 
 def get_metrics_recalculate_timeout():
