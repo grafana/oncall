@@ -578,7 +578,7 @@ class AlertRules extends React.Component<AlertRulesProps, AlertRulesState> {
                   </>
                 ) : (
                   <Text type="secondary">
-                    Select Escalation Chain first please ↑ or
+                    Select Escalation Chain ↑ or
                     <Button
                       fill="text"
                       size="sm"
@@ -588,7 +588,7 @@ class AlertRules extends React.Component<AlertRulesProps, AlertRulesState> {
                         });
                       }}
                     >
-                      Create a new
+                      Create a new one
                     </Button>{' '}
                   </Text>
                 )}
