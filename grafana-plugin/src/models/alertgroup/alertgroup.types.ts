@@ -1,5 +1,6 @@
 import { AlertReceiveChannel } from 'models/alert_receive_channel/alert_receive_channel.types';
 import { Channel } from 'models/channel';
+import { GrafanaTeam } from 'models/grafana_team/grafana_team.types';
 import { User } from 'models/user/user.types';
 
 export enum IncidentStatus {
@@ -75,6 +76,7 @@ export interface Alert {
   root_alert_group?: Alert;
   alert_receive_channel: Partial<AlertReceiveChannel>;
   paged_users: Array<Pick<User, 'pk' | 'username' | 'avatar'>>;
+  team: GrafanaTeam['id'];
 
   // set by client
   loading?: boolean;

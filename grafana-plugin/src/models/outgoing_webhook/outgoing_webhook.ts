@@ -13,6 +13,9 @@ export class OutgoingWebhookStore extends BaseStore {
   @observable.shallow
   searchResult: { [key: string]: Array<OutgoingWebhook['id']> } = {};
 
+  @observable
+  incidentFilters: any;
+
   constructor(rootStore: RootStore) {
     super(rootStore);
 
@@ -43,18 +46,34 @@ export class OutgoingWebhookStore extends BaseStore {
 
   @action
   async updateItem(id: OutgoingWebhook['id'], fromOrganization = false) {
-    const response = await this.getById(id, false, fromOrganization);
+    let outgoingWebhook;
 
-    this.items = {
-      ...this.items,
-      [id]: response,
-    };
+    try {
+      outgoingWebhook = await this.getById(id, true, fromOrganization);
+    } catch (error) {
+      if (error.response.data.error_code === 'wrong_team') {
+        outgoingWebhook = {
+          id,
+          name: '🔒 Private outgoing webhook',
+          private: true,
+        };
+      }
+    }
+
+    if (outgoingWebhook) {
+      this.items = {
+        ...this.items,
+        [id]: outgoingWebhook,
+      };
+    }
   }
 
   @action
-  async updateItems(query = '') {
+  async updateItems(query: any = '') {
+    const params = typeof query === 'string' ? { search: query } : query;
+
     const results = await makeRequest(`${this.path}`, {
-      params: { search: query },
+      params,
     });
 
     this.items = {
@@ -68,10 +87,19 @@ export class OutgoingWebhookStore extends BaseStore {
       ),
     };
 
+    const key = typeof query === 'string' ? query : '';
+
     this.searchResult = {
       ...this.searchResult,
-      [query]: results.map((item: OutgoingWebhook) => item.id),
+      [key]: results.map((item: OutgoingWebhook) => item.id),
     };
+  }
+
+  @action
+  async updateOutgoingWebhooksFilters(params: any) {
+    this.incidentFilters = params;
+
+    this.updateItems();
   }
 
   getSearchResult(query = '') {

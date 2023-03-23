@@ -113,7 +113,7 @@ class EscapeDoubleQuotesDict(dict):
         return original_str
 
 
-def serialize_event(event, alert_group, user):
+def serialize_event(event, alert_group, user, responses=None):
     from apps.public_api.serializers import IncidentSerializer
 
     alert_payload = alert_group.alerts.first()
@@ -128,4 +128,7 @@ def serialize_event(event, alert_group, user):
         "alert_group_id": alert_group.public_primary_key,
         "alert_payload": alert_payload_raw,
     }
+    if responses:
+        data["responses"] = responses
+
     return data

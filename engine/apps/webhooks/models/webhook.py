@@ -244,19 +244,27 @@ class Webhook(models.Model):
         return result
 
 
-class WebhookLog(models.Model):
-    last_run_at = models.DateTimeField(blank=True, null=True)
-    input_data = models.JSONField(default=None)
-    url = models.TextField(null=True, default=None)
-    trigger = models.TextField(null=True, default=None)
-    headers = models.TextField(null=True, default=None)
-    data = models.TextField(null=True, default=None)
-    response_status = models.CharField(max_length=100, null=True, default=None)
-    response = models.TextField(null=True, default=None)
-    webhook = models.ForeignKey(
-        to="webhooks.Webhook",
+class WebhookResponse(models.Model):
+    alert_group = models.ForeignKey(
+        "alerts.AlertGroup",
         on_delete=models.CASCADE,
-        related_name="logs",
-        blank=False,
-        null=False,
+        null=True,
+        related_name="webhook_responses",
     )
+    webhook = models.ForeignKey(
+        "webhooks.Webhook",
+        on_delete=models.SET_NULL,
+        null=True,
+        related_name="responses",
+    )
+    trigger_type = models.IntegerField(choices=Webhook.TRIGGER_TYPES)
+    timestamp = models.DateTimeField(default=timezone.now)
+    request_trigger = models.TextField(null=True, default=None)
+    request_headers = models.TextField(null=True, default=None)
+    request_data = models.TextField(null=True, default=None)
+    url = models.TextField(null=True, default=None)
+    status_code = models.IntegerField(default=None, null=True)
+    content = models.TextField(null=True, default=None)
+
+    def json(self):
+        return json.loads(self.content)

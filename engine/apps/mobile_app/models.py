@@ -1,6 +1,7 @@
 from typing import Tuple
 
 from django.conf import settings
+from django.core import validators
 from django.db import models
 from django.utils import timezone
 
@@ -68,3 +69,41 @@ class MobileAppAuthToken(BaseAuthToken):
             organization=organization,
         )
         return instance, token_string
+
+
+class MobileAppUserSettings(models.Model):
+    # Sound names are stored without extension, extension is added when sending push notifications
+    IOS_SOUND_NAME_EXTENSION = ".aiff"
+    ANDROID_SOUND_NAME_EXTENSION = ".mp3"
+
+    class VolumeType(models.TextChoices):
+        CONSTANT = "constant"
+        INTENSIFYING = "intensifying"
+
+    user = models.OneToOneField(to=User, null=False, on_delete=models.CASCADE)
+
+    # Push notification settings for default notifications
+    default_notification_sound_name = models.CharField(max_length=100, default="default_sound")
+    default_notification_volume_type = models.CharField(
+        max_length=50, choices=VolumeType.choices, default=VolumeType.CONSTANT
+    )
+
+    # APNS only allows to specify volume for critical notifications,
+    # so "default_notification_volume" and "default_notification_volume_override" are only used on Android
+    default_notification_volume = models.FloatField(
+        validators=[validators.MinValueValidator(0.0), validators.MaxValueValidator(1.0)], default=0.8
+    )
+    default_notification_volume_override = models.BooleanField(default=False)
+
+    # Push notification settings for important notifications
+    important_notification_sound_name = models.CharField(max_length=100, default="default_sound_important")
+    important_notification_volume_type = models.CharField(
+        max_length=50, choices=VolumeType.choices, default=VolumeType.CONSTANT
+    )
+    important_notification_volume = models.FloatField(
+        validators=[validators.MinValueValidator(0.0), validators.MaxValueValidator(1.0)], default=0.8
+    )
+
+    # For the "Mobile push important" step it's possible to make notifications non-critical
+    # if "override DND" setting is disabled in the app
+    important_notification_override_dnd = models.BooleanField(default=True)
