@@ -352,7 +352,12 @@ class ScheduleView(
     @action(detail=True, methods=["get"])
     def quality(self, request, pk):
         schedule = self.get_object()
-        return Response(schedule.quality_report)
+
+        _, date = self.get_request_timezone()
+        days = self.request.query_params.get("days")
+        days = int(days) if days else None
+
+        return Response(schedule.quality_report(date, days))
 
     @action(detail=False, methods=["get"])
     def type_options(self, request):

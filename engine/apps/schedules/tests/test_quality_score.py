@@ -54,8 +54,7 @@ def test_get_schedule_score_no_events(get_schedule_quality_response):
     assert response.json() == {
         "total_score": 0,
         "comments": [
-            {"type": "warning", "text": "Schedule has gaps"},
-            {"type": "info", "text": "Schedule is perfectly balanced"},
+            {"type": "warning", "text": "Schedule is empty"},
         ],
         "overloaded_users": [],
     }
@@ -67,12 +66,18 @@ def test_get_schedule_score_09_05(get_schedule_quality_response):
     assert response.status_code == status.HTTP_200_OK
 
     assert response.json() == {
-        "total_score": 27,
+        "total_score": 28,
         "comments": [
-            {"type": "warning", "text": "Schedule has gaps"},
-            {"type": "warning", "text": "Schedule has balance issues"},
+            {"type": "warning", "text": "Schedule has gaps (79% not covered)"},
+            {"type": "warning", "text": "Schedule has balance issues (see overloaded users)"},
         ],
-        "overloaded_users": [user1.public_primary_key],
+        "overloaded_users": [
+            {
+                "id": user1.public_primary_key,
+                "username": user1.username,
+                "score": 49,
+            },
+        ],
     }
 
 
@@ -84,10 +89,16 @@ def test_get_schedule_score_09_09(get_schedule_quality_response):
     assert response.json() == {
         "total_score": 51,
         "comments": [
-            {"type": "warning", "text": "Schedule has gaps"},
-            {"type": "info", "text": "Schedule is well-balanced, but still can be improved"},
+            {"type": "warning", "text": "Schedule has gaps (81% not covered)"},
+            {"type": "warning", "text": "Schedule has balance issues (see overloaded users)"},
         ],
-        "overloaded_users": [user2.public_primary_key],
+        "overloaded_users": [
+            {
+                "id": user2.public_primary_key,
+                "username": user2.username,
+                "score": 9,
+            },
+        ],
     }
 
 
@@ -113,7 +124,7 @@ def test_get_schedule_score_09_19(get_schedule_quality_response):
     assert response.json() == {
         "total_score": 70,
         "comments": [
-            {"type": "warning", "text": "Schedule has gaps"},
+            {"type": "warning", "text": "Schedule has gaps (59% not covered)"},
             {"type": "info", "text": "Schedule is perfectly balanced"},
         ],
         "overloaded_users": [],

@@ -3,7 +3,7 @@ import functools
 import itertools
 from collections import defaultdict
 from enum import Enum
-from typing import Iterable, TypedDict
+from typing import Iterable, Optional, TypedDict
 
 import icalendar
 import pytz
@@ -283,17 +283,19 @@ class OnCallSchedule(PolymorphicModel):
         events = self._resolve_schedule(events)
         return events
 
-    @cached_property
-    def quality_report(self) -> QualityReport:
+    def quality_report(self, date: Optional[timezone.datetime], days: Optional[int]) -> QualityReport:
         """
         Return schedule quality report to be used by the web UI.
         TODO: Add scores on "inside working hours" and "balance outside working hours" when
         TODO: working hours editor is implemented in the web UI.
         """
         # get events to consider for calculation
-        today = datetime.datetime.now(tz=datetime.timezone.utc)
-        date = today - datetime.timedelta(days=7 - today.weekday())  # start of next week in UTC
-        days = 52 * 7  # consider next 52 weeks (~1 year)
+        if date is None:
+            today = datetime.datetime.now(tz=datetime.timezone.utc)
+            date = today - datetime.timedelta(days=7 - today.weekday())  # start of next week in UTC
+        if days is None:
+            days = 52 * 7  # consider next 52 weeks (~1 year)
+
         events = self.final_events(user_tz="UTC", starting_date=date, days=days)
 
         # an event is “good” if it's not a gap and not empty
@@ -345,14 +347,16 @@ class OnCallSchedule(PolymorphicModel):
         # calculate good event score
         good_events_duration = timedelta_sum(event_duration(event) for event in good_events)
         good_event_score = min(good_events_duration / datetime.timedelta(days=days), 1)
+        good_event_score = score_to_percent(good_event_score)
 
         # calculate balance score
         duration_map = get_duration_map(good_events)
         balance_score = get_balance_score_by_duration_map(duration_map)
+        balance_score = score_to_percent(balance_score)
 
         # calculate overloaded users
-        if balance_score >= 0.95:  # tolerate minor imbalance
-            balance_score = 1
+        if balance_score >= 95:  # tolerate minor imbalance
+            balance_score = 100
             overloaded_users = []
         else:
             average_duration = timedelta_sum(duration_map.values()) / len(duration_map)
@@ -372,16 +376,16 @@ class OnCallSchedule(PolymorphicModel):
 
         # generate comments regarding gaps
         comments = []
-        if good_event_score == 1:
+        if good_event_score == 100:
             comments.append({"type": QualityReportCommentType.INFO, "text": "Schedule has no gaps"})
         else:
-            not_covered = 100 - score_to_percent(good_event_score)
+            not_covered = 100 - good_event_score
             comments.append(
                 {"type": QualityReportCommentType.WARNING, "text": f"Schedule has gaps ({not_covered}% not covered)"}
             )
 
         # generate comments regarding balance
-        if balance_score == 1:
+        if balance_score == 100:
             comments.append({"type": QualityReportCommentType.INFO, "text": "Schedule is perfectly balanced"})
         else:
             comments.append(
@@ -389,10 +393,10 @@ class OnCallSchedule(PolymorphicModel):
             )
 
         # calculate total score (weighted sum of good event score and balance score)
-        total_score = (good_event_score + balance_score) / 2
+        total_score = round((good_event_score + balance_score) / 2)
 
         return {
-            "total_score": score_to_percent(total_score),
+            "total_score": total_score,
             "comments": comments,
             "overloaded_users": overloaded_users,
         }
