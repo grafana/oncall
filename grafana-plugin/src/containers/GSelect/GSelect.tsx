@@ -61,7 +61,7 @@ const GSelect = observer((props: GSelectProps) => {
     showWarningIfEmptyValue = false,
     getDescription,
     filterOptions,
-    fromOrganization,
+    // fromOrganization,
     width = null,
     icon = null,
   } = props;
@@ -93,7 +93,6 @@ const GSelect = observer((props: GSelectProps) => {
     return model.updateItems(query).then(() => {
       const searchResult = model.getSearchResult(query);
       let items = Array.isArray(searchResult.results) ? searchResult.results : searchResult;
-
       if (filterOptions) {
         items = items.filter((opt: any) => filterOptions(opt[valueField]));
       }
@@ -118,7 +117,9 @@ const GSelect = observer((props: GSelectProps) => {
     : model.items[value as string]
     ? {
         value,
-        label: get(model.items[value as string], displayField),
+        label: get(model.items[value as string], displayField)
+          ? get(model.items[value as string], displayField)
+          : 'hidden',
         description: getDescription && getDescription(model.items[value as string]),
       }
     : value;
@@ -128,7 +129,7 @@ const GSelect = observer((props: GSelectProps) => {
 
     (values as string[]).forEach((value: string) => {
       if (!isNil(value) && !model.items[value] && model.updateItem) {
-        model.updateItem(value, fromOrganization);
+        model.updateItem(value, true);
       }
     });
   }, [value]);

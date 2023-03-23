@@ -1,7 +1,11 @@
 name: Integration Tests
 
 on:
-  - pull_request
+  pull_request:
+  # You can use the merge_group event to trigger your GitHub Actions workflow when
+  # a pull request is added to a merge queue
+  # https://docs.github.com/en/repositories/configuring-branches-and-merges-in-your-repository/configuring-pull-request-merges/managing-a-merge-queue#triggering-merge-group-checks-with-github-actions
+  merge_group:
 
 # TODO: ideally we would be able to have one CI job which spins up the kind cluster and does the helm release
 # then we could have the UI and backend integration tests dependent on this job and not have to each

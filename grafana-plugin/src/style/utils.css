@@ -1,3 +1,7 @@
+.link {
+  text-decoration: none !important;
+}
+
 .u-position-relative {
   position: relative;
 }
@@ -52,4 +56,8 @@
   opacity: var(--opacity);
   cursor: not-allowed !important;
   pointer-events: none;
+}
+
+.u-cursor-default {
+  cursor: default;
 }

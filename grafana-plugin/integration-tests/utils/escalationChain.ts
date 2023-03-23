@@ -1,7 +1,7 @@
 import { Page } from '@playwright/test';
 
 import { clickButton, fillInInput, selectDropdownValue } from './forms';
-import { goToOnCallPageByClickingOnTab } from './navigation';
+import { goToOnCallPage } from './navigation';
 
 export enum EscalationStep {
   NotifyUsers = 'Notify users',
@@ -16,21 +16,25 @@ const escalationStepValuePlaceholder: Record<EscalationStep, string> = {
 export const createEscalationChain = async (
   page: Page,
   escalationChainName: string,
-  escalationStep: EscalationStep,
-  escalationStepValue: string
+  escalationStep?: EscalationStep,
+  escalationStepValue?: string
 ): Promise<void> => {
   // go to the escalation chains page
-  await goToOnCallPageByClickingOnTab(page, 'Escalation Chains');
+  await goToOnCallPage(page, 'escalations');
 
   // open the create escalation chain modal
   (await page.waitForSelector('text=New Escalation Chain')).click();
 
   // fill in the name input
-  await fillInInput(page, 'div[class*="EscalationChainForm"] input', escalationChainName);
+  await fillInInput(page, 'div[data-testid="create-escalation-chain-name-input-modal"] >> input', escalationChainName);
 
   // submit the form and wait for it to be created
   await clickButton({ page, buttonText: 'Create' });
   await page.waitForSelector(`text=${escalationChainName}`);
+
+  if (!escalationStep || !escalationStepValue) {
+    return;
+  }
 
   // add an escalation step
   await selectDropdownValue({

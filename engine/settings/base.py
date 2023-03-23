@@ -58,6 +58,7 @@ FEATURE_EMAIL_INTEGRATION_ENABLED = getenv_boolean("FEATURE_EMAIL_INTEGRATION_EN
 FEATURE_SLACK_INTEGRATION_ENABLED = getenv_boolean("FEATURE_SLACK_INTEGRATION_ENABLED", default=True)
 FEATURE_WEB_SCHEDULES_ENABLED = getenv_boolean("FEATURE_WEB_SCHEDULES_ENABLED", default=False)
 FEATURE_MULTIREGION_ENABLED = getenv_boolean("FEATURE_MULTIREGION_ENABLED", default=False)
+FEATURE_INBOUND_EMAIL_ENABLED = getenv_boolean("FEATURE_INBOUND_EMAIL_ENABLED", default=False)
 GRAFANA_CLOUD_ONCALL_HEARTBEAT_ENABLED = getenv_boolean("GRAFANA_CLOUD_ONCALL_HEARTBEAT_ENABLED", default=True)
 GRAFANA_CLOUD_NOTIFICATIONS_ENABLED = getenv_boolean("GRAFANA_CLOUD_NOTIFICATIONS_ENABLED", default=True)
 
@@ -214,6 +215,7 @@ INSTALLED_APPS = [
     "apps.auth_token",
     "apps.public_api",
     "apps.grafana_plugin",
+    "apps.webhooks",
     "corsheaders",
     "debug_toolbar",
     "social_django",
@@ -393,6 +395,10 @@ CELERY_MAX_TASKS_PER_CHILD = 1
 CELERY_WORKER_SEND_TASK_EVENTS = True
 CELERY_TASK_SEND_SENT_EVENT = True
 
+ALERT_GROUP_ESCALATION_AUDITOR_CELERY_TASK_HEARTBEAT_URL = os.getenv(
+    "ALERT_GROUP_ESCALATION_AUDITOR_CELERY_TASK_HEARTBEAT_URL", None
+)
+
 CELERY_BEAT_SCHEDULE = {
     "restore_heartbeat_tasks": {
         "task": "apps.heartbeat.tasks.restore_heartbeat_tasks",
@@ -401,7 +407,11 @@ CELERY_BEAT_SCHEDULE = {
     },
     "check_escalations": {
         "task": "apps.alerts.tasks.check_escalation_finished.check_escalation_finished_task",
-        "schedule": 10 * 60,
+        # the task should be executed a minute or two less than the integration's configured interval
+        #
+        # ex. if the integration is configured to expect a heartbeat every 15 minutes then this value should be set
+        # to something like 13 * 60 (every 13 minutes)
+        "schedule": getenv_integer("ALERT_GROUP_ESCALATION_AUDITOR_CELERY_TASK_HEARTBEAT_INTERVAL", 13 * 60),
         "args": (),
     },
     "start_refresh_ical_files": {
@@ -507,6 +517,9 @@ SLACK_CLIENT_OAUTH_SECRET = os.environ.get("SLACK_CLIENT_OAUTH_SECRET")
 SLACK_SLASH_COMMAND_NAME = os.environ.get("SLACK_SLASH_COMMAND_NAME", "/oncall")
 SLACK_DIRECT_PAGING_SLASH_COMMAND = os.environ.get("SLACK_DIRECT_PAGING_SLASH_COMMAND", "/escalate")
 
+# Controls if slack integration can be installed/uninstalled.
+SLACK_INTEGRATION_MAINTENANCE_ENABLED = os.environ.get("SLACK_INTEGRATION_MAINTENANCE_ENABLED", False)
+
 SOCIAL_AUTH_SLACK_LOGIN_KEY = SLACK_CLIENT_OAUTH_ID
 SOCIAL_AUTH_SLACK_LOGIN_SECRET = SLACK_CLIENT_OAUTH_SECRET
 
@@ -608,6 +621,11 @@ EMAIL_NOTIFICATIONS_LIMIT = getenv_integer("EMAIL_NOTIFICATIONS_LIMIT", 200)
 
 if FEATURE_EMAIL_INTEGRATION_ENABLED:
     EXTRA_MESSAGING_BACKENDS += [("apps.email.backend.EmailBackend", 8)]
+
+# Inbound email settings
+INBOUND_EMAIL_ESP = os.getenv("INBOUND_EMAIL_ESP")
+INBOUND_EMAIL_DOMAIN = os.getenv("INBOUND_EMAIL_DOMAIN")
+INBOUND_EMAIL_WEBHOOK_SECRET = os.getenv("INBOUND_EMAIL_WEBHOOK_SECRET")
 
 INSTALLED_ONCALL_INTEGRATIONS = [
     "config_integrations.alertmanager",

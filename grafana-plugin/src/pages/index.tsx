@@ -93,6 +93,14 @@ export const pages: { [id: string]: PageDefinition } = [
     action: UserActions.SchedulesRead,
   },
   {
+    icon: 'link',
+    id: 'outgoing_webhooks',
+    text: 'Outgoing Webhooks',
+    path: getPath('outgoing_webhooks'),
+    hideFromBreadcrumbs: true,
+    action: UserActions.OutgoingWebhooksRead,
+  },
+  {
     icon: 'comments-alt',
     id: 'chat-ops',
     text: 'ChatOps',
@@ -101,14 +109,7 @@ export const pages: { [id: string]: PageDefinition } = [
     hideFromTabs: isTopNavbar(),
     action: UserActions.ChatOpsRead,
   },
-  {
-    icon: 'link',
-    id: 'outgoing_webhooks',
-    text: 'Outgoing Webhooks',
-    path: getPath('outgoing_webhooks'),
-    hideFromBreadcrumbs: true,
-    action: UserActions.OutgoingWebhooksRead,
-  },
+
   {
     icon: 'wrench',
     id: 'maintenance',
@@ -187,6 +188,7 @@ export const ROUTES = {
   schedules: ['schedules'],
   schedule: ['schedules/:id'],
   outgoing_webhooks: ['outgoing_webhooks', 'outgoing_webhooks/:id'],
+  outgoing_webhooks_2: ['outgoing_webhooks_2', 'outgoing_webhooks_2/:id'],
   maintenance: ['maintenance'],
   settings: ['settings'],
   'organization-logs': ['organization-logs'],

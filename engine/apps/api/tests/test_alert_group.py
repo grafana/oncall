@@ -762,6 +762,53 @@ def test_get_filter_with_resolution_note_after_delete_resolution_note(
 
 
 @pytest.mark.django_db
+def test_get_filter_escalation_chain(
+    make_organization_and_user_with_plugin_token,
+    make_alert_receive_channel,
+    make_channel_filter,
+    make_escalation_chain,
+    make_alert_group,
+    make_alert,
+    make_user_auth_headers,
+):
+    client = APIClient()
+    organization, user, token = make_organization_and_user_with_plugin_token()
+
+    alert_receive_channel = make_alert_receive_channel(organization)
+
+    escalation_chain_1 = make_escalation_chain(organization=organization)
+    escalation_chain_2 = make_escalation_chain(organization=organization)
+
+    channel_filter_1 = make_channel_filter(alert_receive_channel, escalation_chain=escalation_chain_1, is_default=True)
+    channel_filter_2 = make_channel_filter(alert_receive_channel, escalation_chain=escalation_chain_2, is_default=False)
+
+    alert_group_1 = make_alert_group(alert_receive_channel, channel_filter=channel_filter_1)
+    make_alert(alert_group=alert_group_1, raw_request_data=alert_raw_request_data)
+
+    alert_group_2 = make_alert_group(alert_receive_channel, channel_filter=channel_filter_2)
+    make_alert(alert_group=alert_group_2, raw_request_data=alert_raw_request_data)
+
+    url = reverse("api-internal:alertgroup-list")
+
+    # check when a single escalation chain is passed
+    response = client.get(
+        url + f"?escalation_chain={escalation_chain_1.public_primary_key}", **make_user_auth_headers(user, token)
+    )
+    assert response.status_code == status.HTTP_200_OK
+    assert len(response.data["results"]) == 1
+    assert response.data["results"][0]["pk"] == alert_group_1.public_primary_key
+
+    # check when multiple escalation chains are passed
+    response = client.get(
+        url
+        + f"?escalation_chain={escalation_chain_1.public_primary_key}&escalation_chain={escalation_chain_2.public_primary_key}",
+        **make_user_auth_headers(user, token),
+    )
+    assert response.status_code == status.HTTP_200_OK
+    assert len(response.data["results"]) == 2
+
+
+@pytest.mark.django_db
 @pytest.mark.parametrize(
     "role,expected_status",
     [
