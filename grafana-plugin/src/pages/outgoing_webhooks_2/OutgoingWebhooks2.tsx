@@ -165,7 +165,7 @@ class OutgoingWebhooks2 extends React.Component<OutgoingWebhooks2Props, Outgoing
                 emptyText={webhooks ? 'No outgoing webhooks found' : 'Loading...'}
                 title={() => (
                   <div className={cx('header')}>
-                    <div style={{ display: 'flex', alignItems: 'baseline' }}>
+                    <div className="header__title">
                       <VerticalGroup spacing="sm">
                         <LegacyNavHeading>
                           <Text.Title level={3}>Outgoing Webhooks 2</Text.Title>
