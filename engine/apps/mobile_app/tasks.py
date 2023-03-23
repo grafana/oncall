@@ -219,10 +219,7 @@ def _get_fcm_message(alert_group, user, registration_id, critical):
                 headers={
                     # From the docs
                     # https://firebase.google.com/docs/cloud-messaging/concept-options#setting-the-priority-of-a-message
-                    #
-                    # When sending data messages to Apple devices, the priority must be set to 5, or normal priority.
-                    # Messages sent with high priority are rejected by the FCM backend with the error INVALID_ARGUMENT.
-                    "apns-priority": "5",
+                    "apns-priority": "10",
                 },
             ),
         ),
