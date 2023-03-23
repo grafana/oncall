@@ -69,7 +69,7 @@ const OutgoingWebhook2Status = observer((props: OutgoingWebhook2StatusProps) => 
           {data.last_run ? (
             <VerticalGroup>
               <Label>Last Run Time</Label>
-              <SourceCode>{data.last_response_log.timestamp}</SourceCode>
+              <SourceCode showClipboardIconOnly>{data.last_response_log.timestamp}</SourceCode>
 
               {data.last_response_log.request_trigger && (
                 <Debug
@@ -91,14 +91,16 @@ const OutgoingWebhook2Status = observer((props: OutgoingWebhook2StatusProps) => 
               {data.last_response_log.status_code && (
                 <VerticalGroup>
                   <Label>Response Code</Label>
-                  <SourceCode>{data.last_response_log.status_code}</SourceCode>
+                  <SourceCode showClipboardIconOnly>{data.last_response_log.status_code}</SourceCode>
                 </VerticalGroup>
               )}
 
               {data.last_response_log.content && (
                 <VerticalGroup>
                   <Label>Response Body</Label>
-                  <SourceCode>{JSON.stringify(data.last_response_log.content, null, 4)}</SourceCode>
+                  <SourceCode showClipboardIconOnly>
+                    {JSON.stringify(data.last_response_log.content, null, 4)}
+                  </SourceCode>
                 </VerticalGroup>
               )}
             </VerticalGroup>
