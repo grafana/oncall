@@ -1,28 +1,26 @@
 from collections import defaultdict
-from http.client import responses
 
 from rest_framework import serializers
 from rest_framework.validators import UniqueTogetherValidator
 
-from apps.webhooks.models import Webhook, WebhookLog
+from apps.webhooks.models import Webhook, WebhookResponse
 from common.api_helpers.custom_fields import TeamPrimaryKeyRelatedField
 from common.api_helpers.utils import CurrentOrganizationDefault, CurrentTeamDefault, CurrentUserDefault
 from common.jinja_templater import apply_jinja_template
 from common.jinja_templater.apply_jinja_template import JinjaTemplateError, JinjaTemplateWarning
 
 
-class WebhookLogSerializer(serializers.ModelSerializer):
+class WebhookResponseSerializer(serializers.ModelSerializer):
     class Meta:
-        model = WebhookLog
+        model = WebhookResponse
         fields = [
-            "last_run_at",
-            "input_data",
+            "timestamp",
             "url",
-            "trigger",
-            "headers",
-            "data",
-            "response_status",
-            "response",
+            "request_trigger",
+            "request_headers",
+            "request_data",
+            "status_code",
+            "content",
         ]
 
 
@@ -34,7 +32,7 @@ class WebhookSerializer(serializers.ModelSerializer):
     last_run = serializers.SerializerMethodField()
     trigger_type = serializers.CharField(required=True)
     forward_all = serializers.BooleanField(allow_null=True, required=False)
-    last_status_log = serializers.SerializerMethodField()
+    last_response_log = serializers.SerializerMethodField()
     trigger_type_name = serializers.SerializerMethodField()
 
     class Meta:
@@ -58,7 +56,7 @@ class WebhookSerializer(serializers.ModelSerializer):
             "trigger_type",
             "trigger_type_name",
             "last_run",
-            "last_status_log",
+            "last_response_log",
         ]
         extra_kwargs = {
             "authorization_header": {"write_only": True},
@@ -106,16 +104,12 @@ class WebhookSerializer(serializers.ModelSerializer):
 
     def get_last_run(self, obj):
         last_run = ""
-        last_log = obj.logs.all().last()
-        if last_log:
-            last_run = last_log.last_run_at.strftime("%Y-%m-%dT%H:%M:%SZ")
-            if last_log.response_status:
-                reason = responses[int(last_log.response_status)]
-                last_run += " ({} {})".format(last_log.response_status, reason)
+        if last_log := obj.responses.all().last():
+            last_run = last_log.timestamp.strftime("%Y-%m-%dT%H:%M:%SZ")
         return last_run
 
-    def get_last_status_log(self, obj):
-        return WebhookLogSerializer(obj.logs.all().last()).data
+    def get_last_response_log(self, obj):
+        return WebhookResponseSerializer(obj.responses.all().last()).data
 
     def get_trigger_type_name(self, obj):
         trigger_type_name = ""

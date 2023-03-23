@@ -14,16 +14,15 @@ export interface OutgoingWebhook2 {
   username: null;
   headers: string;
   trigger_template: string;
-  last_status_log?: OutgoingWebhook2Log;
+  last_response_log?: OutgoingWebhook2Response;
 }
 
-export interface OutgoingWebhook2Log {
-  last_run_at: string;
-  input_data: string;
+export interface OutgoingWebhook2Response {
+  timestamp: string;
   url: string;
-  trigger: string;
-  headers: string;
-  data: string;
-  response_status: string;
-  response: string;
+  request_trigger: string;
+  request_headers: string;
+  request_data: string;
+  status_code: string;
+  content: string;
 }

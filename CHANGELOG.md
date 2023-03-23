@@ -5,7 +5,21 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## Unreleased
+## v1.2.1 (2023-03-23)
+
+### Changed
+
+- Mobile app settings backend by @vadimkerr in ([1571](https://github.com/grafana/oncall/pull/1571))
+- Fix integrations and escalations autoselect, improve GList by @maskin25 in ([1601](https://github.com/grafana/oncall/pull/1601))
+- Add filters to outgoing webhooks 2 by @iskhakov in ([1598](https://github.com/grafana/oncall/pull/1598))
+
+## v1.2.0 (2023-03-21)
+
+### Changed
+
+- Add team-based filtering for resources, so that users can see multiple resources at once and link them together ([1528](https://github.com/grafana/oncall/pull/1528))
+
+## v1.1.41 (2023-03-21)
 
 ### Added
 

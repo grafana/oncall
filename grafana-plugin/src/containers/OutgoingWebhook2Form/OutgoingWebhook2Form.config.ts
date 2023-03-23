@@ -9,15 +9,25 @@ export const form: { name: string; fields: FormItem[] } = {
       validation: { required: true },
     },
     {
+      name: 'team',
+      label: 'Assign to team',
+      description:
+        'Assigning to the teams allows you to filter Outgoing Webhooks and configure their visibility. Go to OnCall -> Settings -> Team and Access Settings for more details',
+      type: FormItemType.GSelect,
+      extra: {
+        modelName: 'grafanaTeamStore',
+        displayField: 'name',
+        valueField: 'id',
+        showSearch: true,
+        allowClear: true,
+      },
+    },
+    {
       name: 'trigger_type',
       label: 'Trigger type',
       type: FormItemType.Select,
       extra: {
         options: [
-          {
-            value: '0',
-            label: 'Escalation step',
-          },
           {
             value: '1',
             label: 'Triggered',
@@ -77,12 +87,14 @@ export const form: { name: string; fields: FormItem[] } = {
     {
       name: 'url',
       label: 'Webhook URL',
+      description: 'Supports templating',
       type: FormItemType.Input,
       validation: { required: true },
     },
     {
       name: 'headers',
       label: 'Webhook Headers',
+      description: 'Must be a JSON dict, templating allowed',
       type: FormItemType.TextArea,
       extra: {
         rows: 5,
@@ -112,7 +124,7 @@ export const form: { name: string; fields: FormItem[] } = {
       name: 'data',
       getDisabled: (form_data) => Boolean(form_data?.forward_whole_payload),
       type: FormItemType.TextArea,
-      description: 'Available variables: {{ alert_payload }}, {{ alert_group_id }}',
+      description: 'Available variables: {{ alert_payload }}, {{ alert_group_id }}, {{ responses }}',
       extra: {
         rows: 9,
       },
@@ -121,7 +133,7 @@ export const form: { name: string; fields: FormItem[] } = {
       name: 'forward_all',
       normalize: (value) => Boolean(value),
       type: FormItemType.Switch,
-      description: "Forwards whole payload of the alert to the webhook's url as POST data",
+      description: "Forwards whole payload of the alert to the webhook's url as data",
     },
   ],
 };

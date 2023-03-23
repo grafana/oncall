@@ -2,13 +2,6 @@
   display: block;
 }
 
-.connected-integrations {
-  padding: 2px 4px;
-  background: rgba(27, 133, 94, 0.15);
-  border: 1px solid var(--success-text-color);
-  border-radius: 2px;
-}
-
 .icon {
   color: var(--success-text-color);
 }

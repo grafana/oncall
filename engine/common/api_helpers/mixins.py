@@ -17,9 +17,8 @@ from apps.alerts.incident_appearance.templaters import (
     AlertWebTemplater,
     TemplateLoader,
 )
-from apps.api.serializers.team import TeamSerializer
+from apps.api.permissions import LegacyAccessControlRole
 from apps.base.messaging import get_messaging_backends
-from apps.user_management.models import Team
 from common.api_helpers.exceptions import BadRequest
 from common.jinja_templater import apply_jinja_template
 from common.jinja_templater.apply_jinja_template import JinjaTemplateError, JinjaTemplateWarning
@@ -196,29 +195,26 @@ class TeamFilteringMixin:
 
     TEAM_LOOKUP = "team"
 
+    @property
+    def available_teams_lookup_args(self):
+        available_teams_lookup_args = []
+        if not self.request.user.role == LegacyAccessControlRole.ADMIN:
+            available_teams_lookup_args = [
+                Q(**{f"{self.TEAM_LOOKUP}__users": self.request.user})
+                | Q(**{f"{self.TEAM_LOOKUP}__is_sharing_resources_to_all": True})
+                | Q(**{f"{self.TEAM_LOOKUP}__isnull": True})
+            ]
+        return available_teams_lookup_args
+
     def retrieve(self, request, *args, **kwargs):
         try:
             return super().retrieve(request, *args, **kwargs)
         except NotFound:
-            queryset = self.filter_queryset(self.get_queryset())
-            self._remove_filter(self.TEAM_LOOKUP, queryset)
-
+            queryset = self.filter_queryset(self.get_queryset(ignore_filtering_by_available_teams=True))
             try:
-                obj = queryset.get(public_primary_key=self.kwargs["pk"])
+                queryset.get(public_primary_key=self.kwargs["pk"])
             except ObjectDoesNotExist:
                 raise NotFound
-
-            obj_team = self._getattr_with_related(obj, self.TEAM_LOOKUP)
-
-            if obj_team is None or obj_team in self.request.user.teams.all():
-                if obj_team is None:
-                    obj_team = Team(public_primary_key=None, name="General", email=None, avatar_url=None)
-
-                return Response(
-                    data={"error_code": "wrong_team", "owner_team": TeamSerializer(obj_team).data},
-                    status=status.HTTP_403_FORBIDDEN,
-                )
-
             return Response(data={"error_code": "wrong_team"}, status=status.HTTP_403_FORBIDDEN)
 
     @staticmethod

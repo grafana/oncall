@@ -69,38 +69,36 @@ const OutgoingWebhook2Status = observer((props: OutgoingWebhook2StatusProps) => 
           {data.last_run ? (
             <VerticalGroup>
               <Label>Last Run Time</Label>
-              <SourceCode>{data.last_status_log.last_run_at}</SourceCode>
-              <Label>Input Data</Label>
-              <SourceCode>{JSON.stringify(data.last_status_log.input_data, null, 4)}</SourceCode>
+              <SourceCode>{data.last_response_log.timestamp}</SourceCode>
 
-              {data.last_status_log.trigger && (
+              {data.last_response_log.request_trigger && (
                 <Debug
                   title="Trigger Template"
                   source={data.trigger_template}
-                  result={data.last_status_log.trigger}
+                  result={data.last_response_log.request_trigger}
                 ></Debug>
               )}
-              {data.last_status_log.url && (
-                <Debug title="URL" source={data.url} result={data.last_status_log.url}></Debug>
+              {data.last_response_log.url && (
+                <Debug title="URL" source={data.url} result={data.last_response_log.url}></Debug>
               )}
-              {data.last_status_log.headers && (
-                <Debug title="Headers" source={data.headers} result={data.last_status_log.headers}></Debug>
+              {data.last_response_log.request_headers && (
+                <Debug title="Headers" source={data.headers} result={data.last_response_log.request_headers}></Debug>
               )}
-              {data.last_status_log.data && (
-                <Debug title="Data" source={data.data} result={data.last_status_log.data}></Debug>
+              {data.last_response_log.request_data && (
+                <Debug title="Data" source={data.data} result={data.last_response_log.request_data}></Debug>
               )}
 
-              {data.last_status_log.response_status && (
+              {data.last_response_log.status_code && (
                 <VerticalGroup>
                   <Label>Response Code</Label>
-                  <SourceCode>{data.last_status_log.response_status}</SourceCode>
+                  <SourceCode>{data.last_response_log.status_code}</SourceCode>
                 </VerticalGroup>
               )}
 
-              {data.last_status_log.response && (
+              {data.last_response_log.content && (
                 <VerticalGroup>
                   <Label>Response Body</Label>
-                  <SourceCode>{JSON.stringify(data.last_status_log.response, null, 4)}</SourceCode>
+                  <SourceCode>{JSON.stringify(data.last_response_log.content, null, 4)}</SourceCode>
                 </VerticalGroup>
               )}
             </VerticalGroup>

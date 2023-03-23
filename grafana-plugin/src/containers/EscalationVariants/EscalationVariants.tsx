@@ -191,6 +191,7 @@ const UserResponder = ({ important, data, onImportantChange, handleDelete }) => 
               <Text type="secondary">by</Text>
               <Select
                 className={cx('select')}
+                width="auto"
                 isSearchable={false}
                 value={Number(important)}
                 options={[
@@ -268,6 +269,7 @@ const ScheduleResponder = ({ important, data, onImportantChange, handleDelete })
           <Text type="secondary">by</Text>
           <Select
             className={cx('select')}
+            width="auto"
             isSearchable={false}
             value={Number(important)}
             options={[
