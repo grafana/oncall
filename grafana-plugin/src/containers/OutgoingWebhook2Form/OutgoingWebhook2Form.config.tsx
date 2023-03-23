@@ -2,13 +2,13 @@ import { FormItem, FormItemType } from 'components/GForm/GForm.types';
 import { KeyValuePair } from 'utils';
 
 export const WebhookTriggerType = {
-  EscalationStep: new KeyValuePair(0, 'Escalation Step'),
-  Triggered: new KeyValuePair(1, 'Triggered'),
-  Acknowledged: new KeyValuePair(2, 'Acknowledged'),
-  Resolved: new KeyValuePair(3, 'Resolved'),
-  Silenced: new KeyValuePair(4, 'Silenced'),
-  Unsilenced: new KeyValuePair(5, 'Unsilenced'),
-  Unresolved: new KeyValuePair(6, 'Unresolved'),
+  EscalationStep: new KeyValuePair('0', 'Escalation Step'),
+  Triggered: new KeyValuePair('1', 'Triggered'),
+  Acknowledged: new KeyValuePair('2', 'Acknowledged'),
+  Resolved: new KeyValuePair('3', 'Resolved'),
+  Silenced: new KeyValuePair('4', 'Silenced'),
+  Unsilenced: new KeyValuePair('5', 'Unsilenced'),
+  Unresolved: new KeyValuePair('6', 'Unresolved'),
 };
 
 export const form: { name: string; fields: FormItem[] } = {
