@@ -374,7 +374,7 @@ class OnCallSchedule(PolymorphicModel):
                 overloaded_users.append({"id": user_pk, "username": username, "score": score})
 
             # show most overloaded users first
-            overloaded_users.sort(key=lambda user: user["score"], reverse=True)
+            overloaded_users.sort(key=lambda u: (-u["score"], u["username"]))
 
         # generate comments regarding gaps
         comments = []
