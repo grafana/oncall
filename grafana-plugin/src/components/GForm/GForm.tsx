@@ -61,8 +61,8 @@ function renderFormControl(formItem: FormItem, register: any, control: any, onCh
                 {...field}
                 {...formItem.extra}
                 onChange={(value) => {
-                  onChangeFn();
                   onChange(value.value);
+                  onChangeFn();
                 }}
               />
             );
@@ -75,8 +75,17 @@ function renderFormControl(formItem: FormItem, register: any, control: any, onCh
     case FormItemType.GSelect:
       return (
         <InputControl
-          render={({ field: { ...field } }) => {
-            return <GSelect {...field} {...formItem.extra} onChange={onChangeFn} />;
+          render={({ field: { onChange, ...field } }) => {
+            return (
+              <GSelect
+                {...field}
+                {...formItem.extra}
+                onChange={(value) => {
+                  onChange(value);
+                  onChangeFn();
+                }}
+              />
+            );
           }}
           control={control}
           name={formItem.name}
@@ -110,7 +119,7 @@ class GForm extends React.Component<GFormProps, {}> {
       <Form maxWidth="none" id={form.name} defaultValues={data} onSubmit={this.handleSubmit}>
         {({ register, errors, control, getValues, setValue }) => {
           return form.fields.map((formItem: FormItem, formIndex: number) => {
-            if (formItem.shouldShow && !formItem.shouldShow(getValues())) {
+            if (formItem.isVisible && !formItem.isVisible(getValues())) {
               setValue(formItem.name, undefined); // clear input value on hide
               return null;
             }

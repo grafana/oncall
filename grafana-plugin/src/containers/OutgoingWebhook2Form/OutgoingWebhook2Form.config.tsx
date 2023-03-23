@@ -105,7 +105,7 @@ export const form: { name: string; fields: FormItem[] } = {
       name: 'alert_receive_channel_id',
       label: 'Integrations',
       type: FormItemType.MultiSelect,
-      shouldShow: (data) => {
+      isVisible: (data) => {
         return data.trigger_type !== WebhookTriggerType.EscalationStep.key;
       },
       extra: {
