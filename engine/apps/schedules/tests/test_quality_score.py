@@ -152,6 +152,8 @@ def test_get_schedule_score_weekdays(
     )
 
     users = [make_user_for_organization(organization, username=f"user-{idx}") for idx in range(8)]
+    # clear users pks <-> organization cache (persisting between tests)
+    memoized_users_in_ical.cache_clear()
 
     make_on_call_shift(
         schedule.organization,
@@ -214,6 +216,8 @@ def test_get_schedule_score_all_week(
     )
 
     users = [make_user_for_organization(organization, username=f"user-{idx}") for idx in range(8)]
+    # clear users pks <-> organization cache (persisting between tests)
+    memoized_users_in_ical.cache_clear()
 
     make_on_call_shift(
         schedule.organization,
@@ -289,6 +293,8 @@ def test_get_schedule_score_all_week_imbalanced_weekends(
     )
 
     users = [make_user_for_organization(organization, username=f"user-{idx}") for idx in range(8)]
+    # clear users pks <-> organization cache (persisting between tests)
+    memoized_users_in_ical.cache_clear()
 
     make_on_call_shift(
         schedule.organization,
