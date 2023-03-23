@@ -179,7 +179,7 @@ const ScheduleOverrideForm: FC<RotationFormProps> = (props) => {
   const handleChange = useDebouncedCallback(updatePreview, 200);
 
   const isFormValid = useMemo(() => userGroups.some((group) => group.length), [userGroups]);
-  const disableAction = shiftEnd < dayjs().tz(currentTimezone);
+  const disableAction = shiftEnd.isBefore(dayjs().tz(currentTimezone));
 
   useEffect(handleChange, [params]);
 

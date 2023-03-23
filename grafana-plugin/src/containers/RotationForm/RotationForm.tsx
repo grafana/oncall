@@ -244,7 +244,7 @@ const RotationForm: FC<RotationFormProps> = observer((props) => {
   }, []);
 
   const isFormValid = useMemo(() => userGroups.some((group) => group.length), [userGroups]);
-  const disableAction = !endLess && rotationEnd < dayjs().tz(currentTimezone);
+  const disableAction = !endLess && rotationEnd.isBefore(dayjs().tz(currentTimezone));
 
   const [focusElementName, setFocusElementName] = useState<undefined | string>(undefined);
 
