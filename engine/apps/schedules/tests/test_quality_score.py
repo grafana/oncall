@@ -271,7 +271,7 @@ def test_get_schedule_score_all_week(
 
 
 @pytest.mark.django_db
-def test_get_schedule_score_all_week_shifted(
+def test_get_schedule_score_all_week_utcoffset(
     make_organization,
     make_user_for_organization,
     make_token_for_organization,
