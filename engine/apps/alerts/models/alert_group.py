@@ -1141,7 +1141,7 @@ class AlertGroup(AlertGroupSlackRenderingMixin, EscalationSnapshotMixin, models.
                 alert_group.response_time = response_time
                 if alert_group.started_at > get_response_time_period(now):
                     metrics_response_time = MetricsExporterManager.update_integration_response_time(
-                        {}, alert_group.channel_id, int(response_time.total_seconds())
+                        metrics_response_time, alert_group.channel_id, int(response_time.total_seconds())
                     )
             metrics_states_diff = MetricsExporterManager.update_integration_states_diff(
                 metrics_states_diff, alert_group.channel_id, alert_group.state, STATE_ACKNOWLEDGED
@@ -1247,7 +1247,7 @@ class AlertGroup(AlertGroupSlackRenderingMixin, EscalationSnapshotMixin, models.
                 alert_group.response_time = response_time
                 if alert_group.started_at > get_response_time_period(now):
                     metrics_response_time = MetricsExporterManager.update_integration_response_time(
-                        {}, alert_group.channel_id, int(response_time.total_seconds())
+                        metrics_response_time, alert_group.channel_id, int(response_time.total_seconds())
                     )
             metrics_states_diff = MetricsExporterManager.update_integration_states_diff(
                 metrics_states_diff, alert_group.channel_id, alert_group.state, STATE_RESOLVED
@@ -1581,7 +1581,7 @@ class AlertGroup(AlertGroupSlackRenderingMixin, EscalationSnapshotMixin, models.
                 alert_group.response_time = response_time
                 if alert_group.started_at > get_response_time_period(now):
                     metrics_response_time = MetricsExporterManager.update_integration_response_time(
-                        {}, alert_group.channel_id, int(response_time.total_seconds())
+                        metrics_response_time, alert_group.channel_id, int(response_time.total_seconds())
                     )
             metrics_states_diff = MetricsExporterManager.update_integration_states_diff(
                 metrics_states_diff, alert_group.channel_id, alert_group.state, STATE_SILENCED
