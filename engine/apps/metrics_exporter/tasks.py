@@ -6,7 +6,7 @@ from django.utils import timezone
 
 from apps.alerts.constants import STATE_ACKNOWLEDGED, STATE_NEW, STATE_RESOLVED, STATE_SILENCED
 from apps.metrics_exporter.constants import ALERT_GROUPS_RESPONSE_TIME, ALERT_GROUPS_TOTAL, METRICS_CACHE_TIMER
-from apps.metrics_exporter.helpers import get_metrics_recalculate_timeout
+from apps.metrics_exporter.helpers import get_metrics_recalculate_timeout, get_response_time_period
 from common.custom_celery_tasks import shared_dedicated_queue_retry_task
 
 
@@ -26,7 +26,7 @@ def calculate_and_cache_metrics():  # todo:metrics org
     AlertReceiveChannel = apps.get_model("alerts", "AlertReceiveChannel")
 
     integrations = AlertReceiveChannel.objects.filter(~Q(integration=AlertReceiveChannel.INTEGRATION_MAINTENANCE))
-    response_time_period = timezone.now() - timezone.timedelta(days=7)
+    response_time_period = get_response_time_period(timezone.now())
 
     metric_alert_group_total = {}
     metric_alert_group_response_time = {}

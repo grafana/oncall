@@ -3,6 +3,7 @@ from prometheus_client import CollectorRegistry, Gauge, Histogram
 
 from apps.alerts.constants import ALERTGROUP_STATES, STATE_ACKNOWLEDGED, STATE_NEW, STATE_RESOLVED, STATE_SILENCED
 from apps.metrics_exporter.constants import ALERT_GROUPS_RESPONSE_TIME, ALERT_GROUPS_TOTAL, METRICS_CACHE_TIMER
+from apps.metrics_exporter.helpers import metrics_update_alert_groups_state_cache
 from apps.metrics_exporter.tasks import calculate_and_cache_metrics
 
 
@@ -90,3 +91,12 @@ class MetricsExporterManager:
         teams_diff[team_id]["team_name"] = new_name
         teams_diff[team_id]["deleted"] = deleted
         return teams_diff
+
+    @staticmethod
+    def metrics_update_state_cache_for_alert_group(channel_id, old_state=None, new_state=None):
+        # todo:metrics: add comment
+        if old_state != new_state:
+            metrics_state_diff = MetricsExporterManager.update_integration_states_diff(
+                {}, channel_id, previous_state=old_state, new_state=new_state
+            )
+            metrics_update_alert_groups_state_cache(metrics_state_diff)
