@@ -152,10 +152,6 @@ class PhoneCall(models.Model):
         elif digit == "3":
             alert_group.silence_by_user(self.receiver, silence_delay=1800, action_source=ActionSource.TWILIO)
 
-    @property
-    def created_for_slack(self):
-        return bool(self.represents_alert_group.slack_message)
-
     @classmethod
     def _make_cloud_call(cls, user, message_body):
         url = create_engine_url("api/v1/make_call", override_base=settings.GRAFANA_CLOUD_ONCALL_API_URL)

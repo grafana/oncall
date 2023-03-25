@@ -117,10 +117,6 @@ class SMSMessage(models.Model):
     class CloudSendError(Exception):
         """SMS sending through cloud error"""
 
-    @property
-    def created_for_slack(self):
-        return bool(self.represents_alert_group.slack_message)
-
     @classmethod
     def _send_cloud_sms(cls, user, message_body):
         url = create_engine_url("api/v1/send_sms", override_base=settings.GRAFANA_CLOUD_ONCALL_API_URL)
