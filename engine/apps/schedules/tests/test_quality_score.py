@@ -183,7 +183,7 @@ def test_get_schedule_score_weekdays(
 
     client = APIClient()
 
-    url = reverse("api-internal:schedule-quality", kwargs={"pk": schedule.public_primary_key})
+    url = reverse("api-internal:schedule-quality", kwargs={"pk": schedule.public_primary_key}) + "?date=2022-03-24"
     response = client.get(url, **make_user_auth_headers(users[0], token))
 
     assert response.status_code == status.HTTP_200_OK
@@ -260,7 +260,7 @@ def test_get_schedule_score_all_week(
 
     client = APIClient()
 
-    url = reverse("api-internal:schedule-quality", kwargs={"pk": schedule.public_primary_key})
+    url = reverse("api-internal:schedule-quality", kwargs={"pk": schedule.public_primary_key}) + "?date=2022-03-24"
     response = client.get(url, **make_user_auth_headers(users[0], token))
 
     assert response.status_code == status.HTTP_200_OK
@@ -337,7 +337,7 @@ def test_get_schedule_score_all_week_imbalanced_weekends(
 
     client = APIClient()
 
-    url = reverse("api-internal:schedule-quality", kwargs={"pk": schedule.public_primary_key})
+    url = reverse("api-internal:schedule-quality", kwargs={"pk": schedule.public_primary_key}) + "?date=2022-03-24"
     response = client.get(url, **make_user_auth_headers(users[0], token))
 
     assert response.status_code == status.HTTP_200_OK
