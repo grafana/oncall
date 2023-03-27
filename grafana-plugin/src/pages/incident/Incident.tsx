@@ -256,7 +256,7 @@ class IncidentPage extends React.Component<IncidentPageProps, IncidentPageState>
                 {incident.root_alert_group && (
                   <Text type="secondary">
                     Attached to{' '}
-                    <PluginLink query={{ page: 'alert-group', id: incident.root_alert_group.pk }}>
+                    <PluginLink query={{ page: 'alert-groups', id: incident.root_alert_group.pk }}>
                       #{incident.root_alert_group.inside_organization_number}{' '}
                       {incident.root_alert_group.render_for_web.title}
                     </PluginLink>{' '}
@@ -760,7 +760,7 @@ function AttachedIncidentsList({
       {alerts.map((incident) => {
         return (
           <HorizontalGroup key={incident.pk} justify={'space-between'}>
-            <PluginLink query={{ page: 'alert-group', id: incident.pk }}>
+            <PluginLink query={{ page: 'alert-groups', id: incident.pk }}>
               #{incident.inside_organization_number} {incident.render_for_web.title}
             </PluginLink>
             <WithPermissionControlTooltip userAction={UserActions.AlertGroupsWrite}>

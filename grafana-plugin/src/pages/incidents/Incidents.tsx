@@ -125,7 +125,7 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
               this.setState({ showAddAlertGroupForm: false });
             }}
             onCreate={(id: Alert['pk']) => {
-              history.push(`${PLUGIN_ROOT}/incidents/${id}`);
+              history.push(`${PLUGIN_ROOT}/alert-groups/${id}`);
             }}
           />
         )}

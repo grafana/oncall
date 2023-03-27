@@ -138,10 +138,10 @@ export const Root = observer((props: AppRootProps) => {
       >
         {userHasAccess ? (
           <Switch>
-            <Route path={getRoutesForPage('incidents')} exact>
+            <Route path={getRoutesForPage('alert-groups')} exact>
               <Incidents query={query} />
             </Route>
-            <Route path={getRoutesForPage('incident')} exact>
+            <Route path={getRoutesForPage('alert-group')} exact>
               <Incident query={query} />
             </Route>
             <Route path={getRoutesForPage('users')} exact>
