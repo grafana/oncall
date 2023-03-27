@@ -244,6 +244,7 @@ const RotationForm: FC<RotationFormProps> = observer((props) => {
   }, []);
 
   const isFormValid = useMemo(() => userGroups.some((group) => group.length), [userGroups]);
+  const disableAction = !endLess && rotationEnd.isBefore(dayjs().tz(currentTimezone));
 
   const [focusElementName, setFocusElementName] = useState<undefined | string>(undefined);
 
@@ -419,7 +420,7 @@ const RotationForm: FC<RotationFormProps> = observer((props) => {
               <Button variant="secondary" onClick={onHide}>
                 {shiftId === 'new' ? 'Cancel' : 'Close'}
               </Button>
-              <Button variant="primary" onClick={handleCreate} disabled={!isFormValid}>
+              <Button variant="primary" onClick={handleCreate} disabled={!isFormValid || disableAction}>
                 {shiftId === 'new' ? 'Create' : 'Update'}
               </Button>
             </HorizontalGroup>

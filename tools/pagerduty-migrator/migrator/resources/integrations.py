@@ -20,6 +20,12 @@ def match_integration(integration: dict, oncall_integrations: list[dict]) -> Non
 def match_integration_type(integration: dict, vendors: list[dict]) -> None:
     vendors_map = {vendor["id"]: vendor for vendor in vendors}
 
+    if integration["type"] == "generic_email_inbound_integration":
+        # ignore vendor name for generic email inbound integrations
+        integration["vendor_name"] = None
+        integration["oncall_type"] = "inbound_email"
+        return
+
     if integration["vendor"] is None:
         integration["vendor_name"] = None
         integration["oncall_type"] = None

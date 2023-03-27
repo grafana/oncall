@@ -5,6 +5,8 @@ const commonFields: FormItem[] = [
   {
     name: 'team',
     label: 'Assign to team',
+    description:
+      'Assigning to the teams allows you to filter Schedules and configure their visibility. Go to OnCall -> Settings -> Team and Access Settings for more details',
     type: FormItemType.GSelect,
     extra: {
       modelName: 'grafanaTeamStore',
@@ -132,6 +134,14 @@ export const calendarForm: { name: string; fields: FormItem[] } = {
       validation: { required: true },
     },
     {
+      name: 'enable_web_overrides',
+      label: 'Enable web interface overrides ',
+      type: FormItemType.Switch,
+      description:
+        'Allow overrides to be created using the web UI. \n' +
+        'NOTE: when enabled, iCal URL overrides will be ignored.',
+    },
+    {
       name: 'ical_url_overrides',
       label: 'Overrides schedule iCal URL ',
       type: FormItemType.TextArea,
@@ -139,7 +149,8 @@ export const calendarForm: { name: string; fields: FormItem[] } = {
         'You can use an override calendar to share with your team members. Users can add \n' +
         'events to this calendar, and they will override existing events in the primary \n' +
         'calendar. The iCal URL for your override calendar can be found in the calendar \n' +
-        'integration settings of your calendar service.',
+        'integration settings of your calendar service. \n' +
+        'NOTE: web overrides must be disabled to use iCal based overrides',
     },
     ...commonFields,
   ],

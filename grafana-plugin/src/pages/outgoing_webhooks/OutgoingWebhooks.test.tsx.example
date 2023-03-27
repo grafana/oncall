@@ -34,6 +34,7 @@ jest.mock('plugin/GrafanaPluginRootPage.helpers', () => ({
 }));
 
 jest.mock('@grafana/runtime', () => ({
+  getBackendSrv: () => {},
   config: {
     featureToggles: {
       topNav: false,
@@ -59,6 +60,7 @@ jest.mock('@grafana/runtime', () => ({
 describe('OutgoingWebhooks', () => {
   const storeMock = {
     outgoingWebhookStore: outgoingWebhookStore(),
+    grafanaTeamStore: { items: { null: {} } },
   };
 
   beforeAll(() => {
@@ -101,7 +103,7 @@ describe('OutgoingWebhooks', () => {
   });
 
   function getProps(id: OutgoingWebhook['id'] = undefined): any {
-    return { store: storeMock, match: { params: { id } } };
+    return { store: storeMock, match: { params: { id } }, team: {} };
   }
 
   function queryEditForm(): HTMLElement {

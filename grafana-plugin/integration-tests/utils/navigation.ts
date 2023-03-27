@@ -1,21 +1,13 @@
 import type { Page, Response } from '@playwright/test';
 import { BASE_URL } from './constants';
 
-type WaitUntil = 'networkidle' | 'load';
-type GrafanaPage = '/login' | '/plugins/grafana-oncall-app';
-type OnCallPage = 'incidents' | 'integrations' | 'escalations';
-type OnCallPluginTab = 'Integrations' | 'Escalation Chains' | 'Users' | 'Schedules' | 'Alert Groups';
+type GrafanaPage = '/plugins/grafana-oncall-app';
+type OnCallPage = 'incidents' | 'integrations' | 'escalations' | 'schedules' | 'users';
 
-const _goToPage = (page: Page, url = '', waitUntil: WaitUntil = 'networkidle'): Promise<Response> =>
-  page.goto(`${BASE_URL}${url}`, { waitUntil });
+const _goToPage = (page: Page, url = ''): Promise<Response> =>
+  page.goto(`${BASE_URL}${url}`, { waitUntil: 'networkidle' });
 
-export const goToGrafanaPage = (page: Page, url?: GrafanaPage, waitUntil?: WaitUntil): Promise<Response> =>
-  _goToPage(page, url, waitUntil);
+export const goToGrafanaPage = (page: Page, url: GrafanaPage): Promise<Response> => _goToPage(page, url);
 
-export const goToOnCallPage = (page: Page, onCallPage: OnCallPage = 'incidents'): Promise<Response> =>
+export const goToOnCallPage = (page: Page, onCallPage: OnCallPage): Promise<Response> =>
   _goToPage(page, `/a/grafana-oncall-app/${onCallPage}`);
-
-export const goToOnCallPageByClickingOnTab = async (page: Page, onCallTab: OnCallPluginTab): Promise<void> =>
-  (await page.waitForSelector(`div[class*="LegacyNavTabsBar"] >> text=${onCallTab}`)).click();
-
-export const waitForNoNetworkActivity = (page: Page): Promise<void> => page.waitForLoadState('networkidle');

@@ -17,6 +17,7 @@ import { SlackChannel } from 'models/slack_channel/slack_channel.types';
 import { AppFeature } from 'state/features';
 import { WithStoreProps } from 'state/types';
 import { withMobXProviderContext } from 'state/withStore';
+import { showApiError } from 'utils';
 import { UserActions } from 'utils/authorization';
 import { DOCS_SLACK_SETUP } from 'utils/consts';
 
@@ -49,7 +50,7 @@ class SlackSettings extends Component<SlackProps, SlackState> {
 
   handleOpenSlackInstructions = () => {
     const { store } = this.props;
-    store.slackStore.installSlackIntegration();
+    store.slackStore.installSlackIntegration().catch(showApiError);
   };
 
   update = () => {
@@ -213,9 +214,12 @@ class SlackSettings extends Component<SlackProps, SlackState> {
 
   removeSlackIntegration = () => {
     const { store } = this.props;
-    store.slackStore.removeSlackIntegration().then(() => {
-      store.teamStore.loadCurrentTeam();
-    });
+    store.slackStore
+      .removeSlackIntegration()
+      .then(() => {
+        store.teamStore.loadCurrentTeam();
+      })
+      .catch(showApiError);
   };
 
   getSlackSettingsChangeHandler = (field: string) => {

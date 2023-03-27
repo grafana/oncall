@@ -5,6 +5,102 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## Unreleased
+
+### Changed
+
+- When the `DANGEROUS_WEBHOOKS_ENABLED` environment variable is set to true, it's possible now to create Outgoing Webhooks
+  using URLs without a top-level domain ([1266](https://github.com/grafana/oncall/pull/1266))
+- Updated wording when creating an integration ([1572](https://github.com/grafana/oncall/pull/1572))
+- Set FCM iOS/Android "message priority" to "high priority" for mobile app push notifications ([1612](https://github.com/grafana/oncall/pull/1612))
+
+### Fixed
+
+- Update override deletion changes to set its final duration
+
+## v1.2.1 (2023-03-23)
+
+### Changed
+
+- Mobile app settings backend by @vadimkerr in ([1571](https://github.com/grafana/oncall/pull/1571))
+- Fix integrations and escalations autoselect, improve GList by @maskin25 in ([1601](https://github.com/grafana/oncall/pull/1601))
+- Add filters to outgoing webhooks 2 by @iskhakov in ([1598](https://github.com/grafana/oncall/pull/1598))
+
+## v1.2.0 (2023-03-21)
+
+### Changed
+
+- Add team-based filtering for resources, so that users can see multiple resources at once and link them together ([1528](https://github.com/grafana/oncall/pull/1528))
+
+## v1.1.41 (2023-03-21)
+
+### Added
+
+- Modified `check_escalation_finished_task` celery task to use read-only databases for its query, if one is defined +
+  make the validation logic stricter + ping a configurable heartbeat on successful completion of this task ([1266](https://github.com/grafana/oncall/pull/1266))
+
+### Changed
+
+- Updated wording throughout plugin to use 'Alert Group' instead of 'Incident' ([1565](https://github.com/grafana/oncall/pull/1565),
+  [1576](https://github.com/grafana/oncall/pull/1576))
+- Check for enabled Telegram feature was added to ChatOps and to User pages ([319](https://github.com/grafana/oncall/issues/319))
+- Filtering for Editors/Admins was added to rotation form. It is not allowed to assign Viewer to rotation ([1124](https://github.com/grafana/oncall/issues/1124))
+- Modified search behaviour on the Escalation Chains page to allow for "partial searching" ([1578](https://github.com/grafana/oncall/pull/1578))
+
+### Fixed
+
+- Fixed a few permission issues on the UI ([1448](https://github.com/grafana/oncall/pull/1448))
+- Fix resolution note rendering in Slack message threads where the Slack username was not
+  being properly rendered ([1561](https://github.com/grafana/oncall/pull/1561))
+
+## v1.1.40 (2023-03-16)
+
+### Fixed
+
+- Check for duplicated positions in terraform escalation policies create/update
+
+### Added
+
+- Add `regex_match` Jinja filter ([1556](https://github.com/grafana/oncall/pull/1556))
+
+### Changed
+
+- Allow passing `null` as a value for `escalation_chain` when creating routes via the public API ([1557](https://github.com/grafana/oncall/pull/1557))
+
+## v1.1.39 (2023-03-16)
+
+### Added
+
+- Inbound email integration ([837](https://github.com/grafana/oncall/pull/837))
+
+## v1.1.38 (2023-03-14)
+
+### Added
+
+- Add filtering by escalation chain to alert groups page ([1535](https://github.com/grafana/oncall/pull/1535))
+
+### Fixed
+
+- Improve tasks checking/triggering webhooks in new backend
+
+## v1.1.37 (2023-03-14)
+
+### Fixed
+
+- Fixed redirection issue on integrations screen
+
+### Added
+
+- Enable web overrides for Terraform-based schedules
+- Direct user paging improvements ([1358](https://github.com/grafana/oncall/issues/1358))
+- Added Schedule Score quality within the schedule view ([118](https://github.com/grafana/oncall/issues/118))
+
+## v1.1.36 (2023-03-09)
+
+### Fixed
+
+- Fix bug with override creation ([1515](https://github.com/grafana/oncall/pull/1515))
+
 ## v1.1.35 (2023-03-09)
 
 ### Added
@@ -99,6 +195,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - Added ratelimits for phone verification
+- Link to source was added
+- Header of Incident page was reworked: clickable labels instead of just names, users section was deleted
+- "Go to Integration" button was deleted, because the functionality was moved to clickable labels
 
 ### Fixed
 
@@ -141,9 +240,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Incidents - Removed buttons column and replaced status with toggler ([#1237](https://github.com/grafana/oncall/issues/1237))
 - Responsiveness changes across multiple pages (Incidents, Integrations, Schedules) ([#1237](https://github.com/grafana/oncall/issues/1237))
 - Add pagination to schedule listing
-- Link to source was added
-- Header of Incident page was reworked: clickable labels instead of just names, users section was deleted
-- "Go to Integration" button was deleted, because the functionality was moved to clickable labels
 
 ## v1.1.23 (2023-02-06)
 

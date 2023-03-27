@@ -25,6 +25,7 @@ import {
   Layer,
   ShiftEvents,
   RotationFormLiveParams,
+  ScheduleScoreQualityResponse,
 } from './schedule.types';
 
 export class ScheduleStore extends BaseStore {
@@ -124,11 +125,10 @@ export class ScheduleStore extends BaseStore {
     page = 1,
     shouldUpdateFn: () => boolean = undefined
   ) {
-    const filters: Partial<SchedulesFiltersType> = typeof f === 'string' ? { searchTerm: f } : f;
-    const { searchTerm: search, type, used } = filters;
+    const filters = typeof f === 'string' ? { search: f } : f;
     const { count, results } = await makeRequest(this.path, {
       method: 'GET',
-      params: { search: search, type, used, page },
+      params: { ...filters, page },
     });
 
     if (shouldUpdateFn && !shouldUpdateFn()) {
@@ -153,14 +153,27 @@ export class ScheduleStore extends BaseStore {
 
   async updateItem(id: Schedule['id'], fromOrganization = false) {
     if (id) {
-      const item = await this.getById(id, true, fromOrganization);
+      let schedule;
+      try {
+        schedule = await this.getById(id, true, fromOrganization);
+      } catch (error) {
+        if (error.response.data.error_code === 'wrong_team') {
+          schedule = {
+            id,
+            name: '🔒 Private schedule',
+            private: true,
+          };
+        }
+      }
 
-      this.items = {
-        ...this.items,
-        [item.id]: item,
-      };
+      if (schedule) {
+        this.items = {
+          ...this.items,
+          [id]: schedule,
+        };
+      }
 
-      return item;
+      return schedule;
     }
   }
 
@@ -172,6 +185,11 @@ export class ScheduleStore extends BaseStore {
       count: this.searchResult.count,
       results: this.searchResult.results?.map((scheduleId: Schedule['id']) => this.items[scheduleId]),
     };
+  }
+
+  async getScoreQuality(scheduleId: Schedule['id']): Promise<ScheduleScoreQualityResponse> {
+    const tomorrow = getFromString(dayjs().add(1, 'day'));
+    return await makeRequest(`/schedules/${scheduleId}/quality?date=${tomorrow}`, { method: 'GET' });
   }
 
   @action
