@@ -4,7 +4,7 @@ from celery.utils.log import get_task_logger
 from django.conf import settings
 from fcm_django.models import FCMDevice
 from firebase_admin.exceptions import FirebaseError
-from firebase_admin.messaging import APNSConfig, APNSPayload, Aps, ApsAlert, CriticalSound, Message
+from firebase_admin.messaging import AndroidConfig, APNSConfig, APNSPayload, Aps, ApsAlert, CriticalSound, Message
 from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
@@ -42,18 +42,19 @@ class FCMRelayView(APIView):
             token = request.data["token"]
             data = request.data["data"]
             apns = request.data["apns"]
+            android = request.data.get("android")  # optional
         except KeyError:
             return Response(status=status.HTTP_400_BAD_REQUEST)
 
-        fcm_relay_async.delay(token=token, data=data, apns=apns)
+        fcm_relay_async.delay(token=token, data=data, apns=apns, android=android)
         return Response(status=status.HTTP_200_OK)
 
 
 @shared_dedicated_queue_retry_task(
     autoretry_for=(Exception,), retry_backoff=True, max_retries=1 if settings.DEBUG else 5
 )
-def fcm_relay_async(token, data, apns):
-    message = Message(token=token, data=data, apns=deserialize_apns(apns))
+def fcm_relay_async(token, data, apns, android=None):
+    message = _get_message_from_request_data(token, data, apns, android)
 
     # https://firebase.google.com/docs/cloud-messaging/http-server-ref#interpret-downstream
     response = FCMDevice(registration_id=token).send_message(message)
@@ -63,7 +64,17 @@ def fcm_relay_async(token, data, apns):
         raise response
 
 
-def deserialize_apns(apns):
+def _get_message_from_request_data(token, data, apns, android):
+    """
+    Create Message object from JSON payload from OSS instance.
+    """
+
+    return Message(
+        token=token, data=data, apns=_deserialize_apns(apns), android=AndroidConfig(**android) if android else None
+    )
+
+
+def _deserialize_apns(apns):
     """
     Create APNSConfig object from JSON payload from OSS instance.
     """
@@ -95,5 +106,6 @@ def deserialize_apns(apns):
                 sound=sound,
                 custom_data=aps,
             )
-        )
+        ),
+        headers=apns.get("headers"),
     )
