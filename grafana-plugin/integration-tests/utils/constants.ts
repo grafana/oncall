@@ -4,3 +4,7 @@ export const GRAFANA_USERNAME = process.env.GRAFANA_USERNAME || 'oncall';
 export const GRAFANA_PASSWORD = process.env.GRAFANA_PASSWORD || 'oncall';
 export const MAILSLURP_API_KEY = process.env.MAILSLURP_API_KEY;
 export const IS_OPEN_SOURCE = (process.env.IS_OPEN_SOURCE || 'true').toLowerCase() === 'true';
+
+export const GRAFANA_VIEWER_USERNAME = 'oncall-viewer';
+export const GRAFANA_VIEWER_PASSWORD = 'oncall';
+export const GRAFANA_VIEWER_EMAIL = 'oncall@grafana.com';

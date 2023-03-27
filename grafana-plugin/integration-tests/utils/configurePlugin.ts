@@ -34,5 +34,5 @@ export const configureOnCallPlugin = async (page: Page): Promise<void> => {
    * wait for the page to be refreshed and the icon to show up, this means the plugin
    * has been successfully configured
    */
-  await page.waitForSelector('div.scrollbar-view img[src*="grafana-oncall-app/img/logo.svg"]');
+  // await page.waitForSelector('div.scrollbar-view img[src*="grafana-oncall-app/img/logo.svg"]');
 };

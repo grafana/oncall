@@ -15,6 +15,10 @@ const openUserSettingsModal = async (page: Page): Promise<void> => {
 
 const getForgetPhoneNumberButton = (page: Page): Locator => page.locator('button >> text=Forget Phone Number');
 
+export const openViewMyProfile = async (page: Page): Promise<void> => {
+  await openUserSettingsModal(page);
+};
+
 export const verifyUserPhoneNumber = async (page: Page): Promise<void> => {
   // open the user settings modal
   await openUserSettingsModal(page);
