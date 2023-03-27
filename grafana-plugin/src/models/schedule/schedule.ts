@@ -188,8 +188,7 @@ export class ScheduleStore extends BaseStore {
   }
 
   async getScoreQuality(scheduleId: Schedule['id']): Promise<ScheduleScoreQualityResponse> {
-    const tomorrow = getFromString(dayjs().add(1, 'day'));
-    return await makeRequest(`/schedules/${scheduleId}/quality?date=${tomorrow}`, { method: 'GET' });
+    return await makeRequest(`/schedules/${scheduleId}/quality`, { method: 'GET' });
   }
 
   @action
