@@ -122,6 +122,9 @@ export const isInWorkingHours = (currentMoment: dayjs.Dayjs, workingHours, timez
       let startTime = getDayJsDateFromTime(momentToStart, currentMoment, rangeStartData);
       let endTime = getDayJsDateFromTime(momentToStart, currentMoment, rangeEndData);
 
+      console.log('CURRENT TIME', currentTime)
+      console.log('START TIME', startTime)
+      console.log('END TIME', endTime)
       if (currentTime.isBetween(startTime, endTime, null, '[)')) {
         return true 
       }
