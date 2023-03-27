@@ -51,7 +51,7 @@ const ManualAlertGroup: FC<ManualAlertGroupProps> = (props) => {
 
   return (
     <>
-      <Drawer scrollableContent title="Create manual alert group" onClose={onHide} closeOnMaskClick>
+      <Drawer scrollableContent title="Create manual alert group" onClose={onHide} closeOnMaskClick={false}>
         <VerticalGroup spacing="lg">
           <EscalationVariants
             value={{ userResponders, scheduleResponders }}
