@@ -125,9 +125,6 @@ export const isInWorkingHours = (currentMoment: dayjs.Dayjs, workingHours, timez
       if (currentTime.isBetween(startTime, endTime, null, '[)')) {
         return true 
       }
-      else {
-        continue
-      }
     }
   }
   return false;
