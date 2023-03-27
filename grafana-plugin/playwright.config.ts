@@ -31,8 +31,7 @@ const config: PlaywrightTestConfig = {
   retries: process.env.CI ? 1 : 0,
   // TODO: when GSelect component is refactored, run using 3 workers
   // locally use one worker, on CI use 5
-  // workers: process.env.CI ? 3 : 0,
-  workers: 1,
+  workers: process.env.CI ? 3 : 1,
   /* Reporter to use. See https://playwright.dev/docs/test-reporters */
   reporter: 'html',
   /* Shared settings for all the projects below. See https://playwright.dev/docs/api/class-testoptions. */

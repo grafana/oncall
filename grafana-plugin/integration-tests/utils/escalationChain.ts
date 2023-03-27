@@ -23,14 +23,12 @@ export const createEscalationChain = async (
   await goToOnCallPage(page, 'escalations');
 
   /**
-   * wait for Esclation Chains page to fully log then wait for any network calls which fetch escalation chains
-   * to be done
-   *
-   * this is because this can change which "New Escalation Chain" button is present
+   * wait for Esclation Chains page to fully load. this is because this can change which "New Escalation Chain"
+   * button is present
    * ie. the one on the left hand side in the list vs the one in the center when no escalation chains exist
    */
-  await expect(page.getByTestId('page-title')).toHaveText('Escalation Chains');
-  await page.waitForLoadState('networkidle');
+  await page.getByTestId('page-title').locator('text=Escalation Chains').waitFor({ state: 'visible' });
+  await page.locator('text=Loading...').waitFor({ state: 'detached' });
 
   // open the create escalation chain modal
   (await page.waitForSelector('text=New Escalation Chain')).click();
