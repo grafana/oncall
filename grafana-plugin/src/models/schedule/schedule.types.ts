@@ -115,7 +115,7 @@ export interface ShiftEvents {
 export interface ScheduleScoreQualityResponse {
   total_score: number;
   comments: Array<{ type: 'warning' | 'info'; text: string }>;
-  overloaded_users: string[];
+  overloaded_users: Array<{ id: string; username: string; score: number }>;
 }
 
 export enum ScheduleScoreQualityResult {
