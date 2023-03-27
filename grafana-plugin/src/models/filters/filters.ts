@@ -24,7 +24,7 @@ export class FiltersStore extends BaseStore {
 
     const savedFilters = getItem(LOCAL_STORAGE_FILTERS_KEY);
     if (savedFilters) {
-      this.globalValues = { ...savedFilters };
+      this._globalValues = { ...savedFilters };
     }
   }
 
