@@ -368,11 +368,6 @@ jobs:
         working-directory: grafana-plugin
         run: echo "PLAYWRIGHT_VERSION=$(cat ./package.json | jq -r '.devDependencies["@playwright/test"]')" >> $GITHUB_ENV
 
-      - name: Install Playwright yarn package
-        working-directory: grafana-plugin
-        # https://stackoverflow.com/questions/65900299/install-single-dependency-from-package-json-with-yarn
-        run: yarn add "@playwright/test@${{ env.PLAYWRIGHT_VERSION }}"
-
       - name: Cache Playwright binaries/dependencies
         id: playwright-cache
         uses: actions/cache@v3
@@ -382,8 +377,10 @@ jobs:
 
       - name: Install Playwright binaries/dependencies
         if: steps.playwright-cache.outputs.cache-hit != 'true'
-        # if more browsers are added, need to modify
+        # if more browsers are added, will need to modify the "npx playwright install" command
+        # https://stackoverflow.com/questions/65900299/install-single-dependency-from-package-json-with-yarn
         run: |
+          yarn add "@playwright/test@${{ env.PLAYWRIGHT_VERSION }}"
           npx playwright install --with-deps chromium firefox
           npx playwright install-deps
 
@@ -418,12 +415,12 @@ jobs:
       # GitHub Action reference: https://github.com/jupyterhub/action-k8s-namespace-report
       - name: Kubernetes namespace report
         uses: jupyterhub/action-k8s-namespace-report@v1
-        if: always()
+        if: failure()
         with:
           important-workloads: "deploy/helm-testing-oncall-engine deploy/helm-testing-oncall-celery"
 
       - uses: actions/upload-artifact@v3
-        if: always()
+        if: failure()
         with:
           name: playwright-report-grafana-${{ matrix.grafana-image-tag }}
           path: ./grafana-plugin/playwright-report/
