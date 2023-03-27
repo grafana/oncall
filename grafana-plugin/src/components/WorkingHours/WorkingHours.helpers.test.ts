@@ -10,7 +10,7 @@ dayjs.extend(isBetween);
 import { isInWorkingHours } from './WorkingHours.helpers';
 
 describe('Is in working hours', () => {
-    const currentMoment = dayjs('2023-03-27 14:57');
+    const currentMoment = dayjs('2023-03-27 14:57').tz('Europe/Amsterdam');
   
     test('Returns true when it is in working hours', () => {
         const workingHours =  
