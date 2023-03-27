@@ -14,6 +14,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Updated wording when creating an integration ([1572](https://github.com/grafana/oncall/pull/1572))
 - Set FCM iOS/Android "message priority" to "high priority" for mobile app push notifications ([1612](https://github.com/grafana/oncall/pull/1612))
 
+### Fixed
+
+- Update override deletion changes to set its final duration
+
 ## v1.2.1 (2023-03-23)
 
 ### Changed

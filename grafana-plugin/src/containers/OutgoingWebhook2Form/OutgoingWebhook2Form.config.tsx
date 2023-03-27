@@ -1,4 +1,15 @@
 import { FormItem, FormItemType } from 'components/GForm/GForm.types';
+import { KeyValuePair } from 'utils';
+
+export const WebhookTriggerType = {
+  EscalationStep: new KeyValuePair('0', 'Escalation Step'),
+  Triggered: new KeyValuePair('1', 'Triggered'),
+  Acknowledged: new KeyValuePair('2', 'Acknowledged'),
+  Resolved: new KeyValuePair('3', 'Resolved'),
+  Silenced: new KeyValuePair('4', 'Silenced'),
+  Unsilenced: new KeyValuePair('5', 'Unsilenced'),
+  Unresolved: new KeyValuePair('6', 'Unresolved'),
+};
 
 export const form: { name: string; fields: FormItem[] } = {
   name: 'OutgoingWebhook2',
@@ -29,28 +40,32 @@ export const form: { name: string; fields: FormItem[] } = {
       extra: {
         options: [
           {
-            value: '1',
-            label: 'Triggered',
+            value: WebhookTriggerType.EscalationStep.key,
+            label: WebhookTriggerType.EscalationStep.value,
           },
           {
-            value: '2',
-            label: 'Acknowledged',
+            value: WebhookTriggerType.Triggered.key,
+            label: WebhookTriggerType.Triggered.value,
           },
           {
-            value: '3',
-            label: 'Resolved',
+            value: WebhookTriggerType.Acknowledged.key,
+            label: WebhookTriggerType.Acknowledged.value,
           },
           {
-            value: '4',
-            label: 'Silenced',
+            value: WebhookTriggerType.Resolved.key,
+            label: WebhookTriggerType.Resolved.value,
           },
           {
-            value: '5',
-            label: 'Unsilenced',
+            value: WebhookTriggerType.Silenced.key,
+            label: WebhookTriggerType.Silenced.value,
           },
           {
-            value: '6',
-            label: 'Unresolved',
+            value: WebhookTriggerType.Unsilenced.key,
+            label: WebhookTriggerType.Unsilenced.value,
+          },
+          {
+            value: WebhookTriggerType.Unresolved.key,
+            label: WebhookTriggerType.Unresolved.value,
           },
         ],
       },
@@ -84,17 +99,34 @@ export const form: { name: string; fields: FormItem[] } = {
         ],
       },
     },
+    /*
+     * TODO: Uncomment once backend implements it too
+    {
+      name: 'alert_receive_channel_id',
+      label: 'Integrations',
+      type: FormItemType.MultiSelect,
+      isVisible: (data) => {
+        return data.trigger_type !== WebhookTriggerType.EscalationStep.key;
+      },
+      extra: {
+        modelName: 'alertReceiveChannelStore',
+        displayField: 'verbal_name',
+        valueField: 'id',
+        showSearch: true,
+        getOptionLabel: (item: SelectableValue) => <Emoji text={item?.label || ''} />,
+      },
+      validation: { required: true },
+    },
+    */
     {
       name: 'url',
       label: 'Webhook URL',
-      description: 'Supports templating',
       type: FormItemType.Input,
       validation: { required: true },
     },
     {
       name: 'headers',
       label: 'Webhook Headers',
-      description: 'Must be a JSON dict, templating allowed',
       type: FormItemType.TextArea,
       extra: {
         rows: 5,
@@ -124,7 +156,7 @@ export const form: { name: string; fields: FormItem[] } = {
       name: 'data',
       getDisabled: (form_data) => Boolean(form_data?.forward_whole_payload),
       type: FormItemType.TextArea,
-      description: 'Available variables: {{ alert_payload }}, {{ alert_group_id }}, {{ responses }}',
+      description: 'Available variables: {{ alert_payload }}, {{ alert_group_id }}',
       extra: {
         rows: 9,
       },
@@ -133,7 +165,7 @@ export const form: { name: string; fields: FormItem[] } = {
       name: 'forward_all',
       normalize: (value) => Boolean(value),
       type: FormItemType.Switch,
-      description: "Forwards whole payload of the alert to the webhook's url as data",
+      description: "Forwards whole payload of the alert to the webhook's url as POST data",
     },
   ],
 };

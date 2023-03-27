@@ -216,11 +216,11 @@ def _get_fcm_message(alert_group, user, registration_id, critical):
                         "interruption-level": "critical" if critical else "time-sensitive",
                     },
                 ),
-                headers={
-                    # From the docs
-                    # https://firebase.google.com/docs/cloud-messaging/concept-options#setting-the-priority-of-a-message
-                    "apns-priority": "10",
-                },
             ),
+            headers={
+                # From the docs
+                # https://firebase.google.com/docs/cloud-messaging/concept-options#setting-the-priority-of-a-message
+                "apns-priority": "10",
+            },
         ),
     )
