@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Drawers with Forms are not closing by clicking outside of the drawer. Only by clicking Cancel or X ([1493](https://github.com/grafana/oncall/issues/1493))
 - When the `DANGEROUS_WEBHOOKS_ENABLED` environment variable is set to true, it's possible now to create Outgoing Webhooks
   using URLs without a top-level domain ([1266](https://github.com/grafana/oncall/pull/1266))
 - Updated wording when creating an integration ([1572](https://github.com/grafana/oncall/pull/1572))
