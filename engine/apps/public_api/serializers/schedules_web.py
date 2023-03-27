@@ -49,7 +49,7 @@ class ScheduleWebSerializer(ScheduleBaseSerializer):
 
 class ScheduleWebUpdateSerializer(ScheduleWebSerializer):
     time_zone = TimeZoneField(required=False)
-    team_id = TeamPrimaryKeyRelatedField(read_only=True, source="team")
+    team_id = TeamPrimaryKeyRelatedField(source="team")
 
     class Meta:
         model = OnCallScheduleWeb

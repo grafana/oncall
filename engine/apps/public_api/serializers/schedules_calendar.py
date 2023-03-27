@@ -60,7 +60,7 @@ class ScheduleCalendarSerializer(ScheduleBaseSerializer):
 
 class ScheduleCalendarUpdateSerializer(ScheduleCalendarSerializer):
     time_zone = TimeZoneField(required=False)
-    team_id = TeamPrimaryKeyRelatedField(read_only=True, source="team")
+    team_id = TeamPrimaryKeyRelatedField(source="team")
 
     class Meta:
         model = OnCallScheduleCalendar

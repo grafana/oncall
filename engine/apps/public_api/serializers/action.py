@@ -93,7 +93,7 @@ class ActionCreateSerializer(serializers.ModelSerializer):
 
 
 class ActionUpdateSerializer(ActionCreateSerializer):
-    team_id = TeamPrimaryKeyRelatedField(source="team", read_only=True)
+    team_id = TeamPrimaryKeyRelatedField(source="team")
     url = serializers.CharField(required=False, allow_null=False, allow_blank=False, source="webhook")
 
     class Meta(ActionCreateSerializer.Meta):

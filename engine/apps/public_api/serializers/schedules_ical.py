@@ -34,7 +34,7 @@ class ScheduleICalSerializer(ScheduleBaseSerializer):
 
 
 class ScheduleICalUpdateSerializer(ScheduleICalSerializer):
-    team_id = TeamPrimaryKeyRelatedField(read_only=True, source="team")
+    team_id = TeamPrimaryKeyRelatedField(source="team")
 
     class Meta:
         model = OnCallScheduleICal

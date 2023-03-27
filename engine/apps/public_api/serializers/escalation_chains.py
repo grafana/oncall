@@ -21,4 +21,4 @@ class EscalationChainSerializer(serializers.ModelSerializer):
 
 
 class EscalationChainUpdateSerializer(EscalationChainSerializer):
-    team_id = TeamPrimaryKeyRelatedField(source="team", read_only=True)
+    team_id = TeamPrimaryKeyRelatedField(source="team")
