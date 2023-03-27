@@ -6,7 +6,7 @@ twilio~=6.37.0
 phonenumbers==8.10.0
 django-ordered-model==3.1.1
 celery[amqp,redis]==5.2.7
-redis==3.4.1
+redis==4.5.3
 humanize==0.5.1
 uwsgi==2.0.20
 django-cors-headers==3.7.0
