@@ -1,10 +1,5 @@
 name: Linting and Unit/e2e Tests
 
-# TODO:
-# run tests in oncall-private repo
-# add a function to globalSetup.ts which ensures there are a viewer, editor, and admin that
-# we are able to login as on the configured grafana stack
-
 on:
   push:
     branches:
