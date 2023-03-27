@@ -22,15 +22,16 @@ const assertEscalationChainSearchWorks = async (
 
 test('searching allows case-insensitive partial matches', async ({ page }) => {
   const escalationChainName = `${generateRandomValue()} ${generateRandomValue()}`;
-  const [firstHalf, secondHalf] = escalationChainName.split(' ');
+  // const [firstHalf, secondHalf] = escalationChainName.split(' ');
 
   await createEscalationChain(page, escalationChainName);
 
-  await assertEscalationChainSearchWorks(page, firstHalf, escalationChainName);
-  await assertEscalationChainSearchWorks(page, firstHalf.toUpperCase(), escalationChainName);
-  await assertEscalationChainSearchWorks(page, firstHalf.toLowerCase(), escalationChainName);
-
-  await assertEscalationChainSearchWorks(page, secondHalf, escalationChainName);
-  await assertEscalationChainSearchWorks(page, secondHalf.toUpperCase(), escalationChainName);
-  await assertEscalationChainSearchWorks(page, secondHalf.toLowerCase(), escalationChainName);
+  // Commented as this search doesn't exist anymore TODO: add tests for the new filtering
+  // await assertEscalationChainSearchWorks(page, firstHalf, escalationChainName);
+  // await assertEscalationChainSearchWorks(page, firstHalf.toUpperCase(), escalationChainName);
+  // await assertEscalationChainSearchWorks(page, firstHalf.toLowerCase(), escalationChainName);
+  //
+  // await assertEscalationChainSearchWorks(page, secondHalf, escalationChainName);
+  // await assertEscalationChainSearchWorks(page, secondHalf.toUpperCase(), escalationChainName);
+  // await assertEscalationChainSearchWorks(page, secondHalf.toLowerCase(), escalationChainName);
 });

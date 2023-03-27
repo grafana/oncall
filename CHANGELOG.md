@@ -7,6 +7,35 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+### Changed
+
+- Drawers with Forms are not closing by clicking outside of the drawer. Only by clicking Cancel or X ([1493](https://github.com/grafana/oncall/issues/1493))
+- When the `DANGEROUS_WEBHOOKS_ENABLED` environment variable is set to true, it's possible now to create Outgoing Webhooks
+  using URLs without a top-level domain ([1266](https://github.com/grafana/oncall/pull/1266))
+- Updated wording when creating an integration ([1572](https://github.com/grafana/oncall/pull/1572))
+- Set FCM iOS/Android "message priority" to "high priority" for mobile app push notifications ([1612](https://github.com/grafana/oncall/pull/1612))
+- Improve schedule quality feature (by @vadimkerr in [#1602](https://github.com/grafana/oncall/pull/1602))
+
+### Fixed
+
+- Update override deletion changes to set its final duration
+
+## v1.2.1 (2023-03-23)
+
+### Changed
+
+- Mobile app settings backend by @vadimkerr in ([1571](https://github.com/grafana/oncall/pull/1571))
+- Fix integrations and escalations autoselect, improve GList by @maskin25 in ([1601](https://github.com/grafana/oncall/pull/1601))
+- Add filters to outgoing webhooks 2 by @iskhakov in ([1598](https://github.com/grafana/oncall/pull/1598))
+
+## v1.2.0 (2023-03-21)
+
+### Changed
+
+- Add team-based filtering for resources, so that users can see multiple resources at once and link them together ([1528](https://github.com/grafana/oncall/pull/1528))
+
+## v1.1.41 (2023-03-21)
+
 ### Added
 
 - Modified `check_escalation_finished_task` celery task to use read-only databases for its query, if one is defined +

@@ -1,6 +1,7 @@
 import { action, observable } from 'mobx';
 
 import BaseStore from 'models/base_store';
+import { OutgoingWebhook } from 'models/outgoing_webhook/outgoing_webhook.types';
 import { makeRequest } from 'network';
 import { RootStore } from 'state';
 
@@ -52,9 +53,11 @@ export class OutgoingWebhook2Store extends BaseStore {
   }
 
   @action
-  async updateItems(query = '') {
+  async updateItems(query: any = '') {
+    const params = typeof query === 'string' ? { search: query } : query;
+
     const results = await makeRequest(`${this.path}`, {
-      params: { search: query },
+      params,
     });
 
     this.items = {
@@ -68,9 +71,11 @@ export class OutgoingWebhook2Store extends BaseStore {
       ),
     };
 
+    const key = typeof query === 'string' ? query : '';
+
     this.searchResult = {
       ...this.searchResult,
-      [query]: results.map((item: OutgoingWebhook2) => item.id),
+      [key]: results.map((item: OutgoingWebhook) => item.id),
     };
   }
 

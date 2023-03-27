@@ -81,8 +81,10 @@ export class AlertReceiveChannelStore extends BaseStore {
   }
 
   @action
-  async updateItems(query = '') {
-    const result = await this.getAll(query);
+  async updateItems(query: any = '') {
+    const params = typeof query === 'string' ? { search: query } : query;
+
+    const result = await makeRequest(this.path, { params });
 
     this.items = {
       ...this.items,
@@ -124,6 +126,8 @@ export class AlertReceiveChannelStore extends BaseStore {
     };
 
     this.updateCounters();
+
+    return result;
   }
 
   @action

@@ -151,7 +151,7 @@ export const Root = observer((props: AppRootProps) => {
               <Integrations query={query} />
             </Route>
             <Route path={getRoutesForPage('escalations')} exact>
-              <EscalationChains />
+              <EscalationChains query={query} />
             </Route>
             <Route path={getRoutesForPage('schedules')} exact>
               <Schedules query={query} />
@@ -160,7 +160,7 @@ export const Root = observer((props: AppRootProps) => {
               <Schedule />
             </Route>
             <Route path={getRoutesForPage('outgoing_webhooks')} exact>
-              <OutgoingWebhooks />
+              <OutgoingWebhooks query={query} />
             </Route>
             <Route path={getRoutesForPage('outgoing_webhooks_2')} exact>
               <OutgoingWebhooks2 />

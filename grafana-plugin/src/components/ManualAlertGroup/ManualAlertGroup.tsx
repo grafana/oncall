@@ -27,7 +27,7 @@ const ManualAlertGroup: FC<ManualAlertGroupProps> = (props) => {
   const [userResponders, setUserResponders] = useState([]);
   const [scheduleResponders, setScheduleResponders] = useState([]);
   const { onHide, onCreate } = props;
-  const data = {};
+  const data = { team: store.userStore.currentUser?.current_team };
 
   const handleFormSubmit = async (data) => {
     store.directPagingStore
@@ -51,7 +51,7 @@ const ManualAlertGroup: FC<ManualAlertGroupProps> = (props) => {
 
   return (
     <>
-      <Drawer scrollableContent title="Create manual alert group" onClose={onHide} closeOnMaskClick>
+      <Drawer scrollableContent title="Create manual alert group" onClose={onHide} closeOnMaskClick={false}>
         <VerticalGroup spacing="lg">
           <EscalationVariants
             value={{ userResponders, scheduleResponders }}
