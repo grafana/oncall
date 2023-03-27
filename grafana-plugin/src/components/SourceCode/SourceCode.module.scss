@@ -1,6 +1,11 @@
 .root {
   position: relative;
   width: 100%;
+
+  &:hover .copyButton,
+  &:hover .copyIcon {
+    opacity: 1;
+  }
 }
 
 .scroller {
@@ -19,12 +24,5 @@
   top: 15px;
   right: 15px;
   transition: opacity 0.2s ease;
-}
-
-.copyButton {
   opacity: 0;
-}
-
-.root:hover .copyButton {
-  opacity: 1;
 }

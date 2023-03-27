@@ -107,7 +107,7 @@ const GSelect = observer((props: GSelectProps) => {
   };
 
   const values = isMulti
-    ? (value as string[])
+    ? (value ? (value as string[]) : [])
         .filter((id) => id in model.items)
         .map((id: string) => ({
           value: id,
@@ -127,7 +127,7 @@ const GSelect = observer((props: GSelectProps) => {
   useEffect(() => {
     const values = isMulti ? value : [value];
 
-    (values as string[]).forEach((value: string) => {
+    (values ? (values as string[]) : []).forEach((value: string) => {
       if (!isNil(value) && !model.items[value] && model.updateItem) {
         model.updateItem(value, true);
       }
