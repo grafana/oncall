@@ -6,7 +6,6 @@ from rest_framework.viewsets import ModelViewSet
 from apps.alerts.models import EscalationChain
 from apps.auth_token.auth import ApiTokenAuthentication
 from apps.public_api.serializers import EscalationChainSerializer
-from apps.public_api.serializers.escalation_chains import EscalationChainUpdateSerializer
 from apps.public_api.throttlers.user_throttle import UserThrottle
 from common.api_helpers.filters import ByTeamFilter
 from common.api_helpers.mixins import RateLimitHeadersMixin, UpdateSerializerMixin
@@ -22,7 +21,7 @@ class EscalationChainView(RateLimitHeadersMixin, UpdateSerializerMixin, ModelVie
 
     model = EscalationChain
     serializer_class = EscalationChainSerializer
-    update_serializer_class = EscalationChainUpdateSerializer
+    update_serializer_class = EscalationChainSerializer
 
     pagination_class = FiftyPageSizePaginator
 
