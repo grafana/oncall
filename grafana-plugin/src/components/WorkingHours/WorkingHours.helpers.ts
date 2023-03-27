@@ -126,7 +126,7 @@ export const isInWorkingHours = (currentMoment: dayjs.Dayjs, workingHours, timez
         return true 
       }
       else {
-        return false
+        continue
       }
     }
   }

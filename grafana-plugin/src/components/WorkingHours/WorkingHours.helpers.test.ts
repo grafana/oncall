@@ -41,6 +41,16 @@ describe('Is in working hours', () => {
         expect(isInWorkingHours(currentMoment, workingHours, 'Europe/Amsterdam')).toBeFalsy();
     });
 
+    test('Returns true when it is complex Working hours schedule', () => {
+        const workingHours =  
+        {monday: [{start: "09:00:00", end: "13:00:00"}, {start: "14:00:00", end: "18:00:00"}], tuesday: [{start: "09:00:00", end: "13:00:00"}, {start: "14:00:00", end: "18:00:00"}],
+        wednesday: [{start: "09:00:00", end: "13:00:00"}, {start: "14:00:00", end: "18:00:00"}], thursday: [{start: "09:00:00", end: "13:00:00"}, {start: "14:00:00", end: "18:00:00"}],
+        friday: [{start: "09:00:00", end: "13:00:00"}, {start: "14:00:00", end: "18:00:00"}], saturday:[{start: "09:00:00", end: "13:00:00"}, {start: "14:00:00", end: "18:00:00"}],
+        sunday:[{start: "09:00:00", end: "13:00:00"}, {start: "14:00:00", end: "18:00:00"}]};
+
+        expect(isInWorkingHours(currentMoment, workingHours, 'Europe/Amsterdam')).toBeTruthy();
+    });
+
     
     
   });
