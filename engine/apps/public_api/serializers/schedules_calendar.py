@@ -11,7 +11,6 @@ from common.timezones import TimeZoneField
 
 
 class ScheduleCalendarSerializer(ScheduleBaseSerializer):
-    team_id = TeamPrimaryKeyRelatedField(required=False, allow_null=True, source="team")
     time_zone = TimeZoneField(required=True)
     shifts = UsersFilteredByOrganizationField(
         queryset=CustomOnCallShift.objects,
