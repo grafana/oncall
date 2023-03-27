@@ -27,7 +27,7 @@ const ManualAlertGroup: FC<ManualAlertGroupProps> = (props) => {
   const [userResponders, setUserResponders] = useState([]);
   const [scheduleResponders, setScheduleResponders] = useState([]);
   const { onHide, onCreate } = props;
-  const data = {};
+  const data = { team: store.userStore.currentUser?.current_team };
 
   const handleFormSubmit = async (data) => {
     store.directPagingStore
