@@ -9,6 +9,7 @@ import { observer } from 'mobx-react';
 import { useStore } from 'state/useStore';
 
 import styles from './GSelect.module.css';
+// import { debounce } from 'lodash';
 
 const cx = cn.bind(styles);
 
@@ -30,7 +31,6 @@ interface GSelectProps {
   showWarningIfEmptyValue?: boolean;
   showError?: boolean;
   nullItemName?: string;
-  fromOrganization?: boolean;
   filterOptions?: (id: any) => boolean;
   dropdownRender?: (menu: ReactElement) => ReactElement;
   getOptionLabel?: <T>(item: SelectableValue<T>) => React.ReactNode;
@@ -61,7 +61,6 @@ const GSelect = observer((props: GSelectProps) => {
     showWarningIfEmptyValue = false,
     getDescription,
     filterOptions,
-    // fromOrganization,
     width = null,
     icon = null,
   } = props;
@@ -89,6 +88,11 @@ const GSelect = observer((props: GSelectProps) => {
     [model, onChange]
   );
 
+  /**
+   * without debouncing this function when search is available
+   * we risk hammering the API endpoint for every single key stroke
+   * some context on 250ms as the choice here - https://stackoverflow.com/a/44755058/3902555
+   */
   const loadOptions = (query: string) => {
     return model.updateItems(query).then(() => {
       const searchResult = model.getSearchResult(query);
@@ -105,6 +109,9 @@ const GSelect = observer((props: GSelectProps) => {
       }));
     });
   };
+
+  // TODO: why doesn't this work properly?
+  // const loadOptions = debounce(_loadOptions, showSearch ? 250 : 0);
 
   const values = isMulti
     ? (value ? (value as string[]) : [])
