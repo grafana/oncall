@@ -237,7 +237,7 @@ def test_fcm_message_user_settings(
 
     # Check APNS notification sound is set correctly
     apns_sound = message.apns.payload.aps.sound
-    assert apns_sound.critical == 0
+    assert apns_sound.critical is False
     assert apns_sound.name == "default_sound.aiff"
     assert apns_sound.volume is None  # APNS doesn't allow to specify volume for non-critical notifications
 
@@ -267,7 +267,7 @@ def test_fcm_message_user_settings_critical(
 
     # Check APNS notification sound is set correctly
     apns_sound = message.apns.payload.aps.sound
-    assert apns_sound.critical == 1
+    assert apns_sound.critical is True
     assert apns_sound.name == "default_sound_important.aiff"
     assert apns_sound.volume == 0.8
     assert message.apns.payload.aps.custom_data["interruption-level"] == "critical"
@@ -293,5 +293,5 @@ def test_fcm_message_user_settings_critical_override_dnd_disabled(
 
     # Check APNS notification sound is set correctly
     apns_sound = message.apns.payload.aps.sound
-    assert apns_sound.critical == 0
+    assert apns_sound.critical is False
     assert message.apns.payload.aps.custom_data["interruption-level"] == "time-sensitive"
