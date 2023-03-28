@@ -15,6 +15,7 @@ import { isUserActionAllowed, UserActions } from 'utils/authorization';
 import { SettingsPageTab } from './SettingsPage.types';
 import CloudPage from './tabs/Cloud/CloudPage';
 import LiveSettingsPage from './tabs/LiveSettings/LiveSettingsPage';
+import TeamsSettings from './tabs/TeamsSettings/TeamsSettings';
 
 import styles from './SettingsPage.module.css';
 
@@ -65,6 +66,12 @@ class SettingsPage extends React.Component<SettingsPageProps, SettingsPageState>
               onChangeTab={() => onTabChange(SettingsPageTab.ChatOps.key)}
               active={activeTab === SettingsPageTab.ChatOps.key}
               label={SettingsPageTab.ChatOps.value}
+            />
+            <Tab
+              key={SettingsPageTab.TeamsSettings.key}
+              onChangeTab={() => onTabChange(SettingsPageTab.TeamsSettings.key)}
+              active={activeTab === SettingsPageTab.TeamsSettings.key}
+              label={SettingsPageTab.TeamsSettings.value}
             />
             {showLiveSettings && (
               <Tab
@@ -126,6 +133,11 @@ const TabsContent = (props: TabsContentProps) => {
       {activeTab === SettingsPageTab.MainSettings.key && (
         <div className={cx('tab__page')}>
           <MainSettings />
+        </div>
+      )}
+      {activeTab === SettingsPageTab.TeamsSettings.key && (
+        <div className={cx('tab__page')}>
+          <TeamsSettings />
         </div>
       )}
       {activeTab === SettingsPageTab.ChatOps.key && (

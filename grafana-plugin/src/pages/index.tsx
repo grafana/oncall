@@ -93,6 +93,14 @@ export const pages: { [id: string]: PageDefinition } = [
     action: UserActions.SchedulesRead,
   },
   {
+    icon: 'link',
+    id: 'outgoing_webhooks',
+    text: 'Outgoing Webhooks',
+    path: getPath('outgoing_webhooks'),
+    hideFromBreadcrumbs: true,
+    action: UserActions.OutgoingWebhooksRead,
+  },
+  {
     icon: 'comments-alt',
     id: 'chat-ops',
     text: 'ChatOps',
@@ -101,14 +109,7 @@ export const pages: { [id: string]: PageDefinition } = [
     hideFromTabs: isTopNavbar(),
     action: UserActions.ChatOpsRead,
   },
-  {
-    icon: 'link',
-    id: 'outgoing_webhooks',
-    text: 'Outgoing Webhooks',
-    path: getPath('outgoing_webhooks'),
-    hideFromBreadcrumbs: true,
-    action: UserActions.OutgoingWebhooksRead,
-  },
+
   {
     icon: 'wrench',
     id: 'maintenance',

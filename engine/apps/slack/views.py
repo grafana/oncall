@@ -540,20 +540,25 @@ class ResetSlackView(APIView):
     }
 
     def post(self, request):
-        organization = request.auth.organization
-        slack_team_identity = organization.slack_team_identity
-        if slack_team_identity is not None:
-            clean_slack_integration_leftovers.apply_async((organization.pk,))
-            if settings.FEATURE_MULTIREGION_ENABLED:
-                delete_slack_connector(str(organization.uuid))
-            write_chatops_insight_log(
-                author=request.user,
-                event_name=ChatOpsEvent.WORKSPACE_DISCONNECTED,
-                chatops_type=ChatOpsType.SLACK,
+        if settings.SLACK_INTEGRATION_MAINTENANCE_ENABLED:
+            response = Response(
+                "Grafana OnCall is temporary unable to connect your slack account or install OnCall to your slack workspace",
+                status=400,
             )
-            unpopulate_slack_user_identities(organization.pk, True)
-            response = Response(status=200)
         else:
-            response = Response(status=400)
-
+            organization = request.auth.organization
+            slack_team_identity = organization.slack_team_identity
+            if slack_team_identity is not None:
+                clean_slack_integration_leftovers.apply_async((organization.pk,))
+                if settings.FEATURE_MULTIREGION_ENABLED:
+                    delete_slack_connector(str(organization.uuid))
+                write_chatops_insight_log(
+                    author=request.user,
+                    event_name=ChatOpsEvent.WORKSPACE_DISCONNECTED,
+                    chatops_type=ChatOpsType.SLACK,
+                )
+                unpopulate_slack_user_identities(organization.pk, True)
+                response = Response(status=200)
+            else:
+                response = Response(status=400)
         return response
