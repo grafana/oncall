@@ -74,13 +74,14 @@ steps:
   - name: Unit Test Backend
     image: python:3.9
     environment:
+      RABBITMQ_URI: amqp://rabbitmq:rabbitmq@rabbit_test:5672
       DJANGO_SETTINGS_MODULE: settings.ci-test
       SLACK_CLIENT_OAUTH_ID: 1
     commands:
       - apt-get update && apt-get install -y netcat
       - cd engine/
       - pip install -r requirements.txt
-      - ./wait_for_test_mysql_start.sh && pytest --ds=settings.ci-test
+      - ./wait_for_test_mysql_start.sh && pytest
     depends_on:
       - rabbit_test
 
@@ -165,6 +166,7 @@ trigger:
       - refs/heads/main
       - refs/heads/dev
       - refs/tags/v*.*.*
+      - refs/jorlando/fix-drone-ci-builds
 
 ---
 kind: pipeline
@@ -418,5 +420,3 @@ name: drone_token
 ---
 kind: signature
 hmac: 5c81e5876fecd6c48a184aff583c98db5d1055a07cad1dc2aaac8a6722921c63
-
-...
