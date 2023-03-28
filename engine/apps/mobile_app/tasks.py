@@ -141,6 +141,10 @@ def _get_fcm_message(alert_group, user, registration_id, critical):
 
     mobile_app_user_settings, _ = MobileAppUserSettings.objects.get_or_create(user=user)
 
+    # critical defines the type of notification.
+    # we use overrideDND to establish if the notification should sound even if DND is on
+    overrideDND = critical and mobile_app_user_settings.important_notification_override_dnd
+
     # APNS only allows to specify volume for critical notifications
     apns_volume = mobile_app_user_settings.important_notification_volume if critical else None
     apns_sound_name = (
@@ -208,12 +212,12 @@ def _get_fcm_message(alert_group, user, registration_id, critical):
                     alert=ApsAlert(title=alert_title, subtitle=alert_subtitle, body=alert_body),
                     sound=CriticalSound(
                         # The notification shouldn't be critical if the user has disabled "override DND" setting
-                        critical=(critical and mobile_app_user_settings.important_notification_override_dnd),
+                        critical=overrideDND,
                         name=apns_sound_name,
                         volume=apns_volume,
                     ),
                     custom_data={
-                        "interruption-level": "critical" if critical else "time-sensitive",
+                        "interruption-level": "critical" if overrideDND else "time-sensitive",
                     },
                 ),
             ),
