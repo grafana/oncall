@@ -11,6 +11,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Addressed bug with iOS mobile push notifications always being set to critical by @imtoori and @joeyorlando ([#1646](https://github.com/grafana/oncall/pull/1646))
 
+## v1.2.3 (2023-03-28)
+
+Only some minor performance/developer setup changes to report in this version.
+
 ## v1.2.2 (2023-03-27)
 
 ### Changed
