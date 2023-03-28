@@ -208,7 +208,9 @@ def _get_fcm_message(alert_group, user, registration_id, critical):
                     alert=ApsAlert(title=alert_title, subtitle=alert_subtitle, body=alert_body),
                     sound=CriticalSound(
                         # The notification shouldn't be critical if the user has disabled "override DND" setting
-                        critical=1 if (critical and mobile_app_user_settings.important_notification_override_dnd) else 0,
+                        critical=1
+                        if (critical and mobile_app_user_settings.important_notification_override_dnd)
+                        else 0,
                         name=apns_sound_name,
                         volume=apns_volume,
                     ),
