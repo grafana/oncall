@@ -52,6 +52,7 @@ if settings.PYROSCOPE_PROFILER_ENABLED:
                 application_name=settings.PYROSCOPE_APPLICATION_NAME,
                 server_address=settings.PYROSCOPE_SERVER_ADDRESS,
                 auth_token=settings.PYROSCOPE_AUTH_TOKEN,
+                detect_subprocesses=True,
                 tags={"type": "uwsgi"},
             )
 
