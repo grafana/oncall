@@ -21,7 +21,7 @@ def get_random_readonly_database_key_if_present_otherwise_default() -> str:
 def NON_POLYMORPHIC_SET_NULL(collector, field, sub_objs, using):
     """
     django-polymorphic has a bug where it doesn't properly handle the `on_delete` argument:
-    https://github.com/django-polymorphic/django-polymorphic/issues/229#issuecomment-379084407.
+    https://github.com/django-polymorphic/django-polymorphic/issues/229#issuecomment-398434412.
     This is a workaround that uses the same code as the original `SET_NULL` function, but with the
     `non_polymorphic()` function applied to the `sub_objs` queryset.
     """
@@ -31,7 +31,7 @@ def NON_POLYMORPHIC_SET_NULL(collector, field, sub_objs, using):
 def NON_POLYMORPHIC_CASCADE(collector, field, sub_objs, using):
     """
     django-polymorphic has a bug where it doesn't properly handle the `on_delete` argument:
-    https://github.com/django-polymorphic/django-polymorphic/issues/229#issuecomment-379084407.
+    https://github.com/django-polymorphic/django-polymorphic/issues/229#issuecomment-398434412.
     This is a workaround that uses the same code as the original `CASCADE` function, but with the
     `non_polymorphic()` function applied to the `sub_objs` queryset.
     """

@@ -1126,7 +1126,7 @@ def test_polymorphic_delete_related(
     """
     Check that deleting related objects works as expected given that OnCallSchedule is a polymorphic model, and
     django-polymorphic has a bug with on_delete not working correctly for FKs:
-    https://github.com/django-polymorphic/django-polymorphic/issues/229#issuecomment-379084407.
+    https://github.com/django-polymorphic/django-polymorphic/issues/229#issuecomment-398434412.
     """
     organization, slack_team_identity = make_organization_with_slack_team_identity()
 
