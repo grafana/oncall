@@ -92,5 +92,5 @@ if settings.PYROSCOPE_PROFILER_ENABLED:
             server_address=settings.PYROSCOPE_SERVER_ADDRESS,
             auth_token=settings.PYROSCOPE_AUTH_TOKEN,
             detect_subprocesses=True,  # detect subprocesses started by the main process; default is False
-            tags={"type": "celery", "celery_worker": settings.CELERY_WORKER_QUEUE},
+            tags={"type": "celery", "celery_worker": os.environ.get("CELERY_WORKER_QUEUE", "no_queue_specified")},
         )
