@@ -7,18 +7,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+### Fixed
+
+- Addressed bug with iOS mobile push notifications always being set to critical by @imtoori and @joeyorlando ([#1646](https://github.com/grafana/oncall/pull/1646))
+
+## v1.2.3 (2023-03-28)
+
+Only some minor performance/developer setup changes to report in this version.
+
+## v1.2.2 (2023-03-27)
+
 ### Changed
 
-- Drawers with Forms are not closing by clicking outside of the drawer. Only by clicking Cancel or X ([1493](https://github.com/grafana/oncall/issues/1493))
+- Drawers with Forms are not closing by clicking outside of the drawer. Only by clicking Cancel or X (by @Ukochka in [#1608](https://github.com/grafana/oncall/pull/1608))
 - When the `DANGEROUS_WEBHOOKS_ENABLED` environment variable is set to true, it's possible now to create Outgoing Webhooks
-  using URLs without a top-level domain ([1266](https://github.com/grafana/oncall/pull/1266))
-- Updated wording when creating an integration ([1572](https://github.com/grafana/oncall/pull/1572))
-- Set FCM iOS/Android "message priority" to "high priority" for mobile app push notifications ([1612](https://github.com/grafana/oncall/pull/1612))
+  using URLs without a top-level domain (by @hoptical in [#1398](https://github.com/grafana/oncall/pull/1398))
+- Updated wording when creating an integration (by @callmehyde in [#1572](https://github.com/grafana/oncall/pull/1572))
+- Set FCM iOS/Android "message priority" to "high priority" for mobile app push notifications (by @joeyorlando in [#1612](https://github.com/grafana/oncall/pull/1612))
 - Improve schedule quality feature (by @vadimkerr in [#1602](https://github.com/grafana/oncall/pull/1602))
 
 ### Fixed
 
-- Update override deletion changes to set its final duration
+- Update override deletion changes to set its final duration (by @matiasb in [#1599](https://github.com/grafana/oncall/pull/1599))
 
 ## v1.2.1 (2023-03-23)
 
