@@ -1,4 +1,4 @@
-name: "Publish Technical Documentation (next)"
+name: "publish-technical-documentation-next"
 
 on:
   push:
