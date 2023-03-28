@@ -88,6 +88,38 @@ const ScheduleSlot: FC<ScheduleSlotProps> = observer((props) => {
             storeUser && onCallNow && onCallNow.some((onCallUser) => storeUser.pk === onCallUser.pk)
           );
 
+          const scheduleSlotContent = (
+            <div
+              className={cx('root', { root__inactive: inactive })}
+              style={{
+                backgroundColor: color,
+              }}
+              onMouseMove={trackMouse ? handleMouseMove : undefined}
+              onMouseLeave={trackMouse ? () => setMouseX(0) : undefined}
+            >
+              {trackMouse && mouseX > 0 && <div style={{ left: `${mouseX}px` }} className={cx('time')} />}
+              {storeUser && (
+                <WorkingHours
+                  className={cx('working-hours')}
+                  timezone={storeUser.timezone}
+                  workingHours={storeUser.working_hours}
+                  startMoment={start}
+                  duration={duration}
+                />
+              )}
+              <div className={cx('title')}>
+                {userIndex === 0 && label && (
+                  <div className={cx('label')} style={{ color }}>
+                    {label}
+                  </div>
+                )}
+                {title}
+              </div>
+            </div>
+          );
+
+          if (!storeUser) return scheduleSlotContent; // show without a tooltip as we're lacking user info
+
           return (
             <Tooltip
               key={userPk}
@@ -100,33 +132,7 @@ const ScheduleSlot: FC<ScheduleSlotProps> = observer((props) => {
                 />
               }
             >
-              <div
-                className={cx('root', { root__inactive: inactive })}
-                style={{
-                  backgroundColor: color,
-                }}
-                onMouseMove={trackMouse ? handleMouseMove : undefined}
-                onMouseLeave={trackMouse ? () => setMouseX(0) : undefined}
-              >
-                {trackMouse && mouseX > 0 && <div style={{ left: `${mouseX}px` }} className={cx('time')} />}
-                {storeUser && (
-                  <WorkingHours
-                    className={cx('working-hours')}
-                    timezone={storeUser.timezone}
-                    workingHours={storeUser.working_hours}
-                    startMoment={start}
-                    duration={duration}
-                  />
-                )}
-                <div className={cx('title')}>
-                  {userIndex === 0 && label && (
-                    <div className={cx('label')} style={{ color }}>
-                      {label}
-                    </div>
-                  )}
-                  {title}
-                </div>
-              </div>
+              {scheduleSlotContent}
             </Tooltip>
           );
         })
