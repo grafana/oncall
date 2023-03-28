@@ -163,7 +163,7 @@ export const Root = observer((props: AppRootProps) => {
               <OutgoingWebhooks query={query} />
             </Route>
             <Route path={getRoutesForPage('outgoing_webhooks_2')} exact>
-              <OutgoingWebhooks2 />
+              <OutgoingWebhooks2 query={query} />
             </Route>
             <Route path={getRoutesForPage('maintenance')} exact>
               <Maintenance query={query} />
