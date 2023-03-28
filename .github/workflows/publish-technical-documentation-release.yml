@@ -1,4 +1,4 @@
-name: "Publish Technical Documentation (release)"
+name: "publish-technical-documentation-release"
 
 on:
   push:

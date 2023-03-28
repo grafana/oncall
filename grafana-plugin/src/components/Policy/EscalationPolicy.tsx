@@ -297,6 +297,7 @@ export class EscalationPolicy extends React.Component<EscalationPolicyProps, any
           className={cx('select', 'control')}
           value={notify_schedule}
           onChange={this._getOnChangeHandler('notify_schedule')}
+          fromOrganization
           getOptionLabel={(item: SelectableValue) => {
             const team = teamStore.items[scheduleStore.items[item.value].team];
             return (
@@ -350,6 +351,7 @@ export class EscalationPolicy extends React.Component<EscalationPolicyProps, any
           className={cx('select', 'control')}
           value={custom_button_trigger}
           onChange={this._getOnChangeHandler('custom_button_trigger')}
+          fromOrganization
           getOptionLabel={(item: SelectableValue) => {
             const team = teamStore.items[outgoingWebhookStore.items[item.value].team];
             return (
