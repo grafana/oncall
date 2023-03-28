@@ -77,17 +77,12 @@ const ScheduleSlot: FC<ScheduleSlotProps> = observer((props) => {
           )}
         </div>
       ) : (
-        users.map(({ pk: userPk }, userIndex) => {
+        users.map(({ display_name, pk: userPk }, userIndex) => {
           const storeUser = store.userStore.items[userPk];
-
-          // TODO remove
-          if (!storeUser) {
-            store.userStore.updateItem(userPk);
-          }
 
           const inactive = false;
 
-          const title = getTitle(storeUser);
+          const title = storeUser ? getTitle(storeUser) : display_name;
 
           const isOncall = Boolean(
             storeUser && onCallNow && onCallNow.some((onCallUser) => storeUser.pk === onCallUser.pk)
