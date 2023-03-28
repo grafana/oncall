@@ -1,12 +1,12 @@
 import { Page } from '@playwright/test';
 import { GRAFANA_USERNAME } from './constants';
 import { clickButton, fillInInput, selectDropdownValue, selectValuePickerValue } from './forms';
-import { goToOnCallPage } from './navigation';
+import { OnCallPage, goToOnCallPage } from './navigation';
 import dayjs from 'dayjs';
 
 export const createOnCallSchedule = async (page: Page, scheduleName: string): Promise<void> => {
   // go to the schedules page
-  await goToOnCallPage(page, 'schedules');
+  await goToOnCallPage(page, OnCallPage.SCHEDULES);
 
   // create an oncall-rotation schedule
   await clickButton({ page, buttonText: 'New Schedule' });

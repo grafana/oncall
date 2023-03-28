@@ -2,7 +2,14 @@ import type { Page, Response } from '@playwright/test';
 import { BASE_URL } from './constants';
 
 type GrafanaPage = '/plugins/grafana-oncall-app';
-type OnCallPage = 'incidents' | 'integrations' | 'escalations' | 'schedules' | 'users';
+
+export enum OnCallPage {
+  INCIDENTS = 'incidents',
+  INTEGRATIONS = 'integrations',
+  ESCALATIONS = 'escalations',
+  SCHEDULES = 'schedules',
+  USERS = 'users',
+};
 
 const _goToPage = (page: Page, url = ''): Promise<Response> =>
   page.goto(`${BASE_URL}${url}`, { waitUntil: 'networkidle' });

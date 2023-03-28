@@ -1,12 +1,12 @@
 import { Page } from '@playwright/test';
 import { clickButton, fillInInput, selectDropdownValue } from './forms';
-import { goToOnCallPage } from './navigation';
+import { OnCallPage, goToOnCallPage } from './navigation';
 
 const CREATE_INTEGRATION_MODAL_TEST_ID_SELECTOR = 'div[data-testid="create-integration-modal"]';
 
 export const openCreateIntegrationModal = async (page: Page): Promise<void> => {
   // go to the integrations page
-  await goToOnCallPage(page, 'integrations');
+  await goToOnCallPage(page, OnCallPage.INTEGRATIONS);
 
   // open the create integration modal
   (await page.waitForSelector('text=New integration to receive alerts')).click();
