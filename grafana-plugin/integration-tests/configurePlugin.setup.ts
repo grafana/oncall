@@ -1,14 +1,6 @@
-import { chromium, FullConfig, expect, Page } from '@playwright/test';
+import { expect, Page } from '@playwright/test';
 
-import {
-  BASE_URL,
-  GRAFANA_PASSWORD,
-  GRAFANA_USERNAME,
-  GRAFANA_VIEWER_EMAIL,
-  GRAFANA_VIEWER_PASSWORD,
-  GRAFANA_VIEWER_USERNAME,
-} from './utils/constants';
-import { BASE_URL, GRAFANA_PASSWORD, GRAFANA_USERNAME, IS_OPEN_SOURCE, ONCALL_API_URL } from './utils/constants';
+import { IS_OPEN_SOURCE, ONCALL_API_URL } from './utils/constants';
 import { clickButton, getInputByName } from './utils/forms';
 import { goToGrafanaPage } from './utils/navigation';
 
@@ -42,17 +34,3 @@ export const configureOnCallPlugin = async (page: Page): Promise<void> => {
   // wait for the "Connected to OnCall" message to know that everything is properly configured
   await expect(page.getByTestId('status-message-block')).toHaveText(/Connected to OnCall.*/);
 };
-
-/**
- * Borrowed from our friends on the Incident team
- * https://github.com/grafana/incident/blob/main/plugin/e2e/global-setup.ts
- */
-const globalSetup = async (config: FullConfig): Promise<void> => {
-  const { headless } = config.projects[0]!.use;
-  const browser = await chromium.launch({ headless, slowMo: headless ? 0 : 100 });
-  const browserContext = await browser.newContext();
-  await configureOnCallPlugin(page);
-  await browserContext.close();
-};
-
-export default globalSetup;

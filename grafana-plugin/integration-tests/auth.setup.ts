@@ -8,6 +8,7 @@ import {
   GRAFANA_VIEWER_USERNAME,
 } from './utils/constants';
 import config from '../playwright.config';
+import { configureOnCallPlugin } from './configurePlugin.setup';
 
 export const ADMIN_FILE = './adminState.json';
 export const VIEWER_FILE = './viewerState.json';
@@ -23,6 +24,9 @@ setup('authenticate as admin', async ({ page }) => {
 
   await page.context().storageState({ path: ADMIN_FILE });
   await browserContext.storageState({ path: ADMIN_FILE });
+
+  await configureOnCallPlugin(page);
+
   await browserContext.close();
 });
 
@@ -51,6 +55,7 @@ setup('authenticate as viewer', async ({ page }) => {
 
   await page.context().storageState({ path: VIEWER_FILE });
   await browserContext.storageState({ path: VIEWER_FILE });
+
   await browserContext.close();
 });
 

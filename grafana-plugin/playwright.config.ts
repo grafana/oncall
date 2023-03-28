@@ -12,7 +12,7 @@ require('dotenv').config();
  */
 const config: PlaywrightTestConfig = {
   testDir: './integration-tests',
-  globalSetup: './integration-tests/globalSetup.ts',
+  // globalSetup: './integration-tests/globalSetup.ts',
   /* Maximum time one test can run for. */
   // TODO: set this back to 60 when GSelect component is refactored
   timeout: 90 * 1000,
