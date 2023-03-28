@@ -104,7 +104,13 @@ const ICalConnector = (props: ICalConnectorProps) => {
               </>
             ) : (
               <WithPermissionControlTooltip userAction={UserActions.UserSettingsWrite}>
-                <Button icon="plus" onClick={handleCreateiCalLink} className={cx('iCal-button')} variant="secondary" data-testid="create-ical-link">
+                <Button
+                  icon="plus"
+                  onClick={handleCreateiCalLink}
+                  className={cx('iCal-button')}
+                  variant="secondary"
+                  data-testid="create-ical-link"
+                >
                   Create iCal link
                 </Button>
               </WithPermissionControlTooltip>
