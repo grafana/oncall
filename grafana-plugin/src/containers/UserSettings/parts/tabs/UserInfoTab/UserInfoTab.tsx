@@ -36,11 +36,11 @@ export const UserInfoTab = (props: UserInfoTabProps) => {
       </div>
       <div className={cx('user-item')}>
         <Label>Username:</Label>
-        <span className={cx('user-value')}>{storeUser.username || '—'}</span>
+        <span className={cx('user-value')} data-testid="user-username">{storeUser.username || '—'}</span>
       </div>
       <div className={cx('user-item')}>
         <Label>Email:</Label>
-        <span className={cx('user-value')}>{storeUser.email || '—'}</span>
+        <span className={cx('user-value')} data-testid="user-email">{storeUser.email || '—'}</span>
       </div>
       <Connectors {...props} />
     </>

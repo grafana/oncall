@@ -95,7 +95,7 @@ const ScheduleICalSettings: FC<ScheduleICalSettingsProps> = observer((props) => 
               )}
             </>
           ) : (
-            <Button icon="plus" onClick={handleCreateICalLink} variant="secondary">
+            <Button icon="plus" onClick={handleCreateICalLink} variant="secondary" data-testid="create-ical-link">
               Create iCal link
             </Button>
           )}

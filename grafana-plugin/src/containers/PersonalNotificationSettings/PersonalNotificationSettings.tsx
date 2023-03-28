@@ -156,7 +156,7 @@ const PersonalNotificationSettings = observer((props: PersonalNotificationSettin
         <Timeline.Item number={notificationPolicies.length + 1} color={getColor(notificationPolicies.length)}>
           <div className={cx('step')}>
             <WithPermissionControlTooltip userAction={userAction}>
-              <Button icon="plus" variant="secondary" fill="text" onClick={getAddNotificationPolicyHandler()}>
+              <Button icon="plus" variant="secondary" fill="text" onClick={getAddNotificationPolicyHandler()} data-testid="add-notification-step">
                 Add Notification Step
               </Button>
             </WithPermissionControlTooltip>
