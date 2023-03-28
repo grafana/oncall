@@ -10,7 +10,7 @@ dayjs.extend(isBetween);
 import { isInWorkingHours } from './WorkingHours.helpers';
 
 describe('Is in working hours', () => {
-  const currentMoment = dayjs('2023-03-27 14:57').tz('Europe/Amsterdam').utc();
+  const currentMoment = dayjs('2023-03-27 14:57');
 
   test('Returns true when it is in working hours', () => {
     const workingHours = {
@@ -22,7 +22,7 @@ describe('Is in working hours', () => {
       saturday: [{ end: '17:00:00', start: '09:00:00' }],
       sunday: [{ end: '17:00:00', start: '09:00:00' }],
     };
-    expect(isInWorkingHours(currentMoment, workingHours, 'Europe/Amsterdam')).toBeTruthy();
+    expect(isInWorkingHours(currentMoment, workingHours, dayjs.tz.guess())).toBeTruthy();
   });
 
   test('Returns false when it is NOT in working hours', () => {
@@ -35,7 +35,7 @@ describe('Is in working hours', () => {
       saturday: [{ end: '14:00:00', start: '09:00:00' }],
       sunday: [{ end: '14:00:00', start: '09:00:00' }],
     };
-    expect(isInWorkingHours(currentMoment, workingHours, 'Europe/Amsterdam')).toBeFalsy();
+    expect(isInWorkingHours(currentMoment, workingHours, dayjs.tz.guess())).toBeFalsy();
   });
 
   test('Returns false when it is complex Working hours schedule', () => {
@@ -70,7 +70,7 @@ describe('Is in working hours', () => {
       ],
     };
 
-    expect(isInWorkingHours(currentMoment, workingHours, 'Europe/Amsterdam')).toBeFalsy();
+    expect(isInWorkingHours(currentMoment, workingHours, dayjs.tz.guess())).toBeFalsy();
   });
 
   test('Returns true when it is complex Working hours schedule', () => {
@@ -105,6 +105,6 @@ describe('Is in working hours', () => {
       ],
     };
 
-    expect(isInWorkingHours(currentMoment, workingHours, 'Europe/Amsterdam')).toBeTruthy();
+    expect(isInWorkingHours(currentMoment, workingHours, dayjs.tz.guess())).toBeTruthy();
   });
 });
