@@ -1947,7 +1947,7 @@ class AlertGroup(AlertGroupSlackRenderingMixin, EscalationSnapshotMixin, models.
 
 @receiver(post_save, sender=AlertGroup)
 def listen_for_alertgroup_model_save(sender, instance, created, *args, **kwargs):
-    if created and instance.maintenance_uuid is None:
+    if created and not instance.is_maintenance_incident
         MetricsExporterManager.metrics_update_state_cache_for_alert_group(instance.channel_id, new_state=STATE_NEW)
     elif kwargs is not None and "response_time" in kwargs.get("update_fields", {}):
         # todo:metrics: response_time period
