@@ -118,7 +118,9 @@ const ScheduleSlot: FC<ScheduleSlotProps> = observer((props) => {
             </div>
           );
 
-          if (!storeUser) return scheduleSlotContent; // show without a tooltip as we're lacking user info
+          if (!storeUser) {
+            return scheduleSlotContent;
+          } // show without a tooltip as we're lacking user info
 
           return (
             <Tooltip
