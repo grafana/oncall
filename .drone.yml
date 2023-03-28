@@ -166,7 +166,6 @@ trigger:
       - refs/heads/main
       - refs/heads/dev
       - refs/tags/v*.*.*
-      - refs/heads/jorlando/fix-drone-ci-builds
 
 ---
 kind: pipeline
