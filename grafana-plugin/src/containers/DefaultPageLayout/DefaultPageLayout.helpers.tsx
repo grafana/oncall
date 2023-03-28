@@ -40,5 +40,11 @@ export function getSlackMessage(slackError: SlackError, team: Team, hasLiveSetti
     );
   }
 
+  if (slackError === SlackError.REGION_ERROR) {
+    return (
+      <>Couldn't connect to Slack. Slack workspace has already been connected to OnCall instance in another region.</>
+    );
+  }
+
   return <>Couldn't connect Slack.</>;
 }

@@ -53,7 +53,7 @@ if settings.PYROSCOPE_PROFILER_ENABLED:
                 server_address=settings.PYROSCOPE_SERVER_ADDRESS,
                 auth_token=settings.PYROSCOPE_AUTH_TOKEN,
                 detect_subprocesses=True,
-                tags={"celery_worker": settings.PYROSCOPE_CELERY_WORKER_QUEUE},
+                tags={"type": "uwsgi"},
             )
 
     except ModuleNotFoundError:
