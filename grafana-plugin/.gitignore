@@ -20,3 +20,5 @@ frontend_enterprise
 /playwright-report/
 /playwright/.cache/
 storageState.json
+viewerState.json
+adminState.json
