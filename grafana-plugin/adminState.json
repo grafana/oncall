@@ -2,10 +2,10 @@
   "cookies": [
     {
       "name": "grafana_session",
-      "value": "957a792cba0031d60c7787d0abde5a63",
+      "value": "f9942d495e8c92c1ae9a313b081e0c29",
       "domain": "localhost",
       "path": "/",
-      "expires": 1682593305.931,
+      "expires": 1682596199.247,
       "httpOnly": true,
       "secure": false,
       "sameSite": "Lax"

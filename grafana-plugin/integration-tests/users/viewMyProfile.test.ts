@@ -7,7 +7,7 @@ import { GRAFANA_VIEWER_EMAIL, GRAFANA_VIEWER_USERNAME } from '../utils/constant
 test.describe(() => {
   test.use({ storageState: VIEWER_FILE });
 
-  test('it opens View My Profile with success', async ({ page }) => {
+  test('view my profile as Viewer', async ({ page }) => {
     await goToOnCallPage(page, OnCallPage.USERS);
 
     await openViewMyProfile(page);
@@ -18,6 +18,7 @@ test.describe(() => {
     const createICalLink = await page.getByTestId('create-ical-link');
     expect(createICalLink.isDisabled).toBeTruthy();
 
+    // this just to be sure it loaded the Viewer user and not the Admin
     expect((await page.getByTestId('user-username').innerText()).valueOf()).toBe(GRAFANA_VIEWER_USERNAME);
     expect((await page.getByTestId('user-email').innerText()).valueOf()).toBe(GRAFANA_VIEWER_EMAIL);
   });
