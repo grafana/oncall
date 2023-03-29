@@ -1,5 +1,5 @@
 import { Page } from '@playwright/test';
-import { GRAFANA_USERNAME } from './constants';
+import { GRAFANA_ADMIN_USERNAME } from './constants';
 import { clickButton, fillInInput, selectDropdownValue, selectValuePickerValue } from './forms';
 import { OnCallPage, goToOnCallPage } from './navigation';
 import dayjs from 'dayjs';
@@ -25,7 +25,7 @@ export const createOnCallSchedule = async (page: Page, scheduleName: string): Pr
     page,
     selectType: 'grafanaSelect',
     placeholderText: 'Add user',
-    value: GRAFANA_USERNAME,
+    value: GRAFANA_ADMIN_USERNAME,
   });
 
   await clickButton({ page, buttonText: 'Create' });

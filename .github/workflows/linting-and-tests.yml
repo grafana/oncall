@@ -403,8 +403,8 @@ jobs:
           # hit 172.17.0.1 which proxies the request onto the host where port 30001 is the node port that is mapped
           # to the OnCall API
           ONCALL_API_URL: http://172.17.0.1:30001
-          GRAFANA_USERNAME: oncall
-          GRAFANA_PASSWORD: oncall
+          GRAFANA_ADMIN_USERNAME: oncall
+          GRAFANA_ADMIN_PASSWORD: oncall
           MAILSLURP_API_KEY: ${{ secrets.MAILSLURP_API_KEY }}
         working-directory: ./grafana-plugin
         # -x = exit command after first failing test

@@ -7,17 +7,13 @@ import { getPhoneNumber, getVerificationCodeFromSms, waitForSms } from './phone'
 
 type NotifyBy = 'SMS' | 'Phone call';
 
-const openUserSettingsModal = async (page: Page): Promise<void> => {
+export const openUserSettingsModal = async (page: Page): Promise<void> => {
   await goToOnCallPage(page, OnCallPage.USERS);
   await clickButton({ page, buttonText: 'View my profile' });
   await page.locator('text=To edit user details such as Username, email, and role').waitFor({ state: 'visible' });
 };
 
 const getForgetPhoneNumberButton = (page: Page): Locator => page.locator('button >> text=Forget Phone Number');
-
-export const openViewMyProfile = async (page: Page): Promise<void> => {
-  await openUserSettingsModal(page);
-};
 
 export const verifyUserPhoneNumber = async (page: Page): Promise<void> => {
   // open the user settings modal
