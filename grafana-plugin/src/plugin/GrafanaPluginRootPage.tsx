@@ -183,6 +183,21 @@ export const Root = observer((props: AppRootProps) => {
             <Route path={getRoutesForPage('cloud')} exact>
               <CloudPage />
             </Route>
+
+            <Route
+              path={getRoutesForPage('incident')}
+              exact
+              render={({ location }) => {
+                return (
+                  <Redirect
+                    to={{
+                      ...location,
+                      pathname: location.pathname.replace(/incident/, 'alert-group'),
+                    }}
+                  ></Redirect>
+                );
+              }}
+            ></Route>
             <Route
               path={getRoutesForPage('incidents')}
               exact
@@ -197,6 +212,7 @@ export const Root = observer((props: AppRootProps) => {
                 );
               }}
             ></Route>
+
             <Route path="*">
               <NoMatch />
             </Route>
