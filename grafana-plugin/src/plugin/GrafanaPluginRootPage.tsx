@@ -187,30 +187,26 @@ export const Root = observer((props: AppRootProps) => {
             <Route
               path={getRoutesForPage('incident')}
               exact
-              render={({ location }) => {
-                return (
-                  <Redirect
-                    to={{
-                      ...location,
-                      pathname: location.pathname.replace(/incident/, 'alert-group'),
-                    }}
-                  ></Redirect>
-                );
-              }}
+              render={({ location }) => (
+                <Redirect
+                  to={{
+                    ...location,
+                    pathname: location.pathname.replace(/incident/, 'alert-group'),
+                  }}
+                ></Redirect>
+              )}
             ></Route>
             <Route
               path={getRoutesForPage('incidents')}
               exact
-              render={({ location }) => {
-                return (
-                  <Redirect
-                    to={{
-                      ...location,
-                      pathname: location.pathname.replace(/incidents/, 'alert-groups'),
-                    }}
-                  ></Redirect>
-                );
-              }}
+              render={({ location }) => (
+                <Redirect
+                  to={{
+                    ...location,
+                    pathname: location.pathname.replace(/incidents/, 'alert-groups'),
+                  }}
+                ></Redirect>
+              )}
             ></Route>
 
             <Route path="*">
