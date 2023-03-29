@@ -381,11 +381,17 @@ class EscalationChainsPage extends React.Component<EscalationChainsPageProps, Es
   };
 
   handleEscalationChainCreate = async (id: EscalationChain['id']) => {
+    const { selectedEscalationChain } = this.state;
     const { history } = this.props;
 
     await this.applyFilters();
 
     history.push(`${PLUGIN_ROOT}/escalations/${id}${window.location.search}`);
+
+    // because this wouldn't detect query.id change
+    if (selectedEscalationChain === id) {
+      this.parseQueryParams();
+    }
   };
 
   enrichExtraEscalationChainsAndSelect = async (id: EscalationChain['id']) => {
