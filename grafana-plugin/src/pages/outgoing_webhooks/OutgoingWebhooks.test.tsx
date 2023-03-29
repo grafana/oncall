@@ -5,6 +5,7 @@ import { describe, expect, test } from '@jest/globals';
 import { render, screen, waitFor } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import outgoingWebhooksStub from 'jest/outgoingWebhooksStub';
+import { Provider } from 'mobx-react';
 import { BrowserRouter, Switch } from 'react-router-dom';
 
 import { OutgoingWebhook } from 'models/outgoing_webhook/outgoing_webhook.types';
@@ -21,6 +22,13 @@ const outgoingWebhookStore = () => ({
   }, {}),
 });
 
+const mockStoreMock = {
+  outgoingWebhookStore: outgoingWebhookStore(),
+  userStore: { currentUser: {} },
+  grafanaTeamStore: { items: {}, updateItems: () => Promise.resolve({}) },
+  filtersStore: { updateOptionsForPage: () => Promise.resolve([]), updateValuesForPage: () => {} },
+};
+
 jest.mock('@grafana/faro-web-sdk', () => ({
   initializeFaro: jest.fn(),
   TracingInstrumentation: undefined,
@@ -31,6 +39,7 @@ jest.mock('@grafana/faro-web-tracing', () => ({
 
 jest.mock('plugin/GrafanaPluginRootPage.helpers', () => ({
   isTopNavbar: () => false,
+  getQueryParams: () => ({}),
 }));
 
 jest.mock('@grafana/runtime', () => ({
@@ -44,7 +53,7 @@ jest.mock('@grafana/runtime', () => ({
 
 jest.mock('state/useStore', () => ({
   useStore: () => ({
-    outgoingWebhookStore: outgoingWebhookStore(),
+    ...mockStoreMock,
   }),
 }));
 
@@ -58,11 +67,6 @@ jest.mock('@grafana/runtime', () => ({
 }));
 
 describe('OutgoingWebhooks', () => {
-  const storeMock = {
-    outgoingWebhookStore: outgoingWebhookStore(),
-    grafanaTeamStore: { items: { null: {} } },
-  };
-
   beforeAll(() => {
     console.warn = () => {};
     console.error = () => {};
@@ -70,11 +74,13 @@ describe('OutgoingWebhooks', () => {
 
   test('It renders all retrieved webhooks', async () => {
     render(
-      <BrowserRouter>
-        <Switch>
-          <OutgoingWebhooks {...getProps()} />
-        </Switch>
-      </BrowserRouter>
+      <Provider store={mockStoreMock}>
+        <BrowserRouter>
+          <Switch>
+            <OutgoingWebhooks {...getProps()} />
+          </Switch>
+        </BrowserRouter>
+      </Provider>
     );
 
     await waitFor(() => {
@@ -89,11 +95,13 @@ describe('OutgoingWebhooks', () => {
   test('It opens Edit View if [id] is supplied', async () => {
     const id = outgoingWebhooks[0].id;
     render(
-      <BrowserRouter>
-        <Switch>
-          <OutgoingWebhooks {...getProps(id)} />
-        </Switch>
-      </BrowserRouter>
+      <Provider store={mockStoreMock}>
+        <BrowserRouter>
+          <Switch>
+            <OutgoingWebhooks {...getProps(id)} />
+          </Switch>
+        </BrowserRouter>
+      </Provider>
     );
 
     expect(() => queryEditForm()).toThrow(); // before updates kick in
@@ -103,7 +111,7 @@ describe('OutgoingWebhooks', () => {
   });
 
   function getProps(id: OutgoingWebhook['id'] = undefined): any {
-    return { store: storeMock, match: { params: { id } }, team: {} };
+    return { store: mockStoreMock, match: { params: { id } }, team: {} };
   }
 
   function queryEditForm(): HTMLElement {
