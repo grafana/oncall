@@ -4,6 +4,7 @@ from urllib.parse import urljoin
 
 import requests
 from requests import HTTPError
+from requests.adapters import HTTPAdapter, Retry
 
 from migrator.config import ONCALL_API_TOKEN, ONCALL_API_URL
 
@@ -11,7 +12,13 @@ from migrator.config import ONCALL_API_TOKEN, ONCALL_API_URL
 def api_call(method: str, path: str, **kwargs) -> requests.Response:
     url = urljoin(ONCALL_API_URL, path)
 
-    response = requests.request(
+    # Retry on network errors
+    session = requests.Session()
+    retries = Retry(total=5, backoff_factor=0.1)
+    session.mount("http://", HTTPAdapter(max_retries=retries))
+    session.mount("https://", HTTPAdapter(max_retries=retries))
+
+    response = session.request(
         method, url, headers={"Authorization": ONCALL_API_TOKEN}, **kwargs
     )
 
