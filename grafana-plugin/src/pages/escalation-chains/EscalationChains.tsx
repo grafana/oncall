@@ -1,5 +1,6 @@
 import React from 'react';
 
+import { config } from '@grafana/runtime';
 import { Button, HorizontalGroup, Icon, IconButton, LoadingPlaceholder, Tooltip, VerticalGroup } from '@grafana/ui';
 import cn from 'classnames/bind';
 import { observer } from 'mobx-react';
@@ -30,6 +31,8 @@ import { withMobXProviderContext } from 'state/withStore';
 import { UserActions } from 'utils/authorization';
 import { PLUGIN_ROOT } from 'utils/consts';
 
+console.log(config.bootData.user);
+
 import styles from './EscalationChains.module.css';
 
 const cx = cn.bind(styles);
@@ -56,6 +59,8 @@ class EscalationChainsPage extends React.Component<EscalationChainsPageProps, Es
 
   parseQueryParams = async () => {
     this.setState({ errorData: initErrorDataState() }); // reset on query parse
+
+    console.log('parseQueryParams');
 
     const {
       store,
@@ -388,7 +393,7 @@ class EscalationChainsPage extends React.Component<EscalationChainsPageProps, Es
 
     history.push(`${PLUGIN_ROOT}/escalations/${id}${window.location.search}`);
 
-    // because this wouldn't detect query.id change
+    // because this page wouldn't detect query.id change
     if (selectedEscalationChain === id) {
       this.parseQueryParams();
     }
