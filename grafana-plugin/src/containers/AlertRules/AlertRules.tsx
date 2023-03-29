@@ -28,7 +28,7 @@ import WithConfirm from 'components/WithConfirm/WithConfirm';
 import { parseEmojis } from 'containers/AlertRules/AlertRules.helpers';
 import { ChatOpsConnectors } from 'containers/AlertRules/parts';
 import ChannelFilterForm from 'containers/ChannelFilterForm/ChannelFilterForm';
-import EscalationChainForm from 'containers/EscalationChainForm/EscalationChainForm';
+import EscalationChainForm, { EscalationChainFormMode } from 'containers/EscalationChainForm/EscalationChainForm';
 import EscalationChainSteps from 'containers/EscalationChainSteps/EscalationChainSteps';
 import GSelect from 'containers/GSelect/GSelect';
 import { IntegrationSettingsTab } from 'containers/IntegrationSettings/IntegrationSettings.types';
@@ -348,6 +348,7 @@ class AlertRules extends React.Component<AlertRulesProps, AlertRulesState> {
             )}
             {channelFilterIdToCopyEscalationChain && (
               <EscalationChainForm
+                mode={EscalationChainFormMode.Copy}
                 escalationChainId={escalationChainIdToCopy}
                 onHide={() => {
                   this.setState({
