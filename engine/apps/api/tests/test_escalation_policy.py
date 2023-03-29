@@ -903,16 +903,10 @@ def test_escalation_policy_filter_by_slack_channel(
 @pytest.mark.parametrize("enabled", [True, False])
 def test_escalation_policy_escalation_options_webhooks(
     make_organization_and_user_with_plugin_token,
-    make_escalation_chain,
-    make_escalation_policy,
     make_user_auth_headers,
     enabled,
 ):
-    organization, user, token = make_organization_and_user_with_plugin_token()
-    escalation_chain = make_escalation_chain(organization)
-    make_escalation_policy(
-        escalation_chain, escalation_policy_step=EscalationPolicy.STEP_WAIT, wait_delay=EscalationPolicy.ONE_MINUTE
-    )
+    _, user, token = make_organization_and_user_with_plugin_token()
     client = APIClient()
 
     url = reverse("api-internal:escalation_policy-escalation-options")
