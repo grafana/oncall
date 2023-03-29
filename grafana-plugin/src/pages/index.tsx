@@ -205,6 +205,7 @@ export const ROUTES = {
   'live-settings': ['live-settings'],
   cloud: ['cloud'],
   test: ['test'],
+  incidents: ['incidents/:id'], // backwards compatible to redirect to new alert-groups
 };
 
 export const getRoutesForPage = (name: string) => {

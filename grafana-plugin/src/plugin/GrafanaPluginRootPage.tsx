@@ -14,7 +14,7 @@ import weekday from 'dayjs/plugin/weekday';
 import { observer, Provider } from 'mobx-react';
 import Header from 'navbar/Header/Header';
 import LegacyNavTabsBar from 'navbar/LegacyNavTabsBar';
-import { Route, Switch, useLocation } from 'react-router-dom';
+import { Redirect, Route, Switch, useLocation } from 'react-router-dom';
 import { AppRootProps } from 'types';
 
 import Unauthorized from 'components/Unauthorized';
@@ -183,6 +183,20 @@ export const Root = observer((props: AppRootProps) => {
             <Route path={getRoutesForPage('cloud')} exact>
               <CloudPage />
             </Route>
+            <Route
+              path={getRoutesForPage('incidents')}
+              exact
+              render={({ location }) => {
+                return (
+                  <Redirect
+                    to={{
+                      ...location,
+                      pathname: location.pathname.replace(/incidents/, 'alert-groups'),
+                    }}
+                  ></Redirect>
+                );
+              }}
+            ></Route>
             <Route path="*">
               <NoMatch />
             </Route>
