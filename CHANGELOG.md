@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Addressed bug with iOS mobile push notifications always being set to critical by @imtoori and @joeyorlando ([#1646](https://github.com/grafana/oncall/pull/1646))
 - Fixed issue where Viewer was not able to view which people were oncall in a schedule ([#999](https://github.com/grafana/oncall/issues/999))
 - Fixed a bug with syncing teams from Grafana API by @vadimkerr ([#1652](https://github.com/grafana/oncall/pull/1652))
+- Fixed bug when web schedules/shifts use non-UTC timezone and shift is deleted by @matiasb ([#1661](https://github.com/grafana/oncall/pull/1661))
 
 ## v1.2.3 (2023-03-28)
 
