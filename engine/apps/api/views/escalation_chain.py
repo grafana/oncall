@@ -122,6 +122,9 @@ class EscalationChainViewSet(
     def copy(self, request, pk):
         name = request.data.get("name")
         team_id = request.data.get("team")
+        if team_id == "null":
+            team_id = None
+
         if name is None:
             raise BadRequest(detail={"name": ["This field may not be null."]})
         else:
@@ -130,7 +133,7 @@ class EscalationChainViewSet(
 
         obj = self.get_object()
         try:
-            team = request.user.available_teams.get(public_primary_key=team_id)
+            team = request.user.available_teams.get(public_primary_key=team_id) if team_id else None
         except Team.DoesNotExist:
             return Response(data={"error_code": "wrong_team"}, status=status.HTTP_403_FORBIDDEN)
         copy = obj.make_copy(name, team)
