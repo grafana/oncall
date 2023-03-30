@@ -1,6 +1,6 @@
 from rest_framework import mixins, viewsets
+from rest_framework.filters import SearchFilter
 from rest_framework.permissions import IsAuthenticated
-from rest_framework.response import Response
 
 from apps.api.permissions import RBACPermission
 from apps.api.serializers.team import TeamSerializer
@@ -23,17 +23,21 @@ class TeamViewSet(PublicPrimaryKeyMixin, mixins.ListModelMixin, mixins.UpdateMod
     }
 
     serializer_class = TeamSerializer
+    filter_backends = [SearchFilter]
+    search_fields = ["name"]
 
     def get_queryset(self):
         return self.request.user.available_teams
 
-    def list(self, request, *args, **kwargs):
-        queryset = self.filter_queryset(self.get_queryset())
+    def filter_queryset(self, queryset):
+        """
+        Adds general team to the queryset in a way that it works well with searching by name.
+        """
+        result = list(super().filter_queryset(queryset))
         general_team = Team(public_primary_key="null", name="No team", email=None, avatar_url=None)
 
-        page = self.paginate_queryset(queryset)
-        if page is not None:
-            serializer = self.get_serializer([general_team] + list(page), many=True)
-            return self.get_paginated_response(serializer.data)
-        serializer = self.get_serializer([general_team] + list(queryset), many=True)
-        return Response(serializer.data)
+        search = self.request.query_params.get(SearchFilter.search_param)
+        if not search or search.lower() in general_team.name.lower():  # check if general team should be added
+            return [general_team] + result
+
+        return result
