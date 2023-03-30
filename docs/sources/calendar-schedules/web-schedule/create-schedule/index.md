@@ -22,6 +22,8 @@ your schedule, add users, reorder users, and reference teammates' time zones.
 To learn more, see [On-call schedules]({{< relref "../../../calendar-schedules" >}}) which provides the fundamental
 concepts for this task.
 
+>**Note:** User working hours are currently hardcoded and cannot be changed. Profile settings to configure this and other options will be added in a future release.
+
 ## Before you begin
 
 - Users with Admin or Editor roles can create, edit and delete schedules.
