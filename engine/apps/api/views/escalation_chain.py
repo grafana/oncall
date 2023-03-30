@@ -125,7 +125,7 @@ class EscalationChainViewSet(
         if team_id == "null":
             team_id = None
 
-        if name is None:
+        if not name:
             raise BadRequest(detail={"name": ["This field may not be null."]})
         else:
             if EscalationChain.objects.filter(organization=request.auth.organization, name=name).exists():

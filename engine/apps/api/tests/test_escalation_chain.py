@@ -111,3 +111,20 @@ def test_escalation_chain_copy(
     response = client.post(url, data, format="json", **make_user_auth_headers(user, token))
     assert response.status_code == status.HTTP_200_OK
     assert response.json()["team"] == (new_team.public_primary_key if new_team else None)
+
+
+@pytest.mark.django_db
+def test_escalation_chain_copy_empty_name(
+    make_organization_and_user_with_plugin_token,
+    make_user_auth_headers,
+    make_escalation_chain,
+):
+    organization, user, token = make_organization_and_user_with_plugin_token()
+    escalation_chain = make_escalation_chain(organization)
+
+    client = APIClient()
+    url = reverse("api-internal:escalation_chain-copy", kwargs={"pk": escalation_chain.public_primary_key})
+
+    response = client.post(url, {"name": "", "team": "null"}, format="json", **make_user_auth_headers(user, token))
+
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
