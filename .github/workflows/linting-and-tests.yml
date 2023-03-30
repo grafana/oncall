@@ -381,7 +381,6 @@ jobs:
         run: |
           yarn add "@playwright/test@${{ env.PLAYWRIGHT_VERSION }}"
           npx playwright install --with-deps chromium firefox webkit
-          npx playwright install-deps
 
       - name: Await k8s pods and other resources up
         uses: jupyterhub/action-k8s-await-workloads@v1
