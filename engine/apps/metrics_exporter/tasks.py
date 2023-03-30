@@ -13,6 +13,7 @@ from apps.metrics_exporter.constants import (
     METRICS_CACHE_TIMER,
     AlertGroupsResponseTimeMetricsDict,
     AlertGroupsTotalMetricsDict,
+    RecalculateMetricsTimer,
 )
 from apps.metrics_exporter.helpers import get_metrics_recalculate_timeout, get_response_time_period
 from common.custom_celery_tasks import shared_dedicated_queue_retry_task
@@ -21,14 +22,26 @@ from common.custom_celery_tasks import shared_dedicated_queue_retry_task
 @shared_dedicated_queue_retry_task(
     autoretry_for=(Exception,), retry_backoff=True, max_retries=1 if settings.DEBUG else None
 )
-def calculate_and_cache_metrics():  # todo:metrics org
+def calculate_and_cache_metrics(force=False):  # todo:metrics org
     """todo:metrics: description"""
 
-    # check recalculation metric flag to avoid parallel or too frequent launch
-    if cache.get(METRICS_CACHE_TIMER):
-        return
     recalculate_timeout = get_metrics_recalculate_timeout()
-    cache.set(METRICS_CACHE_TIMER, recalculate_timeout, timeout=recalculate_timeout)  # todo:metrics org
+
+    # check recalculation metric timer to avoid parallel or too frequent launch
+    metrics_cache_timer = cache.get(METRICS_CACHE_TIMER)
+    if metrics_cache_timer:
+        if not force or metrics_cache_timer.get("forced_started", False):
+            return
+        else:
+            metrics_cache_timer["forced_started"] = True
+    else:
+        metrics_cache_timer: RecalculateMetricsTimer = {
+            "recalculate_timeout": recalculate_timeout,
+            "forced_started": force,
+        }
+
+    metrics_cache_timer["recalculate_timeout"] = recalculate_timeout
+    cache.set(METRICS_CACHE_TIMER, metrics_cache_timer, timeout=recalculate_timeout)  # todo:metrics org
 
     AlertGroup = apps.get_model("alerts", "AlertGroup")
     AlertReceiveChannel = apps.get_model("alerts", "AlertReceiveChannel")
@@ -81,5 +94,9 @@ def calculate_and_cache_metrics():  # todo:metrics org
 
     cache.set(ALERT_GROUPS_TOTAL, metric_alert_group_total, timeout=recalculate_timeout)
     cache.set(ALERT_GROUPS_RESPONSE_TIME, metric_alert_group_response_time, timeout=recalculate_timeout)
+
+    if metrics_cache_timer["forced_started"]:
+        metrics_cache_timer["forced_started"] = False
+        cache.set(METRICS_CACHE_TIMER, metrics_cache_timer, timeout=recalculate_timeout)  # todo:metrics org
 
     AlertGroup.all_objects.bulk_update(alert_groups_to_update, ["response_time"], batch_size=1000)
