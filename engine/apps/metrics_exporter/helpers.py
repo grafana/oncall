@@ -101,10 +101,10 @@ def metrics_bulk_update_team_label_cache(teams_updated_data):  # todo:metrics or
                 integration_response_time_metrics = response_time_metrics.get(integration_id)
                 if team_data["deleted"]:
                     alert_groups_total_metrics[integration_id]["team_id"] = None
-                    alert_groups_total_metrics[integration_id]["team_name"] = "General"
+                    alert_groups_total_metrics[integration_id]["team_name"] = "No team"
                     if integration_response_time_metrics:
                         integration_response_time_metrics["team_id"] = None
-                        integration_response_time_metrics["team_name"] = "General"
+                        integration_response_time_metrics["team_name"] = "No team"
                 else:
                     alert_groups_total_metrics[integration_id]["team_name"] = team_data["team_name"]
                     if integration_response_time_metrics:
