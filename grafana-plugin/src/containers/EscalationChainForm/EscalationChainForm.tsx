@@ -42,8 +42,6 @@ const EscalationChainForm: FC<EscalationChainFormProps> = (props) => {
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
 
   const onCreateClickCallback = useCallback(() => {
-    console.log(selectedTeam);
-
     const promise =
       mode === EscalationChainFormMode.Create
         ? escalationChainStore.create({ name, team: selectedTeam })
