@@ -31,13 +31,7 @@ class TeamViewSet(PublicPrimaryKeyMixin, mixins.ListModelMixin, mixins.UpdateMod
 
     def filter_queryset(self, queryset):
         """
-        Adds general team to the queryset in a way that it works well with searching by name.
+        Adds general team to the queryset in a way that it always shows up first (even when not searched for).
         """
-        result = list(super().filter_queryset(queryset))
         general_team = Team(public_primary_key="null", name="No team", email=None, avatar_url=None)
-
-        search = self.request.query_params.get(SearchFilter.search_param)
-        if not search or search.lower() in general_team.name.lower():  # check if general team should be added
-            return [general_team] + result
-
-        return result
+        return [general_team] + list(super().filter_queryset(queryset))

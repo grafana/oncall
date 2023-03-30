@@ -52,8 +52,8 @@ def test_list_teams(
         ("", [GENERAL_TEAM.name, "team 1", "team 2"]),
         ("team", [GENERAL_TEAM.name, "team 1", "team 2"]),
         ("no team", [GENERAL_TEAM.name]),
-        ("team ", ["team 1", "team 2"]),
-        ("team 1", ["team 1"]),
+        ("team ", [GENERAL_TEAM.name, "team 1", "team 2"]),
+        ("team 1", [GENERAL_TEAM.name, "team 1"]),
     ],
 )
 def test_list_teams_search_by_name(
