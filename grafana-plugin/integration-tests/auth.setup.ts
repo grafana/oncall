@@ -11,8 +11,8 @@ import { configureOnCallPlugin } from './configurePlugin.setup';
 import { createGrafanaUserWithRole } from './utils/api';
 import { OrgRole } from '@grafana/data';
 
-export const ADMIN_FILE = './.auth/adminState.json';
-export const VIEWER_FILE = './.auth/viewerState.json';
+export const ADMIN_FILE = './integration-tests/adminState.json';
+export const VIEWER_FILE = './integration-tests/viewerState.json';
 
 setup('authenticate as admin', async ({ page }) => {
   const { headless } = config.projects[0]!.use;

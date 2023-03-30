@@ -37,8 +37,8 @@ const config: PlaywrightTestConfig = {
   reporter: 'html',
   /* Shared settings for all the projects below. See https://playwright.dev/docs/api/class-testoptions. */
   use: {
-    /* Use storageState should be based on authentication, not on a fixed path */
-    // storageState: './storageState.json',
+    /* By default it will attempt as admin, can be overriden to Viewer */
+    storageState: './integration-tests/adminState.json',
 
     /* Maximum time each action such as `click()` can take. Defaults to 0 (no limit). */
     actionTimeout: 0,
