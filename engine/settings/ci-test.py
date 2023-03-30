@@ -21,7 +21,7 @@ else:
     }
 
 if BROKER_TYPE == BrokerTypes.RABBITMQ:
-    CELERY_BROKER_URL = "amqp://rabbitmq:rabbitmq@rabbit_test:5672"
+    CELERY_BROKER_URL = RABBITMQ_URI
 elif BROKER_TYPE == BrokerTypes.REDIS:
     CELERY_BROKER_URL = REDIS_URI
 

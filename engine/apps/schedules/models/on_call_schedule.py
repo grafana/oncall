@@ -27,6 +27,7 @@ from apps.schedules.ical_utils import (
 )
 from apps.schedules.models import CustomOnCallShift
 from apps.user_management.models import User
+from common.database import NON_POLYMORPHIC_CASCADE, NON_POLYMORPHIC_SET_NULL
 from common.public_primary_keys import generate_public_primary_key, increase_public_primary_key_length
 
 
@@ -96,12 +97,12 @@ class OnCallSchedule(PolymorphicModel):
     prev_ical_file_overrides = models.TextField(null=True, default=None)
 
     organization = models.ForeignKey(
-        "user_management.Organization", on_delete=models.CASCADE, related_name="oncall_schedules"
+        "user_management.Organization", on_delete=NON_POLYMORPHIC_CASCADE, related_name="oncall_schedules"
     )
 
     team = models.ForeignKey(
         "user_management.Team",
-        on_delete=models.SET_NULL,
+        on_delete=NON_POLYMORPHIC_SET_NULL,
         related_name="oncall_schedules",
         null=True,
         default=None,
@@ -112,7 +113,7 @@ class OnCallSchedule(PolymorphicModel):
 
     # Slack user group to be updated when on-call users change for this schedule
     user_group = models.ForeignKey(
-        to="slack.SlackUserGroup", null=True, on_delete=models.SET_NULL, related_name="oncall_schedules"
+        to="slack.SlackUserGroup", null=True, on_delete=NON_POLYMORPHIC_SET_NULL, related_name="oncall_schedules"
     )
 
     # schedule reminder related fields

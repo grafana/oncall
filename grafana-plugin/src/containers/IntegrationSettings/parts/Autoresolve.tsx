@@ -150,7 +150,7 @@ const Autoresolve = ({ alertReceiveChannelId, onSwitchToTemplate, alertGroupId }
           <Label>
             <div className={cx('settings-label')}>
               Autoresolve
-              <Text type="secondary">How should this integration resolve incidents?</Text>
+              <Text type="secondary">How should this integration resolve alert groups?</Text>
             </div>
           </Label>
           <div className={cx('team-select')}>
@@ -172,9 +172,9 @@ const Autoresolve = ({ alertReceiveChannelId, onSwitchToTemplate, alertGroupId }
           {autoresolveSelected && (
             <>
               <Block shadowed bordered className={cx('autoresolve-block')}>
-                <div>
+                <div className={cx('autoresolve-div')}>
                   <Text type="secondary" size="small">
-                    <Icon name="info-circle" /> Incident will be automatically resolved when it matches{' '}
+                    <Icon name="info-circle" /> Alert group will be automatically resolved when it matches{' '}
                   </Text>
                   <Button fill="text" size="sm" onClick={handleGoToTemplateSettingsCllick}>
                     autoresolve condition
