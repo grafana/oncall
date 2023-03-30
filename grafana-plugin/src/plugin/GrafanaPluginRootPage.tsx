@@ -14,7 +14,7 @@ import weekday from 'dayjs/plugin/weekday';
 import { observer, Provider } from 'mobx-react';
 import Header from 'navbar/Header/Header';
 import LegacyNavTabsBar from 'navbar/LegacyNavTabsBar';
-import { Redirect, Route, Switch, useLocation } from 'react-router-dom';
+import { Route, Switch, useLocation } from 'react-router-dom';
 import { AppRootProps } from 'types';
 
 import Unauthorized from 'components/Unauthorized';
@@ -138,10 +138,10 @@ export const Root = observer((props: AppRootProps) => {
       >
         {userHasAccess ? (
           <Switch>
-            <Route path={getRoutesForPage('alert-groups')} exact>
+            <Route path={getRoutesForPage('incidents')} exact>
               <Incidents query={query} />
             </Route>
-            <Route path={getRoutesForPage('alert-group')} exact>
+            <Route path={getRoutesForPage('incident')} exact>
               <Incident query={query} />
             </Route>
             <Route path={getRoutesForPage('users')} exact>
@@ -183,32 +183,6 @@ export const Root = observer((props: AppRootProps) => {
             <Route path={getRoutesForPage('cloud')} exact>
               <CloudPage />
             </Route>
-
-            <Route
-              path={getRoutesForPage('incident')}
-              exact
-              render={({ location }) => (
-                <Redirect
-                  to={{
-                    ...location,
-                    pathname: location.pathname.replace(/incident/, 'alert-group'),
-                  }}
-                ></Redirect>
-              )}
-            ></Route>
-            <Route
-              path={getRoutesForPage('incidents')}
-              exact
-              render={({ location }) => (
-                <Redirect
-                  to={{
-                    ...location,
-                    pathname: location.pathname.replace(/incidents/, 'alert-groups'),
-                  }}
-                ></Redirect>
-              )}
-            ></Route>
-
             <Route path="*">
               <NoMatch />
             </Route>
