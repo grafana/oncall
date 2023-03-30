@@ -50,7 +50,7 @@ class MetricsExporterManager:
 
         if start_calculation_task or not cache.get(METRICS_CACHE_TIMER):
             # todo:metrics: check cache timer
-            calculate_and_cache_metrics.apply_async()
+            calculate_and_cache_metrics.apply_async(kwargs={"force": start_calculation_task})
 
         return registry
 
