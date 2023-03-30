@@ -38,7 +38,6 @@ const IntegrationForm = observer((props: IntegrationFormProps) => {
   const user = userStore.currentUser;
 
   const [filterValue, setFilterValue] = useState('');
-
   const [showNewIntegrationForm, setShowNewIntegrationForm] = useState(false);
   const [selectedOption, setSelectedOption] = useState<AlertReceiveChannelOption>(undefined);
 
