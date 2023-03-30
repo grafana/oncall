@@ -584,8 +584,8 @@ class CustomOnCallShift(models.Model):
             if self.week_start is not None:
                 rules["wkst"] = CustomOnCallShift.ICAL_WEEKDAY_MAP[self.week_start]
             if self.until is not None:
-                time_zone = self.time_zone if self.time_zone is not None else "UTC"
-                rules["until"] = self.convert_dt_to_schedule_timezone(self.until, time_zone)
+                # RRULE UNTIL values must be specified in UTC when DTSTART is timezone-aware
+                rules["until"] = self.convert_dt_to_schedule_timezone(self.until, "UTC")
         return rules
 
     @cached_property
