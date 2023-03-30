@@ -22,7 +22,7 @@ export function getPathFromQueryParams(query: ParsedQuery<string>) {
     path += `/${normalizedQuery.page}`;
 
     if (normalizedQuery.id) {
-      if (normalizedQuery.page === 'incident' || normalizedQuery.page === 'schedule') {
+      if (normalizedQuery.page === 'alert-group' || normalizedQuery.page === 'schedule') {
         path += 's';
       }
 
