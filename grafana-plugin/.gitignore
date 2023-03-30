@@ -19,5 +19,7 @@ frontend_enterprise
 /test-results/
 /playwright-report/
 /playwright/.cache/
-viewerState.json
-adminState.json
+
+# playwright auth
+/integration-tests/.auth/viewerState.json
+/integration-tests/.auth/adminState.json
