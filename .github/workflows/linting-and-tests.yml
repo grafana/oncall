@@ -377,11 +377,10 @@ jobs:
 
       - name: Install Playwright binaries/dependencies
         if: steps.playwright-cache.outputs.cache-hit != 'true'
-        # if more browsers are added, will need to modify the "npx playwright install" command
         # https://stackoverflow.com/questions/65900299/install-single-dependency-from-package-json-with-yarn
         run: |
           yarn add "@playwright/test@${{ env.PLAYWRIGHT_VERSION }}"
-          npx playwright install --with-deps chromium firefox
+          npx playwright install --with-deps chromium firefox webkit
           npx playwright install-deps
 
       - name: Await k8s pods and other resources up
