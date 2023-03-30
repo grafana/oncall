@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - Fix team search when filtering resources by @vadimkerr ([#1680](https://github.com/grafana/oncall/pull/1680))
+- Fix issue when trying to scroll in Safari ([#415](https://github.com/grafana/oncall/issues/415))
 
 ## v1.2.6 (2023-03-30)
 

@@ -1,6 +1,7 @@
 /* Navigation/Layout */
 
-.drawer-content {
+.drawer-content,
+.rc-drawer-content {
   overflow: auto !important; /* fix https://github.com/grafana/oncall/issues/415 */
 }
 
