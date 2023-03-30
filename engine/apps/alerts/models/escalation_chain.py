@@ -46,11 +46,11 @@ class EscalationChain(models.Model):
     def __str__(self):
         return f"{self.pk}: {self.name}"
 
-    def make_copy(self, copy_name: str):
+    def make_copy(self, copy_name: str, team):
         with transaction.atomic():
             copied_chain = EscalationChain.objects.create(
                 organization=self.organization,
-                team=self.team,
+                team=team,
                 name=copy_name,
             )
             for escalation_policy in self.escalation_policies.all():
