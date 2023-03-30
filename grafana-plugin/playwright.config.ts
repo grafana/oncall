@@ -14,7 +14,6 @@ const config: PlaywrightTestConfig = {
   testDir: './integration-tests',
   globalSetup: './integration-tests/globalSetup.ts',
   /* Maximum time one test can run for. */
-  // TODO: set this back to 60 when GSelect component is refactored
   timeout: 90 * 1000,
   expect: {
     /**
@@ -28,11 +27,8 @@ const config: PlaywrightTestConfig = {
   /* Fail the build on CI if you accidentally left test.only in the source code. */
   forbidOnly: !!process.env.CI,
   /* Retry on CI only */
-  retries: process.env.CI ? 1 : 0,
-  // TODO: when GSelect component is refactored, run using 3 workers
-  // locally use one worker, on CI use 3
-  // workers: process.env.CI ? 3 : 1,
-  workers: 1,
+  retries: process.env.CI ? 3 : 0,
+  workers: 2,
   /* Reporter to use. See https://playwright.dev/docs/test-reporters */
   reporter: 'html',
   /* Shared settings for all the projects below. See https://playwright.dev/docs/api/class-testoptions. */
