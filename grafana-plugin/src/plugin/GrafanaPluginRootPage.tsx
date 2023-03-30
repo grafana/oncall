@@ -184,6 +184,7 @@ export const Root = observer((props: AppRootProps) => {
               <CloudPage />
             </Route>
 
+            {/* Backwards compatibility redirect routes */}
             <Route
               path={getRoutesForPage('incident')}
               exact
