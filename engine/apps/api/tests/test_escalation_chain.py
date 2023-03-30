@@ -74,3 +74,57 @@ def test_list_escalation_chains_filters(escalation_chain_internal_api_setup, mak
             "display_name": escalation_chain.name,
         }
     ]
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize(
+    "team_name,new_team_name",
+    [
+        (None, None),
+        (None, "team_1"),
+        ("team_1", None),
+        ("team_1", "team_1"),
+        ("team_1", "team_2"),
+    ],
+)
+def test_escalation_chain_copy(
+    make_organization_and_user_with_plugin_token,
+    make_user_auth_headers,
+    make_escalation_chain,
+    make_team,
+    team_name,
+    new_team_name,
+):
+    organization, user, token = make_organization_and_user_with_plugin_token()
+
+    team = make_team(organization, name=team_name) if team_name else None
+    new_team = make_team(organization, name=new_team_name) if new_team_name else None
+
+    escalation_chain = make_escalation_chain(organization, team=team)
+    data = {
+        "name": "escalation_chain_updated",
+        "team": new_team.public_primary_key if new_team else "null",
+    }
+
+    client = APIClient()
+    url = reverse("api-internal:escalation_chain-copy", kwargs={"pk": escalation_chain.public_primary_key})
+    response = client.post(url, data, format="json", **make_user_auth_headers(user, token))
+    assert response.status_code == status.HTTP_200_OK
+    assert response.json()["team"] == (new_team.public_primary_key if new_team else None)
+
+
+@pytest.mark.django_db
+def test_escalation_chain_copy_empty_name(
+    make_organization_and_user_with_plugin_token,
+    make_user_auth_headers,
+    make_escalation_chain,
+):
+    organization, user, token = make_organization_and_user_with_plugin_token()
+    escalation_chain = make_escalation_chain(organization)
+
+    client = APIClient()
+    url = reverse("api-internal:escalation_chain-copy", kwargs={"pk": escalation_chain.public_primary_key})
+
+    response = client.post(url, {"name": "", "team": "null"}, format="json", **make_user_auth_headers(user, token))
+
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
