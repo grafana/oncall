@@ -144,7 +144,7 @@ class IncidentPage extends React.Component<IncidentPageProps, IncidentPageState>
                 <VerticalGroup spacing="lg" align="center">
                   <Text.Title level={1}>404</Text.Title>
                   <Text.Title level={4}>Alert group not found</Text.Title>
-                  <PluginLink query={{ page: 'incidents', cursor, start, perpage }}>
+                  <PluginLink query={{ page: 'alert-groups', cursor, start, perpage }}>
                     <Button variant="secondary" icon="arrow-left" size="md">
                       Go to Alert Groups page
                     </Button>
@@ -244,7 +244,7 @@ class IncidentPage extends React.Component<IncidentPageProps, IncidentPageState>
         <VerticalGroup>
           <HorizontalGroup justify="space-between">
             <HorizontalGroup className={cx('title')}>
-              <PluginLink query={{ page: 'incidents', cursor, start, perpage }}>
+              <PluginLink query={{ page: 'alert-groups', cursor, start, perpage }}>
                 <IconButton name="arrow-left" size="xxl" />
               </PluginLink>
               {/* @ts-ignore*/}
@@ -256,12 +256,12 @@ class IncidentPage extends React.Component<IncidentPageProps, IncidentPageState>
                 {incident.root_alert_group && (
                   <Text type="secondary">
                     Attached to{' '}
-                    <PluginLink query={{ page: 'incident', id: incident.root_alert_group.pk }}>
+                    <PluginLink query={{ page: 'alert-groups', id: incident.root_alert_group.pk }}>
                       #{incident.root_alert_group.inside_organization_number}{' '}
                       {incident.root_alert_group.render_for_web.title}
                     </PluginLink>{' '}
                     <WithPermissionControlTooltip userAction={UserActions.AlertGroupsWrite}>
-                      <Button variant="secondary" onClick={this.getUnattachClickHandler(incident.pk)} size="sm">
+                      <Button variant="secondary" onClick={() => this.getUnattachClickHandler(incident.pk)} size="sm">
                         Unattach
                       </Button>
                     </WithPermissionControlTooltip>
@@ -421,9 +421,7 @@ class IncidentPage extends React.Component<IncidentPageProps, IncidentPageState>
   getUnattachClickHandler = (pk: Alert['pk']) => {
     const { store } = this.props;
 
-    return () => {
-      store.alertGroupStore.unattachAlert(pk).then(this.update);
-    };
+    return store.alertGroupStore.unattachAlert(pk).then(this.update);
   };
 
   renderTimeline = () => {
@@ -762,7 +760,7 @@ function AttachedIncidentsList({
       {alerts.map((incident) => {
         return (
           <HorizontalGroup key={incident.pk} justify={'space-between'}>
-            <PluginLink query={{ page: 'incident', id: incident.pk }}>
+            <PluginLink query={{ page: 'alert-groups', id: incident.pk }}>
               #{incident.inside_organization_number} {incident.render_for_web.title}
             </PluginLink>
             <WithPermissionControlTooltip userAction={UserActions.AlertGroupsWrite}>
