@@ -32,7 +32,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Enable tests on Safari
 - Fix Safari scroll ([#415](https://github.com/grafana/oncall/issues/415))
 
-
 ## v1.2.3 (2023-03-28)
 
 Only some minor performance/developer setup changes to report in this version.
