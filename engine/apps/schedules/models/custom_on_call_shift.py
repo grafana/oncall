@@ -223,8 +223,19 @@ class CustomOnCallShift(models.Model):
         force = kwargs.pop("force", False)
         # do soft delete for started shifts that were created for web schedule
         if self.schedule and self.event_is_started and not force:
-            self.until = timezone.now().replace(microsecond=0)
-            self.save(update_fields=["until"])
+            updated_until = timezone.now().replace(microsecond=0)
+            if self.until is not None and updated_until >= self.until:
+                # event is already finished
+                return
+            self.until = updated_until
+            update_fields = ["until"]
+            if self.type == self.TYPE_OVERRIDE:
+                # since it is a single-time event, update override duration
+                delta = self.until - self.start
+                if delta < self.duration:
+                    self.duration = delta
+                    update_fields += ["duration"]
+            self.save(update_fields=update_fields)
         else:
             super().delete(*args, **kwargs)
 

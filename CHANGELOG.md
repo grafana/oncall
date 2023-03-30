@@ -5,6 +5,43 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## v1.2.5 (2023-03-30)
+
+### Fixed
+
+- Fixed a bug with Slack links not working in the plugin UI ([#1671](https://github.com/grafana/oncall/pull/1671))
+
+## v1.2.4 (2023-03-30)
+
+### Added
+
+- Added the ability to change the team for escalation chains by @maskin25, @iskhakov and @vadimkerr ([#1658](https://github.com/grafana/oncall/pull/1658))
+
+### Fixed
+
+- Addressed bug with iOS mobile push notifications always being set to critical by @imtoori and @joeyorlando ([#1646](https://github.com/grafana/oncall/pull/1646))
+- Fixed issue where Viewer was not able to view which people were oncall in a schedule ([#999](https://github.com/grafana/oncall/issues/999))
+- Fixed a bug with syncing teams from Grafana API by @vadimkerr ([#1652](https://github.com/grafana/oncall/pull/1652))
+
+## v1.2.3 (2023-03-28)
+
+Only some minor performance/developer setup changes to report in this version.
+
+## v1.2.2 (2023-03-27)
+
+### Changed
+
+- Drawers with Forms are not closing by clicking outside of the drawer. Only by clicking Cancel or X (by @Ukochka in [#1608](https://github.com/grafana/oncall/pull/1608))
+- When the `DANGEROUS_WEBHOOKS_ENABLED` environment variable is set to true, it's possible now to create Outgoing Webhooks
+  using URLs without a top-level domain (by @hoptical in [#1398](https://github.com/grafana/oncall/pull/1398))
+- Updated wording when creating an integration (by @callmehyde in [#1572](https://github.com/grafana/oncall/pull/1572))
+- Set FCM iOS/Android "message priority" to "high priority" for mobile app push notifications (by @joeyorlando in [#1612](https://github.com/grafana/oncall/pull/1612))
+- Improve schedule quality feature (by @vadimkerr in [#1602](https://github.com/grafana/oncall/pull/1602))
+
+### Fixed
+
+- Update override deletion changes to set its final duration (by @matiasb in [#1599](https://github.com/grafana/oncall/pull/1599))
+
 ## v1.2.1 (2023-03-23)
 
 ### Changed
