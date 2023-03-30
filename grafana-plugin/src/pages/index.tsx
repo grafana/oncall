@@ -27,24 +27,24 @@ function getPath(name = '') {
 export const pages: { [id: string]: PageDefinition } = [
   {
     icon: 'bell',
-    id: 'alert-groups',
+    id: 'incidents',
     hideFromBreadcrumbs: true,
     text: 'Alert Groups',
     hideTitle: true,
-    path: getPath('alert-groups'),
+    path: getPath('incidents'),
     action: UserActions.AlertGroupsRead,
   },
   {
     icon: 'bell',
-    id: 'alert-group',
+    id: 'incident',
     text: '',
     hideFromTabs: true,
     hideFromBreadcrumbs: true,
     parentItem: {
-      text: 'Alert Group',
-      url: `${PLUGIN_ROOT}/alert-groups`,
+      text: 'Incident',
+      url: `${PLUGIN_ROOT}/incidents`,
     },
-    path: getPath('alert-groups'),
+    path: getPath('incident'),
     action: UserActions.AlertGroupsRead,
   },
   {
@@ -189,8 +189,8 @@ export const pages: { [id: string]: PageDefinition } = [
 }, {});
 
 export const ROUTES = {
-  'alert-groups': ['alert-groups'],
-  'alert-group': ['alert-groups/:id'],
+  incidents: ['incidents'],
+  incident: ['incidents/:id'],
   users: ['users', 'users/:id'],
   integrations: ['integrations', 'integrations/:id'],
   escalations: ['escalations', 'escalations/:id'],
@@ -205,10 +205,6 @@ export const ROUTES = {
   'live-settings': ['live-settings'],
   cloud: ['cloud'],
   test: ['test'],
-
-  // backwards compatible to redirect to new alert-groups
-  incident: ['incidents/:id'],
-  incidents: ['incidents'],
 };
 
 export const getRoutesForPage = (name: string) => {
