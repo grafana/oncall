@@ -12,8 +12,7 @@
 }
 
 .draggable {
-  top: 10%;
-  position: absolute;
+  top: 0;
 
   /* transition: transform 300ms ease; */
 }

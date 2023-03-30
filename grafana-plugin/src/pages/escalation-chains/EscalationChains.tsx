@@ -72,7 +72,6 @@ class EscalationChainsPage extends React.Component<EscalationChainsPageProps, Es
         .loadItem(id, true)
         .catch((error) => this.setState({ errorData: { ...getWrongTeamResponseInfo(error) } }));
 
-      await escalationChainStore.updateEscalationChainDetails(id);
       if (!escalationChain) {
         return;
       }
