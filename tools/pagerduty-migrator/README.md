@@ -86,7 +86,7 @@ pd-oncall-migrator
 
 It's possible to specify a default contact method type for user notification rules that cannot be migrated as-is by
 changing the `ONCALL_DEFAULT_CONTACT_METHOD` env variable.
-Options are: `email`, `sms`, `phone_call`, `slack`, `telegram` (default is `email`).
+Options are: `email`, `sms`, `phone_call`, `slack`, `telegram`, `mobile_app` (default is `email`).
 
 ### After migration
 
