@@ -36,7 +36,7 @@ export const form: { name: string; fields: FormItem[] } = {
           },
           {
             value: MaintenanceMode.Maintenance,
-            label: 'Maintenance (collect everything in one incident)',
+            label: 'Maintenance (collect everything in one alert group)',
           },
         ],
       },
