@@ -21,7 +21,7 @@ PAGERDUTY_TO_ONCALL_CONTACT_METHOD_MAP = {
     "sms_contact_method": "notify_by_sms",
     "phone_contact_method": "notify_by_phone_call",
     "email_contact_method": "notify_by_email",
-    "push_notification_contact_method": ONCALL_DEFAULT_CONTACT_METHOD,
+    "push_notification_contact_method": "notify_by_mobile_app",
 }
 PAGERDUTY_TO_ONCALL_VENDOR_MAP = {
     "Datadog": "datadog",
