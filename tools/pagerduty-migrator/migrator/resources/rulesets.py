@@ -198,4 +198,5 @@ def _generate_ruleset_name(ruleset, services, integrations):
             )
         service_names.append(service_name)
 
+    # OnCall limit for integration name is 150 chars
     return "{}: {}".format(result, ", ".join(service_names))[:150]
