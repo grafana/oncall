@@ -46,3 +46,7 @@ SCHEDULE_MIGRATION_MODE = os.getenv(
 EXPERIMENTAL_MIGRATE_EVENT_RULES = (
     os.getenv("EXPERIMENTAL_MIGRATE_EVENT_RULES", "false").lower() == "true"
 )
+# Set to true to include service & integration names in the ruleset name
+EXPERIMENTAL_MIGRATE_EVENT_RULES_LONG_NAMES = (
+    os.getenv("EXPERIMENTAL_MIGRATE_EVENT_RULES_LONG_NAMES", "false").lower() == "true"
+)
