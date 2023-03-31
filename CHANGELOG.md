@@ -42,6 +42,10 @@ Only some minor performance/developer setup changes to report in this version.
 
 ## v1.2.2 (2023-03-27)
 
+### Added
+
+- Save selected teams filter in local storage ([1611](https://github.com/grafana/oncall/issues/1611))
+
 ### Changed
 
 - Drawers with Forms are not closing by clicking outside of the drawer. Only by clicking Cancel or X (by @Ukochka in [#1608](https://github.com/grafana/oncall/pull/1608))
