@@ -1,5 +1,5 @@
 import { OrgRole } from '@grafana/data';
-import { BrowserContext } from '@playwright/test';
+import { BrowserContext, expect } from '@playwright/test';
 import { BASE_URL } from './constants';
 
 const ORG_ID = process.env.ORG_ID || 1;
@@ -25,6 +25,7 @@ export const createGrafanaUserWithRole = async (
     expect(createUserResponse.ok()).toBeTruthy();
   } catch (ex) {
     didCreateUser = false;
+    expect(true).toBe(false); // CI debug attempt
   }
 
   if (!didCreateUser || !createUserResponse) return; // skip updating role if user already exists
@@ -33,7 +34,9 @@ export const createGrafanaUserWithRole = async (
   try {
     const updateUserRoleResponse = await updateUserRole(browserContext, createUserResponse.data.id, role);
     expect(updateUserRoleResponse.ok()).toBeTruthy();
-  } catch (ex) {}
+  } catch (ex) {
+    expect(false).toBe(true);
+  }
 };
 
 export const updateUserRole = async (browserContext: BrowserContext, userId: string, role: string) => {
