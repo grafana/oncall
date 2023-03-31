@@ -287,12 +287,7 @@ class EscalationChainsPage extends React.Component<EscalationChainsPageProps, Es
     return (
       <>
         <Block withBackground className={cx('header')}>
-          <Text
-            size="large"
-            editable
-            onTextChange={this.handleEscalationChainNameChange}
-            data-testid="escalation-chain-name"
-          >
+          <Text size="large" onTextChange={this.handleEscalationChainNameChange} data-testid="escalation-chain-name">
             {escalationChain.name}
           </Text>
           <div className={cx('buttons')}>
