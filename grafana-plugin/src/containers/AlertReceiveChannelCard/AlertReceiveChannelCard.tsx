@@ -65,7 +65,7 @@ const AlertReceiveChannelCard = observer((props: AlertReceiveChannelCardProps) =
             </Text>
             {alertReceiveChannelCounter && (
               <PluginLink
-                query={{ page: 'incidents', integration: alertReceiveChannel.id }}
+                query={{ page: 'alert-groups', integration: alertReceiveChannel.id }}
                 className={cx('alertsInfoText')}
               >
                 <Badge
