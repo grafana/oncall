@@ -19,9 +19,11 @@ export const createGrafanaUserWithRole = async (
         name: login,
         login,
         password,
+        OrgId: ORG_ID,
       },
     });
 
+    expect(createUserResponse).toBeUndefined();
     expect(createUserResponse.ok()).toBeTruthy();
   } catch (ex) {
     didCreateUser = false;
