@@ -42,7 +42,7 @@ def test_copy_escalation_chain(
     all_fields = EscalationPolicy._meta.fields  # Note that m-t-m fields are in this list
     fields_to_not_compare = ["id", "public_primary_key", "escalation_chain", "last_notified_user"]
     fields_to_compare = list(map(lambda f: f.name, filter(lambda f: f.name not in fields_to_not_compare, all_fields)))
-    copied_chain = escalation_chain.make_copy(f"copy_{escalation_chain.name}")
+    copied_chain = escalation_chain.make_copy(f"copy_{escalation_chain.name}", None)
     for policy_from_original, policy_from_copy in zip(
         escalation_chain.escalation_policies.all(), copied_chain.escalation_policies.all()
     ):

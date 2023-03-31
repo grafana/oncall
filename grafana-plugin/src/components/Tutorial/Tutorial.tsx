@@ -66,7 +66,7 @@ const Tutorial: FC<TutorialProps> = (props) => {
         </div>
         <Arrow />
         <div className={cx('step')}>
-          <PluginLink query={{ page: 'alert-groups' }}>
+          <PluginLink query={{ page: 'incidents' }}>
             <div className={cx('icon', { icon_active: step === TutorialStep.Incidents })}>
               <img src={bellIcon} />
             </div>

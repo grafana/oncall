@@ -11,7 +11,7 @@ export const GRAFANA_LICENSE_OSS = 'OpenSource';
 export const BREAKPOINT_TABS = 1024;
 
 // Default redirect page
-export const DEFAULT_PAGE = 'alert-groups';
+export const DEFAULT_PAGE = 'incidents';
 
 export const PLUGIN_ROOT = '/a/grafana-oncall-app';
 

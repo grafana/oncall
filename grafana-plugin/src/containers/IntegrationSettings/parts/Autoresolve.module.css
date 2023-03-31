@@ -34,12 +34,7 @@
   padding: 4px 8px;
   margin-top: 8px;
   min-width: 500px;
-  width: 620px;
-}
-
-.autoresolve-div {
-  display: flex;
-  align-items: baseline;
+  width: 520px;
 }
 
 .warning-icon-color {
