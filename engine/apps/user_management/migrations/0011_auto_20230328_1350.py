@@ -20,4 +20,9 @@ class Migration(migrations.Migration):
             name='gcom_org_has_irm_sku',
             field=models.BooleanField(default=False, null=True),
         ),
+        migrations.AddField(
+            model_name='organization',
+            name='gcom_org_oldest_admin_with_billing_privileges_user_id',
+            field=models.PositiveIntegerField(null=True),
+        ),
     ]
