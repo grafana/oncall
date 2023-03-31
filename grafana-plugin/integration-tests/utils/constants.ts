@@ -8,3 +8,6 @@ export const GRAFANA_ADMIN_PASSWORD = process.env.GRAFANA_ADMIN_PASSWORD || 'onc
 
 export const GRAFANA_VIEWER_USERNAME = 'oncall-viewer';
 export const GRAFANA_VIEWER_PASSWORD = 'oncall';
+
+export const ADMIN_FILE = './integration-tests/.auth/adminState.json';
+export const VIEWER_FILE = './integration-tests/.auth/viewerState.json';

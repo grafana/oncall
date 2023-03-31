@@ -5,14 +5,12 @@ import {
   GRAFANA_ADMIN_PASSWORD,
   GRAFANA_VIEWER_PASSWORD,
   GRAFANA_VIEWER_USERNAME,
+  ADMIN_FILE,
+  VIEWER_FILE,
 } from './utils/constants';
 import config from '../playwright.config';
-import { configureOnCallPlugin } from './configurePlugin.setup';
 import { createGrafanaUserWithRole } from './utils/api';
 import { OrgRole } from '@grafana/data';
-
-export const ADMIN_FILE = './integration-tests/.auth/adminState.json';
-export const VIEWER_FILE = './integration-tests/.auth/viewerState.json';
 
 setup('authenticate as admin', async ({ page }) => {
   const { headless } = config.projects[0]!.use;
@@ -25,8 +23,6 @@ setup('authenticate as admin', async ({ page }) => {
 
   await page.context().storageState({ path: ADMIN_FILE });
   await browserContext.storageState({ path: ADMIN_FILE });
-
-  await configureOnCallPlugin(page);
 
   await browserContext.close();
 });

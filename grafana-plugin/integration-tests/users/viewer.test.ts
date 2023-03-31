@@ -1,8 +1,7 @@
 import { test, expect } from '@playwright/test';
 import { openUserSettingsModal } from '../utils/userSettings';
-import { VIEWER_FILE } from '../auth.setup';
 import { OnCallPage, goToOnCallPage } from '../utils/navigation';
-import { GRAFANA_VIEWER_USERNAME } from '../utils/constants';
+import { GRAFANA_VIEWER_USERNAME, VIEWER_FILE } from '../utils/constants';
 
 test.describe(() => {
   test.use({ storageState: VIEWER_FILE });
