@@ -3,9 +3,9 @@ import React, { FC, useEffect, useState } from 'react';
 import { Tooltip, VerticalGroup } from '@grafana/ui';
 import cn from 'classnames/bind';
 
+import InfoBadge from 'components/InfoBadge/InfoBadge';
 import PluginLink from 'components/PluginLink/PluginLink';
 import { ScheduleQualityDetails } from 'components/ScheduleQualityDetails/ScheduleQualityDetails';
-import InfoBadge from 'components/InfoBadge/InfoBadge';
 import Tag from 'components/Tag/Tag';
 import Text from 'components/Text/Text';
 import { Schedule, ScheduleScoreQualityResponse, ScheduleScoreQualityResult } from 'models/schedule/schedule.types';

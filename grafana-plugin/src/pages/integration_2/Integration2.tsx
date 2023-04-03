@@ -1,16 +1,18 @@
+import React from 'react';
+
+import { HorizontalGroup, LoadingPlaceholder } from '@grafana/ui';
+import cn from 'classnames/bind';
+import { observer } from 'mobx-react';
+import Emoji from 'react-emoji-render';
+import { RouteComponentProps, withRouter } from 'react-router-dom';
+
+import InfoBadge from 'components/InfoBadge/InfoBadge';
 import PageErrorHandlingWrapper, { PageBaseState } from 'components/PageErrorHandlingWrapper/PageErrorHandlingWrapper';
 import { initErrorDataState } from 'components/PageErrorHandlingWrapper/PageErrorHandlingWrapper.helpers';
-import React from 'react';
-import cn from 'classnames/bind';
-import { RouteComponentProps, withRouter } from 'react-router-dom';
 import { PageProps, WithStoreProps } from 'state/types';
 import { withMobXProviderContext } from 'state/withStore';
 
 import styles from './Integration2.module.scss';
-import { HorizontalGroup, LoadingPlaceholder } from '@grafana/ui';
-import { observer } from 'mobx-react';
-import Emoji from 'react-emoji-render';
-import InfoBadge from 'components/InfoBadge/InfoBadge';
 
 const cx = cn.bind(styles);
 
