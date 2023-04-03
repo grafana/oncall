@@ -5,9 +5,9 @@ import cn from 'classnames/bind';
 
 import Text, { TextType } from 'components/Text/Text';
 
-import styles from './ScheduleCounter.module.scss';
+import styles from './StatusCounterBadgeWithTooltip.module.scss';
 
-interface ScheduleCounterProps {
+interface StatusCounterBadgeWithTooltipProps {
   type: Partial<TextType>;
   count: number;
   tooltipTitle: string;
@@ -23,7 +23,7 @@ const typeToIcon = {
 
 const cx = cn.bind(styles);
 
-const ScheduleCounter: FC<ScheduleCounterProps> = (props) => {
+const StatusCounterBadgeWithTooltip: FC<StatusCounterBadgeWithTooltipProps> = (props) => {
   const { type, count, tooltipTitle, tooltipContent, onHover, addPadding } = props;
 
   return (
@@ -55,4 +55,4 @@ const ScheduleCounter: FC<ScheduleCounterProps> = (props) => {
   );
 };
 
-export default ScheduleCounter;
+export default StatusCounterBadgeWithTooltip;

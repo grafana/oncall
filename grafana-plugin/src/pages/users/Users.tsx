@@ -1,6 +1,6 @@
 import React from 'react';
 
-import { Alert, Button, HorizontalGroup, Icon, VerticalGroup } from '@grafana/ui';
+import { Alert, Button, HorizontalGroup, VerticalGroup } from '@grafana/ui';
 import cn from 'classnames/bind';
 import { debounce } from 'lodash-es';
 import { observer } from 'mobx-react';
@@ -15,6 +15,7 @@ import {
   initErrorDataState,
 } from 'components/PageErrorHandlingWrapper/PageErrorHandlingWrapper.helpers';
 import PluginLink from 'components/PluginLink/PluginLink';
+import StatusCounterBadgeWithTooltip from 'components/StatusCounterBadgeWithTooltip/StatusCounterBadgeWithTooltip';
 import Text from 'components/Text/Text';
 import UsersFilters from 'components/UsersFilters/UsersFilters';
 import UserSettings from 'containers/UserSettings/UserSettings';
@@ -359,10 +360,22 @@ class Users extends React.Component<UsersProps, UsersState> {
       }
 
       return (
-        <div>
-          <Icon className={cx('warning-message-icon')} name="exclamation-triangle" />
-          {texts.join(', ')}
-        </div>
+        <HorizontalGroup>
+          <StatusCounterBadgeWithTooltip
+            type="warning"
+            count={texts.length}
+            tooltipTitle="Warnings"
+            tooltipContent={
+              <VerticalGroup spacing="none">
+                {texts.map((warning, index) => (
+                  <Text type="primary" key={index}>
+                    {warning}
+                  </Text>
+                ))}
+              </VerticalGroup>
+            }
+          />
+        </HorizontalGroup>
       );
     }
 
