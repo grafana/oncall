@@ -50,11 +50,9 @@ const IntegrationForm = observer((props: IntegrationFormProps) => {
 
   const handleSubmit = useCallback(
     (data: Partial<AlertReceiveChannel>) => {
-      console.log('FORM DATA', data);
       setIntegrationName(data?.verbal_name);
       (id === 'new' ? alertReceiveChannelStore.create(data) : alertReceiveChannelStore.update(id, data))
         .then((response) => {
-          console.log('response', response);
           handleChangeAlertReceiveChannelName(response?.id);
         })
         .then(() => {

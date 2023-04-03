@@ -28,7 +28,7 @@ import { PageProps, WithStoreProps } from 'state/types';
 import { withMobXProviderContext } from 'state/withStore';
 import { UserActions } from 'utils/authorization';
 
-import styles from './Integrations.module.css';
+import styles from './Integrations2.module.scss';
 
 const cx = cn.bind(styles);
 const FILTERS_DEBOUNCE_MS = 500;
@@ -139,7 +139,6 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
       },
     ];
 
-    console.log('alertReceiveChannelId', alertReceiveChannelId);
     return (
       <>
         <div className={cx('root')}>
@@ -288,8 +287,6 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
   };
 
   getEditIntegrationClickHandler = (id: AlertReceiveChannel['id']) => {
-    console.log('ID', id);
-
     this.setState({ alertReceiveChannelId: id });
   };
 

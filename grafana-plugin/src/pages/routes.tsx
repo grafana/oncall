@@ -13,6 +13,7 @@ import ChatOpsPage from 'pages/settings/tabs/ChatOps/ChatOps';
 import CloudPage from 'pages/settings/tabs/Cloud/CloudPage';
 import LiveSettingsPage from 'pages/settings/tabs/LiveSettings/LiveSettingsPage';
 import UsersPage from 'pages/users/Users';
+import IntegrationsPage2 from './integrations_2/Integrations2';
 
 export interface NavRoute {
   id: string;
@@ -35,6 +36,10 @@ export const routes: { [id: string]: NavRoute } = [
   {
     component: IntegrationsPage,
     id: 'integrations',
+  },
+  {
+    component: IntegrationsPage2,
+    id: 'integrations_2',
   },
   {
     component: EscalationsChainsPage,
