@@ -13,6 +13,7 @@ import ChatOpsPage from 'pages/settings/tabs/ChatOps/ChatOps';
 import CloudPage from 'pages/settings/tabs/Cloud/CloudPage';
 import LiveSettingsPage from 'pages/settings/tabs/LiveSettings/LiveSettingsPage';
 import UsersPage from 'pages/users/Users';
+
 import IntegrationsPage2 from './integrations_2/Integrations2';
 
 import IntegrationsPage2 from './integrations_2/Integrations2';
