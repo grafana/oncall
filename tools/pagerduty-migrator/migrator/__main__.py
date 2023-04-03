@@ -126,7 +126,13 @@ def main() -> None:
 
     if rulesets is not None:
         for ruleset in rulesets:
-            match_ruleset(ruleset, oncall_integrations, escalation_policies, services)
+            match_ruleset(
+                ruleset,
+                oncall_integrations,
+                escalation_policies,
+                services,
+                integrations,
+            )
 
     if MODE == MODE_PLAN:
         print(user_report(users), end="\n\n")

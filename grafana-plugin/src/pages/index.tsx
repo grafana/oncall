@@ -35,19 +35,6 @@ export const pages: { [id: string]: PageDefinition } = [
     action: UserActions.AlertGroupsRead,
   },
   {
-    icon: 'bell',
-    id: 'alert-group',
-    text: '',
-    hideFromTabs: true,
-    hideFromBreadcrumbs: true,
-    parentItem: {
-      text: 'Alert Group',
-      url: `${PLUGIN_ROOT}/alert-groups`,
-    },
-    path: getPath('alert-groups'),
-    action: UserActions.AlertGroupsRead,
-  },
-  {
     icon: 'users-alt',
     id: 'users',
     hideFromBreadcrumbs: true,
