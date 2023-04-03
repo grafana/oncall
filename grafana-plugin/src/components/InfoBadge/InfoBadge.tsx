@@ -5,26 +5,24 @@ import cn from 'classnames/bind';
 
 import Text, { TextType } from 'components/Text/Text';
 
-import styles from './StatusCounterBadgeWithTooltip.module.scss';
+import styles from './InfoBadge.module.scss';
 
-interface StatusCounterBadgeWithTooltipProps {
-  type: Partial<TextType>;
-  count: number;
+interface InfoBadgeProps {
+  borderType: Partial<TextType>;
+  count: number | string;
   tooltipTitle: string;
   tooltipContent: React.ReactNode;
+
+  icon?: string;
   addPadding?: boolean;
+
   onHover?: () => void;
 }
 
-const typeToIcon = {
-  link: 'link',
-  warning: 'exclamation-triangle',
-};
-
 const cx = cn.bind(styles);
 
-const StatusCounterBadgeWithTooltip: FC<StatusCounterBadgeWithTooltipProps> = (props) => {
-  const { type, count, tooltipTitle, tooltipContent, onHover, addPadding } = props;
+const InfoBadge: FC<InfoBadgeProps> = (props) => {
+  const { borderType, count, tooltipTitle, tooltipContent, onHover, addPadding, icon } = props;
 
   return (
     <Tooltip
@@ -40,19 +38,18 @@ const StatusCounterBadgeWithTooltip: FC<StatusCounterBadgeWithTooltipProps> = (p
       }
     >
       <div
-        className={cx('root', 'element', { [`element--${type}`]: true }, { 'element--padding': addPadding })}
+        className={cx('root', 'element', { [`element--${borderType}`]: true }, { 'element--padding': addPadding })}
         onMouseEnter={onHover}
       >
         <HorizontalGroup spacing="xs">
-          <Icon
-            className={cx('element__icon', { [`element__icon--${type}`]: true })}
-            name={typeToIcon[type] as IconName}
-          />
-          <Text className={cx('element__text', { [`element__text--${type}`]: true })}>{count}</Text>
+          {icon && (
+            <Icon className={cx('element__icon', { [`element__icon--${borderType}`]: true })} name={icon as IconName} />
+          )}
+          <Text className={cx('element__text', { [`element__text--${borderType}`]: true })}>{count}</Text>
         </HorizontalGroup>
       </div>
     </Tooltip>
   );
 };
 
-export default StatusCounterBadgeWithTooltip;
+export default InfoBadge;

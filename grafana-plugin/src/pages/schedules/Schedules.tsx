@@ -12,7 +12,7 @@ import { MatchMediaTooltip } from 'components/MatchMediaTooltip/MatchMediaToolti
 import NewScheduleSelector from 'components/NewScheduleSelector/NewScheduleSelector';
 import PluginLink from 'components/PluginLink/PluginLink';
 import { SchedulesFiltersType } from 'components/SchedulesFilters/SchedulesFilters.types';
-import StatusCounterBadgeWithTooltip from 'components/StatusCounterBadgeWithTooltip/StatusCounterBadgeWithTooltip';
+import InfoBadge from 'components/InfoBadge/InfoBadge';
 import Table from 'components/Table/Table';
 import Text from 'components/Text/Text';
 import TimelineMarks from 'components/TimelineMarks/TimelineMarks';
@@ -306,8 +306,9 @@ class SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSta
     return (
       <HorizontalGroup>
         {item.number_of_escalation_chains > 0 && (
-          <StatusCounterBadgeWithTooltip
-            type="link"
+          <InfoBadge
+            borderType="link"
+            icon="link"
             count={item.number_of_escalation_chains}
             tooltipTitle="Used in escalations"
             tooltipContent={
@@ -334,8 +335,9 @@ class SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSta
         )}
 
         {item.warnings?.length > 0 && (
-          <StatusCounterBadgeWithTooltip
-            type="warning"
+          <InfoBadge
+            borderType="warning"
+            icon="exclamation-triangle"
             count={item.warnings.length}
             tooltipTitle="Warnings"
             tooltipContent={

@@ -5,7 +5,7 @@ import cn from 'classnames/bind';
 
 import PluginLink from 'components/PluginLink/PluginLink';
 import { ScheduleQualityDetails } from 'components/ScheduleQualityDetails/ScheduleQualityDetails';
-import StatusCounterBadgeWithTooltip from 'components/StatusCounterBadgeWithTooltip/StatusCounterBadgeWithTooltip';
+import InfoBadge from 'components/InfoBadge/InfoBadge';
 import Tag from 'components/Tag/Tag';
 import Text from 'components/Text/Text';
 import { Schedule, ScheduleScoreQualityResponse, ScheduleScoreQualityResult } from 'models/schedule/schedule.types';
@@ -40,8 +40,8 @@ const ScheduleQuality: FC<ScheduleQualityProps> = ({ schedule, lastUpdated }) =>
     <>
       <div className={cx('root')}>
         {relatedEscalationChains?.length > 0 && schedule?.number_of_escalation_chains > 0 && (
-          <StatusCounterBadgeWithTooltip
-            type="link"
+          <InfoBadge
+            borderType="link"
             addPadding
             count={schedule.number_of_escalation_chains}
             tooltipTitle="Used in escalations"
@@ -60,8 +60,8 @@ const ScheduleQuality: FC<ScheduleQualityProps> = ({ schedule, lastUpdated }) =>
         )}
 
         {schedule.warnings?.length > 0 && (
-          <StatusCounterBadgeWithTooltip
-            type="warning"
+          <InfoBadge
+            borderType="warning"
             addPadding
             count={schedule.warnings.length}
             tooltipTitle="Warnings"
