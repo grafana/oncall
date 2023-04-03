@@ -189,10 +189,8 @@ def ruleset_report(rulesets: list[dict]) -> str:
     ):
         result += "\n" + TAB + format_ruleset(ruleset)
         if not ruleset["flawed_escalation_policies"] and ruleset["oncall_integration"]:
-            result += (
-                " (existing integration with name '{} Ruleset' will be deleted)".format(
-                    ruleset["name"]
-                )
+            result += " (existing integration with name '{}' will be deleted)".format(
+                ruleset["oncall_name"]
             )
 
     return result

@@ -39,7 +39,7 @@ export const clickButton = async ({
   dataTestId,
 }: ClickButtonArgs): Promise<void> => {
   const baseLocator = dataTestId ? `button[data-testid="${dataTestId}"]` : 'button';
-  const button = (startingLocator || page).locator(`${baseLocator} >> text=${buttonText}`);
+  const button = (startingLocator || page).locator(`${baseLocator}:not([disabled]) >> text=${buttonText}`);
 
   await button.waitFor({ state: 'visible' });
   await button.click();

@@ -1,4 +1,5 @@
 from migrator import oncall_api_client
+from migrator.config import EXPERIMENTAL_MIGRATE_EVENT_RULES_LONG_NAMES
 from migrator.utils import find_by_id
 
 
@@ -7,14 +8,16 @@ def match_ruleset(
     oncall_integrations: list[dict],
     escalation_policies: list[dict],
     services: list[dict],
+    integrations: list[dict],
 ) -> None:
     # Find existing integration with the same name
     oncall_integration = None
-    name = "{} Ruleset".format(ruleset["name"]).lower().strip()
+    name = _generate_ruleset_name(ruleset, services, integrations)
     for candidate in oncall_integrations:
-        if candidate["name"].lower().strip() == name:
+        if candidate["name"].lower().strip() == name.lower().strip():
             oncall_integration = candidate
     ruleset["oncall_integration"] = oncall_integration
+    ruleset["oncall_name"] = name
 
     # Find services that use escalation policies that cannot be migrated
     service_ids = [
@@ -52,7 +55,7 @@ def migrate_ruleset(
 
     # Create new integration with type "webhook"
     integration_payload = {
-        "name": "{} Ruleset".format(ruleset["name"]),
+        "name": ruleset["oncall_name"],
         "type": "webhook",
         "team_id": None,
     }
@@ -163,3 +166,37 @@ def _pd_service_id_to_oncall_escalation_chain_id(
     escalation_chain_id = escalation_policy["oncall_escalation_chain"]["id"]
 
     return escalation_chain_id
+
+
+def _generate_ruleset_name(ruleset, services, integrations):
+    result = "{} Ruleset".format(ruleset["name"])
+    if not EXPERIMENTAL_MIGRATE_EVENT_RULES_LONG_NAMES:
+        return result
+
+    service_ids = [
+        r["actions"]["route"]["value"]
+        for r in sorted(ruleset["rules"], key=lambda r: r["position"])
+        if not r["disabled"] and r["actions"]["route"]
+    ]
+
+    ruleset_services = [find_by_id(services, service_id) for service_id in service_ids]
+    ruleset_services = [s for s in ruleset_services if s is not None]
+    if not ruleset_services:
+        return result
+
+    service_names = []
+    for service in ruleset_services:
+        service_name = service["name"]
+        service_integrations = [
+            integration
+            for integration in integrations
+            if integration["service"]["id"] == service["id"]
+        ]
+        if service_integrations:
+            service_name += " ({})".format(
+                ", ".join([integration["name"] for integration in service_integrations])
+            )
+        service_names.append(service_name)
+
+    # OnCall limit for integration name is 150 chars
+    return "{}: {}".format(result, ", ".join(service_names))[:150]
