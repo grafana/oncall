@@ -271,7 +271,7 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
     return (
       <HorizontalGroup justify="flex-end">
         <WithPermissionControlTooltip key="edit" userAction={UserActions.IntegrationsWrite}>
-          <IconButton tooltip="Settings" name="cog" onClick={() => this.getEditIntegrationClickHandler(item.id)} />
+          <IconButton tooltip="Settings" name="cog" onClick={() => this.onIntegrationEditClick(item.id)} />
         </WithPermissionControlTooltip>
         <WithPermissionControlTooltip key="edit" userAction={UserActions.IntegrationsWrite}>
           <WithConfirm>
@@ -286,7 +286,7 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
     );
   };
 
-  getEditIntegrationClickHandler = (id: AlertReceiveChannel['id']) => {
+  onIntegrationEditClick = (id: AlertReceiveChannel['id']) => {
     this.setState({ alertReceiveChannelId: id });
   };
 
