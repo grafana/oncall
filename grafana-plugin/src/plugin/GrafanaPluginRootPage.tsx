@@ -152,10 +152,10 @@ export const Root = observer((props: AppRootProps) => {
             <Route path={getRoutesForPage('integrations')} exact>
               <Integrations query={query} />
             </Route>
-            <Route path={getRoutesForPage('integrations2')} exact>
+            <Route path={getRoutesForPage('integrations_2')} exact>
               <Integrations2 query={query} />
             </Route>
-            <Route path={getRoutesForPage('integration2')} exact>
+            <Route path={getRoutesForPage('integration_2')} exact>
               <Integration2 query={query} />
             </Route>
             <Route path={getRoutesForPage('escalations')} exact>
