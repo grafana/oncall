@@ -59,6 +59,7 @@ const IntegrationSettings = observer((props: IntegrationSettingsProps) => {
   const [expanded, _setExpanded] = useState(false);
 
   const handleSwitchToTemplate = (templateName: string) => {
+    setActiveTab(IntegrationSettingsTab.Templates);
     setSelectedTemplate(templateName);
   };
 

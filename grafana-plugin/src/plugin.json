@@ -41,7 +41,7 @@
     {
       "type": "page",
       "name": "Alert Groups",
-      "path": "/a/grafana-oncall-app/incidents",
+      "path": "/a/grafana-oncall-app/alert-groups",
       "role": "Viewer",
       "action": "grafana-oncall-app.alert-groups:read",
       "addToNav": true
