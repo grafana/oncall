@@ -62,6 +62,7 @@ import { getQueryParams, isTopNavbar } from './GrafanaPluginRootPage.helpers';
 import PluginSetup from './PluginSetup';
 
 import grafanaGlobalStyle from '!raw-loader!img/grafanaGlobalStyles.css';
+import Integrations2 from 'pages/integrations_2/Integrations2';
 
 export const GrafanaPluginRootPage = (props: AppRootProps) => {
   return (
