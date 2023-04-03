@@ -62,6 +62,7 @@ import { getQueryParams, isTopNavbar } from './GrafanaPluginRootPage.helpers';
 import PluginSetup from './PluginSetup';
 
 import grafanaGlobalStyle from '!raw-loader!img/grafanaGlobalStyles.css';
+import Integration2 from 'pages/integration_2/Integration2';
 
 export const GrafanaPluginRootPage = (props: AppRootProps) => {
   return (
@@ -153,6 +154,9 @@ export const Root = observer((props: AppRootProps) => {
             </Route>
             <Route path={getRoutesForPage('integrations2')} exact>
               <Integrations2 query={query} />
+            </Route>
+            <Route path={getRoutesForPage('integration2')} exact>
+              <Integration2 query={query} />
             </Route>
             <Route path={getRoutesForPage('escalations')} exact>
               <EscalationChains query={query} />
