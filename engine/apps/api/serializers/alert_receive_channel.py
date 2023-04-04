@@ -62,6 +62,7 @@ class AlertReceiveChannelSerializer(EagerLoadingMixin, serializers.ModelSerializ
         fields = [
             "id",
             "description",
+            "description_short",
             "integration",
             "smile_code",
             "verbal_name",
