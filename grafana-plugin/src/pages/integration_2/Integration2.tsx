@@ -13,6 +13,10 @@ import { PageProps, WithStoreProps } from 'state/types';
 import { withMobXProviderContext } from 'state/withStore';
 
 import styles from './Integration2.module.scss';
+import TeamName from 'containers/TeamName/TeamName';
+import IntegrationLogo from 'components/IntegrationLogo/IntegrationLogo';
+import Text from 'components/Text/Text';
+import UserDisplayWithAvatar from 'containers/UserDisplay/UserDisplayWithAvatar';
 
 const cx = cn.bind(styles);
 
@@ -37,16 +41,17 @@ class Integration2 extends React.Component<Integration2Props, Integration2State>
   render() {
     const { errorData } = this.state;
     const {
-      store,
+      store: { alertReceiveChannelStore, grafanaTeamStore },
       match: {
         params: { id },
       },
     } = this.props;
 
-    const integration = store.alertReceiveChannelStore.items[id];
+    const alertReceiveChannel = alertReceiveChannelStore.items[id];
+    const channelFilterIds = alertReceiveChannelStore.channelFilterIds[id];
     const { isNotFoundError, isWrongTeamError } = errorData;
 
-    if (!integration && !isNotFoundError && !isWrongTeamError) {
+    if ((!alertReceiveChannel && !isNotFoundError && !isWrongTeamError) || !channelFilterIds) {
       return (
         <div className={cx('root')}>
           <LoadingPlaceholder text="Loading Integration..." />
@@ -54,15 +59,21 @@ class Integration2 extends React.Component<Integration2Props, Integration2State>
       );
     }
 
+    const integration = alertReceiveChannelStore.getIntegration(alertReceiveChannel);
+
     return (
       <PageErrorHandlingWrapper errorData={errorData} objectName="integration" pageName="Integration">
         {() => (
           <div className={cx('root')}>
             <div className={cx('integration__heading')}>
               <h1 className={cx('integration__name')}>
-                <Emoji text={integration.verbal_name} />
+                <Emoji text={alertReceiveChannel.verbal_name} />
               </h1>
-              {integration.description && <p className={cx('integration__description')}>{integration.description}</p>}
+              {alertReceiveChannel.description && (
+                <Text type="secondary" className={cx('integration__description')}>
+                  {alertReceiveChannel.description}
+                </Text>
+              )}
               <HorizontalGroup>
                 <InfoBadge borderType="primary" count={'0/0'} tooltipTitle="0/0 Alert Groups" tooltipContent={<></>} />
                 <InfoBadge
@@ -79,6 +90,20 @@ class Integration2 extends React.Component<Integration2Props, Integration2State>
                   tooltipTitle="1 Warning"
                   tooltipContent={<></>}
                 />
+                <HorizontalGroup spacing="xs">
+                  <Text type="secondary">Type:</Text>
+                  <HorizontalGroup spacing="none">
+                    <IntegrationLogo scale={0.08} integration={integration} />
+                    <Text type="secondary" size="small">
+                      {integration?.display_name}
+                    </Text>
+                  </HorizontalGroup>
+                </HorizontalGroup>
+                <TeamName team={grafanaTeamStore.items[alertReceiveChannel.team]} size="small" />
+                <HorizontalGroup spacing="xs">
+                  <Text type="secondary">Created by:</Text>
+                  <UserDisplayWithAvatar id={alertReceiveChannel.author as any}></UserDisplayWithAvatar>
+                </HorizontalGroup>
               </HorizontalGroup>
             </div>
             <div className={cx('integration__content')}></div>
@@ -90,20 +115,20 @@ class Integration2 extends React.Component<Integration2Props, Integration2State>
 
   async loadIntegration() {
     const {
-      store,
+      store: { alertReceiveChannelStore },
       match: {
         params: { id },
       },
     } = this.props;
 
-    return new Promise(async (resolve) => {
-      if (!store.alertReceiveChannelStore.items[id]) {
-        // See what happens if the request fails
-        await store.alertReceiveChannelStore.loadItem(id);
-      }
+    if (!alertReceiveChannelStore.items[id]) {
+      // See what happens if the request fails
+      await alertReceiveChannelStore.loadItem(id);
+    }
 
-      resolve(store.alertReceiveChannelStore.items[id]);
-    });
+    if (!alertReceiveChannelStore.channelFilterIds[id]) {
+      await alertReceiveChannelStore.updateChannelFilters(id);
+    }
   }
 }
 
