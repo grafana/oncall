@@ -1,6 +1,6 @@
 import React, { useRef } from 'react';
 
-import { Button, HorizontalGroup, Icon, LoadingPlaceholder } from '@grafana/ui';
+import { Badge, Button, HorizontalGroup, Icon, LoadingPlaceholder } from '@grafana/ui';
 import cn from 'classnames/bind';
 import { observer } from 'mobx-react';
 import Emoji from 'react-emoji-render';
@@ -72,6 +72,7 @@ class Integration2 extends React.Component<Integration2Props, Integration2State>
     }
 
     const integration = alertReceiveChannelStore.getIntegration(alertReceiveChannel);
+    const alertReceiveChannelCounter = alertReceiveChannelStore.counters[id];
 
     return (
       <PageErrorHandlingWrapper errorData={errorData} objectName="integration" pageName="Integration">
@@ -129,12 +130,34 @@ class Integration2 extends React.Component<Integration2Props, Integration2State>
                 </Text>
               )}
               <HorizontalGroup>
-                <InfoBadge borderType="primary" count={'0/0'} tooltipTitle="0/0 Alert Groups" tooltipContent={<></>} />
+                {alertReceiveChannelCounter && (
+                  <PluginLink
+                    query={{ page: 'alert-groups', integration: alertReceiveChannel.id }}
+                    className={cx('integration__counter')}
+                  >
+                    <Badge
+                      text={
+                        alertReceiveChannelCounter?.alerts_count + '/' + alertReceiveChannelCounter?.alert_groups_count
+                      }
+                      color={'blue'}
+                      tooltip={
+                        alertReceiveChannelCounter?.alerts_count +
+                        ' alert' +
+                        (alertReceiveChannelCounter?.alerts_count === 1 ? '' : 's') +
+                        ' in ' +
+                        alertReceiveChannelCounter?.alert_groups_count +
+                        ' alert group' +
+                        (alertReceiveChannelCounter?.alert_groups_count === 1 ? '' : 's')
+                      }
+                    />
+                  </PluginLink>
+                )}
+
                 <InfoBadge
                   borderType="success"
                   icon="link"
-                  count={'1'}
-                  tooltipTitle="1 Escalation Chain"
+                  count={channelFilterIds.length}
+                  tooltipTitle={`${channelFilterIds.length} Routes`}
                   tooltipContent={<></>}
                 />
                 <InfoBadge
