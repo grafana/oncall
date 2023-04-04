@@ -18,6 +18,11 @@ import IntegrationLogo from 'components/IntegrationLogo/IntegrationLogo';
 import Text from 'components/Text/Text';
 import UserDisplayWithAvatar from 'containers/UserDisplay/UserDisplayWithAvatar';
 import { WithContextMenu } from 'components/WithContextMenu/WithContextMenu';
+import { AlertReceiveChannel } from 'models/alert_receive_channel';
+import { openNotification } from 'utils';
+import PluginLink from 'components/PluginLink/PluginLink';
+import { PLUGIN_ROOT } from 'utils/consts';
+import WithConfirm from 'components/WithConfirm/WithConfirm';
 
 const cx = cn.bind(styles);
 
@@ -76,17 +81,28 @@ class Integration2 extends React.Component<Integration2Props, Integration2State>
                   <Emoji text={alertReceiveChannel.verbal_name} />
                 </h1>
                 <div className={cx('integration__actions')}>
-                  <Button variant="secondary" size="sm" onClick={this.onSendDemoAlertFn} data-testid="send-demo-alert">
+                  <Button
+                    variant="secondary"
+                    size="sm"
+                    onClick={() => this.onSendDemoAlertFn(id)}
+                    data-testid="send-demo-alert"
+                  >
                     Send demo alert
                   </Button>
 
                   <WithContextMenu
                     renderMenuItems={() => (
                       <div className={cx('integration__actionsList')}>
-                        <div className={cx('integration__actionItem')}>
-                          <Text type="danger">Delete</Text>
-                        </div>
-                        <div className={cx('integration__actionItem')}>
+                        <WithConfirm
+                          title={`Are you sure to want to delete ${alertReceiveChannel.verbal_name} integration?`}
+                          confirmText="Delete"
+                        >
+                          <div className={cx('integration__actionItem')} onClick={() => this.onRemovalFn(id)}>
+                            <Text type="danger">Delete</Text>
+                          </div>
+                        </WithConfirm>
+
+                        <div className={cx('integration__actionItem')} onClick={() => this.onStartMaintenance(id)}>
                           <Text type="primary">Start Maintenance</Text>
                         </div>
                       </div>
@@ -143,9 +159,27 @@ class Integration2 extends React.Component<Integration2Props, Integration2State>
     );
   }
 
-  onSendDemoAlertFn: () => {};
+  onRemovalFn = (id: AlertReceiveChannel['id']) => {
+    const {
+      store: { alertReceiveChannelStore },
+      history,
+    } = this.props;
 
-  onMainActionsMenuOpen: () => {};
+    alertReceiveChannelStore.deleteAlertReceiveChannel(id).then(() => history.push(`${PLUGIN_ROOT}/integrations_2/`));
+  };
+
+  onStartMaintenance = (_id: AlertReceiveChannel['id']) => {};
+
+  onSendDemoAlertFn = (id: AlertReceiveChannel['id']) => {
+    const {
+      store: { alertReceiveChannelStore },
+    } = this.props;
+
+    alertReceiveChannelStore.sendDemoAlert(id).then(() => {
+      alertReceiveChannelStore.updateCounters();
+      openNotification(<DemoNotification />);
+    });
+  };
 
   async loadIntegration() {
     const {
@@ -165,6 +199,16 @@ class Integration2 extends React.Component<Integration2Props, Integration2State>
     }
   }
 }
+
+const DemoNotification: React.FC = () => {
+  return (
+    <div>
+      Demo alert was generated. Find it on the
+      <PluginLink query={{ page: 'alert-groups' }}> "Alert Groups" </PluginLink>
+      page and make sure it didn't freak out your colleagues 😉
+    </div>
+  );
+};
 
 const HamburgerMenu: React.FC<{ openMenu: React.MouseEventHandler<HTMLElement> }> = ({ openMenu }) => {
   const ref = useRef<HTMLDivElement>();
