@@ -11,6 +11,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Add new field description_short to private api ([#1698](https://github.com/grafana/oncall/pull/1698))
 
+### Changed
+
+- Disable mentions when resolution note is created by @iskhakov ([1696](https://github.com/grafana/oncall/pull/1696))
+- Display warnings on users page in a clean and consistent way by @iskhakov ([#1681](https://github.com/grafana/oncall/pull/1681))
+
 ## v1.2.7 (2023-04-03)
 
 ### Added

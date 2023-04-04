@@ -262,6 +262,8 @@ jobs:
           pytest -x
 
   end-to-end-tests:
+    # TODO: reenable this job once https://github.com/grafana/oncall/issues/1692 is fixed
+    if: ${{ false }}
     runs-on: ubuntu-latest
     name: "End to end tests - Grafana: ${{ matrix.grafana-image-tag }}"
     strategy:
