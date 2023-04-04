@@ -89,6 +89,7 @@ class IntegrationSerializer(EagerLoadingMixin, serializers.ModelSerializer, Main
         fields = MaintainableObjectSerializerMixin.Meta.fields + [
             "id",
             "name",
+            "description_short",
             "team_id",
             "link",
             "type",
