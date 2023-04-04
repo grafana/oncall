@@ -29,7 +29,7 @@ const getIncidentTagColor = (alert: Alert) => {
   return getVar('--tag-secondary');
 };
 
-function ListMenu({ alert, openMenu }: { alert: Alert; openMenu: React.MouseEventHandler<HTMLElement> }) {
+function IncidentStatusTag({ alert, openMenu }: { alert: Alert; openMenu: React.MouseEventHandler<HTMLElement> }) {
   const forwardedRef = useRef<HTMLSpanElement>();
 
   return (
@@ -109,7 +109,7 @@ export const IncidentDropdown: FC<{
           </div>
         )}
       >
-        {({ openMenu }) => <ListMenu alert={alert} openMenu={openMenu} />}
+        {({ openMenu }) => <IncidentStatusTag alert={alert} openMenu={openMenu} />}
       </WithContextMenu>
     );
   }
@@ -149,7 +149,7 @@ export const IncidentDropdown: FC<{
           </div>
         )}
       >
-        {({ openMenu }) => <ListMenu alert={alert} openMenu={openMenu} />}
+        {({ openMenu }) => <IncidentStatusTag alert={alert} openMenu={openMenu} />}
       </WithContextMenu>
     );
   }
@@ -207,7 +207,7 @@ export const IncidentDropdown: FC<{
           </div>
         )}
       >
-        {({ openMenu }) => <ListMenu alert={alert} openMenu={openMenu} />}
+        {({ openMenu }) => <IncidentStatusTag alert={alert} openMenu={openMenu} />}
       </WithContextMenu>
     );
   }
@@ -260,7 +260,7 @@ export const IncidentDropdown: FC<{
         </div>
       )}
     >
-      {({ openMenu }) => <ListMenu alert={alert} openMenu={openMenu} />}
+      {({ openMenu }) => <IncidentStatusTag alert={alert} openMenu={openMenu} />}
     </WithContextMenu>
   );
 };
