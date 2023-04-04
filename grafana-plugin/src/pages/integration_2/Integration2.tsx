@@ -1,6 +1,6 @@
-import React from 'react';
+import React, { useRef } from 'react';
 
-import { HorizontalGroup, LoadingPlaceholder } from '@grafana/ui';
+import { Button, HorizontalGroup, Icon, LoadingPlaceholder } from '@grafana/ui';
 import cn from 'classnames/bind';
 import { observer } from 'mobx-react';
 import Emoji from 'react-emoji-render';
@@ -17,12 +17,17 @@ import TeamName from 'containers/TeamName/TeamName';
 import IntegrationLogo from 'components/IntegrationLogo/IntegrationLogo';
 import Text from 'components/Text/Text';
 import UserDisplayWithAvatar from 'containers/UserDisplay/UserDisplayWithAvatar';
+import { WithContextMenu } from 'components/WithContextMenu/WithContextMenu';
 
 const cx = cn.bind(styles);
 
 interface Integration2Props extends WithStoreProps, PageProps, RouteComponentProps<{ id: string }> {}
 
 interface Integration2State extends PageBaseState {}
+
+// This can be further improved by using a ref instead
+const ACTIONS_LIST_WIDTH = 140;
+const ACTIONS_LIST_BORDER = 2;
 
 @observer
 class Integration2 extends React.Component<Integration2Props, Integration2State> {
@@ -65,10 +70,32 @@ class Integration2 extends React.Component<Integration2Props, Integration2State>
       <PageErrorHandlingWrapper errorData={errorData} objectName="integration" pageName="Integration">
         {() => (
           <div className={cx('root')}>
-            <div className={cx('integration__heading')}>
-              <h1 className={cx('integration__name')}>
-                <Emoji text={alertReceiveChannel.verbal_name} />
-              </h1>
+            <div className={cx('integration__heading-container')}>
+              <div className={cx('integration__heading')}>
+                <h1 className={cx('integration__name')}>
+                  <Emoji text={alertReceiveChannel.verbal_name} />
+                </h1>
+                <div className={cx('integration__actions')}>
+                  <Button variant="secondary" size="sm" onClick={this.onSendDemoAlertFn} data-testid="send-demo-alert">
+                    Send demo alert
+                  </Button>
+
+                  <WithContextMenu
+                    renderMenuItems={() => (
+                      <div className={cx('integration__actionsList')}>
+                        <div className={cx('integration__actionItem')}>
+                          <Text type="danger">Delete</Text>
+                        </div>
+                        <div className={cx('integration__actionItem')}>
+                          <Text type="primary">Start Maintenance</Text>
+                        </div>
+                      </div>
+                    )}
+                  >
+                    {({ openMenu }) => <HamburgerMenu openMenu={openMenu} />}
+                  </WithContextMenu>
+                </div>
+              </div>
               {alertReceiveChannel.description && (
                 <Text type="secondary" className={cx('integration__description')}>
                   {alertReceiveChannel.description}
@@ -99,7 +126,10 @@ class Integration2 extends React.Component<Integration2Props, Integration2State>
                     </Text>
                   </HorizontalGroup>
                 </HorizontalGroup>
-                <TeamName team={grafanaTeamStore.items[alertReceiveChannel.team]} size="small" />
+                <HorizontalGroup spacing="xs">
+                  <Text type="secondary">Team:</Text>
+                  <TeamName team={grafanaTeamStore.items[alertReceiveChannel.team]} size="small" />
+                </HorizontalGroup>
                 <HorizontalGroup spacing="xs">
                   <Text type="secondary">Created by:</Text>
                   <UserDisplayWithAvatar id={alertReceiveChannel.author as any}></UserDisplayWithAvatar>
@@ -112,6 +142,10 @@ class Integration2 extends React.Component<Integration2Props, Integration2State>
       </PageErrorHandlingWrapper>
     );
   }
+
+  onSendDemoAlertFn: () => {};
+
+  onMainActionsMenuOpen: () => {};
 
   async loadIntegration() {
     const {
@@ -131,5 +165,26 @@ class Integration2 extends React.Component<Integration2Props, Integration2State>
     }
   }
 }
+
+const HamburgerMenu: React.FC<{ openMenu: React.MouseEventHandler<HTMLElement> }> = ({ openMenu }) => {
+  const ref = useRef<HTMLDivElement>();
+
+  return (
+    <div
+      ref={ref}
+      className={cx('hamburger-menu')}
+      onClick={() => {
+        const boundingRect = ref.current.getBoundingClientRect();
+
+        openMenu({
+          pageX: boundingRect.right - ACTIONS_LIST_WIDTH + ACTIONS_LIST_BORDER * 2,
+          pageY: boundingRect.top + boundingRect.height,
+        } as any);
+      }}
+    >
+      <Icon size="sm" name="ellipsis-v" />
+    </div>
+  );
+};
 
 export default withRouter(withMobXProviderContext(Integration2));
