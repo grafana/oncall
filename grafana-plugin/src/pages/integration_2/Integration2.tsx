@@ -23,6 +23,8 @@ import { openNotification } from 'utils';
 import PluginLink from 'components/PluginLink/PluginLink';
 import { PLUGIN_ROOT } from 'utils/consts';
 import WithConfirm from 'components/WithConfirm/WithConfirm';
+import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
+import { UserActions } from 'utils/authorization';
 
 const cx = cn.bind(styles);
 
@@ -81,27 +83,36 @@ class Integration2 extends React.Component<Integration2Props, Integration2State>
                   <Emoji text={alertReceiveChannel.verbal_name} />
                 </h1>
                 <div className={cx('integration__actions')}>
-                  <Button
-                    variant="secondary"
-                    size="sm"
-                    onClick={() => this.onSendDemoAlertFn(id)}
-                    data-testid="send-demo-alert"
-                  >
-                    Send demo alert
-                  </Button>
+                  <WithPermissionControlTooltip userAction={UserActions.IntegrationsTest}>
+                    <Button
+                      variant="secondary"
+                      size="md"
+                      onClick={() => this.onSendDemoAlertFn(id)}
+                      data-testid="send-demo-alert"
+                    >
+                      Send demo alert
+                    </Button>
+                  </WithPermissionControlTooltip>
+
+                  <WithPermissionControlTooltip userAction={UserActions.IntegrationsWrite}>
+                    <WithConfirm
+                      title={`Are you sure to want to delete ${alertReceiveChannel.verbal_name} integration?`}
+                      confirmText="Delete"
+                    >
+                      <Button
+                        variant="destructive"
+                        size="md"
+                        onClick={() => this.onRemovalFn(id)}
+                        data-testid="delete-integration"
+                      >
+                        Delete
+                      </Button>
+                    </WithConfirm>
+                  </WithPermissionControlTooltip>
 
                   <WithContextMenu
                     renderMenuItems={() => (
                       <div className={cx('integration__actionsList')}>
-                        <WithConfirm
-                          title={`Are you sure to want to delete ${alertReceiveChannel.verbal_name} integration?`}
-                          confirmText="Delete"
-                        >
-                          <div className={cx('integration__actionItem')} onClick={() => this.onRemovalFn(id)}>
-                            <Text type="danger">Delete</Text>
-                          </div>
-                        </WithConfirm>
-
                         <div className={cx('integration__actionItem')} onClick={() => this.onStartMaintenance(id)}>
                           <Text type="primary">Start Maintenance</Text>
                         </div>
