@@ -18,7 +18,7 @@ const IntegrationCollapsibleTreeView: React.FC<IntegrationCollapsibleTreeViewPro
         return (
           <div className={cx('integrationTree__group')}>
             <div className={cx('integrationTree__icon')}>
-              <Icon name="arrow-down" />
+              <Icon name="arrow-down" size="lg" />
             </div>
             {itemNode}
           </div>
