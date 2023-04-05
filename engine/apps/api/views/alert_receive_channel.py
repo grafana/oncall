@@ -15,7 +15,6 @@ from apps.api.serializers.alert_receive_channel import (
     AlertReceiveChannelUpdateSerializer,
     FilterAlertReceiveChannelSerializer,
 )
-from apps.api.throttlers import DemoAlertThrottler
 from apps.auth_token.auth import PluginAuthentication
 from common.api_helpers.exceptions import BadRequest
 from common.api_helpers.filters import ByTeamModelFieldFilterMixin, TeamModelMultipleChoiceFilter
@@ -26,6 +25,7 @@ from common.api_helpers.mixins import (
     TeamFilteringMixin,
     UpdateSerializerMixin,
 )
+from common.api_helpers.serializers.demo_alert import DemoAlertSerializer
 from common.exceptions import TeamCanNotBeChangedError, UnableToSendDemoAlert
 from common.insight_log import EntityEvent, write_resource_insight_log
 
@@ -88,6 +88,7 @@ class AlertReceiveChannelView(
         "counters": [RBACPermission.Permissions.INTEGRATIONS_READ],
         "counters_per_integration": [RBACPermission.Permissions.INTEGRATIONS_READ],
         "send_demo_alert": [RBACPermission.Permissions.INTEGRATIONS_TEST],
+        "get_demo_alert_payload": [RBACPermission.Permissions.INTEGRATIONS_TEST],
         "preview_template": [RBACPermission.Permissions.INTEGRATIONS_TEST],
         "create": [RBACPermission.Permissions.INTEGRATIONS_WRITE],
         "update": [RBACPermission.Permissions.INTEGRATIONS_WRITE],
@@ -147,14 +148,25 @@ class AlertReceiveChannelView(
 
         return queryset
 
-    @action(detail=True, methods=["post"], throttle_classes=[DemoAlertThrottler])
+    @action(detail=True, methods=["get"])
+    def get_demo_alert_payload(self, request, pk):
+        instance = AlertReceiveChannel.objects.get(public_primary_key=pk)
+        serializer = DemoAlertSerializer({"payload": instance.config.example_payload})
+        return Response(serializer.data)
+
+    # @action(detail=True, methods=["post"], throttle_classes=[DemoAlertThrottler])
+    @action(detail=True, methods=["post"])
     def send_demo_alert(self, request, pk):
         instance = AlertReceiveChannel.objects.get(public_primary_key=pk)
-        try:
-            instance.send_demo_alert()
-        except UnableToSendDemoAlert as e:
-            raise BadRequest(detail=str(e))
-        return Response(status=status.HTTP_200_OK)
+        serializer = DemoAlertSerializer(data=request.data)
+        if serializer.is_valid():
+            try:
+                instance.send_demo_alert(payload=serializer.validated_data.get("payload", None))
+            except UnableToSendDemoAlert as e:
+                raise BadRequest(detail=str(e))
+            return Response(status=status.HTTP_200_OK)
+        else:
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     @action(detail=False, methods=["get"])
     def integration_options(self, request):

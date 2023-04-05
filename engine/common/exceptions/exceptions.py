@@ -1,6 +1,6 @@
 class OperationCouldNotBePerformedError(Exception):
     """
-    Indicates that operation could not be performed due to to application logic.
+    Indicates that operation could not be performed due to application logic.
     E.g. you can't ack resolved AlertGroup
     """
 
