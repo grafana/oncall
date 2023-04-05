@@ -27,6 +27,8 @@ import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/W
 import { UserActions } from 'utils/authorization';
 import IntegrationCollapsibleTreeView from 'components/IntegrationCollapsibleTreeView/IntegrationCollapsibleTreeView';
 import Block from 'components/GBlock/Block';
+import Tag from 'components/Tag/Tag';
+import { getVar } from 'utils/DOM';
 
 const cx = cn.bind(styles);
 
@@ -201,16 +203,28 @@ class Integration2 extends React.Component<Integration2Props, Integration2State>
 
             <IntegrationCollapsibleTreeView>
               <IntegrationBlock
-                heading={<Text type="secondary">Welcome</Text>}
-                content={<Text type="secondary">Welcome</Text>}
+                heading={
+                  <Tag color={getVar('--tag-secondary')}>
+                    <Text type="primary" size="small">
+                      HTTP Endpoint
+                    </Text>
+                  </Tag>
+                }
+                content={
+                  <Text type="secondary">
+                    <Text type="secondary">No alerts yet</Text>
+                  </Text>
+                }
               />
               <IntegrationBlock
-                heading={<Text type="secondary">Welcome</Text>}
-                content={<Text type="secondary">Welcome</Text>}
-              />
-              <IntegrationBlock
-                heading={<Text type="secondary">Welcome</Text>}
-                content={<Text type="secondary">Welcome</Text>}
+                heading={
+                  <Tag color={getVar('--tag-secondary')}>
+                    <Text type="primary" size="small">
+                      Templates
+                    </Text>
+                  </Tag>
+                }
+                content={<Text type="secondary">Templates</Text>}
               />
             </IntegrationCollapsibleTreeView>
           </div>
