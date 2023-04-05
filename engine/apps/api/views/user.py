@@ -4,10 +4,8 @@ import pytz
 from django.apps import apps
 from django.conf import settings
 from django.core.exceptions import ObjectDoesNotExist
-from django.db.models import Q
 from django.db.utils import IntegrityError
 from django.urls import reverse
-from django.utils import timezone
 from django_filters import rest_framework as filters
 from rest_framework import mixins, status, viewsets
 from rest_framework.decorators import action
@@ -474,41 +472,16 @@ class UserView(
             return Response(status=status.HTTP_400_BAD_REQUEST)
 
         # filter user-related schedules
-        schedules = OnCallSchedule.objects.filter(
-            Q(cached_ical_file_primary__contains=user.username)
-            | Q(cached_ical_file_primary__contains=user.email)
-            | Q(cached_ical_file_overrides__contains=user.username)
-            | Q(cached_ical_file_overrides__contains=user.username),
-            organization=user.organization,
-        )
+        schedules = OnCallSchedule.objects.related_to_user(user)
 
         # check upcoming shifts
-        user_tz = user.timezone or "UTC"
-        now = timezone.now()
-        starting_date = now.date()
         upcoming = {}
         for schedule in schedules:
-            is_oncall = False
-            current_shift = upcoming_shift = None
-            events = schedule.final_events(user_tz, starting_date, days=days)
-            for e in events:
-                if e["end"] < now:
-                    # shift is finished, ignore
-                    continue
-                users = {u["pk"] for u in e["users"]}
-                if user.public_primary_key in users:
-                    if e["start"] < now and e["end"] > now:
-                        # shift is in progress
-                        is_oncall = True
-                        current_shift = e
-                        continue
-                    upcoming_shift = e
-                    break
-
+            current_shift, upcoming_shift = schedule.upcoming_shift_for_user(user, days=days)
             if current_shift or upcoming_shift:
                 upcoming[schedule.public_primary_key] = {
                     "schedule": schedule.name,
-                    "is_oncall": is_oncall,
+                    "is_oncall": current_shift is not None,
                     "current_shift": current_shift,
                     "next_shift": upcoming_shift,
                 }
