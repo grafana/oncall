@@ -9,7 +9,7 @@ import { RouteComponentProps, withRouter } from 'react-router-dom';
 
 import Avatar from 'components/Avatar/Avatar';
 import GTable from 'components/GTable/GTable';
-import InfoBadge from 'components/InfoBadge/InfoBadge';
+import CounterBadge from 'components/CounterBadge/CounterBadge';
 import PageErrorHandlingWrapper, { PageBaseState } from 'components/PageErrorHandlingWrapper/PageErrorHandlingWrapper';
 import {
   getWrongTeamResponseInfo,
@@ -361,7 +361,7 @@ class Users extends React.Component<UsersProps, UsersState> {
 
       return (
         <HorizontalGroup>
-          <InfoBadge
+          <CounterBadge
             borderType="warning"
             icon="exclamation-triangle"
             count={texts.length}

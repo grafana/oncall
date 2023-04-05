@@ -1,12 +1,12 @@
 import React, { useRef } from 'react';
 
-import { Badge, Button, HorizontalGroup, Icon, LoadingPlaceholder } from '@grafana/ui';
+import { Badge, Button, HorizontalGroup, Icon, LoadingPlaceholder, Tooltip } from '@grafana/ui';
 import cn from 'classnames/bind';
 import { observer } from 'mobx-react';
 import Emoji from 'react-emoji-render';
 import { RouteComponentProps, withRouter } from 'react-router-dom';
 
-import InfoBadge from 'components/InfoBadge/InfoBadge';
+import CounterBadge from 'components/CounterBadge/CounterBadge';
 import PageErrorHandlingWrapper, { PageBaseState } from 'components/PageErrorHandlingWrapper/PageErrorHandlingWrapper';
 import { initErrorDataState } from 'components/PageErrorHandlingWrapper/PageErrorHandlingWrapper.helpers';
 import { PageProps, WithStoreProps } from 'state/types';
@@ -131,41 +131,51 @@ class Integration2 extends React.Component<Integration2Props, Integration2State>
               )}
               <HorizontalGroup>
                 {alertReceiveChannelCounter && (
-                  <PluginLink
-                    query={{ page: 'alert-groups', integration: alertReceiveChannel.id }}
-                    className={cx('integration__counter')}
+                  <Tooltip
+                    placement="bottom-start"
+                    content={
+                      alertReceiveChannelCounter?.alerts_count +
+                      ' alert' +
+                      (alertReceiveChannelCounter?.alerts_count === 1 ? '' : 's') +
+                      ' in ' +
+                      alertReceiveChannelCounter?.alert_groups_count +
+                      ' alert group' +
+                      (alertReceiveChannelCounter?.alert_groups_count === 1 ? '' : 's')
+                    }
                   >
-                    <Badge
-                      text={
-                        alertReceiveChannelCounter?.alerts_count + '/' + alertReceiveChannelCounter?.alert_groups_count
-                      }
-                      color={'blue'}
-                      tooltip={
-                        alertReceiveChannelCounter?.alerts_count +
-                        ' alert' +
-                        (alertReceiveChannelCounter?.alerts_count === 1 ? '' : 's') +
-                        ' in ' +
-                        alertReceiveChannelCounter?.alert_groups_count +
-                        ' alert group' +
-                        (alertReceiveChannelCounter?.alert_groups_count === 1 ? '' : 's')
-                      }
-                    />
-                  </PluginLink>
+                    {/* <span> is needed to be child, otherwise Tooltip won't render */}
+                    <span>
+                      <PluginLink
+                        query={{ page: 'alert-groups', integration: alertReceiveChannel.id }}
+                        className={cx('integration__counter')}
+                      >
+                        <Badge
+                          text={
+                            alertReceiveChannelCounter?.alerts_count +
+                            '/' +
+                            alertReceiveChannelCounter?.alert_groups_count
+                          }
+                          className={cx('integration__countersBadge')}
+                          color={'blue'}
+                        />
+                      </PluginLink>
+                    </span>
+                  </Tooltip>
                 )}
 
-                <InfoBadge
+                <CounterBadge
                   borderType="success"
                   icon="link"
                   count={channelFilterIds.length}
                   tooltipTitle={`${channelFilterIds.length} Routes`}
-                  tooltipContent={<></>}
+                  tooltipContent={undefined}
                 />
-                <InfoBadge
+                <CounterBadge
                   borderType="warning"
                   icon="exclamation-triangle"
                   count={'1'}
                   tooltipTitle="1 Warning"
-                  tooltipContent={<></>}
+                  tooltipContent={undefined}
                 />
                 <HorizontalGroup spacing="xs">
                   <Text type="secondary">Type:</Text>
@@ -223,14 +233,22 @@ class Integration2 extends React.Component<Integration2Props, Integration2State>
       },
     } = this.props;
 
+    const promises = [];
+
     if (!alertReceiveChannelStore.items[id]) {
       // See what happens if the request fails
-      await alertReceiveChannelStore.loadItem(id);
+      promises.push(alertReceiveChannelStore.loadItem(id));
+    }
+
+    if (!alertReceiveChannelStore.counters?.length) {
+      promises.push(alertReceiveChannelStore.updateCounters());
     }
 
     if (!alertReceiveChannelStore.channelFilterIds[id]) {
-      await alertReceiveChannelStore.updateChannelFilters(id);
+      promises.push(await alertReceiveChannelStore.updateChannelFilters(id));
     }
+
+    await Promise.all(promises);
   }
 }
 
