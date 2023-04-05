@@ -8,12 +8,12 @@ from apps.auth_token.auth import ApiTokenAuthentication
 from apps.public_api.serializers import EscalationChainSerializer
 from apps.public_api.throttlers.user_throttle import UserThrottle
 from common.api_helpers.filters import ByTeamFilter
-from common.api_helpers.mixins import RateLimitHeadersMixin, UpdateSerializerMixin
+from common.api_helpers.mixins import RateLimitHeadersMixin
 from common.api_helpers.paginators import FiftyPageSizePaginator
 from common.insight_log import EntityEvent, write_resource_insight_log
 
 
-class EscalationChainView(RateLimitHeadersMixin, UpdateSerializerMixin, ModelViewSet):
+class EscalationChainView(RateLimitHeadersMixin, ModelViewSet):
     authentication_classes = (ApiTokenAuthentication,)
     permission_classes = (IsAuthenticated,)
 
