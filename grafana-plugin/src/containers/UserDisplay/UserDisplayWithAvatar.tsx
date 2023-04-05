@@ -1,27 +1,25 @@
 import { HorizontalGroup } from '@grafana/ui';
 import Avatar from 'components/Avatar/Avatar';
 import Text from 'components/Text/Text';
+import { observer } from 'mobx-react';
 import { User } from 'models/user/user.types';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect } from 'react';
 import { useStore } from 'state/useStore';
 
 interface UserDisplayProps {
   id: User['pk'];
 }
 
-const UserDisplayWithAvatar: React.FC<UserDisplayProps> = ({ id }) => {
+const UserDisplayWithAvatar = observer(({ id }: UserDisplayProps) => {
   const { userStore } = useStore();
-  const [user, setUser] = useState<User>(undefined);
 
   useEffect(() => {
-    (async function () {
-      if (!userStore.items[id]) {
-        await userStore.updateItem(id);
-        setUser(userStore.items[id]);
-      }
-    })();
+    if (!userStore.items[id]) {
+      userStore.updateItem(id);
+    }
   }, [id]);
 
+  const user = userStore.items[id];
   if (!user) return null;
 
   return (
@@ -30,6 +28,6 @@ const UserDisplayWithAvatar: React.FC<UserDisplayProps> = ({ id }) => {
       <Text type="secondary">{user.email}</Text>
     </HorizontalGroup>
   );
-};
+});
 
 export default UserDisplayWithAvatar;

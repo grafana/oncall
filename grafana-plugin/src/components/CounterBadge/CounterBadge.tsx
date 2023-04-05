@@ -1,13 +1,12 @@
 import React, { FC } from 'react';
-
-import { HorizontalGroup, VerticalGroup, Icon, Tooltip, IconName } from '@grafana/ui';
+import { Icon, Tooltip, IconName, VerticalGroup, HorizontalGroup } from '@grafana/ui';
 import cn from 'classnames/bind';
 
 import Text, { TextType } from 'components/Text/Text';
 
-import styles from './InfoBadge.module.scss';
+import styles from './CounterBadge.module.scss';
 
-interface InfoBadgeProps {
+interface CounterBadgeProps {
   borderType: Partial<TextType>;
   count: number | string;
   tooltipTitle: string;
@@ -21,7 +20,7 @@ interface InfoBadgeProps {
 
 const cx = cn.bind(styles);
 
-const InfoBadge: FC<InfoBadgeProps> = (props) => {
+const CounterBadge: FC<CounterBadgeProps> = (props) => {
   const { borderType, count, tooltipTitle, tooltipContent, onHover, addPadding, icon } = props;
 
   return (
@@ -30,9 +29,9 @@ const InfoBadge: FC<InfoBadgeProps> = (props) => {
       interactive
       content={
         <div className={cx('tooltip')}>
-          <VerticalGroup>
-            <Text type="secondary">{tooltipTitle}</Text>
-            <Text type="secondary">{tooltipContent}</Text>
+          <VerticalGroup spacing="xs">
+            <Text type="primary">{tooltipTitle}</Text>
+            {tooltipContent && <Text type="secondary">{tooltipContent}</Text>}
           </VerticalGroup>
         </div>
       }
@@ -52,4 +51,4 @@ const InfoBadge: FC<InfoBadgeProps> = (props) => {
   );
 };
 
-export default InfoBadge;
+export default CounterBadge;

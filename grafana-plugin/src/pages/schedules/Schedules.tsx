@@ -8,7 +8,7 @@ import { observer } from 'mobx-react';
 import { RouteComponentProps, withRouter } from 'react-router-dom';
 
 import Avatar from 'components/Avatar/Avatar';
-import InfoBadge from 'components/InfoBadge/InfoBadge';
+import CounterBadge from 'components/CounterBadge/CounterBadge';
 import { MatchMediaTooltip } from 'components/MatchMediaTooltip/MatchMediaTooltip';
 import NewScheduleSelector from 'components/NewScheduleSelector/NewScheduleSelector';
 import PluginLink from 'components/PluginLink/PluginLink';
@@ -306,7 +306,7 @@ class SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSta
     return (
       <HorizontalGroup>
         {item.number_of_escalation_chains > 0 && (
-          <InfoBadge
+          <CounterBadge
             borderType="link"
             icon="link"
             count={item.number_of_escalation_chains}
@@ -335,7 +335,7 @@ class SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSta
         )}
 
         {item.warnings?.length > 0 && (
-          <InfoBadge
+          <CounterBadge
             borderType="warning"
             icon="exclamation-triangle"
             count={item.warnings.length}

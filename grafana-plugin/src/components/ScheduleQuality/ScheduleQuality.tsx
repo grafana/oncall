@@ -3,7 +3,7 @@ import React, { FC, useEffect, useState } from 'react';
 import { Tooltip, VerticalGroup } from '@grafana/ui';
 import cn from 'classnames/bind';
 
-import InfoBadge from 'components/InfoBadge/InfoBadge';
+import CounterBadge from 'components/CounterBadge/CounterBadge';
 import PluginLink from 'components/PluginLink/PluginLink';
 import { ScheduleQualityDetails } from 'components/ScheduleQualityDetails/ScheduleQualityDetails';
 import Tag from 'components/Tag/Tag';
@@ -40,7 +40,7 @@ const ScheduleQuality: FC<ScheduleQualityProps> = ({ schedule, lastUpdated }) =>
     <>
       <div className={cx('root')}>
         {relatedEscalationChains?.length > 0 && schedule?.number_of_escalation_chains > 0 && (
-          <InfoBadge
+          <CounterBadge
             borderType="link"
             addPadding
             count={schedule.number_of_escalation_chains}
@@ -60,7 +60,7 @@ const ScheduleQuality: FC<ScheduleQualityProps> = ({ schedule, lastUpdated }) =>
         )}
 
         {schedule.warnings?.length > 0 && (
-          <InfoBadge
+          <CounterBadge
             borderType="warning"
             addPadding
             count={schedule.warnings.length}

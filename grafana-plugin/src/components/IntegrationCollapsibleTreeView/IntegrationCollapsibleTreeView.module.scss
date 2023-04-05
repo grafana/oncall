@@ -1,0 +1,13 @@
+.integrationTree__container {
+  margin-left: 32px;
+  position: relative;
+
+  &:before {
+    content: '';
+    position: absolute;
+    height: calc(100% - 10px);
+    border-left: 1px solid rgba(36, 41, 46, 0.12);
+    margin-top: 0px;
+    margin-left: -20px;
+  }
+}
