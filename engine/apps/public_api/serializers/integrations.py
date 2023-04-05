@@ -359,7 +359,6 @@ class IntegrationSerializer(EagerLoadingMixin, serializers.ModelSerializer, Main
 
 class IntegrationUpdateSerializer(IntegrationSerializer):
     type = IntegrationTypeField(source="integration", read_only=True)
-    team_id = TeamPrimaryKeyRelatedField(source="team", read_only=True)
 
     def update(self, instance, validated_data):
         validated_data = self._correct_validated_data(validated_data)
