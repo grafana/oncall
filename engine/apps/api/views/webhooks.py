@@ -1,4 +1,3 @@
-from django.apps import apps
 from django.core.exceptions import ObjectDoesNotExist, PermissionDenied
 from django_filters import rest_framework as filters
 from rest_framework.decorators import action
@@ -12,6 +11,7 @@ from apps.api.permissions import RBACPermission
 from apps.api.serializers.webhook import WebhookSerializer
 from apps.auth_token.auth import PluginAuthentication
 from apps.webhooks.models import Webhook
+from apps.webhooks.utils import is_webhooks_enabled_for_organization
 from common.api_helpers.filters import ByTeamModelFieldFilterMixin, ModelFieldFilterMixin, TeamModelMultipleChoiceFilter
 from common.api_helpers.mixins import PublicPrimaryKeyMixin, TeamFilteringMixin
 
@@ -85,16 +85,7 @@ class WebhooksView(TeamFilteringMixin, PublicPrimaryKeyMixin, ModelViewSet):
         instance.delete()
 
     def check_webhooks_2_enabled(self):
-        DynamicSetting = apps.get_model("base", "DynamicSetting")
-        enabled_webhooks_2_orgs = DynamicSetting.objects.get_or_create(
-            name="enabled_webhooks_2_orgs",
-            defaults={
-                "json_value": {
-                    "org_ids": [],
-                }
-            },
-        )[0]
-        if self.request.auth.organization.pk not in enabled_webhooks_2_orgs.json_value["org_ids"]:
+        if not is_webhooks_enabled_for_organization(self.request.auth.organization.pk):
             raise PermissionDenied("Webhooks 2 not enabled for organization. Permission denied.")
 
     @action(methods=["get"], detail=False)

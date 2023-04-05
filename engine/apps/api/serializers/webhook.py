@@ -59,9 +59,7 @@ class WebhookSerializer(serializers.ModelSerializer):
             "last_response_log",
         ]
         extra_kwargs = {
-            "authorization_header": {"write_only": True},
             "name": {"required": True, "allow_null": False, "allow_blank": False},
-            "password": {"write_only": True},
             "url": {"required": True, "allow_null": False, "allow_blank": False},
         }
 
@@ -113,6 +111,6 @@ class WebhookSerializer(serializers.ModelSerializer):
 
     def get_trigger_type_name(self, obj):
         trigger_type_name = ""
-        if obj.trigger_type:
+        if obj.trigger_type is not None:
             trigger_type_name = Webhook.TRIGGER_TYPES[int(obj.trigger_type)][1]
         return trigger_type_name
