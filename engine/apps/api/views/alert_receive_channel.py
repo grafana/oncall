@@ -154,8 +154,7 @@ class AlertReceiveChannelView(
         serializer = DemoAlertSerializer({"payload": instance.config.example_payload})
         return Response(serializer.data)
 
-    # @action(detail=True, methods=["post"], throttle_classes=[DemoAlertThrottler])
-    @action(detail=True, methods=["post"])
+    @action(detail=True, methods=["post"], throttle_classes=[DemoAlertThrottler])
     def send_demo_alert(self, request, pk):
         instance = AlertReceiveChannel.objects.get(public_primary_key=pk)
         serializer = DemoAlertSerializer(data=request.data)
