@@ -1,5 +1,10 @@
 $FLEX-GAP: 4px;
 $MARGIN: 12px;
+$ITEMS-MARGIN: 24px;
+
+.integration__heading-container {
+  margin-bottom: $ITEMS-MARGIN;
+}
 
 .integration__heading {
   display: flex;
@@ -17,6 +22,7 @@ $MARGIN: 12px;
   display: flex;
   flex-direction: column;
   width: 140px;
+  border-radius: 2px;
 }
 
 .integration__actionItem {
@@ -52,7 +58,7 @@ $MARGIN: 12px;
   background-color: rgba(204, 204, 220, 0.16);
   color: var(--secondary-background);
   border: 1px solid transparent;
-  height: 34px;
+  height: 32px;
   width: 30px;
   padding: 4px;
   cursor: pointer;
@@ -65,4 +71,19 @@ $MARGIN: 12px;
 .integration__countersBadge {
   line-height: 16px;
   padding: 3px 4px;
+}
+
+.integrationBlock__heading,
+.integrationBlock__content {
+  padding: 16px;
+}
+
+.integrationBlock__heading {
+  background-color: var(--background-secondary);
+  border: none;
+}
+
+.integrationBlock__content {
+  background: var(--background-primary);
+  border: var(--border-weak);
 }

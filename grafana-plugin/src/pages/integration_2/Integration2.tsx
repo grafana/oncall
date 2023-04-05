@@ -25,6 +25,8 @@ import { PLUGIN_ROOT } from 'utils/consts';
 import WithConfirm from 'components/WithConfirm/WithConfirm';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
 import { UserActions } from 'utils/authorization';
+import IntegrationCollapsibleTreeView from 'components/IntegrationCollapsibleTreeView/IntegrationCollapsibleTreeView';
+import Block from 'components/GBlock/Block';
 
 const cx = cn.bind(styles);
 
@@ -196,7 +198,21 @@ class Integration2 extends React.Component<Integration2Props, Integration2State>
                 </HorizontalGroup>
               </HorizontalGroup>
             </div>
-            <div className={cx('integration__content')}></div>
+
+            <IntegrationCollapsibleTreeView>
+              <IntegrationBlock
+                heading={<Text type="secondary">Welcome</Text>}
+                content={<Text type="secondary">Welcome</Text>}
+              />
+              <IntegrationBlock
+                heading={<Text type="secondary">Welcome</Text>}
+                content={<Text type="secondary">Welcome</Text>}
+              />
+              <IntegrationBlock
+                heading={<Text type="secondary">Welcome</Text>}
+                content={<Text type="secondary">Welcome</Text>}
+              />
+            </IntegrationCollapsibleTreeView>
           </div>
         )}
       </PageErrorHandlingWrapper>
@@ -279,6 +295,23 @@ const HamburgerMenu: React.FC<{ openMenu: React.MouseEventHandler<HTMLElement> }
       }}
     >
       <Icon size="sm" name="ellipsis-v" />
+    </div>
+  );
+};
+
+interface IntegrationBlockProps {
+  heading: React.ReactNode;
+  content: React.ReactNode;
+}
+
+const IntegrationBlock: React.FC<IntegrationBlockProps> = (props) => {
+  const { heading, content } = props;
+  return (
+    <div className={cx('integrationBlock')}>
+      <Block bordered shadowed className={cx('integrationBlock__heading')}>
+        {heading}
+      </Block>
+      <div className={cx('integrationBlock__content')}>{content}</div>
     </div>
   );
 };
