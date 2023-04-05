@@ -6,8 +6,29 @@
     content: '';
     position: absolute;
     height: calc(100% - 10px);
-    border-left: 1px solid rgba(36, 41, 46, 0.12);
+    border-left: 1px solid var(--primary-text-color);
     margin-top: 0px;
     margin-left: -20px;
   }
+}
+
+.integrationTree__group {
+  position: relative;
+  margin-bottom: 12px;
+}
+
+.integrationTree__icon {
+  position: absolute;
+  top: 0px;
+  transform: translateY(50%);
+  left: -32px;
+  color: var(--secondary-text-color);
+  width: 25px;
+  height: 25px;
+  text-align: center;
+  background-color: var(--primary-background) !important;
+  border: 1px solid var(--primary-background);
+  z-index: 100;
+  border-radius: 4px;
+  padding: 0px;
 }
