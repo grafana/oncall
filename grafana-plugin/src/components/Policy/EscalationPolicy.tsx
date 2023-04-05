@@ -178,8 +178,30 @@ export class EscalationPolicy extends React.Component<EscalationPolicyProps, any
           // @ts-ignore
           onChange={this._getOnSelectChangeHandler('important')}
           options={[
-            { value: 0, label: 'Default' },
-            { value: 1, label: 'Important' },
+            {
+              value: 0,
+              label: 'Default',
+              // @ts-ignore
+              description: (
+                <>
+                  Manage&nbsp;"Default&nbsp;notifications"
+                  <br />
+                  in personal settings
+                </>
+              ),
+            },
+            {
+              value: 1,
+              label: 'Important',
+              // @ts-ignore
+              description: (
+                <>
+                  Manage&nbsp;"Important&nbsp;notifications"
+                  <br />
+                  in personal settings
+                </>
+              ),
+            },
           ]}
           width={'auto'}
         />
