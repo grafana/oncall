@@ -4,7 +4,7 @@ aliases:
 keywords:
   - Open Source
 title: Open Source
-weight: 300
+weight: 400
 ---
 
 # Grafana OnCall open source guide

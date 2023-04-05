@@ -7,7 +7,7 @@ keywords:
   - oncall
   - notification
   - push notification
-weight: 1200
+weight: 1100
 ---
 
 # Grafana OnCall Mobile App
