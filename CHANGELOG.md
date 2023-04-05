@@ -10,14 +10,66 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - Allow editing assigned team via public api ([1619](https://github.com/grafana/oncall/pull/1619))
-- When the `DANGEROUS_WEBHOOKS_ENABLED` environment variable is set to true, it's possible now to create Outgoing Webhooks
-  using URLs without a top-level domain ([1266](https://github.com/grafana/oncall/pull/1266))
-- Updated wording when creating an integration ([1572](https://github.com/grafana/oncall/pull/1572))
-- Set FCM iOS/Android "message priority" to "high priority" for mobile app push notifications ([1612](https://github.com/grafana/oncall/pull/1612))
+- Disable mentions when resolution note is created by @iskhakov ([1696](https://github.com/grafana/oncall/pull/1696))
+- Display warnings on users page in a clean and consistent way by @iskhakov ([#1681](https://github.com/grafana/oncall/pull/1681))
+
+## v1.2.7 (2023-04-03)
+
+### Added
+
+- Save selected teams filter in local storage ([1611](https://github.com/grafana/oncall/issues/1611))
+
+### Changed
+
+- Renamed routes from /incidents to /alert-groups ([#1678](https://github.com/grafana/oncall/pull/1678))
 
 ### Fixed
 
-- Update override deletion changes to set its final duration
+- Fix team search when filtering resources by @vadimkerr ([#1680](https://github.com/grafana/oncall/pull/1680))
+- Fix issue when trying to scroll in Safari ([#415](https://github.com/grafana/oncall/issues/415))
+
+## v1.2.6 (2023-03-30)
+
+### Fixed
+
+- Fixed bug when web schedules/shifts use non-UTC timezone and shift is deleted by @matiasb ([#1661](https://github.com/grafana/oncall/pull/1661))
+
+## v1.2.5 (2023-03-30)
+
+### Fixed
+
+- Fixed a bug with Slack links not working in the plugin UI ([#1671](https://github.com/grafana/oncall/pull/1671))
+
+## v1.2.4 (2023-03-30)
+
+### Added
+
+- Added the ability to change the team for escalation chains by @maskin25, @iskhakov and @vadimkerr ([#1658](https://github.com/grafana/oncall/pull/1658))
+
+### Fixed
+
+- Addressed bug with iOS mobile push notifications always being set to critical by @imtoori and @joeyorlando ([#1646](https://github.com/grafana/oncall/pull/1646))
+- Fixed issue where Viewer was not able to view which people were oncall in a schedule ([#999](https://github.com/grafana/oncall/issues/999))
+- Fixed a bug with syncing teams from Grafana API by @vadimkerr ([#1652](https://github.com/grafana/oncall/pull/1652))
+
+## v1.2.3 (2023-03-28)
+
+Only some minor performance/developer setup changes to report in this version.
+
+## v1.2.2 (2023-03-27)
+
+### Changed
+
+- Drawers with Forms are not closing by clicking outside of the drawer. Only by clicking Cancel or X (by @Ukochka in [#1608](https://github.com/grafana/oncall/pull/1608))
+- When the `DANGEROUS_WEBHOOKS_ENABLED` environment variable is set to true, it's possible now to create Outgoing Webhooks
+  using URLs without a top-level domain (by @hoptical in [#1398](https://github.com/grafana/oncall/pull/1398))
+- Updated wording when creating an integration (by @callmehyde in [#1572](https://github.com/grafana/oncall/pull/1572))
+- Set FCM iOS/Android "message priority" to "high priority" for mobile app push notifications (by @joeyorlando in [#1612](https://github.com/grafana/oncall/pull/1612))
+- Improve schedule quality feature (by @vadimkerr in [#1602](https://github.com/grafana/oncall/pull/1602))
+
+### Fixed
+
+- Update override deletion changes to set its final duration (by @matiasb in [#1599](https://github.com/grafana/oncall/pull/1599))
 
 ## v1.2.1 (2023-03-23)
 

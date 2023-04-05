@@ -54,7 +54,7 @@ from apps.slack.slack_client import SlackClientWithErrorHandling
 from apps.slack.slack_client.exceptions import SlackAPIException, SlackAPITokenException
 from apps.slack.tasks import clean_slack_integration_leftovers, unpopulate_slack_user_identities
 from common.insight_log import ChatOpsEvent, ChatOpsType, write_chatops_insight_log
-from common.oncall_gateway import delete_slack_connector_async
+from common.oncall_gateway import delete_slack_connector
 
 from .models import SlackMessage, SlackTeamIdentity, SlackUserIdentity
 
@@ -551,7 +551,7 @@ class ResetSlackView(APIView):
             if slack_team_identity is not None:
                 clean_slack_integration_leftovers.apply_async((organization.pk,))
                 if settings.FEATURE_MULTIREGION_ENABLED:
-                    delete_slack_connector_async.apply_async((slack_team_identity.slack_id,))
+                    delete_slack_connector(str(organization.uuid))
                 write_chatops_insight_log(
                     author=request.user,
                     event_name=ChatOpsEvent.WORKSPACE_DISCONNECTED,

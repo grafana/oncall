@@ -27,24 +27,11 @@ function getPath(name = '') {
 export const pages: { [id: string]: PageDefinition } = [
   {
     icon: 'bell',
-    id: 'incidents',
+    id: 'alert-groups',
     hideFromBreadcrumbs: true,
     text: 'Alert Groups',
     hideTitle: true,
-    path: getPath('incidents'),
-    action: UserActions.AlertGroupsRead,
-  },
-  {
-    icon: 'bell',
-    id: 'incident',
-    text: '',
-    hideFromTabs: true,
-    hideFromBreadcrumbs: true,
-    parentItem: {
-      text: 'Incident',
-      url: `${PLUGIN_ROOT}/incidents`,
-    },
-    path: getPath('incident'),
+    path: getPath('alert-groups'),
     action: UserActions.AlertGroupsRead,
   },
   {
@@ -189,8 +176,8 @@ export const pages: { [id: string]: PageDefinition } = [
 }, {});
 
 export const ROUTES = {
-  incidents: ['incidents'],
-  incident: ['incidents/:id'],
+  'alert-groups': ['alert-groups'],
+  'alert-group': ['alert-groups/:id'],
   users: ['users', 'users/:id'],
   integrations: ['integrations', 'integrations/:id'],
   escalations: ['escalations', 'escalations/:id'],
@@ -205,6 +192,10 @@ export const ROUTES = {
   'live-settings': ['live-settings'],
   cloud: ['cloud'],
   test: ['test'],
+
+  // backwards compatible to redirect to new alert-groups
+  incident: ['incidents/:id'],
+  incidents: ['incidents'],
 };
 
 export const getRoutesForPage = (name: string) => {

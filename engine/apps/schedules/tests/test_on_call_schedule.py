@@ -7,7 +7,13 @@ from django.utils import timezone
 
 from apps.api.permissions import LegacyAccessControlRole
 from apps.schedules.ical_utils import memoized_users_in_ical
-from apps.schedules.models import CustomOnCallShift, OnCallSchedule, OnCallScheduleCalendar, OnCallScheduleWeb
+from apps.schedules.models import (
+    CustomOnCallShift,
+    OnCallSchedule,
+    OnCallScheduleCalendar,
+    OnCallScheduleICal,
+    OnCallScheduleWeb,
+)
 
 
 @pytest.mark.django_db
@@ -1111,3 +1117,39 @@ def test_api_schedule_preview_requires_override(make_organization, make_schedule
 
     with pytest.raises(ValueError):
         schedule.preview_shift(non_override_shift, "UTC", now, 1)
+
+
+@pytest.mark.django_db
+def test_polymorphic_delete_related(
+    make_organization_with_slack_team_identity, make_team, make_schedule, make_slack_user_group
+):
+    """
+    Check that deleting related objects works as expected given that OnCallSchedule is a polymorphic model, and
+    django-polymorphic has a bug with on_delete not working correctly for FKs:
+    https://github.com/django-polymorphic/django-polymorphic/issues/229#issuecomment-398434412.
+    """
+    organization, slack_team_identity = make_organization_with_slack_team_identity()
+
+    team = make_team(organization)
+    slack_user_group = make_slack_user_group(slack_team_identity)
+
+    schedule_1 = make_schedule(organization, schedule_class=OnCallScheduleWeb, team=team, user_group=slack_user_group)
+    schedule_2 = make_schedule(organization, schedule_class=OnCallScheduleICal, team=team, user_group=slack_user_group)
+
+    # Check that deleting the team works as expected
+    team.delete()
+    schedule_1.refresh_from_db()
+    schedule_2.refresh_from_db()
+    assert schedule_1.team is None
+    assert schedule_2.team is None
+
+    # Check that deleting the user group works as expected
+    slack_user_group.delete()
+    schedule_1.refresh_from_db()
+    schedule_2.refresh_from_db()
+    assert schedule_1.user_group is None
+    assert schedule_2.user_group is None
+
+    # Check that deleting the organization works as expected
+    organization.hard_delete()
+    assert not OnCallSchedule.objects.exists()

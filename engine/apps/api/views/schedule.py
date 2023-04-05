@@ -27,7 +27,6 @@ from apps.auth_token.auth import PluginAuthentication
 from apps.auth_token.constants import SCHEDULE_EXPORT_TOKEN_NAME
 from apps.auth_token.models import ScheduleExportAuthToken
 from apps.schedules.models import OnCallSchedule
-from apps.schedules.quality_score import get_schedule_quality_score
 from apps.slack.models import SlackChannel
 from apps.slack.tasks import update_slack_user_group_for_schedules
 from common.api_helpers.exceptions import BadRequest, Conflict
@@ -353,13 +352,12 @@ class ScheduleView(
     @action(detail=True, methods=["get"])
     def quality(self, request, pk):
         schedule = self.get_object()
-        user_tz, date = self.get_request_timezone()
-        days = int(self.request.query_params.get("days", 90))  # todo: check if days could be calculated more precisely
 
-        events = schedule.filter_events(user_tz, date, days=days, with_empty=True, with_gap=True)
+        _, date = self.get_request_timezone()
+        days = self.request.query_params.get("days")
+        days = int(days) if days else None
 
-        schedule_score = get_schedule_quality_score(events, days)
-        return Response(schedule_score)
+        return Response(schedule.quality_report(date, days))
 
     @action(detail=False, methods=["get"])
     def type_options(self, request):

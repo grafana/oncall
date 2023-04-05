@@ -79,3 +79,18 @@ if settings.DEBUG_CELERY_TASKS_PROFILING:
         logger.info("ended: {} of {} with cpu={} at {}".format(task_id, task.name, time.perf_counter(), time.time()))
         sample_mem()
         memdump()
+
+
+if settings.PYROSCOPE_PROFILER_ENABLED:
+
+    @celery.signals.worker_process_init.connect(weak=False)
+    def init_pyroscope(*args, **kwargs):
+        import pyroscope
+
+        pyroscope.configure(
+            application_name=settings.PYROSCOPE_APPLICATION_NAME,
+            server_address=settings.PYROSCOPE_SERVER_ADDRESS,
+            auth_token=settings.PYROSCOPE_AUTH_TOKEN,
+            detect_subprocesses=True,  # detect subprocesses started by the main process; default is False
+            tags={"type": "celery", "celery_worker": os.environ.get("CELERY_WORKER_QUEUE", "no_queue_specified")},
+        )

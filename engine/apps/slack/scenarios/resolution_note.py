@@ -352,7 +352,7 @@ class UpdateResolutionNoteStep(scenario_step.ScenarioStep):
 
     def get_resolution_note_blocks(self, resolution_note):
         blocks = []
-        author_verbal = resolution_note.author_verbal(mention=True)
+        author_verbal = resolution_note.author_verbal(mention=False)
         resolution_note_text_block = {
             "type": "section",
             "text": {"type": "mrkdwn", "text": resolution_note.text},
