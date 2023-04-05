@@ -4,8 +4,10 @@ import pytz
 from django.apps import apps
 from django.conf import settings
 from django.core.exceptions import ObjectDoesNotExist
+from django.db.models import Q
 from django.db.utils import IntegrityError
 from django.urls import reverse
+from django.utils import timezone
 from django_filters import rest_framework as filters
 from rest_framework import mixins, status, viewsets
 from rest_framework.decorators import action
@@ -37,6 +39,7 @@ from apps.auth_token.models import UserScheduleExportAuthToken
 from apps.base.messaging import get_messaging_backend_from_id
 from apps.base.utils import live_settings
 from apps.mobile_app.auth import MobileAppAuthTokenAuthentication
+from apps.schedules.models import OnCallSchedule
 from apps.telegram.client import TelegramClient
 from apps.telegram.models import TelegramVerificationCode
 from apps.twilioapp.phone_manager import PhoneManager
@@ -139,6 +142,7 @@ class UserView(
         "unlink_backend": [RBACPermission.Permissions.USER_SETTINGS_WRITE],
         "make_test_call": [RBACPermission.Permissions.USER_SETTINGS_WRITE],
         "export_token": [RBACPermission.Permissions.USER_SETTINGS_WRITE],
+        "upcoming_shifts": [RBACPermission.Permissions.USER_SETTINGS_WRITE],
     }
 
     rbac_object_permissions = {
@@ -159,6 +163,7 @@ class UserView(
             "unlink_backend",
             "make_test_call",
             "export_token",
+            "upcoming_shifts",
         ],
         IsOwnerOrHasUserSettingsReadPermission: [
             "check_availability",
@@ -459,6 +464,56 @@ class UserView(
         except ObjectDoesNotExist:
             return Response(status=status.HTTP_400_BAD_REQUEST)
         return Response(status=status.HTTP_200_OK)
+
+    @action(detail=True, methods=["get"])
+    def upcoming_shifts(self, request, pk):
+        user = self.get_object()
+        try:
+            days = int(request.query_params.get("days", 7))  # fallback to a week
+        except ValueError:
+            return Response(status=status.HTTP_400_BAD_REQUEST)
+
+        # filter user-related schedules
+        schedules = OnCallSchedule.objects.filter(
+            Q(cached_ical_file_primary__contains=user.username)
+            | Q(cached_ical_file_primary__contains=user.email)
+            | Q(cached_ical_file_overrides__contains=user.username)
+            | Q(cached_ical_file_overrides__contains=user.username),
+            organization=user.organization,
+        )
+
+        # check upcoming shifts
+        user_tz = user.timezone or "UTC"
+        now = timezone.now()
+        starting_date = now.date()
+        upcoming = {}
+        for schedule in schedules:
+            is_oncall = False
+            current_shift = upcoming_shift = None
+            events = schedule.final_events(user_tz, starting_date, days=days)
+            for e in events:
+                if e["end"] < now:
+                    # shift is finished, ignore
+                    continue
+                users = {u["pk"] for u in e["users"]}
+                if user.public_primary_key in users:
+                    if e["start"] < now and e["end"] > now:
+                        # shift is in progress
+                        is_oncall = True
+                        current_shift = e
+                        continue
+                    upcoming_shift = e
+                    break
+
+            if current_shift or upcoming_shift:
+                upcoming[schedule.public_primary_key] = {
+                    "schedule": schedule.name,
+                    "is_oncall": is_oncall,
+                    "current_shift": current_shift,
+                    "next_shift": upcoming_shift,
+                }
+
+        return Response(upcoming, status=status.HTTP_200_OK)
 
     @action(detail=True, methods=["get", "post", "delete"])
     def export_token(self, request, pk):
