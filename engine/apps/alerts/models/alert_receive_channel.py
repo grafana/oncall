@@ -1,5 +1,4 @@
 import logging
-from datetime import date
 from functools import cached_property
 from urllib.parse import urljoin
 
@@ -186,9 +185,6 @@ class AlertReceiveChannel(IntegrationOptionsMixin, MaintainableObject):
 
     rate_limited_in_slack_at = models.DateTimeField(null=True, default=None)
     rate_limit_message_task_id = models.CharField(max_length=100, null=True, default=None)
-
-    alert_groups_created_counter_current_month = models.DateField(default=date.today, null=True)
-    alert_groups_created_this_month = models.PositiveBigIntegerField(default=0, null=True)
 
     class Meta:
         constraints = [

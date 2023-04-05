@@ -6,7 +6,8 @@ from django.utils.functional import cached_property
 class AlertBaseRenderer(ABC):
 
     # TODO: update this wording
-    IS_RESTRICTED_TITLE = "RESTRICTED TITLE TODO TODO"
+    # potential restricted title/message wording
+    IS_RESTRICTED_TITLE = "RESTRICTED TITLE TODO TODO"  # upgrade to see this
     IS_RESTRICTED_MESSAGE = "RESTRICTED MESSAGE TODO TODO"
 
     def __init__(self, alert):
