@@ -135,6 +135,7 @@ class AlertGroupListSerializer(EagerLoadingMixin, AlertGroupFieldsCacheSerialize
             "status",
             "declare_incident_link",
             "team",
+            "is_restricted",
         ]
 
     def get_render_for_web(self, obj):
