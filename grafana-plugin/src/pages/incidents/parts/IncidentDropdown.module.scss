@@ -37,10 +37,10 @@
     color: var(--tag-warning);
   }
   &--firing {
-    color: var(--error-text-color);
+    color: var(--tag-danger);
   }
   &--resolve {
-    color: var(--success-text-color);
+    color: var(--tag-success);
   }
 }
 
