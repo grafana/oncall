@@ -11,6 +11,7 @@ from django.apps import apps
 from django.conf import settings
 from django.core.validators import MinLengthValidator
 from django.db import models
+from django.db.models import Q
 from django.db.utils import DatabaseError
 from django.utils import timezone
 from django.utils.functional import cached_property
@@ -71,6 +72,15 @@ def generate_public_primary_key_for_oncall_schedule_channel():
 class OnCallScheduleQuerySet(PolymorphicQuerySet):
     def get_oncall_users(self, events_datetime=None):
         return get_oncall_users_for_multiple_schedules(self, events_datetime)
+
+    def related_to_user(self, user):
+        return self.filter(
+            Q(cached_ical_file_primary__contains=user.username)
+            | Q(cached_ical_file_primary__contains=user.email)
+            | Q(cached_ical_file_overrides__contains=user.username)
+            | Q(cached_ical_file_overrides__contains=user.username),
+            organization=user.organization,
+        )
 
 
 class OnCallSchedule(PolymorphicModel):
@@ -283,6 +293,28 @@ class OnCallSchedule(PolymorphicModel):
         )
         events = self._resolve_schedule(events)
         return events
+
+    def upcoming_shift_for_user(self, user, days=7):
+        user_tz = user.timezone or "UTC"
+        now = timezone.now()
+        starting_date = now.date()
+        current_shift = upcoming_shift = None
+
+        events = self.final_events(user_tz, starting_date, days=days)
+        for e in events:
+            if e["end"] < now:
+                # shift is finished, ignore
+                continue
+            users = {u["pk"] for u in e["users"]}
+            if user.public_primary_key in users:
+                if e["start"] < now and e["end"] > now:
+                    # shift is in progress
+                    current_shift = e
+                    continue
+                upcoming_shift = e
+                break
+
+        return current_shift, upcoming_shift
 
     def quality_report(self, date: Optional[timezone.datetime], days: Optional[int]) -> QualityReport:
         """
