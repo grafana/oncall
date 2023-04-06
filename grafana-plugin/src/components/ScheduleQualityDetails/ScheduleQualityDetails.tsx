@@ -96,7 +96,7 @@ export const ScheduleQualityDetails: FC<ScheduleQualityDetailsProps> = ({ qualit
           )}
         </div>
 
-        <div className={cx('line-break')} />
+        <div className="thin-line-break" />
 
         <div className={cx('container', 'container--withTopPadding', 'container--withLateralPadding')}>
           <HorizontalGroup justify="space-between">
