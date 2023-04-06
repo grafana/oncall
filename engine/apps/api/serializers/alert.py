@@ -61,6 +61,7 @@ class AlertSerializer(AlertFieldsCacheSerializerMixin, serializers.ModelSerializ
 
 class AlertRawSerializer(serializers.ModelSerializer):
     id = serializers.CharField(read_only=True, source="public_primary_key")
+    raw_request_data = serializers.SerializerMethodField()
 
     class Meta:
         model = Alert
@@ -68,3 +69,7 @@ class AlertRawSerializer(serializers.ModelSerializer):
             "id",
             "raw_request_data",
         ]
+
+    def get_raw_request_data(self, obj):
+        # TODO:
+        return {} if obj.group.is_restricted else obj.raw_request_data
