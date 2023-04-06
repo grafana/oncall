@@ -37,7 +37,7 @@ interface Integration2Props extends WithStoreProps, PageProps, RouteComponentPro
 interface Integration2State extends PageBaseState {}
 
 // This can be further improved by using a ref instead
-const ACTIONS_LIST_WIDTH = 140;
+const ACTIONS_LIST_WIDTH = 160;
 const ACTIONS_LIST_BORDER = 2;
 
 @observer
@@ -99,28 +99,57 @@ class Integration2 extends React.Component<Integration2Props, Integration2State>
                     </Button>
                   </WithPermissionControlTooltip>
 
-                  <WithPermissionControlTooltip userAction={UserActions.IntegrationsWrite}>
-                    <WithConfirm
-                      title={`Are you sure to want to delete ${alertReceiveChannel.verbal_name} integration?`}
-                      confirmText="Delete"
-                    >
-                      <Button
-                        variant="destructive"
-                        size="md"
-                        onClick={() => this.onRemovalFn(id)}
-                        data-testid="delete-integration"
-                      >
-                        Delete
-                      </Button>
-                    </WithConfirm>
-                  </WithPermissionControlTooltip>
-
                   <WithContextMenu
-                    renderMenuItems={() => (
-                      <div className={cx('integration__actionsList')}>
-                        <div className={cx('integration__actionItem')} onClick={() => this.onStartMaintenance(id)}>
+                    renderMenuItems={({ closeMenu }) => (
+                      <div className={cx('integration__actionsList')} id="integration-menu-options">
+                        <div
+                          className={cx('integration__actionItem')}
+                          onClick={() => this.openIntegrationSettings(id, closeMenu)}
+                        >
+                          <Text type="primary">Integration Settings</Text>
+                        </div>
+
+                        <div className={cx('integration__actionItem')} onClick={() => this.openHearbeat(id, closeMenu)}>
+                          Hearbeat
+                        </div>
+
+                        <div
+                          className={cx('integration__actionItem')}
+                          onClick={() => this.openStartMaintenance(id, closeMenu)}
+                        >
                           <Text type="primary">Start Maintenance</Text>
                         </div>
+
+                        <div className="thin-line-break" />
+
+                        <WithPermissionControlTooltip userAction={UserActions.IntegrationsWrite}>
+                          <div className={cx('integration__actionItem')}>
+                            <WithConfirm
+                              title="Delete integration?"
+                              body={
+                                <>
+                                  Are you sure you want to delete <Emoji text={alertReceiveChannel.verbal_name} />{' '}
+                                  integration?
+                                </>
+                              }
+                            >
+                              <div onClick={() => this.deleteIntegration(id, closeMenu)}>
+                                <div
+                                  onClick={() => {
+                                    // work-around to prevent 2 modals showing (withContextMenu and ConfirmModal)
+                                    const contextMenuEl =
+                                      document.querySelector<HTMLElement>('#integration-menu-options');
+                                    if (contextMenuEl) {
+                                      contextMenuEl.style.display = 'none';
+                                    }
+                                  }}
+                                >
+                                  <Text type="danger">Stop Maintenance</Text>
+                                </div>
+                              </div>
+                            </WithConfirm>
+                          </div>
+                        </WithPermissionControlTooltip>
                       </div>
                     )}
                   >
@@ -242,7 +271,13 @@ class Integration2 extends React.Component<Integration2Props, Integration2State>
     alertReceiveChannelStore.deleteAlertReceiveChannel(id).then(() => history.push(`${PLUGIN_ROOT}/integrations_2/`));
   };
 
-  onStartMaintenance = (_id: AlertReceiveChannel['id']) => {};
+  deleteIntegration = (_id: AlertReceiveChannel['id'], _closeMenu: () => void) => {};
+
+  openIntegrationSettings = (_id: AlertReceiveChannel['id'], _closeMenu: () => void) => {};
+
+  openStartMaintenance = (_id: AlertReceiveChannel['id'], _closeMenu: () => void) => {};
+
+  openHearbeat = (_id: AlertReceiveChannel['id'], _closeMenu: () => void) => {};
 
   onSendDemoAlertFn = (id: AlertReceiveChannel['id']) => {
     const {
