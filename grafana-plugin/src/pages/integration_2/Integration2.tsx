@@ -1,6 +1,18 @@
 import React, { useRef } from 'react';
 
-import { Badge, Button, HorizontalGroup, Icon, LoadingPlaceholder, Tooltip } from '@grafana/ui';
+import {
+  Badge,
+  Button,
+  HorizontalGroup,
+  VerticalGroup,
+  Icon,
+  LoadingPlaceholder,
+  SecretInput,
+  Tooltip,
+  Input,
+  InlineLabel,
+  TextArea,
+} from '@grafana/ui';
 import cn from 'classnames/bind';
 import { observer } from 'mobx-react';
 import Emoji from 'react-emoji-render';
@@ -233,16 +245,42 @@ class Integration2 extends React.Component<Integration2Props, Integration2State>
             <IntegrationCollapsibleTreeView>
               <IntegrationBlock
                 heading={
-                  <Tag color={getVar('--tag-secondary')}>
-                    <Text type="primary" size="small">
-                      HTTP Endpoint
-                    </Text>
-                  </Tag>
+                  <>
+                    <HorizontalGroup>
+                      <Tag color={getVar('--tag-secondary')}>
+                        <Text type="primary" size="small">
+                          HTTP Endpoint
+                        </Text>
+                      </Tag>
+                      <MaskedInputField />
+                      <Button variant="secondary" size="sm" onClick={() => this.openHowToConnect()}>
+                        How to connect
+                      </Button>
+                    </HorizontalGroup>
+                  </>
                 }
                 content={
-                  <Text type="secondary">
-                    <Text type="secondary">No alerts yet</Text>
-                  </Text>
+                  <div className={cx('integration__alertsPanel')}>
+                    <HorizontalGroup>
+                      <Text type="primary">
+                        <HorizontalGroup>
+                          <LoadingPlaceholder /> No alerts yet; try to send a demo alert
+                        </HorizontalGroup>
+                      </Text>
+
+                      <Text type="secondary">
+                        <Icon name="list-ui-alt" size="md" />
+                        <a href="/alerting/notifications" target="_blank">
+                          Contact Point
+                        </a>
+                        and
+                        <a href="/alerting/routes" target="_blank">
+                          Notification Policy
+                        </a>
+                        created in Grafana Alerting
+                      </Text>
+                    </HorizontalGroup>
+                  </div>
                 }
               />
               <IntegrationBlock
@@ -253,7 +291,139 @@ class Integration2 extends React.Component<Integration2Props, Integration2State>
                     </Text>
                   </Tag>
                 }
-                content={<Text type="secondary">Templates</Text>}
+                content={
+                  <div className={cx('integration__templates')}>
+                    <IntegrationBlockItem>
+                      <Text type="secondary">
+                        Templates are used to interpret alert from monitoring. Reduce noise, customize visualization
+                      </Text>
+                    </IntegrationBlockItem>
+
+                    <IntegrationBlockItem>
+                      <VerticalGroup>
+                        <HorizontalGroup>
+                          <InlineLabel width={20}>Grouping</InlineLabel>
+                          <Input value="test" width={46} />
+                          <Button variant="secondary" icon="edit" size="md" />
+                          <Button variant="secondary" size="md">
+                            <Text type="link">Help</Text>
+                            <Icon name="angle-down" size="sm" />
+                          </Button>
+                        </HorizontalGroup>
+                        <HorizontalGroup>
+                          <InlineLabel width={20} tooltip={'TODO'}>
+                            Auto resolve
+                          </InlineLabel>
+                          <Input value="test" width={46} />
+                          <Button variant="secondary" icon={'edit'} size={'md'} />
+                        </HorizontalGroup>
+                      </VerticalGroup>
+                    </IntegrationBlockItem>
+
+                    <IntegrationBlockItem>
+                      <VerticalGroup>
+                        <Text type={'primary'}>Web</Text>
+                        <HorizontalGroup>
+                          <InlineLabel width={20}>Title</InlineLabel>
+                          <Input value={'test'} width={46} />
+                          <Button variant={'secondary'} icon={'edit'} size={'md'} />
+                          <Button variant={'secondary'} icon={'times'} size={'md'} />
+                        </HorizontalGroup>
+
+                        <HorizontalGroup>
+                          <InlineLabel width={20} tooltip={'TODO'}>
+                            Message
+                          </InlineLabel>
+                          <TextArea value={'test'} width={46} />
+                          <Button variant={'secondary'} icon={'edit'} size={'md'} />
+                          <Button variant={'secondary'} icon={'times'} size={'md'} />
+                        </HorizontalGroup>
+
+                        <HorizontalGroup>
+                          <InlineLabel width={20}>Image</InlineLabel>
+                          <Input value={'text'} width={46} />
+                          <Button variant={'secondary'} icon={'edit'} size={'md'} />
+                          <Button variant={'secondary'} icon={'times'} size={'md'} />
+                        </HorizontalGroup>
+                      </VerticalGroup>
+                    </IntegrationBlockItem>
+
+                    <IntegrationBlockItem>
+                      <VerticalGroup>
+                        <HorizontalGroup>
+                          <InlineLabel width={20}>Auto acknowledge</InlineLabel>
+                          <Input value={'text'} width={46} />
+                          <Button variant={'secondary'} icon={'edit'} size={'md'} />
+                          <Button variant={'secondary'} icon={'times'} size={'md'} />
+                          <Button variant="secondary" size="md">
+                            <Text type="link">Help</Text>
+                            <Icon name="angle-down" size="sm" />
+                          </Button>
+                        </HorizontalGroup>
+
+                        <HorizontalGroup>
+                          <InlineLabel width={20} tooltip={'TODO'}>
+                            Source Link
+                          </InlineLabel>
+                          <Input value={'text'} width={46} />
+                          <Button variant={'secondary'} icon={'edit'} size={'md'} />
+                          <Button variant={'secondary'} icon={'times'} size={'md'} />
+                        </HorizontalGroup>
+                      </VerticalGroup>
+                    </IntegrationBlockItem>
+
+                    <IntegrationBlockItem>
+                      <VerticalGroup>
+                        <HorizontalGroup>
+                          <InlineLabel width={20}>Phone Call</InlineLabel>
+                          <Input value={'text'} width={46} />
+                          <Button variant={'secondary'} icon={'edit'} size={'md'} />
+                          <Button variant={'secondary'} icon={'times'} size={'md'} />
+                          <Button variant="secondary" size="md">
+                            <Text type="link">Help</Text>
+                            <Icon name="angle-down" size="sm" />
+                          </Button>
+                        </HorizontalGroup>
+
+                        <HorizontalGroup>
+                          <InlineLabel width={20} tooltip={'TODO'}>
+                            SMS
+                          </InlineLabel>
+                          <Input value={'text'} width={46} />
+                          <Button variant={'secondary'} icon={'edit'} size={'md'} />
+                          <Button variant={'secondary'} icon={'times'} size={'md'} />
+                        </HorizontalGroup>
+                      </VerticalGroup>
+                    </IntegrationBlockItem>
+
+                    <IntegrationBlockItem>
+                      <VerticalGroup>
+                        <Text type={'primary'}>Web</Text>
+                        <HorizontalGroup>
+                          <InlineLabel width={20} tooltip={'TODO'}>
+                            Message
+                          </InlineLabel>
+                          <TextArea value={'text'} width={46} />
+                          <Button variant={'secondary'} icon={'edit'} size={'md'} />
+                          <Button variant={'secondary'} icon={'times'} size={'md'} />
+                        </HorizontalGroup>
+                      </VerticalGroup>
+                    </IntegrationBlockItem>
+
+                    <IntegrationBlockItem>
+                      <VerticalGroup>
+                        <Text type={'secondary'}>By default alert groups rendered based on Web templates.</Text>
+                        <Text type={'secondary'}>
+                          Customise how they rendered in SMS, Phone Calls, Mobile App, Slack, Telegram, MS Teams{' '}
+                        </Text>
+                        <Button variant={'secondary'} size={'md'}>
+                          <Icon name={'plus'} size={'md'} />
+                          Customise templates
+                        </Button>
+                      </VerticalGroup>
+                    </IntegrationBlockItem>
+                  </div>
+                }
               />
             </IntegrationCollapsibleTreeView>
           </div>
@@ -270,6 +440,8 @@ class Integration2 extends React.Component<Integration2Props, Integration2State>
 
     alertReceiveChannelStore.deleteAlertReceiveChannel(id).then(() => history.push(`${PLUGIN_ROOT}/integrations_2/`));
   };
+
+  openHowToConnect = () => {};
 
   deleteIntegration = (_id: AlertReceiveChannel['id'], _closeMenu: () => void) => {};
 
@@ -348,6 +520,19 @@ const HamburgerMenu: React.FC<{ openMenu: React.MouseEventHandler<HTMLElement> }
   );
 };
 
+interface IntegrationBlockItemProps {
+  children: React.ReactNode;
+}
+
+const IntegrationBlockItem: React.FC<IntegrationBlockItemProps> = (props) => {
+  return (
+    <div className={cx('blockItem')}>
+      <div className={cx('blockItem__leftDelimitator')} />
+      <div className={cx('blockItem__content')}>{props.children}</div>
+    </div>
+  );
+};
+
 interface IntegrationBlockProps {
   heading: React.ReactNode;
   content: React.ReactNode;
@@ -363,6 +548,12 @@ const IntegrationBlock: React.FC<IntegrationBlockProps> = (props) => {
       <div className={cx('integrationBlock__content')}>{content}</div>
     </div>
   );
+};
+
+interface MaskedInputFieldProps {}
+
+const MaskedInputField: React.FC<MaskedInputFieldProps> = () => {
+  return <SecretInput isConfigured={false} onReset={() => {}} placeholder="" />;
 };
 
 export default withRouter(withMobXProviderContext(Integration2));

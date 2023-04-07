@@ -87,3 +87,13 @@ $ITEMS-MARGIN: 24px;
   background: var(--background-primary);
   border: var(--border-weak);
 }
+
+.blockItem {
+  display: flex;
+  flex-direction: row;
+  margin-bottom: 12px;
+}
+.blockItem__leftDelimitator {
+  border-left: var(--border-medium);
+  margin-right: 12px;
+}
