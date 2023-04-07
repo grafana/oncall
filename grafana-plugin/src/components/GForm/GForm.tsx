@@ -20,7 +20,9 @@ const nullNormalizer = (value: string) => {
 function renderFormControl(formItem: FormItem, register: any, control: any, onChangeFn: (field, value) => void) {
   switch (formItem.type) {
     case FormItemType.Input:
-      return <Input {...register(formItem.name, formItem.validation)} onChange={(value) => onChangeFn(undefined, value)} />;
+      return (
+        <Input {...register(formItem.name, formItem.validation)} onChange={(value) => onChangeFn(undefined, value)} />
+      );
 
     case FormItemType.TextArea:
       return (
@@ -36,12 +38,7 @@ function renderFormControl(formItem: FormItem, register: any, control: any, onCh
         <InputControl
           render={({ field }) => {
             return (
-              <GSelect
-                isMulti={true}
-                {...field}
-                {...formItem.extra}
-                onChange={(value) => onChangeFn(field, value)}
-              />
+              <GSelect isMulti={true} {...field} {...formItem.extra} onChange={(value) => onChangeFn(field, value)} />
             );
           }}
           control={control}
@@ -53,13 +50,7 @@ function renderFormControl(formItem: FormItem, register: any, control: any, onCh
       return (
         <InputControl
           render={({ field: { ...field } }) => {
-            return (
-              <Select
-                {...field}
-                {...formItem.extra}
-                onChange={(value) => onChangeFn(field, value)}
-              />
-            );
+            return <Select {...field} {...formItem.extra} onChange={(value) => onChangeFn(field, value)} />;
           }}
           control={control}
           name={formItem.name}
@@ -70,13 +61,7 @@ function renderFormControl(formItem: FormItem, register: any, control: any, onCh
       return (
         <InputControl
           render={({ field: { ...field } }) => {
-            return (
-              <GSelect
-                {...field}
-                {...formItem.extra}
-                onChange={(value) => onChangeFn(field, value)}
-              />
-            );
+            return <GSelect {...field} {...formItem.extra} onChange={(value) => onChangeFn(field, value)} />;
           }}
           control={control}
           name={formItem.name}
@@ -84,7 +69,9 @@ function renderFormControl(formItem: FormItem, register: any, control: any, onCh
       );
 
     case FormItemType.Switch:
-      return <Switch {...register(formItem.name, formItem.validation)} onChange={(value) => onChangeFn(undefined, value)} />;
+      return (
+        <Switch {...register(formItem.name, formItem.validation)} onChange={(value) => onChangeFn(undefined, value)} />
+      );
 
     case FormItemType.RemoteSelect:
       return (
@@ -126,7 +113,7 @@ class GForm extends React.Component<GFormProps, {}> {
               >
                 {renderFormControl(formItem, register, control, (field, value) => {
                   field?.onChange(value);
-                  this.forceUpdate()
+                  this.forceUpdate();
                 })}
               </Field>
             );
