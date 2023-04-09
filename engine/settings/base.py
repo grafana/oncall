@@ -223,6 +223,7 @@ INSTALLED_APPS = [
     "django_migration_linter",
     "fcm_django",
     "django_dbconn_retry",
+    "apps.phone_notifications",
 ]
 
 REST_FRAMEWORK = {
@@ -690,3 +691,8 @@ if PYROSCOPE_PROFILER_ENABLED:
             "celery_worker": os.getenv("CELERY_WORKER_QUEUE", None),
         },
     )
+
+
+PHONE_NOTIFICATOR = "twilio"
+
+phone_notificator_to_class = {"twilio": "apps.twilioapp.phone_provider.TwilioProvider"}

@@ -224,8 +224,6 @@ def notify_user_task(
     autoretry_for=(Exception,), retry_backoff=True, max_retries=1 if settings.DEBUG else None
 )
 def perform_notification(log_record_pk):
-    SMSMessage = apps.get_model("twilioapp", "SMSMessage")
-    PhoneCall = apps.get_model("twilioapp", "PhoneCall")
     UserNotificationPolicy = apps.get_model("base", "UserNotificationPolicy")
     TelegramToUserConnector = apps.get_model("telegram", "TelegramToUserConnector")
     UserNotificationPolicyLogRecord = apps.get_model("base", "UserNotificationPolicyLogRecord")
@@ -259,20 +257,24 @@ def perform_notification(log_record_pk):
         return
 
     if notification_channel == UserNotificationPolicy.NotificationChannel.SMS:
-        SMSMessage.send_sms(
-            user,
-            alert_group,
-            notification_policy,
-            is_cloud_notification=live_settings.GRAFANA_CLOUD_NOTIFICATIONS_ENABLED,
-        )
+        # TODO: phone_notificator: use phone notificator
+        pass
+        # SMSMessage.send_sms(
+        #     user,
+        #     alert_group,
+        #     notification_policy,
+        #     is_cloud_notification=live_settings.GRAFANA_CLOUD_NOTIFICATIONS_ENABLED,
+        # )
 
     elif notification_channel == UserNotificationPolicy.NotificationChannel.PHONE_CALL:
-        PhoneCall.make_call(
-            user,
-            alert_group,
-            notification_policy,
-            is_cloud_notification=live_settings.GRAFANA_CLOUD_NOTIFICATIONS_ENABLED,
-        )
+        # TODO: phone_notificator: use phone notificator
+        pass
+        # PhoneCall.make_call(
+        #     user,
+        #     alert_group,
+        #     notification_policy,
+        #     is_cloud_notification=live_settings.GRAFANA_CLOUD_NOTIFICATIONS_ENABLED,
+        # )
 
     elif notification_channel == UserNotificationPolicy.NotificationChannel.TELEGRAM:
         TelegramToUserConnector.notify_user(user, alert_group, notification_policy)

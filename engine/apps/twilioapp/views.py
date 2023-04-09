@@ -9,8 +9,9 @@ from rest_framework.views import APIView
 from twilio.request_validator import RequestValidator
 
 from apps.base.utils import live_settings
-from apps.twilioapp.utils import process_call_data
 from common.api_helpers.utils import create_engine_url
+
+from .gather import process_gather_data
 
 logger = logging.getLogger(__name__)
 
@@ -41,13 +42,9 @@ class GatherView(APIView):
     permission_classes = [AllowOnlyTwilio]
 
     def post(self, request):
-        digit = request.POST.get("Digits")
         call_sid = request.POST.get("CallSid")
-
-        logging.info(f"For CallSid: {call_sid} pressed digit: {digit}")
-
-        response = process_call_data(call_sid=call_sid, digit=digit)
-
+        digit = request.POST.get("Digits")
+        response = process_gather_data(call_sid, digit)
         return HttpResponse(str(response), content_type="application/xml; charset=utf-8")
 
 
@@ -58,7 +55,6 @@ class SMSStatusCallback(APIView):
     def post(self, request):
         message_sid = request.POST.get("MessageSid")
         message_status = request.POST.get("MessageStatus")
-        logging.info(f"SID: {message_sid}, Status: {message_status}")
 
         SMSMessage = apps.get_model("twilioapp", "SMSMessage")
         SMSMessage.objects.update_status(message_sid=message_sid, message_status=message_status)
