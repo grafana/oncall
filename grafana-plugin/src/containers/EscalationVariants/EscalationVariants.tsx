@@ -25,6 +25,7 @@ export interface EscalationVariantsProps {
   value: { scheduleResponders; userResponders };
   variant?: 'secondary' | 'primary';
   hideSelected?: boolean;
+  disabled?: boolean;
 }
 
 const EscalationVariants = observer(
@@ -33,6 +34,7 @@ const EscalationVariants = observer(
     value,
     variant = 'primary',
     hideSelected = false,
+    disabled,
   }: EscalationVariantsProps) => {
     const [showEscalationVariants, setShowEscalationVariants] = useState(false);
 
@@ -127,6 +129,7 @@ const EscalationVariants = observer(
               <Button
                 icon="users-alt"
                 variant={variant}
+                disabled={disabled}
                 onClick={() => {
                   setShowEscalationVariants(true);
                 }}
@@ -273,7 +276,11 @@ const ScheduleResponder = ({ important, data, onImportantChange, handleDelete })
             isSearchable={false}
             value={Number(important)}
             options={[
-              { value: 0, label: 'Default', description: 'Use "Default notifications" from users personal settings' },
+              {
+                value: 0,
+                label: 'Default',
+                description: 'Use "Default notifications" from users personal settings',
+              },
               {
                 value: 1,
                 label: 'Important',

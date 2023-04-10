@@ -51,6 +51,7 @@ export interface Alert {
   acknowledged_at: string;
   acknowledged_by_user: User;
   acknowledged_on_source: boolean;
+  is_restricted: boolean;
   channel: Channel;
   slack_permalink?: string;
   declare_incident_link?: string;
