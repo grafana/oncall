@@ -1,6 +1,15 @@
 import React, { ReactElement, SyntheticEvent } from 'react';
 
-import { Button, VerticalGroup, LoadingPlaceholder, HorizontalGroup, Tooltip, Icon } from '@grafana/ui';
+import {
+  Alert as UIAlert,
+  AlertVariant,
+  Button,
+  HorizontalGroup,
+  Icon,
+  LoadingPlaceholder,
+  Tooltip,
+  VerticalGroup,
+} from '@grafana/ui';
 import cn from 'classnames/bind';
 import { get } from 'lodash-es';
 import { observer } from 'mobx-react';
@@ -21,7 +30,13 @@ import { IncidentsFiltersType } from 'containers/IncidentsFilters/IncidentFilter
 import RemoteFilters from 'containers/RemoteFilters/RemoteFilters';
 import TeamName from 'containers/TeamName/TeamName';
 import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
-import { Alert, Alert as AlertType, AlertAction, IncidentStatus } from 'models/alertgroup/alertgroup.types';
+import {
+  Alert,
+  Alert as AlertType,
+  AlertAction,
+  IncidentStatus,
+  IRMPlanStatus,
+} from 'models/alertgroup/alertgroup.types';
 import { renderRelatedUsers } from 'pages/incident/Incident.helpers';
 import { PageProps, WithStoreProps } from 'state/types';
 import { withMobXProviderContext } from 'state/withStore';
@@ -98,6 +113,14 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
 
   private pollingIntervalId: NodeJS.Timer = undefined;
 
+  async componentDidMount() {
+    const {
+      store: { alertGroupStore },
+    } = this.props;
+
+    await alertGroupStore.fetchIRMPlan();
+  }
+
   componentWillUnmount(): void {
     this.clearPollingInterval();
   }
@@ -105,8 +128,18 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
   render() {
     const { history } = this.props;
     const { showAddAlertGroupForm } = this.state;
+    const {
+      store: { alertGroupStore },
+    } = this.props;
+
+    if (!alertGroupStore.irmPlan) {
+      return <LoadingPlaceholder text={'Loading...'} />;
+    }
+
     return (
       <>
+        {this.renderIRMPlanAlertMaybe()}
+
         <div className={cx('root')}>
           <div className={cx('title')}>
             <HorizontalGroup justify="space-between">
@@ -132,6 +165,38 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
           />
         )}
       </>
+    );
+  }
+
+  renderIRMPlanAlertMaybe() {
+    const {
+      store: {
+        alertGroupStore: { irmPlan },
+      },
+    } = this.props;
+
+    if (irmPlan.limits.status === IRMPlanStatus.WithinLimits) {
+      return null;
+    }
+
+    const statusSeverity: { [key: string]: AlertVariant } = {
+      [IRMPlanStatus.WithinLimits]: 'success',
+      [IRMPlanStatus.NearLimits]: 'warning',
+      [IRMPlanStatus.AtLimit]: 'error',
+    };
+
+    return (
+      <UIAlert
+        title={
+          (
+            <Text type={'secondary'}>
+              <div dangerouslySetInnerHTML={{ __html: irmPlan.limits.reasonHTML }} />
+            </Text>
+          ) as any
+        }
+        severity={statusSeverity[irmPlan.limits.status]}
+        buttonContent={undefined}
+      ></UIAlert>
     );
   }
 
@@ -511,7 +576,10 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
           emptyText={alertGroupsLoading ? 'Loading...' : 'No alert groups found'}
           loading={alertGroupsLoading}
           className={cx('incidents-table')}
-          rowSelection={{ selectedRowKeys: selectedIncidentIds, onChange: this.handleSelectedIncidentIdsChange }}
+          rowSelection={{
+            selectedRowKeys: selectedIncidentIds,
+            onChange: this.handleSelectedIncidentIdsChange,
+          }}
           rowKey="pk"
           data={results}
           columns={columns}

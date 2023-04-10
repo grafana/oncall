@@ -85,6 +85,28 @@ export interface Alert {
   has_pormortem?: boolean; // not implemented yet
 }
 
+export enum IRMPlanStatus {
+  WithinLimits = 'within-limits',
+  NearLimits = 'near-limits',
+  AtLimit = 'at-limit',
+}
+
+export interface ResponseIRMPlan {
+  limits: {
+    id: string;
+    title: string;
+    start: string;
+    end: string;
+    max: number;
+    used: number;
+    status: IRMPlanStatus;
+    reasonHTML: string;
+    upgradeURL: string;
+    gcomProductName: string;
+    gcomProductStartDate: string;
+  };
+}
+
 interface RenderForWeb {
   message: any;
   title: any;

@@ -7,10 +7,10 @@ import { makeRequest } from 'network';
 import { Mixpanel } from 'services/mixpanel';
 import { RootStore } from 'state';
 import { SelectOption } from 'state/types';
-import { showApiError, refreshPageError, openErrorNotification } from 'utils';
+import { openErrorNotification, refreshPageError, showApiError } from 'utils';
 import LocationHelper from 'utils/LocationHelper';
 
-import { Alert, AlertAction, IncidentStatus } from './alertgroup.types';
+import { Alert, AlertAction, IncidentStatus, IRMPlanStatus, ResponseIRMPlan } from './alertgroup.types';
 
 export class AlertGroupStore extends BaseStore {
   @observable.shallow
@@ -68,6 +68,9 @@ export class AlertGroupStore extends BaseStore {
 
   @observable
   liveUpdatesPaused = false;
+
+  @observable
+  irmPlan: ResponseIRMPlan = undefined;
 
   constructor(rootStore: RootStore) {
     super(rootStore);
@@ -201,6 +204,32 @@ export class AlertGroupStore extends BaseStore {
     return await makeRequest(`${this.path}${id}/preview_template/`, {
       method: 'POST',
       data: { template_name, template_body },
+    });
+  }
+
+  async fetchIRMPlan() {
+    // this.irmPlan = await makeRequest(``, { method: 'POST' });
+
+    return new Promise<any>((resolve) => {
+      setTimeout(() => {
+        this.irmPlan = {
+          limits: {
+            id: 'grafana.oncall.alerts',
+            title: '',
+            start: '2022-03-01 00:00:00',
+            end: '2022-03-31 23:59:59',
+            max: 100,
+            used: 30,
+            status: IRMPlanStatus.NearLimits,
+            reasonHTML: `<span>You're close to reaching your IRM Lite Alert Group limit for <a href="/a/grafana-oncall-app/integrations">3 integrations</a>. Upgrade now to go unlimited.`,
+            upgradeURL: 'https://grafana.com/orgs/grafana/subscription',
+            gcomProductName: 'grafana-cloud-free',
+            gcomProductStartDate: '2022-03-01 00:00:00',
+          },
+        };
+
+        resolve(this.irmPlan);
+      }, 400);
     });
   }
 

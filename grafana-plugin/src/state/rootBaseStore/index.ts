@@ -64,9 +64,6 @@ export class RootBaseStore {
   selectedAlertReceiveChannel?: AlertReceiveChannel['id'];
 
   @observable
-  isLess1280: boolean;
-
-  @observable
   features?: { [key: string]: boolean };
 
   @observable
@@ -77,6 +74,9 @@ export class RootBaseStore {
 
   @observable
   onCallApiUrl: string;
+
+  @observable
+  alertsIRMPlan: any;
 
   // --------------------------
 
