@@ -7,7 +7,6 @@ import {
   VerticalGroup,
   Icon,
   LoadingPlaceholder,
-  SecretInput,
   Tooltip,
   Input,
   InlineLabel,
@@ -41,6 +40,7 @@ import IntegrationCollapsibleTreeView from 'components/IntegrationCollapsibleTre
 import Block from 'components/GBlock/Block';
 import Tag from 'components/Tag/Tag';
 import { getVar } from 'utils/DOM';
+import MaskedInputField from '../../components/MaskedInputField/MaskedInputField';
 
 const cx = cn.bind(styles);
 
@@ -245,40 +245,35 @@ class Integration2 extends React.Component<Integration2Props, Integration2State>
             <IntegrationCollapsibleTreeView>
               <IntegrationBlock
                 heading={
-                  <>
+                  <HorizontalGroup justify={'space-between'}>
                     <HorizontalGroup>
                       <Tag color={getVar('--tag-secondary')}>
                         <Text type="primary" size="small">
                           HTTP Endpoint
                         </Text>
                       </Tag>
-                      <MaskedInputField />
-                      <Button variant="secondary" size="sm" onClick={() => this.openHowToConnect()}>
-                        How to connect
-                      </Button>
+                      <MaskedInputField value={'test'} />
                     </HorizontalGroup>
-                  </>
+                    <Button variant="secondary" size="sm" onClick={() => this.openHowToConnect()}>
+                      How to connect
+                    </Button>
+                  </HorizontalGroup>
                 }
                 content={
                   <div className={cx('integration__alertsPanel')}>
-                    <HorizontalGroup>
-                      <Text type="primary">
-                        <HorizontalGroup>
-                          <LoadingPlaceholder /> No alerts yet; try to send a demo alert
-                        </HorizontalGroup>
-                      </Text>
+                    <HorizontalGroup justify={'flex-start'} spacing={'xs'}>
+                      <LoadingPlaceholder className={cx('loadingPlaceholder')} />
+                      <Text type={'primary'}>No alerts yet; try to send a demo alert</Text>
 
-                      <Text type="secondary">
-                        <Icon name="list-ui-alt" size="md" />
-                        <a href="/alerting/notifications" target="_blank">
-                          Contact Point
-                        </a>
-                        and
-                        <a href="/alerting/routes" target="_blank">
-                          Notification Policy
-                        </a>
-                        created in Grafana Alerting
-                      </Text>
+                      <Icon name="list-ui-alt" size="md" />
+                      <a href="/alerting/notifications" target="_blank">
+                        <Text type={'link'}>Contact Point</Text>
+                      </a>
+                      <Text type={'secondary'}>and</Text>
+                      <a href="/alerting/routes" target="_blank">
+                        <Text type={'link'}>Notification Policy</Text>
+                      </a>
+                      <Text type={'secondary'}>created in Grafana Alerting</Text>
                     </HorizontalGroup>
                   </div>
                 }
@@ -548,12 +543,6 @@ const IntegrationBlock: React.FC<IntegrationBlockProps> = (props) => {
       <div className={cx('integrationBlock__content')}>{content}</div>
     </div>
   );
-};
-
-interface MaskedInputFieldProps {}
-
-const MaskedInputField: React.FC<MaskedInputFieldProps> = () => {
-  return <SecretInput isConfigured={false} onReset={() => {}} placeholder="" />;
 };
 
 export default withRouter(withMobXProviderContext(Integration2));
