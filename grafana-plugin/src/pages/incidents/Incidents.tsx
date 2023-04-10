@@ -189,9 +189,14 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
       <UIAlert
         title={
           (
-            <Text type={'secondary'}>
-              <div dangerouslySetInnerHTML={{ __html: irmPlan.limits.reasonHTML }} />
-            </Text>
+            <HorizontalGroup justify={'space-between'}>
+              <Text type={'secondary'}>
+                <div dangerouslySetInnerHTML={{ __html: irmPlan.limits.reasonHTML }} />
+              </Text>
+              <Button variant={'secondary'} onClick={() => window.open(irmPlan.limits.upgradeURL, '_blank')}>
+                Upgrade to Pro
+              </Button>
+            </HorizontalGroup>
           ) as any
         }
         severity={statusSeverity[irmPlan.limits.status]}
