@@ -11,6 +11,7 @@ import {
   Input,
   InlineLabel,
   TextArea,
+  Modal,
 } from '@grafana/ui';
 import cn from 'classnames/bind';
 import { observer } from 'mobx-react';
@@ -41,12 +42,17 @@ import Block from 'components/GBlock/Block';
 import Tag from 'components/Tag/Tag';
 import { getVar } from 'utils/DOM';
 import MaskedInputField from '../../components/MaskedInputField/MaskedInputField';
+import SourceCode from '../../components/SourceCode/SourceCode';
+import CopyToClipboard from 'react-copy-to-clipboard';
+import { useStore } from '../../state/useStore';
 
 const cx = cn.bind(styles);
 
 interface Integration2Props extends WithStoreProps, PageProps, RouteComponentProps<{ id: string }> {}
 
-interface Integration2State extends PageBaseState {}
+interface Integration2State extends PageBaseState {
+  isDemoModalOpen: boolean;
+}
 
 // This can be further improved by using a ref instead
 const ACTIONS_LIST_WIDTH = 160;
@@ -59,6 +65,7 @@ class Integration2 extends React.Component<Integration2Props, Integration2State>
 
     this.state = {
       errorData: initErrorDataState(),
+      isDemoModalOpen: false,
     };
   }
 
@@ -67,7 +74,7 @@ class Integration2 extends React.Component<Integration2Props, Integration2State>
   }
 
   render() {
-    const { errorData } = this.state;
+    const { errorData, isDemoModalOpen } = this.state;
     const {
       store: { alertReceiveChannelStore, grafanaTeamStore },
       match: {
@@ -104,7 +111,7 @@ class Integration2 extends React.Component<Integration2Props, Integration2State>
                     <Button
                       variant="secondary"
                       size="md"
-                      onClick={() => this.onSendDemoAlertFn(id)}
+                      onClick={() => this.setState({ isDemoModalOpen: true })}
                       data-testid="send-demo-alert"
                     >
                       Send demo alert
@@ -421,6 +428,12 @@ class Integration2 extends React.Component<Integration2Props, Integration2State>
                 }
               />
             </IntegrationCollapsibleTreeView>
+
+            <IntegrationSendDemoPayloadModal
+              alertReceiveChannel={alertReceiveChannel}
+              isOpen={isDemoModalOpen}
+              onCancel={() => this.setState({ isDemoModalOpen: false })}
+            />
           </div>
         )}
       </PageErrorHandlingWrapper>
@@ -445,17 +458,6 @@ class Integration2 extends React.Component<Integration2Props, Integration2State>
   openStartMaintenance = (_id: AlertReceiveChannel['id'], _closeMenu: () => void) => {};
 
   openHearbeat = (_id: AlertReceiveChannel['id'], _closeMenu: () => void) => {};
-
-  onSendDemoAlertFn = (id: AlertReceiveChannel['id']) => {
-    const {
-      store: { alertReceiveChannelStore },
-    } = this.props;
-
-    alertReceiveChannelStore.sendDemoAlert(id).then(() => {
-      alertReceiveChannelStore.updateCounters();
-      openNotification(<DemoNotification />);
-    });
-  };
 
   async loadIntegration() {
     const {
@@ -526,6 +528,81 @@ const IntegrationBlockItem: React.FC<IntegrationBlockItemProps> = (props) => {
       <div className={cx('blockItem__content')}>{props.children}</div>
     </div>
   );
+};
+
+interface IntegrationSendDemoPayloadModalProps {
+  isOpen: boolean;
+  alertReceiveChannel: AlertReceiveChannel;
+  onCancel: () => void;
+}
+
+const IntegrationSendDemoPayloadModal: React.FC<IntegrationSendDemoPayloadModalProps> = ({
+  alertReceiveChannel,
+  isOpen,
+  onCancel,
+}) => {
+  const { alertReceiveChannelStore } = useStore();
+
+  console.log('here we are');
+
+  return (
+    <Modal
+      closeOnEscape
+      isOpen={isOpen}
+      onDismiss={onCancel}
+      title={`Send demo alert to ${alertReceiveChannel.verbal_name}`}
+    >
+      <VerticalGroup>
+        <HorizontalGroup spacing={'xs'}>
+          <Text type={'secondary'}>Alert Payload</Text>
+          <Tooltip content={'TODO'} placement={'top-start'}>
+            <Icon name={'info-circle'} />
+          </Tooltip>
+        </HorizontalGroup>
+
+        <SourceCode showCopyToClipboard={false}>{getDemoAlertJSON()}</SourceCode>
+
+        <HorizontalGroup justify={'flex-end'} spacing={'xs'}>
+          <Button variant={'secondary'} onClick={onCancel}>
+            Cancel
+          </Button>
+          <CopyToClipboard text={getCurlText()} onCopy={() => openNotification('CURL copied!')}>
+            <Button variant={'secondary'}>Copy as CURL</Button>
+          </CopyToClipboard>
+          <Button variant={'primary'} onClick={sendDemoAlert}>
+            Send Alert
+          </Button>
+        </HorizontalGroup>
+      </VerticalGroup>
+    </Modal>
+  );
+
+  function sendDemoAlert() {
+    alertReceiveChannelStore.sendDemoAlert(alertReceiveChannel.id).then(() => {
+      alertReceiveChannelStore.updateCounters();
+      openNotification(<DemoNotification />);
+    });
+  }
+
+  function getCurlText() {
+    // TODO add this
+    return '';
+  }
+
+  function getDemoAlertJSON() {
+    return JSON.stringify(
+      {
+        alert_uid: '08d6891a-835c-e661-39fa-96b6a9e26552',
+        title: 'The whole system is down',
+        image_url: 'https://http.cat/500',
+        state: 'alerting',
+        link_to_upstream_details: 'https://en.wikipedia.org/wiki/Downtime',
+        message: 'Smth happened. Oh no!',
+      },
+      null,
+      4
+    );
+  }
 };
 
 interface IntegrationBlockProps {
