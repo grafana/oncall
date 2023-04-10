@@ -61,7 +61,6 @@ import sanitize from 'utils/sanitize';
 import { getActionButtons, getIncidentStatusTag } from './Incident.helpers';
 import styles from './Incident.module.scss';
 import PagedUsers from './parts/PagedUsers';
-import { toJS } from 'mobx';
 
 const cx = cn.bind(styles);
 const INTEGRATION_NAME_LENGTH_LIMIT = 30;
