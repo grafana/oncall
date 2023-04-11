@@ -147,7 +147,6 @@ class ChannelFilterView(
 
     @action(detail=True, methods=["post"])
     def convert_from_regex_to_jinja2(self, request, pk):
-        # instance = ChannelFilter.objects.get(public_primary_key=pk)
         instance = self.get_queryset().get(public_primary_key=pk)
         if not instance.filtering_term_type == ChannelFilter.FILTERING_TERM_TYPE_REGEX:
             raise BadRequest(detail="Only regex filtering term type is supported")
