@@ -69,6 +69,8 @@ class ChannelFilter(OrderedModel):
     notification_backends = models.JSONField(null=True, default=None)
 
     created_at = models.DateTimeField(auto_now_add=True)
+
+    # deprecated in favor of routing_template, as regex will be part of jinja2 template
     filtering_term = models.CharField(max_length=1024, null=True, default=None)
 
     FILTERING_TERM_TYPE_REGEX = 0
@@ -77,7 +79,10 @@ class ChannelFilter(OrderedModel):
         (FILTERING_TERM_TYPE_REGEX, "regex"),
         (FILTERING_TERM_TYPE_JINJA2, "jinja2"),
     ]
+    # deprecated in favor of routing_template, as regex will be part of jinja2 template
     filtering_term_type = models.IntegerField(choices=FILTERING_TERM_TYPE_CHOICES, default=FILTERING_TERM_TYPE_REGEX)
+
+    routing_template = models.CharField(max_length=1024, null=True, default=None)
 
     is_default = models.BooleanField(default=False)
 
