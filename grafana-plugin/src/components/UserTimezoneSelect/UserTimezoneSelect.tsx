@@ -1,5 +1,6 @@
 import React, { FC, useCallback, useMemo } from 'react';
 
+import { SelectableValue } from '@grafana/data';
 import { Select } from '@grafana/ui';
 import cn from 'classnames/bind';
 import dayjs from 'dayjs';
@@ -87,9 +88,24 @@ const UserTimezoneSelect: FC<UserTimezoneSelectProps> = (props) => {
     [options]
   );
 
+  const filterOption = useCallback(
+    ({ data }: SelectableValue<number>, searchQuery: string) =>
+      ['label', 'description', 'timezone'].some((key: string) =>
+        data[key].toLowerCase().includes(searchQuery.toLowerCase())
+      ),
+    []
+  );
+
   return (
     <div className={cx('root')}>
-      <Select value={value} onChange={handleChange} width={30} placeholder={propValue} options={options} />
+      <Select
+        value={value}
+        onChange={handleChange}
+        width={30}
+        placeholder={propValue}
+        options={options}
+        filterOption={filterOption}
+      />
     </div>
   );
 };

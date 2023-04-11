@@ -1,4 +1,4 @@
-import React, { FC, useCallback, useEffect, useMemo, useState } from 'react';
+import React, { ChangeEvent, FC, useCallback, useEffect, useMemo, useState } from 'react';
 
 import {
   IconButton,
@@ -9,6 +9,7 @@ import {
   Select,
   InlineSwitch,
   Modal as GrafanaModal,
+  Checkbox,
 } from '@grafana/ui';
 import cn from 'classnames/bind';
 import dayjs from 'dayjs';
@@ -29,6 +30,7 @@ import { getDateTime, getStartOfWeek, getUTCByDay, getUTCString } from 'pages/sc
 import { SelectOption } from 'state/types';
 import { useStore } from 'state/useStore';
 import { getCoords, waitForElement } from 'utils/DOM';
+import { GRAFANA_HEADER_HEIGTH } from 'utils/consts';
 import { useDebouncedCallback } from 'utils/hooks';
 
 import DateTimePicker from './DateTimePicker';
@@ -42,7 +44,8 @@ interface RotationFormProps {
   currentTimezone: Timezone;
   scheduleId: Schedule['id'];
   shiftId: Shift['id'] | 'new';
-  shiftMoment?: dayjs.Dayjs;
+  shiftStart?: dayjs.Dayjs;
+  shiftEnd?: dayjs.Dayjs;
   onCreate: () => void;
   onUpdate: () => void;
   onDelete: () => void;
@@ -66,7 +69,8 @@ const RotationForm: FC<RotationFormProps> = observer((props) => {
     onDelete,
     layerPriority,
     shiftId,
-    shiftMoment = getStartOfWeek(currentTimezone),
+    shiftStart: propsShiftStart = getStartOfWeek(currentTimezone),
+    shiftEnd: propsShiftEnd,
     shiftColor = '#3D71D9',
   } = props;
 
@@ -75,11 +79,11 @@ const RotationForm: FC<RotationFormProps> = observer((props) => {
   const [repeatEveryValue, setRepeatEveryValue] = useState<number>(1);
   const [repeatEveryPeriod, setRepeatEveryPeriod] = useState<number>(0);
   const [selectedDays, setSelectedDays] = useState<string[]>([]);
-  const [shiftStart, setShiftStart] = useState<dayjs.Dayjs>(shiftMoment);
-  const [shiftEnd, setShiftEnd] = useState<dayjs.Dayjs>(shiftMoment.add(1, 'day'));
-  const [rotationStart, setRotationStart] = useState<dayjs.Dayjs>(shiftMoment);
+  const [shiftStart, setShiftStart] = useState<dayjs.Dayjs>(propsShiftStart);
+  const [shiftEnd, setShiftEnd] = useState<dayjs.Dayjs>(propsShiftEnd || shiftStart.add(1, 'day'));
+  const [rotationStart, setRotationStart] = useState<dayjs.Dayjs>(shiftStart);
   const [endLess, setEndless] = useState<boolean>(true);
-  const [rotationEnd, setRotationEnd] = useState<dayjs.Dayjs>(shiftMoment.add(1, 'month'));
+  const [rotationEnd, setRotationEnd] = useState<dayjs.Dayjs>(shiftStart.add(1, 'month'));
   const [showDeleteRotationConfirmation, setShowDeleteRotationConfirmation] = useState<boolean>(false);
 
   const store = useStore();
@@ -108,7 +112,7 @@ const RotationForm: FC<RotationFormProps> = observer((props) => {
         const coords = getCoords(elm);
 
         const offsetTop = Math.min(
-          Math.max(coords.top - modal?.offsetHeight - 10, 10),
+          Math.max(coords.top - modal?.offsetHeight - 10, GRAFANA_HEADER_HEIGTH + 10),
           document.body.offsetHeight - modal?.offsetHeight - 10
         );
 
@@ -142,8 +146,8 @@ const RotationForm: FC<RotationFormProps> = observer((props) => {
     );
   };
 
-  const handleDeleteClick = useCallback(() => {
-    store.scheduleStore.deleteOncallShift(shiftId).then(() => {
+  const handleDeleteClick = useCallback((force: boolean) => {
+    store.scheduleStore.deleteOncallShift(shiftId, force).then(() => {
       onDelete();
     });
   }, []);
@@ -428,13 +432,37 @@ const RotationForm: FC<RotationFormProps> = observer((props) => {
         </VerticalGroup>
       </>
       {showDeleteRotationConfirmation && (
-        <GrafanaModal
-          isOpen
-          onDismiss={() => setShowDeleteRotationConfirmation(false)}
-          title="Delete rotation"
-          className={cx('confirmation-modal')}
-        >
-          <VerticalGroup spacing="lg">
+        <DeletionModal onHide={() => setShowDeleteRotationConfirmation(false)} onConfirm={handleDeleteClick} />
+      )}
+    </Modal>
+  );
+});
+
+interface DeletionModalProps {
+  onHide: () => void;
+  onConfirm: (force: boolean) => void;
+}
+
+const DeletionModal = ({ onHide, onConfirm }: DeletionModalProps) => {
+  const [isForceDelete, setIsForceDelete] = useState<boolean>(false);
+
+  const handleIsForceDeleteChange = useCallback((event: ChangeEvent<HTMLInputElement>) => {
+    setIsForceDelete(event.target.checked);
+  }, []);
+
+  const handleConfirmClick = useCallback(() => {
+    onConfirm(isForceDelete);
+  }, [isForceDelete]);
+
+  return (
+    <GrafanaModal isOpen onDismiss={onHide} title="Delete rotation" className={cx('confirmation-modal')}>
+      <VerticalGroup spacing="lg">
+        {isForceDelete ? (
+          <VerticalGroup>
+            <Text type="secondary">This action will delete all shifts, even in the past.</Text>
+          </VerticalGroup>
+        ) : (
+          <VerticalGroup>
             <Text type="secondary">
               This action will delete all shifts in the rotation which are greater than current timestamp.
             </Text>
@@ -442,21 +470,25 @@ const RotationForm: FC<RotationFormProps> = observer((props) => {
               All past shifts will remain in the schedule for history reasons because there were events during this
               period.
             </Text>
-
-            <HorizontalGroup justify="flex-end">
-              <Button variant="secondary" onClick={() => setShowDeleteRotationConfirmation(false)}>
-                Cancel
-              </Button>
-              <Button variant="destructive" onClick={handleDeleteClick}>
-                Delete
-              </Button>
-            </HorizontalGroup>
           </VerticalGroup>
-        </GrafanaModal>
-      )}
-    </Modal>
+        )}
+
+        <Field label="Completely delete">
+          <Checkbox name="hide" id="hide" value={isForceDelete} onChange={handleIsForceDeleteChange} />
+        </Field>
+
+        <HorizontalGroup justify="flex-end">
+          <Button variant="secondary" onClick={onHide}>
+            Cancel
+          </Button>
+          <Button variant="destructive" onClick={handleConfirmClick}>
+            Delete
+          </Button>
+        </HorizontalGroup>
+      </VerticalGroup>
+    </GrafanaModal>
   );
-});
+};
 
 interface DaysSelectorProps {
   value: string[];

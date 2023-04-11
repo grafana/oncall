@@ -18,6 +18,7 @@ import { User } from 'models/user/user.types';
 import { getDateTime, getUTCString } from 'pages/schedule/Schedule.helpers';
 import { useStore } from 'state/useStore';
 import { getCoords, getVar, waitForElement } from 'utils/DOM';
+import { GRAFANA_HEADER_HEIGTH } from 'utils/consts';
 import { useDebouncedCallback } from 'utils/hooks';
 
 import DateTimePicker from './DateTimePicker';
@@ -30,7 +31,8 @@ interface RotationFormProps {
   startMoment: dayjs.Dayjs;
   currentTimezone: Timezone;
   scheduleId: Schedule['id'];
-  shiftMoment: dayjs.Dayjs;
+  shiftStart?: dayjs.Dayjs;
+  shiftEnd?: dayjs.Dayjs;
   shiftColor?: string;
   onCreate: () => void;
   onUpdate: () => void;
@@ -49,14 +51,15 @@ const ScheduleOverrideForm: FC<RotationFormProps> = (props) => {
     onDelete,
     shiftId,
     startMoment,
-    shiftMoment = dayjs().startOf('day').add(1, 'day'),
+    shiftStart: propsShiftStart = dayjs().startOf('day').add(1, 'day'),
+    shiftEnd: propsShiftEnd,
     shiftColor = getVar('--tag-warning'),
   } = props;
 
   const store = useStore();
 
-  const [shiftStart, setShiftStart] = useState<dayjs.Dayjs>(shiftMoment);
-  const [shiftEnd, setShiftEnd] = useState<dayjs.Dayjs>(shiftMoment.add(24, 'hours'));
+  const [shiftStart, setShiftStart] = useState<dayjs.Dayjs>(propsShiftStart);
+  const [shiftEnd, setShiftEnd] = useState<dayjs.Dayjs>(propsShiftEnd || propsShiftStart.add(24, 'hours'));
 
   const [offsetTop, setOffsetTop] = useState<number>(0);
 
@@ -80,7 +83,7 @@ const ScheduleOverrideForm: FC<RotationFormProps> = (props) => {
         const coords = getCoords(elm);
 
         const offsetTop = Math.min(
-          Math.max(coords.top - modal?.offsetHeight - 10, 10),
+          Math.max(coords.top - modal?.offsetHeight - 10, GRAFANA_HEADER_HEIGTH + 10),
           document.body.offsetHeight - modal?.offsetHeight - 10
         );
 

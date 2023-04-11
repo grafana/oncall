@@ -1,3 +1,4 @@
+import { config } from '@grafana/runtime';
 import dayjs from 'dayjs';
 
 import { findColor } from 'containers/Rotations/Rotations.helpers';
@@ -6,6 +7,12 @@ import { Event, Layer } from 'models/schedule/schedule.types';
 import { Timezone } from 'models/timezone/timezone.types';
 import { RootStore } from 'state';
 import { SelectOption } from 'state/types';
+
+const mondayDayOffset = {
+  saturday: -2,
+  sunday: -1,
+  monday: 0,
+};
 
 export const getNow = (tz: Timezone) => {
   const now = dayjs().tz(tz);
@@ -17,7 +24,9 @@ export const getStartOfDay = (tz: Timezone) => {
 };
 
 export const getStartOfWeek = (tz: Timezone) => {
-  return getNow(tz).startOf('isoWeek');
+  return getNow(tz)
+    .startOf('isoWeek') // it's Monday always
+    .add(mondayDayOffset[config.bootData.user.weekStart] || 0, 'day');
 };
 
 export const getUTCString = (moment: dayjs.Dayjs) => {

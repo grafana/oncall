@@ -92,6 +92,7 @@ export interface Event {
   source: string;
   start: string;
   users: Array<{ display_name: User['username']; pk: User['pk'] }>;
+  is_override: boolean;
 }
 
 export interface Events {

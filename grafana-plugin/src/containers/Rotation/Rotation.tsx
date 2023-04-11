@@ -23,10 +23,12 @@ interface RotationProps {
   rotationIndex?: number;
   color?: string;
   events: Event[];
-  onClick?: (moment: dayjs.Dayjs) => void;
+  onClick?: (start: dayjs.Dayjs, end: dayjs.Dayjs) => void;
+  handleAddOverride?: (start: dayjs.Dayjs, end: dayjs.Dayjs) => void;
   days?: number;
   transparent?: boolean;
   tutorialParams?: RotationFormLiveParams;
+  simplified?: boolean;
 }
 
 const Rotation: FC<RotationProps> = (props) => {
@@ -38,22 +40,35 @@ const Rotation: FC<RotationProps> = (props) => {
     startMoment,
     currentTimezone,
     color,
-    onClick,
     days = 7,
     transparent = false,
     tutorialParams,
+    onClick,
+    handleAddOverride,
+    simplified,
   } = props;
 
   const [animate, _setAnimate] = useState<boolean>(true);
 
-  const handleClick = (event) => {
+  const handleRotationClick = (event) => {
     const rect = event.currentTarget.getBoundingClientRect();
     const x = event.clientX - rect.left; //x position within the element.
     const width = event.currentTarget.offsetWidth;
 
     const dayOffset = Math.floor((x / width) * 7);
 
-    onClick(startMoment.add(dayOffset, 'day'));
+    const shiftStart = startMoment.add(dayOffset, 'day');
+    const shiftEnd = shiftStart.add(1, 'day');
+
+    onClick(shiftStart, shiftEnd);
+  };
+
+  const getAddOverrideClickHandler = (scheduleEvent) => {
+    return (event) => {
+      event.stopPropagation();
+
+      handleAddOverride(dayjs(scheduleEvent.start), dayjs(scheduleEvent.end));
+    };
   };
 
   const x = useMemo(() => {
@@ -74,7 +89,7 @@ const Rotation: FC<RotationProps> = (props) => {
   }
 
   return (
-    <div className={cx('root')} onClick={handleClick}>
+    <div className={cx('root')} onClick={handleRotationClick}>
       <div className={cx('timeline')}>
         {tutorialParams && <RotationTutorial startMoment={startMoment} {...tutorialParams} />}
         {events ? (
@@ -93,6 +108,8 @@ const Rotation: FC<RotationProps> = (props) => {
                     currentTimezone={currentTimezone}
                     color={color}
                     label={index === eventIndexToShowLabel && getLabel(layerIndex, rotationIndex)}
+                    handleAddOverride={getAddOverrideClickHandler(event)}
+                    simplified={simplified}
                   />
                 );
               })}

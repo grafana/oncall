@@ -1,3 +1,4 @@
+import { config } from '@grafana/runtime';
 import dayjs from 'dayjs';
 import { get } from 'lodash-es';
 import { action, computed, observable } from 'mobx';
@@ -56,22 +57,27 @@ export class UserStore extends BaseStore {
   async loadCurrentUser() {
     const response = await makeRequest('/user/', {});
 
-    let timezone;
-    if (!response.timezone && isUserActionAllowed(UserActions.UserSettingsWrite)) {
-      timezone = dayjs.tz.guess();
-      this.update(response.pk, { timezone });
-    }
-
-    timezone = timezone || getTimezone(response);
+    const timezone = this.refreshTimezone(response.pk);
 
     this.items = {
       ...this.items,
       [response.pk]: { ...response, timezone },
     };
 
+    this.currentUserPk = response.pk;
+  }
+
+  @action
+  async refreshTimezone(id: User['pk']) {
+    const { timezone: grafanaPreferencesTimezone } = config.bootData.user;
+    const timezone = grafanaPreferencesTimezone === 'browser' ? dayjs.tz.guess() : grafanaPreferencesTimezone;
+    if (isUserActionAllowed(UserActions.UserSettingsWrite)) {
+      this.update(id, { timezone });
+    }
+
     this.rootStore.currentTimezone = timezone;
 
-    this.currentUserPk = response.pk;
+    return timezone;
   }
 
   @action

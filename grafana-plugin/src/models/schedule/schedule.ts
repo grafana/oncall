@@ -353,9 +353,10 @@ export class ScheduleStore extends BaseStore {
     return response;
   }
 
-  async deleteOncallShift(shiftId: Shift['id']) {
+  async deleteOncallShift(shiftId: Shift['id'], force?: boolean) {
     return await makeRequest(`/oncall_shifts/${shiftId}`, {
       method: 'DELETE',
+      params: { force },
     }).catch(this.onApiError);
   }
 

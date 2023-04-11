@@ -7,6 +7,9 @@ export const APP_SUBTITLE = `Developer-friendly incident response (${plugin?.ver
 // License
 export const GRAFANA_LICENSE_OSS = 'OpenSource';
 
+// height of new Grafana sticky header with breadcrumbs
+export const GRAFANA_HEADER_HEIGTH = 80;
+
 // Reusable breakpoint sizes
 export const BREAKPOINT_TABS = 1024;
 

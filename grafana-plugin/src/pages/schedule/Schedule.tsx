@@ -44,6 +44,8 @@ interface SchedulePageState extends PageBaseState {
   renderType: string;
   shiftIdToShowRotationForm?: Shift['id'];
   shiftIdToShowOverridesForm?: Shift['id'];
+  shiftStartToShowOverrideForm?: dayjs.Dayjs;
+  shiftEndToShowOverrideForm?: dayjs.Dayjs;
   isLoading: boolean;
   showEditForm: boolean;
   showScheduleICalSettings: boolean;
@@ -110,6 +112,8 @@ class SchedulePage extends React.Component<SchedulePageProps, SchedulePageState>
       showEditForm,
       showScheduleICalSettings,
       errorData,
+      shiftStartToShowOverrideForm,
+      shiftEndToShowOverrideForm,
     } = this.state;
 
     const { isNotFoundError } = errorData;
@@ -247,6 +251,7 @@ class SchedulePage extends React.Component<SchedulePageProps, SchedulePageState>
                       startMoment={startMoment}
                       onClick={this.handleShowForm}
                       disabled={disabledRotationForm}
+                      onShowOverrideForm={this.handleShowOverridesForm}
                     />
                     <Rotations
                       scheduleId={scheduleId}
@@ -257,6 +262,7 @@ class SchedulePage extends React.Component<SchedulePageProps, SchedulePageState>
                       onDelete={this.handleDeleteRotation}
                       shiftIdToShowRotationForm={shiftIdToShowRotationForm}
                       onShowRotationForm={this.handleShowRotationForm}
+                      onShowOverrideForm={this.handleShowOverridesForm}
                       disabled={disabledRotationForm}
                     />
                     <ScheduleOverrides
@@ -269,6 +275,8 @@ class SchedulePage extends React.Component<SchedulePageProps, SchedulePageState>
                       shiftIdToShowRotationForm={shiftIdToShowOverridesForm}
                       onShowRotationForm={this.handleShowOverridesForm}
                       disabled={disabledOverrideForm}
+                      shiftStartToShowOverrideForm={shiftStartToShowOverrideForm}
+                      shiftEndToShowOverrideForm={shiftEndToShowOverrideForm}
                     />
                   </div>
                 </VerticalGroup>
@@ -329,8 +337,12 @@ class SchedulePage extends React.Component<SchedulePageProps, SchedulePageState>
     this.setState({ shiftIdToShowRotationForm: shiftId });
   };
 
-  handleShowOverridesForm = (shiftId: Shift['id'] | 'new') => {
-    this.setState({ shiftIdToShowOverridesForm: shiftId });
+  handleShowOverridesForm = (shiftId: Shift['id'] | 'new', shiftStart?: dayjs.Dayjs, shiftEnd?: dayjs.Dayjs) => {
+    this.setState({
+      shiftIdToShowOverridesForm: shiftId,
+      shiftStartToShowOverrideForm: shiftStart,
+      shiftEndToShowOverrideForm: shiftEnd,
+    });
   };
 
   handleNameChange = (value: string) => {

@@ -269,10 +269,10 @@ class SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSta
 
     return (
       <div className={cx('schedule')}>
-        <TimelineMarks startMoment={startMoment} />
+        <TimelineMarks startMoment={startMoment} timezone={store.currentTimezone} />
         <div className={cx('rotations')}>
           <ScheduleFinal
-            hideHeader
+            simplified
             scheduleId={data.id}
             currentTimezone={store.currentTimezone}
             startMoment={startMoment}
