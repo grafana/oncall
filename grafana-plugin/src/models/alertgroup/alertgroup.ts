@@ -10,7 +10,7 @@ import { SelectOption } from 'state/types';
 import { openErrorNotification, refreshPageError, showApiError } from 'utils';
 import LocationHelper from 'utils/LocationHelper';
 
-import { Alert, AlertAction, IncidentStatus, IRMPlanStatus, ResponseIRMPlan } from './alertgroup.types';
+import { Alert, AlertAction, IncidentStatus, ResponseIRMPlan } from './alertgroup.types';
 
 export class AlertGroupStore extends BaseStore {
   @observable.shallow
@@ -208,29 +208,7 @@ export class AlertGroupStore extends BaseStore {
   }
 
   async fetchIRMPlan() {
-    // this.irmPlan = await makeRequest(``, { method: 'POST' });
-
-    return new Promise<any>((resolve) => {
-      setTimeout(() => {
-        this.irmPlan = {
-          limits: {
-            id: 'grafana.oncall.alerts',
-            title: '',
-            start: '2022-03-01 00:00:00',
-            end: '2022-03-31 23:59:59',
-            max: 100,
-            used: 30,
-            status: IRMPlanStatus.NearLimits,
-            reasonHTML: `<span>You're close to reaching your IRM Lite Alert Group limit for <a href="/a/grafana-oncall-app/integrations">3 integrations</a>. Upgrade now to go unlimited.`,
-            upgradeURL: 'https://grafana.com/orgs/grafana/subscription',
-            gcomProductName: 'grafana-cloud-free',
-            gcomProductStartDate: '2022-03-01 00:00:00',
-          },
-        };
-
-        resolve(this.irmPlan);
-      }, 400);
-    });
+    this.irmPlan = await makeRequest(`/usage-limits`, {});
   }
 
   // methods were moved from rootBaseStore.
