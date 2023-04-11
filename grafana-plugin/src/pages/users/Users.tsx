@@ -8,8 +8,8 @@ import LegacyNavHeading from 'navbar/LegacyNavHeading';
 import { RouteComponentProps, withRouter } from 'react-router-dom';
 
 import Avatar from 'components/Avatar/Avatar';
-import GTable from 'components/GTable/GTable';
 import CounterBadge from 'components/CounterBadge/CounterBadge';
+import GTable from 'components/GTable/GTable';
 import PageErrorHandlingWrapper, { PageBaseState } from 'components/PageErrorHandlingWrapper/PageErrorHandlingWrapper';
 import {
   getWrongTeamResponseInfo,

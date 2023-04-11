@@ -1,9 +1,12 @@
 import React, { useState } from 'react';
+
 import { HorizontalGroup, IconButton, Input } from '@grafana/ui';
 import cn from 'classnames/bind';
-import styles from './MaskedInputField.module.scss';
 import CopyToClipboard from 'react-copy-to-clipboard';
-import { openNotification } from '../../utils';
+
+import { openNotification } from 'utils';
+
+import styles from './MaskedInputField.module.scss';
 
 interface MaskedInputFieldProps {
   value: string;

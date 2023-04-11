@@ -15,36 +15,36 @@ import {
 } from '@grafana/ui';
 import cn from 'classnames/bind';
 import { observer } from 'mobx-react';
+import CopyToClipboard from 'react-copy-to-clipboard';
 import Emoji from 'react-emoji-render';
 import { RouteComponentProps, withRouter } from 'react-router-dom';
 
 import CounterBadge from 'components/CounterBadge/CounterBadge';
+import Block from 'components/GBlock/Block';
+import IntegrationCollapsibleTreeView from 'components/IntegrationCollapsibleTreeView/IntegrationCollapsibleTreeView';
+import IntegrationLogo from 'components/IntegrationLogo/IntegrationLogo';
+import MaskedInputField from 'components/MaskedInputField/MaskedInputField';
 import PageErrorHandlingWrapper, { PageBaseState } from 'components/PageErrorHandlingWrapper/PageErrorHandlingWrapper';
 import { initErrorDataState } from 'components/PageErrorHandlingWrapper/PageErrorHandlingWrapper.helpers';
+import PluginLink from 'components/PluginLink/PluginLink';
+import SourceCode from 'components/SourceCode/SourceCode';
+import Tag from 'components/Tag/Tag';
+import Text from 'components/Text/Text';
+import WithConfirm from 'components/WithConfirm/WithConfirm';
+import { WithContextMenu } from 'components/WithContextMenu/WithContextMenu';
+import TeamName from 'containers/TeamName/TeamName';
+import UserDisplayWithAvatar from 'containers/UserDisplay/UserDisplayWithAvatar';
+import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
+import { AlertReceiveChannel } from 'models/alert_receive_channel';
 import { PageProps, WithStoreProps } from 'state/types';
+import { useStore } from 'state/useStore';
 import { withMobXProviderContext } from 'state/withStore';
+import { openNotification } from 'utils';
+import { getVar } from 'utils/DOM';
+import { UserActions } from 'utils/authorization';
+import { PLUGIN_ROOT } from 'utils/consts';
 
 import styles from './Integration2.module.scss';
-import TeamName from 'containers/TeamName/TeamName';
-import IntegrationLogo from 'components/IntegrationLogo/IntegrationLogo';
-import Text from 'components/Text/Text';
-import UserDisplayWithAvatar from 'containers/UserDisplay/UserDisplayWithAvatar';
-import { WithContextMenu } from 'components/WithContextMenu/WithContextMenu';
-import { AlertReceiveChannel } from 'models/alert_receive_channel';
-import { openNotification } from 'utils';
-import PluginLink from 'components/PluginLink/PluginLink';
-import { PLUGIN_ROOT } from 'utils/consts';
-import WithConfirm from 'components/WithConfirm/WithConfirm';
-import { WithPermissionControlTooltip } from 'containers/WithPermissionControl/WithPermissionControlTooltip';
-import { UserActions } from 'utils/authorization';
-import IntegrationCollapsibleTreeView from 'components/IntegrationCollapsibleTreeView/IntegrationCollapsibleTreeView';
-import Block from 'components/GBlock/Block';
-import Tag from 'components/Tag/Tag';
-import { getVar } from 'utils/DOM';
-import MaskedInputField from '../../components/MaskedInputField/MaskedInputField';
-import SourceCode from '../../components/SourceCode/SourceCode';
-import CopyToClipboard from 'react-copy-to-clipboard';
-import { useStore } from '../../state/useStore';
 
 const cx = cn.bind(styles);
 
@@ -70,7 +70,16 @@ class Integration2 extends React.Component<Integration2Props, Integration2State>
   }
 
   async componentDidMount() {
-    await this.loadIntegration();
+    const {
+      match: {
+        params: { id },
+      },
+    } = this.props;
+    const {
+      store: { alertReceiveChannelStore },
+    } = this.props;
+
+    await Promise.all([this.loadIntegration(), alertReceiveChannelStore.updateTemplates(id)]);
   }
 
   render() {
@@ -303,112 +312,87 @@ class Integration2 extends React.Component<Integration2Props, Integration2State>
 
                     <IntegrationBlockItem>
                       <VerticalGroup>
-                        <HorizontalGroup>
-                          <InlineLabel width={20}>Grouping</InlineLabel>
-                          <Input value="test" width={46} />
-                          <Button variant="secondary" icon="edit" size="md" />
-                          <Button variant="secondary" size="md">
-                            <Text type="link">Help</Text>
-                            <Icon name="angle-down" size="sm" />
-                          </Button>
-                        </HorizontalGroup>
-                        <HorizontalGroup>
-                          <InlineLabel width={20} tooltip={'TODO'}>
-                            Auto resolve
-                          </InlineLabel>
-                          <Input value="test" width={46} />
-                          <Button variant="secondary" icon={'edit'} size={'md'} />
-                        </HorizontalGroup>
+                        <IntegrationTemplateBlock
+                          label={'Grouping'}
+                          renderInput={() => <Input value={'test'} width={46} />}
+                          showHelp
+                          onEdit={undefined}
+                        />
+
+                        <IntegrationTemplateBlock
+                          label={'Auto resolve'}
+                          renderInput={() => <Input value={'test'} width={46} />}
+                          onEdit={undefined}
+                        />
                       </VerticalGroup>
                     </IntegrationBlockItem>
 
                     <IntegrationBlockItem>
                       <VerticalGroup>
                         <Text type={'primary'}>Web</Text>
-                        <HorizontalGroup>
-                          <InlineLabel width={20}>Title</InlineLabel>
-                          <Input value={'test'} width={46} />
-                          <Button variant={'secondary'} icon={'edit'} size={'md'} />
-                          <Button variant={'secondary'} icon={'times'} size={'md'} />
-                        </HorizontalGroup>
 
-                        <HorizontalGroup>
-                          <InlineLabel width={20} tooltip={'TODO'}>
-                            Message
-                          </InlineLabel>
-                          <TextArea value={'test'} width={46} />
-                          <Button variant={'secondary'} icon={'edit'} size={'md'} />
-                          <Button variant={'secondary'} icon={'times'} size={'md'} />
-                        </HorizontalGroup>
+                        <IntegrationTemplateBlock
+                          label={'Title'}
+                          renderInput={() => <Input value={'test'} width={46} />}
+                          onEdit={undefined}
+                        />
 
-                        <HorizontalGroup>
-                          <InlineLabel width={20}>Image</InlineLabel>
-                          <Input value={'text'} width={46} />
-                          <Button variant={'secondary'} icon={'edit'} size={'md'} />
-                          <Button variant={'secondary'} icon={'times'} size={'md'} />
-                        </HorizontalGroup>
+                        <IntegrationTemplateBlock
+                          label={'Message'}
+                          renderInput={() => <TextArea value={'test'} width={46} />}
+                          onEdit={undefined}
+                        />
+
+                        <IntegrationTemplateBlock
+                          label={'Image'}
+                          renderInput={() => <Input value={'text'} width={46} />}
+                          onEdit={undefined}
+                        />
                       </VerticalGroup>
                     </IntegrationBlockItem>
 
                     <IntegrationBlockItem>
                       <VerticalGroup>
-                        <HorizontalGroup>
-                          <InlineLabel width={20}>Auto acknowledge</InlineLabel>
-                          <Input value={'text'} width={46} />
-                          <Button variant={'secondary'} icon={'edit'} size={'md'} />
-                          <Button variant={'secondary'} icon={'times'} size={'md'} />
-                          <Button variant="secondary" size="md">
-                            <Text type="link">Help</Text>
-                            <Icon name="angle-down" size="sm" />
-                          </Button>
-                        </HorizontalGroup>
+                        <IntegrationTemplateBlock
+                          label={'Auto acknowledge'}
+                          renderInput={() => <Input value={'text'} width={46} />}
+                          onEdit={undefined}
+                          showHelp
+                        />
 
-                        <HorizontalGroup>
-                          <InlineLabel width={20} tooltip={'TODO'}>
-                            Source Link
-                          </InlineLabel>
-                          <Input value={'text'} width={46} />
-                          <Button variant={'secondary'} icon={'edit'} size={'md'} />
-                          <Button variant={'secondary'} icon={'times'} size={'md'} />
-                        </HorizontalGroup>
+                        <IntegrationTemplateBlock
+                          label={'Source Link'}
+                          renderInput={() => <Input value={'text'} width={46} />}
+                          onEdit={undefined}
+                        />
                       </VerticalGroup>
                     </IntegrationBlockItem>
 
                     <IntegrationBlockItem>
                       <VerticalGroup>
-                        <HorizontalGroup>
-                          <InlineLabel width={20}>Phone Call</InlineLabel>
-                          <Input value={'text'} width={46} />
-                          <Button variant={'secondary'} icon={'edit'} size={'md'} />
-                          <Button variant={'secondary'} icon={'times'} size={'md'} />
-                          <Button variant="secondary" size="md">
-                            <Text type="link">Help</Text>
-                            <Icon name="angle-down" size="sm" />
-                          </Button>
-                        </HorizontalGroup>
+                        <IntegrationTemplateBlock
+                          label={'Phone Call'}
+                          renderInput={() => <Input value={'text'} width={46} />}
+                          onEdit={undefined}
+                          showHelp
+                        />
 
-                        <HorizontalGroup>
-                          <InlineLabel width={20} tooltip={'TODO'}>
-                            SMS
-                          </InlineLabel>
-                          <Input value={'text'} width={46} />
-                          <Button variant={'secondary'} icon={'edit'} size={'md'} />
-                          <Button variant={'secondary'} icon={'times'} size={'md'} />
-                        </HorizontalGroup>
+                        <IntegrationTemplateBlock
+                          label={'SMS'}
+                          renderInput={() => <Input value={'text'} width={46} />}
+                          onEdit={undefined}
+                        />
                       </VerticalGroup>
                     </IntegrationBlockItem>
 
                     <IntegrationBlockItem>
                       <VerticalGroup>
                         <Text type={'primary'}>Web</Text>
-                        <HorizontalGroup>
-                          <InlineLabel width={20} tooltip={'TODO'}>
-                            Message
-                          </InlineLabel>
-                          <TextArea value={'text'} width={46} />
-                          <Button variant={'secondary'} icon={'edit'} size={'md'} />
-                          <Button variant={'secondary'} icon={'times'} size={'md'} />
-                        </HorizontalGroup>
+                        <IntegrationTemplateBlock
+                          label={'Message'}
+                          renderInput={() => <TextArea value={'text'} width={46} />}
+                          onEdit={undefined}
+                        />
                       </VerticalGroup>
                     </IntegrationBlockItem>
 
@@ -419,8 +403,10 @@ class Integration2 extends React.Component<Integration2Props, Integration2State>
                           Customise how they rendered in SMS, Phone Calls, Mobile App, Slack, Telegram, MS Teams{' '}
                         </Text>
                         <Button variant={'secondary'} size={'md'}>
-                          <Icon name={'plus'} size={'md'} />
-                          Customise templates
+                          <HorizontalGroup spacing={'xs'}>
+                            <Icon name={'plus'} size={'md'} />
+                            Customise templates
+                          </HorizontalGroup>
                         </Button>
                       </VerticalGroup>
                     </IntegrationBlockItem>
@@ -543,8 +529,6 @@ const IntegrationSendDemoPayloadModal: React.FC<IntegrationSendDemoPayloadModalP
 }) => {
   const { alertReceiveChannelStore } = useStore();
 
-  console.log('here we are');
-
   return (
     <Modal
       closeOnEscape
@@ -562,7 +546,7 @@ const IntegrationSendDemoPayloadModal: React.FC<IntegrationSendDemoPayloadModalP
 
         <SourceCode showCopyToClipboard={false}>{getDemoAlertJSON()}</SourceCode>
 
-        <HorizontalGroup justify={'flex-end'} spacing={'xs'}>
+        <HorizontalGroup justify={'flex-end'} spacing={'md'}>
           <Button variant={'secondary'} onClick={onCancel}>
             Cancel
           </Button>
@@ -603,6 +587,51 @@ const IntegrationSendDemoPayloadModal: React.FC<IntegrationSendDemoPayloadModalP
       4
     );
   }
+};
+
+interface IntegrationTemplateBlockProps {
+  label: string;
+  labelTooltip?: string;
+  renderInput: () => React.ReactNode;
+  showClose?: boolean;
+  showHelp?: boolean;
+
+  onEdit: () => void;
+  onRemove?: () => void;
+  onHelp?: () => void;
+}
+
+const IntegrationTemplateBlock: React.FC<IntegrationTemplateBlockProps> = ({
+  label,
+  labelTooltip,
+  renderInput,
+  showClose,
+  showHelp,
+  onEdit,
+  onHelp,
+  onRemove,
+}) => {
+  let inlineLabelProps = { labelTooltip };
+  if (!labelTooltip) {
+    delete inlineLabelProps.labelTooltip;
+  }
+
+  return (
+    <HorizontalGroup>
+      <InlineLabel width={20} {...inlineLabelProps}>
+        {label}
+      </InlineLabel>
+      {renderInput()}
+      <Button variant={'secondary'} icon={'edit'} size={'md'} onClick={onEdit} />
+      {showClose && <Button variant={'secondary'} icon={'times'} size={'md'} onClick={onRemove} />}
+      {showHelp && (
+        <Button variant="secondary" size="md" onClick={onHelp}>
+          <Text type="link">Help</Text>
+          <Icon name="angle-down" size="sm" />
+        </Button>
+      )}
+    </HorizontalGroup>
+  );
 };
 
 interface IntegrationBlockProps {

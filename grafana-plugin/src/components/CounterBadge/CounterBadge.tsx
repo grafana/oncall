@@ -1,4 +1,5 @@
 import React, { FC } from 'react';
+
 import { Icon, Tooltip, IconName, VerticalGroup, HorizontalGroup } from '@grafana/ui';
 import cn from 'classnames/bind';
 
