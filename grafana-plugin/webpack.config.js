@@ -3,6 +3,7 @@ const path = require('path');
 const dotenv = require('dotenv');
 
 const CircularDependencyPlugin = require('circular-dependency-plugin');
+const MonacoWebpackPlugin = require('monaco-editor-webpack-plugin');
 
 const MONACO_DIR = path.resolve(__dirname, './node_modules/monaco-editor');
 
@@ -120,6 +121,11 @@ module.exports.getWebpackConfig = (config, options) => {
             'sass-loader',
           ],
         },
+
+        {
+          test: /\.ttf$/,
+          use: ['file-loader']
+        }
       ],
     },
 
@@ -137,6 +143,8 @@ module.exports.getWebpackConfig = (config, options) => {
         // set the current working directory for displaying module paths
         cwd: process.cwd(),
       }),
+
+      new MonacoWebpackPlugin(),
 
       /**
        * From docs (https://webpack.js.org/plugins/environment-plugin/):

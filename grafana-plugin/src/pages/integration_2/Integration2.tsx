@@ -91,11 +91,13 @@ class Integration2 extends React.Component<Integration2Props, Integration2State>
       },
     } = this.props;
 
-    const alertReceiveChannel = alertReceiveChannelStore.items[id];
-    const channelFilterIds = alertReceiveChannelStore.channelFilterIds[id];
     const { isNotFoundError, isWrongTeamError } = errorData;
 
-    if ((!alertReceiveChannel && !isNotFoundError && !isWrongTeamError) || !channelFilterIds) {
+    const alertReceiveChannel = alertReceiveChannelStore.items[id];
+    const channelFilterIds = alertReceiveChannelStore.channelFilterIds[id];
+    const templates = alertReceiveChannelStore.templates[id];
+
+    if ((!alertReceiveChannel && !isNotFoundError && !isWrongTeamError) || !channelFilterIds || !templates) {
       return (
         <div className={cx('root')}>
           <LoadingPlaceholder text="Loading Integration..." />
@@ -314,14 +316,26 @@ class Integration2 extends React.Component<Integration2Props, Integration2State>
                       <VerticalGroup>
                         <IntegrationTemplateBlock
                           label={'Grouping'}
-                          renderInput={() => <Input value={'test'} width={46} />}
+                          renderInput={() => (
+                            <Input
+                              value={templates['grouping_id_template']}
+                              className={cx('input', 'input--short')}
+                              readOnly
+                            />
+                          )}
                           showHelp
                           onEdit={undefined}
                         />
 
                         <IntegrationTemplateBlock
                           label={'Auto resolve'}
-                          renderInput={() => <Input value={'test'} width={46} />}
+                          renderInput={() => (
+                            <Input
+                              value={templates['resolve_condition_template']}
+                              className={cx('input', 'input--short')}
+                              readOnly
+                            />
+                          )}
                           onEdit={undefined}
                         />
                       </VerticalGroup>
@@ -333,19 +347,38 @@ class Integration2 extends React.Component<Integration2Props, Integration2State>
 
                         <IntegrationTemplateBlock
                           label={'Title'}
-                          renderInput={() => <Input value={'test'} width={46} />}
+                          renderInput={() => (
+                            <Input
+                              value={templates['web_title_template']}
+                              className={cx('input', 'input--long')}
+                              readOnly
+                            />
+                          )}
                           onEdit={undefined}
                         />
 
                         <IntegrationTemplateBlock
                           label={'Message'}
-                          renderInput={() => <TextArea value={'test'} width={46} />}
+                          renderInput={() => (
+                            <TextArea
+                              rows={5}
+                              value={templates['web_message_template']}
+                              className={cx('input', 'input--long')}
+                              readOnly
+                            />
+                          )}
                           onEdit={undefined}
                         />
 
                         <IntegrationTemplateBlock
                           label={'Image'}
-                          renderInput={() => <Input value={'text'} width={46} />}
+                          renderInput={() => (
+                            <Input
+                              value={templates['web_image_url_template']}
+                              className={cx('input', 'input--long')}
+                              readOnly
+                            />
+                          )}
                           onEdit={undefined}
                         />
                       </VerticalGroup>
@@ -355,14 +388,26 @@ class Integration2 extends React.Component<Integration2Props, Integration2State>
                       <VerticalGroup>
                         <IntegrationTemplateBlock
                           label={'Auto acknowledge'}
-                          renderInput={() => <Input value={'text'} width={46} />}
+                          renderInput={() => (
+                            <Input
+                              value={templates['acknowledge_condition_template']}
+                              className={cx('input', 'input--short')}
+                              readOnly
+                            />
+                          )}
                           onEdit={undefined}
                           showHelp
                         />
 
                         <IntegrationTemplateBlock
                           label={'Source Link'}
-                          renderInput={() => <Input value={'text'} width={46} />}
+                          renderInput={() => (
+                            <Input
+                              value={templates['source_link_template']}
+                              className={cx('input', 'input--short')}
+                              readOnly
+                            />
+                          )}
                           onEdit={undefined}
                         />
                       </VerticalGroup>
@@ -372,14 +417,26 @@ class Integration2 extends React.Component<Integration2Props, Integration2State>
                       <VerticalGroup>
                         <IntegrationTemplateBlock
                           label={'Phone Call'}
-                          renderInput={() => <Input value={'text'} width={46} />}
+                          renderInput={() => (
+                            <Input
+                              value={templates['phone_call_title_template']}
+                              className={cx('input', 'input--short')}
+                              readOnly
+                            />
+                          )}
                           onEdit={undefined}
                           showHelp
                         />
 
                         <IntegrationTemplateBlock
                           label={'SMS'}
-                          renderInput={() => <Input value={'text'} width={46} />}
+                          renderInput={() => (
+                            <Input
+                              value={templates['sms_title_template']}
+                              className={cx('input', 'input--short')}
+                              readOnly
+                            />
+                          )}
                           onEdit={undefined}
                         />
                       </VerticalGroup>
@@ -387,10 +444,114 @@ class Integration2 extends React.Component<Integration2Props, Integration2State>
 
                     <IntegrationBlockItem>
                       <VerticalGroup>
-                        <Text type={'primary'}>Web</Text>
+                        <Text type={'primary'}>Slack</Text>
+
+                        <IntegrationTemplateBlock
+                          label={'Title'}
+                          renderInput={() => (
+                            <Input
+                              value={templates['slack_message_template']}
+                              className={cx('input', 'input--long')}
+                              readOnly
+                            />
+                          )}
+                          onEdit={undefined}
+                        />
+
                         <IntegrationTemplateBlock
                           label={'Message'}
-                          renderInput={() => <TextArea value={'text'} width={46} />}
+                          renderInput={() => (
+                            <TextArea
+                              rows={5}
+                              value={templates['slack_title_template']}
+                              className={cx('input', 'input--long')}
+                              readOnly
+                            />
+                          )}
+                          onEdit={undefined}
+                        />
+
+                        <IntegrationTemplateBlock
+                          label={'Image'}
+                          renderInput={() => (
+                            <Input
+                              value={templates['slack_image_template']}
+                              className={cx('input', 'input--long')}
+                              readOnly
+                            />
+                          )}
+                          onEdit={undefined}
+                        />
+                      </VerticalGroup>
+                    </IntegrationBlockItem>
+
+                    <IntegrationBlockItem>
+                      <VerticalGroup>
+                        <Text type={'primary'}>Telegram</Text>
+                        <IntegrationTemplateBlock
+                          label={'Title'}
+                          renderInput={() => (
+                            <Input
+                              value={templates['telegram_title_template']}
+                              className={cx('input', 'input--long')}
+                              readOnly
+                            />
+                          )}
+                          onEdit={undefined}
+                        />
+
+                        <IntegrationTemplateBlock
+                          label={'Message'}
+                          renderInput={() => (
+                            <TextArea
+                              rows={5}
+                              value={templates['telegram_message_template']}
+                              className={cx('input', 'input--long')}
+                              readOnly
+                            />
+                          )}
+                          onEdit={undefined}
+                        />
+
+                        <IntegrationTemplateBlock
+                          label={'Image'}
+                          renderInput={() => (
+                            <TextArea
+                              rows={5}
+                              value={templates['telegram_image_url_template']}
+                              className={cx('input', 'input--long')}
+                              readOnly
+                            />
+                          )}
+                          onEdit={undefined}
+                        />
+                      </VerticalGroup>
+                    </IntegrationBlockItem>
+
+                    <IntegrationBlockItem>
+                      <VerticalGroup>
+                        <Text type={'primary'}>Email</Text>
+                        <IntegrationTemplateBlock
+                          label={'Title'}
+                          renderInput={() => (
+                            <Input
+                              value={templates['email_title_template']}
+                              className={cx('input', 'input--long')}
+                              readOnly
+                            />
+                          )}
+                          onEdit={undefined}
+                        />
+
+                        <IntegrationTemplateBlock
+                          label={'Message'}
+                          renderInput={() => (
+                            <Input
+                              value={templates['email_message_template']}
+                              className={cx('input', 'input--long')}
+                              readOnly
+                            />
+                          )}
                           onEdit={undefined}
                         />
                       </VerticalGroup>
