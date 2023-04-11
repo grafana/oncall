@@ -17,6 +17,7 @@ export interface OutgoingWebhook2 {
   headers: string;
   trigger_template: string;
   last_response_log?: OutgoingWebhook2Response;
+  is_webhook_enabled: boolean;
 }
 
 export interface OutgoingWebhook2Response {

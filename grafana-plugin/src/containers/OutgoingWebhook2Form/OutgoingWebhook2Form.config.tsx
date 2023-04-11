@@ -3,7 +3,7 @@ import { KeyValuePair } from 'utils';
 
 export const WebhookTriggerType = {
   EscalationStep: new KeyValuePair('0', 'Escalation Step'),
-  Triggered: new KeyValuePair('1', 'Triggered'),
+  Firing: new KeyValuePair('1', 'Firing'),
   Acknowledged: new KeyValuePair('2', 'Acknowledged'),
   Resolved: new KeyValuePair('3', 'Resolved'),
   Silenced: new KeyValuePair('4', 'Silenced'),
@@ -20,8 +20,15 @@ export const form: { name: string; fields: FormItem[] } = {
       validation: { required: true },
     },
     {
+      name: 'is_webhook_enabled',
+      label: 'Enabled',
+      normalize: (value) => Boolean(value),
+      type: FormItemType.Switch,
+      description: 'Controls if this webhook will execute when the event is triggered',
+    },
+    {
       name: 'team',
-      label: 'Assign to team',
+      label: 'Assign to Team',
       description:
         'Assigning to the teams allows you to filter Outgoing Webhooks and configure their visibility. Go to OnCall -> Settings -> Team and Access Settings for more details',
       type: FormItemType.GSelect,
@@ -35,7 +42,7 @@ export const form: { name: string; fields: FormItem[] } = {
     },
     {
       name: 'trigger_type',
-      label: 'Trigger type',
+      label: 'Trigger Type',
       type: FormItemType.Select,
       extra: {
         options: [
@@ -44,8 +51,8 @@ export const form: { name: string; fields: FormItem[] } = {
             label: WebhookTriggerType.EscalationStep.value,
           },
           {
-            value: WebhookTriggerType.Triggered.key,
-            label: WebhookTriggerType.Triggered.value,
+            value: WebhookTriggerType.Firing.key,
+            label: WebhookTriggerType.Firing.value,
           },
           {
             value: WebhookTriggerType.Acknowledged.key,
@@ -69,10 +76,12 @@ export const form: { name: string; fields: FormItem[] } = {
           },
         ],
       },
+      validation: { required: true },
+      normalize: (value) => value,
     },
     {
       name: 'http_method',
-      label: 'HTTP method',
+      label: 'HTTP Method',
       type: FormItemType.Select,
       extra: {
         options: [
@@ -98,6 +107,8 @@ export const form: { name: string; fields: FormItem[] } = {
           },
         ],
       },
+      validation: { required: true },
+      normalize: (value) => value,
     },
     /*
      * TODO: Uncomment once backend implements it too
